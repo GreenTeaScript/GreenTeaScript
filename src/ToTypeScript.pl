@@ -21,10 +21,16 @@ while ($line = <>)  {
 	$line =~ s/extends KonohaStatic//g;
 	$line =~ s/KonohaStatic\.//g;
 	$line =~ s/implements(.*)\{/{/g;
+	if($line =~ /extends/) {
+		print $Indent . $line;
+		next;
+	}
+
 	$line =~ s/([A-Z]\w+)\/\*constructor\*\//constructor/g;
 
 	$line =~ s/int([ \t])/number$1/g;
 	$line =~ s/long([ \t])/number$1/g;
+	$line =~ s/char([ \t])/number$1/g;
 	$line =~ s/final //;
 	$line =~ s/public //;
 	$line =~ s/private //;
@@ -50,11 +56,12 @@ while ($line = <>)  {
 	$line =~ s/String[ \t]+(\w+)(\W)/$1 :string$2/g;
 	$line =~ s/([A-Z]\w+)[ \t]+(\w+)(\W)/$2 :$1$3/g;
 	
-	$line =~ s/:TokenList/:KonohaToken[]/g;
-	$line =~ s/: TokenList/:KonohaToken[]/g;
-	$line =~ s/: number/:number/g;
-	$line =~ s/: string/:string/g;
+	$line =~ s/new KonohaArray\(\)/[]/g;
+	$line =~ s/new KonohaMap\(\)/{}/g;
 	$line =~ s/(\S)([ \t]+)(\S)/$1 $3/g;
+	$line =~ s/KonohaArray/any[]/g;
+	$line =~ s/KonohaMap/object/g;
+	#$line =~ s/(\S)([ \t]+)(\S)/$1 $3/g;
 	print $Indent . $line;
 }
 

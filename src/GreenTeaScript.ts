@@ -165,7 +165,7 @@ module GreenScript {
 	var GlobalConstName :string = "global";
 
 	
-	var EmptyList :KonohaArray = new KonohaArray();
+	var EmptyList :any[] = [];
 
 
 	// debug flags
@@ -190,7 +190,7 @@ module GreenScript {
 		println("TODO: " + msg);
 	}
 
-	function ListSize(a :KonohaArray) :number {
+	function ListSize(a :any[]) :number {
 		return (a == null) ? 0 : a.size();
 	}
 	
@@ -198,15 +198,15 @@ module GreenScript {
 		return ((flag & flag2) == flag2);
 	}
 	
-	function IsWhitespace(char ch) :boolean {
+	function IsWhitespace(ch :number) :boolean {
 		return Character.isWhitespace(ch);
 	}
 	
-	function IsLetter(char ch) :boolean {
+	function IsLetter(ch :number) :boolean {
 		return Character.isLetter(ch);
 	}
 	
-	function IsDigit(char ch) :boolean {
+	function IsDigit(ch :number) :boolean {
 		return Character.isDigit(ch);
 	}
 	
@@ -537,7 +537,7 @@ module GreenScript {
 				/*170 x   171 y   172 z   173 {   174 |   175 }   176 ~   177 del*/
 				LowerAlpha, LowerAlpha, LowerAlpha, OpenBrace, Var, CloseBrace, Childer, 1, };
 	
-		function FromJavaChar(char c) :number {
+		function FromJavaChar(c :number) :number {
 			if(c < 128) {
 				return CharMatrix[c];
 			}
@@ -624,14 +624,14 @@ module GreenScript {
 	
 	class TokenContext {
 		NameSpace :KonohaNameSpace;
-		SourceList :KonohaArray;
+		SourceList :any[];
 		Pos :number;
 		ParsingLine :number;
 		ParseFlag :number;
 	
 		constructor(NameSpace :KonohaNameSpace, Text :string, FileLine :number) {
 			this.NameSpace = NameSpace;
-			this.SourceList = new KonohaArray();
+			this.SourceList = [];
 			this.Pos = 0;
 			this.ParsingLine = FileLine;
 			this.ParseFlag = 0;
@@ -715,7 +715,7 @@ module GreenScript {
 			var pos :number = 0, len = ScriptSource.length();
 			this.ParsingLine = CurrentLine;
 			while(pos < len) {
-				var kchar :number = KonohaChar.FromJavaChar(ScriptSource.charAt(pos));
+				var knumber :number = KonohaChar.FromJavaChar(ScriptSource.charAt(pos));
 				var pos2 :number = DispatchFunc(ScriptSource, kchar, pos);
 				if(!(pos < pos2)) {
 					break;
@@ -879,7 +879,7 @@ module GreenScript {
 		TreeNameSpace :KonohaNameSpace;
 		Pattern :SyntaxPattern;
 		KeyToken :KonohaToken;
-		TreeList :KonohaArray;
+		TreeList :any[];
 	
 		toString() :string {
 			var key :string = this.KeyToken.ParsedText + ":" + ((this.Pattern != null) ? this.Pattern.PatternName : "null");
@@ -957,7 +957,7 @@ module GreenScript {
 			if(!IsEmpty()) {
 				if(Index >= 0) {
 					if(this.TreeList == null) {
-						this.TreeList = new KonohaArray();
+						this.TreeList = [];
 					}
 					if(< this.TreeList.size()) :Index {
 						this.TreeList.set(Index, Value);
@@ -1020,7 +1020,7 @@ module GreenScript {
 				}
 				else {
 					if(this.TreeList == null) {
-						this.TreeList = new KonohaArray();
+						this.TreeList = [];
 					}
 					this.TreeList.add(Tree);
 				}
@@ -1051,7 +1051,7 @@ module GreenScript {
 		SuperClass :KonohaType;
 		ClassParam :KonohaParam;
 		SearchSimilarClass :KonohaType;
-		ClassMethodList :KonohaArray;
+		ClassMethodList :any[];
 		SearchSuperMethodClass :KonohaType;
 		DefaultNullValue :Object;
 		LocalSpec :Object;
@@ -1121,7 +1121,7 @@ module GreenScript {
 	
 		AddMethod(Method :KonohaMethod) :void {
 			if(this.ClassMethodList == EmptyList){
-				this.ClassMethodList = new KonohaArray();
+				this.ClassMethodList = [];
 			}
 			this.ClassMethodList.add(Method);
 		}
@@ -1197,8 +1197,8 @@ module GreenScript {
 	
 		// SymbolTable
 	
-		var SymbolList :KonohaArray = new KonohaArray();
-		var SymbolMap :KonohaMap = new KonohaMap();
+		var SymbolList :any[] = [];
+		var SymbolMap :object = {};
 	
 		function MaskSymbol(SymbolId :number, Mask :number) :number {
 			return (SymbolId << SymbolMaskSize) | Mask;
@@ -1349,7 +1349,7 @@ module GreenScript {
 		}
 	}
 	
-	class extends :NativeMethodInvoker KonohaMethodInvoker {
+	class NativeMethodInvoker extends KonohaMethodInvoker {
 	
 		NativeMethodInvoker(Param :KonohaParam, MethodRef :Method) {
 			super(Param, MethodRef);
@@ -1422,7 +1422,7 @@ module GreenScript {
 	
 	}
 	
-	class extends :KonohaMethod KonohaDef {
+	class KonohaMethod extends KonohaDef {
 		ClassInfo :KonohaType;
 		MethodName :string;
 		MethodSymbolId :number;
@@ -1433,7 +1433,7 @@ module GreenScript {
 	
 		// DoLazyComilation();
 		LazyNameSpace :KonohaNameSpace;
-		SourceList :KonohaArray;
+		SourceList :any[];
 		//merge :FIXME field :ParsedTree in SouceList.
 		ParsedTree :SyntaxTree;
 	
@@ -1596,11 +1596,11 @@ module GreenScript {
 			}
 		}
 	
-		var LocalStackList :KonohaArray = null;
+		var LocalStackList :any[] = null;
 	
 		AppendLocalType(TypeInfo :KonohaType, Name :string) :void {
 			if(this.LocalStackList == null) {
-				this.LocalStackList = new KonohaArray();
+				this.LocalStackList = [];
 			}
 			this.LocalStackList.add(new VarSet(TypeInfo, Name));
 		}
@@ -1714,7 +1714,7 @@ module GreenScript {
 	
 	}
 	
-	class extends :UnaryNode TypedNode {
+	class UnaryNode extends TypedNode {
 		Expr :TypedNode;
 	
 		UnaryNode(TypeInfo :KonohaType, Expr :TypedNode) {
@@ -1723,7 +1723,7 @@ module GreenScript {
 		}
 	}
 	
-	class extends :BinaryNode TypedNode {
+	class BinaryNode extends TypedNode {
 		LeftNode :TypedNode;
 		RightNode :TypedNode;
 	
@@ -1735,7 +1735,7 @@ module GreenScript {
 	
 	}
 	
-	class extends :ErrorNode TypedNode {
+	class ErrorNode extends TypedNode {
 		ErrorMessage :string;
 	
 		ErrorNode(TypeInfo :KonohaType, KeyToken :KonohaToken, ErrorMessage :string) {
@@ -1749,7 +1749,7 @@ module GreenScript {
 		}
 	}
 	
-	class extends :ConstNode TypedNode {
+	class ConstNode extends TypedNode {
 		ConstValue :Object;
 	
 		ConstNode(TypeInfo :KonohaType, SourceToken :KonohaToken, ConstValue :Object) {
@@ -1764,7 +1764,7 @@ module GreenScript {
 	
 	}
 	
-	class extends :FieldNode TypedNode {
+	class FieldNode extends TypedNode {
 		FieldName :string;
 	
 		FieldNode(TypeInfo :KonohaType, SourceToken :KonohaToken, FieldName :string) {
@@ -1777,7 +1777,7 @@ module GreenScript {
 		}
 	}
 	
-	class extends :LocalNode FieldNode {
+	class LocalNode extends FieldNode {
 		LocalNode(TypeInfo :KonohaType, SourceToken :KonohaToken, FieldName :string) {
 			super(TypeInfo, SourceToken, FieldName);
 		}
@@ -1789,7 +1789,7 @@ module GreenScript {
 	
 	}
 	
-	class extends :NullNode TypedNode {
+	class NullNode extends TypedNode {
 	
 		NullNode(TypeInfo :KonohaType) {
 			super(TypeInfo, null/* fixme */);
@@ -1802,7 +1802,7 @@ module GreenScript {
 	
 	}
 	
-	class extends :LetNode TypedNode {
+	class LetNode extends TypedNode {
 		VarToken :KonohaToken;
 		ValueNode :TypedNode;
 		BlockNode :TypedNode;
@@ -1822,7 +1822,7 @@ module GreenScript {
 	
 	}
 	
-	class extends :AndNode BinaryNode {
+	class AndNode extends BinaryNode {
 		AndNode(TypeInfo :KonohaType, KeyToken :KonohaToken, Left :TypedNode, Right :TypedNode) {
 			super(TypeInfo, KeyToken, Left, Right);
 		}
@@ -1833,7 +1833,7 @@ module GreenScript {
 		}
 	}
 	
-	class extends :OrNode BinaryNode {
+	class OrNode extends BinaryNode {
 	
 		OrNode(TypeInfo :KonohaType, KeyToken :KonohaToken, Left :TypedNode, Right :TypedNode) {
 			super(TypeInfo, KeyToken, Left, Right);
@@ -1846,28 +1846,28 @@ module GreenScript {
 	
 	}
 	
-	class extends :ApplyNode TypedNode {
+	class ApplyNode extends TypedNode {
 		Method :KonohaMethod;
-		Params :KonohaArray; /* [this, arg1, arg2, ...] */
+		Params :any[]; /* [this, arg1, arg2, ...] */
 	
 		/* call self.Method(arg1, arg2, ...) */
 		ApplyNode(TypeInfo :KonohaType, KeyToken :KonohaToken, Method :KonohaMethod) {
 			super(TypeInfo, KeyToken);
 			this.Method = Method;
-			this.Params = new KonohaArray();
+			this.Params = [];
 		}
 	
 		ApplyNode(TypeInfo :KonohaType, KeyToken :KonohaToken, Method :KonohaMethod, arg1 :TypedNode) {
 			super(TypeInfo, KeyToken);
 			this.Method = Method;
-			this.Params = new KonohaArray();
+			this.Params = [];
 			this.Params.add(arg1);
 		}
 	
 		ApplyNode(TypeInfo :KonohaType, KeyToken :KonohaToken, Method :KonohaMethod, arg1 :TypedNode, arg2 :TypedNode) {
 			super(TypeInfo, KeyToken);
 			this.Method = Method;
-			this.Params = new KonohaArray();
+			this.Params = [];
 			this.Params.add(arg1);
 			this.Params.add(arg2);
 		}
@@ -1883,12 +1883,12 @@ module GreenScript {
 	
 	}
 	
-	class extends :NewNode TypedNode {
-		Params :KonohaArray; /* [this, arg1, arg2, ...] */
+	class NewNode extends TypedNode {
+		Params :any[]; /* [this, arg1, arg2, ...] */
 	
 		NewNode(TypeInfo :KonohaType, KeyToken :KonohaToken) {
 			super(TypeInfo, KeyToken);
-			this.Params = new KonohaArray();
+			this.Params = [];
 		}
 	
 		Append(Expr :TypedNode) :void {
@@ -1902,7 +1902,7 @@ module GreenScript {
 	
 	}
 	
-	class extends :IfNode TypedNode {
+	class IfNode extends TypedNode {
 		CondExpr :TypedNode;
 		ThenNode :TypedNode;
 		ElseNode :TypedNode;
@@ -1922,7 +1922,7 @@ module GreenScript {
 	
 	}
 	
-	class extends :LoopNode TypedNode {
+	class LoopNode extends TypedNode {
 	
 		/* while then :CondExpr { LoopBlock; IterationExpr } */
 		CondExpr :TypedNode;
@@ -1943,7 +1943,7 @@ module GreenScript {
 	
 	}
 	
-	class extends :ReturnNode UnaryNode {
+	class ReturnNode extends UnaryNode {
 	
 		ReturnNode(TypeInfo :KonohaType, Expr :TypedNode) {
 			super(TypeInfo, Expr);
@@ -1956,7 +1956,7 @@ module GreenScript {
 	
 	}
 	
-	class extends :ThrowNode UnaryNode {
+	class ThrowNode extends UnaryNode {
 		/* ExceptionExpr :THROW */
 		ThrowNode(TypeInfo :KonohaType, Expr :TypedNode) {
 			super(TypeInfo, Expr);
@@ -1969,23 +1969,23 @@ module GreenScript {
 	}
 	
 	
-	class extends :TryNode TypedNode {
+	class TryNode extends TypedNode {
 		/*
 		 * let HasException = TRY(TryBlock); in if HasException ==
 		 * CatchedExceptions[0] then CatchBlock[0] if HasException ==
 		 * CatchedExceptions[1] then CatchBlock[1] ... end :FinallyBlock
 		 */
 		TryBlock :TypedNode;
-		TargetException :KonohaArray;
-		CatchBlock :KonohaArray;
+		TargetException :any[];
+		CatchBlock :any[];
 		FinallyBlock :TypedNode;
 	
 		TryNode(TypeInfo :KonohaType, TryBlock :TypedNode, FinallyBlock :TypedNode) {
 			super(TypeInfo, null/* fixme */);
 			this.TryBlock = TryBlock;
 			this.FinallyBlock = FinallyBlock;
-			this.CatchBlock = new KonohaArray();
-			this.TargetException = new KonohaArray();
+			this.CatchBlock = [];
+			this.TargetException = [];
 		}
 	
 		addCatchBlock(TargetException :TypedNode, CatchBlock :TypedNode) :void { //FIXME
@@ -1998,7 +1998,7 @@ module GreenScript {
 		}
 	}
 	
-	class extends :SwitchNode TypedNode {
+	class SwitchNode extends TypedNode {
 		SwitchNode(TypeInfo :KonohaType, KeyToken :KonohaType) {
 			super(TypeInfo, null/* FIXME */);
 		}
@@ -2007,8 +2007,8 @@ module GreenScript {
 		 * switch CondExpr { Label[0]: Blocks[0]; Label[1]: Blocks[2]; ... }
 		 */
 		CondExpr :TypedNode;
-		Labels :KonohaArray;
-		Blocks :KonohaArray;
+		Labels :any[];
+		Blocks :any[];
 	
 		Evaluate(Visitor :NodeVisitor) :boolean {
 			return Visitor.VisitSwitch(this);
@@ -2016,7 +2016,7 @@ module GreenScript {
 	
 	}
 	
-	class extends :DefineNode TypedNode {
+	class DefineNode extends TypedNode {
 	
 		DefInfo :KonohaDef;
 	
@@ -2138,19 +2138,19 @@ module GreenScript {
 	
 		KonohaContext :KonohaContext;
 		ParentNameSpace :KonohaNameSpace;
-		ImportedNameSpaceList :KonohaArray;
-		PublicSpecList :KonohaArray;
-		PrivateSpecList :KonohaArray;
+		ImportedNameSpaceList :any[];
+		PublicSpecList :any[];
+		PrivateSpecList :any[];
 		
 		TokenFunc[] TokenMatrix;
-		SymbolPatternTable :KonohaMap;
-		ExtendedPatternTable :KonohaMap;
+		SymbolPatternTable :object;
+		ExtendedPatternTable :object;
 		
 		constructor(KonohaContext :KonohaContext, ParentNameSpace :KonohaNameSpace) {
 			this.KonohaContext = KonohaContext;
 			this.ParentNameSpace = ParentNameSpace;
 			this.ImportedNameSpaceList = null;
-			this.PublicSpecList = new KonohaArray();
+			this.PublicSpecList = [];
 			this.PrivateSpecList = null;
 			this.TokenMatrix = null;
 			this.SymbolPatternTable = null;
@@ -2162,7 +2162,7 @@ module GreenScript {
 				var Spec :KonohaSpec = (KonohaSpec)NameSpace.PublicSpecList.get(i);
 				if(Spec.SpecType != TokenFuncSpec) continue;
 				for(j = 0; j < Spec.SpecKey.length(); j++) :number {
-					var kchar :number = KonohaChar.FromJavaChar(Spec.SpecKey.charAt(j));
+					var knumber :number = KonohaChar.FromJavaChar(Spec.SpecKey.charAt(j));
 					var KonohaFunc :KonohaFunc = (KonohaFunc)Spec.SpecBody;
 					this.TokenMatrix[kchar] = CreateOrReuseTokenFunc(KonohaFunc, this.TokenMatrix[kchar]);
 				}
@@ -2194,7 +2194,7 @@ module GreenScript {
 		}
 		
 		
-		TableAddSpec(Table :KonohaMap, Spec :KonohaSpec) :void {
+		TableAddSpec(Table :object, Spec :KonohaSpec) :void {
 			var Body :Object = Spec.SpecBody;
 			if(instanceof :Body SyntaxPattern) {
 				var Parent :Object = Table.get(Spec.SpecKey);
@@ -2205,7 +2205,7 @@ module GreenScript {
 			Table.put(Spec.SpecKey, Body);
 		}
 		
-		RemakeSymbolTableEach(NameSpace :KonohaNameSpace, SpecList :KonohaArray) :void {
+		RemakeSymbolTableEach(NameSpace :KonohaNameSpace, SpecList :any[]) :void {
 			for(i = 0; i < ListSize(SpecList); i++) :number {
 				var Spec :KonohaSpec = (KonohaSpec)SpecList.get(i);
 				if(Spec.SpecType == SymbolPatternSpec) {
@@ -2231,8 +2231,8 @@ module GreenScript {
 		
 		GetSymbol(Key :string) :Object {
 			if(this.SymbolPatternTable == null) {
-				this.SymbolPatternTable = new KonohaMap();
-				this.ExtendedPatternTable = new KonohaMap();
+				this.SymbolPatternTable = {};
+				this.ExtendedPatternTable = {};
 				RemakeSymbolTable(this);
 			}
 			return this.SymbolPatternTable.get(Key);
@@ -2245,8 +2245,8 @@ module GreenScript {
 	
 		GetExtendedPattern(PatternName :string) :SyntaxPattern {
 			if(this.ExtendedPatternTable == null) {
-				this.SymbolPatternTable = new KonohaMap();
-				this.ExtendedPatternTable = new KonohaMap();
+				this.SymbolPatternTable = {};
+				this.ExtendedPatternTable = {};
 				RemakeSymbolTable(this);
 			}
 			var Body :Object = this.ExtendedPatternTable.get(PatternName);
@@ -2264,7 +2264,7 @@ module GreenScript {
 		DefinePrivateSymbol(Key :string, Value :Object) :void {
 			var Spec :KonohaSpec = new KonohaSpec(SymbolPatternSpec, Key, Value);
 			if(this.PrivateSpecList == null) {
-				this.PrivateSpecList = new KonohaArray();
+				this.PrivateSpecList = [];
 			}
 			this.PrivateSpecList.add(Spec);
 			if(this.SymbolPatternTable != null) {
@@ -2310,7 +2310,7 @@ module GreenScript {
 	
 		ImportNameSpace(ImportedNameSpace :KonohaNameSpace) :void {
 			if(this.ImportedNameSpaceList == null) {
-				this.ImportedNameSpaceList = new KonohaArray();
+				this.ImportedNameSpaceList = [];
 				this.ImportedNameSpaceList.add(ImportedNameSpace);
 			}
 			this.TokenMatrix = null;
@@ -2417,7 +2417,7 @@ module GreenScript {
 		WhiteSpaceToken(TokenContext :TokenContext, SourceText :string, pos :number) :number {
 			TokenContext.FoundWhiteSpace();
 			for(; pos < SourceText.length(); pos++) {
-				char ch = SourceText.charAt(pos);
+				var ch :number = SourceText.charAt(pos);
 				if(!IsWhitespace(ch)) {
 					break;
 				}
@@ -2430,7 +2430,7 @@ module GreenScript {
 			TokenContext.FoundLineFeed(1);
 			pos = pos + 1;
 			for(; pos < SourceText.length(); pos++) {
-				char ch = SourceText.charAt(pos);
+				var ch :number = SourceText.charAt(pos);
 				if(!IsWhitespace(ch)) {
 					break;
 				}
@@ -2451,7 +2451,7 @@ module GreenScript {
 		SymbolToken(TokenContext :TokenContext, SourceText :string, pos :number) :number {
 			var start :number = pos;
 			for(; pos < SourceText.length(); pos++) {
-				char ch = SourceText.charAt(pos);
+				var ch :number = SourceText.charAt(pos);
 				if(!IsLetter(ch) && !IsDigit(ch) && ch != '_') {
 					break;
 				}
@@ -2463,7 +2463,7 @@ module GreenScript {
 		MemberToken(TokenContext :TokenContext, SourceText :string, pos :number) :number {
 			var start :number = pos + 1;
 			for(; pos < SourceText.length(); pos++) {
-				char ch = SourceText.charAt(pos);
+				var ch :number = SourceText.charAt(pos);
 				if(!IsLetter(ch) && !IsDigit(ch) && ch != '_') {
 					break;
 				}
@@ -2475,7 +2475,7 @@ module GreenScript {
 		NumberLiteralToken(TokenContext :TokenContext, SourceText :string, pos :number) :number {
 			var start :number = pos;
 			for(; pos < SourceText.length(); pos++) {
-				char ch = SourceText.charAt(pos);
+				var ch :number = SourceText.charAt(pos);
 				if(!IsDigit(ch)) {
 					break;
 				}
@@ -2486,10 +2486,10 @@ module GreenScript {
 	
 		StringLiteralToken(TokenContext :TokenContext, SourceText :string, pos :number) :number {
 			var start :number = pos + 1;
-			char prev = '"';
+			var prev :number = '"';
 			pos = start;
 			while(pos < SourceText.length()) {
-				char ch = SourceText.charAt(pos);
+				var ch :number = SourceText.charAt(pos);
 				if(ch == '"' && prev != '\\') {
 					TokenContext.AddNewToken(SourceText.substring(start, pos), 0, "$StringLitteral");
 					return pos + 1;
@@ -2668,7 +2668,7 @@ module GreenScript {
 	//
 	// TypeMethodCall(Gamma :TypeEnv, Tree :SyntaxTree, TypeInfo :KonohaType) :TypedNode {
 	// P("(>_<) typing method calls: " + Tree);
-	// var NodeList :KonohaArray = Tree.TreeList;
+	// var NodeList :any[] = Tree.TreeList;
 	// assert (NodeList.size() > 1);
 	// assert (NodeList.get(0) instanceof SyntaxTree);
 	// var UntypedBaseNode :SyntaxTree = (SyntaxTree) NodeList.get(0);
@@ -2683,16 +2683,16 @@ module GreenScript {
 	// return null;
 	// }
 	//
-	// ParamSizeFromNodeList(NodeList :KonohaArray) :number {
+	// ParamSizeFromNodeList(NodeList :any[]) :number {
 	// return NodeList.size() - 2;
 	// }
 	//
-	// GetUntypedParamNodeFromNodeList(NodeList :KonohaArray, ParamIndex :number) :SyntaxTree {
+	// GetUntypedParamNodeFromNodeList(NodeList :any[], ParamIndex :number) :SyntaxTree {
 	// return (SyntaxTree) NodeList.get(ParamIndex + 2);
 	// }
 	//
 	// TypeFindingMethod(Gamma :TypeEnv, Tree :SyntaxTree, BaseNode :TypedNode, TypeInfo :KonohaType) :TypedNode {
-	// var NodeList :KonohaArray = Tree.TreeList;
+	// var NodeList :any[] = Tree.TreeList;
 	// var ParamSize :number = this.ParamSizeFromNodeList(NodeList);
 	// var KeyToken :KonohaToken = Tree.KeyToken;
 	// var Method :KonohaMethod = null;
@@ -2709,7 +2709,7 @@ module GreenScript {
 	// + BaseNode.TypeInfo.ShortClassName);
 	// }
 	//
-	// TypeMethodEachParam(Gamma :TypeEnv, BaseType :KonohaType, WorkingNode :ApplyNode, NodeList :KonohaArray) :TypedNode {
+	// TypeMethodEachParam(Gamma :TypeEnv, BaseType :KonohaType, WorkingNode :ApplyNode, NodeList :any[]) :TypedNode {
 	// var Method :KonohaMethod = WorkingNode.Method;
 	// var ParamSize :number = this.ParamSizeFromNodeList(NodeList);
 	// for(var ParamIdx :number = 0; ParamIdx < ParamSize; ParamIdx++) {
@@ -3153,7 +3153,7 @@ module GreenScript {
 	
 	}
 	
-	//class KonohaArrayDef {
+	//class any[]Def {
 	//
 	// MakeDefinition(ns :KonohaNameSpace) :void {
 	// //int :FIXME[] only
@@ -3192,10 +3192,10 @@ module GreenScript {
 		StringType :KonohaType;
 		VarType :KonohaType;
 	
-		ClassNameMap :KonohaMap;
+		ClassNameMap :object;
 	
 		KonohaContext(Grammar :KonohaGrammar, BuilderClassName :string) {
-			this.ClassNameMap = new KonohaMap();
+			this.ClassNameMap = {};
 			this.RootNameSpace = new KonohaNameSpace(this, null);
 			this.VoidType = this.LookupHostLangType(Void.class);
 			this.NativeObjectType = this.LookupHostLangType(Object.class);
