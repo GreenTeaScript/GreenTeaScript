@@ -536,13 +536,13 @@ class KonohaChar {
 }
 
 
-class extends :KonohaToken KonohaStatic {
+class KonohaToken {
 	TokenFlag :number;
 	ParsedText :string;
 	FileLine :number;
 	PresetPattern :SyntaxPattern;
 
-	KonohaToken/*constructor*/(text :string, FileLine :number) {
+	constructor(text :string, FileLine :number) {
 		this.ParsedText = text;
 		this.FileLine = FileLine;
 		this.PresetPattern = null;
@@ -612,14 +612,14 @@ class TokenFunc {
 
 }
 
-class extends :TokenContext KonohaStatic {
+class TokenContext {
 	NameSpace :KonohaNameSpace;
 	SourceList :KonohaArray;
 	Pos :number;
 	ParsingLine :number;
 	ParseFlag :number;
 
-	TokenContext/*constructor*/(NameSpace :KonohaNameSpace, Text :string, FileLine :number) {
+	constructor(NameSpace :KonohaNameSpace, Text :string, FileLine :number) {
 		this.NameSpace = NameSpace;
 		this.SourceList = new KonohaArray();
 		this.Pos = 0;
@@ -824,7 +824,7 @@ class extends :TokenContext KonohaStatic {
 	
 }
 
-class extends :SyntaxPattern KonohaStatic {
+class SyntaxPattern {
 
 	PackageNameSpace :KonohaNameSpace;
 	PatternName :string;
@@ -850,7 +850,7 @@ class extends :SyntaxPattern KonohaStatic {
 
 	// Pop() :KSyntax { return ParentSyntax; }
 
-	SyntaxPattern/*constructor*/(NameSpace :KonohaNameSpace, PatternName :string, MatchFunc :KonohaFunc, TypeFunc :KonohaFunc) {
+	constructor(NameSpace :KonohaNameSpace, PatternName :string, MatchFunc :KonohaFunc, TypeFunc :KonohaFunc) {
 		this.PackageNameSpace = NameSpace;
 		this.PatternName = PatternName;
 		this.SyntaxFlag = 0;
@@ -861,7 +861,7 @@ class extends :SyntaxPattern KonohaStatic {
 	
 }
 
-class extends :SyntaxTree KonohaStatic {
+class SyntaxTree {
 	ParentTree :SyntaxTree;
 	PrevTree :SyntaxTree;
 	NextTree :SyntaxTree;
@@ -1033,7 +1033,7 @@ class extends :SyntaxTree KonohaStatic {
 
 /* typing */
 
-class extends :KonohaType KonohaStatic {
+class KonohaType {
 	KonohaContext :KonohaContext;
 	ClassFlag :number;
 	ShortClassName :string;
@@ -1174,7 +1174,7 @@ class extends :KonohaType KonohaStatic {
 
 }
 
-class extends :KonohaSymbol KonohaStatic {
+class KonohaSymbol {
 
 	function IsGetterSymbol(SymbolId :number) :boolean {
 		return (SymbolId & GetterSymbolMask) == GetterSymbolMask;
@@ -1255,7 +1255,7 @@ class extends :KonohaSymbol KonohaStatic {
 
 }
 
-class extends :KonohaParam KonohaStatic {
+class KonohaParam {
 	var MAX :number = 16;
 	var VariableParamSize :number = -1;
 	ReturnSize :number;
@@ -1404,7 +1404,7 @@ class extends :NativeMethodInvoker KonohaMethodInvoker {
 	}
 }
 
-class extends :KonohaDef KonohaStatic {
+class KonohaDef {
 
 	MakeDefinition(NameSpace :KonohaNameSpace) :void {
 		
@@ -1542,7 +1542,7 @@ class VarSet {
 	}
 }
 
-class extends :TypeEnv KonohaStatic {
+class TypeEnv {
 
 	GammaNameSpace :KonohaNameSpace;
 
@@ -1653,7 +1653,7 @@ class extends :TypeEnv KonohaStatic {
 
 }
 
-class extends :TypedNode KonohaStatic {
+class TypedNode {
 
 	var ParentNode :TypedNode = null;
 	var PrevNode :TypedNode = null;
@@ -2023,7 +2023,7 @@ class extends :DefineNode TypedNode {
 
 /* builder */
 
-class extends :KonohaObject KonohaStatic {
+class KonohaObject {
 	TypeInfo :KonohaType;
 // prototype :SymbolMap;
 //
@@ -2103,7 +2103,7 @@ class NodeVisitor /* {
 	
 }
 
-class extends :KonohaBuilder KonohaStatic {
+class KonohaBuilder {
 	EvalAtTopLevel(NameSpace :KonohaNameSpace, Node :TypedNode, GlobalObject :KonohaObject) :Object {
 		return null;
 	}
@@ -2113,18 +2113,18 @@ class extends :KonohaBuilder KonohaStatic {
 	}
 }
 
-class extends :KonohaSpec KonohaStatic {
+class KonohaSpec {
 	SpecType :number;
 	SpecKey :string;
 	SpecBody :Object;
-	KonohaSpec/*constructor*/(SpecType :number, SpecKey :string, SpecBody :Object) {
+	constructor(SpecType :number, SpecKey :string, SpecBody :Object) {
 		this.SpecType = SpecType;
 		this.SpecKey = SpecKey;
 		this.SpecBody = SpecBody;
 	}
 }
 
-class extends :KonohaNameSpace KonohaStatic {
+class KonohaNameSpace {
 
 	KonohaContext :KonohaContext;
 	ParentNameSpace :KonohaNameSpace;
@@ -2136,7 +2136,7 @@ class extends :KonohaNameSpace KonohaStatic {
 	SymbolPatternTable :KonohaMap;
 	ExtendedPatternTable :KonohaMap;
 	
-	KonohaNameSpace/*constructor*/(KonohaContext :KonohaContext, ParentNameSpace :KonohaNameSpace) {
+	constructor(KonohaContext :KonohaContext, ParentNameSpace :KonohaNameSpace) {
 		this.KonohaContext = KonohaContext;
 		this.ParentNameSpace = ParentNameSpace;
 		this.ImportedNameSpaceList = null;
@@ -2401,7 +2401,7 @@ class extends :KonohaNameSpace KonohaStatic {
 
 }
 
-class extends :KonohaGrammar KonohaStatic {
+class KonohaGrammar {
 
 	// Token
 	WhiteSpaceToken(TokenContext :TokenContext, SourceText :string, pos :number) :number {
@@ -3000,7 +3000,7 @@ class extends :KonohaGrammar KonohaStatic {
 }
 
 
-class extends :KonohaInt KonohaStatic {
+class KonohaInt {
 
 	MakeDefinition(ns :KonohaNameSpace) :void {
 // var BaseClass :KonohaType = ns.LookupHostLangType(Integer.class);
@@ -3088,7 +3088,7 @@ class extends :KonohaInt KonohaStatic {
 	}
 }
 
-class extends :KonohaStringDef KonohaStatic {
+class KonohaStringDef {
 
 	MakeDefinition(ns :KonohaNameSpace) :void {
 // var BaseClass :KonohaType = ns.LookupHostLangType(String.class);
@@ -3127,7 +3127,7 @@ class extends :KonohaStringDef KonohaStatic {
 	}
 }
 
-class extends :KonohaSystemDef KonohaStatic {
+class KonohaSystemDef {
 
 	MakeDefinition(NameSpace :KonohaNameSpace) :void {
 // var BaseClass :KonohaType = NameSpace.LookupHostLangType(KonohaSystemDef.class);
@@ -3143,7 +3143,7 @@ class extends :KonohaSystemDef KonohaStatic {
 
 }
 
-//class extends :KonohaArrayDef KonohaStatic {
+//class KonohaArrayDef {
 //
 // MakeDefinition(ns :KonohaNameSpace) :void {
 // //int :FIXME[] only
@@ -3169,7 +3169,7 @@ class extends :KonohaSystemDef KonohaStatic {
 // }
 //}
 
-class extends :KonohaContext KonohaStatic {
+class KonohaContext {
 
 	RootNameSpace :KonohaNameSpace;
 	DefaultNameSpace :KonohaNameSpace;
