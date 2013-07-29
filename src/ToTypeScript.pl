@@ -1,8 +1,50 @@
 
-$LineComment = "//";
+$LineComment = "#";
 $Indent = "";
+$ClassIndent = "";
+
 $JavaOnly = 0;
-print "module GreenScript {\n";
+$UsePython = 1;
+$UseTypeScript = 0;
+
+if($UseTypeScript == 1) {
+	$ClassIndent = "\t";
+	$LineComment = "//";
+	print "module GreenScript {\n";
+}
+
+sub PythonSelf {
+	my($line) = @_;
+	if($UsePython == 0) {
+		return $line;
+	}
+	$line =~ s/this/self/g;
+	if($line =~ /static/) {
+		return $line;
+	}
+	$line =~ s/public(.*)\(\)(.*)$/def$1(self) $2/;
+        $line =~ s/private(.*)\(\)(.*)$/def$1(self) $2/;
+	$line =~ s/public(.*)\((.*)$/def$1(self, $2/;
+	$line =~ s/private(.*)\((.*)$/def$1(self, $2/;
+	$line =~ s/\/\//\# /g;
+	$line =~ s/\/\*field\*\/(.*)/\# $1/g;
+	return $line;
+}
+
+sub PythonSyntax {
+	my($line) = @_;
+	if($UsePython == 0) {
+		return $line;
+	}
+        $line =~ s/([ \t]:\w+)//g;
+        $line =~ s/\{/:/g;
+        $line =~ s/\}/#/g;
+	$line =~ s/;//g;
+	$line =~ s/function /def /g;
+	$line =~ s/var //g;
+	$line =~ s/constructor/def __init__/g;
+	return $line;
+}
 
 while ($line = <>)  {
 	if($line =~ /JAVA/) {
@@ -16,16 +58,15 @@ while ($line = <>)  {
 		next;
 	}
 	if($line =~/class/ ) {
-		$Indent="\t";
+		$Indent = $ClassIndent;
 	}
 
 	$line =~ s/extends GtStatic//g;
 	$line =~ s/GtStatic\.//g;
 	$line =~ s/implements(.*)\{/{/g;
-	if($line =~ /extends/) {
-		print $Indent . $line;
-		next;
-	}
+	$line =~ s/extends/<:/g;
+
+	$line = PythonSelf($line);
 
 	$line =~ s/([A-Z]\w+)\/\*constructor\*\//constructor/g;
 
@@ -68,21 +109,24 @@ while ($line = <>)  {
 	$line =~ s/\/\*BeginArray\*\/{/[/g;
 	$line =~ s/\/\*EndArray\*\/}/]/g;
 	$line =~ s/Function(?:A|B|C)\(this, \"(\w+)\"\)/$1/g;
-	$line =~ s/GtFuncA/(a :TokenContext, b :string, c :number) => number/g;
-	$line =~ s/GtFuncB/(a :SyntaxPattern, b :SyntaxTree, c :TokenContext) => SyntaxTree/g;
-	$line =~ s/GtFuncC/(a :TypeEnv, b: SyntaxTree, c: GtType) => TypedNode/g;
-
+	if($UseTypeScript == 1) {
+		$line =~ s/GtFuncA/(a :TokenContext, b :string, c :number) => number/g;
+		$line =~ s/GtFuncB/(a :SyntaxPattern, b :SyntaxTree, c :TokenContext) => SyntaxTree/g;
+		$line =~ s/GtFuncC/(a :TypeEnv, b: SyntaxTree, c: GtType) => TypedNode/g;
+		$line =~ s/\<\:/extends/g;	
+	}
 
 	## remove redundandat white spaces
 	$line =~ s/(\S)([ \t]+)(\S)/$1 $3/g;
 	$line =~ s/\/\*.*\*\///g;
 
 	# python
-	#$line =~ s/([ \t]:\w+)//g;
-	#$line =~ s/\{/:/g;
-	#$line =~ s/\}//g;
+	$line = PythonSyntax($line);
 	print $Indent . $line;
 }
 
-print "}\n";
+if($UseTypeScript == 1) {
+	print "}\n";
+}
+
 
