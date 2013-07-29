@@ -4,6 +4,7 @@ $Indent = "";
 $ClassIndent = "";
 
 $JavaOnly = 0;
+$TopLevel = 1;
 $UsePython = 1;
 $UseTypeScript = 0;
 
@@ -11,6 +12,7 @@ if($UseTypeScript == 1) {
 	$ClassIndent = "\t";
 	$LineComment = "//";
 	print "module GreenScript {\n";
+	$TopLevel = 0;
 }
 
 sub PythonSelf {
@@ -18,7 +20,6 @@ sub PythonSelf {
 	if($UsePython == 0) {
 		return $line;
 	}
-	$line =~ s/this/self/g;
 	if($line =~ /static/) {
 		return $line;
 	}
@@ -36,13 +37,22 @@ sub PythonSyntax {
 	if($UsePython == 0) {
 		return $line;
 	}
-        $line =~ s/([ \t]:\w+)//g;
-        $line =~ s/\{/:/g;
+        $line =~ s/this/self/g;
+	$line =~ s/([ \t]:\w+)//g;
+        $line =~ s/ \{/:/g;
         $line =~ s/\}/#/g;
-	$line =~ s/;//g;
+	$line =~ s/;$//g;
 	$line =~ s/function /def /g;
 	$line =~ s/var //g;
-	$line =~ s/constructor/def __init__/g;
+	$line =~ s/constructor\(/def __init__(self, /g;
+	$line =~ s/new //g;
+        $line =~ s/(\w)\[\]/$1/g;
+	$line =~ s/([ \(\,])true/$1True/g;
+	$line =~ s/([ \(\,])false/$1False/g;
+	$line =~ s/null/None/g;
+	$line =~ s/toString/__str__/g;
+	$line =~ s/ \|\|/ or/g;
+	$line =~ s/ \&\&/ and/g;
 	return $line;
 }
 
@@ -52,15 +62,19 @@ while ($line = <>)  {
 	}	
 	if($line =~ /VAJA/) {
 		$JavaOnly = 0;
+		next;
 	}
 	if($JavaOnly == 1) {
-		print $LineComment . $line;
+		# print $LineComment . $line;
 		next;
 	}
 	if($line =~/class/ ) {
 		$Indent = $ClassIndent;
+		$TopLevel = 0;
 	}
-
+	if($TopLevel == 1) {
+		$line = substr($line, 1);
+	}
 	$line =~ s/extends GtStatic//g;
 	$line =~ s/GtStatic\.//g;
 	$line =~ s/implements(.*)\{/{/g;
