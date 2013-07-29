@@ -1,4 +1,6 @@
 
+print "module GreenScript {";
+
 while ($line = <>)  {
 #
 	if($line =~ /^import/ || $line =~ /^package/) {
@@ -41,5 +43,8 @@ while ($line = <>)  {
 	$line =~ s/: number/:number/g;
 	$line =~ s/: string/:string/g;
 	$line =~ s/(\S)([ \t]+)(\S)/$1 $3/g;
-	print $line;
+	print "\t" . $line;
 }
+
+print "}";
+
