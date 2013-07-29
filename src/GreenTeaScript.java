@@ -66,7 +66,81 @@ interface GtConst {
 	public final static int		WarningLevel					= 1;
 	public final static int		InfoLevel					     = 2;
 
-	public final static int   GtCharMaxSize                = 41;
+	public final static int	NullChar				= 0;
+	public final static int	UndefinedChar			= 1;
+	public final static int	DigitChar				= 2;
+	public final static int	UpperAlphaChar			= 3;
+	public final static int	LowerAlphaChar			= 4;
+	public final static int	UnderBarChar			= 5;
+	public final static int	NewLineChar				= 6;
+	public final static int	TabChar					= 7;
+	public final static int	SpaceChar				= 8;
+	public final static int	OpenParChar				= 9;
+	public final static int	CloseParChar			= 10;
+	public final static int	OpenBracketChar			= 11;
+	public final static int	CloseBracketChar		= 12;
+	public final static int	OpenBraceChar			= 13;
+	public final static int	CloseBraceChar			= 14;
+	public final static int	LessThanChar			= 15;
+	public final static int	GreaterThanChar			= 16;
+	public final static int	QuoteChar				= 17;
+	public final static int	DoubleQuoteChar			= 18;
+	public final static int	BackQuoteChar			= 19;
+	public final static int	SurprisedChar			= 20;
+	public final static int	SharpChar				= 21;
+	public final static int	DollarChar				= 22;
+	public final static int	PercentChar				= 23;
+	public final static int	AndChar					= 24;
+	public final static int	StarChar				= 25;
+	public final static int	PlusChar				= 26;
+	public final static int	CommaChar				= 27;
+	public final static int	MinusChar				= 28;
+	public final static int	DotChar					= 29;
+	public final static int	SlashChar				= 30;
+	public final static int	ColonChar				= 31;
+	public final static int	SemiColonChar			= 32;
+	public final static int	EqualChar				= 33;
+	public final static int	QuestionChar			= 34;
+	public final static int	AtmarkChar				= 35;
+	public final static int	VarChar					= 36;
+	public final static int	ChilderChar				= 37;
+	public final static int	BackSlashChar			= 38;
+	public final static int	HatChar					= 39;
+	public final static int	UnicodeChar				= 40;
+	public final static int MaxSizeOfChars          = 41;
+
+	public static final int	CharMatrix[] = /*BeginArray*/{ 
+			0/*nul*/, 1/*soh*/, 1/*stx*/, 1/*etx*/, 1/*eot*/, 1/*enq*/,
+			1/*ack*/, 1/*bel*/, 1/*bs*/, TabChar/*ht*/, NewLineChar/*nl*/, 1/*vt*/, 1/*np*/, 1/*cr*/, 1/*so*/, 1/*si*/,
+			/*020 dle  021 dc1  022 dc2  023 dc3  024 dc4  025 nak  026 syn  027 etb */
+			1, 1, 1, 1, 1, 1, 1, 1,
+			/*030 can  031 em   032 sub  033 esc  034 fs   035 gs   036 rs   037 us */
+			1, 1, 1, 1, 1, 1, 1, 1,
+			/*040 sp   041  !   042  "   043  #   044  $   045  %   046  &   047  ' */
+			SpaceChar, SurprisedChar, DoubleQuoteChar, SharpChar, DollarChar, PercentChar, AndChar, QuoteChar,
+			/*050  (   051  )   052  *   053  +   054  ,   055  -   056  .   057  / */
+			OpenParChar, CloseParChar, StarChar, PlusChar, CommaChar, MinusChar, DotChar, SlashChar,
+			/*060  0   061  1   062  2   063  3   064  4   065  5   066  6   067  7 */
+			DigitChar, DigitChar, DigitChar, DigitChar, DigitChar, DigitChar, DigitChar, DigitChar,
+			/*070  8   071  9   072  :   073  ;   074  <   075  =   076  >   077  ? */
+			DigitChar, DigitChar, ColonChar, SemiColonChar, LessThanChar, EqualChar, GreaterThanChar, QuestionChar,
+			/*100  @   101  A   102  B   103  C   104  D   105  E   106  F   107  G */
+			AtmarkChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar,
+			/*110  H   111  I   112  J   113  K   114  L   115  M   116  N   117  O */
+			UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar,
+			/*120  P   121  Q   122  R   123  S   124  T   125  U   126  V   127  W */
+			UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar,
+			/*130  X   131  Y   132  Z   133  [   134  \   135  ]   136  ^   137  _ */
+			UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, OpenBracketChar, BackSlashChar, CloseBracketChar, HatChar, UnderBarChar,
+			/*140  `   141  a   142  b   143  c   144  d   145  e   146  f   147  g */
+			BackQuoteChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar,
+			/*150  h   151  i   152  j   153  k   154  l   155  m   156  n   157  o */
+			LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar,
+			/*160  p   161  q   162  r   163  s   164  t   165  u   166  v   167  w */
+			LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar,
+			/*170  x   171  y   172  z   173  {   174  |   175  }   176  ~   177 del*/
+			LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, OpenBraceChar, VarChar, CloseBraceChar, ChilderChar, 1, 
+		/*EndArray*/};
 	
 	public final static GtToken NullToken = new GtToken("", 0);
 
@@ -208,6 +282,13 @@ class GtStatic implements GtConst {
 		return Character.isDigit(ch);
 	}
 	
+	public final static int FromJavaChar(char c) {
+		if(c < 128) {
+			return CharMatrix[c];
+		}
+		return UnicodeChar;
+	}
+
 	public static Method LookupMethod(Object Callee, String MethodName) {
 		if(MethodName != null) {
 			// GtDebug.P("looking up method : " + Callee.getClass().getSimpleName() + "." + MethodName);
@@ -461,86 +542,7 @@ final class GtFunc {
 // tokenizer
 
 class GtChar {
-	public final static int	Null				= 0;
-	public final static int	Undefined			= 1;
-	public final static int	Digit				= 2;
-	public final static int	UpperAlpha			= 3;
-	public final static int	LowerAlpha			= 4;
-	public final static int	Unicode				= 5;
-	public final static int	NewLine				= 6;
-	public final static int	Tab					= 7;
-	public final static int	Space				= 8;
-	public final static int	OpenParenthesis		= 9;
-	public final static int	CloseParenthesis	= 10;
-	public final static int	OpenBracket			= 11;
-	public final static int	CloseBracket		= 12;
-	public final static int	OpenBrace			= 13;
-	public final static int	CloseBrace			= 14;
-	public final static int	LessThan			= 15;
-	public final static int	GreaterThan			= 16;
-	public final static int	Quote				= 17;
-	public final static int	DoubleQuote			= 18;
-	public final static int	BackQuote			= 19;
-	public final static int	Surprised			= 20;
-	public final static int	Sharp				= 21;
-	public final static int	Dollar				= 22;
-	public final static int	Percent				= 23;
-	public final static int	And					= 24;
-	public final static int	Star				= 25;
-	public final static int	Plus				= 26;
-	public final static int	Comma				= 27;
-	public final static int	Minus				= 28;
-	public final static int	Dot					= 29;
-	public final static int	Slash				= 30;
-	public final static int	Colon				= 31;
-	public final static int	SemiColon			= 32;
-	public final static int	Equal				= 33;
-	public final static int	Question			= 34;
-	public final static int	AtMark				= 35;
-	public final static int	Var					= 36;
-	public final static int	Childer				= 37;
-	public final static int	BackSlash			= 38;
-	public final static int	Hat					= 39;
-	public final static int	UnderBar			= 40;
-	public final static int	MAX					= 41;
 
-	public static final int		CharMatrix[]			= /*BeginArray*/{ 0/*nul*/, 1/*soh*/, 1/*stx*/, 1/*etx*/, 1/*eot*/, 1/*enq*/,
-			1/*ack*/, 1/*bel*/, 1/*bs*/, Tab/*ht*/, NewLine/*nl*/, 1/*vt*/, 1/*np*/, 1/*cr*/, 1/*so*/, 1/*si*/,
-			/*020 dle  021 dc1  022 dc2  023 dc3  024 dc4  025 nak  026 syn  027 etb */
-			1, 1, 1, 1, 1, 1, 1, 1,
-			/*030 can  031 em   032 sub  033 esc  034 fs   035 gs   036 rs   037 us */
-			1, 1, 1, 1, 1, 1, 1, 1,
-			/*040 sp   041  !   042  "   043  #   044  $   045  %   046  &   047  ' */
-			Space, Surprised, DoubleQuote, Sharp, Dollar, Percent, And, Quote,
-			/*050  (   051  )   052  *   053  +   054  ,   055  -   056  .   057  / */
-			OpenParenthesis, CloseParenthesis, Star, Plus, Comma, Minus, Dot, Slash,
-			/*060  0   061  1   062  2   063  3   064  4   065  5   066  6   067  7 */
-			Digit, Digit, Digit, Digit, Digit, Digit, Digit, Digit,
-			/*070  8   071  9   072  :   073  ;   074  <   075  =   076  >   077  ? */
-			Digit, Digit, Colon, SemiColon, LessThan, Equal, GreaterThan, Question,
-			/*100  @   101  A   102  B   103  C   104  D   105  E   106  F   107  G */
-			AtMark, UpperAlpha, UpperAlpha, UpperAlpha, UpperAlpha, UpperAlpha, UpperAlpha, UpperAlpha,
-			/*110  H   111  I   112  J   113  K   114  L   115  M   116  N   117  O */
-			UpperAlpha, UpperAlpha, UpperAlpha, UpperAlpha, UpperAlpha, UpperAlpha, UpperAlpha, UpperAlpha,
-			/*120  P   121  Q   122  R   123  S   124  T   125  U   126  V   127  W */
-			UpperAlpha, UpperAlpha, UpperAlpha, UpperAlpha, UpperAlpha, UpperAlpha, UpperAlpha, UpperAlpha,
-			/*130  X   131  Y   132  Z   133  [   134  \   135  ]   136  ^   137  _ */
-			UpperAlpha, UpperAlpha, UpperAlpha, OpenBracket, BackSlash, CloseBracket, Hat, UnderBar,
-			/*140  `   141  a   142  b   143  c   144  d   145  e   146  f   147  g */
-			BackQuote, LowerAlpha, LowerAlpha, LowerAlpha, LowerAlpha, LowerAlpha, LowerAlpha, LowerAlpha,
-			/*150  h   151  i   152  j   153  k   154  l   155  m   156  n   157  o */
-			LowerAlpha, LowerAlpha, LowerAlpha, LowerAlpha, LowerAlpha, LowerAlpha, LowerAlpha, LowerAlpha,
-			/*160  p   161  q   162  r   163  s   164  t   165  u   166  v   167  w */
-			LowerAlpha, LowerAlpha, LowerAlpha, LowerAlpha, LowerAlpha, LowerAlpha, LowerAlpha, LowerAlpha,
-			/*170  x   171  y   172  z   173  {   174  |   175  }   176  ~   177 del*/
-			LowerAlpha, LowerAlpha, LowerAlpha, OpenBrace, Var, CloseBrace, Childer, 1, /*EndArray*/};
-
-	public static int FromJavaChar(char c) {
-		if(c < 128) {
-			return CharMatrix[c];
-		}
-		return Unicode;
-	}
 }
 
 
@@ -713,7 +715,7 @@ final class TokenContext extends GtStatic {
 		int pos = 0, len = ScriptSource.length();
 		this.ParsingLine = CurrentLine;
 		while(pos < len) {
-			int kchar = GtChar.FromJavaChar(ScriptSource.charAt(pos));
+			int kchar = GtStatic.FromJavaChar(ScriptSource.charAt(pos));
 			int pos2 = DispatchFunc(ScriptSource, kchar, pos);
 			if(!(pos < pos2)) {
 				break;
@@ -2136,7 +2138,7 @@ final class GtNameSpace extends GtStatic {
 			GtSpec Spec = (GtSpec)NameSpace.PublicSpecList.get(i);
 			if(Spec.SpecType != TokenFuncSpec) continue;
 			for(int j = 0; j < Spec.SpecKey.length(); j++) {
-				int kchar = GtChar.FromJavaChar(Spec.SpecKey.charAt(j));
+				int kchar = GtStatic.FromJavaChar(Spec.SpecKey.charAt(j));
 				GtFunc GtFunc = (GtFunc)Spec.SpecBody;
 				this.TokenMatrix[kchar] = GtStatic.CreateOrReuseTokenFunc(GtFunc, this.TokenMatrix[kchar]);
 			}
@@ -2156,7 +2158,7 @@ final class GtNameSpace extends GtStatic {
 	
 	public TokenFunc GetTokenFunc(int GtChar2) {
 		if(this.TokenMatrix == null) {
-			this.TokenMatrix = new TokenFunc[GtCharMaxSize];
+			this.TokenMatrix = new TokenFunc[MaxSizeOfChars];
 			RemakeTokenMatrix(this);
 		}
 		return this.TokenMatrix[GtChar2];
