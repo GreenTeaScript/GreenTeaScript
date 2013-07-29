@@ -122,7 +122,7 @@ interface KonohaConst {
 	var Precedence_CStyleValue :number = (1 << PrecedenceShift);
 	var Precedence_CPPStyleScope :number = (50 << PrecedenceShift);
 	var Precedence_CStyleSuffixCall :number = (100 << PrecedenceShift); /*x(); x[]; x.x x->x x++ */
-	var Precedence_CStylePrefixOperator :number = (200 << PrecedenceShift); /*++x; --x; sizeof x &x +x -x !x (T)x */
+	var Precedence_CStylePrefixOperator :number = (200 << PrecedenceShift); /*++x; --x; sizeof x &x +x -x !x <>x */
 	// Precedence_CppMember = 300; /* .x ->x */
 	var Precedence_CStyleMUL :number = (400 << PrecedenceShift); /* x * x; x / x; x % x*/
 	var Precedence_CStyleADD :number = (500 << PrecedenceShift); /* x + x; x - x */
@@ -175,11 +175,11 @@ class KonohaStatic {
 	}
 	
 	function P(msg :string) :void {
-		KonohaStatic.println("DEBUG: " + msg);
+		println("DEBUG: " + msg);
 	}
 
 	function TODO(msg :string) :void {
-		KonohaStatic.println("TODO: " + msg);
+		println("TODO: " + msg);
 	}
 
 	function ListSize(a :KonohaArray) :number {
@@ -211,7 +211,7 @@ class KonohaStatic {
 					return methods[i];
 				}
 			}
-			KonohaStatic.P("method not found: " + Callee.getClass().getSimpleName() + "." + MethodName);
+			P("method not found: " + Callee.getClass().getSimpleName() + "." + MethodName);
 		}
 		return null; /*throw new KonohaParserException("method not found: " + callee.getClass().getName() + "." + methodName);*/
 	}
@@ -288,10 +288,10 @@ class KonohaStatic {
 				if(CurrentPattern.ParentPattern != null) {
 					TokenContext.ParseFlag = ParseFlag | TrackbackParseFlag;
 				}
-				KonohaStatic.P("B ApplySyntaxPattern: " + CurrentPattern + " > " + CurrentPattern.ParentPattern);
+				P("B ApplySyntaxPattern: " + CurrentPattern + " > " + CurrentPattern.ParentPattern);
 				var ParsedTree :SyntaxTree = (SyntaxTree)f.Method.invoke(f.Self, CurrentPattern, LeftTree, TokenContext);
 				if(ParsedTree != null && ParsedTree.IsEmpty()) ParsedTree = null;
-				KonohaStatic.P("E ApplySyntaxPattern: " + CurrentPattern + " => " + ParsedTree);
+				P("E ApplySyntaxPattern: " + CurrentPattern + " => " + ParsedTree);
 				TokenContext.ParseFlag = ParseFlag;
 				if(ParsedTree != null) {
 					return ParsedTree;
@@ -312,21 +312,21 @@ class KonohaStatic {
 			TokenContext.Pos = Pos;
 		}
 		if(Pattern == null) {
-			KonohaStatic.P("undefined syntax pattern: " + Pattern);
+			P("undefined syntax pattern: " + Pattern);
 		}
 		return TokenContext.ReportExpectedPattern(Pattern);
 	}
 
 	function ParseSyntaxTree(PrevTree :SyntaxTree, TokenContext :TokenContext) :SyntaxTree {
 		var Pattern :SyntaxPattern = TokenContext.GetFirstPattern();
-		var LeftTree :SyntaxTree = KonohaStatic.ApplySyntaxPattern(Pattern, PrevTree, TokenContext);
-		while (!KonohaStatic.IsEmptyOrError(LeftTree)) {
+		var LeftTree :SyntaxTree = ApplySyntaxPattern(Pattern, PrevTree, TokenContext);
+		while (!IsEmptyOrError(LeftTree)) {
 			var ExtendedPattern :SyntaxPattern = TokenContext.GetExtendedPattern();
 			if(ExtendedPattern == null) {
-				KonohaStatic.P("In $ending :Expression: " + TokenContext.GetToken());
+				P("In $ending :Expression: " + TokenContext.GetToken());
 				break;
 			}
-			LeftTree = KonohaStatic.ApplySyntaxPattern(ExtendedPattern, LeftTree, TokenContext);			
+			LeftTree = ApplySyntaxPattern(ExtendedPattern, LeftTree, TokenContext);			
 		}
 		return LeftTree;
 	}
@@ -549,19 +549,19 @@ class KonohaToken {
 	}
 
 	IsSource() :boolean {
-		return KonohaStatic.IsFlag(this.TokenFlag, SourceTokenFlag);
+		return IsFlag(this.TokenFlag, SourceTokenFlag);
 	}
 	
 	IsError() :boolean {
-		return KonohaStatic.IsFlag(this.TokenFlag, ErrorTokenFlag);
+		return IsFlag(this.TokenFlag, ErrorTokenFlag);
 	}
 
 	IsIndent() :boolean {
-		return KonohaStatic.IsFlag(this.TokenFlag, IndentTokenFlag);
+		return IsFlag(this.TokenFlag, IndentTokenFlag);
 	}
 
 	IsDelim() :boolean {
-		return KonohaStatic.IsFlag(this.TokenFlag, DelimTokenFlag);
+		return IsFlag(this.TokenFlag, DelimTokenFlag);
 	}
 
 	EqualsText(text :string) :boolean {
@@ -665,7 +665,7 @@ class TokenContext {
 	GetBeforeToken() :KonohaToken {
 		for(var pos :number = this.Pos - 1; pos >= 0; pos--) {
 			var Token :KonohaToken = (KonohaToken)this.SourceList.get(pos);
-			if(KonohaStatic.IsFlag(Token.TokenFlag, IndentTokenFlag)) {
+			if(IsFlag(Token.TokenFlag, IndentTokenFlag)) {
 				continue;
 			}
 			return Token;
@@ -692,9 +692,9 @@ class TokenContext {
 	
 	DispatchFunc(ScriptSource :string, KonohaChar :number, pos :number) :number {
 		var TokenFunc :TokenFunc = this.NameSpace.GetTokenFunc(KonohaChar);
-		var NextIdx :number = KonohaStatic.ApplyTokenFunc(TokenFunc, this, ScriptSource, pos);
+		var NextIdx :number = ApplyTokenFunc(TokenFunc, this, ScriptSource, pos);
 		if(NextIdx == NoMatch) {
-			KonohaStatic.P("undefined tokenizer: " + ScriptSource.charAt(pos));
+			P("undefined tokenizer: " + ScriptSource.charAt(pos));
 			AddNewToken(ScriptSource.substring(pos), 0, null);
 			return ScriptSource.length();
 		}
@@ -723,7 +723,7 @@ class TokenContext {
 				Tokenize(Token.ParsedText, Token.FileLine);
 				Token = (KonohaToken)this.SourceList.get(this.Pos);
 			}
-			if(KonohaStatic.IsFlag(this.ParseFlag, SkipIndentParseFlag) && Token.IsIndent()) {
+			if(IsFlag(this.ParseFlag, SkipIndentParseFlag) && Token.IsIndent()) {
 				this.Pos += 1;
 				continue;
 			}
@@ -785,7 +785,7 @@ class TokenContext {
 	}
 
 	IsAllowedTrackback() :boolean {
-		return KonohaStatic.IsFlag(this.ParseFlag, TrackbackParseFlag);
+		return IsFlag(this.ParseFlag, TrackbackParseFlag);
 	}
 
 	ParsePattern(PatternName :string, IsOptional :boolean) :SyntaxTree {
@@ -795,7 +795,7 @@ class TokenContext {
 		if(IsOptional) {
 			this.ParseFlag |= TrackbackParseFlag;
 		}
-		var SyntaxTree :SyntaxTree = KonohaStatic.ApplySyntaxPattern(Pattern, null, this);
+		var SyntaxTree :SyntaxTree = ApplySyntaxPattern(Pattern, null, this);
 		this.ParseFlag = ParseFlag;
 		if(SyntaxTree != null) {
 			return SyntaxTree;
@@ -818,7 +818,7 @@ class TokenContext {
 	
 	Dump() :void {
 		for(pos = this.; pos < this.SourceList.size(); pos++) :number :Pos {
-			KonohaStatic.P("["+pos+"]\t" + this.SourceList.get(pos));
+			P("["+pos+"]\t" + this.SourceList.get(pos));
 		}
 	}
 	
@@ -845,7 +845,7 @@ class SyntaxPattern {
 	IsLeftJoin(Right :SyntaxPattern) :boolean {
 		var left :number = this.SyntaxFlag >> PrecedenceShift, right = Right.SyntaxFlag >> PrecedenceShift;
 		// System.err.printf("left=%d,%s, right=%d,%s\n", left, this.PatternName, right, Right.PatternName);
-		return (left < right || (left == right && KonohaStatic.IsFlag(this.SyntaxFlag, LeftJoin) && KonohaStatic.IsFlag(Right.SyntaxFlag, LeftJoin)));
+		return (left < right || (left == right && IsFlag(this.SyntaxFlag, LeftJoin) && IsFlag(Right.SyntaxFlag, LeftJoin)));
 	}
 
 	// Pop() :KSyntax { return ParentSyntax; }
@@ -1117,7 +1117,7 @@ class KonohaType {
 	}
 
 	DefineMethod(MethodFlag :number, MethodName :string, Param :KonohaParam, Callee :Object, LocalName :string) :void {
-		var Method :KonohaMethod = new KonohaMethod(MethodFlag, this, MethodName, Param, KonohaStatic.LookupMethod(Callee, LocalName));
+		var Method :KonohaMethod = new KonohaMethod(MethodFlag, this, MethodName, Param, LookupMethod(Callee, LocalName));
 		this.AddMethod(Method);
 	}
 
@@ -1271,7 +1271,7 @@ class KonohaParam {
 	}
 
 	function ParseOf(ns :KonohaNameSpace, TypeList :string) :KonohaParam {
-		KonohaStatic.TODO("ParseOfParam");
+		TODO("ParseOfParam");
 // var BufferList :Tokens = ns.Tokenize(TypeList, 0);
 // var next :number = BufferList.size();
 // ns.PreProcess(BufferList, 0, next, BufferList);
@@ -1523,7 +1523,7 @@ class extends :KonohaMethod KonohaDef {
 // var BufferList :Tokens = new Tokens();
 // NS.PreProcess(this.SourceList, 0, this.SourceList.size(), BufferList);
 // Tree = SyntaxTree.ParseNewNode(NS, null, BufferList, 0, BufferList.size(), AllowEmpty);
-// KonohaStatic.println("untyped tree: " + Tree);
+// println("untyped tree: " + Tree);
 // }
 // var Gamma :TypeEnv = new TypeEnv(this.LazyNameSpace, this);
 // var TNode :TypedNode = TypeEnv.TypeCheck(Gamma, Tree, Gamma.VoidType, DefaultTypeCheckPolicy);
@@ -1619,7 +1619,7 @@ class TypeEnv {
 	}
 
 	function TypeEachNode(Gamma :TypeEnv, Tree :SyntaxTree, TypeInfo :KonohaType) :TypedNode {
-		var Node :TypedNode = KonohaStatic.ApplyTypeFunc(Tree.Pattern.TypeFunc, Gamma, Tree, TypeInfo);
+		var Node :TypedNode = ApplyTypeFunc(Tree.Pattern.TypeFunc, Gamma, Tree, TypeInfo);
 		if(Node == null) {
 			Node = Gamma.NewErrorNode(Tree.KeyToken, "undefined type checker: " + Tree.Pattern);
 		}
@@ -2148,13 +2148,13 @@ class KonohaNameSpace {
 	}
 		
 	RemakeTokenMatrixEach(NameSpace :KonohaNameSpace) :void {
-		for(i = 0; i < KonohaStatic.ListSize(NameSpace.PublicSpecList); i++) :number {
+		for(i = 0; i < ListSize(NameSpace.PublicSpecList); i++) :number {
 			var Spec :KonohaSpec = (KonohaSpec)NameSpace.PublicSpecList.get(i);
 			if(Spec.SpecType != TokenFuncSpec) continue;
 			for(j = 0; j < Spec.SpecKey.length(); j++) :number {
 				var kchar :number = KonohaChar.FromJavaChar(Spec.SpecKey.charAt(j));
 				var KonohaFunc :KonohaFunc = (KonohaFunc)Spec.SpecBody;
-				this.TokenMatrix[kchar] = KonohaStatic.CreateOrReuseTokenFunc(KonohaFunc, this.TokenMatrix[kchar]);
+				this.TokenMatrix[kchar] = CreateOrReuseTokenFunc(KonohaFunc, this.TokenMatrix[kchar]);
 			}
 		}
 	}
@@ -2164,7 +2164,7 @@ class KonohaNameSpace {
 			RemakeTokenMatrix(NameSpace.ParentNameSpace);
 		}
 		RemakeTokenMatrixEach(NameSpace);
-		for(i = 0; i < KonohaStatic.ListSize(NameSpace.ImportedNameSpaceList); i++) :number {
+		for(i = 0; i < ListSize(NameSpace.ImportedNameSpaceList); i++) :number {
 			var Imported :KonohaNameSpace = (KonohaNameSpace)NameSpace.ImportedNameSpaceList.get(i);
 			RemakeTokenMatrixEach(Imported);
 		}
@@ -2189,14 +2189,14 @@ class KonohaNameSpace {
 		if(instanceof :Body SyntaxPattern) {
 			var Parent :Object = Table.get(Spec.SpecKey);
 			if(instanceof :Parent SyntaxPattern) {
-				Body = KonohaStatic.MergeSyntaxPattern((SyntaxPattern)Body, (SyntaxPattern)Parent);
+				Body = MergeSyntaxPattern((SyntaxPattern)Body, (SyntaxPattern)Parent);
 			}
 		}
 		Table.put(Spec.SpecKey, Body);
 	}
 	
 	RemakeSymbolTableEach(NameSpace :KonohaNameSpace, SpecList :KonohaArray) :void {
-		for(i = 0; i < KonohaStatic.ListSize(SpecList); i++) :number {
+		for(i = 0; i < ListSize(SpecList); i++) :number {
 			var Spec :KonohaSpec = (KonohaSpec)SpecList.get(i);
 			if(Spec.SpecType == SymbolPatternSpec) {
 				TableAddSpec(this.SymbolPatternTable, Spec);
@@ -2213,7 +2213,7 @@ class KonohaNameSpace {
 		}
 		RemakeSymbolTableEach(NameSpace, NameSpace.PublicSpecList);
 		RemakeSymbolTableEach(NameSpace, NameSpace.PrivateSpecList);
-		for(i = 0; i < KonohaStatic.ListSize(NameSpace.ImportedNameSpaceList); i++) :number {
+		for(i = 0; i < ListSize(NameSpace.ImportedNameSpaceList); i++) :number {
 			var Imported :KonohaNameSpace = (KonohaNameSpace)NameSpace.ImportedNameSpaceList.get(i);
 			RemakeSymbolTableEach(Imported, Imported.PublicSpecList);
 		}
@@ -2310,11 +2310,11 @@ class KonohaNameSpace {
 
 	Eval(ScriptSource :string, FileLine :number) :Object {
 		var ResultValue :Object = null;
-		KonohaStatic.println("Eval: " + ScriptSource);
+		println("Eval: " + ScriptSource);
 		var TokenContext :TokenContext = new TokenContext(this, ScriptSource, FileLine);
 		while(TokenContext.HasNext()) {
-			var Tree :SyntaxTree = KonohaStatic.ParseSyntaxTree(null, TokenContext);
-			KonohaStatic.println("untyped tree: " + Tree);
+			var Tree :SyntaxTree = ParseSyntaxTree(null, TokenContext);
+			println("untyped tree: " + Tree);
 			var Gamma :TypeEnv = new TypeEnv(this, null);
 			var TNode :TypedNode = TypeEnv.TypeCheckEachNode(Gamma, Tree, Gamma.VoidType, DefaultTypeCheckPolicy);
 			var Builder :KonohaBuilder = this.GetBuilder();
@@ -2393,7 +2393,7 @@ class KonohaNameSpace {
 			} else if(Level == InfoLevel) {
 				Message = "(info) " + this.GetSourcePosition(Token.FileLine) + " " + Message;
 			}
-			KonohaStatic.println(Message);
+			println(Message);
 			return Message;
 		}
 		return Token.GetErrorMessage();
@@ -2497,12 +2497,12 @@ class KonohaGrammar {
 	}
 
 	ParseType(Pattern :SyntaxPattern, LeftTree :SyntaxTree, TokenContext :TokenContext) :SyntaxTree {
-		KonohaStatic.P("ParseType :Entering..");
+		P("ParseType :Entering..");
 		return null; // Matched :Not
 	}
 
 	ParseSymbol(Pattern :SyntaxPattern, LeftTree :SyntaxTree, TokenContext :TokenContext) :SyntaxTree {
-		KonohaStatic.P("ParseSymbol :Entering..");
+		P("ParseSymbol :Entering..");
 		var Token :KonohaToken = TokenContext.Next();
 		return new SyntaxTree(Pattern, TokenContext.NameSpace, Token);
 	}
@@ -2567,8 +2567,8 @@ class KonohaGrammar {
 
 	ParseBinaryOperator(Pattern :SyntaxPattern, LeftTree :SyntaxTree, TokenContext :TokenContext) :SyntaxTree {
 		var Token :KonohaToken = TokenContext.Next();
-		var RightTree :SyntaxTree = KonohaStatic.ParseSyntaxTree(null, TokenContext);
-		if(KonohaStatic.IsEmptyOrError(RightTree)) return RightTree;
+		var RightTree :SyntaxTree = ParseSyntaxTree(null, TokenContext);
+		if(IsEmptyOrError(RightTree)) return RightTree;
 
 		/* 1 + 2 * 3 */
 		/* 1 * 2 + 3 */
@@ -2609,7 +2609,7 @@ class KonohaGrammar {
 // */
 // ParseMethodCall(Tree :SyntaxTree, TokenList :Tokens, BeginIdx :number, EndIdx :number, ParseOption :number) :number {
 // var ClassIdx :number = -1;
-// KonohaStatic.println(Tree.KeyToken.ParsedText);
+// println(Tree.KeyToken.ParsedText);
 // ClassIdx = Tree.MatchSyntax(MethodCallBaseClass, "$Type", TokenList, BeginIdx, BeginIdx + 1, AllowEmpty);
 // var MemberIdx :number = BeginIdx + 1;
 // var isGlobal :boolean = false;
@@ -2657,7 +2657,7 @@ class KonohaGrammar {
 // }
 //
 // TypeMethodCall(Gamma :TypeEnv, Tree :SyntaxTree, TypeInfo :KonohaType) :TypedNode {
-// KonohaStatic.P("(>_<) typing method calls: " + Tree);
+// P("(>_<) typing method calls: " + Tree);
 // var NodeList :KonohaArray = Tree.TreeList;
 // assert (NodeList.size() > 1);
 // assert (NodeList.get(0) instanceof SyntaxTree);
@@ -2752,10 +2752,10 @@ class KonohaGrammar {
 		var PrevTree :SyntaxTree = null;
 		while(TokenContext.SkipEmptyStatement()) {
 			if(TokenContext.MatchToken("}")) break;
-			PrevTree = KonohaStatic.ParseSyntaxTree(PrevTree, TokenContext);
-			if(KonohaStatic.IsEmptyOrError(PrevTree)) return PrevTree;
+			PrevTree = ParseSyntaxTree(PrevTree, TokenContext);
+			if(IsEmptyOrError(PrevTree)) return PrevTree;
 		}
-		return KonohaStatic.TreeHead(PrevTree);
+		return TreeHead(PrevTree);
 	}
 
 	TypeBlock(Gamma :TypeEnv, Tree :SyntaxTree, TypeInfo :KonohaType) :TypedNode {
@@ -2822,7 +2822,7 @@ class KonohaGrammar {
 	}
 	
 	ParseVarDecl(Pattern :SyntaxPattern, LeftTree :SyntaxTree, TokenContext :TokenContext) :SyntaxTree {
-		KonohaStatic.P("ParseVarDecl :Entering..");
+		P("ParseVarDecl :Entering..");
 		var Tree :SyntaxTree = new SyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetToken());
 		Tree.SetMatchedPatternAt(VarDeclType, TokenContext, "$Type", Required);
 		Tree.SetMatchedPatternAt(VarDeclName, TokenContext, "$Variable", Required);
@@ -2905,12 +2905,12 @@ class KonohaGrammar {
 
 
 // ParseUNUSED(Pattern :SyntaxPattern, LeftTree :SyntaxTree, TokenContext :TokenContext) :SyntaxTree {
-// KonohaStatic.P("** Syntax " + Tree.Pattern + " is undefined **");
+// P("** Syntax " + Tree.Pattern + " is undefined **");
 // return NoMatch;
 // }
 //
 // TypeUNUSED(Gamma :TypeEnv, Tree :SyntaxTree, TypeInfo :KonohaType) :TypedNode {
-// KonohaStatic.P("** Syntax " + Tree.Pattern + " is undefined **");
+// P("** Syntax " + Tree.Pattern + " is undefined **");
 // return null;
 // }
 
@@ -3031,7 +3031,7 @@ class KonohaInt {
 // // Object[] p = new Object[2];
 // // p[0] = new Integer(1);
 // // p[1] = new Integer(2);
-// // KonohaStatic.println("******* 1+2=" + m.Eval(p));
+// // println("******* 1+2=" + m.Eval(p));
 // // }
 	}
 
@@ -3138,7 +3138,7 @@ class KonohaSystemDef {
 	}
 
 	function p(x :string) :void {
-		KonohaStatic.println(x);
+		println(x);
 	}
 
 }
