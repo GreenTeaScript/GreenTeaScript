@@ -1,5 +1,5 @@
 
-//JAVA
+//ifdef JAVA
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 interface KonohaConst {
-//VAJA
+//endif VAJA
 
 	// ClassFlag
 	public final static int		PrivateClass					= 1 << 0;
@@ -163,7 +163,6 @@ interface KonohaConst {
 
 	public final static String	GlobalConstName					= "global";
 
-	
 	public final KonohaArray	EmptyList = new KonohaArray();
 
 
@@ -171,11 +170,11 @@ interface KonohaConst {
 	static final public boolean	UseBuiltInTest	= true;
 	static final public boolean	DebugPrint		= false;
 
-//JAVA
+//ifdef JAVA
 }
 
 class KonohaStatic implements KonohaConst {
-//VAJA
+//endif VAJA
 	
 	public static void println(String msg) {
 		System.out.println(msg);		
@@ -356,7 +355,7 @@ class KonohaStatic implements KonohaConst {
 		return null;
 	}
 
-//JAVA
+//ifdef JAVA
 }
 
 final class KonohaArray {
@@ -457,7 +456,7 @@ final class KonohaFunc {
 	}
 
 }
-// VAJA
+//endif VAJA
 
 // tokenizer
 
@@ -505,7 +504,7 @@ class KonohaChar {
 	public final static int	UnderBar			= 40;
 	public final static int	MAX					= 41;
 
-	public static final int		CharMatrix[]			= { 0/*nul*/, 1/*soh*/, 1/*stx*/, 1/*etx*/, 1/*eot*/, 1/*enq*/,
+	public static final int		CharMatrix[]			= /*BeginArray*/{ 0/*nul*/, 1/*soh*/, 1/*stx*/, 1/*etx*/, 1/*eot*/, 1/*enq*/,
 			1/*ack*/, 1/*bel*/, 1/*bs*/, Tab/*ht*/, NewLine/*nl*/, 1/*vt*/, 1/*np*/, 1/*cr*/, 1/*so*/, 1/*si*/,
 			/*020 dle  021 dc1  022 dc2  023 dc3  024 dc4  025 nak  026 syn  027 etb */
 			1, 1, 1, 1, 1, 1, 1, 1,
@@ -534,7 +533,7 @@ class KonohaChar {
 			/*160  p   161  q   162  r   163  s   164  t   165  u   166  v   167  w */
 			LowerAlpha, LowerAlpha, LowerAlpha, LowerAlpha, LowerAlpha, LowerAlpha, LowerAlpha, LowerAlpha,
 			/*170  x   171  y   172  z   173  {   174  |   175  }   176  ~   177 del*/
-			LowerAlpha, LowerAlpha, LowerAlpha, OpenBrace, Var, CloseBrace, Childer, 1, };
+			LowerAlpha, LowerAlpha, LowerAlpha, OpenBrace, Var, CloseBrace, Childer, 1, /*EndArray*/};
 
 	public static int FromJavaChar(char c) {
 		if(c < 128) {
@@ -1078,8 +1077,7 @@ class KonohaType extends KonohaStatic {
 		}
 	}
 
-	@Override
-	public String toString() {
+	@Override public String toString() {
 		return this.ShortClassName;
 	}
 
@@ -1362,8 +1360,7 @@ class NativeMethodInvoker extends KonohaMethodInvoker {
 		return Modifier.isStatic(this.GetMethodRef().getModifiers());
 	}
 
-	@Override
-	public Object Invoke(Object[] Args) {
+	@Override public Object Invoke(Object[] Args) {
 		int ParamSize = this.Param != null ? this.Param.GetParamSize() : 0;
 		try {
 			Method MethodRef = this.GetMethodRef();
@@ -1742,8 +1739,7 @@ class ErrorNode extends TypedNode {
 		this.ErrorMessage = KeyToken.ToErrorToken(ErrorMessage);
 	}
 
-	@Override
-	public boolean Evaluate(NodeVisitor Visitor) {
+	@Override public boolean Evaluate(NodeVisitor Visitor) {
 		return Visitor.VisitError(this);
 	}
 }
@@ -1756,8 +1752,7 @@ class ConstNode extends TypedNode {
 		this.ConstValue = ConstValue;
 	}
 
-	@Override
-	public boolean Evaluate(NodeVisitor Visitor) {
+	@Override public boolean Evaluate(NodeVisitor Visitor) {
 		return Visitor.VisitConst(this);
 	}
 
@@ -1781,8 +1776,7 @@ class LocalNode extends FieldNode {
 		super(TypeInfo, SourceToken, FieldName);
 	}
 
-	@Override
-	public boolean Evaluate(NodeVisitor Visitor) {
+	@Override public boolean Evaluate(NodeVisitor Visitor) {
 		return Visitor.VisitLocal(this);
 	}
 
@@ -1794,11 +1788,9 @@ class NullNode extends TypedNode {
 		super(TypeInfo, null/* fixme */);
 	}
 
-	@Override
-	public boolean Evaluate(NodeVisitor Visitor) {
+	@Override public boolean Evaluate(NodeVisitor Visitor) {
 		return Visitor.VisitNull(this);
 	}
-
 }
 
 class LetNode extends TypedNode {
@@ -1814,11 +1806,9 @@ class LetNode extends TypedNode {
 		this.BlockNode = Block;
 	}
 
-	@Override
-	public boolean Evaluate(NodeVisitor Visitor) {
+	@Override public boolean Evaluate(NodeVisitor Visitor) {
 		return Visitor.VisitLet(this);
 	}
-
 }
 
 class AndNode extends BinaryNode {
@@ -1826,8 +1816,7 @@ class AndNode extends BinaryNode {
 		super(TypeInfo, KeyToken, Left, Right);
 	}
 
-	@Override
-	public boolean Evaluate(NodeVisitor Visitor) {
+	@Override public boolean Evaluate(NodeVisitor Visitor) {
 		return Visitor.VisitAnd(this);
 	}
 }
@@ -1838,11 +1827,9 @@ class OrNode extends BinaryNode {
 		super(TypeInfo, KeyToken, Left, Right);
 	}
 
-	@Override
-	public boolean Evaluate(NodeVisitor Visitor) {
+	@Override public boolean Evaluate(NodeVisitor Visitor) {
 		return Visitor.VisitOr(this);
 	}
-
 }
 
 class ApplyNode extends TypedNode {
@@ -1875,11 +1862,9 @@ class ApplyNode extends TypedNode {
 		this.Params.add(Expr);
 	}
 
-	@Override
-	public boolean Evaluate(NodeVisitor Visitor) {
+	@Override public boolean Evaluate(NodeVisitor Visitor) {
 		return Visitor.VisitApply(this);
 	}
-
 }
 
 class NewNode extends TypedNode {
@@ -1894,11 +1879,9 @@ class NewNode extends TypedNode {
 		this.Params.add(Expr);
 	}
 
-	@Override
-	public boolean Evaluate(NodeVisitor Visitor) {
+	@Override public boolean Evaluate(NodeVisitor Visitor) {
 		return Visitor.VisitNew(this);
 	}
-
 }
 
 class IfNode extends TypedNode {
@@ -1914,11 +1897,9 @@ class IfNode extends TypedNode {
 		this.ElseNode = ElseNode;
 	}
 
-	@Override
-	public boolean Evaluate(NodeVisitor Visitor) {
+	@Override public boolean Evaluate(NodeVisitor Visitor) {
 		return Visitor.VisitIf(this);
 	}
-
 }
 
 class LoopNode extends TypedNode {
@@ -1935,11 +1916,9 @@ class LoopNode extends TypedNode {
 		this.IterationExpr = IterationExpr;
 	}
 
-	@Override
-	public boolean Evaluate(NodeVisitor Visitor) {
+	@Override public boolean Evaluate(NodeVisitor Visitor) {
 		return Visitor.VisitLoop(this);
 	}
-
 }
 
 class ReturnNode extends UnaryNode {
@@ -1948,8 +1927,7 @@ class ReturnNode extends UnaryNode {
 		super(TypeInfo, Expr);
 	}
 
-	@Override
-	public boolean Evaluate(NodeVisitor Visitor) {
+	@Override public boolean Evaluate(NodeVisitor Visitor) {
 		return Visitor.VisitReturn(this);
 	}
 
@@ -1961,8 +1939,7 @@ class ThrowNode extends UnaryNode {
 		super(TypeInfo, Expr);
 	}
 
-	@Override
-	public boolean Evaluate(NodeVisitor Visitor) {
+	@Override public boolean Evaluate(NodeVisitor Visitor) {
 		return Visitor.VisitThrow(this);
 	}
 }
@@ -2012,7 +1989,6 @@ class SwitchNode extends TypedNode {
 	@Override public boolean Evaluate(NodeVisitor Visitor) {
 		return Visitor.VisitSwitch(this);
 	}
-
 }
 
 class DefineNode extends TypedNode {
@@ -2027,7 +2003,6 @@ class DefineNode extends TypedNode {
 	@Override public boolean Evaluate(NodeVisitor Visitor) {
 		return Visitor.VisitDefine(this);
 	}
-
 }
 
 /* builder */
@@ -2113,6 +2088,7 @@ class NodeVisitor /* implements INodeVisitor */ extends KonohaStatic {
 }
 
 class KonohaBuilder extends KonohaStatic {
+	
 	Object EvalAtTopLevel(KonohaNameSpace NameSpace, TypedNode Node, KonohaObject GlobalObject) {
 		return null;
 	}
@@ -2134,7 +2110,6 @@ final class KonohaSpec extends KonohaStatic {
 }
 
 final class KonohaNameSpace extends KonohaStatic {
-
 	public KonohaContext		KonohaContext;
 	KonohaNameSpace		        ParentNameSpace;
 	KonohaArray			        ImportedNameSpaceList;
@@ -3234,9 +3209,9 @@ class KonohaContext extends KonohaStatic {
 		KonohaContext.Eval("1 + 2 * 3", 0);
 
 	}
-
 }
 
 public class GreenTeaScript {
+	
 
 }

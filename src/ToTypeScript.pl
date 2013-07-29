@@ -38,7 +38,6 @@ while ($line = <>)  {
 	$line =~ s/static //;
 	$line =~ s/ \([\w+]\)/ \<$1\>/g;
 	$line =~ s/\@Override //;
-	
 		
 	$line =~ s/boolean[ \t]+(.*\(.*)\{/$1:boolean {/g;
 	$line =~ s/String[ \t]+(.*\(.*)\{/$1:string {/g;
@@ -62,6 +61,11 @@ while ($line = <>)  {
 	$line =~ s/KonohaArray/any[]/g;
 	$line =~ s/KonohaMap/object/g;
 	#$line =~ s/(\S)([ \t]+)(\S)/$1 $3/g;
+
+	# python
+	$line =~ s/([ \t]:\w+)//g;
+	$line =~ s/\{/:/g;
+	$line =~ s/\}//g;
 	print $Indent . $line;
 }
 
