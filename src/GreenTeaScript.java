@@ -302,15 +302,15 @@ class GtStatic implements GtConst {
 		return null; /*throw new GtParserException("method not found: " + callee.getClass().getName() + "." + methodName);*/
 	}
 
-	public final static GtFuncA functionA(Object Callee, String MethodName) {
+	public final static GtFuncA FunctionA(Object Callee, String MethodName) {
 		return new GtFuncA(Callee, LookupMethod(Callee, MethodName));
 	}
 
-	public final static GtFuncB functionB(Object Callee, String MethodName) {
+	public final static GtFuncB FunctionB(Object Callee, String MethodName) {
 		return new GtFuncB(Callee, LookupMethod(Callee, MethodName));
 	}
 	
-	public final static GtFuncC functionC(Object Callee, String MethodName) {
+	public final static GtFuncC FunctionC(Object Callee, String MethodName) {
 		return new GtFuncC(Callee, LookupMethod(Callee, MethodName));
 	}
 
@@ -2928,17 +2928,17 @@ class GtGrammar extends GtStatic {
 		NameSpace.DefineSymbol("true", new Boolean(true));
 		NameSpace.DefineSymbol("false", new Boolean(false));
 
-		NameSpace.DefineTokenFunc(" \t", functionA(this, "WhiteSpaceToken"));
-		NameSpace.DefineTokenFunc("\n",  functionA(this, "IndentToken"));
-		NameSpace.DefineTokenFunc("(){}[]<>,;+-*/%=&|!", functionA(this, "SingleSymbolToken"));
-		NameSpace.DefineTokenFunc("Aa", functionA(this, "SymbolToken"));
-		NameSpace.DefineTokenFunc(".",  functionA(this, "MemberToken"));
-		NameSpace.DefineTokenFunc("\"", functionA(this, "StringLiteralToken"));
-		NameSpace.DefineTokenFunc("1",  functionA(this, "NumberLiteralToken"));
+		NameSpace.DefineTokenFunc(" \t", FunctionA(this, "WhiteSpaceToken"));
+		NameSpace.DefineTokenFunc("\n",  FunctionA(this, "IndentToken"));
+		NameSpace.DefineTokenFunc("(){}[]<>,;+-*/%=&|!", FunctionA(this, "SingleSymbolToken"));
+		NameSpace.DefineTokenFunc("Aa", FunctionA(this, "SymbolToken"));
+		NameSpace.DefineTokenFunc(".",  FunctionA(this, "MemberToken"));
+		NameSpace.DefineTokenFunc("\"", FunctionA(this, "StringLiteralToken"));
+		NameSpace.DefineTokenFunc("1",  FunctionA(this, "NumberLiteralToken"));
 
-		GtFuncB ParseUniary = functionB(this, "ParseUniary");
-		GtFuncB ParseBinary = functionB(this, "ParseBinary");
-		GtFuncC TypeApply   = functionC(this, "TypeApply");
+		GtFuncB ParseUniary = FunctionB(this, "ParseUniary");
+		GtFuncB ParseBinary = FunctionB(this, "ParseBinary");
+		GtFuncC TypeApply   = FunctionC(this, "TypeApply");
 
 		NameSpace.DefineSyntaxPattern("+", ParseUniary, TypeApply);
 		NameSpace.DefineSyntaxPattern("-", ParseUniary, TypeApply);
@@ -2958,10 +2958,10 @@ class GtGrammar extends GtStatic {
 		NameSpace.DefineExtendedPattern("==", BinaryOperator | Precedence_CStyleEquals, ParseBinary, TypeApply);
 		NameSpace.DefineExtendedPattern("!=", BinaryOperator | Precedence_CStyleEquals, ParseBinary, TypeApply);
 
-		NameSpace.DefineExtendedPattern("=", BinaryOperator | Precedence_CStyleAssign | LeftJoin, ParseBinary, functionC(this, "TypeAssign"));
+		NameSpace.DefineExtendedPattern("=", BinaryOperator | Precedence_CStyleAssign | LeftJoin, ParseBinary, FunctionC(this, "TypeAssign"));
 
-		NameSpace.DefineExtendedPattern("&&", BinaryOperator | Precedence_CStyleAND, ParseBinary, functionC(this, "TypeAnd"));
-		NameSpace.DefineExtendedPattern("||", BinaryOperator | Precedence_CStyleOR, ParseBinary, functionC(this, "TypeOr"));
+		NameSpace.DefineExtendedPattern("&&", BinaryOperator | Precedence_CStyleAND, ParseBinary, FunctionC(this, "TypeAnd"));
+		NameSpace.DefineExtendedPattern("||", BinaryOperator | Precedence_CStyleOR, ParseBinary, FunctionC(this, "TypeOr"));
 		
 		//NameSpace.DefineSyntaxPattern(";", Precedence_CStyleDelim, this, null, null);
 		//NameSpace.DefineSyntaxPattern("$Const", Term, this, "Const");
@@ -2974,24 +2974,24 @@ class GtGrammar extends GtStatic {
 
 		//NameSpace.DefineSyntaxPattern("()", Term | Precedence_CStyleSuffixCall, this, "UNUSED");
 		//NameSpace.DefineSyntaxPattern("{}", 0, this, "UNUSED");
-		GtFuncC TypeConst = functionC(this, "TypeConst");
+		GtFuncC TypeConst = FunctionC(this, "TypeConst");
 		
-		NameSpace.DefineSyntaxPattern("$Symbol", functionB(this, "ParseSymbol"), functionC(this, "TypeVariable"));
-		NameSpace.DefineSyntaxPattern("$Type", functionB(this, "ParseType"), TypeConst);
+		NameSpace.DefineSyntaxPattern("$Symbol", FunctionB(this, "ParseSymbol"), FunctionC(this, "TypeVariable"));
+		NameSpace.DefineSyntaxPattern("$Type", FunctionB(this, "ParseType"), TypeConst);
 		
-		NameSpace.DefineSyntaxPattern("$Const", functionB(this, "ParseConst"), functionC(this, "TypeSymbol"));
-		NameSpace.DefineSyntaxPattern("$StringLiteral", functionB(this, "ParseStringLiteral"), TypeConst);
-		NameSpace.DefineSyntaxPattern("$IntegerLiteral", functionB(this, "ParseIntegerLiteral"), TypeConst);
+		NameSpace.DefineSyntaxPattern("$Const", FunctionB(this, "ParseConst"), FunctionC(this, "TypeSymbol"));
+		NameSpace.DefineSyntaxPattern("$StringLiteral", FunctionB(this, "ParseStringLiteral"), TypeConst);
+		NameSpace.DefineSyntaxPattern("$IntegerLiteral", FunctionB(this, "ParseIntegerLiteral"), TypeConst);
 
-		NameSpace.DefineSyntaxPattern("(", functionB(this, "ParseParenthesis"), null);
+		NameSpace.DefineSyntaxPattern("(", FunctionB(this, "ParseParenthesis"), null);
 
-		NameSpace.DefineSyntaxPattern("{", functionB(this, "ParseBlock"), functionC(this, "TypeBlock"));
+		NameSpace.DefineSyntaxPattern("{", FunctionB(this, "ParseBlock"), FunctionC(this, "TypeBlock"));
 		
-		NameSpace.DefineSyntaxPattern("$Symbol", functionB(this, "ParseMethodDecl"), functionC(this, "TypeMethodDecl"));
-		NameSpace.DefineSyntaxPattern("$Symbol", functionB(this, "ParseVarDecl"), functionC(this, "TypeVarDecl"));
+		NameSpace.DefineSyntaxPattern("$Symbol", FunctionB(this, "ParseMethodDecl"), FunctionC(this, "TypeMethodDecl"));
+		NameSpace.DefineSyntaxPattern("$Symbol", FunctionB(this, "ParseVarDecl"), FunctionC(this, "TypeVarDecl"));
 
-		NameSpace.DefineSyntaxPattern("if", functionB(this, "ParseIf"), functionC(this, "TypeIf"));
-		NameSpace.DefineSyntaxPattern("return", functionB(this, "ParseReturn"), functionC(this, "ParseReturn"));
+		NameSpace.DefineSyntaxPattern("if", FunctionB(this, "ParseIf"), FunctionC(this, "TypeIf"));
+		NameSpace.DefineSyntaxPattern("return", FunctionB(this, "ParseReturn"), FunctionC(this, "ParseReturn"));
 
 		// Load Library
 		new GtInt().MakeDefinition(NameSpace);
