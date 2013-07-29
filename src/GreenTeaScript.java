@@ -6,14 +6,14 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-interface KonohaConst {
+interface GtConst {
 //endif VAJA
 
 	// ClassFlag
 	public final static int		PrivateClass					= 1 << 0;
 	public final static int		SingletonClass					= 1 << 1;
 	public final static int		FinalClass						= 1 << 2;
-	public final static int		KonohaClass						= 1 << 3;
+	public final static int		GtClass						= 1 << 3;
 	public final static int		StaticClass						= 1 << 4;
 	public final static int		ImmutableClass					= 1 << 5;
 	public final static int		InterfaceClass					= 1 << 6;
@@ -66,9 +66,9 @@ interface KonohaConst {
 	public final static int		WarningLevel					= 1;
 	public final static int		InfoLevel					     = 2;
 
-	public final static int   KonohaCharMaxSize                = 41;
+	public final static int   GtCharMaxSize                = 41;
 	
-	public final static KonohaToken NullToken = new KonohaToken("", 0);
+	public final static GtToken NullToken = new GtToken("", 0);
 
 	// TokenFlag
 	public final static int	SourceTokenFlag	= 1;
@@ -163,7 +163,7 @@ interface KonohaConst {
 
 	public final static String	GlobalConstName					= "global";
 
-	public final KonohaArray	EmptyList = new KonohaArray();
+	public final GtArray	EmptyList = new GtArray();
 
 
 	// debug flags
@@ -173,7 +173,7 @@ interface KonohaConst {
 //ifdef JAVA
 }
 
-class KonohaStatic implements KonohaConst {
+class GtStatic implements GtConst {
 //endif VAJA
 	
 	public static void println(String msg) {
@@ -181,14 +181,14 @@ class KonohaStatic implements KonohaConst {
 	}
 	
 	public static void P(String msg) {
-		KonohaStatic.println("DEBUG: " + msg);
+		GtStatic.println("DEBUG: " + msg);
 	}
 
 	public static void TODO(String msg) {
-		KonohaStatic.println("TODO: " + msg);
+		GtStatic.println("TODO: " + msg);
 	}
 
-	public static int ListSize(KonohaArray a) {
+	public static int ListSize(GtArray a) {
 		return (a == null) ? 0 : a.size();
 	}
 	
@@ -210,20 +210,20 @@ class KonohaStatic implements KonohaConst {
 	
 	public static Method LookupMethod(Object Callee, String MethodName) {
 		if(MethodName != null) {
-			// KonohaDebug.P("looking up method : " + Callee.getClass().getSimpleName() + "." + MethodName);
+			// GtDebug.P("looking up method : " + Callee.getClass().getSimpleName() + "." + MethodName);
 			Method[] methods = Callee.getClass().getMethods();
 			for(int i = 0; i < methods.length; i++) {
 				if(MethodName.equals(methods[i].getName())) {
 					return methods[i];
 				}
 			}
-			KonohaStatic.P("method not found: " + Callee.getClass().getSimpleName() + "." + MethodName);
+			GtStatic.P("method not found: " + Callee.getClass().getSimpleName() + "." + MethodName);
 		}
-		return null; /*throw new KonohaParserException("method not found: " + callee.getClass().getName() + "." + methodName);*/
+		return null; /*throw new GtParserException("method not found: " + callee.getClass().getName() + "." + methodName);*/
 	}
 
-	public static KonohaFunc function(Object Callee, String MethodName) {
-		return new KonohaFunc(Callee, LookupMethod(Callee, MethodName));
+	public static GtFunc function(Object Callee, String MethodName) {
+		return new GtFunc(Callee, LookupMethod(Callee, MethodName));
 	}
 
 	static boolean EqualsMethod(Method m1, Method m2) {
@@ -234,7 +234,7 @@ class KonohaStatic implements KonohaConst {
 		}
 	}
 	
-	public static TokenFunc CreateOrReuseTokenFunc(KonohaFunc f, TokenFunc prev) {
+	public static TokenFunc CreateOrReuseTokenFunc(GtFunc f, TokenFunc prev) {
 		if(prev != null && EqualsMethod(prev.Func.Method, f.Method)) {
 			return prev;
 		}
@@ -244,7 +244,7 @@ class KonohaStatic implements KonohaConst {
 	public static int ApplyTokenFunc(TokenFunc TokenFunc, TokenContext TokenContext, String ScriptSource, int Pos) {
 		try {
 			while(TokenFunc != null) {
-				KonohaFunc f = TokenFunc.Func;
+				GtFunc f = TokenFunc.Func;
 				int NextIdx = ((Integer)f.Method.invoke(f.Self, TokenContext, ScriptSource, Pos)).intValue();
 				if(NextIdx > Pos) return NextIdx;
 				TokenFunc = TokenFunc.ParentFunc;
@@ -289,15 +289,15 @@ class KonohaStatic implements KonohaConst {
 			int ParseFlag = TokenContext.ParseFlag;
 			SyntaxPattern CurrentPattern = Pattern;
 			while(CurrentPattern != null) {
-				KonohaFunc f = Pattern.MatchFunc;
+				GtFunc f = Pattern.MatchFunc;
 				TokenContext.Pos = Pos;
 				if(CurrentPattern.ParentPattern != null) {
 					TokenContext.ParseFlag = ParseFlag | TrackbackParseFlag;
 				}
-				KonohaStatic.P("B ApplySyntaxPattern: " + CurrentPattern + " > " + CurrentPattern.ParentPattern);
+				GtStatic.P("B ApplySyntaxPattern: " + CurrentPattern + " > " + CurrentPattern.ParentPattern);
 				SyntaxTree ParsedTree = (SyntaxTree)f.Method.invoke(f.Self, CurrentPattern, LeftTree, TokenContext);
 				if(ParsedTree != null && ParsedTree.IsEmpty()) ParsedTree = null;
-				KonohaStatic.P("E ApplySyntaxPattern: " + CurrentPattern + " => " + ParsedTree);
+				GtStatic.P("E ApplySyntaxPattern: " + CurrentPattern + " => " + ParsedTree);
 				TokenContext.ParseFlag = ParseFlag;
 				if(ParsedTree != null) {
 					return ParsedTree;
@@ -318,27 +318,27 @@ class KonohaStatic implements KonohaConst {
 			TokenContext.Pos = Pos;
 		}
 		if(Pattern == null) {
-			KonohaStatic.P("undefined syntax pattern: " + Pattern);
+			GtStatic.P("undefined syntax pattern: " + Pattern);
 		}
 		return TokenContext.ReportExpectedPattern(Pattern);
 	}
 
 	public static SyntaxTree ParseSyntaxTree(SyntaxTree PrevTree, TokenContext TokenContext) {
 		SyntaxPattern Pattern = TokenContext.GetFirstPattern();
-		SyntaxTree LeftTree = KonohaStatic.ApplySyntaxPattern(Pattern, PrevTree, TokenContext);
-		while (!KonohaStatic.IsEmptyOrError(LeftTree)) {
+		SyntaxTree LeftTree = GtStatic.ApplySyntaxPattern(Pattern, PrevTree, TokenContext);
+		while (!GtStatic.IsEmptyOrError(LeftTree)) {
 			SyntaxPattern ExtendedPattern = TokenContext.GetExtendedPattern();
 			if(ExtendedPattern == null) {
-				KonohaStatic.P("In $Expression ending: " + TokenContext.GetToken());
+				GtStatic.P("In $Expression ending: " + TokenContext.GetToken());
 				break;
 			}
-			LeftTree = KonohaStatic.ApplySyntaxPattern(ExtendedPattern, LeftTree, TokenContext);			
+			LeftTree = GtStatic.ApplySyntaxPattern(ExtendedPattern, LeftTree, TokenContext);			
 		}
 		return LeftTree;
 	}
 
 	// typing 
-	public static TypedNode ApplyTypeFunc(KonohaFunc TypeFunc, TypeEnv Gamma, SyntaxTree ParsedTree, KonohaType TypeInfo) {
+	public static TypedNode ApplyTypeFunc(GtFunc TypeFunc, TypeEnv Gamma, SyntaxTree ParsedTree, GtType TypeInfo) {
 		try {
 			return (TypedNode)TypeFunc.Method.invoke(TypeFunc.Self, Gamma, ParsedTree, TypeInfo);
 		}
@@ -358,14 +358,14 @@ class KonohaStatic implements KonohaConst {
 //ifdef JAVA
 }
 
-final class KonohaArray {
+final class GtArray {
 	private final ArrayList<Object>	List;
 
-	public KonohaArray() {
+	public GtArray() {
 		this.List = new ArrayList<Object>();
 	}
 
-	public KonohaArray(int DefaultSize) {
+	public GtArray(int DefaultSize) {
 		this.List = new ArrayList<Object>(DefaultSize);
 	}
 
@@ -402,10 +402,10 @@ final class KonohaArray {
 	}
 }
 
-final class KonohaMap {
+final class GtMap {
 	private final HashMap<String, Object>	Map;
 
-	public KonohaMap() {
+	public GtMap() {
 		this.Map = new HashMap<String, Object>();
 	}
 
@@ -434,11 +434,11 @@ final class KonohaMap {
 
 }
 
-final class KonohaFunc {
+final class GtFunc {
 	public Object	Self;
 	public Method	Method;
 
-	KonohaFunc(Object Self, Method method) {
+	GtFunc(Object Self, Method method) {
 		this.Self = Self;
 		this.Method = method;
 	}
@@ -460,7 +460,7 @@ final class KonohaFunc {
 
 // tokenizer
 
-class KonohaChar {
+class GtChar {
 	public final static int	Null				= 0;
 	public final static int	Undefined			= 1;
 	public final static int	Digit				= 2;
@@ -544,32 +544,32 @@ class KonohaChar {
 }
 
 
-final class KonohaToken extends KonohaStatic {
+final class GtToken extends GtStatic {
 	public int		TokenFlag;
 	public String	ParsedText;
 	public long		FileLine;
 	public SyntaxPattern	PresetPattern;
 
-	public KonohaToken/*constructor*/(String text, long FileLine) {
+	public GtToken/*constructor*/(String text, long FileLine) {
 		this.ParsedText = text;
 		this.FileLine = FileLine;
 		this.PresetPattern = null;
 	}
 
 	public boolean IsSource() {
-		return KonohaStatic.IsFlag(this.TokenFlag, SourceTokenFlag);
+		return GtStatic.IsFlag(this.TokenFlag, SourceTokenFlag);
 	}
 	
 	public boolean IsError() {
-		return KonohaStatic.IsFlag(this.TokenFlag, ErrorTokenFlag);
+		return GtStatic.IsFlag(this.TokenFlag, ErrorTokenFlag);
 	}
 
 	public boolean IsIndent() {
-		return KonohaStatic.IsFlag(this.TokenFlag, IndentTokenFlag);
+		return GtStatic.IsFlag(this.TokenFlag, IndentTokenFlag);
 	}
 
 	public boolean IsDelim() {
-		return KonohaStatic.IsFlag(this.TokenFlag, DelimTokenFlag);
+		return GtStatic.IsFlag(this.TokenFlag, DelimTokenFlag);
 	}
 
 	public boolean EqualsText(String text) {
@@ -598,10 +598,10 @@ final class KonohaToken extends KonohaStatic {
 }
 
 final class TokenFunc {
-	public KonohaFunc       Func;
+	public GtFunc       Func;
 	public TokenFunc		ParentFunc;
 
-	TokenFunc(KonohaFunc Func, TokenFunc prev) {
+	TokenFunc(GtFunc Func, TokenFunc prev) {
 		this.Func = Func;
 		this.ParentFunc = prev;
 	}
@@ -620,24 +620,24 @@ final class TokenFunc {
 
 }
 
-final class TokenContext extends KonohaStatic {
-	public KonohaNameSpace NameSpace;
-	public KonohaArray SourceList;
+final class TokenContext extends GtStatic {
+	public GtNameSpace NameSpace;
+	public GtArray SourceList;
 	public int Pos;
 	public long ParsingLine;
 	public int ParseFlag;
 
-	public TokenContext/*constructor*/(KonohaNameSpace NameSpace, String Text, long FileLine) {
+	public TokenContext/*constructor*/(GtNameSpace NameSpace, String Text, long FileLine) {
 		this.NameSpace = NameSpace;
-		this.SourceList = new KonohaArray();
+		this.SourceList = new GtArray();
 		this.Pos = 0;
 		this.ParsingLine = FileLine;
 		this.ParseFlag = 0;
 		AddNewToken(Text, SourceTokenFlag, null);
 	}
 
-	public KonohaToken AddNewToken(String Text, int TokenFlag, String PatternName) {
-		KonohaToken Token = new KonohaToken(Text, this.ParsingLine);
+	public GtToken AddNewToken(String Text, int TokenFlag, String PatternName) {
+		GtToken Token = new GtToken(Text, this.ParsingLine);
 		Token.TokenFlag |= TokenFlag;
 		if(PatternName != null) {
 			Token.PresetPattern = this.NameSpace.GetPattern(PatternName);
@@ -648,7 +648,7 @@ final class TokenContext extends KonohaStatic {
 	}
 
 	public void FoundWhiteSpace() {
-		KonohaToken Token = GetToken();
+		GtToken Token = GetToken();
 		Token.TokenFlag |= WhiteSpaceTokenFlag;
 	}
 	
@@ -657,11 +657,11 @@ final class TokenContext extends KonohaStatic {
 	}
 
 	public void ReportTokenError(int Level, String Message, String TokenText) {
-		KonohaToken Token = this.AddNewToken(TokenText, 0, "$ErrorToken");
+		GtToken Token = this.AddNewToken(TokenText, 0, "$ErrorToken");
 		this.NameSpace.ReportError(Level, Token, Message);
 	}
 	
-	public SyntaxTree NewErrorSyntaxTree(KonohaToken Token, String Message) {
+	public SyntaxTree NewErrorSyntaxTree(GtToken Token, String Message) {
 		if(!IsAllowedTrackback()) {
 			this.NameSpace.ReportError(ErrorLevel, Token, Message);
 			SyntaxTree ErrorTree = new SyntaxTree(Token.PresetPattern, this.NameSpace, Token);
@@ -670,10 +670,10 @@ final class TokenContext extends KonohaStatic {
 		return null;
 	}
 	
-	public KonohaToken GetBeforeToken() {
+	public GtToken GetBeforeToken() {
 		for(int pos = this.Pos - 1; pos >= 0; pos--) {
-			KonohaToken Token = (KonohaToken)this.SourceList.get(pos);
-			if(KonohaStatic.IsFlag(Token.TokenFlag, IndentTokenFlag)) {
+			GtToken Token = (GtToken)this.SourceList.get(pos);
+			if(GtStatic.IsFlag(Token.TokenFlag, IndentTokenFlag)) {
 				continue;
 			}
 			return Token;
@@ -683,7 +683,7 @@ final class TokenContext extends KonohaStatic {
 
 	public SyntaxTree ReportExpectedToken(String TokenText) {
 		if(!IsAllowedTrackback()) {
-			KonohaToken Token = GetBeforeToken();
+			GtToken Token = GetBeforeToken();
 			if(Token != null) {
 				return NewErrorSyntaxTree(Token, TokenText + " is expected after " + Token.ParsedText);
 			}
@@ -698,11 +698,11 @@ final class TokenContext extends KonohaStatic {
 		return ReportExpectedToken(Pattern.PatternName);
 	}
 	
-	private int DispatchFunc(String ScriptSource, int KonohaChar, int pos) {
-		TokenFunc TokenFunc = this.NameSpace.GetTokenFunc(KonohaChar);
-		int NextIdx = KonohaStatic.ApplyTokenFunc(TokenFunc, this, ScriptSource, pos);
+	private int DispatchFunc(String ScriptSource, int GtChar, int pos) {
+		TokenFunc TokenFunc = this.NameSpace.GetTokenFunc(GtChar);
+		int NextIdx = GtStatic.ApplyTokenFunc(TokenFunc, this, ScriptSource, pos);
 		if(NextIdx == NoMatch) {
-			KonohaStatic.P("undefined tokenizer: " + ScriptSource.charAt(pos));
+			GtStatic.P("undefined tokenizer: " + ScriptSource.charAt(pos));
 			AddNewToken(ScriptSource.substring(pos), 0, null);
 			return ScriptSource.length();
 		}
@@ -713,7 +713,7 @@ final class TokenContext extends KonohaStatic {
 		int pos = 0, len = ScriptSource.length();
 		this.ParsingLine = CurrentLine;
 		while(pos < len) {
-			int kchar = KonohaChar.FromJavaChar(ScriptSource.charAt(pos));
+			int kchar = GtChar.FromJavaChar(ScriptSource.charAt(pos));
 			int pos2 = DispatchFunc(ScriptSource, kchar, pos);
 			if(!(pos < pos2)) {
 				break;
@@ -723,15 +723,15 @@ final class TokenContext extends KonohaStatic {
 		Dump();
 	}
 
-	public KonohaToken GetToken() {
+	public GtToken GetToken() {
 		while((this.Pos < this.SourceList.size())) {
-			KonohaToken Token = (KonohaToken)this.SourceList.get(this.Pos);
+			GtToken Token = (GtToken)this.SourceList.get(this.Pos);
 			if(Token.IsSource()) {
 				this.SourceList.pop();
 				Tokenize(Token.ParsedText, Token.FileLine);
-				Token = (KonohaToken)this.SourceList.get(this.Pos);
+				Token = (GtToken)this.SourceList.get(this.Pos);
 			}
-			if(KonohaStatic.IsFlag(this.ParseFlag, SkipIndentParseFlag) && Token.IsIndent()) {
+			if(GtStatic.IsFlag(this.ParseFlag, SkipIndentParseFlag) && Token.IsIndent()) {
 				this.Pos += 1;
 				continue;
 			}
@@ -744,8 +744,8 @@ final class TokenContext extends KonohaStatic {
 		return (GetToken() != NullToken);
 	}
 
-	public KonohaToken Next() {
-		KonohaToken Token = GetToken();
+	public GtToken Next() {
+		GtToken Token = GetToken();
 		this.Pos += 1;
 		return Token;
 	}
@@ -755,7 +755,7 @@ final class TokenContext extends KonohaStatic {
 	}
 
 	public SyntaxPattern GetFirstPattern() {
-		KonohaToken Token = GetToken();
+		GtToken Token = GetToken();
 		if(Token.PresetPattern != null) {
 			return Token.PresetPattern;
 		}
@@ -767,13 +767,13 @@ final class TokenContext extends KonohaStatic {
 	}
 
 	public SyntaxPattern GetExtendedPattern() {
-		KonohaToken Token = GetToken();
+		GtToken Token = GetToken();
 		SyntaxPattern Pattern = this.NameSpace.GetExtendedPattern(Token.ParsedText);
 		return Pattern;		
 	}
 	
 	public boolean MatchToken(String TokenText) {
-		KonohaToken Token = GetToken();
+		GtToken Token = GetToken();
 		if(Token.EqualsText(TokenText)) {
 			this.Pos += 1;
 			return true;
@@ -781,8 +781,8 @@ final class TokenContext extends KonohaStatic {
 		return false;
 	}
 
-	public KonohaToken GetMatchedToken(String TokenText) {
-		KonohaToken Token = GetToken();
+	public GtToken GetMatchedToken(String TokenText) {
+		GtToken Token = GetToken();
 		while(Token != NullToken) {
 			this.Pos += 1;
 			if(Token.EqualsText(TokenText)) {
@@ -793,7 +793,7 @@ final class TokenContext extends KonohaStatic {
 	}
 
 	public boolean IsAllowedTrackback() {
-		return KonohaStatic.IsFlag(this.ParseFlag, TrackbackParseFlag);
+		return GtStatic.IsFlag(this.ParseFlag, TrackbackParseFlag);
 	}
 
 	public SyntaxTree ParsePattern(String PatternName, boolean IsOptional) {
@@ -803,7 +803,7 @@ final class TokenContext extends KonohaStatic {
 		if(IsOptional) {
 			this.ParseFlag |= TrackbackParseFlag;
 		}
-		SyntaxTree SyntaxTree = KonohaStatic.ApplySyntaxPattern(Pattern, null, this);
+		SyntaxTree SyntaxTree = GtStatic.ApplySyntaxPattern(Pattern, null, this);
 		this.ParseFlag = ParseFlag;
 		if(SyntaxTree != null) {
 			return SyntaxTree;
@@ -813,7 +813,7 @@ final class TokenContext extends KonohaStatic {
 	}
 	
 	public boolean SkipEmptyStatement() {
-		KonohaToken Token;
+		GtToken Token;
 		while((Token = GetToken()) != NullToken) {
 			if(Token.IsIndent() || Token.IsDelim()) {
 				this.Pos += 1;
@@ -826,20 +826,20 @@ final class TokenContext extends KonohaStatic {
 	
 	public void Dump() {
 		for(int pos = this.Pos ; pos < this.SourceList.size(); pos++) {
-			KonohaStatic.P("["+pos+"]\t" + this.SourceList.get(pos));
+			GtStatic.P("["+pos+"]\t" + this.SourceList.get(pos));
 		}
 	}
 	
 }
 
-final class SyntaxPattern extends KonohaStatic {
+final class SyntaxPattern extends GtStatic {
 
-	public KonohaNameSpace	PackageNameSpace;
+	public GtNameSpace	PackageNameSpace;
 	public String			PatternName;
 	int						SyntaxFlag;
 
-	public KonohaFunc       MatchFunc;
-	public KonohaFunc       TypeFunc;
+	public GtFunc       MatchFunc;
+	public GtFunc       TypeFunc;
 	public SyntaxPattern	ParentPattern;
 	
 	@Override public String toString() {
@@ -853,12 +853,12 @@ final class SyntaxPattern extends KonohaStatic {
 	public boolean IsLeftJoin(SyntaxPattern Right) {
 		int left = this.SyntaxFlag >> PrecedenceShift, right = Right.SyntaxFlag >> PrecedenceShift;
 		// System.err.printf("left=%d,%s, right=%d,%s\n", left, this.PatternName, right, Right.PatternName);
-		return (left < right || (left == right && KonohaStatic.IsFlag(this.SyntaxFlag, LeftJoin) && KonohaStatic.IsFlag(Right.SyntaxFlag, LeftJoin)));
+		return (left < right || (left == right && GtStatic.IsFlag(this.SyntaxFlag, LeftJoin) && GtStatic.IsFlag(Right.SyntaxFlag, LeftJoin)));
 	}
 
 	// KSyntax Pop() { return ParentSyntax; }
 
-	public SyntaxPattern/*constructor*/(KonohaNameSpace NameSpace, String PatternName, KonohaFunc MatchFunc, KonohaFunc TypeFunc) {
+	public SyntaxPattern/*constructor*/(GtNameSpace NameSpace, String PatternName, GtFunc MatchFunc, GtFunc TypeFunc) {
 		this.PackageNameSpace = NameSpace;
 		this.PatternName = PatternName;
 		this.SyntaxFlag = 0;
@@ -869,15 +869,15 @@ final class SyntaxPattern extends KonohaStatic {
 	
 }
 
-class SyntaxTree extends KonohaStatic {
+class SyntaxTree extends GtStatic {
 	public SyntaxTree		ParentTree;
 	public SyntaxTree		PrevTree;
 	public SyntaxTree		NextTree;
 
-	public KonohaNameSpace	TreeNameSpace;
+	public GtNameSpace	TreeNameSpace;
 	public SyntaxPattern	Pattern;
-	public KonohaToken		KeyToken;
-	public KonohaArray	    TreeList;
+	public GtToken		KeyToken;
+	public GtArray	    TreeList;
 
 	@Override public String toString() {
 		String key = this.KeyToken.ParsedText + ":" + ((this.Pattern != null) ? this.Pattern.PatternName : "null");
@@ -903,7 +903,7 @@ class SyntaxTree extends KonohaStatic {
 		return sb.toString();
 	}
 
-	public SyntaxTree(SyntaxPattern Pattern, KonohaNameSpace NameSpace, KonohaToken KeyToken) {
+	public SyntaxTree(SyntaxPattern Pattern, GtNameSpace NameSpace, GtToken KeyToken) {
 		this.TreeNameSpace = NameSpace;
 		this.KeyToken = KeyToken;
 		this.Pattern = Pattern;
@@ -922,7 +922,7 @@ class SyntaxTree extends KonohaStatic {
 		return this.KeyToken.IsError();
 	}
 
-	public void ToError(KonohaToken Token) {
+	public void ToError(GtToken Token) {
 		assert(Token.IsError());
 		this.KeyToken = Token;
 		this.TreeList = null;
@@ -955,7 +955,7 @@ class SyntaxTree extends KonohaStatic {
 		if(!IsEmpty()) {
 			if(Index >= 0) {
 				if(this.TreeList == null) {
-					this.TreeList = new KonohaArray();
+					this.TreeList = new GtArray();
 				}
 				if(Index < this.TreeList.size()) {
 					this.TreeList.set(Index, Value);
@@ -997,7 +997,7 @@ class SyntaxTree extends KonohaStatic {
 	public void SetMatchedTokenAt(int Index, TokenContext TokenContext, String TokenText, boolean IsOptional) {
 		if(!IsEmptyOrError()) {
 			int Pos = TokenContext.Pos;
-			KonohaToken Token = TokenContext.Next();
+			GtToken Token = TokenContext.Next();
 			if(Token.ParsedText.equals(TokenText)) {
 				SetAt(Index, Token);
 			}
@@ -1018,14 +1018,14 @@ class SyntaxTree extends KonohaStatic {
 			}
 			else {
 				if(this.TreeList == null) {
-					this.TreeList = new KonohaArray();
+					this.TreeList = new GtArray();
 				}
 				this.TreeList.add(Tree);
 			}
 		}
 	}
 
-	public final TypedNode TypeNodeAt(int Index, TypeEnv Gamma, KonohaType TypeInfo, int TypeCheckPolicy) {
+	public final TypedNode TypeNodeAt(int Index, TypeEnv Gamma, GtType TypeInfo, int TypeCheckPolicy) {
 		if(this.TreeList != null && Index < this.TreeList.size()) {
 			Object NodeObject = this.TreeList.get(Index);
 			if(NodeObject instanceof SyntaxTree) {
@@ -1041,24 +1041,24 @@ class SyntaxTree extends KonohaStatic {
 
 /* typing */
 
-class KonohaType extends KonohaStatic {
-	KonohaContext				KonohaContext;
+class GtType extends GtStatic {
+	GtContext				GtContext;
 	int					ClassFlag;
 	public String		ShortClassName;
-	KonohaType			BaseClass;
-	KonohaType			SuperClass;
-	KonohaParam			ClassParam;
-	KonohaType			SearchSimilarClass;
-	KonohaArray			ClassMethodList;
-	public KonohaType	SearchSuperMethodClass;
+	GtType			BaseClass;
+	GtType			SuperClass;
+	GtParam			ClassParam;
+	GtType			SearchSimilarClass;
+	GtArray			ClassMethodList;
+	public GtType	SearchSuperMethodClass;
 	public Object		DefaultNullValue;
 	Object				LocalSpec;
 
 	// Java Implementation Only
 	public Class<?>			HostedClassInfo	= null;
 
-	public KonohaType(KonohaContext KonohaContext, int ClassFlag, String ClassName, Object Spec) {
-		this.KonohaContext = KonohaContext;
+	public GtType(GtContext GtContext, int ClassFlag, String ClassName, Object Spec) {
+		this.GtContext = GtContext;
 		this.ClassFlag = ClassFlag;
 		this.ShortClassName = ClassName;
 		this.SuperClass = null;
@@ -1067,13 +1067,13 @@ class KonohaType extends KonohaStatic {
 		this.LocalSpec = Spec;
 	}
 
-	public KonohaType(KonohaContext KonohaContext, Class<?> ClassInfo) {
-		this(KonohaContext, 0, ClassInfo.getSimpleName(), null);
+	public GtType(GtContext GtContext, Class<?> ClassInfo) {
+		this(GtContext, 0, ClassInfo.getSimpleName(), null);
 		this.HostedClassInfo = ClassInfo;
 		// this.ClassFlag = ClassFlag;
 		Class<?> SuperClass = ClassInfo.getSuperclass();
 		if(ClassInfo != Object.class && SuperClass != null) {
-			this.SuperClass = KonohaContext.LookupHostLangType(ClassInfo.getSuperclass());
+			this.SuperClass = GtContext.LookupHostLangType(ClassInfo.getSuperclass());
 		}
 	}
 
@@ -1081,18 +1081,18 @@ class KonohaType extends KonohaStatic {
 		return this.ShortClassName;
 	}
 
-	static KonohaMethod ConvertMethod(KonohaContext KonohaContext, Method Method) {
-		KonohaType ThisType = KonohaContext.LookupHostLangType(Method.getClass());
+	static GtMethod ConvertMethod(GtContext GtContext, Method Method) {
+		GtType ThisType = GtContext.LookupHostLangType(Method.getClass());
 		Class<?>[] ParamTypes = Method.getParameterTypes();
-		KonohaType[] ParamData = new KonohaType[ParamTypes.length + 1];
+		GtType[] ParamData = new GtType[ParamTypes.length + 1];
 		String[] ArgNames = new String[ParamTypes.length + 1];
-		ParamData[0] = KonohaContext.LookupHostLangType(Method.getReturnType());
+		ParamData[0] = GtContext.LookupHostLangType(Method.getReturnType());
 		for(int i = 0; i < ParamTypes.length; i++) {
-			ParamData[i + 1] = KonohaContext.LookupHostLangType(ParamTypes[i]);
+			ParamData[i + 1] = GtContext.LookupHostLangType(ParamTypes[i]);
 			ArgNames[i] = "arg" + i;
 		}
-		KonohaParam Param = new KonohaParam(ParamData.length, ParamData, ArgNames);
-		KonohaMethod Mtd = new KonohaMethod(0, ThisType, Method.getName(), Param, Method);
+		GtParam Param = new GtParam(ParamData.length, ParamData, ArgNames);
+		GtMethod Mtd = new GtMethod(0, ThisType, Method.getName(), Param, Method);
 		ThisType.AddMethod(Mtd);
 		return Mtd;
 	}
@@ -1102,35 +1102,35 @@ class KonohaType extends KonohaStatic {
 		Method[] Methods = this.HostedClassInfo.getMethods();
 		for(int i = 0; i < Methods.length; i++) {
 			if(MethodName.equals(Methods[i].getName())) {
-				KonohaType.ConvertMethod(this.KonohaContext, Methods[i]);
+				GtType.ConvertMethod(this.GtContext, Methods[i]);
 				Count = Count + 1;
 			}
 		}
 		return Count;
 	}
 
-	public boolean Accept(KonohaType TypeInfo) {
+	public boolean Accept(GtType TypeInfo) {
 		if(this == TypeInfo) {
 			return true;
 		}
 		return false;
 	}
 
-	public void AddMethod(KonohaMethod Method) {
+	public void AddMethod(GtMethod Method) {
 		if(this.ClassMethodList == EmptyList){
-			this.ClassMethodList = new KonohaArray();
+			this.ClassMethodList = new GtArray();
 		}
 		this.ClassMethodList.add(Method);
 	}
 
-	public void DefineMethod(int MethodFlag, String MethodName, KonohaParam Param, Object Callee, String LocalName) {
-		KonohaMethod Method = new KonohaMethod(MethodFlag, this, MethodName, Param, KonohaStatic.LookupMethod(Callee, LocalName));
+	public void DefineMethod(int MethodFlag, String MethodName, GtParam Param, Object Callee, String LocalName) {
+		GtMethod Method = new GtMethod(MethodFlag, this, MethodName, Param, GtStatic.LookupMethod(Callee, LocalName));
 		this.AddMethod(Method);
 	}
 
-	public KonohaMethod FindMethod(String MethodName, int ParamSize) {
+	public GtMethod FindMethod(String MethodName, int ParamSize) {
 		for(int i = 0; i < this.ClassMethodList.size(); i++) {
-			KonohaMethod Method = (KonohaMethod) this.ClassMethodList.get(i);
+			GtMethod Method = (GtMethod) this.ClassMethodList.get(i);
 			if(Method.Match(MethodName, ParamSize)) {
 				return Method;
 			}
@@ -1138,8 +1138,8 @@ class KonohaType extends KonohaStatic {
 		return null;
 	}
 
-	public KonohaMethod LookupMethod(String MethodName, int ParamSize) {
-		KonohaMethod Method = this.FindMethod(MethodName, ParamSize);
+	public GtMethod LookupMethod(String MethodName, int ParamSize) {
+		GtMethod Method = this.FindMethod(MethodName, ParamSize);
 		if(Method != null) {
 			return Method;
 		}
@@ -1157,9 +1157,9 @@ class KonohaType extends KonohaStatic {
 		return null;
 	}
 
-	public boolean DefineNewMethod(KonohaMethod NewMethod) {
+	public boolean DefineNewMethod(GtMethod NewMethod) {
 		for(int i = 0; i < this.ClassMethodList.size(); i++) {
-			KonohaMethod DefinedMethod = (KonohaMethod) this.ClassMethodList.get(i);
+			GtMethod DefinedMethod = (GtMethod) this.ClassMethodList.get(i);
 			if(NewMethod.Match(DefinedMethod)) {
 				return false;
 			}
@@ -1168,9 +1168,9 @@ class KonohaType extends KonohaStatic {
 		return true;
 	}
 
-	public boolean RegisterCompiledMethod(KonohaMethod NewMethod) {
+	public boolean RegisterCompiledMethod(GtMethod NewMethod) {
 		for(int i = 0; i < this.ClassMethodList.size(); i++) {
-			KonohaMethod DefinedMethod = (KonohaMethod) this.ClassMethodList.get(i);
+			GtMethod DefinedMethod = (GtMethod) this.ClassMethodList.get(i);
 			if(NewMethod.Match(DefinedMethod)) {
 				this.ClassMethodList.set(i, NewMethod);
 				return true;
@@ -1181,7 +1181,7 @@ class KonohaType extends KonohaStatic {
 
 }
 
-final class KonohaSymbol extends KonohaStatic {
+final class GtSymbol extends GtStatic {
 
 	public static boolean IsGetterSymbol(int SymbolId) {
 		return (SymbolId & GetterSymbolMask) == GetterSymbolMask;
@@ -1194,8 +1194,8 @@ final class KonohaSymbol extends KonohaStatic {
 
 	// SymbolTable
 
-	static KonohaArray SymbolList = new KonohaArray();
-	static KonohaMap   SymbolMap  = new KonohaMap();
+	static GtArray SymbolList = new GtArray();
+	static GtMap   SymbolMap  = new GtMap();
 
 	public final static int MaskSymbol(int SymbolId, int Mask) {
 		return (SymbolId << SymbolMaskSize) | Mask;
@@ -1262,42 +1262,42 @@ final class KonohaSymbol extends KonohaStatic {
 
 }
 
-class KonohaParam extends KonohaStatic {
+class GtParam extends GtStatic {
 	public final static int	MAX					= 16;
 	public final static int	VariableParamSize	= -1;
 	public int				ReturnSize;
-	public KonohaType[]		Types;
+	public GtType[]		Types;
 	public String[]			ArgNames;
 
-	public KonohaParam(int DataSize, KonohaType ParamData[], String[] ArgNames) {
+	public GtParam(int DataSize, GtType ParamData[], String[] ArgNames) {
 		this.ReturnSize = 1;
-		this.Types = new KonohaType[DataSize];
+		this.Types = new GtType[DataSize];
 		this.ArgNames = new String[DataSize - this.ReturnSize];
 		System.arraycopy(ParamData, 0, this.Types, 0, DataSize);
 		System.arraycopy(ArgNames, 0, this.ArgNames, 0, DataSize - this.ReturnSize);
 	}
 
-	public static KonohaParam ParseOf(KonohaNameSpace ns, String TypeList) {
-		KonohaStatic.TODO("ParseOfParam");
+	public static GtParam ParseOf(GtNameSpace ns, String TypeList) {
+		GtStatic.TODO("ParseOfParam");
 //		Tokens BufferList = ns.Tokenize(TypeList, 0);
 //		int next = BufferList.size();
 //		ns.PreProcess(BufferList, 0, next, BufferList);
-//		KonohaType[] ParamData = new KonohaType[KonohaParam.MAX];
-//		String[] ArgNames = new String[KonohaParam.MAX];
+//		GtType[] ParamData = new GtType[GtParam.MAX];
+//		String[] ArgNames = new String[GtParam.MAX];
 //		int i, DataSize = 0, ParamSize = 0;
 //		for(i = next; i < BufferList.size(); i++) {
-//			KonohaToken Token = BufferList.get(i);
-//			if(Token.ResolvedObject instanceof KonohaType) {
-//				ParamData[DataSize] = (KonohaType) Token.ResolvedObject;
+//			GtToken Token = BufferList.get(i);
+//			if(Token.ResolvedObject instanceof GtType) {
+//				ParamData[DataSize] = (GtType) Token.ResolvedObject;
 //				DataSize++;
-//				if(DataSize == KonohaParam.MAX)
+//				if(DataSize == GtParam.MAX)
 //					break;
 //			} else {
 //				ArgNames[ParamSize] = Token.ParsedText;
 //				ParamSize++;
 //			}
 //		}
-//		return new KonohaParam(DataSize, ParamData, ArgNames);
+//		return new GtParam(DataSize, ParamData, ArgNames);
 		return null;
 	}
 
@@ -1305,7 +1305,7 @@ class KonohaParam extends KonohaStatic {
 		return this.Types.length - this.ReturnSize;
 	};
 
-	public final boolean Match(KonohaParam Other) {
+	public final boolean Match(GtParam Other) {
 		int ParamSize = Other.GetParamSize();
 		if(ParamSize == this.GetParamSize()) {
 			for(int i = this.ReturnSize; i < this.Types.length; i++) {
@@ -1331,11 +1331,11 @@ class KonohaParam extends KonohaStatic {
 
 }
 
-class KonohaMethodInvoker {
-	KonohaParam		Param;
+class GtMethodInvoker {
+	GtParam		Param;
 	public Object	CompiledCode;
 
-	public KonohaMethodInvoker(KonohaParam Param, Object CompiledCode) {
+	public GtMethodInvoker(GtParam Param, Object CompiledCode) {
 		this.Param = Param;
 		this.CompiledCode = CompiledCode;
 
@@ -1346,9 +1346,9 @@ class KonohaMethodInvoker {
 	}
 }
 
-class NativeMethodInvoker extends KonohaMethodInvoker {
+class NativeMethodInvoker extends GtMethodInvoker {
 
-	public NativeMethodInvoker(KonohaParam Param, Method MethodRef) {
+	public NativeMethodInvoker(GtParam Param, Method MethodRef) {
 		super(Param, MethodRef);
 	}
 
@@ -1410,35 +1410,35 @@ class NativeMethodInvoker extends KonohaMethodInvoker {
 	}
 }
 
-class KonohaDef extends KonohaStatic {
+class GtDef extends GtStatic {
 
-	public void MakeDefinition(KonohaNameSpace NameSpace) {
+	public void MakeDefinition(GtNameSpace NameSpace) {
 		
 	}
 
 }
 
-class KonohaMethod extends KonohaDef {
-	public KonohaType			ClassInfo;
+class GtMethod extends GtDef {
+	public GtType			ClassInfo;
 	public String				MethodName;
 	int							MethodSymbolId;
 	int							CanonicalSymbolId;
-	public KonohaParam			Param;
-	public KonohaMethodInvoker	MethodInvoker;
+	public GtParam			Param;
+	public GtMethodInvoker	MethodInvoker;
 	public int					MethodFlag;
 
 	// DoLazyComilation();
-	KonohaNameSpace				LazyNameSpace;
-	KonohaArray					SourceList;
+	GtNameSpace				LazyNameSpace;
+	GtArray					SourceList;
 	//FIXME merge ParsedTree field in SouceList.
 	public SyntaxTree			ParsedTree;
 
-	public KonohaMethod(int MethodFlag, KonohaType ClassInfo, String MethodName, KonohaParam Param, Method MethodRef) {
+	public GtMethod(int MethodFlag, GtType ClassInfo, String MethodName, GtParam Param, Method MethodRef) {
 		this.MethodFlag = MethodFlag;
 		this.ClassInfo = ClassInfo;
 		this.MethodName = MethodName;
-		this.MethodSymbolId = KonohaSymbol.GetSymbolId(MethodName);
-		this.CanonicalSymbolId = KonohaSymbol.GetCanonicalSymbolId(MethodName);
+		this.MethodSymbolId = GtSymbol.GetSymbolId(MethodName);
+		this.CanonicalSymbolId = GtSymbol.GetCanonicalSymbolId(MethodName);
 		this.Param = Param;
 		this.MethodInvoker = null;
 		if(MethodRef != null) {
@@ -1469,17 +1469,17 @@ class KonohaMethod extends KonohaDef {
 		return ((this.MethodFlag & Flag) == Flag);
 	}
 
-	public final KonohaType GetReturnType(KonohaType BaseType) {
-		KonohaType ReturnType = this.Param.Types[0];
+	public final GtType GetReturnType(GtType BaseType) {
+		GtType ReturnType = this.Param.Types[0];
 		return ReturnType;
 	}
 
-	public final KonohaType GetParamType(KonohaType BaseType, int ParamIdx) {
-		KonohaType ParamType = this.Param.Types[ParamIdx + this.Param.ReturnSize];
+	public final GtType GetParamType(GtType BaseType, int ParamIdx) {
+		GtType ParamType = this.Param.Types[ParamIdx + this.Param.ReturnSize];
 		return ParamType;
 	}
 
-	public final boolean Match(KonohaMethod Other) {
+	public final boolean Match(GtMethod Other) {
 		return (this.MethodName.equals(Other.MethodName) && this.Param.Match(Other.Param));
 	}
 
@@ -1495,7 +1495,7 @@ class KonohaMethod extends KonohaDef {
 		return false;
 	}
 
-	public boolean Match(String MethodName, int ParamSize, KonohaType[] RequestTypes) {
+	public boolean Match(String MethodName, int ParamSize, GtType[] RequestTypes) {
 		if(!this.Match(MethodName, ParamSize)) {
 			return false;
 		}
@@ -1509,11 +1509,11 @@ class KonohaMethod extends KonohaDef {
 
 	public Object Eval(Object[] ParamData) {
 		//int ParamSize = this.Param.GetParamSize();
-		//KonohaDebug.P("ParamSize: " + ParamSize);
+		//GtDebug.P("ParamSize: " + ParamSize);
 		return this.MethodInvoker.Invoke(ParamData);
 	}
 
-//	public KonohaMethod(int MethodFlag, KonohaType ClassInfo, String MethodName, KonohaParam Param, KonohaNameSpace LazyNameSpace, Tokens SourceList) {
+//	public GtMethod(int MethodFlag, GtType ClassInfo, String MethodName, GtParam Param, GtNameSpace LazyNameSpace, Tokens SourceList) {
 //		this(MethodFlag, ClassInfo, MethodName, Param, null);
 //		this.LazyNameSpace = LazyNameSpace;
 //		this.SourceList = SourceList;
@@ -1524,48 +1524,48 @@ class KonohaMethod extends KonohaDef {
 //			return;
 //		}
 //		SyntaxTree Tree = this.ParsedTree;
-//		KonohaNameSpace NS = this.LazyNameSpace;
+//		GtNameSpace NS = this.LazyNameSpace;
 //		if(Tree == null) {
 //			Tokens BufferList = new Tokens();
 //			NS.PreProcess(this.SourceList, 0, this.SourceList.size(), BufferList);
 //			Tree = SyntaxTree.ParseNewNode(NS, null, BufferList, 0, BufferList.size(), AllowEmpty);
-//			KonohaStatic.println("untyped tree: " + Tree);
+//			GtStatic.println("untyped tree: " + Tree);
 //		}
 //		TypeEnv Gamma = new TypeEnv(this.LazyNameSpace, this);
 //		TypedNode TNode = TypeEnv.TypeCheck(Gamma, Tree, Gamma.VoidType, DefaultTypeCheckPolicy);
-//		KonohaBuilder Builder = this.LazyNameSpace.GetBuilder();
+//		GtBuilder Builder = this.LazyNameSpace.GetBuilder();
 //		this.MethodInvoker = Builder.Build(NS, TNode, this);
 	}
 }
 
 class VarSet {
-	KonohaType	TypeInfo;
+	GtType	TypeInfo;
 	String		Name;
 
-	VarSet(KonohaType TypeInfo, String Name) {
+	VarSet(GtType TypeInfo, String Name) {
 		this.TypeInfo = TypeInfo;
 		this.Name = Name;
 	}
 }
 
-final class TypeEnv extends KonohaStatic {
+final class TypeEnv extends GtStatic {
 
-	public KonohaNameSpace	GammaNameSpace;
+	public GtNameSpace	GammaNameSpace;
 
 	/* for convinient short cut */
-	public final KonohaType	VoidType;
-	public final KonohaType	BooleanType;
-	public final KonohaType	IntType;
-	public final KonohaType	StringType;
-	public final KonohaType	VarType;
+	public final GtType	VoidType;
+	public final GtType	BooleanType;
+	public final GtType	IntType;
+	public final GtType	StringType;
+	public final GtType	VarType;
 
-	public TypeEnv(KonohaNameSpace GammaNameSpace, KonohaMethod Method) {
+	public TypeEnv(GtNameSpace GammaNameSpace, GtMethod Method) {
 		this.GammaNameSpace = GammaNameSpace;
-		this.VoidType = GammaNameSpace.KonohaContext.VoidType;
-		this.BooleanType = GammaNameSpace.KonohaContext.BooleanType;
-		this.IntType = GammaNameSpace.KonohaContext.IntType;
-		this.StringType = GammaNameSpace.KonohaContext.StringType;
-		this.VarType = GammaNameSpace.KonohaContext.VarType;
+		this.VoidType = GammaNameSpace.GtContext.VoidType;
+		this.BooleanType = GammaNameSpace.GtContext.BooleanType;
+		this.IntType = GammaNameSpace.GtContext.IntType;
+		this.StringType = GammaNameSpace.GtContext.StringType;
+		this.VarType = GammaNameSpace.GtContext.VarType;
 		this.Method = Method;
 		if(Method != null) {
 			this.InitMethod(Method);
@@ -1576,32 +1576,32 @@ final class TypeEnv extends KonohaStatic {
 		}
 	}
 
-	public KonohaMethod	Method;
-	public KonohaType	ReturnType;
-	public KonohaType	ThisType;
+	public GtMethod	Method;
+	public GtType	ReturnType;
+	public GtType	ThisType;
 
-	void InitMethod(KonohaMethod Method) {
+	void InitMethod(GtMethod Method) {
 		this.ReturnType = Method.GetReturnType(Method.ClassInfo);
 		this.ThisType = Method.ClassInfo;
 		if(!Method.Is(StaticMethod)) {
 			this.AppendLocalType(Method.ClassInfo, "this");
-			KonohaParam Param = Method.Param;
+			GtParam Param = Method.Param;
 			for(int i = 0; i < Param.ArgNames.length; i++) {
 				this.AppendLocalType(Param.Types[i + Param.ReturnSize], Param.ArgNames[i]);
 			}
 		}
 	}
 
-	KonohaArray	LocalStackList	= null;
+	GtArray	LocalStackList	= null;
 
-	public void AppendLocalType(KonohaType TypeInfo, String Name) {
+	public void AppendLocalType(GtType TypeInfo, String Name) {
 		if(this.LocalStackList == null) {
-			this.LocalStackList = new KonohaArray();
+			this.LocalStackList = new GtArray();
 		}
 		this.LocalStackList.add(new VarSet(TypeInfo, Name));
 	}
 
-	public KonohaType GetLocalType(String Symbol) {
+	public GtType GetLocalType(String Symbol) {
 		if(this.LocalStackList != null) {
 			for(int i = this.LocalStackList.size() - 1; i >= 0; i--) {
 				VarSet t = (VarSet) this.LocalStackList.get(i);
@@ -1616,23 +1616,23 @@ final class TypeEnv extends KonohaStatic {
 		return -1;
 	}
 
-	public TypedNode GetDefaultTypedNode(KonohaType TypeInfo) {
+	public TypedNode GetDefaultTypedNode(GtType TypeInfo) {
 		return null; // TODO
 	}
 
-	public TypedNode NewErrorNode(KonohaToken KeyToken, String Message) {
+	public TypedNode NewErrorNode(GtToken KeyToken, String Message) {
 		return new ErrorNode(this.VoidType, KeyToken, this.GammaNameSpace.ReportError(ErrorLevel, KeyToken, Message));
 	}
 
-	public static TypedNode TypeEachNode(TypeEnv Gamma, SyntaxTree Tree, KonohaType TypeInfo) {
-		TypedNode Node = KonohaStatic.ApplyTypeFunc(Tree.Pattern.TypeFunc, Gamma, Tree, TypeInfo);
+	public static TypedNode TypeEachNode(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {
+		TypedNode Node = GtStatic.ApplyTypeFunc(Tree.Pattern.TypeFunc, Gamma, Tree, TypeInfo);
 		if(Node == null) {
 			Node = Gamma.NewErrorNode(Tree.KeyToken, "undefined type checker: " + Tree.Pattern);
 		}
 		return Node;
 	}
 
-	public static TypedNode TypeCheckEachNode(TypeEnv Gamma, SyntaxTree Tree, KonohaType TypeInfo, int TypeCheckPolicy) {
+	public static TypedNode TypeCheckEachNode(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo, int TypeCheckPolicy) {
 		TypedNode Node = TypeEachNode(Gamma, Tree, TypeInfo);
 		// if(Node.TypeInfo == null) {
 		//
@@ -1640,10 +1640,10 @@ final class TypeEnv extends KonohaStatic {
 		return Node;
 	}
 
-	public static TypedNode TypeCheck(TypeEnv Gamma, SyntaxTree Tree, KonohaType TypeInfo, int TypeCheckPolicy) {
+	public static TypedNode TypeCheck(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo, int TypeCheckPolicy) {
 		TypedNode TPrevNode = null;
 		while(Tree != null) {
-			KonohaType CurrentTypeInfo = (Tree.NextTree != null) ? Gamma.VoidType : TypeInfo;
+			GtType CurrentTypeInfo = (Tree.NextTree != null) ? Gamma.VoidType : TypeInfo;
 			TypedNode CurrentTypedNode = TypeCheckEachNode(Gamma, Tree, CurrentTypeInfo, TypeCheckPolicy);
 			if(TPrevNode != null) {
 				TPrevNode.LinkNode(CurrentTypedNode);
@@ -1659,14 +1659,14 @@ final class TypeEnv extends KonohaStatic {
 
 }
 
-class TypedNode extends KonohaStatic {
+class TypedNode extends GtStatic {
 
 	public TypedNode	ParentNode		= null;
 	public TypedNode	PrevNode	    = null;
 	public TypedNode	NextNode		= null;
 
-	public KonohaType	TypeInfo;
-	public KonohaToken	SourceToken;
+	public GtType	TypeInfo;
+	public GtToken	SourceToken;
 
 	public final TypedNode GetHeadNode() {
 		TypedNode Node = this;
@@ -1695,7 +1695,7 @@ class TypedNode extends KonohaStatic {
 		this.NextNode = Node;
 	}
 
-	public TypedNode(KonohaType TypeInfo, KonohaToken SourceToken) {
+	public TypedNode(GtType TypeInfo, GtToken SourceToken) {
 		this.TypeInfo = TypeInfo;
 		this.SourceToken = SourceToken;
 	}
@@ -1713,7 +1713,7 @@ class TypedNode extends KonohaStatic {
 class UnaryNode extends TypedNode {
 	public TypedNode	Expr;
 
-	UnaryNode(KonohaType TypeInfo, TypedNode Expr) {
+	UnaryNode(GtType TypeInfo, TypedNode Expr) {
 		super(TypeInfo, null/*fixme*/);
 		this.Expr = Expr;
 	}
@@ -1723,7 +1723,7 @@ class BinaryNode extends TypedNode {
 	public TypedNode    LeftNode;
 	public TypedNode	RightNode;
 
-	public BinaryNode(KonohaType TypeInfo, KonohaToken OperatorToken, TypedNode Left, TypedNode Right) {
+	public BinaryNode(GtType TypeInfo, GtToken OperatorToken, TypedNode Left, TypedNode Right) {
 		super(TypeInfo, OperatorToken);
 		this.LeftNode  = Left;
 		this.RightNode = Right;
@@ -1734,7 +1734,7 @@ class BinaryNode extends TypedNode {
 class ErrorNode extends TypedNode {
 	public String	ErrorMessage;
 
-	public ErrorNode(KonohaType TypeInfo, KonohaToken KeyToken, String ErrorMessage) {
+	public ErrorNode(GtType TypeInfo, GtToken KeyToken, String ErrorMessage) {
 		super(TypeInfo, KeyToken);
 		this.ErrorMessage = KeyToken.ToErrorToken(ErrorMessage);
 	}
@@ -1747,7 +1747,7 @@ class ErrorNode extends TypedNode {
 class ConstNode extends TypedNode {
 	public Object	ConstValue;
 
-	public ConstNode(KonohaType TypeInfo, KonohaToken SourceToken, Object ConstValue) {
+	public ConstNode(GtType TypeInfo, GtToken SourceToken, Object ConstValue) {
 		super(TypeInfo, SourceToken);
 		this.ConstValue = ConstValue;
 	}
@@ -1761,7 +1761,7 @@ class ConstNode extends TypedNode {
 class FieldNode extends TypedNode {
 	public String	FieldName;
 
-	public FieldNode(KonohaType TypeInfo, KonohaToken SourceToken, String FieldName) {
+	public FieldNode(GtType TypeInfo, GtToken SourceToken, String FieldName) {
 		super(TypeInfo, SourceToken);
 		this.FieldName = FieldName;
 	}
@@ -1772,7 +1772,7 @@ class FieldNode extends TypedNode {
 }
 
 class LocalNode extends FieldNode {
-	public LocalNode(KonohaType TypeInfo, KonohaToken SourceToken, String FieldName) {
+	public LocalNode(GtType TypeInfo, GtToken SourceToken, String FieldName) {
 		super(TypeInfo, SourceToken, FieldName);
 	}
 
@@ -1784,7 +1784,7 @@ class LocalNode extends FieldNode {
 
 class NullNode extends TypedNode {
 
-	public NullNode(KonohaType TypeInfo) {
+	public NullNode(GtType TypeInfo) {
 		super(TypeInfo, null/* fixme */);
 	}
 
@@ -1794,12 +1794,12 @@ class NullNode extends TypedNode {
 }
 
 class LetNode extends TypedNode {
-	public KonohaToken	VarToken;
+	public GtToken	VarToken;
 	public TypedNode	ValueNode;
 	public TypedNode	BlockNode;
 
 	/* let frame[Index] = Right in Block end */
-	public LetNode(KonohaType TypeInfo, KonohaToken VarToken, TypedNode Right, TypedNode Block) {
+	public LetNode(GtType TypeInfo, GtToken VarToken, TypedNode Right, TypedNode Block) {
 		super(TypeInfo, VarToken);
 		this.VarToken = VarToken;
 		this.ValueNode = Right;
@@ -1812,7 +1812,7 @@ class LetNode extends TypedNode {
 }
 
 class AndNode extends BinaryNode {
-	public AndNode(KonohaType TypeInfo, KonohaToken KeyToken, TypedNode Left, TypedNode Right) {
+	public AndNode(GtType TypeInfo, GtToken KeyToken, TypedNode Left, TypedNode Right) {
 		super(TypeInfo, KeyToken, Left, Right);
 	}
 
@@ -1823,7 +1823,7 @@ class AndNode extends BinaryNode {
 
 class OrNode extends BinaryNode {
 
-	public OrNode(KonohaType TypeInfo, KonohaToken KeyToken, TypedNode Left, TypedNode Right) {
+	public OrNode(GtType TypeInfo, GtToken KeyToken, TypedNode Left, TypedNode Right) {
 		super(TypeInfo, KeyToken, Left, Right);
 	}
 
@@ -1833,27 +1833,27 @@ class OrNode extends BinaryNode {
 }
 
 class ApplyNode extends TypedNode {
-	public KonohaMethod	Method;
-	public KonohaArray	Params; /* [this, arg1, arg2, ...] */
+	public GtMethod	Method;
+	public GtArray	Params; /* [this, arg1, arg2, ...] */
 
 	/* call self.Method(arg1, arg2, ...) */
-	public ApplyNode(KonohaType TypeInfo, KonohaToken KeyToken, KonohaMethod Method) {
+	public ApplyNode(GtType TypeInfo, GtToken KeyToken, GtMethod Method) {
 		super(TypeInfo, KeyToken);
 		this.Method = Method;
-		this.Params = new KonohaArray();
+		this.Params = new GtArray();
 	}
 
-	public ApplyNode(KonohaType TypeInfo, KonohaToken KeyToken, KonohaMethod Method, TypedNode arg1) {
+	public ApplyNode(GtType TypeInfo, GtToken KeyToken, GtMethod Method, TypedNode arg1) {
 		super(TypeInfo, KeyToken);
 		this.Method = Method;
-		this.Params = new KonohaArray();
+		this.Params = new GtArray();
 		this.Params.add(arg1);
 	}
 
-	public ApplyNode(KonohaType TypeInfo, KonohaToken KeyToken, KonohaMethod Method, TypedNode arg1, TypedNode arg2) {
+	public ApplyNode(GtType TypeInfo, GtToken KeyToken, GtMethod Method, TypedNode arg1, TypedNode arg2) {
 		super(TypeInfo, KeyToken);
 		this.Method = Method;
-		this.Params = new KonohaArray();
+		this.Params = new GtArray();
 		this.Params.add(arg1);
 		this.Params.add(arg2);
 	}
@@ -1868,11 +1868,11 @@ class ApplyNode extends TypedNode {
 }
 
 class NewNode extends TypedNode {
-	public KonohaArray	Params; /* [this, arg1, arg2, ...] */
+	public GtArray	Params; /* [this, arg1, arg2, ...] */
 
-	public NewNode(KonohaType TypeInfo, KonohaToken KeyToken) {
+	public NewNode(GtType TypeInfo, GtToken KeyToken) {
 		super(TypeInfo, KeyToken);
-		this.Params = new KonohaArray();
+		this.Params = new GtArray();
 	}
 
 	public void Append(TypedNode Expr) {
@@ -1890,7 +1890,7 @@ class IfNode extends TypedNode {
 	public TypedNode	ElseNode;
 
 	/* If CondExpr then ThenBlock else ElseBlock */
-	public IfNode(KonohaType TypeInfo, TypedNode CondExpr, TypedNode ThenBlock, TypedNode ElseNode) {
+	public IfNode(GtType TypeInfo, TypedNode CondExpr, TypedNode ThenBlock, TypedNode ElseNode) {
 		super(TypeInfo, null/* fixme */);
 		this.CondExpr = CondExpr;
 		this.ThenNode = ThenBlock;
@@ -1909,7 +1909,7 @@ class LoopNode extends TypedNode {
 	public TypedNode	LoopBody;
 	public TypedNode	IterationExpr;
 
-	public LoopNode(KonohaType TypeInfo, TypedNode CondExpr, TypedNode LoopBody, TypedNode IterationExpr) {
+	public LoopNode(GtType TypeInfo, TypedNode CondExpr, TypedNode LoopBody, TypedNode IterationExpr) {
 		super(TypeInfo, null/* fixme */);
 		this.CondExpr = CondExpr;
 		this.LoopBody = LoopBody;
@@ -1923,7 +1923,7 @@ class LoopNode extends TypedNode {
 
 class ReturnNode extends UnaryNode {
 
-	public ReturnNode(KonohaType TypeInfo, TypedNode Expr) {
+	public ReturnNode(GtType TypeInfo, TypedNode Expr) {
 		super(TypeInfo, Expr);
 	}
 
@@ -1935,7 +1935,7 @@ class ReturnNode extends UnaryNode {
 
 class ThrowNode extends UnaryNode {
 	/* THROW ExceptionExpr */
-	public ThrowNode(KonohaType TypeInfo, TypedNode Expr) {
+	public ThrowNode(GtType TypeInfo, TypedNode Expr) {
 		super(TypeInfo, Expr);
 	}
 
@@ -1952,16 +1952,16 @@ class TryNode extends TypedNode {
 	 * CatchedExceptions[1] then CatchBlock[1] ... FinallyBlock end
 	 */
 	public TypedNode	TryBlock;
-	public KonohaArray	TargetException;
-	public KonohaArray	CatchBlock;
+	public GtArray	TargetException;
+	public GtArray	CatchBlock;
 	public TypedNode	FinallyBlock;
 
-	public TryNode(KonohaType TypeInfo, TypedNode TryBlock, TypedNode FinallyBlock) {
+	public TryNode(GtType TypeInfo, TypedNode TryBlock, TypedNode FinallyBlock) {
 		super(TypeInfo, null/* fixme */);
 		this.TryBlock = TryBlock;
 		this.FinallyBlock = FinallyBlock;
-		this.CatchBlock = new KonohaArray();
-		this.TargetException = new KonohaArray();
+		this.CatchBlock = new GtArray();
+		this.TargetException = new GtArray();
 	}
 
 	public void addCatchBlock(TypedNode TargetException, TypedNode CatchBlock) { //FIXME
@@ -1975,7 +1975,7 @@ class TryNode extends TypedNode {
 }
 
 class SwitchNode extends TypedNode {
-	public SwitchNode(KonohaType TypeInfo, KonohaType KeyToken) {
+	public SwitchNode(GtType TypeInfo, GtType KeyToken) {
 		super(TypeInfo, null/* FIXME */);
 	}
 
@@ -1983,8 +1983,8 @@ class SwitchNode extends TypedNode {
 	 * switch CondExpr { Label[0]: Blocks[0]; Label[1]: Blocks[2]; ... }
 	 */
 	public TypedNode	CondExpr;
-	public KonohaArray	Labels;
-	public KonohaArray	Blocks;
+	public GtArray	Labels;
+	public GtArray	Blocks;
 
 	@Override public boolean Evaluate(NodeVisitor Visitor) {
 		return Visitor.VisitSwitch(this);
@@ -1993,9 +1993,9 @@ class SwitchNode extends TypedNode {
 
 class DefineNode extends TypedNode {
 
-	public KonohaDef	DefInfo;
+	public GtDef	DefInfo;
 
-	public DefineNode(KonohaType TypeInfo, KonohaToken KeywordToken, KonohaDef DefInfo) {
+	public DefineNode(GtType TypeInfo, GtToken KeywordToken, GtDef DefInfo) {
 		super(TypeInfo, KeywordToken);
 		this.DefInfo = DefInfo;
 	}
@@ -2007,11 +2007,11 @@ class DefineNode extends TypedNode {
 
 /* builder */
 
-class KonohaObject extends KonohaStatic {
-	public KonohaType	TypeInfo;
+class GtObject extends GtStatic {
+	public GtType	TypeInfo;
 //	SymbolMap			prototype;
 //
-	public KonohaObject(KonohaType TypeInfo) {
+	public GtObject(GtType TypeInfo) {
 		this.TypeInfo = TypeInfo;
 	}
 //
@@ -2030,7 +2030,7 @@ class KonohaObject extends KonohaStatic {
 //	}
 }
 
-class NodeVisitor /* implements INodeVisitor */ extends KonohaStatic {
+class NodeVisitor /* implements INodeVisitor */ extends GtStatic {
 	
 	//boolean VisitList(TypedNode NodeList) { return false;}
 
@@ -2087,101 +2087,101 @@ class NodeVisitor /* implements INodeVisitor */ extends KonohaStatic {
 	
 }
 
-class KonohaBuilder extends KonohaStatic {
+class GtBuilder extends GtStatic {
 	
-	Object EvalAtTopLevel(KonohaNameSpace NameSpace, TypedNode Node, KonohaObject GlobalObject) {
+	Object EvalAtTopLevel(GtNameSpace NameSpace, TypedNode Node, GtObject GlobalObject) {
 		return null;
 	}
 
-	KonohaMethodInvoker Build(KonohaNameSpace NameSpace, TypedNode Node, KonohaMethod Method) {
+	GtMethodInvoker Build(GtNameSpace NameSpace, TypedNode Node, GtMethod Method) {
 		return null;
 	}
 }
 
-final class KonohaSpec extends KonohaStatic {
+final class GtSpec extends GtStatic {
 	public int SpecType;
 	public String SpecKey;
 	public Object SpecBody;
-	KonohaSpec/*constructor*/(int SpecType, String SpecKey, Object SpecBody) {
+	GtSpec/*constructor*/(int SpecType, String SpecKey, Object SpecBody) {
 		this.SpecType = SpecType;
 		this.SpecKey  = SpecKey;
 		this.SpecBody = SpecBody;
 	}
 }
 
-final class KonohaNameSpace extends KonohaStatic {
-	public KonohaContext		KonohaContext;
-	KonohaNameSpace		        ParentNameSpace;
-	KonohaArray			        ImportedNameSpaceList;
-	public KonohaArray          PublicSpecList;
-	public KonohaArray          PrivateSpecList;
+final class GtNameSpace extends GtStatic {
+	public GtContext		GtContext;
+	GtNameSpace		        ParentNameSpace;
+	GtArray			        ImportedNameSpaceList;
+	public GtArray          PublicSpecList;
+	public GtArray          PrivateSpecList;
 	
 	TokenFunc[]	TokenMatrix;
-	KonohaMap	SymbolPatternTable;
-	KonohaMap   ExtendedPatternTable;
+	GtMap	SymbolPatternTable;
+	GtMap   ExtendedPatternTable;
 	
-	public KonohaNameSpace/*constructor*/(KonohaContext KonohaContext, KonohaNameSpace ParentNameSpace) {
-		this.KonohaContext = KonohaContext;
+	public GtNameSpace/*constructor*/(GtContext GtContext, GtNameSpace ParentNameSpace) {
+		this.GtContext = GtContext;
 		this.ParentNameSpace = ParentNameSpace;
 		this.ImportedNameSpaceList = null;
-		this.PublicSpecList = new KonohaArray();
+		this.PublicSpecList = new GtArray();
 		this.PrivateSpecList = null;
 		this.TokenMatrix = null;
 		this.SymbolPatternTable = null;
 		this.ExtendedPatternTable = null;
 	}
 		
-	void RemakeTokenMatrixEach(KonohaNameSpace NameSpace) {
-		for(int i = 0; i < KonohaStatic.ListSize(NameSpace.PublicSpecList); i++) {
-			KonohaSpec Spec = (KonohaSpec)NameSpace.PublicSpecList.get(i);
+	void RemakeTokenMatrixEach(GtNameSpace NameSpace) {
+		for(int i = 0; i < GtStatic.ListSize(NameSpace.PublicSpecList); i++) {
+			GtSpec Spec = (GtSpec)NameSpace.PublicSpecList.get(i);
 			if(Spec.SpecType != TokenFuncSpec) continue;
 			for(int j = 0; j < Spec.SpecKey.length(); j++) {
-				int kchar = KonohaChar.FromJavaChar(Spec.SpecKey.charAt(j));
-				KonohaFunc KonohaFunc = (KonohaFunc)Spec.SpecBody;
-				this.TokenMatrix[kchar] = KonohaStatic.CreateOrReuseTokenFunc(KonohaFunc, this.TokenMatrix[kchar]);
+				int kchar = GtChar.FromJavaChar(Spec.SpecKey.charAt(j));
+				GtFunc GtFunc = (GtFunc)Spec.SpecBody;
+				this.TokenMatrix[kchar] = GtStatic.CreateOrReuseTokenFunc(GtFunc, this.TokenMatrix[kchar]);
 			}
 		}
 	}
 	
-	void RemakeTokenMatrix(KonohaNameSpace NameSpace) {
+	void RemakeTokenMatrix(GtNameSpace NameSpace) {
 		if(NameSpace.ParentNameSpace != null) {
 			RemakeTokenMatrix(NameSpace.ParentNameSpace);
 		}
 		RemakeTokenMatrixEach(NameSpace);
-		for(int i = 0; i < KonohaStatic.ListSize(NameSpace.ImportedNameSpaceList); i++) {
-			KonohaNameSpace Imported = (KonohaNameSpace)NameSpace.ImportedNameSpaceList.get(i);
+		for(int i = 0; i < GtStatic.ListSize(NameSpace.ImportedNameSpaceList); i++) {
+			GtNameSpace Imported = (GtNameSpace)NameSpace.ImportedNameSpaceList.get(i);
 			RemakeTokenMatrixEach(Imported);
 		}
 	}
 	
-	public TokenFunc GetTokenFunc(int KonohaChar2) {
+	public TokenFunc GetTokenFunc(int GtChar2) {
 		if(this.TokenMatrix == null) {
-			this.TokenMatrix = new TokenFunc[KonohaCharMaxSize];
+			this.TokenMatrix = new TokenFunc[GtCharMaxSize];
 			RemakeTokenMatrix(this);
 		}
-		return this.TokenMatrix[KonohaChar2];
+		return this.TokenMatrix[GtChar2];
 	}
 
-	public void DefineTokenFunc(String keys, KonohaFunc f) {
-		this.PublicSpecList.add(new KonohaSpec(TokenFuncSpec, keys, f));
+	public void DefineTokenFunc(String keys, GtFunc f) {
+		this.PublicSpecList.add(new GtSpec(TokenFuncSpec, keys, f));
 		this.TokenMatrix = null;
 	}
 	
 	
-	void TableAddSpec(KonohaMap Table, KonohaSpec Spec) {
+	void TableAddSpec(GtMap Table, GtSpec Spec) {
 		Object Body = Spec.SpecBody;
 		if(Body instanceof SyntaxPattern) {
 			Object Parent = Table.get(Spec.SpecKey);
 			if(Parent instanceof SyntaxPattern) {
-				Body = KonohaStatic.MergeSyntaxPattern((SyntaxPattern)Body, (SyntaxPattern)Parent);
+				Body = GtStatic.MergeSyntaxPattern((SyntaxPattern)Body, (SyntaxPattern)Parent);
 			}
 		}
 		Table.put(Spec.SpecKey, Body);
 	}
 	
-	void RemakeSymbolTableEach(KonohaNameSpace NameSpace, KonohaArray SpecList) {
-		for(int i = 0; i < KonohaStatic.ListSize(SpecList); i++) {
-			KonohaSpec Spec = (KonohaSpec)SpecList.get(i);
+	void RemakeSymbolTableEach(GtNameSpace NameSpace, GtArray SpecList) {
+		for(int i = 0; i < GtStatic.ListSize(SpecList); i++) {
+			GtSpec Spec = (GtSpec)SpecList.get(i);
 			if(Spec.SpecType == SymbolPatternSpec) {
 				TableAddSpec(this.SymbolPatternTable, Spec);
 			}
@@ -2191,22 +2191,22 @@ final class KonohaNameSpace extends KonohaStatic {
 		}
 	}
 	
-	void RemakeSymbolTable(KonohaNameSpace NameSpace) {
+	void RemakeSymbolTable(GtNameSpace NameSpace) {
 		if(NameSpace.ParentNameSpace != null) {
 			RemakeSymbolTable(NameSpace.ParentNameSpace);
 		}
 		RemakeSymbolTableEach(NameSpace, NameSpace.PublicSpecList);
 		RemakeSymbolTableEach(NameSpace, NameSpace.PrivateSpecList);
-		for(int i = 0; i < KonohaStatic.ListSize(NameSpace.ImportedNameSpaceList); i++) {
-			KonohaNameSpace Imported = (KonohaNameSpace)NameSpace.ImportedNameSpaceList.get(i);
+		for(int i = 0; i < GtStatic.ListSize(NameSpace.ImportedNameSpaceList); i++) {
+			GtNameSpace Imported = (GtNameSpace)NameSpace.ImportedNameSpaceList.get(i);
 			RemakeSymbolTableEach(Imported, Imported.PublicSpecList);
 		}
 	}
 	
 	public Object GetSymbol(String Key) {
 		if(this.SymbolPatternTable == null) {
-			this.SymbolPatternTable = new KonohaMap();
-			this.ExtendedPatternTable = new KonohaMap();
+			this.SymbolPatternTable = new GtMap();
+			this.ExtendedPatternTable = new GtMap();
 			RemakeSymbolTable(this);
 		}
 		return this.SymbolPatternTable.get(Key);
@@ -2219,8 +2219,8 @@ final class KonohaNameSpace extends KonohaStatic {
 
 	public SyntaxPattern GetExtendedPattern(String PatternName) {
 		if(this.ExtendedPatternTable == null) {
-			this.SymbolPatternTable = new KonohaMap();
-			this.ExtendedPatternTable = new KonohaMap();
+			this.SymbolPatternTable = new GtMap();
+			this.ExtendedPatternTable = new GtMap();
 			RemakeSymbolTable(this);
 		}
 		Object Body = this.ExtendedPatternTable.get(PatternName);
@@ -2228,7 +2228,7 @@ final class KonohaNameSpace extends KonohaStatic {
 	}
 
 	public void DefineSymbol(String Key, Object Value) {
-		KonohaSpec Spec = new KonohaSpec(SymbolPatternSpec, Key, Value);
+		GtSpec Spec = new GtSpec(SymbolPatternSpec, Key, Value);
 		this.PublicSpecList.add(Spec);
 		if(this.SymbolPatternTable != null) {
 			TableAddSpec(this.SymbolPatternTable, Spec);
@@ -2236,9 +2236,9 @@ final class KonohaNameSpace extends KonohaStatic {
 	}
 
 	public void DefinePrivateSymbol(String Key, Object Value) {
-		KonohaSpec Spec = new KonohaSpec(SymbolPatternSpec, Key, Value);
+		GtSpec Spec = new GtSpec(SymbolPatternSpec, Key, Value);
 		if(this.PrivateSpecList == null) {
-			this.PrivateSpecList = new KonohaArray();
+			this.PrivateSpecList = new GtArray();
 		}
 		this.PrivateSpecList.add(Spec);
 		if(this.SymbolPatternTable != null) {
@@ -2246,19 +2246,19 @@ final class KonohaNameSpace extends KonohaStatic {
 		}
 	}
 
-	public void DefineSyntaxPattern(String PatternName, KonohaFunc MatchFunc, KonohaFunc TypeFunc) {
+	public void DefineSyntaxPattern(String PatternName, GtFunc MatchFunc, GtFunc TypeFunc) {
 		SyntaxPattern Pattern = new SyntaxPattern(this, PatternName, MatchFunc, TypeFunc);
-		KonohaSpec Spec = new KonohaSpec(SymbolPatternSpec, PatternName, Pattern);
+		GtSpec Spec = new GtSpec(SymbolPatternSpec, PatternName, Pattern);
 		this.PublicSpecList.add(Spec);
 		if(this.SymbolPatternTable != null) {
 			TableAddSpec(this.SymbolPatternTable, Spec);
 		}
 	}
 
-	public void DefineExtendedPattern(String PatternName, int SyntaxFlag, KonohaFunc MatchFunc, KonohaFunc TypeFunc) {
+	public void DefineExtendedPattern(String PatternName, int SyntaxFlag, GtFunc MatchFunc, GtFunc TypeFunc) {
 		SyntaxPattern Pattern = new SyntaxPattern(this, PatternName, MatchFunc, TypeFunc);
 		Pattern.SyntaxFlag = SyntaxFlag;
-		KonohaSpec Spec = new KonohaSpec(ExtendedPatternSpec, PatternName, Pattern);
+		GtSpec Spec = new GtSpec(ExtendedPatternSpec, PatternName, Pattern);
 		this.PublicSpecList.add(Spec);
 		if(this.ExtendedPatternTable != null) {
 			TableAddSpec(this.ExtendedPatternTable, Spec);
@@ -2266,25 +2266,25 @@ final class KonohaNameSpace extends KonohaStatic {
 	}
 	
 	// Global Object
-	public KonohaObject CreateGlobalObject(int ClassFlag, String ShortName) {
-		KonohaType NewClass = new KonohaType(this.KonohaContext, ClassFlag, ShortName, null);
-		KonohaObject GlobalObject = new KonohaObject(NewClass);
+	public GtObject CreateGlobalObject(int ClassFlag, String ShortName) {
+		GtType NewClass = new GtType(this.GtContext, ClassFlag, ShortName, null);
+		GtObject GlobalObject = new GtObject(NewClass);
 		NewClass.DefaultNullValue = GlobalObject;
 		return GlobalObject;
 	}
 
-	public KonohaObject GetGlobalObject() {
+	public GtObject GetGlobalObject() {
 		Object GlobalObject = this.GetSymbol(GlobalConstName);
-		if(GlobalObject == null || !(GlobalObject instanceof KonohaObject)) {
+		if(GlobalObject == null || !(GlobalObject instanceof GtObject)) {
 			GlobalObject = this.CreateGlobalObject(SingletonClass, "global");
 			this.DefinePrivateSymbol(GlobalConstName, GlobalObject);
 		}
-		return (KonohaObject) GlobalObject;
+		return (GtObject) GlobalObject;
 	}
 
-	public void ImportNameSpace(KonohaNameSpace ImportedNameSpace) {
+	public void ImportNameSpace(GtNameSpace ImportedNameSpace) {
 		if(this.ImportedNameSpaceList == null) {
-			this.ImportedNameSpaceList = new KonohaArray();
+			this.ImportedNameSpaceList = new GtArray();
 			this.ImportedNameSpaceList.add(ImportedNameSpace);
 		}
 		this.TokenMatrix = null;
@@ -2294,29 +2294,29 @@ final class KonohaNameSpace extends KonohaStatic {
 
 	public Object Eval(String ScriptSource, long FileLine) {
 		Object ResultValue = null;
-		KonohaStatic.println("Eval: " + ScriptSource);
+		GtStatic.println("Eval: " + ScriptSource);
 		TokenContext TokenContext = new TokenContext(this, ScriptSource, FileLine);
 		while(TokenContext.HasNext()) {
-			SyntaxTree Tree = KonohaStatic.ParseSyntaxTree(null, TokenContext);
-			KonohaStatic.println("untyped tree: " + Tree);
+			SyntaxTree Tree = GtStatic.ParseSyntaxTree(null, TokenContext);
+			GtStatic.println("untyped tree: " + Tree);
 			TypeEnv Gamma = new TypeEnv(this, null);
 			TypedNode TNode = TypeEnv.TypeCheckEachNode(Gamma, Tree, Gamma.VoidType, DefaultTypeCheckPolicy);
-			KonohaBuilder Builder = this.GetBuilder();
+			GtBuilder Builder = this.GetBuilder();
 			ResultValue = Builder.EvalAtTopLevel(this, TNode, this.GetGlobalObject());
 		}
 		return ResultValue;
 	}
 
 	// Builder
-	private KonohaBuilder	Builder;
+	private GtBuilder	Builder;
 
-	public KonohaBuilder GetBuilder() {
+	public GtBuilder GetBuilder() {
 		if(this.Builder == null) {
 			if(this.ParentNameSpace != null) {
 				return this.ParentNameSpace.GetBuilder();
 			}
-			//this.Builder = new DefaultKonohaBuilder(); // create default builder
-			this.Builder = new KonohaBuilder(); // create default builder
+			//this.Builder = new DefaultGtBuilder(); // create default builder
+			this.Builder = new GtBuilder(); // create default builder
 		}
 		return this.Builder;
 	}
@@ -2339,7 +2339,7 @@ final class KonohaNameSpace extends KonohaStatic {
 	}
 
 	public boolean LoadBuilder(String Name) {
-		KonohaBuilder Builder = (KonohaBuilder) this.LoadClass(Name);
+		GtBuilder Builder = (GtBuilder) this.LoadClass(Name);
 		if(Builder != null) {
 			this.Builder = Builder;
 			return true;
@@ -2347,7 +2347,7 @@ final class KonohaNameSpace extends KonohaStatic {
 		return false;
 	}
 
-	public KonohaMethod LookupMethod(String MethodName, int ParamSize) {
+	public GtMethod LookupMethod(String MethodName, int ParamSize) {
 		//FIXME
 		//MethodName = "ClassName.MethodName";
 		//1. (ClassName, MethodName) = MethodName.split(".")
@@ -2367,7 +2367,7 @@ final class KonohaNameSpace extends KonohaStatic {
 		return "(eval:" + (int) FileLine + ")";
 	}
 
-	public String ReportError(int Level, KonohaToken Token, String Message) {
+	public String ReportError(int Level, GtToken Token, String Message) {
 		if(!Token.IsError()) {
 			if(Level == ErrorLevel) {
 				Message = "(error) " + this.GetSourcePosition(Token.FileLine) + " " + Message;
@@ -2377,7 +2377,7 @@ final class KonohaNameSpace extends KonohaStatic {
 			} else if(Level == InfoLevel) {
 				Message = "(info) " + this.GetSourcePosition(Token.FileLine) + " " + Message;
 			}
-			KonohaStatic.println(Message);
+			GtStatic.println(Message);
 			return Message;
 		}
 		return Token.GetErrorMessage();
@@ -2385,7 +2385,7 @@ final class KonohaNameSpace extends KonohaStatic {
 
 }
 
-class KonohaGrammar extends KonohaStatic {
+class GtGrammar extends GtStatic {
 
 	// Token
 	public int WhiteSpaceToken(TokenContext TokenContext, String SourceText, int pos) {
@@ -2481,17 +2481,17 @@ class KonohaGrammar extends KonohaStatic {
 	}
 
 	public SyntaxTree ParseType(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
-		KonohaStatic.P("Entering ParseType..");
+		GtStatic.P("Entering ParseType..");
 		return null; // Not Matched
 	}
 
 	public SyntaxTree ParseSymbol(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
-		KonohaStatic.P("Entering ParseSymbol..");
-		KonohaToken Token = TokenContext.Next();
+		GtStatic.P("Entering ParseSymbol..");
+		GtToken Token = TokenContext.Next();
 		return new SyntaxTree(Pattern, TokenContext.NameSpace, Token);
 	}
 
-	public TypedNode TypeVariable(TypeEnv Gamma, SyntaxTree Tree, KonohaType TypeInfo) {
+	public TypedNode TypeVariable(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {
 		// case: Symbol is LocalVariable
 		TypeInfo = Gamma.GetLocalType(Tree.KeyToken.ParsedText);
 		if(TypeInfo != null) {
@@ -2510,49 +2510,49 @@ class KonohaGrammar extends KonohaStatic {
 
 	// Parse And Type
 	public SyntaxTree ParseIntegerLiteral(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
-		KonohaToken Token = TokenContext.Next();
+		GtToken Token = TokenContext.Next();
 		return new SyntaxTree(Pattern, TokenContext.NameSpace, Token);
 	}
 
-	public TypedNode TypeIntegerLiteral(TypeEnv Gamma, SyntaxTree Tree, KonohaType TypeInfo) {
-		KonohaToken Token = Tree.KeyToken;
+	public TypedNode TypeIntegerLiteral(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {
+		GtToken Token = Tree.KeyToken;
 		return new ConstNode(Gamma.IntType, Token, Integer.valueOf(Token.ParsedText));
 	}
 
 	public SyntaxTree ParseStringLiteral(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
-		KonohaToken Token = TokenContext.Next();
+		GtToken Token = TokenContext.Next();
 		return new SyntaxTree(Pattern, TokenContext.NameSpace, Token);
 	}
 
-	public TypedNode TypeStringLiteral(TypeEnv Gamma, SyntaxTree Tree, KonohaType TypeInfo) {
-		KonohaToken Token = Tree.KeyToken;
+	public TypedNode TypeStringLiteral(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {
+		GtToken Token = Tree.KeyToken;
 		/* FIXME: handling of escape sequence */
 		return new ConstNode(Gamma.StringType, Token, Token.ParsedText);
 	}
 
 
 	public SyntaxTree ParseConst(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
-		KonohaToken Token = TokenContext.Next();
+		GtToken Token = TokenContext.Next();
 		return new SyntaxTree(Pattern, TokenContext.NameSpace, Token);
 	}
 
-	public TypedNode TypeConst(TypeEnv Gamma, SyntaxTree Tree, KonohaType TypeInfo) {
-		KonohaToken Token = Tree.KeyToken;
+	public TypedNode TypeConst(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {
+		GtToken Token = Tree.KeyToken;
 		/* FIXME: handling of resolved object */
 		return new ConstNode(Gamma.StringType, Token, Token.ParsedText);
 	}
 
 	public SyntaxTree ParseUniaryOperator(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
-		KonohaToken Token = TokenContext.Next();
+		GtToken Token = TokenContext.Next();
 		SyntaxTree Tree = new SyntaxTree(Pattern, TokenContext.NameSpace, Token);
 		Tree.SetMatchedPatternAt(0, TokenContext, "$Expression", Required);
 		return Tree;
 	}
 
 	public SyntaxTree ParseBinaryOperator(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
-		KonohaToken Token = TokenContext.Next();
-		SyntaxTree RightTree = KonohaStatic.ParseSyntaxTree(null, TokenContext);
-		if(KonohaStatic.IsEmptyOrError(RightTree)) return RightTree;
+		GtToken Token = TokenContext.Next();
+		SyntaxTree RightTree = GtStatic.ParseSyntaxTree(null, TokenContext);
+		if(GtStatic.IsEmptyOrError(RightTree)) return RightTree;
 
 		/* 1 + 2 * 3 */
 		/* 1 * 2 + 3 */
@@ -2579,7 +2579,7 @@ class KonohaGrammar extends KonohaStatic {
 //	public final static int	MethodCallName		= 1;
 //	public final static int	MethodCallParam		= 2;
 //
-//	private SyntaxTree TreeFromToken(KonohaNameSpace NS, KonohaToken Token) {
+//	private SyntaxTree TreeFromToken(GtNameSpace NS, GtToken Token) {
 //		Tokens globalTokenList = new Tokens();
 //		Token.PresetPattern = NS.GetSyntax("$Symbol");
 //		globalTokenList.add(Token);
@@ -2593,7 +2593,7 @@ class KonohaGrammar extends KonohaStatic {
 //	 */
 //	public int ParseMethodCall(SyntaxTree Tree, Tokens TokenList, int BeginIdx, int EndIdx, int ParseOption) {
 //		int ClassIdx = -1;
-//		KonohaStatic.println(Tree.KeyToken.ParsedText);
+//		GtStatic.println(Tree.KeyToken.ParsedText);
 //		ClassIdx = Tree.MatchSyntax(MethodCallBaseClass, "$Type", TokenList, BeginIdx, BeginIdx + 1, AllowEmpty);
 //		int MemberIdx = BeginIdx + 1;
 //		boolean isGlobal = false;
@@ -2613,10 +2613,10 @@ class KonohaGrammar extends KonohaStatic {
 //			return -1;
 //		}
 //
-//		KonohaToken ReceiverToken = null;
-//		KonohaToken MethodToken = null;
+//		GtToken ReceiverToken = null;
+//		GtToken MethodToken = null;
 //		if(isGlobal) {
-//			ReceiverToken = new KonohaToken(GlobalConstName, 0);
+//			ReceiverToken = new GtToken(GlobalConstName, 0);
 //			ReceiverToken.PresetPattern = Tree.TreeNameSpace.GetSyntax("$Symbol");
 //			MethodToken = TokenList.get(BeginIdx);
 //		} else {
@@ -2627,7 +2627,7 @@ class KonohaGrammar extends KonohaStatic {
 //		SyntaxTree baseNode = this.TreeFromToken(Tree.TreeNameSpace, ReceiverToken);
 //		Tree.SetSyntaxTreeAt(MethodCallBaseClass, baseNode);
 //
-//		KonohaToken GroupToken = TokenList.get(ParamIdx);
+//		GtToken GroupToken = TokenList.get(ParamIdx);
 //		Tokens GroupList = GroupToken.GetGroupList();
 //		Tree.AppendTokenList(",", GroupList, 1, GroupList.size() - 1, 0/* ParseOption */);
 //
@@ -2640,9 +2640,9 @@ class KonohaGrammar extends KonohaStatic {
 //		return NextIdx;
 //	}
 //
-//	public TypedNode TypeMethodCall(TypeEnv Gamma, SyntaxTree Tree, KonohaType TypeInfo) {
-//		KonohaStatic.P("(>_<) typing method calls: " + Tree);
-//		KonohaArray NodeList = Tree.TreeList;
+//	public TypedNode TypeMethodCall(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {
+//		GtStatic.P("(>_<) typing method calls: " + Tree);
+//		GtArray NodeList = Tree.TreeList;
 //		assert (NodeList.size() > 1);
 //		assert (NodeList.get(0) instanceof SyntaxTree);
 //		SyntaxTree UntypedBaseNode = (SyntaxTree) NodeList.get(0);
@@ -2657,19 +2657,19 @@ class KonohaGrammar extends KonohaStatic {
 //		return null;
 //	}
 //
-//	private int ParamSizeFromNodeList(KonohaArray NodeList) {
+//	private int ParamSizeFromNodeList(GtArray NodeList) {
 //		return NodeList.size() - 2;
 //	}
 //
-//	private SyntaxTree GetUntypedParamNodeFromNodeList(KonohaArray NodeList, int ParamIndex) {
+//	private SyntaxTree GetUntypedParamNodeFromNodeList(GtArray NodeList, int ParamIndex) {
 //		return (SyntaxTree) NodeList.get(ParamIndex + 2);
 //	}
 //
-//	private TypedNode TypeFindingMethod(TypeEnv Gamma, SyntaxTree Tree, TypedNode BaseNode, KonohaType TypeInfo) {
-//		KonohaArray NodeList = Tree.TreeList;
+//	private TypedNode TypeFindingMethod(TypeEnv Gamma, SyntaxTree Tree, TypedNode BaseNode, GtType TypeInfo) {
+//		GtArray NodeList = Tree.TreeList;
 //		int ParamSize = this.ParamSizeFromNodeList(NodeList);
-//		KonohaToken KeyToken = Tree.KeyToken;
-//		KonohaMethod Method = null;
+//		GtToken KeyToken = Tree.KeyToken;
+//		GtMethod Method = null;
 //		Method = Gamma.GammaNameSpace.LookupMethod(KeyToken.ParsedText, ParamSize);
 //		if(Method == null) {
 //			Method = BaseNode.TypeInfo.LookupMethod(KeyToken.ParsedText, ParamSize);
@@ -2683,11 +2683,11 @@ class KonohaGrammar extends KonohaStatic {
 //				+ BaseNode.TypeInfo.ShortClassName);
 //	}
 //
-//	private TypedNode TypeMethodEachParam(TypeEnv Gamma, KonohaType BaseType, ApplyNode WorkingNode, KonohaArray NodeList) {
-//		KonohaMethod Method = WorkingNode.Method;
+//	private TypedNode TypeMethodEachParam(TypeEnv Gamma, GtType BaseType, ApplyNode WorkingNode, GtArray NodeList) {
+//		GtMethod Method = WorkingNode.Method;
 //		int ParamSize = this.ParamSizeFromNodeList(NodeList);
 //		for(int ParamIdx = 0; ParamIdx < ParamSize; ParamIdx++) {
-//			KonohaType ParamType = Method.GetParamType(BaseType, ParamIdx);
+//			GtType ParamType = Method.GetParamType(BaseType, ParamIdx);
 //			SyntaxTree UntypedParamNode = this.GetUntypedParamNodeFromNodeList(NodeList, ParamIdx);
 //			TypedNode ParamNode;
 //			if(UntypedParamNode != null) {
@@ -2736,31 +2736,31 @@ class KonohaGrammar extends KonohaStatic {
 		SyntaxTree PrevTree = null;
 		while(TokenContext.SkipEmptyStatement()) {
 			if(TokenContext.MatchToken("}")) break;
-			PrevTree = KonohaStatic.ParseSyntaxTree(PrevTree, TokenContext);
-			if(KonohaStatic.IsEmptyOrError(PrevTree)) return PrevTree;
+			PrevTree = GtStatic.ParseSyntaxTree(PrevTree, TokenContext);
+			if(GtStatic.IsEmptyOrError(PrevTree)) return PrevTree;
 		}
-		return KonohaStatic.TreeHead(PrevTree);
+		return GtStatic.TreeHead(PrevTree);
 	}
 
-	public TypedNode TypeBlock(TypeEnv Gamma, SyntaxTree Tree, KonohaType TypeInfo) {
+	public TypedNode TypeBlock(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {
 		return Tree.TypeNodeAt(0, Gamma, Gamma.VarType, 0);
 	}
 
 
-	public TypedNode TypeAnd(TypeEnv Gamma, SyntaxTree Tree, KonohaType TypeInfo) {
+	public TypedNode TypeAnd(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {
 		TypedNode LeftNode = Tree.TypeNodeAt(LeftHandTerm, Gamma, Gamma.BooleanType, 0);
 		TypedNode RightNode = Tree.TypeNodeAt(RightHandTerm, Gamma, Gamma.BooleanType, 0);
 		return new AndNode(RightNode.TypeInfo, Tree.KeyToken, LeftNode, RightNode);
 	}
 
-	public TypedNode TypeOr(TypeEnv Gamma, SyntaxTree Tree, KonohaType TypeInfo) {
+	public TypedNode TypeOr(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {
 		TypedNode LeftNode = Tree.TypeNodeAt(LeftHandTerm, Gamma, Gamma.BooleanType, 0);
 		TypedNode RightNode = Tree.TypeNodeAt(RightHandTerm, Gamma, Gamma.BooleanType, 0);
 		return new OrNode(RightNode.TypeInfo, Tree.KeyToken, LeftNode, RightNode);
 	}
 
 	public SyntaxTree ParseMember(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
-		KonohaToken Token = TokenContext.GetToken();
+		GtToken Token = TokenContext.GetToken();
 		SyntaxTree NewTree = new SyntaxTree(Pattern, TokenContext.NameSpace, Token);
 		NewTree.SetSyntaxTreeAt(0, LeftTree);
 		return NewTree;		
@@ -2769,7 +2769,7 @@ class KonohaGrammar extends KonohaStatic {
 	// If Statement
 
 	public SyntaxTree ParseIf(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
-		KonohaToken Token = TokenContext.GetMatchedToken("if");
+		GtToken Token = TokenContext.GetMatchedToken("if");
 		SyntaxTree NewTree = new SyntaxTree(Pattern, TokenContext.NameSpace, Token);
 		NewTree.SetMatchedTokenAt(NoWhere, TokenContext, "(", Required);
 		NewTree.SetMatchedPatternAt(IfCond, TokenContext, "$Expression", Required);
@@ -2781,7 +2781,7 @@ class KonohaGrammar extends KonohaStatic {
 		return NewTree;
 	}
 
-	public TypedNode TypeIf(TypeEnv Gamma, SyntaxTree Tree, KonohaType TypeInfo) {
+	public TypedNode TypeIf(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {
 		TypedNode CondNode = Tree.TypeNodeAt(IfCond, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
 		TypedNode ThenNode = Tree.TypeNodeAt(IfThen, Gamma, TypeInfo, DefaultTypeCheckPolicy);
 		TypedNode ElseNode = Tree.TypeNodeAt(IfElse, Gamma, ThenNode.TypeInfo, AllowEmptyPolicy);
@@ -2791,13 +2791,13 @@ class KonohaGrammar extends KonohaStatic {
 	// Return Statement
 
 	public SyntaxTree ParseReturn(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
-		KonohaToken Token = TokenContext.GetMatchedToken("return");
+		GtToken Token = TokenContext.GetMatchedToken("return");
 		SyntaxTree NewTree = new SyntaxTree(Pattern, TokenContext.NameSpace, Token);
 		NewTree.SetMatchedPatternAt(ReturnExpr, TokenContext, "$Expression", Optional);
 		return NewTree;
 	}
 
-	public TypedNode TypeReturn(TypeEnv Gamma, SyntaxTree Tree, KonohaType TypeInfo) {
+	public TypedNode TypeReturn(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {
 		TypedNode Expr = Tree.TypeNodeAt(ReturnExpr, Gamma, Gamma.ReturnType, 0);
 		if(Expr.IsError()) {
 			return Expr;
@@ -2806,7 +2806,7 @@ class KonohaGrammar extends KonohaStatic {
 	}
 	
 	public SyntaxTree ParseVarDecl(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
-		KonohaStatic.P("Entering ParseVarDecl..");
+		GtStatic.P("Entering ParseVarDecl..");
 		SyntaxTree Tree = new SyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetToken());
 		Tree.SetMatchedPatternAt(VarDeclType, TokenContext, "$Type", Required);
 		Tree.SetMatchedPatternAt(VarDeclName, TokenContext, "$Variable", Required);
@@ -2845,9 +2845,9 @@ class KonohaGrammar extends KonohaStatic {
 		return Tree;
 	}
 
-//	public TypedNode TypeVarDecl(TypeEnv Gamma, SyntaxTree Tree, KonohaType TypeInfo) {		
-//		KonohaType VarType = Tree.GetTokenType(VarDeclTypeOffset, null);
-//		KonohaToken VarToken = Tree.GetAtToken(VarDeclNameOffset);
+//	public TypedNode TypeVarDecl(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {		
+//		GtType VarType = Tree.GetTokenType(VarDeclTypeOffset, null);
+//		GtToken VarToken = Tree.GetAtToken(VarDeclNameOffset);
 //		String VarName = Tree.GetTokenString(VarDeclNameOffset, null);
 //		if(VarType.equals(Gamma.VarType)) {
 //			return new ErrorNode(TypeInfo, VarToken, "cannot infer variable type");
@@ -2858,25 +2858,25 @@ class KonohaGrammar extends KonohaStatic {
 //		return new LetNode(VarType, VarToken, Value, null);
 //	}
 //
-//	public TypedNode TypeMethodDecl(TypeEnv Gamma, SyntaxTree Tree, KonohaType TypeInfo) {
+//	public TypedNode TypeMethodDecl(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {
 //		System.err.println("@@@@@ " + Tree);
-//		KonohaType BaseType = Tree.GetTokenType(MethodDeclClass, null);
+//		GtType BaseType = Tree.GetTokenType(MethodDeclClass, null);
 //		if(BaseType == null) {
 //			BaseType = Tree.TreeNameSpace.GetGlobalObject().TypeInfo;
 //		}
 //		String MethodName = Tree.GetTokenString(MethodDeclName, "new");
 //		int ParamSize = Tree.TreeList.size() - MethodDeclParam;
-//		KonohaType[] ParamData = new KonohaType[ParamSize + 1];
+//		GtType[] ParamData = new GtType[ParamSize + 1];
 //		String[] ArgNames = new String[ParamSize + 1];
 //		ParamData[0] = Tree.GetTokenType(MethodDeclReturnType, Gamma.VarType);
 //		for(int i = 0; i < ParamSize; i++) {
 //			SyntaxTree ParamNode = (SyntaxTree) Tree.TreeList.get(MethodDeclParam + i);
-//			KonohaType ParamType = ParamNode.GetTokenType(VarDeclType, Gamma.VarType);
+//			GtType ParamType = ParamNode.GetTokenType(VarDeclType, Gamma.VarType);
 //			ParamData[i + 1] = ParamType;
 //			ArgNames[i] = ParamNode.GetTokenString(VarDeclName, "");
 //		}
-//		KonohaParam Param = new KonohaParam(ParamSize + 1, ParamData, ArgNames);
-//		KonohaMethod NewMethod = new KonohaMethod(
+//		GtParam Param = new GtParam(ParamSize + 1, ParamData, ArgNames);
+//		GtMethod NewMethod = new GtMethod(
 //			0,
 //			BaseType,
 //			MethodName,
@@ -2889,23 +2889,23 @@ class KonohaGrammar extends KonohaStatic {
 
 
 //	public SyntaxTree ParseUNUSED(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
-//		KonohaStatic.P("** Syntax " + Tree.Pattern + " is undefined **");
+//		GtStatic.P("** Syntax " + Tree.Pattern + " is undefined **");
 //		return NoMatch;
 //	}
 //
-//	public TypedNode TypeUNUSED(TypeEnv Gamma, SyntaxTree Tree, KonohaType TypeInfo) {
-//		KonohaStatic.P("** Syntax " + Tree.Pattern + " is undefined **");
+//	public TypedNode TypeUNUSED(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {
+//		GtStatic.P("** Syntax " + Tree.Pattern + " is undefined **");
 //		return null;
 //	}
 
-	public void LoadDefaultSyntax(KonohaNameSpace NameSpace) {
+	public void LoadDefaultSyntax(GtNameSpace NameSpace) {
 		// Define Types
-		KonohaContext KonohaContext = NameSpace.KonohaContext;
-		NameSpace.DefineSymbol("void", KonohaContext.VoidType); // FIXME
-		NameSpace.DefineSymbol("boolean", KonohaContext.BooleanType);
-		NameSpace.DefineSymbol("Object", KonohaContext.ObjectType);
-		NameSpace.DefineSymbol("int", KonohaContext.IntType);
-		NameSpace.DefineSymbol("String", KonohaContext.StringType);
+		GtContext GtContext = NameSpace.GtContext;
+		NameSpace.DefineSymbol("void", GtContext.VoidType); // FIXME
+		NameSpace.DefineSymbol("boolean", GtContext.BooleanType);
+		NameSpace.DefineSymbol("Object", GtContext.ObjectType);
+		NameSpace.DefineSymbol("int", GtContext.IntType);
+		NameSpace.DefineSymbol("String", GtContext.StringType);
 
 		// Define Constants
 		NameSpace.DefineSymbol("true", new Boolean(true));
@@ -2919,9 +2919,9 @@ class KonohaGrammar extends KonohaStatic {
 		NameSpace.DefineTokenFunc("\"", function(this, "StringLiteralToken"));
 		NameSpace.DefineTokenFunc("1",  function(this, "NumberLiteralToken"));
 
-		KonohaFunc ParseUniary = function(this, "ParseUniary");
-		KonohaFunc ParseBinary = function(this, "ParseBinary");
-		KonohaFunc TypeApply = function(this, "TypeApply");
+		GtFunc ParseUniary = function(this, "ParseUniary");
+		GtFunc ParseBinary = function(this, "ParseBinary");
+		GtFunc TypeApply = function(this, "TypeApply");
 
 		NameSpace.DefineSyntaxPattern("+", ParseUniary, TypeApply);
 		NameSpace.DefineSyntaxPattern("-", ParseUniary, TypeApply);
@@ -2957,7 +2957,7 @@ class KonohaGrammar extends KonohaStatic {
 
 		//NameSpace.DefineSyntaxPattern("()", Term | Precedence_CStyleSuffixCall, this, "UNUSED");
 		//NameSpace.DefineSyntaxPattern("{}", 0, this, "UNUSED");
-		KonohaFunc TypeConst = function(this, "TypeConst");
+		GtFunc TypeConst = function(this, "TypeConst");
 		
 		NameSpace.DefineSyntaxPattern("$Symbol", function(this, "ParseSymbol"), function(this, "TypeVariable"));
 		NameSpace.DefineSyntaxPattern("$Type", function(this, "ParseType"), TypeConst);
@@ -2977,19 +2977,19 @@ class KonohaGrammar extends KonohaStatic {
 		NameSpace.DefineSyntaxPattern("return", function(this, "ParseReturn"), function(this, "ParseReturn"));
 
 		// Load Library
-		new KonohaInt().MakeDefinition(NameSpace);
-		new KonohaStringDef().MakeDefinition(NameSpace);
-		new KonohaSystemDef().MakeDefinition(NameSpace);
+		new GtInt().MakeDefinition(NameSpace);
+		new GtStringDef().MakeDefinition(NameSpace);
+		new GtSystemDef().MakeDefinition(NameSpace);
 	}
 }
 
 
-class KonohaInt extends KonohaStatic {
+class GtInt extends GtStatic {
 
-	public void MakeDefinition(KonohaNameSpace ns) {
-//		KonohaType BaseClass = ns.LookupHostLangType(Integer.class);
-//		KonohaParam BinaryParam = KonohaParam.ParseOf(ns, "int int x");
-//		KonohaParam UniaryParam = KonohaParam.ParseOf(ns, "int");
+	public void MakeDefinition(GtNameSpace ns) {
+//		GtType BaseClass = ns.LookupHostLangType(Integer.class);
+//		GtParam BinaryParam = GtParam.ParseOf(ns, "int int x");
+//		GtParam UniaryParam = GtParam.ParseOf(ns, "int");
 //
 //		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "+", UniaryParam, this, "PlusInt");
 //		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "+", BinaryParam, this, "IntAddInt");
@@ -2999,7 +2999,7 @@ class KonohaInt extends KonohaStatic {
 //		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "/", BinaryParam, this, "IntDivInt");
 //		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "%", BinaryParam, this, "IntModInt");
 //
-//		KonohaParam RelationParam = KonohaParam.ParseOf(ns, "boolean int x");
+//		GtParam RelationParam = GtParam.ParseOf(ns, "boolean int x");
 //		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "<", RelationParam, this, "IntLtInt");
 //		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "<=", RelationParam, this, "IntLeInt");
 //		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, ">", RelationParam, this, "IntGtInt");
@@ -3007,15 +3007,15 @@ class KonohaInt extends KonohaStatic {
 //		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "==", RelationParam, this, "IntEqInt");
 //		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "!=", RelationParam, this, "IntNeInt");
 //
-//		//		if(KonohaDebug.UseBuiltInTest) {
+//		//		if(GtDebug.UseBuiltInTest) {
 //		//			assert (BaseClass.LookupMethod("+", 0) != null);
 //		//			assert (BaseClass.LookupMethod("+", 1) != null);
 //		//			assert (BaseClass.LookupMethod("+", 2) == null);
-//		//			KonohaMethod m = BaseClass.LookupMethod("+", 1);
+//		//			GtMethod m = BaseClass.LookupMethod("+", 1);
 //		//			Object[] p = new Object[2];
 //		//			p[0] = new Integer(1);
 //		//			p[1] = new Integer(2);
-//		//			KonohaStatic.println("******* 1+2=" + m.Eval(p));
+//		//			GtStatic.println("******* 1+2=" + m.Eval(p));
 //		//		}
 	}
 
@@ -3072,21 +3072,21 @@ class KonohaInt extends KonohaStatic {
 	}
 }
 
-class KonohaStringDef extends KonohaStatic {
+class GtStringDef extends GtStatic {
 
-	public void MakeDefinition(KonohaNameSpace ns) {
-//		KonohaType BaseClass = ns.LookupHostLangType(String.class);
-//		KonohaParam BinaryParam = KonohaParam.ParseOf(ns, "String String x");
+	public void MakeDefinition(GtNameSpace ns) {
+//		GtType BaseClass = ns.LookupHostLangType(String.class);
+//		GtParam BinaryParam = GtParam.ParseOf(ns, "String String x");
 //		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "+", BinaryParam, this, "StringAddString");
 //
-//		KonohaParam RelationParam = KonohaParam.ParseOf(ns, "boolean String x");
+//		GtParam RelationParam = GtParam.ParseOf(ns, "boolean String x");
 //		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "==", RelationParam, this, "StringEqString");
 //		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "!=", RelationParam, this, "StringNeString");
 //
-//		KonohaParam indexOfParam = KonohaParam.ParseOf(ns, "int String x");
+//		GtParam indexOfParam = GtParam.ParseOf(ns, "int String x");
 //		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "indexOf", indexOfParam, this, "StringIndexOf");
 //
-//		KonohaParam getSizeParam = KonohaParam.ParseOf(ns, "int");
+//		GtParam getSizeParam = GtParam.ParseOf(ns, "int");
 //		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "getSize", getSizeParam, this, "StringGetSize");
 	}
 
@@ -3111,32 +3111,32 @@ class KonohaStringDef extends KonohaStatic {
 	}
 }
 
-class KonohaSystemDef extends KonohaStatic {
+class GtSystemDef extends GtStatic {
 
-	public void MakeDefinition(KonohaNameSpace NameSpace) {
-//		KonohaType BaseClass = NameSpace.LookupHostLangType(KonohaSystemDef.class);
+	public void MakeDefinition(GtNameSpace NameSpace) {
+//		GtType BaseClass = NameSpace.LookupHostLangType(GtSystemDef.class);
 //		NameSpace.DefineSymbol("System", BaseClass);
 //
-//		KonohaParam param1 = KonohaParam.ParseOf(NameSpace, "void String x");
+//		GtParam param1 = GtParam.ParseOf(NameSpace, "void String x");
 //		BaseClass.DefineMethod(StaticMethod, "p", param1, this, "p");
 	}
 
 	public static void p(String x) {
-		KonohaStatic.println(x);
+		GtStatic.println(x);
 	}
 
 }
 
-//class KonohaArrayDef extends KonohaStatic {
+//class GtArrayDef extends GtStatic {
 //
-//	public void MakeDefinition(KonohaNameSpace ns) {
+//	public void MakeDefinition(GtNameSpace ns) {
 //        //FIXME int[] only
-//        KonohaType BaseClass = ns.LookupHostLangType(int[].class);
-//        KonohaParam GetterParam = KonohaParam.ParseOf(ns, "int int i");
+//        GtType BaseClass = ns.LookupHostLangType(int[].class);
+//        GtParam GetterParam = GtParam.ParseOf(ns, "int int i");
 //        BaseClass.DefineMethod(ImmutableMethod, "get", GetterParam, this, "ArrayGetter");
-//        KonohaParam SetterParam = KonohaParam.ParseOf(ns, "void int i int v");
+//        GtParam SetterParam = GtParam.ParseOf(ns, "void int i int v");
 //        BaseClass.DefineMethod(0, "set", SetterParam, this, "ArraySetter");
-//        KonohaParam GetSizeParam = KonohaParam.ParseOf(ns, "int");
+//        GtParam GetSizeParam = GtParam.ParseOf(ns, "int");
 //        BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "getSize", GetSizeParam, this, "ArrayGetSize");
 //    }
 //
@@ -3153,24 +3153,24 @@ class KonohaSystemDef extends KonohaStatic {
 //    }
 //}
 
-class KonohaContext extends KonohaStatic {
+class GtContext extends GtStatic {
 
-	public KonohaNameSpace		RootNameSpace;
-	public KonohaNameSpace		DefaultNameSpace;
+	public GtNameSpace		RootNameSpace;
+	public GtNameSpace		DefaultNameSpace;
 
-	public final KonohaType		VoidType;
-	public final KonohaType		NativeObjectType;
-	public final KonohaType		ObjectType;
-	public final KonohaType		BooleanType;
-	public final KonohaType		IntType;
-	public final KonohaType		StringType;
-	public final KonohaType		VarType;
+	public final GtType		VoidType;
+	public final GtType		NativeObjectType;
+	public final GtType		ObjectType;
+	public final GtType		BooleanType;
+	public final GtType		IntType;
+	public final GtType		StringType;
+	public final GtType		VarType;
 
-	final KonohaMap				ClassNameMap;
+	final GtMap				ClassNameMap;
 
-	public KonohaContext(KonohaGrammar Grammar, String BuilderClassName) {
-		this.ClassNameMap = new KonohaMap();
-		this.RootNameSpace = new KonohaNameSpace(this, null);
+	public GtContext(GtGrammar Grammar, String BuilderClassName) {
+		this.ClassNameMap = new GtMap();
+		this.RootNameSpace = new GtNameSpace(this, null);
 		this.VoidType = this.LookupHostLangType(Void.class);
 		this.NativeObjectType = this.LookupHostLangType(Object.class);
 		this.ObjectType = this.LookupHostLangType(Object.class);
@@ -3180,16 +3180,16 @@ class KonohaContext extends KonohaStatic {
 		this.VarType = this.LookupHostLangType(Object.class);
 
 		Grammar.LoadDefaultSyntax(this.RootNameSpace);
-		this.DefaultNameSpace = new KonohaNameSpace(this, this.RootNameSpace);
+		this.DefaultNameSpace = new GtNameSpace(this, this.RootNameSpace);
 		if(BuilderClassName != null) {
 			this.DefaultNameSpace.LoadBuilder(BuilderClassName);
 		}
 	}
 
-	KonohaType LookupHostLangType(Class<?> ClassInfo) {
-		KonohaType TypeInfo = (KonohaType) this.ClassNameMap.get(ClassInfo.getName());
+	GtType LookupHostLangType(Class<?> ClassInfo) {
+		GtType TypeInfo = (GtType) this.ClassNameMap.get(ClassInfo.getName());
 		if(TypeInfo == null) {
-			TypeInfo = new KonohaType(this, ClassInfo);
+			TypeInfo = new GtType(this, ClassInfo);
 			this.ClassNameMap.put(ClassInfo.getName(), TypeInfo);
 		}
 		return TypeInfo;
@@ -3202,11 +3202,10 @@ class KonohaContext extends KonohaStatic {
 	public Object Eval(String text, long FileLine) {
 		return this.DefaultNameSpace.Eval(text, FileLine);
 	}
-
 	public static void main(String[] argc) {
-		KonohaContext KonohaContext = new KonohaContext(new KonohaGrammar(), null);
-		//KonohaContext.Eval("int f(int a, int b) { return a + b; }", 0);
-		KonohaContext.Eval("1 + 2 * 3", 0);
+		GtContext GtContext = new GtContext(new GtGrammar(), null);
+		//GtContext.Eval("int f(int a, int b) { return a + b; }", 0);
+		GtContext.Eval("1 + 2 * 3", 0);
 
 	}
 }
