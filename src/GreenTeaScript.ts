@@ -1,457 +1,467 @@
-module GreenScript {	
+module GreenScript {
+
+////JAVA
+//import java.lang.reflect.InvocationTargetException;
+//import java.lang.reflect.Method;
+//import java.lang.reflect.Modifier;
+//import java.util.ArrayList;
+//import java.util.HashMap;
+//
+//interface KonohaConst {
+//VAJA
+
+	// ClassFlag
+	var PrivateClass :number = 1 << 0;
+	var SingletonClass :number = 1 << 1;
+	var FinalClass :number = 1 << 2;
+	var KonohaClass :number = 1 << 3;
+	var StaticClass :number = 1 << 4;
+	var ImmutableClass :number = 1 << 5;
+	var InterfaceClass :number = 1 << 6;
+
+	// MethodFlag
+	var PrivateMethod :number = 1 << 0;
+	var VirtualMethod :number = 1 << 1;
+	var FinalMethod :number = 1 << 2;
+	var ConstMethod :number = 1 << 3;
+	var StaticMethod :number = 1 << 4;
+	var ImmutableMethod :number = 1 << 5;
+	var TopLevelMethod :number = 1 << 6;
+
+	// call rule
+	var CoercionMethod :number = 1 << 7;
+	var RestrictedMethod :number = 1 << 8;
+	var UncheckedMethod :number = 1 << 9;
+	var SmartReturnMethod :number = 1 << 10;
+	var VariadicMethod :number = 1 << 11;
+	var IterativeMethod :number = 1 << 12;
+
+	// compatible
+	var UniversalMethod :number = 1 << 13;
+
+	// internal
+	var HiddenMethod :number = 1 << 17;
+	var AbstractMethod :number = 1 << 18;
+	var OverloadedMethod :number = 1 << 19;
+	var Override :number = 1 << 20;
+	var DynamicCall :number = 1 << 22;
+
 	
-	// utils
+	var SymbolMaskSize :number = 3;
+	var LowerSymbolMask :number = 1;
+	var GetterSymbolMask :number = (1 << 1);
+	var SetterSymbolMask :number = (1 << 2);
+	var MetaSymbolMask :number = (GetterSymbolMask | SetterSymbolMask);
+	var GetterPrefix :string = "Get";
+	var SetterPrefix :string = "Set";
+	var MetaPrefix :string = "\\";
+
+	var AllowNewId :number = -1;
+	var NoMatch :number = -1;
+	var BreakPreProcess :number = -1;
+
+	var Optional :boolean = true;
+	var Required :boolean = false;
+
+	var ErrorLevel :number = 0;
+	var WarningLevel :number = 1;
+	var InfoLevel :number = 2;
+
+	var KonohaCharMaxSize :number = 41;
 	
-	interface KonohaConst {
+	var NullToken :KonohaToken = new KonohaToken("", 0);
+
+	// TokenFlag
+	var SourceTokenFlag :number = 1;
+	var ErrorTokenFlag :number = (1 << 1);
+	var IndentTokenFlag :number = (1 << 2);
+	var WhiteSpaceTokenFlag :number = (1 << 3);
+	var DelimTokenFlag :number = (1 << 4);
 	
-		// ClassFlag
-		var PrivateClass :number = 1 << 0;
-		var SingletonClass :number = 1 << 1;
-		var FinalClass :number = 1 << 2;
-		var KonohaClass :number = 1 << 3;
-		var StaticClass :number = 1 << 4;
-		var ImmutableClass :number = 1 << 5;
-		var InterfaceClass :number = 1 << 6;
+	// ParseFlag
+	var TrackbackParseFlag :number = 1;
+	var SkipIndentParseFlag :number = (1 << 1);
 	
-		// MethodFlag
-		var PrivateMethod :number = 1 << 0;
-		var VirtualMethod :number = 1 << 1;
-		var FinalMethod :number = 1 << 2;
-		var ConstMethod :number = 1 << 3;
-		var StaticMethod :number = 1 << 4;
-		var ImmutableMethod :number = 1 << 5;
-		var TopLevelMethod :number = 1 << 6;
+
+	// SyntaxTree
+	var NoWhere :number = -1;
+	// UniaryTree, SuffixTree
+	var UniaryTerm :number = 0;
+	// BinaryTree
+	var LeftHandTerm :number = 0;
+	var RightHandTerm :number = 1;
+
+	// IfStmt
+	var IfCond :number = 0;
+	var IfThen :number = 1;
+	var IfElse :number = 2;
+
+	// ReturnStmt
+	var ReturnExpr :number = 0;
+
+	// var N = 1;
+	var VarDeclType :number = 0;
+	var VarDeclName :number = 1;
+	var VarDeclValue :number = 2;
+	var VarDeclScope :number = 3;
+
+	// Decl :Method;
+	var MethodDeclReturnType :number = 0;
+	var MethodDeclClass :number = 1;
+	var MethodDeclName :number = 2;
+	var MethodDeclBlock :number = 3;
+	var MethodDeclParam :number = 4;
+
+	// spec 
+	var TokenFuncSpec :number = 0;
+	var SymbolPatternSpec :number = 1;
+	var ExtendedPatternSpec :number = 2;
+
+// var Term :number = 1;
+// var UniaryOperator :number = 1; /* same as for :Term readability */
+// var Statement :number = 1; /* same as for :Term readability */
+	var BinaryOperator :number = 1 << 1;
+// var SuffixOperator :number = 1 << 2;
+	var LeftJoin :number = 1 << 3;
+// var MetaPattern :number = 1 << 4;
+	var PrecedenceShift :number = 5;
+	var Precedence_CStyleValue :number = (1 << PrecedenceShift);
+	var Precedence_CPPStyleScope :number = (50 << PrecedenceShift);
+	var Precedence_CStyleSuffixCall :number = (100 << PrecedenceShift); /*x(); x[]; x.x x->x x++ */
+	var Precedence_CStylePrefixOperator :number = (200 << PrecedenceShift); /*++x; --x; sizeof x &x +x -x !x <>x */
+	// Precedence_CppMember = 300; /* .x ->x */
+	var Precedence_CStyleMUL :number = (400 << PrecedenceShift); /* x * x; x / x; x % x*/
+	var Precedence_CStyleADD :number = (500 << PrecedenceShift); /* x + x; x - x */
+	var Precedence_CStyleSHIFT :number = (600 << PrecedenceShift); /* x << x; x >> x */
+	var Precedence_CStyleCOMPARE :number = (700 << PrecedenceShift);
+	var Precedence_CStyleEquals :number = (800 << PrecedenceShift);
+	var Precedence_CStyleBITAND :number = (900 << PrecedenceShift);
+	var Precedence_CStyleBITXOR :number = (1000 << PrecedenceShift);
+	var Precedence_CStyleBITOR :number = (1100 << PrecedenceShift);
+	var Precedence_CStyleAND :number = (1200 << PrecedenceShift);
+	var Precedence_CStyleOR :number = (1300 << PrecedenceShift);
+	var Precedence_CStyleTRINARY :number = (1400 << PrecedenceShift); /* ? : */
+	var Precedence_CStyleAssign :number = (1500 << PrecedenceShift);
+	var Precedence_CStyleCOMMA :number = (1600 << PrecedenceShift);
+	var Precedence_Error :number = (1700 << PrecedenceShift);
+	var Precedence_Statement :number = (1900 << PrecedenceShift);
+	var Precedence_CStyleDelim :number = (2000 << PrecedenceShift);
+
 	
-		// call rule
-		var CoercionMethod :number = 1 << 7;
-		var RestrictedMethod :number = 1 << 8;
-		var UncheckedMethod :number = 1 << 9;
-		var SmartReturnMethod :number = 1 << 10;
-		var VariadicMethod :number = 1 << 11;
-		var IterativeMethod :number = 1 << 12;
+	var DefaultTypeCheckPolicy :number = 0;
+	var IgnoreEmptyPolicy :number = 1;
+	var AllowEmptyPolicy :number = (1 << 1);
+
+	//typedef enum {
+	// TypeCheckPolicy_NoPolicy = 0,
+	// TypeCheckPolicy_NoCheck = (1 << 0),
+	// TypeCheckPolicy_AllowVoid = (1 << 1),
+	// TypeCheckPolicy_Coercion = (1 << 2),
+	// TypeCheckPolicy_AllowEmpty = (1 << 3),
+	// TypeCheckPolicy_CONST = (1 << 4), /* Reserved */
+	// TypeCheckPolicy_Creation = (1 << 6) /* TypeCheckNodeByName */
+	//} TypeCheckPolicy;
+
+	var GlobalConstName :string = "global";
+
 	
-		// compatible
-		var UniversalMethod :number = 1 << 13;
+	var EmptyList :KonohaArray = new KonohaArray();
+
+
+	// debug flags
+	var UseBuiltInTest :boolean = true;
+	var DebugPrnumber :boolean = false;
+
+////JAVA
+//}
+//
+//class KonohaStatic implements KonohaConst {
+//VAJA
 	
-		// internal
-		var HiddenMethod :number = 1 << 17;
-		var AbstractMethod :number = 1 << 18;
-		var OverloadedMethod :number = 1 << 19;
-		var Override :number = 1 << 20;
-		var DynamicCall :number = 1 << 22;
-	
-		
-		var SymbolMaskSize :number = 3;
-		var LowerSymbolMask :number = 1;
-		var GetterSymbolMask :number = (1 << 1);
-		var SetterSymbolMask :number = (1 << 2);
-		var MetaSymbolMask :number = (GetterSymbolMask | SetterSymbolMask);
-		var GetterPrefix :string = "Get";
-		var SetterPrefix :string = "Set";
-		var MetaPrefix :string = "\\";
-	
-		var AllowNewId :number = -1;
-		var NoMatch :number = -1;
-		var BreakPreProcess :number = -1;
-	
-		var Optional :boolean = true;
-		var Required :boolean = false;
-	
-		var ErrorLevel :number = 0;
-		var WarningLevel :number = 1;
-		var InfoLevel :number = 2;
-	
-		var KonohaCharMaxSize :number = 41;
-		
-		var NullToken :KonohaToken = new KonohaToken("", 0);
-	
-		// TokenFlag
-		var SourceTokenFlag :number = 1;
-		var ErrorTokenFlag :number = (1 << 1);
-		var IndentTokenFlag :number = (1 << 2);
-		var WhiteSpaceTokenFlag :number = (1 << 3);
-		var DelimTokenFlag :number = (1 << 4);
-		
-		// ParseFlag
-		var TrackbackParseFlag :number = 1;
-		var SkipIndentParseFlag :number = (1 << 1);
-		
-	
-		// SyntaxTree
-		var NoWhere :number = -1;
-		// UniaryTree, SuffixTree
-		var UniaryTerm :number = 0;
-		// BinaryTree
-		var LeftHandTerm :number = 0;
-		var RightHandTerm :number = 1;
-	
-		// IfStmt
-		var IfCond :number = 0;
-		var IfThen :number = 1;
-		var IfElse :number = 2;
-	
-		// ReturnStmt
-		var ReturnExpr :number = 0;
-	
-		// var N = 1;
-		var VarDeclType :number = 0;
-		var VarDeclName :number = 1;
-		var VarDeclValue :number = 2;
-		var VarDeclScope :number = 3;
-	
-		// Decl :Method;
-		var MethodDeclReturnType :number = 0;
-		var MethodDeclClass :number = 1;
-		var MethodDeclName :number = 2;
-		var MethodDeclBlock :number = 3;
-		var MethodDeclParam :number = 4;
-	
-		// spec 
-		var TokenFuncSpec :number = 0;
-		var SymbolPatternSpec :number = 1;
-		var ExtendedPatternSpec :number = 2;
-	
-	// var Term :number = 1;
-	// var UniaryOperator :number = 1; /* same as for :Term readability */
-	// var Statement :number = 1; /* same as for :Term readability */
-		var BinaryOperator :number = 1 << 1;
-	// var SuffixOperator :number = 1 << 2;
-		var LeftJoin :number = 1 << 3;
-	// var MetaPattern :number = 1 << 4;
-		var PrecedenceShift :number = 5;
-		var Precedence_CStyleValue :number = (1 << PrecedenceShift);
-		var Precedence_CPPStyleScope :number = (50 << PrecedenceShift);
-		var Precedence_CStyleSuffixCall :number = (100 << PrecedenceShift); /*x(); x[]; x.x x->x x++ */
-		var Precedence_CStylePrefixOperator :number = (200 << PrecedenceShift); /*++x; --x; sizeof x &x +x -x !x <>x */
-		// Precedence_CppMember = 300; /* .x ->x */
-		var Precedence_CStyleMUL :number = (400 << PrecedenceShift); /* x * x; x / x; x % x*/
-		var Precedence_CStyleADD :number = (500 << PrecedenceShift); /* x + x; x - x */
-		var Precedence_CStyleSHIFT :number = (600 << PrecedenceShift); /* x << x; x >> x */
-		var Precedence_CStyleCOMPARE :number = (700 << PrecedenceShift);
-		var Precedence_CStyleEquals :number = (800 << PrecedenceShift);
-		var Precedence_CStyleBITAND :number = (900 << PrecedenceShift);
-		var Precedence_CStyleBITXOR :number = (1000 << PrecedenceShift);
-		var Precedence_CStyleBITOR :number = (1100 << PrecedenceShift);
-		var Precedence_CStyleAND :number = (1200 << PrecedenceShift);
-		var Precedence_CStyleOR :number = (1300 << PrecedenceShift);
-		var Precedence_CStyleTRINARY :number = (1400 << PrecedenceShift); /* ? : */
-		var Precedence_CStyleAssign :number = (1500 << PrecedenceShift);
-		var Precedence_CStyleCOMMA :number = (1600 << PrecedenceShift);
-		var Precedence_Error :number = (1700 << PrecedenceShift);
-		var Precedence_Statement :number = (1900 << PrecedenceShift);
-		var Precedence_CStyleDelim :number = (2000 << PrecedenceShift);
-	
-		
-		var DefaultTypeCheckPolicy :number = 0;
-		var IgnoreEmptyPolicy :number = 1;
-		var AllowEmptyPolicy :number = (1 << 1);
-	
-		//typedef enum {
-		// TypeCheckPolicy_NoPolicy = 0,
-		// TypeCheckPolicy_NoCheck = (1 << 0),
-		// TypeCheckPolicy_AllowVoid = (1 << 1),
-		// TypeCheckPolicy_Coercion = (1 << 2),
-		// TypeCheckPolicy_AllowEmpty = (1 << 3),
-		// TypeCheckPolicy_CONST = (1 << 4), /* Reserved */
-		// TypeCheckPolicy_Creation = (1 << 6) /* TypeCheckNodeByName */
-		//} TypeCheckPolicy;
-	
-		var GlobalConstName :string = "global";
-	
-		
-		var EmptyList :KonohaArray = new KonohaArray();
-	
-	
-		// debug flags
-		var UseBuiltInTest :boolean = true;
-		var DebugPrnumber :boolean = false;
-	
+	function println(msg :string) :void {
+		System.out.println(msg);		
 	}
 	
-	class KonohaStatic {
+	function P(msg :string) :void {
+		println("DEBUG: " + msg);
+	}
+
+	function TODO(msg :string) :void {
+		println("TODO: " + msg);
+	}
+
+	function ListSize(a :KonohaArray) :number {
+		return (a == null) ? 0 : a.size();
+	}
 	
-		function println(msg :string) :void {
-			System.out.println(msg);		
-		}
-		
-		function P(msg :string) :void {
-			println("DEBUG: " + msg);
-		}
+	function IsFlag(flag :number, flag2 :number) :boolean {
+		return ((flag & flag2) == flag2);
+	}
 	
-		function TODO(msg :string) :void {
-			println("TODO: " + msg);
-		}
+	function IsWhitespace(char ch) :boolean {
+		return Character.isWhitespace(ch);
+	}
 	
-		function ListSize(a :KonohaArray) :number {
-			return (a == null) ? 0 : a.size();
-		}
-		
-		function IsFlag(flag :number, flag2 :number) :boolean {
-			return ((flag & flag2) == flag2);
-		}
-		
-		function IsWhitespace(char ch) :boolean {
-			return Character.isWhitespace(ch);
-		}
-		
-		function IsLetter(char ch) :boolean {
-			return Character.isLetter(ch);
-		}
-		
-		function IsDigit(char ch) :boolean {
-			return Character.isDigit(ch);
-		}
-		
-		function LookupMethod(Callee :Object, MethodName :string) :Method {
-			if(MethodName != null) {
-				// KonohaDebug.P("looking up method : " + Callee.getClass().getSimpleName() + "." + MethodName);
-				Method[] methods = Callee.getClass().getMethods();
-				for(var i :number = 0; i < methods.length; i++) {
-					if(MethodName.equals(methods[i].getName())) {
-						return methods[i];
-					}
+	function IsLetter(char ch) :boolean {
+		return Character.isLetter(ch);
+	}
+	
+	function IsDigit(char ch) :boolean {
+		return Character.isDigit(ch);
+	}
+	
+	function LookupMethod(Callee :Object, MethodName :string) :Method {
+		if(MethodName != null) {
+			// KonohaDebug.P("looking up method : " + Callee.getClass().getSimpleName() + "." + MethodName);
+			Method[] methods = Callee.getClass().getMethods();
+			for(var i :number = 0; i < methods.length; i++) {
+				if(MethodName.equals(methods[i].getName())) {
+					return methods[i];
 				}
-				P("method not found: " + Callee.getClass().getSimpleName() + "." + MethodName);
 			}
-			return null; /*throw new KonohaParserException("method not found: " + callee.getClass().getName() + "." + methodName);*/
+			P("method not found: " + Callee.getClass().getSimpleName() + "." + MethodName);
 		}
+		return null; /*throw new KonohaParserException("method not found: " + callee.getClass().getName() + "." + methodName);*/
+	}
+
+	function function(Callee :Object, MethodName :string) :KonohaFunc {
+		return new KonohaFunc(Callee, LookupMethod(Callee, MethodName));
+	}
+
+	function EqualsMethod(m1 :Method, m2 :Method) :boolean {
+		if(m1 == null) {
+			return (m2 == null) ? true : false;
+		} else {
+			return (m2 == null) ? false : m1.equals(m2);
+		}
+	}
 	
-		function function(Callee :Object, MethodName :string) :KonohaFunc {
-			return new KonohaFunc(Callee, LookupMethod(Callee, MethodName));
+	function CreateOrReuseTokenFunc(f :KonohaFunc, prev :TokenFunc) :TokenFunc {
+		if(prev != null && EqualsMethod(prev.Func.Method, f.Method)) {
+			return prev;
 		}
-	
-		function EqualsMethod(m1 :Method, m2 :Method) :boolean {
-			if(m1 == null) {
-				return (m2 == null) ? true : false;
-			} else {
-				return (m2 == null) ? false : m1.equals(m2);
-			}
-		}
-		
-		function CreateOrReuseTokenFunc(f :KonohaFunc, prev :TokenFunc) :TokenFunc {
-			if(prev != null && EqualsMethod(prev.Func.Method, f.Method)) {
-				return prev;
-			}
-			return new TokenFunc(f, prev);
-		}
-	
-		function ApplyTokenFunc(TokenFunc :TokenFunc, TokenContext :TokenContext, ScriptSource :string, Pos :number) :number {
-			try {
-				while(TokenFunc != null) {
-					var f :KonohaFunc = TokenFunc.Func;
-					var NextIdx :number = ((Integer)f.Method.invoke(f.Self, TokenContext, ScriptSource, Pos)).intValue();
-					if(NextIdx > Pos) return NextIdx;
-					TokenFunc = TokenFunc.ParentFunc;
-				}
-				return NoMatch;
-			}
-			catch (e :IllegalArgumentException) {
-				e.printStackTrace();
-			}
-			catch (e :IllegalAccessException) {
-				e.printStackTrace();
-			}
-			catch (e :InvocationTargetException) {
-				e.printStackTrace();
+		return new TokenFunc(f, prev);
+	}
+
+	function ApplyTokenFunc(TokenFunc :TokenFunc, TokenContext :TokenContext, ScriptSource :string, Pos :number) :number {
+		try {
+			while(TokenFunc != null) {
+				var f :KonohaFunc = TokenFunc.Func;
+				var NextIdx :number = ((Integer)f.Method.invoke(f.Self, TokenContext, ScriptSource, Pos)).intValue();
+				if(NextIdx > Pos) return NextIdx;
+				TokenFunc = TokenFunc.ParentFunc;
 			}
 			return NoMatch;
 		}
-	
-		function MergeSyntaxPattern(Pattern :SyntaxPattern, Parent :SyntaxPattern) :SyntaxPattern {
-			if(Parent == null) return Pattern;
-			var MergedPattern :SyntaxPattern = new SyntaxPattern(Pattern.PackageNameSpace, Pattern.PatternName, Pattern.MatchFunc, Pattern.TypeFunc);
-			MergedPattern.ParentPattern = Parent;
-			return MergedPattern;
+		catch (e :IllegalArgumentException) {
+			e.printStackTrace();
 		}
-	
-		function IsEmptyOrError(Tree :SyntaxTree) :boolean {
-			return Tree == null || Tree.IsEmptyOrError();
+		catch (e :IllegalAccessException) {
+			e.printStackTrace();
 		}
-	
-		function TreeHead(Tree :SyntaxTree) :SyntaxTree {
-			if(Tree != null) {
-				while(Tree.PrevTree != null) {
-					Tree = Tree.PrevTree;
-				}
-			}
-			return Tree;
+		catch (e :InvocationTargetException) {
+			e.printStackTrace();
 		}
-		
-		function ApplySyntaxPattern(Pattern :SyntaxPattern, LeftTree :SyntaxTree, TokenContext :TokenContext) :SyntaxTree {
-			var Pos :number = TokenContext.Pos;
-			try {
-				var ParseFlag :number = TokenContext.ParseFlag;
-				var CurrentPattern :SyntaxPattern = Pattern;
-				while(CurrentPattern != null) {
-					var f :KonohaFunc = Pattern.MatchFunc;
-					TokenContext.Pos = Pos;
-					if(CurrentPattern.ParentPattern != null) {
-						TokenContext.ParseFlag = ParseFlag | TrackbackParseFlag;
-					}
-					P("B ApplySyntaxPattern: " + CurrentPattern + " > " + CurrentPattern.ParentPattern);
-					var ParsedTree :SyntaxTree = (SyntaxTree)f.Method.invoke(f.Self, CurrentPattern, LeftTree, TokenContext);
-					if(ParsedTree != null && ParsedTree.IsEmpty()) ParsedTree = null;
-					P("E ApplySyntaxPattern: " + CurrentPattern + " => " + ParsedTree);
-					TokenContext.ParseFlag = ParseFlag;
-					if(ParsedTree != null) {
-						return ParsedTree;
-					}
-					CurrentPattern = CurrentPattern.ParentPattern;
-				}
+		return NoMatch;
+	}
+
+	function MergeSyntaxPattern(Pattern :SyntaxPattern, Parent :SyntaxPattern) :SyntaxPattern {
+		if(Parent == null) return Pattern;
+		var MergedPattern :SyntaxPattern = new SyntaxPattern(Pattern.PackageNameSpace, Pattern.PatternName, Pattern.MatchFunc, Pattern.TypeFunc);
+		MergedPattern.ParentPattern = Parent;
+		return MergedPattern;
+	}
+
+	function IsEmptyOrError(Tree :SyntaxTree) :boolean {
+		return Tree == null || Tree.IsEmptyOrError();
+	}
+
+	function TreeHead(Tree :SyntaxTree) :SyntaxTree {
+		if(Tree != null) {
+			while(Tree.PrevTree != null) {
+				Tree = Tree.PrevTree;
 			}
-			catch (e :IllegalArgumentException) {
-				e.printStackTrace();
-			}
-			catch (e :IllegalAccessException) {
-				e.printStackTrace();
-			}
-			catch (e :InvocationTargetException) {
-				e.printStackTrace();
-			}
-			if(TokenContext.IsAllowedTrackback()) {
+		}
+		return Tree;
+	}
+	
+	function ApplySyntaxPattern(Pattern :SyntaxPattern, LeftTree :SyntaxTree, TokenContext :TokenContext) :SyntaxTree {
+		var Pos :number = TokenContext.Pos;
+		try {
+			var ParseFlag :number = TokenContext.ParseFlag;
+			var CurrentPattern :SyntaxPattern = Pattern;
+			while(CurrentPattern != null) {
+				var f :KonohaFunc = Pattern.MatchFunc;
 				TokenContext.Pos = Pos;
-			}
-			if(Pattern == null) {
-				P("undefined syntax pattern: " + Pattern);
-			}
-			return TokenContext.ReportExpectedPattern(Pattern);
-		}
-	
-		function ParseSyntaxTree(PrevTree :SyntaxTree, TokenContext :TokenContext) :SyntaxTree {
-			var Pattern :SyntaxPattern = TokenContext.GetFirstPattern();
-			var LeftTree :SyntaxTree = ApplySyntaxPattern(Pattern, PrevTree, TokenContext);
-			while (!IsEmptyOrError(LeftTree)) {
-				var ExtendedPattern :SyntaxPattern = TokenContext.GetExtendedPattern();
-				if(ExtendedPattern == null) {
-					P("In $ending :Expression: " + TokenContext.GetToken());
-					break;
+				if(CurrentPattern.ParentPattern != null) {
+					TokenContext.ParseFlag = ParseFlag | TrackbackParseFlag;
 				}
-				LeftTree = ApplySyntaxPattern(ExtendedPattern, LeftTree, TokenContext);			
+				P("B ApplySyntaxPattern: " + CurrentPattern + " > " + CurrentPattern.ParentPattern);
+				var ParsedTree :SyntaxTree = (SyntaxTree)f.Method.invoke(f.Self, CurrentPattern, LeftTree, TokenContext);
+				if(ParsedTree != null && ParsedTree.IsEmpty()) ParsedTree = null;
+				P("E ApplySyntaxPattern: " + CurrentPattern + " => " + ParsedTree);
+				TokenContext.ParseFlag = ParseFlag;
+				if(ParsedTree != null) {
+					return ParsedTree;
+				}
+				CurrentPattern = CurrentPattern.ParentPattern;
 			}
-			return LeftTree;
 		}
-	
-		// typing 
-		function ApplyTypeFunc(TypeFunc :KonohaFunc, Gamma :TypeEnv, ParsedTree :SyntaxTree, TypeInfo :KonohaType) :TypedNode {
-			try {
-				return (TypedNode)TypeFunc.Method.invoke(TypeFunc.Self, Gamma, ParsedTree, TypeInfo);
-			}
-			catch (e :IllegalArgumentException) {
-				e.printStackTrace();
-			}
-			catch (e :IllegalAccessException) {
-				e.printStackTrace();
-			}
-			catch (e :InvocationTargetException) {
-				e.printStackTrace();
-			}
-			//Node = Gamma.NewErrorNode(Tree.KeyToken, "internal error: " + e + "\n\t" + e.getCause().toString());
-			return null;
+		catch (e :IllegalArgumentException) {
+			e.printStackTrace();
 		}
-		
+		catch (e :IllegalAccessException) {
+			e.printStackTrace();
+		}
+		catch (e :InvocationTargetException) {
+			e.printStackTrace();
+		}
+		if(TokenContext.IsAllowedTrackback()) {
+			TokenContext.Pos = Pos;
+		}
+		if(Pattern == null) {
+			P("undefined syntax pattern: " + Pattern);
+		}
+		return TokenContext.ReportExpectedPattern(Pattern);
 	}
-	
-	class KonohaArray {
-		ArrayList<Object> List;
-	
-		KonohaArray() {
-			this.List = new ArrayList<Object>();
-		}
-	
-		KonohaArray(DefaultSize :number) {
-			this.List = new ArrayList<Object>(DefaultSize);
-		}
-	
-		size() :number {
-			return this.List.size();
-		}
-	
-		add(Value :Object) :void {
-			this.List.add(Value);
-		}
-	
-		get(index :number) :Object {
-			return this.List.get(index);
-		}
-	
-		set(index :number, Value :Object) :void {
-			this.List.set(index, Value);
-		}
-	
-		remove(index :number) :Object {
-			return this.List.remove(index);
-		}
-	
-		pop() :Object {
-			return List.remove(List.size() - 1);
-		}
-	
-		clear() :void {
-			this.List.clear();
-		}
-	
-		 toString() :string {
-			return List.toString();
-		}
-	}
-	
-	class KonohaMap {
-		HashMap<String, Object> Map;
-	
-		KonohaMap() {
-			this.Map = new HashMap<String, Object>();
-		}
-	
-		size() :number {
-			return this.Map.size();
-		}
-	
-		put(Key :string, Value :Object) :void {
-			this.Map.put(Key, Value);
-		}
-	
-		get(Key :string) :Object {
-			return this.Map.get(Key);
-		}
-	
-	// String[] keys() {
-	// Iterator<String> itr = this.Map.keySet().iterator();
-	// String[] List = new String[this.Map.size()];
-	// var i :number = 0;
-	// while(itr.hasNext()) {
-	// List[i] = itr.next();
-	// i = i + 1;
-	// }
-	// return List;
-	// }
-	
-	}
-	
-	class KonohaFunc {
-		Self :Object;
-		Method :Method;
-	
-		KonohaFunc(Self :Object, method :Method) {
-			this.Self = Self;
-			this.Method = method;
-		}
-	
-		function EqualsMethod(m1 :Method, m2 :Method) :boolean {
-			if(m1 == null) {
-				return (m2 == null) ? true : false;
-			} else {
-				return (m2 == null) ? false : m1.equals(m2);
+
+	function ParseSyntaxTree(PrevTree :SyntaxTree, TokenContext :TokenContext) :SyntaxTree {
+		var Pattern :SyntaxPattern = TokenContext.GetFirstPattern();
+		var LeftTree :SyntaxTree = ApplySyntaxPattern(Pattern, PrevTree, TokenContext);
+		while (!IsEmptyOrError(LeftTree)) {
+			var ExtendedPattern :SyntaxPattern = TokenContext.GetExtendedPattern();
+			if(ExtendedPattern == null) {
+				P("In $ending :Expression: " + TokenContext.GetToken());
+				break;
 			}
+			LeftTree = ApplySyntaxPattern(ExtendedPattern, LeftTree, TokenContext);			
 		}
-	
-		 toString() :string {
-			return this.Method.toString();
-		}
-	
+		return LeftTree;
 	}
-	
-	// tokenizer
-	
+
+	// typing 
+	function ApplyTypeFunc(TypeFunc :KonohaFunc, Gamma :TypeEnv, ParsedTree :SyntaxTree, TypeInfo :KonohaType) :TypedNode {
+		try {
+			return (TypedNode)TypeFunc.Method.invoke(TypeFunc.Self, Gamma, ParsedTree, TypeInfo);
+		}
+		catch (e :IllegalArgumentException) {
+			e.printStackTrace();
+		}
+		catch (e :IllegalAccessException) {
+			e.printStackTrace();
+		}
+		catch (e :InvocationTargetException) {
+			e.printStackTrace();
+		}
+		//Node = Gamma.NewErrorNode(Tree.KeyToken, "internal error: " + e + "\n\t" + e.getCause().toString());
+		return null;
+	}
+
+////JAVA
+//}
+//
+//final class KonohaArray {
+//	private final ArrayList<Object>	List;
+//
+//	public KonohaArray() {
+//		this.List = new ArrayList<Object>();
+//	}
+//
+//	public KonohaArray(int DefaultSize) {
+//		this.List = new ArrayList<Object>(DefaultSize);
+//	}
+//
+//	public int size() {
+//		return this.List.size();
+//	}
+//
+//	public void add(Object Value) {
+//		this.List.add(Value);
+//	}
+//
+//	public Object get(int index) {
+//		return this.List.get(index);
+//	}
+//
+//	public void set(int index, Object Value) {
+//		this.List.set(index, Value);
+//	}
+//
+//	public Object remove(int index) {
+//		return this.List.remove(index);
+//	}
+//
+//	public Object pop() {
+//		return List.remove(List.size() - 1);
+//	}
+//
+//	public void clear() {
+//		this.List.clear();
+//	}
+//
+//	@Override public String toString() {
+//		return List.toString();
+//	}
+//}
+//
+//final class KonohaMap {
+//	private final HashMap<String, Object>	Map;
+//
+//	public KonohaMap() {
+//		this.Map = new HashMap<String, Object>();
+//	}
+//
+//	public int size() {
+//		return this.Map.size();
+//	}
+//
+//	public void put(String Key, Object Value) {
+//		this.Map.put(Key, Value);
+//	}
+//
+//	public Object get(String Key) {
+//		return this.Map.get(Key);
+//	}
+//
+////	public String[] keys() {
+////		Iterator<String> itr = this.Map.keySet().iterator();
+////		String[] List = new String[this.Map.size()];
+////		int i = 0;
+////		while(itr.hasNext()) {
+////			List[i] = itr.next();
+////			i = i + 1;
+////		}
+////		return List;
+////	}
+//
+//}
+//
+//final class KonohaFunc {
+//	public Object	Self;
+//	public Method	Method;
+//
+//	KonohaFunc(Object Self, Method method) {
+//		this.Self = Self;
+//		this.Method = method;
+//	}
+//
+//	static boolean EqualsMethod(Method m1, Method m2) {
+//		if(m1 == null) {
+//			return (m2 == null) ? true : false;
+//		} else {
+//			return (m2 == null) ? false : m1.equals(m2);
+//		}
+//	}
+//
+//	@Override public String toString() {
+//		return this.Method.toString();
+//	}
+//
+//}
+// VAJA
+
+// tokenizer
+
 	class KonohaChar {
 		var Null :number = 0;
 		var Undefined :number = 1;
@@ -568,7 +578,7 @@ module GreenScript {
 			return this.ParsedText.equals(text);
 		}
 	
-		 toString() :string {
+		toString() :string {
 			var TokenText :string = "";
 			if(this.PresetPattern != null) {
 				TokenText = "(" + this.PresetPattern.PatternName + ") ";
@@ -606,7 +616,7 @@ module GreenScript {
 			}
 		}
 	
-		 toString() :string {
+		toString() :string {
 			return this.Func.Method.toString();
 		}
 	
@@ -834,7 +844,7 @@ module GreenScript {
 		TypeFunc :KonohaFunc;
 		ParentPattern :SyntaxPattern;
 		
-		 toString() :string {
+		toString() :string {
 			return this.PatternName + "<" + this.MatchFunc + ">";
 		}
 	
@@ -871,7 +881,7 @@ module GreenScript {
 		KeyToken :KonohaToken;
 		TreeList :KonohaArray;
 	
-		 toString() :string {
+		toString() :string {
 			var key :string = this.KeyToken.ParsedText + ":" + ((this.Pattern != null) ? this.Pattern.PatternName : "null");
 			var sb :StringBuilder = new StringBuilder();
 			sb.append("(");
@@ -1069,7 +1079,7 @@ module GreenScript {
 			}
 		}
 	
-		
+		@Override
 		toString() :string {
 			return this.ShortClassName;
 		}
@@ -1353,7 +1363,7 @@ module GreenScript {
 			return Modifier.isStatic(this.GetMethodRef().getModifiers());
 		}
 	
-		
+		@Override
 		Invoke(Object[] Args) :Object {
 			var ParamSize :number = this.Param != null ? this.Param.GetParamSize() : 0;
 			try {
@@ -1441,7 +1451,7 @@ module GreenScript {
 			this.ParsedTree = null;
 		}
 	
-		 toString() :string {
+		toString() :string {
 			var builder :StringBuilder = new StringBuilder();
 			builder.append(this.Param.Types[0]);
 			builder.append(" ");
@@ -1733,7 +1743,7 @@ module GreenScript {
 			this.ErrorMessage = KeyToken.ToErrorToken(ErrorMessage);
 		}
 	
-		
+		@Override
 		Evaluate(Visitor :NodeVisitor) :boolean {
 			return Visitor.VisitError(this);
 		}
@@ -1747,7 +1757,7 @@ module GreenScript {
 			this.ConstValue = ConstValue;
 		}
 	
-		
+		@Override
 		Evaluate(Visitor :NodeVisitor) :boolean {
 			return Visitor.VisitConst(this);
 		}
@@ -1772,7 +1782,7 @@ module GreenScript {
 			super(TypeInfo, SourceToken, FieldName);
 		}
 	
-		
+		@Override
 		Evaluate(Visitor :NodeVisitor) :boolean {
 			return Visitor.VisitLocal(this);
 		}
@@ -1785,7 +1795,7 @@ module GreenScript {
 			super(TypeInfo, null/* fixme */);
 		}
 	
-		
+		@Override
 		Evaluate(Visitor :NodeVisitor) :boolean {
 			return Visitor.VisitNull(this);
 		}
@@ -1805,7 +1815,7 @@ module GreenScript {
 			this.BlockNode = Block;
 		}
 	
-		
+		@Override
 		Evaluate(Visitor :NodeVisitor) :boolean {
 			return Visitor.VisitLet(this);
 		}
@@ -1817,7 +1827,7 @@ module GreenScript {
 			super(TypeInfo, KeyToken, Left, Right);
 		}
 	
-		
+		@Override
 		Evaluate(Visitor :NodeVisitor) :boolean {
 			return Visitor.VisitAnd(this);
 		}
@@ -1829,7 +1839,7 @@ module GreenScript {
 			super(TypeInfo, KeyToken, Left, Right);
 		}
 	
-		
+		@Override
 		Evaluate(Visitor :NodeVisitor) :boolean {
 			return Visitor.VisitOr(this);
 		}
@@ -1866,7 +1876,7 @@ module GreenScript {
 			this.Params.add(Expr);
 		}
 	
-		
+		@Override
 		Evaluate(Visitor :NodeVisitor) :boolean {
 			return Visitor.VisitApply(this);
 		}
@@ -1885,7 +1895,7 @@ module GreenScript {
 			this.Params.add(Expr);
 		}
 	
-		
+		@Override
 		Evaluate(Visitor :NodeVisitor) :boolean {
 			return Visitor.VisitNew(this);
 		}
@@ -1905,7 +1915,7 @@ module GreenScript {
 			this.ElseNode = ElseNode;
 		}
 	
-		
+		@Override
 		Evaluate(Visitor :NodeVisitor) :boolean {
 			return Visitor.VisitIf(this);
 		}
@@ -1926,7 +1936,7 @@ module GreenScript {
 			this.IterationExpr = IterationExpr;
 		}
 	
-		
+		@Override
 		Evaluate(Visitor :NodeVisitor) :boolean {
 			return Visitor.VisitLoop(this);
 		}
@@ -1939,7 +1949,7 @@ module GreenScript {
 			super(TypeInfo, Expr);
 		}
 	
-		
+		@Override
 		Evaluate(Visitor :NodeVisitor) :boolean {
 			return Visitor.VisitReturn(this);
 		}
@@ -1952,7 +1962,7 @@ module GreenScript {
 			super(TypeInfo, Expr);
 		}
 	
-		
+		@Override
 		Evaluate(Visitor :NodeVisitor) :boolean {
 			return Visitor.VisitThrow(this);
 		}
@@ -1983,7 +1993,7 @@ module GreenScript {
 			this.CatchBlock.add(CatchBlock);
 		}
 	
-		 Evaluate(Visitor :NodeVisitor) :boolean {
+		Evaluate(Visitor :NodeVisitor) :boolean {
 			return Visitor.VisitTry(this);
 		}
 	}
@@ -2000,7 +2010,7 @@ module GreenScript {
 		Labels :KonohaArray;
 		Blocks :KonohaArray;
 	
-		 Evaluate(Visitor :NodeVisitor) :boolean {
+		Evaluate(Visitor :NodeVisitor) :boolean {
 			return Visitor.VisitSwitch(this);
 		}
 	
@@ -2015,7 +2025,7 @@ module GreenScript {
 			this.DefInfo = DefInfo;
 		}
 	
-		 Evaluate(Visitor :NodeVisitor) :boolean {
+		Evaluate(Visitor :NodeVisitor) :boolean {
 			return Visitor.VisitDefine(this);
 		}
 	

@@ -1,11 +1,23 @@
 
-print "module GreenScript {";
+$Indent = "";
+$JavaOnly = 0;
+print "module GreenScript {\n";
 
 while ($line = <>)  {
-	
-	if($line =~ /^import/ || $line =~ /^package/) {
+	if($line =~ /JAVA/) {
+		$JavaOnly = 1;
+	}	
+	if($line =~ /VAJA/) {
+		$JavaOnly = 0;
+	}
+	if($JavaOnly == 1) {
+		print "//" . $line;
 		next;
 	}
+	if($line =~/class/ ) {
+		$Indent="\t";
+	}
+
 	$line =~ s/extends KonohaStatic//g;
 	$line =~ s/KonohaStatic\.//g;
 	$line =~ s/implements(.*)\{/{/g;
@@ -19,8 +31,8 @@ while ($line = <>)  {
 	$line =~ s/static[ \t]+(.*\(.*)\{/function $1 {/g;
 	$line =~ s/static //;
 	$line =~ s/ \([\w+]\)/ \<$1\>/g;
-	$line =~ s/\@Override//;
-	$line =~ s/\@HostLang//;
+	$line =~ s/\@Override //;
+	
 		
 	$line =~ s/boolean[ \t]+(.*\(.*)\{/$1:boolean {/g;
 	$line =~ s/String[ \t]+(.*\(.*)\{/$1:string {/g;
@@ -43,8 +55,8 @@ while ($line = <>)  {
 	$line =~ s/: number/:number/g;
 	$line =~ s/: string/:string/g;
 	$line =~ s/(\S)([ \t]+)(\S)/$1 $3/g;
-	print "\t" . $line;
+	print $Indent . $line;
 }
 
-print "}";
+print "}\n";
 

@@ -1,13 +1,13 @@
 
+//JAVA
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-// utils
-
 interface KonohaConst {
+//VAJA
 
 	// ClassFlag
 	public final static int		PrivateClass					= 1 << 0;
@@ -171,10 +171,12 @@ interface KonohaConst {
 	static final public boolean	UseBuiltInTest	= true;
 	static final public boolean	DebugPrint		= false;
 
+//JAVA
 }
 
 class KonohaStatic implements KonohaConst {
-
+//VAJA
+	
 	public static void println(String msg) {
 		System.out.println(msg);		
 	}
@@ -353,7 +355,8 @@ class KonohaStatic implements KonohaConst {
 		//Node = Gamma.NewErrorNode(Tree.KeyToken, "internal error: " + e + "\n\t" + e.getCause().toString());
 		return null;
 	}
-	
+
+//JAVA
 }
 
 final class KonohaArray {
@@ -454,6 +457,7 @@ final class KonohaFunc {
 	}
 
 }
+// VAJA
 
 // tokenizer
 
