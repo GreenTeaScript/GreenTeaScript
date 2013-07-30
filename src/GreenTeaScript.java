@@ -445,6 +445,10 @@ class GtStatic implements GtConst {
 
 	// typing 
 	public final static TypedNode ApplyTypeFunc(GtFuncC TypeFunc, TypeEnv Gamma, SyntaxTree ParsedTree, GtType TypeInfo) {
+		if(TypeFunc == null || TypeFunc.Method == null){
+			GtStatic.P("try to invoke null TypeFunc");
+			return null;
+		}
 		try {
 			return (TypedNode)TypeFunc.Method.invoke(TypeFunc.Self, Gamma, ParsedTree, TypeInfo);
 		}
@@ -678,6 +682,7 @@ final class TokenContext extends GtStatic {
 			Token.PresetPattern = this.NameSpace.GetPattern(PatternName);
 			assert(Token.PresetPattern != null);
 		}
+		GtStatic.P("<< " + Text + " : " + PatternName);
 		this.SourceList.add(Token);
 		return Token;
 	}
@@ -738,24 +743,24 @@ final class TokenContext extends GtStatic {
 		int NextIdx = GtStatic.ApplyTokenFunc(TokenFunc, this, ScriptSource, pos);
 		if(NextIdx == NoMatch) {
 			GtStatic.P("undefined tokenizer: " + ScriptSource.charAt(pos));
-			AddNewToken(ScriptSource.substring(pos), 0, null);
+			this.AddNewToken(ScriptSource.substring(pos), 0, null);
 			return ScriptSource.length();
 		}
 		return NextIdx;
 	}
 
 	private void Tokenize(String ScriptSource, long CurrentLine) {
-		int pos = 0, len = ScriptSource.length();
+		int currentPos = 0, len = ScriptSource.length();
 		this.ParsingLine = CurrentLine;
-		while(pos < len) {
-			int kchar = GtStatic.FromJavaChar(ScriptSource.charAt(pos));
-			int pos2 = DispatchFunc(ScriptSource, kchar, pos);
-			if(!(pos < pos2)) {
+		while(currentPos < len) {
+			int gtCode = GtStatic.FromJavaChar(ScriptSource.charAt(currentPos));
+			int nextPos = this.DispatchFunc(ScriptSource, gtCode, currentPos);
+			if(currentPos >= nextPos) {
 				break;
 			}
-			pos = pos2;
+			currentPos = nextPos;
 		}
-		Dump();
+		this.Dump();
 	}
 
 	public GtToken GetToken() {
@@ -763,7 +768,7 @@ final class TokenContext extends GtStatic {
 			GtToken Token = (GtToken)this.SourceList.get(this.Pos);
 			if(Token.IsSource()) {
 				this.SourceList.pop();
-				Tokenize(Token.ParsedText, Token.FileLine);
+				this.Tokenize(Token.ParsedText, Token.FileLine);
 				Token = (GtToken)this.SourceList.get(this.Pos);
 			}
 			if(GtStatic.IsFlag(this.ParseFlag, SkipIndentParseFlag) && Token.IsIndent()) {
@@ -776,11 +781,11 @@ final class TokenContext extends GtStatic {
 	}
 
 	public boolean HasNext() {
-		return (GetToken() != NullToken);
+		return (this.GetToken() != NullToken);
 	}
 
 	public GtToken Next() {
-		GtToken Token = GetToken();
+		GtToken Token = this.GetToken();
 		this.Pos += 1;
 		return Token;
 	}
@@ -861,7 +866,8 @@ final class TokenContext extends GtStatic {
 	
 	public void Dump() {
 		for(int pos = this.Pos ; pos < this.SourceList.size(); pos++) {
-			GtStatic.P("["+pos+"]\t" + this.SourceList.get(pos));
+			GtToken token = (GtToken)this.SourceList.get(pos);
+			GtStatic.P("["+pos+"]\t" + token + " : " + token.PresetPattern);
 		}
 	}
 }
@@ -2218,23 +2224,23 @@ final class GtNameSpace extends GtStatic {
 		for(int i = 0; i < GtStatic.ListSize(SpecList); i++) {
 			GtSpec Spec = (GtSpec)SpecList.get(i);
 			if(Spec.SpecType == SymbolPatternSpec) {
-				TableAddSpec(this.SymbolPatternTable, Spec);
+				this.TableAddSpec(this.SymbolPatternTable, Spec);
 			}
 			else if(Spec.SpecType == ExtendedPatternSpec) {
-				TableAddSpec(this.ExtendedPatternTable, Spec);
+				this.TableAddSpec(this.ExtendedPatternTable, Spec);
 			}
 		}
 	}
 	
 	private void RemakeSymbolTable(GtNameSpace NameSpace) {
 		if(NameSpace.ParentNameSpace != null) {
-			RemakeSymbolTable(NameSpace.ParentNameSpace);
+			this.RemakeSymbolTable(NameSpace.ParentNameSpace);
 		}
-		RemakeSymbolTableEach(NameSpace, NameSpace.PublicSpecList);
-		RemakeSymbolTableEach(NameSpace, NameSpace.PrivateSpecList);
+		this.RemakeSymbolTableEach(NameSpace, NameSpace.PublicSpecList);
+		this.RemakeSymbolTableEach(NameSpace, NameSpace.PrivateSpecList);
 		for(int i = 0; i < GtStatic.ListSize(NameSpace.ImportedNameSpaceList); i++) {
 			GtNameSpace Imported = (GtNameSpace)NameSpace.ImportedNameSpaceList.get(i);
-			RemakeSymbolTableEach(Imported, Imported.PublicSpecList);
+			this.RemakeSymbolTableEach(Imported, Imported.PublicSpecList);
 		}
 	}
 	
@@ -2242,7 +2248,7 @@ final class GtNameSpace extends GtStatic {
 		if(this.SymbolPatternTable == null) {
 			this.SymbolPatternTable = new GtMap();
 			this.ExtendedPatternTable = new GtMap();
-			RemakeSymbolTable(this);
+			this.RemakeSymbolTable(this);
 		}
 		return this.SymbolPatternTable.get(Key);
 	}
@@ -2256,7 +2262,7 @@ final class GtNameSpace extends GtStatic {
 		if(this.ExtendedPatternTable == null) {
 			this.SymbolPatternTable = new GtMap();
 			this.ExtendedPatternTable = new GtMap();
-			RemakeSymbolTable(this);
+			this.RemakeSymbolTable(this);
 		}
 		Object Body = this.ExtendedPatternTable.get(PatternName);
 		return (Body instanceof SyntaxPattern) ? (SyntaxPattern)Body : null;
@@ -2266,7 +2272,7 @@ final class GtNameSpace extends GtStatic {
 		GtSpec Spec = new GtSpec(SymbolPatternSpec, Key, Value);
 		this.PublicSpecList.add(Spec);
 		if(this.SymbolPatternTable != null) {
-			TableAddSpec(this.SymbolPatternTable, Spec);
+			this.TableAddSpec(this.SymbolPatternTable, Spec);
 		}
 	}
 
@@ -2277,7 +2283,7 @@ final class GtNameSpace extends GtStatic {
 		}
 		this.PrivateSpecList.add(Spec);
 		if(this.SymbolPatternTable != null) {
-			TableAddSpec(this.SymbolPatternTable, Spec);
+			this.TableAddSpec(this.SymbolPatternTable, Spec);
 		}
 	}
 
@@ -2286,7 +2292,7 @@ final class GtNameSpace extends GtStatic {
 		GtSpec Spec = new GtSpec(SymbolPatternSpec, PatternName, Pattern);
 		this.PublicSpecList.add(Spec);
 		if(this.SymbolPatternTable != null) {
-			TableAddSpec(this.SymbolPatternTable, Spec);
+			this.TableAddSpec(this.SymbolPatternTable, Spec);
 		}
 	}
 
@@ -2296,7 +2302,7 @@ final class GtNameSpace extends GtStatic {
 		GtSpec Spec = new GtSpec(ExtendedPatternSpec, PatternName, Pattern);
 		this.PublicSpecList.add(Spec);
 		if(this.ExtendedPatternTable != null) {
-			TableAddSpec(this.ExtendedPatternTable, Spec);
+			this.TableAddSpec(this.ExtendedPatternTable, Spec);
 		}
 	}
 	
@@ -2334,10 +2340,10 @@ final class GtNameSpace extends GtStatic {
 		while(TokenContext.HasNext()) {
 			SyntaxTree Tree = GtStatic.ParseSyntaxTree(null, TokenContext);
 			GtStatic.println("untyped tree: " + Tree);
-			TypeEnv Gamma = new TypeEnv(this, null);
-			TypedNode TNode = TypeEnv.TypeCheckEachNode(Gamma, Tree, Gamma.VoidType, DefaultTypeCheckPolicy);
-			GtBuilder Builder = this.GetBuilder();
-			ResultValue = Builder.EvalAtTopLevel(this, TNode, this.GetGlobalObject());
+//			TypeEnv Gamma = new TypeEnv(this, null);
+//			TypedNode TNode = TypeEnv.TypeCheckEachNode(Gamma, Tree, Gamma.VoidType, DefaultTypeCheckPolicy);
+//			GtBuilder Builder = this.GetBuilder();
+//			ResultValue = Builder.EvalAtTopLevel(this, TNode, this.GetGlobalObject());
 		}
 		return ResultValue;
 	}
