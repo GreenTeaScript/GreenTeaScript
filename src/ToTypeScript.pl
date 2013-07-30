@@ -72,6 +72,9 @@ while ($line = <>)  {
 		$Indent = $ClassIndent;
 		$TopLevel = 0;
 	}
+	if($line =~/^\/\//) {
+		next;
+	}
 	if($TopLevel == 1) {
 		$line = substr($line, 1);
 	}
