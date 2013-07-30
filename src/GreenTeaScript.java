@@ -158,8 +158,8 @@ interface GtConst {
 
 	// SyntaxTree
 	public final static int NoWhere         = -1;
-	// UniaryTree, SuffixTree
-	public final static int UniaryTerm      = 0;
+	// UnaryTree, SuffixTree
+	public final static int UnaryTerm      = 0;
 	// BinaryTree
 	public final static int	LeftHandTerm	= 0;
 	public final static int	RightHandTerm	= 1;
@@ -191,7 +191,7 @@ interface GtConst {
 	public final static int ExtendedPatternSpec = 2;
 
 //	public final static int		Term							= 1;
-//	public final static int		UniaryOperator					= 1;										/* same as Term for readability */
+//	public final static int		UnaryOperator					= 1;										/* same as Term for readability */
 //	public final static int		Statement						= 1;										/* same as Term for readability */
 	public final static int		BinaryOperator					= 1 << 1;
 //	public final static int		SuffixOperator					= 1 << 2;
@@ -2587,7 +2587,7 @@ class GtGrammar extends GtStatic {
 		return new ConstNode(Gamma.StringType, Token, Token.ParsedText);
 	}
 
-	public static SyntaxTree ParseUniaryOperator(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
+	public static SyntaxTree ParseUnaryOperator(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
 		GtToken Token = TokenContext.Next();
 		SyntaxTree Tree = new SyntaxTree(Pattern, TokenContext.NameSpace, Token);
 		Tree.SetMatchedPatternAt(0, TokenContext, "$Expression", Required);
@@ -2964,13 +2964,13 @@ class GtGrammar extends GtStatic {
 		NameSpace.DefineTokenFunc("\"", FunctionA(this, "StringLiteralToken"));
 		NameSpace.DefineTokenFunc("1",  FunctionA(this, "NumberLiteralToken"));
 
-		GtFuncB ParseUniary = FunctionB(this, "ParseUniary");
-		GtFuncB ParseBinary = FunctionB(this, "ParseBinary");
+		GtFuncB ParseUnary = FunctionB(this, "ParseUnaryOperator");
+		GtFuncB ParseBinary = FunctionB(this, "ParseBinaryOperator");
 		GtFuncC TypeApply   = FunctionC(this, "TypeApply");
 
-		NameSpace.DefineSyntaxPattern("+", ParseUniary, TypeApply);
-		NameSpace.DefineSyntaxPattern("-", ParseUniary, TypeApply);
-		NameSpace.DefineSyntaxPattern("!", ParseUniary, TypeApply);
+		NameSpace.DefineSyntaxPattern("+", ParseUnary, TypeApply);
+		NameSpace.DefineSyntaxPattern("-", ParseUnary, TypeApply);
+		NameSpace.DefineSyntaxPattern("!", ParseUnary, TypeApply);
 		
 		NameSpace.DefineExtendedPattern("*", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeApply);
 		NameSpace.DefineExtendedPattern("/", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeApply);
@@ -3034,11 +3034,11 @@ class GtInt extends GtStatic {
 	public void MakeDefinition(GtNameSpace ns) {
 //		GtType BaseClass = ns.LookupHostLangType(Integer.class);
 //		GtParam BinaryParam = GtParam.ParseOf(ns, "int int x");
-//		GtParam UniaryParam = GtParam.ParseOf(ns, "int");
+//		GtParam UnaryParam = GtParam.ParseOf(ns, "int");
 //
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "+", UniaryParam, this, "PlusInt");
+//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "+", UnaryParam, this, "PlusInt");
 //		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "+", BinaryParam, this, "IntAddInt");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "-", UniaryParam, this, "MinusInt");
+//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "-", UnaryParam, this, "MinusInt");
 //		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "-", BinaryParam, this, "IntSubInt");
 //		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "*", BinaryParam, this, "IntMulInt");
 //		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "/", BinaryParam, this, "IntDivInt");
