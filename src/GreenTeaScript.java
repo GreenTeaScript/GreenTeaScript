@@ -552,6 +552,7 @@ final class GtFuncA {
 		this.Method = method;
 	}
 	@Override public String toString() {
+		if(this.Method == null) return "null";
 		return this.Method.toString();
 	}
 }
@@ -564,6 +565,7 @@ final class GtFuncB {
 		this.Method = method;
 	}
 	@Override public String toString() {
+		if(this.Method == null) return "null";
 		return this.Method.toString();
 	}
 }
@@ -576,6 +578,7 @@ final class GtFuncC {
 		this.Method = method;
 	}
 	@Override public String toString() {
+		if(this.Method == null) return "null";
 		return this.Method.toString();
 	}
 }
@@ -2497,7 +2500,7 @@ class GtGrammar extends GtStatic {
 				break;
 			}
 		}
-		TokenContext.AddNewToken(SourceText.substring(start, pos), 0, "$IntegerLitteral");
+		TokenContext.AddNewToken(SourceText.substring(start, pos), 0, "$IntegerLiteral");
 		return pos;
 	}
 
@@ -2508,7 +2511,7 @@ class GtGrammar extends GtStatic {
 		while(pos < SourceText.length()) {
 			char ch = SourceText.charAt(pos);
 			if(ch == '"' && prev != '\\') {
-				TokenContext.AddNewToken(SourceText.substring(start, pos), 0, "$StringLitteral");
+				TokenContext.AddNewToken(SourceText.substring(start, pos), 0, "$StringLiteral");
 				return pos + 1;
 			}
 			if(ch == '\n') {
