@@ -180,9 +180,28 @@ class KonohaStatic implements KonohaConst {
 	public static void println(String msg) {
 		System.out.println(msg);		
 	}
+
+//JAVA
+	public static String GetLineNumber(int depth){
+		try{
+			throw new Exception();
+		}catch(Exception e){
+			StackTraceElement[] tr = e.getStackTrace();
+			if(depth < tr.length){
+				StackTraceElement elem = tr[depth];
+				return elem.getClassName() + " at " + elem.getFileName() + " " + elem.getLineNumber();
+			}
+		}
+		return null;
+	}
+//VAJA
 	
 	public static void P(String msg) {
-		KonohaStatic.println("DEBUG: " + msg);
+		String ln = "";
+//JAVA
+		ln = KonohaStatic.GetLineNumber(2);
+//VAJA
+		KonohaStatic.println("DEBUG: " + msg + " [" + ln  + "]");
 	}
 
 	public static void TODO(String msg) {
@@ -340,6 +359,9 @@ class KonohaStatic implements KonohaConst {
 
 	// typing 
 	public static TypedNode ApplyTypeFunc(KonohaFunc TypeFunc, TypeEnv Gamma, SyntaxTree ParsedTree, KonohaType TypeInfo) {
+		if(TypeFunc == null || TypeFunc.Method == null){
+			return null;
+		}
 		try {
 			return (TypedNode)TypeFunc.Method.invoke(TypeFunc.Self, Gamma, ParsedTree, TypeInfo);
 		}
