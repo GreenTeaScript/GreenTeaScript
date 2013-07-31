@@ -254,11 +254,11 @@ class GtStatic implements GtConst {
 	}
 	
 	public static void DebugP(String msg) {
-		LangBase.println("DEBUG" + LangBase.GetLineNumber(2) + ": " + msg);
+		LangBase.println("DEBUG" + LangBase.GetStackInfo(2) + ": " + msg);
 	}
 
 	public static void TODO(String msg) {
-		LangBase.println("TODO" + LangBase.GetLineNumber(2) + ": " + msg);
+		LangBase.println("TODO" + LangBase.GetStackInfo(2) + ": " + msg);
 	}
 
 	public static int ListSize(GtArray a) {
