@@ -2682,7 +2682,7 @@ class GtGrammar extends GtStatic {
 	}
 
 	public static TypedNode TypeMethodDecl(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {
-		TODO("TypeVarDecl");
+		TODO("TypeMethodDecl");
 //		GtType VarType = Tree.GetTokenType(VarDeclTypeOffset, null);
 //		GtToken VarToken = Tree.GetAtToken(VarDeclNameOffset);
 //		String VarName = Tree.GetTokenString(VarDeclNameOffset, null);
