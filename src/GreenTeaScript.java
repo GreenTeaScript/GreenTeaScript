@@ -1721,18 +1721,15 @@ class LocalNode extends FieldNode {
 	public LocalNode(GtType TypeInfo, GtToken SourceToken, String FieldName) {
 		super(TypeInfo, SourceToken, FieldName);
 	}
-
 	@Override public boolean Evaluate(NodeVisitor Visitor) {
 		return Visitor.VisitLocal(this);
 	}
-
 }
 
 class NullNode extends TypedNode {
 	public NullNode(GtType TypeInfo) {
 		super(TypeInfo, null/* fixme */);
 	}
-
 	@Override public boolean Evaluate(NodeVisitor Visitor) {
 		return Visitor.VisitNull(this);
 	}
@@ -1971,6 +1968,99 @@ class GtObject extends GtStatic {
 }
 
 class NodeVisitor /* implements INodeVisitor */ extends GtStatic {
+	
+	public TypedNode CreateConstNode(GtType Type, GtToken Token, Object Value) { 
+		return new ConstNode(Type, Token, Value); 
+	}
+
+	public TypedNode CreateNewNode(GtType Type, GtToken Token) { 
+		return new NewNode(Type, Token); 
+	}
+
+	public TypedNode CreateNullNode(GtType Type, GtToken Token) { 
+		return new NewNode(Type, Token); 
+	}
+
+	public TypedNode CreateLocalNode(GtType Type, GtToken Token, TypedNode Node) { 
+		return new LocalNode(Type, Token); 
+	}
+
+	public TypedNode CreateGetterNode(GtType Type, GtToken Token, TypedNode Node) { 
+		return null; 
+	}
+
+	public TypedNode CreateApplyNode(GtType Type, GtToken Token, TypedNode Node) { 
+		return null; 
+	}
+
+	public TypedNode CreateAndNode(GtType Type, GtToken Token, TypedNode Node) { 
+		return null; 
+	}
+
+	public TypedNode CreateOrNode(GtType Type, GtToken Token, TypedNode Node) { 
+		return null; 
+	}
+
+	public TypedNode CreateAssignNode(GtType Type, GtToken Token, TypedNode Node) { 
+		return null; 
+	}
+
+	public TypedNode CreateLetNode(GtType Type, GtToken Token, TypedNode Node) { 
+		return null; 
+	}
+	
+	public TypedNode CreateIfNode(GtType Type, GtToken Token, TypedNode Node) { 
+		return null; 
+	}
+	
+	public TypedNode CreateSwitchNode(GtType Type, GtToken Token, TypedNode Node) { 
+		return null; 
+	}
+
+	public TypedNode CreateLoopNode(GtType Type, GtToken Token, TypedNode Node) { 
+		return null; 
+	}
+
+	public TypedNode CreateReturnNode(GtType Type, GtToken Token, TypedNode Node) { 
+		return null; 
+	}
+
+	public TypedNode CreateLabelNode(GtType Type, GtToken Token, TypedNode Node) { 
+		return null; 
+	}
+
+	public TypedNode CreateJumpNode(GtType Type, GtToken Token, TypedNode Node) { 
+		return null; 
+	}
+
+	public TypedNode CreateBreakNode(GtType Type, GtToken Token, TypedNode Node) { 
+		return null; 
+	}
+
+	public TypedNode CreateContinueNode(GtType Type, GtToken Token, TypedNode Node) { 
+		return null; 
+	}
+	
+	public TypedNode CreateTryNode(GtType Type, GtToken Token, TypedNode Node) { 
+		return null; 
+	}
+
+	public TypedNode CreateThrowNode(GtType Type, GtToken Token, TypedNode Node) { 
+		return null; 
+	}
+
+	public TypedNode CreateFunctionNode(GtType Type, GtToken Token, TypedNode Node) { 
+		return null; 
+	}
+
+	public TypedNode CreateDefineNode(GtType Type, GtToken Token, TypedNode Node) { 
+		return null; 
+	}
+
+	public TypedNode CreateErrorNode(GtType Type, GtToken Token, TypedNode Node) { 
+		return null; 
+	}
+
 	
 	//boolean VisitList(TypedNode NodeList) { return false;}
 
