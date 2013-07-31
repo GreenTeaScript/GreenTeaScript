@@ -7,6 +7,10 @@ public abstract class LangBase {
 		System.out.println(msg);		
 	}
 
+	public static void DebugP(String msg) {
+		LangBase.println("DEBUG" + LangBase.GetLineNumber(2) + ": " + msg);
+	}
+
 	public static String GetLineNumber(int depth){
 		String LineNumber = "(";
 		try{
@@ -32,6 +36,20 @@ public abstract class LangBase {
 	
 	public final static boolean IsDigit(char ch) {
 		return Character.isDigit(ch);
+	}
+
+	public final static Method LookupMethod(Object Callee, String MethodName) {
+		if(MethodName != null) {
+			// DebugP("looking up method : " + Callee.getClass().getSimpleName() + "." + MethodName);
+			Method[] methods = Callee.getClass().getMethods();
+			for(int i = 0; i < methods.length; i++) {
+				if(MethodName.equals(methods[i].getName())) {
+					return methods[i];
+				}
+			}
+			DebugP("method not found: " + Callee.getClass().getSimpleName() + "." + MethodName);
+		}
+		return null; /*throw new GtParserException("method not found: " + callee.getClass().getName() + "." + methodName);*/
 	}
 
 	public final static int ApplyTokenFunc(Object Self, Method Method, Object TokenContext, String Text, int pos) {

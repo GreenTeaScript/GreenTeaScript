@@ -276,20 +276,6 @@ class GtStatic implements GtConst {
 		return UnicodeChar;
 	}
 
-	public final static Method LookupMethod(Object Callee, String MethodName) {
-		if(MethodName != null) {
-			// GtDebug.P("looking up method : " + Callee.getClass().getSimpleName() + "." + MethodName);
-			Method[] methods = Callee.getClass().getMethods();
-			for(int i = 0; i < methods.length; i++) {
-				if(MethodName.equals(methods[i].getName())) {
-					return methods[i];
-				}
-			}
-			DebugP("method not found: " + Callee.getClass().getSimpleName() + "." + MethodName);
-		}
-		return null; /*throw new GtParserException("method not found: " + callee.getClass().getName() + "." + methodName);*/
-	}
-
 	public final static GtFuncA FunctionA(Object Callee, String MethodName) {
 		return new GtFuncA(Callee, LookupMethod(Callee, MethodName));
 	}
