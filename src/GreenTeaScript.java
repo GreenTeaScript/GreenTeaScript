@@ -250,34 +250,15 @@ class GtStatic implements GtConst {
 //endif VAJA
 	
 	public static void println(String msg) {
-		System.out.println(msg);		
+		LangBase.println(msg);		
 	}
-
-//JAVA
-	public static String GetLineNumber(int depth){
-		try{
-			throw new Exception();
-		}catch(Exception e){
-			StackTraceElement[] tr = e.getStackTrace();
-			if(depth < tr.length){
-				StackTraceElement elem = tr[depth];
-				return elem.getClassName() + " at " + elem.getFileName() + " " + elem.getLineNumber();
-			}
-		}
-		return null;
-	}
-//VAJA
 	
 	public static void P(String msg) {
-		String ln = "";
-//JAVA
-		ln = GtStatic.GetLineNumber(2);
-//VAJA
-		GtStatic.println("DEBUG: " + msg + " [" + ln  + "]");
+		LangBase.println("DEBUG" + LangBase.GetLineNumber(2) + ": " + msg);
 	}
 
 	public static void TODO(String msg) {
-		GtStatic.println("TODO: " + msg);
+		LangBase.println("TODO" + LangBase.GetLineNumber(2) + ": " + msg);
 	}
 
 	public static int ListSize(GtArray a) {
@@ -287,19 +268,7 @@ class GtStatic implements GtConst {
 	public final static boolean IsFlag(int flag, int flag2) {
 		return ((flag & flag2) == flag2);
 	}
-	
-	public final static boolean IsWhitespace(char ch) {
-		return Character.isWhitespace(ch);
-	}
-	
-	public final static boolean IsLetter(char ch) {
-		return Character.isLetter(ch);
-	}
-	
-	public final static boolean IsDigit(char ch) {
-		return Character.isDigit(ch);
-	}
-	
+		
 	public final static int FromJavaChar(char c) {
 		if(c < 128) {
 			return CharMatrix[c];
@@ -349,22 +318,11 @@ class GtStatic implements GtConst {
 	}
 
 	public final static int ApplyTokenFunc(TokenFunc TokenFunc, TokenContext TokenContext, String ScriptSource, int Pos) {
-		try {
-			while(TokenFunc != null) {
-				GtFuncA f = TokenFunc.Func;
-				int NextIdx = ((Integer)f.Method.invoke(f.Self, TokenContext, ScriptSource, Pos)).intValue();
-				if(NextIdx > Pos) return NextIdx;
-				TokenFunc = TokenFunc.ParentFunc;
-			}
-		}
-		catch (InvocationTargetException e) {
-			e.printStackTrace();
-		}
-		catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} 
-		catch (IllegalAccessException e) {
-			e.printStackTrace();
+		while(TokenFunc != null) {
+			GtFuncA f = TokenFunc.Func;
+			int NextIdx = LangBase.ApplyTokenFunc(f.Self, f.Method, TokenContext, ScriptSource, Pos);
+			if(NextIdx > Pos) return NextIdx;
+			TokenFunc = TokenFunc.ParentFunc;
 		}
 		return NoMatch;
 	}
@@ -391,34 +349,23 @@ class GtStatic implements GtConst {
 	
 	public final static SyntaxTree ApplySyntaxPattern(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
 		int Pos = TokenContext.Pos;
-		try {
-			int ParseFlag = TokenContext.ParseFlag;
-			SyntaxPattern CurrentPattern = Pattern;
-			while(CurrentPattern != null) {
-				GtFuncB f = Pattern.MatchFunc;
-				TokenContext.Pos = Pos;
-				if(CurrentPattern.ParentPattern != null) {
-					TokenContext.ParseFlag = ParseFlag | TrackbackParseFlag;
-				}
-				GtStatic.P("B ApplySyntaxPattern: " + CurrentPattern + " > " + CurrentPattern.ParentPattern);
-				SyntaxTree ParsedTree = (SyntaxTree)f.Method.invoke(f.Self, CurrentPattern, LeftTree, TokenContext);
-				if(ParsedTree != null && ParsedTree.IsEmpty()) ParsedTree = null;
-				GtStatic.P("E ApplySyntaxPattern: " + CurrentPattern + " => " + ParsedTree);
-				TokenContext.ParseFlag = ParseFlag;
-				if(ParsedTree != null) {
-					return ParsedTree;
-				}
-				CurrentPattern = CurrentPattern.ParentPattern;
+		int ParseFlag = TokenContext.ParseFlag;
+		SyntaxPattern CurrentPattern = Pattern;
+		while(CurrentPattern != null) {
+			GtFuncB f = Pattern.MatchFunc;
+			TokenContext.Pos = Pos;
+			if(CurrentPattern.ParentPattern != null) {
+				TokenContext.ParseFlag = ParseFlag | TrackbackParseFlag;
 			}
-		}
-		catch (InvocationTargetException e) {
-			e.printStackTrace();
-		}
-		catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} 
-		catch (IllegalAccessException e) {
-			e.printStackTrace();
+			GtStatic.P("B ApplySyntaxPattern: " + CurrentPattern + " > " + CurrentPattern.ParentPattern);
+			SyntaxTree ParsedTree = (SyntaxTree)LangBase.ApplyMatchFunc(f.Self, f.Method, CurrentPattern, LeftTree, TokenContext);
+			if(ParsedTree != null && ParsedTree.IsEmpty()) ParsedTree = null;
+			GtStatic.P("E ApplySyntaxPattern: " + CurrentPattern + " => " + ParsedTree);
+			TokenContext.ParseFlag = ParseFlag;
+			if(ParsedTree != null) {
+				return ParsedTree;
+			}
+			CurrentPattern = CurrentPattern.ParentPattern;
 		}
 		if(TokenContext.IsAllowedTrackback()) {
 			TokenContext.Pos = Pos;
@@ -449,20 +396,7 @@ class GtStatic implements GtConst {
 			GtStatic.P("try to invoke null TypeFunc");
 			return null;
 		}
-		try {
-			return (TypedNode)TypeFunc.Method.invoke(TypeFunc.Self, Gamma, ParsedTree, TypeInfo);
-		}
-		catch (InvocationTargetException e) {
-			e.printStackTrace();
-		}
-		catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} 
-		catch (IllegalAccessException e) {
-			e.printStackTrace();
-		}
-		//Node = Gamma.NewErrorNode(Tree.KeyToken, "internal error: " + e + "\n\t" + e.getCause().toString());
-		return null;
+		return (TypedNode)LangBase.ApplyTypeFunc(TypeFunc.Self, TypeFunc.Method, Gamma, ParsedTree, TypeInfo);
 	}
 
 //ifdef JAVA
@@ -2438,7 +2372,7 @@ class GtGrammar extends GtStatic {
 		TokenContext.FoundWhiteSpace();
 		for(; pos < SourceText.length(); pos++) {
 			char ch = SourceText.charAt(pos);
-			if(!IsWhitespace(ch)) {
+			if(!LangBase.IsWhitespace(ch)) {
 				break;
 			}
 		}
@@ -2451,7 +2385,7 @@ class GtGrammar extends GtStatic {
 		pos = pos + 1;
 		for(; pos < SourceText.length(); pos++) {
 			char ch = SourceText.charAt(pos);
-			if(!IsWhitespace(ch)) {
+			if(!LangBase.IsWhitespace(ch)) {
 				break;
 			}
 		}
@@ -2472,7 +2406,7 @@ class GtGrammar extends GtStatic {
 		int start = pos;
 		for(; pos < SourceText.length(); pos++) {
 			char ch = SourceText.charAt(pos);
-			if(!IsLetter(ch) && !IsDigit(ch) && ch != '_') {
+			if(!LangBase.IsLetter(ch) && !LangBase.IsDigit(ch) && ch != '_') {
 				break;
 			}
 		}
@@ -2484,7 +2418,7 @@ class GtGrammar extends GtStatic {
 		int start = pos + 1;
 		for(; pos < SourceText.length(); pos++) {
 			char ch = SourceText.charAt(pos);
-			if(!IsLetter(ch) && !IsDigit(ch) && ch != '_') {
+			if(!LangBase.IsLetter(ch) && !LangBase.IsDigit(ch) && ch != '_') {
 				break;
 			}
 		}
@@ -2496,7 +2430,7 @@ class GtGrammar extends GtStatic {
 		int start = pos;
 		for(; pos < SourceText.length(); pos++) {
 			char ch = SourceText.charAt(pos);
-			if(!IsDigit(ch)) {
+			if(!LangBase.IsDigit(ch)) {
 				break;
 			}
 		}
