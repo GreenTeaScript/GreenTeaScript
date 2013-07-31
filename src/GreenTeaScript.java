@@ -276,16 +276,16 @@ class GtStatic implements GtConst {
 		return UnicodeChar;
 	}
 
-	public final static GtFuncA FunctionA(Object Callee, String MethodName) {
-		return new GtFuncA(Callee, LookupMethod(Callee, MethodName));
+	public final static GtFuncToken FunctionA(Object Callee, String MethodName) {
+		return new GtFuncToken(Callee, LangBase.LookupMethod(Callee, MethodName));
 	}
 
-	public final static GtFuncB FunctionB(Object Callee, String MethodName) {
-		return new GtFuncB(Callee, LookupMethod(Callee, MethodName));
+	public final static GtFuncMatch FunctionB(Object Callee, String MethodName) {
+		return new GtFuncMatch(Callee, LangBase.LookupMethod(Callee, MethodName));
 	}
 	
-	public final static GtFuncC FunctionC(Object Callee, String MethodName) {
-		return new GtFuncC(Callee, LookupMethod(Callee, MethodName));
+	public final static GtFuncTypeCheck FunctionC(Object Callee, String MethodName) {
+		return new GtFuncTypeCheck(Callee, LangBase.LookupMethod(Callee, MethodName));
 	}
 
 	public final static boolean EqualsMethod(Method m1, Method m2) {
@@ -296,7 +296,7 @@ class GtStatic implements GtConst {
 		}
 	}
 	
-	public final static TokenFunc CreateOrReuseTokenFunc(GtFuncA f, TokenFunc prev) {
+	public final static TokenFunc CreateOrReuseTokenFunc(GtFuncToken f, TokenFunc prev) {
 		if(prev != null && EqualsMethod(prev.Func.Method, f.Method)) {
 			return prev;
 		}
@@ -305,7 +305,7 @@ class GtStatic implements GtConst {
 
 	public final static int ApplyTokenFunc(TokenFunc TokenFunc, TokenContext TokenContext, String ScriptSource, int Pos) {
 		while(TokenFunc != null) {
-			GtFuncA f = TokenFunc.Func;
+			GtFuncToken f = TokenFunc.Func;
 			int NextIdx = LangBase.ApplyTokenFunc(f.Self, f.Method, TokenContext, ScriptSource, Pos);
 			if(NextIdx > Pos) return NextIdx;
 			TokenFunc = TokenFunc.ParentFunc;
@@ -338,7 +338,7 @@ class GtStatic implements GtConst {
 		int ParseFlag = TokenContext.ParseFlag;
 		SyntaxPattern CurrentPattern = Pattern;
 		while(CurrentPattern != null) {
-			GtFuncB f = Pattern.MatchFunc;
+			GtFuncMatch f = Pattern.MatchFunc;
 			TokenContext.Pos = Pos;
 			if(CurrentPattern.ParentPattern != null) {
 				TokenContext.ParseFlag = ParseFlag | TrackbackParseFlag;
@@ -377,7 +377,7 @@ class GtStatic implements GtConst {
 	}
 
 	// typing 
-	public final static TypedNode ApplyTypeFunc(GtFuncC TypeFunc, TypeEnv Gamma, SyntaxTree ParsedTree, GtType TypeInfo) {
+	public final static TypedNode ApplyTypeFunc(GtFuncTypeCheck TypeFunc, TypeEnv Gamma, SyntaxTree ParsedTree, GtType TypeInfo) {
 		if(TypeFunc == null || TypeFunc.Method == null){
 			DebugP("try to invoke null TypeFunc");
 			return null;
@@ -451,23 +451,12 @@ final class GtMap {
 		return this.Map.get(Key);
 	}
 
-//	public String[] keys() {
-//		Iterator<String> itr = this.Map.keySet().iterator();
-//		String[] List = new String[this.Map.size()];
-//		int i = 0;
-//		while(itr.hasNext()) {
-//			List[i] = itr.next();
-//			i = i + 1;
-//		}
-//		return List;
-//	}
-
 }
 
-final class GtFuncA {
+final class GtFuncToken {
 	public Object	Self;
 	public Method	Method;
-	GtFuncA(Object Self, Method method) {
+	GtFuncToken(Object Self, Method method) {
 		this.Self = Self;
 		this.Method = method;
 	}
@@ -477,10 +466,10 @@ final class GtFuncA {
 	}
 }
 
-final class GtFuncB {
+final class GtFuncMatch {
 	public Object	Self;
 	public Method	Method;
-	GtFuncB(Object Self, Method method) {
+	GtFuncMatch(Object Self, Method method) {
 		this.Self = Self;
 		this.Method = method;
 	}
@@ -490,10 +479,10 @@ final class GtFuncB {
 	}
 }
 
-final class GtFuncC {
+final class GtFuncTypeCheck {
 	public Object	Self;
 	public Method	Method;
-	GtFuncC(Object Self, Method method) {
+	GtFuncTypeCheck(Object Self, Method method) {
 		this.Self = Self;
 		this.Method = method;
 	}
@@ -502,7 +491,6 @@ final class GtFuncC {
 		return this.Method.toString();
 	}
 }
-
 
 //endif VAJA
 
@@ -561,10 +549,10 @@ final class GtToken extends GtStatic {
 }
 
 final class TokenFunc {
-	/*field*/public GtFuncA       Func;
+	/*field*/public GtFuncToken       Func;
 	/*field*/public TokenFunc	ParentFunc;
 
-	TokenFunc/*constructor*/(GtFuncA Func, TokenFunc prev) {
+	TokenFunc/*constructor*/(GtFuncToken Func, TokenFunc prev) {
 		this.Func = Func;
 		this.ParentFunc = prev;
 	}
@@ -801,11 +789,11 @@ final class SyntaxPattern extends GtStatic {
 	/*field*/public String			PatternName;
 	/*field*/int						SyntaxFlag;
 
-	/*field*/public GtFuncB       MatchFunc;
-	/*field*/public GtFuncC       TypeFunc;
+	/*field*/public GtFuncMatch       MatchFunc;
+	/*field*/public GtFuncTypeCheck       TypeFunc;
 	/*field*/public SyntaxPattern	ParentPattern;
 	
-	SyntaxPattern/*constructor*/(GtNameSpace NameSpace, String PatternName, GtFuncB MatchFunc, GtFuncC TypeFunc) {
+	SyntaxPattern/*constructor*/(GtNameSpace NameSpace, String PatternName, GtFuncMatch MatchFunc, GtFuncTypeCheck TypeFunc) {
 		this.PackageNameSpace = NameSpace;
 		this.PatternName = PatternName;
 		this.SyntaxFlag = 0;
@@ -2101,7 +2089,7 @@ final class GtNameSpace extends GtStatic {
 			if(Spec.SpecType != TokenFuncSpec) continue;
 			for(int j = 0; j < Spec.SpecKey.length(); j++) {
 				int kchar = GtStatic.FromJavaChar(Spec.SpecKey.charAt(j));
-				GtFuncA Func = (GtFuncA)Spec.SpecBody;
+				GtFuncToken Func = (GtFuncToken)Spec.SpecBody;
 				this.TokenMatrix[kchar] = GtStatic.CreateOrReuseTokenFunc(Func, this.TokenMatrix[kchar]);
 			}
 		}
@@ -2126,7 +2114,7 @@ final class GtNameSpace extends GtStatic {
 		return this.TokenMatrix[GtChar2];
 	}
 
-	public void DefineTokenFunc(String keys, GtFuncA f) {
+	public void DefineTokenFunc(String keys, GtFuncToken f) {
 		this.PublicSpecList.add(new GtSpec(TokenFuncSpec, keys, f));
 		this.TokenMatrix = null;
 	}
@@ -2210,7 +2198,7 @@ final class GtNameSpace extends GtStatic {
 		}
 	}
 
-	public void DefineSyntaxPattern(String PatternName, GtFuncB MatchFunc, GtFuncC TypeFunc) {
+	public void DefineSyntaxPattern(String PatternName, GtFuncMatch MatchFunc, GtFuncTypeCheck TypeFunc) {
 		SyntaxPattern Pattern = new SyntaxPattern(this, PatternName, MatchFunc, TypeFunc);
 		GtSpec Spec = new GtSpec(SymbolPatternSpec, PatternName, Pattern);
 		this.PublicSpecList.add(Spec);
@@ -2219,7 +2207,7 @@ final class GtNameSpace extends GtStatic {
 		}
 	}
 
-	public void DefineExtendedPattern(String PatternName, int SyntaxFlag, GtFuncB MatchFunc, GtFuncC TypeFunc) {
+	public void DefineExtendedPattern(String PatternName, int SyntaxFlag, GtFuncMatch MatchFunc, GtFuncTypeCheck TypeFunc) {
 		SyntaxPattern Pattern = new SyntaxPattern(this, PatternName, MatchFunc, TypeFunc);
 		Pattern.SyntaxFlag = SyntaxFlag;
 		GtSpec Spec = new GtSpec(ExtendedPatternSpec, PatternName, Pattern);
@@ -2884,9 +2872,9 @@ class GtGrammar extends GtStatic {
 		NameSpace.DefineTokenFunc("\"", FunctionA(this, "StringLiteralToken"));
 		NameSpace.DefineTokenFunc("1",  FunctionA(this, "NumberLiteralToken"));
 
-		GtFuncB ParseUnary = FunctionB(this, "ParseUnaryOperator");
-		GtFuncB ParseBinary = FunctionB(this, "ParseBinaryOperator");
-		GtFuncC TypeApply   = FunctionC(this, "TypeApply");
+		GtFuncMatch ParseUnary = FunctionB(this, "ParseUnaryOperator");
+		GtFuncMatch ParseBinary = FunctionB(this, "ParseBinaryOperator");
+		GtFuncTypeCheck TypeApply   = FunctionC(this, "TypeApply");
 
 		NameSpace.DefineSyntaxPattern("+", ParseUnary, TypeApply);
 		NameSpace.DefineSyntaxPattern("-", ParseUnary, TypeApply);
@@ -2922,7 +2910,7 @@ class GtGrammar extends GtStatic {
 
 		//NameSpace.DefineSyntaxPattern("()", Term | Precedence_CStyleSuffixCall, this, "UNUSED");
 		//NameSpace.DefineSyntaxPattern("{}", 0, this, "UNUSED");
-		GtFuncC TypeConst = FunctionC(this, "TypeConst");
+		GtFuncTypeCheck TypeConst = FunctionC(this, "TypeConst");
 		
 		NameSpace.DefineSyntaxPattern("$Symbol", FunctionB(this, "ParseSymbol"), FunctionC(this, "TypeVariable"));
 		NameSpace.DefineSyntaxPattern("$Type", FunctionB(this, "ParseType"), TypeConst);
