@@ -359,7 +359,7 @@ class ErrorNode extends TypedNode {
 	}
 }
 
-class GreenTeaGenerator extends GtStatic {
+public class GreenTeaGenerator extends GtStatic {
 	
 	public TypedNode CreateConstNode(GtType Type, GtToken Token, Object Value) { 
 		return new ConstNode(Type, Token, Value); 
@@ -535,6 +535,3 @@ class GreenTeaGenerator extends GtStatic {
 	}	
 }
 
-public class GreenTeaVisitor {
-	
-}
