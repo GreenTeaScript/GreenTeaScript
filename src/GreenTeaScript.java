@@ -377,12 +377,12 @@ class GtStatic implements GtConst {
 	}
 
 	// typing 
-	public final static TypedNode ApplyTypeFunc(GtFuncTypeCheck TypeFunc, TypeEnv Gamma, SyntaxTree ParsedTree, GtType TypeInfo) {
+	public final static TypedNode ApplyTypeFunc(GtFuncTypeCheck TypeFunc, TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
 		if(TypeFunc == null || TypeFunc.Method == null){
 			DebugP("try to invoke null TypeFunc");
 			return null;
 		}
-		return (TypedNode)LangBase.ApplyTypeFunc(TypeFunc.Self, TypeFunc.Method, Gamma, ParsedTree, TypeInfo);
+		return (TypedNode)LangBase.ApplyTypeFunc(TypeFunc.Self, TypeFunc.Method, Gamma, ParsedTree, Type);
 	}
 
 //ifdef JAVA
@@ -965,18 +965,21 @@ class SyntaxTree extends GtStatic {
 		}
 	}
 
-	public final TypedNode TypeNodeAt(int Index, TypeEnv Gamma, GtType TypeInfo, int TypeCheckPolicy) {
+	public final TypedNode TypeNodeAt(int Index, TypeEnv Gamma, GtType Type, int TypeCheckPolicy) {
 		if(this.TreeList != null && Index < this.TreeList.size()) {
 			Object NodeObject = this.TreeList.get(Index);
 			if(NodeObject instanceof SyntaxTree) {
-				TypedNode TypedNode = TypeEnv.TypeCheck(Gamma, (SyntaxTree) NodeObject, TypeInfo, TypeCheckPolicy);
+				TypedNode TypedNode = TypeEnv.TypeCheck(Gamma, (SyntaxTree) NodeObject, Type, TypeCheckPolicy);
 				this.TreeList.set(Index, TypedNode);
 				return TypedNode;
 			}
 		}
-		return new ErrorNode(TypeInfo, this.KeyToken, "syntax tree error: " + Index);
+		if(!IsFlag(TypeCheckPolicy, AllowEmptyPolicy) && !IsFlag(TypeCheckPolicy, IgnoreEmptyPolicy)) {
+			Gamma.GammaNameSpace.ReportError(ErrorLevel, this.KeyToken, this.KeyToken.ParsedText + " needs more expression at " + Index);
+			return Gamma.Generator.CreateErrorNode(Type, this.KeyToken); // TODO, "syntax tree error: " + Index);
+		}
+		return null;
 	}
-
 }
 
 /* typing */
@@ -1008,8 +1011,8 @@ class GtType extends GtStatic {
 		return this.ShortClassName;
 	}
 
-	public boolean Accept(GtType TypeInfo) {
-		if(this == TypeInfo) {
+	public boolean Accept(GtType Type) {
+		if(this == Type) {
 			return true;
 		}
 		return false;
@@ -1482,18 +1485,18 @@ class GtMethod extends GtDef {
 }
 
 final class VarSet {
-	/*field*/public GtType	TypeInfo;
+	/*field*/public GtType	Type;
 	/*field*/public String		Name;
 
-	VarSet/*constructor*/(GtType TypeInfo, String Name) {
-		this.TypeInfo = TypeInfo;
+	VarSet/*constructor*/(GtType Type, String Name) {
+		this.Type = Type;
 		this.Name = Name;
 	}
 }
 
 final class TypeEnv extends GtStatic {
-
 	/*field*/public GtNameSpace	GammaNameSpace;
+	/*field*/public NodeVisitor Generator;
 
 	/* for convinient short cut */
 	/*field*/public final GtType	VoidType;
@@ -1504,6 +1507,8 @@ final class TypeEnv extends GtStatic {
 
 	TypeEnv/*constructor*/(GtNameSpace GammaNameSpace, GtMethod Method) {
 		this.GammaNameSpace = GammaNameSpace;
+		this.Generator      = GammaNameSpace.GtContext.Visitor;
+		
 		this.VoidType = GammaNameSpace.GtContext.VoidType;
 		this.BooleanType = GammaNameSpace.GtContext.BooleanType;
 		this.IntType = GammaNameSpace.GtContext.IntType;
@@ -1515,7 +1520,7 @@ final class TypeEnv extends GtStatic {
 			this.InitMethod(Method);
 		} else {
 			// global
-			this.ThisType = GammaNameSpace.GetGlobalObject().TypeInfo;
+			this.ThisType = GammaNameSpace.GetGlobalObject().Type;
 			this.AppendLocalType(this.ThisType, "this");
 		}
 	}
@@ -1538,11 +1543,11 @@ final class TypeEnv extends GtStatic {
 
 	/*field*/GtArray	LocalStackList;
 
-	public void AppendLocalType(GtType TypeInfo, String Name) {
+	public void AppendLocalType(GtType Type, String Name) {
 		if(this.LocalStackList == null) {
 			this.LocalStackList = new GtArray();
 		}
-		this.LocalStackList.add(new VarSet(TypeInfo, Name));
+		this.LocalStackList.add(new VarSet(Type, Name));
 	}
 
 	public GtType GetLocalType(String Symbol) {
@@ -1550,7 +1555,7 @@ final class TypeEnv extends GtStatic {
 			for(int i = this.LocalStackList.size() - 1; i >= 0; i--) {
 				VarSet t = (VarSet) this.LocalStackList.get(i);
 				if(t.Name.equals(Symbol))
-					return t.TypeInfo;
+					return t.Type;
 			}
 		}
 		return null;
@@ -1560,35 +1565,36 @@ final class TypeEnv extends GtStatic {
 		return -1;
 	}
 
-	public TypedNode GetDefaultTypedNode(GtType TypeInfo) {
+	public TypedNode GetDefaultTypedNode(GtType Type) {
 		return null; // TODO
 	}
 
-	public TypedNode NewErrorNode(GtToken KeyToken, String Message) {
-		return new ErrorNode(this.VoidType, KeyToken, this.GammaNameSpace.ReportError(ErrorLevel, KeyToken, Message));
+	public TypedNode CreateErrorNode(GtToken Token, String Message) {
+		this.GammaNameSpace.ReportError(ErrorLevel, Token, Message);
+		return this.Generator.CreateErrorNode(this.VoidType, Token);
 	}
 
-	public static TypedNode TypeEachNode(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {
-		TypedNode Node = GtStatic.ApplyTypeFunc(Tree.Pattern.TypeFunc, Gamma, Tree, TypeInfo);
+	public static TypedNode TypeEachNode(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
+		TypedNode Node = GtStatic.ApplyTypeFunc(Tree.Pattern.TypeFunc, Gamma, Tree, Type);
 		if(Node == null) {
-			Node = Gamma.NewErrorNode(Tree.KeyToken, "undefined type checker: " + Tree.Pattern);
+			Node = Gamma.CreateErrorNode(Tree.KeyToken, "undefined type checker: " + Tree.Pattern);
 		}
 		return Node;
 	}
 
-	public static TypedNode TypeCheckEachNode(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo, int TypeCheckPolicy) {
-		TypedNode Node = TypeEachNode(Gamma, Tree, TypeInfo);
-		// if(Node.TypeInfo == null) {
+	public static TypedNode TypeCheckEachNode(TypeEnv Gamma, SyntaxTree Tree, GtType Type, int TypeCheckPolicy) {
+		TypedNode Node = TypeEachNode(Gamma, Tree, Type);
+		// if(Node.Type == null) {
 		//
 		// }
 		return Node;
 	}
 
-	public static TypedNode TypeCheck(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo, int TypeCheckPolicy) {
+	public static TypedNode TypeCheck(TypeEnv Gamma, SyntaxTree Tree, GtType Type, int TypeCheckPolicy) {
 		TypedNode TPrevNode = null;
 		while(Tree != null) {
-			GtType CurrentTypeInfo = (Tree.NextTree != null) ? Gamma.VoidType : TypeInfo;
-			TypedNode CurrentTypedNode = TypeCheckEachNode(Gamma, Tree, CurrentTypeInfo, TypeCheckPolicy);
+			GtType CurrentType = (Tree.NextTree != null) ? Gamma.VoidType : Type;
+			TypedNode CurrentTypedNode = TypeCheckEachNode(Gamma, Tree, CurrentType, TypeCheckPolicy);
 			if(TPrevNode != null) {
 				TPrevNode.LinkNode(CurrentTypedNode);
 			}
@@ -1604,17 +1610,16 @@ final class TypeEnv extends GtStatic {
 }
 
 class TypedNode extends GtStatic {
-
 	/*field*/public TypedNode	ParentNode		= null;
 	/*field*/public TypedNode	PrevNode	    = null;
 	/*field*/public TypedNode	NextNode		= null;
 
-	/*field*/public GtType	TypeInfo;
-	/*field*/public GtToken	SourceToken;
+	/*field*/public GtType	Type;
+	/*field*/public GtToken	Token;
 
-	TypedNode/*constructor*/(GtType TypeInfo, GtToken SourceToken) {
-		this.TypeInfo = TypeInfo;
-		this.SourceToken = SourceToken;
+	TypedNode/*constructor*/(GtType Type, GtToken Token) {
+		this.Type = Type;
+		this.Token = Token;
 		this.ParentNode = null;
 		this.PrevNode = null;
 		this.NextNode = null;
@@ -1628,11 +1633,11 @@ class TypedNode extends GtStatic {
 		return Node;
 	}
 
-	public final TypedNode Next(TypedNode Node) {
-		TypedNode LastNode = this.GetTailNode();
-		LastNode.LinkNode(Node);
-		return Node;
-	}
+//	public final TypedNode Next(TypedNode Node) {
+//		TypedNode LastNode = this.GetTailNode();
+//		LastNode.LinkNode(Node);
+//		return Node;
+//	}
 
 	public final TypedNode GetTailNode() {
 		TypedNode Node = this;
@@ -1647,8 +1652,7 @@ class TypedNode extends GtStatic {
 		this.NextNode = Node;
 	}
 
-	public boolean Evaluate(NodeVisitor Visitor) {
-		return false;
+	public void Evaluate(NodeVisitor Visitor) {
 	}
 
 	public final boolean IsError() {
@@ -1659,9 +1663,8 @@ class TypedNode extends GtStatic {
 
 class UnaryNode extends TypedNode {
 	/*field*/public TypedNode	Expr;
-
-	UnaryNode(GtType TypeInfo, GtToken OperatorToken, TypedNode Expr) {
-		super(TypeInfo, null/*fixme*/);
+	UnaryNode/*constructor*/(GtType Type, GtToken Token, TypedNode Expr) {
+		super(Type, Token);
 		this.Expr = Expr;
 	}
 }
@@ -1669,108 +1672,99 @@ class UnaryNode extends TypedNode {
 class BinaryNode extends TypedNode {
 	/*field*/public TypedNode    LeftNode;
 	/*field*/public TypedNode	RightNode;
-
-	public BinaryNode(GtType TypeInfo, GtToken OperatorToken, TypedNode Left, TypedNode Right) {
-		super(TypeInfo, OperatorToken);
+	BinaryNode/*constructor*/(GtType Type, GtToken Token, TypedNode Left, TypedNode Right) {
+		super(Type, Token);
 		this.LeftNode  = Left;
 		this.RightNode = Right;
 	}
+	@Override public void Evaluate(NodeVisitor Visitor) {
+		Visitor.VisitBinaryNode(this);
+	}
 }
 
-class ErrorNode extends TypedNode {
-	/*field*/public String	ErrorMessage;
-
-	public ErrorNode(GtType TypeInfo, GtToken KeyToken, String ErrorMessage) {
-		super(TypeInfo, KeyToken);
-		this.ErrorMessage = KeyToken.ToErrorToken(ErrorMessage);
+class AndNode extends BinaryNode {
+	AndNode/*constructor*/(GtType Type, GtToken Token, TypedNode Left, TypedNode Right) {
+		super(Type, Token, Left, Right);
 	}
+	@Override public void Evaluate(NodeVisitor Visitor) {
+		Visitor.VisitAndNode(this);
+	}
+}
 
-	@Override public boolean Evaluate(NodeVisitor Visitor) {
-		return Visitor.VisitError(this);
+class OrNode extends BinaryNode {
+	OrNode/*constructor*/(GtType Type, GtToken Token, TypedNode Left, TypedNode Right) {
+		super(Type, Token, Left, Right);
+	}
+	@Override public void Evaluate(NodeVisitor Visitor) {
+		Visitor.VisitOrNode(this);
+	}
+}
+
+class GetterNode extends TypedNode {
+	/*field*/public TypedNode Expr;
+	/*field*/public GtMethod  Method;
+	GetterNode/*constructor*/(GtType Type, GtToken Token, TypedNode Expr, GtMethod Method) {
+		super(Type, Token);
+		this.Expr = Expr;
+		this.Method = Method;
+	}
+	@Override public void Evaluate(NodeVisitor Visitor) {
+		Visitor.VisitGetterNode(this);
+	}
+}
+
+class AssignNode extends BinaryNode {
+	AssignNode/*constructor*/(GtType Type, GtToken Token, TypedNode Left, TypedNode Right) {
+		super(Type, Token, Left, Right);
+	}
+	@Override public void Evaluate(NodeVisitor Visitor) {
+		Visitor.VisitAssignNode(this);
 	}
 }
 
 class ConstNode extends TypedNode {
 	/*field*/public Object	ConstValue;
-
-	public ConstNode(GtType TypeInfo, GtToken SourceToken, Object ConstValue) {
-		super(TypeInfo, SourceToken);
+	ConstNode/*constructor*/(GtType Type, GtToken Token, Object ConstValue) {
+		super(Type, Token);
 		this.ConstValue = ConstValue;
 	}
-
-	@Override public boolean Evaluate(NodeVisitor Visitor) {
-		return Visitor.VisitConst(this);
-	}
-
-}
-
-class FieldNode extends TypedNode {
-	/*field*/public String	FieldName;
-
-	public FieldNode(GtType TypeInfo, GtToken SourceToken, String FieldName) {
-		super(TypeInfo, SourceToken);
-		this.FieldName = FieldName;
-	}
-
-	public String GetFieldName() {
-		return this.FieldName;
+	@Override public void Evaluate(NodeVisitor Visitor) {
+		Visitor.VisitConstNode(this);
 	}
 }
 
-class LocalNode extends FieldNode {
-	public LocalNode(GtType TypeInfo, GtToken SourceToken, String FieldName) {
-		super(TypeInfo, SourceToken, FieldName);
+class LocalNode extends TypedNode {
+	LocalNode/*constructor*/(GtType Type, GtToken Token) {
+		super(Type, Token);
 	}
-	@Override public boolean Evaluate(NodeVisitor Visitor) {
-		return Visitor.VisitLocal(this);
+	@Override public void Evaluate(NodeVisitor Visitor) {
+		Visitor.VisitLocalNode(this);
 	}
 }
 
 class NullNode extends TypedNode {
-	public NullNode(GtType TypeInfo) {
-		super(TypeInfo, null/* fixme */);
+	NullNode/*constructor*/(GtType Type, GtToken Token) {
+		super(Type, Token);
 	}
-	@Override public boolean Evaluate(NodeVisitor Visitor) {
-		return Visitor.VisitNull(this);
+	@Override public void Evaluate(NodeVisitor Visitor) {
+		Visitor.VisitNullNode(this);
 	}
 }
 
 class LetNode extends TypedNode {
-	public GtToken	VarToken;
+	public GtToken	    VarToken;
 	public TypedNode	ValueNode;
 	public TypedNode	BlockNode;
 
 	/* let frame[Index] = Right in Block end */
-	public LetNode(GtType TypeInfo, GtToken VarToken, TypedNode Right, TypedNode Block) {
-		super(TypeInfo, VarToken);
+	LetNode/*constructor*/(GtType Type, GtToken VarToken, TypedNode Right, TypedNode Block) {
+		super(Type, VarToken);
 		this.VarToken = VarToken;
 		this.ValueNode = Right;
 		this.BlockNode = Block;
 	}
-
-	@Override public boolean Evaluate(NodeVisitor Visitor) {
-		return Visitor.VisitLet(this);
-	}
-}
-
-class AndNode extends BinaryNode {
-	public AndNode(GtType TypeInfo, GtToken KeyToken, TypedNode Left, TypedNode Right) {
-		super(TypeInfo, KeyToken, Left, Right);
-	}
-
-	@Override public boolean Evaluate(NodeVisitor Visitor) {
-		return Visitor.VisitAnd(this);
-	}
-}
-
-class OrNode extends BinaryNode {
-
-	public OrNode(GtType TypeInfo, GtToken KeyToken, TypedNode Left, TypedNode Right) {
-		super(TypeInfo, KeyToken, Left, Right);
-	}
-
-	@Override public boolean Evaluate(NodeVisitor Visitor) {
-		return Visitor.VisitOr(this);
+	@Override public void Evaluate(NodeVisitor Visitor) {
+		Visitor.VisitLetNode(this);
 	}
 }
 
@@ -1779,21 +1773,21 @@ class ApplyNode extends TypedNode {
 	public GtArray	Params; /* [this, arg1, arg2, ...] */
 
 	/* call self.Method(arg1, arg2, ...) */
-	public ApplyNode(GtType TypeInfo, GtToken KeyToken, GtMethod Method) {
-		super(TypeInfo, KeyToken);
+	ApplyNode/*constructor*/(GtType Type, GtToken KeyToken, GtMethod Method) {
+		super(Type, KeyToken);
 		this.Method = Method;
 		this.Params = new GtArray();
 	}
-
-	public ApplyNode(GtType TypeInfo, GtToken KeyToken, GtMethod Method, TypedNode arg1) {
-		super(TypeInfo, KeyToken);
+	
+	ApplyNode/*constructor*/(GtType Type, GtToken KeyToken, GtMethod Method, TypedNode arg1) {
+		super(Type, KeyToken);
 		this.Method = Method;
 		this.Params = new GtArray();
 		this.Params.add(arg1);
 	}
-
-	public ApplyNode(GtType TypeInfo, GtToken KeyToken, GtMethod Method, TypedNode arg1, TypedNode arg2) {
-		super(TypeInfo, KeyToken);
+	
+	public ApplyNode(GtType Type, GtToken KeyToken, GtMethod Method, TypedNode arg1, TypedNode arg2) {
+		super(Type, KeyToken);
 		this.Method = Method;
 		this.Params = new GtArray();
 		this.Params.add(arg1);
@@ -1804,16 +1798,16 @@ class ApplyNode extends TypedNode {
 		this.Params.add(Expr);
 	}
 
-	@Override public boolean Evaluate(NodeVisitor Visitor) {
-		return Visitor.VisitApply(this);
+	@Override public void Evaluate(NodeVisitor Visitor) {
+		Visitor.VisitApplyNode(this);
 	}
 }
 
 class NewNode extends TypedNode {
 	public GtArray	Params; /* [this, arg1, arg2, ...] */
 
-	public NewNode(GtType TypeInfo, GtToken KeyToken) {
-		super(TypeInfo, KeyToken);
+	NewNode/*constructor*/(GtType Type, GtToken Token) {
+		super(Type, Token);
 		this.Params = new GtArray();
 	}
 
@@ -1821,8 +1815,8 @@ class NewNode extends TypedNode {
 		this.Params.add(Expr);
 	}
 
-	@Override public boolean Evaluate(NodeVisitor Visitor) {
-		return Visitor.VisitNew(this);
+	@Override public void Evaluate(NodeVisitor Visitor) {
+		Visitor.VisitNewNode(this);
 	}
 }
 
@@ -1832,124 +1826,161 @@ class IfNode extends TypedNode {
 	public TypedNode	ElseNode;
 
 	/* If CondExpr then ThenBlock else ElseBlock */
-	public IfNode(GtType TypeInfo, TypedNode CondExpr, TypedNode ThenBlock, TypedNode ElseNode) {
-		super(TypeInfo, null/* fixme */);
+	IfNode/*constructor*/(GtType Type, GtToken Token, TypedNode CondExpr, TypedNode ThenBlock, TypedNode ElseNode) {
+		super(Type, Token);
 		this.CondExpr = CondExpr;
 		this.ThenNode = ThenBlock;
 		this.ElseNode = ElseNode;
 	}
-
-	@Override public boolean Evaluate(NodeVisitor Visitor) {
-		return Visitor.VisitIf(this);
+	@Override public void Evaluate(NodeVisitor Visitor) {
+		Visitor.VisitIfNode(this);
 	}
 }
 
 class LoopNode extends TypedNode {
-
-	/* while CondExpr then { LoopBlock; IterationExpr } */
 	public TypedNode	CondExpr;
 	public TypedNode	LoopBody;
 	public TypedNode	IterationExpr;
 
-	public LoopNode(GtType TypeInfo, TypedNode CondExpr, TypedNode LoopBody, TypedNode IterationExpr) {
-		super(TypeInfo, null/* fixme */);
+	public LoopNode(GtType Type, GtToken Token, TypedNode CondExpr, TypedNode LoopBody, TypedNode IterationExpr) {
+		super(Type, Token);
 		this.CondExpr = CondExpr;
 		this.LoopBody = LoopBody;
 		this.IterationExpr = IterationExpr;
 	}
+	@Override public void Evaluate(NodeVisitor Visitor) {
+		Visitor.VisitLoopNode(this);
+	}
+}
 
-	@Override public boolean Evaluate(NodeVisitor Visitor) {
-		return Visitor.VisitLoop(this);
+class LabelNode extends TypedNode {
+	/*field*/public String Label;
+	LabelNode/*constructor*/(GtType Type, GtToken Token, String Label) {
+		super(Type, Token);
+		this.Label = Label;
+	}
+	@Override public void Evaluate(NodeVisitor Visitor) {
+		Visitor.VisitLabelNode(this);
+	}
+}
+
+class JumpNode extends TypedNode {
+	/*field*/public String Label;
+	JumpNode/*constructor*/(GtType Type, GtToken Token, String Label) {
+		super(Type, Token);
+		this.Label = Label;
+	}
+	@Override public void Evaluate(NodeVisitor Visitor) {
+		Visitor.VisitJumpNode(this);
+	}
+}
+class ContinueNode extends TypedNode {
+	/*field*/public String Label;
+	ContinueNode/*constructor*/(GtType Type, GtToken Token, String Label) {
+		super(Type, Token);
+		this.Label = Label;
+	}
+	@Override public void Evaluate(NodeVisitor Visitor) {
+		Visitor.VisitContinueNode(this);
+	}
+}
+class BreakNode extends TypedNode {
+	/*field*/public String Label;
+	BreakNode/*constructor*/(GtType Type, GtToken Token, String Label) {
+		super(Type, Token);
+		this.Label = Label;
+	}
+	@Override public void Evaluate(NodeVisitor Visitor) {
+		Visitor.VisitBreakNode(this);
 	}
 }
 
 class ReturnNode extends UnaryNode {
-	ReturnNode/*constructor*/(GtType TypeInfo, GtToken Token, TypedNode Expr) {
-		super(TypeInfo, Token, Expr);
+	ReturnNode/*constructor*/(GtType Type, GtToken Token, TypedNode Expr) {
+		super(Type, Token, Expr);
 	}
-	@Override public boolean Evaluate(NodeVisitor Visitor) {
-		return Visitor.VisitReturn(this);
+	@Override public void Evaluate(NodeVisitor Visitor) {
+		Visitor.VisitReturnNode(this);
 	}
 }
 
 class ThrowNode extends UnaryNode {
-	ThrowNode/*constructor*/(GtType TypeInfo, GtToken Token, TypedNode Expr) {
-		super(TypeInfo, Token, Expr);
+	ThrowNode/*constructor*/(GtType Type, GtToken Token, TypedNode Expr) {
+		super(Type, Token, Expr);
 	}
-	@Override public boolean Evaluate(NodeVisitor Visitor) {
-		return Visitor.VisitThrow(this);
+	@Override public void Evaluate(NodeVisitor Visitor) {
+		Visitor.VisitThrowNode(this);
 	}
 }
 
-
 class TryNode extends TypedNode {
-	/*
-	 * let HasException = TRY(TryBlock); in if HasException ==
-	 * CatchedExceptions[0] then CatchBlock[0] if HasException ==
-	 * CatchedExceptions[1] then CatchBlock[1] ... FinallyBlock end
-	 */
 	public TypedNode	TryBlock;
-	public GtArray	TargetException;
-	public GtArray	CatchBlock;
+	public TypedNode	CatchBlock;
 	public TypedNode	FinallyBlock;
-
-	public TryNode(GtType TypeInfo, TypedNode TryBlock, TypedNode FinallyBlock) {
-		super(TypeInfo, null/* fixme */);
+	TryNode/*constructor*/(GtType Type, GtToken Token, TypedNode TryBlock, TypedNode FinallyBlock) {
+		super(Type, Token);
 		this.TryBlock = TryBlock;
 		this.FinallyBlock = FinallyBlock;
-		this.CatchBlock = new GtArray();
-		this.TargetException = new GtArray();
+		this.CatchBlock = null;
 	}
-
-	public void addCatchBlock(TypedNode TargetException, TypedNode CatchBlock) { //FIXME
-		this.TargetException.add(TargetException);
-		this.CatchBlock.add(CatchBlock);
-	}
-
-	@Override public boolean Evaluate(NodeVisitor Visitor) {
-		return Visitor.VisitTry(this);
+//	public void addCatchBlock(TypedNode TargetException, TypedNode CatchBlock) { //FIXME
+//		this.TargetException.add(TargetException);
+//		this.CatchBlock.add(CatchBlock);
+//	}
+	@Override public void Evaluate(NodeVisitor Visitor) {
+		Visitor.VisitTryNode(this);
 	}
 }
 
 class SwitchNode extends TypedNode {
-	public SwitchNode(GtType TypeInfo, GtType KeyToken) {
-		super(TypeInfo, null/* FIXME */);
+	SwitchNode/*constructor*/(GtType Type, GtToken Token) {
+		super(Type, Token);
 	}
-
-	/*
-	 * switch CondExpr { Label[0]: Blocks[0]; Label[1]: Blocks[2]; ... }
-	 */
-	public TypedNode	CondExpr;
-	public GtArray	Labels;
-	public GtArray	Blocks;
-
-	@Override public boolean Evaluate(NodeVisitor Visitor) {
-		return Visitor.VisitSwitch(this);
+//	public TypedNode	CondExpr;
+//	public GtArray	Labels;
+//	public GtArray	Blocks;
+	@Override public void Evaluate(NodeVisitor Visitor) {
+		Visitor.VisitSwitchNode(this);
 	}
 }
 
 class DefineNode extends TypedNode {
-
 	public GtDef	DefInfo;
-
-	public DefineNode(GtType TypeInfo, GtToken KeywordToken, GtDef DefInfo) {
-		super(TypeInfo, KeywordToken);
+	DefineNode/*constructor*/(GtType Type, GtToken Token, GtDef DefInfo) {
+		super(Type, Token);
 		this.DefInfo = DefInfo;
 	}
+	@Override public void Evaluate(NodeVisitor Visitor) {
+		Visitor.VisitDefineNode(this);
+	}
+}
 
-	@Override public boolean Evaluate(NodeVisitor Visitor) {
-		return Visitor.VisitDefine(this);
+class FunctionNode extends TypedNode {
+	FunctionNode/*constructor*/(GtType Type, GtToken Token) {
+		super(Type, Token); // TODO
+	}
+	@Override public void Evaluate(NodeVisitor Visitor) {
+		Visitor.VisitFunctionNode(this);
+	}
+}
+
+class ErrorNode extends TypedNode {
+	ErrorNode/*constructor*/(GtType Type, GtToken Token) {
+		super(Type, Token);
+	}
+	@Override public void Evaluate(NodeVisitor Visitor) {
+		Visitor.VisitErrorNode(this);
 	}
 }
 
 /* builder */
 
 class GtObject extends GtStatic {
-	public GtType	TypeInfo;
+	public GtType	Type;
 //	SymbolMap			prototype;
 //
-	public GtObject(GtType TypeInfo) {
-		this.TypeInfo = TypeInfo;
+	public GtObject(GtType Type) {
+		this.Type = Type;
 	}
 //
 //	public Object GetField(int SymbolId) {
@@ -1981,152 +2012,168 @@ class NodeVisitor /* implements INodeVisitor */ extends GtStatic {
 		return new NewNode(Type, Token); 
 	}
 
-	public TypedNode CreateLocalNode(GtType Type, GtToken Token, TypedNode Node) { 
-		return new LocalNode(Type, Token); 
+	public TypedNode CreateLocalNode(GtType Type, GtToken Token) { 
+		return new LocalNode(Type, Token);
 	}
 
-	public TypedNode CreateGetterNode(GtType Type, GtToken Token, TypedNode Node) { 
-		return null; 
+	public TypedNode CreateGetterNode(GtType Type, GtToken Token, TypedNode Expr) { 
+		return new GetterNode(Type, Token, Expr, null);
 	}
 
-	public TypedNode CreateApplyNode(GtType Type, GtToken Token, TypedNode Node) { 
-		return null; 
+	public TypedNode CreateApplyNode(GtType Type, GtToken Token, TypedNode Func) { 
+		return new ApplyNode(Type, Token, null, Func);
 	}
 
-	public TypedNode CreateAndNode(GtType Type, GtToken Token, TypedNode Node) { 
-		return null; 
+	public TypedNode CreateAndNode(GtType Type, GtToken Token, TypedNode Left, TypedNode Right) { 
+		return new AndNode(Type, Token, Left, Right);
 	}
 
-	public TypedNode CreateOrNode(GtType Type, GtToken Token, TypedNode Node) { 
-		return null; 
+	public TypedNode CreateOrNode(GtType Type, GtToken Token, TypedNode Left, TypedNode Right) { 
+		return new OrNode(Type, Token, Left, Right);
 	}
 
-	public TypedNode CreateAssignNode(GtType Type, GtToken Token, TypedNode Node) { 
-		return null; 
+	public TypedNode CreateAssignNode(GtType Type, GtToken Token, TypedNode Left, TypedNode Right) { 
+		return new AssignNode(Type, Token, Left, Right);
 	}
 
-	public TypedNode CreateLetNode(GtType Type, GtToken Token, TypedNode Node) { 
-		return null; 
+	public TypedNode CreateLetNode(GtType Type, GtToken Token, TypedNode Left, TypedNode Right, TypedNode Block) { 
+		return new LetNode(Type, Token, Right, Block);
 	}
 	
-	public TypedNode CreateIfNode(GtType Type, GtToken Token, TypedNode Node) { 
-		return null; 
+	public TypedNode CreateIfNode(GtType Type, GtToken Token, TypedNode Cond, TypedNode Then, TypedNode Else) { 
+		return new IfNode(Type, Token, Cond, Then, Else);
 	}
 	
-	public TypedNode CreateSwitchNode(GtType Type, GtToken Token, TypedNode Node) { 
+	public TypedNode CreateSwitchNode(GtType Type, GtToken Token, TypedNode Match) { 
 		return null; 
 	}
 
-	public TypedNode CreateLoopNode(GtType Type, GtToken Token, TypedNode Node) { 
-		return null; 
+	public TypedNode CreateLoopNode(GtType Type, GtToken Token, TypedNode Cond, TypedNode Block, TypedNode IterNode) { 
+		return new LoopNode(Type, Token, Cond, Block, IterNode);
 	}
 
 	public TypedNode CreateReturnNode(GtType Type, GtToken Token, TypedNode Node) { 
-		return null; 
+		return new ReturnNode(Type, Token, Node);
 	}
 
 	public TypedNode CreateLabelNode(GtType Type, GtToken Token, TypedNode Node) { 
 		return null; 
 	}
 
-	public TypedNode CreateJumpNode(GtType Type, GtToken Token, TypedNode Node) { 
-		return null; 
+	public TypedNode CreateJumpNode(GtType Type, GtToken Token, TypedNode Node, String Label) { 
+		return new JumpNode(Type, Token, Label); 
 	}
 
-	public TypedNode CreateBreakNode(GtType Type, GtToken Token, TypedNode Node) { 
-		return null; 
+	public TypedNode CreateBreakNode(GtType Type, GtToken Token, TypedNode Node, String Label) { 
+		return new BreakNode(Type, Token, Label); 
 	}
 
-	public TypedNode CreateContinueNode(GtType Type, GtToken Token, TypedNode Node) { 
-		return null; 
+	public TypedNode CreateContinueNode(GtType Type, GtToken Token, TypedNode Node, String Label) { 
+		return new ContinueNode(Type, Token, Label); 
 	}
 	
-	public TypedNode CreateTryNode(GtType Type, GtToken Token, TypedNode Node) { 
-		return null; 
+	public TypedNode CreateTryNode(GtType Type, GtToken Token, TypedNode TryNode, TypedNode FinallyNode) { 
+		return new TryNode(Type, Token, TryNode, FinallyNode); 
 	}
 
 	public TypedNode CreateThrowNode(GtType Type, GtToken Token, TypedNode Node) { 
+		return new ThrowNode(Type, Token, Node); 
+	}
+
+	public TypedNode CreateFunctionNode(GtType Type, GtToken Token, TypedNode Block) { 
 		return null; 
 	}
 
-	public TypedNode CreateFunctionNode(GtType Type, GtToken Token, TypedNode Node) { 
+	public TypedNode CreateDefineNode(GtType Type, GtToken Token, Object Module) { 
 		return null; 
 	}
 
-	public TypedNode CreateDefineNode(GtType Type, GtToken Token, TypedNode Node) { 
-		return null; 
+	public TypedNode CreateErrorNode(GtType Type, GtToken Token) { 
+		return new ErrorNode(Type, Token);
 	}
 
-	public TypedNode CreateErrorNode(GtType Type, GtToken Token, TypedNode Node) { 
-		return null; 
+
+	public void VisitDefineNode(DefineNode Node) { 
 	}
 
+	public void VisitConstNode(ConstNode Node) { 
+	}
+
+	public void VisitNewNode(NewNode Node) { 
+	}
+
+	public void VisitNullNode(NullNode Node) { 
+	}
+
+	public void VisitLocalNode(LocalNode Node) { 
+	}
+
+	public void VisitGetterNode(GetterNode Node) { 
+	}
+
+	public void VisitApplyNode(ApplyNode Node) { 
+	}
+
+	public void VisitBinaryNode(BinaryNode Node) { 
+	}
+
+	public void VisitAndNode(AndNode Node) { 
+	}
+
+	public void VisitOrNode(OrNode Node) { 
+	}
+
+	public void VisitAssignNode(AssignNode Node) { 
+	}
+
+	public void VisitLetNode(LetNode Node) { 
+	}
+
+	public void VisitIfNode(IfNode Node) { 
+	}
+
+	public void VisitSwitchNode(SwitchNode Node) { 
+	}
+
+	public void VisitLoopNode(LoopNode Node) { 
+	}
+
+	public void VisitReturnNode(ReturnNode Node) { 
+	}
+
+	public void VisitLabelNode(LabelNode Node) { 
+	}
+
+	public void VisitJumpNode(JumpNode Node) { 
+	}
+
+	public void VisitBreakNode(BreakNode Node) { 
+	}
 	
-	//boolean VisitList(TypedNode NodeList) { return false;}
+	public void VisitContinueNode(ContinueNode Node) { 
+	}
 
-	boolean VisitDefine(DefineNode Node){ return false;}
+	public void VisitTryNode(TryNode Node) { 
+	}
 
-	boolean VisitConst(ConstNode Node){ return false;}
+	public void VisitThrowNode(ThrowNode Node) { 
+	}
 
-	boolean VisitNew(NewNode Node){ return false;}
+	public void VisitFunctionNode(FunctionNode Node) { 
+	}
 
-	boolean VisitNull(NullNode Node){ return false;}
+	public void VisitErrorNode(ErrorNode Node) { 
+	}
 
-	boolean VisitLocal(LocalNode Node){ return false;}
-
-//	boolean VisitGetter(GetterNode Node){ return false;}
-
-	boolean VisitApply(ApplyNode Node){ return false;}
-
-	boolean VisitAnd(AndNode Node){ return false;}
-
-	boolean VisitOr(OrNode Node){ return false;}
-
-//	boolean VisitAssign(AssignNode Node){ return false;}
-
-	boolean VisitLet(LetNode Node){ return false;}
-
-	boolean VisitIf(IfNode Node){ return false;}
-
-	boolean VisitSwitch(SwitchNode Node){ return false;}
-
-	boolean VisitLoop(LoopNode Node){ return false;}
-
-	boolean VisitReturn(ReturnNode Node){ return false;}
-
-//	boolean VisitLabel(LabelNode Node){ return false;}
-
-//	boolean VisitJump(JumpNode Node){ return false;}
-
-	boolean VisitTry(TryNode Node){ return false;}
-
-	boolean VisitThrow(ThrowNode Node){ return false;}
-
-//	boolean VisitFunction(FunctionNode Node){ return false;}
-
-	boolean VisitError(ErrorNode Node){ return false;}
-
-	public boolean VisitList(TypedNode Node) {
-		boolean Ret = true;
-		while(Ret && Node != null) {
-			Ret &= Node.Evaluate(this);
-			Node = Node.NextNode;
+	public void Evaluate(TypedNode Node) {
+		TypedNode CurrentNode = Node;
+		while(CurrentNode != null) {
+			CurrentNode.Evaluate(this);
+			CurrentNode = CurrentNode.NextNode;
 		}
-		return Ret;
-	}
-	
+	}	
 }
 
-class GtBuilder extends GtStatic {
-	
-	Object EvalAtTopLevel(GtNameSpace NameSpace, TypedNode Node, GtObject GlobalObject) {
-		return null;
-	}
-
-	GtMethodInvoker Build(GtNameSpace NameSpace, TypedNode Node, GtMethod Method) {
-		return null;
-	}
-}
 
 final class GtSpec extends GtStatic {
 	/*field*/public int SpecType;
@@ -2338,49 +2385,6 @@ final class GtNameSpace extends GtStatic {
 		return ResultValue;
 	}
 
-
-//ifdef JAVA
-	// Builder
-	private GtBuilder	Builder;
-
-	public GtBuilder GetBuilder() {
-		if(this.Builder == null) {
-			if(this.ParentNameSpace != null) {
-				return this.ParentNameSpace.GetBuilder();
-			}
-			//this.Builder = new DefaultGtBuilder(); // create default builder
-			this.Builder = new GtBuilder(); // create default builder
-		}
-		return this.Builder;
-	}
-
-	private Object LoadClass(String ClassName) {
-		try {
-			Class<?> ClassInfo = Class.forName(ClassName);
-			return ClassInfo.newInstance();
-		} catch (ClassNotFoundException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	public boolean LoadBuilder(String Name) {
-		GtBuilder Builder = (GtBuilder) this.LoadClass(Name);
-		if(Builder != null) {
-			this.Builder = Builder;
-			return true;
-		}
-		return false;
-	}
-//endif VAJA
-
 	public GtMethod LookupMethod(String MethodName, int ParamSize) {
 		//FIXME
 		//MethodName = "ClassName.MethodName";
@@ -2388,14 +2392,6 @@ final class GtNameSpace extends GtStatic {
 		//2. find MethodName(arg0, arg1, ... , arg_ParamSize)
 		return null;
 	}
-
-//	public void AddPatternSyntax(SyntaxPattern Parent, SyntaxPattern Syntax, boolean TopLevel) {
-//		this.PegParser.AddSyntax(Syntax, TopLevel);
-//	}
-//
-//	public void MergePatternSyntax(SyntaxPattern Parent, SyntaxPattern NewSyntax, boolean TopLevel) {
-//		this.PegParser.MixSyntax(Parent, NewSyntax, TopLevel);
-//	}
 
 	private String GetSourcePosition(long FileLine) {
 		return "(eval:" + (int) FileLine + ")";
@@ -2525,21 +2521,21 @@ class GtGrammar extends GtStatic {
 		return new SyntaxTree(Pattern, TokenContext.NameSpace, Token);
 	}
 
-	public static TypedNode TypeVariable(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {
+	public static TypedNode TypeVariable(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
 		// case: Symbol is LocalVariable
-		TypeInfo = Gamma.GetLocalType(Tree.KeyToken.ParsedText);
-		if(TypeInfo != null) {
-			return new LocalNode(TypeInfo, Tree.KeyToken, Tree.KeyToken.ParsedText);
+		Type = Gamma.GetLocalType(Tree.KeyToken.ParsedText);
+		if(Type != null) {
+			return Gamma.Generator.CreateLocalNode(Type, Tree.KeyToken);
 		}
 		// case: Symbol is GlobalVariable
 		if(Tree.KeyToken.ParsedText.equals("global")) {
 			return new ConstNode(
-				Tree.TreeNameSpace.GetGlobalObject().TypeInfo,
+				Tree.TreeNameSpace.GetGlobalObject().Type,
 				Tree.KeyToken,
 				Tree.TreeNameSpace.GetGlobalObject());
 		}
 		// case: Symbol is undefined name
-		return Gamma.NewErrorNode(Tree.KeyToken, "undefined name: " + Tree.KeyToken.ParsedText);
+		return Gamma.CreateErrorNode(Tree.KeyToken, "undefined name: " + Tree.KeyToken.ParsedText);
 	}
 
 	// Parse And Type
@@ -2548,7 +2544,7 @@ class GtGrammar extends GtStatic {
 		return new SyntaxTree(Pattern, TokenContext.NameSpace, Token);
 	}
 
-	public static TypedNode TypeIntegerLiteral(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {
+	public static TypedNode TypeIntegerLiteral(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
 		GtToken Token = Tree.KeyToken;
 		return new ConstNode(Gamma.IntType, Token, Integer.valueOf(Token.ParsedText));
 	}
@@ -2558,7 +2554,7 @@ class GtGrammar extends GtStatic {
 		return new SyntaxTree(Pattern, TokenContext.NameSpace, Token);
 	}
 
-	public static TypedNode TypeStringLiteral(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {
+	public static TypedNode TypeStringLiteral(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
 		GtToken Token = Tree.KeyToken;
 		/* FIXME: handling of escape sequence */
 		return new ConstNode(Gamma.StringType, Token, Token.ParsedText);
@@ -2569,7 +2565,7 @@ class GtGrammar extends GtStatic {
 		return new SyntaxTree(Pattern, TokenContext.NameSpace, Token);
 	}
 
-	public static TypedNode TypeConst(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {
+	public static TypedNode TypeConst(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
 		GtToken Token = Tree.KeyToken;
 		/* FIXME: handling of resolved object */
 		return new ConstNode(Gamma.StringType, Token, Token.ParsedText);
@@ -2651,26 +2647,26 @@ class GtGrammar extends GtStatic {
 		return GtStatic.TreeHead(PrevTree);
 	}
 
-	public static TypedNode TypeBlock(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {
+	public static TypedNode TypeBlock(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
 		TODO("TypeBlock");
 		return Tree.TypeNodeAt(0, Gamma, Gamma.VarType, 0);
 	}
 
-	public static TypedNode TypeApply(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {
+	public static TypedNode TypeApply(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
 		TODO("TypeBlock");
 		return null;
 	}
 
-	public static TypedNode TypeAnd(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {
+	public static TypedNode TypeAnd(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
 		TypedNode LeftNode = Tree.TypeNodeAt(LeftHandTerm, Gamma, Gamma.BooleanType, 0);
 		TypedNode RightNode = Tree.TypeNodeAt(RightHandTerm, Gamma, Gamma.BooleanType, 0);
-		return new AndNode(RightNode.TypeInfo, Tree.KeyToken, LeftNode, RightNode);
+		return new AndNode(RightNode.Type, Tree.KeyToken, LeftNode, RightNode);
 	}
 
-	public static TypedNode TypeOr(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {
+	public static TypedNode TypeOr(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
 		TypedNode LeftNode = Tree.TypeNodeAt(LeftHandTerm, Gamma, Gamma.BooleanType, 0);
 		TypedNode RightNode = Tree.TypeNodeAt(RightHandTerm, Gamma, Gamma.BooleanType, 0);
-		return new OrNode(RightNode.TypeInfo, Tree.KeyToken, LeftNode, RightNode);
+		return new OrNode(RightNode.Type, Tree.KeyToken, LeftNode, RightNode);
 	}
 
 	public static SyntaxTree ParseMember(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
@@ -2695,11 +2691,11 @@ class GtGrammar extends GtStatic {
 		return NewTree;
 	}
 
-	public static TypedNode TypeIf(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {
+	public static TypedNode TypeIf(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
 		TypedNode CondNode = Tree.TypeNodeAt(IfCond, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
-		TypedNode ThenNode = Tree.TypeNodeAt(IfThen, Gamma, TypeInfo, DefaultTypeCheckPolicy);
-		TypedNode ElseNode = Tree.TypeNodeAt(IfElse, Gamma, ThenNode.TypeInfo, AllowEmptyPolicy);
-		return new IfNode(ThenNode.TypeInfo, CondNode, ThenNode, ElseNode);
+		TypedNode ThenNode = Tree.TypeNodeAt(IfThen, Gamma, Type, DefaultTypeCheckPolicy);
+		TypedNode ElseNode = Tree.TypeNodeAt(IfElse, Gamma, ThenNode.Type, AllowEmptyPolicy);
+		return Gamma.Generator.CreateIfNode(ThenNode.Type, Tree.KeyToken, CondNode, ThenNode, ElseNode);
 	}
 
 	// Return Statement
@@ -2707,13 +2703,13 @@ class GtGrammar extends GtStatic {
 	public static SyntaxTree ParseReturn(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
 		GtToken Token = TokenContext.GetMatchedToken("return");
 		SyntaxTree NewTree = new SyntaxTree(Pattern, TokenContext.NameSpace, Token);
-		NewTree.SetMatchedPatternAt(ReturnExpr, TokenContext, "$Expression", Optional);
+		NewTree.SetMatchedPatternAt(ReturnExpr, TokenContext, "$Expression$", Optional);
 		return NewTree;
 	}
 
-	public static TypedNode TypeReturn(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {
+	public static TypedNode TypeReturn(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
 		TypedNode Expr = Tree.TypeNodeAt(ReturnExpr, Gamma, Gamma.ReturnType, 0);
-		return new ReturnNode(Expr.TypeInfo, Tree.KeyToken, Expr);
+		return Gamma.Generator.CreateReturnNode(Expr.Type, Tree.KeyToken, Expr);
 	}
 	
 	public static SyntaxTree ParseVarDecl(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
@@ -2756,13 +2752,13 @@ class GtGrammar extends GtStatic {
 		return Tree;
 	}
 
-	public static TypedNode TypeVarDecl(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {		
+	public static TypedNode TypeVarDecl(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {		
 		TODO("TypeVarDecl");
 //		GtType VarType = Tree.GetTokenType(VarDeclTypeOffset, null);
 //		GtToken VarToken = Tree.GetAtToken(VarDeclNameOffset);
 //		String VarName = Tree.GetTokenString(VarDeclNameOffset, null);
 //		if(VarType.equals(Gamma.VarType)) {
-//			return new ErrorNode(TypeInfo, VarToken, "cannot infer variable type");
+//			return new ErrorNode(Type, VarToken, "cannot infer variable type");
 //		}
 //		assert (VarName != null);
 //		Gamma.AppendLocalType(VarType, VarName);
@@ -2771,13 +2767,13 @@ class GtGrammar extends GtStatic {
 		return null;
 	}
 
-	public static TypedNode TypeMethodDecl(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {
+	public static TypedNode TypeMethodDecl(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
 		TODO("TypeMethodDecl");
 //		GtType VarType = Tree.GetTokenType(VarDeclTypeOffset, null);
 //		GtToken VarToken = Tree.GetAtToken(VarDeclNameOffset);
 //		String VarName = Tree.GetTokenString(VarDeclNameOffset, null);
 //		if(VarType.equals(Gamma.VarType)) {
-//			return new ErrorNode(TypeInfo, VarToken, "cannot infer variable type");
+//			return new ErrorNode(Type, VarToken, "cannot infer variable type");
 //		}
 //		assert (VarName != null);
 //		Gamma.AppendLocalType(VarType, VarName);
@@ -2791,7 +2787,7 @@ class GtGrammar extends GtStatic {
 //		return NoMatch;
 //	}
 //
-//	public static TypedNode TypeUNUSED(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {
+//	public static TypedNode TypeUNUSED(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
 //		DebugP("** Syntax " + Tree.Pattern + " is undefined **");
 //		return null;
 //	}
@@ -3087,12 +3083,12 @@ class GtContext extends GtStatic {
 
 //ifdef JAVA
 	GtType LookupHostLangType(Class<?> ClassInfo) {
-		GtType TypeInfo = (GtType) this.ClassNameMap.get(ClassInfo.getName());
-		if(TypeInfo == null) {
-			TypeInfo = new GtType(this, ClassInfo);
-			this.ClassNameMap.put(ClassInfo.getName(), TypeInfo);
+		GtType Type = (GtType) this.ClassNameMap.get(ClassInfo.getName());
+		if(Type == null) {
+			Type = new GtType(this, ClassInfo);
+			this.ClassNameMap.put(ClassInfo.getName(), Type);
 		}
-		return TypeInfo;
+		return Type;
 	}
 //endif VAJA
 
