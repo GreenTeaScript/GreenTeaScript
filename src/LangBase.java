@@ -8,11 +8,11 @@ public abstract class LangBase {
 	}
 
 	public static void DebugP(String msg) {
-		LangBase.println("DEBUG" + LangBase.GetLineNumber(2) + ": " + msg);
+		LangBase.println("DEBUG" + LangBase.GetStackInfo(2) + ": " + msg);
 	}
 
-	public static String GetLineNumber(int depth){
-		String LineNumber = "(";
+	public static String GetStackInfo(int depth){
+		String LineNumber = " ";
 		try{
 			throw new Exception();
 		}
@@ -20,10 +20,10 @@ public abstract class LangBase {
 			StackTraceElement[] tr = e.getStackTrace();
 			if(depth < tr.length){
 				StackTraceElement elem = tr[depth];
-				LineNumber += elem.getClassName() + ":" + elem.getFileName() + ":" + elem.getLineNumber();
+				LineNumber += elem;
 			}
 		}
-		return LineNumber + ")";
+		return LineNumber;
 	}
 	
 	public final static boolean IsWhitespace(char ch) {
