@@ -253,7 +253,7 @@ class GtStatic implements GtConst {
 		LangBase.println(msg);		
 	}
 	
-	public static void P(String msg) {
+	public static void DebugP(String msg) {
 		LangBase.println("DEBUG" + LangBase.GetLineNumber(2) + ": " + msg);
 	}
 
@@ -285,7 +285,7 @@ class GtStatic implements GtConst {
 					return methods[i];
 				}
 			}
-			GtStatic.P("method not found: " + Callee.getClass().getSimpleName() + "." + MethodName);
+			DebugP("method not found: " + Callee.getClass().getSimpleName() + "." + MethodName);
 		}
 		return null; /*throw new GtParserException("method not found: " + callee.getClass().getName() + "." + methodName);*/
 	}
@@ -357,10 +357,10 @@ class GtStatic implements GtConst {
 			if(CurrentPattern.ParentPattern != null) {
 				TokenContext.ParseFlag = ParseFlag | TrackbackParseFlag;
 			}
-			GtStatic.P("B ApplySyntaxPattern: " + CurrentPattern + " > " + CurrentPattern.ParentPattern);
+			DebugP("B ApplySyntaxPattern: " + CurrentPattern + " > " + CurrentPattern.ParentPattern);
 			SyntaxTree ParsedTree = (SyntaxTree)LangBase.ApplyMatchFunc(f.Self, f.Method, CurrentPattern, LeftTree, TokenContext);
 			if(ParsedTree != null && ParsedTree.IsEmpty()) ParsedTree = null;
-			GtStatic.P("E ApplySyntaxPattern: " + CurrentPattern + " => " + ParsedTree);
+			DebugP("E ApplySyntaxPattern: " + CurrentPattern + " => " + ParsedTree);
 			TokenContext.ParseFlag = ParseFlag;
 			if(ParsedTree != null) {
 				return ParsedTree;
@@ -371,7 +371,7 @@ class GtStatic implements GtConst {
 			TokenContext.Pos = Pos;
 		}
 		if(Pattern == null) {
-			GtStatic.P("undefined syntax pattern: " + Pattern);
+			DebugP("undefined syntax pattern: " + Pattern);
 		}
 		return TokenContext.ReportExpectedPattern(Pattern);
 	}
@@ -382,7 +382,7 @@ class GtStatic implements GtConst {
 		while (!GtStatic.IsEmptyOrError(LeftTree)) {
 			SyntaxPattern ExtendedPattern = TokenContext.GetExtendedPattern();
 			if(ExtendedPattern == null) {
-				GtStatic.P("In $Expression ending: " + TokenContext.GetToken());
+				DebugP("In $Expression ending: " + TokenContext.GetToken());
 				break;
 			}
 			LeftTree = GtStatic.ApplySyntaxPattern(ExtendedPattern, LeftTree, TokenContext);			
@@ -393,7 +393,7 @@ class GtStatic implements GtConst {
 	// typing 
 	public final static TypedNode ApplyTypeFunc(GtFuncC TypeFunc, TypeEnv Gamma, SyntaxTree ParsedTree, GtType TypeInfo) {
 		if(TypeFunc == null || TypeFunc.Method == null){
-			GtStatic.P("try to invoke null TypeFunc");
+			DebugP("try to invoke null TypeFunc");
 			return null;
 		}
 		return (TypedNode)LangBase.ApplyTypeFunc(TypeFunc.Self, TypeFunc.Method, Gamma, ParsedTree, TypeInfo);
@@ -619,7 +619,7 @@ final class TokenContext extends GtStatic {
 			Token.PresetPattern = this.NameSpace.GetPattern(PatternName);
 			assert(Token.PresetPattern != null);
 		}
-		GtStatic.P("<< " + Text + " : " + PatternName);
+		DebugP("<< " + Text + " : " + PatternName);
 		this.SourceList.add(Token);
 		return Token;
 	}
@@ -679,7 +679,7 @@ final class TokenContext extends GtStatic {
 		TokenFunc TokenFunc = this.NameSpace.GetTokenFunc(GtChar);
 		int NextIdx = GtStatic.ApplyTokenFunc(TokenFunc, this, ScriptSource, pos);
 		if(NextIdx == NoMatch) {
-			GtStatic.P("undefined tokenizer: " + ScriptSource.charAt(pos));
+			DebugP("undefined tokenizer: " + ScriptSource.charAt(pos));
 			this.AddNewToken(ScriptSource.substring(pos), 0, null);
 			return ScriptSource.length();
 		}
@@ -804,7 +804,7 @@ final class TokenContext extends GtStatic {
 	public void Dump() {
 		for(int pos = this.Pos ; pos < this.SourceList.size(); pos++) {
 			GtToken token = (GtToken)this.SourceList.get(pos);
-			GtStatic.P("["+pos+"]\t" + token + " : " + token.PresetPattern);
+			DebugP("["+pos+"]\t" + token + " : " + token.PresetPattern);
 		}
 	}
 }
@@ -2461,12 +2461,12 @@ class GtGrammar extends GtStatic {
 	}
 
 	public static SyntaxTree ParseType(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
-		GtStatic.P("Entering ParseType..");
+		DebugP("Entering ParseType..");
 		return null; // Not Matched
 	}
 
 	public static SyntaxTree ParseSymbol(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
-		GtStatic.P("Entering ParseSymbol..");
+		DebugP("Entering ParseSymbol..");
 		GtToken Token = TokenContext.Next();
 		return new SyntaxTree(Pattern, TokenContext.NameSpace, Token);
 	}
@@ -2620,7 +2620,7 @@ class GtGrammar extends GtStatic {
 //	}
 //
 //	public TypedNode TypeMethodCall(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {
-//		GtStatic.P("(>_<) typing method calls: " + Tree);
+//		DebugP("(>_<) typing method calls: " + Tree);
 //		GtArray NodeList = Tree.TreeList;
 //		assert (NodeList.size() > 1);
 //		assert (NodeList.get(0) instanceof SyntaxTree);
@@ -2785,7 +2785,7 @@ class GtGrammar extends GtStatic {
 	}
 	
 	public static SyntaxTree ParseVarDecl(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
-		GtStatic.P("Entering ParseVarDecl..");
+		DebugP("Entering ParseVarDecl..");
 		SyntaxTree Tree = new SyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetToken());
 		Tree.SetMatchedPatternAt(VarDeclType, TokenContext, "$Type", Required);
 		Tree.SetMatchedPatternAt(VarDeclName, TokenContext, "$Variable", Required);
@@ -2868,12 +2868,12 @@ class GtGrammar extends GtStatic {
 
 
 //	public static SyntaxTree ParseUNUSED(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
-//		GtStatic.P("** Syntax " + Tree.Pattern + " is undefined **");
+//		DebugP("** Syntax " + Tree.Pattern + " is undefined **");
 //		return NoMatch;
 //	}
 //
 //	public static TypedNode TypeUNUSED(TypeEnv Gamma, SyntaxTree Tree, GtType TypeInfo) {
-//		GtStatic.P("** Syntax " + Tree.Pattern + " is undefined **");
+//		DebugP("** Syntax " + Tree.Pattern + " is undefined **");
 //		return null;
 //	}
 
