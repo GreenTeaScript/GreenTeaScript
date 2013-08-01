@@ -250,15 +250,15 @@ class GtStatic implements GtConst {
 //endif VAJA
 	
 	public static void println(String msg) {
-		LangBase.println(msg);		
+		LangDeps.println(msg);		
 	}
 	
 	public static void DebugP(String msg) {
-		LangBase.println("DEBUG" + LangBase.GetStackInfo(2) + ": " + msg);
+		LangDeps.println("DEBUG" + LangDeps.GetStackInfo(2) + ": " + msg);
 	}
 
 	public static void TODO(String msg) {
-		LangBase.println("TODO" + LangBase.GetStackInfo(2) + ": " + msg);
+		LangDeps.println("TODO" + LangDeps.GetStackInfo(2) + ": " + msg);
 	}
 
 	public static int ListSize(GtArray a) {
@@ -277,15 +277,15 @@ class GtStatic implements GtConst {
 	}
 
 	public final static GtFuncToken FunctionA(Object Callee, String MethodName) {
-		return new GtFuncToken(Callee, LangBase.LookupMethod(Callee, MethodName));
+		return new GtFuncToken(Callee, LangDeps.LookupMethod(Callee, MethodName));
 	}
 
 	public final static GtFuncMatch FunctionB(Object Callee, String MethodName) {
-		return new GtFuncMatch(Callee, LangBase.LookupMethod(Callee, MethodName));
+		return new GtFuncMatch(Callee, LangDeps.LookupMethod(Callee, MethodName));
 	}
 	
 	public final static GtFuncTypeCheck FunctionC(Object Callee, String MethodName) {
-		return new GtFuncTypeCheck(Callee, LangBase.LookupMethod(Callee, MethodName));
+		return new GtFuncTypeCheck(Callee, LangDeps.LookupMethod(Callee, MethodName));
 	}
 
 	public final static boolean EqualsMethod(Method m1, Method m2) {
@@ -306,7 +306,7 @@ class GtStatic implements GtConst {
 	public final static int ApplyTokenFunc(TokenFunc TokenFunc, TokenContext TokenContext, String ScriptSource, int Pos) {
 		while(TokenFunc != null) {
 			GtFuncToken f = TokenFunc.Func;
-			int NextIdx = LangBase.ApplyTokenFunc(f.Self, f.Method, TokenContext, ScriptSource, Pos);
+			int NextIdx = LangDeps.ApplyTokenFunc(f.Self, f.Method, TokenContext, ScriptSource, Pos);
 			if(NextIdx > Pos) return NextIdx;
 			TokenFunc = TokenFunc.ParentFunc;
 		}
@@ -344,7 +344,7 @@ class GtStatic implements GtConst {
 				TokenContext.ParseFlag = ParseFlag | TrackbackParseFlag;
 			}
 			DebugP("B ApplySyntaxPattern: " + CurrentPattern + " > " + CurrentPattern.ParentPattern);
-			SyntaxTree ParsedTree = (SyntaxTree)LangBase.ApplyMatchFunc(f.Self, f.Method, CurrentPattern, LeftTree, TokenContext);
+			SyntaxTree ParsedTree = (SyntaxTree)LangDeps.ApplyMatchFunc(f.Self, f.Method, CurrentPattern, LeftTree, TokenContext);
 			if(ParsedTree != null && ParsedTree.IsEmpty()) ParsedTree = null;
 			DebugP("E ApplySyntaxPattern: " + CurrentPattern + " => " + ParsedTree);
 			TokenContext.ParseFlag = ParseFlag;
@@ -382,7 +382,7 @@ class GtStatic implements GtConst {
 			DebugP("try to invoke null TypeFunc");
 			return null;
 		}
-		return (TypedNode)LangBase.ApplyTypeFunc(TypeFunc.Self, TypeFunc.Method, Gamma, ParsedTree, Type);
+		return (TypedNode)LangDeps.ApplyTypeFunc(TypeFunc.Self, TypeFunc.Method, Gamma, ParsedTree, Type);
 	}
 
 //ifdef JAVA
@@ -1070,7 +1070,7 @@ class GtType extends GtStatic {
 //ifdef JAVA
 	
 	public void DefineMethod(int MethodFlag, String MethodName, GtParam Param, Object Callee, String LocalName) {
-		GtMethod Method = new GtMethod(MethodFlag, this, MethodName, Param, LangBase.LookupMethod(Callee, LocalName));
+		GtMethod Method = new GtMethod(MethodFlag, this, MethodName, Param, LangDeps.LookupMethod(Callee, LocalName));
 		this.AddMethod(Method);
 	}
 
@@ -1884,7 +1884,7 @@ class GtGrammar extends GtStatic {
 		TokenContext.FoundWhiteSpace();
 		for(; pos < SourceText.length(); pos++) {
 			char ch = SourceText.charAt(pos);
-			if(!LangBase.IsWhitespace(ch)) {
+			if(!LangDeps.IsWhitespace(ch)) {
 				break;
 			}
 		}
@@ -1897,7 +1897,7 @@ class GtGrammar extends GtStatic {
 		pos = pos + 1;
 		for(; pos < SourceText.length(); pos++) {
 			char ch = SourceText.charAt(pos);
-			if(!LangBase.IsWhitespace(ch)) {
+			if(!LangDeps.IsWhitespace(ch)) {
 				break;
 			}
 		}
@@ -1918,7 +1918,7 @@ class GtGrammar extends GtStatic {
 		int start = pos;
 		for(; pos < SourceText.length(); pos++) {
 			char ch = SourceText.charAt(pos);
-			if(!LangBase.IsLetter(ch) && !LangBase.IsDigit(ch) && ch != '_') {
+			if(!LangDeps.IsLetter(ch) && !LangDeps.IsDigit(ch) && ch != '_') {
 				break;
 			}
 		}
@@ -1930,7 +1930,7 @@ class GtGrammar extends GtStatic {
 		int start = pos + 1;
 		for(; pos < SourceText.length(); pos++) {
 			char ch = SourceText.charAt(pos);
-			if(!LangBase.IsLetter(ch) && !LangBase.IsDigit(ch) && ch != '_') {
+			if(!LangDeps.IsLetter(ch) && !LangDeps.IsDigit(ch) && ch != '_') {
 				break;
 			}
 		}
@@ -1942,7 +1942,7 @@ class GtGrammar extends GtStatic {
 		int start = pos;
 		for(; pos < SourceText.length(); pos++) {
 			char ch = SourceText.charAt(pos);
-			if(!LangBase.IsDigit(ch)) {
+			if(!LangDeps.IsDigit(ch)) {
 				break;
 			}
 		}

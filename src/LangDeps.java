@@ -3,14 +3,14 @@
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-public abstract class LangBase {
+public abstract class LangDeps {
 
 	public static void println(String msg) {
 		System.out.println(msg);		
 	}
 
 	public static void DebugP(String msg) {
-		LangBase.println("DEBUG" + LangBase.GetStackInfo(2) + ": " + msg);
+		LangDeps.println("DEBUG" + LangDeps.GetStackInfo(2) + ": " + msg);
 	}
 
 	public static String GetStackInfo(int depth){
