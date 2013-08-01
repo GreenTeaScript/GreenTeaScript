@@ -1113,255 +1113,152 @@ class GtType extends GtStatic {
 		this.ClassMethodList.add(Method);
 	}
 
-	public GtMethod FindMethod(String MethodName, int ParamSize) {
-		/*local*/int i = 0;
-		while(i < this.ClassMethodList.size()) {
-			GtMethod Method = this.ClassMethodList.get(i);
-			if(Method.Match(MethodName, ParamSize)) {
-				return Method;
-			}
-			i += 1;
-		}
-		return null;
-	}
-
-	public GtMethod LookupMethod(String MethodName, int ParamSize) {
-		GtMethod Method = this.FindMethod(MethodName, ParamSize);
-		if(Method != null) {
-			return Method;
-		}
-		if(this.SearchSuperMethodClass != null) {
-			Method = this.SearchSuperMethodClass.LookupMethod(MethodName, ParamSize);
-			if(Method != null) {
-				return Method;
-			}
-		}
-//		if(GtContext.Generator.CreateMethods(this.LocalSpec, MethodName)) {
-//			return this.LookupMethod(MethodName, ParamSize);
+//	public GtMethod FindMethod(String MethodName, int ParamSize) {
+//		/*local*/int i = 0;
+//		while(i < this.ClassMethodList.size()) {
+//			GtMethod Method = this.ClassMethodList.get(i);
+//			if(Method.Match(MethodName, ParamSize)) {
+//				return Method;
+//			}
+//			i += 1;
 //		}
-//ifdef JAVA
-		if(this.LocalSpec instanceof Class) {
-			if(this.CreateMethods(MethodName) > 0) {
-				return this.FindMethod(MethodName, ParamSize);
-			}
-		}
-//endif JAVA
-		return null;
-	}
-
-	public boolean DefineNewMethod(GtMethod NewMethod) {
-		/*local*/int i = 0;
-		while(i < this.ClassMethodList.size()) {
-			/*local*/GtMethod DefinedMethod = (GtMethod) this.ClassMethodList.get(i);
-			if(NewMethod.Match(DefinedMethod)) {
-				return false;
-			}
-			i += 1;
-		}
-		this.AddMethod(NewMethod);
-		return true;
-	}
-
-//ifdef JAVA
-	
-	public void DefineMethod(int MethodFlag, String MethodName, GtParam Param, Object Callee, String LocalName) {
-		GtMethod Method = new GtMethod(MethodFlag, this, MethodName, Param, LangDeps.LookupMethod(Callee, LocalName));
-		this.AddMethod(Method);
-	}
-
-	public GtType(GtContext GtContext, Class<?> ClassInfo) {
-		this(GtContext, 0, ClassInfo.getSimpleName(), null);
-		this.LocalSpec = ClassInfo;
-		// this.ClassFlag = ClassFlag;
-		Class<?> SuperClass = ClassInfo.getSuperclass();
-		if(ClassInfo != Object.class && SuperClass != null) {
-			this.SuperClass = GtContext.LookupHostLangType(ClassInfo.getSuperclass());
-		}
-	}
-
-	static GtMethod ConvertMethod(GtContext GtContext, Method Method) {
-		GtType ThisType = GtContext.LookupHostLangType(Method.getClass());
-		Class<?>[] ParamTypes = Method.getParameterTypes();
-		GtType[] ParamData = new GtType[ParamTypes.length + 1];
-		String[] ArgNames = new String[ParamTypes.length + 1];
-		ParamData[0] = GtContext.LookupHostLangType(Method.getReturnType());
-		for(int i = 0; i < ParamTypes.length; i++) {
-			ParamData[i + 1] = GtContext.LookupHostLangType(ParamTypes[i]);
-			ArgNames[i] = "arg" + i;
-		}
-		GtParam Param = new GtParam(ParamData.length, ParamData, ArgNames);
-		GtMethod Mtd = new GtMethod(0, ThisType, Method.getName(), Param, Method);
-		ThisType.AddMethod(Mtd);
-		return Mtd;
-	}
-
-	int CreateMethods(String MethodName) {
-		int Count = 0;
-		Method[] Methods = ((Class<?>)this.LocalSpec).getMethods();
-		for(int i = 0; i < Methods.length; i++) {
-			if(MethodName.equals(Methods[i].getName())) {
-				GtType.ConvertMethod(this.GtContext, Methods[i]);
-				Count = Count + 1;
-			}
-		}
-		return Count;
-	}
-
-	public boolean RegisterCompiledMethod(GtMethod NewMethod) {
-		for(int i = 0; i < this.ClassMethodList.size(); i++) {
-			GtMethod DefinedMethod = (GtMethod) this.ClassMethodList.get(i);
-			if(NewMethod.Match(DefinedMethod)) {
-				this.ClassMethodList.set(i, NewMethod);
-				return true;
-			}
-		}
-		return false;
-	}
-//endif VAJA
-}
-
-final class GtSymbol extends GtStatic {
-
-
+//		return null;
+//	}
+//
+//	public GtMethod LookupMethod(String MethodName, int ParamSize) {
+//		GtMethod Method = this.FindMethod(MethodName, ParamSize);
+//		if(Method != null) {
+//			return Method;
+//		}
+//		if(this.SearchSuperMethodClass != null) {
+//			Method = this.SearchSuperMethodClass.LookupMethod(MethodName, ParamSize);
+//			if(Method != null) {
+//				return Method;
+//			}
+//		}
+////		if(GtContext.Generator.CreateMethods(this.LocalSpec, MethodName)) {
+////			return this.LookupMethod(MethodName, ParamSize);
+////		}
+////ifdef JAVA
+//		if(this.LocalSpec instanceof Class) {
+//			if(this.CreateMethods(MethodName) > 0) {
+//				return this.FindMethod(MethodName, ParamSize);
+//			}
+//		}
+////endif JAVA
+//		return null;
+//	}
+//
+//	public boolean DefineNewMethod(GtMethod NewMethod) {
+//		/*local*/int i = 0;
+//		while(i < this.ClassMethodList.size()) {
+//			/*local*/GtMethod DefinedMethod = (GtMethod) this.ClassMethodList.get(i);
+//			if(NewMethod.Match(DefinedMethod)) {
+//				return false;
+//			}
+//			i += 1;
+//		}
+//		this.AddMethod(NewMethod);
+//		return true;
+//	}
+//
+////ifdef JAVA
+//	
+//	public void DefineMethod(int MethodFlag, String MethodName, GtParam Param, Object Callee, String LocalName) {
+//		GtMethod Method = new GtMethod(MethodFlag, this, MethodName, Param, LangDeps.LookupMethod(Callee, LocalName));
+//		this.AddMethod(Method);
+//	}
+//
+//	public GtType(GtContext GtContext, Class<?> ClassInfo) {
+//		this(GtContext, 0, ClassInfo.getSimpleName(), null);
+//		this.LocalSpec = ClassInfo;
+//		// this.ClassFlag = ClassFlag;
+//		Class<?> SuperClass = ClassInfo.getSuperclass();
+//		if(ClassInfo != Object.class && SuperClass != null) {
+//			this.SuperClass = GtContext.LookupHostLangType(ClassInfo.getSuperclass());
+//		}
+//	}
+//
+//	static GtMethod ConvertMethod(GtContext GtContext, Method Method) {
+//		GtType ThisType = GtContext.LookupHostLangType(Method.getClass());
+//		Class<?>[] ParamTypes = Method.getParameterTypes();
+//		GtType[] ParamData = new GtType[ParamTypes.length + 1];
+//		String[] ArgNames = new String[ParamTypes.length + 1];
+//		ParamData[0] = GtContext.LookupHostLangType(Method.getReturnType());
+//		for(int i = 0; i < ParamTypes.length; i++) {
+//			ParamData[i + 1] = GtContext.LookupHostLangType(ParamTypes[i]);
+//			ArgNames[i] = "arg" + i;
+//		}
+//		GtParam Param = new GtParam(ParamData.length, ParamData, ArgNames);
+//		GtMethod Mtd = new GtMethod(0, ThisType, Method.getName(), Param, Method);
+//		ThisType.AddMethod(Mtd);
+//		return Mtd;
+//	}
+//
+//	int CreateMethods(String MethodName) {
+//		int Count = 0;
+//		Method[] Methods = ((Class<?>)this.LocalSpec).getMethods();
+//		for(int i = 0; i < Methods.length; i++) {
+//			if(MethodName.equals(Methods[i].getName())) {
+//				GtType.ConvertMethod(this.GtContext, Methods[i]);
+//				Count = Count + 1;
+//			}
+//		}
+//		return Count;
+//	}
+//
+//	public boolean RegisterCompiledMethod(GtMethod NewMethod) {
+//		for(int i = 0; i < this.ClassMethodList.size(); i++) {
+//			GtMethod DefinedMethod = (GtMethod) this.ClassMethodList.get(i);
+//			if(NewMethod.Match(DefinedMethod)) {
+//				this.ClassMethodList.set(i, NewMethod);
+//				return true;
+//			}
+//		}
+//		return false;
+//	}
+////endif VAJA
 }
 
 class GtParam extends GtStatic {
-	public final static int	MAX					= 16;
-	public final static int	VariableParamSize	= -1;
-	/*local*/public int				ReturnSize;
-	/*local*/public GtType[]			Types;
-	/*local*/public String[]			ArgNames;
+	/*field*/public int                 ParamSize;
+	/*field*/public ArrayList<GtType>	TypeList;
+	/*field*/public ArrayList<String>   NameList;
 
-	GtParam/*constructor*/(int DataSize, GtType ParamData[], String[] ArgNames) {
-		this.ReturnSize = 1;
-		this.Types = new GtType[DataSize];
-		this.ArgNames = new String[DataSize - this.ReturnSize];
-		System.arraycopy(ParamData, 0, this.Types, 0, DataSize);
-		System.arraycopy(ArgNames, 0, this.ArgNames, 0, DataSize - this.ReturnSize);
+	GtParam/*constructor*/(ArrayList<GtType> TypeList, ArrayList<String> NameList) {
+		this.TypeList = TypeList;
+		this.NameList = NameList;
+		this.ParamSize = TypeList.size() - 1;
 	}
 
-	public static GtParam ParseOf(GtNameSpace ns, String TypeList) {
-		GtStatic.TODO("ParseOfParam");
-//		Tokens BufferList = ns.Tokenize(TypeList, 0);
-//		int next = BufferList.size();
-//		ns.PreProcess(BufferList, 0, next, BufferList);
-//		GtType[] ParamData = new GtType[GtParam.MAX];
-//		String[] ArgNames = new String[GtParam.MAX];
-//		int i, DataSize = 0, ParamSize = 0;
-//		for(i = next; i < BufferList.size(); i++) {
-//			GtToken Token = BufferList.get(i);
-//			if(Token.ResolvedObject instanceof GtType) {
-//				ParamData[DataSize] = (GtType) Token.ResolvedObject;
-//				DataSize++;
-//				if(DataSize == GtParam.MAX)
-//					break;
-//			} else {
-//				ArgNames[ParamSize] = Token.ParsedText;
-//				ParamSize++;
-//			}
-//		}
-//		return new GtParam(DataSize, ParamData, ArgNames);
-		return null;
-	}
-
-	public final int GetParamSize() {
-		return this.Types.length - this.ReturnSize;
-	};
-
-	public final boolean Match(GtParam Other) {
-		int ParamSize = Other.GetParamSize();
-		if(ParamSize == this.GetParamSize()) {
-			for(int i = this.ReturnSize; i < this.Types.length; i++) {
-				if(this.Types[i] != Other.Types[i])
+	public final boolean Equals(GtParam Other) {
+		int ParamSize = Other.ParamSize;
+		if(ParamSize == this.ParamSize) {
+			/*local*/int i = 0;
+			while(i < ParamSize) {
+				if(this.TypeList.get(i) != Other.TypeList.get(i)) {
 					return false;
+				}
+				i += 1;
 			}
 			return true;
 		}
 		return false;
 	}
 
-}
-
-//ifdef JAVA
-//class GtMethodInvoker {
-//	GtParam		Param;
-//	public Object	CompiledCode;
-//
-//	public GtMethodInvoker(GtParam Param, Object CompiledCode) {
-//		this.Param = Param;
-//		this.CompiledCode = CompiledCode;
-//
-//	}
-//
-//	public Object Invoke(Object[] Args) {
-//		return null;
-//	}
-//}
-//
-//class NativeMethodInvoker extends GtMethodInvoker {
-//
-//	public NativeMethodInvoker(GtParam Param, Method MethodRef) {
-//		super(Param, MethodRef);
-//	}
-//
-//	public Method GetMethodRef() {
-//		return (Method) this.CompiledCode;
-//	}
-//
-//	boolean IsStaticInvocation() {
-//		return Modifier.isStatic(this.GetMethodRef().getModifiers());
-//	}
-//
-//	@Override public Object Invoke(Object[] Args) {
-//		int ParamSize = this.Param != null ? this.Param.GetParamSize() : 0;
-//		try {
-//			Method MethodRef = this.GetMethodRef();
-//			if(this.IsStaticInvocation()) {
-//				switch (ParamSize) {
-//				case 0:
-//					return MethodRef.invoke(null, Args[0]);
-//				case 1:
-//					return MethodRef.invoke(null, Args[0], Args[1]);
-//				case 2:
-//					return MethodRef.invoke(null, Args[0], Args[0], Args[2]);
-//				case 3:
-//					return MethodRef.invoke(null, Args[0], Args[0], Args[2], Args[3]);
-//				case 4:
-//					return MethodRef.invoke(null, Args[0], Args[1], Args[2], Args[3], Args[4]);
-//				case 5:
-//					return MethodRef.invoke(null, Args[0], Args[1], Args[2], Args[3], Args[4], Args[5]);
-//				default:
-//					return MethodRef.invoke(null, Args); // FIXME
-//				}
-//			} else {
-//				switch (ParamSize) {
-//				case 0:
-//					return MethodRef.invoke(Args[0]);
-//				case 1:
-//					return MethodRef.invoke(Args[0], Args[1]);
-//				case 2:
-//					return MethodRef.invoke(Args[0], Args[0], Args[2]);
-//				case 3:
-//					return MethodRef.invoke(Args[0], Args[0], Args[2], Args[3]);
-//				case 4:
-//					return MethodRef.invoke(Args[0], Args[1], Args[2], Args[3], Args[4]);
-//				case 5:
-//					return MethodRef.invoke(Args[0], Args[1], Args[2], Args[3], Args[4], Args[5]);
-//				default:
-//					return MethodRef.invoke(Args[0], Args); // FIXME
-//				}
+//	public final boolean Match(int ParamSize, ArrayList<GtType> ParamList) {
+//		while(i + 1 < ParamSize) {
+//			/*local*/GtType ParamType = this.TypeList.get(i+1);
+//			GtType GivenType = ParamList.get(i);
+//			if(!ParamType.Match(GivenType)) {
+//				return false;
 //			}
-//		} catch (IllegalArgumentException e) {
-//			e.printStackTrace();
-//		} catch (IllegalAccessException e) {
-//			e.printStackTrace();
-//		} catch (InvocationTargetException e) {
-//			e.printStackTrace();
+//			i += 1;
 //		}
-//		return null;
+//		return true;
 //	}
-//}
-//endif VAJA
+	
+}
 
 class GtDef extends GtStatic {
 
@@ -1378,85 +1275,71 @@ class GtMethod extends GtDef {
 	/*field*/int					MethodSymbolId;
 	/*field*/int					CanonicalSymbolId;
 	/*field*/public GtParam			Param;
-//	public GtMethodInvoker	MethodInvoker;
 
-	// DoLazyComilation();
-	GtNameSpace				LazyNameSpace;
-//	GtArray					SourceList;
-	//FIXME merge ParsedTree field in SouceList.
-//	public SyntaxTree			ParsedTree;
-
-	GtMethod/*constructor*/(int MethodFlag, GtType ClassInfo, String MethodName, GtParam Param, Method MethodRef) {
+	GtMethod/*constructor*/(int MethodFlag, GtType ClassInfo, String MethodName, GtParam Param) {
 		this.MethodFlag = MethodFlag;
 		this.ClassInfo = ClassInfo;
 		this.MethodName = MethodName;
-		this.MethodSymbolId = GtSymbol.GetSymbolId(MethodName);
-		this.CanonicalSymbolId = GtSymbol.GetCanonicalSymbolId(MethodName);
+		this.MethodSymbolId = GtStatic.GetSymbolId(MethodName);
+		this.CanonicalSymbolId = GtStatic.GetCanonicalSymbolId(MethodName);
 		this.Param = Param;
-//		this.ParsedTree = null;
 	}
 
-//ifdef JAVA
 	@Override public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append(this.Param.Types[0]);
-		builder.append(" ");
-		builder.append(this.MethodName);
-		builder.append("(");
-		for(int i = 0; i < this.Param.ArgNames.length; i++) {
+		/*local*/String s = this.ClassInfo + "." + this.MethodName + "(";
+		/*local*/int i = 0;
+		while(i < this.Param.ParamSize) {
+			/*local*/GtType ParamType = this.GetParamType(i);
 			if(i > 0) {
-				builder.append(", ");
+				s += ", ";
 			}
-			builder.append(this.Param.Types[i + 1]);
-			builder.append(" ");
-			builder.append(this.Param.ArgNames[i]);
+			s += ParamType;
+			i += 1;
 		}
-		builder.append(")");
-		return builder.toString();
+		return s + ": " + this.GetReturnType();
 	};
-//endif VAJA
 
 	public boolean Is(int Flag) {
-		return ((this.MethodFlag & Flag) == Flag);
+		return IsFlag(this.MethodFlag, Flag);
 	}
 
-	public final GtType GetReturnType(GtType BaseType) {
-		GtType ReturnType = this.Param.Types[0];
+	public final GtType GetReturnType() {
+		GtType ReturnType = this.Param.TypeList.get(0);
 		return ReturnType;
 	}
 
-	public final GtType GetParamType(GtType BaseType, int ParamIdx) {
-		GtType ParamType = this.Param.Types[ParamIdx + this.Param.ReturnSize];
+	public final GtType GetParamType(int ParamIdx) {
+		GtType ParamType = this.Param.TypeList.get(0);
 		return ParamType;
 	}
 
-	public final boolean Match(GtMethod Other) {
-		return (this.MethodName.equals(Other.MethodName) && this.Param.Match(Other.Param));
-	}
-
-	public boolean Match(String MethodName, int ParamSize) {
-		if(MethodName.equals(this.MethodName)) {
-			if(ParamSize == -1) {
-				return true;
-			}
-			if(this.Param.GetParamSize() == ParamSize) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public boolean Match(String MethodName, int ParamSize, GtType[] RequestTypes) {
-		if(!this.Match(MethodName, ParamSize)) {
-			return false;
-		}
-		for(int i = 0; i < RequestTypes.length; i++) {
-			if(RequestTypes.equals(this.GetParamType(this.ClassInfo, i)) == false) {
-				return false;
-			}
-		}
-		return true;
-	}
+//	public final boolean Match(GtMethod Other) {
+//		return (this.MethodName.equals(Other.MethodName) && this.Param.Equals(Other.Param));
+//	}
+//
+//	public boolean Match(String MethodName, int ParamSize) {
+//		if(MethodName.equals(this.MethodName)) {
+//			if(ParamSize == -1) {
+//				return true;
+//			}
+//			if(this.Param.GetParamSize() == ParamSize) {
+//				return true;
+//			}
+//		}
+//		return false;
+//	}
+//
+//	public boolean Match(String MethodName, int ParamSize, GtType[] RequestTypes) {
+//		if(!this.Match(MethodName, ParamSize)) {
+//			return false;
+//		}
+//		for(int i = 0; i < RequestTypes.length; i++) {
+//			if(RequestTypes.equals(this.GetParamType(this.ClassInfo, i)) == false) {
+//				return false;
+//			}
+//		}
+//		return true;
+//	}
 
 //	public Object Eval(Object[] ParamData) {
 //		//int ParamSize = this.Param.GetParamSize();
@@ -1488,6 +1371,7 @@ class GtMethod extends GtDef {
 //		this.MethodInvoker = Builder.Build(NS, TNode, this);
 	}
 }
+
 
 final class VariableInfo {
 	/*field*/public GtType	Type;
@@ -1541,14 +1425,14 @@ final class TypeEnv extends GtStatic {
 	}
 
 	private void InitMethod(GtMethod Method) {
-		this.ReturnType = Method.GetReturnType(Method.ClassInfo);
+		this.ReturnType = Method.GetReturnType();
 		this.ThisType = Method.ClassInfo;
 		if(!Method.Is(StaticMethod)) {
 			this.AppendDeclaredVariable(Method.ClassInfo, "this");
 			/*local*/GtParam Param = Method.Param;
 			/*local*/int i = 0;
-			while(i < Param.ArgNames.length) {
-				this.AppendDeclaredVariable(Param.Types[i + Param.ReturnSize], Param.ArgNames[i]);
+			while(i < Param.ParamSize) {
+				this.AppendDeclaredVariable(Param.TypeList.get(i), Param.NameList.get(i));
 				i += 1;
 			}
 		}
@@ -1578,7 +1462,6 @@ final class TypeEnv extends GtStatic {
 		return null;
 	}
 
-	
 	public GtType GuessType(Object Value) {
 		TODO("GuessType");
 		return this.AnyType;
@@ -2559,14 +2442,14 @@ class GtContext extends GtStatic {
 	}
 	
 //ifdef JAVA
-	GtType LookupHostLangType(Class<?> ClassInfo) {
-		GtType Type = (GtType) this.ClassNameMap.get(ClassInfo.getName());
-		if(Type == null) {
-			Type = new GtType(this, ClassInfo);
-			this.ClassNameMap.put(ClassInfo.getName(), Type);
-		}
-		return Type;
-	}
+//	GtType LookupHostLangType(Class<?> ClassInfo) {
+//		GtType Type = (GtType) this.ClassNameMap.get(ClassInfo.getName());
+//		if(Type == null) {
+//			Type = new GtType(this, ClassInfo);
+//			this.ClassNameMap.put(ClassInfo.getName(), Type);
+//		}
+//		return Type;
+//	}
 //endif VAJA
 
 	public void Define(String Symbol, Object Value) {
