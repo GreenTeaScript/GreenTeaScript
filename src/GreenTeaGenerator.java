@@ -1,3 +1,5 @@
+
+import java.util.ArrayList;
 // GreenTea Generator should be written in each language.
 
 class TypedNode extends GtStatic {
@@ -152,12 +154,12 @@ class LetNode extends TypedNode {
 
 class ApplyNode extends TypedNode {
 	/*field*/public GtMethod	Method;
-	/*field*/public GtArray	Params; /* [this, arg1, arg2, ...] */
+	/*field*/public ArrayList<TypedNode>	Params; /* [this, arg1, arg2, ...] */
 
 	ApplyNode/*constructor*/(GtType Type, GtToken KeyToken, GtMethod Method, TypedNode arg1) {
 		super(Type, KeyToken);
 		this.Method = Method;
-		this.Params = new GtArray();
+		this.Params = new ArrayList<TypedNode>();
 		this.Params.add(arg1);
 	}
 	
@@ -171,11 +173,11 @@ class ApplyNode extends TypedNode {
 }
 
 class NewNode extends TypedNode {
-	/*field*/public GtArray	Params; /* [this, arg1, arg2, ...] */
+	/*field*/public ArrayList<TypedNode>	Params; /* [this, arg1, arg2, ...] */
 
 	NewNode/*constructor*/(GtType Type, GtToken Token) {
 		super(Type, Token);
-		this.Params = new GtArray();
+		this.Params = new ArrayList<TypedNode>();
 	}
 
 	public void Append(TypedNode Expr) {
@@ -304,8 +306,8 @@ class SwitchNode extends TypedNode {
 		super(Type, Token);
 	}
 //	public TypedNode	CondExpr;
-//	public GtArray	Labels;
-//	public GtArray	Blocks;
+//	public ArrayList<TypedNode>	Labels;
+//	public ArrayList<TypedNode>	Blocks;
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitSwitchNode(this);
 	}

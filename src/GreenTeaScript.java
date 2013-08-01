@@ -1,8 +1,6 @@
 
 //ifdef JAVA
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -468,50 +466,6 @@ class GtStatic implements GtConst {
 	}
 
 //ifdef JAVA
-}
-
-final class GtArray {
-	private final ArrayList<Object>	List;
-
-	public GtArray() {
-		this.List = new ArrayList<Object>();
-	}
-
-	public GtArray(int DefaultSize) {
-		this.List = new ArrayList<Object>(DefaultSize);
-	}
-
-	public int size() {
-		return this.List.size();
-	}
-
-	public void add(Object Value) {
-		this.List.add(Value);
-	}
-
-	public Object get(int index) {
-		return this.List.get(index);
-	}
-
-	public void set(int index, Object Value) {
-		this.List.set(index, Value);
-	}
-
-	public Object remove(int index) {
-		return this.List.remove(index);
-	}
-
-	public Object pop() {
-		return List.remove(List.size() - 1);
-	}
-
-	public void clear() {
-		this.List.clear();
-	}
-
-	@Override public String toString() {
-		return List.toString();
-	}
 }
 
 final class GtMap {
