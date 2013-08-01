@@ -526,7 +526,7 @@ public class GreenTeaGenerator extends GtStatic {
 	public void VisitErrorNode(ErrorNode Node) { 
 	}
 
-	public void Evaluate(TypedNode Node) {
+	public final void Evaluate(TypedNode Node) {
 		TypedNode CurrentNode = Node;
 		while(CurrentNode != null) {
 			CurrentNode.Evaluate(this);
