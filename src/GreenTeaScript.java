@@ -380,6 +380,14 @@ class GtStatic implements GtConst {
 		}
 		return (TypedNode)LangDeps.ApplyTypeFunc(TypeFunc.Self, TypeFunc.Method, Gamma, ParsedTree, Type);
 	}
+	
+	public final static TypedNode LinkNode(TypedNode LastNode, TypedNode Node) {
+		Node.PrevNode = LastNode;
+		if(LastNode != null) {
+			LastNode.NextNode = Node;
+		}
+		return Node;
+	}
 
 //ifdef JAVA
 }
@@ -543,6 +551,7 @@ final class GtToken extends GtStatic {
 		assert(this.IsError());
 		return this.ParsedText;
 	}
+	
 }
 
 final class TokenFunc {
@@ -582,7 +591,7 @@ final class TokenContext extends GtStatic {
 			Token.PresetPattern = this.NameSpace.GetPattern(PatternName);
 			assert(Token.PresetPattern != null);
 		}
-		DebugP("<< " + Text + " : " + PatternName);
+		//DebugP("<< " + Text + " : " + PatternName);
 		this.SourceList.add(Token);
 		return Token;
 	}
@@ -965,7 +974,7 @@ class SyntaxTree extends GtStatic {
 		if(this.TreeList != null && Index < this.TreeList.size()) {
 			/*local*/Object NodeObject = this.TreeList.get(Index);
 			if(NodeObject instanceof SyntaxTree) {
-				/*local*/TypedNode TypedNode = TypeEnv.TypeCheck(Gamma, (SyntaxTree) NodeObject, Type, TypeCheckPolicy);
+				/*local*/TypedNode TypedNode = Gamma.TypeCheck((SyntaxTree) NodeObject, Type, TypeCheckPolicy);
 				this.TreeList.set(Index, TypedNode);
 				return TypedNode;
 			}
@@ -1470,13 +1479,15 @@ class GtMethod extends GtDef {
 	}
 }
 
-final class VarSet {
+final class VariableInfo {
 	/*field*/public GtType	Type;
-	/*field*/public String		Name;
+	/*field*/public String	Name;
+	/*field*/public String	LocalName;
 
-	VarSet/*constructor*/(GtType Type, String Name) {
+	VariableInfo/*constructor*/(GtType Type, String Name, int Index) {
 		this.Type = Type;
 		this.Name = Name;
+		this.LocalName = Name + Index;
 	}
 }
 
@@ -1487,8 +1498,10 @@ final class TypeEnv extends GtStatic {
 	/*field*/public GtMethod	Method;
 	/*field*/public GtType	ReturnType;
 	/*field*/public GtType	ThisType;
-	/*field*/GtArray	LocalStackList;
-
+//	/*field*/GtArray	LocalStackList;
+	/*field*/public int StackTopIndex;
+	/*field*/public ArrayList<VariableInfo> LocalStackList;
+	
 	/* for convinient short cut */
 	/*field*/public final GtType	VoidType;
 	/*field*/public final GtType	BooleanType;
@@ -1506,14 +1519,14 @@ final class TypeEnv extends GtStatic {
 		this.StringType = GammaNameSpace.GtContext.StringType;
 		this.AnyType = GammaNameSpace.GtContext.AnyType;
 		this.Method = Method;
-		this.LocalStackList = null;
-		
+		this.LocalStackList = new ArrayList<VariableInfo>();
+		this.StackTopIndex = 0;
 		if(Method != null) {
 			this.InitMethod(Method);
 		} else {
 			// global
 			this.ThisType = GammaNameSpace.GetGlobalObject().Type;
-			this.AppendLocalType(this.ThisType, "this");
+			this.AppendDeclaredVariable(this.ThisType, "this");
 		}
 	}
 
@@ -1521,48 +1534,51 @@ final class TypeEnv extends GtStatic {
 		this.ReturnType = Method.GetReturnType(Method.ClassInfo);
 		this.ThisType = Method.ClassInfo;
 		if(!Method.Is(StaticMethod)) {
-			this.AppendLocalType(Method.ClassInfo, "this");
+			this.AppendDeclaredVariable(Method.ClassInfo, "this");
 			/*local*/GtParam Param = Method.Param;
 			/*local*/int i = 0;
 			while(i < Param.ArgNames.length) {
-				this.AppendLocalType(Param.Types[i + Param.ReturnSize], Param.ArgNames[i]);
+				this.AppendDeclaredVariable(Param.Types[i + Param.ReturnSize], Param.ArgNames[i]);
 				i += 1;
 			}
 		}
 	}
 
-	public void AppendLocalType(GtType Type, String Name) {
-		if(this.LocalStackList == null) {
-			this.LocalStackList = new GtArray();
+	public boolean AppendDeclaredVariable(GtType Type, String Name) {
+		/*local*/VariableInfo VarInfo = new VariableInfo(Type, Name, this.StackTopIndex);
+		if(this.StackTopIndex < this.LocalStackList.size()) {
+			this.LocalStackList.add(VarInfo);			
 		}
-		this.LocalStackList.add(new VarSet(Type, Name));
+		else {
+			this.LocalStackList.add(VarInfo);
+		}
+		this.StackTopIndex += 1;
+		return true;
 	}
 
-	public GtType GetLocalType(String Symbol) {
-		if(this.LocalStackList != null) {
-			/*local*/int i = this.LocalStackList.size() - 1;
-			while(i >= 0) {
-				VarSet t = (VarSet) this.LocalStackList.get(i);
-				if(t.Name.equals(Symbol)) {
-					return t.Type;
-				}
-				i -= 1;
+	public VariableInfo LookupDeclaredVariable(String Symbol) {
+		/*local*/int i = this.StackTopIndex - 1;
+		while(i >= 0) {
+			VariableInfo VarInfo = this.LocalStackList.get(i);
+			if(VarInfo.Name.equals(Symbol)) {
+				return VarInfo;
 			}
+			i -= 1;
 		}
 		return null;
 	}
 
-//	int GetLocalIndex(String Symbol) {
-//		return -1;
-//	}
-//
-//	public TypedNode GetDefaultTypedNode(GtType Type) {
-//		return null; // TODO
-//	}
-
+	
 	public GtType GuessType(Object Value) {
 		TODO("GuessType");
 		return this.AnyType;
+	}
+	
+	public TypedNode DefaultValueConstNode(SyntaxTree ParsedTree, GtType Type) {
+		if(Type.DefaultNullValue != null) {
+			return this.Generator.CreateConstNode(Type, ParsedTree, Type.DefaultNullValue);
+		}
+		return CreateErrorNode(ParsedTree, "undefined initial value of " + Type);
 	}
 	
 	public TypedNode CreateErrorNode(SyntaxTree ParsedTree, String Message) {
@@ -1570,39 +1586,42 @@ final class TypeEnv extends GtStatic {
 		return this.Generator.CreateErrorNode(this.VoidType, ParsedTree);
 	}
 
-	public static TypedNode TypeEachNode(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
-		TypedNode Node = GtStatic.ApplyTypeFunc(Tree.Pattern.TypeFunc, Gamma, Tree, Type);
+	/* typing */
+	public TypedNode TypeEachNode(SyntaxTree Tree, GtType Type) {
+		TypedNode Node = GtStatic.ApplyTypeFunc(Tree.Pattern.TypeFunc, this, Tree, Type);
 		if(Node == null) {
-			Node = Gamma.CreateErrorNode(Tree, "undefined type checker: " + Tree.Pattern);
+			Node = this.CreateErrorNode(Tree, "undefined type checker: " + Tree.Pattern);
 		}
 		return Node;
 	}
 
-	public static TypedNode TypeCheckEachNode(TypeEnv Gamma, SyntaxTree Tree, GtType Type, int TypeCheckPolicy) {
-		TypedNode Node = TypeEachNode(Gamma, Tree, Type);
-		// if(Node.Type == null) {
-		//
-		// }
+	public TypedNode TypeCheckEachNode(SyntaxTree Tree, GtType Type, int TypeCheckPolicy) {
+		TypedNode Node = this.TypeEachNode(Tree, Type);
+		if(Node.IsError()) {
+			return Node;
+		}
 		return Node;
 	}
+	
+	public TypedNode TypeCheck(SyntaxTree ParsedTree, GtType Type, int TypeCheckPolicy) {
+		return this.TypeBlock(ParsedTree, Type);
+	}
 
-	public static TypedNode TypeCheck(TypeEnv Gamma, SyntaxTree Tree, GtType Type, int TypeCheckPolicy) {
-		TypedNode TPrevNode = null;
-		while(Tree != null) {
-			GtType CurrentType = (Tree.NextTree != null) ? Gamma.VoidType : Type;
-			TypedNode CurrentTypedNode = TypeCheckEachNode(Gamma, Tree, CurrentType, TypeCheckPolicy);
-			if(TPrevNode != null) {
-				TPrevNode.LinkNode(CurrentTypedNode);
-			}
-			TPrevNode = CurrentTypedNode;
-			if(CurrentTypedNode.IsError()) {
+	public TypedNode TypeBlock(SyntaxTree ParsedTree, GtType Type) {
+		/*local*/int StackTopIndex = this.StackTopIndex;
+		/*local*/TypedNode LastNode = null;
+		while(ParsedTree != null) {
+			/*local*/GtType CurrentType = (ParsedTree.NextTree != null) ? this.VoidType : Type;
+			/*local*/TypedNode TypedNode = this.TypeCheckEachNode(ParsedTree, CurrentType, DefaultTypeCheckPolicy);
+			LastNode = GtStatic.LinkNode(LastNode, TypedNode);
+			if(TypedNode.IsError()) {
 				break;
 			}
-			Tree = Tree.NextTree;
+			ParsedTree = ParsedTree.NextTree;
 		}
-		return TPrevNode == null ? null : TPrevNode.GetHeadNode();
+		this.StackTopIndex = StackTopIndex;
+		return (LastNode == null) ? null : LastNode.MoveHeadNode();
 	}
-
 }
 
 /* builder */
@@ -1844,7 +1863,7 @@ final class GtNameSpace extends GtStatic {
 			SyntaxTree Tree = GtStatic.ParseSyntaxTree(null, TokenContext);
 			DebugP("untyped tree: " + Tree);
 			TypeEnv Gamma = new TypeEnv(this, null);
-			TypedNode Node = TypeEnv.TypeCheckEachNode(Gamma, Tree, Gamma.VoidType, DefaultTypeCheckPolicy);
+			TypedNode Node = Gamma.TypeCheckEachNode(Tree, Gamma.VoidType, DefaultTypeCheckPolicy);
 			ResultValue = Generator.Eval(Node);
 		}
 		return ResultValue;
@@ -1987,38 +2006,70 @@ class KonohaGrammar extends GtGrammar {
 	}
 
 	public static SyntaxTree ParseType(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
-		DebugP("Entering ParseType..");
 		return null; // Not Matched
 	}
 
 	public static SyntaxTree ParseSymbol(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
-		DebugP("Entering ParseSymbol..");
 		/*local*/GtToken Token = TokenContext.Next();
 		return new SyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
 	}
 
 	public static TypedNode TypeVariable(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
-		// case: Symbol is LocalVariable
-		/*local*/Type = Gamma.GetLocalType(ParsedTree.KeyToken.ParsedText);
-		if(Type != null) {
-			return Gamma.Generator.CreateLocalNode(Type, ParsedTree);
+		/*local*/String Key = ParsedTree.KeyToken.ParsedText;
+		/*local*/VariableInfo VariableInfo = Gamma.LookupDeclaredVariable(Key);
+		if(VariableInfo != null) {
+			return Gamma.Generator.CreateLocalNode(Type, ParsedTree, VariableInfo.LocalName);
 		}
-//		// case: Symbol is GlobalVariable
-//		if(ParsedTree.KeyToken.ParsedText.equals("global")) {
-//			return new ConstNode(
-//				ParsedTree.TreeNameSpace.GetGlobalObject().Type,
-//				ParsedTree.KeyToken,
-//				ParsedTree.TreeNameSpace.GetGlobalObject());
-//		}
-		// case: Symbol is undefined name
-		return Gamma.CreateErrorNode(ParsedTree, "undefined name: " + ParsedTree.KeyToken.ParsedText);
+		Object Value = Gamma.GammaNameSpace.GetSymbol(Key);  // const value
+		if(Value != null) {
+			return Gamma.Generator.CreateConstNode(Gamma.GuessType(Value), ParsedTree, Value);
+		}
+		return Gamma.CreateErrorNode(ParsedTree, "undefined name: " + Key);
 	}
+	
+	public static SyntaxTree ParseVarDecl(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
+		/*local*/SyntaxTree Tree = new SyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetToken(), null);
+		Tree.SetMatchedPatternAt(VarDeclType, TokenContext, "$Type$", Required);
+		Tree.SetMatchedPatternAt(VarDeclName, TokenContext, "$Variable$", Required);
+		if(TokenContext.MatchToken("=")) {
+			Tree.SetMatchedPatternAt(VarDeclValue, TokenContext, "$Expression$", Required);
+		}
+		while(TokenContext.MatchToken(",")) {
+			/*local*/SyntaxTree NextTree = new SyntaxTree(Pattern, TokenContext.NameSpace, Tree.KeyToken, null);
+			NextTree.SetAt(VarDeclType, Tree.GetSyntaxTreeAt(VarDeclType));
+			Tree.LinkNode(NextTree);
+			Tree = NextTree;
+			Tree.SetMatchedPatternAt(VarDeclName, TokenContext, "$Variable$", Required);
+			if(TokenContext.MatchToken("=")) {
+				Tree.SetMatchedPatternAt(VarDeclValue, TokenContext, "$Expression$", Required);
+			}
+		}
+		return Tree;
+	}
+
+	public static TypedNode TypeVarDecl(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
+		/*local*/SyntaxTree TypeTree = ParsedTree.GetSyntaxTreeAt(VarDeclType);
+		/*local*/SyntaxTree NameTree = ParsedTree.GetSyntaxTreeAt(VarDeclName);
+		/*local*/SyntaxTree ValueTree = ParsedTree.GetSyntaxTreeAt(VarDeclValue);
+		/*local*/GtType DeclType = (GtType)TypeTree.ConstValue;
+		/*local*/String VariableName = NameTree.KeyToken.ParsedText;
+		if(!Gamma.AppendDeclaredVariable(DeclType, VariableName)) {
+			Gamma.CreateErrorNode(TypeTree, "already defined variable " + VariableName);
+		}
+		TypedNode VariableNode = Gamma.TypeCheck(NameTree, DeclType, DefaultTypeCheckPolicy);
+		TypedNode InitValueNode = (ValueTree == null) ? Gamma.DefaultValueConstNode(ParsedTree, DeclType) : Gamma.TypeCheck(ValueTree, DeclType, DefaultTypeCheckPolicy);
+		TypedNode AssignNode = Gamma.Generator.CreateAssignNode(DeclType, ParsedTree, VariableNode, InitValueNode);
+		TypedNode BlockNode = Gamma.TypeBlock(ParsedTree.NextTree, Type);
+		ParsedTree.NextTree = null;
+		GtStatic.LinkNode(AssignNode, BlockNode);
+		return Gamma.Generator.CreateLetNode(BlockNode.Type, ParsedTree, DeclType, VariableNode, AssignNode/*connected block*/);
+	}
+	
 
 	// Parse And Type
 	public static SyntaxTree ParseIntegerLiteral(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
 		/*local*/GtToken Token = TokenContext.Next();
 		return new SyntaxTree(Pattern, TokenContext.NameSpace, Token, LangDeps.ParseInt(Token.ParsedText));
-);
 	}
 
 	public static TypedNode TypeIntegerLiteral(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
@@ -2122,9 +2173,8 @@ class KonohaGrammar extends GtGrammar {
 		return GtStatic.TreeHead(PrevTree);
 	}
 
-	public static TypedNode TypeBlock(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
-		TODO("TypeBlock");
-		return Tree.TypeNodeAt(0, Gamma, Gamma.AnyType, 0);
+	public static TypedNode TypeBlock(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
+		return Gamma.TypeBlock(ParsedTree, Type);
 	}
 
 	public static TypedNode TypeApply(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
@@ -2186,27 +2236,6 @@ class KonohaGrammar extends GtGrammar {
 		return Gamma.Generator.CreateReturnNode(Expr.Type, ParsedTree, Expr);
 	}
 	
-	public static SyntaxTree ParseVarDecl(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
-		DebugP("Entering ParseVarDecl..");
-		/*local*/SyntaxTree Tree = new SyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetToken(), null);
-		Tree.SetMatchedPatternAt(VarDeclType, TokenContext, "$Type$", Required);
-		Tree.SetMatchedPatternAt(VarDeclName, TokenContext, "$Variable$", Required);
-		if(TokenContext.MatchToken("=")) {
-			Tree.SetMatchedPatternAt(VarDeclValue, TokenContext, "$Expression$", Required);
-		}
-		while(TokenContext.MatchToken(",")) {
-			/*local*/SyntaxTree NextTree = new SyntaxTree(Pattern, TokenContext.NameSpace, Tree.KeyToken, null);
-			NextTree.SetAt(VarDeclType, Tree.GetSyntaxTreeAt(VarDeclType));
-			Tree.LinkNode(NextTree);
-			Tree = NextTree;
-			Tree.SetMatchedPatternAt(VarDeclName, TokenContext, "$Variable$", Required);
-			if(TokenContext.MatchToken("=")) {
-				Tree.SetMatchedPatternAt(VarDeclValue, TokenContext, "$Expression$", Required);
-			}
-		}
-		return Tree;
-	}
-
 	public static SyntaxTree ParseMethodDecl(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
 		/*local*/SyntaxTree Tree = new SyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetToken(), null);
 		Tree.SetMatchedPatternAt(MethodDeclReturnType, TokenContext, "$Type$", Required);
@@ -2224,21 +2253,6 @@ class KonohaGrammar extends GtGrammar {
 		}
 		Tree.SetMatchedPatternAt(MethodDeclBlock, TokenContext, "$Block$", Required);
 		return Tree;
-	}
-
-	public static TypedNode TypeVarDecl(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {		
-		TODO("TypeVarDecl");
-//		GtType AnyType = Tree.GetTokenType(VarDeclTypeOffset, null);
-//		GtToken VarToken = Tree.GetAtToken(VarDeclNameOffset);
-//		String VarName = Tree.GetTokenString(VarDeclNameOffset, null);
-//		if(AnyType.equals(Gamma.AnyType)) {
-//			return new ErrorNode(Type, VarToken, "cannot infer variable type");
-//		}
-//		assert (VarName != null);
-//		Gamma.AppendLocalType(AnyType, VarName);
-//		TypedNode Value = Tree.TypeNodeAt(2, Gamma, AnyType, 0);
-//		return new LetNode(AnyType, VarToken, Value, null);
-		return null;
 	}
 
 	public static TypedNode TypeMethodDecl(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {

@@ -16,12 +16,7 @@ class TypedNode extends GtStatic {
 		this.NextNode = null;
 	}
 
-	public final void LinkNode(TypedNode Node) {
-		Node.PrevNode = this;
-		this.NextNode = Node;
-	}
-
-	public final TypedNode GetHeadNode() {
+	public final TypedNode MoveHeadNode() {
 		/*local*/TypedNode Node = this;
 		while(Node.PrevNode != null) {
 			Node = Node.PrevNode;
@@ -29,7 +24,7 @@ class TypedNode extends GtStatic {
 		return Node;
 	}
 
-	public final TypedNode GetTailNode() {
+	public final TypedNode MoveTailNode() {
 		/*local*/TypedNode Node = this;
 		while(Node.NextNode != null) {
 			Node = Node.NextNode;
@@ -44,7 +39,6 @@ class TypedNode extends GtStatic {
 	public final boolean IsError() {
 		return (this instanceof ErrorNode);
 	}
-
 }
 
 class UnaryNode extends TypedNode {
@@ -120,8 +114,10 @@ class ConstNode extends TypedNode {
 }
 
 class LocalNode extends TypedNode {
-	LocalNode/*constructor*/(GtType Type, GtToken Token) {
+	/*field*/public String LocalName;
+	LocalNode/*constructor*/(GtType Type, GtToken Token, String LocalName) {
 		super(Type, Token);
+		this.LocalName = LocalName;
 	}
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitLocalNode(this);
@@ -138,15 +134,15 @@ class NullNode extends TypedNode {
 }
 
 class LetNode extends TypedNode {
-	/*field*/public GtToken	    VarToken;
-	/*field*/public TypedNode	ValueNode;
+	/*field*/public GtType	    DeclType;
+	/*field*/public TypedNode	VarNode;
 	/*field*/public TypedNode	BlockNode;
 
 	/* let frame[Index] = Right in Block end */
-	LetNode/*constructor*/(GtType Type, GtToken VarToken, TypedNode Right, TypedNode Block) {
-		super(Type, VarToken);
-		this.VarToken = VarToken;
-		this.ValueNode = Right;
+	LetNode/*constructor*/(GtType Type, GtToken Token, GtType DeclType, TypedNode VarNode, TypedNode Block) {
+		super(Type, Token);
+		this.DeclType = DeclType;
+		this.VarNode  = VarNode;
 		this.BlockNode = Block;
 	}
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
@@ -358,8 +354,8 @@ public class GreenTeaGenerator extends GtStatic {
 		return new NewNode(Type, ParsedTree.KeyToken); 
 	}
 
-	public TypedNode CreateLocalNode(GtType Type, SyntaxTree ParsedTree) { 
-		return new LocalNode(Type, ParsedTree.KeyToken);
+	public TypedNode CreateLocalNode(GtType Type, SyntaxTree ParsedTree, String LocalName) { 
+		return new LocalNode(Type, ParsedTree.KeyToken, LocalName);
 	}
 
 	public TypedNode CreateGetterNode(GtType Type, SyntaxTree ParsedTree, TypedNode Expr) { 
@@ -382,8 +378,8 @@ public class GreenTeaGenerator extends GtStatic {
 		return new AssignNode(Type, ParsedTree.KeyToken, Left, Right);
 	}
 
-	public TypedNode CreateLetNode(GtType Type, SyntaxTree ParsedTree, TypedNode Left, TypedNode Right, TypedNode Block) { 
-		return new LetNode(Type, ParsedTree.KeyToken, Right, Block);
+	public TypedNode CreateLetNode(GtType Type, SyntaxTree ParsedTree, GtType DeclType, TypedNode VarNode, TypedNode Block) { 
+		return new LetNode(Type, ParsedTree.KeyToken, DeclType, VarNode, Block);
 	}
 	
 	public TypedNode CreateIfNode(GtType Type, SyntaxTree ParsedTree, TypedNode Cond, TypedNode Then, TypedNode Else) { 

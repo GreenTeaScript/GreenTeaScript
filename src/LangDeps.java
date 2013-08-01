@@ -47,7 +47,6 @@ public abstract class LangDeps {
 	public final static int ParseInt(String Text) {
 		return Integer.parseInt(Text);
 	}
-
 	
 	public final static Method LookupMethod(Object Callee, String MethodName) {
 		if(MethodName != null) {
