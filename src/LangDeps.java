@@ -40,6 +40,15 @@ public abstract class LangDeps {
 		return Character.isDigit(ch);
 	}
 
+	public final static char CharAt(String Text, int Pos) {
+		return Text.charAt(Pos);
+	}
+
+	public final static int ParseInt(String Text) {
+		return Integer.parseInt(Text);
+	}
+
+	
 	public final static Method LookupMethod(Object Callee, String MethodName) {
 		if(MethodName != null) {
 			// DebugP("looking up method : " + Callee.getClass().getSimpleName() + "." + MethodName);
