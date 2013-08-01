@@ -19,9 +19,9 @@ public abstract class LangBase {
 			throw new Exception();
 		}
 		catch(Exception e){
-			StackTraceElement[] tr = e.getStackTrace();
-			if(depth < tr.length){
-				StackTraceElement elem = tr[depth];
+			StackTraceElement[] Elements = e.getStackTrace();
+			if(depth < Elements.length){
+				StackTraceElement elem = Elements[depth];
 				LineNumber += elem;
 			}
 		}
@@ -73,7 +73,7 @@ public abstract class LangBase {
 
 	public final static Object ApplyMatchFunc(Object Self, Method Method, Object Pattern, Object LeftTree, Object TokenContext) {
 		try {
-			Method.invoke(Self, Pattern, LeftTree, TokenContext);
+			return Method.invoke(Self, Pattern, LeftTree, TokenContext);
 		}
 		catch (InvocationTargetException e) {
 			e.printStackTrace();
