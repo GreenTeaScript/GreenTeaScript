@@ -155,7 +155,6 @@ interface GtConst {
 	public final static int	TrackbackParseFlag	= 1;
 	public final static int	SkipIndentParseFlag	= (1 << 1);
 	
-
 	// SyntaxTree
 	public final static int NoWhere         = -1;
 	// UnaryTree, SuffixTree
@@ -494,9 +493,9 @@ final class GtFuncTypeCheck {
 // tokenizer
 
 final class GtToken extends GtStatic {
-	/*field*/public int		TokenFlag;
-	/*field*/public String	ParsedText;
-	/*field*/public long		FileLine;
+	/*field*/public int		        TokenFlag;
+	/*field*/public String	        ParsedText;
+	/*field*/public long		    FileLine;
 	/*field*/public SyntaxPattern	PresetPattern;
 
 	GtToken/*constructor*/(String text, long FileLine) {
@@ -550,9 +549,9 @@ final class TokenFunc {
 	/*field*/public GtFuncToken       Func;
 	/*field*/public TokenFunc	ParentFunc;
 
-	TokenFunc/*constructor*/(GtFuncToken Func, TokenFunc prev) {
+	TokenFunc/*constructor*/(GtFuncToken Func, TokenFunc Parent) {
 		this.Func = Func;
-		this.ParentFunc = prev;
+		this.ParentFunc = Parent;
 	}
 
 	@Override public String toString() {
@@ -834,29 +833,21 @@ class SyntaxTree extends GtStatic {
 	}
 
 	@Override public String toString() {
-		/*local*/String key = this.KeyToken.ParsedText + ":" + ((this.Pattern != null) ? this.Pattern.PatternName : "null");
-		/*local*/StringBuilder sb = new StringBuilder();
-		sb.append("(");
-		sb.append(key);
-		if(this.TreeList != null) {
-			/*local*/int i = 0;
-			while(i < this.TreeList.size()) {
-				Object o = this.TreeList.get(i);
-				if(o == null) {
-					sb.append(" NULL");
-				} else {
-					sb.append(" ");
-					sb.append(o);
+		/*local*/String s = "(" + this.KeyToken.ParsedText;
+		/*local*/int i = 0;
+		while(i < ListSize(this.TreeList)) {
+			/*local*/Object o = this.TreeList.get(i);
+			String Entry = o.toString();
+			if(o instanceof SyntaxTree) {
+				SyntaxTree SubTree = (SyntaxTree)o;
+				if(ListSize(SubTree.TreeList) == 0) {
+					Entry = SubTree.KeyToken.ParsedText;
 				}
-				i += 1;
 			}
+			s = s + " " + Entry;
+			i += 1;
 		}
-		sb.append(")");
-		if(this.NextTree != null) {
-			sb.append(";\t");
-			sb.append(this.NextTree.toString());
-		}
-		return sb.toString();
+		return s + ")";
 	}
 
 	public void LinkNode(SyntaxTree Tree) {
