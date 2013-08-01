@@ -526,12 +526,19 @@ public class GreenTeaGenerator extends GtStatic {
 	public void VisitErrorNode(ErrorNode Node) { 
 	}
 
-	public final void Evaluate(TypedNode Node) {
+	public final void VisitBlock(TypedNode Node) {
 		TypedNode CurrentNode = Node;
 		while(CurrentNode != null) {
 			CurrentNode.Evaluate(this);
 			CurrentNode = CurrentNode.NextNode;
 		}
 	}	
+
+	// This must be extended in each language
+	public Object Eval(TypedNode Node) {
+		VisitBlock(Node);
+		return null;
+	}
+
 }
 

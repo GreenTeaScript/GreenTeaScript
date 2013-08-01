@@ -1,18 +1,33 @@
-
-$LineComment = "#";
 $Indent = "";
-$ClassIndent = "";
-
 $JavaOnly = 0;
-$TopLevel = 1;
-$UsePython = 1;
+$UsePython = 0;
 $UseTypeScript = 0;
+
+
+
+$UseTypeScript = 1;
 
 if($UseTypeScript == 1) {
 	$ClassIndent = "\t";
 	$LineComment = "//";
 	print "module GreenScript {\n";
 	$TopLevel = 0;
+}
+
+if ($UsePython == 1) {
+	$ClassIndent = "";
+	$LineComment = "#";
+    $TopLevel = 1;
+}
+
+sub ConvertToIR {
+ 	my($line) = @_;
+	$line =~ s/extends GtStatic//g;
+	$line =~ s/GtStatic\.//g;
+	$line =~ s/implements(.*)\{/{/g;
+    $line =~ s/extends/<<:/g;
+    $line =~ s/instanceof/<:?/g;
+	return $line;
 }
 
 sub PythonSelf {
@@ -24,7 +39,7 @@ sub PythonSelf {
 		return $line;
 	}
 	$line =~ s/public(.*)\(\)(.*)$/def$1(self) $2/;
-        $line =~ s/private(.*)\(\)(.*)$/def$1(self) $2/;
+    $line =~ s/private(.*)\(\)(.*)$/def$1(self) $2/;
 	$line =~ s/public(.*)\((.*)$/def$1(self, $2/;
 	$line =~ s/private(.*)\((.*)$/def$1(self, $2/;
 	$line =~ s/\/\//\# /g;
@@ -46,7 +61,7 @@ sub PythonSyntax {
 	$line =~ s/var //g;
 	$line =~ s/constructor\(/def __init__(self, /g;
 	$line =~ s/new //g;
-        $line =~ s/(\w)\[\]/$1/g;
+    $line =~ s/(\w)\[\]/$1/g;
 	$line =~ s/([ \(\,])true/$1True/g;
 	$line =~ s/([ \(\,])false/$1False/g;
 	$line =~ s/null/None/g;
@@ -78,19 +93,12 @@ while ($line = <>)  {
 	if($TopLevel == 1) {
 		$line = substr($line, 1);
 	}
-	$line =~ s/extends GtStatic//g;
-	$line =~ s/GtStatic\.//g;
-	$line =~ s/implements(.*)\{/{/g;
-	$line =~ s/extends/<:/g;
 
+    $line = ConvertToIR($line);
 	$line = PythonSelf($line);
 
 	$line =~ s/([A-Z]\w+)\/\*constructor\*\//constructor/g;
-
 	$line =~ s/(?:int|long|char)([ \t])/number$1/g;
-	#$line =~ s/int([ \t])/number$1/g;
-	#$line =~ s/long([ \t])/number$1/g;
-	#$line =~ s/char([ \t])/number$1/g;
 	$line =~ s/final //;
 	$line =~ s/public //;
 	$line =~ s/private //;
@@ -103,7 +111,7 @@ while ($line = <>)  {
 	$line =~ s/boolean[ \t]+(.*\(.*)\{/$1:boolean {/g;
 	$line =~ s/String[ \t]+(.*\(.*)\{/$1:string {/g;
 	$line =~ s/number[ \t]+(.*\(.*)\{/$1:number {/g;
-        $line =~ s/void[ \t]+(.*\(.*)\{/$1:void {/g;
+    $line =~ s/void[ \t]+(.*\(.*)\{/$1:void {/g;
 	$line =~ s/([A-Z]\w+)[ \t]+([A-Z]\w+\(.*)\{/$2:$1 {/g;
 
 	$line =~ s/boolean[ \t]+(\w+)[ \t]+=/var $1 :boolean =/g;
@@ -130,7 +138,8 @@ while ($line = <>)  {
 		$line =~ s/GtFuncA/(a :TokenContext, b :string, c :number) => number/g;
 		$line =~ s/GtFuncB/(a :SyntaxPattern, b :SyntaxTree, c :TokenContext) => SyntaxTree/g;
 		$line =~ s/GtFuncC/(a :TypeEnv, b: SyntaxTree, c: GtType) => TypedNode/g;
-		$line =~ s/\<\:/extends/g;	
+		$line =~ s/\<\<\:/extends/g;
+        $line =~ s/\<\:\?/instanceof/g;
 	}
 
 	## remove redundandat white spaces

@@ -1616,7 +1616,6 @@ final class TypeEnv extends GtStatic {
 
 }
 
-
 /* builder */
 
 class GtObject extends GtStatic {
@@ -1642,7 +1641,7 @@ class GtObject extends GtStatic {
 //	}
 }
 
-
+// NameSpace 
 
 final class GtSpec extends GtStatic {
 	/*field*/public int SpecType;
@@ -1839,17 +1838,16 @@ final class GtNameSpace extends GtStatic {
 		this.ExtendedPatternTable = null;
 	}
 
-	public Object Eval(String ScriptSource, long FileLine, GreenTeaGenerator Visitor) {
+	public Object Eval(String ScriptSource, long FileLine, GreenTeaGenerator Generator) {
 		Object ResultValue = null;
 		DebugP("Eval: " + ScriptSource);
 		TokenContext TokenContext = new TokenContext(this, ScriptSource, FileLine);
 		while(TokenContext.HasNext()) {
 			SyntaxTree Tree = GtStatic.ParseSyntaxTree(null, TokenContext);
 			DebugP("untyped tree: " + Tree);
-//			TypeEnv Gamma = new TypeEnv(this, null);
-//			TypedNode TNode = TypeEnv.TypeCheckEachNode(Gamma, Tree, Gamma.VoidType, DefaultTypeCheckPolicy);
-//			GtBuilder Builder = this.GetBuilder();
-//			ResultValue = Builder.EvalAtTopLevel(this, TNode, this.GetGlobalObject());
+			TypeEnv Gamma = new TypeEnv(this, null);
+			TypedNode Node = TypeEnv.TypeCheckEachNode(Gamma, Tree, Gamma.VoidType, DefaultTypeCheckPolicy);
+			ResultValue = Generator.Eval(Node);
 		}
 		return ResultValue;
 	}
@@ -2035,9 +2033,7 @@ class GtGrammar extends GtStatic {
 	}
 
 	public static TypedNode TypeConst(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
-		GtToken Token = ParsedTree.KeyToken;
-		/* FIXME: handling of resolved object */
-		return Gamma.Generator.CreateConstNode(Gamma.GuessType(ParsedTree.ResolvedObject), Token, ParsedTree.ResolvedObject);
+		return Gamma.Generator.CreateConstNode(Gamma.GuessType(ParsedTree.ResolvedObject), ParsedTree, ParsedTree.ResolvedObject);
 	}
 
 	public static SyntaxTree ParseExpression(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
