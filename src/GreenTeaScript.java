@@ -190,14 +190,9 @@ interface GtConst {
 	public final static int SymbolPatternSpec = 1;
 	public final static int ExtendedPatternSpec = 2;
 
-//	public final static int		Term							= 1;
-//	public final static int		UnaryOperator					= 1;										/* same as Term for readability */
-//	public final static int		Statement						= 1;										/* same as Term for readability */
-	public final static int		BinaryOperator					= 1 << 1;
-//	public final static int		SuffixOperator					= 1 << 2;
-	public final static int		LeftJoin						= 1 << 3;
-//	public final static int		MetaPattern						= 1 << 4;
-	public final static int		PrecedenceShift					= 5;
+	public final static int		BinaryOperator					= 1;
+	public final static int		LeftJoin						= 1 << 1;
+	public final static int		PrecedenceShift					= 2;
 	public final static int		Precedence_CStyleValue			= (1 << PrecedenceShift);
 	public final static int		Precedence_CPPStyleScope		= (50 << PrecedenceShift);
 	public final static int		Precedence_CStyleSuffixCall		= (100 << PrecedenceShift);				/*x(); x[]; x.x x->x x++ */
@@ -254,7 +249,9 @@ class GtStatic implements GtConst {
 	}
 	
 	public static void DebugP(String msg) {
-		LangDeps.println("DEBUG" + LangDeps.GetStackInfo(2) + ": " + msg);
+		if(DebugPrint) {
+			LangDeps.println("DEBUG" + LangDeps.GetStackInfo(2) + ": " + msg);
+		}
 	}
 
 	public static void TODO(String msg) {
@@ -305,7 +302,7 @@ class GtStatic implements GtConst {
 
 	public final static int ApplyTokenFunc(TokenFunc TokenFunc, TokenContext TokenContext, String ScriptSource, int Pos) {
 		while(TokenFunc != null) {
-			GtFuncToken f = TokenFunc.Func;
+			/*local*/GtFuncToken f = TokenFunc.Func;
 			int NextIdx = LangDeps.ApplyTokenFunc(f.Self, f.Method, TokenContext, ScriptSource, Pos);
 			if(NextIdx > Pos) return NextIdx;
 			TokenFunc = TokenFunc.ParentFunc;
@@ -334,19 +331,19 @@ class GtStatic implements GtConst {
 	}
 	
 	public final static SyntaxTree ApplySyntaxPattern(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
-		int Pos = TokenContext.Pos;
-		int ParseFlag = TokenContext.ParseFlag;
-		SyntaxPattern CurrentPattern = Pattern;
+		/*local*/int Pos = TokenContext.Pos;
+		/*local*/int ParseFlag = TokenContext.ParseFlag;
+		/*local*/SyntaxPattern CurrentPattern = Pattern;
 		while(CurrentPattern != null) {
-			GtFuncMatch f = Pattern.MatchFunc;
+			/*local*/GtFuncMatch f = CurrentPattern.MatchFunc;
 			TokenContext.Pos = Pos;
 			if(CurrentPattern.ParentPattern != null) {
 				TokenContext.ParseFlag = ParseFlag | TrackbackParseFlag;
 			}
-			DebugP("B ApplySyntaxPattern: " + CurrentPattern + " > " + CurrentPattern.ParentPattern);
+			//DebugP("B ApplySyntaxPattern: " + CurrentPattern + " > " + CurrentPattern.ParentPattern);
 			SyntaxTree ParsedTree = (SyntaxTree)LangDeps.ApplyMatchFunc(f.Self, f.Method, CurrentPattern, LeftTree, TokenContext);
 			if(ParsedTree != null && ParsedTree.IsEmpty()) ParsedTree = null;
-			DebugP("E ApplySyntaxPattern: " + CurrentPattern + " => " + ParsedTree);
+			//DebugP("E ApplySyntaxPattern: " + CurrentPattern + " => " + ParsedTree);
 			TokenContext.ParseFlag = ParseFlag;
 			if(ParsedTree != null) {
 				return ParsedTree;
@@ -363,8 +360,8 @@ class GtStatic implements GtConst {
 	}
 
 	public final static SyntaxTree ParseSyntaxTree(SyntaxTree PrevTree, TokenContext TokenContext) {
-		SyntaxPattern Pattern = TokenContext.GetFirstPattern();
-		SyntaxTree LeftTree = GtStatic.ApplySyntaxPattern(Pattern, PrevTree, TokenContext);
+		/*local*/SyntaxPattern Pattern = TokenContext.GetFirstPattern();
+		/*local*/SyntaxTree LeftTree = GtStatic.ApplySyntaxPattern(Pattern, PrevTree, TokenContext);
 		while (!GtStatic.IsEmptyOrError(LeftTree)) {
 			SyntaxPattern ExtendedPattern = TokenContext.GetExtendedPattern();
 			if(ExtendedPattern == null) {
@@ -454,9 +451,9 @@ final class GtMap {
 }
 
 final class GtFuncToken {
-	public Object	Self;
-	public Method	Method;
-	GtFuncToken(Object Self, Method method) {
+	/*field*/public Object	Self;
+	/*field*/public Method	Method;
+	GtFuncToken/*constructor*/(Object Self, Method method) {
 		this.Self = Self;
 		this.Method = method;
 	}
@@ -467,9 +464,9 @@ final class GtFuncToken {
 }
 
 final class GtFuncMatch {
-	public Object	Self;
-	public Method	Method;
-	GtFuncMatch(Object Self, Method method) {
+	/*field*/public Object	Self;
+	/*field*/public Method	Method;
+	GtFuncMatch/*constructor*/(Object Self, Method method) {
 		this.Self = Self;
 		this.Method = method;
 	}
@@ -480,9 +477,9 @@ final class GtFuncMatch {
 }
 
 final class GtFuncTypeCheck {
-	public Object	Self;
-	public Method	Method;
-	GtFuncTypeCheck(Object Self, Method method) {
+	/*field*/public Object	Self;
+	/*field*/public Method	Method;
+	GtFuncTypeCheck/*constructor*/(Object Self, Method method) {
 		this.Self = Self;
 		this.Method = method;
 	}
@@ -530,7 +527,7 @@ final class GtToken extends GtStatic {
 	}
 
 	@Override public String toString() {
-		String TokenText = "";
+		/*local*/String TokenText = "";
 		if(this.PresetPattern != null) {
 			TokenText = "(" + this.PresetPattern.PatternName + ") ";
 		}
@@ -580,7 +577,7 @@ final class TokenContext extends GtStatic {
 	}
 
 	public GtToken AddNewToken(String Text, int TokenFlag, String PatternName) {
-		GtToken Token = new GtToken(Text, this.ParsingLine);
+		/*local*/GtToken Token = new GtToken(Text, this.ParsingLine);
 		Token.TokenFlag |= TokenFlag;
 		if(PatternName != null) {
 			Token.PresetPattern = this.NameSpace.GetPattern(PatternName);
@@ -592,7 +589,7 @@ final class TokenContext extends GtStatic {
 	}
 
 	public void FoundWhiteSpace() {
-		GtToken Token = GetToken();
+		/*local*/GtToken Token = GetToken();
 		Token.TokenFlag |= WhiteSpaceTokenFlag;
 	}
 	
@@ -601,23 +598,25 @@ final class TokenContext extends GtStatic {
 	}
 
 	public void ReportTokenError(int Level, String Message, String TokenText) {
-		GtToken Token = this.AddNewToken(TokenText, 0, "$Error$");
+		/*local*/GtToken Token = this.AddNewToken(TokenText, 0, "$Error$");
 		this.NameSpace.ReportError(Level, Token, Message);
 	}
 	
 	public SyntaxTree NewErrorSyntaxTree(GtToken Token, String Message) {
 		if(!IsAllowedTrackback()) {
 			this.NameSpace.ReportError(ErrorLevel, Token, Message);
-			SyntaxTree ErrorTree = new SyntaxTree(Token.PresetPattern, this.NameSpace, Token);
+			/*local*/SyntaxTree ErrorTree = new SyntaxTree(Token.PresetPattern, this.NameSpace, Token);
 			return ErrorTree;
 		}
 		return null;
 	}
 	
 	public GtToken GetBeforeToken() {
-		for(int pos = this.Pos - 1; pos >= 0; pos--) {
+		/*local*/int pos = this.Pos - 1;
+		while(pos >= 0) {
 			GtToken Token = (GtToken)this.SourceList.get(pos);
 			if(IsFlag(Token.TokenFlag, IndentTokenFlag)) {
+				pos -= 1;
 				continue;
 			}
 			return Token;
@@ -627,7 +626,7 @@ final class TokenContext extends GtStatic {
 
 	public SyntaxTree ReportExpectedToken(String TokenText) {
 		if(!IsAllowedTrackback()) {
-			GtToken Token = GetBeforeToken();
+			/*local*/GtToken Token = GetBeforeToken();
 			if(Token != null) {
 				return NewErrorSyntaxTree(Token, TokenText + " is expected after " + Token.ParsedText);
 			}
@@ -643,8 +642,8 @@ final class TokenContext extends GtStatic {
 	}
 	
 	private int DispatchFunc(String ScriptSource, int GtChar, int pos) {
-		TokenFunc TokenFunc = this.NameSpace.GetTokenFunc(GtChar);
-		int NextIdx = GtStatic.ApplyTokenFunc(TokenFunc, this, ScriptSource, pos);
+		/*local*/TokenFunc TokenFunc = this.NameSpace.GetTokenFunc(GtChar);
+		/*local*/int NextIdx = GtStatic.ApplyTokenFunc(TokenFunc, this, ScriptSource, pos);
 		if(NextIdx == NoMatch) {
 			DebugP("undefined tokenizer: " + ScriptSource.charAt(pos));
 			this.AddNewToken(ScriptSource.substring(pos), 0, null);
@@ -654,11 +653,12 @@ final class TokenContext extends GtStatic {
 	}
 
 	private void Tokenize(String ScriptSource, long CurrentLine) {
-		int currentPos = 0, len = ScriptSource.length();
+		/*local*/int currentPos = 0;
+		/*local*/int len = ScriptSource.length();
 		this.ParsingLine = CurrentLine;
 		while(currentPos < len) {
-			int gtCode = GtStatic.FromJavaChar(ScriptSource.charAt(currentPos));
-			int nextPos = this.DispatchFunc(ScriptSource, gtCode, currentPos);
+			/*local*/int gtCode = GtStatic.FromJavaChar(ScriptSource.charAt(currentPos));
+			/*local*/int nextPos = this.DispatchFunc(ScriptSource, gtCode, currentPos);
 			if(currentPos >= nextPos) {
 				break;
 			}
@@ -669,7 +669,7 @@ final class TokenContext extends GtStatic {
 
 	public GtToken GetToken() {
 		while((this.Pos < this.SourceList.size())) {
-			GtToken Token = (GtToken)this.SourceList.get(this.Pos);
+			/*local*/GtToken Token = (GtToken)this.SourceList.get(this.Pos);
 			if(Token.IsSource()) {
 				this.SourceList.pop();
 				this.Tokenize(Token.ParsedText, Token.FileLine);
@@ -689,7 +689,7 @@ final class TokenContext extends GtStatic {
 	}
 
 	public GtToken Next() {
-		GtToken Token = this.GetToken();
+		/*local*/GtToken Token = this.GetToken();
 		this.Pos += 1;
 		return Token;
 	}
@@ -699,11 +699,11 @@ final class TokenContext extends GtStatic {
 	}
 
 	public SyntaxPattern GetFirstPattern() {
-		GtToken Token = GetToken();
+		/*local*/GtToken Token = GetToken();
 		if(Token.PresetPattern != null) {
 			return Token.PresetPattern;
 		}
-		SyntaxPattern Pattern = this.NameSpace.GetPattern(Token.ParsedText);
+		/*local*/SyntaxPattern Pattern = this.NameSpace.GetPattern(Token.ParsedText);
 		if(Pattern == null) {
 			return this.NameSpace.GetPattern("$Symbol$");
 		}
@@ -711,13 +711,13 @@ final class TokenContext extends GtStatic {
 	}
 
 	public SyntaxPattern GetExtendedPattern() {
-		GtToken Token = GetToken();
-		SyntaxPattern Pattern = this.NameSpace.GetExtendedPattern(Token.ParsedText);
+		/*local*/GtToken Token = GetToken();
+		/*local*/SyntaxPattern Pattern = this.NameSpace.GetExtendedPattern(Token.ParsedText);
 		return Pattern;		
 	}
 	
 	public boolean MatchToken(String TokenText) {
-		GtToken Token = GetToken();
+		/*local*/GtToken Token = GetToken();
 		if(Token.EqualsText(TokenText)) {
 			this.Pos += 1;
 			return true;
@@ -726,12 +726,13 @@ final class TokenContext extends GtStatic {
 	}
 
 	public GtToken GetMatchedToken(String TokenText) {
-		GtToken Token = GetToken();
+		/*local*/GtToken Token = GetToken();
 		while(Token != NullToken) {
 			this.Pos += 1;
 			if(Token.EqualsText(TokenText)) {
 				break;
 			}
+			Token = GetToken();
 		}
 		return Token;
 	}
@@ -741,13 +742,13 @@ final class TokenContext extends GtStatic {
 	}
 
 	public SyntaxTree ParsePattern(String PatternName, boolean IsOptional) {
-		int Pos = this.Pos;
-		int ParseFlag = this.ParseFlag;
-		SyntaxPattern Pattern = this.GetPattern(PatternName);
+		/*local*/int Pos = this.Pos;
+		/*local*/int ParseFlag = this.ParseFlag;
+		/*local*/SyntaxPattern Pattern = this.GetPattern(PatternName);
 		if(IsOptional) {
 			this.ParseFlag |= TrackbackParseFlag;
 		}
-		SyntaxTree SyntaxTree = GtStatic.ApplySyntaxPattern(Pattern, null, this);
+		/*local*/SyntaxTree SyntaxTree = GtStatic.ApplySyntaxPattern(Pattern, null, this);
 		this.ParseFlag = ParseFlag;
 		if(SyntaxTree != null) {
 			return SyntaxTree;
@@ -757,7 +758,7 @@ final class TokenContext extends GtStatic {
 	}
 	
 	public boolean SkipEmptyStatement() {
-		GtToken Token;
+		/*local*/GtToken Token = null;
 		while((Token = GetToken()) != NullToken) {
 			if(Token.IsIndent() || Token.IsDelim()) {
 				this.Pos += 1;
@@ -769,19 +770,19 @@ final class TokenContext extends GtStatic {
 	}
 	
 	public void Dump() {
-		for(int pos = this.Pos ; pos < this.SourceList.size(); pos++) {
+		/*local*/int pos = this.Pos;
+		while(pos < this.SourceList.size()) {
 			GtToken token = (GtToken)this.SourceList.get(pos);
 			DebugP("["+pos+"]\t" + token + " : " + token.PresetPattern);
+			pos += 1;
 		}
 	}
 }
 
 final class SyntaxPattern extends GtStatic {
-
 	/*field*/public GtNameSpace	PackageNameSpace;
 	/*field*/public String		PatternName;
 	/*field*/int				SyntaxFlag;
-
 	/*field*/public GtFuncMatch       MatchFunc;
 	/*field*/public GtFuncTypeCheck       TypeFunc;
 	/*field*/public SyntaxPattern	ParentPattern;
@@ -804,10 +805,10 @@ final class SyntaxPattern extends GtStatic {
 	}
 
 	public boolean IsLeftJoin(SyntaxPattern Right) {
-		int left = this.SyntaxFlag >> PrecedenceShift, right = Right.SyntaxFlag >> PrecedenceShift;
+		/*local*/int left = this.SyntaxFlag >> PrecedenceShift;
+		/*local*/int right = Right.SyntaxFlag >> PrecedenceShift;
 		return (left < right || (left == right && IsFlag(this.SyntaxFlag, LeftJoin) && IsFlag(Right.SyntaxFlag, LeftJoin)));
 	}
-	
 }
 
 class SyntaxTree extends GtStatic {
@@ -833,12 +834,13 @@ class SyntaxTree extends GtStatic {
 	}
 
 	@Override public String toString() {
-		String key = this.KeyToken.ParsedText + ":" + ((this.Pattern != null) ? this.Pattern.PatternName : "null");
-		StringBuilder sb = new StringBuilder();
+		/*local*/String key = this.KeyToken.ParsedText + ":" + ((this.Pattern != null) ? this.Pattern.PatternName : "null");
+		/*local*/StringBuilder sb = new StringBuilder();
 		sb.append("(");
 		sb.append(key);
 		if(this.TreeList != null) {
-			for(int i = 0; i < this.TreeList.size(); i++) {
+			/*local*/int i = 0;
+			while(i < this.TreeList.size()) {
 				Object o = this.TreeList.get(i);
 				if(o == null) {
 					sb.append(" NULL");
@@ -846,6 +848,7 @@ class SyntaxTree extends GtStatic {
 					sb.append(" ");
 					sb.append(o);
 				}
+				i += 1;
 			}
 		}
 		sb.append(")");
@@ -939,8 +942,8 @@ class SyntaxTree extends GtStatic {
 
 	public void SetMatchedTokenAt(int Index, TokenContext TokenContext, String TokenText, boolean IsOptional) {
 		if(!IsEmptyOrError()) {
-			int Pos = TokenContext.Pos;
-			GtToken Token = TokenContext.Next();
+			/*local*/int Pos = TokenContext.Pos;
+			/*local*/GtToken Token = TokenContext.Next();
 			if(Token.ParsedText.equals(TokenText)) {
 				SetAt(Index, Token);
 			}
@@ -969,9 +972,9 @@ class SyntaxTree extends GtStatic {
 
 	public final TypedNode TypeNodeAt(int Index, TypeEnv Gamma, GtType Type, int TypeCheckPolicy) {
 		if(this.TreeList != null && Index < this.TreeList.size()) {
-			Object NodeObject = this.TreeList.get(Index);
+			/*local*/Object NodeObject = this.TreeList.get(Index);
 			if(NodeObject instanceof SyntaxTree) {
-				TypedNode TypedNode = TypeEnv.TypeCheck(Gamma, (SyntaxTree) NodeObject, Type, TypeCheckPolicy);
+				/*local*/TypedNode TypedNode = TypeEnv.TypeCheck(Gamma, (SyntaxTree) NodeObject, Type, TypeCheckPolicy);
 				this.TreeList.set(Index, TypedNode);
 				return TypedNode;
 			}
@@ -1028,11 +1031,13 @@ class GtType extends GtStatic {
 	}
 
 	public GtMethod FindMethod(String MethodName, int ParamSize) {
-		for(int i = 0; i < this.ClassMethodList.size(); i++) {
+		/*local*/int i = 0;
+		while(i < this.ClassMethodList.size()) {
 			GtMethod Method = (GtMethod) this.ClassMethodList.get(i);
 			if(Method.Match(MethodName, ParamSize)) {
 				return Method;
 			}
+			i += 1;
 		}
 		return null;
 	}
@@ -1059,11 +1064,13 @@ class GtType extends GtStatic {
 	}
 
 	public boolean DefineNewMethod(GtMethod NewMethod) {
-		for(int i = 0; i < this.ClassMethodList.size(); i++) {
-			GtMethod DefinedMethod = (GtMethod) this.ClassMethodList.get(i);
+		/*local*/int i = 0;
+		while(i < this.ClassMethodList.size()) {
+			/*local*/GtMethod DefinedMethod = (GtMethod) this.ClassMethodList.get(i);
 			if(NewMethod.Match(DefinedMethod)) {
 				return false;
 			}
+			i += 1;
 		}
 		this.AddMethod(NewMethod);
 		return true;
@@ -1152,7 +1159,7 @@ final class GtSymbol extends GtStatic {
 	}
 
 	public static String StringfySymbol(int SymbolId) {
-		String Key = (String)SymbolList.get(UnmaskSymbol(SymbolId));
+		/*local*/String Key = (String)SymbolList.get(UnmaskSymbol(SymbolId));
 		if((SymbolId & GetterSymbolMask) == GetterSymbolMask) {
 			return GetterPrefix + Key;
 		}
@@ -1166,8 +1173,8 @@ final class GtSymbol extends GtStatic {
 	}
 
 	public static int GetSymbolId(String Symbol, int DefaultSymbolId) {
-		String Key = Symbol;
-		int Mask = 0;
+		/*local*/String Key = Symbol;
+		/*local*/int Mask = 0;
 		if(Symbol.length() >= 3 && Symbol.charAt(1) == 'e' && Symbol.charAt(2) == 't') {
 			if(Symbol.charAt(0) == 'g' && Symbol.charAt(0) == 'G') {
 				Key = Symbol.substring(3);
@@ -1211,11 +1218,11 @@ final class GtSymbol extends GtStatic {
 class GtParam extends GtStatic {
 	public final static int	MAX					= 16;
 	public final static int	VariableParamSize	= -1;
-	public int				ReturnSize;
-	public GtType[]			Types;
-	public String[]			ArgNames;
+	/*local*/public int				ReturnSize;
+	/*local*/public GtType[]			Types;
+	/*local*/public String[]			ArgNames;
 
-	public GtParam(int DataSize, GtType ParamData[], String[] ArgNames) {
+	GtParam/*constructor*/(int DataSize, GtType ParamData[], String[] ArgNames) {
 		this.ReturnSize = 1;
 		this.Types = new GtType[DataSize];
 		this.ArgNames = new String[DataSize - this.ReturnSize];
@@ -1263,99 +1270,87 @@ class GtParam extends GtStatic {
 		return false;
 	}
 
-	// public boolean Accept(int ParamSize, KClass[] Types) {
-	// if(ParamTypes. == ParamSize) {
-	// for(int i = 1; i < ParamSize; i++) {
-	// if(!ParamTypes[i].Accept(Types[i])) return false;
-	// }
-	// return true;
-	// }
-	// return false;
-	// }
-	// return true;
-	// }
-
 }
 
 //ifdef JAVA
-class GtMethodInvoker {
-	GtParam		Param;
-	public Object	CompiledCode;
-
-	public GtMethodInvoker(GtParam Param, Object CompiledCode) {
-		this.Param = Param;
-		this.CompiledCode = CompiledCode;
-
-	}
-
-	public Object Invoke(Object[] Args) {
-		return null;
-	}
-}
-
-class NativeMethodInvoker extends GtMethodInvoker {
-
-	public NativeMethodInvoker(GtParam Param, Method MethodRef) {
-		super(Param, MethodRef);
-	}
-
-	public Method GetMethodRef() {
-		return (Method) this.CompiledCode;
-	}
-
-	boolean IsStaticInvocation() {
-		return Modifier.isStatic(this.GetMethodRef().getModifiers());
-	}
-
-	@Override public Object Invoke(Object[] Args) {
-		int ParamSize = this.Param != null ? this.Param.GetParamSize() : 0;
-		try {
-			Method MethodRef = this.GetMethodRef();
-			if(this.IsStaticInvocation()) {
-				switch (ParamSize) {
-				case 0:
-					return MethodRef.invoke(null, Args[0]);
-				case 1:
-					return MethodRef.invoke(null, Args[0], Args[1]);
-				case 2:
-					return MethodRef.invoke(null, Args[0], Args[0], Args[2]);
-				case 3:
-					return MethodRef.invoke(null, Args[0], Args[0], Args[2], Args[3]);
-				case 4:
-					return MethodRef.invoke(null, Args[0], Args[1], Args[2], Args[3], Args[4]);
-				case 5:
-					return MethodRef.invoke(null, Args[0], Args[1], Args[2], Args[3], Args[4], Args[5]);
-				default:
-					return MethodRef.invoke(null, Args); // FIXME
-				}
-			} else {
-				switch (ParamSize) {
-				case 0:
-					return MethodRef.invoke(Args[0]);
-				case 1:
-					return MethodRef.invoke(Args[0], Args[1]);
-				case 2:
-					return MethodRef.invoke(Args[0], Args[0], Args[2]);
-				case 3:
-					return MethodRef.invoke(Args[0], Args[0], Args[2], Args[3]);
-				case 4:
-					return MethodRef.invoke(Args[0], Args[1], Args[2], Args[3], Args[4]);
-				case 5:
-					return MethodRef.invoke(Args[0], Args[1], Args[2], Args[3], Args[4], Args[5]);
-				default:
-					return MethodRef.invoke(Args[0], Args); // FIXME
-				}
-			}
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-}
+//class GtMethodInvoker {
+//	GtParam		Param;
+//	public Object	CompiledCode;
+//
+//	public GtMethodInvoker(GtParam Param, Object CompiledCode) {
+//		this.Param = Param;
+//		this.CompiledCode = CompiledCode;
+//
+//	}
+//
+//	public Object Invoke(Object[] Args) {
+//		return null;
+//	}
+//}
+//
+//class NativeMethodInvoker extends GtMethodInvoker {
+//
+//	public NativeMethodInvoker(GtParam Param, Method MethodRef) {
+//		super(Param, MethodRef);
+//	}
+//
+//	public Method GetMethodRef() {
+//		return (Method) this.CompiledCode;
+//	}
+//
+//	boolean IsStaticInvocation() {
+//		return Modifier.isStatic(this.GetMethodRef().getModifiers());
+//	}
+//
+//	@Override public Object Invoke(Object[] Args) {
+//		int ParamSize = this.Param != null ? this.Param.GetParamSize() : 0;
+//		try {
+//			Method MethodRef = this.GetMethodRef();
+//			if(this.IsStaticInvocation()) {
+//				switch (ParamSize) {
+//				case 0:
+//					return MethodRef.invoke(null, Args[0]);
+//				case 1:
+//					return MethodRef.invoke(null, Args[0], Args[1]);
+//				case 2:
+//					return MethodRef.invoke(null, Args[0], Args[0], Args[2]);
+//				case 3:
+//					return MethodRef.invoke(null, Args[0], Args[0], Args[2], Args[3]);
+//				case 4:
+//					return MethodRef.invoke(null, Args[0], Args[1], Args[2], Args[3], Args[4]);
+//				case 5:
+//					return MethodRef.invoke(null, Args[0], Args[1], Args[2], Args[3], Args[4], Args[5]);
+//				default:
+//					return MethodRef.invoke(null, Args); // FIXME
+//				}
+//			} else {
+//				switch (ParamSize) {
+//				case 0:
+//					return MethodRef.invoke(Args[0]);
+//				case 1:
+//					return MethodRef.invoke(Args[0], Args[1]);
+//				case 2:
+//					return MethodRef.invoke(Args[0], Args[0], Args[2]);
+//				case 3:
+//					return MethodRef.invoke(Args[0], Args[0], Args[2], Args[3]);
+//				case 4:
+//					return MethodRef.invoke(Args[0], Args[1], Args[2], Args[3], Args[4]);
+//				case 5:
+//					return MethodRef.invoke(Args[0], Args[1], Args[2], Args[3], Args[4], Args[5]);
+//				default:
+//					return MethodRef.invoke(Args[0], Args); // FIXME
+//				}
+//			}
+//		} catch (IllegalArgumentException e) {
+//			e.printStackTrace();
+//		} catch (IllegalAccessException e) {
+//			e.printStackTrace();
+//		} catch (InvocationTargetException e) {
+//			e.printStackTrace();
+//		}
+//		return null;
+//	}
+//}
 //endif VAJA
 
 class GtDef extends GtStatic {
@@ -1367,34 +1362,31 @@ class GtDef extends GtStatic {
 }
 
 class GtMethod extends GtDef {
-	public GtType			ClassInfo;
-	public String			MethodName;
-	int						MethodSymbolId;
-	int						CanonicalSymbolId;
-	public GtParam			Param;
-	public GtMethodInvoker	MethodInvoker;
-	public int				MethodFlag;
+	/*field*/public int				MethodFlag;
+	/*field*/public GtType			ClassInfo;
+	/*field*/public String			MethodName;
+	/*field*/int					MethodSymbolId;
+	/*field*/int					CanonicalSymbolId;
+	/*field*/public GtParam			Param;
+//	public GtMethodInvoker	MethodInvoker;
 
 	// DoLazyComilation();
 	GtNameSpace				LazyNameSpace;
-	GtArray					SourceList;
+//	GtArray					SourceList;
 	//FIXME merge ParsedTree field in SouceList.
-	public SyntaxTree			ParsedTree;
+//	public SyntaxTree			ParsedTree;
 
-	public GtMethod(int MethodFlag, GtType ClassInfo, String MethodName, GtParam Param, Method MethodRef) {
+	GtMethod/*constructor*/(int MethodFlag, GtType ClassInfo, String MethodName, GtParam Param, Method MethodRef) {
 		this.MethodFlag = MethodFlag;
 		this.ClassInfo = ClassInfo;
 		this.MethodName = MethodName;
 		this.MethodSymbolId = GtSymbol.GetSymbolId(MethodName);
 		this.CanonicalSymbolId = GtSymbol.GetCanonicalSymbolId(MethodName);
 		this.Param = Param;
-		this.MethodInvoker = null;
-		if(MethodRef != null) {
-			this.MethodInvoker = new NativeMethodInvoker(Param, MethodRef);
-		}
-		this.ParsedTree = null;
+//		this.ParsedTree = null;
 	}
 
+//ifdef JAVA
 	@Override public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append(this.Param.Types[0]);
@@ -1412,6 +1404,7 @@ class GtMethod extends GtDef {
 		builder.append(")");
 		return builder.toString();
 	};
+//endif VAJA
 
 	public boolean Is(int Flag) {
 		return ((this.MethodFlag & Flag) == Flag);
@@ -1455,12 +1448,12 @@ class GtMethod extends GtDef {
 		return true;
 	}
 
-	public Object Eval(Object[] ParamData) {
-		//int ParamSize = this.Param.GetParamSize();
-		//GtDebug.P("ParamSize: " + ParamSize);
-		return this.MethodInvoker.Invoke(ParamData);
-	}
-
+//	public Object Eval(Object[] ParamData) {
+//		//int ParamSize = this.Param.GetParamSize();
+//		//GtDebug.P("ParamSize: " + ParamSize);
+//		return this.MethodInvoker.Invoke(ParamData);
+//	}
+//
 //	public GtMethod(int MethodFlag, GtType ClassInfo, String MethodName, GtParam Param, GtNameSpace LazyNameSpace, Tokens SourceList) {
 //		this(MethodFlag, ClassInfo, MethodName, Param, null);
 //		this.LazyNameSpace = LazyNameSpace;
@@ -1538,9 +1531,11 @@ final class TypeEnv extends GtStatic {
 		this.ThisType = Method.ClassInfo;
 		if(!Method.Is(StaticMethod)) {
 			this.AppendLocalType(Method.ClassInfo, "this");
-			GtParam Param = Method.Param;
-			for(int i = 0; i < Param.ArgNames.length; i++) {
+			/*local*/GtParam Param = Method.Param;
+			/*local*/int i = 0;
+			while(i < Param.ArgNames.length) {
 				this.AppendLocalType(Param.Types[i + Param.ReturnSize], Param.ArgNames[i]);
+				i += 1;
 			}
 		}
 	}
@@ -1554,10 +1549,13 @@ final class TypeEnv extends GtStatic {
 
 	public GtType GetLocalType(String Symbol) {
 		if(this.LocalStackList != null) {
-			for(int i = this.LocalStackList.size() - 1; i >= 0; i--) {
+			/*local*/int i = this.LocalStackList.size() - 1;
+			while(i >= 0) {
 				VarSet t = (VarSet) this.LocalStackList.get(i);
-				if(t.Name.equals(Symbol))
+				if(t.Name.equals(Symbol)) {
 					return t.Type;
+				}
+				i -= 1;
 			}
 		}
 		return null;
@@ -1678,14 +1676,18 @@ final class GtNameSpace extends GtStatic {
 	}
 		
 	private void RemakeTokenMatrixEach(GtNameSpace NameSpace) {
-		for(int i = 0; i < GtStatic.ListSize(NameSpace.PublicSpecList); i++) {
-			GtSpec Spec = (GtSpec)NameSpace.PublicSpecList.get(i);
+		/*local*/int i = 0;
+		while(i < GtStatic.ListSize(NameSpace.PublicSpecList)) {
+			/*local*/GtSpec Spec = (GtSpec)NameSpace.PublicSpecList.get(i);
 			if(Spec.SpecType != TokenFuncSpec) continue;
-			for(int j = 0; j < Spec.SpecKey.length(); j++) {
+			/*local*/int j = 0;
+			while(j < Spec.SpecKey.length()) {
 				int kchar = GtStatic.FromJavaChar(Spec.SpecKey.charAt(j));
 				GtFuncToken Func = (GtFuncToken)Spec.SpecBody;
 				this.TokenMatrix[kchar] = GtStatic.CreateOrReuseTokenFunc(Func, this.TokenMatrix[kchar]);
+				j += 1;
 			}
+			i += 1;
 		}
 	}
 	
@@ -1694,9 +1696,11 @@ final class GtNameSpace extends GtStatic {
 			RemakeTokenMatrix(NameSpace.ParentNameSpace);
 		}
 		RemakeTokenMatrixEach(NameSpace);
-		for(int i = 0; i < GtStatic.ListSize(NameSpace.ImportedNameSpaceList); i++) {
+		/*local*/int i = 0;
+		while(i < GtStatic.ListSize(NameSpace.ImportedNameSpaceList)) {
 			GtNameSpace Imported = (GtNameSpace)NameSpace.ImportedNameSpaceList.get(i);
 			RemakeTokenMatrixEach(Imported);
+			i += 1;
 		}
 	}
 	
@@ -1712,8 +1716,7 @@ final class GtNameSpace extends GtStatic {
 		this.PublicSpecList.add(new GtSpec(TokenFuncSpec, keys, f));
 		this.TokenMatrix = null;
 	}
-	
-	
+		
 	private void TableAddSpec(GtMap Table, GtSpec Spec) {
 		Object Body = Spec.SpecBody;
 		if(Body instanceof SyntaxPattern) {
