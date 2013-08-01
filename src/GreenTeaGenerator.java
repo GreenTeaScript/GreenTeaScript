@@ -538,10 +538,14 @@ public class GreenTeaGenerator extends GtStatic {
 		}
 	}	
 
-	// This must be extended in each language
+	// This must be extended in each language	
 	public Object Eval(TypedNode Node) {
 		VisitBlock(Node);
 		return null;
+	}
+
+	public void AddClass(GtType Type) {
+		/*extension*/
 	}
 
 }
