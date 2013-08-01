@@ -1,9 +1,9 @@
 // GreenTea Generator should be written in each language.
 
 class TypedNode extends GtStatic {
-	/*field*/public TypedNode	ParentNode		= null;
-	/*field*/public TypedNode	PrevNode	    = null;
-	/*field*/public TypedNode	NextNode		= null;
+	/*field*/public TypedNode	ParentNode;
+	/*field*/public TypedNode	PrevNode;
+	/*field*/public TypedNode	NextNode;
 
 	/*field*/public GtType	Type;
 	/*field*/public GtToken	Token;
@@ -22,7 +22,7 @@ class TypedNode extends GtStatic {
 	}
 
 	public final TypedNode GetHeadNode() {
-		TypedNode Node = this;
+		/*local*/TypedNode Node = this;
 		while(Node.PrevNode != null) {
 			Node = Node.PrevNode;
 		}
@@ -30,7 +30,7 @@ class TypedNode extends GtStatic {
 	}
 
 	public final TypedNode GetTailNode() {
-		TypedNode Node = this;
+		/*local*/TypedNode Node = this;
 		while(Node.NextNode != null) {
 			Node = Node.NextNode;
 		}
@@ -38,7 +38,7 @@ class TypedNode extends GtStatic {
 	}
 
 	public void Evaluate(GreenTeaGenerator Visitor) {
-		// Override
+		/*extension*/
 	}
 
 	public final boolean IsError() {
@@ -138,9 +138,9 @@ class NullNode extends TypedNode {
 }
 
 class LetNode extends TypedNode {
-	public GtToken	    VarToken;
-	public TypedNode	ValueNode;
-	public TypedNode	BlockNode;
+	/*field*/public GtToken	    VarToken;
+	/*field*/public TypedNode	ValueNode;
+	/*field*/public TypedNode	BlockNode;
 
 	/* let frame[Index] = Right in Block end */
 	LetNode/*constructor*/(GtType Type, GtToken VarToken, TypedNode Right, TypedNode Block) {
@@ -155,16 +155,9 @@ class LetNode extends TypedNode {
 }
 
 class ApplyNode extends TypedNode {
-	public GtMethod	Method;
-	public GtArray	Params; /* [this, arg1, arg2, ...] */
+	/*field*/public GtMethod	Method;
+	/*field*/public GtArray	Params; /* [this, arg1, arg2, ...] */
 
-	/* call self.Method(arg1, arg2, ...) */
-	ApplyNode/*constructor*/(GtType Type, GtToken KeyToken, GtMethod Method) {
-		super(Type, KeyToken);
-		this.Method = Method;
-		this.Params = new GtArray();
-	}
-	
 	ApplyNode/*constructor*/(GtType Type, GtToken KeyToken, GtMethod Method, TypedNode arg1) {
 		super(Type, KeyToken);
 		this.Method = Method;
@@ -172,14 +165,6 @@ class ApplyNode extends TypedNode {
 		this.Params.add(arg1);
 	}
 	
-	public ApplyNode(GtType Type, GtToken KeyToken, GtMethod Method, TypedNode arg1, TypedNode arg2) {
-		super(Type, KeyToken);
-		this.Method = Method;
-		this.Params = new GtArray();
-		this.Params.add(arg1);
-		this.Params.add(arg2);
-	}
-
 	public void Append(TypedNode Expr) {
 		this.Params.add(Expr);
 	}
@@ -190,7 +175,7 @@ class ApplyNode extends TypedNode {
 }
 
 class NewNode extends TypedNode {
-	public GtArray	Params; /* [this, arg1, arg2, ...] */
+	/*field*/public GtArray	Params; /* [this, arg1, arg2, ...] */
 
 	NewNode/*constructor*/(GtType Type, GtToken Token) {
 		super(Type, Token);
@@ -207,9 +192,9 @@ class NewNode extends TypedNode {
 }
 
 class IfNode extends TypedNode {
-	public TypedNode	CondExpr;
-	public TypedNode	ThenNode;
-	public TypedNode	ElseNode;
+	/*field*/public TypedNode	CondExpr;
+	/*field*/public TypedNode	ThenNode;
+	/*field*/public TypedNode	ElseNode;
 
 	/* If CondExpr then ThenBlock else ElseBlock */
 	IfNode/*constructor*/(GtType Type, GtToken Token, TypedNode CondExpr, TypedNode ThenBlock, TypedNode ElseNode) {
@@ -224,15 +209,15 @@ class IfNode extends TypedNode {
 }
 
 class LoopNode extends TypedNode {
-	public TypedNode	CondExpr;
-	public TypedNode	LoopBody;
-	public TypedNode	IterationExpr;
+	/*field*/public TypedNode	CondExpr;
+	/*field*/public TypedNode	LoopBody;
+	/*field*/public TypedNode	IterExpr;
 
-	public LoopNode(GtType Type, GtToken Token, TypedNode CondExpr, TypedNode LoopBody, TypedNode IterationExpr) {
+	LoopNode/*constructor*/(GtType Type, GtToken Token, TypedNode CondExpr, TypedNode LoopBody, TypedNode IterExpr) {
 		super(Type, Token);
 		this.CondExpr = CondExpr;
 		this.LoopBody = LoopBody;
-		this.IterationExpr = IterationExpr;
+		this.IterExpr = IterExpr;
 	}
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitLoopNode(this);
@@ -453,81 +438,104 @@ public class GreenTeaGenerator extends GtStatic {
 		return new ErrorNode(Type, ParsedTree.KeyToken);
 	}
 
-
 	public void VisitDefineNode(DefineNode Node) { 
+		/*extension*/
 	}
 
 	public void VisitConstNode(ConstNode Node) { 
+		/*extension*/
 	}
 
 	public void VisitNewNode(NewNode Node) { 
+		/*extension*/
 	}
 
 	public void VisitNullNode(NullNode Node) { 
+		/*extension*/
 	}
 
 	public void VisitLocalNode(LocalNode Node) { 
+		/*extension*/
 	}
 
 	public void VisitGetterNode(GetterNode Node) { 
+		/*extension*/
 	}
 
 	public void VisitApplyNode(ApplyNode Node) { 
+		/*extension*/
 	}
 
 	public void VisitBinaryNode(BinaryNode Node) { 
+		/*extension*/
 	}
 
 	public void VisitAndNode(AndNode Node) { 
+		/*extension*/
 	}
 
 	public void VisitOrNode(OrNode Node) { 
+		/*extension*/
 	}
 
 	public void VisitAssignNode(AssignNode Node) { 
+		/*extension*/
 	}
 
 	public void VisitLetNode(LetNode Node) { 
+		/*extension*/
 	}
 
 	public void VisitIfNode(IfNode Node) { 
+		/*extension*/
 	}
 
 	public void VisitSwitchNode(SwitchNode Node) { 
+		/*extension*/
 	}
 
 	public void VisitLoopNode(LoopNode Node) { 
+		/*extension*/
 	}
 
 	public void VisitReturnNode(ReturnNode Node) { 
+		/*extension*/
 	}
 
 	public void VisitLabelNode(LabelNode Node) { 
+		/*extension*/
 	}
 
 	public void VisitJumpNode(JumpNode Node) { 
+		/*extension*/
 	}
 
 	public void VisitBreakNode(BreakNode Node) { 
+		/*extension*/
 	}
 	
 	public void VisitContinueNode(ContinueNode Node) { 
+		/*extension*/
 	}
 
 	public void VisitTryNode(TryNode Node) { 
+		/*extension*/
 	}
 
 	public void VisitThrowNode(ThrowNode Node) { 
+		/*extension*/
 	}
 
 	public void VisitFunctionNode(FunctionNode Node) { 
+		/*extension*/
 	}
 
 	public void VisitErrorNode(ErrorNode Node) { 
+		/*extension*/
 	}
 
 	public final void VisitBlock(TypedNode Node) {
-		TypedNode CurrentNode = Node;
+		/*local*/TypedNode CurrentNode = Node;
 		while(CurrentNode != null) {
 			CurrentNode.Evaluate(this);
 			CurrentNode = CurrentNode.NextNode;

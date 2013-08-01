@@ -135,8 +135,8 @@ SkipIndentParseFlag = (1 << 1)
 
 # SyntaxTree
 NoWhere = -1
-# UniaryTree, SuffixTree
-UniaryTerm = 0
+# UnaryTree, SuffixTree
+UnaryTerm = 0
 # BinaryTree
 LeftHandTerm = 0
 RightHandTerm = 1
@@ -204,66 +204,41 @@ def EmptyList = any(self)
 UseBuiltInTest = True
 DebugPrnumber = False
 
-def println(msg):
-	System.out.println(msg);		
+def println(msg) :
+	LangDeps.println(msg);		
 #
 
-def P(msg):
-	println("DEBUG: " + msg)
+def DebugP(msg) :
+	LangDeps.println("DEBUG" + LangDeps.GetStackInfo(2) + ": " + msg)
 #
-def TODO(msg):
-	println("TODO: " + msg)
+def TODO(msg) :
+	LangDeps.println("TODO" + LangDeps.GetStackInfo(2) + ": " + msg)
 #
-def ListSize(a):
+def ListSize(a) :
 	return (a == None) ? 0 : a.size()
 #
 
-def IsFlag(flag, flag2):
+def IsFlag(flag, flag2) :
 	return ((flag & flag2) == flag2)
 #
-
-def IsWhitespace(ch):
-	return Character.isWhitespace(ch)
-#
-
-def IsLetter(ch):
-	return Character.isLetter(ch)
-#
-
-def IsDigit(ch):
-	return Character.isDigit(ch)
-#
-
-def FromJavaChar(c):
+	
+def FromJavaChar(c) :
 	if(c < 128):
 		return CharMatrix[c]
 	#
 	return UnicodeChar
 #
-def LookupMethod(Callee, MethodName):
-	if(MethodName != None):
-		# GtDebug.P("looking up method : " + Callee.getClass().getSimpleName() + "." + MethodName)
-		Method methods = Callee.getClass().getMethods()
-		for(i = 0; i < methods.length; i++):
-			if(MethodName.equals(methods[i].getName())):
-				return methods[i]
-			#
-		#
-		P("method not found: " + Callee.getClass().getSimpleName() + "." + MethodName)
-	#
-	return None; 
+def FunctionA(Callee, MethodName) :
+	return GtFuncToken(Callee, LangDeps.LookupMethod(Callee, MethodName))
 #
-def FunctionA(Callee, MethodName):
-	return GtFuncA(Callee, LookupMethod(Callee, MethodName))
-#
-def FunctionB(Callee, MethodName):
-	return GtFuncB(Callee, LookupMethod(Callee, MethodName))
+def FunctionB(Callee, MethodName) :
+	return GtFuncMatch(Callee, LangDeps.LookupMethod(Callee, MethodName))
 #
 
-def FunctionC(Callee, MethodName):
-	return GtFuncC(Callee, LookupMethod(Callee, MethodName))
+def FunctionC(Callee, MethodName) :
+	return GtFuncTypeCheck(Callee, LangDeps.LookupMethod(Callee, MethodName))
 #
-def EqualsMethod(m1, m2):
+def EqualsMethod(m1, m2) :
 	if(m1 == None):
 		return (m2 == None) ? True : False
 	# else:
@@ -271,42 +246,31 @@ def EqualsMethod(m1, m2):
 	#
 #
 
-def CreateOrReuseTokenFunc(f, prev):
+def CreateOrReuseTokenFunc(f, prev) :
 	if(prev != None and EqualsMethod(prev.Func.Method, f.Method)):
 		return prev
 	#
 	return TokenFunc(f, prev)
 #
-def ApplyTokenFunc(TokenFunc, TokenContext, ScriptSource, Pos):
-	try:
-		while(TokenFunc != None):
-			f = TokenFunc.Func
-			NextIdx = ((Integer)f.Method.invoke(f.Self, TokenContext, ScriptSource, Pos)).intValue()
-			if(NextIdx > Pos) return NextIdx
-			TokenFunc = TokenFunc.ParentFunc
-		#
-	#
-	catch (e):
-		e.printStackTrace()
-	#
-	catch (e):
-		e.printStackTrace()
-	# 
-	catch (e):
-		e.printStackTrace()
+def ApplyTokenFunc(TokenFunc, TokenContext, ScriptSource, Pos) :
+	while(TokenFunc != None):
+		f = TokenFunc.Func
+		NextIdx = LangDeps.ApplyTokenFunc(f.Self, f.Method, TokenContext, ScriptSource, Pos)
+		if(NextIdx > Pos) return NextIdx
+		TokenFunc = TokenFunc.ParentFunc
 	#
 	return NoMatch
 #
-def MergeSyntaxPattern(Pattern, Parent):
+def MergeSyntaxPattern(Pattern, Parent) :
 	if(Parent == None) return Pattern
 	MergedPattern = SyntaxPattern(Pattern.PackageNameSpace, Pattern.PatternName, Pattern.MatchFunc, Pattern.TypeFunc)
 	MergedPattern.ParentPattern = Parent
 	return MergedPattern
 #
-def IsEmptyOrError(Tree):
+def IsEmptyOrError(Tree) :
 	return Tree == None or Tree.IsEmptyOrError()
 #
-def TreeHead(Tree):
+def TreeHead(Tree) :
 	if(Tree != None):
 		while(Tree.PrevTree != None):
 			Tree = Tree.PrevTree
@@ -315,52 +279,41 @@ def TreeHead(Tree):
 	return Tree
 #
 
-def ApplySyntaxPattern(Pattern, LeftTree, TokenContext):
+def ApplySyntaxPattern(Pattern, LeftTree, TokenContext) :
 	Pos = TokenContext.Pos
-	try:
-		ParseFlag = TokenContext.ParseFlag
-		CurrentPattern = Pattern
-		while(CurrentPattern != None):
-			f = Pattern.MatchFunc
-			TokenContext.Pos = Pos
-			if(CurrentPattern.ParentPattern != None):
-				TokenContext.ParseFlag = ParseFlag | TrackbackParseFlag
-			#
-			P("B ApplySyntaxPattern: " + CurrentPattern + " > " + CurrentPattern.ParentPattern)
-			ParsedTree = (SyntaxTree)f.Method.invoke(f.Self, CurrentPattern, LeftTree, TokenContext)
-			if(ParsedTree != None and ParsedTree.IsEmpty()) ParsedTree = None
-			P("E ApplySyntaxPattern: " + CurrentPattern + " => " + ParsedTree)
-			TokenContext.ParseFlag = ParseFlag
-			if(ParsedTree != None):
-				return ParsedTree
-			#
-			CurrentPattern = CurrentPattern.ParentPattern
+	ParseFlag = TokenContext.ParseFlag
+	CurrentPattern = Pattern
+	while(CurrentPattern != None):
+		f = Pattern.MatchFunc
+		TokenContext.Pos = Pos
+		if(CurrentPattern.ParentPattern != None):
+			TokenContext.ParseFlag = ParseFlag | TrackbackParseFlag
 		#
-	#
-	catch (e):
-		e.printStackTrace()
-	#
-	catch (e):
-		e.printStackTrace()
-	# 
-	catch (e):
-		e.printStackTrace()
+		DebugP("B ApplySyntaxPattern: " + CurrentPattern + " > " + CurrentPattern.ParentPattern)
+		ParsedTree = (SyntaxTree)LangDeps.ApplyMatchFunc(f.Self, f.Method, CurrentPattern, LeftTree, TokenContext)
+		if(ParsedTree != None and ParsedTree.IsEmpty()) ParsedTree = None
+		DebugP("E ApplySyntaxPattern: " + CurrentPattern + " => " + ParsedTree)
+		TokenContext.ParseFlag = ParseFlag
+		if(ParsedTree != None):
+			return ParsedTree
+		#
+		CurrentPattern = CurrentPattern.ParentPattern
 	#
 	if(TokenContext.IsAllowedTrackback()):
 		TokenContext.Pos = Pos
 	#
 	if(Pattern == None):
-		P("undefined syntax pattern: " + Pattern)
+		DebugP("undefined syntax pattern: " + Pattern)
 	#
 	return TokenContext.ReportExpectedPattern(Pattern)
 #
-def ParseSyntaxTree(PrevTree, TokenContext):
+def ParseSyntaxTree(PrevTree, TokenContext) :
 	Pattern = TokenContext.GetFirstPattern()
 	LeftTree = ApplySyntaxPattern(Pattern, PrevTree, TokenContext)
 	while (!IsEmptyOrError(LeftTree)):
 		ExtendedPattern = TokenContext.GetExtendedPattern()
 		if(ExtendedPattern == None):
-			P("In $ending: " + TokenContext.GetToken())
+			DebugP("In $Expression$ ending: " + TokenContext.GetToken())
 			break
 		#
 		LeftTree = ApplySyntaxPattern(ExtendedPattern, LeftTree, TokenContext);			
@@ -368,47 +321,39 @@ def ParseSyntaxTree(PrevTree, TokenContext):
 	return LeftTree
 #
 # typing 
-def ApplyTypeFunc(TypeFunc, Gamma, ParsedTree, TypeInfo):
-	try:
-		return (TypedNode)TypeFunc.Method.invoke(TypeFunc.Self, Gamma, ParsedTree, TypeInfo)
+def ApplyTypeFunc(TypeFunc, Gamma, ParsedTree, Type) :
+	if(TypeFunc == None or TypeFunc.Method == None){
+		DebugP("try to invoke None TypeFunc")
+		return None
 	#
-	catch (e):
-		e.printStackTrace()
-	#
-	catch (e):
-		e.printStackTrace()
-	# 
-	catch (e):
-		e.printStackTrace()
-	#
-	# Node = Gamma.NewErrorNode(Tree.KeyToken, "internal error: " + e + "\n\t" + e.getCause().__str__())
-	return None
+	return (TypedNode)LangDeps.ApplyTypeFunc(TypeFunc.Self, TypeFunc.Method, Gamma, ParsedTree, Type)
 #
-class GtToken:
+class GtToken :
 	# TokenFlag
 	# ParsedText
 	# FileLine
 	# PresetPattern
 
-	def def __init__(self, self, text, FileLine):
+	def __init__(self, text, FileLine):
+		self.TokenFlag = 0
 		self.ParsedText = text
 		self.FileLine = FileLine
 		self.PresetPattern = None
 	#
 
-	def IsSource(self):
+	def IsSource(self) :
 		return IsFlag(self.TokenFlag, SourceTokenFlag)
 	#
 	
-	def IsError(self):
+	def IsError(self) :
 		return IsFlag(self.TokenFlag, ErrorTokenFlag)
 	#
 
-	def IsIndent(self):
+	def IsIndent(self) :
 		return IsFlag(self.TokenFlag, IndentTokenFlag)
 	#
 
-	def IsDelim(self):
+	def IsDelim(self) :
 		return IsFlag(self.TokenFlag, DelimTokenFlag)
 	#
 
@@ -416,7 +361,7 @@ class GtToken:
 		return self.ParsedText.equals(text)
 	#
 
-	def __str__(self):
+	def __str__(self) :
 		TokenText = ""
 		if(self.PresetPattern != None):
 			TokenText = "(" + self.PresetPattern.PatternName + ") "
@@ -430,7 +375,7 @@ class GtToken:
 		return Message
 	#
 
-	def GetErrorMessage(self):
+	def GetErrorMessage(self) :
 		assert(self.IsError())
 		return self.ParsedText
 	#
@@ -445,20 +390,12 @@ class TokenFunc:
 		self.ParentFunc = prev
 	#
 
-	Duplicate():
-		if(self.ParentFunc == None):
-			return TokenFunc(self.Func, None)
-		# else:
-			return TokenFunc(self.Func, self.ParentFunc.Duplicate())
-		#
-	#
-
-	def __str__(self):
+	def __str__(self) :
 		return self.Func.Method.__str__()
 	#
 #
 
-class TokenContext:
+class TokenContext :
 	# NameSpace
 	# SourceList
 	# Pos
@@ -481,11 +418,12 @@ class TokenContext:
 			Token.PresetPattern = self.NameSpace.GetPattern(PatternName)
 			assert(Token.PresetPattern != None)
 		#
+		DebugP("<< " + Text + " : " + PatternName)
 		self.SourceList.push(Token)
 		return Token
 	#
 
-	def FoundWhiteSpace(self):
+	def FoundWhiteSpace(self) :
 		Token = GetToken()
 		Token.TokenFlag |= WhiteSpaceTokenFlag
 	#
@@ -495,7 +433,7 @@ class TokenContext:
 	#
 
 	def ReportTokenError(self, Level, Message, TokenText):
-		Token = self.AddNewToken(TokenText, 0, "$ErrorToken")
+		Token = self.AddNewToken(TokenText, 0, "$Error$")
 		self.NameSpace.ReportError(Level, Token, Message)
 	#
 	
@@ -508,7 +446,7 @@ class TokenContext:
 		return None
 	#
 	
-	def GetBeforeToken(self):
+	def GetBeforeToken(self) :
 		for(pos = self.Pos - 1; pos >= 0; pos--):
 			Token = (GtToken)self.SourceList[pos]
 			if(IsFlag(Token.TokenFlag, IndentTokenFlag)):
@@ -540,33 +478,33 @@ class TokenContext:
 		TokenFunc = self.NameSpace.GetTokenFunc(GtChar)
 		NextIdx = ApplyTokenFunc(TokenFunc, self, ScriptSource, pos)
 		if(NextIdx == NoMatch):
-			P("undefined tokenizer: " + ScriptSource.charAt(pos))
-			AddNewToken(ScriptSource.substring(pos), 0, None)
+			DebugP("undefined tokenizer: " + ScriptSource.charAt(pos))
+			self.AddNewToken(ScriptSource.substring(pos), 0, None)
 			return ScriptSource.length()
 		#
 		return NextIdx
 	#
 
 	def Tokenize(self, ScriptSource, CurrentLine):
-		pos = 0, len = ScriptSource.length()
+		currentPos = 0, len = ScriptSource.length()
 		self.ParsingLine = CurrentLine
-		while(pos < len):
-			knumber = FromJavaChar(ScriptSource.charAt(pos))
-			pos2 = DispatchFunc(ScriptSource, kchar, pos)
-			if(!(pos < pos2)):
+		while(currentPos < len):
+			gtCode = FromJavaChar(ScriptSource.charAt(currentPos))
+			nextPos = self.DispatchFunc(ScriptSource, gtCode, currentPos)
+			if(currentPos >= nextPos):
 				break
 			#
-			pos = pos2
+			currentPos = nextPos
 		#
-		Dump()
+		self.Dump()
 	#
 
-	def GetToken(self):
+	def GetToken(self) :
 		while((self.Pos < self.SourceList.size())):
 			Token = (GtToken)self.SourceList[self.Pos]
 			if(Token.IsSource()):
 				self.SourceList.pop()
-				Tokenize(Token.ParsedText, Token.FileLine)
+				self.Tokenize(Token.ParsedText, Token.FileLine)
 				Token = (GtToken)self.SourceList[self.Pos]
 			#
 			if(IsFlag(self.ParseFlag, SkipIndentParseFlag) and Token.IsIndent()):
@@ -578,12 +516,12 @@ class TokenContext:
 		return NullToken
 	#
 
-	def HasNext(self):
-		return (GetToken() != NullToken)
+	def HasNext(self) :
+		return (self.GetToken() != NullToken)
 	#
 
-	def Next(self):
-		Token = GetToken()
+	def Next(self) :
+		Token = self.GetToken()
 		self.Pos += 1
 		return Token
 	#
@@ -592,19 +530,19 @@ class TokenContext:
 		return self.NameSpace.GetPattern(PatternName)
 	#
 
-	def GetFirstPattern(self):
+	def GetFirstPattern(self) :
 		Token = GetToken()
 		if(Token.PresetPattern != None):
 			return Token.PresetPattern
 		#
 		Pattern = self.NameSpace.GetPattern(Token.ParsedText)
 		if(Pattern == None):
-			return self.NameSpace.GetPattern("$Symbol")
+			return self.NameSpace.GetPattern("$Symbol$")
 		#
 		return Pattern
 	#
 
-	def GetExtendedPattern(self):
+	def GetExtendedPattern(self) :
 		Token = GetToken()
 		Pattern = self.NameSpace.GetExtendedPattern(Token.ParsedText)
 		return Pattern;		
@@ -630,7 +568,7 @@ class TokenContext:
 		return Token
 	#
 
-	def IsAllowedTrackback(self):
+	def IsAllowedTrackback(self) :
 		return IsFlag(self.ParseFlag, TrackbackParseFlag)
 	#
 
@@ -650,7 +588,7 @@ class TokenContext:
 		return None
 	#
 	
-	def SkipEmptyStatement(self):
+	def SkipEmptyStatement(self) :
 		Token
 		while((Token = GetToken()) != NullToken):
 			if(Token.IsIndent() or Token.IsDelim()):
@@ -662,14 +600,15 @@ class TokenContext:
 		return (Token != NullToken)
 	#
 	
-	def Dump(self):
+	def Dump(self) :
 		for(pos = self.Pos ; pos < self.SourceList.size(); pos++):
-			P("["+pos+"]\t" + self.SourceList[pos])
+			token = (GtToken)self.SourceList[pos]
+			DebugP("["+pos+"]\t" + token + " : " + token.PresetPattern)
 		#
 	#
 #
 
-class SyntaxPattern:
+class SyntaxPattern :
 
 	# PackageNameSpace
 	# PatternName
@@ -688,31 +627,31 @@ class SyntaxPattern:
 		self.ParentPattern = None
 	#
 
-	def __str__(self):
+	def __str__(self) :
 		return self.PatternName + "<" + self.MatchFunc + ">"
 	#
 
-	def IsBinaryOperator(self):
-		return ((self.SyntaxFlag & BinaryOperator) == BinaryOperator)
+	def IsBinaryOperator(self) :
+		return IsFlag(self.SyntaxFlag, BinaryOperator)
 	#
 
 	def IsLeftJoin(self, Right):
 		left = self.SyntaxFlag >> PrecedenceShift, right = Right.SyntaxFlag >> PrecedenceShift
-		# System.err.printf("left=%d,%s, right=%d,%s\n", left, self.PatternName, right, Right.PatternName)
 		return (left < right or (left == right and IsFlag(self.SyntaxFlag, LeftJoin) and IsFlag(Right.SyntaxFlag, LeftJoin)))
 	#
 	
 #
 
-class SyntaxTree:
-	ParentTree
-	PrevTree
-	NextTree
+class SyntaxTree :
+	# ParentTree
+	# PrevTree
+	# NextTree
 
-	TreeNameSpace
-	Pattern
-	KeyToken
-	TreeList
+	# TreeNameSpace
+	# Pattern
+	# KeyToken
+	# TreeList
+	# ResolvedObject
 
 	def __init__(self, Pattern, NameSpace, KeyToken):
 		self.TreeNameSpace = NameSpace
@@ -722,9 +661,10 @@ class SyntaxTree:
 		self.PrevTree = None
 		self.NextTree = None
 		self.TreeList = None
+		self.ResolvedObject = None
 	#
 
-	def __str__(self):
+	def __str__(self) :
 		key = self.KeyToken.ParsedText + ":" + ((self.Pattern != None) ? self.Pattern.PatternName : "None")
 		sb = StringBuilder()
 		sb.append("(")
@@ -753,7 +693,7 @@ class SyntaxTree:
 		self.NextTree = Tree
 	#
 	
-	def IsError(self):
+	def IsError(self) :
 		return self.KeyToken.IsError()
 	#
 
@@ -763,17 +703,17 @@ class SyntaxTree:
 		self.TreeList = None
 	#
 
-	def IsEmpty(self):
+	def IsEmpty(self) :
 		return self.KeyToken == NullToken
 	#
 
-	def ToEmpty(self):
+	def ToEmpty(self) :
 		self.KeyToken = NullToken
 		self.TreeList = None
-		self.Pattern = self.TreeNameSpace.GetPattern("$Empty")
+		self.Pattern = self.TreeNameSpace.GetPattern("$Empty$")
 	#
 	
-	def IsEmptyOrError(self):
+	def IsEmptyOrError(self) :
 		return self.KeyToken == NullToken or self.KeyToken.IsError()
 	#
 	
@@ -859,23 +799,26 @@ class SyntaxTree:
 		#
 	#
 
-	def TypeNodeAt(self, Index, Gamma, TypeInfo, TypeCheckPolicy):
+	def TypeNodeAt(self, Index, Gamma, Type, TypeCheckPolicy):
 		if(self.TreeList != None and Index < self.TreeList.size()):
 			NodeObject = self.TreeList[Index]
-			if(instanceof SyntaxTree):
-				TypedNode = TypeEnv.TypeCheck(Gamma, (SyntaxTree) NodeObject, TypeInfo, TypeCheckPolicy)
+			if(type(NodeObject) == SyntaxTree):
+				TypedNode = TypeEnv.TypeCheck(Gamma, (SyntaxTree) NodeObject, Type, TypeCheckPolicy)
 				self.TreeList[Index] = TypedNode
 				return TypedNode
 			#
 		#
-		return ErrorNode(TypeInfo, self.KeyToken, "syntax tree error: " + Index)
+		if(!IsFlag(TypeCheckPolicy, AllowEmptyPolicy) and !IsFlag(TypeCheckPolicy, IgnoreEmptyPolicy)):
+			Gamma.GammaNameSpace.ReportError(ErrorLevel, self.KeyToken, self.KeyToken.ParsedText + " needs more expression at " + Index)
+			return Gamma.Generator.CreateErrorNode(Type, self); #  TODO, "syntax tree error: " + Index)
+		#
+		return None
 	#
-
 #
 
 
 
-class GtType:
+class GtType :
 	# GtContext
 	# ClassFlag
 	# ShortClassName
@@ -898,14 +841,12 @@ class GtType:
 		self.LocalSpec = Spec
 	#
 
-
-	def __str__(self):
+	def __str__(self) :
 		return self.ShortClassName
 	#
 
-
-	def Accept(self, TypeInfo):
-		if(self == TypeInfo):
+	def Accept(self, Type):
+		if(self == Type):
 			return True
 		#
 		return False
@@ -916,11 +857,6 @@ class GtType:
 			self.ClassMethodList = []
 		#
 		self.ClassMethodList.push(Method)
-	#
-
-	def DefineMethod(self, MethodFlag, MethodName, Param, Callee, LocalName):
-		Method = GtMethod(MethodFlag, self, MethodName, Param, LookupMethod(Callee, LocalName))
-		self.AddMethod(Method)
 	#
 
 	def FindMethod(self, MethodName, ParamSize):
@@ -946,13 +882,13 @@ class GtType:
 		#
 #
 
-class GtSymbol:
+class GtSymbol :
 
-	def IsGetterSymbol(SymbolId):
+	def IsGetterSymbol(SymbolId) :
 		return (SymbolId & GetterSymbolMask) == GetterSymbolMask
 	#
 
-	def ToSetterSymbol(SymbolId):
+	def ToSetterSymbol(SymbolId) :
 		assert(IsGetterSymbol(SymbolId))
 		return (SymbolId & (~GetterSymbolMask)) | SetterSymbolMask
 	#
@@ -962,15 +898,15 @@ class GtSymbol:
 	SymbolList = []
 	SymbolMap =:#
 
-	def MaskSymbol(SymbolId, Mask):
+	def MaskSymbol(SymbolId, Mask) :
 		return (SymbolId << SymbolMaskSize) | Mask
 	#
 
-	def UnmaskSymbol(SymbolId):
+	def UnmaskSymbol(SymbolId) :
 		return SymbolId >> SymbolMaskSize
 	#
 
-	def StringfySymbol(SymbolId):
+	def StringfySymbol(SymbolId) :
 		Key = (String)SymbolList.get(UnmaskSymbol(SymbolId))
 		if((SymbolId & GetterSymbolMask) == GetterSymbolMask):
 			return GetterPrefix + Key
@@ -984,7 +920,7 @@ class GtSymbol:
 		return Key
 	#
 
-	def GetSymbolId(Symbol, DefaultSymbolId):
+	def GetSymbolId(Symbol, DefaultSymbolId) :
 		Key = Symbol
 		Mask = 0
 		if(Symbol.length() >= 3 and Symbol.charAt(1) == 'e' and Symbol.charAt(2) == 't'):
@@ -1013,21 +949,21 @@ class GtSymbol:
 		return MaskSymbol(SymbolObject.intValue(), Mask)
 	#
 
-	def GetSymbolId(Symbol):
+	def GetSymbolId(Symbol) :
 		return GetSymbolId(Symbol, AllowNewId)
 	#
 
-	def CanonicalSymbol(Symbol):
+	def CanonicalSymbol(Symbol) :
 		return Symbol.toLowerCase().replaceAll("_", "")
 	#
 
-	def GetCanonicalSymbolId(Symbol):
+	def GetCanonicalSymbolId(Symbol) :
 		return GetSymbolId(CanonicalSymbol(Symbol), AllowNewId)
 	#
 
 #
 
-class GtParam:
+class GtParam :
 	MAX = 16
 	VariableParamSize = -1
 	ReturnSize
@@ -1042,12 +978,12 @@ class GtParam:
 		System.arraycopy(ArgNames, 0, self.ArgNames, 0, DataSize - self.ReturnSize)
 	#
 
-	def ParseOf(ns, TypeList):
+	def ParseOf(ns, TypeList) :
 		TODO("ParseOfParam")
 		return None
 	#
 
-	def GetParamSize(self):
+	def GetParamSize(self) :
 		return self.Types.length - self.ReturnSize
 	#
 
@@ -1078,7 +1014,7 @@ class GtParam:
 #
 
 
-class GtDef:
+class GtDef :
 
 	def MakeDefinition(self, NameSpace):
 		
@@ -1086,7 +1022,7 @@ class GtDef:
 
 #
 
-class GtMethod <: GtDef:
+class GtMethod (GtDef):
 	ClassInfo
 	MethodName
 	MethodSymbolId
@@ -1115,7 +1051,7 @@ class GtMethod <: GtDef:
 		self.ParsedTree = None
 	#
 
-	def __str__(self):
+	def __str__(self) :
 		builder = StringBuilder()
 		builder.append(self.Param.Types[0])
 		builder.append(" ")
@@ -1182,53 +1118,58 @@ class GtMethod <: GtDef:
 	#
 
 
-	def DoCompilation(self):
+	def DoCompilation(self) :
 	#
 #
 
 class VarSet:
-	TypeInfo
-	Name
+	# Type
+	# Name
 
-	VarSet(TypeInfo, Name):
-		self.TypeInfo = TypeInfo
+	def __init__(self, Type, Name):
+		self.Type = Type
 		self.Name = Name
 	#
 #
 
-class TypeEnv:
+class TypeEnv :
+	# GammaNameSpace
+	# Generator
 
-	GammaNameSpace
+	# Method
+	# ReturnType
+	# ThisType
+	# LocalStackList
 
 	
-	VoidType
-	BooleanType
-	IntType
-	StringType
-	VarType
-
-	def TypeEnv(self, GammaNameSpace, Method):
+	# VoidType
+	# BooleanType
+	# IntType
+	# StringType
+	# AnyType
+	
+	def __init__(self, GammaNameSpace, Method):
 		self.GammaNameSpace = GammaNameSpace
+		self.Generator = GammaNameSpace.GtContext.Generator
+		
 		self.VoidType = GammaNameSpace.GtContext.VoidType
 		self.BooleanType = GammaNameSpace.GtContext.BooleanType
 		self.IntType = GammaNameSpace.GtContext.IntType
 		self.StringType = GammaNameSpace.GtContext.StringType
-		self.VarType = GammaNameSpace.GtContext.VarType
+		self.AnyType = GammaNameSpace.GtContext.AnyType
 		self.Method = Method
+		self.LocalStackList = None
+		
 		if(Method != None):
 			self.InitMethod(Method)
 		# else:
 			# global
-			self.ThisType = GammaNameSpace.GetGlobalObject().TypeInfo
+			self.ThisType = GammaNameSpace.GetGlobalObject().Type
 			self.AppendLocalType(self.ThisType, "self")
 		#
 	#
 
-	Method
-	ReturnType
-	ThisType
-
-	InitMethod(Method):
+	def InitMethod(self, Method):
 		self.ReturnType = Method.GetReturnType(Method.ClassInfo)
 		self.ThisType = Method.ClassInfo
 		if(!Method.Is(StaticMethod)):
@@ -1240,13 +1181,11 @@ class TypeEnv:
 		#
 	#
 
-	LocalStackList = None
-
-	def AppendLocalType(self, TypeInfo, Name):
+	def AppendLocalType(self, Type, Name):
 		if(self.LocalStackList == None):
 			self.LocalStackList = []
 		#
-		self.LocalStackList.add(VarSet(TypeInfo, Name))
+		self.LocalStackList.add(VarSet(Type, Name))
 	#
 
 	def GetLocalType(self, Symbol):
@@ -1254,45 +1193,44 @@ class TypeEnv:
 			for(i = self.LocalStackList.size() - 1; i >= 0; i--):
 				t = (VarSet) self.LocalStackList[i]
 				if(t.Name.equals(Symbol))
-					return t.TypeInfo
+					return t.Type
 			#
 		#
 		return None
 	#
 
-	GetLocalIndex(Symbol):
-		return -1
+
+	def GuessType(self, Value):
+		TODO("GuessType")
+		return self.AnyType
+	#
+	
+	def CreateErrorNode(self, ParsedTree, Message):
+		self.GammaNameSpace.ReportError(ErrorLevel, ParsedTree.KeyToken, Message)
+		return self.Generator.CreateErrorNode(self.VoidType, ParsedTree)
 	#
 
-	def GetDefaultTypedNode(self, TypeInfo):
-		return None; #  TODO
-	#
-
-	def NewErrorNode(self, KeyToken, Message):
-		return ErrorNode(self.VoidType, KeyToken, self.GammaNameSpace.ReportError(ErrorLevel, KeyToken, Message))
-	#
-
-	def TypeEachNode(Gamma, Tree, TypeInfo):
-		Node = ApplyTypeFunc(Tree.Pattern.TypeFunc, Gamma, Tree, TypeInfo)
+	def TypeEachNode(Gamma, Tree, Type) :
+		Node = ApplyTypeFunc(Tree.Pattern.TypeFunc, Gamma, Tree, Type)
 		if(Node == None):
-			Node = Gamma.NewErrorNode(Tree.KeyToken, "undefined type checker: " + Tree.Pattern)
+			Node = Gamma.CreateErrorNode(Tree, "undefined type checker: " + Tree.Pattern)
 		#
 		return Node
 	#
 
-	def TypeCheckEachNode(Gamma, Tree, TypeInfo, TypeCheckPolicy):
-		Node = TypeEachNode(Gamma, Tree, TypeInfo)
-		# if(Node.TypeInfo == None):
+	def TypeCheckEachNode(Gamma, Tree, Type, TypeCheckPolicy) :
+		Node = TypeEachNode(Gamma, Tree, Type)
+		# if(Node.Type == None):
 		# 
 		# #
 		return Node
 	#
 
-	def TypeCheck(Gamma, Tree, TypeInfo, TypeCheckPolicy):
+	def TypeCheck(Gamma, Tree, Type, TypeCheckPolicy) :
 		TPrevNode = None
 		while(Tree != None):
-			CurrentTypeInfo = (Tree.NextTree != None) ? Gamma.VoidType : TypeInfo
-			CurrentTypedNode = TypeCheckEachNode(Gamma, Tree, CurrentTypeInfo, TypeCheckPolicy)
+			CurrentType = (Tree.NextTree != None) ? Gamma.VoidType : Type
+			CurrentTypedNode = TypeCheckEachNode(Gamma, Tree, CurrentType, TypeCheckPolicy)
 			if(TPrevNode != None):
 				TPrevNode.LinkNode(CurrentTypedNode)
 			#
@@ -1307,424 +1245,18 @@ class TypeEnv:
 
 #
 
-class TypedNode:
 
-	ParentNode = None
-	PrevNode = None
-	NextNode = None
 
-	TypeInfo
-	SourceToken
-
-	def GetHeadNode(self):
-		Node = self
-		while(Node.PrevNode != None):
-			Node = Node.PrevNode
-		#
-		return Node
-	#
-
-	def Next(self, Node):
-		LastNode = self.GetTailNode()
-		LastNode.LinkNode(Node)
-		return Node
-	#
-
-	def GetTailNode(self):
-		Node = self
-		while(Node.NextNode != None):
-			Node = Node.NextNode
-		#
-		return self
-	#
-
-	def LinkNode(self, Node):
-		Node.PrevNode = self
-		self.NextNode = Node
-	#
-
-	def TypedNode(self, TypeInfo, SourceToken):
-		self.TypeInfo = TypeInfo
-		self.SourceToken = SourceToken
-	#
-
-	def Evaluate(self, Visitor):
-		return False
-	#
-
-	def IsError(self):
-		return (self instanceof ErrorNode)
+class GtObject :
+	Type
+	def GtObject(self, Type):
+		self.Type = Type
 	#
 
 #
 
-class UnaryNode <: TypedNode:
-	Expr
 
-	UnaryNode(TypeInfo, Expr):
-		super(TypeInfo, None)
-		self.Expr = Expr
-	#
-#
-
-class BinaryNode <: TypedNode:
-	LeftNode
-	RightNode
-
-	def BinaryNode(self, TypeInfo, OperatorToken, Left, Right):
-		super(TypeInfo, OperatorToken)
-		self.LeftNode = Left
-		self.RightNode = Right
-	#
-
-#
-
-class ErrorNode <: TypedNode:
-	ErrorMessage
-
-	def ErrorNode(self, TypeInfo, KeyToken, ErrorMessage):
-		super(TypeInfo, KeyToken)
-		self.ErrorMessage = KeyToken.ToErrorToken(ErrorMessage)
-	#
-
-	def Evaluate(self, Visitor):
-		return Visitor.VisitError(self)
-	#
-#
-
-class ConstNode <: TypedNode:
-	ConstValue
-
-	def ConstNode(self, TypeInfo, SourceToken, ConstValue):
-		super(TypeInfo, SourceToken)
-		self.ConstValue = ConstValue
-	#
-
-	def Evaluate(self, Visitor):
-		return Visitor.VisitConst(self)
-	#
-
-#
-
-class FieldNode <: TypedNode:
-	FieldName
-
-	def FieldNode(self, TypeInfo, SourceToken, FieldName):
-		super(TypeInfo, SourceToken)
-		self.FieldName = FieldName
-	#
-
-	def GetFieldName(self):
-		return self.FieldName
-	#
-#
-
-class LocalNode <: FieldNode:
-	def LocalNode(self, TypeInfo, SourceToken, FieldName):
-		super(TypeInfo, SourceToken, FieldName)
-	#
-
-	def Evaluate(self, Visitor):
-		return Visitor.VisitLocal(self)
-	#
-
-#
-
-class NullNode <: TypedNode:
-	def NullNode(self, TypeInfo):
-		super(TypeInfo, None)
-	#
-
-	def Evaluate(self, Visitor):
-		return Visitor.VisitNull(self)
-	#
-#
-
-class LetNode <: TypedNode:
-	VarToken
-	ValueNode
-	BlockNode
-
-	
-	def LetNode(self, TypeInfo, VarToken, Right, Block):
-		super(TypeInfo, VarToken)
-		self.VarToken = VarToken
-		self.ValueNode = Right
-		self.BlockNode = Block
-	#
-
-	def Evaluate(self, Visitor):
-		return Visitor.VisitLet(self)
-	#
-#
-
-class AndNode <: BinaryNode:
-	def AndNode(self, TypeInfo, KeyToken, Left, Right):
-		super(TypeInfo, KeyToken, Left, Right)
-	#
-
-	def Evaluate(self, Visitor):
-		return Visitor.VisitAnd(self)
-	#
-#
-
-class OrNode <: BinaryNode:
-
-	def OrNode(self, TypeInfo, KeyToken, Left, Right):
-		super(TypeInfo, KeyToken, Left, Right)
-	#
-
-	def Evaluate(self, Visitor):
-		return Visitor.VisitOr(self)
-	#
-#
-
-class ApplyNode <: TypedNode:
-	Method
-	Params; 
-
-	
-	def ApplyNode(self, TypeInfo, KeyToken, Method):
-		super(TypeInfo, KeyToken)
-		self.Method = Method
-		self.Params = []
-	#
-
-	def ApplyNode(self, TypeInfo, KeyToken, Method, arg1):
-		super(TypeInfo, KeyToken)
-		self.Method = Method
-		self.Params = []
-		self.Params.push(arg1)
-	#
-
-	def ApplyNode(self, TypeInfo, KeyToken, Method, arg1, arg2):
-		super(TypeInfo, KeyToken)
-		self.Method = Method
-		self.Params = []
-		self.Params.push(arg1)
-		self.Params.push(arg2)
-	#
-
-	def Append(self, Expr):
-		self.Params.push(Expr)
-	#
-
-	def Evaluate(self, Visitor):
-		return Visitor.VisitApply(self)
-	#
-#
-
-class NewNode <: TypedNode:
-	Params; 
-
-	def NewNode(self, TypeInfo, KeyToken):
-		super(TypeInfo, KeyToken)
-		self.Params = []
-	#
-
-	def Append(self, Expr):
-		self.Params.push(Expr)
-	#
-
-	def Evaluate(self, Visitor):
-		return Visitor.VisitNew(self)
-	#
-#
-
-class IfNode <: TypedNode:
-	CondExpr
-	ThenNode
-	ElseNode
-
-	
-	def IfNode(self, TypeInfo, CondExpr, ThenBlock, ElseNode):
-		super(TypeInfo, None)
-		self.CondExpr = CondExpr
-		self.ThenNode = ThenBlock
-		self.ElseNode = ElseNode
-	#
-
-	def Evaluate(self, Visitor):
-		return Visitor.VisitIf(self)
-	#
-#
-
-class LoopNode <: TypedNode:
-
-	
-	CondExpr
-	LoopBody
-	IterationExpr
-
-	def LoopNode(self, TypeInfo, CondExpr, LoopBody, IterationExpr):
-		super(TypeInfo, None)
-		self.CondExpr = CondExpr
-		self.LoopBody = LoopBody
-		self.IterationExpr = IterationExpr
-	#
-
-	def Evaluate(self, Visitor):
-		return Visitor.VisitLoop(self)
-	#
-#
-
-class ReturnNode <: UnaryNode:
-
-	def ReturnNode(self, TypeInfo, Expr):
-		super(TypeInfo, Expr)
-	#
-
-	def Evaluate(self, Visitor):
-		return Visitor.VisitReturn(self)
-	#
-
-#
-
-class ThrowNode <: UnaryNode:
-	
-	def ThrowNode(self, TypeInfo, Expr):
-		super(TypeInfo, Expr)
-	#
-
-	def Evaluate(self, Visitor):
-		return Visitor.VisitThrow(self)
-	#
-#
-
-
-class TryNode <: TypedNode:
-	/*
-	 * let HasException = TRY(TryBlock); in if HasException ==
-	 * CatchedExceptions[0] then CatchBlock[0] if HasException ==
-	 * CatchedExceptions[1] then CatchBlock[1] ... end
-	 */
-	TryBlock
-	TargetException
-	CatchBlock
-	FinallyBlock
-
-	def TryNode(self, TypeInfo, TryBlock, FinallyBlock):
-		super(TypeInfo, None)
-		self.TryBlock = TryBlock
-		self.FinallyBlock = FinallyBlock
-		self.CatchBlock = []
-		self.TargetException = []
-	#
-
-	def addCatchBlock(self, TargetException, CatchBlock): # FIXME
-		self.TargetException.push(TargetException)
-		self.CatchBlock.push(CatchBlock)
-	#
-
-	def Evaluate(self, Visitor):
-		return Visitor.VisitTry(self)
-	#
-#
-
-class SwitchNode <: TypedNode:
-	def SwitchNode(self, TypeInfo, KeyToken):
-		super(TypeInfo, None)
-	#
-
-	/*
-	 * switch CondExpr: Label[0]: Blocks[0]; Label[1]: Blocks[2]; ... #
-	 */
-	CondExpr
-	Labels
-	Blocks
-
-	def Evaluate(self, Visitor):
-		return Visitor.VisitSwitch(self)
-	#
-#
-
-class DefineNode <: TypedNode:
-
-	DefInfo
-
-	def DefineNode(self, TypeInfo, KeywordToken, DefInfo):
-		super(TypeInfo, KeywordToken)
-		self.DefInfo = DefInfo
-	#
-
-	def Evaluate(self, Visitor):
-		return Visitor.VisitDefine(self)
-	#
-#
-
-
-
-class GtObject:
-	TypeInfo
-	def GtObject(self, TypeInfo):
-		self.TypeInfo = TypeInfo
-	#
-#
-
-class NodeVisitor /*:
-	
-	# VisitList(NodeList): return False;#
-
-	VisitDefine(Node):boolean: return False;#
-
-	VisitConst(Node):boolean: return False;#
-
-	VisitNew(Node):boolean: return False;#
-
-	VisitNull(Node):boolean: return False;#
-
-	VisitLocal(Node):boolean: return False;#
-
-
-	VisitApply(Node):boolean: return False;#
-
-	VisitAnd(Node):boolean: return False;#
-
-	VisitOr(Node):boolean: return False;#
-
-
-	VisitLet(Node):boolean: return False;#
-
-	VisitIf(Node):boolean: return False;#
-
-	VisitSwitch(Node):boolean: return False;#
-
-	VisitLoop(Node):boolean: return False;#
-
-	VisitReturn(Node):boolean: return False;#
-
-
-
-	VisitTry(Node):boolean: return False;#
-
-	VisitThrow(Node):boolean: return False;#
-
-
-	VisitError(Node):boolean: return False;#
-
-	def VisitList(self, Node):
-		Ret = True
-		while(Ret and Node != None):
-			Ret &= Node.Evaluate(self)
-			Node = Node.NextNode
-		#
-		return Ret
-	#
-	
-#
-
-class GtBuilder:
-	
-	EvalAtTopLevel(NameSpace, Node, GlobalObject):
-		return None
-	#
-
-	Build(NameSpace, Node, Method):
-		return None
-	#
-#
-
-class GtSpec:
+class GtSpec :
 	# SpecType
 	# SpecKey
 	# SpecBody
@@ -1736,7 +1268,7 @@ class GtSpec:
 	#
 #
 
-class GtNameSpace:
+class GtNameSpace :
 	# GtContext
 	# ParentNameSpace
 	# ImportedNameSpaceList
@@ -1764,7 +1296,7 @@ class GtNameSpace:
 			if(Spec.SpecType != TokenFuncSpec) continue
 			for(j = 0; j < Spec.SpecKey.length(); j++):
 				knumber = FromJavaChar(Spec.SpecKey.charAt(j))
-				Func = (GtFuncA)Spec.SpecBody
+				Func = (GtFuncToken)Spec.SpecBody
 				self.TokenMatrix[kchar] = CreateOrReuseTokenFunc(Func, self.TokenMatrix[kchar])
 			#
 		#
@@ -1797,9 +1329,9 @@ class GtNameSpace:
 	
 	def TableAddSpec(self, Table, Spec):
 		Body = Spec.SpecBody
-		if(instanceof SyntaxPattern):
+		if(type(Body) == SyntaxPattern):
 			Parent = Table[Spec.SpecKey]
-			if(instanceof SyntaxPattern):
+			if(type(Parent) == SyntaxPattern):
 				Body = MergeSyntaxPattern((SyntaxPattern)Body, (SyntaxPattern)Parent)
 			#
 		#
@@ -1810,23 +1342,23 @@ class GtNameSpace:
 		for(i = 0; i < ListSize(SpecList); i++):
 			Spec = (GtSpec)SpecList[i]
 			if(Spec.SpecType == SymbolPatternSpec):
-				TableAddSpec(self.SymbolPatternTable, Spec)
+				self.TableAddSpec(self.SymbolPatternTable, Spec)
 			#
 			else if(Spec.SpecType == ExtendedPatternSpec):
-				TableAddSpec(self.ExtendedPatternTable, Spec)
+				self.TableAddSpec(self.ExtendedPatternTable, Spec)
 			#
 		#
 	#
 	
 	def RemakeSymbolTable(self, NameSpace):
 		if(NameSpace.ParentNameSpace != None):
-			RemakeSymbolTable(NameSpace.ParentNameSpace)
+			self.RemakeSymbolTable(NameSpace.ParentNameSpace)
 		#
-		RemakeSymbolTableEach(NameSpace, NameSpace.PublicSpecList)
-		RemakeSymbolTableEach(NameSpace, NameSpace.PrivateSpecList)
+		self.RemakeSymbolTableEach(NameSpace, NameSpace.PublicSpecList)
+		self.RemakeSymbolTableEach(NameSpace, NameSpace.PrivateSpecList)
 		for(i = 0; i < ListSize(NameSpace.ImportedNameSpaceList); i++):
 			Imported = (GtNameSpace)NameSpace.ImportedNameSpaceList[i]
-			RemakeSymbolTableEach(Imported, Imported.PublicSpecList)
+			self.RemakeSymbolTableEach(Imported, Imported.PublicSpecList)
 		#
 	#
 	
@@ -1834,31 +1366,31 @@ class GtNameSpace:
 		if(self.SymbolPatternTable == None):
 			self.SymbolPatternTable =:#
 			self.ExtendedPatternTable =:#
-			RemakeSymbolTable(self)
+			self.RemakeSymbolTable(self)
 		#
 		return self.SymbolPatternTable[Key]
 	#
 		
 	def GetPattern(self, PatternName):
 		Body = self.GetSymbol(PatternName)
-		return (instanceof SyntaxPattern) ? (SyntaxPattern)Body : None
+		return (type(Body) == SyntaxPattern) ? (SyntaxPattern)Body : None
 	#
 
 	def GetExtendedPattern(self, PatternName):
 		if(self.ExtendedPatternTable == None):
 			self.SymbolPatternTable =:#
 			self.ExtendedPatternTable =:#
-			RemakeSymbolTable(self)
+			self.RemakeSymbolTable(self)
 		#
 		Body = self.ExtendedPatternTable[PatternName]
-		return (instanceof SyntaxPattern) ? (SyntaxPattern)Body : None
+		return (type(Body) == SyntaxPattern) ? (SyntaxPattern)Body : None
 	#
 
 	def DefineSymbol(self, Key, Value):
 		Spec = GtSpec(SymbolPatternSpec, Key, Value)
 		self.PublicSpecList.push(Spec)
 		if(self.SymbolPatternTable != None):
-			TableAddSpec(self.SymbolPatternTable, Spec)
+			self.TableAddSpec(self.SymbolPatternTable, Spec)
 		#
 	#
 
@@ -1869,7 +1401,7 @@ class GtNameSpace:
 		#
 		self.PrivateSpecList.push(Spec)
 		if(self.SymbolPatternTable != None):
-			TableAddSpec(self.SymbolPatternTable, Spec)
+			self.TableAddSpec(self.SymbolPatternTable, Spec)
 		#
 	#
 
@@ -1878,7 +1410,7 @@ class GtNameSpace:
 		Spec = GtSpec(SymbolPatternSpec, PatternName, Pattern)
 		self.PublicSpecList.push(Spec)
 		if(self.SymbolPatternTable != None):
-			TableAddSpec(self.SymbolPatternTable, Spec)
+			self.TableAddSpec(self.SymbolPatternTable, Spec)
 		#
 	#
 
@@ -1888,7 +1420,7 @@ class GtNameSpace:
 		Spec = GtSpec(ExtendedPatternSpec, PatternName, Pattern)
 		self.PublicSpecList.push(Spec)
 		if(self.ExtendedPatternTable != None):
-			TableAddSpec(self.ExtendedPatternTable, Spec)
+			self.TableAddSpec(self.ExtendedPatternTable, Spec)
 		#
 	#
 	
@@ -1900,9 +1432,9 @@ class GtNameSpace:
 		return GlobalObject
 	#
 
-	def GetGlobalObject(self):
+	def GetGlobalObject(self) :
 		GlobalObject = self.GetSymbol(GlobalConstName)
-		if(GlobalObject == None or !(instanceof GtObject)):
+		if(GlobalObject == None or !(type(GlobalObject) == GtObject)):
 			GlobalObject = self.CreateGlobalObject(SingletonClass, "global")
 			self.DefinePrivateSymbol(GlobalConstName, GlobalObject)
 		#
@@ -1919,35 +1451,19 @@ class GtNameSpace:
 		self.ExtendedPatternTable = None
 	#
 
-	def Eval(self, ScriptSource, FileLine):
+	def Eval(self, ScriptSource, FileLine, Generator):
 		ResultValue = None
-		println("Eval: " + ScriptSource)
+		DebugP("Eval: " + ScriptSource)
 		TokenContext = TokenContext(self, ScriptSource, FileLine)
 		while(TokenContext.HasNext()):
 			Tree = ParseSyntaxTree(None, TokenContext)
-			println("untyped tree: " + Tree)
+			DebugP("untyped tree: " + Tree)
 			Gamma = TypeEnv(self, None)
-			TNode = TypeEnv.TypeCheckEachNode(Gamma, Tree, Gamma.VoidType, DefaultTypeCheckPolicy)
-			Builder = self.GetBuilder()
-			ResultValue = Builder.EvalAtTopLevel(self, TNode, self.GetGlobalObject())
+			Node = TypeEnv.TypeCheckEachNode(Gamma, Tree, Gamma.VoidType, DefaultTypeCheckPolicy)
+			ResultValue = Generator.Eval(Node)
 		#
 		return ResultValue
 	#
-
-	# Builder
-	Builder
-
-	def GetBuilder(self):
-		if(self.Builder == None):
-			if(self.ParentNameSpace != None):
-				return self.ParentNameSpace.GetBuilder()
-			#
-			# self.Builder = DefaultGtBuilder(); #  create default builder
-			self.Builder = GtBuilder(); #  create default builder
-		#
-		return self.Builder
-	#
-
 
 	def LookupMethod(self, MethodName, ParamSize):
 		# FIXME
@@ -1956,7 +1472,6 @@ class GtNameSpace:
 		# 2. find MethodName(arg0, arg1, ... , arg_ParamSize)
 		return None
 	#
-
 
 	def GetSourcePosition(self, FileLine):
 		return "(eval:" + (int) FileLine + ")"
@@ -1980,27 +1495,27 @@ class GtNameSpace:
 
 #
 
-class GtGrammar:
+class GtGrammar :
 
 	# Token
-	def WhiteSpaceToken(TokenContext, SourceText, pos):
+	def WhiteSpaceToken(TokenContext, SourceText, pos) :
 		TokenContext.FoundWhiteSpace()
 		for(; pos < SourceText.length(); pos++):
 			ch = SourceText.charAt(pos)
-			if(!IsWhitespace(ch)):
+			if(!LangDeps.IsWhitespace(ch)):
 				break
 			#
 		#
 		return pos
 	#
 
-	def IndentToken(TokenContext, SourceText, pos):
+	def IndentToken(TokenContext, SourceText, pos) :
 		LineStart = pos + 1
 		TokenContext.FoundLineFeed(1)
 		pos = pos + 1
 		for(; pos < SourceText.length(); pos++):
 			ch = SourceText.charAt(pos)
-			if(!IsWhitespace(ch)):
+			if(!LangDeps.IsWhitespace(ch)):
 				break
 			#
 		#
@@ -2012,16 +1527,16 @@ class GtGrammar:
 		return pos
 	#
 
-	def SingleSymbolToken(TokenContext, SourceText, pos):
+	def SingleSymbolToken(TokenContext, SourceText, pos) :
 		TokenContext.AddNewToken(SourceText.substring(pos, pos + 1), 0, None)
 		return pos + 1
 	#
 
-	def SymbolToken(TokenContext, SourceText, pos):
+	def SymbolToken(TokenContext, SourceText, pos) :
 		start = pos
 		for(; pos < SourceText.length(); pos++):
 			ch = SourceText.charAt(pos)
-			if(!IsLetter(ch) and !IsDigit(ch) and ch != '_'):
+			if(!LangDeps.IsLetter(ch) and !LangDeps.IsDigit(ch) and ch != '_'):
 				break
 			#
 		#
@@ -2029,38 +1544,38 @@ class GtGrammar:
 		return pos
 	#
 
-	def MemberToken(TokenContext, SourceText, pos):
+	def MemberToken(TokenContext, SourceText, pos) :
 		start = pos + 1
 		for(; pos < SourceText.length(); pos++):
 			ch = SourceText.charAt(pos)
-			if(!IsLetter(ch) and !IsDigit(ch) and ch != '_'):
+			if(!LangDeps.IsLetter(ch) and !LangDeps.IsDigit(ch) and ch != '_'):
 				break
 			#
 		#
-		TokenContext.AddNewToken(SourceText.substring(start, pos), 0, "$MemberOperator")
+		TokenContext.AddNewToken(SourceText.substring(start, pos), 0, "$Member$")
 		return pos
 	#
 
-	def NumberLiteralToken(TokenContext, SourceText, pos):
+	def NumberLiteralToken(TokenContext, SourceText, pos) :
 		start = pos
 		for(; pos < SourceText.length(); pos++):
 			ch = SourceText.charAt(pos)
-			if(!IsDigit(ch)):
+			if(!LangDeps.IsDigit(ch)):
 				break
 			#
 		#
-		TokenContext.AddNewToken(SourceText.substring(start, pos), 0, "$IntegerLitteral")
+		TokenContext.AddNewToken(SourceText.substring(start, pos), 0, "$IntegerLiteral$")
 		return pos
 	#
 
-	def StringLiteralToken(TokenContext, SourceText, pos):
+	def StringLiteralToken(TokenContext, SourceText, pos) :
 		start = pos + 1
 		prev = '"'
 		pos = start
 		while(pos < SourceText.length()):
 			ch = SourceText.charAt(pos)
 			if(ch == '"' and prev != '\\'):
-				TokenContext.AddNewToken(SourceText.substring(start, pos), 0, "$StringLitteral")
+				TokenContext.AddNewToken(SourceText.substring(start, pos), 0, "$StringLiteral$")
 				return pos + 1
 			#
 			if(ch == '\n'):
@@ -2075,75 +1590,77 @@ class GtGrammar:
 		return pos
 	#
 
-	def ParseType(Pattern, LeftTree, TokenContext):
-		P("ParseType..")
+	def ParseType(Pattern, LeftTree, TokenContext) :
+		DebugP("ParseType..")
 		return None; #  Matched
 	#
 
-	def ParseSymbol(Pattern, LeftTree, TokenContext):
-		P("ParseSymbol..")
+	def ParseSymbol(Pattern, LeftTree, TokenContext) :
+		DebugP("ParseSymbol..")
 		Token = TokenContext.Next()
 		return SyntaxTree(Pattern, TokenContext.NameSpace, Token)
 	#
 
-	def TypeVariable(Gamma, Tree, TypeInfo):
+	def TypeVariable(Gamma, ParsedTree, Type) :
 		# case: is LocalVariable
-		TypeInfo = Gamma.GetLocalType(Tree.KeyToken.ParsedText)
-		if(TypeInfo != None):
-			return LocalNode(TypeInfo, Tree.KeyToken, Tree.KeyToken.ParsedText)
+		Type = Gamma.GetLocalType(ParsedTree.KeyToken.ParsedText)
+		if(Type != None):
+			return Gamma.Generator.CreateLocalNode(Type, ParsedTree)
 		#
 		# case: is GlobalVariable
-		if(Tree.KeyToken.ParsedText.equals("global")):
+		if(ParsedTree.KeyToken.ParsedText.equals("global")):
 			return ConstNode(
-				Tree.TreeNameSpace.GetGlobalObject().TypeInfo,
-				Tree.KeyToken,
-				Tree.TreeNameSpace.GetGlobalObject())
+				ParsedTree.TreeNameSpace.GetGlobalObject().Type,
+				ParsedTree.KeyToken,
+				ParsedTree.TreeNameSpace.GetGlobalObject())
 		#
 		# case: is undefined name
-		return Gamma.NewErrorNode(Tree.KeyToken, "undefined name: " + Tree.KeyToken.ParsedText)
+		return Gamma.CreateErrorNode(ParsedTree, "undefined name: " + ParsedTree.KeyToken.ParsedText)
 	#
 
 	# And Type
-	def ParseIntegerLiteral(Pattern, LeftTree, TokenContext):
+	def ParseIntegerLiteral(Pattern, LeftTree, TokenContext) :
 		Token = TokenContext.Next()
 		return SyntaxTree(Pattern, TokenContext.NameSpace, Token)
 	#
 
-	def TypeIntegerLiteral(Gamma, Tree, TypeInfo):
+	def TypeIntegerLiteral(Gamma, Tree, Type) :
 		Token = Tree.KeyToken
 		return ConstNode(Gamma.IntType, Token, Integer.valueOf(Token.ParsedText))
 	#
 
-	def ParseStringLiteral(Pattern, LeftTree, TokenContext):
+	def ParseStringLiteral(Pattern, LeftTree, TokenContext) :
 		Token = TokenContext.Next()
 		return SyntaxTree(Pattern, TokenContext.NameSpace, Token)
 	#
 
-	def TypeStringLiteral(Gamma, Tree, TypeInfo):
-		Token = Tree.KeyToken
-		
-		return ConstNode(Gamma.StringType, Token, Token.ParsedText)
+	def TypeStringLiteral(Gamma, ParsedTree, Type) :
+		Token = ParsedTree.KeyToken
+		TODO("handling string literal")
+		return Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, Token.ParsedText)
 	#
 
-	def ParseConst(Pattern, LeftTree, TokenContext):
+	def ParseConst(Pattern, LeftTree, TokenContext) :
 		Token = TokenContext.Next()
 		return SyntaxTree(Pattern, TokenContext.NameSpace, Token)
 	#
 
-	def TypeConst(Gamma, Tree, TypeInfo):
-		Token = Tree.KeyToken
-		
-		return ConstNode(Gamma.StringType, Token, Token.ParsedText)
+	def TypeConst(Gamma, ParsedTree, Type) :
+		return Gamma.Generator.CreateConstNode(Gamma.GuessType(ParsedTree.ResolvedObject), ParsedTree, ParsedTree.ResolvedObject)
 	#
 
-	def ParseUniaryOperator(Pattern, LeftTree, TokenContext):
+	def ParseExpression(Pattern, LeftTree, TokenContext) :
+		return ParseSyntaxTree(None, TokenContext)
+	#
+	
+	def ParseUnary(Pattern, LeftTree, TokenContext) :
 		Token = TokenContext.Next()
 		Tree = SyntaxTree(Pattern, TokenContext.NameSpace, Token)
-		Tree.SetMatchedPatternAt(0, TokenContext, "$Expression", Required)
+		Tree.SetMatchedPatternAt(0, TokenContext, "$Expression$", Required)
 		return Tree
 	#
 
-	def ParseBinaryOperator(Pattern, LeftTree, TokenContext):
+	def ParseBinary(Pattern, LeftTree, TokenContext) :
 		Token = TokenContext.Next()
 		RightTree = ParseSyntaxTree(None, TokenContext)
 		if(IsEmptyOrError(RightTree)) return RightTree
@@ -2169,13 +1686,12 @@ class GtGrammar:
 		return NewTree
 	#
 
-
 	# PatternName: "("
-	def ParseParenthesis(Pattern, LeftTree, TokenContext):
+	def ParseParenthesis(Pattern, LeftTree, TokenContext) :
 		ParseFlag = TokenContext.ParseFlag
 		TokenContext.MatchToken("(")
 		TokenContext.ParseFlag |= SkipIndentParseFlag
-		Tree = TokenContext.ParsePattern("$Expression", Required)
+		Tree = TokenContext.ParsePattern("$Expression$", Required)
 		if(!TokenContext.MatchToken(")")):
 			Tree = TokenContext.ReportExpectedToken(")")
 		#
@@ -2184,13 +1700,13 @@ class GtGrammar:
 	#
 	
 	# PatternName: "("
-	def ParseParenthesis2(Pattern, LeftTree, TokenContext):
+	def ParseParenthesis2(Pattern, LeftTree, TokenContext) :
 		ParseFlag = TokenContext.ParseFlag
 		TokenContext.ParseFlag |= SkipIndentParseFlag
 		FuncTree = SyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("("))
 		FuncTree.AppendParsedTree(LeftTree)
 		while(!FuncTree.IsEmptyOrError() and !TokenContext.MatchToken(")")):
-			Tree = TokenContext.ParsePattern("$Expression", Required)
+			Tree = TokenContext.ParsePattern("$Expression$", Required)
 			FuncTree.AppendParsedTree(Tree)
 			if(TokenContext.MatchToken(",")) continue
 		#
@@ -2198,7 +1714,7 @@ class GtGrammar:
 		return FuncTree
 	#
 
-	def ParseBlock2(Pattern, LeftTree, TokenContext):
+	def ParseBlock2(Pattern, LeftTree, TokenContext) :
 		TokenContext.MatchToken("{")
 		PrevTree = None
 		while(TokenContext.SkipEmptyStatement()):
@@ -2209,24 +1725,29 @@ class GtGrammar:
 		return TreeHead(PrevTree)
 	#
 
-	def TypeBlock(Gamma, Tree, TypeInfo):
-		return Tree.TypeNodeAt(0, Gamma, Gamma.VarType, 0)
+	def TypeBlock(Gamma, Tree, Type) :
+		TODO("TypeBlock")
+		return Tree.TypeNodeAt(0, Gamma, Gamma.AnyType, 0)
 	#
 
-
-	def TypeAnd(Gamma, Tree, TypeInfo):
-		LeftNode = Tree.TypeNodeAt(LeftHandTerm, Gamma, Gamma.BooleanType, 0)
-		RightNode = Tree.TypeNodeAt(RightHandTerm, Gamma, Gamma.BooleanType, 0)
-		return AndNode(RightNode.TypeInfo, Tree.KeyToken, LeftNode, RightNode)
+	def TypeApply(Gamma, Tree, Type) :
+		TODO("is really necessary")
+		return None
 	#
 
-	def TypeOr(Gamma, Tree, TypeInfo):
-		LeftNode = Tree.TypeNodeAt(LeftHandTerm, Gamma, Gamma.BooleanType, 0)
-		RightNode = Tree.TypeNodeAt(RightHandTerm, Gamma, Gamma.BooleanType, 0)
-		return OrNode(RightNode.TypeInfo, Tree.KeyToken, LeftNode, RightNode)
+	def TypeAnd(Gamma, ParsedTree, Type) :
+		LeftNode = ParsedTree.TypeNodeAt(LeftHandTerm, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy)
+		RightNode = ParsedTree.TypeNodeAt(RightHandTerm, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy)
+		return Gamma.Generator.CreateAndNode(Gamma.BooleanType, ParsedTree, LeftNode, RightNode)
 	#
 
-	def ParseMember(Pattern, LeftTree, TokenContext):
+	def TypeOr(Gamma, ParsedTree, Type) :
+		LeftNode = ParsedTree.TypeNodeAt(LeftHandTerm, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy)
+		RightNode = ParsedTree.TypeNodeAt(RightHandTerm, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy)
+		return Gamma.Generator.CreateOrNode(Gamma.BooleanType, ParsedTree, LeftNode, RightNode)
+	#
+
+	def ParseMember(Pattern, LeftTree, TokenContext) :
 		Token = TokenContext.GetToken()
 		NewTree = SyntaxTree(Pattern, TokenContext.NameSpace, Token)
 		NewTree.SetSyntaxTreeAt(0, LeftTree)
@@ -2235,84 +1756,89 @@ class GtGrammar:
 
 	# Statement
 
-	def ParseIf(Pattern, LeftTree, TokenContext):
+	def ParseIf(Pattern, LeftTree, TokenContext) :
 		Token = TokenContext.GetMatchedToken("if")
 		NewTree = SyntaxTree(Pattern, TokenContext.NameSpace, Token)
 		NewTree.SetMatchedTokenAt(NoWhere, TokenContext, "(", Required)
-		NewTree.SetMatchedPatternAt(IfCond, TokenContext, "$Expression", Required)
+		NewTree.SetMatchedPatternAt(IfCond, TokenContext, "$Expression$", Required)
 		NewTree.SetMatchedTokenAt(NoWhere, TokenContext, ")", Required)
-		NewTree.SetMatchedPatternAt(IfThen, TokenContext, "$Statement", Required)
+		NewTree.SetMatchedPatternAt(IfThen, TokenContext, "$Statement$", Required)
 		if(TokenContext.MatchToken("else")):
-			NewTree.SetMatchedPatternAt(IfElse, TokenContext, "$Statement", Required)
+			NewTree.SetMatchedPatternAt(IfElse, TokenContext, "$Statement$", Required)
 		#
 		return NewTree
 	#
 
-	def TypeIf(Gamma, Tree, TypeInfo):
-		CondNode = Tree.TypeNodeAt(IfCond, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy)
-		ThenNode = Tree.TypeNodeAt(IfThen, Gamma, TypeInfo, DefaultTypeCheckPolicy)
-		ElseNode = Tree.TypeNodeAt(IfElse, Gamma, ThenNode.TypeInfo, AllowEmptyPolicy)
-		return IfNode(ThenNode.TypeInfo, CondNode, ThenNode, ElseNode)
+	def TypeIf(Gamma, ParsedTree, Type) :
+		CondNode = ParsedTree.TypeNodeAt(IfCond, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy)
+		ThenNode = ParsedTree.TypeNodeAt(IfThen, Gamma, Type, DefaultTypeCheckPolicy)
+		ElseNode = ParsedTree.TypeNodeAt(IfElse, Gamma, ThenNode.Type, AllowEmptyPolicy)
+		return Gamma.Generator.CreateIfNode(ThenNode.Type, ParsedTree, CondNode, ThenNode, ElseNode)
 	#
 
 	# Statement
 
-	def ParseReturn(Pattern, LeftTree, TokenContext):
+	def ParseReturn(Pattern, LeftTree, TokenContext) :
 		Token = TokenContext.GetMatchedToken("return")
 		NewTree = SyntaxTree(Pattern, TokenContext.NameSpace, Token)
-		NewTree.SetMatchedPatternAt(ReturnExpr, TokenContext, "$Expression", Optional)
+		NewTree.SetMatchedPatternAt(ReturnExpr, TokenContext, "$Expression$", Optional)
 		return NewTree
 	#
 
-	def TypeReturn(Gamma, Tree, TypeInfo):
-		Expr = Tree.TypeNodeAt(ReturnExpr, Gamma, Gamma.ReturnType, 0)
-		if(Expr.IsError()):
-			return Expr
-		#
-		return ReturnNode(Expr.TypeInfo, Expr)
+	def TypeReturn(Gamma, ParsedTree, Type) :
+		Expr = ParsedTree.TypeNodeAt(ReturnExpr, Gamma, Gamma.ReturnType, DefaultTypeCheckPolicy)
+		return Gamma.Generator.CreateReturnNode(Expr.Type, ParsedTree, Expr)
 	#
 	
-	def ParseVarDecl(Pattern, LeftTree, TokenContext):
-		P("ParseVarDecl..")
+	def ParseVarDecl(Pattern, LeftTree, TokenContext) :
+		DebugP("ParseVarDecl..")
 		Tree = SyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetToken())
-		Tree.SetMatchedPatternAt(VarDeclType, TokenContext, "$Type", Required)
-		Tree.SetMatchedPatternAt(VarDeclName, TokenContext, "$Variable", Required)
+		Tree.SetMatchedPatternAt(VarDeclType, TokenContext, "$Type$", Required)
+		Tree.SetMatchedPatternAt(VarDeclName, TokenContext, "$Variable$", Required)
 		if(TokenContext.MatchToken("=")):
-			Tree.SetMatchedPatternAt(VarDeclValue, TokenContext, "$Expression", Required)
+			Tree.SetMatchedPatternAt(VarDeclValue, TokenContext, "$Expression$", Required)
 		#
 		while(TokenContext.MatchToken(",")):
 			NextTree = SyntaxTree(Pattern, TokenContext.NameSpace, Tree.KeyToken)
 			NextTree.SetAt(VarDeclType, Tree.GetSyntaxTreeAt(VarDeclType))
 			Tree.LinkNode(NextTree)
 			Tree = NextTree
-			Tree.SetMatchedPatternAt(VarDeclName, TokenContext, "$Variable", Required)
+			Tree.SetMatchedPatternAt(VarDeclName, TokenContext, "$Variable$", Required)
 			if(TokenContext.MatchToken("=")):
-				Tree.SetMatchedPatternAt(VarDeclValue, TokenContext, "$Expression", Required)
+				Tree.SetMatchedPatternAt(VarDeclValue, TokenContext, "$Expression$", Required)
 			#
 		#
 		return Tree
 	#
 
-	def ParseMethodDecl(Pattern, LeftTree, TokenContext):
+	def ParseMethodDecl(Pattern, LeftTree, TokenContext) :
 		Tree = SyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetToken())
-		Tree.SetMatchedPatternAt(MethodDeclReturnType, TokenContext, "$Type", Required)
-		Tree.SetMatchedPatternAt(MethodDeclClass, TokenContext, "$MethodClass", Optional)
-		Tree.SetMatchedPatternAt(MethodDeclName, TokenContext, "$MethodName", Required)
+		Tree.SetMatchedPatternAt(MethodDeclReturnType, TokenContext, "$Type$", Required)
+		Tree.SetMatchedPatternAt(MethodDeclClass, TokenContext, "$MethodClass$", Optional)
+		Tree.SetMatchedPatternAt(MethodDeclName, TokenContext, "$MethodName$", Required)
 		Tree.SetMatchedTokenAt(NoWhere, TokenContext, "(", Required)
 		ParamBase = MethodDeclParam
 		while(!Tree.IsEmptyOrError() and !TokenContext.MatchToken(")")):
-			Tree.SetMatchedPatternAt(ParamBase + VarDeclType, TokenContext, "$Type", Required)
-			Tree.SetMatchedPatternAt(ParamBase + VarDeclName, TokenContext, "$Symbol", Required)
+			Tree.SetMatchedPatternAt(ParamBase + VarDeclType, TokenContext, "$Type$", Required)
+			Tree.SetMatchedPatternAt(ParamBase + VarDeclName, TokenContext, "$Symbol$", Required)
 			if(TokenContext.MatchToken("=")):
-				Tree.SetMatchedPatternAt(ParamBase + VarDeclValue, TokenContext, "$Expression", Required)
+				Tree.SetMatchedPatternAt(ParamBase + VarDeclValue, TokenContext, "$Expression$", Required)
 			#
 			ParamBase += 3
 		#
-		Tree.SetMatchedPatternAt(MethodDeclBlock, TokenContext, "$Block", Required)
+		Tree.SetMatchedPatternAt(MethodDeclBlock, TokenContext, "$Block$", Required)
 		return Tree
 	#
 
+	def TypeVarDecl(Gamma, Tree, Type) :		
+		TODO("TypeVarDecl")
+		return None
+	#
 
+	def TypeMethodDecl(Gamma, Tree, Type) :
+		TODO("TypeMethodDecl")
+		return None
+	#
 
 
 	def LoadDefaultSyntax(self, NameSpace):
@@ -2335,14 +1861,9 @@ class GtGrammar:
 		NameSpace.DefineTokenFunc(".", MemberToken)
 		NameSpace.DefineTokenFunc("\"", StringLiteralToken)
 		NameSpace.DefineTokenFunc("1", NumberLiteralToken)
-
-		ParseUniary = ParseUniary
-		ParseBinary = ParseBinary
-		TypeApply = TypeApply
-
-		NameSpace.DefineSyntaxPattern("+", ParseUniary, TypeApply)
-		NameSpace.DefineSyntaxPattern("-", ParseUniary, TypeApply)
-		NameSpace.DefineSyntaxPattern("!", ParseUniary, TypeApply)
+		NameSpace.DefineSyntaxPattern("+", ParseUnary, TypeApply)
+		NameSpace.DefineSyntaxPattern("-", ParseUnary, TypeApply)
+		NameSpace.DefineSyntaxPattern("!", ParseUnary, TypeApply)
 		
 		NameSpace.DefineExtendedPattern("*", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeApply)
 		NameSpace.DefineExtendedPattern("/", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeApply)
@@ -2376,181 +1897,64 @@ class GtGrammar:
 		# NameSpace.DefineSyntaxPattern("{#", 0, self, "UNUSED")
 		TypeConst = TypeConst
 		
-		NameSpace.DefineSyntaxPattern("$Symbol", ParseSymbol, TypeVariable)
-		NameSpace.DefineSyntaxPattern("$Type", ParseType, TypeConst)
+		NameSpace.DefineSyntaxPattern("$Symbol$", ParseSymbol, TypeVariable)
+		NameSpace.DefineSyntaxPattern("$Type$", ParseType, TypeConst)
 		
-		NameSpace.DefineSyntaxPattern("$Const", ParseConst, TypeSymbol)
-		NameSpace.DefineSyntaxPattern("$StringLiteral", ParseStringLiteral, TypeConst)
-		NameSpace.DefineSyntaxPattern("$IntegerLiteral", ParseIntegerLiteral, TypeConst)
+		NameSpace.DefineSyntaxPattern("$Const$", ParseConst, TypeSymbol)
+		NameSpace.DefineSyntaxPattern("$StringLiteral$", ParseStringLiteral, TypeConst)
+		NameSpace.DefineSyntaxPattern("$IntegerLiteral$", ParseIntegerLiteral, TypeConst)
 
 		NameSpace.DefineSyntaxPattern("(", ParseParenthesis, None)
 
 		NameSpace.DefineSyntaxPattern("{", ParseBlock, TypeBlock)
 		
-		NameSpace.DefineSyntaxPattern("$Symbol", ParseMethodDecl, TypeMethodDecl)
-		NameSpace.DefineSyntaxPattern("$Symbol", ParseVarDecl, TypeVarDecl)
+		NameSpace.DefineSyntaxPattern("$Symbol$", ParseMethodDecl, TypeMethodDecl)
+		NameSpace.DefineSyntaxPattern("$Symbol$", ParseVarDecl, TypeVarDecl)
 
 		NameSpace.DefineSyntaxPattern("if", ParseIf, TypeIf)
 		NameSpace.DefineSyntaxPattern("return", ParseReturn, ParseReturn)
 
-		# Library
-		GtInt().MakeDefinition(NameSpace)
-		GtStringDef().MakeDefinition(NameSpace)
-		GtSystemDef().MakeDefinition(NameSpace)
 	#
 #
 
 
-class GtInt:
+class GtContext :
 
-	def MakeDefinition(self, ns):
-	#
+	# RootNameSpace
+	# DefaultNameSpace
 
-	def PlusInt(x):
-		return +x
-	#
+	# VoidType
+	# NativeObjectType
+	# ObjectType
+	# BooleanType
+	# IntType
+	# StringType
+	# AnyType
 
-	def IntAddInt(x, y):
-		return x + y
-	#
-
-	def MinusInt(x):
-		return -x
-	#
-
-	def IntSubInt(x, y):
-		return x - y
-	#
-
-	def IntMulInt(x, y):
-		return x * y
-	#
-
-	def IntDivInt(x, y):
-		return x / y
-	#
-
-	def IntModInt(x, y):
-		return x % y
-	#
-
-	def IntLtInt(x, y):
-		return x < y
-	#
-
-	def IntLeInt(x, y):
-		return x <= y
-	#
-
-	def IntGtInt(x, y):
-		return x > y
-	#
-
-	def IntGeInt(x, y):
-		return x >= y
-	#
-
-	def IntEqInt(x, y):
-		return x == y
-	#
-
-	def IntNeInt(x, y):
-		return x != y
-	#
-#
-
-class GtStringDef:
-
-	def MakeDefinition(self, ns):
-	#
-
-	def StringAddString(x, y):
-		return x + y
-	#
-
-	def StringEqString(x, y):
-		return x.equals(y)
-	#
-
-	def StringNeString(x, y):
-		return !x.equals(y)
-	#
-
-	def StringIndexOf(self, str):
-		return self.indexOf(str)
-	#
-
-	def StringGetSize(self):
-		return self.length()
-	#
-#
-
-class GtSystemDef:
-
-	def MakeDefinition(self, NameSpace):
-	#
-
-	def p(x):
-		println(x)
-	#
-
-#
-
-
-class GtContext:
-
-	RootNameSpace
-	DefaultNameSpace
-
-	VoidType
-	NativeObjectType
-	ObjectType
-	BooleanType
-	IntType
-	StringType
-	VarType
-
-	ClassNameMap
-
-	def GtContext(self, Grammar, BuilderClassName):
+	# ClassNameMap
+	# Generator
+	
+	def __init__(self, Grammar, Generator):
 		self.ClassNameMap =:#
 		self.RootNameSpace = GtNameSpace(self, None)
-		self.VoidType = self.LookupHostLangType(Void.class)
-		self.NativeObjectType = self.LookupHostLangType(Object.class)
-		self.ObjectType = self.LookupHostLangType(Object.class)
-		self.BooleanType = self.LookupHostLangType(Boolean.class)
-		self.IntType = self.LookupHostLangType(Integer.class)
-		self.StringType = self.LookupHostLangType(String.class)
-		self.VarType = self.LookupHostLangType(Object.class)
-
+		self.Generator = Generator
 		Grammar.LoadDefaultSyntax(self.RootNameSpace)
 		self.DefaultNameSpace = GtNameSpace(self, self.RootNameSpace)
-		if(BuilderClassName != None):
-			self.DefaultNameSpace.LoadBuilder(BuilderClassName)
-		#
 	#
 
-	LookupHostLangType(Class<?> ClassInfo):
-		TypeInfo = (GtType) self.ClassNameMap.get(ClassInfo.getName())
-		if(TypeInfo == None):
-			TypeInfo = GtType(self, ClassInfo)
-			self.ClassNameMap.put(ClassInfo.getName(), TypeInfo)
-		#
-		return TypeInfo
-	#
 
 	def Define(self, Symbol, Value):
 		self.RootNameSpace.DefineSymbol(Symbol, Value)
 	#
 
 	def Eval(self, text, FileLine):
-		return self.DefaultNameSpace.Eval(text, FileLine)
+		return self.DefaultNameSpace.Eval(text, FileLine, self.Generator)
 	#
 #
 
 class GreenTeaScript:
 	
-	def main(String argc):
+	def main(String argc) :
 		GtContext = GtContext(GtGrammar(), None)
 		# GtContext.Eval("f(a, b): return a + b; #", 0)
 		GtContext.Eval("1 + 2 * 3", 0)

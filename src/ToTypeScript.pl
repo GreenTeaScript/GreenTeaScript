@@ -3,9 +3,8 @@ $JavaOnly = 0;
 $UsePython = 0;
 $UseTypeScript = 0;
 
-
-
-$UseTypeScript = 1;
+$UsePython = 1;
+##$UseTypeScript = 1;
 
 if($UseTypeScript == 1) {
 	$ClassIndent = "\t";
@@ -27,6 +26,7 @@ sub ConvertToIR {
 	$line =~ s/implements(.*)\{/{/g;
     $line =~ s/extends/<<:/g;
     $line =~ s/instanceof/<:?/g;
+    $line =~ s/\/\*local\*\//local /g;
 	return $line;
 }
 
@@ -52,10 +52,10 @@ sub PythonSyntax {
 	if($UsePython == 0) {
 		return $line;
 	}
-        $line =~ s/this/self/g;
+    $line =~ s/this/self/g;
 	$line =~ s/([ \t]:\w+)//g;
-        $line =~ s/ \{/:/g;
-        $line =~ s/\}/#/g;
+    $line =~ s/ \{/:/g;
+    $line =~ s/\}/#/g;
 	$line =~ s/;$//g;
 	$line =~ s/function /def /g;
 	$line =~ s/var //g;
@@ -68,6 +68,10 @@ sub PythonSyntax {
 	$line =~ s/toString/__str__/g;
 	$line =~ s/ \|\|/ or/g;
 	$line =~ s/ \&\&/ and/g;
+    $line =~ s/ \<\<\: (\w+)/ ($1)/g;
+    $line =~ s/(\w+) \<\:\?/type($1) ==/g;
+    $line =~ s/local //g;
+    $line =~ s/\/\*extension\*\//pass/g;
 	return $line;
 }
 
@@ -126,28 +130,29 @@ while ($line = <>)  {
 	
 	$line =~ s/new GtArray\(\)/[]/g;
 	$line =~ s/new GtMap\(\)/{}/g;
-        $line =~ s/GtArray/any[]/g;
-        $line =~ s/GtMap/object/g;
+    $line =~ s/GtArray/any[]/g;
+    $line =~ s/GtMap/object/g;
 	$line =~ s/\.get\(([\w\.]+)\)/[$1]/g;
 	$line =~ s/\.set\((\w+), (\w+)\)/[$1] = $2/g;
 	$line =~ s/\.add\((\w+)\)/.push($1)/g;
 	$line =~ s/\/\*BeginArray\*\/{/[/g;
 	$line =~ s/\/\*EndArray\*\/}/]/g;
 	$line =~ s/Function(?:A|B|C)\(this, \"(\w+)\"\)/$1/g;
+    
 	if($UseTypeScript == 1) {
 		$line =~ s/GtFuncA/(a :TokenContext, b :string, c :number) => number/g;
 		$line =~ s/GtFuncB/(a :SyntaxPattern, b :SyntaxTree, c :TokenContext) => SyntaxTree/g;
 		$line =~ s/GtFuncC/(a :TypeEnv, b: SyntaxTree, c: GtType) => TypedNode/g;
 		$line =~ s/\<\<\:/extends/g;
         $line =~ s/\<\:\?/instanceof/g;
+        $line =~ s/local //g;
 	}
+    # python
+    $line = PythonSyntax($line);
 
 	## remove redundandat white spaces
 	$line =~ s/(\S)([ \t]+)(\S)/$1 $3/g;
 	$line =~ s/\/\*.*\*\///g;
-
-	# python
-	$line = PythonSyntax($line);
 	print $Indent . $line;
 }
 
