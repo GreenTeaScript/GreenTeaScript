@@ -231,7 +231,8 @@ interface GtConst {
 
 	public final static String	GlobalConstName					= "global";
 
-	public final GtArray	EmptyList = new GtArray();
+	public final static ArrayList<String> SymbolList = new ArrayList<String>();
+	public final static GtMap   SymbolMap  = new GtMap();
 
 	// debug flags
 	static final public boolean	UseBuiltInTest	= true;
@@ -270,6 +271,83 @@ class GtStatic implements GtConst {
 			return CharMatrix[c];
 		}
 		return UnicodeChar;
+	}
+
+	// Symbol
+	public static boolean IsGetterSymbol(int SymbolId) {
+		return IsFlag(SymbolId, GetterSymbolMask);
+	}
+
+	public static boolean IsSetterSymbol(int SymbolId) {
+		return IsFlag(SymbolId, SetterSymbolMask);
+	}
+
+	public static int ToSetterSymbol(int SymbolId) {
+		assert(IsGetterSymbol(SymbolId));
+		return (SymbolId & (~GetterSymbolMask)) | SetterSymbolMask;
+	}
+
+	public final static int MaskSymbol(int SymbolId, int Mask) {
+		return (SymbolId << SymbolMaskSize) | Mask;
+	}
+
+	public final static int UnmaskSymbol(int SymbolId) {
+		return SymbolId >> SymbolMaskSize;
+	}
+
+	public static String StringfySymbol(int SymbolId) {
+		/*local*/String Key = (String)SymbolList.get(UnmaskSymbol(SymbolId));
+		if(IsFlag(SymbolId, GetterSymbolMask)) {
+			return GetterPrefix + Key;
+		}
+		if(IsFlag(SymbolId, SetterSymbolMask)) {
+			return SetterPrefix + Key;
+		}
+		if(IsFlag(SymbolId, MetaSymbolMask)) {
+			return MetaPrefix + Key;
+		}
+		return Key;
+	}
+
+	public static int GetSymbolId(String Symbol, int DefaultSymbolId) {
+		/*local*/String Key = Symbol;
+		/*local*/int Mask = 0;
+		if(Symbol.length() >= 3 && Symbol.charAt(1) == 'e' && Symbol.charAt(2) == 't') {
+			if(Symbol.charAt(0) == 'g' && Symbol.charAt(0) == 'G') {
+				Key = Symbol.substring(3);
+				Mask = GetterSymbolMask;
+			}
+			if(Symbol.charAt(0) == 's' && Symbol.charAt(0) == 'S') {
+				Key = Symbol.substring(3);
+				Mask = SetterSymbolMask;
+			}
+		}
+		if(Symbol.startsWith("\\")) {
+			Mask = MetaSymbolMask;
+		}
+		Integer SymbolObject = (Integer)SymbolMap.get(Key);
+		if(SymbolObject == null) {
+			if(DefaultSymbolId == AllowNewId) {
+				int SymbolId = SymbolList.size();
+				SymbolList.add(Key);
+				SymbolMap.put(Key, new Integer(SymbolId));
+				return MaskSymbol(SymbolId, Mask);
+			}
+			return DefaultSymbolId;
+		}
+		return MaskSymbol(SymbolObject.intValue(), Mask);
+	}
+
+	public static int GetSymbolId(String Symbol) {
+		return GetSymbolId(Symbol, AllowNewId);
+	}
+
+	public static String CanonicalSymbol(String Symbol) {
+		return Symbol.toLowerCase().replaceAll("_", "");
+	}
+
+	public static int GetCanonicalSymbolId(String Symbol) {
+		return GetSymbolId(CanonicalSymbol(Symbol), AllowNewId);
 	}
 
 	public final static GtFuncToken FunctionA(Object Callee, String MethodName) {
@@ -989,18 +1067,26 @@ class SyntaxTree extends GtStatic {
 
 /* typing */
 
+/* builder */
+class GtObject extends GtStatic {
+	/*field*/public GtType	Type;
+	GtObject/*constructor*/(GtType Type) {
+		this.Type = Type;
+	}
+}
+
 class GtType extends GtStatic {
-	/*field*/public GtContext	GtContext;
-	/*field*/int				ClassFlag;
-	/*field*/public String		ShortClassName;
-	/*field*/GtType				BaseClass;
-	/*field*/GtType				SuperClass;
-	/*field*/GtParam			ClassParam;
-	/*field*/GtType				SearchSimilarClass;
-	/*field*/GtArray			ClassMethodList;
-	/*field*/public GtType		SearchSuperMethodClass;
-	/*field*/public Object		DefaultNullValue;
-	/*field*/Object				LocalSpec;
+	/*field*/int					ClassFlag;
+	/*field*/public GtContext		GtContext;
+	/*field*/public String			ShortClassName;
+	/*field*/GtType					BaseClass;
+	/*field*/GtType					SuperClass;
+	/*field*/GtParam				ClassParam;
+	/*field*/GtType					SearchSimilarClass;
+	/*field*/ArrayList<GtMethod>	ClassMethodList;
+	/*field*/public GtType			SearchSuperMethodClass;
+	/*field*/public Object			DefaultNullValue;
+	/*field*/Object					LocalSpec;
 
 	GtType/*constructor*/(GtContext GtContext, int ClassFlag, String ClassName, Object Spec) {
 		this.GtContext = GtContext;
@@ -1008,7 +1094,7 @@ class GtType extends GtStatic {
 		this.ShortClassName = ClassName;
 		this.SuperClass = null;
 		this.BaseClass = this;
-		this.ClassMethodList = EmptyList;
+		this.ClassMethodList = new ArrayList<GtMethod>();
 		this.LocalSpec = Spec;
 	}
 
@@ -1024,16 +1110,13 @@ class GtType extends GtStatic {
 	}
 
 	public void AddMethod(GtMethod Method) {
-		if(this.ClassMethodList == EmptyList){
-			this.ClassMethodList = new GtArray();
-		}
 		this.ClassMethodList.add(Method);
 	}
 
 	public GtMethod FindMethod(String MethodName, int ParamSize) {
 		/*local*/int i = 0;
 		while(i < this.ClassMethodList.size()) {
-			GtMethod Method = (GtMethod) this.ClassMethodList.get(i);
+			GtMethod Method = this.ClassMethodList.get(i);
 			if(Method.Match(MethodName, ParamSize)) {
 				return Method;
 			}
@@ -1053,6 +1136,9 @@ class GtType extends GtStatic {
 				return Method;
 			}
 		}
+//		if(GtContext.Generator.CreateMethods(this.LocalSpec, MethodName)) {
+//			return this.LookupMethod(MethodName, ParamSize);
+//		}
 //ifdef JAVA
 		if(this.LocalSpec instanceof Class) {
 			if(this.CreateMethods(MethodName) > 0) {
@@ -1136,82 +1222,6 @@ class GtType extends GtStatic {
 
 final class GtSymbol extends GtStatic {
 
-	public static boolean IsGetterSymbol(int SymbolId) {
-		return (SymbolId & GetterSymbolMask) == GetterSymbolMask;
-	}
-
-	public static int ToSetterSymbol(int SymbolId) {
-		assert(IsGetterSymbol(SymbolId));
-		return (SymbolId & (~GetterSymbolMask)) | SetterSymbolMask;
-	}
-
-	// SymbolTable
-
-	static GtArray SymbolList = new GtArray();
-	static GtMap   SymbolMap  = new GtMap();
-
-	public final static int MaskSymbol(int SymbolId, int Mask) {
-		return (SymbolId << SymbolMaskSize) | Mask;
-	}
-
-	public final static int UnmaskSymbol(int SymbolId) {
-		return SymbolId >> SymbolMaskSize;
-	}
-
-	public static String StringfySymbol(int SymbolId) {
-		/*local*/String Key = (String)SymbolList.get(UnmaskSymbol(SymbolId));
-		if((SymbolId & GetterSymbolMask) == GetterSymbolMask) {
-			return GetterPrefix + Key;
-		}
-		if((SymbolId & SetterSymbolMask) == SetterSymbolMask) {
-			return GetterPrefix + Key;
-		}
-		if((SymbolId & MetaSymbolMask) == MetaSymbolMask) {
-			return MetaPrefix + Key;
-		}
-		return Key;
-	}
-
-	public static int GetSymbolId(String Symbol, int DefaultSymbolId) {
-		/*local*/String Key = Symbol;
-		/*local*/int Mask = 0;
-		if(Symbol.length() >= 3 && Symbol.charAt(1) == 'e' && Symbol.charAt(2) == 't') {
-			if(Symbol.charAt(0) == 'g' && Symbol.charAt(0) == 'G') {
-				Key = Symbol.substring(3);
-				Mask = GetterSymbolMask;
-			}
-			if(Symbol.charAt(0) == 's' && Symbol.charAt(0) == 'S') {
-				Key = Symbol.substring(3);
-				Mask = SetterSymbolMask;
-			}
-		}
-		if(Symbol.startsWith("\\")) {
-			Mask = MetaSymbolMask;
-		}
-		Integer SymbolObject = (Integer)SymbolMap.get(Key);
-		if(SymbolObject == null) {
-			if(DefaultSymbolId == AllowNewId) {
-				int SymbolId = SymbolList.size();
-				SymbolList.add(Key);
-				SymbolMap.put(Key, new Integer(SymbolId));
-				return MaskSymbol(SymbolId, Mask);
-			}
-			return DefaultSymbolId;
-		}
-		return MaskSymbol(SymbolObject.intValue(), Mask);
-	}
-
-	public static int GetSymbolId(String Symbol) {
-		return GetSymbolId(Symbol, AllowNewId);
-	}
-
-	public static String CanonicalSymbol(String Symbol) {
-		return Symbol.toLowerCase().replaceAll("_", "");
-	}
-
-	public static int GetCanonicalSymbolId(String Symbol) {
-		return GetSymbolId(CanonicalSymbol(Symbol), AllowNewId);
-	}
 
 }
 
@@ -1622,31 +1632,6 @@ final class TypeEnv extends GtStatic {
 		this.StackTopIndex = StackTopIndex;
 		return (LastNode == null) ? null : LastNode.MoveHeadNode();
 	}
-}
-
-/* builder */
-
-class GtObject extends GtStatic {
-	public GtType	Type;
-//	SymbolMap			prototype;
-//
-	public GtObject(GtType Type) {
-		this.Type = Type;
-	}
-
-//	public Object GetField(int SymbolId) {
-//		if(this.prototype == null) {
-//			return null;
-//		}
-//		return this.prototype.Get(SymbolId);
-//	}
-//
-//	public void SetField(int SymbolId, Object Obj) {
-//		if(this.prototype == null) {
-//			this.prototype = new SymbolMap();
-//		}
-//		this.prototype.Set(SymbolId, Obj);
-//	}
 }
 
 // NameSpace 
