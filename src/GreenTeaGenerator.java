@@ -360,97 +360,97 @@ class ErrorNode extends TypedNode {
 }
 
 public class GreenTeaGenerator extends GtStatic {
-	
-	public TypedNode CreateConstNode(GtType Type, GtToken Token, Object Value) { 
-		return new ConstNode(Type, Token, Value); 
+		
+	public TypedNode CreateConstNode(GtType Type, SyntaxTree ParsedTree, Object Value) { 
+		return new ConstNode(Type, ParsedTree.KeyToken, Value); 
 	}
 
-	public TypedNode CreateNewNode(GtType Type, GtToken Token) { 
-		return new NewNode(Type, Token); 
+	public TypedNode CreateNewNode(GtType Type, SyntaxTree ParsedTree) { 
+		return new NewNode(Type, ParsedTree.KeyToken); 
 	}
 
-	public TypedNode CreateNullNode(GtType Type, GtToken Token) { 
-		return new NewNode(Type, Token); 
+	public TypedNode CreateNullNode(GtType Type, SyntaxTree ParsedTree) { 
+		return new NewNode(Type, ParsedTree.KeyToken); 
 	}
 
-	public TypedNode CreateLocalNode(GtType Type, GtToken Token) { 
-		return new LocalNode(Type, Token);
+	public TypedNode CreateLocalNode(GtType Type, SyntaxTree ParsedTree) { 
+		return new LocalNode(Type, ParsedTree.KeyToken);
 	}
 
-	public TypedNode CreateGetterNode(GtType Type, GtToken Token, TypedNode Expr) { 
-		return new GetterNode(Type, Token, Expr, null);
+	public TypedNode CreateGetterNode(GtType Type, SyntaxTree ParsedTree, TypedNode Expr) { 
+		return new GetterNode(Type, ParsedTree.KeyToken, Expr, null);
 	}
 
-	public TypedNode CreateApplyNode(GtType Type, GtToken Token, TypedNode Func) { 
-		return new ApplyNode(Type, Token, null, Func);
+	public TypedNode CreateApplyNode(GtType Type, SyntaxTree ParsedTree, TypedNode Func) { 
+		return new ApplyNode(Type, ParsedTree.KeyToken, null, Func);
 	}
 
-	public TypedNode CreateAndNode(GtType Type, GtToken Token, TypedNode Left, TypedNode Right) { 
-		return new AndNode(Type, Token, Left, Right);
+	public TypedNode CreateAndNode(GtType Type, SyntaxTree ParsedTree, TypedNode Left, TypedNode Right) { 
+		return new AndNode(Type, ParsedTree.KeyToken, Left, Right);
 	}
 
-	public TypedNode CreateOrNode(GtType Type, GtToken Token, TypedNode Left, TypedNode Right) { 
-		return new OrNode(Type, Token, Left, Right);
+	public TypedNode CreateOrNode(GtType Type, SyntaxTree ParsedTree, TypedNode Left, TypedNode Right) { 
+		return new OrNode(Type, ParsedTree.KeyToken, Left, Right);
 	}
 
-	public TypedNode CreateAssignNode(GtType Type, GtToken Token, TypedNode Left, TypedNode Right) { 
-		return new AssignNode(Type, Token, Left, Right);
+	public TypedNode CreateAssignNode(GtType Type, SyntaxTree ParsedTree, TypedNode Left, TypedNode Right) { 
+		return new AssignNode(Type, ParsedTree.KeyToken, Left, Right);
 	}
 
-	public TypedNode CreateLetNode(GtType Type, GtToken Token, TypedNode Left, TypedNode Right, TypedNode Block) { 
-		return new LetNode(Type, Token, Right, Block);
-	}
-	
-	public TypedNode CreateIfNode(GtType Type, GtToken Token, TypedNode Cond, TypedNode Then, TypedNode Else) { 
-		return new IfNode(Type, Token, Cond, Then, Else);
+	public TypedNode CreateLetNode(GtType Type, SyntaxTree ParsedTree, TypedNode Left, TypedNode Right, TypedNode Block) { 
+		return new LetNode(Type, ParsedTree.KeyToken, Right, Block);
 	}
 	
-	public TypedNode CreateSwitchNode(GtType Type, GtToken Token, TypedNode Match) { 
+	public TypedNode CreateIfNode(GtType Type, SyntaxTree ParsedTree, TypedNode Cond, TypedNode Then, TypedNode Else) { 
+		return new IfNode(Type, ParsedTree.KeyToken, Cond, Then, Else);
+	}
+	
+	public TypedNode CreateSwitchNode(GtType Type, SyntaxTree ParsedTree, TypedNode Match) { 
 		return null; 
 	}
 
-	public TypedNode CreateLoopNode(GtType Type, GtToken Token, TypedNode Cond, TypedNode Block, TypedNode IterNode) { 
-		return new LoopNode(Type, Token, Cond, Block, IterNode);
+	public TypedNode CreateLoopNode(GtType Type, SyntaxTree ParsedTree, TypedNode Cond, TypedNode Block, TypedNode IterNode) { 
+		return new LoopNode(Type, ParsedTree.KeyToken, Cond, Block, IterNode);
 	}
 
-	public TypedNode CreateReturnNode(GtType Type, GtToken Token, TypedNode Node) { 
-		return new ReturnNode(Type, Token, Node);
+	public TypedNode CreateReturnNode(GtType Type, SyntaxTree ParsedTree, TypedNode Node) { 
+		return new ReturnNode(Type, ParsedTree.KeyToken, Node);
 	}
 
-	public TypedNode CreateLabelNode(GtType Type, GtToken Token, TypedNode Node) { 
+	public TypedNode CreateLabelNode(GtType Type, SyntaxTree ParsedTree, TypedNode Node) { 
 		return null; 
 	}
 
-	public TypedNode CreateJumpNode(GtType Type, GtToken Token, TypedNode Node, String Label) { 
-		return new JumpNode(Type, Token, Label); 
+	public TypedNode CreateJumpNode(GtType Type, SyntaxTree ParsedTree, TypedNode Node, String Label) { 
+		return new JumpNode(Type, ParsedTree.KeyToken, Label); 
 	}
 
-	public TypedNode CreateBreakNode(GtType Type, GtToken Token, TypedNode Node, String Label) { 
-		return new BreakNode(Type, Token, Label); 
+	public TypedNode CreateBreakNode(GtType Type, SyntaxTree ParsedTree, TypedNode Node, String Label) { 
+		return new BreakNode(Type, ParsedTree.KeyToken, Label); 
 	}
 
-	public TypedNode CreateContinueNode(GtType Type, GtToken Token, TypedNode Node, String Label) { 
-		return new ContinueNode(Type, Token, Label); 
+	public TypedNode CreateContinueNode(GtType Type, SyntaxTree ParsedTree, TypedNode Node, String Label) { 
+		return new ContinueNode(Type, ParsedTree.KeyToken, Label); 
 	}
 	
-	public TypedNode CreateTryNode(GtType Type, GtToken Token, TypedNode TryNode, TypedNode FinallyNode) { 
-		return new TryNode(Type, Token, TryNode, FinallyNode); 
+	public TypedNode CreateTryNode(GtType Type, SyntaxTree ParsedTree, TypedNode TryNode, TypedNode FinallyNode) { 
+		return new TryNode(Type, ParsedTree.KeyToken, TryNode, FinallyNode); 
 	}
 
-	public TypedNode CreateThrowNode(GtType Type, GtToken Token, TypedNode Node) { 
-		return new ThrowNode(Type, Token, Node); 
+	public TypedNode CreateThrowNode(GtType Type, SyntaxTree ParsedTree, TypedNode Node) { 
+		return new ThrowNode(Type, ParsedTree.KeyToken, Node); 
 	}
 
-	public TypedNode CreateFunctionNode(GtType Type, GtToken Token, TypedNode Block) { 
+	public TypedNode CreateFunctionNode(GtType Type, SyntaxTree ParsedTree, TypedNode Block) { 
 		return null; 
 	}
 
-	public TypedNode CreateDefineNode(GtType Type, GtToken Token, Object Module) { 
+	public TypedNode CreateDefineNode(GtType Type, SyntaxTree ParsedTree, Object Module) { 
 		return null; 
 	}
 
-	public TypedNode CreateErrorNode(GtType Type, GtToken Token) { 
-		return new ErrorNode(Type, Token);
+	public TypedNode CreateErrorNode(GtType Type, SyntaxTree ParsedTree) { 
+		return new ErrorNode(Type, ParsedTree.KeyToken);
 	}
 
 

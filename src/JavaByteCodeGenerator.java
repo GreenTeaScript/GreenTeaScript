@@ -2,6 +2,8 @@
 
 public class JavaByteCodeGenerator extends GreenTeaGenerator {
 	
+	
+	
 	@Override 
 	public void VisitDefineNode(DefineNode Node) { 
 	}

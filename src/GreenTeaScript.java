@@ -811,14 +811,15 @@ final class SyntaxPattern extends GtStatic {
 }
 
 class SyntaxTree extends GtStatic {
-	/*feild*/public SyntaxTree		ParentTree;
-	/*feild*/public SyntaxTree		PrevTree;
-	/*feild*/public SyntaxTree		NextTree;
+	/*field*/public SyntaxTree		ParentTree;
+	/*field*/public SyntaxTree		PrevTree;
+	/*field*/public SyntaxTree		NextTree;
 
-	/*feild*/public GtNameSpace	TreeNameSpace;
-	/*feild*/public SyntaxPattern	Pattern;
-	/*feild*/public GtToken		KeyToken;
-	/*feild*/public GtArray	    TreeList;
+	/*field*/public GtNameSpace	TreeNameSpace;
+	/*field*/public SyntaxPattern	Pattern;
+	/*field*/public GtToken		KeyToken;
+	/*field*/public GtArray	    TreeList;
+	/*field*/public Object      ResolvedObject;
 
 	SyntaxTree/*constructor*/(SyntaxPattern Pattern, GtNameSpace NameSpace, GtToken KeyToken) {
 		this.TreeNameSpace = NameSpace;
@@ -828,6 +829,7 @@ class SyntaxTree extends GtStatic {
 		this.PrevTree = null;
 		this.NextTree = null;
 		this.TreeList = null;
+		this.ResolvedObject = null;
 	}
 
 	@Override public String toString() {
@@ -976,7 +978,7 @@ class SyntaxTree extends GtStatic {
 		}
 		if(!IsFlag(TypeCheckPolicy, AllowEmptyPolicy) && !IsFlag(TypeCheckPolicy, IgnoreEmptyPolicy)) {
 			Gamma.GammaNameSpace.ReportError(ErrorLevel, this.KeyToken, this.KeyToken.ParsedText + " needs more expression at " + Index);
-			return Gamma.Generator.CreateErrorNode(Type, this.KeyToken); // TODO, "syntax tree error: " + Index);
+			return Gamma.Generator.CreateErrorNode(Type, this); // TODO, "syntax tree error: " + Index);
 		}
 		return null;
 	}
@@ -1498,13 +1500,18 @@ final class TypeEnv extends GtStatic {
 	/*field*/public GtNameSpace	GammaNameSpace;
 	/*field*/public GreenTeaGenerator Generator;
 
+	/*field*/public GtMethod	Method;
+	/*field*/public GtType	ReturnType;
+	/*field*/public GtType	ThisType;
+	/*field*/GtArray	LocalStackList;
+
 	/* for convinient short cut */
 	/*field*/public final GtType	VoidType;
 	/*field*/public final GtType	BooleanType;
 	/*field*/public final GtType	IntType;
 	/*field*/public final GtType	StringType;
-	/*field*/public final GtType	VarType;
-
+	/*field*/public final GtType	AnyType;
+	
 	TypeEnv/*constructor*/(GtNameSpace GammaNameSpace, GtMethod Method) {
 		this.GammaNameSpace = GammaNameSpace;
 		this.Generator      = GammaNameSpace.GtContext.Generator;
@@ -1513,9 +1520,10 @@ final class TypeEnv extends GtStatic {
 		this.BooleanType = GammaNameSpace.GtContext.BooleanType;
 		this.IntType = GammaNameSpace.GtContext.IntType;
 		this.StringType = GammaNameSpace.GtContext.StringType;
-		this.VarType = GammaNameSpace.GtContext.VarType;
+		this.AnyType = GammaNameSpace.GtContext.AnyType;
 		this.Method = Method;
 		this.LocalStackList = null;
+		
 		if(Method != null) {
 			this.InitMethod(Method);
 		} else {
@@ -1525,11 +1533,7 @@ final class TypeEnv extends GtStatic {
 		}
 	}
 
-	/*field*/public GtMethod	Method;
-	/*field*/public GtType	ReturnType;
-	/*field*/public GtType	ThisType;
-
-	void InitMethod(GtMethod Method) {
+	private void InitMethod(GtMethod Method) {
 		this.ReturnType = Method.GetReturnType(Method.ClassInfo);
 		this.ThisType = Method.ClassInfo;
 		if(!Method.Is(StaticMethod)) {
@@ -1540,8 +1544,6 @@ final class TypeEnv extends GtStatic {
 			}
 		}
 	}
-
-	/*field*/GtArray	LocalStackList;
 
 	public void AppendLocalType(GtType Type, String Name) {
 		if(this.LocalStackList == null) {
@@ -1561,23 +1563,28 @@ final class TypeEnv extends GtStatic {
 		return null;
 	}
 
-	int GetLocalIndex(String Symbol) {
-		return -1;
-	}
+//	int GetLocalIndex(String Symbol) {
+//		return -1;
+//	}
+//
+//	public TypedNode GetDefaultTypedNode(GtType Type) {
+//		return null; // TODO
+//	}
 
-	public TypedNode GetDefaultTypedNode(GtType Type) {
-		return null; // TODO
+	public GtType GuessType(Object Value) {
+		TODO("GuessType");
+		return this.AnyType;
 	}
-
-	public TypedNode CreateErrorNode(GtToken Token, String Message) {
-		this.GammaNameSpace.ReportError(ErrorLevel, Token, Message);
-		return this.Generator.CreateErrorNode(this.VoidType, Token);
+	
+	public TypedNode CreateErrorNode(SyntaxTree ParsedTree, String Message) {
+		this.GammaNameSpace.ReportError(ErrorLevel, ParsedTree.KeyToken, Message);
+		return this.Generator.CreateErrorNode(this.VoidType, ParsedTree);
 	}
 
 	public static TypedNode TypeEachNode(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
 		TypedNode Node = GtStatic.ApplyTypeFunc(Tree.Pattern.TypeFunc, Gamma, Tree, Type);
 		if(Node == null) {
-			Node = Gamma.CreateErrorNode(Tree.KeyToken, "undefined type checker: " + Tree.Pattern);
+			Node = Gamma.CreateErrorNode(Tree, "undefined type checker: " + Tree.Pattern);
 		}
 		return Node;
 	}
@@ -1619,7 +1626,7 @@ class GtObject extends GtStatic {
 	public GtObject(GtType Type) {
 		this.Type = Type;
 	}
-//
+
 //	public Object GetField(int SymbolId) {
 //		if(this.prototype == null) {
 //			return null;
@@ -1983,21 +1990,21 @@ class GtGrammar extends GtStatic {
 		return new SyntaxTree(Pattern, TokenContext.NameSpace, Token);
 	}
 
-	public static TypedNode TypeVariable(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
+	public static TypedNode TypeVariable(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
 		// case: Symbol is LocalVariable
-		Type = Gamma.GetLocalType(Tree.KeyToken.ParsedText);
+		Type = Gamma.GetLocalType(ParsedTree.KeyToken.ParsedText);
 		if(Type != null) {
-			return Gamma.Generator.CreateLocalNode(Type, Tree.KeyToken);
+			return Gamma.Generator.CreateLocalNode(Type, ParsedTree);
 		}
 		// case: Symbol is GlobalVariable
-		if(Tree.KeyToken.ParsedText.equals("global")) {
+		if(ParsedTree.KeyToken.ParsedText.equals("global")) {
 			return new ConstNode(
-				Tree.TreeNameSpace.GetGlobalObject().Type,
-				Tree.KeyToken,
-				Tree.TreeNameSpace.GetGlobalObject());
+				ParsedTree.TreeNameSpace.GetGlobalObject().Type,
+				ParsedTree.KeyToken,
+				ParsedTree.TreeNameSpace.GetGlobalObject());
 		}
 		// case: Symbol is undefined name
-		return Gamma.CreateErrorNode(Tree.KeyToken, "undefined name: " + Tree.KeyToken.ParsedText);
+		return Gamma.CreateErrorNode(ParsedTree, "undefined name: " + ParsedTree.KeyToken.ParsedText);
 	}
 
 	// Parse And Type
@@ -2016,10 +2023,10 @@ class GtGrammar extends GtStatic {
 		return new SyntaxTree(Pattern, TokenContext.NameSpace, Token);
 	}
 
-	public static TypedNode TypeStringLiteral(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
-		GtToken Token = Tree.KeyToken;
-		/* FIXME: handling of escape sequence */
-		return new ConstNode(Gamma.StringType, Token, Token.ParsedText);
+	public static TypedNode TypeStringLiteral(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
+		GtToken Token = ParsedTree.KeyToken;
+		TODO("handling string literal");
+		return Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, Token.ParsedText);
 	}
 
 	public static SyntaxTree ParseConst(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
@@ -2027,10 +2034,10 @@ class GtGrammar extends GtStatic {
 		return new SyntaxTree(Pattern, TokenContext.NameSpace, Token);
 	}
 
-	public static TypedNode TypeConst(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
-		GtToken Token = Tree.KeyToken;
+	public static TypedNode TypeConst(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
+		GtToken Token = ParsedTree.KeyToken;
 		/* FIXME: handling of resolved object */
-		return new ConstNode(Gamma.StringType, Token, Token.ParsedText);
+		return Gamma.Generator.CreateConstNode(Gamma.GuessType(ParsedTree.ResolvedObject), Token, ParsedTree.ResolvedObject);
 	}
 
 	public static SyntaxTree ParseExpression(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
@@ -2111,24 +2118,24 @@ class GtGrammar extends GtStatic {
 
 	public static TypedNode TypeBlock(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
 		TODO("TypeBlock");
-		return Tree.TypeNodeAt(0, Gamma, Gamma.VarType, 0);
+		return Tree.TypeNodeAt(0, Gamma, Gamma.AnyType, 0);
 	}
 
 	public static TypedNode TypeApply(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
-		TODO("TypeBlock");
+		TODO("This is really necessary");
 		return null;
 	}
 
-	public static TypedNode TypeAnd(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
-		TypedNode LeftNode = Tree.TypeNodeAt(LeftHandTerm, Gamma, Gamma.BooleanType, 0);
-		TypedNode RightNode = Tree.TypeNodeAt(RightHandTerm, Gamma, Gamma.BooleanType, 0);
-		return new AndNode(RightNode.Type, Tree.KeyToken, LeftNode, RightNode);
+	public static TypedNode TypeAnd(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
+		TypedNode LeftNode = ParsedTree.TypeNodeAt(LeftHandTerm, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
+		TypedNode RightNode = ParsedTree.TypeNodeAt(RightHandTerm, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
+		return Gamma.Generator.CreateAndNode(Gamma.BooleanType, ParsedTree, LeftNode, RightNode);
 	}
 
-	public static TypedNode TypeOr(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
-		TypedNode LeftNode = Tree.TypeNodeAt(LeftHandTerm, Gamma, Gamma.BooleanType, 0);
-		TypedNode RightNode = Tree.TypeNodeAt(RightHandTerm, Gamma, Gamma.BooleanType, 0);
-		return new OrNode(RightNode.Type, Tree.KeyToken, LeftNode, RightNode);
+	public static TypedNode TypeOr(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
+		TypedNode LeftNode = ParsedTree.TypeNodeAt(LeftHandTerm, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
+		TypedNode RightNode = ParsedTree.TypeNodeAt(RightHandTerm, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
+		return Gamma.Generator.CreateOrNode(Gamma.BooleanType, ParsedTree, LeftNode, RightNode);
 	}
 
 	public static SyntaxTree ParseMember(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
@@ -2153,11 +2160,11 @@ class GtGrammar extends GtStatic {
 		return NewTree;
 	}
 
-	public static TypedNode TypeIf(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
-		TypedNode CondNode = Tree.TypeNodeAt(IfCond, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
-		TypedNode ThenNode = Tree.TypeNodeAt(IfThen, Gamma, Type, DefaultTypeCheckPolicy);
-		TypedNode ElseNode = Tree.TypeNodeAt(IfElse, Gamma, ThenNode.Type, AllowEmptyPolicy);
-		return Gamma.Generator.CreateIfNode(ThenNode.Type, Tree.KeyToken, CondNode, ThenNode, ElseNode);
+	public static TypedNode TypeIf(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
+		TypedNode CondNode = ParsedTree.TypeNodeAt(IfCond, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
+		TypedNode ThenNode = ParsedTree.TypeNodeAt(IfThen, Gamma, Type, DefaultTypeCheckPolicy);
+		TypedNode ElseNode = ParsedTree.TypeNodeAt(IfElse, Gamma, ThenNode.Type, AllowEmptyPolicy);
+		return Gamma.Generator.CreateIfNode(ThenNode.Type, ParsedTree, CondNode, ThenNode, ElseNode);
 	}
 
 	// Return Statement
@@ -2169,9 +2176,9 @@ class GtGrammar extends GtStatic {
 		return NewTree;
 	}
 
-	public static TypedNode TypeReturn(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
-		TypedNode Expr = Tree.TypeNodeAt(ReturnExpr, Gamma, Gamma.ReturnType, 0);
-		return Gamma.Generator.CreateReturnNode(Expr.Type, Tree.KeyToken, Expr);
+	public static TypedNode TypeReturn(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
+		TypedNode Expr = ParsedTree.TypeNodeAt(ReturnExpr, Gamma, Gamma.ReturnType, DefaultTypeCheckPolicy);
+		return Gamma.Generator.CreateReturnNode(Expr.Type, ParsedTree, Expr);
 	}
 	
 	public static SyntaxTree ParseVarDecl(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
@@ -2216,31 +2223,31 @@ class GtGrammar extends GtStatic {
 
 	public static TypedNode TypeVarDecl(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {		
 		TODO("TypeVarDecl");
-//		GtType VarType = Tree.GetTokenType(VarDeclTypeOffset, null);
+//		GtType AnyType = Tree.GetTokenType(VarDeclTypeOffset, null);
 //		GtToken VarToken = Tree.GetAtToken(VarDeclNameOffset);
 //		String VarName = Tree.GetTokenString(VarDeclNameOffset, null);
-//		if(VarType.equals(Gamma.VarType)) {
+//		if(AnyType.equals(Gamma.AnyType)) {
 //			return new ErrorNode(Type, VarToken, "cannot infer variable type");
 //		}
 //		assert (VarName != null);
-//		Gamma.AppendLocalType(VarType, VarName);
-//		TypedNode Value = Tree.TypeNodeAt(2, Gamma, VarType, 0);
-//		return new LetNode(VarType, VarToken, Value, null);
+//		Gamma.AppendLocalType(AnyType, VarName);
+//		TypedNode Value = Tree.TypeNodeAt(2, Gamma, AnyType, 0);
+//		return new LetNode(AnyType, VarToken, Value, null);
 		return null;
 	}
 
 	public static TypedNode TypeMethodDecl(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
 		TODO("TypeMethodDecl");
-//		GtType VarType = Tree.GetTokenType(VarDeclTypeOffset, null);
+//		GtType AnyType = Tree.GetTokenType(VarDeclTypeOffset, null);
 //		GtToken VarToken = Tree.GetAtToken(VarDeclNameOffset);
 //		String VarName = Tree.GetTokenString(VarDeclNameOffset, null);
-//		if(VarType.equals(Gamma.VarType)) {
+//		if(AnyType.equals(Gamma.AnyType)) {
 //			return new ErrorNode(Type, VarToken, "cannot infer variable type");
 //		}
 //		assert (VarName != null);
-//		Gamma.AppendLocalType(VarType, VarName);
-//		TypedNode Value = Tree.TypeNodeAt(2, Gamma, VarType, 0);
-//		return new LetNode(VarType, VarToken, Value, null);
+//		Gamma.AppendLocalType(AnyType, VarName);
+//		TypedNode Value = Tree.TypeNodeAt(2, Gamma, AnyType, 0);
+//		return new LetNode(AnyType, VarToken, Value, null);
 		return null;
 	}
 
@@ -2521,7 +2528,7 @@ class GtContext extends GtStatic {
 	/*field*/public final GtType		BooleanType;
 	/*field*/public final GtType		IntType;
 	/*field*/public final GtType		StringType;
-	/*field*/public final GtType		VarType;
+	/*field*/public final GtType		AnyType;
 
 	/*field*/final GtMap				ClassNameMap;
 	/*field*/public GreenTeaGenerator   Generator;
@@ -2537,7 +2544,7 @@ class GtContext extends GtStatic {
 		this.BooleanType = this.LookupHostLangType(Boolean.class);
 		this.IntType = this.LookupHostLangType(Integer.class);
 		this.StringType = this.LookupHostLangType(String.class);
-		this.VarType = this.LookupHostLangType(Object.class);
+		this.AnyType = this.LookupHostLangType(Object.class);
 //endif VAJA
 		Grammar.LoadDefaultSyntax(this.RootNameSpace);
 		this.DefaultNameSpace = new GtNameSpace(this, this.RootNameSpace);
