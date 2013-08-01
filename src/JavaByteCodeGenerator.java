@@ -1,4 +1,43 @@
+import org.objectweb.asm.Label;
+
 // GreenTea Generator should be written in each language.
+
+class LabelStack {
+	GtArray	LabelNames;
+	GtArray	Labels;
+
+	LabelStack() {
+		this.LabelNames = new GtArray();
+		this.Labels = new GtArray();
+	}
+
+	void AddLabel(String Name, Label Label) {
+		this.LabelNames.add(Name);
+		this.Labels.add(Label);
+	}
+
+	Label FindLabel(String Name) {
+		for(int i = this.LabelNames.size() - 1; i >= 0; i--) {
+			String LName = (String) this.LabelNames.get(i);
+			if(LName.equals(Name)) {
+				return (Label) this.Labels.get(i);
+			}
+		}
+		return null;
+	}
+
+	void RemoveLabel(String Name) {
+		for(int i = this.LabelNames.size() - 1; i >= 0; i--) {
+			String LName = (String) this.LabelNames.get(i);
+			if(LName.equals(Name)) {
+				this.LabelNames.remove(i);
+				this.Labels.remove(i);
+			}
+		}
+	}
+}
+
+
 
 public class JavaByteCodeGenerator extends GreenTeaGenerator {
 	
@@ -101,4 +140,6 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator {
 	}
 
 }
+
+
 
