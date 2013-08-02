@@ -269,6 +269,16 @@ class GtStatic implements GtConst {
 		LangDeps.println("TODO" + LangDeps.GetStackInfo(2) + ": " + msg);
 	}
 
+	public static String Indent(int Level) {
+		/*local*/int i = 0;
+		/*local*/String s = "";
+		while(i < Level) {
+			s = s + " ";
+			i += 1;
+		}
+		return s;
+	}
+
 	public static int ListSize(ArrayList<?> a) {
 		return (a == null) ? 0 : a.size();
 	}
@@ -419,10 +429,12 @@ class GtStatic implements GtConst {
 			if(CurrentPattern.ParentPattern != null) {
 				TokenContext.ParseFlag = ParseFlag | TrackbackParseFlag;
 			}
-			DebugP("B ApplySyntaxPattern: " + CurrentPattern + " > " + CurrentPattern.ParentPattern);
+			DebugP("B :" + Indent(TokenContext.IndentLevel) + CurrentPattern + ", next=" + CurrentPattern.ParentPattern);
+			TokenContext.IndentLevel += 1;
 			SyntaxTree ParsedTree = (SyntaxTree)LangDeps.ApplyMatchFunc(f.Self, f.Method, CurrentPattern, LeftTree, TokenContext);
+			TokenContext.IndentLevel -= 1;
 			if(ParsedTree != null && ParsedTree.IsEmpty()) ParsedTree = null;
-			DebugP("E ApplySyntaxPattern: " + CurrentPattern + " => " + ParsedTree);
+			DebugP("E :" + Indent(TokenContext.IndentLevel) + CurrentPattern + " => " + ParsedTree);
 			TokenContext.ParseFlag = ParseFlag;
 			if(ParsedTree != null) {
 				return ParsedTree;
@@ -613,6 +625,7 @@ final class TokenContext extends GtStatic {
 	/*field*/public int Pos;
 	/*field*/public long ParsingLine;
 	/*field*/public int ParseFlag;
+	/*field*/public int IndentLevel = 0;
 
 	TokenContext/*constructor*/(GtNameSpace NameSpace, String Text, long FileLine) {
 		this.NameSpace = NameSpace;
@@ -621,6 +634,7 @@ final class TokenContext extends GtStatic {
 		this.ParsingLine = FileLine;
 		this.ParseFlag = 0;
 		AddNewToken(Text, SourceTokenFlag, null);
+		this.IndentLevel = 0;
 	}
 
 	public GtToken AddNewToken(String Text, int TokenFlag, String PatternName) {
