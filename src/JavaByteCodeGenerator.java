@@ -791,95 +791,95 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 	}
 
 	// FIXME
-//	public GtMethodInvoker Compile(GtNameSpace NameSpace, TypedNode Block, GtMethod MethodInfo) {
-//		return this.Compile(NameSpace, Block, MethodInfo, null);
-//	}
-//
-//	public GtMethodInvoker Compile(GtNameSpace NameSpace, TypedNode Block, GtMethod MethodInfo, ArrayList<String> params) {
-//		int MethodAttr;
-//		String className;
-//		String methodName;
-//		String methodDescriptor;
-//		GtParam param;
-//		GtType ReturnType;
-//		boolean is_eval = false;
-//		if(MethodInfo != null && MethodInfo.MethodName.length() > 0) {
-//			className = MethodInfo.ClassInfo.ShortClassName;
-//			//className = "Script";
-//			methodName = MethodInfo.MethodName;
-//			methodDescriptor = this.TypeResolver.GetJavaMethodDescriptor(MethodInfo);
-//			MethodAttr = ACC_PUBLIC | ACC_STATIC;
-//			param = MethodInfo.Param;
-//			ReturnType = MethodInfo.GetReturnType(null);
-//		} else {
-//			GtType GlobalType = NameSpace.GetGlobalObject().Type;
-//			className = "global";
-//			methodName = "__eval";
-//			methodDescriptor = Type.getMethodDescriptor(Type.getType(Object.class), this.TypeResolver.GetAsmType(GlobalType));
-//			MethodAttr = ACC_PUBLIC | ACC_STATIC;
-//			is_eval = true;
-//			GtType[] ParamData = new GtType[2];
-//			String[] ArgNames = new String[1];
-//			ParamData[0] = NameSpace.GtContext.ObjectType;
-//			ParamData[1] = GlobalType;
-//			ArgNames[0] = "this";
-//			param = new GtParam(1, ParamData, ArgNames);
-//			params = new ArrayList<String>();
-//			params.add(new Local(0, GlobalType, "this"));
-//			ReturnType = ParamData[0];
-//		}
-//
-//		GtClassNode cn = this.TypeResolver.FindClassNode(className);
-//		if(cn == null) {
-//			cn = new GtClassNode(className);
-//			this.TypeResolver.StoreClassNode(cn);
-//		}
-//
-//		for(MethodNode m : cn.methods.values()) {
-//			if(m.name.equals(methodName) && m.desc.equals(methodDescriptor)) {
-//				cn.methods.remove(m);
-//				break;
-//			}
-//		}
-//		MethodNode mn = new MethodNode(MethodAttr, methodName, methodDescriptor, null, null);
-//		mn.visitCode();
-//
-//		JVMBuilder b = new JVMBuilder(MethodInfo, mn, this.TypeResolver, NameSpace);
-//		Block = b.VerifyBlock(NameSpace, is_eval, ReturnType, Block);
-//
-//		if(params != null) {
-//			for(int i = 0; i < params.size(); i++) {
-//				Local local = (Local) params.get(i);
-//				b.AddLocal(local.TypeInfo, local.Name);
-//			}
-//		}
-//		if(Block != null) {
-//			b.VisitList(Block.GetHeadNode());
-//		}
-//		if(is_eval) {
-//			b.visitBoxingAndReturn();
-//		}
-//		b.VisitEnd();
-//		cn.methods.put(methodName, mn);
-//
-//		try {
-//			this.OutputClassFile("global", ".");
-//		}
-//		catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//
-//		Class<?> c = new GtClassLoader(this).findClass(className);
-//		Method[] MethodList = c.getMethods();
-//		for(int i = 0; i < MethodList.length; i++) {
-//			Method m = MethodList[i];
-//			if(m.getName().equals(methodName)) {
-//				GtMethodInvoker mtd = new NativeMethodInvoker(param, m);
-//				return mtd;
-//			}
-//		}
-//		return null;
-//	}
+	public GtMethodInvoker Compile(GtNameSpace NameSpace, TypedNode Block, GtMethod MethodInfo) {
+		return this.Compile(NameSpace, Block, MethodInfo, null);
+	}
+
+	public GtMethodInvoker Compile(GtNameSpace NameSpace, TypedNode Block, GtMethod MethodInfo, ArrayList<Local> params) {
+		int MethodAttr;
+		String className;
+		String methodName;
+		String methodDescriptor;
+		GtParam param;
+		GtType ReturnType;
+		boolean is_eval = false;
+		if(MethodInfo != null && MethodInfo.MethodName.length() > 0) {
+			className = MethodInfo.ClassInfo.ShortClassName;
+			//className = "Script";
+			methodName = MethodInfo.MethodName;
+			methodDescriptor = this.TypeResolver.GetJavaMethodDescriptor(MethodInfo);
+			MethodAttr = ACC_PUBLIC | ACC_STATIC;
+			param = MethodInfo.Param;
+			ReturnType = MethodInfo.GetReturnType();
+		} else {
+			GtType GlobalType = NameSpace.GetGlobalObject().Type;
+			className = "global";
+			methodName = "__eval";
+			methodDescriptor = Type.getMethodDescriptor(Type.getType(Object.class), this.TypeResolver.GetAsmType(GlobalType));
+			MethodAttr = ACC_PUBLIC | ACC_STATIC;
+			is_eval = true;
+			ArrayList<GtType> ParamDataList = new ArrayList<GtType>();//GtType[] ParamData = new GtType[2];
+			ArrayList<String> ArgNameList = new ArrayList<String>();//String[] ArgNames = new String[1];
+			ParamDataList.add(NameSpace.GtContext.ObjectType);
+			ParamDataList.add(GlobalType);
+			ArgNameList.add("this");
+			param = new GtParam(ParamDataList, ArgNameList);
+			params = new ArrayList<Local>();
+			params.add(new Local(0, GlobalType, "this"));
+			ReturnType = ParamDataList.get(0);
+		}
+
+		GtClassNode cn = this.TypeResolver.FindClassNode(className);
+		if(cn == null) {
+			cn = new GtClassNode(className);
+			this.TypeResolver.StoreClassNode(cn);
+		}
+
+		for(MethodNode m : cn.methods.values()) {
+			if(m.name.equals(methodName) && m.desc.equals(methodDescriptor)) {
+				cn.methods.remove(m);
+				break;
+			}
+		}
+		MethodNode mn = new MethodNode(MethodAttr, methodName, methodDescriptor, null, null);
+		mn.visitCode();
+
+		JVMBuilder b = new JVMBuilder(MethodInfo, mn, this.TypeResolver, NameSpace);
+		Block = b.VerifyBlock(NameSpace, is_eval, ReturnType, Block);
+
+		if(params != null) {
+			for(int i = 0; i < params.size(); i++) {
+				Local local = (Local) params.get(i);
+				b.AddLocal(local.TypeInfo, local.Name);
+			}
+		}
+		if(Block != null) {
+			b.VisitList(Block.MoveHeadNode());
+		}
+		if(is_eval) {
+			b.visitBoxingAndReturn();
+		}
+		b.VisitEnd();
+		cn.methods.put(methodName, mn);
+
+		try {
+			this.OutputClassFile("global", ".");
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		Class<?> c = new GtClassLoader(this).findClass(className);
+		Method[] MethodList = c.getMethods();
+		for(int i = 0; i < MethodList.length; i++) {
+			Method m = MethodList[i];
+			if(m.getName().equals(methodName)) {
+				GtMethodInvoker mtd = new NativeMethodInvoker(param, m);
+				return mtd;
+			}
+		}
+		return null;
+	}
 //
 //	public Object EvalAtTopLevel(GtNameSpace NameSpace, TypedNode Node, GtObject GlobalObject) {
 //		GtMethodInvoker Invoker = this.Compile(NameSpace, Node, null);
@@ -888,21 +888,22 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 //		return Invoker.Invoke(Args);
 //	}
 //
-//	public GtMethodInvoker Build(GtNameSpace NameSpace, TypedNode Node, GtMethod Method) {
-//		ArrayList<String> Param = null;
-//		if(Method != null) {
-//			Param = new ArrayList<String>();
-//			GtParam P = Method.Param;
-//			Param.add(new Local(0, Method.ClassInfo, "this"));
-//			for(int i = 0; i < P.GetParamSize(); i++) {
-//				GtType Type = P.Types[i + 1];
-//				String Arg = P.ArgNames[i];
-//				Local l = new Local(i + 1, Type, Arg);
-//				Param.add(l);
-//			}
-//		}
-//		return this.Compile(NameSpace, Node, Method, Param);
-//	}
+	//FIXME
+	public GtMethodInvoker Build(GtNameSpace NameSpace, TypedNode Node, GtMethod Method) {
+		ArrayList<Local> Param = null;
+		if(Method != null) {
+			Param = new ArrayList<Local>();
+			GtParam P = Method.Param;
+			Param.add(new Local(0, Method.ClassInfo, "this"));
+			for(int i = 0; i < P.ParamSize; i++) {
+				GtType Type = P.TypeList.get(i + 1); //GtType Type = P.Types[i + 1];
+				String Arg = P.NameList.get(i);//String Arg = P.ArgNames[i];
+				Local l = new Local(i + 1, Type, Arg);
+				Param.add(l);
+			}
+		}
+		return this.Compile(NameSpace, Node, Method, Param);
+	}
 	
 	//FIXME
 	@Override
