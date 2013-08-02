@@ -6,7 +6,6 @@ import java.util.HashMap;
 
 interface GtConst {
 //endif VAJA
-
 	// ClassFlag
 	public final static int		PrivateClass					= 1 << 0;
 	public final static int		SingletonClass					= 1 << 1;
@@ -294,7 +293,7 @@ class GtStatic implements GtConst {
 	}
 
 	public static String StringfySymbol(int SymbolId) {
-		/*local*/String Key = (String)SymbolList.get(UnmaskSymbol(SymbolId));
+		/*local*/String Key = SymbolList.get(UnmaskSymbol(SymbolId));
 		if(IsFlag(SymbolId, GetterSymbolMask)) {
 			return GetterPrefix + Key;
 		}
@@ -323,21 +322,17 @@ class GtStatic implements GtConst {
 		if(Symbol.startsWith("\\")) {
 			Mask = MetaSymbolMask;
 		}
-		Integer SymbolObject = (Integer)SymbolMap.get(Key);
+		Integer SymbolObject = (/*cast*/Integer)SymbolMap.get(Key);
 		if(SymbolObject == null) {
 			if(DefaultSymbolId == AllowNewId) {
 				int SymbolId = SymbolList.size();
 				SymbolList.add(Key);
-				SymbolMap.put(Key, new Integer(SymbolId));
+				SymbolMap.put(Key, SymbolId); //new Integer(SymbolId));
 				return MaskSymbol(SymbolId, Mask);
 			}
 			return DefaultSymbolId;
 		}
 		return MaskSymbol(SymbolObject.intValue(), Mask);
-	}
-
-	public static int GetSymbolId(String Symbol) {
-		return GetSymbolId(Symbol, AllowNewId);
 	}
 
 	public static String CanonicalSymbol(String Symbol) {
@@ -348,6 +343,7 @@ class GtStatic implements GtConst {
 		return GetSymbolId(CanonicalSymbol(Symbol), AllowNewId);
 	}
 
+//ifdef JAVA
 	public final static GtFuncToken FunctionA(Object Callee, String MethodName) {
 		return new GtFuncToken(Callee, LangDeps.LookupMethod(Callee, MethodName));
 	}
@@ -359,21 +355,7 @@ class GtStatic implements GtConst {
 	public final static GtFuncTypeCheck FunctionC(Object Callee, String MethodName) {
 		return new GtFuncTypeCheck(Callee, LangDeps.LookupMethod(Callee, MethodName));
 	}
-
-	public final static boolean EqualsMethod(Method m1, Method m2) {
-		if(m1 == null) {
-			return (m2 == null) ? true : false;
-		} else {
-			return (m2 == null) ? false : m1.equals(m2);
-		}
-	}
-	
-	public final static TokenFunc CreateOrReuseTokenFunc(GtFuncToken f, TokenFunc prev) {
-		if(prev != null && EqualsMethod(prev.Func.Method, f.Method)) {
-			return prev;
-		}
-		return new TokenFunc(f, prev);
-	}
+//endif VAJA
 
 	public final static int ApplyTokenFunc(TokenFunc TokenFunc, TokenContext TokenContext, String ScriptSource, int Pos) {
 		while(TokenFunc != null) {
@@ -1241,7 +1223,7 @@ class GtMethod extends GtDef {
 		this.MethodFlag = MethodFlag;
 		this.ClassInfo = ClassInfo;
 		this.MethodName = MethodName;
-		this.MethodSymbolId = GtStatic.GetSymbolId(MethodName);
+		this.MethodSymbolId = GtStatic.GetSymbolId(MethodName, AllowNewId);
 		this.CanonicalSymbolId = GtStatic.GetCanonicalSymbolId(MethodName);
 		this.Param = Param;
 	}
@@ -1540,7 +1522,7 @@ final class GtNameSpace extends GtStatic {
 				while(j < Spec.SpecKey.length()) {
 					int kchar = GtStatic.FromJavaChar(Spec.SpecKey.charAt(j));
 					GtFuncToken Func = (GtFuncToken)Spec.SpecBody;
-					this.TokenMatrix[kchar] = GtStatic.CreateOrReuseTokenFunc(Func, this.TokenMatrix[kchar]);
+					this.TokenMatrix[kchar] = LangDeps.CreateOrReuseTokenFunc(Func, this.TokenMatrix[kchar]);
 					j += 1;
 				}
 			}

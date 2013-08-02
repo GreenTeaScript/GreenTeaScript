@@ -63,6 +63,21 @@ public abstract class LangDeps {
 		}
 		return null; /*throw new GtParserException("method not found: " + callee.getClass().getName() + "." + methodName);*/
 	}
+	
+	public final static boolean EqualsMethod(Method m1, Method m2) {
+		if(m1 == null) {
+			return (m2 == null) ? true : false;
+		} else {
+			return (m2 == null) ? false : m1.equals(m2);
+		}
+	}
+	
+	public final static TokenFunc CreateOrReuseTokenFunc(GtFuncToken f, TokenFunc prev) {
+		if(prev != null && EqualsMethod(prev.Func.Method, f.Method)) {
+			return prev;
+		}
+		return new TokenFunc(f, prev);
+	}
 
 	public final static int ApplyTokenFunc(Object Self, Method Method, Object TokenContext, String Text, int pos) {
 		try {
