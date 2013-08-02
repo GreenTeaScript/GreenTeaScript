@@ -970,8 +970,9 @@ class SyntaxTree extends GtStatic {
 	public void SetMatchedPatternAt(int Index, TokenContext TokenContext, String PatternName,  boolean IsOptional) {
 		if(!IsEmptyOrError()) {
 			SyntaxTree ParsedTree = TokenContext.ParsePattern(PatternName, IsOptional);
-			}
-			if(ParsedTree == null && !IsOptional) {
+			if(ParsedTree != null) {
+				SetSyntaxTreeAt(Index, ParsedTree);
+			} else if(ParsedTree == null && !IsOptional) {
 				ToEmpty();
 			}
 		}
