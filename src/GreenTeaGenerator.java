@@ -360,8 +360,8 @@ public class GreenTeaGenerator extends GtStatic {
 		return new LocalNode(Type, ParsedTree.KeyToken, LocalName);
 	}
 
-	public TypedNode CreateGetterNode(GtType Type, SyntaxTree ParsedTree, TypedNode Expr) { 
-		return new GetterNode(Type, ParsedTree.KeyToken, Expr, null);
+	public TypedNode CreateGetterNode(GtType Type, SyntaxTree ParsedTree, TypedNode Expr, GtMethod Method) { 
+		return new GetterNode(Type, ParsedTree.KeyToken, Expr, Method);
 	}
 
 	public TypedNode CreateApplyNode(GtType Type, SyntaxTree ParsedTree, TypedNode Func) { 

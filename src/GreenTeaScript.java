@@ -231,6 +231,7 @@ interface GtConst {
 	public final static ArrayList<String> SymbolList = new ArrayList<String>();
 	public final static GtMap   SymbolMap  = new GtMap();
 
+	public final static GtMethod AnyGetter = null;
 	// debug flags
 	static final public boolean	UseBuiltInTest	= true;
 	static final public boolean	DebugPrint		= true;
@@ -1069,6 +1070,10 @@ class GtType extends GtStatic {
 		this.ClassMethodList.add(Method);
 	}
 
+	public GtMethod GetGetter(String Name) {
+		return AnyGetter;
+	}
+	
 //	public GtMethod FindMethod(String MethodName, int ParamSize) {
 //		/*local*/int i = 0;
 //		while(i < this.ClassMethodList.size()) {
@@ -1341,6 +1346,12 @@ final class VariableInfo {
 	}
 }
 
+final class GtDelegate {
+	/*field*/public GtMethod Method;
+	/*field*/public Object   Callee;
+	/*field*/public GtType   Type;
+}
+
 final class TypeEnv extends GtStatic {
 	/*field*/public GtNameSpace	GammaNameSpace;
 	/*field*/public GreenTeaGenerator Generator;
@@ -1357,6 +1368,7 @@ final class TypeEnv extends GtStatic {
 	/*field*/public final GtType	BooleanType;
 	/*field*/public final GtType	IntType;
 	/*field*/public final GtType	StringType;
+	/*field*/public final GtType	VarType;
 	/*field*/public final GtType	AnyType;
 	
 	TypeEnv/*constructor*/(GtNameSpace GammaNameSpace, GtMethod Method) {
@@ -1367,6 +1379,7 @@ final class TypeEnv extends GtStatic {
 		this.BooleanType = GammaNameSpace.GtContext.BooleanType;
 		this.IntType = GammaNameSpace.GtContext.IntType;
 		this.StringType = GammaNameSpace.GtContext.StringType;
+		this.VarType = GammaNameSpace.GtContext.VarType;
 		this.AnyType = GammaNameSpace.GtContext.AnyType;
 		this.Method = Method;
 		this.LocalStackList = new ArrayList<VariableInfo>();
@@ -1421,6 +1434,11 @@ final class TypeEnv extends GtStatic {
 	public GtType GuessType(Object Value) {
 		TODO("GuessType");
 		return this.AnyType;
+	}
+	
+	public GtDelegate LookupDelegate(String Name) {
+		TODO("finding delegate");
+		return null;
 	}
 	
 	public TypedNode DefaultValueConstNode(SyntaxTree ParsedTree, GtType Type) {
@@ -1902,22 +1920,22 @@ final class KonohaGrammar extends GtGrammar {
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/char ch = Token.ParsedText.charAt(0);
 		if(LangDeps.IsLetter(ch) || ch == '_') {
-			return new SyntaxTree(Pattern, TokenContext.NameSpace, Token, ConstValue);
+			return new SyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
 		}
 		return null;
 	}
 	
 	public static TypedNode TypeVariable(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
-		/*local*/String Key = ParsedTree.KeyToken.ParsedText;
-		/*local*/VariableInfo VariableInfo = Gamma.LookupDeclaredVariable(Key);
+		/*local*/String Name = ParsedTree.KeyToken.ParsedText;
+		/*local*/VariableInfo VariableInfo = Gamma.LookupDeclaredVariable(Name);
 		if(VariableInfo != null) {
 			return Gamma.Generator.CreateLocalNode(Type, ParsedTree, VariableInfo.LocalName);
 		}
-		/*local*/Object Value = Gamma.GammaNameSpace.GetSymbol(Key);  // const value
-		if(Value != null) {
-			return Gamma.Generator.CreateConstNode(Gamma.GuessType(Value), ParsedTree, Value);
+		GtDelegate Delegate = Gamma.LookupDelegate(Name);
+		if(Delegate != null) {
+			return Gamma.Generator.CreateConstNode(Delegate.Type, ParsedTree, Delegate);
 		}
-		return Gamma.CreateErrorNode(ParsedTree, "undefined name: " + Key);
+		return Gamma.CreateErrorNode(ParsedTree, "undefined name: " + Name);
 	}
 	
 	public static SyntaxTree ParseVarDecl(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
@@ -2024,6 +2042,13 @@ final class KonohaGrammar extends GtGrammar {
 		return NewTree;
 	}
 
+	public static TypedNode TypeField(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
+		TypedNode ExprNode = ParsedTree.TypeNodeAt(UnaryTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+		GtMethod Method = ExprNode.Type.GetGetter(ParsedTree.KeyToken.ParsedText);
+		return Gamma.Generator.CreateGetterNode(Method.GetReturnType(), ParsedTree, ExprNode, Method);
+	}
+
+	
 	// PatternName: "("
 	public static SyntaxTree ParseParenthesis(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
 		/*local*/int ParseFlag = TokenContext.ParseFlag;
