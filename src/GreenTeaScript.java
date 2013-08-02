@@ -1821,13 +1821,13 @@ final class KonohaGrammar extends GtGrammar {
 	}
 
 	public static int StringLiteralToken(TokenContext TokenContext, String SourceText, int pos) {
-		/*local*/int start = pos + 1;
+		/*local*/int start = pos;
 		/*local*/char prev = '"';
 		pos = start;
 		while(pos < SourceText.length()) {
 			/*local*/char ch = SourceText.charAt(pos);
 			if(ch == '"' && prev != '\\') {
-				TokenContext.AddNewToken(SourceText.substring(start, pos), 0, "$StringLiteral$");
+				TokenContext.AddNewToken(SourceText.substring(start, pos+1), 0, "$StringLiteral$");
 				return pos + 1;
 			}
 			if(ch == '\n') {
@@ -1857,7 +1857,7 @@ final class KonohaGrammar extends GtGrammar {
 		if(VariableInfo != null) {
 			return Gamma.Generator.CreateLocalNode(Type, ParsedTree, VariableInfo.LocalName);
 		}
-		Object Value = Gamma.GammaNameSpace.GetSymbol(Key);  // const value
+		/*local*/Object Value = Gamma.GammaNameSpace.GetSymbol(Key);  // const value
 		if(Value != null) {
 			return Gamma.Generator.CreateConstNode(Gamma.GuessType(Value), ParsedTree, Value);
 		}
