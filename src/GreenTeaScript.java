@@ -1982,20 +1982,10 @@ final class KonohaGrammar extends GtGrammar {
 		return new SyntaxTree(Pattern, TokenContext.NameSpace, Token, LangDeps.ParseInt(Token.ParsedText));
 	}
 
-	public static TypedNode TypeIntegerLiteral(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
-		/*local*/GtToken Token = Tree.KeyToken;
-		return new ConstNode(Gamma.IntType, Token, Integer.valueOf(Token.ParsedText));
-	}
-
 	public static SyntaxTree ParseStringLiteral(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
 		/*local*/GtToken Token = TokenContext.Next();
-		return new SyntaxTree(Pattern, TokenContext.NameSpace, Token, Token.ParsedText);
-	}
-
-	public static TypedNode TypeStringLiteral(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
-		/*local*/GtToken Token = ParsedTree.KeyToken;
 		TODO("handling string literal");
-		return Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, Token.ParsedText);
+		return new SyntaxTree(Pattern, TokenContext.NameSpace, Token, Token.ParsedText);
 	}
 
 	public static SyntaxTree ParseExpression(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
@@ -2034,6 +2024,15 @@ final class KonohaGrammar extends GtGrammar {
 		return NewTree;
 	}
 
+	public static TypedNode TypeBinary(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
+//		public final static int	LeftHandTerm	= 0;
+//		public final static int	RightHandTerm	= 1;
+//		TypedNode ExprNode = ParsedTree.TypeNodeAt(UnaryTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+//		TypedNode ExprNode = ParsedTree.TypeNodeAt(UnaryTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+//		return Gamma.Generator.CreateOperatorNode()
+		return null;
+	}
+	
 	public static SyntaxTree ParseField(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
 		TokenContext.MatchToken(".");
 		/*local*/GtToken Token = TokenContext.Next();
@@ -2045,9 +2044,8 @@ final class KonohaGrammar extends GtGrammar {
 	public static TypedNode TypeField(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
 		TypedNode ExprNode = ParsedTree.TypeNodeAt(UnaryTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
 		GtMethod Method = ExprNode.Type.GetGetter(ParsedTree.KeyToken.ParsedText);
-		return Gamma.Generator.CreateGetterNode(Method.GetReturnType(), ParsedTree, ExprNode, Method);
+		return Gamma.Generator.CreateGetterNode(Method.GetReturnType(), ParsedTree, Method, ExprNode);
 	}
-
 	
 	// PatternName: "("
 	public static SyntaxTree ParseParenthesis(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
@@ -2062,8 +2060,7 @@ final class KonohaGrammar extends GtGrammar {
 		return Tree;
 	}
 	
-	// PatternName: "("
-	public static SyntaxTree ParseParenthesis2(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
+	public static SyntaxTree ParseApply(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
 		/*local*/int ParseFlag = TokenContext.ParseFlag;
 		TokenContext.ParseFlag |= SkipIndentParseFlag;
 		/*local*/SyntaxTree FuncTree = new SyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("("), null);
@@ -2077,25 +2074,44 @@ final class KonohaGrammar extends GtGrammar {
 		return FuncTree;
 	}
 
+	public static TypedNode TypeApply(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
+		TypedNode ApplyNode = Gamma.Generator.CreateApplyNode(Gamma.AnyType, ParsedTree, null);
+		TODO("ApplyNode");
+		return null;
+	}
+
+	public static SyntaxTree ParseEmpty(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
+		return new SyntaxTree(Pattern, TokenContext.NameSpace, NullToken, null);
+	}
+
+	public static TypedNode TypeEmpty(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
+		return Gamma.Generator.CreateNullNode(Gamma.VoidType, ParsedTree);
+	}
+	
 	public static SyntaxTree ParseBlock(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
-		TokenContext.MatchToken("{");
-		/*local*/SyntaxTree PrevTree = null;
-		while(TokenContext.SkipEmptyStatement()) {
-			if(TokenContext.MatchToken("}")) break;
-			PrevTree = GtStatic.ParseSyntaxTree(PrevTree, TokenContext);
-			if(GtStatic.IsEmptyOrError(PrevTree)) return PrevTree;
+		if(TokenContext.MatchToken("{")) {
+			/*local*/SyntaxTree PrevTree = null;
+			while(TokenContext.SkipEmptyStatement()) {
+				if(TokenContext.MatchToken("}")) break;
+				PrevTree = GtStatic.ParseSyntaxTree(PrevTree, TokenContext);
+				if(GtStatic.IsEmptyOrError(PrevTree)) return PrevTree;
+			}
+			if(PrevTree == null) {
+				return TokenContext.ParsePattern("$Empty", Required);
+			}
+			return GtStatic.TreeHead(PrevTree);
 		}
-		return GtStatic.TreeHead(PrevTree);
+		return null;
 	}
 
 	public static TypedNode TypeBlock(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
 		return Gamma.TypeBlock(ParsedTree, Type);
 	}
 
-	public static TypedNode TypeApply(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
-		TODO("This is really necessary");
-		return null;
-	}
+//	public static TypedNode TypeApply(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
+//		TODO("This is really necessary");
+//		return null;
+//	}
 
 	public static TypedNode TypeAnd(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
 		/*local*/TypedNode LeftNode = ParsedTree.TypeNodeAt(LeftHandTerm, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
@@ -2200,34 +2216,34 @@ final class KonohaGrammar extends GtGrammar {
 
 		NameSpace.DefineTokenFunc(" \t", FunctionA(this, "WhiteSpaceToken"));
 		NameSpace.DefineTokenFunc("\n",  FunctionA(this, "IndentToken"));
-		NameSpace.DefineTokenFunc("(){}[]<>,;+-*/%=&|!", FunctionA(this, "SingleSymbolToken"));
+		NameSpace.DefineTokenFunc("(){}[]<>.,:;+-*/%=&|!", FunctionA(this, "OperatorToken"));
 		NameSpace.DefineTokenFunc("Aa", FunctionA(this, "SymbolToken"));
-		NameSpace.DefineTokenFunc(".",  FunctionA(this, "MemberToken"));
 		NameSpace.DefineTokenFunc("\"", FunctionA(this, "StringLiteralToken"));
 		NameSpace.DefineTokenFunc("1",  FunctionA(this, "NumberLiteralToken"));
 //#ifdef JAVA
 		GtFuncMatch ParseUnary    = FunctionB(this, "ParseUnary");
 		GtFuncMatch ParseBinary   = FunctionB(this, "ParseBinary");
-		GtFuncTypeCheck TypeApply = FunctionC(this, "TypeApply");
+		GtFuncTypeCheck TypeOperator = FunctionC(this, "TypeOperator");
 		GtFuncTypeCheck TypeConst = FunctionC(this, "TypeConst");
+		GtFuncTypeCheck TypeBlock = FunctionC(this, "TypeBlock");
 //endif VAJA
-		NameSpace.DefineSyntaxPattern("+", ParseUnary, TypeApply);
-		NameSpace.DefineSyntaxPattern("-", ParseUnary, TypeApply);
-		NameSpace.DefineSyntaxPattern("!", ParseUnary, TypeApply);
+		NameSpace.DefineSyntaxPattern("+", ParseUnary, TypeOperator);
+		NameSpace.DefineSyntaxPattern("-", ParseUnary, TypeOperator);
+		NameSpace.DefineSyntaxPattern("!", ParseUnary, TypeOperator);
 		
-		NameSpace.DefineExtendedPattern("*", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeApply);
-		NameSpace.DefineExtendedPattern("/", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeApply);
-		NameSpace.DefineExtendedPattern("%", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeApply);
+		NameSpace.DefineExtendedPattern("*", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeOperator);
+		NameSpace.DefineExtendedPattern("/", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeOperator);
+		NameSpace.DefineExtendedPattern("%", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeOperator);
 
-		NameSpace.DefineExtendedPattern("+", BinaryOperator | Precedence_CStyleADD, ParseBinary, TypeApply);
-		NameSpace.DefineExtendedPattern("-", BinaryOperator | Precedence_CStyleADD, ParseBinary, TypeApply);
+		NameSpace.DefineExtendedPattern("+", BinaryOperator | Precedence_CStyleADD, ParseBinary, TypeOperator);
+		NameSpace.DefineExtendedPattern("-", BinaryOperator | Precedence_CStyleADD, ParseBinary, TypeOperator);
 
-		NameSpace.DefineExtendedPattern("<", BinaryOperator | Precedence_CStyleCOMPARE, ParseBinary, TypeApply);
-		NameSpace.DefineExtendedPattern("<=", BinaryOperator | Precedence_CStyleCOMPARE, ParseBinary, TypeApply);
-		NameSpace.DefineExtendedPattern(">", BinaryOperator | Precedence_CStyleCOMPARE, ParseBinary, TypeApply);
-		NameSpace.DefineExtendedPattern(">=", BinaryOperator | Precedence_CStyleCOMPARE, ParseBinary, TypeApply);
-		NameSpace.DefineExtendedPattern("==", BinaryOperator | Precedence_CStyleEquals, ParseBinary, TypeApply);
-		NameSpace.DefineExtendedPattern("!=", BinaryOperator | Precedence_CStyleEquals, ParseBinary, TypeApply);
+		NameSpace.DefineExtendedPattern("<", BinaryOperator | Precedence_CStyleCOMPARE, ParseBinary, TypeOperator);
+		NameSpace.DefineExtendedPattern("<=", BinaryOperator | Precedence_CStyleCOMPARE, ParseBinary, TypeOperator);
+		NameSpace.DefineExtendedPattern(">", BinaryOperator | Precedence_CStyleCOMPARE, ParseBinary, TypeOperator);
+		NameSpace.DefineExtendedPattern(">=", BinaryOperator | Precedence_CStyleCOMPARE, ParseBinary, TypeOperator);
+		NameSpace.DefineExtendedPattern("==", BinaryOperator | Precedence_CStyleEquals, ParseBinary, TypeOperator);
+		NameSpace.DefineExtendedPattern("!=", BinaryOperator | Precedence_CStyleEquals, ParseBinary, TypeOperator);
 
 		NameSpace.DefineExtendedPattern("=", BinaryOperator | Precedence_CStyleAssign | LeftJoin, ParseBinary, FunctionC(this, "TypeAssign"));
 
@@ -2235,20 +2251,23 @@ final class KonohaGrammar extends GtGrammar {
 		NameSpace.DefineExtendedPattern("||", BinaryOperator | Precedence_CStyleOR, ParseBinary, FunctionC(this, "TypeOr"));
 		
 		
-		NameSpace.DefineSyntaxPattern("$Symbol$", FunctionB(this, "ParseSymbol"), FunctionC(this, "TypeVariable"));
-		NameSpace.DefineSyntaxPattern("$Type$", FunctionB(this, "ParseType"), TypeConst);
-		
-		NameSpace.DefineSyntaxPattern("$Const$", FunctionB(this, "ParseConst"), FunctionC(this, "TypeSymbol"));
+		NameSpace.DefineSyntaxPattern("$Symbol$", FunctionB(this, "ParseSymbol"), null);
+		NameSpace.DefineSyntaxPattern("$Type$", FunctionB(this, "ParseType"), FunctionC(this, "ParseVariable"));
+		NameSpace.DefineSyntaxPattern("$Variable$", FunctionB(this, "ParseVariable"), FunctionC(this, "ParseVariable"));
+		NameSpace.DefineSyntaxPattern("$Const$", FunctionB(this, "ParseConst"), TypeConst);
+
 		NameSpace.DefineSyntaxPattern("$StringLiteral$", FunctionB(this, "ParseStringLiteral"), TypeConst);
 		NameSpace.DefineSyntaxPattern("$IntegerLiteral$", FunctionB(this, "ParseIntegerLiteral"), TypeConst);
 
 		NameSpace.DefineSyntaxPattern("(", FunctionB(this, "ParseParenthesis"), null);
-
-		NameSpace.DefineSyntaxPattern("{", FunctionB(this, "ParseBlock"), FunctionC(this, "TypeBlock"));
+		NameSpace.DefineExtendedPattern("(", 0, FunctionB(this, "ParseApply"), FunctionC(this, "TypeField"));
+		NameSpace.DefineExtendedPattern(".", 0, FunctionB(this, "ParseField"), FunctionC(this, "TypeField"));
 		
-		NameSpace.DefineSyntaxPattern("$Symbol$", FunctionB(this, "ParseMethodDecl"), FunctionC(this, "TypeMethodDecl"));
-		NameSpace.DefineSyntaxPattern("$Symbol$", FunctionB(this, "ParseVarDecl"), FunctionC(this, "TypeVarDecl"));
-
+		NameSpace.DefineSyntaxPattern("$Block$", FunctionB(this, "ParseBlock"), TypeBlock);
+		NameSpace.DefineSyntaxPattern("$Statement$", FunctionB(this, "ParseStatement"), TypeBlock);
+		
+		NameSpace.DefineSyntaxPattern("$MethodDecl$", FunctionB(this, "ParseMethodDecl"), FunctionC(this, "TypeMethodDecl"));
+		NameSpace.DefineSyntaxPattern("$VarDecl$", FunctionB(this, "ParseVarDecl"), FunctionC(this, "TypeVarDecl"));
 		NameSpace.DefineSyntaxPattern("if", FunctionB(this, "ParseIf"), FunctionC(this, "TypeIf"));
 		NameSpace.DefineSyntaxPattern("return", FunctionB(this, "ParseReturn"), FunctionC(this, "ParseReturn"));
 	}

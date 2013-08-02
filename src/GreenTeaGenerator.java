@@ -34,6 +34,10 @@ class TypedNode extends GtStatic {
 		return this;
 	}
 
+	public void Append(TypedNode Node) {
+		/*extension*/
+	}
+	
 	public void Evaluate(GreenTeaGenerator Visitor) {
 		/*extension*/
 	}
@@ -44,18 +48,38 @@ class TypedNode extends GtStatic {
 }
 
 class UnaryNode extends TypedNode {
+	/*field*/public GtMethod    Method;
 	/*field*/public TypedNode	Expr;
-	UnaryNode/*constructor*/(GtType Type, GtToken Token, TypedNode Expr) {
+	UnaryNode/*constructor*/(GtType Type, GtToken Token, GtMethod Method, TypedNode Expr) {
 		super(Type, Token);
+		this.Method = Method;
 		this.Expr = Expr;
+	}
+	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+		Visitor.VisitUnaryNode(this);
+	}
+}
+
+class SuffixNode extends TypedNode {
+	/*field*/public GtMethod    Method;
+	/*field*/public TypedNode	Expr;
+	SuffixNode/*constructor*/(GtType Type, GtToken Token, GtMethod Method, TypedNode Expr) {
+		super(Type, Token);
+		this.Method = Method;
+		this.Expr = Expr;
+	}
+	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+		Visitor.VisitSuffixNode(this);
 	}
 }
 
 class BinaryNode extends TypedNode {
-	/*field*/public TypedNode    LeftNode;
+	/*field*/public GtMethod    Method;
+	/*field*/public TypedNode   LeftNode;
 	/*field*/public TypedNode	RightNode;
-	BinaryNode/*constructor*/(GtType Type, GtToken Token, TypedNode Left, TypedNode Right) {
+	BinaryNode/*constructor*/(GtType Type, GtToken Token, GtMethod Method, TypedNode Left, TypedNode Right) {
 		super(Type, Token);
+		this.Method = Method;
 		this.LeftNode  = Left;
 		this.RightNode = Right;
 	}
@@ -64,18 +88,26 @@ class BinaryNode extends TypedNode {
 	}
 }
 
-class AndNode extends BinaryNode {
+class AndNode extends TypedNode {
+	/*field*/public TypedNode   LeftNode;
+	/*field*/public TypedNode	RightNode;
 	AndNode/*constructor*/(GtType Type, GtToken Token, TypedNode Left, TypedNode Right) {
-		super(Type, Token, Left, Right);
+		super(Type, Token);
+		this.LeftNode  = Left;
+		this.RightNode = Right;
 	}
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitAndNode(this);
 	}
 }
 
-class OrNode extends BinaryNode {
+class OrNode extends TypedNode {
+	/*field*/public TypedNode   LeftNode;
+	/*field*/public TypedNode	RightNode;
 	OrNode/*constructor*/(GtType Type, GtToken Token, TypedNode Left, TypedNode Right) {
-		super(Type, Token, Left, Right);
+		super(Type, Token);
+		this.LeftNode  = Left;
+		this.RightNode = Right;
 	}
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitOrNode(this);
@@ -85,19 +117,38 @@ class OrNode extends BinaryNode {
 class GetterNode extends TypedNode {
 	/*field*/public TypedNode Expr;
 	/*field*/public GtMethod  Method;
-	GetterNode/*constructor*/(GtType Type, GtToken Token, TypedNode Expr, GtMethod Method) {
+	GetterNode/*constructor*/(GtType Type, GtToken Token, GtMethod Method, TypedNode Expr) {
 		super(Type, Token);
-		this.Expr = Expr;
 		this.Method = Method;
+		this.Expr = Expr;
 	}
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitGetterNode(this);
 	}
 }
 
-class AssignNode extends BinaryNode {
+class IndexerNode extends TypedNode {
+	/*field*/public GtMethod  Method;
+	/*field*/public TypedNode Expr;
+	/*field*/public TypedNode Indexer;
+	IndexerNode/*constructor*/(GtType Type, GtToken Token, GtMethod Method, TypedNode Expr, TypedNode Indexer) {
+		super(Type, Token);
+		this.Method = Method;
+		this.Expr = Expr;
+		this.Indexer = Indexer;
+	}
+	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+		Visitor.VisitIndexerNode(this);
+	}
+}
+
+class AssignNode extends TypedNode {
+	/*field*/public TypedNode   LeftNode;
+	/*field*/public TypedNode	RightNode;
 	AssignNode/*constructor*/(GtType Type, GtToken Token, TypedNode Left, TypedNode Right) {
-		super(Type, Token, Left, Right);
+		super(Type, Token);
+		this.LeftNode  = Left;
+		this.RightNode = Right;
 	}
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitAssignNode(this);
@@ -136,10 +187,9 @@ class NullNode extends TypedNode {
 }
 
 class LetNode extends TypedNode {
-	/*field*/public GtType	    DeclType;
+	/*field*/public GtType	    DeclType;  
 	/*field*/public TypedNode	VarNode;
 	/*field*/public TypedNode	BlockNode;
-
 	/* let frame[Index] = Right in Block end */
 	LetNode/*constructor*/(GtType Type, GtToken Token, GtType DeclType, TypedNode VarNode, TypedNode Block) {
 		super(Type, Token);
@@ -154,16 +204,13 @@ class LetNode extends TypedNode {
 
 class ApplyNode extends TypedNode {
 	/*field*/public GtMethod	Method;
-	/*field*/public ArrayList<TypedNode>	Params; /* [this, arg1, arg2, ...] */
-
-	ApplyNode/*constructor*/(GtType Type, GtToken KeyToken, GtMethod Method, TypedNode arg1) {
+	/*field*/public ArrayList<TypedNode>  Params; /* [this, arg1, arg2, ...] */
+	ApplyNode/*constructor*/(GtType Type, GtToken KeyToken, GtMethod Method) {
 		super(Type, KeyToken);
 		this.Method = Method;
 		this.Params = new ArrayList<TypedNode>();
-		this.Params.add(arg1);
 	}
-	
-	public void Append(TypedNode Expr) {
+	@Override public void Append(TypedNode Expr) {
 		this.Params.add(Expr);
 	}
 
@@ -172,18 +219,32 @@ class ApplyNode extends TypedNode {
 	}
 }
 
+class MessageNode extends TypedNode {
+	/*field*/public GtMethod	Method;
+	/*field*/public ArrayList<TypedNode>  Params; /* [this, arg1, arg2, ...] */
+	MessageNode/*constructor*/(GtType Type, GtToken KeyToken, GtMethod Method) {
+		super(Type, KeyToken);
+		this.Method = Method;
+		this.Params = new ArrayList<TypedNode>();
+	}
+	@Override public void Append(TypedNode Expr) {
+		this.Params.add(Expr);
+	}
+
+	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+		Visitor.VisitMessageNode(this);
+	}
+}
+
 class NewNode extends TypedNode {
 	/*field*/public ArrayList<TypedNode>	Params; /* [this, arg1, arg2, ...] */
-
 	NewNode/*constructor*/(GtType Type, GtToken Token) {
 		super(Type, Token);
 		this.Params = new ArrayList<TypedNode>();
 	}
-
-	public void Append(TypedNode Expr) {
+	@Override public void Append(TypedNode Expr) {
 		this.Params.add(Expr);
 	}
-
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitNewNode(this);
 	}
@@ -193,7 +254,6 @@ class IfNode extends TypedNode {
 	/*field*/public TypedNode	CondExpr;
 	/*field*/public TypedNode	ThenNode;
 	/*field*/public TypedNode	ElseNode;
-
 	/* If CondExpr then ThenBlock else ElseBlock */
 	IfNode/*constructor*/(GtType Type, GtToken Token, TypedNode CondExpr, TypedNode ThenBlock, TypedNode ElseNode) {
 		super(Type, Token);
@@ -206,11 +266,67 @@ class IfNode extends TypedNode {
 	}
 }
 
+class WhileNode extends TypedNode {
+	/*field*/public TypedNode	CondExpr;
+	/*field*/public TypedNode	LoopBody;
+	WhileNode/*constructor*/(GtType Type, GtToken Token, TypedNode CondExpr, TypedNode LoopBody) {
+		super(Type, Token);
+		this.CondExpr = CondExpr;
+		this.LoopBody = LoopBody;
+	}
+	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+		Visitor.VisitWhileNode(this);
+	}
+}
+
+class DoWhileNode extends TypedNode {
+	/*field*/public TypedNode	CondExpr;
+	/*field*/public TypedNode	LoopBody;
+	DoWhileNode/*constructor*/(GtType Type, GtToken Token, TypedNode CondExpr, TypedNode LoopBody) {
+		super(Type, Token);
+		this.CondExpr = CondExpr;
+		this.LoopBody = LoopBody;
+	}
+	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+		Visitor.VisitDoWhileNode(this);
+	}
+}
+
+class ForNode extends TypedNode {
+	/*field*/public TypedNode	CondExpr;
+	/*field*/public TypedNode	IterExpr;
+	/*field*/public TypedNode	LoopBody;
+	ForNode/*constructor*/(GtType Type, GtToken Token, TypedNode CondExpr, TypedNode IterExpr, TypedNode LoopBody) {
+		super(Type, Token);
+		this.CondExpr = CondExpr;
+		this.LoopBody = LoopBody;
+		this.IterExpr = IterExpr;
+	}
+	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+		Visitor.VisitForNode(this);
+	}
+}
+
+class ForEachNode extends TypedNode {
+	/*field*/public TypedNode	CondExpr;
+	/*field*/public TypedNode	Variable;
+	/*field*/public TypedNode	IterExpr;
+	/*field*/public TypedNode	LoopBody;
+	ForEachNode/*constructor*/(GtType Type, GtToken Token, TypedNode Variable, TypedNode IterExpr, TypedNode LoopBody) {
+		super(Type, Token);
+		this.Variable = Variable;
+		this.IterExpr = IterExpr;
+		this.LoopBody = LoopBody;
+	}
+	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+		Visitor.VisitForEachNode(this);
+	}
+}
+
 class LoopNode extends TypedNode {
 	/*field*/public TypedNode	CondExpr;
 	/*field*/public TypedNode	LoopBody;
 	/*field*/public TypedNode	IterExpr;
-
 	LoopNode/*constructor*/(GtType Type, GtToken Token, TypedNode CondExpr, TypedNode LoopBody, TypedNode IterExpr) {
 		super(Type, Token);
 		this.CondExpr = CondExpr;
@@ -243,6 +359,7 @@ class JumpNode extends TypedNode {
 		Visitor.VisitJumpNode(this);
 	}
 }
+
 class ContinueNode extends TypedNode {
 	/*field*/public String Label;
 	ContinueNode/*constructor*/(GtType Type, GtToken Token, String Label) {
@@ -253,6 +370,7 @@ class ContinueNode extends TypedNode {
 		Visitor.VisitContinueNode(this);
 	}
 }
+
 class BreakNode extends TypedNode {
 	/*field*/public String Label;
 	BreakNode/*constructor*/(GtType Type, GtToken Token, String Label) {
@@ -264,18 +382,22 @@ class BreakNode extends TypedNode {
 	}
 }
 
-class ReturnNode extends UnaryNode {
+class ReturnNode extends TypedNode {
+	/*field*/public TypedNode Expr;
 	ReturnNode/*constructor*/(GtType Type, GtToken Token, TypedNode Expr) {
-		super(Type, Token, Expr);
+		super(Type, Token);
+		this.Expr = Expr;
 	}
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitReturnNode(this);
 	}
 }
 
-class ThrowNode extends UnaryNode {
+class ThrowNode extends TypedNode {
+	/*field*/public TypedNode Expr;
 	ThrowNode/*constructor*/(GtType Type, GtToken Token, TypedNode Expr) {
-		super(Type, Token, Expr);
+		super(Type, Token);
+		this.Expr = Expr;
 	}
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitThrowNode(this);
@@ -348,24 +470,44 @@ public class GreenTeaGenerator extends GtStatic {
 		return new ConstNode(Type, ParsedTree.KeyToken, Value); 
 	}
 
-	public TypedNode CreateNewNode(GtType Type, SyntaxTree ParsedTree) { 
-		return new NewNode(Type, ParsedTree.KeyToken); 
-	}
-
 	public TypedNode CreateNullNode(GtType Type, SyntaxTree ParsedTree) { 
-		return new NewNode(Type, ParsedTree.KeyToken); 
+		return new NullNode(Type, ParsedTree.KeyToken); 
 	}
 
 	public TypedNode CreateLocalNode(GtType Type, SyntaxTree ParsedTree, String LocalName) { 
 		return new LocalNode(Type, ParsedTree.KeyToken, LocalName);
 	}
 
-	public TypedNode CreateGetterNode(GtType Type, SyntaxTree ParsedTree, TypedNode Expr, GtMethod Method) { 
-		return new GetterNode(Type, ParsedTree.KeyToken, Expr, Method);
+	public TypedNode CreateGetterNode(GtType Type, SyntaxTree ParsedTree, GtMethod Method, TypedNode Expr) { 
+		return new GetterNode(Type, ParsedTree.KeyToken, Method, Expr);
 	}
 
-	public TypedNode CreateApplyNode(GtType Type, SyntaxTree ParsedTree, TypedNode Func) { 
-		return new ApplyNode(Type, ParsedTree.KeyToken, null, Func);
+	public TypedNode CreateIndexerNode(GtType Type, SyntaxTree ParsedTree, GtMethod Method, TypedNode Expr, TypedNode Index) { 
+		return new IndexerNode(Type, ParsedTree.KeyToken, Method, Expr, Index);
+	}
+
+	public TypedNode CreateApplyNode(GtType Type, SyntaxTree ParsedTree, GtMethod Method) { 
+		return new ApplyNode(Type, ParsedTree.KeyToken, Method);
+	}
+
+	public TypedNode CreateMessageNode(GtType Type, SyntaxTree ParsedTree, GtMethod Method) { 
+		return new MessageNode(Type, ParsedTree.KeyToken, Method);
+	}
+
+	public TypedNode CreateNewNode(GtType Type, SyntaxTree ParsedTree) { 
+		return new NewNode(Type, ParsedTree.KeyToken); 
+	}
+	
+	public TypedNode CreateUnaryNode(GtType Type, SyntaxTree ParsedTree, GtMethod Method, TypedNode Expr) { 
+		return new UnaryNode(Type, ParsedTree.KeyToken, Method, Expr);
+	}
+
+	public TypedNode CreateSuffixNode(GtType Type, SyntaxTree ParsedTree, GtMethod Method, TypedNode Expr) { 
+		return new SuffixNode(Type, ParsedTree.KeyToken, Method, Expr);
+	}
+
+	public TypedNode CreateBinaryNode(GtType Type, SyntaxTree ParsedTree, GtMethod Method, TypedNode Left, TypedNode Right) { 
+		return new BinaryNode(Type, ParsedTree.KeyToken, Method, Left, Right);
 	}
 
 	public TypedNode CreateAndNode(GtType Type, SyntaxTree ParsedTree, TypedNode Left, TypedNode Right) { 
@@ -390,6 +532,22 @@ public class GreenTeaGenerator extends GtStatic {
 	
 	public TypedNode CreateSwitchNode(GtType Type, SyntaxTree ParsedTree, TypedNode Match) { 
 		return null; 
+	}
+
+	public TypedNode CreateWhileNode(GtType Type, SyntaxTree ParsedTree, TypedNode Cond, TypedNode Block) { 
+		return new WhileNode(Type, ParsedTree.KeyToken, Cond, Block);
+	}
+
+	public TypedNode CreateDoWhileNode(GtType Type, SyntaxTree ParsedTree, TypedNode Cond, TypedNode Block) { 
+		return new DoWhileNode(Type, ParsedTree.KeyToken, Cond, Block);
+	}
+
+	public TypedNode CreateForNode(GtType Type, SyntaxTree ParsedTree, TypedNode Cond, TypedNode IterNode, TypedNode Block) { 
+		return new ForNode(Type, ParsedTree.KeyToken, Cond, Block, IterNode);
+	}
+
+	public TypedNode CreateForEachNode(GtType Type, SyntaxTree ParsedTree, TypedNode VarNode, TypedNode IterNode, TypedNode Block) { 
+		return new ForEachNode(Type, ParsedTree.KeyToken, VarNode, IterNode, Block);
 	}
 
 	public TypedNode CreateLoopNode(GtType Type, SyntaxTree ParsedTree, TypedNode Cond, TypedNode Block, TypedNode IterNode) { 
@@ -434,6 +592,41 @@ public class GreenTeaGenerator extends GtStatic {
 
 	public TypedNode CreateErrorNode(GtType Type, SyntaxTree ParsedTree) { 
 		return new ErrorNode(Type, ParsedTree.KeyToken);
+	}
+
+	
+	
+	
+	public void VisitSuffixNode(SuffixNode suffixNode) {
+		/*extension*/
+	}
+
+	public void VisitUnaryNode(UnaryNode unaryNode) {
+		/*extension*/
+	}
+
+	public void VisitIndexerNode(IndexerNode indexerNode) {
+		/*extension*/
+	}
+
+	public void VisitMessageNode(MessageNode messageNode) {
+		/*extension*/
+	}
+
+	public void VisitWhileNode(WhileNode whileNode) {
+		/*extension*/
+	}
+
+	public void VisitDoWhileNode(DoWhileNode doWhileNode) {
+		/*extension*/
+	}
+
+	public void VisitForNode(ForNode forNode) {
+		/*extension*/
+	}
+
+	public void VisitForEachNode(ForEachNode forEachNode) {
+		/*extension*/
 	}
 
 	public void VisitDefineNode(DefineNode Node) { 
@@ -532,6 +725,7 @@ public class GreenTeaGenerator extends GtStatic {
 		/*extension*/
 	}
 
+	
 	public final void VisitBlock(TypedNode Node) {
 		/*local*/TypedNode CurrentNode = Node;
 		while(CurrentNode != null) {
