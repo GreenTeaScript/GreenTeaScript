@@ -352,8 +352,8 @@ class GtStatic implements GtConst {
 		return new GtFuncMatch(Callee, LangDeps.LookupMethod(Callee, MethodName));
 	}
 	
-	public final static GtFuncTypeCheck FunctionC(Object Callee, String MethodName) {
-		return new GtFuncTypeCheck(Callee, LangDeps.LookupMethod(Callee, MethodName));
+	public final static GtFuncType FunctionC(Object Callee, String MethodName) {
+		return new GtFuncType(Callee, LangDeps.LookupMethod(Callee, MethodName));
 	}
 //endif VAJA
 
@@ -445,7 +445,7 @@ class GtStatic implements GtConst {
 	}
 	
 	// typing 
-	public final static TypedNode ApplyTypeFunc(GtFuncTypeCheck TypeFunc, TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
+	public final static TypedNode ApplyTypeFunc(GtFuncType TypeFunc, TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
 		if(TypeFunc == null || TypeFunc.Method == null){
 			DebugP("try to invoke null TypeFunc");
 			return null;
@@ -485,42 +485,33 @@ final class GtMap {
 
 }
 
-final class GtFuncToken {
+class GtFuncCommon {
 	/*field*/public Object	Self;
 	/*field*/public Method	Method;
+	GtFuncCommon(Object Self, Method method) {
+		this.Self = Self;
+		this.Method = method;
+	}
+	@Override public final String toString() {
+		return (this.Method == null) ? "*undefined*" : this.Method.getName();
+	}
+}
+
+final class GtFuncToken extends GtFuncCommon {
 	GtFuncToken/*constructor*/(Object Self, Method method) {
-		this.Self = Self;
-		this.Method = method;
-	}
-	@Override public String toString() {
-		if(this.Method == null) return "null";
-		return this.Method.toString();
+		super(Self, method);
 	}
 }
 
-final class GtFuncMatch {
-	/*field*/public Object	Self;
-	/*field*/public Method	Method;
+final class GtFuncMatch extends GtFuncCommon {
 	GtFuncMatch/*constructor*/(Object Self, Method method) {
-		this.Self = Self;
-		this.Method = method;
-	}
-	@Override public String toString() {
-		if(this.Method == null) return "null";
-		return this.Method.toString();
+		super(Self, method);
 	}
 }
 
-final class GtFuncTypeCheck {
-	/*field*/public Object	Self;
-	/*field*/public Method	Method;
-	GtFuncTypeCheck/*constructor*/(Object Self, Method method) {
-		this.Self = Self;
-		this.Method = method;
-	}
-	@Override public String toString() {
-		if(this.Method == null) return "null";
-		return this.Method.toString();
+final class GtFuncType extends GtFuncCommon {
+	GtFuncType/*constructor*/(Object Self, Method method) {
+		super(Self, method);
 	}
 }
 
@@ -824,10 +815,10 @@ final class SyntaxPattern extends GtStatic {
 	/*field*/public String		PatternName;
 	/*field*/int				SyntaxFlag;
 	/*field*/public GtFuncMatch       MatchFunc;
-	/*field*/public GtFuncTypeCheck       TypeFunc;
+	/*field*/public GtFuncType       TypeFunc;
 	/*field*/public SyntaxPattern	ParentPattern;
 	
-	SyntaxPattern/*constructor*/(GtNameSpace NameSpace, String PatternName, GtFuncMatch MatchFunc, GtFuncTypeCheck TypeFunc) {
+	SyntaxPattern/*constructor*/(GtNameSpace NameSpace, String PatternName, GtFuncMatch MatchFunc, GtFuncType TypeFunc) {
 		this.PackageNameSpace = NameSpace;
 		this.PatternName = PatternName;
 		this.SyntaxFlag = 0;
@@ -1641,7 +1632,7 @@ final class GtNameSpace extends GtStatic {
 		}
 	}
 
-	public void DefineSyntaxPattern(String PatternName, GtFuncMatch MatchFunc, GtFuncTypeCheck TypeFunc) {
+	public void DefineSyntaxPattern(String PatternName, GtFuncMatch MatchFunc, GtFuncType TypeFunc) {
 		/*local*/SyntaxPattern Pattern = new SyntaxPattern(this, PatternName, MatchFunc, TypeFunc);
 		/*local*/GtSpec Spec = new GtSpec(SymbolPatternSpec, PatternName, Pattern);
 		this.PublicSpecList.add(Spec);
@@ -1650,7 +1641,7 @@ final class GtNameSpace extends GtStatic {
 		}
 	}
 
-	public void DefineExtendedPattern(String PatternName, int SyntaxFlag, GtFuncMatch MatchFunc, GtFuncTypeCheck TypeFunc) {
+	public void DefineExtendedPattern(String PatternName, int SyntaxFlag, GtFuncMatch MatchFunc, GtFuncType TypeFunc) {
 		/*local*/SyntaxPattern Pattern = new SyntaxPattern(this, PatternName, MatchFunc, TypeFunc);
 		Pattern.SyntaxFlag = SyntaxFlag;
 		/*local*/GtSpec Spec = new GtSpec(ExtendedPatternSpec, PatternName, Pattern);
@@ -2197,45 +2188,45 @@ final class KonohaGrammar extends GtGrammar {
 		NameSpace.DefineTokenFunc("1",  FunctionA(this, "NumberLiteralToken"));
 //#ifdef JAVA
 		GtFuncMatch ParseUnary    = FunctionB(this, "ParseUnary");
+		GtFuncType TypeUnary = FunctionC(this, "TypeUnary");
 		GtFuncMatch ParseBinary   = FunctionB(this, "ParseBinary");
-		GtFuncTypeCheck TypeOperator = FunctionC(this, "TypeOperator");
-		GtFuncTypeCheck TypeConst = FunctionC(this, "TypeConst");
-		GtFuncTypeCheck TypeBlock = FunctionC(this, "TypeBlock");
+		GtFuncType TypeBinary = FunctionC(this, "TypeBinary");
+		GtFuncType TypeConst = FunctionC(this, "TypeConst");
+		GtFuncType TypeBlock = FunctionC(this, "TypeBlock");
 //endif VAJA
-		NameSpace.DefineSyntaxPattern("+", ParseUnary, TypeOperator);
-		NameSpace.DefineSyntaxPattern("-", ParseUnary, TypeOperator);
-		NameSpace.DefineSyntaxPattern("!", ParseUnary, TypeOperator);
+		NameSpace.DefineSyntaxPattern("+", ParseUnary, TypeUnary);
+		NameSpace.DefineSyntaxPattern("-", ParseUnary, TypeUnary);
+		NameSpace.DefineSyntaxPattern("!", ParseUnary, TypeUnary);
 		
-		NameSpace.DefineExtendedPattern("*", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeOperator);
-		NameSpace.DefineExtendedPattern("/", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeOperator);
-		NameSpace.DefineExtendedPattern("%", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeOperator);
+		NameSpace.DefineExtendedPattern("*", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeBinary);
+		NameSpace.DefineExtendedPattern("/", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeBinary);
+		NameSpace.DefineExtendedPattern("%", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeBinary);
 
-		NameSpace.DefineExtendedPattern("+", BinaryOperator | Precedence_CStyleADD, ParseBinary, TypeOperator);
-		NameSpace.DefineExtendedPattern("-", BinaryOperator | Precedence_CStyleADD, ParseBinary, TypeOperator);
+		NameSpace.DefineExtendedPattern("+", BinaryOperator | Precedence_CStyleADD, ParseBinary, TypeBinary);
+		NameSpace.DefineExtendedPattern("-", BinaryOperator | Precedence_CStyleADD, ParseBinary, TypeBinary);
 
-		NameSpace.DefineExtendedPattern("<", BinaryOperator | Precedence_CStyleCOMPARE, ParseBinary, TypeOperator);
-		NameSpace.DefineExtendedPattern("<=", BinaryOperator | Precedence_CStyleCOMPARE, ParseBinary, TypeOperator);
-		NameSpace.DefineExtendedPattern(">", BinaryOperator | Precedence_CStyleCOMPARE, ParseBinary, TypeOperator);
-		NameSpace.DefineExtendedPattern(">=", BinaryOperator | Precedence_CStyleCOMPARE, ParseBinary, TypeOperator);
-		NameSpace.DefineExtendedPattern("==", BinaryOperator | Precedence_CStyleEquals, ParseBinary, TypeOperator);
-		NameSpace.DefineExtendedPattern("!=", BinaryOperator | Precedence_CStyleEquals, ParseBinary, TypeOperator);
+		NameSpace.DefineExtendedPattern("<", BinaryOperator | Precedence_CStyleCOMPARE, ParseBinary, TypeBinary);
+		NameSpace.DefineExtendedPattern("<=", BinaryOperator | Precedence_CStyleCOMPARE, ParseBinary, TypeBinary);
+		NameSpace.DefineExtendedPattern(">", BinaryOperator | Precedence_CStyleCOMPARE, ParseBinary, TypeBinary);
+		NameSpace.DefineExtendedPattern(">=", BinaryOperator | Precedence_CStyleCOMPARE, ParseBinary, TypeBinary);
+		NameSpace.DefineExtendedPattern("==", BinaryOperator | Precedence_CStyleEquals, ParseBinary, TypeBinary);
+		NameSpace.DefineExtendedPattern("!=", BinaryOperator | Precedence_CStyleEquals, ParseBinary, TypeBinary);
 
 		NameSpace.DefineExtendedPattern("=", BinaryOperator | Precedence_CStyleAssign | LeftJoin, ParseBinary, FunctionC(this, "TypeAssign"));
-
 		NameSpace.DefineExtendedPattern("&&", BinaryOperator | Precedence_CStyleAND, ParseBinary, FunctionC(this, "TypeAnd"));
 		NameSpace.DefineExtendedPattern("||", BinaryOperator | Precedence_CStyleOR, ParseBinary, FunctionC(this, "TypeOr"));
 		
 		NameSpace.DefineSyntaxPattern("$Symbol$", FunctionB(this, "ParseSymbol"), null);
-		NameSpace.DefineSyntaxPattern("$Type$", FunctionB(this, "ParseType"), FunctionC(this, "ParseVariable"));
+		NameSpace.DefineSyntaxPattern("$Type$", FunctionB(this, "ParseType"), TypeConst);
 		NameSpace.DefineSyntaxPattern("$Variable$", FunctionB(this, "ParseVariable"), FunctionC(this, "ParseVariable"));
 		NameSpace.DefineSyntaxPattern("$Const$", FunctionB(this, "ParseConst"), TypeConst);
-
 		NameSpace.DefineSyntaxPattern("$StringLiteral$", FunctionB(this, "ParseStringLiteral"), TypeConst);
 		NameSpace.DefineSyntaxPattern("$IntegerLiteral$", FunctionB(this, "ParseIntegerLiteral"), TypeConst);
 
-		NameSpace.DefineSyntaxPattern("(", FunctionB(this, "ParseParenthesis"), null);
-		NameSpace.DefineExtendedPattern("(", 0, FunctionB(this, "ParseApply"), FunctionC(this, "TypeField"));
+		NameSpace.DefineSyntaxPattern("(", FunctionB(this, "ParseParenthesis"), null); /* => */
 		NameSpace.DefineExtendedPattern(".", 0, FunctionB(this, "ParseField"), FunctionC(this, "TypeField"));
+		NameSpace.DefineExtendedPattern("(", 0, FunctionB(this, "ParseApply"), FunctionC(this, "TypeField"));
+		//future: NameSpace.DefineExtendedPattern("[", 0, FunctionB(this, "ParseIndexer"), FunctionC(this, "TypeIndexer"));
 		
 		NameSpace.DefineSyntaxPattern("$Block$", FunctionB(this, "ParseBlock"), TypeBlock);
 		NameSpace.DefineSyntaxPattern("$Statement$", FunctionB(this, "ParseStatement"), TypeBlock);
