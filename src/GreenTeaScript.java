@@ -165,6 +165,10 @@ interface GtConst {
 	public final static int	IfThen	= 1;
 	public final static int	IfElse	= 2;
 
+	// while(cond) {...}
+	static final int WhileCond = 0;
+	static final int WhileBody = 1;
+
 	// ReturnStmt
 	public final static int	ReturnExpr	= 0;
 
@@ -2156,6 +2160,23 @@ final class KonohaGrammar extends GtGrammar {
 		return Gamma.Generator.CreateIfNode(ThenNode.Type, ParsedTree, CondNode, ThenNode, ElseNode);
 	}
 
+	// While Statement
+	public static SyntaxTree ParseWhile(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
+		/*local*/GtToken Token = TokenContext.GetMatchedToken("while");
+		/*local*/SyntaxTree NewTree = new SyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
+		NewTree.SetMatchedTokenAt(NoWhere, TokenContext, "(", Required);
+		NewTree.SetMatchedPatternAt(WhileCond, TokenContext, "$Expression$", Required);
+		NewTree.SetMatchedTokenAt(NoWhere, TokenContext, ")", Required);
+		NewTree.SetMatchedPatternAt(WhileBody, TokenContext, "$Block$", Required);
+		return NewTree;
+	}
+
+	public static TypedNode TypeWhile(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
+		/*local*/TypedNode CondNode = ParsedTree.TypeNodeAt(WhileCond, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
+		/*local*/TypedNode BodyNode = ParsedTree.TypeNodeAt(WhileBody, Gamma, Type, DefaultTypeCheckPolicy);
+		return Gamma.Generator.CreateLoopNode(BodyNode.Type, ParsedTree, CondNode, BodyNode, null);
+	}
+
 	// Return Statement
 	public static SyntaxTree ParseReturn(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
 		/*local*/GtToken Token = TokenContext.GetMatchedToken("return");
@@ -2272,6 +2293,7 @@ final class KonohaGrammar extends GtGrammar {
 		NameSpace.DefineSyntaxPattern("$VarDecl$", FunctionB(this, "ParseVarDecl"), FunctionC(this, "TypeVarDecl"));
 		NameSpace.DefineSyntaxPattern("if", FunctionB(this, "ParseIf"), FunctionC(this, "TypeIf"));
 		NameSpace.DefineSyntaxPattern("return", FunctionB(this, "ParseReturn"), FunctionC(this, "ParseReturn"));
+		NameSpace.DefineSyntaxPattern("while", FunctionB(this, "ParseWhile"), FunctionC(this, "TypeWhile"));
 	}
 }
 
