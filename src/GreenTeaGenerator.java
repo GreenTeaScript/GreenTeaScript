@@ -45,6 +45,17 @@ class TypedNode extends GtStatic {
 	public final boolean IsError() {
 		return (this instanceof ErrorNode);
 	}
+	@Override public String toString() {
+		return "(TypedNode)";
+	}
+	public static String Stringify(TypedNode Block) {
+		/*local*/String Text = Block.toString();
+		while(Block != null) {
+			Text += Block.toString() + " ";
+			Block = Block.NextNode;
+		}
+		return Text;
+	}
 }
 
 class UnaryNode extends TypedNode {
@@ -99,6 +110,9 @@ class AndNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitAndNode(this);
 	}
+	@Override public String toString() {
+		return "(And:" + this.Type + " " + Stringify(LeftNode) + ", " + Stringify(RightNode) + ")";
+	}
 }
 
 class OrNode extends TypedNode {
@@ -112,6 +126,9 @@ class OrNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitOrNode(this);
 	}
+	@Override public String toString() {
+		return "(Or:" + this.Type + " " + Stringify(LeftNode) + ", " + Stringify(RightNode) + ")";
+	}
 }
 
 class GetterNode extends TypedNode {
@@ -124,6 +141,9 @@ class GetterNode extends TypedNode {
 	}
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitGetterNode(this);
+	}
+	@Override public String toString() {
+		return "(Getter:" + this.Type + " " + Stringify(Expr) + ", " + Method.MethodName + ")";
 	}
 }
 
@@ -140,6 +160,9 @@ class IndexerNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitIndexerNode(this);
 	}
+	@Override public String toString() {
+		return "(Index:" + this.Type + " " + Stringify(Expr) + ", " + Stringify(Indexer) + ")";
+	}
 }
 
 class AssignNode extends TypedNode {
@@ -153,6 +176,9 @@ class AssignNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitAssignNode(this);
 	}
+	@Override public String toString() {
+		return "(Assign:" + this.Type + " " + Stringify(LeftNode) + " = " + Stringify(RightNode) + ")";
+	}
 }
 
 class ConstNode extends TypedNode {
@@ -163,6 +189,9 @@ class ConstNode extends TypedNode {
 	}
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitConstNode(this);
+	}
+	@Override public String toString() {
+		return "(Const:" + this.Type + " "+ ConstValue.toString() + ")";
 	}
 }
 
@@ -175,6 +204,9 @@ class LocalNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitLocalNode(this);
 	}
+	@Override public String toString() {
+		return "(Local:" + this.Type + " " + LocalName + ")";
+	}
 }
 
 class NullNode extends TypedNode {
@@ -184,13 +216,16 @@ class NullNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitNullNode(this);
 	}
+	@Override public String toString() {
+		return "(Null:" + this.Type + " " + ")";
+	}
 }
 
 class LetNode extends TypedNode {
 	/*field*/public GtType	    DeclType;
 	/*field*/public TypedNode	VarNode;
 	/*field*/public TypedNode	BlockNode;
-	/* let frame[Index] = Right in Block end */
+	/* let VarNode in Block end */
 	LetNode/*constructor*/(GtType Type, GtToken Token, GtType DeclType, TypedNode VarNode, TypedNode Block) {
 		super(Type, Token);
 		this.DeclType = DeclType;
@@ -199,6 +234,10 @@ class LetNode extends TypedNode {
 	}
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitLetNode(this);
+	}
+	@Override public String toString() {
+		/*local*/String Block = Stringify(BlockNode);
+		return "(Let:" + this.Type + " " + Stringify(VarNode) + " in {" + Block + "})";
 	}
 }
 
@@ -217,6 +256,17 @@ class ApplyNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitApplyNode(this);
 	}
+	@Override public String toString() {
+		/*local*/String Param = "";
+		for(int i = 0; i < Params.size(); i++) {
+			TypedNode Node = Params.get(i);
+			if(i != 0) {
+				Param += ", ";
+			}
+			Param += Stringify(Node);
+		}
+		return "(Apply:" + this.Type + " " + Param + ")";
+	}
 }
 
 class MessageNode extends TypedNode {
@@ -234,6 +284,17 @@ class MessageNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitMessageNode(this);
 	}
+	@Override public String toString() {
+		/*local*/String Param = "";
+		for(int i = 0; i < Params.size(); i++) {
+			TypedNode Node = Params.get(i);
+			if(i != 0) {
+				Param += ", ";
+			}
+			Param += Stringify(Node);
+		}
+		return "(Message:" + this.Type + " " + Param + ")";
+	}
 }
 
 class NewNode extends TypedNode {
@@ -247,6 +308,17 @@ class NewNode extends TypedNode {
 	}
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitNewNode(this);
+	}
+	@Override public String toString() {
+		/*local*/String Param = "";
+		for(int i = 0; i < Params.size(); i++) {
+			TypedNode Node = Params.get(i);
+			if(i != 0) {
+				Param += ", ";
+			}
+			Param += Stringify(Node);
+		}
+		return "(New:" + this.Type + " " + Param + ")";
 	}
 }
 
@@ -264,6 +336,12 @@ class IfNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitIfNode(this);
 	}
+	@Override public String toString() {
+		/*local*/String Cond = Stringify(CondExpr);
+		/*local*/String Then = Stringify(ThenNode);
+		/*local*/String Else = Stringify(ElseNode);
+		return "(If:" + this.Type + " Cond:" + Cond + " Then:"+ Then + " Else:" + Else + ")";
+	}
 }
 
 class WhileNode extends TypedNode {
@@ -277,6 +355,11 @@ class WhileNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitWhileNode(this);
 	}
+	@Override public String toString() {
+		/*local*/String Cond = Stringify(CondExpr);
+		/*local*/String Body = Stringify(LoopBody);
+		return "(While:" + this.Type + " Cond:" + Cond + " Body:"+ Body + ")";
+	}
 }
 
 class DoWhileNode extends TypedNode {
@@ -289,6 +372,11 @@ class DoWhileNode extends TypedNode {
 	}
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitDoWhileNode(this);
+	}
+	@Override public String toString() {
+		/*local*/String Cond = Stringify(CondExpr);
+		/*local*/String Body = Stringify(LoopBody);
+		return "(DoWhile:" + this.Type + " Cond:" + Cond + " Body:"+ Body + ")";
 	}
 }
 
@@ -304,6 +392,12 @@ class ForNode extends TypedNode {
 	}
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitForNode(this);
+	}
+	@Override public String toString() {
+		/*local*/String Cond = Stringify(CondExpr);
+		/*local*/String Body = Stringify(LoopBody);
+		/*local*/String Iter = Stringify(IterExpr);
+		return "(For:" + this.Type + " Cond:" + Cond + " Body:"+ Body + " Iter:" + Iter + ")";
 	}
 }
 
@@ -321,6 +415,13 @@ class ForEachNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitForEachNode(this);
 	}
+	@Override public String toString() {
+		/*local*/String Cond = Stringify(CondExpr);
+		/*local*/String Var = Stringify(Variable);
+		/*local*/String Body = Stringify(LoopBody);
+		/*local*/String Iter = Stringify(IterExpr);
+		return "(Foreach:" + this.Type + " Var:" + Var + " Cond:" + Cond + " Body:"+ Body + " Iter:" + Iter + ")";
+	}
 }
 
 class LoopNode extends TypedNode {
@@ -336,6 +437,11 @@ class LoopNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitLoopNode(this);
 	}
+	@Override public String toString() {
+		/*local*/String Cond = Stringify(CondExpr);
+		/*local*/String Body = Stringify(LoopBody);
+		return "(Loop:" + this.Type + " Cond:" + Cond + " Body:"+ Body + ")";
+	}
 }
 
 class LabelNode extends TypedNode {
@@ -346,6 +452,9 @@ class LabelNode extends TypedNode {
 	}
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitLabelNode(this);
+	}
+	@Override public String toString() {
+		return "(Label:" + this.Type + " " + Label + ")";
 	}
 }
 
@@ -358,6 +467,9 @@ class JumpNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitJumpNode(this);
 	}
+	@Override public String toString() {
+		return "(Jump:" + this.Type + " " + Label + ")";
+	}
 }
 
 class ContinueNode extends TypedNode {
@@ -368,6 +480,9 @@ class ContinueNode extends TypedNode {
 	}
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitContinueNode(this);
+	}
+	@Override public String toString() {
+		return "(Continue:" + this.Type + ")";
 	}
 }
 
@@ -380,6 +495,9 @@ class BreakNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitBreakNode(this);
 	}
+	@Override public String toString() {
+		return "(Break:" + this.Type + ")";
+	}
 }
 
 class ReturnNode extends TypedNode {
@@ -391,6 +509,13 @@ class ReturnNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitReturnNode(this);
 	}
+	@Override public String toString() {
+		/*local*/String Text = "";
+		if(Text != null) {
+			Text = Stringify(Expr);
+		}
+		return "(Return:" + this.Type + " " + Text + ")";
+	}
 }
 
 class ThrowNode extends TypedNode {
@@ -401,6 +526,9 @@ class ThrowNode extends TypedNode {
 	}
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitThrowNode(this);
+	}
+	@Override public String toString() {
+		return "(Throw:" + this.Type + " " + Stringify(Expr) + ")";
 	}
 }
 
@@ -421,6 +549,10 @@ class TryNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitTryNode(this);
 	}
+	@Override public String toString() {
+		/*local*/String TryBlock = Stringify(this.TryBlock);
+		return "(Try:" + this.Type + " " + TryBlock + ")";
+	}
 }
 
 class SwitchNode extends TypedNode {
@@ -433,6 +565,10 @@ class SwitchNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitSwitchNode(this);
 	}
+	@Override public String toString() {
+		//FIXME
+		return "(Switch:" + this.Type + ")";
+	}
 }
 
 class DefineNode extends TypedNode {
@@ -444,6 +580,9 @@ class DefineNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitDefineNode(this);
 	}
+	@Override public String toString() {
+		return "(Define:" + this.Type + " " + DefInfo /*FIXME*/ + ")";
+	}
 }
 
 class FunctionNode extends TypedNode {
@@ -453,6 +592,9 @@ class FunctionNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitFunctionNode(this);
 	}
+	@Override public String toString() {
+		return "(Function:" + this.Type + ")";
+	}
 }
 
 class ErrorNode extends TypedNode {
@@ -461,6 +603,9 @@ class ErrorNode extends TypedNode {
 	}
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitErrorNode(this);
+	}
+	@Override public String toString() {
+		return "(Error:" + this.Type + " " + Token.toString() + ")";
 	}
 }
 
