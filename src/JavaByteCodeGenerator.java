@@ -19,12 +19,12 @@ import org.objectweb.asm.tree.MethodNode;
 // GreenTea Generator should be written in each language.
 
 class LabelStack {
-	GtArray	LabelNames;
-	GtArray	Labels;
+	ArrayList<String>	LabelNames;
+	ArrayList<Label>	Labels;
 
 	LabelStack() {
-		this.LabelNames = new GtArray();
-		this.Labels = new GtArray();
+		this.LabelNames = new ArrayList<String>();
+		this.Labels = new ArrayList<Label>();
 	}
 
 	void AddLabel(String Name, Label Label) {
@@ -110,7 +110,7 @@ class CheckReturnNodePath extends MethodPath {
 	TypedNode Run(GtNameSpace NameSpace, GtType ReturnType, TypedNode Block) {
 		TypedNode TailNode = null;
 		if(Block != null) {
-			TailNode = Block.GetTailNode();
+			TailNode = Block.MoveTailNode();
 			if(TailNode instanceof ReturnNode) {
 				// Block has ReturnInst
 				return Block;
@@ -126,7 +126,7 @@ class CheckReturnNodePath extends MethodPath {
 		if(Block == null) {
 			return ReturnNode;
 		}
-		Block.GetTailNode().LinkNode(ReturnNode); 	//Block.Next(ReturnNode);
+		GtStatic.LinkNode(Block.MoveTailNode(), ReturnNode); 	//Block.Next(ReturnNode);
 		
 		return Block;
 	}
@@ -147,7 +147,7 @@ class GtClass extends GtDef {
 
 class JVMBuilder extends GreenTeaGenerator implements Opcodes {
 	
-	GtArray                         LocalVals;
+	ArrayList<Local>                LocalVals;
 	GtMethod                        MethodInfo;
 	
 	MethodVisitor                   methodVisitor;
@@ -157,7 +157,7 @@ class JVMBuilder extends GreenTeaGenerator implements Opcodes {
 	TypeResolver                    TypeResolver;
 	
 	public JVMBuilder(GtMethod method, MethodVisitor mv, TypeResolver TypeResolver, GtNameSpace NameSpace) {
-		this.LocalVals = new GtArray();
+		this.LocalVals = new ArrayList<Local>();
 		this.MethodInfo = method;
 		
 		this.methodVisitor = mv;
@@ -370,7 +370,7 @@ class JVMBuilder extends GreenTeaGenerator implements Opcodes {
 		for(int i = 0; i < Node.Params.size(); i++) {
 			TypedNode Param = (TypedNode) Node.Params.get(i);
 			Param.Evaluate(this);
-			Type requireType = this.TypeResolver.GetAsmType(Method.Param.Types[i]);
+			Type requireType = this.TypeResolver.GetAsmType(Method.GetParamType(i));
 			Type foundType = this.typeStack.peek();
 			if(requireType.equals(Type.getType(Object.class)) && this.isPrimitiveType(foundType)) {
 				// boxing
@@ -380,7 +380,7 @@ class JVMBuilder extends GreenTeaGenerator implements Opcodes {
 			}
 		}
 		if(Method.MethodName.equals("New")) {
-			Type type = this.TypeResolver.GetAsmType(Method.Param.Types[0]);
+			Type type = this.TypeResolver.GetAsmType(Method.GetReturnType());
 			String owner = type.getInternalName();
 			String methodName = "<init>";
 			String methodDesc = TypeResolver.GetJavaMethodDescriptor(Method);//"()V";//Node.Params;
@@ -436,9 +436,9 @@ class JVMBuilder extends GreenTeaGenerator implements Opcodes {
 
 	@Override 
 	public void VisitLetNode(LetNode Node) { 
-		Local local = this.AddLocal(Node.Type, Node.Token.ParsedText);
-		Node.ValueNode.Evaluate(this);
-		this.StoreLocal(local);
+//		Local local = this.AddLocal(Node.Type, Node.Token.ParsedText);
+//		Node.ValueNode.Evaluate(this);
+//		this.StoreLocal(local);
 		this.VisitList(Node.BlockNode);
 	}
 
@@ -637,8 +637,8 @@ class TypeResolver {
 	}
 
 	public String GetJavaMethodDescriptor(GtMethod method) {
-		GtType returnType = method.GetReturnType(null);
-		ArrayList<GtType> paramTypes = new ArrayList<GtType>(Arrays.asList(method.Param.Types));
+		GtType returnType = method.GetReturnType();
+		ArrayList<GtType> paramTypes = method.Param.TypeList;
 		paramTypes.remove(0);
 		StringBuilder signature = new StringBuilder();
 		signature.append("(");
@@ -709,7 +709,7 @@ public class JavaByteCodeGenerator implements Opcodes {
 //		return this.Compile(NameSpace, Block, MethodInfo, null);
 //	}
 //
-//	public GtMethodInvoker Compile(GtNameSpace NameSpace, TypedNode Block, GtMethod MethodInfo, GtArray params) {
+//	public GtMethodInvoker Compile(GtNameSpace NameSpace, TypedNode Block, GtMethod MethodInfo, ArrayList<String> params) {
 //		int MethodAttr;
 //		String className;
 //		String methodName;
@@ -738,7 +738,7 @@ public class JavaByteCodeGenerator implements Opcodes {
 //			ParamData[1] = GlobalType;
 //			ArgNames[0] = "this";
 //			param = new GtParam(1, ParamData, ArgNames);
-//			params = new GtArray();
+//			params = new ArrayList<String>();
 //			params.add(new Local(0, GlobalType, "this"));
 //			ReturnType = ParamData[0];
 //		}
@@ -803,9 +803,9 @@ public class JavaByteCodeGenerator implements Opcodes {
 //	}
 //
 //	public GtMethodInvoker Build(GtNameSpace NameSpace, TypedNode Node, GtMethod Method) {
-//		GtArray Param = null;
+//		ArrayList<String> Param = null;
 //		if(Method != null) {
-//			Param = new GtArray();
+//			Param = new ArrayList<String>();
 //			GtParam P = Method.Param;
 //			Param.add(new Local(0, Method.ClassInfo, "this"));
 //			for(int i = 0; i < P.GetParamSize(); i++) {

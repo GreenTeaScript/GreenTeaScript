@@ -1031,6 +1031,7 @@ class GtType extends GtStatic {
 	/*field*/ArrayList<GtMethod>	ClassMethodList;
 	/*field*/public GtType			SearchSuperMethodClass;
 	/*field*/public Object			DefaultNullValue;
+	/*field*/public Object          LocalSpec;
 
 	GtType/*constructor*/(GtContext GtContext, int ClassFlag, String ClassName, Object DefaultNullValue) {
 		this.GtContext = GtContext;
@@ -1040,6 +1041,7 @@ class GtType extends GtStatic {
 		this.BaseClass = this;
 		this.ClassMethodList = new ArrayList<GtMethod>();
 		this.DefaultNullValue = DefaultNullValue;
+		this.LocalSpec = null;
 	}
 
 	@Override public String toString() {
