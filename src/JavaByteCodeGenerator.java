@@ -3,7 +3,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,12 +87,12 @@ class GtClassLoader extends ClassLoader {
 	}
 }
 
-class Local {
+class LocalVariable {
 	public String		Name;
 	public GtType	TypeInfo;
 	public int			Index;
 
-	public Local(int Index, GtType TypeInfo, String Name) {
+	public LocalVariable(int Index, GtType TypeInfo, String Name) {
 		this.Index = Index;
 		this.TypeInfo = TypeInfo;
 		this.Name = Name;
@@ -147,18 +146,18 @@ class GtClass extends GtDef {
 }
 
 class JVMBuilder extends GreenTeaGenerator implements Opcodes {
-	
-	ArrayList<Local>                LocalVals;
+
+	ArrayList<LocalVariable>                LocalVals;
 	GtMethod                        MethodInfo;
-	
+
 	MethodVisitor                   methodVisitor;
 	Stack<Type>                     typeStack;
 	LabelStack                      LabelStack;
 	GtNameSpace                     NameSpace;
 	TypeResolver                    TypeResolver;
-	
+
 	public JVMBuilder(GtMethod method, MethodVisitor mv, TypeResolver TypeResolver, GtNameSpace NameSpace) {
-		this.LocalVals = new ArrayList<Local>();
+		this.LocalVals = new ArrayList<LocalVariable>();
 		this.MethodInfo = method;
 		
 		this.methodVisitor = mv;
@@ -167,21 +166,21 @@ class JVMBuilder extends GreenTeaGenerator implements Opcodes {
 		this.TypeResolver = TypeResolver;
 		this.NameSpace = NameSpace;
 	}
-	
-	void LoadLocal(Local local) {
+
+	void LoadLocal(LocalVariable local) {
 		GtType gtype = local.TypeInfo;
 		Type type = this.TypeResolver.GetAsmType(gtype);
 		this.typeStack.push(type);
 		this.methodVisitor.visitVarInsn(type.getOpcode(ILOAD), local.Index);
 	}
 
-	void StoreLocal(Local local) {
+	void StoreLocal(LocalVariable local) {
 		GtType gtype = local.TypeInfo;
 		Type type = this.TypeResolver.GetAsmType(gtype);
 		this.typeStack.pop(); //TODO: check cast
 		this.methodVisitor.visitVarInsn(type.getOpcode(ISTORE), local.Index);
 	}
-	
+
 	void LoadConst(Object o) {
 		Type type;
 		boolean unsupportType = false;
@@ -208,7 +207,7 @@ class JVMBuilder extends GreenTeaGenerator implements Opcodes {
 			this.methodVisitor.visitLdcInsn(o);
 		}
 	}
-	
+
 	static List<Object> constValues = new ArrayList<Object>();
 	static int addConstValue(Object o) {
 		int id = constValues.indexOf(o);
@@ -219,7 +218,7 @@ class JVMBuilder extends GreenTeaGenerator implements Opcodes {
 			return constValues.size() - 1;
 		}
 	}
-	
+
 	public static Object getConstValue(int id) {
 		return constValues.get(id);
 	}
@@ -249,23 +248,23 @@ class JVMBuilder extends GreenTeaGenerator implements Opcodes {
 //			this.typeStack.push(this.TypeResolver.GetAsmType(Method.GetReturnType(null)));
 //		}
 	}
-	
-	public Local FindLocalVariable(String Name) {
+
+	public LocalVariable FindLocalVariable(String Name) {
 		for(int i = 0; i < this.LocalVals.size(); i++) {
-			Local l = (Local) this.LocalVals.get(i);
+			LocalVariable l = (LocalVariable) this.LocalVals.get(i);
 			if(l.Name.compareTo(Name) == 0) {
 				return l;
 			}
 		}
 		return null;
 	}
-	
-	public Local AddLocal(GtType Type, String Name) {
-		Local local = new Local(this.LocalVals.size(), Type, Name);
+
+	public LocalVariable AddLocal(GtType Type, String Name) {
+		LocalVariable local = new LocalVariable(this.LocalVals.size(), Type, Name);
 		this.LocalVals.add(local);
 		return local;
 	}
-	
+
 	public TypedNode VerifyBlock(GtNameSpace NameSpace, boolean IsEval, GtType ReturnType, TypedNode Block) {
 		if(IsEval) {
 			return Block;
@@ -273,7 +272,7 @@ class JVMBuilder extends GreenTeaGenerator implements Opcodes {
 		Block = new CheckReturnNodePath().Run(NameSpace, ReturnType, Block);
 		return Block;
 	}
-	
+
 	public void VisitList(TypedNode Node) {
 //		boolean Ret = true;
 //		while(Ret && Node != null) {
@@ -286,7 +285,7 @@ class JVMBuilder extends GreenTeaGenerator implements Opcodes {
 			Node = Node.NextNode;
 		}
 	}
-	
+
 	// FIXME: return value
 	@Override 
 	public void VisitDefineNode(DefineNode Node) { 
@@ -330,7 +329,7 @@ class JVMBuilder extends GreenTeaGenerator implements Opcodes {
 	@Override 
 	public void VisitLocalNode(LocalNode Node) { //FIXME
 //		String FieldName = Node.FieldName;
-//		Local local;
+//		LocalVariable local;
 //		if((local = this.FindLocalVariable(FieldName)) == null) {
 //			throw new RuntimeException("local variable not found:" + FieldName);
 //		}
@@ -364,7 +363,7 @@ class JVMBuilder extends GreenTeaGenerator implements Opcodes {
 			this.typeStack.push(type);
 		}
 	}
-	
+
 	@Override 
 	public void VisitApplyNode(ApplyNode Node) { 
 		GtMethod Method = Node.Method;
@@ -427,7 +426,7 @@ class JVMBuilder extends GreenTeaGenerator implements Opcodes {
 			assert (Node.LeftNode instanceof LocalNode);
 			LocalNode Left = (LocalNode) Node.LeftNode;
 			String Name = Left.Token.ParsedText;
-			Local local = this.FindLocalVariable(Name);
+			LocalVariable local = this.FindLocalVariable(Name);
 			if(local == null) {
 				throw new RuntimeException("local variable " + Name + " is not found in this context");
 			}
@@ -437,7 +436,7 @@ class JVMBuilder extends GreenTeaGenerator implements Opcodes {
 
 	@Override 
 	public void VisitLetNode(LetNode Node) { 
-//		Local local = this.AddLocal(Node.Type, Node.Token.ParsedText);
+//		LocalVariable local = this.AddLocal(Node.Type, Node.Token.ParsedText);
 //		Node.ValueNode.Evaluate(this);
 //		this.StoreLocal(local);
 		this.VisitList(Node.BlockNode);
@@ -494,9 +493,9 @@ class JVMBuilder extends GreenTeaGenerator implements Opcodes {
 		mv.visitInsn(ICONST_1); // true
 		mv.visitJumpInsn(IF_ICMPNE, END); // condition
 		this.VisitList(Node.LoopBody);
-		if(Node.IterExpr != null) {
-			Node.IterExpr.Evaluate(this);
-		}
+		//if(Node.IterExpr != null) {
+		//	Node.IterExpr.Evaluate(this);
+		//}
 		mv.visitJumpInsn(GOTO, HEAD);
 		mv.visitLabel(END);
 		this.LabelStack.RemoveLabel("break");
@@ -534,7 +533,7 @@ class JVMBuilder extends GreenTeaGenerator implements Opcodes {
 	@Override 
 	public void VisitBreakNode(BreakNode Node) { 
 	}
-	
+
 	@Override 
 	public void VisitContinueNode(ContinueNode Node) { 
 	}
@@ -592,7 +591,7 @@ class JVMBuilder extends GreenTeaGenerator implements Opcodes {
 //		this.methodVisitor.visitLdcInsn(Node.ErrorMessage); // FIXME
 		this.methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V");
 	}
-	
+
 	public void VisitEnd() {
 		//this.methodVisitor.visitInsn(RETURN);//FIXME
 		this.methodVisitor.visitEnd();
@@ -740,7 +739,7 @@ public class JavaByteCodeGenerator implements Opcodes {
 //			ArgNames[0] = "this";
 //			param = new GtParam(1, ParamData, ArgNames);
 //			params = new ArrayList<String>();
-//			params.add(new Local(0, GlobalType, "this"));
+//			params.add(new LocalVariable(0, GlobalType, "this"));
 //			ReturnType = ParamData[0];
 //		}
 //
@@ -764,7 +763,7 @@ public class JavaByteCodeGenerator implements Opcodes {
 //
 //		if(params != null) {
 //			for(int i = 0; i < params.size(); i++) {
-//				Local local = (Local) params.get(i);
+//				LocalVariable local = (LocalVariable) params.get(i);
 //				b.AddLocal(local.TypeInfo, local.Name);
 //			}
 //		}
@@ -808,11 +807,11 @@ public class JavaByteCodeGenerator implements Opcodes {
 //		if(Method != null) {
 //			Param = new ArrayList<String>();
 //			GtParam P = Method.Param;
-//			Param.add(new Local(0, Method.ClassInfo, "this"));
+//			Param.add(new LocalVariable(0, Method.ClassInfo, "this"));
 //			for(int i = 0; i < P.GetParamSize(); i++) {
 //				GtType Type = P.Types[i + 1];
 //				String Arg = P.ArgNames[i];
-//				Local l = new Local(i + 1, Type, Arg);
+//				LocalVariable l = new LocalVariable(i + 1, Type, Arg);
 //				Param.add(l);
 //			}
 //		}
