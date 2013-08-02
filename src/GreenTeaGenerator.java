@@ -45,7 +45,7 @@ class TypedNode extends GtStatic {
 		return "(TypedNode)";
 	}
 	public String Stringify(TypedNode Block) {
-		String Text = Block.toString();
+		/*local*/String Text = Block.toString();
 		while (Block != null) {
 			Text += Block.toString() + " ";
 			Block = Block.NextNode;
@@ -183,7 +183,7 @@ class LetNode extends TypedNode {
 		Visitor.VisitLetNode(this);
 	}
 	@Override public String toString() {
-		String Block = Stringify(BlockNode);
+		/*local*/String Block = Stringify(BlockNode);
 		return "(Let:" + this.Type + " " + Stringify(VarNode) + " in {" + Block + "})";
 	}
 }
@@ -207,7 +207,7 @@ class ApplyNode extends TypedNode {
 		Visitor.VisitApplyNode(this);
 	}
 	@Override public String toString() {
-		String Param = "";
+		/*local*/String Param = "";
 		for (int i = 0; i < Params.size(); i++) {
 			TypedNode Node = Params.get(i);
 			if(i != 0) {
@@ -235,7 +235,7 @@ class NewNode extends TypedNode {
 		Visitor.VisitNewNode(this);
 	}
 	@Override public String toString() {
-		String Param = "";
+		/*local*/String Param = "";
 		for (int i = 0; i < Params.size(); i++) {
 			TypedNode Node = Params.get(i);
 			if(i != 0) {
@@ -263,9 +263,9 @@ class IfNode extends TypedNode {
 		Visitor.VisitIfNode(this);
 	}
 	@Override public String toString() {
-		String Cond = Stringify(CondExpr);
-		String Then = Stringify(ThenNode);
-		String Else = Stringify(ElseNode);
+		/*local*/String Cond = Stringify(CondExpr);
+		/*local*/String Then = Stringify(ThenNode);
+		/*local*/String Else = Stringify(ElseNode);
 		return "(If:" + this.Type + " Cond:" + Cond + " Then:"+ Then + " Else:" + Else + ")";
 	}
 }
@@ -283,8 +283,8 @@ class LoopNode extends TypedNode {
 		Visitor.VisitLoopNode(this);
 	}
 	@Override public String toString() {
-		String Cond = Stringify(CondExpr);
-		String Body = Stringify(LoopBody);
+		/*local*/String Cond = Stringify(CondExpr);
+		/*local*/String Body = Stringify(LoopBody);
 		return "(Loop:" + this.Type + " Cond:" + Cond + " Body:"+ Body + ")";
 	}
 }
@@ -352,7 +352,7 @@ class ReturnNode extends UnaryNode {
 		Visitor.VisitReturnNode(this);
 	}
 	@Override public String toString() {
-		String Text = "";
+		/*local*/String Text = "";
 		if(Text != null) {
 			Text = Stringify(Expr);
 		}
@@ -391,7 +391,7 @@ class TryNode extends TypedNode {
 	}
 
 	@Override public String toString() {
-		String TryBlock = Stringify(this.TryBlock);
+		/*local*/String TryBlock = Stringify(this.TryBlock);
 		return "(Try:" + this.Type + " " + TryBlock + ")";
 	}
 }
@@ -446,7 +446,7 @@ class ErrorNode extends TypedNode {
 		Visitor.VisitErrorNode(this);
 	}
 	@Override public String toString() {
-		return "(Error:" + this.Type + ")";
+		return "(Error:" + this.Type + " " + Token.toString() + ")";
 	}
 }
 
