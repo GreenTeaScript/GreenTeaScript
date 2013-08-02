@@ -3,8 +3,8 @@ $JavaOnly = 0;
 $UsePython = 0;
 $UseTypeScript = 0;
 
-$UsePython = 1;
-##$UseTypeScript = 1;
+##$UsePython = 1;
+$UseTypeScript = 1;
 
 if($UseTypeScript == 1) {
 	$ClassIndent = "\t";
@@ -24,9 +24,9 @@ sub ConvertToIR {
 	$line =~ s/extends GtStatic//g;
 	$line =~ s/GtStatic\.//g;
 	$line =~ s/implements(.*)\{/{/g;
-    $line =~ s/extends/<<:/g;
-    $line =~ s/instanceof/<:?/g;
-    $line =~ s/\/\*local\*\//local /g;
+	$line =~ s/extends/<<:/g;
+	$line =~ s/instanceof/<:?/g;
+	$line =~ s/\/\*local\*\//local /g;
 	return $line;
 }
 
@@ -39,7 +39,7 @@ sub PythonSelf {
 		return $line;
 	}
 	$line =~ s/public(.*)\(\)(.*)$/def$1(self) $2/;
-    $line =~ s/private(.*)\(\)(.*)$/def$1(self) $2/;
+	$line =~ s/private(.*)\(\)(.*)$/def$1(self) $2/;
 	$line =~ s/public(.*)\((.*)$/def$1(self, $2/;
 	$line =~ s/private(.*)\((.*)$/def$1(self, $2/;
 	$line =~ s/\/\//\# /g;
@@ -128,7 +128,7 @@ while ($line = <>)  {
 	$line =~ s/String[ \t]+(\w+)(\W)/$1 :string$2/g;
 	$line =~ s/([A-Z]\w+)[ \t]+(\w+)(\W)/$2 :$1$3/g;
 	
-	$line =~ s/new GtArray\(\)/[]/g;
+	$line =~ s/new ArrayList\<\w+\>\(\)/[]/g;
 	$line =~ s/new GtMap\(\)/{}/g;
     $line =~ s/GtArray/any[]/g;
     $line =~ s/GtMap/object/g;

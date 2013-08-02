@@ -447,6 +447,12 @@ class GtStatic implements GtConst {
 		return LeftTree;
 	}
 
+	public final static void TestSyntaxPattern(GtContext Context, String Text) {
+		/*local*/TokenContext TokenContext = new TokenContext(Context.DefaultNameSpace, Text, 1);
+		SyntaxTree ParsedTree = GtStatic.ParseSyntaxTree(null, TokenContext);
+		assert(ParsedTree != null);
+	}
+	
 	// typing 
 	public final static TypedNode ApplyTypeFunc(GtFuncTypeCheck TypeFunc, TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
 		if(TypeFunc == null || TypeFunc.Method == null){
@@ -1735,7 +1741,7 @@ class GtGrammar extends GtStatic {
 	}
 }
 
-class KonohaGrammar extends GtGrammar {
+final class KonohaGrammar extends GtGrammar {
 
 	// Token
 	public static int WhiteSpaceToken(TokenContext TokenContext, String SourceText, int pos) {
@@ -2121,9 +2127,9 @@ class KonohaGrammar extends GtGrammar {
 		NameSpace.DefineTokenFunc("\"", FunctionA(this, "StringLiteralToken"));
 		NameSpace.DefineTokenFunc("1",  FunctionA(this, "NumberLiteralToken"));
 //#ifdef JAVA
-		GtFuncMatch ParseUnary = FunctionB(this, "ParseUnary");
-		GtFuncMatch ParseBinary = FunctionB(this, "ParseBinary");
-		GtFuncTypeCheck TypeApply   = FunctionC(this, "TypeApply");
+		GtFuncMatch ParseUnary    = FunctionB(this, "ParseUnary");
+		GtFuncMatch ParseBinary   = FunctionB(this, "ParseBinary");
+		GtFuncTypeCheck TypeApply = FunctionC(this, "TypeApply");
 		GtFuncTypeCheck TypeConst = FunctionC(this, "TypeConst");
 //endif VAJA
 		NameSpace.DefineSyntaxPattern("+", ParseUnary, TypeApply);
