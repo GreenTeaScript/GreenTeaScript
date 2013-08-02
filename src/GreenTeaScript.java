@@ -1897,11 +1897,11 @@ final class KonohaGrammar extends GtGrammar {
 	public static SyntaxTree ParseSymbol(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
 		/*local*/SyntaxTree TypeTree = TokenContext.ParsePattern("$Type$", Optional);
 		if(TypeTree != null) {
-			/*local*/SyntaxTree DeclTree = TokenContext.ParsePatternAfter(TypeTree, "$VarDecl", Optional);
+			/*local*/SyntaxTree DeclTree = TokenContext.ParsePatternAfter(TypeTree, "$VarDecl$", Optional);
 			if(DeclTree != null) {
 				return DeclTree;
 			}
-			DeclTree = TokenContext.ParsePatternAfter(TypeTree, "$MethodDecl", Optional);
+			DeclTree = TokenContext.ParsePatternAfter(TypeTree, "$MethodDecl$", Optional);
 			if(DeclTree != null) {
 				return DeclTree;
 			}
