@@ -466,6 +466,12 @@ class ErrorNode extends TypedNode {
 
 public class GreenTeaGenerator extends GtStatic {
 
+	/*field*/ArrayList<String> GeneratedCodeStack;
+
+	GreenTeaGenerator/*constructor*/() {
+		this.GeneratedCodeStack = new ArrayList<String>();
+	}
+
 	public TypedNode CreateConstNode(GtType Type, SyntaxTree ParsedTree, Object Value) {
 		return new ConstNode(Type, ParsedTree.KeyToken, Value);
 	}
@@ -744,12 +750,16 @@ public class GreenTeaGenerator extends GtStatic {
 		/*extension*/
 	}
 
-	protected void push(String code){
-		// TODO impl
+	protected void PushCode(String Code){
+		this.GeneratedCodeStack.add(Code);
 	}
-	protected String pop(){
-		// TODO impl
-		return null;
+
+	protected String PopCode(){
+		/*local*/int Size = this.GeneratedCodeStack.size();
+		if(Size > 0){
+			return this.GeneratedCodeStack.remove(Size - 1);
+		}
+		return "";
 	}
 
 }
