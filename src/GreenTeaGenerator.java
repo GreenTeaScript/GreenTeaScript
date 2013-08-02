@@ -37,7 +37,7 @@ class TypedNode extends GtStatic {
 	public void Append(TypedNode Node) {
 		/*extension*/
 	}
-	
+
 	public void Evaluate(GreenTeaGenerator Visitor) {
 		/*extension*/
 	}
@@ -187,7 +187,7 @@ class NullNode extends TypedNode {
 }
 
 class LetNode extends TypedNode {
-	/*field*/public GtType	    DeclType;  
+	/*field*/public GtType	    DeclType;
 	/*field*/public TypedNode	VarNode;
 	/*field*/public TypedNode	BlockNode;
 	/* let frame[Index] = Right in Block end */
@@ -465,138 +465,138 @@ class ErrorNode extends TypedNode {
 }
 
 public class GreenTeaGenerator extends GtStatic {
-		
-	public TypedNode CreateConstNode(GtType Type, SyntaxTree ParsedTree, Object Value) { 
-		return new ConstNode(Type, ParsedTree.KeyToken, Value); 
+
+	public TypedNode CreateConstNode(GtType Type, SyntaxTree ParsedTree, Object Value) {
+		return new ConstNode(Type, ParsedTree.KeyToken, Value);
 	}
 
-	public TypedNode CreateNullNode(GtType Type, SyntaxTree ParsedTree) { 
-		return new NullNode(Type, ParsedTree.KeyToken); 
+	public TypedNode CreateNullNode(GtType Type, SyntaxTree ParsedTree) {
+		return new NullNode(Type, ParsedTree.KeyToken);
 	}
 
-	public TypedNode CreateLocalNode(GtType Type, SyntaxTree ParsedTree, String LocalName) { 
+	public TypedNode CreateLocalNode(GtType Type, SyntaxTree ParsedTree, String LocalName) {
 		return new LocalNode(Type, ParsedTree.KeyToken, LocalName);
 	}
 
-	public TypedNode CreateGetterNode(GtType Type, SyntaxTree ParsedTree, GtMethod Method, TypedNode Expr) { 
+	public TypedNode CreateGetterNode(GtType Type, SyntaxTree ParsedTree, GtMethod Method, TypedNode Expr) {
 		return new GetterNode(Type, ParsedTree.KeyToken, Method, Expr);
 	}
 
-	public TypedNode CreateIndexerNode(GtType Type, SyntaxTree ParsedTree, GtMethod Method, TypedNode Expr, TypedNode Index) { 
+	public TypedNode CreateIndexerNode(GtType Type, SyntaxTree ParsedTree, GtMethod Method, TypedNode Expr, TypedNode Index) {
 		return new IndexerNode(Type, ParsedTree.KeyToken, Method, Expr, Index);
 	}
 
-	public TypedNode CreateApplyNode(GtType Type, SyntaxTree ParsedTree, GtMethod Method) { 
+	public TypedNode CreateApplyNode(GtType Type, SyntaxTree ParsedTree, GtMethod Method) {
 		return new ApplyNode(Type, ParsedTree.KeyToken, Method);
 	}
 
-	public TypedNode CreateMessageNode(GtType Type, SyntaxTree ParsedTree, GtMethod Method) { 
+	public TypedNode CreateMessageNode(GtType Type, SyntaxTree ParsedTree, GtMethod Method) {
 		return new MessageNode(Type, ParsedTree.KeyToken, Method);
 	}
 
-	public TypedNode CreateNewNode(GtType Type, SyntaxTree ParsedTree) { 
-		return new NewNode(Type, ParsedTree.KeyToken); 
+	public TypedNode CreateNewNode(GtType Type, SyntaxTree ParsedTree) {
+		return new NewNode(Type, ParsedTree.KeyToken);
 	}
-	
-	public TypedNode CreateUnaryNode(GtType Type, SyntaxTree ParsedTree, GtMethod Method, TypedNode Expr) { 
+
+	public TypedNode CreateUnaryNode(GtType Type, SyntaxTree ParsedTree, GtMethod Method, TypedNode Expr) {
 		return new UnaryNode(Type, ParsedTree.KeyToken, Method, Expr);
 	}
 
-	public TypedNode CreateSuffixNode(GtType Type, SyntaxTree ParsedTree, GtMethod Method, TypedNode Expr) { 
+	public TypedNode CreateSuffixNode(GtType Type, SyntaxTree ParsedTree, GtMethod Method, TypedNode Expr) {
 		return new SuffixNode(Type, ParsedTree.KeyToken, Method, Expr);
 	}
 
-	public TypedNode CreateBinaryNode(GtType Type, SyntaxTree ParsedTree, GtMethod Method, TypedNode Left, TypedNode Right) { 
+	public TypedNode CreateBinaryNode(GtType Type, SyntaxTree ParsedTree, GtMethod Method, TypedNode Left, TypedNode Right) {
 		return new BinaryNode(Type, ParsedTree.KeyToken, Method, Left, Right);
 	}
 
-	public TypedNode CreateAndNode(GtType Type, SyntaxTree ParsedTree, TypedNode Left, TypedNode Right) { 
+	public TypedNode CreateAndNode(GtType Type, SyntaxTree ParsedTree, TypedNode Left, TypedNode Right) {
 		return new AndNode(Type, ParsedTree.KeyToken, Left, Right);
 	}
 
-	public TypedNode CreateOrNode(GtType Type, SyntaxTree ParsedTree, TypedNode Left, TypedNode Right) { 
+	public TypedNode CreateOrNode(GtType Type, SyntaxTree ParsedTree, TypedNode Left, TypedNode Right) {
 		return new OrNode(Type, ParsedTree.KeyToken, Left, Right);
 	}
 
-	public TypedNode CreateAssignNode(GtType Type, SyntaxTree ParsedTree, TypedNode Left, TypedNode Right) { 
+	public TypedNode CreateAssignNode(GtType Type, SyntaxTree ParsedTree, TypedNode Left, TypedNode Right) {
 		return new AssignNode(Type, ParsedTree.KeyToken, Left, Right);
 	}
 
-	public TypedNode CreateLetNode(GtType Type, SyntaxTree ParsedTree, GtType DeclType, TypedNode VarNode, TypedNode Block) { 
+	public TypedNode CreateLetNode(GtType Type, SyntaxTree ParsedTree, GtType DeclType, TypedNode VarNode, TypedNode Block) {
 		return new LetNode(Type, ParsedTree.KeyToken, DeclType, VarNode, Block);
 	}
-	
-	public TypedNode CreateIfNode(GtType Type, SyntaxTree ParsedTree, TypedNode Cond, TypedNode Then, TypedNode Else) { 
+
+	public TypedNode CreateIfNode(GtType Type, SyntaxTree ParsedTree, TypedNode Cond, TypedNode Then, TypedNode Else) {
 		return new IfNode(Type, ParsedTree.KeyToken, Cond, Then, Else);
 	}
-	
-	public TypedNode CreateSwitchNode(GtType Type, SyntaxTree ParsedTree, TypedNode Match) { 
-		return null; 
+
+	public TypedNode CreateSwitchNode(GtType Type, SyntaxTree ParsedTree, TypedNode Match) {
+		return null;
 	}
 
-	public TypedNode CreateWhileNode(GtType Type, SyntaxTree ParsedTree, TypedNode Cond, TypedNode Block) { 
+	public TypedNode CreateWhileNode(GtType Type, SyntaxTree ParsedTree, TypedNode Cond, TypedNode Block) {
 		return new WhileNode(Type, ParsedTree.KeyToken, Cond, Block);
 	}
 
-	public TypedNode CreateDoWhileNode(GtType Type, SyntaxTree ParsedTree, TypedNode Cond, TypedNode Block) { 
+	public TypedNode CreateDoWhileNode(GtType Type, SyntaxTree ParsedTree, TypedNode Cond, TypedNode Block) {
 		return new DoWhileNode(Type, ParsedTree.KeyToken, Cond, Block);
 	}
 
-	public TypedNode CreateForNode(GtType Type, SyntaxTree ParsedTree, TypedNode Cond, TypedNode IterNode, TypedNode Block) { 
+	public TypedNode CreateForNode(GtType Type, SyntaxTree ParsedTree, TypedNode Cond, TypedNode IterNode, TypedNode Block) {
 		return new ForNode(Type, ParsedTree.KeyToken, Cond, Block, IterNode);
 	}
 
-	public TypedNode CreateForEachNode(GtType Type, SyntaxTree ParsedTree, TypedNode VarNode, TypedNode IterNode, TypedNode Block) { 
+	public TypedNode CreateForEachNode(GtType Type, SyntaxTree ParsedTree, TypedNode VarNode, TypedNode IterNode, TypedNode Block) {
 		return new ForEachNode(Type, ParsedTree.KeyToken, VarNode, IterNode, Block);
 	}
 
-	public TypedNode CreateLoopNode(GtType Type, SyntaxTree ParsedTree, TypedNode Cond, TypedNode Block, TypedNode IterNode) { 
+	public TypedNode CreateLoopNode(GtType Type, SyntaxTree ParsedTree, TypedNode Cond, TypedNode Block, TypedNode IterNode) {
 		return new LoopNode(Type, ParsedTree.KeyToken, Cond, Block, IterNode);
 	}
 
-	public TypedNode CreateReturnNode(GtType Type, SyntaxTree ParsedTree, TypedNode Node) { 
+	public TypedNode CreateReturnNode(GtType Type, SyntaxTree ParsedTree, TypedNode Node) {
 		return new ReturnNode(Type, ParsedTree.KeyToken, Node);
 	}
 
-	public TypedNode CreateLabelNode(GtType Type, SyntaxTree ParsedTree, TypedNode Node) { 
-		return null; 
+	public TypedNode CreateLabelNode(GtType Type, SyntaxTree ParsedTree, TypedNode Node) {
+		return null;
 	}
 
-	public TypedNode CreateJumpNode(GtType Type, SyntaxTree ParsedTree, TypedNode Node, String Label) { 
-		return new JumpNode(Type, ParsedTree.KeyToken, Label); 
+	public TypedNode CreateJumpNode(GtType Type, SyntaxTree ParsedTree, TypedNode Node, String Label) {
+		return new JumpNode(Type, ParsedTree.KeyToken, Label);
 	}
 
-	public TypedNode CreateBreakNode(GtType Type, SyntaxTree ParsedTree, TypedNode Node, String Label) { 
-		return new BreakNode(Type, ParsedTree.KeyToken, Label); 
+	public TypedNode CreateBreakNode(GtType Type, SyntaxTree ParsedTree, TypedNode Node, String Label) {
+		return new BreakNode(Type, ParsedTree.KeyToken, Label);
 	}
 
-	public TypedNode CreateContinueNode(GtType Type, SyntaxTree ParsedTree, TypedNode Node, String Label) { 
-		return new ContinueNode(Type, ParsedTree.KeyToken, Label); 
-	}
-	
-	public TypedNode CreateTryNode(GtType Type, SyntaxTree ParsedTree, TypedNode TryNode, TypedNode FinallyNode) { 
-		return new TryNode(Type, ParsedTree.KeyToken, TryNode, FinallyNode); 
+	public TypedNode CreateContinueNode(GtType Type, SyntaxTree ParsedTree, TypedNode Node, String Label) {
+		return new ContinueNode(Type, ParsedTree.KeyToken, Label);
 	}
 
-	public TypedNode CreateThrowNode(GtType Type, SyntaxTree ParsedTree, TypedNode Node) { 
-		return new ThrowNode(Type, ParsedTree.KeyToken, Node); 
+	public TypedNode CreateTryNode(GtType Type, SyntaxTree ParsedTree, TypedNode TryNode, TypedNode FinallyNode) {
+		return new TryNode(Type, ParsedTree.KeyToken, TryNode, FinallyNode);
 	}
 
-	public TypedNode CreateFunctionNode(GtType Type, SyntaxTree ParsedTree, TypedNode Block) { 
-		return null; 
+	public TypedNode CreateThrowNode(GtType Type, SyntaxTree ParsedTree, TypedNode Node) {
+		return new ThrowNode(Type, ParsedTree.KeyToken, Node);
 	}
 
-	public TypedNode CreateDefineNode(GtType Type, SyntaxTree ParsedTree, Object Module) { 
-		return null; 
+	public TypedNode CreateFunctionNode(GtType Type, SyntaxTree ParsedTree, TypedNode Block) {
+		return null;
 	}
 
-	public TypedNode CreateErrorNode(GtType Type, SyntaxTree ParsedTree) { 
+	public TypedNode CreateDefineNode(GtType Type, SyntaxTree ParsedTree, Object Module) {
+		return null;
+	}
+
+	public TypedNode CreateErrorNode(GtType Type, SyntaxTree ParsedTree) {
 		return new ErrorNode(Type, ParsedTree.KeyToken);
 	}
 
-	
-	
-	
+
+
+
 	public void VisitSuffixNode(SuffixNode suffixNode) {
 		/*extension*/
 	}
@@ -629,112 +629,112 @@ public class GreenTeaGenerator extends GtStatic {
 		/*extension*/
 	}
 
-	public void VisitDefineNode(DefineNode Node) { 
+	public void VisitDefineNode(DefineNode Node) {
 		/*extension*/
 	}
 
-	public void VisitConstNode(ConstNode Node) { 
+	public void VisitConstNode(ConstNode Node) {
 		/*extension*/
 	}
 
-	public void VisitNewNode(NewNode Node) { 
+	public void VisitNewNode(NewNode Node) {
 		/*extension*/
 	}
 
-	public void VisitNullNode(NullNode Node) { 
+	public void VisitNullNode(NullNode Node) {
 		/*extension*/
 	}
 
-	public void VisitLocalNode(LocalNode Node) { 
+	public void VisitLocalNode(LocalNode Node) {
 		/*extension*/
 	}
 
-	public void VisitGetterNode(GetterNode Node) { 
+	public void VisitGetterNode(GetterNode Node) {
 		/*extension*/
 	}
 
-	public void VisitApplyNode(ApplyNode Node) { 
+	public void VisitApplyNode(ApplyNode Node) {
 		/*extension*/
 	}
 
-	public void VisitBinaryNode(BinaryNode Node) { 
+	public void VisitBinaryNode(BinaryNode Node) {
 		/*extension*/
 	}
 
-	public void VisitAndNode(AndNode Node) { 
+	public void VisitAndNode(AndNode Node) {
 		/*extension*/
 	}
 
-	public void VisitOrNode(OrNode Node) { 
+	public void VisitOrNode(OrNode Node) {
 		/*extension*/
 	}
 
-	public void VisitAssignNode(AssignNode Node) { 
+	public void VisitAssignNode(AssignNode Node) {
 		/*extension*/
 	}
 
-	public void VisitLetNode(LetNode Node) { 
+	public void VisitLetNode(LetNode Node) {
 		/*extension*/
 	}
 
-	public void VisitIfNode(IfNode Node) { 
+	public void VisitIfNode(IfNode Node) {
 		/*extension*/
 	}
 
-	public void VisitSwitchNode(SwitchNode Node) { 
+	public void VisitSwitchNode(SwitchNode Node) {
 		/*extension*/
 	}
 
-	public void VisitLoopNode(LoopNode Node) { 
+	public void VisitLoopNode(LoopNode Node) {
 		/*extension*/
 	}
 
-	public void VisitReturnNode(ReturnNode Node) { 
+	public void VisitReturnNode(ReturnNode Node) {
 		/*extension*/
 	}
 
-	public void VisitLabelNode(LabelNode Node) { 
+	public void VisitLabelNode(LabelNode Node) {
 		/*extension*/
 	}
 
-	public void VisitJumpNode(JumpNode Node) { 
+	public void VisitJumpNode(JumpNode Node) {
 		/*extension*/
 	}
 
-	public void VisitBreakNode(BreakNode Node) { 
-		/*extension*/
-	}
-	
-	public void VisitContinueNode(ContinueNode Node) { 
+	public void VisitBreakNode(BreakNode Node) {
 		/*extension*/
 	}
 
-	public void VisitTryNode(TryNode Node) { 
+	public void VisitContinueNode(ContinueNode Node) {
 		/*extension*/
 	}
 
-	public void VisitThrowNode(ThrowNode Node) { 
+	public void VisitTryNode(TryNode Node) {
 		/*extension*/
 	}
 
-	public void VisitFunctionNode(FunctionNode Node) { 
+	public void VisitThrowNode(ThrowNode Node) {
 		/*extension*/
 	}
 
-	public void VisitErrorNode(ErrorNode Node) { 
+	public void VisitFunctionNode(FunctionNode Node) {
 		/*extension*/
 	}
 
-	
+	public void VisitErrorNode(ErrorNode Node) {
+		/*extension*/
+	}
+
+
 	public final void VisitBlock(TypedNode Node) {
 		/*local*/TypedNode CurrentNode = Node;
 		while(CurrentNode != null) {
 			CurrentNode.Evaluate(this);
 			CurrentNode = CurrentNode.NextNode;
 		}
-	}	
+	}
 
-	// This must be extended in each language	
+	// This must be extended in each language
 	public Object Eval(TypedNode Node) {
 		VisitBlock(Node);
 		return null;
@@ -744,5 +744,61 @@ public class GreenTeaGenerator extends GtStatic {
 		/*extension*/
 	}
 
+	protected void push(String code){
+		// TODO impl
+	}
+	protected String pop(){
+		// TODO impl
+		return null;
+	}
+
 }
 
+class IndentGenerator {
+	/*field*/private int    IndentLevel					= 0;
+	/*field*/private String CurrentLevelIndentString	= "";
+	/*field*/private String IndentString				= "\t";
+
+	public IndentGenerator/*constructor*/() {
+	}
+
+	public IndentGenerator/*constructor*/(int Tabstop) {
+		this.IndentString = IndentGenerator.Repeat(" ", Tabstop);
+	}
+
+	private static String Repeat(String Unit, int Times) {
+		/*local*/StringBuilder Builder = new StringBuilder();
+		for(int i = 0; i < Times; ++i) {
+			Builder.append(Unit);
+		}
+		return Builder.toString();
+	}
+
+	public void SetIndent(int Level) {
+		if(Level < 0)
+			Level = 0;
+		if(this.IndentLevel != Level) {
+			this.IndentLevel = Level;
+			this.CurrentLevelIndentString = IndentGenerator.Repeat(this.IndentString, Level);
+		}
+	}
+
+	public void AddIndent(int LevelDelta) {
+		this.SetIndent(this.IndentLevel + LevelDelta);
+	}
+
+	public String Get() {
+		return this.CurrentLevelIndentString;
+	}
+
+	public String GetAndAddIndent(int LevelDelta) {
+		/*local*/String IndentString = this.CurrentLevelIndentString;
+		this.AddIndent(LevelDelta);
+		return IndentString;
+	}
+
+	public String AddIndentAndGet(int LevelDelta) {
+		this.AddIndent(LevelDelta);
+		return this.CurrentLevelIndentString;
+	}
+}
