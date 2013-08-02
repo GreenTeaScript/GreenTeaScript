@@ -1,18 +1,12 @@
 // GreenTea Generator should be written in each language.
 
 public class JavaScriptSampleGenerator extends GreenTeaGenerator {
-	
+
 	private boolean UseLetKeyword;
 
-	private void push(String code){
-		// TODO impl
-	}
-	private String pop(){
-		// TODO impl
-		return null;
-	}
 
-	public void VisitDefineNode(DefineNode Node)  { 
+
+	public void VisitDefineNode(DefineNode Node)  {
 		if(Node.DefInfo instanceof GtMethod) {
 			GtMethod Mtd = (GtMethod) Node.DefInfo;
 			Mtd.DoCompilation();
@@ -23,34 +17,34 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 	}
 
 	public void VisitConst(ConstNode Node) {
-		this.push(Node.ConstValue.toString());
+		this.PushCode(Node.ConstValue.toString());
 		return;
 	}
-	
+
 	public void VisitNew(NewNode Node) {
 		for(int i = 0; i < Node.Params.size(); i++) {
 			TypedNode Param = (TypedNode) Node.Params.get(i);
 			Param.Evaluate(this);
 		}
-		this.push("new " + Node.Type.ShortClassName + "()");
+		this.PushCode("new " + Node.Type.ShortClassName + "()");
 		return;
 	}
-	
+
 	public void VisitNull(NullNode Node) {
-		this.push("null");
+		this.PushCode("null");
 		return;
 	}
-	
+
 	public void VisitLocal(LocalNode Node) {
 		//this.AddLocalVarIfNotDefined(Node.Type, Node.Token.ParsedText);
-		this.push(Node.LocalName);
+		this.PushCode(Node.LocalName);
 	}
-	
+
 	public void VisitGetter(GetterNode Node) {
 		//Node.BaseNode.Evaluate(this);
-		this.push(this.pop() + "." + Node.Token.ParsedText);
+		this.PushCode(this.PopCode() + "." + Node.Token.ParsedText);
 	}
-	
+
 	public void VisitApply(ApplyNode Node) {
 		String methodName = Node.Method.MethodName;
 		for(int i = 0; i < Node.Params.size(); i++) {
@@ -58,38 +52,38 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 			Param.Evaluate(this);
 		}
 		String params = "(hoge, fuga)";//"//"(" + this.PopNReverseAndJoin(Node.Params.size() - 1, ", ") + ")";
-		String thisNode = this.pop();
+		String thisNode = this.PopCode();
 		if(thisNode.equals(GtConst.GlobalConstName)) {
-			this.push(methodName + params);
+			this.PushCode(methodName + params);
 		} else {
-			this.push(thisNode + "." + methodName + params);
+			this.PushCode(thisNode + "." + methodName + params);
 		}
 	}
-	
+
 	public void VisitAnd(AndNode Node) {
 		Node.LeftNode.Evaluate(this);
 		Node.RightNode.Evaluate(this);
-		String Right = this.pop();
-		String Left = this.pop();
-		this.push(Left + " && " + Right);
+		String Right = this.PopCode();
+		String Left = this.PopCode();
+		this.PushCode(Left + " && " + Right);
 	}
 
 	public void VisitOr(OrNode Node) {
 		Node.LeftNode.Evaluate(this);
 		Node.RightNode.Evaluate(this);
-		String Right = this.pop();
-		String Left = this.pop();
-		this.push(Left + " || " + Right);
+		String Right = this.PopCode();
+		String Left = this.PopCode();
+		this.PushCode(Left + " || " + Right);
 	}
-	
+
 	public void VisitAssign(AssignNode Node) {
 		Node.LeftNode.Evaluate(this);
 		Node.RightNode.Evaluate(this);
-		String Right = this.pop();
-		String Left = this.pop();
-		this.push((this.UseLetKeyword ? "let " : "var ") + Left + " = " + Right);
+		String Right = this.PopCode();
+		String Left = this.PopCode();
+		this.PushCode((this.UseLetKeyword ? "let " : "var ") + Left + " = " + Right);
 	}
-	
+
 	public void VisitLet(LetNode Node) {
 //		Node.ValueNode.Evaluate(this);
 		this.VisitBlock(Node.BlockNode);
@@ -99,13 +93,13 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 //		this.push(Node.VarToken.ParsedText + " = " + Right + Block);
 	}
 
-	// 
+	//
 	// public void EnterBlock(BlockNode Node) {
 	// this.PushProgramSize();
 	// this.indentGenerator.indent(1);
 	// }
 	//
-	// 
+	//
 	// public boolean ExitBlock(BlockNode Node) {
 	// IndentGenerator g = this.indentGenerator;
 	// int Size = this.getProgramSize() - this.PopProgramSize();
@@ -114,22 +108,22 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 	// + g.indentAndGet(-1) + "}");
 	// }
 
-	
+
 	public void VisitIf(IfNode Node) {
 		Node.CondExpr.Evaluate(this);
 		this.VisitBlock(Node.ThenNode);
 		this.VisitBlock(Node.ElseNode);
 
-		String ElseBlock = this.pop();
-		String ThenBlock = this.pop();
-		String CondExpr = this.pop();
+		String ElseBlock = this.PopCode();
+		String ThenBlock = this.PopCode();
+		String CondExpr = this.PopCode();
 		String source = "if(" + CondExpr + ") " + ThenBlock;
 		if(Node.ElseNode != null) {
 			source = source + " else " + ElseBlock;
 		}
-		this.push(source);
+		this.PushCode(source);
 	}
-	
+
 	public void VisitSwitch(SwitchNode Node) {
 //		Node..CondExpr.Evaluate(this);
 //		for(int i = 0; i < Node.Blocks.size(); i++) {
@@ -147,33 +141,33 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 //		String CondExpr = this.pop();
 //		this.push("switch (" + CondExpr + ") {" + Exprs + "}");
 	}
-	
+
 	public void VisitLoop(LoopNode Node) {
 		Node.CondExpr.Evaluate(this);
 		Node.IterExpr.Evaluate(this);
 		this.VisitBlock(Node.LoopBody);
-		String LoopBody = this.pop();
-		String IterExpr = this.pop();
-		String CondExpr = this.pop();
-		this.push("while(" + CondExpr + ") {" + LoopBody + IterExpr + "}");
+		String LoopBody = this.PopCode();
+		String IterExpr = this.PopCode();
+		String CondExpr = this.PopCode();
+		this.PushCode("while(" + CondExpr + ") {" + LoopBody + IterExpr + "}");
 		return;
 	}
-	
+
 	public void VisitReturn(ReturnNode Node) {
 		Node.Expr.Evaluate(this);
-		String Expr = this.pop();
-		this.push("return " + Expr);
+		String Expr = this.PopCode();
+		this.PushCode("return " + Expr);
 		return;
 	}
-	
+
 	public void VisitLabel(LabelNode Node) {
 		String Label = Node.Label;
 		if(Label.compareTo("continue") == 0) {
-			this.push("");
+			this.PushCode("");
 		} else if(Label.compareTo("continue") == 0) {
-			this.push("");
+			this.PushCode("");
 		} else {
-			this.push(Label + ":");
+			this.PushCode(Label + ":");
 		}
 		return;
 	}
@@ -181,15 +175,15 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 	public void VisitJump(JumpNode Node) {
 		String Label = Node.Label;
 		if(Label.compareTo("continue") == 0) {
-			this.push("continue;");
+			this.PushCode("continue;");
 		} else if(Label.compareTo("continue") == 0) {
-			this.push("break;");
+			this.PushCode("break;");
 		} else {
-			this.push("goto " + Label);
+			this.PushCode("goto " + Label);
 		}
 		return;
 	}
-	
+
 	public void VisitTry(TryNode Node) {
 		this.VisitBlock(Node.TryBlock);
 //		for(int i = 0; i < Node.CatchBlock.size(); i++) {
@@ -199,31 +193,31 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 //		}
 		this.VisitBlock(Node.FinallyBlock);
 
-		String FinallyBlock = this.pop();
+		String FinallyBlock = this.PopCode();
 		String CatchBlocks = "";//this.PopNReverseWithPrefix(Node.CatchBlock.size(), "catch() ");
-		String TryBlock = this.pop();
-		this.push("try " + TryBlock + "" + CatchBlocks + "finally " + FinallyBlock);
+		String TryBlock = this.PopCode();
+		this.PushCode("try " + TryBlock + "" + CatchBlocks + "finally " + FinallyBlock);
 		return;
 	}
 
-	
+
 	public void VisitThrow(ThrowNode Node) {
 		Node.Expr.Evaluate(this);
-		String Expr = this.pop();
-		this.push("throw " + Expr);
+		String Expr = this.PopCode();
+		this.PushCode("throw " + Expr);
 		return;
 	}
 
-	
+
 	public void VisitFunction(FunctionNode Node) {
 		// TODO Auto-generated method stub
 		return;
 	}
 
-	
+
 	public void VisitError(ErrorNode Node) {
 		String Expr = Node.toString();
-		this.push("throw new Exception(" + Expr + ")");
+		this.PushCode("throw new Exception(" + Expr + ")");
 		return;
 	}
 

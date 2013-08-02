@@ -16,11 +16,11 @@ if($UseTypeScript == 1) {
 if ($UsePython == 1) {
 	$ClassIndent = "";
 	$LineComment = "#";
-    $TopLevel = 1;
+	$TopLevel = 1;
 }
 
 sub ConvertToIR {
- 	my($line) = @_;
+	my($line) = @_;
 	$line =~ s/extends GtStatic//g;
 	$line =~ s/GtStatic\.//g;
 	$line =~ s/implements(.*)\{/{/g;
@@ -69,17 +69,17 @@ sub PythonSyntax {
 	$line =~ s/toString/__str__/g;
 	$line =~ s/ \|\|/ or/g;
 	$line =~ s/ \&\&/ and/g;
-    $line =~ s/ \<\<\: (\w+)/ ($1)/g;
-    $line =~ s/(\w+) \<\:\?/type($1) ==/g;
-    $line =~ s/local //g;
-    $line =~ s/\/\*extension\*\//pass/g;
+	$line =~ s/ \<\<\: (\w+)/ ($1)/g;
+	$line =~ s/(\w+) \<\:\?/type($1) ==/g;
+	$line =~ s/local //g;
+	$line =~ s/\/\*extension\*\//pass/g;
 	return $line;
 }
 
 while ($line = <>)  {
 	if($line =~ /JAVA/) {
 		$JavaOnly = 1;
-	}	
+	}
 	if($line =~ /VAJA/) {
 		$JavaOnly = 0;
 		next;
@@ -99,7 +99,7 @@ while ($line = <>)  {
 		$line = substr($line, 1);
 	}
 
-    $line = ConvertToIR($line);
+	$line = ConvertToIR($line);
 	$line = PythonSelf($line);
 
 	$line =~ s/([A-Z]\w+)\/\*constructor\*\//constructor/g;
@@ -137,7 +137,7 @@ while ($line = <>)  {
 	$line =~ s/\/\*BeginArray\*\/{/[/g;
 	$line =~ s/\/\*EndArray\*\/}/]/g;
 	$line =~ s/Function(?:A|B|C)\(this, \"(\w+)\"\)/$1/g;
-    
+
 	if($UseTypeScript == 1) {
         	$line =~ s/\.add\((\w+)\)/.push($1)/g;
 		$line =~ s/GtFuncToken/(a :TokenContext, b :string, c :number) => number/g;
@@ -149,8 +149,8 @@ while ($line = <>)  {
         	$line =~ s/\<\:\?/instanceof/g;
         	$line =~ s/(local|const) //g;
 	}
-    # python
-    $line = PythonSyntax($line);
+	# python
+	$line = PythonSyntax($line);
 
 	## remove redundandat white spaces
 	$line =~ s/(\S)([ \t]+)(\S)/$1 $3/g;
