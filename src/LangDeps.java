@@ -10,7 +10,9 @@ public abstract class LangDeps {
 	}
 
 	public static void DebugP(String msg) {
-		LangDeps.println("DEBUG" + LangDeps.GetStackInfo(2) + ": " + msg);
+		if(GtStatic.DebugPrint) {
+			LangDeps.println("DEBUG" + LangDeps.GetStackInfo(2) + ": " + msg);
+		}
 	}
 
 	public static String GetStackInfo(int depth){

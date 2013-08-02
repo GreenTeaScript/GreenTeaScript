@@ -233,7 +233,7 @@ interface GtConst {
 
 	// debug flags
 	static final public boolean	UseBuiltInTest	= true;
-	static final public boolean	DebugPrint		= false;
+	static final public boolean	DebugPrint		= true;
 
 //ifdef JAVA
 }
@@ -414,10 +414,10 @@ class GtStatic implements GtConst {
 			if(CurrentPattern.ParentPattern != null) {
 				TokenContext.ParseFlag = ParseFlag | TrackbackParseFlag;
 			}
-			//DebugP("B ApplySyntaxPattern: " + CurrentPattern + " > " + CurrentPattern.ParentPattern);
+			DebugP("B ApplySyntaxPattern: " + CurrentPattern + " > " + CurrentPattern.ParentPattern);
 			SyntaxTree ParsedTree = (SyntaxTree)LangDeps.ApplyMatchFunc(f.Self, f.Method, CurrentPattern, LeftTree, TokenContext);
 			if(ParsedTree != null && ParsedTree.IsEmpty()) ParsedTree = null;
-			//DebugP("E ApplySyntaxPattern: " + CurrentPattern + " => " + ParsedTree);
+			DebugP("E ApplySyntaxPattern: " + CurrentPattern + " => " + ParsedTree);
 			TokenContext.ParseFlag = ParseFlag;
 			if(ParsedTree != null) {
 				return ParsedTree;
@@ -2100,16 +2100,6 @@ class KonohaGrammar extends GtGrammar {
 		return null;
 	}
 
-//	public static SyntaxTree ParseUNUSED(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
-//		DebugP("** Syntax " + Tree.Pattern + " is undefined **");
-//		return NoMatch;
-//	}
-//
-//	public static TypedNode TypeUNUSED(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
-//		DebugP("** Syntax " + Tree.Pattern + " is undefined **");
-//		return null;
-//	}
-
 	@Override public void LoadTo(GtNameSpace NameSpace) {
 		// Define Types
 		/*local*/GtContext GtContext = NameSpace.GtContext;
@@ -2134,6 +2124,7 @@ class KonohaGrammar extends GtGrammar {
 		GtFuncMatch ParseUnary = FunctionB(this, "ParseUnary");
 		GtFuncMatch ParseBinary = FunctionB(this, "ParseBinary");
 		GtFuncTypeCheck TypeApply   = FunctionC(this, "TypeApply");
+		GtFuncTypeCheck TypeConst = FunctionC(this, "TypeConst");
 //endif VAJA
 		NameSpace.DefineSyntaxPattern("+", ParseUnary, TypeApply);
 		NameSpace.DefineSyntaxPattern("-", ParseUnary, TypeApply);
@@ -2158,18 +2149,6 @@ class KonohaGrammar extends GtGrammar {
 		NameSpace.DefineExtendedPattern("&&", BinaryOperator | Precedence_CStyleAND, ParseBinary, FunctionC(this, "TypeAnd"));
 		NameSpace.DefineExtendedPattern("||", BinaryOperator | Precedence_CStyleOR, ParseBinary, FunctionC(this, "TypeOr"));
 		
-		//NameSpace.DefineSyntaxPattern(";", Precedence_CStyleDelim, this, null, null);
-		//NameSpace.DefineSyntaxPattern("$Const", Term, this, "Const");
-		//NameSpace.DefineSyntaxPattern("$Symbol", Term, this, "Symbol");
-		//NameSpace.DefineSyntaxPattern("$Symbol", Term, this, "MethodCall");
-
-		//NameSpace.DefineSyntaxPattern("$MethodCall", Precedence_CStyleSuffixCall, this, "MethodCall");
-		//NameSpace.DefineSyntaxPattern("$Member", Precedence_CStyleSuffixCall, this, "Member");
-		//NameSpace.DefineSyntaxPattern("$New", Term, this, "New");
-
-		//NameSpace.DefineSyntaxPattern("()", Term | Precedence_CStyleSuffixCall, this, "UNUSED");
-		//NameSpace.DefineSyntaxPattern("{}", 0, this, "UNUSED");
-		GtFuncTypeCheck TypeConst = FunctionC(this, "TypeConst");
 		
 		NameSpace.DefineSyntaxPattern("$Symbol$", FunctionB(this, "ParseSymbol"), FunctionC(this, "TypeVariable"));
 		NameSpace.DefineSyntaxPattern("$Type$", FunctionB(this, "ParseType"), TypeConst);
@@ -2187,184 +2166,9 @@ class KonohaGrammar extends GtGrammar {
 
 		NameSpace.DefineSyntaxPattern("if", FunctionB(this, "ParseIf"), FunctionC(this, "TypeIf"));
 		NameSpace.DefineSyntaxPattern("return", FunctionB(this, "ParseReturn"), FunctionC(this, "ParseReturn"));
-
-//		// Load Library
-//		new GtInt().MakeDefinition(NameSpace);
-//		new GtStringDef().MakeDefinition(NameSpace);
-//		new GtSystemDef().MakeDefinition(NameSpace);
 	}
 }
 
-//ifdef JAVA
-class GtInt extends GtStatic {
-
-	public void MakeDefinition(GtNameSpace ns) {
-//		GtType BaseClass = ns.LookupHostLangType(Integer.class);
-//		GtParam BinaryParam = GtParam.ParseOf(ns, "int int x");
-//		GtParam UnaryParam = GtParam.ParseOf(ns, "int");
-//
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "+", UnaryParam, this, "PlusInt");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "+", BinaryParam, this, "IntAddInt");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "-", UnaryParam, this, "MinusInt");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "-", BinaryParam, this, "IntSubInt");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "*", BinaryParam, this, "IntMulInt");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "/", BinaryParam, this, "IntDivInt");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "%", BinaryParam, this, "IntModInt");
-//
-//		GtParam RelationParam = GtParam.ParseOf(ns, "boolean int x");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "<", RelationParam, this, "IntLtInt");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "<=", RelationParam, this, "IntLeInt");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, ">", RelationParam, this, "IntGtInt");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, ">=", RelationParam, this, "IntGeInt");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "==", RelationParam, this, "IntEqInt");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "!=", RelationParam, this, "IntNeInt");
-//
-//		//		if(GtDebug.UseBuiltInTest) {
-//		//			assert (BaseClass.LookupMethod("+", 0) != null);
-//		//			assert (BaseClass.LookupMethod("+", 1) != null);
-//		//			assert (BaseClass.LookupMethod("+", 2) == null);
-//		//			GtMethod m = BaseClass.LookupMethod("+", 1);
-//		//			Object[] p = new Object[2];
-//		//			p[0] = new Integer(1);
-//		//			p[1] = new Integer(2);
-//		//			GtStatic.println("******* 1+2=" + m.Eval(p));
-//		//		}
-	}
-
-	public static int PlusInt(int x) {
-		return +x;
-	}
-
-	public static int IntAddInt(int x, int y) {
-		return x + y;
-	}
-
-	public static int MinusInt(int x) {
-		return -x;
-	}
-
-	public static int IntSubInt(int x, int y) {
-		return x - y;
-	}
-
-	public static int IntMulInt(int x, int y) {
-		return x * y;
-	}
-
-	public static int IntDivInt(int x, int y) {
-		return x / y;
-	}
-
-	public static int IntModInt(int x, int y) {
-		return x % y;
-	}
-
-	public static boolean IntLtInt(int x, int y) {
-		return x < y;
-	}
-
-	public static boolean IntLeInt(int x, int y) {
-		return x <= y;
-	}
-
-	public static boolean IntGtInt(int x, int y) {
-		return x > y;
-	}
-
-	public static boolean IntGeInt(int x, int y) {
-		return x >= y;
-	}
-
-	public static boolean IntEqInt(int x, int y) {
-		return x == y;
-	}
-
-	public static boolean IntNeInt(int x, int y) {
-		return x != y;
-	}
-}
-
-class GtStringDef extends GtStatic {
-
-	public void MakeDefinition(GtNameSpace ns) {
-//		GtType BaseClass = ns.LookupHostLangType(String.class);
-//		GtParam BinaryParam = GtParam.ParseOf(ns, "String String x");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "+", BinaryParam, this, "StringAddString");
-//
-//		GtParam RelationParam = GtParam.ParseOf(ns, "boolean String x");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "==", RelationParam, this, "StringEqString");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "!=", RelationParam, this, "StringNeString");
-//
-//		GtParam indexOfParam = GtParam.ParseOf(ns, "int String x");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "indexOf", indexOfParam, this, "StringIndexOf");
-//
-//		GtParam getSizeParam = GtParam.ParseOf(ns, "int");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "getSize", getSizeParam, this, "StringGetSize");
-	}
-
-	public static String StringAddString(String x, String y) {
-		return x + y;
-	}
-
-	public static boolean StringEqString(String x, String y) {
-		return x.equals(y);
-	}
-
-	public static boolean StringNeString(String x, String y) {
-		return !x.equals(y);
-	}
-
-	public static int StringIndexOf(String self, String str) {
-		return self.indexOf(str);
-	}
-
-	public static int StringGetSize(String self) {
-		return self.length();
-	}
-}
-
-class GtSystemDef extends GtStatic {
-
-	public void MakeDefinition(GtNameSpace NameSpace) {
-//		GtType BaseClass = NameSpace.LookupHostLangType(GtSystemDef.class);
-//		NameSpace.DefineSymbol("System", BaseClass);
-//
-//		GtParam param1 = GtParam.ParseOf(NameSpace, "void String x");
-//		BaseClass.DefineMethod(StaticMethod, "p", param1, this, "p");
-	}
-
-	public static void p(String x) {
-		GtStatic.println(x);
-	}
-
-}
-
-//class ArrayList<?>Def extends GtStatic {
-//
-//	public void MakeDefinition(GtNameSpace ns) {
-//        //FIXME int[] only
-//        GtType BaseClass = ns.LookupHostLangType(int[].class);
-//        GtParam GetterParam = GtParam.ParseOf(ns, "int int i");
-//        BaseClass.DefineMethod(ImmutableMethod, "get", GetterParam, this, "ArrayGetter");
-//        GtParam SetterParam = GtParam.ParseOf(ns, "void int i int v");
-//        BaseClass.DefineMethod(0, "set", SetterParam, this, "ArraySetter");
-//        GtParam GetSizeParam = GtParam.ParseOf(ns, "int");
-//        BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "getSize", GetSizeParam, this, "ArrayGetSize");
-//    }
-//
-//    public static int ArrayGetter(int[] a, int i) {
-//        return a[i];
-//    }
-//
-//    public static void ArraySetter(int[] a, int i, int v) {
-//        a[i] = v;
-//    }
-//
-//    public static int ArrayGetSize(int[] a) {
-//        return a.length;
-//    }
-//}
-//endif VAJA
 
 class GtContext extends GtStatic {
 
