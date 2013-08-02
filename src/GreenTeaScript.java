@@ -2419,9 +2419,12 @@ public class GreenTeaScript {
 
 	public static void main(String[] argc) {
 		GtContext GtContext = new GtContext(new KonohaGrammar(), new GreenTeaGenerator());
-		//GtContext.Eval("int f(int a, int b) { return a + b; }", 0);
-		//GtContext.Eval("1 + 2 * 3", 0);
+//		//GtContext.Eval("int f(int a, int b) { return a + b; }", 0);
+//		//GtContext.Eval("1 + 2 * 3", 0);
 		TestAll(GtContext);
+		
+//		GtContext GtContext = new GtContext(new KonohaGrammar(), new JavaByteCodeGenerator());
+//		System.err.println("## Eval value: " + GtContext.Eval("1", 0));
 	}
 
 }
