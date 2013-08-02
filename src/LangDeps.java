@@ -29,15 +29,15 @@ public abstract class LangDeps {
 		}
 		return LineNumber;
 	}
-	
+
 	public final static boolean IsWhitespace(char ch) {
 		return Character.isWhitespace(ch);
 	}
-	
+
 	public final static boolean IsLetter(char ch) {
 		return Character.isLetter(ch);
 	}
-	
+
 	public final static boolean IsDigit(char ch) {
 		return Character.isDigit(ch);
 	}
@@ -49,7 +49,7 @@ public abstract class LangDeps {
 	public final static int ParseInt(String Text) {
 		return Integer.parseInt(Text);
 	}
-	
+
 	public final static Method LookupMethod(Object Callee, String MethodName) {
 		if(MethodName != null) {
 			// DebugP("looking up method : " + Callee.getClass().getSimpleName() + "." + MethodName);

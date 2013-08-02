@@ -465,7 +465,6 @@ class ErrorNode extends TypedNode {
 }
 
 public class GreenTeaGenerator extends GtStatic {
-
 	public TypedNode CreateConstNode(GtType Type, SyntaxTree ParsedTree, Object Value) {
 		return new ConstNode(Type, ParsedTree.KeyToken, Value);
 	}

@@ -1,0 +1,54 @@
+<project name="GreenTeaScript" default="jar">
+	<!-- directory / file definition -->
+	<property name="BinaryName" value="GreenTea" />
+	<property name="source" value="src" />
+	<property name="build" value="bin" />
+
+	<!-- ================================== -->
+	<!--                BUILD               -->
+	<!-- ================================== -->
+	<target name="build">
+		<mkdir dir="bin" />
+		<javac srcdir="src" destdir="bin" debug="on" target="1.6" source="1.6" includeantruntime="false">
+			<classpath path="ext/asm-all-4.0.jar" />
+			<include name="**/*.java" />
+		</javac>
+	</target>
+
+	<!-- ================================== -->
+	<!--            GENERATE JAR            -->
+	<!-- ================================== -->
+	<target name="jar" depends="build">
+		<jar jarfile="${BinaryName}.jar">
+			<fileset dir="bin" includes="**/*.class" />
+			<manifest>
+				<attribute name="Main-Class" value="GreenTeaScript" />
+			</manifest>
+			<zipfileset src="ext/asm-all-4.0.jar" />
+		</jar>
+	</target>
+
+	<!-- ================================== -->
+	<!--               CLEAN                -->
+	<!-- ================================== -->
+	<target name="clean">
+		<delete dir="bin" />
+		<delete file="${BinaryName}.jar" />
+	</target>
+	<!-- ================================== -->
+	<!--               TEST                 -->
+	<!-- ================================== -->
+	<target name="test" depends="build,jar">
+<!--
+		<jar jarfile="konoha-test.jar">
+			<fileset dir="bin/test" includes="**/*.class" />
+			<zipfileset src="konoha.jar" />
+			<manifest>
+				<attribute name="Main-Class" value="org.KonohaScript.Tester.KTestRunner" />
+			</manifest>
+		</jar>
+		<java jar="konoha-test.jar" fork="true">
+		</java>
+-->
+	</target>
+</project>
