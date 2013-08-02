@@ -2,6 +2,7 @@
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 
 public abstract class LangDeps {
 
@@ -126,6 +127,23 @@ public abstract class LangDeps {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	public final static GtType[] CompactTypeList(ArrayList<GtType> List) {
+		GtType[] Tuple = new GtType[List.size()];
+		for(int i = 0; i < List.size(); i++) {
+			Tuple[i] = List.get(i);
+		}
+		return Tuple;
+	}
+
+	public final static String[] CompactStringList(ArrayList<String> List) {
+		if(List == null) return null;
+		String[] Tuple = new String[List.size()];
+		for(int i = 0; i < List.size(); i++) {
+			Tuple[i] = List.get(i);
+		}
+		return Tuple;
 	}
 
 }

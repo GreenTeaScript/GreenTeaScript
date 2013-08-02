@@ -724,7 +724,7 @@ class TypeResolver {
 
 	public String GetJavaMethodDescriptor(GtMethod method) {
 		GtType returnType = method.GetReturnType();
-		ArrayList<GtType> paramTypes = method.Param.TypeList;
+		ArrayList<GtType> paramTypes = method.Param.Types;
 		paramTypes.remove(0);
 		StringBuilder signature = new StringBuilder();
 		signature.append("(");
@@ -896,8 +896,8 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 			GtParam P = Method.Param;
 			Param.add(new Local(0, Method.ClassInfo, "this"));
 			for(int i = 0; i < P.ParamSize; i++) {
-				GtType Type = P.TypeList.get(i + 1); //GtType Type = P.Types[i + 1];
-				String Arg = P.NameList.get(i);//String Arg = P.ArgNames[i];
+				GtType Type = P.Types.get(i + 1); //GtType Type = P.Types[i + 1];
+				String Arg = P.Names.get(i);//String Arg = P.ArgNames[i];
 				Local l = new Local(i + 1, Type, Arg);
 				Param.add(l);
 			}
@@ -1088,4 +1088,109 @@ class GtSystemDef extends GtStatic {
 //}
 //endif VAJA
 
+//public GtMethod FindMethod(String MethodName, int ParamSize) {
+///*local*/int i = 0;
+//while(i < this.ClassMethodList.size()) {
+//	GtMethod Method = this.ClassMethodList.get(i);
+//	if(Method.Match(MethodName, ParamSize)) {
+//		return Method;
+//	}
+//	i += 1;
+//}
+//return null;
+//}
+
+public GtMethod LookupMethod(String MethodName, int ParamSize) {
+/*local*/GtMethod Method = this.FindMethod(MethodName, ParamSize);
+if(Method != null) {
+	return Method;
+}
+if(this.SearchSuperMethodClass != null) {
+	Method = this.SearchSuperMethodClass.LookupMethod(MethodName, ParamSize);
+	if(Method != null) {
+		return Method;
+	}
+}
+//if(GtContext.Generator.CreateMethods(this.LocalSpec, MethodName)) {
+//	return this.LookupMethod(MethodName, ParamSize);
+//}
+//ifdef JAVA
+//if(this.LocalSpec instanceof Class) {
+//	if(this.CreateMethods(MethodName) > 0) {
+//		return this.FindMethod(MethodName, ParamSize);
+//	}
+//}
+//endif JAVA
+return null;
+}
+//
+//public boolean DefineNewMethod(GtMethod NewMethod) {
+///*local*/int i = 0;
+//while(i < this.ClassMethodList.size()) {
+//	/*local*/GtMethod DefinedMethod = (GtMethod) this.ClassMethodList.get(i);
+//	if(NewMethod.Match(DefinedMethod)) {
+//		return false;
+//	}
+//	i += 1;
+//}
+//this.AddMethod(NewMethod);
+//return true;
+//}
+//
+////ifdef JAVA
+//
+//public void DefineMethod(int MethodFlag, String MethodName, GtParam Param, Object Callee, String LocalName) {
+//GtMethod Method = new GtMethod(MethodFlag, this, MethodName, Param, LangDeps.LookupMethod(Callee, LocalName));
+//this.AddMethod(Method);
+//}
+//
+//public GtType(GtContext GtContext, Class<?> ClassInfo) {
+//this(GtContext, 0, ClassInfo.getSimpleName(), null);
+//this.LocalSpec = ClassInfo;
+//// this.ClassFlag = ClassFlag;
+//Class<?> SuperClass = ClassInfo.getSuperclass();
+//if(ClassInfo != Object.class && SuperClass != null) {
+//	this.SuperClass = GtContext.LookupHostLangType(ClassInfo.getSuperclass());
+//}
+//}
+//
+//static GtMethod ConvertMethod(GtContext GtContext, Method Method) {
+//GtType ThisType = GtContext.LookupHostLangType(Method.getClass());
+//Class<?>[] ParamTypes = Method.getParameterTypes();
+//GtType[] ParamData = new GtType[ParamTypes.length + 1];
+//String[] ArgNames = new String[ParamTypes.length + 1];
+//ParamData[0] = GtContext.LookupHostLangType(Method.getReturnType());
+//for(int i = 0; i < ParamTypes.length; i++) {
+//	ParamData[i + 1] = GtContext.LookupHostLangType(ParamTypes[i]);
+//	ArgNames[i] = "arg" + i;
+//}
+//GtParam Param = new GtParam(ParamData.length, ParamData, ArgNames);
+//GtMethod Mtd = new GtMethod(0, ThisType, Method.getName(), Param, Method);
+//ThisType.AddMethod(Mtd);
+//return Mtd;
+//}
+//
+//int CreateMethods(String MethodName) {
+//int Count = 0;
+//Method[] Methods = ((Class<?>)this.LocalSpec).getMethods();
+//for(int i = 0; i < Methods.length; i++) {
+//	if(MethodName.equals(Methods[i].getName())) {
+//		GtType.ConvertMethod(this.GtContext, Methods[i]);
+//		Count = Count + 1;
+//	}
+//}
+//return Count;
+//}
+//
+//public boolean RegisterCompiledMethod(GtMethod NewMethod) {
+//for(int i = 0; i < this.ClassMethodList.size(); i++) {
+//	GtMethod DefinedMethod = (GtMethod) this.ClassMethodList.get(i);
+//	if(NewMethod.Match(DefinedMethod)) {
+//		this.ClassMethodList.set(i, NewMethod);
+//		return true;
+//	}
+//}
+//return false;
+//}
+////endif VAJA
 

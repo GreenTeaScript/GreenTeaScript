@@ -608,7 +608,7 @@ final class GtToken extends GtStatic {
 final class TokenFunc {
 	/*field*/public GtFuncToken       Func;
 	/*field*/public TokenFunc	ParentFunc;
-
+	
 	TokenFunc/*constructor*/(GtFuncToken Func, TokenFunc Parent) {
 		this.Func = Func;
 		this.ParentFunc = Parent;
@@ -1045,26 +1045,27 @@ class GtObject extends GtStatic {
 class GtType extends GtStatic {
 	/*field*/public GtNameSpace     PackageNameSpace;
 	/*field*/int					ClassFlag;
-	/*field*/public GtContext		GtContext;
+	/*field*/public GtContext		Context;
+	/*field*/int                    ClassId;
 	/*field*/public String			ShortClassName;
-	/*field*/GtType					BaseClass;
 	/*field*/GtType					SuperClass;
 	/*field*/GtParam				ClassParam;
 	/*field*/GtType					SearchSimilarClass;
-	/*field*/ArrayList<GtMethod>	ClassMethodList;
+	/*field*/GtType					BaseClass;
 	/*field*/public GtType			SearchSuperMethodClass;
 	/*field*/public Object			DefaultNullValue;
 	/*field*/public Object          LocalSpec;
 
-	GtType/*constructor*/(GtContext GtContext, int ClassFlag, String ClassName, Object DefaultNullValue) {
-		this.GtContext = GtContext;
+	GtType/*constructor*/(GtContext Context, int ClassFlag, String ClassName, Object DefaultNullValue) {
+		this.Context = Context;
 		this.ClassFlag = ClassFlag;
 		this.ShortClassName = ClassName;
 		this.SuperClass = null;
 		this.BaseClass = this;
-		this.ClassMethodList = new ArrayList<GtMethod>();
 		this.DefaultNullValue = DefaultNullValue;
 		this.LocalSpec = null;
+		this.ClassId = Context.ClassCount;
+		Context.ClassCount += 1;
 	}
 
 	@Override public String toString() {
@@ -1078,129 +1079,57 @@ class GtType extends GtStatic {
 		return false;
 	}
 
-	public void AddMethod(GtMethod Method) {
-		this.ClassMethodList.add(Method);
-	}
-
 	public GtMethod GetGetter(String Name) {
 		return AnyGetter;
 	}
 
-	public GtMethod FindMethod(String MethodName, int ParamSize) {
-		/*local*/int i = 0;
-		while(i < this.ClassMethodList.size()) {
-			GtMethod Method = this.ClassMethodList.get(i);
-			if(Method.Match(MethodName, ParamSize)) {
-				return Method;
-			}
-			i += 1;
-		}
-		return null;
+	public final String GetMethodId(String name) {
+		return "" + this.ClassId + name;
+	}
+}
+
+final class GtLayer extends GtStatic {
+	/*public*/public String Name;
+	/*public*/public GtMap MethodTable;
+	GtLayer/*constructor*/(String Name) {
+		this.Name = Name;
+		this.MethodTable = new GtMap();
+	}
+	
+	public final GtMethod LookupUniqueMethod(String Name) {
+		return (/*cast*/GtMethod)this.MethodTable.get(Name);
+	}
+	
+	public final GtMethod LookupMethod(GtType Class, String Name) {
+		String Id = Class.GetMethodId(Name);
+		GtMethod Method = (/*cast*/GtMethod)this.MethodTable.get(Id);
+		return Method;
 	}
 
-	public GtMethod LookupMethod(String MethodName, int ParamSize) {
-		/*local*/GtMethod Method = this.FindMethod(MethodName, ParamSize);
-		if(Method != null) {
-			return Method;
-		}
-		if(this.SearchSuperMethodClass != null) {
-			Method = this.SearchSuperMethodClass.LookupMethod(MethodName, ParamSize);
-			if(Method != null) {
-				return Method;
-			}
-		}
-//		if(GtContext.Generator.CreateMethods(this.LocalSpec, MethodName)) {
-//			return this.LookupMethod(MethodName, ParamSize);
+	public final void DefineMethod(GtMethod Method) {
+		GtType Class = Method.GetRecvType();
+		String Id = Class.GetMethodId(Method.MethodName);
+		GtMethod MethodPrev = (/*cast*/GtMethod)this.MethodTable.get(Id);
+		Method.ElderMethod = MethodPrev;
+		assert(Method.Layer == null);
+		Method.Layer = this;
+		this.MethodTable.put(Id, Method);
+//		MethodPrev = this.LookupUniqueMethod(Method.MethodName);
+//		if(MethodPrev != null) {
+//			TODO("check identity");
+//			this.MethodTable.remove(Id);
 //		}
-//ifdef JAVA
-//		if(this.LocalSpec instanceof Class) {
-//			if(this.CreateMethods(MethodName) > 0) {
-//				return this.FindMethod(MethodName, ParamSize);
-//			}
-//		}
-//endif JAVA
-		return null;
 	}
-//
-//	public boolean DefineNewMethod(GtMethod NewMethod) {
-//		/*local*/int i = 0;
-//		while(i < this.ClassMethodList.size()) {
-//			/*local*/GtMethod DefinedMethod = (GtMethod) this.ClassMethodList.get(i);
-//			if(NewMethod.Match(DefinedMethod)) {
-//				return false;
-//			}
-//			i += 1;
-//		}
-//		this.AddMethod(NewMethod);
-//		return true;
-//	}
-//
-////ifdef JAVA
-//
-//	public void DefineMethod(int MethodFlag, String MethodName, GtParam Param, Object Callee, String LocalName) {
-//		GtMethod Method = new GtMethod(MethodFlag, this, MethodName, Param, LangDeps.LookupMethod(Callee, LocalName));
-//		this.AddMethod(Method);
-//	}
-//
-//	public GtType(GtContext GtContext, Class<?> ClassInfo) {
-//		this(GtContext, 0, ClassInfo.getSimpleName(), null);
-//		this.LocalSpec = ClassInfo;
-//		// this.ClassFlag = ClassFlag;
-//		Class<?> SuperClass = ClassInfo.getSuperclass();
-//		if(ClassInfo != Object.class && SuperClass != null) {
-//			this.SuperClass = GtContext.LookupHostLangType(ClassInfo.getSuperclass());
-//		}
-//	}
-//
-//	static GtMethod ConvertMethod(GtContext GtContext, Method Method) {
-//		GtType ThisType = GtContext.LookupHostLangType(Method.getClass());
-//		Class<?>[] ParamTypes = Method.getParameterTypes();
-//		GtType[] ParamData = new GtType[ParamTypes.length + 1];
-//		String[] ArgNames = new String[ParamTypes.length + 1];
-//		ParamData[0] = GtContext.LookupHostLangType(Method.getReturnType());
-//		for(int i = 0; i < ParamTypes.length; i++) {
-//			ParamData[i + 1] = GtContext.LookupHostLangType(ParamTypes[i]);
-//			ArgNames[i] = "arg" + i;
-//		}
-//		GtParam Param = new GtParam(ParamData.length, ParamData, ArgNames);
-//		GtMethod Mtd = new GtMethod(0, ThisType, Method.getName(), Param, Method);
-//		ThisType.AddMethod(Mtd);
-//		return Mtd;
-//	}
-//
-//	int CreateMethods(String MethodName) {
-//		int Count = 0;
-//		Method[] Methods = ((Class<?>)this.LocalSpec).getMethods();
-//		for(int i = 0; i < Methods.length; i++) {
-//			if(MethodName.equals(Methods[i].getName())) {
-//				GtType.ConvertMethod(this.GtContext, Methods[i]);
-//				Count = Count + 1;
-//			}
-//		}
-//		return Count;
-//	}
-//
-//	public boolean RegisterCompiledMethod(GtMethod NewMethod) {
-//		for(int i = 0; i < this.ClassMethodList.size(); i++) {
-//			GtMethod DefinedMethod = (GtMethod) this.ClassMethodList.get(i);
-//			if(NewMethod.Match(DefinedMethod)) {
-//				this.ClassMethodList.set(i, NewMethod);
-//				return true;
-//			}
-//		}
-//		return false;
-//	}
-////endif VAJA
 }
 
 class GtParam extends GtStatic {
 	/*field*/public int                 ParamSize;
-	/*field*/public ArrayList<GtType>	TypeList;
-	/*field*/public ArrayList<String>   NameList;
+	/*field*/public ArrayList<String>   Names;
+	/*field*/public ArrayList<GtType>	Types;
 
 	GtParam/*constructor*/(ArrayList<GtType> TypeList, ArrayList<String> NameList) {
-		this.TypeList = TypeList;
-		this.NameList = NameList;
+		this.Types = TypeList;
+		this.Names = NameList;
 		this.ParamSize = TypeList.size() - 1;
 	}
 
@@ -1209,7 +1138,7 @@ class GtParam extends GtStatic {
 		if(ParamSize == this.ParamSize) {
 			/*local*/int i = 0;
 			while(i < ParamSize) {
-				if(this.TypeList.get(i) != Other.TypeList.get(i)) {
+				if(this.Types.get(i) != Other.Types.get(i)) {
 					return false;
 				}
 				i += 1;
@@ -1222,7 +1151,7 @@ class GtParam extends GtStatic {
 	public final boolean Match(int ParamSize, ArrayList<GtType> ParamList) {
 		/*local*/int i = 0;
 		while(i + 1 < ParamSize) {
-			/*local*/GtType ParamType = this.TypeList.get(i+1);
+			/*local*/GtType ParamType = this.Types.get(i+1);
 			GtType GivenType = ParamList.get(i);
 			//if(!ParamType.Match(GivenType)) {}
 			if(!ParamType.equals(GivenType)) { //FIXME replace Type.equals => GtType.Match
@@ -1244,31 +1173,32 @@ class GtDef extends GtStatic {
 }
 
 class GtMethod extends GtDef {
+	/*field*/public GtLayer         Layer;
 	/*field*/public int				MethodFlag;
-	/*field*/public GtType			ClassInfo;
 	/*field*/public String			MethodName;
 	/*field*/int					MethodSymbolId;
-	/*field*/int					CanonicalSymbolId;
-	/*field*/public GtParam			Param;
+	/*field*/public GtType[]		Types;
+	/*field*/public GtMethod        ElderMethod;
 
-	GtMethod/*constructor*/(int MethodFlag, GtType ClassInfo, String MethodName, GtParam Param) {
+	GtMethod/*constructor*/(int MethodFlag, String MethodName, ArrayList<GtType> ParamList) {
 		this.MethodFlag = MethodFlag;
-		this.ClassInfo = ClassInfo;
 		this.MethodName = MethodName;
-		this.MethodSymbolId = GtStatic.GetSymbolId(MethodName, AllowNewId);
-		this.CanonicalSymbolId = GtStatic.GetCanonicalSymbolId(MethodName);
-		this.Param = Param;
+		this.MethodSymbolId = GtStatic.GetCanonicalSymbolId(MethodName);
+		this.Types = LangDeps.CompactTypeList(ParamList);
+		assert(this.Types.length > 0);
+		this.Layer = null;
+		this.ElderMethod = null;
 	}
 
 	@Override public String toString() {
-		/*local*/String s = this.ClassInfo + "." + this.MethodName + "(";
+		/*local*/String s = this.MethodName + "(";
 		/*local*/int i = 0;
-		while(i < this.Param.ParamSize) {
+		while(i < this.GetParamSize()) {
 			/*local*/GtType ParamType = this.GetParamType(i);
 			if(i > 0) {
 				s += ", ";
 			}
-			s += ParamType;
+			s += ParamType.ShortClassName;
 			i += 1;
 		}
 		return s + ": " + this.GetReturnType();
@@ -1277,32 +1207,41 @@ class GtMethod extends GtDef {
 	public boolean Is(int Flag) {
 		return IsFlag(this.MethodFlag, Flag);
 	}
-
+	
 	public final GtType GetReturnType() {
-		GtType ReturnType = this.Param.TypeList.get(0);
-		return ReturnType;
+		return this.Types[0];
+	}
+
+	public final GtType GetRecvType() {
+		return (this.Types.length == 1) ? this.Types[0].Context.VoidType : this.Types[1];
+	}
+
+	public final int GetParamSize() {
+		return this.Types.length - 1;
 	}
 
 	public final GtType GetParamType(int ParamIdx) {
-		GtType ParamType = this.Param.TypeList.get(0);
-		return ParamType;
+		return this.Types[ParamIdx+1];
 	}
+}
+
+class GtMethod2 extends GtDef {
 
 //	public final boolean Match(GtMethod Other) {
 //		return (this.MethodName.equals(Other.MethodName) && this.Param.Equals(Other.Param));
 //	}
 //
-	public boolean Match(String MethodName, int ParamSize) {
-		if(MethodName.equals(this.MethodName)) {
-			if(ParamSize == -1) {
-				return true;
-			}
-			if(this.Param.ParamSize == ParamSize) {
-				return true;
-			}
-		}
-		return false;
-	}
+//	public boolean Match(String MethodName, int ParamSize) {
+//		if(MethodName.equals(this.MethodName)) {
+//			if(ParamSize == -1) {
+//				return true;
+//			}
+//			if(this.Param.ParamSize == ParamSize) {
+//				return true;
+//			}
+//		}
+//		return false;
+//	}
 //
 //	public boolean Match(String MethodName, int ParamSize, GtType[] RequestTypes) {
 //		if(!this.Match(MethodName, ParamSize)) {
@@ -1346,7 +1285,6 @@ class GtMethod extends GtDef {
 //		this.MethodInvoker = Builder.Build(NS, TNode, this);
 	}
 }
-
 
 final class VariableInfo {
 	/*field*/public GtType	Type;
@@ -1395,6 +1333,7 @@ final class TypeEnv extends GtStatic {
 		this.StringType = GammaNameSpace.GtContext.StringType;
 		this.VarType = GammaNameSpace.GtContext.VarType;
 		this.AnyType = GammaNameSpace.GtContext.AnyType;
+		
 		this.Method = Method;
 		this.LocalStackList = new ArrayList<VariableInfo>();
 		this.StackTopIndex = 0;
@@ -1409,16 +1348,16 @@ final class TypeEnv extends GtStatic {
 
 	private void InitMethod(GtMethod Method) {
 		this.ReturnType = Method.GetReturnType();
-		this.ThisType = Method.ClassInfo;
-		if(!Method.Is(StaticMethod)) {
-			this.AppendDeclaredVariable(Method.ClassInfo, "this");
-			/*local*/GtParam Param = Method.Param;
-			/*local*/int i = 0;
-			while(i < Param.ParamSize) {
-				this.AppendDeclaredVariable(Param.TypeList.get(i), Param.NameList.get(i));
-				i += 1;
-			}
-		}
+//		this.ThisType = Method.ClassInfo;
+//		if(!Method.Is(StaticMethod)) {
+//			this.AppendDeclaredVariable(Method.ClassInfo, "this");
+//			/*local*/GtParam Param = Method.Param;
+//			/*local*/int i = 0;
+//			while(i < Param.ParamSize) {
+//				this.AppendDeclaredVariable(Param.Types.get(i), Param.Names.get(i));
+//				i += 1;
+//			}
+//		}
 	}
 
 	public boolean AppendDeclaredVariable(GtType Type, String Name) {
@@ -2034,7 +1973,7 @@ final class KonohaGrammar extends GtGrammar {
 		/*local*/TypedNode RightNode = ParsedTree.TypeNodeAt(RightHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
 		/*local*/int ParamSize = 2;
 		/*local*/String Operator = ParsedTree.KeyToken.ParsedText;
-		/*local*/GtMethod Method = LeftNode.Type.LookupMethod(Operator, ParamSize);
+		/*local*/GtMethod Method = null; //LeftNode.Type.LookupMethod(Operator, ParamSize);
 		return Gamma.Generator.CreateBinaryNode(Gamma.AnyType, ParsedTree, null/*Method*/, LeftNode, RightNode);
 	}
 
@@ -2380,11 +2319,15 @@ class GtContext extends GtStatic {
 
 	/*field*/final GtMap				ClassNameMap;
 	/*field*/public GreenTeaGenerator   Generator;
+	/*field*/public int ClassCount;
+	/*field*/public int MethodCount;
 
 	GtContext/*constructor*/(GtGrammar Grammar, GreenTeaGenerator Generator) {
 		this.ClassNameMap = new GtMap();
 		this.Generator    = Generator;
 		this.RootNameSpace = new GtNameSpace(this, null);
+		this.ClassCount = 0;
+		this.MethodCount = 0;
 		this.VoidType    = this.RootNameSpace.DefineClass(new GtType(this, 0, "void", null));
 		this.ObjectType  = this.RootNameSpace.DefineClass(new GtType(this, 0, "Object", new Object()));
 		this.BooleanType = this.RootNameSpace.DefineClass(new GtType(this, 0, "boolean", false));
