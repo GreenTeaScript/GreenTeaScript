@@ -1,9 +1,5 @@
 // GreenTea Generator should be written in each language.
 
-class NotSupportedCodeError extends Exception{
-	
-};
-
 public class LeafJSGenerator extends GreenTeaGenerator {
 	
 	private boolean UseLetKeyword;
@@ -27,12 +23,10 @@ public class LeafJSGenerator extends GreenTeaGenerator {
 		}
 	}
 
-	
 	public void VisitConst(ConstNode Node) {
 		this.push(Node.ConstValue.toString());
 		return;
 	}
-
 	
 	public void VisitNew(NewNode Node) {
 		for(int i = 0; i < Node.Params.size(); i++) {
@@ -42,25 +36,21 @@ public class LeafJSGenerator extends GreenTeaGenerator {
 		this.push("new " + Node.Type.ShortClassName + "()");
 		return;
 	}
-
 	
 	public void VisitNull(NullNode Node) {
 		this.push("null");
 		return;
 	}
-
 	
 	public void VisitLocal(LocalNode Node) {
 		//this.AddLocalVarIfNotDefined(Node.Type, Node.Token.ParsedText);
-		this.push(Node.Token.ParsedText);
+		this.push(Node.LocalName);
 	}
-
 	
 	public void VisitGetter(GetterNode Node) {
 		//Node.BaseNode.Evaluate(this);
 		this.push(this.pop() + "." + Node.Token.ParsedText);
 	}
-
 	
 	public void VisitApply(ApplyNode Node) {
 		String methodName = Node.Method.MethodName;
@@ -76,7 +66,6 @@ public class LeafJSGenerator extends GreenTeaGenerator {
 			this.push(thisNode + "." + methodName + params);
 		}
 	}
-
 	
 	public void VisitAnd(AndNode Node) {
 		Node.LeftNode.Evaluate(this);
@@ -86,16 +75,13 @@ public class LeafJSGenerator extends GreenTeaGenerator {
 		this.push(Left + " && " + Right);
 	}
 
-	
 	public void VisitOr(OrNode Node) {
 		Node.LeftNode.Evaluate(this);
 		Node.RightNode.Evaluate(this);
-
 		String Right = this.pop();
 		String Left = this.pop();
 		this.push(Left + " || " + Right);
 	}
-
 	
 	public void VisitAssign(AssignNode Node) {
 		Node.LeftNode.Evaluate(this);
@@ -104,15 +90,14 @@ public class LeafJSGenerator extends GreenTeaGenerator {
 		String Left = this.pop();
 		this.push((this.UseLetKeyword ? "let " : "var ") + Left + " = " + Right);
 	}
-
 	
 	public void VisitLet(LetNode Node) {
-		Node.ValueNode.Evaluate(this);
+//		Node.ValueNode.Evaluate(this);
 		this.VisitBlock(Node.BlockNode);
 		//this.AddLocalVarIfNotDefined(Node.Type, Node.VarToken.ParsedText);
-		String Block = this.pop();
-		String Right = this.pop();
-		this.push(Node.VarToken.ParsedText + " = " + Right + Block);
+//		String Block = this.pop();
+//		String Right = this.pop();
+//		this.push(Node.VarToken.ParsedText + " = " + Right + Block);
 	}
 
 	// 
@@ -145,7 +130,6 @@ public class LeafJSGenerator extends GreenTeaGenerator {
 		}
 		this.push(source);
 	}
-
 	
 	public void VisitSwitch(SwitchNode Node) {
 //		Node..CondExpr.Evaluate(this);
@@ -164,7 +148,6 @@ public class LeafJSGenerator extends GreenTeaGenerator {
 //		String CondExpr = this.pop();
 //		this.push("switch (" + CondExpr + ") {" + Exprs + "}");
 	}
-
 	
 	public void VisitLoop(LoopNode Node) {
 		Node.CondExpr.Evaluate(this);
@@ -175,9 +158,7 @@ public class LeafJSGenerator extends GreenTeaGenerator {
 		String CondExpr = this.pop();
 		this.push("while(" + CondExpr + ") {" + LoopBody + IterExpr + "}");
 		return;
-
 	}
-
 	
 	public void VisitReturn(ReturnNode Node) {
 		Node.Expr.Evaluate(this);
@@ -185,7 +166,6 @@ public class LeafJSGenerator extends GreenTeaGenerator {
 		this.push("return " + Expr);
 		return;
 	}
-
 	
 	public void VisitLabel(LabelNode Node) {
 		String Label = Node.Label;
@@ -199,7 +179,6 @@ public class LeafJSGenerator extends GreenTeaGenerator {
 		return;
 	}
 
-	
 	public void VisitJump(JumpNode Node) {
 		String Label = Node.Label;
 		if(Label.compareTo("continue") == 0) {
@@ -211,7 +190,6 @@ public class LeafJSGenerator extends GreenTeaGenerator {
 		}
 		return;
 	}
-
 	
 	public void VisitTry(TryNode Node) {
 		this.VisitBlock(Node.TryBlock);

@@ -2382,15 +2382,15 @@ class GtContext extends GtStatic {
 	
 	GtContext/*constructor*/(GtGrammar Grammar, GreenTeaGenerator Generator) {
 		this.ClassNameMap = new GtMap();
+		this.Generator    = Generator;
 		this.RootNameSpace = new GtNameSpace(this, null);
-		this.Generator = Generator;
-		this.VoidType = this.RootNameSpace.DefineClass(new GtType(this, 0, "void", null));
-		this.ObjectType = this.RootNameSpace.DefineClass(new GtType(this, 0, "Object", new Object()));
+		this.VoidType    = this.RootNameSpace.DefineClass(new GtType(this, 0, "void", null));
+		this.ObjectType  = this.RootNameSpace.DefineClass(new GtType(this, 0, "Object", new Object()));
 		this.BooleanType = this.RootNameSpace.DefineClass(new GtType(this, 0, "boolean", false));
-		this.IntType = this.RootNameSpace.DefineClass(new GtType(this, 0, "int", 0));
-		this.StringType = this.RootNameSpace.DefineClass(new GtType(this, 0, "String", ""));
-		this.VarType = this.RootNameSpace.DefineClass(new GtType(this, 0, "var", null));		
-		this.AnyType = this.RootNameSpace.DefineClass(new GtType(this, 0, "any", null));
+		this.IntType     = this.RootNameSpace.DefineClass(new GtType(this, 0, "int", 0));
+		this.StringType  = this.RootNameSpace.DefineClass(new GtType(this, 0, "String", ""));
+		this.VarType     = this.RootNameSpace.DefineClass(new GtType(this, 0, "var", null));		
+		this.AnyType     = this.RootNameSpace.DefineClass(new GtType(this, 0, "any", null));
 		Grammar.LoadTo(this.RootNameSpace);
 		this.DefaultNameSpace = new GtNameSpace(this, this.RootNameSpace);
 	}
@@ -2411,11 +2411,9 @@ class GtContext extends GtStatic {
 public class GreenTeaScript {
 	
 	public static void main(String[] argc) {
-		GtContext GtContext = new GtContext(new KonohaGrammar(), null);
-		
+		GtContext GtContext = new GtContext(new KonohaGrammar(), new GreenTeaGenerator());
 		//GtContext.Eval("int f(int a, int b) { return a + b; }", 0);
 		GtContext.Eval("1 + 2 * 3", 0);
-
 	}
 
 }
