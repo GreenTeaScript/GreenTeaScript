@@ -1513,13 +1513,14 @@ final class GtNameSpace extends GtStatic {
 		/*local*/int i = 0;
 		while(i < GtStatic.ListSize(NameSpace.PublicSpecList)) {
 			/*local*/GtSpec Spec = NameSpace.PublicSpecList.get(i);
-			if(Spec.SpecType != TokenFuncSpec) continue;
+			if(Spec.SpecType == TokenFuncSpec) {
 			/*local*/int j = 0;
-			while(j < Spec.SpecKey.length()) {
-				int kchar = GtStatic.FromJavaChar(Spec.SpecKey.charAt(j));
-				GtFuncToken Func = (GtFuncToken)Spec.SpecBody;
-				this.TokenMatrix[kchar] = GtStatic.CreateOrReuseTokenFunc(Func, this.TokenMatrix[kchar]);
-				j += 1;
+				while(j < Spec.SpecKey.length()) {
+					int kchar = GtStatic.FromJavaChar(Spec.SpecKey.charAt(j));
+					GtFuncToken Func = (GtFuncToken)Spec.SpecBody;
+					this.TokenMatrix[kchar] = GtStatic.CreateOrReuseTokenFunc(Func, this.TokenMatrix[kchar]);
+					j += 1;
+				}
 			}
 			i += 1;
 		}
@@ -2222,10 +2223,17 @@ class GtContext extends GtStatic {
 
 public class GreenTeaScript {
 	
+	private static void TestAll(GtContext Context) {
+		GtStatic.TestSyntaxPattern(Context, "int");
+		GtStatic.TestSyntaxPattern(Context, "123");
+		GtStatic.TestSyntaxPattern(Context, "1 + 2 * 3");
+	}
+	
 	public static void main(String[] argc) {
 		GtContext GtContext = new GtContext(new KonohaGrammar(), new GreenTeaGenerator());
 		//GtContext.Eval("int f(int a, int b) { return a + b; }", 0);
-		GtContext.Eval("1 + 2 * 3", 0);
+		//GtContext.Eval("1 + 2 * 3", 0);
+		TestAll(GtContext);
 	}
 
 }
