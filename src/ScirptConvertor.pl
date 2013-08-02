@@ -140,9 +140,9 @@ while ($line = <>)  {
 	$line =~ s/Function(?:A|B|C)\(this, \"(\w+)\"\)/$1/g;
     
 	if($UseTypeScript == 1) {
-		$line =~ s/GtFuncA/(a :TokenContext, b :string, c :number) => number/g;
-		$line =~ s/GtFuncB/(a :SyntaxPattern, b :SyntaxTree, c :TokenContext) => SyntaxTree/g;
-		$line =~ s/GtFuncC/(a :TypeEnv, b: SyntaxTree, c: GtType) => TypedNode/g;
+		$line =~ s/GtFuncToken/(a :TokenContext, b :string, c :number) => number/g;
+		$line =~ s/GtFuncMatch/(a :SyntaxPattern, b :SyntaxTree, c :TokenContext) => SyntaxTree/g;
+		$line =~ s/GtFuncType/(a :TypeEnv, b: SyntaxTree, c: GtType) => TypedNode/g;
 		$line =~ s/\<\<\:/extends/g;
         $line =~ s/\<\:\?/instanceof/g;
         $line =~ s/local //g;

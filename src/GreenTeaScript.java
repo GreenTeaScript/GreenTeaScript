@@ -106,7 +106,7 @@ interface GtConst {
 	public final static int	UnicodeChar				= 40;
 	public final static int MaxSizeOfChars          = 41;
 
-	public static final int	CharMatrix[] = /*BeginArray*/{ 
+	public final static int[]	CharMatrix = /*BeginArray*/{ 
 			0/*nul*/, 1/*soh*/, 1/*stx*/, 1/*etx*/, 1/*eot*/, 1/*enq*/,
 			1/*ack*/, 1/*bel*/, 1/*bs*/, TabChar/*ht*/, NewLineChar/*nl*/, 1/*vt*/, 1/*np*/, 1/*cr*/, 1/*so*/, 1/*si*/,
 			/*020 dle  021 dc1  022 dc2  023 dc3  024 dc4  025 nak  026 syn  027 etb */
@@ -186,33 +186,33 @@ interface GtConst {
 	public final static int SymbolPatternSpec = 1;
 	public final static int ExtendedPatternSpec = 2;
 
-	public final static int		BinaryOperator					= 1;
-	public final static int		LeftJoin						= 1 << 1;
-	public final static int		PrecedenceShift					= 2;
-	public final static int		Precedence_CStyleValue			= (1 << PrecedenceShift);
-	public final static int		Precedence_CPPStyleScope		= (50 << PrecedenceShift);
-	public final static int		Precedence_CStyleSuffixCall		= (100 << PrecedenceShift);				/*x(); x[]; x.x x->x x++ */
-	public final static int		Precedence_CStylePrefixOperator	= (200 << PrecedenceShift);				/*++x; --x; sizeof x &x +x -x !x (T)x  */
+	public final static int BinaryOperator					= 1;
+	public final static int LeftJoin						= 1 << 1;
+	public final static int PrecedenceShift					= 2;
+	public final static int Precedence_CStyleValue			= (1 << PrecedenceShift);
+	public final static int Precedence_CPPStyleScope		= (50 << PrecedenceShift);
+	public final static int Precedence_CStyleSuffixCall		= (100 << PrecedenceShift);				/*x(); x[]; x.x x->x x++ */
+	public final static int Precedence_CStylePrefixOperator	= (200 << PrecedenceShift);				/*++x; --x; sizeof x &x +x -x !x (T)x  */
 	//	Precedence_CppMember      = 300;  /* .x ->x */
-	public final static int		Precedence_CStyleMUL			= (400 << PrecedenceShift);				/* x * x; x / x; x % x*/
-	public final static int		Precedence_CStyleADD			= (500 << PrecedenceShift);				/* x + x; x - x */
-	public final static int		Precedence_CStyleSHIFT			= (600 << PrecedenceShift);				/* x << x; x >> x */
-	public final static int		Precedence_CStyleCOMPARE		= (700 << PrecedenceShift);
-	public final static int		Precedence_CStyleEquals			= (800 << PrecedenceShift);
-	public final static int		Precedence_CStyleBITAND			= (900 << PrecedenceShift);
-	public final static int		Precedence_CStyleBITXOR			= (1000 << PrecedenceShift);
-	public final static int		Precedence_CStyleBITOR			= (1100 << PrecedenceShift);
-	public final static int		Precedence_CStyleAND			= (1200 << PrecedenceShift);
-	public final static int		Precedence_CStyleOR				= (1300 << PrecedenceShift);
-	public final static int		Precedence_CStyleTRINARY		= (1400 << PrecedenceShift);				/* ? : */
-	public final static int		Precedence_CStyleAssign			= (1500 << PrecedenceShift);
-	public final static int		Precedence_CStyleCOMMA			= (1600 << PrecedenceShift);
-	public final static int		Precedence_Error				= (1700 << PrecedenceShift);
-	public final static int		Precedence_Statement			= (1900 << PrecedenceShift);
-	public final static int		Precedence_CStyleDelim			= (2000 << PrecedenceShift);
+	public final static int Precedence_CStyleMUL			= (400 << PrecedenceShift);				/* x * x; x / x; x % x*/
+	public final static int Precedence_CStyleADD			= (500 << PrecedenceShift);				/* x + x; x - x */
+	public final static int Precedence_CStyleSHIFT			= (600 << PrecedenceShift);				/* x << x; x >> x */
+	public final static int Precedence_CStyleCOMPARE		= (700 << PrecedenceShift);
+	public final static int Precedence_CStyleEquals			= (800 << PrecedenceShift);
+	public final static int Precedence_CStyleBITAND			= (900 << PrecedenceShift);
+	public final static int Precedence_CStyleBITXOR			= (1000 << PrecedenceShift);
+	public final static int Precedence_CStyleBITOR			= (1100 << PrecedenceShift);
+	public final static int Precedence_CStyleAND			= (1200 << PrecedenceShift);
+	public final static int Precedence_CStyleOR				= (1300 << PrecedenceShift);
+	public final static int Precedence_CStyleTRINARY		= (1400 << PrecedenceShift);				/* ? : */
+	public final static int Precedence_CStyleAssign			= (1500 << PrecedenceShift);
+	public final static int Precedence_CStyleCOMMA			= (1600 << PrecedenceShift);
+	public final static int Precedence_Error				= (1700 << PrecedenceShift);
+	public final static int Precedence_Statement			= (1900 << PrecedenceShift);
+	public final static int Precedence_CStyleDelim			= (2000 << PrecedenceShift);
 
 	
-	public final static int		DefaultTypeCheckPolicy			= 0;
+	public final static int DefaultTypeCheckPolicy			= 0;
 	public final static int     IgnoreEmptyPolicy               = 1;
 	public final static int     AllowEmptyPolicy                = (1 << 1);
 
@@ -233,8 +233,8 @@ interface GtConst {
 
 	public final static GtMethod AnyGetter = null;
 	// debug flags
-	static final public boolean	UseBuiltInTest	= true;
-	static final public boolean	DebugPrint		= true;
+	public static final boolean	UseBuiltInTest	= true;
+	public static final boolean	DebugPrintOption = true;
 
 //ifdef JAVA
 }
@@ -247,7 +247,7 @@ class GtStatic implements GtConst {
 	}
 	
 	public static void DebugP(String msg) {
-		if(DebugPrint) {
+		if(DebugPrintOption) {
 			LangDeps.println("DEBUG" + LangDeps.GetStackInfo(2) + ": " + msg);
 		}
 	}
@@ -1897,11 +1897,11 @@ final class KonohaGrammar extends GtGrammar {
 	public static SyntaxTree ParseSymbol(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
 		/*local*/SyntaxTree TypeTree = TokenContext.ParsePattern("$Type$", Optional);
 		if(TypeTree != null) {
-			/*local*/SyntaxTree DeclTree = TokenContext.ParsePatternAfter(TypeTree, "$VarDecl", Optional);
+			/*local*/SyntaxTree DeclTree = TokenContext.ParsePatternAfter(TypeTree, "$VarDecl$", Optional);
 			if(DeclTree != null) {
 				return DeclTree;
 			}
-			DeclTree = TokenContext.ParsePatternAfter(TypeTree, "$MethodDecl", Optional);
+			DeclTree = TokenContext.ParsePatternAfter(TypeTree, "$MethodDecl$", Optional);
 			if(DeclTree != null) {
 				return DeclTree;
 			}
@@ -1911,9 +1911,9 @@ final class KonohaGrammar extends GtGrammar {
 		/*local*/GtNameSpace NameSpace = TokenContext.NameSpace;
 		Object ConstValue = NameSpace.GetSymbol(Token.ParsedText);
 		if(!(ConstValue instanceof GtType)) {
-			return new SyntaxTree(NameSpace.GetPattern("$Const"), NameSpace, Token, ConstValue);
+			return new SyntaxTree(NameSpace.GetPattern("$Const$"), NameSpace, Token, ConstValue);
 		}
-		return new SyntaxTree(NameSpace.GetPattern("$Variable"), NameSpace, Token, null);
+		return new SyntaxTree(NameSpace.GetPattern("$Variable$"), NameSpace, Token, null);
 	}
 
 	public static SyntaxTree ParseVariable(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
@@ -2025,12 +2025,9 @@ final class KonohaGrammar extends GtGrammar {
 	}
 
 	public static TypedNode TypeBinary(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
-//		public final static int	LeftHandTerm	= 0;
-//		public final static int	RightHandTerm	= 1;
-//		TypedNode ExprNode = ParsedTree.TypeNodeAt(UnaryTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-//		TypedNode ExprNode = ParsedTree.TypeNodeAt(UnaryTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-//		return Gamma.Generator.CreateOperatorNode()
-		return null;
+		/*local*/TypedNode LeftNode  = ParsedTree.TypeNodeAt(LeftHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+		/*local*/TypedNode RightNode = ParsedTree.TypeNodeAt(RightHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+		return Gamma.Generator.CreateBinaryNode(Gamma.AnyType, ParsedTree, null/*Method*/, LeftNode, RightNode);
 	}
 	
 	public static SyntaxTree ParseField(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
@@ -2042,8 +2039,8 @@ final class KonohaGrammar extends GtGrammar {
 	}
 
 	public static TypedNode TypeField(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
-		TypedNode ExprNode = ParsedTree.TypeNodeAt(UnaryTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-		GtMethod Method = ExprNode.Type.GetGetter(ParsedTree.KeyToken.ParsedText);
+		/*local*/TypedNode ExprNode = ParsedTree.TypeNodeAt(UnaryTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+		/*local*/GtMethod Method = ExprNode.Type.GetGetter(ParsedTree.KeyToken.ParsedText);
 		return Gamma.Generator.CreateGetterNode(Method.GetReturnType(), ParsedTree, Method, ExprNode);
 	}
 	
@@ -2075,9 +2072,14 @@ final class KonohaGrammar extends GtGrammar {
 	}
 
 	public static TypedNode TypeApply(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
-		TypedNode ApplyNode = Gamma.Generator.CreateApplyNode(Gamma.AnyType, ParsedTree, null);
-		TODO("ApplyNode");
-		return null;
+		/*local*/TypedNode ApplyNode = Gamma.Generator.CreateApplyNode(Gamma.AnyType, ParsedTree, null);
+		/*local*/int i = 0;
+		while(i < ListSize(ParsedTree.TreeList)) {
+			/*local*/TypedNode ExprNode = ParsedTree.TypeNodeAt(UnaryTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+			ApplyNode.Append(ExprNode);
+			i += 1;
+		}
+		return ApplyNode;
 	}
 
 	public static SyntaxTree ParseEmpty(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
@@ -2097,7 +2099,7 @@ final class KonohaGrammar extends GtGrammar {
 				if(GtStatic.IsEmptyOrError(PrevTree)) return PrevTree;
 			}
 			if(PrevTree == null) {
-				return TokenContext.ParsePattern("$Empty", Required);
+				return TokenContext.ParsePattern("$Empty$", Required);
 			}
 			return GtStatic.TreeHead(PrevTree);
 		}
@@ -2204,11 +2206,6 @@ final class KonohaGrammar extends GtGrammar {
 	@Override public void LoadTo(GtNameSpace NameSpace) {
 		// Define Types
 		/*local*/GtContext GtContext = NameSpace.GtContext;
-		NameSpace.DefineSymbol("void",    GtContext.VoidType); // FIXME
-		NameSpace.DefineSymbol("boolean", GtContext.BooleanType);
-		NameSpace.DefineSymbol("Object",  GtContext.ObjectType);
-		NameSpace.DefineSymbol("int",     GtContext.IntType);
-		NameSpace.DefineSymbol("String",  GtContext.StringType);
 
 		// Define Constants
 		NameSpace.DefineSymbol("true", new Boolean(true));
@@ -2250,7 +2247,6 @@ final class KonohaGrammar extends GtGrammar {
 		NameSpace.DefineExtendedPattern("&&", BinaryOperator | Precedence_CStyleAND, ParseBinary, FunctionC(this, "TypeAnd"));
 		NameSpace.DefineExtendedPattern("||", BinaryOperator | Precedence_CStyleOR, ParseBinary, FunctionC(this, "TypeOr"));
 		
-		
 		NameSpace.DefineSyntaxPattern("$Symbol$", FunctionB(this, "ParseSymbol"), null);
 		NameSpace.DefineSyntaxPattern("$Type$", FunctionB(this, "ParseType"), FunctionC(this, "ParseVariable"));
 		NameSpace.DefineSyntaxPattern("$Variable$", FunctionB(this, "ParseVariable"), FunctionC(this, "ParseVariable"));
@@ -2265,7 +2261,6 @@ final class KonohaGrammar extends GtGrammar {
 		
 		NameSpace.DefineSyntaxPattern("$Block$", FunctionB(this, "ParseBlock"), TypeBlock);
 		NameSpace.DefineSyntaxPattern("$Statement$", FunctionB(this, "ParseStatement"), TypeBlock);
-		
 		NameSpace.DefineSyntaxPattern("$MethodDecl$", FunctionB(this, "ParseMethodDecl"), FunctionC(this, "TypeMethodDecl"));
 		NameSpace.DefineSyntaxPattern("$VarDecl$", FunctionB(this, "ParseVarDecl"), FunctionC(this, "TypeVarDecl"));
 		NameSpace.DefineSyntaxPattern("if", FunctionB(this, "ParseIf"), FunctionC(this, "TypeIf"));
@@ -2275,7 +2270,6 @@ final class KonohaGrammar extends GtGrammar {
 
 
 class GtContext extends GtStatic {
-
 	/*field*/public GtNameSpace		RootNameSpace;
 	/*field*/public GtNameSpace		DefaultNameSpace;
 
@@ -2322,8 +2316,8 @@ public class GreenTeaScript {
 	
 	private static void TestAll(GtContext Context) {
 		GtStatic.TestSyntaxPattern(Context, "int");
-		GtStatic.TestSyntaxPattern(Context, "123");
-		GtStatic.TestSyntaxPattern(Context, "1 + 2 * 3");
+//		GtStatic.TestSyntaxPattern(Context, "123");
+//		GtStatic.TestSyntaxPattern(Context, "1 + 2 * 3");
 	}
 	
 	public static void main(String[] argc) {
