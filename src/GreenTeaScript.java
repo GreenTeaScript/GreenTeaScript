@@ -11,7 +11,7 @@ interface GtConst {
 	public final static int		PrivateClass					= 1 << 0;
 	public final static int		SingletonClass					= 1 << 1;
 	public final static int		FinalClass						= 1 << 2;
-	public final static int		GtClass						= 1 << 3;
+	public final static int		GreenClass		    			= 1 << 3;
 	public final static int		StaticClass						= 1 << 4;
 	public final static int		ImmutableClass					= 1 << 5;
 	public final static int		InterfaceClass					= 1 << 6;
@@ -42,7 +42,6 @@ interface GtConst {
 	public final static int		OverloadedMethod				= 1 << 19;
 	public final static int		Override						= 1 << 20;
 	public final static int		DynamicCall						= 1 << 22;
-
 	
 	public final static int		SymbolMaskSize					= 3;
 	public final static int		LowerSymbolMask					= 1;
