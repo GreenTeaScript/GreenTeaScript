@@ -41,6 +41,17 @@ class TypedNode extends GtStatic {
 	public final boolean IsError() {
 		return (this instanceof ErrorNode);
 	}
+	@Override public String toString() {
+		return "(TypedNode)";
+	}
+	public String Stringify(TypedNode Block) {
+		String Text = Block.toString();
+		while (Block != null) {
+			Text += Block.toString() + " ";
+			Block = Block.NextNode;
+		}
+		return Text;
+	}
 }
 
 class UnaryNode extends TypedNode {
@@ -71,6 +82,9 @@ class AndNode extends BinaryNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitAndNode(this);
 	}
+	@Override public String toString() {
+		return "(And:" + this.Type + " " + Stringify(LeftNode) + ", " + Stringify(RightNode) + ")";
+	}
 }
 
 class OrNode extends BinaryNode {
@@ -79,6 +93,9 @@ class OrNode extends BinaryNode {
 	}
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitOrNode(this);
+	}
+	@Override public String toString() {
+		return "(Or:" + this.Type + " " + Stringify(LeftNode) + ", " + Stringify(RightNode) + ")";
 	}
 }
 
@@ -93,6 +110,9 @@ class GetterNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitGetterNode(this);
 	}
+	@Override public String toString() {
+		return "(Getter:" + this.Type + " " + Stringify(Expr) + ", " + Method.MethodName + ")";
+	}
 }
 
 class AssignNode extends BinaryNode {
@@ -101,6 +121,9 @@ class AssignNode extends BinaryNode {
 	}
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitAssignNode(this);
+	}
+	@Override public String toString() {
+		return "(Assign:" + this.Type + " " + Stringify(LeftNode) + " = " + Stringify(RightNode) + ")";
 	}
 }
 
@@ -113,6 +136,9 @@ class ConstNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitConstNode(this);
 	}
+	@Override public String toString() {
+		return "(Const:" + this.Type + " "+ ConstValue.toString() + ")";
+	}
 }
 
 class LocalNode extends TypedNode {
@@ -124,6 +150,9 @@ class LocalNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitLocalNode(this);
 	}
+	@Override public String toString() {
+		return "(Local:" + this.Type + " " + LocalName + ")";
+	}
 }
 
 class NullNode extends TypedNode {
@@ -133,6 +162,9 @@ class NullNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitNullNode(this);
 	}
+	@Override public String toString() {
+		return "(Null:" + this.Type + " " + ")";
+	}
 }
 
 class LetNode extends TypedNode {
@@ -140,7 +172,7 @@ class LetNode extends TypedNode {
 	/*field*/public TypedNode	VarNode;
 	/*field*/public TypedNode	BlockNode;
 
-	/* let frame[Index] = Right in Block end */
+	/* let (VarNode) in Block end */
 	LetNode/*constructor*/(GtType Type, GtToken Token, GtType DeclType, TypedNode VarNode, TypedNode Block) {
 		super(Type, Token);
 		this.DeclType = DeclType;
@@ -149,6 +181,10 @@ class LetNode extends TypedNode {
 	}
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitLetNode(this);
+	}
+	@Override public String toString() {
+		String Block = Stringify(BlockNode);
+		return "(Let:" + this.Type + " " + Stringify(VarNode) + " in {" + Block + "})";
 	}
 }
 
@@ -162,13 +198,24 @@ class ApplyNode extends TypedNode {
 		this.Params = new ArrayList<TypedNode>();
 		this.Params.add(arg1);
 	}
-	
+
 	public void Append(TypedNode Expr) {
 		this.Params.add(Expr);
 	}
 
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitApplyNode(this);
+	}
+	@Override public String toString() {
+		String Param = "";
+		for (int i = 0; i < Params.size(); i++) {
+			TypedNode Node = Params.get(i);
+			if(i != 0) {
+				Param += ", ";
+			}
+			Param += Stringify(Node);
+		}
+		return "(Apply:" + this.Type + " " + Param + ")";
 	}
 }
 
@@ -187,6 +234,17 @@ class NewNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitNewNode(this);
 	}
+	@Override public String toString() {
+		String Param = "";
+		for (int i = 0; i < Params.size(); i++) {
+			TypedNode Node = Params.get(i);
+			if(i != 0) {
+				Param += ", ";
+			}
+			Param += Stringify(Node);
+		}
+		return "(New:" + this.Type + " " + Param + ")";
+	}
 }
 
 class IfNode extends TypedNode {
@@ -204,21 +262,30 @@ class IfNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitIfNode(this);
 	}
+	@Override public String toString() {
+		String Cond = Stringify(CondExpr);
+		String Then = Stringify(ThenNode);
+		String Else = Stringify(ElseNode);
+		return "(If:" + this.Type + " Cond:" + Cond + " Then:"+ Then + " Else:" + Else + ")";
+	}
 }
 
 class LoopNode extends TypedNode {
 	/*field*/public TypedNode	CondExpr;
 	/*field*/public TypedNode	LoopBody;
-	/*field*/public TypedNode	IterExpr;
 
-	LoopNode/*constructor*/(GtType Type, GtToken Token, TypedNode CondExpr, TypedNode LoopBody, TypedNode IterExpr) {
+	LoopNode/*constructor*/(GtType Type, GtToken Token, TypedNode CondExpr, TypedNode LoopBody) {
 		super(Type, Token);
 		this.CondExpr = CondExpr;
 		this.LoopBody = LoopBody;
-		this.IterExpr = IterExpr;
 	}
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitLoopNode(this);
+	}
+	@Override public String toString() {
+		String Cond = Stringify(CondExpr);
+		String Body = Stringify(LoopBody);
+		return "(Loop:" + this.Type + " Cond:" + Cond + " Body:"+ Body + ")";
 	}
 }
 
@@ -231,6 +298,9 @@ class LabelNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitLabelNode(this);
 	}
+	@Override public String toString() {
+		return "(Label:" + this.Type + " " + Label + ")";
+	}
 }
 
 class JumpNode extends TypedNode {
@@ -242,7 +312,11 @@ class JumpNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitJumpNode(this);
 	}
+	@Override public String toString() {
+		return "(Jump:" + this.Type + " " + Label + ")";
+	}
 }
+
 class ContinueNode extends TypedNode {
 	/*field*/public String Label;
 	ContinueNode/*constructor*/(GtType Type, GtToken Token, String Label) {
@@ -251,6 +325,9 @@ class ContinueNode extends TypedNode {
 	}
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitContinueNode(this);
+	}
+	@Override public String toString() {
+		return "(Continue:" + this.Type + ")";
 	}
 }
 class BreakNode extends TypedNode {
@@ -262,6 +339,9 @@ class BreakNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitBreakNode(this);
 	}
+	@Override public String toString() {
+		return "(Break:" + this.Type + ")";
+	}
 }
 
 class ReturnNode extends UnaryNode {
@@ -271,6 +351,13 @@ class ReturnNode extends UnaryNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitReturnNode(this);
 	}
+	@Override public String toString() {
+		String Text = "";
+		if(Text != null) {
+			Text = Stringify(Expr);
+		}
+		return "(Return:" + this.Type + " " + Text + ")";
+	}
 }
 
 class ThrowNode extends UnaryNode {
@@ -279,6 +366,9 @@ class ThrowNode extends UnaryNode {
 	}
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitThrowNode(this);
+	}
+	@Override public String toString() {
+		return "(Throw:" + this.Type + " " + Stringify(Expr) + ")";
 	}
 }
 
@@ -299,6 +389,11 @@ class TryNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitTryNode(this);
 	}
+
+	@Override public String toString() {
+		String TryBlock = Stringify(this.TryBlock);
+		return "(Try:" + this.Type + " " + TryBlock + ")";
+	}
 }
 
 class SwitchNode extends TypedNode {
@@ -311,6 +406,10 @@ class SwitchNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitSwitchNode(this);
 	}
+	@Override public String toString() {
+		//FIXME
+		return "(Switch:" + this.Type + ")";
+	}
 }
 
 class DefineNode extends TypedNode {
@@ -322,6 +421,9 @@ class DefineNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitDefineNode(this);
 	}
+	@Override public String toString() {
+		return "(Define:" + this.Type + " " + DefInfo /*FIXME*/ + ")";
+	}
 }
 
 class FunctionNode extends TypedNode {
@@ -330,6 +432,9 @@ class FunctionNode extends TypedNode {
 	}
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitFunctionNode(this);
+	}
+	@Override public String toString() {
+		return "(Function:" + this.Type + ")";
 	}
 }
 
@@ -340,20 +445,23 @@ class ErrorNode extends TypedNode {
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitErrorNode(this);
 	}
+	@Override public String toString() {
+		return "(Error:" + this.Type + ")";
+	}
 }
 
 public class GreenTeaGenerator extends GtStatic {
 		
 	public TypedNode CreateConstNode(GtType Type, SyntaxTree ParsedTree, Object Value) { 
-		return new ConstNode(Type, ParsedTree.KeyToken, Value); 
+		return new ConstNode(Type, ParsedTree.KeyToken, Value);
 	}
 
 	public TypedNode CreateNewNode(GtType Type, SyntaxTree ParsedTree) { 
-		return new NewNode(Type, ParsedTree.KeyToken); 
+		return new NewNode(Type, ParsedTree.KeyToken);
 	}
 
 	public TypedNode CreateNullNode(GtType Type, SyntaxTree ParsedTree) { 
-		return new NewNode(Type, ParsedTree.KeyToken); 
+		return new NewNode(Type, ParsedTree.KeyToken);
 	}
 
 	public TypedNode CreateLocalNode(GtType Type, SyntaxTree ParsedTree, String LocalName) { 
@@ -383,17 +491,17 @@ public class GreenTeaGenerator extends GtStatic {
 	public TypedNode CreateLetNode(GtType Type, SyntaxTree ParsedTree, GtType DeclType, TypedNode VarNode, TypedNode Block) { 
 		return new LetNode(Type, ParsedTree.KeyToken, DeclType, VarNode, Block);
 	}
-	
+
 	public TypedNode CreateIfNode(GtType Type, SyntaxTree ParsedTree, TypedNode Cond, TypedNode Then, TypedNode Else) { 
 		return new IfNode(Type, ParsedTree.KeyToken, Cond, Then, Else);
 	}
-	
+
 	public TypedNode CreateSwitchNode(GtType Type, SyntaxTree ParsedTree, TypedNode Match) { 
-		return null; 
+		return null;
 	}
 
-	public TypedNode CreateLoopNode(GtType Type, SyntaxTree ParsedTree, TypedNode Cond, TypedNode Block, TypedNode IterNode) { 
-		return new LoopNode(Type, ParsedTree.KeyToken, Cond, Block, IterNode);
+	public TypedNode CreateLoopNode(GtType Type, SyntaxTree ParsedTree, TypedNode Cond, TypedNode Block) { 
+		return new LoopNode(Type, ParsedTree.KeyToken, Cond, Block);
 	}
 
 	public TypedNode CreateReturnNode(GtType Type, SyntaxTree ParsedTree, TypedNode Node) { 
@@ -401,35 +509,35 @@ public class GreenTeaGenerator extends GtStatic {
 	}
 
 	public TypedNode CreateLabelNode(GtType Type, SyntaxTree ParsedTree, TypedNode Node) { 
-		return null; 
+		return null;
 	}
 
 	public TypedNode CreateJumpNode(GtType Type, SyntaxTree ParsedTree, TypedNode Node, String Label) { 
-		return new JumpNode(Type, ParsedTree.KeyToken, Label); 
+		return new JumpNode(Type, ParsedTree.KeyToken, Label);
 	}
 
 	public TypedNode CreateBreakNode(GtType Type, SyntaxTree ParsedTree, TypedNode Node, String Label) { 
-		return new BreakNode(Type, ParsedTree.KeyToken, Label); 
+		return new BreakNode(Type, ParsedTree.KeyToken, Label);
 	}
 
 	public TypedNode CreateContinueNode(GtType Type, SyntaxTree ParsedTree, TypedNode Node, String Label) { 
-		return new ContinueNode(Type, ParsedTree.KeyToken, Label); 
+		return new ContinueNode(Type, ParsedTree.KeyToken, Label);
 	}
-	
+
 	public TypedNode CreateTryNode(GtType Type, SyntaxTree ParsedTree, TypedNode TryNode, TypedNode FinallyNode) { 
-		return new TryNode(Type, ParsedTree.KeyToken, TryNode, FinallyNode); 
+		return new TryNode(Type, ParsedTree.KeyToken, TryNode, FinallyNode);
 	}
 
 	public TypedNode CreateThrowNode(GtType Type, SyntaxTree ParsedTree, TypedNode Node) { 
-		return new ThrowNode(Type, ParsedTree.KeyToken, Node); 
+		return new ThrowNode(Type, ParsedTree.KeyToken, Node);
 	}
 
 	public TypedNode CreateFunctionNode(GtType Type, SyntaxTree ParsedTree, TypedNode Block) { 
-		return null; 
+		return null;
 	}
 
 	public TypedNode CreateDefineNode(GtType Type, SyntaxTree ParsedTree, Object Module) { 
-		return null; 
+		return null;
 	}
 
 	public TypedNode CreateErrorNode(GtType Type, SyntaxTree ParsedTree) { 
@@ -511,7 +619,7 @@ public class GreenTeaGenerator extends GtStatic {
 	public void VisitBreakNode(BreakNode Node) { 
 		/*extension*/
 	}
-	
+
 	public void VisitContinueNode(ContinueNode Node) { 
 		/*extension*/
 	}
