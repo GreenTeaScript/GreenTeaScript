@@ -4,9 +4,11 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 
 	private boolean UseLetKeyword;
 
+	@Override
 	public void VisitDefineNode(DefineNode Node)  {
 		if(Node.DefInfo instanceof GtMethod) {
-			GtMethod Mtd = (GtMethod) Node.DefInfo;
+			//FIXME
+			GtMethod2 Mtd = (GtMethod2) Node.DefInfo;
 			Mtd.DoCompilation();
 			//this.push((String) Mtd.MethodInvoker.CompiledCode);
 		} else {
@@ -21,7 +23,7 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 
 	public void VisitNew(NewNode Node) {
 		for(int i = 0; i < Node.Params.size(); i++) {
-			TypedNode Param = (TypedNode) Node.Params.get(i);
+			TypedNode Param = Node.Params.get(i);
 			Param.Evaluate(this);
 		}
 		this.PushCode("new " + Node.Type.ShortClassName + "()");
@@ -46,7 +48,7 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 	public void VisitApply(ApplyNode Node) {
 		String methodName = Node.Method.MethodName;
 		for(int i = 0; i < Node.Params.size(); i++) {
-			TypedNode Param = (TypedNode) Node.Params.get(i);
+			TypedNode Param = Node.Params.get(i);
 			Param.Evaluate(this);
 		}
 		String params = "(hoge, fuga)";//"//"(" + this.PopNReverseAndJoin(Node.Params.size() - 1, ", ") + ")";
@@ -83,12 +85,12 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 	}
 
 	public void VisitLet(LetNode Node) {
-//		Node.ValueNode.Evaluate(this);
+		//		Node.ValueNode.Evaluate(this);
 		this.VisitBlock(Node.BlockNode);
 		//this.AddLocalVarIfNotDefined(Node.Type, Node.VarToken.ParsedText);
-//		String Block = this.pop();
-//		String Right = this.pop();
-//		this.push(Node.VarToken.ParsedText + " = " + Right + Block);
+		//		String Block = this.pop();
+		//		String Right = this.pop();
+		//		this.push(Node.VarToken.ParsedText + " = " + Right + Block);
 	}
 
 	//
@@ -123,21 +125,21 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 	}
 
 	public void VisitSwitch(SwitchNode Node) {
-//		Node..CondExpr.Evaluate(this);
-//		for(int i = 0; i < Node.Blocks.size(); i++) {
-//			TypedNode Block = (TypedNode) Node.Blocks.get(i);
-//			this.VisitList(Block);
-//		}
-//
-//		int Size = Node.Labels.size();
-//		String Exprs = "";
-//		for(int i = 0; i < Size; i = i + 1) {
-//			String Label = (String) Node.Labels.get(Size - i);
-//			String Block = this.pop();
-//			Exprs = "case " + Label + ":" + Block + Exprs;
-//		}
-//		String CondExpr = this.pop();
-//		this.push("switch (" + CondExpr + ") {" + Exprs + "}");
+		//		Node..CondExpr.Evaluate(this);
+		//		for(int i = 0; i < Node.Blocks.size(); i++) {
+		//			TypedNode Block = (TypedNode) Node.Blocks.get(i);
+		//			this.VisitList(Block);
+		//		}
+		//
+		//		int Size = Node.Labels.size();
+		//		String Exprs = "";
+		//		for(int i = 0; i < Size; i = i + 1) {
+		//			String Label = (String) Node.Labels.get(Size - i);
+		//			String Block = this.pop();
+		//			Exprs = "case " + Label + ":" + Block + Exprs;
+		//		}
+		//		String CondExpr = this.pop();
+		//		this.push("switch (" + CondExpr + ") {" + Exprs + "}");
 	}
 
 	public void VisitLoop(LoopNode Node) {
@@ -184,11 +186,11 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 
 	public void VisitTry(TryNode Node) {
 		this.VisitBlock(Node.TryBlock);
-//		for(int i = 0; i < Node.CatchBlock.size(); i++) {
-//			TypedNode Block = (TypedNode) Node.CatchBlock.get(i);
-//			TypedNode Exception = (TypedNode) Node.TargetException.get(i);
-//			this.VisitBlock(Block);
-//		}
+		//		for(int i = 0; i < Node.CatchBlock.size(); i++) {
+		//			TypedNode Block = (TypedNode) Node.CatchBlock.get(i);
+		//			TypedNode Exception = (TypedNode) Node.TargetException.get(i);
+		//			this.VisitBlock(Block);
+		//		}
 		this.VisitBlock(Node.FinallyBlock);
 
 		String FinallyBlock = this.PopCode();
@@ -221,6 +223,7 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 
 
 	// This must be extended in each language
+	@Override
 	public Object Eval(TypedNode Node) {
 		VisitBlock(Node);
 		return null;
