@@ -184,11 +184,11 @@ interface GtConst {
 	public static final int	CallParameterOffset		= 1;
 
 	// Method Decl;
-	public final static int	MethodDeclReturnType	= 0;
-	public final static int	MethodDeclClass		= 1;
-	public final static int	MethodDeclName		= 2;
-	public final static int	MethodDeclBlock		= 3;
-	public final static int	MethodDeclParam		= 4;
+	public final static int	FuncDeclReturnType	= 0;
+	public final static int	FuncDeclClass		= 1;
+	public final static int	FuncDeclName		= 2;
+	public final static int	FuncDeclBlock		= 3;
+	public final static int	FuncDeclParam		= 4;
 
 	// spec
 	public final static int TokenFuncSpec     = 0;
@@ -1836,7 +1836,7 @@ final class KonohaGrammar extends GtGrammar {
 			if(DeclTree != null) {
 				return DeclTree;
 			}
-			DeclTree = TokenContext.ParsePatternAfter(TypeTree, "$MethodDecl$", Optional);
+			DeclTree = TokenContext.ParsePatternAfter(TypeTree, "$FuncDecl$", Optional);
 			if(DeclTree != null) {
 				return DeclTree;
 			}
@@ -2196,18 +2196,18 @@ final class KonohaGrammar extends GtGrammar {
 		return Gamma.Generator.CreateReturnNode(Expr.Type, ParsedTree, Expr);
 	}
 
-	public static SyntaxTree ParseMethodDecl(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
+	public static SyntaxTree ParseFuncDecl(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
 		/*local*/SyntaxTree Tree = new SyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetToken(), null);
 		if(LeftTree == null) {
-			Tree.SetMatchedPatternAt(MethodDeclReturnType, TokenContext, "$Type$", Required);
+			Tree.SetMatchedPatternAt(FuncDeclReturnType, TokenContext, "$Type$", Required);
 		}
 		else {
-			Tree.SetSyntaxTreeAt(MethodDeclReturnType, LeftTree);
+			Tree.SetSyntaxTreeAt(FuncDeclReturnType, LeftTree);
 		}
-		Tree.SetMatchedPatternAt(MethodDeclClass, TokenContext, "$MethodClass$", Optional);
-		Tree.SetMatchedPatternAt(MethodDeclName, TokenContext, "$MethodName$", Required);
+//		Tree.SetMatchedPatternAt(FuncDeclClass, TokenContext, "$MethodClass$", Optional);
+		Tree.SetMatchedPatternAt(FuncDeclName, TokenContext, "$FuncName$", Required);
 		Tree.SetMatchedTokenAt(NoWhere, TokenContext, "(", Required);
-		/*local*/int ParamBase = MethodDeclParam;
+		/*local*/int ParamBase = FuncDeclParam;
 		while(!Tree.IsEmptyOrError() && !TokenContext.MatchToken(")")) {
 			Tree.SetMatchedPatternAt(ParamBase + VarDeclType, TokenContext, "$Type$", Required);
 			Tree.SetMatchedPatternAt(ParamBase + VarDeclName, TokenContext, "$Symbol$", Required);
@@ -2216,12 +2216,12 @@ final class KonohaGrammar extends GtGrammar {
 			}
 			ParamBase += 3;
 		}
-		Tree.SetMatchedPatternAt(MethodDeclBlock, TokenContext, "$Block$", Required);
+		Tree.SetMatchedPatternAt(FuncDeclBlock, TokenContext, "$Block$", Required);
 		return Tree;
 	}
 
-	public static TypedNode TypeMethodDecl(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
-		TODO("TypeMethodDecl");
+	public static TypedNode TypeFuncDecl(TypeEnv Gamma, SyntaxTree Tree, GtType Type) {
+		TODO("TypeFuncDecl");
 //		GtType AnyType = Tree.GetTokenType(VarDeclTypeOffset, null);
 //		GtToken VarToken = Tree.GetAtToken(VarDeclNameOffset);
 //		String VarName = Tree.GetTokenString(VarDeclNameOffset, null);
@@ -2291,7 +2291,7 @@ final class KonohaGrammar extends GtGrammar {
 		NameSpace.DefineSyntaxPattern("$Block$", FunctionB(this, "ParseBlock"), TypeBlock);
 		NameSpace.DefineSyntaxPattern("$Statement$", FunctionB(this, "ParseStatement"), TypeBlock);
 
-		NameSpace.DefineSyntaxPattern("$MethodDecl$", FunctionB(this, "ParseMethodDecl"), FunctionC(this, "TypeMethodDecl"));
+		NameSpace.DefineSyntaxPattern("$FuncDecl$", FunctionB(this, "ParseFuncDecl"), FunctionC(this, "TypeFuncDecl"));
 		NameSpace.DefineSyntaxPattern("$VarDecl$", FunctionB(this, "ParseVarDecl"), FunctionC(this, "TypeVarDecl"));
 		NameSpace.DefineSyntaxPattern("if", FunctionB(this, "ParseIf"), FunctionC(this, "TypeIf"));
 		NameSpace.DefineSyntaxPattern("return", FunctionB(this, "ParseReturn"), FunctionC(this, "ParseReturn"));

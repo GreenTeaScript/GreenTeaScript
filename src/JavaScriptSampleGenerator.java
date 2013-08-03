@@ -4,8 +4,6 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 
 	private boolean UseLetKeyword;
 
-
-
 	public void VisitDefineNode(DefineNode Node)  {
 		if(Node.DefInfo instanceof GtMethod) {
 			GtMethod Mtd = (GtMethod) Node.DefInfo;

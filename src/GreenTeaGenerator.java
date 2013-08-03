@@ -45,9 +45,11 @@ class TypedNode extends GtStatic {
 	public final boolean IsError() {
 		return (this instanceof ErrorNode);
 	}
+	
 	@Override public String toString() {
 		return "(TypedNode)";
 	}
+	
 	public static String Stringify(TypedNode Block) {
 		/*local*/String Text = Block.toString();
 		while(Block != null) {
@@ -874,7 +876,6 @@ public class GreenTeaGenerator extends GtStatic {
 	public void VisitErrorNode(ErrorNode Node) {
 		/*extension*/
 	}
-
 
 	public final void VisitBlock(TypedNode Node) {
 		/*local*/TypedNode CurrentNode = Node;
