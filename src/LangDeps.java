@@ -2,6 +2,7 @@
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 
 public abstract class LangDeps {
 
@@ -10,7 +11,9 @@ public abstract class LangDeps {
 	}
 
 	public static void DebugP(String msg) {
-		LangDeps.println("DEBUG" + LangDeps.GetStackInfo(2) + ": " + msg);
+		if(GtStatic.DebugPrintOption) {
+			LangDeps.println("DEBUG" + LangDeps.GetStackInfo(2) + ": " + msg);
+		}
 	}
 
 	public static String GetStackInfo(int depth){
@@ -27,15 +30,15 @@ public abstract class LangDeps {
 		}
 		return LineNumber;
 	}
-	
+
 	public final static boolean IsWhitespace(char ch) {
 		return Character.isWhitespace(ch);
 	}
-	
+
 	public final static boolean IsLetter(char ch) {
 		return Character.isLetter(ch);
 	}
-	
+
 	public final static boolean IsDigit(char ch) {
 		return Character.isDigit(ch);
 	}
@@ -47,7 +50,7 @@ public abstract class LangDeps {
 	public final static int ParseInt(String Text) {
 		return Integer.parseInt(Text);
 	}
-	
+
 	public final static Method LookupMethod(Object Callee, String MethodName) {
 		if(MethodName != null) {
 			// DebugP("looking up method : " + Callee.getClass().getSimpleName() + "." + MethodName);
@@ -60,6 +63,21 @@ public abstract class LangDeps {
 			DebugP("method not found: " + Callee.getClass().getSimpleName() + "." + MethodName);
 		}
 		return null; /*throw new GtParserException("method not found: " + callee.getClass().getName() + "." + methodName);*/
+	}
+	
+	public final static boolean EqualsMethod(Method m1, Method m2) {
+		if(m1 == null) {
+			return (m2 == null) ? true : false;
+		} else {
+			return (m2 == null) ? false : m1.equals(m2);
+		}
+	}
+	
+	public final static TokenFunc CreateOrReuseTokenFunc(GtDelegateToken f, TokenFunc prev) {
+		if(prev != null && EqualsMethod(prev.Func.Method, f.Method)) {
+			return prev;
+		}
+		return new TokenFunc(f, prev);
 	}
 
 	public final static int ApplyTokenFunc(Object Self, Method Method, Object TokenContext, String Text, int pos) {
@@ -109,6 +127,23 @@ public abstract class LangDeps {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	public final static GtType[] CompactTypeList(ArrayList<GtType> List) {
+		GtType[] Tuple = new GtType[List.size()];
+		for(int i = 0; i < List.size(); i++) {
+			Tuple[i] = List.get(i);
+		}
+		return Tuple;
+	}
+
+	public final static String[] CompactStringList(ArrayList<String> List) {
+		if(List == null) return null;
+		String[] Tuple = new String[List.size()];
+		for(int i = 0; i < List.size(); i++) {
+			Tuple[i] = List.get(i);
+		}
+		return Tuple;
 	}
 
 }
