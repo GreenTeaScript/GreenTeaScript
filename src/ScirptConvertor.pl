@@ -140,9 +140,9 @@ while ($line = <>)  {
 
 	if($UseTypeScript == 1) {
         	$line =~ s/\.add\((\w+)\)/.push($1)/g;
-		$line =~ s/GtFuncToken/(a :TokenContext, b :string, c :number) => number/g;
-		$line =~ s/GtFuncMatch/(a :SyntaxPattern, b :SyntaxTree, c :TokenContext) => SyntaxTree/g;
-		$line =~ s/GtFuncType/(a :TypeEnv, b: SyntaxTree, c: GtType) => TypedNode/g;
+		$line =~ s/GtDelegateToken/(a :TokenContext, b :string, c :number) => number/g;
+		$line =~ s/GtDelegateMatch/(a :SyntaxPattern, b :SyntaxTree, c :TokenContext) => SyntaxTree/g;
+		$line =~ s/GtDelegateType/(a :TypeEnv, b: SyntaxTree, c: GtType) => TypedNode/g;
 		$line =~ s/GtMap/any/g;
 		$line =~ s/\:String/:string/g;
 		$line =~ s/\<\<\:/extends/g;
