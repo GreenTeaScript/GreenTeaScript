@@ -79,9 +79,9 @@ public abstract class LangDeps {
 		return -1;
 	}
 
-	public final static Object ApplyMatchFunc(Object Self, Method Method, Object Pattern, Object LeftTree, Object TokenContext) {
+	public final static SyntaxTree ApplyMatchFunc(Object Self, Method Method, Object Pattern, Object LeftTree, Object TokenContext) {
 		try {
-			return Method.invoke(Self, Pattern, LeftTree, TokenContext);
+			return (SyntaxTree)Method.invoke(Self, Pattern, LeftTree, TokenContext);
 		}
 		catch (InvocationTargetException e) {
 			e.printStackTrace();
@@ -95,9 +95,9 @@ public abstract class LangDeps {
 		return null;
 	}
 
-	public final static Object ApplyTypeFunc(Object Self, Method Method, Object Gamma, Object ParsedTree, Object TypeInfo) {
+	public final static TypedNode ApplyTypeFunc(Object Self, Method Method, Object Gamma, Object ParsedTree, Object TypeInfo) {
 		try {
-			return Method.invoke(Self, Gamma, ParsedTree, TypeInfo);
+			return (TypedNode)Method.invoke(Self, Gamma, ParsedTree, TypeInfo);
 		}
 		catch (InvocationTargetException e) {
 			e.printStackTrace();
