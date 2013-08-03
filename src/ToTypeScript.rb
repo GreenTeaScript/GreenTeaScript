@@ -54,7 +54,7 @@ src.gsub!(/\bGtStatic\./, "");
 
 # Casts
 src.gsub!(/\((string|number)\)/o){"<#{$1}>"}
-src.gsub!(/\/\*cast\*\/\((#{$Type})\)/o){"<#{$1}>"}
+src.gsub!(/\(\/\*cast\*\/(#{$Type})\)/o){"<#{$1}>"}
 
 src.gsub!(/\bpublic class\b/, "class");
 puts src

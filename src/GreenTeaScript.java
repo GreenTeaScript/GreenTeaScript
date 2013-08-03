@@ -341,11 +341,7 @@ class GtStatic implements GtConst {
 		if(Symbol.startsWith("\\")) {
 			Mask = MetaSymbolMask;
 		}
-<<<<<<< HEAD
-		/*local*/Integer SymbolObject = (Integer)SymbolMap.get(Key);
-=======
-		Integer SymbolObject = (/*cast*/Integer)SymbolMap.get(Key);
->>>>>>> 6a70ee6d7e3aad2a78b75775eaf95d94393357ad
+		/*local*/Integer SymbolObject = (/*cast*/Integer)SymbolMap.get(Key);
 		if(SymbolObject == null) {
 			if(DefaultSymbolId == AllowNewId) {
 				/*local*/int SymbolId = SymbolList.size();
@@ -382,13 +378,8 @@ class GtStatic implements GtConst {
 
 	public final static int ApplyTokenFunc(TokenFunc TokenFunc, TokenContext TokenContext, String ScriptSource, int Pos) {
 		while(TokenFunc != null) {
-<<<<<<< HEAD
-			/*local*/GtFuncToken f = TokenFunc.Func;
-			/*local*/int NextIdx = LangDeps.ApplyTokenFunc(f.Self, f.Method, TokenContext, ScriptSource, Pos);
-=======
 			/*local*/GtDelegateToken f = TokenFunc.Func;
-			int NextIdx = LangDeps.ApplyTokenFunc(f.Self, f.Method, TokenContext, ScriptSource, Pos);
->>>>>>> 6a70ee6d7e3aad2a78b75775eaf95d94393357ad
+			/*local*/int NextIdx = LangDeps.ApplyTokenFunc(f.Self, f.Method, TokenContext, ScriptSource, Pos);
 			if(NextIdx > Pos) return NextIdx;
 			TokenFunc = TokenFunc.ParentFunc;
 		}
@@ -433,15 +424,10 @@ class GtStatic implements GtConst {
 			if(CurrentPattern.ParentPattern != null) {
 				TokenContext.ParseFlag = ParseFlag | TrackbackParseFlag;
 			}
-<<<<<<< HEAD
-			//DebugP("B ApplySyntaxPattern: " + CurrentPattern + " > " + CurrentPattern.ParentPattern);
-			/*local*/SyntaxTree ParsedTree = LangDeps.ApplyMatchFunc(f.Self, f.Method, CurrentPattern, LeftTree, TokenContext);
-=======
 			DebugP("B :" + Indent(TokenContext.IndentLevel) + CurrentPattern + ", next=" + CurrentPattern.ParentPattern);
 			TokenContext.IndentLevel += 1;
-			SyntaxTree ParsedTree = (SyntaxTree)LangDeps.ApplyMatchFunc(f.Self, f.Method, CurrentPattern, LeftTree, TokenContext);
+			/*local*/SyntaxTree ParsedTree = LangDeps.ApplyMatchFunc(f.Self, f.Method, CurrentPattern, LeftTree, TokenContext);
 			TokenContext.IndentLevel -= 1;
->>>>>>> 6a70ee6d7e3aad2a78b75775eaf95d94393357ad
 			if(ParsedTree != null && ParsedTree.IsEmpty()) ParsedTree = null;
 			DebugP("E :" + Indent(TokenContext.IndentLevel) + CurrentPattern + " => " + ParsedTree);
 			TokenContext.ParseFlag = ParseFlag;
@@ -476,7 +462,7 @@ class GtStatic implements GtConst {
 	public final static void TestSyntaxPattern(GtContext Context, String Text) {
 		/*local*/int TestLevel = TestTypeChecker;
 		/*local*/TokenContext TokenContext = new TokenContext(Context.DefaultNameSpace, Text, 1);
-		SyntaxTree ParsedTree = GtStatic.ParseExpression(TokenContext);
+		/*local*/SyntaxTree ParsedTree = GtStatic.ParseExpression(TokenContext);
 		assert(ParsedTree != null);
 		if((TestLevel & TestTypeChecker) == TestTypeChecker) {
 			/*local*/TypeEnv Gamma = new TypeEnv(Context.DefaultNameSpace, null);
@@ -985,15 +971,10 @@ class SyntaxTree extends GtStatic {
 
 	public void SetMatchedPatternAt(int Index, TokenContext TokenContext, String PatternName,  boolean IsOptional) {
 		if(!IsEmptyOrError()) {
-<<<<<<< HEAD
 			/*local*/SyntaxTree ParsedTree = TokenContext.ParsePattern(PatternName, IsOptional);
-			if(ParsedTree == null && !IsOptional) {
-=======
-			SyntaxTree ParsedTree = TokenContext.ParsePattern(PatternName, IsOptional);
 			if(ParsedTree != null) {
 				SetSyntaxTreeAt(Index, ParsedTree);
 			} else if(ParsedTree == null && !IsOptional) {
->>>>>>> 6a70ee6d7e3aad2a78b75775eaf95d94393357ad
 				ToEmpty();
 			}
 		}
@@ -1112,15 +1093,15 @@ final class GtLayer extends GtStatic {
 	}
 	
 	public final GtMethod LookupMethod(GtType Class, String Name) {
-		String Id = Class.GetMethodId(Name);
-		GtMethod Method = (/*cast*/GtMethod)this.MethodTable.get(Id);
+		/*local*/String Id = Class.GetMethodId(Name);
+		/*local*/GtMethod Method = (/*cast*/GtMethod)this.MethodTable.get(Id);
 		return Method;
 	}
 
 	public final void DefineMethod(GtMethod Method) {
-		GtType Class = Method.GetRecvType();
-		String Id = Class.GetMethodId(Method.MethodName);
-		GtMethod MethodPrev = (/*cast*/GtMethod)this.MethodTable.get(Id);
+		/*local*/GtType Class = Method.GetRecvType();
+		/*local*/String Id = Class.GetMethodId(Method.MethodName);
+		/*local*/GtMethod MethodPrev = (/*cast*/GtMethod)this.MethodTable.get(Id);
 		Method.ElderMethod = MethodPrev;
 		assert(Method.Layer == null);
 		Method.Layer = this;
@@ -1163,7 +1144,7 @@ class GtParam extends GtStatic {
 		/*local*/int i = 0;
 		while(i + 1 < ParamSize) {
 			/*local*/GtType ParamType = this.Types.get(i+1);
-			GtType GivenType = ParamList.get(i);
+			/*local*/GtType GivenType = ParamList.get(i);
 			//if(!ParamType.Match(GivenType)) {}
 			if(!ParamType.equals(GivenType)) { //FIXME replace Type.equals => GtType.Match
 				return false;
@@ -1220,15 +1201,6 @@ class GtMethod extends GtDef {
 	}
 	
 	public final GtType GetReturnType() {
-<<<<<<< HEAD
-		/*local*/GtType ReturnType = this.Param.TypeList.get(0);
-		return ReturnType;
-	}
-
-	public final GtType GetParamType(int ParamIdx) {
-		/*local*/GtType ParamType = this.Param.TypeList.get(0);
-		return ParamType;
-=======
 		return this.Types[0];
 	}
 
@@ -1242,7 +1214,6 @@ class GtMethod extends GtDef {
 
 	public final GtType GetParamType(int ParamIdx) {
 		return this.Types[ParamIdx+1];
->>>>>>> 6a70ee6d7e3aad2a78b75775eaf95d94393357ad
 	}
 }
 
@@ -1510,21 +1481,13 @@ final class GtNameSpace extends GtStatic {
 		while(i < GtStatic.ListSize(NameSpace.PublicSpecList)) {
 			/*local*/GtSpec Spec = NameSpace.PublicSpecList.get(i);
 			if(Spec.SpecType == TokenFuncSpec) {
-			/*local*/int j = 0;
-<<<<<<< HEAD
-			while(j < Spec.SpecKey.length()) {
-				/*local*/int kchar = GtStatic.FromJavaChar(Spec.SpecKey.charAt(j));
-				/*local*/GtFuncToken Func = /*cast*/(GtFuncToken)Spec.SpecBody;
-				this.TokenMatrix[kchar] = GtStatic.CreateOrReuseTokenFunc(Func, this.TokenMatrix[kchar]);
-				j += 1;
-=======
+				/*local*/int j = 0;
 				while(j < Spec.SpecKey.length()) {
-					int kchar = GtStatic.FromJavaChar(Spec.SpecKey.charAt(j));
-					GtDelegateToken Func = (GtDelegateToken)Spec.SpecBody;
+					/*local*/int kchar = GtStatic.FromJavaChar(Spec.SpecKey.charAt(j));
+					/*local*/GtDelegateToken Func = (/*cast*/GtDelegateToken)Spec.SpecBody;
 					this.TokenMatrix[kchar] = LangDeps.CreateOrReuseTokenFunc(Func, this.TokenMatrix[kchar]);
 					j += 1;
 				}
->>>>>>> 6a70ee6d7e3aad2a78b75775eaf95d94393357ad
 			}
 			i += 1;
 		}
@@ -1561,11 +1524,7 @@ final class GtNameSpace extends GtStatic {
 		if(Body instanceof SyntaxPattern) {
 			/*local*/Object Parent = Table.get(Spec.SpecKey);
 			if(Parent instanceof SyntaxPattern) {
-<<<<<<< HEAD
-				Body = GtStatic.MergeSyntaxPattern(/*cast*/(SyntaxPattern)Body, /*cast*/(SyntaxPattern)Parent);
-=======
 				Body = GtStatic.MergeSyntaxPattern((/*cast*/SyntaxPattern)Body, (/*cast*/SyntaxPattern)Parent);
->>>>>>> 6a70ee6d7e3aad2a78b75775eaf95d94393357ad
 			}
 		}
 		Table.put(Spec.SpecKey, Body);
@@ -1574,11 +1533,7 @@ final class GtNameSpace extends GtStatic {
 	private void RemakeSymbolTableEach(GtNameSpace NameSpace, ArrayList<GtSpec> SpecList) {
 		/*local*/int i = 0;
 		while(i < ListSize(SpecList)) {
-<<<<<<< HEAD
-			/*local*/GtSpec Spec = /*cast*/(GtSpec)SpecList.get(i);
-=======
 			/*local*/GtSpec Spec = SpecList.get(i);
->>>>>>> 6a70ee6d7e3aad2a78b75775eaf95d94393357ad
 			if(Spec.SpecType == SymbolPatternSpec) {
 				this.TableAddSpec(this.SymbolPatternTable, Spec);
 			}
@@ -1597,11 +1552,7 @@ final class GtNameSpace extends GtStatic {
 		this.RemakeSymbolTableEach(NameSpace, NameSpace.PrivateSpecList);
 		/*local*/int i = 0;
 		while(i < GtStatic.ListSize(NameSpace.ImportedNameSpaceList)) {
-<<<<<<< HEAD
 			/*local*/GtNameSpace Imported = NameSpace.ImportedNameSpaceList.get(i);
-=======
-			GtNameSpace Imported = NameSpace.ImportedNameSpaceList.get(i);
->>>>>>> 6a70ee6d7e3aad2a78b75775eaf95d94393357ad
 			this.RemakeSymbolTableEach(Imported, Imported.PublicSpecList);
 			i += 1;
 		}
@@ -1618,11 +1569,7 @@ final class GtNameSpace extends GtStatic {
 
 	public SyntaxPattern GetPattern(String PatternName) {
 		/*local*/Object Body = this.GetSymbol(PatternName);
-<<<<<<< HEAD
-		return (Body instanceof SyntaxPattern) ? /*cast*/(SyntaxPattern)Body : null;
-=======
 		return (Body instanceof SyntaxPattern) ? (/*cast*/SyntaxPattern)Body : null;
->>>>>>> 6a70ee6d7e3aad2a78b75775eaf95d94393357ad
 	}
 
 	public SyntaxPattern GetExtendedPattern(String PatternName) {
@@ -1632,11 +1579,7 @@ final class GtNameSpace extends GtStatic {
 			this.RemakeSymbolTable(this);
 		}
 		/*local*/Object Body = this.ExtendedPatternTable.get(PatternName);
-<<<<<<< HEAD
-		return (Body instanceof SyntaxPattern) ? /*cast*/(SyntaxPattern)Body : null;
-=======
 		return (Body instanceof SyntaxPattern) ? (/*cast*/SyntaxPattern)Body : null;
->>>>>>> 6a70ee6d7e3aad2a78b75775eaf95d94393357ad
 	}
 
 	public void DefineSymbol(String Key, Object Value) {
@@ -1703,7 +1646,7 @@ final class GtNameSpace extends GtStatic {
 			GlobalObject = this.CreateGlobalObject(SingletonClass, "global");
 			this.DefinePrivateSymbol(GlobalConstName, GlobalObject);
 		}
-		return /*cast*/(GtObject) GlobalObject;
+		return (/*cast*/GtObject) GlobalObject;
 	}
 
 	public void ImportNameSpace(GtNameSpace ImportedNameSpace) {
@@ -1721,11 +1664,7 @@ final class GtNameSpace extends GtStatic {
 		DebugP("Eval: " + ScriptSource);
 		/*local*/TokenContext TokenContext = new TokenContext(this, ScriptSource, FileLine);
 		while(TokenContext.HasNext()) {
-<<<<<<< HEAD
-			/*local*/SyntaxTree Tree = GtStatic.ParseSyntaxTree(null, TokenContext);
-=======
-			SyntaxTree Tree = GtStatic.ParseExpression(TokenContext);
->>>>>>> 6a70ee6d7e3aad2a78b75775eaf95d94393357ad
+			/*local*/SyntaxTree Tree = GtStatic.ParseExpression(TokenContext);
 			DebugP("untyped tree: " + Tree);
 			/*local*/TypeEnv Gamma = new TypeEnv(this, null);
 			/*local*/TypedNode Node = Gamma.TypeCheckEachNode(Tree, Gamma.VoidType, DefaultTypeCheckPolicy);
@@ -1822,19 +1761,11 @@ final class KonohaGrammar extends GtGrammar {
 		return pos;
 	}
 
-<<<<<<< HEAD
-	public static int MemberToken(TokenContext TokenContext, String SourceText, int pos) {
-		/*local*/int start = pos + 1;
-		while(pos < SourceText.length()) {
-			/*local*/char ch = SourceText.charAt(pos);
-			if(!LangDeps.IsLetter(ch) && !LangDeps.IsDigit(ch) && ch != '_') {
-=======
 	public static int OperatorToken(TokenContext TokenContext, String SourceText, int pos) {
 		/*local*/int NextPos = pos + 1;
 		while(NextPos < SourceText.length()) {
 			/*local*/char ch = SourceText.charAt(NextPos);
 			if(LangDeps.IsWhitespace(ch) || LangDeps.IsLetter(ch) || LangDeps.IsDigit(ch)) {
->>>>>>> 6a70ee6d7e3aad2a78b75775eaf95d94393357ad
 				break;
 			}
 			/*local*/String Sub = SourceText.substring(pos, pos + 1);
@@ -1910,7 +1841,7 @@ final class KonohaGrammar extends GtGrammar {
 		}
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/GtNameSpace NameSpace = TokenContext.NameSpace;
-		Object ConstValue = NameSpace.GetSymbol(Token.ParsedText);
+		/*local*/Object ConstValue = NameSpace.GetSymbol(Token.ParsedText);
 		if(!(ConstValue instanceof GtType)) {
 			return new SyntaxTree(NameSpace.GetPattern("$Const$"), NameSpace, Token, ConstValue);
 		}
@@ -1932,15 +1863,9 @@ final class KonohaGrammar extends GtGrammar {
 		if(VariableInfo != null) {
 			return Gamma.Generator.CreateLocalNode(Type, ParsedTree, VariableInfo.LocalName);
 		}
-<<<<<<< HEAD
-		/*local*/Object Value = Gamma.GammaNameSpace.GetSymbol(Key);  // const value
-		if(Value != null) {
-			return Gamma.Generator.CreateConstNode(Gamma.GuessType(Value), ParsedTree, Value);
-=======
-		GtDelegate Delegate = Gamma.LookupDelegate(Name);
+		/*local*/GtDelegate Delegate = Gamma.LookupDelegate(Name);
 		if(Delegate != null) {
 			return Gamma.Generator.CreateConstNode(Delegate.Type, ParsedTree, Delegate);
->>>>>>> 6a70ee6d7e3aad2a78b75775eaf95d94393357ad
 		}
 		return Gamma.CreateErrorNode(ParsedTree, "undefined name: " + Name);
 	}
@@ -1973,7 +1898,7 @@ final class KonohaGrammar extends GtGrammar {
 		/*local*/SyntaxTree TypeTree = ParsedTree.GetSyntaxTreeAt(VarDeclType);
 		/*local*/SyntaxTree NameTree = ParsedTree.GetSyntaxTreeAt(VarDeclName);
 		/*local*/SyntaxTree ValueTree = ParsedTree.GetSyntaxTreeAt(VarDeclValue);
-		/*local*/GtType DeclType = /*cast*/(GtType)TypeTree.ConstValue;
+		/*local*/GtType DeclType = (/*cast*/GtType)TypeTree.ConstValue;
 		/*local*/String VariableName = NameTree.KeyToken.ParsedText;
 		if(!Gamma.AppendDeclaredVariable(DeclType, VariableName)) {
 			Gamma.CreateErrorNode(TypeTree, "already defined variable " + VariableName);
@@ -2348,24 +2273,7 @@ final class KonohaGrammar extends GtGrammar {
 		NameSpace.DefineExtendedPattern("&&", BinaryOperator | Precedence_CStyleAND, ParseBinary, FunctionC(this, "TypeAnd"));
 		NameSpace.DefineExtendedPattern("||", BinaryOperator | Precedence_CStyleOR, ParseBinary, FunctionC(this, "TypeOr"));
 		
-<<<<<<< HEAD
-		//NameSpace.DefineSyntaxPattern(";", Precedence_CStyleDelim, this, null, null);
-		//NameSpace.DefineSyntaxPattern("$Const", Term, this, "Const");
-		//NameSpace.DefineSyntaxPattern("$Symbol", Term, this, "Symbol");
-		//NameSpace.DefineSyntaxPattern("$Symbol", Term, this, "MethodCall");
-
-		//NameSpace.DefineSyntaxPattern("$MethodCall", Precedence_CStyleSuffixCall, this, "MethodCall");
-		//NameSpace.DefineSyntaxPattern("$Member", Precedence_CStyleSuffixCall, this, "Member");
-		//NameSpace.DefineSyntaxPattern("$New", Term, this, "New");
-
-		//NameSpace.DefineSyntaxPattern("()", Term | Precedence_CStyleSuffixCall, this, "UNUSED");
-		//NameSpace.DefineSyntaxPattern("{}", 0, this, "UNUSED");
-		/*local*/GtFuncTypeCheck TypeConst = FunctionC(this, "TypeConst");
-		
-		NameSpace.DefineSyntaxPattern("$Symbol$", FunctionB(this, "ParseSymbol"), FunctionC(this, "TypeVariable"));
-=======
 		NameSpace.DefineSyntaxPattern("$Symbol$", FunctionB(this, "ParseSymbol"), null);
->>>>>>> 6a70ee6d7e3aad2a78b75775eaf95d94393357ad
 		NameSpace.DefineSyntaxPattern("$Type$", FunctionB(this, "ParseType"), TypeConst);
 		NameSpace.DefineSyntaxPattern("$Variable$", FunctionB(this, "ParseVariable"), FunctionC(this, "ParseVariable"));
 		NameSpace.DefineSyntaxPattern("$Const$", FunctionB(this, "ParseConst"), TypeConst);
