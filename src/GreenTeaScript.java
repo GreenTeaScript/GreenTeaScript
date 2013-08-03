@@ -108,7 +108,7 @@ interface GtConst {
 	public final static int[]	CharMatrix = /*BeginArray*/{ 
 			/*nul soh stx etx eot enq ack bel*/
 			0, 1, 1, 1, 1, 1, 1, 1,
-			/*bs ht nl vt np cr so si */
+			/*bs ht nl vt np cr so si  */
 			1, TabChar, NewLineChar, 1, 1, 1, 1, 1,
 			/*020 dle  021 dc1  022 dc2  023 dc3  024 dc4  025 nak  026 syn  027 etb */
 			1, 1, 1, 1, 1, 1, 1, 1,
@@ -222,18 +222,11 @@ interface GtConst {
 
 	
 	public final static int DefaultTypeCheckPolicy			= 0;
-	public final static int     IgnoreEmptyPolicy               = 1;
-	public final static int     AllowEmptyPolicy                = (1 << 1);
-
-	//typedef enum {
-	//	TypeCheckPolicy_NoPolicy       = 0,
-	//	TypeCheckPolicy_NoCheck        = (1 << 0),
-	//	TypeCheckPolicy_AllowVoid      = (1 << 1),
-	//	TypeCheckPolicy_Coercion       = (1 << 2),
-	//	TypeCheckPolicy_AllowEmpty     = (1 << 3),
-	//	TypeCheckPolicy_CONST          = (1 << 4),  /* Reserved */
-	//	TypeCheckPolicy_Creation       = (1 << 6)   /* TypeCheckNodeByName */
-	//} TypeCheckPolicy;
+	public final static int NoCheckPolicy                   = 1;
+	public final static int     IgnoreEmptyPolicy           = (1 << 1);
+	public final static int     AllowEmptyPolicy            = (1 << 2);
+	public final static int AllowVoidPolicy                 = (1 << 3);
+	public final static int AllowCoercionPolicy             = (1 << 4);
 
 	public final static String	GlobalConstName					= "global";
 
@@ -241,6 +234,7 @@ interface GtConst {
 	public final static GtMap   SymbolMap  = new GtMap();
 
 	public final static GtMethod AnyGetter = null;
+
 	// debug flags
 	public static final boolean	UseBuiltInTest	= true;
 	public static final boolean	DebugPrintOption = true;
@@ -256,7 +250,6 @@ interface GtConst {
 
 class GtStatic implements GtConst {
 //endif VAJA
-
 	public static void println(String msg) {
 		LangDeps.println(msg);
 	}
