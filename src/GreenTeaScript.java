@@ -106,8 +106,10 @@ interface GtConst {
 	public final static int MaxSizeOfChars          = 41;
 
 	public final static int[]	CharMatrix = /*BeginArray*/{ 
-			0/*nul*/, 1/*soh*/, 1/*stx*/, 1/*etx*/, 1/*eot*/, 1/*enq*/,
-			1/*ack*/, 1/*bel*/, 1/*bs*/, TabChar/*ht*/, NewLineChar/*nl*/, 1/*vt*/, 1/*np*/, 1/*cr*/, 1/*so*/, 1/*si*/,
+			/*nul soh stx etx eot enq ack bel*/
+			0, 1, 1, 1, 1, 1, 1, 1,
+			/*bs ht nl vt np cr so si */
+			1, TabChar, NewLineChar, 1, 1, 1, 1, 1,
 			/*020 dle  021 dc1  022 dc2  023 dc3  024 dc4  025 nak  026 syn  027 etb */
 			1, 1, 1, 1, 1, 1, 1, 1,
 			/*030 can  031 em   032 sub  033 esc  034 fs   035 gs   036 rs   037 us */
@@ -2362,9 +2364,12 @@ public class GreenTeaScript {
 
 	public static void main(String[] argc) {
 		GtContext GtContext = new GtContext(new KonohaGrammar(), new GreenTeaGenerator());
-		//GtContext.Eval("int f(int a, int b) { return a + b; }", 0);
-		//GtContext.Eval("1 + 2 * 3", 0);
+//		//GtContext.Eval("int f(int a, int b) { return a + b; }", 0);
+//		//GtContext.Eval("1 + 2 * 3", 0);
 		TestAll(GtContext);
+		
+//		GtContext GtContext = new GtContext(new KonohaGrammar(), new JavaByteCodeGenerator());
+//		System.err.println("## Eval value: " + GtContext.Eval("1", 0));
 	}
 
 }
