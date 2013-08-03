@@ -461,13 +461,17 @@ class GtStatic implements GtConst {
 	
 	public final static void TestSyntaxPattern(GtContext Context, String Text) {
 		/*local*/int TestLevel = TestTypeChecker;
-		/*local*/TokenContext TokenContext = new TokenContext(Context.DefaultNameSpace, Text, 1);
+		/*local*/GtNameSpace NameSpace = Context.DefaultNameSpace;
+		/*local*/TokenContext TokenContext = new TokenContext(NameSpace, Text, 1);
 		/*local*/SyntaxTree ParsedTree = GtStatic.ParseExpression(TokenContext);
 		assert(ParsedTree != null);
-		if((TestLevel & TestTypeChecker) == TestTypeChecker) {
-			/*local*/TypeEnv Gamma = new TypeEnv(Context.DefaultNameSpace, null);
-			/*local*/TypedNode TNode = Gamma.TypeCheck(ParsedTree, Gamma.AnyType, DefaultTypeCheckPolicy);
-			System.out.println(TNode.toString());
+		if((TestLevel & TestTypeChecker) != TestTypeChecker) {
+			return;
+		}
+		/*local*/TypeEnv Gamma = new TypeEnv(NameSpace, null);
+		/*local*/TypedNode TNode = Gamma.TypeCheck(ParsedTree, Gamma.AnyType, DefaultTypeCheckPolicy);
+		System.out.println(TNode.toString());
+		if((TestLevel & TestCodeGeneration) == TestCodeGeneration) {
 		}
 	}
 	
