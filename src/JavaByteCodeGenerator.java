@@ -448,18 +448,13 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 	private JVMBuilder Builder;
 	private final NativeMethodMap NMMap;
 
-	public JavaByteCodeGenerator() {
+	public JavaByteCodeGenerator(String LangName) {
+		super(LangName);
 		super("Java");
 		this.TypeResolver = new TypeResolver();
 		this.NMMap = new NativeMethodMap();
 	}
 
-	public void VisitList(TypedNode Node) {
-		while(Node != null) {
-			Node.Evaluate(this);
-			Node = Node.NextNode;
-		}
-	}
 	public void OutputClassFile(String className, String dir) throws IOException {
 		byte[] ba = this.generateBytecode(className);
 		File file = new File(dir, className + ".class");
@@ -507,13 +502,22 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 
 	@Override
 	public Object Eval(TypedNode Node) {
-		GtNameSpace NameSpace = Node.Type.PackageNameSpace;
+		GtNameSpace NameSpace = Node.Type.PackageNameSpace;	//FIXME: PackageNameSpace
 		GtObject GlobalObject = NameSpace.GetGlobalObject();
 
 		GtMethodInvoker Invoker = this.Compile(NameSpace, Node, null);
 		Object[] Args = new Object[1];
 		Args[0] = GlobalObject;
 		return Invoker.Invoke(Args);
+	}
+	
+	@Override
+	public void DefineFunction(GtMethod Method, ArrayList<String> NameList, TypedNode Body) {
+		if(NMMap.Exist(Method)) {
+			return;
+		}
+		//FIXME PackageNameSpace
+		NMMap.PutMethodInvoker(Method, this.Build(Body.Type.PackageNameSpace, Body, Method));
 	}
 
 	public GtMethodInvoker Compile(GtNameSpace NameSpace, TypedNode Block, GtMethod MethodInfo) {
@@ -577,7 +581,7 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 			}
 		}
 		if(Block != null) {
-			VisitList(Block.MoveHeadNode());
+			VisitBlock(Block.MoveHeadNode());
 		}
 		if(is_eval) {
 			visitBoxingAndReturn();
@@ -635,18 +639,18 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 	}
 
 	@Override
-	public void VisitDefineNode(DefineNode Node) {
+	public void VisitDefineNode(DefineNode Node) {	//FIXME
 		if(Node.DefInfo instanceof GtClass) {
 			GtClass c = (GtClass) Node.DefInfo;
 			c.MakeDefinition(this.Builder.NameSpace);
 		} else if(Node.DefInfo instanceof GtMethod) {
-			GtMethod m = (GtMethod) Node.DefInfo;
-			//			m.DoCompilation();	//
-			SyntaxTree ParsedTree = null;	//FIXME: Method Body Tree is needed
-			if(NMMap.Exist(m)) {
-				return;
-			}
-			NMMap.PutMethodInvoker(m, CompileMethod(Builder.NameSpace, ParsedTree, m));
+//			GtMethod m = (GtMethod) Node.DefInfo;
+//			//			m.DoCompilation();	//
+//			SyntaxTree ParsedTree = null;	//FIXME: Method Body Tree is needed
+//			if(NMMap.Exist(m)) {
+//				return;
+//			}
+//			NMMap.PutMethodInvoker(m, CompileMethod(Builder.NameSpace, ParsedTree, m));
 		}
 	}
 
@@ -768,7 +772,7 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 		Local local = this.Builder.AddLocal(Node.Type, Node.Token.ParsedText);
 		Node.VarNode.Evaluate(this);
 		this.Builder.StoreLocal(local);
-		this.VisitList(Node.BlockNode);
+		this.VisitBlock(Node.BlockNode);
 	}
 
 	@Override
@@ -802,7 +806,7 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 		//		Node.CondExpr.Evaluate(this);
 		//		for(int i = 0; i < Node.Blocks.size(); i++) {
 		//			TypedNode Block = (TypedNode) Node.Blocks.get(i);
-		//			this.VisitList(Block);
+		//			this.VisitBlock(Block);
 		//		}
 	}
 
@@ -821,7 +825,7 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 		this.Builder.typeStack.pop();
 		mv.visitInsn(ICONST_1); // true
 		mv.visitJumpInsn(IF_ICMPNE, END); // condition
-		this.VisitList(Node.LoopBody);
+		this.VisitBlock(Node.LoopBody);
 		if(Node.IterExpr != null) {
 			Node.IterExpr.Evaluate(this);
 		}
@@ -884,7 +888,7 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 		//
 		//		// try block
 		//		mv.visitLabel(beginTryLabel);
-		//		this.VisitList(Node.TryBlock);
+		//		this.VisitBlock(Node.TryBlock);
 		//		mv.visitLabel(endTryLabel);
 		//		mv.visitJumpInsn(GOTO, finallyLabel);
 		//
@@ -893,13 +897,13 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 		//			TypedNode Block = (TypedNode) Node.CatchBlock.get(i);
 		//			TypedNode Exception = (TypedNode) Node.TargetException.get(i);
 		//			mv.visitLabel(catchLabel[i]);
-		//			this.VisitList(Block);
+		//			this.VisitBlock(Block);
 		//			mv.visitJumpInsn(GOTO, finallyLabel);
 		//		}
 		//
 		//		// finally block
 		//		mv.visitLabel(finallyLabel);
-		//		this.VisitList(Node.FinallyBlock);
+		//		this.VisitBlock(Node.FinallyBlock);
 	}
 
 	@Override
