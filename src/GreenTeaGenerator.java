@@ -113,7 +113,7 @@ class AndNode extends TypedNode {
 		Visitor.VisitAndNode(this);
 	}
 	@Override public String toString() {
-		return "(And:" + this.Type + " " + Stringify(LeftNode) + ", " + Stringify(RightNode) + ")";
+		return "(And:" + this.Type + " " + TypedNode.Stringify(this.LeftNode) + ", " + TypedNode.Stringify(this.RightNode) + ")";
 	}
 }
 
@@ -129,7 +129,7 @@ class OrNode extends TypedNode {
 		Visitor.VisitOrNode(this);
 	}
 	@Override public String toString() {
-		return "(Or:" + this.Type + " " + Stringify(LeftNode) + ", " + Stringify(RightNode) + ")";
+		return "(Or:" + this.Type + " " + TypedNode.Stringify(this.LeftNode) + ", " + TypedNode.Stringify(this.RightNode) + ")";
 	}
 }
 
@@ -145,7 +145,7 @@ class GetterNode extends TypedNode {
 		Visitor.VisitGetterNode(this);
 	}
 	@Override public String toString() {
-		return "(Getter:" + this.Type + " " + Stringify(Expr) + ", " + Method.MethodName + ")";
+		return "(Getter:" + this.Type + " " + TypedNode.Stringify(this.Expr) + ", " + Method.MethodName + ")";
 	}
 }
 
@@ -163,7 +163,7 @@ class IndexerNode extends TypedNode {
 		Visitor.VisitIndexerNode(this);
 	}
 	@Override public String toString() {
-		return "(Index:" + this.Type + " " + Stringify(Expr) + ", " + Stringify(Indexer) + ")";
+		return "(Index:" + this.Type + " " + TypedNode.Stringify(this.Expr) + ", " + TypedNode.Stringify(this.Indexer) + ")";
 	}
 }
 
@@ -179,7 +179,7 @@ class AssignNode extends TypedNode {
 		Visitor.VisitAssignNode(this);
 	}
 	@Override public String toString() {
-		return "(Assign:" + this.Type + " " + Stringify(LeftNode) + " = " + Stringify(RightNode) + ")";
+		return "(Assign:" + this.Type + " " + TypedNode.Stringify(this.LeftNode) + " = " + TypedNode.Stringify(this.RightNode) + ")";
 	}
 }
 
@@ -238,8 +238,8 @@ class LetNode extends TypedNode {
 		Visitor.VisitLetNode(this);
 	}
 	@Override public String toString() {
-		/*local*/String Block = Stringify(BlockNode);
-		return "(Let:" + this.Type + " " + Stringify(VarNode) + " in {" + Block + "})";
+		/*local*/String Block = TypedNode.Stringify(this.BlockNode);
+		return "(Let:" + this.Type + " " + TypedNode.Stringify(this.VarNode) + " in {" + Block + "})";
 	}
 }
 
@@ -265,7 +265,7 @@ class ApplyNode extends TypedNode {
 			if(i != 0) {
 				Param += ", ";
 			}
-			Param += Stringify(Node);
+			Param += TypedNode.Stringify(Node);
 		}
 		return "(Apply:" + this.Type + " " + Param + ")";
 	}
@@ -293,7 +293,7 @@ class MessageNode extends TypedNode {
 			if(i != 0) {
 				Param += ", ";
 			}
-			Param += Stringify(Node);
+			Param += TypedNode.Stringify(Node);
 		}
 		return "(Message:" + this.Type + " " + Param + ")";
 	}
@@ -318,7 +318,7 @@ class NewNode extends TypedNode {
 			if(i != 0) {
 				Param += ", ";
 			}
-			Param += Stringify(Node);
+			Param += TypedNode.Stringify(Node);
 		}
 		return "(New:" + this.Type + " " + Param + ")";
 	}
@@ -339,9 +339,9 @@ class IfNode extends TypedNode {
 		Visitor.VisitIfNode(this);
 	}
 	@Override public String toString() {
-		/*local*/String Cond = Stringify(CondExpr);
-		/*local*/String Then = Stringify(ThenNode);
-		/*local*/String Else = Stringify(ElseNode);
+		/*local*/String Cond = TypedNode.Stringify(this.CondExpr);
+		/*local*/String Then = TypedNode.Stringify(this.ThenNode);
+		/*local*/String Else = TypedNode.Stringify(this.ElseNode);
 		return "(If:" + this.Type + " Cond:" + Cond + " Then:"+ Then + " Else:" + Else + ")";
 	}
 }
@@ -358,8 +358,8 @@ class WhileNode extends TypedNode {
 		Visitor.VisitWhileNode(this);
 	}
 	@Override public String toString() {
-		/*local*/String Cond = Stringify(CondExpr);
-		/*local*/String Body = Stringify(LoopBody);
+		/*local*/String Cond = TypedNode.Stringify(this.CondExpr);
+		/*local*/String Body = TypedNode.Stringify(this.LoopBody);
 		return "(While:" + this.Type + " Cond:" + Cond + " Body:"+ Body + ")";
 	}
 }
@@ -376,8 +376,8 @@ class DoWhileNode extends TypedNode {
 		Visitor.VisitDoWhileNode(this);
 	}
 	@Override public String toString() {
-		/*local*/String Cond = Stringify(CondExpr);
-		/*local*/String Body = Stringify(LoopBody);
+		/*local*/String Cond = TypedNode.Stringify(this.CondExpr);
+		/*local*/String Body = TypedNode.Stringify(this.LoopBody);
 		return "(DoWhile:" + this.Type + " Cond:" + Cond + " Body:"+ Body + ")";
 	}
 }
@@ -396,9 +396,9 @@ class ForNode extends TypedNode {
 		Visitor.VisitForNode(this);
 	}
 	@Override public String toString() {
-		/*local*/String Cond = Stringify(CondExpr);
-		/*local*/String Body = Stringify(LoopBody);
-		/*local*/String Iter = Stringify(IterExpr);
+		/*local*/String Cond = TypedNode.Stringify(this.CondExpr);
+		/*local*/String Body = TypedNode.Stringify(this.LoopBody);
+		/*local*/String Iter = TypedNode.Stringify(this.IterExpr);
 		return "(For:" + this.Type + " Cond:" + Cond + " Body:"+ Body + " Iter:" + Iter + ")";
 	}
 }
@@ -418,10 +418,10 @@ class ForEachNode extends TypedNode {
 		Visitor.VisitForEachNode(this);
 	}
 	@Override public String toString() {
-		/*local*/String Cond = Stringify(CondExpr);
-		/*local*/String Var = Stringify(Variable);
-		/*local*/String Body = Stringify(LoopBody);
-		/*local*/String Iter = Stringify(IterExpr);
+		/*local*/String Cond = TypedNode.Stringify(this.CondExpr);
+		/*local*/String Var = TypedNode.Stringify(this.Variable);
+		/*local*/String Body = TypedNode.Stringify(this.LoopBody);
+		/*local*/String Iter = TypedNode.Stringify(this.IterExpr);
 		return "(Foreach:" + this.Type + " Var:" + Var + " Cond:" + Cond + " Body:"+ Body + " Iter:" + Iter + ")";
 	}
 }
@@ -440,8 +440,8 @@ class LoopNode extends TypedNode {
 		Visitor.VisitLoopNode(this);
 	}
 	@Override public String toString() {
-		/*local*/String Cond = Stringify(CondExpr);
-		/*local*/String Body = Stringify(LoopBody);
+		/*local*/String Cond = TypedNode.Stringify(this.CondExpr);
+		/*local*/String Body = TypedNode.Stringify(this.LoopBody);
 		return "(Loop:" + this.Type + " Cond:" + Cond + " Body:"+ Body + ")";
 	}
 }
@@ -514,7 +514,7 @@ class ReturnNode extends TypedNode {
 	@Override public String toString() {
 		/*local*/String Text = "";
 		if(Text != null) {
-			Text = Stringify(Expr);
+			Text = TypedNode.Stringify(this.Expr);
 		}
 		return "(Return:" + this.Type + " " + Text + ")";
 	}
@@ -530,7 +530,7 @@ class ThrowNode extends TypedNode {
 		Visitor.VisitThrowNode(this);
 	}
 	@Override public String toString() {
-		return "(Throw:" + this.Type + " " + Stringify(Expr) + ")";
+		return "(Throw:" + this.Type + " " + TypedNode.Stringify(this.Expr) + ")";
 	}
 }
 
@@ -552,7 +552,7 @@ class TryNode extends TypedNode {
 		Visitor.VisitTryNode(this);
 	}
 	@Override public String toString() {
-		/*local*/String TryBlock = Stringify(this.TryBlock);
+		/*local*/String TryBlock = TypedNode.Stringify(this.TryBlock);
 		return "(Try:" + this.Type + " " + TryBlock + ")";
 	}
 }
