@@ -483,7 +483,7 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 	}
 
 	private GtMethodInvoker CompileMethod(GtNameSpace NameSpace, SyntaxTree ParsedTree, GtMethod Method) {
-		TypeEnv Gamma = new TypeEnv(NameSpace, null);
+		TypeEnv Gamma = new TypeEnv(NameSpace);
 		TypedNode Node = Gamma.TypeCheckEachNode(ParsedTree, Gamma.VoidType, DefaultTypeCheckPolicy);
 		return this.Build(NameSpace, Node, Method);
 	}
