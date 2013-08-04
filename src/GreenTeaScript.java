@@ -223,8 +223,8 @@ interface GtConst {
 	
 	public final static int DefaultTypeCheckPolicy			= 0;
 	public final static int NoCheckPolicy                   = 1;
-	public final static int     IgnoreEmptyPolicy           = (1 << 1);
-	public final static int     AllowEmptyPolicy            = (1 << 2);
+	public final static int IgnoreEmptyPolicy               = (1 << 1);
+	public final static int AllowEmptyPolicy                = (1 << 2);
 	public final static int AllowVoidPolicy                 = (1 << 3);
 	public final static int AllowCoercionPolicy             = (1 << 4);
 
@@ -250,21 +250,21 @@ interface GtConst {
 
 class GtStatic implements GtConst {
 //endif VAJA
-	public static void println(String msg) {
+	public final static void println(String msg) {
 		LangDeps.println(msg);
 	}
 
-	public static void DebugP(String msg) {
+	public final static void DebugP(String msg) {
 		if(DebugPrintOption) {
 			LangDeps.println("DEBUG" + LangDeps.GetStackInfo(2) + ": " + msg);
 		}
 	}
 
-	public static void TODO(String msg) {
+	public final static void TODO(String msg) {
 		LangDeps.println("TODO" + LangDeps.GetStackInfo(2) + ": " + msg);
 	}
 
-	public static String Indent(int Level) {
+	public final static String Indent(int Level) {
 		/*local*/int i = 0;
 		/*local*/String s = "";
 		while(i < Level) {
@@ -274,7 +274,7 @@ class GtStatic implements GtConst {
 		return s;
 	}
 
-	public static int ListSize(ArrayList<?> a) {
+	public final static int ListSize(ArrayList<?> a) {
 		return (a == null) ? 0 : a.size();
 	}
 
@@ -290,15 +290,15 @@ class GtStatic implements GtConst {
 	}
 
 	// Symbol
-	public static boolean IsGetterSymbol(int SymbolId) {
+	public final static boolean IsGetterSymbol(int SymbolId) {
 		return IsFlag(SymbolId, GetterSymbolMask);
 	}
 
-	public static boolean IsSetterSymbol(int SymbolId) {
+	public final static boolean IsSetterSymbol(int SymbolId) {
 		return IsFlag(SymbolId, SetterSymbolMask);
 	}
 
-	public static int ToSetterSymbol(int SymbolId) {
+	public final static int ToSetterSymbol(int SymbolId) {
 		assert(IsGetterSymbol(SymbolId));
 		return (SymbolId & (~GetterSymbolMask)) | SetterSymbolMask;
 	}
@@ -311,7 +311,7 @@ class GtStatic implements GtConst {
 		return SymbolId >> SymbolMaskSize;
 	}
 
-	public static String StringfySymbol(int SymbolId) {
+	public final static String StringfySymbol(int SymbolId) {
 		/*local*/String Key = SymbolList.get(UnmaskSymbol(SymbolId));
 		if(IsFlag(SymbolId, GetterSymbolMask)) {
 			return GetterPrefix + Key;
@@ -325,7 +325,7 @@ class GtStatic implements GtConst {
 		return Key;
 	}
 
-	public static int GetSymbolId(String Symbol, int DefaultSymbolId) {
+	public final static int GetSymbolId(String Symbol, int DefaultSymbolId) {
 		/*local*/String Key = Symbol;
 		/*local*/int Mask = 0;
 		if(Symbol.length() >= 3 && Symbol.charAt(1) == 'e' && Symbol.charAt(2) == 't') {
@@ -354,11 +354,11 @@ class GtStatic implements GtConst {
 		return MaskSymbol(SymbolObject.intValue(), Mask);
 	}
 
-	public static String CanonicalSymbol(String Symbol) {
+	public final static String CanonicalSymbol(String Symbol) {
 		return Symbol.toLowerCase().replaceAll("_", "");
 	}
 
-	public static int GetCanonicalSymbolId(String Symbol) {
+	public final static int GetCanonicalSymbolId(String Symbol) {
 		return GetSymbolId(CanonicalSymbol(Symbol), AllowNewId);
 	}
 
@@ -843,12 +843,12 @@ final class TokenContext extends GtStatic {
 }
 
 final class SyntaxPattern extends GtStatic {
-	/*field*/public GtNameSpace	PackageNameSpace;
-	/*field*/public String		PatternName;
-	/*field*/int				SyntaxFlag;
+	/*field*/public GtNameSpace	          PackageNameSpace;
+	/*field*/public String		          PatternName;
+	/*field*/int				          SyntaxFlag;
 	/*field*/public GtDelegateMatch       MatchFunc;
-	/*field*/public GtDelegateType       TypeFunc;
-	/*field*/public SyntaxPattern	ParentPattern;
+	/*field*/public GtDelegateType        TypeFunc;
+	/*field*/public SyntaxPattern	      ParentPattern;
 	
 	SyntaxPattern/*constructor*/(GtNameSpace NameSpace, String PatternName, GtDelegateMatch MatchFunc, GtDelegateType TypeFunc) {
 		this.PackageNameSpace = NameSpace;
@@ -2144,11 +2144,11 @@ final class KonohaGrammar extends GtGrammar {
 		NameSpace.DefineTokenFunc("1",  FunctionA(this, "NumberLiteralToken"));
 //#ifdef JAVA
 		GtDelegateMatch ParseUnary    = FunctionB(this, "ParseUnary");
-		GtDelegateType TypeUnary = FunctionC(this, "TypeUnary");
+		GtDelegateType TypeUnary      = FunctionC(this, "TypeUnary");
 		GtDelegateMatch ParseBinary   = FunctionB(this, "ParseBinary");
-		GtDelegateType TypeBinary = FunctionC(this, "TypeBinary");
-		GtDelegateType TypeConst = FunctionC(this, "TypeConst");
-		GtDelegateType TypeBlock = FunctionC(this, "TypeBlock");
+		GtDelegateType TypeBinary     = FunctionC(this, "TypeBinary");
+		GtDelegateType TypeConst      = FunctionC(this, "TypeConst");
+		GtDelegateType TypeBlock      = FunctionC(this, "TypeBlock");
 //endif VAJA
 		NameSpace.DefineSyntaxPattern("+", ParseUnary, TypeUnary);
 		NameSpace.DefineSyntaxPattern("-", ParseUnary, TypeUnary);
@@ -2188,7 +2188,7 @@ final class KonohaGrammar extends GtGrammar {
 		NameSpace.DefineSyntaxPattern("$Statement$", FunctionB(this, "ParseStatement"), TypeBlock);
 
 		NameSpace.DefineSyntaxPattern("$FuncDecl$", FunctionB(this, "ParseFuncDecl"), FunctionC(this, "TypeFuncDecl"));
-		NameSpace.DefineSyntaxPattern("$VarDecl$", FunctionB(this, "ParseVarDecl"), FunctionC(this, "TypeVarDecl"));
+		NameSpace.DefineSyntaxPattern("$VarDecl$",  FunctionB(this, "ParseVarDecl"), FunctionC(this, "TypeVarDecl"));
 		NameSpace.DefineSyntaxPattern("if", FunctionB(this, "ParseIf"), FunctionC(this, "TypeIf"));
 		NameSpace.DefineSyntaxPattern("return", FunctionB(this, "ParseReturn"), FunctionC(this, "ParseReturn"));
 		NameSpace.DefineSyntaxPattern("while", FunctionB(this, "ParseWhile"), FunctionC(this, "TypeWhile"));
