@@ -119,7 +119,7 @@ class CheckReturnNodePath extends MethodPath {
 			}
 		}
 		TypedNode ReturnNode = null;
-		GtContext Context = NameSpace.GtContext;
+		GtContext Context = NameSpace.Context;
 		if(ReturnType.equals(Context.VoidType)) {
 			ReturnNode = new ReturnNode(ReturnType, null, null);
 		} else {
@@ -488,7 +488,6 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 		return this.Build(NameSpace, Node, Method);
 	}
 
-
 	public GtMethodInvoker Build(GtNameSpace NameSpace, TypedNode Node, GtMethod Method) {
 		ArrayList<Local> Param = null;
 		if(Method != null) {
@@ -544,7 +543,7 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 			MethodAttr = ACC_PUBLIC | ACC_STATIC;
 			is_eval = true;
 			ArrayList<GtType> ParamTypeList = new ArrayList<GtType>();//GtType[] ParamData = new GtType[2];
-			ParamTypeList.add(NameSpace.GtContext.ObjectType);
+			ParamTypeList.add(NameSpace.Context.ObjectType);
 			//ParamDataList.add(GlobalType);	//FIXME
 			paramTypes = LangDeps.CompactTypeList(ParamTypeList);
 			params = new ArrayList<Local>();

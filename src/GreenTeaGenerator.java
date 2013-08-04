@@ -672,7 +672,7 @@ public class GreenTeaGenerator extends GtStatic {
 	public final TypedNode UnsupportedNode(GtType Type, SyntaxTree ParsedTree) {
 		GtToken Token = ParsedTree.KeyToken;
 		ParsedTree.NameSpace.ReportError(ErrorLevel, Token, this.LangName + " has no language support for " + Token.ParsedText);
-		return new ErrorNode(ParsedTree.NameSpace.GtContext.VoidType, ParsedTree.KeyToken);
+		return new ErrorNode(ParsedTree.NameSpace.Context.VoidType, ParsedTree.KeyToken);
 	}
 	
 	public TypedNode CreateConstNode(GtType Type, SyntaxTree ParsedTree, Object Value) {
@@ -800,11 +800,11 @@ public class GreenTeaGenerator extends GtStatic {
 	}
 	
 	public TypedNode CreateEmptyNode(GtType Type, SyntaxTree ParsedTree) {
-		return new TypedNode(ParsedTree.NameSpace.GtContext.VoidType, ParsedTree.KeyToken);
+		return new TypedNode(ParsedTree.NameSpace.Context.VoidType, ParsedTree.KeyToken);
 	}
 
 	public TypedNode CreateErrorNode(GtType Type, SyntaxTree ParsedTree) {
-		return new ErrorNode(ParsedTree.NameSpace.GtContext.VoidType, ParsedTree.KeyToken);
+		return new ErrorNode(ParsedTree.NameSpace.Context.VoidType, ParsedTree.KeyToken);
 	}
 
 	

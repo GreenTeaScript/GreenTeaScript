@@ -219,7 +219,6 @@ interface GtConst {
 	public final static int Precedence_Error				= (1700 << PrecedenceShift);
 	public final static int Precedence_Statement			= (1900 << PrecedenceShift);
 	public final static int Precedence_CStyleDelim			= (2000 << PrecedenceShift);
-
 	
 	public final static int DefaultTypeCheckPolicy			= 0;
 	public final static int NoCheckPolicy                   = 1;
@@ -1155,20 +1154,18 @@ final class GtLayer extends GtStatic {
 		return (/*cast*/GtMethod)this.MethodTable.get(Name);
 	}
 	
-	public final GtMethod LookupMethod(GtType Class, String Name) {
-		String Id = Class.GetMethodId(Name);
-		GtMethod Method = (/*cast*/GtMethod)this.MethodTable.get(Id);
-		return Method;
+	public final GtMethod GetMethod(String MethodId) {
+		return (/*cast*/GtMethod)this.MethodTable.get(MethodId);
 	}
 
 	public final void DefineMethod(GtMethod Method) {
-		GtType Class = Method.GetRecvType();
-		String Id = Class.GetMethodId(Method.MethodName);
-		GtMethod MethodPrev = (/*cast*/GtMethod)this.MethodTable.get(Id);
-		Method.ElderMethod = MethodPrev;
 		assert(Method.Layer == null);
+		/*local*/GtType Class = Method.GetRecvType();
+		/*local*/String MethodId = Class.GetMethodId(Method.MethodName);
+		/*local*/GtMethod MethodPrev = (/*cast*/GtMethod)this.MethodTable.get(MethodId);
+		Method.ElderMethod = MethodPrev;
 		Method.Layer = this;
-		this.MethodTable.put(Id, Method);
+		this.MethodTable.put(MethodId, Method);
 //		MethodPrev = this.LookupUniqueMethod(Method.MethodName);
 //		if(MethodPrev != null) {
 //			TODO("check identity");
@@ -1214,17 +1211,17 @@ final class TypeEnv extends GtStatic {
 
 	TypeEnv/*constructor*/(GtNameSpace NameSpace) {
 		this.NameSpace = NameSpace;
-		this.Generator = NameSpace.GtContext.Generator;
+		this.Generator = NameSpace.Context.Generator;
 		this.Method = null;
 		this.LocalStackList = new ArrayList<VariableInfo>();
 		this.StackTopIndex = 0;
 
-		this.VoidType = NameSpace.GtContext.VoidType;
-		this.BooleanType = NameSpace.GtContext.BooleanType;
-		this.IntType = NameSpace.GtContext.IntType;
-		this.StringType = NameSpace.GtContext.StringType;
-		this.VarType = NameSpace.GtContext.VarType;
-		this.AnyType = NameSpace.GtContext.AnyType;
+		this.VoidType = NameSpace.Context.VoidType;
+		this.BooleanType = NameSpace.Context.BooleanType;
+		this.IntType = NameSpace.Context.IntType;
+		this.StringType = NameSpace.Context.StringType;
+		this.VarType = NameSpace.Context.VarType;
+		this.AnyType = NameSpace.Context.AnyType;
 	}
 
 	public void SetMethod(GtMethod Method) {
@@ -1343,7 +1340,7 @@ final class GtSpec extends GtStatic {
 }
 
 final class GtNameSpace extends GtStatic {
-	/*field*/public GtContext		GtContext;
+	/*field*/public GtContext		Context;
 	/*field*/public String          PackageName;
 	/*field*/public GtNameSpace		ParentNameSpace;
 	/*field*/public ArrayList<GtNameSpace>	  ImportedNameSpaceList;
@@ -1353,18 +1350,22 @@ final class GtNameSpace extends GtStatic {
 	/*field*/TokenFunc[]	TokenMatrix;
 	/*field*/GtMap	 SymbolPatternTable;
 	/*field*/GtMap   ExtendedPatternTable;
+	/*field*/public ArrayList<GtLayer>        LayerList;
 	/*field*/GtLayer TopLevelLayer;
 	
-	GtNameSpace/*constructor*/(GtContext GtContext, GtNameSpace ParentNameSpace) {
-		this.GtContext = GtContext;
+	GtNameSpace/*constructor*/(GtContext Context, GtNameSpace ParentNameSpace) {
+		this.Context = Context;
 		this.ParentNameSpace = ParentNameSpace;
+		this.LayerList = new ArrayList<GtLayer>();
 		if(ParentNameSpace != null) {
 			this.PackageName = ParentNameSpace.PackageName;
 			this.TopLevelLayer = ParentNameSpace.TopLevelLayer;
 		}
 		else {
-			this.TopLevelLayer = GtContext.UserDefinedLayer;
+			this.TopLevelLayer = Context.UserDefinedLayer;
 		}
+		this.LayerList.add(Context.GreenLayer);
+		this.LayerList.add(this.TopLevelLayer);
 		this.ImportedNameSpaceList = null;
 		this.PublicSpecList = new ArrayList<GtSpec>();
 		this.PrivateSpecList = null;
@@ -1521,9 +1522,9 @@ final class GtNameSpace extends GtStatic {
 		if(ClassInfo.PackageNameSpace == null) {
 			ClassInfo.PackageNameSpace = this;
 			if(this.PackageName != null) {
-				this.GtContext.ClassNameMap.put(this.PackageName + "." + ClassInfo.ShortClassName, ClassInfo);
+				this.Context.ClassNameMap.put(this.PackageName + "." + ClassInfo.ShortClassName, ClassInfo);
 			}
-			this.GtContext.Generator.AddClass(ClassInfo);
+			this.Context.Generator.AddClass(ClassInfo);
 		}
 		this.DefineSymbol(ClassInfo.ShortClassName, ClassInfo);
 		return ClassInfo;
@@ -1534,9 +1535,52 @@ final class GtNameSpace extends GtStatic {
 		return Method;
 	}
 	
+	private GtMethod FilterOverloadedMethods(GtMethod Method, int ParamSize, int ResolvedSize, ArrayList<GtType> TypeList, int BaseIndex, GtMethod FoundMethod) {
+		while(Method != null) {
+			if(Method.GetParamSize() == ParamSize) {
+				/*local*/int i = 1;  // because the first type is mached by given class
+				GtMethod MatchedMethod = Method;
+				while(i < ResolvedSize) {
+					if(!Method.GetParamType(i).Accept(TypeList.get(BaseIndex + i))) {
+						MatchedMethod = null;
+						break;
+					}
+					i += 1;
+				}
+				if(MatchedMethod != null) {
+					if(FoundMethod != null) {
+						return null; /* found overloaded methods*/
+					}
+					FoundMethod = MatchedMethod;
+				}
+			}
+			Method = Method.ElderMethod;
+		}
+		return FoundMethod;
+	}
+	
+	public GtMethod LookupMethod(String MethodName, int ParamSize, int ResolvedSize, ArrayList<GtType> TypeList, int BaseIndex) {
+		/*local*/int i = this.LayerList.size() - 1;
+		/*local*/GtMethod FoundMethod = null;
+		if(ResolvedSize > 0) {
+			/*local*/GtType Class = TypeList.get(BaseIndex + 0);
+			while(FoundMethod == null && Class != null) {
+				/*local*/String MethodId = Class.GetMethodId(MethodName);
+				while(i >= 0) {
+					GtLayer Layer = this.LayerList.get(i);
+					GtMethod Method = Layer.GetMethod(MethodId);
+					FoundMethod = FilterOverloadedMethods(Method, ParamSize, ResolvedSize, TypeList, BaseIndex, FoundMethod);
+					i -= 1;
+				}
+				Class = Class.SearchSuperMethodClass;
+			}
+		}
+		return FoundMethod;
+	}
+	
 	// Global Object
 	public GtObject CreateGlobalObject(int ClassFlag, String ShortName) {
-		/*local*/GtType NewClass = new GtType(this.GtContext, ClassFlag, ShortName, null);
+		/*local*/GtType NewClass = new GtType(this.Context, ClassFlag, ShortName, null);
 		/*local*/GtObject GlobalObject = new GtObject(NewClass);
 		NewClass.DefaultNullValue = GlobalObject;
 		return GlobalObject;
