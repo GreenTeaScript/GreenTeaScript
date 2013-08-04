@@ -378,8 +378,8 @@ class GtStatic implements GtConst {
 
 	public final static int ApplyTokenFunc(TokenFunc TokenFunc, TokenContext TokenContext, String ScriptSource, int Pos) {
 		while(TokenFunc != null) {
-			/*local*/GtDelegateToken f = TokenFunc.Func;
-			/*local*/int NextIdx = LangDeps.ApplyTokenFunc(f.Self, f.Method, TokenContext, ScriptSource, Pos);
+			/*local*/GtDelegateToken delegate = TokenFunc.Func;
+			int NextIdx = LangDeps.ApplyTokenFunc(delegate.Self, delegate.Method, TokenContext, ScriptSource, Pos);
 			if(NextIdx > Pos) return NextIdx;
 			TokenFunc = TokenFunc.ParentFunc;
 		}
@@ -419,14 +419,14 @@ class GtStatic implements GtConst {
 		/*local*/int ParseFlag = TokenContext.ParseFlag;
 		/*local*/SyntaxPattern CurrentPattern = Pattern;
 		while(CurrentPattern != null) {
-			/*local*/GtDelegateMatch f = CurrentPattern.MatchFunc;
+			/*local*/GtDelegateMatch delegate = CurrentPattern.MatchFunc;
 			TokenContext.Pos = Pos;
 			if(CurrentPattern.ParentPattern != null) {
 				TokenContext.ParseFlag = ParseFlag | TrackbackParseFlag;
 			}
 			DebugP("B :" + Indent(TokenContext.IndentLevel) + CurrentPattern + ", next=" + CurrentPattern.ParentPattern);
 			TokenContext.IndentLevel += 1;
-			/*local*/SyntaxTree ParsedTree = LangDeps.ApplyMatchFunc(f.Self, f.Method, CurrentPattern, LeftTree, TokenContext);
+			SyntaxTree ParsedTree = (SyntaxTree)LangDeps.ApplyMatchFunc(delegate.Self, delegate.Method, CurrentPattern, LeftTree, TokenContext);
 			TokenContext.IndentLevel -= 1;
 			if(ParsedTree != null && ParsedTree.IsEmpty()) ParsedTree = null;
 			DebugP("E :" + Indent(TokenContext.IndentLevel) + CurrentPattern + " => " + ParsedTree);
@@ -476,12 +476,12 @@ class GtStatic implements GtConst {
 	}
 	
 	// typing 
-	public final static TypedNode ApplyTypeFunc(GtDelegateType TypeFunc, TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
-		if(TypeFunc == null || TypeFunc.Method == null){
+	public final static TypedNode ApplyTypeFunc(GtDelegateType delegate, TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
+		if(delegate == null || delegate.Method == null){
 			DebugP("try to invoke null TypeFunc");
 			return null;
 		}
-		return LangDeps.ApplyTypeFunc(TypeFunc.Self, TypeFunc.Method, Gamma, ParsedTree, Type);
+		return (/*cast*/TypedNode)LangDeps.ApplyTypeFunc(delegate.Self, delegate.Method, Gamma, ParsedTree, Type);
 	}
 
 	public final static TypedNode LinkNode(TypedNode LastNode, TypedNode Node) {
@@ -601,7 +601,6 @@ final class GtToken extends GtStatic {
 		assert(this.IsError());
 		return this.ParsedText;
 	}
-
 }
 
 final class TokenFunc {
@@ -1045,10 +1044,8 @@ class GtType extends GtStatic {
 	/*field*/int                    ClassId;
 	/*field*/public String			ShortClassName;
 	/*field*/GtType					SuperClass;
-	/*field*/GtParam				ClassParam;
-	/*field*/GtType					SearchSimilarClass;
-	/*field*/GtType					BaseClass;
 	/*field*/public GtType			SearchSuperMethodClass;
+	/*field*/GtType					BaseClass;
 	/*field*/public Object			DefaultNullValue;
 	/*field*/public Object          LocalSpec;
 
@@ -1068,6 +1065,10 @@ class GtType extends GtStatic {
 		return this.ShortClassName;
 	}
 
+	public final String GetMethodId(String MethodName) {
+		return "" + this.ClassId + "@" + MethodName;
+	}
+
 	public boolean Accept(GtType Type) {
 		if(this == Type) {
 			return true;
@@ -1078,86 +1079,6 @@ class GtType extends GtStatic {
 	public GtMethod GetGetter(String Name) {
 		return AnyGetter;
 	}
-
-	public final String GetMethodId(String name) {
-		return "" + this.ClassId + name;
-	}
-}
-
-final class GtLayer extends GtStatic {
-	/*public*/public String Name;
-	/*public*/public GtMap MethodTable;
-	GtLayer/*constructor*/(String Name) {
-		this.Name = Name;
-		this.MethodTable = new GtMap();
-	}
-	
-	public final GtMethod LookupUniqueMethod(String Name) {
-		return (/*cast*/GtMethod)this.MethodTable.get(Name);
-	}
-	
-	public final GtMethod LookupMethod(GtType Class, String Name) {
-		/*local*/String Id = Class.GetMethodId(Name);
-		/*local*/GtMethod Method = (/*cast*/GtMethod)this.MethodTable.get(Id);
-		return Method;
-	}
-
-	public final void DefineMethod(GtMethod Method) {
-		/*local*/GtType Class = Method.GetRecvType();
-		/*local*/String Id = Class.GetMethodId(Method.MethodName);
-		/*local*/GtMethod MethodPrev = (/*cast*/GtMethod)this.MethodTable.get(Id);
-		Method.ElderMethod = MethodPrev;
-		assert(Method.Layer == null);
-		Method.Layer = this;
-		this.MethodTable.put(Id, Method);
-//		MethodPrev = this.LookupUniqueMethod(Method.MethodName);
-//		if(MethodPrev != null) {
-//			TODO("check identity");
-//			this.MethodTable.remove(Id);
-//		}
-	}
-}
-
-class GtParam extends GtStatic {
-	/*field*/public int                 ParamSize;
-	/*field*/public ArrayList<String>   Names;
-	/*field*/public ArrayList<GtType>	Types;
-
-	GtParam/*constructor*/(ArrayList<GtType> TypeList, ArrayList<String> NameList) {
-		this.Types = TypeList;
-		this.Names = NameList;
-		this.ParamSize = TypeList.size() - 1;
-	}
-
-	public final boolean Equals(GtParam Other) {
-		/*local*/int ParamSize = Other.ParamSize;
-		if(ParamSize == this.ParamSize) {
-			/*local*/int i = 0;
-			while(i < ParamSize) {
-				if(this.Types.get(i) != Other.Types.get(i)) {
-					return false;
-				}
-				i += 1;
-			}
-			return true;
-		}
-		return false;
-	}
-
-	public final boolean Match(int ParamSize, ArrayList<GtType> ParamList) {
-		/*local*/int i = 0;
-		while(i + 1 < ParamSize) {
-			/*local*/GtType ParamType = this.Types.get(i+1);
-			/*local*/GtType GivenType = ParamList.get(i);
-			//if(!ParamType.Match(GivenType)) {}
-			if(!ParamType.equals(GivenType)) { //FIXME replace Type.equals => GtType.Match
-				return false;
-			}
-			i += 1;
-		}
-		return true;
-	}
-
 }
 
 class GtDef extends GtStatic {
@@ -1222,66 +1143,40 @@ class GtMethod extends GtDef {
 	}
 }
 
-class GtMethod2 extends GtDef {
+final class GtLayer extends GtStatic {
+	/*public*/public String Name;
+	/*public*/public GtMap MethodTable;
+	GtLayer/*constructor*/(String Name) {
+		this.Name = Name;
+		this.MethodTable = new GtMap();
+	}
+	
+	public final GtMethod LookupUniqueMethod(String Name) {
+		return (/*cast*/GtMethod)this.MethodTable.get(Name);
+	}
+	
+	public final GtMethod LookupMethod(GtType Class, String Name) {
+		String Id = Class.GetMethodId(Name);
+		GtMethod Method = (/*cast*/GtMethod)this.MethodTable.get(Id);
+		return Method;
+	}
 
-//	public final boolean Match(GtMethod Other) {
-//		return (this.MethodName.equals(Other.MethodName) && this.Param.Equals(Other.Param));
-//	}
-//
-//	public boolean Match(String MethodName, int ParamSize) {
-//		if(MethodName.equals(this.MethodName)) {
-//			if(ParamSize == -1) {
-//				return true;
-//			}
-//			if(this.Param.ParamSize == ParamSize) {
-//				return true;
-//			}
+	public final void DefineMethod(GtMethod Method) {
+		GtType Class = Method.GetRecvType();
+		String Id = Class.GetMethodId(Method.MethodName);
+		GtMethod MethodPrev = (/*cast*/GtMethod)this.MethodTable.get(Id);
+		Method.ElderMethod = MethodPrev;
+		assert(Method.Layer == null);
+		Method.Layer = this;
+		this.MethodTable.put(Id, Method);
+//		MethodPrev = this.LookupUniqueMethod(Method.MethodName);
+//		if(MethodPrev != null) {
+//			TODO("check identity");
+//			this.MethodTable.remove(Id);
 //		}
-//		return false;
-//	}
-//
-//	public boolean Match(String MethodName, int ParamSize, GtType[] RequestTypes) {
-//		if(!this.Match(MethodName, ParamSize)) {
-//			return false;
-//		}
-//		for(int i = 0; i < RequestTypes.length; i++) {
-//			if(RequestTypes.equals(this.GetParamType(this.ClassInfo, i)) == false) {
-//				return false;
-//			}
-//		}
-//		return true;
-//	}
-
-//	public Object Eval(Object[] ParamData) {
-//		//int ParamSize = this.Param.GetParamSize();
-//		//GtDebug.P("ParamSize: " + ParamSize);
-//		return this.MethodInvoker.Invoke(ParamData);
-//	}
-//
-//	public GtMethod(int MethodFlag, GtType ClassInfo, String MethodName, GtParam Param, GtNameSpace LazyNameSpace, Tokens SourceList) {
-//		this(MethodFlag, ClassInfo, MethodName, Param, null);
-//		this.LazyNameSpace = LazyNameSpace;
-//		this.SourceList = SourceList;
-//	}
-
-	public void DoCompilation() {
-//		if(this.MethodInvoker != null) {
-//			return;
-//		}
-//		SyntaxTree Tree = this.ParsedTree;
-//		GtNameSpace NS = this.LazyNameSpace;
-//		if(Tree == null) {
-//			Tokens BufferList = new Tokens();
-//			NS.PreProcess(this.SourceList, 0, this.SourceList.size(), BufferList);
-//			Tree = SyntaxTree.ParseNewNode(NS, null, BufferList, 0, BufferList.size(), AllowEmpty);
-//			GtStatic.println("untyped tree: " + Tree);
-//		}
-//		TypeEnv Gamma = new TypeEnv(this.LazyNameSpace, this);
-//		TypedNode TNode = TypeEnv.TypeCheck(Gamma, Tree, Gamma.VoidType, DefaultTypeCheckPolicy);
-//		GtBuilder Builder = this.LazyNameSpace.GetBuilder();
-//		this.MethodInvoker = Builder.Build(NS, TNode, this);
 	}
 }
+
 
 final class VariableInfo {
 	/*field*/public GtType	Type;

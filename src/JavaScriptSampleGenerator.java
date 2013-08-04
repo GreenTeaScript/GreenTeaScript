@@ -7,9 +7,7 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 	@Override
 	public void VisitDefineNode(DefineNode Node)  {
 		if(Node.DefInfo instanceof GtMethod) {
-			//FIXME
-			GtMethod2 Mtd = (GtMethod2) Node.DefInfo;
-			Mtd.DoCompilation();
+			GtMethod Mtd = (GtMethod) Node.DefInfo;
 			//this.push((String) Mtd.MethodInvoker.CompiledCode);
 		} else {
 			//throw new NotSupportedCodeError();
