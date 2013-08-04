@@ -449,6 +449,7 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 	private final NativeMethodMap NMMap;
 
 	public JavaByteCodeGenerator() {
+		super("Java");
 		this.TypeResolver = new TypeResolver();
 		this.NMMap = new NativeMethodMap();
 	}
