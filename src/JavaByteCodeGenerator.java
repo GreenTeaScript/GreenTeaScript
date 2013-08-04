@@ -1,5 +1,4 @@
 import java.io.File;
-
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -37,9 +36,9 @@ class LabelStack {
 
 	Label FindLabel(String Name) {
 		for(int i = this.LabelNames.size() - 1; i >= 0; i--) {
-			String LName = (String) this.LabelNames.get(i);
+			String LName = this.LabelNames.get(i);
 			if(LName.equals(Name)) {
-				return (Label) this.Labels.get(i);
+				return this.Labels.get(i);
 			}
 		}
 		return null;
@@ -47,7 +46,7 @@ class LabelStack {
 
 	void RemoveLabel(String Name) {
 		for(int i = this.LabelNames.size() - 1; i >= 0; i--) {
-			String LName = (String) this.LabelNames.get(i);
+			String LName = this.LabelNames.get(i);
 			if(LName.equals(Name)) {
 				this.LabelNames.remove(i);
 				this.Labels.remove(i);
@@ -130,7 +129,7 @@ class CheckReturnNodePath extends MethodPath {
 			return ReturnNode;
 		}
 		GtStatic.LinkNode(Block.MoveTailNode(), ReturnNode); 	//Block.Next(ReturnNode);
-		
+
 		return Block;
 	}
 }
@@ -245,7 +244,7 @@ class JVMBuilder implements Opcodes {
 	public JVMBuilder(GtMethod method, MethodVisitor mv, TypeResolver TypeResolver, GtNameSpace NameSpace) {
 		this.LocalVals = new ArrayList<Local>();
 		this.MethodInfo = method;
-		
+
 		this.methodVisitor = mv;
 		this.typeStack = new Stack<Type>();
 		this.LabelStack = new LabelStack();
@@ -311,7 +310,7 @@ class JVMBuilder implements Opcodes {
 
 	public Local FindLocalVariable(String Name) {
 		for(int i = 0; i < this.LocalVals.size(); i++) {
-			Local l = (Local) this.LocalVals.get(i);
+			Local l = this.LocalVals.get(i);
 			if(l.Name.compareTo(Name) == 0) {
 				return l;
 			}
@@ -332,11 +331,11 @@ class JVMBuilder implements Opcodes {
 		Block = new CheckReturnNodePath().Run(NameSpace, ReturnType, Block);
 		return Block;
 	}
-	
+
 	boolean isPrimitiveType(Type type) {
 		return !type.getDescriptor().startsWith("L");
 	}
-	
+
 	void box() {
 		Type type = this.typeStack.pop();
 		if(type.equals(Type.INT_TYPE)) {
@@ -388,15 +387,14 @@ class TypeResolver {
 
 	public String GetJavaMethodDescriptor(GtMethod method) {
 		GtType returnType = method.GetReturnType();
-		ArrayList<GtType> paramTypes = method.Param.TypeList;
-		paramTypes.remove(0);
+		//paramTypes.remove(0);
 		StringBuilder signature = new StringBuilder();
 		signature.append("(");
-		if(method.ClassInfo.ShortClassName.equals("global")) {
+		if(method.GetRecvType().ShortClassName.equals("global")) {
 			signature.append(globalType);
 		}
-		for(int i = 0; i < paramTypes.size(); i++) {
-			GtType ParamType = paramTypes.get(i);
+		for(int i = 0; i < method.GetParamSize(); i++) {
+			GtType ParamType = method.GetParamType(i);
 			signature.append(this.GetJavaTypeDescriptor(ParamType));
 		}
 		signature.append(")");
@@ -426,20 +424,20 @@ class TypeResolver {
 }
 
 class NativeMethodMap {
-	private HashMap<GtMethod, GtMethodInvoker> methodInvokerMap;
-	
+	private final HashMap<GtMethod, GtMethodInvoker> methodInvokerMap;
+
 	public NativeMethodMap() {
 		this.methodInvokerMap = new HashMap<GtMethod, GtMethodInvoker>();
 	}
-	
+
 	public GtMethodInvoker GetMethodInvoker(GtMethod Method) {
 		return this.methodInvokerMap.get(Method);
 	}
-	
+
 	public void PutMethodInvoker(GtMethod KeyMethod, GtMethodInvoker MethodInvoker) {
 		this.methodInvokerMap.put(KeyMethod, MethodInvoker);
 	}
-	
+
 	public boolean Exist(GtMethod Method) {
 		return this.methodInvokerMap.containsKey(Method);
 	}
@@ -448,36 +446,170 @@ class NativeMethodMap {
 public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes {
 	private final TypeResolver	TypeResolver;
 	private JVMBuilder Builder;
-	private NativeMethodMap NMMap;
+	private final NativeMethodMap NMMap;
 
 	public JavaByteCodeGenerator() {
 		this.TypeResolver = new TypeResolver();
 		this.NMMap = new NativeMethodMap();
 	}
-	
+
 	public void VisitList(TypedNode Node) {
-//		boolean Ret = true;
-//		while(Ret && Node != null) {
-//			Ret &= Node.Evaluate(this);
-//			Node = Node.NextNode;
-//		}
-//		return Ret;
 		while(Node != null) {
 			Node.Evaluate(this);
 			Node = Node.NextNode;
 		}
 	}
-	
+	public void OutputClassFile(String className, String dir) throws IOException {
+		byte[] ba = this.generateBytecode(className);
+		File file = new File(dir, className + ".class");
+		FileOutputStream fos = null;
+		try {
+			fos = new FileOutputStream(file);
+			fos.write(ba);
+		} finally {
+			if(fos != null) {
+				fos.close();
+			}
+		}
+	}
+
+	public byte[] generateBytecode(String className) {
+		ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+		GtClassNode CNode = this.TypeResolver.FindClassNode(className);
+		CNode.accept(classWriter);
+		classWriter.visitEnd();
+		return classWriter.toByteArray();
+	}
+
 	private GtMethodInvoker CompileMethod(GtNameSpace NameSpace, SyntaxTree ParsedTree, GtMethod Method) {
 		TypeEnv Gamma = new TypeEnv(NameSpace, null);
 		TypedNode Node = Gamma.TypeCheckEachNode(ParsedTree, Gamma.VoidType, DefaultTypeCheckPolicy);
 		return this.Build(NameSpace, Node, Method);
 	}
-	
+
+
+	public GtMethodInvoker Build(GtNameSpace NameSpace, TypedNode Node, GtMethod Method) {
+		ArrayList<Local> Param = null;
+		if(Method != null) {
+			Param = new ArrayList<Local>();
+			Param.add(new Local(0, Method.GetRecvType(), "this"));
+			for(int i = 0; i < Method.GetParamSize(); i++) {
+				GtType Type = Method.GetParamType(1);
+				String Arg = "arg" + i; //FIXME Method.GetParamName(i);
+				//String Arg = P.ArgNames[i];
+				Local l = new Local(i + 1, Type, Arg);
+				Param.add(l);
+			}
+		}
+		return this.Compile(NameSpace, Node, Method, Param);
+	}
+
+	@Override
+	public Object Eval(TypedNode Node) {
+		GtNameSpace NameSpace = Node.Type.PackageNameSpace;
+		GtObject GlobalObject = NameSpace.GetGlobalObject();
+
+		GtMethodInvoker Invoker = this.Compile(NameSpace, Node, null);
+		Object[] Args = new Object[1];
+		Args[0] = GlobalObject;
+		return Invoker.Invoke(Args);
+	}
+
+	public GtMethodInvoker Compile(GtNameSpace NameSpace, TypedNode Block, GtMethod MethodInfo) {
+		return this.Compile(NameSpace, Block, MethodInfo, null);
+	}
+	public GtMethodInvoker Compile(GtNameSpace NameSpace, TypedNode Block, GtMethod MethodInfo, ArrayList<Local> params) {
+		int MethodAttr;
+		String className;
+		String methodName;
+		String methodDescriptor;
+		GtParam param = null;
+		GtType ReturnType;
+		boolean is_eval = false;
+		if(MethodInfo != null && MethodInfo.MethodName.length() > 0) {
+			className = MethodInfo.GetRecvType().ShortClassName;
+			//className = "Script";
+			methodName = MethodInfo.MethodName;
+			methodDescriptor = this.TypeResolver.GetJavaMethodDescriptor(MethodInfo);
+			MethodAttr = ACC_PUBLIC | ACC_STATIC;
+			//FIXME
+			//param = MethodInfo.Param;
+			ReturnType = MethodInfo.GetReturnType();
+		} else {
+			GtType GlobalType = NameSpace.GetGlobalObject().Type;
+			className = "global";
+			methodName = "__eval";
+			methodDescriptor = Type.getMethodDescriptor(Type.getType(Object.class), this.TypeResolver.GetAsmType(GlobalType));
+			MethodAttr = ACC_PUBLIC | ACC_STATIC;
+			is_eval = true;
+			ArrayList<GtType> ParamDataList = new ArrayList<GtType>();//GtType[] ParamData = new GtType[2];
+			ArrayList<String> ArgNameList = new ArrayList<String>();//String[] ArgNames = new String[1];
+			ParamDataList.add(NameSpace.GtContext.ObjectType);
+			//ParamDataList.add(GlobalType);	//FIXME
+			ArgNameList.add("this");
+			param = new GtParam(ParamDataList, ArgNameList);
+			params = new ArrayList<Local>();
+			params.add(new Local(0, GlobalType, "this"));
+			ReturnType = ParamDataList.get(0);
+		}
+
+		GtClassNode cn = this.TypeResolver.FindClassNode(className);
+		if(cn == null) {
+			cn = new GtClassNode(className);
+			this.TypeResolver.StoreClassNode(cn);
+		}
+
+		for(MethodNode m : cn.methods.values()) {
+			if(m.name.equals(methodName) && m.desc.equals(methodDescriptor)) {
+				cn.methods.remove(m);
+				break;
+			}
+		}
+		MethodNode mn = new MethodNode(MethodAttr, methodName, methodDescriptor, null, null);
+		mn.visitCode();
+
+		this.Builder = new JVMBuilder(MethodInfo, mn, this.TypeResolver, NameSpace);
+		Block = this.Builder.VerifyBlock(NameSpace, is_eval, ReturnType, Block);
+
+		if(params != null) {
+			for(int i = 0; i < params.size(); i++) {
+				Local local = params.get(i);
+				this.Builder.AddLocal(local.TypeInfo, local.Name);
+			}
+		}
+		if(Block != null) {
+			VisitList(Block.MoveHeadNode());
+		}
+		if(is_eval) {
+			visitBoxingAndReturn();
+		}
+		VisitEnd();
+		cn.methods.put(methodName, mn);
+
+		try {
+			this.OutputClassFile("global", ".");
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		Class<?> c = new GtClassLoader(this).findClass(className);
+		Method[] MethodList = c.getMethods();
+		for(int i = 0; i < MethodList.length; i++) {
+			Method m = MethodList[i];
+			if(m.getName().equals(methodName)) {
+				GtMethodInvoker mtd = new NativeMethodInvoker(param, m);
+				return mtd;
+			}
+		}
+		return null;
+	}
+
+
 	void Call(int opcode, GtMethod Method) { //FIXME
-//		if(Method.MethodInvoker instanceof NativeMethodInvoker) {
-//			NativeMethodInvoker i = (NativeMethodInvoker) Method.MethodInvoker;
-//
+		//		if(Method.MethodInvoker instanceof NativeMethodInvoker) {
+		//			NativeMethodInvoker i = (NativeMethodInvoker) Method.MethodInvoker;
+		//
 		if(NMMap.Exist(Method)) {
 			NativeMethodInvoker i = (NativeMethodInvoker) NMMap.GetMethodInvoker(Method);
 			Method m = i.GetMethodRef();
@@ -502,15 +634,15 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 			this.Builder.typeStack.push(this.TypeResolver.GetAsmType(Method.GetReturnType()));
 		}
 	}
-	
-	@Override 
+
+	@Override
 	public void VisitDefineNode(DefineNode Node) {
 		if(Node.DefInfo instanceof GtClass) {
 			GtClass c = (GtClass) Node.DefInfo;
 			c.MakeDefinition(this.Builder.NameSpace);
 		} else if(Node.DefInfo instanceof GtMethod) {
 			GtMethod m = (GtMethod) Node.DefInfo;
-//			m.DoCompilation();	//
+			//			m.DoCompilation();	//
 			SyntaxTree ParsedTree = null;	//FIXME: Method Body Tree is needed
 			if(NMMap.Exist(m)) {
 				return;
@@ -566,7 +698,7 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 	public void VisitApplyNode(ApplyNode Node) {
 		GtMethod Method = Node.Method;
 		for(int i = 0; i < Node.Params.size(); i++) {
-			TypedNode Param = (TypedNode) Node.Params.get(i);
+			TypedNode Param = Node.Params.get(i);
 			Param.Evaluate(this);
 			Type requireType = this.TypeResolver.GetAsmType(Method.GetParamType(i));
 			Type foundType = this.Builder.typeStack.peek();
@@ -634,9 +766,9 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 
 	@Override
 	public void VisitLetNode(LetNode Node) {
-//		Local local = this.AddLocal(Node.Type, Node.Token.ParsedText);
-//		Node.ValueNode.Evaluate(this);
-//		this.StoreLocal(local);
+		//		Local local = this.AddLocal(Node.Type, Node.Token.ParsedText);
+		//		Node.ValueNode.Evaluate(this);
+		//		this.StoreLocal(local);
 		this.VisitList(Node.BlockNode);
 	}
 
@@ -668,11 +800,11 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 
 	@Override
 	public void VisitSwitchNode(SwitchNode Node) { //FIXME
-//		Node.CondExpr.Evaluate(this);
-//		for(int i = 0; i < Node.Blocks.size(); i++) {
-//			TypedNode Block = (TypedNode) Node.Blocks.get(i);
-//			this.VisitList(Block);
-//		}
+		//		Node.CondExpr.Evaluate(this);
+		//		for(int i = 0; i < Node.Blocks.size(); i++) {
+		//			TypedNode Block = (TypedNode) Node.Blocks.get(i);
+		//			this.VisitList(Block);
+		//		}
 	}
 
 	@Override
@@ -738,37 +870,37 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 
 	@Override
 	public void VisitTryNode(TryNode Node) { //FIXME
-//		int catchSize = Node.CatchBlock.size();
-//		MethodVisitor mv = this.Builder.methodVisitor;
-//		Label beginTryLabel = new Label();
-//		Label endTryLabel = new Label();
-//		Label finallyLabel = new Label();
-//		Label catchLabel[] = new Label[catchSize];
-//
-//		// prepare
-//		for(int i = 0; i < catchSize; i++) { //TODO: add exception class name
-//			catchLabel[i] = new Label();
-//			mv.visitTryCatchBlock(beginTryLabel, endTryLabel, catchLabel[i], null);
-//		}
-//
-//		// try block
-//		mv.visitLabel(beginTryLabel);
-//		this.VisitList(Node.TryBlock);
-//		mv.visitLabel(endTryLabel);
-//		mv.visitJumpInsn(GOTO, finallyLabel);
-//
-//		// catch block
-//		for(int i = 0; i < catchSize; i++) { //TODO: add exception class name
-//			TypedNode Block = (TypedNode) Node.CatchBlock.get(i);
-//			TypedNode Exception = (TypedNode) Node.TargetException.get(i);
-//			mv.visitLabel(catchLabel[i]);
-//			this.VisitList(Block);
-//			mv.visitJumpInsn(GOTO, finallyLabel);
-//		}
-//
-//		// finally block
-//		mv.visitLabel(finallyLabel);
-//		this.VisitList(Node.FinallyBlock);
+		//		int catchSize = Node.CatchBlock.size();
+		//		MethodVisitor mv = this.Builder.methodVisitor;
+		//		Label beginTryLabel = new Label();
+		//		Label endTryLabel = new Label();
+		//		Label finallyLabel = new Label();
+		//		Label catchLabel[] = new Label[catchSize];
+		//
+		//		// prepare
+		//		for(int i = 0; i < catchSize; i++) { //TODO: add exception class name
+		//			catchLabel[i] = new Label();
+		//			mv.visitTryCatchBlock(beginTryLabel, endTryLabel, catchLabel[i], null);
+		//		}
+		//
+		//		// try block
+		//		mv.visitLabel(beginTryLabel);
+		//		this.VisitList(Node.TryBlock);
+		//		mv.visitLabel(endTryLabel);
+		//		mv.visitJumpInsn(GOTO, finallyLabel);
+		//
+		//		// catch block
+		//		for(int i = 0; i < catchSize; i++) { //TODO: add exception class name
+		//			TypedNode Block = (TypedNode) Node.CatchBlock.get(i);
+		//			TypedNode Exception = (TypedNode) Node.TargetException.get(i);
+		//			mv.visitLabel(catchLabel[i]);
+		//			this.VisitList(Block);
+		//			mv.visitJumpInsn(GOTO, finallyLabel);
+		//		}
+		//
+		//		// finally block
+		//		mv.visitLabel(finallyLabel);
+		//		this.VisitList(Node.FinallyBlock);
 	}
 
 	@Override
@@ -786,7 +918,7 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 	public void VisitErrorNode(ErrorNode Node) { //FIXME
 		String ps = Type.getDescriptor(System.err.getClass());
 		this.Builder.methodVisitor.visitFieldInsn(GETSTATIC, "java/lang/System", "err", ps);
-//		this.Builder.methodVisitor.visitLdcInsn(Node.ErrorMessage); // FIXME
+		//		this.Builder.methodVisitor.visitLdcInsn(Node.ErrorMessage); // FIXME
 		this.Builder.methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V");
 	}
 
@@ -801,223 +933,7 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 		} else {
 			this.Builder.box();
 		}
-		this.methodVisitor.visitInsn(ARETURN);
-	}
-}
-
-class TypeResolver {
-	private final Map<String, GtClassNode>	classMap			= new HashMap<String, GtClassNode>();
-	private final Map<String, String>		typeDescriptorMap	= new HashMap<String, String>();
-
-	// FIXME
-	String globalType = Type.getType(GtObject.class).getDescriptor();
-
-	public TypeResolver() {
-		this.typeDescriptorMap.put("global", Type.getType(GtObject.class).getDescriptor());
-		this.typeDescriptorMap.put("Void", Type.getType(void.class).getDescriptor());
-		this.typeDescriptorMap.put("Boolean", Type.getType(boolean.class).getDescriptor());
-		this.typeDescriptorMap.put("Integer", Type.getType(int.class).getDescriptor());
-		this.typeDescriptorMap.put("Object", Type.getType(Object.class).getDescriptor());
-		// TODO: other class
-	}
-
-	// FIXME
-	public String GetJavaTypeDescriptor(GtType type) {
-		String descriptor = this.typeDescriptorMap.get(type.ShortClassName);
-		if(descriptor != null) {
-			return descriptor;
-		}
-		if(type.LocalSpec != null) { //HostedClassInfo -> LocalSpec
-			return Type.getDescriptor((Class) type.LocalSpec); //HostedClassInfo -> LocalSpec
-		} else {
-			return "L" + type.ShortClassName + ";";//FIXME
-		}
-	}
-
-	public String GetJavaMethodDescriptor(GtMethod method) {
-		GtType returnType = method.GetReturnType();
-		ArrayList<GtType> paramTypes = method.Param.Types;
-		paramTypes.remove(0);
-		StringBuilder signature = new StringBuilder();
-		signature.append("(");
-		if(method.ClassInfo.ShortClassName.equals("global")) {
-			signature.append(globalType);
-		}
-		for(int i = 0; i < paramTypes.size(); i++) {
-			GtType ParamType = paramTypes.get(i);
-			signature.append(this.GetJavaTypeDescriptor(ParamType));
-		}
-		signature.append(")");
-		if(method.MethodName.equals("New")) {
-			signature.append(Type.VOID_TYPE.getDescriptor());
-		} else {
-			signature.append(this.GetJavaTypeDescriptor(returnType));
-		}
-		return signature.toString();
-	}
-
-	public GtClassNode FindClassNode(String className) {
-		return this.classMap.get(className);
-	}
-
-	public void StoreClassNode(GtClassNode cn) {
-		this.classMap.put(cn.name, cn);
-	}
-
-	public Type GetAsmType(Class<?> klass) {
-		return Type.getType(klass);
-	}
-
-	public Type GetAsmType(GtType type) {
-		return Type.getType(GetJavaTypeDescriptor(type));
-	}
-}
-
-public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes {
-	private final TypeResolver	TypeResolver;
-
-	public JavaByteCodeGenerator() {
-		this.TypeResolver = new TypeResolver();
-	}
-	
-
-	public void OutputClassFile(String className, String dir) throws IOException {
-		byte[] ba = this.generateBytecode(className);
-		File file = new File(dir, className + ".class");
-		FileOutputStream fos = null;
-		try {
-			fos = new FileOutputStream(file);
-			fos.write(ba);
-		} finally {
-			if(fos != null) {
-				fos.close();
-			}
-		}
-	}
-
-	public byte[] generateBytecode(String className) {
-		ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-		GtClassNode CNode = this.TypeResolver.FindClassNode(className);
-		CNode.accept(classWriter);
-		classWriter.visitEnd();
-		return classWriter.toByteArray();
-	}
-	
-	public GtMethodInvoker Compile(GtNameSpace NameSpace, TypedNode Block, GtMethod MethodInfo) {
-		return this.Compile(NameSpace, Block, MethodInfo, null);
-	}
-
-	public GtMethodInvoker Compile(GtNameSpace NameSpace, TypedNode Block, GtMethod MethodInfo, ArrayList<Local> params) {
-		int MethodAttr;
-		String className;
-		String methodName;
-		String methodDescriptor;
-		GtParam param;
-		GtType ReturnType;
-		boolean is_eval = false;
-		if(MethodInfo != null && MethodInfo.MethodName.length() > 0) {
-			className = MethodInfo.ClassInfo.ShortClassName;
-			//className = "Script";
-			methodName = MethodInfo.MethodName;
-			methodDescriptor = this.TypeResolver.GetJavaMethodDescriptor(MethodInfo);
-			MethodAttr = ACC_PUBLIC | ACC_STATIC;
-			param = MethodInfo.Param;
-			ReturnType = MethodInfo.GetReturnType();
-		} else {
-			GtType GlobalType = NameSpace.GetGlobalObject().Type;
-			className = "global";
-			methodName = "__eval";
-			methodDescriptor = Type.getMethodDescriptor(Type.getType(Object.class), this.TypeResolver.GetAsmType(GlobalType));
-			MethodAttr = ACC_PUBLIC | ACC_STATIC;
-			is_eval = true;
-			ArrayList<GtType> ParamDataList = new ArrayList<GtType>();//GtType[] ParamData = new GtType[2];
-			ArrayList<String> ArgNameList = new ArrayList<String>();//String[] ArgNames = new String[1];
-			ParamDataList.add(NameSpace.GtContext.ObjectType);
-			//ParamDataList.add(GlobalType);	//FIXME
-			ArgNameList.add("this");
-			param = new GtParam(ParamDataList, ArgNameList);
-			params = new ArrayList<Local>();
-			params.add(new Local(0, GlobalType, "this"));
-			ReturnType = ParamDataList.get(0);
-		}
-
-		GtClassNode cn = this.TypeResolver.FindClassNode(className);
-		if(cn == null) {
-			cn = new GtClassNode(className);
-			this.TypeResolver.StoreClassNode(cn);
-		}
-
-		for(MethodNode m : cn.methods.values()) {
-			if(m.name.equals(methodName) && m.desc.equals(methodDescriptor)) {
-				cn.methods.remove(m);
-				break;
-			}
-		}
-		MethodNode mn = new MethodNode(MethodAttr, methodName, methodDescriptor, null, null);
-		mn.visitCode();
-
-		this.Builder = new JVMBuilder(MethodInfo, mn, this.TypeResolver, NameSpace);
-		Block = this.Builder.VerifyBlock(NameSpace, is_eval, ReturnType, Block);
-
-		if(params != null) {
-			for(int i = 0; i < params.size(); i++) {
-				Local local = (Local) params.get(i);
-				this.Builder.AddLocal(local.TypeInfo, local.Name);
-			}
-		}
-		if(Block != null) {
-			VisitList(Block.MoveHeadNode());
-		}
-		if(is_eval) {
-			visitBoxingAndReturn();
-		}
-		VisitEnd();
-		cn.methods.put(methodName, mn);
-
-		try {
-			this.OutputClassFile("global", ".");
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		Class<?> c = new GtClassLoader(this).findClass(className);
-		Method[] MethodList = c.getMethods();
-		for(int i = 0; i < MethodList.length; i++) {
-			Method m = MethodList[i];
-			if(m.getName().equals(methodName)) {
-				GtMethodInvoker mtd = new NativeMethodInvoker(param, m);
-				return mtd;
-			}
-		}
-		return null;
-	}
-	
-	public GtMethodInvoker Build(GtNameSpace NameSpace, TypedNode Node, GtMethod Method) {
-		ArrayList<Local> Param = null;
-		if(Method != null) {
-			Param = new ArrayList<Local>();
-			GtParam P = Method.Param;
-			Param.add(new Local(0, Method.ClassInfo, "this"));
-			for(int i = 0; i < P.ParamSize; i++) {
-				GtType Type = P.Types.get(i + 1); //GtType Type = P.Types[i + 1];
-				String Arg = P.Names.get(i);//String Arg = P.ArgNames[i];
-				Local l = new Local(i + 1, Type, Arg);
-				Param.add(l);
-			}
-		}
-		return this.Compile(NameSpace, Node, Method, Param);
-	}
-	
-	@Override
-	public Object Eval(TypedNode Node) {
-		GtNameSpace NameSpace = Node.Type.PackageNameSpace;
-		GtObject GlobalObject = NameSpace.GetGlobalObject();
-		
-		GtMethodInvoker Invoker = this.Compile(NameSpace, Node, null);
-		Object[] Args = new Object[1];
-		Args[0] = GlobalObject;
-		return Invoker.Invoke(Args);
+		this.Builder.methodVisitor.visitInsn(ARETURN);
 	}
 }
 
@@ -1029,36 +945,36 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 class GtInt extends GtStatic {
 
 	public void MakeDefinition(GtNameSpace ns) {
-//		GtType BaseClass = ns.LookupHostLangType(Integer.class);
-//		GtParam BinaryParam = GtParam.ParseOf(ns, "int int x");
-//		GtParam UnaryParam = GtParam.ParseOf(ns, "int");
-//
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "+", UnaryParam, this, "PlusInt");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "+", BinaryParam, this, "IntAddInt");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "-", UnaryParam, this, "MinusInt");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "-", BinaryParam, this, "IntSubInt");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "*", BinaryParam, this, "IntMulInt");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "/", BinaryParam, this, "IntDivInt");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "%", BinaryParam, this, "IntModInt");
-//
-//		GtParam RelationParam = GtParam.ParseOf(ns, "boolean int x");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "<", RelationParam, this, "IntLtInt");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "<=", RelationParam, this, "IntLeInt");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, ">", RelationParam, this, "IntGtInt");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, ">=", RelationParam, this, "IntGeInt");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "==", RelationParam, this, "IntEqInt");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "!=", RelationParam, this, "IntNeInt");
-//
-//		//		if(GtDebug.UseBuiltInTest) {
-//		//			assert (BaseClass.LookupMethod("+", 0) != null);
-//		//			assert (BaseClass.LookupMethod("+", 1) != null);
-//		//			assert (BaseClass.LookupMethod("+", 2) == null);
-//		//			GtMethod m = BaseClass.LookupMethod("+", 1);
-//		//			Object[] p = new Object[2];
-//		//			p[0] = new Integer(1);
-//		//			p[1] = new Integer(2);
-//		//			GtStatic.println("******* 1+2=" + m.Eval(p));
-//		//		}
+		//		GtType BaseClass = ns.LookupHostLangType(Integer.class);
+		//		GtParam BinaryParam = GtParam.ParseOf(ns, "int int x");
+		//		GtParam UnaryParam = GtParam.ParseOf(ns, "int");
+		//
+		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "+", UnaryParam, this, "PlusInt");
+		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "+", BinaryParam, this, "IntAddInt");
+		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "-", UnaryParam, this, "MinusInt");
+		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "-", BinaryParam, this, "IntSubInt");
+		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "*", BinaryParam, this, "IntMulInt");
+		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "/", BinaryParam, this, "IntDivInt");
+		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "%", BinaryParam, this, "IntModInt");
+		//
+		//		GtParam RelationParam = GtParam.ParseOf(ns, "boolean int x");
+		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "<", RelationParam, this, "IntLtInt");
+		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "<=", RelationParam, this, "IntLeInt");
+		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, ">", RelationParam, this, "IntGtInt");
+		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, ">=", RelationParam, this, "IntGeInt");
+		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "==", RelationParam, this, "IntEqInt");
+		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "!=", RelationParam, this, "IntNeInt");
+		//
+		//		//		if(GtDebug.UseBuiltInTest) {
+		//		//			assert (BaseClass.LookupMethod("+", 0) != null);
+		//		//			assert (BaseClass.LookupMethod("+", 1) != null);
+		//		//			assert (BaseClass.LookupMethod("+", 2) == null);
+		//		//			GtMethod m = BaseClass.LookupMethod("+", 1);
+		//		//			Object[] p = new Object[2];
+		//		//			p[0] = new Integer(1);
+		//		//			p[1] = new Integer(2);
+		//		//			GtStatic.println("******* 1+2=" + m.Eval(p));
+		//		//		}
 	}
 
 	public static int PlusInt(int x) {
@@ -1117,19 +1033,19 @@ class GtInt extends GtStatic {
 class GtStringDef extends GtStatic {
 
 	public void MakeDefinition(GtNameSpace ns) {
-//		GtType BaseClass = ns.LookupHostLangType(String.class);
-//		GtParam BinaryParam = GtParam.ParseOf(ns, "String String x");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "+", BinaryParam, this, "StringAddString");
-//
-//		GtParam RelationParam = GtParam.ParseOf(ns, "boolean String x");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "==", RelationParam, this, "StringEqString");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "!=", RelationParam, this, "StringNeString");
-//
-//		GtParam indexOfParam = GtParam.ParseOf(ns, "int String x");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "indexOf", indexOfParam, this, "StringIndexOf");
-//
-//		GtParam getSizeParam = GtParam.ParseOf(ns, "int");
-//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "getSize", getSizeParam, this, "StringGetSize");
+		//		GtType BaseClass = ns.LookupHostLangType(String.class);
+		//		GtParam BinaryParam = GtParam.ParseOf(ns, "String String x");
+		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "+", BinaryParam, this, "StringAddString");
+		//
+		//		GtParam RelationParam = GtParam.ParseOf(ns, "boolean String x");
+		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "==", RelationParam, this, "StringEqString");
+		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "!=", RelationParam, this, "StringNeString");
+		//
+		//		GtParam indexOfParam = GtParam.ParseOf(ns, "int String x");
+		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "indexOf", indexOfParam, this, "StringIndexOf");
+		//
+		//		GtParam getSizeParam = GtParam.ParseOf(ns, "int");
+		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "getSize", getSizeParam, this, "StringGetSize");
 	}
 
 	public static String StringAddString(String x, String y) {
@@ -1156,11 +1072,11 @@ class GtStringDef extends GtStatic {
 class GtSystemDef extends GtStatic {
 
 	public void MakeDefinition(GtNameSpace NameSpace) {
-//		GtType BaseClass = NameSpace.LookupHostLangType(GtSystemDef.class);
-//		NameSpace.DefineSymbol("System", BaseClass);
-//
-//		GtParam param1 = GtParam.ParseOf(NameSpace, "void String x");
-//		BaseClass.DefineMethod(StaticMethod, "p", param1, this, "p");
+		//		GtType BaseClass = NameSpace.LookupHostLangType(GtSystemDef.class);
+		//		NameSpace.DefineSymbol("System", BaseClass);
+		//
+		//		GtParam param1 = GtParam.ParseOf(NameSpace, "void String x");
+		//		BaseClass.DefineMethod(StaticMethod, "p", param1, this, "p");
 	}
 
 	public static void p(String x) {
