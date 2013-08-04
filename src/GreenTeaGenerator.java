@@ -949,7 +949,6 @@ public class GreenTeaGenerator extends GtStatic {
 	}
 
 	// This must be extended in each language
-
 	public void DefineFunction(GtMethod Method, ArrayList<String> NameList, TypedNode Body) {
 		/*extenstion*/
 	}

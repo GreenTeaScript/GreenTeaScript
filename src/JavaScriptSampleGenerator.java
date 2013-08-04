@@ -2,6 +2,10 @@
 
 public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 
+	JavaScriptSampleGenerator() {
+		super("JavaScript");
+	}
+
 	private boolean UseLetKeyword;
 
 	@Override
@@ -221,8 +225,7 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 
 
 	// This must be extended in each language
-	@Override
-	public Object Eval(TypedNode Node) {
+	@Override public Object Eval(TypedNode Node) {
 		VisitBlock(Node);
 		return null;
 	}

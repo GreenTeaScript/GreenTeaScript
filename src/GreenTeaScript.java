@@ -2120,11 +2120,11 @@ final class KonohaGrammar extends GtGrammar {
 		NameSpace.DefineTokenFunc("1",  FunctionA(this, "NumberLiteralToken"));
 //#ifdef JAVA
 		GtDelegateMatch ParseUnary    = FunctionB(this, "ParseUnary");
-		GtDelegateType TypeUnary      = FunctionC(this, "TypeUnary");
+		GtDelegateType  TypeUnary      = FunctionC(this, "TypeUnary");
 		GtDelegateMatch ParseBinary   = FunctionB(this, "ParseBinary");
-		GtDelegateType TypeBinary     = FunctionC(this, "TypeBinary");
-		GtDelegateType TypeConst      = FunctionC(this, "TypeConst");
-		GtDelegateType TypeBlock      = FunctionC(this, "TypeBlock");
+		GtDelegateType  TypeBinary     = FunctionC(this, "TypeBinary");
+		GtDelegateType  TypeConst      = FunctionC(this, "TypeConst");
+		GtDelegateType  TypeBlock      = FunctionC(this, "TypeBlock");
 //endif VAJA
 		NameSpace.DefineSyntaxPattern("+", ParseUnary, TypeUnary);
 		NameSpace.DefineSyntaxPattern("-", ParseUnary, TypeUnary);
