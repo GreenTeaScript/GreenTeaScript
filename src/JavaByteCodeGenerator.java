@@ -147,12 +147,12 @@ class GtClass extends GtDef {
 	}
 }
 
-abstract class GtMethodInvoker {
-	GtParam		Param;
+abstract class GtMethodInvoker {	//TODO: using GtMethod
+	public GtType[]		ParamTypes;
 	public Object	CompiledCode;
 
-	public GtMethodInvoker(GtParam Param, Object CompiledCode) {
-		this.Param = Param;
+	public GtMethodInvoker(GtType[] ParamTypes, Object CompiledCode) {
+		this.ParamTypes = ParamTypes;
 		this.CompiledCode = CompiledCode;
 
 	}
@@ -164,8 +164,8 @@ abstract class GtMethodInvoker {
 
 class NativeMethodInvoker extends GtMethodInvoker {
 
-	public NativeMethodInvoker(GtParam Param, Method MethodRef) {
-		super(Param, MethodRef);
+	public NativeMethodInvoker(GtType[] ParamTypes, Method MethodRef) {
+		super(ParamTypes, MethodRef);
 	}
 
 	public Method GetMethodRef() {
@@ -177,8 +177,8 @@ class NativeMethodInvoker extends GtMethodInvoker {
 	}
 
 	@Override
-	public Object Invoke(Object[] Args) {
-		int ParamSize = this.Param != null ? this.Param.ParamSize : 0;
+	public Object Invoke(Object[] Args) {	
+		int ParamSize = this.ParamTypes != null ? this.ParamTypes.length - 1 : 0;
 		try {
 			Method MethodRef = this.GetMethodRef();
 			if(this.IsStaticInvocation()) {
@@ -523,7 +523,7 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 		String className;
 		String methodName;
 		String methodDescriptor;
-		GtParam param = null;
+		GtType[] paramTypes = null;
 		GtType ReturnType;
 		boolean is_eval = false;
 		if(MethodInfo != null && MethodInfo.MethodName.length() > 0) {
@@ -535,22 +535,20 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 			//FIXME
 			//param = MethodInfo.Param;
 			ReturnType = MethodInfo.GetReturnType();
-		} else {
+		} else { //FIXME: paramTypes
 			GtType GlobalType = NameSpace.GetGlobalObject().Type;
 			className = "global";
 			methodName = "__eval";
 			methodDescriptor = Type.getMethodDescriptor(Type.getType(Object.class), this.TypeResolver.GetAsmType(GlobalType));
 			MethodAttr = ACC_PUBLIC | ACC_STATIC;
 			is_eval = true;
-			ArrayList<GtType> ParamDataList = new ArrayList<GtType>();//GtType[] ParamData = new GtType[2];
-			ArrayList<String> ArgNameList = new ArrayList<String>();//String[] ArgNames = new String[1];
-			ParamDataList.add(NameSpace.GtContext.ObjectType);
+			ArrayList<GtType> ParamTypeList = new ArrayList<GtType>();//GtType[] ParamData = new GtType[2];
+			ParamTypeList.add(NameSpace.GtContext.ObjectType);
 			//ParamDataList.add(GlobalType);	//FIXME
-			ArgNameList.add("this");
-			param = new GtParam(ParamDataList, ArgNameList);
+			paramTypes = LangDeps.CompactTypeList(ParamTypeList);
 			params = new ArrayList<Local>();
 			params.add(new Local(0, GlobalType, "this"));
-			ReturnType = ParamDataList.get(0);
+			ReturnType = ParamTypeList.get(0);
 		}
 
 		GtClassNode cn = this.TypeResolver.FindClassNode(className);
@@ -598,7 +596,7 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 		for(int i = 0; i < MethodList.length; i++) {
 			Method m = MethodList[i];
 			if(m.getName().equals(methodName)) {
-				GtMethodInvoker mtd = new NativeMethodInvoker(param, m);
+				GtMethodInvoker mtd = new NativeMethodInvoker(paramTypes, m);
 				return mtd;
 			}
 		}
@@ -766,9 +764,9 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 
 	@Override
 	public void VisitLetNode(LetNode Node) {
-		//		Local local = this.AddLocal(Node.Type, Node.Token.ParsedText);
-		//		Node.ValueNode.Evaluate(this);
-		//		this.StoreLocal(local);
+		Local local = this.Builder.AddLocal(Node.Type, Node.Token.ParsedText);
+		Node.VarNode.Evaluate(this);
+		this.Builder.StoreLocal(local);
 		this.VisitList(Node.BlockNode);
 	}
 
@@ -937,12 +935,28 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 	}
 }
 
+class EmbeddedMethodDef extends GtStatic {
+	private NativeMethodMap NMMap;
+	
+	public EmbeddedMethodDef(NativeMethodMap NMMap) {
+		this.NMMap = NMMap;
+	}
+	
+	public void MakeDefinition(GtNameSpace ns) {
+		
+	}
+}
+
 
 // The code below was moved from GreenTeaScript.java
 // Consider whether it is available?
 
 //ifdef JAVA
-class GtInt extends GtStatic {
+class GtInt extends EmbeddedMethodDef {
+
+	public GtInt(NativeMethodMap NMMap) {
+		super(NMMap);
+	}
 
 	public void MakeDefinition(GtNameSpace ns) {
 		//		GtType BaseClass = ns.LookupHostLangType(Integer.class);
@@ -1030,7 +1044,11 @@ class GtInt extends GtStatic {
 	}
 }
 
-class GtStringDef extends GtStatic {
+class GtStringDef extends EmbeddedMethodDef {
+
+	public GtStringDef(NativeMethodMap NMMap) {
+		super(NMMap);
+	}
 
 	public void MakeDefinition(GtNameSpace ns) {
 		//		GtType BaseClass = ns.LookupHostLangType(String.class);
@@ -1069,7 +1087,11 @@ class GtStringDef extends GtStatic {
 	}
 }
 
-class GtSystemDef extends GtStatic {
+class GtSystemDef extends EmbeddedMethodDef {
+
+	public GtSystemDef(NativeMethodMap NMMap) {
+		super(NMMap);
+	}
 
 	public void MakeDefinition(GtNameSpace NameSpace) {
 		//		GtType BaseClass = NameSpace.LookupHostLangType(GtSystemDef.class);
