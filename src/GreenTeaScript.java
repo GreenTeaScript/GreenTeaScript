@@ -1577,6 +1577,20 @@ final class GtNameSpace extends GtStatic {
 		}
 		return FoundMethod;
 	}
+
+	public GtMethod GetGetter(GtType Class, String FieldName) {
+		/*local*/String MethodId = Class.GetMethodId(FieldName);
+		while(Class != null) {
+			/*local*/GtMethod FoundMethod = this.Context.FieldLayer.GetMethod(MethodId);
+			if(FoundMethod != null) {
+				return FoundMethod;
+			}
+			Class = Class.SearchSuperMethodClass;
+		}
+		return null;
+	}
+
+	
 	
 	// Global Object
 	public GtObject CreateGlobalObject(int ClassFlag, String ShortName) {
