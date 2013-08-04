@@ -1,6 +1,4 @@
 
-JavaOnlySecion = false
-
 $Keyword = /return|new|throw|class|interface|extends|impliments|public|private|protected|static|final|function|instanceof|else/
 $Type = /(?!#{$Keyword})\b(?!\d)\w+\b(?:<.*?>)?(?:\[\s*\d*\s*\])*/o
 $Attr = /\b(?:public|private|protected|static|final)\b\s*/
@@ -47,6 +45,8 @@ src.gsub!(/\bString\b/, "string");
 src.gsub!(/\bArrayList<\?>/, "any");
 src.gsub!(/\bArrayList\b/, "Array");
 src.gsub!(/\bGtMap\b/, "Object");
+
+src.gsub!(/('.*?')/){ "(#{$1}.charCodeAt(0))" }
 
 src.gsub!(/\bfinal\s*/, "");
 src.gsub!(/@Override\s*/, "");

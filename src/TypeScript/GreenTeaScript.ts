@@ -319,12 +319,12 @@
 	function GetSymbolId(Symbol: string, DefaultSymbolId: number): number {
 		var Key: string = Symbol;
 		var Mask: number = 0;
-		if(Symbol.length >= 3 && Symbol.charAt(1) == 'e' && Symbol.charAt(2) == 't') {
-			if(Symbol.charAt(0) == 'g' && Symbol.charAt(0) == 'G') {
+		if(Symbol.length >= 3 && LangDeps.CharAt(Symbol, 1) == ('e'.charCodeAt(0)) && LangDeps.CharAt(Symbol, 2) == ('t'.charCodeAt(0))) {
+			if(LangDeps.CharAt(Symbol, 0) == ('g'.charCodeAt(0)) && LangDeps.CharAt(Symbol, 0) == ('G'.charCodeAt(0))) {
 				Key = Symbol.substring(3);
 				Mask = GetterSymbolMask;
 			}
-			if(Symbol.charAt(0) == 's' && Symbol.charAt(0) == 'S') {
+			if(LangDeps.CharAt(Symbol, 0) == ('s'.charCodeAt(0)) && LangDeps.CharAt(Symbol, 0) == ('S'.charCodeAt(0))) {
 				Key = Symbol.substring(3);
 				Mask = SetterSymbolMask;
 			}
@@ -630,7 +630,7 @@ class TokenContext {
 		var TokenFunc: TokenFunc = this.NameSpace.GetTokenFunc(GtChar);
 		var NextIdx: number = ApplyTokenFunc(TokenFunc, this, ScriptSource, pos);
 		if(NextIdx == NoMatch) {
-			DebugP("undefined tokenizer: " + ScriptSource.charAt(pos));
+			DebugP("undefined tokenizer: " + LangDeps.CharAt(ScriptSource, pos));
 			this.AddNewToken(ScriptSource.substring(pos), 0, null);
 			return ScriptSource.length;
 		}
@@ -1320,7 +1320,7 @@ class TypeEnv {
 		if(Type.DefaultNullValue != null) {
 			return this.Generator.CreateConstNode(Type, ParsedTree, Type.DefaultNullValue);
 		}
-		return CreateErrorNode(ParsedTree, "undefinedvalue: initial of " + Type);
+		return this.CreateErrorNode(ParsedTree, "undefinedvalue: initial of " + Type);
 	}
 
 	public CreateErrorNode(ParsedTree: SyntaxTree, Message: string): TypedNode {
@@ -1413,7 +1413,7 @@ class GtNameSpace {
 			if(Spec.SpecType == TokenFuncSpec) {
 				var j: number = 0;
 				while(j < Spec.SpecKey.length) {
-					var kchar: number = FromJavaChar(Spec.SpecKey.charAt(j));
+					var kchar: number = FromJavaChar(LangDeps.CharAt(Spec.SpecKey, j));
 					var Func: GtDelegateToken = <GtDelegateToken>Spec.SpecBody;
 					this.TokenMatrix[kchar] = LangDeps.CreateOrReuseTokenFunc(Func, this.TokenMatrix[kchar]);
 					j += 1;
@@ -1425,13 +1425,13 @@ class GtNameSpace {
 
 	private RemakeTokenMatrix(NameSpace: GtNameSpace): void {
 		if(NameSpace.ParentNameSpace != null) {
-			RemakeTokenMatrix(NameSpace.ParentNameSpace);
+			this.RemakeTokenMatrix(NameSpace.ParentNameSpace);
 		}
-		RemakeTokenMatrixEach(NameSpace);
+		this.RemakeTokenMatrixEach(NameSpace);
 		var i: number = 0;
 		while(i < ListSize(NameSpace.ImportedNameSpaceList)) {
 			var Imported: GtNameSpace = NameSpace.ImportedNameSpaceList.get(i);
-			RemakeTokenMatrixEach(Imported);
+			this.RemakeTokenMatrixEach(Imported);
 			i += 1;
 		}
 	}
@@ -1439,7 +1439,7 @@ class GtNameSpace {
 	public GetTokenFunc(GtChar2: number): TokenFunc {
 		if(this.TokenMatrix == null) {
 			this.TokenMatrix = new TokenFunc[MaxSizeOfChars];
-			RemakeTokenMatrix(this);
+			this.RemakeTokenMatrix(this);
 		}
 		return this.TokenMatrix[GtChar2];
 	}
@@ -1645,7 +1645,7 @@ class KonohaGrammar extends GtGrammar {
 	static WhiteSpaceToken(TokenContext: TokenContext, SourceText: string, pos: number): number {
 		TokenContext.FoundWhiteSpace();
 		while(pos < SourceText.length) {
-			var ch: number = SourceText.charAt(pos);
+			var ch: number = LangDeps.CharAt(SourceText, pos);
 			if(!LangDeps.IsWhitespace(ch)) {
 				break;
 			}
@@ -1659,7 +1659,7 @@ class KonohaGrammar extends GtGrammar {
 		TokenContext.FoundLineFeed(1);
 		pos = pos + 1;
 		while(pos < SourceText.length) {
-			var ch: number = SourceText.charAt(pos);
+			var ch: number = LangDeps.CharAt(SourceText, pos);
 			if(!LangDeps.IsWhitespace(ch)) {
 				break;
 			}
@@ -1681,8 +1681,8 @@ class KonohaGrammar extends GtGrammar {
 	static SymbolToken(TokenContext: TokenContext, SourceText: string, pos: number): number {
 		var start: number = pos;
 		while(pos < SourceText.length) {
-			var ch: number = SourceText.charAt(pos);
-			if(!LangDeps.IsLetter(ch) && !LangDeps.IsDigit(ch) && ch != '_') {
+			var ch: number = LangDeps.CharAt(SourceText, pos);
+			if(!LangDeps.IsLetter(ch) && !LangDeps.IsDigit(ch) && ch != ('_'.charCodeAt(0))) {
 				break;
 			}
 			pos += 1;
@@ -1694,7 +1694,7 @@ class KonohaGrammar extends GtGrammar {
 	static OperatorToken(TokenContext: TokenContext, SourceText: string, pos: number): number {
 		var NextPos: number = pos + 1;
 		while(NextPos < SourceText.length) {
-			var ch: number = SourceText.charAt(NextPos);
+			var ch: number = LangDeps.CharAt(SourceText, NextPos);
 			if(LangDeps.IsWhitespace(ch) || LangDeps.IsLetter(ch) || LangDeps.IsDigit(ch)) {
 				break;
 			}
@@ -1712,7 +1712,7 @@ class KonohaGrammar extends GtGrammar {
 	static NumberLiteralToken(TokenContext: TokenContext, SourceText: string, pos: number): number {
 		var start: number = pos;
 		while(pos < SourceText.length) {
-			var ch: number = SourceText.charAt(pos);
+			var ch: number = LangDeps.CharAt(SourceText, pos);
 			if(!LangDeps.IsDigit(ch)) {
 				break;
 			}
@@ -1724,14 +1724,14 @@ class KonohaGrammar extends GtGrammar {
 
 	static StringLiteralToken(TokenContext: TokenContext, SourceText: string, pos: number): number {
 		var start: number = pos;
-		var prev: number = '"';
+		var prev: number = ('"'.charCodeAt(0));
 		while(pos < SourceText.length) {
-			var ch: number = SourceText.charAt(pos);
-			if(ch == '"' && prev != '\\') {
+			var ch: number = LangDeps.CharAt(SourceText, pos);
+			if(ch == ('"'.charCodeAt(0)) && prev != ('\\'.charCodeAt(0))) {
 				TokenContext.AddNewToken(SourceText.substring(start, pos+1), 0, "$StringLiteral$");
 				return pos + 1;
 			}
-			if(ch == '\n') {
+			if(ch == ('\n'.charCodeAt(0))) {
 				TokenContext.ReportTokenError(ErrorLevel, "expected \"close: tostring: the literal", SourceText.substring(start, pos));
 				TokenContext.FoundLineFeed(1);
 				return pos;
@@ -1780,8 +1780,8 @@ class KonohaGrammar extends GtGrammar {
 
 	static ParseVariable(Pattern: SyntaxPattern, LeftTree: SyntaxTree, TokenContext: TokenContext): SyntaxTree {
 		var Token: GtToken = TokenContext.Next();
-		var ch: number = Token.ParsedText.charAt(0);
-		if(LangDeps.IsLetter(ch) || ch == '_') {
+		var ch: number = LangDeps.CharAt(Token.ParsedText, 0);
+		if(LangDeps.IsLetter(ch) || ch == ('_'.charCodeAt(0))) {
 			return new SyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
 		}
 		return null;
@@ -2174,6 +2174,13 @@ class KonohaGrammar extends GtGrammar {
 		NameSpace.DefineTokenFunc("\"", FunctionA(this, "StringLiteralToken"));
 		NameSpace.DefineTokenFunc("1",  FunctionA(this, "NumberLiteralToken"));
 
+		var ParseUnary: GtDelegateMatch    = FunctionB(this, "ParseUnary");
+		var ParseBinary: GtDelegateMatch   = FunctionB(this, "ParseBinary");
+		var TypeBinary: GtDelegateType = FunctionC(this, "TypeBinary");
+		var TypeUnary: GtDelegateType = FunctionC(this, "TypeUnary");
+		var TypeConst: GtDelegateType = FunctionC(this, "TypeConst");
+		var TypeBlock: GtDelegateType = FunctionC(this, "TypeBlock");
+
 		NameSpace.DefineSyntaxPattern("+", ParseUnary, TypeUnary);
 		NameSpace.DefineSyntaxPattern("-", ParseUnary, TypeUnary);
 		NameSpace.DefineSyntaxPattern("!", ParseUnary, TypeUnary);
@@ -2279,7 +2286,7 @@ class GreenTeaScript {
 		var GtContext: GtContext = new GtContext(new KonohaGrammar(), new GreenTeaGenerator());
 // 		//GtContext.Eval("f(a: number, b: number): number { return a + b; }", 0); //
 // 		//GtContext.Eval("1 + 2 * 3", 0); //
-		TestAll(GtContext);
+		GreenTeaScript.TestAll(GtContext);
 		
 // 		GtContext GtContext = new GtContext(new KonohaGrammar(), new JavaByteCodeGenerator()); //
 // 		System.err.println("##value: Eval: " + GtContext.Eval("1", 0)); //
