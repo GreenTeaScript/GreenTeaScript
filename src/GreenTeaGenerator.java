@@ -260,7 +260,7 @@ class ApplyNode extends TypedNode {
 	}
 	@Override public String toString() {
 		/*local*/String Param = "";
-		for(int i = 0; i < Params.size(); i++) {
+		for(/*local*/int i = 0; i < Params.size(); i++) {
 			TypedNode Node = Params.get(i);
 			if(i != 0) {
 				Param += ", ";
@@ -288,7 +288,7 @@ class MessageNode extends TypedNode {
 	}
 	@Override public String toString() {
 		/*local*/String Param = "";
-		for(int i = 0; i < Params.size(); i++) {
+		for(/*local*/int i = 0; i < Params.size(); i++) {
 			TypedNode Node = Params.get(i);
 			if(i != 0) {
 				Param += ", ";
@@ -313,7 +313,7 @@ class NewNode extends TypedNode {
 	}
 	@Override public String toString() {
 		/*local*/String Param = "";
-		for(int i = 0; i < Params.size(); i++) {
+		for(/*local*/int i = 0; i < Params.size(); i++) {
 			TypedNode Node = Params.get(i);
 			if(i != 0) {
 				Param += ", ";
@@ -887,7 +887,7 @@ public class GreenTeaGenerator extends GtStatic {
 
 	// This must be extended in each language
 	public Object Eval(TypedNode Node) {
-		VisitBlock(Node);
+		this.VisitBlock(Node);
 		return null;
 	}
 
@@ -923,7 +923,7 @@ class IndentGenerator {
 
 	private static String Repeat(String Unit, int Times) {
 		/*local*/StringBuilder Builder = new StringBuilder();
-		for(int i = 0; i < Times; ++i) {
+		for(/*local*/int i = 0; i < Times; ++i) {
 			Builder.append(Unit);
 		}
 		return Builder.toString();

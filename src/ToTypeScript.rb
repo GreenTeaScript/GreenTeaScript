@@ -40,9 +40,10 @@ src.gsub!(/\/\*BeginArray\*\/{/, "[");
 src.gsub!(/\/\*EndArray\*\/}/, "]");
 
 # Types
-src.gsub!(/\b(?:int|long|float|double|Integer|Long|Float|Double)\b/, "number");
+src.gsub!(/\b(?:char|int|long|float|double|Charactor|Integer|Long|Float|Double)\b/, "number");
+src.gsub!(/\.(?:int|long|float|double|)Value\(\)/, "");
 src.gsub!(/\bString\b/, "string");
-src.gsub!(/\bObject\b/, "object");
+#src.gsub!(/\bObject\b/, "object");
 src.gsub!(/\bArrayList<\?>/, "any");
 src.gsub!(/\bArrayList\b/, "Array");
 src.gsub!(/\bGtMap\b/, "Object");
@@ -56,5 +57,11 @@ src.gsub!(/\bGtStatic\./, "");
 src.gsub!(/\((string|number)\)/o){"<#{$1}>"}
 src.gsub!(/\(\/\*cast\*\/(#{$Type})\)/o){"<#{$1}>"}
 
-src.gsub!(/\bpublic class\b/, "class");
+src.gsub!(/\bpublic class\b/, "class")
+
+src.gsub!(/\bsize\(\)/, "length")
+src.gsub!(/\blength\(\)/, "length")
+src.gsub!(/\bSystem\.out\.println/, "console.log")
+
+puts '/// <reference path="LangDeps.ts" />'
 puts src

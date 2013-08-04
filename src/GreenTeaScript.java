@@ -632,7 +632,7 @@ final class TokenContext extends GtStatic {
 		this.Pos = 0;
 		this.ParsingLine = FileLine;
 		this.ParseFlag = 0;
-		AddNewToken(Text, SourceTokenFlag, null);
+		this.AddNewToken(Text, SourceTokenFlag, null);
 		this.IndentLevel = 0;
 	}
 
@@ -649,7 +649,7 @@ final class TokenContext extends GtStatic {
 	}
 
 	public void FoundWhiteSpace() {
-		/*local*/GtToken Token = GetToken();
+		/*local*/GtToken Token = this.GetToken();
 		Token.TokenFlag |= WhiteSpaceTokenFlag;
 	}
 
@@ -663,7 +663,7 @@ final class TokenContext extends GtStatic {
 	}
 
 	public SyntaxTree NewErrorSyntaxTree(GtToken Token, String Message) {
-		if(!IsAllowedTrackback()) {
+		if(!this.IsAllowedTrackback()) {
 			this.NameSpace.ReportError(ErrorLevel, Token, Message);
 			/*local*/SyntaxTree ErrorTree = new SyntaxTree(Token.PresetPattern, this.NameSpace, Token, null);
 			return ErrorTree;
@@ -685,20 +685,20 @@ final class TokenContext extends GtStatic {
 	}
 
 	public SyntaxTree ReportExpectedToken(String TokenText) {
-		if(!IsAllowedTrackback()) {
-			/*local*/GtToken Token = GetBeforeToken();
+		if(!this.IsAllowedTrackback()) {
+			/*local*/GtToken Token = this.GetBeforeToken();
 			if(Token != null) {
-				return NewErrorSyntaxTree(Token, TokenText + " is expected after " + Token.ParsedText);
+				return this.NewErrorSyntaxTree(Token, TokenText + " is expected after " + Token.ParsedText);
 			}
-			Token = GetToken();
+			Token = this.GetToken();
 			assert(Token != NullToken);
-			return NewErrorSyntaxTree(Token, TokenText + " is expected at " + Token.ParsedText);
+			return this.NewErrorSyntaxTree(Token, TokenText + " is expected at " + Token.ParsedText);
 		}
 		return null;
 	}
 
 	public SyntaxTree ReportExpectedPattern(SyntaxPattern Pattern) {
-		return ReportExpectedToken(Pattern.PatternName);
+		return this.ReportExpectedToken(Pattern.PatternName);
 	}
 
 	private int DispatchFunc(String ScriptSource, int GtChar, int pos) {
@@ -717,7 +717,7 @@ final class TokenContext extends GtStatic {
 		/*local*/int len = ScriptSource.length();
 		this.ParsingLine = CurrentLine;
 		while(currentPos < len) {
-			/*local*/int gtCode = GtStatic.FromJavaChar(ScriptSource.charAt(currentPos));
+			/*local*/int gtCode = FromJavaChar(LangDeps.CharAt(ScriptSource, currentPos));
 			/*local*/int nextPos = this.DispatchFunc(ScriptSource, gtCode, currentPos);
 			if(currentPos >= nextPos) {
 				break;
@@ -759,7 +759,7 @@ final class TokenContext extends GtStatic {
 	}
 
 	public SyntaxPattern GetFirstPattern() {
-		/*local*/GtToken Token = GetToken();
+		/*local*/GtToken Token = this.GetToken();
 		if(Token.PresetPattern != null) {
 			return Token.PresetPattern;
 		}
@@ -771,13 +771,13 @@ final class TokenContext extends GtStatic {
 	}
 
 	public SyntaxPattern GetExtendedPattern() {
-		/*local*/GtToken Token = GetToken();
+		/*local*/GtToken Token = this.GetToken();
 		/*local*/SyntaxPattern Pattern = this.NameSpace.GetExtendedPattern(Token.ParsedText);
 		return Pattern;
 	}
 
 	public boolean MatchToken(String TokenText) {
-		/*local*/GtToken Token = GetToken();
+		/*local*/GtToken Token = this.GetToken();
 		if(Token.EqualsText(TokenText)) {
 			this.Pos += 1;
 			return true;
@@ -786,13 +786,13 @@ final class TokenContext extends GtStatic {
 	}
 
 	public GtToken GetMatchedToken(String TokenText) {
-		/*local*/GtToken Token = GetToken();
+		/*local*/GtToken Token = this.GetToken();
 		while(Token != NullToken) {
 			this.Pos += 1;
 			if(Token.EqualsText(TokenText)) {
 				break;
 			}
-			Token = GetToken();
+			Token = this.GetToken();
 		}
 		return Token;
 	}
@@ -823,7 +823,7 @@ final class TokenContext extends GtStatic {
 
 	public final boolean SkipEmptyStatement() {
 		/*local*/GtToken Token = null;
-		while((Token = GetToken()) != NullToken) {
+		while((Token = this.GetToken()) != NullToken) {
 			if(Token.IsIndent() || Token.IsDelim()) {
 				this.Pos += 1;
 				continue;
@@ -938,10 +938,10 @@ class SyntaxTree extends GtStatic {
 
 	public void ToEmptyOrError(SyntaxTree ErrorTree) {
 		if(ErrorTree == null) {
-			ToEmpty();
+			this.ToEmpty();
 		}
 		else {
-			ToError(ErrorTree.KeyToken);
+			this.ToError(ErrorTree.KeyToken);
 		}
 	}
 
@@ -950,9 +950,9 @@ class SyntaxTree extends GtStatic {
 	}
 
 	public void SetSyntaxTreeAt(int Index, SyntaxTree Tree) {
-		if(!IsError()) {
+		if(!this.IsError()) {
 			if(Tree.IsError()) {
-				ToError(Tree.KeyToken);
+				this.ToError(Tree.KeyToken);
 			}
 			else {
 				if(Index >= 0) {
@@ -974,36 +974,36 @@ class SyntaxTree extends GtStatic {
 	}
 
 	public void SetMatchedPatternAt(int Index, TokenContext TokenContext, String PatternName,  boolean IsOptional) {
-		if(!IsEmptyOrError()) {
+		if(!this.IsEmptyOrError()) {
 			/*local*/SyntaxTree ParsedTree = TokenContext.ParsePattern(PatternName, IsOptional);
 			if(ParsedTree != null) {
-				SetSyntaxTreeAt(Index, ParsedTree);
+				this.SetSyntaxTreeAt(Index, ParsedTree);
 			} else if(ParsedTree == null && !IsOptional) {
-				ToEmpty();
+				this.ToEmpty();
 			}
 		}
 	}
 
 	public void SetMatchedTokenAt(int Index, TokenContext TokenContext, String TokenText, boolean IsOptional) {
-		if(!IsEmptyOrError()) {
+		if(!this.IsEmptyOrError()) {
 			/*local*/int Pos = TokenContext.Pos;
 			/*local*/GtToken Token = TokenContext.Next();
 			if(Token.ParsedText.equals(TokenText)) {
-				SetSyntaxTreeAt(Index, new SyntaxTree(null, TokenContext.NameSpace, Token, null));
+				this.SetSyntaxTreeAt(Index, new SyntaxTree(null, TokenContext.NameSpace, Token, null));
 			}
 			else {
 				TokenContext.Pos = Pos;
 				if(!IsOptional) {
-					ToEmptyOrError(TokenContext.ReportExpectedToken(TokenText));
+					this.ToEmptyOrError(TokenContext.ReportExpectedToken(TokenText));
 				}
 			}
 		}
 	}
 
 	public void AppendParsedTree(SyntaxTree Tree) {
-		if(!IsError()) {
+		if(!this.IsError()) {
 			if(Tree.IsError()) {
-				ToError(Tree.KeyToken);
+				this.ToError(Tree.KeyToken);
 			}
 			else {
 				if(this.TreeList == null) {
@@ -1177,6 +1177,7 @@ class GtMethod extends GtDef {
 	/*field*/public GtMethod        ElderMethod;
 
 	GtMethod/*constructor*/(int MethodFlag, String MethodName, ArrayList<GtType> ParamList) {
+		super();
 		this.MethodFlag = MethodFlag;
 		this.MethodName = MethodName;
 		this.MethodSymbolId = GtStatic.GetCanonicalSymbolId(MethodName);
