@@ -39,7 +39,7 @@ class TypedNode extends GtStatic {
 	}
 
 	public void Evaluate(GreenTeaGenerator Visitor) {
-		/*extension*/
+		Visitor.VisitEmptyNode(this);  /* must override */
 	}
 
 	public final boolean IsError() {
@@ -611,13 +611,70 @@ class ErrorNode extends TypedNode {
 	}
 }
 
+class IndentGenerator {
+	/*field*/private int    IndentLevel					= 0;
+	/*field*/private String CurrentLevelIndentString	= "";
+	/*field*/private String IndentString				= "\t";
+
+	public IndentGenerator/*constructor*/() {
+	}
+
+	public IndentGenerator/*constructor*/(int Tabstop) {
+		this.IndentString = IndentGenerator.Repeat(" ", Tabstop);
+	}
+
+	private static String Repeat(String Unit, int Times) {
+		/*local*/StringBuilder Builder = new StringBuilder();
+		for(int i = 0; i < Times; ++i) {
+			Builder.append(Unit);
+		}
+		return Builder.toString();
+	}
+
+	public void SetIndent(int Level) {
+		if(Level < 0)
+			Level = 0;
+		if(this.IndentLevel != Level) {
+			this.IndentLevel = Level;
+			this.CurrentLevelIndentString = IndentGenerator.Repeat(this.IndentString, Level);
+		}
+	}
+
+	public void AddIndent(int LevelDelta) {
+		this.SetIndent(this.IndentLevel + LevelDelta);
+	}
+
+	public String Get() {
+		return this.CurrentLevelIndentString;
+	}
+
+	public String GetAndAddIndent(int LevelDelta) {
+		/*local*/String IndentString = this.CurrentLevelIndentString;
+		this.AddIndent(LevelDelta);
+		return IndentString;
+	}
+
+	public String AddIndentAndGet(int LevelDelta) {
+		this.AddIndent(LevelDelta);
+		return this.CurrentLevelIndentString;
+	}
+}
+
 public class GreenTeaGenerator extends GtStatic {
+	/*field*/public String LangName;
 	/*field*/ArrayList<String> GeneratedCodeStack;
 
-	GreenTeaGenerator/*constructor*/() {
+	GreenTeaGenerator/*constructor*/(String LangName) {
+		this.LangName = LangName;
 		this.GeneratedCodeStack = new ArrayList<String>();
 	}
 
+	public final TypedNode UnsupportedNode(GtType Type, SyntaxTree ParsedTree) {
+		GtToken Token = ParsedTree.KeyToken;
+		ParsedTree.NameSpace.ReportError(ErrorLevel, Token, this.LangName + " has no language support for " + Token.ParsedText);
+		return new ErrorNode(ParsedTree.NameSpace.GtContext.VoidType, ParsedTree.KeyToken);
+	}
+	
 	public TypedNode CreateConstNode(GtType Type, SyntaxTree ParsedTree, Object Value) {
 		return new ConstNode(Type, ParsedTree.KeyToken, Value);
 	}
@@ -741,43 +798,49 @@ public class GreenTeaGenerator extends GtStatic {
 	public TypedNode CreateDefineNode(GtType Type, SyntaxTree ParsedTree, Object Module) {
 		return null;
 	}
+	
+	public TypedNode CreateEmptyNode(GtType Type, SyntaxTree ParsedTree) {
+		return new TypedNode(ParsedTree.NameSpace.GtContext.VoidType, ParsedTree.KeyToken);
+	}
 
 	public TypedNode CreateErrorNode(GtType Type, SyntaxTree ParsedTree) {
-		return new ErrorNode(Type, ParsedTree.KeyToken);
+		return new ErrorNode(ParsedTree.NameSpace.GtContext.VoidType, ParsedTree.KeyToken);
 	}
 
+	
+	public void VisitEmptyNode(TypedNode EmptyNode) {
+		GtStatic.DebugP("empty node: " + EmptyNode.Token.ParsedText);
+	}
 
-
-
-	public void VisitSuffixNode(SuffixNode suffixNode) {
+	public void VisitSuffixNode(SuffixNode SuffixNode) {
 		/*extension*/
 	}
 
-	public void VisitUnaryNode(UnaryNode unaryNode) {
+	public void VisitUnaryNode(UnaryNode UnaryNode) {
 		/*extension*/
 	}
 
-	public void VisitIndexerNode(IndexerNode indexerNode) {
+	public void VisitIndexerNode(IndexerNode IndexerNode) {
 		/*extension*/
 	}
 
-	public void VisitMessageNode(MessageNode messageNode) {
+	public void VisitMessageNode(MessageNode MessageNode) {
 		/*extension*/
 	}
 
-	public void VisitWhileNode(WhileNode whileNode) {
+	public void VisitWhileNode(WhileNode WhileNode) {
 		/*extension*/
 	}
 
-	public void VisitDoWhileNode(DoWhileNode doWhileNode) {
+	public void VisitDoWhileNode(DoWhileNode DoWhileNode) {
 		/*extension*/
 	}
 
-	public void VisitForNode(ForNode forNode) {
+	public void VisitForNode(ForNode ForNode) {
 		/*extension*/
 	}
 
-	public void VisitForEachNode(ForEachNode forEachNode) {
+	public void VisitForEachNode(ForEachNode ForEachNode) {
 		/*extension*/
 	}
 
@@ -886,6 +949,11 @@ public class GreenTeaGenerator extends GtStatic {
 	}
 
 	// This must be extended in each language
+
+	public void DefineFunction(GtMethod Method, ArrayList<String> NameList, TypedNode Body) {
+		/*extenstion*/
+	}
+	
 	public Object Eval(TypedNode Node) {
 		VisitBlock(Node);
 		return null;
@@ -909,51 +977,3 @@ public class GreenTeaGenerator extends GtStatic {
 
 }
 
-class IndentGenerator {
-	/*field*/private int    IndentLevel					= 0;
-	/*field*/private String CurrentLevelIndentString	= "";
-	/*field*/private String IndentString				= "\t";
-
-	public IndentGenerator/*constructor*/() {
-	}
-
-	public IndentGenerator/*constructor*/(int Tabstop) {
-		this.IndentString = IndentGenerator.Repeat(" ", Tabstop);
-	}
-
-	private static String Repeat(String Unit, int Times) {
-		/*local*/StringBuilder Builder = new StringBuilder();
-		for(int i = 0; i < Times; ++i) {
-			Builder.append(Unit);
-		}
-		return Builder.toString();
-	}
-
-	public void SetIndent(int Level) {
-		if(Level < 0)
-			Level = 0;
-		if(this.IndentLevel != Level) {
-			this.IndentLevel = Level;
-			this.CurrentLevelIndentString = IndentGenerator.Repeat(this.IndentString, Level);
-		}
-	}
-
-	public void AddIndent(int LevelDelta) {
-		this.SetIndent(this.IndentLevel + LevelDelta);
-	}
-
-	public String Get() {
-		return this.CurrentLevelIndentString;
-	}
-
-	public String GetAndAddIndent(int LevelDelta) {
-		/*local*/String IndentString = this.CurrentLevelIndentString;
-		this.AddIndent(LevelDelta);
-		return IndentString;
-	}
-
-	public String AddIndentAndGet(int LevelDelta) {
-		this.AddIndent(LevelDelta);
-		return this.CurrentLevelIndentString;
-	}
-}
