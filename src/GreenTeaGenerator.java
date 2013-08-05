@@ -281,6 +281,7 @@ class ApplyNode extends TypedNode {
 	}
 }
 
+
 class MessageNode extends TypedNode {
 	/*field*/public GtMethod	Method;
 	/*field*/public ArrayList<TypedNode>  Params; /* [this, arg1, arg2, ...] */
@@ -865,7 +866,7 @@ public class GreenTeaGenerator extends GtStatic {
 	public void VisitApplyNode(ApplyNode Node) {
 		/*extension*/
 	}
-
+	
 	public void VisitBinaryNode(BinaryNode Node) {
 		/*extension*/
 	}
@@ -944,6 +945,7 @@ public class GreenTeaGenerator extends GtStatic {
 
 	// This must be extended in each language
 	public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, TypedNode Body) {
+		
 		/*extenstion*/
 	}
 

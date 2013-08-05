@@ -1196,6 +1196,8 @@ final class GtDelegate {
 	/*field*/public GtMethod Method;
 	/*field*/public Object   Callee;
 	/*field*/public GtType   Type;
+	GtDelegate/*constructor*/() {
+	}
 }
 
 final class TypeEnv extends GtStatic {
@@ -1268,7 +1270,8 @@ final class TypeEnv extends GtStatic {
 
 	public GtDelegate LookupDelegate(String Name) {
 		TODO("finding delegate");
-		return null;
+		return new GtDelegate();
+		//return null;
 	}
 
 	public TypedNode DefaultValueConstNode(SyntaxTree ParsedTree, GtType Type) {
@@ -1983,23 +1986,41 @@ final class KonohaGrammar extends GtGrammar {
 		TokenContext.ParseFlag |= SkipIndentParseFlag;
 		/*local*/SyntaxTree FuncTree = new SyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("("), null);
 		FuncTree.AppendParsedTree(LeftTree);
-		while(!FuncTree.IsEmptyOrError() && !TokenContext.MatchToken(")")) {
+		//TokenContext.MatchToken("(");
+		///*local*/SyntaxTree FuncTree = LeftTree;
+		while(!FuncTree.IsEmptyOrError()) {
 			/*local*/SyntaxTree Tree = TokenContext.ParsePattern("$Expression$", Required);
 			FuncTree.AppendParsedTree(Tree);
 			if(TokenContext.MatchToken(",")) continue;
+			/*local*/SyntaxTree EndTree = new SyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken(")"), null);
+			if (EndTree != null) {
+				FuncTree.AppendParsedTree(EndTree);
+				break;
+			}
 		}
 		TokenContext.ParseFlag = ParseFlag;
 		return FuncTree;
 	}
 
 	public static TypedNode TypeApply(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
+		//public GtMethod LookupMethod(String MethodName, int ParamSize, int ResolvedSize, ArrayList<GtType> TypeList, int BaseIndex) {
 		/*local*/TypedNode ApplyNode = Gamma.Generator.CreateApplyNode(Gamma.AnyType, ParsedTree, null);
-		/*local*/int i = 0;
-		while(i < ListSize(ParsedTree.TreeList)) {
-			/*local*/TypedNode ExprNode = ParsedTree.TypeNodeAt(UnaryTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
+		/*FIXME*/TypeList.add(Gamma.NameSpace.Context.IntType);
+		/*local*/int i = 1;
+		while(i < ListSize(ParsedTree.TreeList) - 1/* this is for ")" */) {
+			/*local*/TypedNode ExprNode = ParsedTree.TypeNodeAt(i, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
 			ApplyNode.Append(ExprNode);
+			TypeList.add(ExprNode.Type);
 			i += 1;
 		}
+		
+		///*local*/GtMethod Method = Gamma.NameSpace.LookupMethod(MethodName, ParamSize, Type, TypeList, BaseIndex)
+		/*local*/ArrayList<SyntaxTree> TreeList = ParsedTree.TreeList;
+		/*local*/String MethodName = TreeList.get(0/*todo*/).KeyToken.ParsedText;
+		/*local*/int ParamSize = TreeList.size() - 2; /*MethodName and ")" symol*/
+		/*local*/GtMethod Method = Gamma.NameSpace.LookupMethod(MethodName, ParamSize, 1/*FIXME*/, TypeList, 0);
+		((/*cast*/ApplyNode)ApplyNode).Method = Method;
 		return ApplyNode;
 	}
 
@@ -2270,12 +2291,13 @@ final class KonohaGrammar extends GtGrammar {
 
 		NameSpace.DefineSyntaxPattern("(", FunctionB(this, "ParseParenthesis"), null); /* => */
 		NameSpace.DefineExtendedPattern(".", 0, FunctionB(this, "ParseField"), FunctionC(this, "TypeField"));
-		NameSpace.DefineExtendedPattern("(", 0, FunctionB(this, "ParseApply"), FunctionC(this, "TypeField"));
+		NameSpace.DefineExtendedPattern("(", 0, FunctionB(this, "ParseApply"), FunctionC(this, "TypeApply"));
 		//future: NameSpace.DefineExtendedPattern("[", 0, FunctionB(this, "ParseIndexer"), FunctionC(this, "TypeIndexer"));
 		
 		NameSpace.DefineSyntaxPattern("$Block$", FunctionB(this, "ParseBlock"), TypeBlock);
 		NameSpace.DefineSyntaxPattern("$Statement$", FunctionB(this, "ParseStatement"), TypeBlock);
-
+		NameSpace.DefineSyntaxPattern("$Expression$", FunctionB(this, "ParseExpression"), TypeBlock);
+		
 		NameSpace.DefineSyntaxPattern("$FuncName$", FunctionB(this, "ParseFuncName"), TypeConst);
 		NameSpace.DefineSyntaxPattern("$FuncDecl$", FunctionB(this, "ParseFuncDecl"), FunctionC(this, "TypeFuncDecl"));
 		NameSpace.DefineSyntaxPattern("$VarDecl$",  FunctionB(this, "ParseVarDecl"), FunctionC(this, "TypeVarDecl"));
@@ -2363,9 +2385,11 @@ public class GreenTeaScript {
 		/*local*/GtContext GtContext = new GtContext(new KonohaGrammar(), new JavaScriptSampleGenerator());
 //		//GtContext.Eval("int f(int a, int b) { return a + b; }", 0);
 		//GtContext.Eval("4 * 1 + 2 / 3;", 0);		
-		GtContext.Eval("int f(int n) { return 0 +1+2+3 * 2 }", 0);
+		//GtContext.Eval("int f(int n) { return 0 +1+2+3 * 2 }", 0);
 		//GtContext.Eval("f() + 1;", 0);
 		//GreenTeaScript.TestAll(GtContext);
+		GtContext.Eval("int fib(int n) { if (n < 3) return n;  else  return fib(n-1) + fib(n-2);  }", 0);
+		//GtContext.Eval("fib(19)", 0);
 		
 //		GtContext GtContext = new GtContext(new KonohaGrammar(), new JavaByteCodeGenerator());
 //		System.err.println("## Eval value: " + GtContext.Eval("1", 0));
