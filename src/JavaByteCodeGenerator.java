@@ -482,12 +482,16 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 		ArrayList<Local> Param = null;
 		if(Method != null) {
 			Param = new ArrayList<Local>();
+			if(Method.GetRecvType().equals(Context.VoidType)) {
+				LangDeps.DebugP("Reciever Type is Void!! Fix Me!!");
+				return null;
+			}
 			Param.add(new Local(0, Method.GetRecvType(), "this"));
-			for(int i = 0; i < Method.GetParamSize(); i++) {
-				GtType Type = Method.GetParamType(1);
+			for(int i = 1; i < Method.GetParamSize(); i++) {
+				GtType Type = Method.GetParamType(i);
 				String Arg = "arg" + i; //FIXME Method.GetParamName(i);
 				//String Arg = P.ArgNames[i];
-				Local l = new Local(i + 1, Type, Arg);
+				Local l = new Local(i, Type, Arg);
 				Param.add(l);
 			}
 		}
