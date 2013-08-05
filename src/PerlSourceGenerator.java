@@ -3,29 +3,29 @@ import java.util.ArrayList;
 //GreenTea Generator should be written in each language.
 
 public class PerlSourceGenerator extends GreenTeaGenerator {
-	IndentGenerator Indent;
 	PerlSourceGenerator() {
 		super("Perl");
-		this.Indent = new IndentGenerator();
 	}
 
 	public void VisitEach(TypedNode Node) {
 		String Code = "{\n";
-		this.Indent.AddIndent(1);
+		this.Indent();
 		/*local*/TypedNode CurrentNode = Node;
 		while(CurrentNode != null) {
 			CurrentNode.Evaluate(this);
-			Code += this.Indent.Get() + this.PopCode() + ";\n";
+			Code += this.GetIndentString() + this.PopSourceCode() + ";\n";
 			CurrentNode = CurrentNode.NextNode;
 		}
-		this.Indent.AddIndent(-1);
-		Code += this.Indent.Get() + "}";
-		this.PushCode(Code);
+		this.UnIndent();
+		Code += this.GetIndentString() + "}";
+		this.PushSourceCode(Code);
 	}
 
-	public void VisitEmptyNode(TypedNode Node) {	
+	@Override
+	public void VisitEmptyNode(TypedNode Node) {
 	}
 
+	@Override
 	public void VisitSuffixNode(SuffixNode Node) {
 		GtMethod Method = Node.Method;
 		if(Method.MethodName.equals("++")) {
@@ -34,9 +34,10 @@ public class PerlSourceGenerator extends GreenTeaGenerator {
 			throw new RuntimeException("NotSupportOperator");
 		}
 		Node.Expr.Evaluate(this);
-		this.PushCode(this.PopCode() + Method.MethodName);
+		this.PushSourceCode(this.PopSourceCode() + Method.MethodName);
 	}
 
+	@Override
 	public void VisitUnaryNode(UnaryNode Node) {
 		GtMethod Method = Node.Method;
 		if(Method.MethodName.equals("+")) {
@@ -49,78 +50,89 @@ public class PerlSourceGenerator extends GreenTeaGenerator {
 			throw new RuntimeException("NotSupportOperator");
 		}
 		Node.Expr.Evaluate(this);
-		this.PushCode(Method.MethodName + this.PopCode());
+		this.PushSourceCode(Method.MethodName + this.PopSourceCode());
 	}
 
+	@Override
 	public void VisitIndexerNode(IndexerNode Node) {
 		Node.Indexer.Evaluate(this);
 		Node.Expr.Evaluate(this);
-		this.PushCode(this.PopCode() + "[" + this.PopCode() + "]");
-		
+		this.PushSourceCode(this.PopSourceCode() + "[" + this.PopSourceCode() + "]");
+
 	}
 
+	@Override
 	public void VisitMessageNode(MessageNode Node) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
+	@Override
 	public void VisitWhileNode(WhileNode Node) {
 		Node.CondExpr.Evaluate(this);
-		String Program = "while(" + this.PopCode() + ")";
+		String Program = "while(" + this.PopSourceCode() + ")";
 		this.VisitEach(Node.LoopBody);
-		Program += this.PopCode();
-		Indent.AddIndent(-1);
-		this.PushCode(Program);
+		Program += this.PopSourceCode();
+		this.UnIndent();
+		this.PushSourceCode(Program);
 	}
 
-	public void VisitDoWhileNode(DoWhileNode Node) {		
+	@Override
+	public void VisitDoWhileNode(DoWhileNode Node) {
 		String Program = "do";
 		this.VisitEach(Node.LoopBody);
 		Node.CondExpr.Evaluate(this);
-		Program += " while(" + this.PopCode() + ")";
-		this.PushCode(Program);
+		Program += " while(" + this.PopSourceCode() + ")";
+		this.PushSourceCode(Program);
 	}
 
+	@Override
 	public void VisitForNode(ForNode Node) {
 		Node.IterExpr.Evaluate(this);
 		Node.CondExpr.Evaluate(this);
 		Node.InitNode.Evaluate(this);
-		String Init = this.PopCode();
-		String Cond = this.PopCode();
-		String Iter = this.PopCode();
-		
+		String Init = this.PopSourceCode();
+		String Cond = this.PopSourceCode();
+		String Iter = this.PopSourceCode();
+
 		String Program = "for(" + Init + "; " + Cond  + "; " + Iter + ")";
 		Node.LoopBody.Evaluate(this);
-		Program += this.PopCode();
-		this.PushCode(Program);		
+		Program += this.PopSourceCode();
+		this.PushSourceCode(Program);
 	}
 
+	@Override
 	public void VisitForEachNode(ForEachNode Node) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
+	@Override
 	public void VisitConstNode(ConstNode Node) {
-		this.PushCode(Node.ConstValue.toString());
+		this.PushSourceCode(Node.ConstValue.toString());
 	}
 
+	@Override
 	public void VisitNewNode(NewNode Node) {
 		String Type = Node.Type.ShortClassName;
-		this.PushCode("new " + Type);
+		this.PushSourceCode("new " + Type);
 
 	}
 
+	@Override
 	public void VisitNullNode(NullNode Node) {
-		this.PushCode("NULL");
+		this.PushSourceCode("NULL");
 	}
 
+	@Override
 	public void VisitLocalNode(LocalNode Node) {
-		this.PushCode("$" + Node.LocalName);
+		this.PushSourceCode("$" + Node.LocalName);
 	}
 
+	@Override
 	public void VisitGetterNode(GetterNode Node) {
 		Node.Expr.Evaluate(this);
-		this.PushCode(this.PopCode() + "->" + Node.Method.MethodName);
+		this.PushSourceCode(this.PopSourceCode() + "->" + Node.Method.MethodName);
 	}
 
 	private String[] EvaluateParam(ArrayList<TypedNode> Params) {
@@ -129,11 +141,12 @@ public class PerlSourceGenerator extends GreenTeaGenerator {
 		for(int i = 0; i < Size; i++) {
 			TypedNode Node = Params.get(i);
 			Node.Evaluate(this);
-			Programs[Size - i - 1] = this.PopCode();
+			Programs[Size - i - 1] = this.PopSourceCode();
 		}
 		return Programs;
 	}
 
+	@Override
 	public void VisitApplyNode(ApplyNode Node) {
 		/*local*/String Program = "&" + Node.Method.MethodName + "(";
 		/*local*/String[] Params = EvaluateParam(Node.Params);
@@ -145,9 +158,10 @@ public class PerlSourceGenerator extends GreenTeaGenerator {
 			Program += P;
 		}
 		Program += ")";
-		this.PushCode(Program);
+		this.PushSourceCode(Program);
 	}
 
+	@Override
 	public void VisitBinaryNode(BinaryNode Node) {
 		String MethodName = Node.Method.MethodName;
 		if(MethodName.equals("+")) {
@@ -177,128 +191,145 @@ public class PerlSourceGenerator extends GreenTeaGenerator {
 		}
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
-		this.PushCode(this.PopCode() + " " + MethodName + " " + this.PopCode());
+		this.PushSourceCode(this.PopSourceCode() + " " + MethodName + " " + this.PopSourceCode());
 	}
 
+	@Override
 	public void VisitAndNode(AndNode Node) {
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
-		this.PushCode(this.PopCode() + " && " + this.PopCode());
+		this.PushSourceCode(this.PopSourceCode() + " && " + this.PopSourceCode());
 	}
 
+	@Override
 	public void VisitOrNode(OrNode Node) {
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
-		this.PushCode(this.PopCode() + " || " + this.PopCode());
+		this.PushSourceCode(this.PopSourceCode() + " || " + this.PopSourceCode());
 	}
 
+	@Override
 	public void VisitAssignNode(AssignNode Node) {
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
-		this.PushCode(this.PopCode() + " = " + this.PopCode());
+		this.PushSourceCode(this.PopSourceCode() + " = " + this.PopSourceCode());
 	}
 
+	@Override
 	public void VisitLetNode(LetNode Node) {
 		String Type = Node.DeclType.ShortClassName;
 		Node.VarNode.Evaluate(this);
-		String Code = Type + " " + this.PopCode();
+		String Code = Type + " " + this.PopSourceCode();
 		Node.BlockNode.Evaluate(this);
-		this.PushCode(Code + this.PopCode());
+		this.PushSourceCode(Code + this.PopSourceCode());
 	}
 
+	@Override
 	public void VisitIfNode(IfNode Node) {
 		Node.CondExpr.Evaluate(this);
 		this.VisitEach(Node.ThenNode);
 		this.VisitEach(Node.ElseNode);
 
-		String ElseBlock = this.PopCode();
-		String ThenBlock = this.PopCode();
-		String CondExpr = this.PopCode();
+		String ElseBlock = this.PopSourceCode();
+		String ThenBlock = this.PopSourceCode();
+		String CondExpr = this.PopSourceCode();
 		String Code = "if(" + CondExpr + ") " + ThenBlock;
 		if(Node.ElseNode != null) {
 			Code += " else " + ElseBlock;
 		}
-		this.PushCode(Code);
-		
+		this.PushSourceCode(Code);
+
 	}
 
+	@Override
 	public void VisitSwitchNode(SwitchNode Node) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
+	@Override
 	public void VisitLoopNode(LoopNode Node) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
+	@Override
 	public void VisitReturnNode(ReturnNode Node) {
 		String Code = "return";
 		if(Node.Expr != null) {
 			Node.Expr.Evaluate(this);
-			Code += " " + this.PopCode();
+			Code += " " + this.PopSourceCode();
 		}
-		this.PushCode(Code);
+		this.PushSourceCode(Code);
 	}
 
+	@Override
 	public void VisitLabelNode(LabelNode Node) {
 		String Label = Node.Label;
-		this.PushCode(Label + ":");
+		this.PushSourceCode(Label + ":");
 	}
 
+	@Override
 	public void VisitJumpNode(JumpNode Node) {
 		String Label = Node.Label;
-		this.PushCode("goto " + Label);
+		this.PushSourceCode("goto " + Label);
 	}
 
+	@Override
 	public void VisitBreakNode(BreakNode Node) {
 		String Code = "break";
 		String Label = Node.Label;
 		if(Label != null) {
 			Code += " " + Label;
 		}
-		this.PushCode(Code);
+		this.PushSourceCode(Code);
 	}
 
+	@Override
 	public void VisitContinueNode(ContinueNode Node) {
 		String Code = "continue";
 		String Label = Node.Label;
 		if(Label != null) {
 			Code += " " + Label;
 		}
-		this.PushCode(Code);
+		this.PushSourceCode(Code);
 	}
 
+	@Override
 	public void VisitTryNode(TryNode Node) {
 		String Code = "try";
 		//this.VisitEach(Node.CatchBlock);
 		this.VisitEach(Node.TryBlock);
-		
-		Code += this.PopCode();
+
+		Code += this.PopSourceCode();
 		if(Node.FinallyBlock != null) {
 			this.VisitEach(Node.FinallyBlock);
-			Code += " finally " + this.PopCode();
+			Code += " finally " + this.PopSourceCode();
 		}
-		this.PushCode(Code);
+		this.PushSourceCode(Code);
 	}
 
+	@Override
 	public void VisitThrowNode(ThrowNode Node) {
 		Node.Expr.Evaluate(this);
-		String Code = "throw " + this.PopCode();
-		this.PushCode(Code);
+		String Code = "throw " + this.PopSourceCode();
+		this.PushSourceCode(Code);
 	}
 
+	@Override
 	public void VisitFunctionNode(FunctionNode Node) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
+	@Override
 	public void VisitErrorNode(ErrorNode Node) {
 		String Code = "throw Error(\"" + Node.Token.ParsedText + "\")";
-		this.PushCode(Code);
-		
+		this.PushSourceCode(Code);
+
 	}
 
+	@Override
 	public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, TypedNode Body) {
 		String Program = "";
 		String RetTy = Method.GetReturnType().ShortClassName;
@@ -308,39 +339,42 @@ public class PerlSourceGenerator extends GreenTeaGenerator {
 		String Arguments = "";
 		Signature += RetTy + " " + FuncName + "(";
 		Signature += ThisTy + " this";
-		Indent.AddIndent(1);
+		this.Indent();
 
-		Arguments += Indent.Get() + "my $this = $_[0]\n";
+		Arguments += this.GetIndentString() + "my $this = $_[0]\n";
 		for(int i = 0; i < ParamNameList.size(); i++) {
 			String ParamTy = Method.GetParamType(i).ShortClassName;
 			Signature += " ," + ParamTy + " " + ParamNameList.get(i);
-			Arguments += Indent.Get() + "my $" + ParamNameList.get(i) + " = $_[" + (i + 1) + "]\n";
+			Arguments += this.GetIndentString() + "my $" + ParamNameList.get(i) + " = $_[" + (i + 1) + "]\n";
 		}
-		Indent.AddIndent(-1);
-		Program += Signature + "\n" + Indent.Get() + "sub " + FuncName + "{\n";
-		Indent.AddIndent(1);
+		this.UnIndent();
+		Program += Signature + "\n" + this.GetIndentString() + "sub " + FuncName + "{\n";
+		this.Indent();
 		Program += Arguments;
-		Indent.AddIndent(1);
+		this.Indent();
 		Program += Eval(Body);
-		Indent.AddIndent(-1);
-		Indent.AddIndent(-1);
-		Program += Program + "\n" + Indent.Get() + "}";
+		this.UnIndent();
+		this.UnIndent();
+		Program += Program + "\n" + this.GetIndentString() + "}";
 		DebugP(Program);
 	}
 
+	@Override
 	public Object Eval(TypedNode Node) {
 		this.VisitEach(Node);
-		return this.PopCode();
+		return this.PopSourceCode();
 	}
 
+	@Override
 	public void AddClass(GtType Type) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
+	@Override
 	public void LoadContext(GtContext Context) {
 		// TODO Auto-generated method stub
-		
+
 	}
 }
 

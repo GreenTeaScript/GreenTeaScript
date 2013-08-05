@@ -609,18 +609,14 @@ class ErrorNode extends TypedNode {
 	}
 }
 
-class IndentGenerator {
+public class GreenTeaGenerator extends GtStatic {
+	/*field*/public String LangName;
+	/*field*/ArrayList<Object> GeneratedCodeStack;
+	/*field*/GtContext Context;
 	/*field*/private int    IndentLevel					= 0;
 	/*field*/private String CurrentLevelIndentString	= "";
-	/*field*/private String IndentString				= "\t";
-
-	public IndentGenerator/*constructor*/() {
-	}
-
-	public IndentGenerator/*constructor*/(int Tabstop) {
-		this.IndentString = IndentGenerator.Repeat(" ", Tabstop);
-	}
-
+	/*field*/protected String IndentUnit				= "\t";
+	
 	private static String Repeat(String Unit, int Times) {
 		/*local*/StringBuilder Builder = new StringBuilder();
 		for(int i = 0; i < Times; ++i) {
@@ -634,38 +630,25 @@ class IndentGenerator {
 			Level = 0;
 		if(this.IndentLevel != Level) {
 			this.IndentLevel = Level;
-			this.CurrentLevelIndentString = IndentGenerator.Repeat(this.IndentString, Level);
+			this.CurrentLevelIndentString = GreenTeaGenerator.Repeat(this.IndentUnit, Level);
 		}
 	}
 
-	public void AddIndent(int LevelDelta) {
-		this.SetIndent(this.IndentLevel + LevelDelta);
+	public void Indent() {
+		this.SetIndent(this.IndentLevel + 1);
+	}
+	
+	public void UnIndent() {
+		this.SetIndent(this.IndentLevel - 1);
 	}
 
-	public String Get() {
+	public String GetIndentString() {
 		return this.CurrentLevelIndentString;
 	}
-
-	public String GetAndAddIndent(int LevelDelta) {
-		/*local*/String IndentString = this.CurrentLevelIndentString;
-		this.AddIndent(LevelDelta);
-		return IndentString;
-	}
-
-	public String AddIndentAndGet(int LevelDelta) {
-		this.AddIndent(LevelDelta);
-		return this.CurrentLevelIndentString;
-	}
-}
-
-public class GreenTeaGenerator extends GtStatic {
-	/*field*/public String LangName;
-	/*field*/ArrayList<String> GeneratedCodeStack;
-	/*field*/GtContext Context;
-
+	
 	GreenTeaGenerator/*constructor*/(String LangName) {
 		this.LangName = LangName;
-		this.GeneratedCodeStack = new ArrayList<String>();
+		this.GeneratedCodeStack = new ArrayList<Object>();
 	}
 
 	public final TypedNode UnsupportedNode(GtType Type, SyntaxTree ParsedTree) {
@@ -962,22 +945,30 @@ public class GreenTeaGenerator extends GtStatic {
 		/*extension*/
 	}
 
-	protected void PushCode(String Code){
+	protected void PushCode(Object Code){
 		this.GeneratedCodeStack.add(Code);
 	}
 
-	protected String PopCode(){
+	protected Object PopCode(){
 		/*local*/int Size = this.GeneratedCodeStack.size();
 		if(Size > 0){
 			return this.GeneratedCodeStack.remove(Size - 1);
 		}
 		return "";
 	}
+	
+	protected void PushSourceCode(String Code){
+		this.GeneratedCodeStack.add(Code);
+	}
+
+	protected String PopSourceCode(){
+		return (String)PopCode();
+	}
 
 	protected String[] PopManyCode(int n) {
 		/*local*/String[] array = new String[n];
 		for(/*local*/int i = 0; i < n; ++i) {
-			array[i] = this.PopCode();
+			array[i] = this.PopSourceCode();
 		}
 		return array;
 	}
@@ -985,7 +976,7 @@ public class GreenTeaGenerator extends GtStatic {
 	protected String[] PopManyCodeReverse(int n) {
 		/*local*/String[] array = new String[n];
 		for(/*local*/int i = 0; i < n; ++i) {
-			array[n - i - 1] = this.PopCode();
+			array[n - i - 1] = this.PopSourceCode();
 		}
 		return array;
 	}

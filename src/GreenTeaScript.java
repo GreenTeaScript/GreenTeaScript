@@ -2381,7 +2381,7 @@ public class GreenTeaScript {
 	}
 
 	public static void main(String[] argc) {
-		/*local*/GtContext GtContext = new GtContext(new KonohaGrammar(), new JavaScriptSampleGenerator());
+		/*local*/GtContext GtContext = new GtContext(new KonohaGrammar(), new JavaScriptSourceGenerator());
 //		//GtContext.Eval("int f(int a, int b) { return a + b; }", 0);
 		//GtContext.Eval("4 * 1 + 2 / 3;", 0);		
 		//GtContext.Eval("int f(int n) { return 0 +1+2+3 * 2 }", 0);
