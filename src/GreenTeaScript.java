@@ -2416,16 +2416,22 @@ public class GreenTeaScript {
 		GtStatic.TestSyntaxPattern(Context, "1 + 2 * 3");
 	}
 
-	public final static void main(String[] argc) {
-		GreenTeaGenerator Generator = (argc.length > 1) ? LangDeps.CodeGenerator(argc[0]) : new JavaScriptSourceGenerator();
+	public final static void main(String[] Args) {
+		int FileIndex = 0;
+		String CodeGeneratorName = "--Java";
+		if(Args.length > 0 && Args[0].startsWith("--")) {
+			CodeGeneratorName = Args[0];
+			FileIndex = 1;
+		}
+		GreenTeaGenerator Generator = LangDeps.CodeGenerator(CodeGeneratorName);
 		/*local*/GtContext Context = new GtContext(new KonohaGrammar(), Generator);
 //		//GtContext.Eval("int f(int a, int b) { return a + b; }", 0);
 		//GtContext.Eval("4 * 1 + 2 / 3;", 0);		
 		//GtContext.Eval("int f(int n) { return 0 +1+2+3 * 2 }", 0);
 		//GtContext.Eval("f() + 1;", 0);
 		//GreenTeaScript.TestAll(GtContext);
-		if(argc.length > 1) {
-			Context.Eval(LangDeps.LoadFile(argc[1]), 1);
+		if(Args.length > FileIndex) {
+			Context.Eval(LangDeps.LoadFile(Args[FileIndex]), 1);
 		}
 		else {
 			TestAll(Context);
