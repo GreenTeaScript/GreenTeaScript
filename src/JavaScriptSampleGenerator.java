@@ -3,13 +3,15 @@ import java.util.ArrayList;
 // GreenTea Generator should be written in each language.
 
 public class JavaScriptSampleGenerator extends GreenTeaGenerator {
+	/*field*/IndentGenerator Indent;
 
 	JavaScriptSampleGenerator() {
 		super("JavaScript");
+		this.Indent = new IndentGenerator(2);
 	}
 
 	private boolean UseLetKeyword;
-	
+
 	@Override
 	public void DefineFunction(GtMethod Method, ArrayList<String> NameList, TypedNode Body) {
 		/*local*/int ArgCount = Method.Types.length - 1;
@@ -17,24 +19,33 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 		for(/*local*/int i = 0; i < ArgCount; i++){
 			Code = Code + (i > 0 ? ", " : "") + NameList.get(i);
 		}
-		Code += ")";
-		Body.Evaluate(this);
-		Code += " {" + this.PopCode() + "})";
+		Code += ") ";
+		this.VisitBlockJS(Body);
+		Code += this.PopCode() + ")";
 		this.PushCode(Code);
 	};
+
+	public  void VisitBlockJS(TypedNode Node) {
+		/*local*/String highLevelIndent = this.Indent.AddIndentAndGet(1);
+		super.VisitBlock(Node);
+		/*local*/String currentLevelIndent = this.Indent.AddIndentAndGet(-1);
+		/*local*/int Size = Node.CountForrowingNode();
+		/*local*/String Block = this.PopManyCodeWithModifier(Size, true, "\n" + highLevelIndent, ";", null);
+		this.PushCode("{" + Block + "\n" + currentLevelIndent + "}");
+	}
 
 	@Override
 	public void VisitConstNode(ConstNode Node) {
 		this.PushCode(Node.ConstValue == null ? "null" : Node.ConstValue.toString());
 		return;
 	}
-	
+
 	@Override
 	public void VisitUnaryNode(UnaryNode UnaryNode) {
 		UnaryNode.Expr.Evaluate(this);
 		this.PushCode(UnaryNode.Token.ParsedText + this.PopCode());
 	};
-	
+
 	@Override
 	public void VisitBinaryNode(BinaryNode Node) {
 		Node.RightNode.Evaluate(this);
@@ -71,19 +82,26 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 
 	@Override
 	public void VisitGetterNode(GetterNode Node) {
-		//Node.BaseNode.Evaluate(this);
+		Node.Expr.Evaluate(this);
 		this.PushCode(this.PopCode() + "." + Node.Token.ParsedText);
 	}
 
 	@Override
+	public void VisitIndexerNode(IndexerNode Node) {
+		Node.Indexer.Evaluate(this);
+		Node.Expr.Evaluate(this);
+		this.PushCode(this.PopCode() + "." + Node.Token.ParsedText + "[" +this.PopCode() + "]");
+	}
+
+	@Override
 	public void VisitApplyNode(ApplyNode Node) {
-		String methodName = Node.Method.MethodName;
-		for(int i = 0; i < Node.Params.size(); i++) {
-			TypedNode Param = Node.Params.get(i);
-			Param.Evaluate(this);
+		/*local*/String methodName = Node.Method.MethodName;
+		/*local*/int ParamCount = Node.Params.size();
+		for(/*local*/int i = 0; i < ParamCount; i++) {
+			Node.Params.get(i).Evaluate(this);
 		}
-		String params = "(hoge, fuga)";//"//"(" + this.PopNReverseAndJoin(Node.Params.size() - 1, ", ") + ")";
-		String thisNode = this.PopCode();
+		/*local*/String params = "(" + this.PopManyCodeWithModifier(ParamCount - 1, true, null, null, ", ") + ")";
+		/*local*/String thisNode = this.PopCode();
 		if(thisNode.equals(GtConst.GlobalConstName)) {
 			this.PushCode(methodName + params);
 		} else {
@@ -95,8 +113,8 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 	public void VisitAndNode(AndNode Node) {
 		Node.LeftNode.Evaluate(this);
 		Node.RightNode.Evaluate(this);
-		String Right = this.PopCode();
-		String Left = this.PopCode();
+		/*local*/String Right = this.PopCode();
+		/*local*/String Left = this.PopCode();
 		this.PushCode(Left + " && " + Right);
 	}
 
@@ -104,8 +122,8 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 	public void VisitOrNode(OrNode Node) {
 		Node.LeftNode.Evaluate(this);
 		Node.RightNode.Evaluate(this);
-		String Right = this.PopCode();
-		String Left = this.PopCode();
+		/*local*/String Right = this.PopCode();
+		/*local*/String Left = this.PopCode();
 		this.PushCode(Left + " || " + Right);
 	}
 
@@ -113,15 +131,15 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 	public void VisitAssignNode(AssignNode Node) {
 		Node.LeftNode.Evaluate(this);
 		Node.RightNode.Evaluate(this);
-		String Right = this.PopCode();
-		String Left = this.PopCode();
+		/*local*/String Right = this.PopCode();
+		/*local*/String Left = this.PopCode();
 		this.PushCode((this.UseLetKeyword ? "let " : "var ") + Left + " = " + Right);
 	}
 
 	@Override
 	public void VisitLetNode(LetNode Node) {
 		//		Node.ValueNode.Evaluate(this);
-		this.VisitBlock(Node.BlockNode);
+		this.VisitBlockJS(Node.BlockNode);
 		//this.AddLocalVarIfNotDefined(Node.Type, Node.VarToken.ParsedText);
 		//		String Block = this.pop();
 		//		String Right = this.pop();
@@ -131,13 +149,13 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 	@Override
 	public void VisitIfNode(IfNode Node) {
 		Node.CondExpr.Evaluate(this);
-		this.VisitBlock(Node.ThenNode);
-		this.VisitBlock(Node.ElseNode);
+		this.VisitBlockJS(Node.ThenNode);
+		this.VisitBlockJS(Node.ElseNode);
 
-		String ElseBlock = this.PopCode();
-		String ThenBlock = this.PopCode();
-		String CondExpr = this.PopCode();
-		String source = "if(" + CondExpr + ") " + ThenBlock;
+		/*local*/String ElseBlock = this.PopCode();
+		/*local*/String ThenBlock = this.PopCode();
+		/*local*/String CondExpr = this.PopCode();
+		/*local*/String source = "if(" + CondExpr + ") " + ThenBlock;
 		if(Node.ElseNode != null) {
 			source = source + " else " + ElseBlock;
 		}
@@ -164,15 +182,37 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 	}
 
 	@Override
-	public void VisitLoopNode(LoopNode Node) {
+	public void VisitWhileNode(WhileNode Node) {
+		Node.CondExpr.Evaluate(this);
+		this.VisitBlockJS(Node.LoopBody);
+		/*local*/String LoopBody = this.PopCode();
+		/*local*/String CondExpr = this.PopCode();
+		this.PushCode("while(" + CondExpr + ") {" + LoopBody + "}");
+	}
+
+	@Override
+	public void VisitForNode(ForNode Node) {
 		Node.CondExpr.Evaluate(this);
 		Node.IterExpr.Evaluate(this);
-		this.VisitBlock(Node.LoopBody);
-		String LoopBody = this.PopCode();
-		String IterExpr = this.PopCode();
-		String CondExpr = this.PopCode();
-		this.PushCode("while(" + CondExpr + ") {" + LoopBody + IterExpr + "}");
-		return;
+		this.VisitBlockJS(Node.LoopBody);
+		/*local*/String LoopBody = this.PopCode();
+		/*local*/String IterExpr = this.PopCode();
+		/*local*/String CondExpr = this.PopCode();
+		this.PushCode("for(;" + CondExpr + "; " + IterExpr + ") {" + LoopBody + "}");
+	}
+
+	@Override
+	public void VisitDoWhileNode(DoWhileNode Node) {
+		Node.CondExpr.Evaluate(this);
+		this.VisitBlockJS(Node.LoopBody);
+		/*local*/String LoopBody = this.PopCode();
+		/*local*/String CondExpr = this.PopCode();
+		this.PushCode("do {" + LoopBody + "}while(" + CondExpr + ");");
+	}
+
+	@Override
+	public void VisitEmptyNode(TypedNode Node) {
+		this.PushCode("");
 	}
 
 	@Override
@@ -187,47 +227,41 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 
 	@Override
 	public void VisitLabelNode(LabelNode Node) {
-		String Label = Node.Label;
-		if(Label.compareTo("continue") == 0) {
-			this.PushCode("");
-		} else if(Label.compareTo("continue") == 0) {
-			this.PushCode("");
-		} else {
-			this.PushCode(Label + ":");
-		}
+		/*local*/String Label = Node.Label;
+		this.PushCode(Label + ":");
 		return;
 	}
-	
+
 	@Override
 	public void VisitBreakNode(BreakNode Node) {
 		this.PushCode("break");
-	};
-	
+	}
+
 	@Override
 	public void VisitContinueNode(ContinueNode Node) {
 		this.PushCode("continue");
-	};
+	}
 
 	@Override
 	public void VisitJumpNode(JumpNode Node) {
-		String Label = Node.Label;
+		/*local*/String Label = Node.Label;
 		this.PushCode("goto " + Label);
 		return;
 	}
 
 	@Override
 	public void VisitTryNode(TryNode Node) {
-		this.VisitBlock(Node.TryBlock);
+		this.VisitBlockJS(Node.TryBlock);
 		//		for(int i = 0; i < Node.CatchBlock.size(); i++) {
 		//			TypedNode Block = (TypedNode) Node.CatchBlock.get(i);
 		//			TypedNode Exception = (TypedNode) Node.TargetException.get(i);
-		//			this.VisitBlock(Block);
+		//			this.VisitBlockJS(Block);
 		//		}
-		this.VisitBlock(Node.FinallyBlock);
+		this.VisitBlockJS(Node.FinallyBlock);
 
-		String FinallyBlock = this.PopCode();
-		String CatchBlocks = "";//this.PopNReverseWithPrefix(Node.CatchBlock.size(), "catch() ");
-		String TryBlock = this.PopCode();
+		/*local*/String FinallyBlock = this.PopCode();
+		/*local*/String CatchBlocks = this.PopManyCodeWithModifier(Node.CatchBlock.CountForrowingNode(), true, "catch() ", null, null);
+		/*local*/String TryBlock = this.PopCode();
 		this.PushCode("try " + TryBlock + "" + CatchBlocks + "finally " + FinallyBlock);
 		return;
 	}
@@ -235,7 +269,7 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 	@Override
 	public void VisitThrowNode(ThrowNode Node) {
 		Node.Expr.Evaluate(this);
-		String Expr = this.PopCode();
+		/*local*/String Expr = this.PopCode();
 		this.PushCode("throw " + Expr);
 		return;
 	}
@@ -248,7 +282,7 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 
 	@Override
 	public void VisitErrorNode(ErrorNode Node) {
-		String Expr = Node.toString();
+		/*local*/String Expr = Node.toString();
 		this.PushCode("throw new Error(\"" + Expr + "\")");
 		return;
 	}
@@ -256,10 +290,13 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 	// This must be extended in each language
 	@Override 
 	public Object Eval(TypedNode Node) {
-		DebugP("<><><><><><> JavaScript start <><><><><><>");
 		VisitBlock(Node);
-		System.out.println(this.PopCode());
-		return null;
+		/*local*/String ret = this.PopCode() + ";\n";
+		while(this.GeneratedCodeStack.size() > 0){
+			ret = this.PopCode() + ";\n" + ret;
+		}
+		System.out.println(ret);
+		return ret;
 	}
 
 }

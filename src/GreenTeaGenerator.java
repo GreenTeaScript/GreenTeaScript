@@ -58,6 +58,16 @@ class TypedNode extends GtStatic {
 		}
 		return Text;
 	}
+
+	public int CountForrowingNode() {
+		/*local*/int n = 0;
+		/*local*/TypedNode node = this;
+		while(node != null){
+			n++;
+			node = node.NextNode;
+		}
+		return n;
+	}
 }
 
 class UnaryNode extends TypedNode {
@@ -961,5 +971,41 @@ public class GreenTeaGenerator extends GtStatic {
 		return "";
 	}
 
+	protected String[] PopManyCode(int n) {
+		/*local*/String[] array = new String[n];
+		for(/*local*/int i = 0; i < n; ++i) {
+			array[i] = this.PopCode();
+		}
+		return array;
+	}
+
+	protected String[] PopManyCodeReverse(int n) {
+		/*local*/String[] array = new String[n];
+		for(/*local*/int i = 0; i < n; ++i) {
+			array[n - i - 1] = this.PopCode();
+		}
+		return array;
+	}
+
+	protected String PopManyCodeWithModifier(int n, boolean reverse, String prefix, String suffix, String delim) {
+		if(prefix == null) {
+			prefix = "";
+		}
+		if(suffix == null) {
+			suffix = "";
+		}
+		if(delim == null) {
+			delim = "";
+		}
+		/*local*/String[] array = reverse ? this.PopManyCodeReverse(n) : this.PopManyCode(n);
+		/*local*/String Code = "";
+		for(/*local*/int i = 0; i < n; ++i) {
+			if(i > 0) {
+				Code += delim;
+			}
+			Code = Code + prefix + array[i] + suffix;
+		}
+		return Code;
+	}
 }
 
