@@ -2424,7 +2424,7 @@ public class GreenTeaScript {
 		//GtContext.Eval("f() + 1;", 0);
 		//GreenTeaScript.TestAll(GtContext);
 		if(argc.length > 1) {
-			Context.Eval(LangDeps.LoadFile(argc[1]), 0);
+			Context.Eval(LangDeps.LoadFile(argc[1]), 1);
 		}
 		else {
 			TestAll(Context);
