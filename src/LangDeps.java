@@ -150,6 +150,19 @@ public abstract class LangDeps {
 		return Tuple;
 	}
 
+	public final static GreenTeaGenerator CodeGenerator(String Option) {
+		if(Option.equals("--js") || Option.equals("--javascript")) {
+			return new JavaScriptSourceGenerator();
+		}
+		else if(Option.equals("--perl")) {
+			return new CSourceGenerator();
+		}
+		else if(Option.equals("--c")) {
+			return new CSourceGenerator();
+		}
+		return new JavaSourceGenerator();
+	}
+	
 	public final static String LoadFile(String FileName) {
 		File f = new File(FileName);
 		byte[] b = new byte[(int) f.length()];

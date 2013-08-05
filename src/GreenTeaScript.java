@@ -2415,14 +2415,21 @@ public class GreenTeaScript {
 		GtStatic.TestSyntaxPattern(Context, "1 + 2 * 3");
 	}
 
-	public static void main(String[] argc) {
-		/*local*/GtContext GtContext = new GtContext(new KonohaGrammar(), new JavaScriptSourceGenerator());
+	public final static void main(String[] argc) {
+		GreenTeaGenerator Generator = (argc.length > 1) ? LangDeps.CodeGenerator(argc[0]) : new JavaScriptSourceGenerator();
+		/*local*/GtContext Context = new GtContext(new KonohaGrammar(), Generator);
 //		//GtContext.Eval("int f(int a, int b) { return a + b; }", 0);
 		//GtContext.Eval("4 * 1 + 2 / 3;", 0);		
 		//GtContext.Eval("int f(int n) { return 0 +1+2+3 * 2 }", 0);
 		//GtContext.Eval("f() + 1;", 0);
 		//GreenTeaScript.TestAll(GtContext);
-		GtContext.Eval("int fib(int n) { if(n < 3) return n;  else  return fib(n-1) + fib(n-2);  }", 0);
+		if(argc.length > 1) {
+			Context.Eval(LangDeps.LoadFile(argc[1]), 0);
+		}
+		else {
+			TestAll(Context);
+		}
+		//GtContext.Eval("int fib(int n) { if(n < 3) return n;  else  return fib(n-1) + fib(n-2);  }", 0);
 		//GtContext.Eval("fib(19)", 0);
 		
 //		GtContext GtContext = new GtContext(new KonohaGrammar(), new JavaByteCodeGenerator());
