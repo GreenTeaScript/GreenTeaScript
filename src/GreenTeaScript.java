@@ -1992,7 +1992,7 @@ final class KonohaGrammar extends GtGrammar {
 			FuncTree.AppendParsedTree(Tree);
 			if(TokenContext.MatchToken(",")) continue;
 			/*local*/SyntaxTree EndTree = new SyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken(")"), null);
-			if (EndTree != null) {
+			if(EndTree != null) {
 				FuncTree.AppendParsedTree(EndTree);
 				break;
 			}
@@ -2387,7 +2387,7 @@ public class GreenTeaScript {
 		//GtContext.Eval("int f(int n) { return 0 +1+2+3 * 2 }", 0);
 		//GtContext.Eval("f() + 1;", 0);
 		//GreenTeaScript.TestAll(GtContext);
-		GtContext.Eval("int fib(int n) { if (n < 3) return n;  else  return fib(n-1) + fib(n-2);  }", 0);
+		GtContext.Eval("int fib(int n) { if(n < 3) return n;  else  return fib(n-1) + fib(n-2);  }", 0);
 		//GtContext.Eval("fib(19)", 0);
 		
 //		GtContext GtContext = new GtContext(new KonohaGrammar(), new JavaByteCodeGenerator());
