@@ -1939,8 +1939,11 @@ final class KonohaGrammar extends GtGrammar {
 		/*local*/TypedNode RightNode = ParsedTree.TypeNodeAt(RightHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
 		/*local*/int ParamSize = 2;
 		/*local*/String Operator = ParsedTree.KeyToken.ParsedText;
-		/*local*/GtMethod Method = null; //LeftNode.Type.LookupMethod(Operator, ParamSize);
-		return Gamma.Generator.CreateBinaryNode(Gamma.AnyType, ParsedTree, null/*Method*/, LeftNode, RightNode);
+		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
+		TypeList.add(LeftNode.Type);
+		TypeList.add(RightNode.Type);
+		/*local*/GtMethod Method = Gamma.NameSpace.LookupMethod(Operator, ParamSize, 1/*FIXME*/, TypeList, 0);
+		return Gamma.Generator.CreateBinaryNode(Gamma.AnyType, ParsedTree, Method, LeftNode, RightNode);
 	}
 
 	public static SyntaxTree ParseField(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
