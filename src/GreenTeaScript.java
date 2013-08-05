@@ -475,10 +475,10 @@ class GtStatic implements GtConst {
 		return Node;
 	}
 
-	public final static void TestTokenizer(GtContext Context, String Source, String TokenText, String TokenText2) {
+	public final static void TestToken(GtContext Context, String Source, String TokenText, String TokenText2) {
 		/*local*/GtNameSpace NameSpace = Context.DefaultNameSpace;
 		/*local*/TokenContext TokenContext = new TokenContext(NameSpace, Source, 1);
-		assert(TokenContext.MatchToken(TokenText) && TokenContext.MatchToken(TokenText2));
+		LangDeps.Assert(TokenContext.MatchToken(TokenText) && TokenContext.MatchToken(TokenText2));
 	}
 	
 	public final static void TestSyntaxPattern(GtContext Context, String Text) {
@@ -2432,12 +2432,13 @@ class GtContext extends GtStatic {
 	}
 }
 
-public class GreenTeaScript {
+public class GreenTeaScript extends GtStatic {
 
 	private static void TestAll(GtContext Context) {
 		//GtStatic.TestSyntaxPattern(Context, "int");
 		//GtStatic.TestSyntaxPattern(Context, "123");
-		GtStatic.TestSyntaxPattern(Context, "1 + 2 * 3");
+		//GtStatic.TestSyntaxPattern(Context, "1 + 2 * 3");
+		TestToken(Context, "1 || 2", "1", "||");
 	}
 
 	public final static void main(String[] Args) {
