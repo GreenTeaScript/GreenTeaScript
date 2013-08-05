@@ -1,5 +1,9 @@
 // LangBase is a language-dependent code used in GreenTea.java
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -146,5 +150,23 @@ public abstract class LangDeps {
 		return Tuple;
 	}
 
+	public final static String LoadFile(String FileName) {
+		File f = new File(FileName);
+		byte[] b = new byte[(int) f.length()];
+		FileInputStream fi;
+		try {
+			fi = new FileInputStream(f);
+			fi.read(b);
+			fi.close();
+			return new String(b);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
 }
 
