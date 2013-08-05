@@ -2173,6 +2173,7 @@ final class KonohaGrammar extends GtGrammar {
 			Tree.SetSyntaxTreeAt(FuncDeclReturnType, LeftTree);
 		}
 //		Tree.SetMatchedPatternAt(FuncDeclClass, TokenContext, "$MethodClass$", Optional);
+//		Tree.SetMatchedTokenAt(NoWhere, TokenContext, ".", Optional);
 		Tree.SetMatchedPatternAt(FuncDeclName, TokenContext, "$FuncName$", Required);
 		Tree.SetMatchedTokenAt(NoWhere, TokenContext, "(", Required);
 		/*local*/int ParamBase = FuncDeclParam;
