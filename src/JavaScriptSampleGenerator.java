@@ -109,13 +109,8 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 			Node.Params.get(i).Evaluate(this);
 			i = i + 1;
 		}
-		/*local*/String thisNode = this.PopCode();
-		/*local*/String params = "(" + this.PopManyCodeWithModifier(ParamCount - 1, true, null, null, ", ") + ")";
-		if(thisNode.equals(GtConst.GlobalConstName)) {
-			this.PushCode(methodName + params);
-		} else {
-			this.PushCode(thisNode + "." + methodName + params);
-		}
+		/*local*/String params = "(" + this.PopManyCodeWithModifier(ParamCount, true, null, null, ", ") + ")";
+		this.PushCode(methodName + params);
 	}
 
 	@Override
