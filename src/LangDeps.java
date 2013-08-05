@@ -10,17 +10,17 @@ import java.util.ArrayList;
 
 public abstract class LangDeps {
 
-	public static void println(String msg) {
+	public final static void println(String msg) {
 		System.out.println(msg);		
 	}
 
-	public static void DebugP(String msg) {
+	public final static void DebugP(String msg) {
 		if(GtStatic.DebugPrintOption) {
 			LangDeps.println("DEBUG" + LangDeps.GetStackInfo(2) + ": " + msg);
 		}
 	}
 
-	public static String GetStackInfo(int depth){
+	public final static String GetStackInfo(int depth){
 		String LineNumber = " ";
 		try{
 			throw new Exception();
@@ -35,6 +35,12 @@ public abstract class LangDeps {
 		return LineNumber;
 	}
 
+	public final static void Assert(boolean TestResult) {
+		if(!TestResult) {
+			throw new RuntimeException("Assertion Failed");
+		}
+	}
+	
 	public final static boolean IsWhitespace(char ch) {
 		return Character.isWhitespace(ch);
 	}
