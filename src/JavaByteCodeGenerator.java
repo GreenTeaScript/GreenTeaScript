@@ -636,12 +636,12 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 		}
 	}
 
-	@Override
-	public void VisitDefineNode(DefineNode Node) {	//FIXME
-		if(Node.DefInfo instanceof GtClass) {
-			GtClass c = (GtClass) Node.DefInfo;
-			c.MakeDefinition(this.Builder.NameSpace);
-		} else if(Node.DefInfo instanceof GtMethod) {
+//	@Override
+//	public void VisitDefineNode(DefineNode Node) {	//FIXME
+//		if(Node.DefInfo instanceof GtClass) {
+//			GtClass c = (GtClass) Node.DefInfo;
+//			c.MakeDefinition(this.Builder.NameSpace);
+//		} else if(Node.DefInfo instanceof GtMethod) {
 //			GtMethod m = (GtMethod) Node.DefInfo;
 //			//			m.DoCompilation();	//
 //			SyntaxTree ParsedTree = null;	//FIXME: Method Body Tree is needed
@@ -649,8 +649,8 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 //				return;
 //			}
 //			NMMap.PutMethodInvoker(m, CompileMethod(Builder.NameSpace, ParsedTree, m));
-		}
-	}
+//		}
+//	}
 
 	@Override
 	public void VisitConstNode(ConstNode Node) {

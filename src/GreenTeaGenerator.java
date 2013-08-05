@@ -573,20 +573,6 @@ class SwitchNode extends TypedNode {
 	}
 }
 
-class DefineNode extends TypedNode {
-	public GtDef	DefInfo;
-	DefineNode/*constructor*/(GtType Type, GtToken Token, GtDef DefInfo) {
-		super(Type, Token);
-		this.DefInfo = DefInfo;
-	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
-		Visitor.VisitDefineNode(this);
-	}
-	@Override public String toString() {
-		return "(Define:" + this.Type + " " + DefInfo /*FIXME*/ + ")";
-	}
-}
-
 class FunctionNode extends TypedNode {
 	FunctionNode/*constructor*/(GtType Type, GtToken Token) {
 		super(Type, Token); // TODO
@@ -663,6 +649,7 @@ class IndentGenerator {
 public class GreenTeaGenerator extends GtStatic {
 	/*field*/public String LangName;
 	/*field*/ArrayList<String> GeneratedCodeStack;
+	/*field*/GtContext Context;
 
 	GreenTeaGenerator/*constructor*/(String LangName) {
 		this.LangName = LangName;
@@ -843,11 +830,7 @@ public class GreenTeaGenerator extends GtStatic {
 	public void VisitForEachNode(ForEachNode ForEachNode) {
 		/*extension*/
 	}
-
-	public void VisitDefineNode(DefineNode Node) {
-		/*extension*/
-	}
-
+	
 	public void VisitConstNode(ConstNode Node) {
 		/*extension*/
 	}
