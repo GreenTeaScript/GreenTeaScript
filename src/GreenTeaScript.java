@@ -699,6 +699,18 @@ final class TokenContext extends GtStatic {
 		return this.ReportExpectedToken(Pattern.PatternName);
 	}
 
+	public void Vacume() {
+		if(this.Pos > 0) {
+			/*local*/ArrayList<GtToken> NewList = new ArrayList<GtToken>();
+			/*local*/int i = this.Pos;
+			while(i < ListSize(this.SourceList)) {
+				NewList.add(this.SourceList.get(i));
+			}
+			this.SourceList = NewList;
+			this.Pos = 0;
+		}
+	}
+	
 	private int DispatchFunc(String ScriptSource, int GtChar, int pos) {
 		/*local*/TokenFunc TokenFunc = this.NameSpace.GetTokenFunc(GtChar);
 		/*local*/int NextIdx = GtStatic.ApplyTokenFunc(TokenFunc, this, ScriptSource, pos);
@@ -831,6 +843,11 @@ final class TokenContext extends GtStatic {
 		return (Token != NullToken);
 	}
 
+	public final GtMap SkipAnnotation() {
+		//TODO: Parse Annotation
+		return null;
+	}
+	
 	public void Dump() {
 		/*local*/int pos = this.Pos;
 		while(pos < this.SourceList.size()) {
@@ -1080,15 +1097,7 @@ class GtType extends GtStatic {
 	}
 }
 
-class GtDef extends GtStatic {
-
-	public void MakeDefinition(GtNameSpace NameSpace) {
-
-	}
-
-}
-
-class GtMethod extends GtDef {
+class GtMethod extends GtStatic {
 	/*field*/public GtLayer         Layer;
 	/*field*/public int				MethodFlag;
 	/*field*/public String			MethodName;
@@ -1347,7 +1356,7 @@ final class GtNameSpace extends GtStatic {
 	/*field*/public ArrayList<GtSpec>         PublicSpecList;
 	/*field*/public ArrayList<GtSpec>         PrivateSpecList;
 
-	/*field*/TokenFunc[]	TokenMatrix;
+	/*field*/TokenFunc[] TokenMatrix;
 	/*field*/GtMap	 SymbolPatternTable;
 	/*field*/GtMap   ExtendedPatternTable;
 	/*field*/public ArrayList<GtLayer>        LayerList;

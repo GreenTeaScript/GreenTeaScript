@@ -8,16 +8,6 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 
 	private boolean UseLetKeyword;
 
-	@Override
-	public void VisitDefineNode(DefineNode Node)  {
-		if(Node.DefInfo instanceof GtMethod) {
-			GtMethod Mtd = (GtMethod) Node.DefInfo;
-			//this.push((String) Mtd.MethodInvoker.CompiledCode);
-		} else {
-			//throw new NotSupportedCodeError();
-		}
-	}
-
 	public void VisitConst(ConstNode Node) {
 		this.PushCode(Node.ConstValue.toString());
 		return;
