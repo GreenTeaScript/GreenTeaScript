@@ -727,8 +727,8 @@ final class TokenContext extends GtStatic {
 		/*local*/int NextIdx = GtStatic.ApplyTokenFunc(TokenFunc, this, ScriptSource, pos);
 		if(NextIdx == NoMatch) {
 			DebugP("undefined tokenizer: " + LangDeps.CharAt(ScriptSource, pos));
-			this.AddNewToken(ScriptSource.substring(pos), 0, null);
-			return ScriptSource.length();
+			this.AddNewToken(ScriptSource.substring(pos, pos + 1), 0, null);
+			return pos + 1;
 		}
 		return NextIdx;
 	}
@@ -757,7 +757,7 @@ final class TokenContext extends GtStatic {
 				Token = this.SourceList.get(this.Pos);
 			}
 			if(IsFlag(this.ParseFlag, SkipIndentParseFlag) && Token.IsIndent()) {
-				this.Pos += 1;
+				this.Pos = this.Pos + 1;
 				continue;
 			}
 			return Token;
@@ -818,16 +818,27 @@ final class TokenContext extends GtStatic {
 		return Token;
 	}
 
-	public boolean IsAllowedTrackback() {
+	public final boolean IsAllowedTrackback() {
 		return IsFlag(this.ParseFlag, TrackbackParseFlag);
 	}
 
+	public final int SetTrackback(boolean Allowed) {
+		int ParseFlag = this.ParseFlag;
+		if(Allowed) {
+			this.ParseFlag = this.ParseFlag | TrackbackParseFlag;
+		}
+		else {
+			this.ParseFlag = (~(TrackbackParseFlag) & this.ParseFlag);
+		}
+		return ParseFlag;
+	}
+	
 	public final SyntaxTree ParsePatternAfter(SyntaxTree LeftTree, String PatternName, boolean IsOptional) {
 		/*local*/int Pos = this.Pos;
 		/*local*/int ParseFlag = this.ParseFlag;
 		/*local*/SyntaxPattern Pattern = this.GetPattern(PatternName);
 		if(IsOptional) {
-			this.ParseFlag |= TrackbackParseFlag;
+			this.ParseFlag = this.ParseFlag | TrackbackParseFlag;
 		}
 		/*local*/SyntaxTree SyntaxTree = GtStatic.ApplySyntaxPattern(Pattern, LeftTree, this);
 		this.ParseFlag = ParseFlag;
@@ -1671,12 +1682,15 @@ final class GtNameSpace extends GtStatic {
 		/*local*/Object ResultValue = null;
 		DebugP("Eval: " + ScriptSource);
 		/*local*/TokenContext TokenContext = new TokenContext(this, ScriptSource, FileLine);
+		TokenContext.SkipEmptyStatement();
 		while(TokenContext.HasNext()) {
 			/*local*/SyntaxTree Tree = GtStatic.ParseExpression(TokenContext);
 			DebugP("untyped tree: " + Tree);
 			/*local*/TypeEnv Gamma = new TypeEnv(this);
 			/*local*/TypedNode Node = Gamma.TypeCheckEachNode(Tree, Gamma.VoidType, DefaultTypeCheckPolicy);
 			ResultValue = Generator.Eval(Node);
+			TokenContext.SkipEmptyStatement();
+			TokenContext.Vacume();
 		}
 		return ResultValue;
 	}
@@ -2266,18 +2280,22 @@ final class KonohaGrammar extends GtGrammar {
 //		Tree.SetMatchedPatternAt(FuncDeclClass, TokenContext, "$MethodClass$", Optional);
 //		Tree.SetMatchedTokenAt(NoWhere, TokenContext, ".", Optional);
 		Tree.SetMatchedPatternAt(FuncDeclName, TokenContext, "$FuncName$", Required);
-		Tree.SetMatchedTokenAt(NoWhere, TokenContext, "(", Required);
-		/*local*/int ParamBase = FuncDeclParam;
-		while(!Tree.IsEmptyOrError() && !TokenContext.MatchToken(")")) {
-			Tree.SetMatchedPatternAt(ParamBase + VarDeclType, TokenContext, "$Type$", Required);
-			Tree.SetMatchedPatternAt(ParamBase + VarDeclName, TokenContext, "$Variable$", Required);
-			if(TokenContext.MatchToken("=")) {
-				Tree.SetMatchedPatternAt(ParamBase + VarDeclValue, TokenContext, "$Expression$", Required);
+		if(TokenContext.MatchToken("(")) {
+			/*local*/int ParseFlag = TokenContext.SetTrackback(false);  // disabled
+			/*local*/int ParamBase = FuncDeclParam;
+			while(!Tree.IsEmptyOrError() && !TokenContext.MatchToken(")")) {
+				Tree.SetMatchedPatternAt(ParamBase + VarDeclType, TokenContext, "$Type$", Required);
+				Tree.SetMatchedPatternAt(ParamBase + VarDeclName, TokenContext, "$Variable$", Required);
+				if(TokenContext.MatchToken("=")) {
+					Tree.SetMatchedPatternAt(ParamBase + VarDeclValue, TokenContext, "$Expression$", Required);
+				}
+				ParamBase += 3;
 			}
-			ParamBase += 3;
+			Tree.SetMatchedPatternAt(FuncDeclBlock, TokenContext, "$Block$", Required);
+			TokenContext.ParseFlag = ParseFlag;
+			return Tree;
 		}
-		Tree.SetMatchedPatternAt(FuncDeclBlock, TokenContext, "$Block$", Required);
-		return Tree;
+		return null;
 	}
 
 	public static TypedNode TypeFuncDecl(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
