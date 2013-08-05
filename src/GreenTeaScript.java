@@ -513,6 +513,10 @@ final class GtMap {
 		return this.Map.get(Key);
 	}
 
+	public ArrayList<String> keys() {
+		GtStatic.TODO("implement");
+		return null;
+	}
 }
 
 class GtDelegateCommon {
@@ -699,6 +703,18 @@ final class TokenContext extends GtStatic {
 		return this.ReportExpectedToken(Pattern != null ? Pattern.PatternName : "null");
 	}
 
+	public void Vacume() {
+		if(this.Pos > 0) {
+			/*local*/ArrayList<GtToken> NewList = new ArrayList<GtToken>();
+			/*local*/int i = this.Pos;
+			while(i < ListSize(this.SourceList)) {
+				NewList.add(this.SourceList.get(i));
+			}
+			this.SourceList = NewList;
+			this.Pos = 0;
+		}
+	}
+	
 	private int DispatchFunc(String ScriptSource, int GtChar, int pos) {
 		/*local*/TokenFunc TokenFunc = this.NameSpace.GetTokenFunc(GtChar);
 		/*local*/int NextIdx = GtStatic.ApplyTokenFunc(TokenFunc, this, ScriptSource, pos);
@@ -831,6 +847,11 @@ final class TokenContext extends GtStatic {
 		return (Token != NullToken);
 	}
 
+	public final GtMap SkipAnnotation() {
+		//TODO: Parse Annotation
+		return null;
+	}
+	
 	public void Dump() {
 		/*local*/int pos = this.Pos;
 		while(pos < this.SourceList.size()) {
@@ -882,8 +903,9 @@ class SyntaxTree extends GtStatic {
 	/*field*/public SyntaxPattern	Pattern;
 	/*field*/public GtToken		    KeyToken;
 	/*field*/public ArrayList<SyntaxTree> TreeList;
-	/*field*/public Object      ConstValue;
-
+	/*field*/public Object          ConstValue;
+	/*field*/public GtMap           Annotation;
+	
 	SyntaxTree/*constructor*/(SyntaxPattern Pattern, GtNameSpace NameSpace, GtToken KeyToken, Object ConstValue) {
 		this.NameSpace = NameSpace;
 		this.KeyToken = KeyToken;
@@ -893,6 +915,7 @@ class SyntaxTree extends GtStatic {
 		this.NextTree = null;
 		this.TreeList = null;
 		this.ConstValue = ConstValue;
+		this.Annotation = null;
 	}
 
 	@Override public String toString() {
@@ -912,6 +935,21 @@ class SyntaxTree extends GtStatic {
 		return s + ")";
 	}
 
+	public void SetAnnotation(GtMap Annotation) {
+		this.Annotation = Annotation;
+	}
+
+	public boolean HasAnnotation(String Key) {
+		if(this.Annotation != null) {
+			Object Value = this.Annotation.get(Key);
+			if(Value instanceof Boolean) {
+				this.Annotation.put(Key, true);  // consumed;
+			}
+			return (Value != null);
+		}
+		return false;
+	}
+	
 	public boolean IsError() {
 		return this.KeyToken.IsError();
 	}
@@ -1085,15 +1123,7 @@ class GtType extends GtStatic {
 	}
 }
 
-class GtDef extends GtStatic {
-
-	public void MakeDefinition(GtNameSpace NameSpace) {
-
-	}
-
-}
-
-class GtMethod extends GtDef {
+class GtMethod extends GtStatic {
 	/*field*/public GtLayer         Layer;
 	/*field*/public int				MethodFlag;
 	/*field*/public String			MethodName;
@@ -1355,7 +1385,7 @@ final class GtNameSpace extends GtStatic {
 	/*field*/public ArrayList<GtSpec>         PublicSpecList;
 	/*field*/public ArrayList<GtSpec>         PrivateSpecList;
 
-	/*field*/TokenFunc[]	TokenMatrix;
+	/*field*/TokenFunc[] TokenMatrix;
 	/*field*/GtMap	 SymbolPatternTable;
 	/*field*/GtMap   ExtendedPatternTable;
 	/*field*/public ArrayList<GtLayer>        LayerList;
@@ -2054,8 +2084,12 @@ final class KonohaGrammar extends GtGrammar {
 			/*local*/SyntaxTree PrevTree = null;
 			while(TokenContext.SkipEmptyStatement()) {
 				if(TokenContext.MatchToken("}")) break;
+				/*local*/GtMap Annotation = TokenContext.SkipAnnotation();
 				/*local*/SyntaxTree CurrentTree = GtStatic.ParseExpression(TokenContext);
-				if(GtStatic.IsEmptyOrError(CurrentTree)) return CurrentTree;
+				if(GtStatic.IsEmptyOrError(CurrentTree)) {
+					return CurrentTree;
+				}
+				CurrentTree.SetAnnotation(Annotation);
 				PrevTree = GtStatic.LinkTree(PrevTree, CurrentTree);
 			}
 			if(PrevTree == null) {
@@ -2247,14 +2281,14 @@ final class KonohaGrammar extends GtGrammar {
 
 		NameSpace.DefineTokenFunc(" \t", FunctionA(this, "WhiteSpaceToken"));
 		NameSpace.DefineTokenFunc("\n",  FunctionA(this, "IndentToken"));
-		NameSpace.DefineTokenFunc("(){}[]<>.,:;+-*/%=&|!", FunctionA(this, "OperatorToken"));
+		NameSpace.DefineTokenFunc("(){}[]<>.,:;+-*/%=&|!@", FunctionA(this, "OperatorToken"));
 		NameSpace.DefineTokenFunc("Aa", FunctionA(this, "SymbolToken"));
 		NameSpace.DefineTokenFunc("\"", FunctionA(this, "StringLiteralToken"));
 		NameSpace.DefineTokenFunc("1",  FunctionA(this, "NumberLiteralToken"));
 //#ifdef JAVA
-		GtDelegateMatch ParseUnary    = FunctionB(this, "ParseUnary");
+		GtDelegateMatch ParseUnary     = FunctionB(this, "ParseUnary");
 		GtDelegateType  TypeUnary      = FunctionC(this, "TypeUnary");
-		GtDelegateMatch ParseBinary   = FunctionB(this, "ParseBinary");
+		GtDelegateMatch ParseBinary    = FunctionB(this, "ParseBinary");
 		GtDelegateType  TypeBinary     = FunctionC(this, "TypeBinary");
 		GtDelegateType  TypeConst      = FunctionC(this, "TypeConst");
 		GtDelegateType  TypeBlock      = FunctionC(this, "TypeBlock");
@@ -2300,6 +2334,7 @@ final class KonohaGrammar extends GtGrammar {
 		NameSpace.DefineSyntaxPattern("$FuncName$", FunctionB(this, "ParseFuncName"), TypeConst);
 		NameSpace.DefineSyntaxPattern("$FuncDecl$", FunctionB(this, "ParseFuncDecl"), FunctionC(this, "TypeFuncDecl"));
 		NameSpace.DefineSyntaxPattern("$VarDecl$",  FunctionB(this, "ParseVarDecl"), FunctionC(this, "TypeVarDecl"));
+		
 		NameSpace.DefineSyntaxPattern("if", FunctionB(this, "ParseIf"), FunctionC(this, "TypeIf"));
 		NameSpace.DefineSyntaxPattern("while", FunctionB(this, "ParseWhile"), FunctionC(this, "TypeWhile"));
 		NameSpace.DefineSyntaxPattern("continue", FunctionB(this, "ParseContinue"), FunctionC(this, "TypeContinue"));

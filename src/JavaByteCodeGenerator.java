@@ -134,18 +134,26 @@ class CheckReturnNodePath extends MethodPath {
 	}
 }
 
-class GtClass extends GtDef {
-	public GtType	ClassInfo;
-
-	//@HostLang
-	public GtClass(GtType ClassInfo) {
-		this.ClassInfo = ClassInfo;
-	}
-
-	@Override
-	public void MakeDefinition(GtNameSpace NameSpace) {
-	}
-}
+//private class GtDef extends GtStatic {
+//
+//	public void MakeDefinition(GtNameSpace NameSpace) {
+//
+//	}
+//
+//}
+//
+//class GtClass extends GtDef {
+//	public GtType	ClassInfo;
+//
+//	//@HostLang
+//	public GtClass(GtType ClassInfo) {
+//		this.ClassInfo = ClassInfo;
+//	}
+//
+//	@Override
+//	public void MakeDefinition(GtNameSpace NameSpace) {
+//	}
+//}
 
 abstract class GtMethodInvoker {	//TODO: using GtMethod
 	public GtType[]		ParamTypes;
@@ -645,22 +653,6 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 			this.Builder.typeStack.push(this.TypeResolver.GetAsmType(Method.GetReturnType()));
 		}
 	}
-
-//	@Override
-//	public void VisitDefineNode(DefineNode Node) {	//FIXME
-//		if(Node.DefInfo instanceof GtClass) {
-//			GtClass c = (GtClass) Node.DefInfo;
-//			c.MakeDefinition(this.Builder.NameSpace);
-//		} else if(Node.DefInfo instanceof GtMethod) {
-//			GtMethod m = (GtMethod) Node.DefInfo;
-//			//			m.DoCompilation();	//
-//			SyntaxTree ParsedTree = null;	//FIXME: Method Body Tree is needed
-//			if(NMMap.Exist(m)) {
-//				return;
-//			}
-//			NMMap.PutMethodInvoker(m, CompileMethod(Builder.NameSpace, ParsedTree, m));
-//		}
-//	}
 
 	@Override
 	public void VisitConstNode(ConstNode Node) {
