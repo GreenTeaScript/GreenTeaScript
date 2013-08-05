@@ -962,6 +962,10 @@ public class GreenTeaGenerator extends GtStatic {
 		/*extension*/
 	}
 
+	public void LoadContext(GtContext Context) {
+		/*extension*/
+	}
+
 	protected void PushCode(String Code){
 		this.GeneratedCodeStack.add(Code);
 	}
