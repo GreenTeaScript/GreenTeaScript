@@ -2090,7 +2090,27 @@ final class KonohaGrammar extends GtGrammar {
 		/*local*/TypedNode BodyNode = ParsedTree.TypeNodeAt(WhileBody, Gamma, Type, DefaultTypeCheckPolicy);
 		return Gamma.Generator.CreateLoopNode(BodyNode.Type, ParsedTree, CondNode, BodyNode, null);
 	}
+	// Break/Continue Statement
+	public static SyntaxTree ParseBreak(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
+		/*local*/GtToken Token = TokenContext.GetMatchedToken("break");
+		/*local*/SyntaxTree NewTree = new SyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
+		//FIXME support break with label (e.g. break LABEL; )
+		return NewTree;
+	}
 
+	public static TypedNode TypeBreak(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
+		return Gamma.Generator.CreateBreakNode(Gamma.VoidType, ParsedTree, null, "break");
+	}
+	public static SyntaxTree ParseContinue(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
+		/*local*/GtToken Token = TokenContext.GetMatchedToken("continue");
+		/*local*/SyntaxTree NewTree = new SyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
+		//FIXME support continue with label (e.g. continue LABEL; )
+		return NewTree;
+	}
+
+	public static TypedNode TypeContinue(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
+		return Gamma.Generator.CreateContinueNode(Gamma.VoidType, ParsedTree, null, "continue");
+	}
 	// Return Statement
 	public static SyntaxTree ParseReturn(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
 		/*local*/GtToken Token = TokenContext.GetMatchedToken("return");
@@ -2107,7 +2127,31 @@ final class KonohaGrammar extends GtGrammar {
 		/*local*/TypedNode Expr = ParsedTree.TypeNodeAt(ReturnExpr, Gamma, ReturnType, DefaultTypeCheckPolicy);
 		return Gamma.Generator.CreateReturnNode(Expr.Type, ParsedTree, Expr);
 	}
+	
+	// New Expression
+	public static SyntaxTree ParseNew(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
+		/*local*/GtToken Token = TokenContext.GetMatchedToken("new");
+		/*local*/SyntaxTree NewTree = new SyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
+		NewTree.SetMatchedPatternAt(CallExpressionOffset, TokenContext, "$Type$", Required);
+		return NewTree;
+	}
 
+	public static TypedNode TypeNew(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
+		/*local*/TypedNode SelfNode = ParsedTree.TypeNodeAt(CallExpressionOffset, Gamma, Gamma.AnyType, DefaultTypeCheckPolicy);
+		/*local*/TypedNode ApplyNode = Gamma.Generator.CreateApplyNode(Gamma.AnyType, ParsedTree, null);
+		/*local*/int i = 0;
+		SelfNode = Gamma.Generator.CreateNewNode(SelfNode.Type, ParsedTree);
+		ApplyNode.Append(SelfNode);
+		/* copied from TypeApply */
+		while(i < ListSize(ParsedTree.TreeList)) {
+			/*local*/TypedNode ExprNode = ParsedTree.TypeNodeAt(UnaryTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+			ApplyNode.Append(ExprNode);
+			i += 1;
+		}
+		return ApplyNode;
+	}
+
+	// FuncName
 	public static SyntaxTree ParseFuncName(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
 		/*local*/GtToken Token = TokenContext.Next();
 		if(Token != NullToken) {
@@ -2116,6 +2160,7 @@ final class KonohaGrammar extends GtGrammar {
 		return null;
 	}
 	
+	// FuncDecl
 	public static SyntaxTree ParseFuncDecl(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
 		/*local*/SyntaxTree Tree = new SyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetToken(), null);
 		if(LeftTree == null) {
@@ -2226,7 +2271,10 @@ final class KonohaGrammar extends GtGrammar {
 		NameSpace.DefineSyntaxPattern("$VarDecl$",  FunctionB(this, "ParseVarDecl"), FunctionC(this, "TypeVarDecl"));
 		NameSpace.DefineSyntaxPattern("if", FunctionB(this, "ParseIf"), FunctionC(this, "TypeIf"));
 		NameSpace.DefineSyntaxPattern("while", FunctionB(this, "ParseWhile"), FunctionC(this, "TypeWhile"));
-		NameSpace.DefineSyntaxPattern("return", FunctionB(this, "ParseReturn"), FunctionC(this, "ParseReturn"));
+		NameSpace.DefineSyntaxPattern("continue", FunctionB(this, "ParseContinue"), FunctionC(this, "TypeContinue"));
+		NameSpace.DefineSyntaxPattern("break", FunctionB(this, "ParseBreak"), FunctionC(this, "TypeBreak"));
+		NameSpace.DefineSyntaxPattern("return", FunctionB(this, "ParseReturn"), FunctionC(this, "TypeReturn"));
+		NameSpace.DefineSyntaxPattern("new", FunctionB(this, "ParseNew"), FunctionC(this, "TypeNew"));
 	}
 
 }
