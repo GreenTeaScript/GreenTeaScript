@@ -1,5 +1,9 @@
 // LangBase is a language-dependent code used in GreenTea.java
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -64,7 +68,7 @@ public abstract class LangDeps {
 		}
 		return null; /*throw new GtParserException("method not found: " + callee.getClass().getName() + "." + methodName);*/
 	}
-	
+
 	public final static boolean EqualsMethod(Method m1, Method m2) {
 		if(m1 == null) {
 			return (m2 == null) ? true : false;
@@ -72,7 +76,7 @@ public abstract class LangDeps {
 			return (m2 == null) ? false : m1.equals(m2);
 		}
 	}
-	
+
 	public final static TokenFunc CreateOrReuseTokenFunc(GtDelegateToken f, TokenFunc prev) {
 		if(prev != null && EqualsMethod(prev.Func.Method, f.Method)) {
 			return prev;
@@ -128,7 +132,7 @@ public abstract class LangDeps {
 		}
 		return null;
 	}
-	
+
 	public final static GtType[] CompactTypeList(ArrayList<GtType> List) {
 		GtType[] Tuple = new GtType[List.size()];
 		for(int i = 0; i < List.size(); i++) {
@@ -146,5 +150,23 @@ public abstract class LangDeps {
 		return Tuple;
 	}
 
+	public final static String LoadFile(String FileName) {
+		File f = new File(FileName);
+		byte[] b = new byte[(int) f.length()];
+		FileInputStream fi;
+		try {
+			fi = new FileInputStream(f);
+			fi.read(b);
+			fi.close();
+			return new String(b);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
 }
 

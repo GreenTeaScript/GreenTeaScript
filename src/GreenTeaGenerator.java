@@ -45,11 +45,11 @@ class TypedNode extends GtStatic {
 	public final boolean IsError() {
 		return (this instanceof ErrorNode);
 	}
-	
+
 	@Override public String toString() {
 		return "(TypedNode)";
 	}
-	
+
 	public static String Stringify(TypedNode Block) {
 		/*local*/String Text = Block.toString();
 		while(Block != null) {
@@ -661,7 +661,7 @@ public class GreenTeaGenerator extends GtStatic {
 		ParsedTree.NameSpace.ReportError(ErrorLevel, Token, this.LangName + " has no language support for " + Token.ParsedText);
 		return new ErrorNode(ParsedTree.NameSpace.Context.VoidType, ParsedTree.KeyToken);
 	}
-	
+
 	public TypedNode CreateConstNode(GtType Type, SyntaxTree ParsedTree, Object Value) {
 		return new ConstNode(Type, ParsedTree.KeyToken, Value);
 	}
@@ -785,7 +785,7 @@ public class GreenTeaGenerator extends GtStatic {
 	public TypedNode CreateDefineNode(GtType Type, SyntaxTree ParsedTree, Object Module) {
 		return null;
 	}
-	
+
 	public TypedNode CreateEmptyNode(GtType Type, SyntaxTree ParsedTree) {
 		return new TypedNode(ParsedTree.NameSpace.Context.VoidType, ParsedTree.KeyToken);
 	}
@@ -794,7 +794,7 @@ public class GreenTeaGenerator extends GtStatic {
 		return new ErrorNode(ParsedTree.NameSpace.Context.VoidType, ParsedTree.KeyToken);
 	}
 
-	
+
 	public void VisitEmptyNode(TypedNode EmptyNode) {
 		GtStatic.DebugP("empty node: " + EmptyNode.Token.ParsedText);
 	}
@@ -935,13 +935,17 @@ public class GreenTeaGenerator extends GtStatic {
 	public void DefineFunction(GtMethod Method, ArrayList<String> NameList, TypedNode Body) {
 		/*extenstion*/
 	}
-	
+
 	public Object Eval(TypedNode Node) {
 		this.VisitBlock(Node);
 		return null;
 	}
 
 	public void AddClass(GtType Type) {
+		/*extension*/
+	}
+
+	public void LoadContext(GtContext Context) {
 		/*extension*/
 	}
 
