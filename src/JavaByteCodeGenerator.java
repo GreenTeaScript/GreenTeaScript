@@ -744,7 +744,7 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 		
 		VisitApplyNode(applyNode);
 	}
-	
+
 	@Override
 	public void VisitUnaryNode(UnaryNode Node) {
 		ApplyNode applyNode = new ApplyNode(Node.Type, Node.Token, Node.Method);

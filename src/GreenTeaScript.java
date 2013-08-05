@@ -2201,12 +2201,12 @@ final class KonohaGrammar extends GtGrammar {
 		/*local*/GtType ReturnType = (/*cast*/GtType)ParsedTree.GetSyntaxTreeAt(FuncDeclReturnType).ConstValue;
 		TypeBuffer.add(ReturnType);
 		/*local*/int ParamBase = FuncDeclParam;
-		/*local*/ArrayList<String> NameList = new ArrayList<String>();
+		/*local*/ArrayList<String> ParamNameList = new ArrayList<String>();
 		while(ParamBase < ParsedTree.TreeList.size()) {
 			/*local*/GtType ParamType = (/*cast*/GtType)ParsedTree.GetSyntaxTreeAt(ParamBase).ConstValue;
 			/*local*/String ParamName = ParsedTree.GetSyntaxTreeAt(ParamBase+1).KeyToken.ParsedText;
 			TypeBuffer.add(ParamType);
-			NameList.add(ParamName);
+			ParamNameList.add(ParamName);
 			Gamma.AppendDeclaredVariable(ParamType, ParamName);
 			ParamBase += 3;
 		}
@@ -2215,7 +2215,7 @@ final class KonohaGrammar extends GtGrammar {
 		Gamma.NameSpace.DefineMethod(Method);
 		/*local*/TypedNode BodyNode = ParsedTree.TypeNodeAt(FuncDeclBlock, Gamma, ReturnType, IgnoreEmptyPolicy);
 		if(BodyNode != null) {
-			Gamma.Generator.DefineFunction(Method, NameList, BodyNode);
+			Gamma.Generator.DefineFunction(Method, ParamNameList, BodyNode);
 		}
 		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType, ParsedTree);
 	}

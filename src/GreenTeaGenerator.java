@@ -393,6 +393,7 @@ class DoWhileNode extends TypedNode {
 }
 
 class ForNode extends TypedNode {
+	/*field*/public TypedNode   InitNode;
 	/*field*/public TypedNode	CondExpr;
 	/*field*/public TypedNode	IterExpr;
 	/*field*/public TypedNode	LoopBody;
@@ -840,7 +841,7 @@ public class GreenTeaGenerator extends GtStatic {
 	public void VisitForEachNode(ForEachNode ForEachNode) {
 		/*extension*/
 	}
-	
+
 	public void VisitConstNode(ConstNode Node) {
 		/*extension*/
 	}
@@ -942,7 +943,7 @@ public class GreenTeaGenerator extends GtStatic {
 	}
 
 	// This must be extended in each language
-	public void DefineFunction(GtMethod Method, ArrayList<String> NameList, TypedNode Body) {
+	public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, TypedNode Body) {
 		/*extenstion*/
 	}
 
