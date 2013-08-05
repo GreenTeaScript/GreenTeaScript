@@ -616,7 +616,7 @@ public class GreenTeaGenerator extends GtStatic {
 	/*field*/private int    IndentLevel					= 0;
 	/*field*/private String CurrentLevelIndentString	= "";
 	/*field*/protected String IndentUnit				= "\t";
-	
+
 	private static String Repeat(String Unit, int Times) {
 		/*local*/StringBuilder Builder = new StringBuilder();
 		for(int i = 0; i < Times; ++i) {
@@ -637,7 +637,7 @@ public class GreenTeaGenerator extends GtStatic {
 	public void Indent() {
 		this.SetIndent(this.IndentLevel + 1);
 	}
-	
+
 	public void UnIndent() {
 		this.SetIndent(this.IndentLevel - 1);
 	}
@@ -645,7 +645,7 @@ public class GreenTeaGenerator extends GtStatic {
 	public String GetIndentString() {
 		return this.CurrentLevelIndentString;
 	}
-	
+
 	GreenTeaGenerator/*constructor*/(String LangName) {
 		this.LangName = LangName;
 		this.GeneratedCodeStack = new ArrayList<Object>();
@@ -956,7 +956,7 @@ public class GreenTeaGenerator extends GtStatic {
 		}
 		return "";
 	}
-	
+
 	protected void PushSourceCode(String Code){
 		this.GeneratedCodeStack.add(Code);
 	}
