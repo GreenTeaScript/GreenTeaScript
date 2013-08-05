@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class PerlSourceGenerator extends GreenTeaGenerator {
 	IndentGenerator Indent;
-	PerlSourceGenerator(String LangName) {
+	PerlSourceGenerator() {
 		super("Perl");
 		this.Indent = new IndentGenerator();
 	}

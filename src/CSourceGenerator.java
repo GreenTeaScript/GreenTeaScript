@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class CSourceGenerator extends GreenTeaGenerator {
 	IndentGenerator Indent;
-	CSourceGenerator(String LangName) {
+	CSourceGenerator() {
 		super("CSource");
 		this.Indent = new IndentGenerator();
 	}
