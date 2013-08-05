@@ -716,6 +716,7 @@ final class TokenContext extends GtStatic {
 			/*local*/int i = this.Pos;
 			while(i < ListSize(this.SourceList)) {
 				NewList.add(this.SourceList.get(i));
+				i = i + 1;
 			}
 			this.SourceList = NewList;
 			this.Pos = 0;
