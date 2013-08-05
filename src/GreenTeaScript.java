@@ -1748,13 +1748,15 @@ final class KonohaGrammar extends GtGrammar {
 			Text = SourceText.substring(LineStart, pos);
 		}
 		TokenContext.AddNewToken(Text, IndentTokenFlag, null);
-		return pos;
+		//return pos;
+		TokenContext.AddNewToken(SourceText.substring(pos), SourceTokenFlag, null);
+		return SourceText.length();
 	}
 
-	public static int SingleSymbolToken(TokenContext TokenContext, String SourceText, int pos) {
-		TokenContext.AddNewToken(SourceText.substring(pos, pos + 1), 0, null);
-		return pos + 1;
-	}
+//	public static int SingleSymbolToken(TokenContext TokenContext, String SourceText, int pos) {
+//		TokenContext.AddNewToken(SourceText.substring(pos, pos + 1), 0, null);
+//		return pos + 1;
+//	}
 
 	public static int SymbolToken(TokenContext TokenContext, String SourceText, int pos) {
 		/*local*/int start = pos;
@@ -1787,6 +1789,23 @@ final class KonohaGrammar extends GtGrammar {
 		return NextPos;
 	}
 
+	public static int CommentToken(TokenContext TokenContext, String SourceText, int pos) {
+		/*local*/int NextPos = pos + 1;
+		if(pos + 1 < SourceText.length()) {
+			/*local*/char NextChar = LangDeps.CharAt(SourceText, pos+1);
+			if(NextChar == '/') {
+				NextPos = NextPos + 1;
+				while(NextPos < SourceText.length()) {
+					/*local*/char ch = LangDeps.CharAt(SourceText, NextPos);
+					if(ch == '\n') {
+						return IndentToken(TokenContext, SourceText, NextPos);
+					}
+				}
+			}
+		}
+		return NoMatch;
+	}
+	
 	public static int NumberLiteralToken(TokenContext TokenContext, String SourceText, int pos) {
 		/*local*/int start = pos;
 		while(pos < SourceText.length()) {
@@ -1820,7 +1839,7 @@ final class KonohaGrammar extends GtGrammar {
 		TokenContext.ReportTokenError(ErrorLevel, "expected \" to close the string literal", SourceText.substring(start, pos));
 		return pos;
 	}
-
+	
 	public static SyntaxTree ParseType(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/Object ConstValue = TokenContext.NameSpace.GetSymbol(Token.ParsedText);
@@ -2307,6 +2326,7 @@ final class KonohaGrammar extends GtGrammar {
 		NameSpace.DefineTokenFunc(" \t", FunctionA(this, "WhiteSpaceToken"));
 		NameSpace.DefineTokenFunc("\n",  FunctionA(this, "IndentToken"));
 		NameSpace.DefineTokenFunc("(){}[]<>.,:;+-*/%=&|!@", FunctionA(this, "OperatorToken"));
+		NameSpace.DefineTokenFunc("/", FunctionA(this, "CommentToken"));  // overloading		
 		NameSpace.DefineTokenFunc("Aa", FunctionA(this, "SymbolToken"));
 		NameSpace.DefineTokenFunc("\"", FunctionA(this, "StringLiteralToken"));
 		NameSpace.DefineTokenFunc("1",  FunctionA(this, "NumberLiteralToken"));
@@ -2467,9 +2487,6 @@ public class GreenTeaScript extends GtStatic {
 		}
 		//GtContext.Eval("int fib(int n) { if(n < 3) return n;  else  return fib(n-1) + fib(n-2);  }", 0);
 		//GtContext.Eval("fib(19)", 0);
-		
-//		GtContext GtContext = new GtContext(new KonohaGrammar(), new JavaByteCodeGenerator());
-//		System.err.println("## Eval value: " + GtContext.Eval("1", 0));
 	}
 
 }
