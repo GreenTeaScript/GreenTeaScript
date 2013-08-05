@@ -447,11 +447,13 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 	private final TypeResolver	TypeResolver;
 	private JVMBuilder Builder;
 	private final NativeMethodMap NMMap;
+	private GtContext Context;
 
 	public JavaByteCodeGenerator() {
 		super("Java");
 		this.TypeResolver = new TypeResolver();
 		this.NMMap = new NativeMethodMap();
+		this.Context = null;
 	}
 
 	public void OutputClassFile(String className, String dir) throws IOException {
@@ -476,12 +478,6 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 		return classWriter.toByteArray();
 	}
 
-	private GtMethodInvoker CompileMethod(GtNameSpace NameSpace, SyntaxTree ParsedTree, GtMethod Method) {
-		TypeEnv Gamma = new TypeEnv(NameSpace);
-		TypedNode Node = Gamma.TypeCheckEachNode(ParsedTree, Gamma.VoidType, DefaultTypeCheckPolicy);
-		return this.Build(NameSpace, Node, Method);
-	}
-
 	public GtMethodInvoker Build(GtNameSpace NameSpace, TypedNode Node, GtMethod Method) {
 		ArrayList<Local> Param = null;
 		if(Method != null) {
@@ -500,12 +496,9 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 
 	@Override
 	public Object Eval(TypedNode Node) {
-		GtNameSpace NameSpace = Node.Type.PackageNameSpace;	//FIXME: PackageNameSpace
-		GtObject GlobalObject = NameSpace.GetGlobalObject();
-
-		GtMethodInvoker Invoker = this.Compile(NameSpace, Node, null);
+		GtMethodInvoker Invoker = this.Compile(Context.RootNameSpace, Node, null);
 		Object[] Args = new Object[1];
-		Args[0] = GlobalObject;
+		Args[0] = Context.RootNameSpace.GetGlobalObject();
 		return Invoker.Invoke(Args);
 	}
 	
@@ -516,6 +509,18 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 		}
 		//FIXME PackageNameSpace
 		NMMap.PutMethodInvoker(Method, this.Build(Body.Type.PackageNameSpace, Body, Method));
+	}
+	
+	@Override
+	public void LoadContext(GtContext Context) {
+		this.Context = Context;
+		InitEmbeddedMethod();
+	}
+	
+	private void InitEmbeddedMethod() {
+		new GtIntDef(Context.RootNameSpace, NMMap).MakeDefinition();
+		new GtStringDef(Context.RootNameSpace, NMMap).MakeDefinition();
+		new GtSystemDef(Context.RootNameSpace, NMMap).MakeDefinition();
 	}
 
 	public GtMethodInvoker Compile(GtNameSpace NameSpace, TypedNode Block, GtMethod MethodInfo) {
@@ -636,21 +641,21 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 		}
 	}
 
-	@Override
-	public void VisitDefineNode(DefineNode Node) {	//FIXME
-		if(Node.DefInfo instanceof GtClass) {
-			GtClass c = (GtClass) Node.DefInfo;
-			c.MakeDefinition(this.Builder.NameSpace);
-		} else if(Node.DefInfo instanceof GtMethod) {
-//			GtMethod m = (GtMethod) Node.DefInfo;
-//			//			m.DoCompilation();	//
-//			SyntaxTree ParsedTree = null;	//FIXME: Method Body Tree is needed
-//			if(NMMap.Exist(m)) {
-//				return;
-//			}
-//			NMMap.PutMethodInvoker(m, CompileMethod(Builder.NameSpace, ParsedTree, m));
-		}
-	}
+//	@Override
+//	public void VisitDefineNode(DefineNode Node) {	//FIXME
+//		if(Node.DefInfo instanceof GtClass) {
+//			GtClass c = (GtClass) Node.DefInfo;
+//			c.MakeDefinition(this.Builder.NameSpace);
+//		} else if(Node.DefInfo instanceof GtMethod) {
+////			GtMethod m = (GtMethod) Node.DefInfo;
+////			//			m.DoCompilation();	//
+////			SyntaxTree ParsedTree = null;	//FIXME: Method Body Tree is needed
+////			if(NMMap.Exist(m)) {
+////				return;
+////			}
+////			NMMap.PutMethodInvoker(m, CompileMethod(Builder.NameSpace, ParsedTree, m));
+//		}
+//	}
 
 	@Override
 	public void VisitConstNode(ConstNode Node) {
@@ -939,14 +944,73 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 }
 
 class EmbeddedMethodDef extends GtStatic {
+	private GtNameSpace NameSpace;
 	private NativeMethodMap NMMap;
 	
-	public EmbeddedMethodDef(NativeMethodMap NMMap) {
-		this.NMMap = NMMap;
+	// Embedded GtType
+	final GtType VoidType;
+	final GtType ObjectType;
+	final GtType BooleanType;
+	final GtType IntType;
+	final GtType StringType;
+	final GtType VarType;
+	final GtType AnyType;
+	
+	public static Method LookupMethod(Object Callee, String MethodName) {
+		if(MethodName != null) {
+			// DebugP("looking up method : " + Callee.getClass().getSimpleName() + "." + MethodName);
+			Method[] methods = Callee.getClass().getMethods();
+			for(int i = 0; i < methods.length; i++) {
+				if(MethodName.equals(methods[i].getName())) {
+					return methods[i];
+				}
+			}
+			DebugP("method not found: " + Callee.getClass().getSimpleName() + "." + MethodName);
+		}
+		return null; 
+		/*throw new KonohaParserException("method not found: " + callee.getClass().getName() + "." + methodName);*/
 	}
 	
-	public void MakeDefinition(GtNameSpace ns) {
+	public static ArrayList<GtType> MakeParamTypeList(GtType ReturnType, GtType RecvType, GtType...ParamTypes) {
+		ArrayList<GtType> paramTypeList = new ArrayList<GtType>();
+		paramTypeList.add(ReturnType);
+		paramTypeList.add(RecvType);
+		for(int i = 0; i < ParamTypes.length; i++) {
+			paramTypeList.add(ParamTypes[i]);
+		}
 		
+		return paramTypeList;
+	}
+	
+	public EmbeddedMethodDef(GtNameSpace NameSpace, NativeMethodMap NMMap) {
+		this.NameSpace = NameSpace;
+		this.NMMap = NMMap;
+		
+		this.VoidType = NameSpace.Context.VoidType;
+		this.ObjectType = NameSpace.Context.ObjectType;
+		this.BooleanType = NameSpace.Context.BooleanType;
+		this.IntType = NameSpace.Context.IntType;
+		this.StringType = NameSpace.Context.StringType;
+		this.VarType = NameSpace.Context.VarType;
+		this.AnyType = NameSpace.Context.AnyType;
+	}
+	
+	public void MakeDefinition() {
+		
+	}
+	
+	void RegisterMethod(int MethodFlag, String MethodName, ArrayList<GtType> ParamTypeList, Object Callee, String LocalName) {
+		GtMethod newMethod = new GtMethod(MethodFlag, MethodName, ParamTypeList);
+		GtType[] paramTypes = LangDeps.CompactTypeList(ParamTypeList);
+		Method mtd = LookupMethod(Callee, LocalName);
+		NMMap.PutMethodInvoker(newMethod, new NativeMethodInvoker(paramTypes, mtd));
+		NameSpace.DefineMethod(newMethod);
+	}
+	
+	GtType RegisterClass(int ClassFlag, String ClassName, Object DefaultNullValue) {
+		GtType newClass = new GtType(NameSpace.Context, ClassFlag, ClassName, DefaultNullValue);
+		NameSpace.DefineClass(newClass);
+		return newClass;
 	}
 }
 
@@ -955,160 +1019,6 @@ class EmbeddedMethodDef extends GtStatic {
 // Consider whether it is available?
 
 //ifdef JAVA
-class GtInt extends EmbeddedMethodDef {
-
-	public GtInt(NativeMethodMap NMMap) {
-		super(NMMap);
-	}
-
-	public void MakeDefinition(GtNameSpace ns) {
-		//		GtType BaseClass = ns.LookupHostLangType(Integer.class);
-		//		GtParam BinaryParam = GtParam.ParseOf(ns, "int int x");
-		//		GtParam UnaryParam = GtParam.ParseOf(ns, "int");
-		//
-		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "+", UnaryParam, this, "PlusInt");
-		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "+", BinaryParam, this, "IntAddInt");
-		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "-", UnaryParam, this, "MinusInt");
-		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "-", BinaryParam, this, "IntSubInt");
-		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "*", BinaryParam, this, "IntMulInt");
-		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "/", BinaryParam, this, "IntDivInt");
-		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "%", BinaryParam, this, "IntModInt");
-		//
-		//		GtParam RelationParam = GtParam.ParseOf(ns, "boolean int x");
-		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "<", RelationParam, this, "IntLtInt");
-		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "<=", RelationParam, this, "IntLeInt");
-		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, ">", RelationParam, this, "IntGtInt");
-		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, ">=", RelationParam, this, "IntGeInt");
-		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "==", RelationParam, this, "IntEqInt");
-		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "!=", RelationParam, this, "IntNeInt");
-		//
-		//		//		if(GtDebug.UseBuiltInTest) {
-		//		//			assert (BaseClass.LookupMethod("+", 0) != null);
-		//		//			assert (BaseClass.LookupMethod("+", 1) != null);
-		//		//			assert (BaseClass.LookupMethod("+", 2) == null);
-		//		//			GtMethod m = BaseClass.LookupMethod("+", 1);
-		//		//			Object[] p = new Object[2];
-		//		//			p[0] = new Integer(1);
-		//		//			p[1] = new Integer(2);
-		//		//			GtStatic.println("******* 1+2=" + m.Eval(p));
-		//		//		}
-	}
-
-	public static int PlusInt(int x) {
-		return +x;
-	}
-
-	public static int IntAddInt(int x, int y) {
-		return x + y;
-	}
-
-	public static int MinusInt(int x) {
-		return -x;
-	}
-
-	public static int IntSubInt(int x, int y) {
-		return x - y;
-	}
-
-	public static int IntMulInt(int x, int y) {
-		return x * y;
-	}
-
-	public static int IntDivInt(int x, int y) {
-		return x / y;
-	}
-
-	public static int IntModInt(int x, int y) {
-		return x % y;
-	}
-
-	public static boolean IntLtInt(int x, int y) {
-		return x < y;
-	}
-
-	public static boolean IntLeInt(int x, int y) {
-		return x <= y;
-	}
-
-	public static boolean IntGtInt(int x, int y) {
-		return x > y;
-	}
-
-	public static boolean IntGeInt(int x, int y) {
-		return x >= y;
-	}
-
-	public static boolean IntEqInt(int x, int y) {
-		return x == y;
-	}
-
-	public static boolean IntNeInt(int x, int y) {
-		return x != y;
-	}
-}
-
-class GtStringDef extends EmbeddedMethodDef {
-
-	public GtStringDef(NativeMethodMap NMMap) {
-		super(NMMap);
-	}
-
-	public void MakeDefinition(GtNameSpace ns) {
-		//		GtType BaseClass = ns.LookupHostLangType(String.class);
-		//		GtParam BinaryParam = GtParam.ParseOf(ns, "String String x");
-		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "+", BinaryParam, this, "StringAddString");
-		//
-		//		GtParam RelationParam = GtParam.ParseOf(ns, "boolean String x");
-		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "==", RelationParam, this, "StringEqString");
-		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "!=", RelationParam, this, "StringNeString");
-		//
-		//		GtParam indexOfParam = GtParam.ParseOf(ns, "int String x");
-		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "indexOf", indexOfParam, this, "StringIndexOf");
-		//
-		//		GtParam getSizeParam = GtParam.ParseOf(ns, "int");
-		//		BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "getSize", getSizeParam, this, "StringGetSize");
-	}
-
-	public static String StringAddString(String x, String y) {
-		return x + y;
-	}
-
-	public static boolean StringEqString(String x, String y) {
-		return x.equals(y);
-	}
-
-	public static boolean StringNeString(String x, String y) {
-		return !x.equals(y);
-	}
-
-	public static int StringIndexOf(String self, String str) {
-		return self.indexOf(str);
-	}
-
-	public static int StringGetSize(String self) {
-		return self.length();
-	}
-}
-
-class GtSystemDef extends EmbeddedMethodDef {
-
-	public GtSystemDef(NativeMethodMap NMMap) {
-		super(NMMap);
-	}
-
-	public void MakeDefinition(GtNameSpace NameSpace) {
-		//		GtType BaseClass = NameSpace.LookupHostLangType(GtSystemDef.class);
-		//		NameSpace.DefineSymbol("System", BaseClass);
-		//
-		//		GtParam param1 = GtParam.ParseOf(NameSpace, "void String x");
-		//		BaseClass.DefineMethod(StaticMethod, "p", param1, this, "p");
-	}
-
-	public static void p(String x) {
-		GtStatic.println(x);
-	}
-
-}
 
 //class ArrayList<?>Def extends GtStatic {
 //
