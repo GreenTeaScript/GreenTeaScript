@@ -1783,17 +1783,23 @@ final class KonohaGrammar extends GtGrammar {
 
 	public static int OperatorToken(TokenContext TokenContext, String SourceText, int pos) {
 		/*local*/int NextPos = pos + 1;
+		/*local*/SyntaxPattern FirstMatchedPattern = null;
 		while(NextPos < SourceText.length()) {
-			/*local*/char ch = LangDeps.CharAt(SourceText, NextPos);
+			/*local*/char ch = LangDeps.CharAt(SourceText, NextPos-1);
 			if(LangDeps.IsWhitespace(ch) || LangDeps.IsLetter(ch) || LangDeps.IsDigit(ch)) {
+				NextPos -= 1;
 				break;
 			}
-			/*local*/String Sub = SourceText.substring(pos, pos + 1);
-			if(TokenContext.NameSpace.GetExtendedPattern(Sub) == null) {
-				NextPos += 1;
-				continue;
+			/*local*/String Sub = SourceText.substring(pos, NextPos);
+			/*local*/SyntaxPattern Pattern = TokenContext.NameSpace.GetExtendedPattern(Sub);
+			if(FirstMatchedPattern == null) {
+				FirstMatchedPattern = Pattern;
 			}
-			break;
+			if(FirstMatchedPattern != null && TokenContext.NameSpace.GetExtendedPattern(Sub) == null) {
+				NextPos -= 1;
+				break;
+			}
+			NextPos += 1;
 		}
 		TokenContext.AddNewToken(SourceText.substring(pos, NextPos), 0, null);
 		return NextPos;
@@ -2367,6 +2373,7 @@ final class KonohaGrammar extends GtGrammar {
 		NameSpace.DefineExtendedPattern(">=", BinaryOperator | Precedence_CStyleCOMPARE, ParseBinary, TypeBinary);
 		NameSpace.DefineExtendedPattern("==", BinaryOperator | Precedence_CStyleEquals, ParseBinary, TypeBinary);
 		NameSpace.DefineExtendedPattern("!=", BinaryOperator | Precedence_CStyleEquals, ParseBinary, TypeBinary);
+		//NameSpace.DefineExtendedPattern("!==", BinaryOperator | Precedence_CStyleEquals, ParseBinary, TypeBinary);
 
 		NameSpace.DefineExtendedPattern("=", BinaryOperator | Precedence_CStyleAssign | LeftJoin, ParseBinary, FunctionC(this, "TypeAssign"));
 		NameSpace.DefineExtendedPattern("&&", BinaryOperator | Precedence_CStyleAND, ParseBinary, FunctionC(this, "TypeAnd"));
@@ -2471,6 +2478,11 @@ public class GreenTeaScript extends GtStatic {
 		//GtStatic.TestSyntaxPattern(Context, "123");
 		//GtStatic.TestSyntaxPattern(Context, "1 + 2 * 3");
 		TestToken(Context, "1 || 2", "1", "||");
+		TestToken(Context, "1 == 2", "1", "==");
+		TestToken(Context, "1 != 2", "1", "!=");
+		//TestToken(Context, "1 !== 2", "1", "!==");
+		TestToken(Context, "1 *= 2", "1", "*");
+		TestToken(Context, "1 = 2", "1", "=");
 	}
 
 	public final static void main(String[] Args) {
