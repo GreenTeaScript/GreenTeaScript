@@ -363,12 +363,12 @@ class TypeResolver {
 	// FIXME
 	String globalType = Type.getType(GtObject.class).getDescriptor();
 
-	public TypeResolver() {
+	public TypeResolver(GtContext Context) {
 		this.typeDescriptorMap.put("global", Type.getType(GtObject.class).getDescriptor());
-		this.typeDescriptorMap.put("Void", Type.getType(void.class).getDescriptor());
-		this.typeDescriptorMap.put("Boolean", Type.getType(boolean.class).getDescriptor());
-		this.typeDescriptorMap.put("Integer", Type.getType(int.class).getDescriptor());
-		this.typeDescriptorMap.put("Object", Type.getType(Object.class).getDescriptor());
+		this.typeDescriptorMap.put(Context.VoidType.ShortClassName, Type.getType(void.class).getDescriptor());
+		this.typeDescriptorMap.put(Context.BooleanType.ShortClassName, Type.getType(boolean.class).getDescriptor());
+		this.typeDescriptorMap.put(Context.IntType.ShortClassName, Type.getType(int.class).getDescriptor());
+		this.typeDescriptorMap.put(Context.ObjectType.ShortClassName, Type.getType(Object.class).getDescriptor());
 		// TODO: other class
 	}
 
@@ -444,14 +444,14 @@ class NativeMethodMap {
 }
 
 public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes {
-	private final TypeResolver	TypeResolver;
+	private TypeResolver	TypeResolver;
 	private JVMBuilder Builder;
 	private final NativeMethodMap NMMap;
 	private GtContext Context;
 
 	public JavaByteCodeGenerator() {
 		super("Java");
-		this.TypeResolver = new TypeResolver();
+		this.TypeResolver = null;
 		this.NMMap = new NativeMethodMap();
 		this.Context = null;
 	}
@@ -514,6 +514,7 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 	@Override
 	public void LoadContext(GtContext Context) {
 		this.Context = Context;
+		this.TypeResolver = new TypeResolver(Context);
 		InitEmbeddedMethod();
 	}
 
@@ -733,6 +734,19 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 
 	@Override
 	public void VisitBinaryNode(BinaryNode Node) {
+		ApplyNode applyNode = new ApplyNode(Node.Type, Node.Token, Node.Method);
+		applyNode.Append(Node.LeftNode);
+		applyNode.Append(Node.RightNode);
+		
+		VisitApplyNode(applyNode);
+	}
+	
+	@Override
+	public void VisitUnaryNode(UnaryNode Node) {
+		ApplyNode applyNode = new ApplyNode(Node.Type, Node.Token, Node.Method);
+		applyNode.Append(Node.Expr);
+		
+		VisitApplyNode(applyNode);
 	}
 
 	@Override
