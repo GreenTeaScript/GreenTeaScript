@@ -16,8 +16,13 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 	public void DefineFunction(GtMethod Method, ArrayList<String> NameList, TypedNode Body) {
 		/*local*/int ArgCount = Method.Types.length - 1;
 		/*local*/String Code = "var " + Method.MethodName + "= (function(";
-		for(/*local*/int i = 0; i < ArgCount; i++){
-			Code = Code + (i > 0 ? ", " : "") + NameList.get(i);
+		/*local*/int i = 0;
+		while(i < ArgCount){
+			if(i > 0){
+				Code = Code + ", ";
+			}
+			Code = Code + NameList.get(i) + "0";
+			i = i + 1;
 		}
 		Code += ") ";
 		this.VisitBlockJS(Body);
@@ -60,9 +65,11 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 
 	@Override
 	public void VisitNewNode(NewNode Node) {
-		for(/*local*/int i = 0; i < Node.Params.size(); i++) {
+		/*local*/int i = 0;
+		while(i < Node.Params.size()) {
 			/*local*/TypedNode Param = Node.Params.get(i);
 			Param.Evaluate(this);
+			i = i + 1;
 		}
 		this.PushCode("new " + Node.Type.ShortClassName + "()");
 		return;
@@ -97,11 +104,13 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 	public void VisitApplyNode(ApplyNode Node) {
 		/*local*/String methodName = Node.Method.MethodName;
 		/*local*/int ParamCount = Node.Params.size();
-		for(/*local*/int i = 0; i < ParamCount; i++) {
+		/*local*/int i = 0;
+		while(i < ParamCount) {
 			Node.Params.get(i).Evaluate(this);
+			i = i + 1;
 		}
-		/*local*/String params = "(" + this.PopManyCodeWithModifier(ParamCount - 1, true, null, null, ", ") + ")";
 		/*local*/String thisNode = this.PopCode();
+		/*local*/String params = "(" + this.PopManyCodeWithModifier(ParamCount - 1, true, null, null, ", ") + ")";
 		if(thisNode.equals(GtConst.GlobalConstName)) {
 			this.PushCode(methodName + params);
 		} else {
@@ -165,14 +174,14 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 	@Override
 	public void VisitSwitchNode(SwitchNode Node) {
 		//		Node..CondExpr.Evaluate(this);
-		//		for(int i = 0; i < Node.Blocks.size(); i++) {
+		//		/* FIXME: Do not use for statement */for(int i = 0; i < Node.Blocks.size(); i++) {
 		//			TypedNode Block = (TypedNode) Node.Blocks.get(i);
 		//			this.VisitListNode(Block);
 		//		}
 		//
 		//		int Size = Node.Labels.size();
 		//		String Exprs = "";
-		//		for(int i = 0; i < Size; i = i + 1) {
+		//		/* FIXME: Do not use for statement */for(int i = 0; i < Size; i = i + 1) {
 		//			String Label = (String) Node.Labels.get(Size - i);
 		//			String Block = this.pop();
 		//			Exprs = "case " + Label + ":" + Block + Exprs;
@@ -252,7 +261,7 @@ public class JavaScriptSampleGenerator extends GreenTeaGenerator {
 	@Override
 	public void VisitTryNode(TryNode Node) {
 		this.VisitBlockJS(Node.TryBlock);
-		//		for(int i = 0; i < Node.CatchBlock.size(); i++) {
+		//		/* FIXME: Do not use for statement */for(int i = 0; i < Node.CatchBlock.size(); i++) {
 		//			TypedNode Block = (TypedNode) Node.CatchBlock.get(i);
 		//			TypedNode Exception = (TypedNode) Node.TargetException.get(i);
 		//			this.VisitBlockJS(Block);
