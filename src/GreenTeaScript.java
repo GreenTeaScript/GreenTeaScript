@@ -714,7 +714,7 @@ final class TokenContext extends GtStatic {
 			this.Pos = 0;
 		}
 	}
-	
+
 	private int DispatchFunc(String ScriptSource, int GtChar, int pos) {
 		/*local*/TokenFunc TokenFunc = this.NameSpace.GetTokenFunc(GtChar);
 		/*local*/int NextIdx = GtStatic.ApplyTokenFunc(TokenFunc, this, ScriptSource, pos);
@@ -851,7 +851,7 @@ final class TokenContext extends GtStatic {
 		//TODO: Parse Annotation
 		return null;
 	}
-	
+
 	public void Dump() {
 		/*local*/int pos = this.Pos;
 		while(pos < this.SourceList.size()) {
@@ -905,7 +905,7 @@ class SyntaxTree extends GtStatic {
 	/*field*/public ArrayList<SyntaxTree> TreeList;
 	/*field*/public Object          ConstValue;
 	/*field*/public GtMap           Annotation;
-	
+
 	SyntaxTree/*constructor*/(SyntaxPattern Pattern, GtNameSpace NameSpace, GtToken KeyToken, Object ConstValue) {
 		this.NameSpace = NameSpace;
 		this.KeyToken = KeyToken;
@@ -949,7 +949,7 @@ class SyntaxTree extends GtStatic {
 		}
 		return false;
 	}
-	
+
 	public boolean IsError() {
 		return this.KeyToken.IsError();
 	}
