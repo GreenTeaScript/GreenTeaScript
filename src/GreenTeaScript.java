@@ -2057,8 +2057,6 @@ final class KonohaGrammar extends GtGrammar {
 		TokenContext.ParseFlag |= SkipIndentParseFlag;
 		/*local*/SyntaxTree FuncTree = new SyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("("), null);
 		FuncTree.AppendParsedTree(LeftTree);
-		//TokenContext.MatchToken("(");
-		///*local*/SyntaxTree FuncTree = LeftTree;
 		while(!FuncTree.IsEmptyOrError()) {
 			/*local*/SyntaxTree Tree = TokenContext.ParsePattern("$Expression$", Required);
 			FuncTree.AppendParsedTree(Tree);
@@ -2287,7 +2285,7 @@ final class KonohaGrammar extends GtGrammar {
 				}
 				ParamBase += 3;
 			}
-			Tree.SetMatchedPatternAt(FuncDeclBlock, TokenContext, "$Block$", Required);
+			Tree.SetMatchedPatternAt(FuncDeclBlock, TokenContext, "$Block$", Optional);
 			TokenContext.ParseFlag = ParseFlag;
 			return Tree;
 		}
