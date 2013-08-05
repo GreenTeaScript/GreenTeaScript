@@ -35,9 +35,15 @@ public abstract class LangDeps {
 		return LineNumber;
 	}
 
+	public final static void Exit(int status, String Message) {
+		System.err.println(Message);
+		System.exit(1);
+		//throw new RuntimeException(Message);
+	}
+
 	public final static void Assert(boolean TestResult) {
 		if(!TestResult) {
-			throw new RuntimeException("Assertion Failed");
+			Exit(1, "Assertion Failed");
 		}
 	}
 	
@@ -104,6 +110,7 @@ public abstract class LangDeps {
 		catch (IllegalAccessException e) {
 			e.printStackTrace();
 		}
+		Exit(1, "Failed ApplyTokenFunc");
 		return -1;
 	}
 
@@ -120,6 +127,7 @@ public abstract class LangDeps {
 		catch (IllegalAccessException e) {
 			e.printStackTrace();
 		}
+		Exit(1, "Failed ApplyMatchFunc");
 		return null;
 	}
 
@@ -136,6 +144,7 @@ public abstract class LangDeps {
 		catch (IllegalAccessException e) {
 			e.printStackTrace();
 		}
+		Exit(1, "Failed ApplyTypeFunc");
 		return null;
 	}
 

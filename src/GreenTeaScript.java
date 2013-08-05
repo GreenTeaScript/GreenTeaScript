@@ -1762,15 +1762,10 @@ final class KonohaGrammar extends GtGrammar {
 			Text = SourceText.substring(LineStart, pos);
 		}
 		TokenContext.AddNewToken(Text, IndentTokenFlag, null);
-		//return pos;
-		TokenContext.AddNewToken(SourceText.substring(pos), SourceTokenFlag, null);
-		return SourceText.length();
+		return pos;
+//		TokenContext.AddNewToken(SourceText.substring(pos), SourceTokenFlag, null);
+//		return SourceText.length();
 	}
-
-//	public static int SingleSymbolToken(TokenContext TokenContext, String SourceText, int pos) {
-//		TokenContext.AddNewToken(SourceText.substring(pos, pos + 1), 0, null);
-//		return pos + 1;
-//	}
 
 	public static int SymbolToken(TokenContext TokenContext, String SourceText, int pos) {
 		/*local*/int start = pos;
