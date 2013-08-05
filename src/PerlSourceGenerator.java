@@ -28,8 +28,9 @@ public class PerlSourceGenerator extends GreenTeaGenerator {
 	@Override
 	public void VisitSuffixNode(SuffixNode Node) {
 		GtMethod Method = Node.Method;
-		if(Method.MethodName.equals("++")) {
-		} else if(Method.MethodName.equals("--")) {
+		String MethodName = Node.Token.ParsedText;
+		if(MethodName.equals("++")) {
+		} else if(MethodName.equals("--")) {
 		} else {
 			throw new RuntimeException("NotSupportOperator");
 		}
@@ -39,18 +40,18 @@ public class PerlSourceGenerator extends GreenTeaGenerator {
 
 	@Override
 	public void VisitUnaryNode(UnaryNode Node) {
-		GtMethod Method = Node.Method;
-		if(Method.MethodName.equals("+")) {
-		} else if(Method.MethodName.equals("-")) {
-		} else if(Method.MethodName.equals("~")) {
-		} else if(Method.MethodName.equals("!")) {
-		} else if(Method.MethodName.equals("++")) {
-		} else if(Method.MethodName.equals("--")) {
+		String MethodName = Node.Token.ParsedText;
+		if(MethodName.equals("+")) {
+		} else if(MethodName.equals("-")) {
+		} else if(MethodName.equals("~")) {
+		} else if(MethodName.equals("!")) {
+		} else if(MethodName.equals("++")) {
+		} else if(MethodName.equals("--")) {
 		} else {
 			throw new RuntimeException("NotSupportOperator");
 		}
 		Node.Expr.Evaluate(this);
-		this.PushSourceCode(Method.MethodName + this.PopSourceCode());
+		this.PushSourceCode(MethodName + this.PopSourceCode());
 	}
 
 	@Override
@@ -163,7 +164,7 @@ public class PerlSourceGenerator extends GreenTeaGenerator {
 
 	@Override
 	public void VisitBinaryNode(BinaryNode Node) {
-		String MethodName = Node.Method.MethodName;
+		String MethodName = Node.Token.ParsedText;
 		if(MethodName.equals("+")) {
 		} else if(MethodName.equals("-")) {
 		} else if(MethodName.equals("*")) {
@@ -345,17 +346,15 @@ public class PerlSourceGenerator extends GreenTeaGenerator {
 		for(int i = 0; i < ParamNameList.size(); i++) {
 			String ParamTy = Method.GetParamType(i).ShortClassName;
 			Signature += " ," + ParamTy + " " + ParamNameList.get(i);
-			Arguments += this.GetIndentString() + "my $" + ParamNameList.get(i) + " = $_[" + (i + 1) + "]\n";
+			Arguments += this.GetIndentString() + "my $" + ParamNameList.get(i) + " = $_[" + (i + 1) + "];\n";
 		}
 		this.UnIndent();
-		Program += Signature + "\n" + this.GetIndentString() + "sub " + FuncName + "{\n";
+		Program += Signature + ");\n" + this.GetIndentString() + "sub " + FuncName + "{\n";
 		this.Indent();
-		Program += Arguments;
-		this.Indent();
+		Program += Arguments + GetIndentString();
 		Program += Eval(Body);
 		this.UnIndent();
-		this.UnIndent();
-		Program += Program + "\n" + this.GetIndentString() + "}";
+		Program += "\n" + this.GetIndentString() + "}";
 		DebugP(Program);
 	}
 

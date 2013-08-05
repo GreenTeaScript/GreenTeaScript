@@ -480,7 +480,7 @@ class GtStatic implements GtConst {
 		/*local*/TokenContext TokenContext = new TokenContext(NameSpace, Source, 1);
 		LangDeps.Assert(TokenContext.MatchToken(TokenText) && TokenContext.MatchToken(TokenText2));
 	}
-	
+
 	public final static void TestSyntaxPattern(GtContext Context, String Text) {
 		/*local*/int TestLevel = TestTypeChecker;
 		/*local*/GtNameSpace NameSpace = Context.DefaultNameSpace;
@@ -833,7 +833,7 @@ final class TokenContext extends GtStatic {
 		}
 		return ParseFlag;
 	}
-	
+
 	public final SyntaxTree ParsePatternAfter(SyntaxTree LeftTree, String PatternName, boolean IsOptional) {
 		/*local*/int Pos = this.Pos;
 		/*local*/int ParseFlag = this.ParseFlag;
@@ -1821,7 +1821,7 @@ final class KonohaGrammar extends GtGrammar {
 		}
 		return NoMatch;
 	}
-	
+
 	public static int NumberLiteralToken(TokenContext TokenContext, String SourceText, int pos) {
 		/*local*/int start = pos;
 		while(pos < SourceText.length()) {
@@ -1855,7 +1855,7 @@ final class KonohaGrammar extends GtGrammar {
 		TokenContext.ReportTokenError(ErrorLevel, "expected \" to close the string literal", SourceText.substring(start, pos));
 		return pos;
 	}
-	
+
 	public static SyntaxTree ParseType(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/Object ConstValue = TokenContext.NameSpace.GetSymbol(Token.ParsedText);
@@ -2324,14 +2324,14 @@ final class KonohaGrammar extends GtGrammar {
 		}
 		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType, ParsedTree);
 	}
-	
+
 	public static SyntaxTree ParseClassDecl(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
 		/*local*/SyntaxTree Tree = new SyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetToken(), null);
 //		Tree.SetMatchedPatternAt(FuncDeclClass, TokenContext, "$MethodClass$", Optional);
 //		Tree.SetMatchedTokenAt(NoWhere, TokenContext, ".", Optional);
 		return null;
 	}
-	
+
 	public static TypedNode TypeClassDecl(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
 		return null;
 	}
@@ -2486,9 +2486,9 @@ public class GreenTeaScript extends GtStatic {
 	}
 
 	public final static void main(String[] Args) {
-		//Args = new String[2];
-		//Args[0] = "--javascript";
-		//Args[1] = "sample/fibo.gs";
+//		Args = new String[2];
+//		Args[0] = "--perl";
+//		Args[1] = "sample/fibo.green";
 
 		int FileIndex = 0;
 		String CodeGeneratorName = "--Java";

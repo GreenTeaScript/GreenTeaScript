@@ -46,7 +46,7 @@ public abstract class LangDeps {
 			Exit(1, "Assertion Failed");
 		}
 	}
-	
+
 	public final static boolean IsWhitespace(char ch) {
 		return Character.isWhitespace(ch);
 	}
@@ -170,14 +170,14 @@ public abstract class LangDeps {
 			return new JavaScriptSourceGenerator();
 		}
 		else if(Option.equals("--perl")) {
-			return new CSourceGenerator();
+			return new PerlSourceGenerator();
 		}
 		else if(Option.equals("--c")) {
 			return new CSourceGenerator();
 		}
 		return new JavaSourceGenerator();
 	}
-	
+
 	public final static String LoadFile(String FileName) {
 		File f = new File(FileName);
 		byte[] b = new byte[(int) f.length()];

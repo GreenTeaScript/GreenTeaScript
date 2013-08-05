@@ -155,13 +155,12 @@ public class JavaScriptSourceGenerator extends GreenTeaGenerator {
 	public void VisitIfNode(IfNode Node) {
 		Node.CondExpr.Evaluate(this);
 		this.VisitBlockJS(Node.ThenNode);
-		this.VisitBlockJS(Node.ElseNode);
-
-		/*local*/String ElseBlock = this.PopSourceCode();
 		/*local*/String ThenBlock = this.PopSourceCode();
 		/*local*/String CondExpr = this.PopSourceCode();
 		/*local*/String source = "if(" + CondExpr + ") " + ThenBlock;
 		if(Node.ElseNode != null) {
+			this.VisitBlockJS(Node.ElseNode);
+			/*local*/String ElseBlock = this.PopSourceCode();
 			source = source + " else " + ElseBlock;
 		}
 		this.PushSourceCode(source);
