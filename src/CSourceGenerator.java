@@ -3,24 +3,22 @@ import java.util.ArrayList;
 //GreenTea Generator should be written in each language.
 
 public class CSourceGenerator extends GreenTeaGenerator {
-	IndentGenerator Indent;
 	CSourceGenerator(String LangName) {
 		super("CSource");
-		this.Indent = new IndentGenerator();
 	}
 
 	public void VisitEach(TypedNode Node) {
 		String Code = "{\n";
-		this.Indent.AddIndent(1);
+		this.Indent();
 		/*local*/TypedNode CurrentNode = Node;
 		while(CurrentNode != null) {
 			CurrentNode.Evaluate(this);
-			Code += this.Indent.Get() + this.PopCode() + ";\n";
+			Code += this.GetIndentString() + this.PopSourceCode() + ";\n";
 			CurrentNode = CurrentNode.NextNode;
 		}
-		this.Indent.AddIndent(-1);
-		Code += this.Indent.Get() + "}";
-		this.PushCode(Code);
+		this.UnIndent();
+		Code += this.GetIndentString() + "}";
+		this.PushSourceCode(Code);
 	}
 
 	public void VisitEmptyNode(TypedNode Node) {	
@@ -34,7 +32,7 @@ public class CSourceGenerator extends GreenTeaGenerator {
 			throw new RuntimeException("NotSupportOperator");
 		}
 		Node.Expr.Evaluate(this);
-		this.PushCode(this.PopCode() + Method.MethodName);
+		this.PushSourceCode(this.PopSourceCode() + Method.MethodName);
 	}
 
 	public void VisitUnaryNode(UnaryNode Node) {
@@ -49,13 +47,13 @@ public class CSourceGenerator extends GreenTeaGenerator {
 			throw new RuntimeException("NotSupportOperator");
 		}
 		Node.Expr.Evaluate(this);
-		this.PushCode(Method.MethodName + this.PopCode());
+		this.PushSourceCode(Method.MethodName + this.PopSourceCode());
 	}
 
 	public void VisitIndexerNode(IndexerNode Node) {
 		Node.Indexer.Evaluate(this);
 		Node.Expr.Evaluate(this);
-		this.PushCode(this.PopCode() + "[" + this.PopCode() + "]");
+		this.PushSourceCode(this.PopSourceCode() + "[" + this.PopSourceCode() + "]");
 		
 	}
 
@@ -66,33 +64,33 @@ public class CSourceGenerator extends GreenTeaGenerator {
 
 	public void VisitWhileNode(WhileNode Node) {
 		Node.CondExpr.Evaluate(this);
-		String Program = "while(" + this.PopCode() + ")";
+		String Program = "while(" + this.PopSourceCode() + ")";
 		this.VisitEach(Node.LoopBody);
-		Program += this.PopCode();
-		Indent.AddIndent(-1);
-		this.PushCode(Program);
+		Program += this.PopSourceCode();
+		this.UnIndent();
+		this.PushSourceCode(Program);
 	}
 
 	public void VisitDoWhileNode(DoWhileNode Node) {		
 		String Program = "do";
 		this.VisitEach(Node.LoopBody);
 		Node.CondExpr.Evaluate(this);
-		Program += " while(" + this.PopCode() + ")";
-		this.PushCode(Program);
+		Program += " while(" + this.PopSourceCode() + ")";
+		this.PushSourceCode(Program);
 	}
 
 	public void VisitForNode(ForNode Node) {
 		Node.IterExpr.Evaluate(this);
 		Node.CondExpr.Evaluate(this);
 		Node.InitNode.Evaluate(this);
-		String Init = this.PopCode();
-		String Cond = this.PopCode();
-		String Iter = this.PopCode();
+		String Init = this.PopSourceCode();
+		String Cond = this.PopSourceCode();
+		String Iter = this.PopSourceCode();
 		
 		String Program = "for(" + Init + "; " + Cond  + "; " + Iter + ")";
 		Node.LoopBody.Evaluate(this);
-		Program += this.PopCode();
-		this.PushCode(Program);		
+		Program += this.PopSourceCode();
+		this.PushSourceCode(Program);		
 	}
 
 	public void VisitForEachNode(ForEachNode Node) {
@@ -101,26 +99,26 @@ public class CSourceGenerator extends GreenTeaGenerator {
 	}
 
 	public void VisitConstNode(ConstNode Node) {
-		this.PushCode(Node.ConstValue.toString());
+		this.PushSourceCode(Node.ConstValue.toString());
 	}
 
 	public void VisitNewNode(NewNode Node) {
 		String Type = Node.Type.ShortClassName;
-		this.PushCode("new " + Type);
+		this.PushSourceCode("new " + Type);
 
 	}
 
 	public void VisitNullNode(NullNode Node) {
-		this.PushCode("NULL");
+		this.PushSourceCode("NULL");
 	}
 
 	public void VisitLocalNode(LocalNode Node) {
-		this.PushCode(Node.LocalName);
+		this.PushSourceCode(Node.LocalName);
 	}
 
 	public void VisitGetterNode(GetterNode Node) {
 		Node.Expr.Evaluate(this);
-		this.PushCode(this.PopCode() + "." + Node.Method.MethodName);
+		this.PushSourceCode(this.PopSourceCode() + "." + Node.Method.MethodName);
 	}
 
 	private String[] EvaluateParam(ArrayList<TypedNode> Params) {
@@ -129,7 +127,7 @@ public class CSourceGenerator extends GreenTeaGenerator {
 		for(int i = 0; i < Size; i++) {
 			TypedNode Node = Params.get(i);
 			Node.Evaluate(this);
-			Programs[Size - i - 1] = this.PopCode();
+			Programs[Size - i - 1] = this.PopSourceCode();
 		}
 		return Programs;
 	}
@@ -145,7 +143,7 @@ public class CSourceGenerator extends GreenTeaGenerator {
 			Program += P;
 		}
 		Program += ")";
-		this.PushCode(Program);
+		this.PushSourceCode(Program);
 	}
 
 	public void VisitBinaryNode(BinaryNode Node) {
@@ -171,33 +169,33 @@ public class CSourceGenerator extends GreenTeaGenerator {
 		}
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
-		this.PushCode(this.PopCode() + " " + Method.MethodName + " " + this.PopCode());
+		this.PushSourceCode(this.PopSourceCode() + " " + Method.MethodName + " " + this.PopSourceCode());
 	}
 
 	public void VisitAndNode(AndNode Node) {
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
-		this.PushCode(this.PopCode() + " && " + this.PopCode());
+		this.PushSourceCode(this.PopSourceCode() + " && " + this.PopSourceCode());
 	}
 
 	public void VisitOrNode(OrNode Node) {
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
-		this.PushCode(this.PopCode() + " || " + this.PopCode());
+		this.PushSourceCode(this.PopSourceCode() + " || " + this.PopSourceCode());
 	}
 
 	public void VisitAssignNode(AssignNode Node) {
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
-		this.PushCode(this.PopCode() + " = " + this.PopCode());
+		this.PushSourceCode(this.PopSourceCode() + " = " + this.PopSourceCode());
 	}
 
 	public void VisitLetNode(LetNode Node) {
 		String Type = Node.DeclType.ShortClassName;
 		Node.VarNode.Evaluate(this);
-		String Code = Type + " " + this.PopCode();
+		String Code = Type + " " + this.PopSourceCode();
 		Node.BlockNode.Evaluate(this);
-		this.PushCode(Code + this.PopCode());
+		this.PushSourceCode(Code + this.PopSourceCode());
 	}
 
 	public void VisitIfNode(IfNode Node) {
@@ -205,14 +203,14 @@ public class CSourceGenerator extends GreenTeaGenerator {
 		this.VisitEach(Node.ThenNode);
 		this.VisitEach(Node.ElseNode);
 
-		String ElseBlock = this.PopCode();
-		String ThenBlock = this.PopCode();
-		String CondExpr = this.PopCode();
+		String ElseBlock = this.PopSourceCode();
+		String ThenBlock = this.PopSourceCode();
+		String CondExpr = this.PopSourceCode();
 		String Code = "if(" + CondExpr + ") " + ThenBlock;
 		if(Node.ElseNode != null) {
 			Code += " else " + ElseBlock;
 		}
-		this.PushCode(Code);
+		this.PushSourceCode(Code);
 		
 	}
 
@@ -230,19 +228,19 @@ public class CSourceGenerator extends GreenTeaGenerator {
 		String Code = "return";
 		if(Node.Expr != null) {
 			Node.Expr.Evaluate(this);
-			Code += " " + this.PopCode();
+			Code += " " + this.PopSourceCode();
 		}
-		this.PushCode(Code);
+		this.PushSourceCode(Code);
 	}
 
 	public void VisitLabelNode(LabelNode Node) {
 		String Label = Node.Label;
-		this.PushCode(Label + ":");
+		this.PushSourceCode(Label + ":");
 	}
 
 	public void VisitJumpNode(JumpNode Node) {
 		String Label = Node.Label;
-		this.PushCode("goto " + Label);
+		this.PushSourceCode("goto " + Label);
 	}
 
 	public void VisitBreakNode(BreakNode Node) {
@@ -251,7 +249,7 @@ public class CSourceGenerator extends GreenTeaGenerator {
 		if(Label != null) {
 			Code += " " + Label;
 		}
-		this.PushCode(Code);
+		this.PushSourceCode(Code);
 	}
 
 	public void VisitContinueNode(ContinueNode Node) {
@@ -260,7 +258,7 @@ public class CSourceGenerator extends GreenTeaGenerator {
 		if(Label != null) {
 			Code += " " + Label;
 		}
-		this.PushCode(Code);
+		this.PushSourceCode(Code);
 	}
 
 	public void VisitTryNode(TryNode Node) {
@@ -268,18 +266,18 @@ public class CSourceGenerator extends GreenTeaGenerator {
 		//this.VisitEach(Node.CatchBlock);
 		this.VisitEach(Node.TryBlock);
 		
-		Code += this.PopCode();
+		Code += this.PopSourceCode();
 		if(Node.FinallyBlock != null) {
 			this.VisitEach(Node.FinallyBlock);
-			Code += " finally " + this.PopCode();
+			Code += " finally " + this.PopSourceCode();
 		}
-		this.PushCode(Code);
+		this.PushSourceCode(Code);
 	}
 
 	public void VisitThrowNode(ThrowNode Node) {
 		Node.Expr.Evaluate(this);
-		String Code = "throw " + this.PopCode();
-		this.PushCode(Code);
+		String Code = "throw " + this.PopSourceCode();
+		this.PushSourceCode(Code);
 	}
 
 	public void VisitFunctionNode(FunctionNode Node) {
@@ -289,7 +287,7 @@ public class CSourceGenerator extends GreenTeaGenerator {
 
 	public void VisitErrorNode(ErrorNode Node) {
 		String Code = "throw Error(\"" + Node.Token.ParsedText + "\")";
-		this.PushCode(Code);
+		this.PushSourceCode(Code);
 		
 	}
 
@@ -310,7 +308,7 @@ public class CSourceGenerator extends GreenTeaGenerator {
 
 	public Object Eval(TypedNode Node) {
 		this.VisitEach(Node);
-		return this.PopCode();
+		return this.PopSourceCode();
 	}
 
 	public void AddClass(GtType Type) {
