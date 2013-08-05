@@ -848,7 +848,7 @@ public class GreenTeaGenerator extends GtStatic {
 	public void VisitApplyNode(ApplyNode Node) {
 		/*extension*/
 	}
-	
+
 	public void VisitBinaryNode(BinaryNode Node) {
 		/*extension*/
 	}

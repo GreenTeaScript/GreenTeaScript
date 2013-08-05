@@ -12,7 +12,7 @@ public class GtIntDef extends EmbeddedMethodDef {
 		ArrayList<GtType> UnaryParam = MakeParamTypeList(IntType, IntType);
 		ArrayList<GtType> BinaryParam = MakeParamTypeList(IntType, IntType, IntType);
 		ArrayList<GtType> RelationParam = MakeParamTypeList(BooleanType, IntType, IntType);
-		
+
 		RegisterMethod(ImmutableMethod | ConstMethod, "+", UnaryParam, this, "PlusInt");
 		RegisterMethod(ImmutableMethod | ConstMethod, "+", BinaryParam, this, "IntAddInt");
 		RegisterMethod(ImmutableMethod | ConstMethod, "-", UnaryParam, this, "MinusInt");
@@ -20,7 +20,7 @@ public class GtIntDef extends EmbeddedMethodDef {
 		RegisterMethod(ImmutableMethod | ConstMethod, "*", BinaryParam, this, "IntMulInt");
 		RegisterMethod(ImmutableMethod | ConstMethod, "/", BinaryParam, this, "IntDivInt");
 		RegisterMethod(ImmutableMethod | ConstMethod, "%", BinaryParam, this, "IntModInt");
-		
+
 		RegisterMethod(ImmutableMethod | ConstMethod, "<", RelationParam, this, "IntLtInt");
 		RegisterMethod(ImmutableMethod | ConstMethod, "<=", RelationParam, this, "IntLeInt");
 		RegisterMethod(ImmutableMethod | ConstMethod, ">", RelationParam, this, "IntGtInt");
