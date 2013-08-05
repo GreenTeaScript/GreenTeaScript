@@ -1979,8 +1979,9 @@ final class KonohaGrammar extends GtGrammar {
 		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
 		TypeList.add(LeftNode.Type);
 		TypeList.add(RightNode.Type);
+		/*local*/GtType ReturnType = Gamma.VarType; // FIXME Method.GetReturnType();
 		/*local*/GtMethod Method = Gamma.NameSpace.LookupMethod(Operator, 2, 1/*FIXME*/, TypeList, 0);
-		return Gamma.Generator.CreateBinaryNode(Method.GetReturnType(), ParsedTree, Method, LeftNode, RightNode);
+		return Gamma.Generator.CreateBinaryNode(ReturnType, ParsedTree, Method, LeftNode, RightNode);
 	}
 
 	public static SyntaxTree ParseField(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
