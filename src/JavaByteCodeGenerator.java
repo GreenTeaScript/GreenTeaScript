@@ -508,7 +508,7 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 		Args[0] = GlobalObject;
 		return Invoker.Invoke(Args);
 	}
-	
+
 	@Override
 	public void DefineFunction(GtMethod Method, ArrayList<String> NameList, TypedNode Body) {
 		if(NMMap.Exist(Method)) {
@@ -940,11 +940,11 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 
 class EmbeddedMethodDef extends GtStatic {
 	private NativeMethodMap NMMap;
-	
+
 	public EmbeddedMethodDef(NativeMethodMap NMMap) {
 		this.NMMap = NMMap;
 	}
-	
+
 	public void MakeDefinition(GtNameSpace ns) {
 		
 	}
