@@ -722,8 +722,9 @@ class GtMethod extends GtStatic {
 	/*field*/public String          LocalFuncName;
 	/*field*/public GtType[]		Types;
 	/*field*/public GtMethod        ElderMethod;
+	/*field*/public String          SourceMacro;
 
-	GtMethod/*constructor*/(int MethodFlag, String MethodName, int BaseIndex, ArrayList<GtType> ParamList) {
+	GtMethod/*constructor*/(int MethodFlag, String MethodName, int BaseIndex, ArrayList<GtType> ParamList, String SourceMacro) {
 		super();
 		this.MethodFlag = MethodFlag;
 		this.MethodName = MethodName;
@@ -741,6 +742,7 @@ class GtMethod extends GtStatic {
 			Name = Name + "__" + GtStatic.Mangle(this.GetRecvType(), BaseIndex + 1, ParamList);
 		}
 		this.LocalFuncName = Name;
+		this.SourceMacro = SourceMacro;
 	}
 
 	@Override public String toString() {
@@ -779,6 +781,25 @@ class GtMethod extends GtStatic {
 	public final GtType GetParamType(int ParamIdx) {
 		return this.Types[ParamIdx+1];
 	}
+
+	public final String ExpandMacro1(String Arg0) {
+		if(this.SourceMacro == null) {
+			return this.MethodName + " " + Arg0;
+		}
+		else {
+			return SourceMacro.replaceAll("$0", Arg0);
+		}
+	}
+
+	public final String ExpandMacro2(String Arg0, String Arg1) {
+		if(this.SourceMacro == null) {
+			return Arg0 + " " + this.MethodName + " " + Arg1;
+		}
+		else {
+			return SourceMacro.replaceAll("$0", Arg0).replaceAll("$1", Arg1);
+		}
+	}
+	
 }
 
 
@@ -946,8 +967,8 @@ class CodeGenerator extends GtStatic {
 		return MethodFlag;
 	}
 
-	public GtMethod CreateMethod(int MethodFlag, String MethodName, int BaseIndex, ArrayList<GtType> TypeList) {
-		return new GtMethod(MethodFlag, MethodName, BaseIndex, TypeList);
+	public GtMethod CreateMethod(int MethodFlag, String MethodName, int BaseIndex, ArrayList<GtType> TypeList, String RawMacro) {
+		return new GtMethod(MethodFlag, MethodName, BaseIndex, TypeList, RawMacro);
 	}
 
 	//------------------------------------------------------------------------

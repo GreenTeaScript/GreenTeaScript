@@ -2301,8 +2301,6 @@ final class KonohaGrammar extends GtGrammar {
 		else {
 			Tree.SetSyntaxTreeAt(FuncDeclReturnType, LeftTree);
 		}
-		//Tree.SetMatchedPatternAt(FuncDeclClass, TokenContext, "$MethodClass$", Optional);
-		//Tree.SetMatchedTokenAt(NoWhere, TokenContext, ".", Optional);
 		Tree.SetMatchedPatternAt(FuncDeclName, TokenContext, "$FuncName$", Required);
 		if(TokenContext.MatchToken("(")) {
 			/*local*/int ParseFlag = TokenContext.SetTrackback(false);  // disabled
@@ -2318,7 +2316,14 @@ final class KonohaGrammar extends GtGrammar {
 				}
 				ParamBase += 3;
 			}
-			Tree.SetMatchedPatternAt(FuncDeclBlock, TokenContext, "$Block$", Optional);
+			TokenContext.SkipIndent();
+			if(TokenContext.MatchToken("~")) {
+				GtToken Token = TokenContext.GetToken();
+				Tree.ConstValue = Token.ParsedText;
+			}
+			else {
+				Tree.SetMatchedPatternAt(FuncDeclBlock, TokenContext, "$Block$", Optional);
+			}
 			TokenContext.ParseFlag = ParseFlag;
 			return Tree;
 		}
@@ -2344,7 +2349,7 @@ final class KonohaGrammar extends GtGrammar {
 			i = i + 1;
 		}
 		/*local*/int MethodFlag = Gamma.Generator.ParseMethodFlag(0, ParsedTree);
-		/*local*/GtMethod Method = Gamma.Generator.CreateMethod(MethodFlag, MethodName, 0, TypeBuffer);
+		/*local*/GtMethod Method = Gamma.Generator.CreateMethod(MethodFlag, MethodName, 0, TypeBuffer, (/*cast*/String)ParsedTree.ConstValue);
 		Gamma.Method = Method;
 		Gamma.NameSpace.DefineMethod(Method);
 		/*local*/TypedNode BodyNode = ParsedTree.TypeNodeAt(FuncDeclBlock, Gamma, ReturnType, IgnoreEmptyPolicy);
