@@ -1286,12 +1286,14 @@ final class TypeEnv extends GtStatic {
 	}
 
 	public GtType GuessType (Object Value) {
-		TODO("GuessType");
-		if(Value instanceof Integer) {
+		if(Value instanceof String) {
+			return this.StringType;
+		}
+		else if(Value instanceof Integer || Value instanceof Long) {
 			return this.IntType;
 		}
-		else if(Value instanceof String) {
-			return this.StringType;
+		else if(Value instanceof Boolean) {
+			return this.BooleanType;
 		}
 		return this.AnyType;
 	}
@@ -1321,7 +1323,6 @@ final class TypeEnv extends GtStatic {
 	public TypedNode UnsupportedTopLevelError(SyntaxTree ParsedTree) {
 		return this.CreateErrorNode(ParsedTree, "unsupported at top level " + ParsedTree.Pattern);
 	}
-
 
 	/* typing */
 	public TypedNode TypeEachNode(SyntaxTree Tree, GtType Type) {
@@ -1637,8 +1638,6 @@ final class GtNameSpace extends GtStatic {
 		}
 		return null;
 	}
-
-
 
 	// Global Object
 	public GtObject CreateGlobalObject(int ClassFlag, String ShortName) {
