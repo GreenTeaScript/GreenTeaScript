@@ -238,11 +238,6 @@ public class JavaSourceGenerator extends GreenTeaGenerator {
 
 	}
 
-	@Override public void VisitLoopNode(LoopNode Node) {
-		// TODO Auto-generated method stub
-
-	}
-
 	@Override public void VisitReturnNode(ReturnNode Node) {
 		String Code = "return";
 		if(Node.Expr != null) {

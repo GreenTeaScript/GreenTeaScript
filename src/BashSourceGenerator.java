@@ -275,11 +275,6 @@ public class BashSourceGenerator extends GreenTeaGenerator {
 	}
 
 	@Override
-	public void VisitLoopNode(LoopNode Node) {
-		// do nothing
-	}
-
-	@Override
 	public void VisitReturnNode(ReturnNode Node) {	// only support int value
 		String Code = "return";
 		if(Node.Expr != null) {

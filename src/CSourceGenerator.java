@@ -238,11 +238,6 @@ public class CSourceGenerator extends GreenTeaGenerator {
 
 	@Override public void VisitSwitchNode(SwitchNode Node) {
 		// TODO Auto-generated method stub
-
-	}
-
-	@Override public void VisitLoopNode(LoopNode Node) {
-		// TODO Auto-generated method stub
 	}
 
 	@Override public void VisitReturnNode(ReturnNode Node) {

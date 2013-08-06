@@ -459,26 +459,6 @@ class ForEachNode extends TypedNode {
 	}
 }
 
-@Deprecated class LoopNode extends TypedNode {
-	/*field*/public TypedNode	CondExpr;
-	/*field*/public TypedNode	LoopBody;
-	/*field*/public TypedNode	IterExpr;
-	LoopNode/*constructor*/(GtType Type, GtToken Token, TypedNode CondExpr, TypedNode LoopBody, TypedNode IterExpr) {
-		super(Type, Token);
-		this.CondExpr = CondExpr;
-		this.LoopBody = LoopBody;
-		this.IterExpr = IterExpr;
-	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
-		Visitor.VisitLoopNode(this);
-	}
-	@Override public String toString() {
-		/*local*/String Cond = TypedNode.Stringify(this.CondExpr);
-		/*local*/String Body = TypedNode.Stringify(this.LoopBody);
-		return "(Loop:" + this.Type + " Cond:" + Cond + " Body:"+ Body + ")";
-	}
-}
-
 @Deprecated class LabelNode extends TypedNode {
 	/*field*/public String Label;
 	LabelNode/*constructor*/(GtType Type, GtToken Token, String Label) {
@@ -789,10 +769,6 @@ public class GreenTeaGenerator extends GtStatic {
 		return new ForEachNode(Type, ParsedTree.KeyToken, VarNode, IterNode, Block);
 	}
 
-	public TypedNode CreateLoopNode(GtType Type, SyntaxTree ParsedTree, TypedNode Cond, TypedNode Block, TypedNode IterNode) {
-		return new LoopNode(Type, ParsedTree.KeyToken, Cond, Block, IterNode);
-	}
-
 	public TypedNode CreateReturnNode(GtType Type, SyntaxTree ParsedTree, TypedNode Node) {
 		return new ReturnNode(Type, ParsedTree.KeyToken, Node);
 	}
@@ -926,10 +902,6 @@ public class GreenTeaGenerator extends GtStatic {
 	}
 
 	public void VisitSwitchNode(SwitchNode Node) {
-		/*extension*/
-	}
-
-	public void VisitLoopNode(LoopNode Node) {
 		/*extension*/
 	}
 

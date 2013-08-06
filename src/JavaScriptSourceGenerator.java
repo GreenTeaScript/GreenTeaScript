@@ -141,10 +141,6 @@ public class JavaScriptSourceGenerator extends GreenTeaGenerator {
 		// TODO Auto-generated method stub
 	}
 
-	@Override public void VisitLoopNode(LoopNode Node) {
-		// TODO Auto-generated method stub
-	}
-
 	@Override public void VisitWhileNode(WhileNode Node) {
 		Node.CondExpr.Evaluate(this);
 		this.VisitBlockJS(Node.LoopBody);
