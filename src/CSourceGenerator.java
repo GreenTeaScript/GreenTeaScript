@@ -143,7 +143,7 @@ public class CSourceGenerator extends GreenTeaGenerator {
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
-		/*local*/String Program = Node.Method.MethodName + "(";
+		/*local*/String Program = Node.Method.LocalFuncName + "(";
 		/*local*/String[] Params = EvaluateParam(Node.Params);
 		/*local*/int i = 0;
 		while(i < Params.length) {
@@ -322,20 +322,26 @@ public class CSourceGenerator extends GreenTeaGenerator {
 		this.PushSourceCode(Code);
 	}
 
+	public String LocalTypeName(GtType Type) {
+		return Type.ShortClassName;
+	}
+	
 	@Override
 	public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, TypedNode Body) {
-		String Program = "";
-		String RetTy = Method.GetReturnType().ShortClassName;
-		String ThisTy = Method.GetRecvType().ShortClassName;
-		Program += RetTy + " " + ThisTy + "_" + Method.MethodName + "(";
-		Program += ThisTy + " " + "this";
+		/*local*/String Code = "";
+		/*local*/String RetTy = this.LocalTypeName(Method.GetReturnType());
+		Code += RetTy + " " + Method.LocalFuncName + "(";
 		for(int i = 0; i < ParamNameList.size(); i++) {
-			String ParamTy = Method.GetParamType(i).ShortClassName;
-			Program += " ," + ParamTy + " " + ParamNameList.get(i);
+			String ParamTy = this.LocalTypeName(Method.GetParamType(i));
+			Code += ParamTy + " " + ParamNameList.get(i);
+			if(i > 0) {
+				Code += ", ";
+			}
 		}
-		Program += ") ";
-		Program += Eval(Body);
-		DebugP(Program);
+		Code += ")";
+		this.VisitBlockEachStatementWithIndent(Body);
+		Code += this.PopSourceCode();
+		DebugP("\n\n\n" + Code);
 	}
 
 	@Override

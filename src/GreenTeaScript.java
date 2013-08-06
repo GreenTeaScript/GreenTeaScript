@@ -34,6 +34,9 @@ interface GtConst {
 
 	// compatible
 	public final static int		UniversalMethod					= 1 << 13;
+	
+	public final static int		UniqueMethod					= 1 << 14; /* used */
+	public final static int		ExportMethod					= 1 << 15; /* used */
 
 	// internal
 	public final static int		HiddenMethod					= 1 << 17;
@@ -386,7 +389,7 @@ class GtStatic implements GtConst {
 		String MangleName = (/*cast*/String)MangleNameMap.get(s);
 		if(MangleName == null) {
 			MangleName = NumberToAscii(MangleNameMap.size());
-			MangleNameMap.put(s, MangleNameMap);
+			MangleNameMap.put(s, MangleName);
 		}
 		return MangleName;
 	}
@@ -1204,8 +1207,9 @@ class GtType extends GtStatic {
 class GtMethod extends GtStatic {
 	/*field*/public GtLayer         Layer;
 	/*field*/public int				MethodFlag;
-	/*field*/public String			MethodName;
 	/*field*/int					MethodSymbolId;
+	/*field*/public String			MethodName;
+	/*field*/public String          LocalFuncName;
 	/*field*/public GtType[]		Types;
 	/*field*/public GtMethod        ElderMethod;
 
@@ -1218,6 +1222,15 @@ class GtMethod extends GtStatic {
 		LangDeps.Assert(this.Types.length > 0);
 		this.Layer = null;
 		this.ElderMethod = null;
+		
+		String Name = this.MethodName;
+		if(!LangDeps.IsLetter(LangDeps.CharAt(Name, 0))) {
+			Name = "operator" + this.MethodSymbolId;
+		}
+		if(!this.Is(ExportMethod)) {
+			Name = Name + "__" + GtStatic.Mangle(this.GetRecvType(), 1, ParamList);
+		}
+		this.LocalFuncName = Name;
 	}
 
 	@Override public String toString() {
@@ -1256,6 +1269,8 @@ class GtMethod extends GtStatic {
 	public final GtType GetParamType(int ParamIdx) {
 		return this.Types[ParamIdx+1];
 	}
+	
+	
 }
 
 final class GtLayer extends GtStatic {
