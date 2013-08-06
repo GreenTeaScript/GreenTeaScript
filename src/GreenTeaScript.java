@@ -231,6 +231,7 @@ interface GtConst {
 
 	public final static ArrayList<String> SymbolList = new ArrayList<String>();
 	public final static GtMap   SymbolMap  = new GtMap();
+	public final static GtMap   MangleNameMap = new GtMap();
 
 	public final static GtMethod AnyGetter = null;
 
@@ -361,6 +362,32 @@ class GtStatic implements GtConst {
 		return GetSymbolId(CanonicalSymbol(Symbol), AllowNewId);
 	}
 
+	public final static String NumberToAscii(int number) {
+		int num = number /26;
+		String s = Character.toString((char)(65 + (number % 26)));
+		if(num == 0) {
+			return s;
+		}
+		else {
+			return NumberToAscii(num) + s;
+		}
+	}
+	
+	public final static String Mangle(GtType BaseType, int BaseIdx, ArrayList<GtType> TypeList) {
+		/*local*/String s = NumberToAscii(BaseType.ClassId);
+		/*local*/int i = BaseIdx;
+		while(i < ListSize(TypeList)) {
+			s = s + "." + NumberToAscii(TypeList.get(i).ClassId);
+			i = i + 1;
+		}
+		String MangleName = (/*cast*/String)MangleNameMap.get(s);
+		if(MangleName == null) {
+			MangleName = NumberToAscii(MangleNameMap.size());
+			MangleNameMap.put(s, MangleNameMap);
+		}
+		return MangleName;
+	}
+	
 //ifdef JAVA
 	public final static GtDelegateToken FunctionA(Object Callee, String MethodName) {
 		return new GtDelegateToken(Callee, LangDeps.LookupMethod(Callee, MethodName));
@@ -1109,8 +1136,9 @@ class GtType extends GtStatic {
 	/*field*/public String			ShortClassName;
 	/*field*/GtType					SuperClass;
 	/*field*/public GtType			SearchSuperMethodClass;
-	/*field*/GtType					BaseClass;
 	/*field*/public Object			DefaultNullValue;
+	/*field*/GtType					BaseClass;
+	/*field*/GtType[]				Types;
 	/*field*/public Object          LocalSpec;
 
 	GtType/*constructor*/(GtContext Context, int ClassFlag, String ClassName, Object DefaultNullValue) {
@@ -1119,12 +1147,34 @@ class GtType extends GtStatic {
 		this.ShortClassName = ClassName;
 		this.SuperClass = null;
 		this.BaseClass = this;
+		this.SearchSuperMethodClass = null;
 		this.DefaultNullValue = DefaultNullValue;
 		this.LocalSpec = null;
 		this.ClassId = Context.ClassCount;
 		Context.ClassCount += 1;
+		this.Types = null;
+		DebugP("new class: " + this.ShortClassName + ", ClassId=" + this.ClassId);
 	}
 
+	public final boolean IsGenericType() {
+		return (this.Types != null);
+	}
+	
+	// Note Don't call this directly. Use Context.GetGenericType instead.
+	public GtType CreateGenericType(int BaseIndex, ArrayList<GtType> TypeList, String ShortName) {
+		GtType GenericType = new GtType(this.Context, this.ClassFlag, ShortName, null);
+		GenericType.BaseClass = this.BaseClass;
+		GenericType.SearchSuperMethodClass = this.BaseClass;
+		GenericType.SuperClass = this.SuperClass;
+		this.Types = LangDeps.CompactTypeList(BaseIndex, TypeList);
+		return GenericType;
+	}
+
+	public void SetParamType(GtType ParamType) {
+		this.Types = new GtType[1];
+		this.Types[0] = ParamType;
+	}
+	
 	@Override public String toString() {
 		return this.ShortClassName;
 	}
@@ -1133,15 +1183,11 @@ class GtType extends GtStatic {
 		return "" + this.ClassId + "@" + MethodName;
 	}
 
-	public boolean Accept(GtType Type) {
-		if(this == Type) {
+	public final boolean Accept(GtType Type) {
+		if(this == Type || this == this.Context.AnyType) {
 			return true;
 		}
 		return false;
-	}
-
-	public GtMethod GetGetter(String Name) {
-		return AnyGetter;
 	}
 }
 
@@ -1158,7 +1204,7 @@ class GtMethod extends GtStatic {
 		this.MethodFlag = MethodFlag;
 		this.MethodName = MethodName;
 		this.MethodSymbolId = GtStatic.GetCanonicalSymbolId(MethodName);
-		this.Types = LangDeps.CompactTypeList(ParamList);
+		this.Types = LangDeps.CompactTypeList(0, ParamList);
 		assert(this.Types.length > 0);
 		this.Layer = null;
 		this.ElderMethod = null;
@@ -2420,6 +2466,8 @@ class GtContext extends GtStatic {
 	/*field*/public final GtType		StringType;
 	/*field*/public final GtType		VarType;
 	/*field*/public final GtType		AnyType;
+	/*field*/public final GtType		ArrayType;
+	/*field*/public final GtType		FuncType;
 
 	/*field*/public final  GtMap			   ClassNameMap;
 	/*field*/public final  GtMap               LayerMap;
@@ -2447,6 +2495,12 @@ class GtContext extends GtStatic {
 		this.StringType  = this.RootNameSpace.DefineClass(new GtType(this, 0, "String", ""));
 		this.VarType     = this.RootNameSpace.DefineClass(new GtType(this, 0, "var", null));
 		this.AnyType     = this.RootNameSpace.DefineClass(new GtType(this, 0, "any", null));
+		this.ArrayType   = this.RootNameSpace.DefineClass(new GtType(this, 0, "Array", null));
+		this.FuncType    = this.RootNameSpace.DefineClass(new GtType(this, 0, "Func", null));
+		this.ArrayType.Types = new GtType[1];
+		this.ArrayType.Types[0] = this.AnyType;
+		this.FuncType.Types = new GtType[1];
+		this.FuncType.Types[0] = this.VoidType;
 		Grammar.LoadTo(this.RootNameSpace);
 		this.DefaultNameSpace = new GtNameSpace(this, this.RootNameSpace);
 		this.Generator.LoadContext(this);
@@ -2469,6 +2523,36 @@ class GtContext extends GtStatic {
 	public Object Eval(String text, long FileLine) {
 		return this.DefaultNameSpace.Eval(text, FileLine, this.Generator);
 	}
+	
+	public GtType GetGenericType(GtType BaseType, int BaseIdx, ArrayList<GtType> TypeList, boolean IsCreation) {
+		assert(BaseType.IsGenericType());
+		String MangleName = GtStatic.Mangle(BaseType, BaseIdx, TypeList);
+		GtType GenericType = (/*cast*/GtType)this.ClassNameMap.get(MangleName);
+		if(GenericType == null && IsCreation) {
+			/*local*/int i = BaseIdx;
+			/*local*/String s = BaseType.ShortClassName + "<";
+			while(i < ListSize(TypeList)) {
+				s = s + TypeList.get(i).ShortClassName;
+				i += 1;
+				if(i == ListSize(TypeList)) {
+					s = s + ">";
+				}
+				else {
+					s = s + ",";
+				}
+			}
+			GenericType = BaseType.CreateGenericType(BaseIdx, TypeList, s);
+			this.ClassNameMap.put(MangleName, GenericType);
+		}
+		return GenericType;
+	}
+
+	public GtType GetGenericType1(GtType BaseType, GtType ParamType, boolean IsCreation) {
+		ArrayList<GtType> TypeList = new ArrayList<GtType>();
+		TypeList.add(ParamType);
+		return this.GetGenericType(BaseType, 0, TypeList, IsCreation);
+	}
+		
 }
 
 public class GreenTeaScript extends GtStatic {
