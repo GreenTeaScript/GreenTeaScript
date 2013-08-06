@@ -942,12 +942,13 @@ class SyntaxTree extends GtStatic {
 		/*local*/int i = 0;
 		while(i < ListSize(this.TreeList)) {
 			/*local*/SyntaxTree SubTree = this.TreeList.get(i);
-			if(SubTree != null){
+			while(SubTree != null){
 				/*local*/String Entry = SubTree.toString();
 				if(ListSize(SubTree.TreeList) == 0) {
 					Entry = SubTree.KeyToken.ParsedText;
 				}
 				s = s + " " + Entry;
+				SubTree = SubTree.NextTree;
 			}
 			i += 1;
 		}
