@@ -1,0 +1,6 @@
+int f(int a) {
+    a = a + 20;
+    return a;
+}
+
+f(10);

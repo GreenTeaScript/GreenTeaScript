@@ -1,0 +1,8 @@
+boolean g(int a) {
+    boolean a = false;
+    a = true;
+    return a;
+}
+
+
+g(100);
