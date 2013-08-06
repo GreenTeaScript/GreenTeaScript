@@ -308,7 +308,7 @@ public class JavaSourceGenerator extends SourceGenerator {
 		}
 
 		Program += Eval(Body);
-		DebugP(Program);
+		this.WriteTranslatedCode(Program);
 	}
 
 	@Override public Object Eval(TypedNode Node) {

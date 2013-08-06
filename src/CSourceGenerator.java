@@ -338,7 +338,7 @@ public class CSourceGenerator extends SourceGenerator {
 		Code += ")";
 		this.VisitBlockEachStatementWithIndent(Body);
 		Code += this.PopSourceCode();
-		this.WriteTranslatedCode("\n\n\n" + Code);
+		this.WriteTranslatedCode(Code);
 	}
 
 	@Override public Object Eval(TypedNode Node) {

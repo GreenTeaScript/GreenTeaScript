@@ -2600,12 +2600,23 @@ public class GreenTeaScript extends GtStatic {
 			LangDeps.Usage();
 		}
 		/*local*/GtContext Context = new GtContext(new KonohaGrammar(), Generator);
+		/*local*/boolean ShellMode = true;
 		if(OneLiner != null) {
 			Context.Eval(OneLiner, 1);
+			ShellMode = false;
 		}
 		while(Index < Args.length) {
 			Context.Eval(LangDeps.LoadFile(Args[Index]), 1);
+			ShellMode = false;
 			Index += 1;
+		}
+		if(ShellMode) {
+			/*local*/int linenum = 1;
+			/*local*/String Line = null;
+			while((Line = LangDeps.ReadLine(">>> ")) != null) {
+				Context.Eval(Line, linenum);
+				linenum += 1;
+			}
 		}
 	}
 

@@ -25,6 +25,7 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 		this.VisitBlockJS(Body);
 		Code += this.PopSourceCode() + ")";
 		this.PushSourceCode(Code);
+		this.WriteTranslatedCode(Code);
 	}
 
 	public  void VisitBlockJS(TypedNode Node) {

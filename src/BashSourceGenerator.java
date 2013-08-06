@@ -362,7 +362,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		Function += Eval(ResolveParamName(ParamNameList, Body));
 		Function += "\n}";
 		PushSourceCode(Function);
-		DebugP(Function);
+		this.WriteTranslatedCode(Function);
 	}
 
 	@Override public Object Eval(TypedNode Node) {

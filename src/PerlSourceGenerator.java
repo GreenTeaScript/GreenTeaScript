@@ -325,7 +325,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		Program += this.PopSourceCode();
 		this.UnIndent();
 		Program += "\n" + this.GetIndentString() + "}";
-		DebugP(Program);
+		this.WriteTranslatedCode(Program);
 	}
 
 	@Override public Object Eval(TypedNode SingleNode) {
