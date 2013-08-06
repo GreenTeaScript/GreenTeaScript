@@ -1,4 +1,6 @@
+//ifdef JAVA
 import java.util.ArrayList;
+//endif VAJA
 
 public class JavaScriptSourceGenerator extends SourceGenerator {
 
@@ -19,11 +21,11 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 			Code = Code + NameList.get(i) + i;
 			i = i + 1;
 		}
-		Code += ") ";
+		Code = Code + ") ";
 		this.VisitBlockJS(Body);
 		Code += this.PopSourceCode() + ")";
 		this.PushSourceCode(Code);
-	};
+	}
 
 	public  void VisitBlockJS(TypedNode Node) {
 		this.Indent();

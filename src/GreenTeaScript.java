@@ -375,8 +375,8 @@ class GtStatic implements GtConst {
 	}
 
 	public final static String NumberToAscii(int number) {
-		int num = number /26;
-		String s = Character.toString((char)(65 + (number % 26)));
+		/*local*/int num = number /26;
+		/*local*/String s = LangDeps.CharToString((char)(65 + (number % 26)));
 		if(num == 0) {
 			return s;
 		}
@@ -392,7 +392,7 @@ class GtStatic implements GtConst {
 			s = s + "." + NumberToAscii(TypeList.get(i).ClassId);
 			i = i + 1;
 		}
-		String MangleName = (/*cast*/String)MangleNameMap.get(s);
+		/*local*/String MangleName = (/*cast*/String)MangleNameMap.get(s);
 		if(MangleName == null) {
 			MangleName = NumberToAscii(MangleNameMap.size());
 			MangleNameMap.put(s, MangleName);
@@ -2490,8 +2490,8 @@ class GtContext extends GtStatic {
 
 	public GtType GetGenericType(GtType BaseType, int BaseIdx, ArrayList<GtType> TypeList, boolean IsCreation) {
 		LangDeps.Assert(BaseType.IsGenericType());
-		String MangleName = GtStatic.Mangle(BaseType, BaseIdx, TypeList);
-		GtType GenericType = (/*cast*/GtType)this.ClassNameMap.get(MangleName);
+		/*local*/String MangleName = GtStatic.Mangle(BaseType, BaseIdx, TypeList);
+		/*local*/GtType GenericType = (/*cast*/GtType)this.ClassNameMap.get(MangleName);
 		if(GenericType == null && IsCreation) {
 			/*local*/int i = BaseIdx;
 			/*local*/String s = BaseType.ShortClassName + "<";
