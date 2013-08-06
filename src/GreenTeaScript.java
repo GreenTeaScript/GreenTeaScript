@@ -274,7 +274,10 @@ class GtStatic implements GtConst {
 	}
 
 	public final static int ListSize(ArrayList<?> a) {
-		return (a == null) ? 0 : a.size();
+		if(a == null){
+			return 0;
+		}
+		return a.size();
 	}
 
 	public final static boolean IsFlag(int flag, int flag2) {
@@ -534,7 +537,10 @@ class GtDelegateCommon {
 		this.Method = method;
 	}
 	@Override public final String toString() {
-		return (this.Method == null) ? "*undefined*" : this.Method.getName();
+		if(this.Method == null){
+			return "*undefined*";
+		}
+		return this.Method.getName();
 	}
 }
 
@@ -707,7 +713,10 @@ final class TokenContext extends GtStatic {
 	}
 
 	public SyntaxTree ReportExpectedPattern(SyntaxPattern Pattern) {
-		return this.ReportExpectedToken(Pattern != null ? Pattern.PatternName : "null");
+		if(Pattern == null){
+			return this.ReportExpectedToken("null");
+		}
+		return this.ReportExpectedToken(Pattern.PatternName);
 	}
 
 	public void Vacume() {
@@ -1188,7 +1197,10 @@ class GtMethod extends GtStatic {
 	}
 
 	public final GtType GetRecvType() {
-		return (this.Types.length == 1) ? this.Types[0].Context.VoidType : this.Types[1];
+		if(this.Types.length == 1){
+			return this.Types[0].Context.VoidType;
+		}
+		return this.Types[1];
 	}
 
 	public final int GetParamSize() {
@@ -1378,7 +1390,10 @@ final class TypeEnv extends GtStatic {
 		/*local*/int StackTopIndex = this.StackTopIndex;
 		/*local*/TypedNode LastNode = null;
 		while(ParsedTree != null) {
-			/*local*/GtType CurrentType = (ParsedTree.NextTree != null) ? this.VoidType : Type;
+			/*local*/GtType CurrentType = Type;
+			if(ParsedTree.NextTree != null){
+				CurrentType = this.VoidType;
+			}
 			/*local*/TypedNode TypedNode = this.TypeCheckEachNode(ParsedTree, CurrentType, DefaultTypeCheckPolicy);
 			/*local*/LastNode = GtStatic.LinkNode(LastNode, TypedNode);
 			if(TypedNode.IsError()) {
@@ -1387,7 +1402,10 @@ final class TypeEnv extends GtStatic {
 			ParsedTree = ParsedTree.NextTree;
 		}
 		this.StackTopIndex = StackTopIndex;
-		return (LastNode == null) ? null : LastNode.MoveHeadNode();
+		if(LastNode == null){
+			return null;
+		}
+		return LastNode.MoveHeadNode();
 	}
 }
 
@@ -1533,7 +1551,10 @@ final class GtNameSpace extends GtStatic {
 
 	public SyntaxPattern GetPattern(String PatternName) {
 		/*local*/Object Body = this.GetSymbol(PatternName);
-		return (Body instanceof SyntaxPattern) ? (/*cast*/SyntaxPattern)Body : null;
+		if(Body instanceof SyntaxPattern){
+			return (/*cast*/SyntaxPattern)Body;
+		}
+		return null;
 	}
 
 	public SyntaxPattern GetExtendedPattern(String PatternName) {
@@ -1543,7 +1564,10 @@ final class GtNameSpace extends GtStatic {
 			this.RemakeSymbolTable(this);
 		}
 		/*local*/Object Body = this.ExtendedPatternTable.get(PatternName);
-		return (Body instanceof SyntaxPattern) ? (/*cast*/SyntaxPattern)Body : null;
+		if(Body instanceof SyntaxPattern){
+			return (/*cast*/SyntaxPattern)Body;
+		}
+		return null;
 	}
 
 	public void DefineSymbol(String Key, Object Value) {
@@ -1962,7 +1986,12 @@ final class KonohaGrammar extends GtGrammar {
 			Gamma.CreateErrorNode(TypeTree, "already defined variable " + VariableName);
 		}
 		/*local*/TypedNode VariableNode = Gamma.TypeCheck(NameTree, DeclType, DefaultTypeCheckPolicy);
-		/*local*/TypedNode InitValueNode = (ValueTree == null) ? Gamma.DefaultValueConstNode(ParsedTree, DeclType) : Gamma.TypeCheck(ValueTree, DeclType, DefaultTypeCheckPolicy);
+		/*local*/TypedNode InitValueNode = null;
+		if(ValueTree == null){
+			InitValueNode = Gamma.DefaultValueConstNode(ParsedTree, DeclType);
+		}else{
+			InitValueNode = Gamma.TypeCheck(ValueTree, DeclType, DefaultTypeCheckPolicy);
+		}
 		/*local*/TypedNode AssignNode = Gamma.Generator.CreateAssignNode(DeclType, ParsedTree, VariableNode, InitValueNode);
 		/*local*/TypedNode BlockNode = Gamma.TypeBlock(ParsedTree.NextTree, Type);
 		ParsedTree.NextTree = null;
@@ -2244,7 +2273,10 @@ final class KonohaGrammar extends GtGrammar {
 		}
 		/*local*/GtType ReturnType = Gamma.Method.GetReturnType();
 		/*local*/TypedNode Expr = ParsedTree.TypeNodeAt(ReturnExpr, Gamma, ReturnType, DefaultTypeCheckPolicy);
-		return Gamma.Generator.CreateReturnNode(Expr.Type, ParsedTree, ReturnType == Gamma.VoidType ? null : Expr);
+		if(ReturnType == Gamma.VoidType){
+			return Gamma.Generator.CreateReturnNode(Expr.Type, ParsedTree, null);
+		}
+		return Gamma.Generator.CreateReturnNode(Expr.Type, ParsedTree, Expr);
 	}
 
 	// New Expression
