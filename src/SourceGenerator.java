@@ -792,7 +792,7 @@ class CodeGenerator extends GtStatic {
 		this.Context = null;
 		this.GeneratedCodeStack = new ArrayList<Object>();
 	}
-	
+
 	public void SetLanguageContext(GtContext Context) {
 		this.Context = Context;
 	}
@@ -934,7 +934,7 @@ class CodeGenerator extends GtStatic {
 	public TypedNode CreateCommandNode(GtType Type, SyntaxTree ParsedTree, TypedNode PipedNextNode) {
 		return new CommandNode(Type, ParsedTree.KeyToken, PipedNextNode);
 	}
-	
+
 
 	public int ParseMethodFlag(int MethodFlag, SyntaxTree MethodDeclTree) {
 		if(MethodDeclTree.HasAnnotation("Export")) {
@@ -945,13 +945,13 @@ class CodeGenerator extends GtStatic {
 		}
 		return MethodFlag;
 	}
-	
+
 	public GtMethod CreateMethod(int MethodFlag, String MethodName, int BaseIndex, ArrayList<GtType> TypeList) {
 		return new GtMethod(MethodFlag, MethodName, BaseIndex, TypeList);
 	}
 
 	//------------------------------------------------------------------------
-	
+
 	public void VisitEmptyNode(TypedNode EmptyNode) {
 		GtStatic.DebugP("empty node: " + EmptyNode.Token.ParsedText);
 	}
@@ -1101,7 +1101,7 @@ class CodeGenerator extends GtStatic {
 	public void AddClass(GtType Type) {
 		/*extension*/
 	}
-	
+
 
 	protected void PushCode(Object Code){
 		this.GeneratedCodeStack.add(Code);
@@ -1127,7 +1127,7 @@ class SourceGenerator extends CodeGenerator {
 	}
 
 	/* GeneratorUtils */
-	
+
 	public final void Indent() {
 		this.IndentLevel += 1;
 		this.CurrentLevelIndentString = null;
@@ -1208,7 +1208,7 @@ class SourceGenerator extends CodeGenerator {
 		}
 		return Code;
 	}
-	
+
 }
 
 

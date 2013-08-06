@@ -36,8 +36,7 @@ public class CSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(this.PopSourceCode() + MethodName);
 	}
 
-	@Override
-	public void VisitUnaryNode(UnaryNode Node) {
+	@Override public void VisitUnaryNode(UnaryNode Node) {
 		String MethodName = Node.Token.ParsedText;
 		//if(MethodName.equals("+")) {
 		//}
@@ -324,9 +323,8 @@ public class CSourceGenerator extends SourceGenerator {
 	public String LocalTypeName(GtType Type) {
 		return Type.ShortClassName;
 	}
-	
-	@Override
-	public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, TypedNode Body) {
+
+	@Override public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, TypedNode Body) {
 		/*local*/String Code = "";
 		/*local*/String RetTy = this.LocalTypeName(Method.GetReturnType());
 		Code += RetTy + " " + Method.LocalFuncName + "(";

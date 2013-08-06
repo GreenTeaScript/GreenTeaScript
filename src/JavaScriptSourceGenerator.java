@@ -241,8 +241,7 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 	}
 
 	// This must be extended in each language
-	@Override
-	public Object Eval(TypedNode Node) {
+	@Override public Object Eval(TypedNode Node) {
 		this.VisitBlock(Node);
 		/*local*/String ret = "";
 		while(this.GeneratedCodeStack.size() > 0){

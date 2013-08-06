@@ -40,7 +40,7 @@ interface GtConst {
 //
 //	// compatible
 //	public final static int		UniversalMethod					= 1 << 13;
-//	
+//
 //	public final static int		UniqueMethod					= 1 << 14; /* used */
 //	public final static int		ExportMethod					= 1 << 15; /* used */
 //
@@ -810,7 +810,7 @@ final class TokenContext extends GtStatic {
 		}
 		return NullToken;
 	}
-	
+
 	public boolean HasNext() {
 		return (this.GetToken() != NullToken);
 	}
@@ -909,7 +909,7 @@ final class TokenContext extends GtStatic {
 
 
 	public final GtMap SkipAndGetAnnotation(boolean IsAllowedDelim) {
-		// this is tentative implementation. In the future, you have to 
+		// this is tentative implementation. In the future, you have to
 		// use this pattern.
 		GtMap Annotation = null;
 		this.SkipIndent();
@@ -2073,7 +2073,8 @@ final class KonohaGrammar extends GtGrammar {
 		if(TokenContext.MatchToken(")")) { // case: f()
 			GtToken Token = TokenContext.GetBeforeToken();
 			FuncTree.AppendParsedTree(new SyntaxTree(Pattern, TokenContext.NameSpace, Token, null));
-		} else { // case: f(1, 2, 3);
+		}
+		else { // case: f(1, 2, 3);
 			while(!FuncTree.IsEmptyOrError()) {
 				/*local*/SyntaxTree Tree = TokenContext.ParsePattern("$Expression$", Required);
 				FuncTree.AppendParsedTree(Tree);
@@ -2322,7 +2323,7 @@ final class KonohaGrammar extends GtGrammar {
 		}
 		return null;
 	}
-	
+
 	public static TypedNode TypeFuncDecl(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
 		Gamma = new TypeEnv(ParsedTree.NameSpace);  // creation of new type environment
 		/*local*/String MethodName = (/*cast*/String)ParsedTree.GetSyntaxTreeAt(FuncDeclName).ConstValue;
