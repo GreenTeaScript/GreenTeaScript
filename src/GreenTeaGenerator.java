@@ -1,4 +1,7 @@
+//ifdef JAVA
 import java.util.ArrayList;
+//endif VAJA
+
 // GreenTea Generator should be written in each language.
 
 class TypedNode extends GtStatic {
@@ -269,12 +272,14 @@ class ApplyNode extends TypedNode {
 	}
 	@Override public String toString() {
 		/*local*/String Param = "";
-		for(/*local*/int i = 0; i < Params.size(); i++) {
-			TypedNode Node = Params.get(i);
+		/*local*/int i = 0;
+		while(i < Params.size()) {
+			/*local*/TypedNode Node = Params.get(i);
 			if(i != 0) {
 				Param += ", ";
 			}
 			Param += TypedNode.Stringify(Node);
+			i = i + 1;
 		}
 		return "(Apply:" + this.Type + " " + Param + ")";
 	}
@@ -297,12 +302,14 @@ class MessageNode extends TypedNode {
 	}
 	@Override public String toString() {
 		/*local*/String Param = "";
-		for(/*local*/int i = 0; i < Params.size(); i++) {
-			TypedNode Node = Params.get(i);
+		/*local*/int i = 0;
+		while(i < Params.size()) {
+			/*local*/TypedNode Node = Params.get(i);
 			if(i != 0) {
 				Param += ", ";
 			}
 			Param += TypedNode.Stringify(Node);
+			i = i + 1;
 		}
 		return "(Message:" + this.Type + " " + Param + ")";
 	}
@@ -322,12 +329,14 @@ class NewNode extends TypedNode {
 	}
 	@Override public String toString() {
 		/*local*/String Param = "";
-		for(/*local*/int i = 0; i < Params.size(); i++) {
-			TypedNode Node = Params.get(i);
+		/*local*/int i = 0;
+		while(i < Params.size()) {
+			/*local*/TypedNode Node = Params.get(i);
 			if(i != 0) {
 				Param += ", ";
 			}
 			Param += TypedNode.Stringify(Node);
+			i = i + 1;
 		}
 		return "(New:" + this.Type + " " + Param + ")";
 	}
@@ -622,12 +631,14 @@ class CommandNode extends TypedNode {
 	}
 	@Override public String toString() {
 		/*local*/String Param = "";
-		for(/*local*/int i = 0; i < Params.size(); i++) {
-			TypedNode Node = Params.get(i);
+		/*local*/int i = 0;
+		while(i < Params.size()) {
+			/*local*/TypedNode Node = Params.get(i);
 			if(i != 0) {
 				Param += ", ";
 			}
 			Param += TypedNode.Stringify(Node);
+			i = i + 1;
 		}
 		return "(Command:" + this.Type + " " + Param + ")";
 	}
@@ -679,7 +690,7 @@ public class GreenTeaGenerator extends GtStatic {
 	}
 
 	public final TypedNode UnsupportedNode(GtType Type, SyntaxTree ParsedTree) {
-		GtToken Token = ParsedTree.KeyToken;
+		/*local*/GtToken Token = ParsedTree.KeyToken;
 		ParsedTree.NameSpace.ReportError(ErrorLevel, Token, this.LangName + " has no language support for " + Token.ParsedText);
 		return new ErrorNode(ParsedTree.NameSpace.Context.VoidType, ParsedTree.KeyToken);
 	}
@@ -962,7 +973,6 @@ public class GreenTeaGenerator extends GtStatic {
 
 	// This must be extended in each language
 	public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, TypedNode Body) {
-		
 		/*extenstion*/
 	}
 
