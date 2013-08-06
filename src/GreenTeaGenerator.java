@@ -30,7 +30,7 @@ class TypedNode extends GtStatic {
 		while(Node.NextNode != null) {
 			Node = Node.NextNode;
 		}
-		return this;
+		return Node;
 	}
 
 	public void Append(TypedNode Node) {
