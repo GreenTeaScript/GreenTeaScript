@@ -1859,23 +1859,27 @@ final class KonohaGrammar extends GtGrammar {
 
 	public static int OperatorToken(TokenContext TokenContext, String SourceText, int pos) {
 		/*local*/int NextPos = pos + 1;
-		/*local*/SyntaxPattern FirstMatchedPattern = null;
 		while(NextPos < SourceText.length()) {
-			/*local*/char ch = LangDeps.CharAt(SourceText, NextPos-1);
+			/*local*/char ch = LangDeps.CharAt(SourceText, NextPos);
 			if(LangDeps.IsWhitespace(ch) || LangDeps.IsLetter(ch) || LangDeps.IsDigit(ch)) {
-				NextPos -= 1;
-				break;
-			}
-			/*local*/String Sub = SourceText.substring(pos, NextPos);
-			/*local*/SyntaxPattern Pattern = TokenContext.NameSpace.GetExtendedPattern(Sub);
-			if(FirstMatchedPattern == null) {
-				FirstMatchedPattern = Pattern;
-			}
-			if(FirstMatchedPattern != null && TokenContext.NameSpace.GetExtendedPattern(Sub) == null) {
-				NextPos -= 1;
 				break;
 			}
 			NextPos += 1;
+		}
+
+		/*local*/boolean Matched = false;
+		while(NextPos > pos) {
+			/*local*/String Sub = SourceText.substring(pos, NextPos);
+			/*local*/SyntaxPattern Pattern = TokenContext.NameSpace.GetExtendedPattern(Sub);
+			if(Pattern != null) {
+				Matched = true;
+				break;
+			}
+			NextPos -= 1;
+		}
+		// FIXME
+		if(Matched == false) {
+			NextPos = pos + 1;
 		}
 		TokenContext.AddNewToken(SourceText.substring(pos, NextPos), 0, null);
 		return NextPos;

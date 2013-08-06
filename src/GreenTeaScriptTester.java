@@ -65,6 +65,9 @@ class GreenTeaTokenizerTestCase extends GreenTeaScriptTestCase {
 
 		String[] TokenTestList4 = {"1", "=", "2"};
 		TestToken(Context, "1 = 2", TokenTestList4);
+
+		String[] TokenTestList5 = {"int", "+", "(", "int", "x", ")", ";"};
+		TestToken(Context, "int + (int x);", TokenTestList5);
 	}
 }
 
