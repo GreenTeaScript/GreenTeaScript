@@ -2,6 +2,9 @@
 import java.util.ArrayList;
 //endif VAJA
 
+/* language */
+
+
 // GreenTea Generator should be written in each language.
 
 class TypedNode extends GtStatic {
@@ -661,6 +664,144 @@ class CommandNode extends TypedNode {
 	}
 }
 
+class GtObject extends GtStatic {
+	/*field*/public GtType	Type;
+	GtObject/*constructor*/(GtType Type) {
+		this.Type = Type;
+	}
+}
+
+class GtType extends GtStatic {
+	/*field*/public GtNameSpace     PackageNameSpace;
+	/*field*/int					ClassFlag;
+	/*field*/public GtContext		Context;
+	/*field*/int                    ClassId;
+	/*field*/public String			ShortClassName;
+	/*field*/GtType					SuperClass;
+	/*field*/public GtType			SearchSuperMethodClass;
+	/*field*/public Object			DefaultNullValue;
+	/*field*/GtType					BaseClass;
+	/*field*/GtType[]				Types;
+	/*field*/public Object          LocalSpec;
+
+	GtType/*constructor*/(GtContext Context, int ClassFlag, String ClassName, Object DefaultNullValue) {
+		this.Context = Context;
+		this.ClassFlag = ClassFlag;
+		this.ShortClassName = ClassName;
+		this.SuperClass = null;
+		this.BaseClass = this;
+		this.SearchSuperMethodClass = null;
+		this.DefaultNullValue = DefaultNullValue;
+		this.LocalSpec = null;
+		this.ClassId = Context.ClassCount;
+		Context.ClassCount += 1;
+		this.Types = null;
+		DebugP("new class: " + this.ShortClassName + ", ClassId=" + this.ClassId);
+	}
+
+	public final boolean IsGenericType() {
+		return (this.Types != null);
+	}
+
+	// Note Don't call this directly. Use Context.GetGenericType instead.
+	public GtType CreateGenericType(int BaseIndex, ArrayList<GtType> TypeList, String ShortName) {
+		GtType GenericType = new GtType(this.Context, this.ClassFlag, ShortName, null);
+		GenericType.BaseClass = this.BaseClass;
+		GenericType.SearchSuperMethodClass = this.BaseClass;
+		GenericType.SuperClass = this.SuperClass;
+		this.Types = LangDeps.CompactTypeList(BaseIndex, TypeList);
+		return GenericType;
+	}
+
+	public void SetParamType(GtType ParamType) {
+		this.Types = new GtType[1];
+		this.Types[0] = ParamType;
+	}
+
+	@Override public String toString() {
+		return this.ShortClassName;
+	}
+
+	public final String GetMethodId(String MethodName) {
+		return "" + this.ClassId + "@" + MethodName;
+	}
+
+	public final boolean Accept(GtType Type) {
+		if(this == Type || this == this.Context.AnyType) {
+			return true;
+		}
+		return false;
+	}
+}
+
+class GtMethod extends GtStatic {
+	/*field*/public GtLayer         Layer;
+	/*field*/public int				MethodFlag;
+	/*field*/int					MethodSymbolId;
+	/*field*/public String			MethodName;
+	/*field*/public String          LocalFuncName;
+	/*field*/public GtType[]		Types;
+	/*field*/public GtMethod        ElderMethod;
+
+	GtMethod/*constructor*/(int MethodFlag, String MethodName, int BaseIndex, ArrayList<GtType> ParamList) {
+		super();
+		this.MethodFlag = MethodFlag;
+		this.MethodName = MethodName;
+		this.MethodSymbolId = GtStatic.GetCanonicalSymbolId(MethodName);
+		this.Types = LangDeps.CompactTypeList(BaseIndex, ParamList);
+		LangDeps.Assert(this.Types.length > 0);
+		this.Layer = null;
+		this.ElderMethod = null;
+		
+		String Name = this.MethodName;
+		if(!LangDeps.IsLetter(LangDeps.CharAt(Name, 0))) {
+			Name = "operator" + this.MethodSymbolId;
+		}
+		if(!this.Is(ExportMethod)) {
+			Name = Name + "__" + GtStatic.Mangle(this.GetRecvType(), BaseIndex + 1, ParamList);
+		}
+		this.LocalFuncName = Name;
+	}
+
+	@Override public String toString() {
+		/*local*/String s = this.MethodName + "(";
+		/*local*/int i = 0;
+		while(i < this.GetParamSize()) {
+			/*local*/GtType ParamType = this.GetParamType(i);
+			if(i > 0) {
+				s += ", ";
+			}
+			s += ParamType.ShortClassName;
+			i += 1;
+		}
+		return s + ": " + this.GetReturnType();
+	}
+
+	public boolean Is(int Flag) {
+		return IsFlag(this.MethodFlag, Flag);
+	}
+
+	public final GtType GetReturnType() {
+		return this.Types[0];
+	}
+
+	public final GtType GetRecvType() {
+		if(this.Types.length == 1){
+			return this.Types[0].Context.VoidType;
+		}
+		return this.Types[1];
+	}
+
+	public final int GetParamSize() {
+		return this.Types.length - 1;
+	}
+
+	public final GtType GetParamType(int ParamIdx) {
+		return this.Types[ParamIdx+1];
+	}
+}
+
+
 class CodeGenerator extends GtStatic {
 	/*field*/public String     LangName;
 	/*field*/public GtContext  Context;
@@ -818,6 +959,7 @@ class CodeGenerator extends GtStatic {
 		return new CommandNode(Type, ParsedTree.KeyToken, PipedNextNode);
 	}
 	
+
 	public int ParseMethodFlag(int MethodFlag, SyntaxTree MethodDeclTree) {
 		if(MethodDeclTree.HasAnnotation("Export")) {
 			MethodFlag = MethodFlag | ExportMethod;
@@ -833,6 +975,9 @@ class CodeGenerator extends GtStatic {
 	}
 
 
+	
+	
+	
 	public void VisitEmptyNode(TypedNode EmptyNode) {
 		GtStatic.DebugP("empty node: " + EmptyNode.Token.ParsedText);
 	}
@@ -999,7 +1144,6 @@ class CodeGenerator extends GtStatic {
 		}
 		return "";
 	}
-
 }
 
 class SourceGenerator extends CodeGenerator {
