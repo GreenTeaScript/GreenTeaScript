@@ -246,7 +246,7 @@ interface GtConst {
 
 	// debug flags
 	public static final boolean	UseBuiltInTest	= true;
-	public static final boolean	DebugPrintOption = true;
+	public static final boolean DebugPrintOption = false;
 
 	// TestFlags (temporary)
 	static final int TestTokenizer = 1 << 0;
@@ -2550,11 +2550,10 @@ public class GreenTeaScript extends GtStatic {
 		TestToken(Context, "1 = 2", "1", "=");
 	}
 
-	public final static void main(String[] Args) {
+	public final static void main3(String[] Args) {
 //		Args = new String[2];
 //		Args[0] = "--perl";
 //		Args[1] = "sample/fibo.green";
-
 		/*local*/int FileIndex = 0;
 		/*local*/String CodeGeneratorName = "--Java";
 		if(Args.length > 0 && Args[0].startsWith("--")) {
@@ -2568,6 +2567,45 @@ public class GreenTeaScript extends GtStatic {
 		}
 		else {
 			GreenTeaScript.TestAll(Context);
+		}
+	}
+	
+	public final static void main(String[] Args) {
+		/*local*/String CodeGeneratorName = "--java";
+		/*local*/int Index = 0;
+		/*local*/String OneLiner = null;
+		while(Index < Args.length) {
+			/*local*/String Argu = Args[Index];
+			if(!Argu.startsWith("-")) {
+				break;
+			}
+			Index += 1;
+			if(Argu.startsWith("--")) {
+				CodeGeneratorName = Argu;
+				continue;
+			}
+			if(Argu.equals("-e") && Index < Args.length) {
+				OneLiner = Args[Index];
+				Index += 1;
+				continue;
+			}
+//			if(Argu.equals("-d") && Index < Args.length) {
+//				GtConst.DebugPrintOption = true;
+//				continue;
+//			}
+			LangDeps.Usage();
+		}
+		/*local*/CodeGenerator Generator = LangDeps.CodeGenerator(CodeGeneratorName);
+		if(Generator == null) {
+			LangDeps.Usage();
+		}
+		/*local*/GtContext Context = new GtContext(new KonohaGrammar(), Generator);
+		if(OneLiner != null) {
+			Context.Eval(OneLiner, 1);
+		}
+		while(Index < Args.length) {
+			Context.Eval(LangDeps.LoadFile(Args[Index]), 1);
+			Index += 1;
 		}
 	}
 

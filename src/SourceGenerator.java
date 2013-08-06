@@ -1208,6 +1208,10 @@ class SourceGenerator extends CodeGenerator {
 		}
 		return Code;
 	}
+	
+	public final void WriteTranslatedCode(String Text) {
+		LangDeps.println(Text);
+	}
 
 }
 

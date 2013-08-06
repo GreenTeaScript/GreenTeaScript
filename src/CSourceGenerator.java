@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public class CSourceGenerator extends SourceGenerator {
 
 	CSourceGenerator() {
-		super("CSource");
+		super("C");
 	}
 
 	public void VisitBlockEachStatementWithIndent(TypedNode Node) {
@@ -338,7 +338,7 @@ public class CSourceGenerator extends SourceGenerator {
 		Code += ")";
 		this.VisitBlockEachStatementWithIndent(Body);
 		Code += this.PopSourceCode();
-		DebugP("\n\n\n" + Code);
+		this.WriteTranslatedCode("\n\n\n" + Code);
 	}
 
 	@Override public Object Eval(TypedNode Node) {
