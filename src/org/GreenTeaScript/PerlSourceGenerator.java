@@ -1,10 +1,11 @@
+package org.GreenTeaScript;
 import java.util.ArrayList;
 
 //GreenTea Generator should be written in each language.
 
-public class JavaSourceGenerator extends GreenTeaGenerator {
-	JavaSourceGenerator() {
-		super("Java");
+public class PerlSourceGenerator extends GreenTeaGenerator {
+	PerlSourceGenerator() {
+		super("Perl");
 	}
 
 	public void VisitEach(TypedNode Node) {
@@ -28,8 +29,9 @@ public class JavaSourceGenerator extends GreenTeaGenerator {
 	@Override
 	public void VisitSuffixNode(SuffixNode Node) {
 		GtMethod Method = Node.Method;
-		if(Method.MethodName.equals("++")) {
-		} else if(Method.MethodName.equals("--")) {
+		String MethodName = Node.Token.ParsedText;
+		if(MethodName.equals("++")) {
+		} else if(MethodName.equals("--")) {
 		} else {
 			throw new RuntimeException("NotSupportOperator");
 		}
@@ -39,18 +41,18 @@ public class JavaSourceGenerator extends GreenTeaGenerator {
 
 	@Override
 	public void VisitUnaryNode(UnaryNode Node) {
-		GtMethod Method = Node.Method;
-		if(Method.MethodName.equals("+")) {
-		} else if(Method.MethodName.equals("-")) {
-		} else if(Method.MethodName.equals("~")) {
-		} else if(Method.MethodName.equals("!")) {
-		} else if(Method.MethodName.equals("++")) {
-		} else if(Method.MethodName.equals("--")) {
+		String MethodName = Node.Token.ParsedText;
+		if(MethodName.equals("+")) {
+		} else if(MethodName.equals("-")) {
+		} else if(MethodName.equals("~")) {
+		} else if(MethodName.equals("!")) {
+		} else if(MethodName.equals("++")) {
+		} else if(MethodName.equals("--")) {
 		} else {
 			throw new RuntimeException("NotSupportOperator");
 		}
 		Node.Expr.Evaluate(this);
-		this.PushSourceCode(Method.MethodName + this.PopSourceCode());
+		this.PushSourceCode(MethodName + this.PopSourceCode());
 	}
 
 	@Override
@@ -58,6 +60,7 @@ public class JavaSourceGenerator extends GreenTeaGenerator {
 		Node.Indexer.Evaluate(this);
 		Node.Expr.Evaluate(this);
 		this.PushSourceCode(this.PopSourceCode() + "[" + this.PopSourceCode() + "]");
+
 	}
 
 	@Override
@@ -115,6 +118,7 @@ public class JavaSourceGenerator extends GreenTeaGenerator {
 	public void VisitNewNode(NewNode Node) {
 		String Type = Node.Type.ShortClassName;
 		this.PushSourceCode("new " + Type);
+
 	}
 
 	@Override
@@ -124,13 +128,13 @@ public class JavaSourceGenerator extends GreenTeaGenerator {
 
 	@Override
 	public void VisitLocalNode(LocalNode Node) {
-		this.PushSourceCode(Node.LocalName);
+		this.PushSourceCode("$" + Node.LocalName);
 	}
 
 	@Override
 	public void VisitGetterNode(GetterNode Node) {
 		Node.Expr.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + "." + Node.Method.MethodName);
+		this.PushSourceCode(this.PopSourceCode() + "->" + Node.Method.MethodName);
 	}
 
 	private String[] EvaluateParam(ArrayList<TypedNode> Params) {
@@ -146,7 +150,7 @@ public class JavaSourceGenerator extends GreenTeaGenerator {
 
 	@Override
 	public void VisitApplyNode(ApplyNode Node) {
-		/*local*/String Program = Node.Method.MethodName + "(";
+		/*local*/String Program = "&" + Node.Method.MethodName + "(";
 		/*local*/String[] Params = EvaluateParam(Node.Params);
 		for(int i = 0; i < Params.length; i++) {
 			String P = Params[i];
@@ -161,29 +165,35 @@ public class JavaSourceGenerator extends GreenTeaGenerator {
 
 	@Override
 	public void VisitBinaryNode(BinaryNode Node) {
-		GtMethod Method = Node.Method;
-		if(Method.MethodName.equals("+")) {
-		} else if(Method.MethodName.equals("-")) {
-		} else if(Method.MethodName.equals("*")) {
-		} else if(Method.MethodName.equals("/")) {
-		} else if(Method.MethodName.equals("%")) {
-		} else if(Method.MethodName.equals("<<")) {
-		} else if(Method.MethodName.equals(">>")) {
-		} else if(Method.MethodName.equals("&")) {
-		} else if(Method.MethodName.equals("|")) {
-		} else if(Method.MethodName.equals("^")) {
-		} else if(Method.MethodName.equals("<=")) {
-		} else if(Method.MethodName.equals("<")) {
-		} else if(Method.MethodName.equals(">=")) {
-		} else if(Method.MethodName.equals(">")) {
-		} else if(Method.MethodName.equals("!=")) {
-		} else if(Method.MethodName.equals("==")) {
+		String MethodName = Node.Token.ParsedText;
+		if(MethodName.equals("+")) {
+		} else if(MethodName.equals("-")) {
+		} else if(MethodName.equals("*")) {
+		} else if(MethodName.equals("/")) {
+		} else if(MethodName.equals("%")) {
+		} else if(MethodName.equals("<<")) {
+		} else if(MethodName.equals(">>")) {
+		} else if(MethodName.equals("&")) {
+		} else if(MethodName.equals("|")) {
+		} else if(MethodName.equals("^")) {
+		} else if(MethodName.equals("<=")) {
+		} else if(MethodName.equals("<")) {
+		} else if(MethodName.equals(">=")) {
+		} else if(MethodName.equals(">")) {
+		} else if(MethodName.equals("!=")) {
+			if(Node.Method.GetRecvType().ShortClassName.equals("String")) {
+				MethodName = "ne";
+			}
+		} else if(MethodName.equals("==")) {
+			if(Node.Method.GetRecvType().ShortClassName.equals("String")) {
+				MethodName = "eq";
+			}
 		} else {
 			throw new RuntimeException("NotSupportOperator");
 		}
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + " " + Method.MethodName + " " + this.PopSourceCode());
+		this.PushSourceCode(this.PopSourceCode() + " " + MethodName + " " + this.PopSourceCode());
 	}
 
 	@Override
@@ -292,6 +302,7 @@ public class JavaSourceGenerator extends GreenTeaGenerator {
 		String Code = "try";
 		//this.VisitEach(Node.CatchBlock);
 		this.VisitEach(Node.TryBlock);
+
 		Code += this.PopSourceCode();
 		if(Node.FinallyBlock != null) {
 			this.VisitEach(Node.FinallyBlock);
@@ -315,43 +326,55 @@ public class JavaSourceGenerator extends GreenTeaGenerator {
 
 	@Override
 	public void VisitErrorNode(ErrorNode Node) {
-		String Code = "throw RuntimeError(\"" + Node.Token.ParsedText + "\")";
+		String Code = "throw Error(\"" + Node.Token.ParsedText + "\")";
 		this.PushSourceCode(Code);
+
 	}
 
 	@Override
 	public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, TypedNode Body) {
-		//FIXME
 		String Program = "";
 		String RetTy = Method.GetReturnType().ShortClassName;
 		String ThisTy = Method.GetRecvType().ShortClassName;
-		Program += RetTy + " " + ThisTy + "_" + Method.MethodName + "(";
-		Program += ThisTy + " " + "this";
+		String FuncName = ThisTy + "_" + Method.MethodName;
+		String Signature = "# ";
+		String Arguments = "";
+		Signature += RetTy + " " + FuncName + "(";
+		Signature += ThisTy + " this";
+		this.Indent();
+
+		Arguments += this.GetIndentString() + "my $this = $_[0]\n";
 		for(int i = 0; i < ParamNameList.size(); i++) {
 			String ParamTy = Method.GetParamType(i).ShortClassName;
-			Program += " ," + ParamTy + " " + ParamNameList.get(i);
+			Signature += " ," + ParamTy + " " + ParamNameList.get(i);
+			Arguments += this.GetIndentString() + "my $" + ParamNameList.get(i) + " = $_[" + (i + 1) + "];\n";
 		}
-
+		this.UnIndent();
+		Program += Signature + ");\n" + this.GetIndentString() + "sub " + FuncName + "{\n";
+		this.Indent();
+		Program += Arguments + GetIndentString();
 		Program += Eval(Body);
+		this.UnIndent();
+		Program += "\n" + this.GetIndentString() + "}";
 		DebugP(Program);
 	}
 
 	@Override
 	public Object Eval(TypedNode Node) {
-		//FIXME
 		this.VisitEach(Node);
 		return this.PopSourceCode();
 	}
 
 	@Override
 	public void AddClass(GtType Type) {
-		//FIXME
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void LoadContext(GtContext Context) {
-		new JavaLayerDef().MakeDefinition(Context.DefaultNameSpace);
+		// TODO Auto-generated method stub
+
 	}
 }
+

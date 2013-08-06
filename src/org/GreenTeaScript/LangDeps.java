@@ -1,3 +1,4 @@
+package org.GreenTeaScript;
 // LangBase is a language-dependent code used in GreenTea.java
 
 import java.io.File;
