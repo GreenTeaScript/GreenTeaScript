@@ -69,6 +69,7 @@ class TypedNode extends GtStatic {
 	}
 }
 
+// E.g., "~" $Expr
 class UnaryNode extends TypedNode {
 	/*field*/public GtMethod    Method;
 	/*field*/public TypedNode	Expr;
@@ -82,6 +83,7 @@ class UnaryNode extends TypedNode {
 	}
 }
 
+// E.g.,  $Expr "++"
 class SuffixNode extends TypedNode {
 	/*field*/public GtMethod    Method;
 	/*field*/public TypedNode	Expr;
@@ -95,6 +97,7 @@ class SuffixNode extends TypedNode {
 	}
 }
 
+// E.g., $LeftNode "+" $RightNode
 class BinaryNode extends TypedNode {
 	/*field*/public GtMethod    Method;
 	/*field*/public TypedNode   LeftNode;
@@ -110,6 +113,7 @@ class BinaryNode extends TypedNode {
 	}
 }
 
+//E.g., $LeftNode && $RightNode
 class AndNode extends TypedNode {
 	/*field*/public TypedNode   LeftNode;
 	/*field*/public TypedNode	RightNode;
@@ -126,6 +130,7 @@ class AndNode extends TypedNode {
 	}
 }
 
+//E.g., $LeftNode || $RightNode
 class OrNode extends TypedNode {
 	/*field*/public TypedNode   LeftNode;
 	/*field*/public TypedNode	RightNode;
@@ -142,6 +147,7 @@ class OrNode extends TypedNode {
 	}
 }
 
+//E.g., $LeftNode || $RightNode
 class GetterNode extends TypedNode {
 	/*field*/public TypedNode Expr;
 	/*field*/public GtMethod  Method;
@@ -158,6 +164,7 @@ class GetterNode extends TypedNode {
 	}
 }
 
+//E.g., $Expr "[" $Indexer "]"
 class IndexerNode extends TypedNode {
 	/*field*/public GtMethod  Method;
 	/*field*/public TypedNode Expr;
@@ -176,6 +183,7 @@ class IndexerNode extends TypedNode {
 	}
 }
 
+//E.g., $LeftNode = $RightNode
 class AssignNode extends TypedNode {
 	/*field*/public TypedNode   LeftNode;
 	/*field*/public TypedNode	RightNode;
@@ -252,9 +260,10 @@ class LetNode extends TypedNode {
 	}
 }
 
+// E.g., $Param[0] "(" $Param[1], $Param[2], ... ")"
 class ApplyNode extends TypedNode {
 	/*field*/public GtMethod	Method;
-	/*field*/public ArrayList<TypedNode>  Params; /* [this, arg1, arg2, ...] */
+	/*field*/public ArrayList<TypedNode>  Params; /* [arg1, arg2, ...] */
 	ApplyNode/*constructor*/(GtType Type, GtToken KeyToken, GtMethod Method) {
 		super(Type, KeyToken);
 		this.Method = Method;
@@ -280,12 +289,15 @@ class ApplyNode extends TypedNode {
 	}
 }
 
+//E.g., $Recv.Method "(" $Param[0], $Param[1], ... ")"
 class MessageNode extends TypedNode {
 	/*field*/public GtMethod	Method;
-	/*field*/public ArrayList<TypedNode>  Params; /* [this, arg1, arg2, ...] */
-	MessageNode/*constructor*/(GtType Type, GtToken KeyToken, GtMethod Method) {
+	/*field*/public TypedNode   RecvNode;    
+	/*field*/public ArrayList<TypedNode>  Params;
+	MessageNode/*constructor*/(GtType Type, GtToken KeyToken, GtMethod Method, TypedNode RecvNode) {
 		super(Type, KeyToken);
 		this.Method = Method;
+		this.RecvNode = RecvNode;
 		this.Params = new ArrayList<TypedNode>();
 	}
 	@Override public void Append(TypedNode Expr) {
@@ -308,8 +320,9 @@ class MessageNode extends TypedNode {
 	}
 }
 
+//E.g., "new" $Type "(" $Param[0], $Param[1], ... ")"
 class NewNode extends TypedNode {
-	/*field*/public ArrayList<TypedNode>	Params; /* [this, arg1, arg2, ...] */
+	/*field*/public ArrayList<TypedNode>	Params;
 	NewNode/*constructor*/(GtType Type, GtToken Token) {
 		super(Type, Token);
 		this.Params = new ArrayList<TypedNode>();
@@ -333,6 +346,7 @@ class NewNode extends TypedNode {
 	}
 }
 
+//E.g., "if" "(" $Cond ")" $ThenNode "else" $ElseNode
 class IfNode extends TypedNode {
 	/*field*/public TypedNode	CondExpr;
 	/*field*/public TypedNode	ThenNode;
@@ -355,6 +369,7 @@ class IfNode extends TypedNode {
 	}
 }
 
+//E.g., "while" "(" $CondExpr ")" $LoopBody
 class WhileNode extends TypedNode {
 	/*field*/public TypedNode	CondExpr;
 	/*field*/public TypedNode	LoopBody;
@@ -391,8 +406,8 @@ class DoWhileNode extends TypedNode {
 	}
 }
 
+//E.g., "for" "(" ";" $CondExpr ";" $IterExpr ")" $LoopNode
 class ForNode extends TypedNode {
-	/*field*/public TypedNode   InitNode;
 	/*field*/public TypedNode	CondExpr;
 	/*field*/public TypedNode	IterExpr;
 	/*field*/public TypedNode	LoopBody;
@@ -413,8 +428,8 @@ class ForNode extends TypedNode {
 	}
 }
 
+//E.g., "for" "(" $Variable ":" $IterExpr ")" $LoopNode
 class ForEachNode extends TypedNode {
-	/*field*/public TypedNode	CondExpr;
 	/*field*/public TypedNode	Variable;
 	/*field*/public TypedNode	IterExpr;
 	/*field*/public TypedNode	LoopBody;
@@ -428,15 +443,14 @@ class ForEachNode extends TypedNode {
 		Visitor.VisitForEachNode(this);
 	}
 	@Override public String toString() {
-		/*local*/String Cond = TypedNode.Stringify(this.CondExpr);
 		/*local*/String Var = TypedNode.Stringify(this.Variable);
 		/*local*/String Body = TypedNode.Stringify(this.LoopBody);
 		/*local*/String Iter = TypedNode.Stringify(this.IterExpr);
-		return "(Foreach:" + this.Type + " Var:" + Var + " Cond:" + Cond + " Body:"+ Body + " Iter:" + Iter + ")";
+		return "(Foreach:" + this.Type + " Var:" + Var + " Body:"+ Body + " Iter:" + Iter + ")";
 	}
 }
 
-class LoopNode extends TypedNode {
+@Deprecated class LoopNode extends TypedNode {
 	/*field*/public TypedNode	CondExpr;
 	/*field*/public TypedNode	LoopBody;
 	/*field*/public TypedNode	IterExpr;
@@ -456,7 +470,7 @@ class LoopNode extends TypedNode {
 	}
 }
 
-class LabelNode extends TypedNode {
+@Deprecated class LabelNode extends TypedNode {
 	/*field*/public String Label;
 	LabelNode/*constructor*/(GtType Type, GtToken Token, String Label) {
 		super(Type, Token);
@@ -470,7 +484,7 @@ class LabelNode extends TypedNode {
 	}
 }
 
-class JumpNode extends TypedNode {
+@Deprecated class JumpNode extends TypedNode {
 	/*field*/public String Label;
 	JumpNode/*constructor*/(GtType Type, GtToken Token, String Label) {
 		super(Type, Token);
@@ -607,10 +621,13 @@ class ErrorNode extends TypedNode {
 	}
 }
 
+// E.g., "ls" "-a"..
 class CommandNode extends TypedNode {
 	/*field*/public ArrayList<TypedNode>  Params; /* ["ls", "-la", "/", ...] */
-	CommandNode/*constructor*/(GtType Type, GtToken KeyToken) {
+	/*field*/public TypedNode PipedNextNode;
+	CommandNode/*constructor*/(GtType Type, GtToken KeyToken, TypedNode PipedNextNode) {
 		super(Type, KeyToken);
+		this.PipedNextNode = PipedNextNode;
 		this.Params = new ArrayList<TypedNode>();
 	}
 	@Override public void Append(TypedNode Expr) {
@@ -633,43 +650,29 @@ class CommandNode extends TypedNode {
 	}
 }
 
+
 public class GreenTeaGenerator extends GtStatic {
-	/*field*/public String LangName;
+	/*field*/public String     LangName;
 	/*field*/ArrayList<Object> GeneratedCodeStack;
 	/*field*/GtContext Context;
-	/*field*/private int    IndentLevel					= 0;
-	/*field*/private String CurrentLevelIndentString	= "";
-	/*field*/protected String IndentUnit				= "\t";
-
-	private final static String Repeat(String Unit, int Times) {
-		/*local*/StringBuilder Builder = new StringBuilder();
-		/*local*/int i = 0;
-		while(i < Times) {
-			Builder.append(Unit);
-			i = i + 1;
-		}
-		return Builder.toString();
-	}
-
-	public final void SetIndent(int Level) {
-		if(Level < 0){
-			Level = 0;
-		}
-		if(this.IndentLevel != Level) {
-			this.IndentLevel = Level;
-			this.CurrentLevelIndentString = GreenTeaGenerator.Repeat(this.IndentUnit, Level);
-		}
-	}
+	/*field*/private int      IndentLevel					= 0;
+	/*field*/private String   CurrentLevelIndentString	= "";
 
 	public final void Indent() {
-		this.SetIndent(this.IndentLevel + 1);
+		this.IndentLevel += 1;
+		this.CurrentLevelIndentString = null;
 	}
 
 	public final void UnIndent() {
-		this.SetIndent(this.IndentLevel - 1);
+		this.IndentLevel -= 1;
+		this.CurrentLevelIndentString = null;
+		LangDeps.Assert(this.IndentLevel >= 0);
 	}
 
 	public final String GetIndentString() {
+		if(this.CurrentLevelIndentString == null) {
+			this.CurrentLevelIndentString = JoinStrings("   ", this.IndentLevel);
+		}
 		return this.CurrentLevelIndentString;
 	}
 
@@ -708,8 +711,8 @@ public class GreenTeaGenerator extends GtStatic {
 		return new ApplyNode(Type, ParsedTree.KeyToken, Method);
 	}
 
-	public TypedNode CreateMessageNode(GtType Type, SyntaxTree ParsedTree, GtMethod Method) {
-		return new MessageNode(Type, ParsedTree.KeyToken, Method);
+	public TypedNode CreateMessageNode(GtType Type, SyntaxTree ParsedTree, TypedNode RecvNode, GtMethod Method) {
+		return new MessageNode(Type, ParsedTree.KeyToken, Method, RecvNode);
 	}
 
 	public TypedNode CreateNewNode(GtType Type, SyntaxTree ParsedTree) {
@@ -816,8 +819,8 @@ public class GreenTeaGenerator extends GtStatic {
 		return new ErrorNode(ParsedTree.NameSpace.Context.VoidType, ParsedTree.KeyToken);
 	}
 
-	public TypedNode CreateCommandNode(GtType Type, SyntaxTree ParsedTree) {
-		return new CommandNode(ParsedTree.NameSpace.Context.StringType, ParsedTree.KeyToken);
+	public TypedNode CreateCommandNode(GtType Type, SyntaxTree ParsedTree, TypedNode PipedNextNode) {
+		return new CommandNode(Type, ParsedTree.KeyToken, PipedNextNode);
 	}
 
 	public void VisitEmptyNode(TypedNode EmptyNode) {
