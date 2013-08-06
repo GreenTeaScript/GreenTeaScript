@@ -246,7 +246,7 @@ interface GtConst {
 
 	// debug flags
 	public static final boolean	UseBuiltInTest	= true;
-	public static final boolean DebugPrintOption = false;
+	public static final boolean DebugPrintOption = true;
 
 	// TestFlags (temporary)
 	static final int TestTokenizer = 1 << 0;
@@ -462,12 +462,12 @@ class GtStatic implements GtConst {
 			if(CurrentPattern.ParentPattern != null) {
 				TokenContext.ParseFlag = ParseFlag | TrackbackParseFlag;
 			}
-			DebugP("B :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + ", next=" + CurrentPattern.ParentPattern);
+			//DebugP("B :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + ", next=" + CurrentPattern.ParentPattern);
 			TokenContext.IndentLevel += 1;
 			/*local*/SyntaxTree ParsedTree = (/*cast*/SyntaxTree)LangDeps.ApplyMatchFunc(delegate.Self, delegate.Method, CurrentPattern, LeftTree, TokenContext);
 			TokenContext.IndentLevel -= 1;
 			if(ParsedTree != null && ParsedTree.IsEmpty()) ParsedTree = null;
-			DebugP("E :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + " => " + ParsedTree);
+			//DebugP("E :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + " => " + ParsedTree);
 			TokenContext.ParseFlag = ParseFlag;
 			if(ParsedTree != null) {
 				return ParsedTree;
@@ -920,15 +920,15 @@ final class TokenContext extends GtStatic {
 			}
 			Annotation.put(Token.ParsedText, true);
 			this.SkipIndent();
-			if(this.MatchToken(";")) {
-				if(IsAllowedDelim) {
-					Annotation = null; // empty statement
-					this.SkipIndent();
-				}
-				else {
-					return null;
-				}
-			}
+//			if(this.MatchToken(";")) {
+//				if(IsAllowedDelim) {
+//					Annotation = null; // empty statement
+//					this.SkipIndent();
+//				}
+//				else {
+//					return null;
+//				}
+//			}
 		}
 		return Annotation;
 	}
@@ -1672,10 +1672,12 @@ final class GtNameSpace extends GtStatic {
 		/*local*/TokenContext TokenContext = new TokenContext(this, ScriptSource, FileLine);
 		TokenContext.SkipEmptyStatement();
 		while(TokenContext.HasNext()) {
-			/*local*/SyntaxTree Tree = GtStatic.ParseExpression(TokenContext);
-			DebugP("untyped tree: " + Tree);
+			/*local*/GtMap Annotation = TokenContext.SkipAndGetAnnotation(true);
+			/*local*/SyntaxTree TopLevelTree = GtStatic.ParseExpression(TokenContext);
+			TopLevelTree.SetAnnotation(Annotation);
+			DebugP("untyped tree: " + TopLevelTree);
 			/*local*/TypeEnv Gamma = new TypeEnv(this);
-			/*local*/TypedNode Node = Gamma.TypeCheckEachNode(Tree, Gamma.VoidType, DefaultTypeCheckPolicy);
+			/*local*/TypedNode Node = Gamma.TypeCheckEachNode(TopLevelTree, Gamma.VoidType, DefaultTypeCheckPolicy);
 			ResultValue = Generator.Eval(Node);
 			TokenContext.SkipEmptyStatement();
 			TokenContext.Vacume();
