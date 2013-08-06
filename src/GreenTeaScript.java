@@ -1317,6 +1317,9 @@ final class TypeEnv extends GtStatic {
 
 	public GtType GuessType(Object Value) {
 		TODO("GuessType");
+		if (Value instanceof Integer) {
+			return this.IntType;
+		}
 		return this.AnyType;
 	}
 
@@ -1913,7 +1916,7 @@ final class KonohaGrammar extends GtGrammar {
 		/*local*/String Name = ParsedTree.KeyToken.ParsedText;
 		/*local*/VariableInfo VariableInfo = Gamma.LookupDeclaredVariable(Name);
 		if(VariableInfo != null) {
-			return Gamma.Generator.CreateLocalNode(Type, ParsedTree, VariableInfo.LocalName);
+			return Gamma.Generator.CreateLocalNode(VariableInfo.Type, ParsedTree, VariableInfo.LocalName);
 		}
 		/*local*/GtDelegate Delegate = Gamma.LookupDelegate(Name);
 		if(Delegate != null) {
@@ -2081,7 +2084,8 @@ final class KonohaGrammar extends GtGrammar {
 		//public GtMethod LookupMethod(String MethodName, int ParamSize, int ResolvedSize, ArrayList<GtType> TypeList, int BaseIndex) {
 		/*local*/TypedNode ApplyNode = Gamma.Generator.CreateApplyNode(Gamma.AnyType, ParsedTree, null);
 		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
-		/*FIXME*/TypeList.add(Gamma.NameSpace.Context.IntType);
+		/*FIXME It should be the return type of the function*/
+		TypeList.add(Gamma.NameSpace.Context.IntType);
 		/*local*/int i = 1;
 		while(i < ListSize(ParsedTree.TreeList) - 1/* this is for ")" */) {
 			/*local*/TypedNode ExprNode = ParsedTree.TypeNodeAt(i, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
@@ -2284,6 +2288,9 @@ final class KonohaGrammar extends GtGrammar {
 			/*local*/int ParseFlag = TokenContext.SetTrackback(false);  // disabled
 			/*local*/int ParamBase = FuncDeclParam;
 			while(!Tree.IsEmptyOrError() && !TokenContext.MatchToken(")")) {
+				if (ParamBase != FuncDeclParam) {
+					Tree.SetMatchedTokenAt(NoWhere, TokenContext, ",", Required);
+				}
 				Tree.SetMatchedPatternAt(ParamBase + VarDeclType, TokenContext, "$Type$", Required);
 				Tree.SetMatchedPatternAt(ParamBase + VarDeclName, TokenContext, "$Variable$", Required);
 				if(TokenContext.MatchToken("=")) {
