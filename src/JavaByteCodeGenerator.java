@@ -10,8 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
-import javax.xml.transform.Source;
-
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
@@ -19,8 +17,6 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.MethodNode;
-
-import com.sun.xml.internal.bind.CycleRecoverable.Context;
 
 // GreenTea Generator should be written in each language.
 
