@@ -166,7 +166,7 @@ public abstract class LangDeps {
 	}
 
 	public final static GreenTeaGenerator CodeGenerator(String Option) {
-		if(Option.equals("--js") || Option.equals("--javascript")) {
+		if(Option.equals("--js") || Option.equals("--javascript") || Option.equals("--JavaScript")) {
 			return new JavaScriptSourceGenerator();
 		}
 		else if(Option.equals("--perl")) {

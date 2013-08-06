@@ -280,7 +280,6 @@ class ApplyNode extends TypedNode {
 	}
 }
 
-
 class MessageNode extends TypedNode {
 	/*field*/public GtMethod	Method;
 	/*field*/public ArrayList<TypedNode>  Params; /* [this, arg1, arg2, ...] */
@@ -608,6 +607,32 @@ class ErrorNode extends TypedNode {
 	}
 }
 
+class CommandNode extends TypedNode {
+	/*field*/public ArrayList<TypedNode>  Params; /* ["ls", "-la", "/", ...] */
+	CommandNode/*constructor*/(GtType Type, GtToken KeyToken) {
+		super(Type, KeyToken);
+		this.Params = new ArrayList<TypedNode>();
+	}
+	@Override public void Append(TypedNode Expr) {
+		this.Params.add(Expr);
+	}
+
+	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+		Visitor.VisitCommandNode(this);
+	}
+	@Override public String toString() {
+		/*local*/String Param = "";
+		for(/*local*/int i = 0; i < Params.size(); i++) {
+			TypedNode Node = Params.get(i);
+			if(i != 0) {
+				Param += ", ";
+			}
+			Param += TypedNode.Stringify(Node);
+		}
+		return "(Command:" + this.Type + " " + Param + ")";
+	}
+}
+
 public class GreenTeaGenerator extends GtStatic {
 	/*field*/public String LangName;
 	/*field*/ArrayList<Object> GeneratedCodeStack;
@@ -616,32 +641,35 @@ public class GreenTeaGenerator extends GtStatic {
 	/*field*/private String CurrentLevelIndentString	= "";
 	/*field*/protected String IndentUnit				= "\t";
 
-	private static String Repeat(String Unit, int Times) {
+	private final static String Repeat(String Unit, int Times) {
 		/*local*/StringBuilder Builder = new StringBuilder();
-		for(int i = 0; i < Times; ++i) {
+		/*local*/int i = 0;
+		while(i < Times) {
 			Builder.append(Unit);
+			i = i + 1;
 		}
 		return Builder.toString();
 	}
 
-	public void SetIndent(int Level) {
-		if(Level < 0)
+	public final void SetIndent(int Level) {
+		if(Level < 0){
 			Level = 0;
+		}
 		if(this.IndentLevel != Level) {
 			this.IndentLevel = Level;
 			this.CurrentLevelIndentString = GreenTeaGenerator.Repeat(this.IndentUnit, Level);
 		}
 	}
 
-	public void Indent() {
+	public final void Indent() {
 		this.SetIndent(this.IndentLevel + 1);
 	}
 
-	public void UnIndent() {
+	public final void UnIndent() {
 		this.SetIndent(this.IndentLevel - 1);
 	}
 
-	public String GetIndentString() {
+	public final String GetIndentString() {
 		return this.CurrentLevelIndentString;
 	}
 
@@ -788,6 +816,9 @@ public class GreenTeaGenerator extends GtStatic {
 		return new ErrorNode(ParsedTree.NameSpace.Context.VoidType, ParsedTree.KeyToken);
 	}
 
+	public TypedNode CreateCommandNode(GtType Type, SyntaxTree ParsedTree) {
+		return new CommandNode(ParsedTree.NameSpace.Context.StringType, ParsedTree.KeyToken);
+	}
 
 	public void VisitEmptyNode(TypedNode EmptyNode) {
 		GtStatic.DebugP("empty node: " + EmptyNode.Token.ParsedText);
@@ -917,6 +948,10 @@ public class GreenTeaGenerator extends GtStatic {
 		/*extension*/
 	}
 
+	public void VisitCommandNode(CommandNode Node) {
+		/*extension*/
+	}
+
 	public final void VisitBlock(TypedNode Node) {
 		/*local*/TypedNode CurrentNode = Node;
 		while(CurrentNode != null) {
@@ -948,7 +983,7 @@ public class GreenTeaGenerator extends GtStatic {
 		this.GeneratedCodeStack.add(Code);
 	}
 
-	protected Object PopCode(){
+	protected final Object PopCode(){
 		/*local*/int Size = this.GeneratedCodeStack.size();
 		if(Size > 0){
 			return this.GeneratedCodeStack.remove(Size - 1);
@@ -956,31 +991,35 @@ public class GreenTeaGenerator extends GtStatic {
 		return "";
 	}
 
-	protected void PushSourceCode(String Code){
+	protected final void PushSourceCode(String Code){
 		this.GeneratedCodeStack.add(Code);
 	}
 
-	protected String PopSourceCode(){
-		return (String)PopCode();
+	protected final String PopSourceCode(){
+		return (/*cast*/String)PopCode();
 	}
 
-	protected String[] PopManyCode(int n) {
+	protected final String[] PopManyCode(int n) {
 		/*local*/String[] array = new String[n];
-		for(/*local*/int i = 0; i < n; ++i) {
+		/*local*/int i = 0;
+		while(i < n) {
 			array[i] = this.PopSourceCode();
+			i = i + 1;
 		}
 		return array;
 	}
 
-	protected String[] PopManyCodeReverse(int n) {
+	protected final String[] PopManyCodeReverse(int n) {
 		/*local*/String[] array = new String[n];
-		for(/*local*/int i = 0; i < n; ++i) {
+		/*local*/int i = 0;
+		while(i < n) {
 			array[n - i - 1] = this.PopSourceCode();
+			i = i  + 1;
 		}
 		return array;
 	}
 
-	protected String PopManyCodeWithModifier(int n, boolean reverse, String prefix, String suffix, String delim) {
+	protected final String PopManyCodeWithModifier(int n, boolean reverse, String prefix, String suffix, String delim) {
 		if(prefix == null) {
 			prefix = "";
 		}
@@ -990,13 +1029,20 @@ public class GreenTeaGenerator extends GtStatic {
 		if(delim == null) {
 			delim = "";
 		}
-		/*local*/String[] array = reverse ? this.PopManyCodeReverse(n) : this.PopManyCode(n);
+		/*local*/String[] array = null;
+		if(reverse) {
+			array = this.PopManyCodeReverse(n);
+		}else{
+			array = this.PopManyCode(n);
+		}
 		/*local*/String Code = "";
-		for(/*local*/int i = 0; i < n; ++i) {
+		/*local*/int i = 0;
+		while(i < n) {
 			if(i > 0) {
 				Code += delim;
 			}
 			Code = Code + prefix + array[i] + suffix;
+			i = i + 1;
 		}
 		return Code;
 	}
