@@ -2571,7 +2571,7 @@ class GtContext extends GtStatic {
 	}
 	
 	public GtType GetGenericType(GtType BaseType, int BaseIdx, ArrayList<GtType> TypeList, boolean IsCreation) {
-		assert(BaseType.IsGenericType());
+		LangDeps.Assert(BaseType.IsGenericType());
 		String MangleName = GtStatic.Mangle(BaseType, BaseIdx, TypeList);
 		GtType GenericType = (/*cast*/GtType)this.ClassNameMap.get(MangleName);
 		if(GenericType == null && IsCreation) {
