@@ -1879,15 +1879,7 @@ final class KonohaGrammar extends GtGrammar {
 	}
 
 	public static TypedNode TypeConst(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
-		/*local*/GtType TreeType = Gamma.GuessType(ParsedTree.ConstValue);
-
-		/* FIXME  this is not smart, need to implement a general function that checks if the given type is valid */ 
-		if (TreeType == Type || Type == Gamma.VarType || Type == Gamma.AnyType) {
-			return Gamma.Generator.CreateConstNode(TreeType, ParsedTree, ParsedTree.ConstValue);
-		} else {
-			return Gamma.CreateErrorNode(ParsedTree, Type + " is requested, but " + TreeType + " is given.");
-		}
-		//return Gamma.Generator.CreateConstNode(Gamma.GuessType(ParsedTree.ConstValue), ParsedTree, ParsedTree.ConstValue);
+		return Gamma.Generator.CreateConstNode(Gamma.GuessType(ParsedTree.ConstValue), ParsedTree, ParsedTree.ConstValue);
 	}
 
 	public static SyntaxTree ParseSymbol(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
