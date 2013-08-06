@@ -2,6 +2,9 @@
 import java.util.ArrayList;
 //endif VAJA
 
+/* language */
+
+
 // GreenTea Generator should be written in each language.
 
 class TypedNode extends GtStatic {
@@ -40,7 +43,7 @@ class TypedNode extends GtStatic {
 		/*extension*/
 	}
 
-	public void Evaluate(GreenTeaGenerator Visitor) {
+	public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitEmptyNode(this);  /* must override */
 	}
 
@@ -81,7 +84,7 @@ class UnaryNode extends TypedNode {
 		this.Method = Method;
 		this.Expr = Expr;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitUnaryNode(this);
 	}
 }
@@ -95,7 +98,7 @@ class SuffixNode extends TypedNode {
 		this.Method = Method;
 		this.Expr = Expr;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitSuffixNode(this);
 	}
 }
@@ -111,7 +114,7 @@ class BinaryNode extends TypedNode {
 		this.LeftNode  = Left;
 		this.RightNode = Right;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitBinaryNode(this);
 	}
 }
@@ -125,7 +128,7 @@ class AndNode extends TypedNode {
 		this.LeftNode  = Left;
 		this.RightNode = Right;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitAndNode(this);
 	}
 	@Override public String toString() {
@@ -142,7 +145,7 @@ class OrNode extends TypedNode {
 		this.LeftNode  = Left;
 		this.RightNode = Right;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitOrNode(this);
 	}
 	@Override public String toString() {
@@ -159,11 +162,11 @@ class GetterNode extends TypedNode {
 		this.Method = Method;
 		this.Expr = Expr;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitGetterNode(this);
 	}
 	@Override public String toString() {
-		return "(Getter:" + this.Type + " " + TypedNode.Stringify(this.Expr) + ", " + Method.MethodName + ")";
+		return "(Getter:" + this.Type + " " + TypedNode.Stringify(this.Expr) + ", " + this.Method.MethodName + ")";
 	}
 }
 
@@ -178,7 +181,7 @@ class IndexerNode extends TypedNode {
 		this.Expr = Expr;
 		this.Indexer = Indexer;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitIndexerNode(this);
 	}
 	@Override public String toString() {
@@ -195,7 +198,7 @@ class AssignNode extends TypedNode {
 		this.LeftNode  = Left;
 		this.RightNode = Right;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitAssignNode(this);
 	}
 	@Override public String toString() {
@@ -209,11 +212,11 @@ class ConstNode extends TypedNode {
 		super(Type, Token);
 		this.ConstValue = ConstValue;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitConstNode(this);
 	}
 	@Override public String toString() {
-		return "(Const:" + this.Type + " "+ ConstValue.toString() + ")";
+		return "(Const:" + this.Type + " "+ this.ConstValue.toString() + ")";
 	}
 }
 
@@ -223,11 +226,11 @@ class LocalNode extends TypedNode {
 		super(Type, Token);
 		this.LocalName = LocalName;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitLocalNode(this);
 	}
 	@Override public String toString() {
-		return "(Local:" + this.Type + " " + LocalName + ")";
+		return "(Local:" + this.Type + " " + this.LocalName + ")";
 	}
 }
 
@@ -235,7 +238,7 @@ class NullNode extends TypedNode {
 	NullNode/*constructor*/(GtType Type, GtToken Token) {
 		super(Type, Token);
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitNullNode(this);
 	}
 	@Override public String toString() {
@@ -254,7 +257,7 @@ class LetNode extends TypedNode {
 		this.VarNode  = VarNode;
 		this.BlockNode = Block;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitLetNode(this);
 	}
 	@Override public String toString() {
@@ -276,14 +279,14 @@ class ApplyNode extends TypedNode {
 		this.Params.add(Expr);
 	}
 
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitApplyNode(this);
 	}
 	@Override public String toString() {
 		/*local*/String Param = "";
 		/*local*/int i = 0;
-		while(i < GtStatic.ListSize(Params)) {
-			/*local*/TypedNode Node = Params.get(i);
+		while(i < GtStatic.ListSize(this.Params)) {
+			/*local*/TypedNode Node = this.Params.get(i);
 			if(i != 0) {
 				Param += ", ";
 			}
@@ -309,14 +312,14 @@ class MessageNode extends TypedNode {
 		this.Params.add(Expr);
 	}
 
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitMessageNode(this);
 	}
 	@Override public String toString() {
 		/*local*/String Param = "";
 		/*local*/int i = 0;
-		while(i < GtStatic.ListSize(Params)) {
-			/*local*/TypedNode Node = Params.get(i);
+		while(i < GtStatic.ListSize(this.Params)) {
+			/*local*/TypedNode Node = this.Params.get(i);
 			if(i != 0) {
 				Param += ", ";
 			}
@@ -337,14 +340,14 @@ class NewNode extends TypedNode {
 	@Override public void Append(TypedNode Expr) {
 		this.Params.add(Expr);
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitNewNode(this);
 	}
 	@Override public String toString() {
 		/*local*/String Param = "";
 		/*local*/int i = 0;
-		while(i < GtStatic.ListSize(Params)) {
-			/*local*/TypedNode Node = Params.get(i);
+		while(i < GtStatic.ListSize(this.Params)) {
+			/*local*/TypedNode Node = this.Params.get(i);
 			if(i != 0) {
 				Param += ", ";
 			}
@@ -367,7 +370,7 @@ class IfNode extends TypedNode {
 		this.ThenNode = ThenBlock;
 		this.ElseNode = ElseNode;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitIfNode(this);
 	}
 	@Override public String toString() {
@@ -387,7 +390,7 @@ class WhileNode extends TypedNode {
 		this.CondExpr = CondExpr;
 		this.LoopBody = LoopBody;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitWhileNode(this);
 	}
 	@Override public String toString() {
@@ -405,7 +408,7 @@ class DoWhileNode extends TypedNode {
 		this.CondExpr = CondExpr;
 		this.LoopBody = LoopBody;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitDoWhileNode(this);
 	}
 	@Override public String toString() {
@@ -426,7 +429,7 @@ class ForNode extends TypedNode {
 		this.LoopBody = LoopBody;
 		this.IterExpr = IterExpr;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitForNode(this);
 	}
 	@Override public String toString() {
@@ -448,7 +451,7 @@ class ForEachNode extends TypedNode {
 		this.IterExpr = IterExpr;
 		this.LoopBody = LoopBody;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitForEachNode(this);
 	}
 	@Override public String toString() {
@@ -465,11 +468,11 @@ class ForEachNode extends TypedNode {
 		super(Type, Token);
 		this.Label = Label;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitLabelNode(this);
 	}
 	@Override public String toString() {
-		return "(Label:" + this.Type + " " + Label + ")";
+		return "(Label:" + this.Type + " " + this.Label + ")";
 	}
 }
 
@@ -479,11 +482,11 @@ class ForEachNode extends TypedNode {
 		super(Type, Token);
 		this.Label = Label;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitJumpNode(this);
 	}
 	@Override public String toString() {
-		return "(Jump:" + this.Type + " " + Label + ")";
+		return "(Jump:" + this.Type + " " + this.Label + ")";
 	}
 }
 
@@ -493,7 +496,7 @@ class ContinueNode extends TypedNode {
 		super(Type, Token);
 		this.Label = Label;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitContinueNode(this);
 	}
 	@Override public String toString() {
@@ -507,7 +510,7 @@ class BreakNode extends TypedNode {
 		super(Type, Token);
 		this.Label = Label;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitBreakNode(this);
 	}
 	@Override public String toString() {
@@ -521,7 +524,7 @@ class ReturnNode extends TypedNode {
 		super(Type, Token);
 		this.Expr = Expr;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitReturnNode(this);
 	}
 	@Override public String toString() {
@@ -539,7 +542,7 @@ class ThrowNode extends TypedNode {
 		super(Type, Token);
 		this.Expr = Expr;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitThrowNode(this);
 	}
 	@Override public String toString() {
@@ -561,7 +564,7 @@ class TryNode extends TypedNode {
 	//	this.TargetException.add(TargetException);
 	//	this.CatchBlock.add(CatchBlock);
 	//}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitTryNode(this);
 	}
 	@Override public String toString() {
@@ -577,7 +580,7 @@ class SwitchNode extends TypedNode {
 	//public TypedNode	CondExpr;
 	//public ArrayList<TypedNode>	Labels;
 	//public ArrayList<TypedNode>	Blocks;
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitSwitchNode(this);
 	}
 	@Override public String toString() {
@@ -590,7 +593,7 @@ class FunctionNode extends TypedNode {
 	FunctionNode/*constructor*/(GtType Type, GtToken Token) {
 		super(Type, Token); // TODO
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitFunctionNode(this);
 	}
 	@Override public String toString() {
@@ -602,11 +605,11 @@ class ErrorNode extends TypedNode {
 	ErrorNode/*constructor*/(GtType Type, GtToken Token) {
 		super(Type, Token);
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitErrorNode(this);
 	}
 	@Override public String toString() {
-		return "(Error:" + this.Type + " " + Token.toString() + ")";
+		return "(Error:" + this.Type + " " + this.Token.toString() + ")";
 	}
 }
 
@@ -623,14 +626,14 @@ class CommandNode extends TypedNode {
 		this.Params.add(Expr);
 	}
 
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitCommandNode(this);
 	}
 	@Override public String toString() {
 		/*local*/String Param = "";
 		/*local*/int i = 0;
-		while(i < GtStatic.ListSize(Params)) {
-			/*local*/TypedNode Node = Params.get(i);
+		while(i < GtStatic.ListSize(this.Params)) {
+			/*local*/TypedNode Node = this.Params.get(i);
 			if(i != 0) {
 				Param += ", ";
 			}
@@ -641,42 +644,157 @@ class CommandNode extends TypedNode {
 	}
 }
 
+class GtObject extends GtStatic {
+	/*field*/public GtType	Type;
+	GtObject/*constructor*/(GtType Type) {
+		this.Type = Type;
+	}
+}
 
-public class GreenTeaGenerator extends GtStatic {
+class GtType extends GtStatic {
+	/*field*/public GtNameSpace     PackageNameSpace;
+	/*field*/int					ClassFlag;
+	/*field*/public GtContext		Context;
+	/*field*/int                    ClassId;
+	/*field*/public String			ShortClassName;
+	/*field*/GtType					SuperClass;
+	/*field*/public GtType			SearchSuperMethodClass;
+	/*field*/public Object			DefaultNullValue;
+	/*field*/GtType					BaseClass;
+	/*field*/GtType[]				Types;
+	/*field*/public Object          LocalSpec;
+
+	GtType/*constructor*/(GtContext Context, int ClassFlag, String ClassName, Object DefaultNullValue) {
+		this.Context = Context;
+		this.ClassFlag = ClassFlag;
+		this.ShortClassName = ClassName;
+		this.SuperClass = null;
+		this.BaseClass = this;
+		this.SearchSuperMethodClass = null;
+		this.DefaultNullValue = DefaultNullValue;
+		this.LocalSpec = null;
+		this.ClassId = Context.ClassCount;
+		Context.ClassCount += 1;
+		this.Types = null;
+		DebugP("new class: " + this.ShortClassName + ", ClassId=" + this.ClassId);
+	}
+
+	public final boolean IsGenericType() {
+		return (this.Types != null);
+	}
+
+	// Note Don't call this directly. Use Context.GetGenericType instead.
+	public GtType CreateGenericType(int BaseIndex, ArrayList<GtType> TypeList, String ShortName) {
+		GtType GenericType = new GtType(this.Context, this.ClassFlag, ShortName, null);
+		GenericType.BaseClass = this.BaseClass;
+		GenericType.SearchSuperMethodClass = this.BaseClass;
+		GenericType.SuperClass = this.SuperClass;
+		this.Types = LangDeps.CompactTypeList(BaseIndex, TypeList);
+		return GenericType;
+	}
+
+	public void SetParamType(GtType ParamType) {
+		this.Types = new GtType[1];
+		this.Types[0] = ParamType;
+	}
+
+	@Override public String toString() {
+		return this.ShortClassName;
+	}
+
+	public final String GetMethodId(String MethodName) {
+		return "" + this.ClassId + "@" + MethodName;
+	}
+
+	public final boolean Accept(GtType Type) {
+		if(this == Type || this == this.Context.AnyType) {
+			return true;
+		}
+		return false;
+	}
+}
+
+class GtMethod extends GtStatic {
+	/*field*/public GtLayer         Layer;
+	/*field*/public int				MethodFlag;
+	/*field*/int					MethodSymbolId;
+	/*field*/public String			MethodName;
+	/*field*/public String          LocalFuncName;
+	/*field*/public GtType[]		Types;
+	/*field*/public GtMethod        ElderMethod;
+
+	GtMethod/*constructor*/(int MethodFlag, String MethodName, int BaseIndex, ArrayList<GtType> ParamList) {
+		super();
+		this.MethodFlag = MethodFlag;
+		this.MethodName = MethodName;
+		this.MethodSymbolId = GtStatic.GetCanonicalSymbolId(MethodName);
+		this.Types = LangDeps.CompactTypeList(BaseIndex, ParamList);
+		LangDeps.Assert(this.Types.length > 0);
+		this.Layer = null;
+		this.ElderMethod = null;
+		
+		String Name = this.MethodName;
+		if(!LangDeps.IsLetter(LangDeps.CharAt(Name, 0))) {
+			Name = "operator" + this.MethodSymbolId;
+		}
+		if(!this.Is(ExportMethod)) {
+			Name = Name + "__" + GtStatic.Mangle(this.GetRecvType(), BaseIndex + 1, ParamList);
+		}
+		this.LocalFuncName = Name;
+	}
+
+	@Override public String toString() {
+		/*local*/String s = this.MethodName + "(";
+		/*local*/int i = 0;
+		while(i < this.GetParamSize()) {
+			/*local*/GtType ParamType = this.GetParamType(i);
+			if(i > 0) {
+				s += ", ";
+			}
+			s += ParamType.ShortClassName;
+			i += 1;
+		}
+		return s + ": " + this.GetReturnType();
+	}
+
+	public boolean Is(int Flag) {
+		return IsFlag(this.MethodFlag, Flag);
+	}
+
+	public final GtType GetReturnType() {
+		return this.Types[0];
+	}
+
+	public final GtType GetRecvType() {
+		if(this.Types.length == 1){
+			return this.Types[0].Context.VoidType;
+		}
+		return this.Types[1];
+	}
+
+	public final int GetParamSize() {
+		return this.Types.length - 1;
+	}
+
+	public final GtType GetParamType(int ParamIdx) {
+		return this.Types[ParamIdx+1];
+	}
+}
+
+
+class CodeGenerator extends GtStatic {
 	/*field*/public String     LangName;
-	/*field*/ArrayList<Object> GeneratedCodeStack;
-	/*field*/GtContext Context;
-	/*field*/private int      IndentLevel					= 0;
-	/*field*/private String   CurrentLevelIndentString	= "";
+	/*field*/public GtContext  Context;
+	/*field*/public ArrayList<Object> GeneratedCodeStack;
 
-	public final void Indent() {
-		this.IndentLevel += 1;
-		this.CurrentLevelIndentString = null;
-	}
-
-	public final void UnIndent() {
-		this.IndentLevel -= 1;
-		this.CurrentLevelIndentString = null;
-		LangDeps.Assert(this.IndentLevel >= 0);
-	}
-
-	public final String GetIndentString() {
-		if(this.CurrentLevelIndentString == null) {
-			this.CurrentLevelIndentString = JoinStrings("   ", this.IndentLevel);
-		}
-		return this.CurrentLevelIndentString;
-	}
-
-	protected String StringfyConstValue(Object ConstValue) {
-		if(ConstValue instanceof String) {
-			return "\"" + ConstValue + "\"";  // FIXME \n
-		}
-		return ConstValue.toString();
-	}
-
-	GreenTeaGenerator/*constructor*/(String LangName) {
+	CodeGenerator(String LangName) {
 		this.LangName = LangName;
+		this.Context = null;
 		this.GeneratedCodeStack = new ArrayList<Object>();
+	}
+	
+	public void SetLanguageContext(GtContext Context) {
+		this.Context = Context;
 	}
 
 	public final TypedNode UnsupportedNode(GtType Type, SyntaxTree ParsedTree) {
@@ -789,8 +907,8 @@ public class GreenTeaGenerator extends GtStatic {
 		return new ContinueNode(Type, ParsedTree.KeyToken, Label);
 	}
 
-	public TypedNode CreateTryNode(GtType Type, SyntaxTree ParsedTree, TypedNode TryNode, TypedNode FinallyNode) {
-		return new TryNode(Type, ParsedTree.KeyToken, TryNode, FinallyNode);
+	public TypedNode CreateTryNode(GtType Type, SyntaxTree ParsedTree, TypedNode TryBlock, TypedNode FinallyBlock) {
+		return new TryNode(Type, ParsedTree.KeyToken, TryBlock, FinallyBlock);
 	}
 
 	public TypedNode CreateThrowNode(GtType Type, SyntaxTree ParsedTree, TypedNode Node) {
@@ -816,7 +934,24 @@ public class GreenTeaGenerator extends GtStatic {
 	public TypedNode CreateCommandNode(GtType Type, SyntaxTree ParsedTree, TypedNode PipedNextNode) {
 		return new CommandNode(Type, ParsedTree.KeyToken, PipedNextNode);
 	}
+	
 
+	public int ParseMethodFlag(int MethodFlag, SyntaxTree MethodDeclTree) {
+		if(MethodDeclTree.HasAnnotation("Export")) {
+			MethodFlag = MethodFlag | ExportMethod;
+		}
+		if(MethodDeclTree.HasAnnotation("Operator")) {
+			MethodFlag = MethodFlag | OperatorMethod;
+		}
+		return MethodFlag;
+	}
+	
+	public GtMethod CreateMethod(int MethodFlag, String MethodName, int BaseIndex, ArrayList<GtType> TypeList) {
+		return new GtMethod(MethodFlag, MethodName, BaseIndex, TypeList);
+	}
+
+	//------------------------------------------------------------------------
+	
 	public void VisitEmptyNode(TypedNode EmptyNode) {
 		GtStatic.DebugP("empty node: " + EmptyNode.Token.ParsedText);
 	}
@@ -966,10 +1101,7 @@ public class GreenTeaGenerator extends GtStatic {
 	public void AddClass(GtType Type) {
 		/*extension*/
 	}
-
-	public void LoadContext(GtContext Context) {
-		/*extension*/
-	}
+	
 
 	protected void PushCode(Object Code){
 		this.GeneratedCodeStack.add(Code);
@@ -982,13 +1114,51 @@ public class GreenTeaGenerator extends GtStatic {
 		}
 		return "";
 	}
+}
+
+class SourceGenerator extends CodeGenerator {
+	/*field*/public int       IndentLevel;
+	/*field*/public String    CurrentLevelIndentString;
+
+	SourceGenerator/*constructor*/(String LangName) {
+		super(LangName);
+		this.IndentLevel = 0;
+		this.CurrentLevelIndentString = null;
+	}
+
+	/* GeneratorUtils */
+	
+	public final void Indent() {
+		this.IndentLevel += 1;
+		this.CurrentLevelIndentString = null;
+	}
+
+	public final void UnIndent() {
+		this.IndentLevel -= 1;
+		this.CurrentLevelIndentString = null;
+		LangDeps.Assert(this.IndentLevel >= 0);
+	}
+
+	public final String GetIndentString() {
+		if(this.CurrentLevelIndentString == null) {
+			this.CurrentLevelIndentString = JoinStrings("   ", this.IndentLevel);
+		}
+		return this.CurrentLevelIndentString;
+	}
+
+	protected String StringfyConstValue(Object ConstValue) {
+		if(ConstValue instanceof String) {
+			return "\"" + ConstValue + "\"";  // FIXME \n
+		}
+		return ConstValue.toString();
+	}
 
 	protected final void PushSourceCode(String Code){
 		this.GeneratedCodeStack.add(Code);
 	}
 
 	protected final String PopSourceCode(){
-		return (/*cast*/String)PopCode();
+		return (/*cast*/String)this.PopCode();
 	}
 
 	protected final String[] PopManyCode(int n) {
@@ -1038,5 +1208,7 @@ public class GreenTeaGenerator extends GtStatic {
 		}
 		return Code;
 	}
+	
 }
+
 

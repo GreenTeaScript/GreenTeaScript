@@ -62,6 +62,10 @@ public abstract class LangDeps {
 	public final static char CharAt(String Text, int Pos) {
 		return Text.charAt(Pos);
 	}
+	
+	public final static String CharToString(char code){
+		return Character.toString(code);
+	}
 
 	public final static int ParseInt(String Text) {
 		return Integer.parseInt(Text);
@@ -166,7 +170,7 @@ public abstract class LangDeps {
 		return Tuple;
 	}
 
-	public final static GreenTeaGenerator CodeGenerator(String Option) {
+	public final static CodeGenerator CodeGenerator(String Option) {
 		if(Option.equals("--js") || Option.equals("--javascript") || Option.equals("--JavaScript")) {
 			return new JavaScriptSourceGenerator();
 		}

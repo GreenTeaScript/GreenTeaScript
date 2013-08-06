@@ -2,7 +2,7 @@ import java.util.ArrayList;
 
 //GreenTea Generator should be written in each language.
 
-public class PerlSourceGenerator extends GreenTeaGenerator {
+public class PerlSourceGenerator extends SourceGenerator {
 	PerlSourceGenerator() {
 		super("Perl");
 	}
@@ -339,7 +339,7 @@ public class PerlSourceGenerator extends GreenTeaGenerator {
 
 	}
 
-	@Override public void LoadContext(GtContext Context) {
+	@Override public void SetLanguageContext(GtContext Context) {
 		// TODO Auto-generated method stub
 
 	}

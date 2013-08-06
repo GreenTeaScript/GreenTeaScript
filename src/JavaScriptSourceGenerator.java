@@ -1,6 +1,8 @@
+//ifdef JAVA
 import java.util.ArrayList;
+//endif VAJA
 
-public class JavaScriptSourceGenerator extends GreenTeaGenerator {
+public class JavaScriptSourceGenerator extends SourceGenerator {
 
 	JavaScriptSourceGenerator() {
 		super("JavaScript");
@@ -19,11 +21,11 @@ public class JavaScriptSourceGenerator extends GreenTeaGenerator {
 			Code = Code + NameList.get(i) + i;
 			i = i + 1;
 		}
-		Code += ") ";
+		Code = Code + ") ";
 		this.VisitBlockJS(Body);
 		Code += this.PopSourceCode() + ")";
 		this.PushSourceCode(Code);
-	};
+	}
 
 	public  void VisitBlockJS(TypedNode Node) {
 		this.Indent();

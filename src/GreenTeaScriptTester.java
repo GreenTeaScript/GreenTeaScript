@@ -84,7 +84,7 @@ class GreenTeaCodeGenTestCase extends GreenTeaScriptTestCase {
 public class GreenTeaScriptTester {
 	public static void main(String[] args) {
 		/*local*/String CodeGeneratorName = "Java";
-		/*local*/GreenTeaGenerator Generator = LangDeps.CodeGenerator(CodeGeneratorName);
+		/*local*/CodeGenerator Generator = LangDeps.CodeGenerator(CodeGeneratorName);
 		/*local*/GtContext Context = new GtContext(new KonohaGrammar(), Generator);
 
 		GreenTeaTokenizerTestCase.Test(Context);

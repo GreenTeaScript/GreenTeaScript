@@ -2,7 +2,7 @@ import java.util.ArrayList;
 
 //GreenTea Generator should be written in each language.
 
-public class JavaSourceGenerator extends GreenTeaGenerator {
+public class JavaSourceGenerator extends SourceGenerator {
 	JavaSourceGenerator() {
 		super("Java");
 	}
@@ -323,7 +323,7 @@ public class JavaSourceGenerator extends GreenTeaGenerator {
 
 	}
 
-	@Override public void LoadContext(GtContext Context) {
+	@Override public void SetLanguageContext(GtContext Context) {
 		new JavaLayerDef().MakeDefinition(Context.DefaultNameSpace);
 	}
 }
