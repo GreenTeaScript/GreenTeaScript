@@ -30,7 +30,7 @@ class TypedNode extends GtStatic {
 		while(Node.NextNode != null) {
 			Node = Node.NextNode;
 		}
-		return this;
+		return Node;
 	}
 
 	public void Append(TypedNode Node) {
@@ -292,7 +292,7 @@ class ApplyNode extends TypedNode {
 //E.g., $Recv.Method "(" $Param[0], $Param[1], ... ")"
 class MessageNode extends TypedNode {
 	/*field*/public GtMethod	Method;
-	/*field*/public TypedNode   RecvNode;    
+	/*field*/public TypedNode   RecvNode;
 	/*field*/public ArrayList<TypedNode>  Params;
 	MessageNode/*constructor*/(GtType Type, GtToken KeyToken, GtMethod Method, TypedNode RecvNode) {
 		super(Type, KeyToken);
@@ -335,7 +335,7 @@ class NewNode extends TypedNode {
 	}
 	@Override public String toString() {
 		/*local*/String Param = "";
-		/*local*/int i = 0; 
+		/*local*/int i = 0;
 		while(i < GtStatic.ListSize(Params)) {
 			/*local*/TypedNode Node = Params.get(i);
 			if(i != 0) {
@@ -570,10 +570,10 @@ class TryNode extends TypedNode {
 		this.FinallyBlock = FinallyBlock;
 		this.CatchBlock = null;
 	}
-//	public void addCatchBlock(TypedNode TargetException, TypedNode CatchBlock) { //FIXME
-//		this.TargetException.add(TargetException);
-//		this.CatchBlock.add(CatchBlock);
-//	}
+	//public void addCatchBlock(TypedNode TargetException, TypedNode CatchBlock) { //FIXME
+	//	this.TargetException.add(TargetException);
+	//	this.CatchBlock.add(CatchBlock);
+	//}
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitTryNode(this);
 	}
@@ -587,9 +587,9 @@ class SwitchNode extends TypedNode {
 	SwitchNode/*constructor*/(GtType Type, GtToken Token) {
 		super(Type, Token);
 	}
-//	public TypedNode	CondExpr;
-//	public ArrayList<TypedNode>	Labels;
-//	public ArrayList<TypedNode>	Blocks;
+	//public TypedNode	CondExpr;
+	//public ArrayList<TypedNode>	Labels;
+	//public ArrayList<TypedNode>	Blocks;
 	@Override public void Evaluate(GreenTeaGenerator Visitor) {
 		Visitor.VisitSwitchNode(this);
 	}
@@ -684,7 +684,7 @@ public class GreenTeaGenerator extends GtStatic {
 		}
 		return ConstValue.toString();
 	}
-	
+
 	GreenTeaGenerator/*constructor*/(String LangName) {
 		this.LangName = LangName;
 		this.GeneratedCodeStack = new ArrayList<Object>();
@@ -974,7 +974,7 @@ public class GreenTeaGenerator extends GtStatic {
 
 	// This must be extended in each language
 	public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, TypedNode Body) {
-		
+
 		/*extenstion*/
 	}
 

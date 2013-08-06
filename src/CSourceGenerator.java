@@ -26,35 +26,34 @@ public class CSourceGenerator extends GreenTeaGenerator {
 		this.PushSourceCode("/*empty*/");
 	}
 
-	@Override
-	public void VisitSuffixNode(SuffixNode Node) {
+	@Override public void VisitSuffixNode(SuffixNode Node) {
 		String MethodName = Node.Token.ParsedText;
-//		if(MethodName.equals("++")) {
-//		}
-//		else if(MethodName.equals("--")) {
-//		}
+		//if(MethodName.equals("++")) {
+		//}
+		//else if(MethodName.equals("--")) {
+		//}
 		Node.Expr.Evaluate(this);
 		this.PushSourceCode(this.PopSourceCode() + MethodName);
 	}
 
-	@Override 
+	@Override
 	public void VisitUnaryNode(UnaryNode Node) {
 		String MethodName = Node.Token.ParsedText;
-//		if(MethodName.equals("+")) {
-//		}
-//		else if(MethodName.equals("-")) {
-//		}
-//		else if(MethodName.equals("~")) {
-//		}
-//		else if(MethodName.equals("!")) {
-//		}
-//		else if(MethodName.equals("++")) {
-//		}
-//		else if(MethodName.equals("--")) {
-//		}
-//		else {
-//			throw new RuntimeException("NotSupportOperator");
-//		}
+		//if(MethodName.equals("+")) {
+		//}
+		//else if(MethodName.equals("-")) {
+		//}
+		//else if(MethodName.equals("~")) {
+		//}
+		//else if(MethodName.equals("!")) {
+		//}
+		//else if(MethodName.equals("++")) {
+		//}
+		//else if(MethodName.equals("--")) {
+		//}
+		//else {
+		//	throw new RuntimeException("NotSupportOperator");
+		//}
 		Node.Expr.Evaluate(this);
 		this.PushSourceCode(MethodName + this.PopSourceCode());
 	}
@@ -71,35 +70,32 @@ public class CSourceGenerator extends GreenTeaGenerator {
 
 	@Override public void VisitWhileNode(WhileNode Node) {
 		Node.CondExpr.Evaluate(this);
-		String Program = "while (" + this.PopSourceCode() + ")";
+		String Program = "while(" + this.PopSourceCode() + ")";
 		this.VisitBlockEachStatementWithIndent(Node.LoopBody);
 		Program += this.PopSourceCode();
 		this.PushSourceCode(Program);
 	}
 
-	@Override
-	public void VisitDoWhileNode(DoWhileNode Node) {
+	@Override public void VisitDoWhileNode(DoWhileNode Node) {
 		String Program = "do";
 		this.VisitBlockEachStatementWithIndent(Node.LoopBody);
 		Node.CondExpr.Evaluate(this);
-		Program += " while (" + this.PopSourceCode() + ")";
+		Program += " while(" + this.PopSourceCode() + ")";
 		this.PushSourceCode(Program);
 	}
 
-	@Override
-	public void VisitForNode(ForNode Node) {
+	@Override public void VisitForNode(ForNode Node) {
 		Node.IterExpr.Evaluate(this);
 		Node.CondExpr.Evaluate(this);
 		String Cond = this.PopSourceCode();
 		String Iter = this.PopSourceCode();
-		String Program = "for (; " + Cond  + "; " + Iter + ")";
+		String Program = "for(; " + Cond  + "; " + Iter + ")";
 		Node.LoopBody.Evaluate(this);
 		Program += this.PopSourceCode();
 		this.PushSourceCode(Program);
 	}
 
-	@Override
-	public void VisitForEachNode(ForEachNode Node) {
+	@Override public void VisitForEachNode(ForEachNode Node) {
 		// TODO Auto-generated method stub
 
 	}
@@ -121,8 +117,7 @@ public class CSourceGenerator extends GreenTeaGenerator {
 		this.PushSourceCode("NULL");
 	}
 
-	@Override
-	public void VisitLocalNode(LocalNode Node) {
+	@Override public void VisitLocalNode(LocalNode Node) {
 		this.PushSourceCode(Node.LocalName);
 	}
 
@@ -158,28 +153,43 @@ public class CSourceGenerator extends GreenTeaGenerator {
 		this.PushSourceCode(Program);
 	}
 
-	@Override
-	public void VisitBinaryNode(BinaryNode Node) {
+	@Override public void VisitBinaryNode(BinaryNode Node) {
 		/*local*/String MethodName = Node.Token.ParsedText;
-//		if(MethodName.equals("+")) {
-//		} else if(MethodName.equals("-")) {
-//		} else if(MethodName.equals("*")) {
-//		} else if(MethodName.equals("/")) {
-//		} else if(MethodName.equals("%")) {
-//		} else if(MethodName.equals("<<")) {
-//		} else if(MethodName.equals(">>")) {
-//		} else if(MethodName.equals("&")) {
-//		} else if(MethodName.equals("|")) {
-//		} else if(MethodName.equals("^")) {
-//		} else if(MethodName.equals("<=")) {
-//		} else if(MethodName.equals("<")) {
-//		} else if(MethodName.equals(">=")) {
-//		} else if(MethodName.equals(">")) {
-//		} else if(MethodName.equals("!=")) {
-//		} else if(MethodName.equals("==")) {
-//		} else {
-//			throw new RuntimeException("NotSupportOperator");
-//		}
+		//if(MethodName.equals("+")) {
+		//}
+		//else if(MethodName.equals("-")) {
+		//}
+		//else if(MethodName.equals("*")) {
+		//}
+		//else if(MethodName.equals("/")) {
+		//}
+		//else if(MethodName.equals("%")) {
+		//}
+		//else if(MethodName.equals("<<")) {
+		//}
+		//else if(MethodName.equals(">>")) {
+		//}
+		//else if(MethodName.equals("&")) {
+		//}
+		//else if(MethodName.equals("|")) {
+		//}
+		//else if(MethodName.equals("^")) {
+		//}
+		//else if(MethodName.equals("<=")) {
+		//}
+		//else if(MethodName.equals("<")) {
+		//}
+		//else if(MethodName.equals(">=")) {
+		//}
+		//else if(MethodName.equals(">")) {
+		//}
+		//else if(MethodName.equals("!=")) {
+		//}
+		//else if(MethodName.equals("==")) {
+		//}
+		//else {
+		//	throw new RuntimeException("NotSupportOperator");
+		//}
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
 		this.PushSourceCode(this.PopSourceCode() + " " + MethodName + " " + this.PopSourceCode());
@@ -211,8 +221,7 @@ public class CSourceGenerator extends GreenTeaGenerator {
 		this.PushSourceCode(Code + this.PopSourceCode());
 	}
 
-	@Override
-	public void VisitIfNode(IfNode Node) {
+	@Override public void VisitIfNode(IfNode Node) {
 		Node.CondExpr.Evaluate(this);
 		this.VisitBlockEachStatementWithIndent(Node.ThenNode);
 		this.VisitBlockEachStatementWithIndent(Node.ElseNode);
@@ -273,8 +282,7 @@ public class CSourceGenerator extends GreenTeaGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	@Override
-	public void VisitTryNode(TryNode Node) {
+	@Override public void VisitTryNode(TryNode Node) {
 		/*local*/String Code = "try";
 		//this.VisitEach(Node.CatchBlock);
 		this.VisitBlockEachStatementWithIndent(Node.TryBlock);
@@ -286,27 +294,23 @@ public class CSourceGenerator extends GreenTeaGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	@Override
-	public void VisitThrowNode(ThrowNode Node) {
+	@Override public void VisitThrowNode(ThrowNode Node) {
 		Node.Expr.Evaluate(this);
 		/*local*/String Code = "throw " + this.PopSourceCode();
 		this.PushSourceCode(Code);
 	}
 
-	@Override
-	public void VisitFunctionNode(FunctionNode Node) {
+	@Override public void VisitFunctionNode(FunctionNode Node) {
 		// TODO Auto-generated method stub
 
 	}
 
-	@Override
-	public void VisitErrorNode(ErrorNode Node) {
+	@Override public void VisitErrorNode(ErrorNode Node) {
 		/*local*/String Code = "throw Error(\"" + Node.Token.ParsedText + "\")";
 		this.PushSourceCode(Code);
 	}
 
-	@Override
-	public void VisitCommandNode(CommandNode Node) {
+	@Override public void VisitCommandNode(CommandNode Node) {
 		/*local*/String Code = "system(\"";
 		/*local*/int i = 0;
 		while(i < GtStatic.ListSize(Node.Params)) {
@@ -344,20 +348,17 @@ public class CSourceGenerator extends GreenTeaGenerator {
 		DebugP("\n\n\n" + Code);
 	}
 
-	@Override
-	public Object Eval(TypedNode Node) {
+	@Override public Object Eval(TypedNode Node) {
 		this.VisitBlockEachStatementWithIndent(Node);
 		return this.PopSourceCode();
 	}
 
-	@Override
-	public void AddClass(GtType Type) {
+	@Override public void AddClass(GtType Type) {
 		// TODO Auto-generated method stub
 
 	}
 
-	@Override
-	public void LoadContext(GtContext Context) {
+	@Override public void LoadContext(GtContext Context) {
 		new JavaLayerDef().MakeDefinition(Context.DefaultNameSpace);
 	}
 }
