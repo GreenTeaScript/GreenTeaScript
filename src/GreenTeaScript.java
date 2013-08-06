@@ -264,12 +264,12 @@ class GtStatic implements GtConst {
 		LangDeps.println("TODO" + LangDeps.GetStackInfo(2) + ": " + msg);
 	}
 
-	public final static String Indent(int Level) {
-		/*local*/int i = 0;
+	public final static String JoinStrings(String Unit, int Times) {
 		/*local*/String s = "";
-		while(i < Level) {
-			s = s + " ";
-			i += 1;
+		/*local*/int i = 0;
+		while(i < Times) {
+			s = s + Unit;
+			i = i + 1;
 		}
 		return s;
 	}
@@ -453,12 +453,12 @@ class GtStatic implements GtConst {
 			if(CurrentPattern.ParentPattern != null) {
 				TokenContext.ParseFlag = ParseFlag | TrackbackParseFlag;
 			}
-			DebugP("B :" + Indent(TokenContext.IndentLevel) + CurrentPattern + ", next=" + CurrentPattern.ParentPattern);
+			DebugP("B :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + ", next=" + CurrentPattern.ParentPattern);
 			TokenContext.IndentLevel += 1;
 			/*local*/SyntaxTree ParsedTree = (/*cast*/SyntaxTree)LangDeps.ApplyMatchFunc(delegate.Self, delegate.Method, CurrentPattern, LeftTree, TokenContext);
 			TokenContext.IndentLevel -= 1;
 			if(ParsedTree != null && ParsedTree.IsEmpty()) ParsedTree = null;
-			DebugP("E :" + Indent(TokenContext.IndentLevel) + CurrentPattern + " => " + ParsedTree);
+			DebugP("E :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + " => " + ParsedTree);
 			TokenContext.ParseFlag = ParseFlag;
 			if(ParsedTree != null) {
 				return ParsedTree;
@@ -1859,23 +1859,27 @@ final class KonohaGrammar extends GtGrammar {
 
 	public static int OperatorToken(TokenContext TokenContext, String SourceText, int pos) {
 		/*local*/int NextPos = pos + 1;
-		/*local*/SyntaxPattern FirstMatchedPattern = null;
 		while(NextPos < SourceText.length()) {
-			/*local*/char ch = LangDeps.CharAt(SourceText, NextPos-1);
+			/*local*/char ch = LangDeps.CharAt(SourceText, NextPos);
 			if(LangDeps.IsWhitespace(ch) || LangDeps.IsLetter(ch) || LangDeps.IsDigit(ch)) {
-				NextPos -= 1;
-				break;
-			}
-			/*local*/String Sub = SourceText.substring(pos, NextPos);
-			/*local*/SyntaxPattern Pattern = TokenContext.NameSpace.GetExtendedPattern(Sub);
-			if(FirstMatchedPattern == null) {
-				FirstMatchedPattern = Pattern;
-			}
-			if(FirstMatchedPattern != null && TokenContext.NameSpace.GetExtendedPattern(Sub) == null) {
-				NextPos -= 1;
 				break;
 			}
 			NextPos += 1;
+		}
+
+		/*local*/boolean Matched = false;
+		while(NextPos > pos) {
+			/*local*/String Sub = SourceText.substring(pos, NextPos);
+			/*local*/SyntaxPattern Pattern = TokenContext.NameSpace.GetExtendedPattern(Sub);
+			if(Pattern != null) {
+				Matched = true;
+				break;
+			}
+			NextPos -= 1;
+		}
+		// FIXME
+		if(Matched == false) {
+			NextPos = pos + 1;
 		}
 		TokenContext.AddNewToken(SourceText.substring(pos, NextPos), 0, null);
 		return NextPos;
