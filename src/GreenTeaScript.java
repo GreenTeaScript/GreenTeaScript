@@ -1980,8 +1980,8 @@ final class KonohaGrammar extends GtGrammar {
 
 	public static SyntaxTree ParseStringLiteral(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
 		/*local*/GtToken Token = TokenContext.Next(); /* this must be \" and we should eat it*/
-		Token = TokenContext.Next();
-		SyntaxTree NewTree = new SyntaxTree(Pattern, TokenContext.NameSpace, Token, Token.ParsedText);
+		/*local*/Token = TokenContext.Next();
+		/*local*/SyntaxTree NewTree = new SyntaxTree(Pattern, TokenContext.NameSpace, Token, Token.ParsedText);
 		if (!TokenContext.MatchToken("\"")) {
 			return TokenContext.NewErrorSyntaxTree(Token, "String must close with \"");
 		}
