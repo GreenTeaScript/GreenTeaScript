@@ -34,6 +34,9 @@ interface GtConst {
 
 	// compatible
 	public final static int		UniversalMethod					= 1 << 13;
+	
+	public final static int		UniqueMethod					= 1 << 14; /* used */
+	public final static int		ExportMethod					= 1 << 15; /* used */
 
 	// internal
 	public final static int		HiddenMethod					= 1 << 17;
@@ -105,39 +108,39 @@ interface GtConst {
 	public final static int	UnicodeChar				= 40;
 	public final static int MaxSizeOfChars          = 41;
 
-	public final static int[]	CharMatrix = /*BeginArray*/{ 
-			/*nul soh stx etx eot enq ack bel*/
-			0, 1, 1, 1, 1, 1, 1, 1,
-			/*bs ht nl vt np cr so si  */
-			1, TabChar, NewLineChar, 1, 1, 1, 1, 1,
-			/*020 dle  021 dc1  022 dc2  023 dc3  024 dc4  025 nak  026 syn  027 etb */
-			1, 1, 1, 1, 1, 1, 1, 1,
-			/*030 can  031 em   032 sub  033 esc  034 fs   035 gs   036 rs   037 us */
-			1, 1, 1, 1, 1, 1, 1, 1,
-			/*040 sp   041  !   042  "   043  #   044  $   045  %   046  &   047  ' */
-			SpaceChar, SurprisedChar, DoubleQuoteChar, SharpChar, DollarChar, PercentChar, AndChar, QuoteChar,
-			/*050  (   051  )   052  *   053  +   054  ,   055  -   056  .   057  / */
-			OpenParChar, CloseParChar, StarChar, PlusChar, CommaChar, MinusChar, DotChar, SlashChar,
-			/*060  0   061  1   062  2   063  3   064  4   065  5   066  6   067  7 */
-			DigitChar, DigitChar, DigitChar, DigitChar, DigitChar, DigitChar, DigitChar, DigitChar,
-			/*070  8   071  9   072  :   073  ;   074  <   075  =   076  >   077  ? */
-			DigitChar, DigitChar, ColonChar, SemiColonChar, LessThanChar, EqualChar, GreaterThanChar, QuestionChar,
-			/*100  @   101  A   102  B   103  C   104  D   105  E   106  F   107  G */
-			AtmarkChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar,
-			/*110  H   111  I   112  J   113  K   114  L   115  M   116  N   117  O */
-			UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar,
-			/*120  P   121  Q   122  R   123  S   124  T   125  U   126  V   127  W */
-			UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar,
-			/*130  X   131  Y   132  Z   133  [   134  \   135  ]   136  ^   137  _ */
-			UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, OpenBracketChar, BackSlashChar, CloseBracketChar, HatChar, UnderBarChar,
-			/*140  `   141  a   142  b   143  c   144  d   145  e   146  f   147  g */
-			BackQuoteChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar,
-			/*150  h   151  i   152  j   153  k   154  l   155  m   156  n   157  o */
-			LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar,
-			/*160  p   161  q   162  r   163  s   164  t   165  u   166  v   167  w */
-			LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar,
-			/*170  x   171  y   172  z   173  {   174  |   175  }   176  ~   177 del*/
-			LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, OpenBraceChar, VarChar, CloseBraceChar, ChilderChar, 1,
+	public final static int[]	CharMatrix = /*BeginArray*/{
+		/*nul soh stx etx eot enq ack bel*/
+		0, 1, 1, 1, 1, 1, 1, 1,
+		/*bs ht nl vt np cr so si  */
+		1, TabChar, NewLineChar, 1, 1, 1, 1, 1,
+		/*020 dle  021 dc1  022 dc2  023 dc3  024 dc4  025 nak  026 syn  027 etb */
+		1, 1, 1, 1, 1, 1, 1, 1,
+		/*030 can  031 em   032 sub  033 esc  034 fs   035 gs   036 rs   037 us */
+		1, 1, 1, 1, 1, 1, 1, 1,
+		/*040 sp   041  !   042  "   043  #   044  $   045  %   046  &   047  ' */
+		SpaceChar, SurprisedChar, DoubleQuoteChar, SharpChar, DollarChar, PercentChar, AndChar, QuoteChar,
+		/*050  (   051  )   052  *   053  +   054  ,   055  -   056  .   057  / */
+		OpenParChar, CloseParChar, StarChar, PlusChar, CommaChar, MinusChar, DotChar, SlashChar,
+		/*060  0   061  1   062  2   063  3   064  4   065  5   066  6   067  7 */
+		DigitChar, DigitChar, DigitChar, DigitChar, DigitChar, DigitChar, DigitChar, DigitChar,
+		/*070  8   071  9   072  :   073  ;   074  <   075  =   076  >   077  ? */
+		DigitChar, DigitChar, ColonChar, SemiColonChar, LessThanChar, EqualChar, GreaterThanChar, QuestionChar,
+		/*100  @   101  A   102  B   103  C   104  D   105  E   106  F   107  G */
+		AtmarkChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar,
+		/*110  H   111  I   112  J   113  K   114  L   115  M   116  N   117  O */
+		UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar,
+		/*120  P   121  Q   122  R   123  S   124  T   125  U   126  V   127  W */
+		UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, UpperAlphaChar,
+		/*130  X   131  Y   132  Z   133  [   134  \   135  ]   136  ^   137  _ */
+		UpperAlphaChar, UpperAlphaChar, UpperAlphaChar, OpenBracketChar, BackSlashChar, CloseBracketChar, HatChar, UnderBarChar,
+		/*140  `   141  a   142  b   143  c   144  d   145  e   146  f   147  g */
+		BackQuoteChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar,
+		/*150  h   151  i   152  j   153  k   154  l   155  m   156  n   157  o */
+		LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar,
+		/*160  p   161  q   162  r   163  s   164  t   165  u   166  v   167  w */
+		LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, LowerAlphaChar,
+		/*170  x   171  y   172  z   173  {   174  |   175  }   176  ~   177 del*/
+		LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, OpenBraceChar, VarChar, CloseBraceChar, ChilderChar, 1,
 		/*EndArray*/};
 
 	public final static GtToken NullToken = new GtToken("", 0);
@@ -375,7 +378,7 @@ class GtStatic implements GtConst {
 			return NumberToAscii(num) + s;
 		}
 	}
-	
+
 	public final static String Mangle(GtType BaseType, int BaseIdx, ArrayList<GtType> TypeList) {
 		/*local*/String s = NumberToAscii(BaseType.ClassId);
 		/*local*/int i = BaseIdx;
@@ -386,11 +389,11 @@ class GtStatic implements GtConst {
 		String MangleName = (/*cast*/String)MangleNameMap.get(s);
 		if(MangleName == null) {
 			MangleName = NumberToAscii(MangleNameMap.size());
-			MangleNameMap.put(s, MangleNameMap);
+			MangleNameMap.put(s, MangleName);
 		}
 		return MangleName;
 	}
-	
+
 //ifdef JAVA
 	public final static GtDelegateToken FunctionA(Object Callee, String MethodName) {
 		return new GtDelegateToken(Callee, LangDeps.LookupMethod(Callee, MethodName));
@@ -488,7 +491,7 @@ class GtStatic implements GtConst {
 		return LeftTree;
 	}
 
-	// typing 
+	// typing
 	public final static TypedNode ApplyTypeFunc(GtDelegateType delegate, TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
 		if(delegate == null || delegate.Method == null){
 			DebugP("try to invoke null TypeFunc");
@@ -1078,7 +1081,8 @@ class SyntaxTree extends GtStatic {
 			}
 			if(ParsedTree != null) {
 				this.SetSyntaxTreeAt(Index, ParsedTree);
-			} else if(ParsedTree == null && !IsOptional) {
+			}
+			else if(ParsedTree == null && !IsOptional) {
 				this.ToEmpty();
 			}
 		}
@@ -1169,7 +1173,7 @@ class GtType extends GtStatic {
 	public final boolean IsGenericType() {
 		return (this.Types != null);
 	}
-	
+
 	// Note Don't call this directly. Use Context.GetGenericType instead.
 	public GtType CreateGenericType(int BaseIndex, ArrayList<GtType> TypeList, String ShortName) {
 		GtType GenericType = new GtType(this.Context, this.ClassFlag, ShortName, null);
@@ -1184,7 +1188,7 @@ class GtType extends GtStatic {
 		this.Types = new GtType[1];
 		this.Types[0] = ParamType;
 	}
-	
+
 	@Override public String toString() {
 		return this.ShortClassName;
 	}
@@ -1204,8 +1208,9 @@ class GtType extends GtStatic {
 class GtMethod extends GtStatic {
 	/*field*/public GtLayer         Layer;
 	/*field*/public int				MethodFlag;
-	/*field*/public String			MethodName;
 	/*field*/int					MethodSymbolId;
+	/*field*/public String			MethodName;
+	/*field*/public String          LocalFuncName;
 	/*field*/public GtType[]		Types;
 	/*field*/public GtMethod        ElderMethod;
 
@@ -1218,6 +1223,15 @@ class GtMethod extends GtStatic {
 		LangDeps.Assert(this.Types.length > 0);
 		this.Layer = null;
 		this.ElderMethod = null;
+		
+		String Name = this.MethodName;
+		if(!LangDeps.IsLetter(LangDeps.CharAt(Name, 0))) {
+			Name = "operator" + this.MethodSymbolId;
+		}
+		if(!this.Is(ExportMethod)) {
+			Name = Name + "__" + GtStatic.Mangle(this.GetRecvType(), 1, ParamList);
+		}
+		this.LocalFuncName = Name;
 	}
 
 	@Override public String toString() {
@@ -1256,6 +1270,8 @@ class GtMethod extends GtStatic {
 	public final GtType GetParamType(int ParamIdx) {
 		return this.Types[ParamIdx+1];
 	}
+	
+	
 }
 
 final class GtLayer extends GtStatic {
@@ -1282,11 +1298,11 @@ final class GtLayer extends GtStatic {
 		Method.ElderMethod = MethodPrev;
 		Method.Layer = this;
 		this.MethodTable.put(MethodId, Method);
-//		MethodPrev = this.LookupUniqueMethod(Method.MethodName);
-//		if(MethodPrev != null) {
-//			TODO("check identity");
-//			this.MethodTable.remove(Id);
-//		}
+		//MethodPrev = this.LookupUniqueMethod(Method.MethodName);
+		//if(MethodPrev != null) {
+		//	TODO("check identity");
+		//	this.MethodTable.remove(Id);
+		//}
 	}
 }
 
@@ -1376,9 +1392,10 @@ final class TypeEnv extends GtStatic {
 
 	public GtType GuessType (Object Value) {
 		TODO("GuessType");
-		if (Value instanceof Integer) {
+		if(Value instanceof Integer) {
 			return this.IntType;
-		} else if (Value instanceof String) {
+		}
+		else if(Value instanceof String) {
 			return this.StringType;
 		}
 		return this.AnyType;
@@ -1789,9 +1806,11 @@ final class GtNameSpace extends GtStatic {
 			if(Level == ErrorLevel) {
 				Message = "(error) " + this.GetSourcePosition(Token.FileLine) + " " + Message;
 				Token.ToErrorToken(Message);
-			} else if(Level == WarningLevel) {
+			}
+			else if(Level == WarningLevel) {
 				Message = "(warning) " + this.GetSourcePosition(Token.FileLine) + " " + Message;
-			} else if(Level == InfoLevel) {
+			}
+			else if(Level == InfoLevel) {
 				Message = "(info) " + this.GetSourcePosition(Token.FileLine) + " " + Message;
 			}
 			GtStatic.println(Message);
@@ -1840,8 +1859,8 @@ final class KonohaGrammar extends GtGrammar {
 		}
 		TokenContext.AddNewToken(Text, IndentTokenFlag, null);
 		return pos;
-//		TokenContext.AddNewToken(SourceText.substring(pos), SourceTokenFlag, null);
-//		return SourceText.length();
+		//TokenContext.AddNewToken(SourceText.substring(pos), SourceTokenFlag, null);
+		//return SourceText.length();
 	}
 
 	public static int SymbolToken(TokenContext TokenContext, String SourceText, int pos) {
@@ -2061,7 +2080,7 @@ final class KonohaGrammar extends GtGrammar {
 		/*local*/GtToken Token = TokenContext.Next(); /* this must be \" and we should eat it*/
 		/*local*/Token = TokenContext.Next();
 		/*local*/SyntaxTree NewTree = new SyntaxTree(Pattern, TokenContext.NameSpace, Token, Token.ParsedText);
-		if (!TokenContext.MatchToken("\"")) {
+		if(!TokenContext.MatchToken("\"")) {
 			return TokenContext.NewErrorSyntaxTree(Token, "String must close with \"");
 		}
 		return NewTree;
@@ -2167,7 +2186,6 @@ final class KonohaGrammar extends GtGrammar {
 	}
 
 	public static TypedNode TypeApply(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
-		//public GtMethod LookupMethod(String MethodName, int ParamSize, int ResolvedSize, ArrayList<GtType> TypeList, int BaseIndex) {
 		/*local*/TypedNode ApplyNode = Gamma.Generator.CreateApplyNode(Gamma.AnyType, ParsedTree, null);
 		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
 		/*FIXME It should be the return type of the function*/
@@ -2179,7 +2197,7 @@ final class KonohaGrammar extends GtGrammar {
 			TypeList.add(ExprNode.Type);
 			i += 1;
 		}
-		
+
 		///*local*/GtMethod Method = Gamma.NameSpace.LookupMethod(MethodName, ParamSize, Type, TypeList, BaseIndex)
 		/*local*/ArrayList<SyntaxTree> TreeList = ParsedTree.TreeList;
 		/*local*/String MethodName = TreeList.get(0/*todo*/).KeyToken.ParsedText;
@@ -2244,7 +2262,7 @@ final class KonohaGrammar extends GtGrammar {
 		if(StmtTree == null) {
 			StmtTree = TokenContext.ParsePattern("$Empty$", Required);
 		}
-		return StmtTree;		
+		return StmtTree;
 	}
 
 	public static TypedNode TypeBlock(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
@@ -2370,14 +2388,14 @@ final class KonohaGrammar extends GtGrammar {
 		else {
 			Tree.SetSyntaxTreeAt(FuncDeclReturnType, LeftTree);
 		}
-//		Tree.SetMatchedPatternAt(FuncDeclClass, TokenContext, "$MethodClass$", Optional);
-//		Tree.SetMatchedTokenAt(NoWhere, TokenContext, ".", Optional);
+		//Tree.SetMatchedPatternAt(FuncDeclClass, TokenContext, "$MethodClass$", Optional);
+		//Tree.SetMatchedTokenAt(NoWhere, TokenContext, ".", Optional);
 		Tree.SetMatchedPatternAt(FuncDeclName, TokenContext, "$FuncName$", Required);
 		if(TokenContext.MatchToken("(")) {
 			/*local*/int ParseFlag = TokenContext.SetTrackback(false);  // disabled
 			/*local*/int ParamBase = FuncDeclParam;
 			while(!Tree.IsEmptyOrError() && !TokenContext.MatchToken(")")) {
-				if (ParamBase != FuncDeclParam) {
+				if(ParamBase != FuncDeclParam) {
 					Tree.SetMatchedTokenAt(NoWhere, TokenContext, ",", Required);
 				}
 				Tree.SetMatchedPatternAt(ParamBase + VarDeclType, TokenContext, "$Type$", Required);
@@ -2395,21 +2413,22 @@ final class KonohaGrammar extends GtGrammar {
 	}
 
 	public static TypedNode TypeFuncDecl(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
-		Gamma = new TypeEnv(ParsedTree.NameSpace);  // creation of new type environment 
+		Gamma = new TypeEnv(ParsedTree.NameSpace);  // creation of new type environment
 		/*local*/String MethodName = (/*cast*/String)ParsedTree.GetSyntaxTreeAt(FuncDeclName).ConstValue;
 		/*local*/ArrayList<GtType> TypeBuffer = new ArrayList<GtType>();
 		/*local*/GtType ReturnType = (/*cast*/GtType)ParsedTree.GetSyntaxTreeAt(FuncDeclReturnType).ConstValue;
 		TypeBuffer.add(ReturnType);
 		/*local*/ArrayList<String> ParamNameList = new ArrayList<String>();
 		/*local*/int ParamBase = FuncDeclParam;
-		
+		/*local*/int i = 0;
 		while(ParamBase < ParsedTree.TreeList.size()) {
 			/*local*/GtType ParamType = (/*cast*/GtType)ParsedTree.GetSyntaxTreeAt(ParamBase).ConstValue;
 			/*local*/String ParamName = ParsedTree.GetSyntaxTreeAt(ParamBase+1).KeyToken.ParsedText;
 			TypeBuffer.add(ParamType);
-			ParamNameList.add(ParamName);
+			ParamNameList.add(ParamName + i);
 			Gamma.AppendDeclaredVariable(ParamType, ParamName);
 			ParamBase += 3;
+			i = i + 1;
 		}
 		/*local*/GtMethod Method = new GtMethod(0, MethodName, TypeBuffer);
 		Gamma.Method = Method;
@@ -2423,8 +2442,8 @@ final class KonohaGrammar extends GtGrammar {
 
 	public static SyntaxTree ParseClassDecl(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
 		/*local*/SyntaxTree Tree = new SyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetToken(), null);
-//		Tree.SetMatchedPatternAt(FuncDeclClass, TokenContext, "$MethodClass$", Optional);
-//		Tree.SetMatchedTokenAt(NoWhere, TokenContext, ".", Optional);
+		//		Tree.SetMatchedPatternAt(FuncDeclClass, TokenContext, "$MethodClass$", Optional);
+	//		Tree.SetMatchedTokenAt(NoWhere, TokenContext, ".", Optional);
 		return null;
 	}
 
@@ -2440,7 +2459,7 @@ final class KonohaGrammar extends GtGrammar {
 		NameSpace.DefineTokenFunc(" \t", FunctionA(this, "WhiteSpaceToken"));
 		NameSpace.DefineTokenFunc("\n",  FunctionA(this, "IndentToken"));
 		NameSpace.DefineTokenFunc("(){}[]<>.,:;+-*/%=&|!@", FunctionA(this, "OperatorToken"));
-		NameSpace.DefineTokenFunc("/", FunctionA(this, "CommentToken"));  // overloading		
+		NameSpace.DefineTokenFunc("/", FunctionA(this, "CommentToken"));  // overloading
 		NameSpace.DefineTokenFunc("Aa", FunctionA(this, "SymbolToken"));
 		NameSpace.DefineTokenFunc("\"", FunctionA(this, "StringLiteralToken"));
 		NameSpace.DefineTokenFunc("1",  FunctionA(this, "NumberLiteralToken"));
@@ -2455,7 +2474,7 @@ final class KonohaGrammar extends GtGrammar {
 		NameSpace.DefineSyntaxPattern("+", ParseUnary, TypeUnary);
 		NameSpace.DefineSyntaxPattern("-", ParseUnary, TypeUnary);
 		NameSpace.DefineSyntaxPattern("!", ParseUnary, TypeUnary);
-		
+
 		NameSpace.DefineExtendedPattern("*", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeBinary);
 		NameSpace.DefineExtendedPattern("/", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeBinary);
 		NameSpace.DefineExtendedPattern("%", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeBinary);
@@ -2474,7 +2493,7 @@ final class KonohaGrammar extends GtGrammar {
 		NameSpace.DefineExtendedPattern("=", BinaryOperator | Precedence_CStyleAssign | LeftJoin, ParseBinary, FunctionC(this, "TypeAssign"));
 		NameSpace.DefineExtendedPattern("&&", BinaryOperator | Precedence_CStyleAND, ParseBinary, FunctionC(this, "TypeAnd"));
 		NameSpace.DefineExtendedPattern("||", BinaryOperator | Precedence_CStyleOR, ParseBinary, FunctionC(this, "TypeOr"));
-		
+
 		NameSpace.DefineSyntaxPattern("$Symbol$", FunctionB(this, "ParseSymbol"), null);
 		NameSpace.DefineSyntaxPattern("$Type$", FunctionB(this, "ParseType"), TypeConst);
 		NameSpace.DefineSyntaxPattern("$Variable$", FunctionB(this, "ParseVariable"), FunctionC(this, "TypeVariable"));
@@ -2486,15 +2505,15 @@ final class KonohaGrammar extends GtGrammar {
 		NameSpace.DefineExtendedPattern(".", 0, FunctionB(this, "ParseField"), FunctionC(this, "TypeField"));
 		NameSpace.DefineExtendedPattern("(", 0, FunctionB(this, "ParseApply"), FunctionC(this, "TypeApply"));
 		//future: NameSpace.DefineExtendedPattern("[", 0, FunctionB(this, "ParseIndexer"), FunctionC(this, "TypeIndexer"));
-		
+
 		NameSpace.DefineSyntaxPattern("$Block$", FunctionB(this, "ParseBlock"), TypeBlock);
 		NameSpace.DefineSyntaxPattern("$Statement$", FunctionB(this, "ParseStatement"), TypeBlock);
 		NameSpace.DefineSyntaxPattern("$Expression$", FunctionB(this, "ParseExpression"), TypeBlock);
-		
+
 		NameSpace.DefineSyntaxPattern("$FuncName$", FunctionB(this, "ParseFuncName"), TypeConst);
 		NameSpace.DefineSyntaxPattern("$FuncDecl$", FunctionB(this, "ParseFuncDecl"), FunctionC(this, "TypeFuncDecl"));
 		NameSpace.DefineSyntaxPattern("$VarDecl$",  FunctionB(this, "ParseVarDecl"), FunctionC(this, "TypeVarDecl"));
-		
+
 		NameSpace.DefineSyntaxPattern("if", FunctionB(this, "ParseIf"), FunctionC(this, "TypeIf"));
 		NameSpace.DefineSyntaxPattern("while", FunctionB(this, "ParseWhile"), FunctionC(this, "TypeWhile"));
 		NameSpace.DefineSyntaxPattern("continue", FunctionB(this, "ParseContinue"), FunctionC(this, "TypeContinue"));
@@ -2573,7 +2592,7 @@ class GtContext extends GtStatic {
 	public Object Eval(String text, long FileLine) {
 		return this.DefaultNameSpace.Eval(text, FileLine, this.Generator);
 	}
-	
+
 	public GtType GetGenericType(GtType BaseType, int BaseIdx, ArrayList<GtType> TypeList, boolean IsCreation) {
 		LangDeps.Assert(BaseType.IsGenericType());
 		String MangleName = GtStatic.Mangle(BaseType, BaseIdx, TypeList);
@@ -2602,7 +2621,7 @@ class GtContext extends GtStatic {
 		TypeList.add(ParamType);
 		return this.GetGenericType(BaseType, 0, TypeList, IsCreation);
 	}
-		
+
 }
 
 public class GreenTeaScript extends GtStatic {
@@ -2620,9 +2639,9 @@ public class GreenTeaScript extends GtStatic {
 	}
 
 	public final static void main(String[] Args) {
-//		Args = new String[2];
-//		Args[0] = "--perl";
-//		Args[1] = "sample/fibo.green";
+		//Args = new String[2];
+		//Args[0] = "--perl";
+		//Args[1] = "sample/fibo.green";
 
 		/*local*/int FileIndex = 0;
 		/*local*/String CodeGeneratorName = "--Java";

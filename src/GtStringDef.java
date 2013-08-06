@@ -7,20 +7,19 @@ public class GtStringDef extends EmbeddedMethodDef {
 		super(NameSpace, NMMap);
 	}
 
-	@Override
-	public void MakeDefinition() {
+	@Override public void MakeDefinition() {
 		ArrayList<GtType> BinaryParam = MakeParamTypeList(StringType, StringType, StringType);
 		ArrayList<GtType> RelationParam = MakeParamTypeList(BooleanType, StringType, StringType);
 		ArrayList<GtType> indexOfParam = MakeParamTypeList(IntType, StringType, StringType);
 		ArrayList<GtType> getSizeParam = MakeParamTypeList(IntType, StringType);
-		
+
 		RegisterMethod(ImmutableMethod | ConstMethod, "+", BinaryParam, this, "StringAddString");
-		
+
 		RegisterMethod(ImmutableMethod | ConstMethod, "==", RelationParam, this, "StringEqString");
 		RegisterMethod(ImmutableMethod | ConstMethod, "!=", RelationParam, this, "StringNeString");
-		
+
 		RegisterMethod(ImmutableMethod | ConstMethod, "indexOf", indexOfParam, this, "StringIndexOf");
-		
+
 		RegisterMethod(ImmutableMethod | ConstMethod, "getSize", getSizeParam, this, "StringGetSize");
 	}
 

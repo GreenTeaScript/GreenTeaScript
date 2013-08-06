@@ -7,11 +7,10 @@ public class GtSystemDef extends EmbeddedMethodDef {
 		super(NameSpace, NMMap);
 	}
 
-	@Override
-	public void MakeDefinition() {
+	@Override public void MakeDefinition() {
 		RegisterClass(0, "System", null);
 		ArrayList<GtType> param = MakeParamTypeList(VoidType, ObjectType, ObjectType);
-		
+
 		RegisterMethod(StaticMethod, "p", param, this, "p");
 	}
 
