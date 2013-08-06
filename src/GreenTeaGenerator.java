@@ -652,44 +652,22 @@ class CommandNode extends TypedNode {
 	}
 }
 
-
-public class GreenTeaGenerator extends GtStatic {
+class GreenTeaGenerator extends GtStatic {
 	/*field*/public String     LangName;
+	/*field*/public GtContext  Context;
+
 	/*field*/ArrayList<Object> GeneratedCodeStack;
-	/*field*/GtContext Context;
-	/*field*/private int      IndentLevel					= 0;
-	/*field*/private String   CurrentLevelIndentString	= "";
-
-	public final void Indent() {
-		this.IndentLevel += 1;
-		this.CurrentLevelIndentString = null;
-	}
-
-	public final void UnIndent() {
-		this.IndentLevel -= 1;
-		this.CurrentLevelIndentString = null;
-		LangDeps.Assert(this.IndentLevel >= 0);
-	}
-
-	public final String GetIndentString() {
-		if(this.CurrentLevelIndentString == null) {
-			this.CurrentLevelIndentString = JoinStrings("   ", this.IndentLevel);
-		}
-		return this.CurrentLevelIndentString;
-	}
-
-	protected String StringfyConstValue(Object ConstValue) {
-		if(ConstValue instanceof String) {
-			return "\"" + ConstValue + "\"";  // FIXME \n
-		}
-		return ConstValue.toString();
-	}
+	/*field*/private int       IndentLevel;
+	/*field*/private String    CurrentLevelIndentString;
 
 	GreenTeaGenerator/*constructor*/(String LangName) {
 		this.LangName = LangName;
 		this.GeneratedCodeStack = new ArrayList<Object>();
+		this.Context = null;
+		this.IndentLevel = 0;
+		this.CurrentLevelIndentString = null;
 	}
-
+	
 	public final TypedNode UnsupportedNode(GtType Type, SyntaxTree ParsedTree) {
 		GtToken Token = ParsedTree.KeyToken;
 		ParsedTree.NameSpace.ReportError(ErrorLevel, Token, this.LangName + " has no language support for " + Token.ParsedText);
@@ -831,6 +809,21 @@ public class GreenTeaGenerator extends GtStatic {
 	public TypedNode CreateCommandNode(GtType Type, SyntaxTree ParsedTree, TypedNode PipedNextNode) {
 		return new CommandNode(Type, ParsedTree.KeyToken, PipedNextNode);
 	}
+	
+	public int ParseMethodFlag(int MethodFlag, SyntaxTree MethodDeclTree) {
+		if(MethodDeclTree.HasAnnotation("Export")) {
+			MethodFlag = MethodFlag | ExportMethod;
+		}
+		if(MethodDeclTree.HasAnnotation("Operator")) {
+			MethodFlag = MethodFlag | OperatorMethod;
+		}
+		return MethodFlag;
+	}
+	
+	public GtMethod CreateMethod(int MethodFlag, String MethodName, int BaseIndex, ArrayList<GtType> TypeList) {
+		return new GtMethod(MethodFlag, MethodName, BaseIndex, TypeList);
+	}
+
 
 	public void VisitEmptyNode(TypedNode EmptyNode) {
 		GtStatic.DebugP("empty node: " + EmptyNode.Token.ParsedText);
@@ -974,7 +967,6 @@ public class GreenTeaGenerator extends GtStatic {
 
 	// This must be extended in each language
 	public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, TypedNode Body) {
-
 		/*extenstion*/
 	}
 
@@ -987,8 +979,31 @@ public class GreenTeaGenerator extends GtStatic {
 		/*extension*/
 	}
 
-	public void LoadContext(GtContext Context) {
-		/*extension*/
+	/* GeneratorUtils */
+	
+	public final void Indent() {
+		this.IndentLevel += 1;
+		this.CurrentLevelIndentString = null;
+	}
+
+	public final void UnIndent() {
+		this.IndentLevel -= 1;
+		this.CurrentLevelIndentString = null;
+		LangDeps.Assert(this.IndentLevel >= 0);
+	}
+
+	public final String GetIndentString() {
+		if(this.CurrentLevelIndentString == null) {
+			this.CurrentLevelIndentString = JoinStrings("   ", this.IndentLevel);
+		}
+		return this.CurrentLevelIndentString;
+	}
+
+	protected String StringfyConstValue(Object ConstValue) {
+		if(ConstValue instanceof String) {
+			return "\"" + ConstValue + "\"";  // FIXME \n
+		}
+		return ConstValue.toString();
 	}
 
 	protected void PushCode(Object Code){
