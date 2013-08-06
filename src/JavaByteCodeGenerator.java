@@ -566,7 +566,7 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 			ArrayList<GtType> ParamTypeList = new ArrayList<GtType>();//GtType[] ParamData = new GtType[2];
 			ParamTypeList.add(NameSpace.Context.ObjectType);
 			//ParamDataList.add(GlobalType);	//FIXME
-			paramTypes = LangDeps.CompactTypeList(ParamTypeList);
+			paramTypes = LangDeps.CompactTypeList(0, ParamTypeList);
 			params = new ArrayList<Local>();
 			params.add(new Local(0, GlobalType, "this"));
 			ReturnType = ParamTypeList.get(0);
@@ -1010,7 +1010,7 @@ class EmbeddedMethodDef extends GtStatic {
 
 	void RegisterMethod(int MethodFlag, String MethodName, ArrayList<GtType> ParamTypeList, Object Callee, String LocalName) {
 		GtMethod newMethod = new GtMethod(MethodFlag, MethodName, ParamTypeList);
-		GtType[] paramTypes = LangDeps.CompactTypeList(ParamTypeList);
+		GtType[] paramTypes = LangDeps.CompactTypeList(0, ParamTypeList);
 		Method mtd = LookupMethod(Callee, LocalName);
 		NMMap.PutMethodInvoker(newMethod, new NativeMethodInvoker(paramTypes, mtd));
 		NameSpace.DefineMethod(newMethod);

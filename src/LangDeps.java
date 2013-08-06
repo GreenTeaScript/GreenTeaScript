@@ -148,9 +148,9 @@ public abstract class LangDeps {
 		return null;
 	}
 
-	public final static GtType[] CompactTypeList(ArrayList<GtType> List) {
-		GtType[] Tuple = new GtType[List.size()];
-		for(int i = 0; i < List.size(); i++) {
+	public final static GtType[] CompactTypeList(int BaseIndex, ArrayList<GtType> List) {
+		GtType[] Tuple = new GtType[List.size() - BaseIndex];
+		for(int i = BaseIndex; i < List.size(); i++) {
 			Tuple[i] = List.get(i);
 		}
 		return Tuple;
