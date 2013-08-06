@@ -280,7 +280,6 @@ class ApplyNode extends TypedNode {
 	}
 }
 
-
 class MessageNode extends TypedNode {
 	/*field*/public GtMethod	Method;
 	/*field*/public ArrayList<TypedNode>  Params; /* [this, arg1, arg2, ...] */
@@ -608,6 +607,32 @@ class ErrorNode extends TypedNode {
 	}
 }
 
+class CommandNode extends TypedNode {
+	/*field*/public ArrayList<TypedNode>  Params; /* ["ls", "-la", "/", ...] */
+	CommandNode/*constructor*/(GtType Type, GtToken KeyToken) {
+		super(Type, KeyToken);
+		this.Params = new ArrayList<TypedNode>();
+	}
+	@Override public void Append(TypedNode Expr) {
+		this.Params.add(Expr);
+	}
+
+	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+		Visitor.VisitCommandNode(this);
+	}
+	@Override public String toString() {
+		/*local*/String Param = "";
+		for(/*local*/int i = 0; i < Params.size(); i++) {
+			TypedNode Node = Params.get(i);
+			if(i != 0) {
+				Param += ", ";
+			}
+			Param += TypedNode.Stringify(Node);
+		}
+		return "(Command:" + this.Type + " " + Param + ")";
+	}
+}
+
 public class GreenTeaGenerator extends GtStatic {
 	/*field*/public String LangName;
 	/*field*/ArrayList<Object> GeneratedCodeStack;
@@ -791,6 +816,9 @@ public class GreenTeaGenerator extends GtStatic {
 		return new ErrorNode(ParsedTree.NameSpace.Context.VoidType, ParsedTree.KeyToken);
 	}
 
+	public TypedNode CreateCommandNode(GtType Type, SyntaxTree ParsedTree) {
+		return new CommandNode(ParsedTree.NameSpace.Context.StringType, ParsedTree.KeyToken);
+	}
 
 	public void VisitEmptyNode(TypedNode EmptyNode) {
 		GtStatic.DebugP("empty node: " + EmptyNode.Token.ParsedText);
@@ -917,6 +945,10 @@ public class GreenTeaGenerator extends GtStatic {
 	}
 
 	public void VisitErrorNode(ErrorNode Node) {
+		/*extension*/
+	}
+
+	public void VisitCommandNode(CommandNode Node) {
 		/*extension*/
 	}
 

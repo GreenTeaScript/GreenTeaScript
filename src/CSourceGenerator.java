@@ -321,6 +321,21 @@ public class CSourceGenerator extends GreenTeaGenerator {
 	}
 
 	@Override
+	public void VisitCommandNode(CommandNode Node) {
+		String Code = "system(\"";
+		for(/*local*/int i = 0; i < Node.Params.size(); i++) {
+			TypedNode Param = Node.Params.get(i);
+			if(i != 0) {
+				Code += " ";
+			}
+			Param.Evaluate(this);
+			Code += this.PopSourceCode();
+		}
+		Code += "\")";
+		this.PushSourceCode(Code);
+	}
+
+	@Override
 	public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, TypedNode Body) {
 		String Program = "";
 		String RetTy = Method.GetReturnType().ShortClassName;
