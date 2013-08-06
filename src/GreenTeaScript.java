@@ -1316,10 +1316,12 @@ final class TypeEnv extends GtStatic {
 		return null;
 	}
 
-	public GtType GuessType(Object Value) {
+	public GtType GuessType (Object Value) {
 		TODO("GuessType");
 		if (Value instanceof Integer) {
 			return this.IntType;
+		} else if (Value instanceof String) {
+			return this.StringType;
 		}
 		return this.AnyType;
 	}
@@ -1967,7 +1969,7 @@ final class KonohaGrammar extends GtGrammar {
 		if(BlockNode != null) {
 			GtStatic.LinkNode(AssignNode, BlockNode);
 		}
-		return Gamma.Generator.CreateLetNode(BlockNode.Type, ParsedTree, DeclType, VariableNode, AssignNode/*connected block*/);
+		return Gamma.Generator.CreateLetNode(DeclType, ParsedTree, DeclType, VariableNode, AssignNode/*connected block*/);
 	}
 
 	// Parse And Type
@@ -1977,9 +1979,13 @@ final class KonohaGrammar extends GtGrammar {
 	}
 
 	public static SyntaxTree ParseStringLiteral(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
-		/*local*/GtToken Token = TokenContext.Next();
-		TODO("handling string literal");
-		return new SyntaxTree(Pattern, TokenContext.NameSpace, Token, Token.ParsedText);
+		/*local*/GtToken Token = TokenContext.Next(); /* this must be \" and we should eat it*/
+		Token = TokenContext.Next();
+		SyntaxTree NewTree = new SyntaxTree(Pattern, TokenContext.NameSpace, Token, Token.ParsedText);
+		if (!TokenContext.MatchToken("\"")) {
+			return TokenContext.NewErrorSyntaxTree(Token, "String must close with \"");
+		}
+		return NewTree;
 	}
 
 	public static SyntaxTree ParseExpression(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
