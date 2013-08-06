@@ -2135,8 +2135,11 @@ final class KonohaGrammar extends GtGrammar {
 		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
 		TypeList.add(LeftNode.Type);
 		TypeList.add(RightNode.Type);
-		/*local*/GtType ReturnType = Gamma.VarType; // FIXME Method.GetReturnType();
-		/*local*/GtMethod Method = Gamma.NameSpace.LookupMethod(Operator, 2, 1/*FIXME*/, TypeList, 0);
+		/*local*/GtMethod Method = Gamma.NameSpace.LookupMethod(Operator, 2, 1, TypeList, 0);
+		/*local*/GtType ReturnType = Gamma.VarType;
+		if(Method != null) { // FIXME need more restricted type checker
+			ReturnType = Method.GetReturnType();
+		}
 		return Gamma.Generator.CreateBinaryNode(ReturnType, ParsedTree, Method, LeftNode, RightNode);
 	}
 
@@ -2172,14 +2175,19 @@ final class KonohaGrammar extends GtGrammar {
 		TokenContext.ParseFlag |= SkipIndentParseFlag;
 		/*local*/SyntaxTree FuncTree = new SyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("("), null);
 		FuncTree.AppendParsedTree(LeftTree);
-		while(!FuncTree.IsEmptyOrError()) {
-			/*local*/SyntaxTree Tree = TokenContext.ParsePattern("$Expression$", Required);
-			FuncTree.AppendParsedTree(Tree);
-			if(TokenContext.MatchToken(",")) continue;
-			/*local*/SyntaxTree EndTree = new SyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken(")"), null);
-			if(EndTree != null) {
-				FuncTree.AppendParsedTree(EndTree);
-				break;
+		if(TokenContext.MatchToken(")")) { // case: f()
+			GtToken Token = TokenContext.GetBeforeToken();
+			FuncTree.AppendParsedTree(new SyntaxTree(Pattern, TokenContext.NameSpace, Token, null));
+		} else { // case: f(1, 2, 3);
+			while(!FuncTree.IsEmptyOrError()) {
+				/*local*/SyntaxTree Tree = TokenContext.ParsePattern("$Expression$", Required);
+				FuncTree.AppendParsedTree(Tree);
+				if(TokenContext.MatchToken(",")) continue;
+				/*local*/SyntaxTree EndTree = new SyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken(")"), null);
+				if(EndTree != null) {
+					FuncTree.AppendParsedTree(EndTree);
+					break;
+				}
 			}
 		}
 		TokenContext.ParseFlag = ParseFlag;
@@ -2189,21 +2197,28 @@ final class KonohaGrammar extends GtGrammar {
 	public static TypedNode TypeApply(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
 		/*local*/TypedNode ApplyNode = Gamma.Generator.CreateApplyNode(Gamma.AnyType, ParsedTree, null);
 		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
-		/*FIXME It should be the return type of the function*/
-		TypeList.add(Gamma.NameSpace.Context.IntType);
 		/*local*/int i = 1;
 		while(i < ListSize(ParsedTree.TreeList) - 1/* this is for ")" */) {
 			/*local*/TypedNode ExprNode = ParsedTree.TypeNodeAt(i, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
 			ApplyNode.Append(ExprNode);
+			//FIXME we need to implement TypeChecker
+			if(ExprNode.Type.equals(Gamma.VarType)) {
+				ExprNode.Type = Gamma.IntType;
+			}
 			TypeList.add(ExprNode.Type);
 			i += 1;
 		}
+		if(TypeList.size() == 0) {
+			TypeList.add(Gamma.NameSpace.Context.VoidType);
+		}
 
-		///*local*/GtMethod Method = Gamma.NameSpace.LookupMethod(MethodName, ParamSize, Type, TypeList, BaseIndex)
 		/*local*/ArrayList<SyntaxTree> TreeList = ParsedTree.TreeList;
-		/*local*/String MethodName = TreeList.get(0/*todo*/).KeyToken.ParsedText;
+		/*local*/String MethodName = TreeList.get(0).KeyToken.ParsedText;
 		/*local*/int ParamSize = TreeList.size() - 2; /*MethodName and ")" symol*/
 		/*local*/GtMethod Method = Gamma.NameSpace.LookupMethod(MethodName, ParamSize, 1/*FIXME*/, TypeList, 0);
+		if(Method == null) {
+			return Gamma.CreateErrorNode(ParsedTree, "Undefined method: " + MethodName);
+		}
 		((/*cast*/ApplyNode)ApplyNode).Method = Method;
 		return ApplyNode;
 	}
@@ -2640,9 +2655,9 @@ public class GreenTeaScript extends GtStatic {
 	}
 
 	public final static void main(String[] Args) {
-		//Args = new String[2];
-		//Args[0] = "--perl";
-		//Args[1] = "sample/fibo.green";
+//		Args = new String[2];
+//		Args[0] = "--perl";
+//		Args[1] = "sample/fibo.green";
 
 		/*local*/int FileIndex = 0;
 		/*local*/String CodeGeneratorName = "--Java";
