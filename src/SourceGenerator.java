@@ -974,9 +974,7 @@ class CodeGenerator extends GtStatic {
 		return new GtMethod(MethodFlag, MethodName, BaseIndex, TypeList);
 	}
 
-
-	
-	
+	//------------------------------------------------------------------------
 	
 	public void VisitEmptyNode(TypedNode EmptyNode) {
 		GtStatic.DebugP("empty node: " + EmptyNode.Token.ParsedText);
