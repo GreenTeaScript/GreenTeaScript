@@ -1,0 +1,12 @@
+int f(int a) {
+    int i = 0;
+    while(i < a) {
+        if(i == 5) {
+            break;
+        }
+        i = i + 1;
+    }
+    return i;
+}
+
+f(10);

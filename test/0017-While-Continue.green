@@ -1,0 +1,11 @@
+int f(int a) {
+    int i = 0;
+    while(i < a) {
+        i = i + 1;
+        continue;
+        return;
+    }
+    return i;
+}
+
+f(10);
