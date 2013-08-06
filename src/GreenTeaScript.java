@@ -2420,14 +2420,15 @@ final class KonohaGrammar extends GtGrammar {
 		TypeBuffer.add(ReturnType);
 		/*local*/ArrayList<String> ParamNameList = new ArrayList<String>();
 		/*local*/int ParamBase = FuncDeclParam;
-
+		/*local*/int i = 0;
 		while(ParamBase < ParsedTree.TreeList.size()) {
 			/*local*/GtType ParamType = (/*cast*/GtType)ParsedTree.GetSyntaxTreeAt(ParamBase).ConstValue;
 			/*local*/String ParamName = ParsedTree.GetSyntaxTreeAt(ParamBase+1).KeyToken.ParsedText;
 			TypeBuffer.add(ParamType);
-			ParamNameList.add(ParamName);
+			ParamNameList.add(ParamName + i);
 			Gamma.AppendDeclaredVariable(ParamType, ParamName);
 			ParamBase += 3;
+			i = i + 1;
 		}
 		/*local*/GtMethod Method = new GtMethod(0, MethodName, TypeBuffer);
 		Gamma.Method = Method;
