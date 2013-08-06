@@ -1,7 +1,5 @@
 import java.util.ArrayList;
 
-// GreenTea Generator should be written in each language.
-
 public class JavaScriptSourceGenerator extends GreenTeaGenerator {
 
 	JavaScriptSourceGenerator() {
@@ -20,7 +18,7 @@ public class JavaScriptSourceGenerator extends GreenTeaGenerator {
 			if(i > 0){
 				Code = Code + ", ";
 			}
-			Code = Code + NameList.get(i) + "0";
+			Code = Code + NameList.get(i) + i;
 			i = i + 1;
 		}
 		Code += ") ";
@@ -30,27 +28,25 @@ public class JavaScriptSourceGenerator extends GreenTeaGenerator {
 	};
 
 	public  void VisitBlockJS(TypedNode Node) {
-		/*local*/String currentLevelIndent = this.GetIndentString();
 		this.Indent();
 		/*local*/String highLevelIndent = this.GetIndentString();
 		super.VisitBlock(Node);
 		this.UnIndent();
 		/*local*/int Size = Node.CountForrowingNode();
 		/*local*/String Block = this.PopManyCodeWithModifier(Size, true, "\n" + highLevelIndent, ";", null);
-		this.PushSourceCode("{" + Block + "\n" + currentLevelIndent + "}");
+		this.PushSourceCode("{" + Block + "\n" + this.GetIndentString() + "}");
 	}
 
 	@Override
 	public void VisitConstNode(ConstNode Node) {
 		this.PushSourceCode(Node.ConstValue == null ? "null" : Node.ConstValue.toString());
-		return;
 	}
 
 	@Override
 	public void VisitUnaryNode(UnaryNode UnaryNode) {
 		UnaryNode.Expr.Evaluate(this);
 		this.PushSourceCode(UnaryNode.Token.ParsedText + this.PopSourceCode());
-	};
+	}
 
 	@Override
 	public void VisitBinaryNode(BinaryNode Node) {
@@ -73,18 +69,15 @@ public class JavaScriptSourceGenerator extends GreenTeaGenerator {
 			i = i + 1;
 		}
 		this.PushSourceCode("new " + Node.Type.ShortClassName + "()");
-		return;
 	}
 
 	@Override
 	public void VisitNullNode(NullNode Node) {
 		this.PushSourceCode("null");
-		return;
 	}
 
 	@Override
 	public void VisitLocalNode(LocalNode Node) {
-		//this.AddLocalVarIfNotDefined(Node.Type, Node.Token.ParsedText);
 		this.PushSourceCode(Node.LocalName);
 	}
 
@@ -143,12 +136,7 @@ public class JavaScriptSourceGenerator extends GreenTeaGenerator {
 
 	@Override
 	public void VisitLetNode(LetNode Node) {
-		//		Node.ValueNode.Evaluate(this);
 		this.VisitBlockJS(Node.BlockNode);
-		//this.AddLocalVarIfNotDefined(Node.Type, Node.VarToken.ParsedText);
-		//		String Block = this.pop();
-		//		String Right = this.pop();
-		//		this.push(Node.VarToken.ParsedText + " = " + Right + Block);
 	}
 
 	@Override
@@ -157,32 +145,22 @@ public class JavaScriptSourceGenerator extends GreenTeaGenerator {
 		this.VisitBlockJS(Node.ThenNode);
 		/*local*/String ThenBlock = this.PopSourceCode();
 		/*local*/String CondExpr = this.PopSourceCode();
-		/*local*/String source = "if(" + CondExpr + ") " + ThenBlock;
+		/*local*/String Source = "if(" + CondExpr + ") " + ThenBlock;
 		if(Node.ElseNode != null) {
 			this.VisitBlockJS(Node.ElseNode);
-			/*local*/String ElseBlock = this.PopSourceCode();
-			source = source + " else " + ElseBlock;
+			Source = Source + " else " + this.PopSourceCode();
 		}
-		this.PushSourceCode(source);
+		this.PushSourceCode(Source);
 	}
 
 	@Override
 	public void VisitSwitchNode(SwitchNode Node) {
-		//		Node..CondExpr.Evaluate(this);
-		//		/* FIXME: Do not use for statement */for(int i = 0; i < Node.Blocks.size(); i++) {
-		//			TypedNode Block = (TypedNode) Node.Blocks.get(i);
-		//			this.VisitListNode(Block);
-		//		}
-		//
-		//		int Size = Node.Labels.size();
-		//		String Exprs = "";
-		//		/* FIXME: Do not use for statement */for(int i = 0; i < Size; i = i + 1) {
-		//			String Label = (String) Node.Labels.get(Size - i);
-		//			String Block = this.pop();
-		//			Exprs = "case " + Label + ":" + Block + Exprs;
-		//		}
-		//		String CondExpr = this.pop();
-		//		this.push("switch (" + CondExpr + ") {" + Exprs + "}");
+		// TODO Auto-generated method stub
+	}
+	
+	@Override
+	public void VisitLoopNode(LoopNode Node) {
+		// TODO Auto-generated method stub
 	}
 
 	@Override
@@ -212,6 +190,11 @@ public class JavaScriptSourceGenerator extends GreenTeaGenerator {
 		/*local*/String LoopBody = this.PopSourceCode();
 		/*local*/String CondExpr = this.PopSourceCode();
 		this.PushSourceCode("do {" + LoopBody + "}while(" + CondExpr + ");");
+	}
+	
+	@Override
+	public void VisitForEachNode(ForEachNode ForEachNode) {
+		// TODO Auto-generated method stub
 	}
 
 	@Override
@@ -264,9 +247,9 @@ public class JavaScriptSourceGenerator extends GreenTeaGenerator {
 		this.VisitBlockJS(Node.FinallyBlock);
 
 		/*local*/String FinallyBlock = this.PopSourceCode();
-		/*local*/String CatchBlocks = this.PopManyCodeWithModifier(Node.CatchBlock.CountForrowingNode(), true, "catch() ", null, null);
+		/*local*/String CatchBlocks = "";//this.PopManyCodeWithModifier(Node.CatchBlock.CountForrowingNode(), true, "catch() ", null, null);
 		/*local*/String TryBlock = this.PopSourceCode();
-		this.PushSourceCode("try " + TryBlock + "" + CatchBlocks + "finally " + FinallyBlock);
+		this.PushSourceCode("try " + TryBlock /*+ CatchBlocks*/ + "finally " + FinallyBlock);
 		return;
 	}
 
@@ -294,10 +277,13 @@ public class JavaScriptSourceGenerator extends GreenTeaGenerator {
 	// This must be extended in each language
 	@Override 
 	public Object Eval(TypedNode Node) {
-		VisitBlock(Node);
-		/*local*/String ret = this.PopSourceCode() + ";\n";
+		this.VisitBlock(Node);
+		/*local*/String ret = "";
 		while(this.GeneratedCodeStack.size() > 0){
-			ret = this.PopSourceCode() + ";\n" + ret;
+			/*local*/String Line = this.PopSourceCode();
+			if(Line.length() > 0){
+				ret =  Line + ";\n" + ret;
+			}
 		}
 		System.out.println(ret);
 		return ret;
