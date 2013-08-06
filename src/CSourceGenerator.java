@@ -216,9 +216,9 @@ public class CSourceGenerator extends GreenTeaGenerator {
 	@Override public void VisitLetNode(LetNode Node) {
 		/*local*/String Type = Node.DeclType.ShortClassName;
 		Node.VarNode.Evaluate(this);
-		/*local*/String Code = Type + " " + this.PopSourceCode() + ";";
+		/*local*/String Code = Type + " " + this.PopSourceCode() + ";\n";
 		this.VisitBlockEachStatementWithIndent(Node.BlockNode);
-		this.PushSourceCode(Code + this.PopSourceCode());
+		this.PushSourceCode(Code + this.GetIndentString() + this.PopSourceCode());
 	}
 
 	@Override public void VisitIfNode(IfNode Node) {
