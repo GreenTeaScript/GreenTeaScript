@@ -378,7 +378,7 @@ class GtStatic implements GtConst {
 	public final static int ApplyTokenFunc(TokenFunc TokenFunc, TokenContext TokenContext, String ScriptSource, int Pos) {
 		while(TokenFunc != null) {
 			/*local*/GtDelegateToken delegate = TokenFunc.Func;
-			int NextIdx = LangDeps.ApplyTokenFunc(delegate.Self, delegate.Method, TokenContext, ScriptSource, Pos);
+			/*local*/int NextIdx = LangDeps.ApplyTokenFunc(delegate.Self, delegate.Method, TokenContext, ScriptSource, Pos);
 			if(NextIdx > Pos) return NextIdx;
 			TokenFunc = TokenFunc.ParentFunc;
 		}
@@ -425,7 +425,7 @@ class GtStatic implements GtConst {
 			}
 			DebugP("B :" + Indent(TokenContext.IndentLevel) + CurrentPattern + ", next=" + CurrentPattern.ParentPattern);
 			TokenContext.IndentLevel += 1;
-			SyntaxTree ParsedTree = (SyntaxTree)LangDeps.ApplyMatchFunc(delegate.Self, delegate.Method, CurrentPattern, LeftTree, TokenContext);
+			/*local*/SyntaxTree ParsedTree = (/*cast*/SyntaxTree)LangDeps.ApplyMatchFunc(delegate.Self, delegate.Method, CurrentPattern, LeftTree, TokenContext);
 			TokenContext.IndentLevel -= 1;
 			if(ParsedTree != null && ParsedTree.IsEmpty()) ParsedTree = null;
 			DebugP("E :" + Indent(TokenContext.IndentLevel) + CurrentPattern + " => " + ParsedTree);
@@ -824,7 +824,7 @@ final class TokenContext extends GtStatic {
 	}
 
 	public final int SetTrackback(boolean Allowed) {
-		int ParseFlag = this.ParseFlag;
+		/*local*/int ParseFlag = this.ParseFlag;
 		if(Allowed) {
 			this.ParseFlag = this.ParseFlag | TrackbackParseFlag;
 		}
