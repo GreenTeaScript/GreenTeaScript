@@ -1,0 +1,6 @@
+String +(String x, String y);
+boolean ==(String x, String y);
+boolean !=(String x, String y);
+
+String String.length();
+String String.concat(String y);
