@@ -1915,6 +1915,7 @@ final class KonohaGrammar extends GtGrammar {
 					if(ch == '\n') {
 						return IndentToken(TokenContext, SourceText, NextPos);
 					}
+					NextPos = NextPos + 1;
 				}
 			}
 		}
