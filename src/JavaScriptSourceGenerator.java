@@ -4,7 +4,6 @@ public class JavaScriptSourceGenerator extends GreenTeaGenerator {
 
 	JavaScriptSourceGenerator() {
 		super("JavaScript");
-		this.IndentUnit = "  ";
 	}
 
 	private boolean UseLetKeyword;

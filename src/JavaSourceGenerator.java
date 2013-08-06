@@ -89,12 +89,10 @@ public class JavaSourceGenerator extends GreenTeaGenerator {
 	public void VisitForNode(ForNode Node) {
 		Node.IterExpr.Evaluate(this);
 		Node.CondExpr.Evaluate(this);
-		Node.InitNode.Evaluate(this);
-		String Init = this.PopSourceCode();
 		String Cond = this.PopSourceCode();
 		String Iter = this.PopSourceCode();
 
-		String Program = "for(" + Init + "; " + Cond  + "; " + Iter + ")";
+		String Program = "for(; " + Cond  + "; " + Iter + ")";
 		Node.LoopBody.Evaluate(this);
 		Program += this.PopSourceCode();
 		this.PushSourceCode(Program);

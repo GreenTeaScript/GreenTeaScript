@@ -91,18 +91,16 @@ public class PerlSourceGenerator extends GreenTeaGenerator {
 	public void VisitForNode(ForNode Node) {
 		Node.IterExpr.Evaluate(this);
 		Node.CondExpr.Evaluate(this);
-		Node.InitNode.Evaluate(this);
-		String Init = this.PopSourceCode();
 		String Cond = this.PopSourceCode();
 		String Iter = this.PopSourceCode();
 
-		String Program = "for(" + Init + "; " + Cond  + "; " + Iter + ")";
+		String Program = "for(; " + Cond  + "; " + Iter + ")";
 		Node.LoopBody.Evaluate(this);
 		Program += this.PopSourceCode();
 		this.PushSourceCode(Program);
 	}
 
-	@Override
+	@Override 
 	public void VisitForEachNode(ForEachNode Node) {
 		// TODO Auto-generated method stub
 
@@ -166,28 +164,44 @@ public class PerlSourceGenerator extends GreenTeaGenerator {
 	public void VisitBinaryNode(BinaryNode Node) {
 		String MethodName = Node.Token.ParsedText;
 		if(MethodName.equals("+")) {
-		} else if(MethodName.equals("-")) {
-		} else if(MethodName.equals("*")) {
-		} else if(MethodName.equals("/")) {
-		} else if(MethodName.equals("%")) {
-		} else if(MethodName.equals("<<")) {
-		} else if(MethodName.equals(">>")) {
-		} else if(MethodName.equals("&")) {
-		} else if(MethodName.equals("|")) {
-		} else if(MethodName.equals("^")) {
-		} else if(MethodName.equals("<=")) {
-		} else if(MethodName.equals("<")) {
-		} else if(MethodName.equals(">=")) {
-		} else if(MethodName.equals(">")) {
-		} else if(MethodName.equals("!=")) {
-			if(Node.Method.GetRecvType().ShortClassName.equals("String")) {
+		} 
+		else if(MethodName.equals("-")) {
+		} 
+		else if(MethodName.equals("*")) {
+		} 
+		else if(MethodName.equals("/")) {
+		} 
+		else if(MethodName.equals("%")) {
+		} 
+		else if(MethodName.equals("<<")) {
+		} 
+		else if(MethodName.equals(">>")) {
+		} 
+		else if(MethodName.equals("&")) {
+		} 
+		else if(MethodName.equals("|")) {
+		} 
+		else if(MethodName.equals("^")) {
+		} 
+		else if(MethodName.equals("<=")) {
+		} 
+		else if(MethodName.equals("<")) {
+		} 
+		else if(MethodName.equals(">=")) {
+		} 
+		else if(MethodName.equals(">")) {
+		} 
+		else if(MethodName.equals("!=")) {
+			if(Node.Method.GetRecvType() == this.Context.StringType) {
 				MethodName = "ne";
 			}
-		} else if(MethodName.equals("==")) {
-			if(Node.Method.GetRecvType().ShortClassName.equals("String")) {
+		} 
+		else if(MethodName.equals("==")) {
+			if(Node.Method.GetRecvType() == this.Context.StringType) {
 				MethodName = "eq";
 			}
-		} else {
+		} 
+		else {
 			throw new RuntimeException("NotSupportOperator");
 		}
 		Node.RightNode.Evaluate(this);
