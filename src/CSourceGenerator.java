@@ -326,6 +326,9 @@ public class CSourceGenerator extends SourceGenerator {
 
 	@Override public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, TypedNode Body) {
 		/*local*/String Code = "";
+		if(!Method.Is(ExportMethod)) {
+			Code = "static ";
+		}
 		/*local*/String RetTy = this.LocalTypeName(Method.GetReturnType());
 		Code += RetTy + " " + Method.LocalFuncName + "(";
 		for(int i = 0; i < ParamNameList.size(); i++) {
