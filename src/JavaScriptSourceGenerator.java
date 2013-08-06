@@ -1,6 +1,6 @@
 import java.util.ArrayList;
 
-public class JavaScriptSourceGenerator extends CodeGenerator {
+public class JavaScriptSourceGenerator extends SourceGenerator {
 
 	JavaScriptSourceGenerator() {
 		super("JavaScript");

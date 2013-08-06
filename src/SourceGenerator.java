@@ -664,17 +664,12 @@ class CommandNode extends TypedNode {
 class CodeGenerator extends GtStatic {
 	/*field*/public String     LangName;
 	/*field*/public GtContext  Context;
-
-	/*field*/ArrayList<Object> GeneratedCodeStack;
-	/*field*/private int       IndentLevel;
-	/*field*/private String    CurrentLevelIndentString;
+	/*field*/public ArrayList<Object> GeneratedCodeStack;
 
 	CodeGenerator(String LangName) {
 		this.LangName = LangName;
-		this.GeneratedCodeStack = new ArrayList<Object>();
 		this.Context = null;
-		this.IndentLevel = 0;
-		this.CurrentLevelIndentString = null;
+		this.GeneratedCodeStack = new ArrayList<Object>();
 	}
 	
 	public void SetLanguageContext(GtContext Context) {
@@ -992,6 +987,31 @@ class CodeGenerator extends GtStatic {
 		/*extension*/
 	}
 	
+
+	protected void PushCode(Object Code){
+		this.GeneratedCodeStack.add(Code);
+	}
+
+	protected final Object PopCode(){
+		/*local*/int Size = this.GeneratedCodeStack.size();
+		if(Size > 0){
+			return this.GeneratedCodeStack.remove(Size - 1);
+		}
+		return "";
+	}
+
+}
+
+class SourceGenerator extends CodeGenerator {
+	/*field*/public int       IndentLevel;
+	/*field*/public String    CurrentLevelIndentString;
+
+	SourceGenerator/*constructor*/(String LangName) {
+		super(LangName);
+		this.IndentLevel = 0;
+		this.CurrentLevelIndentString = null;
+	}
+
 	/* GeneratorUtils */
 	
 	public final void Indent() {
@@ -1017,18 +1037,6 @@ class CodeGenerator extends GtStatic {
 			return "\"" + ConstValue + "\"";  // FIXME \n
 		}
 		return ConstValue.toString();
-	}
-
-	protected void PushCode(Object Code){
-		this.GeneratedCodeStack.add(Code);
-	}
-
-	protected final Object PopCode(){
-		/*local*/int Size = this.GeneratedCodeStack.size();
-		if(Size > 0){
-			return this.GeneratedCodeStack.remove(Size - 1);
-		}
-		return "";
 	}
 
 	protected final void PushSourceCode(String Code){
@@ -1086,5 +1094,7 @@ class CodeGenerator extends GtStatic {
 		}
 		return Code;
 	}
+	
 }
+
 
