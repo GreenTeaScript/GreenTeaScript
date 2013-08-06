@@ -1,5 +1,9 @@
+int g(int a, int b, int c) {
+    return a + f(b, c);
+}
+
 int f(int a, int b) {
     return a + b;
 }
 
-f(10, 20);
+g(10, 20, 30);
