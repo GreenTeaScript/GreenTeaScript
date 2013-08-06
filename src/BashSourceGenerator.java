@@ -387,7 +387,7 @@ public class BashSourceGenerator extends GreenTeaGenerator {
 	}
 
 	@Override
-	public void LoadContext(GtContext Context) {
+	public void SetLanguageContext(GtContext Context) {
 		new JavaLayerDef().MakeDefinition(Context.DefaultNameSpace);
 	}
 }

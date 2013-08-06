@@ -531,16 +531,16 @@ public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes 
 		NMMap.PutMethodInvoker(Method, this.Build(Body.Type.PackageNameSpace, Body, Method));
 	}
 
-	@Override public void LoadContext(GtContext Context) {
+	@Override public void SetLanguageContext(GtContext Context) {
 		this.Context = Context;
 		this.TypeResolver = new TypeResolver(Context);
 		InitEmbeddedMethod();
 	}
 
 	private void InitEmbeddedMethod() {
-		new GtIntDef(Context.RootNameSpace, NMMap).MakeDefinition();
-		new GtStringDef(Context.RootNameSpace, NMMap).MakeDefinition();
-		new GtSystemDef(Context.RootNameSpace, NMMap).MakeDefinition();
+//		new GtIntDef(Context.RootNameSpace, NMMap).MakeDefinition();
+//		new GtStringDef(Context.RootNameSpace, NMMap).MakeDefinition();
+//		new GtSystemDef(Context.RootNameSpace, NMMap).MakeDefinition();
 	}
 
 	public GtMethodInvoker Compile(GtNameSpace NameSpace, TypedNode Block, GtMethod MethodInfo) {
@@ -1000,7 +1000,7 @@ class EmbeddedMethodDef extends GtStatic {
 	}
 
 	void RegisterMethod(int MethodFlag, String MethodName, ArrayList<GtType> ParamTypeList, Object Callee, String LocalName) {
-		GtMethod newMethod = new GtMethod(MethodFlag, MethodName, ParamTypeList);
+		GtMethod newMethod = new GtMethod(MethodFlag, MethodName, 0, ParamTypeList);
 		GtType[] paramTypes = LangDeps.CompactTypeList(0, ParamTypeList);
 		Method mtd = LookupMethod(Callee, LocalName);
 		NMMap.PutMethodInvoker(newMethod, new NativeMethodInvoker(paramTypes, mtd));

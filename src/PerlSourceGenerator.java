@@ -339,7 +339,7 @@ public class PerlSourceGenerator extends GreenTeaGenerator {
 
 	}
 
-	@Override public void LoadContext(GtContext Context) {
+	@Override public void SetLanguageContext(GtContext Context) {
 		// TODO Auto-generated method stub
 
 	}

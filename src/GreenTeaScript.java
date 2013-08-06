@@ -2607,7 +2607,7 @@ class GtContext extends GtStatic {
 		this.FuncType.Types[0] = this.VoidType;
 		Grammar.LoadTo(this.RootNameSpace);
 		this.DefaultNameSpace = new GtNameSpace(this, this.RootNameSpace);
-		this.Generator.LoadContext(this);
+		this.Generator.SetLanguageContext(this);
 	}
 
 	public GtLayer LoadLayer(String Name) {

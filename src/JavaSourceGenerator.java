@@ -336,7 +336,7 @@ public class JavaSourceGenerator extends GreenTeaGenerator {
 
 	}
 
-	@Override public void LoadContext(GtContext Context) {
+	@Override public void SetLanguageContext(GtContext Context) {
 		new JavaLayerDef().MakeDefinition(Context.DefaultNameSpace);
 	}
 }

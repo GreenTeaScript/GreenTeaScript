@@ -677,6 +677,10 @@ class GreenTeaGenerator extends GtStatic {
 		this.CurrentLevelIndentString = null;
 	}
 	
+	public void SetLanguageContext(GtContext Context) {
+		this.Context = Context;
+	}
+
 	public final TypedNode UnsupportedNode(GtType Type, SyntaxTree ParsedTree) {
 		/*local*/GtToken Token = ParsedTree.KeyToken;
 		ParsedTree.NameSpace.ReportError(ErrorLevel, Token, this.LangName + " has no language support for " + Token.ParsedText);
@@ -987,7 +991,7 @@ class GreenTeaGenerator extends GtStatic {
 	public void AddClass(GtType Type) {
 		/*extension*/
 	}
-
+	
 	/* GeneratorUtils */
 	
 	public final void Indent() {
