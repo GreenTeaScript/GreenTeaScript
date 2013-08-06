@@ -332,10 +332,10 @@ public class CSourceGenerator extends GreenTeaGenerator {
 		Code += RetTy + " " + Method.LocalFuncName + "(";
 		for(int i = 0; i < ParamNameList.size(); i++) {
 			String ParamTy = this.LocalTypeName(Method.GetParamType(i));
-			Code += ParamTy + " " + ParamNameList.get(i);
 			if(i > 0) {
 				Code += ", ";
 			}
+			Code += ParamTy + " " + ParamNameList.get(i);
 		}
 		Code += ")";
 		this.VisitBlockEachStatementWithIndent(Body);
@@ -354,6 +354,5 @@ public class CSourceGenerator extends GreenTeaGenerator {
 	}
 
 	@Override public void LoadContext(GtContext Context) {
-		new JavaLayerDef().MakeDefinition(Context.DefaultNameSpace);
 	}
 }
