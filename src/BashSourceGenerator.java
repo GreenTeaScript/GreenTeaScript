@@ -2,7 +2,7 @@ import java.util.ArrayList;
 
 //GreenTea Generator should be written in each language.
 
-public class BashSourceGenerator extends GreenTeaGenerator {
+public class BashSourceGenerator extends CodeGenerator {
 	BashSourceGenerator() {
 		super("BashSource");
 	}

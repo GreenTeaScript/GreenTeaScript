@@ -461,7 +461,7 @@ class NativeMethodMap {
 	}
 }
 
-public class JavaByteCodeGenerator extends GreenTeaGenerator implements Opcodes {
+public class JavaByteCodeGenerator extends CodeGenerator implements Opcodes {
 	private TypeResolver	TypeResolver;
 	private JVMBuilder Builder;
 	private final NativeMethodMap NMMap;

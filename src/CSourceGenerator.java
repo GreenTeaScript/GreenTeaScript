@@ -2,7 +2,7 @@ import java.util.ArrayList;
 
 //GreenTea Generator should be written in each language.
 
-public class CSourceGenerator extends GreenTeaGenerator {
+public class CSourceGenerator extends CodeGenerator {
 
 	CSourceGenerator() {
 		super("CSource");

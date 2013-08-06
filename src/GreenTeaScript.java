@@ -1364,7 +1364,7 @@ final class GtDelegate {
 
 final class TypeEnv extends GtStatic {
 	/*field*/public GtNameSpace	      NameSpace;
-	/*field*/public GreenTeaGenerator Generator;
+	/*field*/public CodeGenerator Generator;
 
 	/*field*/public GtMethod	Method;
 	/*field*/public ArrayList<VariableInfo> LocalStackList;
@@ -1807,7 +1807,7 @@ final class GtNameSpace extends GtStatic {
 		this.ExtendedPatternTable = null;
 	}
 
-	public Object Eval(String ScriptSource, long FileLine, GreenTeaGenerator Generator) {
+	public Object Eval(String ScriptSource, long FileLine, CodeGenerator Generator) {
 		/*local*/Object ResultValue = null;
 		DebugP("Eval: " + ScriptSource);
 		/*local*/TokenContext TokenContext = new TokenContext(this, ScriptSource, FileLine);
@@ -2559,7 +2559,7 @@ final class KonohaGrammar extends GtGrammar {
 }
 
 class GtContext extends GtStatic {
-	/*field*/public final  GreenTeaGenerator   Generator;
+	/*field*/public final  CodeGenerator   Generator;
 	/*field*/public final  GtNameSpace		   RootNameSpace;
 	/*field*/public GtNameSpace		           DefaultNameSpace;
 
@@ -2581,7 +2581,7 @@ class GtContext extends GtStatic {
 	/*field*/public int ClassCount;
 	/*field*/public int MethodCount;
 
-	GtContext/*constructor*/(GtGrammar Grammar, GreenTeaGenerator Generator) {
+	GtContext/*constructor*/(GtGrammar Grammar, CodeGenerator Generator) {
 		this.Generator    = Generator;
 		this.Generator.Context = this;
 		this.ClassNameMap = new GtMap();
@@ -2684,7 +2684,7 @@ public class GreenTeaScript extends GtStatic {
 			CodeGeneratorName = Args[0];
 			FileIndex = 1;
 		}
-		/*local*/GreenTeaGenerator Generator = LangDeps.CodeGenerator(CodeGeneratorName);
+		/*local*/CodeGenerator Generator = LangDeps.CodeGenerator(CodeGeneratorName);
 		/*local*/GtContext Context = new GtContext(new KonohaGrammar(), Generator);
 		if(Args.length > FileIndex) {
 			Context.Eval(LangDeps.LoadFile(Args[FileIndex]), 1);

@@ -166,7 +166,7 @@ public abstract class LangDeps {
 		return Tuple;
 	}
 
-	public final static GreenTeaGenerator CodeGenerator(String Option) {
+	public final static CodeGenerator CodeGenerator(String Option) {
 		if(Option.equals("--js") || Option.equals("--javascript") || Option.equals("--JavaScript")) {
 			return new JavaScriptSourceGenerator();
 		}

@@ -1,6 +1,6 @@
 import java.util.ArrayList;
 
-public class JavaScriptSourceGenerator extends GreenTeaGenerator {
+public class JavaScriptSourceGenerator extends CodeGenerator {
 
 	JavaScriptSourceGenerator() {
 		super("JavaScript");

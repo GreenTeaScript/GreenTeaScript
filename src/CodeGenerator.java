@@ -40,7 +40,7 @@ class TypedNode extends GtStatic {
 		/*extension*/
 	}
 
-	public void Evaluate(GreenTeaGenerator Visitor) {
+	public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitEmptyNode(this);  /* must override */
 	}
 
@@ -81,7 +81,7 @@ class UnaryNode extends TypedNode {
 		this.Method = Method;
 		this.Expr = Expr;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitUnaryNode(this);
 	}
 }
@@ -95,7 +95,7 @@ class SuffixNode extends TypedNode {
 		this.Method = Method;
 		this.Expr = Expr;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitSuffixNode(this);
 	}
 }
@@ -111,7 +111,7 @@ class BinaryNode extends TypedNode {
 		this.LeftNode  = Left;
 		this.RightNode = Right;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitBinaryNode(this);
 	}
 }
@@ -125,7 +125,7 @@ class AndNode extends TypedNode {
 		this.LeftNode  = Left;
 		this.RightNode = Right;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitAndNode(this);
 	}
 	@Override public String toString() {
@@ -142,7 +142,7 @@ class OrNode extends TypedNode {
 		this.LeftNode  = Left;
 		this.RightNode = Right;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitOrNode(this);
 	}
 	@Override public String toString() {
@@ -159,7 +159,7 @@ class GetterNode extends TypedNode {
 		this.Method = Method;
 		this.Expr = Expr;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitGetterNode(this);
 	}
 	@Override public String toString() {
@@ -178,7 +178,7 @@ class IndexerNode extends TypedNode {
 		this.Expr = Expr;
 		this.Indexer = Indexer;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitIndexerNode(this);
 	}
 	@Override public String toString() {
@@ -195,7 +195,7 @@ class AssignNode extends TypedNode {
 		this.LeftNode  = Left;
 		this.RightNode = Right;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitAssignNode(this);
 	}
 	@Override public String toString() {
@@ -209,7 +209,7 @@ class ConstNode extends TypedNode {
 		super(Type, Token);
 		this.ConstValue = ConstValue;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitConstNode(this);
 	}
 	@Override public String toString() {
@@ -223,7 +223,7 @@ class LocalNode extends TypedNode {
 		super(Type, Token);
 		this.LocalName = LocalName;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitLocalNode(this);
 	}
 	@Override public String toString() {
@@ -235,7 +235,7 @@ class NullNode extends TypedNode {
 	NullNode/*constructor*/(GtType Type, GtToken Token) {
 		super(Type, Token);
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitNullNode(this);
 	}
 	@Override public String toString() {
@@ -254,7 +254,7 @@ class LetNode extends TypedNode {
 		this.VarNode  = VarNode;
 		this.BlockNode = Block;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitLetNode(this);
 	}
 	@Override public String toString() {
@@ -276,7 +276,7 @@ class ApplyNode extends TypedNode {
 		this.Params.add(Expr);
 	}
 
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitApplyNode(this);
 	}
 	@Override public String toString() {
@@ -309,7 +309,7 @@ class MessageNode extends TypedNode {
 		this.Params.add(Expr);
 	}
 
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitMessageNode(this);
 	}
 	@Override public String toString() {
@@ -337,7 +337,7 @@ class NewNode extends TypedNode {
 	@Override public void Append(TypedNode Expr) {
 		this.Params.add(Expr);
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitNewNode(this);
 	}
 	@Override public String toString() {
@@ -367,7 +367,7 @@ class IfNode extends TypedNode {
 		this.ThenNode = ThenBlock;
 		this.ElseNode = ElseNode;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitIfNode(this);
 	}
 	@Override public String toString() {
@@ -387,7 +387,7 @@ class WhileNode extends TypedNode {
 		this.CondExpr = CondExpr;
 		this.LoopBody = LoopBody;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitWhileNode(this);
 	}
 	@Override public String toString() {
@@ -405,7 +405,7 @@ class DoWhileNode extends TypedNode {
 		this.CondExpr = CondExpr;
 		this.LoopBody = LoopBody;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitDoWhileNode(this);
 	}
 	@Override public String toString() {
@@ -426,7 +426,7 @@ class ForNode extends TypedNode {
 		this.LoopBody = LoopBody;
 		this.IterExpr = IterExpr;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitForNode(this);
 	}
 	@Override public String toString() {
@@ -448,7 +448,7 @@ class ForEachNode extends TypedNode {
 		this.IterExpr = IterExpr;
 		this.LoopBody = LoopBody;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitForEachNode(this);
 	}
 	@Override public String toString() {
@@ -469,7 +469,7 @@ class ForEachNode extends TypedNode {
 		this.LoopBody = LoopBody;
 		this.IterExpr = IterExpr;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitLoopNode(this);
 	}
 	@Override public String toString() {
@@ -485,7 +485,7 @@ class ForEachNode extends TypedNode {
 		super(Type, Token);
 		this.Label = Label;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitLabelNode(this);
 	}
 	@Override public String toString() {
@@ -499,7 +499,7 @@ class ForEachNode extends TypedNode {
 		super(Type, Token);
 		this.Label = Label;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitJumpNode(this);
 	}
 	@Override public String toString() {
@@ -513,7 +513,7 @@ class ContinueNode extends TypedNode {
 		super(Type, Token);
 		this.Label = Label;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitContinueNode(this);
 	}
 	@Override public String toString() {
@@ -527,7 +527,7 @@ class BreakNode extends TypedNode {
 		super(Type, Token);
 		this.Label = Label;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitBreakNode(this);
 	}
 	@Override public String toString() {
@@ -541,7 +541,7 @@ class ReturnNode extends TypedNode {
 		super(Type, Token);
 		this.Expr = Expr;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitReturnNode(this);
 	}
 	@Override public String toString() {
@@ -559,7 +559,7 @@ class ThrowNode extends TypedNode {
 		super(Type, Token);
 		this.Expr = Expr;
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitThrowNode(this);
 	}
 	@Override public String toString() {
@@ -581,7 +581,7 @@ class TryNode extends TypedNode {
 	//	this.TargetException.add(TargetException);
 	//	this.CatchBlock.add(CatchBlock);
 	//}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitTryNode(this);
 	}
 	@Override public String toString() {
@@ -597,7 +597,7 @@ class SwitchNode extends TypedNode {
 	//public TypedNode	CondExpr;
 	//public ArrayList<TypedNode>	Labels;
 	//public ArrayList<TypedNode>	Blocks;
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitSwitchNode(this);
 	}
 	@Override public String toString() {
@@ -610,7 +610,7 @@ class FunctionNode extends TypedNode {
 	FunctionNode/*constructor*/(GtType Type, GtToken Token) {
 		super(Type, Token); // TODO
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitFunctionNode(this);
 	}
 	@Override public String toString() {
@@ -622,7 +622,7 @@ class ErrorNode extends TypedNode {
 	ErrorNode/*constructor*/(GtType Type, GtToken Token) {
 		super(Type, Token);
 	}
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitErrorNode(this);
 	}
 	@Override public String toString() {
@@ -643,7 +643,7 @@ class CommandNode extends TypedNode {
 		this.Params.add(Expr);
 	}
 
-	@Override public void Evaluate(GreenTeaGenerator Visitor) {
+	@Override public void Evaluate(CodeGenerator Visitor) {
 		Visitor.VisitCommandNode(this);
 	}
 	@Override public String toString() {
@@ -661,7 +661,7 @@ class CommandNode extends TypedNode {
 	}
 }
 
-class GreenTeaGenerator extends GtStatic {
+class CodeGenerator extends GtStatic {
 	/*field*/public String     LangName;
 	/*field*/public GtContext  Context;
 
@@ -669,7 +669,7 @@ class GreenTeaGenerator extends GtStatic {
 	/*field*/private int       IndentLevel;
 	/*field*/private String    CurrentLevelIndentString;
 
-	GreenTeaGenerator/*constructor*/(String LangName) {
+	CodeGenerator(String LangName) {
 		this.LangName = LangName;
 		this.GeneratedCodeStack = new ArrayList<Object>();
 		this.Context = null;
