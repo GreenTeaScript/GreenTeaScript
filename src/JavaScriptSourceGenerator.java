@@ -1,4 +1,6 @@
+//ifdef JAVA
 import java.util.ArrayList;
+//endif VAJA
 
 public class JavaScriptSourceGenerator extends SourceGenerator {
 
@@ -19,11 +21,11 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 			Code = Code + NameList.get(i) + i;
 			i = i + 1;
 		}
-		Code += ") ";
+		Code = Code + ") ";
 		this.VisitBlockJS(Body);
 		Code += this.PopSourceCode() + ")";
 		this.PushSourceCode(Code);
-	};
+	}
 
 	public  void VisitBlockJS(TypedNode Node) {
 		this.Indent();
@@ -141,10 +143,6 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 		// TODO Auto-generated method stub
 	}
 
-	@Override public void VisitLoopNode(LoopNode Node) {
-		// TODO Auto-generated method stub
-	}
-
 	@Override public void VisitWhileNode(WhileNode Node) {
 		Node.CondExpr.Evaluate(this);
 		this.VisitBlockJS(Node.LoopBody);
@@ -243,8 +241,7 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 	}
 
 	// This must be extended in each language
-	@Override
-	public Object Eval(TypedNode Node) {
+	@Override public Object Eval(TypedNode Node) {
 		this.VisitBlock(Node);
 		/*local*/String ret = "";
 		while(this.GeneratedCodeStack.size() > 0){

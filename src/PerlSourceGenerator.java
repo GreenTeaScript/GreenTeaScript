@@ -98,8 +98,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Program);
 	}
 
-	@Override
-	public void VisitForEachNode(ForEachNode Node) {
+	@Override public void VisitForEachNode(ForEachNode Node) {
 		// TODO Auto-generated method stub
 
 	}

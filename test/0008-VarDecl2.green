@@ -1,0 +1,7 @@
+int f(int a) {
+    int b = a + 10;
+    int c = b + 20;
+    return c;
+}
+
+f(10);

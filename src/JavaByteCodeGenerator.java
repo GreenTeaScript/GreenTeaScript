@@ -822,7 +822,7 @@ public class JavaByteCodeGenerator extends CodeGenerator implements Opcodes {
 //		}
 	}
 
-	@Override public void VisitLoopNode(LoopNode Node) {
+	@Override public void VisitWhileNode(WhileNode Node) {
 		MethodVisitor mv = this.Builder.methodVisitor;
 		Label HEAD = new Label();
 		Label END = new Label();
@@ -837,9 +837,7 @@ public class JavaByteCodeGenerator extends CodeGenerator implements Opcodes {
 		mv.visitInsn(ICONST_1); // true
 		mv.visitJumpInsn(IF_ICMPNE, END); // condition
 		this.VisitBlock(Node.LoopBody);
-		if(Node.IterExpr != null) {
-			Node.IterExpr.Evaluate(this);
-		}
+
 		mv.visitJumpInsn(GOTO, HEAD);
 		mv.visitLabel(END);
 		this.Builder.LabelStack.RemoveLabel("break");

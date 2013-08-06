@@ -36,8 +36,7 @@ public class CSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(this.PopSourceCode() + MethodName);
 	}
 
-	@Override
-	public void VisitUnaryNode(UnaryNode Node) {
+	@Override public void VisitUnaryNode(UnaryNode Node) {
 		String MethodName = Node.Token.ParsedText;
 		//if(MethodName.equals("+")) {
 		//}
@@ -216,9 +215,9 @@ public class CSourceGenerator extends SourceGenerator {
 	@Override public void VisitLetNode(LetNode Node) {
 		/*local*/String Type = Node.DeclType.ShortClassName;
 		Node.VarNode.Evaluate(this);
-		/*local*/String Code = Type + " " + this.PopSourceCode() + ";";
+		/*local*/String Code = Type + " " + this.PopSourceCode() + ";\n";
 		this.VisitBlockEachStatementWithIndent(Node.BlockNode);
-		this.PushSourceCode(Code + this.PopSourceCode());
+		this.PushSourceCode(Code + this.GetIndentString() + this.PopSourceCode());
 	}
 
 	@Override public void VisitIfNode(IfNode Node) {
@@ -237,11 +236,6 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitSwitchNode(SwitchNode Node) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override public void VisitLoopNode(LoopNode Node) {
 		// TODO Auto-generated method stub
 	}
 
@@ -329,18 +323,17 @@ public class CSourceGenerator extends SourceGenerator {
 	public String LocalTypeName(GtType Type) {
 		return Type.ShortClassName;
 	}
-	
-	@Override
-	public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, TypedNode Body) {
+
+	@Override public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, TypedNode Body) {
 		/*local*/String Code = "";
 		/*local*/String RetTy = this.LocalTypeName(Method.GetReturnType());
 		Code += RetTy + " " + Method.LocalFuncName + "(";
 		for(int i = 0; i < ParamNameList.size(); i++) {
 			String ParamTy = this.LocalTypeName(Method.GetParamType(i));
-			Code += ParamTy + " " + ParamNameList.get(i);
 			if(i > 0) {
 				Code += ", ";
 			}
+			Code += ParamTy + " " + ParamNameList.get(i);
 		}
 		Code += ")";
 		this.VisitBlockEachStatementWithIndent(Body);
@@ -359,6 +352,5 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void SetLanguageContext(GtContext Context) {
-		new JavaLayerDef().MakeDefinition(Context.DefaultNameSpace);
 	}
 }

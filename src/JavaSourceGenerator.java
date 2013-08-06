@@ -25,37 +25,32 @@ public class JavaSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitSuffixNode(SuffixNode Node) {
-		GtMethod Method = Node.Method;
-		if(Method.MethodName.equals("++")) {
+		String MethodName = Node.Token.ParsedText;
+
+		if(MethodName.equals("++")) {
 		}
-		else if(Method.MethodName.equals("--")) {
-		}
-		else {
-			throw new RuntimeException("NotSupportOperator");
+		else if(MethodName.equals("--")) {
 		}
 		Node.Expr.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + Method.MethodName);
+		this.PushSourceCode(this.PopSourceCode() + MethodName);
 	}
 
 	@Override public void VisitUnaryNode(UnaryNode Node) {
-		GtMethod Method = Node.Method;
-		if(Method.MethodName.equals("+")) {
+		String MethodName = Node.Token.ParsedText;
+		if(MethodName.equals("+")) {
 		}
-		else if(Method.MethodName.equals("-")) {
+		else if(MethodName.equals("-")) {
 		}
-		else if(Method.MethodName.equals("~")) {
+		else if(MethodName.equals("~")) {
 		}
-		else if(Method.MethodName.equals("!")) {
+		else if(MethodName.equals("!")) {
 		}
-		else if(Method.MethodName.equals("++")) {
+		else if(MethodName.equals("++")) {
 		}
-		else if(Method.MethodName.equals("--")) {
-		}
-		else {
-			throw new RuntimeException("NotSupportOperator");
+		else if(MethodName.equals("--")) {
 		}
 		Node.Expr.Evaluate(this);
-		this.PushSourceCode(Method.MethodName + this.PopSourceCode());
+		this.PushSourceCode(MethodName + this.PopSourceCode());
 	}
 
 	@Override public void VisitIndexerNode(IndexerNode Node) {
@@ -150,45 +145,42 @@ public class JavaSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitBinaryNode(BinaryNode Node) {
-		GtMethod Method = Node.Method;
-		if(Method.MethodName.equals("+")) {
+		String MethodName = Node.Token.ParsedText;
+		if(MethodName.equals("+")) {
 		}
-		else if(Method.MethodName.equals("-")) {
+		else if(MethodName.equals("-")) {
 		}
-		else if(Method.MethodName.equals("*")) {
+		else if(MethodName.equals("*")) {
 		}
-		else if(Method.MethodName.equals("/")) {
+		else if(MethodName.equals("/")) {
 		}
-		else if(Method.MethodName.equals("%")) {
+		else if(MethodName.equals("%")) {
 		}
-		else if(Method.MethodName.equals("<<")) {
+		else if(MethodName.equals("<<")) {
 		}
-		else if(Method.MethodName.equals(">>")) {
+		else if(MethodName.equals(">>")) {
 		}
-		else if(Method.MethodName.equals("&")) {
+		else if(MethodName.equals("&")) {
 		}
-		else if(Method.MethodName.equals("|")) {
+		else if(MethodName.equals("|")) {
 		}
-		else if(Method.MethodName.equals("^")) {
+		else if(MethodName.equals("^")) {
 		}
-		else if(Method.MethodName.equals("<=")) {
+		else if(MethodName.equals("<=")) {
 		}
-		else if(Method.MethodName.equals("<")) {
+		else if(MethodName.equals("<")) {
 		}
-		else if(Method.MethodName.equals(">=")) {
+		else if(MethodName.equals(">=")) {
 		}
-		else if(Method.MethodName.equals(">")) {
+		else if(MethodName.equals(">")) {
 		}
-		else if(Method.MethodName.equals("!=")) {
+		else if(MethodName.equals("!=")) {
 		}
-		else if(Method.MethodName.equals("==")) {
-		}
-		else {
-			throw new RuntimeException("NotSupportOperator");
+		else if(MethodName.equals("==")) {
 		}
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + " " + Method.MethodName + " " + this.PopSourceCode());
+		this.PushSourceCode(this.PopSourceCode() + " " + MethodName + " " + this.PopSourceCode());
 	}
 
 	@Override public void VisitAndNode(AndNode Node) {
@@ -234,11 +226,6 @@ public class JavaSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitSwitchNode(SwitchNode Node) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override public void VisitLoopNode(LoopNode Node) {
 		// TODO Auto-generated method stub
 
 	}
@@ -313,7 +300,7 @@ public class JavaSourceGenerator extends SourceGenerator {
 		String Program = "";
 		String RetTy = Method.GetReturnType().ShortClassName;
 		String ThisTy = Method.GetRecvType().ShortClassName;
-		Program += RetTy + " " + ThisTy + "_" + Method.MethodName + "(";
+		Program += RetTy + " " + ThisTy + "_" + Method.LocalFuncName + "(";
 		Program += ThisTy + " " + "this";
 		for(int i = 0; i < ParamNameList.size(); i++) {
 			String ParamTy = Method.GetParamType(i).ShortClassName;

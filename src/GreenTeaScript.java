@@ -40,7 +40,7 @@ interface GtConst {
 //
 //	// compatible
 //	public final static int		UniversalMethod					= 1 << 13;
-//	
+//
 //	public final static int		UniqueMethod					= 1 << 14; /* used */
 //	public final static int		ExportMethod					= 1 << 15; /* used */
 //
@@ -375,8 +375,8 @@ class GtStatic implements GtConst {
 	}
 
 	public final static String NumberToAscii(int number) {
-		int num = number /26;
-		String s = Character.toString((char)(65 + (number % 26)));
+		/*local*/int num = number /26;
+		/*local*/String s = LangDeps.CharToString((char)(65 + (number % 26)));
 		if(num == 0) {
 			return s;
 		}
@@ -392,7 +392,7 @@ class GtStatic implements GtConst {
 			s = s + "." + NumberToAscii(TypeList.get(i).ClassId);
 			i = i + 1;
 		}
-		String MangleName = (/*cast*/String)MangleNameMap.get(s);
+		/*local*/String MangleName = (/*cast*/String)MangleNameMap.get(s);
 		if(MangleName == null) {
 			MangleName = NumberToAscii(MangleNameMap.size());
 			MangleNameMap.put(s, MangleName);
@@ -810,7 +810,7 @@ final class TokenContext extends GtStatic {
 		}
 		return NullToken;
 	}
-	
+
 	public boolean HasNext() {
 		return (this.GetToken() != NullToken);
 	}
@@ -909,7 +909,7 @@ final class TokenContext extends GtStatic {
 
 
 	public final GtMap SkipAndGetAnnotation(boolean IsAllowedDelim) {
-		// this is tentative implementation. In the future, you have to 
+		// this is tentative implementation. In the future, you have to
 		// use this pattern.
 		GtMap Annotation = null;
 		this.SkipIndent();
@@ -1809,6 +1809,7 @@ final class KonohaGrammar extends GtGrammar {
 					if(ch == '\n') {
 						return IndentToken(TokenContext, SourceText, NextPos);
 					}
+					NextPos = NextPos + 1;
 				}
 			}
 		}
@@ -2028,8 +2029,11 @@ final class KonohaGrammar extends GtGrammar {
 		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
 		TypeList.add(LeftNode.Type);
 		TypeList.add(RightNode.Type);
-		/*local*/GtType ReturnType = Gamma.VarType; // FIXME Method.GetReturnType();
-		/*local*/GtMethod Method = Gamma.NameSpace.LookupMethod(Operator, 2, 1/*FIXME*/, TypeList, 0);
+		/*local*/GtMethod Method = Gamma.NameSpace.LookupMethod(Operator, 2, 1, TypeList, 0);
+		/*local*/GtType ReturnType = Gamma.VarType;
+		if(Method != null) { // FIXME need more restricted type checker
+			ReturnType = Method.GetReturnType();
+		}
 		return Gamma.Generator.CreateBinaryNode(ReturnType, ParsedTree, Method, LeftNode, RightNode);
 	}
 
@@ -2065,14 +2069,20 @@ final class KonohaGrammar extends GtGrammar {
 		TokenContext.ParseFlag |= SkipIndentParseFlag;
 		/*local*/SyntaxTree FuncTree = new SyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("("), null);
 		FuncTree.AppendParsedTree(LeftTree);
-		while(!FuncTree.IsEmptyOrError()) {
-			/*local*/SyntaxTree Tree = TokenContext.ParsePattern("$Expression$", Required);
-			FuncTree.AppendParsedTree(Tree);
-			if(TokenContext.MatchToken(",")) continue;
-			/*local*/SyntaxTree EndTree = new SyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken(")"), null);
-			if(EndTree != null) {
-				FuncTree.AppendParsedTree(EndTree);
-				break;
+		if(TokenContext.MatchToken(")")) { // case: f()
+			GtToken Token = TokenContext.GetBeforeToken();
+			FuncTree.AppendParsedTree(new SyntaxTree(Pattern, TokenContext.NameSpace, Token, null));
+		}
+		else { // case: f(1, 2, 3);
+			while(!FuncTree.IsEmptyOrError()) {
+				/*local*/SyntaxTree Tree = TokenContext.ParsePattern("$Expression$", Required);
+				FuncTree.AppendParsedTree(Tree);
+				if(TokenContext.MatchToken(",")) continue;
+				/*local*/SyntaxTree EndTree = new SyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken(")"), null);
+				if(EndTree != null) {
+					FuncTree.AppendParsedTree(EndTree);
+					break;
+				}
 			}
 		}
 		TokenContext.ParseFlag = ParseFlag;
@@ -2082,20 +2092,28 @@ final class KonohaGrammar extends GtGrammar {
 	public static TypedNode TypeApply(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
 		/*local*/TypedNode ApplyNode = Gamma.Generator.CreateApplyNode(Gamma.AnyType, ParsedTree, null);
 		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
-		/*FIXME It should be the return type of the function*/
-		TypeList.add(Gamma.NameSpace.Context.IntType);
 		/*local*/int i = 1;
 		while(i < ListSize(ParsedTree.TreeList) - 1/* this is for ")" */) {
 			/*local*/TypedNode ExprNode = ParsedTree.TypeNodeAt(i, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
 			ApplyNode.Append(ExprNode);
+			//FIXME we need to implement TypeChecker
+			if(ExprNode.Type.equals(Gamma.VarType)) {
+				ExprNode.Type = Gamma.IntType;
+			}
 			TypeList.add(ExprNode.Type);
 			i += 1;
 		}
-		///*local*/GtMethod Method = Gamma.NameSpace.LookupMethod(MethodName, ParamSize, Type, TypeList, BaseIndex)
+		if(TypeList.size() == 0) {
+			TypeList.add(Gamma.NameSpace.Context.VoidType);
+		}
+
 		/*local*/ArrayList<SyntaxTree> TreeList = ParsedTree.TreeList;
-		/*local*/String MethodName = TreeList.get(0/*todo*/).KeyToken.ParsedText;
+		/*local*/String MethodName = TreeList.get(0).KeyToken.ParsedText;
 		/*local*/int ParamSize = TreeList.size() - 2; /*MethodName and ")" symol*/
 		/*local*/GtMethod Method = Gamma.NameSpace.LookupMethod(MethodName, ParamSize, 1/*FIXME*/, TypeList, 0);
+		if(Method == null) {
+			return Gamma.CreateErrorNode(ParsedTree, "Undefined method: " + MethodName);
+		}
 		((/*cast*/ApplyNode)ApplyNode).Method = Method;
 		return ApplyNode;
 	}
@@ -2197,7 +2215,7 @@ final class KonohaGrammar extends GtGrammar {
 	public static TypedNode TypeWhile(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
 		/*local*/TypedNode CondNode = ParsedTree.TypeNodeAt(WhileCond, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
 		/*local*/TypedNode BodyNode = ParsedTree.TypeNodeAt(WhileBody, Gamma, Type, DefaultTypeCheckPolicy);
-		return Gamma.Generator.CreateLoopNode(BodyNode.Type, ParsedTree, CondNode, BodyNode, null);
+		return Gamma.Generator.CreateWhileNode(BodyNode.Type, ParsedTree, CondNode, BodyNode);
 	}
 	// Break/Continue Statement
 	public static SyntaxTree ParseBreak(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
@@ -2304,7 +2322,7 @@ final class KonohaGrammar extends GtGrammar {
 		}
 		return null;
 	}
-	
+
 	public static TypedNode TypeFuncDecl(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
 		Gamma = new TypeEnv(ParsedTree.NameSpace);  // creation of new type environment
 		/*local*/String MethodName = (/*cast*/String)ParsedTree.GetSyntaxTreeAt(FuncDeclName).ConstValue;
@@ -2337,7 +2355,7 @@ final class KonohaGrammar extends GtGrammar {
 	public static SyntaxTree ParseClassDecl(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
 		/*local*/SyntaxTree Tree = new SyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetToken(), null);
 		//		Tree.SetMatchedPatternAt(FuncDeclClass, TokenContext, "$MethodClass$", Optional);
-	//		Tree.SetMatchedTokenAt(NoWhere, TokenContext, ".", Optional);
+		//		Tree.SetMatchedTokenAt(NoWhere, TokenContext, ".", Optional);
 		return null;
 	}
 
@@ -2489,8 +2507,8 @@ class GtContext extends GtStatic {
 
 	public GtType GetGenericType(GtType BaseType, int BaseIdx, ArrayList<GtType> TypeList, boolean IsCreation) {
 		LangDeps.Assert(BaseType.IsGenericType());
-		String MangleName = GtStatic.Mangle(BaseType, BaseIdx, TypeList);
-		GtType GenericType = (/*cast*/GtType)this.ClassNameMap.get(MangleName);
+		/*local*/String MangleName = GtStatic.Mangle(BaseType, BaseIdx, TypeList);
+		/*local*/GtType GenericType = (/*cast*/GtType)this.ClassNameMap.get(MangleName);
 		if(GenericType == null && IsCreation) {
 			/*local*/int i = BaseIdx;
 			/*local*/String s = BaseType.ShortClassName + "<";
@@ -2533,9 +2551,9 @@ public class GreenTeaScript extends GtStatic {
 	}
 
 	public final static void main(String[] Args) {
-		//Args = new String[2];
-		//Args[0] = "--perl";
-		//Args[1] = "sample/fibo.green";
+//		Args = new String[2];
+//		Args[0] = "--perl";
+//		Args[1] = "sample/fibo.green";
 
 		/*local*/int FileIndex = 0;
 		/*local*/String CodeGeneratorName = "--Java";

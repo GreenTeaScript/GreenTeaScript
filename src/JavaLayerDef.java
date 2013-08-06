@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 
 public class JavaLayerDef extends GtStatic {
-	
+
 	public static ArrayList<GtType> MakeParamTypeList(GtType ReturnType, GtType RecvType, GtType...ParamTypes) {
 		ArrayList<GtType> TypeList = new ArrayList<GtType>();
 		TypeList.add(ReturnType);

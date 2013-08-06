@@ -166,7 +166,7 @@ class GetterNode extends TypedNode {
 		Visitor.VisitGetterNode(this);
 	}
 	@Override public String toString() {
-		return "(Getter:" + this.Type + " " + TypedNode.Stringify(this.Expr) + ", " + Method.MethodName + ")";
+		return "(Getter:" + this.Type + " " + TypedNode.Stringify(this.Expr) + ", " + this.Method.MethodName + ")";
 	}
 }
 
@@ -216,7 +216,7 @@ class ConstNode extends TypedNode {
 		Visitor.VisitConstNode(this);
 	}
 	@Override public String toString() {
-		return "(Const:" + this.Type + " "+ ConstValue.toString() + ")";
+		return "(Const:" + this.Type + " "+ this.ConstValue.toString() + ")";
 	}
 }
 
@@ -230,7 +230,7 @@ class LocalNode extends TypedNode {
 		Visitor.VisitLocalNode(this);
 	}
 	@Override public String toString() {
-		return "(Local:" + this.Type + " " + LocalName + ")";
+		return "(Local:" + this.Type + " " + this.LocalName + ")";
 	}
 }
 
@@ -285,8 +285,8 @@ class ApplyNode extends TypedNode {
 	@Override public String toString() {
 		/*local*/String Param = "";
 		/*local*/int i = 0;
-		while(i < GtStatic.ListSize(Params)) {
-			/*local*/TypedNode Node = Params.get(i);
+		while(i < GtStatic.ListSize(this.Params)) {
+			/*local*/TypedNode Node = this.Params.get(i);
 			if(i != 0) {
 				Param += ", ";
 			}
@@ -318,8 +318,8 @@ class MessageNode extends TypedNode {
 	@Override public String toString() {
 		/*local*/String Param = "";
 		/*local*/int i = 0;
-		while(i < GtStatic.ListSize(Params)) {
-			/*local*/TypedNode Node = Params.get(i);
+		while(i < GtStatic.ListSize(this.Params)) {
+			/*local*/TypedNode Node = this.Params.get(i);
 			if(i != 0) {
 				Param += ", ";
 			}
@@ -346,8 +346,8 @@ class NewNode extends TypedNode {
 	@Override public String toString() {
 		/*local*/String Param = "";
 		/*local*/int i = 0;
-		while(i < GtStatic.ListSize(Params)) {
-			/*local*/TypedNode Node = Params.get(i);
+		while(i < GtStatic.ListSize(this.Params)) {
+			/*local*/TypedNode Node = this.Params.get(i);
 			if(i != 0) {
 				Param += ", ";
 			}
@@ -462,26 +462,6 @@ class ForEachNode extends TypedNode {
 	}
 }
 
-@Deprecated class LoopNode extends TypedNode {
-	/*field*/public TypedNode	CondExpr;
-	/*field*/public TypedNode	LoopBody;
-	/*field*/public TypedNode	IterExpr;
-	LoopNode/*constructor*/(GtType Type, GtToken Token, TypedNode CondExpr, TypedNode LoopBody, TypedNode IterExpr) {
-		super(Type, Token);
-		this.CondExpr = CondExpr;
-		this.LoopBody = LoopBody;
-		this.IterExpr = IterExpr;
-	}
-	@Override public void Evaluate(CodeGenerator Visitor) {
-		Visitor.VisitLoopNode(this);
-	}
-	@Override public String toString() {
-		/*local*/String Cond = TypedNode.Stringify(this.CondExpr);
-		/*local*/String Body = TypedNode.Stringify(this.LoopBody);
-		return "(Loop:" + this.Type + " Cond:" + Cond + " Body:"+ Body + ")";
-	}
-}
-
 @Deprecated class LabelNode extends TypedNode {
 	/*field*/public String Label;
 	LabelNode/*constructor*/(GtType Type, GtToken Token, String Label) {
@@ -492,7 +472,7 @@ class ForEachNode extends TypedNode {
 		Visitor.VisitLabelNode(this);
 	}
 	@Override public String toString() {
-		return "(Label:" + this.Type + " " + Label + ")";
+		return "(Label:" + this.Type + " " + this.Label + ")";
 	}
 }
 
@@ -506,7 +486,7 @@ class ForEachNode extends TypedNode {
 		Visitor.VisitJumpNode(this);
 	}
 	@Override public String toString() {
-		return "(Jump:" + this.Type + " " + Label + ")";
+		return "(Jump:" + this.Type + " " + this.Label + ")";
 	}
 }
 
@@ -629,7 +609,7 @@ class ErrorNode extends TypedNode {
 		Visitor.VisitErrorNode(this);
 	}
 	@Override public String toString() {
-		return "(Error:" + this.Type + " " + Token.toString() + ")";
+		return "(Error:" + this.Type + " " + this.Token.toString() + ")";
 	}
 }
 
@@ -652,8 +632,8 @@ class CommandNode extends TypedNode {
 	@Override public String toString() {
 		/*local*/String Param = "";
 		/*local*/int i = 0;
-		while(i < GtStatic.ListSize(Params)) {
-			/*local*/TypedNode Node = Params.get(i);
+		while(i < GtStatic.ListSize(this.Params)) {
+			/*local*/TypedNode Node = this.Params.get(i);
 			if(i != 0) {
 				Param += ", ";
 			}
@@ -812,7 +792,7 @@ class CodeGenerator extends GtStatic {
 		this.Context = null;
 		this.GeneratedCodeStack = new ArrayList<Object>();
 	}
-	
+
 	public void SetLanguageContext(GtContext Context) {
 		this.Context = Context;
 	}
@@ -907,10 +887,6 @@ class CodeGenerator extends GtStatic {
 		return new ForEachNode(Type, ParsedTree.KeyToken, VarNode, IterNode, Block);
 	}
 
-	public TypedNode CreateLoopNode(GtType Type, SyntaxTree ParsedTree, TypedNode Cond, TypedNode Block, TypedNode IterNode) {
-		return new LoopNode(Type, ParsedTree.KeyToken, Cond, Block, IterNode);
-	}
-
 	public TypedNode CreateReturnNode(GtType Type, SyntaxTree ParsedTree, TypedNode Node) {
 		return new ReturnNode(Type, ParsedTree.KeyToken, Node);
 	}
@@ -931,8 +907,8 @@ class CodeGenerator extends GtStatic {
 		return new ContinueNode(Type, ParsedTree.KeyToken, Label);
 	}
 
-	public TypedNode CreateTryNode(GtType Type, SyntaxTree ParsedTree, TypedNode TryNode, TypedNode FinallyNode) {
-		return new TryNode(Type, ParsedTree.KeyToken, TryNode, FinallyNode);
+	public TypedNode CreateTryNode(GtType Type, SyntaxTree ParsedTree, TypedNode TryBlock, TypedNode FinallyBlock) {
+		return new TryNode(Type, ParsedTree.KeyToken, TryBlock, FinallyBlock);
 	}
 
 	public TypedNode CreateThrowNode(GtType Type, SyntaxTree ParsedTree, TypedNode Node) {
@@ -958,7 +934,7 @@ class CodeGenerator extends GtStatic {
 	public TypedNode CreateCommandNode(GtType Type, SyntaxTree ParsedTree, TypedNode PipedNextNode) {
 		return new CommandNode(Type, ParsedTree.KeyToken, PipedNextNode);
 	}
-	
+
 
 	public int ParseMethodFlag(int MethodFlag, SyntaxTree MethodDeclTree) {
 		if(MethodDeclTree.HasAnnotation("Export")) {
@@ -969,13 +945,13 @@ class CodeGenerator extends GtStatic {
 		}
 		return MethodFlag;
 	}
-	
+
 	public GtMethod CreateMethod(int MethodFlag, String MethodName, int BaseIndex, ArrayList<GtType> TypeList) {
 		return new GtMethod(MethodFlag, MethodName, BaseIndex, TypeList);
 	}
 
 	//------------------------------------------------------------------------
-	
+
 	public void VisitEmptyNode(TypedNode EmptyNode) {
 		GtStatic.DebugP("empty node: " + EmptyNode.Token.ParsedText);
 	}
@@ -1064,10 +1040,6 @@ class CodeGenerator extends GtStatic {
 		/*extension*/
 	}
 
-	public void VisitLoopNode(LoopNode Node) {
-		/*extension*/
-	}
-
 	public void VisitReturnNode(ReturnNode Node) {
 		/*extension*/
 	}
@@ -1129,7 +1101,7 @@ class CodeGenerator extends GtStatic {
 	public void AddClass(GtType Type) {
 		/*extension*/
 	}
-	
+
 
 	protected void PushCode(Object Code){
 		this.GeneratedCodeStack.add(Code);
@@ -1155,7 +1127,7 @@ class SourceGenerator extends CodeGenerator {
 	}
 
 	/* GeneratorUtils */
-	
+
 	public final void Indent() {
 		this.IndentLevel += 1;
 		this.CurrentLevelIndentString = null;
@@ -1186,7 +1158,7 @@ class SourceGenerator extends CodeGenerator {
 	}
 
 	protected final String PopSourceCode(){
-		return (/*cast*/String)PopCode();
+		return (/*cast*/String)this.PopCode();
 	}
 
 	protected final String[] PopManyCode(int n) {
@@ -1236,7 +1208,7 @@ class SourceGenerator extends CodeGenerator {
 		}
 		return Code;
 	}
-	
+
 }
 
 
