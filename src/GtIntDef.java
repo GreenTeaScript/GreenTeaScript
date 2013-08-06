@@ -7,8 +7,7 @@ public class GtIntDef extends EmbeddedMethodDef {
 		super(NameSpace, NMMap);
 	}
 
-	@Override
-	public void MakeDefinition() {
+	@Override public void MakeDefinition() {
 		ArrayList<GtType> UnaryParam = MakeParamTypeList(IntType, IntType);
 		ArrayList<GtType> BinaryParam = MakeParamTypeList(IntType, IntType, IntType);
 		ArrayList<GtType> RelationParam = MakeParamTypeList(BooleanType, IntType, IntType);

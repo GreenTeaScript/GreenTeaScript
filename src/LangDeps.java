@@ -11,7 +11,7 @@ import java.util.ArrayList;
 public abstract class LangDeps {
 
 	public final static void println(String msg) {
-		System.out.println(msg);		
+		System.out.println(msg);
 	}
 
 	public final static void DebugP(String msg) {
@@ -84,7 +84,8 @@ public abstract class LangDeps {
 	public final static boolean EqualsMethod(Method m1, Method m2) {
 		if(m1 == null) {
 			return (m2 == null) ? true : false;
-		} else {
+		}
+		else {
 			return (m2 == null) ? false : m1.equals(m2);
 		}
 	}
@@ -106,7 +107,7 @@ public abstract class LangDeps {
 		}
 		catch (IllegalArgumentException e) {
 			e.printStackTrace();
-		} 
+		}
 		catch (IllegalAccessException e) {
 			e.printStackTrace();
 		}
@@ -123,7 +124,7 @@ public abstract class LangDeps {
 		}
 		catch (IllegalArgumentException e) {
 			e.printStackTrace();
-		} 
+		}
 		catch (IllegalAccessException e) {
 			e.printStackTrace();
 		}
@@ -140,7 +141,7 @@ public abstract class LangDeps {
 		}
 		catch (IllegalArgumentException e) {
 			e.printStackTrace();
-		} 
+		}
 		catch (IllegalAccessException e) {
 			e.printStackTrace();
 		}
