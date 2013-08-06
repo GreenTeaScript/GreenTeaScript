@@ -1316,7 +1316,7 @@ final class TypeEnv extends GtStatic {
 		return null;
 	}
 
-	public GtType GuessType(Object Value) {
+	public GtType GuessType (Object Value) {
 		TODO("GuessType");
 		if (Value instanceof Integer) {
 			return this.IntType;
