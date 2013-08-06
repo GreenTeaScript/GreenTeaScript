@@ -298,7 +298,7 @@ class GtStatic implements GtConst {
 	}
 
 	public final static int ToSetterSymbol(int SymbolId) {
-		assert(IsGetterSymbol(SymbolId));
+		LangDeps.Assert(IsGetterSymbol(SymbolId));
 		return (SymbolId & (~GetterSymbolMask)) | SetterSymbolMask;
 	}
 
@@ -486,7 +486,7 @@ class GtStatic implements GtConst {
 		/*local*/GtNameSpace NameSpace = Context.DefaultNameSpace;
 		/*local*/TokenContext TokenContext = new TokenContext(NameSpace, Text, 1);
 		/*local*/SyntaxTree ParsedTree = GtStatic.ParseExpression(TokenContext);
-		assert(ParsedTree != null);
+		LangDeps.Assert(ParsedTree != null);
 		if((TestLevel & TestTypeChecker) != TestTypeChecker) {
 			return;
 		}
@@ -608,7 +608,7 @@ final class GtToken extends GtStatic {
 	}
 
 	public String GetErrorMessage() {
-		assert(this.IsError());
+		LangDeps.Assert(this.IsError());
 		return this.ParsedText;
 	}
 }
@@ -650,7 +650,7 @@ final class TokenContext extends GtStatic {
 		Token.TokenFlag |= TokenFlag;
 		if(PatternName != null) {
 			Token.PresetPattern = this.NameSpace.GetPattern(PatternName);
-			assert(Token.PresetPattern != null);
+			LangDeps.Assert(Token.PresetPattern != null);
 		}
 		//DebugP("<< " + Text + " : " + PatternName);
 		this.SourceList.add(Token);
@@ -700,7 +700,7 @@ final class TokenContext extends GtStatic {
 				return this.NewErrorSyntaxTree(Token, TokenText + " is expected after " + Token.ParsedText);
 			}
 			Token = this.GetToken();
-			assert(Token != NullToken);
+			LangDeps.Assert(Token != NullToken);
 			return this.NewErrorSyntaxTree(Token, TokenText + " is expected at " + Token.ParsedText);
 		}
 		return null;
@@ -961,7 +961,7 @@ class SyntaxTree extends GtStatic {
 
 	public boolean HasAnnotation(String Key) {
 		if(this.Annotation != null) {
-			Object Value = this.Annotation.get(Key);
+			/*local*/Object Value = this.Annotation.get(Key);
 			if(Value instanceof Boolean) {
 				this.Annotation.put(Key, true);  // consumed;
 			}
@@ -975,7 +975,7 @@ class SyntaxTree extends GtStatic {
 	}
 
 	public void ToError(GtToken Token) {
-		assert(Token.IsError());
+		LangDeps.Assert(Token.IsError());
 		this.KeyToken = Token;
 		this.TreeList = null;
 	}
@@ -1160,7 +1160,7 @@ class GtMethod extends GtStatic {
 		this.MethodName = MethodName;
 		this.MethodSymbolId = GtStatic.GetCanonicalSymbolId(MethodName);
 		this.Types = LangDeps.CompactTypeList(ParamList);
-		assert(this.Types.length > 0);
+		LangDeps.Assert(this.Types.length > 0);
 		this.Layer = null;
 		this.ElderMethod = null;
 	}
@@ -1217,7 +1217,7 @@ final class GtLayer extends GtStatic {
 	}
 
 	public final void DefineMethod(GtMethod Method) {
-		assert(Method.Layer == null);
+		LangDeps.Assert(Method.Layer == null);
 		/*local*/GtType Class = Method.GetRecvType();
 		/*local*/String MethodId = Class.GetMethodId(Method.MethodName);
 		/*local*/GtMethod MethodPrev = (/*cast*/GtMethod)this.MethodTable.get(MethodId);
@@ -1605,7 +1605,7 @@ final class GtNameSpace extends GtStatic {
 		while(Method != null) {
 			if(Method.GetParamSize() == ParamSize) {
 				/*local*/int i = 1;  // because the first type is mached by given class
-				GtMethod MatchedMethod = Method;
+				/*local*/GtMethod MatchedMethod = Method;
 				while(i < ResolvedSize) {
 					if(!Method.GetParamType(i).Accept(TypeList.get(BaseIndex + i))) {
 						MatchedMethod = null;
@@ -1633,8 +1633,8 @@ final class GtNameSpace extends GtStatic {
 			while(FoundMethod == null && Class != null) {
 				/*local*/String MethodId = Class.GetMethodId(MethodName);
 				while(i >= 0) {
-					GtLayer Layer = this.LayerList.get(i);
-					GtMethod Method = Layer.GetMethod(MethodId);
+					/*local*/GtLayer Layer = this.LayerList.get(i);
+					/*local*/GtMethod Method = Layer.GetMethod(MethodId);
 					FoundMethod = FilterOverloadedMethods(Method, ParamSize, ResolvedSize, TypeList, BaseIndex, FoundMethod);
 					i -= 1;
 				}
@@ -2467,7 +2467,7 @@ class GtContext extends GtStatic {
 	}
 
 	public GtLayer LoadLayer(String Name) {
-		GtLayer Layer = new GtLayer(Name);
+		/*local*/GtLayer Layer = new GtLayer(Name);
 		this.LayerMap.put(Name, Layer);
 		return Layer;
 	}
@@ -2504,27 +2504,20 @@ public class GreenTeaScript extends GtStatic {
 //		Args[0] = "--perl";
 //		Args[1] = "sample/fibo.green";
 
-		int FileIndex = 0;
-		String CodeGeneratorName = "--Java";
+		/*local*/int FileIndex = 0;
+		/*local*/String CodeGeneratorName = "--Java";
 		if(Args.length > 0 && Args[0].startsWith("--")) {
 			CodeGeneratorName = Args[0];
 			FileIndex = 1;
 		}
-		GreenTeaGenerator Generator = LangDeps.CodeGenerator(CodeGeneratorName);
+		/*local*/GreenTeaGenerator Generator = LangDeps.CodeGenerator(CodeGeneratorName);
 		/*local*/GtContext Context = new GtContext(new KonohaGrammar(), Generator);
-//		//GtContext.Eval("int f(int a, int b) { return a + b; }", 0);
-		//GtContext.Eval("4 * 1 + 2 / 3;", 0);		
-		//GtContext.Eval("int f(int n) { return 0 +1+2+3 * 2 }", 0);
-		//GtContext.Eval("f() + 1;", 0);
-		//GreenTeaScript.TestAll(GtContext);
 		if(Args.length > FileIndex) {
 			Context.Eval(LangDeps.LoadFile(Args[FileIndex]), 1);
 		}
 		else {
-			TestAll(Context);
+			GreenTeaScript.TestAll(Context);
 		}
-		//GtContext.Eval("int fib(int n) { if(n < 3) return n;  else  return fib(n-1) + fib(n-2);  }", 0);
-		//GtContext.Eval("fib(19)", 0);
 	}
 
 }
