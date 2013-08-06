@@ -7,7 +7,7 @@ public class PerlSourceGenerator extends GreenTeaGenerator {
 		super("Perl");
 	}
 
-	public void VisitEach(TypedNode Node) {
+	public void VisitBlockEachStatementWithIndent(TypedNode Node) {
 		String Code = "{\n";
 		this.Indent();
 		/*local*/TypedNode CurrentNode = Node;
@@ -72,16 +72,15 @@ public class PerlSourceGenerator extends GreenTeaGenerator {
 	public void VisitWhileNode(WhileNode Node) {
 		Node.CondExpr.Evaluate(this);
 		String Program = "while(" + this.PopSourceCode() + ")";
-		this.VisitEach(Node.LoopBody);
+		this.VisitBlockEachStatementWithIndent(Node.LoopBody);
 		Program += this.PopSourceCode();
-		this.UnIndent();
 		this.PushSourceCode(Program);
 	}
 
 	@Override
 	public void VisitDoWhileNode(DoWhileNode Node) {
 		String Program = "do";
-		this.VisitEach(Node.LoopBody);
+		this.VisitBlockEachStatementWithIndent(Node.LoopBody);
 		Node.CondExpr.Evaluate(this);
 		Program += " while(" + this.PopSourceCode() + ")";
 		this.PushSourceCode(Program);
@@ -242,8 +241,8 @@ public class PerlSourceGenerator extends GreenTeaGenerator {
 	@Override
 	public void VisitIfNode(IfNode Node) {
 		Node.CondExpr.Evaluate(this);
-		this.VisitEach(Node.ThenNode);
-		this.VisitEach(Node.ElseNode);
+		this.VisitBlockEachStatementWithIndent(Node.ThenNode);
+		this.VisitBlockEachStatementWithIndent(Node.ElseNode);
 
 		String ElseBlock = this.PopSourceCode();
 		String ThenBlock = this.PopSourceCode();
@@ -310,15 +309,14 @@ public class PerlSourceGenerator extends GreenTeaGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	@Override
-	public void VisitTryNode(TryNode Node) {
+	@Override public void VisitTryNode(TryNode Node) {
 		String Code = "try";
 		//this.VisitEach(Node.CatchBlock);
-		this.VisitEach(Node.TryBlock);
+		this.VisitBlockEachStatementWithIndent(Node.TryBlock);
 
 		Code += this.PopSourceCode();
 		if(Node.FinallyBlock != null) {
-			this.VisitEach(Node.FinallyBlock);
+			this.VisitBlockEachStatementWithIndent(Node.FinallyBlock);
 			Code += " finally " + this.PopSourceCode();
 		}
 		this.PushSourceCode(Code);
@@ -372,22 +370,20 @@ public class PerlSourceGenerator extends GreenTeaGenerator {
 		DebugP(Program);
 	}
 
-	@Override
-	public Object Eval(TypedNode Node) {
-		this.VisitEach(Node);
+	@Override public Object Eval(TypedNode SingleNode) {
+		SingleNode.Evaluate(this);
 		return this.PopSourceCode();
 	}
 
-	@Override
-	public void AddClass(GtType Type) {
+	@Override public void AddClass(GtType Type) {
 		// TODO Auto-generated method stub
 
 	}
 
-	@Override
-	public void LoadContext(GtContext Context) {
+	@Override public void LoadContext(GtContext Context) {
 		// TODO Auto-generated method stub
 
 	}
+	
 }
 

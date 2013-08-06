@@ -278,7 +278,7 @@ class ApplyNode extends TypedNode {
 	}
 	@Override public String toString() {
 		/*local*/String Param = "";
-		for(/*local*/int i = 0; i < Params.size(); i++) {
+		for(/*local*/int i = 0; i < GtStatic.ListSize(Params); i++) {
 			TypedNode Node = Params.get(i);
 			if(i != 0) {
 				Param += ", ";
@@ -309,7 +309,7 @@ class MessageNode extends TypedNode {
 	}
 	@Override public String toString() {
 		/*local*/String Param = "";
-		for(/*local*/int i = 0; i < Params.size(); i++) {
+		for(/*local*/int i = 0; i < GtStatic.ListSize(Params); i++) {
 			TypedNode Node = Params.get(i);
 			if(i != 0) {
 				Param += ", ";
@@ -335,12 +335,14 @@ class NewNode extends TypedNode {
 	}
 	@Override public String toString() {
 		/*local*/String Param = "";
-		for(/*local*/int i = 0; i < Params.size(); i++) {
-			TypedNode Node = Params.get(i);
+		/*local*/int i = 0; 
+		while(i < GtStatic.ListSize(Params)) {
+			/*local*/TypedNode Node = Params.get(i);
 			if(i != 0) {
 				Param += ", ";
 			}
 			Param += TypedNode.Stringify(Node);
+			i += 1;
 		}
 		return "(New:" + this.Type + " " + Param + ")";
 	}
@@ -639,7 +641,7 @@ class CommandNode extends TypedNode {
 	}
 	@Override public String toString() {
 		/*local*/String Param = "";
-		for(/*local*/int i = 0; i < Params.size(); i++) {
+		for(/*local*/int i = 0; i < GtStatic.ListSize(Params); i++) {
 			TypedNode Node = Params.get(i);
 			if(i != 0) {
 				Param += ", ";
@@ -676,6 +678,13 @@ public class GreenTeaGenerator extends GtStatic {
 		return this.CurrentLevelIndentString;
 	}
 
+	protected String StringfyConstValue(Object ConstValue) {
+		if(ConstValue instanceof String) {
+			return "\"" + ConstValue + "\"";  // FIXME \n
+		}
+		return ConstValue.toString();
+	}
+	
 	GreenTeaGenerator/*constructor*/(String LangName) {
 		this.LangName = LangName;
 		this.GeneratedCodeStack = new ArrayList<Object>();
