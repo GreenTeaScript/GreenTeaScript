@@ -1,3 +1,4 @@
+package org.GreenTeaScript;
 
 //ifdef JAVA
 import java.lang.reflect.Method;
@@ -1318,7 +1319,7 @@ final class TypeEnv extends GtStatic {
 
 	public GtType GuessType(Object Value) {
 		TODO("GuessType");
-		if (Value instanceof Integer) {
+		if(Value instanceof Integer) {
 			return this.IntType;
 		}
 		return this.AnyType;
@@ -2289,7 +2290,7 @@ final class KonohaGrammar extends GtGrammar {
 			/*local*/int ParseFlag = TokenContext.SetTrackback(false);  // disabled
 			/*local*/int ParamBase = FuncDeclParam;
 			while(!Tree.IsEmptyOrError() && !TokenContext.MatchToken(")")) {
-				if (ParamBase != FuncDeclParam) {
+				if(ParamBase != FuncDeclParam) {
 					Tree.SetMatchedTokenAt(NoWhere, TokenContext, ",", Required);
 				}
 				Tree.SetMatchedPatternAt(ParamBase + VarDeclType, TokenContext, "$Type$", Required);

@@ -1,10 +1,11 @@
+package org.GreenTeaScript;
 import java.util.ArrayList;
 
 //GreenTea Generator should be written in each language.
 
-public class PerlSourceGenerator extends GreenTeaGenerator {
-	PerlSourceGenerator() {
-		super("Perl");
+public class CSourceGenerator extends GreenTeaGenerator {
+	CSourceGenerator() {
+		super("CSource");
 	}
 
 	public void VisitEach(TypedNode Node) {
@@ -27,7 +28,6 @@ public class PerlSourceGenerator extends GreenTeaGenerator {
 
 	@Override
 	public void VisitSuffixNode(SuffixNode Node) {
-		GtMethod Method = Node.Method;
 		String MethodName = Node.Token.ParsedText;
 		if(MethodName.equals("++")) {
 		} else if(MethodName.equals("--")) {
@@ -35,7 +35,7 @@ public class PerlSourceGenerator extends GreenTeaGenerator {
 			throw new RuntimeException("NotSupportOperator");
 		}
 		Node.Expr.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + Method.MethodName);
+		this.PushSourceCode(this.PopSourceCode() + MethodName);
 	}
 
 	@Override
@@ -59,7 +59,6 @@ public class PerlSourceGenerator extends GreenTeaGenerator {
 		Node.Indexer.Evaluate(this);
 		Node.Expr.Evaluate(this);
 		this.PushSourceCode(this.PopSourceCode() + "[" + this.PopSourceCode() + "]");
-
 	}
 
 	@Override
@@ -127,13 +126,13 @@ public class PerlSourceGenerator extends GreenTeaGenerator {
 
 	@Override
 	public void VisitLocalNode(LocalNode Node) {
-		this.PushSourceCode("$" + Node.LocalName);
+		this.PushSourceCode(Node.LocalName);
 	}
 
 	@Override
 	public void VisitGetterNode(GetterNode Node) {
 		Node.Expr.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + "->" + Node.Method.MethodName);
+		this.PushSourceCode(this.PopSourceCode() + "." + Node.Method.MethodName);
 	}
 
 	private String[] EvaluateParam(ArrayList<TypedNode> Params) {
@@ -149,7 +148,7 @@ public class PerlSourceGenerator extends GreenTeaGenerator {
 
 	@Override
 	public void VisitApplyNode(ApplyNode Node) {
-		/*local*/String Program = "&" + Node.Method.MethodName + "(";
+		/*local*/String Program = Node.Method.MethodName + "(";
 		/*local*/String[] Params = EvaluateParam(Node.Params);
 		for(int i = 0; i < Params.length; i++) {
 			String P = Params[i];
@@ -180,13 +179,7 @@ public class PerlSourceGenerator extends GreenTeaGenerator {
 		} else if(MethodName.equals(">=")) {
 		} else if(MethodName.equals(">")) {
 		} else if(MethodName.equals("!=")) {
-			if(Node.Method.GetRecvType().ShortClassName.equals("String")) {
-				MethodName = "ne";
-			}
 		} else if(MethodName.equals("==")) {
-			if(Node.Method.GetRecvType().ShortClassName.equals("String")) {
-				MethodName = "eq";
-			}
 		} else {
 			throw new RuntimeException("NotSupportOperator");
 		}
@@ -301,7 +294,6 @@ public class PerlSourceGenerator extends GreenTeaGenerator {
 		String Code = "try";
 		//this.VisitEach(Node.CatchBlock);
 		this.VisitEach(Node.TryBlock);
-
 		Code += this.PopSourceCode();
 		if(Node.FinallyBlock != null) {
 			this.VisitEach(Node.FinallyBlock);
@@ -327,7 +319,6 @@ public class PerlSourceGenerator extends GreenTeaGenerator {
 	public void VisitErrorNode(ErrorNode Node) {
 		String Code = "throw Error(\"" + Node.Token.ParsedText + "\")";
 		this.PushSourceCode(Code);
-
 	}
 
 	@Override
@@ -335,26 +326,14 @@ public class PerlSourceGenerator extends GreenTeaGenerator {
 		String Program = "";
 		String RetTy = Method.GetReturnType().ShortClassName;
 		String ThisTy = Method.GetRecvType().ShortClassName;
-		String FuncName = ThisTy + "_" + Method.MethodName;
-		String Signature = "# ";
-		String Arguments = "";
-		Signature += RetTy + " " + FuncName + "(";
-		Signature += ThisTy + " this";
-		this.Indent();
-
-		Arguments += this.GetIndentString() + "my $this = $_[0]\n";
+		Program += RetTy + " " + ThisTy + "_" + Method.MethodName + "(";
+		Program += ThisTy + " " + "this";
 		for(int i = 0; i < ParamNameList.size(); i++) {
 			String ParamTy = Method.GetParamType(i).ShortClassName;
-			Signature += " ," + ParamTy + " " + ParamNameList.get(i);
-			Arguments += this.GetIndentString() + "my $" + ParamNameList.get(i) + " = $_[" + (i + 1) + "];\n";
+			Program += " ," + ParamTy + " " + ParamNameList.get(i);
 		}
-		this.UnIndent();
-		Program += Signature + ");\n" + this.GetIndentString() + "sub " + FuncName + "{\n";
-		this.Indent();
-		Program += Arguments + GetIndentString();
+		Program += ") ";
 		Program += Eval(Body);
-		this.UnIndent();
-		Program += "\n" + this.GetIndentString() + "}";
 		DebugP(Program);
 	}
 
@@ -372,8 +351,6 @@ public class PerlSourceGenerator extends GreenTeaGenerator {
 
 	@Override
 	public void LoadContext(GtContext Context) {
-		// TODO Auto-generated method stub
-
+		new JavaLayerDef().MakeDefinition(Context.DefaultNameSpace);
 	}
 }
-
