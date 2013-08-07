@@ -1,67 +1,65 @@
-var __extends = this.__extends || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
+Array.prototype.size = function () {
+    return this.length;
 };
-function assert(expect) {
-    if (!expect) {
-        throw new Error();
-    }
-}
 
-var GtDelegateCommon = (function () {
-    function GtDelegateCommon() {
+Array.prototype.add = function (v) {
+    this.push(v);
+};
+
+Array.prototype.get = function (i) {
+    return this[i];
+};
+
+Array.prototype.set = function (i, v) {
+    this[i] = v;
+};
+
+Array.prototype.remove = function (i) {
+    var v = this[i];
+    this.splice(i, 1);
+    return v;
+};
+
+Object.prototype["equals"] = function (other) {
+    return (this === other);
+};
+
+String.prototype["startWith"] = function (key) {
+};
+
+String.prototype["replaceAll"] = function (key, rep) {
+    this.replace(key, rep);
+};
+
+var GtMap = (function () {
+    function GtMap() {
     }
-    GtDelegateCommon.prototype.constractor = function (Self, method) {
-        this.Self = Self;
-        this.Method = method;
+    GtMap.prototype.constractor = function () {
+        this.map = new Object();
+        this.length = 0;
     };
-    GtDelegateCommon.prototype.toString = function () {
-        return (this.Method == null) ? "*undefined*" : this.Method.toString();
+    GtMap.prototype.get = function (index) {
+        return this.map[index];
     };
-    return GtDelegateCommon;
+    GtMap.prototype.put = function (key, obj) {
+        this.length++;
+        this.map[key] = obj;
+    };
+    GtMap.prototype.size = function () {
+        return this.length;
+    };
+    return GtMap;
 })();
-
-var GtDelegateToken = (function (_super) {
-    __extends(GtDelegateToken, _super);
-    function GtDelegateToken() {
-        _super.apply(this, arguments);
-    }
-    GtDelegateToken.prototype.constractor = function (Self, method) {
-        this.Self = Self;
-        this.Method = method;
-    };
-    return GtDelegateToken;
-})(GtDelegateCommon);
-
-var GtDelegateMatch = (function (_super) {
-    __extends(GtDelegateMatch, _super);
-    function GtDelegateMatch() {
-        _super.apply(this, arguments);
-    }
-    GtDelegateMatch.prototype.constractor = function (Self, method) {
-        this.Self = Self;
-        this.Method = method;
-    };
-    return GtDelegateMatch;
-})(GtDelegateCommon);
-
-var GtDelegateType = (function (_super) {
-    __extends(GtDelegateType, _super);
-    function GtDelegateType() {
-        _super.apply(this, arguments);
-    }
-    GtDelegateType.prototype.constractor = function (Self, method) {
-        this.Self = Self;
-        this.Method = method;
-    };
-    return GtDelegateType;
-})(GtDelegateCommon);
 
 var LangDeps = (function () {
     function LangDeps() {
     }
+    LangDeps.Assert = function (expect) {
+        if (!expect) {
+            throw new Error();
+        }
+    };
+
     LangDeps.println = function (msg) {
         console.log(msg);
     };
@@ -92,6 +90,10 @@ var LangDeps = (function () {
         return Text.charCodeAt(Pos);
     };
 
+    LangDeps.CharToString = function (code) {
+        return String.fromCharCode(code);
+    };
+
     LangDeps.ParseInt = function (Text) {
         return Text - 0;
     };
@@ -105,7 +107,7 @@ var LangDeps = (function () {
     };
 
     LangDeps.CreateOrReuseTokenFunc = function (f, prev) {
-        if (prev != null && LangDeps.EqualsMethod(prev.Func.Method, f.Method)) {
+        if (prev != null && LangDeps.EqualsMethod(prev.Func, f)) {
             return prev;
         }
         return new TokenFunc(f, prev);
@@ -138,9 +140,9 @@ var LangDeps = (function () {
         return null;
     };
 
-    LangDeps.CompactTypeList = function (List) {
-        var Tuple = new Array(List.length);
-        for (var i = 0; i < List.length; i++) {
+    LangDeps.CompactTypeList = function (BaseIndex, List) {
+        var Tuple = new Array(List.length - BaseIndex);
+        for (var i = BaseIndex; i < List.length; i++) {
             Tuple[i] = List[i];
         }
         return Tuple;
@@ -155,17 +157,14 @@ var LangDeps = (function () {
         }
         return Tuple;
     };
+
+    LangDeps.CodeGenerator = function (Option) {
+        return new JavaScriptSourceGenerator();
+    };
+
+    LangDeps.LoadFile = function (FileName) {
+        throw new Error("LangDeps.LoadFile is not implemented for this environment");
+        return "";
+    };
     return LangDeps;
 })();
-
-function FunctionA(Callee, MethodName) {
-    return null;
-}
-
-function FunctionB(Callee, MethodName) {
-    return null;
-}
-
-function FunctionC(Callee, MethodName) {
-    return null;
-}
