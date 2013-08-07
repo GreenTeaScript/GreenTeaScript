@@ -251,7 +251,7 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 				ret =  Line + ";\n" + ret;
 			}
 		}
-		System.out.println(ret);
+		this.WriteTranslatedCode(ret);
 		return ret;
 	}
 
