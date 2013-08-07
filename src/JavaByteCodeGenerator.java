@@ -1292,5 +1292,3 @@ class ShellConverter {
 //return false;
 //}
 ////endif VAJA
-
-

@@ -1847,7 +1847,62 @@ final class KonohaGrammar extends GtGrammar {
 		TokenContext.ReportTokenError(ErrorLevel, "expected \" to close the string literal", SourceText.substring(start, pos));
 		return pos;
 	}
-
+	public static int StringLiteralToken_StringInterpolation(TokenContext TokenContext, String SourceText, int pos) {
+		/*local*/int start = pos + 1;
+		/*local*/int NextPos = start;
+		/*local*/char prev = '"';
+		while(NextPos < SourceText.length()) {
+			/*local*/char ch = LangDeps.CharAt(SourceText, NextPos);
+			if(ch == '$') {
+				/*local*/int end = NextPos + 1;
+				ch = LangDeps.CharAt(SourceText, end);
+				if(ch == '(') {
+					// find ')'
+				}
+				else {
+					while(end < SourceText.length()) {
+						ch = LangDeps.CharAt(SourceText, end);
+						if(!LangDeps.IsLetter(ch) && !LangDeps.IsDigit(ch)) {
+							break;
+						}
+						end = end + 1;
+					}
+					if(end == NextPos + 1) {
+						// e.g. "aaaa$ bbbb"
+						/* do nothing */
+					}
+					else {
+						String VarName = SourceText.substring(NextPos + 1, end);
+						TokenContext.AddNewToken(SourceText.substring(start, NextPos), 0, "$StringLiteral$");
+						TokenContext.AddNewToken("+", 0, null);
+						TokenContext.AddNewToken(VarName, 0, null);
+						TokenContext.AddNewToken("+", 0, null);
+						start = end;
+					}
+				}
+				NextPos = end;
+				prev = ch;
+				if(ch == '"') {
+					TokenContext.AddNewToken(SourceText.substring(start, NextPos), 0, "$StringLiteral$");
+					return NextPos + 1;
+				}
+				continue;
+			}
+			if(ch == '"' && prev != '\\') {
+				TokenContext.AddNewToken(SourceText.substring(start, NextPos+1), 0, "$StringLiteral$");
+				return NextPos + 1;
+			}
+			if(ch == '\n') {
+				TokenContext.ReportTokenError(ErrorLevel, "expected \" to close the string literal", SourceText.substring(start, NextPos));
+				TokenContext.FoundLineFeed(1);
+				return NextPos;
+			}
+			NextPos = NextPos + 1;
+			prev = ch;
+		}
+		TokenContext.ReportTokenError(ErrorLevel, "expected \" to close the string literal", SourceText.substring(start, NextPos));
+		return NextPos;
+	}
 	public static SyntaxTree ParseType(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/Object ConstValue = TokenContext.NameSpace.GetSymbol(Token.ParsedText);
@@ -2372,7 +2427,7 @@ final class KonohaGrammar extends GtGrammar {
 		NameSpace.DefineTokenFunc("(){}[]<>.,:;+-*/%=&|!@", FunctionA(this, "OperatorToken"));
 		NameSpace.DefineTokenFunc("/", FunctionA(this, "CommentToken"));  // overloading
 		NameSpace.DefineTokenFunc("Aa", FunctionA(this, "SymbolToken"));
-		NameSpace.DefineTokenFunc("\"", FunctionA(this, "StringLiteralToken"));
+		NameSpace.DefineTokenFunc("\"", FunctionA(this, "StringLiteralToken_StringInterpolation"));
 		NameSpace.DefineTokenFunc("1",  FunctionA(this, "NumberLiteralToken"));
 //#ifdef JAVA
 		GtDelegateMatch ParseUnary     = FunctionB(this, "ParseUnary");
@@ -2624,4 +2679,3 @@ public class GreenTeaScript extends GtStatic {
 	}
 
 }
-

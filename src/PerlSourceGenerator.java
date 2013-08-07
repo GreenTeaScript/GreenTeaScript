@@ -344,5 +344,3 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 }
-
-
