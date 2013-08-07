@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class BashSourceGenerator extends SourceGenerator {
 	/*local*/private boolean inFun = false;
-	
+
 	BashSourceGenerator() {
 		super("BashSource");
 	}
@@ -38,7 +38,7 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitWhileNode(WhileNode Node) {
 		Node.CondExpr.Evaluate(this);
-		/*local*/String Program = "while (( " + this.PopSourceCode() + " ))\ndo";
+		/*local*/String Program = "while(( " + this.PopSourceCode() + " ))\ndo";
 		this.VisitEach(Node.LoopBody);
 		Program += this.PopSourceCode() + "done\n";
 		this.PushSourceCode(Program);
@@ -53,7 +53,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/String Cond = this.PopSourceCode();
 		/*local*/String Iter = this.PopSourceCode();
 
-		/*local*/String Program = "for ((; " + Cond  + "; " + Iter + " ))\ndo";
+		/*local*/String Program = "for((; " + Cond  + "; " + Iter + " ))\ndo";
 		this.VisitEach(Node.LoopBody);
 		Program += this.PopSourceCode() + "done\n";
 		this.PushSourceCode(Program);
@@ -67,7 +67,8 @@ public class BashSourceGenerator extends SourceGenerator {
 		
 		if(value.equals("true")) {
 			value = "0";
-		} else if(value.equals("false")) {
+		}
+		else if(value.equals("false")) {
 			value = "1";
 		}
 		this.PushSourceCode(value);
@@ -86,8 +87,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.PushSourceCode("$" + Node.LocalName);
 	}
 
-	@Override
-	public void VisitGetterNode(GetterNode Node) {
+	@Override public void VisitGetterNode(GetterNode Node) {
 //		Node.Expr.Evaluate(this);
 //		this.PushSourceCode(this.PopSourceCode() + "." + Node.Method.MethodName);
 	}
@@ -103,8 +103,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		return Programs;
 	}
 
-	@Override
-	public void VisitApplyNode(ApplyNode Node) {
+	@Override public void VisitApplyNode(ApplyNode Node) {
 		/*local*/String Program = Node.Method.MethodName + " ";
 		/*local*/String[] Params = EvaluateParam(Node.Params);
 		for(int i = 0; i < Params.length; i++) {
@@ -295,7 +294,7 @@ public class BashSourceGenerator extends SourceGenerator {
 //		String Code = "throw Error(\"" + Node.Token.ParsedText + "\")";
 //		this.PushSourceCode(Code);
 	}
-	
+
 	@Override public void VisitCommandNode(CommandNode Node) {	// currently only support statement
 		/*local*/String Code = "";
 		/*local*/int count = 0;
@@ -310,7 +309,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		}
 		this.PushSourceCode(Code);
 	}
-	
+
 	private String CreateCommand(CommandNode CurrentNode) {
 		/*local*/String Code = "";
 		/*local*/int size = CurrentNode.Params.size();
@@ -324,7 +323,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	private TypedNode ResolveParamName(ArrayList<String> ParamNameList, TypedNode Body) {
 		return ConvertParamName(ParamNameList, Body, 0);
 	}
-	
+
 	private TypedNode ConvertParamName(ArrayList<String> ParamNameList, TypedNode Body, int index) {
 		if(index  == ParamNameList.size()) {
 			return Body;
