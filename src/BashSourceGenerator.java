@@ -315,7 +315,8 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/String Code = "";
 		/*local*/int size = CurrentNode.Params.size();
 		for(int i = 0; i < size; i++) {
-			Code += CurrentNode.Params.get(i).Token.ParsedText + " ";
+			CurrentNode.Params.get(i).Evaluate(this);
+			Code += this.PopSourceCode() + " ";
 		}
 		return Code;
 	}

@@ -302,6 +302,22 @@ public class PerlSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 
 	}
+	
+	@Override public void VisitCommandNode(CommandNode Node) {
+		/*local*/String Code = "system(\"";
+		/*local*/int i = 0;
+		while(i < GtStatic.ListSize(Node.Params)) {
+			TypedNode Param = Node.Params.get(i);
+			if(i != 0) {
+				Code += " ";
+			}
+			Param.Evaluate(this);
+			Code += this.PopSourceCode();
+			i = i + 1;
+		}
+		Code += "\")";
+		this.PushSourceCode(Code);
+	}
 
 	@Override public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, TypedNode Body) {
 		String Program = "";
