@@ -43,18 +43,22 @@ interface String {
 	replaceAll(key: string, rep: string);
 }
 
-String.prototype["startWith"] = function(key){
-	
+String.prototype["startsWith"] = function(key){
+	return this.lastIndexOf(key, 0) == 0; 
 }
 
 String.prototype["replaceAll"] = function(key, rep){
 	this.replace(key, rep);
 }
 
+String.prototype["equals"] = function(other){
+	return (this == other);
+}
+
 class GtMap {
 	private map: Object;
 	private length: number;
-	constractor(){
+	constructor(){
 		this.map = new Object;
 		this.length = 0;
 	}
@@ -69,40 +73,7 @@ class GtMap {
 		return this.length;
 	}
 }
-/*
-class GtDelegateCommon {
-	Self: Object;
-	Method: any;
-	constractor(Self: Object, method: any) {
-		this.Self = Self;
-		this.Method = method;
-	}
-	toString(): string {
-		return (this.Method == null) ? "*undefined*" : this.Method.toString();
-	}
-}
 
-class GtDelegateToken extends GtDelegateCommon {
-	constractor(Self: Object, method: any) {
-		this.Self = Self;
-		this.Method = method;
-	}
-}
-
-class GtDelegateMatch extends GtDelegateCommon {
-	constractor(Self: Object, method: any) {
-		this.Self = Self;
-		this.Method = method;
-	}
-}
-
-class GtDelegateType extends GtDelegateCommon {
-	constractor(Self: Object, method: any) {
-		this.Self = Self;
-		this.Method = method;
-	}	
-}
-*/
 class LangDeps {
 
 	static Assert(expect: any): void {
@@ -127,17 +98,18 @@ class LangDeps {
 	}
 
 	static IsWhitespace(ch: number): boolean {
-		return " ".charCodeAt(0) == ch;
+		return ch == 32/*SP*/ || ch == 9/*TAB*/;
 	}
 
 	static IsLetter(ch: number): boolean {
-		return true; // TODO;
-		//return Character.isLetter(ch);
+		if(ch > 90){
+			ch -= 0x20;
+		}
+		return 65/*A*/ <= ch && ch <= 90/*Z*/;
 	}
 
 	static IsDigit(ch: number): boolean {
-		return true; // TODO;
-		//return Character.isDigit(ch);
+		return 48/*0*/ <= ch && ch <= 57/*9*/;
 	}
 
 	static CharAt(Text: string, Pos: number): number {

@@ -4,6 +4,54 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
+var GtToken = (function () {
+    function GtToken(text, FileLine) {
+        this.TokenFlag = 0;
+        this.ParsedText = text;
+        this.FileLine = FileLine;
+        this.PresetPattern = null;
+    }
+    GtToken.prototype.IsSource = function () {
+        return IsFlag(this.TokenFlag, SourceTokenFlag);
+    };
+
+    GtToken.prototype.IsError = function () {
+        return IsFlag(this.TokenFlag, ErrorTokenFlag);
+    };
+
+    GtToken.prototype.IsIndent = function () {
+        return IsFlag(this.TokenFlag, IndentTokenFlag);
+    };
+
+    GtToken.prototype.IsDelim = function () {
+        return IsFlag(this.TokenFlag, DelimTokenFlag);
+    };
+
+    GtToken.prototype.EqualsText = function (text) {
+        return this.ParsedText.equals(text);
+    };
+
+    GtToken.prototype.toString = function () {
+        var TokenText = "";
+        if (this.PresetPattern != null) {
+            TokenText = "(" + this.PresetPattern.PatternName + ") ";
+        }
+        return TokenText + this.ParsedText;
+    };
+
+    GtToken.prototype.ToErrorToken = function (Message) {
+        this.TokenFlag = ErrorTokenFlag;
+        this.ParsedText = Message;
+        return Message;
+    };
+
+    GtToken.prototype.GetErrorMessage = function () {
+        LangDeps.Assert(this.IsError());
+        return this.ParsedText;
+    };
+    return GtToken;
+})();
+
 var PrivateClass = 1 << 0;
 var SingletonClass = 1 << 1;
 var FinalClass = 1 << 2;
@@ -565,54 +613,6 @@ function TestSyntaxPattern(Context, Text) {
     if ((TestLevel & TestCodeGeneration) == TestCodeGeneration) {
     }
 }
-
-var GtToken = (function () {
-    function GtToken(text, FileLine) {
-        this.TokenFlag = 0;
-        this.ParsedText = text;
-        this.FileLine = FileLine;
-        this.PresetPattern = null;
-    }
-    GtToken.prototype.IsSource = function () {
-        return IsFlag(this.TokenFlag, SourceTokenFlag);
-    };
-
-    GtToken.prototype.IsError = function () {
-        return IsFlag(this.TokenFlag, ErrorTokenFlag);
-    };
-
-    GtToken.prototype.IsIndent = function () {
-        return IsFlag(this.TokenFlag, IndentTokenFlag);
-    };
-
-    GtToken.prototype.IsDelim = function () {
-        return IsFlag(this.TokenFlag, DelimTokenFlag);
-    };
-
-    GtToken.prototype.EqualsText = function (text) {
-        return this.ParsedText.equals(text);
-    };
-
-    GtToken.prototype.toString = function () {
-        var TokenText = "";
-        if (this.PresetPattern != null) {
-            TokenText = "(" + this.PresetPattern.PatternName + ") ";
-        }
-        return TokenText + this.ParsedText;
-    };
-
-    GtToken.prototype.ToErrorToken = function (Message) {
-        this.TokenFlag = ErrorTokenFlag;
-        this.ParsedText = Message;
-        return Message;
-    };
-
-    GtToken.prototype.GetErrorMessage = function () {
-        LangDeps.Assert(this.IsError());
-        return this.ParsedText;
-    };
-    return GtToken;
-})();
 
 var TokenFunc = (function () {
     function TokenFunc(Func, Parent) {
@@ -1524,22 +1524,22 @@ var GtNameSpace = (function () {
     };
 
     GtNameSpace.prototype.Eval = function (ScriptSource, FileLine, Generator) {
-        var ResultValue = null;
+        var resultValue = null;
         DebugP("Eval: " + ScriptSource);
-        var TokenContext = new TokenContext(this, ScriptSource, FileLine);
-        TokenContext.SkipEmptyStatement();
-        while (TokenContext.HasNext()) {
-            var Annotation = TokenContext.SkipAndGetAnnotation(true);
-            var TopLevelTree = ParseExpression(TokenContext);
-            TopLevelTree.SetAnnotation(Annotation);
-            DebugP("tree: untyped: " + TopLevelTree);
-            var Gamma = new TypeEnv(this);
-            var Node = Gamma.TypeCheckEachNode(TopLevelTree, Gamma.VoidType, DefaultTypeCheckPolicy);
-            ResultValue = Generator.Eval(Node);
-            TokenContext.SkipEmptyStatement();
-            TokenContext.Vacume();
+        var tokenContext = new TokenContext(this, ScriptSource, FileLine);
+        tokenContext.SkipEmptyStatement();
+        while (tokenContext.HasNext()) {
+            var annotation = tokenContext.SkipAndGetAnnotation(true);
+            var topLevelTree = ParseExpression(tokenContext);
+            topLevelTree.SetAnnotation(annotation);
+            DebugP("tree: untyped: " + topLevelTree);
+            var gamma = new TypeEnv(this);
+            var node = gamma.TypeCheckEachNode(topLevelTree, gamma.VoidType, DefaultTypeCheckPolicy);
+            resultValue = Generator.Eval(node);
+            tokenContext.SkipEmptyStatement();
+            tokenContext.Vacume();
         }
-        return ResultValue;
+        return resultValue;
     };
 
     GtNameSpace.prototype.GetSourcePosition = function (FileLine) {
@@ -2476,3 +2476,4 @@ var GreenTeaScript = (function () {
     };
     return GreenTeaScript;
 })();
+//@ sourceMappingURL=GreenTeaScript.js.map

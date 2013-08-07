@@ -247,3 +247,4 @@ var JavaScriptSourceGenerator = (function (_super) {
     };
     return JavaScriptSourceGenerator;
 })(SourceGenerator);
+//@ sourceMappingURL=JavaScriptSourceGenerator.js.map

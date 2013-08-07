@@ -1,5 +1,60 @@
 /// <reference path="LangDeps.ts" />
 
+
+ class GtToken {
+	public TokenFlag: number;
+	public ParsedText: string;
+	public FileLine: number;
+	public PresetPattern: SyntaxPattern;
+
+	constructor(text: string, FileLine: number) {
+		this.TokenFlag = 0;
+		this.ParsedText = text;
+		this.FileLine = FileLine;
+		this.PresetPattern = null;
+	}
+
+	public IsSource(): boolean {
+		return IsFlag(this.TokenFlag, SourceTokenFlag);
+	}
+
+	public IsError(): boolean {
+		return IsFlag(this.TokenFlag, ErrorTokenFlag);
+	}
+
+	public IsIndent(): boolean {
+		return IsFlag(this.TokenFlag, IndentTokenFlag);
+	}
+
+	public IsDelim(): boolean {
+		return IsFlag(this.TokenFlag, DelimTokenFlag);
+	}
+
+	public EqualsText(text: string): boolean {
+		return this.ParsedText.equals(text);
+	}
+
+	public toString(): string {
+		var TokenText: string = "";
+		if(this.PresetPattern != null) {
+			TokenText = "(" + this.PresetPattern.PatternName + ") ";
+		}
+		return TokenText + this.ParsedText;
+	}
+
+	public ToErrorToken(Message: string): string {
+		this.TokenFlag = ErrorTokenFlag;
+		this.ParsedText = Message;
+		return Message;
+	}
+
+	public GetErrorMessage(): string {
+		LangDeps.Assert(this.IsError());
+		return this.ParsedText;
+	}
+}
+
+
 	//  ClassFlag //
 	var PrivateClass: number					= 1 << 0;
 	var SingletonClass: number					= 1 << 1;
@@ -516,59 +571,6 @@
 
 
 //  tokenizer //
-
- class GtToken {
-	public TokenFlag: number;
-	public ParsedText: string;
-	public FileLine: number;
-	public PresetPattern: SyntaxPattern;
-
-	constructor(text: string, FileLine: number) {
-		this.TokenFlag = 0;
-		this.ParsedText = text;
-		this.FileLine = FileLine;
-		this.PresetPattern = null;
-	}
-
-	public IsSource(): boolean {
-		return IsFlag(this.TokenFlag, SourceTokenFlag);
-	}
-
-	public IsError(): boolean {
-		return IsFlag(this.TokenFlag, ErrorTokenFlag);
-	}
-
-	public IsIndent(): boolean {
-		return IsFlag(this.TokenFlag, IndentTokenFlag);
-	}
-
-	public IsDelim(): boolean {
-		return IsFlag(this.TokenFlag, DelimTokenFlag);
-	}
-
-	public EqualsText(text: string): boolean {
-		return this.ParsedText.equals(text);
-	}
-
-	public toString(): string {
-		var TokenText: string = "";
-		if(this.PresetPattern != null) {
-			TokenText = "(" + this.PresetPattern.PatternName + ") ";
-		}
-		return TokenText + this.ParsedText;
-	}
-
-	public ToErrorToken(Message: string): string {
-		this.TokenFlag = ErrorTokenFlag;
-		this.ParsedText = Message;
-		return Message;
-	}
-
-	public GetErrorMessage(): string {
-		LangDeps.Assert(this.IsError());
-		return this.ParsedText;
-	}
-}
 
  class TokenFunc {
 	public Func: any;
@@ -1580,22 +1582,22 @@ class SyntaxTree {
 	}
 
 	public Eval(ScriptSource: string, FileLine: number, Generator: CodeGenerator): Object {
-		var ResultValue: Object = null;
+		var resultValue: Object = null;
 		DebugP("Eval: " + ScriptSource);
-		var TokenContext: TokenContext = new TokenContext(this, ScriptSource, FileLine);
-		TokenContext.SkipEmptyStatement();
-		while(TokenContext.HasNext()) {
-			var Annotation: GtMap = TokenContext.SkipAndGetAnnotation(true);
-			var TopLevelTree: SyntaxTree = ParseExpression(TokenContext);
-			TopLevelTree.SetAnnotation(Annotation);
-			DebugP("tree: untyped: " + TopLevelTree);
-			var Gamma: TypeEnv = new TypeEnv(this);
-			var Node: TypedNode = Gamma.TypeCheckEachNode(TopLevelTree, Gamma.VoidType, DefaultTypeCheckPolicy);
-			ResultValue = Generator.Eval(Node);
-			TokenContext.SkipEmptyStatement();
-			TokenContext.Vacume();
+		var tokenContext: TokenContext = new TokenContext(this, ScriptSource, FileLine);
+		tokenContext.SkipEmptyStatement();
+		while(tokenContext.HasNext()) {
+			var annotation: GtMap = tokenContext.SkipAndGetAnnotation(true);
+			var topLevelTree: SyntaxTree = ParseExpression(tokenContext);
+			topLevelTree.SetAnnotation(annotation);
+			DebugP("tree: untyped: " + topLevelTree);
+			var gamma: TypeEnv = new TypeEnv(this);
+			var node: TypedNode = gamma.TypeCheckEachNode(topLevelTree, gamma.VoidType, DefaultTypeCheckPolicy);
+			resultValue = Generator.Eval(node);
+			tokenContext.SkipEmptyStatement();
+			tokenContext.Vacume();
 		}
-		return ResultValue;
+		return resultValue;
 	}
 
 

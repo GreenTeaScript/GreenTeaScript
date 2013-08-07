@@ -24,20 +24,23 @@ Object.prototype["equals"] = function (other) {
     return (this === other);
 };
 
-String.prototype["startWith"] = function (key) {
+String.prototype["startsWith"] = function (key) {
+    return this.lastIndexOf(key, 0) == 0;
 };
 
 String.prototype["replaceAll"] = function (key, rep) {
     this.replace(key, rep);
 };
 
+String.prototype["equals"] = function (other) {
+    return (this == other);
+};
+
 var GtMap = (function () {
     function GtMap() {
-    }
-    GtMap.prototype.constractor = function () {
         this.map = new Object();
         this.length = 0;
-    };
+    }
     GtMap.prototype.get = function (index) {
         return this.map[index];
     };
@@ -75,15 +78,18 @@ var LangDeps = (function () {
     };
 
     LangDeps.IsWhitespace = function (ch) {
-        return " ".charCodeAt(0) == ch;
+        return ch == 32 || ch == 9;
     };
 
     LangDeps.IsLetter = function (ch) {
-        return true;
+        if (ch > 90) {
+            ch -= 0x20;
+        }
+        return 65 <= ch && ch <= 90;
     };
 
     LangDeps.IsDigit = function (ch) {
-        return true;
+        return 48 <= ch && ch <= 57;
     };
 
     LangDeps.CharAt = function (Text, Pos) {
@@ -175,3 +181,4 @@ var LangDeps = (function () {
     };
     return LangDeps;
 })();
+//@ sourceMappingURL=LangDeps.js.map
