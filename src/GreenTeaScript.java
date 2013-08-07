@@ -488,7 +488,7 @@ class GtStatic implements GtConst {
 		while(!GtStatic.IsEmptyOrError(LeftTree) && !TokenContext.MatchToken(";")) {
 			/*local*/SyntaxPattern ExtendedPattern = TokenContext.GetExtendedPattern();
 			if(ExtendedPattern == null) {
-				DebugP("In $Expression$ ending: " + TokenContext.GetToken());
+				//DebugP("In $Expression$ ending: " + TokenContext.GetToken());
 				break;
 			}
 			LeftTree = GtStatic.ApplySyntaxPattern(ExtendedPattern, LeftTree, TokenContext);
@@ -500,6 +500,7 @@ class GtStatic implements GtConst {
 	public final static TypedNode ApplyTypeFunc(GtDelegateType delegate, TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
 		if(delegate == null || delegate.Method == null){
 			DebugP("try to invoke null TypeFunc");
+			LangDeps.Assert(delegate != null); // Not happen
 			return null;
 		}
 		return (/*cast*/TypedNode)LangDeps.ApplyTypeFunc(delegate.Self, delegate.Method, Gamma, ParsedTree, Type);
@@ -1346,7 +1347,7 @@ final class TypeEnv extends GtStatic {
 		/*local*/TypedNode LastNode = null;
 		while(ParsedTree != null) {
 			/*local*/GtType CurrentType = Type;
-			if(ParsedTree.NextTree != null){
+			if(ParsedTree.NextTree != null) {
 				CurrentType = this.VoidType;
 			}
 			/*local*/TypedNode TypedNode = this.TypeCheckEachNode(ParsedTree, CurrentType, DefaultTypeCheckPolicy);
@@ -1393,7 +1394,7 @@ final class GtNameSpace extends GtStatic {
 	/*field*/TokenFunc[] TokenMatrix;
 	/*field*/GtMap	 SymbolPatternTable;
 	/*field*/GtMap   ExtendedPatternTable;
-	/*field*/public ArrayList<GtLayer>        LayerList;
+	/*field*/public  ArrayList<GtLayer>        LayerList;
 	/*field*/GtLayer TopLevelLayer;
 	/*field*/GtMap   ConstantTable;
 

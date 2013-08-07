@@ -1,18 +1,25 @@
 // this is very simple dscript
 
+
+const DCase = "http://dcase.ynu.ac.jp/dcase/DScriptDemo/1";
 const EvidenceCollector = "192.168.11.101";
 const BackupServer = "192.168.11.102";
 
-boolean Solution_10() {
-	if(SystemReady) {
-		rsync "http://$BackupServer/db"
-		return true;
-	}
-	return false;
-}
+context "Context10" {
+	SystemReady = true;
 
-boolean Goal_9() {
-	return Solution_10() || CallAdmin();
-}
+	boolean Solution10() {
+		rsync "http://$BackupServer/db"
+		return false;
+	}
+
+	@export boolean Goal9() {
+		if(SystemReady) {
+			return Solution_10() or CallAdmin();
+		}
+	}
+
+}	
+
 
 
