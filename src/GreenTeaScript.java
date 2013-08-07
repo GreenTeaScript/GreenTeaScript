@@ -2,7 +2,62 @@
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+//endif VAJA
 
+final class GtToken extends GtStatic {
+	/*field*/public int		        TokenFlag;
+	/*field*/public String	        ParsedText;
+	/*field*/public long		    FileLine;
+	/*field*/public SyntaxPattern	PresetPattern;
+
+	GtToken/*constructor*/(String text, long FileLine) {
+		this.TokenFlag = 0;
+		this.ParsedText = text;
+		this.FileLine = FileLine;
+		this.PresetPattern = null;
+	}
+
+	public boolean IsSource() {
+		return IsFlag(this.TokenFlag, SourceTokenFlag);
+	}
+
+	public boolean IsError() {
+		return IsFlag(this.TokenFlag, ErrorTokenFlag);
+	}
+
+	public boolean IsIndent() {
+		return IsFlag(this.TokenFlag, IndentTokenFlag);
+	}
+
+	public boolean IsDelim() {
+		return IsFlag(this.TokenFlag, DelimTokenFlag);
+	}
+
+	public boolean EqualsText(String text) {
+		return this.ParsedText.equals(text);
+	}
+
+	@Override public String toString() {
+		/*local*/String TokenText = "";
+		if(this.PresetPattern != null) {
+			TokenText = "(" + this.PresetPattern.PatternName + ") ";
+		}
+		return TokenText + this.ParsedText;
+	}
+
+	public String ToErrorToken(String Message) {
+		this.TokenFlag = ErrorTokenFlag;
+		this.ParsedText = Message;
+		return Message;
+	}
+
+	public String GetErrorMessage() {
+		LangDeps.Assert(this.IsError());
+		return this.ParsedText;
+	}
+}
+
+//ifdef JAVA
 interface GtConst {
 //endif VAJA
 	// ClassFlag
@@ -598,59 +653,6 @@ final class GtDelegateType extends GtDelegateCommon {
 //endif VAJA
 
 // tokenizer
-
-final class GtToken extends GtStatic {
-	/*field*/public int		        TokenFlag;
-	/*field*/public String	        ParsedText;
-	/*field*/public long		    FileLine;
-	/*field*/public SyntaxPattern	PresetPattern;
-
-	GtToken/*constructor*/(String text, long FileLine) {
-		this.TokenFlag = 0;
-		this.ParsedText = text;
-		this.FileLine = FileLine;
-		this.PresetPattern = null;
-	}
-
-	public boolean IsSource() {
-		return IsFlag(this.TokenFlag, SourceTokenFlag);
-	}
-
-	public boolean IsError() {
-		return IsFlag(this.TokenFlag, ErrorTokenFlag);
-	}
-
-	public boolean IsIndent() {
-		return IsFlag(this.TokenFlag, IndentTokenFlag);
-	}
-
-	public boolean IsDelim() {
-		return IsFlag(this.TokenFlag, DelimTokenFlag);
-	}
-
-	public boolean EqualsText(String text) {
-		return this.ParsedText.equals(text);
-	}
-
-	@Override public String toString() {
-		/*local*/String TokenText = "";
-		if(this.PresetPattern != null) {
-			TokenText = "(" + this.PresetPattern.PatternName + ") ";
-		}
-		return TokenText + this.ParsedText;
-	}
-
-	public String ToErrorToken(String Message) {
-		this.TokenFlag = ErrorTokenFlag;
-		this.ParsedText = Message;
-		return Message;
-	}
-
-	public String GetErrorMessage() {
-		LangDeps.Assert(this.IsError());
-		return this.ParsedText;
-	}
-}
 
 final class TokenFunc {
 	/*field*/public GtDelegateToken       Func;
@@ -1662,22 +1664,22 @@ final class GtNameSpace extends GtStatic {
 	}
 
 	public Object Eval(String ScriptSource, long FileLine, CodeGenerator Generator) {
-		/*local*/Object ResultValue = null;
+		/*local*/Object resultValue = null;
 		DebugP("Eval: " + ScriptSource);
-		/*local*/TokenContext TokenContext = new TokenContext(this, ScriptSource, FileLine);
-		TokenContext.SkipEmptyStatement();
-		while(TokenContext.HasNext()) {
-			/*local*/GtMap Annotation = TokenContext.SkipAndGetAnnotation(true);
-			/*local*/SyntaxTree TopLevelTree = GtStatic.ParseExpression(TokenContext);
-			TopLevelTree.SetAnnotation(Annotation);
-			DebugP("untyped tree: " + TopLevelTree);
-			/*local*/TypeEnv Gamma = new TypeEnv(this);
-			/*local*/TypedNode Node = Gamma.TypeCheckEachNode(TopLevelTree, Gamma.VoidType, DefaultTypeCheckPolicy);
-			ResultValue = Generator.Eval(Node);
-			TokenContext.SkipEmptyStatement();
-			TokenContext.Vacume();
+		/*local*/TokenContext tokenContext = new TokenContext(this, ScriptSource, FileLine);
+		tokenContext.SkipEmptyStatement();
+		while(tokenContext.HasNext()) {
+			/*local*/GtMap annotation = tokenContext.SkipAndGetAnnotation(true);
+			/*local*/SyntaxTree topLevelTree = GtStatic.ParseExpression(tokenContext);
+			topLevelTree.SetAnnotation(annotation);
+			DebugP("untyped tree: " + topLevelTree);
+			/*local*/TypeEnv gamma = new TypeEnv(this);
+			/*local*/TypedNode node = gamma.TypeCheckEachNode(topLevelTree, gamma.VoidType, DefaultTypeCheckPolicy);
+			resultValue = Generator.Eval(node);
+			tokenContext.SkipEmptyStatement();
+			tokenContext.Vacume();
 		}
-		return ResultValue;
+		return resultValue;
 	}
 
 
