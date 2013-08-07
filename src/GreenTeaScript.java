@@ -1827,12 +1827,13 @@ final class KonohaGrammar extends GtGrammar {
 	}
 
 	public static int StringLiteralToken(TokenContext TokenContext, String SourceText, int pos) {
-		/*local*/int start = pos;
+		/*local*/int start = pos + 1;
 		/*local*/char prev = '"';
+		pos = pos + 1; // eat "\""
 		while(pos < SourceText.length()) {
 			/*local*/char ch = LangDeps.CharAt(SourceText, pos);
 			if(ch == '"' && prev != '\\') {
-				TokenContext.AddNewToken(SourceText.substring(start, pos+1), 0, "$StringLiteral$");
+				TokenContext.AddNewToken(SourceText.substring(start, pos), 0, "$StringLiteral$");
 				return pos + 1;
 			}
 			if(ch == '\n') {
@@ -1970,11 +1971,7 @@ final class KonohaGrammar extends GtGrammar {
 
 	public static SyntaxTree ParseStringLiteral(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
 		/*local*/GtToken Token = TokenContext.Next(); /* this must be \" and we should eat it*/
-		/*local*/Token = TokenContext.Next();
 		/*local*/SyntaxTree NewTree = new SyntaxTree(Pattern, TokenContext.NameSpace, Token, Token.ParsedText);
-		if(!TokenContext.MatchToken("\"")) {
-			return TokenContext.NewErrorSyntaxTree(Token, "String must close with \"");
-		}
 		return NewTree;
 	}
 
