@@ -1590,8 +1590,13 @@ final class GtNameSpace extends GtStatic {
 		return ClassInfo;
 	}
 
-	public GtMethod DefineMethod(GtMethod Method) {
+	public final GtMethod DefineMethod(GtMethod Method) {
+		// adding function to the symbol table
 		this.TopLevelLayer.DefineMethod(Method);
+		Object Function = this.GetSymbol(Method.MethodName);
+		if(Function == null) {
+			this.DefineSymbol(Method.MethodName, Method);
+		}
 		return Method;
 	}
 
@@ -2475,7 +2480,7 @@ final class KonohaGrammar extends GtGrammar {
 	public static SyntaxTree ParseConstDecl(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
 		/*local*/GtToken Token = TokenContext.GetMatchedToken("const");
 		/*local*/SyntaxTree NewTree = new SyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
-		NewTree.SetMatchedPatternAt(VarDeclName, TokenContext, "$Symbol$", Required);
+		NewTree.SetMatchedPatternAt(VarDeclName, TokenContext, "$Variable$", Required);
 		NewTree.SetMatchedTokenAt(NoWhere, TokenContext, "=", Required);
 		NewTree.SetMatchedPatternAt(VarDeclValue, TokenContext, "$Expression$", Required);
 		return NewTree;
@@ -2529,7 +2534,7 @@ final class KonohaGrammar extends GtGrammar {
 				ParamBase += 3;
 			}
 			TokenContext.SkipIndent();
-			if(TokenContext.MatchToken("~")) {
+			if(TokenContext.MatchToken("~")) {  // this is little ad hoc
 				GtToken Token = TokenContext.GetToken();
 				Tree.ConstValue = Token.ParsedText;
 			}
@@ -2562,6 +2567,9 @@ final class KonohaGrammar extends GtGrammar {
 		}
 		/*local*/int MethodFlag = Gamma.Generator.ParseMethodFlag(0, ParsedTree);
 		/*local*/GtMethod Method = Gamma.Generator.CreateMethod(MethodFlag, MethodName, 0, TypeBuffer, (/*cast*/String)ParsedTree.ConstValue);
+		if(!Gamma.NameSpace.Context.CheckExportableName(Method)) {
+			return Gamma.CreateErrorNode(ParsedTree, "duplicated exported methods " + MethodName);
+		}
 		Gamma.Method = Method;
 		Gamma.NameSpace.DefineMethod(Method);
 		/*local*/TypedNode BodyNode = ParsedTree.TypeNodeAt(FuncDeclBlock, Gamma, ReturnType, IgnoreEmptyPolicy);
@@ -2675,6 +2683,7 @@ class GtContext extends GtStatic {
 	/*field*/public final GtType		FuncType;
 
 	/*field*/public final  GtMap			   ClassNameMap;
+	/*field*/public final  GtMap               UniqueMethodMap;
 	/*field*/public final  GtMap               LayerMap;
 	/*field*/public final  GtLayer             GreenLayer;
 	/*field*/public final  GtLayer             FieldLayer;
@@ -2687,6 +2696,7 @@ class GtContext extends GtStatic {
 		this.Generator.Context = this;
 		this.ClassNameMap = new GtMap();
 		this.LayerMap     = new GtMap();
+		this.UniqueMethodMap = new GtMap();
 		this.GreenLayer   = this.LoadLayer("GreenTea");
 		this.FieldLayer   = this.LoadLayer("Field");
 		this.UserDefinedLayer = this.LoadLayer("UserDefined");
@@ -2758,6 +2768,19 @@ class GtContext extends GtStatic {
 		return this.GetGenericType(BaseType, 0, TypeList, IsCreation);
 	}
 
+	public final boolean CheckExportableName(GtMethod Method) {
+		if(Method.Is(ExportMethod)) {
+			Object Value = this.UniqueMethodMap.get(Method.MethodName);
+			if(Value == null) {
+				this.UniqueMethodMap.put(Method.MethodName, Method);
+				return true;
+			}
+			return false;
+		}
+		return true;
+	}
+	
+	
 }
 
 public class GreenTeaScript extends GtStatic {
