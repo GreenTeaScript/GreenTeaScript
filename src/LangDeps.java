@@ -62,7 +62,7 @@ public abstract class LangDeps {
 	public final static char CharAt(String Text, int Pos) {
 		return Text.charAt(Pos);
 	}
-	
+
 	public final static String CharToString(char code){
 		return Character.toString(code);
 	}
@@ -170,17 +170,63 @@ public abstract class LangDeps {
 		return Tuple;
 	}
 
+	public final static void Usage() {
+		System.out.println("usage : ");
+		System.out.println("  Source Code Generation");
+		System.out.println("  --bash                Bash");
+		System.out.println("  --C                   C99");
+		System.out.println("  --CSharp              CSharp");
+		System.out.println("  --greentea            GreenTea (itself)");
+		System.out.println("  --java                Java");
+		System.out.println("  --javascript --js     JavaScript");
+		System.out.println("  --lua                 Lua");
+		System.out.println("  --haxe                Haxe");
+		System.out.println("  --ocaml               OCaml");
+		System.out.println("  --perl                Perl");
+		System.out.println("  --python              Python");
+		System.out.println("  --R                   R");
+		System.out.println("  --ruby                Ruby");
+		System.out.println("  --typescript --ts     TypeScript");
+		System.out.println("  --X                   Executable Code");
+		System.out.println("");
+		System.out.println("  -e expr               Program passed in as string");
+		System.exit(0);
+	}
+
 	public final static CodeGenerator CodeGenerator(String Option) {
-		if(Option.equals("--js") || Option.equals("--javascript") || Option.equals("--JavaScript")) {
+		Option = Option.replaceAll("--", "");
+		if(Option.equalsIgnoreCase("js") || Option.equalsIgnoreCase("javascript")) {
 			return new JavaScriptSourceGenerator();
 		}
-		else if(Option.equals("--perl")) {
+		else if(Option.equalsIgnoreCase("perl")) {
 			return new PerlSourceGenerator();
 		}
-		else if(Option.equals("--c")) {
+		else if(Option.equalsIgnoreCase("bash")) {
+			return new BashSourceGenerator();
+		}
+		else if(Option.equalsIgnoreCase("c")) {
 			return new CSourceGenerator();
 		}
-		return new JavaSourceGenerator();
+		else if(Option.equalsIgnoreCase("java")) {
+			return new JavaSourceGenerator();
+		}
+		else if(Option.equalsIgnoreCase("X")) {
+			return new JavaByteCodeGenerator();
+		}
+		return null;
+	}
+
+	private static java.io.Console Console = null;
+
+	public final static String ReadLine(String Prompt) {
+		if(Console == null) {
+			Console = System.console();
+		}
+		String Line = Console.readLine(Prompt);
+		if(Line != null) {
+			System.exit(0);
+		}
+		return Line;
 	}
 
 	public final static String LoadFile(String FileName) {
@@ -193,13 +239,16 @@ public abstract class LangDeps {
 			fi.close();
 			return new String(b);
 		} catch (FileNotFoundException e) {
+			System.err.println(e.getMessage());
+			System.exit(1);
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			//e.printStackTrace();
 		} catch (IOException e) {
+			System.err.println(e.getMessage());
+			System.exit(1);
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return null;
+		return "";
 	}
 }
-

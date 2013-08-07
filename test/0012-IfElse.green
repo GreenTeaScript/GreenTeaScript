@@ -1,0 +1,9 @@
+int f(int a) {
+    if(a < 10) {
+        return 1;
+    } else {
+        return 100;
+    }
+}
+
+f(10);

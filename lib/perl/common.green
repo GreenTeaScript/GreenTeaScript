@@ -1,0 +1,10 @@
+
+String +(String x, String y)   ~ "$0 . $1";
+boolean ==(String x, String y) ~ "$0 eq $1";
+boolean !=(String x, String y) ~ "$0 ne $1";
+
+int length(String x) ~ "length($0)";
+String concat(String x, String y) ~ "$0 . $1";
+
+
+

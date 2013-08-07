@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 /* language */
 
-
 // GreenTea Generator should be written in each language.
 
 class TypedNode extends GtStatic {
@@ -462,26 +461,6 @@ class ForEachNode extends TypedNode {
 	}
 }
 
-@Deprecated class LoopNode extends TypedNode {
-	/*field*/public TypedNode	CondExpr;
-	/*field*/public TypedNode	LoopBody;
-	/*field*/public TypedNode	IterExpr;
-	LoopNode/*constructor*/(GtType Type, GtToken Token, TypedNode CondExpr, TypedNode LoopBody, TypedNode IterExpr) {
-		super(Type, Token);
-		this.CondExpr = CondExpr;
-		this.LoopBody = LoopBody;
-		this.IterExpr = IterExpr;
-	}
-	@Override public void Evaluate(CodeGenerator Visitor) {
-		Visitor.VisitLoopNode(this);
-	}
-	@Override public String toString() {
-		/*local*/String Cond = TypedNode.Stringify(this.CondExpr);
-		/*local*/String Body = TypedNode.Stringify(this.LoopBody);
-		return "(Loop:" + this.Type + " Cond:" + Cond + " Body:"+ Body + ")";
-	}
-}
-
 @Deprecated class LabelNode extends TypedNode {
 	/*field*/public String Label;
 	LabelNode/*constructor*/(GtType Type, GtToken Token, String Label) {
@@ -742,8 +721,9 @@ class GtMethod extends GtStatic {
 	/*field*/public String          LocalFuncName;
 	/*field*/public GtType[]		Types;
 	/*field*/public GtMethod        ElderMethod;
+	/*field*/public String          SourceMacro;
 
-	GtMethod/*constructor*/(int MethodFlag, String MethodName, int BaseIndex, ArrayList<GtType> ParamList) {
+	GtMethod/*constructor*/(int MethodFlag, String MethodName, int BaseIndex, ArrayList<GtType> ParamList, String SourceMacro) {
 		this.MethodFlag = MethodFlag;
 		this.MethodName = MethodName;
 		this.MethodSymbolId = GtStatic.GetCanonicalSymbolId(MethodName);
@@ -760,6 +740,7 @@ class GtMethod extends GtStatic {
 			Name = Name + "__" + GtStatic.Mangle(this.GetRecvType(), BaseIndex + 1, ParamList);
 		}
 		this.LocalFuncName = Name;
+		this.SourceMacro = SourceMacro;
 	}
 
 	@Override public String toString() {
@@ -798,8 +779,26 @@ class GtMethod extends GtStatic {
 	public final GtType GetParamType(int ParamIdx) {
 		return this.Types[ParamIdx+1];
 	}
-}
 
+	public final String ExpandMacro1(String Arg0) {
+		if(this.SourceMacro == null) {
+			return this.MethodName + " " + Arg0;
+		}
+		else {
+			return this.SourceMacro.replaceAll("$0", Arg0);
+		}
+	}
+
+	public final String ExpandMacro2(String Arg0, String Arg1) {
+		if(this.SourceMacro == null) {
+			return Arg0 + " " + this.MethodName + " " + Arg1;
+		}
+		else {
+			return this.SourceMacro.replaceAll("$0", Arg0).replaceAll("$1", Arg1);
+		}
+	}
+
+}
 
 class CodeGenerator extends GtStatic {
 	/*field*/public String     LangName;
@@ -811,7 +810,7 @@ class CodeGenerator extends GtStatic {
 		this.Context = null;
 		this.GeneratedCodeStack = new ArrayList<Object>();
 	}
-	
+
 	public void SetLanguageContext(GtContext Context) {
 		this.Context = Context;
 	}
@@ -906,10 +905,6 @@ class CodeGenerator extends GtStatic {
 		return new ForEachNode(Type, ParsedTree.KeyToken, VarNode, IterNode, Block);
 	}
 
-	public TypedNode CreateLoopNode(GtType Type, SyntaxTree ParsedTree, TypedNode Cond, TypedNode Block, TypedNode IterNode) {
-		return new LoopNode(Type, ParsedTree.KeyToken, Cond, Block, IterNode);
-	}
-
 	public TypedNode CreateReturnNode(GtType Type, SyntaxTree ParsedTree, TypedNode Node) {
 		return new ReturnNode(Type, ParsedTree.KeyToken, Node);
 	}
@@ -957,7 +952,6 @@ class CodeGenerator extends GtStatic {
 	public TypedNode CreateCommandNode(GtType Type, SyntaxTree ParsedTree, TypedNode PipedNextNode) {
 		return new CommandNode(Type, ParsedTree.KeyToken, PipedNextNode);
 	}
-	
 
 	public int ParseMethodFlag(int MethodFlag, SyntaxTree MethodDeclTree) {
 		if(MethodDeclTree.HasAnnotation("Export")) {
@@ -968,13 +962,13 @@ class CodeGenerator extends GtStatic {
 		}
 		return MethodFlag;
 	}
-	
-	public GtMethod CreateMethod(int MethodFlag, String MethodName, int BaseIndex, ArrayList<GtType> TypeList) {
-		return new GtMethod(MethodFlag, MethodName, BaseIndex, TypeList);
+
+	public GtMethod CreateMethod(int MethodFlag, String MethodName, int BaseIndex, ArrayList<GtType> TypeList, String RawMacro) {
+		return new GtMethod(MethodFlag, MethodName, BaseIndex, TypeList, RawMacro);
 	}
 
 	//------------------------------------------------------------------------
-	
+
 	public void VisitEmptyNode(TypedNode EmptyNode) {
 		GtStatic.DebugP("empty node: " + EmptyNode.Token.ParsedText);
 	}
@@ -1063,10 +1057,6 @@ class CodeGenerator extends GtStatic {
 		/*extension*/
 	}
 
-	public void VisitLoopNode(LoopNode Node) {
-		/*extension*/
-	}
-
 	public void VisitReturnNode(ReturnNode Node) {
 		/*extension*/
 	}
@@ -1128,7 +1118,6 @@ class CodeGenerator extends GtStatic {
 	public void AddClass(GtType Type) {
 		/*extension*/
 	}
-	
 
 	protected void PushCode(Object Code){
 		this.GeneratedCodeStack.add(Code);
@@ -1154,7 +1143,7 @@ class SourceGenerator extends CodeGenerator {
 	}
 
 	/* GeneratorUtils */
-	
+
 	public final void Indent() {
 		this.IndentLevel += 1;
 		this.CurrentLevelIndentString = null;
@@ -1235,7 +1224,9 @@ class SourceGenerator extends CodeGenerator {
 		}
 		return Code;
 	}
-	
+
+	public final void WriteTranslatedCode(String Text) {
+		LangDeps.println(Text);
+	}
+
 }
-
-

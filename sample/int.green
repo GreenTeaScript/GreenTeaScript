@@ -1,0 +1,18 @@
+int +(int x);
+int -(int x);
+int ~(int x);
+int +(int x, int y);
+int -(int x, int y);
+int *(int x, int y);
+int /(int x, int y);
+int %(int x, int y);
+int <<(int x, int y);
+int >>(int x, int y);
+int ^(int x, int y);
+int |(int x, int y);
+int &(int x, int y);
+boolean <(int x, int y);
+boolean <=(int x, int y);
+boolean >=(int x, int y);
+boolean ==(int x, int y);
+boolean !=(int x, int y);

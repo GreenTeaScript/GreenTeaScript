@@ -95,7 +95,7 @@ sub Convert {
 		$UseTypeScript = 0;
 	}
 
-	&Config;
+	Config();
 	while ($line = <>)  {
 		if($line =~ /JAVA/) {
 			$JavaOnly = 1;
@@ -183,4 +183,4 @@ sub Convert {
 	}
 }
 
-&Convert;
+Convert();

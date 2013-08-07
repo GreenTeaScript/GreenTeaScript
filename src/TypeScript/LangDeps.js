@@ -166,5 +166,12 @@ var LangDeps = (function () {
         throw new Error("LangDeps.LoadFile is not implemented for this environment");
         return "";
     };
+
+    LangDeps.Usage = function () {
+    };
+
+    LangDeps.ReadLine = function (prompt) {
+        return "";
+    };
     return LangDeps;
 })();

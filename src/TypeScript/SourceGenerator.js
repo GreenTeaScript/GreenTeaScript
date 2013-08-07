@@ -432,25 +432,6 @@ var ForEachNode = (function (_super) {
     return ForEachNode;
 })(TypedNode);
 
-var LoopNode = (function (_super) {
-    __extends(LoopNode, _super);
-    function LoopNode(Type, Token, CondExpr, LoopBody, IterExpr) {
-        _super.call(this, Type, Token);
-        this.CondExpr = CondExpr;
-        this.LoopBody = LoopBody;
-        this.IterExpr = IterExpr;
-    }
-    LoopNode.prototype.Evaluate = function (Visitor) {
-        Visitor.VisitLoopNode(this);
-    };
-    LoopNode.prototype.toString = function () {
-        var Cond = TypedNode.Stringify(this.CondExpr);
-        var Body = TypedNode.Stringify(this.LoopBody);
-        return "(Loop:" + this.Type + " Cond:" + Cond + " Body:" + Body + ")";
-    };
-    return LoopNode;
-})(TypedNode);
-
 var LabelNode = (function (_super) {
     __extends(LabelNode, _super);
     function LabelNode(Type, Token, Label) {
@@ -693,7 +674,7 @@ var GtType = (function () {
 })();
 
 var GtMethod = (function () {
-    function GtMethod(MethodFlag, MethodName, BaseIndex, ParamList) {
+    function GtMethod(MethodFlag, MethodName, BaseIndex, ParamList, SourceMacro) {
         this.MethodFlag = MethodFlag;
         this.MethodName = MethodName;
         this.MethodSymbolId = GetCanonicalSymbolId(MethodName);
@@ -710,6 +691,7 @@ var GtMethod = (function () {
             Name = Name + "__" + Mangle(this.GetRecvType(), BaseIndex + 1, ParamList);
         }
         this.LocalFuncName = Name;
+        this.SourceMacro = SourceMacro;
     }
     GtMethod.prototype.toString = function () {
         var s = this.MethodName + "(";
@@ -746,6 +728,22 @@ var GtMethod = (function () {
 
     GtMethod.prototype.GetParamType = function (ParamIdx) {
         return this.Types[ParamIdx + 1];
+    };
+
+    GtMethod.prototype.ExpandMacro1 = function (Arg0) {
+        if (this.SourceMacro == null) {
+            return this.MethodName + " " + Arg0;
+        } else {
+            return this.SourceMacro.replaceAll("$0", Arg0);
+        }
+    };
+
+    GtMethod.prototype.ExpandMacro2 = function (Arg0, Arg1) {
+        if (this.SourceMacro == null) {
+            return Arg0 + " " + this.MethodName + " " + Arg1;
+        } else {
+            return this.SourceMacro.replaceAll("$0", Arg0).replaceAll("$1", Arg1);
+        }
     };
     return GtMethod;
 })();
@@ -850,10 +848,6 @@ var CodeGenerator = (function () {
         return new ForEachNode(Type, ParsedTree.KeyToken, VarNode, IterNode, Block);
     };
 
-    CodeGenerator.prototype.CreateLoopNode = function (Type, ParsedTree, Cond, Block, IterNode) {
-        return new LoopNode(Type, ParsedTree.KeyToken, Cond, Block, IterNode);
-    };
-
     CodeGenerator.prototype.CreateReturnNode = function (Type, ParsedTree, Node) {
         return new ReturnNode(Type, ParsedTree.KeyToken, Node);
     };
@@ -912,8 +906,8 @@ var CodeGenerator = (function () {
         return MethodFlag;
     };
 
-    CodeGenerator.prototype.CreateMethod = function (MethodFlag, MethodName, BaseIndex, TypeList) {
-        return new GtMethod(MethodFlag, MethodName, BaseIndex, TypeList);
+    CodeGenerator.prototype.CreateMethod = function (MethodFlag, MethodName, BaseIndex, TypeList, RawMacro) {
+        return new GtMethod(MethodFlag, MethodName, BaseIndex, TypeList, RawMacro);
     };
 
     CodeGenerator.prototype.VisitEmptyNode = function (EmptyNode) {
@@ -981,9 +975,6 @@ var CodeGenerator = (function () {
     };
 
     CodeGenerator.prototype.VisitSwitchNode = function (Node) {
-    };
-
-    CodeGenerator.prototype.VisitLoopNode = function (Node) {
     };
 
     CodeGenerator.prototype.VisitReturnNode = function (Node) {
@@ -1135,6 +1126,10 @@ var SourceGenerator = (function (_super) {
             i = i + 1;
         }
         return Code;
+    };
+
+    SourceGenerator.prototype.WriteTranslatedCode = function (Text) {
+        LangDeps.println(Text);
     };
     return SourceGenerator;
 })(CodeGenerator);

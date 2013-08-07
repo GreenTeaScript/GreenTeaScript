@@ -1,0 +1,22 @@
+int f(int a, int b) {
+    int n = 1;
+    if(a < 10) {
+        if(b < 100) {
+            n = n + 2;
+        } else {
+            n = n + 4;
+        }
+        n = n + 6;
+    } else {
+        if(b < 200) {
+            n = n + 20;
+        } else {
+            n = n + 40;
+        }
+        n = n + 60;
+    }
+    n = n + 200;
+    return n;
+}
+
+f(10000, 20000);

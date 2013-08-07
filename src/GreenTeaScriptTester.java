@@ -1,4 +1,3 @@
-
 class GreenTeaScriptTestCase {
 	/*field*/String	TestName;
 

@@ -632,7 +632,6 @@ public class JavaByteCodeGenerator extends CodeGenerator implements Opcodes {
 		return null;
 	}
 
-
 	void Call(int opcode, GtMethod Method) { //FIXME
 		//if(Method.MethodInvoker instanceof NativeMethodInvoker) {
 		//	NativeMethodInvoker i = (NativeMethodInvoker) Method.MethodInvoker;
@@ -822,7 +821,7 @@ public class JavaByteCodeGenerator extends CodeGenerator implements Opcodes {
 //		}
 	}
 
-	@Override public void VisitLoopNode(LoopNode Node) {
+	@Override public void VisitWhileNode(WhileNode Node) {
 		MethodVisitor mv = this.Builder.methodVisitor;
 		Label HEAD = new Label();
 		Label END = new Label();
@@ -837,9 +836,7 @@ public class JavaByteCodeGenerator extends CodeGenerator implements Opcodes {
 		mv.visitInsn(ICONST_1); // true
 		mv.visitJumpInsn(IF_ICMPNE, END); // condition
 		this.VisitBlock(Node.LoopBody);
-		if(Node.IterExpr != null) {
-			Node.IterExpr.Evaluate(this);
-		}
+
 		mv.visitJumpInsn(GOTO, HEAD);
 		mv.visitLabel(END);
 		this.Builder.LabelStack.RemoveLabel("break");
@@ -928,6 +925,11 @@ public class JavaByteCodeGenerator extends CodeGenerator implements Opcodes {
 		this.Builder.methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V");
 	}
 
+	@Override public void VisitCommandNode(CommandNode Node) {
+		String Source = ShellConverter.Convert(Node);
+		Context.Eval(Source, 0);
+	}
+
 	public void VisitEnd() {
 		//this.Builder.methodVisitor.visitInsn(RETURN);//FIXME
 		this.Builder.methodVisitor.visitEnd();
@@ -1000,7 +1002,7 @@ class EmbeddedMethodDef extends GtStatic {
 	}
 
 	void RegisterMethod(int MethodFlag, String MethodName, ArrayList<GtType> ParamTypeList, Object Callee, String LocalName) {
-		GtMethod newMethod = new GtMethod(MethodFlag, MethodName, 0, ParamTypeList);
+		GtMethod newMethod = new GtMethod(MethodFlag, MethodName, 0, ParamTypeList, null);
 		GtType[] paramTypes = LangDeps.CompactTypeList(0, ParamTypeList);
 		Method mtd = LookupMethod(Callee, LocalName);
 		NMMap.PutMethodInvoker(newMethod, new NativeMethodInvoker(paramTypes, mtd));
@@ -1014,6 +1016,144 @@ class EmbeddedMethodDef extends GtStatic {
 	}
 }
 
+class ShellConverter {
+	private static final String ProcessClassName = "Process";
+	private static final String MonitorClassName = "ProcessMonitor";
+	private static final boolean enableMonitor = true;
+	private static int shellMethodCounter = 0;
+
+	public static String Convert(CommandNode Node) {
+		GtType StringType = Node.Type.Context.StringType;
+		boolean isExpr = Node.Type.equals(StringType);
+		String retType = isExpr ? "String" : "void";
+		String shellMethodName = "ShellMethod" + shellMethodCounter;
+		String body = CreateShellMethodBody(Node, isExpr);
+		StringBuilder srcBuilder = new StringBuilder();
+		
+		srcBuilder.append(retType + " " + shellMethodName + "(){\n\n" + body+ "\n}\n");
+		srcBuilder.append(shellMethodName + "()");
+		if(!isExpr) {
+			srcBuilder.append(";");
+		}
+		shellMethodCounter++;
+		
+		return srcBuilder.toString();
+	}
+
+	private static String CreateShellMethodBody(CommandNode Node, boolean isExpr) {
+		StringBuilder srcBuilder = new StringBuilder();
+		String monitorName = "monitor";
+		Stack<String> procNameStack = new Stack<String>();
+		
+		if(enableMonitor) {
+			srcBuilder.append(MonitorClassName + " " + monitorName + " = new " + MonitorClassName + "();\n");
+		}
+		
+		int i = 0;
+		CommandNode CurrentNode = Node;
+		while(CurrentNode != null) {
+			String procName = "p" + i;
+			srcBuilder.append(CreateProc(monitorName, procName, CurrentNode));
+			if(i == 0) {
+				srcBuilder.append(CreateInputRediret(procName, CurrentNode));
+			}
+			else if(i > 0) {
+				String preProcName = procNameStack.peek();
+				srcBuilder.append(CreatePipe(preProcName, procName));
+			}
+			i++;
+			CurrentNode = (CommandNode) CurrentNode.PipedNextNode;
+			procNameStack.push(procName);
+		}
+		srcBuilder.append(CreateOutputRediret(procNameStack.peek(), CurrentNode, isExpr));
+		if(enableMonitor) {
+			srcBuilder.append(monitorName + ".ThrowException();\n");
+		}
+		
+		return srcBuilder.toString();
+	}
+
+	private static String CreateProc(String monitorName, String procName, CommandNode CurrentNode) {
+		StringBuilder srcBuilder = new StringBuilder();
+		ArrayList<String> argList = CreateArgument(CurrentNode.Params);
+		
+		srcBuilder.append(ProcessClassName + " " + procName + " = new " + ProcessClassName + "();\n");
+		if(enableMonitor) {
+			srcBuilder.append(monitorName + ".SetProcess(" + procName + ");\n");
+		}
+		for(String arg : argList) {
+			srcBuilder.append(procName + ".SetArgument(\"" + arg + "\");\n");
+		}
+		srcBuilder.append(procName + ".Start();\n");
+		
+		return srcBuilder.toString();
+	}
+
+	private static ArrayList<String> CreateArgument(ArrayList<TypedNode> nodeList) {
+		ArrayList<String> argList = new ArrayList<String>();
+		int size = nodeList.size();
+		
+		for(int i = 0; i < size; i++) {
+			TypedNode node = nodeList.get(i);
+			GtType voidType = node.Type.Context.VoidType;
+			String token = node.Token.ParsedText;
+			if((token.equals("<") || token.equals(">"))
+					&& node.Type.equals(voidType)) {
+				size = i;
+				break;
+			}
+		}
+		for(int i = 0; i < size; i++) {
+			argList.add(nodeList.get(i).Token.ParsedText);
+		}
+		return argList;
+	}
+
+	private static String CreateInputRediret(String procName, CommandNode CurrentNode) {
+		String input = FindRedirect(CurrentNode.Params, true);
+		if(input != null) {
+			return procName + ".SetInputFileName(\"" + input + "\");\n";
+		}
+		return "";
+	}
+
+	private static String CreateOutputRediret(String procName, CommandNode CurrentNode, boolean isExpr) {
+		StringBuilder srcBuilder = new StringBuilder();
+		String output = FindRedirect(CurrentNode.Params, false);
+		if(output != null) {
+			srcBuilder.append(procName + ".SetOutputFileName(\"" + output + "\");\n");
+		}
+		
+		if(isExpr) {
+			srcBuilder.append(procName + ".WaitResult();\n");
+			srcBuilder.append("String out = " + procName + ".GetOut();\n");
+		}
+		else {
+			srcBuilder.append(procName + ".Console();\n");
+		}
+		
+		return srcBuilder.toString();
+	}
+
+	private static String CreatePipe(String preProcName, String procName) {
+		return preProcName + ".Pipe(" + procName + ");\n";
+	}
+
+	private static String FindRedirect(ArrayList<TypedNode> nodeList, boolean isInputRedir) {
+		int size = nodeList.size();
+		String symbol = isInputRedir ? "<" : ">";
+		
+		for(int i = 0; i < size; i++) {
+			TypedNode node = nodeList.get(i);
+			GtType voidType = node.Type.Context.VoidType;
+			String token = node.Token.ParsedText;
+			if(token.equals(symbol) && node.Type.equals(voidType) && i + 1 < size) {
+				return nodeList.get(i + 1).Token.ParsedText;
+			}
+		}
+		return null;
+	}
+}
 
 // The code below was moved from GreenTeaScript.java
 // Consider whether it is available?
@@ -1152,4 +1292,3 @@ class EmbeddedMethodDef extends GtStatic {
 //return false;
 //}
 ////endif VAJA
-

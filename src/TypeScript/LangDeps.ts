@@ -223,5 +223,12 @@ class LangDeps {
 		throw new Error("LangDeps.LoadFile is not implemented for this environment");
 		return "";
 	}
+
+	static Usage(): void{
+	}
+
+	static ReadLine(prompt: string): string {
+		return "";
+	}
 }
 

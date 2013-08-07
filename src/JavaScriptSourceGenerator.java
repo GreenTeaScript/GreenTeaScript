@@ -25,6 +25,7 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 		this.VisitBlockJS(Body);
 		Code += this.PopSourceCode() + ")";
 		this.PushSourceCode(Code);
+		this.WriteTranslatedCode(Code);
 	}
 
 	public  void VisitBlockJS(TypedNode Node) {
@@ -143,10 +144,6 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 		// TODO Auto-generated method stub
 	}
 
-	@Override public void VisitLoopNode(LoopNode Node) {
-		// TODO Auto-generated method stub
-	}
-
 	@Override public void VisitWhileNode(WhileNode Node) {
 		Node.CondExpr.Evaluate(this);
 		this.VisitBlockJS(Node.LoopBody);
@@ -245,8 +242,7 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 	}
 
 	// This must be extended in each language
-	@Override
-	public Object Eval(TypedNode Node) {
+	@Override public Object Eval(TypedNode Node) {
 		this.VisitBlock(Node);
 		/*local*/String ret = "";
 		while(this.GeneratedCodeStack.size() > 0){
@@ -255,9 +251,8 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 				ret =  Line + ";\n" + ret;
 			}
 		}
-		System.out.println(ret);
+		this.WriteTranslatedCode(ret);
 		return ret;
 	}
 
 }
-

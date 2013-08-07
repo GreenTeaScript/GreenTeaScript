@@ -98,8 +98,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Program);
 	}
 
-	@Override
-	public void VisitForEachNode(ForEachNode Node) {
+	@Override public void VisitForEachNode(ForEachNode Node) {
 		// TODO Auto-generated method stub
 
 	}
@@ -303,6 +302,22 @@ public class PerlSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 
 	}
+	
+	@Override public void VisitCommandNode(CommandNode Node) {
+		/*local*/String Code = "system(\"";
+		/*local*/int i = 0;
+		while(i < GtStatic.ListSize(Node.Params)) {
+			TypedNode Param = Node.Params.get(i);
+			if(i != 0) {
+				Code += " ";
+			}
+			Param.Evaluate(this);
+			Code += this.PopSourceCode();
+			i = i + 1;
+		}
+		Code += "\")";
+		this.PushSourceCode(Code);
+	}
 
 	@Override public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, TypedNode Body) {
 		String Program = "";
@@ -326,7 +341,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		Program += this.PopSourceCode();
 		this.UnIndent();
 		Program += "\n" + this.GetIndentString() + "}";
-		DebugP(Program);
+		this.WriteTranslatedCode(Program);
 	}
 
 	@Override public Object Eval(TypedNode SingleNode) {
@@ -345,4 +360,3 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 }
-

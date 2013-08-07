@@ -24,6 +24,7 @@ class JavaScriptSourceGenerator extends SourceGenerator {
 		this.VisitBlockJS(Body);
 		Code += this.PopSourceCode() + ")";
 		this.PushSourceCode(Code);
+		this.WriteTranslatedCode(Code);
 	}
 
 	public  VisitBlockJS(Node: TypedNode): void {
@@ -142,10 +143,6 @@ class JavaScriptSourceGenerator extends SourceGenerator {
 		// Auto: TODO-generatedstub: method //
 	}
 
-	public VisitLoopNode(Node: LoopNode): void {
-		// Auto: TODO-generatedstub: method //
-	}
-
 	public VisitWhileNode(Node: WhileNode): void {
 		Node.CondExpr.Evaluate(this);
 		this.VisitBlockJS(Node.LoopBody);
@@ -253,9 +250,8 @@ class JavaScriptSourceGenerator extends SourceGenerator {
 				ret =  Line + ";\n" + ret;
 			}
 		}
-		console.log(ret);
+		this.WriteTranslatedCode(ret);
 		return ret;
 	}
 
 }
-

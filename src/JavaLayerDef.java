@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 
 public class JavaLayerDef extends GtStatic {
-	
+
 	public static ArrayList<GtType> MakeParamTypeList(GtType ReturnType, GtType RecvType, GtType...ParamTypes) {
 		ArrayList<GtType> TypeList = new ArrayList<GtType>();
 		TypeList.add(ReturnType);
@@ -13,7 +13,7 @@ public class JavaLayerDef extends GtStatic {
 	}
 
 	public static void DefineMethod(GtNameSpace NameSpace, int MethodFlag, String MethodName, ArrayList<GtType> ParamTypeList) {
-		GtMethod Method = new GtMethod(MethodFlag, MethodName, 0, ParamTypeList);
+		GtMethod Method = new GtMethod(MethodFlag, MethodName, 0, ParamTypeList, null);
 		NameSpace.DefineMethod(Method);
 	}
 

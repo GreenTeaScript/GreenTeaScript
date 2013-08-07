@@ -24,6 +24,7 @@ var JavaScriptSourceGenerator = (function (_super) {
         this.VisitBlockJS(Body);
         Code += this.PopSourceCode() + ")";
         this.PushSourceCode(Code);
+        this.WriteTranslatedCode(Code);
     };
 
     JavaScriptSourceGenerator.prototype.VisitBlockJS = function (Node) {
@@ -141,9 +142,6 @@ var JavaScriptSourceGenerator = (function (_super) {
     JavaScriptSourceGenerator.prototype.VisitSwitchNode = function (Node) {
     };
 
-    JavaScriptSourceGenerator.prototype.VisitLoopNode = function (Node) {
-    };
-
     JavaScriptSourceGenerator.prototype.VisitWhileNode = function (Node) {
         Node.CondExpr.Evaluate(this);
         this.VisitBlockJS(Node.LoopBody);
@@ -244,7 +242,7 @@ var JavaScriptSourceGenerator = (function (_super) {
                 ret = Line + ";\n" + ret;
             }
         }
-        console.log(ret);
+        this.WriteTranslatedCode(ret);
         return ret;
     };
     return JavaScriptSourceGenerator;

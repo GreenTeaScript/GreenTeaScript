@@ -3,7 +3,6 @@
 
 /* language */
 
-
 // Generator: GreenTeabe: shouldin: writtenlanguage: each. //
 
 class TypedNode {
@@ -461,26 +460,6 @@ class ForEachNode extends TypedNode {
 	}
 }
 
-class LoopNode extends TypedNode {
-	public CondExpr: TypedNode;
-	public LoopBody: TypedNode;
-	public IterExpr: TypedNode;
-	constructor(Type: GtType, Token: GtToken, CondExpr: TypedNode, LoopBody: TypedNode, IterExpr: TypedNode) {
-		super(Type, Token);
-		this.CondExpr = CondExpr;
-		this.LoopBody = LoopBody;
-		this.IterExpr = IterExpr;
-	}
-	public Evaluate(Visitor: CodeGenerator): void {
-		Visitor.VisitLoopNode(this);
-	}
-	public toString(): string {
-		var Cond: string = TypedNode.Stringify(this.CondExpr);
-		var Body: string = TypedNode.Stringify(this.LoopBody);
-		return "(Loop:" + this.Type + " Cond:" + Cond + " Body:"+ Body + ")";
-	}
-}
-
 class LabelNode extends TypedNode {
 	public Label: string;
 	constructor(Type: GtType, Token: GtToken, Label: string) {
@@ -741,8 +720,9 @@ class GtMethod {
 	public LocalFuncName: string;
 	public Types: GtType[];
 	public ElderMethod: GtMethod;
+	public SourceMacro: string;
 
-	constructor(MethodFlag: number, MethodName: string, BaseIndex: number, ParamList: Array<GtType>) {
+	constructor(MethodFlag: number, MethodName: string, BaseIndex: number, ParamList: Array<GtType>, SourceMacro: string) {
 		this.MethodFlag = MethodFlag;
 		this.MethodName = MethodName;
 		this.MethodSymbolId = GetCanonicalSymbolId(MethodName);
@@ -759,6 +739,7 @@ class GtMethod {
 			Name = Name + "__" + Mangle(this.GetRecvType(), BaseIndex + 1, ParamList);
 		}
 		this.LocalFuncName = Name;
+		this.SourceMacro = SourceMacro;
 	}
 
 	public toString(): string {
@@ -797,8 +778,26 @@ class GtMethod {
 	 GetParamType(ParamIdx: number): GtType {
 		return this.Types[ParamIdx+1];
 	}
-}
 
+	 ExpandMacro1(Arg0: string): string {
+		if(this.SourceMacro == null) {
+			return this.MethodName + " " + Arg0;
+		}
+		else {
+			return this.SourceMacro.replaceAll("$0", Arg0);
+		}
+	}
+
+	 ExpandMacro2(Arg0: string, Arg1: string): string {
+		if(this.SourceMacro == null) {
+			return Arg0 + " " + this.MethodName + " " + Arg1;
+		}
+		else {
+			return this.SourceMacro.replaceAll("$0", Arg0).replaceAll("$1", Arg1);
+		}
+	}
+
+}
 
 class CodeGenerator {
 	public LangName: string;
@@ -810,7 +809,7 @@ class CodeGenerator {
 		this.Context = null;
 		this.GeneratedCodeStack = new Array<Object>();
 	}
-	
+
 	public SetLanguageContext(Context: GtContext): void {
 		this.Context = Context;
 	}
@@ -905,10 +904,6 @@ class CodeGenerator {
 		return new ForEachNode(Type, ParsedTree.KeyToken, VarNode, IterNode, Block);
 	}
 
-	public CreateLoopNode(Type: GtType, ParsedTree: SyntaxTree, Cond: TypedNode, Block: TypedNode, IterNode: TypedNode): TypedNode {
-		return new LoopNode(Type, ParsedTree.KeyToken, Cond, Block, IterNode);
-	}
-
 	public CreateReturnNode(Type: GtType, ParsedTree: SyntaxTree, Node: TypedNode): TypedNode {
 		return new ReturnNode(Type, ParsedTree.KeyToken, Node);
 	}
@@ -956,7 +951,6 @@ class CodeGenerator {
 	public CreateCommandNode(Type: GtType, ParsedTree: SyntaxTree, PipedNextNode: TypedNode): TypedNode {
 		return new CommandNode(Type, ParsedTree.KeyToken, PipedNextNode);
 	}
-	
 
 	public ParseMethodFlag(MethodFlag: number, MethodDeclTree: SyntaxTree): number {
 		if(MethodDeclTree.HasAnnotation("Export")) {
@@ -967,13 +961,13 @@ class CodeGenerator {
 		}
 		return MethodFlag;
 	}
-	
-	public CreateMethod(MethodFlag: number, MethodName: string, BaseIndex: number, TypeList: Array<GtType>): GtMethod {
-		return new GtMethod(MethodFlag, MethodName, BaseIndex, TypeList);
+
+	public CreateMethod(MethodFlag: number, MethodName: string, BaseIndex: number, TypeList: Array<GtType>, RawMacro: string): GtMethod {
+		return new GtMethod(MethodFlag, MethodName, BaseIndex, TypeList, RawMacro);
 	}
 
 	// ------------------------------------------------------------------------ //
-	
+
 	public VisitEmptyNode(EmptyNode: TypedNode): void {
 		DebugP("node: empty: " + EmptyNode.Token.ParsedText);
 	}
@@ -1062,10 +1056,6 @@ class CodeGenerator {
 		/*extension*/
 	}
 
-	public VisitLoopNode(Node: LoopNode): void {
-		/*extension*/
-	}
-
 	public VisitReturnNode(Node: ReturnNode): void {
 		/*extension*/
 	}
@@ -1127,7 +1117,6 @@ class CodeGenerator {
 	public AddClass(Type: GtType): void {
 		/*extension*/
 	}
-	
 
 	 PushCode(Code: Object): void{
 		this.GeneratedCodeStack.add(Code);
@@ -1153,7 +1142,7 @@ class SourceGenerator extends CodeGenerator {
 	}
 
 	/* GeneratorUtils */
-	
+
 	 Indent(): void {
 		this.IndentLevel += 1;
 		this.CurrentLevelIndentString = null;
@@ -1234,7 +1223,9 @@ class SourceGenerator extends CodeGenerator {
 		}
 		return Code;
 	}
-	
+
+	 WriteTranslatedCode(Text: string): void {
+		LangDeps.println(Text);
+	}
+
 }
-
-

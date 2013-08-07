@@ -1,5 +1,4 @@
 /// <reference path="LangDeps.ts" />
-
 class GreenTeaScriptTestCase {
 	TestName: string;
 
