@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class JavaScriptSourceGenerator extends SourceGenerator {
 
-	JavaScriptSourceGenerator() {
+	JavaScriptSourceGenerator/*constructor*/() {
 		super("JavaScript");
 	}
 
@@ -33,7 +33,7 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 		super.VisitBlock(Node);
 		this.UnIndent();
 		/*local*/int Size = Node.CountForrowingNode();
-		/*local*/String Block = this.PopManyCodeWithModifier(Size, true, "\n" + highLevelIndent, ";", null);
+		/*local*/String Block = this.PopManyCodeAndJoin(Size, true, "\n" + highLevelIndent, ";", null);
 		this.PushSourceCode("{" + Block + "\n" + this.GetIndentString() + "}");
 	}
 
@@ -94,7 +94,7 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 			Node.Params.get(i).Evaluate(this);
 			i = i + 1;
 		}
-		/*local*/String params = "(" + this.PopManyCodeWithModifier(ParamCount, true, null, null, ", ") + ")";
+		/*local*/String params = "(" + this.PopManyCodeAndJoin(ParamCount, true, null, null, ", ") + ")";
 		this.PushSourceCode(methodName + params);
 	}
 

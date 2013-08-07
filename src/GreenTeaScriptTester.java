@@ -1,8 +1,8 @@
 
 class GreenTeaScriptTestCase {
-	String	TestName;
+	/*field*/String	TestName;
 
-	public GreenTeaScriptTestCase() {
+	public GreenTeaScriptTestCase/*constructor*/() {
 	}
 
 	public static void Check(boolean Actual, boolean Expected) {
@@ -10,36 +10,37 @@ class GreenTeaScriptTestCase {
 	}
 
 	public static void Assert(boolean Cond) {
-		AssertTrue(Cond);
+		GreenTeaScriptTestCase.AssertTrue(Cond);
 	}
 
 	public static void AssertTrue(boolean Cond) {
-		Check(Cond, true);
+		GreenTeaScriptTestCase.Check(Cond, true);
 	}
 
 	public static void AssertFalse(boolean Cond) {
-		Check(Cond, false);
+		GreenTeaScriptTestCase.Check(Cond, false);
 	}
 
-	public static void AssertEqual(boolean Actual, boolean Expected) {
-		Check(Actual, Expected);
+	public static void AssertEqualB(boolean Actual, boolean Expected) {
+		GreenTeaScriptTestCase.Check(Actual, Expected);
 	}
 
-	public static void AssertEqual(int Actual, int Expected) {
-		Check(Actual == Expected, true);
+	public static void AssertEqualI(int Actual, int Expected) {
+		GreenTeaScriptTestCase.Check(Actual == Expected, true);
 	}
 
-	public static void AssertEqual(float Actual, float Expected, float Delta) {
-		Check(Actual - Expected <= Delta, true);
+	public static void AssertEqualF(float Actual, float Expected, float Delta) {
+		GreenTeaScriptTestCase.Check(Actual - Expected <= Delta, true);
 	}
 
-	public static void AssertEqual(Object Actual, Object Expected) {
-		Check(Actual.equals(Expected), true);
+	public static void AssertEqualO(Object Actual, Object Expected) {
+		GreenTeaScriptTestCase.Check(Actual.equals(Expected), true);
 	}
 }
 
 class GreenTeaTokenizerTestCase extends GreenTeaScriptTestCase {
-	static final void TestToken(GtContext Context, String Source, String[] TokenTestList) {
+	
+	final static void TestToken(GtContext Context, String Source, String[] TokenTestList) {
 		/*local*/GtNameSpace NameSpace = Context.DefaultNameSpace;
 		/*local*/TokenContext TokenContext = new TokenContext(NameSpace, Source, 1);
 		/*local*/int i = 0;
@@ -51,23 +52,23 @@ class GreenTeaTokenizerTestCase extends GreenTeaScriptTestCase {
 	}
 
 	static void Test(GtContext Context) {
-		String[] TokenTestList0 = {"1", "||", "2"};
-		TestToken(Context, "1 || 2", TokenTestList0);
+		/*local*/String[] TokenTestList0 = {"1", "||", "2"};
+		GreenTeaTokenizerTestCase.TestToken(Context, "1 || 2", TokenTestList0);
 
-		String[] TokenTestList1 = {"1", "==", "2"};
-		TestToken(Context, "1 == 2", TokenTestList1);
+		/*local*/String[] TokenTestList1 = {"1", "==", "2"};
+		GreenTeaTokenizerTestCase.TestToken(Context, "1 == 2", TokenTestList1);
 
-		String[] TokenTestList2 = {"1", "!=", "2"};
-		TestToken(Context, "1 != 2", TokenTestList2);
+		/*local*/String[] TokenTestList2 = {"1", "!=", "2"};
+		GreenTeaTokenizerTestCase.TestToken(Context, "1 != 2", TokenTestList2);
 
-		String[] TokenTestList3 = {"1", "*", "=", "2"};
-		TestToken(Context, "1 *= 2", TokenTestList3);
+		/*local*/String[] TokenTestList3 = {"1", "*", "=", "2"};
+		GreenTeaTokenizerTestCase.TestToken(Context, "1 *= 2", TokenTestList3);
 
-		String[] TokenTestList4 = {"1", "=", "2"};
-		TestToken(Context, "1 = 2", TokenTestList4);
+		/*local*/String[] TokenTestList4 = {"1", "=", "2"};
+		GreenTeaTokenizerTestCase.TestToken(Context, "1 = 2", TokenTestList4);
 
-		String[] TokenTestList5 = {"int", "+", "(", "int", "x", ")", ";"};
-		TestToken(Context, "int + (int x);", TokenTestList5);
+		/*local*/String[] TokenTestList5 = {"int", "+", "(", "int", "x", ")", ";"};
+		GreenTeaTokenizerTestCase.TestToken(Context, "int + (int x);", TokenTestList5);
 	}
 }
 

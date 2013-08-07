@@ -1617,7 +1617,7 @@ final class GtNameSpace extends GtStatic {
 				while(i >= 0) {
 					/*local*/GtLayer Layer = this.LayerList.get(i);
 					/*local*/GtMethod Method = Layer.GetMethod(MethodId);
-					FoundMethod = FilterOverloadedMethods(Method, ParamSize, ResolvedSize, TypeList, BaseIndex, FoundMethod);
+					FoundMethod = this.FilterOverloadedMethods(Method, ParamSize, ResolvedSize, TypeList, BaseIndex, FoundMethod);
 					i -= 1;
 				}
 				Class = Class.SearchSuperMethodClass;
@@ -1684,13 +1684,6 @@ final class GtNameSpace extends GtStatic {
 		return ResultValue;
 	}
 
-	public GtMethod LookupMethod(String MethodName, int ParamSize) {
-		//FIXME
-		//MethodName = "ClassName.MethodName";
-		//1. (ClassName, MethodName) = MethodName.split(".")
-		//2. find MethodName(arg0, arg1, ... , arg_ParamSize)
-		return null;
-	}
 
 	private String GetSourcePosition(long FileLine) {
 		return "(eval:" + (int) FileLine + ")";
@@ -1808,7 +1801,7 @@ final class KonohaGrammar extends GtGrammar {
 				while(NextPos < SourceText.length()) {
 					/*local*/char ch = LangDeps.CharAt(SourceText, NextPos);
 					if(ch == '\n') {
-						return IndentToken(TokenContext, SourceText, NextPos);
+						return KonohaGrammar.IndentToken(TokenContext, SourceText, NextPos);
 					}
 				}
 			}

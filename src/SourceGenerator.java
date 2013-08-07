@@ -744,7 +744,6 @@ class GtMethod extends GtStatic {
 	/*field*/public GtMethod        ElderMethod;
 
 	GtMethod/*constructor*/(int MethodFlag, String MethodName, int BaseIndex, ArrayList<GtType> ParamList) {
-		super();
 		this.MethodFlag = MethodFlag;
 		this.MethodName = MethodName;
 		this.MethodSymbolId = GtStatic.GetCanonicalSymbolId(MethodName);
@@ -807,7 +806,7 @@ class CodeGenerator extends GtStatic {
 	/*field*/public GtContext  Context;
 	/*field*/public ArrayList<Object> GeneratedCodeStack;
 
-	CodeGenerator(String LangName) {
+	CodeGenerator/*constructor*/(String LangName) {
 		this.LangName = LangName;
 		this.Context = null;
 		this.GeneratedCodeStack = new ArrayList<Object>();
@@ -1209,7 +1208,7 @@ class SourceGenerator extends CodeGenerator {
 		return array;
 	}
 
-	protected final String PopManyCodeWithModifier(int n, boolean reverse, String prefix, String suffix, String delim) {
+	protected final String PopManyCodeAndJoin(int n, boolean reverse, String prefix, String suffix, String delim) {
 		if(prefix == null) {
 			prefix = "";
 		}
