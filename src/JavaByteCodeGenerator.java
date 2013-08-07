@@ -1018,8 +1018,8 @@ class EmbeddedMethodDef extends GtStatic {
 }
 
 class ShellConverter {
-	private static final String	ProcessClassName	= "Process";
-	private static final String  MonitorClassName    = "ProcessMonitor";
+	private static final String ProcessClassName = "Process";
+	private static final String MonitorClassName = "ProcessMonitor";
 	private static final boolean enableMonitor = true;
 	private static int shellMethodCounter = 0;
 	
@@ -1051,7 +1051,7 @@ class ShellConverter {
 		}
 		
 		int i = 0;
-		CommandNode CurrentNode = Node; 
+		CommandNode CurrentNode = Node;
 		while(CurrentNode != null) {
 			String procName = "p" + i;
 			srcBuilder.append(CreateProc(monitorName, procName, CurrentNode));
@@ -1110,7 +1110,7 @@ class ShellConverter {
 	}
 	
 	private static String CreateInputRediret(String procName, CommandNode CurrentNode) {
-		String input = FindRedirect(CurrentNode.Params, true);		
+		String input = FindRedirect(CurrentNode.Params, true);
 		if(input != null) {
 			return procName + ".SetInputFileName(\"" + input + "\");\n";
 		}
@@ -1119,17 +1119,17 @@ class ShellConverter {
 	
 	private static String CreateOutputRediret(String procName, CommandNode CurrentNode, boolean isExpr) {
 		StringBuilder srcBuilder = new StringBuilder();
-		String output = FindRedirect(CurrentNode.Params, false);		
+		String output = FindRedirect(CurrentNode.Params, false);
 		if(output != null) {
-			return procName + ".SetOutputFileName(\"" + output + "\");\n";
+			srcBuilder.append(procName + ".SetOutputFileName(\"" + output + "\");\n");
 		}
 		
 		if(isExpr) {
 			srcBuilder.append(procName + ".WaitResult();\n");
 			srcBuilder.append("String out = " + procName + ".GetOut();\n");
-		} 
+		}
 		else {
-			srcBuilder.append(procName + ".Console();\n");	
+			srcBuilder.append(procName + ".Console();\n");
 		}
 		
 		return srcBuilder.toString();
