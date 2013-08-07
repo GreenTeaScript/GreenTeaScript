@@ -1362,6 +1362,10 @@ final class TypeEnv extends GtStatic {
 		}
 		return LastNode.MoveHeadNode();
 	}
+
+	public boolean AppendConstants(String VariableName, TypedNode ConstNode) {
+		return NameSpace.AppendConstants(VariableName, ConstNode);
+	}
 }
 
 // NameSpace
@@ -1391,6 +1395,7 @@ final class GtNameSpace extends GtStatic {
 	/*field*/GtMap   ExtendedPatternTable;
 	/*field*/public ArrayList<GtLayer>        LayerList;
 	/*field*/GtLayer TopLevelLayer;
+	/*field*/GtMap   ConstantTable;
 
 	GtNameSpace/*constructor*/(GtContext Context, GtNameSpace ParentNameSpace) {
 		this.Context = Context;
@@ -1408,6 +1413,7 @@ final class GtNameSpace extends GtStatic {
 		this.ImportedNameSpaceList = null;
 		this.PublicSpecList = new ArrayList<GtSpec>();
 		this.PrivateSpecList = null;
+		this.ConstantTable = null;
 		this.TokenMatrix = null;
 		this.SymbolPatternTable = null;
 		this.ExtendedPatternTable = null;
@@ -1652,14 +1658,28 @@ final class GtNameSpace extends GtStatic {
 		return (/*cast*/GtObject) GlobalObject;
 	}
 
-	public void ImportNameSpace(GtNameSpace ImportedNameSpace) {
-		if(this.ImportedNameSpaceList == null) {
-			this.ImportedNameSpaceList = new ArrayList<GtNameSpace>();
-			this.ImportedNameSpaceList.add(ImportedNameSpace);
+	// Const Object
+	public Object GetConstant(String VariableName) {
+		if(this.ConstantTable != null) {
+			Object ConstValue = this.ConstantTable.get(VariableName);
+			if(ConstValue != null) {
+				return ConstValue;
+			}
+			if(ParentNameSpace != null) {
+				return ParentNameSpace.GetConstant(VariableName);
+			}
 		}
-		this.TokenMatrix = null;
-		this.SymbolPatternTable = null;
-		this.ExtendedPatternTable = null;
+		return null;
+	}
+	public boolean AppendConstants(String VariableName, Object ConstValue) {
+		if(GetConstant(VariableName) != null) {
+			return false;
+		}
+		if(this.ConstantTable == null) {
+			this.ConstantTable = new GtMap();
+		}
+		this.ConstantTable.put(VariableName, ConstValue);
+		return true;
 	}
 
 	public Object Eval(String ScriptSource, long FileLine, CodeGenerator Generator) {
@@ -1680,7 +1700,6 @@ final class GtNameSpace extends GtStatic {
 		}
 		return ResultValue;
 	}
-
 
 	private String GetSourcePosition(long FileLine) {
 		return "(eval:" + (int) FileLine + ")";
@@ -1883,7 +1902,7 @@ final class KonohaGrammar extends GtGrammar {
 				continue;
 			}
 			if(ch == '"' && prev != '\\') {
-				TokenContext.AddNewToken(SourceText.substring(start, NextPos+1), 0, "$StringLiteral$");
+				TokenContext.AddNewToken(SourceText.substring(start, NextPos), 0, "$StringLiteral$");
 				return NextPos + 1;
 			}
 			if(ch == '\n') {
@@ -1955,6 +1974,10 @@ final class KonohaGrammar extends GtGrammar {
 		/*local*/VariableInfo VariableInfo = Gamma.LookupDeclaredVariable(Name);
 		if(VariableInfo != null) {
 			return Gamma.Generator.CreateLocalNode(VariableInfo.Type, ParsedTree, VariableInfo.LocalName);
+		}
+		/*local*/TypedNode ConstValue = (/*cast*/TypedNode) Gamma.NameSpace.GetConstant(Name);
+		if(ConstValue != null) {
+			return ConstValue;
 		}
 		/*local*/GtDelegate Delegate = Gamma.LookupDelegate(Name);
 		if(Delegate != null) {
@@ -2437,6 +2460,30 @@ final class KonohaGrammar extends GtGrammar {
 		return ApplyNode;
 	}
 
+	// Const Statement
+	public static SyntaxTree ParseConstDecl(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
+		/*local*/GtToken Token = TokenContext.GetMatchedToken("const");
+		/*local*/SyntaxTree NewTree = new SyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
+		NewTree.SetMatchedPatternAt(VarDeclName, TokenContext, "$Symbol$", Required);
+		NewTree.SetMatchedTokenAt(NoWhere, TokenContext, "=", Required);
+		NewTree.SetMatchedPatternAt(VarDeclValue, TokenContext, "$Expression$", Required);
+		return NewTree;
+	}
+
+	public static TypedNode TypeConstDecl(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
+		/*local*/SyntaxTree NameTree = ParsedTree.GetSyntaxTreeAt(VarDeclName);
+		/*local*/SyntaxTree ValueTree = ParsedTree.GetSyntaxTreeAt(VarDeclValue);
+		/*local*/String VariableName = NameTree.KeyToken.ParsedText;
+		/*local*/TypedNode ValueNode = Gamma.TypeCheck(ValueTree, Gamma.AnyType, DefaultTypeCheckPolicy);
+		if(!(ValueNode instanceof ConstNode)) {
+			return Gamma.CreateErrorNode(ParsedTree, "definition of variable " + VariableName + "is not constant");
+		}
+		if(!Gamma.AppendConstants(VariableName, ValueNode)) {
+			return Gamma.CreateErrorNode(ParsedTree, "already defined constant " + VariableName);
+		}
+		return Gamma.Generator.CreateEmptyNode(Type, ParsedTree);
+	}
+
 	// FuncName
 	public static SyntaxTree ParseFuncName(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
 		/*local*/GtToken Token = TokenContext.Next();
@@ -2597,6 +2644,7 @@ final class KonohaGrammar extends GtGrammar {
 		NameSpace.DefineSyntaxPattern("break", FunctionB(this, "ParseBreak"), FunctionC(this, "TypeBreak"));
 		NameSpace.DefineSyntaxPattern("return", FunctionB(this, "ParseReturn"), FunctionC(this, "TypeReturn"));
 		NameSpace.DefineSyntaxPattern("new", FunctionB(this, "ParseNew"), FunctionC(this, "TypeNew"));  // tentative
+		NameSpace.DefineSyntaxPattern("const", FunctionB(this, "ParseConstDecl"), FunctionC(this, "TypeConstDecl"));
 	}
 }
 
