@@ -1,0 +1,19 @@
+// this is very simple dscript
+
+const EvidenceCollector = "192.168.11.101";
+const BackupServer = "192.168.11.102";
+const SystemReady = 0;
+
+boolean Solution_10() {
+	if(SystemReady) {
+		rsync "http://$BackupServer/db"
+		return true;
+	}
+	return false;
+}
+
+boolean Goal_9() {
+	return Solution_10() || CallAdmin();
+}
+
+

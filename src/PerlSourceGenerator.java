@@ -302,7 +302,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 
 	}
-	
+
 	@Override public void VisitCommandNode(CommandNode Node) {
 		/*local*/String Code = "system(\"";
 		/*local*/int i = 0;
