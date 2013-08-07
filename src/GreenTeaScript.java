@@ -243,10 +243,6 @@ interface GtConst {
 
 	public final static GtMethod AnyGetter = null;
 
-	// debug flags
-	public static final boolean	UseBuiltInTest	= true;
-	public static final boolean DebugPrintOption = true;
-
 	// TestFlags (temporary)
 	static final int TestTokenizer = 1 << 0;
 	static final int TestParseOnly = 1 << 1;
@@ -258,6 +254,9 @@ interface GtConst {
 
 class GtStatic implements GtConst {
 //endif VAJA
+	// debug flags
+	public static boolean DebugPrintOption = true;
+
 	public final static void println(String msg) {
 		LangDeps.println(msg);
 	}
@@ -2596,6 +2595,10 @@ public class GreenTeaScript extends GtStatic {
 //				GtConst.DebugPrintOption = true;
 //				continue;
 //			}
+			if(Argu.equals("-no-debug") && Index < Args.length) {
+				GtStatic.DebugPrintOption = false;
+				continue;
+			}
 			LangDeps.Usage();
 		}
 		/*local*/CodeGenerator Generator = LangDeps.CodeGenerator(CodeGeneratorName);
