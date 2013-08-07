@@ -1,0 +1,3 @@
+void f() {
+    String ret = ls -la /
+}

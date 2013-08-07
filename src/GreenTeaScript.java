@@ -1,4 +1,5 @@
 //ifdef JAVA
+import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -2079,6 +2080,119 @@ final class KonohaGrammar extends GtGrammar {
 		return Gamma.Generator.CreateBinaryNode(ReturnType, ParsedTree, Method, LeftNode, RightNode);
 	}
 
+	// shell grammar
+	private static boolean IsUnixCommand(String cmd) {
+		/*local*/String[] path = System.getenv("PATH").split(":");
+		/*local*/int i = 0;
+		while(i < path.length) {
+//JAVA
+			//FIXME(LangDeps)
+			if(new File(path[i] + "/" + cmd).exists()) {
+				return true;
+			}
+//AVAJ
+			i = i + 1;
+		}
+		return false;
+	}
+
+	public static int SymbolShellToken(TokenContext TokenContext, String SourceText, int pos) {
+		/*local*/boolean ShellMode = false;
+		/*local*/int start = pos;
+		if(TokenContext.SourceList.size() > 0) {
+			/*local*/GtToken PrevToken = TokenContext.SourceList.get(TokenContext.SourceList.size() - 1);
+			if(PrevToken != null && PrevToken.PresetPattern != null &&
+				PrevToken.PresetPattern.PatternName.equals("$ShellExpression$")) {
+				ShellMode = true;
+			}
+		}
+
+		while(pos < SourceText.length()) {
+			/*local*/char ch = LangDeps.CharAt(SourceText, pos);
+			// a-zA-Z0-9_-
+			if(LangDeps.IsLetter(ch)) {
+			}
+			else if(LangDeps.IsDigit(ch)) {
+			}
+			else if(ch == '_') {
+			}
+			else if(ShellMode && (ch == '-' || ch == '/')) {
+			}
+			else {
+				break;
+			}
+			pos += 1;
+		}
+		if(start == pos) {
+			return NoMatch;
+		}
+		String Symbol = SourceText.substring(start, pos);
+		
+		if(Symbol.startsWith("/") || Symbol.startsWith("-")) {
+			if(Symbol.startsWith("//")) { // One-Line Comment
+				return GtStatic.NoMatch;
+			}
+			TokenContext.AddNewToken(Symbol, 0, "$StringLiteral$");
+			return pos;
+		}
+
+		if(IsUnixCommand(Symbol)) {
+			TokenContext.AddNewToken(Symbol, 0, "$ShellExpression$");
+			return pos;
+		}
+		return GtStatic.NoMatch;
+	}
+
+	public final static SyntaxTree ParseShell(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
+		/*local*/GtToken Token = TokenContext.Next();
+		/*local*/SyntaxTree NewTree = new SyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
+		while(!GtStatic.IsEmptyOrError(NewTree) && !TokenContext.MatchToken(";")) {
+			/*local*/SyntaxTree Tree = null;
+			if(TokenContext.GetToken().IsDelim() || TokenContext.GetToken().IsIndent()) {
+				break;
+			}
+			if(TokenContext.MatchToken("$ShellExpression$")) {
+				// FIXME
+			}
+			if(Tree == null) { // FIXME
+				Tree = TokenContext.ParsePattern("$StringLiteral$", Optional);
+			}
+			if(Tree == null) {
+				Tree = TokenContext.ParsePattern("$Expression$", Optional);
+			}
+			NewTree.AppendParsedTree(Tree);
+		}
+		return NewTree;
+	}
+
+	public static TypedNode TypeShell(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
+		/*local*/CommandNode Node = (/*cast*/CommandNode) Gamma.Generator.CreateCommandNode(Type, ParsedTree, null);
+		/*local*/TypedNode HeadNode = Node;
+		/*local*/int i = 0;
+		/*local*/String Command = ParsedTree.KeyToken.ParsedText;
+		/*local*/TypedNode ThisNode = Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, Command);
+		Node.Append(ThisNode);
+
+		while(i < ListSize(ParsedTree.TreeList)) {
+			/*local*/TypedNode ExprNode = ParsedTree.TypeNodeAt(i, Gamma, Gamma.StringType, DefaultTypeCheckPolicy);
+			if(ExprNode instanceof ConstNode) {
+				ConstNode CNode = (/*cast*/ConstNode) ExprNode;
+				if(CNode.ConstValue instanceof String) {
+					String Val = (/*cast*/String) CNode.ConstValue;
+					if(Val.equals("|")) {
+						DebugP("PIPE");
+						/*local*/CommandNode PrevNode = Node;
+						Node = (/*cast*/CommandNode) Gamma.Generator.CreateCommandNode(Type, ParsedTree, null);
+						PrevNode.PipedNextNode = Node;
+					}
+				}
+			}
+			Node.Append(ExprNode);
+			i = i + 1;
+		}
+		return HeadNode;
+	}
+
 	public static SyntaxTree ParseField(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
 		TokenContext.MatchToken(".");
 		/*local*/GtToken Token = TokenContext.Next();
@@ -2420,6 +2534,8 @@ final class KonohaGrammar extends GtGrammar {
 		NameSpace.DefineTokenFunc("(){}[]<>.,:;+-*/%=&|!@", FunctionA(this, "OperatorToken"));
 		NameSpace.DefineTokenFunc("/", FunctionA(this, "CommentToken"));  // overloading
 		NameSpace.DefineTokenFunc("Aa", FunctionA(this, "SymbolToken"));
+		NameSpace.DefineTokenFunc("Aa-/", FunctionA(this, "SymbolShellToken")); // overloading
+
 		NameSpace.DefineTokenFunc("\"", FunctionA(this, "StringLiteralToken_StringInterpolation"));
 		NameSpace.DefineTokenFunc("1",  FunctionA(this, "NumberLiteralToken"));
 //#ifdef JAVA
@@ -2460,6 +2576,8 @@ final class KonohaGrammar extends GtGrammar {
 		NameSpace.DefineSyntaxPattern("$StringLiteral$", FunctionB(this, "ParseStringLiteral"), TypeConst);
 		NameSpace.DefineSyntaxPattern("$IntegerLiteral$", FunctionB(this, "ParseIntegerLiteral"), TypeConst);
 
+		NameSpace.DefineSyntaxPattern("$ShellExpression$", FunctionB(this, "ParseShell"), FunctionC(this, "TypeShell"));
+		
 		NameSpace.DefineSyntaxPattern("(", FunctionB(this, "ParseParenthesis"), null); /* => */
 		NameSpace.DefineExtendedPattern(".", 0, FunctionB(this, "ParseField"), FunctionC(this, "TypeField"));
 		NameSpace.DefineExtendedPattern("(", 0, FunctionB(this, "ParseApply"), FunctionC(this, "TypeApply"));
