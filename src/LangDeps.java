@@ -228,7 +228,7 @@ public abstract class LangDeps {
 		}
 		return Line;
 	}
-	
+
 	public final static String LoadFile(String FileName) {
 		File f = new File(FileName);
 		byte[] b = new byte[(int) f.length()];
@@ -252,4 +252,5 @@ public abstract class LangDeps {
 		return "";
 	}
 }
+
 

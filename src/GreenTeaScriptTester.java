@@ -1,4 +1,3 @@
-
 class GreenTeaScriptTestCase {
 	String	TestName;
 
@@ -92,3 +91,4 @@ public class GreenTeaScriptTester {
 		GreenTeaCodeGenTestCase.Test(Context);
 	}
 }
+

@@ -357,3 +357,4 @@ public class CSourceGenerator extends SourceGenerator {
 	@Override public void SetLanguageContext(GtContext Context) {
 	}
 }
+

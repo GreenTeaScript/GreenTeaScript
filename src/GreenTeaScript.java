@@ -1,4 +1,3 @@
-
 //ifdef JAVA
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -536,7 +535,6 @@ class GtStatic implements GtConst {
 		}
 	}
 
-
 //ifdef JAVA
 }
 
@@ -907,7 +905,6 @@ final class TokenContext extends GtStatic {
 		return this.ParsePatternAfter(null, PatternName, IsOptional);
 	}
 
-
 	public final GtMap SkipAndGetAnnotation(boolean IsAllowedDelim) {
 		// this is tentative implementation. In the future, you have to
 		// use this pattern.
@@ -1200,7 +1197,6 @@ final class GtLayer extends GtStatic {
 		//}
 	}
 }
-
 
 final class VariableInfo {
 	/*field*/public GtType	Type;
@@ -2576,7 +2572,7 @@ public class GreenTeaScript extends GtStatic {
 			GreenTeaScript.TestAll(Context);
 		}
 	}
-	
+
 	public final static void main(String[] Args) {
 		/*local*/String CodeGeneratorName = "--java";
 		/*local*/int Index = 0;
@@ -2628,3 +2624,4 @@ public class GreenTeaScript extends GtStatic {
 	}
 
 }
+

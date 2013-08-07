@@ -327,3 +327,4 @@ public class JavaSourceGenerator extends SourceGenerator {
 		new JavaLayerDef().MakeDefinition(Context.DefaultNameSpace);
 	}
 }
+

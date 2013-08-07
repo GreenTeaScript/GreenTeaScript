@@ -40,3 +40,4 @@ public class JavaLayerDef extends GtStatic {
 //		DefineMethod(NameSpace, ImmutableMethod | ConstMethod, "!=", RelationParam);
 	}
 }
+

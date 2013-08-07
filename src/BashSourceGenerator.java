@@ -377,3 +377,4 @@ public class BashSourceGenerator extends SourceGenerator {
 		new JavaLayerDef().MakeDefinition(Context.DefaultNameSpace);
 	}
 }
+

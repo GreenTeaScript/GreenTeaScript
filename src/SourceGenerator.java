@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 /* language */
 
-
 // GreenTea Generator should be written in each language.
 
 class TypedNode extends GtStatic {
@@ -799,9 +798,8 @@ class GtMethod extends GtStatic {
 			return SourceMacro.replaceAll("$0", Arg0).replaceAll("$1", Arg1);
 		}
 	}
-	
-}
 
+}
 
 class CodeGenerator extends GtStatic {
 	/*field*/public String     LangName;
@@ -955,7 +953,6 @@ class CodeGenerator extends GtStatic {
 	public TypedNode CreateCommandNode(GtType Type, SyntaxTree ParsedTree, TypedNode PipedNextNode) {
 		return new CommandNode(Type, ParsedTree.KeyToken, PipedNextNode);
 	}
-
 
 	public int ParseMethodFlag(int MethodFlag, SyntaxTree MethodDeclTree) {
 		if(MethodDeclTree.HasAnnotation("Export")) {
@@ -1123,7 +1120,6 @@ class CodeGenerator extends GtStatic {
 		/*extension*/
 	}
 
-
 	protected void PushCode(Object Code){
 		this.GeneratedCodeStack.add(Code);
 	}
@@ -1229,7 +1225,7 @@ class SourceGenerator extends CodeGenerator {
 		}
 		return Code;
 	}
-	
+
 	public final void WriteTranslatedCode(String Text) {
 		LangDeps.println(Text);
 	}

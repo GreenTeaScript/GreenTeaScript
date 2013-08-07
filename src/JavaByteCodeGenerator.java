@@ -632,7 +632,6 @@ public class JavaByteCodeGenerator extends CodeGenerator implements Opcodes {
 		return null;
 	}
 
-
 	void Call(int opcode, GtMethod Method) { //FIXME
 		//if(Method.MethodInvoker instanceof NativeMethodInvoker) {
 		//	NativeMethodInvoker i = (NativeMethodInvoker) Method.MethodInvoker;
@@ -925,7 +924,7 @@ public class JavaByteCodeGenerator extends CodeGenerator implements Opcodes {
 //		this.Builder.methodVisitor.visitLdcInsn(Node.ErrorMessage); // FIXME
 		this.Builder.methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V");
 	}
-	
+
 	@Override public void VisitCommandNode(CommandNode Node) {
 		String Source = ShellConverter.Convert(Node);
 		Context.Eval(Source, 0);
@@ -1022,7 +1021,7 @@ class ShellConverter {
 	private static final String MonitorClassName = "ProcessMonitor";
 	private static final boolean enableMonitor = true;
 	private static int shellMethodCounter = 0;
-	
+
 	public static String Convert(CommandNode Node) {
 		GtType StringType = Node.Type.Context.StringType;
 		boolean isExpr = Node.Type.equals(StringType);
@@ -1040,7 +1039,7 @@ class ShellConverter {
 		
 		return srcBuilder.toString();
 	}
-	
+
 	private static String CreateShellMethodBody(CommandNode Node, boolean isExpr) {
 		StringBuilder srcBuilder = new StringBuilder();
 		String monitorName = "monitor";
@@ -1057,7 +1056,8 @@ class ShellConverter {
 			srcBuilder.append(CreateProc(monitorName, procName, CurrentNode));
 			if(i == 0) {
 				srcBuilder.append(CreateInputRediret(procName, CurrentNode));
-			} else if(i > 0) {
+			}
+			else if(i > 0) {
 				String preProcName = procNameStack.peek();
 				srcBuilder.append(CreatePipe(preProcName, procName));
 			}
@@ -1072,7 +1072,7 @@ class ShellConverter {
 		
 		return srcBuilder.toString();
 	}
-	
+
 	private static String CreateProc(String monitorName, String procName, CommandNode CurrentNode) {
 		StringBuilder srcBuilder = new StringBuilder();
 		ArrayList<String> argList = CreateArgument(CurrentNode.Params);
@@ -1088,7 +1088,7 @@ class ShellConverter {
 		
 		return srcBuilder.toString();
 	}
-	
+
 	private static ArrayList<String> CreateArgument(ArrayList<TypedNode> nodeList) {
 		ArrayList<String> argList = new ArrayList<String>();
 		int size = nodeList.size();
@@ -1108,7 +1108,7 @@ class ShellConverter {
 		}
 		return argList;
 	}
-	
+
 	private static String CreateInputRediret(String procName, CommandNode CurrentNode) {
 		String input = FindRedirect(CurrentNode.Params, true);
 		if(input != null) {
@@ -1116,7 +1116,7 @@ class ShellConverter {
 		}
 		return "";
 	}
-	
+
 	private static String CreateOutputRediret(String procName, CommandNode CurrentNode, boolean isExpr) {
 		StringBuilder srcBuilder = new StringBuilder();
 		String output = FindRedirect(CurrentNode.Params, false);
@@ -1134,11 +1134,11 @@ class ShellConverter {
 		
 		return srcBuilder.toString();
 	}
-	
+
 	private static String CreatePipe(String preProcName, String procName) {
 		return preProcName + ".Pipe(" + procName + ");\n";
 	}
-	
+
 	private static String FindRedirect(ArrayList<TypedNode> nodeList, boolean isInputRedir) {
 		int size = nodeList.size();
 		String symbol = isInputRedir ? "<" : ">";
@@ -1292,4 +1292,5 @@ class ShellConverter {
 //return false;
 //}
 ////endif VAJA
+
 
