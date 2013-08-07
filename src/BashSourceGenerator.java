@@ -151,7 +151,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.PushSourceCode("((" + MethodName + this.PopSourceCode() + "))");
 	}
 
-	@Override public void VisitBinaryNode(BinaryNode Node) {
+	@Override public void VisitBinaryNode(BinaryNode Node) {	//TODO: support string 
 		/*local*/String MethodName = Node.Token.ParsedText;
 
 		if(MethodName.equals("+")) {
@@ -206,10 +206,22 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(this.PopSourceCode() + " || " + this.PopSourceCode());
 	}
 
-	@Override public void VisitAssignNode(AssignNode Node) {	//FIXME: support $, ${}
+	@Override public void VisitAssignNode(AssignNode Node) {	//TODO: support array
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + "=" + this.PopSourceCode());
+		
+		/*local*/String left = this.PopSourceCode();
+		/*local*/String right = this.PopSourceCode();
+		
+		if(left.startsWith("$")) {
+			left = left.substring(1, left.length());
+		}
+		
+		if(!right.startsWith("$")) {
+			right = "$" + right;
+		}
+		
+		this.PushSourceCode(left + "=" + right);
 	}
 
 	@Override public void VisitLetNode(LetNode Node) {
