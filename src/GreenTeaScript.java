@@ -2,6 +2,7 @@
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 interface GtConst {
@@ -1211,13 +1212,13 @@ final class VariableInfo {
 	}
 }
 
-final class GtDelegate {
-	/*field*/public GtMethod Method;
-	/*field*/public Object   Callee;
-	/*field*/public GtType   Type;
-	GtDelegate/*constructor*/() {
-	}
-}
+//final class GtDelegate {
+//	/*field*/public GtMethod Method;
+//	/*field*/public Object   Callee;
+//	/*field*/public GtType   Type;
+//	GtDelegate/*constructor*/() {
+//	}
+//}
 
 final class TypeEnv extends GtStatic {
 	/*field*/public GtNameSpace	      NameSpace;
@@ -1234,6 +1235,9 @@ final class TypeEnv extends GtStatic {
 	/*field*/public final GtType	StringType;
 	/*field*/public final GtType	VarType;
 	/*field*/public final GtType	AnyType;
+	/*field*/public final GtType    ArrayType;
+	/*field*/public final GtType    FuncType;
+	
 
 	TypeEnv/*constructor*/(GtNameSpace NameSpace) {
 		this.NameSpace = NameSpace;
@@ -1248,6 +1252,8 @@ final class TypeEnv extends GtStatic {
 		this.StringType = NameSpace.Context.StringType;
 		this.VarType = NameSpace.Context.VarType;
 		this.AnyType = NameSpace.Context.AnyType;
+		this.ArrayType = NameSpace.Context.ArrayType;
+		this.FuncType = NameSpace.Context.FuncType;
 	}
 
 	public void SetMethod(GtMethod Method) {
@@ -1295,12 +1301,14 @@ final class TypeEnv extends GtStatic {
 		return this.AnyType;
 	}
 
-	public GtDelegate LookupDelegate(String Name) {
-		TODO("finding delegate");
-		return new GtDelegate();
-		//return null;
+	public final GtMethod LookupFunction(String Name) {
+		Object Function = this.NameSpace.GetSymbol(Name);
+		if(Function instanceof GtMethod) {
+			return (/*cast*/GtMethod)Function;
+		}
+		return null;
 	}
-
+	
 	public TypedNode DefaultValueConstNode(SyntaxTree ParsedTree, GtType Type) {
 		if(Type.DefaultNullValue != null) {
 			return this.Generator.CreateConstNode(Type, ParsedTree, Type.DefaultNullValue);
@@ -1980,9 +1988,9 @@ final class KonohaGrammar extends GtGrammar {
 		if(ConstValue != null) {
 			return ConstValue;
 		}
-		/*local*/GtDelegate Delegate = Gamma.LookupDelegate(Name);
-		if(Delegate != null) {
-			return Gamma.Generator.CreateConstNode(Delegate.Type, ParsedTree, Delegate);
+		/*local*/GtMethod Function = Gamma.LookupFunction(Name);
+		if(Function != null) {
+			return Gamma.Generator.CreateConstNode(Function.GetFuncType(), ParsedTree, Function);
 		}
 		return Gamma.CreateErrorNode(ParsedTree, "undefined name: " + Name);
 	}

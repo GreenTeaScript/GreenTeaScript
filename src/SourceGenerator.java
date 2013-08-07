@@ -1,6 +1,7 @@
 //ifdef JAVA
 import java.util.ArrayList;
 //endif VAJA
+import java.util.Arrays;
 
 /* language */
 
@@ -651,9 +652,9 @@ class GtObject extends GtStatic {
 }
 
 class GtType extends GtStatic {
+	/*field*/public final GtContext	Context;
 	/*field*/public GtNameSpace     PackageNameSpace;
 	/*field*/int					ClassFlag;
-	/*field*/public GtContext		Context;
 	/*field*/int                    ClassId;
 	/*field*/public String			ShortClassName;
 	/*field*/GtType					SuperClass;
@@ -675,7 +676,6 @@ class GtType extends GtStatic {
 		this.ClassId = Context.ClassCount;
 		Context.ClassCount += 1;
 		this.Types = null;
-		DebugP("new class: " + this.ShortClassName + ", ClassId=" + this.ClassId);
 	}
 
 	public final boolean IsGenericType() {
@@ -689,6 +689,7 @@ class GtType extends GtStatic {
 		GenericType.SearchSuperMethodClass = this.BaseClass;
 		GenericType.SuperClass = this.SuperClass;
 		this.Types = LangDeps.CompactTypeList(BaseIndex, TypeList);
+		DebugP("new class: " + GenericType.ShortClassName + ", ClassId=" + GenericType.ClassId);
 		return GenericType;
 	}
 
@@ -720,6 +721,7 @@ class GtMethod extends GtStatic {
 	/*field*/public String			MethodName;
 	/*field*/public String          LocalFuncName;
 	/*field*/public GtType[]		Types;
+	/*field*/private GtType         FuncType;
 	/*field*/public GtMethod        ElderMethod;
 	/*field*/public String          SourceMacro;
 
@@ -731,16 +733,17 @@ class GtMethod extends GtStatic {
 		LangDeps.Assert(this.Types.length > 0);
 		this.Layer = null;
 		this.ElderMethod = null;
+		this.FuncType = null;
+		this.SourceMacro = SourceMacro;
 		
 		String Name = this.MethodName;
 		if(!LangDeps.IsLetter(LangDeps.CharAt(Name, 0))) {
-			Name = "operator" + this.MethodSymbolId;
+			Name = "_operator" + this.MethodSymbolId;
 		}
 		if(!this.Is(ExportMethod)) {
 			Name = Name + "__" + GtStatic.Mangle(this.GetRecvType(), BaseIndex + 1, ParamList);
 		}
 		this.LocalFuncName = Name;
-		this.SourceMacro = SourceMacro;
 	}
 
 	@Override public String toString() {
@@ -778,6 +781,14 @@ class GtMethod extends GtStatic {
 
 	public final GtType GetParamType(int ParamIdx) {
 		return this.Types[ParamIdx+1];
+	}
+
+	public final GtType GetFuncType() {
+		if(this.FuncType != null) {
+			GtContext Context = this.GetRecvType().Context;
+			this.FuncType = Context.GetGenericType(Context.FuncType, 0, new ArrayList<GtType>(Arrays.asList(this.Types)), true);
+		}
+		return this.FuncType;
 	}
 
 	public final String ExpandMacro1(String Arg0) {
