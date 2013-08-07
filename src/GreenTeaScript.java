@@ -2160,6 +2160,9 @@ final class KonohaGrammar extends GtGrammar {
 		}
 		String Symbol = SourceText.substring(start, pos);
 		
+		if(Symbol.equals("true") || Symbol.equals("false")) {
+			return GtStatic.NoMatch;
+		}
 		if(Symbol.startsWith("/") || Symbol.startsWith("-")) {
 			if(Symbol.startsWith("//")) { // One-Line Comment
 				return GtStatic.NoMatch;
@@ -2185,9 +2188,6 @@ final class KonohaGrammar extends GtGrammar {
 			}
 			if(TokenContext.MatchToken("$ShellExpression$")) {
 				// FIXME
-			}
-			if(Tree == null) { // FIXME
-				Tree = TokenContext.ParsePattern("$StringLiteral$", Optional);
 			}
 			if(Tree == null) {
 				Tree = TokenContext.ParsePattern("$Expression$", Optional);
@@ -2416,6 +2416,7 @@ final class KonohaGrammar extends GtGrammar {
 	public static TypedNode TypeBreak(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
 		return Gamma.Generator.CreateBreakNode(Gamma.VoidType, ParsedTree, null, "break");
 	}
+
 	public static SyntaxTree ParseContinue(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
 		/*local*/GtToken Token = TokenContext.GetMatchedToken("continue");
 		/*local*/SyntaxTree NewTree = new SyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
@@ -2426,6 +2427,7 @@ final class KonohaGrammar extends GtGrammar {
 	public static TypedNode TypeContinue(TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
 		return Gamma.Generator.CreateContinueNode(Gamma.VoidType, ParsedTree, null, "continue");
 	}
+
 	// Return Statement
 	public static SyntaxTree ParseReturn(SyntaxPattern Pattern, SyntaxTree LeftTree, TokenContext TokenContext) {
 		/*local*/GtToken Token = TokenContext.GetMatchedToken("return");
@@ -2485,7 +2487,7 @@ final class KonohaGrammar extends GtGrammar {
 		/*local*/String VariableName = NameTree.KeyToken.ParsedText;
 		/*local*/TypedNode ValueNode = Gamma.TypeCheck(ValueTree, Gamma.AnyType, DefaultTypeCheckPolicy);
 		if(!(ValueNode instanceof ConstNode)) {
-			return Gamma.CreateErrorNode(ParsedTree, "definition of variable " + VariableName + "is not constant");
+			return Gamma.CreateErrorNode(ParsedTree, "definition of variable " + VariableName + " is not constant");
 		}
 		if(!Gamma.AppendConstants(VariableName, ValueNode)) {
 			return Gamma.CreateErrorNode(ParsedTree, "already defined constant " + VariableName);

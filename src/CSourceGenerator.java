@@ -23,7 +23,7 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitEmptyNode(TypedNode Node) {
-		this.PushSourceCode("/*empty*/");
+		//this.PushSourceCode("/*empty*/");
 	}
 
 	@Override public void VisitSuffixNode(SuffixNode Node) {
@@ -305,18 +305,19 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitCommandNode(CommandNode Node) {
-		/*local*/String Code = "system(\"";
+		/*local*/String Code = "system(";
 		/*local*/int i = 0;
+		/*local*/String Command = "String __Command = ";
 		while(i < GtStatic.ListSize(Node.Params)) {
 			TypedNode Param = Node.Params.get(i);
 			if(i != 0) {
-				Code += " ";
+				Command += " + ";
 			}
 			Param.Evaluate(this);
-			Code += this.PopSourceCode();
+			Command += "(" + this.PopSourceCode() + ")";
 			i = i + 1;
 		}
-		Code += "\")";
+		Code = Command + ";\n" + this.GetIndentString() + Code + "__Command)";
 		this.PushSourceCode(Code);
 	}
 
@@ -347,6 +348,9 @@ public class CSourceGenerator extends SourceGenerator {
 	@Override public Object Eval(TypedNode Node) {
 		this.VisitBlockEachStatementWithIndent(Node);
 		String Code = this.PopSourceCode();
+		if(Code.equals("{\n   ;\n}")) {
+			return "";
+		}
 		this.WriteTranslatedCode(Code);
 		return Code;
 	}

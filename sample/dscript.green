@@ -4,6 +4,9 @@
 const DCase = "http://dcase.ynu.ac.jp/dcase/DScriptDemo/1";
 const EvidenceCollector = "192.168.11.101";
 const BackupServer = "192.168.11.102";
+const SystemReady = true;
+
+boolean CallAdmin();
 
 SystemReady = true;
 
