@@ -90,7 +90,7 @@ class GtClassLoader extends ClassLoader {
 
 class Local {
 	public String		Name;
-	public GtType	TypeInfo;
+	public GtType		TypeInfo;
 	public int			Index;
 
 	public Local(int Index, GtType TypeInfo, String Name) {
@@ -304,6 +304,16 @@ class JVMBuilder implements Opcodes {
 		}
 	}
 
+	public void boxingReturn() {
+		if(this.typeStack.empty()) {
+			this.methodVisitor.visitInsn(ACONST_NULL);
+		}
+		else {
+			this.box();
+		}
+		this.methodVisitor.visitInsn(ARETURN);
+	}
+
 	static List<Object> constValues = new ArrayList<Object>();
 	static int addConstValue(Object o) {
 		int id = constValues.indexOf(o);
@@ -385,6 +395,7 @@ class TypeResolver {
 		this.typeDescriptorMap.put(Context.BooleanType.ShortClassName, Type.getType(boolean.class).getDescriptor());
 		this.typeDescriptorMap.put(Context.IntType.ShortClassName, Type.getType(int.class).getDescriptor());
 		this.typeDescriptorMap.put(Context.ObjectType.ShortClassName, Type.getType(Object.class).getDescriptor());
+		this.typeDescriptorMap.put(Context.StringType.ShortClassName, Type.getType(String.class).getDescriptor());
 		// TODO: other class
 	}
 
@@ -496,39 +507,107 @@ public class JavaByteCodeGenerator extends CodeGenerator implements Opcodes {
 		return classWriter.toByteArray();
 	}
 
-	public GtMethodInvoker Build(GtNameSpace NameSpace, TypedNode Node, GtMethod Method) {
-		ArrayList<Local> Param = null;
-		if(Method != null) {
-			Param = new ArrayList<Local>();
-			if(Method.GetRecvType().equals(Context.VoidType)) {
-				LangDeps.DebugP("Reciever Type is Void!! Fix Me!!");
-				return null;
-			}
-			Param.add(new Local(0, Method.GetRecvType(), "this"));
-			for(int i = 1; i < Method.GetParamSize(); i++) {
-				GtType Type = Method.GetParamType(i);
-				String Arg = "arg" + i; //FIXME Method.GetParamName(i);
-				//String Arg = P.ArgNames[i];
-				Local l = new Local(i, Type, Arg);
-				Param.add(l);
-			}
-		}
-		return this.Compile(NameSpace, Node, Method, Param);
-	}
+//	public GtMethodInvoker Build(GtNameSpace NameSpace, TypedNode Node, GtMethod Method, ArrayList<String> NameList) {
+//		ArrayList<Local> Param = null;
+//		if(Method != null) {
+//			Param = new ArrayList<Local>();
+//			if(Method.GetRecvType().equals(Context.VoidType)) {
+//				LangDeps.DebugP("Reciever Type is Void!! Fix Me!!");
+//				return null;
+//			}
+//			Param.add(new Local(0, Method.GetRecvType(), "this"));
+//			for(int i = 1; i < Method.GetParamSize(); i++) {
+//				GtType Type = Method.GetParamType(i);
+//				String Arg = NameList.get(i-1);//"arg" + i; //FIXME Method.GetParamName(i);
+//				//String Arg = P.ArgNames[i];
+//				Local l = new Local(i, Type, Arg);
+//				Param.add(l);
+//			}
+//		}
+//		return this.Compile(NameSpace, Node, Method, Param);
+//	}
 
 	@Override public Object Eval(TypedNode Node) {
-		GtMethodInvoker Invoker = this.Compile(Context.RootNameSpace, Node, null);
-		Object[] Args = new Object[1];
-		Args[0] = Context.RootNameSpace.GetGlobalObject();
-		return Invoker.Invoke(Args);
+		int acc = ACC_PUBLIC | ACC_STATIC;
+		String methodName = "__eval";
+		String methodDesc = "()Ljava/lang/Object;";
+		MethodNode mn = new MethodNode(acc, methodName, methodDesc, null, null);
+		GtClassNode c = globalNode;
+		c.methods.put(methodName, mn);
+		TypeResolver.StoreClassNode(c);
+
+		this.Builder = new JVMBuilder(null, mn, TypeResolver, null);
+		TypedNode Current = Node;
+		while(Current != null) {
+			Current.Evaluate(this);
+			Current = Current.NextNode;
+		}
+		this.Builder.boxingReturn();
+		try {
+			this.OutputClassFile(defaultClassName, ".");
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+		//execute
+		try {
+			GtClassLoader loader = new GtClassLoader(this);
+			Class<?> klass = loader.loadClass(defaultClassName);
+			Object res = klass.getMethod(methodName).invoke(null);
+			return res;
+		} catch(ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch(InvocationTargetException e) {
+			e.getTargetException().printStackTrace();
+		} catch(IllegalAccessException e) {
+			e.printStackTrace();
+		} catch(NoSuchMethodException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
+
+	private final String defaultClassName = "Script";
+	private GtClassNode globalNode = new GtClassNode(defaultClassName);
 
 	@Override public void DefineFunction(GtMethod Method, ArrayList<String> NameList, TypedNode Body) {
 		if(NMMap.Exist(Method)) {
 			return;
 		}
-		//FIXME PackageNameSpace
-		NMMap.PutMethodInvoker(Method, this.Build(Body.Type.PackageNameSpace, Body, Method));
+		int acc = ACC_PUBLIC;
+		if(!Method.Is(ExportMethod)) {
+			acc |= ACC_STATIC;
+		}
+		Type retType = TypeResolver.GetAsmType(Method.GetReturnType());
+		ArrayList<Type> argTypes = new ArrayList<Type>();
+		ArrayList<Local> locals  = new ArrayList<Local>();
+		for(int i=0; i<NameList.size(); i++) {
+			GtType type = Method.GetParamType(i);
+			String name = NameList.get(i);
+			argTypes.add(TypeResolver.GetAsmType(type));
+			locals.add(new Local(i, type, name));
+		}
+
+		String methodName = Method.MethodName;
+		String methodDesc = Type.getMethodDescriptor(retType, argTypes.toArray(new Type[0]));
+
+		MethodNode mn = new MethodNode(acc, methodName, methodDesc, null, null);
+		GtClassNode c = globalNode;
+		c.methods.put(methodName, mn);
+		TypeResolver.StoreClassNode(c);
+
+		this.Builder = new JVMBuilder(Method, mn, TypeResolver, null);
+		this.Builder.LocalVals.addAll(locals);
+		TypedNode Current = Body;
+		while(Current != null) {
+			Current.Evaluate(this);
+			Current = Current.NextNode;
+		}
+
+		try {
+			this.OutputClassFile(defaultClassName, ".");
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override public void SetLanguageContext(GtContext Context) {
@@ -541,95 +620,6 @@ public class JavaByteCodeGenerator extends CodeGenerator implements Opcodes {
 //		new GtIntDef(Context.RootNameSpace, NMMap).MakeDefinition();
 //		new GtStringDef(Context.RootNameSpace, NMMap).MakeDefinition();
 //		new GtSystemDef(Context.RootNameSpace, NMMap).MakeDefinition();
-	}
-
-	public GtMethodInvoker Compile(GtNameSpace NameSpace, TypedNode Block, GtMethod MethodInfo) {
-		return this.Compile(NameSpace, Block, MethodInfo, null);
-	}
-	public GtMethodInvoker Compile(GtNameSpace NameSpace, TypedNode Block, GtMethod MethodInfo, ArrayList<Local> params) {
-		int MethodAttr;
-		String className;
-		String methodName;
-		String methodDescriptor;
-		GtType[] paramTypes = null;
-		GtType ReturnType;
-		boolean is_eval = false;
-		if(MethodInfo != null && MethodInfo.MethodName.length() > 0) {
-			className = MethodInfo.GetRecvType().ShortClassName;
-			//className = "Script";
-			methodName = MethodInfo.MethodName;
-			methodDescriptor = this.TypeResolver.GetJavaMethodDescriptor(MethodInfo);
-			MethodAttr = ACC_PUBLIC | ACC_STATIC;
-			//FIXME
-			//param = MethodInfo.Param;
-			ReturnType = MethodInfo.GetReturnType();
-		}
-		else { //FIXME: paramTypes
-			GtType GlobalType = NameSpace.GetGlobalObject().Type;
-			className = "global";
-			methodName = "__eval";
-			methodDescriptor = Type.getMethodDescriptor(Type.getType(Object.class), this.TypeResolver.GetAsmType(GlobalType));
-			MethodAttr = ACC_PUBLIC | ACC_STATIC;
-			is_eval = true;
-			ArrayList<GtType> ParamTypeList = new ArrayList<GtType>();//GtType[] ParamData = new GtType[2];
-			ParamTypeList.add(NameSpace.Context.ObjectType);
-			//ParamDataList.add(GlobalType);	//FIXME
-			paramTypes = LangDeps.CompactTypeList(0, ParamTypeList);
-			params = new ArrayList<Local>();
-			params.add(new Local(0, GlobalType, "this"));
-			ReturnType = ParamTypeList.get(0);
-		}
-
-		GtClassNode cn = this.TypeResolver.FindClassNode(className);
-		if(cn == null) {
-			cn = new GtClassNode(className);
-			this.TypeResolver.StoreClassNode(cn);
-		}
-
-		for(MethodNode m : cn.methods.values()) {
-			if(m.name.equals(methodName) && m.desc.equals(methodDescriptor)) {
-				cn.methods.remove(m);
-				break;
-			}
-		}
-		MethodNode mn = new MethodNode(MethodAttr, methodName, methodDescriptor, null, null);
-		mn.visitCode();
-
-		this.Builder = new JVMBuilder(MethodInfo, mn, this.TypeResolver, NameSpace);
-		Block = this.Builder.VerifyBlock(NameSpace, is_eval, ReturnType, Block);
-
-		if(params != null) {
-			for(int i = 0; i < params.size(); i++) {
-				Local local = params.get(i);
-				this.Builder.AddLocal(local.TypeInfo, local.Name);
-			}
-		}
-		if(Block != null) {
-			VisitBlock(Block.MoveHeadNode());
-		}
-		if(is_eval) {
-			visitBoxingAndReturn();
-		}
-		VisitEnd();
-		cn.methods.put(methodName, mn);
-
-		try {
-			this.OutputClassFile("global", ".");
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		Class<?> c = new GtClassLoader(this).findClass(className);
-		Method[] MethodList = c.getMethods();
-		for(int i = 0; i < MethodList.length; i++) {
-			Method m = MethodList[i];
-			if(m.getName().equals(methodName)) {
-				GtMethodInvoker mtd = new NativeMethodInvoker(paramTypes, m);
-				return mtd;
-			}
-		}
-		return null;
 	}
 
 	void Call(int opcode, GtMethod Method) { //FIXME
@@ -654,13 +644,13 @@ public class JavaByteCodeGenerator extends CodeGenerator implements Opcodes {
 //				OwnerClass = Method.ClassInfo.DefaultNullValue.getClass();
 //			}
 //			String owner = OwnerClass.getName().replace(".", "/");
-			String owner = "global";//FIXME
+			String owner = defaultClassName;//FIXME
 			String methodName = Method.MethodName;
 			String methodDescriptor = this.TypeResolver.GetJavaMethodDescriptor(Method);
 			this.Builder.methodVisitor.visitMethodInsn(opcode, owner, methodName, methodDescriptor);
 			this.Builder.typeStack.push(this.TypeResolver.GetAsmType(Method.GetReturnType()));
 		}
-		}
+	}
 
 	@Override public void VisitConstNode(ConstNode Node) {
 		Object constValue = Node.ConstValue;
@@ -733,12 +723,51 @@ public class JavaByteCodeGenerator extends CodeGenerator implements Opcodes {
 		}
 	}
 
-	@Override public void VisitBinaryNode(BinaryNode Node) {
-		ApplyNode applyNode = new ApplyNode(Node.Type, Node.Token, Node.Method);
-		applyNode.Append(Node.LeftNode);
-		applyNode.Append(Node.RightNode);
+	Map<String, Integer> opInstMap = new HashMap<String, Integer>();
+	Map<String, Integer> relInstMap = new HashMap<String, Integer>();
+	{
+		opInstMap.put("+", IADD);
+		opInstMap.put("-", ISUB);
+		opInstMap.put("*", IMUL);
+		opInstMap.put("/", IDIV);
+		opInstMap.put("%", IREM);
+		relInstMap.put("==", IF_ICMPEQ);
+		relInstMap.put("!=", IF_ICMPNE);
+		relInstMap.put("<" , IF_ICMPLT);
+		relInstMap.put("<=", IF_ICMPLE);
+		relInstMap.put(">" , IF_ICMPGT);
+		relInstMap.put(">=", IF_ICMPGE);
+	}
 
-		VisitApplyNode(applyNode);
+	@Override public void VisitBinaryNode(BinaryNode Node) {
+		Node.LeftNode.Evaluate(this);
+		Node.RightNode.Evaluate(this);
+
+		String methodName = Node.Token.ParsedText;
+		Integer inst = opInstMap.get(methodName);
+		if(inst != null) {
+			this.Builder.methodVisitor.visitInsn(inst);
+			this.Builder.typeStack.pop();
+			this.Builder.typeStack.pop();
+			this.Builder.typeStack.push(Type.INT_TYPE);
+			return;
+		}
+		inst = relInstMap.get(methodName);
+		if(inst != null) {
+			Label thenLabel = new Label();
+			Label mergeLabel = new Label();
+			this.Builder.methodVisitor.visitJumpInsn(inst, thenLabel);
+			this.Builder.methodVisitor.visitInsn(ICONST_0);
+			this.Builder.methodVisitor.visitJumpInsn(GOTO, mergeLabel);
+			this.Builder.methodVisitor.visitLabel(thenLabel);
+			this.Builder.methodVisitor.visitInsn(ICONST_1);
+			this.Builder.methodVisitor.visitLabel(mergeLabel);
+			this.Builder.typeStack.pop();
+			this.Builder.typeStack.pop();
+			this.Builder.typeStack.push(Type.BOOLEAN_TYPE);
+			return;
+		}
+		throw new RuntimeException("unsupport binary operator: " + methodName);
 	}
 
 	@Override public void VisitUnaryNode(UnaryNode Node) {
@@ -772,7 +801,7 @@ public class JavaByteCodeGenerator extends CodeGenerator implements Opcodes {
 		else {
 			assert (Node.LeftNode instanceof LocalNode);
 			LocalNode Left = (LocalNode) Node.LeftNode;
-			String Name = Left.Token.ParsedText;
+			String Name = Left.LocalName;
 			Local local = this.Builder.FindLocalVariable(Name);
 			if(local == null) {
 				throw new RuntimeException("local variable " + Name + " is not found in this context");
@@ -782,9 +811,8 @@ public class JavaByteCodeGenerator extends CodeGenerator implements Opcodes {
 	}
 
 	@Override public void VisitLetNode(LetNode Node) {
-		Local local = this.Builder.AddLocal(Node.Type, Node.Token.ParsedText);
-		Node.VarNode.Evaluate(this);
-		this.Builder.StoreLocal(local);
+		LocalNode l = (LocalNode) Node.VarNode;
+		this.Builder.AddLocal(Node.Type, l.LocalName);
 		this.VisitBlock(Node.BlockNode);
 	}
 
@@ -830,11 +858,9 @@ public class JavaByteCodeGenerator extends CodeGenerator implements Opcodes {
 		this.Builder.LabelStack.AddLabel("continue", HEAD);
 
 		mv.visitLabel(HEAD);
-
 		Node.CondExpr.Evaluate(this);
 		this.Builder.typeStack.pop();
-		mv.visitInsn(ICONST_1); // true
-		mv.visitJumpInsn(IF_ICMPNE, END); // condition
+		mv.visitJumpInsn(IFEQ, END); // condition
 		this.VisitBlock(Node.LoopBody);
 
 		mv.visitJumpInsn(GOTO, HEAD);
@@ -870,9 +896,13 @@ public class JavaByteCodeGenerator extends CodeGenerator implements Opcodes {
 	}
 
 	@Override public void VisitBreakNode(BreakNode Node) {
+		Label l = this.Builder.LabelStack.FindLabel(Node.Label);
+		this.Builder.methodVisitor.visitJumpInsn(GOTO, l);
 	}
 
 	@Override public void VisitContinueNode(ContinueNode Node) {
+		Label l = this.Builder.LabelStack.FindLabel(Node.Label);
+		this.Builder.methodVisitor.visitJumpInsn(GOTO, l);
 	}
 
 	@Override public void VisitTryNode(TryNode Node) { //FIXME
@@ -933,16 +963,6 @@ public class JavaByteCodeGenerator extends CodeGenerator implements Opcodes {
 	public void VisitEnd() {
 		//this.Builder.methodVisitor.visitInsn(RETURN);//FIXME
 		this.Builder.methodVisitor.visitEnd();
-	}
-
-	public void visitBoxingAndReturn() {
-		if(this.Builder.typeStack.empty()) {
-			this.Builder.methodVisitor.visitInsn(ACONST_NULL);
-		}
-		else {
-			this.Builder.box();
-		}
-		this.Builder.methodVisitor.visitInsn(ARETURN);
 	}
 }
 
