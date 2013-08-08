@@ -301,7 +301,7 @@
 
 
 	// flags: debug //
-	var DebugPrintOption: boolean = true;
+	var DebugPrintOption: boolean = false;
 
 	function println(msg: string): void {
 		console.log(msg);
@@ -2732,12 +2732,8 @@ class GreenTeaScript {
 				Index += 1;
 				continue;
 			}
-// 			if(Argu.equals("-d") && Index < Args.length) { //
-// 				GtConst.DebugPrintOption = true; //
-// 				continue; //
-// 			} //
-			if(Argu.equals("-no-debug") && Index < Args.length) {
-				DebugPrintOption = false;
+			if(Argu.equals("-verbose")) {
+				DebugPrintOption = true;
 				continue;
 			}
 			LangDeps.Usage();

@@ -49,14 +49,5 @@
 	<!--               TEST                 -->
 	<!-- ================================== -->
 	<target name="test">
-		<junit fork="yes" maxmemory="512m" printsummary="on">
-			<classpath location="${class.dir}" />
-			<formatter type="xml" />
-			<batchtest fork="yes" todir="${report.dir}">
-				<fileset dir="bin">
-					<include name="**/*Test.java" />
-				</fileset>
-			</batchtest>
-		</junit>
 	</target>
 </project>

@@ -168,6 +168,11 @@ var LangDeps = (function () {
         return new JavaScriptSourceGenerator();
     };
 
+    LangDeps.HasFile = function (FileName) {
+        throw new Error("LangDeps.LoadFile is not implemented for this environment");
+        return "";
+    };
+
     LangDeps.LoadFile = function (FileName) {
         throw new Error("LangDeps.LoadFile is not implemented for this environment");
         return "";
@@ -181,4 +186,3 @@ var LangDeps = (function () {
     };
     return LangDeps;
 })();
-//@ sourceMappingURL=LangDeps.js.map

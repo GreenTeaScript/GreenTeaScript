@@ -44,7 +44,7 @@ interface String {
 }
 
 String.prototype["startsWith"] = function(key){
-	return this.lastIndexOf(key, 0) == 0; 
+	return this.lastIndexOf(key, 0) == 0;
 }
 
 String.prototype["replaceAll"] = function(key, rep){
@@ -83,7 +83,7 @@ class LangDeps {
 	}
 
 	static println(msg: string): void {
-		console.log(msg);		
+		console.log(msg);
 	}
 
 	static DebugP(msg: string): void {
@@ -128,11 +128,11 @@ class LangDeps {
 	static LookupMethod(Callee: Object, MethodName: string): any {
 		return Callee[MethodName];
 	}
-	
+
 	static EqualsMethod(m1: any, m2: any): boolean {
 		return m1 === m2;
 	}
-	
+
 	static CreateOrReuseTokenFunc(f: any, prev: TokenFunc): TokenFunc {
 		if(prev != null && LangDeps.EqualsMethod(prev.Func, f)) {
 			return prev;
@@ -169,7 +169,7 @@ class LangDeps {
 		}
 		return null;
 	}
-	
+
 	static CompactTypeList(BaseIndex: number, List: GtType[]): GtType[] {
 		var Tuple: GtType[] = new Array<GtType>(List.length - BaseIndex);
 		for(var i = BaseIndex; i < List.length; i++) {
@@ -189,6 +189,11 @@ class LangDeps {
 
 	static CodeGenerator(Option: string): CodeGenerator{
 		return new JavaScriptSourceGenerator();
+	}
+
+	static HasFile(FileName: string){
+		throw new Error("LangDeps.LoadFile is not implemented for this environment");
+		return "";
 	}
 
 	static LoadFile(FileName: string){

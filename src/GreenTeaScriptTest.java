@@ -1,6 +1,6 @@
-//JAVA
+//ifdef  JAVA
 import java.io.InputStream;
-//AVAJ
+//endif VAJA
 
 class GtScriptRunner {
 	public static String LoadFile(String Path) {
@@ -12,6 +12,8 @@ class GtScriptRunner {
 	public static String ExecuteScript(String Path, String Target) {
 		/*local*/String[] cmd = {"java", "-jar", "GreenTea.jar", "--" + Target, Path};
 		/*local*/String Result = "";
+		//FIXME
+//ifdef JAVA
 		try {
 			/*local*/Process proc = new ProcessBuilder(cmd).start();
 			proc.waitFor();
@@ -31,20 +33,21 @@ class GtScriptRunner {
 			e.printStackTrace();
 			throw new RuntimeException();
 		}
+//endif VAJA
 		return Result;
 	}
 
 	public static void Test(String Target, String ScriptPath, String ResultPath) {
 		LangDeps.println("Testing " + ScriptPath + " (Target:" + Target + ") ... ");
-		/*local*/String Expected = LoadFile(ResultPath);
-		/*local*/String Actual   = ExecuteScript(ScriptPath, Target);
+		/*local*/String Expected = GtScriptRunner.LoadFile(ResultPath);
+		/*local*/String Actual   = GtScriptRunner.ExecuteScript(ScriptPath, Target);
 		LangDeps.Assert(Expected.equals(Actual));
 		LangDeps.println("Testing " + ScriptPath + " (Target:" + Target + ") ... OK");
 	}
 }
 
 public class GreenTeaScriptTest {
-	final static void TestToken(GtContext Context, String Source, String[] TokenTestList) {
+	public static void TestToken(GtContext Context, String Source, String[] TokenTestList) {
 		/*local*/GtNameSpace NameSpace = Context.DefaultNameSpace;
 		/*local*/TokenContext TokenContext = new TokenContext(NameSpace, Source, 1);
 		/*local*/int i = 0;
@@ -55,40 +58,40 @@ public class GreenTeaScriptTest {
 		}
 	}
 
-	public static final GtContext CreateContext() {
+	public static GtContext CreateContext() {
 		/*local*/String CodeGeneratorName = "Java";
 		/*local*/CodeGenerator Generator = LangDeps.CodeGenerator(CodeGeneratorName);
 		return new GtContext(new KonohaGrammar(), Generator);
 	}
 
-	public static final void TokenizeOperator0() {
-		GtContext Context = CreateContext();
+	public static void TokenizeOperator0() {
+		GtContext Context = GreenTeaScriptTest.CreateContext();
 		/*local*/String[] TokenTestList0 = {"1", "||", "2"};
-		TestToken(Context, "1 || 2", TokenTestList0);
+		GreenTeaScriptTest.TestToken(Context, "1 || 2", TokenTestList0);
 
 		/*local*/String[] TokenTestList1 = {"1", "==", "2"};
-		TestToken(Context, "1 == 2", TokenTestList1);
+		GreenTeaScriptTest.TestToken(Context, "1 == 2", TokenTestList1);
 
 		/*local*/String[] TokenTestList2 = {"1", "!=", "2"};
-		TestToken(Context, "1 != 2", TokenTestList2);
+		GreenTeaScriptTest.TestToken(Context, "1 != 2", TokenTestList2);
 
 		/*local*/String[] TokenTestList3 = {"1", "*", "=", "2"};
-		TestToken(Context, "1 *= 2", TokenTestList3);
+		GreenTeaScriptTest.TestToken(Context, "1 *= 2", TokenTestList3);
 
 		/*local*/String[] TokenTestList4 = {"1", "=", "2"};
-		TestToken(Context, "1 = 2", TokenTestList4);
+		GreenTeaScriptTest.TestToken(Context, "1 = 2", TokenTestList4);
 	}
 	
-	public static final void TokenizeStatement() {
-		GtContext Context = CreateContext();
+	public static void TokenizeStatement() {
+		GtContext Context = GreenTeaScriptTest.CreateContext();
 		/*local*/String[] TokenTestList0 = {"int", "+", "(", "int", "x", ")", ";"};
-		TestToken(Context, "int + (int x);", TokenTestList0);
+		GreenTeaScriptTest.TestToken(Context, "int + (int x);", TokenTestList0);
 	}
 
 	public static void main(String[] args) {
 		if(args.length != 3) {
-			TokenizeOperator0();
-			TokenizeStatement();
+			GreenTeaScriptTest.TokenizeOperator0();
+			GreenTeaScriptTest.TokenizeStatement();
 		} else {
 			GtScriptRunner.Test(args[0], args[1], args[2]);
 		}

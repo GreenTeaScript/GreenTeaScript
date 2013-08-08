@@ -349,7 +349,7 @@ var TestParseOnly = 1 << 1;
 var TestTypeChecker = 1 << 2;
 var TestCodeGeneration = 1 << 3;
 
-var DebugPrintOption = true;
+var DebugPrintOption = false;
 
 function println(msg) {
     console.log(msg);
@@ -2604,9 +2604,8 @@ var GreenTeaScript = (function () {
                 Index += 1;
                 continue;
             }
-
-            if (Argu.equals("-no-debug") && Index < Args.length) {
-                DebugPrintOption = false;
+            if (Argu.equals("-verbose")) {
+                DebugPrintOption = true;
                 continue;
             }
             LangDeps.Usage();
@@ -2637,4 +2636,3 @@ var GreenTeaScript = (function () {
     };
     return GreenTeaScript;
 })();
-//@ sourceMappingURL=GreenTeaScript.js.map
