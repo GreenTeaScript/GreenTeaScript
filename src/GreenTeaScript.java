@@ -297,8 +297,6 @@ interface GtConst {
 	public final static GtMap   SymbolMap  = new GtMap();
 	public final static GtMap   MangleNameMap = new GtMap();
 
-	public final static GtMethod AnyGetter = null;
-
 	// TestFlags (temporary)
 	static final int TestTokenizer = 1 << 0;
 	static final int TestParseOnly = 1 << 1;
@@ -1934,6 +1932,7 @@ final class DScriptGrammar extends GtGrammar {
 		TokenContext.ReportTokenError(ErrorLevel, "expected \" to close the string literal", SourceText.substring(start, NextPos));
 		return NextPos;
 	}
+	
 	public static GtSyntaxTree ParseType(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/Object ConstValue = TokenContext.NameSpace.GetSymbol(Token.ParsedText);
@@ -2085,8 +2084,6 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/GtSyntaxTree RightTree = GtStatic.ParseExpression(TokenContext);
 		if(GtStatic.IsEmptyOrError(RightTree)) return RightTree;
-		/* 1 + 2 * 3 */
-		/* 1 * 2 + 3 */
 		if(RightTree.Pattern.IsBinaryOperator()) {
 			if(Pattern.IsLeftJoin(RightTree.Pattern)) {
 				/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
@@ -2213,7 +2210,6 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/String Command = ParsedTree.KeyToken.ParsedText;
 		/*local*/GtNode ThisNode = Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, Command);
 		Node.Append(ThisNode);
-
 		while(i < ListSize(ParsedTree.TreeList)) {
 			/*local*/GtNode ExprNode = ParsedTree.TypeNodeAt(i, Gamma, Gamma.StringType, DefaultTypeCheckPolicy);
 			if(ExprNode instanceof ConstNode) {
@@ -2788,17 +2784,17 @@ class GtContext extends GtStatic {
 
 public class GreenTeaScript extends GtStatic {
 
-	private static void TestAll(GtContext Context) {
-		//GtStatic.TestSyntaxPattern(Context, "int");
-		//GtStatic.TestSyntaxPattern(Context, "123");
-		//GtStatic.TestSyntaxPattern(Context, "1 + 2 * 3");
-		TestToken(Context, "1 || 2", "1", "||");
-		TestToken(Context, "1 == 2", "1", "==");
-		TestToken(Context, "1 != 2", "1", "!=");
-		//TestToken(Context, "1 !== 2", "1", "!==");
-		TestToken(Context, "1 *= 2", "1", "*");
-		TestToken(Context, "1 = 2", "1", "=");
-	}
+//	private static void TestAll(GtContext Context) {
+//		//GtStatic.TestSyntaxPattern(Context, "int");
+//		//GtStatic.TestSyntaxPattern(Context, "123");
+//		//GtStatic.TestSyntaxPattern(Context, "1 + 2 * 3");
+//		TestToken(Context, "1 || 2", "1", "||");
+//		TestToken(Context, "1 == 2", "1", "==");
+//		TestToken(Context, "1 != 2", "1", "!=");
+//		//TestToken(Context, "1 !== 2", "1", "!==");
+//		TestToken(Context, "1 *= 2", "1", "*");
+//		TestToken(Context, "1 = 2", "1", "=");
+//	}
 
 	public final static void main(String[] Args) {
 		/*local*/String CodeGeneratorName = "--java";
