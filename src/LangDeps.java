@@ -229,6 +229,10 @@ public abstract class LangDeps {
 		return Line;
 	}
 
+	public final static boolean HasFile(String Path) {
+		return new File(Path).exists();
+	}
+	
 	public final static String LoadFile(String FileName) {
 		File f = new File(FileName);
 		byte[] b = new byte[(int) f.length()];
