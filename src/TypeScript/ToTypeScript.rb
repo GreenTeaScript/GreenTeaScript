@@ -53,7 +53,7 @@ src.gsub!(/\bnew\s+Array<.*?>\s*\(Arrays.asList\((.*?)\)\)/){ $1 }
 src.gsub!(/\bArrays.asList\b/, "")
 #src.gsub!(/\bGtMap\b/, "Object")
 
-src.gsub!(/'(.)'/){ "(#{$1.bytes[0]}/*#{$1}*/)" }
+src.gsub!(/'(.)'/){ "(#{$1.ord}/*#{$1}*/)" }
 src.gsub!(/('..')/){ "(#{$1}.charCodeAt(0))" }
 
 src.gsub!(/\bfinal\b/, "")
