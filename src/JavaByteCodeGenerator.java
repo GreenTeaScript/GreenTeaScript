@@ -101,14 +101,14 @@ class Local {
 }
 
 class MethodPath {
-	TypedNode Run(GtNameSpace NameSpace, GtType ReturnType, TypedNode Block) {
+	GtNode Run(GtNameSpace NameSpace, GtType ReturnType, GtNode Block) {
 		return null;
 	}
 }
 
 class CheckReturnNodePath extends MethodPath {
-	@Override TypedNode Run(GtNameSpace NameSpace, GtType ReturnType, TypedNode Block) {
-		TypedNode TailNode = null;
+	@Override GtNode Run(GtNameSpace NameSpace, GtType ReturnType, GtNode Block) {
+		GtNode TailNode = null;
 		if(Block != null) {
 			TailNode = Block.MoveTailNode();
 			if(TailNode instanceof ReturnNode) {
@@ -116,7 +116,7 @@ class CheckReturnNodePath extends MethodPath {
 				return Block;
 			}
 		}
-		TypedNode ReturnNode = null;
+		GtNode ReturnNode = null;
 		GtContext Context = NameSpace.Context;
 		if(ReturnType.equals(Context.VoidType)) {
 			ReturnNode = new ReturnNode(ReturnType, null, null);
@@ -346,7 +346,7 @@ class JVMBuilder implements Opcodes {
 		return local;
 	}
 
-	public TypedNode VerifyBlock(GtNameSpace NameSpace, boolean IsEval, GtType ReturnType, TypedNode Block) {
+	public GtNode VerifyBlock(GtNameSpace NameSpace, boolean IsEval, GtType ReturnType, GtNode Block) {
 		if(IsEval) {
 			return Block;
 		}
@@ -472,7 +472,7 @@ class NativeMethodMap {
 	}
 }
 
-public class JavaByteCodeGenerator extends CodeGenerator implements Opcodes {
+public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 	private TypeResolver	TypeResolver;
 	private JVMBuilder Builder;
 	private final NativeMethodMap NMMap;
@@ -527,7 +527,7 @@ public class JavaByteCodeGenerator extends CodeGenerator implements Opcodes {
 //		return this.Compile(NameSpace, Node, Method, Param);
 //	}
 
-	@Override public Object Eval(TypedNode Node) {
+	@Override public Object Eval(GtNode Node) {
 		int acc = ACC_PUBLIC | ACC_STATIC;
 		String methodName = "__eval";
 		String methodDesc = "()Ljava/lang/Object;";
@@ -537,7 +537,7 @@ public class JavaByteCodeGenerator extends CodeGenerator implements Opcodes {
 		TypeResolver.StoreClassNode(c);
 
 		this.Builder = new JVMBuilder(null, mn, TypeResolver, null);
-		TypedNode Current = Node;
+		GtNode Current = Node;
 		while(Current != null) {
 			Current.Evaluate(this);
 			Current = Current.NextNode;
@@ -569,7 +569,7 @@ public class JavaByteCodeGenerator extends CodeGenerator implements Opcodes {
 	private final String defaultClassName = "Script";
 	private GtClassNode globalNode = new GtClassNode(defaultClassName);
 
-	@Override public void DefineFunction(GtMethod Method, ArrayList<String> NameList, TypedNode Body) {
+	@Override public void DefineFunction(GtMethod Method, ArrayList<String> NameList, GtNode Body) {
 		if(NMMap.Exist(Method)) {
 			return;
 		}
@@ -597,7 +597,7 @@ public class JavaByteCodeGenerator extends CodeGenerator implements Opcodes {
 
 		this.Builder = new JVMBuilder(Method, mn, TypeResolver, null);
 		this.Builder.LocalVals.addAll(locals);
-		TypedNode Current = Body;
+		GtNode Current = Body;
 		while(Current != null) {
 			Current.Evaluate(this);
 			Current = Current.NextNode;
@@ -694,7 +694,7 @@ public class JavaByteCodeGenerator extends CodeGenerator implements Opcodes {
 	@Override public void VisitApplyNode(ApplyNode Node) {
 		GtMethod Method = Node.Method;
 		for(int i = 0; i < Node.Params.size(); i++) {
-			TypedNode Param = Node.Params.get(i);
+			GtNode Param = Node.Params.get(i);
 			Param.Evaluate(this);
 			Type requireType = this.TypeResolver.GetAsmType(Method.GetParamType(i));
 			Type foundType = this.Builder.typeStack.peek();
@@ -1109,12 +1109,12 @@ class ShellConverter {
 		return srcBuilder.toString();
 	}
 
-	private static ArrayList<String> CreateArgument(ArrayList<TypedNode> nodeList) {
+	private static ArrayList<String> CreateArgument(ArrayList<GtNode> nodeList) {
 		ArrayList<String> argList = new ArrayList<String>();
 		int size = nodeList.size();
 		
 		for(int i = 0; i < size; i++) {
-			TypedNode node = nodeList.get(i);
+			GtNode node = nodeList.get(i);
 			GtType voidType = node.Type.Context.VoidType;
 			String token = node.Token.ParsedText;
 			if((token.equals("<") || token.equals(">"))
@@ -1159,12 +1159,12 @@ class ShellConverter {
 		return preProcName + ".Pipe(" + procName + ");\n";
 	}
 
-	private static String FindRedirect(ArrayList<TypedNode> nodeList, boolean isInputRedir) {
+	private static String FindRedirect(ArrayList<GtNode> nodeList, boolean isInputRedir) {
 		int size = nodeList.size();
 		String symbol = isInputRedir ? "<" : ">";
 		
 		for(int i = 0; i < size; i++) {
-			TypedNode node = nodeList.get(i);
+			GtNode node = nodeList.get(i);
 			GtType voidType = node.Type.Context.VoidType;
 			String token = node.Token.ParsedText;
 			if(token.equals(symbol) && node.Type.equals(voidType) && i + 1 < size) {

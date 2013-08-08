@@ -7,10 +7,10 @@ public class PerlSourceGenerator extends SourceGenerator {
 		super("Perl");
 	}
 
-	public void VisitBlockEachStatementWithIndent(TypedNode Node) {
+	public void VisitBlockEachStatementWithIndent(GtNode Node) {
 		String Code = "{\n";
 		this.Indent();
-		/*local*/TypedNode CurrentNode = Node;
+		/*local*/GtNode CurrentNode = Node;
 		while(CurrentNode != null) {
 			CurrentNode.Evaluate(this);
 			Code += this.GetIndentString() + this.PopSourceCode() + ";\n";
@@ -21,7 +21,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void VisitEmptyNode(TypedNode Node) {
+	@Override public void VisitEmptyNode(GtNode Node) {
 	}
 
 	@Override public void VisitSuffixNode(SuffixNode Node) {
@@ -126,11 +126,11 @@ public class PerlSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(this.PopSourceCode() + "->" + Node.Method.MethodName);
 	}
 
-	private String[] EvaluateParam(ArrayList<TypedNode> Params) {
+	private String[] EvaluateParam(ArrayList<GtNode> Params) {
 		int Size = Params.size();
 		String[] Programs = new String[Size];
 		for(int i = 0; i < Size; i++) {
-			TypedNode Node = Params.get(i);
+			GtNode Node = Params.get(i);
 			Node.Evaluate(this);
 			Programs[Size - i - 1] = this.PopSourceCode();
 		}
@@ -307,7 +307,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		/*local*/String Code = "system(\"";
 		/*local*/int i = 0;
 		while(i < GtStatic.ListSize(Node.Params)) {
-			TypedNode Param = Node.Params.get(i);
+			GtNode Param = Node.Params.get(i);
 			if(i != 0) {
 				Code += " ";
 			}
@@ -319,7 +319,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, TypedNode Body) {
+	@Override public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
 		String Program = "";
 		String RetTy = Method.GetReturnType().ShortClassName;
 		String FuncName = Method.LocalFuncName;
@@ -344,7 +344,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		this.WriteTranslatedCode(Program);
 	}
 
-	@Override public Object Eval(TypedNode SingleNode) {
+	@Override public Object Eval(GtNode SingleNode) {
 		SingleNode.Evaluate(this);
 		return this.PopSourceCode();
 	}

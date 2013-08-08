@@ -119,9 +119,9 @@ public abstract class LangDeps {
 		return -1;
 	}
 
-	public final static SyntaxTree ApplyMatchFunc(GtDelegateMatch Delegate, Object Pattern, Object LeftTree, Object TokenContext) {
+	public final static GtSyntaxTree ApplyMatchFunc(GtDelegateMatch Delegate, Object Pattern, Object LeftTree, Object TokenContext) {
 		try {
-			return (SyntaxTree)Delegate.Method.invoke(Delegate.Self, Pattern, LeftTree, TokenContext);
+			return (GtSyntaxTree)Delegate.Method.invoke(Delegate.Self, Pattern, LeftTree, TokenContext);
 		}
 		catch (InvocationTargetException e) {
 			e.printStackTrace();
@@ -136,9 +136,9 @@ public abstract class LangDeps {
 		return null;
 	}
 
-	public final static TypedNode ApplyTypeFunc(GtDelegateType Delegate, Object Gamma, Object ParsedTree, Object TypeInfo) {
+	public final static GtNode ApplyTypeFunc(GtDelegateType Delegate, Object Gamma, Object ParsedTree, Object TypeInfo) {
 		try {
-			return (TypedNode)Delegate.Method.invoke(Delegate.Self, Gamma, ParsedTree, TypeInfo);
+			return (GtNode)Delegate.Method.invoke(Delegate.Self, Gamma, ParsedTree, TypeInfo);
 		}
 		catch (InvocationTargetException e) {
 			e.printStackTrace();
@@ -193,7 +193,7 @@ public abstract class LangDeps {
 		System.exit(0);
 	}
 
-	public final static CodeGenerator CodeGenerator(String Option) {
+	public final static GtGenerator CodeGenerator(String Option) {
 		Option = Option.replaceAll("--", "");
 		if(Option.equalsIgnoreCase("js") || Option.equalsIgnoreCase("javascript")) {
 			return new JavaScriptSourceGenerator();

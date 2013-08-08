@@ -10,7 +10,7 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 
 	private boolean UseLetKeyword;
 
-	@Override public void DefineFunction(GtMethod Method, ArrayList<String> NameList, TypedNode Body) {
+	@Override public void DefineFunction(GtMethod Method, ArrayList<String> NameList, GtNode Body) {
 		/*local*/int ArgCount = Method.Types.length - 1;
 		/*local*/String Code = "var " + Method.MethodName + "= (function(";
 		/*local*/int i = 0;
@@ -28,7 +28,7 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 		this.WriteTranslatedCode(Code);
 	}
 
-	public  void VisitBlockJS(TypedNode Node) {
+	public  void VisitBlockJS(GtNode Node) {
 		this.Indent();
 		/*local*/String highLevelIndent = this.GetIndentString();
 		super.VisitBlock(Node);
@@ -61,7 +61,7 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 	@Override public void VisitNewNode(NewNode Node) {
 		/*local*/int i = 0;
 		while(i < Node.Params.size()) {
-			/*local*/TypedNode Param = Node.Params.get(i);
+			/*local*/GtNode Param = Node.Params.get(i);
 			Param.Evaluate(this);
 			i = i + 1;
 		}
@@ -174,7 +174,7 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 		// TODO Auto-generated method stub
 	}
 
-	@Override public void VisitEmptyNode(TypedNode Node) {
+	@Override public void VisitEmptyNode(GtNode Node) {
 		this.PushSourceCode("");
 	}
 
@@ -242,7 +242,7 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 	}
 
 	// This must be extended in each language
-	@Override public Object Eval(TypedNode Node) {
+	@Override public Object Eval(GtNode Node) {
 		this.VisitBlock(Node);
 		/*local*/String ret = "";
 		while(this.GeneratedCodeStack.size() > 0){

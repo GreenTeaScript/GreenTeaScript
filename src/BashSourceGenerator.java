@@ -15,10 +15,10 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.funcNameStack = new Stack<String>();
 	}
 
-	public void VisitEach(TypedNode Node) {
+	public void VisitEach(GtNode Node) {
 		/*local*/String Code = "\n";
 		this.Indent();
-		/*local*/TypedNode CurrentNode = Node;
+		/*local*/GtNode CurrentNode = Node;
 		while(CurrentNode != null) {
 			CurrentNode.Evaluate(this);
 			Code += this.GetIndentString() + this.PopSourceCode() + "\n";
@@ -29,7 +29,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void VisitEmptyNode(TypedNode Node) {
+	@Override public void VisitEmptyNode(GtNode Node) {
 	}
 
 	@Override public void VisitIndexerNode(IndexerNode Node) {
@@ -101,11 +101,11 @@ public class BashSourceGenerator extends SourceGenerator {
 //		this.PushSourceCode(this.PopSourceCode() + "." + Node.Method.MethodName);
 	}
 
-	private String[] EvaluateParam(ArrayList<TypedNode> Params) {
+	private String[] EvaluateParam(ArrayList<GtNode> Params) {
 		/*local*/int Size = Params.size();
 		/*local*/String[] Programs = new String[Size];
 		for(int i = 0; i < Size; i++) {
-			/*local*/TypedNode Node = Params.get(i);
+			/*local*/GtNode Node = Params.get(i);
 			Node.Evaluate(this);
 			Programs[Size - i - 1] = this.PopSourceCode();
 		}
@@ -348,23 +348,23 @@ public class BashSourceGenerator extends SourceGenerator {
 		return Code;
 	}
 
-	private TypedNode ResolveParamName(ArrayList<String> ParamNameList, TypedNode Body) {
+	private GtNode ResolveParamName(ArrayList<String> ParamNameList, GtNode Body) {
 		return ConvertParamName(ParamNameList, Body, 0);
 	}
 
-	private TypedNode ConvertParamName(ArrayList<String> ParamNameList, TypedNode Body, int index) {
+	private GtNode ConvertParamName(ArrayList<String> ParamNameList, GtNode Body, int index) {
 		if(index  == ParamNameList.size()) {
 			return Body;
 		}
 		
-		/*local*/TypedNode varNode = new LocalNode(null, null, ParamNameList.get(index));
-		/*local*/TypedNode oldVarNode = new LocalNode(null, null, "" +(index + 1));
-		/*local*/TypedNode assignNode = new AssignNode(null, null, varNode, oldVarNode);
+		/*local*/GtNode varNode = new LocalNode(null, null, ParamNameList.get(index));
+		/*local*/GtNode oldVarNode = new LocalNode(null, null, "" +(index + 1));
+		/*local*/GtNode assignNode = new AssignNode(null, null, varNode, oldVarNode);
 		assignNode.NextNode = ConvertParamName(ParamNameList, Body, ++index);
 		return new LetNode(null, null, null, varNode, assignNode);
 	}
 
-	@Override public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, TypedNode Body) {
+	@Override public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
 		/*local*/String Function = "function ";
 		inFunc = true;
 		funcNameStack.push(Method.MethodName);
@@ -376,7 +376,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		inFunc = false;
 	}
 
-	@Override public Object Eval(TypedNode Node) {
+	@Override public Object Eval(GtNode Node) {
 		this.VisitEach(Node);
 		/*local*/String Code = this.PopSourceCode();
 		this.WriteTranslatedCode(Code);

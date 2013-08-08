@@ -8,10 +8,10 @@ public class CSourceGenerator extends SourceGenerator {
 		super("C");
 	}
 
-	public void VisitBlockEachStatementWithIndent(TypedNode Node) {
+	public void VisitBlockEachStatementWithIndent(GtNode Node) {
 		/*local*/String Code = "{\n";
 		this.Indent();
-		/*local*/TypedNode CurrentNode = Node;
+		/*local*/GtNode CurrentNode = Node;
 		while(CurrentNode != null) {
 			CurrentNode.Evaluate(this);
 			Code += this.GetIndentString() + this.PopSourceCode() + ";\n";
@@ -22,7 +22,7 @@ public class CSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void VisitEmptyNode(TypedNode Node) {
+	@Override public void VisitEmptyNode(GtNode Node) {
 		//this.PushSourceCode("/*empty*/");
 	}
 
@@ -125,11 +125,11 @@ public class CSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(this.PopSourceCode() + "->" + Node.Method.MethodName);
 	}
 
-	private String[] EvaluateParam(ArrayList<TypedNode> Params) {
+	private String[] EvaluateParam(ArrayList<GtNode> Params) {
 		/*local*/int Size = GtStatic.ListSize(Params);
 		/*local*/String[] Programs = new String[Size];
 		for(int i = 0; i < Size; i++) {
-			TypedNode Node = Params.get(i);
+			GtNode Node = Params.get(i);
 			Node.Evaluate(this);
 			Programs[Size - i - 1] = this.PopSourceCode();
 		}
@@ -309,7 +309,7 @@ public class CSourceGenerator extends SourceGenerator {
 		/*local*/int i = 0;
 		/*local*/String Command = "String __Command = ";
 		while(i < GtStatic.ListSize(Node.Params)) {
-			TypedNode Param = Node.Params.get(i);
+			GtNode Param = Node.Params.get(i);
 			if(i != 0) {
 				Command += " + ";
 			}
@@ -325,7 +325,7 @@ public class CSourceGenerator extends SourceGenerator {
 		return Type.ShortClassName;
 	}
 
-	@Override public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, TypedNode Body) {
+	@Override public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
 		/*local*/String Code = "";
 		if(!Method.Is(ExportMethod)) {
 			Code = "static ";
@@ -345,7 +345,7 @@ public class CSourceGenerator extends SourceGenerator {
 		this.WriteTranslatedCode(Code);
 	}
 
-	@Override public Object Eval(TypedNode Node) {
+	@Override public Object Eval(GtNode Node) {
 		this.VisitBlockEachStatementWithIndent(Node);
 		String Code = this.PopSourceCode();
 		if(Code.equals("{\n   ;\n}")) {
