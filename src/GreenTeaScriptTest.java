@@ -14,7 +14,7 @@ class GtScriptRunner {
 		/*local*/String Result = "";
 		try {
 			/*local*/Process proc = new ProcessBuilder(cmd).start();
-			proc.wait(5);
+			proc.waitFor();
 			if(proc.exitValue() != 0) {
 				return null;
 			}
@@ -28,15 +28,18 @@ class GtScriptRunner {
 				}
 			}
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new RuntimeException();
 		}
 		return Result;
 	}
 
 	public static void Test(String Target, String ScriptPath, String ResultPath) {
+		LangDeps.println("Testing " + ScriptPath + " (Target:" + Target + ") ... ");
 		/*local*/String Expected = LoadFile(ResultPath);
 		/*local*/String Actual   = ExecuteScript(ScriptPath, Target);
 		LangDeps.Assert(Expected.equals(Actual));
+		LangDeps.println("Testing " + ScriptPath + " (Target:" + Target + ") ... OK");
 	}
 }
 
