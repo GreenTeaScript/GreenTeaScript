@@ -808,7 +808,6 @@ class GtMethod extends GtStatic {
 			return this.SourceMacro.replaceAll("$0", Arg0).replaceAll("$1", Arg1);
 		}
 	}
-
 }
 
 class GtGenerator extends GtStatic {

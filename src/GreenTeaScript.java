@@ -1734,7 +1734,7 @@ class GtGrammar extends GtStatic {
 	}
 }
 
-final class KonohaGrammar extends GtGrammar {
+final class DScriptGrammar extends GtGrammar {
 	// Token
 	public static int WhiteSpaceToken(GtTokenContext TokenContext, String SourceText, int pos) {
 		TokenContext.FoundWhiteSpace();
@@ -1819,7 +1819,7 @@ final class KonohaGrammar extends GtGrammar {
 				while(NextPos < SourceText.length()) {
 					/*local*/char ch = LangDeps.CharAt(SourceText, NextPos);
 					if(ch == '\n') {
-						return KonohaGrammar.IndentToken(TokenContext, SourceText, NextPos);
+						return DScriptGrammar.IndentToken(TokenContext, SourceText, NextPos);
 					}
 					NextPos = NextPos + 1;
 				}
@@ -1862,6 +1862,7 @@ final class KonohaGrammar extends GtGrammar {
 		TokenContext.ReportTokenError(ErrorLevel, "expected \" to close the string literal", SourceText.substring(start, pos));
 		return pos;
 	}
+	
 	public static int StringLiteralToken_StringInterpolation(GtTokenContext TokenContext, String SourceText, int pos) {
 		/*local*/int start = pos + 1;
 		/*local*/int NextPos = start;
@@ -2164,7 +2165,7 @@ final class KonohaGrammar extends GtGrammar {
 			return pos;
 		}
 
-		if(KonohaGrammar.IsUnixCommand(Symbol)) {
+		if(DScriptGrammar.IsUnixCommand(Symbol)) {
 			TokenContext.AddNewToken(Symbol, 0, "$ShellExpression$");
 			return pos;
 		}
@@ -2767,8 +2768,6 @@ class GtContext extends GtStatic {
 		}
 		return true;
 	}
-	
-	
 }
 
 public class GreenTeaScript extends GtStatic {
@@ -2796,7 +2795,7 @@ public class GreenTeaScript extends GtStatic {
 			FileIndex = 1;
 		}
 		/*local*/GtGenerator Generator = LangDeps.CodeGenerator(CodeGeneratorName);
-		/*local*/GtContext Context = new GtContext(new KonohaGrammar(), Generator);
+		/*local*/GtContext Context = new GtContext(new DScriptGrammar(), Generator);
 		if(Args.length > FileIndex) {
 			Context.Eval(LangDeps.LoadFile(Args[FileIndex]), 1);
 		}
@@ -2834,7 +2833,7 @@ public class GreenTeaScript extends GtStatic {
 		if(Generator == null) {
 			LangDeps.Usage();
 		}
-		/*local*/GtContext Context = new GtContext(new KonohaGrammar(), Generator);
+		/*local*/GtContext Context = new GtContext(new DScriptGrammar(), Generator);
 		/*local*/boolean ShellMode = true;
 		if(OneLiner != null) {
 			Context.Eval(OneLiner, 1);
