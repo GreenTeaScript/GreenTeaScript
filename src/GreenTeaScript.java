@@ -311,7 +311,7 @@ interface GtConst {
 class GtStatic implements GtConst {
 //endif VAJA
 	// debug flags
-	public static boolean DebugPrintOption = true;
+	public static boolean DebugPrintOption = false;
 
 	public final static void println(String msg) {
 		LangDeps.println(msg);
@@ -2832,12 +2832,8 @@ public class GreenTeaScript extends GtStatic {
 				Index += 1;
 				continue;
 			}
-//			if(Argu.equals("-d") && Index < Args.length) {
-//				GtConst.DebugPrintOption = true;
-//				continue;
-//			}
-			if(Argu.equals("-no-debug") && Index < Args.length) {
-				GtStatic.DebugPrintOption = false;
+			if(Argu.equals("-verbose")) {
+				GtStatic.DebugPrintOption = true;
 				continue;
 			}
 			LangDeps.Usage();
