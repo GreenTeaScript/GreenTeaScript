@@ -1725,7 +1725,6 @@ final class GtNameSpace extends GtStatic {
 		}
 		return Token.GetErrorMessage();
 	}
-
 }
 
 class GtGrammar extends GtStatic {
@@ -1812,17 +1811,33 @@ final class DScriptGrammar extends GtGrammar {
 
 	public static int CommentToken(GtTokenContext TokenContext, String SourceText, int pos) {
 		/*local*/int NextPos = pos + 1;
-		if(pos + 1 < SourceText.length()) {
-			/*local*/char NextChar = LangDeps.CharAt(SourceText, pos+1);
-			if(NextChar == '/') {
-				NextPos = NextPos + 1;
-				while(NextPos < SourceText.length()) {
-					/*local*/char ch = LangDeps.CharAt(SourceText, NextPos);
-					if(ch == '\n') {
-						return DScriptGrammar.IndentToken(TokenContext, SourceText, NextPos);
-					}
-					NextPos = NextPos + 1;
+		if(NextPos < SourceText.length()) {
+			/*local*/char NextChar = LangDeps.CharAt(SourceText, NextPos);
+			if(NextChar != '/' && NextChar != '*') {
+				return NoMatch;
+			}
+			int Level = 0;
+			/*local*/char PrevChar = 0;
+			if(NextChar == '*') {
+				Level = 1;
+			}
+			while(NextPos < SourceText.length()) {
+				NextChar = LangDeps.CharAt(SourceText, NextPos);
+				if(NextChar == '\n' && Level == 0) {
+					return DScriptGrammar.IndentToken(TokenContext, SourceText, NextPos);
 				}
+				if(NextChar == '/' && PrevChar == '*') {
+					if(Level == 1) {
+						return NextPos + 1;
+					}
+					Level = Level - 1;
+				}
+				if(Level > 0) {
+					if(NextChar == '*' && PrevChar == '/') {
+						Level = Level + 1;
+					}
+				}
+				NextPos = NextPos + 1;
 			}
 		}
 		return NoMatch;
@@ -2706,6 +2721,7 @@ class GtContext extends GtStatic {
 		this.FuncType.Types = new GtType[1];
 		this.FuncType.Types[0] = this.VoidType;
 		Grammar.LoadTo(this.RootNameSpace);
+		
 		this.DefaultNameSpace = new GtNameSpace(this, this.RootNameSpace);
 		this.Generator.SetLanguageContext(this);
 	}
@@ -2782,26 +2798,6 @@ public class GreenTeaScript extends GtStatic {
 		//TestToken(Context, "1 !== 2", "1", "!==");
 		TestToken(Context, "1 *= 2", "1", "*");
 		TestToken(Context, "1 = 2", "1", "=");
-	}
-
-	public final static void main3(String[] Args) {
-//		Args = new String[2];
-//		Args[0] = "--perl";
-//		Args[1] = "sample/fibo.green";
-		/*local*/int FileIndex = 0;
-		/*local*/String CodeGeneratorName = "--Java";
-		if(Args.length > 0 && Args[0].startsWith("--")) {
-			CodeGeneratorName = Args[0];
-			FileIndex = 1;
-		}
-		/*local*/GtGenerator Generator = LangDeps.CodeGenerator(CodeGeneratorName);
-		/*local*/GtContext Context = new GtContext(new DScriptGrammar(), Generator);
-		if(Args.length > FileIndex) {
-			Context.Eval(LangDeps.LoadFile(Args[FileIndex]), 1);
-		}
-		else {
-			GreenTeaScript.TestAll(Context);
-		}
 	}
 
 	public final static void main(String[] Args) {
