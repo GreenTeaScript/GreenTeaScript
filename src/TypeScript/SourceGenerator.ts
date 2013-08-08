@@ -1235,7 +1235,7 @@ class SourceGenerator extends CodeGenerator {
 	}
 
 	 WriteTranslatedCode(Text: string): void {
-		LangDeps.println(Text);
+		console.log(Text);
 	}
 
 }

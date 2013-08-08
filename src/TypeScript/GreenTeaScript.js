@@ -352,17 +352,17 @@ var TestCodeGeneration = 1 << 3;
 var DebugPrintOption = true;
 
 function println(msg) {
-    LangDeps.println(msg);
+    console.log(msg);
 }
 
 function DebugP(msg) {
     if (DebugPrintOption) {
-        LangDeps.println("DEBUG" + LangDeps.GetStackInfo(2) + ": " + msg);
+        console.log("DEBUG" + LangDeps.GetStackInfo(2) + ": " + msg);
     }
 }
 
 function TODO(msg) {
-    LangDeps.println("TODO" + LangDeps.GetStackInfo(2) + ": " + msg);
+    console.log("TODO" + LangDeps.GetStackInfo(2) + ": " + msg);
 }
 
 function JoinStrings(Unit, Times) {
@@ -493,7 +493,7 @@ function Mangle(BaseType, BaseIdx, TypeList) {
 function ApplyTokenFunc(TokenFunc, TokenContext, ScriptSource, Pos) {
     while (TokenFunc != null) {
         var delegate = TokenFunc.Func;
-        var NextIdx = LangDeps.ApplyTokenFunc(delegate.Self, delegate.Method, TokenContext, ScriptSource, Pos);
+        var NextIdx = LangDeps.ApplyTokenFunc(delegate, TokenContext, ScriptSource, Pos);
         if (NextIdx > Pos)
             return NextIdx;
         TokenFunc = TokenFunc.ParentFunc;
@@ -542,7 +542,7 @@ function ApplySyntaxPattern(Pattern, LeftTree, TokenContext) {
         }
 
         TokenContext.IndentLevel += 1;
-        var ParsedTree = LangDeps.ApplyMatchFunc(delegate.Self, delegate.Method, CurrentPattern, LeftTree, TokenContext);
+        var ParsedTree = LangDeps.ApplyMatchFunc(delegate, CurrentPattern, LeftTree, TokenContext);
         TokenContext.IndentLevel -= 1;
         if (ParsedTree != null && ParsedTree.IsEmpty())
             ParsedTree = null;
@@ -557,7 +557,7 @@ function ApplySyntaxPattern(Pattern, LeftTree, TokenContext) {
         TokenContext.CurrentPosition = Pos;
     }
     if (Pattern == null) {
-        DebugP("undefinedpattern: syntax: " + Pattern);
+        console.log("DEBUG: " + "undefinedpattern: syntax: " + Pattern);
     }
     return TokenContext.ReportExpectedPattern(Pattern);
 }
@@ -576,12 +576,8 @@ function ParseExpression(TokenContext) {
 }
 
 function ApplyTypeFunc(delegate, Gamma, ParsedTree, Type) {
-    if (delegate == null || delegate.Method == null) {
-        DebugP("tryinvoke: toTypeFunc: null");
-        LangDeps.Assert(delegate != null);
-        return null;
-    }
-    return LangDeps.ApplyTypeFunc(delegate.Self, delegate.Method, Gamma, ParsedTree, Type);
+    LangDeps.Assert(delegate != null);
+    return LangDeps.ApplyTypeFunc(delegate, Gamma, ParsedTree, Type);
 }
 
 function LinkNode(LastNode, Node) {
@@ -721,7 +717,7 @@ var TokenContext = (function () {
         var TokenFunc = this.NameSpace.GetTokenFunc(GtChar);
         var NextIdx = ApplyTokenFunc(TokenFunc, this, ScriptSource, pos);
         if (NextIdx == NoMatch) {
-            DebugP("tokenizer: undefined: " + LangDeps.CharAt(ScriptSource, pos));
+            console.log("DEBUG: " + "tokenizer: undefined: " + LangDeps.CharAt(ScriptSource, pos));
             this.AddNewToken(ScriptSource.substring(pos, pos + 1), 0, null);
             return pos + 1;
         }
@@ -885,7 +881,7 @@ var TokenContext = (function () {
         var pos = this.CurrentPosition;
         while (pos < this.SourceList.size()) {
             var token = this.SourceList.get(pos);
-            DebugP("[" + pos + "]\t" + token + " : " + token.PresetPattern);
+            console.log("DEBUG: " + "[" + pos + "]\t" + token + " : " + token.PresetPattern);
             pos += 1;
         }
     };
@@ -1546,14 +1542,14 @@ var GtNameSpace = (function () {
 
     GtNameSpace.prototype.Eval = function (ScriptSource, FileLine, Generator) {
         var resultValue = null;
-        DebugP("Eval: " + ScriptSource);
+        console.log("DEBUG: " + "Eval: " + ScriptSource);
         var tokenContext = new TokenContext(this, ScriptSource, FileLine);
         tokenContext.SkipEmptyStatement();
         while (tokenContext.HasNext()) {
             var annotation = tokenContext.SkipAndGetAnnotation(true);
             var topLevelTree = ParseExpression(tokenContext);
             topLevelTree.SetAnnotation(annotation);
-            DebugP("tree: untyped: " + topLevelTree);
+            console.log("DEBUG: " + "tree: untyped: " + topLevelTree);
             var gamma = new TypeEnv(this);
             var node = gamma.TypeCheckEachNode(topLevelTree, gamma.VoidType, DefaultTypeCheckPolicy);
             resultValue = Generator.Eval(node);
@@ -2040,7 +2036,7 @@ var KonohaGrammar = (function (_super) {
                 if (CNode.ConstValue instanceof String) {
                     var Val = CNode.ConstValue;
                     if (Val.equals("|")) {
-                        DebugP("PIPE");
+                        console.log("DEBUG: " + "PIPE");
                         var PrevNode = Node;
                         Node = Gamma.Generator.CreateCommandNode(Type, ParsedTree, null);
                         PrevNode.PipedNextNode = Node;

@@ -304,17 +304,17 @@
 	var DebugPrintOption: boolean = true;
 
 	function println(msg: string): void {
-		LangDeps.println(msg);
+		console.log(msg);
 	}
 
-	function console.log("DEBUG: " + msg: string): void {
+	function DebugP(msg: string): void {
 		if(DebugPrintOption) {
-			LangDeps.println("DEBUG" + LangDeps.GetStackInfo(2) + ": " + msg);
+			console.log("DEBUG" + LangDeps.GetStackInfo(2) + ": " + msg);
 		}
 	}
 
 	function TODO(msg: string): void {
-		LangDeps.println("TODO" + LangDeps.GetStackInfo(2) + ": " + msg);
+		console.log("TODO" + LangDeps.GetStackInfo(2) + ": " + msg);
 	}
 
 	function JoinStrings(Unit: string, Times: number): string {
@@ -449,7 +449,7 @@
 	function ApplyTokenFunc(TokenFunc: TokenFunc, TokenContext: TokenContext, ScriptSource: string, Pos: number): number {
 		while(TokenFunc != null) {
 			var delegate: any = TokenFunc.Func;
-			var NextIdx: number = LangDeps.ApplyTokenFunc(delegate.Self, delegate.Method, TokenContext, ScriptSource, Pos);
+			var NextIdx: number = LangDeps.ApplyTokenFunc(delegate, TokenContext, ScriptSource, Pos);
 			if(NextIdx > Pos) return NextIdx;
 			TokenFunc = TokenFunc.ParentFunc;
 		}
@@ -496,7 +496,7 @@
 			}
 			// console.log("DEBUG: " + "B :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + ", next=" + CurrentPattern.ParentPattern); //
 			TokenContext.IndentLevel += 1;
-			var ParsedTree: SyntaxTree = <SyntaxTree>LangDeps.ApplyMatchFunc(delegate.Self, delegate.Method, CurrentPattern, LeftTree, TokenContext);
+			var ParsedTree: SyntaxTree = <SyntaxTree>LangDeps.ApplyMatchFunc(delegate, CurrentPattern, LeftTree, TokenContext);
 			TokenContext.IndentLevel -= 1;
 			if(ParsedTree != null && ParsedTree.IsEmpty()) ParsedTree = null;
 			// console.log("DEBUG: " + "E :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + " => " + ParsedTree); //
@@ -531,12 +531,8 @@
 
 	//  typing //
 	function ApplyTypeFunc(delegate: any, Gamma: TypeEnv, ParsedTree: SyntaxTree, Type: GtType): TypedNode {
-		if(delegate == null || delegate.Method == null){
-			console.log("DEBUG: " + "tryinvoke: toTypeFunc: null");
-			LangDeps.Assert(delegate != null); // happen: Not //
-			return null;
-		}
-		return <TypedNode>LangDeps.ApplyTypeFunc(delegate.Self, delegate.Method, Gamma, ParsedTree, Type);
+		LangDeps.Assert(delegate != null);
+		return <TypedNode>LangDeps.ApplyTypeFunc(delegate, Gamma, ParsedTree, Type);
 	}
 
 	function LinkNode(LastNode: TypedNode, Node: TypedNode): TypedNode {

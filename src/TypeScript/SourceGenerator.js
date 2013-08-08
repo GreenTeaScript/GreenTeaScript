@@ -647,7 +647,7 @@ var GtType = (function () {
         GenericType.SearchSuperMethodClass = this.BaseClass;
         GenericType.SuperClass = this.SuperClass;
         this.Types = LangDeps.CompactTypeList(BaseIndex, TypeList);
-        DebugP("new class: " + GenericType.ShortClassName + ", ClassId=" + GenericType.ClassId);
+        console.log("DEBUG: " + "new class: " + GenericType.ShortClassName + ", ClassId=" + GenericType.ClassId);
         return GenericType;
     };
 
@@ -920,7 +920,7 @@ var CodeGenerator = (function () {
     };
 
     CodeGenerator.prototype.VisitEmptyNode = function (EmptyNode) {
-        DebugP("node: empty: " + EmptyNode.Token.ParsedText);
+        console.log("DEBUG: " + "node: empty: " + EmptyNode.Token.ParsedText);
     };
 
     CodeGenerator.prototype.VisitSuffixNode = function (SuffixNode) {
@@ -1138,7 +1138,7 @@ var SourceGenerator = (function (_super) {
     };
 
     SourceGenerator.prototype.WriteTranslatedCode = function (Text) {
-        LangDeps.println(Text);
+        console.log(Text);
     };
     return SourceGenerator;
 })(CodeGenerator);

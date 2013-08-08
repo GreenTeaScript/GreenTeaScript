@@ -119,27 +119,27 @@ var LangDeps = (function () {
         return new TokenFunc(f, prev);
     };
 
-    LangDeps.ApplyTokenFunc = function (Self, Method, TokenContext, Text, pos) {
+    LangDeps.ApplyTokenFunc = function (Delegate, TokenContext, Text, pos) {
         try  {
-            return Method.apply(Self, TokenContext, Text, pos);
+            return Delegate(TokenContext, Text, pos);
         } catch (e) {
             console.log(e);
         }
         return -1;
     };
 
-    LangDeps.ApplyMatchFunc = function (Self, Method, Pattern, LeftTree, TokenContext) {
+    LangDeps.ApplyMatchFunc = function (Delegate, Pattern, LeftTree, TokenContext) {
         try  {
-            return Method.apply(Self, Pattern, LeftTree, TokenContext);
+            return Delegate(Pattern, LeftTree, TokenContext);
         } catch (e) {
             console.log(e);
         }
         return null;
     };
 
-    LangDeps.ApplyTypeFunc = function (Self, Method, Gamma, ParsedTree, TypeInfo) {
+    LangDeps.ApplyTypeFunc = function (Delegate, Gamma, ParsedTree, TypeInfo) {
         try  {
-            return Method.apply(Self, Gamma, ParsedTree, TypeInfo);
+            return Delegate(Gamma, ParsedTree, TypeInfo);
         } catch (e) {
             console.log(e);
         }

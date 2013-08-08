@@ -140,9 +140,9 @@ class LangDeps {
 		return new TokenFunc(f, prev);
 	}
 
-	static ApplyTokenFunc(Self: Object, Method: any, TokenContext: Object, Text: string, pos: number): number {
+	static ApplyTokenFunc(Delegate: any, TokenContext: Object, Text: string, pos: number): number {
 		try {
-			return <number>Method.apply(Self, TokenContext, Text, pos);
+			return <number>Delegate(TokenContext, Text, pos);
 		}
 		catch (e) {
 			console.log(e);
@@ -150,9 +150,9 @@ class LangDeps {
 		return -1;
 	}
 
-	static ApplyMatchFunc(Self: Object, Method: any, Pattern: Object, LeftTree: Object, TokenContext: Object): SyntaxTree {
+	static ApplyMatchFunc(Delegate: any, Pattern: Object, LeftTree: Object, TokenContext: Object): SyntaxTree {
 		try {
-			return <SyntaxTree>Method.apply(Self, Pattern, LeftTree, TokenContext);
+			return <SyntaxTree>Delegate(Pattern, LeftTree, TokenContext);
 		}
 		catch (e) {
 			console.log(e);
@@ -160,9 +160,9 @@ class LangDeps {
 		return null;
 	}
 
-	static ApplyTypeFunc(Self: Object, Method: any, Gamma: Object, ParsedTree: Object, TypeInfo: Object): TypedNode {
+	static ApplyTypeFunc(Delegate: any, Gamma: Object, ParsedTree: Object, TypeInfo: Object): TypedNode {
 		try {
-			return <TypedNode>Method.apply(Self, Gamma, ParsedTree, TypeInfo);
+			return <TypedNode>Delegate(Gamma, ParsedTree, TypeInfo);
 		}
 		catch (e) {
 			console.log(e);

@@ -83,7 +83,9 @@ src.gsub!(/(?!\.)\b((?:Parse|Type)(?:Unary|Binary|Const|Block))\b(?!\()/){ "Kono
 src.gsub!(/\bGtDelegate(?:Common|Token|Match|Type)\b/){ "any" }
 src.gsub!(/KonohaGrammar\.KonohaGrammar\./){ "KonohaGrammar." }
 
-src.gsub!(/(?!function\s+)(LangDeps\.)?DebugP\(/, 'console.log("DEBUG: " + ')
+src.gsub!(/(LangDeps\.)?DebugP\(/, 'console.log("DEBUG: " + ')
+src.gsub!(/LangDeps\.println\(/, 'console.log(')
+src.gsub!(/function console.log\("DEBUG: " \+ /, 'function DebugP(')
 
 puts '/// <reference path="LangDeps.ts" />'
 puts src
