@@ -1,12 +1,18 @@
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Stack;
 
 //GreenTea Generator should be written in each language.
 
 public class BashSourceGenerator extends SourceGenerator {
-	/*local*/private boolean inFun = false;
+	/*local*/private boolean inFunc = false;
+	/*local*/private HashMap<String, String> retValueMap;
+	/*local*/private Stack<String> funcNameStack;
 
 	BashSourceGenerator() {
 		super("BashSource");
+		this.retValueMap = new HashMap<String, String>();
+		this.funcNameStack = new Stack<String>();
 	}
 
 	public void VisitEach(TypedNode Node) {
@@ -65,12 +71,15 @@ public class BashSourceGenerator extends SourceGenerator {
 	@Override public void VisitConstNode(ConstNode Node) {
 		/*local*/String value = Node.ConstValue.toString();
 		
-		if(value.equals("true")) {
-			value = "0";
+		if(Node.Type.equals(Node.Type.Context.BooleanType)) {
+			if(value.equals("true")) {
+				value = "0";
+			}
+			else if(value.equals("false")) {
+				value = "1";
+			}
 		}
-		else if(value.equals("false")) {
-			value = "1";
-		}
+
 		this.PushSourceCode(value);
 	}
 
@@ -197,13 +206,13 @@ public class BashSourceGenerator extends SourceGenerator {
 	@Override public void VisitAndNode(AndNode Node) {
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + " && " + this.PopSourceCode());
+		this.PushSourceCode("(" + this.PopSourceCode() + " && " + this.PopSourceCode() + ")");
 	}
 
 	@Override public void VisitOrNode(OrNode Node) {
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + " || " + this.PopSourceCode());
+		this.PushSourceCode("(" + this.PopSourceCode() + " || " + this.PopSourceCode() + ")");
 	}
 
 	@Override public void VisitAssignNode(AssignNode Node) {	//TODO: support array
@@ -230,7 +239,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.VisitEach(Node.BlockNode);
 		
 		/*local*/String head = "";
-		if(inFun) {
+		if(inFunc) {
 			head = "local ";
 		}
 		this.PushSourceCode(head + Code + this.PopSourceCode());
@@ -256,13 +265,20 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	}
 
-	@Override public void VisitReturnNode(ReturnNode Node) {	// only support int value
-		/*local*/String Code = "return";
-		if(Node.Expr != null) {
+	@Override public void VisitReturnNode(ReturnNode Node) {
+		if(inFunc && Node.Expr != null) {
 			Node.Expr.Evaluate(this);
-			Code += " " + this.PopSourceCode();
+			if(Node.Type.equals(Node.Type.Context.BooleanType)) {
+				this.PushSourceCode("return " + this.PopSourceCode());
+				return;
+			}
+			
+			/*local*/String funcName = funcNameStack.peek();
+			/*local*/String retValue = "ret_" + funcName;
+			this.retValueMap.put(funcName, retValue);
+			retValue += "=" + this.PopSourceCode();
+			this.PushSourceCode(retValue);
 		}
-		this.PushSourceCode(Code);
 	}
 
 	@Override public void VisitLabelNode(LabelNode Node) {
@@ -350,12 +366,14 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	@Override public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, TypedNode Body) {
 		/*local*/String Function = "function ";
-		inFun = true;
+		inFunc = true;
+		funcNameStack.push(Method.MethodName);
 		Function += Method.MethodName + "() {";
 		this.VisitEach(ResolveParamName(ParamNameList, Body));
 		Function += PopSourceCode() + "\n}";
 		this.WriteTranslatedCode(Function);
-		inFun = false;
+		funcNameStack.pop();
+		inFunc = false;
 	}
 
 	@Override public Object Eval(TypedNode Node) {
