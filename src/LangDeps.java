@@ -101,9 +101,9 @@ public abstract class LangDeps {
 		return new TokenFunc(f, prev);
 	}
 
-	public final static int ApplyTokenFunc(Object Self, Method Method, Object TokenContext, String Text, int pos) {
+	public final static int ApplyTokenFunc(GtDelegateToken Delegate, Object TokenContext, String Text, int pos) {
 		try {
-			Integer n = (Integer)Method.invoke(Self, TokenContext, Text, pos);
+			Integer n = (Integer)Delegate.Method.invoke(Delegate.Self, TokenContext, Text, pos);
 			return n.intValue();
 		}
 		catch (InvocationTargetException e) {
@@ -119,9 +119,9 @@ public abstract class LangDeps {
 		return -1;
 	}
 
-	public final static SyntaxTree ApplyMatchFunc(Object Self, Method Method, Object Pattern, Object LeftTree, Object TokenContext) {
+	public final static SyntaxTree ApplyMatchFunc(GtDelegateMatch Delegate, Object Pattern, Object LeftTree, Object TokenContext) {
 		try {
-			return (SyntaxTree)Method.invoke(Self, Pattern, LeftTree, TokenContext);
+			return (SyntaxTree)Delegate.Method.invoke(Delegate.Self, Pattern, LeftTree, TokenContext);
 		}
 		catch (InvocationTargetException e) {
 			e.printStackTrace();
@@ -136,9 +136,9 @@ public abstract class LangDeps {
 		return null;
 	}
 
-	public final static TypedNode ApplyTypeFunc(Object Self, Method Method, Object Gamma, Object ParsedTree, Object TypeInfo) {
+	public final static TypedNode ApplyTypeFunc(GtDelegateType Delegate, Object Gamma, Object ParsedTree, Object TypeInfo) {
 		try {
-			return (TypedNode)Method.invoke(Self, Gamma, ParsedTree, TypeInfo);
+			return (TypedNode)Delegate.Method.invoke(Delegate.Self, Gamma, ParsedTree, TypeInfo);
 		}
 		catch (InvocationTargetException e) {
 			e.printStackTrace();

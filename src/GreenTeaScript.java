@@ -471,7 +471,7 @@ class GtStatic implements GtConst {
 	public final static int ApplyTokenFunc(TokenFunc TokenFunc, TokenContext TokenContext, String ScriptSource, int Pos) {
 		while(TokenFunc != null) {
 			/*local*/GtDelegateToken delegate = TokenFunc.Func;
-			/*local*/int NextIdx = LangDeps.ApplyTokenFunc(delegate.Self, delegate.Method, TokenContext, ScriptSource, Pos);
+			/*local*/int NextIdx = LangDeps.ApplyTokenFunc(delegate, TokenContext, ScriptSource, Pos);
 			if(NextIdx > Pos) return NextIdx;
 			TokenFunc = TokenFunc.ParentFunc;
 		}
@@ -518,7 +518,7 @@ class GtStatic implements GtConst {
 			}
 			//DebugP("B :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + ", next=" + CurrentPattern.ParentPattern);
 			TokenContext.IndentLevel += 1;
-			/*local*/SyntaxTree ParsedTree = (/*cast*/SyntaxTree)LangDeps.ApplyMatchFunc(delegate.Self, delegate.Method, CurrentPattern, LeftTree, TokenContext);
+			/*local*/SyntaxTree ParsedTree = (/*cast*/SyntaxTree)LangDeps.ApplyMatchFunc(delegate, CurrentPattern, LeftTree, TokenContext);
 			TokenContext.IndentLevel -= 1;
 			if(ParsedTree != null && ParsedTree.IsEmpty()) ParsedTree = null;
 			//DebugP("E :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + " => " + ParsedTree);
@@ -553,12 +553,8 @@ class GtStatic implements GtConst {
 
 	// typing
 	public final static TypedNode ApplyTypeFunc(GtDelegateType delegate, TypeEnv Gamma, SyntaxTree ParsedTree, GtType Type) {
-		if(delegate == null || delegate.Method == null){
-			DebugP("try to invoke null TypeFunc");
-			LangDeps.Assert(delegate != null); // Not happen
-			return null;
-		}
-		return (/*cast*/TypedNode)LangDeps.ApplyTypeFunc(delegate.Self, delegate.Method, Gamma, ParsedTree, Type);
+		LangDeps.Assert(delegate != null);
+		return (/*cast*/TypedNode)LangDeps.ApplyTypeFunc(delegate, Gamma, ParsedTree, Type);
 	}
 
 	public final static TypedNode LinkNode(TypedNode LastNode, TypedNode Node) {
