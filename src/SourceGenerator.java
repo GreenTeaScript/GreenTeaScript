@@ -1,7 +1,7 @@
 //ifdef JAVA
 import java.util.ArrayList;
-//endif VAJA
 import java.util.Arrays;
+//endif VAJA
 
 /* language */
 

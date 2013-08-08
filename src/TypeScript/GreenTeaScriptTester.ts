@@ -39,7 +39,7 @@ class GreenTeaScriptTestCase {
 }
 
 class GreenTeaTokenizerTestCase extends GreenTeaScriptTestCase {
-	
+
 	static TestToken(Context: GtContext, Source: string, TokenTestList: string[]): void {
 		var NameSpace: GtNameSpace = Context.DefaultNameSpace;
 		var TokenContext: TokenContext = new TokenContext(NameSpace, Source, 1);

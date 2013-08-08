@@ -2,7 +2,6 @@
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 //endif VAJA
 
@@ -1375,7 +1374,7 @@ final class TypeEnv extends GtStatic {
 	}
 
 	public boolean AppendConstants(String VariableName, TypedNode ConstNode) {
-		return NameSpace.AppendConstants(VariableName, ConstNode);
+		return this.NameSpace.AppendConstants(VariableName, ConstNode);
 	}
 }
 
@@ -1681,14 +1680,14 @@ final class GtNameSpace extends GtStatic {
 			if(ConstValue != null) {
 				return ConstValue;
 			}
-			if(ParentNameSpace != null) {
-				return ParentNameSpace.GetConstant(VariableName);
+			if(this.ParentNameSpace != null) {
+				return this.ParentNameSpace.GetConstant(VariableName);
 			}
 		}
 		return null;
 	}
 	public boolean AppendConstants(String VariableName, Object ConstValue) {
-		if(GetConstant(VariableName) != null) {
+		if(this.GetConstant(VariableName) != null) {
 			return false;
 		}
 		if(this.ConstantTable == null) {
@@ -1748,7 +1747,6 @@ class GtGrammar extends GtStatic {
 }
 
 final class KonohaGrammar extends GtGrammar {
-
 	// Token
 	public static int WhiteSpaceToken(TokenContext TokenContext, String SourceText, int pos) {
 		TokenContext.FoundWhiteSpace();
@@ -2121,17 +2119,17 @@ final class KonohaGrammar extends GtGrammar {
 
 	// shell grammar
 	private static boolean IsUnixCommand(String cmd) {
+//ifdef  JAVA
 		/*local*/String[] path = System.getenv("PATH").split(":");
 		/*local*/int i = 0;
 		while(i < path.length) {
-//JAVA
 			//FIXME(LangDeps)
 			if(new File(path[i] + "/" + cmd).exists()) {
 				return true;
 			}
-//AVAJ
 			i = i + 1;
 		}
+//endif VAJA
 		return false;
 	}
 
@@ -2178,7 +2176,7 @@ final class KonohaGrammar extends GtGrammar {
 			return pos;
 		}
 
-		if(IsUnixCommand(Symbol)) {
+		if(KonohaGrammar.IsUnixCommand(Symbol)) {
 			TokenContext.AddNewToken(Symbol, 0, "$ShellExpression$");
 			return pos;
 		}

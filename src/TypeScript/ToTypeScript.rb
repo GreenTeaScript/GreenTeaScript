@@ -49,6 +49,8 @@ src.gsub!(/\.(?:int|long|float|double|)Value\(\)/, "")
 src.gsub!(/\bString\b/, "string")
 src.gsub!(/\bArrayList<\?>/, "any")
 src.gsub!(/\bArrayList\b/, "Array")
+src.gsub!(/\bnew\s+Array<.*?>\s*\(Arrays.asList\((.*?)\)\)/){ $1 }
+src.gsub!(/\bArrays.asList\b/, "")
 #src.gsub!(/\bGtMap\b/, "Object")
 
 src.gsub!(/'(.)'/){ "(#{$1.bytes[0]}/*#{$1}*/)" }
@@ -77,9 +79,11 @@ src.gsub!(/\bSystem\.out\.println/, "console.log")
 src.gsub!(/FunctionA\(this, "(.+?)"\)/){ "KonohaGrammar.#{$1}" }
 src.gsub!(/FunctionB\(this, "(.+?)"\)/){ "KonohaGrammar.#{$1}" }
 src.gsub!(/FunctionC\(this, "(.+?)"\)/){ "KonohaGrammar.#{$1}" }
-src.gsub!(/(?!\.)\b((?:Parse|Type)(?:Unary|Binary|Const|Block))(?!\()/){ "KonohaGrammar.#{$1}" }
+src.gsub!(/(?!\.)\b((?:Parse|Type)(?:Unary|Binary|Const|Block))\b(?!\()/){ "KonohaGrammar.#{$1}" }
 src.gsub!(/\bGtDelegate(?:Common|Token|Match|Type)\b/){ "any" }
 src.gsub!(/KonohaGrammar\.KonohaGrammar\./){ "KonohaGrammar." }
+
+src.gsub!(/(?!function\s+)(LangDeps\.)?DebugP\(/, 'console.log("DEBUG: " + ')
 
 puts '/// <reference path="LangDeps.ts" />'
 puts src

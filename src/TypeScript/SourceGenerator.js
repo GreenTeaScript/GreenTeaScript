@@ -636,7 +636,6 @@ var GtType = (function () {
         this.ClassId = Context.ClassCount;
         Context.ClassCount += 1;
         this.Types = null;
-        DebugP("new class: " + this.ShortClassName + ", ClassId=" + this.ClassId);
     }
     GtType.prototype.IsGenericType = function () {
         return (this.Types != null);
@@ -648,6 +647,7 @@ var GtType = (function () {
         GenericType.SearchSuperMethodClass = this.BaseClass;
         GenericType.SuperClass = this.SuperClass;
         this.Types = LangDeps.CompactTypeList(BaseIndex, TypeList);
+        DebugP("new class: " + GenericType.ShortClassName + ", ClassId=" + GenericType.ClassId);
         return GenericType;
     };
 
@@ -682,16 +682,17 @@ var GtMethod = (function () {
         LangDeps.Assert(this.Types.length > 0);
         this.Layer = null;
         this.ElderMethod = null;
+        this.FuncType = null;
+        this.SourceMacro = SourceMacro;
 
         var Name = this.MethodName;
         if (!LangDeps.IsLetter(LangDeps.CharAt(Name, 0))) {
-            Name = "operator" + this.MethodSymbolId;
+            Name = "_operator" + this.MethodSymbolId;
         }
         if (!this.Is(ExportMethod)) {
             Name = Name + "__" + Mangle(this.GetRecvType(), BaseIndex + 1, ParamList);
         }
         this.LocalFuncName = Name;
-        this.SourceMacro = SourceMacro;
     }
     GtMethod.prototype.toString = function () {
         var s = this.MethodName + "(";
@@ -728,6 +729,14 @@ var GtMethod = (function () {
 
     GtMethod.prototype.GetParamType = function (ParamIdx) {
         return this.Types[ParamIdx + 1];
+    };
+
+    GtMethod.prototype.GetFuncType = function () {
+        if (this.FuncType != null) {
+            var Context = this.GetRecvType().Context;
+            this.FuncType = Context.GetGenericType(Context.FuncType, 0, this.Types, true);
+        }
+        return this.FuncType;
     };
 
     GtMethod.prototype.ExpandMacro1 = function (Arg0) {

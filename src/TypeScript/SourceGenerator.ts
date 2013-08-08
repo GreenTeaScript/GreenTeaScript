@@ -650,9 +650,9 @@ class GtObject {
 }
 
 class GtType {
+	 Context: GtContext;
 	public PackageNameSpace: GtNameSpace;
 	ClassFlag: number;
-	public Context: GtContext;
 	ClassId: number;
 	public ShortClassName: string;
 	SuperClass: GtType;
@@ -674,7 +674,6 @@ class GtType {
 		this.ClassId = Context.ClassCount;
 		Context.ClassCount += 1;
 		this.Types = null;
-		DebugP("new class: " + this.ShortClassName + ", ClassId=" + this.ClassId);
 	}
 
 	 IsGenericType(): boolean {
@@ -688,6 +687,7 @@ class GtType {
 		GenericType.SearchSuperMethodClass = this.BaseClass;
 		GenericType.SuperClass = this.SuperClass;
 		this.Types = LangDeps.CompactTypeList(BaseIndex, TypeList);
+		console.log("DEBUG: " + "new class: " + GenericType.ShortClassName + ", ClassId=" + GenericType.ClassId);
 		return GenericType;
 	}
 
@@ -719,6 +719,7 @@ class GtMethod {
 	public MethodName: string;
 	public LocalFuncName: string;
 	public Types: GtType[];
+	private FuncType: GtType;
 	public ElderMethod: GtMethod;
 	public SourceMacro: string;
 
@@ -730,16 +731,17 @@ class GtMethod {
 		LangDeps.Assert(this.Types.length > 0);
 		this.Layer = null;
 		this.ElderMethod = null;
+		this.FuncType = null;
+		this.SourceMacro = SourceMacro;
 		
 		var Name: string = this.MethodName;
 		if(!LangDeps.IsLetter(LangDeps.CharAt(Name, 0))) {
-			Name = "operator" + this.MethodSymbolId;
+			Name = "_operator" + this.MethodSymbolId;
 		}
 		if(!this.Is(ExportMethod)) {
 			Name = Name + "__" + Mangle(this.GetRecvType(), BaseIndex + 1, ParamList);
 		}
 		this.LocalFuncName = Name;
-		this.SourceMacro = SourceMacro;
 	}
 
 	public toString(): string {
@@ -777,6 +779,14 @@ class GtMethod {
 
 	 GetParamType(ParamIdx: number): GtType {
 		return this.Types[ParamIdx+1];
+	}
+
+	 GetFuncType(): GtType {
+		if(this.FuncType != null) {
+			var Context: GtContext = this.GetRecvType().Context;
+			this.FuncType = Context.GetGenericType(Context.FuncType, 0, this.Types, true);
+		}
+		return this.FuncType;
 	}
 
 	 ExpandMacro1(Arg0: string): string {
@@ -969,7 +979,7 @@ class CodeGenerator {
 	// ------------------------------------------------------------------------ //
 
 	public VisitEmptyNode(EmptyNode: TypedNode): void {
-		DebugP("node: empty: " + EmptyNode.Token.ParsedText);
+		console.log("DEBUG: " + "node: empty: " + EmptyNode.Token.ParsedText);
 	}
 
 	public VisitSuffixNode(SuffixNode: SuffixNode): void {
