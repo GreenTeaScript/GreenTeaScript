@@ -9,8 +9,13 @@
 		readOnly: true,
 		mode: "text/x-csrc"});
 
+	var CodeGeneratorName = "Java";
+	var Generator = LangDeps.CodeGenerator(CodeGeneratorName);
+	var Context = new GtContext(new KonohaGrammar(), Generator);
+
 	editor_gs.on("change", function(cm, obj) {
 		var src = cm.getValue();
-		editor_js.setValue(src);
+		var jssrc = Context.Eval(src);
+		editor_js.setValue(jssrc);
 	});
  })();
