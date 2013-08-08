@@ -53,7 +53,7 @@ src.gsub!(/\bnew\s+Array<.*?>\s*\(Arrays.asList\((.*?)\)\)/){ $1 }
 src.gsub!(/\bArrays.asList\b/, "")
 #src.gsub!(/\bGtMap\b/, "Object")
 
-src.gsub!(/'(.)'/){ "(#{$1.bytes[0]}/*#{$1}*/)" }
+src.gsub!(/'(.)'/){ "(#{$1.ord}/*#{$1}*/)" }
 src.gsub!(/('..')/){ "(#{$1}.charCodeAt(0))" }
 
 src.gsub!(/\bfinal\b/, "")
@@ -83,7 +83,7 @@ src.gsub!(/(?!\.)\b((?:Parse|Type)(?:Unary|Binary|Const|Block))\b(?!\()/){ "Kono
 src.gsub!(/\bGtDelegate(?:Common|Token|Match|Type)\b/){ "any" }
 src.gsub!(/KonohaGrammar\.KonohaGrammar\./){ "KonohaGrammar." }
 
-src.gsub!(/(?!function\s+)(LangDeps\.)?DebugP\(/, 'console.log("DEBUG: " + ')
+#src.gsub!(/(?!function\s+)(LangDeps\.)?DebugP\(/, 'console.log("DEBUG: " + ')
 
 puts '/// <reference path="LangDeps.ts" />'
 puts src
