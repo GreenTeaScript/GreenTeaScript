@@ -12,6 +12,7 @@
 		<javac srcdir="src" destdir="bin" debug="on" target="1.6" source="1.6" includeantruntime="false">
 			<classpath path="ext/asm-all-4.0.jar" />
 			<include name="**/*.java" />
+			<exclude name="**/*Test.java" />
 		</javac>
 	</target>
 
@@ -38,17 +39,15 @@
 	<!-- ================================== -->
 	<!--               TEST                 -->
 	<!-- ================================== -->
-	<target name="test" depends="build,jar">
-<!--
-		<jar jarfile="konoha-test.jar">
-			<fileset dir="bin/test" includes="**/*.class" />
-			<zipfileset src="konoha.jar" />
-			<manifest>
-				<attribute name="Main-Class" value="org.KonohaScript.Tester.KTestRunner" />
-			</manifest>
-		</jar>
-		<java jar="konoha-test.jar" fork="true">
-		</java>
--->
+	<target name="test">
+		<junit fork="yes" maxmemory="512m" printsummary="on">
+			<classpath location="${class.dir}" />
+			<formatter type="xml" />
+			<batchtest fork="yes" todir="${report.dir}">
+				<fileset dir="bin">
+					<include name="**/*Test.java" />
+				</fileset>
+			</batchtest>
+		</junit>
 	</target>
 </project>
