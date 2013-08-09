@@ -64,7 +64,7 @@ var GreenTeaScriptTest = (function () {
 
     GreenTeaScriptTest.TokenizeStatement = function () {
         var Context = GreenTeaScriptTest.CreateContext();
-        var TokenTestList0 = ["number", "+", "(", "number", "x", ")", ";"];
+        var TokenTestList0 = ["int", "+", "(", "int", "x", ")", ";"];
         GreenTeaScriptTest.TestToken(Context, "number + (x: number);", TokenTestList0);
     };
 

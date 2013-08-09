@@ -63,7 +63,7 @@ class GreenTeaScriptTest {
 	
 	static TokenizeStatement(): void {
 		var Context: GtContext = GreenTeaScriptTest.CreateContext();
-		var TokenTestList0: string[] = ["number", "+", "(", "number", "x", ")", ";"]
+		var TokenTestList0: string[] = ["int", "+", "(", "int", "x", ")", ";"]
 		GreenTeaScriptTest.TestToken(Context, "number + (x: number);", TokenTestList0);
 	}
 

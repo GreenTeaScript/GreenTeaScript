@@ -1237,7 +1237,7 @@ class GtSyntaxTree {
 	public TypeEachNode(Tree: GtSyntaxTree, Type: GtType): GtNode {
 		var Node: GtNode = ApplyTypeFunc(Tree.Pattern.TypeFunc, this, Tree, Type);
 		if(Node == null) {
-			Node = this.CreateErrorNode(Tree, "undefinedchecker: type: " + Tree.Pattern);
+			Node = this.CreateErrorNode(Tree, "undefined type checker: " + Tree.Pattern);
 		}
 		return Node;
 	}
@@ -1609,7 +1609,7 @@ class GtSyntaxTree {
 			var annotation: GtMap = tokenContext.SkipAndGetAnnotation(true);
 			var topLevelTree: GtSyntaxTree = ParseExpression(tokenContext);
 			topLevelTree.SetAnnotation(annotation);
-			console.log("DEBUG: " + "tree: untyped: " + topLevelTree);
+			console.log("DEBUG: " + "untyped tree: " + topLevelTree);
 			var gamma: GtTypeEnv = new GtTypeEnv(this);
 			var node: GtNode = gamma.TypeCheckEachNode(topLevelTree, gamma.VoidType, DefaultTypeCheckPolicy);
 			resultValue = Generator.Eval(node);
@@ -1917,7 +1917,7 @@ class GtGrammar {
 		if(Function != null) {
 			return Gamma.Generator.CreateConstNode(Function.GetFuncType(), ParsedTree, Function);
 		}
-		return Gamma.CreateErrorNode(ParsedTree, "name: undefined: " + Name);
+		return Gamma.CreateErrorNode(ParsedTree, "undefined name: " + Name);
 	}
 
 	static ParseVarDecl(Pattern: GtSyntaxPattern, LeftTree: GtSyntaxTree, TokenContext: GtTokenContext): GtSyntaxTree {
@@ -2606,7 +2606,7 @@ class GtContext {
 		this.VoidType    = this.RootNameSpace.DefineClass(new GtType(this, 0, "void", null));
 		this.ObjectType  = this.RootNameSpace.DefineClass(new GtType(this, 0, "Object", new Object()));
 		this.BooleanType = this.RootNameSpace.DefineClass(new GtType(this, 0, "boolean", false));
-		this.IntType     = this.RootNameSpace.DefineClass(new GtType(this, 0, "number", 0));
+		this.IntType     = this.RootNameSpace.DefineClass(new GtType(this, 0, "int", 0));
 		this.StringType  = this.RootNameSpace.DefineClass(new GtType(this, 0, "string", ""));
 		this.VarType     = this.RootNameSpace.DefineClass(new GtType(this, 0, "var", null));
 		this.AnyType     = this.RootNameSpace.DefineClass(new GtType(this, 0, "any", null));
@@ -2685,7 +2685,7 @@ class GtContext {
 class GreenTeaScript {
 
 // 	static TestAll(Context: GtContext): void { //
-// 		//TestSyntaxPattern(Context, "number"); //
+// 		//TestSyntaxPattern(Context, "int"); //
 // 		//TestSyntaxPattern(Context, "123"); //
 // 		//TestSyntaxPattern(Context, "1 + 2 * 3"); //
 // 		TestToken(Context, "1 || 2", "1", "||"); //

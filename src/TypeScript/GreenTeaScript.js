@@ -1199,7 +1199,7 @@ var GtTypeEnv = (function () {
     GtTypeEnv.prototype.TypeEachNode = function (Tree, Type) {
         var Node = ApplyTypeFunc(Tree.Pattern.TypeFunc, this, Tree, Type);
         if (Node == null) {
-            Node = this.CreateErrorNode(Tree, "undefinedchecker: type: " + Tree.Pattern);
+            Node = this.CreateErrorNode(Tree, "undefined type checker: " + Tree.Pattern);
         }
         return Node;
     };
@@ -1547,7 +1547,7 @@ var GtNameSpace = (function () {
             var annotation = tokenContext.SkipAndGetAnnotation(true);
             var topLevelTree = ParseExpression(tokenContext);
             topLevelTree.SetAnnotation(annotation);
-            console.log("DEBUG: " + "tree: untyped: " + topLevelTree);
+            console.log("DEBUG: " + "untyped tree: " + topLevelTree);
             var gamma = new GtTypeEnv(this);
             var node = gamma.TypeCheckEachNode(topLevelTree, gamma.VoidType, DefaultTypeCheckPolicy);
             resultValue = Generator.Eval(node);
@@ -1852,7 +1852,7 @@ var DScriptGrammar = (function (_super) {
         if (Function != null) {
             return Gamma.Generator.CreateConstNode(Function.GetFuncType(), ParsedTree, Function);
         }
-        return Gamma.CreateErrorNode(ParsedTree, "name: undefined: " + Name);
+        return Gamma.CreateErrorNode(ParsedTree, "undefined name: " + Name);
     };
 
     DScriptGrammar.ParseVarDecl = function (Pattern, LeftTree, TokenContext) {
@@ -2497,7 +2497,7 @@ var GtContext = (function () {
         this.VoidType = this.RootNameSpace.DefineClass(new GtType(this, 0, "void", null));
         this.ObjectType = this.RootNameSpace.DefineClass(new GtType(this, 0, "Object", new Object()));
         this.BooleanType = this.RootNameSpace.DefineClass(new GtType(this, 0, "boolean", false));
-        this.IntType = this.RootNameSpace.DefineClass(new GtType(this, 0, "number", 0));
+        this.IntType = this.RootNameSpace.DefineClass(new GtType(this, 0, "int", 0));
         this.StringType = this.RootNameSpace.DefineClass(new GtType(this, 0, "string", ""));
         this.VarType = this.RootNameSpace.DefineClass(new GtType(this, 0, "var", null));
         this.AnyType = this.RootNameSpace.DefineClass(new GtType(this, 0, "any", null));

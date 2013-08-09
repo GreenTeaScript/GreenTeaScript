@@ -44,14 +44,13 @@ src.gsub!(/=\s*{(.*?)}/){ "= [#{$1}]" }
 src.gsub!(/(#{$Attr})*(#{$Type})\s+(#{$Sym})/o){"#{$1}#{$3}: #{$2}"}
 
 # Types
-src.gsub!(/\b(?:char|int|long|float|double|Charactor|Integer|Long|Float|Double)\b/, "number")
+src.gsub!(/(?!")\b(?:char|int|long|float|double|Charactor|Integer|Long|Float|Double)\b(?!")/, "number")
 src.gsub!(/\.(?:int|long|float|double|)Value\(\)/, "")
 src.gsub!(/\bString\b/, "string")
 src.gsub!(/\bArrayList<\?>/, "any")
 src.gsub!(/\bArrayList\b/, "Array")
 src.gsub!(/\bnew\s+Array<.*?>\s*\(Arrays.asList\((.*?)\)\)/){ $1 }
 src.gsub!(/\bArrays.asList\b/, "")
-#src.gsub!(/\bGtMap\b/, "Object")
 
 src.gsub!(/'(.)'/){ "(#{$1.ord}/*#{$1}*/)" }
 src.gsub!(/('..')/){ "(#{$1}.charCodeAt(0))" }
@@ -86,6 +85,11 @@ src.gsub!(/DScriptGrammar\.DScriptGrammar\./){ "DScriptGrammar." }
 src.gsub!(/(LangDeps\.)?DebugP\(/, 'console.log("DEBUG: " + ')
 src.gsub!(/LangDeps\.println\(/, 'console.log(')
 src.gsub!(/function console.log\("DEBUG: " \+ /, 'function DebugP(')
+
+# For string literal
+src.gsub!(/name: undefined/, "undefined name")
+src.gsub!(/tree: untyped/, "untyped tree")
+src.gsub!(/undefinedchecker: type/, "undefined type checker")
 
 puts '/// <reference path="LangDeps.ts" />'
 puts src
