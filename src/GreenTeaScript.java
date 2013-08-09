@@ -2124,8 +2124,7 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/String[] path = System.getenv("PATH").split(":");
 		/*local*/int i = 0;
 		while(i < path.length) {
-			//FIXME(LangDeps)
-			if(new File(path[i] + "/" + cmd).exists()) {
+			if(LangDeps.HasFile(path[i] + "/" + cmd)) {
 				return true;
 			}
 			i = i + 1;
