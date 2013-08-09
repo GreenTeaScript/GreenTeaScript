@@ -1,6 +1,6 @@
 <project name="GreenTeaScript" default="jar">
 	<!-- directory / file definition -->
-	<property name="BinaryName" value="GreenTea" />
+	<property name="BinaryName" value="GreenTeaScript" />
 	<property name="source" value="src" />
 	<property name="build" value="bin" />
 

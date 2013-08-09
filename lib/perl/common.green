@@ -1,7 +1,7 @@
 
 
 int +(int x, int y) as "$0 + $1";
-typeof[1] +=(any x, typeof(x) y) as "$0 = $0 + $1";
+//typeof[1] +=(any x, typeof(x) y) as "$0 = $0 + $1";
 
 String +(String x, String y)   as "$0 . $1";
 boolean ==(String x, String y) as "$0 eq $1";
@@ -11,14 +11,11 @@ String concat(String x, String y) as "$0 . $1";
 
 
 
-typeof(a)[0] add(Array<any> a, typeof(a)[0] v); 
-typeof(a)[0] get(Array<var> a, int index);
-
-void f(var duck) {
-	print $duck.name;
-}
-
-
-typeof[1].T;
+//typeof(a)[0] add(Array<any> a, typeof(a)[0] v); 
+//typeof(a)[0] get(Array<var> a, int index);
+//
+//void f(var duck) {
+//	print $duck.name;
+//}
 
 
