@@ -153,7 +153,7 @@
 	var DelimTokenFlag: number	= (1 << 4);
 
 	//  ParseFlag //
-	var TrackbackParseFlag: number	= 1;
+	var BackTrackParseFlag: number	= 1;
 	var SkipIndentParseFlag: number	= (1 << 1);
 
 	//  SyntaxTree //
@@ -436,7 +436,7 @@
 			var delegate: any = CurrentPattern.MatchFunc;
 			TokenContext.CurrentPosition = Pos;
 			if(CurrentPattern.ParentPattern != null) {
-				TokenContext.ParseFlag = ParseFlag | TrackbackParseFlag;
+				TokenContext.ParseFlag = ParseFlag | BackTrackParseFlag;
 			}
 			// console.log("DEBUG: " + "B :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + ", next=" + CurrentPattern.ParentPattern); //
 			TokenContext.IndentLevel += 1;
@@ -786,16 +786,16 @@
 	}
 
 	 IsAllowedTrackback(): boolean {
-		return IsFlag(this.ParseFlag, TrackbackParseFlag);
+		return IsFlag(this.ParseFlag, BackTrackParseFlag);
 	}
 
 	 SetTrackback(Allowed: boolean): number {
 		var ParseFlag: number = this.ParseFlag;
 		if(Allowed) {
-			this.ParseFlag = this.ParseFlag | TrackbackParseFlag;
+			this.ParseFlag = this.ParseFlag | BackTrackParseFlag;
 		}
 		else {
-			this.ParseFlag = (~(TrackbackParseFlag) & this.ParseFlag);
+			this.ParseFlag = (~(BackTrackParseFlag) & this.ParseFlag);
 		}
 		return ParseFlag;
 	}
@@ -805,7 +805,7 @@
 		var ParseFlag: number = this.ParseFlag;
 		var Pattern: GtSyntaxPattern = this.GetPattern(PatternName);
 		if(IsOptional) {
-			this.ParseFlag = this.ParseFlag | TrackbackParseFlag;
+			this.ParseFlag = this.ParseFlag | BackTrackParseFlag;
 		}
 		var SyntaxTree: GtSyntaxTree = ApplySyntaxPattern(Pattern, LeftTree, this);
 		this.ParseFlag = ParseFlag;

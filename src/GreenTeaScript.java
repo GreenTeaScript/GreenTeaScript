@@ -1,5 +1,4 @@
 //ifdef JAVA
-import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -159,7 +158,7 @@ interface GtConst {
 	public final static int DelimTokenFlag	= (1 << 4);
 
 	// ParseFlag
-	public final static int	TrackbackParseFlag	= 1;
+	public final static int	BackTrackParseFlag	= 1;
 	public final static int	SkipIndentParseFlag	= (1 << 1);
 
 	// SyntaxTree
@@ -458,7 +457,7 @@ class GtStatic implements GtConst {
 			/*local*/GtDelegateMatch delegate = CurrentPattern.MatchFunc;
 			TokenContext.CurrentPosition = Pos;
 			if(CurrentPattern.ParentPattern != null) {
-				TokenContext.ParseFlag = ParseFlag | TrackbackParseFlag;
+				TokenContext.ParseFlag = ParseFlag | BackTrackParseFlag;
 			}
 			//DebugP("B :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + ", next=" + CurrentPattern.ParentPattern);
 			TokenContext.IndentLevel += 1;
@@ -869,16 +868,16 @@ final class GtTokenContext extends GtStatic {
 	}
 
 	public final boolean IsAllowedTrackback() {
-		return IsFlag(this.ParseFlag, TrackbackParseFlag);
+		return IsFlag(this.ParseFlag, BackTrackParseFlag);
 	}
 
 	public final int SetTrackback(boolean Allowed) {
 		/*local*/int ParseFlag = this.ParseFlag;
 		if(Allowed) {
-			this.ParseFlag = this.ParseFlag | TrackbackParseFlag;
+			this.ParseFlag = this.ParseFlag | BackTrackParseFlag;
 		}
 		else {
-			this.ParseFlag = (~(TrackbackParseFlag) & this.ParseFlag);
+			this.ParseFlag = (~(BackTrackParseFlag) & this.ParseFlag);
 		}
 		return ParseFlag;
 	}
@@ -888,7 +887,7 @@ final class GtTokenContext extends GtStatic {
 		/*local*/int ParseFlag = this.ParseFlag;
 		/*local*/GtSyntaxPattern Pattern = this.GetPattern(PatternName);
 		if(IsOptional) {
-			this.ParseFlag = this.ParseFlag | TrackbackParseFlag;
+			this.ParseFlag = this.ParseFlag | BackTrackParseFlag;
 		}
 		/*local*/GtSyntaxTree SyntaxTree = GtStatic.ApplySyntaxPattern(Pattern, LeftTree, this);
 		this.ParseFlag = ParseFlag;

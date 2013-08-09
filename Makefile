@@ -39,6 +39,6 @@ testts: buildts
 	python ./tool/TestAll.py --target=js
 
 clean:
-	-rm -rf bin $(JavaBin)
+	-rm -rf bin/*.class $(JavaBin)
 
 .PHONY: all build buildj buildts test testp testj clean

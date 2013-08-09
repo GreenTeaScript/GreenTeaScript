@@ -432,7 +432,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.inFunc = true;
 		Function += Method.MethodName + "() {";
 		this.VisitBlockWithIndent(this.ResolveParamName(ParamNameList, Body));
-		Function += PopSourceCode() + "}";
+		Function += this.PopSourceCode() + "}";
 		this.WriteTranslatedCode(Function);
 		this.inFunc = false;
 	}
