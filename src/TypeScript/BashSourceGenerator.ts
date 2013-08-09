@@ -25,7 +25,7 @@ class BashSourceGenerator extends SourceGenerator {
 		Code += this.GetIndentString();
 		this.PushSourceCode(Code);
 	}
-	
+
 	public VisitBlockWithoutIndent(Node: GtNode): void {
 		var Code: string = "";
 		var CurrentNode: GtNode = Node;
@@ -268,15 +268,19 @@ class BashSourceGenerator extends SourceGenerator {
 	}
 
 	public VisitLetNode(Node: LetNode): void {
-		Node.VarNode.Evaluate(this);
-		var Code: string = this.PopSourceCode();
-		this.VisitBlockWithoutIndent(Node.BlockNode);
-
-		var head: string = "";
+		var VarName: string = Node.VariableName;
+		var Code: string = "";
 		if(this.inFunc) {
-			head = "local ";
+			Code += "local " + VarName;
 		}
-		this.PushSourceCode(head + Code + "\n" + this.PopSourceCode());
+		Code += VarName;
+		if(Node.InitNode != null) {
+			Node.InitNode.Evaluate(this);
+			Code += " = " + this.ResolveValueType(Node.InitNode, this.PopSourceCode());
+		}
+		Code +=  ";\n";
+		this.VisitBlockWithoutIndent(Node.BlockNode);
+		this.PushSourceCode(Code + this.PopSourceCode());
 	}
 
 	public VisitIfNode(Node: IfNode): void {
@@ -398,11 +402,10 @@ class BashSourceGenerator extends SourceGenerator {
 			return Body;
 		}
 
-		var VarNode: GtNode = new LocalNode(null, null, ParamNameList.get(index));
 		var oldVarNode: GtNode = new LocalNode(null, null, "" +(index + 1));
-		var assignNode: GtNode = new AssignNode(null, null, VarNode, oldVarNode);
-		assignNode.NextNode = this.ConvertParamName(ParamNameList, Body, ++index);
-		return new LetNode(null, null, null, VarNode, assignNode);
+		var Let: GtNode = new LetNode(null, null, null, ParamNameList.get(index), oldVarNode, null);
+		Let.NextNode = this.ConvertParamName(ParamNameList, Body, index+1);
+		return Let;
 	}
 
 	private ResolveValueType(TargetNode: GtNode, value: string): string {

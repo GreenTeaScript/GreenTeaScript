@@ -1,22 +1,8 @@
-var f__A = (function(a0, b1) {
+static int f__A(int a0){
+   int b1 = a0 + 10;
    {
-      var n2 = 1;
-      if((a0 < 10)) {
-         if((b1 < 100)) {
-            var n2 = (n2 + 2);
-         } else {
-            var n2 = (n2 + 4);
-         };
-         var n2 = (n2 + 6);
-      } else {
-         if((b1 < 200)) {
-            var n2 = (n2 + 20);
-         } else {
-            var n2 = (n2 + 40);
-         };
-         var n2 = (n2 + 60);
-      };
-      var n2 = (n2 + 200);
-      return n2;
+      return b1;
    };
-})
+}
+f__A(10);
+

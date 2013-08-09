@@ -269,15 +269,19 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitLetNode(LetNode Node) {
-		Node.VarNode.Evaluate(this);
-		/*local*/String Code = this.PopSourceCode();
-		this.VisitBlockWithoutIndent(Node.BlockNode);
-
-		/*local*/String head = "";
+		/*local*/String VarName = Node.VariableName;
+		/*local*/String Code = "";
 		if(this.inFunc) {
-			head = "local ";
+			Code += "local " + VarName;
 		}
-		this.PushSourceCode(head + Code + "\n" + this.PopSourceCode());
+		Code += VarName;
+		if(Node.InitNode != null) {
+			Node.InitNode.Evaluate(this);
+			Code += " = " + this.ResolveValueType(Node.InitNode, this.PopSourceCode());
+		}
+		Code +=  ";\n";
+		this.VisitBlockWithoutIndent(Node.BlockNode);
+		this.PushSourceCode(Code + this.PopSourceCode());
 	}
 
 	@Override public void VisitIfNode(IfNode Node) {
@@ -395,11 +399,10 @@ public class BashSourceGenerator extends SourceGenerator {
 			return Body;
 		}
 
-		/*local*/GtNode VarNode = new LocalNode(null, null, ParamNameList.get(index));
 		/*local*/GtNode oldVarNode = new LocalNode(null, null, "" +(index + 1));
-		/*local*/GtNode assignNode = new AssignNode(null, null, VarNode, oldVarNode);
-		assignNode.NextNode = this.ConvertParamName(ParamNameList, Body, ++index);
-		return new LetNode(null, null, null, VarNode, assignNode);
+		GtNode Let = new LetNode(null, null, null, ParamNameList.get(index), oldVarNode, null);
+		Let.NextNode = this.ConvertParamName(ParamNameList, Body, index+1);
+		return Let;
 	}
 
 	private String ResolveValueType(GtNode TargetNode, String value) {

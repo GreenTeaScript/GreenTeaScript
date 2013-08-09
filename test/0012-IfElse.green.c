@@ -1,8 +1,7 @@
 static int f__A(int a0){
-   if(a0 < 10) {
-      return 1;
-   } else {
-      return 100;
+   int b1 = a0 + 10;
+   {
+      return b1;
    };
 }
 f__A(10);

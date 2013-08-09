@@ -198,6 +198,11 @@ interface GtConst {
 	public final static int	FuncDeclBlock		= 3;
 	public final static int	FuncDeclParam		= 4;
 
+	// Class Decl;
+	static final int	ClassNameOffset			= 0;
+	static final int	ClassParentNameOffset	= 1;
+	static final int	ClassBlockOffset		= 2;
+
 	// spec
 	public final static int TokenFuncSpec     = 0;
 	public final static int SymbolPatternSpec = 1;
@@ -2044,13 +2049,9 @@ final class DScriptGrammar extends GtGrammar {
 		}else{
 			InitValueNode = Gamma.TypeCheck(ValueTree, DeclType, DefaultTypeCheckPolicy);
 		}
-		/*local*/GtNode AssignNode = Gamma.Generator.CreateAssignNode(DeclType, ParsedTree, VariableNode, InitValueNode);
 		/*local*/GtNode BlockNode = Gamma.TypeBlock(ParsedTree.NextTree, Type);
 		ParsedTree.NextTree = null;
-		if(BlockNode != null) {
-			GtStatic.LinkNode(AssignNode, BlockNode);
-		}
-		return Gamma.Generator.CreateLetNode(DeclType, ParsedTree, DeclType, VariableNode, AssignNode/*connected block*/);
+		return Gamma.Generator.CreateLetNode(DeclType, ParsedTree, DeclType, ((/*cast*/LocalNode)VariableNode).LocalName, InitValueNode, BlockNode);
 	}
 
 	// Parse And Type
@@ -2587,9 +2588,6 @@ final class DScriptGrammar extends GtGrammar {
 		}
 		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType, ParsedTree);
 	}
-	static final int	ClassNameOffset			= 0;
-	static final int	ClassParentNameOffset	= 1;
-	static final int	ClassBlockOffset		= 2;
 
 	public static GtSyntaxTree ParseClassDecl(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
 		/*local*/GtSyntaxTree Tree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetToken(), null);

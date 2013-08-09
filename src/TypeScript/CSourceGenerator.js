@@ -8,6 +8,7 @@ var CSourceGenerator = (function (_super) {
     __extends(CSourceGenerator, _super);
     function CSourceGenerator() {
         _super.call(this, "C");
+        this.DefaultTypes = ["void", "int", "boolean", "float", "double", "string", "Object", "Array", "Func", "var", "any"];
     }
     CSourceGenerator.prototype.VisitBlockEachStatementWithIndent = function (Node, NeedBlock) {
         var Code = "";
@@ -124,18 +125,17 @@ var CSourceGenerator = (function (_super) {
     };
 
     CSourceGenerator.prototype.VisitApplyNode = function (Node) {
-        var Params = this.EvaluateParam(Node.Params);
-        var Program = this.GenerateTemplate(Node);
+        var Program = this.GenerateMacro(Node);
         var i = 0;
-        while (i < Params.length) {
-            var P = Params[i];
-            Program = Program.replace("$" + i, P);
+        while (i < ListSize(Node.Params)) {
+            Node.Params.get(i).Evaluate(this);
+            Program = Program.replace("$" + i, this.PopSourceCode());
             i = i + 1;
         }
         this.PushSourceCode(Program);
     };
 
-    CSourceGenerator.prototype.GenerateTemplate = function (Node) {
+    CSourceGenerator.prototype.GenerateMacro = function (Node) {
         if (Node.Method.SourceMacro != null) {
             return Node.Method.SourceMacro;
         }
@@ -181,8 +181,13 @@ var CSourceGenerator = (function (_super) {
 
     CSourceGenerator.prototype.VisitLetNode = function (Node) {
         var Type = Node.DeclType.ShortClassName;
-        Node.VarNode.Evaluate(this);
-        var Code = Type + " " + this.PopSourceCode() + ";\n";
+        var VarName = Node.VariableName;
+        var Code = Type + " " + VarName;
+        if (Node.InitNode != null) {
+            Node.InitNode.Evaluate(this);
+            Code += " = " + this.PopSourceCode();
+        }
+        Code += ";\n";
         this.VisitBlockEachStatementWithIndent(Node.BlockNode, true);
         this.PushSourceCode(Code + this.GetIndentString() + this.PopSourceCode());
     };
@@ -320,7 +325,30 @@ var CSourceGenerator = (function (_super) {
         return Code;
     };
 
+    CSourceGenerator.prototype.IsDefiendType = function (TypeName) {
+        var i = 0;
+        while (i < this.DefaultTypes.length) {
+            if (this.DefaultTypes[i].equals(TypeName)) {
+                return true;
+            }
+            i = i + 1;
+        }
+
+        return false;
+    };
     CSourceGenerator.prototype.AddClass = function (Type) {
+        var TypeName = Type.ShortClassName;
+        if (this.IsDefiendType(TypeName) == true) {
+            return;
+        }
+        var Code = this.GetIndentString() + "struct: typedef " + Type + " {\n";
+        this.Indent();
+        if (Type.SuperClass != null) {
+            Code += this.GetIndentString() + Type.SuperClass.ShortClassName + " __base;\n";
+        }
+        this.UnIndent();
+        Code += this.GetIndentString() + "} " + Type + ";\n";
+        this.WriteTranslatedCode(Code);
     };
 
     CSourceGenerator.prototype.SetLanguageContext = function (Context) {

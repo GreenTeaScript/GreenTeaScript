@@ -1,6 +1,8 @@
-var f__A = (function() {
+static int f__A(int a0){
+   int b1 = a0 + 10;
    {
-      var BackupServer0 = 192.168.11.102;
-      http://$BackupServer/db;
+      return b1;
    };
-})
+}
+f__A(10);
+

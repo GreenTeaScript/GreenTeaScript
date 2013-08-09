@@ -247,14 +247,16 @@ class NullNode extends GtNode {
 }
 
 class LetNode extends GtNode {
-	/*field*/public GtType	    DeclType;
-	/*field*/public GtNode	VarNode;
+	/*field*/public GtType	DeclType;
+	/*field*/public String	VariableName;
+	/*field*/public GtNode	InitNode;
 	/*field*/public GtNode	BlockNode;
 	/* let VarNode in Block end */
-	LetNode/*constructor*/(GtType Type, GtToken Token, GtType DeclType, GtNode VarNode, GtNode Block) {
+	LetNode/*constructor*/(GtType Type, GtToken Token, GtType DeclType, String VarName, GtNode InitNode, GtNode Block) {
 		super(Type, Token);
+		this.VariableName = VarName;
 		this.DeclType = DeclType;
-		this.VarNode  = VarNode;
+		this.InitNode  = InitNode;
 		this.BlockNode = Block;
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
@@ -262,7 +264,11 @@ class LetNode extends GtNode {
 	}
 	@Override public String toString() {
 		/*local*/String Block = GtNode.Stringify(this.BlockNode);
-		return "(Let:" + this.Type + " " + GtNode.Stringify(this.VarNode) + " in {" + Block + "})";
+		/*local*/String Init  = "null";
+		if(this.InitNode != null) {
+			Init = GtNode.Stringify(this.InitNode);
+		}
+		return "(Let:" + this.Type + " " + this.VariableName + " = " +  Init  +" in {" + Block + "})";
 	}
 }
 
@@ -889,8 +895,8 @@ class GtGenerator extends GtStatic {
 		return new AssignNode(Type, ParsedTree.KeyToken, Left, Right);
 	}
 
-	public GtNode CreateLetNode(GtType Type, GtSyntaxTree ParsedTree, GtType DeclType, GtNode VarNode, GtNode Block) {
-		return new LetNode(Type, ParsedTree.KeyToken, DeclType, VarNode, Block);
+	public GtNode CreateLetNode(GtType Type, GtSyntaxTree ParsedTree, GtType DeclType, String VarName, GtNode InitNode, GtNode Block) {
+		return new LetNode(Type, ParsedTree.KeyToken, DeclType, VarName, InitNode, Block);
 	}
 
 	public GtNode CreateIfNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Cond, GtNode Then, GtNode Else) {

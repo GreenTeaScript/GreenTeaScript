@@ -231,10 +231,11 @@ var NullNode = (function (_super) {
 
 var LetNode = (function (_super) {
     __extends(LetNode, _super);
-    function LetNode(Type, Token, DeclType, VarNode, Block) {
+    function LetNode(Type, Token, DeclType, VarName, InitNode, Block) {
         _super.call(this, Type, Token);
+        this.VariableName = VarName;
         this.DeclType = DeclType;
-        this.VarNode = VarNode;
+        this.InitNode = InitNode;
         this.BlockNode = Block;
     }
     LetNode.prototype.Evaluate = function (Visitor) {
@@ -242,7 +243,11 @@ var LetNode = (function (_super) {
     };
     LetNode.prototype.toString = function () {
         var Block = GtNode.Stringify(this.BlockNode);
-        return "(Let:" + this.Type + " " + GtNode.Stringify(this.VarNode) + " in {" + Block + "})";
+        var Init = "null";
+        if (this.InitNode != null) {
+            Init = GtNode.Stringify(this.InitNode);
+        }
+        return "(Let:" + this.Type + " " + this.VariableName + " = " + Init + " in {" + Block + "})";
     };
     return LetNode;
 })(GtNode);
@@ -619,6 +624,7 @@ var CommandNode = (function (_super) {
 var GtObject = (function () {
     function GtObject(Type) {
         this.Type = Type;
+        this.Field = new GtMap();
     }
     return GtObject;
 })();
@@ -829,8 +835,8 @@ var GtGenerator = (function () {
         return new AssignNode(Type, ParsedTree.KeyToken, Left, Right);
     };
 
-    GtGenerator.prototype.CreateLetNode = function (Type, ParsedTree, DeclType, VarNode, Block) {
-        return new LetNode(Type, ParsedTree.KeyToken, DeclType, VarNode, Block);
+    GtGenerator.prototype.CreateLetNode = function (Type, ParsedTree, DeclType, VarName, InitNode, Block) {
+        return new LetNode(Type, ParsedTree.KeyToken, DeclType, VarName, InitNode, Block);
     };
 
     GtGenerator.prototype.CreateIfNode = function (Type, ParsedTree, Cond, Then, Else) {
@@ -917,6 +923,16 @@ var GtGenerator = (function () {
 
     GtGenerator.prototype.CreateMethod = function (MethodFlag, MethodName, BaseIndex, TypeList, RawMacro) {
         return new GtMethod(MethodFlag, MethodName, BaseIndex, TypeList, RawMacro);
+    };
+
+    GtGenerator.prototype.ParseClassFlag = function (ClassFlag, ClassDeclTree) {
+        if (ClassDeclTree.HasAnnotation("Final")) {
+            ClassFlag = ClassFlag | FinalClass;
+        }
+        if (ClassDeclTree.HasAnnotation("Private")) {
+            ClassFlag = ClassFlag | PrivateClass;
+        }
+        return ClassFlag;
     };
 
     GtGenerator.prototype.VisitEmptyNode = function (EmptyNode) {

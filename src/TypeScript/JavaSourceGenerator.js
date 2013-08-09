@@ -181,8 +181,13 @@ var JavaSourceGenerator = (function (_super) {
 
     JavaSourceGenerator.prototype.VisitLetNode = function (Node) {
         var Type = Node.DeclType.ShortClassName;
-        Node.VarNode.Evaluate(this);
-        var Code = Type + " " + this.PopSourceCode();
+        var VarName = Node.VariableName;
+        var Code = Type + " " + VarName;
+        if (Node.InitNode != null) {
+            Node.InitNode.Evaluate(this);
+            Code += " = " + this.PopSourceCode();
+        }
+        Code += ";\n";
         Node.BlockNode.Evaluate(this);
         this.PushSourceCode(Code + this.PopSourceCode());
     };

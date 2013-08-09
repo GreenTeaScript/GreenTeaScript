@@ -1,6 +1,8 @@
-var f__A = (function(a0) {
+static int f__A(int a0){
+   int b1 = a0 + 10;
    {
-      var b1 = (a0 + 10);
       return b1;
    };
-})
+}
+f__A(10);
+

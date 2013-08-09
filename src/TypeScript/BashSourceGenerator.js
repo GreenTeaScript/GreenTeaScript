@@ -226,15 +226,19 @@ var BashSourceGenerator = (function (_super) {
     };
 
     BashSourceGenerator.prototype.VisitLetNode = function (Node) {
-        Node.VarNode.Evaluate(this);
-        var Code = this.PopSourceCode();
-        this.VisitBlockWithoutIndent(Node.BlockNode);
-
-        var head = "";
+        var VarName = Node.VariableName;
+        var Code = "";
         if (this.inFunc) {
-            head = "local ";
+            Code += "local " + VarName;
         }
-        this.PushSourceCode(head + Code + "\n" + this.PopSourceCode());
+        Code += VarName;
+        if (Node.InitNode != null) {
+            Node.InitNode.Evaluate(this);
+            Code += " = " + this.ResolveValueType(Node.InitNode, this.PopSourceCode());
+        }
+        Code += ";\n";
+        this.VisitBlockWithoutIndent(Node.BlockNode);
+        this.PushSourceCode(Code + this.PopSourceCode());
     };
 
     BashSourceGenerator.prototype.VisitIfNode = function (Node) {
@@ -341,11 +345,10 @@ var BashSourceGenerator = (function (_super) {
             return Body;
         }
 
-        var VarNode = new LocalNode(null, null, ParamNameList.get(index));
         var oldVarNode = new LocalNode(null, null, "" + (index + 1));
-        var assignNode = new AssignNode(null, null, VarNode, oldVarNode);
-        assignNode.NextNode = this.ConvertParamName(ParamNameList, Body, ++index);
-        return new LetNode(null, null, null, VarNode, assignNode);
+        var Let = new LetNode(null, null, null, ParamNameList.get(index), oldVarNode, null);
+        Let.NextNode = this.ConvertParamName(ParamNameList, Body, index + 1);
+        return Let;
     };
 
     BashSourceGenerator.prototype.ResolveValueType = function (TargetNode, value) {

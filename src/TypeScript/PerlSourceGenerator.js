@@ -191,8 +191,13 @@ var PerlSourceGenerator = (function (_super) {
     };
 
     PerlSourceGenerator.prototype.VisitLetNode = function (Node) {
-        Node.VarNode.Evaluate(this);
-        var Code = "my " + this.PopSourceCode();
+        var VarName = Node.VariableName;
+        var Code = "my " + VarName;
+        if (Node.InitNode != null) {
+            Node.InitNode.Evaluate(this);
+            Code += " = " + this.PopSourceCode();
+        }
+        Code += ";\n";
         Node.BlockNode.Evaluate(this);
         this.PushSourceCode(Code + this.PopSourceCode());
     };
