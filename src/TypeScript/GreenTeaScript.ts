@@ -182,7 +182,6 @@
 	var VarDeclValue: number	= 2;
 	var VarDeclScope: number	= 3;
 
-
 	//Call: Method; //
 	var CallExpressionOffset: number	= 0;
 	var CallParameterOffset: number		= 1;

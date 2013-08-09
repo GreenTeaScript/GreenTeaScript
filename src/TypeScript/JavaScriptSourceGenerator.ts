@@ -11,7 +11,7 @@ class JavaScriptSourceGenerator extends SourceGenerator {
 
 	public DefineFunction(Method: GtMethod, NameList: Array<string>, Body: GtNode): void {
 		var ArgCount: number = Method.Types.length - 1;
-		var Code: string = "var " + Method.LocalFuncName + "= (function(";
+		var Code: string = "var " + Method.LocalFuncName + " = (function(";
 		var i: number = 0;
 		while(i < ArgCount){
 			if(i > 0){

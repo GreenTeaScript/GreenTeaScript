@@ -165,6 +165,17 @@ var LangDeps = (function () {
     };
 
     LangDeps.CodeGenerator = function (Option) {
+        if (Option == "--js") {
+            return new JavaScriptSourceGenerator();
+        } else if (Option == "--java") {
+            return new JavaSourceGenerator();
+        } else if (Option == "--perl") {
+            return new PerlSourceGenerator();
+        } else if (Option == "--bash") {
+            return new JavaScriptSourceGenerator();
+        } else if (Option == "--c") {
+            return new CSourceGenerator();
+        }
         return new JavaScriptSourceGenerator();
     };
 
