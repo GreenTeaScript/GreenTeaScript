@@ -4,54 +4,6 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-var GtToken = (function () {
-    function GtToken(text, FileLine) {
-        this.TokenFlag = 0;
-        this.ParsedText = text;
-        this.FileLine = FileLine;
-        this.PresetPattern = null;
-    }
-    GtToken.prototype.IsSource = function () {
-        return IsFlag(this.TokenFlag, SourceTokenFlag);
-    };
-
-    GtToken.prototype.IsError = function () {
-        return IsFlag(this.TokenFlag, ErrorTokenFlag);
-    };
-
-    GtToken.prototype.IsIndent = function () {
-        return IsFlag(this.TokenFlag, IndentTokenFlag);
-    };
-
-    GtToken.prototype.IsDelim = function () {
-        return IsFlag(this.TokenFlag, DelimTokenFlag);
-    };
-
-    GtToken.prototype.EqualsText = function (text) {
-        return this.ParsedText.equals(text);
-    };
-
-    GtToken.prototype.toString = function () {
-        var TokenText = "";
-        if (this.PresetPattern != null) {
-            TokenText = "(" + this.PresetPattern.PatternName + ") ";
-        }
-        return TokenText + this.ParsedText;
-    };
-
-    GtToken.prototype.ToErrorToken = function (Message) {
-        this.TokenFlag = ErrorTokenFlag;
-        this.ParsedText = Message;
-        return Message;
-    };
-
-    GtToken.prototype.GetErrorMessage = function () {
-        LangDeps.Assert(this.IsError());
-        return this.ParsedText;
-    };
-    return GtToken;
-})();
-
 var PrivateClass = 1 << 0;
 var SingletonClass = 1 << 1;
 var FinalClass = 1 << 2;
@@ -142,7 +94,7 @@ var CharMatrix = [
     NewLineChar,
     1,
     1,
-    1,
+    NewLineChar,
     1,
     1,
     1,
@@ -258,8 +210,6 @@ var CharMatrix = [
     ChilderChar,
     1
 ];
-
-var NullToken = new GtToken("", 0);
 
 var SourceTokenFlag = 1;
 var ErrorTokenFlag = (1 << 1);
@@ -384,7 +334,7 @@ function IsFlag(flag, flag2) {
     return ((flag & flag2) == flag2);
 }
 
-function FromJavaChar(c) {
+function AsciiToTokenMatrixIndex(c) {
     if (c < 128) {
         return CharMatrix[c];
     }
@@ -608,6 +558,54 @@ function TestSyntaxPattern(Context, Text) {
     }
 }
 
+var GtToken = (function () {
+    function GtToken(text, FileLine) {
+        this.TokenFlag = 0;
+        this.ParsedText = text;
+        this.FileLine = FileLine;
+        this.PresetPattern = null;
+    }
+    GtToken.prototype.IsSource = function () {
+        return IsFlag(this.TokenFlag, SourceTokenFlag);
+    };
+
+    GtToken.prototype.IsError = function () {
+        return IsFlag(this.TokenFlag, ErrorTokenFlag);
+    };
+
+    GtToken.prototype.IsIndent = function () {
+        return IsFlag(this.TokenFlag, IndentTokenFlag);
+    };
+
+    GtToken.prototype.IsDelim = function () {
+        return IsFlag(this.TokenFlag, DelimTokenFlag);
+    };
+
+    GtToken.prototype.EqualsText = function (text) {
+        return this.ParsedText.equals(text);
+    };
+
+    GtToken.prototype.toString = function () {
+        var TokenText = "";
+        if (this.PresetPattern != null) {
+            TokenText = "(" + this.PresetPattern.PatternName + ") ";
+        }
+        return TokenText + this.ParsedText;
+    };
+
+    GtToken.prototype.ToErrorToken = function (Message) {
+        this.TokenFlag = ErrorTokenFlag;
+        this.ParsedText = Message;
+        return Message;
+    };
+
+    GtToken.prototype.GetErrorMessage = function () {
+        LangDeps.Assert(this.IsError());
+        return this.ParsedText;
+    };
+    return GtToken;
+})();
+
 var TokenFunc = (function () {
     function TokenFunc(Func, Parent) {
         this.Func = Func;
@@ -685,7 +683,7 @@ var GtTokenContext = (function () {
                 return this.NewErrorSyntaxTree(Token, TokenText + "expected: after: is " + Token.ParsedText);
             }
             Token = this.GetToken();
-            LangDeps.Assert(Token != NullToken);
+            LangDeps.Assert(Token != GtTokenContext.NullToken);
             return this.NewErrorSyntaxTree(Token, TokenText + "expected: at: is " + Token.ParsedText);
         }
         return null;
@@ -727,7 +725,7 @@ var GtTokenContext = (function () {
         var len = ScriptSource.length;
         this.ParsingLine = CurrentLine;
         while (currentPos < len) {
-            var gtCode = FromJavaChar(LangDeps.CharAt(ScriptSource, currentPos));
+            var gtCode = AsciiToTokenMatrixIndex(LangDeps.CharAt(ScriptSource, currentPos));
             var nextPos = this.DispatchFunc(ScriptSource, gtCode, currentPos);
             if (currentPos >= nextPos) {
                 break;
@@ -751,11 +749,11 @@ var GtTokenContext = (function () {
             }
             return Token;
         }
-        return NullToken;
+        return GtTokenContext.NullToken;
     };
 
     GtTokenContext.prototype.HasNext = function () {
-        return (this.GetToken() != NullToken);
+        return (this.GetToken() != GtTokenContext.NullToken);
     };
 
     GtTokenContext.prototype.Next = function () {
@@ -805,7 +803,7 @@ var GtTokenContext = (function () {
 
     GtTokenContext.prototype.GetMatchedToken = function (TokenText) {
         var Token = this.GetToken();
-        while (Token != NullToken) {
+        while (Token != GtTokenContext.NullToken) {
             this.CurrentPosition += 1;
             if (Token.EqualsText(TokenText)) {
                 break;
@@ -865,14 +863,14 @@ var GtTokenContext = (function () {
 
     GtTokenContext.prototype.SkipEmptyStatement = function () {
         var Token = null;
-        while ((Token = this.GetToken()) != NullToken) {
+        while ((Token = this.GetToken()) != GtTokenContext.NullToken) {
             if (Token.IsIndent() || Token.IsDelim()) {
                 this.CurrentPosition += 1;
                 continue;
             }
             break;
         }
-        return (Token != NullToken);
+        return (Token != GtTokenContext.NullToken);
     };
 
     GtTokenContext.prototype.Dump = function () {
@@ -883,6 +881,7 @@ var GtTokenContext = (function () {
             pos += 1;
         }
     };
+    GtTokenContext.NullToken = new GtToken("", 0);
     return GtTokenContext;
 })();
 
@@ -967,17 +966,17 @@ var GtSyntaxTree = (function () {
     };
 
     GtSyntaxTree.prototype.IsEmpty = function () {
-        return this.KeyToken == NullToken;
+        return this.KeyToken == GtTokenContext.NullToken;
     };
 
     GtSyntaxTree.prototype.ToEmpty = function () {
-        this.KeyToken = NullToken;
+        this.KeyToken = GtTokenContext.NullToken;
         this.TreeList = null;
         this.Pattern = this.NameSpace.GetPattern("$Empty$");
     };
 
     GtSyntaxTree.prototype.IsEmptyOrError = function () {
-        return this.KeyToken == NullToken || this.KeyToken.IsError();
+        return this.KeyToken == GtTokenContext.NullToken || this.KeyToken.IsError();
     };
 
     GtSyntaxTree.prototype.ToEmptyOrError = function (ErrorTree) {
@@ -1281,7 +1280,7 @@ var GtNameSpace = (function () {
             if (Spec.SpecType == TokenFuncSpec) {
                 var j = 0;
                 while (j < Spec.SpecKey.length) {
-                    var kchar = FromJavaChar(LangDeps.CharAt(Spec.SpecKey, j));
+                    var kchar = AsciiToTokenMatrixIndex(LangDeps.CharAt(Spec.SpecKey, j));
                     var Func = Spec.SpecBody;
                     this.TokenMatrix[kchar] = LangDeps.CreateOrReuseTokenFunc(Func, this.TokenMatrix[kchar]);
                     j += 1;
@@ -2162,7 +2161,7 @@ var DScriptGrammar = (function (_super) {
     };
 
     DScriptGrammar.ParseEmpty = function (Pattern, LeftTree, TokenContext) {
-        return new GtSyntaxTree(Pattern, TokenContext.NameSpace, NullToken, null);
+        return new GtSyntaxTree(Pattern, TokenContext.NameSpace, GtTokenContext.NullToken, null);
     };
 
     DScriptGrammar.TypeEmpty = function (Gamma, ParsedTree, Type) {
@@ -2330,7 +2329,7 @@ var DScriptGrammar = (function (_super) {
 
     DScriptGrammar.ParseFuncName = function (Pattern, LeftTree, TokenContext) {
         var Token = TokenContext.Next();
-        if (Token != NullToken) {
+        if (Token != GtTokenContext.NullToken) {
             return new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, Token.ParsedText);
         }
         return null;
@@ -2359,7 +2358,7 @@ var DScriptGrammar = (function (_super) {
                 ParamBase += 3;
             }
             TokenContext.SkipIndent();
-            if (TokenContext.MatchToken("~")) {
+            if (TokenContext.MatchToken("as")) {
                 var Token = TokenContext.GetToken();
                 Tree.ConstValue = Token.ParsedText;
             } else {

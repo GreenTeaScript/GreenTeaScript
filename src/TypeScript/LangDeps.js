@@ -29,7 +29,7 @@ String.prototype["startsWith"] = function (key) {
 };
 
 String.prototype["replaceAll"] = function (key, rep) {
-    this.replace(key, rep);
+    return this.replace(key, rep);
 };
 
 String.prototype["equals"] = function (other) {
