@@ -1,7 +1,4 @@
 import java.util.ArrayList;
-import java.util.Stack;
-
-import com.sun.org.apache.bcel.internal.classfile.Code;
 
 //GreenTea Generator should be written in each language.
 
@@ -386,7 +383,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		return new LetNode(null, null, null, varNode, assignNode);
 	}
 	
-	private String ResolveValueType(TypedNode TargetNode, String value) {
+	private String ResolveValueType(GtNode TargetNode, String value) {
 		String resolvedValue;
 		
 		if(TargetNode instanceof ConstNode || TargetNode instanceof NullNode) {
