@@ -5,58 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 //endif VAJA
 
-final class GtToken extends GtStatic {
-	/*field*/public int		        TokenFlag;
-	/*field*/public String	        ParsedText;
-	/*field*/public long		    FileLine;
-	/*field*/public GtSyntaxPattern	PresetPattern;
-
-	GtToken/*constructor*/(String text, long FileLine) {
-		this.TokenFlag = 0;
-		this.ParsedText = text;
-		this.FileLine = FileLine;
-		this.PresetPattern = null;
-	}
-
-	public boolean IsSource() {
-		return IsFlag(this.TokenFlag, SourceTokenFlag);
-	}
-
-	public boolean IsError() {
-		return IsFlag(this.TokenFlag, ErrorTokenFlag);
-	}
-
-	public boolean IsIndent() {
-		return IsFlag(this.TokenFlag, IndentTokenFlag);
-	}
-
-	public boolean IsDelim() {
-		return IsFlag(this.TokenFlag, DelimTokenFlag);
-	}
-
-	public boolean EqualsText(String text) {
-		return this.ParsedText.equals(text);
-	}
-
-	@Override public String toString() {
-		/*local*/String TokenText = "";
-		if(this.PresetPattern != null) {
-			TokenText = "(" + this.PresetPattern.PatternName + ") ";
-		}
-		return TokenText + this.ParsedText;
-	}
-
-	public String ToErrorToken(String Message) {
-		this.TokenFlag = ErrorTokenFlag;
-		this.ParsedText = Message;
-		return Message;
-	}
-
-	public String GetErrorMessage() {
-		LangDeps.Assert(this.IsError());
-		return this.ParsedText;
-	}
-}
 
 //ifdef JAVA
 interface GtConst {
@@ -204,8 +152,6 @@ interface GtConst {
 		LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, OpenBraceChar, VarChar, CloseBraceChar, ChilderChar, 1,
 		/*EndArray*/};
 
-	public final static GtToken NullToken = new GtToken("", 0);
-
 	// TokenFlag
 	public final static int	SourceTokenFlag	= 1;
 	public final static int	ErrorTokenFlag	= (1 << 1);
@@ -346,7 +292,7 @@ class GtStatic implements GtConst {
 		return ((flag & flag2) == flag2);
 	}
 
-	public final static int FromJavaChar(char c) {
+	public final static int AsciiToTokenMatrixIndex(char c) {
 		if(c < 128) {
 			return CharMatrix[c];
 		}
@@ -650,6 +596,59 @@ final class GtDelegateType extends GtDelegateCommon {
 
 // tokenizer
 
+final class GtToken extends GtStatic {
+	/*field*/public int		        TokenFlag;
+	/*field*/public String	        ParsedText;
+	/*field*/public long		    FileLine;
+	/*field*/public GtSyntaxPattern	PresetPattern;
+
+	GtToken/*constructor*/(String text, long FileLine) {
+		this.TokenFlag = 0;
+		this.ParsedText = text;
+		this.FileLine = FileLine;
+		this.PresetPattern = null;
+	}
+
+	public boolean IsSource() {
+		return IsFlag(this.TokenFlag, SourceTokenFlag);
+	}
+
+	public boolean IsError() {
+		return IsFlag(this.TokenFlag, ErrorTokenFlag);
+	}
+
+	public boolean IsIndent() {
+		return IsFlag(this.TokenFlag, IndentTokenFlag);
+	}
+
+	public boolean IsDelim() {
+		return IsFlag(this.TokenFlag, DelimTokenFlag);
+	}
+
+	public boolean EqualsText(String text) {
+		return this.ParsedText.equals(text);
+	}
+
+	@Override public String toString() {
+		/*local*/String TokenText = "";
+		if(this.PresetPattern != null) {
+			TokenText = "(" + this.PresetPattern.PatternName + ") ";
+		}
+		return TokenText + this.ParsedText;
+	}
+
+	public String ToErrorToken(String Message) {
+		this.TokenFlag = ErrorTokenFlag;
+		this.ParsedText = Message;
+		return Message;
+	}
+
+	public String GetErrorMessage() {
+		LangDeps.Assert(this.IsError());
+		return this.ParsedText;
+	}
+}
+
 final class TokenFunc {
 	/*field*/public GtDelegateToken       Func;
 	/*field*/public TokenFunc	ParentFunc;
@@ -665,6 +664,8 @@ final class TokenFunc {
 }
 
 final class GtTokenContext extends GtStatic {
+	public final static GtToken NullToken = new GtToken("", 0);
+
 	/*field*/public GtNameSpace NameSpace;
 	/*field*/public ArrayList<GtToken> SourceList;
 	/*field*/public int CurrentPosition;
@@ -737,7 +738,7 @@ final class GtTokenContext extends GtStatic {
 				return this.NewErrorSyntaxTree(Token, TokenText + " is expected after " + Token.ParsedText);
 			}
 			Token = this.GetToken();
-			LangDeps.Assert(Token != NullToken);
+			LangDeps.Assert(Token != GtTokenContext.NullToken);
 			return this.NewErrorSyntaxTree(Token, TokenText + " is expected at " + Token.ParsedText);
 		}
 		return null;
@@ -779,7 +780,7 @@ final class GtTokenContext extends GtStatic {
 		/*local*/int len = ScriptSource.length();
 		this.ParsingLine = CurrentLine;
 		while(currentPos < len) {
-			/*local*/int gtCode = FromJavaChar(LangDeps.CharAt(ScriptSource, currentPos));
+			/*local*/int gtCode = AsciiToTokenMatrixIndex(LangDeps.CharAt(ScriptSource, currentPos));
 			/*local*/int nextPos = this.DispatchFunc(ScriptSource, gtCode, currentPos);
 			if(currentPos >= nextPos) {
 				break;
@@ -803,11 +804,11 @@ final class GtTokenContext extends GtStatic {
 			}
 			return Token;
 		}
-		return NullToken;
+		return GtTokenContext.NullToken;
 	}
 
 	public boolean HasNext() {
-		return (this.GetToken() != NullToken);
+		return (this.GetToken() != GtTokenContext.NullToken);
 	}
 
 	public GtToken Next() {
@@ -857,7 +858,7 @@ final class GtTokenContext extends GtStatic {
 
 	public GtToken GetMatchedToken(String TokenText) {
 		/*local*/GtToken Token = this.GetToken();
-		while(Token != NullToken) {
+		while(Token != GtTokenContext.NullToken) {
 			this.CurrentPosition += 1;
 			if(Token.EqualsText(TokenText)) {
 				break;
@@ -929,14 +930,14 @@ final class GtTokenContext extends GtStatic {
 
 	public final boolean SkipEmptyStatement() {
 		/*local*/GtToken Token = null;
-		while((Token = this.GetToken()) != NullToken) {
+		while((Token = this.GetToken()) != GtTokenContext.NullToken) {
 			if(Token.IsIndent() || Token.IsDelim()) {
 				this.CurrentPosition += 1;
 				continue;
 			}
 			break;
 		}
-		return (Token != NullToken);
+		return (Token != GtTokenContext.NullToken);
 	}
 
 	public void Dump() {
@@ -1049,17 +1050,17 @@ class GtSyntaxTree extends GtStatic {
 	}
 
 	public boolean IsEmpty() {
-		return this.KeyToken == NullToken;
+		return this.KeyToken == GtTokenContext.NullToken;
 	}
 
 	public void ToEmpty() {
-		this.KeyToken = NullToken;
+		this.KeyToken = GtTokenContext.NullToken;
 		this.TreeList = null;
 		this.Pattern = this.NameSpace.GetPattern("$Empty$");
 	}
 
 	public boolean IsEmptyOrError() {
-		return this.KeyToken == NullToken || this.KeyToken.IsError();
+		return this.KeyToken == GtTokenContext.NullToken || this.KeyToken.IsError();
 	}
 
 	public void ToEmptyOrError(GtSyntaxTree ErrorTree) {
@@ -1422,7 +1423,7 @@ final class GtNameSpace extends GtStatic {
 			if(Spec.SpecType == TokenFuncSpec) {
 				/*local*/int j = 0;
 				while(j < Spec.SpecKey.length()) {
-					/*local*/int kchar = GtStatic.FromJavaChar(LangDeps.CharAt(Spec.SpecKey, j));
+					/*local*/int kchar = GtStatic.AsciiToTokenMatrixIndex(LangDeps.CharAt(Spec.SpecKey, j));
 					/*local*/GtDelegateToken Func = (/*cast*/GtDelegateToken)Spec.SpecBody;
 					this.TokenMatrix[kchar] = LangDeps.CreateOrReuseTokenFunc(Func, this.TokenMatrix[kchar]);
 					j += 1;
@@ -2330,7 +2331,7 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	public static GtSyntaxTree ParseEmpty(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
-		return new GtSyntaxTree(Pattern, TokenContext.NameSpace, NullToken, null);
+		return new GtSyntaxTree(Pattern, TokenContext.NameSpace, GtTokenContext.NullToken, null);
 	}
 
 	public static GtNode TypeEmpty(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
@@ -2503,7 +2504,7 @@ final class DScriptGrammar extends GtGrammar {
 	// FuncName
 	public static GtSyntaxTree ParseFuncName(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
 		/*local*/GtToken Token = TokenContext.Next();
-		if(Token != NullToken) {
+		if(Token != GtTokenContext.NullToken) {
 			return new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, Token.ParsedText);
 		}
 		return null;
