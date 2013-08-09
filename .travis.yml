@@ -1,4 +1,4 @@
-language: python
+language: node_js
 
 jdk:
     - openjdk6
@@ -11,9 +11,10 @@ ruby:
 
 node_js:
     - "0.10"
+    - "0.9"
 
 before_install:
-    - "sudo npm install -g typescript"
+    - "npm install -g typescript"
 
 before_script:
     - "make"
