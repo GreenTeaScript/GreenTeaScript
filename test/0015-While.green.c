@@ -8,6 +8,5 @@ static int f__A(){
       return i0;
    };
 }
-{
-   f__A();
-}
+f__A();
+

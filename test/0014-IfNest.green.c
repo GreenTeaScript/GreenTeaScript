@@ -21,6 +21,5 @@ static int f__A(int a0, int b1){
       return n2;
    };
 }
-{
-   f__A(20000,10000);
-}
+f__A(20000 ,10000);
+

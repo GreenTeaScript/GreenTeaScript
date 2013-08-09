@@ -1,13 +1,6 @@
-var f= (function() {
+var f__A = (function() {
    {
       var BackupServer0 = 192.168.11.102;
-      (http:// + (BackupServer0 + /db));
+      http://$BackupServer/db;
    };
 })
-var f= (function() {
-   {
-      var BackupServer0 = 192.168.11.102;
-      (http:// + (BackupServer0 + /db));
-   };
-});
-

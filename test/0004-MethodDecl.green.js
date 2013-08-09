@@ -1,7 +1,3 @@
-var f= (function(a00, b11) {
+var f__A = (function(a0, b1) {
    return 10;
 })
-var f= (function(a00, b11) {
-   return 10;
-});
-
