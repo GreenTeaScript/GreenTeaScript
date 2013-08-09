@@ -1,8 +1,8 @@
-static int f__A(int a0){
-   int b1 = a0 + 10;
-   {
-      return b1;
-   };
+static int f__A(int a0, int b1){
+   return a0 + b1;
 }
-f__A(10);
+static int g__B(int a0, int b1, int c2){
+   return a0 + f__A(b1 ,c2);
+}
+g__B(10 ,20 ,30);
 

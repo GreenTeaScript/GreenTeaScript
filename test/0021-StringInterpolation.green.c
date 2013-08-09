@@ -1,8 +1,6 @@
-static int f__A(int a0){
-   int b1 = a0 + 10;
+static void f__A(){
+   String BackupServer0 = "192.168.11.102";
    {
-      return b1;
+      "http://$BackupServer/db";
    };
 }
-f__A(10);
-

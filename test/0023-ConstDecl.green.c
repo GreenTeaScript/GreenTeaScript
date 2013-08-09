@@ -1,8 +1,3 @@
-static int f__A(int a0){
-   int b1 = a0 + 10;
-   {
-      return b1;
-   };
+static String f__A(){
+   return "192.168.11.102";
 }
-f__A(10);
-
