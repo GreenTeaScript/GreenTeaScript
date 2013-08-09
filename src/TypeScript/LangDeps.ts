@@ -20,7 +20,7 @@ Array.prototype.get = function(i){
 	return this[i];
 }
 
-Array.prototype.set = function(i, v){
+Array.prototype.set = function(i, v): void{
 	this[i] = v;
 }
 
@@ -34,7 +34,7 @@ interface Object {
 	equals(other: any): boolean;
 }
 
-Object.prototype["equals"] = function(other){
+Object.prototype["equals"] = function(other): boolean{
 	return (this === other);
 }
 
@@ -43,15 +43,15 @@ interface String {
 	replaceAll(key: string, rep: string);
 }
 
-String.prototype["startsWith"] = function(key){
+String.prototype["startsWith"] = function(key): boolean{
 	return this.lastIndexOf(key, 0) == 0;
 }
 
-String.prototype["replaceAll"] = function(key, rep){
-	this.replace(key, rep);
+String.prototype["replaceAll"] = function(key, rep): string{
+	return this.replace(key, rep);
 }
 
-String.prototype["equals"] = function(other){
+String.prototype["equals"] = function(other): boolean{
 	return (this == other);
 }
 

@@ -1,58 +1,6 @@
 /// <reference path="LangDeps.ts" />
 
 
- class GtToken {
-	public TokenFlag: number;
-	public ParsedText: string;
-	public FileLine: number;
-	public PresetPattern: GtSyntaxPattern;
-
-	constructor(text: string, FileLine: number) {
-		this.TokenFlag = 0;
-		this.ParsedText = text;
-		this.FileLine = FileLine;
-		this.PresetPattern = null;
-	}
-
-	public IsSource(): boolean {
-		return IsFlag(this.TokenFlag, SourceTokenFlag);
-	}
-
-	public IsError(): boolean {
-		return IsFlag(this.TokenFlag, ErrorTokenFlag);
-	}
-
-	public IsIndent(): boolean {
-		return IsFlag(this.TokenFlag, IndentTokenFlag);
-	}
-
-	public IsDelim(): boolean {
-		return IsFlag(this.TokenFlag, DelimTokenFlag);
-	}
-
-	public EqualsText(text: string): boolean {
-		return this.ParsedText.equals(text);
-	}
-
-	public toString(): string {
-		var TokenText: string = "";
-		if(this.PresetPattern != null) {
-			TokenText = "(" + this.PresetPattern.PatternName + ") ";
-		}
-		return TokenText + this.ParsedText;
-	}
-
-	public ToErrorToken(Message: string): string {
-		this.TokenFlag = ErrorTokenFlag;
-		this.ParsedText = Message;
-		return Message;
-	}
-
-	public GetErrorMessage(): string {
-		LangDeps.Assert(this.IsError());
-		return this.ParsedText;
-	}
-}
 
 
 	//  ClassFlag //
@@ -167,7 +115,7 @@
 		/*stx: nulvar:eot: sohvar:ack: etxvar:bel: enq*/
 		0, 1, 1, 1, 1, 1, 1, 1,
 		/*nl: bsvar:np: htvar:so: vtvar:si: cr  */
-		1, TabChar, NewLineChar, 1, 1, 1, 1, 1,
+		1, TabChar, NewLineChar, 1, 1, NewLineChar, 1, 1,
 		/*020 dle  021 dc1  022 dc2  023 dc3  024 dc4  025 nak  026 syn  027 etb */
 		1, 1, 1, 1, 1, 1, 1, 1,
 		/*030 can  031 em   032 sub  033 esc  034 fs   035 gs   036 rs   037 us */
@@ -197,8 +145,6 @@
 		/*170  x   171  y   172  z   173  {   174  |   175  }   176  ~   177 del*/
 		LowerAlphaChar, LowerAlphaChar, LowerAlphaChar, OpenBraceChar, VarChar, CloseBraceChar, ChilderChar, 1,
 		]
-
-	var NullToken: GtToken = new GtToken("", 0);
 
 	//  TokenFlag //
 	var SourceTokenFlag: number	= 1;
@@ -336,7 +282,7 @@
 		return ((flag & flag2) == flag2);
 	}
 
-	function FromJavaChar(c: number): number {
+	function AsciiToTokenMatrixIndex(c: number): number {
 		if(c < 128) {
 			return CharMatrix[c];
 		}
@@ -567,6 +513,59 @@
 
 //  tokenizer //
 
+ class GtToken {
+	public TokenFlag: number;
+	public ParsedText: string;
+	public FileLine: number;
+	public PresetPattern: GtSyntaxPattern;
+
+	constructor(text: string, FileLine: number) {
+		this.TokenFlag = 0;
+		this.ParsedText = text;
+		this.FileLine = FileLine;
+		this.PresetPattern = null;
+	}
+
+	public IsSource(): boolean {
+		return IsFlag(this.TokenFlag, SourceTokenFlag);
+	}
+
+	public IsError(): boolean {
+		return IsFlag(this.TokenFlag, ErrorTokenFlag);
+	}
+
+	public IsIndent(): boolean {
+		return IsFlag(this.TokenFlag, IndentTokenFlag);
+	}
+
+	public IsDelim(): boolean {
+		return IsFlag(this.TokenFlag, DelimTokenFlag);
+	}
+
+	public EqualsText(text: string): boolean {
+		return this.ParsedText.equals(text);
+	}
+
+	public toString(): string {
+		var TokenText: string = "";
+		if(this.PresetPattern != null) {
+			TokenText = "(" + this.PresetPattern.PatternName + ") ";
+		}
+		return TokenText + this.ParsedText;
+	}
+
+	public ToErrorToken(Message: string): string {
+		this.TokenFlag = ErrorTokenFlag;
+		this.ParsedText = Message;
+		return Message;
+	}
+
+	public GetErrorMessage(): string {
+		LangDeps.Assert(this.IsError());
+		return this.ParsedText;
+	}
+}
+
  class TokenFunc {
 	public Func: any;
 	public ParentFunc: TokenFunc;
@@ -582,6 +581,8 @@
 }
 
  class GtTokenContext {
+	static NullToken: GtToken = new GtToken("", 0);
+
 	public NameSpace: GtNameSpace;
 	public SourceList: Array<GtToken>;
 	public CurrentPosition: number;
@@ -654,7 +655,7 @@
 				return this.NewErrorSyntaxTree(Token, TokenText + "expected: after: is " + Token.ParsedText);
 			}
 			Token = this.GetToken();
-			LangDeps.Assert(Token != NullToken);
+			LangDeps.Assert(Token != GtTokenContext.NullToken);
 			return this.NewErrorSyntaxTree(Token, TokenText + "expected: at: is " + Token.ParsedText);
 		}
 		return null;
@@ -696,7 +697,7 @@
 		var len: number = ScriptSource.length;
 		this.ParsingLine = CurrentLine;
 		while(currentPos < len) {
-			var gtCode: number = FromJavaChar(LangDeps.CharAt(ScriptSource, currentPos));
+			var gtCode: number = AsciiToTokenMatrixIndex(LangDeps.CharAt(ScriptSource, currentPos));
 			var nextPos: number = this.DispatchFunc(ScriptSource, gtCode, currentPos);
 			if(currentPos >= nextPos) {
 				break;
@@ -720,11 +721,11 @@
 			}
 			return Token;
 		}
-		return NullToken;
+		return GtTokenContext.NullToken;
 	}
 
 	public HasNext(): boolean {
-		return (this.GetToken() != NullToken);
+		return (this.GetToken() != GtTokenContext.NullToken);
 	}
 
 	public Next(): GtToken {
@@ -774,7 +775,7 @@
 
 	public GetMatchedToken(TokenText: string): GtToken {
 		var Token: GtToken = this.GetToken();
-		while(Token != NullToken) {
+		while(Token != GtTokenContext.NullToken) {
 			this.CurrentPosition += 1;
 			if(Token.EqualsText(TokenText)) {
 				break;
@@ -846,14 +847,14 @@
 
 	 SkipEmptyStatement(): boolean {
 		var Token: GtToken = null;
-		while((Token = this.GetToken()) != NullToken) {
+		while((Token = this.GetToken()) != GtTokenContext.NullToken) {
 			if(Token.IsIndent() || Token.IsDelim()) {
 				this.CurrentPosition += 1;
 				continue;
 			}
 			break;
 		}
-		return (Token != NullToken);
+		return (Token != GtTokenContext.NullToken);
 	}
 
 	public Dump(): void {
@@ -966,17 +967,17 @@ class GtSyntaxTree {
 	}
 
 	public IsEmpty(): boolean {
-		return this.KeyToken == NullToken;
+		return this.KeyToken == GtTokenContext.NullToken;
 	}
 
 	public ToEmpty(): void {
-		this.KeyToken = NullToken;
+		this.KeyToken = GtTokenContext.NullToken;
 		this.TreeList = null;
 		this.Pattern = this.NameSpace.GetPattern("$Empty$");
 	}
 
 	public IsEmptyOrError(): boolean {
-		return this.KeyToken == NullToken || this.KeyToken.IsError();
+		return this.KeyToken == GtTokenContext.NullToken || this.KeyToken.IsError();
 	}
 
 	public ToEmptyOrError(ErrorTree: GtSyntaxTree): void {
@@ -1339,7 +1340,7 @@ class GtSyntaxTree {
 			if(Spec.SpecType == TokenFuncSpec) {
 				var j: number = 0;
 				while(j < Spec.SpecKey.length) {
-					var kchar: number = FromJavaChar(LangDeps.CharAt(Spec.SpecKey, j));
+					var kchar: number = AsciiToTokenMatrixIndex(LangDeps.CharAt(Spec.SpecKey, j));
 					var Func: any = <any>Spec.SpecBody;
 					this.TokenMatrix[kchar] = LangDeps.CreateOrReuseTokenFunc(Func, this.TokenMatrix[kchar]);
 					j += 1;
@@ -2237,7 +2238,7 @@ class GtGrammar {
 	}
 
 	static ParseEmpty(Pattern: GtSyntaxPattern, LeftTree: GtSyntaxTree, TokenContext: GtTokenContext): GtSyntaxTree {
-		return new GtSyntaxTree(Pattern, TokenContext.NameSpace, NullToken, null);
+		return new GtSyntaxTree(Pattern, TokenContext.NameSpace, GtTokenContext.NullToken, null);
 	}
 
 	static TypeEmpty(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, Type: GtType): GtNode {
@@ -2410,7 +2411,7 @@ class GtGrammar {
 	//  FuncName //
 	static ParseFuncName(Pattern: GtSyntaxPattern, LeftTree: GtSyntaxTree, TokenContext: GtTokenContext): GtSyntaxTree {
 		var Token: GtToken = TokenContext.Next();
-		if(Token != NullToken) {
+		if(Token != GtTokenContext.NullToken) {
 			return new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, Token.ParsedText);
 		}
 		return null;
@@ -2441,7 +2442,7 @@ class GtGrammar {
 				ParamBase += 3;
 			}
 			TokenContext.SkipIndent();
-			if(TokenContext.MatchToken("~")) {  // is: thisad: hoc: little //
+			if(TokenContext.MatchToken("as")) {  // is: thisad: hoc: little //
 				var Token: GtToken = TokenContext.GetToken();
 				Tree.ConstValue = Token.ParsedText;
 			}

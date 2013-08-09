@@ -664,7 +664,7 @@ final class TokenFunc {
 }
 
 final class GtTokenContext extends GtStatic {
-	public final static GtToken NullToken = new GtToken("", 0);
+	/*field*/public final static GtToken NullToken = new GtToken("", 0);
 
 	/*field*/public GtNameSpace NameSpace;
 	/*field*/public ArrayList<GtToken> SourceList;
