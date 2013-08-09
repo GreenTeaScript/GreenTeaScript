@@ -2535,7 +2535,7 @@ final class DScriptGrammar extends GtGrammar {
 				ParamBase += 3;
 			}
 			TokenContext.SkipIndent();
-			if(TokenContext.MatchToken("~")) {  // this is little ad hoc
+			if(TokenContext.MatchToken("as")) {  // this is little ad hoc
 				GtToken Token = TokenContext.GetToken();
 				Tree.ConstValue = Token.ParsedText;
 			}
