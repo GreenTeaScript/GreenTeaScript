@@ -12,7 +12,7 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 
 	@Override public void DefineFunction(GtMethod Method, ArrayList<String> NameList, GtNode Body) {
 		/*local*/int ArgCount = Method.Types.length - 1;
-		/*local*/String Code = "var " + Method.LocalFuncName + "= (function(";
+		/*local*/String Code = "var " + Method.LocalFuncName + " = (function(";
 		/*local*/int i = 0;
 		while(i < ArgCount){
 			if(i > 0){
