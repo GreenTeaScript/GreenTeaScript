@@ -17,10 +17,13 @@ interface GtConst {
 	public final static int		InterfaceClass					= 1 << 6;
 
 	// MethodFlag
-	public final static int		ExportMethod					= 1 << 0;
-	public final static int		UniqueMethod					= 1 << 1;
-	public final static int		OperatorMethod					= 1 << 2;
-	public final static int		NativeMethod					= 1 << 3;
+	public final static int		ExportMethod		= 1 << 0;
+	public final static int		AbstractMethod		= 1 << 1;
+	public final static int		VirtualMethod		= 1 << 2;
+	public final static int		NativeMethod		= 1 << 3;
+	public final static int		DynamicMethod		= 1 << 4;
+
+	//public final static int		ConstMethod 		= 1 << 2;
 
 //	public final static int		PrivateMethod					= 1 << 0;
 //	public final static int		VirtualMethod					= 1 << 1;
@@ -1157,6 +1160,10 @@ class GtSyntaxTree extends GtStatic {
 		}
 	}
 
+	public final boolean HasNodeAt(int Index) {
+		return this.TreeList != null && Index < this.TreeList.size();
+	}
+	
 	public final GtNode TypeNodeAt(int Index, GtTypeEnv Gamma, GtType Type, int TypeCheckPolicy) {
 		if(this.TreeList != null && Index < this.TreeList.size()) {
 			/*local*/GtSyntaxTree NodeObject = this.TreeList.get(Index);
@@ -1172,38 +1179,6 @@ class GtSyntaxTree extends GtStatic {
 }
 
 /* typing */
-
-final class GtLayer extends GtStatic {
-	/*public*/public String Name;
-	/*public*/public GtMap MethodTable;
-	GtLayer/*constructor*/(String Name) {
-		this.Name = Name;
-		this.MethodTable = new GtMap();
-	}
-
-	public final GtMethod LookupUniqueMethod(String Name) {
-		return (/*cast*/GtMethod)this.MethodTable.get(Name);
-	}
-
-	public final GtMethod GetMethod(String MethodId) {
-		return (/*cast*/GtMethod)this.MethodTable.get(MethodId);
-	}
-
-	public final void DefineMethod(GtMethod Method) {
-		LangDeps.Assert(Method.Layer == null);
-		/*local*/GtType Class = Method.GetRecvType();
-		/*local*/String MethodId = Class.GetMethodId(Method.MethodName);
-		/*local*/GtMethod MethodPrev = (/*cast*/GtMethod)this.MethodTable.get(MethodId);
-		Method.ListedMethods = MethodPrev;
-		Method.Layer = this;
-		this.MethodTable.put(MethodId, Method);
-		//MethodPrev = this.LookupUniqueMethod(Method.MethodName);
-		//if(MethodPrev != null) {
-		//	TODO("check identity");
-		//	this.MethodTable.remove(Id);
-		//}
-	}
-}
 
 final class GtVariableInfo {
 	/*field*/public GtType	Type;
@@ -1371,6 +1346,21 @@ final class GtTypeEnv extends GtStatic {
 	public boolean AppendConstants(String VariableName, GtNode ConstNode) {
 		return this.NameSpace.AppendConstants(VariableName, ConstNode);
 	}
+
+	public final GtMethod GetMethod(GtType RecvType, String MethodName, int BaseIndex, ArrayList<GtType> TypeList) {
+		return this.NameSpace.Context.GetMethod(RecvType, MethodName, BaseIndex, TypeList);
+	}
+
+	public final void DefineMethod(GtMethod Method) {
+		// TODO Auto-generated method stub
+		this.NameSpace.Context.DefineMethod(Method);
+		/*local*/Object Value = this.NameSpace.GetSymbol(Method.MethodName);
+		if(Value == null) {
+			this.NameSpace.DefineSymbol(Method.MethodName, Method);
+		}
+		this.Method = Method;
+	}
+
 }
 
 // NameSpace
@@ -1584,16 +1574,6 @@ final class GtNameSpace extends GtStatic {
 		}
 		this.DefineSymbol(ClassInfo.ShortClassName, ClassInfo);
 		return ClassInfo;
-	}
-
-	public final GtMethod DefineMethod(GtMethod Method) {
-		this.Context.DefineMethod(Method);
-		// adding function to the symbol table
-		Object Function = this.GetSymbol(Method.MethodName);
-		if(Function == null) {
-			this.DefineSymbol(Method.MethodName, Method);
-		}
-		return Method;
 	}
 
 //	private GtMethod FilterOverloadedMethods(GtMethod Method, int ParamSize, int ResolvedSize, ArrayList<GtType> TypeList, int BaseIndex, GtMethod FoundMethod) {
@@ -2418,7 +2398,6 @@ final class DScriptGrammar extends GtGrammar {
 	public static GtSyntaxTree ParseBreak(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
 		/*local*/GtToken Token = TokenContext.GetMatchedToken("break");
 		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
-		//FIXME support break with label (e.g. break LABEL; )
 		return NewTree;
 	}
 
@@ -2429,7 +2408,6 @@ final class DScriptGrammar extends GtGrammar {
 	public static GtSyntaxTree ParseContinue(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
 		/*local*/GtToken Token = TokenContext.GetMatchedToken("continue");
 		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
-		//FIXME support continue with label (e.g. continue LABEL; )
 		return NewTree;
 	}
 
@@ -2552,6 +2530,7 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	public static GtNode TypeFuncDecl(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
+		/*local*/int MethodFlag = Gamma.Generator.ParseMethodFlag(0, ParsedTree);
 		Gamma = new GtTypeEnv(ParsedTree.NameSpace);  // creation of new type environment
 		/*local*/String MethodName = (/*cast*/String)ParsedTree.GetSyntaxTreeAt(FuncDeclName).ConstValue;
 		/*local*/ArrayList<GtType> TypeBuffer = new ArrayList<GtType>();
@@ -2569,16 +2548,42 @@ final class DScriptGrammar extends GtGrammar {
 			ParamBase += 3;
 			i = i + 1;
 		}
-		/*local*/int MethodFlag = Gamma.Generator.ParseMethodFlag(0, ParsedTree);
-		/*local*/GtMethod Method = Gamma.Generator.CreateMethod(MethodFlag, MethodName, 0, TypeBuffer, (/*cast*/String)ParsedTree.ConstValue);
-		if(!Gamma.NameSpace.Context.CheckExportableName(Method)) {
-			return Gamma.CreateErrorNode(ParsedTree, "duplicated exported methods " + MethodName);
+		
+		/*local*/String NativeMacro =  (/*cast*/String)ParsedTree.ConstValue;
+		if(NativeMacro == null && !ParsedTree.HasNodeAt(FuncDeclBlock)) {
+			MethodFlag |= AbstractMethod;
 		}
-		Gamma.Method = Method;
-		Gamma.NameSpace.DefineMethod(Method);
-		/*local*/GtNode BodyNode = ParsedTree.TypeNodeAt(FuncDeclBlock, Gamma, ReturnType, IgnoreEmptyPolicy);
-		if(BodyNode != null) {
-			Gamma.Generator.DefineFunction(Method, ParamNameList, BodyNode);
+		/*local*/GtType RecvType = Gamma.VoidType;
+		if(TypeBuffer.size() > 1) {
+			RecvType = TypeBuffer.get(1);
+		}
+		/*local*/GtMethod Method = Gamma.GetMethod(RecvType, MethodName, 2, TypeBuffer);
+		if(Method != null) {
+			if(Method.GetRecvType() != RecvType) {
+				if(!Method.Is(VirtualMethod)) {
+					// not virtual method
+					return Gamma.Generator.CreateEmptyNode(Gamma.VoidType, ParsedTree);
+				}
+				Method = null;
+			}
+			else {
+				if(!Method.Is(AbstractMethod)) {
+					// not override
+					return Gamma.Generator.CreateEmptyNode(Gamma.VoidType, ParsedTree);
+				}
+				if(GtStatic.IsFlag(MethodFlag, AbstractMethod)) {
+					// do nothing
+					return Gamma.Generator.CreateEmptyNode(Gamma.VoidType, ParsedTree);
+				}
+			}
+		}
+		if(Method != null) {
+			Method = Gamma.Generator.CreateMethod(MethodFlag, MethodName, 0, TypeBuffer, NativeMacro);
+		}
+		Gamma.DefineMethod(Method);
+		if(ParsedTree.HasNodeAt(FuncDeclBlock)) {
+			/*local*/GtNode BodyNode = ParsedTree.TypeNodeAt(FuncDeclBlock, Gamma, ReturnType, IgnoreEmptyPolicy);
+				Gamma.Generator.DefineFunction(Method, ParamNameList, BodyNode);
 		}
 		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType, ParsedTree);
 	}
@@ -2672,10 +2677,6 @@ final class DScriptGrammar extends GtGrammar {
 	}
 }
 
-final class GtMethodMap extends GtStatic {
-
-}
-
 final class GtContext extends GtStatic {
 	/*field*/public final  GtGenerator   Generator;
 	/*field*/public final  GtNameSpace		   RootNameSpace;
@@ -2693,10 +2694,6 @@ final class GtContext extends GtStatic {
 
 	/*field*/public final  GtMap			   ClassNameMap;
 	/*field*/public final  GtMap               UniqueMethodMap;
-//	/*field*/public final  GtMap               LayerMap;
-//	/*field*/public final  GtLayer             GreenLayer;
-//	/*field*/public final  GtLayer             FieldLayer;
-//	/*field*/public final  GtLayer             UserDefinedLayer;
 	/*field*/public int ClassCount;
 	/*field*/public int MethodCount;
 
@@ -2791,7 +2788,6 @@ final class GtContext extends GtStatic {
 	}
 	
 	/* methods */
-	
 	private void SetUniqueMethod(String Key, GtMethod Method) {
 		Object Value = this.UniqueMethodMap.get(Key);
 		if(Value == null) {
@@ -2802,7 +2798,7 @@ final class GtContext extends GtStatic {
 		}
 	}
 
-	public void AddOverloadedMethod(String Key, GtMethod Method) {
+	private void AddOverloadedMethod(String Key, GtMethod Method) {
 		Object Value = this.UniqueMethodMap.get(Key);
 		if(Value instanceof GtMethod) {
 			Method.ListedMethods = (/*cast*/GtMethod)Value;
@@ -2830,7 +2826,7 @@ final class GtContext extends GtStatic {
 		SetUniqueMethod(Method.MangledName, Method);
 	}
 	
-	public GtMethod GetUniqueFunction(String Name) {
+	public GtMethod GetUniqueFunctionName(String Name) {
 		Object Value = this.UniqueMethodMap.get(Name);
 		if(Value != null && Value instanceof GtMethod) {
 			return (/*cast*/GtMethod)Value;
@@ -2838,7 +2834,7 @@ final class GtContext extends GtStatic {
 		return null;
 	}
 
-	public GtMethod GetUniqueSizedFunction(String Name, int ParamSize) {
+	public GtMethod GetUniqueFunction(String Name, int ParamSize) {
 		Object Value = this.UniqueMethodMap.get(FuncNameSizeKey(Name, ParamSize));
 		if(Value != null && Value instanceof GtMethod) {
 			return (/*cast*/GtMethod)Value;
@@ -2846,10 +2842,13 @@ final class GtContext extends GtStatic {
 		return null;
 	}
 
-	public GtMethod GetUniqueSizedMethod(GtType BaseType, String Name, int ParamSize) {
-		Object Value = this.UniqueMethodMap.get(MethodNameSizeKey(BaseType.ClassId, Name, ParamSize));
-		if(Value instanceof GtMethod) {
-			return (/*cast*/GtMethod)Value;
+	public final GtMethod GetListedMethod(GtType BaseType, String MethodName, int ParamSize) {
+		while(BaseType != null) {
+			Object Value = this.UniqueMethodMap.get(MethodNameSizeKey(BaseType.ClassId, MethodName, ParamSize));
+			if(Value instanceof GtMethod) {
+				return (/*cast*/GtMethod)Value;
+			}
+			BaseType = BaseType.SearchSuperMethodClass;
 		}
 		return null;
 	}

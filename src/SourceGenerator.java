@@ -702,10 +702,6 @@ class GtType extends GtStatic {
 		return this.ShortClassName;
 	}
 
-	public final String GetMethodId(String MethodName) {
-		return "" + this.ClassId + "@" + MethodName;
-	}
-
 	public final boolean Accept(GtType Type) {
 		if(this == Type || this == this.Context.AnyType) {
 			return true;
@@ -715,7 +711,6 @@ class GtType extends GtStatic {
 }
 
 class GtMethod extends GtStatic {
-	/*field*/public GtLayer         Layer;
 	/*field*/public int				MethodFlag;
 	/*field*/int					MethodSymbolId;
 	/*field*/public String			MethodName;
@@ -731,7 +726,6 @@ class GtMethod extends GtStatic {
 		this.MethodSymbolId = GtStatic.GetSymbolId(MethodName, CreateNewSymbolId);
 		this.Types = LangDeps.CompactTypeList(BaseIndex, ParamList);
 		LangDeps.Assert(this.Types.length > 0);
-		this.Layer = null;
 		this.ListedMethods = null;
 		this.FuncType = null;
 		this.SourceMacro = SourceMacro;
@@ -968,9 +962,9 @@ class GtGenerator extends GtStatic {
 		if(MethodDeclTree.HasAnnotation("Export")) {
 			MethodFlag = MethodFlag | ExportMethod;
 		}
-		if(MethodDeclTree.HasAnnotation("Operator")) {
-			MethodFlag = MethodFlag | OperatorMethod;
-		}
+//		if(MethodDeclTree.HasAnnotation("Operator")) {
+//			MethodFlag = MethodFlag | OperatorMethod;
+//		}
 		return MethodFlag;
 	}
 
