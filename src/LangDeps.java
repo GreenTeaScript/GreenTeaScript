@@ -190,6 +190,7 @@ public abstract class LangDeps {
 		System.out.println("  --X                   Executable Code");
 		System.out.println("");
 		System.out.println("  -e expr               Program passed in as string");
+		System.out.println("  -verbose              Printing Debug infomation");
 		System.exit(0);
 	}
 

@@ -189,6 +189,7 @@ interface GtConst {
 	public final static int	VarDeclValue	= 2;
 	public final static int	VarDeclScope	= 3;
 
+
 	//Method Call;
 	public static final int	CallExpressionOffset	= 0;
 	public static final int	CallParameterOffset		= 1;
@@ -207,7 +208,8 @@ interface GtConst {
 
 	public final static int BinaryOperator					= 1;
 	public final static int LeftJoin						= 1 << 1;
-	public final static int PrecedenceShift					= 2;
+	public final static int Parenthesis						= 1 << 2;
+	public final static int PrecedenceShift					= 3;
 	public final static int Precedence_CStyleValue			= (1 << PrecedenceShift);
 	public final static int Precedence_CPPStyleScope		= (50 << PrecedenceShift);
 	public final static int Precedence_CStyleSuffixCall		= (100 << PrecedenceShift);				/*x(); x[]; x.x x->x x++ */
@@ -978,7 +980,7 @@ final class GtSyntaxPattern extends GtStatic {
 	public boolean IsLeftJoin(GtSyntaxPattern Right) {
 		/*local*/int left = this.SyntaxFlag >> PrecedenceShift;
 		/*local*/int right = Right.SyntaxFlag >> PrecedenceShift;
-		return (left < right || (left == right && IsFlag(this.SyntaxFlag, LeftJoin) && IsFlag(Right.SyntaxFlag, LeftJoin)));
+		return (!IsFlag(Right.SyntaxFlag, Parenthesis) && (left < right || (left == right && IsFlag(this.SyntaxFlag, LeftJoin) && IsFlag(Right.SyntaxFlag, LeftJoin))));
 	}
 }
 
@@ -2255,6 +2257,7 @@ final class DScriptGrammar extends GtGrammar {
 			Tree = TokenContext.ReportExpectedToken(")");
 		}
 		TokenContext.ParseFlag = ParseFlag;
+		Tree.Pattern.SyntaxFlag |= Parenthesis;
 		return Tree;
 	}
 

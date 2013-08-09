@@ -1,18 +1,13 @@
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Stack;
 
 //GreenTea Generator should be written in each language.
 
 public class BashSourceGenerator extends SourceGenerator {
 	/*local*/private boolean inFunc = false;
-	/*local*/private HashMap<String, String> retValueMap;
-	/*local*/private Stack<String> funcNameStack;
+	/*local*/private final String retVar = "__ret";
 
 	BashSourceGenerator() {
 		super("BashSource");
-		this.retValueMap = new HashMap<String, String>();
-		this.funcNameStack = new Stack<String>();
 	}
 
 	public void VisitEach(GtNode Node) {
@@ -35,22 +30,23 @@ public class BashSourceGenerator extends SourceGenerator {
 	@Override public void VisitIndexerNode(IndexerNode Node) {
 		Node.Indexer.Evaluate(this);
 		Node.Expr.Evaluate(this);
-		this.PushSourceCode("${" + this.PopSourceCode() + "[" + this.PopSourceCode() + "]}");
+		this.PushSourceCode(this.PopSourceCode() + "[" + this.PopSourceCode() + "]");
 	}
 
 	@Override public void VisitMessageNode(MessageNode Node) {
-		// do nothing
+		// not support
 	}
 
 	@Override public void VisitWhileNode(WhileNode Node) {
 		Node.CondExpr.Evaluate(this);
-		/*local*/String Program = "while(( " + this.PopSourceCode() + " ))\ndo";
+		/*local*/String Program = "while " + this.PopSourceCode() + " ;do";
 		this.VisitEach(Node.LoopBody);
 		Program += this.PopSourceCode() + "done\n";
 		this.PushSourceCode(Program);
 	}
 
 	@Override public void VisitDoWhileNode(DoWhileNode Node) {
+		// not support
 	}
 
 	@Override public void VisitForNode(ForNode Node) {
@@ -59,7 +55,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/String Cond = this.PopSourceCode();
 		/*local*/String Iter = this.PopSourceCode();
 
-		/*local*/String Program = "for((; " + Cond  + "; " + Iter + " ))\ndo";
+		/*local*/String Program = "for((; " + Cond  + "; " + Iter + " )) ;do";
 		this.VisitEach(Node.LoopBody);
 		Program += this.PopSourceCode() + "done\n";
 		this.PushSourceCode(Program);
@@ -79,7 +75,6 @@ public class BashSourceGenerator extends SourceGenerator {
 				value = "1";
 			}
 		}
-
 		this.PushSourceCode(value);
 	}
 
@@ -89,16 +84,15 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitNullNode(NullNode Node) {
-		this.PushSourceCode("0");
+		this.PushSourceCode("NULL");
 	}
 
 	@Override public void VisitLocalNode(LocalNode Node) {
-		this.PushSourceCode("$" + Node.LocalName);
+		this.PushSourceCode(Node.LocalName);
 	}
 
 	@Override public void VisitGetterNode(GetterNode Node) {
-//		Node.Expr.Evaluate(this);
-//		this.PushSourceCode(this.PopSourceCode() + "." + Node.Method.MethodName);
+		// not support
 	}
 
 	private String[] EvaluateParam(ArrayList<GtNode> Params) {
@@ -107,7 +101,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		for(int i = 0; i < Size; i++) {
 			/*local*/GtNode Node = Params.get(i);
 			Node.Evaluate(this);
-			Programs[Size - i - 1] = this.PopSourceCode();
+			Programs[Size - i - 1] = ResolveValueType(Node, this.PopSourceCode());
 		}
 		return Programs;
 	}
@@ -140,7 +134,7 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitUnaryNode(UnaryNode Node) {
 		/*local*/String MethodName = Node.Token.ParsedText;
-
+		
 		if(MethodName.equals("+")) {
 		}
 		else if(MethodName.equals("-")) {
@@ -160,9 +154,33 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.PushSourceCode("((" + MethodName + this.PopSourceCode() + "))");
 	}
 
-	@Override public void VisitBinaryNode(BinaryNode Node) {	//TODO: support string 
+	@Override public void VisitBinaryNode(BinaryNode Node) {
 		/*local*/String MethodName = Node.Token.ParsedText;
-
+		
+		if(Node.Type.equals(Node.Type.Context.StringType)) {
+			Node.RightNode.Evaluate(this);
+			Node.LeftNode.Evaluate(this);
+			
+			if(MethodName.equals("+")) {
+				this.PushSourceCode(this.PopSourceCode() + this.PopSourceCode());
+				return;
+			}
+			else if(MethodName.equals("!=")) {
+			}
+			else if(MethodName.equals("==")) {
+			}
+			else {
+				throw new RuntimeException("NotSupportOperator: " + MethodName);
+			}
+			
+			Node.RightNode.Evaluate(this);
+			Node.LeftNode.Evaluate(this);
+			/*local*/String left = ResolveValueType(Node.LeftNode, this.PopSourceCode());
+			/*local*/String right = ResolveValueType(Node.RightNode, this.PopSourceCode());
+			this.PushSourceCode("((" + this.PopSourceCode() + " " + left  + " " + right + "))");
+			return;
+		}
+		
 		if(MethodName.equals("+")) {
 		}
 		else if(MethodName.equals("-")) {
@@ -198,9 +216,12 @@ public class BashSourceGenerator extends SourceGenerator {
 		else {
 			throw new RuntimeException("NotSupportOperator: " + MethodName);
 		}
+		
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
-		this.PushSourceCode("((" + this.PopSourceCode() + " " + MethodName + " " + this.PopSourceCode() + "))");
+		/*local*/String left = ResolveValueType(Node.LeftNode, this.PopSourceCode());
+		/*local*/String right = ResolveValueType(Node.RightNode, this.PopSourceCode());
+		this.PushSourceCode("((" + left + " " + MethodName + " " + right + "))");
 	}
 
 	@Override public void VisitAndNode(AndNode Node) {
@@ -215,20 +236,12 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.PushSourceCode("(" + this.PopSourceCode() + " || " + this.PopSourceCode() + ")");
 	}
 
-	@Override public void VisitAssignNode(AssignNode Node) {	//TODO: support array
+	@Override public void VisitAssignNode(AssignNode Node) {
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
-		
 		/*local*/String left = this.PopSourceCode();
-		/*local*/String right = this.PopSourceCode();
-		
-		if(left.startsWith("$")) {
-			left = left.substring(1, left.length());
-		}
-		
-		if(!right.startsWith("$")) {
-			right = "$" + right;
-		}
+		/*local*/String code = this.PopSourceCode();
+		/*local*/String right = ResolveValueType(Node.RightNode, code);
 		
 		this.PushSourceCode(left + "=" + right);
 	}
@@ -253,7 +266,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/String ElseBlock = this.PopSourceCode();
 		/*local*/String ThenBlock = this.PopSourceCode();
 		/*local*/String CondExpr = this.PopSourceCode();
-		/*local*/String Code = "if " + CondExpr + "\nthen" + ThenBlock;
+		/*local*/String Code = "if " + CondExpr + " ;then" + ThenBlock;
 		if(Node.ElseNode != null) {
 			Code += "\nelse" + ElseBlock;
 		}
@@ -268,16 +281,22 @@ public class BashSourceGenerator extends SourceGenerator {
 	@Override public void VisitReturnNode(ReturnNode Node) {
 		if(inFunc && Node.Expr != null) {
 			Node.Expr.Evaluate(this);
-			if(Node.Type.equals(Node.Type.Context.BooleanType)) {
-				this.PushSourceCode("return " + this.PopSourceCode());
+			String expr = this.PopSourceCode();
+			String ret = ResolveValueType(Node.Expr, expr);
+			
+			if(Node.Expr instanceof CommandNode) {
+				this.PushSourceCode(expr + "\nreturn " + ret);
 				return;
 			}
 			
-			/*local*/String funcName = funcNameStack.peek();
-			/*local*/String retValue = "ret_" + funcName;
-			this.retValueMap.put(funcName, retValue);
-			retValue += "=" + this.PopSourceCode();
-			this.PushSourceCode(retValue);
+			if(Node.Type.equals(Node.Type.Context.BooleanType) || 
+					Node.Type.equals(Node.Type.Context.IntType)) {
+				this.PushSourceCode("return " + ret);
+				return;
+			}
+			
+			ret = retVar + "=" + ret;
+			this.PushSourceCode(ret);
 		}
 	}
 
@@ -363,16 +382,35 @@ public class BashSourceGenerator extends SourceGenerator {
 		assignNode.NextNode = ConvertParamName(ParamNameList, Body, ++index);
 		return new LetNode(null, null, null, varNode, assignNode);
 	}
+	
+	private String ResolveValueType(GtNode TargetNode, String value) {
+		String resolvedValue;
+		
+		if(TargetNode instanceof ConstNode || TargetNode instanceof NullNode) {
+			resolvedValue = value;
+		}
+		else if(TargetNode instanceof IndexerNode) {
+			resolvedValue = "${" + value + "}";
+		}
+		else if(TargetNode instanceof CommandNode) {	// TODO: support statement and expression
+			resolvedValue = "$?";
+		}
+//		else if(TargetNode instanceof ApplyNode) {
+//			//TODO
+//		}
+		else {
+			resolvedValue = "$" + value;
+		}
+		return resolvedValue;
+	}
 
 	@Override public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
 		/*local*/String Function = "function ";
 		inFunc = true;
-		funcNameStack.push(Method.MethodName);
 		Function += Method.MethodName + "() {";
 		this.VisitEach(ResolveParamName(ParamNameList, Body));
 		Function += PopSourceCode() + "\n}";
 		this.WriteTranslatedCode(Function);
-		funcNameStack.pop();
 		inFunc = false;
 	}
 
