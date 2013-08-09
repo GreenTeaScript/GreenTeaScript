@@ -5,10 +5,10 @@
 
 // Generator: GreenTeabe: shouldin: writtenlanguage: each. //
 
-class TypedNode {
-	public ParentNode: TypedNode;
-	public PrevNode: TypedNode;
-	public NextNode: TypedNode;
+class GtNode {
+	public ParentNode: GtNode;
+	public PrevNode: GtNode;
+	public NextNode: GtNode;
 
 	public Type: GtType;
 	public Token: GtToken;
@@ -21,27 +21,27 @@ class TypedNode {
 		this.NextNode = null;
 	}
 
-	 MoveHeadNode(): TypedNode {
-		var Node: TypedNode = this;
+	 MoveHeadNode(): GtNode {
+		var Node: GtNode = this;
 		while(Node.PrevNode != null) {
 			Node = Node.PrevNode;
 		}
 		return Node;
 	}
 
-	 MoveTailNode(): TypedNode {
-		var Node: TypedNode = this;
+	 MoveTailNode(): GtNode {
+		var Node: GtNode = this;
 		while(Node.NextNode != null) {
 			Node = Node.NextNode;
 		}
 		return Node;
 	}
 
-	public Append(Node: TypedNode): void {
+	public Append(Node: GtNode): void {
 		/*extension*/
 	}
 
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitEmptyNode(this);  /*override: must */
 	}
 
@@ -53,7 +53,7 @@ class TypedNode {
 		return "(TypedNode)";
 	}
 
-	static Stringify(Block: TypedNode): string {
+	static Stringify(Block: GtNode): string {
 		var Text: string = Block.toString();
 		while(Block != null) {
 			Text += Block.toString() + " ";
@@ -64,7 +64,7 @@ class TypedNode {
 
 	public CountForrowingNode(): number {
 		var n: number = 0;
-		var node: TypedNode = this;
+		var node: GtNode = this;
 		while(node != null){
 			n++;
 			node = node.NextNode;
@@ -74,143 +74,143 @@ class TypedNode {
 }
 
 //  E.g., "~" $Expr //
-class UnaryNode extends TypedNode {
+class UnaryNode extends GtNode {
 	public Method: GtMethod;
-	public Expr: TypedNode;
-	constructor(Type: GtType, Token: GtToken, Method: GtMethod, Expr: TypedNode) {
+	public Expr: GtNode;
+	constructor(Type: GtType, Token: GtToken, Method: GtMethod, Expr: GtNode) {
 		super(Type, Token);
 		this.Method = Method;
 		this.Expr = Expr;
 	}
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitUnaryNode(this);
 	}
 }
 
 //  E.g.,  $Expr "++" //
-class SuffixNode extends TypedNode {
+class SuffixNode extends GtNode {
 	public Method: GtMethod;
-	public Expr: TypedNode;
-	constructor(Type: GtType, Token: GtToken, Method: GtMethod, Expr: TypedNode) {
+	public Expr: GtNode;
+	constructor(Type: GtType, Token: GtToken, Method: GtMethod, Expr: GtNode) {
 		super(Type, Token);
 		this.Method = Method;
 		this.Expr = Expr;
 	}
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitSuffixNode(this);
 	}
 }
 
 //  E.g., $LeftNode "+" $RightNode //
-class BinaryNode extends TypedNode {
+class BinaryNode extends GtNode {
 	public Method: GtMethod;
-	public LeftNode: TypedNode;
-	public RightNode: TypedNode;
-	constructor(Type: GtType, Token: GtToken, Method: GtMethod, Left: TypedNode, Right: TypedNode) {
+	public LeftNode: GtNode;
+	public RightNode: GtNode;
+	constructor(Type: GtType, Token: GtToken, Method: GtMethod, Left: GtNode, Right: GtNode) {
 		super(Type, Token);
 		this.Method = Method;
 		this.LeftNode  = Left;
 		this.RightNode = Right;
 	}
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitBinaryNode(this);
 	}
 }
 
 // E.g., $LeftNode && $RightNode //
-class AndNode extends TypedNode {
-	public LeftNode: TypedNode;
-	public RightNode: TypedNode;
-	constructor(Type: GtType, Token: GtToken, Left: TypedNode, Right: TypedNode) {
+class AndNode extends GtNode {
+	public LeftNode: GtNode;
+	public RightNode: GtNode;
+	constructor(Type: GtType, Token: GtToken, Left: GtNode, Right: GtNode) {
 		super(Type, Token);
 		this.LeftNode  = Left;
 		this.RightNode = Right;
 	}
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitAndNode(this);
 	}
 	public toString(): string {
-		return "(And:" + this.Type + " " + TypedNode.Stringify(this.LeftNode) + ", " + TypedNode.Stringify(this.RightNode) + ")";
+		return "(And:" + this.Type + " " + GtNode.Stringify(this.LeftNode) + ", " + GtNode.Stringify(this.RightNode) + ")";
 	}
 }
 
 // E.g., $LeftNode || $RightNode //
-class OrNode extends TypedNode {
-	public LeftNode: TypedNode;
-	public RightNode: TypedNode;
-	constructor(Type: GtType, Token: GtToken, Left: TypedNode, Right: TypedNode) {
+class OrNode extends GtNode {
+	public LeftNode: GtNode;
+	public RightNode: GtNode;
+	constructor(Type: GtType, Token: GtToken, Left: GtNode, Right: GtNode) {
 		super(Type, Token);
 		this.LeftNode  = Left;
 		this.RightNode = Right;
 	}
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitOrNode(this);
 	}
 	public toString(): string {
-		return "(Or:" + this.Type + " " + TypedNode.Stringify(this.LeftNode) + ", " + TypedNode.Stringify(this.RightNode) + ")";
+		return "(Or:" + this.Type + " " + GtNode.Stringify(this.LeftNode) + ", " + GtNode.Stringify(this.RightNode) + ")";
 	}
 }
 
 // E.g., $LeftNode || $RightNode //
-class GetterNode extends TypedNode {
-	public Expr: TypedNode;
+class GetterNode extends GtNode {
+	public Expr: GtNode;
 	public Method: GtMethod;
-	constructor(Type: GtType, Token: GtToken, Method: GtMethod, Expr: TypedNode) {
+	constructor(Type: GtType, Token: GtToken, Method: GtMethod, Expr: GtNode) {
 		super(Type, Token);
 		this.Method = Method;
 		this.Expr = Expr;
 	}
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitGetterNode(this);
 	}
 	public toString(): string {
-		return "(Getter:" + this.Type + " " + TypedNode.Stringify(this.Expr) + ", " + this.Method.MethodName + ")";
+		return "(Getter:" + this.Type + " " + GtNode.Stringify(this.Expr) + ", " + this.Method.MethodName + ")";
 	}
 }
 
 // E.g., $Expr "[" $Indexer "]" //
-class IndexerNode extends TypedNode {
+class IndexerNode extends GtNode {
 	public Method: GtMethod;
-	public Expr: TypedNode;
-	public Indexer: TypedNode;
-	constructor(Type: GtType, Token: GtToken, Method: GtMethod, Expr: TypedNode, Indexer: TypedNode) {
+	public Expr: GtNode;
+	public Indexer: GtNode;
+	constructor(Type: GtType, Token: GtToken, Method: GtMethod, Expr: GtNode, Indexer: GtNode) {
 		super(Type, Token);
 		this.Method = Method;
 		this.Expr = Expr;
 		this.Indexer = Indexer;
 	}
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitIndexerNode(this);
 	}
 	public toString(): string {
-		return "(Index:" + this.Type + " " + TypedNode.Stringify(this.Expr) + ", " + TypedNode.Stringify(this.Indexer) + ")";
+		return "(Index:" + this.Type + " " + GtNode.Stringify(this.Expr) + ", " + GtNode.Stringify(this.Indexer) + ")";
 	}
 }
 
 // E.g., $LeftNode = $RightNode //
-class AssignNode extends TypedNode {
-	public LeftNode: TypedNode;
-	public RightNode: TypedNode;
-	constructor(Type: GtType, Token: GtToken, Left: TypedNode, Right: TypedNode) {
+class AssignNode extends GtNode {
+	public LeftNode: GtNode;
+	public RightNode: GtNode;
+	constructor(Type: GtType, Token: GtToken, Left: GtNode, Right: GtNode) {
 		super(Type, Token);
 		this.LeftNode  = Left;
 		this.RightNode = Right;
 	}
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitAssignNode(this);
 	}
 	public toString(): string {
-		return "(Assign:" + this.Type + " " + TypedNode.Stringify(this.LeftNode) + " = " + TypedNode.Stringify(this.RightNode) + ")";
+		return "(Assign:" + this.Type + " " + GtNode.Stringify(this.LeftNode) + " = " + GtNode.Stringify(this.RightNode) + ")";
 	}
 }
 
-class ConstNode extends TypedNode {
+class ConstNode extends GtNode {
 	public ConstValue: Object;
 	constructor(Type: GtType, Token: GtToken, ConstValue: Object) {
 		super(Type, Token);
 		this.ConstValue = ConstValue;
 	}
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitConstNode(this);
 	}
 	public toString(): string {
@@ -218,13 +218,13 @@ class ConstNode extends TypedNode {
 	}
 }
 
-class LocalNode extends TypedNode {
+class LocalNode extends GtNode {
 	public LocalName: string;
 	constructor(Type: GtType, Token: GtToken, LocalName: string) {
 		super(Type, Token);
 		this.LocalName = LocalName;
 	}
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitLocalNode(this);
 	}
 	public toString(): string {
@@ -232,11 +232,11 @@ class LocalNode extends TypedNode {
 	}
 }
 
-class NullNode extends TypedNode {
+class NullNode extends GtNode {
 	constructor(Type: GtType, Token: GtToken) {
 		super(Type, Token);
 	}
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitNullNode(this);
 	}
 	public toString(): string {
@@ -244,51 +244,51 @@ class NullNode extends TypedNode {
 	}
 }
 
-class LetNode extends TypedNode {
+class LetNode extends GtNode {
 	public DeclType: GtType;
-	public VarNode: TypedNode;
-	public BlockNode: TypedNode;
+	public VarNode: GtNode;
+	public BlockNode: GtNode;
 	/*VarNode: letBlock: end: in */
-	constructor(Type: GtType, Token: GtToken, DeclType: GtType, VarNode: TypedNode, Block: TypedNode) {
+	constructor(Type: GtType, Token: GtToken, DeclType: GtType, VarNode: GtNode, Block: GtNode) {
 		super(Type, Token);
 		this.DeclType = DeclType;
 		this.VarNode  = VarNode;
 		this.BlockNode = Block;
 	}
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitLetNode(this);
 	}
 	public toString(): string {
-		var Block: string = TypedNode.Stringify(this.BlockNode);
-		return "(Let:" + this.Type + " " + TypedNode.Stringify(this.VarNode) + " in {" + Block + "})";
+		var Block: string = GtNode.Stringify(this.BlockNode);
+		return "(Let:" + this.Type + " " + GtNode.Stringify(this.VarNode) + " in {" + Block + "})";
 	}
 }
 
 //  E.g., $Param[0] "(" $Param[1], $Param[2], ... ")" //
-class ApplyNode extends TypedNode {
+class ApplyNode extends GtNode {
 	public Method: GtMethod;
-	public Params: Array<TypedNode>; /* [arg1, arg2, ...] */
+	public Params: Array<GtNode>; /* [arg1, arg2, ...] */
 	constructor(Type: GtType, KeyToken: GtToken, Method: GtMethod) {
 		super(Type, KeyToken);
 		this.Method = Method;
-		this.Params = new Array<TypedNode>();
+		this.Params = new Array<GtNode>();
 	}
-	public Append(Expr: TypedNode): void {
+	public Append(Expr: GtNode): void {
 		this.Params.add(Expr);
 	}
 
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitApplyNode(this);
 	}
 	public toString(): string {
 		var Param: string = "";
 		var i: number = 0;
 		while(i < ListSize(this.Params)) {
-			var Node: TypedNode = this.Params.get(i);
+			var Node: GtNode = this.Params.get(i);
 			if(i != 0) {
 				Param += ", ";
 			}
-			Param += TypedNode.Stringify(Node);
+			Param += GtNode.Stringify(Node);
 			i = i + 1;
 		}
 		return "(Apply:" + this.Type + " " + Param + ")";
@@ -296,32 +296,32 @@ class ApplyNode extends TypedNode {
 }
 
 // E.g., $Recv.Method "(" $Param[0], $Param[1], ... ")" //
-class MessageNode extends TypedNode {
+class MessageNode extends GtNode {
 	public Method: GtMethod;
-	public RecvNode: TypedNode;
-	public Params: Array<TypedNode>;
-	constructor(Type: GtType, KeyToken: GtToken, Method: GtMethod, RecvNode: TypedNode) {
+	public RecvNode: GtNode;
+	public Params: Array<GtNode>;
+	constructor(Type: GtType, KeyToken: GtToken, Method: GtMethod, RecvNode: GtNode) {
 		super(Type, KeyToken);
 		this.Method = Method;
 		this.RecvNode = RecvNode;
-		this.Params = new Array<TypedNode>();
+		this.Params = new Array<GtNode>();
 	}
-	public Append(Expr: TypedNode): void {
+	public Append(Expr: GtNode): void {
 		this.Params.add(Expr);
 	}
 
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitMessageNode(this);
 	}
 	public toString(): string {
 		var Param: string = "";
 		var i: number = 0;
 		while(i < ListSize(this.Params)) {
-			var Node: TypedNode = this.Params.get(i);
+			var Node: GtNode = this.Params.get(i);
 			if(i != 0) {
 				Param += ", ";
 			}
-			Param += TypedNode.Stringify(Node);
+			Param += GtNode.Stringify(Node);
 			i = i + 1;
 		}
 		return "(Message:" + this.Type + " " + Param + ")";
@@ -329,27 +329,27 @@ class MessageNode extends TypedNode {
 }
 
 // E.g., "new" $Type "(" $Param[0], $Param[1], ... ")" //
-class NewNode extends TypedNode {
-	public Params: Array<TypedNode>;
+class NewNode extends GtNode {
+	public Params: Array<GtNode>;
 	constructor(Type: GtType, Token: GtToken) {
 		super(Type, Token);
-		this.Params = new Array<TypedNode>();
+		this.Params = new Array<GtNode>();
 	}
-	public Append(Expr: TypedNode): void {
+	public Append(Expr: GtNode): void {
 		this.Params.add(Expr);
 	}
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitNewNode(this);
 	}
 	public toString(): string {
 		var Param: string = "";
 		var i: number = 0;
 		while(i < ListSize(this.Params)) {
-			var Node: TypedNode = this.Params.get(i);
+			var Node: GtNode = this.Params.get(i);
 			if(i != 0) {
 				Param += ", ";
 			}
-			Param += TypedNode.Stringify(Node);
+			Param += GtNode.Stringify(Node);
 			i = i + 1;
 		}
 		return "(New:" + this.Type + " " + Param + ")";
@@ -357,116 +357,116 @@ class NewNode extends TypedNode {
 }
 
 // E.g., "if" "(" $Cond ")" $ThenNode "else" $ElseNode //
-class IfNode extends TypedNode {
-	public CondExpr: TypedNode;
-	public ThenNode: TypedNode;
-	public ElseNode: TypedNode;
+class IfNode extends GtNode {
+	public CondExpr: GtNode;
+	public ThenNode: GtNode;
+	public ElseNode: GtNode;
 	/*CondExpr: IfThenBlock: then else ElseBlock */
-	constructor(Type: GtType, Token: GtToken, CondExpr: TypedNode, ThenBlock: TypedNode, ElseNode: TypedNode) {
+	constructor(Type: GtType, Token: GtToken, CondExpr: GtNode, ThenBlock: GtNode, ElseNode: GtNode) {
 		super(Type, Token);
 		this.CondExpr = CondExpr;
 		this.ThenNode = ThenBlock;
 		this.ElseNode = ElseNode;
 	}
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitIfNode(this);
 	}
 	public toString(): string {
-		var Cond: string = TypedNode.Stringify(this.CondExpr);
-		var Then: string = TypedNode.Stringify(this.ThenNode);
-		var Else: string = TypedNode.Stringify(this.ElseNode);
+		var Cond: string = GtNode.Stringify(this.CondExpr);
+		var Then: string = GtNode.Stringify(this.ThenNode);
+		var Else: string = GtNode.Stringify(this.ElseNode);
 		return "(If:" + this.Type + " Cond:" + Cond + " Then:"+ Then + " Else:" + Else + ")";
 	}
 }
 
 // E.g., "while" "(" $CondExpr ")" $LoopBody //
-class WhileNode extends TypedNode {
-	public CondExpr: TypedNode;
-	public LoopBody: TypedNode;
-	constructor(Type: GtType, Token: GtToken, CondExpr: TypedNode, LoopBody: TypedNode) {
+class WhileNode extends GtNode {
+	public CondExpr: GtNode;
+	public LoopBody: GtNode;
+	constructor(Type: GtType, Token: GtToken, CondExpr: GtNode, LoopBody: GtNode) {
 		super(Type, Token);
 		this.CondExpr = CondExpr;
 		this.LoopBody = LoopBody;
 	}
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitWhileNode(this);
 	}
 	public toString(): string {
-		var Cond: string = TypedNode.Stringify(this.CondExpr);
-		var Body: string = TypedNode.Stringify(this.LoopBody);
+		var Cond: string = GtNode.Stringify(this.CondExpr);
+		var Body: string = GtNode.Stringify(this.LoopBody);
 		return "(While:" + this.Type + " Cond:" + Cond + " Body:"+ Body + ")";
 	}
 }
 
-class DoWhileNode extends TypedNode {
-	public CondExpr: TypedNode;
-	public LoopBody: TypedNode;
-	constructor(Type: GtType, Token: GtToken, CondExpr: TypedNode, LoopBody: TypedNode) {
+class DoWhileNode extends GtNode {
+	public CondExpr: GtNode;
+	public LoopBody: GtNode;
+	constructor(Type: GtType, Token: GtToken, CondExpr: GtNode, LoopBody: GtNode) {
 		super(Type, Token);
 		this.CondExpr = CondExpr;
 		this.LoopBody = LoopBody;
 	}
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitDoWhileNode(this);
 	}
 	public toString(): string {
-		var Cond: string = TypedNode.Stringify(this.CondExpr);
-		var Body: string = TypedNode.Stringify(this.LoopBody);
+		var Cond: string = GtNode.Stringify(this.CondExpr);
+		var Body: string = GtNode.Stringify(this.LoopBody);
 		return "(DoWhile:" + this.Type + " Cond:" + Cond + " Body:"+ Body + ")";
 	}
 }
 
 // E.g., "for" "(" ";" $CondExpr ";" $IterExpr ")" $LoopNode //
-class ForNode extends TypedNode {
-	public CondExpr: TypedNode;
-	public IterExpr: TypedNode;
-	public LoopBody: TypedNode;
-	constructor(Type: GtType, Token: GtToken, CondExpr: TypedNode, IterExpr: TypedNode, LoopBody: TypedNode) {
+class ForNode extends GtNode {
+	public CondExpr: GtNode;
+	public IterExpr: GtNode;
+	public LoopBody: GtNode;
+	constructor(Type: GtType, Token: GtToken, CondExpr: GtNode, IterExpr: GtNode, LoopBody: GtNode) {
 		super(Type, Token);
 		this.CondExpr = CondExpr;
 		this.LoopBody = LoopBody;
 		this.IterExpr = IterExpr;
 	}
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitForNode(this);
 	}
 	public toString(): string {
-		var Cond: string = TypedNode.Stringify(this.CondExpr);
-		var Body: string = TypedNode.Stringify(this.LoopBody);
-		var Iter: string = TypedNode.Stringify(this.IterExpr);
+		var Cond: string = GtNode.Stringify(this.CondExpr);
+		var Body: string = GtNode.Stringify(this.LoopBody);
+		var Iter: string = GtNode.Stringify(this.IterExpr);
 		return "(For:" + this.Type + " Cond:" + Cond + " Body:"+ Body + " Iter:" + Iter + ")";
 	}
 }
 
 // E.g., "for" "(" $Variable ":" $IterExpr ")" $LoopNode //
-class ForEachNode extends TypedNode {
-	public Variable: TypedNode;
-	public IterExpr: TypedNode;
-	public LoopBody: TypedNode;
-	constructor(Type: GtType, Token: GtToken, Variable: TypedNode, IterExpr: TypedNode, LoopBody: TypedNode) {
+class ForEachNode extends GtNode {
+	public Variable: GtNode;
+	public IterExpr: GtNode;
+	public LoopBody: GtNode;
+	constructor(Type: GtType, Token: GtToken, Variable: GtNode, IterExpr: GtNode, LoopBody: GtNode) {
 		super(Type, Token);
 		this.Variable = Variable;
 		this.IterExpr = IterExpr;
 		this.LoopBody = LoopBody;
 	}
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitForEachNode(this);
 	}
 	public toString(): string {
-		var Var: string = TypedNode.Stringify(this.Variable);
-		var Body: string = TypedNode.Stringify(this.LoopBody);
-		var Iter: string = TypedNode.Stringify(this.IterExpr);
+		var Var: string = GtNode.Stringify(this.Variable);
+		var Body: string = GtNode.Stringify(this.LoopBody);
+		var Iter: string = GtNode.Stringify(this.IterExpr);
 		return "(Foreach:" + this.Type + " Var:" + Var + " Body:"+ Body + " Iter:" + Iter + ")";
 	}
 }
 
-class LabelNode extends TypedNode {
+class LabelNode extends GtNode {
 	public Label: string;
 	constructor(Type: GtType, Token: GtToken, Label: string) {
 		super(Type, Token);
 		this.Label = Label;
 	}
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitLabelNode(this);
 	}
 	public toString(): string {
@@ -474,13 +474,13 @@ class LabelNode extends TypedNode {
 	}
 }
 
-class JumpNode extends TypedNode {
+class JumpNode extends GtNode {
 	public Label: string;
 	constructor(Type: GtType, Token: GtToken, Label: string) {
 		super(Type, Token);
 		this.Label = Label;
 	}
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitJumpNode(this);
 	}
 	public toString(): string {
@@ -488,13 +488,13 @@ class JumpNode extends TypedNode {
 	}
 }
 
-class ContinueNode extends TypedNode {
+class ContinueNode extends GtNode {
 	public Label: string;
 	constructor(Type: GtType, Token: GtToken, Label: string) {
 		super(Type, Token);
 		this.Label = Label;
 	}
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitContinueNode(this);
 	}
 	public toString(): string {
@@ -502,13 +502,13 @@ class ContinueNode extends TypedNode {
 	}
 }
 
-class BreakNode extends TypedNode {
+class BreakNode extends GtNode {
 	public Label: string;
 	constructor(Type: GtType, Token: GtToken, Label: string) {
 		super(Type, Token);
 		this.Label = Label;
 	}
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitBreakNode(this);
 	}
 	public toString(): string {
@@ -516,43 +516,43 @@ class BreakNode extends TypedNode {
 	}
 }
 
-class ReturnNode extends TypedNode {
-	public Expr: TypedNode;
-	constructor(Type: GtType, Token: GtToken, Expr: TypedNode) {
+class ReturnNode extends GtNode {
+	public Expr: GtNode;
+	constructor(Type: GtType, Token: GtToken, Expr: GtNode) {
 		super(Type, Token);
 		this.Expr = Expr;
 	}
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitReturnNode(this);
 	}
 	public toString(): string {
 		var Text: string = "";
 		if(Text != null) {
-			Text = TypedNode.Stringify(this.Expr);
+			Text = GtNode.Stringify(this.Expr);
 		}
 		return "(Return:" + this.Type + " " + Text + ")";
 	}
 }
 
-class ThrowNode extends TypedNode {
-	public Expr: TypedNode;
-	constructor(Type: GtType, Token: GtToken, Expr: TypedNode) {
+class ThrowNode extends GtNode {
+	public Expr: GtNode;
+	constructor(Type: GtType, Token: GtToken, Expr: GtNode) {
 		super(Type, Token);
 		this.Expr = Expr;
 	}
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitThrowNode(this);
 	}
 	public toString(): string {
-		return "(Throw:" + this.Type + " " + TypedNode.Stringify(this.Expr) + ")";
+		return "(Throw:" + this.Type + " " + GtNode.Stringify(this.Expr) + ")";
 	}
 }
 
-class TryNode extends TypedNode {
-	TryBlock: TypedNode;
-	CatchBlock: TypedNode;
-	FinallyBlock: TypedNode;
-	constructor(Type: GtType, Token: GtToken, TryBlock: TypedNode, FinallyBlock: TypedNode) {
+class TryNode extends GtNode {
+	TryBlock: GtNode;
+	CatchBlock: GtNode;
+	FinallyBlock: GtNode;
+	constructor(Type: GtType, Token: GtToken, TryBlock: GtNode, FinallyBlock: GtNode) {
 		super(Type, Token);
 		this.TryBlock = TryBlock;
 		this.FinallyBlock = FinallyBlock;
@@ -562,23 +562,23 @@ class TryNode extends TypedNode {
 	// 	this.TargetException.add(TargetException); //
 	// 	this.CatchBlock.add(CatchBlock); //
 	// } //
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitTryNode(this);
 	}
 	public toString(): string {
-		var TryBlock: string = TypedNode.Stringify(this.TryBlock);
+		var TryBlock: string = GtNode.Stringify(this.TryBlock);
 		return "(Try:" + this.Type + " " + TryBlock + ")";
 	}
 }
 
-class SwitchNode extends TypedNode {
+class SwitchNode extends GtNode {
 	constructor(Type: GtType, Token: GtToken) {
 		super(Type, Token);
 	}
 	// CondExpr: TypedNode; //
 	// Labels: Array<TypedNode>; //
 	// Blocks: Array<TypedNode>; //
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitSwitchNode(this);
 	}
 	public toString(): string {
@@ -587,11 +587,11 @@ class SwitchNode extends TypedNode {
 	}
 }
 
-class FunctionNode extends TypedNode {
+class FunctionNode extends GtNode {
 	constructor(Type: GtType, Token: GtToken) {
 		super(Type, Token); //  TODO //
 	}
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitFunctionNode(this);
 	}
 	public toString(): string {
@@ -599,11 +599,11 @@ class FunctionNode extends TypedNode {
 	}
 }
 
-class ErrorNode extends TypedNode {
+class ErrorNode extends GtNode {
 	constructor(Type: GtType, Token: GtToken) {
 		super(Type, Token);
 	}
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitErrorNode(this);
 	}
 	public toString(): string {
@@ -612,30 +612,30 @@ class ErrorNode extends TypedNode {
 }
 
 //  E.g., "ls" "-a".. //
-class CommandNode extends TypedNode {
-	public Params: Array<TypedNode>; /* ["ls", "-la", "/", ...] */
-	public PipedNextNode: TypedNode;
-	constructor(Type: GtType, KeyToken: GtToken, PipedNextNode: TypedNode) {
+class CommandNode extends GtNode {
+	public Params: Array<GtNode>; /* ["ls", "-la", "/", ...] */
+	public PipedNextNode: GtNode;
+	constructor(Type: GtType, KeyToken: GtToken, PipedNextNode: GtNode) {
 		super(Type, KeyToken);
 		this.PipedNextNode = PipedNextNode;
-		this.Params = new Array<TypedNode>();
+		this.Params = new Array<GtNode>();
 	}
-	public Append(Expr: TypedNode): void {
+	public Append(Expr: GtNode): void {
 		this.Params.add(Expr);
 	}
 
-	public Evaluate(Visitor: CodeGenerator): void {
+	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitCommandNode(this);
 	}
 	public toString(): string {
 		var Param: string = "";
 		var i: number = 0;
 		while(i < ListSize(this.Params)) {
-			var Node: TypedNode = this.Params.get(i);
+			var Node: GtNode = this.Params.get(i);
 			if(i != 0) {
 				Param += ", ";
 			}
-			Param += TypedNode.Stringify(Node);
+			Param += GtNode.Stringify(Node);
 			i = i + 1;
 		}
 		return "(Command:" + this.Type + " " + Param + ")";
@@ -806,10 +806,9 @@ class GtMethod {
 			return this.SourceMacro.replaceAll("$0", Arg0).replaceAll("$1", Arg1);
 		}
 	}
-
 }
 
-class CodeGenerator {
+class GtGenerator {
 	public LangName: string;
 	public Context: GtContext;
 	public GeneratedCodeStack: Array<Object>;
@@ -824,145 +823,145 @@ class CodeGenerator {
 		this.Context = Context;
 	}
 
-	 UnsupportedNode(Type: GtType, ParsedTree: SyntaxTree): TypedNode {
+	 UnsupportedNode(Type: GtType, ParsedTree: GtSyntaxTree): GtNode {
 		var Token: GtToken = ParsedTree.KeyToken;
 		ParsedTree.NameSpace.ReportError(ErrorLevel, Token, this.LangName + "no: hassupport: for: language " + Token.ParsedText);
 		return new ErrorNode(ParsedTree.NameSpace.Context.VoidType, ParsedTree.KeyToken);
 	}
 
-	public CreateConstNode(Type: GtType, ParsedTree: SyntaxTree, Value: Object): TypedNode {
+	public CreateConstNode(Type: GtType, ParsedTree: GtSyntaxTree, Value: Object): GtNode {
 		return new ConstNode(Type, ParsedTree.KeyToken, Value);
 	}
 
-	public CreateNullNode(Type: GtType, ParsedTree: SyntaxTree): TypedNode {
+	public CreateNullNode(Type: GtType, ParsedTree: GtSyntaxTree): GtNode {
 		return new NullNode(Type, ParsedTree.KeyToken);
 	}
 
-	public CreateLocalNode(Type: GtType, ParsedTree: SyntaxTree, LocalName: string): TypedNode {
+	public CreateLocalNode(Type: GtType, ParsedTree: GtSyntaxTree, LocalName: string): GtNode {
 		return new LocalNode(Type, ParsedTree.KeyToken, LocalName);
 	}
 
-	public CreateGetterNode(Type: GtType, ParsedTree: SyntaxTree, Method: GtMethod, Expr: TypedNode): TypedNode {
+	public CreateGetterNode(Type: GtType, ParsedTree: GtSyntaxTree, Method: GtMethod, Expr: GtNode): GtNode {
 		return new GetterNode(Type, ParsedTree.KeyToken, Method, Expr);
 	}
 
-	public CreateIndexerNode(Type: GtType, ParsedTree: SyntaxTree, Method: GtMethod, Expr: TypedNode, Index: TypedNode): TypedNode {
+	public CreateIndexerNode(Type: GtType, ParsedTree: GtSyntaxTree, Method: GtMethod, Expr: GtNode, Index: GtNode): GtNode {
 		return new IndexerNode(Type, ParsedTree.KeyToken, Method, Expr, Index);
 	}
 
-	public CreateApplyNode(Type: GtType, ParsedTree: SyntaxTree, Method: GtMethod): TypedNode {
+	public CreateApplyNode(Type: GtType, ParsedTree: GtSyntaxTree, Method: GtMethod): GtNode {
 		return new ApplyNode(Type, ParsedTree.KeyToken, Method);
 	}
 
-	public CreateMessageNode(Type: GtType, ParsedTree: SyntaxTree, RecvNode: TypedNode, Method: GtMethod): TypedNode {
+	public CreateMessageNode(Type: GtType, ParsedTree: GtSyntaxTree, RecvNode: GtNode, Method: GtMethod): GtNode {
 		return new MessageNode(Type, ParsedTree.KeyToken, Method, RecvNode);
 	}
 
-	public CreateNewNode(Type: GtType, ParsedTree: SyntaxTree): TypedNode {
+	public CreateNewNode(Type: GtType, ParsedTree: GtSyntaxTree): GtNode {
 		return new NewNode(Type, ParsedTree.KeyToken);
 	}
 
-	public CreateUnaryNode(Type: GtType, ParsedTree: SyntaxTree, Method: GtMethod, Expr: TypedNode): TypedNode {
+	public CreateUnaryNode(Type: GtType, ParsedTree: GtSyntaxTree, Method: GtMethod, Expr: GtNode): GtNode {
 		return new UnaryNode(Type, ParsedTree.KeyToken, Method, Expr);
 	}
 
-	public CreateSuffixNode(Type: GtType, ParsedTree: SyntaxTree, Method: GtMethod, Expr: TypedNode): TypedNode {
+	public CreateSuffixNode(Type: GtType, ParsedTree: GtSyntaxTree, Method: GtMethod, Expr: GtNode): GtNode {
 		return new SuffixNode(Type, ParsedTree.KeyToken, Method, Expr);
 	}
 
-	public CreateBinaryNode(Type: GtType, ParsedTree: SyntaxTree, Method: GtMethod, Left: TypedNode, Right: TypedNode): TypedNode {
+	public CreateBinaryNode(Type: GtType, ParsedTree: GtSyntaxTree, Method: GtMethod, Left: GtNode, Right: GtNode): GtNode {
 		return new BinaryNode(Type, ParsedTree.KeyToken, Method, Left, Right);
 	}
 
-	public CreateAndNode(Type: GtType, ParsedTree: SyntaxTree, Left: TypedNode, Right: TypedNode): TypedNode {
+	public CreateAndNode(Type: GtType, ParsedTree: GtSyntaxTree, Left: GtNode, Right: GtNode): GtNode {
 		return new AndNode(Type, ParsedTree.KeyToken, Left, Right);
 	}
 
-	public CreateOrNode(Type: GtType, ParsedTree: SyntaxTree, Left: TypedNode, Right: TypedNode): TypedNode {
+	public CreateOrNode(Type: GtType, ParsedTree: GtSyntaxTree, Left: GtNode, Right: GtNode): GtNode {
 		return new OrNode(Type, ParsedTree.KeyToken, Left, Right);
 	}
 
-	public CreateAssignNode(Type: GtType, ParsedTree: SyntaxTree, Left: TypedNode, Right: TypedNode): TypedNode {
+	public CreateAssignNode(Type: GtType, ParsedTree: GtSyntaxTree, Left: GtNode, Right: GtNode): GtNode {
 		return new AssignNode(Type, ParsedTree.KeyToken, Left, Right);
 	}
 
-	public CreateLetNode(Type: GtType, ParsedTree: SyntaxTree, DeclType: GtType, VarNode: TypedNode, Block: TypedNode): TypedNode {
+	public CreateLetNode(Type: GtType, ParsedTree: GtSyntaxTree, DeclType: GtType, VarNode: GtNode, Block: GtNode): GtNode {
 		return new LetNode(Type, ParsedTree.KeyToken, DeclType, VarNode, Block);
 	}
 
-	public CreateIfNode(Type: GtType, ParsedTree: SyntaxTree, Cond: TypedNode, Then: TypedNode, Else: TypedNode): TypedNode {
+	public CreateIfNode(Type: GtType, ParsedTree: GtSyntaxTree, Cond: GtNode, Then: GtNode, Else: GtNode): GtNode {
 		return new IfNode(Type, ParsedTree.KeyToken, Cond, Then, Else);
 	}
 
-	public CreateSwitchNode(Type: GtType, ParsedTree: SyntaxTree, Match: TypedNode): TypedNode {
+	public CreateSwitchNode(Type: GtType, ParsedTree: GtSyntaxTree, Match: GtNode): GtNode {
 		return null;
 	}
 
-	public CreateWhileNode(Type: GtType, ParsedTree: SyntaxTree, Cond: TypedNode, Block: TypedNode): TypedNode {
+	public CreateWhileNode(Type: GtType, ParsedTree: GtSyntaxTree, Cond: GtNode, Block: GtNode): GtNode {
 		return new WhileNode(Type, ParsedTree.KeyToken, Cond, Block);
 	}
 
-	public CreateDoWhileNode(Type: GtType, ParsedTree: SyntaxTree, Cond: TypedNode, Block: TypedNode): TypedNode {
+	public CreateDoWhileNode(Type: GtType, ParsedTree: GtSyntaxTree, Cond: GtNode, Block: GtNode): GtNode {
 		return new DoWhileNode(Type, ParsedTree.KeyToken, Cond, Block);
 	}
 
-	public CreateForNode(Type: GtType, ParsedTree: SyntaxTree, Cond: TypedNode, IterNode: TypedNode, Block: TypedNode): TypedNode {
+	public CreateForNode(Type: GtType, ParsedTree: GtSyntaxTree, Cond: GtNode, IterNode: GtNode, Block: GtNode): GtNode {
 		return new ForNode(Type, ParsedTree.KeyToken, Cond, Block, IterNode);
 	}
 
-	public CreateForEachNode(Type: GtType, ParsedTree: SyntaxTree, VarNode: TypedNode, IterNode: TypedNode, Block: TypedNode): TypedNode {
+	public CreateForEachNode(Type: GtType, ParsedTree: GtSyntaxTree, VarNode: GtNode, IterNode: GtNode, Block: GtNode): GtNode {
 		return new ForEachNode(Type, ParsedTree.KeyToken, VarNode, IterNode, Block);
 	}
 
-	public CreateReturnNode(Type: GtType, ParsedTree: SyntaxTree, Node: TypedNode): TypedNode {
+	public CreateReturnNode(Type: GtType, ParsedTree: GtSyntaxTree, Node: GtNode): GtNode {
 		return new ReturnNode(Type, ParsedTree.KeyToken, Node);
 	}
 
-	public CreateLabelNode(Type: GtType, ParsedTree: SyntaxTree, Node: TypedNode): TypedNode {
+	public CreateLabelNode(Type: GtType, ParsedTree: GtSyntaxTree, Node: GtNode): GtNode {
 		return null;
 	}
 
-	public CreateJumpNode(Type: GtType, ParsedTree: SyntaxTree, Node: TypedNode, Label: string): TypedNode {
+	public CreateJumpNode(Type: GtType, ParsedTree: GtSyntaxTree, Node: GtNode, Label: string): GtNode {
 		return new JumpNode(Type, ParsedTree.KeyToken, Label);
 	}
 
-	public CreateBreakNode(Type: GtType, ParsedTree: SyntaxTree, Node: TypedNode, Label: string): TypedNode {
+	public CreateBreakNode(Type: GtType, ParsedTree: GtSyntaxTree, Node: GtNode, Label: string): GtNode {
 		return new BreakNode(Type, ParsedTree.KeyToken, Label);
 	}
 
-	public CreateContinueNode(Type: GtType, ParsedTree: SyntaxTree, Node: TypedNode, Label: string): TypedNode {
+	public CreateContinueNode(Type: GtType, ParsedTree: GtSyntaxTree, Node: GtNode, Label: string): GtNode {
 		return new ContinueNode(Type, ParsedTree.KeyToken, Label);
 	}
 
-	public CreateTryNode(Type: GtType, ParsedTree: SyntaxTree, TryBlock: TypedNode, FinallyBlock: TypedNode): TypedNode {
+	public CreateTryNode(Type: GtType, ParsedTree: GtSyntaxTree, TryBlock: GtNode, FinallyBlock: GtNode): GtNode {
 		return new TryNode(Type, ParsedTree.KeyToken, TryBlock, FinallyBlock);
 	}
 
-	public CreateThrowNode(Type: GtType, ParsedTree: SyntaxTree, Node: TypedNode): TypedNode {
+	public CreateThrowNode(Type: GtType, ParsedTree: GtSyntaxTree, Node: GtNode): GtNode {
 		return new ThrowNode(Type, ParsedTree.KeyToken, Node);
 	}
 
-	public CreateFunctionNode(Type: GtType, ParsedTree: SyntaxTree, Block: TypedNode): TypedNode {
+	public CreateFunctionNode(Type: GtType, ParsedTree: GtSyntaxTree, Block: GtNode): GtNode {
 		return null;
 	}
 
-	public CreateDefineNode(Type: GtType, ParsedTree: SyntaxTree, Module: Object): TypedNode {
+	public CreateDefineNode(Type: GtType, ParsedTree: GtSyntaxTree, Module: Object): GtNode {
 		return null;
 	}
 
-	public CreateEmptyNode(Type: GtType, ParsedTree: SyntaxTree): TypedNode {
-		return new TypedNode(ParsedTree.NameSpace.Context.VoidType, ParsedTree.KeyToken);
+	public CreateEmptyNode(Type: GtType, ParsedTree: GtSyntaxTree): GtNode {
+		return new GtNode(ParsedTree.NameSpace.Context.VoidType, ParsedTree.KeyToken);
 	}
 
-	public CreateErrorNode(Type: GtType, ParsedTree: SyntaxTree): TypedNode {
+	public CreateErrorNode(Type: GtType, ParsedTree: GtSyntaxTree): GtNode {
 		return new ErrorNode(ParsedTree.NameSpace.Context.VoidType, ParsedTree.KeyToken);
 	}
 
-	public CreateCommandNode(Type: GtType, ParsedTree: SyntaxTree, PipedNextNode: TypedNode): TypedNode {
+	public CreateCommandNode(Type: GtType, ParsedTree: GtSyntaxTree, PipedNextNode: GtNode): GtNode {
 		return new CommandNode(Type, ParsedTree.KeyToken, PipedNextNode);
 	}
 
-	public ParseMethodFlag(MethodFlag: number, MethodDeclTree: SyntaxTree): number {
+	public ParseMethodFlag(MethodFlag: number, MethodDeclTree: GtSyntaxTree): number {
 		if(MethodDeclTree.HasAnnotation("Export")) {
 			MethodFlag = MethodFlag | ExportMethod;
 		}
@@ -978,7 +977,7 @@ class CodeGenerator {
 
 	// ------------------------------------------------------------------------ //
 
-	public VisitEmptyNode(EmptyNode: TypedNode): void {
+	public VisitEmptyNode(EmptyNode: GtNode): void {
 		console.log("DEBUG: " + "node: empty: " + EmptyNode.Token.ParsedText);
 	}
 
@@ -1106,8 +1105,8 @@ class CodeGenerator {
 		/*extension*/
 	}
 
-	 VisitBlock(Node: TypedNode): void {
-		var CurrentNode: TypedNode = Node;
+	 VisitBlock(Node: GtNode): void {
+		var CurrentNode: GtNode = Node;
 		while(CurrentNode != null) {
 			CurrentNode.Evaluate(this);
 			CurrentNode = CurrentNode.NextNode;
@@ -1115,11 +1114,11 @@ class CodeGenerator {
 	}
 
 	// must: Thisextended: beeach: language: in //
-	public DefineFunction(Method: GtMethod, ParamNameList: Array<string>, Body: TypedNode): void {
+	public DefineFunction(Method: GtMethod, ParamNameList: Array<string>, Body: GtNode): void {
 		/*extenstion*/
 	}
 
-	public Eval(Node: TypedNode): Object {
+	public Eval(Node: GtNode): Object {
 		this.VisitBlock(Node);
 		return null;
 	}
@@ -1141,7 +1140,7 @@ class CodeGenerator {
 	}
 }
 
-class SourceGenerator extends CodeGenerator {
+class SourceGenerator extends GtGenerator {
 	public IndentLevel: number;
 	public CurrentLevelIndentString: string;
 

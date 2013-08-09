@@ -76,12 +76,12 @@ src.gsub!(/\blength\(\)/, "length")
 src.gsub!(/\bSystem\.out\.println/, "console.log")
 
 # Delegates.
-src.gsub!(/FunctionA\(this, "(.+?)"\)/){ "KonohaGrammar.#{$1}" }
-src.gsub!(/FunctionB\(this, "(.+?)"\)/){ "KonohaGrammar.#{$1}" }
-src.gsub!(/FunctionC\(this, "(.+?)"\)/){ "KonohaGrammar.#{$1}" }
-src.gsub!(/(?!\.)\b((?:Parse|Type)(?:Unary|Binary|Const|Block))\b(?!\()/){ "KonohaGrammar.#{$1}" }
+src.gsub!(/FunctionA\(this, "(.+?)"\)/){ "DScriptGrammar.#{$1}" }
+src.gsub!(/FunctionB\(this, "(.+?)"\)/){ "DScriptGrammar.#{$1}" }
+src.gsub!(/FunctionC\(this, "(.+?)"\)/){ "DScriptGrammar.#{$1}" }
+src.gsub!(/(?!\.)\b((?:Parse|Type)(?:Unary|Binary|Const|Block))\b(?!\()/){ "DScriptGrammar.#{$1}" }
 src.gsub!(/\bGtDelegate(?:Common|Token|Match|Type)\b/){ "any" }
-src.gsub!(/KonohaGrammar\.KonohaGrammar\./){ "KonohaGrammar." }
+src.gsub!(/DScriptGrammar\.DScriptGrammar\./){ "DScriptGrammar." }
 
 src.gsub!(/(LangDeps\.)?DebugP\(/, 'console.log("DEBUG: " + ')
 src.gsub!(/LangDeps\.println\(/, 'console.log(')

@@ -9,9 +9,9 @@
 		readOnly: true,
 		mode: "text/x-csrc"});
 
-	var CodeGeneratorName = "Java";
+	var CodeGeneratorName = "--js";
 	var Generator = LangDeps.CodeGenerator(CodeGeneratorName);
-	var Context = new GtContext(new KonohaGrammar(), Generator);
+	var Context = new GtContext(new DScriptGrammar(), Generator); 
 
 	editor_gs.on("change", function(cm, obj) {
 		var src = cm.getValue();

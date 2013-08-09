@@ -28,7 +28,7 @@ class GtScriptRunner {
 class GreenTeaScriptTest {
 	static TestToken(Context: GtContext, Source: string, TokenTestList: string[]): void {
 		var NameSpace: GtNameSpace = Context.DefaultNameSpace;
-		var TokenContext: TokenContext = new TokenContext(NameSpace, Source, 1);
+		var TokenContext: GtTokenContext = new GtTokenContext(NameSpace, Source, 1);
 		var i: number = 0;
 		while(i < TokenTestList.length) {
 			var TokenText: string = TokenTestList[i];
@@ -39,8 +39,8 @@ class GreenTeaScriptTest {
 
 	static CreateContext(): GtContext {
 		var CodeGeneratorName: string = "Java";
-		var Generator: CodeGenerator = LangDeps.CodeGenerator(CodeGeneratorName);
-		return new GtContext(new KonohaGrammar(), Generator);
+		var Generator: GtGenerator = LangDeps.CodeGenerator(CodeGeneratorName);
+		return new GtContext(new DScriptGrammar(), Generator);
 	}
 
 	static TokenizeOperator0(): void {
