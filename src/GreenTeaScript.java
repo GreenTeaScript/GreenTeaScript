@@ -1,10 +1,8 @@
 //ifdef JAVA
-import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 //endif VAJA
-
 
 //ifdef JAVA
 interface GtConst {
@@ -160,7 +158,7 @@ interface GtConst {
 	public final static int DelimTokenFlag	= (1 << 4);
 
 	// ParseFlag
-	public final static int	TrackbackParseFlag	= 1;
+	public final static int	BackTrackParseFlag	= 1;
 	public final static int	SkipIndentParseFlag	= (1 << 1);
 
 	// SyntaxTree
@@ -207,7 +205,8 @@ interface GtConst {
 
 	public final static int BinaryOperator					= 1;
 	public final static int LeftJoin						= 1 << 1;
-	public final static int PrecedenceShift					= 2;
+	public final static int Parenthesis						= 1 << 2;
+	public final static int PrecedenceShift					= 3;
 	public final static int Precedence_CStyleValue			= (1 << PrecedenceShift);
 	public final static int Precedence_CPPStyleScope		= (50 << PrecedenceShift);
 	public final static int Precedence_CStyleSuffixCall		= (100 << PrecedenceShift);				/*x(); x[]; x.x x->x x++ */
@@ -468,7 +467,7 @@ class GtStatic implements GtConst {
 			/*local*/GtDelegateMatch delegate = CurrentPattern.MatchFunc;
 			TokenContext.CurrentPosition = Pos;
 			if(CurrentPattern.ParentPattern != null) {
-				TokenContext.ParseFlag = ParseFlag | TrackbackParseFlag;
+				TokenContext.ParseFlag = ParseFlag | BackTrackParseFlag;
 			}
 			//DebugP("B :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + ", next=" + CurrentPattern.ParentPattern);
 			TokenContext.IndentLevel += 1;
@@ -674,7 +673,7 @@ final class TokenFunc {
 }
 
 final class GtTokenContext extends GtStatic {
-	public final static GtToken NullToken = new GtToken("", 0);
+	/*field*/public final static GtToken NullToken = new GtToken("", 0);
 
 	/*field*/public GtNameSpace NameSpace;
 	/*field*/public ArrayList<GtToken> SourceList;
@@ -879,16 +878,16 @@ final class GtTokenContext extends GtStatic {
 	}
 
 	public final boolean IsAllowedTrackback() {
-		return IsFlag(this.ParseFlag, TrackbackParseFlag);
+		return IsFlag(this.ParseFlag, BackTrackParseFlag);
 	}
 
 	public final int SetTrackback(boolean Allowed) {
 		/*local*/int ParseFlag = this.ParseFlag;
 		if(Allowed) {
-			this.ParseFlag = this.ParseFlag | TrackbackParseFlag;
+			this.ParseFlag = this.ParseFlag | BackTrackParseFlag;
 		}
 		else {
-			this.ParseFlag = (~(TrackbackParseFlag) & this.ParseFlag);
+			this.ParseFlag = (~(BackTrackParseFlag) & this.ParseFlag);
 		}
 		return ParseFlag;
 	}
@@ -898,7 +897,7 @@ final class GtTokenContext extends GtStatic {
 		/*local*/int ParseFlag = this.ParseFlag;
 		/*local*/GtSyntaxPattern Pattern = this.GetPattern(PatternName);
 		if(IsOptional) {
-			this.ParseFlag = this.ParseFlag | TrackbackParseFlag;
+			this.ParseFlag = this.ParseFlag | BackTrackParseFlag;
 		}
 		/*local*/GtSyntaxTree SyntaxTree = GtStatic.ApplySyntaxPattern(Pattern, LeftTree, this);
 		this.ParseFlag = ParseFlag;
@@ -988,7 +987,7 @@ final class GtSyntaxPattern extends GtStatic {
 	public boolean IsLeftJoin(GtSyntaxPattern Right) {
 		/*local*/int left = this.SyntaxFlag >> PrecedenceShift;
 		/*local*/int right = Right.SyntaxFlag >> PrecedenceShift;
-		return (left < right || (left == right && IsFlag(this.SyntaxFlag, LeftJoin) && IsFlag(Right.SyntaxFlag, LeftJoin)));
+		return (!IsFlag(Right.SyntaxFlag, Parenthesis) && (left < right || (left == right && IsFlag(this.SyntaxFlag, LeftJoin) && IsFlag(Right.SyntaxFlag, LeftJoin))));
 	}
 }
 
@@ -1235,7 +1234,6 @@ final class GtTypeEnv extends GtStatic {
 	/*field*/public final GtType	AnyType;
 	/*field*/public final GtType    ArrayType;
 	/*field*/public final GtType    FuncType;
-	
 
 	GtTypeEnv/*constructor*/(GtNameSpace NameSpace) {
 		this.NameSpace = NameSpace;
@@ -1306,7 +1304,7 @@ final class GtTypeEnv extends GtStatic {
 		}
 		return null;
 	}
-	
+
 	public GtNode DefaultValueConstNode(GtSyntaxTree ParsedTree, GtType Type) {
 		if(Type.DefaultNullValue != null) {
 			return this.Generator.CreateConstNode(Type, ParsedTree, Type.DefaultNullValue);
@@ -1876,7 +1874,7 @@ final class DScriptGrammar extends GtGrammar {
 		TokenContext.ReportTokenError(ErrorLevel, "expected \" to close the string literal", SourceText.substring(start, pos));
 		return pos;
 	}
-	
+
 	public static int StringLiteralToken_StringInterpolation(GtTokenContext TokenContext, String SourceText, int pos) {
 		/*local*/int start = pos + 1;
 		/*local*/int NextPos = start;
@@ -1933,7 +1931,7 @@ final class DScriptGrammar extends GtGrammar {
 		TokenContext.ReportTokenError(ErrorLevel, "expected \" to close the string literal", SourceText.substring(start, NextPos));
 		return NextPos;
 	}
-	
+
 	public static GtSyntaxTree ParseType(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/Object ConstValue = TokenContext.NameSpace.GetSymbol(Token.ParsedText);
@@ -2125,8 +2123,7 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/String[] path = System.getenv("PATH").split(":");
 		/*local*/int i = 0;
 		while(i < path.length) {
-			//FIXME(LangDeps)
-			if(new File(path[i] + "/" + cmd).exists()) {
+			if(LangDeps.HasFile(path[i] + "/" + cmd)) {
 				return true;
 			}
 			i = i + 1;
@@ -2255,6 +2252,7 @@ final class DScriptGrammar extends GtGrammar {
 			Tree = TokenContext.ReportExpectedToken(")");
 		}
 		TokenContext.ParseFlag = ParseFlag;
+		Tree.Pattern.SyntaxFlag |= Parenthesis;
 		return Tree;
 	}
 
@@ -2284,13 +2282,15 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	public static GtNode TypeApply(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
-		/*local*/GtNode ApplyNode = Gamma.Generator.CreateApplyNode(Gamma.AnyType, ParsedTree, null);
 		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
+		/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
 		/*local*/int i = 1;
 		while(i < ListSize(ParsedTree.TreeList) - 1/* this is for ")" */) {
 			/*local*/GtNode ExprNode = ParsedTree.TypeNodeAt(i, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-			ApplyNode.Append(ExprNode);
+			ParamList.add(ExprNode);
+			//FIXME we need to implement TypeChecker
 			if(ExprNode.Type.equals(Gamma.VarType)) {
+				DebugP("Typeof Paramater " + (i-1) + " is var type. Need to Implement Typechecker");
 				ExprNode.Type = Gamma.IntType;
 			}
 			TypeList.add(ExprNode.Type);
@@ -2304,10 +2304,15 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/int ParamSize = TreeList.size() - 2; /*MethodName and ")" symol*/
 		/*local*/GtMethod Method = null; //Gamma.NameSpace.LookupMethod(MethodName, ParamSize, 1/*FIXME*/, TypeList, 0);
 		if(Method == null) {
-			return Gamma.CreateErrorNode(ParsedTree, "Undefined method: " + MethodName);
+			return Gamma.CreateErrorNode(ParsedTree, "undefined method: " + MethodName);
 		}
-		((/*cast*/ApplyNode)ApplyNode).Method = Method;
-		return ApplyNode;
+		/*local*/GtNode Node = Gamma.Generator.CreateApplyNode(Method.GetReturnType(), ParsedTree, Method);
+		i = 0;
+		while(i < ParamList.size()) {
+			Node.Append(ParamList.get(i));
+			i = i + 1;
+		}
+		return Node;
 	}
 
 	public static GtNode TypeAnd(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
@@ -2534,7 +2539,7 @@ final class DScriptGrammar extends GtGrammar {
 			}
 			TokenContext.SkipIndent();
 			if(TokenContext.MatchToken("as")) {  // this is little ad hoc
-				GtToken Token = TokenContext.GetToken();
+				GtToken Token = TokenContext.Next();
 				Tree.ConstValue = Token.ParsedText;
 			}
 			else {
@@ -2601,7 +2606,8 @@ final class DScriptGrammar extends GtGrammar {
 		NameSpace.DefineTokenFunc("Aa", FunctionA(this, "SymbolToken"));
 		NameSpace.DefineTokenFunc("Aa-/", FunctionA(this, "SymbolShellToken")); // overloading
 
-		NameSpace.DefineTokenFunc("\"", FunctionA(this, "StringLiteralToken_StringInterpolation"));
+		NameSpace.DefineTokenFunc("\"", FunctionA(this, "StringLiteralToken"));
+		//NameSpace.DefineTokenFunc("\"", FunctionA(this, "StringLiteralToken_StringInterpolation"));
 		NameSpace.DefineTokenFunc("1",  FunctionA(this, "NumberLiteralToken"));
 //#ifdef JAVA
 		GtDelegateMatch ParseUnary     = FunctionB(this, "ParseUnary");

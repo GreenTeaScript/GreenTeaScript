@@ -11,6 +11,5 @@ static int f__A(int a0){
       return i1;
    };
 }
-{
-   f__A(10);
-}
+f__A(10);
+

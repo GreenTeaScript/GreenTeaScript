@@ -1,14 +1,16 @@
+//ifdef  JAVA
 import java.util.ArrayList;
+//endif VAJA
 
 //GreenTea Generator should be written in each language.
 
 public class PerlSourceGenerator extends SourceGenerator {
-	PerlSourceGenerator() {
+	PerlSourceGenerator/*constructor*/() {
 		super("Perl");
 	}
 
 	public void VisitBlockEachStatementWithIndent(GtNode Node) {
-		String Code = "{\n";
+		/*local*/String Code = "{\n";
 		this.Indent();
 		/*local*/GtNode CurrentNode = Node;
 		while(CurrentNode != null) {
@@ -25,20 +27,20 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitSuffixNode(SuffixNode Node) {
-		String MethodName = Node.Token.ParsedText;
+		/*local*/String MethodName = Node.Token.ParsedText;
 		if(MethodName.equals("++")) {
 		}
 		else if(MethodName.equals("--")) {
 		}
 		else {
-			throw new RuntimeException("NotSupportOperator");
+			//throw new RuntimeException("NotSupportOperator");
 		}
 		Node.Expr.Evaluate(this);
 		this.PushSourceCode(this.PopSourceCode() + MethodName);
 	}
 
 	@Override public void VisitUnaryNode(UnaryNode Node) {
-		String MethodName = Node.Token.ParsedText;
+		/*local*/String MethodName = Node.Token.ParsedText;
 		if(MethodName.equals("+")) {
 		}
 		else if(MethodName.equals("-")) {
@@ -52,7 +54,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		else if(MethodName.equals("--")) {
 		}
 		else {
-			throw new RuntimeException("NotSupportOperator");
+			//throw new RuntimeException("NotSupportOperator");
 		}
 		Node.Expr.Evaluate(this);
 		this.PushSourceCode(MethodName + this.PopSourceCode());
@@ -72,14 +74,14 @@ public class PerlSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitWhileNode(WhileNode Node) {
 		Node.CondExpr.Evaluate(this);
-		String Program = "while(" + this.PopSourceCode() + ")";
+		/*local*/String Program = "while(" + this.PopSourceCode() + ")";
 		this.VisitBlockEachStatementWithIndent(Node.LoopBody);
 		Program += this.PopSourceCode();
 		this.PushSourceCode(Program);
 	}
 
 	@Override public void VisitDoWhileNode(DoWhileNode Node) {
-		String Program = "do";
+		/*local*/String Program = "do";
 		this.VisitBlockEachStatementWithIndent(Node.LoopBody);
 		Node.CondExpr.Evaluate(this);
 		Program += " while(" + this.PopSourceCode() + ")";
@@ -89,10 +91,10 @@ public class PerlSourceGenerator extends SourceGenerator {
 	@Override public void VisitForNode(ForNode Node) {
 		Node.IterExpr.Evaluate(this);
 		Node.CondExpr.Evaluate(this);
-		String Cond = this.PopSourceCode();
-		String Iter = this.PopSourceCode();
+		/*local*/String Cond = this.PopSourceCode();
+		/*local*/String Iter = this.PopSourceCode();
 
-		String Program = "for(; " + Cond  + "; " + Iter + ")";
+		/*local*/String Program = "for(; " + Cond  + "; " + Iter + ")";
 		Node.LoopBody.Evaluate(this);
 		Program += this.PopSourceCode();
 		this.PushSourceCode(Program);
@@ -108,7 +110,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitNewNode(NewNode Node) {
-		String Type = Node.Type.ShortClassName;
+		/*local*/String Type = Node.Type.ShortClassName;
 		this.PushSourceCode("new " + Type);
 
 	}
@@ -127,32 +129,36 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	private String[] EvaluateParam(ArrayList<GtNode> Params) {
-		int Size = Params.size();
-		String[] Programs = new String[Size];
-		for(int i = 0; i < Size; i++) {
+		/*local*/int Size = GtStatic.ListSize(Params);
+		/*local*/String[] Programs = new String[Size];
+		/*local*/int i = 0;
+		while(i < Size) {
 			GtNode Node = Params.get(i);
 			Node.Evaluate(this);
 			Programs[Size - i - 1] = this.PopSourceCode();
+			i = i + 1;
 		}
 		return Programs;
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
 		/*local*/String Program = Node.Method.GetLocalFuncName() + "(";
-		/*local*/String[] Params = EvaluateParam(Node.Params);
-		for(int i = 0; i < Params.length; i++) {
+		/*local*/String[] Params = this.EvaluateParam(Node.Params);
+		/*local*/int i = 0;
+		while(i < Params.length) {
 			String P = Params[i];
 			if(i != 0) {
 				Program += ",";
 			}
 			Program += P;
+			i = i + 1;
 		}
 		Program += ")";
 		this.PushSourceCode(Program);
 	}
 
 	@Override public void VisitBinaryNode(BinaryNode Node) {
-		String MethodName = Node.Token.ParsedText;
+		/*local*/String MethodName = Node.Token.ParsedText;
 		if(MethodName.equals("+")) {
 		}
 		else if(MethodName.equals("-")) {
@@ -192,7 +198,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 			}
 		}
 		else {
-			throw new RuntimeException("NotSupportOperator");
+			//throw new RuntimeException("NotSupportOperator");
 		}
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
@@ -218,9 +224,9 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitLetNode(LetNode Node) {
-		String Type = Node.DeclType.ShortClassName;
+		///*local*/String Type = Node.DeclType.ShortClassName;
 		Node.VarNode.Evaluate(this);
-		String Code = Type + " " + this.PopSourceCode();
+		/*local*/String Code = "my " + this.PopSourceCode();
 		Node.BlockNode.Evaluate(this);
 		this.PushSourceCode(Code + this.PopSourceCode());
 	}
@@ -230,10 +236,10 @@ public class PerlSourceGenerator extends SourceGenerator {
 		this.VisitBlockEachStatementWithIndent(Node.ThenNode);
 		this.VisitBlockEachStatementWithIndent(Node.ElseNode);
 
-		String ElseBlock = this.PopSourceCode();
-		String ThenBlock = this.PopSourceCode();
-		String CondExpr = this.PopSourceCode();
-		String Code = "if(" + CondExpr + ") " + ThenBlock;
+		/*local*/String ElseBlock = this.PopSourceCode();
+		/*local*/String ThenBlock = this.PopSourceCode();
+		/*local*/String CondExpr = this.PopSourceCode();
+		/*local*/String Code = "if(" + CondExpr + ") " + ThenBlock;
 		if(Node.ElseNode != null) {
 			Code += " else " + ElseBlock;
 		}
@@ -247,7 +253,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitReturnNode(ReturnNode Node) {
-		String Code = "return";
+		/*local*/String Code = "return";
 		if(Node.Expr != null) {
 			Node.Expr.Evaluate(this);
 			Code += " " + this.PopSourceCode();
@@ -256,8 +262,8 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitBreakNode(BreakNode Node) {
-		String Code = "break";
-		String Label = Node.Label;
+		/*local*/String Code = "break";
+		/*local*/String Label = Node.Label;
 		if(Label != null) {
 			Code += " " + Label;
 		}
@@ -265,8 +271,8 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitContinueNode(ContinueNode Node) {
-		String Code = "continue";
-		String Label = Node.Label;
+		/*local*/String Code = "continue";
+		/*local*/String Label = Node.Label;
 		if(Label != null) {
 			Code += " " + Label;
 		}
@@ -274,7 +280,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitTryNode(TryNode Node) {
-		String Code = "try";
+		/*local*/String Code = "try";
 		//this.VisitEach(Node.CatchBlock);
 		this.VisitBlockEachStatementWithIndent(Node.TryBlock);
 
@@ -306,7 +312,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 	@Override public void VisitCommandNode(CommandNode Node) {
 		/*local*/String Code = "system(\"";
 		/*local*/int i = 0;
-		while(i < GtStatic.ListSize(Node.Params)) {
+		while(i < Node.Params.size()) {
 			GtNode Param = Node.Params.get(i);
 			if(i != 0) {
 				Code += " ";
@@ -320,23 +326,24 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
-		String Program = "";
-		String RetTy = Method.GetReturnType().ShortClassName;
-		String FuncName = Method.GetLocalFuncName();
-		String Signature = "# ";
-		String Arguments = "";
+		/*local*/String Program = "";
+		/*local*/String RetTy = Method.GetReturnType().ShortClassName;
+		/*local*/String FuncName = Method.GetLocalFuncName();
+		/*local*/String Signature = "# ";
+		/*local*/String Arguments = "";
 		Signature += RetTy + " " + FuncName + "(";
 		this.Indent();
-
-		for(int i = 0; i < ParamNameList.size(); i++) {
+		/*local*/int i = 0;
+		while(i < ParamNameList.size()) {
 			String ParamTy = Method.GetParamType(i).ShortClassName;
 			Signature += " ," + ParamTy + " " + ParamNameList.get(i);
 			Arguments += this.GetIndentString() + "my $" + ParamNameList.get(i) + " = $_[" + i + "];\n";
+			i = i + 1;
 		}
 		this.UnIndent();
 		Program += Signature + ");\n" + this.GetIndentString() + "sub " + FuncName + "{\n";
 		this.Indent();
-		Program += Arguments + GetIndentString();
+		Program += Arguments + this.GetIndentString();
 		this.VisitBlockEachStatementWithIndent(Body);
 		Program += this.PopSourceCode();
 		this.UnIndent();

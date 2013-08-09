@@ -4,6 +4,5 @@ static int f__A(int a0){
    };
    return 100;
 }
-{
-   f__A(10);
-}
+f__A(10);
+

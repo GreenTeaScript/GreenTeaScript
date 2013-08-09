@@ -6,6 +6,5 @@ static boolean g__A(int a0){
       return a1;
    };
 }
-{
-   g__A(100);
-}
+g__A(100);
+

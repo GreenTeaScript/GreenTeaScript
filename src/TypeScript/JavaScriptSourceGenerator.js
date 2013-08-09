@@ -11,7 +11,7 @@ var JavaScriptSourceGenerator = (function (_super) {
     }
     JavaScriptSourceGenerator.prototype.DefineFunction = function (Method, NameList, Body) {
         var ArgCount = Method.Types.length - 1;
-        var Code = "var " + Method.MethodName + "= (function(";
+        var Code = "var " + Method.LocalFuncName + " = (function(";
         var i = 0;
         while (i < ArgCount) {
             if (i > 0) {
@@ -87,7 +87,7 @@ var JavaScriptSourceGenerator = (function (_super) {
     };
 
     JavaScriptSourceGenerator.prototype.VisitApplyNode = function (Node) {
-        var methodName = Node.Method.MethodName;
+        var methodName = Node.Method.LocalFuncName;
         var ParamCount = Node.Params.size();
         var i = 0;
         while (i < ParamCount) {

@@ -190,6 +190,7 @@ public abstract class LangDeps {
 		System.out.println("  --X                   Executable Code");
 		System.out.println("");
 		System.out.println("  -e expr               Program passed in as string");
+		System.out.println("  -verbose              Printing Debug infomation");
 		System.exit(0);
 	}
 
@@ -232,7 +233,7 @@ public abstract class LangDeps {
 	public final static boolean HasFile(String Path) {
 		return new File(Path).exists();
 	}
-	
+
 	public final static String LoadFile(String FileName) {
 		File f = new File(FileName);
 		byte[] b = new byte[(int) f.length()];

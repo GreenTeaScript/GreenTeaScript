@@ -1,9 +1,11 @@
+//ifdef  JAVA
 import java.util.ArrayList;
+//endif VAJA
 
 //GreenTea Generator should be written in each language.
 
 public class JavaSourceGenerator extends SourceGenerator {
-	JavaSourceGenerator() {
+	JavaSourceGenerator/*constructor*/() {
 		super("Java");
 	}
 
@@ -132,7 +134,7 @@ public class JavaSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
 		/*local*/String Program = Node.Method.MethodName + "(";
-		/*local*/String[] Params = EvaluateParam(Node.Params);
+		/*local*/String[] Params = this.EvaluateParam(Node.Params);
 		for(int i = 0; i < Params.length; i++) {
 			String P = Params[i];
 			if(i != 0) {
@@ -180,7 +182,8 @@ public class JavaSourceGenerator extends SourceGenerator {
 		}
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + " " + MethodName + " " + this.PopSourceCode());
+		/* FIXME TOO MANY PARENTHESIS */
+		this.PushSourceCode("(" + this.PopSourceCode() + " " + MethodName + " " + this.PopSourceCode() + ")");
 	}
 
 	@Override public void VisitAndNode(AndNode Node) {
@@ -307,7 +310,7 @@ public class JavaSourceGenerator extends SourceGenerator {
 			Program += " ," + ParamTy + " " + ParamNameList.get(i);
 		}
 
-		Program += Eval(Body);
+		Program += this.Eval(Body);
 		this.WriteTranslatedCode(Program);
 	}
 
@@ -324,6 +327,5 @@ public class JavaSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void SetLanguageContext(GtContext Context) {
-		new JavaLayerDef().MakeDefinition(Context.DefaultNameSpace);
 	}
 }

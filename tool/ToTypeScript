@@ -1,0 +1,23 @@
+#!/bin/sh
+
+SourceDir=src/
+build=src/TypeScript/
+
+source=
+source="${source} GreenTeaScript"
+source="${source} GreenTeaScriptTest"
+source="${source} SourceGenerator"
+source="${source} BashSourceGenerator"
+source="${source} JavaScriptSourceGenerator"
+source="${source} CSourceGenerator"
+source="${source} JavaSourceGenerator"
+source="${source} PerlSourceGenerator"
+
+ts=""
+
+for s in ${source}; do
+    ruby src/TypeScript/ToTypeScript.rb < ${SourceDir}${s}.java > ${build}${s}.ts
+    ts="${ts} ${build}${s}.ts"
+done
+
+tsc ${ts}

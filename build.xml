@@ -41,7 +41,9 @@
 	<!--               CLEAN                -->
 	<!-- ================================== -->
 	<target name="clean">
-		<delete dir="bin" />
+		<delete>
+			<fileset dir="bin" includes="*.class"/>
+		</delete>
 		<delete file="${BinaryName}.jar" />
 		<delete file="${BinaryName}-TestRunner.jar" />
 	</target>

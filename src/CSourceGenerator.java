@@ -1,24 +1,31 @@
+//ifdef  JAVA
 import java.util.ArrayList;
+//endif VAJA
 
 //GreenTea Generator should be written in each language.
 
 public class CSourceGenerator extends SourceGenerator {
 
-	CSourceGenerator() {
+	CSourceGenerator/*constructor*/() {
 		super("C");
 	}
 
-	public void VisitBlockEachStatementWithIndent(GtNode Node) {
-		/*local*/String Code = "{\n";
-		this.Indent();
+	public void VisitBlockEachStatementWithIndent(GtNode Node, boolean NeedBlock) {
+		/*local*/String Code = "";
+		if(NeedBlock) {
+			Code += "{\n";
+			this.Indent();
+		}
 		/*local*/GtNode CurrentNode = Node;
 		while(CurrentNode != null) {
 			CurrentNode.Evaluate(this);
 			Code += this.GetIndentString() + this.PopSourceCode() + ";\n";
 			CurrentNode = CurrentNode.NextNode;
 		}
-		this.UnIndent();
-		Code += this.GetIndentString() + "}";
+		if(NeedBlock) {
+			this.UnIndent();
+			Code += this.GetIndentString() + "}";
+		}
 		this.PushSourceCode(Code);
 	}
 
@@ -27,7 +34,7 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitSuffixNode(SuffixNode Node) {
-		String MethodName = Node.Token.ParsedText;
+		/*local*/String MethodName = Node.Token.ParsedText;
 		//if(MethodName.equals("++")) {
 		//}
 		//else if(MethodName.equals("--")) {
@@ -37,7 +44,7 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitUnaryNode(UnaryNode Node) {
-		String MethodName = Node.Token.ParsedText;
+		/*local*/String MethodName = Node.Token.ParsedText;
 		//if(MethodName.equals("+")) {
 		//}
 		//else if(MethodName.equals("-")) {
@@ -69,15 +76,15 @@ public class CSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitWhileNode(WhileNode Node) {
 		Node.CondExpr.Evaluate(this);
-		String Program = "while(" + this.PopSourceCode() + ")";
-		this.VisitBlockEachStatementWithIndent(Node.LoopBody);
+		/*local*/String Program = "while(" + this.PopSourceCode() + ")";
+		this.VisitBlockEachStatementWithIndent(Node.LoopBody, true);
 		Program += this.PopSourceCode();
 		this.PushSourceCode(Program);
 	}
 
 	@Override public void VisitDoWhileNode(DoWhileNode Node) {
-		String Program = "do";
-		this.VisitBlockEachStatementWithIndent(Node.LoopBody);
+		/*local*/String Program = "do";
+		this.VisitBlockEachStatementWithIndent(Node.LoopBody, true);
 		Node.CondExpr.Evaluate(this);
 		Program += " while(" + this.PopSourceCode() + ")";
 		this.PushSourceCode(Program);
@@ -86,9 +93,9 @@ public class CSourceGenerator extends SourceGenerator {
 	@Override public void VisitForNode(ForNode Node) {
 		Node.IterExpr.Evaluate(this);
 		Node.CondExpr.Evaluate(this);
-		String Cond = this.PopSourceCode();
-		String Iter = this.PopSourceCode();
-		String Program = "for(; " + Cond  + "; " + Iter + ")";
+		/*local*/String Cond = this.PopSourceCode();
+		/*local*/String Iter = this.PopSourceCode();
+		/*local*/String Program = "for(; " + Cond  + "; " + Iter + ")";
 		Node.LoopBody.Evaluate(this);
 		Program += this.PopSourceCode();
 		this.PushSourceCode(Program);
@@ -128,28 +135,44 @@ public class CSourceGenerator extends SourceGenerator {
 	private String[] EvaluateParam(ArrayList<GtNode> Params) {
 		/*local*/int Size = GtStatic.ListSize(Params);
 		/*local*/String[] Programs = new String[Size];
-		for(int i = 0; i < Size; i++) {
+		/*local*/int i = 0;
+		while(i < Size) {
 			GtNode Node = Params.get(i);
 			Node.Evaluate(this);
 			Programs[Size - i - 1] = this.PopSourceCode();
+			i = i + 1;
 		}
 		return Programs;
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
-		/*local*/String Program = Node.Method.GetLocalFuncName() + "(";
-		/*local*/String[] Params = EvaluateParam(Node.Params);
+		/*local*/String[] Params = this.EvaluateParam(Node.Params);
+		/*local*/String Program = this.GenerateTemplate(Node);
 		/*local*/int i = 0;
 		while(i < Params.length) {
 			String P = Params[i];
-			if(i != 0) {
-				Program += ",";
-			}
-			Program += P;
+			Program = Program.replace("$" + i, P);
 			i = i + 1;
 		}
-		Program += ")";
 		this.PushSourceCode(Program);
+	}
+
+	private String GenerateTemplate(ApplyNode Node) {
+		if(Node.Method.SourceMacro != null) {
+			return Node.Method.SourceMacro;
+		}
+		/*local*/String Template = Node.Method.GetLocalFuncName() + "(";
+		/*local*/int i = 0;
+		/*local*/int ParamSize = Node.Params.size();
+		while(i < ParamSize) {
+			if(i != 0) {
+				Template += " ,";
+			}
+			Template += "$" + i;
+			i = i + 1;
+		}
+		Template += ")";
+		return Template;
 	}
 
 	@Override public void VisitBinaryNode(BinaryNode Node) {
@@ -216,14 +239,14 @@ public class CSourceGenerator extends SourceGenerator {
 		/*local*/String Type = Node.DeclType.ShortClassName;
 		Node.VarNode.Evaluate(this);
 		/*local*/String Code = Type + " " + this.PopSourceCode() + ";\n";
-		this.VisitBlockEachStatementWithIndent(Node.BlockNode);
+		this.VisitBlockEachStatementWithIndent(Node.BlockNode, true);
 		this.PushSourceCode(Code + this.GetIndentString() + this.PopSourceCode());
 	}
 
 	@Override public void VisitIfNode(IfNode Node) {
 		Node.CondExpr.Evaluate(this);
-		this.VisitBlockEachStatementWithIndent(Node.ThenNode);
-		this.VisitBlockEachStatementWithIndent(Node.ElseNode);
+		this.VisitBlockEachStatementWithIndent(Node.ThenNode, true);
+		this.VisitBlockEachStatementWithIndent(Node.ElseNode, true);
 		/*local*/String ElseBlock = this.PopSourceCode();
 		/*local*/String ThenBlock = this.PopSourceCode();
 		/*local*/String CondExpr = this.PopSourceCode();
@@ -279,10 +302,10 @@ public class CSourceGenerator extends SourceGenerator {
 	@Override public void VisitTryNode(TryNode Node) {
 		/*local*/String Code = "try";
 		//this.VisitEach(Node.CatchBlock);
-		this.VisitBlockEachStatementWithIndent(Node.TryBlock);
+		this.VisitBlockEachStatementWithIndent(Node.TryBlock, true);
 		Code += this.PopSourceCode();
 		if(Node.FinallyBlock != null) {
-			this.VisitBlockEachStatementWithIndent(Node.FinallyBlock);
+			this.VisitBlockEachStatementWithIndent(Node.FinallyBlock, true);
 			Code += " finally " + this.PopSourceCode();
 		}
 		this.PushSourceCode(Code);
@@ -332,23 +355,25 @@ public class CSourceGenerator extends SourceGenerator {
 		}
 		/*local*/String RetTy = this.LocalTypeName(Method.GetReturnType());
 		Code += RetTy + " " + Method.GetLocalFuncName() + "(";
-		for(int i = 0; i < ParamNameList.size(); i++) {
+		/*local*/int i = 0;
+		while(i < ParamNameList.size()) {
 			String ParamTy = this.LocalTypeName(Method.GetParamType(i));
 			if(i > 0) {
 				Code += ", ";
 			}
 			Code += ParamTy + " " + ParamNameList.get(i);
+			i = i + 1;
 		}
 		Code += ")";
-		this.VisitBlockEachStatementWithIndent(Body);
+		this.VisitBlockEachStatementWithIndent(Body, true);
 		Code += this.PopSourceCode();
 		this.WriteTranslatedCode(Code);
 	}
 
 	@Override public Object Eval(GtNode Node) {
-		this.VisitBlockEachStatementWithIndent(Node);
-		String Code = this.PopSourceCode();
-		if(Code.equals("{\n   ;\n}")) {
+		this.VisitBlockEachStatementWithIndent(Node, false);
+		/*local*/String Code = this.PopSourceCode();
+		if(Code.equals(";\n")) {
 			return "";
 		}
 		this.WriteTranslatedCode(Code);

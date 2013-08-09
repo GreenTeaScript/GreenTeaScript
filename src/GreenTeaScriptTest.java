@@ -10,7 +10,7 @@ class GtScriptRunner {
 		return null;
 	}
 	public static String ExecuteScript(String Path, String Target) {
-		/*local*/String[] cmd = {"java", "-jar", "GreenTea.jar", "--" + Target, Path};
+		/*local*/String[] cmd = {"java", "-jar", "GreenTeaScript.jar", "--" + Target, Path};
 		/*local*/String Result = "";
 		//FIXME
 //ifdef JAVA
@@ -38,11 +38,11 @@ class GtScriptRunner {
 	}
 
 	public static void Test(String Target, String ScriptPath, String ResultPath) {
-		LangDeps.println("Testing " + ScriptPath + " (Target:" + Target + ") ... ");
+		//LangDeps.println("Testing " + ScriptPath + " (Target:" + Target + ") ... ");
 		/*local*/String Expected = GtScriptRunner.LoadFile(ResultPath);
 		/*local*/String Actual   = GtScriptRunner.ExecuteScript(ScriptPath, Target);
 		LangDeps.Assert(Expected.equals(Actual));
-		LangDeps.println("Testing " + ScriptPath + " (Target:" + Target + ") ... OK");
+		//LangDeps.println("Testing " + ScriptPath + " (Target:" + Target + ") ... OK");
 	}
 }
 
@@ -81,7 +81,7 @@ public class GreenTeaScriptTest {
 		/*local*/String[] TokenTestList4 = {"1", "=", "2"};
 		GreenTeaScriptTest.TestToken(Context, "1 = 2", TokenTestList4);
 	}
-	
+
 	public static void TokenizeStatement() {
 		GtContext Context = GreenTeaScriptTest.CreateContext();
 		/*local*/String[] TokenTestList0 = {"int", "+", "(", "int", "x", ")", ";"};
@@ -92,7 +92,8 @@ public class GreenTeaScriptTest {
 		if(args.length != 3) {
 			GreenTeaScriptTest.TokenizeOperator0();
 			GreenTeaScriptTest.TokenizeStatement();
-		} else {
+		}
+		else {
 			GtScriptRunner.Test(args[0], args[1], args[2]);
 		}
 	}
