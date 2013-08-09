@@ -12,6 +12,9 @@ ruby:
 node_js:
     - "0.10"
 
+before_install:
+    - "sudo npm install -g typescript"
+
 before_script:
     - "make"
 
