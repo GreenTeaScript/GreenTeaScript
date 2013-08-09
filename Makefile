@@ -16,8 +16,8 @@ buildj: $(JavaBin)
 	echo Build GreenTeaScript;
 
 check_java_env:
-	java -version >& /dev/null
-	ant -version  >& /dev/null
+	java -version > /dev/null
+	ant -version  > /dev/null
 
 $(JavaBin): check_java_env
 	echo Building Java implementation
