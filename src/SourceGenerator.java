@@ -719,33 +719,34 @@ class GtMethod extends GtStatic {
 	/*field*/public int				MethodFlag;
 	/*field*/int					MethodSymbolId;
 	/*field*/public String			MethodName;
-	/*field*/public String          LocalFuncName;
+	/*field*/public String          MangledName;
 	/*field*/public GtType[]		Types;
 	/*field*/private GtType         FuncType;
-	/*field*/public GtMethod        ElderMethod;
+	/*field*/public GtMethod        ListedMethods;
 	/*field*/public String          SourceMacro;
 
 	GtMethod/*constructor*/(int MethodFlag, String MethodName, int BaseIndex, ArrayList<GtType> ParamList, String SourceMacro) {
 		this.MethodFlag = MethodFlag;
 		this.MethodName = MethodName;
-		this.MethodSymbolId = GtStatic.GetCanonicalSymbolId(MethodName);
+		this.MethodSymbolId = GtStatic.GetSymbolId(MethodName, CreateNewSymbolId);
 		this.Types = LangDeps.CompactTypeList(BaseIndex, ParamList);
 		LangDeps.Assert(this.Types.length > 0);
 		this.Layer = null;
-		this.ElderMethod = null;
+		this.ListedMethods = null;
 		this.FuncType = null;
 		this.SourceMacro = SourceMacro;
-		
-		String Name = this.MethodName;
-		if(!LangDeps.IsLetter(LangDeps.CharAt(Name, 0))) {
-			Name = "_operator" + this.MethodSymbolId;
-		}
-		if(!this.Is(ExportMethod)) {
-			Name = Name + "__" + GtStatic.Mangle(this.GetRecvType(), BaseIndex + 1, ParamList);
-		}
-		this.LocalFuncName = Name;
+		this.MangledName = GtStatic.MangleMethodName(this.GetRecvType(), this.MethodName, BaseIndex+2, ParamList);
 	}
 
+	public final String GetLocalFuncName() {
+		if(this.Is(ExportMethod)) {
+			return this.MethodName;
+		}
+		else {
+			return this.MangledName;
+		}
+	}
+	
 	@Override public String toString() {
 		/*local*/String s = this.MethodName + "(";
 		/*local*/int i = 0;

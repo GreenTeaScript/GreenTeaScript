@@ -137,7 +137,7 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
-		/*local*/String Program = Node.Method.LocalFuncName + "(";
+		/*local*/String Program = Node.Method.GetLocalFuncName() + "(";
 		/*local*/String[] Params = EvaluateParam(Node.Params);
 		/*local*/int i = 0;
 		while(i < Params.length) {
@@ -331,7 +331,7 @@ public class CSourceGenerator extends SourceGenerator {
 			Code = "static ";
 		}
 		/*local*/String RetTy = this.LocalTypeName(Method.GetReturnType());
-		Code += RetTy + " " + Method.LocalFuncName + "(";
+		Code += RetTy + " " + Method.GetLocalFuncName() + "(";
 		for(int i = 0; i < ParamNameList.size(); i++) {
 			String ParamTy = this.LocalTypeName(Method.GetParamType(i));
 			if(i > 0) {

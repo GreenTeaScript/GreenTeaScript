@@ -138,7 +138,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
-		/*local*/String Program = Node.Method.LocalFuncName + "(";
+		/*local*/String Program = Node.Method.GetLocalFuncName() + "(";
 		/*local*/String[] Params = EvaluateParam(Node.Params);
 		for(int i = 0; i < Params.length; i++) {
 			String P = Params[i];
@@ -322,7 +322,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 	@Override public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
 		String Program = "";
 		String RetTy = Method.GetReturnType().ShortClassName;
-		String FuncName = Method.LocalFuncName;
+		String FuncName = Method.GetLocalFuncName();
 		String Signature = "# ";
 		String Arguments = "";
 		Signature += RetTy + " " + FuncName + "(";
