@@ -40,10 +40,15 @@ Object.prototype["equals"] = function(other): boolean{
 
 interface String {
 	startsWith(key: string): boolean;
+	endsWith(key: string): boolean;
 	replaceAll(key: string, rep: string);
 }
 
 String.prototype["startsWith"] = function(key): boolean{
+	return this.IndexOf(key, 0) == 0;
+}
+
+String.prototype["endsWith"] = function(key): boolean{
 	return this.lastIndexOf(key, 0) == 0;
 }
 
@@ -71,6 +76,9 @@ class GtMap {
 	}
 	size(): number{
 		return this.length;
+	}
+	keys(): Array<string> {
+		return LangDeps.MapGetKeys(this);
 	}
 }
 
@@ -210,6 +218,11 @@ class LangDeps {
 	static LoadFile(FileName: string){
 		throw new Error("LangDeps.LoadFile is not implemented for this environment");
 		return "";
+	}
+
+	static MapGetKeys(Map: GtMap): Array<string> {
+		throw new Error("LangDeps.MapGetKeys is not implemented for this environment");
+		return [];
 	}
 
 	static Usage(): void{

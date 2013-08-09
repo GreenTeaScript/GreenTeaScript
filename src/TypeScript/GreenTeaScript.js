@@ -250,8 +250,8 @@ var FuncDeclName = 2;
 var FuncDeclBlock = 3;
 var FuncDeclParam = 4;
 
-var ClassNameOffset = 0;
-var ClassParentNameOffset = 1;
+var ClassParentNameOffset = 0;
+var ClassNameOffset = 1;
 var ClassBlockOffset = 2;
 
 var TokenFuncSpec = 0;
@@ -1893,6 +1893,9 @@ var DScriptGrammar = (function (_super) {
             Gamma.CreateErrorNode(TypeTree, "defined: already variable " + VariableName);
         }
         var VariableNode = Gamma.TypeCheck(NameTree, DeclType, DefaultTypeCheckPolicy);
+        if (VariableNode.IsError()) {
+            return VariableNode;
+        }
         var InitValueNode = null;
         if (ValueTree == null) {
             InitValueNode = Gamma.DefaultValueConstNode(ParsedTree, DeclType);
@@ -2457,13 +2460,21 @@ var DScriptGrammar = (function (_super) {
 
         Gamma.AppendDeclaredVariable(NewType, "this");
 
-        var FieldList = new Array();
         while (FieldOffset < ParsedTree.TreeList.size()) {
-            var BodyNode = ParsedTree.TypeNodeAt(FieldOffset, Gamma, Gamma.VoidType, IgnoreEmptyPolicy);
-            if (BodyNode instanceof LetNode) {
-                var Field = BodyNode;
+            var FieldTree = ParsedTree.GetSyntaxTreeAt(FieldOffset);
+            if (FieldTree.Pattern.PatternName.equals("$VarDecl$")) {
+                var NameTree = FieldTree.GetSyntaxTreeAt(VarDeclName);
+                var TypeTree = FieldTree.GetSyntaxTreeAt(VarDeclType);
+                var DeclType = TypeTree.ConstValue;
+                var VarName = NameTree.KeyToken.ParsedText;
+                Gamma.AppendDeclaredVariable(DeclType, VarName);
+                DefaultObject.Field.put(VarName, null);
+                DefaultObject.Field.put(VarName + ":Type", DeclType);
             }
+            var BodyNode = Gamma.TypeCheck(FieldTree, Gamma.AnyType, IgnoreEmptyPolicy);
 
+            if (BodyNode instanceof GtNode) {
+            }
             FieldOffset += 1;
         }
         Gamma.NameSpace.DefineClass(NewType);
@@ -2637,7 +2648,7 @@ var GreenTeaScript = (function () {
     GreenTeaScript.main = function (Args) {
         Args = new Array(2);
         Args[0] = "--c";
-        Args[1] = "test/0007-VarDecl.green";
+        Args[1] = "test/0025-ClassField.green";
         var CodeGeneratorName = "--java";
         var Index = 0;
         var OneLiner = null;

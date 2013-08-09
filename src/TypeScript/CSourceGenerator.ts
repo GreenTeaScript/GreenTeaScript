@@ -406,6 +406,20 @@ class CSourceGenerator extends SourceGenerator {
 		if(Type.SuperClass != null) {
 			Code += this.GetIndentString() + Type.SuperClass.ShortClassName + " __base;\n";
 		}
+		if(Type.DefaultNullValue != null && Type.DefaultNullValue instanceof GtObject) {
+			var DefaultObject: GtObject = <GtObject> Type.DefaultNullValue;
+			var keys: Array<string> = DefaultObject.Field.keys();
+			var i: number = 0;
+			while(i < keys.size()) {
+				var FieldName: string = keys.get(i);
+				i = i + 1;
+				if(FieldName.endsWith(":Type")) {
+					continue;
+				}
+				var FieldType: GtType = <GtType> DefaultObject.Field.get(FieldName + ":Type");
+				Code += this.GetIndentString() + FieldType + " " + FieldName + ";\n";
+			}
+		}
 		this.UnIndent();
 		Code += this.GetIndentString() + "} " + Type + ";\n";
 		this.WriteTranslatedCode(Code);

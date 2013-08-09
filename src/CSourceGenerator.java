@@ -398,14 +398,28 @@ public class CSourceGenerator extends SourceGenerator {
 		return false;
 	}
 	@Override public void AddClass(GtType Type) {
-		String TypeName = Type.ShortClassName;
+		/*local*/String TypeName = Type.ShortClassName;
 		if(this.IsDefiendType(TypeName) == true) {
 			return;
 		}
-		String Code = this.GetIndentString() + "typedef struct " + Type + " {\n";
+		/*local*/String Code = this.GetIndentString() + "typedef struct " + Type + " {\n";
 		this.Indent();
 		if(Type.SuperClass != null) {
 			Code += this.GetIndentString() + Type.SuperClass.ShortClassName + " __base;\n";
+		}
+		if(Type.DefaultNullValue != null && Type.DefaultNullValue instanceof GtObject) {
+			/*local*/GtObject DefaultObject = (/*cast*/GtObject) Type.DefaultNullValue;
+			/*local*/ArrayList<String> keys = DefaultObject.Field.keys();
+			/*local*/int i = 0;
+			while(i < keys.size()) {
+				/*local*/String FieldName = keys.get(i);
+				i = i + 1;
+				if(FieldName.endsWith(":Type")) {
+					continue;
+				}
+				/*local*/GtType FieldType = (/*cast*/GtType) DefaultObject.Field.get(FieldName + ":Type");
+				Code += this.GetIndentString() + FieldType + " " + FieldName + ";\n";
+			}
 		}
 		this.UnIndent();
 		Code += this.GetIndentString() + "} " + Type + ";\n";

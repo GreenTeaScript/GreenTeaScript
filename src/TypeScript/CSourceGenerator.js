@@ -346,6 +346,20 @@ var CSourceGenerator = (function (_super) {
         if (Type.SuperClass != null) {
             Code += this.GetIndentString() + Type.SuperClass.ShortClassName + " __base;\n";
         }
+        if (Type.DefaultNullValue != null && Type.DefaultNullValue instanceof GtObject) {
+            var DefaultObject = Type.DefaultNullValue;
+            var keys = DefaultObject.Field.keys();
+            var i = 0;
+            while (i < keys.size()) {
+                var FieldName = keys.get(i);
+                i = i + 1;
+                if (FieldName.endsWith(":Type")) {
+                    continue;
+                }
+                var FieldType = DefaultObject.Field.get(FieldName + ":Type");
+                Code += this.GetIndentString() + FieldType + " " + FieldName + ";\n";
+            }
+        }
         this.UnIndent();
         Code += this.GetIndentString() + "} " + Type + ";\n";
         this.WriteTranslatedCode(Code);

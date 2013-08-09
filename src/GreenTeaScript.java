@@ -199,8 +199,8 @@ interface GtConst {
 	public final static int	FuncDeclParam		= 4;
 
 	// Class Decl;
-	static final int	ClassNameOffset			= 0;
-	static final int	ClassParentNameOffset	= 1;
+	static final int	ClassParentNameOffset	= 0;
+	static final int	ClassNameOffset			= 1;
 	static final int	ClassBlockOffset		= 2;
 
 	// spec
@@ -539,7 +539,7 @@ class GtStatic implements GtConst {
 }
 
 final class GtMap {
-	private final HashMap<String, Object>	Map;
+	final HashMap<String, Object>	Map;
 
 	public GtMap() {
 		this.Map = new HashMap<String, Object>();
@@ -558,8 +558,7 @@ final class GtMap {
 	}
 
 	public ArrayList<String> keys() {
-		GtStatic.TODO("implement");
-		return null;
+		return LangDeps.MapGetKeys(this);
 	}
 }
 
@@ -2043,6 +2042,9 @@ final class DScriptGrammar extends GtGrammar {
 			Gamma.CreateErrorNode(TypeTree, "already defined variable " + VariableName);
 		}
 		/*local*/GtNode VariableNode = Gamma.TypeCheck(NameTree, DeclType, DefaultTypeCheckPolicy);
+		if(VariableNode.IsError()) {
+			return VariableNode;
+		}
 		/*local*/GtNode InitValueNode = null;
 		if(ValueTree == null){
 			InitValueNode = Gamma.DefaultValueConstNode(ParsedTree, DeclType);
@@ -2635,16 +2637,27 @@ final class DScriptGrammar extends GtGrammar {
 
 		Gamma.AppendDeclaredVariable(NewType, "this");
 
-		/*local*/ArrayList<LetNode> FieldList = new ArrayList<LetNode>();
 		while(FieldOffset < ParsedTree.TreeList.size()) {
-			/*local*/GtNode BodyNode = ParsedTree.TypeNodeAt(FieldOffset, Gamma, Gamma.VoidType, IgnoreEmptyPolicy);
-			if(BodyNode instanceof LetNode) {
-				//LangDeps.println(BodyNode.toString());
-				/*local*/LetNode Field = (/*cast*/LetNode)BodyNode;
+			/*local*/GtSyntaxTree FieldTree = ParsedTree.GetSyntaxTreeAt(FieldOffset);
+			if(FieldTree.Pattern.PatternName.equals("$VarDecl$")) {
+				GtSyntaxTree NameTree = FieldTree.GetSyntaxTreeAt(VarDeclName);
+				/*local*/GtSyntaxTree TypeTree = FieldTree.GetSyntaxTreeAt(VarDeclType);
+				/*local*/GtType DeclType = (/*cast*/GtType)TypeTree.ConstValue;
+				/*local*/String VarName = NameTree.KeyToken.ParsedText;
+				Gamma.AppendDeclaredVariable(DeclType, VarName);
+				DefaultObject.Field.put(VarName, null);
+				DefaultObject.Field.put(VarName + ":Type", DeclType);
 			}
-//			if(BodyNode instanceof DefineNode) {
-//				// add this
+			/*local*/GtNode BodyNode = Gamma.TypeCheck(FieldTree, Gamma.AnyType, IgnoreEmptyPolicy);
+//			if(BodyNode instanceof LetNode) {
+//				//LangDeps.println(BodyNode.toString());
+//				/*local*/LetNode Field = (/*cast*/LetNode)BodyNode;
 //			}
+			// FIXME we need to rewrite method definition
+			// T0 f(T1 arg) {} => T0 f(T this, T1 arg) {}
+			if(BodyNode instanceof GtNode) {
+				// add this
+			}
 			FieldOffset += 1;
 		}
 		Gamma.NameSpace.DefineClass(NewType);

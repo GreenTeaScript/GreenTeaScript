@@ -194,8 +194,8 @@
 	var FuncDeclParam: number		= 4;
 
 	// var Decl: Class; //
-	var ClassNameOffset: number			= 0;
-	var ClassParentNameOffset: number	= 1;
+	var ClassParentNameOffset: number	= 0;
+	var ClassNameOffset: number			= 1;
 	var ClassBlockOffset: number		= 2;
 
 	//  spec //
@@ -1961,6 +1961,9 @@ class GtGrammar {
 			Gamma.CreateErrorNode(TypeTree, "defined: already variable " + VariableName);
 		}
 		var VariableNode: GtNode = Gamma.TypeCheck(NameTree, DeclType, DefaultTypeCheckPolicy);
+		if(VariableNode.IsError()) {
+			return VariableNode;
+		}
 		var InitValueNode: GtNode = null;
 		if(ValueTree == null){
 			InitValueNode = Gamma.DefaultValueConstNode(ParsedTree, DeclType);
@@ -2544,16 +2547,27 @@ class GtGrammar {
 
 		Gamma.AppendDeclaredVariable(NewType, "this");
 
-		var FieldList: Array<LetNode> = new Array<LetNode>();
 		while(FieldOffset < ParsedTree.TreeList.size()) {
-			var BodyNode: GtNode = ParsedTree.TypeNodeAt(FieldOffset, Gamma, Gamma.VoidType, IgnoreEmptyPolicy);
-			if(BodyNode instanceof LetNode) {
-				// console.log(BodyNode.toString()); //
-				var Field: LetNode = <LetNode>BodyNode;
+			var FieldTree: GtSyntaxTree = ParsedTree.GetSyntaxTreeAt(FieldOffset);
+			if(FieldTree.Pattern.PatternName.equals("$VarDecl$")) {
+				var NameTree: GtSyntaxTree = FieldTree.GetSyntaxTreeAt(VarDeclName);
+				var TypeTree: GtSyntaxTree = FieldTree.GetSyntaxTreeAt(VarDeclType);
+				var DeclType: GtType = <GtType>TypeTree.ConstValue;
+				var VarName: string = NameTree.KeyToken.ParsedText;
+				Gamma.AppendDeclaredVariable(DeclType, VarName);
+				DefaultObject.Field.put(VarName, null);
+				DefaultObject.Field.put(VarName + ":Type", DeclType);
 			}
-// 			if(BodyNode instanceof DefineNode) { //
-// 				//this: add //
+			var BodyNode: GtNode = Gamma.TypeCheck(FieldTree, Gamma.AnyType, IgnoreEmptyPolicy);
+// 			if(BodyNode instanceof LetNode) { //
+// 				//console.log(BodyNode.toString()); //
+// 				var Field: LetNode = <LetNode>BodyNode; //
 // 			} //
+			// we: FIXMEto: needmethod: definition: rewrite //
+			//  f(arg: T1): T0 {} => f(this: T, arg: T1): T0 {} //
+			if(BodyNode instanceof GtNode) {
+				// this: add //
+			}
 			FieldOffset += 1;
 		}
 		Gamma.NameSpace.DefineClass(NewType);
@@ -2764,7 +2778,7 @@ class GreenTeaScript {
 	static main(Args: string[]): void {
 		Args = new Array<string>(2);
 		Args[0] = "--c";
-		Args[1] = "test/0007-VarDecl.green";
+		Args[1] = "test/0025-ClassField.green";
 		var CodeGeneratorName: string = "--java";
 		var Index: number = 0;
 		var OneLiner: string = null;

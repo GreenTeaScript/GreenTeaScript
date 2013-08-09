@@ -123,7 +123,15 @@ var JavaScriptSourceGenerator = (function (_super) {
     };
 
     JavaScriptSourceGenerator.prototype.VisitLetNode = function (Node) {
+        var VarName = Node.VariableName;
+        var Source = (this.UseLetKeyword ? "let " : "var ") + " " + VarName;
+        if (Node.InitNode != null) {
+            Node.InitNode.Evaluate(this);
+            Source += " = " + this.PopSourceCode();
+        }
+        Source += ";";
         this.VisitBlockJS(Node.BlockNode);
+        this.PushSourceCode(Source + this.PopSourceCode());
     };
 
     JavaScriptSourceGenerator.prototype.VisitIfNode = function (Node) {
