@@ -2282,14 +2282,15 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	public static GtNode TypeApply(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
-		/*local*/GtNode ApplyNode = Gamma.Generator.CreateApplyNode(Gamma.AnyType, ParsedTree, null);
 		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
+		/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
 		/*local*/int i = 1;
 		while(i < ListSize(ParsedTree.TreeList) - 1/* this is for ")" */) {
 			/*local*/GtNode ExprNode = ParsedTree.TypeNodeAt(i, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-			ApplyNode.Append(ExprNode);
+			ParamList.add(ExprNode);
 			//FIXME we need to implement TypeChecker
 			if(ExprNode.Type.equals(Gamma.VarType)) {
+				DebugP("Typeof Paramater " + (i-1) + " is var type. Need to Implement Typechecker");
 				ExprNode.Type = Gamma.IntType;
 			}
 			TypeList.add(ExprNode.Type);
@@ -2304,10 +2305,14 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/int ParamSize = TreeList.size() - 2; /*MethodName and ")" symol*/
 		/*local*/GtMethod Method = Gamma.NameSpace.LookupMethod(MethodName, ParamSize, 1/*FIXME*/, TypeList, 0);
 		if(Method == null) {
-			return Gamma.CreateErrorNode(ParsedTree, "Undefined method: " + MethodName);
+			return Gamma.CreateErrorNode(ParsedTree, "undefined method: " + MethodName);
 		}
-		((/*cast*/ApplyNode)ApplyNode).Method = Method;
-		return ApplyNode;
+		/*local*/GtNode Node = Gamma.Generator.CreateApplyNode(Method.GetReturnType(), ParsedTree, Method);
+		i = 1;
+		while(i < ParamList.size()) {
+			Node.Append(ParamList.get(i));
+		}
+		return Node;
 	}
 
 	public static GtNode TypeAnd(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
@@ -2534,7 +2539,7 @@ final class DScriptGrammar extends GtGrammar {
 			}
 			TokenContext.SkipIndent();
 			if(TokenContext.MatchToken("as")) {  // this is little ad hoc
-				GtToken Token = TokenContext.GetToken();
+				GtToken Token = TokenContext.Next();
 				Tree.ConstValue = Token.ParsedText;
 			}
 			else {
@@ -2601,7 +2606,8 @@ final class DScriptGrammar extends GtGrammar {
 		NameSpace.DefineTokenFunc("Aa", FunctionA(this, "SymbolToken"));
 		NameSpace.DefineTokenFunc("Aa-/", FunctionA(this, "SymbolShellToken")); // overloading
 
-		NameSpace.DefineTokenFunc("\"", FunctionA(this, "StringLiteralToken_StringInterpolation"));
+		NameSpace.DefineTokenFunc("\"", FunctionA(this, "StringLiteralToken"));
+		//NameSpace.DefineTokenFunc("\"", FunctionA(this, "StringLiteralToken_StringInterpolation"));
 		NameSpace.DefineTokenFunc("1",  FunctionA(this, "NumberLiteralToken"));
 //#ifdef JAVA
 		GtDelegateMatch ParseUnary     = FunctionB(this, "ParseUnary");
