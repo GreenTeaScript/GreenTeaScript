@@ -10,7 +10,7 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	BashSourceGenerator/*constructor*/() {
 		super("BashSource");
-		this.WriteTranslatedCode("#!/usr/bin/bash\n");
+		this.WriteTranslatedCode("#!/bin/bash\n");
 	}
 
 	public void VisitBlockWithIndent(GtNode Node) {
@@ -304,20 +304,7 @@ public class BashSourceGenerator extends SourceGenerator {
 			Node.Expr.Evaluate(this);
 			/*local*/String expr = this.PopSourceCode();
 			/*local*/String ret = this.ResolveValueType(Node.Expr, expr);
-
-			if(Node.Expr instanceof CommandNode) {
-				this.PushSourceCode(expr + "\n" + this.GetIndentString() + "return " + ret);
-				return;
-			}
-
-			if(Node.Type.equals(Node.Type.Context.BooleanType) ||
-					Node.Type.equals(Node.Type.Context.IntType)) {
-				this.PushSourceCode("return " + ret);
-				return;
-			}
-
-			ret = this.retVar + "=" + ret;
-			this.PushSourceCode(ret);
+			this.PushSourceCode("echo " + ret + "\n" + this.GetIndentString() + "return 0");
 		}
 	}
 
@@ -376,6 +363,15 @@ public class BashSourceGenerator extends SourceGenerator {
 			CurrentNode = (/*cast*/CommandNode) CurrentNode.PipedNextNode;
 		}
 		this.PushSourceCode(Code);
+		
+		//sample
+//		function f() {
+//			echo -e "$(pstree -p | grep firefox)" >&2
+//			echo "ret sucess"
+//		}
+//
+//		ret=$(f)
+		
 	}
 
 	private String CreateCommand(CommandNode CurrentNode) {
@@ -415,12 +411,9 @@ public class BashSourceGenerator extends SourceGenerator {
 		else if(TargetNode instanceof IndexerNode) {
 			resolvedValue = "${" + value + "}";
 		}
-		else if(TargetNode instanceof CommandNode) {	// TODO: support statement and expression
-			resolvedValue = "$?";
+		else if(TargetNode instanceof ApplyNode || TargetNode instanceof CommandNode) {
+			resolvedValue = "$(" + value + ")";
 		}
-//		else if(TargetNode instanceof ApplyNode) {
-//			//TODO
-//		}
 		else {
 			resolvedValue = "$" + value;
 		}
