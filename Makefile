@@ -1,8 +1,9 @@
+
 # build:  do static checking and build of js
 # test:   test both implementations, typescript and java
 # testts: test python implementation
 # testj:  test javascript implementation
-
+.SILENT:
 JavaBin="./GreenTeaScript.jar"
 
 all: build test
@@ -15,18 +16,18 @@ buildj: $(JavaBin)
 	echo Build GreenTeaScript;
 
 check_java_env:
-	@java -version >& /dev/null
-	@ant -version  >& /dev/null
+	java -version >& /dev/null
+	ant -version  >& /dev/null
 
 $(JavaBin): check_java_env
-	@echo Building Java implementation
-	@ant jar
+	echo Building Java implementation
+	ant jar
 
 buildts:
 	echo Building TypeScript implementation
-	@ruby -v > /dev/null
-	@node -v > /dev/null
-	@tsc -v  > /dev/null
+	ruby -v > /dev/null
+	node -v > /dev/null
+	tsc -v  > /dev/null
 	cd src/TypeScript;\
 	sh ToTypeScript.sh
 

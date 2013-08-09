@@ -9,4 +9,10 @@ ruby:
 node_js:
     - "0.10"
 
-script: "make"
+before_install:
+    - "sudo apt-get install python ruby openjdk-6-jdk"
+
+before_script:
+    - "make"
+
+script: "make test || echo"
