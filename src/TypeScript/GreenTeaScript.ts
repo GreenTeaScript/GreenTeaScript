@@ -2776,9 +2776,6 @@ class GreenTeaScript {
 // 	} //
 
 	static main(Args: string[]): void {
-		Args = new Array<string>(2);
-		Args[0] = "--c";
-		Args[1] = "test/0025-ClassField.green";
 		var CodeGeneratorName: string = "--java";
 		var Index: number = 0;
 		var OneLiner: string = null;

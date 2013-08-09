@@ -2646,9 +2646,6 @@ var GreenTeaScript = (function () {
     function GreenTeaScript() {
     }
     GreenTeaScript.main = function (Args) {
-        Args = new Array(2);
-        Args[0] = "--c";
-        Args[1] = "test/0025-ClassField.green";
         var CodeGeneratorName = "--java";
         var Index = 0;
         var OneLiner = null;
