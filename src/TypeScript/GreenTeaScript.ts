@@ -2,7 +2,6 @@
 
 
 
-
 	//  ClassFlag //
 	var PrivateClass: number					= 1 << 0;
 	var SingletonClass: number					= 1 << 1;
@@ -1144,7 +1143,6 @@ class GtSyntaxTree {
 	 AnyType: GtType;
 	 ArrayType: GtType;
 	 FuncType: GtType;
-	
 
 	constructor(NameSpace: GtNameSpace) {
 		this.NameSpace = NameSpace;
@@ -1215,7 +1213,7 @@ class GtSyntaxTree {
 		}
 		return null;
 	}
-	
+
 	public DefaultValueConstNode(ParsedTree: GtSyntaxTree, Type: GtType): GtNode {
 		if(Type.DefaultNullValue != null) {
 			return this.Generator.CreateConstNode(Type, ParsedTree, Type.DefaultNullValue);
@@ -1795,7 +1793,7 @@ class GtGrammar {
 		TokenContext.ReportTokenError(ErrorLevel, "expected \"close: tostring: literal: the", SourceText.substring(start, pos));
 		return pos;
 	}
-	
+
 	static StringLiteralToken_StringInterpolation(TokenContext: GtTokenContext, SourceText: string, pos: number): number {
 		var start: number = pos + 1;
 		var NextPos: number = start;
@@ -1852,7 +1850,7 @@ class GtGrammar {
 		TokenContext.ReportTokenError(ErrorLevel, "expected \"close: tostring: literal: the", SourceText.substring(start, NextPos));
 		return NextPos;
 	}
-	
+
 	static ParseType(Pattern: GtSyntaxPattern, LeftTree: GtSyntaxTree, TokenContext: GtTokenContext): GtSyntaxTree {
 		var Token: GtToken = TokenContext.Next();
 		var ConstValue: Object = TokenContext.NameSpace.GetSymbol(Token.ParsedText);

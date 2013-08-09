@@ -60,7 +60,7 @@ class GreenTeaScriptTest {
 		var TokenTestList4: string[] = ["1", "=", "2"]
 		GreenTeaScriptTest.TestToken(Context, "1 = 2", TokenTestList4);
 	}
-	
+
 	static TokenizeStatement(): void {
 		var Context: GtContext = GreenTeaScriptTest.CreateContext();
 		var TokenTestList0: string[] = ["int", "+", "(", "int", "x", ")", ";"]
@@ -71,7 +71,8 @@ class GreenTeaScriptTest {
 		if(args.length != 3) {
 			GreenTeaScriptTest.TokenizeOperator0();
 			GreenTeaScriptTest.TokenizeStatement();
-		} else {
+		}
+		else {
 			GtScriptRunner.Test(args[0], args[1], args[2]);
 		}
 	}

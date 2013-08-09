@@ -28,8 +28,7 @@ buildts:
 	ruby -v > /dev/null
 	node -v > /dev/null
 	tsc -v  > /dev/null
-	cd src/TypeScript;\
-	sh ToTypeScript.sh
+	sh ./tool/ToTypeScript
 
 testj:
 	echo Testing Java implementation

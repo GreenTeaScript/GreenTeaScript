@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 //endif VAJA
 
-
 //ifdef JAVA
 interface GtConst {
 //endif VAJA
@@ -188,7 +187,6 @@ interface GtConst {
 	public final static int	VarDeclName		= 1;
 	public final static int	VarDeclValue	= 2;
 	public final static int	VarDeclScope	= 3;
-
 
 	//Method Call;
 	public static final int	CallExpressionOffset	= 0;
@@ -1227,7 +1225,6 @@ final class GtTypeEnv extends GtStatic {
 	/*field*/public final GtType	AnyType;
 	/*field*/public final GtType    ArrayType;
 	/*field*/public final GtType    FuncType;
-	
 
 	GtTypeEnv/*constructor*/(GtNameSpace NameSpace) {
 		this.NameSpace = NameSpace;
@@ -1298,7 +1295,7 @@ final class GtTypeEnv extends GtStatic {
 		}
 		return null;
 	}
-	
+
 	public GtNode DefaultValueConstNode(GtSyntaxTree ParsedTree, GtType Type) {
 		if(Type.DefaultNullValue != null) {
 			return this.Generator.CreateConstNode(Type, ParsedTree, Type.DefaultNullValue);
@@ -1878,7 +1875,7 @@ final class DScriptGrammar extends GtGrammar {
 		TokenContext.ReportTokenError(ErrorLevel, "expected \" to close the string literal", SourceText.substring(start, pos));
 		return pos;
 	}
-	
+
 	public static int StringLiteralToken_StringInterpolation(GtTokenContext TokenContext, String SourceText, int pos) {
 		/*local*/int start = pos + 1;
 		/*local*/int NextPos = start;
@@ -1935,7 +1932,7 @@ final class DScriptGrammar extends GtGrammar {
 		TokenContext.ReportTokenError(ErrorLevel, "expected \" to close the string literal", SourceText.substring(start, NextPos));
 		return NextPos;
 	}
-	
+
 	public static GtSyntaxTree ParseType(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/Object ConstValue = TokenContext.NameSpace.GetSymbol(Token.ParsedText);
