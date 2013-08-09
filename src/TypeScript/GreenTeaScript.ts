@@ -2217,9 +2217,10 @@ class GtGrammar {
 			return Gamma.CreateErrorNode(ParsedTree, "method: undefined: " + MethodName);
 		}
 		var Node: GtNode = Gamma.Generator.CreateApplyNode(Method.GetReturnType(), ParsedTree, Method);
-		i = 1;
+		i = 0;
 		while(i < ParamList.size()) {
 			Node.Append(ParamList.get(i));
+			i = i + 1;
 		}
 		return Node;
 	}
