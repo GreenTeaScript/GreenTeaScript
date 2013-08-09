@@ -63,3 +63,8 @@ pip-log.txt
 #############
 
 *.class
+
+#############
+## generated files
+#############
+Test.xml
