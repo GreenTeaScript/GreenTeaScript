@@ -29,7 +29,7 @@ var GreenTeaScriptTest = (function () {
     }
     GreenTeaScriptTest.TestToken = function (Context, Source, TokenTestList) {
         var NameSpace = Context.DefaultNameSpace;
-        var TokenContext = new TokenContext(NameSpace, Source, 1);
+        var TokenContext = new GtTokenContext(NameSpace, Source, 1);
         var i = 0;
         while (i < TokenTestList.length) {
             var TokenText = TokenTestList[i];
@@ -41,7 +41,7 @@ var GreenTeaScriptTest = (function () {
     GreenTeaScriptTest.CreateContext = function () {
         var CodeGeneratorName = "Java";
         var Generator = LangDeps.CodeGenerator(CodeGeneratorName);
-        return new GtContext(new KonohaGrammar(), Generator);
+        return new GtContext(new DScriptGrammar(), Generator);
     };
 
     GreenTeaScriptTest.TokenizeOperator0 = function () {
@@ -64,7 +64,7 @@ var GreenTeaScriptTest = (function () {
 
     GreenTeaScriptTest.TokenizeStatement = function () {
         var Context = GreenTeaScriptTest.CreateContext();
-        var TokenTestList0 = ["number", "+", "(", "number", "x", ")", ";"];
+        var TokenTestList0 = ["int", "+", "(", "int", "x", ")", ";"];
         GreenTeaScriptTest.TestToken(Context, "number + (x: number);", TokenTestList0);
     };
 

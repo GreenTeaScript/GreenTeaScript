@@ -4,15 +4,15 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-var TypedNode = (function () {
-    function TypedNode(Type, Token) {
+var GtNode = (function () {
+    function GtNode(Type, Token) {
         this.Type = Type;
         this.Token = Token;
         this.ParentNode = null;
         this.PrevNode = null;
         this.NextNode = null;
     }
-    TypedNode.prototype.MoveHeadNode = function () {
+    GtNode.prototype.MoveHeadNode = function () {
         var Node = this;
         while (Node.PrevNode != null) {
             Node = Node.PrevNode;
@@ -20,7 +20,7 @@ var TypedNode = (function () {
         return Node;
     };
 
-    TypedNode.prototype.MoveTailNode = function () {
+    GtNode.prototype.MoveTailNode = function () {
         var Node = this;
         while (Node.NextNode != null) {
             Node = Node.NextNode;
@@ -28,22 +28,22 @@ var TypedNode = (function () {
         return Node;
     };
 
-    TypedNode.prototype.Append = function (Node) {
+    GtNode.prototype.Append = function (Node) {
     };
 
-    TypedNode.prototype.Evaluate = function (Visitor) {
+    GtNode.prototype.Evaluate = function (Visitor) {
         Visitor.VisitEmptyNode(this);
     };
 
-    TypedNode.prototype.IsError = function () {
+    GtNode.prototype.IsError = function () {
         return (this instanceof ErrorNode);
     };
 
-    TypedNode.prototype.toString = function () {
+    GtNode.prototype.toString = function () {
         return "(TypedNode)";
     };
 
-    TypedNode.Stringify = function (Block) {
+    GtNode.Stringify = function (Block) {
         var Text = Block.toString();
         while (Block != null) {
             Text += Block.toString() + " ";
@@ -52,7 +52,7 @@ var TypedNode = (function () {
         return Text;
     };
 
-    TypedNode.prototype.CountForrowingNode = function () {
+    GtNode.prototype.CountForrowingNode = function () {
         var n = 0;
         var node = this;
         while (node != null) {
@@ -61,7 +61,7 @@ var TypedNode = (function () {
         }
         return n;
     };
-    return TypedNode;
+    return GtNode;
 })();
 
 var UnaryNode = (function (_super) {
@@ -75,7 +75,7 @@ var UnaryNode = (function (_super) {
         Visitor.VisitUnaryNode(this);
     };
     return UnaryNode;
-})(TypedNode);
+})(GtNode);
 
 var SuffixNode = (function (_super) {
     __extends(SuffixNode, _super);
@@ -88,7 +88,7 @@ var SuffixNode = (function (_super) {
         Visitor.VisitSuffixNode(this);
     };
     return SuffixNode;
-})(TypedNode);
+})(GtNode);
 
 var BinaryNode = (function (_super) {
     __extends(BinaryNode, _super);
@@ -102,7 +102,7 @@ var BinaryNode = (function (_super) {
         Visitor.VisitBinaryNode(this);
     };
     return BinaryNode;
-})(TypedNode);
+})(GtNode);
 
 var AndNode = (function (_super) {
     __extends(AndNode, _super);
@@ -115,10 +115,10 @@ var AndNode = (function (_super) {
         Visitor.VisitAndNode(this);
     };
     AndNode.prototype.toString = function () {
-        return "(And:" + this.Type + " " + TypedNode.Stringify(this.LeftNode) + ", " + TypedNode.Stringify(this.RightNode) + ")";
+        return "(And:" + this.Type + " " + GtNode.Stringify(this.LeftNode) + ", " + GtNode.Stringify(this.RightNode) + ")";
     };
     return AndNode;
-})(TypedNode);
+})(GtNode);
 
 var OrNode = (function (_super) {
     __extends(OrNode, _super);
@@ -131,10 +131,10 @@ var OrNode = (function (_super) {
         Visitor.VisitOrNode(this);
     };
     OrNode.prototype.toString = function () {
-        return "(Or:" + this.Type + " " + TypedNode.Stringify(this.LeftNode) + ", " + TypedNode.Stringify(this.RightNode) + ")";
+        return "(Or:" + this.Type + " " + GtNode.Stringify(this.LeftNode) + ", " + GtNode.Stringify(this.RightNode) + ")";
     };
     return OrNode;
-})(TypedNode);
+})(GtNode);
 
 var GetterNode = (function (_super) {
     __extends(GetterNode, _super);
@@ -147,10 +147,10 @@ var GetterNode = (function (_super) {
         Visitor.VisitGetterNode(this);
     };
     GetterNode.prototype.toString = function () {
-        return "(Getter:" + this.Type + " " + TypedNode.Stringify(this.Expr) + ", " + this.Method.MethodName + ")";
+        return "(Getter:" + this.Type + " " + GtNode.Stringify(this.Expr) + ", " + this.Method.MethodName + ")";
     };
     return GetterNode;
-})(TypedNode);
+})(GtNode);
 
 var IndexerNode = (function (_super) {
     __extends(IndexerNode, _super);
@@ -164,10 +164,10 @@ var IndexerNode = (function (_super) {
         Visitor.VisitIndexerNode(this);
     };
     IndexerNode.prototype.toString = function () {
-        return "(Index:" + this.Type + " " + TypedNode.Stringify(this.Expr) + ", " + TypedNode.Stringify(this.Indexer) + ")";
+        return "(Index:" + this.Type + " " + GtNode.Stringify(this.Expr) + ", " + GtNode.Stringify(this.Indexer) + ")";
     };
     return IndexerNode;
-})(TypedNode);
+})(GtNode);
 
 var AssignNode = (function (_super) {
     __extends(AssignNode, _super);
@@ -180,10 +180,10 @@ var AssignNode = (function (_super) {
         Visitor.VisitAssignNode(this);
     };
     AssignNode.prototype.toString = function () {
-        return "(Assign:" + this.Type + " " + TypedNode.Stringify(this.LeftNode) + " = " + TypedNode.Stringify(this.RightNode) + ")";
+        return "(Assign:" + this.Type + " " + GtNode.Stringify(this.LeftNode) + " = " + GtNode.Stringify(this.RightNode) + ")";
     };
     return AssignNode;
-})(TypedNode);
+})(GtNode);
 
 var ConstNode = (function (_super) {
     __extends(ConstNode, _super);
@@ -198,7 +198,7 @@ var ConstNode = (function (_super) {
         return "(Const:" + this.Type + " " + this.ConstValue.toString() + ")";
     };
     return ConstNode;
-})(TypedNode);
+})(GtNode);
 
 var LocalNode = (function (_super) {
     __extends(LocalNode, _super);
@@ -213,7 +213,7 @@ var LocalNode = (function (_super) {
         return "(Local:" + this.Type + " " + this.LocalName + ")";
     };
     return LocalNode;
-})(TypedNode);
+})(GtNode);
 
 var NullNode = (function (_super) {
     __extends(NullNode, _super);
@@ -227,7 +227,7 @@ var NullNode = (function (_super) {
         return "(Null:" + this.Type + " " + ")";
     };
     return NullNode;
-})(TypedNode);
+})(GtNode);
 
 var LetNode = (function (_super) {
     __extends(LetNode, _super);
@@ -241,11 +241,11 @@ var LetNode = (function (_super) {
         Visitor.VisitLetNode(this);
     };
     LetNode.prototype.toString = function () {
-        var Block = TypedNode.Stringify(this.BlockNode);
-        return "(Let:" + this.Type + " " + TypedNode.Stringify(this.VarNode) + " in {" + Block + "})";
+        var Block = GtNode.Stringify(this.BlockNode);
+        return "(Let:" + this.Type + " " + GtNode.Stringify(this.VarNode) + " in {" + Block + "})";
     };
     return LetNode;
-})(TypedNode);
+})(GtNode);
 
 var ApplyNode = (function (_super) {
     __extends(ApplyNode, _super);
@@ -269,13 +269,13 @@ var ApplyNode = (function (_super) {
             if (i != 0) {
                 Param += ", ";
             }
-            Param += TypedNode.Stringify(Node);
+            Param += GtNode.Stringify(Node);
             i = i + 1;
         }
         return "(Apply:" + this.Type + " " + Param + ")";
     };
     return ApplyNode;
-})(TypedNode);
+})(GtNode);
 
 var MessageNode = (function (_super) {
     __extends(MessageNode, _super);
@@ -300,13 +300,13 @@ var MessageNode = (function (_super) {
             if (i != 0) {
                 Param += ", ";
             }
-            Param += TypedNode.Stringify(Node);
+            Param += GtNode.Stringify(Node);
             i = i + 1;
         }
         return "(Message:" + this.Type + " " + Param + ")";
     };
     return MessageNode;
-})(TypedNode);
+})(GtNode);
 
 var NewNode = (function (_super) {
     __extends(NewNode, _super);
@@ -328,13 +328,13 @@ var NewNode = (function (_super) {
             if (i != 0) {
                 Param += ", ";
             }
-            Param += TypedNode.Stringify(Node);
+            Param += GtNode.Stringify(Node);
             i = i + 1;
         }
         return "(New:" + this.Type + " " + Param + ")";
     };
     return NewNode;
-})(TypedNode);
+})(GtNode);
 
 var IfNode = (function (_super) {
     __extends(IfNode, _super);
@@ -348,13 +348,13 @@ var IfNode = (function (_super) {
         Visitor.VisitIfNode(this);
     };
     IfNode.prototype.toString = function () {
-        var Cond = TypedNode.Stringify(this.CondExpr);
-        var Then = TypedNode.Stringify(this.ThenNode);
-        var Else = TypedNode.Stringify(this.ElseNode);
+        var Cond = GtNode.Stringify(this.CondExpr);
+        var Then = GtNode.Stringify(this.ThenNode);
+        var Else = GtNode.Stringify(this.ElseNode);
         return "(If:" + this.Type + " Cond:" + Cond + " Then:" + Then + " Else:" + Else + ")";
     };
     return IfNode;
-})(TypedNode);
+})(GtNode);
 
 var WhileNode = (function (_super) {
     __extends(WhileNode, _super);
@@ -367,12 +367,12 @@ var WhileNode = (function (_super) {
         Visitor.VisitWhileNode(this);
     };
     WhileNode.prototype.toString = function () {
-        var Cond = TypedNode.Stringify(this.CondExpr);
-        var Body = TypedNode.Stringify(this.LoopBody);
+        var Cond = GtNode.Stringify(this.CondExpr);
+        var Body = GtNode.Stringify(this.LoopBody);
         return "(While:" + this.Type + " Cond:" + Cond + " Body:" + Body + ")";
     };
     return WhileNode;
-})(TypedNode);
+})(GtNode);
 
 var DoWhileNode = (function (_super) {
     __extends(DoWhileNode, _super);
@@ -385,12 +385,12 @@ var DoWhileNode = (function (_super) {
         Visitor.VisitDoWhileNode(this);
     };
     DoWhileNode.prototype.toString = function () {
-        var Cond = TypedNode.Stringify(this.CondExpr);
-        var Body = TypedNode.Stringify(this.LoopBody);
+        var Cond = GtNode.Stringify(this.CondExpr);
+        var Body = GtNode.Stringify(this.LoopBody);
         return "(DoWhile:" + this.Type + " Cond:" + Cond + " Body:" + Body + ")";
     };
     return DoWhileNode;
-})(TypedNode);
+})(GtNode);
 
 var ForNode = (function (_super) {
     __extends(ForNode, _super);
@@ -404,13 +404,13 @@ var ForNode = (function (_super) {
         Visitor.VisitForNode(this);
     };
     ForNode.prototype.toString = function () {
-        var Cond = TypedNode.Stringify(this.CondExpr);
-        var Body = TypedNode.Stringify(this.LoopBody);
-        var Iter = TypedNode.Stringify(this.IterExpr);
+        var Cond = GtNode.Stringify(this.CondExpr);
+        var Body = GtNode.Stringify(this.LoopBody);
+        var Iter = GtNode.Stringify(this.IterExpr);
         return "(For:" + this.Type + " Cond:" + Cond + " Body:" + Body + " Iter:" + Iter + ")";
     };
     return ForNode;
-})(TypedNode);
+})(GtNode);
 
 var ForEachNode = (function (_super) {
     __extends(ForEachNode, _super);
@@ -424,13 +424,13 @@ var ForEachNode = (function (_super) {
         Visitor.VisitForEachNode(this);
     };
     ForEachNode.prototype.toString = function () {
-        var Var = TypedNode.Stringify(this.Variable);
-        var Body = TypedNode.Stringify(this.LoopBody);
-        var Iter = TypedNode.Stringify(this.IterExpr);
+        var Var = GtNode.Stringify(this.Variable);
+        var Body = GtNode.Stringify(this.LoopBody);
+        var Iter = GtNode.Stringify(this.IterExpr);
         return "(Foreach:" + this.Type + " Var:" + Var + " Body:" + Body + " Iter:" + Iter + ")";
     };
     return ForEachNode;
-})(TypedNode);
+})(GtNode);
 
 var LabelNode = (function (_super) {
     __extends(LabelNode, _super);
@@ -445,7 +445,7 @@ var LabelNode = (function (_super) {
         return "(Label:" + this.Type + " " + this.Label + ")";
     };
     return LabelNode;
-})(TypedNode);
+})(GtNode);
 
 var JumpNode = (function (_super) {
     __extends(JumpNode, _super);
@@ -460,7 +460,7 @@ var JumpNode = (function (_super) {
         return "(Jump:" + this.Type + " " + this.Label + ")";
     };
     return JumpNode;
-})(TypedNode);
+})(GtNode);
 
 var ContinueNode = (function (_super) {
     __extends(ContinueNode, _super);
@@ -475,7 +475,7 @@ var ContinueNode = (function (_super) {
         return "(Continue:" + this.Type + ")";
     };
     return ContinueNode;
-})(TypedNode);
+})(GtNode);
 
 var BreakNode = (function (_super) {
     __extends(BreakNode, _super);
@@ -490,7 +490,7 @@ var BreakNode = (function (_super) {
         return "(Break:" + this.Type + ")";
     };
     return BreakNode;
-})(TypedNode);
+})(GtNode);
 
 var ReturnNode = (function (_super) {
     __extends(ReturnNode, _super);
@@ -504,12 +504,12 @@ var ReturnNode = (function (_super) {
     ReturnNode.prototype.toString = function () {
         var Text = "";
         if (Text != null) {
-            Text = TypedNode.Stringify(this.Expr);
+            Text = GtNode.Stringify(this.Expr);
         }
         return "(Return:" + this.Type + " " + Text + ")";
     };
     return ReturnNode;
-})(TypedNode);
+})(GtNode);
 
 var ThrowNode = (function (_super) {
     __extends(ThrowNode, _super);
@@ -521,10 +521,10 @@ var ThrowNode = (function (_super) {
         Visitor.VisitThrowNode(this);
     };
     ThrowNode.prototype.toString = function () {
-        return "(Throw:" + this.Type + " " + TypedNode.Stringify(this.Expr) + ")";
+        return "(Throw:" + this.Type + " " + GtNode.Stringify(this.Expr) + ")";
     };
     return ThrowNode;
-})(TypedNode);
+})(GtNode);
 
 var TryNode = (function (_super) {
     __extends(TryNode, _super);
@@ -538,11 +538,11 @@ var TryNode = (function (_super) {
         Visitor.VisitTryNode(this);
     };
     TryNode.prototype.toString = function () {
-        var TryBlock = TypedNode.Stringify(this.TryBlock);
+        var TryBlock = GtNode.Stringify(this.TryBlock);
         return "(Try:" + this.Type + " " + TryBlock + ")";
     };
     return TryNode;
-})(TypedNode);
+})(GtNode);
 
 var SwitchNode = (function (_super) {
     __extends(SwitchNode, _super);
@@ -556,7 +556,7 @@ var SwitchNode = (function (_super) {
         return "(Switch:" + this.Type + ")";
     };
     return SwitchNode;
-})(TypedNode);
+})(GtNode);
 
 var FunctionNode = (function (_super) {
     __extends(FunctionNode, _super);
@@ -570,7 +570,7 @@ var FunctionNode = (function (_super) {
         return "(Function:" + this.Type + ")";
     };
     return FunctionNode;
-})(TypedNode);
+})(GtNode);
 
 var ErrorNode = (function (_super) {
     __extends(ErrorNode, _super);
@@ -584,7 +584,7 @@ var ErrorNode = (function (_super) {
         return "(Error:" + this.Type + " " + this.Token.toString() + ")";
     };
     return ErrorNode;
-})(TypedNode);
+})(GtNode);
 
 var CommandNode = (function (_super) {
     __extends(CommandNode, _super);
@@ -608,13 +608,13 @@ var CommandNode = (function (_super) {
             if (i != 0) {
                 Param += ", ";
             }
-            Param += TypedNode.Stringify(Node);
+            Param += GtNode.Stringify(Node);
             i = i + 1;
         }
         return "(Command:" + this.Type + " " + Param + ")";
     };
     return CommandNode;
-})(TypedNode);
+})(GtNode);
 
 var GtObject = (function () {
     function GtObject(Type) {
@@ -757,155 +757,155 @@ var GtMethod = (function () {
     return GtMethod;
 })();
 
-var CodeGenerator = (function () {
-    function CodeGenerator(LangName) {
+var GtGenerator = (function () {
+    function GtGenerator(LangName) {
         this.LangName = LangName;
         this.Context = null;
         this.GeneratedCodeStack = new Array();
     }
-    CodeGenerator.prototype.SetLanguageContext = function (Context) {
+    GtGenerator.prototype.SetLanguageContext = function (Context) {
         this.Context = Context;
     };
 
-    CodeGenerator.prototype.UnsupportedNode = function (Type, ParsedTree) {
+    GtGenerator.prototype.UnsupportedNode = function (Type, ParsedTree) {
         var Token = ParsedTree.KeyToken;
         ParsedTree.NameSpace.ReportError(ErrorLevel, Token, this.LangName + "no: hassupport: for: language " + Token.ParsedText);
         return new ErrorNode(ParsedTree.NameSpace.Context.VoidType, ParsedTree.KeyToken);
     };
 
-    CodeGenerator.prototype.CreateConstNode = function (Type, ParsedTree, Value) {
+    GtGenerator.prototype.CreateConstNode = function (Type, ParsedTree, Value) {
         return new ConstNode(Type, ParsedTree.KeyToken, Value);
     };
 
-    CodeGenerator.prototype.CreateNullNode = function (Type, ParsedTree) {
+    GtGenerator.prototype.CreateNullNode = function (Type, ParsedTree) {
         return new NullNode(Type, ParsedTree.KeyToken);
     };
 
-    CodeGenerator.prototype.CreateLocalNode = function (Type, ParsedTree, LocalName) {
+    GtGenerator.prototype.CreateLocalNode = function (Type, ParsedTree, LocalName) {
         return new LocalNode(Type, ParsedTree.KeyToken, LocalName);
     };
 
-    CodeGenerator.prototype.CreateGetterNode = function (Type, ParsedTree, Method, Expr) {
+    GtGenerator.prototype.CreateGetterNode = function (Type, ParsedTree, Method, Expr) {
         return new GetterNode(Type, ParsedTree.KeyToken, Method, Expr);
     };
 
-    CodeGenerator.prototype.CreateIndexerNode = function (Type, ParsedTree, Method, Expr, Index) {
+    GtGenerator.prototype.CreateIndexerNode = function (Type, ParsedTree, Method, Expr, Index) {
         return new IndexerNode(Type, ParsedTree.KeyToken, Method, Expr, Index);
     };
 
-    CodeGenerator.prototype.CreateApplyNode = function (Type, ParsedTree, Method) {
+    GtGenerator.prototype.CreateApplyNode = function (Type, ParsedTree, Method) {
         return new ApplyNode(Type, ParsedTree.KeyToken, Method);
     };
 
-    CodeGenerator.prototype.CreateMessageNode = function (Type, ParsedTree, RecvNode, Method) {
+    GtGenerator.prototype.CreateMessageNode = function (Type, ParsedTree, RecvNode, Method) {
         return new MessageNode(Type, ParsedTree.KeyToken, Method, RecvNode);
     };
 
-    CodeGenerator.prototype.CreateNewNode = function (Type, ParsedTree) {
+    GtGenerator.prototype.CreateNewNode = function (Type, ParsedTree) {
         return new NewNode(Type, ParsedTree.KeyToken);
     };
 
-    CodeGenerator.prototype.CreateUnaryNode = function (Type, ParsedTree, Method, Expr) {
+    GtGenerator.prototype.CreateUnaryNode = function (Type, ParsedTree, Method, Expr) {
         return new UnaryNode(Type, ParsedTree.KeyToken, Method, Expr);
     };
 
-    CodeGenerator.prototype.CreateSuffixNode = function (Type, ParsedTree, Method, Expr) {
+    GtGenerator.prototype.CreateSuffixNode = function (Type, ParsedTree, Method, Expr) {
         return new SuffixNode(Type, ParsedTree.KeyToken, Method, Expr);
     };
 
-    CodeGenerator.prototype.CreateBinaryNode = function (Type, ParsedTree, Method, Left, Right) {
+    GtGenerator.prototype.CreateBinaryNode = function (Type, ParsedTree, Method, Left, Right) {
         return new BinaryNode(Type, ParsedTree.KeyToken, Method, Left, Right);
     };
 
-    CodeGenerator.prototype.CreateAndNode = function (Type, ParsedTree, Left, Right) {
+    GtGenerator.prototype.CreateAndNode = function (Type, ParsedTree, Left, Right) {
         return new AndNode(Type, ParsedTree.KeyToken, Left, Right);
     };
 
-    CodeGenerator.prototype.CreateOrNode = function (Type, ParsedTree, Left, Right) {
+    GtGenerator.prototype.CreateOrNode = function (Type, ParsedTree, Left, Right) {
         return new OrNode(Type, ParsedTree.KeyToken, Left, Right);
     };
 
-    CodeGenerator.prototype.CreateAssignNode = function (Type, ParsedTree, Left, Right) {
+    GtGenerator.prototype.CreateAssignNode = function (Type, ParsedTree, Left, Right) {
         return new AssignNode(Type, ParsedTree.KeyToken, Left, Right);
     };
 
-    CodeGenerator.prototype.CreateLetNode = function (Type, ParsedTree, DeclType, VarNode, Block) {
+    GtGenerator.prototype.CreateLetNode = function (Type, ParsedTree, DeclType, VarNode, Block) {
         return new LetNode(Type, ParsedTree.KeyToken, DeclType, VarNode, Block);
     };
 
-    CodeGenerator.prototype.CreateIfNode = function (Type, ParsedTree, Cond, Then, Else) {
+    GtGenerator.prototype.CreateIfNode = function (Type, ParsedTree, Cond, Then, Else) {
         return new IfNode(Type, ParsedTree.KeyToken, Cond, Then, Else);
     };
 
-    CodeGenerator.prototype.CreateSwitchNode = function (Type, ParsedTree, Match) {
+    GtGenerator.prototype.CreateSwitchNode = function (Type, ParsedTree, Match) {
         return null;
     };
 
-    CodeGenerator.prototype.CreateWhileNode = function (Type, ParsedTree, Cond, Block) {
+    GtGenerator.prototype.CreateWhileNode = function (Type, ParsedTree, Cond, Block) {
         return new WhileNode(Type, ParsedTree.KeyToken, Cond, Block);
     };
 
-    CodeGenerator.prototype.CreateDoWhileNode = function (Type, ParsedTree, Cond, Block) {
+    GtGenerator.prototype.CreateDoWhileNode = function (Type, ParsedTree, Cond, Block) {
         return new DoWhileNode(Type, ParsedTree.KeyToken, Cond, Block);
     };
 
-    CodeGenerator.prototype.CreateForNode = function (Type, ParsedTree, Cond, IterNode, Block) {
+    GtGenerator.prototype.CreateForNode = function (Type, ParsedTree, Cond, IterNode, Block) {
         return new ForNode(Type, ParsedTree.KeyToken, Cond, Block, IterNode);
     };
 
-    CodeGenerator.prototype.CreateForEachNode = function (Type, ParsedTree, VarNode, IterNode, Block) {
+    GtGenerator.prototype.CreateForEachNode = function (Type, ParsedTree, VarNode, IterNode, Block) {
         return new ForEachNode(Type, ParsedTree.KeyToken, VarNode, IterNode, Block);
     };
 
-    CodeGenerator.prototype.CreateReturnNode = function (Type, ParsedTree, Node) {
+    GtGenerator.prototype.CreateReturnNode = function (Type, ParsedTree, Node) {
         return new ReturnNode(Type, ParsedTree.KeyToken, Node);
     };
 
-    CodeGenerator.prototype.CreateLabelNode = function (Type, ParsedTree, Node) {
+    GtGenerator.prototype.CreateLabelNode = function (Type, ParsedTree, Node) {
         return null;
     };
 
-    CodeGenerator.prototype.CreateJumpNode = function (Type, ParsedTree, Node, Label) {
+    GtGenerator.prototype.CreateJumpNode = function (Type, ParsedTree, Node, Label) {
         return new JumpNode(Type, ParsedTree.KeyToken, Label);
     };
 
-    CodeGenerator.prototype.CreateBreakNode = function (Type, ParsedTree, Node, Label) {
+    GtGenerator.prototype.CreateBreakNode = function (Type, ParsedTree, Node, Label) {
         return new BreakNode(Type, ParsedTree.KeyToken, Label);
     };
 
-    CodeGenerator.prototype.CreateContinueNode = function (Type, ParsedTree, Node, Label) {
+    GtGenerator.prototype.CreateContinueNode = function (Type, ParsedTree, Node, Label) {
         return new ContinueNode(Type, ParsedTree.KeyToken, Label);
     };
 
-    CodeGenerator.prototype.CreateTryNode = function (Type, ParsedTree, TryBlock, FinallyBlock) {
+    GtGenerator.prototype.CreateTryNode = function (Type, ParsedTree, TryBlock, FinallyBlock) {
         return new TryNode(Type, ParsedTree.KeyToken, TryBlock, FinallyBlock);
     };
 
-    CodeGenerator.prototype.CreateThrowNode = function (Type, ParsedTree, Node) {
+    GtGenerator.prototype.CreateThrowNode = function (Type, ParsedTree, Node) {
         return new ThrowNode(Type, ParsedTree.KeyToken, Node);
     };
 
-    CodeGenerator.prototype.CreateFunctionNode = function (Type, ParsedTree, Block) {
+    GtGenerator.prototype.CreateFunctionNode = function (Type, ParsedTree, Block) {
         return null;
     };
 
-    CodeGenerator.prototype.CreateDefineNode = function (Type, ParsedTree, Module) {
+    GtGenerator.prototype.CreateDefineNode = function (Type, ParsedTree, Module) {
         return null;
     };
 
-    CodeGenerator.prototype.CreateEmptyNode = function (Type, ParsedTree) {
-        return new TypedNode(ParsedTree.NameSpace.Context.VoidType, ParsedTree.KeyToken);
+    GtGenerator.prototype.CreateEmptyNode = function (Type, ParsedTree) {
+        return new GtNode(ParsedTree.NameSpace.Context.VoidType, ParsedTree.KeyToken);
     };
 
-    CodeGenerator.prototype.CreateErrorNode = function (Type, ParsedTree) {
+    GtGenerator.prototype.CreateErrorNode = function (Type, ParsedTree) {
         return new ErrorNode(ParsedTree.NameSpace.Context.VoidType, ParsedTree.KeyToken);
     };
 
-    CodeGenerator.prototype.CreateCommandNode = function (Type, ParsedTree, PipedNextNode) {
+    GtGenerator.prototype.CreateCommandNode = function (Type, ParsedTree, PipedNextNode) {
         return new CommandNode(Type, ParsedTree.KeyToken, PipedNextNode);
     };
 
-    CodeGenerator.prototype.ParseMethodFlag = function (MethodFlag, MethodDeclTree) {
+    GtGenerator.prototype.ParseMethodFlag = function (MethodFlag, MethodDeclTree) {
         if (MethodDeclTree.HasAnnotation("Export")) {
             MethodFlag = MethodFlag | ExportMethod;
         }
@@ -915,108 +915,108 @@ var CodeGenerator = (function () {
         return MethodFlag;
     };
 
-    CodeGenerator.prototype.CreateMethod = function (MethodFlag, MethodName, BaseIndex, TypeList, RawMacro) {
+    GtGenerator.prototype.CreateMethod = function (MethodFlag, MethodName, BaseIndex, TypeList, RawMacro) {
         return new GtMethod(MethodFlag, MethodName, BaseIndex, TypeList, RawMacro);
     };
 
-    CodeGenerator.prototype.VisitEmptyNode = function (EmptyNode) {
+    GtGenerator.prototype.VisitEmptyNode = function (EmptyNode) {
         console.log("DEBUG: " + "node: empty: " + EmptyNode.Token.ParsedText);
     };
 
-    CodeGenerator.prototype.VisitSuffixNode = function (SuffixNode) {
+    GtGenerator.prototype.VisitSuffixNode = function (SuffixNode) {
     };
 
-    CodeGenerator.prototype.VisitUnaryNode = function (UnaryNode) {
+    GtGenerator.prototype.VisitUnaryNode = function (UnaryNode) {
     };
 
-    CodeGenerator.prototype.VisitIndexerNode = function (IndexerNode) {
+    GtGenerator.prototype.VisitIndexerNode = function (IndexerNode) {
     };
 
-    CodeGenerator.prototype.VisitMessageNode = function (MessageNode) {
+    GtGenerator.prototype.VisitMessageNode = function (MessageNode) {
     };
 
-    CodeGenerator.prototype.VisitWhileNode = function (WhileNode) {
+    GtGenerator.prototype.VisitWhileNode = function (WhileNode) {
     };
 
-    CodeGenerator.prototype.VisitDoWhileNode = function (DoWhileNode) {
+    GtGenerator.prototype.VisitDoWhileNode = function (DoWhileNode) {
     };
 
-    CodeGenerator.prototype.VisitForNode = function (ForNode) {
+    GtGenerator.prototype.VisitForNode = function (ForNode) {
     };
 
-    CodeGenerator.prototype.VisitForEachNode = function (ForEachNode) {
+    GtGenerator.prototype.VisitForEachNode = function (ForEachNode) {
     };
 
-    CodeGenerator.prototype.VisitConstNode = function (Node) {
+    GtGenerator.prototype.VisitConstNode = function (Node) {
     };
 
-    CodeGenerator.prototype.VisitNewNode = function (Node) {
+    GtGenerator.prototype.VisitNewNode = function (Node) {
     };
 
-    CodeGenerator.prototype.VisitNullNode = function (Node) {
+    GtGenerator.prototype.VisitNullNode = function (Node) {
     };
 
-    CodeGenerator.prototype.VisitLocalNode = function (Node) {
+    GtGenerator.prototype.VisitLocalNode = function (Node) {
     };
 
-    CodeGenerator.prototype.VisitGetterNode = function (Node) {
+    GtGenerator.prototype.VisitGetterNode = function (Node) {
     };
 
-    CodeGenerator.prototype.VisitApplyNode = function (Node) {
+    GtGenerator.prototype.VisitApplyNode = function (Node) {
     };
 
-    CodeGenerator.prototype.VisitBinaryNode = function (Node) {
+    GtGenerator.prototype.VisitBinaryNode = function (Node) {
     };
 
-    CodeGenerator.prototype.VisitAndNode = function (Node) {
+    GtGenerator.prototype.VisitAndNode = function (Node) {
     };
 
-    CodeGenerator.prototype.VisitOrNode = function (Node) {
+    GtGenerator.prototype.VisitOrNode = function (Node) {
     };
 
-    CodeGenerator.prototype.VisitAssignNode = function (Node) {
+    GtGenerator.prototype.VisitAssignNode = function (Node) {
     };
 
-    CodeGenerator.prototype.VisitLetNode = function (Node) {
+    GtGenerator.prototype.VisitLetNode = function (Node) {
     };
 
-    CodeGenerator.prototype.VisitIfNode = function (Node) {
+    GtGenerator.prototype.VisitIfNode = function (Node) {
     };
 
-    CodeGenerator.prototype.VisitSwitchNode = function (Node) {
+    GtGenerator.prototype.VisitSwitchNode = function (Node) {
     };
 
-    CodeGenerator.prototype.VisitReturnNode = function (Node) {
+    GtGenerator.prototype.VisitReturnNode = function (Node) {
     };
 
-    CodeGenerator.prototype.VisitLabelNode = function (Node) {
+    GtGenerator.prototype.VisitLabelNode = function (Node) {
     };
 
-    CodeGenerator.prototype.VisitJumpNode = function (Node) {
+    GtGenerator.prototype.VisitJumpNode = function (Node) {
     };
 
-    CodeGenerator.prototype.VisitBreakNode = function (Node) {
+    GtGenerator.prototype.VisitBreakNode = function (Node) {
     };
 
-    CodeGenerator.prototype.VisitContinueNode = function (Node) {
+    GtGenerator.prototype.VisitContinueNode = function (Node) {
     };
 
-    CodeGenerator.prototype.VisitTryNode = function (Node) {
+    GtGenerator.prototype.VisitTryNode = function (Node) {
     };
 
-    CodeGenerator.prototype.VisitThrowNode = function (Node) {
+    GtGenerator.prototype.VisitThrowNode = function (Node) {
     };
 
-    CodeGenerator.prototype.VisitFunctionNode = function (Node) {
+    GtGenerator.prototype.VisitFunctionNode = function (Node) {
     };
 
-    CodeGenerator.prototype.VisitErrorNode = function (Node) {
+    GtGenerator.prototype.VisitErrorNode = function (Node) {
     };
 
-    CodeGenerator.prototype.VisitCommandNode = function (Node) {
+    GtGenerator.prototype.VisitCommandNode = function (Node) {
     };
 
-    CodeGenerator.prototype.VisitBlock = function (Node) {
+    GtGenerator.prototype.VisitBlock = function (Node) {
         var CurrentNode = Node;
         while (CurrentNode != null) {
             CurrentNode.Evaluate(this);
@@ -1024,29 +1024,29 @@ var CodeGenerator = (function () {
         }
     };
 
-    CodeGenerator.prototype.DefineFunction = function (Method, ParamNameList, Body) {
+    GtGenerator.prototype.DefineFunction = function (Method, ParamNameList, Body) {
     };
 
-    CodeGenerator.prototype.Eval = function (Node) {
+    GtGenerator.prototype.Eval = function (Node) {
         this.VisitBlock(Node);
         return null;
     };
 
-    CodeGenerator.prototype.AddClass = function (Type) {
+    GtGenerator.prototype.AddClass = function (Type) {
     };
 
-    CodeGenerator.prototype.PushCode = function (Code) {
+    GtGenerator.prototype.PushCode = function (Code) {
         this.GeneratedCodeStack.add(Code);
     };
 
-    CodeGenerator.prototype.PopCode = function () {
+    GtGenerator.prototype.PopCode = function () {
         var Size = this.GeneratedCodeStack.size();
         if (Size > 0) {
             return this.GeneratedCodeStack.remove(Size - 1);
         }
         return "";
     };
-    return CodeGenerator;
+    return GtGenerator;
 })();
 
 var SourceGenerator = (function (_super) {
@@ -1141,4 +1141,4 @@ var SourceGenerator = (function (_super) {
         console.log(Text);
     };
     return SourceGenerator;
-})(CodeGenerator);
+})(GtGenerator);

@@ -18,7 +18,7 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 			if(i > 0){
 				Code = Code + ", ";
 			}
-			Code = Code + NameList.get(i) + i;
+			Code = Code + NameList.get(i);
 			i = i + 1;
 		}
 		Code = Code + ") ";
@@ -187,24 +187,12 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 		}
 	}
 
-	@Override public void VisitLabelNode(LabelNode Node) {
-		/*local*/String Label = Node.Label;
-		this.PushSourceCode(Label + ":");
-		return;
-	}
-
 	@Override public void VisitBreakNode(BreakNode Node) {
 		this.PushSourceCode("break");
 	}
 
 	@Override public void VisitContinueNode(ContinueNode Node) {
 		this.PushSourceCode("continue");
-	}
-
-	@Override public void VisitJumpNode(JumpNode Node) {
-		/*local*/String Label = Node.Label;
-		this.PushSourceCode("goto " + Label);
-		return;
 	}
 
 	@Override public void VisitTryNode(TryNode Node) {
@@ -237,7 +225,7 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitErrorNode(ErrorNode Node) {
 		/*local*/String Expr = Node.toString();
-		this.PushSourceCode("throw new Error(\"" + Expr + "\")");
+		this.PushSourceCode("(function() {throw new Error(\"" + Expr + "\") })()");
 		return;
 	}
 
@@ -251,7 +239,7 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 				ret =  Line + ";\n" + ret;
 			}
 		}
-		this.WriteTranslatedCode(ret);
+		//this.WriteTranslatedCode(ret);
 		return ret;
 	}
 

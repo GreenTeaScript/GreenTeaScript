@@ -17,7 +17,7 @@ var JavaScriptSourceGenerator = (function (_super) {
             if (i > 0) {
                 Code = Code + ", ";
             }
-            Code = Code + NameList.get(i) + i;
+            Code = Code + NameList.get(i);
             i = i + 1;
         }
         Code = Code + ") ";
@@ -184,24 +184,12 @@ var JavaScriptSourceGenerator = (function (_super) {
         }
     };
 
-    JavaScriptSourceGenerator.prototype.VisitLabelNode = function (Node) {
-        var Label = Node.Label;
-        this.PushSourceCode(Label + ":");
-        return;
-    };
-
     JavaScriptSourceGenerator.prototype.VisitBreakNode = function (Node) {
         this.PushSourceCode("break");
     };
 
     JavaScriptSourceGenerator.prototype.VisitContinueNode = function (Node) {
         this.PushSourceCode("continue");
-    };
-
-    JavaScriptSourceGenerator.prototype.VisitJumpNode = function (Node) {
-        var Label = Node.Label;
-        this.PushSourceCode("goto " + Label);
-        return;
     };
 
     JavaScriptSourceGenerator.prototype.VisitTryNode = function (Node) {
@@ -229,7 +217,7 @@ var JavaScriptSourceGenerator = (function (_super) {
 
     JavaScriptSourceGenerator.prototype.VisitErrorNode = function (Node) {
         var Expr = Node.toString();
-        this.PushSourceCode("throw new Error(\"" + Expr + "\")");
+        this.PushSourceCode("(function() {throw new Error(\"" + Expr + "\") })()");
         return;
     };
 
@@ -242,7 +230,7 @@ var JavaScriptSourceGenerator = (function (_super) {
                 ret = Line + ";\n" + ret;
             }
         }
-        this.WriteTranslatedCode(ret);
+
         return ret;
     };
     return JavaScriptSourceGenerator;

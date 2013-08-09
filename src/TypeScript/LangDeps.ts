@@ -150,9 +150,9 @@ class LangDeps {
 		return -1;
 	}
 
-	static ApplyMatchFunc(Delegate: any, Pattern: Object, LeftTree: Object, TokenContext: Object): SyntaxTree {
+	static ApplyMatchFunc(Delegate: any, Pattern: Object, LeftTree: Object, TokenContext: Object): GtSyntaxTree {
 		try {
-			return <SyntaxTree>Delegate(Pattern, LeftTree, TokenContext);
+			return <GtSyntaxTree>Delegate(Pattern, LeftTree, TokenContext);
 		}
 		catch (e) {
 			console.log(e);
@@ -160,9 +160,9 @@ class LangDeps {
 		return null;
 	}
 
-	static ApplyTypeFunc(Delegate: any, Gamma: Object, ParsedTree: Object, TypeInfo: Object): TypedNode {
+	static ApplyTypeFunc(Delegate: any, Gamma: Object, ParsedTree: Object, TypeInfo: Object): GtNode {
 		try {
-			return <TypedNode>Delegate(Gamma, ParsedTree, TypeInfo);
+			return <GtNode>Delegate(Gamma, ParsedTree, TypeInfo);
 		}
 		catch (e) {
 			console.log(e);
@@ -187,7 +187,7 @@ class LangDeps {
 		return Tuple;
 	}
 
-	static CodeGenerator(Option: string): CodeGenerator{
+	static CodeGenerator(Option: string): GtGenerator{
 		return new JavaScriptSourceGenerator();
 	}
 

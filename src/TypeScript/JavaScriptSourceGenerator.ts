@@ -9,7 +9,7 @@ class JavaScriptSourceGenerator extends SourceGenerator {
 
 	UseLetKeyword: boolean;
 
-	public DefineFunction(Method: GtMethod, NameList: Array<string>, Body: TypedNode): void {
+	public DefineFunction(Method: GtMethod, NameList: Array<string>, Body: GtNode): void {
 		var ArgCount: number = Method.Types.length - 1;
 		var Code: string = "var " + Method.MethodName + "= (function(";
 		var i: number = 0;
@@ -17,7 +17,7 @@ class JavaScriptSourceGenerator extends SourceGenerator {
 			if(i > 0){
 				Code = Code + ", ";
 			}
-			Code = Code + NameList.get(i) + i;
+			Code = Code + NameList.get(i);
 			i = i + 1;
 		}
 		Code = Code + ") ";
@@ -27,7 +27,7 @@ class JavaScriptSourceGenerator extends SourceGenerator {
 		this.WriteTranslatedCode(Code);
 	}
 
-	public  VisitBlockJS(Node: TypedNode): void {
+	public  VisitBlockJS(Node: GtNode): void {
 		this.Indent();
 		var highLevelIndent: string = this.GetIndentString();
 		super.VisitBlock(Node);
@@ -60,7 +60,7 @@ class JavaScriptSourceGenerator extends SourceGenerator {
 	public VisitNewNode(Node: NewNode): void {
 		var i: number = 0;
 		while(i < Node.Params.size()) {
-			var Param: TypedNode = Node.Params.get(i);
+			var Param: GtNode = Node.Params.get(i);
 			Param.Evaluate(this);
 			i = i + 1;
 		}
@@ -173,7 +173,7 @@ class JavaScriptSourceGenerator extends SourceGenerator {
 		// Auto: TODO-generatedstub: method //
 	}
 
-	public VisitEmptyNode(Node: TypedNode): void {
+	public VisitEmptyNode(Node: GtNode): void {
 		this.PushSourceCode("");
 	}
 
@@ -186,24 +186,12 @@ class JavaScriptSourceGenerator extends SourceGenerator {
 		}
 	}
 
-	public VisitLabelNode(Node: LabelNode): void {
-		var Label: string = Node.Label;
-		this.PushSourceCode(Label + ":");
-		return;
-	}
-
 	public VisitBreakNode(Node: BreakNode): void {
 		this.PushSourceCode("break");
 	}
 
 	public VisitContinueNode(Node: ContinueNode): void {
 		this.PushSourceCode("continue");
-	}
-
-	public VisitJumpNode(Node: JumpNode): void {
-		var Label: string = Node.Label;
-		this.PushSourceCode("goto " + Label);
-		return;
 	}
 
 	public VisitTryNode(Node: TryNode): void {
@@ -236,12 +224,12 @@ class JavaScriptSourceGenerator extends SourceGenerator {
 
 	public VisitErrorNode(Node: ErrorNode): void {
 		var Expr: string = Node.toString();
-		this.PushSourceCode("throw new Error(\"" + Expr + "\")");
+		this.PushSourceCode("(function() {throw new Error(\"" + Expr + "\") })()");
 		return;
 	}
 
 	// must: Thisextended: beeach: language: in //
-	public Eval(Node: TypedNode): Object {
+	public Eval(Node: GtNode): Object {
 		this.VisitBlock(Node);
 		var ret: string = "";
 		while(this.GeneratedCodeStack.size() > 0){
@@ -250,7 +238,7 @@ class JavaScriptSourceGenerator extends SourceGenerator {
 				ret =  Line + ";\n" + ret;
 			}
 		}
-		this.WriteTranslatedCode(ret);
+		// this.WriteTranslatedCode(ret); //
 		return ret;
 	}
 
