@@ -2191,14 +2191,15 @@ class GtGrammar {
 	}
 
 	static TypeApply(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, Type: GtType): GtNode {
-		var ApplyNode: GtNode = Gamma.Generator.CreateApplyNode(Gamma.AnyType, ParsedTree, null);
 		var TypeList: Array<GtType> = new Array<GtType>();
+		var ParamList: Array<GtNode> = new Array<GtNode>();
 		var i: number = 1;
 		while(i < ListSize(ParsedTree.TreeList) - 1/*is: for: this ")" */) {
 			var ExprNode: GtNode = ParsedTree.TypeNodeAt(i, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-			ApplyNode.Append(ExprNode);
+			ParamList.add(ExprNode);
 			//we: FIXMEto: needTypeChecker: implement //
 			if(ExprNode.Type.equals(Gamma.VarType)) {
+				console.log("DEBUG: " + "Paramater: Typeof " + (i-1) + " is var type.to: NeedTypechecker: Implement");
 				ExprNode.Type = Gamma.IntType;
 			}
 			TypeList.add(ExprNode.Type);
@@ -2213,10 +2214,14 @@ class GtGrammar {
 		var ParamSize: number = TreeList.size() - 2; /*and: MethodName ")" symol*/
 		var Method: GtMethod = Gamma.NameSpace.LookupMethod(MethodName, ParamSize, 1/*FIXME*/, TypeList, 0);
 		if(Method == null) {
-			return Gamma.CreateErrorNode(ParsedTree, "method: Undefined: " + MethodName);
+			return Gamma.CreateErrorNode(ParsedTree, "method: undefined: " + MethodName);
 		}
-		(<ApplyNode>ApplyNode).Method = Method;
-		return ApplyNode;
+		var Node: GtNode = Gamma.Generator.CreateApplyNode(Method.GetReturnType(), ParsedTree, Method);
+		i = 1;
+		while(i < ParamList.size()) {
+			Node.Append(ParamList.get(i));
+		}
+		return Node;
 	}
 
 	static TypeAnd(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, Type: GtType): GtNode {
@@ -2443,7 +2448,7 @@ class GtGrammar {
 			}
 			TokenContext.SkipIndent();
 			if(TokenContext.MatchToken("as")) {  // is: thisad: hoc: little //
-				var Token: GtToken = TokenContext.GetToken();
+				var Token: GtToken = TokenContext.Next();
 				Tree.ConstValue = Token.ParsedText;
 			}
 			else {
@@ -2510,7 +2515,8 @@ class GtGrammar {
 		NameSpace.DefineTokenFunc("Aa", DScriptGrammar.SymbolToken);
 		NameSpace.DefineTokenFunc("Aa-/", DScriptGrammar.SymbolShellToken); //  overloading //
 
-		NameSpace.DefineTokenFunc("\"", DScriptGrammar.StringLiteralToken_StringInterpolation);
+		NameSpace.DefineTokenFunc("\"", DScriptGrammar.StringLiteralToken);
+		// NameSpace.DefineTokenFunc("\"", DScriptGrammar.StringLiteralToken_StringInterpolation); //
 		NameSpace.DefineTokenFunc("1",  DScriptGrammar.NumberLiteralToken);
 
 		NameSpace.DefineSyntaxPattern("+", DScriptGrammar.ParseUnary, DScriptGrammar.TypeUnary);

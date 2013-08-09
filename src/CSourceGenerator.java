@@ -147,7 +147,7 @@ public class CSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
 		/*local*/String[] Params = this.EvaluateParam(Node.Params);
-		/*local*/String Program = GenerateTemplate(Node);
+		/*local*/String Program = this.GenerateTemplate(Node);
 		/*local*/int i = 0;
 		while(i < Params.length) {
 			String P = Params[i];

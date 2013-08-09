@@ -16,7 +16,6 @@ def testcase():
 target = [];
 
 def get_result(case, jar, target):
-    print(arg)
     ret = subprocess.check_output(
             ["java", "-jar", jar, "--" + target, case],
             universal_newlines=True

@@ -2308,9 +2308,10 @@ final class DScriptGrammar extends GtGrammar {
 			return Gamma.CreateErrorNode(ParsedTree, "undefined method: " + MethodName);
 		}
 		/*local*/GtNode Node = Gamma.Generator.CreateApplyNode(Method.GetReturnType(), ParsedTree, Method);
-		i = 1;
+		i = 0;
 		while(i < ParamList.size()) {
 			Node.Append(ParamList.get(i));
+			i = i + 1;
 		}
 		return Node;
 	}

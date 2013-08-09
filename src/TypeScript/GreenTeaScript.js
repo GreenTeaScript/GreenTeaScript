@@ -2116,14 +2116,15 @@ var DScriptGrammar = (function (_super) {
     };
 
     DScriptGrammar.TypeApply = function (Gamma, ParsedTree, Type) {
-        var ApplyNode = Gamma.Generator.CreateApplyNode(Gamma.AnyType, ParsedTree, null);
         var TypeList = new Array();
+        var ParamList = new Array();
         var i = 1;
         while (i < ListSize(ParsedTree.TreeList) - 1) {
             var ExprNode = ParsedTree.TypeNodeAt(i, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-            ApplyNode.Append(ExprNode);
+            ParamList.add(ExprNode);
 
             if (ExprNode.Type.equals(Gamma.VarType)) {
+                console.log("DEBUG: " + "Paramater: Typeof " + (i - 1) + " is var type.to: NeedTypechecker: Implement");
                 ExprNode.Type = Gamma.IntType;
             }
             TypeList.add(ExprNode.Type);
@@ -2138,10 +2139,14 @@ var DScriptGrammar = (function (_super) {
         var ParamSize = TreeList.size() - 2;
         var Method = Gamma.NameSpace.LookupMethod(MethodName, ParamSize, 1, TypeList, 0);
         if (Method == null) {
-            return Gamma.CreateErrorNode(ParsedTree, "method: Undefined: " + MethodName);
+            return Gamma.CreateErrorNode(ParsedTree, "method: undefined: " + MethodName);
         }
-        (ApplyNode).Method = Method;
-        return ApplyNode;
+        var Node = Gamma.Generator.CreateApplyNode(Method.GetReturnType(), ParsedTree, Method);
+        i = 1;
+        while (i < ParamList.size()) {
+            Node.Append(ParamList.get(i));
+        }
+        return Node;
     };
 
     DScriptGrammar.TypeAnd = function (Gamma, ParsedTree, Type) {
@@ -2361,7 +2366,7 @@ var DScriptGrammar = (function (_super) {
             }
             TokenContext.SkipIndent();
             if (TokenContext.MatchToken("as")) {
-                var Token = TokenContext.GetToken();
+                var Token = TokenContext.Next();
                 Tree.ConstValue = Token.ParsedText;
             } else {
                 Tree.SetMatchedPatternAt(FuncDeclBlock, TokenContext, "$Block$", Optional);
@@ -2425,7 +2430,8 @@ var DScriptGrammar = (function (_super) {
         NameSpace.DefineTokenFunc("Aa", DScriptGrammar.SymbolToken);
         NameSpace.DefineTokenFunc("Aa-/", DScriptGrammar.SymbolShellToken);
 
-        NameSpace.DefineTokenFunc("\"", DScriptGrammar.StringLiteralToken_StringInterpolation);
+        NameSpace.DefineTokenFunc("\"", DScriptGrammar.StringLiteralToken);
+
         NameSpace.DefineTokenFunc("1", DScriptGrammar.NumberLiteralToken);
 
         NameSpace.DefineSyntaxPattern("+", DScriptGrammar.ParseUnary, DScriptGrammar.TypeUnary);
