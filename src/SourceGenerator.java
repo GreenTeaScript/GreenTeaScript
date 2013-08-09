@@ -977,6 +977,15 @@ class GtGenerator extends GtStatic {
 		return new GtMethod(MethodFlag, MethodName, BaseIndex, TypeList, RawMacro);
 	}
 
+	public int ParseClassFlag(int ClassFlag, GtSyntaxTree ClassDeclTree) {
+		if(ClassDeclTree.HasAnnotation("Final")) {
+			ClassFlag = ClassFlag | FinalClass;
+		}
+		if(ClassDeclTree.HasAnnotation("Private")) {
+			ClassFlag = ClassFlag | PrivateClass;
+		}
+		return ClassFlag;
+	}
 	//------------------------------------------------------------------------
 
 	public void VisitEmptyNode(GtNode EmptyNode) {

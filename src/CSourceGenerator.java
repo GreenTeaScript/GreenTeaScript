@@ -380,9 +380,33 @@ public class CSourceGenerator extends SourceGenerator {
 		return Code;
 	}
 
-	@Override public void AddClass(GtType Type) {
-		// TODO Auto-generated method stub
+	private static final String[] DefaultTypes = {"void", "int", "boolean", "float", "double", "String", "Object", "Array", "Func", "var", "any"};
 
+	protected boolean IsDefiendType(String TypeName) {
+		/*local*/int i = 0;
+		while(i < DefaultTypes.length) {
+			if(DefaultTypes[i].equals(TypeName)) {
+				return true;
+			}
+			i = i + 1;
+		}
+		// FIXME care about "var", "any"
+		
+		return false;
+	}
+	@Override public void AddClass(GtType Type) {
+		String TypeName = Type.ShortClassName;
+		if(IsDefiendType(TypeName) == true) {
+			return;
+		}
+		String Code = this.GetIndentString() + "typedef struct " + Type + " {\n";
+		this.Indent();
+		if(Type.SuperClass != null) {
+			Code += this.GetIndentString() + Type.SuperClass.ShortClassName + " __base;\n";
+		}
+		this.UnIndent();
+		Code += this.GetIndentString() + "} " + Type + ";\n";
+		this.WriteTranslatedCode(Code);
 	}
 
 	@Override public void SetLanguageContext(GtContext Context) {

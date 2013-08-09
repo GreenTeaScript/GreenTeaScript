@@ -26,7 +26,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		Code += this.GetIndentString();
 		this.PushSourceCode(Code);
 	}
-	
+
 	public void VisitBlockWithoutIndent(GtNode Node) {
 		/*local*/String Code = "";
 		/*local*/GtNode CurrentNode = Node;
