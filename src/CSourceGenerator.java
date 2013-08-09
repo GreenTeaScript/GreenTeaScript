@@ -147,17 +147,17 @@ public class CSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
 		/*local*/String[] Params = this.EvaluateParam(Node.Params);
-		/*local*/String Program = this.GenerateTemplate(Node);
+		/*local*/String Program = this.GenerateMacro(Node);
 		/*local*/int i = 0;
 		while(i < Params.length) {
 			String P = Params[i];
-			Program = Program.replace("$" + i, P);
+			Program = Program.replaceAll("$" + i, P);
 			i = i + 1;
 		}
 		this.PushSourceCode(Program);
 	}
 
-	private String GenerateTemplate(ApplyNode Node) {
+	private String GenerateMacro(ApplyNode Node) {
 		if(Node.Method.SourceMacro != null) {
 			return Node.Method.SourceMacro;
 		}

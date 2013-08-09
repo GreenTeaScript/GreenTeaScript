@@ -644,10 +644,12 @@ class CommandNode extends GtNode {
 	}
 }
 
-class GtObject extends GtStatic {
+class GtObject {
 	/*field*/public GtType	Type;
+	/*field*/public GtMap   Field;
 	GtObject/*constructor*/(GtType Type) {
 		this.Type = Type;
+		this.Field = new GtMap();
 	}
 }
 
