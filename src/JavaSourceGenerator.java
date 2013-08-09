@@ -134,7 +134,7 @@ public class JavaSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
 		/*local*/String Program = Node.Method.MethodName + "(";
-		/*local*/String[] Params = EvaluateParam(Node.Params);
+		/*local*/String[] Params = this.EvaluateParam(Node.Params);
 		for(int i = 0; i < Params.length; i++) {
 			String P = Params[i];
 			if(i != 0) {
@@ -310,7 +310,7 @@ public class JavaSourceGenerator extends SourceGenerator {
 			Program += " ," + ParamTy + " " + ParamNameList.get(i);
 		}
 
-		Program += Eval(Body);
+		Program += this.Eval(Body);
 		this.WriteTranslatedCode(Program);
 	}
 

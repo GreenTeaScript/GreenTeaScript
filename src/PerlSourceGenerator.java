@@ -5,7 +5,7 @@ import java.util.ArrayList;
 //GreenTea Generator should be written in each language.
 
 public class PerlSourceGenerator extends SourceGenerator {
-	PerlSourceGenerator() {
+	PerlSourceGenerator/*constructor*/() {
 		super("Perl");
 	}
 
@@ -33,7 +33,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		else if(MethodName.equals("--")) {
 		}
 		else {
-			throw new RuntimeException("NotSupportOperator");
+			//throw new RuntimeException("NotSupportOperator");
 		}
 		Node.Expr.Evaluate(this);
 		this.PushSourceCode(this.PopSourceCode() + MethodName);
@@ -54,7 +54,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		else if(MethodName.equals("--")) {
 		}
 		else {
-			throw new RuntimeException("NotSupportOperator");
+			//throw new RuntimeException("NotSupportOperator");
 		}
 		Node.Expr.Evaluate(this);
 		this.PushSourceCode(MethodName + this.PopSourceCode());
@@ -143,7 +143,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
 		/*local*/String Program = Node.Method.LocalFuncName + "(";
-		/*local*/String[] Params = EvaluateParam(Node.Params);
+		/*local*/String[] Params = this.EvaluateParam(Node.Params);
 		/*local*/int i = 0;
 		while(i < Params.length) {
 			String P = Params[i];
@@ -198,7 +198,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 			}
 		}
 		else {
-			throw new RuntimeException("NotSupportOperator");
+			//throw new RuntimeException("NotSupportOperator");
 		}
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
@@ -312,7 +312,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 	@Override public void VisitCommandNode(CommandNode Node) {
 		/*local*/String Code = "system(\"";
 		/*local*/int i = 0;
-		while(i < GtStatic.ListSize(Node.Params)) {
+		while(i < Node.Params.size()) {
 			GtNode Param = Node.Params.get(i);
 			if(i != 0) {
 				Code += " ";
@@ -343,7 +343,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		this.UnIndent();
 		Program += Signature + ");\n" + this.GetIndentString() + "sub " + FuncName + "{\n";
 		this.Indent();
-		Program += Arguments + GetIndentString();
+		Program += Arguments + this.GetIndentString();
 		this.VisitBlockEachStatementWithIndent(Body);
 		Program += this.PopSourceCode();
 		this.UnIndent();

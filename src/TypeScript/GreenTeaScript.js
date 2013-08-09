@@ -256,7 +256,8 @@ var ExtendedPatternSpec = 2;
 
 var BinaryOperator = 1;
 var LeftJoin = 1 << 1;
-var PrecedenceShift = 2;
+var Parenthesis = 1 << 2;
+var PrecedenceShift = 3;
 var Precedence_CStyleValue = (1 << PrecedenceShift);
 var Precedence_CPPStyleScope = (50 << PrecedenceShift);
 var Precedence_CStyleSuffixCall = (100 << PrecedenceShift);
@@ -905,7 +906,7 @@ var GtSyntaxPattern = (function () {
     GtSyntaxPattern.prototype.IsLeftJoin = function (Right) {
         var left = this.SyntaxFlag >> PrecedenceShift;
         var right = Right.SyntaxFlag >> PrecedenceShift;
-        return (left < right || (left == right && IsFlag(this.SyntaxFlag, LeftJoin) && IsFlag(Right.SyntaxFlag, LeftJoin)));
+        return (!IsFlag(Right.SyntaxFlag, Parenthesis) && (left < right || (left == right && IsFlag(this.SyntaxFlag, LeftJoin) && IsFlag(Right.SyntaxFlag, LeftJoin))));
     };
     return GtSyntaxPattern;
 })();
@@ -2085,6 +2086,7 @@ var DScriptGrammar = (function (_super) {
             Tree = TokenContext.ReportExpectedToken(")");
         }
         TokenContext.ParseFlag = ParseFlag;
+        Tree.Pattern.SyntaxFlag |= Parenthesis;
         return Tree;
     };
 

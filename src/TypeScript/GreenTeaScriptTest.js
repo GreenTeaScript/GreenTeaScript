@@ -8,18 +8,16 @@ var GtScriptRunner = (function () {
         return null;
     };
     GtScriptRunner.ExecuteScript = function (Path, Target) {
-        var cmd = ["java", "-jar", "GreenTea.jar", "--" + Target, Path];
+        var cmd = ["java", "-jar", "GreenTeaScript.jar", "--" + Target, Path];
         var Result = "";
 
         return Result;
     };
 
     GtScriptRunner.Test = function (Target, ScriptPath, ResultPath) {
-        console.log("Testing " + ScriptPath + " (Target:" + Target + ") ... ");
         var Expected = GtScriptRunner.LoadFile(ResultPath);
         var Actual = GtScriptRunner.ExecuteScript(ScriptPath, Target);
         LangDeps.Assert(Expected.equals(Actual));
-        console.log("Testing " + ScriptPath + " (Target:" + Target + ") ... OK");
     };
     return GtScriptRunner;
 })();
