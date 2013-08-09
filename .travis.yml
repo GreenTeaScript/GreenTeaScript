@@ -1,0 +1,12 @@
+language: python
+
+python:
+    - "2.7"
+
+ruby:
+    - "1.9"
+
+node_js:
+    - "0.10"
+
+script: "make"
