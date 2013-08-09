@@ -30,7 +30,7 @@ def generate():
     print("generate test result")
     for t in target:
         for case in testcase():
-            actual = get_result(case, "./GreenTea.jar", t);
+            actual = get_result(case, "./GreenTeaScript.jar", t);
             f = open(case + "." + t, 'w')
             f.write(actual)
             f.close();
@@ -39,20 +39,24 @@ def load_template(filename):
     return open(filename).read()
 
 def test():
-    print("running unittese");
+    print("------------------------------");
+    print("Running unittese");
+    print("------------------------------");
     tests = 0
     failures = 0
     result = "";
+    failed_tests = []
     for t in target:
         for case in testcase():
             answer = case + "." + t
             print("testing taget=" + t + " case=" + case)
             ret = subprocess.call(
-                    ["java", "-jar", "./GreenTea-TestRunner.jar", "--" + t, case, answer],
+                    ["java", "-jar", "./GreenTeaScript-TestRunner.jar", "--" + t, case, answer],
                    )
             result = result + '<testcase classname="GeenTeaScriptTest.' + t + '" name="' + answer + '" time="0">\n'
             tests = tests + 1
             if(ret != 0):
+                failed_tests.append((case, t))
                 result = result + '<failure>AssertionFailed</failure>\n'
                 failures = failures + 1;
             result = result + '<system-out></system-out>\n'
@@ -72,6 +76,18 @@ def test():
     f.write(header)
     f.write(result)
     f.write(footer)
+
+    print("------------------------------");
+    print("finish Testing.");
+    if(len(failed_tests) == 0):
+        print("All test are passed.");
+    else:
+        i = 0
+        print(str(failures) + " tests are failed.");
+        while i < len(failed_tests):
+            (case, t) = failed_tests[i]
+            print("\t" + case + "." + t)
+            i = i + 1
     return
 
 def usage():

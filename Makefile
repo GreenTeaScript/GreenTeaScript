@@ -3,7 +3,7 @@
 # testts: test python implementation
 # testj:  test javascript implementation
 
-JavaBin="./GreenTea.jar"
+JavaBin="./GreenTeaScript.jar"
 
 all: build test
 
@@ -27,19 +27,16 @@ buildts:
 	@ruby -v > /dev/null
 	@node -v > /dev/null
 	@tsc -v  > /dev/null
-	(\
-		cd $(TSBuild);\
-		sh ToTypeScript.sh\
-	)
+	cd src/TypeScript;\
+	sh ToTypeScript.sh
 
 testj:
 	echo Testing Java implementation
-	@ant test
+	python ./tool/TestAll.py --target=c
 
-testts:
+testts: buildts
 	echo Testing javascript implementation...
-#	node --version;
-#	npm test
+	python ./tool/TestAll.py --target=js
 
 clean:
 	-rm -rf bin $(JavaBin)
