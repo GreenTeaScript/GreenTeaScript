@@ -180,7 +180,8 @@ public class JavaSourceGenerator extends SourceGenerator {
 		}
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + " " + MethodName + " " + this.PopSourceCode());
+		/* FIXME TOO MANY PARENTHESIS */
+		this.PushSourceCode("(" + this.PopSourceCode() + " " + MethodName + " " + this.PopSourceCode() + ")");
 	}
 
 	@Override public void VisitAndNode(AndNode Node) {
