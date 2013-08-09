@@ -1,12 +1,14 @@
+//ifdef JAVA
 import java.util.ArrayList;
+//endif VAJA
 
 //GreenTea Generator should be written in each language.
 
 public class BashSourceGenerator extends SourceGenerator {
-	/*local*/private boolean inFunc = false;
-	/*local*/private final String retVar = "__ret";
+	/*field*/boolean inFunc = false;
+	/*field*/final String retVar = "__ret";
 
-	BashSourceGenerator() {
+	BashSourceGenerator/*constructor*/() {
 		super("BashSource");
 	}
 
@@ -79,7 +81,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitNewNode(NewNode Node) {
-//		String Type = Node.Type.ShortClassName;
+//		/*local*/String Type = Node.Type.ShortClassName;
 //		this.PushSourceCode("new " + Type);
 	}
 
@@ -98,10 +100,12 @@ public class BashSourceGenerator extends SourceGenerator {
 	private String[] EvaluateParam(ArrayList<GtNode> Params) {
 		/*local*/int Size = Params.size();
 		/*local*/String[] Programs = new String[Size];
-		for(int i = 0; i < Size; i++) {
+		/*local*/int i = 0;
+		while(i < Size) {
 			/*local*/GtNode Node = Params.get(i);
 			Node.Evaluate(this);
 			Programs[Size - i - 1] = ResolveValueType(Node, this.PopSourceCode());
+			i = i + 1;
 		}
 		return Programs;
 	}
@@ -109,12 +113,14 @@ public class BashSourceGenerator extends SourceGenerator {
 	@Override public void VisitApplyNode(ApplyNode Node) {
 		/*local*/String Program = Node.Method.MethodName + " ";
 		/*local*/String[] Params = EvaluateParam(Node.Params);
-		for(int i = 0; i < Params.length; i++) {
+		/*local*/int i = 0;
+		while(i < Params.length) {
 			String P = Params[i];
 			if(i != 0) {
 				Program += " ";
 			}
 			Program += P;
+			i = i + 1;
 		}
 		this.PushSourceCode(Program);
 	}
@@ -317,7 +323,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitTryNode(TryNode Node) {
-//		String Code = "try";
+//		/*local*/String Code = "try";
 //		//this.VisitEach(Node.CatchBlock);
 //		this.VisitEach(Node.TryBlock);
 //		Code += this.PopSourceCode();
@@ -338,7 +344,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitErrorNode(ErrorNode Node) {
-//		String Code = "throw Error(\"" + Node.Token.ParsedText + "\")";
+//		/*local*/String Code = "throw Error(\"" + Node.Token.ParsedText + "\")";
 //		this.PushSourceCode(Code);
 	}
 
@@ -352,7 +358,7 @@ public class BashSourceGenerator extends SourceGenerator {
 			}
 			Code += CreateCommand(CurrentNode);
 			count++;
-			CurrentNode = (CommandNode) CurrentNode.PipedNextNode;
+			CurrentNode = (/*cast*/CommandNode) CurrentNode.PipedNextNode;
 		}
 		this.PushSourceCode(Code);
 	}
@@ -360,9 +366,11 @@ public class BashSourceGenerator extends SourceGenerator {
 	private String CreateCommand(CommandNode CurrentNode) {
 		/*local*/String Code = "";
 		/*local*/int size = CurrentNode.Params.size();
-		for(int i = 0; i < size; i++) {
+		/*local*/int i = 0;
+		while(i < size) {
 			CurrentNode.Params.get(i).Evaluate(this);
 			Code += this.PopSourceCode() + " ";
+			i = i + 1;
 		}
 		return Code;
 	}
@@ -382,9 +390,9 @@ public class BashSourceGenerator extends SourceGenerator {
 		assignNode.NextNode = ConvertParamName(ParamNameList, Body, ++index);
 		return new LetNode(null, null, null, varNode, assignNode);
 	}
-	
+
 	private String ResolveValueType(GtNode TargetNode, String value) {
-		String resolvedValue;
+		/*local*/String resolvedValue;
 		
 		if(TargetNode instanceof ConstNode || TargetNode instanceof NullNode) {
 			resolvedValue = value;

@@ -2,7 +2,6 @@
 
 
 
-
 	//  ClassFlag //
 	var PrivateClass: number					= 1 << 0;
 	var SingletonClass: number					= 1 << 1;
@@ -201,7 +200,8 @@
 
 	var BinaryOperator: number					= 1;
 	var LeftJoin: number						= 1 << 1;
-	var PrecedenceShift: number					= 2;
+	var Parenthesis: number						= 1 << 2;
+	var PrecedenceShift: number					= 3;
 	var Precedence_CStyleValue: number			= (1 << PrecedenceShift);
 	var Precedence_CPPStyleScope: number		= (50 << PrecedenceShift);
 	var Precedence_CStyleSuffixCall: number		= (100 << PrecedenceShift);				/*x(); x[]; x.x: x->x: x++ */
@@ -895,7 +895,7 @@
 	public IsLeftJoin(Right: GtSyntaxPattern): boolean {
 		var left: number = this.SyntaxFlag >> PrecedenceShift;
 		var right: number = Right.SyntaxFlag >> PrecedenceShift;
-		return (left < right || (left == right && IsFlag(this.SyntaxFlag, LeftJoin) && IsFlag(Right.SyntaxFlag, LeftJoin)));
+		return (!IsFlag(Right.SyntaxFlag, Parenthesis) && (left < right || (left == right && IsFlag(this.SyntaxFlag, LeftJoin) && IsFlag(Right.SyntaxFlag, LeftJoin))));
 	}
 }
 
@@ -1142,7 +1142,6 @@ class GtSyntaxTree {
 	 AnyType: GtType;
 	 ArrayType: GtType;
 	 FuncType: GtType;
-	
 
 	constructor(NameSpace: GtNameSpace) {
 		this.NameSpace = NameSpace;
@@ -1213,7 +1212,7 @@ class GtSyntaxTree {
 		}
 		return null;
 	}
-	
+
 	public DefaultValueConstNode(ParsedTree: GtSyntaxTree, Type: GtType): GtNode {
 		if(Type.DefaultNullValue != null) {
 			return this.Generator.CreateConstNode(Type, ParsedTree, Type.DefaultNullValue);
@@ -1793,7 +1792,7 @@ class GtGrammar {
 		TokenContext.ReportTokenError(ErrorLevel, "expected \"close: tostring: literal: the", SourceText.substring(start, pos));
 		return pos;
 	}
-	
+
 	static StringLiteralToken_StringInterpolation(TokenContext: GtTokenContext, SourceText: string, pos: number): number {
 		var start: number = pos + 1;
 		var NextPos: number = start;
@@ -1850,7 +1849,7 @@ class GtGrammar {
 		TokenContext.ReportTokenError(ErrorLevel, "expected \"close: tostring: literal: the", SourceText.substring(start, NextPos));
 		return NextPos;
 	}
-	
+
 	static ParseType(Pattern: GtSyntaxPattern, LeftTree: GtSyntaxTree, TokenContext: GtTokenContext): GtSyntaxTree {
 		var Token: GtToken = TokenContext.Next();
 		var ConstValue: Object = TokenContext.NameSpace.GetSymbol(Token.ParsedText);
@@ -2162,6 +2161,7 @@ class GtGrammar {
 			Tree = TokenContext.ReportExpectedToken(")");
 		}
 		TokenContext.ParseFlag = ParseFlag;
+		Tree.Pattern.SyntaxFlag |= Parenthesis;
 		return Tree;
 	}
 

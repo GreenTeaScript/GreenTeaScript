@@ -9,7 +9,7 @@ class GtScriptRunner {
 		return null;
 	}
 	static ExecuteScript(Path: string, Target: string): string {
-		var cmd: string[] = ["java", "-jar", "GreenTea.jar", "--" + Target, Path]
+		var cmd: string[] = ["java", "-jar", "GreenTeaScript.jar", "--" + Target, Path]
 		var Result: string = "";
 		// FIXME //
 
@@ -17,11 +17,11 @@ class GtScriptRunner {
 	}
 
 	static Test(Target: string, ScriptPath: string, ResultPath: string): void {
-		console.log("Testing " + ScriptPath + " (Target:" + Target + ") ... ");
+		// console.log("Testing " + ScriptPath + " (Target:" + Target + ") ... "); //
 		var Expected: string = GtScriptRunner.LoadFile(ResultPath);
 		var Actual: string   = GtScriptRunner.ExecuteScript(ScriptPath, Target);
 		LangDeps.Assert(Expected.equals(Actual));
-		console.log("Testing " + ScriptPath + " (Target:" + Target + ") ... OK");
+		// console.log("Testing " + ScriptPath + " (Target:" + Target + ") ... OK"); //
 	}
 }
 
@@ -60,7 +60,7 @@ class GreenTeaScriptTest {
 		var TokenTestList4: string[] = ["1", "=", "2"]
 		GreenTeaScriptTest.TestToken(Context, "1 = 2", TokenTestList4);
 	}
-	
+
 	static TokenizeStatement(): void {
 		var Context: GtContext = GreenTeaScriptTest.CreateContext();
 		var TokenTestList0: string[] = ["int", "+", "(", "int", "x", ")", ";"]
@@ -71,7 +71,8 @@ class GreenTeaScriptTest {
 		if(args.length != 3) {
 			GreenTeaScriptTest.TokenizeOperator0();
 			GreenTeaScriptTest.TokenizeStatement();
-		} else {
+		}
+		else {
 			GtScriptRunner.Test(args[0], args[1], args[2]);
 		}
 	}

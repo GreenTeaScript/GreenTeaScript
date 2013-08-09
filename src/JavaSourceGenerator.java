@@ -1,9 +1,11 @@
+//ifdef  JAVA
 import java.util.ArrayList;
+//endif VAJA
 
 //GreenTea Generator should be written in each language.
 
 public class JavaSourceGenerator extends SourceGenerator {
-	JavaSourceGenerator() {
+	JavaSourceGenerator/*constructor*/() {
 		super("Java");
 	}
 
