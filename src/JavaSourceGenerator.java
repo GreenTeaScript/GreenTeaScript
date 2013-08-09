@@ -325,6 +325,5 @@ public class JavaSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void SetLanguageContext(GtContext Context) {
-		new JavaLayerDef().MakeDefinition(Context.DefaultNameSpace);
 	}
 }
