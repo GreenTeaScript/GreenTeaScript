@@ -38,11 +38,11 @@ class GtScriptRunner {
 	}
 
 	public static void Test(String Target, String ScriptPath, String ResultPath) {
-		LangDeps.println("Testing " + ScriptPath + " (Target:" + Target + ") ... ");
+		//LangDeps.println("Testing " + ScriptPath + " (Target:" + Target + ") ... ");
 		/*local*/String Expected = GtScriptRunner.LoadFile(ResultPath);
 		/*local*/String Actual   = GtScriptRunner.ExecuteScript(ScriptPath, Target);
 		LangDeps.Assert(Expected.equals(Actual));
-		LangDeps.println("Testing " + ScriptPath + " (Target:" + Target + ") ... OK");
+		//LangDeps.println("Testing " + ScriptPath + " (Target:" + Target + ") ... OK");
 	}
 }
 

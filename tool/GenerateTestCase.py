@@ -15,9 +15,10 @@ def testcase():
 
 target = [];
 
-def get_result(case, target):
+def get_result(case, jar, target):
+    print(arg)
     ret = subprocess.check_output(
-            ["java", "-jar", "./GreenTea.jar", "--" + target, case],
+            ["java", "-jar", jar, "--" + target, case],
             universal_newlines=True
            )
     return ret;
@@ -29,7 +30,7 @@ def generate():
     print("generate test result")
     for t in target:
         for case in testcase():
-            actual = get_result(case, t);
+            actual = get_result(case, "./GreenTea.jar", t);
             f = open(case + "." + t, 'w')
             f.write(actual)
             f.close();
@@ -37,37 +38,51 @@ def generate():
 def load_template(filename):
     return open(filename).read()
 
-def test(out):
-    print("generate unittese");
-    template = load_template("test/GreenTeaScriptTest." + out + ".template");
+def test():
+    print("running unittese");
+    tests = 0
+    failures = 0
+    result = "";
     for t in target:
         for case in testcase():
-            actual = get_result(case, t);
-            expected = load_file(case, t);
-            if(actual != "" and expected != ""):
-                s = template;
-                fname = "Test" + case.split("/")[-1].split(".")[0].replace("/", "_").replace("-", "_");
-                print(fname)
-                f = open("build/" + fname + "." + out, 'w')
-                s = s.replace("${TEST_NAME}", fname);
-                s = s.replace("${SCRIPT_PATH}", case);
-                s = s.replace("${RESULT_FILE}", case + "." + t);
-                s = s.replace("${TARGET}", '"' + t + '"');
-                f.write(s);
-            #
+            answer = case + "." + t
+            print("testing taget=" + t + " case=" + case)
+            ret = subprocess.call(
+                    ["java", "-jar", "./GreenTea-TestRunner.jar", "--" + t, case, answer],
+                   )
+            result = result + '<testcase classname="GeenTeaScriptTest.' + t + '" name="' + answer + '" time="0">\n'
+            tests = tests + 1
+            if(ret != 0):
+                result = result + '<failure>AssertionFailed</failure>\n'
+                failures = failures + 1;
+            result = result + '<system-out></system-out>\n'
+            result = result + '</testcase>\n'
         #
     #
+    header = '<?xml version="1.0"?>\n'
+    header = header + '<testsuites>\n'
+    header = header + '<testsuite name="GreenTeaScriptTest" tests="' + str(tests) + '" ';
+    header = header + 'time="0" failures="' + str(failures) + '" errors="0" skipped="0">\n'
+
+    footer = ''
+    footer = footer + '  </testsuite>\n'
+    footer = footer + '</testsuites>\n'
+
+    f = open('Test.xml', 'w')
+    f.write(header)
+    f.write(result)
+    f.write(footer)
     return
 
 def usage():
     print("Usage:")
-    print("Reset Test Answer   : " + sys.argv[0] + " --target=js,c --reset");
-    print("Generate TestRunner : " + sys.argv[0] + " --target=js,c --out=java");
+    print("Reset Test Answer : " + sys.argv[0] + " --target=js,c --reset");
+    print("Running TestCases : " + sys.argv[0] + " --target=js,c");
     exit(1);
 
 if __name__ == '__main__':
     argc = len(sys.argv)
-    if(argc < 3):
+    if(argc < 2):
         usage()
 
     target = sys.argv[1][len("--tareget=")-1:].split(",");
@@ -77,5 +92,4 @@ if __name__ == '__main__':
     if(argc > 2 and sys.argv[2] == "--reset"):
         generate();
     else:
-        out = sys.argv[2][len("--out="):];
-        test(out);
+        test();
