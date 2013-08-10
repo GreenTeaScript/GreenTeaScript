@@ -6,38 +6,33 @@ import java.util.ArrayList;
 
 public class BashSourceGenerator extends SourceGenerator {
 	/*field*/boolean inFunc = false;
-	/*field*/final String retVar = "__ret";
 
 	BashSourceGenerator/*constructor*/() {
 		super("BashSource");
 		this.WriteTranslatedCode("#!/bin/bash\n");
 	}
 
-	public void VisitBlockWithIndent(GtNode Node) {
-		/*local*/String Code = "\n";
-		this.Indent();
-		/*local*/GtNode CurrentNode = Node;
-		while(CurrentNode != null) {
-			CurrentNode.Evaluate(this);
-			Code += this.GetIndentString() + this.PopSourceCode() + "\n";
-			CurrentNode = CurrentNode.NextNode;
-		}
-		this.UnIndent();
-		Code += this.GetIndentString();
-		this.PushSourceCode(Code);
-	}
-
-	public void VisitBlockWithoutIndent(GtNode Node) {
+	public void VisitBlockWithIndent(GtNode Node, boolean inBlock) {
 		/*local*/String Code = "";
+		if(inBlock) {
+			this.Indent();
+		}
 		/*local*/GtNode CurrentNode = Node;
 		while(CurrentNode != null) {
 			CurrentNode.Evaluate(this);
-			Code += this.GetIndentString() + this.PopSourceCode() + "\n";
+			/*local*/String poppedCode = this.PopSourceCode();
+			if(!poppedCode.equals("")) {
+				Code += this.GetIndentString() + poppedCode + "\n";
+			}
 			CurrentNode = CurrentNode.NextNode;
 		}
-		
-		if(Code.length() > 0) {
-			Code = Code.substring(0, Code.length() - 1);
+		if(inBlock) {
+			this.UnIndent();
+			Code += this.GetIndentString();
+		} else {
+			if(Code.length() > 0) {
+				Code = Code.substring(0, Code.length() - 1);
+			}
 		}
 		this.PushSourceCode(Code);
 	}
@@ -57,14 +52,20 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitWhileNode(WhileNode Node) {
 		Node.CondExpr.Evaluate(this);
-		/*local*/String Program = "while " + this.PopSourceCode() + " ;do";
-		this.VisitBlockWithIndent(Node.LoopBody);
+		/*local*/String Program = "while " + this.PopSourceCode() + " ;do\n";
+		this.VisitBlockWithIndent(Node.LoopBody, true);
 		Program += this.PopSourceCode() + "done";
 		this.PushSourceCode(Program);
 	}
 
 	@Override public void VisitDoWhileNode(DoWhileNode Node) {
-		// not support
+		this.VisitBlockWithIndent(Node.LoopBody, true);
+		/*local*/String LoopBody = this.PopSourceCode();
+		/*local*/String Program = "if true ;then\n" + LoopBody + "fi\n";
+		Node.CondExpr.Evaluate(this);
+		Program += "while " + this.PopSourceCode() + " ;do\n";
+		Program += LoopBody + "done";
+		this.PushSourceCode(Program);
 	}
 
 	@Override public void VisitForNode(ForNode Node) {
@@ -73,17 +74,26 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/String Cond = this.PopSourceCode();
 		/*local*/String Iter = this.PopSourceCode();
 		
-		/*local*/String Program = "for((; " + Cond  + "; " + Iter + " )) ;do";
-		this.VisitBlockWithIndent(Node.LoopBody);
+		/*local*/String Program = "for((; " + Cond  + "; " + Iter + " )) ;do\n";
+		this.VisitBlockWithIndent(Node.LoopBody, true);
 		Program += this.PopSourceCode() + "done";
 		this.PushSourceCode(Program);
 	}
 
 	@Override public void VisitForEachNode(ForEachNode Node) {
+		Node.IterExpr.Evaluate(this);
+		Node.Variable.Evaluate(this);
+		/*local*/String Variable = this.PopSourceCode();
+		/*local*/String Iter = this.PopSourceCode();
+		
+		/*local*/String Program = "for " + Variable + " in " + "${" + Iter + "[@]} ;do/n";
+		this.VisitBlockWithIndent(Node.LoopBody, true);
+		Program += this.PopSourceCode() + "done";
+		this.PushSourceCode(Program);
 	}
 
 	@Override public void VisitConstNode(ConstNode Node) {
-		/*local*/String value = Node.ConstValue.toString();
+		/*local*/String value = this.StringfyConstValue(Node.ConstValue);
 
 		if(Node.Type.equals(Node.Type.Context.BooleanType)) {
 			if(value.equals("true")) {
@@ -148,7 +158,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		else if(MethodName.equals("--")) {
 		}
 		else {
-			//throw new RuntimeException("NotSupportOperator: " + MethodName);
+			LangDeps.DebugP(MethodName + " is not supported suffix operator!!");
 		}
 		Node.Expr.Evaluate(this);
 		this.PushSourceCode("((" + this.PopSourceCode() + MethodName + "))");
@@ -169,7 +179,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		else if(MethodName.equals("--")) {
 		}
 		else {
-			//throw new RuntimeException("NotSupportOperator: " + MethodName);
+			LangDeps.DebugP(MethodName + " is not supported unary operator!!");
 		}
 		Node.Expr.Evaluate(this);
 		this.PushSourceCode("((" + MethodName + this.PopSourceCode() + "))");
@@ -190,7 +200,7 @@ public class BashSourceGenerator extends SourceGenerator {
 			else if(MethodName.equals("==")) {
 			}
 			else {
-				//throw new RuntimeException("NotSupportOperator: " + MethodName);
+				LangDeps.DebugP(MethodName + " is not supported binary operator!!");
 			}
 
 			Node.RightNode.Evaluate(this);
@@ -234,7 +244,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		else if(MethodName.equals("==")) {
 		}
 		else {
-			//throw new RuntimeException("NotSupportOperator: " + MethodName);
+			LangDeps.DebugP(MethodName + " is not supported binary operator!!");
 		}
 
 		Node.RightNode.Evaluate(this);
@@ -284,21 +294,21 @@ public class BashSourceGenerator extends SourceGenerator {
 			Code += "=" + this.ResolveValueType(Node.InitNode, this.PopSourceCode());
 		}
 		Code +=  "\n";
-		this.VisitBlockWithoutIndent(Node.BlockNode);
+		this.VisitBlockWithIndent(Node.BlockNode, false);
 		this.PushSourceCode(Code + this.PopSourceCode());
 	}
 
 	@Override public void VisitIfNode(IfNode Node) {
 		Node.CondExpr.Evaluate(this);
-		this.VisitBlockWithIndent(Node.ThenNode);
-		this.VisitBlockWithIndent(Node.ElseNode);
+		this.VisitBlockWithIndent(Node.ThenNode, true);
+		this.VisitBlockWithIndent(Node.ElseNode, true);
 		
 		/*local*/String ElseBlock = this.PopSourceCode();
 		/*local*/String ThenBlock = this.PopSourceCode();
 		/*local*/String CondExpr = this.PopSourceCode();
-		/*local*/String Code = "if " + CondExpr + " ;then" + ThenBlock;
+		/*local*/String Code = "if " + CondExpr + " ;then\n" + ThenBlock;
 		if(Node.ElseNode != null) {
-			Code += "else" + ElseBlock;
+			Code += "else\n" + ElseBlock;
 		}
 		Code += "fi";
 		this.PushSourceCode(Code);
@@ -367,7 +377,7 @@ public class BashSourceGenerator extends SourceGenerator {
 				Code += " | ";
 			}
 			Code += this.CreateCommand(CurrentNode);
-			count++;
+			count += 1;
 			CurrentNode = (/*cast*/CommandNode) CurrentNode.PipedNextNode;
 		}
 		this.PushSourceCode(Code);
@@ -430,16 +440,19 @@ public class BashSourceGenerator extends SourceGenerator {
 	@Override public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
 		/*local*/String Function = "function ";
 		this.inFunc = true;
-		Function += Method.MethodName + "() {";
-		this.VisitBlockWithIndent(this.ResolveParamName(ParamNameList, Body));
-		Function += this.PopSourceCode() + "}";
+		Function += Method.MethodName + "() {\n";
+		this.VisitBlockWithIndent(this.ResolveParamName(ParamNameList, Body), true);
+		Function += this.PopSourceCode() + "}\n";
 		this.WriteTranslatedCode(Function);
 		this.inFunc = false;
 	}
 
 	@Override public Object Eval(GtNode Node) {
-		this.VisitBlockWithoutIndent(Node);
+		this.VisitBlockWithIndent(Node, false);
 		/*local*/String Code = this.PopSourceCode();
+		if(Code.equals("")) {
+			return "";
+		}
 		this.WriteTranslatedCode(Code);
 		return Code;
 	}
