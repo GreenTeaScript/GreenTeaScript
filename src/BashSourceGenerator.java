@@ -35,7 +35,11 @@ public class BashSourceGenerator extends SourceGenerator {
 			Code += this.GetIndentString() + this.PopSourceCode() + "\n";
 			CurrentNode = CurrentNode.NextNode;
 		}
-		this.PushSourceCode(Code.substring(0, Code.length() - 1));
+		
+		if(Code.length() > 0) {
+			Code = Code.substring(0, Code.length() - 1);
+		}
+		this.PushSourceCode(Code);
 	}
 
 	@Override public void VisitEmptyNode(GtNode Node) {
@@ -272,14 +276,14 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/String VarName = Node.VariableName;
 		/*local*/String Code = "";
 		if(this.inFunc) {
-			Code += "local " + VarName;
+			Code += "local " + VarName + "\n" + this.GetIndentString();
 		}
 		Code += VarName;
 		if(Node.InitNode != null) {
 			Node.InitNode.Evaluate(this);
-			Code += " = " + this.ResolveValueType(Node.InitNode, this.PopSourceCode());
+			Code += "=" + this.ResolveValueType(Node.InitNode, this.PopSourceCode());
 		}
-		Code +=  ";\n";
+		Code +=  "\n";
 		this.VisitBlockWithoutIndent(Node.BlockNode);
 		this.PushSourceCode(Code + this.PopSourceCode());
 	}
