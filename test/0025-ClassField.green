@@ -2,7 +2,7 @@ class X {
     int x;
 }
 
-class Y {
+class Y extends X {
     int a;
     int b;
 }
