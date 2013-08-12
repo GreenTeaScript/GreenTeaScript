@@ -2218,67 +2218,6 @@ final class DScriptGrammar extends GtGrammar {
 		return Tree;
 	}
 
-	public static GtSyntaxTree ParseApplyOLD(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
-		/*local*/int ParseFlag = TokenContext.ParseFlag;
-		TokenContext.ParseFlag |= SkipIndentParseFlag;
-		/*local*/GtSyntaxTree FuncTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("("), null);
-		FuncTree.AppendParsedTree(LeftTree);
-		if(TokenContext.MatchToken(")")) { // case: f()
-			GtToken Token = TokenContext.GetBeforeToken();
-			FuncTree.AppendParsedTree(new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, null));
-		}
-		else { // case: f(1, 2, 3);
-			while(!FuncTree.IsEmptyOrError()) {
-				/*local*/GtSyntaxTree Tree = TokenContext.ParsePattern("$Expression$", Required);
-				FuncTree.AppendParsedTree(Tree);
-				if(TokenContext.MatchToken(",")) {
-					continue;
-				}
-				/*local*/GtSyntaxTree EndTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken(")"), null);
-				if(EndTree != null) {
-					FuncTree.AppendParsedTree(EndTree);
-					break;
-				}
-			}
-		}
-		TokenContext.ParseFlag = ParseFlag;
-		return FuncTree;
-	}
-
-	public static GtNode TypeApplyOLD(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
-		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
-		/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
-		/*local*/int i = 1;
-		while(i < ListSize(ParsedTree.TreeList) - 1/* this is for ")" */) {
-			/*local*/GtNode ExprNode = ParsedTree.TypeNodeAt(i, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-			ParamList.add(ExprNode);
-			//FIXME we need to implement TypeChecker
-			if(ExprNode.Type.equals(Gamma.VarType)) {
-				DebugP("Typeof Paramater " + (i-1) + " is var type. Need to Implement Typechecker");
-				ExprNode.Type = Gamma.IntType;
-			}
-			TypeList.add(ExprNode.Type);
-			i += 1;
-		}
-		if(TypeList.size() == 0) {
-			TypeList.add(Gamma.NameSpace.Context.VoidType);
-		}
-		/*local*/ArrayList<GtSyntaxTree> TreeList = ParsedTree.TreeList;
-		/*local*/String MethodName = TreeList.get(0).KeyToken.ParsedText;
-		/*local*/int ParamSize = TreeList.size() - 2; /*MethodName and ")" symol*/
-		/*local*/GtMethod Method = null; //Gamma.NameSpace.LookupMethod(MethodName, ParamSize, 1/*FIXME*/, TypeList, 0);
-		if(Method == null) {
-			return Gamma.CreateErrorNode(ParsedTree, "undefined method: " + MethodName);
-		}
-		/*local*/GtNode Node = Gamma.Generator.CreateApplyNode(Method.GetReturnType(), ParsedTree, Method);
-		i = 0;
-		while(i < ParamList.size()) {
-			Node.Append(ParamList.get(i));
-			i = i + 1;
-		}
-		return Node;
-	}
-
 	public static GtSyntaxTree ParseApply(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
 		/*local*/int ParseFlag = TokenContext.ParseFlag;
 		TokenContext.ParseFlag |= SkipIndentParseFlag;
@@ -2905,6 +2844,30 @@ final class GtContext extends GtStatic {
 	}
 	
 	/* methods */
+	private String GetterName(int ClassId, String Name) {
+		return "" + ClassId + "@" + Name; 
+	}
+	
+	public void DefineGetterMethod(GtMethod Method) {
+		String Key = GetterName(Method.GetRecvType().ClassId, Method.MethodName);
+		if(this.UniqueMethodMap.get(Key) == null) {
+			this.UniqueMethodMap.put(Key, Method);
+		}
+	}
+
+	public GtMethod GetGetterMethod(GtType BaseType, String Name) {
+		while(BaseType != null) {
+			String Key = GetterName(BaseType.ClassId, Name);
+			Object Method = this.UniqueMethodMap.get(Key);
+			if(Method != null) {
+				return (/*cast*/GtMethod)Method;
+			}
+			BaseType = BaseType.SearchSuperMethodClass;
+		}
+		return null;
+	}
+
+	/* methods */
 	private void SetUniqueMethod(String Key, GtMethod Method) {
 		Object Value = this.UniqueMethodMap.get(Key);
 		if(Value == null) {
@@ -2930,6 +2893,8 @@ final class GtContext extends GtStatic {
 	private String MethodNameSizeKey(int ClassId, String Name, int ParamSize) {
 		return "" + ClassId + ":" + ParamSize + Name;
 	}
+	
+	
 	
 	public void DefineMethod(GtMethod Method) {
 		/*local*/String MethodName = Method.MethodName;
