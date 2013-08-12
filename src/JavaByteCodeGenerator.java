@@ -569,7 +569,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 	private final String defaultClassName = "Script";
 	private GtClassNode globalNode = new GtClassNode(defaultClassName);
 
-	@Override public void DefineFunction(GtMethod Method, ArrayList<String> NameList, GtNode Body) {
+	@Override public void GenerateMethod(GtMethod Method, ArrayList<String> NameList, GtNode Body) {
 		if(NMMap.Exist(Method)) {
 			return;
 		}

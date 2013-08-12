@@ -355,7 +355,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		return Code;
 	}
 
-	@Override public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
+	@Override public void GenerateMethod(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
 		/*local*/String Function = "def ";
 		Function += Method.MethodName + "(";
 		/*local*/int i = 0;

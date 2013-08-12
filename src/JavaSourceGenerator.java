@@ -303,7 +303,7 @@ public class JavaSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
+	@Override public void GenerateMethod(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
 		//FIXME
 		String Program = "";
 		String RetTy = Method.GetReturnType().ShortClassName;

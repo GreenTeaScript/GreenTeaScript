@@ -1217,7 +1217,7 @@ class GtGenerator extends GtStatic {
 	}
 
 	// This must be extended in each language
-	public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
+	public void GenerateMethod(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
 		/*extenstion*/
 	}
 

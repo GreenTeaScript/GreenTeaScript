@@ -10,7 +10,7 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 
 	private boolean UseLetKeyword;
 
-	@Override public void DefineFunction(GtMethod Method, ArrayList<String> NameList, GtNode Body) {
+	@Override public void GenerateMethod(GtMethod Method, ArrayList<String> NameList, GtNode Body) {
 		/*local*/int ArgCount = Method.Types.length - 1;
 		/*local*/String Code = "var " + Method.GetLocalFuncName() + " = (function(";
 		/*local*/int i = 0;

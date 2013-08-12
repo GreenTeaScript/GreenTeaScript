@@ -330,7 +330,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
+	@Override public void GenerateMethod(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
 		/*local*/String Program = "";
 		/*local*/String RetTy = Method.GetReturnType().ShortClassName;
 		/*local*/String FuncName = Method.GetLocalFuncName();

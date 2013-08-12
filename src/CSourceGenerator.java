@@ -353,7 +353,7 @@ public class CSourceGenerator extends SourceGenerator {
 		return Type.ShortClassName;
 	}
 
-	@Override public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
+	@Override public void GenerateMethod(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
 		/*local*/String Code = "";
 		if(!Method.Is(ExportMethod)) {
 			Code = "static ";

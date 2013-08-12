@@ -2474,61 +2474,101 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/int MethodFlag = Gamma.Generator.ParseMethodFlag(0, ParsedTree);
 		Gamma = new GtTypeEnv(ParsedTree.NameSpace);  // creation of new type environment
 		/*local*/String MethodName = (/*cast*/String)ParsedTree.GetSyntaxTreeAt(FuncDeclName).ConstValue;
-		/*local*/ArrayList<GtType> TypeBuffer = new ArrayList<GtType>();
+		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
 		/*local*/GtType ReturnType = (/*cast*/GtType)ParsedTree.GetSyntaxTreeAt(FuncDeclReturnType).ConstValue;
-		TypeBuffer.add(ReturnType);
+		TypeList.add(ReturnType);
 		/*local*/ArrayList<String> ParamNameList = new ArrayList<String>();
 		/*local*/int ParamBase = FuncDeclParam;
 		/*local*/int i = 0;
 		while(ParamBase < ParsedTree.TreeList.size()) {
 			/*local*/GtType ParamType = (/*cast*/GtType)ParsedTree.GetSyntaxTreeAt(ParamBase).ConstValue;
 			/*local*/String ParamName = ParsedTree.GetSyntaxTreeAt(ParamBase+1).KeyToken.ParsedText;
-			TypeBuffer.add(ParamType);
+			TypeList.add(ParamType);
 			ParamNameList.add(ParamName + i);
 			Gamma.AppendDeclaredVariable(ParamType, ParamName);
 			ParamBase += 3;
 			i = i + 1;
 		}
 		
+		/*local*/GtMethod Method = null;
 		/*local*/String NativeMacro =  (/*cast*/String)ParsedTree.ConstValue;
 		if(NativeMacro == null && !ParsedTree.HasNodeAt(FuncDeclBlock)) {
 			MethodFlag |= AbstractMethod;
 		}
-		/*local*/GtType RecvType = Gamma.VoidType;
-		if(TypeBuffer.size() > 1) {
-			RecvType = TypeBuffer.get(1);
+		if(MethodName.equals("converter") || MethodName.equals("toString")) {
+			Method = CreateConverterMethod(Gamma, ParsedTree, MethodFlag, TypeList);
 		}
-		/*local*/GtMethod Method = Gamma.GetMethod(RecvType, MethodName, 2, TypeBuffer, true);
+		else if(MethodName.equals("wrapper") || MethodName.equals("toIterator")) {
+			Method = CreateWrapperMethod(Gamma, ParsedTree, MethodFlag, TypeList);			
+		}
+		else {
+			Method = CreateMethod(Gamma, ParsedTree, MethodFlag, MethodName, TypeList, NativeMacro);
+		}
+		if(Method != null && ParsedTree.HasNodeAt(FuncDeclBlock)) {
+			/*local*/GtNode BodyNode = ParsedTree.TypeNodeAt(FuncDeclBlock, Gamma, ReturnType, IgnoreEmptyPolicy);
+			Gamma.Generator.GenerateMethod(Method, ParamNameList, BodyNode);
+		}
+		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType, ParsedTree);
+	}
+	
+	private static GtMethod CreateConverterMethod(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, int MethodFlag, ArrayList<GtType> TypeList) {
+		/*local*/GtType ToType = TypeList.get(0);
+		/*local*/GtType FromType = TypeList.get(1);
+		/*local*/GtMethod Method = Gamma.GetCastMethod(FromType, ToType, false);
+		if(Method != null) {
+			Gamma.NameSpace.ReportError(ErrorLevel, ParsedTree.KeyToken, "already defined: " + FromType + " to " + ToType);
+			return null;
+		}
+		Method = Gamma.Generator.CreateMethod(MethodFlag, "to" + ToType.ShortClassName, 0, TypeList, (String)ParsedTree.ConstValue);
+		Gamma.DefineConverterMethod(Method);
+		return Method;
+	}
+
+	private static GtMethod CreateWrapperMethod(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, int MethodFlag, ArrayList<GtType> TypeList) {
+		/*local*/GtType ToType = TypeList.get(0);
+		/*local*/GtType FromType = TypeList.get(1);
+		GtMethod Method = Gamma.GetCastMethod(FromType, ToType, false);
+		if(Method != null) {
+			Gamma.NameSpace.ReportError(ErrorLevel, ParsedTree.KeyToken, "already defined: " + FromType + " to " + ToType);
+			return null;
+		}
+		Method = Gamma.Generator.CreateMethod(MethodFlag, "to" + ToType.ShortClassName, 0, TypeList, (String)ParsedTree.ConstValue);
+		Gamma.DefineWrapperMethod(Method);
+		return Method;
+	}
+
+	private static GtMethod CreateMethod(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, int MethodFlag, String MethodName, ArrayList<GtType> TypeList, String NativeMacro) {
+		/*local*/GtType RecvType = Gamma.VoidType;
+		if(TypeList.size() > 1) {
+			RecvType = TypeList.get(1);
+		}
+		/*local*/GtMethod Method = Gamma.GetMethod(RecvType, MethodName, 2, TypeList, true);
 		if(Method != null) {
 			if(Method.GetRecvType() != RecvType) {
 				if(!Method.Is(VirtualMethod)) {
 					// not virtual method
-					return Gamma.Generator.CreateEmptyNode(Gamma.VoidType, ParsedTree);
+					return null;
 				}
 				Method = null;
 			}
 			else {
 				if(!Method.Is(AbstractMethod)) {
 					// not override
-					return Gamma.Generator.CreateEmptyNode(Gamma.VoidType, ParsedTree);
+					return null;
 				}
 				if(GtStatic.IsFlag(MethodFlag, AbstractMethod)) {
 					// do nothing
-					return Gamma.Generator.CreateEmptyNode(Gamma.VoidType, ParsedTree);
+					return null;
 				}
 			}
 		}
 		if(Method == null) {
-			Method = Gamma.Generator.CreateMethod(MethodFlag, MethodName, 0, TypeBuffer, NativeMacro);
+			Method = Gamma.Generator.CreateMethod(MethodFlag, MethodName, 0, TypeList, NativeMacro);
 		}
 		Gamma.DefineMethod(Method);
-		if(ParsedTree.HasNodeAt(FuncDeclBlock)) {
-			/*local*/GtNode BodyNode = ParsedTree.TypeNodeAt(FuncDeclBlock, Gamma, ReturnType, IgnoreEmptyPolicy);
-			Gamma.Generator.DefineFunction(Method, ParamNameList, BodyNode);
-		}
-		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType, ParsedTree);
+		return Method;
 	}
-
+	
 	// ClassDecl
 	public static GtSyntaxTree ParseClassDecl(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
 		/*local*/GtSyntaxTree Tree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetToken(), null);

@@ -438,7 +438,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		return resolvedValue;
 	}
 
-	@Override public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
+	@Override public void GenerateMethod(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
 		/*local*/String Function = "function ";
 		this.inFunc = true;
 		Function += Method.MethodName + "() {\n";
