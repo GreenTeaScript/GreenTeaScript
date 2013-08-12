@@ -1141,6 +1141,10 @@ class GtGenerator extends GtStatic {
 		/*extenstion*/
 	}
 
+	public boolean IsStrictMode() {
+		return true; /* override this */
+	}
+
 	public Object Eval(GtNode Node) {
 		this.VisitBlock(Node);
 		return null;
@@ -1148,6 +1152,10 @@ class GtGenerator extends GtStatic {
 
 	public void AddClass(GtType Type) {
 		/*extension*/
+	}
+
+	public String BlockComment(String Comment) {
+		return "/*" + Comment + "*/";
 	}
 
 	protected void PushCode(Object Code){

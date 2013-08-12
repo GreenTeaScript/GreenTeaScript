@@ -1223,8 +1223,8 @@ final class GtTypeEnv extends GtStatic {
 		this.FuncType = NameSpace.Context.FuncType;
 	}
 
-	public void SetMethod(GtMethod Method) {
-		this.Method = Method;
+	public final boolean IsStrictMode() {
+		return this.Generator.IsStrictMode();
 	}
 
 	public final boolean IsTopLevel() {
@@ -1262,18 +1262,13 @@ final class GtTypeEnv extends GtStatic {
 		else if(Value instanceof Integer || Value instanceof Long) {
 			return this.IntType;
 		}
+		else if(Value instanceof GtMethod) {
+			((/*cast*/GtMethod)Value).GetFuncType();
+		}
 		else if(Value instanceof Boolean) {
 			return this.BooleanType;
 		}
 		return this.AnyType;
-	}
-
-	public final GtMethod LookupFunction(String Name) {
-		Object Function = this.NameSpace.GetSymbol(Name);
-		if(Function instanceof GtMethod) {
-			return (/*cast*/GtMethod)Function;
-		}
-		return null;
 	}
 
 	public GtNode DefaultValueConstNode(GtSyntaxTree ParsedTree, GtType Type) {
@@ -1363,10 +1358,6 @@ final class GtTypeEnv extends GtStatic {
 			this.NameSpace.DefineSymbol(Method.MethodName, Method);
 		}
 		this.Method = Method;
-	}
-
-	public boolean IsStrictTypeCheckMode() {
-		return false;
 	}
 
 }
@@ -1906,11 +1897,11 @@ final class DScriptGrammar extends GtGrammar {
 		if(ConstValue != null) {
 			return Gamma.Generator.CreateConstNode(Gamma.GuessType(ConstValue), ParsedTree, ConstValue);
 		}
-		/*local*/GtMethod Function = Gamma.LookupFunction(Name);
-		if(Function != null) {
-			return Gamma.Generator.CreateConstNode(Function.GetFuncType(), ParsedTree, Function);
+		GtNode TypeError = Gamma.CreateErrorNode(ParsedTree, "undefined name: " + Name);
+		if(Gamma.IsStrictMode()) {
+			return TypeError;
 		}
-		return Gamma.CreateErrorNode(ParsedTree, "undefined name: " + Name);
+		return Gamma.Generator.CreateConstNode(Gamma.AnyType, ParsedTree, Name);
 	}
 
 	public static GtSyntaxTree ParseVarDecl(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
@@ -2058,7 +2049,7 @@ final class DScriptGrammar extends GtGrammar {
 		if(Method == null) {
 			if(!ObjectNode.Type.IsDynamicType() && Type != Gamma.FuncType) {
 				GtNode TypeError = Gamma.CreateErrorNode(ParsedTree, "undefined field " + Name + " of " + ObjectNode.Type);
-				if(Gamma.IsStrictTypeCheckMode()) {
+				if(Gamma.IsStrictMode()) {
 					return TypeError;
 				}
 			}
@@ -2128,7 +2119,7 @@ final class DScriptGrammar extends GtGrammar {
 		if(Method == null) {
 			if(!BaseType.IsDynamicType()) {
 				GtNode TypeError = Gamma.CreateErrorNode(ParsedTree, "undefined method " + MethodName + " of " + BaseType);
-				if(Gamma.IsStrictTypeCheckMode()) {
+				if(Gamma.IsStrictMode()) {
 					return TypeError;
 				}
 			}
@@ -2168,7 +2159,7 @@ final class DScriptGrammar extends GtGrammar {
 				Method = DScriptGrammar.LookupOverloadedMethod(Gamma, Method, NodeList);
 				if(Method != null) {
 					GtNode TypeError = Gamma.CreateErrorNode(ParsedTree, "mismatched method " + MethodName + " of " + BaseType);
-					if(Gamma.IsStrictTypeCheckMode()) {
+					if(Gamma.IsStrictMode()) {
 						return TypeError;
 					}
 				}
