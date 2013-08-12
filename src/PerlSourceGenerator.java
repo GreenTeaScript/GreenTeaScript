@@ -335,7 +335,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		this.Indent();
 		/*local*/int i = 0;
 		while(i < ParamNameList.size()) {
-			String ParamTy = Method.GetParamType(i).ShortClassName;
+			String ParamTy = Method.GetFuncParamType(i).ShortClassName;
 			Signature += " ," + ParamTy + " " + ParamNameList.get(i);
 			Arguments += this.GetIndentString() + "my $" + ParamNameList.get(i) + " = $_[" + i + "];\n";
 			i = i + 1;

@@ -741,11 +741,19 @@ class GtMethod extends GtStatic {
 		}
 	}
 	
+	public final GtType GetFuncType() {
+		if(this.FuncType != null) {
+			GtContext Context = this.GetRecvType().Context;
+			this.FuncType = Context.GetGenericType(Context.FuncType, 0, new ArrayList<GtType>(Arrays.asList(this.Types)), true);
+		}
+		return this.FuncType;
+	}
+
 	@Override public String toString() {
 		/*local*/String s = this.MethodName + "(";
 		/*local*/int i = 0;
-		while(i < this.GetParamSize()) {
-			/*local*/GtType ParamType = this.GetParamType(i);
+		while(i < this.GetFuncParamSize()) {
+			/*local*/GtType ParamType = this.GetFuncParamType(i);
 			if(i > 0) {
 				s += ", ";
 			}
@@ -770,20 +778,16 @@ class GtMethod extends GtStatic {
 		return this.Types[1];
 	}
 
-	public final int GetParamSize() {
+	public final int GetFuncParamSize() {
 		return this.Types.length - 1;
 	}
 
-	public final GtType GetParamType(int ParamIdx) {
+	public final GtType GetFuncParamType(int ParamIdx) {
 		return this.Types[ParamIdx+1];
 	}
 
-	public final GtType GetFuncType() {
-		if(this.FuncType != null) {
-			GtContext Context = this.GetRecvType().Context;
-			this.FuncType = Context.GetGenericType(Context.FuncType, 0, new ArrayList<GtType>(Arrays.asList(this.Types)), true);
-		}
-		return this.FuncType;
+	public final int GetMethodParamSize() {
+		return this.Types.length - 2;
 	}
 
 	public final String ExpandMacro1(String Arg0) {

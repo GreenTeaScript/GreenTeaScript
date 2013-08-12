@@ -357,7 +357,7 @@ public class CSourceGenerator extends SourceGenerator {
 		Code += RetTy + " " + Method.GetLocalFuncName() + "(";
 		/*local*/int i = 0;
 		while(i < ParamNameList.size()) {
-			String ParamTy = this.LocalTypeName(Method.GetParamType(i));
+			String ParamTy = this.LocalTypeName(Method.GetFuncParamType(i));
 			if(i > 0) {
 				Code += ", ";
 			}
