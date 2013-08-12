@@ -1356,12 +1356,10 @@ final class GtTypeEnv extends GtStatic {
 	}
 
 	public final void DefineMethod(GtMethod Method) {
-		// TODO Auto-generated method stub
 		this.NameSpace.Context.DefineMethod(Method);
 		/*local*/Object Value = this.NameSpace.GetSymbol(Method.MethodName);
 		if(Value == null) {
 			this.NameSpace.DefineSymbol(Method.MethodName, Method);
-			Value = this.NameSpace.GetSymbol(Method.MethodName);
 		}
 		this.Method = Method;
 	}
@@ -2126,7 +2124,7 @@ final class DScriptGrammar extends GtGrammar {
 			ParamIndex = 2;
 			BaseType = BaseNode.Type;
 		}
-		GtMethod Method = Gamma.GetListedMethod(BaseType, MethodName, ParamSize);
+		GtMethod Method = Gamma.GetListedMethod(BaseType, MethodName, ParamSize - 1);
 		GtType ReturnType = Gamma.AnyType;
 		if(Method == null) {
 			if(!BaseType.IsDynamicType()) {
@@ -2169,12 +2167,13 @@ final class DScriptGrammar extends GtGrammar {
 					ParamIndex = ParamIndex + 1;
 				}
 				Method = DScriptGrammar.LookupOverloadedMethod(Gamma, Method, NodeList);
-				if(Method != null) {
+				if(Method == null) {
 					GtNode TypeError = Gamma.CreateErrorNode(ParsedTree, "mismatched method " + MethodName + " of " + BaseType);
 					if(Gamma.IsStrictTypeCheckMode()) {
 						return TypeError;
 					}
 				}
+				ReturnType = Method.GetReturnType();
 			}
 		}
 		/*local*/GtNode Node = Gamma.Generator.CreateApplyNode(ReturnType, ParsedTree, Method);
@@ -2189,7 +2188,10 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/int p = 1;
 		while(p < ListSize(NodeList)) {
 			GtNode ParamNode = NodeList.get(p);
-			if(Method.Types[p+1] != ParamNode.Type) return false;
+			if(Method.Types[p+1] != ParamNode.Type) {
+				return false;
+			}
+			p = p + 1;
 		}
 		return true;
 	}
@@ -3023,6 +3025,11 @@ final class GtContext extends GtStatic {
 
 public class GreenTeaScript extends GtStatic {
 	public final static void main(String[] Args) {
+		int N = 0;
+		Args = new String[2];
+		Args[N++] = "--c";
+		Args[N++] = "/Users/masa/GreenTeaScript/test/0005-MethodCall.green";
+
 		/*local*/String CodeGeneratorName = "--java";
 		/*local*/int Index = 0;
 		/*local*/String OneLiner = null;

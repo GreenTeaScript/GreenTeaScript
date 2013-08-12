@@ -210,7 +210,7 @@
 
 	var BinaryOperator: number					= 1;
 	var LeftJoin: number						= 1 << 1;
-	var Parenthesis: number						= 1 << 2;
+// 	var Parenthesis: number						= 1 << 2; //
 	var PrecedenceShift: number					= 3;
 	var Precedence_CStyleValue: number			= (1 << PrecedenceShift);
 	var Precedence_CPPStyleScope: number		= (50 << PrecedenceShift);
@@ -902,7 +902,8 @@
 	public IsLeftJoin(Right: GtSyntaxPattern): boolean {
 		var left: number = this.SyntaxFlag >> PrecedenceShift;
 		var right: number = Right.SyntaxFlag >> PrecedenceShift;
-		return (!IsFlag(Right.SyntaxFlag, Parenthesis) && (left < right || (left == right && IsFlag(this.SyntaxFlag, LeftJoin) && IsFlag(Right.SyntaxFlag, LeftJoin))));
+		return (left < right || (left == right && IsFlag(this.SyntaxFlag, LeftJoin) && IsFlag(Right.SyntaxFlag, LeftJoin)));
+// 		return (!IsFlag(Right.SyntaxFlag, Parenthesis) && (left < right || (left == right && IsFlag(this.SyntaxFlag, LeftJoin) && IsFlag(Right.SyntaxFlag, LeftJoin)))); //
 	}
 }
 
@@ -1274,7 +1275,6 @@ class GtSyntaxTree {
 	}
 
 	 DefineMethod(Method: GtMethod): void {
-		// Auto: TODO-generatedstub: method //
 		this.NameSpace.Context.DefineMethod(Method);
 		var Value: Object = this.NameSpace.GetSymbol(Method.MethodName);
 		if(Value == null) {
@@ -1913,7 +1913,9 @@ class GtGrammar {
 	static ParseBinary(Pattern: GtSyntaxPattern, LeftTree: GtSyntaxTree, TokenContext: GtTokenContext): GtSyntaxTree {
 		var Token: GtToken = TokenContext.Next();
 		var RightTree: GtSyntaxTree = ParseExpression(TokenContext);
-		if(IsEmptyOrError(RightTree)) return RightTree;
+		if(IsEmptyOrError(RightTree)) {
+			return RightTree;
+		}
 		if(RightTree.Pattern.IsBinaryOperator()) {
 			if(Pattern.IsLeftJoin(RightTree.Pattern)) {
 				var NewTree: GtSyntaxTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
@@ -1940,7 +1942,7 @@ class GtGrammar {
 		if(!LeftNode.IsError() && !RightNode.IsError()) {
 			var BaseType: GtType = LeftNode.Type;
 			while(BaseType != null) {
-				var Method: GtMethod = Gamma.GetListedMethod(BaseType, Operator, 2);
+				var Method: GtMethod = Gamma.GetListedMethod(BaseType, Operator, 1);
 				while(Method != null) {
 					if(Method.GetFuncParamType(1).Accept(RightNode.Type)) {
 						return Gamma.Generator.CreateBinaryNode(Method.GetReturnType(), ParsedTree, Method, LeftNode, RightNode);
@@ -1988,19 +1990,23 @@ class GtGrammar {
 	}
 
 	//  PatternName: "(" //
-	static ParseParenthesis(Pattern: GtSyntaxPattern, LeftTree: GtSyntaxTree, TokenContext: GtTokenContext): GtSyntaxTree {
+	static ParseGroup(Pattern: GtSyntaxPattern, LeftTree: GtSyntaxTree, TokenContext: GtTokenContext): GtSyntaxTree {
 		var ParseFlag: number = TokenContext.ParseFlag;
-		TokenContext.MatchToken("(");
 		TokenContext.ParseFlag |= SkipIndentParseFlag;
+		var GroupTree: GtSyntaxTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("("), null);
 		var Tree: GtSyntaxTree = TokenContext.ParsePattern("$Expression$", Required);
+		GroupTree.AppendParsedTree(Tree);
 		if(!TokenContext.MatchToken(")")) {
-			Tree = TokenContext.ReportExpectedToken(")");
+			GroupTree = TokenContext.ReportExpectedToken(")");
 		}
 		TokenContext.ParseFlag = ParseFlag;
-		Tree.Pattern.SyntaxFlag |= Parenthesis;
-		return Tree;
+		return GroupTree;
 	}
 
+	static TypeGroup(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, Type: GtType): GtNode {
+		return ParsedTree.TypeNodeAt(UnaryTerm, Gamma, Type, DefaultTypeCheckPolicy);
+	}
+	
 	static ParseApply(Pattern: GtSyntaxPattern, LeftTree: GtSyntaxTree, TokenContext: GtTokenContext): GtSyntaxTree {
 		var ParseFlag: number = TokenContext.ParseFlag;
 		TokenContext.ParseFlag |= SkipIndentParseFlag;
@@ -2037,7 +2043,7 @@ class GtGrammar {
 			ParamIndex = 2;
 			BaseType = BaseNode.Type;
 		}
-		var Method: GtMethod = Gamma.GetListedMethod(BaseType, MethodName, ParamSize);
+		var Method: GtMethod = Gamma.GetListedMethod(BaseType, MethodName, ParamSize - 1);
 		var ReturnType: GtType = Gamma.AnyType;
 		if(Method == null) {
 			if(!BaseType.IsDynamicType()) {
@@ -2080,12 +2086,13 @@ class GtGrammar {
 					ParamIndex = ParamIndex + 1;
 				}
 				Method = DScriptGrammar.LookupOverloadedMethod(Gamma, Method, NodeList);
-				if(Method != null) {
+				if(Method == null) {
 					var TypeError: GtNode = Gamma.CreateErrorNode(ParsedTree, "method: mismatched " + MethodName + " of " + BaseType);
 					if(Gamma.IsStrictTypeCheckMode()) {
 						return TypeError;
 					}
 				}
+				ReturnType = Method.GetReturnType();
 			}
 		}
 		var Node: GtNode = Gamma.Generator.CreateApplyNode(ReturnType, ParsedTree, Method);
@@ -2100,10 +2107,12 @@ class GtGrammar {
 		var p: number = 1;
 		while(p < ListSize(NodeList)) {
 			var ParamNode: GtNode = NodeList.get(p);
-			if(Method.Types[p+1] != ParamNode.Type) return false;
+			if(Method.Types[p+1] != ParamNode.Type) {
+				return false;
+			}
+			p = p + 1;
 		}
 		return true;
-		
 	}
 
 	static AcceptablyMatchMethod(Gamma: GtTypeEnv, Method: GtMethod, NodeList: Array<GtNode>): boolean {
@@ -2322,7 +2331,7 @@ class GtGrammar {
 		var Token: GtToken = TokenContext.Next();
 		if(Token != GtTokenContext.NullToken) {
 			var ch: number = LangDeps.CharAt(Token.ParsedText, 0);
-			if(LangDeps.IsLetter(ch) || ch == (95/*_*/)) {
+			if(ch != (46/*.*/)) {
 				return new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, Token.ParsedText);
 			}
 		}
@@ -2415,13 +2424,13 @@ class GtGrammar {
 				}
 			}
 		}
-		if(Method != null) {
+		if(Method == null) {
 			Method = Gamma.Generator.CreateMethod(MethodFlag, MethodName, 0, TypeBuffer, NativeMacro);
 		}
 		Gamma.DefineMethod(Method);
 		if(ParsedTree.HasNodeAt(FuncDeclBlock)) {
 			var BodyNode: GtNode = ParsedTree.TypeNodeAt(FuncDeclBlock, Gamma, ReturnType, IgnoreEmptyPolicy);
-				Gamma.Generator.DefineFunction(Method, ParamNameList, BodyNode);
+			Gamma.Generator.DefineFunction(Method, ParamNameList, BodyNode);
 		}
 		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType, ParsedTree);
 	}
@@ -2683,7 +2692,7 @@ class GtGrammar {
 
 		NameSpace.DefineSyntaxPattern("$ShellExpression$", DScriptGrammar.ParseShell, DScriptGrammar.TypeShell);
 		
-		NameSpace.DefineSyntaxPattern("(", DScriptGrammar.ParseParenthesis, null); /* => */
+		NameSpace.DefineSyntaxPattern("(", DScriptGrammar.ParseGroup, DScriptGrammar.TypeGroup);
 		NameSpace.DefineExtendedPattern(".", 0, DScriptGrammar.ParseField, DScriptGrammar.TypeField);
 		NameSpace.DefineExtendedPattern("(", 0, DScriptGrammar.ParseApply, DScriptGrammar.TypeApply);
 		// future: NameSpace.DefineExtendedPattern("[", 0, DScriptGrammar.ParseIndexer, DScriptGrammar.TypeIndexer); //
@@ -2919,6 +2928,11 @@ class GtGrammar {
 
 class GreenTeaScript {
 	static main(Args: string[]): void {
+		var N: number = 0;
+		Args = new Array<string>(2);
+		Args[N++] = "--c";
+		Args[N++] = "/Users/masa/GreenTeaScript/test/0005-MethodCall.green";
+
 		var CodeGeneratorName: string = "--java";
 		var Index: number = 0;
 		var OneLiner: string = null;
