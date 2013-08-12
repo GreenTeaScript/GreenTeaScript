@@ -716,6 +716,11 @@ class GtType extends GtStatic {
 		}
 		return false;
 	}
+
+	public boolean IsDynamicType() {
+		return false;
+	}
+
 }
 
 class GtMethod extends GtStatic {
