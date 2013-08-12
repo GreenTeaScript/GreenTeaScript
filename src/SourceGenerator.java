@@ -709,6 +709,10 @@ class GtType extends GtStatic {
 	@Override public String toString() {
 		return this.ShortClassName;
 	}
+	
+	public final String GetSignature() {
+		return GtStatic.NumberToAscii(this.ClassId);
+	}
 
 	public final boolean Accept(GtType Type) {
 		if(this == Type || this == this.Context.AnyType) {
