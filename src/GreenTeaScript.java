@@ -2186,7 +2186,6 @@ final class DScriptGrammar extends GtGrammar {
 			if(Method.Types[p+1] != ParamNode.Type) return false;
 		}
 		return true;
-		
 	}
 
 	private static boolean AcceptablyMatchMethod(GtTypeEnv Gamma, GtMethod Method, ArrayList<GtNode> NodeList) {
