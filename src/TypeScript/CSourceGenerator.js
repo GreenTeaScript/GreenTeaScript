@@ -366,6 +366,7 @@ var CSourceGenerator = (function (_super) {
     };
 
     CSourceGenerator.prototype.SetLanguageContext = function (Context) {
+        Context.Eval(LangDeps.LoadFile("lib/c/common.green"), 1);
     };
     return CSourceGenerator;
 })(SourceGenerator);
