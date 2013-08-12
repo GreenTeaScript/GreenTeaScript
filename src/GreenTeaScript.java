@@ -491,7 +491,7 @@ class GtStatic implements GtConst {
 			}
 			CurrentPattern = CurrentPattern.ParentPattern;
 		}
-		if(TokenContext.IsAllowedTrackback()) {
+		if(TokenContext.IsAllowedBackTrack()) {
 			TokenContext.CurrentPosition = Pos;
 		}
 		if(Pattern == null) {
@@ -737,7 +737,7 @@ final class GtTokenContext extends GtStatic {
 	}
 
 	public GtSyntaxTree NewErrorSyntaxTree(GtToken Token, String Message) {
-		if(!this.IsAllowedTrackback()) {
+		if(!this.IsAllowedBackTrack()) {
 			this.NameSpace.ReportError(ErrorLevel, Token, Message);
 			/*local*/GtSyntaxTree ErrorTree = new GtSyntaxTree(Token.PresetPattern, this.NameSpace, Token, null);
 			return ErrorTree;
@@ -759,7 +759,7 @@ final class GtTokenContext extends GtStatic {
 	}
 
 	public GtSyntaxTree ReportExpectedToken(String TokenText) {
-		if(!this.IsAllowedTrackback()) {
+		if(!this.IsAllowedBackTrack()) {
 			/*local*/GtToken Token = this.GetBeforeToken();
 			if(Token != null) {
 				return this.NewErrorSyntaxTree(Token, TokenText + " is expected after " + Token.ParsedText);
@@ -895,11 +895,11 @@ final class GtTokenContext extends GtStatic {
 		return Token;
 	}
 
-	public final boolean IsAllowedTrackback() {
+	public final boolean IsAllowedBackTrack() {
 		return IsFlag(this.ParseFlag, BackTrackParseFlag);
 	}
 
-	public final int SetTrackback(boolean Allowed) {
+	public final int SetBackTrack(boolean Allowed) {
 		/*local*/int ParseFlag = this.ParseFlag;
 		if(Allowed) {
 			this.ParseFlag = this.ParseFlag | BackTrackParseFlag;
@@ -2355,7 +2355,7 @@ final class DScriptGrammar extends GtGrammar {
 		}
 		Tree.SetMatchedPatternAt(FuncDeclName, TokenContext, "$FuncName$", Required);
 		if(TokenContext.MatchToken("(")) {
-			/*local*/int ParseFlag = TokenContext.SetTrackback(false);  // disabled
+			/*local*/int ParseFlag = TokenContext.SetBackTrack(false);  // disabled
 			/*local*/int ParamBase = FuncDeclParam;
 			while(!Tree.IsEmptyOrError() && !TokenContext.MatchToken(")")) {
 				if(ParamBase != FuncDeclParam) {
