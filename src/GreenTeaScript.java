@@ -1356,6 +1356,7 @@ final class GtTypeEnv extends GtStatic {
 		/*local*/Object Value = this.NameSpace.GetSymbol(Method.MethodName);
 		if(Value == null) {
 			this.NameSpace.DefineSymbol(Method.MethodName, Method);
+			Value = this.NameSpace.GetSymbol(Method.MethodName);
 		}
 		this.Method = Method;
 	}
@@ -1986,7 +1987,9 @@ final class DScriptGrammar extends GtGrammar {
 	public static GtSyntaxTree ParseBinary(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/GtSyntaxTree RightTree = GtStatic.ParseExpression(TokenContext);
-		if(GtStatic.IsEmptyOrError(RightTree)) return RightTree;
+		if(GtStatic.IsEmptyOrError(RightTree)) {
+			return RightTree;
+		}
 		if(RightTree.Pattern.IsBinaryOperator()) {
 			if(Pattern.IsLeftJoin(RightTree.Pattern)) {
 				/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
@@ -2013,7 +2016,7 @@ final class DScriptGrammar extends GtGrammar {
 		if(!LeftNode.IsError() && !RightNode.IsError()) {
 			GtType BaseType = LeftNode.Type;
 			while(BaseType != null) {
-				/*local*/GtMethod Method = Gamma.GetListedMethod(BaseType, Operator, 2);
+				/*local*/GtMethod Method = Gamma.GetListedMethod(BaseType, Operator, 1);
 				while(Method != null) {
 					if(Method.GetFuncParamType(1).Accept(RightNode.Type)) {
 						return Gamma.Generator.CreateBinaryNode(Method.GetReturnType(), ParsedTree, Method, LeftNode, RightNode);
@@ -2398,7 +2401,7 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/GtToken Token = TokenContext.Next();
 		if(Token != GtTokenContext.NullToken) {
 			/*local*/char ch = LangDeps.CharAt(Token.ParsedText, 0);
-			if(LangDeps.IsLetter(ch) || ch == '_') {
+			if(ch != '.') {
 				return new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, Token.ParsedText);
 			}
 		}
@@ -2491,13 +2494,13 @@ final class DScriptGrammar extends GtGrammar {
 				}
 			}
 		}
-		if(Method != null) {
+		if(Method == null) {
 			Method = Gamma.Generator.CreateMethod(MethodFlag, MethodName, 0, TypeBuffer, NativeMacro);
 		}
 		Gamma.DefineMethod(Method);
 		if(ParsedTree.HasNodeAt(FuncDeclBlock)) {
 			/*local*/GtNode BodyNode = ParsedTree.TypeNodeAt(FuncDeclBlock, Gamma, ReturnType, IgnoreEmptyPolicy);
-				Gamma.Generator.DefineFunction(Method, ParamNameList, BodyNode);
+			Gamma.Generator.DefineFunction(Method, ParamNameList, BodyNode);
 		}
 		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType, ParsedTree);
 	}
