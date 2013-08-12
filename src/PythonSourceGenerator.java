@@ -5,7 +5,7 @@ import java.util.ArrayList;
 //GreenTea Generator should be written in each language.
 
 public class PythonSourceGenerator extends SourceGenerator {
-	
+
 	PythonSourceGenerator/*constructor*/() {
 		super("PythonSource");
 		this.WriteTranslatedCode("import os\n");
@@ -28,7 +28,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		if(inBlock) {
 			this.UnIndent();
 			Code += this.GetIndentString();
-		} else {
+		}		else {
 			if(Code.length() > 0) {
 				Code = Code.substring(0, Code.length() - 1);
 			}
@@ -90,7 +90,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 				value.equals("true") || value.equals("false")) {
 			if(value.equals("true")) {
 				value = "True";
-			} else if(value.equals("false")) {
+			}			else if(value.equals("false")) {
 				value = "False";
 			}
 		}
@@ -127,7 +127,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		}
 		return Programs;
 	}
-	
+
 	private String AppendParams(String[] Params) {
 		/*local*/String param = "";
 		/*local*/int i = 0;

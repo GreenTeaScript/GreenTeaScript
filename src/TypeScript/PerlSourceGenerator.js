@@ -126,7 +126,7 @@ var PerlSourceGenerator = (function (_super) {
     };
 
     PerlSourceGenerator.prototype.VisitApplyNode = function (Node) {
-        var Program = Node.Method.LocalFuncName + "(";
+        var Program = Node.Method.GetLocalFuncName() + "(";
         var Params = this.EvaluateParam(Node.Params);
         var i = 0;
         while (i < Params.length) {
@@ -293,14 +293,14 @@ var PerlSourceGenerator = (function (_super) {
     PerlSourceGenerator.prototype.DefineFunction = function (Method, ParamNameList, Body) {
         var Program = "";
         var RetTy = Method.GetReturnType().ShortClassName;
-        var FuncName = Method.LocalFuncName;
+        var FuncName = Method.GetLocalFuncName();
         var Signature = "# ";
         var Arguments = "";
         Signature += RetTy + " " + FuncName + "(";
         this.Indent();
         var i = 0;
         while (i < ParamNameList.size()) {
-            var ParamTy = Method.GetParamType(i).ShortClassName;
+            var ParamTy = Method.GetFuncParamType(i).ShortClassName;
             Signature += " ," + ParamTy + " " + ParamNameList.get(i);
             Arguments += this.GetIndentString() + "my $" + ParamNameList.get(i) + " = $_[" + i + "];\n";
             i = i + 1;
