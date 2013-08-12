@@ -22,7 +22,7 @@ interface GtConst {
 	public final static int		VirtualMethod		= 1 << 2;
 	public final static int		NativeMethod		= 1 << 3;
 	public final static int		DynamicMethod		= 1 << 4;
-	public final static int     ExplicitConvertor   = 1 << 5;
+	public final static int     ExplicitConverter   = 1 << 5;
 
 	//public final static int		ConstMethod 		= 1 << 2;
 
@@ -1360,8 +1360,8 @@ final class GtTypeEnv extends GtStatic {
 		this.Method = Method;
 	}
 
-	public final GtMethod GetConvertorMethod(GtType BaseType, GtType ToType, boolean RecursiveSearch) {
-		return this.NameSpace.Context.GetConvertorMethod(BaseType, ToType, RecursiveSearch);
+	public final GtMethod GetConverterMethod(GtType BaseType, GtType ToType, boolean RecursiveSearch) {
+		return this.NameSpace.Context.GetConverterMethod(BaseType, ToType, RecursiveSearch);
 	}
 
 	public final GtMethod GetWrapperMethod(GtType BaseType, GtType ToType, boolean RecursiveSearch) {
@@ -1372,8 +1372,8 @@ final class GtTypeEnv extends GtStatic {
 		return this.NameSpace.Context.GetCastMethod(BaseType, ToType, RecursiveSearch);
 	}
 
-	public final void DefineConvertorMethod(GtMethod Method) {
-		this.NameSpace.Context.DefineConvertorMethod(Method);
+	public final void DefineConverterMethod(GtMethod Method) {
+		this.NameSpace.Context.DefineConverterMethod(Method);
 	}
 
 	public final void DefineWrapperMethod(GtMethod Method) {
@@ -3046,7 +3046,7 @@ final class GtContext extends GtStatic {
 	}
 	
 	/* convertor, wrapper */
-	private final String ConvertorName(GtType FromType, GtType ToType) {
+	private final String ConverterName(GtType FromType, GtType ToType) {
 		return FromType.GetSignature() + ">" + ToType.GetSignature();
 	}
 
@@ -3054,14 +3054,14 @@ final class GtContext extends GtStatic {
 		return FromType.GetSignature() + "<" + ToType.GetSignature();
 	}
 
-	public GtMethod GetConvertorMethod(GtType FromType, GtType ToType, boolean RecursiveSearch) {
-		String Key = ConvertorName(FromType, ToType);
+	public GtMethod GetConverterMethod(GtType FromType, GtType ToType, boolean RecursiveSearch) {
+		String Key = ConverterName(FromType, ToType);
 		Object Method = this.UniqueMethodMap.get(Key);
 		if(Method != null) {
 			return (/*cast*/GtMethod)Method;
 		}
 		if(RecursiveSearch && FromType.SearchSuperMethodClass != null) {
-			return this.GetConvertorMethod(FromType.SearchSuperMethodClass, ToType, RecursiveSearch);
+			return this.GetConverterMethod(FromType.SearchSuperMethodClass, ToType, RecursiveSearch);
 		}
 		return null;
 	}
@@ -3084,7 +3084,7 @@ final class GtContext extends GtStatic {
 		if(Method != null) {
 			return (/*cast*/GtMethod)Method;
 		}
-		Key = ConvertorName(FromType, ToType);
+		Key = ConverterName(FromType, ToType);
 		Method = this.UniqueMethodMap.get(Key);
 		if(Method != null) {
 			return (/*cast*/GtMethod)Method;
@@ -3095,8 +3095,8 @@ final class GtContext extends GtStatic {
 		return null;
 	}
 
-	public final void DefineConvertorMethod(GtMethod Method) {
-		/*local*/String Key = ConvertorName(Method.GetRecvType(), Method.GetReturnType());
+	public final void DefineConverterMethod(GtMethod Method) {
+		/*local*/String Key = ConverterName(Method.GetRecvType(), Method.GetReturnType());
 		this.UniqueMethodMap.put(Key, Method);
 	}
 
