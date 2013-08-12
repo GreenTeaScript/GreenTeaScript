@@ -139,7 +139,7 @@ var CSourceGenerator = (function (_super) {
         if (Node.Method.SourceMacro != null) {
             return Node.Method.SourceMacro;
         }
-        var Template = Node.Method.LocalFuncName + "(";
+        var Template = Node.Method.GetLocalFuncName() + "(";
         var i = 0;
         var ParamSize = Node.Params.size();
         while (i < ParamSize) {
@@ -299,10 +299,10 @@ var CSourceGenerator = (function (_super) {
             Code = "static ";
         }
         var RetTy = this.LocalTypeName(Method.GetReturnType());
-        Code += RetTy + " " + Method.LocalFuncName + "(";
+        Code += RetTy + " " + Method.GetLocalFuncName() + "(";
         var i = 0;
         while (i < ParamNameList.size()) {
-            var ParamTy = this.LocalTypeName(Method.GetParamType(i));
+            var ParamTy = this.LocalTypeName(Method.GetFuncParamType(i));
             if (i > 0) {
                 Code += ", ";
             }

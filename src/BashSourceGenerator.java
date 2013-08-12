@@ -29,7 +29,8 @@ public class BashSourceGenerator extends SourceGenerator {
 		if(inBlock) {
 			this.UnIndent();
 			Code += this.GetIndentString();
-		} else {
+		}
+		else {
 			if(Code.length() > 0) {
 				Code = Code.substring(0, Code.length() - 1);
 			}

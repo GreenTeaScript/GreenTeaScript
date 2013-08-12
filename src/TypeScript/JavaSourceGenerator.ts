@@ -307,10 +307,10 @@ class JavaSourceGenerator extends SourceGenerator {
 		var Program: string = "";
 		var RetTy: string = Method.GetReturnType().ShortClassName;
 		var ThisTy: string = Method.GetRecvType().ShortClassName;
-		Program += RetTy + " " + ThisTy + "_" + Method.LocalFuncName + "(";
+		Program += RetTy + " " + ThisTy + "_" + Method.GetLocalFuncName() + "(";
 		Program += ThisTy + " " + "this";
 		for(var i: number = 0; i < ParamNameList.size(); i++) {
-			var ParamTy: string = Method.GetParamType(i).ShortClassName;
+			var ParamTy: string = Method.GetFuncParamType(i).ShortClassName;
 			Program += " ," + ParamTy + " " + ParamNameList.get(i);
 		}
 

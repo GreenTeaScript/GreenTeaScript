@@ -277,10 +277,10 @@ var JavaSourceGenerator = (function (_super) {
         var Program = "";
         var RetTy = Method.GetReturnType().ShortClassName;
         var ThisTy = Method.GetRecvType().ShortClassName;
-        Program += RetTy + " " + ThisTy + "_" + Method.LocalFuncName + "(";
+        Program += RetTy + " " + ThisTy + "_" + Method.GetLocalFuncName() + "(";
         Program += ThisTy + " " + "this";
         for (var i = 0; i < ParamNameList.size(); i++) {
-            var ParamTy = Method.GetParamType(i).ShortClassName;
+            var ParamTy = Method.GetFuncParamType(i).ShortClassName;
             Program += " ," + ParamTy + " " + ParamNameList.get(i);
         }
 

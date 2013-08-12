@@ -391,12 +391,12 @@ class GtStatic implements GtConst {
 			return LangDeps.CharToString((char)(97 + (n - 37)));
 		}
 	}
-	
+
 	public final static String NumberToAscii(int number) {
 		LangDeps.Assert(number < (62 * 62));
 		return n2s((number / 62)) + (number % 62);
 	}
-	
+
 	public final static String MangleGenericType(GtType BaseType, int BaseIdx, ArrayList<GtType> TypeList) {
 		/*local*/String s = BaseType.ShortClassName + "__";
 		/*local*/int i = BaseIdx;
@@ -406,7 +406,7 @@ class GtStatic implements GtConst {
 		}
 		return s;
 	}
-	
+
 	public final static String MangleMethodName(GtType BaseType, String MethodName, int BaseIdx, ArrayList<GtType> TypeList) {
 		/*local*/String s = MethodName + "__" + NumberToAscii(BaseType.ClassId);
 		/*local*/int i = BaseIdx;
@@ -416,7 +416,7 @@ class GtStatic implements GtConst {
 		}
 		return s;
 	} 
-	
+
 //ifdef JAVA
 	public final static GtDelegateToken FunctionA(Object Callee, String MethodName) {
 		return new GtDelegateToken(Callee, LangDeps.LookupMethod(Callee, MethodName));
@@ -630,7 +630,6 @@ final class GtToken extends GtStatic {
 		return IsFlag(this.TokenFlag, NameSymbolTokenFlag);
 	}
 
-	
 	public boolean EqualsText(String text) {
 		return this.ParsedText.equals(text);
 	}
@@ -1157,7 +1156,7 @@ class GtSyntaxTree extends GtStatic {
 	public final boolean HasNodeAt(int Index) {
 		return this.TreeList != null && Index < this.TreeList.size();
 	}
-	
+
 	public final GtNode TypeNodeAt(int Index, GtTypeEnv Gamma, GtType Type, int TypeCheckPolicy) {
 		if(this.TreeList != null && Index < this.TreeList.size()) {
 			/*local*/GtSyntaxTree NodeObject = this.TreeList.get(Index);
@@ -1842,7 +1841,7 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	// parser and type checker
-	
+
 	public static GtSyntaxTree ParseType(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/Object ConstValue = TokenContext.NameSpace.GetSymbol(Token.ParsedText);
@@ -2036,7 +2035,6 @@ final class DScriptGrammar extends GtGrammar {
 		return Gamma.Generator.CreateBinaryNode(Type, ParsedTree, null, LeftNode, RightNode);
 	}
 
-
 	public static GtSyntaxTree ParseField(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
 		TokenContext.MatchToken(".");
 		/*local*/GtToken Token = TokenContext.Next();
@@ -2100,7 +2098,7 @@ final class DScriptGrammar extends GtGrammar {
 		TokenContext.ParseFlag = ParseFlag;
 		return FuncTree;
 	}
-	
+
 	public static GtNode TypeApply(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
 		/*local*/GtNode FuncNode = ParsedTree.TypeNodeAt(0, Gamma, Gamma.FuncType, DefaultTypeCheckPolicy);
 		/*local*/String MethodName = FuncNode.Token.ParsedText;
@@ -2724,7 +2722,6 @@ final class DScriptGrammar extends GtGrammar {
 		return HeadNode;
 	}
 
-	
 	@Override public void LoadTo(GtNameSpace NameSpace) {
 		// Define Constants
 		NameSpace.DefineSymbol("true", true);
@@ -2914,14 +2911,14 @@ final class GtContext extends GtStatic {
 //		}
 		return true;
 	}
-	
+
 	/* methods */
 	private String GetterName(int ClassId, String Name) {
-		return "" + ClassId + "@" + Name; 
+		return "" + ClassId + "@" + Name;
 	}
-	
+
 	public void DefineGetterMethod(GtMethod Method) {
-		String Key = GetterName(Method.GetRecvType().ClassId, Method.MethodName);
+		/*local*/String Key = this.GetterName(Method.GetRecvType().ClassId, Method.MethodName);
 		if(this.UniqueMethodMap.get(Key) == null) {
 			this.UniqueMethodMap.put(Key, Method);
 		}
@@ -2929,8 +2926,8 @@ final class GtContext extends GtStatic {
 
 	public GtMethod GetGetterMethod(GtType BaseType, String Name) {
 		while(BaseType != null) {
-			String Key = GetterName(BaseType.ClassId, Name);
-			Object Method = this.UniqueMethodMap.get(Key);
+			/*local*/String Key = this.GetterName(BaseType.ClassId, Name);
+			/*local*/Object Method = this.UniqueMethodMap.get(Key);
 			if(Method != null) {
 				return (/*cast*/GtMethod)Method;
 			}
@@ -2941,7 +2938,7 @@ final class GtContext extends GtStatic {
 
 	/* methods */
 	private void SetUniqueMethod(String Key, GtMethod Method) {
-		Object Value = this.UniqueMethodMap.get(Key);
+		/*local*/Object Value = this.UniqueMethodMap.get(Key);
 		if(Value == null) {
 			this.UniqueMethodMap.put(Key, Method);
 		}
@@ -2951,7 +2948,7 @@ final class GtContext extends GtStatic {
 	}
 
 	private void AddOverloadedMethod(String Key, GtMethod Method) {
-		Object Value = this.UniqueMethodMap.get(Key);
+		/*local*/Object Value = this.UniqueMethodMap.get(Key);
 		if(Value instanceof GtMethod) {
 			Method.ListedMethods = (/*cast*/GtMethod)Value;
 		}
@@ -2965,21 +2962,19 @@ final class GtContext extends GtStatic {
 	private String MethodNameSizeKey(int ClassId, String Name, int ParamSize) {
 		return "" + ClassId + ":" + ParamSize + Name;
 	}
-	
-	
-	
+
 	public void DefineMethod(GtMethod Method) {
 		/*local*/String MethodName = Method.MethodName;
 		this.SetUniqueMethod(MethodName, Method);
-		/*local*/String Key = FuncNameSizeKey(MethodName, (Method.Types.length - 1));
+		/*local*/String Key = this.FuncNameSizeKey(MethodName, (Method.Types.length - 1));
 		this.SetUniqueMethod(Key, Method);
 		/*local*/GtType RecvType = Method.GetRecvType();
-		Key = MethodNameSizeKey(RecvType.ClassId, MethodName, (Method.Types.length - 2));
+		Key = this.MethodNameSizeKey(RecvType.ClassId, MethodName, (Method.Types.length - 2));
 		this.SetUniqueMethod(Key, Method);
-		AddOverloadedMethod(Key, Method);
-		SetUniqueMethod(Method.MangledName, Method);
+		this.AddOverloadedMethod(Key, Method);
+		this.SetUniqueMethod(Method.MangledName, Method);
 	}
-	
+
 	public GtMethod GetUniqueFunctionName(String Name) {
 		Object Value = this.UniqueMethodMap.get(Name);
 		if(Value != null && Value instanceof GtMethod) {
@@ -2989,7 +2984,7 @@ final class GtContext extends GtStatic {
 	}
 
 	public GtMethod GetUniqueFunction(String Name, int FuncParamSize) {
-		Object Value = this.UniqueMethodMap.get(FuncNameSizeKey(Name, FuncParamSize));
+		Object Value = this.UniqueMethodMap.get(this.FuncNameSizeKey(Name, FuncParamSize));
 		if(Value != null && Value instanceof GtMethod) {
 			return (/*cast*/GtMethod)Value;
 		}
@@ -2997,7 +2992,7 @@ final class GtContext extends GtStatic {
 	}
 
 	public final GtMethod GetListedMethod(GtType BaseType, String MethodName, int MethodParamSize) {
-		Object Value = this.UniqueMethodMap.get(MethodNameSizeKey(BaseType.ClassId, MethodName, MethodParamSize));
+		Object Value = this.UniqueMethodMap.get(this.MethodNameSizeKey(BaseType.ClassId, MethodName, MethodParamSize));
 		if(Value instanceof GtMethod) {
 			return (/*cast*/GtMethod)Value;
 		}

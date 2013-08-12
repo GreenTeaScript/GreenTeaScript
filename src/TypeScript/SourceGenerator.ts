@@ -708,10 +708,6 @@ class GtType {
 		return this.ShortClassName;
 	}
 
-	 GetMethodId(MethodName: string): string {
-		return "" + this.ClassId + "@" + MethodName;
-	}
-
 	 Accept(Type: GtType): boolean {
 		if(this == Type || this == this.Context.AnyType) {
 			return true;
@@ -721,42 +717,49 @@ class GtType {
 }
 
 class GtMethod {
-	public Layer: GtLayer;
 	public MethodFlag: number;
 	MethodSymbolId: number;
 	public MethodName: string;
-	public LocalFuncName: string;
+	public MangledName: string;
 	public Types: GtType[];
 	private FuncType: GtType;
-	public ElderMethod: GtMethod;
+	public ListedMethods: GtMethod;
 	public SourceMacro: string;
 
 	constructor(MethodFlag: number, MethodName: string, BaseIndex: number, ParamList: Array<GtType>, SourceMacro: string) {
 		this.MethodFlag = MethodFlag;
 		this.MethodName = MethodName;
-		this.MethodSymbolId = GetCanonicalSymbolId(MethodName);
+		this.MethodSymbolId = GetSymbolId(MethodName, CreateNewSymbolId);
 		this.Types = LangDeps.CompactTypeList(BaseIndex, ParamList);
 		LangDeps.Assert(this.Types.length > 0);
-		this.Layer = null;
-		this.ElderMethod = null;
+		this.ListedMethods = null;
 		this.FuncType = null;
 		this.SourceMacro = SourceMacro;
-		
-		var Name: string = this.MethodName;
-		if(!LangDeps.IsLetter(LangDeps.CharAt(Name, 0))) {
-			Name = "_operator" + this.MethodSymbolId;
+		this.MangledName = MangleMethodName(this.GetRecvType(), this.MethodName, BaseIndex+2, ParamList);
+	}
+
+	 GetLocalFuncName(): string {
+		if(this.Is(ExportMethod)) {
+			return this.MethodName;
 		}
-		if(!this.Is(ExportMethod)) {
-			Name = Name + "__" + Mangle(this.GetRecvType(), BaseIndex + 1, ParamList);
+		else {
+			return this.MangledName;
 		}
-		this.LocalFuncName = Name;
+	}
+
+	 GetFuncType(): GtType {
+		if(this.FuncType != null) {
+			var Context: GtContext = this.GetRecvType().Context;
+			this.FuncType = Context.GetGenericType(Context.FuncType, 0, this.Types, true);
+		}
+		return this.FuncType;
 	}
 
 	public toString(): string {
 		var s: string = this.MethodName + "(";
 		var i: number = 0;
-		while(i < this.GetParamSize()) {
-			var ParamType: GtType = this.GetParamType(i);
+		while(i < this.GetFuncParamSize()) {
+			var ParamType: GtType = this.GetFuncParamType(i);
 			if(i > 0) {
 				s += ", ";
 			}
@@ -781,20 +784,16 @@ class GtMethod {
 		return this.Types[1];
 	}
 
-	 GetParamSize(): number {
+	 GetFuncParamSize(): number {
 		return this.Types.length - 1;
 	}
 
-	 GetParamType(ParamIdx: number): GtType {
+	 GetFuncParamType(ParamIdx: number): GtType {
 		return this.Types[ParamIdx+1];
 	}
 
-	 GetFuncType(): GtType {
-		if(this.FuncType != null) {
-			var Context: GtContext = this.GetRecvType().Context;
-			this.FuncType = Context.GetGenericType(Context.FuncType, 0, this.Types, true);
-		}
-		return this.FuncType;
+	 GetMethodParamSize(): number {
+		return this.Types.length - 2;
 	}
 
 	 ExpandMacro1(Arg0: string): string {
@@ -973,9 +972,9 @@ class GtGenerator {
 		if(MethodDeclTree.HasAnnotation("Export")) {
 			MethodFlag = MethodFlag | ExportMethod;
 		}
-		if(MethodDeclTree.HasAnnotation("Operator")) {
-			MethodFlag = MethodFlag | OperatorMethod;
-		}
+// 		if(MethodDeclTree.HasAnnotation("Operator")) { //
+// 			MethodFlag = MethodFlag | OperatorMethod; //
+// 		} //
 		return MethodFlag;
 	}
 

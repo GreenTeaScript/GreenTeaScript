@@ -666,10 +666,6 @@ var GtType = (function () {
         return this.ShortClassName;
     };
 
-    GtType.prototype.GetMethodId = function (MethodName) {
-        return "" + this.ClassId + "@" + MethodName;
-    };
-
     GtType.prototype.Accept = function (Type) {
         if (this == Type || this == this.Context.AnyType) {
             return true;
@@ -683,28 +679,35 @@ var GtMethod = (function () {
     function GtMethod(MethodFlag, MethodName, BaseIndex, ParamList, SourceMacro) {
         this.MethodFlag = MethodFlag;
         this.MethodName = MethodName;
-        this.MethodSymbolId = GetCanonicalSymbolId(MethodName);
+        this.MethodSymbolId = GetSymbolId(MethodName, CreateNewSymbolId);
         this.Types = LangDeps.CompactTypeList(BaseIndex, ParamList);
         LangDeps.Assert(this.Types.length > 0);
-        this.Layer = null;
-        this.ElderMethod = null;
+        this.ListedMethods = null;
         this.FuncType = null;
         this.SourceMacro = SourceMacro;
-
-        var Name = this.MethodName;
-        if (!LangDeps.IsLetter(LangDeps.CharAt(Name, 0))) {
-            Name = "_operator" + this.MethodSymbolId;
-        }
-        if (!this.Is(ExportMethod)) {
-            Name = Name + "__" + Mangle(this.GetRecvType(), BaseIndex + 1, ParamList);
-        }
-        this.LocalFuncName = Name;
+        this.MangledName = MangleMethodName(this.GetRecvType(), this.MethodName, BaseIndex + 2, ParamList);
     }
+    GtMethod.prototype.GetLocalFuncName = function () {
+        if (this.Is(ExportMethod)) {
+            return this.MethodName;
+        } else {
+            return this.MangledName;
+        }
+    };
+
+    GtMethod.prototype.GetFuncType = function () {
+        if (this.FuncType != null) {
+            var Context = this.GetRecvType().Context;
+            this.FuncType = Context.GetGenericType(Context.FuncType, 0, this.Types, true);
+        }
+        return this.FuncType;
+    };
+
     GtMethod.prototype.toString = function () {
         var s = this.MethodName + "(";
         var i = 0;
-        while (i < this.GetParamSize()) {
-            var ParamType = this.GetParamType(i);
+        while (i < this.GetFuncParamSize()) {
+            var ParamType = this.GetFuncParamType(i);
             if (i > 0) {
                 s += ", ";
             }
@@ -729,20 +732,16 @@ var GtMethod = (function () {
         return this.Types[1];
     };
 
-    GtMethod.prototype.GetParamSize = function () {
+    GtMethod.prototype.GetFuncParamSize = function () {
         return this.Types.length - 1;
     };
 
-    GtMethod.prototype.GetParamType = function (ParamIdx) {
+    GtMethod.prototype.GetFuncParamType = function (ParamIdx) {
         return this.Types[ParamIdx + 1];
     };
 
-    GtMethod.prototype.GetFuncType = function () {
-        if (this.FuncType != null) {
-            var Context = this.GetRecvType().Context;
-            this.FuncType = Context.GetGenericType(Context.FuncType, 0, this.Types, true);
-        }
-        return this.FuncType;
+    GtMethod.prototype.GetMethodParamSize = function () {
+        return this.Types.length - 2;
     };
 
     GtMethod.prototype.ExpandMacro1 = function (Arg0) {
@@ -915,9 +914,7 @@ var GtGenerator = (function () {
         if (MethodDeclTree.HasAnnotation("Export")) {
             MethodFlag = MethodFlag | ExportMethod;
         }
-        if (MethodDeclTree.HasAnnotation("Operator")) {
-            MethodFlag = MethodFlag | OperatorMethod;
-        }
+
         return MethodFlag;
     };
 

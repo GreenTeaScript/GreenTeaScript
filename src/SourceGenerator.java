@@ -753,7 +753,7 @@ class GtMethod extends GtStatic {
 			return this.MangledName;
 		}
 	}
-	
+
 	public final GtType GetFuncType() {
 		if(this.FuncType != null) {
 			GtContext Context = this.GetRecvType().Context;
