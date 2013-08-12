@@ -142,7 +142,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
-		/*local*/String Program = Node.Method.LocalFuncName + "(";
+		/*local*/String Program = Node.Method.GetLocalFuncName() + "(";
 		/*local*/String[] Params = this.EvaluateParam(Node.Params);
 		/*local*/int i = 0;
 		while(i < Params.length) {
@@ -333,14 +333,14 @@ public class PerlSourceGenerator extends SourceGenerator {
 	@Override public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
 		/*local*/String Program = "";
 		/*local*/String RetTy = Method.GetReturnType().ShortClassName;
-		/*local*/String FuncName = Method.LocalFuncName;
+		/*local*/String FuncName = Method.GetLocalFuncName();
 		/*local*/String Signature = "# ";
 		/*local*/String Arguments = "";
 		Signature += RetTy + " " + FuncName + "(";
 		this.Indent();
 		/*local*/int i = 0;
 		while(i < ParamNameList.size()) {
-			String ParamTy = Method.GetParamType(i).ShortClassName;
+			String ParamTy = Method.GetFuncParamType(i).ShortClassName;
 			Signature += " ," + ParamTy + " " + ParamNameList.get(i);
 			Arguments += this.GetIndentString() + "my $" + ParamNameList.get(i) + " = $_[" + i + "];\n";
 			i = i + 1;

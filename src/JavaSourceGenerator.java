@@ -308,10 +308,10 @@ public class JavaSourceGenerator extends SourceGenerator {
 		String Program = "";
 		String RetTy = Method.GetReturnType().ShortClassName;
 		String ThisTy = Method.GetRecvType().ShortClassName;
-		Program += RetTy + " " + ThisTy + "_" + Method.LocalFuncName + "(";
+		Program += RetTy + " " + ThisTy + "_" + Method.GetLocalFuncName() + "(";
 		Program += ThisTy + " " + "this";
 		for(int i = 0; i < ParamNameList.size(); i++) {
-			String ParamTy = Method.GetParamType(i).ShortClassName;
+			String ParamTy = Method.GetFuncParamType(i).ShortClassName;
 			Program += " ," + ParamTy + " " + ParamNameList.get(i);
 		}
 

@@ -421,8 +421,8 @@ class TypeResolver {
 		if(method.GetRecvType().ShortClassName.equals("global")) {
 			signature.append(globalType);
 		}
-		for(int i = 0; i < method.GetParamSize(); i++) {
-			GtType ParamType = method.GetParamType(i);
+		for(int i = 0; i < method.GetFuncParamSize(); i++) {
+			GtType ParamType = method.GetFuncParamType(i);
 			signature.append(this.GetJavaTypeDescriptor(ParamType));
 		}
 		signature.append(")");
@@ -581,7 +581,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		ArrayList<Type> argTypes = new ArrayList<Type>();
 		ArrayList<Local> locals  = new ArrayList<Local>();
 		for(int i=0; i<NameList.size(); i++) {
-			GtType type = Method.GetParamType(i);
+			GtType type = Method.GetFuncParamType(i);
 			String name = NameList.get(i);
 			argTypes.add(TypeResolver.GetAsmType(type));
 			locals.add(new Local(i, type, name));
@@ -696,7 +696,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		for(int i = 0; i < Node.Params.size(); i++) {
 			GtNode Param = Node.Params.get(i);
 			Param.Evaluate(this);
-			Type requireType = this.TypeResolver.GetAsmType(Method.GetParamType(i));
+			Type requireType = this.TypeResolver.GetAsmType(Method.GetFuncParamType(i));
 			Type foundType = this.Builder.typeStack.peek();
 			if(requireType.equals(Type.getType(Object.class)) && this.Builder.isPrimitiveType(foundType)) {
 				// boxing
@@ -1022,11 +1022,11 @@ class EmbeddedMethodDef extends GtStatic {
 	}
 
 	void RegisterMethod(int MethodFlag, String MethodName, ArrayList<GtType> ParamTypeList, Object Callee, String LocalName) {
-		GtMethod newMethod = new GtMethod(MethodFlag, MethodName, 0, ParamTypeList, null);
+		GtMethod newMethod = new GtMethod(MethodFlag | NativeMethod, MethodName, 0, ParamTypeList, null);
 		GtType[] paramTypes = LangDeps.CompactTypeList(0, ParamTypeList);
 		Method mtd = LookupMethod(Callee, LocalName);
 		NMMap.PutMethodInvoker(newMethod, new NativeMethodInvoker(paramTypes, mtd));
-		NameSpace.DefineMethod(newMethod);
+		NameSpace.Context.DefineMethod(newMethod);
 	}
 
 	GtType RegisterClass(int ClassFlag, String ClassName, Object DefaultNullValue) {

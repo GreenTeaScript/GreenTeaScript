@@ -710,10 +710,6 @@ class GtType extends GtStatic {
 		return this.ShortClassName;
 	}
 
-	public final String GetMethodId(String MethodName) {
-		return "" + this.ClassId + "@" + MethodName;
-	}
-
 	public final boolean Accept(GtType Type) {
 		if(this == Type || this == this.Context.AnyType) {
 			return true;
@@ -723,42 +719,49 @@ class GtType extends GtStatic {
 }
 
 class GtMethod extends GtStatic {
-	/*field*/public GtLayer         Layer;
 	/*field*/public int				MethodFlag;
 	/*field*/int					MethodSymbolId;
 	/*field*/public String			MethodName;
-	/*field*/public String          LocalFuncName;
+	/*field*/public String          MangledName;
 	/*field*/public GtType[]		Types;
 	/*field*/private GtType         FuncType;
-	/*field*/public GtMethod        ElderMethod;
+	/*field*/public GtMethod        ListedMethods;
 	/*field*/public String          SourceMacro;
 
 	GtMethod/*constructor*/(int MethodFlag, String MethodName, int BaseIndex, ArrayList<GtType> ParamList, String SourceMacro) {
 		this.MethodFlag = MethodFlag;
 		this.MethodName = MethodName;
-		this.MethodSymbolId = GtStatic.GetCanonicalSymbolId(MethodName);
+		this.MethodSymbolId = GtStatic.GetSymbolId(MethodName, CreateNewSymbolId);
 		this.Types = LangDeps.CompactTypeList(BaseIndex, ParamList);
 		LangDeps.Assert(this.Types.length > 0);
-		this.Layer = null;
-		this.ElderMethod = null;
+		this.ListedMethods = null;
 		this.FuncType = null;
 		this.SourceMacro = SourceMacro;
-		
-		String Name = this.MethodName;
-		if(!LangDeps.IsLetter(LangDeps.CharAt(Name, 0))) {
-			Name = "_operator" + this.MethodSymbolId;
+		this.MangledName = GtStatic.MangleMethodName(this.GetRecvType(), this.MethodName, BaseIndex+2, ParamList);
+	}
+
+	public final String GetLocalFuncName() {
+		if(this.Is(ExportMethod)) {
+			return this.MethodName;
 		}
-		if(!this.Is(ExportMethod)) {
-			Name = Name + "__" + GtStatic.Mangle(this.GetRecvType(), BaseIndex + 1, ParamList);
+		else {
+			return this.MangledName;
 		}
-		this.LocalFuncName = Name;
+	}
+	
+	public final GtType GetFuncType() {
+		if(this.FuncType != null) {
+			GtContext Context = this.GetRecvType().Context;
+			this.FuncType = Context.GetGenericType(Context.FuncType, 0, new ArrayList<GtType>(Arrays.asList(this.Types)), true);
+		}
+		return this.FuncType;
 	}
 
 	@Override public String toString() {
 		/*local*/String s = this.MethodName + "(";
 		/*local*/int i = 0;
-		while(i < this.GetParamSize()) {
-			/*local*/GtType ParamType = this.GetParamType(i);
+		while(i < this.GetFuncParamSize()) {
+			/*local*/GtType ParamType = this.GetFuncParamType(i);
 			if(i > 0) {
 				s += ", ";
 			}
@@ -783,20 +786,16 @@ class GtMethod extends GtStatic {
 		return this.Types[1];
 	}
 
-	public final int GetParamSize() {
+	public final int GetFuncParamSize() {
 		return this.Types.length - 1;
 	}
 
-	public final GtType GetParamType(int ParamIdx) {
+	public final GtType GetFuncParamType(int ParamIdx) {
 		return this.Types[ParamIdx+1];
 	}
 
-	public final GtType GetFuncType() {
-		if(this.FuncType != null) {
-			GtContext Context = this.GetRecvType().Context;
-			this.FuncType = Context.GetGenericType(Context.FuncType, 0, new ArrayList<GtType>(Arrays.asList(this.Types)), true);
-		}
-		return this.FuncType;
+	public final int GetMethodParamSize() {
+		return this.Types.length - 2;
 	}
 
 	public final String ExpandMacro1(String Arg0) {
@@ -975,9 +974,9 @@ class GtGenerator extends GtStatic {
 		if(MethodDeclTree.HasAnnotation("Export")) {
 			MethodFlag = MethodFlag | ExportMethod;
 		}
-		if(MethodDeclTree.HasAnnotation("Operator")) {
-			MethodFlag = MethodFlag | OperatorMethod;
-		}
+//		if(MethodDeclTree.HasAnnotation("Operator")) {
+//			MethodFlag = MethodFlag | OperatorMethod;
+//		}
 		return MethodFlag;
 	}
 
