@@ -1618,10 +1618,6 @@ final class GtNameSpace extends GtStatic {
 //		return FoundMethod;
 //	}
 
-//	public GtMethod GetGetter(GtType Class, String FieldName) {
-//		return this.Context.GetMethod(Class, FieldName, 0, null);
-//	}
-
 	// Global Object
 	public GtObject CreateGlobalObject(int ClassFlag, String ShortName) {
 		/*local*/GtType NewClass = new GtType(this.Context, ClassFlag, ShortName, null);
