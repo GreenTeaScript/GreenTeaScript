@@ -12,6 +12,7 @@ source="${source} JavaScriptSourceGenerator"
 source="${source} CSourceGenerator"
 source="${source} JavaSourceGenerator"
 source="${source} PerlSourceGenerator"
+source="${source} PythonSourceGenerator"
 
 ts=""
 

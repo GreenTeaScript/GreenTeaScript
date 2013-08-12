@@ -1218,6 +1218,10 @@ var GtTypeEnv = (function () {
         return LastNode.MoveHeadNode();
     };
 
+    GtTypeEnv.prototype.GetGetterMethod = function (BaseType, Name) {
+        return this.NameSpace.Context.GetGetterMethod(BaseType, Name);
+    };
+
     GtTypeEnv.prototype.GetUniqueFunction = function (Name, ParamSize) {
         return this.NameSpace.Context.GetUniqueFunction(Name, ParamSize);
     };
@@ -1237,6 +1241,10 @@ var GtTypeEnv = (function () {
             this.NameSpace.DefineSymbol(Method.MethodName, Method);
         }
         this.Method = Method;
+    };
+
+    GtTypeEnv.prototype.IsStrictTypeCheckMode = function () {
+        return false;
     };
     return GtTypeEnv;
 })();
@@ -1889,9 +1897,24 @@ var DScriptGrammar = (function (_super) {
     };
 
     DScriptGrammar.TypeField = function (Gamma, ParsedTree, Type) {
-        var ExprNode = ParsedTree.TypeNodeAt(UnaryTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-        var Method = null;
-        return Gamma.Generator.CreateGetterNode(Method.GetReturnType(), ParsedTree, Method, ExprNode);
+        var ObjectNode = ParsedTree.TypeNodeAt(UnaryTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+        if (ObjectNode.IsError()) {
+            return ObjectNode;
+        }
+        var Name = ParsedTree.KeyToken.ParsedText;
+        var Method = Gamma.GetGetterMethod(ObjectNode.Type, Name);
+        var ReturnType = Gamma.AnyType;
+        if (Method == null) {
+            if (!ObjectNode.Type.IsDynamicType() && Type != Gamma.FuncType) {
+                var TypeError = Gamma.CreateErrorNode(ParsedTree, "field: undefined " + Name + " of " + ObjectNode.Type);
+                if (Gamma.IsStrictTypeCheckMode()) {
+                    return TypeError;
+                }
+            }
+        } else {
+            ReturnType = Method.GetRecvType();
+        }
+        return Gamma.Generator.CreateGetterNode(ReturnType, ParsedTree, Method, ObjectNode);
     };
 
     DScriptGrammar.ParseParenthesis = function (Pattern, LeftTree, TokenContext) {
@@ -1944,32 +1967,115 @@ var DScriptGrammar = (function (_super) {
             BaseType = BaseNode.Type;
         }
         var Method = Gamma.GetListedMethod(BaseType, MethodName, ParamSize);
-        if (Method != null) {
-            if (Method.ListedMethods == null) {
-                console.log("DEBUG: " + "typing: contextual");
-                while (ParamIndex < ListSize(ParsedTree.TreeList)) {
-                    NodeList.add(ParsedTree.TypeNodeAt(ParamIndex, Gamma, Method.Types[i], DefaultTypeCheckPolicy));
-                    ParamIndex = ParamIndex + 1;
+        var ReturnType = Gamma.AnyType;
+        if (Method == null) {
+            if (!BaseType.IsDynamicType()) {
+                var TypeError = Gamma.CreateErrorNode(ParsedTree, "method: undefined " + MethodName + " of " + BaseType);
+                if (Gamma.IsStrictTypeCheckMode()) {
+                    return TypeError;
                 }
             } else {
                 while (ParamIndex < ListSize(ParsedTree.TreeList)) {
-                    NodeList.add(ParsedTree.TypeNodeAt(ParamIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy));
+                    var Node = ParsedTree.TypeNodeAt(ParamIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+                    if (Node.IsError()) {
+                        return Node;
+                    }
+                    NodeList.add(Node);
                     ParamIndex = ParamIndex + 1;
                 }
-                while (Method != null) {
-                    console.log("DEBUG: " + "fundmethod: signature: matched.");
-
-                    Method = Method.ListedMethods;
+            }
+        } else {
+            if (Method.ListedMethods == null) {
+                console.log("DEBUG: " + "Typing: Contextual");
+                while (ParamIndex < ListSize(ParsedTree.TreeList)) {
+                    var Node = ParsedTree.TypeNodeAt(ParamIndex, Gamma, Method.Types[i], DefaultTypeCheckPolicy);
+                    if (Node.IsError()) {
+                        return Node;
+                    }
+                    NodeList.add(Node);
+                    ParamIndex = ParamIndex + 1;
+                }
+                ReturnType = Method.GetReturnType();
+            } else {
+                while (ParamIndex < ListSize(ParsedTree.TreeList)) {
+                    var Node = ParsedTree.TypeNodeAt(ParamIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+                    if (Node.IsError()) {
+                        return Node;
+                    }
+                    NodeList.add(Node);
+                    ParamIndex = ParamIndex + 1;
+                }
+                Method = DScriptGrammar.LookupOverloadedMethod(Gamma, Method, NodeList);
+                if (Method != null) {
+                    var TypeError = Gamma.CreateErrorNode(ParsedTree, "method: mismatched " + MethodName + " of " + BaseType);
+                    if (Gamma.IsStrictTypeCheckMode()) {
+                        return TypeError;
+                    }
                 }
             }
         }
-        var Node = Gamma.Generator.CreateApplyNode(Method.GetReturnType(), ParsedTree, Method);
+        var Node = Gamma.Generator.CreateApplyNode(ReturnType, ParsedTree, Method);
         while (i < NodeList.size()) {
             Node.Append(NodeList.get(i));
             i = i + 1;
         }
-
         return Node;
+    };
+
+    DScriptGrammar.ExactlyMatchMethod = function (Method, NodeList) {
+        var p = 1;
+        while (p < ListSize(NodeList)) {
+            var ParamNode = NodeList.get(p);
+            if (Method.Types[p + 1] != ParamNode.Type)
+                return false;
+        }
+        return true;
+    };
+
+    DScriptGrammar.AcceptablyMatchMethod = function (Gamma, Method, NodeList) {
+        var p = 1;
+        while (p < ListSize(NodeList)) {
+            var ParamNode = NodeList.get(p);
+            if (!Method.Types[p + 1].Accept(ParamNode.Type))
+                return false;
+        }
+        return true;
+    };
+
+    DScriptGrammar.LookupOverloadedMethod = function (Gamma, Method, NodeList) {
+        var StartMethod = Method;
+        var BaseType = Method.GetRecvType();
+        var MethodName = Method.MangledName;
+        var ParamSize = Method.GetMethodParamSize();
+        while (Method != null) {
+            if (DScriptGrammar.ExactlyMatchMethod(Method, NodeList)) {
+                return Method;
+            }
+            Method = Method.ListedMethods;
+            if (Method == null) {
+                BaseType = BaseType.SearchSuperMethodClass;
+                if (BaseType == null) {
+                    break;
+                }
+                Method = Gamma.GetListedMethod(BaseType, MethodName, ParamSize);
+            }
+        }
+        Method = StartMethod;
+        BaseType = Method.GetRecvType();
+        while (Method != null) {
+            if (DScriptGrammar.AcceptablyMatchMethod(Gamma, Method, NodeList)) {
+                return Method;
+            }
+            Method = Method.ListedMethods;
+            if (Method == null) {
+                BaseType = BaseType.SearchSuperMethodClass;
+                if (BaseType == null) {
+                    break;
+                }
+                Method = Gamma.GetListedMethod(BaseType, MethodName, ParamSize);
+            }
+        }
+        return null;
     };
 
     DScriptGrammar.TypeAnd = function (Gamma, ParsedTree, Type) {

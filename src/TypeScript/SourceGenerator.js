@@ -672,6 +672,10 @@ var GtType = (function () {
         }
         return false;
     };
+
+    GtType.prototype.IsDynamicType = function () {
+        return false;
+    };
     return GtType;
 })();
 

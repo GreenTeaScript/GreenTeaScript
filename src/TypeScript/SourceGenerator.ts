@@ -714,6 +714,11 @@ class GtType {
 		}
 		return false;
 	}
+
+	public IsDynamicType(): boolean {
+		return false;
+	}
+
 }
 
 class GtMethod {
