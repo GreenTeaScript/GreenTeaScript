@@ -183,7 +183,7 @@ public abstract class LangDeps {
 		System.out.println("  --R                   R");
 		System.out.println("  --ruby                Ruby");
 		System.out.println("  --typescript --ts     TypeScript");
-		System.out.println("  --X                   Executable Code");
+		System.out.println("  --X  --exe            Executable Code");
 		System.out.println("");
 		System.out.println("  -e expr               Program passed in as string");
 		System.out.println("  -verbose              Printing Debug infomation");
@@ -210,7 +210,7 @@ public abstract class LangDeps {
 		else if(Option.equalsIgnoreCase("java")) {
 			return new JavaSourceGenerator();
 		}
-		else if(Option.equalsIgnoreCase("X")) {
+		else if(Option.equalsIgnoreCase("X") || Option.equalsIgnoreCase("exe")) {
 			return new JavaByteCodeGenerator();
 		}
 		return null;
