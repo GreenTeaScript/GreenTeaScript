@@ -154,11 +154,13 @@ interface GtConst {
 		/*EndArray*/};
 
 	// TokenFlag
-	public final static int	SourceTokenFlag	= 1;
-	public final static int	ErrorTokenFlag	= (1 << 1);
-	public final static int IndentTokenFlag	= (1 << 2);
+	public final static int	SourceTokenFlag	    = 1;
+	public final static int	ErrorTokenFlag	    = (1 << 1);
+	public final static int IndentTokenFlag	    = (1 << 2);
 	public final static int	WhiteSpaceTokenFlag	= (1 << 3);
-	public final static int DelimTokenFlag	= (1 << 4);
+	public final static int DelimTokenFlag	    = (1 << 4);
+	public final static int QuotedTokenFlag	    = (1 << 5);
+	public final static int NameSymbolTokenFlag	    = (1 << 6);
 
 	// ParseFlag
 	public final static int	BackTrackParseFlag	= 1;
@@ -641,6 +643,15 @@ final class GtToken extends GtStatic {
 		return IsFlag(this.TokenFlag, DelimTokenFlag);
 	}
 
+	public boolean IsQuoted() {
+		return IsFlag(this.TokenFlag, QuotedTokenFlag);
+	}
+
+	public boolean IsNameSymbol() {
+		return IsFlag(this.TokenFlag, NameSymbolTokenFlag);
+	}
+
+	
 	public boolean EqualsText(String text) {
 		return this.ParsedText.equals(text);
 	}
@@ -1686,7 +1697,7 @@ final class DScriptGrammar extends GtGrammar {
 			}
 			pos += 1;
 		}
-		TokenContext.AddNewToken(SourceText.substring(start, pos), 0, null);
+		TokenContext.AddNewToken(SourceText.substring(start, pos), NameSymbolTokenFlag, null);
 		return pos;
 	}
 
@@ -1699,7 +1710,6 @@ final class DScriptGrammar extends GtGrammar {
 			}
 			NextPos += 1;
 		}
-
 		/*local*/boolean Matched = false;
 		while(NextPos > pos) {
 			/*local*/String Sub = SourceText.substring(pos, NextPos);
@@ -1772,7 +1782,7 @@ final class DScriptGrammar extends GtGrammar {
 		while(pos < SourceText.length()) {
 			/*local*/char ch = LangDeps.CharAt(SourceText, pos);
 			if(ch == '"' && prev != '\\') {
-				TokenContext.AddNewToken(SourceText.substring(start, pos), 0, "$StringLiteral$");
+				TokenContext.AddNewToken(SourceText.substring(start, pos), QuotedTokenFlag, "$StringLiteral$");
 				return pos + 1;
 			}
 			if(ch == '\n') {
@@ -1844,6 +1854,8 @@ final class DScriptGrammar extends GtGrammar {
 		return NextPos;
 	}
 
+	// parser and type checker
+	
 	public static GtSyntaxTree ParseType(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/Object ConstValue = TokenContext.NameSpace.GetSymbol(Token.ParsedText);
@@ -2034,123 +2046,16 @@ final class DScriptGrammar extends GtGrammar {
 		return Gamma.Generator.CreateBinaryNode(Type, ParsedTree, null, LeftNode, RightNode);
 	}
 
-	// shell grammar
-	private static boolean IsUnixCommand(String cmd) {
-//ifdef  JAVA
-		/*local*/String[] path = System.getenv("PATH").split(":");
-		/*local*/int i = 0;
-		while(i < path.length) {
-			if(LangDeps.HasFile(path[i] + "/" + cmd)) {
-				return true;
-			}
-			i = i + 1;
-		}
-//endif VAJA
-		return false;
-	}
-
-	public static int SymbolShellToken(GtTokenContext TokenContext, String SourceText, int pos) {
-		/*local*/boolean ShellMode = false;
-		/*local*/int start = pos;
-		if(TokenContext.SourceList.size() > 0) {
-			/*local*/GtToken PrevToken = TokenContext.SourceList.get(TokenContext.SourceList.size() - 1);
-			if(PrevToken != null && PrevToken.PresetPattern != null &&
-				PrevToken.PresetPattern.PatternName.equals("$ShellExpression$")) {
-				ShellMode = true;
-			}
-		}
-
-		while(pos < SourceText.length()) {
-			/*local*/char ch = LangDeps.CharAt(SourceText, pos);
-			// a-zA-Z0-9_-
-			if(LangDeps.IsLetter(ch)) {
-			}
-			else if(LangDeps.IsDigit(ch)) {
-			}
-			else if(ch == '_') {
-			}
-			else if(ShellMode && (ch == '-' || ch == '/')) {
-			}
-			else {
-				break;
-			}
-			pos += 1;
-		}
-		if(start == pos) {
-			return NoMatch;
-		}
-		String Symbol = SourceText.substring(start, pos);
-		
-		if(Symbol.equals("true") || Symbol.equals("false")) {
-			return GtStatic.NoMatch;
-		}
-		if(Symbol.startsWith("/") || Symbol.startsWith("-")) {
-			if(Symbol.startsWith("//")) { // One-Line Comment
-				return GtStatic.NoMatch;
-			}
-			TokenContext.AddNewToken(Symbol, 0, "$StringLiteral$");
-			return pos;
-		}
-
-		if(DScriptGrammar.IsUnixCommand(Symbol)) {
-			TokenContext.AddNewToken(Symbol, 0, "$ShellExpression$");
-			return pos;
-		}
-		return GtStatic.NoMatch;
-	}
-
-	public final static GtSyntaxTree ParseShell(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
-		/*local*/GtToken Token = TokenContext.Next();
-		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
-		while(!GtStatic.IsEmptyOrError(NewTree) && !TokenContext.MatchToken(";")) {
-			/*local*/GtSyntaxTree Tree = null;
-			if(TokenContext.GetToken().IsDelim() || TokenContext.GetToken().IsIndent()) {
-				break;
-			}
-			if(TokenContext.MatchToken("$ShellExpression$")) {
-				// FIXME
-			}
-			if(Tree == null) {
-				Tree = TokenContext.ParsePattern("$Expression$", Optional);
-			}
-			NewTree.AppendParsedTree(Tree);
-		}
-		return NewTree;
-	}
-
-	public static GtNode TypeShell(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
-		/*local*/CommandNode Node = (/*cast*/CommandNode) Gamma.Generator.CreateCommandNode(Type, ParsedTree, null);
-		/*local*/GtNode HeadNode = Node;
-		/*local*/int i = 0;
-		/*local*/String Command = ParsedTree.KeyToken.ParsedText;
-		/*local*/GtNode ThisNode = Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, Command);
-		Node.Append(ThisNode);
-		while(i < ListSize(ParsedTree.TreeList)) {
-			/*local*/GtNode ExprNode = ParsedTree.TypeNodeAt(i, Gamma, Gamma.StringType, DefaultTypeCheckPolicy);
-			if(ExprNode instanceof ConstNode) {
-				ConstNode CNode = (/*cast*/ConstNode) ExprNode;
-				if(CNode.ConstValue instanceof String) {
-					String Val = (/*cast*/String) CNode.ConstValue;
-					if(Val.equals("|")) {
-						DebugP("PIPE");
-						/*local*/CommandNode PrevNode = Node;
-						Node = (/*cast*/CommandNode) Gamma.Generator.CreateCommandNode(Type, ParsedTree, null);
-						PrevNode.PipedNextNode = Node;
-					}
-				}
-			}
-			Node.Append(ExprNode);
-			i = i + 1;
-		}
-		return HeadNode;
-	}
 
 	public static GtSyntaxTree ParseField(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
 		TokenContext.MatchToken(".");
 		/*local*/GtToken Token = TokenContext.Next();
-		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
-		NewTree.AppendParsedTree(LeftTree);
-		return NewTree;
+		if(Token.IsNameSymbol()) {
+			/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
+			NewTree.AppendParsedTree(LeftTree);
+			return NewTree;
+		}
+		return TokenContext.ReportExpectedToken("field name");
 	}
 
 	public static GtNode TypeField(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
@@ -2609,6 +2514,118 @@ final class DScriptGrammar extends GtGrammar {
 		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType, ParsedTree);
 	}
 
+	// shell grammar
+	private static boolean IsUnixCommand(String cmd) {
+//ifdef  JAVA
+		/*local*/String[] path = System.getenv("PATH").split(":");
+		/*local*/int i = 0;
+		while(i < path.length) {
+			if(LangDeps.HasFile(path[i] + "/" + cmd)) {
+				return true;
+			}
+			i = i + 1;
+		}
+//endif VAJA
+		return false;
+	}
+
+	public static int SymbolShellToken(GtTokenContext TokenContext, String SourceText, int pos) {
+		/*local*/boolean ShellMode = false;
+		/*local*/int start = pos;
+		if(TokenContext.SourceList.size() > 0) {
+			/*local*/GtToken PrevToken = TokenContext.SourceList.get(TokenContext.SourceList.size() - 1);
+			if(PrevToken != null && PrevToken.PresetPattern != null &&
+				PrevToken.PresetPattern.PatternName.equals("$ShellExpression$")) {
+				ShellMode = true;
+			}
+		}
+
+		while(pos < SourceText.length()) {
+			/*local*/char ch = LangDeps.CharAt(SourceText, pos);
+			// a-zA-Z0-9_-
+			if(LangDeps.IsLetter(ch)) {
+			}
+			else if(LangDeps.IsDigit(ch)) {
+			}
+			else if(ch == '_') {
+			}
+			else if(ShellMode && (ch == '-' || ch == '/')) {
+			}
+			else {
+				break;
+			}
+			pos += 1;
+		}
+		if(start == pos) {
+			return NoMatch;
+		}
+		String Symbol = SourceText.substring(start, pos);
+		
+		if(Symbol.equals("true") || Symbol.equals("false")) {
+			return GtStatic.NoMatch;
+		}
+		if(Symbol.startsWith("/") || Symbol.startsWith("-")) {
+			if(Symbol.startsWith("//")) { // One-Line Comment
+				return GtStatic.NoMatch;
+			}
+			TokenContext.AddNewToken(Symbol, 0, "$StringLiteral$");
+			return pos;
+		}
+
+		if(DScriptGrammar.IsUnixCommand(Symbol)) {
+			TokenContext.AddNewToken(Symbol, 0, "$ShellExpression$");
+			return pos;
+		}
+		return GtStatic.NoMatch;
+	}
+
+	public final static GtSyntaxTree ParseShell(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
+		/*local*/GtToken Token = TokenContext.Next();
+		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
+		while(!GtStatic.IsEmptyOrError(NewTree) && !TokenContext.MatchToken(";")) {
+			/*local*/GtSyntaxTree Tree = null;
+			if(TokenContext.GetToken().IsDelim() || TokenContext.GetToken().IsIndent()) {
+				break;
+			}
+			if(TokenContext.MatchToken("$ShellExpression$")) {
+				// FIXME
+			}
+			if(Tree == null) {
+				Tree = TokenContext.ParsePattern("$Expression$", Optional);
+			}
+			NewTree.AppendParsedTree(Tree);
+		}
+		return NewTree;
+	}
+
+	public static GtNode TypeShell(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
+		/*local*/CommandNode Node = (/*cast*/CommandNode) Gamma.Generator.CreateCommandNode(Type, ParsedTree, null);
+		/*local*/GtNode HeadNode = Node;
+		/*local*/int i = 0;
+		/*local*/String Command = ParsedTree.KeyToken.ParsedText;
+		/*local*/GtNode ThisNode = Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, Command);
+		Node.Append(ThisNode);
+		while(i < ListSize(ParsedTree.TreeList)) {
+			/*local*/GtNode ExprNode = ParsedTree.TypeNodeAt(i, Gamma, Gamma.StringType, DefaultTypeCheckPolicy);
+			if(ExprNode instanceof ConstNode) {
+				ConstNode CNode = (/*cast*/ConstNode) ExprNode;
+				if(CNode.ConstValue instanceof String) {
+					String Val = (/*cast*/String) CNode.ConstValue;
+					if(Val.equals("|")) {
+						DebugP("PIPE");
+						/*local*/CommandNode PrevNode = Node;
+						Node = (/*cast*/CommandNode) Gamma.Generator.CreateCommandNode(Type, ParsedTree, null);
+						PrevNode.PipedNextNode = Node;
+					}
+				}
+			}
+			Node.Append(ExprNode);
+			i = i + 1;
+		}
+		return HeadNode;
+	}
+
+	
 	@Override public void LoadTo(GtNameSpace NameSpace) {
 		// Define Constants
 		NameSpace.DefineSymbol("true", true);
