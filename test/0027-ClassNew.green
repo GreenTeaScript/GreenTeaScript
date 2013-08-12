@@ -1,0 +1,8 @@
+class X {
+    new(int x) {
+    }
+}
+
+void f() {
+    X.new(10);
+}
