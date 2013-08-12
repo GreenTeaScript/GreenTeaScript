@@ -2299,10 +2299,11 @@ final class DScriptGrammar extends GtGrammar {
 	public static GtNode TypeApply(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
 		/*local*/GtNode FuncNode = ParsedTree.TypeNodeAt(0, Gamma, Gamma.FuncType, DefaultTypeCheckPolicy);
 		/*local*/String MethodName = FuncNode.Token.ParsedText;
-		/*local*/int ParamSize = ListSize(ParsedTree.TreeList) - 1;
 		/*local*/GtType BaseType = null;
 		/*local*/ArrayList<GtNode> NodeList = new ArrayList<GtNode>();
+		/*local*/int i = 0;
 		/*local*/int ParamIndex = 1;
+		/*local*/int ParamSize = ListSize(ParsedTree.TreeList) - 1;
 		if(FuncNode instanceof GetterNode) {
 			GtNode BaseNode = ((/*cast*/GetterNode)FuncNode).Expr;
 			NodeList.add(BaseNode);
@@ -2318,36 +2319,33 @@ final class DScriptGrammar extends GtGrammar {
 		if(Method != null) {
 			if(Method.ListedMethods == null) {
 				DebugP("contextual typing");
-				/*local*/int i = 2;
 				while(ParamIndex < ListSize(ParsedTree.TreeList)) {
 					NodeList.add(ParsedTree.TypeNodeAt(ParamIndex, Gamma, Method.Types[i], DefaultTypeCheckPolicy));
+					ParamIndex = ParamIndex + 1;
 				}
 			}
 			else {
-				/*local*/int i = 2;
 				while(ParamIndex < ListSize(ParsedTree.TreeList)) {
 					NodeList.add(ParsedTree.TypeNodeAt(ParamIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy));
+					ParamIndex = ParamIndex + 1;
 				}
 				while(Method != null) {
-					if(AcceptParam()) {
-						;
-					}
+					DebugP("fund matched method signature.");
+//					if(AcceptParam()) {
+//						;
+//					}
 					Method = Method.ListedMethods;
 				}
 			}
 		}
 		/*local*/GtNode Node = Gamma.Generator.CreateApplyNode(Method.GetReturnType(), ParsedTree, Method);
-		i = 0;
-		while(i < ParamList.size()) {
-			Node.Append(ParamList.get(i));
+		while(i < NodeList.size()) {
+			Node.Append(NodeList.get(i));
 			i = i + 1;
 		}
-
-		/*local*/ArrayList<GtSyntaxTree> TreeList = ParsedTree.TreeList;
-		/*local*/GtMethod Method = null; //Gamma.NameSpace.LookupMethod(MethodName, ParamSize, 1/*FIXME*/, TypeList, 0);
-		if(Method == null) {
-			return Gamma.CreateErrorNode(ParsedTree, "undefined method: " + MethodName);
-		}
+//		if(Method == null) {
+//			return Gamma.CreateErrorNode(ParsedTree, "undefined method: " + MethodName);
+//		}
 		return Node;
 	}
 
