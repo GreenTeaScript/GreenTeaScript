@@ -1337,6 +1337,10 @@ final class GtTypeEnv extends GtStatic {
 		}
 		return LastNode.MoveHeadNode();
 	}
+	
+	public final GtMethod GetGetterMethod(GtType BaseType, String Name) {
+		return this.NameSpace.Context.GetGetterMethod(BaseType, Name);
+	}
 
 	public final GtMethod GetUniqueFunction(String Name, int ParamSize) {
 		return this.NameSpace.Context.GetUniqueFunction(Name, ParamSize);
@@ -1358,6 +1362,10 @@ final class GtTypeEnv extends GtStatic {
 			this.NameSpace.DefineSymbol(Method.MethodName, Method);
 		}
 		this.Method = Method;
+	}
+
+	public boolean IsStrictTypeCheckMode() {
+		return false;
 	}
 
 }
@@ -2039,9 +2047,25 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	public static GtNode TypeField(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
-		/*local*/GtNode ExprNode = ParsedTree.TypeNodeAt(UnaryTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-		/*local*/GtMethod Method = null; //ExprNode.Type.GetGetter(ParsedTree.KeyToken.ParsedText);
-		return Gamma.Generator.CreateGetterNode(Method.GetReturnType(), ParsedTree, Method, ExprNode);
+		/*local*/GtNode ObjectNode = ParsedTree.TypeNodeAt(UnaryTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+		if(ObjectNode.IsError()) {
+			return ObjectNode;
+		}
+		/*local*/String Name = ParsedTree.KeyToken.ParsedText;
+		/*local*/GtMethod Method = Gamma.GetGetterMethod(ObjectNode.Type, Name);
+		/*local*/GtType ReturnType = Gamma.AnyType;
+		if(Method == null) {
+			if(!ObjectNode.Type.IsDynamicType() && Type != Gamma.FuncType) {
+				GtNode TypeError = Gamma.CreateErrorNode(ParsedTree, "undefined field " + Name + " of " + ObjectNode.Type);
+				if(Gamma.IsStrictTypeCheckMode()) {
+					return TypeError;
+				}
+			}
+		}
+		else {
+			ReturnType = Method.GetRecvType();
+		}
+		return Gamma.Generator.CreateGetterNode(ReturnType, ParsedTree, Method, ObjectNode);
 	}
 
 	// PatternName: "("
@@ -2095,39 +2119,119 @@ final class DScriptGrammar extends GtGrammar {
 			BaseType = BaseNode.Type;
 		}
 		GtMethod Method = Gamma.GetListedMethod(BaseType, MethodName, ParamSize);
-		if(Method != null) {
-			if(Method.ListedMethods == null) {
-				DebugP("contextual typing");
-				while(ParamIndex < ListSize(ParsedTree.TreeList)) {
-					NodeList.add(ParsedTree.TypeNodeAt(ParamIndex, Gamma, Method.Types[i], DefaultTypeCheckPolicy));
-					ParamIndex = ParamIndex + 1;
+		GtType ReturnType = Gamma.AnyType;
+		if(Method == null) {
+			if(!BaseType.IsDynamicType()) {
+				GtNode TypeError = Gamma.CreateErrorNode(ParsedTree, "undefined method " + MethodName + " of " + BaseType);
+				if(Gamma.IsStrictTypeCheckMode()) {
+					return TypeError;
 				}
 			}
 			else {
 				while(ParamIndex < ListSize(ParsedTree.TreeList)) {
-					NodeList.add(ParsedTree.TypeNodeAt(ParamIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy));
+					GtNode Node = ParsedTree.TypeNodeAt(ParamIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+					if(Node.IsError()) {
+						return Node;
+					}
+					NodeList.add(Node);
 					ParamIndex = ParamIndex + 1;
-				}
-				while(Method != null) {
-					DebugP("fund matched method signature.");
-//					if(AcceptParam()) {
-//						;
-//					}
-					Method = Method.ListedMethods;
 				}
 			}
 		}
-		/*local*/GtNode Node = Gamma.Generator.CreateApplyNode(Method.GetReturnType(), ParsedTree, Method);
+		else { //if(Method != null) {
+			if(Method.ListedMethods == null) {
+				DebugP("Contextual Typing");
+				while(ParamIndex < ListSize(ParsedTree.TreeList)) {
+					GtNode Node = ParsedTree.TypeNodeAt(ParamIndex, Gamma, Method.Types[i], DefaultTypeCheckPolicy);
+					if(Node.IsError()) {
+						return Node;
+					}
+					NodeList.add(Node);
+					ParamIndex = ParamIndex + 1;
+				}
+				ReturnType = Method.GetReturnType();
+			}
+			else {
+				while(ParamIndex < ListSize(ParsedTree.TreeList)) {
+					GtNode Node = ParsedTree.TypeNodeAt(ParamIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+					if(Node.IsError()) {
+						return Node;
+					}
+					NodeList.add(Node);
+					ParamIndex = ParamIndex + 1;
+				}
+				Method = LookupOverloadedMethod(Gamma, Method, NodeList);
+				if(Method != null) {
+					GtNode TypeError = Gamma.CreateErrorNode(ParsedTree, "mismatched method " + MethodName + " of " + BaseType);
+					if(Gamma.IsStrictTypeCheckMode()) {
+						return TypeError;
+					}
+				}
+			}
+		}
+		/*local*/GtNode Node = Gamma.Generator.CreateApplyNode(ReturnType, ParsedTree, Method);
 		while(i < NodeList.size()) {
 			Node.Append(NodeList.get(i));
 			i = i + 1;
 		}
-//		if(Method == null) {
-//			return Gamma.CreateErrorNode(ParsedTree, "undefined method: " + MethodName);
-//		}
 		return Node;
 	}
 
+	private static boolean ExactlyMatchMethod(GtMethod Method, ArrayList<GtNode> NodeList) {
+		/*local*/int p = 1;
+		while(p < ListSize(NodeList)) {
+			GtNode ParamNode = NodeList.get(p);
+			if(Method.Types[p+1] != ParamNode.Type) return false;
+		}
+		return true;
+		
+	}
+
+	private static boolean AcceptablyMatchMethod(GtTypeEnv Gamma, GtMethod Method, ArrayList<GtNode> NodeList) {
+		/*local*/int p = 1;
+		while(p < ListSize(NodeList)) {
+			GtNode ParamNode = NodeList.get(p);
+			if(!Method.Types[p+1].Accept(ParamNode.Type)) return false;
+		}
+		return true;
+	}
+
+	private static GtMethod LookupOverloadedMethod(GtTypeEnv Gamma, GtMethod Method, ArrayList<GtNode> NodeList) {
+		GtMethod StartMethod = Method;
+		GtType BaseType = Method.GetRecvType();
+		String MethodName = Method.MangledName;
+		int ParamSize = Method.GetMethodParamSize();
+		while(Method != null) {
+			if(ExactlyMatchMethod(Method, NodeList)) {
+				return Method;
+			}
+			Method = Method.ListedMethods;
+			if(Method == null) {
+				BaseType = BaseType.SearchSuperMethodClass;
+				if(BaseType == null) {
+					break;
+				}
+				Method = Gamma.GetListedMethod(BaseType, MethodName, ParamSize);
+			}
+		}
+		Method = StartMethod;
+		BaseType = Method.GetRecvType();
+		while(Method != null) {
+			if(AcceptablyMatchMethod(Gamma, Method, NodeList)) {
+				return Method;
+			}
+			Method = Method.ListedMethods;
+			if(Method == null) {
+				BaseType = BaseType.SearchSuperMethodClass;
+				if(BaseType == null) {
+					break;
+				}
+				Method = Gamma.GetListedMethod(BaseType, MethodName, ParamSize);
+			}
+		}
+		return null;
+	}
+	
 	public static GtNode TypeAnd(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
 		/*local*/GtNode LeftNode = ParsedTree.TypeNodeAt(LeftHandTerm, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
 		/*local*/GtNode RightNode = ParsedTree.TypeNodeAt(RightHandTerm, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
