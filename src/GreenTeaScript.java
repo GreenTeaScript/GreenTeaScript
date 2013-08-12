@@ -1577,47 +1577,6 @@ final class GtNameSpace extends GtStatic {
 		return ClassInfo;
 	}
 
-//	private GtMethod FilterOverloadedMethods(GtMethod Method, int ParamSize, int ResolvedSize, ArrayList<GtType> TypeList, int BaseIndex, GtMethod FoundMethod) {
-//		while(Method != null) {
-//			if(Method.GetParamSize() == ParamSize) {
-//				/*local*/int i = 1;  // because the first type is mached by given class
-//				/*local*/GtMethod MatchedMethod = Method;
-//				while(i < ResolvedSize) {
-//					if(!Method.GetParamType(i).Accept(TypeList.get(BaseIndex + i))) {
-//						MatchedMethod = null;
-//						break;
-//					}
-//					i += 1;
-//				}
-//				if(MatchedMethod != null) {
-//					if(FoundMethod != null) {
-//						return null; /* found overloaded methods*/
-//					}
-//					FoundMethod = MatchedMethod;
-//				}
-//			}
-//			Method = Method.ListedMethods;
-//		}
-//		return FoundMethod;
-//	}
-//
-//	public GtMethod LookupMethod(String MethodName, int ParamSize, int ResolvedSize, ArrayList<GtType> TypeList, int BaseIndex) {
-//		/*local*/GtMethod FoundMethod = null;
-//		if(ResolvedSize > 0) {
-//			/*local*/GtType Class = TypeList.get(BaseIndex + 0);
-//			while(FoundMethod == null && Class != null) {
-//				/*local*/String MethodId = Class.GetMethodId(MethodName);
-//				while(i >= 0) {
-//					/*local*/GtMethod Method = Layer.GetMethod();
-//					FoundMethod = this.FilterOverloadedMethods(Method, ParamSize, ResolvedSize, TypeList, BaseIndex, FoundMethod);
-//					i -= 1;
-//				}
-//				Class = Class.SearchSuperMethodClass;
-//			}
-//		}
-//		return FoundMethod;
-//	}
-
 	// Global Object
 	public GtObject CreateGlobalObject(int ClassFlag, String ShortName) {
 		/*local*/GtType NewClass = new GtType(this.Context, ClassFlag, ShortName, null);
