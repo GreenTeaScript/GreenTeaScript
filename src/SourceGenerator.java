@@ -75,6 +75,78 @@ class GtNode extends GtStatic {
 	}
 }
 
+//E.g., $LeftNode = $RightNode
+class AssignNode extends GtNode {
+	/*field*/public GtNode   LeftNode;
+	/*field*/public GtNode	RightNode;
+	AssignNode/*constructor*/(GtType Type, GtToken Token, GtNode Left, GtNode Right) {
+		super(Type, Token);
+		this.LeftNode  = Left;
+		this.RightNode = Right;
+	}
+	@Override public void Evaluate(GtGenerator Visitor) {
+		Visitor.VisitAssignNode(this);
+	}
+	@Override public String toString() {
+		return "(Assign:" + this.Type + " " + GtNode.Stringify(this.LeftNode) + " = " + GtNode.Stringify(this.RightNode) + ")";
+	}
+}
+
+class ConstNode extends GtNode {
+	/*field*/public Object	ConstValue;
+	ConstNode/*constructor*/(GtType Type, GtToken Token, Object ConstValue) {
+		super(Type, Token);
+		this.ConstValue = ConstValue;
+	}
+	@Override public void Evaluate(GtGenerator Visitor) {
+		Visitor.VisitConstNode(this);
+	}
+	@Override public String toString() {
+		return "(Const:" + this.Type + " "+ this.ConstValue.toString() + ")";
+	}
+}
+
+class LocalNode extends GtNode {
+	/*field*/public String LocalName;
+	LocalNode/*constructor*/(GtType Type, GtToken Token, String LocalName) {
+		super(Type, Token);
+		this.LocalName = LocalName;
+	}
+	@Override public void Evaluate(GtGenerator Visitor) {
+		Visitor.VisitLocalNode(this);
+	}
+	@Override public String toString() {
+		return "(Local:" + this.Type + " " + this.LocalName + ")";
+	}
+}
+
+class NullNode extends GtNode {
+	NullNode/*constructor*/(GtType Type, GtToken Token) {
+		super(Type, Token);
+	}
+	@Override public void Evaluate(GtGenerator Visitor) {
+		Visitor.VisitNullNode(this);
+	}
+	@Override public String toString() {
+		return "(Null:" + this.Type + " " + ")";
+	}
+}
+
+//E.g., "~" $Expr
+class CastNode extends GtNode {
+	/*field*/public GtMethod    Method;
+	/*field*/public GtType	CastType;
+	/*field*/public GtNode	Expr;
+	CastNode/*constructor*/(GtType Type, GtToken Token, GtType CastType, GtNode Expr) {
+		super(Type, Token);
+		this.CastType = CastType;
+		this.Expr = Expr;
+	}
+	@Override public void Evaluate(GtGenerator Visitor) {
+		Visitor.VisitCastNode(this);
+	}
+}
+
 // E.g., "~" $Expr
 class UnaryNode extends GtNode {
 	/*field*/public GtMethod    Method;
@@ -153,7 +225,38 @@ class OrNode extends GtNode {
 	}
 }
 
-//E.g., $LeftNode || $RightNode
+//E.g., "exists" $Expr
+class ExistsNode extends GtNode {
+	/*field*/public GtMethod    Method;
+	/*field*/public GtNode	Expr;
+	ExistsNode/*constructor*/(GtType Type, GtToken Token, GtMethod Method, GtNode Expr) {
+		super(Type, Token);
+		this.Method = Method;
+		this.Expr = Expr;
+	}
+	@Override public void Evaluate(GtGenerator Visitor) {
+		Visitor.VisitExistsNode(this);
+	}
+}
+
+//E.g., "exists" $Expr
+class TrinaryNode extends GtNode {
+	/*field*/public GtMethod    Method;
+	/*field*/public GtNode	CondExpr;
+	/*field*/public GtNode	ThenExpr;
+	/*field*/public GtNode	ElseExpr;
+	TrinaryNode/*constructor*/(GtType Type, GtToken Token, GtNode CondExpr, GtNode ThenExpr, GtNode ElseExpr) {
+		super(Type, Token);
+		this.CondExpr = CondExpr;
+		this.ThenExpr = ThenExpr;
+		this.ElseExpr = ElseExpr;
+	}
+	@Override public void Evaluate(GtGenerator Visitor) {
+		Visitor.VisitTrinaryNode(this);
+	}
+}
+
+//E.g., $Expr . Token.ParsedText
 class GetterNode extends GtNode {
 	/*field*/public GtNode Expr;
 	/*field*/public GtMethod  Method;
@@ -174,77 +277,42 @@ class GetterNode extends GtNode {
 class IndexerNode extends GtNode {
 	/*field*/public GtMethod  Method;
 	/*field*/public GtNode Expr;
-	/*field*/public GtNode Indexer;
-	IndexerNode/*constructor*/(GtType Type, GtToken Token, GtMethod Method, GtNode Expr, GtNode Indexer) {
+	/*field*/public GtNode IndexAt;
+	IndexerNode/*constructor*/(GtType Type, GtToken Token, GtMethod Method, GtNode Expr, GtNode IndexAt) {
 		super(Type, Token);
 		this.Method = Method;
 		this.Expr = Expr;
-		this.Indexer = Indexer;
+		this.IndexAt = IndexAt;
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitIndexerNode(this);
 	}
 	@Override public String toString() {
-		return "(Index:" + this.Type + " " + GtNode.Stringify(this.Expr) + ", " + GtNode.Stringify(this.Indexer) + ")";
+		return "(Index:" + this.Type + " " + GtNode.Stringify(this.Expr) + ", " + GtNode.Stringify(this.IndexAt) + ")";
 	}
 }
 
-//E.g., $LeftNode = $RightNode
-class AssignNode extends GtNode {
-	/*field*/public GtNode   LeftNode;
-	/*field*/public GtNode	RightNode;
-	AssignNode/*constructor*/(GtType Type, GtToken Token, GtNode Left, GtNode Right) {
+//E.g., $Expr "[" $Index ":" $Index2 "]"
+class SliceNode extends GtNode {
+	/*field*/public GtMethod  Method;
+	/*field*/public GtNode Expr;
+	/*field*/public GtNode Index1;
+	/*field*/public GtNode Index2;
+	SliceNode/*constructor*/(GtType Type, GtToken Token, GtMethod Method, GtNode Expr, GtNode Index1, GtNode Index2) {
 		super(Type, Token);
-		this.LeftNode  = Left;
-		this.RightNode = Right;
+		this.Method = Method;
+		this.Expr = Expr;
+		this.Index1 = Index1;
+		this.Index2 = Index2;
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
-		Visitor.VisitAssignNode(this);
+		Visitor.VisitSliceNode(this);
 	}
 	@Override public String toString() {
-		return "(Assign:" + this.Type + " " + GtNode.Stringify(this.LeftNode) + " = " + GtNode.Stringify(this.RightNode) + ")";
+		return "(Index:" + this.Type + " " + GtNode.Stringify(this.Expr) + ", " + GtNode.Stringify(this.Index1) + ")";
 	}
 }
 
-class ConstNode extends GtNode {
-	/*field*/public Object	ConstValue;
-	ConstNode/*constructor*/(GtType Type, GtToken Token, Object ConstValue) {
-		super(Type, Token);
-		this.ConstValue = ConstValue;
-	}
-	@Override public void Evaluate(GtGenerator Visitor) {
-		Visitor.VisitConstNode(this);
-	}
-	@Override public String toString() {
-		return "(Const:" + this.Type + " "+ this.ConstValue.toString() + ")";
-	}
-}
-
-class LocalNode extends GtNode {
-	/*field*/public String LocalName;
-	LocalNode/*constructor*/(GtType Type, GtToken Token, String LocalName) {
-		super(Type, Token);
-		this.LocalName = LocalName;
-	}
-	@Override public void Evaluate(GtGenerator Visitor) {
-		Visitor.VisitLocalNode(this);
-	}
-	@Override public String toString() {
-		return "(Local:" + this.Type + " " + this.LocalName + ")";
-	}
-}
-
-class NullNode extends GtNode {
-	NullNode/*constructor*/(GtType Type, GtToken Token) {
-		super(Type, Token);
-	}
-	@Override public void Evaluate(GtGenerator Visitor) {
-		Visitor.VisitNullNode(this);
-	}
-	@Override public String toString() {
-		return "(Null:" + this.Type + " " + ")";
-	}
-}
 
 class LetNode extends GtNode {
 	/*field*/public GtType	DeclType;
@@ -560,16 +628,12 @@ class TryNode extends GtNode {
 	public GtNode	TryBlock;
 	public GtNode	CatchBlock;
 	public GtNode	FinallyBlock;
-	TryNode/*constructor*/(GtType Type, GtToken Token, GtNode TryBlock, GtNode FinallyBlock) {
+	TryNode/*constructor*/(GtType Type, GtToken Token, GtNode TryBlock, GtNode CatchBlock, GtNode FinallyBlock) {
 		super(Type, Token);
 		this.TryBlock = TryBlock;
+		this.CatchBlock = (/*cast*/LetNode)CatchBlock;
 		this.FinallyBlock = FinallyBlock;
-		this.CatchBlock = null;
 	}
-	//public void addCatchBlock(TypedNode TargetException, TypedNode CatchBlock) { //FIXME
-	//	this.TargetException.add(TargetException);
-	//	this.CatchBlock.add(CatchBlock);
-	//}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitTryNode(this);
 	}
@@ -951,8 +1015,8 @@ class GtGenerator extends GtStatic {
 		return new ContinueNode(Type, ParsedTree.KeyToken, Label);
 	}
 
-	public GtNode CreateTryNode(GtType Type, GtSyntaxTree ParsedTree, GtNode TryBlock, GtNode FinallyBlock) {
-		return new TryNode(Type, ParsedTree.KeyToken, TryBlock, FinallyBlock);
+	public GtNode CreateTryNode(GtType Type, GtSyntaxTree ParsedTree, GtNode TryBlock, GtNode CatchNode, GtNode FinallyBlock) {
+		return new TryNode(Type, ParsedTree.KeyToken, TryBlock, CatchNode, FinallyBlock);
 	}
 
 	public GtNode CreateThrowNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Node) {
@@ -960,10 +1024,6 @@ class GtGenerator extends GtStatic {
 	}
 
 	public GtNode CreateFunctionNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Block) {
-		return null;
-	}
-
-	public GtNode CreateDefineNode(GtType Type, GtSyntaxTree ParsedTree, Object Module) {
 		return null;
 	}
 
@@ -1006,6 +1066,22 @@ class GtGenerator extends GtStatic {
 
 	public void VisitEmptyNode(GtNode EmptyNode) {
 		GtStatic.DebugP("empty node: " + EmptyNode.Token.ParsedText);
+	}
+
+	public void VisitTrinaryNode(TrinaryNode trinaryNode) {
+		/*extension*/
+	}
+
+	public void VisitExistsNode(ExistsNode existsNode) {
+		/*extension*/
+	}
+
+	public void VisitCastNode(CastNode castNode) {
+		/*extension*/
+	}
+
+	public void VisitSliceNode(SliceNode sliceNode) {
+		/*extension*/
 	}
 
 	public void VisitSuffixNode(SuffixNode SuffixNode) {

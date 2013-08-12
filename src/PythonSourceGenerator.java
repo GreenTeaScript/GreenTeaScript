@@ -40,7 +40,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitIndexerNode(IndexerNode Node) {
-		Node.Indexer.Evaluate(this);
+		Node.IndexAt.Evaluate(this);
 		Node.Expr.Evaluate(this);
 		this.PushSourceCode(this.PopSourceCode() + "[" + this.PopSourceCode() + "]");
 	}
