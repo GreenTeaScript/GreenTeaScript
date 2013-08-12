@@ -23,15 +23,11 @@ public abstract class LangDeps {
 
 	public final static String GetStackInfo(int depth){
 		String LineNumber = " ";
-		try{
-			throw new Exception();
-		}
-		catch(Exception e){
-			StackTraceElement[] Elements = e.getStackTrace();
-			if(depth < Elements.length){
-				StackTraceElement elem = Elements[depth];
-				LineNumber += elem;
-			}
+		Exception e =  new Exception();
+		StackTraceElement[] Elements = e.getStackTrace();
+		if(depth < Elements.length){
+			StackTraceElement elem = Elements[depth];
+			LineNumber += elem;
 		}
 		return LineNumber;
 	}
@@ -39,7 +35,6 @@ public abstract class LangDeps {
 	public final static void Exit(int status, String Message) {
 		System.err.println(Message);
 		System.exit(1);
-		//throw new RuntimeException(Message);
 	}
 
 	public final static void Assert(boolean TestResult) {
@@ -203,9 +198,9 @@ public abstract class LangDeps {
 		else if(Option.equalsIgnoreCase("perl")) {
 			return new PerlSourceGenerator();
 		}
-		else if(Option.equalsIgnoreCase("python")) {
-			return new PythonSourceGenerator();
-		}
+//		else if(Option.equalsIgnoreCase("python")) {
+//			return new PythonSourceGenerator();
+//		}
 		else if(Option.equalsIgnoreCase("bash")) {
 			return new BashSourceGenerator();
 		}
