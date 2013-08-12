@@ -215,7 +215,7 @@ interface GtConst {
 
 	public final static int BinaryOperator					= 1;
 	public final static int LeftJoin						= 1 << 1;
-	public final static int Parenthesis						= 1 << 2;
+//	public final static int Parenthesis						= 1 << 2;
 	public final static int PrecedenceShift					= 3;
 	public final static int Precedence_CStyleValue			= (1 << PrecedenceShift);
 	public final static int Precedence_CPPStyleScope		= (50 << PrecedenceShift);
@@ -983,7 +983,8 @@ final class GtSyntaxPattern extends GtStatic {
 	public boolean IsLeftJoin(GtSyntaxPattern Right) {
 		/*local*/int left = this.SyntaxFlag >> PrecedenceShift;
 		/*local*/int right = Right.SyntaxFlag >> PrecedenceShift;
-		return (!IsFlag(Right.SyntaxFlag, Parenthesis) && (left < right || (left == right && IsFlag(this.SyntaxFlag, LeftJoin) && IsFlag(Right.SyntaxFlag, LeftJoin))));
+		return (left < right || (left == right && IsFlag(this.SyntaxFlag, LeftJoin) && IsFlag(Right.SyntaxFlag, LeftJoin)));
+//		return (!IsFlag(Right.SyntaxFlag, Parenthesis) && (left < right || (left == right && IsFlag(this.SyntaxFlag, LeftJoin) && IsFlag(Right.SyntaxFlag, LeftJoin))));
 	}
 }
 
@@ -2069,19 +2070,23 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	// PatternName: "("
-	public static GtSyntaxTree ParseParenthesis(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
+	public static GtSyntaxTree ParseGroup(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
 		/*local*/int ParseFlag = TokenContext.ParseFlag;
-		TokenContext.MatchToken("(");
 		TokenContext.ParseFlag |= SkipIndentParseFlag;
+		/*local*/GtSyntaxTree GroupTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("("), null);
 		/*local*/GtSyntaxTree Tree = TokenContext.ParsePattern("$Expression$", Required);
+		GroupTree.AppendParsedTree(Tree);
 		if(!TokenContext.MatchToken(")")) {
-			Tree = TokenContext.ReportExpectedToken(")");
+			GroupTree = TokenContext.ReportExpectedToken(")");
 		}
 		TokenContext.ParseFlag = ParseFlag;
-		Tree.Pattern.SyntaxFlag |= Parenthesis;
-		return Tree;
+		return GroupTree;
 	}
 
+	public static GtNode TypeGroup(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
+		return ParsedTree.TypeNodeAt(UnaryTerm, Gamma, Type, DefaultTypeCheckPolicy);
+	}
+	
 	public static GtSyntaxTree ParseApply(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
 		/*local*/int ParseFlag = TokenContext.ParseFlag;
 		TokenContext.ParseFlag |= SkipIndentParseFlag;
@@ -2779,7 +2784,7 @@ final class DScriptGrammar extends GtGrammar {
 
 		NameSpace.DefineSyntaxPattern("$ShellExpression$", FunctionB(this, "ParseShell"), FunctionC(this, "TypeShell"));
 		
-		NameSpace.DefineSyntaxPattern("(", FunctionB(this, "ParseParenthesis"), null); /* => */
+		NameSpace.DefineSyntaxPattern("(", FunctionB(this, "ParseGroup"), FunctionC(this, "TypeGroup"));
 		NameSpace.DefineExtendedPattern(".", 0, FunctionB(this, "ParseField"), FunctionC(this, "TypeField"));
 		NameSpace.DefineExtendedPattern("(", 0, FunctionB(this, "ParseApply"), FunctionC(this, "TypeApply"));
 		//future: NameSpace.DefineExtendedPattern("[", 0, FunctionB(this, "ParseIndexer"), FunctionC(this, "TypeIndexer"));
