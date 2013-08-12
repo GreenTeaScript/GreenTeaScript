@@ -1,10 +1,8 @@
 static int f__A(int a0){
-   int i1;
+   int i1 = 0;
    {
-      i1 = 0;
-      int j2;
+      int j2 = 0;
       {
-         j2 = 0;
          while(i1 < a0){
             i1 = i1 + 1;
             if(i1 == 5) {

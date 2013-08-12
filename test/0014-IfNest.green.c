@@ -1,7 +1,6 @@
 static int f__A(int a0, int b1){
-   int n2;
+   int n2 = 1;
    {
-      n2 = 1;
       if(a0 < 10) {
          if(b1 < 100) {
             n2 = n2 + 2;
@@ -21,5 +20,5 @@ static int f__A(int a0, int b1){
       return n2;
    };
 }
-f__A(20000 ,10000);
+f__A(10000 ,20000);
 

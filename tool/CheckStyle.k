@@ -67,7 +67,7 @@ String fixindent(String path, String data, String pattern) {
                 }
                 break;
             }
-            data = data + indent;
+            data = data.trim() + indent;
         }
         data = data + l + "\n";
     }

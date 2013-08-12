@@ -1,7 +1,6 @@
 static int f__A(int a0){
-   int i1;
+   int i1 = 0;
    {
-      i1 = 0;
       while(i1 < a0){
          if(i1 == 5) {
             break break;

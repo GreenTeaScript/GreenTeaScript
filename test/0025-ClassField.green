@@ -1,0 +1,8 @@
+class X {
+    int x;
+}
+
+class Y {
+    int a;
+    int b;
+}

@@ -1,31 +1,22 @@
 static int f__A(){
-   int a0;
+   int a0 = 1;
    {
-      a0 = 1;
-      int b1;
+      int b1 = 10;
       {
-         b1 = 10;
-         int c2;
+         int c2 = 100;
          {
-            c2 = 100;
-            int d3;
+            int d3 = 1000;
             {
-               d3 = 1000;
-               int e4;
+               int e4 = 10000;
                {
-                  e4 = 10000;
-                  int f5;
+                  int f5 = 100000;
                   {
-                     f5 = 100000;
-                     int g6;
+                     int g6 = 1000000;
                      {
-                        g6 = 1000000;
-                        int h7;
+                        int h7 = 10000000;
                         {
-                           h7 = 10000000;
-                           int i8;
+                           int i8 = 100000000;
                            {
-                              i8 = 100000000;
                               return a0 + b1 + c2 + d3 + e4 + f5 + g6 + h7 + i8;
                            };
                         };

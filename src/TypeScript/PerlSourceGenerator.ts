@@ -224,8 +224,13 @@ class PerlSourceGenerator extends SourceGenerator {
 
 	public VisitLetNode(Node: LetNode): void {
 		// var Type: string = Node.DeclType.ShortClassName; //
-		Node.VarNode.Evaluate(this);
-		var Code: string = "my " + this.PopSourceCode();
+		var VarName: string = Node.VariableName;
+		var Code: string = "my " + VarName;
+		if(Node.InitNode != null) {
+			Node.InitNode.Evaluate(this);
+			Code += " = " + this.PopSourceCode();
+		}
+		Code +=  ";\n";
 		Node.BlockNode.Evaluate(this);
 		this.PushSourceCode(Code + this.PopSourceCode());
 	}

@@ -4,6 +4,7 @@
 //Generator: GreenTeabe: shouldin: writtenlanguage: each. //
 
 class CSourceGenerator extends SourceGenerator {
+	 DefaultTypes: string[] = ["void", "int", "boolean", "float", "double", "string", "Object", "Array", "Func", "var", "any"]
 
 	constructor() {
 		super("C");
@@ -145,18 +146,17 @@ class CSourceGenerator extends SourceGenerator {
 	}
 
 	public VisitApplyNode(Node: ApplyNode): void {
-		var Params: string[] = this.EvaluateParam(Node.Params);
-		var Program: string = this.GenerateTemplate(Node);
+		var Program: string = this.GenerateMacro(Node);
 		var i: number = 0;
-		while(i < Params.length) {
-			var P: string = Params[i];
-			Program = Program.replace("$" + i, P);
+		while(i < ListSize(Node.Params)) {
+			Node.Params.get(i).Evaluate(this);
+			Program = Program.replace("$" + i, this.PopSourceCode());
 			i = i + 1;
 		}
 		this.PushSourceCode(Program);
 	}
 
-	private GenerateTemplate(Node: ApplyNode): string {
+	private GenerateMacro(Node: ApplyNode): string {
 		if(Node.Method.SourceMacro != null) {
 			return Node.Method.SourceMacro;
 		}
@@ -236,8 +236,13 @@ class CSourceGenerator extends SourceGenerator {
 
 	public VisitLetNode(Node: LetNode): void {
 		var Type: string = Node.DeclType.ShortClassName;
-		Node.VarNode.Evaluate(this);
-		var Code: string = Type + " " + this.PopSourceCode() + ";\n";
+		var VarName: string = Node.VariableName;
+		var Code: string = Type + " " + VarName;
+		if(Node.InitNode != null) {
+			Node.InitNode.Evaluate(this);
+			Code += " = " + this.PopSourceCode();
+		}
+		Code +=  ";\n";
 		this.VisitBlockEachStatementWithIndent(Node.BlockNode, true);
 		this.PushSourceCode(Code + this.GetIndentString() + this.PopSourceCode());
 	}
@@ -379,9 +384,45 @@ class CSourceGenerator extends SourceGenerator {
 		return Code;
 	}
 
+	 IsDefiendType(TypeName: string): boolean {
+		var i: number = 0;
+		while(i < this.DefaultTypes.length) {
+			if(this.DefaultTypes[i].equals(TypeName)) {
+				return true;
+			}
+			i = i + 1;
+		}
+		// care: about: FIXME "var", "any" //
+		
+		return false;
+	}
 	public AddClass(Type: GtType): void {
-		// Auto: TODO-generatedstub: method //
-
+		var TypeName: string = Type.ShortClassName;
+		if(this.IsDefiendType(TypeName) == true) {
+			return;
+		}
+		var Code: string = this.GetIndentString() + "struct: typedef " + Type + " {\n";
+		this.Indent();
+		if(Type.SuperClass != null) {
+			Code += this.GetIndentString() + Type.SuperClass.ShortClassName + " __base;\n";
+		}
+		if(Type.DefaultNullValue != null && Type.DefaultNullValue instanceof GtObject) {
+			var DefaultObject: GtObject = <GtObject> Type.DefaultNullValue;
+			var keys: Array<string> = DefaultObject.Field.keys();
+			var i: number = 0;
+			while(i < keys.size()) {
+				var FieldName: string = keys.get(i);
+				i = i + 1;
+				if(FieldName.endsWith(":Type")) {
+					continue;
+				}
+				var FieldType: GtType = <GtType> DefaultObject.Field.get(FieldName + ":Type");
+				Code += this.GetIndentString() + FieldType + " " + FieldName + ";\n";
+			}
+		}
+		this.UnIndent();
+		Code += this.GetIndentString() + "} " + Type + ";\n";
+		this.WriteTranslatedCode(Code);
 	}
 
 	public SetLanguageContext(Context: GtContext): void {

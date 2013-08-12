@@ -123,7 +123,15 @@ class JavaScriptSourceGenerator extends SourceGenerator {
 	}
 
 	public VisitLetNode(Node: LetNode): void {
+		var VarName: string = Node.VariableName;
+		var Source: string = (this.UseLetKeyword ? "let " : "var ") + " " + VarName;
+		if(Node.InitNode != null) {
+			Node.InitNode.Evaluate(this);
+			Source += " = " + this.PopSourceCode();
+		}
+		Source +=  ";";
 		this.VisitBlockJS(Node.BlockNode);
+		this.PushSourceCode(Source + this.PopSourceCode());
 	}
 
 	public VisitIfNode(Node: IfNode): void {

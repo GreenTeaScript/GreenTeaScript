@@ -250,6 +250,10 @@ var FuncDeclName = 2;
 var FuncDeclBlock = 3;
 var FuncDeclParam = 4;
 
+var ClassParentNameOffset = 0;
+var ClassNameOffset = 1;
+var ClassBlockOffset = 2;
+
 var TokenFuncSpec = 0;
 var SymbolPatternSpec = 1;
 var ExtendedPatternSpec = 2;
@@ -1118,6 +1122,7 @@ var GtTypeEnv = (function () {
         this.StackTopIndex = 0;
 
         this.VoidType = NameSpace.Context.VoidType;
+        this.ObjectType = NameSpace.Context.ObjectType;
         this.BooleanType = NameSpace.Context.BooleanType;
         this.IntType = NameSpace.Context.IntType;
         this.StringType = NameSpace.Context.StringType;
@@ -1888,19 +1893,18 @@ var DScriptGrammar = (function (_super) {
             Gamma.CreateErrorNode(TypeTree, "defined: already variable " + VariableName);
         }
         var VariableNode = Gamma.TypeCheck(NameTree, DeclType, DefaultTypeCheckPolicy);
+        if (VariableNode.IsError()) {
+            return VariableNode;
+        }
         var InitValueNode = null;
         if (ValueTree == null) {
             InitValueNode = Gamma.DefaultValueConstNode(ParsedTree, DeclType);
         } else {
             InitValueNode = Gamma.TypeCheck(ValueTree, DeclType, DefaultTypeCheckPolicy);
         }
-        var AssignNode = Gamma.Generator.CreateAssignNode(DeclType, ParsedTree, VariableNode, InitValueNode);
         var BlockNode = Gamma.TypeBlock(ParsedTree.NextTree, Type);
         ParsedTree.NextTree = null;
-        if (BlockNode != null) {
-            LinkNode(AssignNode, BlockNode);
-        }
-        return Gamma.Generator.CreateLetNode(DeclType, ParsedTree, DeclType, VariableNode, AssignNode);
+        return Gamma.Generator.CreateLetNode(DeclType, ParsedTree, DeclType, (VariableNode).LocalName, InitValueNode, BlockNode);
     };
 
     DScriptGrammar.ParseIntegerLiteral = function (Pattern, LeftTree, TokenContext) {
@@ -2102,8 +2106,9 @@ var DScriptGrammar = (function (_super) {
             while (!FuncTree.IsEmptyOrError()) {
                 var Tree = TokenContext.ParsePattern("$Expression$", Required);
                 FuncTree.AppendParsedTree(Tree);
-                if (TokenContext.MatchToken(","))
+                if (TokenContext.MatchToken(",")) {
                     continue;
+                }
                 var EndTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken(")"), null);
                 if (EndTree != null) {
                     FuncTree.AppendParsedTree(EndTree);
@@ -2412,12 +2417,68 @@ var DScriptGrammar = (function (_super) {
 
     DScriptGrammar.ParseClassDecl = function (Pattern, LeftTree, TokenContext) {
         var Tree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetToken(), null);
-
-        return null;
+        TokenContext.MatchToken("class");
+        Tree.SetMatchedPatternAt(ClassNameOffset, TokenContext, "$Symbol$", Required);
+        if (TokenContext.MatchToken("extends")) {
+            Tree.SetMatchedPatternAt(ClassParentNameOffset, TokenContext, "$Type$", Required);
+        }
+        if (TokenContext.MatchToken("{")) {
+            var i = ClassBlockOffset;
+            var ParseFlag = TokenContext.ParseFlag;
+            TokenContext.ParseFlag = ParseFlag | BackTrackParseFlag | SkipIndentParseFlag;
+            while (!Tree.IsEmptyOrError() && !TokenContext.MatchToken("}")) {
+                Tree.SetMatchedPatternAt(i, TokenContext, "$FuncDecl$", Optional);
+                i = Tree.TreeList.size();
+                var VarDecl = TokenContext.ParsePatternAfter(null, "$VarDecl$", Optional);
+                if (VarDecl != null) {
+                    Tree.SetSyntaxTreeAt(i, VarDecl);
+                    TokenContext.MatchToken(";");
+                }
+                i = Tree.TreeList.size();
+            }
+            TokenContext.ParseFlag = ParseFlag;
+        }
+        return Tree;
     };
 
     DScriptGrammar.TypeClassDecl = function (Gamma, ParsedTree, Type) {
-        return null;
+        Gamma = new GtTypeEnv(ParsedTree.NameSpace);
+        var ClassNameTree = ParsedTree.GetSyntaxTreeAt(ClassNameOffset);
+        var ClassName = ClassNameTree.KeyToken.ParsedText;
+        var FieldOffset = ClassBlockOffset;
+        var SuperClassTree = ParsedTree.GetSyntaxTreeAt(ClassParentNameOffset);
+
+        var SuperClass = Gamma.ObjectType;
+        if (SuperClassTree != null) {
+            SuperClass = SuperClassTree.ConstValue;
+        }
+        var ClassFlag = Gamma.Generator.ParseMethodFlag(0, ParsedTree);
+        var NewType = new GtType(Gamma.NameSpace.Context, ClassFlag, ClassName, null);
+        var DefaultObject = new GtObject(NewType);
+        NewType.DefaultNullValue = DefaultObject;
+        NewType.SuperClass = SuperClass;
+
+        Gamma.AppendDeclaredVariable(NewType, "this");
+
+        while (FieldOffset < ParsedTree.TreeList.size()) {
+            var FieldTree = ParsedTree.GetSyntaxTreeAt(FieldOffset);
+            if (FieldTree.Pattern.PatternName.equals("$VarDecl$")) {
+                var NameTree = FieldTree.GetSyntaxTreeAt(VarDeclName);
+                var TypeTree = FieldTree.GetSyntaxTreeAt(VarDeclType);
+                var DeclType = TypeTree.ConstValue;
+                var VarName = NameTree.KeyToken.ParsedText;
+                Gamma.AppendDeclaredVariable(DeclType, VarName);
+                DefaultObject.Field.put(VarName, null);
+                DefaultObject.Field.put(VarName + ":Type", DeclType);
+            }
+            var BodyNode = Gamma.TypeCheck(FieldTree, Gamma.AnyType, IgnoreEmptyPolicy);
+
+            if (BodyNode instanceof GtNode) {
+            }
+            FieldOffset += 1;
+        }
+        Gamma.NameSpace.DefineClass(NewType);
+        return Gamma.Generator.CreateEmptyNode(Gamma.VoidType, ParsedTree);
     };
 
     DScriptGrammar.prototype.LoadTo = function (NameSpace) {
@@ -2485,6 +2546,7 @@ var DScriptGrammar = (function (_super) {
         NameSpace.DefineSyntaxPattern("return", DScriptGrammar.ParseReturn, DScriptGrammar.TypeReturn);
         NameSpace.DefineSyntaxPattern("new", DScriptGrammar.ParseNew, DScriptGrammar.TypeNew);
         NameSpace.DefineSyntaxPattern("const", DScriptGrammar.ParseConstDecl, DScriptGrammar.TypeConstDecl);
+        NameSpace.DefineSyntaxPattern("class", DScriptGrammar.ParseClassDecl, DScriptGrammar.TypeClassDecl);
     };
     return DScriptGrammar;
 })(GtGrammar);

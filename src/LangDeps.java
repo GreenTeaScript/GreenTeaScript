@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public abstract class LangDeps {
 
@@ -202,6 +203,9 @@ public abstract class LangDeps {
 		else if(Option.equalsIgnoreCase("perl")) {
 			return new PerlSourceGenerator();
 		}
+		else if(Option.equalsIgnoreCase("python")) {
+			return new PythonSourceGenerator();
+		}
 		else if(Option.equalsIgnoreCase("bash")) {
 			return new BashSourceGenerator();
 		}
@@ -255,5 +259,16 @@ public abstract class LangDeps {
 			e.printStackTrace();
 		}
 		return "";
+	}
+
+	public static ArrayList<String> MapGetKeys(GtMap Map) {
+		/*local*/Iterator<String> itr = Map.Map.keySet().iterator();
+		/*local*/ArrayList<String> List = new ArrayList<String>(Map.Map.size());
+		/*local*/int i = 0;
+		while(itr.hasNext()) {
+			List.add(itr.next());
+			i = i + 1;
+		}
+		return List;
 	}
 }

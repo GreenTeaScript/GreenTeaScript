@@ -1,10 +1,8 @@
 static int f__A(int a0){
-   int b1;
+   int b1 = a0 + 10;
    {
-      b1 = a0 + 10;
-      int c2;
+      int c2 = b1 + 20;
       {
-         c2 = b1 + 20;
          return c2;
       };
    };

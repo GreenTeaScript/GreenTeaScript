@@ -1,7 +1,6 @@
 static boolean g__A(int a0){
-   boolean a1;
+   boolean a1 = false;
    {
-      a1 = false;
       a1 = true;
       return a1;
    };

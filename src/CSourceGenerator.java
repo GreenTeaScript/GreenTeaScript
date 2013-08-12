@@ -5,6 +5,7 @@ import java.util.ArrayList;
 //GreenTea Generator should be written in each language.
 
 public class CSourceGenerator extends SourceGenerator {
+	/*field*/public final String[] DefaultTypes = {"void", "int", "boolean", "float", "double", "String", "Object", "Array", "Func", "var", "any"};
 
 	CSourceGenerator/*constructor*/() {
 		super("C");
@@ -146,18 +147,17 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
-		/*local*/String[] Params = this.EvaluateParam(Node.Params);
-		/*local*/String Program = this.GenerateTemplate(Node);
+		/*local*/String Program = this.GenerateMacro(Node);
 		/*local*/int i = 0;
-		while(i < Params.length) {
-			String P = Params[i];
-			Program = Program.replace("$" + i, P);
+		while(i < GtStatic.ListSize(Node.Params)) {
+			Node.Params.get(i).Evaluate(this);
+			Program = Program.replace("$" + i, this.PopSourceCode());
 			i = i + 1;
 		}
 		this.PushSourceCode(Program);
 	}
 
-	private String GenerateTemplate(ApplyNode Node) {
+	private String GenerateMacro(ApplyNode Node) {
 		if(Node.Method.SourceMacro != null) {
 			return Node.Method.SourceMacro;
 		}
@@ -237,8 +237,13 @@ public class CSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitLetNode(LetNode Node) {
 		/*local*/String Type = Node.DeclType.ShortClassName;
-		Node.VarNode.Evaluate(this);
-		/*local*/String Code = Type + " " + this.PopSourceCode() + ";\n";
+		/*local*/String VarName = Node.VariableName;
+		/*local*/String Code = Type + " " + VarName;
+		if(Node.InitNode != null) {
+			Node.InitNode.Evaluate(this);
+			Code += " = " + this.PopSourceCode();
+		}
+		Code +=  ";\n";
 		this.VisitBlockEachStatementWithIndent(Node.BlockNode, true);
 		this.PushSourceCode(Code + this.GetIndentString() + this.PopSourceCode());
 	}
@@ -380,9 +385,45 @@ public class CSourceGenerator extends SourceGenerator {
 		return Code;
 	}
 
+	protected boolean IsDefiendType(String TypeName) {
+		/*local*/int i = 0;
+		while(i < this.DefaultTypes.length) {
+			if(this.DefaultTypes[i].equals(TypeName)) {
+				return true;
+			}
+			i = i + 1;
+		}
+		// FIXME care about "var", "any"
+		
+		return false;
+	}
 	@Override public void AddClass(GtType Type) {
-		// TODO Auto-generated method stub
-
+		/*local*/String TypeName = Type.ShortClassName;
+		if(this.IsDefiendType(TypeName) == true) {
+			return;
+		}
+		/*local*/String Code = this.GetIndentString() + "typedef struct " + Type + " {\n";
+		this.Indent();
+		if(Type.SuperClass != null) {
+			Code += this.GetIndentString() + Type.SuperClass.ShortClassName + " __base;\n";
+		}
+		if(Type.DefaultNullValue != null && Type.DefaultNullValue instanceof GtObject) {
+			/*local*/GtObject DefaultObject = (/*cast*/GtObject) Type.DefaultNullValue;
+			/*local*/ArrayList<String> keys = DefaultObject.Field.keys();
+			/*local*/int i = 0;
+			while(i < keys.size()) {
+				/*local*/String FieldName = keys.get(i);
+				i = i + 1;
+				if(FieldName.endsWith(":Type")) {
+					continue;
+				}
+				/*local*/GtType FieldType = (/*cast*/GtType) DefaultObject.Field.get(FieldName + ":Type");
+				Code += this.GetIndentString() + FieldType + " " + FieldName + ";\n";
+			}
+		}
+		this.UnIndent();
+		Code += this.GetIndentString() + "} " + Type + ";\n";
+		this.WriteTranslatedCode(Code);
 	}
 
 	@Override public void SetLanguageContext(GtContext Context) {

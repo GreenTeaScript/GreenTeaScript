@@ -124,7 +124,15 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitLetNode(LetNode Node) {
+		/*local*/String VarName = Node.VariableName;
+		/*local*/String Source = (this.UseLetKeyword ? "let " : "var ") + " " + VarName;
+		if(Node.InitNode != null) {
+			Node.InitNode.Evaluate(this);
+			Source += " = " + this.PopSourceCode();
+		}
+		Source +=  ";";
 		this.VisitBlockJS(Node.BlockNode);
+		this.PushSourceCode(Source + this.PopSourceCode());
 	}
 
 	@Override public void VisitIfNode(IfNode Node) {

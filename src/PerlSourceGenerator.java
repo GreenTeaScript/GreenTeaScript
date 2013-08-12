@@ -225,8 +225,13 @@ public class PerlSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitLetNode(LetNode Node) {
 		///*local*/String Type = Node.DeclType.ShortClassName;
-		Node.VarNode.Evaluate(this);
-		/*local*/String Code = "my " + this.PopSourceCode();
+		/*local*/String VarName = Node.VariableName;
+		/*local*/String Code = "my " + VarName;
+		if(Node.InitNode != null) {
+			Node.InitNode.Evaluate(this);
+			Code += " = " + this.PopSourceCode();
+		}
+		Code +=  ";\n";
 		Node.BlockNode.Evaluate(this);
 		this.PushSourceCode(Code + this.PopSourceCode());
 	}

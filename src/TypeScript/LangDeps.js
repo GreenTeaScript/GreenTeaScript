@@ -25,6 +25,10 @@ Object.prototype["equals"] = function (other) {
 };
 
 String.prototype["startsWith"] = function (key) {
+    return this.IndexOf(key, 0) == 0;
+};
+
+String.prototype["endsWith"] = function (key) {
     return this.lastIndexOf(key, 0) == 0;
 };
 
@@ -50,6 +54,9 @@ var GtMap = (function () {
     };
     GtMap.prototype.size = function () {
         return this.length;
+    };
+    GtMap.prototype.keys = function () {
+        return LangDeps.MapGetKeys(this);
     };
     return GtMap;
 })();
@@ -187,6 +194,11 @@ var LangDeps = (function () {
     LangDeps.LoadFile = function (FileName) {
         throw new Error("LangDeps.LoadFile is not implemented for this environment");
         return "";
+    };
+
+    LangDeps.MapGetKeys = function (Map) {
+        throw new Error("LangDeps.MapGetKeys is not implemented for this environment");
+        return [];
     };
 
     LangDeps.Usage = function () {

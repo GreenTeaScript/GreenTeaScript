@@ -246,13 +246,15 @@ class NullNode extends GtNode {
 
 class LetNode extends GtNode {
 	public DeclType: GtType;
-	public VarNode: GtNode;
+	public VariableName: string;
+	public InitNode: GtNode;
 	public BlockNode: GtNode;
 	/*VarNode: letBlock: end: in */
-	constructor(Type: GtType, Token: GtToken, DeclType: GtType, VarNode: GtNode, Block: GtNode) {
+	constructor(Type: GtType, Token: GtToken, DeclType: GtType, VarName: string, InitNode: GtNode, Block: GtNode) {
 		super(Type, Token);
+		this.VariableName = VarName;
 		this.DeclType = DeclType;
-		this.VarNode  = VarNode;
+		this.InitNode  = InitNode;
 		this.BlockNode = Block;
 	}
 	public Evaluate(Visitor: GtGenerator): void {
@@ -260,7 +262,11 @@ class LetNode extends GtNode {
 	}
 	public toString(): string {
 		var Block: string = GtNode.Stringify(this.BlockNode);
-		return "(Let:" + this.Type + " " + GtNode.Stringify(this.VarNode) + " in {" + Block + "})";
+		var Init: string  = "null";
+		if(this.InitNode != null) {
+			Init = GtNode.Stringify(this.InitNode);
+		}
+		return "(Let:" + this.Type + " " + this.VariableName + " = " +  Init  +" in {" + Block + "})";
 	}
 }
 
@@ -644,8 +650,10 @@ class CommandNode extends GtNode {
 
 class GtObject {
 	public Type: GtType;
+	public Field: GtMap;
 	constructor(Type: GtType) {
 		this.Type = Type;
+		this.Field = new GtMap();
 	}
 }
 
@@ -885,8 +893,8 @@ class GtGenerator {
 		return new AssignNode(Type, ParsedTree.KeyToken, Left, Right);
 	}
 
-	public CreateLetNode(Type: GtType, ParsedTree: GtSyntaxTree, DeclType: GtType, VarNode: GtNode, Block: GtNode): GtNode {
-		return new LetNode(Type, ParsedTree.KeyToken, DeclType, VarNode, Block);
+	public CreateLetNode(Type: GtType, ParsedTree: GtSyntaxTree, DeclType: GtType, VarName: string, InitNode: GtNode, Block: GtNode): GtNode {
+		return new LetNode(Type, ParsedTree.KeyToken, DeclType, VarName, InitNode, Block);
 	}
 
 	public CreateIfNode(Type: GtType, ParsedTree: GtSyntaxTree, Cond: GtNode, Then: GtNode, Else: GtNode): GtNode {
@@ -975,6 +983,15 @@ class GtGenerator {
 		return new GtMethod(MethodFlag, MethodName, BaseIndex, TypeList, RawMacro);
 	}
 
+	public ParseClassFlag(ClassFlag: number, ClassDeclTree: GtSyntaxTree): number {
+		if(ClassDeclTree.HasAnnotation("Final")) {
+			ClassFlag = ClassFlag | FinalClass;
+		}
+		if(ClassDeclTree.HasAnnotation("Private")) {
+			ClassFlag = ClassFlag | PrivateClass;
+		}
+		return ClassFlag;
+	}
 	// ------------------------------------------------------------------------ //
 
 	public VisitEmptyNode(EmptyNode: GtNode): void {

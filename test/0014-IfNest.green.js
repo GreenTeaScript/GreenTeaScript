@@ -1,6 +1,5 @@
 var f__A = (function(a0, b1) {
-   {
-      var n2 = 1;
+   var  n2 = 1;{
       if((a0 < 10)) {
          if((b1 < 100)) {
             var n2 = (n2 + 2);

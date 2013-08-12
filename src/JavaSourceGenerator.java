@@ -205,9 +205,14 @@ public class JavaSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitLetNode(LetNode Node) {
-		String Type = Node.DeclType.ShortClassName;
-		Node.VarNode.Evaluate(this);
-		String Code = Type + " " + this.PopSourceCode();
+		/*local*/String Type = Node.DeclType.ShortClassName;
+		/*local*/String VarName = Node.VariableName;
+		/*local*/String Code = Type + " " + VarName;
+		if(Node.InitNode != null) {
+			Node.InitNode.Evaluate(this);
+			Code += " = " + this.PopSourceCode();
+		}
+		Code +=  ";\n";
 		Node.BlockNode.Evaluate(this);
 		this.PushSourceCode(Code + this.PopSourceCode());
 	}

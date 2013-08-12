@@ -10,7 +10,7 @@ var BashSourceGenerator = (function (_super) {
         _super.call(this, "BashSource");
         this.inFunc = false;
         this.retVar = "__ret";
-        this.WriteTranslatedCode("#!/usr/bin/bash\n");
+        this.WriteTranslatedCode("#!/bin/bash\n");
     }
     BashSourceGenerator.prototype.VisitBlockWithIndent = function (Node) {
         var Code = "\n";
@@ -226,15 +226,19 @@ var BashSourceGenerator = (function (_super) {
     };
 
     BashSourceGenerator.prototype.VisitLetNode = function (Node) {
-        Node.VarNode.Evaluate(this);
-        var Code = this.PopSourceCode();
-        this.VisitBlockWithoutIndent(Node.BlockNode);
-
-        var head = "";
+        var VarName = Node.VariableName;
+        var Code = "";
         if (this.inFunc) {
-            head = "local ";
+            Code += "local " + VarName;
         }
-        this.PushSourceCode(head + Code + "\n" + this.PopSourceCode());
+        Code += VarName;
+        if (Node.InitNode != null) {
+            Node.InitNode.Evaluate(this);
+            Code += " = " + this.ResolveValueType(Node.InitNode, this.PopSourceCode());
+        }
+        Code += ";\n";
+        this.VisitBlockWithoutIndent(Node.BlockNode);
+        this.PushSourceCode(Code + this.PopSourceCode());
     };
 
     BashSourceGenerator.prototype.VisitIfNode = function (Node) {
@@ -261,19 +265,7 @@ var BashSourceGenerator = (function (_super) {
             Node.Expr.Evaluate(this);
             var expr = this.PopSourceCode();
             var ret = this.ResolveValueType(Node.Expr, expr);
-
-            if (Node.Expr instanceof CommandNode) {
-                this.PushSourceCode(expr + "\n" + this.GetIndentString() + "return " + ret);
-                return;
-            }
-
-            if (Node.Type.equals(Node.Type.Context.BooleanType) || Node.Type.equals(Node.Type.Context.IntType)) {
-                this.PushSourceCode("return " + ret);
-                return;
-            }
-
-            ret = this.retVar + "=" + ret;
-            this.PushSourceCode(ret);
+            this.PushSourceCode("echo " + ret + "\n" + this.GetIndentString() + "return 0");
         }
     };
 
@@ -341,11 +333,10 @@ var BashSourceGenerator = (function (_super) {
             return Body;
         }
 
-        var VarNode = new LocalNode(null, null, ParamNameList.get(index));
         var oldVarNode = new LocalNode(null, null, "" + (index + 1));
-        var assignNode = new AssignNode(null, null, VarNode, oldVarNode);
-        assignNode.NextNode = this.ConvertParamName(ParamNameList, Body, ++index);
-        return new LetNode(null, null, null, VarNode, assignNode);
+        var Let = new LetNode(null, null, null, ParamNameList.get(index), oldVarNode, null);
+        Let.NextNode = this.ConvertParamName(ParamNameList, Body, index + 1);
+        return Let;
     };
 
     BashSourceGenerator.prototype.ResolveValueType = function (TargetNode, value) {
@@ -355,8 +346,8 @@ var BashSourceGenerator = (function (_super) {
             resolvedValue = value;
         } else if (TargetNode instanceof IndexerNode) {
             resolvedValue = "${" + value + "}";
-        } else if (TargetNode instanceof CommandNode) {
-            resolvedValue = "$?";
+        } else if (TargetNode instanceof ApplyNode || TargetNode instanceof CommandNode) {
+            resolvedValue = "$(" + value + ")";
         } else {
             resolvedValue = "$" + value;
         }
