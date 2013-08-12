@@ -2165,7 +2165,7 @@ final class DScriptGrammar extends GtGrammar {
 					NodeList.add(Node);
 					ParamIndex = ParamIndex + 1;
 				}
-				Method = LookupOverloadedMethod(Gamma, Method, NodeList);
+				Method = DScriptGrammar.LookupOverloadedMethod(Gamma, Method, NodeList);
 				if(Method != null) {
 					GtNode TypeError = Gamma.CreateErrorNode(ParsedTree, "mismatched method " + MethodName + " of " + BaseType);
 					if(Gamma.IsStrictTypeCheckMode()) {
@@ -2206,7 +2206,7 @@ final class DScriptGrammar extends GtGrammar {
 		String MethodName = Method.MangledName;
 		int ParamSize = Method.GetMethodParamSize();
 		while(Method != null) {
-			if(ExactlyMatchMethod(Method, NodeList)) {
+			if(DScriptGrammar.ExactlyMatchMethod(Method, NodeList)) {
 				return Method;
 			}
 			Method = Method.ListedMethods;
@@ -2221,7 +2221,7 @@ final class DScriptGrammar extends GtGrammar {
 		Method = StartMethod;
 		BaseType = Method.GetRecvType();
 		while(Method != null) {
-			if(AcceptablyMatchMethod(Gamma, Method, NodeList)) {
+			if(DScriptGrammar.AcceptablyMatchMethod(Gamma, Method, NodeList)) {
 				return Method;
 			}
 			Method = Method.ListedMethods;

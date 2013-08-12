@@ -1,25 +1,24 @@
-//ifdef JAVA
-import java.util.ArrayList;
-//endif VAJA
+/// <reference path="LangDeps.ts" />
 
-//GreenTea Generator should be written in each language.
 
-public class PythonSourceGenerator extends SourceGenerator {
+//Generator: GreenTeabe: shouldin: writtenlanguage: each. //
 
-	PythonSourceGenerator/*constructor*/() {
+class PythonSourceGenerator extends SourceGenerator {
+
+	constructor() {
 		super("PythonSource");
-		this.WriteTranslatedCode("import os\n");
+		this.WriteTranslatedCode("os: import\n");
 	}
 
-	public void VisitBlockWithIndent(GtNode Node, boolean inBlock) {
-		/*local*/String Code = "";
+	public VisitBlockWithIndent(Node: GtNode, inBlock: boolean): void {
+		var Code: string = "";
 		if(inBlock) {
 			this.Indent();
 		}
-		/*local*/GtNode CurrentNode = Node;
+		var CurrentNode: GtNode = Node;
 		while(CurrentNode != null) {
 			CurrentNode.Evaluate(this);
-			/*local*/String poppedCode = this.PopSourceCode();
+			var poppedCode: string = this.PopSourceCode();
 			if(!poppedCode.equals("")) {
 				Code += this.GetIndentString() + poppedCode + "\n";
 			}
@@ -29,63 +28,63 @@ public class PythonSourceGenerator extends SourceGenerator {
 			this.UnIndent();
 			Code += this.GetIndentString();
 		}		else {
-			if(Code.length() > 0) {
-				Code = Code.substring(0, Code.length() - 1);
+			if(Code.length > 0) {
+				Code = Code.substring(0, Code.length - 1);
 			}
 		}
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void VisitEmptyNode(GtNode Node) {
+	public VisitEmptyNode(Node: GtNode): void {
 	}
 
-	@Override public void VisitIndexerNode(IndexerNode Node) {
+	public VisitIndexerNode(Node: IndexerNode): void {
 		Node.Indexer.Evaluate(this);
 		Node.Expr.Evaluate(this);
 		this.PushSourceCode(this.PopSourceCode() + "[" + this.PopSourceCode() + "]");
 	}
 
-	@Override public void VisitMessageNode(MessageNode Node) {
+	public VisitMessageNode(Node: MessageNode): void {
 	}
 
-	@Override public void VisitWhileNode(WhileNode Node) {
+	public VisitWhileNode(Node: WhileNode): void {
 		Node.CondExpr.Evaluate(this);
-		/*local*/String Program = "while " + this.PopSourceCode() + ":\n";
+		var Program: string = "while " + this.PopSourceCode() + ":\n";
 		this.VisitBlockWithIndent(Node.LoopBody, true);
 		Program += this.PopSourceCode();
 		this.PushSourceCode(Program);
 	}
 
-	@Override public void VisitDoWhileNode(DoWhileNode Node) {
+	public VisitDoWhileNode(Node: DoWhileNode): void {
 		this.VisitBlockWithIndent(Node.LoopBody, true);
-		/*local*/String LoopBody = this.PopSourceCode();
-		/*local*/String Program = "if True:\n" + LoopBody;
+		var LoopBody: string = this.PopSourceCode();
+		var Program: string = "True: if:\n" + LoopBody;
 		Node.CondExpr.Evaluate(this);
 		Program += "while " + this.PopSourceCode() + ":\n";
 		this.PushSourceCode(Program + LoopBody);
 	}
 
-	@Override public void VisitForNode(ForNode Node) {
+	public VisitForNode(Node: ForNode): void {
 		Node.LoopBody.MoveTailNode().NextNode = Node.IterExpr;
-		/*local*/GtNode NewLoopBody = Node.LoopBody;
-		/*local*/WhileNode NewNode = new WhileNode(Node.Type, Node.Token, Node.CondExpr, NewLoopBody);
+		var NewLoopBody: GtNode = Node.LoopBody;
+		var NewNode: WhileNode = new WhileNode(Node.Type, Node.Token, Node.CondExpr, NewLoopBody);
 		this.VisitWhileNode(NewNode);
 	}
 
-	@Override public void VisitForEachNode(ForEachNode Node) {
+	public VisitForEachNode(Node: ForEachNode): void {
 		Node.Variable.Evaluate(this);
 		Node.IterExpr.Evaluate(this);
-		/*local*/String Iter = this.PopSourceCode();
-		/*local*/String Variable = this.PopSourceCode();
+		var Iter: string = this.PopSourceCode();
+		var Variable: string = this.PopSourceCode();
 		
-		/*local*/String Program = "for " + Variable + " in " + Iter + ":\n";
+		var Program: string = "for " + Variable + " in " + Iter + ":\n";
 		this.VisitBlockWithIndent(Node.LoopBody, true);
 		Program += this.PopSourceCode();
 		this.PushSourceCode(Program);
 	}
 
-	@Override public void VisitConstNode(ConstNode Node) {
-		/*local*/String value = this.StringfyConstValue(Node.ConstValue);
+	public VisitConstNode(Node: ConstNode): void {
+		var value: string = this.StringfyConstValue(Node.ConstValue);
 		if(Node.Type.equals(Node.Type.Context.BooleanType) || 
 				value.equals("true") || value.equals("false")) {
 			if(value.equals("true")) {
@@ -97,30 +96,30 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(value);
 	}
 
-	@Override public void VisitNewNode(NewNode Node) {
-		/*local*/String Type = Node.Type.ShortClassName;
-		/*local*/String paramString = this.AppendParams(this.EvaluateParam(Node.Params));
+	public VisitNewNode(Node: NewNode): void {
+		var Type: string = Node.Type.ShortClassName;
+		var paramString: string = this.AppendParams(this.EvaluateParam(Node.Params));
 		this.PushSourceCode(Type + "(" + paramString + ")");
 	}
 
-	@Override public void VisitNullNode(NullNode Node) {
+	public VisitNullNode(Node: NullNode): void {
 		this.PushSourceCode("None");
 	}
 
-	@Override public void VisitLocalNode(LocalNode Node) {
+	public VisitLocalNode(Node: LocalNode): void {
 		this.PushSourceCode(Node.LocalName);
 	}
 
-	@Override public void VisitGetterNode(GetterNode Node) {
+	public VisitGetterNode(Node: GetterNode): void {
 		
 	}
 
-	private String[] EvaluateParam(ArrayList<GtNode> Params) {
-		/*local*/int Size = Params.size();
-		/*local*/String[] Programs = new String[Size];
-		/*local*/int i = 0;
+	private EvaluateParam(Params: Array<GtNode>): string[] {
+		var Size: number = Params.size();
+		var Programs: string[] = new Array<string>(Size);
+		var i: number = 0;
 		while(i < Size) {
-			/*local*/GtNode Node = Params.get(i);
+			var Node: GtNode = Params.get(i);
 			Node.Evaluate(this);
 			Programs[Size - i - 1] = this.PopSourceCode();
 			i = i + 1;
@@ -128,11 +127,11 @@ public class PythonSourceGenerator extends SourceGenerator {
 		return Programs;
 	}
 
-	private String AppendParams(String[] Params) {
-		/*local*/String param = "";
-		/*local*/int i = 0;
+	private AppendParams(Params: string[]): string {
+		var param: string = "";
+		var i: number = 0;
 		while(i < Params.length) {
-			/*local*/String P = Params[i];
+			var P: string = Params[i];
 			if(i != 0) {
 				param += ", ";
 			}
@@ -142,13 +141,13 @@ public class PythonSourceGenerator extends SourceGenerator {
 		return param;
 	}
 
-	@Override public void VisitApplyNode(ApplyNode Node) {
-		/*local*/String paramString = this.AppendParams(this.EvaluateParam(Node.Params));
+	public VisitApplyNode(Node: ApplyNode): void {
+		var paramString: string = this.AppendParams(this.EvaluateParam(Node.Params));
 		this.PushSourceCode(Node.Method.MethodName + "(" + paramString + ")");
 	}
 
-	@Override public void VisitSuffixNode(SuffixNode Node) {	//FIXME
-		/*local*/String MethodName = Node.Token.ParsedText;
+	public VisitSuffixNode(Node: SuffixNode): void {	// FIXME //
+		var MethodName: string = Node.Token.ParsedText;
 		if(MethodName.equals("++")) {
 			MethodName = " += 1";
 		}
@@ -156,14 +155,14 @@ public class PythonSourceGenerator extends SourceGenerator {
 			MethodName = " -= 1";
 		}
 		else {
-			LangDeps.DebugP(MethodName + " is not supported suffix operator!!");
+			console.log("DEBUG: " + MethodName + "not: issuffix: operator: supported!!");
 		}
 		Node.Expr.Evaluate(this);
 		this.PushSourceCode(this.PopSourceCode() + MethodName);
 	}
 
-	@Override public void VisitUnaryNode(UnaryNode Node) {
-		/*local*/String MethodName = Node.Token.ParsedText;
+	public VisitUnaryNode(Node: UnaryNode): void {
+		var MethodName: string = Node.Token.ParsedText;
 		if(MethodName.equals("+")) {
 		}
 		else if(MethodName.equals("-")) {
@@ -173,19 +172,19 @@ public class PythonSourceGenerator extends SourceGenerator {
 		else if(MethodName.equals("!")) {
 			MethodName = "not ";
 		}
-//		else if(MethodName.equals("++")) {	//FIXME
-//		}
-//		else if(MethodName.equals("--")) {
-//		}
+// 		else if(MethodName.equals("++")) {	//FIXME //
+// 		} //
+// 		else if(MethodName.equals("--")) { //
+// 		} //
 		else {
-			LangDeps.DebugP(MethodName + " is not supported unary operator!!");
+			console.log("DEBUG: " + MethodName + "not: isunary: operator: supported!!");
 		}
 		Node.Expr.Evaluate(this);
 		this.PushSourceCode(MethodName + this.PopSourceCode());
 	}
 
-	@Override public void VisitBinaryNode(BinaryNode Node) {
-		/*local*/String MethodName = Node.Token.ParsedText;
+	public VisitBinaryNode(Node: BinaryNode): void {
+		var MethodName: string = Node.Token.ParsedText;
 		if(MethodName.equals("+")) {
 		}
 		else if(MethodName.equals("-")) {
@@ -219,34 +218,34 @@ public class PythonSourceGenerator extends SourceGenerator {
 		else if(MethodName.equals("==")) {
 		}
 		else {
-			LangDeps.DebugP(MethodName + " is not supported binary operator!!");
+			console.log("DEBUG: " + MethodName + "not: isbinary: operator: supported!!");
 		}
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
 		this.PushSourceCode(this.PopSourceCode() + " " + MethodName + " " + this.PopSourceCode());
 	}
 
-	@Override public void VisitAndNode(AndNode Node) {
+	public VisitAndNode(Node: AndNode): void {
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
 		this.PushSourceCode(this.PopSourceCode() + " and " + this.PopSourceCode());
 	}
 
-	@Override public void VisitOrNode(OrNode Node) {
+	public VisitOrNode(Node: OrNode): void {
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
 		this.PushSourceCode(this.PopSourceCode() + " or " + this.PopSourceCode());
 	}
 
-	@Override public void VisitAssignNode(AssignNode Node) {
+	public VisitAssignNode(Node: AssignNode): void {
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
 		this.PushSourceCode(this.PopSourceCode() + " = " + this.PopSourceCode());
 	}
 
-	@Override public void VisitLetNode(LetNode Node) {
-		/*local*/String Code = Node.VariableName;
-		/*local*/String InitValue = "None";
+	public VisitLetNode(Node: LetNode): void {
+		var Code: string = Node.VariableName;
+		var InitValue: string = "None";
 		if(Node.InitNode != null) {
 			Node.InitNode.Evaluate(this);
 			InitValue = this.PopSourceCode();
@@ -256,26 +255,26 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code + this.PopSourceCode());
 	}
 
-	@Override public void VisitIfNode(IfNode Node) {
+	public VisitIfNode(Node: IfNode): void {
 		Node.CondExpr.Evaluate(this);
 		this.VisitBlockWithIndent(Node.ThenNode, true);
 		this.VisitBlockWithIndent(Node.ElseNode, true);
 		
-		/*local*/String ElseBlock = this.PopSourceCode();
-		/*local*/String ThenBlock = this.PopSourceCode();
-		/*local*/String CondExpr = this.PopSourceCode();
-		/*local*/String Code = "if " + CondExpr + ":\n" + ThenBlock;
+		var ElseBlock: string = this.PopSourceCode();
+		var ThenBlock: string = this.PopSourceCode();
+		var CondExpr: string = this.PopSourceCode();
+		var Code: string = "if " + CondExpr + ":\n" + ThenBlock;
 		if(Node.ElseNode != null) {
 			Code += "else:\n" + ElseBlock;
 		}
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void VisitSwitchNode(SwitchNode Node) {
+	public VisitSwitchNode(Node: SwitchNode): void {
 	}
 
-	@Override public void VisitReturnNode(ReturnNode Node) {
-		/*local*/String retValue = "";
+	public VisitReturnNode(Node: ReturnNode): void {
+		var retValue: string = "";
 		if(Node.Expr != null) {
 			Node.Expr.Evaluate(this);
 			retValue = this.PopSourceCode();
@@ -283,24 +282,24 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode("return " + retValue);
 	}
 
-	@Override public void VisitLabelNode(LabelNode Node) {
+	public VisitLabelNode(Node: LabelNode): void {
 	}
 
-	@Override public void VisitJumpNode(JumpNode Node) {
+	public VisitJumpNode(Node: JumpNode): void {
 	}
 
-	@Override public void VisitBreakNode(BreakNode Node) {
-		/*local*/String Code = "break";
+	public VisitBreakNode(Node: BreakNode): void {
+		var Code: string = "break";
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void VisitContinueNode(ContinueNode Node) {
-		/*local*/String Code = "continue";
+	public VisitContinueNode(Node: ContinueNode): void {
+		var Code: string = "continue";
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void VisitTryNode(TryNode Node) { //TODO: catch block
-		/*local*/String Code = "try:\n";
+	public VisitTryNode(Node: TryNode): void { // TODO:block: catch //
+		var Code: string = "try:\n";
 		this.VisitBlockWithIndent(Node.TryBlock, true);
 		Code += this.PopSourceCode();
 		
@@ -311,8 +310,8 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void VisitThrowNode(ThrowNode Node) {
-		/*local*/String expr = "";
+	public VisitThrowNode(Node: ThrowNode): void {
+		var expr: string = "";
 		if(Node.Expr != null) {
 			Node.Expr.Evaluate(this);
 			expr = this.PopSourceCode();
@@ -320,33 +319,33 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode("raise " + expr);
 	}
 
-	@Override public void VisitFunctionNode(FunctionNode Node) {
+	public VisitFunctionNode(Node: FunctionNode): void {
 	}
 
-	@Override public void VisitErrorNode(ErrorNode Node) {
-		/*local*/String Code = "raise Error(\"" + Node.Token.ParsedText + "\")";
+	public VisitErrorNode(Node: ErrorNode): void {
+		var Code: string = "Error(\"" + Node.Token.ParsedText + "\"): raise";
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void VisitCommandNode(CommandNode Node) {	// currently only support statement
-		/*local*/String Code = "";
-		/*local*/int count = 0;
-		/*local*/CommandNode CurrentNode = Node;
+	public VisitCommandNode(Node: CommandNode): void {	// only: currentlystatement: support //
+		var Code: string = "";
+		var count: number = 0;
+		var CurrentNode: CommandNode = Node;
 		while(CurrentNode != null) {
 			if(count > 0) {
 				Code += " | ";
 			}
 			Code += this.CreateCommand(CurrentNode);
 			count += 1;
-			CurrentNode = (/*cast*/CommandNode) CurrentNode.PipedNextNode;
+			CurrentNode = <CommandNode> CurrentNode.PipedNextNode;
 		}
 		this.PushSourceCode("os.system(\"" + Code + "\")");
 	}
 
-	private String CreateCommand(CommandNode CurrentNode) {
-		/*local*/String Code = "";
-		/*local*/int size = CurrentNode.Params.size();
-		/*local*/int i = 0;
+	private CreateCommand(CurrentNode: CommandNode): string {
+		var Code: string = "";
+		var size: number = CurrentNode.Params.size();
+		var i: number = 0;
 		while(i < size) {
 			CurrentNode.Params.get(i).Evaluate(this);
 			Code += this.PopSourceCode() + " ";
@@ -355,11 +354,11 @@ public class PythonSourceGenerator extends SourceGenerator {
 		return Code;
 	}
 
-	@Override public void DefineFunction(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
-		/*local*/String Function = "def ";
+	public DefineFunction(Method: GtMethod, ParamNameList: Array<string>, Body: GtNode): void {
+		var Function: string = "def ";
 		Function += Method.MethodName + "(";
-		/*local*/int i = 0;
-		/*local*/int size = ParamNameList.size();
+		var i: number = 0;
+		var size: number = ParamNameList.size();
 		while(i < size) {
 			if(i > 0) {
 				Function += ", ";
@@ -372,9 +371,9 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.WriteTranslatedCode(Function);
 	}
 
-	@Override public Object Eval(GtNode Node) {
+	public Eval(Node: GtNode): Object {
 		this.VisitBlockWithIndent(Node, false);
-		/*local*/String Code = this.PopSourceCode();
+		var Code: string = this.PopSourceCode();
 		if(Code.equals("")) {
 			return "";
 		}
@@ -382,9 +381,9 @@ public class PythonSourceGenerator extends SourceGenerator {
 		return Code;
 	}
 
-	@Override public void AddClass(GtType Type) {
+	public AddClass(Type: GtType): void {
 	}
 
-	@Override public void SetLanguageContext(GtContext Context) {
+	public SetLanguageContext(Context: GtContext): void {
 	}
 }
