@@ -22,6 +22,7 @@ interface GtConst {
 	public final static int		VirtualMethod		= 1 << 2;
 	public final static int		NativeMethod		= 1 << 3;
 	public final static int		DynamicMethod		= 1 << 4;
+	public final static int     ExplicitConvertor   = 1 << 5;
 
 	//public final static int		ConstMethod 		= 1 << 2;
 
