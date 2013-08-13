@@ -1189,7 +1189,6 @@ final class GtTypeEnv extends GtStatic {
 
 	/* for convinient short cut */
 	/*field*/public final GtType	VoidType;
-	/*field*/public final GtType	ObjectType;
 	/*field*/public final GtType	BooleanType;
 	/*field*/public final GtType	IntType;
 	/*field*/public final GtType	StringType;
@@ -1206,7 +1205,6 @@ final class GtTypeEnv extends GtStatic {
 		this.StackTopIndex = 0;
 
 		this.VoidType = NameSpace.Context.VoidType;
-		this.ObjectType = NameSpace.Context.ObjectType;
 		this.BooleanType = NameSpace.Context.BooleanType;
 		this.IntType = NameSpace.Context.IntType;
 		this.StringType = NameSpace.Context.StringType;
@@ -1605,22 +1603,22 @@ final class GtNameSpace extends GtStatic {
 		return ClassInfo;
 	}
 
-	// Global Object
-	public GtObject CreateGlobalObject(int ClassFlag, String ShortName) {
-		/*local*/GtType NewClass = new GtType(this.Context, ClassFlag, ShortName, null);
-		/*local*/GtObject GlobalObject = new GtObject(NewClass);
-		NewClass.DefaultNullValue = GlobalObject;
-		return GlobalObject;
-	}
-
-	public GtObject GetGlobalObject() {
-		/*local*/Object GlobalObject = this.GetSymbol(GlobalConstName);
-		if(GlobalObject == null || !(GlobalObject instanceof GtObject)) {
-			GlobalObject = this.CreateGlobalObject(0, "global");
-			this.DefinePrivateSymbol(GlobalConstName, GlobalObject);
-		}
-		return (/*cast*/GtObject) GlobalObject;
-	}
+//	// Global Object
+//	public GtObject CreateGlobalObject(int ClassFlag, String ShortName) {
+//		/*local*/GtType NewClass = new GtType(this.Context, ClassFlag, ShortName, null);
+//		/*local*/GtObject GlobalObject = new GtObject(NewClass);
+//		NewClass.DefaultNullValue = GlobalObject;
+//		return GlobalObject;
+//	}
+//
+//	public GtObject GetGlobalObject() {
+//		/*local*/Object GlobalObject = this.GetSymbol(GlobalConstName);
+//		if(GlobalObject == null || !(GlobalObject instanceof GtObject)) {
+//			GlobalObject = this.CreateGlobalObject(0, "global");
+//			this.DefinePrivateSymbol(GlobalConstName, GlobalObject);
+//		}
+//		return (/*cast*/GtObject) GlobalObject;
+//	}
 
 	public Object Eval(String ScriptSource, long FileLine, GtGenerator Generator) {
 		/*local*/Object resultValue = null;
@@ -2666,12 +2664,12 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/int FieldOffset = ClassBlockOffset;
 		/*local*/GtSyntaxTree SuperClassTree = ParsedTree.GetSyntaxTreeAt(ClassParentNameOffset);
 		
-		GtType SuperClass = Gamma.ObjectType;
+		GtType SuperClass = null ;//Gamma.ObjectType;
 		if(SuperClassTree != null) {
 			SuperClass = (/*cast*/GtType) SuperClassTree.ConstValue;
 		}
 		/*local*/int ClassFlag = Gamma.Generator.ParseMethodFlag(0, ParsedTree);
-		/*local*/GtType NewType = new GtType(Gamma.NameSpace.Context, ClassFlag, ClassName, null);
+		/*local*/GtType NewType = new GtType(Gamma.NameSpace.Context, ClassFlag, ClassName, null, null);
 		/*local*/GtObject DefaultObject = new GtObject(NewType);
 		NewType.DefaultNullValue = DefaultObject;
 		NewType.SuperClass = SuperClass;
@@ -2929,7 +2927,7 @@ final class GtContext extends GtStatic {
 	/*field*/public GtNameSpace		           DefaultNameSpace;
 
 	/*field*/public final GtType		VoidType;
-	/*field*/public final GtType		ObjectType;
+//	/*field*/public final GtType		ObjectType;
 	/*field*/public final GtType		BooleanType;
 	/*field*/public final GtType		IntType;
 	/*field*/public final GtType		StringType;
@@ -2948,26 +2946,30 @@ final class GtContext extends GtStatic {
 		this.Generator.Context = this;
 		this.ClassNameMap = new GtMap();
 		this.UniqueMethodMap = new GtMap();
-//		this.LayerMap     = new GtMap();
-//		this.GreenLayer   = this.LoadLayer("GreenTea");
-//		this.FieldLayer   = this.LoadLayer("Field");
-//		this.UserDefinedLayer = this.LoadLayer("UserDefined");
 		this.RootNameSpace = new GtNameSpace(this, null);
 		this.ClassCount = 0;
 		this.MethodCount = 0;
-		this.VoidType    = this.RootNameSpace.DefineClass(new GtType(this, 0, "void", null));
-		this.ObjectType  = this.RootNameSpace.DefineClass(new GtType(this, 0, "Object", new Object()));
-		this.BooleanType = this.RootNameSpace.DefineClass(new GtType(this, 0, "boolean", false));
-		this.IntType     = this.RootNameSpace.DefineClass(new GtType(this, 0, "int", 0));
-		this.StringType  = this.RootNameSpace.DefineClass(new GtType(this, 0, "String", ""));
-		this.VarType     = this.RootNameSpace.DefineClass(new GtType(this, 0, "var", null));
-		this.AnyType     = this.RootNameSpace.DefineClass(new GtType(this, 0, "any", null));
-		this.ArrayType   = this.RootNameSpace.DefineClass(new GtType(this, 0, "Array", null));
-		this.FuncType    = this.RootNameSpace.DefineClass(new GtType(this, 0, "Func", null));
+		this.VoidType    = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "void", null, Void.class));
+//		this.ObjectType  = this.RootNameSpace.DefineClass(new GtType(this, 0, "Object", new Object(), Object.class));
+		this.BooleanType = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "boolean", false, Boolean.class));
+		this.IntType     = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "int", 0L, Long.class));
+		this.StringType  = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "String", "", String.class));
+		this.VarType     = this.RootNameSpace.DefineClass(new GtType(this, 0, "var", null, null));
+		this.AnyType     = this.RootNameSpace.DefineClass(new GtType(this, 0, "any", null, null));
+		this.ArrayType   = this.RootNameSpace.DefineClass(new GtType(this, 0, "Array", null, null));
+		this.FuncType    = this.RootNameSpace.DefineClass(new GtType(this, 0, "Func", null, null));
 		this.ArrayType.Types = new GtType[1];
 		this.ArrayType.Types[0] = this.AnyType;
 		this.FuncType.Types = new GtType[1];
 		this.FuncType.Types[0] = this.VoidType;
+//ifdef JAVA
+		this.ClassNameMap.put("java.lang.Void", this.VoidType);
+		this.ClassNameMap.put("java.lang.Boolean", this.BooleanType);
+		this.ClassNameMap.put("java.lang.Integer", this.IntType);
+		this.ClassNameMap.put("java.lang.Long",    this.IntType);
+		this.ClassNameMap.put("java.lang.Short",   this.IntType);
+		this.ClassNameMap.put("java.lang.String", this.StringType);
+//endif VAJA
 		Grammar.LoadTo(this.RootNameSpace);
 		
 		this.DefaultNameSpace = new GtNameSpace(this, this.RootNameSpace);

@@ -767,7 +767,7 @@ class GtType extends GtStatic {
 	/*field*/GtType[]				Types;
 	/*field*/public Object          LocalSpec;
 
-	GtType/*constructor*/(GtContext Context, int ClassFlag, String ClassName, Object DefaultNullValue) {
+	GtType/*constructor*/(GtContext Context, int ClassFlag, String ClassName, Object DefaultNullValue, Object LocalSpec) {
 		this.Context = Context;
 		this.ClassFlag = ClassFlag;
 		this.ShortClassName = ClassName;
@@ -775,10 +775,14 @@ class GtType extends GtStatic {
 		this.BaseClass = this;
 		this.SearchSuperMethodClass = null;
 		this.DefaultNullValue = DefaultNullValue;
-		this.LocalSpec = null;
+		this.LocalSpec = LocalSpec;
 		this.ClassId = Context.ClassCount;
 		Context.ClassCount += 1;
 		this.Types = null;
+	}
+
+	public final boolean IsNative() {
+		return IsFlag(this.ClassFlag, NativeClass);
 	}
 
 	public final boolean IsGenericType() {
@@ -787,7 +791,7 @@ class GtType extends GtStatic {
 
 	// Note Don't call this directly. Use Context.GetGenericType instead.
 	public GtType CreateGenericType(int BaseIndex, ArrayList<GtType> TypeList, String ShortName) {
-		GtType GenericType = new GtType(this.Context, this.ClassFlag, ShortName, null);
+		GtType GenericType = new GtType(this.Context, this.ClassFlag, ShortName, null, null);
 		GenericType.BaseClass = this.BaseClass;
 		GenericType.SearchSuperMethodClass = this.BaseClass;
 		GenericType.SuperClass = this.SuperClass;
@@ -816,15 +820,9 @@ class GtType extends GtStatic {
 		return false;
 	}
 
-	public boolean IsDynamicType() {
+	public final boolean IsDynamicType() {
 		return false;
 	}
-
-	public boolean IsNative() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
 }
 
 class GtMethod extends GtStatic {
@@ -1084,40 +1082,37 @@ class GtGenerator extends GtStatic {
 		Class<?> NativeClassInfo = Value instanceof Class<?> ? (Class<?>)Value : Value.getClass();
 		NativeType = (GtType)this.Context.ClassNameMap.get(NativeClassInfo.getName());
 		if(NativeType == null) {
-			NativeType = new GtType(this.Context, NativeClass, NativeClassInfo.getSimpleName(), null);
-			NativeType.LocalSpec = NativeClassInfo;
+			NativeType = new GtType(this.Context, NativeClass, NativeClassInfo.getSimpleName(), null, NativeClassInfo);
 			this.Context.ClassNameMap.put(NativeClassInfo.getName(), NativeType);
 		}
 //endif VAJA
 		return NativeType;
 	}
 
-	public boolean TransformNativeMethods(GtType BaseType, String MethodName) {
+	public boolean TransformNativeMethods(GtType NativeBaseType, String MethodName) {
 		boolean TransformedResult = false;
 //ifdef JAVA
-		if(BaseType.IsNative()) {
-			Class<?> NativeClassInfo = (Class<?>)BaseType.LocalSpec;
-			Method[] List = NativeClassInfo.getMethods();
-			if(List != null) {
-				for(int i = 0; i < List.length; i++) {
-					if(MethodName.equals(List[i].getName())) {
-						int MethodFlag = NativeMethod;
-						if(Modifier.isStatic(List[i].getModifiers())) {
-							MethodFlag |= NativeStaticMethod;
-						}
-						ArrayList<GtType> TypeList = new ArrayList<GtType>();
-						TypeList.add(this.GetNativeType(List[i].getReturnType()));
-						TypeList.add(BaseType);
-						Class<?>[] ParamTypes = List[i].getParameterTypes();
-						if(ParamTypes != null) {
-							for(int j = 0; j < List.length; j++) {
-								TypeList.add(this.GetNativeType(ParamTypes[j]));
-							}
-						}
-						GtMethod NativeMethod = new GtMethod(MethodFlag, MethodName, 0, TypeList, List[i]);
-						this.Context.DefineMethod(NativeMethod);
-						TransformedResult = false;
+		Class<?> NativeClassInfo = (Class<?>)NativeBaseType.LocalSpec;
+		Method[] List = NativeClassInfo.getMethods();
+		if(List != null) {
+			for(int i = 0; i < List.length; i++) {
+				if(MethodName.equals(List[i].getName())) {
+					int MethodFlag = NativeMethod;
+					if(Modifier.isStatic(List[i].getModifiers())) {
+						MethodFlag |= NativeStaticMethod;
 					}
+					ArrayList<GtType> TypeList = new ArrayList<GtType>();
+					TypeList.add(this.GetNativeType(List[i].getReturnType()));
+					TypeList.add(NativeBaseType);
+					Class<?>[] ParamTypes = List[i].getParameterTypes();
+					if(ParamTypes != null) {
+						for(int j = 0; j < List.length; j++) {
+							TypeList.add(this.GetNativeType(ParamTypes[j]));
+						}
+					}
+					GtMethod NativeMethod = new GtMethod(MethodFlag, MethodName, 0, TypeList, List[i]);
+					this.Context.DefineMethod(NativeMethod);
+					TransformedResult = false;
 				}
 			}
 		}
