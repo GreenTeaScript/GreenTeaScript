@@ -390,11 +390,11 @@ class TypeResolver {
 	String globalType = Type.getType(GtObject.class).getDescriptor();
 
 	public TypeResolver(GtContext Context) {
-		this.typeDescriptorMap.put("global", Type.getType(GtObject.class).getDescriptor());
+		this.typeDescriptorMap.put("global", globalType);
 		this.typeDescriptorMap.put(Context.VoidType.ShortClassName, Type.getType(void.class).getDescriptor());
 		this.typeDescriptorMap.put(Context.BooleanType.ShortClassName, Type.getType(boolean.class).getDescriptor());
 		this.typeDescriptorMap.put(Context.IntType.ShortClassName, Type.getType(int.class).getDescriptor());
-		this.typeDescriptorMap.put(Context.ObjectType.ShortClassName, Type.getType(Object.class).getDescriptor());
+		//this.typeDescriptorMap.put(Context.ObjectType.ShortClassName, Type.getType(Object.class).getDescriptor());
 		this.typeDescriptorMap.put(Context.StringType.ShortClassName, Type.getType(String.class).getDescriptor());
 		// TODO: other class
 	}
@@ -972,7 +972,7 @@ class EmbeddedMethodDef extends GtStatic {
 
 	// Embedded GtType
 	final GtType VoidType;
-	final GtType ObjectType;
+	//final GtType ObjectType;
 	final GtType BooleanType;
 	final GtType IntType;
 	final GtType StringType;
@@ -1009,7 +1009,7 @@ class EmbeddedMethodDef extends GtStatic {
 		this.NMMap = NMMap;
 
 		this.VoidType = NameSpace.Context.VoidType;
-		this.ObjectType = NameSpace.Context.ObjectType;
+		//this.ObjectType = NameSpace.Context.ObjectType;
 		this.BooleanType = NameSpace.Context.BooleanType;
 		this.IntType = NameSpace.Context.IntType;
 		this.StringType = NameSpace.Context.StringType;
@@ -1030,7 +1030,7 @@ class EmbeddedMethodDef extends GtStatic {
 	}
 
 	GtType RegisterClass(int ClassFlag, String ClassName, Object DefaultNullValue) {
-		GtType newClass = new GtType(NameSpace.Context, ClassFlag, ClassName, DefaultNullValue);
+		GtType newClass = new GtType(NameSpace.Context, ClassFlag, ClassName, DefaultNullValue, null);
 		NameSpace.DefineClass(newClass);
 		return newClass;
 	}
