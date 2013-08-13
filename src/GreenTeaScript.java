@@ -2379,13 +2379,12 @@ final class DScriptGrammar extends GtGrammar {
 
 	// While Statement
 	public static GtSyntaxTree ParseWhile(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
-		/*local*/GtToken Token = TokenContext.GetMatchedToken("while");
-		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
-		NewTree.SetMatchedTokenAt(NoWhere, TokenContext, "(", Required);
-		NewTree.SetMatchedPatternAt(WhileCond, TokenContext, "$Expression$", Required);
-		NewTree.SetMatchedTokenAt(NoWhere, TokenContext, ")", Required);
-		NewTree.SetMatchedPatternAt(WhileBody, TokenContext, "$Block$", Required);
-		return NewTree;
+		/*local*/GtSyntaxTree WhileTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("while"), null);
+		WhileTree.SetMatchedTokenAt(NoWhere, TokenContext, "(", Required);
+		WhileTree.SetMatchedPatternAt(WhileCond, TokenContext, "$Expression$", Required);
+		WhileTree.SetMatchedTokenAt(NoWhere, TokenContext, ")", Required);
+		WhileTree.SetMatchedPatternAt(WhileBody, TokenContext, "$Block$", Required);
+		return WhileTree;
 	}
 
 	public static GtNode TypeWhile(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
