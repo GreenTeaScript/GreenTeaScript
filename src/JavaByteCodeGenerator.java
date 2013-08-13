@@ -405,8 +405,8 @@ class TypeResolver {
 		if(descriptor != null) {
 			return descriptor;
 		}
-		if(type.LocalSpec != null) { //HostedClassInfo -> LocalSpec
-			return Type.getDescriptor((Class) type.LocalSpec); //HostedClassInfo -> LocalSpec
+		if(type.NativeSpec != null) { //HostedClassInfo -> NativeSpec
+			return Type.getDescriptor((Class) type.NativeSpec); //HostedClassInfo -> NativeSpec
 		}
 		else {
 			return "L" + type.ShortClassName + ";";//FIXME
@@ -1230,11 +1230,11 @@ class ShellConverter {
 //		return Method;
 //	}
 //}
-//if(GtContext.Generator.CreateMethods(this.LocalSpec, MethodName)) {
+//if(GtContext.Generator.CreateMethods(this.NativeSpec, MethodName)) {
 //	return this.LookupMethod(MethodName, ParamSize);
 //}
 //ifdef JAVA
-//if(this.LocalSpec instanceof Class) {
+//if(this.NativeSpec instanceof Class) {
 //	if(this.CreateMethods(MethodName) > 0) {
 //		return this.FindMethod(MethodName, ParamSize);
 //	}
@@ -1265,7 +1265,7 @@ class ShellConverter {
 //
 //public GtType(GtContext GtContext, Class<?> ClassInfo) {
 //this(GtContext, 0, ClassInfo.getSimpleName(), null);
-//this.LocalSpec = ClassInfo;
+//this.NativeSpec = ClassInfo;
 //// this.ClassFlag = ClassFlag;
 //Class<?> SuperClass = ClassInfo.getSuperclass();
 //if(ClassInfo != Object.class && SuperClass != null) {
@@ -1291,7 +1291,7 @@ class ShellConverter {
 //
 //int CreateMethods(String MethodName) {
 //int Count = 0;
-//Method[] Methods = ((Class<?>)this.LocalSpec).getMethods();
+//Method[] Methods = ((Class<?>)this.NativeSpec).getMethods();
 //for(int i = 0; i < Methods.length; i++) {
 //	if(MethodName.equals(Methods[i].getName())) {
 //		GtType.ConvertMethod(this.GtContext, Methods[i]);

@@ -2640,12 +2640,12 @@ final class DScriptGrammar extends GtGrammar {
 			int ParseFlag = TokenContext.ParseFlag;
 			TokenContext.ParseFlag = ParseFlag | BackTrackParseFlag | SkipIndentParseFlag;
 			while(!Tree.IsEmptyOrError() && !TokenContext.MatchToken("}")) {
-				/*local*/GtSyntaxTree FuncDecl = TokenContext.ParsePatternAfter(ClassNameTree, "$FuncDecl$", Optional);
+				/*local*/GtSyntaxTree FuncDecl = TokenContext.ParsePattern("$FuncDecl$", Optional);
 				if(FuncDecl != null) {
 					Tree.SetSyntaxTreeAt(i, FuncDecl);
 					i = i + 1;
 				}
-				/*local*/GtSyntaxTree VarDecl = TokenContext.ParsePatternAfter(ClassNameTree, "$VarDecl$", Optional);
+				/*local*/GtSyntaxTree VarDecl = TokenContext.ParsePattern("$VarDecl$", Optional);
 				if(VarDecl != null) {
 					Tree.SetSyntaxTreeAt(i, VarDecl);
 					TokenContext.MatchToken(";");
@@ -2715,16 +2715,16 @@ final class DScriptGrammar extends GtGrammar {
 				}
 				FieldTree.TreeList = NewTreeList;
 			}
-			/*local*/GtNode BodyNode = Gamma.TypeCheck(FieldTree, Gamma.AnyType, IgnoreEmptyPolicy);
+			///*local*/GtNode BodyNode = Gamma.TypeCheck(FieldTree, Gamma.AnyType, IgnoreEmptyPolicy);
 //			if(BodyNode instanceof LetNode) {
 //				//LangDeps.println(BodyNode.toString());
 //				/*local*/LetNode Field = (/*cast*/LetNode)BodyNode;
 //			}
 			// FIXME we need to rewrite method definition
 			// T0 f(T1 arg) {} => T0 f(T this, T1 arg) {}
-			if(BodyNode instanceof GtNode) {
-				// add this
-			}
+//			if(BodyNode instanceof GtNode) {
+//				// add this
+//			}
 			FieldOffset += 1;
 		}
 		Gamma.NameSpace.DefineClass(NewType);
