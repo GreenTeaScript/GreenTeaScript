@@ -9,7 +9,7 @@ class JavaScriptSourceGenerator extends SourceGenerator {
 
 	UseLetKeyword: boolean;
 
-	public DefineFunction(Method: GtMethod, NameList: Array<string>, Body: GtNode): void {
+	public GenerateMethod(Method: GtMethod, NameList: Array<string>, Body: GtNode): void {
 		var ArgCount: number = Method.Types.length - 1;
 		var Code: string = "var " + Method.GetLocalFuncName() + " = (function(";
 		var i: number = 0;
@@ -81,7 +81,7 @@ class JavaScriptSourceGenerator extends SourceGenerator {
 	}
 
 	public VisitIndexerNode(Node: IndexerNode): void {
-		Node.Indexer.Evaluate(this);
+		Node.IndexAt.Evaluate(this);
 		Node.Expr.Evaluate(this);
 		this.PushSourceCode(this.PopSourceCode() + "." + Node.Token.ParsedText + "[" +this.PopSourceCode() + "]");
 	}

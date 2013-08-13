@@ -2,7 +2,6 @@
 
 
 /* language */
-
 // Generator: GreenTeabe: shouldin: writtenlanguage: each. //
 
 class GtNode {
@@ -73,6 +72,61 @@ class GtNode {
 	}
 }
 
+class ConstNode extends GtNode {
+	public ConstValue: Object;
+	constructor(Type: GtType, Token: GtToken, ConstValue: Object) {
+		super(Type, Token);
+		this.ConstValue = ConstValue;
+	}
+	public Evaluate(Visitor: GtGenerator): void {
+		Visitor.VisitConstNode(this);
+	}
+	public toString(): string {
+		return "(Const:" + this.Type + " "+ this.ConstValue.toString() + ")";
+	}
+}
+
+class LocalNode extends GtNode {
+	public LocalName: string;
+	constructor(Type: GtType, Token: GtToken, LocalName: string) {
+		super(Type, Token);
+		this.LocalName = LocalName;
+	}
+	public Evaluate(Visitor: GtGenerator): void {
+		Visitor.VisitLocalNode(this);
+	}
+	public toString(): string {
+		return "(Local:" + this.Type + " " + this.LocalName + ")";
+	}
+}
+
+class NullNode extends GtNode {
+	constructor(Type: GtType, Token: GtToken) {
+		super(Type, Token);
+	}
+	public Evaluate(Visitor: GtGenerator): void {
+		Visitor.VisitNullNode(this);
+	}
+	public toString(): string {
+		return "(Null:" + this.Type + " " + ")";
+	}
+}
+
+// E.g., "~" $Expr //
+class CastNode extends GtNode {
+	public Method: GtMethod;
+	public CastType: GtType;
+	public Expr: GtNode;
+	constructor(Type: GtType, Token: GtToken, CastType: GtType, Expr: GtNode) {
+		super(Type, Token);
+		this.CastType = CastType;
+		this.Expr = Expr;
+	}
+	public Evaluate(Visitor: GtGenerator): void {
+		Visitor.VisitCastNode(this);
+	}
+}
+
 //  E.g., "~" $Expr //
 class UnaryNode extends GtNode {
 	public Method: GtMethod;
@@ -98,6 +152,68 @@ class SuffixNode extends GtNode {
 	}
 	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitSuffixNode(this);
+	}
+}
+
+// E.g., "exists" $Expr //
+class ExistsNode extends GtNode {
+	public Method: GtMethod;
+	public Expr: GtNode;
+	constructor(Type: GtType, Token: GtToken, Method: GtMethod, Expr: GtNode) {
+		super(Type, Token);
+		this.Method = Method;
+		this.Expr = Expr;
+	}
+	public Evaluate(Visitor: GtGenerator): void {
+		Visitor.VisitExistsNode(this);
+	}
+}
+
+// E.g., $LeftNode = $RightNode //
+class AssignNode extends GtNode {
+	public LeftNode: GtNode;
+	public RightNode: GtNode;
+	constructor(Type: GtType, Token: GtToken, Left: GtNode, Right: GtNode) {
+		super(Type, Token);
+		this.LeftNode  = Left;
+		this.RightNode = Right;
+	}
+	public Evaluate(Visitor: GtGenerator): void {
+		Visitor.VisitAssignNode(this);
+	}
+	public toString(): string {
+		return "(Assign:" + this.Type + " " + GtNode.Stringify(this.LeftNode) + " = " + GtNode.Stringify(this.RightNode) + ")";
+	}
+}
+
+// E.g., $LeftNode += $RightNode //
+class SelfAssignNode extends GtNode {
+	public LeftNode: GtNode;
+	public RightNode: GtNode;
+	constructor(Type: GtType, Token: GtToken, Left: GtNode, Right: GtNode) {
+		super(Type, Token);
+		this.LeftNode  = Left;
+		this.RightNode = Right;
+	}
+	public Evaluate(Visitor: GtGenerator): void {
+		Visitor.VisitSelfAssignNode(this);
+	}
+	public toString(): string {
+		return "(Assign:" + this.Type + " " + GtNode.Stringify(this.LeftNode) + " = " + GtNode.Stringify(this.RightNode) + ")";
+	}
+}
+
+// E.g., $LeftNode || $RightNode //
+class InstanceOfNode extends GtNode {
+	public ExprNode: GtNode;
+	public TypeInfo: GtType;
+	constructor(Type: GtType, Token: GtToken, ExprNode: GtNode, TypeInfo: GtType) {
+		super(Type, Token);
+		this.ExprNode = ExprNode;
+		this.TypeInfo = TypeInfo;
+	}
+	public Evaluate(Visitor: GtGenerator): void {
+		Visitor.VisitInstanceOfNode(this);
 	}
 }
 
@@ -151,7 +267,24 @@ class OrNode extends GtNode {
 	}
 }
 
-// E.g., $LeftNode || $RightNode //
+// E.g., $CondExpr "?" $ThenExpr ":" $ElseExpr //
+class TrinaryNode extends GtNode {
+	public Method: GtMethod;
+	public CondExpr: GtNode;
+	public ThenExpr: GtNode;
+	public ElseExpr: GtNode;
+	constructor(Type: GtType, Token: GtToken, CondExpr: GtNode, ThenExpr: GtNode, ElseExpr: GtNode) {
+		super(Type, Token);
+		this.CondExpr = CondExpr;
+		this.ThenExpr = ThenExpr;
+		this.ElseExpr = ElseExpr;
+	}
+	public Evaluate(Visitor: GtGenerator): void {
+		Visitor.VisitTrinaryNode(this);
+	}
+}
+
+// E.g., $Expr . Token.ParsedText //
 class GetterNode extends GtNode {
 	public Expr: GtNode;
 	public Method: GtMethod;
@@ -172,75 +305,39 @@ class GetterNode extends GtNode {
 class IndexerNode extends GtNode {
 	public Method: GtMethod;
 	public Expr: GtNode;
-	public Indexer: GtNode;
-	constructor(Type: GtType, Token: GtToken, Method: GtMethod, Expr: GtNode, Indexer: GtNode) {
+	public IndexAt: GtNode;
+	constructor(Type: GtType, Token: GtToken, Method: GtMethod, Expr: GtNode, IndexAt: GtNode) {
 		super(Type, Token);
 		this.Method = Method;
 		this.Expr = Expr;
-		this.Indexer = Indexer;
+		this.IndexAt = IndexAt;
 	}
 	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitIndexerNode(this);
 	}
 	public toString(): string {
-		return "(Index:" + this.Type + " " + GtNode.Stringify(this.Expr) + ", " + GtNode.Stringify(this.Indexer) + ")";
+		return "(Index:" + this.Type + " " + GtNode.Stringify(this.Expr) + ", " + GtNode.Stringify(this.IndexAt) + ")";
 	}
 }
 
-// E.g., $LeftNode = $RightNode //
-class AssignNode extends GtNode {
-	public LeftNode: GtNode;
-	public RightNode: GtNode;
-	constructor(Type: GtType, Token: GtToken, Left: GtNode, Right: GtNode) {
+// E.g., $Expr "[" $Index ":" $Index2 "]" //
+class SliceNode extends GtNode {
+	public Method: GtMethod;
+	public Expr: GtNode;
+	public Index1: GtNode;
+	public Index2: GtNode;
+	constructor(Type: GtType, Token: GtToken, Method: GtMethod, Expr: GtNode, Index1: GtNode, Index2: GtNode) {
 		super(Type, Token);
-		this.LeftNode  = Left;
-		this.RightNode = Right;
+		this.Method = Method;
+		this.Expr = Expr;
+		this.Index1 = Index1;
+		this.Index2 = Index2;
 	}
 	public Evaluate(Visitor: GtGenerator): void {
-		Visitor.VisitAssignNode(this);
+		Visitor.VisitSliceNode(this);
 	}
 	public toString(): string {
-		return "(Assign:" + this.Type + " " + GtNode.Stringify(this.LeftNode) + " = " + GtNode.Stringify(this.RightNode) + ")";
-	}
-}
-
-class ConstNode extends GtNode {
-	public ConstValue: Object;
-	constructor(Type: GtType, Token: GtToken, ConstValue: Object) {
-		super(Type, Token);
-		this.ConstValue = ConstValue;
-	}
-	public Evaluate(Visitor: GtGenerator): void {
-		Visitor.VisitConstNode(this);
-	}
-	public toString(): string {
-		return "(Const:" + this.Type + " "+ this.ConstValue.toString() + ")";
-	}
-}
-
-class LocalNode extends GtNode {
-	public LocalName: string;
-	constructor(Type: GtType, Token: GtToken, LocalName: string) {
-		super(Type, Token);
-		this.LocalName = LocalName;
-	}
-	public Evaluate(Visitor: GtGenerator): void {
-		Visitor.VisitLocalNode(this);
-	}
-	public toString(): string {
-		return "(Local:" + this.Type + " " + this.LocalName + ")";
-	}
-}
-
-class NullNode extends GtNode {
-	constructor(Type: GtType, Token: GtToken) {
-		super(Type, Token);
-	}
-	public Evaluate(Visitor: GtGenerator): void {
-		Visitor.VisitNullNode(this);
-	}
-	public toString(): string {
-		return "(Null:" + this.Type + " " + ")";
+		return "(Index:" + this.Type + " " + GtNode.Stringify(this.Expr) + ", " + GtNode.Stringify(this.Index1) + ")";
 	}
 }
 
@@ -558,16 +655,12 @@ class TryNode extends GtNode {
 	TryBlock: GtNode;
 	CatchBlock: GtNode;
 	FinallyBlock: GtNode;
-	constructor(Type: GtType, Token: GtToken, TryBlock: GtNode, FinallyBlock: GtNode) {
+	constructor(Type: GtType, Token: GtToken, TryBlock: GtNode, CatchBlock: GtNode, FinallyBlock: GtNode) {
 		super(Type, Token);
 		this.TryBlock = TryBlock;
+		this.CatchBlock = <LetNode>CatchBlock;
 		this.FinallyBlock = FinallyBlock;
-		this.CatchBlock = null;
 	}
-	// public addCatchBlock(TargetException: TypedNode, CatchBlock: TypedNode): void { //FIXME //
-	// 	this.TargetException.add(TargetException); //
-	// 	this.CatchBlock.add(CatchBlock); //
-	// } //
 	public Evaluate(Visitor: GtGenerator): void {
 		Visitor.VisitTryNode(this);
 	}
@@ -706,6 +799,10 @@ class GtType {
 
 	public toString(): string {
 		return this.ShortClassName;
+	}
+	
+	 GetSignature(): string {
+		return NumberToAscii(this.ClassId);
 	}
 
 	 Accept(Type: GtType): boolean {
@@ -945,8 +1042,8 @@ class GtGenerator {
 		return new ContinueNode(Type, ParsedTree.KeyToken, Label);
 	}
 
-	public CreateTryNode(Type: GtType, ParsedTree: GtSyntaxTree, TryBlock: GtNode, FinallyBlock: GtNode): GtNode {
-		return new TryNode(Type, ParsedTree.KeyToken, TryBlock, FinallyBlock);
+	public CreateTryNode(Type: GtType, ParsedTree: GtSyntaxTree, TryBlock: GtNode, CatchNode: GtNode, FinallyBlock: GtNode): GtNode {
+		return new TryNode(Type, ParsedTree.KeyToken, TryBlock, CatchNode, FinallyBlock);
 	}
 
 	public CreateThrowNode(Type: GtType, ParsedTree: GtSyntaxTree, Node: GtNode): GtNode {
@@ -957,12 +1054,8 @@ class GtGenerator {
 		return null;
 	}
 
-	public CreateDefineNode(Type: GtType, ParsedTree: GtSyntaxTree, Module: Object): GtNode {
-		return null;
-	}
-
-	public CreateEmptyNode(Type: GtType, ParsedTree: GtSyntaxTree): GtNode {
-		return new GtNode(ParsedTree.NameSpace.Context.VoidType, ParsedTree.KeyToken);
+	public CreateEmptyNode(Type: GtType): GtNode {
+		return new GtNode(Type, GtTokenContext.NullToken);
 	}
 
 	public CreateErrorNode(Type: GtType, ParsedTree: GtSyntaxTree): GtNode {
@@ -1002,35 +1095,59 @@ class GtGenerator {
 		console.log("DEBUG: " + "node: empty: " + EmptyNode.Token.ParsedText);
 	}
 
-	public VisitSuffixNode(SuffixNode: SuffixNode): void {
+	public VisitInstanceOfNode(Node: InstanceOfNode): void {
+		/*extention*/
+	}
+
+	public VisitSelfAssignNode(Node: SelfAssignNode): void {
+		/*extention*/
+	}
+
+	public VisitTrinaryNode(Node: TrinaryNode): void {
 		/*extension*/
 	}
 
-	public VisitUnaryNode(UnaryNode: UnaryNode): void {
+	public VisitExistsNode(Node: ExistsNode): void {
 		/*extension*/
 	}
 
-	public VisitIndexerNode(IndexerNode: IndexerNode): void {
+	public VisitCastNode(Node: CastNode): void {
 		/*extension*/
 	}
 
-	public VisitMessageNode(MessageNode: MessageNode): void {
+	public VisitSliceNode(Node: SliceNode): void {
 		/*extension*/
 	}
 
-	public VisitWhileNode(WhileNode: WhileNode): void {
+	public VisitSuffixNode(Node: SuffixNode): void {
 		/*extension*/
 	}
 
-	public VisitDoWhileNode(DoWhileNode: DoWhileNode): void {
+	public VisitUnaryNode(Node: UnaryNode): void {
 		/*extension*/
 	}
 
-	public VisitForNode(ForNode: ForNode): void {
+	public VisitIndexerNode(Node: IndexerNode): void {
 		/*extension*/
 	}
 
-	public VisitForEachNode(ForEachNode: ForEachNode): void {
+	public VisitMessageNode(Node: MessageNode): void {
+		/*extension*/
+	}
+
+	public VisitWhileNode(Node: WhileNode): void {
+		/*extension*/
+	}
+
+	public VisitDoWhileNode(Node: DoWhileNode): void {
+		/*extension*/
+	}
+
+	public VisitForNode(Node: ForNode): void {
+		/*extension*/
+	}
+
+	public VisitForEachNode(Node: ForEachNode): void {
 		/*extension*/
 	}
 
@@ -1135,8 +1252,12 @@ class GtGenerator {
 	}
 
 	// must: Thisextended: beeach: language: in //
-	public DefineFunction(Method: GtMethod, ParamNameList: Array<string>, Body: GtNode): void {
+	public GenerateMethod(Method: GtMethod, ParamNameList: Array<string>, Body: GtNode): void {
 		/*extenstion*/
+	}
+
+	public IsStrictMode(): boolean {
+		return true; /*this: override */
 	}
 
 	public Eval(Node: GtNode): Object {
@@ -1146,6 +1267,10 @@ class GtGenerator {
 
 	public AddClass(Type: GtType): void {
 		/*extension*/
+	}
+
+	public BlockComment(Comment: string): string {
+		return "/*" + Comment + "*/";
 	}
 
 	 PushCode(Code: Object): void{

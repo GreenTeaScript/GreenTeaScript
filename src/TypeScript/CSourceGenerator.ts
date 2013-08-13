@@ -65,7 +65,7 @@ class CSourceGenerator extends SourceGenerator {
 	}
 
 	public VisitIndexerNode(Node: IndexerNode): void {
-		Node.Indexer.Evaluate(this);
+		Node.IndexAt.Evaluate(this);
 		Node.Expr.Evaluate(this);
 		this.PushSourceCode(this.PopSourceCode() + "[" + this.PopSourceCode() + "]");
 	}
@@ -352,7 +352,7 @@ class CSourceGenerator extends SourceGenerator {
 		return Type.ShortClassName;
 	}
 
-	public DefineFunction(Method: GtMethod, ParamNameList: Array<string>, Body: GtNode): void {
+	public GenerateMethod(Method: GtMethod, ParamNameList: Array<string>, Body: GtNode): void {
 		var Code: string = "";
 		if(!Method.Is(ExportMethod)) {
 			Code = "static ";

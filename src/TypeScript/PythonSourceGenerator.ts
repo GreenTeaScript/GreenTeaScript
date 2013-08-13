@@ -39,7 +39,7 @@ class PythonSourceGenerator extends SourceGenerator {
 	}
 
 	public VisitIndexerNode(Node: IndexerNode): void {
-		Node.Indexer.Evaluate(this);
+		Node.IndexAt.Evaluate(this);
 		Node.Expr.Evaluate(this);
 		this.PushSourceCode(this.PopSourceCode() + "[" + this.PopSourceCode() + "]");
 	}
@@ -354,7 +354,7 @@ class PythonSourceGenerator extends SourceGenerator {
 		return Code;
 	}
 
-	public DefineFunction(Method: GtMethod, ParamNameList: Array<string>, Body: GtNode): void {
+	public GenerateMethod(Method: GtMethod, ParamNameList: Array<string>, Body: GtNode): void {
 		var Function: string = "def ";
 		Function += Method.MethodName + "(";
 		var i: number = 0;

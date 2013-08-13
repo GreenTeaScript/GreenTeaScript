@@ -244,11 +244,7 @@ interface GtConst {
 	public final static ArrayList<String> SymbolList = new ArrayList<String>();
 	public final static GtMap   SymbolMap  = new GtMap();
 
-	// TestFlags (temporary)
-	static final int TestTokenizer = 1 << 0;
-	static final int TestParseOnly = 1 << 1;
-	static final int TestTypeChecker = 1 << 2;
-	static final int TestCodeGeneration = 1 << 3;
+	public final static String[] ShellGrammarReservedKeywords = {"true", "false", "as", "if"};
 
 //ifdef JAVA
 }
@@ -2143,8 +2139,8 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	public static GtNode TypeCast(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		GtType CastType = (/*GtType*/GtType)ParsedTree.GetSyntaxTreeAt(LeftHandTerm).ConstValue;
-		int TypeCheckPolicy = CastPolicy;
+		/*local*/GtType CastType = (/*cast*/GtType)ParsedTree.GetSyntaxTreeAt(LeftHandTerm).ConstValue;
+		/*local*/int TypeCheckPolicy = CastPolicy;
 		return ParsedTree.TypeCheckNodeAt(RightHandTerm, Gamma, CastType, TypeCheckPolicy);
 	}
 
@@ -2172,6 +2168,9 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/ArrayList<GtNode> NodeList = new ArrayList<GtNode>();
 		/*local*/int ParamIndex = 1;
 		/*local*/int ParamSize = ListSize(ParsedTree.TreeList) - 1;
+		if(FuncNode.IsError()) {
+			return FuncNode;
+		}
 		if(FuncNode instanceof GetterNode) {
 			GtNode BaseNode = ((/*cast*/GetterNode)FuncNode).Expr;
 			NodeList.add(BaseNode);
@@ -2570,12 +2569,12 @@ final class DScriptGrammar extends GtGrammar {
 			MethodFlag |= AbstractMethod;
 		}
 		if(MethodName.equals("converter")) {
-			Method = CreateConverterMethod(Gamma, ParsedTree, MethodFlag, TypeList);
+			Method = DScriptGrammar.CreateConverterMethod(Gamma, ParsedTree, MethodFlag, TypeList);
 		}
 		else {
-			Method = CreateMethod(Gamma, ParsedTree, MethodFlag, MethodName, TypeList, NativeMacro);
+			Method = DScriptGrammar.CreateMethod(Gamma, ParsedTree, MethodFlag, MethodName, TypeList, NativeMacro);
 		}
-		if(Method != null && ParsedTree.HasNodeAt(FuncDeclBlock)) {
+		if(Method != null && NativeMacro == null && ParsedTree.HasNodeAt(FuncDeclBlock)) {
 			/*local*/GtNode BodyNode = ParsedTree.TypeCheckNodeAt(FuncDeclBlock, Gamma, ReturnType, IgnoreEmptyPolicy);
 			Gamma.Generator.GenerateMethod(Method, ParamNameList, BodyNode);
 		}
@@ -2779,8 +2778,13 @@ final class DScriptGrammar extends GtGrammar {
 		}
 		String Symbol = SourceText.substring(start, pos);
 		
-		if(Symbol.equals("true") || Symbol.equals("false")) {
-			return GtStatic.NoMatch;
+		/*local*/int i = 0;
+		while(i < 0) {
+			/*local*/String Keyword = ShellGrammarReservedKeywords[i];
+			if(Symbol.equals(Keyword)) {
+				return GtStatic.NoMatch;
+			}
+			i = i + 1;
 		}
 		if(Symbol.startsWith("/") || Symbol.startsWith("-")) {
 			if(Symbol.startsWith("//")) { // One-Line Comment
@@ -3168,7 +3172,7 @@ final class GtContext extends GtStatic {
 	}
 
 	public GtMethod GetConverterMethod(GtType FromType, GtType ToType, boolean RecursiveSearch) {
-		String Key = ConverterName(FromType, ToType);
+		String Key = this.ConverterName(FromType, ToType);
 		Object Method = this.UniqueMethodMap.get(Key);
 		if(Method != null) {
 			return (/*cast*/GtMethod)Method;
@@ -3180,7 +3184,7 @@ final class GtContext extends GtStatic {
 	}
 
 	public GtMethod GetWrapperMethod(GtType FromType, GtType ToType, boolean RecursiveSearch) {
-		/*local*/String Key = WrapperName(FromType, ToType);
+		/*local*/String Key = this.WrapperName(FromType, ToType);
 		/*local*/Object Method = this.UniqueMethodMap.get(Key);
 		if(Method != null) {
 			return (/*cast*/GtMethod)Method;
@@ -3192,12 +3196,12 @@ final class GtContext extends GtStatic {
 	}
 
 	public GtMethod GetCastMethod(GtType FromType, GtType ToType, boolean RecursiveSearch) {
-		/*local*/String Key = WrapperName(FromType, ToType);
+		/*local*/String Key = this.WrapperName(FromType, ToType);
 		/*local*/Object Method = this.UniqueMethodMap.get(Key);
 		if(Method != null) {
 			return (/*cast*/GtMethod)Method;
 		}
-		Key = ConverterName(FromType, ToType);
+		Key = this.ConverterName(FromType, ToType);
 		Method = this.UniqueMethodMap.get(Key);
 		if(Method != null) {
 			return (/*cast*/GtMethod)Method;
@@ -3209,12 +3213,12 @@ final class GtContext extends GtStatic {
 	}
 
 	public final void DefineConverterMethod(GtMethod Method) {
-		/*local*/String Key = ConverterName(Method.GetRecvType(), Method.GetReturnType());
+		/*local*/String Key = this.ConverterName(Method.GetRecvType(), Method.GetReturnType());
 		this.UniqueMethodMap.put(Key, Method);
 	}
 
 	public final void DefineWrapperMethod(GtMethod Method) {
-		/*local*/String Key = WrapperName(Method.GetRecvType(), Method.GetReturnType());
+		/*local*/String Key = this.WrapperName(Method.GetRecvType(), Method.GetReturnType());
 		this.UniqueMethodMap.put(Key, Method);
 	}
 	
@@ -3222,11 +3226,6 @@ final class GtContext extends GtStatic {
 
 public class GreenTeaScript extends GtStatic {
 	public final static void main(String[] Args) {
-		int N = 0;
-		Args = new String[2];
-		Args[N++] = "--c";
-		Args[N++] = "/Users/masa/GreenTeaScript/test/0005-MethodCall.green";
-
 		/*local*/String CodeGeneratorName = "--java";
 		/*local*/int Index = 0;
 		/*local*/String OneLiner = null;

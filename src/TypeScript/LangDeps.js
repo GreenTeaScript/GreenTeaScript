@@ -1,3 +1,4 @@
+/// <reference path="SourceGenerator.ts" />
 Array.prototype.size = function () {
     return this.length;
 };
@@ -81,6 +82,7 @@ var LangDeps = (function () {
     };
 
     LangDeps.GetStackInfo = function (depth) {
+        // TODO
         return " ";
     };
 
@@ -108,6 +110,7 @@ var LangDeps = (function () {
     };
 
     LangDeps.ParseInt = function (Text) {
+        //return number.parseInt(Text);
         return Text - 0;
     };
 

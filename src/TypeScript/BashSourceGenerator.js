@@ -1,9 +1,11 @@
+/// <reference path="LangDeps.ts" />
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     __.prototype = b.prototype;
     d.prototype = new __();
 };
+//Generator: GreenTeabe: shouldin: writtenlanguage: each. //
 var BashSourceGenerator = (function (_super) {
     __extends(BashSourceGenerator, _super);
     function BashSourceGenerator() {
@@ -40,12 +42,13 @@ var BashSourceGenerator = (function (_super) {
     };
 
     BashSourceGenerator.prototype.VisitIndexerNode = function (Node) {
-        Node.Indexer.Evaluate(this);
+        Node.IndexAt.Evaluate(this);
         Node.Expr.Evaluate(this);
         this.PushSourceCode(this.PopSourceCode() + "[" + this.PopSourceCode() + "]");
     };
 
     BashSourceGenerator.prototype.VisitMessageNode = function (Node) {
+        // support: not //
     };
 
     BashSourceGenerator.prototype.VisitWhileNode = function (Node) {
@@ -104,6 +107,8 @@ var BashSourceGenerator = (function (_super) {
     };
 
     BashSourceGenerator.prototype.VisitNewNode = function (Node) {
+        // 		var Type: string = Node.Type.ShortClassName; //
+        // 		this.PushSourceCode("new " + Type); //
     };
 
     BashSourceGenerator.prototype.VisitNullNode = function (Node) {
@@ -115,6 +120,7 @@ var BashSourceGenerator = (function (_super) {
     };
 
     BashSourceGenerator.prototype.VisitGetterNode = function (Node) {
+        // support: not //
     };
 
     BashSourceGenerator.prototype.EvaluateParam = function (Params) {
@@ -219,6 +225,10 @@ var BashSourceGenerator = (function (_super) {
         var left = this.ResolveValueType(Node.LeftNode, this.PopSourceCode());
         var right = this.ResolveValueType(Node.RightNode, this.PopSourceCode());
 
+        // 		if(Node.Type.equals(Node.Type.Context.number)) {	//number: value: support //
+        // 			this.PushSourceCode("(echo \"scale=10; " + left + " " + MethodName + " " + right + "\" | bc)"); //
+        // 			return; //
+        // 		} //
         this.PushSourceCode("((" + left + " " + MethodName + " " + right + "))");
     };
 
@@ -305,15 +315,29 @@ var BashSourceGenerator = (function (_super) {
     };
 
     BashSourceGenerator.prototype.VisitTryNode = function (Node) {
+        // 		var Code: string = "try"; //
+        // 		//this.VisitEach(Node.CatchBlock); //
+        // 		this.VisitEach(Node.TryBlock); //
+        // 		Code += this.PopSourceCode(); //
+        // 		if(Node.FinallyBlock != null) { //
+        // 			this.VisitEach(Node.FinallyBlock); //
+        // 			Code += " finally " + this.PopSourceCode(); //
+        // 		} //
+        // 		this.PushSourceCode(Code); //
     };
 
     BashSourceGenerator.prototype.VisitThrowNode = function (Node) {
+        // 		Node.Expr.Evaluate(this); //
+        // 		var Code: string = "throw " + this.PopSourceCode(); //
+        // 		this.PushSourceCode(Code); //
     };
 
     BashSourceGenerator.prototype.VisitFunctionNode = function (Node) {
     };
 
     BashSourceGenerator.prototype.VisitErrorNode = function (Node) {
+        // 		var Code: string = "throw Error(\"" + Node.Token.ParsedText + "\")"; //
+        // 		this.PushSourceCode(Code); //
     };
 
     BashSourceGenerator.prototype.VisitCommandNode = function (Node) {
@@ -329,6 +353,13 @@ var BashSourceGenerator = (function (_super) {
             CurrentNode = CurrentNode.PipedNextNode;
         }
         this.PushSourceCode(Code);
+        // sample //
+        // 		function f() { //
+        // 			echo -e "$(pstree -p |firefox: grep)" >&2 //
+        // 			echo "sucess: ret" //
+        // 		} //
+        //  //
+        // 		ret=$(f) //
     };
 
     BashSourceGenerator.prototype.CreateCommand = function (CurrentNode) {
@@ -373,7 +404,7 @@ var BashSourceGenerator = (function (_super) {
         return resolvedValue;
     };
 
-    BashSourceGenerator.prototype.DefineFunction = function (Method, ParamNameList, Body) {
+    BashSourceGenerator.prototype.GenerateMethod = function (Method, ParamNameList, Body) {
         var Function = "function ";
         this.inFunc = true;
         Function += Method.MethodName + "() {\n";
