@@ -75,23 +75,6 @@ class GtNode extends GtStatic {
 	}
 }
 
-//E.g., $LeftNode = $RightNode
-class AssignNode extends GtNode {
-	/*field*/public GtNode   LeftNode;
-	/*field*/public GtNode	RightNode;
-	AssignNode/*constructor*/(GtType Type, GtToken Token, GtNode Left, GtNode Right) {
-		super(Type, Token);
-		this.LeftNode  = Left;
-		this.RightNode = Right;
-	}
-	@Override public void Evaluate(GtGenerator Visitor) {
-		Visitor.VisitAssignNode(this);
-	}
-	@Override public String toString() {
-		return "(Assign:" + this.Type + " " + GtNode.Stringify(this.LeftNode) + " = " + GtNode.Stringify(this.RightNode) + ")";
-	}
-}
-
 class ConstNode extends GtNode {
 	/*field*/public Object	ConstValue;
 	ConstNode/*constructor*/(GtType Type, GtToken Token, Object ConstValue) {
@@ -175,6 +158,68 @@ class SuffixNode extends GtNode {
 	}
 }
 
+//E.g., "exists" $Expr
+class ExistsNode extends GtNode {
+	/*field*/public GtMethod    Method;
+	/*field*/public GtNode	Expr;
+	ExistsNode/*constructor*/(GtType Type, GtToken Token, GtMethod Method, GtNode Expr) {
+		super(Type, Token);
+		this.Method = Method;
+		this.Expr = Expr;
+	}
+	@Override public void Evaluate(GtGenerator Visitor) {
+		Visitor.VisitExistsNode(this);
+	}
+}
+
+//E.g., $LeftNode = $RightNode
+class AssignNode extends GtNode {
+	/*field*/public GtNode   LeftNode;
+	/*field*/public GtNode	 RightNode;
+	AssignNode/*constructor*/(GtType Type, GtToken Token, GtNode Left, GtNode Right) {
+		super(Type, Token);
+		this.LeftNode  = Left;
+		this.RightNode = Right;
+	}
+	@Override public void Evaluate(GtGenerator Visitor) {
+		Visitor.VisitAssignNode(this);
+	}
+	@Override public String toString() {
+		return "(Assign:" + this.Type + " " + GtNode.Stringify(this.LeftNode) + " = " + GtNode.Stringify(this.RightNode) + ")";
+	}
+}
+
+//E.g., $LeftNode += $RightNode
+class SelfAssignNode extends GtNode {
+	/*field*/public GtNode   LeftNode;
+	/*field*/public GtNode	 RightNode;
+	SelfAssignNode/*constructor*/(GtType Type, GtToken Token, GtNode Left, GtNode Right) {
+		super(Type, Token);
+		this.LeftNode  = Left;
+		this.RightNode = Right;
+	}
+	@Override public void Evaluate(GtGenerator Visitor) {
+		Visitor.VisitSelfAssignNode(this);
+	}
+	@Override public String toString() {
+		return "(Assign:" + this.Type + " " + GtNode.Stringify(this.LeftNode) + " = " + GtNode.Stringify(this.RightNode) + ")";
+	}
+}
+
+//E.g., $LeftNode || $RightNode
+class InstanceOfNode extends GtNode {
+	/*field*/public GtNode   ExprNode;
+	/*field*/public GtType	 TypeInfo;
+	InstanceOfNode/*constructor*/(GtType Type, GtToken Token, GtNode ExprNode, GtType TypeInfo) {
+		super(Type, Token);
+		this.ExprNode = ExprNode;
+		this.TypeInfo = TypeInfo;
+	}
+	@Override public void Evaluate(GtGenerator Visitor) {
+		Visitor.VisitInstanceOfNode(this);
+	}
+}
+
 // E.g., $LeftNode "+" $RightNode
 class BinaryNode extends GtNode {
 	/*field*/public GtMethod    Method;
@@ -225,21 +270,7 @@ class OrNode extends GtNode {
 	}
 }
 
-//E.g., "exists" $Expr
-class ExistsNode extends GtNode {
-	/*field*/public GtMethod    Method;
-	/*field*/public GtNode	Expr;
-	ExistsNode/*constructor*/(GtType Type, GtToken Token, GtMethod Method, GtNode Expr) {
-		super(Type, Token);
-		this.Method = Method;
-		this.Expr = Expr;
-	}
-	@Override public void Evaluate(GtGenerator Visitor) {
-		Visitor.VisitExistsNode(this);
-	}
-}
-
-//E.g., "exists" $Expr
+//E.g., $CondExpr "?" $ThenExpr ":" $ElseExpr
 class TrinaryNode extends GtNode {
 	/*field*/public GtMethod    Method;
 	/*field*/public GtNode	CondExpr;
@@ -312,7 +343,6 @@ class SliceNode extends GtNode {
 		return "(Index:" + this.Type + " " + GtNode.Stringify(this.Expr) + ", " + GtNode.Stringify(this.Index1) + ")";
 	}
 }
-
 
 class LetNode extends GtNode {
 	/*field*/public GtType	DeclType;
@@ -1068,51 +1098,59 @@ class GtGenerator extends GtStatic {
 		GtStatic.DebugP("empty node: " + EmptyNode.Token.ParsedText);
 	}
 
-	public void VisitTrinaryNode(TrinaryNode trinaryNode) {
+	public void VisitInstanceOfNode(InstanceOfNode Node) {
+		/*extention*/
+	}
+
+	public void VisitSelfAssignNode(SelfAssignNode Node) {
+		/*extention*/
+	}
+
+	public void VisitTrinaryNode(TrinaryNode Node) {
 		/*extension*/
 	}
 
-	public void VisitExistsNode(ExistsNode existsNode) {
+	public void VisitExistsNode(ExistsNode Node) {
 		/*extension*/
 	}
 
-	public void VisitCastNode(CastNode castNode) {
+	public void VisitCastNode(CastNode Node) {
 		/*extension*/
 	}
 
-	public void VisitSliceNode(SliceNode sliceNode) {
+	public void VisitSliceNode(SliceNode Node) {
 		/*extension*/
 	}
 
-	public void VisitSuffixNode(SuffixNode SuffixNode) {
+	public void VisitSuffixNode(SuffixNode Node) {
 		/*extension*/
 	}
 
-	public void VisitUnaryNode(UnaryNode UnaryNode) {
+	public void VisitUnaryNode(UnaryNode Node) {
 		/*extension*/
 	}
 
-	public void VisitIndexerNode(IndexerNode IndexerNode) {
+	public void VisitIndexerNode(IndexerNode Node) {
 		/*extension*/
 	}
 
-	public void VisitMessageNode(MessageNode MessageNode) {
+	public void VisitMessageNode(MessageNode Node) {
 		/*extension*/
 	}
 
-	public void VisitWhileNode(WhileNode WhileNode) {
+	public void VisitWhileNode(WhileNode Node) {
 		/*extension*/
 	}
 
-	public void VisitDoWhileNode(DoWhileNode DoWhileNode) {
+	public void VisitDoWhileNode(DoWhileNode Node) {
 		/*extension*/
 	}
 
-	public void VisitForNode(ForNode ForNode) {
+	public void VisitForNode(ForNode Node) {
 		/*extension*/
 	}
 
-	public void VisitForEachNode(ForEachNode ForEachNode) {
+	public void VisitForEachNode(ForEachNode Node) {
 		/*extension*/
 	}
 
