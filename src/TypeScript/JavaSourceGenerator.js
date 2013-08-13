@@ -1,11 +1,9 @@
-/// <reference path="LangDeps.ts" />
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-//Generator: GreenTeabe: shouldin: writtenlanguage: each. //
 var JavaSourceGenerator = (function (_super) {
     __extends(JavaSourceGenerator, _super);
     function JavaSourceGenerator() {
@@ -58,7 +56,6 @@ var JavaSourceGenerator = (function (_super) {
     };
 
     JavaSourceGenerator.prototype.VisitMessageNode = function (Node) {
-        // Auto: TODO-generatedstub: method //
     };
 
     JavaSourceGenerator.prototype.VisitWhileNode = function (Node) {
@@ -90,7 +87,6 @@ var JavaSourceGenerator = (function (_super) {
     };
 
     JavaSourceGenerator.prototype.VisitForEachNode = function (Node) {
-        // Auto: TODO-generatedstub: method //
     };
 
     JavaSourceGenerator.prototype.VisitConstNode = function (Node) {
@@ -162,7 +158,6 @@ var JavaSourceGenerator = (function (_super) {
         Node.RightNode.Evaluate(this);
         Node.LeftNode.Evaluate(this);
 
-        /*TOO: FIXMEPARENTHESIS: MANY */
         this.PushSourceCode("(" + this.PopSourceCode() + " " + MethodName + " " + this.PopSourceCode() + ")");
     };
 
@@ -213,7 +208,6 @@ var JavaSourceGenerator = (function (_super) {
     };
 
     JavaSourceGenerator.prototype.VisitSwitchNode = function (Node) {
-        // Auto: TODO-generatedstub: method //
     };
 
     JavaSourceGenerator.prototype.VisitReturnNode = function (Node) {
@@ -256,7 +250,6 @@ var JavaSourceGenerator = (function (_super) {
     JavaSourceGenerator.prototype.VisitTryNode = function (Node) {
         var Code = "try";
 
-        // this.VisitEach(Node.CatchBlock); //
         this.VisitBlockEachStatementWithIndent(Node.TryBlock);
         Code += this.PopSourceCode();
         if (Node.FinallyBlock != null) {
@@ -273,7 +266,6 @@ var JavaSourceGenerator = (function (_super) {
     };
 
     JavaSourceGenerator.prototype.VisitFunctionNode = function (Node) {
-        // Auto: TODO-generatedstub: method //
     };
 
     JavaSourceGenerator.prototype.VisitErrorNode = function (Node) {
@@ -282,11 +274,10 @@ var JavaSourceGenerator = (function (_super) {
     };
 
     JavaSourceGenerator.prototype.GenerateMethod = function (Method, ParamNameList, Body) {
-        // FIXME //
         var Program = "";
         var RetTy = Method.GetReturnType().ShortClassName;
         var ThisTy = Method.GetRecvType().ShortClassName;
-        Program += RetTy + " " + ThisTy + "_" + Method.GetLocalFuncName() + "(";
+        Program += RetTy + " " + ThisTy + "_" + Method.GetNativeFuncName() + "(";
         Program += ThisTy + " " + "this";
         for (var i = 0; i < ParamNameList.size(); i++) {
             var ParamTy = Method.GetFuncParamType(i).ShortClassName;
@@ -298,14 +289,11 @@ var JavaSourceGenerator = (function (_super) {
     };
 
     JavaSourceGenerator.prototype.Eval = function (Node) {
-        // FIXME //
         this.VisitBlockEachStatementWithIndent(Node);
         return this.PopSourceCode();
     };
 
     JavaSourceGenerator.prototype.AddClass = function (Type) {
-        // FIXME //
-        // Auto: TODO-generatedstub: method //
     };
 
     JavaSourceGenerator.prototype.SetLanguageContext = function (Context) {

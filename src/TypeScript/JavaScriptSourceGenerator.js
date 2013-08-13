@@ -1,4 +1,3 @@
-/// <reference path="LangDeps.ts" />
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -12,7 +11,7 @@ var JavaScriptSourceGenerator = (function (_super) {
     }
     JavaScriptSourceGenerator.prototype.GenerateMethod = function (Method, NameList, Body) {
         var ArgCount = Method.Types.length - 1;
-        var Code = "var " + Method.GetLocalFuncName() + " = (function(";
+        var Code = "var " + Method.GetNativeFuncName() + " = (function(";
         var i = 0;
         while (i < ArgCount) {
             if (i > 0) {
@@ -88,7 +87,7 @@ var JavaScriptSourceGenerator = (function (_super) {
     };
 
     JavaScriptSourceGenerator.prototype.VisitApplyNode = function (Node) {
-        var methodName = Node.Method.GetLocalFuncName();
+        var methodName = Node.Method.GetNativeFuncName();
         var ParamCount = Node.Params.size();
         var i = 0;
         while (i < ParamCount) {
@@ -149,7 +148,6 @@ var JavaScriptSourceGenerator = (function (_super) {
     };
 
     JavaScriptSourceGenerator.prototype.VisitSwitchNode = function (Node) {
-        // Auto: TODO-generatedstub: method //
     };
 
     JavaScriptSourceGenerator.prototype.VisitWhileNode = function (Node) {
@@ -179,7 +177,6 @@ var JavaScriptSourceGenerator = (function (_super) {
     };
 
     JavaScriptSourceGenerator.prototype.VisitForEachNode = function (ForEachNode) {
-        // Auto: TODO-generatedstub: method //
     };
 
     JavaScriptSourceGenerator.prototype.VisitEmptyNode = function (Node) {
@@ -206,11 +203,6 @@ var JavaScriptSourceGenerator = (function (_super) {
     JavaScriptSourceGenerator.prototype.VisitTryNode = function (Node) {
         this.VisitBlockJS(Node.TryBlock);
 
-        // 		/* FIXME:not: Dofor: statement: use */for(var i: number = 0; i < Node.CatchBlock.size(); i++) { //
-        // 			var Block: TypedNode = (TypedNode) Node.CatchBlock.get(i); //
-        // 			var Exception: TypedNode = (TypedNode) Node.TargetException.get(i); //
-        // 			this.VisitBlockJS(Block); //
-        // 		} //
         this.VisitBlockJS(Node.FinallyBlock);
 
         var FinallyBlock = this.PopSourceCode();
@@ -228,7 +220,6 @@ var JavaScriptSourceGenerator = (function (_super) {
     };
 
     JavaScriptSourceGenerator.prototype.VisitFunctionNode = function (Node) {
-        // Auto: TODO-generatedstub: method //
         return;
     };
 
@@ -238,7 +229,6 @@ var JavaScriptSourceGenerator = (function (_super) {
         return;
     };
 
-    // must: Thisextended: beeach: language: in //
     JavaScriptSourceGenerator.prototype.Eval = function (Node) {
         this.VisitBlock(Node);
         var ret = "";
@@ -249,7 +239,6 @@ var JavaScriptSourceGenerator = (function (_super) {
             }
         }
 
-        // this.WriteTranslatedCode(ret); //
         return ret;
     };
     return JavaScriptSourceGenerator;

@@ -3018,7 +3018,7 @@ final class GtContext extends GtStatic {
 	}
 
 	public GtType GetGenericType1(GtType BaseType, GtType ParamType, boolean IsCreation) {
-		ArrayList<GtType> TypeList = new ArrayList<GtType>();
+		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
 		TypeList.add(ParamType);
 		return this.GetGenericType(BaseType, 0, TypeList, IsCreation);
 	}
@@ -3102,7 +3102,7 @@ final class GtContext extends GtStatic {
 	}
 
 	public GtMethod GetUniqueFunctionName(String Name) {
-		Object Value = this.UniqueMethodMap.get(Name);
+		/*local*/Object Value = this.UniqueMethodMap.get(Name);
 		if(Value != null && Value instanceof GtMethod) {
 			return (/*cast*/GtMethod)Value;
 		}
@@ -3110,7 +3110,7 @@ final class GtContext extends GtStatic {
 	}
 
 	public GtMethod GetUniqueFunction(String Name, int FuncParamSize) {
-		Object Value = this.UniqueMethodMap.get(this.FuncNameParamSize(Name, FuncParamSize));
+		/*local*/Object Value = this.UniqueMethodMap.get(this.FuncNameParamSize(Name, FuncParamSize));
 		if(Value != null && Value instanceof GtMethod) {
 			return (/*cast*/GtMethod)Value;
 		}
@@ -3119,7 +3119,7 @@ final class GtContext extends GtStatic {
 
 	public final GtMethod GetGreenListedMethod(GtType BaseType, String MethodName, int MethodParamSize, boolean RecursiveSearch) {
 		while(BaseType != null) {
-			Object Value = this.UniqueMethodMap.get(this.MethodNameParamSize(BaseType, MethodName, MethodParamSize));
+			/*local*/Object Value = this.UniqueMethodMap.get(this.MethodNameParamSize(BaseType, MethodName, MethodParamSize));
 			if(Value instanceof GtMethod) {
 				return (/*cast*/GtMethod)Value;
 			}
@@ -3132,17 +3132,17 @@ final class GtContext extends GtStatic {
 	}
 
 	public final GtMethod GetListedMethod(GtType BaseType, String MethodName, int MethodParamSize, boolean RecursiveSearch) {
-		GtMethod Method = GetGreenListedMethod(BaseType, MethodName, MethodParamSize, RecursiveSearch);
+		/*local*/GtMethod Method = this.GetGreenListedMethod(BaseType, MethodName, MethodParamSize, RecursiveSearch);
 		if(Method == null && BaseType.IsNative() && this.Generator.TransformNativeMethods(BaseType, MethodName)) {
-			Method = GetGreenListedMethod(BaseType, MethodName, MethodParamSize, RecursiveSearch);
+			Method = this.GetGreenListedMethod(BaseType, MethodName, MethodParamSize, RecursiveSearch);
 		}
 		return Method;
 	}
 
 	public final GtMethod GetGreenMethod(GtType BaseType, String Name, int BaseIndex, ArrayList<GtType> TypeList, boolean RecursiveSearch) {
 		while(BaseType != null) {
-			String Key = GtStatic.MangleMethodName(BaseType, Name, BaseIndex, TypeList);
-			Object Value = this.UniqueMethodMap.get(Key);
+			/*local*/String Key = GtStatic.MangleMethodName(BaseType, Name, BaseIndex, TypeList);
+			/*local*/Object Value = this.UniqueMethodMap.get(Key);
 			if(Value instanceof GtMethod) {
 				return (/*cast*/GtMethod)Value;
 			}
@@ -3155,9 +3155,9 @@ final class GtContext extends GtStatic {
 	}
 
 	public final GtMethod GetMethod(GtType BaseType, String Name, int BaseIndex, ArrayList<GtType> TypeList, boolean RecursiveSearch) {
-		GtMethod Method = GetGreenMethod(BaseType, Name, BaseIndex, TypeList, RecursiveSearch);
+		/*local*/GtMethod Method = this.GetGreenMethod(BaseType, Name, BaseIndex, TypeList, RecursiveSearch);
 		if(Method == null && BaseType.IsNative() && this.Generator.TransformNativeMethods(BaseType, Name)) {
-			Method = GetGreenMethod(BaseType, Name, BaseIndex, TypeList, RecursiveSearch);
+			Method = this.GetGreenMethod(BaseType, Name, BaseIndex, TypeList, RecursiveSearch);
 		}
 		return Method;
 	}
@@ -3172,8 +3172,8 @@ final class GtContext extends GtStatic {
 	}
 
 	public GtMethod GetConverterMethod(GtType FromType, GtType ToType, boolean RecursiveSearch) {
-		String Key = this.ConverterName(FromType, ToType);
-		Object Method = this.UniqueMethodMap.get(Key);
+		/*local*/String Key = this.ConverterName(FromType, ToType);
+		/*local*/Object Method = this.UniqueMethodMap.get(Key);
 		if(Method != null) {
 			return (/*cast*/GtMethod)Method;
 		}

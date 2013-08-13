@@ -761,9 +761,9 @@ class GtType {
 	public DefaultNullValue: Object;
 	BaseClass: GtType;
 	Types: GtType[];
-	public LocalSpec: Object;
+	public NativeSpec: Object;
 
-	constructor(Context: GtContext, ClassFlag: number, ClassName: string, DefaultNullValue: Object) {
+	constructor(Context: GtContext, ClassFlag: number, ClassName: string, DefaultNullValue: Object, NativeSpec: Object) {
 		this.Context = Context;
 		this.ClassFlag = ClassFlag;
 		this.ShortClassName = ClassName;
@@ -771,10 +771,18 @@ class GtType {
 		this.BaseClass = this;
 		this.SearchSuperMethodClass = null;
 		this.DefaultNullValue = DefaultNullValue;
-		this.LocalSpec = null;
+		this.NativeSpec = NativeSpec;
 		this.ClassId = Context.ClassCount;
 		Context.ClassCount += 1;
 		this.Types = null;
+	}
+
+	 IsNative(): boolean {
+		return IsFlag(this.ClassFlag, NativeClass);
+	}
+
+	 IsDynamic(): boolean {
+		return IsFlag(this.ClassFlag, DynamicClass);
 	}
 
 	 IsGenericType(): boolean {
@@ -783,7 +791,7 @@ class GtType {
 
 	// Don: Note'tthis: directly: call.Context: Use.instead: GetGenericType. //
 	public CreateGenericType(BaseIndex: number, TypeList: Array<GtType>, ShortName: string): GtType {
-		var GenericType: GtType = new GtType(this.Context, this.ClassFlag, ShortName, null);
+		var GenericType: GtType = new GtType(this.Context, this.ClassFlag, ShortName, null, null);
 		GenericType.BaseClass = this.BaseClass;
 		GenericType.SearchSuperMethodClass = this.BaseClass;
 		GenericType.SuperClass = this.SuperClass;
@@ -811,11 +819,6 @@ class GtType {
 		}
 		return false;
 	}
-
-	public IsDynamicType(): boolean {
-		return false;
-	}
-
 }
 
 class GtMethod {
@@ -827,8 +830,9 @@ class GtMethod {
 	private FuncType: GtType;
 	public ListedMethods: GtMethod;
 	public SourceMacro: string;
-
-	constructor(MethodFlag: number, MethodName: string, BaseIndex: number, ParamList: Array<GtType>, SourceMacro: string) {
+	public NativeRef: Object;
+	
+	constructor(MethodFlag: number, MethodName: string, BaseIndex: number, ParamList: Array<GtType>, NativeRef: Object) {
 		this.MethodFlag = MethodFlag;
 		this.MethodName = MethodName;
 		this.MethodSymbolId = GetSymbolId(MethodName, CreateNewSymbolId);
@@ -836,11 +840,11 @@ class GtMethod {
 		LangDeps.Assert(this.Types.length > 0);
 		this.ListedMethods = null;
 		this.FuncType = null;
-		this.SourceMacro = SourceMacro;
+		this.NativeRef = NativeRef;
 		this.MangledName = MangleMethodName(this.GetRecvType(), this.MethodName, BaseIndex+2, ParamList);
 	}
 
-	 GetLocalFuncName(): string {
+	 GetNativeFuncName(): string {
 		if(this.Is(ExportMethod)) {
 			return this.MethodName;
 		}
@@ -897,24 +901,21 @@ class GtMethod {
 	 GetMethodParamSize(): number {
 		return this.Types.length - 2;
 	}
+	
+	 GetNativeMacro(): string {
+		return <string>this.NativeRef;
+	}
 
 	 ExpandMacro1(Arg0: string): string {
-		if(this.SourceMacro == null) {
-			return this.MethodName + " " + Arg0;
-		}
-		else {
-			return this.SourceMacro.replaceAll("$0", Arg0);
-		}
+		var NativeMacro: string = IsFlag(this.MethodFlag, NativeMacroMethod) ? <string>this.NativeRef : this.MethodName + " $1";
+		return NativeMacro.replaceAll("$0", Arg0);
 	}
 
 	 ExpandMacro2(Arg0: string, Arg1: string): string {
-		if(this.SourceMacro == null) {
-			return Arg0 + " " + this.MethodName + " " + Arg1;
-		}
-		else {
-			return this.SourceMacro.replaceAll("$0", Arg0).replaceAll("$1", Arg1);
-		}
+		var NativeMacro: string = IsFlag(this.MethodFlag, NativeMacroMethod) ? <string>this.NativeRef : "$1 " + this.MethodName + " $2";
+		return NativeMacro.replaceAll("$0", Arg0);
 	}
+	
 }
 
 class GtGenerator {
@@ -1066,13 +1067,39 @@ class GtGenerator {
 		return new CommandNode(Type, ParsedTree.KeyToken, PipedNextNode);
 	}
 
+	/*constructor: language */
+
+	public GetNativeType(Value: Object): GtType {
+		var NativeType: GtType = null;
+
+		return NativeType;
+	}
+
+	public TransformNativeMethods(NativeBaseType: GtType, MethodName: string): boolean {
+		var TransformedResult: boolean = false;
+
+		return TransformedResult;
+	}
+
+	
+	public ParseClassFlag(ClassFlag: number, ClassDeclTree: GtSyntaxTree): number {
+// 		if(ClassDeclTree.HasAnnotation("Final")) { //
+// 			ClassFlag = ClassFlag | FinalClass; //
+// 		} //
+// 		if(ClassDeclTree.HasAnnotation("Private")) { //
+// 			ClassFlag = ClassFlag | PrivateClass; //
+// 		} //
+		return ClassFlag;
+	}
+	
+	public AddClass(Type: GtType): void {
+		/*extension*/
+	}
+
 	public ParseMethodFlag(MethodFlag: number, MethodDeclTree: GtSyntaxTree): number {
 		if(MethodDeclTree.HasAnnotation("Export")) {
 			MethodFlag = MethodFlag | ExportMethod;
 		}
-// 		if(MethodDeclTree.HasAnnotation("Operator")) { //
-// 			MethodFlag = MethodFlag | OperatorMethod; //
-// 		} //
 		return MethodFlag;
 	}
 
@@ -1080,15 +1107,11 @@ class GtGenerator {
 		return new GtMethod(MethodFlag, MethodName, BaseIndex, TypeList, RawMacro);
 	}
 
-	public ParseClassFlag(ClassFlag: number, ClassDeclTree: GtSyntaxTree): number {
-		if(ClassDeclTree.HasAnnotation("Final")) {
-			ClassFlag = ClassFlag | FinalClass;
-		}
-		if(ClassDeclTree.HasAnnotation("Private")) {
-			ClassFlag = ClassFlag | PrivateClass;
-		}
-		return ClassFlag;
+	public GenerateMethod(Method: GtMethod, ParamNameList: Array<string>, Body: GtNode): void {
+		/*extenstion*/
+		
 	}
+	
 	// ------------------------------------------------------------------------ //
 
 	public VisitEmptyNode(EmptyNode: GtNode): void {
@@ -1252,9 +1275,6 @@ class GtGenerator {
 	}
 
 	// must: Thisextended: beeach: language: in //
-	public GenerateMethod(Method: GtMethod, ParamNameList: Array<string>, Body: GtNode): void {
-		/*extenstion*/
-	}
 
 	public IsStrictMode(): boolean {
 		return true; /*this: override */
@@ -1263,10 +1283,6 @@ class GtGenerator {
 	public Eval(Node: GtNode): Object {
 		this.VisitBlock(Node);
 		return null;
-	}
-
-	public AddClass(Type: GtType): void {
-		/*extension*/
 	}
 
 	public BlockComment(Comment: string): string {

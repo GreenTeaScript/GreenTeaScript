@@ -3,28 +3,32 @@
 
 
 	//  ClassFlag //
-	var PrivateClass: number					= 1 << 0;
-	var SingletonClass: number					= 1 << 1;
-	var FinalClass: number						= 1 << 2;
-	var GreenClass: number		    			= 1 << 3;
-	var StaticClass: number						= 1 << 4;
-	var ImmutableClass: number					= 1 << 5;
-	var InterfaceClass: number					= 1 << 6;
+	var NativeClass: number	     				= 1 << 0;
+	var StructClass: number				    	= 1 << 1;
+	var DynamicClass: number				    = 1 << 2;
+	
+// 	var FinalClass: number						= 1 << 2; //
+// 	var GreenClass: number		    			= 1 << 3; //
+// 	var StaticClass: number						= 1 << 4; //
+// 	var ImmutableClass: number					= 1 << 5; //
+// 	var InterfaceClass: number					= 1 << 6; //
 
 	//  MethodFlag //
 	var ExportMethod: number		= 1 << 0;
 	var AbstractMethod: number		= 1 << 1;
 	var VirtualMethod: number		= 1 << 2;
 	var NativeMethod: number		= 1 << 3;
-	var DynamicMethod: number		= 1 << 4;
-	var ImplicitMethod: number      = 1 << 5;  // var for:cast: usedvar: implicit //
+	var NativeStaticMethod: number	= 1 << 4;
+	var NativeMacroMethod: number	= 1 << 5;
+	var ConstMethod: number			= 1 << 6;
+	var DynamicMethod: number		= 1 << 7;
+	var ImplicitMethod: number      = 1 << 8;  // var for:cast: usedvar: implicit //
 
 	// var ConstMethod: number 		= 1 << 2; //
 
 // 	var PrivateMethod: number					= 1 << 0; //
 // 	var VirtualMethod: number					= 1 << 1; //
 // 	var FinalMethod: number						= 1 << 2; //
-// 	var ConstMethod: number						= 1 << 3; //
 // 	var StaticMethod: number					= 1 << 4; //
 //  //
 // 	var ImmutableMethod: number					= 1 << 5; //
@@ -37,19 +41,6 @@
 // 	var SmartReturnMethod: number				= 1 << 10; //
 // 	var VariadicMethod: number					= 1 << 11; //
 // 	var IterativeMethod: number					= 1 << 12; //
-//  //
-// 	// compatible //
-// 	var UniversalMethod: number					= 1 << 13; //
-//  //
-// 	var UniqueMethod: number					= 1 << 14; /* used */ //
-// 	var ExportMethod: number					= 1 << 15; /* used */ //
-//  //
-// 	// internal //
-// 	var HiddenMethod: number					= 1 << 17; //
-// 	var AbstractMethod: number					= 1 << 18; //
-// 	var OverloadedMethod: number				= 1 << 19; //
-// 	var Override: number						= 1 << 20; //
-// 	var DynamicCall: number						= 1 << 22; //
 
 	var SymbolMaskSize: number					= 3;
 	var LowerSymbolMask: number					= 1;
@@ -1115,7 +1106,6 @@ class GtSyntaxTree {
 
 	/*convinient: forcut: short */
 	 VoidType: GtType;
-	 ObjectType: GtType;
 	 BooleanType: GtType;
 	 IntType: GtType;
 	 StringType: GtType;
@@ -1132,7 +1122,6 @@ class GtSyntaxTree {
 		this.StackTopIndex = 0;
 
 		this.VoidType = NameSpace.Context.VoidType;
-		this.ObjectType = NameSpace.Context.ObjectType;
 		this.BooleanType = NameSpace.Context.BooleanType;
 		this.IntType = NameSpace.Context.IntType;
 		this.StringType = NameSpace.Context.StringType;
@@ -1531,22 +1520,22 @@ class GtSyntaxTree {
 		return ClassInfo;
 	}
 
-	// Object: Global //
-	public CreateGlobalObject(ClassFlag: number, ShortName: string): GtObject {
-		var NewClass: GtType = new GtType(this.Context, ClassFlag, ShortName, null);
-		var GlobalObject: GtObject = new GtObject(NewClass);
-		NewClass.DefaultNullValue = GlobalObject;
-		return GlobalObject;
-	}
-
-	public GetGlobalObject(): GtObject {
-		var GlobalObject: Object = this.GetSymbol(GlobalConstName);
-		if(GlobalObject == null || !(GlobalObject instanceof GtObject)) {
-			GlobalObject = this.CreateGlobalObject(SingletonClass, "global");
-			this.DefinePrivateSymbol(GlobalConstName, GlobalObject);
-		}
-		return <GtObject> GlobalObject;
-	}
+// 	//Object: Global //
+// 	public CreateGlobalObject(ClassFlag: number, ShortName: string): GtObject { //
+// 		var NewClass: GtType = new GtType(this.Context, ClassFlag, ShortName, null); //
+// 		var GlobalObject: GtObject = new GtObject(NewClass); //
+// 		NewClass.DefaultNullValue = GlobalObject; //
+// 		return GlobalObject; //
+// 	} //
+//  //
+// 	public GetGlobalObject(): GtObject { //
+// 		var GlobalObject: Object = this.GetSymbol(GlobalConstName); //
+// 		if(GlobalObject == null || !(GlobalObject instanceof GtObject)) { //
+// 			GlobalObject = this.CreateGlobalObject(0, "global"); //
+// 			this.DefinePrivateSymbol(GlobalConstName, GlobalObject); //
+// 		} //
+// 		return <GtObject> GlobalObject; //
+// 	} //
 
 	public Eval(ScriptSource: string, FileLine: number, Generator: GtGenerator): Object {
 		var resultValue: Object = null;
@@ -2021,7 +2010,7 @@ class GtGrammar {
 		}
 		var Node: GtNode = Gamma.Generator.CreateGetterNode(ReturnType, ParsedTree, Method, ObjectNode);
 		if(Method == null) {
-			if(!ObjectNode.Type.IsDynamicType() && ContextType != Gamma.FuncType) {
+			if(!ObjectNode.Type.IsDynamic() && ContextType != Gamma.FuncType) {
 				return Gamma.ReportTypeResult(ParsedTree, Node, ErrorLevel, "undefinedname: field " + Name + " of " + ObjectNode.Type);
 			}
 		}
@@ -2115,7 +2104,7 @@ class GtGrammar {
 		var Method: GtMethod = Gamma.GetListedMethod(BaseType, MethodName, ParamSize - 1, true);
 		var ReturnType: GtType = Gamma.AnyType;
 		if(Method == null) {
-			if(!BaseType.IsDynamicType()) {
+			if(!BaseType.IsDynamic()) {
 				var TypeError: GtNode = Gamma.CreateErrorNode2(ParsedTree, "undefined function " + MethodName + " of " + BaseType);
 				if(Gamma.IsStrictMode()) {
 					return TypeError;
@@ -2419,7 +2408,7 @@ class GtGrammar {
 		var VariableName: string = NameTree.KeyToken.ParsedText;
 		var ValueNode: GtNode = Gamma.TypeCheck(ValueTree, Gamma.AnyType, DefaultTypeCheckPolicy);
 		if(!(ValueNode instanceof ConstNode)) {
-			return Gamma.CreateErrorNode2(ParsedTree, "of: definition variable " + VariableName + "not: constant: is");
+			return Gamma.CreateErrorNode2(ParsedTree, "definitionvariable: of " + VariableName + "not: constant: is");
 		}
 		return Gamma.Generator.CreateEmptyNode(ContextType);
 	}
@@ -2475,7 +2464,7 @@ class GtGrammar {
 
 	static TypeFuncDecl(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
 		var MethodFlag: number = Gamma.Generator.ParseMethodFlag(0, ParsedTree);
-		Gamma = new GtTypeEnv(ParsedTree.NameSpace);  // of: creation newenvironment: type //
+		Gamma = new GtTypeEnv(ParsedTree.NameSpace);  // of: newenvironment: creation: type //
 		var MethodName: string = <string>ParsedTree.GetSyntaxTreeAt(FuncDeclName).ConstValue;
 		var TypeList: Array<GtType> = new Array<GtType>();
 		var ReturnType: GtType = <GtType>ParsedTree.GetSyntaxTreeAt(FuncDeclReturnType).ConstValue;
@@ -2570,12 +2559,12 @@ class GtGrammar {
 			var ParseFlag: number = TokenContext.ParseFlag;
 			TokenContext.ParseFlag = ParseFlag | BackTrackParseFlag | SkipIndentParseFlag;
 			while(!Tree.IsEmptyOrError() && !TokenContext.MatchToken("}")) {
-				var FuncDecl: GtSyntaxTree = TokenContext.ParsePatternAfter(ClassNameTree, "$FuncDecl$", Optional);
+				var FuncDecl: GtSyntaxTree = TokenContext.ParsePattern("$FuncDecl$", Optional);
 				if(FuncDecl != null) {
 					Tree.SetSyntaxTreeAt(i, FuncDecl);
 					i = i + 1;
 				}
-				var VarDecl: GtSyntaxTree = TokenContext.ParsePatternAfter(ClassNameTree, "$VarDecl$", Optional);
+				var VarDecl: GtSyntaxTree = TokenContext.ParsePattern("$VarDecl$", Optional);
 				if(VarDecl != null) {
 					Tree.SetSyntaxTreeAt(i, VarDecl);
 					TokenContext.MatchToken(";");
@@ -2589,18 +2578,18 @@ class GtGrammar {
 	}
 
 	static TypeClassDecl(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
-		Gamma = new GtTypeEnv(ParsedTree.NameSpace);  // of: creation newenvironment: type //
+		Gamma = new GtTypeEnv(ParsedTree.NameSpace);  // of: newenvironment: creation: type //
 		var ClassNameTree: GtSyntaxTree = ParsedTree.GetSyntaxTreeAt(ClassNameOffset);
 		var ClassName: string = ClassNameTree.KeyToken.ParsedText;
 		var FieldOffset: number = ClassBlockOffset;
 		var SuperClassTree: GtSyntaxTree = ParsedTree.GetSyntaxTreeAt(ClassParentNameOffset);
 		
-		var SuperClass: GtType = Gamma.ObjectType;
+		var SuperClass: GtType = null ;// Gamma.ObjectType; //
 		if(SuperClassTree != null) {
 			SuperClass = <GtType> SuperClassTree.ConstValue;
 		}
 		var ClassFlag: number = Gamma.Generator.ParseMethodFlag(0, ParsedTree);
-		var NewType: GtType = new GtType(Gamma.NameSpace.Context, ClassFlag, ClassName, null);
+		var NewType: GtType = new GtType(Gamma.NameSpace.Context, ClassFlag, ClassName, null, null);
 		var DefaultObject: GtObject = new GtObject(NewType);
 		NewType.DefaultNullValue = DefaultObject;
 		NewType.SuperClass = SuperClass;
@@ -2645,16 +2634,16 @@ class GtGrammar {
 				}
 				FieldTree.TreeList = NewTreeList;
 			}
-			var BodyNode: GtNode = Gamma.TypeCheck(FieldTree, Gamma.AnyType, IgnoreEmptyPolicy);
+			// var BodyNode: GtNode = Gamma.TypeCheck(FieldTree, Gamma.AnyType, IgnoreEmptyPolicy); //
 // 			if(BodyNode instanceof LetNode) { //
 // 				//console.log(BodyNode.toString()); //
 // 				var Field: LetNode = <LetNode>BodyNode; //
 // 			} //
 			// we: FIXMEto: needmethod: definition: rewrite //
 			//  f(arg: T1): T0 {} => f(this: T, arg: T1): T0 {} //
-			if(BodyNode instanceof GtNode) {
-				// this: add //
-			}
+// 			if(BodyNode instanceof GtNode) { //
+// 				//this: add //
+// 			} //
 			FieldOffset += 1;
 		}
 		Gamma.NameSpace.DefineClass(NewType);
@@ -2847,7 +2836,7 @@ class GtGrammar {
 	public DefaultNameSpace: GtNameSpace;
 
 	 VoidType: GtType;
-	 ObjectType: GtType;
+// 	 ObjectType: GtType; //
 	 BooleanType: GtType;
 	 IntType: GtType;
 	 StringType: GtType;
@@ -2866,37 +2855,28 @@ class GtGrammar {
 		this.Generator.Context = this;
 		this.ClassNameMap = new GtMap();
 		this.UniqueMethodMap = new GtMap();
-// 		this.LayerMap     = new GtMap(); //
-// 		this.GreenLayer   = this.LoadLayer("GreenTea"); //
-// 		this.FieldLayer   = this.LoadLayer("Field"); //
-// 		this.UserDefinedLayer = this.LoadLayer("UserDefined"); //
 		this.RootNameSpace = new GtNameSpace(this, null);
 		this.ClassCount = 0;
 		this.MethodCount = 0;
-		this.VoidType    = this.RootNameSpace.DefineClass(new GtType(this, 0, "void", null));
-		this.ObjectType  = this.RootNameSpace.DefineClass(new GtType(this, 0, "Object", new Object()));
-		this.BooleanType = this.RootNameSpace.DefineClass(new GtType(this, 0, "boolean", false));
-		this.IntType     = this.RootNameSpace.DefineClass(new GtType(this, 0, "int", 0));
-		this.StringType  = this.RootNameSpace.DefineClass(new GtType(this, 0, "string", ""));
-		this.VarType     = this.RootNameSpace.DefineClass(new GtType(this, 0, "var", null));
-		this.AnyType     = this.RootNameSpace.DefineClass(new GtType(this, 0, "any", null));
-		this.ArrayType   = this.RootNameSpace.DefineClass(new GtType(this, 0, "Array", null));
-		this.FuncType    = this.RootNameSpace.DefineClass(new GtType(this, 0, "Func", null));
+		this.VoidType    = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "void", null, null));
+// 		this.ObjectType  = this.RootNameSpace.DefineClass(new GtType(this, 0, "Object", new Object(), Object)); //
+		this.BooleanType = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "boolean", false, Boolean));
+		this.IntType     = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "int", 0, Number));
+		this.StringType  = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "string", "", String));
+		this.VarType     = this.RootNameSpace.DefineClass(new GtType(this, 0, "var", null, null));
+		this.AnyType     = this.RootNameSpace.DefineClass(new GtType(this, DynamicClass, "any", null, null));
+		this.ArrayType   = this.RootNameSpace.DefineClass(new GtType(this, 0, "Array", null, null));
+		this.FuncType    = this.RootNameSpace.DefineClass(new GtType(this, 0, "Func", null, null));
 		this.ArrayType.Types = new Array<GtType>(1);
 		this.ArrayType.Types[0] = this.AnyType;
 		this.FuncType.Types = new Array<GtType>(1);
 		this.FuncType.Types[0] = this.VoidType;
+
 		Grammar.LoadTo(this.RootNameSpace);
 		
 		this.DefaultNameSpace = new GtNameSpace(this, this.RootNameSpace);
 		this.Generator.SetLanguageContext(this);
 	}
-
-// 	public LoadLayer(Name: string): GtLayer { //
-// 		var Layer: GtLayer = new GtLayer(Name); //
-// 		this.LayerMap.put(Name, Layer); //
-// 		return Layer; //
-// 	} //
 
 	public LoadGrammar(Grammar: GtGrammar): void {
 		Grammar.LoadTo(this.DefaultNameSpace);
@@ -3033,7 +3013,7 @@ class GtGrammar {
 		return null;
 	}
 
-	 GetListedMethod(BaseType: GtType, MethodName: string, MethodParamSize: number, RecursiveSearch: boolean): GtMethod {
+	 GetGreenListedMethod(BaseType: GtType, MethodName: string, MethodParamSize: number, RecursiveSearch: boolean): GtMethod {
 		while(BaseType != null) {
 			var Value: Object = this.UniqueMethodMap.get(this.MethodNameParamSize(BaseType, MethodName, MethodParamSize));
 			if(Value instanceof GtMethod) {
@@ -3042,11 +3022,20 @@ class GtGrammar {
 			if(!RecursiveSearch) {
 				break;
 			}
+			BaseType = BaseType.SearchSuperMethodClass;
 		}
 		return null;
 	}
 
-	public GetMethod(BaseType: GtType, Name: string, BaseIndex: number, TypeList: Array<GtType>, RecursiveSearch: boolean): GtMethod {
+	 GetListedMethod(BaseType: GtType, MethodName: string, MethodParamSize: number, RecursiveSearch: boolean): GtMethod {
+		var Method: GtMethod = this.GetGreenListedMethod(BaseType, MethodName, MethodParamSize, RecursiveSearch);
+		if(Method == null && BaseType.IsNative() && this.Generator.TransformNativeMethods(BaseType, MethodName)) {
+			Method = this.GetGreenListedMethod(BaseType, MethodName, MethodParamSize, RecursiveSearch);
+		}
+		return Method;
+	}
+
+	 GetGreenMethod(BaseType: GtType, Name: string, BaseIndex: number, TypeList: Array<GtType>, RecursiveSearch: boolean): GtMethod {
 		while(BaseType != null) {
 			var Key: string = MangleMethodName(BaseType, Name, BaseIndex, TypeList);
 			var Value: Object = this.UniqueMethodMap.get(Key);
@@ -3059,6 +3048,14 @@ class GtGrammar {
 			BaseType = BaseType.SearchSuperMethodClass;
 		}
 		return null;
+	}
+
+	 GetMethod(BaseType: GtType, Name: string, BaseIndex: number, TypeList: Array<GtType>, RecursiveSearch: boolean): GtMethod {
+		var Method: GtMethod = this.GetGreenMethod(BaseType, Name, BaseIndex, TypeList, RecursiveSearch);
+		if(Method == null && BaseType.IsNative() && this.Generator.TransformNativeMethods(BaseType, Name)) {
+			Method = this.GetGreenMethod(BaseType, Name, BaseIndex, TypeList, RecursiveSearch);
+		}
+		return Method;
 	}
 	
 	/* convertor, wrapper */

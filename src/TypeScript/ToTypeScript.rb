@@ -1,6 +1,6 @@
 
 $Keyword = /return|new|throw|class|interface|extends|impliments|public|private|protected|static|final|function|instanceof|else|var/
-$Sym  = /(?!#{$Keyword})\b(?!\d)\w+\b/
+$Sym  = /(?!#{$Keyword}\b)\b(?!\d)\w+\b/
 $Type = /#{$Sym}(?:<.*?>)?(?:\[\s*\d*\s*\])*/o
 $Attr = /\b(?:public|private|protected|static|final)\b\s*/
 
@@ -51,6 +51,7 @@ src.gsub!(/\bArrayList<\?>/, "any")
 src.gsub!(/\bArrayList\b/, "Array")
 src.gsub!(/\bnew\s+Array<.*?>\s*\(Arrays.asList\((.*?)\)\)/){ $1 }
 src.gsub!(/\bArrays.asList\b/, "")
+src.gsub!(/\b(\d+)L\b/){ $1 }
 
 src.gsub!(/'(.)'/){ "(#{$1.ord}/*#{$1}*/)" }
 src.gsub!(/('..')/){ "(#{$1}.charCodeAt(0))" }
@@ -63,6 +64,12 @@ src.gsub!(/\bextends GtStatic\s*/, "")
 src.gsub!(/\bGtStatic\./, "")
 src.gsub!(/\binstanceof\s+string\b/, "instanceof String")
 src.gsub!(/\binstanceof\s+number\b/, "instanceof Number")
+
+src.gsub!("number.class", "Number");
+src.gsub!("string.class", "String");
+src.gsub!("Boolean.class", "Boolean");
+src.gsub!("Object.class", "Object");
+src.gsub!("Void.class", "null");
 
 # Casts
 src.gsub!(/\((string|number)\)/o){"<#{$1}>"}

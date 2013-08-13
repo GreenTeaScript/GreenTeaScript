@@ -1,4 +1,3 @@
-/// <reference path="LangDeps.ts" />
 var GtScriptRunner = (function () {
     function GtScriptRunner() {
     }
@@ -12,16 +11,13 @@ var GtScriptRunner = (function () {
         var cmd = ["java", "-jar", "GreenTeaScript.jar", "--" + Target, Path];
         var Result = "";
 
-        // FIXME //
         return Result;
     };
 
     GtScriptRunner.Test = function (Target, ScriptPath, ResultPath) {
-        // console.log("Testing " + ScriptPath + " (Target:" + Target + ") ... "); //
         var Expected = GtScriptRunner.LoadFile(ResultPath);
         var Actual = GtScriptRunner.ExecuteScript(ScriptPath, Target);
         LangDeps.Assert(Expected.equals(Actual));
-        // console.log("Testing " + ScriptPath + " (Target:" + Target + ") ... OK"); //
     };
     return GtScriptRunner;
 })();

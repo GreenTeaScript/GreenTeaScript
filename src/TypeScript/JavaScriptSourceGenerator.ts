@@ -11,7 +11,7 @@ class JavaScriptSourceGenerator extends SourceGenerator {
 
 	public GenerateMethod(Method: GtMethod, NameList: Array<string>, Body: GtNode): void {
 		var ArgCount: number = Method.Types.length - 1;
-		var Code: string = "var " + Method.GetLocalFuncName() + " = (function(";
+		var Code: string = "var " + Method.GetNativeFuncName() + " = (function(";
 		var i: number = 0;
 		while(i < ArgCount){
 			if(i > 0){
@@ -87,7 +87,7 @@ class JavaScriptSourceGenerator extends SourceGenerator {
 	}
 
 	public VisitApplyNode(Node: ApplyNode): void {
-		var methodName: string = Node.Method.GetLocalFuncName();
+		var methodName: string = Node.Method.GetNativeFuncName();
 		var ParamCount: number = Node.Params.size();
 		var i: number = 0;
 		while(i < ParamCount) {
