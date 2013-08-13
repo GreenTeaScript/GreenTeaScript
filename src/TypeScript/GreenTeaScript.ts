@@ -248,6 +248,8 @@
 	var SymbolList: Array<string> = new Array<string>();
 	var SymbolMap: GtMap  = new GtMap();
 
+	var ShellGrammarReservedKeywords: string[] = ["true", "false", "as", "if"]
+
 
 	// flags: debug //
 	var DebugPrintOption: boolean = false;
@@ -2096,6 +2098,9 @@ class GtGrammar {
 		var NodeList: Array<GtNode> = new Array<GtNode>();
 		var ParamIndex: number = 1;
 		var ParamSize: number = ListSize(ParsedTree.TreeList) - 1;
+		if(FuncNode.IsError()) {
+			return FuncNode;
+		}
 		if(FuncNode instanceof GetterNode) {
 			var BaseNode: GtNode = (<GetterNode>FuncNode).Expr;
 			NodeList.add(BaseNode);
@@ -2499,7 +2504,7 @@ class GtGrammar {
 		else {
 			Method = DScriptGrammar.CreateMethod(Gamma, ParsedTree, MethodFlag, MethodName, TypeList, NativeMacro);
 		}
-		if(Method != null && ParsedTree.HasNodeAt(FuncDeclBlock)) {
+		if(Method != null && NativeMacro == null && ParsedTree.HasNodeAt(FuncDeclBlock)) {
 			var BodyNode: GtNode = ParsedTree.TypeCheckNodeAt(FuncDeclBlock, Gamma, ReturnType, IgnoreEmptyPolicy);
 			Gamma.Generator.GenerateMethod(Method, ParamNameList, BodyNode);
 		}
@@ -2694,8 +2699,13 @@ class GtGrammar {
 		}
 		var Symbol: string = SourceText.substring(start, pos);
 		
-		if(Symbol.equals("true") || Symbol.equals("false")) {
-			return NoMatch;
+		var i: number = 0;
+		while(i < 0) {
+			var Keyword: string = ShellGrammarReservedKeywords[i];
+			if(Symbol.equals(Keyword)) {
+				return NoMatch;
+			}
+			i = i + 1;
 		}
 		if(Symbol.startsWith("/") || Symbol.startsWith("-")) {
 			if(Symbol.startsWith("// ")) { // One-Comment: Line //

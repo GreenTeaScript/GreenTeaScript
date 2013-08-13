@@ -253,6 +253,8 @@ interface GtConst {
 	public final static ArrayList<String> SymbolList = new ArrayList<String>();
 	public final static GtMap   SymbolMap  = new GtMap();
 
+	public final static String[] ShellGrammarReservedKeywords = {"true", "false", "as", "if"};
+
 //ifdef JAVA
 }
 
@@ -2177,6 +2179,9 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/ArrayList<GtNode> NodeList = new ArrayList<GtNode>();
 		/*local*/int ParamIndex = 1;
 		/*local*/int ParamSize = ListSize(ParsedTree.TreeList) - 1;
+		if(FuncNode.IsError()) {
+			return FuncNode;
+		}
 		if(FuncNode instanceof GetterNode) {
 			GtNode BaseNode = ((/*cast*/GetterNode)FuncNode).Expr;
 			NodeList.add(BaseNode);
@@ -2580,7 +2585,7 @@ final class DScriptGrammar extends GtGrammar {
 		else {
 			Method = DScriptGrammar.CreateMethod(Gamma, ParsedTree, MethodFlag, MethodName, TypeList, NativeMacro);
 		}
-		if(Method != null && ParsedTree.HasNodeAt(FuncDeclBlock)) {
+		if(Method != null && NativeMacro == null && ParsedTree.HasNodeAt(FuncDeclBlock)) {
 			/*local*/GtNode BodyNode = ParsedTree.TypeCheckNodeAt(FuncDeclBlock, Gamma, ReturnType, IgnoreEmptyPolicy);
 			Gamma.Generator.GenerateMethod(Method, ParamNameList, BodyNode);
 		}
@@ -2784,8 +2789,13 @@ final class DScriptGrammar extends GtGrammar {
 		}
 		String Symbol = SourceText.substring(start, pos);
 		
-		if(Symbol.equals("true") || Symbol.equals("false")) {
-			return GtStatic.NoMatch;
+		/*local*/int i = 0;
+		while(i < 0) {
+			/*local*/String Keyword = ShellGrammarReservedKeywords[i];
+			if(Symbol.equals(Keyword)) {
+				return GtStatic.NoMatch;
+			}
+			i = i + 1;
 		}
 		if(Symbol.startsWith("/") || Symbol.startsWith("-")) {
 			if(Symbol.startsWith("//")) { // One-Line Comment

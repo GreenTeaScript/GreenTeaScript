@@ -353,6 +353,8 @@ var GlobalConstName = "global";
 var SymbolList = new Array();
 var SymbolMap = new GtMap();
 
+var ShellGrammarReservedKeywords = ["true", "false", "as", "if"];
+
 // flags: debug //
 var DebugPrintOption = false;
 
@@ -2111,6 +2113,9 @@ var DScriptGrammar = (function (_super) {
         var NodeList = new Array();
         var ParamIndex = 1;
         var ParamSize = ListSize(ParsedTree.TreeList) - 1;
+        if (FuncNode.IsError()) {
+            return FuncNode;
+        }
         if (FuncNode instanceof GetterNode) {
             var BaseNode = (FuncNode).Expr;
             NodeList.add(BaseNode);
@@ -2508,7 +2513,7 @@ var DScriptGrammar = (function (_super) {
         } else {
             Method = DScriptGrammar.CreateMethod(Gamma, ParsedTree, MethodFlag, MethodName, TypeList, NativeMacro);
         }
-        if (Method != null && ParsedTree.HasNodeAt(FuncDeclBlock)) {
+        if (Method != null && NativeMacro == null && ParsedTree.HasNodeAt(FuncDeclBlock)) {
             var BodyNode = ParsedTree.TypeCheckNodeAt(FuncDeclBlock, Gamma, ReturnType, IgnoreEmptyPolicy);
             Gamma.Generator.GenerateMethod(Method, ParamNameList, BodyNode);
         }
@@ -2690,8 +2695,13 @@ var DScriptGrammar = (function (_super) {
         }
         var Symbol = SourceText.substring(start, pos);
 
-        if (Symbol.equals("true") || Symbol.equals("false")) {
-            return NoMatch;
+        var i = 0;
+        while (i < 0) {
+            var Keyword = ShellGrammarReservedKeywords[i];
+            if (Symbol.equals(Keyword)) {
+                return NoMatch;
+            }
+            i = i + 1;
         }
         if (Symbol.startsWith("/") || Symbol.startsWith("-")) {
             if (Symbol.startsWith("// ")) {
