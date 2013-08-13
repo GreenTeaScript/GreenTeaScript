@@ -1027,8 +1027,8 @@ class GtGenerator extends GtStatic {
 		return null;
 	}
 
-	public GtNode CreateEmptyNode(GtType Type, GtSyntaxTree ParsedTree) {
-		return new GtNode(ParsedTree.NameSpace.Context.VoidType, ParsedTree.KeyToken);
+	public GtNode CreateEmptyNode(GtType Type) {
+		return new GtNode(Type, GtTokenContext.NullToken);
 	}
 
 	public GtNode CreateErrorNode(GtType Type, GtSyntaxTree ParsedTree) {
