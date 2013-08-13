@@ -785,6 +785,10 @@ class GtType extends GtStatic {
 		return IsFlag(this.ClassFlag, NativeClass);
 	}
 
+	public final boolean IsDynamic() {
+		return IsFlag(this.ClassFlag, DynamicClass);
+	}
+
 	public final boolean IsGenericType() {
 		return (this.Types != null);
 	}
@@ -817,10 +821,6 @@ class GtType extends GtStatic {
 		if(this == Type || this == this.Context.AnyType) {
 			return true;
 		}
-		return false;
-	}
-
-	public final boolean IsDynamicType() {
 		return false;
 	}
 }

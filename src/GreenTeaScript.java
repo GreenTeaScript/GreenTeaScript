@@ -10,6 +10,8 @@ interface GtConst {
 	// ClassFlag
 	public final static int		NativeClass	     				= 1 << 0;
 	public final static int		StructClass				    	= 1 << 1;
+	public final static int		DynamicClass				    = 1 << 2;
+	
 //	public final static int		FinalClass						= 1 << 2;
 //	public final static int		GreenClass		    			= 1 << 3;
 //	public final static int		StaticClass						= 1 << 4;
@@ -2093,7 +2095,7 @@ final class DScriptGrammar extends GtGrammar {
 		}
 		/*local*/GtNode Node = Gamma.Generator.CreateGetterNode(ReturnType, ParsedTree, Method, ObjectNode);
 		if(Method == null) {
-			if(!ObjectNode.Type.IsDynamicType() && ContextType != Gamma.FuncType) {
+			if(!ObjectNode.Type.IsDynamic() && ContextType != Gamma.FuncType) {
 				return Gamma.ReportTypeResult(ParsedTree, Node, ErrorLevel, "undefined field name " + Name + " of " + ObjectNode.Type);
 			}
 		}
@@ -2184,7 +2186,7 @@ final class DScriptGrammar extends GtGrammar {
 		GtMethod Method = Gamma.GetListedMethod(BaseType, MethodName, ParamSize - 1, true);
 		GtType ReturnType = Gamma.AnyType;
 		if(Method == null) {
-			if(!BaseType.IsDynamicType()) {
+			if(!BaseType.IsDynamic()) {
 				GtNode TypeError = Gamma.CreateErrorNode2(ParsedTree, "undefined function " + MethodName + " of " + BaseType);
 				if(Gamma.IsStrictMode()) {
 					return TypeError;
@@ -2955,7 +2957,7 @@ final class GtContext extends GtStatic {
 		this.IntType     = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "int", 0L, Long.class));
 		this.StringType  = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "String", "", String.class));
 		this.VarType     = this.RootNameSpace.DefineClass(new GtType(this, 0, "var", null, null));
-		this.AnyType     = this.RootNameSpace.DefineClass(new GtType(this, 0, "any", null, null));
+		this.AnyType     = this.RootNameSpace.DefineClass(new GtType(this, DynamicClass, "any", null, null));
 		this.ArrayType   = this.RootNameSpace.DefineClass(new GtType(this, 0, "Array", null, null));
 		this.FuncType    = this.RootNameSpace.DefineClass(new GtType(this, 0, "Func", null, null));
 		this.ArrayType.Types = new GtType[1];
@@ -2963,24 +2965,18 @@ final class GtContext extends GtStatic {
 		this.FuncType.Types = new GtType[1];
 		this.FuncType.Types[0] = this.VoidType;
 //ifdef JAVA
-		this.ClassNameMap.put("java.lang.Void", this.VoidType);
+		this.ClassNameMap.put("java.lang.Void",    this.VoidType);
 		this.ClassNameMap.put("java.lang.Boolean", this.BooleanType);
 		this.ClassNameMap.put("java.lang.Integer", this.IntType);
 		this.ClassNameMap.put("java.lang.Long",    this.IntType);
 		this.ClassNameMap.put("java.lang.Short",   this.IntType);
-		this.ClassNameMap.put("java.lang.String", this.StringType);
+		this.ClassNameMap.put("java.lang.String",  this.StringType);
 //endif VAJA
 		Grammar.LoadTo(this.RootNameSpace);
 		
 		this.DefaultNameSpace = new GtNameSpace(this, this.RootNameSpace);
 		this.Generator.SetLanguageContext(this);
 	}
-
-//	public GtLayer LoadLayer(String Name) {
-//		/*local*/GtLayer Layer = new GtLayer(Name);
-//		this.LayerMap.put(Name, Layer);
-//		return Layer;
-//	}
 
 	public void LoadGrammar(GtGrammar Grammar) {
 		Grammar.LoadTo(this.DefaultNameSpace);
