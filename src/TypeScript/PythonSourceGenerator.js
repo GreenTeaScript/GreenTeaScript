@@ -1,9 +1,11 @@
+/// <reference path="LangDeps.ts" />
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     __.prototype = b.prototype;
     d.prototype = new __();
 };
+//Generator: GreenTeabe: shouldin: writtenlanguage: each. //
 var PythonSourceGenerator = (function (_super) {
     __extends(PythonSourceGenerator, _super);
     function PythonSourceGenerator() {
@@ -39,7 +41,7 @@ var PythonSourceGenerator = (function (_super) {
     };
 
     PythonSourceGenerator.prototype.VisitIndexerNode = function (Node) {
-        Node.Indexer.Evaluate(this);
+        Node.IndexAt.Evaluate(this);
         Node.Expr.Evaluate(this);
         this.PushSourceCode(this.PopSourceCode() + "[" + this.PopSourceCode() + "]");
     };
@@ -326,7 +328,7 @@ var PythonSourceGenerator = (function (_super) {
         return Code;
     };
 
-    PythonSourceGenerator.prototype.DefineFunction = function (Method, ParamNameList, Body) {
+    PythonSourceGenerator.prototype.GenerateMethod = function (Method, ParamNameList, Body) {
         var Function = "def ";
         Function += Method.MethodName + "(";
         var i = 0;

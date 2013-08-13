@@ -253,12 +253,6 @@ interface GtConst {
 	public final static ArrayList<String> SymbolList = new ArrayList<String>();
 	public final static GtMap   SymbolMap  = new GtMap();
 
-	// TestFlags (temporary)
-	static final int TestTokenizer = 1 << 0;
-	static final int TestParseOnly = 1 << 1;
-	static final int TestTypeChecker = 1 << 2;
-	static final int TestCodeGeneration = 1 << 3;
-
 //ifdef JAVA
 }
 
@@ -2154,8 +2148,8 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	public static GtNode TypeCast(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		GtType CastType = (/*GtType*/GtType)ParsedTree.GetSyntaxTreeAt(LeftHandTerm).ConstValue;
-		int TypeCheckPolicy = CastPolicy;
+		/*local*/GtType CastType = (/*cast*/GtType)ParsedTree.GetSyntaxTreeAt(LeftHandTerm).ConstValue;
+		/*local*/int TypeCheckPolicy = CastPolicy;
 		return ParsedTree.TypeCheckNodeAt(RightHandTerm, Gamma, CastType, TypeCheckPolicy);
 	}
 
@@ -2581,10 +2575,10 @@ final class DScriptGrammar extends GtGrammar {
 			MethodFlag |= AbstractMethod;
 		}
 		if(MethodName.equals("converter")) {
-			Method = CreateConverterMethod(Gamma, ParsedTree, MethodFlag, TypeList);
+			Method = DScriptGrammar.CreateConverterMethod(Gamma, ParsedTree, MethodFlag, TypeList);
 		}
 		else {
-			Method = CreateMethod(Gamma, ParsedTree, MethodFlag, MethodName, TypeList, NativeMacro);
+			Method = DScriptGrammar.CreateMethod(Gamma, ParsedTree, MethodFlag, MethodName, TypeList, NativeMacro);
 		}
 		if(Method != null && ParsedTree.HasNodeAt(FuncDeclBlock)) {
 			/*local*/GtNode BodyNode = ParsedTree.TypeCheckNodeAt(FuncDeclBlock, Gamma, ReturnType, IgnoreEmptyPolicy);
@@ -3164,7 +3158,7 @@ final class GtContext extends GtStatic {
 	}
 
 	public GtMethod GetConverterMethod(GtType FromType, GtType ToType, boolean RecursiveSearch) {
-		String Key = ConverterName(FromType, ToType);
+		String Key = this.ConverterName(FromType, ToType);
 		Object Method = this.UniqueMethodMap.get(Key);
 		if(Method != null) {
 			return (/*cast*/GtMethod)Method;
@@ -3176,7 +3170,7 @@ final class GtContext extends GtStatic {
 	}
 
 	public GtMethod GetWrapperMethod(GtType FromType, GtType ToType, boolean RecursiveSearch) {
-		/*local*/String Key = WrapperName(FromType, ToType);
+		/*local*/String Key = this.WrapperName(FromType, ToType);
 		/*local*/Object Method = this.UniqueMethodMap.get(Key);
 		if(Method != null) {
 			return (/*cast*/GtMethod)Method;
@@ -3188,12 +3182,12 @@ final class GtContext extends GtStatic {
 	}
 
 	public GtMethod GetCastMethod(GtType FromType, GtType ToType, boolean RecursiveSearch) {
-		/*local*/String Key = WrapperName(FromType, ToType);
+		/*local*/String Key = this.WrapperName(FromType, ToType);
 		/*local*/Object Method = this.UniqueMethodMap.get(Key);
 		if(Method != null) {
 			return (/*cast*/GtMethod)Method;
 		}
-		Key = ConverterName(FromType, ToType);
+		Key = this.ConverterName(FromType, ToType);
 		Method = this.UniqueMethodMap.get(Key);
 		if(Method != null) {
 			return (/*cast*/GtMethod)Method;
@@ -3205,12 +3199,12 @@ final class GtContext extends GtStatic {
 	}
 
 	public final void DefineConverterMethod(GtMethod Method) {
-		/*local*/String Key = ConverterName(Method.GetRecvType(), Method.GetReturnType());
+		/*local*/String Key = this.ConverterName(Method.GetRecvType(), Method.GetReturnType());
 		this.UniqueMethodMap.put(Key, Method);
 	}
 
 	public final void DefineWrapperMethod(GtMethod Method) {
-		/*local*/String Key = WrapperName(Method.GetRecvType(), Method.GetReturnType());
+		/*local*/String Key = this.WrapperName(Method.GetRecvType(), Method.GetReturnType());
 		this.UniqueMethodMap.put(Key, Method);
 	}
 	
@@ -3218,11 +3212,6 @@ final class GtContext extends GtStatic {
 
 public class GreenTeaScript extends GtStatic {
 	public final static void main(String[] Args) {
-		int N = 0;
-		Args = new String[2];
-		Args[N++] = "--c";
-		Args[N++] = "/Users/masa/GreenTeaScript/test/0005-MethodCall.green";
-
 		/*local*/String CodeGeneratorName = "--java";
 		/*local*/int Index = 0;
 		/*local*/String OneLiner = null;

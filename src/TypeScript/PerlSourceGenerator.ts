@@ -60,7 +60,7 @@ class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	public VisitIndexerNode(Node: IndexerNode): void {
-		Node.Indexer.Evaluate(this);
+		Node.IndexAt.Evaluate(this);
 		Node.Expr.Evaluate(this);
 		this.PushSourceCode(this.PopSourceCode() + "[" + this.PopSourceCode() + "]");
 
@@ -329,7 +329,7 @@ class PerlSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	public DefineFunction(Method: GtMethod, ParamNameList: Array<string>, Body: GtNode): void {
+	public GenerateMethod(Method: GtMethod, ParamNameList: Array<string>, Body: GtNode): void {
 		var Program: string = "";
 		var RetTy: string = Method.GetReturnType().ShortClassName;
 		var FuncName: string = Method.GetLocalFuncName();
