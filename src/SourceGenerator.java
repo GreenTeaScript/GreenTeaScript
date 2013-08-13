@@ -1,4 +1,6 @@
 //ifdef JAVA
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 //endif VAJA
@@ -818,6 +820,11 @@ class GtType extends GtStatic {
 		return false;
 	}
 
+	public boolean IsNative() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 }
 
 class GtMethod extends GtStatic {
@@ -829,8 +836,9 @@ class GtMethod extends GtStatic {
 	/*field*/private GtType         FuncType;
 	/*field*/public GtMethod        ListedMethods;
 	/*field*/public String          SourceMacro;
-
-	GtMethod/*constructor*/(int MethodFlag, String MethodName, int BaseIndex, ArrayList<GtType> ParamList, String SourceMacro) {
+	/*field*/public Object          NativeRef;
+	
+	GtMethod/*constructor*/(int MethodFlag, String MethodName, int BaseIndex, ArrayList<GtType> ParamList, Object NativeRef) {
 		this.MethodFlag = MethodFlag;
 		this.MethodName = MethodName;
 		this.MethodSymbolId = GtStatic.GetSymbolId(MethodName, CreateNewSymbolId);
@@ -838,7 +846,7 @@ class GtMethod extends GtStatic {
 		LangDeps.Assert(this.Types.length > 0);
 		this.ListedMethods = null;
 		this.FuncType = null;
-		this.SourceMacro = SourceMacro;
+		this.NativeRef = NativeRef;
 		this.MangledName = GtStatic.MangleMethodName(this.GetRecvType(), this.MethodName, BaseIndex+2, ParamList);
 	}
 
@@ -1068,13 +1076,74 @@ class GtGenerator extends GtStatic {
 		return new CommandNode(Type, ParsedTree.KeyToken, PipedNextNode);
 	}
 
+	/* language constructor */
+
+	public GtType GetNativeType(Object Value) {
+		GtType NativeType = null;
+//ifdef JAVA
+		Class<?> NativeClassInfo = Value instanceof Class<?> ? (Class<?>)Value : Value.getClass();
+		NativeType = (GtType)this.Context.ClassNameMap.get(NativeClassInfo.getName());
+		if(NativeType == null) {
+			NativeType = new GtType(this.Context, NativeClass, NativeClassInfo.getSimpleName(), null);
+			NativeType.LocalSpec = NativeClassInfo;
+			this.Context.ClassNameMap.put(NativeClassInfo.getName(), NativeType);
+		}
+//endif VAJA
+		return NativeType;
+	}
+
+	public boolean TransformNativeMethods(GtType BaseType, String MethodName) {
+		boolean TransformedResult = false;
+//ifdef JAVA
+		if(BaseType.IsNative()) {
+			Class<?> NativeClassInfo = (Class<?>)BaseType.LocalSpec;
+			Method[] List = NativeClassInfo.getMethods();
+			if(List != null) {
+				for(int i = 0; i < List.length; i++) {
+					if(MethodName.equals(List[i].getName())) {
+						int MethodFlag = NativeMethod;
+						if(Modifier.isStatic(List[i].getModifiers())) {
+							MethodFlag |= NativeStaticMethod;
+						}
+						ArrayList<GtType> TypeList = new ArrayList<GtType>();
+						TypeList.add(this.GetNativeType(List[i].getReturnType()));
+						TypeList.add(BaseType);
+						Class<?>[] ParamTypes = List[i].getParameterTypes();
+						if(ParamTypes != null) {
+							for(int j = 0; j < List.length; j++) {
+								TypeList.add(this.GetNativeType(ParamTypes[j]));
+							}
+						}
+						GtMethod NativeMethod = new GtMethod(MethodFlag, MethodName, 0, TypeList, List[i]);
+						this.Context.DefineMethod(NativeMethod);
+						TransformedResult = false;
+					}
+				}
+			}
+		}
+//endif VAJA
+		return TransformedResult;
+	}
+
+	
+	public int ParseClassFlag(int ClassFlag, GtSyntaxTree ClassDeclTree) {
+//		if(ClassDeclTree.HasAnnotation("Final")) {
+//			ClassFlag = ClassFlag | FinalClass;
+//		}
+//		if(ClassDeclTree.HasAnnotation("Private")) {
+//			ClassFlag = ClassFlag | PrivateClass;
+//		}
+		return ClassFlag;
+	}
+	
+	public void AddClass(GtType Type) {
+		/*extension*/
+	}
+
 	public int ParseMethodFlag(int MethodFlag, GtSyntaxTree MethodDeclTree) {
 		if(MethodDeclTree.HasAnnotation("Export")) {
 			MethodFlag = MethodFlag | ExportMethod;
 		}
-//		if(MethodDeclTree.HasAnnotation("Operator")) {
-//			MethodFlag = MethodFlag | OperatorMethod;
-//		}
 		return MethodFlag;
 	}
 
@@ -1082,15 +1151,11 @@ class GtGenerator extends GtStatic {
 		return new GtMethod(MethodFlag, MethodName, BaseIndex, TypeList, RawMacro);
 	}
 
-	public int ParseClassFlag(int ClassFlag, GtSyntaxTree ClassDeclTree) {
-		if(ClassDeclTree.HasAnnotation("Final")) {
-			ClassFlag = ClassFlag | FinalClass;
-		}
-		if(ClassDeclTree.HasAnnotation("Private")) {
-			ClassFlag = ClassFlag | PrivateClass;
-		}
-		return ClassFlag;
+	public void GenerateMethod(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
+		/*extenstion*/
+		
 	}
+	
 	//------------------------------------------------------------------------
 
 	public void VisitEmptyNode(GtNode EmptyNode) {
@@ -1254,9 +1319,6 @@ class GtGenerator extends GtStatic {
 	}
 
 	// This must be extended in each language
-	public void GenerateMethod(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
-		/*extenstion*/
-	}
 
 	public boolean IsStrictMode() {
 		return true; /* override this */
@@ -1265,10 +1327,6 @@ class GtGenerator extends GtStatic {
 	public Object Eval(GtNode Node) {
 		this.VisitBlock(Node);
 		return null;
-	}
-
-	public void AddClass(GtType Type) {
-		/*extension*/
 	}
 
 	public String BlockComment(String Comment) {

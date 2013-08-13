@@ -8,28 +8,30 @@ import java.util.HashMap;
 interface GtConst {
 //endif VAJA
 	// ClassFlag
-	public final static int		PrivateClass					= 1 << 0;
-	public final static int		SingletonClass					= 1 << 1;
-	public final static int		FinalClass						= 1 << 2;
-	public final static int		GreenClass		    			= 1 << 3;
-	public final static int		StaticClass						= 1 << 4;
-	public final static int		ImmutableClass					= 1 << 5;
-	public final static int		InterfaceClass					= 1 << 6;
+	public final static int		NativeClass	     				= 1 << 0;
+	public final static int		StructClass				    	= 1 << 1;
+//	public final static int		FinalClass						= 1 << 2;
+//	public final static int		GreenClass		    			= 1 << 3;
+//	public final static int		StaticClass						= 1 << 4;
+//	public final static int		ImmutableClass					= 1 << 5;
+//	public final static int		InterfaceClass					= 1 << 6;
 
 	// MethodFlag
 	public final static int		ExportMethod		= 1 << 0;
 	public final static int		AbstractMethod		= 1 << 1;
 	public final static int		VirtualMethod		= 1 << 2;
 	public final static int		NativeMethod		= 1 << 3;
-	public final static int		DynamicMethod		= 1 << 4;
-	public final static int     ImplicitMethod      = 1 << 5;  // used for implicit cast
+	public final static int		NativeStaticMethod	= 1 << 4;
+	public final static int		NativeMacroMethod	= 1 << 5;
+	public final static int		ConstMethod			= 1 << 6;
+	public final static int		DynamicMethod		= 1 << 7;
+	public final static int     ImplicitMethod      = 1 << 8;  // used for implicit cast
 
 	//public final static int		ConstMethod 		= 1 << 2;
 
 //	public final static int		PrivateMethod					= 1 << 0;
 //	public final static int		VirtualMethod					= 1 << 1;
 //	public final static int		FinalMethod						= 1 << 2;
-//	public final static int		ConstMethod						= 1 << 3;
 //	public final static int		StaticMethod					= 1 << 4;
 //
 //	public final static int		ImmutableMethod					= 1 << 5;
@@ -42,19 +44,6 @@ interface GtConst {
 //	public final static int		SmartReturnMethod				= 1 << 10;
 //	public final static int		VariadicMethod					= 1 << 11;
 //	public final static int		IterativeMethod					= 1 << 12;
-//
-//	// compatible
-//	public final static int		UniversalMethod					= 1 << 13;
-//
-//	public final static int		UniqueMethod					= 1 << 14; /* used */
-//	public final static int		ExportMethod					= 1 << 15; /* used */
-//
-//	// internal
-//	public final static int		HiddenMethod					= 1 << 17;
-//	public final static int		AbstractMethod					= 1 << 18;
-//	public final static int		OverloadedMethod				= 1 << 19;
-//	public final static int		Override						= 1 << 20;
-//	public final static int		DynamicCall						= 1 << 22;
 
 	public final static int		SymbolMaskSize					= 3;
 	public final static int		LowerSymbolMask					= 1;
@@ -1627,7 +1616,7 @@ final class GtNameSpace extends GtStatic {
 	public GtObject GetGlobalObject() {
 		/*local*/Object GlobalObject = this.GetSymbol(GlobalConstName);
 		if(GlobalObject == null || !(GlobalObject instanceof GtObject)) {
-			GlobalObject = this.CreateGlobalObject(SingletonClass, "global");
+			GlobalObject = this.CreateGlobalObject(0, "global");
 			this.DefinePrivateSymbol(GlobalConstName, GlobalObject);
 		}
 		return (/*cast*/GtObject) GlobalObject;
@@ -3126,7 +3115,7 @@ final class GtContext extends GtStatic {
 		return null;
 	}
 
-	public final GtMethod GetListedMethod(GtType BaseType, String MethodName, int MethodParamSize, boolean RecursiveSearch) {
+	public final GtMethod GetGreenListedMethod(GtType BaseType, String MethodName, int MethodParamSize, boolean RecursiveSearch) {
 		while(BaseType != null) {
 			Object Value = this.UniqueMethodMap.get(this.MethodNameParamSize(BaseType, MethodName, MethodParamSize));
 			if(Value instanceof GtMethod) {
@@ -3135,11 +3124,20 @@ final class GtContext extends GtStatic {
 			if(!RecursiveSearch) {
 				break;
 			}
+			BaseType = BaseType.SearchSuperMethodClass;
 		}
 		return null;
 	}
 
-	public GtMethod GetMethod(GtType BaseType, String Name, int BaseIndex, ArrayList<GtType> TypeList, boolean RecursiveSearch) {
+	public final GtMethod GetListedMethod(GtType BaseType, String MethodName, int MethodParamSize, boolean RecursiveSearch) {
+		GtMethod Method = GetGreenListedMethod(BaseType, MethodName, MethodParamSize, RecursiveSearch);
+		if(Method == null && BaseType.IsNative() && this.Generator.TransformNativeMethods(BaseType, MethodName)) {
+			Method = GetGreenListedMethod(BaseType, MethodName, MethodParamSize, RecursiveSearch);
+		}
+		return Method;
+	}
+
+	public final GtMethod GetGreenMethod(GtType BaseType, String Name, int BaseIndex, ArrayList<GtType> TypeList, boolean RecursiveSearch) {
 		while(BaseType != null) {
 			String Key = GtStatic.MangleMethodName(BaseType, Name, BaseIndex, TypeList);
 			Object Value = this.UniqueMethodMap.get(Key);
@@ -3152,6 +3150,14 @@ final class GtContext extends GtStatic {
 			BaseType = BaseType.SearchSuperMethodClass;
 		}
 		return null;
+	}
+
+	public final GtMethod GetMethod(GtType BaseType, String Name, int BaseIndex, ArrayList<GtType> TypeList, boolean RecursiveSearch) {
+		GtMethod Method = GetGreenMethod(BaseType, Name, BaseIndex, TypeList, RecursiveSearch);
+		if(Method == null && BaseType.IsNative() && this.Generator.TransformNativeMethods(BaseType, Name)) {
+			Method = GetGreenMethod(BaseType, Name, BaseIndex, TypeList, RecursiveSearch);
+		}
+		return Method;
 	}
 	
 	/* convertor, wrapper */
