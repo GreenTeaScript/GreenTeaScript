@@ -765,9 +765,9 @@ class GtType extends GtStatic {
 	/*field*/public Object			DefaultNullValue;
 	/*field*/GtType					BaseClass;
 	/*field*/GtType[]				Types;
-	/*field*/public Object          LocalSpec;
+	/*field*/public Object          NativeSpec;
 
-	GtType/*constructor*/(GtContext Context, int ClassFlag, String ClassName, Object DefaultNullValue, Object LocalSpec) {
+	GtType/*constructor*/(GtContext Context, int ClassFlag, String ClassName, Object DefaultNullValue, Object NativeSpec) {
 		this.Context = Context;
 		this.ClassFlag = ClassFlag;
 		this.ShortClassName = ClassName;
@@ -775,7 +775,7 @@ class GtType extends GtStatic {
 		this.BaseClass = this;
 		this.SearchSuperMethodClass = null;
 		this.DefaultNullValue = DefaultNullValue;
-		this.LocalSpec = LocalSpec;
+		this.NativeSpec = NativeSpec;
 		this.ClassId = Context.ClassCount;
 		Context.ClassCount += 1;
 		this.Types = null;
@@ -848,7 +848,7 @@ class GtMethod extends GtStatic {
 		this.MangledName = GtStatic.MangleMethodName(this.GetRecvType(), this.MethodName, BaseIndex+2, ParamList);
 	}
 
-	public final String GetLocalFuncName() {
+	public final String GetNativeFuncName() {
 		if(this.Is(ExportMethod)) {
 			return this.MethodName;
 		}
@@ -905,24 +905,21 @@ class GtMethod extends GtStatic {
 	public final int GetMethodParamSize() {
 		return this.Types.length - 2;
 	}
+	
+	public final String GetNativeMacro() {
+		return (/*cast*/String)this.NativeRef;
+	}
 
 	public final String ExpandMacro1(String Arg0) {
-		if(this.SourceMacro == null) {
-			return this.MethodName + " " + Arg0;
-		}
-		else {
-			return this.SourceMacro.replaceAll("$0", Arg0);
-		}
+		String NativeMacro = IsFlag(this.MethodFlag, NativeMacroMethod) ? (/*cast*/String)this.NativeRef : this.MethodName + " $1";
+		return NativeMacro.replaceAll("$0", Arg0);
 	}
 
 	public final String ExpandMacro2(String Arg0, String Arg1) {
-		if(this.SourceMacro == null) {
-			return Arg0 + " " + this.MethodName + " " + Arg1;
-		}
-		else {
-			return this.SourceMacro.replaceAll("$0", Arg0).replaceAll("$1", Arg1);
-		}
+		String NativeMacro = IsFlag(this.MethodFlag, NativeMacroMethod) ? (/*cast*/String)this.NativeRef : "$1 " + this.MethodName + " $2";
+		return NativeMacro.replaceAll("$0", Arg0);
 	}
+	
 }
 
 class GtGenerator extends GtStatic {
@@ -1092,7 +1089,7 @@ class GtGenerator extends GtStatic {
 	public boolean TransformNativeMethods(GtType NativeBaseType, String MethodName) {
 		boolean TransformedResult = false;
 //ifdef JAVA
-		Class<?> NativeClassInfo = (Class<?>)NativeBaseType.LocalSpec;
+		Class<?> NativeClassInfo = (Class<?>)NativeBaseType.NativeSpec;
 		Method[] List = NativeClassInfo.getMethods();
 		if(List != null) {
 			for(int i = 0; i < List.length; i++) {
