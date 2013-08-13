@@ -4,7 +4,6 @@ import java.util.Arrays;
 //endif VAJA
 
 /* language */
-
 // GreenTea Generator should be written in each language.
 
 class GtNode extends GtStatic {
