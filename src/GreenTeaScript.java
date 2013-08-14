@@ -2195,11 +2195,14 @@ final class DScriptGrammar extends GtGrammar {
 			NodeList.add(BaseNode);
 			BaseType = FuncNode.Type;
 		}
-		else {
+		else if(ParamSize > 0) {
 			/*local*/GtNode BaseNode = ParsedTree.TypeCheckNodeAt(1, Gamma, Gamma.AnyType, DefaultTypeCheckPolicy);
 			NodeList.add(BaseNode);
 			ParamIndex = 2;
 			BaseType = BaseNode.Type;
+		}
+		else {
+			BaseType = Gamma.VoidType;
 		}
 		GtMethod Method = Gamma.GetListedMethod(BaseType, MethodName, ParamSize - 1, true);
 		GtType ReturnType = Gamma.AnyType;
@@ -2919,7 +2922,7 @@ final class DScriptGrammar extends GtGrammar {
 		String Symbol = SourceText.substring(start, pos);
 		
 		/*local*/int i = 0;
-		while(i < 0) {
+		while(i < ShellGrammarReservedKeywords.length) {
 			/*local*/String Keyword = ShellGrammarReservedKeywords[i];
 			if(Symbol.equals(Keyword)) {
 				return GtStatic.NoMatch;
