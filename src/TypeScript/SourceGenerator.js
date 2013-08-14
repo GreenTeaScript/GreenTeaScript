@@ -802,6 +802,9 @@ var GtType = (function () {
         if (this == Type || this == this.Context.AnyType) {
             return true;
         }
+        if (this.BaseClass != null && Type.BaseClass != null && this.BaseClass == Type.BaseClass) {
+            return true;
+        }
         return false;
     };
     return GtType;
@@ -828,7 +831,7 @@ var GtMethod = (function () {
     };
 
     GtMethod.prototype.GetFuncType = function () {
-        if (this.FuncType != null) {
+        if (this.FuncType == null) {
             var Context = this.GetRecvType().Context;
             this.FuncType = Context.GetGenericType(Context.FuncType, 0, this.Types, true);
         }

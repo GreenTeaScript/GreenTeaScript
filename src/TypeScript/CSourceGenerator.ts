@@ -30,7 +30,7 @@ class CSourceGenerator extends SourceGenerator {
 	}
 
 	public VisitEmptyNode(Node: GtNode): void {
-		// this.PushSourceCode("/*empty*/"); //
+		this.PushSourceCode("");
 	}
 
 	public VisitSuffixNode(Node: SuffixNode): void {

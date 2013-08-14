@@ -808,13 +808,16 @@ class GtType {
 	public toString(): string {
 		return this.ShortClassName;
 	}
-	
+
 	 GetSignature(): string {
 		return NumberToAscii(this.ClassId);
 	}
 
 	 Accept(Type: GtType): boolean {
 		if(this == Type || this == this.Context.AnyType) {
+			return true;
+		}
+		if(this.BaseClass != null && Type.BaseClass != null && this.BaseClass == Type.BaseClass) {
 			return true;
 		}
 		return false;
@@ -831,7 +834,7 @@ class GtMethod {
 	public ListedMethods: GtMethod;
 	public SourceMacro: string;
 	public NativeRef: Object;
-	
+
 	constructor(MethodFlag: number, MethodName: string, BaseIndex: number, ParamList: Array<GtType>, NativeRef: Object) {
 		this.MethodFlag = MethodFlag;
 		this.MethodName = MethodName;
@@ -854,7 +857,7 @@ class GtMethod {
 	}
 
 	 GetFuncType(): GtType {
-		if(this.FuncType != null) {
+		if(this.FuncType == null) {
 			var Context: GtContext = this.GetRecvType().Context;
 			this.FuncType = Context.GetGenericType(Context.FuncType, 0, this.Types, true);
 		}
@@ -901,7 +904,7 @@ class GtMethod {
 	 GetMethodParamSize(): number {
 		return this.Types.length - 2;
 	}
-	
+
 	 GetNativeMacro(): string {
 		return <string>this.NativeRef;
 	}
@@ -915,7 +918,7 @@ class GtMethod {
 		var NativeMacro: string = IsFlag(this.MethodFlag, NativeMacroMethod) ? <string>this.NativeRef : "$1 " + this.MethodName + " $2";
 		return NativeMacro.replaceAll("$0", Arg0);
 	}
-	
+
 }
 
 class GtGenerator {
@@ -1081,7 +1084,7 @@ class GtGenerator {
 		return TransformedResult;
 	}
 
-	
+
 	public ParseClassFlag(ClassFlag: number, ClassDeclTree: GtSyntaxTree): number {
 // 		if(ClassDeclTree.HasAnnotation("Final")) { //
 // 			ClassFlag = ClassFlag | FinalClass; //
@@ -1091,7 +1094,7 @@ class GtGenerator {
 // 		} //
 		return ClassFlag;
 	}
-	
+
 	public AddClass(Type: GtType): void {
 		/*extension*/
 	}
@@ -1109,9 +1112,9 @@ class GtGenerator {
 
 	public GenerateMethod(Method: GtMethod, ParamNameList: Array<string>, Body: GtNode): void {
 		/*extenstion*/
-		
+
 	}
-	
+
 	// ------------------------------------------------------------------------ //
 
 	public VisitEmptyNode(EmptyNode: GtNode): void {
