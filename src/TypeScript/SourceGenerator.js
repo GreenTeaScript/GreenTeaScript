@@ -1066,6 +1066,18 @@ var GtGenerator = (function () {
         /*extension*/
     };
 
+    GtGenerator.prototype.DefineClassField = function (NameSpace, Type, Field) {
+        /*extension*/
+    };
+
+    GtGenerator.prototype.DefineClassMethod = function (NameSpace, Type, Method) {
+        /*extension*/
+    };
+
+    GtGenerator.prototype.FreezeClass = function (Type) {
+        /*extension*/
+    };
+
     GtGenerator.prototype.ParseMethodFlag = function (MethodFlag, MethodDeclTree) {
         if (MethodDeclTree.HasAnnotation("Export")) {
             MethodFlag = MethodFlag | ExportMethod;
