@@ -1419,9 +1419,9 @@ final class GtSpec extends GtStatic {
 }
 
 final class GtNameSpace extends GtStatic {
-	/*field*/public GtContext		Context;
+	/*field*/public final GtContext		Context;
+	/*field*/public final GtNameSpace		ParentNameSpace;
 	/*field*/public String          PackageName;
-	/*field*/public GtNameSpace		ParentNameSpace;
 	/*field*/public ArrayList<GtNameSpace>	  ImportedNameSpaceList;
 	/*field*/public ArrayList<GtSpec>         PublicSpecList;
 	/*field*/public ArrayList<GtSpec>         PrivateSpecList;
@@ -1433,11 +1433,7 @@ final class GtNameSpace extends GtStatic {
 	GtNameSpace/*constructor*/(GtContext Context, GtNameSpace ParentNameSpace) {
 		this.Context = Context;
 		this.ParentNameSpace = ParentNameSpace;
-		if(ParentNameSpace != null) {
-			this.PackageName = ParentNameSpace.PackageName;
-		}
-		else {
-		}
+		this.PackageName = (ParentNameSpace != null) ? ParentNameSpace.PackageName : null;
 		this.ImportedNameSpaceList = null;
 		this.PublicSpecList = new ArrayList<GtSpec>();
 		this.PrivateSpecList = null;
@@ -2381,8 +2377,8 @@ final class DScriptGrammar extends GtGrammar {
 
 	public static GtNode TypeIf(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtNode CondNode = ParsedTree.TypeCheckNodeAt(IfCond, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
-		/*local*/GtNode ThenNode = ParsedTree.TypeCheckNodeAt(IfThen, Gamma, ContextType, DefaultTypeCheckPolicy);
-		/*local*/GtNode ElseNode = ParsedTree.TypeCheckNodeAt(IfElse, Gamma, ThenNode.Type, AllowEmptyPolicy);
+		/*local*/GtNode ThenNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(IfThen), ContextType);
+		/*local*/GtNode ElseNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(IfElse), ThenNode.Type);
 		return Gamma.Generator.CreateIfNode(ThenNode.Type, ParsedTree, CondNode, ThenNode, ElseNode);
 	}
 
@@ -2398,7 +2394,7 @@ final class DScriptGrammar extends GtGrammar {
 
 	public static GtNode TypeWhile(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtNode CondNode = ParsedTree.TypeCheckNodeAt(WhileCond, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
-		/*local*/GtNode BodyNode = ParsedTree.TypeCheckNodeAt(WhileBody, Gamma, ContextType, DefaultTypeCheckPolicy);
+		/*local*/GtNode BodyNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(WhileBody), ContextType);
 		return Gamma.Generator.CreateWhileNode(BodyNode.Type, ParsedTree, CondNode, BodyNode);
 	}
 	
@@ -2448,7 +2444,7 @@ final class DScriptGrammar extends GtGrammar {
 		TryTree.SetMatchedPatternAt(TryBody, NameSpace, TokenContext, "$Block$", Required);
 		if(TokenContext.MatchToken("catch")) {
 			TryTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "(", Required);
-			TryTree.SetMatchedPatternAt(CatchVariable, NameSpace, TokenContext, "$Variable$", Required);
+			TryTree.SetMatchedPatternAt(CatchVariable, NameSpace, TokenContext, "$VarDecl$", Required);
 			TryTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ")", Required);
 			TryTree.SetMatchedPatternAt(CatchBody, NameSpace, TokenContext, "$Block$", Required);
 		}
@@ -2459,7 +2455,12 @@ final class DScriptGrammar extends GtGrammar {
 	}
 	
 	public static GtNode TypeTry(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		return null;
+		GtType FaultType = ContextType; // FIXME Gamma.FaultType;
+		/*local*/GtNode TryNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(TryBody), ContextType);
+		/*local*/GtNode CatchExpr = ParsedTree.TypeCheckNodeAt(CatchVariable, Gamma, FaultType, DefaultTypeCheckPolicy);
+		/*local*/GtNode CatchNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(CatchBody), ContextType);
+		/*local*/GtNode FinallyNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(FinallyBody), ContextType);
+		return Gamma.Generator.CreateTryNode(TryNode.Type, ParsedTree, TryNode, CatchExpr, CatchNode, FinallyNode);
 	}
 
 	public static GtSyntaxTree ParseThrow(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
@@ -2469,7 +2470,9 @@ final class DScriptGrammar extends GtGrammar {
 	}
 	
 	public static GtNode TypeThrow(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		return null;
+		GtType FaultType = ContextType; // FIXME Gamma.FaultType;
+		GtNode ExprNode = ParsedTree.TypeCheckNodeAt(ReturnExpr, Gamma, FaultType, DefaultTypeCheckPolicy);
+		return Gamma.Generator.CreateThrowNode(ExprNode.Type, ParsedTree, ExprNode);
 	}
 
 	// switch
@@ -2710,15 +2713,14 @@ final class DScriptGrammar extends GtGrammar {
 		// define new class
 		/*local*/String ClassName = ClassNameTree.KeyToken.ParsedText;
 		/*local*/GtSyntaxTree SuperClassTree = Tree.GetSyntaxTreeAt(ClassParentNameOffset);
-		GtType SuperClass = null ;//Gamma.ObjectType;
+		/*local*/GtType SuperType = NameSpace.Context.StructType;
 		if(SuperClassTree != null) {
-			SuperClass = (/*cast*/GtType) SuperClassTree.ConstValue;
+			SuperType = (/*cast*/GtType) SuperClassTree.ConstValue;
 		}
 		/*local*/int ClassFlag = 0; //Gamma.Generator.ParseMethodFlag(0, ParsedTree);
-		/*local*/GtType NewType = NameSpace.Context.StructType.CreateSubType(ClassFlag, ClassName, null, null);
-//		/*local*/GtObject DefaultObject = new GtObject(NewType);
-//		NewType.DefaultNullValue = DefaultObject;
-		NewType.SuperClass = SuperClass;
+		/*local*/GtType NewType = SuperType.CreateSubType(ClassFlag, ClassName, null, null);
+		/*local*/GreenTeaTopObject DefaultObject = new GreenTeaTopObject(NewType);
+		NewType.DefaultNullValue = DefaultObject;
 
 		NameSpace.DefineClass(NewType);
 		ClassNameTree.ConstValue = NewType;
@@ -3049,6 +3051,8 @@ final class DScriptGrammar extends GtGrammar {
 		NameSpace.DefineSyntaxPattern("const", FunctionB(this, "ParseConstDecl"), FunctionC(this, "TypeConstDecl"));
 		NameSpace.DefineSyntaxPattern("class", FunctionB(this, "ParseClassDecl"), FunctionC(this, "TypeClassDecl"));
 		NameSpace.DefineSyntaxPattern("constructor", FunctionB(this, "ParseConstructor"), FunctionC(this, "TypeFuncDecl"));
+		NameSpace.DefineSyntaxPattern("try", FunctionB(this, "ParseTry"), FunctionC(this, "TypeTry"));
+		NameSpace.DefineSyntaxPattern("throw", FunctionB(this, "ParseThrow"), FunctionC(this, "TypeThrow"));
 	}
 }
 
@@ -3384,6 +3388,10 @@ final class GtContext extends GtStatic {
 
 public class GreenTeaScript extends GtStatic {
 	public final static void main(String[] Args) {
+		int N = 0;
+		Args = new String[2];
+		Args[N++] = "--c";
+		Args[N++] = "test/0030-TryCatch.green";
 		/*local*/String CodeGeneratorName = "--java";
 		/*local*/int Index = 0;
 		/*local*/String OneLiner = null;

@@ -261,10 +261,12 @@ var CSourceGenerator = (function (_super) {
     };
 
     CSourceGenerator.prototype.VisitTryNode = function (Node) {
-        var Code = "try";
-
-        // this.VisitEach(Node.CatchBlock); //
+        var Code = "try ";
         this.VisitBlockEachStatementWithIndent(Node.TryBlock, true);
+        Code += this.PopSourceCode();
+        var Val = Node.CatchExpr;
+        Code += " catch (" + Val.Type.toString() + " " + Val.VariableName + ") ";
+        this.VisitBlockEachStatementWithIndent(Node.CatchBlock, true);
         Code += this.PopSourceCode();
         if (Node.FinallyBlock != null) {
             this.VisitBlockEachStatementWithIndent(Node.FinallyBlock, true);

@@ -264,9 +264,12 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitTryNode(TryNode Node) {
-		/*local*/String Code = "try";
-		//this.VisitEach(Node.CatchBlock);
+		/*local*/String Code = "try ";
 		this.VisitBlockEachStatementWithIndent(Node.TryBlock, true);
+		Code += this.PopSourceCode();
+		/*local*/LetNode Val = (/*cast*/LetNode) Node.CatchExpr;
+		Code += " catch (" + Val.Type.toString() + " " + Val.VariableName + ") ";
+		this.VisitBlockEachStatementWithIndent(Node.CatchBlock, true);
 		Code += this.PopSourceCode();
 		if(Node.FinallyBlock != null) {
 			this.VisitBlockEachStatementWithIndent(Node.FinallyBlock, true);

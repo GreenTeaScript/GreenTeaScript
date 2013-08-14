@@ -1792,7 +1792,8 @@ class GtGrammar {
 	}
 
 	// and: parserchecker: type //
-
+	// am: Ito: tryingNameSpace: addParse: toInterface: Func //
+	// you: ready: Are? //
 	static ParseType(Pattern: GtSyntaxPattern, LeftTree: GtSyntaxTree, TokenContext: GtTokenContext): GtSyntaxTree {
 		var Token: GtToken = TokenContext.Next();
 		var ConstValue: Object = TokenContext.NameSpace.GetSymbol(Token.ParsedText);
@@ -2299,8 +2300,8 @@ class GtGrammar {
 
 	static TypeIf(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
 		var CondNode: GtNode = ParsedTree.TypeCheckNodeAt(IfCond, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
-		var ThenNode: GtNode = ParsedTree.TypeCheckNodeAt(IfThen, Gamma, ContextType, DefaultTypeCheckPolicy);
-		var ElseNode: GtNode = ParsedTree.TypeCheckNodeAt(IfElse, Gamma, ThenNode.Type, AllowEmptyPolicy);
+		var ThenNode: GtNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(IfThen), ContextType);
+		var ElseNode: GtNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(IfElse), ThenNode.Type);
 		return Gamma.Generator.CreateIfNode(ThenNode.Type, ParsedTree, CondNode, ThenNode, ElseNode);
 	}
 
@@ -2316,7 +2317,7 @@ class GtGrammar {
 
 	static TypeWhile(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
 		var CondNode: GtNode = ParsedTree.TypeCheckNodeAt(WhileCond, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
-		var BodyNode: GtNode = ParsedTree.TypeCheckNodeAt(WhileBody, Gamma, ContextType, DefaultTypeCheckPolicy);
+		var BodyNode: GtNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(WhileBody), ContextType);
 		return Gamma.Generator.CreateWhileNode(BodyNode.Type, ParsedTree, CondNode, BodyNode);
 	}
 	
@@ -2366,7 +2367,7 @@ class GtGrammar {
 		TryTree.SetMatchedPatternAt(TryBody, TokenContext, "$Block$", Required);
 		if(TokenContext.MatchToken("catch")) {
 			TryTree.SetMatchedTokenAt(NoWhere, TokenContext, "(", Required);
-			TryTree.SetMatchedPatternAt(CatchVariable, TokenContext, "$Variable$", Required);
+			TryTree.SetMatchedPatternAt(CatchVariable, TokenContext, "$VarDecl$", Required);
 			TryTree.SetMatchedTokenAt(NoWhere, TokenContext, ")", Required);
 			TryTree.SetMatchedPatternAt(CatchBody, TokenContext, "$Block$", Required);
 		}
@@ -2377,7 +2378,12 @@ class GtGrammar {
 	}
 	
 	static TypeTry(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
-		return null;
+		var FaultType: GtType = ContextType; // Gamma: FIXME.FaultType; //
+		var TryNode: GtNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(TryBody), ContextType);
+		var CatchExpr: GtNode = ParsedTree.TypeCheckNodeAt(CatchVariable, Gamma, FaultType, DefaultTypeCheckPolicy);
+		var CatchNode: GtNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(CatchBody), ContextType);
+		var FinallyNode: GtNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(FinallyBody), ContextType);
+		return Gamma.Generator.CreateTryNode(TryNode.Type, ParsedTree, TryNode, CatchExpr, CatchNode, FinallyNode);
 	}
 
 	static ParseThrow(Pattern: GtSyntaxPattern, LeftTree: GtSyntaxTree, TokenContext: GtTokenContext): GtSyntaxTree {
@@ -2387,7 +2393,9 @@ class GtGrammar {
 	}
 	
 	static TypeThrow(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
-		return null;
+		var FaultType: GtType = ContextType; // Gamma: FIXME.FaultType; //
+		var ExprNode: GtNode = ParsedTree.TypeCheckNodeAt(ReturnExpr, Gamma, FaultType, DefaultTypeCheckPolicy);
+		return Gamma.Generator.CreateThrowNode(ExprNode.Type, ParsedTree, ExprNode);
 	}
 
 	//  switch //
@@ -2628,15 +2636,14 @@ class GtGrammar {
 		//  define new class //
 		var ClassName: string = ClassNameTree.KeyToken.ParsedText;
 		var SuperClassTree: GtSyntaxTree = Tree.GetSyntaxTreeAt(ClassParentNameOffset);
-		var SuperClass: GtType = null ;// Gamma.ObjectType; //
+		var SuperType: GtType = TokenContext.NameSpace.Context.StructType;
 		if(SuperClassTree != null) {
-			SuperClass = <GtType> SuperClassTree.ConstValue;
+			SuperType = <GtType> SuperClassTree.ConstValue;
 		}
 		var ClassFlag: number = 0; // Gamma.Generator.ParseMethodFlag(0, ParsedTree); //
-		var NewType: GtType = TokenContext.NameSpace.Context.StructType.CreateSubType(ClassFlag, ClassName, null, null);
-// 		var DefaultObject: GtObject = new GtObject(NewType); //
-// 		NewType.DefaultNullValue = DefaultObject; //
-		NewType.SuperClass = SuperClass;
+		var NewType: GtType = SuperType.CreateSubType(ClassFlag, ClassName, null, null);
+		var DefaultObject: GreenTeaTopObject = new GreenTeaTopObject(NewType);
+		NewType.DefaultNullValue = DefaultObject;
 
 		TokenContext.NameSpace.DefineClass(NewType);
 		ClassNameTree.ConstValue = NewType;
@@ -2952,6 +2959,8 @@ class GtGrammar {
 		NameSpace.DefineSyntaxPattern("const", DScriptGrammar.ParseConstDecl, DScriptGrammar.TypeConstDecl);
 		NameSpace.DefineSyntaxPattern("class", DScriptGrammar.ParseClassDecl, DScriptGrammar.TypeClassDecl);
 		NameSpace.DefineSyntaxPattern("constructor", DScriptGrammar.ParseConstructor, DScriptGrammar.TypeFuncDecl);
+		NameSpace.DefineSyntaxPattern("try", DScriptGrammar.ParseTry, DScriptGrammar.TypeTry);
+		NameSpace.DefineSyntaxPattern("throw", DScriptGrammar.ParseThrow, DScriptGrammar.TypeThrow);
 	}
 }
 
@@ -2980,12 +2989,12 @@ class GtGrammar {
 	 ArrayType: GtType;
 	 FuncType: GtType;
 
-	public TopType: GtType;
-	public EnumType: GtType;
-	public StructType: GtType;
-	public VarType: GtType;
+	 TopType: GtType;
+	 EnumType: GtType;
+	 StructType: GtType;
+	 VarType: GtType;
 
-	public TypeType: GtType;
+	 TypeType: GtType;
 	public PolyFuncType: GtType;
 	
 	  ClassNameMap: GtMap;
@@ -3014,12 +3023,14 @@ class GtGrammar {
 		this.StringType  = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "string", "", String));
 		this.VarType     = this.RootNameSpace.DefineClass(new GtType(this, 0, "var", null, null));
 		this.AnyType     = this.RootNameSpace.DefineClass(new GtType(this, DynamicClass, "any", null, null));
-		this.ArrayType   = this.RootNameSpace.DefineClass(new GtType(this, 0, "Array", null, null));
-		this.FuncType    = this.RootNameSpace.DefineClass(new GtType(this, 0, "Func", null, null));
+		this.TypeType    = this.RootNameSpace.DefineClass(this.TopType.CreateSubType(0, "Type", null, null));
+		this.ArrayType   = this.RootNameSpace.DefineClass(this.TopType.CreateSubType(0, "Array", null, null));
+		this.FuncType    = this.RootNameSpace.DefineClass(this.TopType.CreateSubType(0, "Func", null, null));
+		
 		this.ArrayType.Types = new Array<GtType>(1);
 		this.ArrayType.Types[0] = this.AnyType;
 		this.FuncType.Types = new Array<GtType>(1);
-		this.FuncType.Types[0] = this.VoidType;
+		this.FuncType.Types[0] = this.AnyType;
 
 		
 		Grammar.LoadTo(this.RootNameSpace);
@@ -3278,6 +3289,10 @@ class GtGrammar {
 
 class GreenTeaScript {
 	static main(Args: string[]): void {
+		var N: number = 0;
+		Args = new Array<string>(2);
+		Args[N++] = "--c";
+		Args[N++] = "test/0030-TryCatch.green";
 		var CodeGeneratorName: string = "--java";
 		var Index: number = 0;
 		var OneLiner: string = null;
