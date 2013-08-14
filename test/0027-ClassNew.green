@@ -1,5 +1,6 @@
 class X {
-    new(int x) {
+    constructor(int x) {
+        // empty
     }
 }
 
