@@ -763,6 +763,7 @@ class GtType extends GtStatic {
 	/*field*/GtType					SuperClass;
 	/*field*/public GtType			SearchSuperMethodClass;
 	/*field*/public Object			DefaultNullValue;
+	/*field*/public GtMap           ClassSymbolTable;
 	/*field*/GtType					BaseClass;
 	/*field*/GtType[]				Types;
 	/*field*/public Object          NativeSpec;
@@ -776,9 +777,28 @@ class GtType extends GtStatic {
 		this.SearchSuperMethodClass = null;
 		this.DefaultNullValue = DefaultNullValue;
 		this.NativeSpec = NativeSpec;
+		this.ClassSymbolTable = IsFlag(ClassFlag, EnumClass) ? (/*cast*/GtMap)NativeSpec : null;
 		this.ClassId = Context.ClassCount;
 		Context.ClassCount += 1;
 		this.Types = null;
+	}
+
+	public GtType CreateSubType(int ClassFlag, String ClassName, Object DefaultNullValue, Object NativeSpec) {
+		GtType SubType = new GtType(this.Context, ClassFlag, ClassName, DefaultNullValue, NativeSpec);
+		SubType.SuperClass = this;
+		SubType.SearchSuperMethodClass = this;
+		return SubType;
+	}
+	
+	// Note Don't call this directly. Use Context.GetGenericType instead.
+	public GtType CreateGenericType(int BaseIndex, ArrayList<GtType> TypeList, String ShortName) {
+		GtType GenericType = new GtType(this.Context, this.ClassFlag, ShortName, null, null);
+		GenericType.BaseClass = this.BaseClass;
+		GenericType.SearchSuperMethodClass = this.BaseClass;
+		GenericType.SuperClass = this.SuperClass;
+		this.Types = LangDeps.CompactTypeList(BaseIndex, TypeList);
+		DebugP("new class: " + GenericType.ShortClassName + ", ClassId=" + GenericType.ClassId);
+		return GenericType;
 	}
 
 	public final boolean IsNative() {
@@ -793,25 +813,28 @@ class GtType extends GtStatic {
 		return (this.Types != null);
 	}
 
-	// Note Don't call this directly. Use Context.GetGenericType instead.
-	public GtType CreateGenericType(int BaseIndex, ArrayList<GtType> TypeList, String ShortName) {
-		GtType GenericType = new GtType(this.Context, this.ClassFlag, ShortName, null, null);
-		GenericType.BaseClass = this.BaseClass;
-		GenericType.SearchSuperMethodClass = this.BaseClass;
-		GenericType.SuperClass = this.SuperClass;
-		this.Types = LangDeps.CompactTypeList(BaseIndex, TypeList);
-		DebugP("new class: " + GenericType.ShortClassName + ", ClassId=" + GenericType.ClassId);
-		return GenericType;
-	}
-
-	public void SetParamType(GtType ParamType) {
-		this.Types = new GtType[1];
-		this.Types[0] = ParamType;
-	}
-
 	@Override public String toString() {
 		return this.ShortClassName;
 	}
+
+	public final Object GetClassSymbol(String Key, boolean RecursiveSearch) {
+		GtType Type = this;
+		while(Type != null) {
+			if(Type.ClassSymbolTable != null) {
+				return Type.ClassSymbolTable.get(Key);
+			}
+			Type = (RecursiveSearch) ? Type.SuperClass : null;
+		}
+		return null;
+	}
+
+	public final void SetClassSymbol(String Key, Object Value) {
+		if(this.ClassSymbolTable == null) {
+			this.ClassSymbolTable = new GtMap();
+		}
+		this.ClassSymbolTable.put(Key, Value);
+	}
+
 	
 	public final String GetSignature() {
 		return GtStatic.NumberToAscii(this.ClassId);
@@ -821,8 +844,16 @@ class GtType extends GtStatic {
 		if(this == Type || this == this.Context.AnyType) {
 			return true;
 		}
-		return false;
+		GtType SuperClass = this.SuperClass;
+		while(SuperClass != null) {
+			if(SuperClass == Type) {
+				return true;
+			}
+			SuperClass = SuperClass.SuperClass;
+		}
+		return this.Context.CheckSubType(Type, this);
 	}
+
 }
 
 class GtMethod extends GtStatic {
@@ -835,7 +866,7 @@ class GtMethod extends GtStatic {
 	/*field*/public GtMethod        ListedMethods;
 	/*field*/public String          SourceMacro;
 	/*field*/public Object          NativeRef;
-	
+
 	GtMethod/*constructor*/(int MethodFlag, String MethodName, int BaseIndex, ArrayList<GtType> ParamList, Object NativeRef) {
 		this.MethodFlag = MethodFlag;
 		this.MethodName = MethodName;
@@ -858,7 +889,7 @@ class GtMethod extends GtStatic {
 	}
 
 	public final GtType GetFuncType() {
-		if(this.FuncType != null) {
+		if(this.FuncType == null) {
 			GtContext Context = this.GetRecvType().Context;
 			this.FuncType = Context.GetGenericType(Context.FuncType, 0, new ArrayList<GtType>(Arrays.asList(this.Types)), true);
 		}
@@ -905,7 +936,7 @@ class GtMethod extends GtStatic {
 	public final int GetMethodParamSize() {
 		return this.Types.length - 2;
 	}
-	
+
 	public final String GetNativeMacro() {
 		return (/*cast*/String)this.NativeRef;
 	}
@@ -919,7 +950,7 @@ class GtMethod extends GtStatic {
 		String NativeMacro = IsFlag(this.MethodFlag, NativeMacroMethod) ? (/*cast*/String)this.NativeRef : "$1 " + this.MethodName + " $2";
 		return NativeMacro.replaceAll("$0", Arg0);
 	}
-	
+
 }
 
 class GtGenerator extends GtStatic {
@@ -1117,7 +1148,7 @@ class GtGenerator extends GtStatic {
 		return TransformedResult;
 	}
 
-	
+
 	public int ParseClassFlag(int ClassFlag, GtSyntaxTree ClassDeclTree) {
 //		if(ClassDeclTree.HasAnnotation("Final")) {
 //			ClassFlag = ClassFlag | FinalClass;
@@ -1127,7 +1158,7 @@ class GtGenerator extends GtStatic {
 //		}
 		return ClassFlag;
 	}
-	
+
 	public void AddClass(GtType Type) {
 		/*extension*/
 	}
@@ -1145,9 +1176,9 @@ class GtGenerator extends GtStatic {
 
 	public void GenerateMethod(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
 		/*extenstion*/
-		
+
 	}
-	
+
 	//------------------------------------------------------------------------
 
 	public void VisitEmptyNode(GtNode EmptyNode) {

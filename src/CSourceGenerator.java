@@ -31,7 +31,7 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitEmptyNode(GtNode Node) {
-		//this.PushSourceCode("/*empty*/");
+		this.PushSourceCode("");
 	}
 
 	@Override public void VisitSuffixNode(SuffixNode Node) {

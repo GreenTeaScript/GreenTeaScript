@@ -2172,7 +2172,7 @@ final class DScriptGrammar extends GtGrammar {
 			BaseType = FuncNode.Type;
 		}
 		else {
-			/*local*/GtNode BaseNode = ParsedTree.TypeCheckNodeAt(1, Gamma, Gamma.FuncType, DefaultTypeCheckPolicy);
+			/*local*/GtNode BaseNode = ParsedTree.TypeCheckNodeAt(1, Gamma, Gamma.AnyType, DefaultTypeCheckPolicy);
 			NodeList.add(BaseNode);
 			ParamIndex = 2;
 			BaseType = BaseNode.Type;
@@ -2635,7 +2635,7 @@ final class DScriptGrammar extends GtGrammar {
 			Method = DScriptGrammar.CreateMethod(Gamma, ParsedTree, MethodFlag, MethodName, TypeList, NativeMacro);
 		}
 		if(Method != null && NativeMacro == null && ParsedTree.HasNodeAt(FuncDeclBlock)) {
-			/*local*/GtNode BodyNode = ParsedTree.TypeCheckNodeAt(FuncDeclBlock, Gamma, ReturnType, IgnoreEmptyPolicy);
+			/*local*/GtNode BodyNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(FuncDeclBlock), ReturnType);
 			Gamma.Generator.GenerateMethod(Method, ParamNameList, BodyNode);
 		}
 		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
@@ -3035,16 +3035,25 @@ final class GtContext extends GtStatic {
 	/*field*/public final  GtNameSpace		   RootNameSpace;
 	/*field*/public GtNameSpace		           DefaultNameSpace;
 
+	// basic class
 	/*field*/public final GtType		VoidType;
 //	/*field*/public final GtType		ObjectType;
 	/*field*/public final GtType		BooleanType;
 	/*field*/public final GtType		IntType;
 	/*field*/public final GtType		StringType;
-	/*field*/public final GtType		VarType;
 	/*field*/public final GtType		AnyType;
 	/*field*/public final GtType		ArrayType;
 	/*field*/public final GtType		FuncType;
 
+	/*field*/public GtType		TopType;
+	/*field*/public GtType		EnumType;
+	/*field*/public GtType		StructType;
+	/*field*/public GtType		VarType;
+
+	/*field*/public GtType		TypeType;
+	/*field*/public GtType		PolyFuncType;
+	
+	
 	/*field*/public final  GtMap			   ClassNameMap;
 	/*field*/public final  GtMap               UniqueMethodMap;
 	/*field*/public int ClassCount;
@@ -3058,6 +3067,11 @@ final class GtContext extends GtStatic {
 		this.RootNameSpace = new GtNameSpace(this, null);
 		this.ClassCount = 0;
 		this.MethodCount = 0;
+
+		this.TopType     = new GtType(this, 0, "top", null, null);  // not registered
+		this.StructType  = this.TopType.CreateSubType(0, "record", null, null);
+		this.EnumType    = this.TopType.CreateSubType(0, "enum", null, null);
+
 		this.VoidType    = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "void", null, Void.class));
 //		this.ObjectType  = this.RootNameSpace.DefineClass(new GtType(this, 0, "Object", new Object(), Object.class));
 		this.BooleanType = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "boolean", false, Boolean.class));
@@ -3079,6 +3093,7 @@ final class GtContext extends GtStatic {
 		this.ClassNameMap.put("java.lang.Short",   this.IntType);
 		this.ClassNameMap.put("java.lang.String",  this.StringType);
 //endif VAJA
+		
 		Grammar.LoadTo(this.RootNameSpace);
 		
 		this.DefaultNameSpace = new GtNameSpace(this, this.RootNameSpace);
@@ -3095,6 +3110,11 @@ final class GtContext extends GtStatic {
 
 	public Object Eval(String text, long FileLine) {
 		return this.DefaultNameSpace.Eval(text, FileLine, this.Generator);
+	}
+
+	public final boolean CheckSubType(GtType SubType, GtType SuperType) {
+		// TODO: Structual Typing database
+		return false;
 	}
 
 	public GtType GetGenericType(GtType BaseType, int BaseIdx, ArrayList<GtType> TypeList, boolean IsCreation) {
@@ -3324,6 +3344,7 @@ final class GtContext extends GtStatic {
 		/*local*/String Key = this.WrapperName(Method.GetRecvType(), Method.GetReturnType());
 		this.UniqueMethodMap.put(Key, Method);
 	}
+
 	
 }
 

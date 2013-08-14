@@ -32,7 +32,7 @@ var CSourceGenerator = (function (_super) {
     };
 
     CSourceGenerator.prototype.VisitEmptyNode = function (Node) {
-        // this.PushSourceCode("/*empty*/"); //
+        this.PushSourceCode("");
     };
 
     CSourceGenerator.prototype.VisitSuffixNode = function (Node) {
