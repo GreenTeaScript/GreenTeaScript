@@ -204,9 +204,9 @@ interface GtConst {
 	public final static int	FuncDeclParam		= 4;
 
 	// Class Decl;
-	static final int	ClassParentNameOffset	= 0;
-	static final int	ClassNameOffset			= 1;
-	static final int	ClassBlockOffset		= 2;
+	public final static int	ClassParentNameOffset	= 0;
+	public final static int	ClassNameOffset			= 1;
+	public final static int	ClassBlockOffset		= 2;
 
 	// try-catch
 	public final static int TryBody         = 0;
@@ -217,19 +217,19 @@ interface GtConst {
 	// Enum
 	public final static int EnumNameTreeIndex = 0;
 
-	// spec
-	public final static int TokenFuncSpec     = 0;
-	public final static int SymbolPatternSpec = 1;
-	public final static int ExtendedPatternSpec = 2;
+//	// spec
+//	public final static int TokenFuncSpec     = 0;
+//	public final static int SymbolPatternSpec = 1;
+//	public final static int ExtendedPatternSpec = 2;
 
 	public final static int BinaryOperator					= 1;
 	public final static int LeftJoin						= 1 << 1;
 //	public final static int Parenthesis						= 1 << 2;
 	public final static int PrecedenceShift					= 3;
-	public final static int Precedence_CStyleValue			= (1 << PrecedenceShift);
-	public final static int Precedence_CPPStyleScope		= (50 << PrecedenceShift);
-	public final static int Precedence_CStyleSuffixCall		= (100 << PrecedenceShift);				/*x(); x[]; x.x x->x x++ */
-	public final static int Precedence_CStylePrefixOperator	= (200 << PrecedenceShift);				/*++x; --x; sizeof x &x +x -x !x (T)x  */
+//	public final static int Precedence_CStyleValue			= (1 << PrecedenceShift);
+//	public final static int Precedence_CPPStyleScope		= (50 << PrecedenceShift);
+//	public final static int Precedence_CStyleSuffixCall		= (100 << PrecedenceShift);				/*x(); x[]; x.x x->x x++ */
+//	public final static int Precedence_CStylePrefixOperator	= (200 << PrecedenceShift);				/*++x; --x; sizeof x &x +x -x !x (T)x  */
 	//	Precedence_CppMember      = 300;  /* .x ->x */
 	public final static int Precedence_CStyleMUL			= (400 << PrecedenceShift);				/* x * x; x / x; x % x*/
 	public final static int Precedence_CStyleADD			= (500 << PrecedenceShift);				/* x + x; x - x */
@@ -244,9 +244,9 @@ interface GtConst {
 	public final static int Precedence_CStyleTRINARY		= (1400 << PrecedenceShift);				/* ? : */
 	public final static int Precedence_CStyleAssign			= (1500 << PrecedenceShift);
 	public final static int Precedence_CStyleCOMMA			= (1600 << PrecedenceShift);
-	public final static int Precedence_Error				= (1700 << PrecedenceShift);
-	public final static int Precedence_Statement			= (1900 << PrecedenceShift);
-	public final static int Precedence_CStyleDelim			= (2000 << PrecedenceShift);
+//	public final static int Precedence_Error				= (1700 << PrecedenceShift);
+//	public final static int Precedence_Statement			= (1900 << PrecedenceShift);
+//	public final static int Precedence_CStyleDelim			= (2000 << PrecedenceShift);
 
 	public final static int DefaultTypeCheckPolicy			= 0;
 	public final static int NoCheckPolicy                   = 1;
@@ -256,7 +256,7 @@ interface GtConst {
 	public final static int AllowVoidPolicy                 = (1 << 4);
 	public final static int AllowCoercionPolicy             = (1 << 5);
 
-	public final static String	GlobalConstName					= "global";
+//	public final static String	GlobalConstName					= "global";
 
 	public final static ArrayList<String> SymbolList = new ArrayList<String>();
 	public final static GtMap   SymbolMap  = new GtMap();
@@ -315,78 +315,78 @@ class GtStatic implements GtConst {
 		return UnicodeChar;
 	}
 
-	// Symbol
-	public final static boolean IsGetterSymbol(int SymbolId) {
-		return IsFlag(SymbolId, GetterSymbolMask);
-	}
-
-	public final static boolean IsSetterSymbol(int SymbolId) {
-		return IsFlag(SymbolId, SetterSymbolMask);
-	}
-
-	public final static int ToSetterSymbol(int SymbolId) {
-		LangDeps.Assert(IsGetterSymbol(SymbolId));
-		return (SymbolId & (~GetterSymbolMask)) | SetterSymbolMask;
-	}
-
-	public final static int MaskSymbol(int SymbolId, int Mask) {
-		return (SymbolId << SymbolMaskSize) | Mask;
-	}
-
-	public final static int UnmaskSymbol(int SymbolId) {
-		return SymbolId >> SymbolMaskSize;
-	}
-
-	public final static String StringfySymbol(int SymbolId) {
-		/*local*/String Key = SymbolList.get(UnmaskSymbol(SymbolId));
-		if(IsFlag(SymbolId, GetterSymbolMask)) {
-			return GetterPrefix + Key;
-		}
-		if(IsFlag(SymbolId, SetterSymbolMask)) {
-			return SetterPrefix + Key;
-		}
-		if(IsFlag(SymbolId, MetaSymbolMask)) {
-			return MetaPrefix + Key;
-		}
-		return Key;
-	}
-
-	public final static int GetSymbolId(String Symbol, int DefaultSymbolId) {
-		/*local*/String Key = Symbol;
-		/*local*/int Mask = 0;
-		if(Symbol.length() >= 3 && LangDeps.CharAt(Symbol, 1) == 'e' && LangDeps.CharAt(Symbol, 2) == 't') {
-			if(LangDeps.CharAt(Symbol, 0) == 'g' && LangDeps.CharAt(Symbol, 0) == 'G') {
-				Key = Symbol.substring(3);
-				Mask = GetterSymbolMask;
-			}
-			if(LangDeps.CharAt(Symbol, 0) == 's' && LangDeps.CharAt(Symbol, 0) == 'S') {
-				Key = Symbol.substring(3);
-				Mask = SetterSymbolMask;
-			}
-		}
-		if(Symbol.startsWith("\\")) {
-			Mask = MetaSymbolMask;
-		}
-		/*local*/Integer SymbolObject = (/*cast*/Integer)SymbolMap.get(Key);
-		if(SymbolObject == null) {
-			if(DefaultSymbolId == CreateNewSymbolId) {
-				/*local*/int SymbolId = SymbolList.size();
-				SymbolList.add(Key);
-				SymbolMap.put(Key, SymbolId); //new Integer(SymbolId));
-				return MaskSymbol(SymbolId, Mask);
-			}
-			return DefaultSymbolId;
-		}
-		return MaskSymbol(SymbolObject.intValue(), Mask);
-	}
-
-	public final static String CanonicalSymbol(String Symbol) {
-		return Symbol.toLowerCase().replaceAll("_", "");
-	}
-
-	public final static int GetCanonicalSymbolId(String Symbol) {
-		return GetSymbolId(CanonicalSymbol(Symbol), CreateNewSymbolId);
-	}
+//	// Symbol
+//	public final static boolean IsGetterSymbol(int SymbolId) {
+//		return IsFlag(SymbolId, GetterSymbolMask);
+//	}
+//
+//	public final static boolean IsSetterSymbol(int SymbolId) {
+//		return IsFlag(SymbolId, SetterSymbolMask);
+//	}
+//
+//	public final static int ToSetterSymbol(int SymbolId) {
+//		LangDeps.Assert(IsGetterSymbol(SymbolId));
+//		return (SymbolId & (~GetterSymbolMask)) | SetterSymbolMask;
+//	}
+//
+//	public final static int MaskSymbol(int SymbolId, int Mask) {
+//		return (SymbolId << SymbolMaskSize) | Mask;
+//	}
+//
+//	public final static int UnmaskSymbol(int SymbolId) {
+//		return SymbolId >> SymbolMaskSize;
+//	}
+//
+//	public final static String StringfySymbol(int SymbolId) {
+//		/*local*/String Key = SymbolList.get(UnmaskSymbol(SymbolId));
+//		if(IsFlag(SymbolId, GetterSymbolMask)) {
+//			return GetterPrefix + Key;
+//		}
+//		if(IsFlag(SymbolId, SetterSymbolMask)) {
+//			return SetterPrefix + Key;
+//		}
+//		if(IsFlag(SymbolId, MetaSymbolMask)) {
+//			return MetaPrefix + Key;
+//		}
+//		return Key;
+//	}
+//
+//	public final static int GetSymbolId(String Symbol, int DefaultSymbolId) {
+//		/*local*/String Key = Symbol;
+//		/*local*/int Mask = 0;
+//		if(Symbol.length() >= 3 && LangDeps.CharAt(Symbol, 1) == 'e' && LangDeps.CharAt(Symbol, 2) == 't') {
+//			if(LangDeps.CharAt(Symbol, 0) == 'g' && LangDeps.CharAt(Symbol, 0) == 'G') {
+//				Key = Symbol.substring(3);
+//				Mask = GetterSymbolMask;
+//			}
+//			if(LangDeps.CharAt(Symbol, 0) == 's' && LangDeps.CharAt(Symbol, 0) == 'S') {
+//				Key = Symbol.substring(3);
+//				Mask = SetterSymbolMask;
+//			}
+//		}
+//		if(Symbol.startsWith("\\")) {
+//			Mask = MetaSymbolMask;
+//		}
+//		/*local*/Integer SymbolObject = (/*cast*/Integer)SymbolMap.get(Key);
+//		if(SymbolObject == null) {
+//			if(DefaultSymbolId == CreateNewSymbolId) {
+//				/*local*/int SymbolId = SymbolList.size();
+//				SymbolList.add(Key);
+//				SymbolMap.put(Key, SymbolId); //new Integer(SymbolId));
+//				return MaskSymbol(SymbolId, Mask);
+//			}
+//			return DefaultSymbolId;
+//		}
+//		return MaskSymbol(SymbolObject.intValue(), Mask);
+//	}
+//
+//	public final static String CanonicalSymbol(String Symbol) {
+//		return Symbol.toLowerCase().replaceAll("_", "");
+//	}
+//
+//	public final static int GetCanonicalSymbolId(String Symbol) {
+//		return GetSymbolId(CanonicalSymbol(Symbol), CreateNewSymbolId);
+//	}
 
 	private final static String n2s(int n) {
 		if(n < 10) {
@@ -491,9 +491,9 @@ class GtStatic implements GtConst {
 			TokenContext.IndentLevel += 1;
 			/*local*/GtSyntaxTree ParsedTree = (/*cast*/GtSyntaxTree)LangDeps.ApplyMatchFunc(delegate, NameSpace, TokenContext, LeftTree, CurrentPattern);
 			TokenContext.IndentLevel -= 1;
-//			if(ParsedTree != null && ParsedTree.IsEmpty()) {
-//				ParsedTree = null;
-//			}
+			if(ParsedTree != null && ParsedTree.IsEmpty()) {
+				ParsedTree = null;
+			}
 			//DebugP("E :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + " => " + ParsedTree);
 			TokenContext.ParseFlag = ParseFlag;
 			if(ParsedTree != null) {
@@ -1063,13 +1063,13 @@ class GtSyntaxTree extends GtStatic {
 	}
 
 	public boolean IsEmpty() {
-		return this.KeyToken == GtTokenContext.NullToken;
+		return (this.KeyToken == GtTokenContext.NullToken && this.Pattern == null);
 	}
 
 	public void ToEmpty() {
 		this.KeyToken = GtTokenContext.NullToken;
 		this.TreeList = null;
-		this.Pattern = null; //this.NameSpace.GetPattern("$Empty$");
+		this.Pattern = null; // Empty tree must backtrack
 	}
 
 	public boolean IsEmptyOrError() {
@@ -1834,14 +1834,6 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	// Parse And Type
-	public static GtSyntaxTree ParseEmpty(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		return new GtSyntaxTree(Pattern, NameSpace, GtTokenContext.NullToken, null);
-	}
-
-	public static GtNode TypeEmpty(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
-		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
-	}
-
 	public static GtSyntaxTree ParseIntegerLiteral(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.Next();
 		return new GtSyntaxTree(Pattern, NameSpace, Token, LangDeps.ParseInt(Token.ParsedText));
@@ -2176,6 +2168,14 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/GtNode LeftNode = ParsedTree.TypeCheckNodeAt(LeftHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
 		/*local*/GtNode RightNode = ParsedTree.TypeCheckNodeAt(RightHandTerm, Gamma, LeftNode.Type, DefaultTypeCheckPolicy);
 		return Gamma.Generator.CreateAssignNode(LeftNode.Type, ParsedTree, LeftNode, RightNode);
+	}
+
+	public static GtSyntaxTree ParseEmpty(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		return new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetBeforeToken(), null);
+	}
+
+	public static GtNode TypeEmpty(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
+		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
 	}
 
 	public static GtSyntaxTree ParseBlock(GtNameSpace ParentNameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {

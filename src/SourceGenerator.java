@@ -875,7 +875,7 @@ class GtType extends GtStatic {
 
 class GtMethod extends GtStatic {
 	/*field*/public int				MethodFlag;
-	/*field*/int					MethodSymbolId;
+//	/*field*/int					MethodSymbolId;
 	/*field*/public String			MethodName;
 	/*field*/public String          MangledName;
 	/*field*/public GtType[]		Types;
@@ -887,7 +887,7 @@ class GtMethod extends GtStatic {
 	GtMethod/*constructor*/(int MethodFlag, String MethodName, int BaseIndex, ArrayList<GtType> ParamList, Object NativeRef) {
 		this.MethodFlag = MethodFlag;
 		this.MethodName = MethodName;
-		this.MethodSymbolId = GtStatic.GetSymbolId(MethodName, CreateNewSymbolId);
+//		this.MethodSymbolId = GtStatic.GetSymbolId(MethodName, CreateNewSymbolId);
 		this.Types = LangDeps.CompactTypeList(BaseIndex, ParamList);
 		LangDeps.Assert(this.Types.length > 0);
 		this.ListedMethods = null;
