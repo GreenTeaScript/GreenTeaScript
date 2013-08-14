@@ -290,6 +290,11 @@ var VarDeclScope = 3;
 var CallExpressionOffset = 0;
 var CallParameterOffset = 1;
 
+// var Decl: Const; //
+var ConstDeclClassIndex = 0;
+var ConstDeclNameIndex = 1;
+var ConstDeclValueIndex = 2;
+
 // var Decl: Method; //
 var FuncDeclReturnType = 0;
 var FuncDeclClass = 1;
@@ -592,6 +597,7 @@ function ApplySyntaxPattern(NameSpace, TokenContext, LeftTree, Pattern) {
 function ParseExpression(NameSpace, TokenContext) {
     var Pattern = TokenContext.GetFirstPattern();
     var LeftTree = ApplySyntaxPattern(NameSpace, TokenContext, null, Pattern);
+    TokenContext.SkipIndent();
     while (!IsEmptyOrError(LeftTree) && !TokenContext.MatchToken(";")) {
         var ExtendedPattern = TokenContext.GetExtendedPattern();
         if (ExtendedPattern == null) {
@@ -719,12 +725,12 @@ var GtTokenContext = (function () {
 
     GtTokenContext.prototype.ReportTokenError = function (Level, Message, TokenText) {
         var Token = this.AddNewToken(TokenText, 0, "$Error$");
-        this.TopLevelNameSpace.ReportError(Level, Token, Message);
+        this.TopLevelNameSpace.Context.ReportError(Level, Token, Message);
     };
 
     GtTokenContext.prototype.NewErrorSyntaxTree = function (Token, Message) {
         if (!this.IsAllowedBackTrack()) {
-            this.TopLevelNameSpace.ReportError(ErrorLevel, Token, Message);
+            this.TopLevelNameSpace.Context.ReportError(ErrorLevel, Token, Message);
             var ErrorTree = new GtSyntaxTree(Token.PresetPattern, this.TopLevelNameSpace, Token, null);
             return ErrorTree;
         }
@@ -856,8 +862,11 @@ var GtTokenContext = (function () {
 
     GtTokenContext.prototype.GetExtendedPattern = function () {
         var Token = this.GetToken();
-        var Pattern = this.TopLevelNameSpace.GetExtendedPattern(Token.ParsedText);
-        return Pattern;
+        if (Token != GtTokenContext.NullToken) {
+            var Pattern = this.TopLevelNameSpace.GetExtendedPattern(Token.ParsedText);
+            return Pattern;
+        }
+        return null;
     };
 
     GtTokenContext.prototype.MatchToken = function (TokenText) {
@@ -985,7 +994,6 @@ var GtSyntaxPattern = (function () {
         var left = this.SyntaxFlag >> PrecedenceShift;
         var right = Right.SyntaxFlag >> PrecedenceShift;
         return (left < right || (left == right && IsFlag(this.SyntaxFlag, LeftJoin) && IsFlag(Right.SyntaxFlag, LeftJoin)));
-        // 		return (!IsFlag(Right.SyntaxFlag, Parenthesis) && (left < right || (left == right && IsFlag(this.SyntaxFlag, LeftJoin) && IsFlag(Right.SyntaxFlag, LeftJoin)))); //
     };
     return GtSyntaxPattern;
 })();
@@ -1100,9 +1108,6 @@ var GtSyntaxTree = (function () {
     GtSyntaxTree.prototype.SetMatchedPatternAt = function (Index, NameSpace, TokenContext, PatternName, IsOptional) {
         if (!this.IsEmptyOrError()) {
             var ParsedTree = TokenContext.ParsePattern(NameSpace, PatternName, IsOptional);
-            if (PatternName.equals("$Expression$") && ParsedTree == null) {
-                ParsedTree = ParseExpression(NameSpace, TokenContext);
-            }
             if (ParsedTree != null) {
                 this.SetSyntaxTreeAt(Index, ParsedTree);
             } else if (ParsedTree == null && !IsOptional) {
@@ -1224,7 +1229,7 @@ var GtTypeEnv = (function () {
     };
 
     GtTypeEnv.prototype.ReportTypeResult = function (ParsedTree, Node, Level, Message) {
-        this.NameSpace.ReportError(Level, Node.Token, Message);
+        this.NameSpace.Context.ReportError(Level, Node.Token, Message);
         if (!this.IsStrictMode()) {
             return Node;
         }
@@ -1232,7 +1237,7 @@ var GtTypeEnv = (function () {
     };
 
     GtTypeEnv.prototype.CreateErrorNode2 = function (ParsedTree, Message) {
-        this.NameSpace.ReportError(ErrorLevel, ParsedTree.KeyToken, Message);
+        this.NameSpace.Context.ReportError(ErrorLevel, ParsedTree.KeyToken, Message);
         return this.Generator.CreateErrorNode(this.VoidType, ParsedTree);
     };
 
@@ -1313,21 +1318,6 @@ var GtTypeEnv = (function () {
         return this.ReportTypeResult(ParsedTree, Node, ErrorLevel, "error: type: requested = " + Type + ", given = " + Node.Type);
     };
 
-    // 	 GetGetterMethod(BaseType: GtType, Name: string, RecursiveSearch: boolean): GtMethod { //
-    // 		return this.NameSpace.Context.GetGetterMethod(BaseType, Name, RecursiveSearch); //
-    // 	} //
-    //  //
-    // 	 GetUniqueFunction(Name: string, ParamSize: number): GtMethod { //
-    // 		return this.NameSpace.Context.GetUniqueFunction(Name, ParamSize); //
-    // 	} //
-    //  //
-    // 	 GetListedMethod(BaseType: GtType, MethodName: string, ParamSize: number, RecursiveSearch: boolean): GtMethod { //
-    // 		return this.NameSpace.Context.GetListedMethod(BaseType, MethodName, ParamSize, RecursiveSearch); //
-    // 	} //
-    //  //
-    // 	 GetMethod(RecvType: GtType, MethodName: string, BaseIndex: number, TypeList: Array<GtType>, RecursiveSearch: boolean): GtMethod { //
-    // 		return this.NameSpace.Context.GetMethod(RecvType, MethodName, BaseIndex, TypeList, RecursiveSearch); //
-    // 	} //
     GtTypeEnv.prototype.DefineMethod = function (Method) {
         this.NameSpace.Context.DefineMethod(Method);
         var Value = this.NameSpace.GetSymbol(Method.MethodName);
@@ -1340,115 +1330,58 @@ var GtTypeEnv = (function () {
 })();
 
 //  NameSpace //
-var GtSpec = (function () {
-    function GtSpec(SpecType, SpecKey, SpecBody) {
-        this.SpecType = SpecType;
-        this.SpecKey = SpecKey;
-        this.SpecBody = SpecBody;
-    }
-    return GtSpec;
-})();
-
 var GtNameSpace = (function () {
     function GtNameSpace(Context, ParentNameSpace) {
         this.Context = Context;
         this.ParentNameSpace = ParentNameSpace;
         this.PackageName = (ParentNameSpace != null) ? ParentNameSpace.PackageName : null;
-        this.ImportedNameSpaceList = null;
-        this.PublicSpecList = new Array();
-        this.PrivateSpecList = null;
         this.TokenMatrix = null;
         this.SymbolPatternTable = null;
-        this.ExtendedPatternTable = null;
     }
-    GtNameSpace.prototype.RemakeTokenMatrixEach = function (NameSpace) {
-        var i = 0;
-        while (i < ListSize(NameSpace.PublicSpecList)) {
-            var Spec = NameSpace.PublicSpecList.get(i);
-            if (Spec.SpecType == TokenFuncSpec) {
-                var j = 0;
-                while (j < Spec.SpecKey.length) {
-                    var kchar = AsciiToTokenMatrixIndex(LangDeps.CharAt(Spec.SpecKey, j));
-                    var Func = Spec.SpecBody;
-                    this.TokenMatrix[kchar] = LangDeps.CreateOrReuseTokenFunc(Func, this.TokenMatrix[kchar]);
-                    j += 1;
-                }
-            }
-            i += 1;
-        }
-    };
-
-    GtNameSpace.prototype.RemakeTokenMatrix = function (NameSpace) {
-        if (NameSpace.ParentNameSpace != null) {
-            this.RemakeTokenMatrix(NameSpace.ParentNameSpace);
-        }
-        this.RemakeTokenMatrixEach(NameSpace);
-        var i = 0;
-        while (i < ListSize(NameSpace.ImportedNameSpaceList)) {
-            var Imported = NameSpace.ImportedNameSpaceList.get(i);
-            this.RemakeTokenMatrixEach(Imported);
-            i += 1;
-        }
-    };
-
     GtNameSpace.prototype.GetTokenFunc = function (GtChar2) {
         if (this.TokenMatrix == null) {
-            this.TokenMatrix = new Array(MaxSizeOfChars);
-            this.RemakeTokenMatrix(this);
+            return this.ParentNameSpace.GetTokenFunc(GtChar2);
         }
         return this.TokenMatrix[GtChar2];
     };
 
     GtNameSpace.prototype.DefineTokenFunc = function (keys, f) {
-        this.PublicSpecList.add(new GtSpec(TokenFuncSpec, keys, f));
-        this.TokenMatrix = null;
-    };
-
-    GtNameSpace.prototype.TableAddSpec = function (Table, Spec) {
-        var Body = Spec.SpecBody;
-        if (Body instanceof GtSyntaxPattern) {
-            var Parent = Table.get(Spec.SpecKey);
-            if (Parent instanceof GtSyntaxPattern) {
-                Body = MergeSyntaxPattern(Body, Parent);
+        var i = 0;
+        if (this.TokenMatrix == null) {
+            this.TokenMatrix = new Array(MaxSizeOfChars);
+            if (this.ParentNameSpace != null) {
+                while (i < MaxSizeOfChars) {
+                    this.TokenMatrix[i] = this.ParentNameSpace.GetTokenFunc(i);
+                }
             }
         }
-        Table.put(Spec.SpecKey, Body);
-    };
-
-    GtNameSpace.prototype.RemakeSymbolTableEach = function (NameSpace, SpecList) {
-        var i = 0;
-        while (i < ListSize(SpecList)) {
-            var Spec = SpecList.get(i);
-            if (Spec.SpecType == SymbolPatternSpec) {
-                this.TableAddSpec(this.SymbolPatternTable, Spec);
-            } else if (Spec.SpecType == ExtendedPatternSpec) {
-                this.TableAddSpec(this.ExtendedPatternTable, Spec);
-            }
-            i += 1;
-        }
-    };
-
-    GtNameSpace.prototype.RemakeSymbolTable = function (NameSpace) {
-        if (NameSpace.ParentNameSpace != null) {
-            this.RemakeSymbolTable(NameSpace.ParentNameSpace);
-        }
-        this.RemakeSymbolTableEach(NameSpace, NameSpace.PublicSpecList);
-        this.RemakeSymbolTableEach(NameSpace, NameSpace.PrivateSpecList);
-        var i = 0;
-        while (i < ListSize(NameSpace.ImportedNameSpaceList)) {
-            var Imported = NameSpace.ImportedNameSpaceList.get(i);
-            this.RemakeSymbolTableEach(Imported, Imported.PublicSpecList);
+        i = 0;
+        while (i < keys.length) {
+            var kchar = AsciiToTokenMatrixIndex(LangDeps.CharAt(keys, i));
+            this.TokenMatrix[kchar] = LangDeps.CreateOrReuseTokenFunc(f, this.TokenMatrix[kchar]);
             i += 1;
         }
     };
 
     GtNameSpace.prototype.GetSymbol = function (Key) {
+        var NameSpace = this;
+        while (NameSpace != null) {
+            if (NameSpace.SymbolPatternTable != null) {
+                var Value = NameSpace.SymbolPatternTable.get(Key);
+                if (Value != null) {
+                    return Value;
+                }
+            }
+            NameSpace = NameSpace.ParentNameSpace;
+        }
+        return null;
+    };
+
+    GtNameSpace.prototype.DefineSymbol = function (Key, Value) {
         if (this.SymbolPatternTable == null) {
             this.SymbolPatternTable = new GtMap();
-            this.ExtendedPatternTable = new GtMap();
-            this.RemakeSymbolTable(this);
         }
-        return this.SymbolPatternTable.get(Key);
+        this.SymbolPatternTable.put(Key, Value);
     };
 
     GtNameSpace.prototype.GetPattern = function (PatternName) {
@@ -1460,121 +1393,42 @@ var GtNameSpace = (function () {
     };
 
     GtNameSpace.prototype.GetExtendedPattern = function (PatternName) {
-        if (this.ExtendedPatternTable == null) {
-            this.SymbolPatternTable = new GtMap();
-            this.ExtendedPatternTable = new GtMap();
-            this.RemakeSymbolTable(this);
-        }
-        var Body = this.ExtendedPatternTable.get(PatternName);
+        var Body = this.GetSymbol("+" + PatternName);
         if (Body instanceof GtSyntaxPattern) {
             return Body;
         }
         return null;
     };
 
-    GtNameSpace.prototype.DefineSymbol = function (Key, Value) {
-        var Spec = new GtSpec(SymbolPatternSpec, Key, Value);
-        this.PublicSpecList.add(Spec);
-        if (this.SymbolPatternTable != null) {
-            this.TableAddSpec(this.SymbolPatternTable, Spec);
-        }
-    };
-
-    GtNameSpace.prototype.DefinePrivateSymbol = function (Key, Value) {
-        var Spec = new GtSpec(SymbolPatternSpec, Key, Value);
-        if (this.PrivateSpecList == null) {
-            this.PrivateSpecList = new Array();
-        }
-        this.PrivateSpecList.add(Spec);
-        if (this.SymbolPatternTable != null) {
-            this.TableAddSpec(this.SymbolPatternTable, Spec);
-        }
+    GtNameSpace.prototype.AppendPattern = function (PatternName, NewPattern) {
+        LangDeps.Assert(NewPattern.ParentPattern == null);
+        var ParentPattern = this.GetPattern(PatternName);
+        NewPattern.ParentPattern = ParentPattern;
+        this.DefineSymbol(PatternName, NewPattern);
     };
 
     GtNameSpace.prototype.DefineSyntaxPattern = function (PatternName, MatchFunc, TypeFunc) {
         var Pattern = new GtSyntaxPattern(this, PatternName, MatchFunc, TypeFunc);
-        var Spec = new GtSpec(SymbolPatternSpec, PatternName, Pattern);
-        this.PublicSpecList.add(Spec);
-        if (this.SymbolPatternTable != null) {
-            this.TableAddSpec(this.SymbolPatternTable, Spec);
-        }
+        this.AppendPattern(PatternName, Pattern);
     };
 
     GtNameSpace.prototype.DefineExtendedPattern = function (PatternName, SyntaxFlag, MatchFunc, TypeFunc) {
         var Pattern = new GtSyntaxPattern(this, PatternName, MatchFunc, TypeFunc);
         Pattern.SyntaxFlag = SyntaxFlag;
-        var Spec = new GtSpec(ExtendedPatternSpec, PatternName, Pattern);
-        this.PublicSpecList.add(Spec);
-        if (this.ExtendedPatternTable != null) {
-            this.TableAddSpec(this.ExtendedPatternTable, Spec);
-        }
+        this.AppendPattern("+" + PatternName, Pattern);
     };
 
-    GtNameSpace.prototype.DefineClass = function (ClassInfo) {
+    GtNameSpace.prototype.DefineClassSymbol = function (ClassInfo) {
         if (ClassInfo.PackageNameSpace == null) {
             ClassInfo.PackageNameSpace = this;
             if (this.PackageName != null) {
                 this.Context.ClassNameMap.put(this.PackageName + "." + ClassInfo.ShortClassName, ClassInfo);
             }
-            this.Context.Generator.AddClass(ClassInfo);
         }
-        this.DefineSymbol(ClassInfo.ShortClassName, ClassInfo);
+        if (ClassInfo.BaseClass == ClassInfo) {
+            this.DefineSymbol(ClassInfo.ShortClassName, ClassInfo);
+        }
         return ClassInfo;
-    };
-
-    // 	//Object: Global //
-    // 	public CreateGlobalObject(ClassFlag: number, ShortName: string): GtObject { //
-    // 		var NewClass: GtType = new GtType(this.Context, ClassFlag, ShortName, null); //
-    // 		var GlobalObject: GtObject = new GtObject(NewClass); //
-    // 		NewClass.DefaultNullValue = GlobalObject; //
-    // 		return GlobalObject; //
-    // 	} //
-    //  //
-    // 	public GetGlobalObject(): GtObject { //
-    // 		var GlobalObject: Object = this.GetSymbol(GlobalConstName); //
-    // 		if(GlobalObject == null || !(GlobalObject instanceof GtObject)) { //
-    // 			GlobalObject = this.CreateGlobalObject(0, "global"); //
-    // 			this.DefinePrivateSymbol(GlobalConstName, GlobalObject); //
-    // 		} //
-    // 		return <GtObject> GlobalObject; //
-    // 	} //
-    GtNameSpace.prototype.Eval = function (ScriptSource, FileLine, Generator) {
-        var resultValue = null;
-        console.log("DEBUG: " + "Eval: " + ScriptSource);
-        var TokenContext = new GtTokenContext(this, ScriptSource, FileLine);
-        TokenContext.SkipEmptyStatement();
-        while (TokenContext.HasNext()) {
-            var annotation = TokenContext.SkipAndGetAnnotation(true);
-            var topLevelTree = ParseExpression(this, TokenContext);
-            topLevelTree.SetAnnotation(annotation);
-            console.log("DEBUG: " + "untyped tree: " + topLevelTree);
-            var gamma = new GtTypeEnv(this);
-            var node = gamma.TypeCheckEachNode(topLevelTree, gamma.VoidType, DefaultTypeCheckPolicy);
-            resultValue = Generator.Eval(node);
-            TokenContext.SkipEmptyStatement();
-            TokenContext.Vacume();
-        }
-        return resultValue;
-    };
-
-    GtNameSpace.prototype.GetSourcePosition = function (FileLine) {
-        return "(eval:" + FileLine + ")";
-    };
-
-    GtNameSpace.prototype.ReportError = function (Level, Token, Message) {
-        if (!Token.IsError()) {
-            if (Level == ErrorLevel) {
-                Message = "(error) " + this.GetSourcePosition(Token.FileLine) + " " + Message;
-                Token.ToErrorToken(Message);
-            } else if (Level == WarningLevel) {
-                Message = "(warning) " + this.GetSourcePosition(Token.FileLine) + " " + Message;
-            } else if (Level == InfoLevel) {
-                Message = "(info) " + this.GetSourcePosition(Token.FileLine) + " " + Message;
-            }
-            println(Message);
-            return Message;
-        }
-        return Token.GetErrorMessage();
     };
     return GtNameSpace;
 })();
@@ -1792,8 +1646,6 @@ var DScriptGrammar = (function (_super) {
     };
 
     DScriptGrammar.ParseType = // and: parserchecker: type //
-    // am: Ito: tryingNameSpace: addParse: toInterface: Func //
-    // you: ready: Are? //
     function (NameSpace, TokenContext, LeftTree, Pattern) {
         var Token = TokenContext.Next();
         var ConstValue = NameSpace.GetSymbol(Token.ParsedText);
@@ -2014,7 +1866,7 @@ var DScriptGrammar = (function (_super) {
                 }
                 BaseType = BaseType.SearchSuperMethodClass;
             }
-            Gamma.NameSpace.ReportError(WarningLevel, ParsedTree.KeyToken, "operator: undefined: " + Operator + " of " + LeftNode.Type);
+            Gamma.Context.ReportError(WarningLevel, ParsedTree.KeyToken, "operator: undefined: " + Operator + " of " + LeftNode.Type);
         }
         return Gamma.Generator.CreateBinaryNode(ContextType, ParsedTree, null, LeftNode, RightNode);
     };
@@ -2277,9 +2129,10 @@ var DScriptGrammar = (function (_super) {
         return Gamma.Generator.CreateAssignNode(LeftNode.Type, ParsedTree, LeftNode, RightNode);
     };
 
-    DScriptGrammar.ParseBlock = function (NameSpace, TokenContext, LeftTree, Pattern) {
+    DScriptGrammar.ParseBlock = function (ParentNameSpace, TokenContext, LeftTree, Pattern) {
         if (TokenContext.MatchToken("{")) {
             var PrevTree = null;
+            var NameSpace = new GtNameSpace(ParentNameSpace.Context, ParentNameSpace);
             while (TokenContext.SkipEmptyStatement()) {
                 if (TokenContext.MatchToken("}")) {
                     break;
@@ -2432,9 +2285,9 @@ var DScriptGrammar = (function (_super) {
 
     DScriptGrammar.ParseNew = //  new $Type ( $Expr$ [, $Expr$] ) //
     function (NameSpace, TokenContext, LeftTree, Pattern) {
+        var NewTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("new"), null);
         var ParseFlag = TokenContext.ParseFlag;
         TokenContext.ParseFlag |= SkipIndentParseFlag;
-        var NewTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("new"), null);
         NewTree.SetMatchedPatternAt(CallExpressionOffset, NameSpace, TokenContext, "$Type$", Required);
         TokenContext.MatchToken("(");
         if (!TokenContext.MatchToken(")")) {
@@ -2472,7 +2325,7 @@ var DScriptGrammar = (function (_super) {
         if (!EnumTree.IsEmptyOrError()) {
             EnumTypeName = EnumTree.GetSyntaxTreeAt(EnumNameTreeIndex).KeyToken.ParsedText;
             if (NameSpace.GetSymbol(EnumTypeName) != null) {
-                NameSpace.ReportError(ErrorLevel, EnumTree.KeyToken, "alreadyname: defined: " + EnumTypeName);
+                NameSpace.Context.ReportError(ErrorLevel, EnumTree.KeyToken, "alreadyname: defined: " + EnumTypeName);
             }
             NewEnumType = new GtType(NameSpace.Context, EnumClass, EnumTypeName, null, VocabMap);
         }
@@ -2486,7 +2339,7 @@ var DScriptGrammar = (function (_super) {
             }
             if (LangDeps.IsLetter(LangDeps.CharAt(Token.ParsedText, 0))) {
                 if (VocabMap.get(Token.ParsedText) != null) {
-                    NameSpace.ReportError(WarningLevel, Token, "alreadyname: defined: " + Token.ParsedText);
+                    NameSpace.Context.ReportError(WarningLevel, Token, "alreadyname: defined: " + Token.ParsedText);
                     continue;
                 }
                 VocabMap.put(Token.ParsedText, new GreenTeaEnum(NewEnumType, EnumValue, Token.ParsedText));
@@ -2496,7 +2349,7 @@ var DScriptGrammar = (function (_super) {
             EnumTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "}", Required);
         }
         if (!EnumTree.IsEmptyOrError()) {
-            NameSpace.DefineClass(NewEnumType);
+            NameSpace.DefineClassSymbol(NewEnumType);
             EnumTree.ConstValue = NewEnumType;
         }
         return EnumTree;
@@ -2533,17 +2386,44 @@ var DScriptGrammar = (function (_super) {
 
     DScriptGrammar.ParseConstDecl = // decl: const //
     function (NameSpace, TokenContext, LeftTree, Pattern) {
-        var Token = TokenContext.GetMatchedToken("const");
-        var NewTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
-        NewTree.SetMatchedPatternAt(VarDeclName, NameSpace, TokenContext, "$Variable$", Required);
-        NewTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "=", Required);
-        NewTree.SetMatchedPatternAt(VarDeclValue, NameSpace, TokenContext, "$Expression$", Required);
-        return NewTree;
+        var ConstDeclTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("const"), null);
+        var ClassNameTree = TokenContext.ParsePattern(NameSpace, "$Type$", Optional);
+        var ConstClass = null;
+        if (ClassNameTree != null) {
+            ConstDeclTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ".", Required);
+            if (!ConstDeclTree.IsEmptyOrError()) {
+                ConstDeclTree.SetSyntaxTreeAt(ConstDeclClassIndex, ClassNameTree);
+                ConstClass = ConstDeclTree.GetParsedType();
+            }
+        }
+        ConstDeclTree.SetMatchedPatternAt(ConstDeclNameIndex, NameSpace, TokenContext, "$Variable$", Required);
+        ConstDeclTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "=", Required);
+        ConstDeclTree.SetMatchedPatternAt(ConstDeclValueIndex, NameSpace, TokenContext, "$Expression$", Required);
+
+        if (!ConstDeclTree.IsEmptyOrError()) {
+            var ConstName = ConstDeclTree.GetSyntaxTreeAt(ConstDeclNameIndex).KeyToken.ParsedText;
+            var ConstValue = null;
+            if (ConstDeclTree.GetSyntaxTreeAt(ConstDeclValueIndex).Pattern.PatternName.equals("$Const$")) {
+                ConstValue = ConstDeclTree.GetSyntaxTreeAt(ConstDeclValueIndex).ConstValue;
+            }
+            if (ConstValue == null) {
+            }
+            if (ConstClass != null) {
+                if (ConstClass.GetClassSymbol(ConstName, false) != null) {
+                }
+                ConstClass.SetClassSymbol(ConstName, ConstValue);
+            } else {
+                if (NameSpace.GetSymbol(ConstName) != null) {
+                }
+                NameSpace.DefineSymbol(ConstName, ConstValue);
+            }
+        }
+        return ConstDeclTree;
     };
 
     DScriptGrammar.TypeConstDecl = function (Gamma, ParsedTree, ContextType) {
-        var NameTree = ParsedTree.GetSyntaxTreeAt(VarDeclName);
-        var ValueTree = ParsedTree.GetSyntaxTreeAt(VarDeclValue);
+        var NameTree = ParsedTree.GetSyntaxTreeAt(ConstDeclNameIndex);
+        var ValueTree = ParsedTree.GetSyntaxTreeAt(ConstDeclValueIndex);
         var VariableName = NameTree.KeyToken.ParsedText;
         var ValueNode = Gamma.TypeCheck(ValueTree, Gamma.AnyType, DefaultTypeCheckPolicy);
         if (!(ValueNode instanceof ConstNode)) {
@@ -2643,7 +2523,7 @@ var DScriptGrammar = (function (_super) {
         var FromType = TypeList.get(1);
         var Method = Gamma.Context.GetCastMethod(FromType, ToType, false);
         if (Method != null) {
-            Gamma.NameSpace.ReportError(ErrorLevel, ParsedTree.KeyToken, "defined: already: " + FromType + " to " + ToType);
+            Gamma.Context.ReportError(ErrorLevel, ParsedTree.KeyToken, "defined: already: " + FromType + " to " + ToType);
             return null;
         }
         Method = Gamma.Generator.CreateMethod(MethodFlag, "to" + ToType.ShortClassName, 0, TypeList, ParsedTree.ConstValue);
@@ -2706,7 +2586,7 @@ var DScriptGrammar = (function (_super) {
         var DefaultObject = new GreenTeaTopObject(NewType);
         NewType.DefaultNullValue = DefaultObject;
 
-        NameSpace.DefineClass(NewType);
+        NameSpace.DefineClassSymbol(NewType);
         ClassDeclTree.ConstValue = NewType;
 
         var ParseFlag = TokenContext.SetBackTrack(false) | SkipIndentParseFlag;
@@ -3031,6 +2911,7 @@ var GtClassContext = (function () {
     function GtClassContext(Grammar, Generator) {
         this.Generator = Generator;
         this.Generator.Context = this;
+        this.SourceMap = new GtMap();
         this.ClassNameMap = new GtMap();
         this.UniqueMethodMap = new GtMap();
         this.RootNameSpace = new GtNameSpace(this, null);
@@ -3042,15 +2923,15 @@ var GtClassContext = (function () {
         this.StructType = this.TopType.CreateSubType(0, "record", null, null);
         this.EnumType = this.TopType.CreateSubType(EnumClass, "enum", null, null);
 
-        this.VoidType = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "void", null, null));
-        this.BooleanType = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "boolean", false, Boolean));
-        this.IntType = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "int", 0, Number));
-        this.StringType = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "string", "", String));
-        this.VarType = this.RootNameSpace.DefineClass(new GtType(this, 0, "var", null, null));
-        this.AnyType = this.RootNameSpace.DefineClass(new GtType(this, DynamicClass, "any", null, null));
-        this.TypeType = this.RootNameSpace.DefineClass(this.TopType.CreateSubType(0, "Type", null, null));
-        this.ArrayType = this.RootNameSpace.DefineClass(this.TopType.CreateSubType(0, "Array", null, null));
-        this.FuncType = this.RootNameSpace.DefineClass(this.TopType.CreateSubType(0, "Func", null, null));
+        this.VoidType = this.RootNameSpace.DefineClassSymbol(new GtType(this, NativeClass, "void", null, null));
+        this.BooleanType = this.RootNameSpace.DefineClassSymbol(new GtType(this, NativeClass, "boolean", false, Boolean));
+        this.IntType = this.RootNameSpace.DefineClassSymbol(new GtType(this, NativeClass, "int", 0, Number));
+        this.StringType = this.RootNameSpace.DefineClassSymbol(new GtType(this, NativeClass, "string", "", String));
+        this.VarType = this.RootNameSpace.DefineClassSymbol(new GtType(this, 0, "var", null, null));
+        this.AnyType = this.RootNameSpace.DefineClassSymbol(new GtType(this, DynamicClass, "any", null, null));
+        this.TypeType = this.RootNameSpace.DefineClassSymbol(this.TopType.CreateSubType(0, "Type", null, null));
+        this.ArrayType = this.RootNameSpace.DefineClassSymbol(this.TopType.CreateSubType(0, "Array", null, null));
+        this.FuncType = this.RootNameSpace.DefineClassSymbol(this.TopType.CreateSubType(0, "Func", null, null));
 
         this.ArrayType.Types = new Array(1);
         this.ArrayType.Types[0] = this.AnyType;
@@ -3058,19 +2939,34 @@ var GtClassContext = (function () {
         this.FuncType.Types[0] = this.AnyType;
 
         Grammar.LoadTo(this.RootNameSpace);
-
-        this.DefaultNameSpace = new GtNameSpace(this, this.RootNameSpace);
+        this.TopLevelNameSpace = new GtNameSpace(this, this.RootNameSpace);
         this.Generator.SetLanguageContext(this);
+        this.ReportedErrorList = new Array();
     }
     GtClassContext.prototype.LoadGrammar = function (Grammar) {
-        Grammar.LoadTo(this.DefaultNameSpace);
+        Grammar.LoadTo(this.TopLevelNameSpace);
     };
 
     // 	public Define(Symbol: string, Value: Object): void { //
     // 		this.RootNameSpace.DefineSymbol(Symbol, Value); //
     // 	} //
-    GtClassContext.prototype.Eval = function (text, FileLine) {
-        return this.DefaultNameSpace.Eval(text, FileLine, this.Generator);
+    GtClassContext.prototype.Eval = function (ScriptSource, FileLine) {
+        var resultValue = null;
+        console.log("DEBUG: " + "Eval: " + ScriptSource);
+        var TokenContext = new GtTokenContext(this.TopLevelNameSpace, ScriptSource, FileLine);
+        TokenContext.SkipEmptyStatement();
+        while (TokenContext.HasNext()) {
+            var annotation = TokenContext.SkipAndGetAnnotation(true);
+            var topLevelTree = ParseExpression(this.TopLevelNameSpace, TokenContext);
+            topLevelTree.SetAnnotation(annotation);
+            console.log("DEBUG: " + "untyped tree: " + topLevelTree);
+            var gamma = new GtTypeEnv(this.TopLevelNameSpace);
+            var node = gamma.TypeCheckEachNode(topLevelTree, gamma.VoidType, DefaultTypeCheckPolicy);
+            resultValue = this.Generator.Eval(node);
+            TokenContext.SkipEmptyStatement();
+            TokenContext.Vacume();
+        }
+        return resultValue;
     };
 
     GtClassContext.prototype.GuessType = function (Value) {
@@ -3312,6 +3208,31 @@ var GtClassContext = (function () {
     GtClassContext.prototype.DefineWrapperMethod = function (Method) {
         var Key = this.WrapperName(Method.GetRecvType(), Method.GetReturnType());
         this.UniqueMethodMap.put(Key, Method);
+    };
+
+    GtClassContext.prototype.GetSourcePosition = function (FileLine) {
+        return "(eval:" + FileLine + ")";
+    };
+
+    GtClassContext.prototype.ReportError = function (Level, Token, Message) {
+        if (!Token.IsError()) {
+            if (Level == ErrorLevel) {
+                Message = "(error) " + this.GetSourcePosition(Token.FileLine) + " " + Message;
+                Token.ToErrorToken(Message);
+            } else if (Level == WarningLevel) {
+                Message = "(warning) " + this.GetSourcePosition(Token.FileLine) + " " + Message;
+            } else if (Level == InfoLevel) {
+                Message = "(info) " + this.GetSourcePosition(Token.FileLine) + " " + Message;
+            }
+            this.ReportedErrorList.add(Message);
+            // println(Message); //
+        }
+    };
+
+    GtClassContext.prototype.GetReportedErrors = function () {
+        var List = this.ReportedErrorList;
+        this.ReportedErrorList = new Array();
+        return List;
     };
     return GtClassContext;
 })();

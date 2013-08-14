@@ -991,7 +991,7 @@ class GtGenerator {
 
 	 UnsupportedNode(Type: GtType, ParsedTree: GtSyntaxTree): GtNode {
 		var Token: GtToken = ParsedTree.KeyToken;
-		ParsedTree.NameSpace.ReportError(ErrorLevel, Token, this.LangName + "no: hassupport: for: language " + Token.ParsedText);
+		ParsedTree.NameSpace.Context.ReportError(ErrorLevel, Token, this.LangName + "no: hassupport: for: language " + Token.ParsedText);
 		return new ErrorNode(ParsedTree.NameSpace.Context.VoidType, ParsedTree.KeyToken);
 	}
 
