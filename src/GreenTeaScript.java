@@ -3079,12 +3079,12 @@ final class GtContext extends GtStatic {
 	/*field*/public final GtType		ArrayType;
 	/*field*/public final GtType		FuncType;
 
-	/*field*/public GtType		TopType;
-	/*field*/public GtType		EnumType;
-	/*field*/public GtType		StructType;
-	/*field*/public GtType		VarType;
+	/*field*/public final GtType		TopType;
+	/*field*/public final GtType		EnumType;
+	/*field*/public final GtType		StructType;
+	/*field*/public final GtType		VarType;
 
-	/*field*/public GtType		TypeType;
+	/*field*/public final GtType		TypeType;
 	/*field*/public GtType		PolyFuncType;
 	
 	/*field*/public final  GtMap			   ClassNameMap;
@@ -3113,12 +3113,14 @@ final class GtContext extends GtStatic {
 		this.StringType  = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "String", "", String.class));
 		this.VarType     = this.RootNameSpace.DefineClass(new GtType(this, 0, "var", null, null));
 		this.AnyType     = this.RootNameSpace.DefineClass(new GtType(this, DynamicClass, "any", null, null));
-		this.ArrayType   = this.RootNameSpace.DefineClass(new GtType(this, 0, "Array", null, null));
-		this.FuncType    = this.RootNameSpace.DefineClass(new GtType(this, 0, "Func", null, null));
+		this.TypeType    = this.RootNameSpace.DefineClass(this.TopType.CreateSubType(0, "Type", null, null));
+		this.ArrayType   = this.RootNameSpace.DefineClass(this.TopType.CreateSubType(0, "Array", null, null));
+		this.FuncType    = this.RootNameSpace.DefineClass(this.TopType.CreateSubType(0, "Func", null, null));
+		
 		this.ArrayType.Types = new GtType[1];
 		this.ArrayType.Types[0] = this.AnyType;
 		this.FuncType.Types = new GtType[1];
-		this.FuncType.Types[0] = this.VoidType;
+		this.FuncType.Types[0] = this.AnyType;
 //ifdef JAVA
 		this.ClassNameMap.put("java.lang.Void",    this.VoidType);
 		this.ClassNameMap.put("java.lang.Boolean", this.BooleanType);
