@@ -5,9 +5,11 @@ $(function () {
 	var editor_gs = CodeMirror.fromTextArea(document.getElementById("editor-gs"), {
 		lineNumbers: true,
 		mode: "text/x-csrc",
+		placeholder: "Type something...",
 		});
 	var editor_js = CodeMirror.fromTextArea(document.getElementById("editor-js"), {
 		lineNumbers: true,
+		placeholder: "Generated code goes here...",
 		readOnly: true,
 		mode: "text/x-csrc"});
 
