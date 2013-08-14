@@ -2399,9 +2399,10 @@ final class DScriptGrammar extends GtGrammar {
 		return Gamma.Generator.CreateAssignNode(LeftNode.Type, ParsedTree, LeftNode, RightNode);
 	}
 
-	public static GtSyntaxTree ParseBlock(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+	public static GtSyntaxTree ParseBlock(GtNameSpace ParentNameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		if(TokenContext.MatchToken("{")) {
 			/*local*/GtSyntaxTree PrevTree = null;
+			/*local*/GtNameSpace NameSpace = new GtNameSpace(ParentNameSpace.Context, ParentNameSpace);
 			while(TokenContext.SkipEmptyStatement()) {
 				if(TokenContext.MatchToken("}")) {
 					break;
@@ -3531,7 +3532,6 @@ final class GtClassContext extends GtStatic {
 		this.UniqueMethodMap.put(Key, Method);
 	}
 
-	
 	private final String GetSourcePosition(long FileLine) {
 		return "(eval:" + (int) FileLine + ")";  // FIXME: USE SourceMap
 	}
