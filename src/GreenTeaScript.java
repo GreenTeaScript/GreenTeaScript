@@ -3222,15 +3222,19 @@ final class GtClassContext extends GtStatic {
 	/*field*/public final GtType		TypeType;
 	/*field*/public GtType		PolyFuncType;
 	
+	/*field*/public final  GtMap               SourceMap;
 	/*field*/public final  GtMap			   ClassNameMap;
 	/*field*/public final  GtMap               UniqueMethodMap;
+	
 	/*field*/public int ClassCount;
 	/*field*/public int MethodCount;
 	/*field*/public final GtStat Stat;
+	/*field*/public ArrayList<String>    ReportedErrorList;
 	
 	GtClassContext/*constructor*/(GtGrammar Grammar, GtGenerator Generator) {
 		this.Generator    = Generator;
 		this.Generator.Context = this;
+		this.SourceMap = new GtMap();
 		this.ClassNameMap = new GtMap();
 		this.UniqueMethodMap = new GtMap();
 		this.RootNameSpace = new GtNameSpace(this, null);
@@ -3264,11 +3268,10 @@ final class GtClassContext extends GtStatic {
 		this.ClassNameMap.put("java.lang.Short",   this.IntType);
 		this.ClassNameMap.put("java.lang.String",  this.StringType);
 //endif VAJA
-		
 		Grammar.LoadTo(this.RootNameSpace);
-		
 		this.DefaultNameSpace = new GtNameSpace(this, this.RootNameSpace);
 		this.Generator.SetLanguageContext(this);
+		this.ReportedErrorList = new ArrayList<String>();
 	}
 
 	public void LoadGrammar(GtGrammar Grammar) {
@@ -3528,11 +3531,12 @@ final class GtClassContext extends GtStatic {
 		this.UniqueMethodMap.put(Key, Method);
 	}
 
+	
 	private final String GetSourcePosition(long FileLine) {
-		return "(eval:" + (int) FileLine + ")";
+		return "(eval:" + (int) FileLine + ")";  // FIXME: USE SourceMap
 	}
 
-	public final String ReportError(int Level, GtToken Token, String Message) {
+	public final void ReportError(int Level, GtToken Token, String Message) {
 		if(!Token.IsError()) {
 			if(Level == ErrorLevel) {
 				Message = "(error) " + this.GetSourcePosition(Token.FileLine) + " " + Message;
@@ -3544,12 +3548,18 @@ final class GtClassContext extends GtStatic {
 			else if(Level == InfoLevel) {
 				Message = "(info) " + this.GetSourcePosition(Token.FileLine) + " " + Message;
 			}
-			GtStatic.println(Message);
-			return Message;
+			this.ReportedErrorList.add(Message);
+			//GtStatic.println(Message);
 		}
-		return Token.GetErrorMessage();
 	}
 
+	public final ArrayList<String> GetReportedErrors() {
+		ArrayList<String> List = this.ReportedErrorList;
+		this.ReportedErrorList = new ArrayList<String>();
+		return List;
+	}
+	
+	
 }
 
 public class GreenTeaScript extends GtStatic {
