@@ -2716,8 +2716,8 @@ final class DScriptGrammar extends GtGrammar {
 		}
 		/*local*/int ClassFlag = 0; //Gamma.Generator.ParseMethodFlag(0, ParsedTree);
 		/*local*/GtType NewType = TokenContext.NameSpace.Context.StructType.CreateSubType(ClassFlag, ClassName, null, null);
-//		/*local*/GtObject DefaultObject = new GtObject(NewType);
-//		NewType.DefaultNullValue = DefaultObject;
+		/*local*/GreenTeaTopObject DefaultObject = new GreenTeaTopObject(NewType);
+		NewType.DefaultNullValue = DefaultObject;
 		NewType.SuperClass = SuperClass;
 
 		TokenContext.NameSpace.DefineClass(NewType);
