@@ -5,5 +5,6 @@ ruby ToTypeScript.rb < ../GreenTeaScriptTest.java > GreenTeaScriptTest.ts
 ruby ToTypeScript.rb < ../PerlSourceGenerator.java > PerlSourceGenerator.ts
 ruby ToTypeScript.rb < ../JavaSourceGenerator.java > JavaSourceGenerator.ts
 ruby ToTypeScript.rb < ../CSourceGenerator.java > CSourceGenerator.ts
+ruby ToTypeScript.rb < ../GreenTeaTopObject.java > GreenTeaTopObject.ts
 
-tsc GreenTeaScript.ts SourceGenerator.ts JavaScriptSourceGenerator.ts PerlSourceGenerator.ts JavaSourceGenerator.ts CSourceGenerator.ts GreenTeaScriptTest.ts
+tsc GreenTeaScript.ts SourceGenerator.ts JavaScriptSourceGenerator.ts PerlSourceGenerator.ts JavaSourceGenerator.ts CSourceGenerator.ts GreenTeaScriptTest.ts GreenTeaTopObject.ts
