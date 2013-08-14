@@ -1120,9 +1120,9 @@ class GtSyntaxTree extends GtStatic {
 		if(!this.IsEmptyOrError()) {
 			/*local*/GtSyntaxTree ParsedTree = TokenContext.ParsePattern(NameSpace, PatternName, IsOptional);
 			// ? Who made this? Seems meaningless. FIXME
-			if(PatternName.equals("$Expression$") && ParsedTree == null){
-				ParsedTree = GtStatic.ParseExpression(NameSpace, TokenContext);
-			}
+//			if(PatternName.equals("$Expression$") && ParsedTree == null){
+//				ParsedTree = GtStatic.ParseExpression(NameSpace, TokenContext);
+//			}
 			if(ParsedTree != null) {
 				this.SetSyntaxTreeAt(Index, ParsedTree);
 			}
