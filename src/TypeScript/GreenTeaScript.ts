@@ -492,6 +492,7 @@
 	function ParseExpression(NameSpace: GtNameSpace, TokenContext: GtTokenContext): GtSyntaxTree {
 		var Pattern: GtSyntaxPattern = TokenContext.GetFirstPattern();
 		var LeftTree: GtSyntaxTree = ApplySyntaxPattern(NameSpace, TokenContext, null, Pattern);
+		TokenContext.SkipIndent();
 		while(!IsEmptyOrError(LeftTree) && !TokenContext.MatchToken(";")) {
 			var ExtendedPattern: GtSyntaxPattern = TokenContext.GetExtendedPattern();
 			if(ExtendedPattern == null) {
@@ -775,8 +776,11 @@
 
 	public GetExtendedPattern(): GtSyntaxPattern {
 		var Token: GtToken = this.GetToken();
-		var Pattern: GtSyntaxPattern = this.TopLevelNameSpace.GetExtendedPattern(Token.ParsedText);
-		return Pattern;
+		if(Token != GtTokenContext.NullToken) {
+			var Pattern: GtSyntaxPattern = this.TopLevelNameSpace.GetExtendedPattern(Token.ParsedText);
+			return Pattern;
+		}
+		return null;
 	}
 
 	public MatchToken(TokenText: string): boolean {

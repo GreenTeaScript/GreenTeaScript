@@ -597,6 +597,7 @@ function ApplySyntaxPattern(NameSpace, TokenContext, LeftTree, Pattern) {
 function ParseExpression(NameSpace, TokenContext) {
     var Pattern = TokenContext.GetFirstPattern();
     var LeftTree = ApplySyntaxPattern(NameSpace, TokenContext, null, Pattern);
+    TokenContext.SkipIndent();
     while (!IsEmptyOrError(LeftTree) && !TokenContext.MatchToken(";")) {
         var ExtendedPattern = TokenContext.GetExtendedPattern();
         if (ExtendedPattern == null) {
@@ -861,8 +862,11 @@ var GtTokenContext = (function () {
 
     GtTokenContext.prototype.GetExtendedPattern = function () {
         var Token = this.GetToken();
-        var Pattern = this.TopLevelNameSpace.GetExtendedPattern(Token.ParsedText);
-        return Pattern;
+        if (Token != GtTokenContext.NullToken) {
+            var Pattern = this.TopLevelNameSpace.GetExtendedPattern(Token.ParsedText);
+            return Pattern;
+        }
+        return null;
     };
 
     GtTokenContext.prototype.MatchToken = function (TokenText) {
