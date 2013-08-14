@@ -670,9 +670,10 @@ var ThrowNode = (function (_super) {
 
 var TryNode = (function (_super) {
     __extends(TryNode, _super);
-    function TryNode(Type, Token, TryBlock, CatchBlock, FinallyBlock) {
+    function TryNode(Type, Token, TryBlock, CatchExpr, CatchBlock, FinallyBlock) {
         _super.call(this, Type, Token);
         this.TryBlock = TryBlock;
+        this.CatchExpr = CatchExpr;
         this.CatchBlock = CatchBlock;
         this.FinallyBlock = FinallyBlock;
     }
@@ -1064,8 +1065,8 @@ var GtGenerator = (function () {
         return new ContinueNode(Type, ParsedTree.KeyToken, Label);
     };
 
-    GtGenerator.prototype.CreateTryNode = function (Type, ParsedTree, TryBlock, CatchNode, FinallyBlock) {
-        return new TryNode(Type, ParsedTree.KeyToken, TryBlock, CatchNode, FinallyBlock);
+    GtGenerator.prototype.CreateTryNode = function (Type, ParsedTree, TryBlock, CatchExpr, CatchNode, FinallyBlock) {
+        return new TryNode(Type, ParsedTree.KeyToken, TryBlock, CatchExpr, CatchNode, FinallyBlock);
     };
 
     GtGenerator.prototype.CreateThrowNode = function (Type, ParsedTree, Node) {

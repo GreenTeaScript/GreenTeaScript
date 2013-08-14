@@ -1814,6 +1814,8 @@ var DScriptGrammar = (function (_super) {
     };
 
     DScriptGrammar.ParseType = // and: parserchecker: type //
+    // am: Ito: tryingNameSpace: addParse: toInterface: Func //
+    // you: ready: Are? //
     function (Pattern, LeftTree, TokenContext) {
         var Token = TokenContext.Next();
         var ConstValue = TokenContext.NameSpace.GetSymbol(Token.ParsedText);
@@ -2315,8 +2317,8 @@ var DScriptGrammar = (function (_super) {
 
     DScriptGrammar.TypeIf = function (Gamma, ParsedTree, ContextType) {
         var CondNode = ParsedTree.TypeCheckNodeAt(IfCond, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
-        var ThenNode = ParsedTree.TypeCheckNodeAt(IfThen, Gamma, ContextType, DefaultTypeCheckPolicy);
-        var ElseNode = ParsedTree.TypeCheckNodeAt(IfElse, Gamma, ThenNode.Type, AllowEmptyPolicy);
+        var ThenNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(IfThen), ContextType);
+        var ElseNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(IfElse), ThenNode.Type);
         return Gamma.Generator.CreateIfNode(ThenNode.Type, ParsedTree, CondNode, ThenNode, ElseNode);
     };
 
@@ -2332,7 +2334,7 @@ var DScriptGrammar = (function (_super) {
 
     DScriptGrammar.TypeWhile = function (Gamma, ParsedTree, ContextType) {
         var CondNode = ParsedTree.TypeCheckNodeAt(WhileCond, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
-        var BodyNode = ParsedTree.TypeCheckNodeAt(WhileBody, Gamma, ContextType, DefaultTypeCheckPolicy);
+        var BodyNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(WhileBody), ContextType);
         return Gamma.Generator.CreateWhileNode(BodyNode.Type, ParsedTree, CondNode, BodyNode);
     };
 
@@ -2382,7 +2384,7 @@ var DScriptGrammar = (function (_super) {
         TryTree.SetMatchedPatternAt(TryBody, TokenContext, "$Block$", Required);
         if (TokenContext.MatchToken("catch")) {
             TryTree.SetMatchedTokenAt(NoWhere, TokenContext, "(", Required);
-            TryTree.SetMatchedPatternAt(CatchVariable, TokenContext, "$Variable$", Required);
+            TryTree.SetMatchedPatternAt(CatchVariable, TokenContext, "$VarDecl$", Required);
             TryTree.SetMatchedTokenAt(NoWhere, TokenContext, ")", Required);
             TryTree.SetMatchedPatternAt(CatchBody, TokenContext, "$Block$", Required);
         }
@@ -2393,7 +2395,12 @@ var DScriptGrammar = (function (_super) {
     };
 
     DScriptGrammar.TypeTry = function (Gamma, ParsedTree, ContextType) {
-        return null;
+        var FaultType = ContextType;
+        var TryNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(TryBody), ContextType);
+        var CatchExpr = ParsedTree.TypeCheckNodeAt(CatchVariable, Gamma, FaultType, DefaultTypeCheckPolicy);
+        var CatchNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(CatchBody), ContextType);
+        var FinallyNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(FinallyBody), ContextType);
+        return Gamma.Generator.CreateTryNode(TryNode.Type, ParsedTree, TryNode, CatchExpr, CatchNode, FinallyNode);
     };
 
     DScriptGrammar.ParseThrow = function (Pattern, LeftTree, TokenContext) {
@@ -2403,7 +2410,9 @@ var DScriptGrammar = (function (_super) {
     };
 
     DScriptGrammar.TypeThrow = function (Gamma, ParsedTree, ContextType) {
-        return null;
+        var FaultType = ContextType;
+        var ExprNode = ParsedTree.TypeCheckNodeAt(ReturnExpr, Gamma, FaultType, DefaultTypeCheckPolicy);
+        return Gamma.Generator.CreateThrowNode(ExprNode.Type, ParsedTree, ExprNode);
     };
 
     DScriptGrammar.ParseEnum = //  switch //
@@ -2641,16 +2650,14 @@ var DScriptGrammar = (function (_super) {
         //  define new class //
         var ClassName = ClassNameTree.KeyToken.ParsedText;
         var SuperClassTree = Tree.GetSyntaxTreeAt(ClassParentNameOffset);
-        var SuperClass = null;
+        var SuperType = TokenContext.NameSpace.Context.StructType;
         if (SuperClassTree != null) {
-            SuperClass = SuperClassTree.ConstValue;
+            SuperType = SuperClassTree.ConstValue;
         }
         var ClassFlag = 0;
-        var NewType = TokenContext.NameSpace.Context.StructType.CreateSubType(ClassFlag, ClassName, null, null);
-
-        // 		var DefaultObject: GtObject = new GtObject(NewType); //
-        // 		NewType.DefaultNullValue = DefaultObject; //
-        NewType.SuperClass = SuperClass;
+        var NewType = SuperType.CreateSubType(ClassFlag, ClassName, null, null);
+        var DefaultObject = new GreenTeaTopObject(NewType);
+        NewType.DefaultNullValue = DefaultObject;
 
         TokenContext.NameSpace.DefineClass(NewType);
         ClassNameTree.ConstValue = NewType;
@@ -2958,6 +2965,8 @@ var DScriptGrammar = (function (_super) {
         NameSpace.DefineSyntaxPattern("const", DScriptGrammar.ParseConstDecl, DScriptGrammar.TypeConstDecl);
         NameSpace.DefineSyntaxPattern("class", DScriptGrammar.ParseClassDecl, DScriptGrammar.TypeClassDecl);
         NameSpace.DefineSyntaxPattern("constructor", DScriptGrammar.ParseConstructor, DScriptGrammar.TypeFuncDecl);
+        NameSpace.DefineSyntaxPattern("try", DScriptGrammar.ParseTry, DScriptGrammar.TypeTry);
+        NameSpace.DefineSyntaxPattern("throw", DScriptGrammar.ParseThrow, DScriptGrammar.TypeThrow);
     };
     return DScriptGrammar;
 })(GtGrammar);
@@ -2991,12 +3000,14 @@ var GtContext = (function () {
         this.StringType = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "string", "", String));
         this.VarType = this.RootNameSpace.DefineClass(new GtType(this, 0, "var", null, null));
         this.AnyType = this.RootNameSpace.DefineClass(new GtType(this, DynamicClass, "any", null, null));
-        this.ArrayType = this.RootNameSpace.DefineClass(new GtType(this, 0, "Array", null, null));
-        this.FuncType = this.RootNameSpace.DefineClass(new GtType(this, 0, "Func", null, null));
+        this.TypeType = this.RootNameSpace.DefineClass(this.TopType.CreateSubType(0, "Type", null, null));
+        this.ArrayType = this.RootNameSpace.DefineClass(this.TopType.CreateSubType(0, "Array", null, null));
+        this.FuncType = this.RootNameSpace.DefineClass(this.TopType.CreateSubType(0, "Func", null, null));
+
         this.ArrayType.Types = new Array(1);
         this.ArrayType.Types[0] = this.AnyType;
         this.FuncType.Types = new Array(1);
-        this.FuncType.Types[0] = this.VoidType;
+        this.FuncType.Types[0] = this.AnyType;
 
         Grammar.LoadTo(this.RootNameSpace);
 
@@ -3252,6 +3263,10 @@ var GreenTeaScript = (function () {
     function GreenTeaScript() {
     }
     GreenTeaScript.main = function (Args) {
+        var N = 0;
+        Args = new Array(2);
+        Args[N++] = "--c";
+        Args[N++] = "test/0030-TryCatch.green";
         var CodeGeneratorName = "--java";
         var Index = 0;
         var OneLiner = null;

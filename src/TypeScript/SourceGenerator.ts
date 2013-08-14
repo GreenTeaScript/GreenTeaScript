@@ -676,13 +676,15 @@ class ThrowNode extends GtNode {
 }
 
 class TryNode extends GtNode {
-	TryBlock: GtNode;
-	CatchBlock: GtNode;
-	FinallyBlock: GtNode;
-	constructor(Type: GtType, Token: GtToken, TryBlock: GtNode, CatchBlock: GtNode, FinallyBlock: GtNode) {
+	public TryBlock: GtNode;
+	public CatchExpr: GtNode;
+	public CatchBlock: GtNode;
+	public FinallyBlock: GtNode;
+	constructor(Type: GtType, Token: GtToken, TryBlock: GtNode, CatchExpr: GtNode, CatchBlock: GtNode, FinallyBlock: GtNode) {
 		super(Type, Token);
 		this.TryBlock = TryBlock;
-		this.CatchBlock = <LetNode>CatchBlock;
+		this.CatchExpr = CatchExpr;
+		this.CatchBlock = CatchBlock;
 		this.FinallyBlock = FinallyBlock;
 	}
 	public Evaluate(Visitor: GtGenerator): void {
@@ -1097,8 +1099,8 @@ class GtGenerator {
 		return new ContinueNode(Type, ParsedTree.KeyToken, Label);
 	}
 
-	public CreateTryNode(Type: GtType, ParsedTree: GtSyntaxTree, TryBlock: GtNode, CatchNode: GtNode, FinallyBlock: GtNode): GtNode {
-		return new TryNode(Type, ParsedTree.KeyToken, TryBlock, CatchNode, FinallyBlock);
+	public CreateTryNode(Type: GtType, ParsedTree: GtSyntaxTree, TryBlock: GtNode, CatchExpr: GtNode, CatchNode: GtNode, FinallyBlock: GtNode): GtNode {
+		return new TryNode(Type, ParsedTree.KeyToken, TryBlock, CatchExpr, CatchNode, FinallyBlock);
 	}
 
 	public CreateThrowNode(Type: GtType, ParsedTree: GtSyntaxTree, Node: GtNode): GtNode {

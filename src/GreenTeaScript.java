@@ -2448,7 +2448,7 @@ final class DScriptGrammar extends GtGrammar {
 		TryTree.SetMatchedPatternAt(TryBody, TokenContext, "$Block$", Required);
 		if(TokenContext.MatchToken("catch")) {
 			TryTree.SetMatchedTokenAt(NoWhere, TokenContext, "(", Required);
-			TryTree.SetMatchedPatternAt(CatchVariable, TokenContext, "$Variable$", Required);
+			TryTree.SetMatchedPatternAt(CatchVariable, TokenContext, "$VarDecl$", Required);
 			TryTree.SetMatchedTokenAt(NoWhere, TokenContext, ")", Required);
 			TryTree.SetMatchedPatternAt(CatchBody, TokenContext, "$Block$", Required);
 		}
@@ -2459,7 +2459,12 @@ final class DScriptGrammar extends GtGrammar {
 	}
 	
 	public static GtNode TypeTry(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		return null;
+		GtType FaultType = ContextType; // FIXME Gamma.FaultType;
+		/*local*/GtNode TryNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(TryBody), ContextType);
+		/*local*/GtNode CatchExpr = ParsedTree.TypeCheckNodeAt(CatchVariable, Gamma, FaultType, DefaultTypeCheckPolicy);
+		/*local*/GtNode CatchNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(CatchBody), ContextType);
+		/*local*/GtNode FinallyNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(FinallyBody), ContextType);
+		return Gamma.Generator.CreateTryNode(TryNode.Type, ParsedTree, TryNode, CatchExpr, CatchNode, FinallyNode);
 	}
 
 	public static GtSyntaxTree ParseThrow(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
@@ -2469,7 +2474,9 @@ final class DScriptGrammar extends GtGrammar {
 	}
 	
 	public static GtNode TypeThrow(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		return null;
+		GtType FaultType = ContextType; // FIXME Gamma.FaultType;
+		GtNode ExprNode = ParsedTree.TypeCheckNodeAt(ReturnExpr, Gamma, FaultType, DefaultTypeCheckPolicy);
+		return Gamma.Generator.CreateThrowNode(ExprNode.Type, ParsedTree, ExprNode);
 	}
 
 	// switch
@@ -2710,15 +2717,14 @@ final class DScriptGrammar extends GtGrammar {
 		// define new class
 		/*local*/String ClassName = ClassNameTree.KeyToken.ParsedText;
 		/*local*/GtSyntaxTree SuperClassTree = Tree.GetSyntaxTreeAt(ClassParentNameOffset);
-		GtType SuperClass = null ;//Gamma.ObjectType;
+		GtType SuperType = TokenContext.NameSpace.Context.StructType;
 		if(SuperClassTree != null) {
-			SuperClass = (/*cast*/GtType) SuperClassTree.ConstValue;
+			SuperType = (/*cast*/GtType) SuperClassTree.ConstValue;
 		}
 		/*local*/int ClassFlag = 0; //Gamma.Generator.ParseMethodFlag(0, ParsedTree);
-		/*local*/GtType NewType = TokenContext.NameSpace.Context.StructType.CreateSubType(ClassFlag, ClassName, null, null);
+		/*local*/GtType NewType = SuperType.CreateSubType(ClassFlag, ClassName, null, null);
 		/*local*/GreenTeaTopObject DefaultObject = new GreenTeaTopObject(NewType);
 		NewType.DefaultNullValue = DefaultObject;
-		NewType.SuperClass = SuperClass;
 
 		TokenContext.NameSpace.DefineClass(NewType);
 		ClassNameTree.ConstValue = NewType;
@@ -3050,6 +3056,8 @@ final class DScriptGrammar extends GtGrammar {
 		NameSpace.DefineSyntaxPattern("const", FunctionB(this, "ParseConstDecl"), FunctionC(this, "TypeConstDecl"));
 		NameSpace.DefineSyntaxPattern("class", FunctionB(this, "ParseClassDecl"), FunctionC(this, "TypeClassDecl"));
 		NameSpace.DefineSyntaxPattern("constructor", FunctionB(this, "ParseConstructor"), FunctionC(this, "TypeFuncDecl"));
+		NameSpace.DefineSyntaxPattern("try", FunctionB(this, "ParseTry"), FunctionC(this, "TypeTry"));
+		NameSpace.DefineSyntaxPattern("throw", FunctionB(this, "ParseThrow"), FunctionC(this, "TypeThrow"));
 	}
 }
 
@@ -3385,6 +3393,10 @@ final class GtContext extends GtStatic {
 
 public class GreenTeaScript extends GtStatic {
 	public final static void main(String[] Args) {
+		int N = 0;
+		Args = new String[2];
+		Args[N++] = "--c";
+		Args[N++] = "test/0030-TryCatch.green";
 		/*local*/String CodeGeneratorName = "--java";
 		/*local*/int Index = 0;
 		/*local*/String OneLiner = null;
