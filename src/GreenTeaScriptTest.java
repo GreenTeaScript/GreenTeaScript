@@ -72,7 +72,7 @@ class GtScriptRunner {
 
 public class GreenTeaScriptTest {
 	public static void TestToken(GtClassContext Context, String Source, String[] TokenTestList) {
-		/*local*/GtNameSpace NameSpace = Context.DefaultNameSpace;
+		/*local*/GtNameSpace NameSpace = Context.TopLevelNameSpace;
 		/*local*/GtTokenContext TokenContext = new GtTokenContext(NameSpace, Source, 1);
 		/*local*/int i = 0;
 		while(i < TokenTestList.length) {
