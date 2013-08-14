@@ -6,11 +6,11 @@ import java.util.ArrayList;
 
 public class CSourceGenerator extends SourceGenerator {
 	/*field*/public final String[] DefaultTypes = {"void", "int", "boolean", "float", "double", "String", "Object", "Array", "Func", "var", "any"};
-	/*field*/GtMap DefinedClass;
+	/*field*/public final GtMap DefinedClass;
 	
 	CSourceGenerator/*constructor*/() {
 		super("C");
-		DefinedClass = new GtMap();
+		this.DefinedClass = new GtMap();
 	}
 
 	public void VisitBlockEachStatementWithIndent(GtNode Node, boolean NeedBlock) {
@@ -38,31 +38,12 @@ public class CSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitSuffixNode(SuffixNode Node) {
 		/*local*/String MethodName = Node.Token.ParsedText;
-		//if(MethodName.equals("++")) {
-		//}
-		//else if(MethodName.equals("--")) {
-		//}
 		Node.Expr.Evaluate(this);
 		this.PushSourceCode(this.PopSourceCode() + MethodName);
 	}
 
 	@Override public void VisitUnaryNode(UnaryNode Node) {
 		/*local*/String MethodName = Node.Token.ParsedText;
-		//if(MethodName.equals("+")) {
-		//}
-		//else if(MethodName.equals("-")) {
-		//}
-		//else if(MethodName.equals("~")) {
-		//}
-		//else if(MethodName.equals("!")) {
-		//}
-		//else if(MethodName.equals("++")) {
-		//}
-		//else if(MethodName.equals("--")) {
-		//}
-		//else {
-		//	throw new RuntimeException("NotSupportOperator");
-		//}
 		Node.Expr.Evaluate(this);
 		this.PushSourceCode(MethodName + this.PopSourceCode());
 	}
@@ -135,19 +116,6 @@ public class CSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(this.PopSourceCode() + "->" + Node.Method.MethodName);
 	}
 
-	private String[] EvaluateParam(ArrayList<GtNode> Params) {
-		/*local*/int Size = GtStatic.ListSize(Params);
-		/*local*/String[] Programs = new String[Size];
-		/*local*/int i = 0;
-		while(i < Size) {
-			GtNode Node = Params.get(i);
-			Node.Evaluate(this);
-			Programs[Size - i - 1] = this.PopSourceCode();
-			i = i + 1;
-		}
-		return Programs;
-	}
-
 	@Override public void VisitApplyNode(ApplyNode Node) {
 		/*local*/String Program = this.GenerateMacro(Node);
 		/*local*/int i = 0;
@@ -179,41 +147,6 @@ public class CSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitBinaryNode(BinaryNode Node) {
 		/*local*/String MethodName = Node.Token.ParsedText;
-		//if(MethodName.equals("+")) {
-		//}
-		//else if(MethodName.equals("-")) {
-		//}
-		//else if(MethodName.equals("*")) {
-		//}
-		//else if(MethodName.equals("/")) {
-		//}
-		//else if(MethodName.equals("%")) {
-		//}
-		//else if(MethodName.equals("<<")) {
-		//}
-		//else if(MethodName.equals(">>")) {
-		//}
-		//else if(MethodName.equals("&")) {
-		//}
-		//else if(MethodName.equals("|")) {
-		//}
-		//else if(MethodName.equals("^")) {
-		//}
-		//else if(MethodName.equals("<=")) {
-		//}
-		//else if(MethodName.equals("<")) {
-		//}
-		//else if(MethodName.equals(">=")) {
-		//}
-		//else if(MethodName.equals(">")) {
-		//}
-		//else if(MethodName.equals("!=")) {
-		//}
-		//else if(MethodName.equals("==")) {
-		//}
-		//else {
-		//	throw new RuntimeException("NotSupportOperator");
-		//}
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
 		this.PushSourceCode(this.PopSourceCode() + " " + MethodName + " " + this.PopSourceCode());

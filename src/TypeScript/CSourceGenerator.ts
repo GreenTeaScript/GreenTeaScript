@@ -5,9 +5,11 @@
 
 class CSourceGenerator extends SourceGenerator {
 	 DefaultTypes: string[] = ["void", "int", "boolean", "float", "double", "string", "Object", "Array", "Func", "var", "any"]
-
+	 DefinedClass: GtMap;
+	
 	constructor() {
 		super("C");
+		this.DefinedClass = new GtMap();
 	}
 
 	public VisitBlockEachStatementWithIndent(Node: GtNode, NeedBlock: boolean): void {
@@ -35,31 +37,12 @@ class CSourceGenerator extends SourceGenerator {
 
 	public VisitSuffixNode(Node: SuffixNode): void {
 		var MethodName: string = Node.Token.ParsedText;
-		// if(MethodName.equals("++")) { //
-		// } //
-		// else if(MethodName.equals("--")) { //
-		// } //
 		Node.Expr.Evaluate(this);
 		this.PushSourceCode(this.PopSourceCode() + MethodName);
 	}
 
 	public VisitUnaryNode(Node: UnaryNode): void {
 		var MethodName: string = Node.Token.ParsedText;
-		// if(MethodName.equals("+")) { //
-		// } //
-		// else if(MethodName.equals("-")) { //
-		// } //
-		// else if(MethodName.equals("~")) { //
-		// } //
-		// else if(MethodName.equals("!")) { //
-		// } //
-		// else if(MethodName.equals("++")) { //
-		// } //
-		// else if(MethodName.equals("--")) { //
-		// } //
-		// else { //
-		// 	throw new RuntimeException("NotSupportOperator"); //
-		// } //
 		Node.Expr.Evaluate(this);
 		this.PushSourceCode(MethodName + this.PopSourceCode());
 	}
@@ -132,19 +115,6 @@ class CSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(this.PopSourceCode() + "->" + Node.Method.MethodName);
 	}
 
-	private EvaluateParam(Params: Array<GtNode>): string[] {
-		var Size: number = ListSize(Params);
-		var Programs: string[] = new Array<string>(Size);
-		var i: number = 0;
-		while(i < Size) {
-			var Node: GtNode = Params.get(i);
-			Node.Evaluate(this);
-			Programs[Size - i - 1] = this.PopSourceCode();
-			i = i + 1;
-		}
-		return Programs;
-	}
-
 	public VisitApplyNode(Node: ApplyNode): void {
 		var Program: string = this.GenerateMacro(Node);
 		var i: number = 0;
@@ -176,41 +146,6 @@ class CSourceGenerator extends SourceGenerator {
 
 	public VisitBinaryNode(Node: BinaryNode): void {
 		var MethodName: string = Node.Token.ParsedText;
-		// if(MethodName.equals("+")) { //
-		// } //
-		// else if(MethodName.equals("-")) { //
-		// } //
-		// else if(MethodName.equals("*")) { //
-		// } //
-		// else if(MethodName.equals("/")) { //
-		// } //
-		// else if(MethodName.equals("%")) { //
-		// } //
-		// else if(MethodName.equals("<<")) { //
-		// } //
-		// else if(MethodName.equals(">>")) { //
-		// } //
-		// else if(MethodName.equals("&")) { //
-		// } //
-		// else if(MethodName.equals("|")) { //
-		// } //
-		// else if(MethodName.equals("^")) { //
-		// } //
-		// else if(MethodName.equals("<=")) { //
-		// } //
-		// else if(MethodName.equals("<")) { //
-		// } //
-		// else if(MethodName.equals(">=")) { //
-		// } //
-		// else if(MethodName.equals(">")) { //
-		// } //
-		// else if(MethodName.equals("!=")) { //
-		// } //
-		// else if(MethodName.equals("==")) { //
-		// } //
-		// else { //
-		// 	throw new RuntimeException("NotSupportOperator"); //
-		// } //
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
 		this.PushSourceCode(this.PopSourceCode() + " " + MethodName + " " + this.PopSourceCode());
@@ -396,33 +331,50 @@ class CSourceGenerator extends SourceGenerator {
 		
 		return false;
 	}
+
+	public DefineClassField(NameSpace: GtNameSpace, Type: GtType, VarInfo: GtVariableInfo): void {
+		var Program: string = <string> this.DefinedClass.get(Type.ShortClassName);
+		var VarType: GtType = VarInfo.Type;
+		var VarName: string = VarInfo.Name;
+		this.Indent();
+		Program += this.GetIndentString() + VarType.ShortClassName + " " + VarName + ";\n";
+		this.UnIndent();
+		this.DefinedClass.put(Type.ShortClassName, Program);
+		var ParamList: Array<GtType> = new Array<GtType>();
+		ParamList.add(VarType);
+		ParamList.add(Type);
+		var GetterMethod: GtMethod = new GtMethod(0, VarName, 0, ParamList, null);
+		NameSpace.Context.DefineGetterMethod(GetterMethod);
+	}
+
+	public DefineClassMethod(NameSpace: GtNameSpace, Type: GtType, Method: GtMethod): void {
+		var Program: string = <string> this.DefinedClass.get(Type.ShortClassName);
+		this.Indent();
+		Program += this.GetIndentString() + Method.GetFuncType().ShortClassName + " " + Method.MangledName + ";\n";
+		this.UnIndent();
+		this.DefinedClass.put(Type.ShortClassName, Program);
+	}
+
+	public FreezeClass(Type: GtType): void {
+		var Program: string = <string> this.DefinedClass.get(Type.ShortClassName);
+		Program += "}";
+		this.WriteTranslatedCode(Program);
+	}
+
 	public AddClass(Type: GtType): void {
 		var TypeName: string = Type.ShortClassName;
 		if(this.IsDefiendType(TypeName) == true) {
 			return;
 		}
-		var Code: string = this.GetIndentString() + "struct: typedef " + Type + " {\n";
+		var Program: string = this.GetIndentString() + "struct: typedef " + TypeName;
+		this.WriteTranslatedCode(Program + " " + TypeName + ";");
+		Program += " {\n";
 		this.Indent();
 		if(Type.SuperClass != null) {
-			Code += this.GetIndentString() + Type.SuperClass.ShortClassName + " __base;\n";
-		}
-		if(Type.DefaultNullValue != null && Type.DefaultNullValue instanceof GtObject) {
-			var DefaultObject: GtObject = <GtObject> Type.DefaultNullValue;
-			var keys: Array<string> = DefaultObject.Field.keys();
-			var i: number = 0;
-			while(i < keys.size()) {
-				var FieldName: string = keys.get(i);
-				i = i + 1;
-				if(FieldName.endsWith(":Type")) {
-					continue;
-				}
-				var FieldType: GtType = <GtType> DefaultObject.Field.get(FieldName + ":Type");
-				Code += this.GetIndentString() + FieldType + " " + FieldName + ";\n";
-			}
+			Program += this.GetIndentString() + Type.SuperClass.ShortClassName + " __base;\n";
 		}
 		this.UnIndent();
-		Code += this.GetIndentString() + "} " + Type + ";\n";
-		this.WriteTranslatedCode(Code);
+		this.DefinedClass.put(TypeName, Program);
 	}
 
 	public SetLanguageContext(Context: GtContext): void {

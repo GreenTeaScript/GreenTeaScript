@@ -1099,6 +1099,18 @@ class GtGenerator {
 		/*extension*/
 	}
 
+	public DefineClassField(NameSpace: GtNameSpace, Type: GtType, Field: GtVariableInfo): void {
+		/*extension*/
+	}
+
+	public DefineClassMethod(NameSpace: GtNameSpace, Type: GtType, Method: GtMethod): void {
+		/*extension*/
+	}
+
+	public FreezeClass(Type: GtType): void {
+		/*extension*/
+	}
+
 	public ParseMethodFlag(MethodFlag: number, MethodDeclTree: GtSyntaxTree): number {
 		if(MethodDeclTree.HasAnnotation("Export")) {
 			MethodFlag = MethodFlag | ExportMethod;

@@ -2673,16 +2673,16 @@ final class DScriptGrammar extends GtGrammar {
 				if(InitDecl != null) {
 					Tree.SetSyntaxTreeAt(i, InitDecl);
 					if(InitDecl.HasNodeAt(FuncDeclBlock)) {
-						GtSyntaxTree FuncBody = InitDecl.GetSyntaxTreeAt(FuncDeclBlock);
-						GtSyntaxTree TailTree = FuncBody;
+						/*local*/GtSyntaxTree FuncBody = InitDecl.GetSyntaxTreeAt(FuncDeclBlock);
+						/*local*/GtSyntaxTree TailTree = FuncBody;
 						while(TailTree.NextTree != null) {
 							TailTree = TailTree.NextTree;
 						}
-						GtNameSpace NS = TokenContext.NameSpace;
-						GtSyntaxTree ThisTree = new GtSyntaxTree(NS.GetPattern("$Variable$"), NS, new GtToken("this", 0), null);
-						GtSyntaxTree ReturnTree = new GtSyntaxTree(NS.GetPattern("return"), NS, new GtToken("return", 0), null);
+						/*local*/GtNameSpace NS = TokenContext.NameSpace;
+						/*local*/GtSyntaxTree ThisTree = new GtSyntaxTree(NS.GetPattern("$Variable$"), NS, new GtToken("this", 0), null);
+						/*local*/GtSyntaxTree ReturnTree = new GtSyntaxTree(NS.GetPattern("return"), NS, new GtToken("return", 0), null);
 						ReturnTree.SetSyntaxTreeAt(ReturnExpr, ThisTree);
-						GtSyntaxTree.LinkTree(TailTree, ReturnTree);
+						GtStatic.LinkTree(TailTree, ReturnTree);
 
 					}
 					i = i + 1;

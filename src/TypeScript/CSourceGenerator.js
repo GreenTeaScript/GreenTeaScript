@@ -11,6 +11,7 @@ var CSourceGenerator = (function (_super) {
     function CSourceGenerator() {
         _super.call(this, "C");
         this.DefaultTypes = ["void", "int", "boolean", "float", "double", "string", "Object", "Array", "Func", "var", "any"];
+        this.DefinedClass = new GtMap();
     }
     CSourceGenerator.prototype.VisitBlockEachStatementWithIndent = function (Node, NeedBlock) {
         var Code = "";
@@ -37,33 +38,12 @@ var CSourceGenerator = (function (_super) {
 
     CSourceGenerator.prototype.VisitSuffixNode = function (Node) {
         var MethodName = Node.Token.ParsedText;
-
-        // if(MethodName.equals("++")) { //
-        // } //
-        // else if(MethodName.equals("--")) { //
-        // } //
         Node.Expr.Evaluate(this);
         this.PushSourceCode(this.PopSourceCode() + MethodName);
     };
 
     CSourceGenerator.prototype.VisitUnaryNode = function (Node) {
         var MethodName = Node.Token.ParsedText;
-
-        // if(MethodName.equals("+")) { //
-        // } //
-        // else if(MethodName.equals("-")) { //
-        // } //
-        // else if(MethodName.equals("~")) { //
-        // } //
-        // else if(MethodName.equals("!")) { //
-        // } //
-        // else if(MethodName.equals("++")) { //
-        // } //
-        // else if(MethodName.equals("--")) { //
-        // } //
-        // else { //
-        // 	throw new RuntimeException("NotSupportOperator"); //
-        // } //
         Node.Expr.Evaluate(this);
         this.PushSourceCode(MethodName + this.PopSourceCode());
     };
@@ -135,19 +115,6 @@ var CSourceGenerator = (function (_super) {
         this.PushSourceCode(this.PopSourceCode() + "->" + Node.Method.MethodName);
     };
 
-    CSourceGenerator.prototype.EvaluateParam = function (Params) {
-        var Size = ListSize(Params);
-        var Programs = new Array(Size);
-        var i = 0;
-        while (i < Size) {
-            var Node = Params.get(i);
-            Node.Evaluate(this);
-            Programs[Size - i - 1] = this.PopSourceCode();
-            i = i + 1;
-        }
-        return Programs;
-    };
-
     CSourceGenerator.prototype.VisitApplyNode = function (Node) {
         var Program = this.GenerateMacro(Node);
         var i = 0;
@@ -179,42 +146,6 @@ var CSourceGenerator = (function (_super) {
 
     CSourceGenerator.prototype.VisitBinaryNode = function (Node) {
         var MethodName = Node.Token.ParsedText;
-
-        // if(MethodName.equals("+")) { //
-        // } //
-        // else if(MethodName.equals("-")) { //
-        // } //
-        // else if(MethodName.equals("*")) { //
-        // } //
-        // else if(MethodName.equals("/")) { //
-        // } //
-        // else if(MethodName.equals("%")) { //
-        // } //
-        // else if(MethodName.equals("<<")) { //
-        // } //
-        // else if(MethodName.equals(">>")) { //
-        // } //
-        // else if(MethodName.equals("&")) { //
-        // } //
-        // else if(MethodName.equals("|")) { //
-        // } //
-        // else if(MethodName.equals("^")) { //
-        // } //
-        // else if(MethodName.equals("<=")) { //
-        // } //
-        // else if(MethodName.equals("<")) { //
-        // } //
-        // else if(MethodName.equals(">=")) { //
-        // } //
-        // else if(MethodName.equals(">")) { //
-        // } //
-        // else if(MethodName.equals("!=")) { //
-        // } //
-        // else if(MethodName.equals("==")) { //
-        // } //
-        // else { //
-        // 	throw new RuntimeException("NotSupportOperator"); //
-        // } //
         Node.RightNode.Evaluate(this);
         Node.LeftNode.Evaluate(this);
         this.PushSourceCode(this.PopSourceCode() + " " + MethodName + " " + this.PopSourceCode());
@@ -399,33 +330,50 @@ var CSourceGenerator = (function (_super) {
         // care: about: FIXME "var", "any" //
         return false;
     };
+
+    CSourceGenerator.prototype.DefineClassField = function (NameSpace, Type, VarInfo) {
+        var Program = this.DefinedClass.get(Type.ShortClassName);
+        var VarType = VarInfo.Type;
+        var VarName = VarInfo.Name;
+        this.Indent();
+        Program += this.GetIndentString() + VarType.ShortClassName + " " + VarName + ";\n";
+        this.UnIndent();
+        this.DefinedClass.put(Type.ShortClassName, Program);
+        var ParamList = new Array();
+        ParamList.add(VarType);
+        ParamList.add(Type);
+        var GetterMethod = new GtMethod(0, VarName, 0, ParamList, null);
+        NameSpace.Context.DefineGetterMethod(GetterMethod);
+    };
+
+    CSourceGenerator.prototype.DefineClassMethod = function (NameSpace, Type, Method) {
+        var Program = this.DefinedClass.get(Type.ShortClassName);
+        this.Indent();
+        Program += this.GetIndentString() + Method.GetFuncType().ShortClassName + " " + Method.MangledName + ";\n";
+        this.UnIndent();
+        this.DefinedClass.put(Type.ShortClassName, Program);
+    };
+
+    CSourceGenerator.prototype.FreezeClass = function (Type) {
+        var Program = this.DefinedClass.get(Type.ShortClassName);
+        Program += "}";
+        this.WriteTranslatedCode(Program);
+    };
+
     CSourceGenerator.prototype.AddClass = function (Type) {
         var TypeName = Type.ShortClassName;
         if (this.IsDefiendType(TypeName) == true) {
             return;
         }
-        var Code = this.GetIndentString() + "struct: typedef " + Type + " {\n";
+        var Program = this.GetIndentString() + "struct: typedef " + TypeName;
+        this.WriteTranslatedCode(Program + " " + TypeName + ";");
+        Program += " {\n";
         this.Indent();
         if (Type.SuperClass != null) {
-            Code += this.GetIndentString() + Type.SuperClass.ShortClassName + " __base;\n";
-        }
-        if (Type.DefaultNullValue != null && Type.DefaultNullValue instanceof GtObject) {
-            var DefaultObject = Type.DefaultNullValue;
-            var keys = DefaultObject.Field.keys();
-            var i = 0;
-            while (i < keys.size()) {
-                var FieldName = keys.get(i);
-                i = i + 1;
-                if (FieldName.endsWith(":Type")) {
-                    continue;
-                }
-                var FieldType = DefaultObject.Field.get(FieldName + ":Type");
-                Code += this.GetIndentString() + FieldType + " " + FieldName + ";\n";
-            }
+            Program += this.GetIndentString() + Type.SuperClass.ShortClassName + " __base;\n";
         }
         this.UnIndent();
-        Code += this.GetIndentString() + "} " + Type + ";\n";
-        this.WriteTranslatedCode(Code);
+        this.DefinedClass.put(TypeName, Program);
     };
 
     CSourceGenerator.prototype.SetLanguageContext = function (Context) {
