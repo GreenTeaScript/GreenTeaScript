@@ -122,7 +122,7 @@ var CSourceGenerator = (function (_super) {
 
     CSourceGenerator.prototype.VisitNewNode = function (Node) {
         var Type = Node.Type.ShortClassName;
-        this.PushSourceCode("new " + Type);
+        this.PushSourceCode("new " + Type + "()");
     };
 
     CSourceGenerator.prototype.VisitNullNode = function (Node) {

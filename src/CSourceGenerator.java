@@ -124,7 +124,7 @@ public class CSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitNewNode(NewNode Node) {
 		/*local*/String Type = Node.Type.ShortClassName;
-		this.PushSourceCode("new " + Type);
+		this.PushSourceCode("new " + Type + "()");
 	}
 
 	@Override public void VisitNullNode(NullNode Node) {

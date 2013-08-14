@@ -2137,6 +2137,10 @@ class GtGrammar {
 		else {
 			BaseType = Gamma.VoidType;
 		}
+		return DScriptGrammar.TypeFuncParam(Gamma, ParsedTree, MethodName, BaseType, NodeList, ParamIndex, ParamSize);
+	}
+
+	static TypeFuncParam(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, MethodName: string, BaseType: GtType, NodeList: Array<GtNode>, ParamIndex: number, ParamSize: number): GtNode {
 		var Method: GtMethod = Gamma.Context.GetListedMethod(BaseType, MethodName, ParamSize - 1, true);
 		var ReturnType: GtType = Gamma.AnyType;
 		if(Method == null) {
@@ -2432,22 +2436,30 @@ class GtGrammar {
 		TokenContext.ParseFlag |= SkipIndentParseFlag;
 		var NewTree: GtSyntaxTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("new"), null);
 		NewTree.SetMatchedPatternAt(CallExpressionOffset, NameSpace, TokenContext, "$Type$", Required);
+		TokenContext.MatchToken("(");
 		if(!TokenContext.MatchToken(")")) {
 			while(!NewTree.IsEmptyOrError()) {
 				var Tree: GtSyntaxTree = TokenContext.ParsePattern(NameSpace, "$Expression$", Required);
 				NewTree.AppendParsedTree(Tree);
-				if(TokenContext.MatchToken(")")) break;
+				if(TokenContext.MatchToken(")")) {
+					break;
+				}
 				NewTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ",", Required);
 			}
 		}
 		TokenContext.ParseFlag = ParseFlag;
 		return NewTree;
 	}
-	
+
 	static TypeNew(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
-// 		var ExprNode: GtNode = ParsedTree.TypeCheckNodeAt(ReturnExpr, Gamma, ContextType, DefaultTypeCheckPolicy); //
-// 		return Gamma.Generator.CreateThrowNode(ExprNode.Type, ParsedTree, ExprNode); //
-		return null;
+		//  new $Type$($Params$) => constructor(new $Type$, $Params$) //
+		var ReturnType: GtType = ParsedTree.GetSyntaxTreeAt(CallExpressionOffset).GetParsedType();
+		var MethodName: string = "constructor";
+		var ParamList: Array<GtNode> = new Array<GtNode>();
+		var ParamIndex: number = 1;
+		var ParamSize: number = ListSize(ParsedTree.TreeList);
+		ParamList.add(Gamma.Generator.CreateNewNode(ReturnType, ParsedTree));
+		return DScriptGrammar.TypeFuncParam(Gamma, ParsedTree, MethodName, ReturnType, ParamList, ParamIndex, ParamSize);
 	}
 
 	//  switch //
@@ -2708,6 +2720,7 @@ class GtGrammar {
 				var FuncDecl: GtSyntaxTree = TokenContext.ParsePattern(NameSpace, "$FuncDecl$", Optional);
 				if(FuncDecl != null) {
 					ClassDeclTree.SetSyntaxTreeAt(i, FuncDecl);
+					TokenContext.MatchToken(";");
 					i = i + 1;
 				}
 				var VarDecl: GtSyntaxTree = TokenContext.ParsePattern(NameSpace, "$VarDecl$", Optional);
@@ -2740,11 +2753,12 @@ class GtGrammar {
 	}
 
 	static TypeClassDecl(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
-// 		var ClassNameTree: GtSyntaxTree = ParsedTree.GetSyntaxTreeAt(ClassNameOffset); //
+		var ClassNameTree: GtSyntaxTree = ParsedTree.GetSyntaxTreeAt(ClassNameOffset);
 		var NewType: GtType = ParsedTree.GetParsedType();
 		var FieldOffset: number = ClassBlockOffset;
 		Gamma = new GtTypeEnv(ParsedTree.NameSpace);  // of: newenvironment: creation: type //
 		Gamma.AppendDeclaredVariable(NewType, "this");
+		ClassNameTree.ConstValue = NewType;
 
 		while(FieldOffset < ParsedTree.TreeList.size()) {
 			var FieldTree: GtSyntaxTree = ParsedTree.GetSyntaxTreeAt(FieldOffset);
@@ -2759,7 +2773,6 @@ class GtGrammar {
 			}
 			else if(FieldTree.Pattern.PatternName.equals("$FuncDecl$")) {
 				var ReturnTree: GtSyntaxTree = FieldTree.GetSyntaxTreeAt(FuncDeclReturnType);
-				ReturnTree.ConstValue = NewType; // FIXME //
 				var NewTreeList: Array<GtSyntaxTree> = new Array<GtSyntaxTree>();
 				var i: number = 0;
 				while(i < FieldTree.TreeList.size() + 3) {
@@ -2767,13 +2780,15 @@ class GtGrammar {
 					i = i + 1;
 				}
 				NewTreeList.set(FuncDeclReturnType, ReturnTree);
-				NewTreeList.set(FuncDeclClass, FieldTree.GetSyntaxTreeAt(FuncDeclClass));
+				NewTreeList.set(FuncDeclClass, ClassNameTree);
 				NewTreeList.set(FuncDeclName, FieldTree.GetSyntaxTreeAt(FuncDeclName));
 				NewTreeList.set(FuncDeclBlock, FieldTree.GetSyntaxTreeAt(FuncDeclBlock));
 				var ParamBase: number = FuncDeclParam;
-				NewTreeList.set(ParamBase + 0, ReturnTree);
+				NewTreeList.set(ParamBase + 0, ClassNameTree);
 				NewTreeList.set(ParamBase + 1, new GtSyntaxTree(Gamma.NameSpace.GetPattern("$Variable$"), Gamma.NameSpace, new GtToken("this", 0), null));
-				NewTreeList.set(ParamBase + 2, null);
+				if(ParamBase + 2 < NewTreeList.size()) {
+					NewTreeList.set(ParamBase + 2, null);
+				}
 				while(ParamBase < FieldTree.TreeList.size()) {
 					NewTreeList.set(ParamBase + 3, FieldTree.GetSyntaxTreeAt(ParamBase + 0));
 					NewTreeList.set(ParamBase + 4, FieldTree.GetSyntaxTreeAt(ParamBase + 1));
@@ -2793,7 +2808,6 @@ class GtGrammar {
 
 			FieldOffset += 1;
 		}
-		// Gamma.NameSpace.DefineClass(NewType); //
 		Gamma.Generator.GenerateClassField(NewType);
 		return Gamma.Generator.CreateConstNode(ParsedTree.NameSpace.Context.TypeType, ParsedTree, NewType);
 	}

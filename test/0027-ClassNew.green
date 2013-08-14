@@ -5,5 +5,5 @@ class X {
 }
 
 void f() {
-    X.new(10);
+    new X(10);
 }

@@ -123,7 +123,7 @@ class CSourceGenerator extends SourceGenerator {
 
 	public VisitNewNode(Node: NewNode): void {
 		var Type: string = Node.Type.ShortClassName;
-		this.PushSourceCode("new " + Type);
+		this.PushSourceCode("new " + Type + "()");
 	}
 
 	public VisitNullNode(Node: NullNode): void {
