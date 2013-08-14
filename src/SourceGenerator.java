@@ -1196,7 +1196,7 @@ class GtGenerator extends GtStatic {
 		/*extension*/
 	}
 
-	public void FreezeClass(GtType Type) {
+	public void GenerateClassField(GtType Type) {
 		/*extension*/
 	}
 

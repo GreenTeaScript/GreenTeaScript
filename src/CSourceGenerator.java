@@ -383,7 +383,7 @@ public class CSourceGenerator extends SourceGenerator {
 		this.DefinedClass.put(Type.ShortClassName, Program);
 	}
 
-	@Override public void FreezeClass(GtType Type) {
+	@Override public void GenerateClassField(GtType Type) {
 		/*local*/String Program = (/*cast*/String) this.DefinedClass.get(Type.ShortClassName);
 		Program += "};";
 		this.WriteTranslatedCode(Program);

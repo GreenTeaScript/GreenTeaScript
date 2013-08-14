@@ -2759,18 +2759,18 @@ final class DScriptGrammar extends GtGrammar {
 
 	// ClassDecl
 	public static GtSyntaxTree ParseClassDecl(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		/*local*/GtSyntaxTree Tree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetToken(), null);
+		/*local*/GtSyntaxTree ClassDeclTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetToken(), null);
 		// "class" $Symbol$ ["extends" $Type$]
 		TokenContext.MatchToken("class");
 		/*local*/GtSyntaxTree ClassNameTree = TokenContext.ParsePattern(NameSpace, "$Symbol$", Required);
-		Tree.SetSyntaxTreeAt(ClassNameOffset, ClassNameTree);
+		ClassDeclTree.SetSyntaxTreeAt(ClassNameOffset, ClassNameTree);
 		if(TokenContext.MatchToken("extends")) {
-			Tree.SetMatchedPatternAt(ClassParentNameOffset, NameSpace, TokenContext, "$Type$", Required);
+			ClassDeclTree.SetMatchedPatternAt(ClassParentNameOffset, NameSpace, TokenContext, "$Type$", Required);
 		}
 
 		// define new class
 		/*local*/String ClassName = ClassNameTree.KeyToken.ParsedText;
-		/*local*/GtSyntaxTree SuperClassTree = Tree.GetSyntaxTreeAt(ClassParentNameOffset);
+		/*local*/GtSyntaxTree SuperClassTree = ClassDeclTree.GetSyntaxTreeAt(ClassParentNameOffset);
 		/*local*/GtType SuperType = NameSpace.Context.StructType;
 		if(SuperClassTree != null) {
 			SuperType = SuperClassTree.GetParsedType();
@@ -2787,21 +2787,21 @@ final class DScriptGrammar extends GtGrammar {
 		TokenContext.ParseFlag = ParseFlag;
 		if(TokenContext.MatchToken("{")) {
 			/*local*/int i = ClassBlockOffset;
-			while(!Tree.IsEmptyOrError() && !TokenContext.MatchToken("}")) {
+			while(!ClassDeclTree.IsEmptyOrError() && !TokenContext.MatchToken("}")) {
 				/*local*/GtSyntaxTree FuncDecl = TokenContext.ParsePattern(NameSpace, "$FuncDecl$", Optional);
 				if(FuncDecl != null) {
-					Tree.SetSyntaxTreeAt(i, FuncDecl);
+					ClassDeclTree.SetSyntaxTreeAt(i, FuncDecl);
 					i = i + 1;
 				}
 				/*local*/GtSyntaxTree VarDecl = TokenContext.ParsePattern(NameSpace, "$VarDecl$", Optional);
 				if(VarDecl != null) {
-					Tree.SetSyntaxTreeAt(i, VarDecl);
+					ClassDeclTree.SetSyntaxTreeAt(i, VarDecl);
 					TokenContext.MatchToken(";");
 					i = i + 1;
 				}
 				/*local*/GtSyntaxTree InitDecl = TokenContext.ParsePatternAfter(NameSpace, ClassNameTree, "constructor", Optional);
 				if(InitDecl != null) {
-					Tree.SetSyntaxTreeAt(i, InitDecl);
+					ClassDeclTree.SetSyntaxTreeAt(i, InitDecl);
 					if(InitDecl.HasNodeAt(FuncDeclBlock)) {
 						/*local*/GtSyntaxTree FuncBody = InitDecl.GetSyntaxTreeAt(FuncDeclBlock);
 						/*local*/GtSyntaxTree TailTree = FuncBody;
@@ -2819,7 +2819,7 @@ final class DScriptGrammar extends GtGrammar {
 			}
 		}
 		TokenContext.ParseFlag = ParseFlag;
-		return Tree;
+		return ClassDeclTree;
 	}
 
 	public static GtNode TypeClassDecl(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
