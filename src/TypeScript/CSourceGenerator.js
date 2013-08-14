@@ -1,9 +1,11 @@
+/// <reference path="LangDeps.ts" />
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     __.prototype = b.prototype;
     d.prototype = new __();
 };
+//Generator: GreenTeabe: shouldin: writtenlanguage: each. //
 var CSourceGenerator = (function (_super) {
     __extends(CSourceGenerator, _super);
     function CSourceGenerator() {
@@ -30,11 +32,16 @@ var CSourceGenerator = (function (_super) {
     };
 
     CSourceGenerator.prototype.VisitEmptyNode = function (Node) {
+        // this.PushSourceCode("/*empty*/"); //
     };
 
     CSourceGenerator.prototype.VisitSuffixNode = function (Node) {
         var MethodName = Node.Token.ParsedText;
 
+        // if(MethodName.equals("++")) { //
+        // } //
+        // else if(MethodName.equals("--")) { //
+        // } //
         Node.Expr.Evaluate(this);
         this.PushSourceCode(this.PopSourceCode() + MethodName);
     };
@@ -42,6 +49,21 @@ var CSourceGenerator = (function (_super) {
     CSourceGenerator.prototype.VisitUnaryNode = function (Node) {
         var MethodName = Node.Token.ParsedText;
 
+        // if(MethodName.equals("+")) { //
+        // } //
+        // else if(MethodName.equals("-")) { //
+        // } //
+        // else if(MethodName.equals("~")) { //
+        // } //
+        // else if(MethodName.equals("!")) { //
+        // } //
+        // else if(MethodName.equals("++")) { //
+        // } //
+        // else if(MethodName.equals("--")) { //
+        // } //
+        // else { //
+        // 	throw new RuntimeException("NotSupportOperator"); //
+        // } //
         Node.Expr.Evaluate(this);
         this.PushSourceCode(MethodName + this.PopSourceCode());
     };
@@ -53,6 +75,7 @@ var CSourceGenerator = (function (_super) {
     };
 
     CSourceGenerator.prototype.VisitMessageNode = function (Node) {
+        // Auto: TODO-generatedstub: method //
     };
 
     CSourceGenerator.prototype.VisitWhileNode = function (Node) {
@@ -83,6 +106,7 @@ var CSourceGenerator = (function (_super) {
     };
 
     CSourceGenerator.prototype.VisitForEachNode = function (Node) {
+        // Auto: TODO-generatedstub: method //
     };
 
     CSourceGenerator.prototype.VisitConstNode = function (Node) {
@@ -156,6 +180,41 @@ var CSourceGenerator = (function (_super) {
     CSourceGenerator.prototype.VisitBinaryNode = function (Node) {
         var MethodName = Node.Token.ParsedText;
 
+        // if(MethodName.equals("+")) { //
+        // } //
+        // else if(MethodName.equals("-")) { //
+        // } //
+        // else if(MethodName.equals("*")) { //
+        // } //
+        // else if(MethodName.equals("/")) { //
+        // } //
+        // else if(MethodName.equals("%")) { //
+        // } //
+        // else if(MethodName.equals("<<")) { //
+        // } //
+        // else if(MethodName.equals(">>")) { //
+        // } //
+        // else if(MethodName.equals("&")) { //
+        // } //
+        // else if(MethodName.equals("|")) { //
+        // } //
+        // else if(MethodName.equals("^")) { //
+        // } //
+        // else if(MethodName.equals("<=")) { //
+        // } //
+        // else if(MethodName.equals("<")) { //
+        // } //
+        // else if(MethodName.equals(">=")) { //
+        // } //
+        // else if(MethodName.equals(">")) { //
+        // } //
+        // else if(MethodName.equals("!=")) { //
+        // } //
+        // else if(MethodName.equals("==")) { //
+        // } //
+        // else { //
+        // 	throw new RuntimeException("NotSupportOperator"); //
+        // } //
         Node.RightNode.Evaluate(this);
         Node.LeftNode.Evaluate(this);
         this.PushSourceCode(this.PopSourceCode() + " " + MethodName + " " + this.PopSourceCode());
@@ -207,6 +266,7 @@ var CSourceGenerator = (function (_super) {
     };
 
     CSourceGenerator.prototype.VisitSwitchNode = function (Node) {
+        // Auto: TODO-generatedstub: method //
     };
 
     CSourceGenerator.prototype.VisitReturnNode = function (Node) {
@@ -249,6 +309,7 @@ var CSourceGenerator = (function (_super) {
     CSourceGenerator.prototype.VisitTryNode = function (Node) {
         var Code = "try";
 
+        // this.VisitEach(Node.CatchBlock); //
         this.VisitBlockEachStatementWithIndent(Node.TryBlock, true);
         Code += this.PopSourceCode();
         if (Node.FinallyBlock != null) {
@@ -265,6 +326,7 @@ var CSourceGenerator = (function (_super) {
     };
 
     CSourceGenerator.prototype.VisitFunctionNode = function (Node) {
+        // Auto: TODO-generatedstub: method //
     };
 
     CSourceGenerator.prototype.VisitErrorNode = function (Node) {
@@ -334,6 +396,7 @@ var CSourceGenerator = (function (_super) {
             i = i + 1;
         }
 
+        // care: about: FIXME "var", "any" //
         return false;
     };
     CSourceGenerator.prototype.AddClass = function (Type) {

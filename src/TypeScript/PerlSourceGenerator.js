@@ -1,9 +1,11 @@
+/// <reference path="LangDeps.ts" />
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     __.prototype = b.prototype;
     d.prototype = new __();
 };
+//Generator: GreenTeabe: shouldin: writtenlanguage: each. //
 var PerlSourceGenerator = (function (_super) {
     __extends(PerlSourceGenerator, _super);
     function PerlSourceGenerator() {
@@ -31,6 +33,7 @@ var PerlSourceGenerator = (function (_super) {
         if (MethodName.equals("++")) {
         } else if (MethodName.equals("--")) {
         } else {
+            // throw new RuntimeException("NotSupportOperator"); //
         }
         Node.Expr.Evaluate(this);
         this.PushSourceCode(this.PopSourceCode() + MethodName);
@@ -45,6 +48,7 @@ var PerlSourceGenerator = (function (_super) {
         } else if (MethodName.equals("++")) {
         } else if (MethodName.equals("--")) {
         } else {
+            // throw new RuntimeException("NotSupportOperator"); //
         }
         Node.Expr.Evaluate(this);
         this.PushSourceCode(MethodName + this.PopSourceCode());
@@ -57,6 +61,7 @@ var PerlSourceGenerator = (function (_super) {
     };
 
     PerlSourceGenerator.prototype.VisitMessageNode = function (Node) {
+        // Auto: TODO-generatedstub: method //
     };
 
     PerlSourceGenerator.prototype.VisitWhileNode = function (Node) {
@@ -88,6 +93,7 @@ var PerlSourceGenerator = (function (_super) {
     };
 
     PerlSourceGenerator.prototype.VisitForEachNode = function (Node) {
+        // Auto: TODO-generatedstub: method //
     };
 
     PerlSourceGenerator.prototype.VisitConstNode = function (Node) {
@@ -166,6 +172,7 @@ var PerlSourceGenerator = (function (_super) {
                 MethodName = "eq";
             }
         } else {
+            // throw new RuntimeException("NotSupportOperator"); //
         }
         Node.RightNode.Evaluate(this);
         Node.LeftNode.Evaluate(this);
@@ -191,6 +198,7 @@ var PerlSourceGenerator = (function (_super) {
     };
 
     PerlSourceGenerator.prototype.VisitLetNode = function (Node) {
+        // var Type: string = Node.DeclType.ShortClassName; //
         var VarName = Node.VariableName;
         var Code = "my " + VarName;
         if (Node.InitNode != null) {
@@ -218,6 +226,7 @@ var PerlSourceGenerator = (function (_super) {
     };
 
     PerlSourceGenerator.prototype.VisitSwitchNode = function (Node) {
+        // Auto: TODO-generatedstub: method //
     };
 
     PerlSourceGenerator.prototype.VisitReturnNode = function (Node) {
@@ -250,6 +259,7 @@ var PerlSourceGenerator = (function (_super) {
     PerlSourceGenerator.prototype.VisitTryNode = function (Node) {
         var Code = "try";
 
+        // this.VisitEach(Node.CatchBlock); //
         this.VisitBlockEachStatementWithIndent(Node.TryBlock);
 
         Code += this.PopSourceCode();
@@ -267,6 +277,7 @@ var PerlSourceGenerator = (function (_super) {
     };
 
     PerlSourceGenerator.prototype.VisitFunctionNode = function (Node) {
+        // Auto: TODO-generatedstub: method //
     };
 
     PerlSourceGenerator.prototype.VisitErrorNode = function (Node) {
@@ -322,9 +333,11 @@ var PerlSourceGenerator = (function (_super) {
     };
 
     PerlSourceGenerator.prototype.AddClass = function (Type) {
+        // Auto: TODO-generatedstub: method //
     };
 
     PerlSourceGenerator.prototype.SetLanguageContext = function (Context) {
+        // Auto: TODO-generatedstub: method //
     };
     return PerlSourceGenerator;
 })(SourceGenerator);
