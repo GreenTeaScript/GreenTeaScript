@@ -2421,6 +2421,8 @@ var DScriptGrammar = (function (_super) {
         if (!(ValueNode instanceof ConstNode)) {
             return Gamma.CreateErrorNode2(ParsedTree, "definitionvariable: of " + VariableName + "not: constant: is");
         }
+        var CNode = ValueNode;
+        Gamma.NameSpace.DefineSymbol(VariableName, CNode.ConstValue);
         return Gamma.Generator.CreateEmptyNode(ContextType);
     };
 
@@ -2743,7 +2745,7 @@ var DScriptGrammar = (function (_super) {
         var Symbol = SourceText.substring(start, pos);
 
         var i = 0;
-        while (i < 0) {
+        while (i < ShellGrammarReservedKeywords.length) {
             var Keyword = ShellGrammarReservedKeywords[i];
             if (Symbol.equals(Keyword)) {
                 return NoMatch;

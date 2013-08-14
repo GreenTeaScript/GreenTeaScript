@@ -2410,6 +2410,8 @@ class GtGrammar {
 		if(!(ValueNode instanceof ConstNode)) {
 			return Gamma.CreateErrorNode2(ParsedTree, "definitionvariable: of " + VariableName + "not: constant: is");
 		}
+		var CNode: ConstNode = <ConstNode> ValueNode;
+		Gamma.NameSpace.DefineSymbol(VariableName, CNode.ConstValue);
 		return Gamma.Generator.CreateEmptyNode(ContextType);
 	}
 
@@ -2743,7 +2745,7 @@ class GtGrammar {
 		var Symbol: string = SourceText.substring(start, pos);
 		
 		var i: number = 0;
-		while(i < 0) {
+		while(i < ShellGrammarReservedKeywords.length) {
 			var Keyword: string = ShellGrammarReservedKeywords[i];
 			if(Symbol.equals(Keyword)) {
 				return NoMatch;

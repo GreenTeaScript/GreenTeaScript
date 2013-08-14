@@ -2895,7 +2895,7 @@ final class DScriptGrammar extends GtGrammar {
 		String Symbol = SourceText.substring(start, pos);
 		
 		/*local*/int i = 0;
-		while(i < 0) {
+		while(i < ShellGrammarReservedKeywords.length) {
 			/*local*/String Keyword = ShellGrammarReservedKeywords[i];
 			if(Symbol.equals(Keyword)) {
 				return GtStatic.NoMatch;
