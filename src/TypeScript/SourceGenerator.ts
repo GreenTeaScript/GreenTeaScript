@@ -741,15 +741,6 @@ class CommandNode extends GtNode {
 	}
 }
 
-class GtObject {
-	public Type: GtType;
-	public Field: GtMap;
-	constructor(Type: GtType) {
-		this.Type = Type;
-		this.Field = new GtMap();
-	}
-}
-
 class GtType {
 	 Context: GtContext;
 	public PackageNameSpace: GtNameSpace;
@@ -759,6 +750,7 @@ class GtType {
 	SuperClass: GtType;
 	public SearchSuperMethodClass: GtType;
 	public DefaultNullValue: Object;
+	public ClassSymbolTable: GtMap;
 	BaseClass: GtType;
 	Types: GtType[];
 	public NativeSpec: Object;
@@ -772,9 +764,28 @@ class GtType {
 		this.SearchSuperMethodClass = null;
 		this.DefaultNullValue = DefaultNullValue;
 		this.NativeSpec = NativeSpec;
+		this.ClassSymbolTable = IsFlag(ClassFlag, EnumClass) ? <GtMap>NativeSpec : null;
 		this.ClassId = Context.ClassCount;
 		Context.ClassCount += 1;
 		this.Types = null;
+	}
+
+	public CreateSubType(ClassFlag: number, ClassName: string, DefaultNullValue: Object, NativeSpec: Object): GtType {
+		var SubType: GtType = new GtType(this.Context, ClassFlag, ClassName, DefaultNullValue, NativeSpec);
+		SubType.SuperClass = this;
+		SubType.SearchSuperMethodClass = this;
+		return SubType;
+	}
+	
+	// Don: Note'tthis: directly: call.Context: Use.instead: GetGenericType. //
+	public CreateGenericType(BaseIndex: number, TypeList: Array<GtType>, ShortName: string): GtType {
+		var GenericType: GtType = new GtType(this.Context, this.ClassFlag, ShortName, null, null);
+		GenericType.BaseClass = this.BaseClass;
+		GenericType.SearchSuperMethodClass = this.BaseClass;
+		GenericType.SuperClass = this.SuperClass;
+		this.Types = LangDeps.CompactTypeList(BaseIndex, TypeList);
+		console.log("DEBUG: " + "new class: " + GenericType.ShortClassName + ", ClassId=" + GenericType.ClassId);
+		return GenericType;
 	}
 
 	 IsNative(): boolean {
@@ -789,26 +800,29 @@ class GtType {
 		return (this.Types != null);
 	}
 
-	// Don: Note'tthis: directly: call.Context: Use.instead: GetGenericType. //
-	public CreateGenericType(BaseIndex: number, TypeList: Array<GtType>, ShortName: string): GtType {
-		var GenericType: GtType = new GtType(this.Context, this.ClassFlag, ShortName, null, null);
-		GenericType.BaseClass = this.BaseClass;
-		GenericType.SearchSuperMethodClass = this.BaseClass;
-		GenericType.SuperClass = this.SuperClass;
-		this.Types = LangDeps.CompactTypeList(BaseIndex, TypeList);
-		console.log("DEBUG: " + "new class: " + GenericType.ShortClassName + ", ClassId=" + GenericType.ClassId);
-		return GenericType;
-	}
-
-	public SetParamType(ParamType: GtType): void {
-		this.Types = new Array<GtType>(1);
-		this.Types[0] = ParamType;
-	}
-
 	public toString(): string {
 		return this.ShortClassName;
 	}
 
+	 GetClassSymbol(Key: string, RecursiveSearch: boolean): Object {
+		var Type: GtType = this;
+		while(Type != null) {
+			if(Type.ClassSymbolTable != null) {
+				return Type.ClassSymbolTable.get(Key);
+			}
+			Type = (RecursiveSearch) ? Type.SuperClass : null;
+		}
+		return null;
+	}
+
+	 SetClassSymbol(Key: string, Value: Object): void {
+		if(this.ClassSymbolTable == null) {
+			this.ClassSymbolTable = new GtMap();
+		}
+		this.ClassSymbolTable.put(Key, Value);
+	}
+
+	
 	 GetSignature(): string {
 		return NumberToAscii(this.ClassId);
 	}
@@ -817,11 +831,16 @@ class GtType {
 		if(this == Type || this == this.Context.AnyType) {
 			return true;
 		}
-		if(this.BaseClass != null && Type.BaseClass != null && this.BaseClass == Type.BaseClass) {
-			return true;
+		var SuperClass: GtType = this.SuperClass;
+		while(SuperClass != null) {
+			if(SuperClass == Type) {
+				return true;
+			}
+			SuperClass = SuperClass.SuperClass;
 		}
-		return false;
+		return this.Context.CheckSubType(Type, this);
 	}
+
 }
 
 class GtMethod {
@@ -1073,7 +1092,7 @@ class GtGenerator {
 	/*constructor: language */
 
 	public GetNativeType(Value: Object): GtType {
-		var NativeType: GtType = null;
+		var NativeType: GtType = this.Context.AnyType;  // unknown: if  //
 
 		return NativeType;
 	}

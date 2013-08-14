@@ -740,14 +740,6 @@ var CommandNode = (function (_super) {
     return CommandNode;
 })(GtNode);
 
-var GtObject = (function () {
-    function GtObject(Type) {
-        this.Type = Type;
-        this.Field = new GtMap();
-    }
-    return GtObject;
-})();
-
 var GtType = (function () {
     function GtType(Context, ClassFlag, ClassName, DefaultNullValue, NativeSpec) {
         this.Context = Context;
@@ -758,20 +750,16 @@ var GtType = (function () {
         this.SearchSuperMethodClass = null;
         this.DefaultNullValue = DefaultNullValue;
         this.NativeSpec = NativeSpec;
+        this.ClassSymbolTable = IsFlag(ClassFlag, EnumClass) ? NativeSpec : null;
         this.ClassId = Context.ClassCount;
         Context.ClassCount += 1;
         this.Types = null;
     }
-    GtType.prototype.IsNative = function () {
-        return IsFlag(this.ClassFlag, NativeClass);
-    };
-
-    GtType.prototype.IsDynamic = function () {
-        return IsFlag(this.ClassFlag, DynamicClass);
-    };
-
-    GtType.prototype.IsGenericType = function () {
-        return (this.Types != null);
+    GtType.prototype.CreateSubType = function (ClassFlag, ClassName, DefaultNullValue, NativeSpec) {
+        var SubType = new GtType(this.Context, ClassFlag, ClassName, DefaultNullValue, NativeSpec);
+        SubType.SuperClass = this;
+        SubType.SearchSuperMethodClass = this;
+        return SubType;
     };
 
     // Don: Note'tthis: directly: call.Context: Use.instead: GetGenericType. //
@@ -785,13 +773,38 @@ var GtType = (function () {
         return GenericType;
     };
 
-    GtType.prototype.SetParamType = function (ParamType) {
-        this.Types = new Array(1);
-        this.Types[0] = ParamType;
+    GtType.prototype.IsNative = function () {
+        return IsFlag(this.ClassFlag, NativeClass);
+    };
+
+    GtType.prototype.IsDynamic = function () {
+        return IsFlag(this.ClassFlag, DynamicClass);
+    };
+
+    GtType.prototype.IsGenericType = function () {
+        return (this.Types != null);
     };
 
     GtType.prototype.toString = function () {
         return this.ShortClassName;
+    };
+
+    GtType.prototype.GetClassSymbol = function (Key, RecursiveSearch) {
+        var Type = this;
+        while (Type != null) {
+            if (Type.ClassSymbolTable != null) {
+                return Type.ClassSymbolTable.get(Key);
+            }
+            Type = (RecursiveSearch) ? Type.SuperClass : null;
+        }
+        return null;
+    };
+
+    GtType.prototype.SetClassSymbol = function (Key, Value) {
+        if (this.ClassSymbolTable == null) {
+            this.ClassSymbolTable = new GtMap();
+        }
+        this.ClassSymbolTable.put(Key, Value);
     };
 
     GtType.prototype.GetSignature = function () {
@@ -802,10 +815,14 @@ var GtType = (function () {
         if (this == Type || this == this.Context.AnyType) {
             return true;
         }
-        if (this.BaseClass != null && Type.BaseClass != null && this.BaseClass == Type.BaseClass) {
-            return true;
+        var SuperClass = this.SuperClass;
+        while (SuperClass != null) {
+            if (SuperClass == Type) {
+                return true;
+            }
+            SuperClass = SuperClass.SuperClass;
         }
-        return false;
+        return this.Context.CheckSubType(Type, this);
     };
     return GtType;
 })();
@@ -1041,7 +1058,7 @@ var GtGenerator = (function () {
 
     /*constructor: language */
     GtGenerator.prototype.GetNativeType = function (Value) {
-        var NativeType = null;
+        var NativeType = this.Context.AnyType;
 
         return NativeType;
     };
