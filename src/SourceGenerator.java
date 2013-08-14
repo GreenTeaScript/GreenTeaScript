@@ -1135,6 +1135,18 @@ class GtGenerator extends GtStatic {
 		/*extension*/
 	}
 
+	public void DefineClassField(GtNameSpace NameSpace, GtType Type, GtVariableInfo Field) {
+		/*extension*/
+	}
+
+	public void DefineClassMethod(GtNameSpace NameSpace, GtType Type, GtMethod Method) {
+		/*extension*/
+	}
+
+	public void FreezeClass(GtType Type) {
+		/*extension*/
+	}
+
 	public int ParseMethodFlag(int MethodFlag, GtSyntaxTree MethodDeclTree) {
 		if(MethodDeclTree.HasAnnotation("Export")) {
 			MethodFlag = MethodFlag | ExportMethod;

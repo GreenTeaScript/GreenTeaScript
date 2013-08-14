@@ -6,9 +6,11 @@ import java.util.ArrayList;
 
 public class CSourceGenerator extends SourceGenerator {
 	/*field*/public final String[] DefaultTypes = {"void", "int", "boolean", "float", "double", "String", "Object", "Array", "Func", "var", "any"};
-
+	/*field*/GtMap DefinedClass;
+	
 	CSourceGenerator/*constructor*/() {
 		super("C");
+		DefinedClass = new GtMap();
 	}
 
 	public void VisitBlockEachStatementWithIndent(GtNode Node, boolean NeedBlock) {
@@ -397,33 +399,50 @@ public class CSourceGenerator extends SourceGenerator {
 		
 		return false;
 	}
+
+	@Override public void DefineClassField(GtNameSpace NameSpace, GtType Type, GtVariableInfo VarInfo) {
+		/*local*/String Program = (/*cast*/String) this.DefinedClass.get(Type.ShortClassName);
+		/*local*/GtType VarType = VarInfo.Type;
+		/*local*/String VarName = VarInfo.Name;
+		this.Indent();
+		Program += this.GetIndentString() + VarType.ShortClassName + " " + VarName + ";\n";
+		this.UnIndent();
+		this.DefinedClass.put(Type.ShortClassName, Program);
+		ArrayList<GtType> ParamList = new ArrayList<GtType>();
+		ParamList.add(VarType);
+		ParamList.add(Type);
+		GtMethod GetterMethod = new GtMethod(0, VarName, 0, ParamList, null);
+		NameSpace.Context.DefineGetterMethod(GetterMethod);
+	}
+
+	@Override public void DefineClassMethod(GtNameSpace NameSpace, GtType Type, GtMethod Method) {
+		/*local*/String Program = (/*cast*/String) this.DefinedClass.get(Type.ShortClassName);
+		this.Indent();
+		Program += this.GetIndentString() + Method.GetFuncType().ShortClassName + " " + Method.MangledName + ";\n";
+		this.UnIndent();
+		this.DefinedClass.put(Type.ShortClassName, Program);
+	}
+
+	@Override public void FreezeClass(GtType Type) {
+		/*local*/String Program = (/*cast*/String) this.DefinedClass.get(Type.ShortClassName);
+		Program += "};";
+		this.WriteTranslatedCode(Program);
+	}
+
 	@Override public void AddClass(GtType Type) {
 		/*local*/String TypeName = Type.ShortClassName;
 		if(this.IsDefiendType(TypeName) == true) {
 			return;
 		}
-		/*local*/String Code = this.GetIndentString() + "typedef struct " + Type + " {\n";
+		/*local*/String Program = this.GetIndentString() + "typedef struct " + TypeName;
+		this.WriteTranslatedCode(Program + " " + TypeName + ";");
+		Program += " {\n";
 		this.Indent();
 		if(Type.SuperClass != null) {
-			Code += this.GetIndentString() + Type.SuperClass.ShortClassName + " __base;\n";
-		}
-		if(Type.DefaultNullValue != null && Type.DefaultNullValue instanceof GtObject) {
-			/*local*/GtObject DefaultObject = (/*cast*/GtObject) Type.DefaultNullValue;
-			/*local*/ArrayList<String> keys = DefaultObject.Field.keys();
-			/*local*/int i = 0;
-			while(i < keys.size()) {
-				/*local*/String FieldName = keys.get(i);
-				i = i + 1;
-				if(FieldName.endsWith(":Type")) {
-					continue;
-				}
-				/*local*/GtType FieldType = (/*cast*/GtType) DefaultObject.Field.get(FieldName + ":Type");
-				Code += this.GetIndentString() + FieldType + " " + FieldName + ";\n";
-			}
+			Program += this.GetIndentString() + Type.SuperClass.ShortClassName + " __base;\n";
 		}
 		this.UnIndent();
-		Code += this.GetIndentString() + "} " + Type + ";\n";
-		this.WriteTranslatedCode(Code);
+		this.DefinedClass.put(TypeName, Program);
 	}
 
 	@Override public void SetLanguageContext(GtContext Context) {
