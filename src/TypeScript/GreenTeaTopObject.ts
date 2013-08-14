@@ -1,7 +1,7 @@
 /// <reference path="LangDeps.ts" />
 
 class GreenTeaTopObject {
-	 GreenType: GtType;
+	public GreenType: GtType;
 	constructor(GreenType: GtType) {
 		this.GreenType = GreenType;
 	}

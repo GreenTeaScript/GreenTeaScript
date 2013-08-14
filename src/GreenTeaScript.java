@@ -203,6 +203,15 @@ interface GtConst {
 	static final int	ClassNameOffset			= 1;
 	static final int	ClassBlockOffset		= 2;
 
+	// try-catch
+	public final static int TryBody         = 0;
+	public final static int CatchVariable   = 1;
+	public final static int CatchBody       = 2;
+	public final static int FinallyBody     = 3;
+
+	// Enum
+	public final static int EnumNameTreeIndex = 0;
+
 	// spec
 	public final static int TokenFuncSpec     = 0;
 	public final static int SymbolPatternSpec = 1;
@@ -2434,11 +2443,6 @@ final class DScriptGrammar extends GtGrammar {
 		return Gamma.Generator.CreateReturnNode(Expr.Type, ParsedTree, Expr);
 	}
 	
-	public final static int TryBody         = 0;
-	public final static int CatchVariable   = 1;
-	public final static int CatchBody       = 2;
-	public final static int FinallyBody     = 3;
-	
 	// try
 	public static GtSyntaxTree ParseTry(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
 		/*local*/GtSyntaxTree TryTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("try"), null);
@@ -2469,7 +2473,6 @@ final class DScriptGrammar extends GtGrammar {
 		return null;
 	}
 
-	public final static int EnumNameTreeIndex = 0;
 	// switch
 	public static GtSyntaxTree ParseEnum(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
 		/*local*/String EnumTypeName = null;

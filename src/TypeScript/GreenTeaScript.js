@@ -9,6 +9,8 @@ var __extends = this.__extends || function (d, b) {
 var NativeClass = 1 << 0;
 var StructClass = 1 << 1;
 var DynamicClass = 1 << 2;
+var EnumClass = 1 << 3;
+var OpenClass = 1 << 4;
 
 // 	var FinalClass: number						= 1 << 2; //
 // 	var GreenClass: number		    			= 1 << 3; //
@@ -296,6 +298,15 @@ var FuncDeclParam = 4;
 var ClassParentNameOffset = 0;
 var ClassNameOffset = 1;
 var ClassBlockOffset = 2;
+
+//  try-catch //
+var TryBody = 0;
+var CatchVariable = 1;
+var CatchBody = 2;
+var FinallyBody = 3;
+
+//  Enum //
+var EnumNameTreeIndex = 0;
 
 //  spec //
 var TokenFuncSpec = 0;
@@ -1203,16 +1214,11 @@ var GtTypeEnv = (function () {
     };
 
     GtTypeEnv.prototype.GuessType = function (Value) {
-        if (Value instanceof String) {
-            return this.StringType;
-        } else if (Value instanceof Number || Value instanceof Number) {
-            return this.IntType;
-        } else if (Value instanceof GtMethod) {
-            return (Value).GetFuncType();
-        } else if (Value instanceof Boolean) {
-            return this.BooleanType;
+        if (Value instanceof GreenTeaTopObject) {
+            return (Value).GreenType;
+        } else {
+            return this.Generator.GetNativeType(Value);
         }
-        return this.AnyType;
     };
 
     GtTypeEnv.prototype.ReportTypeResult = function (ParsedTree, Node, Level, Message) {
@@ -2108,11 +2114,13 @@ var DScriptGrammar = (function (_super) {
             var BaseNode = (FuncNode).Expr;
             NodeList.add(BaseNode);
             BaseType = FuncNode.Type;
-        } else {
+        } else if (ParamSize > 0) {
             var BaseNode = ParsedTree.TypeCheckNodeAt(1, Gamma, Gamma.AnyType, DefaultTypeCheckPolicy);
             NodeList.add(BaseNode);
             ParamIndex = 2;
             BaseType = BaseNode.Type;
+        } else {
+            BaseType = Gamma.VoidType;
         }
         var Method = Gamma.GetListedMethod(BaseType, MethodName, ParamSize - 1, true);
         var ReturnType = Gamma.AnyType;
@@ -2309,13 +2317,12 @@ var DScriptGrammar = (function (_super) {
 
     DScriptGrammar.ParseWhile = // Statement: While //
     function (Pattern, LeftTree, TokenContext) {
-        var Token = TokenContext.GetMatchedToken("while");
-        var NewTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
-        NewTree.SetMatchedTokenAt(NoWhere, TokenContext, "(", Required);
-        NewTree.SetMatchedPatternAt(WhileCond, TokenContext, "$Expression$", Required);
-        NewTree.SetMatchedTokenAt(NoWhere, TokenContext, ")", Required);
-        NewTree.SetMatchedPatternAt(WhileBody, TokenContext, "$Block$", Required);
-        return NewTree;
+        var WhileTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("while"), null);
+        WhileTree.SetMatchedTokenAt(NoWhere, TokenContext, "(", Required);
+        WhileTree.SetMatchedPatternAt(WhileCond, TokenContext, "$Expression$", Required);
+        WhileTree.SetMatchedTokenAt(NoWhere, TokenContext, ")", Required);
+        WhileTree.SetMatchedPatternAt(WhileBody, TokenContext, "$Block$", Required);
+        return WhileTree;
     };
 
     DScriptGrammar.TypeWhile = function (Gamma, ParsedTree, ContextType) {
@@ -2347,10 +2354,9 @@ var DScriptGrammar = (function (_super) {
 
     DScriptGrammar.ParseReturn = // Statement: Return //
     function (Pattern, LeftTree, TokenContext) {
-        var Token = TokenContext.GetMatchedToken("return");
-        var NewTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
-        NewTree.SetMatchedPatternAt(ReturnExpr, TokenContext, "$Expression$", Optional);
-        return NewTree;
+        var ReturnTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("return"), null);
+        ReturnTree.SetMatchedPatternAt(ReturnExpr, TokenContext, "$Expression$", Optional);
+        return ReturnTree;
     };
 
     DScriptGrammar.TypeReturn = function (Gamma, ParsedTree, ContextType) {
@@ -2367,8 +2373,18 @@ var DScriptGrammar = (function (_super) {
 
     DScriptGrammar.ParseTry = //  try //
     function (Pattern, LeftTree, TokenContext) {
-        // var Tree: GtSyntaxTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetToken(), null); //
-        return null;
+        var TryTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("try"), null);
+        TryTree.SetMatchedPatternAt(TryBody, TokenContext, "$Block$", Required);
+        if (TokenContext.MatchToken("catch")) {
+            TryTree.SetMatchedTokenAt(NoWhere, TokenContext, "(", Required);
+            TryTree.SetMatchedPatternAt(CatchVariable, TokenContext, "$Variable$", Required);
+            TryTree.SetMatchedTokenAt(NoWhere, TokenContext, ")", Required);
+            TryTree.SetMatchedPatternAt(CatchBody, TokenContext, "$Block$", Required);
+        }
+        if (TokenContext.MatchToken("finally")) {
+            TryTree.SetMatchedPatternAt(FinallyBody, TokenContext, "$Block$", Required);
+        }
+        return TryTree;
     };
 
     DScriptGrammar.TypeTry = function (Gamma, ParsedTree, ContextType) {
@@ -2376,8 +2392,9 @@ var DScriptGrammar = (function (_super) {
     };
 
     DScriptGrammar.ParseThrow = function (Pattern, LeftTree, TokenContext) {
-        // var Tree: GtSyntaxTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetToken(), null); //
-        return null;
+        var ThrowTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("throw"), null);
+        ThrowTree.SetMatchedPatternAt(ReturnExpr, TokenContext, "$Expression$", Required);
+        return ThrowTree;
     };
 
     DScriptGrammar.TypeThrow = function (Gamma, ParsedTree, ContextType) {
@@ -2386,17 +2403,67 @@ var DScriptGrammar = (function (_super) {
 
     DScriptGrammar.ParseEnum = //  switch //
     function (Pattern, LeftTree, TokenContext) {
-        // var Tree: GtSyntaxTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetToken(), null); //
-        return null;
+        var EnumTypeName = null;
+        var NewEnumType = null;
+        var VocabMap = new GtMap();
+        var EnumTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("enum"), null);
+        EnumTree.SetMatchedPatternAt(EnumNameTreeIndex, TokenContext, "$FuncName$", Required);
+        if (!EnumTree.IsEmptyOrError()) {
+            EnumTypeName = EnumTree.GetSyntaxTreeAt(EnumNameTreeIndex).KeyToken.ParsedText;
+            if (TokenContext.NameSpace.GetSymbol(EnumTypeName) != null) {
+                TokenContext.NameSpace.ReportError(ErrorLevel, EnumTree.KeyToken, "alreadyname: defined: " + EnumTypeName);
+            }
+            NewEnumType = new GtType(TokenContext.NameSpace.Context, EnumClass, EnumTypeName, null, VocabMap);
+        }
+        EnumTree.SetMatchedTokenAt(NoWhere, TokenContext, "{", Required);
+        var EnumValue = 0;
+        while (!EnumTree.IsEmptyOrError()) {
+            TokenContext.SkipIndent();
+            var Token = TokenContext.Next();
+            if (Token.EqualsText(",")) {
+                continue;
+            }
+            if (LangDeps.IsLetter(LangDeps.CharAt(Token.ParsedText, 0))) {
+                if (VocabMap.get(Token.ParsedText) != null) {
+                    TokenContext.NameSpace.ReportError(WarningLevel, Token, "alreadyname: defined: " + Token.ParsedText);
+                    continue;
+                }
+                VocabMap.put(Token.ParsedText, new GreenTeaEnum(NewEnumType, EnumValue, Token.ParsedText));
+                EnumValue += 1;
+                continue;
+            }
+            EnumTree.SetMatchedTokenAt(NoWhere, TokenContext, "}", Required);
+        }
+        if (!EnumTree.IsEmptyOrError()) {
+            TokenContext.NameSpace.DefineClass(NewEnumType);
+            EnumTree.ConstValue = NewEnumType;
+        }
+        return EnumTree;
     };
 
     DScriptGrammar.TypeEnum = function (Gamma, ParsedTree, ContextType) {
-        return null;
+        var EnumType = ParsedTree.ConstValue;
+        return Gamma.Generator.CreateConstNode(Gamma.GuessType(EnumType), ParsedTree, EnumType);
     };
 
     DScriptGrammar.ParseSwitch = function (Pattern, LeftTree, TokenContext) {
-        // var Tree: GtSyntaxTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetToken(), null); //
-        return null;
+        var SwitchTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("switch"), null);
+        SwitchTree.SetMatchedTokenAt(NoWhere, TokenContext, "(", Required);
+        SwitchTree.SetMatchedPatternAt(CatchVariable, TokenContext, "$Expression$", Required);
+        SwitchTree.SetMatchedTokenAt(NoWhere, TokenContext, ")", Required);
+        SwitchTree.SetMatchedTokenAt(NoWhere, TokenContext, "{", Required);
+        while (!SwitchTree.IsEmptyOrError() && !TokenContext.MatchToken("}")) {
+            if (TokenContext.MatchToken("case")) {
+                SwitchTree.SetMatchedPatternAt(CatchVariable, TokenContext, "$Expression$", Required);
+                SwitchTree.SetMatchedTokenAt(NoWhere, TokenContext, ":", Required);
+                SwitchTree.SetMatchedPatternAt(TryBody, TokenContext, "$CaseBlock$", Required);
+                continue;
+            }
+            SwitchTree.SetMatchedTokenAt(NoWhere, TokenContext, "default", Required);
+            SwitchTree.SetMatchedTokenAt(NoWhere, TokenContext, ":", Required);
+            SwitchTree.SetMatchedPatternAt(TryBody, TokenContext, "$CaseBlock$", Required);
+        }
+        return SwitchTree;
     };
 
     DScriptGrammar.TypeSwitch = function (Gamma, ParsedTree, ContextType) {
@@ -2574,9 +2641,10 @@ var DScriptGrammar = (function (_super) {
             SuperClass = SuperClassTree.ConstValue;
         }
         var ClassFlag = 0;
-        var NewType = new GtType(TokenContext.NameSpace.Context, ClassFlag, ClassName, null, null);
-        var DefaultObject = new GtObject(NewType);
-        NewType.DefaultNullValue = DefaultObject;
+        var NewType = TokenContext.NameSpace.Context.StructType.CreateSubType(ClassFlag, ClassName, null, null);
+
+        // 		var DefaultObject: GtObject = new GtObject(NewType); //
+        // 		NewType.DefaultNullValue = DefaultObject; //
         NewType.SuperClass = SuperClass;
 
         TokenContext.NameSpace.DefineClass(NewType);
@@ -2899,9 +2967,12 @@ var GtContext = (function () {
         this.RootNameSpace = new GtNameSpace(this, null);
         this.ClassCount = 0;
         this.MethodCount = 0;
-        this.VoidType = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "void", null, null));
 
-        // 		this.ObjectType  = this.RootNameSpace.DefineClass(new GtType(this, 0, "Object", new Object(), Object)); //
+        this.TopType = new GtType(this, 0, "top", null, null);
+        this.StructType = this.TopType.CreateSubType(0, "record", null, null);
+        this.EnumType = this.TopType.CreateSubType(EnumClass, "enum", null, null);
+
+        this.VoidType = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "void", null, null));
         this.BooleanType = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "boolean", false, Boolean));
         this.IntType = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "int", 0, Number));
         this.StringType = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "string", "", String));
@@ -2929,6 +3000,11 @@ var GtContext = (function () {
 
     GtContext.prototype.Eval = function (text, FileLine) {
         return this.DefaultNameSpace.Eval(text, FileLine, this.Generator);
+    };
+
+    GtContext.prototype.CheckSubType = function (SubType, SuperType) {
+        //  TODO:Typing: database: Structual //
+        return false;
     };
 
     GtContext.prototype.GetGenericType = function (BaseType, BaseIdx, TypeList, IsCreation) {
