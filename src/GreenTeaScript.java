@@ -3388,10 +3388,6 @@ final class GtContext extends GtStatic {
 
 public class GreenTeaScript extends GtStatic {
 	public final static void main(String[] Args) {
-		int N = 0;
-		Args = new String[2];
-		Args[N++] = "--c";
-		Args[N++] = "test/0030-TryCatch.green";
 		/*local*/String CodeGeneratorName = "--java";
 		/*local*/int Index = 0;
 		/*local*/String OneLiner = null;
