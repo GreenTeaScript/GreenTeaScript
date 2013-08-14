@@ -5,6 +5,29 @@ var __extends = this.__extends || function (d, b) {
     d.prototype = new __();
 };
 /// <reference path="LangDeps.ts" />
+//  *************************************************************************** //
+//  Copyright (c) 2013, JST/CRESTproject: authors: DEOS.rights: reserved: All. //
+// and: Redistributionin: useand: sourceforms: binary,or: without: with //
+//  modification,permitted: arethat: providedfollowing: theare: met: conditions: //
+//  //
+//  * of: Redistributionscode: sourceretain: mustabove: thenotice: copyright, //
+//    list: thisconditions: ofthe: anddisclaimer: following. //
+//  * in: Redistributionsform: binaryreproduce: mustabove: copyright: the //
+//     notice,list: thisconditions: ofthe: anddisclaimer: followingthe: in //
+//    and: documentation/ormaterials: otherwith: provideddistribution: the. //
+//  //
+// SOFTWARE: THISPROVIDED: ISTHE: BYHOLDERS: COPYRIGHTCONTRIBUTORS: AND //
+//  "IS: AS"ANY: ANDOR: EXPRESSWARRANTIES: IMPLIED, INCLUDING,NOT: LIMITED: BUT //
+//  TO,IMPLIED: THEOF: WARRANTIESAND: MERCHANTABILITYFOR: FITNESSPARTICULAR: A //
+// ARE: DISCLAIMED: PURPOSE.NO: INSHALL: EVENTCOPYRIGHT: THEOR: HOLDER //
+// BE: CONTRIBUTORSFOR: LIABLEDIRECT: ANY, INDIRECT, INCIDENTAL, SPECIAL, //
+//  EXEMPLARY,CONSEQUENTIAL: DAMAGES: OR (INCLUDING,NOT: BUTTO: LIMITED, //
+// OF: PROCUREMENTGOODS: SUBSTITUTESERVICES: OR;OF: USE: LOSS, DATA,PROFITS: OR; //
+// BUSINESS: INTERRUPTION: OR)CAUSED: HOWEVERON: ANDTHEORY: ANYLIABILITY: OF, //
+// IN: CONTRACT: WHETHER,LIABILITY: STRICT,TORT: OR (INCLUDINGOR: NEGLIGENCE //
+//  OTHERWISE)IN: ARISINGWAY: ANYOF: OUTUSE: THETHIS: SOFTWARE: OF,IF: EVEN //
+// OF: ADVISEDPOSSIBILITY: THESUCH: DAMAGE: OF. //
+//  ************************************************************************** //
 //  ClassFlag //
 var NativeClass = 1 << 0;
 var StructClass = 1 << 1;
@@ -12,11 +35,6 @@ var DynamicClass = 1 << 2;
 var EnumClass = 1 << 3;
 var OpenClass = 1 << 4;
 
-// 	var FinalClass: number						= 1 << 2; //
-// 	var GreenClass: number		    			= 1 << 3; //
-// 	var StaticClass: number						= 1 << 4; //
-// 	var ImmutableClass: number					= 1 << 5; //
-// 	var InterfaceClass: number					= 1 << 6; //
 //  MethodFlag //
 var ExportMethod = 1 << 0;
 var AbstractMethod = 1 << 1;
@@ -24,26 +42,11 @@ var VirtualMethod = 1 << 2;
 var NativeMethod = 1 << 3;
 var NativeStaticMethod = 1 << 4;
 var NativeMacroMethod = 1 << 5;
-var ConstMethod = 1 << 6;
+var NativeVariadicMethod = 1 << 6;
 var DynamicMethod = 1 << 7;
-var ImplicitMethod = 1 << 8;
+var ConstMethod = 1 << 8;
+var ImplicitMethod = 1 << 9;
 
-// var ConstMethod: number 		= 1 << 2; //
-// 	var PrivateMethod: number					= 1 << 0; //
-// 	var VirtualMethod: number					= 1 << 1; //
-// 	var FinalMethod: number						= 1 << 2; //
-// 	var StaticMethod: number					= 1 << 4; //
-//  //
-// 	var ImmutableMethod: number					= 1 << 5; //
-// 	var TopLevelMethod: number					= 1 << 6; //
-//  //
-// 	//var rule: call //
-// 	var CoercionMethod: number					= 1 << 7; //
-// 	var RestrictedMethod: number				= 1 << 8; //
-// 	var UncheckedMethod: number					= 1 << 9; //
-// 	var SmartReturnMethod: number				= 1 << 10; //
-// 	var VariadicMethod: number					= 1 << 11; //
-// 	var IterativeMethod: number					= 1 << 12; //
 var SymbolMaskSize = 3;
 var LowerSymbolMask = 1;
 var GetterSymbolMask = (1 << 1);
@@ -355,6 +358,8 @@ var SymbolList = new Array();
 var SymbolMap = new GtMap();
 
 var ShellGrammarReservedKeywords = ["true", "false", "as", "if"];
+
+var UseLangStat = true;
 
 // flags: debug //
 var DebugPrintOption = false;
@@ -1762,35 +1767,35 @@ var DScriptGrammar = (function (_super) {
             if (ch == (36)) {
                 var end = NextPos + 1;
                 ch = LangDeps.CharAt(SourceText, end);
-                if (ch == (40)) {
-                    //  find (41/*)*/) //
-                } else {
+                if (ch == (123)) {
                     while (end < SourceText.length) {
                         ch = LangDeps.CharAt(SourceText, end);
-                        if (!LangDeps.IsLetter(ch) && !LangDeps.IsDigit(ch)) {
+                        if (ch == (125)) {
                             break;
                         }
                         end = end + 1;
                     }
-                    if (end == NextPos + 1) {
-                        //  e.g. "aaaa$ bbbb" //
-                        /*nothing: do */
-                    } else {
-                        var VarName = SourceText.substring(NextPos + 1, end);
-                        TokenContext.AddNewToken(SourceText.substring(start, NextPos), 0, "$StringLiteral$");
-                        TokenContext.AddNewToken("+", 0, null);
-                        TokenContext.AddNewToken(VarName, 0, null);
-                        TokenContext.AddNewToken("+", 0, null);
-                        start = end;
-                    }
-                }
-                NextPos = end;
-                prev = ch;
-                if (ch == (34)) {
+                    var Expr = SourceText.substring(NextPos + 2, end);
+                    var LocalContext = new GtTokenContext(TokenContext.NameSpace, Expr, TokenContext.ParsingLine);
+                    LocalContext.SkipEmptyStatement();
+
                     TokenContext.AddNewToken(SourceText.substring(start, NextPos), 0, "$StringLiteral$");
-                    return NextPos + 1;
+                    TokenContext.AddNewToken("+", 0, null);
+                    while (LocalContext.HasNext()) {
+                        var NewToken = LocalContext.Next();
+                        TokenContext.AddNewToken(NewToken.ParsedText, 0, null);
+                    }
+                    TokenContext.AddNewToken("+", 0, null);
+                    end = end + 1;
+                    start = end;
+                    NextPos = end;
+                    prev = ch;
+                    if (ch == (34)) {
+                        TokenContext.AddNewToken(SourceText.substring(start, NextPos), 0, "$StringLiteral$");
+                        return NextPos + 1;
+                    }
+                    continue;
                 }
-                continue;
             }
             if (ch == (34) && prev != ('\\'.charCodeAt(0))) {
                 TokenContext.AddNewToken(SourceText.substring(start, NextPos), 0, "$StringLiteral$");
@@ -2895,8 +2900,7 @@ var DScriptGrammar = (function (_super) {
         NameSpace.DefineTokenFunc("Aa-/", DScriptGrammar.SymbolShellToken);
 
         NameSpace.DefineTokenFunc("\"", DScriptGrammar.StringLiteralToken);
-
-        // NameSpace.DefineTokenFunc("\"", DScriptGrammar.StringLiteralToken_StringInterpolation); //
+        NameSpace.DefineTokenFunc("\"", DScriptGrammar.StringLiteralToken_StringInterpolation);
         NameSpace.DefineTokenFunc("1", DScriptGrammar.NumberLiteralToken);
 
         NameSpace.DefineSyntaxPattern("+", DScriptGrammar.ParseUnary, DScriptGrammar.TypeUnary);
@@ -2958,6 +2962,14 @@ var DScriptGrammar = (function (_super) {
     return DScriptGrammar;
 })(GtGrammar);
 
+var GtStat = (function () {
+    function GtStat() {
+        this.MatchCount = 0;
+        this.BacktrackCount = 0;
+    }
+    return GtStat;
+})();
+
 var GtContext = (function () {
     function GtContext(Grammar, Generator) {
         this.Generator = Generator;
@@ -2967,6 +2979,7 @@ var GtContext = (function () {
         this.RootNameSpace = new GtNameSpace(this, null);
         this.ClassCount = 0;
         this.MethodCount = 0;
+        this.Stat = new GtStat();
 
         this.TopType = new GtType(this, 0, "top", null, null);
         this.StructType = this.TopType.CreateSubType(0, "record", null, null);

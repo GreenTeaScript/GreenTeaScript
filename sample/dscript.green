@@ -8,7 +8,7 @@ const BackupServer = "192.168.11.102";
 @Export boolean Context4();
 
 boolean Solution10() {
-	return rsync "http://$BackupServer/db";
+	return rsync "http://${BackupServer}/db";
 }
 
 @Export boolean Goal9() {

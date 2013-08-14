@@ -1,4 +1,28 @@
 /// <reference path="LangDeps.ts" />
+//  *************************************************************************** //
+//  Copyright (c) 2013, JST/CRESTproject: authors: DEOS.rights: reserved: All. //
+// and: Redistributionin: useand: sourceforms: binary,or: without: with //
+//  modification,permitted: arethat: providedfollowing: theare: met: conditions: //
+//  //
+//  * of: Redistributionscode: sourceretain: mustabove: thenotice: copyright, //
+//    list: thisconditions: ofthe: anddisclaimer: following. //
+//  * in: Redistributionsform: binaryreproduce: mustabove: copyright: the //
+//     notice,list: thisconditions: ofthe: anddisclaimer: followingthe: in //
+//    and: documentation/ormaterials: otherwith: provideddistribution: the. //
+//  //
+// SOFTWARE: THISPROVIDED: ISTHE: BYHOLDERS: COPYRIGHTCONTRIBUTORS: AND //
+//  "IS: AS"ANY: ANDOR: EXPRESSWARRANTIES: IMPLIED, INCLUDING,NOT: LIMITED: BUT //
+//  TO,IMPLIED: THEOF: WARRANTIESAND: MERCHANTABILITYFOR: FITNESSPARTICULAR: A //
+// ARE: DISCLAIMED: PURPOSE.NO: INSHALL: EVENTCOPYRIGHT: THEOR: HOLDER //
+// BE: CONTRIBUTORSFOR: LIABLEDIRECT: ANY, INDIRECT, INCIDENTAL, SPECIAL, //
+//  EXEMPLARY,CONSEQUENTIAL: DAMAGES: OR (INCLUDING,NOT: BUTTO: LIMITED, //
+// OF: PROCUREMENTGOODS: SUBSTITUTESERVICES: OR;OF: USE: LOSS, DATA,PROFITS: OR; //
+// BUSINESS: INTERRUPTION: OR)CAUSED: HOWEVERON: ANDTHEORY: ANYLIABILITY: OF, //
+// IN: CONTRACT: WHETHER,LIABILITY: STRICT,TORT: OR (INCLUDINGOR: NEGLIGENCE //
+//  OTHERWISE)IN: ARISINGWAY: ANYOF: OUTUSE: THETHIS: SOFTWARE: OF,IF: EVEN //
+// OF: ADVISEDPOSSIBILITY: THESUCH: DAMAGE: OF. //
+//  ************************************************************************** //
+
 
 
 
@@ -9,12 +33,6 @@
 	var EnumClass: number                       = 1 << 3;
 	var OpenClass: number                       = 1 << 4;
 	
-// 	var FinalClass: number						= 1 << 2; //
-// 	var GreenClass: number		    			= 1 << 3; //
-// 	var StaticClass: number						= 1 << 4; //
-// 	var ImmutableClass: number					= 1 << 5; //
-// 	var InterfaceClass: number					= 1 << 6; //
-
 	//  MethodFlag //
 	var ExportMethod: number		= 1 << 0;
 	var AbstractMethod: number		= 1 << 1;
@@ -22,27 +40,10 @@
 	var NativeMethod: number		= 1 << 3;
 	var NativeStaticMethod: number	= 1 << 4;
 	var NativeMacroMethod: number	= 1 << 5;
-	var ConstMethod: number			= 1 << 6;
+	var NativeVariadicMethod: number	= 1 << 6;
 	var DynamicMethod: number		= 1 << 7;
-	var ImplicitMethod: number      = 1 << 8;  // var for:cast: usedvar: implicit //
-
-	// var ConstMethod: number 		= 1 << 2; //
-
-// 	var PrivateMethod: number					= 1 << 0; //
-// 	var VirtualMethod: number					= 1 << 1; //
-// 	var FinalMethod: number						= 1 << 2; //
-// 	var StaticMethod: number					= 1 << 4; //
-//  //
-// 	var ImmutableMethod: number					= 1 << 5; //
-// 	var TopLevelMethod: number					= 1 << 6; //
-//  //
-// 	//var rule: call //
-// 	var CoercionMethod: number					= 1 << 7; //
-// 	var RestrictedMethod: number				= 1 << 8; //
-// 	var UncheckedMethod: number					= 1 << 9; //
-// 	var SmartReturnMethod: number				= 1 << 10; //
-// 	var VariadicMethod: number					= 1 << 11; //
-// 	var IterativeMethod: number					= 1 << 12; //
+	var ConstMethod: number			= 1 << 8;
+	var ImplicitMethod: number      = 1 << 9;  // var for:cast: usedvar: implicit //
 
 	var SymbolMaskSize: number					= 3;
 	var LowerSymbolMask: number					= 1;
@@ -251,6 +252,8 @@
 	var SymbolMap: GtMap  = new GtMap();
 
 	var ShellGrammarReservedKeywords: string[] = ["true", "false", "as", "if"]
+	
+	var UseLangStat: boolean = true;
 
 
 	// flags: debug //
@@ -1742,37 +1745,35 @@ class GtGrammar {
 			if(ch == (36/*$*/)) {
 				var end: number = NextPos + 1;
 				ch = LangDeps.CharAt(SourceText, end);
-				if(ch == (40/*(*/)) {
-					//  find (41/*)*/) //
-				}
-				else {
+				if(ch == (123/*{*/)) {
 					while(end < SourceText.length) {
 						ch = LangDeps.CharAt(SourceText, end);
-						if(!LangDeps.IsLetter(ch) && !LangDeps.IsDigit(ch)) {
+						if(ch == (125/*}*/)) {
 							break;
 						}
 						end = end + 1;
 					}
-					if(end == NextPos + 1) {
-						//  e.g. "aaaa$ bbbb" //
-						/*nothing: do */
-					}
-					else {
-						var VarName: string = SourceText.substring(NextPos + 1, end);
-						TokenContext.AddNewToken(SourceText.substring(start, NextPos), 0, "$StringLiteral$");
-						TokenContext.AddNewToken("+", 0, null);
-						TokenContext.AddNewToken(VarName, 0, null);
-						TokenContext.AddNewToken("+", 0, null);
-						start = end;
-					}
-				}
-				NextPos = end;
-				prev = ch;
-				if(ch == (34/*"*/)) {
+					var Expr: string = SourceText.substring(NextPos + 2, end);
+					var LocalContext: GtTokenContext = new GtTokenContext(TokenContext.NameSpace, Expr, TokenContext.ParsingLine);
+					LocalContext.SkipEmptyStatement();
+
 					TokenContext.AddNewToken(SourceText.substring(start, NextPos), 0, "$StringLiteral$");
-					return NextPos + 1;
+					TokenContext.AddNewToken("+", 0, null);
+					while(LocalContext.HasNext()) {
+						var NewToken: GtToken = LocalContext.Next();
+						TokenContext.AddNewToken(NewToken.ParsedText, 0, null);
+					}
+					TokenContext.AddNewToken("+", 0, null);
+					end = end + 1;
+					start = end;
+					NextPos = end;
+					prev = ch;
+					if(ch == (34/*"*/)) {
+						TokenContext.AddNewToken(SourceText.substring(start, NextPos), 0, "$StringLiteral$");
+						return NextPos + 1;
+					}
+					continue;
 				}
-				continue;
 			}
 			if(ch == (34/*"*/) && prev != ('\\'.charCodeAt(0))) {
 				TokenContext.AddNewToken(SourceText.substring(start, NextPos), 0, "$StringLiteral$");
@@ -2893,7 +2894,7 @@ class GtGrammar {
 		NameSpace.DefineTokenFunc("Aa-/", DScriptGrammar.SymbolShellToken); //  overloading //
 
 		NameSpace.DefineTokenFunc("\"", DScriptGrammar.StringLiteralToken);
-		// NameSpace.DefineTokenFunc("\"", DScriptGrammar.StringLiteralToken_StringInterpolation); //
+		NameSpace.DefineTokenFunc("\"", DScriptGrammar.StringLiteralToken_StringInterpolation);
 		NameSpace.DefineTokenFunc("1",  DScriptGrammar.NumberLiteralToken);
 
 		NameSpace.DefineSyntaxPattern("+", DScriptGrammar.ParseUnary, DScriptGrammar.TypeUnary);
@@ -2954,6 +2955,16 @@ class GtGrammar {
 	}
 }
 
+ class GtStat {
+	public MatchCount: number;
+	public BacktrackCount: number;  // count: Tomany: howbacktracks: happen: times. //
+	
+	constructor() {
+		this.MatchCount     = 0;
+		this.BacktrackCount = 0;
+	}
+}
+
  class GtContext {
 	  Generator: GtGenerator;
 	  RootNameSpace: GtNameSpace;
@@ -2977,12 +2988,12 @@ class GtGrammar {
 	public TypeType: GtType;
 	public PolyFuncType: GtType;
 	
-	
 	  ClassNameMap: GtMap;
 	  UniqueMethodMap: GtMap;
 	public ClassCount: number;
 	public MethodCount: number;
-
+	 Stat: GtStat;
+	
 	constructor(Grammar: GtGrammar, Generator: GtGenerator) {
 		this.Generator    = Generator;
 		this.Generator.Context = this;
@@ -2991,6 +3002,7 @@ class GtGrammar {
 		this.RootNameSpace = new GtNameSpace(this, null);
 		this.ClassCount = 0;
 		this.MethodCount = 0;
+		this.Stat = new GtStat();
 
 		this.TopType     = new GtType(this, 0, "top", null, null);               //   unregistered //
 		this.StructType  = this.TopType.CreateSubType(0, "record", null, null);  //   unregistered //
