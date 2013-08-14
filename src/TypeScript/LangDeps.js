@@ -138,9 +138,9 @@ var LangDeps = (function () {
         return -1;
     };
 
-    LangDeps.ApplyMatchFunc = function (Delegate, Pattern, LeftTree, TokenContext) {
+    LangDeps.ApplyMatchFunc = function (Delegate, NameSpace, Pattern, LeftTree, TokenContext) {
         try  {
-            return Delegate(Pattern, LeftTree, TokenContext);
+            return Delegate(NameSpace, TokenContext, LeftTree, Pattern);
         } catch (e) {
             console.log(e);
         }

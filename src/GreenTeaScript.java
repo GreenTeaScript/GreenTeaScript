@@ -1112,7 +1112,7 @@ class GtSyntaxTree extends GtStatic {
 		}
 	}
 
-	public void SetMatchedPatternAt(int Index, GtNameSpace NameSpae, GtTokenContext TokenContext, String PatternName,  boolean IsOptional) {
+	public void SetMatchedPatternAt(int Index, GtNameSpace NameSpace, GtTokenContext TokenContext, String PatternName,  boolean IsOptional) {
 		if(!this.IsEmptyOrError()) {
 			/*local*/GtSyntaxTree ParsedTree = TokenContext.ParsePattern(NameSpace, PatternName, IsOptional);
 			if(PatternName.equals("$Expression$") && ParsedTree == null){
@@ -2471,8 +2471,8 @@ final class DScriptGrammar extends GtGrammar {
 	}
 	
 	public static GtNode TypeThrow(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		GtType FaultType = ContextType; // FIXME Gamma.FaultType;
-		GtNode ExprNode = ParsedTree.TypeCheckNodeAt(ReturnExpr, Gamma, FaultType, DefaultTypeCheckPolicy);
+		/*local*/GtType FaultType = ContextType; // FIXME Gamma.FaultType;
+		/*local*/GtNode ExprNode = ParsedTree.TypeCheckNodeAt(ReturnExpr, Gamma, FaultType, DefaultTypeCheckPolicy);
 		return Gamma.Generator.CreateThrowNode(ExprNode.Type, ParsedTree, ExprNode);
 	}
 
