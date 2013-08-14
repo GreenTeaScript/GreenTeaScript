@@ -1119,6 +1119,7 @@ class GtSyntaxTree extends GtStatic {
 	public void SetMatchedPatternAt(int Index, GtNameSpace NameSpace, GtTokenContext TokenContext, String PatternName,  boolean IsOptional) {
 		if(!this.IsEmptyOrError()) {
 			/*local*/GtSyntaxTree ParsedTree = TokenContext.ParsePattern(NameSpace, PatternName, IsOptional);
+			// ? Who made this? Seems meaningless. FIXME
 			if(PatternName.equals("$Expression$") && ParsedTree == null){
 				ParsedTree = GtStatic.ParseExpression(NameSpace, TokenContext);
 			}
@@ -1468,243 +1469,20 @@ final class GtNameSpace extends GtStatic {
 		AppendPattern("+" + PatternName, Pattern);
 	}
 
-	public GtType DefineClass(GtType ClassInfo) {
+	public final GtType DefineClassSymbol(GtType ClassInfo) {
 		if(ClassInfo.PackageNameSpace == null) {
 			ClassInfo.PackageNameSpace = this;
 			if(this.PackageName != null) {
 				this.Context.ClassNameMap.put(this.PackageName + "." + ClassInfo.ShortClassName, ClassInfo);
 			}
 		}
-		this.DefineSymbol(ClassInfo.ShortClassName, ClassInfo);
+		if(ClassInfo.BaseClass == ClassInfo) {
+			this.DefineSymbol(ClassInfo.ShortClassName, ClassInfo);
+		}
 		return ClassInfo;
 	}
 
-
-	public Object Eval(String ScriptSource, long FileLine, GtGenerator Generator) {
-		/*local*/Object resultValue = null;
-		DebugP("Eval: " + ScriptSource);
-		/*local*/GtTokenContext TokenContext = new GtTokenContext(this, ScriptSource, FileLine);
-		TokenContext.SkipEmptyStatement();
-		while(TokenContext.HasNext()) {
-			/*local*/GtMap annotation = TokenContext.SkipAndGetAnnotation(true);
-			/*local*/GtSyntaxTree topLevelTree = GtStatic.ParseExpression(this, TokenContext);
-			topLevelTree.SetAnnotation(annotation);
-			DebugP("untyped tree: " + topLevelTree);
-			/*local*/GtTypeEnv gamma = new GtTypeEnv(this);
-			/*local*/GtNode node = gamma.TypeCheckEachNode(topLevelTree, gamma.VoidType, DefaultTypeCheckPolicy);
-			resultValue = Generator.Eval(node);
-			TokenContext.SkipEmptyStatement();
-			TokenContext.Vacume();
-		}
-		return resultValue;
-	}
-
 }
-
-//final class GtNameSpace0 extends GtStatic {
-//	/*field*/public final GtClassContext		Context;
-//	/*field*/public final GtNameSpace		    ParentNameSpace;
-//	/*field*/public String                      PackageName;
-////	/*field*/public ArrayList<GtNameSpace>	    ImportedNameSpaceList;
-//	/*field*/public ArrayList<GtSpec>           PublicSpecList;
-//	/*field*/public ArrayList<GtSpec>           PrivateSpecList;
-//
-//	/*field*/TokenFunc[] TokenMatrix;
-//	/*field*/GtMap	 SymbolPatternTable;
-//	/*field*/GtMap   ExtendedPatternTable;
-//
-//	GtNameSpace0/*constructor*/(GtClassContext Context, GtNameSpace ParentNameSpace) {
-//		this.Context = Context;
-//		this.ParentNameSpace = ParentNameSpace;
-//		this.PackageName = (ParentNameSpace != null) ? ParentNameSpace.PackageName : null;
-////		this.ImportedNameSpaceList = null;
-//		this.PublicSpecList = new ArrayList<GtSpec>();
-//		this.PrivateSpecList = null;
-//		this.TokenMatrix = null;
-//		this.SymbolPatternTable = null;
-//		this.ExtendedPatternTable = null;
-//	}
-//
-//	private void RemakeTokenMatrixEach(GtNameSpace NameSpace) {
-//		/*local*/int i = 0;
-//		while(i < GtStatic.ListSize(NameSpace.PublicSpecList)) {
-//			/*local*/GtSpec Spec = NameSpace.PublicSpecList.get(i);
-//			if(Spec.SpecType == TokenFuncSpec) {
-//				/*local*/int j = 0;
-//				while(j < Spec.SpecKey.length()) {
-//					/*local*/int kchar = GtStatic.AsciiToTokenMatrixIndex(LangDeps.CharAt(Spec.SpecKey, j));
-//					/*local*/GtDelegateToken Func = (/*cast*/GtDelegateToken)Spec.SpecBody;
-//					this.TokenMatrix[kchar] = LangDeps.CreateOrReuseTokenFunc(Func, this.TokenMatrix[kchar]);
-//					j += 1;
-//				}
-//			}
-//			i += 1;
-//		}
-//	}
-//
-//	private void RemakeTokenMatrix(GtNameSpace NameSpace) {
-//		if(NameSpace.ParentNameSpace != null) {
-//			this.RemakeTokenMatrix(NameSpace.ParentNameSpace);
-//		}
-//		this.RemakeTokenMatrixEach(NameSpace);
-//		/*local*/int i = 0;
-//		while(i < ListSize(NameSpace.ImportedNameSpaceList)) {
-//			/*local*/GtNameSpace Imported = NameSpace.ImportedNameSpaceList.get(i);
-//			this.RemakeTokenMatrixEach(Imported);
-//			i += 1;
-//		}
-//	}
-//
-//	public TokenFunc GetTokenFunc(int GtChar2) {
-//		if(this.TokenMatrix == null) {
-//			this.TokenMatrix = new TokenFunc[MaxSizeOfChars];
-//			this.RemakeTokenMatrix(this);
-//		}
-//		return this.TokenMatrix[GtChar2];
-//	}
-//
-//	public void DefineTokenFunc(String keys, GtDelegateToken f) {
-//		this.PublicSpecList.add(new GtSpec(TokenFuncSpec, keys, f));
-//		this.TokenMatrix = null;
-//	}
-//
-//	private void TableAddSpec(GtMap Table, GtSpec Spec) {
-//		/*local*/Object Body = Spec.SpecBody;
-//		if(Body instanceof GtSyntaxPattern) {
-//			/*local*/Object Parent = Table.get(Spec.SpecKey);
-//			if(Parent instanceof GtSyntaxPattern) {
-//				Body = GtStatic.MergeSyntaxPattern((/*cast*/GtSyntaxPattern)Body, (/*cast*/GtSyntaxPattern)Parent);
-//			}
-//		}
-//		Table.put(Spec.SpecKey, Body);
-//	}
-//
-//	private void RemakeSymbolTableEach(GtNameSpace NameSpace, ArrayList<GtSpec> SpecList) {
-//		/*local*/int i = 0;
-//		while(i < ListSize(SpecList)) {
-//			/*local*/GtSpec Spec = SpecList.get(i);
-//			if(Spec.SpecType == SymbolPatternSpec) {
-//				this.TableAddSpec(this.SymbolPatternTable, Spec);
-//			}
-//			else if(Spec.SpecType == ExtendedPatternSpec) {
-//				this.TableAddSpec(this.ExtendedPatternTable, Spec);
-//			}
-//			i += 1;
-//		}
-//	}
-//
-//	private void RemakeSymbolTable(GtNameSpace NameSpace) {
-//		if(NameSpace.ParentNameSpace != null) {
-//			this.RemakeSymbolTable(NameSpace.ParentNameSpace);
-//		}
-//		this.RemakeSymbolTableEach(NameSpace, NameSpace.PublicSpecList);
-//		this.RemakeSymbolTableEach(NameSpace, NameSpace.PrivateSpecList);
-//		/*local*/int i = 0;
-//		while(i < GtStatic.ListSize(NameSpace.ImportedNameSpaceList)) {
-//			/*local*/GtNameSpace Imported = NameSpace.ImportedNameSpaceList.get(i);
-//			this.RemakeSymbolTableEach(Imported, Imported.PublicSpecList);
-//			i += 1;
-//		}
-//	}
-//
-//	public Object GetSymbol(String Key) {
-//		if(this.SymbolPatternTable == null) {
-//			this.SymbolPatternTable = new GtMap();
-//			this.ExtendedPatternTable = new GtMap();
-//			this.RemakeSymbolTable(this);
-//		}
-//		return this.SymbolPatternTable.get(Key);
-//	}
-//
-//	public GtSyntaxPattern GetPattern(String PatternName) {
-//		/*local*/Object Body = this.GetSymbol(PatternName);
-//		if(Body instanceof GtSyntaxPattern){
-//			return (/*cast*/GtSyntaxPattern)Body;
-//		}
-//		return null;
-//	}
-//
-//	public GtSyntaxPattern GetExtendedPattern(String PatternName) {
-//		if(this.ExtendedPatternTable == null) {
-//			this.SymbolPatternTable = new GtMap();
-//			this.ExtendedPatternTable = new GtMap();
-//			this.RemakeSymbolTable(this);
-//		}
-//		/*local*/Object Body = this.ExtendedPatternTable.get(PatternName);
-//		if(Body instanceof GtSyntaxPattern){
-//			return (/*cast*/GtSyntaxPattern)Body;
-//		}
-//		return null;
-//	}
-//
-//	public void DefineSymbol(String Key, Object Value) {
-//		/*local*/GtSpec Spec = new GtSpec(SymbolPatternSpec, Key, Value);
-//		this.PublicSpecList.add(Spec);
-//		if(this.SymbolPatternTable != null) {
-//			this.TableAddSpec(this.SymbolPatternTable, Spec);
-//		}
-//	}
-//
-//	public void DefinePrivateSymbol(String Key, Object Value) {
-//		/*local*/GtSpec Spec = new GtSpec(SymbolPatternSpec, Key, Value);
-//		if(this.PrivateSpecList == null) {
-//			this.PrivateSpecList = new ArrayList<GtSpec>();
-//		}
-//		this.PrivateSpecList.add(Spec);
-//		if(this.SymbolPatternTable != null) {
-//			this.TableAddSpec(this.SymbolPatternTable, Spec);
-//		}
-//	}
-//
-//	public void DefineSyntaxPattern(String PatternName, GtDelegateMatch MatchFunc, GtDelegateType TypeFunc) {
-//		/*local*/GtSyntaxPattern Pattern = new GtSyntaxPattern(this, PatternName, MatchFunc, TypeFunc);
-//		/*local*/GtSpec Spec = new GtSpec(SymbolPatternSpec, PatternName, Pattern);
-//		this.PublicSpecList.add(Spec);
-//		if(this.SymbolPatternTable != null) {
-//			this.TableAddSpec(this.SymbolPatternTable, Spec);
-//		}
-//	}
-//
-//	public void DefineExtendedPattern(String PatternName, int SyntaxFlag, GtDelegateMatch MatchFunc, GtDelegateType TypeFunc) {
-//		/*local*/GtSyntaxPattern Pattern = new GtSyntaxPattern(this, PatternName, MatchFunc, TypeFunc);
-//		Pattern.SyntaxFlag = SyntaxFlag;
-//		/*local*/GtSpec Spec = new GtSpec(ExtendedPatternSpec, PatternName, Pattern);
-//		this.PublicSpecList.add(Spec);
-//		if(this.ExtendedPatternTable != null) {
-//			this.TableAddSpec(this.ExtendedPatternTable, Spec);
-//		}
-//	}
-//
-//	public GtType DefineClass(GtType ClassInfo) {
-//		if(ClassInfo.PackageNameSpace == null) {
-//			ClassInfo.PackageNameSpace = this;
-//			if(this.PackageName != null) {
-//				this.Context.ClassNameMap.put(this.PackageName + "." + ClassInfo.ShortClassName, ClassInfo);
-//			}
-//			this.Context.Generator.AddClass(ClassInfo);
-//		}
-//		this.DefineSymbol(ClassInfo.ShortClassName, ClassInfo);
-//		return ClassInfo;
-//	}
-//
-////	// Global Object
-////	public GtObject CreateGlobalObject(int ClassFlag, String ShortName) {
-////		/*local*/GtType NewClass = new GtType(this.Context, ClassFlag, ShortName, null);
-////		/*local*/GtObject GlobalObject = new GtObject(NewClass);
-////		NewClass.DefaultNullValue = GlobalObject;
-////		return GlobalObject;
-////	}
-////
-////	public GtObject GetGlobalObject() {
-////		/*local*/Object GlobalObject = this.GetSymbol(GlobalConstName);
-////		if(GlobalObject == null || !(GlobalObject instanceof GtObject)) {
-////			GlobalObject = this.CreateGlobalObject(0, "global");
-////			this.DefinePrivateSymbol(GlobalConstName, GlobalObject);
-////		}
-////		return (/*cast*/GtObject) GlobalObject;
-////	}
-//
-//}
 
 class GtGrammar extends GtStatic {
 	public void LoadTo(GtNameSpace NameSpace) {
@@ -1911,10 +1689,7 @@ final class DScriptGrammar extends GtGrammar {
 		return NextPos;
 	}
 
-	// parser and type checker
-	// I am trying to add NameSpace to Parse Func Interface
-	// Are you ready?
-	
+	// parser and type checker	
 	public static GtSyntaxTree ParseType(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/Object ConstValue = NameSpace.GetSymbol(Token.ParsedText);
@@ -2623,7 +2398,7 @@ final class DScriptGrammar extends GtGrammar {
 			EnumTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "}", Required);
 		}
 		if(!EnumTree.IsEmptyOrError()) {
-			NameSpace.DefineClass(NewEnumType);
+			NameSpace.DefineClassSymbol(NewEnumType);
 			EnumTree.ConstValue = NewEnumType;
 		}
 		return EnumTree;
@@ -2867,7 +2642,7 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/GreenTeaTopObject DefaultObject = new GreenTeaTopObject(NewType);
 		NewType.DefaultNullValue = DefaultObject;
 
-		NameSpace.DefineClass(NewType);
+		NameSpace.DefineClassSymbol(NewType);
 		ClassDeclTree.ConstValue = NewType;
 
 		/*local*/int ParseFlag = TokenContext.SetBackTrack(false) | SkipIndentParseFlag;
@@ -3217,7 +2992,7 @@ final class GtStat {
 final class GtClassContext extends GtStatic {
 	/*field*/public final  GtGenerator   Generator;
 	/*field*/public final  GtNameSpace		   RootNameSpace;
-	/*field*/public GtNameSpace		           DefaultNameSpace;
+	/*field*/public GtNameSpace		           TopLevelNameSpace;
 
 	// basic class
 	/*field*/public final GtType		VoidType;
@@ -3261,15 +3036,15 @@ final class GtClassContext extends GtStatic {
 		this.StructType  = this.TopType.CreateSubType(0, "record", null, null);  //  unregistered
 		this.EnumType    = this.TopType.CreateSubType(EnumClass, "enum", null, null);    //  unregistered
 
-		this.VoidType    = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "void", null, Void.class));
-		this.BooleanType = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "boolean", false, Boolean.class));
-		this.IntType     = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "int", 0L, Long.class));
-		this.StringType  = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "String", "", String.class));
-		this.VarType     = this.RootNameSpace.DefineClass(new GtType(this, 0, "var", null, null));
-		this.AnyType     = this.RootNameSpace.DefineClass(new GtType(this, DynamicClass, "any", null, null));
-		this.TypeType    = this.RootNameSpace.DefineClass(this.TopType.CreateSubType(0, "Type", null, null));
-		this.ArrayType   = this.RootNameSpace.DefineClass(this.TopType.CreateSubType(0, "Array", null, null));
-		this.FuncType    = this.RootNameSpace.DefineClass(this.TopType.CreateSubType(0, "Func", null, null));
+		this.VoidType    = this.RootNameSpace.DefineClassSymbol(new GtType(this, NativeClass, "void", null, Void.class));
+		this.BooleanType = this.RootNameSpace.DefineClassSymbol(new GtType(this, NativeClass, "boolean", false, Boolean.class));
+		this.IntType     = this.RootNameSpace.DefineClassSymbol(new GtType(this, NativeClass, "int", 0L, Long.class));
+		this.StringType  = this.RootNameSpace.DefineClassSymbol(new GtType(this, NativeClass, "String", "", String.class));
+		this.VarType     = this.RootNameSpace.DefineClassSymbol(new GtType(this, 0, "var", null, null));
+		this.AnyType     = this.RootNameSpace.DefineClassSymbol(new GtType(this, DynamicClass, "any", null, null));
+		this.TypeType    = this.RootNameSpace.DefineClassSymbol(this.TopType.CreateSubType(0, "Type", null, null));
+		this.ArrayType   = this.RootNameSpace.DefineClassSymbol(this.TopType.CreateSubType(0, "Array", null, null));
+		this.FuncType    = this.RootNameSpace.DefineClassSymbol(this.TopType.CreateSubType(0, "Func", null, null));
 		
 		this.ArrayType.Types = new GtType[1];
 		this.ArrayType.Types[0] = this.AnyType;
@@ -3284,21 +3059,36 @@ final class GtClassContext extends GtStatic {
 		this.ClassNameMap.put("java.lang.String",  this.StringType);
 //endif VAJA
 		Grammar.LoadTo(this.RootNameSpace);
-		this.DefaultNameSpace = new GtNameSpace(this, this.RootNameSpace);
+		this.TopLevelNameSpace = new GtNameSpace(this, this.RootNameSpace);
 		this.Generator.SetLanguageContext(this);
 		this.ReportedErrorList = new ArrayList<String>();
 	}
 
 	public void LoadGrammar(GtGrammar Grammar) {
-		Grammar.LoadTo(this.DefaultNameSpace);
+		Grammar.LoadTo(this.TopLevelNameSpace);
 	}
 
 //	public void Define(String Symbol, Object Value) {
 //		this.RootNameSpace.DefineSymbol(Symbol, Value);
 //	}
 
-	public Object Eval(String text, long FileLine) {
-		return this.DefaultNameSpace.Eval(text, FileLine, this.Generator);
+	public Object Eval(String ScriptSource, long FileLine) {
+		/*local*/Object resultValue = null;
+		DebugP("Eval: " + ScriptSource);
+		/*local*/GtTokenContext TokenContext = new GtTokenContext(this.TopLevelNameSpace, ScriptSource, FileLine);
+		TokenContext.SkipEmptyStatement();
+		while(TokenContext.HasNext()) {
+			/*local*/GtMap annotation = TokenContext.SkipAndGetAnnotation(true);
+			/*local*/GtSyntaxTree topLevelTree = GtStatic.ParseExpression(this.TopLevelNameSpace, TokenContext);
+			topLevelTree.SetAnnotation(annotation);
+			DebugP("untyped tree: " + topLevelTree);
+			/*local*/GtTypeEnv gamma = new GtTypeEnv(this.TopLevelNameSpace);
+			/*local*/GtNode node = gamma.TypeCheckEachNode(topLevelTree, gamma.VoidType, DefaultTypeCheckPolicy);
+			resultValue = Generator.Eval(node);
+			TokenContext.SkipEmptyStatement();
+			TokenContext.Vacume();
+		}
+		return resultValue;
 	}
 
 	public final GtType GuessType (Object Value) {

@@ -1055,7 +1055,7 @@ class EmbeddedMethodDef extends GtStatic {
 
 	GtType RegisterClass(int ClassFlag, String ClassName, Object DefaultNullValue) {
 		GtType newClass = new GtType(NameSpace.Context, ClassFlag, ClassName, DefaultNullValue, null);
-		NameSpace.DefineClass(newClass);
+		NameSpace.DefineClassSymbol(newClass);
 		return newClass;
 	}
 }
