@@ -1875,7 +1875,8 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	// parser and type checker
-
+	// I am trying to add NameSpace to Parse Func Interface
+	// Are you ready?
 	public static GtSyntaxTree ParseType(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/Object ConstValue = TokenContext.NameSpace.GetSymbol(Token.ParsedText);
