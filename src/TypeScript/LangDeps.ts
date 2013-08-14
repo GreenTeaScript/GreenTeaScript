@@ -158,9 +158,9 @@ class LangDeps {
 		return -1;
 	}
 
-	static ApplyMatchFunc(Delegate: any, Pattern: Object, LeftTree: Object, TokenContext: Object): GtSyntaxTree {
+	static ApplyMatchFunc(Delegate: any, NameSpace: GtNameSpace, Pattern: Object, LeftTree: Object, TokenContext: Object): GtSyntaxTree {
 		try {
-			return <GtSyntaxTree>Delegate(Pattern, LeftTree, TokenContext);
+			return <GtSyntaxTree>Delegate(NameSpace, TokenContext, LeftTree, Pattern);
 		}
 		catch (e) {
 			console.log(e);
