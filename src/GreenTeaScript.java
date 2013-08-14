@@ -38,12 +38,6 @@ interface GtConst {
 	public final static int     EnumClass                       = 1 << 3;
 	public final static int     OpenClass                       = 1 << 4;
 	
-//	public final static int		FinalClass						= 1 << 2;
-//	public final static int		GreenClass		    			= 1 << 3;
-//	public final static int		StaticClass						= 1 << 4;
-//	public final static int		ImmutableClass					= 1 << 5;
-//	public final static int		InterfaceClass					= 1 << 6;
-
 	// MethodFlag
 	public final static int		ExportMethod		= 1 << 0;
 	public final static int		AbstractMethod		= 1 << 1;
@@ -51,27 +45,10 @@ interface GtConst {
 	public final static int		NativeMethod		= 1 << 3;
 	public final static int		NativeStaticMethod	= 1 << 4;
 	public final static int		NativeMacroMethod	= 1 << 5;
-	public final static int		ConstMethod			= 1 << 6;
+	public final static int		NativeVariadicMethod	= 1 << 6;
 	public final static int		DynamicMethod		= 1 << 7;
-	public final static int     ImplicitMethod      = 1 << 8;  // used for implicit cast
-
-	//public final static int		ConstMethod 		= 1 << 2;
-
-//	public final static int		PrivateMethod					= 1 << 0;
-//	public final static int		VirtualMethod					= 1 << 1;
-//	public final static int		FinalMethod						= 1 << 2;
-//	public final static int		StaticMethod					= 1 << 4;
-//
-//	public final static int		ImmutableMethod					= 1 << 5;
-//	public final static int		TopLevelMethod					= 1 << 6;
-//
-//	// call rule
-//	public final static int		CoercionMethod					= 1 << 7;
-//	public final static int		RestrictedMethod				= 1 << 8;
-//	public final static int		UncheckedMethod					= 1 << 9;
-//	public final static int		SmartReturnMethod				= 1 << 10;
-//	public final static int		VariadicMethod					= 1 << 11;
-//	public final static int		IterativeMethod					= 1 << 12;
+	public final static int		ConstMethod			= 1 << 8;
+	public final static int     ImplicitMethod      = 1 << 9;  // used for implicit cast
 
 	public final static int		SymbolMaskSize					= 3;
 	public final static int		LowerSymbolMask					= 1;
@@ -271,6 +248,8 @@ interface GtConst {
 	public final static GtMap   SymbolMap  = new GtMap();
 
 	public final static String[] ShellGrammarReservedKeywords = {"true", "false", "as", "if"};
+	
+	public final static boolean UseLangStat = true;
 
 //ifdef JAVA
 }
@@ -3072,6 +3051,16 @@ final class DScriptGrammar extends GtGrammar {
 	}
 }
 
+final class GtStat {
+	/*field*/public long MatchCount;
+	/*field*/public long BacktrackCount;  // To count how many times backtracks happen.
+	
+	GtStat/*constructor*/() {
+		this.MatchCount     = 0;
+		this.BacktrackCount = 0;
+	}
+}
+
 final class GtContext extends GtStatic {
 	/*field*/public final  GtGenerator   Generator;
 	/*field*/public final  GtNameSpace		   RootNameSpace;
@@ -3095,12 +3084,12 @@ final class GtContext extends GtStatic {
 	/*field*/public GtType		TypeType;
 	/*field*/public GtType		PolyFuncType;
 	
-	
 	/*field*/public final  GtMap			   ClassNameMap;
 	/*field*/public final  GtMap               UniqueMethodMap;
 	/*field*/public int ClassCount;
 	/*field*/public int MethodCount;
-
+	/*field*/public final GtStat Stat;
+	
 	GtContext/*constructor*/(GtGrammar Grammar, GtGenerator Generator) {
 		this.Generator    = Generator;
 		this.Generator.Context = this;
@@ -3109,6 +3098,7 @@ final class GtContext extends GtStatic {
 		this.RootNameSpace = new GtNameSpace(this, null);
 		this.ClassCount = 0;
 		this.MethodCount = 0;
+		this.Stat = new GtStat();
 
 		this.TopType     = new GtType(this, 0, "top", null, null);               //  unregistered
 		this.StructType  = this.TopType.CreateSubType(0, "record", null, null);  //  unregistered

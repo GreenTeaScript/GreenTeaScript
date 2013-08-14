@@ -965,7 +965,6 @@ class GtMethod extends GtStatic {
 		String NativeMacro = IsFlag(this.MethodFlag, NativeMacroMethod) ? (/*cast*/String)this.NativeRef : "$1 " + this.MethodName + " $2";
 		return NativeMacro.replaceAll("$0", Arg0);
 	}
-
 }
 
 class GtGenerator extends GtStatic {
