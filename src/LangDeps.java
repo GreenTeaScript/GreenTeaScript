@@ -139,9 +139,9 @@ public abstract class LangDeps {
 		return -1;
 	}
 
-	public final static GtSyntaxTree ApplyMatchFunc(GtDelegateMatch Delegate, Object Pattern, Object LeftTree, Object TokenContext) {
+	public final static GtSyntaxTree ApplyMatchFunc(GtDelegateMatch Delegate, Object NameSpace, Object TokenContext, Object LeftTree, Object Pattern) {
 		try {
-			return (GtSyntaxTree)Delegate.Method.invoke(Delegate.Self, Pattern, LeftTree, TokenContext);
+			return (GtSyntaxTree)Delegate.Method.invoke(Delegate.Self, NameSpace, TokenContext, LeftTree, Pattern);
 		}
 		catch (InvocationTargetException e) {
 			e.printStackTrace();

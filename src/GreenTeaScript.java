@@ -472,7 +472,7 @@ class GtStatic implements GtConst {
 		return Tree;
 	}
 
-	public final static GtSyntaxTree ApplySyntaxPattern(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
+	public final static GtSyntaxTree ApplySyntaxPattern(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/int Pos = TokenContext.CurrentPosition;
 		/*local*/int ParseFlag = TokenContext.ParseFlag;
 		/*local*/GtSyntaxPattern CurrentPattern = Pattern;
@@ -484,7 +484,7 @@ class GtStatic implements GtConst {
 			}
 			//DebugP("B :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + ", next=" + CurrentPattern.ParentPattern);
 			TokenContext.IndentLevel += 1;
-			/*local*/GtSyntaxTree ParsedTree = (/*cast*/GtSyntaxTree)LangDeps.ApplyMatchFunc(delegate, CurrentPattern, LeftTree, TokenContext);
+			/*local*/GtSyntaxTree ParsedTree = (/*cast*/GtSyntaxTree)LangDeps.ApplyMatchFunc(delegate, NameSpace, TokenContext, LeftTree, CurrentPattern);
 			TokenContext.IndentLevel -= 1;
 //			if(ParsedTree != null && ParsedTree.IsEmpty()) {
 //				ParsedTree = null;
@@ -505,16 +505,16 @@ class GtStatic implements GtConst {
 		return TokenContext.ReportExpectedPattern(Pattern);
 	}
 
-	public final static GtSyntaxTree ParseExpression(GtTokenContext TokenContext) {
+	public final static GtSyntaxTree ParseExpression(GtNameSpace NameSpace, GtTokenContext TokenContext) {
 		/*local*/GtSyntaxPattern Pattern = TokenContext.GetFirstPattern();
-		/*local*/GtSyntaxTree LeftTree = GtStatic.ApplySyntaxPattern(Pattern, null, TokenContext);
+		/*local*/GtSyntaxTree LeftTree = GtStatic.ApplySyntaxPattern(NameSpace, TokenContext, null, Pattern);
 		while(!GtStatic.IsEmptyOrError(LeftTree) && !TokenContext.MatchToken(";")) {
 			/*local*/GtSyntaxPattern ExtendedPattern = TokenContext.GetExtendedPattern();
 			if(ExtendedPattern == null) {
 				//DebugP("In $Expression$ ending: " + TokenContext.GetToken());
 				break;
 			}
-			LeftTree = GtStatic.ApplySyntaxPattern(ExtendedPattern, LeftTree, TokenContext);
+			LeftTree = GtStatic.ApplySyntaxPattern(NameSpace, TokenContext, LeftTree, ExtendedPattern);
 		}
 		return LeftTree;
 	}
@@ -674,7 +674,7 @@ final class TokenFunc {
 final class GtTokenContext extends GtStatic {
 	/*field*/public final static GtToken NullToken = new GtToken("", 0);
 
-	/*field*/public GtNameSpace NameSpace;
+	/*field*/public GtNameSpace TopLevelNameSpace;
 	/*field*/public ArrayList<GtToken> SourceList;
 	/*field*/public int CurrentPosition;
 	/*field*/public long ParsingLine;
@@ -682,7 +682,7 @@ final class GtTokenContext extends GtStatic {
 	/*field*/public int IndentLevel = 0;
 
 	GtTokenContext/*constructor*/(GtNameSpace NameSpace, String Text, long FileLine) {
-		this.NameSpace = NameSpace;
+		this.TopLevelNameSpace = NameSpace;
 		this.SourceList = new ArrayList<GtToken>();
 		this.CurrentPosition = 0;
 		this.ParsingLine = FileLine;
@@ -695,7 +695,7 @@ final class GtTokenContext extends GtStatic {
 		/*local*/GtToken Token = new GtToken(Text, this.ParsingLine);
 		Token.TokenFlag |= TokenFlag;
 		if(PatternName != null) {
-			Token.PresetPattern = this.NameSpace.GetPattern(PatternName);
+			Token.PresetPattern = this.TopLevelNameSpace.GetPattern(PatternName);
 			LangDeps.Assert(Token.PresetPattern != null);
 		}
 		//DebugP("<< " + Text + " : " + PatternName);
@@ -714,13 +714,13 @@ final class GtTokenContext extends GtStatic {
 
 	public void ReportTokenError(int Level, String Message, String TokenText) {
 		/*local*/GtToken Token = this.AddNewToken(TokenText, 0, "$Error$");
-		this.NameSpace.ReportError(Level, Token, Message);
+		this.TopLevelNameSpace.ReportError(Level, Token, Message);
 	}
 
 	public GtSyntaxTree NewErrorSyntaxTree(GtToken Token, String Message) {
 		if(!this.IsAllowedBackTrack()) {
-			this.NameSpace.ReportError(ErrorLevel, Token, Message);
-			/*local*/GtSyntaxTree ErrorTree = new GtSyntaxTree(Token.PresetPattern, this.NameSpace, Token, null);
+			this.TopLevelNameSpace.ReportError(ErrorLevel, Token, Message);
+			/*local*/GtSyntaxTree ErrorTree = new GtSyntaxTree(Token.PresetPattern, this.TopLevelNameSpace, Token, null);
 			return ErrorTree;
 		}
 		return null;
@@ -773,7 +773,7 @@ final class GtTokenContext extends GtStatic {
 	}
 
 	private int DispatchFunc(String ScriptSource, int GtChar, int pos) {
-		/*local*/TokenFunc TokenFunc = this.NameSpace.GetTokenFunc(GtChar);
+		/*local*/TokenFunc TokenFunc = this.TopLevelNameSpace.GetTokenFunc(GtChar);
 		/*local*/int NextIdx = GtStatic.ApplyTokenFunc(TokenFunc, this, ScriptSource, pos);
 		if(NextIdx == NoMatch) {
 			DebugP("undefined tokenizer: " + LangDeps.CharAt(ScriptSource, pos));
@@ -834,7 +834,7 @@ final class GtTokenContext extends GtStatic {
 	}
 
 	public GtSyntaxPattern GetPattern(String PatternName) {
-		return this.NameSpace.GetPattern(PatternName);
+		return this.TopLevelNameSpace.GetPattern(PatternName);
 	}
 
 	public GtSyntaxPattern GetFirstPattern() {
@@ -842,16 +842,16 @@ final class GtTokenContext extends GtStatic {
 		if(Token.PresetPattern != null) {
 			return Token.PresetPattern;
 		}
-		/*local*/GtSyntaxPattern Pattern = this.NameSpace.GetPattern(Token.ParsedText);
+		/*local*/GtSyntaxPattern Pattern = this.TopLevelNameSpace.GetPattern(Token.ParsedText);
 		if(Pattern == null) {
-			return this.NameSpace.GetPattern("$Symbol$");
+			return this.TopLevelNameSpace.GetPattern("$Symbol$");
 		}
 		return Pattern;
 	}
 
 	public GtSyntaxPattern GetExtendedPattern() {
 		/*local*/GtToken Token = this.GetToken();
-		/*local*/GtSyntaxPattern Pattern = this.NameSpace.GetExtendedPattern(Token.ParsedText);
+		/*local*/GtSyntaxPattern Pattern = this.TopLevelNameSpace.GetExtendedPattern(Token.ParsedText);
 		return Pattern;
 	}
 
@@ -891,14 +891,14 @@ final class GtTokenContext extends GtStatic {
 		return ParseFlag;
 	}
 
-	public final GtSyntaxTree ParsePatternAfter(GtSyntaxTree LeftTree, String PatternName, boolean IsOptional) {
+	public final GtSyntaxTree ParsePatternAfter(GtNameSpace NameSpace, GtSyntaxTree LeftTree, String PatternName, boolean IsOptional) {
 		/*local*/int Pos = this.CurrentPosition;
 		/*local*/int ParseFlag = this.ParseFlag;
 		/*local*/GtSyntaxPattern Pattern = this.GetPattern(PatternName);
 		if(IsOptional) {
 			this.ParseFlag = this.ParseFlag | BackTrackParseFlag;
 		}
-		/*local*/GtSyntaxTree SyntaxTree = GtStatic.ApplySyntaxPattern(Pattern, LeftTree, this);
+		/*local*/GtSyntaxTree SyntaxTree = GtStatic.ApplySyntaxPattern(NameSpace, this, LeftTree, Pattern);
 		this.ParseFlag = ParseFlag;
 		if(SyntaxTree != null) {
 			return SyntaxTree;
@@ -907,8 +907,8 @@ final class GtTokenContext extends GtStatic {
 		return null;
 	}
 
-	public final GtSyntaxTree ParsePattern(String PatternName, boolean IsOptional) {
-		return this.ParsePatternAfter(null, PatternName, IsOptional);
+	public final GtSyntaxTree ParsePattern(GtNameSpace NameSpace, String PatternName, boolean IsOptional) {
+		return this.ParsePatternAfter(NameSpace, null, PatternName, IsOptional);
 	}
 
 	public final GtMap SkipAndGetAnnotation(boolean IsAllowedDelim) {
@@ -1112,11 +1112,11 @@ class GtSyntaxTree extends GtStatic {
 		}
 	}
 
-	public void SetMatchedPatternAt(int Index, GtTokenContext TokenContext, String PatternName,  boolean IsOptional) {
+	public void SetMatchedPatternAt(int Index, GtNameSpace NameSpae, GtTokenContext TokenContext, String PatternName,  boolean IsOptional) {
 		if(!this.IsEmptyOrError()) {
-			/*local*/GtSyntaxTree ParsedTree = TokenContext.ParsePattern(PatternName, IsOptional);
+			/*local*/GtSyntaxTree ParsedTree = TokenContext.ParsePattern(NameSpace, PatternName, IsOptional);
 			if(PatternName.equals("$Expression$") && ParsedTree == null){
-				ParsedTree = GtStatic.ParseExpression(TokenContext);
+				ParsedTree = GtStatic.ParseExpression(NameSpace, TokenContext);
 			}
 			if(ParsedTree != null) {
 				this.SetSyntaxTreeAt(Index, ParsedTree);
@@ -1127,12 +1127,12 @@ class GtSyntaxTree extends GtStatic {
 		}
 	}
 
-	public void SetMatchedTokenAt(int Index, GtTokenContext TokenContext, String TokenText, boolean IsOptional) {
+	public void SetMatchedTokenAt(int Index, GtNameSpace NameSpace, GtTokenContext TokenContext, String TokenText, boolean IsOptional) {
 		if(!this.IsEmptyOrError()) {
 			/*local*/int Pos = TokenContext.CurrentPosition;
 			/*local*/GtToken Token = TokenContext.Next();
 			if(Token.ParsedText.equals(TokenText)) {
-				this.SetSyntaxTreeAt(Index, new GtSyntaxTree(null, TokenContext.NameSpace, Token, null));
+				this.SetSyntaxTreeAt(Index, new GtSyntaxTree(null, NameSpace, Token, null));
 			}
 			else {
 				TokenContext.CurrentPosition = Pos;
@@ -1628,18 +1628,18 @@ final class GtNameSpace extends GtStatic {
 	public Object Eval(String ScriptSource, long FileLine, GtGenerator Generator) {
 		/*local*/Object resultValue = null;
 		DebugP("Eval: " + ScriptSource);
-		/*local*/GtTokenContext tokenContext = new GtTokenContext(this, ScriptSource, FileLine);
-		tokenContext.SkipEmptyStatement();
-		while(tokenContext.HasNext()) {
-			/*local*/GtMap annotation = tokenContext.SkipAndGetAnnotation(true);
-			/*local*/GtSyntaxTree topLevelTree = GtStatic.ParseExpression(tokenContext);
+		/*local*/GtTokenContext TokenContext = new GtTokenContext(this, ScriptSource, FileLine);
+		TokenContext.SkipEmptyStatement();
+		while(TokenContext.HasNext()) {
+			/*local*/GtMap annotation = TokenContext.SkipAndGetAnnotation(true);
+			/*local*/GtSyntaxTree topLevelTree = GtStatic.ParseExpression(this, TokenContext);
 			topLevelTree.SetAnnotation(annotation);
 			DebugP("untyped tree: " + topLevelTree);
 			/*local*/GtTypeEnv gamma = new GtTypeEnv(this);
 			/*local*/GtNode node = gamma.TypeCheckEachNode(topLevelTree, gamma.VoidType, DefaultTypeCheckPolicy);
 			resultValue = Generator.Eval(node);
-			tokenContext.SkipEmptyStatement();
-			tokenContext.Vacume();
+			TokenContext.SkipEmptyStatement();
+			TokenContext.Vacume();
 		}
 		return resultValue;
 	}
@@ -1733,7 +1733,7 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/boolean Matched = false;
 		while(NextPos > pos) {
 			/*local*/String Sub = SourceText.substring(pos, NextPos);
-			/*local*/GtSyntaxPattern Pattern = TokenContext.NameSpace.GetExtendedPattern(Sub);
+			/*local*/GtSyntaxPattern Pattern = TokenContext.TopLevelNameSpace.GetExtendedPattern(Sub);
 			if(Pattern != null) {
 				Matched = true;
 				break;
@@ -1835,7 +1835,7 @@ final class DScriptGrammar extends GtGrammar {
 						end = end + 1;
 					}
 					/*local*/String Expr = SourceText.substring(NextPos + 2, end);
-					/*local*/GtTokenContext LocalContext = new GtTokenContext(TokenContext.NameSpace, Expr, TokenContext.ParsingLine);
+					/*local*/GtTokenContext LocalContext = new GtTokenContext(TokenContext.TopLevelNameSpace, Expr, TokenContext.ParsingLine);
 					LocalContext.SkipEmptyStatement();
 
 					TokenContext.AddNewToken(SourceText.substring(start, NextPos), 0, "$StringLiteral$");
@@ -1875,20 +1875,21 @@ final class DScriptGrammar extends GtGrammar {
 	// parser and type checker
 	// I am trying to add NameSpace to Parse Func Interface
 	// Are you ready?
-	public static GtSyntaxTree ParseType(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
+	
+	public static GtSyntaxTree ParseType(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.Next();
-		/*local*/Object ConstValue = TokenContext.NameSpace.GetSymbol(Token.ParsedText);
+		/*local*/Object ConstValue = NameSpace.GetSymbol(Token.ParsedText);
 		if(ConstValue instanceof GtType) {
-			return new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, ConstValue);
+			return new GtSyntaxTree(Pattern, NameSpace, Token, ConstValue);
 		}
 		return null; // Not Matched
 	}
 
-	public static GtSyntaxTree ParseConst(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
+	public static GtSyntaxTree ParseConst(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.Next();
-		/*local*/Object ConstValue = TokenContext.NameSpace.GetSymbol(Token.ParsedText);
+		/*local*/Object ConstValue = NameSpace.GetSymbol(Token.ParsedText);
 		if(ConstValue != null) {
-			return new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, ConstValue);
+			return new GtSyntaxTree(Pattern, NameSpace, Token, ConstValue);
 		}
 		return null; // Not Matched
 	}
@@ -1897,21 +1898,20 @@ final class DScriptGrammar extends GtGrammar {
 		return Gamma.Generator.CreateConstNode(Gamma.GuessType(ParsedTree.ConstValue), ParsedTree, ParsedTree.ConstValue);
 	}
 
-	public static GtSyntaxTree ParseSymbol(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
-		/*local*/GtSyntaxTree TypeTree = TokenContext.ParsePattern("$Type$", Optional);
+	public static GtSyntaxTree ParseSymbol(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtSyntaxTree TypeTree = TokenContext.ParsePattern(NameSpace, "$Type$", Optional);
 		if(TypeTree != null) {
-			/*local*/GtSyntaxTree DeclTree = TokenContext.ParsePatternAfter(TypeTree, "$FuncDecl$", Optional);
+			/*local*/GtSyntaxTree DeclTree = TokenContext.ParsePatternAfter(NameSpace, TypeTree, "$FuncDecl$", Optional);
 			if(DeclTree != null) {
 				return DeclTree;
 			}
-			DeclTree = TokenContext.ParsePatternAfter(TypeTree, "$VarDecl$", Optional);
+			DeclTree = TokenContext.ParsePatternAfter(NameSpace, TypeTree, "$VarDecl$", Optional);
 			if(DeclTree != null) {
 				return DeclTree;
 			}
 			return TypeTree;
 		}
 		/*local*/GtToken Token = TokenContext.Next();
-		/*local*/GtNameSpace NameSpace = TokenContext.NameSpace;
 //		/*local*/Object ConstValue = NameSpace.GetSymbol(Token.ParsedText);
 //		if(ConstValue != null && !(ConstValue instanceof GtType)) {
 //			return new GtSyntaxTree(NameSpace.GetPattern("$Const$"), NameSpace, Token, ConstValue);
@@ -1919,11 +1919,11 @@ final class DScriptGrammar extends GtGrammar {
 		return new GtSyntaxTree(NameSpace.GetPattern("$Variable$"), NameSpace, Token, null);
 	}
 
-	public static GtSyntaxTree ParseVariable(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
+	public static GtSyntaxTree ParseVariable(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/char ch = LangDeps.CharAt(Token.ParsedText, 0);
 		if(LangDeps.IsLetter(ch) || ch == '_') {
-			return new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
+			return new GtSyntaxTree(Pattern, NameSpace, Token, null);
 		}
 		return null;
 	}
@@ -1942,28 +1942,28 @@ final class DScriptGrammar extends GtGrammar {
 		return Gamma.ReportTypeResult(ParsedTree, Node, ErrorLevel, "undefined name: " + Name);
 	}
 
-	public static GtSyntaxTree ParseVarDecl(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
-		/*local*/GtSyntaxTree Tree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetToken(), null);
+	public static GtSyntaxTree ParseVarDecl(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtSyntaxTree Tree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetToken(), null);
 		if(LeftTree == null) {
-			Tree.SetMatchedPatternAt(VarDeclType, TokenContext, "$Type$", Required);
+			Tree.SetMatchedPatternAt(VarDeclType, NameSpace, TokenContext, "$Type$", Required);
 		}
 		else {
 			Tree.SetSyntaxTreeAt(VarDeclType, LeftTree);
 		}
-		Tree.SetMatchedPatternAt(VarDeclName, TokenContext, "$Variable$", Required);
+		Tree.SetMatchedPatternAt(VarDeclName, NameSpace, TokenContext, "$Variable$", Required);
 		if(Tree.IsEmptyOrError()) {
 			return null;
 		}
 		if(TokenContext.MatchToken("=")) {
-			Tree.SetMatchedPatternAt(VarDeclValue, TokenContext, "$Expression$", Required);
+			Tree.SetMatchedPatternAt(VarDeclValue, NameSpace, TokenContext, "$Expression$", Required);
 		}
 		while(TokenContext.MatchToken(",")) {
-			/*local*/GtSyntaxTree NextTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, Tree.KeyToken, null);
+			/*local*/GtSyntaxTree NextTree = new GtSyntaxTree(Pattern, NameSpace, Tree.KeyToken, null);
 			NextTree.SetSyntaxTreeAt(VarDeclType, Tree.GetSyntaxTreeAt(VarDeclType));
 			Tree = GtStatic.LinkTree(Tree, NextTree);
-			Tree.SetMatchedPatternAt(VarDeclName, TokenContext, "$Variable$", Required);
+			Tree.SetMatchedPatternAt(VarDeclName, NameSpace, TokenContext, "$Variable$", Required);
 			if(TokenContext.MatchToken("=")) {
-				Tree.SetMatchedPatternAt(VarDeclValue, TokenContext, "$Expression$", Required);
+				Tree.SetMatchedPatternAt(VarDeclValue, NameSpace, TokenContext, "$Expression$", Required);
 			}
 		}
 		return Tree;
@@ -1992,33 +1992,33 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	// Parse And Type
-	public static GtSyntaxTree ParseEmpty(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
-		return new GtSyntaxTree(Pattern, TokenContext.NameSpace, GtTokenContext.NullToken, null);
+	public static GtSyntaxTree ParseEmpty(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		return new GtSyntaxTree(Pattern, NameSpace, GtTokenContext.NullToken, null);
 	}
 
 	public static GtNode TypeEmpty(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
 		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
 	}
 
-	public static GtSyntaxTree ParseIntegerLiteral(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
+	public static GtSyntaxTree ParseIntegerLiteral(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.Next();
-		return new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, LangDeps.ParseInt(Token.ParsedText));
+		return new GtSyntaxTree(Pattern, NameSpace, Token, LangDeps.ParseInt(Token.ParsedText));
 	}
 
-	public static GtSyntaxTree ParseStringLiteral(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
+	public static GtSyntaxTree ParseStringLiteral(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.Next(); /* this must be \" and we should eat it*/
-		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, Token.ParsedText);
+		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, NameSpace, Token, Token.ParsedText);
 		return NewTree;
 	}
 
-	public static GtSyntaxTree ParseExpression(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
-		return GtStatic.ParseExpression(TokenContext);
+	public static GtSyntaxTree ParseExpression(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		return GtStatic.ParseExpression(NameSpace, TokenContext);
 	}
 
-	public static GtSyntaxTree ParseUnary(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
+	public static GtSyntaxTree ParseUnary(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.Next();
-		/*local*/GtSyntaxTree Tree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
-		Tree.SetMatchedPatternAt(UnaryTerm, TokenContext, "$Expression$", Required);
+		/*local*/GtSyntaxTree Tree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
+		Tree.SetMatchedPatternAt(UnaryTerm, NameSpace, TokenContext, "$Expression$", Required);
 		return Tree;
 	}
 
@@ -2027,22 +2027,22 @@ final class DScriptGrammar extends GtGrammar {
 		return Gamma.Generator.CreateUnaryNode(Gamma.AnyType, ParsedTree, null/*Method*/, ExprNode);
 	}
 
-	public static GtSyntaxTree ParseBinary(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
+	public static GtSyntaxTree ParseBinary(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.Next();
-		/*local*/GtSyntaxTree RightTree = GtStatic.ParseExpression(TokenContext);
+		/*local*/GtSyntaxTree RightTree = GtStatic.ParseExpression(NameSpace, TokenContext);
 		if(GtStatic.IsEmptyOrError(RightTree)) {
 			return RightTree;
 		}
 		if(RightTree.Pattern.IsBinaryOperator()) {
 			if(Pattern.IsLeftJoin(RightTree.Pattern)) {
-				/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
+				/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
 				NewTree.SetSyntaxTreeAt(LeftHandTerm, LeftTree);
 				NewTree.SetSyntaxTreeAt(RightHandTerm, RightTree.GetSyntaxTreeAt(LeftHandTerm));
 				RightTree.SetSyntaxTreeAt(LeftHandTerm, NewTree);
 				return RightTree;
 			}
 		}
-		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
+		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
 		NewTree.SetSyntaxTreeAt(LeftHandTerm, LeftTree);
 		NewTree.SetSyntaxTreeAt(RightHandTerm, RightTree);
 		if(RightTree.NextTree != null) {
@@ -2073,11 +2073,11 @@ final class DScriptGrammar extends GtGrammar {
 		return Gamma.Generator.CreateBinaryNode(ContextType, ParsedTree, null, LeftNode, RightNode);
 	}
 
-	public static GtSyntaxTree ParseField(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
+	public static GtSyntaxTree ParseField(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		TokenContext.MatchToken(".");
 		/*local*/GtToken Token = TokenContext.Next();
 		if(Token.IsNameSymbol()) {
-			/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
+			/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
 			NewTree.AppendParsedTree(LeftTree);
 			return NewTree;
 		}
@@ -2105,11 +2105,11 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	// PatternName: "("
-	public static GtSyntaxTree ParseGroup(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
+	public static GtSyntaxTree ParseGroup(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/int ParseFlag = TokenContext.ParseFlag;
 		TokenContext.ParseFlag |= SkipIndentParseFlag;
-		/*local*/GtSyntaxTree GroupTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("("), null);
-		/*local*/GtSyntaxTree Tree = TokenContext.ParsePattern("$Expression$", Required);
+		/*local*/GtSyntaxTree GroupTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("("), null);
+		/*local*/GtSyntaxTree Tree = TokenContext.ParsePattern(NameSpace, "$Expression$", Required);
 		GroupTree.AppendParsedTree(Tree);
 		if(!TokenContext.MatchToken(")")) {
 			GroupTree = TokenContext.ReportExpectedToken(")");
@@ -2123,24 +2123,24 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	// PatternName: "(" "to" $Type$ ")"
-	public static GtSyntaxTree ParseCast(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
+	public static GtSyntaxTree ParseCast(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/int ParseFlag = TokenContext.ParseFlag;
 		TokenContext.ParseFlag |= SkipIndentParseFlag;
 		/*local*/GtToken FirstToken = TokenContext.Next(); // skip the first token
 		/*local*/GtSyntaxTree CastTree = null;
 		if(TokenContext.MatchToken("to")) {
-			CastTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("to"), null);
+			CastTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("to"), null);
 		}
 		else if(TokenContext.MatchToken("as")) {
-			CastTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("as"), null);
+			CastTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("as"), null);
 		}
 		else {
-			CastTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, FirstToken, null);
+			CastTree = new GtSyntaxTree(Pattern, NameSpace, FirstToken, null);
 		}
-		CastTree.SetMatchedPatternAt(LeftHandTerm, TokenContext, "$Type$", Required);
-		CastTree.SetMatchedTokenAt(NoWhere, TokenContext, ")", Required);
+		CastTree.SetMatchedPatternAt(LeftHandTerm, NameSpace, TokenContext, "$Type$", Required);
+		CastTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ")", Required);
 		TokenContext.ParseFlag = ParseFlag;
-		CastTree.SetMatchedPatternAt(RightHandTerm, TokenContext, "$Expression$", Required);
+		CastTree.SetMatchedPatternAt(RightHandTerm, NameSpace, TokenContext, "$Expression$", Required);
 		return CastTree;
 	}
 
@@ -2150,17 +2150,17 @@ final class DScriptGrammar extends GtGrammar {
 		return ParsedTree.TypeCheckNodeAt(RightHandTerm, Gamma, CastType, TypeCheckPolicy);
 	}
 
-	public static GtSyntaxTree ParseApply(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
+	public static GtSyntaxTree ParseApply(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/int ParseFlag = TokenContext.ParseFlag;
 		TokenContext.ParseFlag |= SkipIndentParseFlag;
-		/*local*/GtSyntaxTree FuncTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("("), null);
+		/*local*/GtSyntaxTree FuncTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("("), null);
 		FuncTree.AppendParsedTree(LeftTree);
 		if(!TokenContext.MatchToken(")")) {
 			while(!FuncTree.IsEmptyOrError()) {
-				/*local*/GtSyntaxTree Tree = TokenContext.ParsePattern("$Expression$", Required);
+				/*local*/GtSyntaxTree Tree = TokenContext.ParsePattern(NameSpace, "$Expression$", Required);
 				FuncTree.AppendParsedTree(Tree);
 				if(TokenContext.MatchToken(")")) break;
-				FuncTree.SetMatchedTokenAt(NoWhere, TokenContext, ",", Required);
+				FuncTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ",", Required);
 			}
 		}
 		TokenContext.ParseFlag = ParseFlag;
@@ -2327,7 +2327,7 @@ final class DScriptGrammar extends GtGrammar {
 		return Gamma.Generator.CreateAssignNode(LeftNode.Type, ParsedTree, LeftNode, RightNode);
 	}
 
-	public static GtSyntaxTree ParseBlock(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
+	public static GtSyntaxTree ParseBlock(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		if(TokenContext.MatchToken("{")) {
 			/*local*/GtSyntaxTree PrevTree = null;
 			while(TokenContext.SkipEmptyStatement()) {
@@ -2335,7 +2335,7 @@ final class DScriptGrammar extends GtGrammar {
 					break;
 				}
 				/*local*/GtMap Annotation = TokenContext.SkipAndGetAnnotation(true);
-				/*local*/GtSyntaxTree CurrentTree = GtStatic.ParseExpression(TokenContext);
+				/*local*/GtSyntaxTree CurrentTree = GtStatic.ParseExpression(NameSpace, TokenContext);
 				if(GtStatic.IsEmptyOrError(CurrentTree)) {
 					return CurrentTree;
 				}
@@ -2343,20 +2343,20 @@ final class DScriptGrammar extends GtGrammar {
 				PrevTree = GtStatic.LinkTree(PrevTree, CurrentTree);
 			}
 			if(PrevTree == null) {
-				return TokenContext.ParsePattern("$Empty$", Required);
+				return TokenContext.ParsePattern(NameSpace, "$Empty$", Required);
 			}
 			return GtStatic.TreeHead(PrevTree);
 		}
 		return null;
 	}
 
-	public static GtSyntaxTree ParseStatement(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
-		/*local*/GtSyntaxTree StmtTree = TokenContext.ParsePattern("$Block$", Optional);
+	public static GtSyntaxTree ParseStatement(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtSyntaxTree StmtTree = TokenContext.ParsePattern(NameSpace, "$Block$", Optional);
 		if(StmtTree == null) {
-			StmtTree = GtStatic.ParseExpression(TokenContext);
+			StmtTree = GtStatic.ParseExpression(NameSpace, TokenContext);
 		}
 		if(StmtTree == null) {
-			StmtTree = TokenContext.ParsePattern("$Empty$", Required);
+			StmtTree = TokenContext.ParsePattern(NameSpace, "$Empty$", Required);
 		}
 		return StmtTree;
 	}
@@ -2366,15 +2366,15 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	// If Statement
-	public static GtSyntaxTree ParseIf(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
+	public static GtSyntaxTree ParseIf(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.GetMatchedToken("if");
-		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
-		NewTree.SetMatchedTokenAt(NoWhere, TokenContext, "(", Required);
-		NewTree.SetMatchedPatternAt(IfCond, TokenContext, "$Expression$", Required);
-		NewTree.SetMatchedTokenAt(NoWhere, TokenContext, ")", Required);
-		NewTree.SetMatchedPatternAt(IfThen, TokenContext, "$Statement$", Required);
+		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
+		NewTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "(", Required);
+		NewTree.SetMatchedPatternAt(IfCond, NameSpace, TokenContext, "$Expression$", Required);
+		NewTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ")", Required);
+		NewTree.SetMatchedPatternAt(IfThen, NameSpace, TokenContext, "$Statement$", Required);
 		if(TokenContext.MatchToken("else")) {
-			NewTree.SetMatchedPatternAt(IfElse, TokenContext, "$Statement$", Required);
+			NewTree.SetMatchedPatternAt(IfElse, NameSpace, TokenContext, "$Statement$", Required);
 		}
 		return NewTree;
 	}
@@ -2387,12 +2387,12 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	// While Statement
-	public static GtSyntaxTree ParseWhile(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
-		/*local*/GtSyntaxTree WhileTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("while"), null);
-		WhileTree.SetMatchedTokenAt(NoWhere, TokenContext, "(", Required);
-		WhileTree.SetMatchedPatternAt(WhileCond, TokenContext, "$Expression$", Required);
-		WhileTree.SetMatchedTokenAt(NoWhere, TokenContext, ")", Required);
-		WhileTree.SetMatchedPatternAt(WhileBody, TokenContext, "$Block$", Required);
+	public static GtSyntaxTree ParseWhile(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtSyntaxTree WhileTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("while"), null);
+		WhileTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "(", Required);
+		WhileTree.SetMatchedPatternAt(WhileCond, NameSpace, TokenContext, "$Expression$", Required);
+		WhileTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ")", Required);
+		WhileTree.SetMatchedPatternAt(WhileBody, NameSpace, TokenContext, "$Block$", Required);
 		return WhileTree;
 	}
 
@@ -2403,9 +2403,9 @@ final class DScriptGrammar extends GtGrammar {
 	}
 	
 	// Break/Continue Statement
-	public static GtSyntaxTree ParseBreak(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
+	public static GtSyntaxTree ParseBreak(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.GetMatchedToken("break");
-		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
+		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
 		return NewTree;
 	}
 
@@ -2413,9 +2413,9 @@ final class DScriptGrammar extends GtGrammar {
 		return Gamma.Generator.CreateBreakNode(Gamma.VoidType, ParsedTree, null, "break");
 	}
 
-	public static GtSyntaxTree ParseContinue(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
+	public static GtSyntaxTree ParseContinue(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.GetMatchedToken("continue");
-		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
+		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
 		return NewTree;
 	}
 
@@ -2424,9 +2424,9 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	// Return Statement
-	public static GtSyntaxTree ParseReturn(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
-		/*local*/GtSyntaxTree ReturnTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("return"), null);
-		ReturnTree.SetMatchedPatternAt(ReturnExpr, TokenContext, "$Expression$", Optional);
+	public static GtSyntaxTree ParseReturn(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtSyntaxTree ReturnTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("return"), null);
+		ReturnTree.SetMatchedPatternAt(ReturnExpr, NameSpace, TokenContext, "$Expression$", Optional);
 		return ReturnTree;
 	}
 
@@ -2443,17 +2443,17 @@ final class DScriptGrammar extends GtGrammar {
 	}
 	
 	// try
-	public static GtSyntaxTree ParseTry(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
-		/*local*/GtSyntaxTree TryTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("try"), null);
-		TryTree.SetMatchedPatternAt(TryBody, TokenContext, "$Block$", Required);
+	public static GtSyntaxTree ParseTry(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtSyntaxTree TryTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("try"), null);
+		TryTree.SetMatchedPatternAt(TryBody, NameSpace, TokenContext, "$Block$", Required);
 		if(TokenContext.MatchToken("catch")) {
-			TryTree.SetMatchedTokenAt(NoWhere, TokenContext, "(", Required);
-			TryTree.SetMatchedPatternAt(CatchVariable, TokenContext, "$Variable$", Required);
-			TryTree.SetMatchedTokenAt(NoWhere, TokenContext, ")", Required);
-			TryTree.SetMatchedPatternAt(CatchBody, TokenContext, "$Block$", Required);
+			TryTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "(", Required);
+			TryTree.SetMatchedPatternAt(CatchVariable, NameSpace, TokenContext, "$Variable$", Required);
+			TryTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ")", Required);
+			TryTree.SetMatchedPatternAt(CatchBody, NameSpace, TokenContext, "$Block$", Required);
 		}
 		if(TokenContext.MatchToken("finally")) {
-			TryTree.SetMatchedPatternAt(FinallyBody, TokenContext, "$Block$", Required);
+			TryTree.SetMatchedPatternAt(FinallyBody, NameSpace, TokenContext, "$Block$", Required);
 		}
 		return TryTree;
 	}
@@ -2462,9 +2462,9 @@ final class DScriptGrammar extends GtGrammar {
 		return null;
 	}
 
-	public static GtSyntaxTree ParseThrow(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
-		/*local*/GtSyntaxTree ThrowTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("throw"), null);
-		ThrowTree.SetMatchedPatternAt(ReturnExpr, TokenContext, "$Expression$", Required);
+	public static GtSyntaxTree ParseThrow(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtSyntaxTree ThrowTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("throw"), null);
+		ThrowTree.SetMatchedPatternAt(ReturnExpr, NameSpace, TokenContext, "$Expression$", Required);
 		return ThrowTree;
 	}
 	
@@ -2473,20 +2473,20 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	// switch
-	public static GtSyntaxTree ParseEnum(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
+	public static GtSyntaxTree ParseEnum(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/String EnumTypeName = null;
 		/*local*/GtType NewEnumType = null;
 		/*local*/GtMap VocabMap = new GtMap();
-		/*local*/GtSyntaxTree EnumTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("enum"), null);
-		EnumTree.SetMatchedPatternAt(EnumNameTreeIndex, TokenContext, "$FuncName$", Required);  // $ClassName$ is better
+		/*local*/GtSyntaxTree EnumTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("enum"), null);
+		EnumTree.SetMatchedPatternAt(EnumNameTreeIndex, NameSpace, TokenContext, "$FuncName$", Required);  // $ClassName$ is better
 		if(!EnumTree.IsEmptyOrError()) {
 			EnumTypeName = EnumTree.GetSyntaxTreeAt(EnumNameTreeIndex).KeyToken.ParsedText;
-			if(TokenContext.NameSpace.GetSymbol(EnumTypeName) != null) {
-				TokenContext.NameSpace.ReportError(ErrorLevel, EnumTree.KeyToken, "already defined name: " + EnumTypeName);
+			if(NameSpace.GetSymbol(EnumTypeName) != null) {
+				NameSpace.ReportError(ErrorLevel, EnumTree.KeyToken, "already defined name: " + EnumTypeName);
 			}
-			NewEnumType = new GtType(TokenContext.NameSpace.Context, EnumClass, EnumTypeName, null, VocabMap);
+			NewEnumType = new GtType(NameSpace.Context, EnumClass, EnumTypeName, null, VocabMap);
 		}
-		EnumTree.SetMatchedTokenAt(NoWhere, TokenContext, "{", Required);
+		EnumTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "{", Required);
 		/*local*/int EnumValue = 0;
 		while(!EnumTree.IsEmptyOrError()) {
 			TokenContext.SkipIndent();
@@ -2496,17 +2496,17 @@ final class DScriptGrammar extends GtGrammar {
 			}
 			if(LangDeps.IsLetter(LangDeps.CharAt(Token.ParsedText, 0))) {
 				if(VocabMap.get(Token.ParsedText) != null) {
-					TokenContext.NameSpace.ReportError(WarningLevel, Token, "already defined name: " + Token.ParsedText);
+					NameSpace.ReportError(WarningLevel, Token, "already defined name: " + Token.ParsedText);
 					continue;
 				}
 				VocabMap.put(Token.ParsedText, new GreenTeaEnum(NewEnumType, EnumValue, Token.ParsedText));
 				EnumValue += 1;
 				continue;
 			}
-			EnumTree.SetMatchedTokenAt(NoWhere, TokenContext, "}", Required);
+			EnumTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "}", Required);
 		}
 		if(!EnumTree.IsEmptyOrError()) {
-			TokenContext.NameSpace.DefineClass(NewEnumType);
+			NameSpace.DefineClass(NewEnumType);
 			EnumTree.ConstValue = NewEnumType;
 		}
 		return EnumTree;
@@ -2517,22 +2517,22 @@ final class DScriptGrammar extends GtGrammar {
 		return Gamma.Generator.CreateConstNode(Gamma.GuessType(EnumType), ParsedTree, EnumType);
 	}
 
-	public static GtSyntaxTree ParseSwitch(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
-		/*local*/GtSyntaxTree SwitchTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("switch"), null);
-		SwitchTree.SetMatchedTokenAt(NoWhere, TokenContext, "(", Required);
-		SwitchTree.SetMatchedPatternAt(CatchVariable, TokenContext, "$Expression$", Required);
-		SwitchTree.SetMatchedTokenAt(NoWhere, TokenContext, ")", Required);
-		SwitchTree.SetMatchedTokenAt(NoWhere, TokenContext, "{", Required);
+	public static GtSyntaxTree ParseSwitch(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtSyntaxTree SwitchTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("switch"), null);
+		SwitchTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "(", Required);
+		SwitchTree.SetMatchedPatternAt(CatchVariable, NameSpace, TokenContext, "$Expression$", Required);
+		SwitchTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ")", Required);
+		SwitchTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "{", Required);
 		while(!SwitchTree.IsEmptyOrError() && !TokenContext.MatchToken("}")) {
 			if(TokenContext.MatchToken("case")) {
-				SwitchTree.SetMatchedPatternAt(CatchVariable, TokenContext, "$Expression$", Required);
-				SwitchTree.SetMatchedTokenAt(NoWhere, TokenContext, ":", Required);
-				SwitchTree.SetMatchedPatternAt(TryBody, TokenContext, "$CaseBlock$", Required);
+				SwitchTree.SetMatchedPatternAt(CatchVariable, NameSpace, TokenContext, "$Expression$", Required);
+				SwitchTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ":", Required);
+				SwitchTree.SetMatchedPatternAt(TryBody, NameSpace, TokenContext, "$CaseBlock$", Required);
 				continue;
 			}
-			SwitchTree.SetMatchedTokenAt(NoWhere, TokenContext, "default", Required);
-			SwitchTree.SetMatchedTokenAt(NoWhere, TokenContext, ":", Required);
-			SwitchTree.SetMatchedPatternAt(TryBody, TokenContext, "$CaseBlock$", Required);
+			SwitchTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "default", Required);
+			SwitchTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ":", Required);
+			SwitchTree.SetMatchedPatternAt(TryBody, NameSpace, TokenContext, "$CaseBlock$", Required);
 		}
 		return SwitchTree;
 	}
@@ -2542,12 +2542,12 @@ final class DScriptGrammar extends GtGrammar {
 	}
 	
 	// const decl
-	public static GtSyntaxTree ParseConstDecl(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
+	public static GtSyntaxTree ParseConstDecl(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.GetMatchedToken("const");
-		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
-		NewTree.SetMatchedPatternAt(VarDeclName, TokenContext, "$Variable$", Required);
-		NewTree.SetMatchedTokenAt(NoWhere, TokenContext, "=", Required);
-		NewTree.SetMatchedPatternAt(VarDeclValue, TokenContext, "$Expression$", Required);
+		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
+		NewTree.SetMatchedPatternAt(VarDeclName, NameSpace, TokenContext, "$Variable$", Required);
+		NewTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "=", Required);
+		NewTree.SetMatchedPatternAt(VarDeclValue, NameSpace, TokenContext, "$Expression$", Required);
 		return NewTree;
 	}
 
@@ -2565,37 +2565,37 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	// FuncDecl
-	public static GtSyntaxTree ParseFuncName(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
+	public static GtSyntaxTree ParseFuncName(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.Next();
 		if(Token != GtTokenContext.NullToken) {
 			/*local*/char ch = LangDeps.CharAt(Token.ParsedText, 0);
 			if(ch != '.') {
-				return new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, Token.ParsedText);
+				return new GtSyntaxTree(Pattern, NameSpace, Token, Token.ParsedText);
 			}
 		}
 		return null;
 	}
 
-	public static GtSyntaxTree ParseFuncDecl(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
-		/*local*/GtSyntaxTree Tree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetToken(), null);
+	public static GtSyntaxTree ParseFuncDecl(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtSyntaxTree Tree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetToken(), null);
 		if(LeftTree == null) {
-			Tree.SetMatchedPatternAt(FuncDeclReturnType, TokenContext, "$Type$", Required);
+			Tree.SetMatchedPatternAt(FuncDeclReturnType, NameSpace, TokenContext, "$Type$", Required);
 		}
 		else {
 			Tree.SetSyntaxTreeAt(FuncDeclReturnType, LeftTree);
 		}
-		Tree.SetMatchedPatternAt(FuncDeclName, TokenContext, "$FuncName$", Required);
+		Tree.SetMatchedPatternAt(FuncDeclName, NameSpace, TokenContext, "$FuncName$", Required);
 		if(TokenContext.MatchToken("(")) {
 			/*local*/int ParseFlag = TokenContext.SetBackTrack(false);  // disabled
 			/*local*/int ParamBase = FuncDeclParam;
 			while(!Tree.IsEmptyOrError() && !TokenContext.MatchToken(")")) {
 				if(ParamBase != FuncDeclParam) {
-					Tree.SetMatchedTokenAt(NoWhere, TokenContext, ",", Required);
+					Tree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ",", Required);
 				}
-				Tree.SetMatchedPatternAt(ParamBase + VarDeclType, TokenContext, "$Type$", Required);
-				Tree.SetMatchedPatternAt(ParamBase + VarDeclName, TokenContext, "$Variable$", Required);
+				Tree.SetMatchedPatternAt(ParamBase + VarDeclType, NameSpace, TokenContext, "$Type$", Required);
+				Tree.SetMatchedPatternAt(ParamBase + VarDeclName, NameSpace, TokenContext, "$Variable$", Required);
 				if(TokenContext.MatchToken("=")) {
-					Tree.SetMatchedPatternAt(ParamBase + VarDeclValue, TokenContext, "$Expression$", Required);
+					Tree.SetMatchedPatternAt(ParamBase + VarDeclValue, NameSpace, TokenContext, "$Expression$", Required);
 				}
 				ParamBase += 3;
 			}
@@ -2605,7 +2605,7 @@ final class DScriptGrammar extends GtGrammar {
 				Tree.ConstValue = Token.ParsedText;
 			}
 			else {
-				Tree.SetMatchedPatternAt(FuncDeclBlock, TokenContext, "$Block$", Optional);
+				Tree.SetMatchedPatternAt(FuncDeclBlock, NameSpace, TokenContext, "$Block$", Optional);
 			}
 			TokenContext.ParseFlag = ParseFlag;
 			return Tree;
@@ -2697,14 +2697,14 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	// ClassDecl
-	public static GtSyntaxTree ParseClassDecl(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
-		/*local*/GtSyntaxTree Tree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetToken(), null);
+	public static GtSyntaxTree ParseClassDecl(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtSyntaxTree Tree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetToken(), null);
 		// "class" $Symbol$ ["extends" $Type$]
 		TokenContext.MatchToken("class");
-		/*local*/GtSyntaxTree ClassNameTree = TokenContext.ParsePattern("$Symbol$", Required);
+		/*local*/GtSyntaxTree ClassNameTree = TokenContext.ParsePattern(NameSpace, "$Symbol$", Required);
 		Tree.SetSyntaxTreeAt(ClassNameOffset, ClassNameTree);
 		if(TokenContext.MatchToken("extends")) {
-			Tree.SetMatchedPatternAt(ClassParentNameOffset, TokenContext, "$Type$", Required);
+			Tree.SetMatchedPatternAt(ClassParentNameOffset, NameSpace, TokenContext, "$Type$", Required);
 		}
 
 		// define new class
@@ -2715,12 +2715,12 @@ final class DScriptGrammar extends GtGrammar {
 			SuperClass = (/*cast*/GtType) SuperClassTree.ConstValue;
 		}
 		/*local*/int ClassFlag = 0; //Gamma.Generator.ParseMethodFlag(0, ParsedTree);
-		/*local*/GtType NewType = TokenContext.NameSpace.Context.StructType.CreateSubType(ClassFlag, ClassName, null, null);
+		/*local*/GtType NewType = NameSpace.Context.StructType.CreateSubType(ClassFlag, ClassName, null, null);
 //		/*local*/GtObject DefaultObject = new GtObject(NewType);
 //		NewType.DefaultNullValue = DefaultObject;
 		NewType.SuperClass = SuperClass;
 
-		TokenContext.NameSpace.DefineClass(NewType);
+		NameSpace.DefineClass(NewType);
 		ClassNameTree.ConstValue = NewType;
 
 		/*local*/int ParseFlag = TokenContext.SetBackTrack(false) | SkipIndentParseFlag;
@@ -2728,18 +2728,18 @@ final class DScriptGrammar extends GtGrammar {
 		if(TokenContext.MatchToken("{")) {
 			/*local*/int i = ClassBlockOffset;
 			while(!Tree.IsEmptyOrError() && !TokenContext.MatchToken("}")) {
-				/*local*/GtSyntaxTree FuncDecl = TokenContext.ParsePattern("$FuncDecl$", Optional);
+				/*local*/GtSyntaxTree FuncDecl = TokenContext.ParsePattern(NameSpace, "$FuncDecl$", Optional);
 				if(FuncDecl != null) {
 					Tree.SetSyntaxTreeAt(i, FuncDecl);
 					i = i + 1;
 				}
-				/*local*/GtSyntaxTree VarDecl = TokenContext.ParsePattern("$VarDecl$", Optional);
+				/*local*/GtSyntaxTree VarDecl = TokenContext.ParsePattern(NameSpace, "$VarDecl$", Optional);
 				if(VarDecl != null) {
 					Tree.SetSyntaxTreeAt(i, VarDecl);
 					TokenContext.MatchToken(";");
 					i = i + 1;
 				}
-				/*local*/GtSyntaxTree InitDecl = TokenContext.ParsePatternAfter(ClassNameTree, "constructor", Optional);
+				/*local*/GtSyntaxTree InitDecl = TokenContext.ParsePatternAfter(NameSpace, ClassNameTree, "constructor", Optional);
 				if(InitDecl != null) {
 					Tree.SetSyntaxTreeAt(i, InitDecl);
 					if(InitDecl.HasNodeAt(FuncDeclBlock)) {
@@ -2748,9 +2748,8 @@ final class DScriptGrammar extends GtGrammar {
 						while(TailTree.NextTree != null) {
 							TailTree = TailTree.NextTree;
 						}
-						/*local*/GtNameSpace NS = TokenContext.NameSpace;
-						/*local*/GtSyntaxTree ThisTree = new GtSyntaxTree(NS.GetPattern("$Variable$"), NS, new GtToken("this", 0), null);
-						/*local*/GtSyntaxTree ReturnTree = new GtSyntaxTree(NS.GetPattern("return"), NS, new GtToken("return", 0), null);
+						/*local*/GtSyntaxTree ThisTree = new GtSyntaxTree(NameSpace.GetPattern("$Variable$"), NameSpace, new GtToken("this", 0), null);
+						/*local*/GtSyntaxTree ReturnTree = new GtSyntaxTree(NameSpace.GetPattern("return"), NameSpace, new GtToken("return", 0), null);
 						ReturnTree.SetSyntaxTreeAt(ReturnExpr, ThisTree);
 						GtStatic.LinkTree(TailTree, ReturnTree);
 
@@ -2823,11 +2822,11 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	// constructor
-	public static GtSyntaxTree ParseConstructor(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
+	public static GtSyntaxTree ParseConstructor(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		LangDeps.Assert(LeftTree != null);
-		/*local*/GtSyntaxTree Tree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetToken(), null);
+		/*local*/GtSyntaxTree Tree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetToken(), null);
 		Tree.SetSyntaxTreeAt(FuncDeclReturnType, LeftTree);
-		Tree.SetMatchedTokenAt(FuncDeclName, TokenContext, "constructor", Required);
+		Tree.SetMatchedTokenAt(FuncDeclName, NameSpace, TokenContext, "constructor", Required);
 		if(!Tree.HasNodeAt(FuncDeclName)) {
 			return null;
 		}
@@ -2835,20 +2834,20 @@ final class DScriptGrammar extends GtGrammar {
 			/*local*/int ParseFlag = TokenContext.SetBackTrack(false);  // disabled
 			/*local*/int ParamBase = FuncDeclParam + 3;
 			Tree.SetSyntaxTreeAt(FuncDeclParam + 0, LeftTree);
-			Tree.SetSyntaxTreeAt(FuncDeclParam + 1, new GtSyntaxTree(TokenContext.NameSpace.GetPattern("$Variable$"), TokenContext.NameSpace, new GtToken("this", 0), null));
+			Tree.SetSyntaxTreeAt(FuncDeclParam + 1, new GtSyntaxTree(NameSpace.GetPattern("$Variable$"), NameSpace, new GtToken("this", 0), null));
 			while(!Tree.IsEmptyOrError() && !TokenContext.MatchToken(")")) {
 				if(ParamBase != FuncDeclParam + 3) {
-					Tree.SetMatchedTokenAt(NoWhere, TokenContext, ",", Required);
+					Tree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ",", Required);
 				}
-				Tree.SetMatchedPatternAt(ParamBase + VarDeclType, TokenContext, "$Type$", Required);
-				Tree.SetMatchedPatternAt(ParamBase + VarDeclName, TokenContext, "$Variable$", Required);
+				Tree.SetMatchedPatternAt(ParamBase + VarDeclType, NameSpace, TokenContext, "$Type$", Required);
+				Tree.SetMatchedPatternAt(ParamBase + VarDeclName, NameSpace, TokenContext, "$Variable$", Required);
 				if(TokenContext.MatchToken("=")) {
-					Tree.SetMatchedPatternAt(ParamBase + VarDeclValue, TokenContext, "$Expression$", Required);
+					Tree.SetMatchedPatternAt(ParamBase + VarDeclValue, NameSpace, TokenContext, "$Expression$", Required);
 				}
 				ParamBase += 3;
 			}
 			TokenContext.SkipIndent();
-			Tree.SetMatchedPatternAt(FuncDeclBlock, TokenContext, "$Block$", Optional);
+			Tree.SetMatchedPatternAt(FuncDeclBlock, NameSpace, TokenContext, "$Block$", Optional);
 			TokenContext.ParseFlag = ParseFlag;
 			return Tree;
 		}
@@ -2925,9 +2924,9 @@ final class DScriptGrammar extends GtGrammar {
 		return GtStatic.NoMatch;
 	}
 
-	public final static GtSyntaxTree ParseShell(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
+	public final static GtSyntaxTree ParseShell(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.Next();
-		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
+		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
 		while(!GtStatic.IsEmptyOrError(NewTree) && !TokenContext.MatchToken(";")) {
 			/*local*/GtSyntaxTree Tree = null;
 			if(TokenContext.GetToken().IsDelim() || TokenContext.GetToken().IsIndent()) {
@@ -2937,7 +2936,7 @@ final class DScriptGrammar extends GtGrammar {
 				// FIXME
 			}
 			if(Tree == null) {
-				Tree = TokenContext.ParsePattern("$Expression$", Optional);
+				Tree = TokenContext.ParsePattern(NameSpace, "$Expression$", Optional);
 			}
 			NewTree.AppendParsedTree(Tree);
 		}
