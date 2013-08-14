@@ -11,6 +11,8 @@ interface GtConst {
 	public final static int		NativeClass	     				= 1 << 0;
 	public final static int		StructClass				    	= 1 << 1;
 	public final static int		DynamicClass				    = 1 << 2;
+	public final static int     EnumClass                       = 1 << 3;
+	public final static int     OpenClass                       = 1 << 4;
 	
 //	public final static int		FinalClass						= 1 << 2;
 //	public final static int		GreenClass		    			= 1 << 3;
@@ -1244,20 +1246,13 @@ final class GtTypeEnv extends GtStatic {
 		return null;
 	}
 
-	public GtType GuessType (Object Value) {
-		if(Value instanceof String) {
-			return this.StringType;
+	public final GtType GuessType (Object Value) {
+		if(Value instanceof GreenTeaTopObject) {
+			return ((/*cast*/GreenTeaTopObject)Value).GreenType;
 		}
-		else if(Value instanceof Integer || Value instanceof Long) {
-			return this.IntType;
+		else {
+			return this.Generator.GetNativeType(Value);
 		}
-		else if(Value instanceof GtMethod) {
-			((/*cast*/GtMethod)Value).GetFuncType();
-		}
-		else if(Value instanceof Boolean) {
-			return this.BooleanType;
-		}
-		return this.AnyType;
 	}
 
 	public final GtNode ReportTypeResult(GtSyntaxTree ParsedTree, GtNode Node, int Level, String Message) {
@@ -2468,29 +2463,50 @@ final class DScriptGrammar extends GtGrammar {
 		return null;
 	}
 
+	public final static int EnumNameTreeIndex = 0;
 	// switch
 	public static GtSyntaxTree ParseEnum(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
-		/*local*/GtSyntaxTree EnumTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("switch"), null);
-		EnumTree.SetMatchedTokenAt(NoWhere, TokenContext, "(", Required);
-		EnumTree.SetMatchedPatternAt(CatchVariable, TokenContext, "$Expression$", Required);
-		EnumTree.SetMatchedTokenAt(NoWhere, TokenContext, ")", Required);
+		/*local*/String EnumTypeName = null;
+		/*local*/GtType NewEnumType = null;
+		/*local*/GtMap VocabMap = new GtMap();
+		/*local*/GtSyntaxTree EnumTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("enum"), null);
+		EnumTree.SetMatchedPatternAt(EnumNameTreeIndex, TokenContext, "$FuncName$", Required);  // $ClassName$ is better
+		if(!EnumTree.IsEmptyOrError()) {
+			EnumTypeName = EnumTree.GetSyntaxTreeAt(EnumNameTreeIndex).KeyToken.ParsedText;
+			if(TokenContext.NameSpace.GetSymbol(EnumTypeName) != null) {
+				TokenContext.NameSpace.ReportError(ErrorLevel, EnumTree.KeyToken, "already defined name: " + EnumTypeName);
+			}
+			NewEnumType = new GtType(TokenContext.NameSpace.Context, EnumClass, EnumTypeName, null, VocabMap);
+		}
 		EnumTree.SetMatchedTokenAt(NoWhere, TokenContext, "{", Required);
-		while(!EnumTree.IsEmptyOrError() && !TokenContext.MatchToken("}")) {
-			if(TokenContext.MatchToken("case")) {
-				EnumTree.SetMatchedPatternAt(CatchVariable, TokenContext, "$Expression$", Required);
-				EnumTree.SetMatchedTokenAt(NoWhere, TokenContext, ":", Required);
-				EnumTree.SetMatchedPatternAt(TryBody, TokenContext, "$CaseBlock$", Required);
+		/*local*/int EnumValue = 0;
+		while(!EnumTree.IsEmptyOrError()) {
+			TokenContext.SkipIndent();
+			/*local*/GtToken Token = TokenContext.Next();
+			if(Token.EqualsText(",")) {
 				continue;
 			}
-			EnumTree.SetMatchedTokenAt(NoWhere, TokenContext, "default", Required);
-			EnumTree.SetMatchedTokenAt(NoWhere, TokenContext, ":", Required);
-			EnumTree.SetMatchedPatternAt(TryBody, TokenContext, "$CaseBlock$", Required);
+			if(LangDeps.IsLetter(LangDeps.CharAt(Token.ParsedText, 0))) {
+				if(VocabMap.get(Token.ParsedText) != null) {
+					TokenContext.NameSpace.ReportError(WarningLevel, Token, "already defined name: " + Token.ParsedText);
+					continue;
+				}
+				VocabMap.put(Token.ParsedText, new GreenTeaEnum(NewEnumType, EnumValue, Token.ParsedText));
+				EnumValue += 1;
+				continue;
+			}
+			EnumTree.SetMatchedTokenAt(NoWhere, TokenContext, "}", Required);
+		}
+		if(!EnumTree.IsEmptyOrError()) {
+			TokenContext.NameSpace.DefineClass(NewEnumType);
+			EnumTree.ConstValue = NewEnumType;
 		}
 		return EnumTree;
 	}
 	
 	public static GtNode TypeEnum(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		return null;
+		Object EnumType = ParsedTree.ConstValue;
+		return Gamma.Generator.CreateConstNode(Gamma.GuessType(EnumType), ParsedTree, EnumType);
 	}
 
 	public static GtSyntaxTree ParseSwitch(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {

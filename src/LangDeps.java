@@ -54,7 +54,7 @@ public abstract class LangDeps {
 	public final static boolean IsDigit(char ch) {
 		return Character.isDigit(ch);
 	}
-
+	
 	public final static char CharAt(String Text, int Pos) {
 		return Text.charAt(Pos);
 	}

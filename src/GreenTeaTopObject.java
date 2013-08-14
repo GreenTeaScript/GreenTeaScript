@@ -1,6 +1,6 @@
 
 public class GreenTeaTopObject {
-	/*field*/public final GtType GreenType;
+	/*field*/public GtType GreenType;
 	GreenTeaTopObject/*constructor*/(GtType GreenType) {
 		this.GreenType = GreenType;
 	}
