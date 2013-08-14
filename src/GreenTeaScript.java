@@ -2491,6 +2491,8 @@ final class DScriptGrammar extends GtGrammar {
 		if(!(ValueNode instanceof ConstNode)) {
 			return Gamma.CreateErrorNode2(ParsedTree, "definition of variable " + VariableName + " is not constant");
 		}
+		/*local*/ConstNode CNode = (/*cast*/ConstNode) ValueNode;
+		Gamma.NameSpace.DefineSymbol(VariableName, CNode.ConstValue);
 		return Gamma.Generator.CreateEmptyNode(ContextType);
 	}
 
