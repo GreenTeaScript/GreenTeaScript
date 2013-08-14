@@ -1449,20 +1449,20 @@ final class GtNameSpace extends GtStatic {
 
 	private void AppendPattern(String PatternName, GtSyntaxPattern NewPattern) {
 		LangDeps.Assert(NewPattern.ParentPattern == null);
-		/*local*/GtSyntaxPattern ParentPattern = GetPattern(PatternName);
+		/*local*/GtSyntaxPattern ParentPattern = this.GetPattern(PatternName);
 		NewPattern.ParentPattern = ParentPattern;
 		this.DefineSymbol(PatternName, NewPattern);
 	}
 
 	public void DefineSyntaxPattern(String PatternName, GtDelegateMatch MatchFunc, GtDelegateType TypeFunc) {
 		/*local*/GtSyntaxPattern Pattern = new GtSyntaxPattern(this, PatternName, MatchFunc, TypeFunc);
-		AppendPattern(PatternName, Pattern);
+		this.AppendPattern(PatternName, Pattern);
 	}
 
 	public void DefineExtendedPattern(String PatternName, int SyntaxFlag, GtDelegateMatch MatchFunc, GtDelegateType TypeFunc) {
 		/*local*/GtSyntaxPattern Pattern = new GtSyntaxPattern(this, PatternName, MatchFunc, TypeFunc);
 		Pattern.SyntaxFlag = SyntaxFlag;
-		AppendPattern("+" + PatternName, Pattern);
+		this.AppendPattern("+" + PatternName, Pattern);
 	}
 
 	public final GtType DefineClassSymbol(GtType ClassInfo) {
@@ -3080,7 +3080,7 @@ final class GtClassContext extends GtStatic {
 			DebugP("untyped tree: " + topLevelTree);
 			/*local*/GtTypeEnv gamma = new GtTypeEnv(this.TopLevelNameSpace);
 			/*local*/GtNode node = gamma.TypeCheckEachNode(topLevelTree, gamma.VoidType, DefaultTypeCheckPolicy);
-			resultValue = Generator.Eval(node);
+			resultValue = this.Generator.Eval(node);
 			TokenContext.SkipEmptyStatement();
 			TokenContext.Vacume();
 		}

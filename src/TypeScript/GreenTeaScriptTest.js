@@ -53,7 +53,7 @@ var GreenTeaScriptTest = (function () {
     function GreenTeaScriptTest() {
     }
     GreenTeaScriptTest.TestToken = function (Context, Source, TokenTestList) {
-        var NameSpace = Context.DefaultNameSpace;
+        var NameSpace = Context.TopLevelNameSpace;
         var TokenContext = new GtTokenContext(NameSpace, Source, 1);
         var i = 0;
         while (i < TokenTestList.length) {
