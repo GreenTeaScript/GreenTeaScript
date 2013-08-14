@@ -25,7 +25,7 @@ Object.prototype["equals"] = function (other) {
 };
 
 String.prototype["startsWith"] = function (key) {
-    return this.IndexOf(key, 0) == 0;
+    return this.indexOf(key, 0) == 0;
 };
 
 String.prototype["endsWith"] = function (key) {
