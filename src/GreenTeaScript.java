@@ -1069,7 +1069,7 @@ class GtSyntaxTree extends GtStatic {
 	public void ToEmpty() {
 		this.KeyToken = GtTokenContext.NullToken;
 		this.TreeList = null;
-		this.Pattern = this.NameSpace.GetPattern("$Empty$");
+		this.Pattern = null; //this.NameSpace.GetPattern("$Empty$");
 	}
 
 	public boolean IsEmptyOrError() {
