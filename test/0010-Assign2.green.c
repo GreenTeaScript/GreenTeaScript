@@ -1,9 +1,7 @@
 static boolean g__02(int a0){
-   boolean a1 = String __Command = ("false");
-   system(__Command);
+   boolean a1 = false;
    {
-      a1 = String __Command = ("true");
-      system(__Command);
+      a1 = true;
       return a1;
    };
 }

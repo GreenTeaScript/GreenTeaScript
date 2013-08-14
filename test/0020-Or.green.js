@@ -1,3 +1,3 @@
-var Goal__A = (function() {
+var Goal__00 = (function() {
    return false || true;
 })
