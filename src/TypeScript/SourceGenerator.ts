@@ -768,7 +768,7 @@ class CommandNode extends GtNode {
 }
 
 class GtType {
-	 Context: GtContext;
+	 Context: GtClassContext;
 	public PackageNameSpace: GtNameSpace;
 	ClassFlag: number;
 	ClassId: number;
@@ -781,7 +781,7 @@ class GtType {
 	Types: GtType[];
 	public NativeSpec: Object;
 
-	constructor(Context: GtContext, ClassFlag: number, ClassName: string, DefaultNullValue: Object, NativeSpec: Object) {
+	constructor(Context: GtClassContext, ClassFlag: number, ClassName: string, DefaultNullValue: Object, NativeSpec: Object) {
 		this.Context = Context;
 		this.ClassFlag = ClassFlag;
 		this.ShortClassName = ClassName;
@@ -903,7 +903,7 @@ class GtMethod {
 
 	 GetFuncType(): GtType {
 		if(this.FuncType == null) {
-			var Context: GtContext = this.GetRecvType().Context;
+			var Context: GtClassContext = this.GetRecvType().Context;
 			this.FuncType = Context.GetGenericType(Context.FuncType, 0, this.Types, true);
 		}
 		return this.FuncType;
@@ -976,7 +976,7 @@ class GtPolyFunc {
 
 class GtGenerator {
 	public LangName: string;
-	public Context: GtContext;
+	public Context: GtClassContext;
 	public GeneratedCodeStack: Array<Object>;
 
 	constructor(LangName: string) {
@@ -985,7 +985,7 @@ class GtGenerator {
 		this.GeneratedCodeStack = new Array<Object>();
 	}
 
-	public SetLanguageContext(Context: GtContext): void {
+	public SetLanguageContext(Context: GtClassContext): void {
 		this.Context = Context;
 	}
 
@@ -1160,7 +1160,7 @@ class GtGenerator {
 		/*extension*/
 	}
 
-	public FreezeClass(Type: GtType): void {
+	public GenerateClassField(Type: GtType): void {
 		/*extension*/
 	}
 
@@ -1171,8 +1171,8 @@ class GtGenerator {
 		return MethodFlag;
 	}
 
-	public CreateMethod(MethodFlag: number, MethodName: string, BaseIndex: number, TypeList: Array<GtType>, RawMacro: string): GtMethod {
-		return new GtMethod(MethodFlag, MethodName, BaseIndex, TypeList, RawMacro);
+	public CreateMethod(MethodFlag: number, MethodName: string, BaseIndex: number, TypeList: Array<GtType>, NativeRef: Object): GtMethod {
+		return new GtMethod(MethodFlag, MethodName, BaseIndex, TypeList, NativeRef);
 	}
 
 	public GenerateMethod(Method: GtMethod, ParamNameList: Array<string>, Body: GtNode): void {

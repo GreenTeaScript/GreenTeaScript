@@ -408,6 +408,6 @@ class PythonSourceGenerator extends SourceGenerator {
 	public AddClass(Type: GtType): void {
 	}
 
-	public SetLanguageContext(Context: GtContext): void {
+	public SetLanguageContext(Context: GtClassContext): void {
 	}
 }

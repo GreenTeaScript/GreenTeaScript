@@ -2898,7 +2898,6 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	public static GtNode TypeClassDecl(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-//		/*local*/GtSyntaxTree ClassNameTree = ParsedTree.GetSyntaxTreeAt(ClassNameOffset);
 		/*local*/GtType NewType = ParsedTree.GetParsedType();
 		/*local*/int FieldOffset = ClassBlockOffset;
 		Gamma = new GtTypeEnv(ParsedTree.NameSpace);  // creation of new type environment
@@ -2951,7 +2950,6 @@ final class DScriptGrammar extends GtGrammar {
 
 			FieldOffset += 1;
 		}
-		//Gamma.NameSpace.DefineClass(NewType);
 		Gamma.Generator.GenerateClassField(NewType);
 		return Gamma.Generator.CreateConstNode(ParsedTree.NameSpace.Context.TypeType, ParsedTree, NewType);
 	}

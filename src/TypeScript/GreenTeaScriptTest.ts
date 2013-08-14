@@ -50,7 +50,7 @@ class GtScriptRunner {
 }
 
 class GreenTeaScriptTest {
-	static TestToken(Context: GtContext, Source: string, TokenTestList: string[]): void {
+	static TestToken(Context: GtClassContext, Source: string, TokenTestList: string[]): void {
 		var NameSpace: GtNameSpace = Context.DefaultNameSpace;
 		var TokenContext: GtTokenContext = new GtTokenContext(NameSpace, Source, 1);
 		var i: number = 0;
@@ -61,14 +61,14 @@ class GreenTeaScriptTest {
 		}
 	}
 
-	static CreateContext(): GtContext {
+	static CreateContext(): GtClassContext {
 		var CodeGeneratorName: string = "Java";
 		var Generator: GtGenerator = LangDeps.CodeGenerator(CodeGeneratorName);
-		return new GtContext(new DScriptGrammar(), Generator);
+		return new GtClassContext(new DScriptGrammar(), Generator);
 	}
 
 	static TokenizeOperator0(): void {
-		var Context: GtContext = GreenTeaScriptTest.CreateContext();
+		var Context: GtClassContext = GreenTeaScriptTest.CreateContext();
 		var TokenTestList0: string[] = ["1", "||", "2"]
 		GreenTeaScriptTest.TestToken(Context, "1 || 2", TokenTestList0);
 
@@ -86,7 +86,7 @@ class GreenTeaScriptTest {
 	}
 
 	static TokenizeStatement(): void {
-		var Context: GtContext = GreenTeaScriptTest.CreateContext();
+		var Context: GtClassContext = GreenTeaScriptTest.CreateContext();
 		var TokenTestList0: string[] = ["int", "+", "(", "int", "x", ")", ";"]
 		GreenTeaScriptTest.TestToken(Context, "number + (x: number);", TokenTestList0);
 	}

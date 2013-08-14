@@ -382,7 +382,7 @@ class CSourceGenerator extends SourceGenerator {
 		this.DefinedClass.put(Type.ShortClassName, Program);
 	}
 
-	public FreezeClass(Type: GtType): void {
+	public GenerateClassField(Type: GtType): void {
 		var Program: string = <string> this.DefinedClass.get(Type.ShortClassName);
 		Program += "}";
 		this.WriteTranslatedCode(Program);
@@ -404,7 +404,7 @@ class CSourceGenerator extends SourceGenerator {
 		this.DefinedClass.put(TypeName, Program);
 	}
 
-	public SetLanguageContext(Context: GtContext): void {
+	public SetLanguageContext(Context: GtClassContext): void {
 		Context.Eval(LangDeps.LoadFile("lib/c/common.green"), 1);
 	}
 }

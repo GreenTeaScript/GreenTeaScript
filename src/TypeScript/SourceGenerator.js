@@ -1124,7 +1124,7 @@ var GtGenerator = (function () {
         /*extension*/
     };
 
-    GtGenerator.prototype.FreezeClass = function (Type) {
+    GtGenerator.prototype.GenerateClassField = function (Type) {
         /*extension*/
     };
 
@@ -1135,8 +1135,8 @@ var GtGenerator = (function () {
         return MethodFlag;
     };
 
-    GtGenerator.prototype.CreateMethod = function (MethodFlag, MethodName, BaseIndex, TypeList, RawMacro) {
-        return new GtMethod(MethodFlag, MethodName, BaseIndex, TypeList, RawMacro);
+    GtGenerator.prototype.CreateMethod = function (MethodFlag, MethodName, BaseIndex, TypeList, NativeRef) {
+        return new GtMethod(MethodFlag, MethodName, BaseIndex, TypeList, NativeRef);
     };
 
     GtGenerator.prototype.GenerateMethod = function (Method, ParamNameList, Body) {

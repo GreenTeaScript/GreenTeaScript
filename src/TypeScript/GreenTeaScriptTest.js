@@ -66,7 +66,7 @@ var GreenTeaScriptTest = (function () {
     GreenTeaScriptTest.CreateContext = function () {
         var CodeGeneratorName = "Java";
         var Generator = LangDeps.CodeGenerator(CodeGeneratorName);
-        return new GtContext(new DScriptGrammar(), Generator);
+        return new GtClassContext(new DScriptGrammar(), Generator);
     };
 
     GreenTeaScriptTest.TokenizeOperator0 = function () {

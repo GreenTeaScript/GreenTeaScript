@@ -389,7 +389,7 @@ class PerlSourceGenerator extends SourceGenerator {
 
 	}
 
-	public SetLanguageContext(Context: GtContext): void {
+	public SetLanguageContext(Context: GtClassContext): void {
 		// Auto: TODO-generatedstub: method //
 
 	}

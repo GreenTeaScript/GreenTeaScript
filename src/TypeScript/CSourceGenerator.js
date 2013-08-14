@@ -379,7 +379,7 @@ var CSourceGenerator = (function (_super) {
         this.DefinedClass.put(Type.ShortClassName, Program);
     };
 
-    CSourceGenerator.prototype.FreezeClass = function (Type) {
+    CSourceGenerator.prototype.GenerateClassField = function (Type) {
         var Program = this.DefinedClass.get(Type.ShortClassName);
         Program += "}";
         this.WriteTranslatedCode(Program);
