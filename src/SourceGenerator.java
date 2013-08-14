@@ -1207,8 +1207,8 @@ class GtGenerator extends GtStatic {
 		return MethodFlag;
 	}
 
-	public GtMethod CreateMethod(int MethodFlag, String MethodName, int BaseIndex, ArrayList<GtType> TypeList, String RawMacro) {
-		return new GtMethod(MethodFlag, MethodName, BaseIndex, TypeList, RawMacro);
+	public GtMethod CreateMethod(int MethodFlag, String MethodName, int BaseIndex, ArrayList<GtType> TypeList, Object NativeRef) {
+		return new GtMethod(MethodFlag, MethodName, BaseIndex, TypeList, NativeRef);
 	}
 
 	public void GenerateMethod(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
