@@ -1,0 +1,15 @@
+void f(int a) {
+    10; //print("block-begin");
+    try {
+        20; //print("try-begin");
+        throw a;
+        30; //print("try-end");
+    } catch(int e) {
+        40; //print("catch-begin");
+        50; //print("catch-end");
+    } finally {
+        60// print("finally-begin");
+        70// print("finally-end");
+    }
+    80; //print("block-end");
+}
