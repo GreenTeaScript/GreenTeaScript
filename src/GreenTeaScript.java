@@ -1826,37 +1826,35 @@ final class DScriptGrammar extends GtGrammar {
 			if(ch == '$') {
 				/*local*/int end = NextPos + 1;
 				ch = LangDeps.CharAt(SourceText, end);
-				if(ch == '(') {
-					// find ')'
-				}
-				else {
+				if(ch == '{') {
 					while(end < SourceText.length()) {
 						ch = LangDeps.CharAt(SourceText, end);
-						if(!LangDeps.IsLetter(ch) && !LangDeps.IsDigit(ch)) {
+						if(ch == '}') {
 							break;
 						}
 						end = end + 1;
 					}
-					if(end == NextPos + 1) {
-						// e.g. "aaaa$ bbbb"
-						/* do nothing */
-					}
-					else {
-						String VarName = SourceText.substring(NextPos + 1, end);
-						TokenContext.AddNewToken(SourceText.substring(start, NextPos), 0, "$StringLiteral$");
-						TokenContext.AddNewToken("+", 0, null);
-						TokenContext.AddNewToken(VarName, 0, null);
-						TokenContext.AddNewToken("+", 0, null);
-						start = end;
-					}
-				}
-				NextPos = end;
-				prev = ch;
-				if(ch == '"') {
+					/*local*/String Expr = SourceText.substring(NextPos + 2, end);
+					/*local*/GtTokenContext LocalContext = new GtTokenContext(TokenContext.NameSpace, Expr, TokenContext.ParsingLine);
+					LocalContext.SkipEmptyStatement();
+
 					TokenContext.AddNewToken(SourceText.substring(start, NextPos), 0, "$StringLiteral$");
-					return NextPos + 1;
+					TokenContext.AddNewToken("+", 0, null);
+					while(LocalContext.HasNext()) {
+						GtToken NewToken = LocalContext.Next();
+						TokenContext.AddNewToken(NewToken.ParsedText, 0, null);
+					}
+					TokenContext.AddNewToken("+", 0, null);
+					end = end + 1;
+					start = end;
+					NextPos = end;
+					prev = ch;
+					if(ch == '"') {
+						TokenContext.AddNewToken(SourceText.substring(start, NextPos), 0, "$StringLiteral$");
+						return NextPos + 1;
+					}
+					continue;
 				}
-				continue;
 			}
 			if(ch == '"' && prev != '\\') {
 				TokenContext.AddNewToken(SourceText.substring(start, NextPos), 0, "$StringLiteral$");
@@ -2987,7 +2985,7 @@ final class DScriptGrammar extends GtGrammar {
 		NameSpace.DefineTokenFunc("Aa-/", FunctionA(this, "SymbolShellToken")); // overloading
 
 		NameSpace.DefineTokenFunc("\"", FunctionA(this, "StringLiteralToken"));
-		//NameSpace.DefineTokenFunc("\"", FunctionA(this, "StringLiteralToken_StringInterpolation"));
+		NameSpace.DefineTokenFunc("\"", FunctionA(this, "StringLiteralToken_StringInterpolation"));
 		NameSpace.DefineTokenFunc("1",  FunctionA(this, "NumberLiteralToken"));
 //#ifdef JAVA
 		GtDelegateMatch ParseUnary     = FunctionB(this, "ParseUnary");

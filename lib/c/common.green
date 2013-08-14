@@ -18,6 +18,8 @@ boolean >=(int x, int y) as "$0  >= $1";
 boolean ==(int x, int y) as "$0  == $1";
 boolean !=(int x, int y) as "$0  != $1";
 
+String +(String x, String y)      as "$0  +  $1";
+
 void print(String x) as "puts($0)";
 void assert(boolean x) as "assert($0)";
 
