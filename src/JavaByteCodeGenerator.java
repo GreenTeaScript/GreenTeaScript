@@ -141,7 +141,7 @@ class CheckReturnNodePath extends MethodPath {
 			}
 		}
 		GtNode ReturnNode = null;
-		GtContext Context = NameSpace.Context;
+		GtClassContext Context = NameSpace.Context;
 		if(ReturnType.equals(Context.VoidType)) {
 			ReturnNode = new ReturnNode(ReturnType, null, null);
 		}
@@ -413,7 +413,7 @@ class TypeResolver {
 //	// FIXME
 //	String globalType = Type.getType(GtObject.class).getDescriptor();
 
-	public TypeResolver(GtContext Context) {
+	public TypeResolver(GtClassContext Context) {
 //		this.typeDescriptorMap.put("global", globalType);
 		this.typeDescriptorMap.put(Context.VoidType.ShortClassName, Type.getType(void.class).getDescriptor());
 		this.typeDescriptorMap.put(Context.BooleanType.ShortClassName, Type.getType(boolean.class).getDescriptor());
@@ -500,7 +500,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 	private TypeResolver	TypeResolver;
 	private JVMBuilder Builder;
 	private final NativeMethodMap NMMap;
-	private GtContext Context;
+	private GtClassContext Context;
 
 	public JavaByteCodeGenerator() {
 		super("Java");
@@ -634,7 +634,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		}
 	}
 
-	@Override public void SetLanguageContext(GtContext Context) {
+	@Override public void SetLanguageContext(GtClassContext Context) {
 		this.Context = Context;
 		this.TypeResolver = new TypeResolver(Context);
 		InitEmbeddedMethod();

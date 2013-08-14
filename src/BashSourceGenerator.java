@@ -485,6 +485,6 @@ public class BashSourceGenerator extends SourceGenerator {
 	@Override public void AddClass(GtType Type) {
 	}
 
-	@Override public void SetLanguageContext(GtContext Context) {
+	@Override public void SetLanguageContext(GtClassContext Context) {
 	}
 }

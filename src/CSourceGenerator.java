@@ -405,7 +405,7 @@ public class CSourceGenerator extends SourceGenerator {
 		this.DefinedClass.put(TypeName, Program);
 	}
 
-	@Override public void SetLanguageContext(GtContext Context) {
+	@Override public void SetLanguageContext(GtClassContext Context) {
 		Context.Eval(LangDeps.LoadFile("lib/c/common.green"), 1);
 	}
 }

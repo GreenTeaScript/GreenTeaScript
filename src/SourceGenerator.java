@@ -772,7 +772,7 @@ class CommandNode extends GtNode {
 }
 
 class GtType extends GtStatic {
-	/*field*/public final GtContext	Context;
+	/*field*/public final GtClassContext	Context;
 	/*field*/public GtNameSpace     PackageNameSpace;
 	/*field*/int					ClassFlag;
 	/*field*/int                    ClassId;
@@ -785,7 +785,7 @@ class GtType extends GtStatic {
 	/*field*/GtType[]				Types;
 	/*field*/public Object          NativeSpec;
 
-	GtType/*constructor*/(GtContext Context, int ClassFlag, String ClassName, Object DefaultNullValue, Object NativeSpec) {
+	GtType/*constructor*/(GtClassContext Context, int ClassFlag, String ClassName, Object DefaultNullValue, Object NativeSpec) {
 		this.Context = Context;
 		this.ClassFlag = ClassFlag;
 		this.ShortClassName = ClassName;
@@ -907,7 +907,7 @@ class GtMethod extends GtStatic {
 
 	public final GtType GetFuncType() {
 		if(this.FuncType == null) {
-			GtContext Context = this.GetRecvType().Context;
+			GtClassContext Context = this.GetRecvType().Context;
 			this.FuncType = Context.GetGenericType(Context.FuncType, 0, new ArrayList<GtType>(Arrays.asList(this.Types)), true);
 		}
 		return this.FuncType;
@@ -980,7 +980,7 @@ class GtPolyFunc {
 
 class GtGenerator extends GtStatic {
 	/*field*/public String     LangName;
-	/*field*/public GtContext  Context;
+	/*field*/public GtClassContext  Context;
 	/*field*/public ArrayList<Object> GeneratedCodeStack;
 
 	GtGenerator/*constructor*/(String LangName) {
@@ -989,7 +989,7 @@ class GtGenerator extends GtStatic {
 		this.GeneratedCodeStack = new ArrayList<Object>();
 	}
 
-	public void SetLanguageContext(GtContext Context) {
+	public void SetLanguageContext(GtClassContext Context) {
 		this.Context = Context;
 	}
 

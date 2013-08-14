@@ -1197,7 +1197,7 @@ final class GtVariableInfo {
 }
 
 final class GtTypeEnv extends GtStatic {
-	/*field*/public final GtContext         Context;
+	/*field*/public final GtClassContext         Context;
 	/*field*/public final GtGenerator       Generator;
 	/*field*/public final GtNameSpace	    NameSpace;
 
@@ -1417,7 +1417,7 @@ final class GtSpec extends GtStatic {
 }
 
 final class GtNameSpace extends GtStatic {
-	/*field*/public final GtContext		Context;
+	/*field*/public final GtClassContext		Context;
 	/*field*/public final GtNameSpace		ParentNameSpace;
 	/*field*/public String          PackageName;
 	/*field*/public ArrayList<GtNameSpace>	  ImportedNameSpaceList;
@@ -1428,7 +1428,7 @@ final class GtNameSpace extends GtStatic {
 	/*field*/GtMap	 SymbolPatternTable;
 	/*field*/GtMap   ExtendedPatternTable;
 
-	GtNameSpace/*constructor*/(GtContext Context, GtNameSpace ParentNameSpace) {
+	GtNameSpace/*constructor*/(GtClassContext Context, GtNameSpace ParentNameSpace) {
 		this.Context = Context;
 		this.ParentNameSpace = ParentNameSpace;
 		this.PackageName = (ParentNameSpace != null) ? ParentNameSpace.PackageName : null;
@@ -3123,7 +3123,7 @@ final class GtStat {
 	}
 }
 
-final class GtContext extends GtStatic {
+final class GtClassContext extends GtStatic {
 	/*field*/public final  GtGenerator   Generator;
 	/*field*/public final  GtNameSpace		   RootNameSpace;
 	/*field*/public GtNameSpace		           DefaultNameSpace;
@@ -3152,7 +3152,7 @@ final class GtContext extends GtStatic {
 	/*field*/public int MethodCount;
 	/*field*/public final GtStat Stat;
 	
-	GtContext/*constructor*/(GtGrammar Grammar, GtGenerator Generator) {
+	GtClassContext/*constructor*/(GtGrammar Grammar, GtGenerator Generator) {
 		this.Generator    = Generator;
 		this.Generator.Context = this;
 		this.ClassNameMap = new GtMap();
@@ -3208,7 +3208,10 @@ final class GtContext extends GtStatic {
 	}
 
 	public final GtType GuessType (Object Value) {
-		if(Value instanceof GreenTeaTopObject) {
+		if(Value instanceof GtMethod) {
+			return ((/*cast*/GtMethod)Value).GetFuncType();
+		}
+		else if(Value instanceof GreenTeaTopObject) {
 			return ((/*cast*/GreenTeaTopObject)Value).GreenType;
 		}
 		else {
@@ -3482,7 +3485,7 @@ public class GreenTeaScript extends GtStatic {
 		if(Generator == null) {
 			LangDeps.Usage();
 		}
-		/*local*/GtContext Context = new GtContext(new DScriptGrammar(), Generator);
+		/*local*/GtClassContext Context = new GtClassContext(new DScriptGrammar(), Generator);
 		/*local*/boolean ShellMode = true;
 		if(OneLiner != null) {
 			Context.Eval(OneLiner, 1);

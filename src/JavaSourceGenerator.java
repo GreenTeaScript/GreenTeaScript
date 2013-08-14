@@ -355,6 +355,6 @@ public class JavaSourceGenerator extends SourceGenerator {
 
 	}
 
-	@Override public void SetLanguageContext(GtContext Context) {
+	@Override public void SetLanguageContext(GtClassContext Context) {
 	}
 }
