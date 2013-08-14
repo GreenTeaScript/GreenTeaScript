@@ -745,15 +745,6 @@ class CommandNode extends GtNode {
 	}
 }
 
-class GtObject {
-	/*field*/public GtType	Type;
-	/*field*/public GtMap   Field;
-	GtObject/*constructor*/(GtType Type) {
-		this.Type = Type;
-		this.Field = new GtMap();
-	}
-}
-
 class GtType extends GtStatic {
 	/*field*/public final GtContext	Context;
 	/*field*/public GtNameSpace     PackageNameSpace;

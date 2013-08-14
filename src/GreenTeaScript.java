@@ -2707,9 +2707,9 @@ final class DScriptGrammar extends GtGrammar {
 			SuperClass = (/*cast*/GtType) SuperClassTree.ConstValue;
 		}
 		/*local*/int ClassFlag = 0; //Gamma.Generator.ParseMethodFlag(0, ParsedTree);
-		/*local*/GtType NewType = new GtType(TokenContext.NameSpace.Context, ClassFlag, ClassName, null, null);
-		/*local*/GtObject DefaultObject = new GtObject(NewType);
-		NewType.DefaultNullValue = DefaultObject;
+		/*local*/GtType NewType = TokenContext.NameSpace.Context.StructType.CreateSubType(ClassFlag, ClassName, null, null);
+//		/*local*/GtObject DefaultObject = new GtObject(NewType);
+//		NewType.DefaultNullValue = DefaultObject;
 		NewType.SuperClass = SuperClass;
 
 		TokenContext.NameSpace.DefineClass(NewType);
@@ -3083,12 +3083,11 @@ final class GtContext extends GtStatic {
 		this.ClassCount = 0;
 		this.MethodCount = 0;
 
-		this.TopType     = new GtType(this, 0, "top", null, null);  // not registered
-		this.StructType  = this.TopType.CreateSubType(0, "record", null, null);
-		this.EnumType    = this.TopType.CreateSubType(0, "enum", null, null);
+		this.TopType     = new GtType(this, 0, "top", null, null);               //  unregistered
+		this.StructType  = this.TopType.CreateSubType(0, "record", null, null);  //  unregistered
+		this.EnumType    = this.TopType.CreateSubType(EnumClass, "enum", null, null);    //  unregistered
 
 		this.VoidType    = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "void", null, Void.class));
-//		this.ObjectType  = this.RootNameSpace.DefineClass(new GtType(this, 0, "Object", new Object(), Object.class));
 		this.BooleanType = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "boolean", false, Boolean.class));
 		this.IntType     = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "int", 0L, Long.class));
 		this.StringType  = this.RootNameSpace.DefineClass(new GtType(this, NativeClass, "String", "", String.class));

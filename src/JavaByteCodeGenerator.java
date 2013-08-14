@@ -386,11 +386,11 @@ class TypeResolver {
 	private final Map<String, GtClassNode>	classMap			= new HashMap<String, GtClassNode>();
 	private final Map<String, String>		typeDescriptorMap	= new HashMap<String, String>();
 
-	// FIXME
-	String globalType = Type.getType(GtObject.class).getDescriptor();
+//	// FIXME
+//	String globalType = Type.getType(GtObject.class).getDescriptor();
 
 	public TypeResolver(GtContext Context) {
-		this.typeDescriptorMap.put("global", globalType);
+//		this.typeDescriptorMap.put("global", globalType);
 		this.typeDescriptorMap.put(Context.VoidType.ShortClassName, Type.getType(void.class).getDescriptor());
 		this.typeDescriptorMap.put(Context.BooleanType.ShortClassName, Type.getType(boolean.class).getDescriptor());
 		this.typeDescriptorMap.put(Context.IntType.ShortClassName, Type.getType(int.class).getDescriptor());
@@ -418,9 +418,9 @@ class TypeResolver {
 		//paramTypes.remove(0);
 		StringBuilder signature = new StringBuilder();
 		signature.append("(");
-		if(method.GetRecvType().ShortClassName.equals("global")) {
-			signature.append(globalType);
-		}
+//		if(method.GetRecvType().ShortClassName.equals("global")) {
+//			signature.append(globalType);
+//		}
 		for(int i = 0; i < method.GetFuncParamSize(); i++) {
 			GtType ParamType = method.GetFuncParamType(i);
 			signature.append(this.GetJavaTypeDescriptor(ParamType));
