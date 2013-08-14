@@ -967,6 +967,15 @@ class GtMethod extends GtStatic {
 	}
 }
 
+class GtPolyFunc {
+	/*field*/public ArrayList<GtMethod> FuncList;
+	GtPolyFunc/*constructor*/(GtMethod Func1, GtMethod Func2) {
+		this.FuncList = new ArrayList<GtMethod>();
+		this.FuncList.add(Func1);
+		this.FuncList.add(Func2);
+	}
+}
+
 class GtGenerator extends GtStatic {
 	/*field*/public String     LangName;
 	/*field*/public GtContext  Context;
