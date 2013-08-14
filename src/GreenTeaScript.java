@@ -37,7 +37,7 @@ interface GtConst {
 	public final static int		DynamicClass				    = 1 << 2;
 	public final static int     EnumClass                       = 1 << 3;
 	public final static int     OpenClass                       = 1 << 4;
-	
+
 	// MethodFlag
 	public final static int		ExportMethod		= 1 << 0;
 	public final static int		AbstractMethod		= 1 << 1;
@@ -195,7 +195,7 @@ interface GtConst {
 	public final static int	ConstDeclClassIndex	= 0;
 	public final static int	ConstDeclNameIndex	= 1;
 	public final static int	ConstDeclValueIndex	= 2;
-	
+
 	// Method Decl;
 	public final static int	FuncDeclReturnType	= 0;
 	public final static int	FuncDeclClass		= 1;
@@ -262,7 +262,7 @@ interface GtConst {
 	public final static GtMap   SymbolMap  = new GtMap();
 
 	public final static String[] ShellGrammarReservedKeywords = {"true", "false", "as", "if"};
-	
+
 	public final static boolean UseLangStat = true;
 
 //ifdef JAVA
@@ -423,7 +423,7 @@ class GtStatic implements GtConst {
 			i = i + 1;
 		}
 		return s;
-	} 
+	}
 
 //ifdef JAVA
 	public final static GtDelegateToken FunctionA(Object Callee, String MethodName) {
@@ -1119,10 +1119,6 @@ class GtSyntaxTree extends GtStatic {
 	public void SetMatchedPatternAt(int Index, GtNameSpace NameSpace, GtTokenContext TokenContext, String PatternName,  boolean IsOptional) {
 		if(!this.IsEmptyOrError()) {
 			/*local*/GtSyntaxTree ParsedTree = TokenContext.ParsePattern(NameSpace, PatternName, IsOptional);
-			// ? Who made this? Seems meaningless. FIXME
-//			if(PatternName.equals("$Expression$") && ParsedTree == null){
-//				ParsedTree = GtStatic.ParseExpression(NameSpace, TokenContext);
-//			}
 			if(ParsedTree != null) {
 				this.SetSyntaxTreeAt(Index, ParsedTree);
 			}
@@ -1359,7 +1355,7 @@ final class GtTypeEnv extends GtStatic {
 		}
 		return this.ReportTypeResult(ParsedTree, Node, ErrorLevel, "type error: requested = " + Type + ", given = " + Node.Type);
 	}
-	
+
 	public final void DefineMethod(GtMethod Method) {
 		this.NameSpace.Context.DefineMethod(Method);
 		/*local*/Object Value = this.NameSpace.GetSymbol(Method.MethodName);
@@ -1368,7 +1364,7 @@ final class GtTypeEnv extends GtStatic {
 		}
 		this.Method = Method;
 	}
-	
+
 }
 
 // NameSpace
@@ -1413,7 +1409,7 @@ final class GtNameSpace extends GtStatic {
 			i += 1;
 		}
 	}
-	
+
 	public final Object GetSymbol(String Key) {
 		GtNameSpace NameSpace = this;
 		while(NameSpace != null) {
@@ -1457,7 +1453,7 @@ final class GtNameSpace extends GtStatic {
 		NewPattern.ParentPattern = ParentPattern;
 		this.DefineSymbol(PatternName, NewPattern);
 	}
-	
+
 	public void DefineSyntaxPattern(String PatternName, GtDelegateMatch MatchFunc, GtDelegateType TypeFunc) {
 		/*local*/GtSyntaxPattern Pattern = new GtSyntaxPattern(this, PatternName, MatchFunc, TypeFunc);
 		AppendPattern(PatternName, Pattern);
@@ -1689,7 +1685,7 @@ final class DScriptGrammar extends GtGrammar {
 		return NextPos;
 	}
 
-	// parser and type checker	
+	// parser and type checker
 	public static GtSyntaxTree ParseType(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/Object ConstValue = NameSpace.GetSymbol(Token.ParsedText);
@@ -1932,7 +1928,7 @@ final class DScriptGrammar extends GtGrammar {
 		if(ObjectNode.IsError()) {
 			return ObjectNode;
 		}
-		// To start, check class const such as Math.Pi if base is a type value 
+		// To start, check class const such as Math.Pi if base is a type value
 		if(ObjectNode instanceof ConstNode && ObjectNode.Type == Gamma.Context.TypeType) {
 			GtType ObjectType = (/*cast*/GtType)((/*cast*/ConstNode)ObjectNode).ConstValue;
 			Object ConstValue = ObjectType.GetClassSymbol(Name, true);
@@ -2159,7 +2155,7 @@ final class DScriptGrammar extends GtGrammar {
 		}
 		return null;
 	}
-	
+
 	public static GtNode TypeAnd(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtNode LeftNode = ParsedTree.TypeCheckNodeAt(LeftHandTerm, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
 		/*local*/GtNode RightNode = ParsedTree.TypeCheckNodeAt(RightHandTerm, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
@@ -2253,7 +2249,7 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/GtNode BodyNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(WhileBody), ContextType);
 		return Gamma.Generator.CreateWhileNode(BodyNode.Type, ParsedTree, CondNode, BodyNode);
 	}
-	
+
 	// Break/Continue Statement
 	public static GtSyntaxTree ParseBreak(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.GetMatchedToken("break");
@@ -2293,7 +2289,7 @@ final class DScriptGrammar extends GtGrammar {
 		}
 		return Gamma.Generator.CreateReturnNode(Expr.Type, ParsedTree, Expr);
 	}
-	
+
 	// try
 	public static GtSyntaxTree ParseTry(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree TryTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("try"), null);
@@ -2309,7 +2305,7 @@ final class DScriptGrammar extends GtGrammar {
 		}
 		return TryTree;
 	}
-	
+
 	public static GtNode TypeTry(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		GtType FaultType = ContextType; // FIXME Gamma.FaultType;
 		/*local*/GtNode TryNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(TryBody), ContextType);
@@ -2325,7 +2321,7 @@ final class DScriptGrammar extends GtGrammar {
 		ThrowTree.SetMatchedPatternAt(ReturnExpr, NameSpace, TokenContext, "$Expression$", Required);
 		return ThrowTree;
 	}
-	
+
 	public static GtNode TypeThrow(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtType FaultType = ContextType; // FIXME Gamma.FaultType;
 		/*local*/GtNode ExprNode = ParsedTree.TypeCheckNodeAt(ReturnExpr, Gamma, FaultType, DefaultTypeCheckPolicy);
@@ -2403,7 +2399,7 @@ final class DScriptGrammar extends GtGrammar {
 		}
 		return EnumTree;
 	}
-	
+
 	public static GtNode TypeEnum(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		Object EnumType = ParsedTree.ConstValue;
 		return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(EnumType), ParsedTree, EnumType);
@@ -2428,11 +2424,11 @@ final class DScriptGrammar extends GtGrammar {
 		}
 		return SwitchTree;
 	}
-	
+
 	public static GtNode TypeSwitch(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		return null;
 	}
-	
+
 	// const decl
 	public static GtSyntaxTree ParseConstDecl(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree ConstDeclTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("const"), null);
@@ -2448,7 +2444,7 @@ final class DScriptGrammar extends GtGrammar {
 		ConstDeclTree.SetMatchedPatternAt(ConstDeclNameIndex, NameSpace, TokenContext, "$Variable$", Required);
 		ConstDeclTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "=", Required);
 		ConstDeclTree.SetMatchedPatternAt(ConstDeclValueIndex, NameSpace, TokenContext, "$Expression$", Required);
-		
+
 		if(!ConstDeclTree.IsEmptyOrError()) {
 			String ConstName = ConstDeclTree.GetSyntaxTreeAt(ConstDeclNameIndex).KeyToken.ParsedText;
 			Object ConstValue = null;
@@ -2456,17 +2452,17 @@ final class DScriptGrammar extends GtGrammar {
 				ConstValue = ConstDeclTree.GetSyntaxTreeAt(ConstDeclValueIndex).ConstValue;
 			}
 			if(ConstValue == null) {
-				
+
 			}
 			if(ConstClass != null) {
 				if(ConstClass.GetClassSymbol(ConstName, false) != null) {
-					
+
 				}
 				ConstClass.SetClassSymbol(ConstName, ConstValue);
 			}
 			else {
 				if(NameSpace.GetSymbol(ConstName) != null) {
-					
+
 				}
 				NameSpace.DefineSymbol(ConstName, ConstValue);
 			}
@@ -2555,7 +2551,7 @@ final class DScriptGrammar extends GtGrammar {
 			ParamBase += 3;
 			i = i + 1;
 		}
-		
+
 		/*local*/GtMethod Method = null;
 		/*local*/String NativeMacro =  (/*cast*/String)ParsedTree.ConstValue;
 		if(NativeMacro == null && !ParsedTree.HasNodeAt(FuncDeclBlock)) {
@@ -2573,7 +2569,7 @@ final class DScriptGrammar extends GtGrammar {
 		}
 		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
 	}
-	
+
 	private static GtMethod CreateConverterMethod(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, int MethodFlag, ArrayList<GtType> TypeList) {
 		/*local*/GtType ToType = TypeList.get(0);
 		/*local*/GtType FromType = TypeList.get(1);
@@ -2824,7 +2820,7 @@ final class DScriptGrammar extends GtGrammar {
 			return NoMatch;
 		}
 		String Symbol = SourceText.substring(start, pos);
-		
+
 		/*local*/int i = 0;
 		while(i < ShellGrammarReservedKeywords.length) {
 			/*local*/String Keyword = ShellGrammarReservedKeywords[i];
@@ -2951,7 +2947,7 @@ final class DScriptGrammar extends GtGrammar {
 		NameSpace.DefineSyntaxPattern("$IntegerLiteral$", FunctionB(this, "ParseIntegerLiteral"), TypeConst);
 
 		NameSpace.DefineSyntaxPattern("$ShellExpression$", FunctionB(this, "ParseShell"), FunctionC(this, "TypeShell"));
-		
+
 		NameSpace.DefineSyntaxPattern("(", FunctionB(this, "ParseGroup"), FunctionC(this, "TypeGroup"));
 		NameSpace.DefineExtendedPattern(".", 0, FunctionB(this, "ParseGetter"), FunctionC(this, "TypeGetter"));
 		NameSpace.DefineExtendedPattern("(", 0, FunctionB(this, "ParseApply"), FunctionC(this, "TypeApply"));
@@ -2982,7 +2978,7 @@ final class DScriptGrammar extends GtGrammar {
 final class GtStat {
 	/*field*/public long MatchCount;
 	/*field*/public long BacktrackCount;  // To count how many times backtracks happen.
-	
+
 	GtStat/*constructor*/() {
 		this.MatchCount     = 0;
 		this.BacktrackCount = 0;
@@ -3011,16 +3007,16 @@ final class GtClassContext extends GtStatic {
 
 	/*field*/public final GtType		TypeType;
 	/*field*/public GtType		PolyFuncType;
-	
+
 	/*field*/public final  GtMap               SourceMap;
 	/*field*/public final  GtMap			   ClassNameMap;
 	/*field*/public final  GtMap               UniqueMethodMap;
-	
+
 	/*field*/public int ClassCount;
 	/*field*/public int MethodCount;
 	/*field*/public final GtStat Stat;
 	/*field*/public ArrayList<String>    ReportedErrorList;
-	
+
 	GtClassContext/*constructor*/(GtGrammar Grammar, GtGenerator Generator) {
 		this.Generator    = Generator;
 		this.Generator.Context = this;
@@ -3045,7 +3041,7 @@ final class GtClassContext extends GtStatic {
 		this.TypeType    = this.RootNameSpace.DefineClassSymbol(this.TopType.CreateSubType(0, "Type", null, null));
 		this.ArrayType   = this.RootNameSpace.DefineClassSymbol(this.TopType.CreateSubType(0, "Array", null, null));
 		this.FuncType    = this.RootNameSpace.DefineClassSymbol(this.TopType.CreateSubType(0, "Func", null, null));
-		
+
 		this.ArrayType.Types = new GtType[1];
 		this.ArrayType.Types[0] = this.AnyType;
 		this.FuncType.Types = new GtType[1];
@@ -3275,7 +3271,7 @@ final class GtClassContext extends GtStatic {
 		}
 		return Method;
 	}
-	
+
 	/* convertor, wrapper */
 	private final String ConverterName(GtType FromType, GtType ToType) {
 		return FromType.GetSignature() + ">" + ToType.GetSignature();
@@ -3362,8 +3358,8 @@ final class GtClassContext extends GtStatic {
 		this.ReportedErrorList = new ArrayList<String>();
 		return List;
 	}
-	
-	
+
+
 }
 
 public class GreenTeaScript extends GtStatic {
