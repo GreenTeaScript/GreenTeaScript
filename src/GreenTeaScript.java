@@ -2416,10 +2416,9 @@ final class DScriptGrammar extends GtGrammar {
 
 	// Return Statement
 	public static GtSyntaxTree ParseReturn(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
-		/*local*/GtToken Token = TokenContext.GetMatchedToken("return");
-		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, Token, null);
-		NewTree.SetMatchedPatternAt(ReturnExpr, TokenContext, "$Expression$", Optional);
-		return NewTree;
+		/*local*/GtSyntaxTree ReturnTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("return"), null);
+		ReturnTree.SetMatchedPatternAt(ReturnExpr, TokenContext, "$Expression$", Optional);
+		return ReturnTree;
 	}
 
 	public static GtNode TypeReturn(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
@@ -2434,10 +2433,25 @@ final class DScriptGrammar extends GtGrammar {
 		return Gamma.Generator.CreateReturnNode(Expr.Type, ParsedTree, Expr);
 	}
 	
+	public final static int TryBody         = 0;
+	public final static int CatchVariable   = 1;
+	public final static int CatchBody       = 2;
+	public final static int FinallyBody     = 3;
+	
 	// try
 	public static GtSyntaxTree ParseTry(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
-		///*local*/GtSyntaxTree Tree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetToken(), null);
-		return null;
+		/*local*/GtSyntaxTree TryTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("try"), null);
+		TryTree.SetMatchedPatternAt(TryBody, TokenContext, "$Block$", Required);
+		if(TokenContext.MatchToken("catch")) {
+			TryTree.SetMatchedTokenAt(NoWhere, TokenContext, "(", Required);
+			TryTree.SetMatchedPatternAt(CatchVariable, TokenContext, "$Variable$", Required);
+			TryTree.SetMatchedTokenAt(NoWhere, TokenContext, ")", Required);
+			TryTree.SetMatchedPatternAt(CatchBody, TokenContext, "$Block$", Required);
+		}
+		if(TokenContext.MatchToken("finally")) {
+			TryTree.SetMatchedPatternAt(FinallyBody, TokenContext, "$Block$", Required);
+		}
+		return TryTree;
 	}
 	
 	public static GtNode TypeTry(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
@@ -2445,8 +2459,9 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	public static GtSyntaxTree ParseThrow(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
-		///*local*/GtSyntaxTree Tree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetToken(), null);
-		return null;
+		/*local*/GtSyntaxTree ThrowTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("throw"), null);
+		ThrowTree.SetMatchedPatternAt(ReturnExpr, TokenContext, "$Expression$", Required);
+		return ThrowTree;
 	}
 	
 	public static GtNode TypeThrow(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
@@ -2455,8 +2470,23 @@ final class DScriptGrammar extends GtGrammar {
 
 	// switch
 	public static GtSyntaxTree ParseEnum(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
-		///*local*/GtSyntaxTree Tree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetToken(), null);
-		return null;
+		/*local*/GtSyntaxTree EnumTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("switch"), null);
+		EnumTree.SetMatchedTokenAt(NoWhere, TokenContext, "(", Required);
+		EnumTree.SetMatchedPatternAt(CatchVariable, TokenContext, "$Expression$", Required);
+		EnumTree.SetMatchedTokenAt(NoWhere, TokenContext, ")", Required);
+		EnumTree.SetMatchedTokenAt(NoWhere, TokenContext, "{", Required);
+		while(!EnumTree.IsEmptyOrError() && !TokenContext.MatchToken("}")) {
+			if(TokenContext.MatchToken("case")) {
+				EnumTree.SetMatchedPatternAt(CatchVariable, TokenContext, "$Expression$", Required);
+				EnumTree.SetMatchedTokenAt(NoWhere, TokenContext, ":", Required);
+				EnumTree.SetMatchedPatternAt(TryBody, TokenContext, "$CaseBlock$", Required);
+				continue;
+			}
+			EnumTree.SetMatchedTokenAt(NoWhere, TokenContext, "default", Required);
+			EnumTree.SetMatchedTokenAt(NoWhere, TokenContext, ":", Required);
+			EnumTree.SetMatchedPatternAt(TryBody, TokenContext, "$CaseBlock$", Required);
+		}
+		return EnumTree;
 	}
 	
 	public static GtNode TypeEnum(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
@@ -2464,8 +2494,23 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	public static GtSyntaxTree ParseSwitch(GtSyntaxPattern Pattern, GtSyntaxTree LeftTree, GtTokenContext TokenContext) {
-		///*local*/GtSyntaxTree Tree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetToken(), null);
-		return null;
+		/*local*/GtSyntaxTree SwitchTree = new GtSyntaxTree(Pattern, TokenContext.NameSpace, TokenContext.GetMatchedToken("switch"), null);
+		SwitchTree.SetMatchedTokenAt(NoWhere, TokenContext, "(", Required);
+		SwitchTree.SetMatchedPatternAt(CatchVariable, TokenContext, "$Expression$", Required);
+		SwitchTree.SetMatchedTokenAt(NoWhere, TokenContext, ")", Required);
+		SwitchTree.SetMatchedTokenAt(NoWhere, TokenContext, "{", Required);
+		while(!SwitchTree.IsEmptyOrError() && !TokenContext.MatchToken("}")) {
+			if(TokenContext.MatchToken("case")) {
+				SwitchTree.SetMatchedPatternAt(CatchVariable, TokenContext, "$Expression$", Required);
+				SwitchTree.SetMatchedTokenAt(NoWhere, TokenContext, ":", Required);
+				SwitchTree.SetMatchedPatternAt(TryBody, TokenContext, "$CaseBlock$", Required);
+				continue;
+			}
+			SwitchTree.SetMatchedTokenAt(NoWhere, TokenContext, "default", Required);
+			SwitchTree.SetMatchedTokenAt(NoWhere, TokenContext, ":", Required);
+			SwitchTree.SetMatchedPatternAt(TryBody, TokenContext, "$CaseBlock$", Required);
+		}
+		return SwitchTree;
 	}
 	
 	public static GtNode TypeSwitch(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
