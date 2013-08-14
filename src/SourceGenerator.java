@@ -812,13 +812,16 @@ class GtType extends GtStatic {
 	@Override public String toString() {
 		return this.ShortClassName;
 	}
-	
+
 	public final String GetSignature() {
 		return GtStatic.NumberToAscii(this.ClassId);
 	}
 
 	public final boolean Accept(GtType Type) {
 		if(this == Type || this == this.Context.AnyType) {
+			return true;
+		}
+		if(this.BaseClass != null && Type.BaseClass != null && this.BaseClass == Type.BaseClass) {
 			return true;
 		}
 		return false;
@@ -835,7 +838,7 @@ class GtMethod extends GtStatic {
 	/*field*/public GtMethod        ListedMethods;
 	/*field*/public String          SourceMacro;
 	/*field*/public Object          NativeRef;
-	
+
 	GtMethod/*constructor*/(int MethodFlag, String MethodName, int BaseIndex, ArrayList<GtType> ParamList, Object NativeRef) {
 		this.MethodFlag = MethodFlag;
 		this.MethodName = MethodName;
@@ -858,7 +861,7 @@ class GtMethod extends GtStatic {
 	}
 
 	public final GtType GetFuncType() {
-		if(this.FuncType != null) {
+		if(this.FuncType == null) {
 			GtContext Context = this.GetRecvType().Context;
 			this.FuncType = Context.GetGenericType(Context.FuncType, 0, new ArrayList<GtType>(Arrays.asList(this.Types)), true);
 		}
@@ -905,7 +908,7 @@ class GtMethod extends GtStatic {
 	public final int GetMethodParamSize() {
 		return this.Types.length - 2;
 	}
-	
+
 	public final String GetNativeMacro() {
 		return (/*cast*/String)this.NativeRef;
 	}
@@ -919,7 +922,7 @@ class GtMethod extends GtStatic {
 		String NativeMacro = IsFlag(this.MethodFlag, NativeMacroMethod) ? (/*cast*/String)this.NativeRef : "$1 " + this.MethodName + " $2";
 		return NativeMacro.replaceAll("$0", Arg0);
 	}
-	
+
 }
 
 class GtGenerator extends GtStatic {
@@ -1117,7 +1120,7 @@ class GtGenerator extends GtStatic {
 		return TransformedResult;
 	}
 
-	
+
 	public int ParseClassFlag(int ClassFlag, GtSyntaxTree ClassDeclTree) {
 //		if(ClassDeclTree.HasAnnotation("Final")) {
 //			ClassFlag = ClassFlag | FinalClass;
@@ -1127,7 +1130,7 @@ class GtGenerator extends GtStatic {
 //		}
 		return ClassFlag;
 	}
-	
+
 	public void AddClass(GtType Type) {
 		/*extension*/
 	}
@@ -1145,9 +1148,9 @@ class GtGenerator extends GtStatic {
 
 	public void GenerateMethod(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
 		/*extenstion*/
-		
+
 	}
-	
+
 	//------------------------------------------------------------------------
 
 	public void VisitEmptyNode(GtNode EmptyNode) {

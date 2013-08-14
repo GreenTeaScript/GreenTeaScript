@@ -1252,7 +1252,7 @@ final class GtTypeEnv extends GtStatic {
 			return this.IntType;
 		}
 		else if(Value instanceof GtMethod) {
-			((/*cast*/GtMethod)Value).GetFuncType();
+			return ((/*cast*/GtMethod)Value).GetFuncType();
 		}
 		else if(Value instanceof Boolean) {
 			return this.BooleanType;
@@ -2177,7 +2177,7 @@ final class DScriptGrammar extends GtGrammar {
 			BaseType = FuncNode.Type;
 		}
 		else {
-			/*local*/GtNode BaseNode = ParsedTree.TypeCheckNodeAt(1, Gamma, Gamma.FuncType, DefaultTypeCheckPolicy);
+			/*local*/GtNode BaseNode = ParsedTree.TypeCheckNodeAt(1, Gamma, Gamma.AnyType, DefaultTypeCheckPolicy);
 			NodeList.add(BaseNode);
 			ParamIndex = 2;
 			BaseType = BaseNode.Type;
@@ -2575,7 +2575,7 @@ final class DScriptGrammar extends GtGrammar {
 			Method = DScriptGrammar.CreateMethod(Gamma, ParsedTree, MethodFlag, MethodName, TypeList, NativeMacro);
 		}
 		if(Method != null && NativeMacro == null && ParsedTree.HasNodeAt(FuncDeclBlock)) {
-			/*local*/GtNode BodyNode = ParsedTree.TypeCheckNodeAt(FuncDeclBlock, Gamma, ReturnType, IgnoreEmptyPolicy);
+			/*local*/GtNode BodyNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(FuncDeclBlock), ReturnType);
 			Gamma.Generator.GenerateMethod(Method, ParamNameList, BodyNode);
 		}
 		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
