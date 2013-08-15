@@ -30,6 +30,7 @@ import java.util.ArrayList;
 
 public class BashSourceGenerator extends SourceGenerator {
 	/*field*/boolean inFunc = false;
+	/*field*/int cmdCounter = 0;
 
 	BashSourceGenerator/*constructor*/() {
 		super("BashSource");
@@ -347,6 +348,17 @@ public class BashSourceGenerator extends SourceGenerator {
 			Node.Expr.Evaluate(this);
 			/*local*/String expr = this.PopSourceCode();
 			/*local*/String ret = this.ResolveValueType(Node.Expr, expr);
+			if(Node.Expr instanceof ApplyNode || Node.Expr instanceof CommandNode) {
+				if(Node.Type.equals(Node.Type.Context.BooleanType) || 
+						Node.Type.equals(Node.Type.Context.IntType)) {
+					/*local*/String Code = "local value=" + ret + "\n";
+					Code += this.GetIndentString() + "local ret=$?\n";
+					Code += this.GetIndentString() + "echo $value\n";
+					Code += this.GetIndentString() + "return $ret\n";
+					this.PushSourceCode(Code);
+					return;
+				}
+			}
 			this.PushSourceCode("echo " + ret + "\n" + this.GetIndentString() + "return 0");
 		}
 	}
@@ -393,7 +405,7 @@ public class BashSourceGenerator extends SourceGenerator {
 //		this.PushSourceCode(Code);
 	}
 
-	@Override public void VisitCommandNode(CommandNode Node) {	// currently only support statement
+	@Override public void VisitCommandNode(CommandNode Node) {
 		/*local*/String Code = "";
 		/*local*/int count = 0;
 		/*local*/CommandNode CurrentNode = Node;
@@ -401,11 +413,11 @@ public class BashSourceGenerator extends SourceGenerator {
 			if(count > 0) {
 				Code += " | ";
 			}
-			Code += this.CreateCommand(CurrentNode);
+			Code += this.AppendCommand(CurrentNode);
 			count += 1;
 			CurrentNode = (/*cast*/CommandNode) CurrentNode.PipedNextNode;
 		}
-		this.PushSourceCode(Code);
+		this.PushSourceCode(this.CreateCommandMethod(Code, Node));
 		
 		//sample
 //		function f() {
@@ -417,7 +429,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		
 	}
 
-	private String CreateCommand(CommandNode CurrentNode) {
+	private String AppendCommand(CommandNode CurrentNode) {
 		/*local*/String Code = "";
 		/*local*/int size = CurrentNode.Params.size();
 		/*local*/int i = 0;
@@ -428,18 +440,44 @@ public class BashSourceGenerator extends SourceGenerator {
 		}
 		return Code;
 	}
+	
+	private String CreateCommandMethod(String cmd, CommandNode Node) {
+		/*local*/String MethodName = "execCmd";
+		/*local*/String RunnableCmd = cmd;
+		if(Node.Type.equals(Node.Type.Context.StringType)) {
+			RunnableCmd = "function " + MethodName + this.cmdCounter + "() {\n";
+			RunnableCmd += this.GetIndentString() + "echo $(" + cmd + ")\n";
+			RunnableCmd += this.GetIndentString() + "return 0\n}\n";
+			this.WriteTranslatedCode(RunnableCmd);
+			RunnableCmd = MethodName + this.cmdCounter;
+			this.cmdCounter++;
+		}
+		else if(Node.Type.equals(Node.Type.Context.IntType) || 
+				Node.Type.equals(Node.Type.Context.BooleanType)) {
+			RunnableCmd = "function " + MethodName + this.cmdCounter + "() {\n";
+			RunnableCmd += this.GetIndentString() + cmd + " >&2\n";
+			RunnableCmd += this.GetIndentString() + "local ret=$?\n";
+			RunnableCmd += this.GetIndentString() + "echo $ret\n";
+			RunnableCmd += this.GetIndentString() + "return $ret\n}\n";
+			this.WriteTranslatedCode(RunnableCmd);
+			RunnableCmd = MethodName + this.cmdCounter;
+			this.cmdCounter++;
+		}
+		
+		return RunnableCmd;
+	}
 
 	private GtNode ResolveParamName(ArrayList<String> ParamNameList, GtNode Body) {
 		return this.ConvertParamName(ParamNameList, Body, 0);
 	}
 
 	private GtNode ConvertParamName(ArrayList<String> ParamNameList, GtNode Body, int index) {
-		if(index  == ParamNameList.size()) {
+		if(ParamNameList == null || index  == ParamNameList.size()) {
 			return Body;
 		}
 
 		/*local*/GtNode oldVarNode = new LocalNode(null, null, "" +(index + 1));
-		GtNode Let = new LetNode(null, null, null, ParamNameList.get(index), oldVarNode, null);
+		/*local*/GtNode Let = new LetNode(null, null, null, ParamNameList.get(index), oldVarNode, null);
 		Let.NextNode = this.ConvertParamName(ParamNameList, Body, index+1);
 		return Let;
 	}
@@ -486,5 +524,6 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void SetLanguageContext(GtClassContext Context) {
+		Context.Eval(LangDeps.LoadFile("lib/bash/common.green"), 1);
 	}
 }

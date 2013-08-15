@@ -32,7 +32,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 
 	PythonSourceGenerator/*constructor*/() {
 		super("PythonSource");
-		this.WriteTranslatedCode("import os\n");
+		this.WriteTranslatedCode("import subprocess\n");
 	}
 
 	public void VisitBlockWithIndent(GtNode Node, boolean inBlock) {
@@ -114,7 +114,8 @@ public class PythonSourceGenerator extends SourceGenerator {
 				value.equals("true") || value.equals("false")) {
 			if(value.equals("true")) {
 				value = "True";
-			}			else if(value.equals("false")) {
+			}
+			else if(value.equals("false")) {
 				value = "False";
 			}
 		}
@@ -136,7 +137,8 @@ public class PythonSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitGetterNode(GetterNode Node) {
-		
+		Node.Expr.Evaluate(this);
+		this.PushSourceCode(this.PopSourceCode() + "." + Node.Method.MethodName);
 	}
 
 	private String[] EvaluateParam(ArrayList<GtNode> Params) {
@@ -323,11 +325,14 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void VisitTryNode(TryNode Node) { //TODO: catch block
+	@Override public void VisitTryNode(TryNode Node) {
 		/*local*/String Code = "try:\n";
 		this.VisitBlockWithIndent(Node.TryBlock, true);
 		Code += this.PopSourceCode();
-		
+		/*local*/LetNode Val = (/*cast*/LetNode) Node.CatchExpr;
+		Code += "except " + Val.Type.toString() + ", " + Val.VariableName + ":\n";
+		this.VisitBlockWithIndent(Node.CatchBlock, true);
+		Code += this.PopSourceCode();
 		if(Node.FinallyBlock != null) {
 			this.VisitBlockWithIndent(Node.FinallyBlock, true);
 			Code += " finally:\n" + this.PopSourceCode();
@@ -352,7 +357,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void VisitCommandNode(CommandNode Node) {	// currently only support statement
+	@Override public void VisitCommandNode(CommandNode Node) {
 		/*local*/String Code = "";
 		/*local*/int count = 0;
 		/*local*/CommandNode CurrentNode = Node;
@@ -360,14 +365,24 @@ public class PythonSourceGenerator extends SourceGenerator {
 			if(count > 0) {
 				Code += " | ";
 			}
-			Code += this.CreateCommand(CurrentNode);
+			Code += this.AppendCommand(CurrentNode);
 			count += 1;
 			CurrentNode = (/*cast*/CommandNode) CurrentNode.PipedNextNode;
 		}
-		this.PushSourceCode("os.system(\"" + Code + "\")");
+		
+		if(Node.Type.equals(Node.Type.Context.StringType)) {
+			Code = "subprocess.check_output(\"" + Code + "\", shell=True)";
+		}
+		else if(Node.Type.equals(Node.Type.Context.BooleanType)) {
+			Code = "True if subprocess.call(\"" + Code + "\", shell=True) == 0 else False";
+		}
+		else {
+			Code = "subprocess.call(\"" + Code + "\", shell=True)";
+		}
+		this.PushSourceCode(Code);
 	}
 
-	private String CreateCommand(CommandNode CurrentNode) {
+	private String AppendCommand(CommandNode CurrentNode) {
 		/*local*/String Code = "";
 		/*local*/int size = CurrentNode.Params.size();
 		/*local*/int i = 0;
@@ -410,5 +425,6 @@ public class PythonSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void SetLanguageContext(GtClassContext Context) {
+		Context.Eval(LangDeps.LoadFile("lib/python/common.green"), 1);
 	}
 }
