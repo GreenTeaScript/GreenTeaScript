@@ -3216,7 +3216,16 @@ final class GtClassContext extends GtStatic {
 	private void AddOverloadedMethod(String Key, GtMethod Method) {
 		/*local*/Object Value = this.UniqueMethodMap.get(Key);
 		if(Value instanceof GtMethod) {
-			Method.ListedMethods = (/*cast*/GtMethod)Value;
+			/*local*/GtMethod OverloadedMethod = (/*cast*/GtMethod)Value;
+			/*local*/GtMethod HeadMethod = OverloadedMethod;
+			while(HeadMethod != null) {
+				if(HeadMethod == Method) {
+					// Already registered
+					return;
+				}
+				HeadMethod = HeadMethod.ListedMethods;
+			}
+			Method.ListedMethods = OverloadedMethod;
 		}
 		this.UniqueMethodMap.put(Key, Method);  // not unique !!
 	}
