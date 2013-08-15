@@ -1117,15 +1117,7 @@ var GtGenerator = (function () {
         /*extension*/
     };
 
-    GtGenerator.prototype.DefineClassField = function (NameSpace, Type, Field) {
-        /*extension*/
-    };
-
-    GtGenerator.prototype.DefineClassMethod = function (NameSpace, Type, Method) {
-        /*extension*/
-    };
-
-    GtGenerator.prototype.GenerateClassField = function (Type) {
+    GtGenerator.prototype.GenerateClassField = function (NameSpace, Type, FieldList) {
         /*extension*/
     };
 

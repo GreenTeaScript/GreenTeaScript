@@ -43,6 +43,12 @@ var GtScriptRunner = (function () {
         // console.log("Testing " + ScriptPath + " (Target:" + Target + ") ... "); //
         var Expected = GtScriptRunner.LoadFile(ResultPath);
         var Actual = GtScriptRunner.ExecuteScript(ScriptPath, Target);
+        if (!Expected.equals(Actual)) {
+            console.log("----------Expected----------");
+            console.log(Expected);
+            console.log("---------- Actual ----------");
+            console.log(Actual);
+        }
         LangDeps.Assert(Expected.equals(Actual));
         // console.log("Testing " + ScriptPath + " (Target:" + Target + ") ... OK"); //
     };
@@ -93,12 +99,12 @@ var GreenTeaScriptTest = (function () {
         GreenTeaScriptTest.TestToken(Context, "number + (x: number);", TokenTestList0);
     };
 
-    GreenTeaScriptTest.main = function (args) {
-        if (args.length != 3) {
+    GreenTeaScriptTest.main = function (Args) {
+        if (Args.length != 3) {
             GreenTeaScriptTest.TokenizeOperator0();
             GreenTeaScriptTest.TokenizeStatement();
         } else {
-            GtScriptRunner.Test(args[0], args[1], args[2]);
+            GtScriptRunner.Test(Args[0], Args[1], Args[2]);
         }
     };
     return GreenTeaScriptTest;

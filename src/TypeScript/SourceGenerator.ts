@@ -1152,15 +1152,7 @@ class GtGenerator {
 		/*extension*/
 	}
 
-	public DefineClassField(NameSpace: GtNameSpace, Type: GtType, Field: GtVariableInfo): void {
-		/*extension*/
-	}
-
-	public DefineClassMethod(NameSpace: GtNameSpace, Type: GtType, Method: GtMethod): void {
-		/*extension*/
-	}
-
-	public GenerateClassField(Type: GtType): void {
+	public GenerateClassField(NameSpace: GtNameSpace, Type: GtType, FieldList: Array<GtVariableInfo>): void {
 		/*extension*/
 	}
 
