@@ -1,4 +1,4 @@
-static int f__00(){
+static int f__03(){
    int i0 = 0;
    {
       while(i0 < 10){
@@ -7,5 +7,5 @@ static int f__00(){
       return i0;
    };
 }
-f__00();
+f__03();
 

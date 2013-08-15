@@ -1,11 +1,13 @@
-typedef struct X {
-   Object __base;
-   int x;
-} X;
-
-typedef struct Y {
-   Object __base;
-   int b;
+struct X{
+   record __base;
    int a;
-} Y;
+};
+X;
+
+struct Y{
+   X __base;
+   int b;
+   int c;
+};
+Y;
 

@@ -1,4 +1,6 @@
-typedef struct X X;
-typedef struct X {
+struct X{
+   record __base;
    X next;
 };
+X;
+

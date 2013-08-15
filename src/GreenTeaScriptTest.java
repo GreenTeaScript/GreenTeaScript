@@ -24,6 +24,7 @@
 
 //ifdef  JAVA
 import java.io.InputStream;
+import java.util.concurrent.TimeUnit;
 //endif VAJA
 
 class GtScriptRunner {
@@ -40,7 +41,25 @@ class GtScriptRunner {
 //ifdef JAVA
 		try {
 			/*local*/Process proc = new ProcessBuilder(cmd).start();
-			proc.waitFor();
+			long begin = System.currentTimeMillis();
+			for (;;) {
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+				}
+				try {
+					proc.exitValue();
+				} catch (IllegalThreadStateException e) {
+					long now = System.currentTimeMillis();
+					if (TimeUnit.MILLISECONDS.toSeconds(now - begin) < 10) {
+						continue;
+					}
+					proc.destroy();
+					System.out.println("D");
+					break;
+				}
+				break;
+			}
 			if(proc.exitValue() != 0) {
 				return null;
 			}
@@ -65,6 +84,12 @@ class GtScriptRunner {
 		//LangDeps.println("Testing " + ScriptPath + " (Target:" + Target + ") ... ");
 		/*local*/String Expected = GtScriptRunner.LoadFile(ResultPath);
 		/*local*/String Actual   = GtScriptRunner.ExecuteScript(ScriptPath, Target);
+		if(!Expected.equals(Actual)) {
+			System.out.println("----------Expected----------");
+			System.out.println(Expected);
+			System.out.println("---------- Actual ----------");
+			System.out.println(Actual);
+		}
 		LangDeps.Assert(Expected.equals(Actual));
 		//LangDeps.println("Testing " + ScriptPath + " (Target:" + Target + ") ... OK");
 	}
@@ -112,13 +137,13 @@ public class GreenTeaScriptTest {
 		GreenTeaScriptTest.TestToken(Context, "int + (int x);", TokenTestList0);
 	}
 
-	public static void main(String[] args) {
-		if(args.length != 3) {
+	public static void main(String[] Args) {
+		if(Args.length != 3) {
 			GreenTeaScriptTest.TokenizeOperator0();
 			GreenTeaScriptTest.TokenizeStatement();
 		}
 		else {
-			GtScriptRunner.Test(args[0], args[1], args[2]);
+			GtScriptRunner.Test(Args[0], Args[1], Args[2]);
 		}
 	}
 }

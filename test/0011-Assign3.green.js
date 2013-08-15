@@ -1,12 +1,4 @@
-(warning) (eval:11) undefined operator: + of int
-(error) (eval:11) unspecified type: +
-(error) (eval:11) unspecified type: +
-(error) (eval:11) unspecified type: +
-(error) (eval:11) unspecified type: +
-(error) (eval:11) unspecified type: +
-(error) (eval:11) unspecified type: +
-(error) (eval:11) unspecified type: +
-var f__00 = (function() {
+var f__03 = (function() {
    var  a0 = 1;{
       var  b1 = 10;{
          var  c2 = 100;{
