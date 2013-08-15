@@ -1926,7 +1926,7 @@ class GtGrammar {
 	}
 
 	public static TypeApply(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
-		var FuncNode: GtNode = ParsedTree.TypeCheckNodeAt(0, Gamma, Gamma.FuncType, DefaultTypeCheckPolicy);
+		var FuncNode: GtNode = ParsedTree.TypeCheckNodeAt(0, Gamma, Gamma.FuncType, NoCheckPolicy);
 		var MethodName: string = FuncNode.Token.ParsedText;
 		var BaseType: GtType = null;
 		var NodeList: Array<GtNode> = new Array<GtNode>();
@@ -2306,10 +2306,13 @@ class GtGrammar {
 		var EnumValue: number = 0;
 		while(!EnumTree.IsEmptyOrError()) {
 			TokenContext.SkipIndent();
-			var Token: GtToken = TokenContext.Next();
-			if(Token.EqualsText(",")) {
+			if(TokenContext.MatchToken(",")) {
 				continue;
 			}
+			if(TokenContext.MatchToken("}")) {
+				break;
+			}
+			var Token: GtToken = TokenContext.Next();
 			if(LangDeps.IsLetter(LangDeps.CharAt(Token.ParsedText, 0))) {
 				if(VocabMap.get(Token.ParsedText) != null) {
 					NameSpace.Context.ReportError(WarningLevel, Token, "alreadyname: defined: " + Token.ParsedText);
@@ -2319,7 +2322,6 @@ class GtGrammar {
 				EnumValue += 1;
 				continue;
 			}
-			EnumTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "}", Required);
 		}
 		if(!EnumTree.IsEmptyOrError()) {
 			NameSpace.DefineClassSymbol(NewEnumType);
@@ -2885,6 +2887,7 @@ class GtGrammar {
 		NameSpace.DefineSyntaxPattern("try", DScriptGrammar.ParseTry, DScriptGrammar.TypeTry);
 		NameSpace.DefineSyntaxPattern("throw", DScriptGrammar.ParseThrow, DScriptGrammar.TypeThrow);
 		NameSpace.DefineSyntaxPattern("new", DScriptGrammar.ParseNew, DScriptGrammar.TypeNew);
+		NameSpace.DefineSyntaxPattern("enum", DScriptGrammar.ParseEnum, DScriptGrammar.TypeEnum);
 	}
 }
 

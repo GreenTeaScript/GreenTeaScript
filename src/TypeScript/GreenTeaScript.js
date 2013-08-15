@@ -1959,7 +1959,7 @@ var DScriptGrammar = (function (_super) {
     };
 
     DScriptGrammar.TypeApply = function (Gamma, ParsedTree, ContextType) {
-        var FuncNode = ParsedTree.TypeCheckNodeAt(0, Gamma, Gamma.FuncType, DefaultTypeCheckPolicy);
+        var FuncNode = ParsedTree.TypeCheckNodeAt(0, Gamma, Gamma.FuncType, NoCheckPolicy);
         var MethodName = FuncNode.Token.ParsedText;
         var BaseType = null;
         var NodeList = new Array();
@@ -2334,10 +2334,13 @@ var DScriptGrammar = (function (_super) {
         var EnumValue = 0;
         while (!EnumTree.IsEmptyOrError()) {
             TokenContext.SkipIndent();
-            var Token = TokenContext.Next();
-            if (Token.EqualsText(",")) {
+            if (TokenContext.MatchToken(",")) {
                 continue;
             }
+            if (TokenContext.MatchToken("}")) {
+                break;
+            }
+            var Token = TokenContext.Next();
             if (LangDeps.IsLetter(LangDeps.CharAt(Token.ParsedText, 0))) {
                 if (VocabMap.get(Token.ParsedText) != null) {
                     NameSpace.Context.ReportError(WarningLevel, Token, "alreadyname: defined: " + Token.ParsedText);
@@ -2347,7 +2350,6 @@ var DScriptGrammar = (function (_super) {
                 EnumValue += 1;
                 continue;
             }
-            EnumTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "}", Required);
         }
         if (!EnumTree.IsEmptyOrError()) {
             NameSpace.DefineClassSymbol(NewEnumType);
@@ -2897,6 +2899,7 @@ var DScriptGrammar = (function (_super) {
         NameSpace.DefineSyntaxPattern("try", DScriptGrammar.ParseTry, DScriptGrammar.TypeTry);
         NameSpace.DefineSyntaxPattern("throw", DScriptGrammar.ParseThrow, DScriptGrammar.TypeThrow);
         NameSpace.DefineSyntaxPattern("new", DScriptGrammar.ParseNew, DScriptGrammar.TypeNew);
+        NameSpace.DefineSyntaxPattern("enum", DScriptGrammar.ParseEnum, DScriptGrammar.TypeEnum);
     };
     return DScriptGrammar;
 })(GtGrammar);
