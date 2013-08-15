@@ -14,12 +14,18 @@ $(function () {
 		mode: "text/x-csrc"});
 
 	var Generate = function(){
-		var src = editor_gs.getValue();
-		var Generator = LangDeps.CodeGenerator(PlayGround_CodeGenTarget);
-		var Context = new GtClassContext(new DScriptGrammar(), Generator);
-		DebugPrintOption = true;
-		var jssrc = Context.Eval(src);
-		editor_js.setValue(jssrc);
+		try{
+			var src = editor_gs.getValue();
+			var Generator = LangDeps.CodeGenerator(PlayGround_CodeGenTarget);
+			var Context = new GtClassContext(new DScriptGrammar(), Generator);
+			DebugPrintOption = true;
+			var jssrc = Context.Eval(src);
+			editor_js.setValue(jssrc);
+			var error = Context.GetReportedErrors().join("\n");
+			$("#editor-error").text(error.length == 0 ? "No Error" : error);
+		}catch(e){
+			$("#editor-error").text(e);
+		}
 	}
 
 	editor_gs.on("change", function(cm, obj) {

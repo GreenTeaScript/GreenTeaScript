@@ -68,7 +68,7 @@ $src =~ s/\bnew\s+Array<.*?>\s*\(Arrays.asList\((.*?)\)\)/$1/g;
 $src =~ s/\bArrays.asList\b//g;
 $src =~ s/\b(\d+)L\b/$1/g;
 
-$src =~ s/'(.)'/ord($1) . '\/*$1*\/'/eg;
+$src =~ s/'(.)'/ord($1) . '\/*' . $1 . '*\/'/eg;
 $src =~ s/('..')/($1.charCodeAt(0))/g;
 
 $src =~ s/\bfinal\b//g;
@@ -113,5 +113,4 @@ $src =~ s/name: undefined/undefined name/g;
 $src =~ s/tree: untyped/untyped tree/g;
 $src =~ s/undefinedchecker: type/undefined type checker/g;
 
-print "/// <reference path=\"LangDeps.ts\" />\n";
 print $src;
