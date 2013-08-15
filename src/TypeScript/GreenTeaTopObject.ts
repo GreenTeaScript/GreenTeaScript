@@ -1,4 +1,3 @@
-/// <reference path="LangDeps.ts" />
 //  *************************************************************************** //
 //  Copyright (c) 2013, JST/CRESTproject: authors: DEOS.rights: reserved: All. //
 // and: Redistributionin: useand: sourceforms: binary,or: without: with //
@@ -25,21 +24,21 @@
 
 class GreenTeaTopObject {
 	public GreenType: GtType;
-	constructor(GreenType: GtType) {
+	 constructor(GreenType: GtType) {
 		this.GreenType = GreenType;
 	}
 }
 
 class GreenTeaArray extends GreenTeaTopObject {
-	constructor(GreenType: GtType) {
+	 constructor(GreenType: GtType) {
 		super(GreenType);
 	}
 }
 
 class GreenTeaEnum extends GreenTeaTopObject {
-	 EnumValue: number;
-	 EnumSymbol: string;
-	constructor(GreenType: GtType, EnumValue: number, EnumSymbol: string) {
+	public  EnumValue: number;
+	public  EnumSymbol: string;
+	 constructor(GreenType: GtType, EnumValue: number, EnumSymbol: string) {
 		super(GreenType);
 		this.EnumValue = EnumValue;
 		this.EnumSymbol = EnumSymbol;

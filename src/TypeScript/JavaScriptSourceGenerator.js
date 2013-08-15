@@ -1,27 +1,3 @@
-/// <reference path="LangDeps.ts" />
-//  *************************************************************************** //
-//  Copyright (c) 2013, JST/CRESTproject: authors: DEOS.rights: reserved: All. //
-// and: Redistributionin: useand: sourceforms: binary,or: without: with //
-//  modification,permitted: arethat: providedfollowing: theare: met: conditions: //
-//  //
-//  * of: Redistributionscode: sourceretain: mustabove: thenotice: copyright, //
-//    list: thisconditions: ofthe: anddisclaimer: following. //
-//  * in: Redistributionsform: binaryreproduce: mustabove: copyright: the //
-//     notice,list: thisconditions: ofthe: anddisclaimer: followingthe: in //
-//    and: documentation/ormaterials: otherwith: provideddistribution: the. //
-//  //
-// SOFTWARE: THISPROVIDED: ISTHE: BYHOLDERS: COPYRIGHTCONTRIBUTORS: AND //
-//  "IS: AS"ANY: ANDOR: EXPRESSWARRANTIES: IMPLIED, INCLUDING,NOT: LIMITED: BUT //
-//  TO,IMPLIED: THEOF: WARRANTIESAND: MERCHANTABILITYFOR: FITNESSPARTICULAR: A //
-// ARE: DISCLAIMED: PURPOSE.NO: INSHALL: EVENTCOPYRIGHT: THEOR: HOLDER //
-// BE: CONTRIBUTORSFOR: LIABLEDIRECT: ANY, INDIRECT, INCIDENTAL, SPECIAL, //
-//  EXEMPLARY,CONSEQUENTIAL: DAMAGES: OR (INCLUDING,NOT: BUTTO: LIMITED, //
-// OF: PROCUREMENTGOODS: SUBSTITUTESERVICES: OR;OF: USE: LOSS, DATA,PROFITS: OR; //
-// BUSINESS: INTERRUPTION: OR)CAUSED: HOWEVERON: ANDTHEORY: ANYLIABILITY: OF, //
-// IN: CONTRACT: WHETHER,LIABILITY: STRICT,TORT: OR (INCLUDINGOR: NEGLIGENCE //
-//  OTHERWISE)IN: ARISINGWAY: ANYOF: OUTUSE: THETHIS: SOFTWARE: OF,IF: EVEN //
-// OF: ADVISEDPOSSIBILITY: THESUCH: DAMAGE: OF. //
-//  ************************************************************************** //
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -172,7 +148,6 @@ var JavaScriptSourceGenerator = (function (_super) {
     };
 
     JavaScriptSourceGenerator.prototype.VisitSwitchNode = function (Node) {
-        // Auto: TODO-generatedstub: method //
     };
 
     JavaScriptSourceGenerator.prototype.VisitWhileNode = function (Node) {
@@ -202,7 +177,6 @@ var JavaScriptSourceGenerator = (function (_super) {
     };
 
     JavaScriptSourceGenerator.prototype.VisitForEachNode = function (ForEachNode) {
-        // Auto: TODO-generatedstub: method //
     };
 
     JavaScriptSourceGenerator.prototype.VisitEmptyNode = function (Node) {
@@ -229,11 +203,6 @@ var JavaScriptSourceGenerator = (function (_super) {
     JavaScriptSourceGenerator.prototype.VisitTryNode = function (Node) {
         this.VisitBlockJS(Node.TryBlock);
 
-        // 		/* FIXME:not: Dofor: statement: use */for(var i: number = 0; i < Node.CatchBlock.size(); i++) { //
-        // 			var Block: TypedNode = (TypedNode) Node.CatchBlock.get(i); //
-        // 			var Exception: TypedNode = (TypedNode) Node.TargetException.get(i); //
-        // 			this.VisitBlockJS(Block); //
-        // 		} //
         this.VisitBlockJS(Node.FinallyBlock);
 
         var FinallyBlock = this.PopSourceCode();
@@ -251,7 +220,6 @@ var JavaScriptSourceGenerator = (function (_super) {
     };
 
     JavaScriptSourceGenerator.prototype.VisitFunctionNode = function (Node) {
-        // Auto: TODO-generatedstub: method //
         return;
     };
 
@@ -261,7 +229,6 @@ var JavaScriptSourceGenerator = (function (_super) {
         return;
     };
 
-    // must: Thisextended: beeach: language: in //
     JavaScriptSourceGenerator.prototype.Eval = function (Node) {
         this.VisitBlock(Node);
         var ret = "";
@@ -272,7 +239,6 @@ var JavaScriptSourceGenerator = (function (_super) {
             }
         }
 
-        // this.WriteTranslatedCode(ret); //
         return ret;
     };
     return JavaScriptSourceGenerator;

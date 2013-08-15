@@ -1,4 +1,3 @@
-/// <reference path="LangDeps.ts" />
 //  *************************************************************************** //
 //  Copyright (c) 2013, JST/CRESTproject: authors: DEOS.rights: reserved: All. //
 // and: Redistributionin: useand: sourceforms: binary,or: without: with //
@@ -28,10 +27,10 @@
 //Generator: GreenTeabe: shouldin: writtenlanguage: each. //
 
 class CSourceGenerator extends SourceGenerator {
-	 DefaultTypes: string[] = ["void", "int", "boolean", "float", "double", "string", "Object", "Array", "Func", "var", "any"]
-	 DefinedClass: GtMap;
+	public  DefaultTypes: string[] = ["void", "int", "boolean", "float", "double", "string", "Object", "Array", "Func", "var", "any"]
+	public  DefinedClass: GtMap;
 	
-	constructor() {
+	 constructor() {
 		super("C");
 		this.DefinedClass = new GtMap();
 	}

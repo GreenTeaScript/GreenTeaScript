@@ -1,4 +1,3 @@
-/// <reference path="LangDeps.ts" />
 //  *************************************************************************** //
 //  Copyright (c) 2013, JST/CRESTproject: authors: DEOS.rights: reserved: All. //
 // and: Redistributionin: useand: sourceforms: binary,or: without: with //
@@ -26,13 +25,13 @@
 
 
 class GtScriptRunner {
-	static LoadFile(Path: string): string {
+	public static LoadFile(Path: string): string {
 		if(LangDeps.HasFile(Path)) {
 			return LangDeps.LoadFile(Path);
 		}
 		return null;
 	}
-	static ExecuteScript(Path: string, Target: string): string {
+	public static ExecuteScript(Path: string, Target: string): string {
 		var cmd: string[] = ["java", "-jar", "GreenTeaScript.jar", "--" + Target, Path]
 		var Result: string = "";
 		// FIXME //
@@ -40,7 +39,7 @@ class GtScriptRunner {
 		return Result;
 	}
 
-	static Test(Target: string, ScriptPath: string, ResultPath: string): void {
+	public static Test(Target: string, ScriptPath: string, ResultPath: string): void {
 		// console.log("Testing " + ScriptPath + " (Target:" + Target + ") ... "); //
 		var Expected: string = GtScriptRunner.LoadFile(ResultPath);
 		var Actual: string   = GtScriptRunner.ExecuteScript(ScriptPath, Target);
@@ -50,7 +49,7 @@ class GtScriptRunner {
 }
 
 class GreenTeaScriptTest {
-	static TestToken(Context: GtClassContext, Source: string, TokenTestList: string[]): void {
+	public static TestToken(Context: GtClassContext, Source: string, TokenTestList: string[]): void {
 		var NameSpace: GtNameSpace = Context.TopLevelNameSpace;
 		var TokenContext: GtTokenContext = new GtTokenContext(NameSpace, Source, 1);
 		var i: number = 0;
@@ -61,13 +60,13 @@ class GreenTeaScriptTest {
 		}
 	}
 
-	static CreateContext(): GtClassContext {
+	public static CreateContext(): GtClassContext {
 		var CodeGeneratorName: string = "Java";
 		var Generator: GtGenerator = LangDeps.CodeGenerator(CodeGeneratorName);
 		return new GtClassContext(new DScriptGrammar(), Generator);
 	}
 
-	static TokenizeOperator0(): void {
+	public static TokenizeOperator0(): void {
 		var Context: GtClassContext = GreenTeaScriptTest.CreateContext();
 		var TokenTestList0: string[] = ["1", "||", "2"]
 		GreenTeaScriptTest.TestToken(Context, "1 || 2", TokenTestList0);
@@ -85,13 +84,13 @@ class GreenTeaScriptTest {
 		GreenTeaScriptTest.TestToken(Context, "1 = 2", TokenTestList4);
 	}
 
-	static TokenizeStatement(): void {
+	public static TokenizeStatement(): void {
 		var Context: GtClassContext = GreenTeaScriptTest.CreateContext();
 		var TokenTestList0: string[] = ["int", "+", "(", "int", "x", ")", ";"]
 		GreenTeaScriptTest.TestToken(Context, "number + (x: number);", TokenTestList0);
 	}
 
-	static main(args: string[]): void {
+	public static main(args: string[]): void {
 		if(args.length != 3) {
 			GreenTeaScriptTest.TokenizeOperator0();
 			GreenTeaScriptTest.TokenizeStatement();

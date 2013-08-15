@@ -1,4 +1,3 @@
-/// <reference path="LangDeps.ts" />
 //  *************************************************************************** //
 //  Copyright (c) 2013, JST/CRESTproject: authors: DEOS.rights: reserved: All. //
 // and: Redistributionin: useand: sourceforms: binary,or: without: with //
@@ -43,7 +42,7 @@
 	var NativeVariadicMethod: number	= 1 << 6;
 	var DynamicMethod: number		= 1 << 7;
 	var ConstMethod: number			= 1 << 8;
-	var ImplicitMethod: number      = 1 << 9;  // var for:cast: usedvar: implicit //
+	var ImplicitMethod: number      = 1 << 9;  //  var for: used var cast: implicit //
 
 	var SymbolMaskSize: number					= 3;
 	var LowerSymbolMask: number					= 1;
@@ -109,9 +108,9 @@
 	var MaxSizeOfChars: number          = 41;
 
 	var CharMatrix: number[] = [
-		/*stx: nulvar:eot: sohvar:ack: etxvar:bel: enq*/
+		/*var soh: nul var etx: stx var enq: eot var bel: ack*/
 		0, 1, 1, 1, 1, 1, 1, 1,
-		/*nl: bsvar:np: htvar:so: vtvar:si: cr  */
+		/*var ht: bs var vt: nl var cr: np var si: so  */
 		1, TabChar, NewLineChar, 1, 1, NewLineChar, 1, 1,
 		/*020 dle  021 dc1  022 dc2  023 dc3  024 dc4  025 nak  026 syn  027 etb */
 		1, 1, 1, 1, 1, 1, 1, 1,
@@ -182,23 +181,23 @@
 	var VarDeclValue: number	= 2;
 	var VarDeclScope: number	= 3;
 
-	//Call: Method; //
+	// var Call: Method; //
 	var CallExpressionOffset: number	= 0;
 	var CallParameterOffset: number		= 1;
 
-	// var Decl: Const; //
+	//  var Decl: Const; //
 	var ConstDeclClassIndex: number	= 0;
 	var ConstDeclNameIndex: number	= 1;
 	var ConstDeclValueIndex: number	= 2;
 
-	// var Decl: Method; //
+	//  var Decl: Method; //
 	var FuncDeclReturnType: number	= 0;
 	var FuncDeclClass: number		= 1;
 	var FuncDeclName: number		= 2;
 	var FuncDeclBlock: number		= 3;
 	var FuncDeclParam: number		= 4;
 
-	// var Decl: Class; //
+	//  var Decl: Class; //
 	var ClassParentNameOffset: number	= 0;
 	var ClassNameOffset: number			= 1;
 	var ClassBlockOffset: number		= 2;
@@ -212,19 +211,19 @@
 	//  Enum //
 	var EnumNameTreeIndex: number = 0;
 
-	//  spec //
-	var TokenFuncSpec: number     = 0;
-	var SymbolPatternSpec: number = 1;
-	var ExtendedPatternSpec: number = 2;
+// 	// spec //
+// 	var TokenFuncSpec: number     = 0; //
+// 	var SymbolPatternSpec: number = 1; //
+// 	var ExtendedPatternSpec: number = 2; //
 
 	var BinaryOperator: number					= 1;
 	var LeftJoin: number						= 1 << 1;
 // 	var Parenthesis: number						= 1 << 2; //
 	var PrecedenceShift: number					= 3;
-	var Precedence_CStyleValue: number			= (1 << PrecedenceShift);
-	var Precedence_CPPStyleScope: number		= (50 << PrecedenceShift);
-	var Precedence_CStyleSuffixCall: number		= (100 << PrecedenceShift);				/*x(); x[]; x.x: x->x: x++ */
-	var Precedence_CStylePrefixOperator: number	= (200 << PrecedenceShift);				/*++x; --x;var x: sizeof &x +x -x !x (T)x  */
+// 	var Precedence_CStyleValue: number			= (1 << PrecedenceShift); //
+// 	var Precedence_CPPStyleScope: number		= (50 << PrecedenceShift); //
+// 	var Precedence_CStyleSuffixCall: number		= (100 << PrecedenceShift);				/*x(); x[]; x.var x: x->var x: x++ */ //
+// 	var Precedence_CStylePrefixOperator: number	= (200 << PrecedenceShift);				/*++x; --x; var x: sizeof &x +x -x !x (T)x  */ //
 	// 	Precedence_CppMember      = 300;  /* .x ->x */ //
 	var Precedence_CStyleMUL: number			= (400 << PrecedenceShift);				/* x * x; x / x; x % x*/
 	var Precedence_CStyleADD: number			= (500 << PrecedenceShift);				/* x + x; x - x */
@@ -239,9 +238,9 @@
 	var Precedence_CStyleTRINARY: number		= (1400 << PrecedenceShift);				/* ? : */
 	var Precedence_CStyleAssign: number			= (1500 << PrecedenceShift);
 	var Precedence_CStyleCOMMA: number			= (1600 << PrecedenceShift);
-	var Precedence_Error: number				= (1700 << PrecedenceShift);
-	var Precedence_Statement: number			= (1900 << PrecedenceShift);
-	var Precedence_CStyleDelim: number			= (2000 << PrecedenceShift);
+// 	var Precedence_Error: number				= (1700 << PrecedenceShift); //
+// 	var Precedence_Statement: number			= (1900 << PrecedenceShift); //
+// 	var Precedence_CStyleDelim: number			= (2000 << PrecedenceShift); //
 
 	var DefaultTypeCheckPolicy: number			= 0;
 	var NoCheckPolicy: number                   = 1;
@@ -251,7 +250,7 @@
 	var AllowVoidPolicy: number                 = (1 << 4);
 	var AllowCoercionPolicy: number             = (1 << 5);
 
-	var GlobalConstName: string					= "global";
+// 	var GlobalConstName: string					= "global"; //
 
 	var SymbolList: Array<string> = new Array<string>();
 	var SymbolMap: GtMap  = new GtMap();
@@ -306,78 +305,78 @@
 		return UnicodeChar;
 	}
 
-	//  Symbol //
-	function IsGetterSymbol(SymbolId: number): boolean {
-		return IsFlag(SymbolId, GetterSymbolMask);
-	}
-
-	function IsSetterSymbol(SymbolId: number): boolean {
-		return IsFlag(SymbolId, SetterSymbolMask);
-	}
-
-	function ToSetterSymbol(SymbolId: number): number {
-		LangDeps.Assert(IsGetterSymbol(SymbolId));
-		return (SymbolId & (~GetterSymbolMask)) | SetterSymbolMask;
-	}
-
-	function MaskSymbol(SymbolId: number, Mask: number): number {
-		return (SymbolId << SymbolMaskSize) | Mask;
-	}
-
-	function UnmaskSymbol(SymbolId: number): number {
-		return SymbolId >> SymbolMaskSize;
-	}
-
-	function StringfySymbol(SymbolId: number): string {
-		var Key: string = SymbolList.get(UnmaskSymbol(SymbolId));
-		if(IsFlag(SymbolId, GetterSymbolMask)) {
-			return GetterPrefix + Key;
-		}
-		if(IsFlag(SymbolId, SetterSymbolMask)) {
-			return SetterPrefix + Key;
-		}
-		if(IsFlag(SymbolId, MetaSymbolMask)) {
-			return MetaPrefix + Key;
-		}
-		return Key;
-	}
-
-	function GetSymbolId(Symbol: string, DefaultSymbolId: number): number {
-		var Key: string = Symbol;
-		var Mask: number = 0;
-		if(Symbol.length >= 3 && LangDeps.CharAt(Symbol, 1) == (101/*e*/) && LangDeps.CharAt(Symbol, 2) == (116/*t*/)) {
-			if(LangDeps.CharAt(Symbol, 0) == (103/*g*/) && LangDeps.CharAt(Symbol, 0) == (71/*G*/)) {
-				Key = Symbol.substring(3);
-				Mask = GetterSymbolMask;
-			}
-			if(LangDeps.CharAt(Symbol, 0) == (115/*s*/) && LangDeps.CharAt(Symbol, 0) == (83/*S*/)) {
-				Key = Symbol.substring(3);
-				Mask = SetterSymbolMask;
-			}
-		}
-		if(Symbol.startsWith("\\")) {
-			Mask = MetaSymbolMask;
-		}
-		var SymbolObject: number = <number>SymbolMap.get(Key);
-		if(SymbolObject == null) {
-			if(DefaultSymbolId == CreateNewSymbolId) {
-				var SymbolId: number = SymbolList.size();
-				SymbolList.add(Key);
-				SymbolMap.put(Key, SymbolId); // new number(SymbolId)); //
-				return MaskSymbol(SymbolId, Mask);
-			}
-			return DefaultSymbolId;
-		}
-		return MaskSymbol(SymbolObject, Mask);
-	}
-
-	function CanonicalSymbol(Symbol: string): string {
-		return Symbol.toLowerCase().replaceAll("_", "");
-	}
-
-	function GetCanonicalSymbolId(Symbol: string): number {
-		return GetSymbolId(CanonicalSymbol(Symbol), CreateNewSymbolId);
-	}
+// 	// Symbol //
+// 	function IsGetterSymbol(SymbolId: number): boolean { //
+// 		return IsFlag(SymbolId, GetterSymbolMask); //
+// 	} //
+//  //
+// 	function IsSetterSymbol(SymbolId: number): boolean { //
+// 		return IsFlag(SymbolId, SetterSymbolMask); //
+// 	} //
+//  //
+// 	function ToSetterSymbol(SymbolId: number): number { //
+// 		LangDeps.Assert(IsGetterSymbol(SymbolId)); //
+// 		return (SymbolId & (~GetterSymbolMask)) | SetterSymbolMask; //
+// 	} //
+//  //
+// 	function MaskSymbol(SymbolId: number, Mask: number): number { //
+// 		return (SymbolId << SymbolMaskSize) | Mask; //
+// 	} //
+//  //
+// 	function UnmaskSymbol(SymbolId: number): number { //
+// 		return SymbolId >> SymbolMaskSize; //
+// 	} //
+//  //
+// 	function StringfySymbol(SymbolId: number): string { //
+// 		var Key: string = SymbolList.get(UnmaskSymbol(SymbolId)); //
+// 		if(IsFlag(SymbolId, GetterSymbolMask)) { //
+// 			return GetterPrefix + Key; //
+// 		} //
+// 		if(IsFlag(SymbolId, SetterSymbolMask)) { //
+// 			return SetterPrefix + Key; //
+// 		} //
+// 		if(IsFlag(SymbolId, MetaSymbolMask)) { //
+// 			return MetaPrefix + Key; //
+// 		} //
+// 		return Key; //
+// 	} //
+//  //
+// 	function GetSymbolId(Symbol: string, DefaultSymbolId: number): number { //
+// 		var Key: string = Symbol; //
+// 		var Mask: number = 0; //
+// 		if(Symbol.length >= 3 && LangDeps.CharAt(Symbol, 1) == 101/*$1*/ && LangDeps.CharAt(Symbol, 2) == 116/*$1*/) { //
+// 			if(LangDeps.CharAt(Symbol, 0) == 103/*$1*/ && LangDeps.CharAt(Symbol, 0) == 71/*$1*/) { //
+// 				Key = Symbol.substring(3); //
+// 				Mask = GetterSymbolMask; //
+// 			} //
+// 			if(LangDeps.CharAt(Symbol, 0) == 115/*$1*/ && LangDeps.CharAt(Symbol, 0) == 83/*$1*/) { //
+// 				Key = Symbol.substring(3); //
+// 				Mask = SetterSymbolMask; //
+// 			} //
+// 		} //
+// 		if(Symbol.startsWith("\\")) { //
+// 			Mask = MetaSymbolMask; //
+// 		} //
+// 		var SymbolObject: number = <number>SymbolMap.get(Key); //
+// 		if(SymbolObject == null) { //
+// 			if(DefaultSymbolId == CreateNewSymbolId) { //
+// 				var SymbolId: number = SymbolList.size(); //
+// 				SymbolList.add(Key); //
+// 				SymbolMap.put(Key, SymbolId); //new number(SymbolId)); //
+// 				return MaskSymbol(SymbolId, Mask); //
+// 			} //
+// 			return DefaultSymbolId; //
+// 		} //
+// 		return MaskSymbol(SymbolObject, Mask); //
+// 	} //
+//  //
+// 	function CanonicalSymbol(Symbol: string): string { //
+// 		return Symbol.toLowerCase().replaceAll("_", ""); //
+// 	} //
+//  //
+// 	function GetCanonicalSymbolId(Symbol: string): number { //
+// 		return GetSymbolId(CanonicalSymbol(Symbol), CreateNewSymbolId); //
+// 	} //
 
 	function n2s(n: number): string {
 		if(n < 10) {
@@ -470,9 +469,9 @@
 			TokenContext.IndentLevel += 1;
 			var ParsedTree: GtSyntaxTree = <GtSyntaxTree>LangDeps.ApplyMatchFunc(delegate, NameSpace, TokenContext, LeftTree, CurrentPattern);
 			TokenContext.IndentLevel -= 1;
-// 			if(ParsedTree != null && ParsedTree.IsEmpty()) { //
-// 				ParsedTree = null; //
-// 			} //
+			if(ParsedTree != null && ParsedTree.IsEmpty()) {
+				ParsedTree = null;
+			}
 			// console.log("DEBUG: " + "E :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + " => " + ParsedTree); //
 			TokenContext.ParseFlag = ParseFlag;
 			if(ParsedTree != null) {
@@ -527,7 +526,7 @@
 	public FileLine: number;
 	public PresetPattern: GtSyntaxPattern;
 
-	constructor(text: string, FileLine: number) {
+	 constructor(text: string, FileLine: number) {
 		this.TokenFlag = 0;
 		this.ParsedText = text;
 		this.FileLine = FileLine;
@@ -586,7 +585,7 @@
 	public Func: any;
 	public ParentFunc: TokenFunc;
 
-	constructor(Func: any, Parent: TokenFunc) {
+	 constructor(Func: any, Parent: TokenFunc) {
 		this.Func = Func;
 		this.ParentFunc = Parent;
 	}
@@ -597,7 +596,7 @@
 }
 
  class GtTokenContext {
-	static NullToken: GtToken = new GtToken("", 0);
+	public  static NullToken: GtToken = new GtToken("", 0);
 
 	public TopLevelNameSpace: GtNameSpace;
 	public SourceList: Array<GtToken>;
@@ -606,7 +605,7 @@
 	public ParseFlag: number;
 	public IndentLevel: number = 0;
 
-	constructor(NameSpace: GtNameSpace, Text: string, FileLine: number) {
+	 constructor(NameSpace: GtNameSpace, Text: string, FileLine: number) {
 		this.TopLevelNameSpace = NameSpace;
 		this.SourceList = new Array<GtToken>();
 		this.CurrentPosition = 0;
@@ -804,11 +803,11 @@
 		return Token;
 	}
 
-	 IsAllowedBackTrack(): boolean {
+	public  IsAllowedBackTrack(): boolean {
 		return IsFlag(this.ParseFlag, BackTrackParseFlag);
 	}
 
-	 SetBackTrack(Allowed: boolean): number {
+	public  SetBackTrack(Allowed: boolean): number {
 		var ParseFlag: number = this.ParseFlag;
 		if(Allowed) {
 			this.ParseFlag = this.ParseFlag | BackTrackParseFlag;
@@ -819,7 +818,7 @@
 		return ParseFlag;
 	}
 
-	 ParsePatternAfter(NameSpace: GtNameSpace, LeftTree: GtSyntaxTree, PatternName: string, IsOptional: boolean): GtSyntaxTree {
+	public  ParsePatternAfter(NameSpace: GtNameSpace, LeftTree: GtSyntaxTree, PatternName: string, IsOptional: boolean): GtSyntaxTree {
 		var Pos: number = this.CurrentPosition;
 		var ParseFlag: number = this.ParseFlag;
 		var Pattern: GtSyntaxPattern = this.GetPattern(PatternName);
@@ -835,11 +834,11 @@
 		return null;
 	}
 
-	 ParsePattern(NameSpace: GtNameSpace, PatternName: string, IsOptional: boolean): GtSyntaxTree {
+	public  ParsePattern(NameSpace: GtNameSpace, PatternName: string, IsOptional: boolean): GtSyntaxTree {
 		return this.ParsePatternAfter(NameSpace, null, PatternName, IsOptional);
 	}
 
-	 SkipAndGetAnnotation(IsAllowedDelim: boolean): GtMap {
+	public  SkipAndGetAnnotation(IsAllowedDelim: boolean): GtMap {
 		// is: thisimplementation: tentative.the: future: In,have: to: you //
 		// this: pattern: use. //
 		var Annotation: GtMap = null;
@@ -864,7 +863,7 @@
 		return Annotation;
 	}
 
-	 SkipEmptyStatement(): boolean {
+	public  SkipEmptyStatement(): boolean {
 		var Token: GtToken = null;
 		while((Token = this.GetToken()) != GtTokenContext.NullToken) {
 			if(Token.IsIndent() || Token.IsDelim()) {
@@ -894,7 +893,7 @@
 	public TypeFunc: any;
 	public ParentPattern: GtSyntaxPattern;
 
-	constructor(NameSpace: GtNameSpace, PatternName: string, MatchFunc: any, TypeFunc: any) {
+	 constructor(NameSpace: GtNameSpace, PatternName: string, MatchFunc: any, TypeFunc: any) {
 		this.PackageNameSpace = NameSpace;
 		this.PatternName = PatternName;
 		this.SyntaxFlag = 0;
@@ -930,7 +929,7 @@ class GtSyntaxTree {
 	public ConstValue: Object;
 	public Annotation: GtMap;
 
-	constructor(Pattern: GtSyntaxPattern, NameSpace: GtNameSpace, KeyToken: GtToken, ConstValue: Object) {
+	 constructor(Pattern: GtSyntaxPattern, NameSpace: GtNameSpace, KeyToken: GtToken, ConstValue: Object) {
 		this.NameSpace = NameSpace;
 		this.KeyToken = KeyToken;
 		this.Pattern = Pattern;
@@ -986,13 +985,13 @@ class GtSyntaxTree {
 	}
 
 	public IsEmpty(): boolean {
-		return this.KeyToken == GtTokenContext.NullToken;
+		return (this.KeyToken == GtTokenContext.NullToken && this.Pattern == null);
 	}
 
 	public ToEmpty(): void {
 		this.KeyToken = GtTokenContext.NullToken;
 		this.TreeList = null;
-		this.Pattern = this.NameSpace.GetPattern("$Empty$");
+		this.Pattern = null; // tree: Emptybacktrack: must //
 	}
 
 	public IsEmptyOrError(): boolean {
@@ -1081,15 +1080,15 @@ class GtSyntaxTree {
 		}
 	}
 
-	 GetParsedType(): GtType {
+	public  GetParsedType(): GtType {
 		return <GtType>this.ConstValue;
 	}
 
-	 HasNodeAt(Index: number): boolean {
+	public  HasNodeAt(Index: number): boolean {
 		return this.TreeList != null && Index < this.TreeList.size();
 	}
 
-	 TypeCheckNodeAt(Index: number, Gamma: GtTypeEnv, Type: GtType, TypeCheckPolicy: number): GtNode {
+	public  TypeCheckNodeAt(Index: number, Gamma: GtTypeEnv, Type: GtType, TypeCheckPolicy: number): GtNode {
 		if(this.TreeList != null && Index < this.TreeList.size()) {
 			var ParsedTree: GtSyntaxTree = this.TreeList.get(Index);
 			if(ParsedTree != null) {
@@ -1113,7 +1112,7 @@ class GtSyntaxTree {
 	public Name: string;
 	public LocalName: string;
 
-	constructor(Type: GtType, Name: string, Index: number) {
+	 constructor(Type: GtType, Name: string, Index: number) {
 		this.Type = Type;
 		this.Name = Name;
 		this.LocalName = Name + Index;
@@ -1121,25 +1120,25 @@ class GtSyntaxTree {
 }
 
  class GtTypeEnv {
-	 Context: GtClassContext;
-	 Generator: GtGenerator;
-	 NameSpace: GtNameSpace;
+	public  Context: GtClassContext;
+	public  Generator: GtGenerator;
+	public  NameSpace: GtNameSpace;
 
 	public Method: GtMethod;
 	public LocalStackList: Array<GtVariableInfo>;
 	public StackTopIndex: number;
 
 	/*convinient: forcut: short */
-	 VoidType: GtType;
-	 BooleanType: GtType;
-	 IntType: GtType;
-	 StringType: GtType;
-	 VarType: GtType;
-	 AnyType: GtType;
-	 ArrayType: GtType;
-	 FuncType: GtType;
+	public  VoidType: GtType;
+	public  BooleanType: GtType;
+	public  IntType: GtType;
+	public  StringType: GtType;
+	public  VarType: GtType;
+	public  AnyType: GtType;
+	public  ArrayType: GtType;
+	public  FuncType: GtType;
 
-	constructor(NameSpace: GtNameSpace) {
+	 constructor(NameSpace: GtNameSpace) {
 		this.NameSpace = NameSpace;
 		this.Context   = NameSpace.Context;
 		this.Generator = NameSpace.Context.Generator;
@@ -1157,11 +1156,11 @@ class GtSyntaxTree {
 		this.FuncType = NameSpace.Context.FuncType;
 	}
 
-	 IsStrictMode(): boolean {
+	public  IsStrictMode(): boolean {
 		return this.Generator.IsStrictMode();
 	}
 
-	 IsTopLevel(): boolean {
+	public  IsTopLevel(): boolean {
 		return (this.Method == null);
 	}
 
@@ -1189,7 +1188,7 @@ class GtSyntaxTree {
 		return null;
 	}
 
-	 ReportTypeResult(ParsedTree: GtSyntaxTree, Node: GtNode, Level: number, Message: string): GtNode {
+	public  ReportTypeResult(ParsedTree: GtSyntaxTree, Node: GtNode, Level: number, Message: string): GtNode {
 		this.NameSpace.Context.ReportError(Level, Node.Token, Message);
 		if(!this.IsStrictMode()) {
 			return Node;
@@ -1257,7 +1256,7 @@ class GtSyntaxTree {
 		return this.TypeBlock(ParsedTree, Type);
 	}
 
-	 TypeCheckSingleNode(ParsedTree: GtSyntaxTree, Node: GtNode, Type: GtType, TypeCheckPolicy: number): GtNode {
+	public  TypeCheckSingleNode(ParsedTree: GtSyntaxTree, Node: GtNode, Type: GtType, TypeCheckPolicy: number): GtNode {
 		if(Node.IsError() || IsFlag(TypeCheckPolicy, NoCheckPolicy)) {
 			return Node;
 		}
@@ -1279,7 +1278,7 @@ class GtSyntaxTree {
 		return this.ReportTypeResult(ParsedTree, Node, ErrorLevel, "error: type: requested = " + Type + ", given = " + Node.Type);
 	}
 
-	 DefineMethod(Method: GtMethod): void {
+	public  DefineMethod(Method: GtMethod): void {
 		this.NameSpace.Context.DefineMethod(Method);
 		var Value: Object = this.NameSpace.GetSymbol(Method.MethodName);
 		if(Value == null) {
@@ -1293,14 +1292,14 @@ class GtSyntaxTree {
 //  NameSpace //
 
  class GtNameSpace {
-	 Context: GtClassContext;
-	 ParentNameSpace: GtNameSpace;
+	public  Context: GtClassContext;
+	public  ParentNameSpace: GtNameSpace;
 	public PackageName: string;
 
 	TokenMatrix: TokenFunc[];
 	SymbolPatternTable: GtMap;
 
-	constructor(Context: GtClassContext, ParentNameSpace: GtNameSpace) {
+	 constructor(Context: GtClassContext, ParentNameSpace: GtNameSpace) {
 		this.Context = Context;
 		this.ParentNameSpace = ParentNameSpace;
 		this.PackageName = (ParentNameSpace != null) ? ParentNameSpace.PackageName : null;
@@ -1308,14 +1307,14 @@ class GtSyntaxTree {
 		this.SymbolPatternTable = null;
 	}
 
-	 GetTokenFunc(GtChar2: number): TokenFunc {
+	public  GetTokenFunc(GtChar2: number): TokenFunc {
 		if(this.TokenMatrix == null) {
 			return this.ParentNameSpace.GetTokenFunc(GtChar2);
 		}
 		return this.TokenMatrix[GtChar2];
 	}
 
-	 DefineTokenFunc(keys: string, f: any): void {
+	public  DefineTokenFunc(keys: string, f: any): void {
 		var i: number = 0;
 		if(this.TokenMatrix == null) {
 			this.TokenMatrix = new Array<TokenFunc>(MaxSizeOfChars);
@@ -1333,7 +1332,7 @@ class GtSyntaxTree {
 		}
 	}
 
-	 GetSymbol(Key: string): Object {
+	public  GetSymbol(Key: string): Object {
 		var NameSpace: GtNameSpace = this;
 		while(NameSpace != null) {
 			if(NameSpace.SymbolPatternTable != null) {
@@ -1388,7 +1387,7 @@ class GtSyntaxTree {
 		this.AppendPattern("+" + PatternName, Pattern);
 	}
 
-	 DefineClassSymbol(ClassInfo: GtType): GtType {
+	public  DefineClassSymbol(ClassInfo: GtType): GtType {
 		if(ClassInfo.PackageNameSpace == null) {
 			ClassInfo.PackageNameSpace = this;
 			if(this.PackageName != null) {
@@ -1411,7 +1410,7 @@ class GtGrammar {
 
  class DScriptGrammar extends GtGrammar {
 	//  Token //
-	static WhiteSpaceToken(TokenContext: GtTokenContext, SourceText: string, pos: number): number {
+	public static WhiteSpaceToken(TokenContext: GtTokenContext, SourceText: string, pos: number): number {
 		TokenContext.FoundWhiteSpace();
 		while(pos < SourceText.length) {
 			var ch: number = LangDeps.CharAt(SourceText, pos);
@@ -1423,7 +1422,7 @@ class GtGrammar {
 		return pos;
 	}
 
-	static IndentToken(TokenContext: GtTokenContext, SourceText: string, pos: number): number {
+	public static IndentToken(TokenContext: GtTokenContext, SourceText: string, pos: number): number {
 		var LineStart: number = pos + 1;
 		TokenContext.FoundLineFeed(1);
 		pos = pos + 1;
@@ -1444,11 +1443,11 @@ class GtGrammar {
 		// return SourceText.length; //
 	}
 
-	static SymbolToken(TokenContext: GtTokenContext, SourceText: string, pos: number): number {
+	public static SymbolToken(TokenContext: GtTokenContext, SourceText: string, pos: number): number {
 		var start: number = pos;
 		while(pos < SourceText.length) {
 			var ch: number = LangDeps.CharAt(SourceText, pos);
-			if(!LangDeps.IsLetter(ch) && !LangDeps.IsDigit(ch) && ch != (95/*_*/)) {
+			if(!LangDeps.IsLetter(ch) && !LangDeps.IsDigit(ch) && ch != 95/*$1*/) {
 				break;
 			}
 			pos += 1;
@@ -1457,7 +1456,7 @@ class GtGrammar {
 		return pos;
 	}
 
-	static OperatorToken(TokenContext: GtTokenContext, SourceText: string, pos: number): number {
+	public static OperatorToken(TokenContext: GtTokenContext, SourceText: string, pos: number): number {
 		var NextPos: number = pos + 1;
 		while(NextPos < SourceText.length) {
 			var ch: number = LangDeps.CharAt(SourceText, NextPos);
@@ -1484,16 +1483,16 @@ class GtGrammar {
 		return NextPos;
 	}
 
-	static CommentToken(TokenContext: GtTokenContext, SourceText: string, pos: number): number {
+	public static CommentToken(TokenContext: GtTokenContext, SourceText: string, pos: number): number {
 		var NextPos: number = pos + 1;
 		if(NextPos < SourceText.length) {
 			var NextChar: number = LangDeps.CharAt(SourceText, NextPos);
-			if(NextChar != (47/*/*/) && NextChar != (42/***/)) {
+			if(NextChar != 47/*$1*/ && NextChar != 42/*$1*/) {
 				return NoMatch;
 			}
 			var Level: number = 0;
 			var PrevChar: number = 0;
-			if(NextChar == (42/***/)) {
+			if(NextChar == 42/*$1*/) {
 				Level = 1;
 			}
 			while(NextPos < SourceText.length) {
@@ -1501,14 +1500,14 @@ class GtGrammar {
 				if(NextChar == ('\n'.charCodeAt(0)) && Level == 0) {
 					return DScriptGrammar.IndentToken(TokenContext, SourceText, NextPos);
 				}
-				if(NextChar == (47/*/*/) && PrevChar == (42/***/)) {
+				if(NextChar == 47/*$1*/ && PrevChar == 42/*$1*/) {
 					if(Level == 1) {
 						return NextPos + 1;
 					}
 					Level = Level - 1;
 				}
 				if(Level > 0) {
-					if(NextChar == (42/***/) && PrevChar == (47/*/*/)) {
+					if(NextChar == 42/*$1*/ && PrevChar == 47/*$1*/) {
 						Level = Level + 1;
 					}
 				}
@@ -1518,7 +1517,7 @@ class GtGrammar {
 		return NoMatch;
 	}
 
-	static NumberLiteralToken(TokenContext: GtTokenContext, SourceText: string, pos: number): number {
+	public static NumberLiteralToken(TokenContext: GtTokenContext, SourceText: string, pos: number): number {
 		var start: number = pos;
 		while(pos < SourceText.length) {
 			var ch: number = LangDeps.CharAt(SourceText, pos);
@@ -1531,13 +1530,13 @@ class GtGrammar {
 		return pos;
 	}
 
-	static StringLiteralToken(TokenContext: GtTokenContext, SourceText: string, pos: number): number {
+	public static StringLiteralToken(TokenContext: GtTokenContext, SourceText: string, pos: number): number {
 		var start: number = pos + 1;
-		var prev: number = (34/*"*/);
+		var prev: number = 34/*$1*/;
 		pos = pos + 1; //  eat "\"" //
 		while(pos < SourceText.length) {
 			var ch: number = LangDeps.CharAt(SourceText, pos);
-			if(ch == (34/*"*/) && prev != ('\\'.charCodeAt(0))) {
+			if(ch == 34/*$1*/ && prev != ('\\'.charCodeAt(0))) {
 				TokenContext.AddNewToken(SourceText.substring(start, pos), QuotedTokenFlag, "$StringLiteral$");
 				return pos + 1;
 			}
@@ -1553,19 +1552,19 @@ class GtGrammar {
 		return pos;
 	}
 
-	static StringLiteralToken_StringInterpolation(TokenContext: GtTokenContext, SourceText: string, pos: number): number {
+	public static StringLiteralToken_StringInterpolation(TokenContext: GtTokenContext, SourceText: string, pos: number): number {
 		var start: number = pos + 1;
 		var NextPos: number = start;
-		var prev: number = (34/*"*/);
+		var prev: number = 34/*$1*/;
 		while(NextPos < SourceText.length) {
 			var ch: number = LangDeps.CharAt(SourceText, NextPos);
-			if(ch == (36/*$*/)) {
+			if(ch == 36/*$1*/) {
 				var end: number = NextPos + 1;
 				ch = LangDeps.CharAt(SourceText, end);
-				if(ch == (123/*{*/)) {
+				if(ch == 123/*$1*/) {
 					while(end < SourceText.length) {
 						ch = LangDeps.CharAt(SourceText, end);
-						if(ch == (125/*}*/)) {
+						if(ch == 125/*$1*/) {
 							break;
 						}
 						end = end + 1;
@@ -1585,14 +1584,14 @@ class GtGrammar {
 					start = end;
 					NextPos = end;
 					prev = ch;
-					if(ch == (34/*"*/)) {
+					if(ch == 34/*$1*/) {
 						TokenContext.AddNewToken(SourceText.substring(start, NextPos), 0, "$StringLiteral$");
 						return NextPos + 1;
 					}
 					continue;
 				}
 			}
-			if(ch == (34/*"*/) && prev != ('\\'.charCodeAt(0))) {
+			if(ch == 34/*$1*/ && prev != ('\\'.charCodeAt(0))) {
 				TokenContext.AddNewToken(SourceText.substring(start, NextPos), 0, "$StringLiteral$");
 				return NextPos + 1;
 			}
@@ -1609,7 +1608,7 @@ class GtGrammar {
 	}
 
 	// and: parserchecker: type //
-	static ParseType(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseType(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		var Token: GtToken = TokenContext.Next();
 		var ConstValue: Object = NameSpace.GetSymbol(Token.ParsedText);
 		if(!(ConstValue instanceof GtType)) {
@@ -1646,7 +1645,7 @@ class GtGrammar {
 		return new GtSyntaxTree(Pattern, NameSpace, Token, ParsedType);
 	}
 
-	static ParseConst(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseConst(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		var Token: GtToken = TokenContext.Next();
 		var ConstValue: Object = NameSpace.GetSymbol(Token.ParsedText);
 		if(ConstValue != null) {
@@ -1655,11 +1654,11 @@ class GtGrammar {
 		return null; // Matched: Not //
 	}
 
-	static TypeConst(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
+	public static TypeConst(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
 		return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(ParsedTree.ConstValue), ParsedTree, ParsedTree.ConstValue);
 	}
 
-	static ParseSymbol(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseSymbol(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		var TypeTree: GtSyntaxTree = TokenContext.ParsePattern(NameSpace, "$Type$", Optional);
 		if(TypeTree != null) {
 			var DeclTree: GtSyntaxTree = TokenContext.ParsePatternAfter(NameSpace, TypeTree, "$FuncDecl$", Optional);
@@ -1680,16 +1679,16 @@ class GtGrammar {
 		return new GtSyntaxTree(NameSpace.GetPattern("$Variable$"), NameSpace, Token, null);
 	}
 
-	static ParseVariable(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseVariable(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		var Token: GtToken = TokenContext.Next();
 		var ch: number = LangDeps.CharAt(Token.ParsedText, 0);
-		if(LangDeps.IsLetter(ch) || ch == (95/*_*/)) {
+		if(LangDeps.IsLetter(ch) || ch == 95/*$1*/) {
 			return new GtSyntaxTree(Pattern, NameSpace, Token, null);
 		}
 		return null;
 	}
 
-	static TypeVariable(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
+	public static TypeVariable(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
 		var Name: string = ParsedTree.KeyToken.ParsedText;
 		var VariableInfo: GtVariableInfo = Gamma.LookupDeclaredVariable(Name);
 		if(VariableInfo != null) {
@@ -1703,7 +1702,7 @@ class GtGrammar {
 		return Gamma.ReportTypeResult(ParsedTree, Node, ErrorLevel, "undefined name: " + Name);
 	}
 
-	static ParseVarDecl(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseVarDecl(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		var Tree: GtSyntaxTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetToken(), null);
 		if(LeftTree == null) {
 			Tree.SetMatchedPatternAt(VarDeclType, NameSpace, TokenContext, "$Type$", Required);
@@ -1730,7 +1729,7 @@ class GtGrammar {
 		return Tree;
 	}
 
-	static TypeVarDecl(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
+	public static TypeVarDecl(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
 		var TypeTree: GtSyntaxTree = ParsedTree.GetSyntaxTreeAt(VarDeclType);
 		var NameTree: GtSyntaxTree = ParsedTree.GetSyntaxTreeAt(VarDeclName);
 		var ValueTree: GtSyntaxTree = ParsedTree.GetSyntaxTreeAt(VarDeclValue);
@@ -1753,42 +1752,34 @@ class GtGrammar {
 	}
 
 	// And: Type: Parse //
-	static ParseEmpty(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
-		return new GtSyntaxTree(Pattern, NameSpace, GtTokenContext.NullToken, null);
-	}
-
-	static TypeEmpty(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, Type: GtType): GtNode {
-		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
-	}
-
-	static ParseIntegerLiteral(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseIntegerLiteral(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		var Token: GtToken = TokenContext.Next();
 		return new GtSyntaxTree(Pattern, NameSpace, Token, LangDeps.ParseInt(Token.ParsedText));
 	}
 
-	static ParseStringLiteral(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseStringLiteral(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		var Token: GtToken = TokenContext.Next(); /*must: be: this \"we: andeat: it: should*/
 		var NewTree: GtSyntaxTree = new GtSyntaxTree(Pattern, NameSpace, Token, Token.ParsedText);
 		return NewTree;
 	}
 
-	static ParseExpression(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseExpression(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		return ParseExpression(NameSpace, TokenContext);
 	}
 
-	static ParseUnary(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseUnary(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		var Token: GtToken = TokenContext.Next();
 		var Tree: GtSyntaxTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
 		Tree.SetMatchedPatternAt(UnaryTerm, NameSpace, TokenContext, "$Expression$", Required);
 		return Tree;
 	}
 
-	static TypeUnary(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
+	public static TypeUnary(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
 		var ExprNode: GtNode  = ParsedTree.TypeCheckNodeAt(UnaryTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
 		return Gamma.Generator.CreateUnaryNode(Gamma.AnyType, ParsedTree, null/*Method*/, ExprNode);
 	}
 
-	static ParseBinary(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseBinary(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		var Token: GtToken = TokenContext.Next();
 		var RightTree: GtSyntaxTree = ParseExpression(NameSpace, TokenContext);
 		if(IsEmptyOrError(RightTree)) {
@@ -1813,7 +1804,7 @@ class GtGrammar {
 		return NewTree;
 	}
 
-	static TypeBinary(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
+	public static TypeBinary(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
 		var Operator: string = ParsedTree.KeyToken.ParsedText;
 		var LeftNode: GtNode  = ParsedTree.TypeCheckNodeAt(LeftHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
 		var RightNode: GtNode = ParsedTree.TypeCheckNodeAt(RightHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
@@ -1834,7 +1825,7 @@ class GtGrammar {
 		return Gamma.Generator.CreateBinaryNode(ContextType, ParsedTree, null, LeftNode, RightNode);
 	}
 
-	static ParseGetter(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseGetter(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		TokenContext.MatchToken(".");
 		var Token: GtToken = TokenContext.Next();
 		if(Token.IsNameSymbol()) {
@@ -1845,7 +1836,7 @@ class GtGrammar {
 		return TokenContext.ReportExpectedToken("name: field");
 	}
 
-	static TypeGetter(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
+	public static TypeGetter(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
 		var Name: string = ParsedTree.KeyToken.ParsedText;
 		var ObjectNode: GtNode = ParsedTree.TypeCheckNodeAt(UnaryTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
 		if(ObjectNode.IsError()) {
@@ -1871,7 +1862,7 @@ class GtGrammar {
 	}
 
 	//  PatternName: "(" //
-	static ParseGroup(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseGroup(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		var ParseFlag: number = TokenContext.ParseFlag;
 		TokenContext.ParseFlag |= SkipIndentParseFlag;
 		var GroupTree: GtSyntaxTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("("), null);
@@ -1884,12 +1875,12 @@ class GtGrammar {
 		return GroupTree;
 	}
 
-	static TypeGroup(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
+	public static TypeGroup(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
 		return ParsedTree.TypeCheckNodeAt(UnaryTerm, Gamma, ContextType, DefaultTypeCheckPolicy);
 	}
 
 	//  PatternName: "(" "to" $Type$ ")" //
-	static ParseCast(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseCast(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		var ParseFlag: number = TokenContext.ParseFlag;
 		TokenContext.ParseFlag |= SkipIndentParseFlag;
 		var FirstToken: GtToken = TokenContext.Next(); // the: skiptoken: first //
@@ -1910,13 +1901,13 @@ class GtGrammar {
 		return CastTree;
 	}
 
-	static TypeCast(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
+	public static TypeCast(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
 		var CastType: GtType = ParsedTree.GetSyntaxTreeAt(LeftHandTerm).GetParsedType();
 		var TypeCheckPolicy: number = CastPolicy;
 		return ParsedTree.TypeCheckNodeAt(RightHandTerm, Gamma, CastType, TypeCheckPolicy);
 	}
 
-	static ParseApply(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseApply(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		var ParseFlag: number = TokenContext.ParseFlag;
 		TokenContext.ParseFlag |= SkipIndentParseFlag;
 		var FuncTree: GtSyntaxTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("("), null);
@@ -1933,7 +1924,7 @@ class GtGrammar {
 		return FuncTree;
 	}
 
-	static TypeApply(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
+	public static TypeApply(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
 		var FuncNode: GtNode = ParsedTree.TypeCheckNodeAt(0, Gamma, Gamma.FuncType, DefaultTypeCheckPolicy);
 		var MethodName: string = FuncNode.Token.ParsedText;
 		var BaseType: GtType = null;
@@ -1960,7 +1951,7 @@ class GtGrammar {
 		return DScriptGrammar.TypeFuncParam(Gamma, ParsedTree, MethodName, BaseType, NodeList, ParamIndex, ParamSize);
 	}
 
-	static TypeFuncParam(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, MethodName: string, BaseType: GtType, NodeList: Array<GtNode>, ParamIndex: number, ParamSize: number): GtNode {
+	private static TypeFuncParam(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, MethodName: string, BaseType: GtType, NodeList: Array<GtNode>, ParamIndex: number, ParamSize: number): GtNode {
 		var Method: GtMethod = Gamma.Context.GetListedMethod(BaseType, MethodName, ParamSize - 1, true);
 		var ReturnType: GtType = Gamma.AnyType;
 		if(Method == null) {
@@ -2022,7 +2013,7 @@ class GtGrammar {
 		return Node;
 	}
 
-	static ExactlyMatchMethod(Method: GtMethod, NodeList: Array<GtNode>): boolean {
+	private static ExactlyMatchMethod(Method: GtMethod, NodeList: Array<GtNode>): boolean {
 		var p: number = 1;
 		while(p < ListSize(NodeList)) {
 			var ParamNode: GtNode = NodeList.get(p);
@@ -2034,7 +2025,7 @@ class GtGrammar {
 		return true;
 	}
 
-	static AcceptablyMatchMethod(Gamma: GtTypeEnv, Method: GtMethod, NodeList: Array<GtNode>): boolean {
+	private static AcceptablyMatchMethod(Gamma: GtTypeEnv, Method: GtMethod, NodeList: Array<GtNode>): boolean {
 		var p: number = 1;
 		while(p < ListSize(NodeList)) {
 			var ParamNode: GtNode = NodeList.get(p);
@@ -2043,7 +2034,7 @@ class GtGrammar {
 		return true;
 	}
 
-	static LookupOverloadedMethod(Gamma: GtTypeEnv, Method: GtMethod, NodeList: Array<GtNode>): GtMethod {
+	private static LookupOverloadedMethod(Gamma: GtTypeEnv, Method: GtMethod, NodeList: Array<GtNode>): GtMethod {
 		var StartMethod: GtMethod = Method;
 		var BaseType: GtType = Method.GetRecvType();
 		var MethodName: string = Method.MangledName;
@@ -2079,25 +2070,33 @@ class GtGrammar {
 		return null;
 	}
 
-	static TypeAnd(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
+	public static TypeAnd(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
 		var LeftNode: GtNode = ParsedTree.TypeCheckNodeAt(LeftHandTerm, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
 		var RightNode: GtNode = ParsedTree.TypeCheckNodeAt(RightHandTerm, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
 		return Gamma.Generator.CreateAndNode(Gamma.BooleanType, ParsedTree, LeftNode, RightNode);
 	}
 
-	static TypeOr(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
+	public static TypeOr(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
 		var LeftNode: GtNode = ParsedTree.TypeCheckNodeAt(LeftHandTerm, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
 		var RightNode: GtNode = ParsedTree.TypeCheckNodeAt(RightHandTerm, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
 		return Gamma.Generator.CreateOrNode(Gamma.BooleanType, ParsedTree, LeftNode, RightNode);
 	}
 
-	static TypeAssign(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
+	public static TypeAssign(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
 		var LeftNode: GtNode = ParsedTree.TypeCheckNodeAt(LeftHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
 		var RightNode: GtNode = ParsedTree.TypeCheckNodeAt(RightHandTerm, Gamma, LeftNode.Type, DefaultTypeCheckPolicy);
 		return Gamma.Generator.CreateAssignNode(LeftNode.Type, ParsedTree, LeftNode, RightNode);
 	}
 
-	static ParseBlock(ParentNameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseEmpty(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+		return new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetBeforeToken(), null);
+	}
+
+	public static TypeEmpty(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, Type: GtType): GtNode {
+		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
+	}
+
+	public static ParseBlock(ParentNameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		if(TokenContext.MatchToken("{")) {
 			var PrevTree: GtSyntaxTree = null;
 			var NameSpace: GtNameSpace = new GtNameSpace(ParentNameSpace.Context, ParentNameSpace);
@@ -2121,7 +2120,7 @@ class GtGrammar {
 		return null;
 	}
 
-	static ParseStatement(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseStatement(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		var StmtTree: GtSyntaxTree = TokenContext.ParsePattern(NameSpace, "$Block$", Optional);
 		if(StmtTree == null) {
 			StmtTree = ParseExpression(NameSpace, TokenContext);
@@ -2132,12 +2131,14 @@ class GtGrammar {
 		return StmtTree;
 	}
 
-	static TypeBlock(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
+	public static TypeBlock(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
 		return Gamma.TypeBlock(ParsedTree, ContextType);
 	}
 
 	// Statement: If //
-	static ParseIf(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseIf(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+		var ParseFlag: number = TokenContext.ParseFlag;
+		TokenContext.ParseFlag |= SkipIndentParseFlag;
 		var Token: GtToken = TokenContext.GetMatchedToken("if");
 		var NewTree: GtSyntaxTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
 		NewTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "(", Required);
@@ -2147,10 +2148,11 @@ class GtGrammar {
 		if(TokenContext.MatchToken("else")) {
 			NewTree.SetMatchedPatternAt(IfElse, NameSpace, TokenContext, "$Statement$", Required);
 		}
+		TokenContext.ParseFlag = ParseFlag;
 		return NewTree;
 	}
 
-	static TypeIf(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
+	public static TypeIf(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
 		var CondNode: GtNode = ParsedTree.TypeCheckNodeAt(IfCond, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
 		var ThenNode: GtNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(IfThen), ContextType);
 		var ElseNode: GtNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(IfElse), ThenNode.Type);
@@ -2158,7 +2160,7 @@ class GtGrammar {
 	}
 
 	// Statement: While //
-	static ParseWhile(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseWhile(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		var WhileTree: GtSyntaxTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("while"), null);
 		WhileTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "(", Required);
 		WhileTree.SetMatchedPatternAt(WhileCond, NameSpace, TokenContext, "$Expression$", Required);
@@ -2167,41 +2169,41 @@ class GtGrammar {
 		return WhileTree;
 	}
 
-	static TypeWhile(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
+	public static TypeWhile(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
 		var CondNode: GtNode = ParsedTree.TypeCheckNodeAt(WhileCond, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
 		var BodyNode: GtNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(WhileBody), ContextType);
 		return Gamma.Generator.CreateWhileNode(BodyNode.Type, ParsedTree, CondNode, BodyNode);
 	}
 
 	//  Break/Statement: Continue //
-	static ParseBreak(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseBreak(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		var Token: GtToken = TokenContext.GetMatchedToken("break");
 		var NewTree: GtSyntaxTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
 		return NewTree;
 	}
 
-	static TypeBreak(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
+	public static TypeBreak(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
 		return Gamma.Generator.CreateBreakNode(Gamma.VoidType, ParsedTree, null, "break");
 	}
 
-	static ParseContinue(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseContinue(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		var Token: GtToken = TokenContext.GetMatchedToken("continue");
 		var NewTree: GtSyntaxTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
 		return NewTree;
 	}
 
-	static TypeContinue(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
+	public static TypeContinue(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
 		return Gamma.Generator.CreateContinueNode(Gamma.VoidType, ParsedTree, null, "continue");
 	}
 
 	// Statement: Return //
-	static ParseReturn(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseReturn(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		var ReturnTree: GtSyntaxTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("return"), null);
 		ReturnTree.SetMatchedPatternAt(ReturnExpr, NameSpace, TokenContext, "$Expression$", Optional);
 		return ReturnTree;
 	}
 
-	static TypeReturn(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
+	public static TypeReturn(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
 		if(Gamma.IsTopLevel()) {
 			return Gamma.UnsupportedTopLevelError(ParsedTree);
 		}
@@ -2214,7 +2216,7 @@ class GtGrammar {
 	}
 
 	//  try //
-	static ParseTry(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseTry(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		var TryTree: GtSyntaxTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("try"), null);
 		TryTree.SetMatchedPatternAt(TryBody, NameSpace, TokenContext, "$Block$", Required);
 		if(TokenContext.MatchToken("catch")) {
@@ -2229,7 +2231,7 @@ class GtGrammar {
 		return TryTree;
 	}
 
-	static TypeTry(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
+	public static TypeTry(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
 		var FaultType: GtType = ContextType; // Gamma: FIXME.FaultType; //
 		var TryNode: GtNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(TryBody), ContextType);
 		var CatchExpr: GtNode = ParsedTree.TypeCheckNodeAt(CatchVariable, Gamma, FaultType, DefaultTypeCheckPolicy);
@@ -2239,20 +2241,20 @@ class GtGrammar {
 	}
 
 	//  throw $Expr$ //
-	static ParseThrow(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseThrow(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		var ThrowTree: GtSyntaxTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("throw"), null);
 		ThrowTree.SetMatchedPatternAt(ReturnExpr, NameSpace, TokenContext, "$Expression$", Required);
 		return ThrowTree;
 	}
 
-	static TypeThrow(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
+	public static TypeThrow(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
 		var FaultType: GtType = ContextType; // Gamma: FIXME.FaultType; //
 		var ExprNode: GtNode = ParsedTree.TypeCheckNodeAt(ReturnExpr, Gamma, FaultType, DefaultTypeCheckPolicy);
 		return Gamma.Generator.CreateThrowNode(ExprNode.Type, ParsedTree, ExprNode);
 	}
 
 	//  new $Type ( $Expr$ [, $Expr$] ) //
-	static ParseNew(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseNew(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		var NewTree: GtSyntaxTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("new"), null);
 		var ParseFlag: number = TokenContext.ParseFlag;
 		TokenContext.ParseFlag |= SkipIndentParseFlag;
@@ -2272,7 +2274,7 @@ class GtGrammar {
 		return NewTree;
 	}
 
-	static TypeNew(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
+	public static TypeNew(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
 		//  new $Type$($Params$) => constructor(new $Type$, $Params$) //
 		var ReturnType: GtType = ParsedTree.GetSyntaxTreeAt(CallExpressionOffset).GetParsedType();
 		var MethodName: string = "constructor";
@@ -2284,7 +2286,7 @@ class GtGrammar {
 	}
 
 	//  switch //
-	static ParseEnum(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseEnum(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		var EnumTypeName: string = null;
 		var NewEnumType: GtType = null;
 		var VocabMap: GtMap = new GtMap();
@@ -2323,12 +2325,12 @@ class GtGrammar {
 		return EnumTree;
 	}
 
-	static TypeEnum(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
+	public static TypeEnum(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
 		var EnumType: Object = ParsedTree.ConstValue;
 		return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(EnumType), ParsedTree, EnumType);
 	}
 
-	static ParseSwitch(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseSwitch(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		var SwitchTree: GtSyntaxTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("switch"), null);
 		SwitchTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "(", Required);
 		SwitchTree.SetMatchedPatternAt(CatchVariable, NameSpace, TokenContext, "$Expression$", Required);
@@ -2348,12 +2350,12 @@ class GtGrammar {
 		return SwitchTree;
 	}
 
-	static TypeSwitch(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
+	public static TypeSwitch(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
 		return null;
 	}
 
 	// decl: const //
-	static ParseConstDecl(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseConstDecl(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		var ConstDeclTree: GtSyntaxTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("const"), null);
 		var ClassNameTree: GtSyntaxTree = TokenContext.ParsePattern(NameSpace, "$Type$", Optional);
 		var ConstClass: GtType = null;
@@ -2393,7 +2395,7 @@ class GtGrammar {
 		return ConstDeclTree;
 	}
 
-	static TypeConstDecl(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
+	public static TypeConstDecl(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
 		var NameTree: GtSyntaxTree = ParsedTree.GetSyntaxTreeAt(ConstDeclNameIndex);
 		var ValueTree: GtSyntaxTree = ParsedTree.GetSyntaxTreeAt(ConstDeclValueIndex);
 		var VariableName: string = NameTree.KeyToken.ParsedText;
@@ -2407,18 +2409,18 @@ class GtGrammar {
 	}
 
 	//  FuncDecl //
-	static ParseFuncName(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseFuncName(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		var Token: GtToken = TokenContext.Next();
 		if(Token != GtTokenContext.NullToken) {
 			var ch: number = LangDeps.CharAt(Token.ParsedText, 0);
-			if(ch != (46/*.*/)) {
+			if(ch != 46/*$1*/) {
 				return new GtSyntaxTree(Pattern, NameSpace, Token, Token.ParsedText);
 			}
 		}
 		return null;
 	}
 
-	static ParseFuncDecl(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseFuncDecl(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		var Tree: GtSyntaxTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetToken(), null);
 		if(LeftTree == null) {
 			Tree.SetMatchedPatternAt(FuncDeclReturnType, NameSpace, TokenContext, "$Type$", Required);
@@ -2455,7 +2457,7 @@ class GtGrammar {
 		return null;
 	}
 
-	static TypeFuncDecl(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
+	public static TypeFuncDecl(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
 		var MethodFlag: number = Gamma.Generator.ParseMethodFlag(0, ParsedTree);
 		Gamma = new GtTypeEnv(ParsedTree.NameSpace);  // of: newenvironment: creation: type //
 		var MethodName: string = <string>ParsedTree.GetSyntaxTreeAt(FuncDeclName).ConstValue;
@@ -2493,7 +2495,7 @@ class GtGrammar {
 		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
 	}
 
-	static CreateConverterMethod(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, MethodFlag: number, TypeList: Array<GtType>): GtMethod {
+	private static CreateConverterMethod(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, MethodFlag: number, TypeList: Array<GtType>): GtMethod {
 		var ToType: GtType = TypeList.get(0);
 		var FromType: GtType = TypeList.get(1);
 		var Method: GtMethod = Gamma.Context.GetCastMethod(FromType, ToType, false);
@@ -2506,7 +2508,7 @@ class GtGrammar {
 		return Method;
 	}
 
-	static CreateMethod(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, MethodFlag: number, MethodName: string, TypeList: Array<GtType>, NativeMacro: string): GtMethod {
+	private static CreateMethod(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, MethodFlag: number, MethodName: string, TypeList: Array<GtType>, NativeMacro: string): GtMethod {
 		var RecvType: GtType = Gamma.VoidType;
 		if(TypeList.size() > 1) {
 			RecvType = TypeList.get(1);
@@ -2539,7 +2541,7 @@ class GtGrammar {
 	}
 
 	//  ClassDecl //
-	static ParseClassDecl(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseClassDecl(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		var ClassDeclTree: GtSyntaxTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetToken(), null);
 		//  "class" $Symbol$ ["extends" $Type$] //
 		TokenContext.MatchToken("class");
@@ -2604,7 +2606,7 @@ class GtGrammar {
 		return ClassDeclTree;
 	}
 
-	static TypeClassDecl(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
+	public static TypeClassDecl(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
 		var ClassNameTree: GtSyntaxTree = ParsedTree.GetSyntaxTreeAt(ClassNameOffset);
 		var NewType: GtType = ParsedTree.GetParsedType();
 		var FieldOffset: number = ClassBlockOffset;
@@ -2665,7 +2667,7 @@ class GtGrammar {
 	}
 
 	//  constructor //
-	static ParseConstructor(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public static ParseConstructor(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		LangDeps.Assert(LeftTree != null);
 		var Tree: GtSyntaxTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetToken(), null);
 		Tree.SetSyntaxTreeAt(FuncDeclReturnType, LeftTree);
@@ -2698,12 +2700,12 @@ class GtGrammar {
 	}
 
 	// grammar: shell //
-	static IsUnixCommand(cmd: string): boolean {
+	private static IsUnixCommand(cmd: string): boolean {
 
 		return false;
 	}
 
-	static SymbolShellToken(TokenContext: GtTokenContext, SourceText: string, pos: number): number {
+	public static SymbolShellToken(TokenContext: GtTokenContext, SourceText: string, pos: number): number {
 		var ShellMode: boolean = false;
 		var start: number = pos;
 		if(TokenContext.SourceList.size() > 0) {
@@ -2721,9 +2723,9 @@ class GtGrammar {
 			}
 			else if(LangDeps.IsDigit(ch)) {
 			}
-			else if(ch == (95/*_*/)) {
+			else if(ch == 95/*$1*/) {
 			}
-			else if(ShellMode && (ch == (45/*-*/) || ch == (47/*/*/))) {
+			else if(ShellMode && (ch == 45/*$1*/ || ch == 47/*$1*/)) {
 			}
 			else {
 				break;
@@ -2758,7 +2760,7 @@ class GtGrammar {
 		return NoMatch;
 	}
 
-	static ParseShell(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+	public  static ParseShell(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		var Token: GtToken = TokenContext.Next();
 		var NewTree: GtSyntaxTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
 		while(!IsEmptyOrError(NewTree) && !TokenContext.MatchToken(";")) {
@@ -2777,7 +2779,7 @@ class GtGrammar {
 		return NewTree;
 	}
 
-	static TypeShell(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
+	public static TypeShell(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
 		var Node: CommandNode = <CommandNode> Gamma.Generator.CreateCommandNode(ContextType, ParsedTree, null);
 		var HeadNode: GtNode = Node;
 		var i: number = 0;
@@ -2886,45 +2888,45 @@ class GtGrammar {
 	public MatchCount: number;
 	public BacktrackCount: number;  // count: Tomany: howbacktracks: happen: times. //
 
-	constructor() {
+	 constructor() {
 		this.MatchCount     = 0;
 		this.BacktrackCount = 0;
 	}
 }
 
  class GtClassContext {
-	  Generator: GtGenerator;
-	  RootNameSpace: GtNameSpace;
+	public   Generator: GtGenerator;
+	public   RootNameSpace: GtNameSpace;
 	public TopLevelNameSpace: GtNameSpace;
 
 	//  basic class //
-	 VoidType: GtType;
-// 	 ObjectType: GtType; //
-	 BooleanType: GtType;
-	 IntType: GtType;
-	 StringType: GtType;
-	 AnyType: GtType;
-	 ArrayType: GtType;
-	 FuncType: GtType;
+	public  VoidType: GtType;
+// 	public  ObjectType: GtType; //
+	public  BooleanType: GtType;
+	public  IntType: GtType;
+	public  StringType: GtType;
+	public  AnyType: GtType;
+	public  ArrayType: GtType;
+	public  FuncType: GtType;
 
-	 TopType: GtType;
-	 EnumType: GtType;
-	 StructType: GtType;
-	 VarType: GtType;
+	public  TopType: GtType;
+	public  EnumType: GtType;
+	public  StructType: GtType;
+	public  VarType: GtType;
 
-	 TypeType: GtType;
+	public  TypeType: GtType;
 	public PolyFuncType: GtType;
 
-	  SourceMap: GtMap;
-	  ClassNameMap: GtMap;
-	  UniqueMethodMap: GtMap;
+	public   SourceMap: GtMap;
+	public   ClassNameMap: GtMap;
+	public   UniqueMethodMap: GtMap;
 
 	public ClassCount: number;
 	public MethodCount: number;
-	 Stat: GtStat;
+	public  Stat: GtStat;
 	public ReportedErrorList: Array<string>;
 
-	constructor(Grammar: GtGrammar, Generator: GtGenerator) {
+	 constructor(Grammar: GtGrammar, Generator: GtGenerator) {
 		this.Generator    = Generator;
 		this.Generator.Context = this;
 		this.SourceMap = new GtMap();
@@ -2987,7 +2989,7 @@ class GtGrammar {
 		return resultValue;
 	}
 
-	 GuessType(Value: Object): GtType {
+	public  GuessType(Value: Object): GtType {
 		if(Value instanceof GtMethod) {
 			return (<GtMethod>Value).GetFuncType();
 		}
@@ -2999,7 +3001,7 @@ class GtGrammar {
 		}
 	}
 
-	 CheckSubType(SubType: GtType, SuperType: GtType): boolean {
+	public  CheckSubType(SubType: GtType, SuperType: GtType): boolean {
 		//  TODO:Typing: database: Structual //
 		return false;
 	}
@@ -3033,7 +3035,7 @@ class GtGrammar {
 		return this.GetGenericType(BaseType, 0, TypeList, IsCreation);
 	}
 
-	 CheckExportableName(Method: GtMethod): boolean {
+	public  CheckExportableName(Method: GtMethod): boolean {
 // 		if(Method.Is(ExportMethod)) { //
 // 			var Value: Object = this.UniqueMethodMap.get(Method.MethodName); //
 // 			if(Value == null) { //
@@ -3091,7 +3093,7 @@ class GtGrammar {
 		this.UniqueMethodMap.put(Key, Method);  // unique: not !! //
 	}
 
-	 FuncNameParamSize(Name: string, ParamSize: number): string {
+	private  FuncNameParamSize(Name: string, ParamSize: number): string {
 		return Name + "@" + ParamSize;
 	}
 
@@ -3127,7 +3129,7 @@ class GtGrammar {
 		return null;
 	}
 
-	 GetGreenListedMethod(BaseType: GtType, MethodName: string, MethodParamSize: number, RecursiveSearch: boolean): GtMethod {
+	public  GetGreenListedMethod(BaseType: GtType, MethodName: string, MethodParamSize: number, RecursiveSearch: boolean): GtMethod {
 		while(BaseType != null) {
 			var Value: Object = this.UniqueMethodMap.get(this.MethodNameParamSize(BaseType, MethodName, MethodParamSize));
 			if(Value instanceof GtMethod) {
@@ -3141,7 +3143,7 @@ class GtGrammar {
 		return null;
 	}
 
-	 GetListedMethod(BaseType: GtType, MethodName: string, MethodParamSize: number, RecursiveSearch: boolean): GtMethod {
+	public  GetListedMethod(BaseType: GtType, MethodName: string, MethodParamSize: number, RecursiveSearch: boolean): GtMethod {
 		var Method: GtMethod = this.GetGreenListedMethod(BaseType, MethodName, MethodParamSize, RecursiveSearch);
 		if(Method == null && BaseType.IsNative() && this.Generator.TransformNativeMethods(BaseType, MethodName)) {
 			Method = this.GetGreenListedMethod(BaseType, MethodName, MethodParamSize, RecursiveSearch);
@@ -3149,7 +3151,7 @@ class GtGrammar {
 		return Method;
 	}
 
-	 GetGreenMethod(BaseType: GtType, Name: string, BaseIndex: number, TypeList: Array<GtType>, RecursiveSearch: boolean): GtMethod {
+	public  GetGreenMethod(BaseType: GtType, Name: string, BaseIndex: number, TypeList: Array<GtType>, RecursiveSearch: boolean): GtMethod {
 		while(BaseType != null) {
 			var Key: string = MangleMethodName(BaseType, Name, BaseIndex, TypeList);
 			var Value: Object = this.UniqueMethodMap.get(Key);
@@ -3164,7 +3166,7 @@ class GtGrammar {
 		return null;
 	}
 
-	 GetMethod(BaseType: GtType, Name: string, BaseIndex: number, TypeList: Array<GtType>, RecursiveSearch: boolean): GtMethod {
+	public  GetMethod(BaseType: GtType, Name: string, BaseIndex: number, TypeList: Array<GtType>, RecursiveSearch: boolean): GtMethod {
 		var Method: GtMethod = this.GetGreenMethod(BaseType, Name, BaseIndex, TypeList, RecursiveSearch);
 		if(Method == null && BaseType.IsNative() && this.Generator.TransformNativeMethods(BaseType, Name)) {
 			Method = this.GetGreenMethod(BaseType, Name, BaseIndex, TypeList, RecursiveSearch);
@@ -3173,11 +3175,11 @@ class GtGrammar {
 	}
 
 	/* convertor, wrapper */
-	 ConverterName(FromType: GtType, ToType: GtType): string {
+	private  ConverterName(FromType: GtType, ToType: GtType): string {
 		return FromType.GetSignature() + ">" + ToType.GetSignature();
 	}
 
-	 WrapperName(FromType: GtType, ToType: GtType): string {
+	private  WrapperName(FromType: GtType, ToType: GtType): string {
 		return FromType.GetSignature() + "<" + ToType.GetSignature();
 	}
 
@@ -3222,21 +3224,21 @@ class GtGrammar {
 		return null;
 	}
 
-	 DefineConverterMethod(Method: GtMethod): void {
+	public  DefineConverterMethod(Method: GtMethod): void {
 		var Key: string = this.ConverterName(Method.GetRecvType(), Method.GetReturnType());
 		this.UniqueMethodMap.put(Key, Method);
 	}
 
-	 DefineWrapperMethod(Method: GtMethod): void {
+	public  DefineWrapperMethod(Method: GtMethod): void {
 		var Key: string = this.WrapperName(Method.GetRecvType(), Method.GetReturnType());
 		this.UniqueMethodMap.put(Key, Method);
 	}
 
-	 GetSourcePosition(FileLine: number): string {
+	private  GetSourcePosition(FileLine: number): string {
 		return "(eval:" + <number> FileLine + ")";  //  FIXME:SourceMap: USE //
 	}
 
-	 ReportError(Level: number, Token: GtToken, Message: string): void {
+	public  ReportError(Level: number, Token: GtToken, Message: string): void {
 		if(!Token.IsError()) {
 			if(Level == ErrorLevel) {
 				Message = "(error) " + this.GetSourcePosition(Token.FileLine) + " " + Message;
@@ -3253,7 +3255,7 @@ class GtGrammar {
 		}
 	}
 
-	 GetReportedErrors(): Array<string> {
+	public  GetReportedErrors(): Array<string> {
 		var List: Array<string> = this.ReportedErrorList;
 		this.ReportedErrorList = new Array<string>();
 		return List;
@@ -3263,7 +3265,7 @@ class GtGrammar {
 }
 
 class GreenTeaScript {
-	static main(Args: string[]): void {
+	public  static main(Args: string[]): void {
 		var CodeGeneratorName: string = "--java";
 		var Index: number = 0;
 		var OneLiner: string = null;

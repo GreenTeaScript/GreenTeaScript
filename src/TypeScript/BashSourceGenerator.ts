@@ -1,4 +1,3 @@
-/// <reference path="LangDeps.ts" />
 //  *************************************************************************** //
 //  Copyright (c) 2013, JST/CRESTproject: authors: DEOS.rights: reserved: All. //
 // and: Redistributionin: useand: sourceforms: binary,or: without: with //
@@ -30,7 +29,7 @@
 class BashSourceGenerator extends SourceGenerator {
 	inFunc: boolean = false;
 
-	constructor() {
+	 constructor() {
 		super("BashSource");
 		this.WriteTranslatedCode("#!/bin/bash\n");
 	}

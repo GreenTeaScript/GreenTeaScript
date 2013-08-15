@@ -84,9 +84,13 @@ class GtMap {
 
 class LangDeps {
 
+	static Exit(status: number, message: string): void {
+		throw new Error("Exit: " + message);
+	}
+
 	static Assert(expect: any): void {
 		if(!expect){
-			throw new Error();
+			throw new Error("Assertion Failed");
 		}
 	}
 
@@ -155,16 +159,18 @@ class LangDeps {
 		catch (e) {
 			console.log(e);
 		}
+		LangDeps.Exit(1, "Failed ApplyTokenFunc");
 		return -1;
 	}
 
-	static ApplyMatchFunc(Delegate: any, NameSpace: GtNameSpace, Pattern: Object, LeftTree: Object, TokenContext: Object): GtSyntaxTree {
+	static ApplyMatchFunc(Delegate: any, NameSpace: GtNameSpace, TokenContext: Object, LeftTree: Object, Pattern: Object): GtSyntaxTree {
 		try {
 			return <GtSyntaxTree>Delegate(NameSpace, TokenContext, LeftTree, Pattern);
 		}
 		catch (e) {
 			console.log(e);
 		}
+		LangDeps.Exit(1, "Failed ApplyMatchFunc");
 		return null;
 	}
 
@@ -175,6 +181,7 @@ class LangDeps {
 		catch (e) {
 			console.log(e);
 		}
+		LangDeps.Exit(1, "Failed ApplyTypeFunc");
 		return null;
 	}
 

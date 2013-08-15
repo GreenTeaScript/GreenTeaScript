@@ -1,4 +1,3 @@
-/// <reference path="LangDeps.ts" />
 //  *************************************************************************** //
 //  Copyright (c) 2013, JST/CRESTproject: authors: DEOS.rights: reserved: All. //
 // and: Redistributionin: useand: sourceforms: binary,or: without: with //
@@ -36,7 +35,7 @@ class GtNode {
 	public Type: GtType;
 	public Token: GtToken;
 
-	constructor(Type: GtType, Token: GtToken) {
+	 constructor(Type: GtType, Token: GtToken) {
 		this.Type = Type;
 		this.Token = Token;
 		this.ParentNode = null;
@@ -44,7 +43,7 @@ class GtNode {
 		this.NextNode = null;
 	}
 
-	 MoveHeadNode(): GtNode {
+	public  MoveHeadNode(): GtNode {
 		var Node: GtNode = this;
 		while(Node.PrevNode != null) {
 			Node = Node.PrevNode;
@@ -52,7 +51,7 @@ class GtNode {
 		return Node;
 	}
 
-	 MoveTailNode(): GtNode {
+	public  MoveTailNode(): GtNode {
 		var Node: GtNode = this;
 		while(Node.NextNode != null) {
 			Node = Node.NextNode;
@@ -68,7 +67,7 @@ class GtNode {
 		Visitor.VisitEmptyNode(this);  /*override: must */
 	}
 
-	 IsError(): boolean {
+	public  IsError(): boolean {
 		return (this instanceof ErrorNode);
 	}
 
@@ -76,7 +75,7 @@ class GtNode {
 		return "(TypedNode)";
 	}
 
-	static Stringify(Block: GtNode): string {
+	public static Stringify(Block: GtNode): string {
 		var Text: string = Block.toString();
 		while(Block != null) {
 			Text += Block.toString() + " ";
@@ -98,7 +97,7 @@ class GtNode {
 
 class ConstNode extends GtNode {
 	public ConstValue: Object;
-	constructor(Type: GtType, Token: GtToken, ConstValue: Object) {
+	 constructor(Type: GtType, Token: GtToken, ConstValue: Object) {
 		super(Type, Token);
 		this.ConstValue = ConstValue;
 	}
@@ -112,7 +111,7 @@ class ConstNode extends GtNode {
 
 class LocalNode extends GtNode {
 	public LocalName: string;
-	constructor(Type: GtType, Token: GtToken, LocalName: string) {
+	 constructor(Type: GtType, Token: GtToken, LocalName: string) {
 		super(Type, Token);
 		this.LocalName = LocalName;
 	}
@@ -125,7 +124,7 @@ class LocalNode extends GtNode {
 }
 
 class NullNode extends GtNode {
-	constructor(Type: GtType, Token: GtToken) {
+	 constructor(Type: GtType, Token: GtToken) {
 		super(Type, Token);
 	}
 	public Evaluate(Visitor: GtGenerator): void {
@@ -141,7 +140,7 @@ class CastNode extends GtNode {
 	public Method: GtMethod;
 	public CastType: GtType;
 	public Expr: GtNode;
-	constructor(Type: GtType, Token: GtToken, CastType: GtType, Expr: GtNode) {
+	 constructor(Type: GtType, Token: GtToken, CastType: GtType, Expr: GtNode) {
 		super(Type, Token);
 		this.CastType = CastType;
 		this.Expr = Expr;
@@ -155,7 +154,7 @@ class CastNode extends GtNode {
 class UnaryNode extends GtNode {
 	public Method: GtMethod;
 	public Expr: GtNode;
-	constructor(Type: GtType, Token: GtToken, Method: GtMethod, Expr: GtNode) {
+	 constructor(Type: GtType, Token: GtToken, Method: GtMethod, Expr: GtNode) {
 		super(Type, Token);
 		this.Method = Method;
 		this.Expr = Expr;
@@ -169,7 +168,7 @@ class UnaryNode extends GtNode {
 class SuffixNode extends GtNode {
 	public Method: GtMethod;
 	public Expr: GtNode;
-	constructor(Type: GtType, Token: GtToken, Method: GtMethod, Expr: GtNode) {
+	 constructor(Type: GtType, Token: GtToken, Method: GtMethod, Expr: GtNode) {
 		super(Type, Token);
 		this.Method = Method;
 		this.Expr = Expr;
@@ -183,7 +182,7 @@ class SuffixNode extends GtNode {
 class ExistsNode extends GtNode {
 	public Method: GtMethod;
 	public Expr: GtNode;
-	constructor(Type: GtType, Token: GtToken, Method: GtMethod, Expr: GtNode) {
+	 constructor(Type: GtType, Token: GtToken, Method: GtMethod, Expr: GtNode) {
 		super(Type, Token);
 		this.Method = Method;
 		this.Expr = Expr;
@@ -197,7 +196,7 @@ class ExistsNode extends GtNode {
 class AssignNode extends GtNode {
 	public LeftNode: GtNode;
 	public RightNode: GtNode;
-	constructor(Type: GtType, Token: GtToken, Left: GtNode, Right: GtNode) {
+	 constructor(Type: GtType, Token: GtToken, Left: GtNode, Right: GtNode) {
 		super(Type, Token);
 		this.LeftNode  = Left;
 		this.RightNode = Right;
@@ -214,7 +213,7 @@ class AssignNode extends GtNode {
 class SelfAssignNode extends GtNode {
 	public LeftNode: GtNode;
 	public RightNode: GtNode;
-	constructor(Type: GtType, Token: GtToken, Left: GtNode, Right: GtNode) {
+	 constructor(Type: GtType, Token: GtToken, Left: GtNode, Right: GtNode) {
 		super(Type, Token);
 		this.LeftNode  = Left;
 		this.RightNode = Right;
@@ -231,7 +230,7 @@ class SelfAssignNode extends GtNode {
 class InstanceOfNode extends GtNode {
 	public ExprNode: GtNode;
 	public TypeInfo: GtType;
-	constructor(Type: GtType, Token: GtToken, ExprNode: GtNode, TypeInfo: GtType) {
+	 constructor(Type: GtType, Token: GtToken, ExprNode: GtNode, TypeInfo: GtType) {
 		super(Type, Token);
 		this.ExprNode = ExprNode;
 		this.TypeInfo = TypeInfo;
@@ -246,7 +245,7 @@ class BinaryNode extends GtNode {
 	public Method: GtMethod;
 	public LeftNode: GtNode;
 	public RightNode: GtNode;
-	constructor(Type: GtType, Token: GtToken, Method: GtMethod, Left: GtNode, Right: GtNode) {
+	 constructor(Type: GtType, Token: GtToken, Method: GtMethod, Left: GtNode, Right: GtNode) {
 		super(Type, Token);
 		this.Method = Method;
 		this.LeftNode  = Left;
@@ -261,7 +260,7 @@ class BinaryNode extends GtNode {
 class AndNode extends GtNode {
 	public LeftNode: GtNode;
 	public RightNode: GtNode;
-	constructor(Type: GtType, Token: GtToken, Left: GtNode, Right: GtNode) {
+	 constructor(Type: GtType, Token: GtToken, Left: GtNode, Right: GtNode) {
 		super(Type, Token);
 		this.LeftNode  = Left;
 		this.RightNode = Right;
@@ -278,7 +277,7 @@ class AndNode extends GtNode {
 class OrNode extends GtNode {
 	public LeftNode: GtNode;
 	public RightNode: GtNode;
-	constructor(Type: GtType, Token: GtToken, Left: GtNode, Right: GtNode) {
+	 constructor(Type: GtType, Token: GtToken, Left: GtNode, Right: GtNode) {
 		super(Type, Token);
 		this.LeftNode  = Left;
 		this.RightNode = Right;
@@ -297,7 +296,7 @@ class TrinaryNode extends GtNode {
 	public CondExpr: GtNode;
 	public ThenExpr: GtNode;
 	public ElseExpr: GtNode;
-	constructor(Type: GtType, Token: GtToken, CondExpr: GtNode, ThenExpr: GtNode, ElseExpr: GtNode) {
+	 constructor(Type: GtType, Token: GtToken, CondExpr: GtNode, ThenExpr: GtNode, ElseExpr: GtNode) {
 		super(Type, Token);
 		this.CondExpr = CondExpr;
 		this.ThenExpr = ThenExpr;
@@ -312,7 +311,7 @@ class TrinaryNode extends GtNode {
 class GetterNode extends GtNode {
 	public Expr: GtNode;
 	public Method: GtMethod;
-	constructor(Type: GtType, Token: GtToken, Method: GtMethod, Expr: GtNode) {
+	 constructor(Type: GtType, Token: GtToken, Method: GtMethod, Expr: GtNode) {
 		super(Type, Token);
 		this.Method = Method;
 		this.Expr = Expr;
@@ -330,7 +329,7 @@ class IndexerNode extends GtNode {
 	public Method: GtMethod;
 	public Expr: GtNode;
 	public IndexAt: GtNode;
-	constructor(Type: GtType, Token: GtToken, Method: GtMethod, Expr: GtNode, IndexAt: GtNode) {
+	 constructor(Type: GtType, Token: GtToken, Method: GtMethod, Expr: GtNode, IndexAt: GtNode) {
 		super(Type, Token);
 		this.Method = Method;
 		this.Expr = Expr;
@@ -350,7 +349,7 @@ class SliceNode extends GtNode {
 	public Expr: GtNode;
 	public Index1: GtNode;
 	public Index2: GtNode;
-	constructor(Type: GtType, Token: GtToken, Method: GtMethod, Expr: GtNode, Index1: GtNode, Index2: GtNode) {
+	 constructor(Type: GtType, Token: GtToken, Method: GtMethod, Expr: GtNode, Index1: GtNode, Index2: GtNode) {
 		super(Type, Token);
 		this.Method = Method;
 		this.Expr = Expr;
@@ -371,7 +370,7 @@ class LetNode extends GtNode {
 	public InitNode: GtNode;
 	public BlockNode: GtNode;
 	/*VarNode: letBlock: end: in */
-	constructor(Type: GtType, Token: GtToken, DeclType: GtType, VarName: string, InitNode: GtNode, Block: GtNode) {
+	 constructor(Type: GtType, Token: GtToken, DeclType: GtType, VarName: string, InitNode: GtNode, Block: GtNode) {
 		super(Type, Token);
 		this.VariableName = VarName;
 		this.DeclType = DeclType;
@@ -395,7 +394,7 @@ class LetNode extends GtNode {
 class ApplyNode extends GtNode {
 	public Method: GtMethod;
 	public Params: Array<GtNode>; /* [arg1, arg2, ...] */
-	constructor(Type: GtType, KeyToken: GtToken, Method: GtMethod) {
+	 constructor(Type: GtType, KeyToken: GtToken, Method: GtMethod) {
 		super(Type, KeyToken);
 		this.Method = Method;
 		this.Params = new Array<GtNode>();
@@ -427,7 +426,7 @@ class MessageNode extends GtNode {
 	public Method: GtMethod;
 	public RecvNode: GtNode;
 	public Params: Array<GtNode>;
-	constructor(Type: GtType, KeyToken: GtToken, Method: GtMethod, RecvNode: GtNode) {
+	 constructor(Type: GtType, KeyToken: GtToken, Method: GtMethod, RecvNode: GtNode) {
 		super(Type, KeyToken);
 		this.Method = Method;
 		this.RecvNode = RecvNode;
@@ -458,7 +457,7 @@ class MessageNode extends GtNode {
 // E.g., "new" $Type "(" $Param[0], $Param[1], ... ")" //
 class NewNode extends GtNode {
 	public Params: Array<GtNode>;
-	constructor(Type: GtType, Token: GtToken) {
+	 constructor(Type: GtType, Token: GtToken) {
 		super(Type, Token);
 		this.Params = new Array<GtNode>();
 	}
@@ -489,7 +488,7 @@ class IfNode extends GtNode {
 	public ThenNode: GtNode;
 	public ElseNode: GtNode;
 	/*CondExpr: IfThenBlock: then else ElseBlock */
-	constructor(Type: GtType, Token: GtToken, CondExpr: GtNode, ThenBlock: GtNode, ElseNode: GtNode) {
+	 constructor(Type: GtType, Token: GtToken, CondExpr: GtNode, ThenBlock: GtNode, ElseNode: GtNode) {
 		super(Type, Token);
 		this.CondExpr = CondExpr;
 		this.ThenNode = ThenBlock;
@@ -510,7 +509,7 @@ class IfNode extends GtNode {
 class WhileNode extends GtNode {
 	public CondExpr: GtNode;
 	public LoopBody: GtNode;
-	constructor(Type: GtType, Token: GtToken, CondExpr: GtNode, LoopBody: GtNode) {
+	 constructor(Type: GtType, Token: GtToken, CondExpr: GtNode, LoopBody: GtNode) {
 		super(Type, Token);
 		this.CondExpr = CondExpr;
 		this.LoopBody = LoopBody;
@@ -528,7 +527,7 @@ class WhileNode extends GtNode {
 class DoWhileNode extends GtNode {
 	public CondExpr: GtNode;
 	public LoopBody: GtNode;
-	constructor(Type: GtType, Token: GtToken, CondExpr: GtNode, LoopBody: GtNode) {
+	 constructor(Type: GtType, Token: GtToken, CondExpr: GtNode, LoopBody: GtNode) {
 		super(Type, Token);
 		this.CondExpr = CondExpr;
 		this.LoopBody = LoopBody;
@@ -548,7 +547,7 @@ class ForNode extends GtNode {
 	public CondExpr: GtNode;
 	public IterExpr: GtNode;
 	public LoopBody: GtNode;
-	constructor(Type: GtType, Token: GtToken, CondExpr: GtNode, IterExpr: GtNode, LoopBody: GtNode) {
+	 constructor(Type: GtType, Token: GtToken, CondExpr: GtNode, IterExpr: GtNode, LoopBody: GtNode) {
 		super(Type, Token);
 		this.CondExpr = CondExpr;
 		this.LoopBody = LoopBody;
@@ -570,7 +569,7 @@ class ForEachNode extends GtNode {
 	public Variable: GtNode;
 	public IterExpr: GtNode;
 	public LoopBody: GtNode;
-	constructor(Type: GtType, Token: GtToken, Variable: GtNode, IterExpr: GtNode, LoopBody: GtNode) {
+	 constructor(Type: GtType, Token: GtToken, Variable: GtNode, IterExpr: GtNode, LoopBody: GtNode) {
 		super(Type, Token);
 		this.Variable = Variable;
 		this.IterExpr = IterExpr;
@@ -589,7 +588,7 @@ class ForEachNode extends GtNode {
 
 class LabelNode extends GtNode {
 	public Label: string;
-	constructor(Type: GtType, Token: GtToken, Label: string) {
+	 constructor(Type: GtType, Token: GtToken, Label: string) {
 		super(Type, Token);
 		this.Label = Label;
 	}
@@ -603,7 +602,7 @@ class LabelNode extends GtNode {
 
 class JumpNode extends GtNode {
 	public Label: string;
-	constructor(Type: GtType, Token: GtToken, Label: string) {
+	 constructor(Type: GtType, Token: GtToken, Label: string) {
 		super(Type, Token);
 		this.Label = Label;
 	}
@@ -617,7 +616,7 @@ class JumpNode extends GtNode {
 
 class ContinueNode extends GtNode {
 	public Label: string;
-	constructor(Type: GtType, Token: GtToken, Label: string) {
+	 constructor(Type: GtType, Token: GtToken, Label: string) {
 		super(Type, Token);
 		this.Label = Label;
 	}
@@ -631,7 +630,7 @@ class ContinueNode extends GtNode {
 
 class BreakNode extends GtNode {
 	public Label: string;
-	constructor(Type: GtType, Token: GtToken, Label: string) {
+	 constructor(Type: GtType, Token: GtToken, Label: string) {
 		super(Type, Token);
 		this.Label = Label;
 	}
@@ -645,7 +644,7 @@ class BreakNode extends GtNode {
 
 class ReturnNode extends GtNode {
 	public Expr: GtNode;
-	constructor(Type: GtType, Token: GtToken, Expr: GtNode) {
+	 constructor(Type: GtType, Token: GtToken, Expr: GtNode) {
 		super(Type, Token);
 		this.Expr = Expr;
 	}
@@ -663,7 +662,7 @@ class ReturnNode extends GtNode {
 
 class ThrowNode extends GtNode {
 	public Expr: GtNode;
-	constructor(Type: GtType, Token: GtToken, Expr: GtNode) {
+	 constructor(Type: GtType, Token: GtToken, Expr: GtNode) {
 		super(Type, Token);
 		this.Expr = Expr;
 	}
@@ -680,7 +679,7 @@ class TryNode extends GtNode {
 	public CatchExpr: GtNode;
 	public CatchBlock: GtNode;
 	public FinallyBlock: GtNode;
-	constructor(Type: GtType, Token: GtToken, TryBlock: GtNode, CatchExpr: GtNode, CatchBlock: GtNode, FinallyBlock: GtNode) {
+	 constructor(Type: GtType, Token: GtToken, TryBlock: GtNode, CatchExpr: GtNode, CatchBlock: GtNode, FinallyBlock: GtNode) {
 		super(Type, Token);
 		this.TryBlock = TryBlock;
 		this.CatchExpr = CatchExpr;
@@ -697,7 +696,7 @@ class TryNode extends GtNode {
 }
 
 class SwitchNode extends GtNode {
-	constructor(Type: GtType, Token: GtToken) {
+	 constructor(Type: GtType, Token: GtToken) {
 		super(Type, Token);
 	}
 	// CondExpr: TypedNode; //
@@ -713,7 +712,7 @@ class SwitchNode extends GtNode {
 }
 
 class FunctionNode extends GtNode {
-	constructor(Type: GtType, Token: GtToken) {
+	 constructor(Type: GtType, Token: GtToken) {
 		super(Type, Token); //  TODO //
 	}
 	public Evaluate(Visitor: GtGenerator): void {
@@ -725,7 +724,7 @@ class FunctionNode extends GtNode {
 }
 
 class ErrorNode extends GtNode {
-	constructor(Type: GtType, Token: GtToken) {
+	 constructor(Type: GtType, Token: GtToken) {
 		super(Type, Token);
 	}
 	public Evaluate(Visitor: GtGenerator): void {
@@ -740,7 +739,7 @@ class ErrorNode extends GtNode {
 class CommandNode extends GtNode {
 	public Params: Array<GtNode>; /* ["ls", "-la", "/", ...] */
 	public PipedNextNode: GtNode;
-	constructor(Type: GtType, KeyToken: GtToken, PipedNextNode: GtNode) {
+	 constructor(Type: GtType, KeyToken: GtToken, PipedNextNode: GtNode) {
 		super(Type, KeyToken);
 		this.PipedNextNode = PipedNextNode;
 		this.Params = new Array<GtNode>();
@@ -768,7 +767,7 @@ class CommandNode extends GtNode {
 }
 
 class GtType {
-	 Context: GtClassContext;
+	public  Context: GtClassContext;
 	public PackageNameSpace: GtNameSpace;
 	ClassFlag: number;
 	ClassId: number;
@@ -781,7 +780,7 @@ class GtType {
 	Types: GtType[];
 	public NativeSpec: Object;
 
-	constructor(Context: GtClassContext, ClassFlag: number, ClassName: string, DefaultNullValue: Object, NativeSpec: Object) {
+	 constructor(Context: GtClassContext, ClassFlag: number, ClassName: string, DefaultNullValue: Object, NativeSpec: Object) {
 		this.Context = Context;
 		this.ClassFlag = ClassFlag;
 		this.ShortClassName = ClassName;
@@ -814,15 +813,15 @@ class GtType {
 		return GenericType;
 	}
 
-	 IsNative(): boolean {
+	public  IsNative(): boolean {
 		return IsFlag(this.ClassFlag, NativeClass);
 	}
 
-	 IsDynamic(): boolean {
+	public  IsDynamic(): boolean {
 		return IsFlag(this.ClassFlag, DynamicClass);
 	}
 
-	 IsGenericType(): boolean {
+	public  IsGenericType(): boolean {
 		return (this.Types != null);
 	}
 
@@ -830,7 +829,7 @@ class GtType {
 		return this.ShortClassName;
 	}
 
-	 GetClassSymbol(Key: string, RecursiveSearch: boolean): Object {
+	public  GetClassSymbol(Key: string, RecursiveSearch: boolean): Object {
 		var Type: GtType = this;
 		while(Type != null) {
 			if(Type.ClassSymbolTable != null) {
@@ -841,7 +840,7 @@ class GtType {
 		return null;
 	}
 
-	 SetClassSymbol(Key: string, Value: Object): void {
+	public  SetClassSymbol(Key: string, Value: Object): void {
 		if(this.ClassSymbolTable == null) {
 			this.ClassSymbolTable = new GtMap();
 		}
@@ -849,11 +848,11 @@ class GtType {
 	}
 
 	
-	 GetSignature(): string {
+	public  GetSignature(): string {
 		return NumberToAscii(this.ClassId);
 	}
 
-	 Accept(Type: GtType): boolean {
+	public  Accept(Type: GtType): boolean {
 		if(this == Type || this == this.Context.AnyType) {
 			return true;
 		}
@@ -871,7 +870,7 @@ class GtType {
 
 class GtMethod {
 	public MethodFlag: number;
-	MethodSymbolId: number;
+// 	MethodSymbolId: number; //
 	public MethodName: string;
 	public MangledName: string;
 	public Types: GtType[];
@@ -880,10 +879,10 @@ class GtMethod {
 	public SourceMacro: string;
 	public NativeRef: Object;
 
-	constructor(MethodFlag: number, MethodName: string, BaseIndex: number, ParamList: Array<GtType>, NativeRef: Object) {
+	 constructor(MethodFlag: number, MethodName: string, BaseIndex: number, ParamList: Array<GtType>, NativeRef: Object) {
 		this.MethodFlag = MethodFlag;
 		this.MethodName = MethodName;
-		this.MethodSymbolId = GetSymbolId(MethodName, CreateNewSymbolId);
+// 		this.MethodSymbolId = GetSymbolId(MethodName, CreateNewSymbolId); //
 		this.Types = LangDeps.CompactTypeList(BaseIndex, ParamList);
 		LangDeps.Assert(this.Types.length > 0);
 		this.ListedMethods = null;
@@ -892,7 +891,7 @@ class GtMethod {
 		this.MangledName = MangleMethodName(this.GetRecvType(), this.MethodName, BaseIndex+2, ParamList);
 	}
 
-	 GetNativeFuncName(): string {
+	public  GetNativeFuncName(): string {
 		if(this.Is(ExportMethod)) {
 			return this.MethodName;
 		}
@@ -901,7 +900,7 @@ class GtMethod {
 		}
 	}
 
-	 GetFuncType(): GtType {
+	public  GetFuncType(): GtType {
 		if(this.FuncType == null) {
 			var Context: GtClassContext = this.GetRecvType().Context;
 			this.FuncType = Context.GetGenericType(Context.FuncType, 0, this.Types, true);
@@ -927,39 +926,39 @@ class GtMethod {
 		return IsFlag(this.MethodFlag, Flag);
 	}
 
-	 GetReturnType(): GtType {
+	public  GetReturnType(): GtType {
 		return this.Types[0];
 	}
 
-	 GetRecvType(): GtType {
+	public  GetRecvType(): GtType {
 		if(this.Types.length == 1){
 			return this.Types[0].Context.VoidType;
 		}
 		return this.Types[1];
 	}
 
-	 GetFuncParamSize(): number {
+	public  GetFuncParamSize(): number {
 		return this.Types.length - 1;
 	}
 
-	 GetFuncParamType(ParamIdx: number): GtType {
+	public  GetFuncParamType(ParamIdx: number): GtType {
 		return this.Types[ParamIdx+1];
 	}
 
-	 GetMethodParamSize(): number {
+	public  GetMethodParamSize(): number {
 		return this.Types.length - 2;
 	}
 
-	 GetNativeMacro(): string {
+	public  GetNativeMacro(): string {
 		return <string>this.NativeRef;
 	}
 
-	 ExpandMacro1(Arg0: string): string {
+	public  ExpandMacro1(Arg0: string): string {
 		var NativeMacro: string = IsFlag(this.MethodFlag, NativeMacroMethod) ? <string>this.NativeRef : this.MethodName + " $1";
 		return NativeMacro.replaceAll("$0", Arg0);
 	}
 
-	 ExpandMacro2(Arg0: string, Arg1: string): string {
+	public  ExpandMacro2(Arg0: string, Arg1: string): string {
 		var NativeMacro: string = IsFlag(this.MethodFlag, NativeMacroMethod) ? <string>this.NativeRef : "$1 " + this.MethodName + " $2";
 		return NativeMacro.replaceAll("$0", Arg0);
 	}
@@ -967,7 +966,7 @@ class GtMethod {
 
 class GtPolyFunc {
 	public FuncList: Array<GtMethod>;
-	constructor(Func1: GtMethod, Func2: GtMethod) {
+	 constructor(Func1: GtMethod, Func2: GtMethod) {
 		this.FuncList = new Array<GtMethod>();
 		this.FuncList.add(Func1);
 		this.FuncList.add(Func2);
@@ -979,7 +978,7 @@ class GtGenerator {
 	public Context: GtClassContext;
 	public GeneratedCodeStack: Array<Object>;
 
-	constructor(LangName: string) {
+	 constructor(LangName: string) {
 		this.LangName = LangName;
 		this.Context = null;
 		this.GeneratedCodeStack = new Array<Object>();
@@ -989,7 +988,7 @@ class GtGenerator {
 		this.Context = Context;
 	}
 
-	 UnsupportedNode(Type: GtType, ParsedTree: GtSyntaxTree): GtNode {
+	public  UnsupportedNode(Type: GtType, ParsedTree: GtSyntaxTree): GtNode {
 		var Token: GtToken = ParsedTree.KeyToken;
 		ParsedTree.NameSpace.Context.ReportError(ErrorLevel, Token, this.LangName + "no: hassupport: for: language " + Token.ParsedText);
 		return new ErrorNode(ParsedTree.NameSpace.Context.VoidType, ParsedTree.KeyToken);
@@ -1334,7 +1333,7 @@ class GtGenerator {
 		/*extension*/
 	}
 
-	 VisitBlock(Node: GtNode): void {
+	public  VisitBlock(Node: GtNode): void {
 		var CurrentNode: GtNode = Node;
 		while(CurrentNode != null) {
 			CurrentNode.Evaluate(this);
@@ -1361,7 +1360,7 @@ class GtGenerator {
 		this.GeneratedCodeStack.add(Code);
 	}
 
-	 PopCode(): Object{
+	  PopCode(): Object{
 		var Size: number = this.GeneratedCodeStack.size();
 		if(Size > 0){
 			return this.GeneratedCodeStack.remove(Size - 1);
@@ -1374,7 +1373,7 @@ class SourceGenerator extends GtGenerator {
 	public IndentLevel: number;
 	public CurrentLevelIndentString: string;
 
-	constructor(LangName: string) {
+	 constructor(LangName: string) {
 		super(LangName);
 		this.IndentLevel = 0;
 		this.CurrentLevelIndentString = null;
@@ -1382,18 +1381,18 @@ class SourceGenerator extends GtGenerator {
 
 	/* GeneratorUtils */
 
-	 Indent(): void {
+	public  Indent(): void {
 		this.IndentLevel += 1;
 		this.CurrentLevelIndentString = null;
 	}
 
-	 UnIndent(): void {
+	public  UnIndent(): void {
 		this.IndentLevel -= 1;
 		this.CurrentLevelIndentString = null;
 		LangDeps.Assert(this.IndentLevel >= 0);
 	}
 
-	 GetIndentString(): string {
+	public  GetIndentString(): string {
 		if(this.CurrentLevelIndentString == null) {
 			this.CurrentLevelIndentString = JoinStrings("   ", this.IndentLevel);
 		}
@@ -1407,15 +1406,15 @@ class SourceGenerator extends GtGenerator {
 		return ConstValue.toString();
 	}
 
-	 PushSourceCode(Code: string): void{
+	  PushSourceCode(Code: string): void{
 		this.GeneratedCodeStack.add(Code);
 	}
 
-	 PopSourceCode(): string{
+	  PopSourceCode(): string{
 		return <string>this.PopCode();
 	}
 
-	 PopManyCode(n: number): string[] {
+	  PopManyCode(n: number): string[] {
 		var array: string[] = new Array<string>(n);
 		var i: number = 0;
 		while(i < n) {
@@ -1425,7 +1424,7 @@ class SourceGenerator extends GtGenerator {
 		return array;
 	}
 
-	 PopManyCodeReverse(n: number): string[] {
+	  PopManyCodeReverse(n: number): string[] {
 		var array: string[] = new Array<string>(n);
 		var i: number = 0;
 		while(i < n) {
@@ -1435,7 +1434,7 @@ class SourceGenerator extends GtGenerator {
 		return array;
 	}
 
-	 PopManyCodeAndJoin(n: number, reverse: boolean, prefix: string, suffix: string, delim: string): string {
+	  PopManyCodeAndJoin(n: number, reverse: boolean, prefix: string, suffix: string, delim: string): string {
 		if(prefix == null) {
 			prefix = "";
 		}
@@ -1463,7 +1462,7 @@ class SourceGenerator extends GtGenerator {
 		return Code;
 	}
 
-	 WriteTranslatedCode(Text: string): void {
+	public  WriteTranslatedCode(Text: string): void {
 		console.log(Text);
 	}
 
