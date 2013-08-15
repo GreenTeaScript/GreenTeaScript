@@ -16,7 +16,7 @@ $(function () {
 	var Generate = function(){
 		var src = editor_gs.getValue();
 		var Generator = LangDeps.CodeGenerator(PlayGround_CodeGenTarget);
-		var Context = new GtContext(new DScriptGrammar(), Generator);
+		var Context = new GtClassContext(new DScriptGrammar(), Generator);
 		DebugPrintOption = true;
 		var jssrc = Context.Eval(src);
 		editor_js.setValue(jssrc);

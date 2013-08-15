@@ -65,9 +65,13 @@ var GtMap = (function () {
 var LangDeps = (function () {
     function LangDeps() {
     }
+    LangDeps.Exit = function (status, message) {
+        throw new Error("Exit: " + message);
+    };
+
     LangDeps.Assert = function (expect) {
         if (!expect) {
-            throw new Error();
+            throw new Error("Assertion Failed");
         }
     };
 
@@ -135,15 +139,17 @@ var LangDeps = (function () {
         } catch (e) {
             console.log(e);
         }
+        LangDeps.Exit(1, "Failed ApplyTokenFunc");
         return -1;
     };
 
-    LangDeps.ApplyMatchFunc = function (Delegate, NameSpace, Pattern, LeftTree, TokenContext) {
+    LangDeps.ApplyMatchFunc = function (Delegate, NameSpace, TokenContext, LeftTree, Pattern) {
         try  {
             return Delegate(NameSpace, TokenContext, LeftTree, Pattern);
         } catch (e) {
             console.log(e);
         }
+        LangDeps.Exit(1, "Failed ApplyMatchFunc");
         return null;
     };
 
@@ -153,6 +159,7 @@ var LangDeps = (function () {
         } catch (e) {
             console.log(e);
         }
+        LangDeps.Exit(1, "Failed ApplyTypeFunc");
         return null;
     };
 
