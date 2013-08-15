@@ -28,7 +28,7 @@
 //Generator: GreenTeabe: shouldin: writtenlanguage: each. //
 
 class PerlSourceGenerator extends SourceGenerator {
-	constructor() {
+	 constructor() {
 		super("Perl");
 	}
 

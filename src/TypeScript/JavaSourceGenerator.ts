@@ -28,7 +28,7 @@
 //Generator: GreenTeabe: shouldin: writtenlanguage: each. //
 
 class JavaSourceGenerator extends SourceGenerator {
-	constructor() {
+	 constructor() {
 		super("Java");
 	}
 

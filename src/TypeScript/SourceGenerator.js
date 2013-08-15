@@ -855,7 +855,8 @@ var GtMethod = (function () {
     function GtMethod(MethodFlag, MethodName, BaseIndex, ParamList, NativeRef) {
         this.MethodFlag = MethodFlag;
         this.MethodName = MethodName;
-        this.MethodSymbolId = GetSymbolId(MethodName, CreateNewSymbolId);
+
+        // 		this.MethodSymbolId = GetSymbolId(MethodName, CreateNewSymbolId); //
         this.Types = LangDeps.CompactTypeList(BaseIndex, ParamList);
         LangDeps.Assert(this.Types.length > 0);
         this.ListedMethods = null;

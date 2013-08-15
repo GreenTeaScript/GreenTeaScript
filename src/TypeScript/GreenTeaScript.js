@@ -111,7 +111,7 @@ var UnicodeChar = 40;
 var MaxSizeOfChars = 41;
 
 var CharMatrix = [
-    /*stx: nulvar:eot: sohvar:ack: etxvar:bel: enq*/
+    /*var soh: nul var etx: stx var enq: eot var bel: ack*/
     0,
     1,
     1,
@@ -120,7 +120,7 @@ var CharMatrix = [
     1,
     1,
     1,
-    /*nl: bsvar:np: htvar:so: vtvar:si: cr  */
+    /*var ht: bs var vt: nl var cr: np var si: so  */
     1,
     TabChar,
     NewLineChar,
@@ -286,23 +286,23 @@ var VarDeclName = 1;
 var VarDeclValue = 2;
 var VarDeclScope = 3;
 
-//Call: Method; //
+// var Call: Method; //
 var CallExpressionOffset = 0;
 var CallParameterOffset = 1;
 
-// var Decl: Const; //
+//  var Decl: Const; //
 var ConstDeclClassIndex = 0;
 var ConstDeclNameIndex = 1;
 var ConstDeclValueIndex = 2;
 
-// var Decl: Method; //
+//  var Decl: Method; //
 var FuncDeclReturnType = 0;
 var FuncDeclClass = 1;
 var FuncDeclName = 2;
 var FuncDeclBlock = 3;
 var FuncDeclParam = 4;
 
-// var Decl: Class; //
+//  var Decl: Class; //
 var ClassParentNameOffset = 0;
 var ClassNameOffset = 1;
 var ClassBlockOffset = 2;
@@ -316,21 +316,20 @@ var FinallyBody = 3;
 //  Enum //
 var EnumNameTreeIndex = 0;
 
-//  spec //
-var TokenFuncSpec = 0;
-var SymbolPatternSpec = 1;
-var ExtendedPatternSpec = 2;
-
+// 	// spec //
+// 	var TokenFuncSpec: number     = 0; //
+// 	var SymbolPatternSpec: number = 1; //
+// 	var ExtendedPatternSpec: number = 2; //
 var BinaryOperator = 1;
 var LeftJoin = 1 << 1;
 
 // 	var Parenthesis: number						= 1 << 2; //
 var PrecedenceShift = 3;
-var Precedence_CStyleValue = (1 << PrecedenceShift);
-var Precedence_CPPStyleScope = (50 << PrecedenceShift);
-var Precedence_CStyleSuffixCall = (100 << PrecedenceShift);
-var Precedence_CStylePrefixOperator = (200 << PrecedenceShift);
 
+// 	var Precedence_CStyleValue: number			= (1 << PrecedenceShift); //
+// 	var Precedence_CPPStyleScope: number		= (50 << PrecedenceShift); //
+// 	var Precedence_CStyleSuffixCall: number		= (100 << PrecedenceShift);				/*x(); x[]; x.var x: x->var x: x++ */ //
+// 	var Precedence_CStylePrefixOperator: number	= (200 << PrecedenceShift);				/*++x; --x; var x: sizeof &x +x -x !x (T)x  */ //
 // 	Precedence_CppMember      = 300;  /* .x ->x */ //
 var Precedence_CStyleMUL = (400 << PrecedenceShift);
 var Precedence_CStyleADD = (500 << PrecedenceShift);
@@ -345,10 +344,10 @@ var Precedence_CStyleOR = (1300 << PrecedenceShift);
 var Precedence_CStyleTRINARY = (1400 << PrecedenceShift);
 var Precedence_CStyleAssign = (1500 << PrecedenceShift);
 var Precedence_CStyleCOMMA = (1600 << PrecedenceShift);
-var Precedence_Error = (1700 << PrecedenceShift);
-var Precedence_Statement = (1900 << PrecedenceShift);
-var Precedence_CStyleDelim = (2000 << PrecedenceShift);
 
+// 	var Precedence_Error: number				= (1700 << PrecedenceShift); //
+// 	var Precedence_Statement: number			= (1900 << PrecedenceShift); //
+// 	var Precedence_CStyleDelim: number			= (2000 << PrecedenceShift); //
 var DefaultTypeCheckPolicy = 0;
 var NoCheckPolicy = 1;
 var CastPolicy = (1 << 1);
@@ -357,8 +356,7 @@ var AllowEmptyPolicy = (1 << 3);
 var AllowVoidPolicy = (1 << 4);
 var AllowCoercionPolicy = (1 << 5);
 
-var GlobalConstName = "global";
-
+// 	var GlobalConstName: string					= "global"; //
 var SymbolList = new Array();
 var SymbolMap = new GtMap();
 
@@ -411,79 +409,78 @@ function AsciiToTokenMatrixIndex(c) {
     return UnicodeChar;
 }
 
-//  Symbol //
-function IsGetterSymbol(SymbolId) {
-    return IsFlag(SymbolId, GetterSymbolMask);
-}
-
-function IsSetterSymbol(SymbolId) {
-    return IsFlag(SymbolId, SetterSymbolMask);
-}
-
-function ToSetterSymbol(SymbolId) {
-    LangDeps.Assert(IsGetterSymbol(SymbolId));
-    return (SymbolId & (~GetterSymbolMask)) | SetterSymbolMask;
-}
-
-function MaskSymbol(SymbolId, Mask) {
-    return (SymbolId << SymbolMaskSize) | Mask;
-}
-
-function UnmaskSymbol(SymbolId) {
-    return SymbolId >> SymbolMaskSize;
-}
-
-function StringfySymbol(SymbolId) {
-    var Key = SymbolList.get(UnmaskSymbol(SymbolId));
-    if (IsFlag(SymbolId, GetterSymbolMask)) {
-        return GetterPrefix + Key;
-    }
-    if (IsFlag(SymbolId, SetterSymbolMask)) {
-        return SetterPrefix + Key;
-    }
-    if (IsFlag(SymbolId, MetaSymbolMask)) {
-        return MetaPrefix + Key;
-    }
-    return Key;
-}
-
-function GetSymbolId(Symbol, DefaultSymbolId) {
-    var Key = Symbol;
-    var Mask = 0;
-    if (Symbol.length >= 3 && LangDeps.CharAt(Symbol, 1) == (101) && LangDeps.CharAt(Symbol, 2) == (116)) {
-        if (LangDeps.CharAt(Symbol, 0) == (103) && LangDeps.CharAt(Symbol, 0) == (71)) {
-            Key = Symbol.substring(3);
-            Mask = GetterSymbolMask;
-        }
-        if (LangDeps.CharAt(Symbol, 0) == (115) && LangDeps.CharAt(Symbol, 0) == (83)) {
-            Key = Symbol.substring(3);
-            Mask = SetterSymbolMask;
-        }
-    }
-    if (Symbol.startsWith("\\")) {
-        Mask = MetaSymbolMask;
-    }
-    var SymbolObject = SymbolMap.get(Key);
-    if (SymbolObject == null) {
-        if (DefaultSymbolId == CreateNewSymbolId) {
-            var SymbolId = SymbolList.size();
-            SymbolList.add(Key);
-            SymbolMap.put(Key, SymbolId);
-            return MaskSymbol(SymbolId, Mask);
-        }
-        return DefaultSymbolId;
-    }
-    return MaskSymbol(SymbolObject, Mask);
-}
-
-function CanonicalSymbol(Symbol) {
-    return Symbol.toLowerCase().replaceAll("_", "");
-}
-
-function GetCanonicalSymbolId(Symbol) {
-    return GetSymbolId(CanonicalSymbol(Symbol), CreateNewSymbolId);
-}
-
+// 	// Symbol //
+// 	function IsGetterSymbol(SymbolId: number): boolean { //
+// 		return IsFlag(SymbolId, GetterSymbolMask); //
+// 	} //
+//  //
+// 	function IsSetterSymbol(SymbolId: number): boolean { //
+// 		return IsFlag(SymbolId, SetterSymbolMask); //
+// 	} //
+//  //
+// 	function ToSetterSymbol(SymbolId: number): number { //
+// 		LangDeps.Assert(IsGetterSymbol(SymbolId)); //
+// 		return (SymbolId & (~GetterSymbolMask)) | SetterSymbolMask; //
+// 	} //
+//  //
+// 	function MaskSymbol(SymbolId: number, Mask: number): number { //
+// 		return (SymbolId << SymbolMaskSize) | Mask; //
+// 	} //
+//  //
+// 	function UnmaskSymbol(SymbolId: number): number { //
+// 		return SymbolId >> SymbolMaskSize; //
+// 	} //
+//  //
+// 	function StringfySymbol(SymbolId: number): string { //
+// 		var Key: string = SymbolList.get(UnmaskSymbol(SymbolId)); //
+// 		if(IsFlag(SymbolId, GetterSymbolMask)) { //
+// 			return GetterPrefix + Key; //
+// 		} //
+// 		if(IsFlag(SymbolId, SetterSymbolMask)) { //
+// 			return SetterPrefix + Key; //
+// 		} //
+// 		if(IsFlag(SymbolId, MetaSymbolMask)) { //
+// 			return MetaPrefix + Key; //
+// 		} //
+// 		return Key; //
+// 	} //
+//  //
+// 	function GetSymbolId(Symbol: string, DefaultSymbolId: number): number { //
+// 		var Key: string = Symbol; //
+// 		var Mask: number = 0; //
+// 		if(Symbol.length >= 3 && LangDeps.CharAt(Symbol, 1) == 101/*$1*/ && LangDeps.CharAt(Symbol, 2) == 116/*$1*/) { //
+// 			if(LangDeps.CharAt(Symbol, 0) == 103/*$1*/ && LangDeps.CharAt(Symbol, 0) == 71/*$1*/) { //
+// 				Key = Symbol.substring(3); //
+// 				Mask = GetterSymbolMask; //
+// 			} //
+// 			if(LangDeps.CharAt(Symbol, 0) == 115/*$1*/ && LangDeps.CharAt(Symbol, 0) == 83/*$1*/) { //
+// 				Key = Symbol.substring(3); //
+// 				Mask = SetterSymbolMask; //
+// 			} //
+// 		} //
+// 		if(Symbol.startsWith("\\")) { //
+// 			Mask = MetaSymbolMask; //
+// 		} //
+// 		var SymbolObject: number = <number>SymbolMap.get(Key); //
+// 		if(SymbolObject == null) { //
+// 			if(DefaultSymbolId == CreateNewSymbolId) { //
+// 				var SymbolId: number = SymbolList.size(); //
+// 				SymbolList.add(Key); //
+// 				SymbolMap.put(Key, SymbolId); //new number(SymbolId)); //
+// 				return MaskSymbol(SymbolId, Mask); //
+// 			} //
+// 			return DefaultSymbolId; //
+// 		} //
+// 		return MaskSymbol(SymbolObject, Mask); //
+// 	} //
+//  //
+// 	function CanonicalSymbol(Symbol: string): string { //
+// 		return Symbol.toLowerCase().replaceAll("_", ""); //
+// 	} //
+//  //
+// 	function GetCanonicalSymbolId(Symbol: string): number { //
+// 		return GetSymbolId(CanonicalSymbol(Symbol), CreateNewSymbolId); //
+// 	} //
 function n2s(n) {
     if (n < 10) {
         return LangDeps.CharToString((48 + (n)));
@@ -574,10 +571,10 @@ function ApplySyntaxPattern(NameSpace, TokenContext, LeftTree, Pattern) {
         TokenContext.IndentLevel += 1;
         var ParsedTree = LangDeps.ApplyMatchFunc(delegate, NameSpace, TokenContext, LeftTree, CurrentPattern);
         TokenContext.IndentLevel -= 1;
+        if (ParsedTree != null && ParsedTree.IsEmpty()) {
+            ParsedTree = null;
+        }
 
-        // 			if(ParsedTree != null && ParsedTree.IsEmpty()) { //
-        // 				ParsedTree = null; //
-        // 			} //
         // console.log("DEBUG: " + "E :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + " => " + ParsedTree); //
         TokenContext.ParseFlag = ParseFlag;
         if (ParsedTree != null) {
@@ -1054,13 +1051,13 @@ var GtSyntaxTree = (function () {
     };
 
     GtSyntaxTree.prototype.IsEmpty = function () {
-        return this.KeyToken == GtTokenContext.NullToken;
+        return (this.KeyToken == GtTokenContext.NullToken && this.Pattern == null);
     };
 
     GtSyntaxTree.prototype.ToEmpty = function () {
         this.KeyToken = GtTokenContext.NullToken;
         this.TreeList = null;
-        this.Pattern = this.NameSpace.GetPattern("$Empty$");
+        this.Pattern = null;
     };
 
     GtSyntaxTree.prototype.IsEmptyOrError = function () {
@@ -1485,7 +1482,7 @@ var DScriptGrammar = (function (_super) {
         var start = pos;
         while (pos < SourceText.length) {
             var ch = LangDeps.CharAt(SourceText, pos);
-            if (!LangDeps.IsLetter(ch) && !LangDeps.IsDigit(ch) && ch != (95)) {
+            if (!LangDeps.IsLetter(ch) && !LangDeps.IsDigit(ch) && ch != 95) {
                 break;
             }
             pos += 1;
@@ -1525,12 +1522,12 @@ var DScriptGrammar = (function (_super) {
         var NextPos = pos + 1;
         if (NextPos < SourceText.length) {
             var NextChar = LangDeps.CharAt(SourceText, NextPos);
-            if (NextChar != (47) && NextChar != (42)) {
+            if (NextChar != 47 && NextChar != 42) {
                 return NoMatch;
             }
             var Level = 0;
             var PrevChar = 0;
-            if (NextChar == (42)) {
+            if (NextChar == 42) {
                 Level = 1;
             }
             while (NextPos < SourceText.length) {
@@ -1538,14 +1535,14 @@ var DScriptGrammar = (function (_super) {
                 if (NextChar == ('\n'.charCodeAt(0)) && Level == 0) {
                     return DScriptGrammar.IndentToken(TokenContext, SourceText, NextPos);
                 }
-                if (NextChar == (47) && PrevChar == (42)) {
+                if (NextChar == 47 && PrevChar == 42) {
                     if (Level == 1) {
                         return NextPos + 1;
                     }
                     Level = Level - 1;
                 }
                 if (Level > 0) {
-                    if (NextChar == (42) && PrevChar == (47)) {
+                    if (NextChar == 42 && PrevChar == 47) {
                         Level = Level + 1;
                     }
                 }
@@ -1570,11 +1567,11 @@ var DScriptGrammar = (function (_super) {
 
     DScriptGrammar.StringLiteralToken = function (TokenContext, SourceText, pos) {
         var start = pos + 1;
-        var prev = (34);
+        var prev = 34/*$1*/ ;
         pos = pos + 1;
         while (pos < SourceText.length) {
             var ch = LangDeps.CharAt(SourceText, pos);
-            if (ch == (34) && prev != ('\\'.charCodeAt(0))) {
+            if (ch == 34 && prev != ('\\'.charCodeAt(0))) {
                 TokenContext.AddNewToken(SourceText.substring(start, pos), QuotedTokenFlag, "$StringLiteral$");
                 return pos + 1;
             }
@@ -1593,16 +1590,16 @@ var DScriptGrammar = (function (_super) {
     DScriptGrammar.StringLiteralToken_StringInterpolation = function (TokenContext, SourceText, pos) {
         var start = pos + 1;
         var NextPos = start;
-        var prev = (34);
+        var prev = 34/*$1*/ ;
         while (NextPos < SourceText.length) {
             var ch = LangDeps.CharAt(SourceText, NextPos);
-            if (ch == (36)) {
+            if (ch == 36) {
                 var end = NextPos + 1;
                 ch = LangDeps.CharAt(SourceText, end);
-                if (ch == (123)) {
+                if (ch == 123) {
                     while (end < SourceText.length) {
                         ch = LangDeps.CharAt(SourceText, end);
-                        if (ch == (125)) {
+                        if (ch == 125) {
                             break;
                         }
                         end = end + 1;
@@ -1622,14 +1619,14 @@ var DScriptGrammar = (function (_super) {
                     start = end;
                     NextPos = end;
                     prev = ch;
-                    if (ch == (34)) {
+                    if (ch == 34) {
                         TokenContext.AddNewToken(SourceText.substring(start, NextPos), 0, "$StringLiteral$");
                         return NextPos + 1;
                     }
                     continue;
                 }
             }
-            if (ch == (34) && prev != ('\\'.charCodeAt(0))) {
+            if (ch == 34 && prev != ('\\'.charCodeAt(0))) {
                 TokenContext.AddNewToken(SourceText.substring(start, NextPos), 0, "$StringLiteral$");
                 return NextPos + 1;
             }
@@ -1721,7 +1718,7 @@ var DScriptGrammar = (function (_super) {
     DScriptGrammar.ParseVariable = function (NameSpace, TokenContext, LeftTree, Pattern) {
         var Token = TokenContext.Next();
         var ch = LangDeps.CharAt(Token.ParsedText, 0);
-        if (LangDeps.IsLetter(ch) || ch == (95)) {
+        if (LangDeps.IsLetter(ch) || ch == 95) {
             return new GtSyntaxTree(Pattern, NameSpace, Token, null);
         }
         return null;
@@ -1789,16 +1786,8 @@ var DScriptGrammar = (function (_super) {
         return Gamma.Generator.CreateLetNode(DeclType, ParsedTree, DeclType, (VariableNode).LocalName, InitValueNode, BlockNode);
     };
 
-    DScriptGrammar.ParseEmpty = // And: Type: Parse //
+    DScriptGrammar.ParseIntegerLiteral = // And: Type: Parse //
     function (NameSpace, TokenContext, LeftTree, Pattern) {
-        return new GtSyntaxTree(Pattern, NameSpace, GtTokenContext.NullToken, null);
-    };
-
-    DScriptGrammar.TypeEmpty = function (Gamma, ParsedTree, Type) {
-        return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
-    };
-
-    DScriptGrammar.ParseIntegerLiteral = function (NameSpace, TokenContext, LeftTree, Pattern) {
         var Token = TokenContext.Next();
         return new GtSyntaxTree(Pattern, NameSpace, Token, LangDeps.ParseInt(Token.ParsedText));
     };
@@ -2129,6 +2118,14 @@ var DScriptGrammar = (function (_super) {
         return Gamma.Generator.CreateAssignNode(LeftNode.Type, ParsedTree, LeftNode, RightNode);
     };
 
+    DScriptGrammar.ParseEmpty = function (NameSpace, TokenContext, LeftTree, Pattern) {
+        return new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetBeforeToken(), null);
+    };
+
+    DScriptGrammar.TypeEmpty = function (Gamma, ParsedTree, Type) {
+        return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
+    };
+
     DScriptGrammar.ParseBlock = function (ParentNameSpace, TokenContext, LeftTree, Pattern) {
         if (TokenContext.MatchToken("{")) {
             var PrevTree = null;
@@ -2170,6 +2167,8 @@ var DScriptGrammar = (function (_super) {
 
     DScriptGrammar.ParseIf = // Statement: If //
     function (NameSpace, TokenContext, LeftTree, Pattern) {
+        var ParseFlag = TokenContext.ParseFlag;
+        TokenContext.ParseFlag |= SkipIndentParseFlag;
         var Token = TokenContext.GetMatchedToken("if");
         var NewTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
         NewTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "(", Required);
@@ -2179,6 +2178,7 @@ var DScriptGrammar = (function (_super) {
         if (TokenContext.MatchToken("else")) {
             NewTree.SetMatchedPatternAt(IfElse, NameSpace, TokenContext, "$Statement$", Required);
         }
+        TokenContext.ParseFlag = ParseFlag;
         return NewTree;
     };
 
@@ -2439,7 +2439,7 @@ var DScriptGrammar = (function (_super) {
         var Token = TokenContext.Next();
         if (Token != GtTokenContext.NullToken) {
             var ch = LangDeps.CharAt(Token.ParsedText, 0);
-            if (ch != (46)) {
+            if (ch != 46) {
                 return new GtSyntaxTree(Pattern, NameSpace, Token, Token.ParsedText);
             }
         }
@@ -2739,8 +2739,8 @@ var DScriptGrammar = (function (_super) {
 
             if (LangDeps.IsLetter(ch)) {
             } else if (LangDeps.IsDigit(ch)) {
-            } else if (ch == (95)) {
-            } else if (ShellMode && (ch == (45) || ch == (47))) {
+            } else if (ch == 95) {
+            } else if (ShellMode && (ch == 45 || ch == 47)) {
             } else {
                 break;
             }

@@ -30,7 +30,7 @@
 class BashSourceGenerator extends SourceGenerator {
 	inFunc: boolean = false;
 
-	constructor() {
+	 constructor() {
 		super("BashSource");
 		this.WriteTranslatedCode("#!/bin/bash\n");
 	}

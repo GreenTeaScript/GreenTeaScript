@@ -28,10 +28,10 @@
 //Generator: GreenTeabe: shouldin: writtenlanguage: each. //
 
 class CSourceGenerator extends SourceGenerator {
-	 DefaultTypes: string[] = ["void", "int", "boolean", "float", "double", "string", "Object", "Array", "Func", "var", "any"]
-	 DefinedClass: GtMap;
+	public  DefaultTypes: string[] = ["void", "int", "boolean", "float", "double", "string", "Object", "Array", "Func", "var", "any"]
+	public  DefinedClass: GtMap;
 	
-	constructor() {
+	 constructor() {
 		super("C");
 		this.DefinedClass = new GtMap();
 	}

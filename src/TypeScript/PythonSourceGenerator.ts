@@ -29,7 +29,7 @@
 
 class PythonSourceGenerator extends SourceGenerator {
 
-	constructor() {
+	 constructor() {
 		super("PythonSource");
 		this.WriteTranslatedCode("os: import\n");
 	}

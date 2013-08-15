@@ -47,7 +47,7 @@ $src =~ s/($Attr*)($Type)\s+($Sym)\s*\((.*?)\)/$1$3(\/*params*\/$4): $2/g;
 # Constractors.
 $src =~ s/($Attr*)($Sym)\/\*constructor\*\/\((.*?)\)/$1 constructor(\/*params*\/$3)/g;
 $src =~ s/new\s+($Type)\[(.+)\]/new Array<$1>($2)/g;
-# Method's parameters. 
+# Method's parameters.
 $src =~ s/\(\/\*params\*\/(.*?)\)/"(" . Params($1) . ")"/eg;
 # Constants. public final static int N = 0; => var N: int = 0;
 $src =~ s/(?:$Attr*) ($Type)\s+($Sym)((?:\[\s*\d*\s*\])?)/$2: $1$3/g;
@@ -113,4 +113,5 @@ $src =~ s/name: undefined/undefined name/g;
 $src =~ s/tree: untyped/untyped tree/g;
 $src =~ s/undefinedchecker: type/undefined type checker/g;
 
+print "/// <reference path=\"LangDeps.ts\" />\n";
 print $src;

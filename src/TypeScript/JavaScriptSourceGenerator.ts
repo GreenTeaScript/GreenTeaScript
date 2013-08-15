@@ -27,7 +27,7 @@
 
 class JavaScriptSourceGenerator extends SourceGenerator {
 
-	constructor() {
+	 constructor() {
 		super("JavaScript");
 	}
 
