@@ -1,0 +1,8 @@
+// written by kimio
+
+// This test fails always to check assert() availability;
+
+int main() {
+	assert(false);
+	return 0;
+}
