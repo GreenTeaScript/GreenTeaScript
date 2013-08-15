@@ -402,6 +402,10 @@ public class CSourceGenerator extends SourceGenerator {
 		this.WriteTranslatedCode(Program + " " + TypeName + ";");
 	}
 
+	@Override public void StartCompilationUnit() {
+		this.WriteTranslatedCode("#include \"GreenTea.h\"");
+	}
+
 	@Override public void SetLanguageContext(GtClassContext Context) {
 		Context.Eval(LangDeps.LoadFile("lib/c/common.green"), 1);
 	}

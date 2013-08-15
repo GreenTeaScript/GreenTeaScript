@@ -978,6 +978,7 @@ class GtPolyFunc {
 	}
 }
 
+
 class GtGenerator extends GtStatic {
 	/*field*/public String     LangName;
 	/*field*/public GtClassContext  Context;
@@ -1172,7 +1173,6 @@ class GtGenerator extends GtStatic {
 //endif VAJA
 		return TransformedResult;
 	}
-
 
 	public int ParseClassFlag(int ClassFlag, GtSyntaxTree ClassDeclTree) {
 //		if(ClassDeclTree.HasAnnotation("Final")) {
@@ -1383,6 +1383,14 @@ class GtGenerator extends GtStatic {
 
 	public String BlockComment(String Comment) {
 		return "/*" + Comment + "*/";
+	}
+
+	public void StartCompilationUnit() {
+		/*extension*/
+	}
+
+	public void FinishCompilationUnit() {
+		/*extension*/
 	}
 
 	protected void PushCode(Object Code){

@@ -3096,6 +3096,7 @@ final class GtClassContext extends GtStatic {
 		/*local*/Object resultValue = null;
 		DebugP("Eval: " + ScriptSource);
 		/*local*/GtTokenContext TokenContext = new GtTokenContext(this.TopLevelNameSpace, ScriptSource, FileLine);
+		this.Generator.StartCompilationUnit();
 		TokenContext.SkipEmptyStatement();
 		while(TokenContext.HasNext()) {
 			/*local*/GtMap annotation = TokenContext.SkipAndGetAnnotation(true);
@@ -3108,6 +3109,7 @@ final class GtClassContext extends GtStatic {
 			TokenContext.SkipEmptyStatement();
 			TokenContext.Vacume();
 		}
+		this.Generator.FinishCompilationUnit();
 		return resultValue;
 	}
 
