@@ -20,7 +20,7 @@ boolean !=(int x, int y) as "$0  != $1";
 
 String +(String x, String y) as "$0  +  $1";
 
-String convert(int x) as "ToStr($0)";
+String converter(int x) as "ToStr($0)";
 
 boolean ==(any x, any y) as "$0  == $1";
 boolean !=(any x, any y) as "$0  != $1";

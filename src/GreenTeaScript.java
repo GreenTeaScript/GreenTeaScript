@@ -2601,7 +2601,7 @@ final class DScriptGrammar extends GtGrammar {
 			Gamma.Context.ReportError(ErrorLevel, ParsedTree.KeyToken, "already defined: " + FromType + " to " + ToType);
 			return null;
 		}
-		Method = Gamma.Generator.CreateMethod(MethodFlag, "to" + ToType.ShortClassName, 0, TypeList, (String)ParsedTree.ConstValue);
+		Method = Gamma.Generator.CreateMethod(MethodFlag, "to" + ToType.ShortClassName, 0, TypeList, ParsedTree.ConstValue);
 		Gamma.Context.DefineConverterMethod(Method);
 		return Method;
 	}
@@ -2656,7 +2656,7 @@ final class DScriptGrammar extends GtGrammar {
 		if(SuperClassTree != null) {
 			SuperType = SuperClassTree.GetParsedType();
 		}
-		/*local*/int ClassFlag = 0; //Gamma.Generator.ParseMethodFlag(0, ParsedTree);
+		/*local*/int ClassFlag = 0; //Gamma.Generator.ParseClassFlag(0, ParsedTree);
 		/*local*/GtType NewType = SuperType.CreateSubType(ClassFlag, ClassName, null, null);
 		/*local*/GreenTeaTopObject DefaultObject = new GreenTeaTopObject(NewType);
 		NewType.DefaultNullValue = DefaultObject;
