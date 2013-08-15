@@ -10,6 +10,8 @@ all: build test
 
 build: buildj buildts
 
+dist: distj distts
+
 test: testj testp
 
 buildj: $(JavaBin)
@@ -35,10 +37,22 @@ testj:
 	python ./tool/TestAll.py --target=c
 
 testts: buildts
-	echo Testing javascript implementation...
+	echo Testing JavaScript implementation...
 	python ./tool/TestAll.py --target=js
+
+distj: buildj
+	echo Distribution for Java implementation
+	mkdir -p generated/jar/
+	cp $(JavaBin) generated/jar/
+
+distts: buildts
+	echo Distribution for JavaScript implementation
+	mkdir -p generated/js/
+	cp src/TypeScript/*.ts generated/js/
+	cp src/TypeScript/*.js generated/js/
+#	cp src/TypeScript/*.js.map generated/js/
 
 clean:
 	-rm -rf bin/*.class *.jar GTAGS GPATH GRTAGS
 
-.PHONY: all build buildj buildts test testp testj clean
+.PHONY: all build buildj buildts test testp testj clean dist buildj buildts
