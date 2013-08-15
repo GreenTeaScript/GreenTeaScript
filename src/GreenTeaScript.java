@@ -2067,13 +2067,15 @@ final class DScriptGrammar extends GtGrammar {
 		else { //if(Method != null) {
 			if(Method.ListedMethods == null) {
 				DebugP("Contextual Typing");
+				/*local*/int i = 1;
 				while(ParamIndex < ListSize(ParsedTree.TreeList)) {
-					/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(ParamIndex, Gamma, Method.Types[ParamIndex], DefaultTypeCheckPolicy);
+					/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(ParamIndex, Gamma, Method.GetFuncParamType(i), DefaultTypeCheckPolicy);
 					if(Node.IsError()) {
 						return Node;
 					}
 					NodeList.add(Node);
 					ParamIndex = ParamIndex + 1;
+					i = i + 1;
 				}
 				ReturnType = Method.GetReturnType();
 			}
