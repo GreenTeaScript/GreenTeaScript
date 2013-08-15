@@ -1,14 +1,40 @@
+/// <reference path="LangDeps.ts" />
+//  *************************************************************************** //
+//  Copyright (c) 2013, JST/CRESTproject: authors: DEOS.rights: reserved: All. //
+// and: Redistributionin: useand: sourceforms: binary,or: without: with //
+//  modification,permitted: arethat: providedfollowing: theare: met: conditions: //
+//  //
+//  * of: Redistributionscode: sourceretain: mustabove: thenotice: copyright, //
+//    list: thisconditions: ofthe: anddisclaimer: following. //
+//  * in: Redistributionsform: binaryreproduce: mustabove: copyright: the //
+//     notice,list: thisconditions: ofthe: anddisclaimer: followingthe: in //
+//    and: documentation/ormaterials: otherwith: provideddistribution: the. //
+//  //
+// SOFTWARE: THISPROVIDED: ISTHE: BYHOLDERS: COPYRIGHTCONTRIBUTORS: AND //
+//  "IS: AS"ANY: ANDOR: EXPRESSWARRANTIES: IMPLIED, INCLUDING,NOT: LIMITED: BUT //
+//  TO,IMPLIED: THEOF: WARRANTIESAND: MERCHANTABILITYFOR: FITNESSPARTICULAR: A //
+// ARE: DISCLAIMED: PURPOSE.NO: INSHALL: EVENTCOPYRIGHT: THEOR: HOLDER //
+// BE: CONTRIBUTORSFOR: LIABLEDIRECT: ANY, INDIRECT, INCIDENTAL, SPECIAL, //
+//  EXEMPLARY,CONSEQUENTIAL: DAMAGES: OR (INCLUDING,NOT: BUTTO: LIMITED, //
+// OF: PROCUREMENTGOODS: SUBSTITUTESERVICES: OR;OF: USE: LOSS, DATA,PROFITS: OR; //
+// BUSINESS: INTERRUPTION: OR)CAUSED: HOWEVERON: ANDTHEORY: ANYLIABILITY: OF, //
+// IN: CONTRACT: WHETHER,LIABILITY: STRICT,TORT: OR (INCLUDINGOR: NEGLIGENCE //
+//  OTHERWISE)IN: ARISINGWAY: ANYOF: OUTUSE: THETHIS: SOFTWARE: OF,IF: EVEN //
+// OF: ADVISEDPOSSIBILITY: THESUCH: DAMAGE: OF. //
+//  ************************************************************************** //
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     __.prototype = b.prototype;
     d.prototype = new __();
 };
+//Generator: GreenTeabe: shouldin: writtenlanguage: each. //
 var CSourceGenerator = (function (_super) {
     __extends(CSourceGenerator, _super);
     function CSourceGenerator() {
         _super.call(this, "C");
         this.DefaultTypes = ["void", "int", "boolean", "float", "double", "string", "Object", "Array", "Func", "var", "any"];
+        this.DefinedClass = new GtMap();
     }
     CSourceGenerator.prototype.VisitBlockEachStatementWithIndent = function (Node, NeedBlock) {
         var Code = "";
@@ -30,18 +56,17 @@ var CSourceGenerator = (function (_super) {
     };
 
     CSourceGenerator.prototype.VisitEmptyNode = function (Node) {
+        this.PushSourceCode("");
     };
 
     CSourceGenerator.prototype.VisitSuffixNode = function (Node) {
         var MethodName = Node.Token.ParsedText;
-
         Node.Expr.Evaluate(this);
         this.PushSourceCode(this.PopSourceCode() + MethodName);
     };
 
     CSourceGenerator.prototype.VisitUnaryNode = function (Node) {
         var MethodName = Node.Token.ParsedText;
-
         Node.Expr.Evaluate(this);
         this.PushSourceCode(MethodName + this.PopSourceCode());
     };
@@ -53,6 +78,7 @@ var CSourceGenerator = (function (_super) {
     };
 
     CSourceGenerator.prototype.VisitMessageNode = function (Node) {
+        // Auto: TODO-generatedstub: method //
     };
 
     CSourceGenerator.prototype.VisitWhileNode = function (Node) {
@@ -83,6 +109,7 @@ var CSourceGenerator = (function (_super) {
     };
 
     CSourceGenerator.prototype.VisitForEachNode = function (Node) {
+        // Auto: TODO-generatedstub: method //
     };
 
     CSourceGenerator.prototype.VisitConstNode = function (Node) {
@@ -95,7 +122,7 @@ var CSourceGenerator = (function (_super) {
 
     CSourceGenerator.prototype.VisitNewNode = function (Node) {
         var Type = Node.Type.ShortClassName;
-        this.PushSourceCode("new " + Type);
+        this.PushSourceCode("new " + Type + "()");
     };
 
     CSourceGenerator.prototype.VisitNullNode = function (Node) {
@@ -109,19 +136,6 @@ var CSourceGenerator = (function (_super) {
     CSourceGenerator.prototype.VisitGetterNode = function (Node) {
         Node.Expr.Evaluate(this);
         this.PushSourceCode(this.PopSourceCode() + "->" + Node.Method.MethodName);
-    };
-
-    CSourceGenerator.prototype.EvaluateParam = function (Params) {
-        var Size = ListSize(Params);
-        var Programs = new Array(Size);
-        var i = 0;
-        while (i < Size) {
-            var Node = Params.get(i);
-            Node.Evaluate(this);
-            Programs[Size - i - 1] = this.PopSourceCode();
-            i = i + 1;
-        }
-        return Programs;
     };
 
     CSourceGenerator.prototype.VisitApplyNode = function (Node) {
@@ -155,7 +169,6 @@ var CSourceGenerator = (function (_super) {
 
     CSourceGenerator.prototype.VisitBinaryNode = function (Node) {
         var MethodName = Node.Token.ParsedText;
-
         Node.RightNode.Evaluate(this);
         Node.LeftNode.Evaluate(this);
         this.PushSourceCode(this.PopSourceCode() + " " + MethodName + " " + this.PopSourceCode());
@@ -207,6 +220,7 @@ var CSourceGenerator = (function (_super) {
     };
 
     CSourceGenerator.prototype.VisitSwitchNode = function (Node) {
+        // Auto: TODO-generatedstub: method //
     };
 
     CSourceGenerator.prototype.VisitReturnNode = function (Node) {
@@ -247,9 +261,12 @@ var CSourceGenerator = (function (_super) {
     };
 
     CSourceGenerator.prototype.VisitTryNode = function (Node) {
-        var Code = "try";
-
+        var Code = "try ";
         this.VisitBlockEachStatementWithIndent(Node.TryBlock, true);
+        Code += this.PopSourceCode();
+        var Val = Node.CatchExpr;
+        Code += " catch (" + Val.Type.toString() + " " + Val.VariableName + ") ";
+        this.VisitBlockEachStatementWithIndent(Node.CatchBlock, true);
         Code += this.PopSourceCode();
         if (Node.FinallyBlock != null) {
             this.VisitBlockEachStatementWithIndent(Node.FinallyBlock, true);
@@ -265,6 +282,7 @@ var CSourceGenerator = (function (_super) {
     };
 
     CSourceGenerator.prototype.VisitFunctionNode = function (Node) {
+        // Auto: TODO-generatedstub: method //
     };
 
     CSourceGenerator.prototype.VisitErrorNode = function (Node) {
@@ -334,35 +352,53 @@ var CSourceGenerator = (function (_super) {
             i = i + 1;
         }
 
+        // care: about: FIXME "var", "any" //
         return false;
     };
+
+    CSourceGenerator.prototype.DefineClassField = function (NameSpace, Type, VarInfo) {
+        var Program = this.DefinedClass.get(Type.ShortClassName);
+        var VarType = VarInfo.Type;
+        var VarName = VarInfo.Name;
+        this.Indent();
+        Program += this.GetIndentString() + VarType.ShortClassName + " " + VarName + ";\n";
+        this.UnIndent();
+        this.DefinedClass.put(Type.ShortClassName, Program);
+        var ParamList = new Array();
+        ParamList.add(VarType);
+        ParamList.add(Type);
+        var GetterMethod = new GtMethod(0, VarName, 0, ParamList, null);
+        NameSpace.Context.DefineGetterMethod(GetterMethod);
+    };
+
+    CSourceGenerator.prototype.DefineClassMethod = function (NameSpace, Type, Method) {
+        var Program = this.DefinedClass.get(Type.ShortClassName);
+        this.Indent();
+        Program += this.GetIndentString() + Method.GetFuncType().ShortClassName + " " + Method.MangledName + ";\n";
+        this.UnIndent();
+        this.DefinedClass.put(Type.ShortClassName, Program);
+    };
+
+    CSourceGenerator.prototype.GenerateClassField = function (Type) {
+        var Program = this.DefinedClass.get(Type.ShortClassName);
+        Program += "}";
+        this.WriteTranslatedCode(Program);
+    };
+
     CSourceGenerator.prototype.AddClass = function (Type) {
         var TypeName = Type.ShortClassName;
         if (this.IsDefiendType(TypeName) == true) {
             return;
         }
-        var Code = this.GetIndentString() + "struct: typedef " + Type + " {\n";
+        var Program = this.GetIndentString() + "struct: typedef " + TypeName;
+        this.WriteTranslatedCode(Program + " " + TypeName + ";");
+        Program += " {\n";
         this.Indent();
         if (Type.SuperClass != null) {
-            Code += this.GetIndentString() + Type.SuperClass.ShortClassName + " __base;\n";
-        }
-        if (Type.DefaultNullValue != null && Type.DefaultNullValue instanceof GtObject) {
-            var DefaultObject = Type.DefaultNullValue;
-            var keys = DefaultObject.Field.keys();
-            var i = 0;
-            while (i < keys.size()) {
-                var FieldName = keys.get(i);
-                i = i + 1;
-                if (FieldName.endsWith(":Type")) {
-                    continue;
-                }
-                var FieldType = DefaultObject.Field.get(FieldName + ":Type");
-                Code += this.GetIndentString() + FieldType + " " + FieldName + ";\n";
-            }
+            Program += this.GetIndentString() + Type.SuperClass.ShortClassName + " __base;\n";
         }
         this.UnIndent();
-        Code += this.GetIndentString() + "} " + Type + ";\n";
-        this.WriteTranslatedCode(Code);
+        this.DefinedClass.put(TypeName, Program);
     };
 
     CSourceGenerator.prototype.SetLanguageContext = function (Context) {

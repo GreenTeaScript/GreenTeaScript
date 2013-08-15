@@ -1,3 +1,4 @@
+/// <reference path="SourceGenerator.ts" />
 Array.prototype.size = function () {
     return this.length;
 };
@@ -81,6 +82,7 @@ var LangDeps = (function () {
     };
 
     LangDeps.GetStackInfo = function (depth) {
+        // TODO
         return " ";
     };
 
@@ -108,6 +110,7 @@ var LangDeps = (function () {
     };
 
     LangDeps.ParseInt = function (Text) {
+        //return number.parseInt(Text);
         return Text - 0;
     };
 
@@ -135,9 +138,9 @@ var LangDeps = (function () {
         return -1;
     };
 
-    LangDeps.ApplyMatchFunc = function (Delegate, Pattern, LeftTree, TokenContext) {
+    LangDeps.ApplyMatchFunc = function (Delegate, NameSpace, Pattern, LeftTree, TokenContext) {
         try  {
-            return Delegate(Pattern, LeftTree, TokenContext);
+            return Delegate(NameSpace, TokenContext, LeftTree, Pattern);
         } catch (e) {
             console.log(e);
         }

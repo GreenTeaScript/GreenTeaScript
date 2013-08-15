@@ -1,3 +1,27 @@
+/// <reference path="LangDeps.ts" />
+//  *************************************************************************** //
+//  Copyright (c) 2013, JST/CRESTproject: authors: DEOS.rights: reserved: All. //
+// and: Redistributionin: useand: sourceforms: binary,or: without: with //
+//  modification,permitted: arethat: providedfollowing: theare: met: conditions: //
+//  //
+//  * of: Redistributionscode: sourceretain: mustabove: thenotice: copyright, //
+//    list: thisconditions: ofthe: anddisclaimer: following. //
+//  * in: Redistributionsform: binaryreproduce: mustabove: copyright: the //
+//     notice,list: thisconditions: ofthe: anddisclaimer: followingthe: in //
+//    and: documentation/ormaterials: otherwith: provideddistribution: the. //
+//  //
+// SOFTWARE: THISPROVIDED: ISTHE: BYHOLDERS: COPYRIGHTCONTRIBUTORS: AND //
+//  "IS: AS"ANY: ANDOR: EXPRESSWARRANTIES: IMPLIED, INCLUDING,NOT: LIMITED: BUT //
+//  TO,IMPLIED: THEOF: WARRANTIESAND: MERCHANTABILITYFOR: FITNESSPARTICULAR: A //
+// ARE: DISCLAIMED: PURPOSE.NO: INSHALL: EVENTCOPYRIGHT: THEOR: HOLDER //
+// BE: CONTRIBUTORSFOR: LIABLEDIRECT: ANY, INDIRECT, INCIDENTAL, SPECIAL, //
+//  EXEMPLARY,CONSEQUENTIAL: DAMAGES: OR (INCLUDING,NOT: BUTTO: LIMITED, //
+// OF: PROCUREMENTGOODS: SUBSTITUTESERVICES: OR;OF: USE: LOSS, DATA,PROFITS: OR; //
+// BUSINESS: INTERRUPTION: OR)CAUSED: HOWEVERON: ANDTHEORY: ANYLIABILITY: OF, //
+// IN: CONTRACT: WHETHER,LIABILITY: STRICT,TORT: OR (INCLUDINGOR: NEGLIGENCE //
+//  OTHERWISE)IN: ARISINGWAY: ANYOF: OUTUSE: THETHIS: SOFTWARE: OF,IF: EVEN //
+// OF: ADVISEDPOSSIBILITY: THESUCH: DAMAGE: OF. //
+//  ************************************************************************** //
 var GtScriptRunner = (function () {
     function GtScriptRunner() {
     }
@@ -11,13 +35,16 @@ var GtScriptRunner = (function () {
         var cmd = ["java", "-jar", "GreenTeaScript.jar", "--" + Target, Path];
         var Result = "";
 
+        // FIXME //
         return Result;
     };
 
     GtScriptRunner.Test = function (Target, ScriptPath, ResultPath) {
+        // console.log("Testing " + ScriptPath + " (Target:" + Target + ") ... "); //
         var Expected = GtScriptRunner.LoadFile(ResultPath);
         var Actual = GtScriptRunner.ExecuteScript(ScriptPath, Target);
         LangDeps.Assert(Expected.equals(Actual));
+        // console.log("Testing " + ScriptPath + " (Target:" + Target + ") ... OK"); //
     };
     return GtScriptRunner;
 })();
@@ -26,7 +53,7 @@ var GreenTeaScriptTest = (function () {
     function GreenTeaScriptTest() {
     }
     GreenTeaScriptTest.TestToken = function (Context, Source, TokenTestList) {
-        var NameSpace = Context.DefaultNameSpace;
+        var NameSpace = Context.TopLevelNameSpace;
         var TokenContext = new GtTokenContext(NameSpace, Source, 1);
         var i = 0;
         while (i < TokenTestList.length) {
@@ -39,7 +66,7 @@ var GreenTeaScriptTest = (function () {
     GreenTeaScriptTest.CreateContext = function () {
         var CodeGeneratorName = "Java";
         var Generator = LangDeps.CodeGenerator(CodeGeneratorName);
-        return new GtContext(new DScriptGrammar(), Generator);
+        return new GtClassContext(new DScriptGrammar(), Generator);
     };
 
     GreenTeaScriptTest.TokenizeOperator0 = function () {

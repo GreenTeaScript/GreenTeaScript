@@ -1,3 +1,27 @@
+// ***************************************************************************
+// Copyright (c) 2013, JST/CREST DEOS project authors. All rights reserved.
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// *  Redistributions of source code must retain the above copyright notice,
+//    this list of conditions and the following disclaimer.
+// *  Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+// TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// **************************************************************************
+
 //ifdef  JAVA
 import java.util.ArrayList;
 //endif VAJA
@@ -6,9 +30,11 @@ import java.util.ArrayList;
 
 public class CSourceGenerator extends SourceGenerator {
 	/*field*/public final String[] DefaultTypes = {"void", "int", "boolean", "float", "double", "String", "Object", "Array", "Func", "var", "any"};
-
+	/*field*/public final GtMap DefinedClass;
+	
 	CSourceGenerator/*constructor*/() {
 		super("C");
+		this.DefinedClass = new GtMap();
 	}
 
 	public void VisitBlockEachStatementWithIndent(GtNode Node, boolean NeedBlock) {
@@ -31,36 +57,17 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitEmptyNode(GtNode Node) {
-		//this.PushSourceCode("/*empty*/");
+		this.PushSourceCode("");
 	}
 
 	@Override public void VisitSuffixNode(SuffixNode Node) {
 		/*local*/String MethodName = Node.Token.ParsedText;
-		//if(MethodName.equals("++")) {
-		//}
-		//else if(MethodName.equals("--")) {
-		//}
 		Node.Expr.Evaluate(this);
 		this.PushSourceCode(this.PopSourceCode() + MethodName);
 	}
 
 	@Override public void VisitUnaryNode(UnaryNode Node) {
 		/*local*/String MethodName = Node.Token.ParsedText;
-		//if(MethodName.equals("+")) {
-		//}
-		//else if(MethodName.equals("-")) {
-		//}
-		//else if(MethodName.equals("~")) {
-		//}
-		//else if(MethodName.equals("!")) {
-		//}
-		//else if(MethodName.equals("++")) {
-		//}
-		//else if(MethodName.equals("--")) {
-		//}
-		//else {
-		//	throw new RuntimeException("NotSupportOperator");
-		//}
 		Node.Expr.Evaluate(this);
 		this.PushSourceCode(MethodName + this.PopSourceCode());
 	}
@@ -117,7 +124,7 @@ public class CSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitNewNode(NewNode Node) {
 		/*local*/String Type = Node.Type.ShortClassName;
-		this.PushSourceCode("new " + Type);
+		this.PushSourceCode("new " + Type + "()");
 	}
 
 	@Override public void VisitNullNode(NullNode Node) {
@@ -131,19 +138,6 @@ public class CSourceGenerator extends SourceGenerator {
 	@Override public void VisitGetterNode(GetterNode Node) {
 		Node.Expr.Evaluate(this);
 		this.PushSourceCode(this.PopSourceCode() + "->" + Node.Method.MethodName);
-	}
-
-	private String[] EvaluateParam(ArrayList<GtNode> Params) {
-		/*local*/int Size = GtStatic.ListSize(Params);
-		/*local*/String[] Programs = new String[Size];
-		/*local*/int i = 0;
-		while(i < Size) {
-			GtNode Node = Params.get(i);
-			Node.Evaluate(this);
-			Programs[Size - i - 1] = this.PopSourceCode();
-			i = i + 1;
-		}
-		return Programs;
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
@@ -177,41 +171,6 @@ public class CSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitBinaryNode(BinaryNode Node) {
 		/*local*/String MethodName = Node.Token.ParsedText;
-		//if(MethodName.equals("+")) {
-		//}
-		//else if(MethodName.equals("-")) {
-		//}
-		//else if(MethodName.equals("*")) {
-		//}
-		//else if(MethodName.equals("/")) {
-		//}
-		//else if(MethodName.equals("%")) {
-		//}
-		//else if(MethodName.equals("<<")) {
-		//}
-		//else if(MethodName.equals(">>")) {
-		//}
-		//else if(MethodName.equals("&")) {
-		//}
-		//else if(MethodName.equals("|")) {
-		//}
-		//else if(MethodName.equals("^")) {
-		//}
-		//else if(MethodName.equals("<=")) {
-		//}
-		//else if(MethodName.equals("<")) {
-		//}
-		//else if(MethodName.equals(">=")) {
-		//}
-		//else if(MethodName.equals(">")) {
-		//}
-		//else if(MethodName.equals("!=")) {
-		//}
-		//else if(MethodName.equals("==")) {
-		//}
-		//else {
-		//	throw new RuntimeException("NotSupportOperator");
-		//}
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
 		this.PushSourceCode(this.PopSourceCode() + " " + MethodName + " " + this.PopSourceCode());
@@ -305,9 +264,12 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitTryNode(TryNode Node) {
-		/*local*/String Code = "try";
-		//this.VisitEach(Node.CatchBlock);
+		/*local*/String Code = "try ";
 		this.VisitBlockEachStatementWithIndent(Node.TryBlock, true);
+		Code += this.PopSourceCode();
+		/*local*/LetNode Val = (/*cast*/LetNode) Node.CatchExpr;
+		Code += " catch (" + Val.Type.toString() + " " + Val.VariableName + ") ";
+		this.VisitBlockEachStatementWithIndent(Node.CatchBlock, true);
 		Code += this.PopSourceCode();
 		if(Node.FinallyBlock != null) {
 			this.VisitBlockEachStatementWithIndent(Node.FinallyBlock, true);
@@ -397,36 +359,53 @@ public class CSourceGenerator extends SourceGenerator {
 		
 		return false;
 	}
+
+	@Override public void DefineClassField(GtNameSpace NameSpace, GtType Type, GtVariableInfo VarInfo) {
+		/*local*/String Program = (/*cast*/String) this.DefinedClass.get(Type.ShortClassName);
+		/*local*/GtType VarType = VarInfo.Type;
+		/*local*/String VarName = VarInfo.Name;
+		this.Indent();
+		Program += this.GetIndentString() + VarType.ShortClassName + " " + VarName + ";\n";
+		this.UnIndent();
+		this.DefinedClass.put(Type.ShortClassName, Program);
+		ArrayList<GtType> ParamList = new ArrayList<GtType>();
+		ParamList.add(VarType);
+		ParamList.add(Type);
+		GtMethod GetterMethod = new GtMethod(0, VarName, 0, ParamList, null);
+		NameSpace.Context.DefineGetterMethod(GetterMethod);
+	}
+
+	@Override public void DefineClassMethod(GtNameSpace NameSpace, GtType Type, GtMethod Method) {
+		/*local*/String Program = (/*cast*/String) this.DefinedClass.get(Type.ShortClassName);
+		this.Indent();
+		Program += this.GetIndentString() + Method.GetFuncType().ShortClassName + " " + Method.MangledName + ";\n";
+		this.UnIndent();
+		this.DefinedClass.put(Type.ShortClassName, Program);
+	}
+
+	@Override public void GenerateClassField(GtType Type) {
+		/*local*/String Program = (/*cast*/String) this.DefinedClass.get(Type.ShortClassName);
+		Program += "};";
+		this.WriteTranslatedCode(Program);
+	}
+
 	@Override public void AddClass(GtType Type) {
 		/*local*/String TypeName = Type.ShortClassName;
 		if(this.IsDefiendType(TypeName) == true) {
 			return;
 		}
-		/*local*/String Code = this.GetIndentString() + "typedef struct " + Type + " {\n";
+		/*local*/String Program = this.GetIndentString() + "typedef struct " + TypeName;
+		this.WriteTranslatedCode(Program + " " + TypeName + ";");
+		Program += " {\n";
 		this.Indent();
 		if(Type.SuperClass != null) {
-			Code += this.GetIndentString() + Type.SuperClass.ShortClassName + " __base;\n";
-		}
-		if(Type.DefaultNullValue != null && Type.DefaultNullValue instanceof GtObject) {
-			/*local*/GtObject DefaultObject = (/*cast*/GtObject) Type.DefaultNullValue;
-			/*local*/ArrayList<String> keys = DefaultObject.Field.keys();
-			/*local*/int i = 0;
-			while(i < keys.size()) {
-				/*local*/String FieldName = keys.get(i);
-				i = i + 1;
-				if(FieldName.endsWith(":Type")) {
-					continue;
-				}
-				/*local*/GtType FieldType = (/*cast*/GtType) DefaultObject.Field.get(FieldName + ":Type");
-				Code += this.GetIndentString() + FieldType + " " + FieldName + ";\n";
-			}
+			Program += this.GetIndentString() + Type.SuperClass.ShortClassName + " __base;\n";
 		}
 		this.UnIndent();
-		Code += this.GetIndentString() + "} " + Type + ";\n";
-		this.WriteTranslatedCode(Code);
+		this.DefinedClass.put(TypeName, Program);
 	}
 
-	@Override public void SetLanguageContext(GtContext Context) {
+	@Override public void SetLanguageContext(GtClassContext Context) {
 		Context.Eval(LangDeps.LoadFile("lib/c/common.green"), 1);
 	}
 }

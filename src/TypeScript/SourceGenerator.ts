@@ -1,4 +1,28 @@
 /// <reference path="LangDeps.ts" />
+//  *************************************************************************** //
+//  Copyright (c) 2013, JST/CRESTproject: authors: DEOS.rights: reserved: All. //
+// and: Redistributionin: useand: sourceforms: binary,or: without: with //
+//  modification,permitted: arethat: providedfollowing: theare: met: conditions: //
+//  //
+//  * of: Redistributionscode: sourceretain: mustabove: thenotice: copyright, //
+//    list: thisconditions: ofthe: anddisclaimer: following. //
+//  * in: Redistributionsform: binaryreproduce: mustabove: copyright: the //
+//     notice,list: thisconditions: ofthe: anddisclaimer: followingthe: in //
+//    and: documentation/ormaterials: otherwith: provideddistribution: the. //
+//  //
+// SOFTWARE: THISPROVIDED: ISTHE: BYHOLDERS: COPYRIGHTCONTRIBUTORS: AND //
+//  "IS: AS"ANY: ANDOR: EXPRESSWARRANTIES: IMPLIED, INCLUDING,NOT: LIMITED: BUT //
+//  TO,IMPLIED: THEOF: WARRANTIESAND: MERCHANTABILITYFOR: FITNESSPARTICULAR: A //
+// ARE: DISCLAIMED: PURPOSE.NO: INSHALL: EVENTCOPYRIGHT: THEOR: HOLDER //
+// BE: CONTRIBUTORSFOR: LIABLEDIRECT: ANY, INDIRECT, INCIDENTAL, SPECIAL, //
+//  EXEMPLARY,CONSEQUENTIAL: DAMAGES: OR (INCLUDING,NOT: BUTTO: LIMITED, //
+// OF: PROCUREMENTGOODS: SUBSTITUTESERVICES: OR;OF: USE: LOSS, DATA,PROFITS: OR; //
+// BUSINESS: INTERRUPTION: OR)CAUSED: HOWEVERON: ANDTHEORY: ANYLIABILITY: OF, //
+// IN: CONTRACT: WHETHER,LIABILITY: STRICT,TORT: OR (INCLUDINGOR: NEGLIGENCE //
+//  OTHERWISE)IN: ARISINGWAY: ANYOF: OUTUSE: THETHIS: SOFTWARE: OF,IF: EVEN //
+// OF: ADVISEDPOSSIBILITY: THESUCH: DAMAGE: OF. //
+//  ************************************************************************** //
+
 
 
 /* language */
@@ -652,13 +676,15 @@ class ThrowNode extends GtNode {
 }
 
 class TryNode extends GtNode {
-	TryBlock: GtNode;
-	CatchBlock: GtNode;
-	FinallyBlock: GtNode;
-	constructor(Type: GtType, Token: GtToken, TryBlock: GtNode, CatchBlock: GtNode, FinallyBlock: GtNode) {
+	public TryBlock: GtNode;
+	public CatchExpr: GtNode;
+	public CatchBlock: GtNode;
+	public FinallyBlock: GtNode;
+	constructor(Type: GtType, Token: GtToken, TryBlock: GtNode, CatchExpr: GtNode, CatchBlock: GtNode, FinallyBlock: GtNode) {
 		super(Type, Token);
 		this.TryBlock = TryBlock;
-		this.CatchBlock = <LetNode>CatchBlock;
+		this.CatchExpr = CatchExpr;
+		this.CatchBlock = CatchBlock;
 		this.FinallyBlock = FinallyBlock;
 	}
 	public Evaluate(Visitor: GtGenerator): void {
@@ -741,17 +767,8 @@ class CommandNode extends GtNode {
 	}
 }
 
-class GtObject {
-	public Type: GtType;
-	public Field: GtMap;
-	constructor(Type: GtType) {
-		this.Type = Type;
-		this.Field = new GtMap();
-	}
-}
-
 class GtType {
-	 Context: GtContext;
+	 Context: GtClassContext;
 	public PackageNameSpace: GtNameSpace;
 	ClassFlag: number;
 	ClassId: number;
@@ -759,11 +776,12 @@ class GtType {
 	SuperClass: GtType;
 	public SearchSuperMethodClass: GtType;
 	public DefaultNullValue: Object;
+	public ClassSymbolTable: GtMap;
 	BaseClass: GtType;
 	Types: GtType[];
 	public NativeSpec: Object;
 
-	constructor(Context: GtContext, ClassFlag: number, ClassName: string, DefaultNullValue: Object, NativeSpec: Object) {
+	constructor(Context: GtClassContext, ClassFlag: number, ClassName: string, DefaultNullValue: Object, NativeSpec: Object) {
 		this.Context = Context;
 		this.ClassFlag = ClassFlag;
 		this.ShortClassName = ClassName;
@@ -772,9 +790,28 @@ class GtType {
 		this.SearchSuperMethodClass = null;
 		this.DefaultNullValue = DefaultNullValue;
 		this.NativeSpec = NativeSpec;
+		this.ClassSymbolTable = IsFlag(ClassFlag, EnumClass) ? <GtMap>NativeSpec : null;
 		this.ClassId = Context.ClassCount;
 		Context.ClassCount += 1;
 		this.Types = null;
+	}
+
+	public CreateSubType(ClassFlag: number, ClassName: string, DefaultNullValue: Object, NativeSpec: Object): GtType {
+		var SubType: GtType = new GtType(this.Context, ClassFlag, ClassName, DefaultNullValue, NativeSpec);
+		SubType.SuperClass = this;
+		SubType.SearchSuperMethodClass = this;
+		return SubType;
+	}
+	
+	// Don: Note'tthis: directly: call.Context: Use.instead: GetGenericType. //
+	public CreateGenericType(BaseIndex: number, TypeList: Array<GtType>, ShortName: string): GtType {
+		var GenericType: GtType = new GtType(this.Context, this.ClassFlag, ShortName, null, null);
+		GenericType.BaseClass = this.BaseClass;
+		GenericType.SearchSuperMethodClass = this.BaseClass;
+		GenericType.SuperClass = this.SuperClass;
+		this.Types = LangDeps.CompactTypeList(BaseIndex, TypeList);
+		console.log("DEBUG: " + "new class: " + GenericType.ShortClassName + ", ClassId=" + GenericType.ClassId);
+		return GenericType;
 	}
 
 	 IsNative(): boolean {
@@ -789,25 +826,28 @@ class GtType {
 		return (this.Types != null);
 	}
 
-	// Don: Note'tthis: directly: call.Context: Use.instead: GetGenericType. //
-	public CreateGenericType(BaseIndex: number, TypeList: Array<GtType>, ShortName: string): GtType {
-		var GenericType: GtType = new GtType(this.Context, this.ClassFlag, ShortName, null, null);
-		GenericType.BaseClass = this.BaseClass;
-		GenericType.SearchSuperMethodClass = this.BaseClass;
-		GenericType.SuperClass = this.SuperClass;
-		this.Types = LangDeps.CompactTypeList(BaseIndex, TypeList);
-		console.log("DEBUG: " + "new class: " + GenericType.ShortClassName + ", ClassId=" + GenericType.ClassId);
-		return GenericType;
-	}
-
-	public SetParamType(ParamType: GtType): void {
-		this.Types = new Array<GtType>(1);
-		this.Types[0] = ParamType;
-	}
-
 	public toString(): string {
 		return this.ShortClassName;
 	}
+
+	 GetClassSymbol(Key: string, RecursiveSearch: boolean): Object {
+		var Type: GtType = this;
+		while(Type != null) {
+			if(Type.ClassSymbolTable != null) {
+				return Type.ClassSymbolTable.get(Key);
+			}
+			Type = (RecursiveSearch) ? Type.SuperClass : null;
+		}
+		return null;
+	}
+
+	 SetClassSymbol(Key: string, Value: Object): void {
+		if(this.ClassSymbolTable == null) {
+			this.ClassSymbolTable = new GtMap();
+		}
+		this.ClassSymbolTable.put(Key, Value);
+	}
+
 	
 	 GetSignature(): string {
 		return NumberToAscii(this.ClassId);
@@ -817,8 +857,16 @@ class GtType {
 		if(this == Type || this == this.Context.AnyType) {
 			return true;
 		}
-		return false;
+		var SuperClass: GtType = this.SuperClass;
+		while(SuperClass != null) {
+			if(SuperClass == Type) {
+				return true;
+			}
+			SuperClass = SuperClass.SuperClass;
+		}
+		return this.Context.CheckSubType(Type, this);
 	}
+
 }
 
 class GtMethod {
@@ -831,7 +879,7 @@ class GtMethod {
 	public ListedMethods: GtMethod;
 	public SourceMacro: string;
 	public NativeRef: Object;
-	
+
 	constructor(MethodFlag: number, MethodName: string, BaseIndex: number, ParamList: Array<GtType>, NativeRef: Object) {
 		this.MethodFlag = MethodFlag;
 		this.MethodName = MethodName;
@@ -854,8 +902,8 @@ class GtMethod {
 	}
 
 	 GetFuncType(): GtType {
-		if(this.FuncType != null) {
-			var Context: GtContext = this.GetRecvType().Context;
+		if(this.FuncType == null) {
+			var Context: GtClassContext = this.GetRecvType().Context;
 			this.FuncType = Context.GetGenericType(Context.FuncType, 0, this.Types, true);
 		}
 		return this.FuncType;
@@ -901,7 +949,7 @@ class GtMethod {
 	 GetMethodParamSize(): number {
 		return this.Types.length - 2;
 	}
-	
+
 	 GetNativeMacro(): string {
 		return <string>this.NativeRef;
 	}
@@ -915,12 +963,20 @@ class GtMethod {
 		var NativeMacro: string = IsFlag(this.MethodFlag, NativeMacroMethod) ? <string>this.NativeRef : "$1 " + this.MethodName + " $2";
 		return NativeMacro.replaceAll("$0", Arg0);
 	}
-	
+}
+
+class GtPolyFunc {
+	public FuncList: Array<GtMethod>;
+	constructor(Func1: GtMethod, Func2: GtMethod) {
+		this.FuncList = new Array<GtMethod>();
+		this.FuncList.add(Func1);
+		this.FuncList.add(Func2);
+	}
 }
 
 class GtGenerator {
 	public LangName: string;
-	public Context: GtContext;
+	public Context: GtClassContext;
 	public GeneratedCodeStack: Array<Object>;
 
 	constructor(LangName: string) {
@@ -929,13 +985,13 @@ class GtGenerator {
 		this.GeneratedCodeStack = new Array<Object>();
 	}
 
-	public SetLanguageContext(Context: GtContext): void {
+	public SetLanguageContext(Context: GtClassContext): void {
 		this.Context = Context;
 	}
 
 	 UnsupportedNode(Type: GtType, ParsedTree: GtSyntaxTree): GtNode {
 		var Token: GtToken = ParsedTree.KeyToken;
-		ParsedTree.NameSpace.ReportError(ErrorLevel, Token, this.LangName + "no: hassupport: for: language " + Token.ParsedText);
+		ParsedTree.NameSpace.Context.ReportError(ErrorLevel, Token, this.LangName + "no: hassupport: for: language " + Token.ParsedText);
 		return new ErrorNode(ParsedTree.NameSpace.Context.VoidType, ParsedTree.KeyToken);
 	}
 
@@ -1043,8 +1099,8 @@ class GtGenerator {
 		return new ContinueNode(Type, ParsedTree.KeyToken, Label);
 	}
 
-	public CreateTryNode(Type: GtType, ParsedTree: GtSyntaxTree, TryBlock: GtNode, CatchNode: GtNode, FinallyBlock: GtNode): GtNode {
-		return new TryNode(Type, ParsedTree.KeyToken, TryBlock, CatchNode, FinallyBlock);
+	public CreateTryNode(Type: GtType, ParsedTree: GtSyntaxTree, TryBlock: GtNode, CatchExpr: GtNode, CatchNode: GtNode, FinallyBlock: GtNode): GtNode {
+		return new TryNode(Type, ParsedTree.KeyToken, TryBlock, CatchExpr, CatchNode, FinallyBlock);
 	}
 
 	public CreateThrowNode(Type: GtType, ParsedTree: GtSyntaxTree, Node: GtNode): GtNode {
@@ -1070,7 +1126,7 @@ class GtGenerator {
 	/*constructor: language */
 
 	public GetNativeType(Value: Object): GtType {
-		var NativeType: GtType = null;
+		var NativeType: GtType = this.Context.AnyType;  // unknown: if  //
 
 		return NativeType;
 	}
@@ -1081,7 +1137,7 @@ class GtGenerator {
 		return TransformedResult;
 	}
 
-	
+
 	public ParseClassFlag(ClassFlag: number, ClassDeclTree: GtSyntaxTree): number {
 // 		if(ClassDeclTree.HasAnnotation("Final")) { //
 // 			ClassFlag = ClassFlag | FinalClass; //
@@ -1091,8 +1147,20 @@ class GtGenerator {
 // 		} //
 		return ClassFlag;
 	}
-	
+
 	public AddClass(Type: GtType): void {
+		/*extension*/
+	}
+
+	public DefineClassField(NameSpace: GtNameSpace, Type: GtType, Field: GtVariableInfo): void {
+		/*extension*/
+	}
+
+	public DefineClassMethod(NameSpace: GtNameSpace, Type: GtType, Method: GtMethod): void {
+		/*extension*/
+	}
+
+	public GenerateClassField(Type: GtType): void {
 		/*extension*/
 	}
 
@@ -1103,15 +1171,15 @@ class GtGenerator {
 		return MethodFlag;
 	}
 
-	public CreateMethod(MethodFlag: number, MethodName: string, BaseIndex: number, TypeList: Array<GtType>, RawMacro: string): GtMethod {
-		return new GtMethod(MethodFlag, MethodName, BaseIndex, TypeList, RawMacro);
+	public CreateMethod(MethodFlag: number, MethodName: string, BaseIndex: number, TypeList: Array<GtType>, NativeRef: Object): GtMethod {
+		return new GtMethod(MethodFlag, MethodName, BaseIndex, TypeList, NativeRef);
 	}
 
 	public GenerateMethod(Method: GtMethod, ParamNameList: Array<string>, Body: GtNode): void {
 		/*extenstion*/
-		
+
 	}
-	
+
 	// ------------------------------------------------------------------------ //
 
 	public VisitEmptyNode(EmptyNode: GtNode): void {

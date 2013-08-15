@@ -1,4 +1,28 @@
 /// <reference path="LangDeps.ts" />
+//  *************************************************************************** //
+//  Copyright (c) 2013, JST/CRESTproject: authors: DEOS.rights: reserved: All. //
+// and: Redistributionin: useand: sourceforms: binary,or: without: with //
+//  modification,permitted: arethat: providedfollowing: theare: met: conditions: //
+//  //
+//  * of: Redistributionscode: sourceretain: mustabove: thenotice: copyright, //
+//    list: thisconditions: ofthe: anddisclaimer: following. //
+//  * in: Redistributionsform: binaryreproduce: mustabove: copyright: the //
+//     notice,list: thisconditions: ofthe: anddisclaimer: followingthe: in //
+//    and: documentation/ormaterials: otherwith: provideddistribution: the. //
+//  //
+// SOFTWARE: THISPROVIDED: ISTHE: BYHOLDERS: COPYRIGHTCONTRIBUTORS: AND //
+//  "IS: AS"ANY: ANDOR: EXPRESSWARRANTIES: IMPLIED, INCLUDING,NOT: LIMITED: BUT //
+//  TO,IMPLIED: THEOF: WARRANTIESAND: MERCHANTABILITYFOR: FITNESSPARTICULAR: A //
+// ARE: DISCLAIMED: PURPOSE.NO: INSHALL: EVENTCOPYRIGHT: THEOR: HOLDER //
+// BE: CONTRIBUTORSFOR: LIABLEDIRECT: ANY, INDIRECT, INCIDENTAL, SPECIAL, //
+//  EXEMPLARY,CONSEQUENTIAL: DAMAGES: OR (INCLUDING,NOT: BUTTO: LIMITED, //
+// OF: PROCUREMENTGOODS: SUBSTITUTESERVICES: OR;OF: USE: LOSS, DATA,PROFITS: OR; //
+// BUSINESS: INTERRUPTION: OR)CAUSED: HOWEVERON: ANDTHEORY: ANYLIABILITY: OF, //
+// IN: CONTRACT: WHETHER,LIABILITY: STRICT,TORT: OR (INCLUDINGOR: NEGLIGENCE //
+//  OTHERWISE)IN: ARISINGWAY: ANYOF: OUTUSE: THETHIS: SOFTWARE: OF,IF: EVEN //
+// OF: ADVISEDPOSSIBILITY: THESUCH: DAMAGE: OF. //
+//  ************************************************************************** //
+
 
 
 class GtScriptRunner {
@@ -26,8 +50,8 @@ class GtScriptRunner {
 }
 
 class GreenTeaScriptTest {
-	static TestToken(Context: GtContext, Source: string, TokenTestList: string[]): void {
-		var NameSpace: GtNameSpace = Context.DefaultNameSpace;
+	static TestToken(Context: GtClassContext, Source: string, TokenTestList: string[]): void {
+		var NameSpace: GtNameSpace = Context.TopLevelNameSpace;
 		var TokenContext: GtTokenContext = new GtTokenContext(NameSpace, Source, 1);
 		var i: number = 0;
 		while(i < TokenTestList.length) {
@@ -37,14 +61,14 @@ class GreenTeaScriptTest {
 		}
 	}
 
-	static CreateContext(): GtContext {
+	static CreateContext(): GtClassContext {
 		var CodeGeneratorName: string = "Java";
 		var Generator: GtGenerator = LangDeps.CodeGenerator(CodeGeneratorName);
-		return new GtContext(new DScriptGrammar(), Generator);
+		return new GtClassContext(new DScriptGrammar(), Generator);
 	}
 
 	static TokenizeOperator0(): void {
-		var Context: GtContext = GreenTeaScriptTest.CreateContext();
+		var Context: GtClassContext = GreenTeaScriptTest.CreateContext();
 		var TokenTestList0: string[] = ["1", "||", "2"]
 		GreenTeaScriptTest.TestToken(Context, "1 || 2", TokenTestList0);
 
@@ -62,7 +86,7 @@ class GreenTeaScriptTest {
 	}
 
 	static TokenizeStatement(): void {
-		var Context: GtContext = GreenTeaScriptTest.CreateContext();
+		var Context: GtClassContext = GreenTeaScriptTest.CreateContext();
 		var TokenTestList0: string[] = ["int", "+", "(", "int", "x", ")", ";"]
 		GreenTeaScriptTest.TestToken(Context, "number + (x: number);", TokenTestList0);
 	}

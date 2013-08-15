@@ -1,3 +1,27 @@
+// ***************************************************************************
+// Copyright (c) 2013, JST/CREST DEOS project authors. All rights reserved.
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// *  Redistributions of source code must retain the above copyright notice,
+//    this list of conditions and the following disclaimer.
+// *  Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+// TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// **************************************************************************
+
 //ifdef JAVA
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -656,13 +680,15 @@ class ThrowNode extends GtNode {
 }
 
 class TryNode extends GtNode {
-	public GtNode	TryBlock;
-	public GtNode	CatchBlock;
-	public GtNode	FinallyBlock;
-	TryNode/*constructor*/(GtType Type, GtToken Token, GtNode TryBlock, GtNode CatchBlock, GtNode FinallyBlock) {
+	/*field*/public GtNode	TryBlock;
+	/*field*/public GtNode	CatchExpr;
+	/*field*/public GtNode	CatchBlock;
+	/*field*/public GtNode	FinallyBlock;
+	TryNode/*constructor*/(GtType Type, GtToken Token, GtNode TryBlock, GtNode CatchExpr, GtNode CatchBlock, GtNode FinallyBlock) {
 		super(Type, Token);
 		this.TryBlock = TryBlock;
-		this.CatchBlock = (/*cast*/LetNode)CatchBlock;
+		this.CatchExpr = CatchExpr;
+		this.CatchBlock = CatchBlock;
 		this.FinallyBlock = FinallyBlock;
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
@@ -745,17 +771,8 @@ class CommandNode extends GtNode {
 	}
 }
 
-class GtObject {
-	/*field*/public GtType	Type;
-	/*field*/public GtMap   Field;
-	GtObject/*constructor*/(GtType Type) {
-		this.Type = Type;
-		this.Field = new GtMap();
-	}
-}
-
 class GtType extends GtStatic {
-	/*field*/public final GtContext	Context;
+	/*field*/public final GtClassContext	Context;
 	/*field*/public GtNameSpace     PackageNameSpace;
 	/*field*/int					ClassFlag;
 	/*field*/int                    ClassId;
@@ -763,11 +780,12 @@ class GtType extends GtStatic {
 	/*field*/GtType					SuperClass;
 	/*field*/public GtType			SearchSuperMethodClass;
 	/*field*/public Object			DefaultNullValue;
+	/*field*/public GtMap           ClassSymbolTable;
 	/*field*/GtType					BaseClass;
 	/*field*/GtType[]				Types;
 	/*field*/public Object          NativeSpec;
 
-	GtType/*constructor*/(GtContext Context, int ClassFlag, String ClassName, Object DefaultNullValue, Object NativeSpec) {
+	GtType/*constructor*/(GtClassContext Context, int ClassFlag, String ClassName, Object DefaultNullValue, Object NativeSpec) {
 		this.Context = Context;
 		this.ClassFlag = ClassFlag;
 		this.ShortClassName = ClassName;
@@ -776,9 +794,28 @@ class GtType extends GtStatic {
 		this.SearchSuperMethodClass = null;
 		this.DefaultNullValue = DefaultNullValue;
 		this.NativeSpec = NativeSpec;
+		this.ClassSymbolTable = IsFlag(ClassFlag, EnumClass) ? (/*cast*/GtMap)NativeSpec : null;
 		this.ClassId = Context.ClassCount;
 		Context.ClassCount += 1;
 		this.Types = null;
+	}
+
+	public GtType CreateSubType(int ClassFlag, String ClassName, Object DefaultNullValue, Object NativeSpec) {
+		GtType SubType = new GtType(this.Context, ClassFlag, ClassName, DefaultNullValue, NativeSpec);
+		SubType.SuperClass = this;
+		SubType.SearchSuperMethodClass = this;
+		return SubType;
+	}
+	
+	// Note Don't call this directly. Use Context.GetGenericType instead.
+	public GtType CreateGenericType(int BaseIndex, ArrayList<GtType> TypeList, String ShortName) {
+		GtType GenericType = new GtType(this.Context, this.ClassFlag, ShortName, null, null);
+		GenericType.BaseClass = this.BaseClass;
+		GenericType.SearchSuperMethodClass = this.BaseClass;
+		GenericType.SuperClass = this.SuperClass;
+		this.Types = LangDeps.CompactTypeList(BaseIndex, TypeList);
+		DebugP("new class: " + GenericType.ShortClassName + ", ClassId=" + GenericType.ClassId);
+		return GenericType;
 	}
 
 	public final boolean IsNative() {
@@ -793,25 +830,28 @@ class GtType extends GtStatic {
 		return (this.Types != null);
 	}
 
-	// Note Don't call this directly. Use Context.GetGenericType instead.
-	public GtType CreateGenericType(int BaseIndex, ArrayList<GtType> TypeList, String ShortName) {
-		GtType GenericType = new GtType(this.Context, this.ClassFlag, ShortName, null, null);
-		GenericType.BaseClass = this.BaseClass;
-		GenericType.SearchSuperMethodClass = this.BaseClass;
-		GenericType.SuperClass = this.SuperClass;
-		this.Types = LangDeps.CompactTypeList(BaseIndex, TypeList);
-		DebugP("new class: " + GenericType.ShortClassName + ", ClassId=" + GenericType.ClassId);
-		return GenericType;
-	}
-
-	public void SetParamType(GtType ParamType) {
-		this.Types = new GtType[1];
-		this.Types[0] = ParamType;
-	}
-
 	@Override public String toString() {
 		return this.ShortClassName;
 	}
+
+	public final Object GetClassSymbol(String Key, boolean RecursiveSearch) {
+		GtType Type = this;
+		while(Type != null) {
+			if(Type.ClassSymbolTable != null) {
+				return Type.ClassSymbolTable.get(Key);
+			}
+			Type = (RecursiveSearch) ? Type.SuperClass : null;
+		}
+		return null;
+	}
+
+	public final void SetClassSymbol(String Key, Object Value) {
+		if(this.ClassSymbolTable == null) {
+			this.ClassSymbolTable = new GtMap();
+		}
+		this.ClassSymbolTable.put(Key, Value);
+	}
+
 	
 	public final String GetSignature() {
 		return GtStatic.NumberToAscii(this.ClassId);
@@ -821,13 +861,21 @@ class GtType extends GtStatic {
 		if(this == Type || this == this.Context.AnyType) {
 			return true;
 		}
-		return false;
+		GtType SuperClass = this.SuperClass;
+		while(SuperClass != null) {
+			if(SuperClass == Type) {
+				return true;
+			}
+			SuperClass = SuperClass.SuperClass;
+		}
+		return this.Context.CheckSubType(Type, this);
 	}
+
 }
 
 class GtMethod extends GtStatic {
 	/*field*/public int				MethodFlag;
-	/*field*/int					MethodSymbolId;
+//	/*field*/int					MethodSymbolId;
 	/*field*/public String			MethodName;
 	/*field*/public String          MangledName;
 	/*field*/public GtType[]		Types;
@@ -835,11 +883,11 @@ class GtMethod extends GtStatic {
 	/*field*/public GtMethod        ListedMethods;
 	/*field*/public String          SourceMacro;
 	/*field*/public Object          NativeRef;
-	
+
 	GtMethod/*constructor*/(int MethodFlag, String MethodName, int BaseIndex, ArrayList<GtType> ParamList, Object NativeRef) {
 		this.MethodFlag = MethodFlag;
 		this.MethodName = MethodName;
-		this.MethodSymbolId = GtStatic.GetSymbolId(MethodName, CreateNewSymbolId);
+//		this.MethodSymbolId = GtStatic.GetSymbolId(MethodName, CreateNewSymbolId);
 		this.Types = LangDeps.CompactTypeList(BaseIndex, ParamList);
 		LangDeps.Assert(this.Types.length > 0);
 		this.ListedMethods = null;
@@ -858,8 +906,8 @@ class GtMethod extends GtStatic {
 	}
 
 	public final GtType GetFuncType() {
-		if(this.FuncType != null) {
-			GtContext Context = this.GetRecvType().Context;
+		if(this.FuncType == null) {
+			GtClassContext Context = this.GetRecvType().Context;
 			this.FuncType = Context.GetGenericType(Context.FuncType, 0, new ArrayList<GtType>(Arrays.asList(this.Types)), true);
 		}
 		return this.FuncType;
@@ -905,7 +953,7 @@ class GtMethod extends GtStatic {
 	public final int GetMethodParamSize() {
 		return this.Types.length - 2;
 	}
-	
+
 	public final String GetNativeMacro() {
 		return (/*cast*/String)this.NativeRef;
 	}
@@ -919,12 +967,20 @@ class GtMethod extends GtStatic {
 		String NativeMacro = IsFlag(this.MethodFlag, NativeMacroMethod) ? (/*cast*/String)this.NativeRef : "$1 " + this.MethodName + " $2";
 		return NativeMacro.replaceAll("$0", Arg0);
 	}
-	
+}
+
+class GtPolyFunc {
+	/*field*/public ArrayList<GtMethod> FuncList;
+	GtPolyFunc/*constructor*/(GtMethod Func1, GtMethod Func2) {
+		this.FuncList = new ArrayList<GtMethod>();
+		this.FuncList.add(Func1);
+		this.FuncList.add(Func2);
+	}
 }
 
 class GtGenerator extends GtStatic {
 	/*field*/public String     LangName;
-	/*field*/public GtContext  Context;
+	/*field*/public GtClassContext  Context;
 	/*field*/public ArrayList<Object> GeneratedCodeStack;
 
 	GtGenerator/*constructor*/(String LangName) {
@@ -933,13 +989,13 @@ class GtGenerator extends GtStatic {
 		this.GeneratedCodeStack = new ArrayList<Object>();
 	}
 
-	public void SetLanguageContext(GtContext Context) {
+	public void SetLanguageContext(GtClassContext Context) {
 		this.Context = Context;
 	}
 
 	public final GtNode UnsupportedNode(GtType Type, GtSyntaxTree ParsedTree) {
 		/*local*/GtToken Token = ParsedTree.KeyToken;
-		ParsedTree.NameSpace.ReportError(ErrorLevel, Token, this.LangName + " has no language support for " + Token.ParsedText);
+		ParsedTree.NameSpace.Context.ReportError(ErrorLevel, Token, this.LangName + " has no language support for " + Token.ParsedText);
 		return new ErrorNode(ParsedTree.NameSpace.Context.VoidType, ParsedTree.KeyToken);
 	}
 
@@ -1047,8 +1103,8 @@ class GtGenerator extends GtStatic {
 		return new ContinueNode(Type, ParsedTree.KeyToken, Label);
 	}
 
-	public GtNode CreateTryNode(GtType Type, GtSyntaxTree ParsedTree, GtNode TryBlock, GtNode CatchNode, GtNode FinallyBlock) {
-		return new TryNode(Type, ParsedTree.KeyToken, TryBlock, CatchNode, FinallyBlock);
+	public GtNode CreateTryNode(GtType Type, GtSyntaxTree ParsedTree, GtNode TryBlock, GtNode CatchExpr, GtNode CatchNode, GtNode FinallyBlock) {
+		return new TryNode(Type, ParsedTree.KeyToken, TryBlock, CatchExpr, CatchNode, FinallyBlock);
 	}
 
 	public GtNode CreateThrowNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Node) {
@@ -1074,7 +1130,7 @@ class GtGenerator extends GtStatic {
 	/* language constructor */
 
 	public GtType GetNativeType(Object Value) {
-		GtType NativeType = null;
+		GtType NativeType = this.Context.AnyType;  // if unknown 
 //ifdef JAVA
 		Class<?> NativeClassInfo = Value instanceof Class<?> ? (Class<?>)Value : Value.getClass();
 		NativeType = (GtType)this.Context.ClassNameMap.get(NativeClassInfo.getName());
@@ -1117,7 +1173,7 @@ class GtGenerator extends GtStatic {
 		return TransformedResult;
 	}
 
-	
+
 	public int ParseClassFlag(int ClassFlag, GtSyntaxTree ClassDeclTree) {
 //		if(ClassDeclTree.HasAnnotation("Final")) {
 //			ClassFlag = ClassFlag | FinalClass;
@@ -1127,8 +1183,20 @@ class GtGenerator extends GtStatic {
 //		}
 		return ClassFlag;
 	}
-	
+
 	public void AddClass(GtType Type) {
+		/*extension*/
+	}
+
+	public void DefineClassField(GtNameSpace NameSpace, GtType Type, GtVariableInfo Field) {
+		/*extension*/
+	}
+
+	public void DefineClassMethod(GtNameSpace NameSpace, GtType Type, GtMethod Method) {
+		/*extension*/
+	}
+
+	public void GenerateClassField(GtType Type) {
 		/*extension*/
 	}
 
@@ -1139,15 +1207,15 @@ class GtGenerator extends GtStatic {
 		return MethodFlag;
 	}
 
-	public GtMethod CreateMethod(int MethodFlag, String MethodName, int BaseIndex, ArrayList<GtType> TypeList, String RawMacro) {
-		return new GtMethod(MethodFlag, MethodName, BaseIndex, TypeList, RawMacro);
+	public GtMethod CreateMethod(int MethodFlag, String MethodName, int BaseIndex, ArrayList<GtType> TypeList, Object NativeRef) {
+		return new GtMethod(MethodFlag, MethodName, BaseIndex, TypeList, NativeRef);
 	}
 
 	public void GenerateMethod(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
 		/*extenstion*/
-		
+
 	}
-	
+
 	//------------------------------------------------------------------------
 
 	public void VisitEmptyNode(GtNode EmptyNode) {

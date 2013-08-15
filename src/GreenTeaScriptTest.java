@@ -1,3 +1,27 @@
+// ***************************************************************************
+// Copyright (c) 2013, JST/CREST DEOS project authors. All rights reserved.
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// *  Redistributions of source code must retain the above copyright notice,
+//    this list of conditions and the following disclaimer.
+// *  Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+// TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// **************************************************************************
+
 //ifdef  JAVA
 import java.io.InputStream;
 //endif VAJA
@@ -47,8 +71,8 @@ class GtScriptRunner {
 }
 
 public class GreenTeaScriptTest {
-	public static void TestToken(GtContext Context, String Source, String[] TokenTestList) {
-		/*local*/GtNameSpace NameSpace = Context.DefaultNameSpace;
+	public static void TestToken(GtClassContext Context, String Source, String[] TokenTestList) {
+		/*local*/GtNameSpace NameSpace = Context.TopLevelNameSpace;
 		/*local*/GtTokenContext TokenContext = new GtTokenContext(NameSpace, Source, 1);
 		/*local*/int i = 0;
 		while(i < TokenTestList.length) {
@@ -58,14 +82,14 @@ public class GreenTeaScriptTest {
 		}
 	}
 
-	public static GtContext CreateContext() {
+	public static GtClassContext CreateContext() {
 		/*local*/String CodeGeneratorName = "Java";
 		/*local*/GtGenerator Generator = LangDeps.CodeGenerator(CodeGeneratorName);
-		return new GtContext(new DScriptGrammar(), Generator);
+		return new GtClassContext(new DScriptGrammar(), Generator);
 	}
 
 	public static void TokenizeOperator0() {
-		GtContext Context = GreenTeaScriptTest.CreateContext();
+		GtClassContext Context = GreenTeaScriptTest.CreateContext();
 		/*local*/String[] TokenTestList0 = {"1", "||", "2"};
 		GreenTeaScriptTest.TestToken(Context, "1 || 2", TokenTestList0);
 
@@ -83,7 +107,7 @@ public class GreenTeaScriptTest {
 	}
 
 	public static void TokenizeStatement() {
-		GtContext Context = GreenTeaScriptTest.CreateContext();
+		GtClassContext Context = GreenTeaScriptTest.CreateContext();
 		/*local*/String[] TokenTestList0 = {"int", "+", "(", "int", "x", ")", ";"};
 		GreenTeaScriptTest.TestToken(Context, "int + (int x);", TokenTestList0);
 	}

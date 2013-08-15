@@ -1,4 +1,12 @@
-var f__A = (function() {
+(warning) (eval:11) undefined operator: + of int
+(error) (eval:11) unspecified type: +
+(error) (eval:11) unspecified type: +
+(error) (eval:11) unspecified type: +
+(error) (eval:11) unspecified type: +
+(error) (eval:11) unspecified type: +
+(error) (eval:11) unspecified type: +
+(error) (eval:11) unspecified type: +
+var f__00 = (function() {
    var  a0 = 1;{
       var  b1 = 10;{
          var  c2 = 100;{
@@ -8,7 +16,7 @@ var f__A = (function() {
                      var  g6 = 1000000;{
                         var  h7 = 10000000;{
                            var  i8 = 100000000;{
-                              return (a0 + (b1 + (c2 + (d3 + (e4 + (f5 + (g6 + (h7 + i8))))))));
+                              return (a0 + (function() {throw new Error("(Error:void (error) (eval:11) unspecified type: +)") })());
                            };
                         };
                      };

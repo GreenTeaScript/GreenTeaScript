@@ -1,4 +1,4 @@
-static int f__A(){
+static int f__00(){
    int a0 = 1;
    {
       int b1 = 10;
@@ -28,5 +28,5 @@ static int f__A(){
       };
    };
 }
-f__A();
+f__00();
 

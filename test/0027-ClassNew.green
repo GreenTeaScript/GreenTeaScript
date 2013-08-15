@@ -1,8 +1,9 @@
 class X {
-    new(int x) {
+    constructor(int x) {
+        // empty
     }
 }
 
 void f() {
-    X.new(10);
+    new X(10);
 }
