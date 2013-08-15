@@ -113,4 +113,5 @@ $src =~ s/name: undefined/undefined name/g;
 $src =~ s/tree: untyped/untyped tree/g;
 $src =~ s/undefinedchecker: type/undefined type checker/g;
 
+print "/// <reference path=\"LangDeps.ts\" />\n";
 print $src;

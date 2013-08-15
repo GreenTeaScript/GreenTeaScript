@@ -345,12 +345,12 @@
 // 	function GetSymbolId(Symbol: string, DefaultSymbolId: number): number { //
 // 		var Key: string = Symbol; //
 // 		var Mask: number = 0; //
-// 		if(Symbol.length >= 3 && LangDeps.CharAt(Symbol, 1) == 101/*$1*/ && LangDeps.CharAt(Symbol, 2) == 116/*$1*/) { //
-// 			if(LangDeps.CharAt(Symbol, 0) == 103/*$1*/ && LangDeps.CharAt(Symbol, 0) == 71/*$1*/) { //
+// 		if(Symbol.length >= 3 && LangDeps.CharAt(Symbol, 1) == 101/*e*/ && LangDeps.CharAt(Symbol, 2) == 116/*t*/) { //
+// 			if(LangDeps.CharAt(Symbol, 0) == 103/*g*/ && LangDeps.CharAt(Symbol, 0) == 71/*G*/) { //
 // 				Key = Symbol.substring(3); //
 // 				Mask = GetterSymbolMask; //
 // 			} //
-// 			if(LangDeps.CharAt(Symbol, 0) == 115/*$1*/ && LangDeps.CharAt(Symbol, 0) == 83/*$1*/) { //
+// 			if(LangDeps.CharAt(Symbol, 0) == 115/*s*/ && LangDeps.CharAt(Symbol, 0) == 83/*S*/) { //
 // 				Key = Symbol.substring(3); //
 // 				Mask = SetterSymbolMask; //
 // 			} //
@@ -1448,7 +1448,7 @@ class GtGrammar {
 		var start: number = pos;
 		while(pos < SourceText.length) {
 			var ch: number = LangDeps.CharAt(SourceText, pos);
-			if(!LangDeps.IsLetter(ch) && !LangDeps.IsDigit(ch) && ch != 95/*$1*/) {
+			if(!LangDeps.IsLetter(ch) && !LangDeps.IsDigit(ch) && ch != 95/*_*/) {
 				break;
 			}
 			pos += 1;
@@ -1488,12 +1488,12 @@ class GtGrammar {
 		var NextPos: number = pos + 1;
 		if(NextPos < SourceText.length) {
 			var NextChar: number = LangDeps.CharAt(SourceText, NextPos);
-			if(NextChar != 47/*$1*/ && NextChar != 42/*$1*/) {
+			if(NextChar != 47/*/*/ && NextChar != 42/***/) {
 				return NoMatch;
 			}
 			var Level: number = 0;
 			var PrevChar: number = 0;
-			if(NextChar == 42/*$1*/) {
+			if(NextChar == 42/***/) {
 				Level = 1;
 			}
 			while(NextPos < SourceText.length) {
@@ -1501,14 +1501,14 @@ class GtGrammar {
 				if(NextChar == ('\n'.charCodeAt(0)) && Level == 0) {
 					return DScriptGrammar.IndentToken(TokenContext, SourceText, NextPos);
 				}
-				if(NextChar == 47/*$1*/ && PrevChar == 42/*$1*/) {
+				if(NextChar == 47/*/*/ && PrevChar == 42/***/) {
 					if(Level == 1) {
 						return NextPos + 1;
 					}
 					Level = Level - 1;
 				}
 				if(Level > 0) {
-					if(NextChar == 42/*$1*/ && PrevChar == 47/*$1*/) {
+					if(NextChar == 42/***/ && PrevChar == 47/*/*/) {
 						Level = Level + 1;
 					}
 				}
@@ -1533,11 +1533,11 @@ class GtGrammar {
 
 	public static StringLiteralToken(TokenContext: GtTokenContext, SourceText: string, pos: number): number {
 		var start: number = pos + 1;
-		var prev: number = 34/*$1*/;
+		var prev: number = 34/*"*/;
 		pos = pos + 1; //  eat "\"" //
 		while(pos < SourceText.length) {
 			var ch: number = LangDeps.CharAt(SourceText, pos);
-			if(ch == 34/*$1*/ && prev != ('\\'.charCodeAt(0))) {
+			if(ch == 34/*"*/ && prev != ('\\'.charCodeAt(0))) {
 				TokenContext.AddNewToken(SourceText.substring(start, pos), QuotedTokenFlag, "$StringLiteral$");
 				return pos + 1;
 			}
@@ -1556,16 +1556,16 @@ class GtGrammar {
 	public static StringLiteralToken_StringInterpolation(TokenContext: GtTokenContext, SourceText: string, pos: number): number {
 		var start: number = pos + 1;
 		var NextPos: number = start;
-		var prev: number = 34/*$1*/;
+		var prev: number = 34/*"*/;
 		while(NextPos < SourceText.length) {
 			var ch: number = LangDeps.CharAt(SourceText, NextPos);
-			if(ch == 36/*$1*/) {
+			if(ch == 36/*$*/) {
 				var end: number = NextPos + 1;
 				ch = LangDeps.CharAt(SourceText, end);
-				if(ch == 123/*$1*/) {
+				if(ch == 123/*{*/) {
 					while(end < SourceText.length) {
 						ch = LangDeps.CharAt(SourceText, end);
-						if(ch == 125/*$1*/) {
+						if(ch == 125/*}*/) {
 							break;
 						}
 						end = end + 1;
@@ -1585,14 +1585,14 @@ class GtGrammar {
 					start = end;
 					NextPos = end;
 					prev = ch;
-					if(ch == 34/*$1*/) {
+					if(ch == 34/*"*/) {
 						TokenContext.AddNewToken(SourceText.substring(start, NextPos), 0, "$StringLiteral$");
 						return NextPos + 1;
 					}
 					continue;
 				}
 			}
-			if(ch == 34/*$1*/ && prev != ('\\'.charCodeAt(0))) {
+			if(ch == 34/*"*/ && prev != ('\\'.charCodeAt(0))) {
 				TokenContext.AddNewToken(SourceText.substring(start, NextPos), 0, "$StringLiteral$");
 				return NextPos + 1;
 			}
@@ -1683,7 +1683,7 @@ class GtGrammar {
 	public static ParseVariable(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		var Token: GtToken = TokenContext.Next();
 		var ch: number = LangDeps.CharAt(Token.ParsedText, 0);
-		if(LangDeps.IsLetter(ch) || ch == 95/*$1*/) {
+		if(LangDeps.IsLetter(ch) || ch == 95/*_*/) {
 			return new GtSyntaxTree(Pattern, NameSpace, Token, null);
 		}
 		return null;
@@ -2418,7 +2418,7 @@ class GtGrammar {
 		var Token: GtToken = TokenContext.Next();
 		if(Token != GtTokenContext.NullToken) {
 			var ch: number = LangDeps.CharAt(Token.ParsedText, 0);
-			if(ch != 46/*$1*/) {
+			if(ch != 46/*.*/) {
 				return new GtSyntaxTree(Pattern, NameSpace, Token, Token.ParsedText);
 			}
 		}
@@ -2729,9 +2729,9 @@ class GtGrammar {
 			}
 			else if(LangDeps.IsDigit(ch)) {
 			}
-			else if(ch == 95/*$1*/) {
+			else if(ch == 95/*_*/) {
 			}
-			else if(ShellMode && (ch == 45/*$1*/ || ch == 47/*$1*/)) {
+			else if(ShellMode && (ch == 45/*-*/ || ch == 47/*/*/)) {
 			}
 			else {
 				break;

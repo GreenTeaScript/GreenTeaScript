@@ -448,12 +448,12 @@ function AsciiToTokenMatrixIndex(c) {
 // 	function GetSymbolId(Symbol: string, DefaultSymbolId: number): number { //
 // 		var Key: string = Symbol; //
 // 		var Mask: number = 0; //
-// 		if(Symbol.length >= 3 && LangDeps.CharAt(Symbol, 1) == 101/*$1*/ && LangDeps.CharAt(Symbol, 2) == 116/*$1*/) { //
-// 			if(LangDeps.CharAt(Symbol, 0) == 103/*$1*/ && LangDeps.CharAt(Symbol, 0) == 71/*$1*/) { //
+// 		if(Symbol.length >= 3 && LangDeps.CharAt(Symbol, 1) == 101/*e*/ && LangDeps.CharAt(Symbol, 2) == 116/*t*/) { //
+// 			if(LangDeps.CharAt(Symbol, 0) == 103/*g*/ && LangDeps.CharAt(Symbol, 0) == 71/*G*/) { //
 // 				Key = Symbol.substring(3); //
 // 				Mask = GetterSymbolMask; //
 // 			} //
-// 			if(LangDeps.CharAt(Symbol, 0) == 115/*$1*/ && LangDeps.CharAt(Symbol, 0) == 83/*$1*/) { //
+// 			if(LangDeps.CharAt(Symbol, 0) == 115/*s*/ && LangDeps.CharAt(Symbol, 0) == 83/*S*/) { //
 // 				Key = Symbol.substring(3); //
 // 				Mask = SetterSymbolMask; //
 // 			} //
@@ -1567,7 +1567,7 @@ var DScriptGrammar = (function (_super) {
 
     DScriptGrammar.StringLiteralToken = function (TokenContext, SourceText, pos) {
         var start = pos + 1;
-        var prev = 34/*$1*/ ;
+        var prev = 34/*"*/ ;
         pos = pos + 1;
         while (pos < SourceText.length) {
             var ch = LangDeps.CharAt(SourceText, pos);
@@ -1590,7 +1590,7 @@ var DScriptGrammar = (function (_super) {
     DScriptGrammar.StringLiteralToken_StringInterpolation = function (TokenContext, SourceText, pos) {
         var start = pos + 1;
         var NextPos = start;
-        var prev = 34/*$1*/ ;
+        var prev = 34/*"*/ ;
         while (NextPos < SourceText.length) {
             var ch = LangDeps.CharAt(SourceText, NextPos);
             if (ch == 36) {
