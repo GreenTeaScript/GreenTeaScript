@@ -1743,7 +1743,11 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	public static GtNode TypeNull(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		return Gamma.Generator.CreateNullNode(ContextType, ParsedTree);
+		/*local*/GtType ThisType = ContextType;
+		if(ThisType == Gamma.VarType) {
+			ThisType = Gamma.AnyType;
+		}
+		return Gamma.Generator.CreateNullNode(ThisType, ParsedTree);
 	}
 
 	public static GtSyntaxTree ParseSymbol(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
@@ -2063,13 +2067,15 @@ final class DScriptGrammar extends GtGrammar {
 		else { //if(Method != null) {
 			if(Method.ListedMethods == null) {
 				DebugP("Contextual Typing");
+				/*local*/int i = 1;
 				while(ParamIndex < ListSize(ParsedTree.TreeList)) {
-					/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(ParamIndex, Gamma, Method.Types[ParamIndex], DefaultTypeCheckPolicy);
+					/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(ParamIndex, Gamma, Method.GetFuncParamType(i), DefaultTypeCheckPolicy);
 					if(Node.IsError()) {
 						return Node;
 					}
 					NodeList.add(Node);
 					ParamIndex = ParamIndex + 1;
+					i = i + 1;
 				}
 				ReturnType = Method.GetReturnType();
 			}
@@ -2760,7 +2766,7 @@ final class DScriptGrammar extends GtGrammar {
 			}
 			FieldOffset += 1;
 		}
-		return Gamma.Generator.CreateConstNode(ParsedTree.NameSpace.Context.TypeType, ParsedTree, NewType);
+		return Gamma.Generator.CreateEmptyNode(ParsedTree.NameSpace.Context.TypeType);
 	}
 
 	// constructor
@@ -3212,7 +3218,16 @@ final class GtClassContext extends GtStatic {
 	private void AddOverloadedMethod(String Key, GtMethod Method) {
 		/*local*/Object Value = this.UniqueMethodMap.get(Key);
 		if(Value instanceof GtMethod) {
-			Method.ListedMethods = (/*cast*/GtMethod)Value;
+			/*local*/GtMethod OverloadedMethod = (/*cast*/GtMethod)Value;
+			/*local*/GtMethod HeadMethod = OverloadedMethod;
+			while(HeadMethod != null) {
+				if(HeadMethod == Method) {
+					// Already registered
+					return;
+				}
+				HeadMethod = HeadMethod.ListedMethods;
+			}
+			Method.ListedMethods = OverloadedMethod;
 		}
 		this.UniqueMethodMap.put(Key, Method);  // not unique !!
 	}

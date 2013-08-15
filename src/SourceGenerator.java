@@ -892,7 +892,11 @@ class GtMethod extends GtStatic {
 		LangDeps.Assert(this.Types.length > 0);
 		this.ListedMethods = null;
 		this.FuncType = null;
-		this.NativeRef = NativeRef;
+		if(NativeRef instanceof String) {
+			this.SourceMacro = (/*cast*/String) NativeRef;
+		} else {
+			this.NativeRef = NativeRef;
+		}
 		this.MangledName = GtStatic.MangleMethodName(this.GetRecvType(), this.MethodName, BaseIndex+2, ParamList);
 	}
 
