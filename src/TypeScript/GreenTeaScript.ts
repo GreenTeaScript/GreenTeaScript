@@ -1659,6 +1659,16 @@ class GtGrammar {
 		return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(ParsedTree.ConstValue), ParsedTree, ParsedTree.ConstValue);
 	}
 
+	public static ParseNull(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+		var Token: GtToken = TokenContext.GetMatchedToken("null");
+		var NewTree: GtSyntaxTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
+		return NewTree;
+	}
+
+	public static TypeNull(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
+		return Gamma.Generator.CreateNullNode(ContextType, ParsedTree);
+	}
+
 	public static ParseSymbol(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
 		var TypeTree: GtSyntaxTree = TokenContext.ParsePattern(NameSpace, "$Type$", Optional);
 		if(TypeTree != null) {
@@ -2631,7 +2641,13 @@ class GtGrammar {
 				var FieldInfo: GtVariableInfo = Gamma.LookupDeclaredVariable(FieldName);
 				FieldList.add(FieldInfo);
 			}
-			else if(FieldTree.Pattern.PatternName.equals("$FuncDecl$")) {
+			FieldOffset += 1;
+		}
+		Gamma.Generator.GenerateClassField(Gamma.NameSpace, NewType, FieldList);
+		FieldOffset = ClassBlockOffset;
+		while(FieldOffset < ParsedTree.TreeList.size()) {
+			var FieldTree: GtSyntaxTree = ParsedTree.GetSyntaxTreeAt(FieldOffset);
+			if(FieldTree.Pattern.PatternName.equals("$FuncDecl$")) {
 				var ReturnTree: GtSyntaxTree = FieldTree.GetSyntaxTreeAt(FuncDeclReturnType);
 				var NewTreeList: Array<GtSyntaxTree> = new Array<GtSyntaxTree>();
 				var i: number = 0;
@@ -2665,10 +2681,8 @@ class GtGrammar {
 				FieldTree.GetSyntaxTreeAt(FuncDeclName).ConstValue = "constructor";
 				Gamma.TypeCheck(FieldTree, NewType, DefaultTypeCheckPolicy);
 			}
-
 			FieldOffset += 1;
 		}
-		Gamma.Generator.GenerateClassField(Gamma.NameSpace, NewType, FieldList);
 		return Gamma.Generator.CreateConstNode(ParsedTree.NameSpace.Context.TypeType, ParsedTree, NewType);
 	}
 
@@ -2876,6 +2890,7 @@ class GtGrammar {
 		NameSpace.DefineSyntaxPattern("$FuncDecl$", DScriptGrammar.ParseFuncDecl, DScriptGrammar.TypeFuncDecl);
 		NameSpace.DefineSyntaxPattern("$VarDecl$",  DScriptGrammar.ParseVarDecl, DScriptGrammar.TypeVarDecl);
 
+		NameSpace.DefineSyntaxPattern("null", DScriptGrammar.ParseNull, DScriptGrammar.TypeNull);
 		NameSpace.DefineSyntaxPattern("if", DScriptGrammar.ParseIf, DScriptGrammar.TypeIf);
 		NameSpace.DefineSyntaxPattern("while", DScriptGrammar.ParseWhile, DScriptGrammar.TypeWhile);
 		NameSpace.DefineSyntaxPattern("continue", DScriptGrammar.ParseContinue, DScriptGrammar.TypeContinue);
@@ -2927,7 +2942,6 @@ class GtGrammar {
 	public   SourceMap: GtMap;
 	public   ClassNameMap: GtMap;
 	public   UniqueMethodMap: GtMap;
-
 	public ClassCount: number;
 	public MethodCount: number;
 	public  Stat: GtStat;
@@ -2962,6 +2976,7 @@ class GtGrammar {
 		this.ArrayType.Types[0] = this.AnyType;
 		this.FuncType.Types = new Array<GtType>(1);
 		this.FuncType.Types[0] = this.AnyType;
+
 
 		Grammar.LoadTo(this.RootNameSpace);
 		this.TopLevelNameSpace = new GtNameSpace(this, this.RootNameSpace);
