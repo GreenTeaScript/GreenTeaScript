@@ -2387,10 +2387,13 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/int EnumValue = 0;
 		while(!EnumTree.IsEmptyOrError()) {
 			TokenContext.SkipIndent();
-			/*local*/GtToken Token = TokenContext.Next();
-			if(Token.EqualsText(",")) {
+			if(TokenContext.MatchToken(",")) {
 				continue;
 			}
+			if(TokenContext.MatchToken("}")) {
+				break;
+			}
+			/*local*/GtToken Token = TokenContext.Next();
 			if(LangDeps.IsLetter(LangDeps.CharAt(Token.ParsedText, 0))) {
 				if(VocabMap.get(Token.ParsedText) != null) {
 					NameSpace.Context.ReportError(WarningLevel, Token, "already defined name: " + Token.ParsedText);
@@ -2400,7 +2403,6 @@ final class DScriptGrammar extends GtGrammar {
 				EnumValue += 1;
 				continue;
 			}
-			EnumTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "}", Required);
 		}
 		if(!EnumTree.IsEmptyOrError()) {
 			NameSpace.DefineClassSymbol(NewEnumType);
@@ -2982,6 +2984,7 @@ final class DScriptGrammar extends GtGrammar {
 		NameSpace.DefineSyntaxPattern("try", FunctionB(this, "ParseTry"), FunctionC(this, "TypeTry"));
 		NameSpace.DefineSyntaxPattern("throw", FunctionB(this, "ParseThrow"), FunctionC(this, "TypeThrow"));
 		NameSpace.DefineSyntaxPattern("new", FunctionB(this, "ParseNew"), FunctionC(this, "TypeNew"));
+		NameSpace.DefineSyntaxPattern("enum", FunctionB(this, "ParseEnum"), FunctionC(this, "TypeEnum"));
 	}
 }
 
