@@ -1,3 +1,4 @@
+/// <reference path="LangDeps.ts" />
 //  *************************************************************************** //
 //  Copyright (c) 2013, JST/CRESTproject: authors: DEOS.rights: reserved: All. //
 // and: Redistributionin: useand: sourceforms: binary,or: without: with //
@@ -1362,7 +1363,7 @@ class GtSyntaxTree {
 	}
 
 	public GetExtendedPattern(PatternName: string): GtSyntaxPattern {
-		var Body: Object = this.GetSymbol("+" + PatternName);
+		var Body: Object = this.GetSymbol("\t" + PatternName);
 		if(Body instanceof GtSyntaxPattern){
 			return <GtSyntaxPattern>Body;
 		}
@@ -1384,7 +1385,7 @@ class GtSyntaxTree {
 	public DefineExtendedPattern(PatternName: string, SyntaxFlag: number, MatchFunc: any, TypeFunc: any): void {
 		var Pattern: GtSyntaxPattern = new GtSyntaxPattern(this, PatternName, MatchFunc, TypeFunc);
 		Pattern.SyntaxFlag = SyntaxFlag;
-		this.AppendPattern("+" + PatternName, Pattern);
+		this.AppendPattern("\t" + PatternName, Pattern);
 	}
 
 	public  DefineClassSymbol(ClassInfo: GtType): GtType {

@@ -1444,7 +1444,7 @@ final class GtNameSpace extends GtStatic {
 	}
 
 	public GtSyntaxPattern GetExtendedPattern(String PatternName) {
-		/*local*/Object Body = this.GetSymbol("+" + PatternName);
+		/*local*/Object Body = this.GetSymbol("\t" + PatternName);
 		if(Body instanceof GtSyntaxPattern){
 			return (/*cast*/GtSyntaxPattern)Body;
 		}
@@ -1466,7 +1466,7 @@ final class GtNameSpace extends GtStatic {
 	public void DefineExtendedPattern(String PatternName, int SyntaxFlag, GtDelegateMatch MatchFunc, GtDelegateType TypeFunc) {
 		/*local*/GtSyntaxPattern Pattern = new GtSyntaxPattern(this, PatternName, MatchFunc, TypeFunc);
 		Pattern.SyntaxFlag = SyntaxFlag;
-		this.AppendPattern("+" + PatternName, Pattern);
+		this.AppendPattern("\t" + PatternName, Pattern);
 	}
 
 	public final GtType DefineClassSymbol(GtType ClassInfo) {

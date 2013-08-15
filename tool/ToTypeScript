@@ -18,7 +18,7 @@ source="${source} PythonSourceGenerator"
 ts=""
 
 for s in ${source}; do
-    ruby src/TypeScript/ToTypeScript.rb < ${SourceDir}${s}.java > ${build}${s}.ts
+    perl src/TypeScript/ToTypeScript.pl < ${SourceDir}${s}.java > ${build}${s}.ts
     ts="${ts} ${build}${s}.ts"
 done
 

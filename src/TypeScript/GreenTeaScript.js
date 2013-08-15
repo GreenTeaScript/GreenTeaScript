@@ -1239,7 +1239,7 @@ var GtNameSpace = (function () {
     };
 
     GtNameSpace.prototype.GetExtendedPattern = function (PatternName) {
-        var Body = this.GetSymbol("+" + PatternName);
+        var Body = this.GetSymbol("\t" + PatternName);
         if (Body instanceof GtSyntaxPattern) {
             return Body;
         }
@@ -1261,7 +1261,7 @@ var GtNameSpace = (function () {
     GtNameSpace.prototype.DefineExtendedPattern = function (PatternName, SyntaxFlag, MatchFunc, TypeFunc) {
         var Pattern = new GtSyntaxPattern(this, PatternName, MatchFunc, TypeFunc);
         Pattern.SyntaxFlag = SyntaxFlag;
-        this.AppendPattern("+" + PatternName, Pattern);
+        this.AppendPattern("\t" + PatternName, Pattern);
     };
 
     GtNameSpace.prototype.DefineClassSymbol = function (ClassInfo) {
