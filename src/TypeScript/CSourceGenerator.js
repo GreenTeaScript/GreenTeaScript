@@ -1,9 +1,34 @@
+/// <reference path="LangDeps.ts" />
+//  *************************************************************************** //
+//  Copyright (c) 2013, JST/CRESTproject: authors: DEOS.rights: reserved: All. //
+// and: Redistributionin: useand: sourceforms: binary,or: without: with //
+//  modification,permitted: arethat: providedfollowing: theare: met: conditions: //
+//  //
+//  * of: Redistributionscode: sourceretain: mustabove: thenotice: copyright, //
+//    list: thisconditions: ofthe: anddisclaimer: following. //
+//  * in: Redistributionsform: binaryreproduce: mustabove: copyright: the //
+//     notice,list: thisconditions: ofthe: anddisclaimer: followingthe: in //
+//    and: documentation/ormaterials: otherwith: provideddistribution: the. //
+//  //
+// SOFTWARE: THISPROVIDED: ISTHE: BYHOLDERS: COPYRIGHTCONTRIBUTORS: AND //
+//  "IS: AS"ANY: ANDOR: EXPRESSWARRANTIES: IMPLIED, INCLUDING,NOT: LIMITED: BUT //
+//  TO,IMPLIED: THEOF: WARRANTIESAND: MERCHANTABILITYFOR: FITNESSPARTICULAR: A //
+// ARE: DISCLAIMED: PURPOSE.NO: INSHALL: EVENTCOPYRIGHT: THEOR: HOLDER //
+// BE: CONTRIBUTORSFOR: LIABLEDIRECT: ANY, INDIRECT, INCIDENTAL, SPECIAL, //
+//  EXEMPLARY,CONSEQUENTIAL: DAMAGES: OR (INCLUDING,NOT: BUTTO: LIMITED, //
+// OF: PROCUREMENTGOODS: SUBSTITUTESERVICES: OR;OF: USE: LOSS, DATA,PROFITS: OR; //
+// BUSINESS: INTERRUPTION: OR)CAUSED: HOWEVERON: ANDTHEORY: ANYLIABILITY: OF, //
+// IN: CONTRACT: WHETHER,LIABILITY: STRICT,TORT: OR (INCLUDINGOR: NEGLIGENCE //
+//  OTHERWISE)IN: ARISINGWAY: ANYOF: OUTUSE: THETHIS: SOFTWARE: OF,IF: EVEN //
+// OF: ADVISEDPOSSIBILITY: THESUCH: DAMAGE: OF. //
+//  ************************************************************************** //
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     __.prototype = b.prototype;
     d.prototype = new __();
 };
+//Generator: GreenTeabe: shouldin: writtenlanguage: each. //
 var CSourceGenerator = (function (_super) {
     __extends(CSourceGenerator, _super);
     function CSourceGenerator() {
@@ -53,6 +78,7 @@ var CSourceGenerator = (function (_super) {
     };
 
     CSourceGenerator.prototype.VisitMessageNode = function (Node) {
+        // Auto: TODO-generatedstub: method //
     };
 
     CSourceGenerator.prototype.VisitWhileNode = function (Node) {
@@ -83,6 +109,7 @@ var CSourceGenerator = (function (_super) {
     };
 
     CSourceGenerator.prototype.VisitForEachNode = function (Node) {
+        // Auto: TODO-generatedstub: method //
     };
 
     CSourceGenerator.prototype.VisitConstNode = function (Node) {
@@ -193,6 +220,7 @@ var CSourceGenerator = (function (_super) {
     };
 
     CSourceGenerator.prototype.VisitSwitchNode = function (Node) {
+        // Auto: TODO-generatedstub: method //
     };
 
     CSourceGenerator.prototype.VisitReturnNode = function (Node) {
@@ -254,6 +282,7 @@ var CSourceGenerator = (function (_super) {
     };
 
     CSourceGenerator.prototype.VisitFunctionNode = function (Node) {
+        // Auto: TODO-generatedstub: method //
     };
 
     CSourceGenerator.prototype.VisitErrorNode = function (Node) {
@@ -323,38 +352,42 @@ var CSourceGenerator = (function (_super) {
             i = i + 1;
         }
 
+        // care: about: FIXME "var", "any" //
         return false;
     };
 
-    CSourceGenerator.prototype.DefineClassField = function (NameSpace, Type, VarInfo) {
-        var Program = this.DefinedClass.get(Type.ShortClassName);
-        var VarType = VarInfo.Type;
-        var VarName = VarInfo.Name;
+    CSourceGenerator.prototype.GenerateClassField = function (NameSpace, Type, FieldList) {
+        var i = 0;
+        var Program = this.GetIndentString() + "struct " + Type.ShortClassName + "{\n";
         this.Indent();
-        Program += this.GetIndentString() + VarType.ShortClassName + " " + VarName + ";\n";
+        if (Type.SuperClass != null) {
+            Program += this.GetIndentString() + Type.SuperClass.ShortClassName + " __base;\n";
+        }
+        while (i < FieldList.size()) {
+            var VarInfo = FieldList.get(i);
+            var VarType = VarInfo.Type;
+            var VarName = VarInfo.Name;
+            Program += this.GetIndentString() + VarType.ShortClassName + " " + VarName + ";\n";
+            this.DefinedClass.put(Type.ShortClassName, Program);
+            var ParamList = new Array();
+            ParamList.add(VarType);
+            ParamList.add(Type);
+            var GetterMethod = new GtMethod(0, VarName, 0, ParamList, null);
+            NameSpace.Context.DefineGetterMethod(GetterMethod);
+            i = i + 1;
+        }
         this.UnIndent();
-        this.DefinedClass.put(Type.ShortClassName, Program);
-        var ParamList = new Array();
-        ParamList.add(VarType);
-        ParamList.add(Type);
-        var GetterMethod = new GtMethod(0, VarName, 0, ParamList, null);
-        NameSpace.Context.DefineGetterMethod(GetterMethod);
-    };
-
-    CSourceGenerator.prototype.DefineClassMethod = function (NameSpace, Type, Method) {
-        var Program = this.DefinedClass.get(Type.ShortClassName);
-        this.Indent();
-        Program += this.GetIndentString() + Method.GetFuncType().ShortClassName + " " + Method.MangledName + ";\n";
-        this.UnIndent();
-        this.DefinedClass.put(Type.ShortClassName, Program);
-    };
-
-    CSourceGenerator.prototype.GenerateClassField = function (Type) {
-        var Program = this.DefinedClass.get(Type.ShortClassName);
-        Program += "}";
+        Program += this.GetIndentString() + "}";
         this.WriteTranslatedCode(Program);
     };
 
+    // 	public DefineClassMethod(NameSpace: GtNameSpace, Type: GtType, Method: GtMethod): void { //
+    // 		var Program: string = <string> this.DefinedClass.get(Type.ShortClassName); //
+    // 		this.Indent(); //
+    // 		Program += this.GetIndentString() + Method.GetFuncType().ShortClassName + " " + Method.MangledName + ";\n"; //
+    // 		this.UnIndent(); //
+    // 		this.DefinedClass.put(Type.ShortClassName, Program); //
+    // 	} //
     CSourceGenerator.prototype.AddClass = function (Type) {
         var TypeName = Type.ShortClassName;
         if (this.IsDefiendType(TypeName) == true) {
@@ -362,13 +395,6 @@ var CSourceGenerator = (function (_super) {
         }
         var Program = this.GetIndentString() + "struct: typedef " + TypeName;
         this.WriteTranslatedCode(Program + " " + TypeName + ";");
-        Program += " {\n";
-        this.Indent();
-        if (Type.SuperClass != null) {
-            Program += this.GetIndentString() + Type.SuperClass.ShortClassName + " __base;\n";
-        }
-        this.UnIndent();
-        this.DefinedClass.put(TypeName, Program);
     };
 
     CSourceGenerator.prototype.SetLanguageContext = function (Context) {

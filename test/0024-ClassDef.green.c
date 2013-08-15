@@ -1,8 +1,10 @@
-typedef struct X {
-   Object __base;
-} X;
+struct X{
+   record __base;
+};
+X;
 
-typedef struct Y {
+struct Y{
    X __base;
-} Y;
+};
+Y;
 

@@ -2030,7 +2030,9 @@ class GtGrammar {
 		var p: number = 1;
 		while(p < ListSize(NodeList)) {
 			var ParamNode: GtNode = NodeList.get(p);
-			if(!Method.Types[p+1].Accept(ParamNode.Type)) return false;
+			if(!Method.Types[p+1].Accept(ParamNode.Type)) {
+				return false;
+			}
 		}
 		return true;
 	}
@@ -2184,7 +2186,7 @@ class GtGrammar {
 	}
 
 	public static TypeBreak(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
-		return Gamma.Generator.CreateBreakNode(Gamma.VoidType, ParsedTree, null, "break");
+		return Gamma.Generator.CreateBreakNode(Gamma.VoidType, ParsedTree, null, "");
 	}
 
 	public static ParseContinue(NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
@@ -2194,7 +2196,7 @@ class GtGrammar {
 	}
 
 	public static TypeContinue(Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
-		return Gamma.Generator.CreateContinueNode(Gamma.VoidType, ParsedTree, null, "continue");
+		return Gamma.Generator.CreateContinueNode(Gamma.VoidType, ParsedTree, null, "");
 	}
 
 	// Statement: Return //
@@ -2614,6 +2616,7 @@ class GtGrammar {
 		Gamma = new GtTypeEnv(ParsedTree.NameSpace);  // of: newenvironment: creation: type //
 		Gamma.AppendDeclaredVariable(NewType, "this");
 		ClassNameTree.ConstValue = NewType;
+		var FieldList: Array<GtVariableInfo> = new Array<GtVariableInfo>();
 
 		while(FieldOffset < ParsedTree.TreeList.size()) {
 			var FieldTree: GtSyntaxTree = ParsedTree.GetSyntaxTreeAt(FieldOffset);
@@ -2624,7 +2627,7 @@ class GtGrammar {
 				}
 				var FieldName: string = FieldTree.GetSyntaxTreeAt(VarDeclName).KeyToken.ParsedText;
 				var FieldInfo: GtVariableInfo = Gamma.LookupDeclaredVariable(FieldName);
-				Gamma.Generator.DefineClassField(Gamma.NameSpace, NewType, FieldInfo);
+				FieldList.add(FieldInfo);
 			}
 			else if(FieldTree.Pattern.PatternName.equals("$FuncDecl$")) {
 				var ReturnTree: GtSyntaxTree = FieldTree.GetSyntaxTreeAt(FuncDeclReturnType);
@@ -2663,7 +2666,7 @@ class GtGrammar {
 
 			FieldOffset += 1;
 		}
-		Gamma.Generator.GenerateClassField(NewType);
+		Gamma.Generator.GenerateClassField(Gamma.NameSpace, NewType, FieldList);
 		return Gamma.Generator.CreateConstNode(ParsedTree.NameSpace.Context.TypeType, ParsedTree, NewType);
 	}
 

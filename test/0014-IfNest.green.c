@@ -1,4 +1,4 @@
-static int f__A(int a0, int b1){
+static int f__0505(int a0, int b1){
    int n2 = 1;
    {
       if(a0 < 10) {
@@ -20,5 +20,5 @@ static int f__A(int a0, int b1){
       return n2;
    };
 }
-f__A(10000 ,20000);
+f__0505(10000 ,20000);
 

@@ -359,34 +359,38 @@ class CSourceGenerator extends SourceGenerator {
 		return false;
 	}
 
-	public DefineClassField(NameSpace: GtNameSpace, Type: GtType, VarInfo: GtVariableInfo): void {
-		var Program: string = <string> this.DefinedClass.get(Type.ShortClassName);
-		var VarType: GtType = VarInfo.Type;
-		var VarName: string = VarInfo.Name;
+	public GenerateClassField(NameSpace: GtNameSpace, Type: GtType, FieldList: Array<GtVariableInfo>): void {
+		var i: number = 0;
+		var Program: string = this.GetIndentString() + "struct " + Type.ShortClassName + "{\n";
 		this.Indent();
-		Program += this.GetIndentString() + VarType.ShortClassName + " " + VarName + ";\n";
+		if(Type.SuperClass != null) {
+			Program += this.GetIndentString() + Type.SuperClass.ShortClassName + " __base;\n";
+		}
+		while (i < FieldList.size()) {
+			var VarInfo: GtVariableInfo = FieldList.get(i);
+			var VarType: GtType = VarInfo.Type;
+			var VarName: string = VarInfo.Name;
+			Program += this.GetIndentString() + VarType.ShortClassName + " " + VarName + ";\n";
+			this.DefinedClass.put(Type.ShortClassName, Program);
+			var ParamList: Array<GtType> = new Array<GtType>();
+			ParamList.add(VarType);
+			ParamList.add(Type);
+			var GetterMethod: GtMethod = new GtMethod(0, VarName, 0, ParamList, null);
+			NameSpace.Context.DefineGetterMethod(GetterMethod);
+			i = i + 1;
+		}
 		this.UnIndent();
-		this.DefinedClass.put(Type.ShortClassName, Program);
-		var ParamList: Array<GtType> = new Array<GtType>();
-		ParamList.add(VarType);
-		ParamList.add(Type);
-		var GetterMethod: GtMethod = new GtMethod(0, VarName, 0, ParamList, null);
-		NameSpace.Context.DefineGetterMethod(GetterMethod);
-	}
-
-	public DefineClassMethod(NameSpace: GtNameSpace, Type: GtType, Method: GtMethod): void {
-		var Program: string = <string> this.DefinedClass.get(Type.ShortClassName);
-		this.Indent();
-		Program += this.GetIndentString() + Method.GetFuncType().ShortClassName + " " + Method.MangledName + ";\n";
-		this.UnIndent();
-		this.DefinedClass.put(Type.ShortClassName, Program);
-	}
-
-	public GenerateClassField(Type: GtType): void {
-		var Program: string = <string> this.DefinedClass.get(Type.ShortClassName);
-		Program += "}";
+		Program += this.GetIndentString() + "}";
 		this.WriteTranslatedCode(Program);
 	}
+
+// 	public DefineClassMethod(NameSpace: GtNameSpace, Type: GtType, Method: GtMethod): void { //
+// 		var Program: string = <string> this.DefinedClass.get(Type.ShortClassName); //
+// 		this.Indent(); //
+// 		Program += this.GetIndentString() + Method.GetFuncType().ShortClassName + " " + Method.MangledName + ";\n"; //
+// 		this.UnIndent(); //
+// 		this.DefinedClass.put(Type.ShortClassName, Program); //
+// 	} //
 
 	public AddClass(Type: GtType): void {
 		var TypeName: string = Type.ShortClassName;
@@ -395,13 +399,6 @@ class CSourceGenerator extends SourceGenerator {
 		}
 		var Program: string = this.GetIndentString() + "struct: typedef " + TypeName;
 		this.WriteTranslatedCode(Program + " " + TypeName + ";");
-		Program += " {\n";
-		this.Indent();
-		if(Type.SuperClass != null) {
-			Program += this.GetIndentString() + Type.SuperClass.ShortClassName + " __base;\n";
-		}
-		this.UnIndent();
-		this.DefinedClass.put(TypeName, Program);
 	}
 
 	public SetLanguageContext(Context: GtClassContext): void {

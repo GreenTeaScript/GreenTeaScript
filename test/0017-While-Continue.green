@@ -3,7 +3,7 @@ int f(int a) {
     while(i < a) {
         i = i + 1;
         continue;
-        return;
+        return 10;
     }
     return i;
 }

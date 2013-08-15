@@ -1,3 +1,3 @@
-static boolean Goal__00(){
+static boolean Goal__03(){
    return false || true;
 }

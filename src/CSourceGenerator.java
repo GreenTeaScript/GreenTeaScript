@@ -360,34 +360,38 @@ public class CSourceGenerator extends SourceGenerator {
 		return false;
 	}
 
-	@Override public void DefineClassField(GtNameSpace NameSpace, GtType Type, GtVariableInfo VarInfo) {
-		/*local*/String Program = (/*cast*/String) this.DefinedClass.get(Type.ShortClassName);
-		/*local*/GtType VarType = VarInfo.Type;
-		/*local*/String VarName = VarInfo.Name;
+	@Override public void GenerateClassField(GtNameSpace NameSpace, GtType Type, ArrayList<GtVariableInfo> FieldList) {
+		/*local*/int i = 0;
+		/*local*/String Program = this.GetIndentString() + "struct " + Type.ShortClassName + "{\n";
 		this.Indent();
-		Program += this.GetIndentString() + VarType.ShortClassName + " " + VarName + ";\n";
+		if(Type.SuperClass != null) {
+			Program += this.GetIndentString() + Type.SuperClass.ShortClassName + " __base;\n";
+		}
+		while (i < FieldList.size()) {
+			/*local*/GtVariableInfo VarInfo = FieldList.get(i);
+			/*local*/GtType VarType = VarInfo.Type;
+			/*local*/String VarName = VarInfo.Name;
+			Program += this.GetIndentString() + VarType.ShortClassName + " " + VarName + ";\n";
+			this.DefinedClass.put(Type.ShortClassName, Program);
+			ArrayList<GtType> ParamList = new ArrayList<GtType>();
+			ParamList.add(VarType);
+			ParamList.add(Type);
+			GtMethod GetterMethod = new GtMethod(0, VarName, 0, ParamList, null);
+			NameSpace.Context.DefineGetterMethod(GetterMethod);
+			i = i + 1;
+		}
 		this.UnIndent();
-		this.DefinedClass.put(Type.ShortClassName, Program);
-		ArrayList<GtType> ParamList = new ArrayList<GtType>();
-		ParamList.add(VarType);
-		ParamList.add(Type);
-		GtMethod GetterMethod = new GtMethod(0, VarName, 0, ParamList, null);
-		NameSpace.Context.DefineGetterMethod(GetterMethod);
-	}
-
-	@Override public void DefineClassMethod(GtNameSpace NameSpace, GtType Type, GtMethod Method) {
-		/*local*/String Program = (/*cast*/String) this.DefinedClass.get(Type.ShortClassName);
-		this.Indent();
-		Program += this.GetIndentString() + Method.GetFuncType().ShortClassName + " " + Method.MangledName + ";\n";
-		this.UnIndent();
-		this.DefinedClass.put(Type.ShortClassName, Program);
-	}
-
-	@Override public void GenerateClassField(GtType Type) {
-		/*local*/String Program = (/*cast*/String) this.DefinedClass.get(Type.ShortClassName);
-		Program += "};";
+		Program += this.GetIndentString() + "};";
 		this.WriteTranslatedCode(Program);
 	}
+
+//	@Override public void DefineClassMethod(GtNameSpace NameSpace, GtType Type, GtMethod Method) {
+//		/*local*/String Program = (/*cast*/String) this.DefinedClass.get(Type.ShortClassName);
+//		this.Indent();
+//		Program += this.GetIndentString() + Method.GetFuncType().ShortClassName + " " + Method.MangledName + ";\n";
+//		this.UnIndent();
+//		this.DefinedClass.put(Type.ShortClassName, Program);
+//	}
 
 	@Override public void AddClass(GtType Type) {
 		/*local*/String TypeName = Type.ShortClassName;
@@ -396,13 +400,6 @@ public class CSourceGenerator extends SourceGenerator {
 		}
 		/*local*/String Program = this.GetIndentString() + "typedef struct " + TypeName;
 		this.WriteTranslatedCode(Program + " " + TypeName + ";");
-		Program += " {\n";
-		this.Indent();
-		if(Type.SuperClass != null) {
-			Program += this.GetIndentString() + Type.SuperClass.ShortClassName + " __base;\n";
-		}
-		this.UnIndent();
-		this.DefinedClass.put(TypeName, Program);
 	}
 
 	@Override public void SetLanguageContext(GtClassContext Context) {

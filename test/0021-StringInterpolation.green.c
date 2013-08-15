@@ -1,6 +1,6 @@
-static void f__00(){
+static void f__03(){
    String BackupServer0 = "192.168.11.102";
    {
-      "http://$BackupServer/db";
+      "http://" + BackupServer0 + "/db";
    };
 }

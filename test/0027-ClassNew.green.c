@@ -1,11 +1,12 @@
-typedef struct X X;
-static X constructor__0802(X this0, int x1){
+static X constructor__01205(X this0, int x1){
    ;
    return this0;
 }
-typedef struct X {
+struct X{
+   record __base;
 };
-(error) (eval:7) type error: requested = Func, given = any
-static void f__00(){
-   throw Error("(error) (eval:7) type error: requested = Func, given = any");
+X;
+
+static void f__03(){
+   constructor__01205(new X() ,10);
 }

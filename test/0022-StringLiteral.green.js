@@ -1,3 +1,3 @@
-var f__00 = (function() {
+var f__03 = (function() {
    return db;
 })

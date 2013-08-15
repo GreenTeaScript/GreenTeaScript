@@ -1188,15 +1188,7 @@ class GtGenerator extends GtStatic {
 		/*extension*/
 	}
 
-	public void DefineClassField(GtNameSpace NameSpace, GtType Type, GtVariableInfo Field) {
-		/*extension*/
-	}
-
-	public void DefineClassMethod(GtNameSpace NameSpace, GtType Type, GtMethod Method) {
-		/*extension*/
-	}
-
-	public void GenerateClassField(GtType Type) {
+	public void GenerateClassField(GtNameSpace NameSpace, GtType Type, ArrayList<GtVariableInfo> FieldList) {
 		/*extension*/
 	}
 

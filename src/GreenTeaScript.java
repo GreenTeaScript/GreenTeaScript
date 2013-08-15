@@ -2111,7 +2111,9 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/int p = 1;
 		while(p < ListSize(NodeList)) {
 			/*local*/GtNode ParamNode = NodeList.get(p);
-			if(!Method.Types[p+1].Accept(ParamNode.Type)) return false;
+			if(!Method.Types[p+1].Accept(ParamNode.Type)) {
+				return false;
+			}
 		}
 		return true;
 	}
@@ -2265,7 +2267,7 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	public static GtNode TypeBreak(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		return Gamma.Generator.CreateBreakNode(Gamma.VoidType, ParsedTree, null, "break");
+		return Gamma.Generator.CreateBreakNode(Gamma.VoidType, ParsedTree, null, "");
 	}
 
 	public static GtSyntaxTree ParseContinue(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
@@ -2275,7 +2277,7 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	public static GtNode TypeContinue(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		return Gamma.Generator.CreateContinueNode(Gamma.VoidType, ParsedTree, null, "continue");
+		return Gamma.Generator.CreateContinueNode(Gamma.VoidType, ParsedTree, null, "");
 	}
 
 	// Return Statement
@@ -2695,6 +2697,7 @@ final class DScriptGrammar extends GtGrammar {
 		Gamma = new GtTypeEnv(ParsedTree.NameSpace);  // creation of new type environment
 		Gamma.AppendDeclaredVariable(NewType, "this");
 		ClassNameTree.ConstValue = NewType;
+		/*local*/ArrayList<GtVariableInfo> FieldList = new ArrayList<GtVariableInfo>();
 
 		while(FieldOffset < ParsedTree.TreeList.size()) {
 			/*local*/GtSyntaxTree FieldTree = ParsedTree.GetSyntaxTreeAt(FieldOffset);
@@ -2705,7 +2708,7 @@ final class DScriptGrammar extends GtGrammar {
 				}
 				/*local*/String FieldName = FieldTree.GetSyntaxTreeAt(VarDeclName).KeyToken.ParsedText;
 				/*local*/GtVariableInfo FieldInfo = Gamma.LookupDeclaredVariable(FieldName);
-				Gamma.Generator.DefineClassField(Gamma.NameSpace, NewType, FieldInfo);
+				FieldList.add(FieldInfo);
 			}
 			else if(FieldTree.Pattern.PatternName.equals("$FuncDecl$")) {
 				/*local*/GtSyntaxTree ReturnTree = FieldTree.GetSyntaxTreeAt(FuncDeclReturnType);
@@ -2744,7 +2747,7 @@ final class DScriptGrammar extends GtGrammar {
 
 			FieldOffset += 1;
 		}
-		Gamma.Generator.GenerateClassField(NewType);
+		Gamma.Generator.GenerateClassField(Gamma.NameSpace, NewType, FieldList);
 		return Gamma.Generator.CreateConstNode(ParsedTree.NameSpace.Context.TypeType, ParsedTree, NewType);
 	}
 

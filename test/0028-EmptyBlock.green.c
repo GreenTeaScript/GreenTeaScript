@@ -1,3 +1,3 @@
-static void f__00(){
+static void f__03(){
    ;
 }
