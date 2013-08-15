@@ -3086,7 +3086,7 @@ final class GtClassContext extends GtStatic {
 //endif VAJA
 		Grammar.LoadTo(this.RootNameSpace);
 		this.TopLevelNameSpace = new GtNameSpace(this, this.RootNameSpace);
-		this.Generator.SetLanguageContext(this);
+		this.Generator.InitContext(this);
 		this.ReportedErrorList = new ArrayList<String>();
 	}
 
@@ -3399,37 +3399,49 @@ final class GtClassContext extends GtStatic {
 		this.ReportedErrorList = new ArrayList<String>();
 		return List;
 	}
-
-
 }
 
 public class GreenTeaScript extends GtStatic {
-	public final static void main(String[] Args) {
-		/*local*/String CodeGeneratorName = "--java";
-		/*local*/int Index = 0;
+
+	
+	public final static void ParseCommandOption(String[] Args) {
+		/*local*/String TargetCode = "exe";  // self executable
+		/*local*/int GeneratorFlag = 0;
 		/*local*/String OneLiner = null;
+		/*local*/String OutputFile = "-";  // stdout
+		/*local*/int    Index = 0;
 		while(Index < Args.length) {
 			/*local*/String Argu = Args[Index];
 			if(!Argu.startsWith("-")) {
 				break;
 			}
 			Index += 1;
-			if(Argu.startsWith("--")) {
-				CodeGeneratorName = Argu;
-				continue;
-			}
-			if(Argu.equals("-e") && Index < Args.length) {
+			if((Argu.equals("-e") || Argu.equals("--eval")) && Index < Args.length) {
 				OneLiner = Args[Index];
 				Index += 1;
 				continue;
 			}
-			if(Argu.equals("-verbose")) {
+			if((Argu.equals("-o") || Argu.equals("--out")) && Index < Args.length) {
+				if(!Args[Index].endsWith(".green")) {  // for safety
+					OutputFile = Args[Index];
+					Index += 1;
+					continue;
+				}
+			}
+			if((Argu.equals("-l") || Argu.equals("--lang")) && Index < Args.length) {
+				if(!Args[Index].endsWith(".green")) {  // for safety
+					TargetCode = Args[Index];
+					Index += 1;
+					continue;
+				}
+			}
+			if(Argu.equals("--verbose")) {
 				GtStatic.DebugPrintOption = true;
 				continue;
 			}
 			LangDeps.Usage();
 		}
-		/*local*/GtGenerator Generator = LangDeps.CodeGenerator(CodeGeneratorName);
+		/*local*/GtGenerator Generator = LangDeps.CodeGenerator(TargetCode, OutputFile, GeneratorFlag);
 		if(Generator == null) {
 			LangDeps.Usage();
 		}
@@ -3452,6 +3464,63 @@ public class GreenTeaScript extends GtStatic {
 				linenum += 1;
 			}
 		}
+		else {
+			Generator.FlushBuffer();
+		}
 	}
+
+	public final static void main(String[] Args) {
+		ParseCommandOption(Args);
+	}
+	
+//	public final static void main(String[] Args) {
+//		/*local*/String CodeGeneratorName = "--java";
+//		/*local*/int Index = 0;
+//		/*local*/String OneLiner = null;
+//		while(Index < Args.length) {
+//			/*local*/String Argu = Args[Index];
+//			if(!Argu.startsWith("-")) {
+//				break;
+//			}
+//			Index += 1;
+//			if(Argu.startsWith("--")) {
+//				CodeGeneratorName = Argu;
+//				continue;
+//			}
+//			if(Argu.equals("-e") && Index < Args.length) {
+//				OneLiner = Args[Index];
+//				Index += 1;
+//				continue;
+//			}
+//			if(Argu.equals("-verbose")) {
+//				GtStatic.DebugPrintOption = true;
+//				continue;
+//			}
+//			LangDeps.Usage();
+//		}
+//		/*local*/GtGenerator Generator = LangDeps.CodeGenerator(CodeGeneratorName);
+//		if(Generator == null) {
+//			LangDeps.Usage();
+//		}
+//		/*local*/GtClassContext Context = new GtClassContext(new DScriptGrammar(), Generator);
+//		/*local*/boolean ShellMode = true;
+//		if(OneLiner != null) {
+//			Context.Eval(OneLiner, 1);
+//			ShellMode = false;
+//		}
+//		while(Index < Args.length) {
+//			Context.Eval(LangDeps.LoadFile(Args[Index]), 1);
+//			ShellMode = false;
+//			Index += 1;
+//		}
+//		if(ShellMode) {
+//			/*local*/int linenum = 1;
+//			/*local*/String Line = null;
+//			while((Line = LangDeps.ReadLine(">>> ")) != null) {
+//				Context.Eval(Line, linenum);
+//				linenum += 1;
+//			}
+//		}
+//	}
 
 }

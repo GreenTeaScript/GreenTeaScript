@@ -28,8 +28,8 @@ import java.util.ArrayList;
 
 public class JavaScriptSourceGenerator extends SourceGenerator {
 
-	JavaScriptSourceGenerator/*constructor*/() {
-		super("JavaScript");
+	JavaScriptSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
+		super(TargetCode, OutputFile, GeneratorFlag);
 	}
 
 	private boolean UseLetKeyword;
@@ -49,7 +49,7 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 		this.VisitBlockJS(Body);
 		Code += this.PopSourceCode() + ")";
 		this.PushSourceCode(Code);
-		this.WriteTranslatedCode(Code);
+		this.WriteLineCode(Code);
 	}
 
 	public  void VisitBlockJS(GtNode Node) {
@@ -271,7 +271,7 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 				ret =  Line + ";\n" + ret;
 			}
 		}
-		//this.WriteTranslatedCode(ret);
+		//this.WriteLineCode(ret);
 		return ret;
 	}
 

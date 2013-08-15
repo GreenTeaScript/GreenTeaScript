@@ -30,9 +30,14 @@ import java.util.ArrayList;
 
 public class PythonSourceGenerator extends SourceGenerator {
 
-	PythonSourceGenerator/*constructor*/() {
-		super("PythonSource");
-		this.WriteTranslatedCode("import subprocess\n");
+	PythonSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
+		super(TargetCode, OutputFile, GeneratorFlag);
+//		this.WriteLineCode("import subprocess\n");
+	}
+
+	@Override public void InitContext(GtClassContext Context) {
+		super.InitContext(Context);
+		Context.Eval(LangDeps.LoadFile("lib/python/common.green"), 1);
 	}
 
 	public void VisitBlockWithIndent(GtNode Node, boolean inBlock) {
@@ -408,7 +413,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		}
 		this.VisitBlockWithIndent(Body, true);
 		Function += "):\n" + this.PopSourceCode() + "\n";
-		this.WriteTranslatedCode(Function);
+		this.WriteLineCode(Function);
 	}
 
 	@Override public Object Eval(GtNode Node) {
@@ -417,14 +422,11 @@ public class PythonSourceGenerator extends SourceGenerator {
 		if(Code.equals("")) {
 			return "";
 		}
-		this.WriteTranslatedCode(Code);
+		this.WriteLineCode(Code);
 		return Code;
 	}
 
 	@Override public void AddClass(GtType Type) {
 	}
 
-	@Override public void SetLanguageContext(GtClassContext Context) {
-		Context.Eval(LangDeps.LoadFile("lib/python/common.green"), 1);
-	}
 }

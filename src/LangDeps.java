@@ -27,7 +27,9 @@
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -192,54 +194,81 @@ public abstract class LangDeps {
 
 	public final static void Usage() {
 		System.out.println("usage : ");
-		System.out.println("  Source Code Generation");
-		System.out.println("  --bash                Bash");
-		System.out.println("  --C                   C99");
-		System.out.println("  --CSharp              CSharp");
-		System.out.println("  --greentea            GreenTea (itself)");
-		System.out.println("  --java                Java");
-		System.out.println("  --javascript --js     JavaScript");
-		System.out.println("  --lua                 Lua");
-		System.out.println("  --haxe                Haxe");
-		System.out.println("  --ocaml               OCaml");
-		System.out.println("  --perl                Perl");
-		System.out.println("  --python              Python");
-		System.out.println("  --R                   R");
-		System.out.println("  --ruby                Ruby");
-		System.out.println("  --typescript --ts     TypeScript");
-		System.out.println("  --X  --exe            Executable Code");
+		System.out.println("  --lang|-l LANG        Set Target Language");
+		System.out.println("      bash                Bash");
+		System.out.println("      C C99               C99");
+		System.out.println("      CSharp              CSharp");
+		System.out.println("      java java7 java8    Java");
+		System.out.println("      javascript js       JavaScript");
+		System.out.println("      lua                 Lua");
+		System.out.println("      haxe                Haxe");
+		System.out.println("      ocaml               OCaml");
+		System.out.println("      perl                Perl");
+		System.out.println("      python              Python");
+		System.out.println("      R                   R");
+		System.out.println("      ruby                Ruby");
+		System.out.println("      typescript ts       TypeScript");
 		System.out.println("");
-		System.out.println("  -e expr               Program passed in as string");
-		System.out.println("  -verbose              Printing Debug infomation");
+		System.out.println("  --out|-o  FILE        Program passed in as string");
+		System.out.println("  --eval|-e EXPR        Program passed in as string");
+		System.out.println("  --verbose             Printing Debug infomation");
 		System.exit(0);
 	}
 
-	public final static GtGenerator CodeGenerator(String Option) {
-		Option = Option.replaceAll("--", "");
-		if(Option.equalsIgnoreCase("js") || Option.equalsIgnoreCase("javascript")) {
-			return new JavaScriptSourceGenerator();
+	public final static GtGenerator CodeGenerator(String TargetCode, String OutputFile, int GeneratorFlag) {
+		String Extenstion = OutputFile == null ? "-" : OutputFile;
+		TargetCode = TargetCode.toLowerCase();
+		if(Extenstion.endsWith(".js") || TargetCode.startsWith("js") || TargetCode.startsWith("javascript")) {
+			return new JavaScriptSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
-		else if(Option.equalsIgnoreCase("perl")) {
-			return new PerlSourceGenerator();
+		else if(Extenstion.endsWith(".pl") || TargetCode.startsWith("perl")) {
+			return new PerlSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
-		else if(Option.equalsIgnoreCase("python")) {
-			return new PythonSourceGenerator();
+		else if(Extenstion.endsWith(".pl") || TargetCode.startsWith("python")) {
+			return new PythonSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
-		else if(Option.equalsIgnoreCase("bash")) {
-			return new BashSourceGenerator();
+		else if(Extenstion.endsWith(".sh") || TargetCode.startsWith("bash")) {
+			return new BashSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
-		else if(Option.equalsIgnoreCase("c")) {
-			return new CSourceGenerator();
+		else if(Extenstion.endsWith(".java") || TargetCode.startsWith("java")) {
+			return new JavaSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
-		else if(Option.equalsIgnoreCase("java")) {
-			return new JavaSourceGenerator();
+		else if(Extenstion.endsWith(".c") || TargetCode.startsWith("c")) {
+			return new CSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
-		else if(Option.equalsIgnoreCase("X") || Option.equalsIgnoreCase("exe")) {
-			return new JavaByteCodeGenerator();
+		else if(TargetCode.startsWith("X") || TargetCode.startsWith("exe")) {
+			return new JavaByteCodeGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
 		return null;
 	}
 
+	public final static void Eval(String SourceCode) {
+		//eval(SourceCode);
+		System.out.println("Eval: " + SourceCode);  // In Java, no eval
+	}
+	
+	public final static void WriteCode(String OutputFile, String SourceCode) {
+		if(OutputFile == null) {
+			LangDeps.Eval(SourceCode);
+		}
+		if(OutputFile.equals("-")) {
+			System.out.println(SourceCode);
+			System.out.flush();
+		}
+		else {
+			Writer out = null;
+			try {
+				out = new FileWriter(OutputFile);
+				out.write(SourceCode);
+				out.flush();
+				out.close();
+			} catch (IOException e) {
+				System.err.println("Cannot write: " + OutputFile);
+				System.exit(1);
+			}
+		}
+	}
+	
 	private static java.io.Console Console = null;
 
 	public final static String ReadLine(String Prompt) {

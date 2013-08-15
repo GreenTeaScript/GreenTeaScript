@@ -108,8 +108,8 @@ public class GreenTeaScriptTest {
 	}
 
 	public static GtClassContext CreateContext() {
-		/*local*/String CodeGeneratorName = "Java";
-		/*local*/GtGenerator Generator = LangDeps.CodeGenerator(CodeGeneratorName);
+		/*local*/String CodeGeneratorName = "java";
+		/*local*/GtGenerator Generator = LangDeps.CodeGenerator(CodeGeneratorName, "-", 0);
 		return new GtClassContext(new DScriptGrammar(), Generator);
 	}
 

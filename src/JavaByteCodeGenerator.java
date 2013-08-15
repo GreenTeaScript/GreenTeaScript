@@ -502,8 +502,8 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 	private final NativeMethodMap NMMap;
 	private GtClassContext Context;
 
-	public JavaByteCodeGenerator() {
-		super("Java");
+	public JavaByteCodeGenerator(String TargetCode, String OutputFile, int GeneratorFlag) {
+		super(TargetCode, OutputFile, GeneratorFlag);
 		this.TypeResolver = null;
 		this.NMMap = new NativeMethodMap();
 		this.Context = null;
@@ -634,7 +634,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		}
 	}
 
-	@Override public void SetLanguageContext(GtClassContext Context) {
+	@Override public void InitContext(GtClassContext Context) {
 		this.Context = Context;
 		this.TypeResolver = new TypeResolver(Context);
 		InitEmbeddedMethod();

@@ -29,8 +29,8 @@ import java.util.ArrayList;
 //GreenTea Generator should be written in each language.
 
 public class PerlSourceGenerator extends SourceGenerator {
-	PerlSourceGenerator/*constructor*/() {
-		super("Perl");
+	PerlSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
+		super(TargetCode, OutputFile, GeneratorFlag);
 	}
 
 	public void VisitBlockEachStatementWithIndent(GtNode Node) {
@@ -377,7 +377,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		Program += this.PopSourceCode();
 		this.UnIndent();
 		Program += "\n" + this.GetIndentString() + "}";
-		this.WriteTranslatedCode(Program);
+		this.WriteLineCode(Program);
 	}
 
 	@Override public Object Eval(GtNode SingleNode) {
@@ -390,7 +390,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 
 	}
 
-	@Override public void SetLanguageContext(GtClassContext Context) {
+	@Override public void InitContext(GtClassContext Context) {
 		// TODO Auto-generated method stub
 
 	}

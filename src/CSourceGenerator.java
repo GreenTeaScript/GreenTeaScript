@@ -32,8 +32,8 @@ public class CSourceGenerator extends SourceGenerator {
 	/*field*/public final String[] DefaultTypes = {"void", "int", "boolean", "float", "double", "String", "Object", "Array", "Func", "var", "any"};
 	/*field*/public final GtMap DefinedClass;
 	
-	CSourceGenerator/*constructor*/() {
-		super("C");
+	CSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
+		super(TargetCode, OutputFile, GeneratorFlag);
 		this.DefinedClass = new GtMap();
 	}
 
@@ -334,7 +334,7 @@ public class CSourceGenerator extends SourceGenerator {
 		Code += ")";
 		this.VisitBlockEachStatementWithIndent(Body, true);
 		Code += this.PopSourceCode();
-		this.WriteTranslatedCode(Code);
+		this.WriteLineCode(Code);
 	}
 
 	@Override public Object Eval(GtNode Node) {
@@ -343,7 +343,7 @@ public class CSourceGenerator extends SourceGenerator {
 		if(Code.equals(";\n")) {
 			return "";
 		}
-		this.WriteTranslatedCode(Code);
+		this.WriteLineCode(Code);
 		return Code;
 	}
 
@@ -382,7 +382,7 @@ public class CSourceGenerator extends SourceGenerator {
 		}
 		this.UnIndent();
 		Program += this.GetIndentString() + "};";
-		this.WriteTranslatedCode(Program);
+		this.WriteLineCode(Program);
 	}
 
 //	@Override public void DefineClassMethod(GtNameSpace NameSpace, GtType Type, GtMethod Method) {
@@ -399,14 +399,15 @@ public class CSourceGenerator extends SourceGenerator {
 			return;
 		}
 		/*local*/String Program = this.GetIndentString() + "typedef struct " + TypeName;
-		this.WriteTranslatedCode(Program + " " + TypeName + ";");
+		this.WriteLineCode(Program + " " + TypeName + ";");
 	}
 
 	@Override public void StartCompilationUnit() {
-		this.WriteTranslatedCode("#include \"GreenTea.h\"");
+		this.WriteLineCode("#include \"GreenTea.h\"");
 	}
 
-	@Override public void SetLanguageContext(GtClassContext Context) {
+	@Override public void InitContext(GtClassContext Context) {
+		super.InitContext(Context);
 		Context.Eval(LangDeps.LoadFile("lib/c/common.green"), 1);
 	}
 }

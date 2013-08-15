@@ -32,11 +32,16 @@ public class BashSourceGenerator extends SourceGenerator {
 	/*field*/boolean inFunc = false;
 	/*field*/int cmdCounter = 0;
 
-	BashSourceGenerator/*constructor*/() {
-		super("BashSource");
-		this.WriteTranslatedCode("#!/bin/bash\n");
+	BashSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
+		super(TargetCode, OutputFile, GeneratorFlag);
+		this.WriteLineCode("#!/bin/bash\n");
 	}
 
+	@Override public void InitContext(GtClassContext Context) {
+		super.InitContext(Context);
+		Context.Eval(LangDeps.LoadFile("lib/bash/common.green"), 1);
+	}
+	
 	public void VisitBlockWithIndent(GtNode Node, boolean inBlock) {
 		/*local*/String Code = "";
 		if(inBlock) {
@@ -448,7 +453,7 @@ public class BashSourceGenerator extends SourceGenerator {
 			RunnableCmd = "function " + MethodName + this.cmdCounter + "() {\n";
 			RunnableCmd += this.GetIndentString() + "echo $(" + cmd + ")\n";
 			RunnableCmd += this.GetIndentString() + "return 0\n}\n";
-			this.WriteTranslatedCode(RunnableCmd);
+			this.WriteLineCode(RunnableCmd);
 			RunnableCmd = MethodName + this.cmdCounter;
 			this.cmdCounter++;
 		}
@@ -459,7 +464,7 @@ public class BashSourceGenerator extends SourceGenerator {
 			RunnableCmd += this.GetIndentString() + "local ret=$?\n";
 			RunnableCmd += this.GetIndentString() + "echo $ret\n";
 			RunnableCmd += this.GetIndentString() + "return $ret\n}\n";
-			this.WriteTranslatedCode(RunnableCmd);
+			this.WriteLineCode(RunnableCmd);
 			RunnableCmd = MethodName + this.cmdCounter;
 			this.cmdCounter++;
 		}
@@ -506,7 +511,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		Function += Method.MethodName + "() {\n";
 		this.VisitBlockWithIndent(this.ResolveParamName(ParamNameList, Body), true);
 		Function += this.PopSourceCode() + "}\n";
-		this.WriteTranslatedCode(Function);
+		this.WriteLineCode(Function);
 		this.inFunc = false;
 	}
 
@@ -516,14 +521,11 @@ public class BashSourceGenerator extends SourceGenerator {
 		if(Code.equals("")) {
 			return "";
 		}
-		this.WriteTranslatedCode(Code);
+		this.WriteLineCode(Code);
 		return Code;
 	}
 
 	@Override public void AddClass(GtType Type) {
 	}
 
-	@Override public void SetLanguageContext(GtClassContext Context) {
-		Context.Eval(LangDeps.LoadFile("lib/bash/common.green"), 1);
-	}
 }

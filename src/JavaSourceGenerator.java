@@ -29,8 +29,8 @@ import java.util.ArrayList;
 //GreenTea Generator should be written in each language.
 
 public class JavaSourceGenerator extends SourceGenerator {
-	JavaSourceGenerator/*constructor*/() {
-		super("Java");
+	JavaSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
+		super(TargetCode, OutputFile, GeneratorFlag);
 	}
 
 	public void VisitBlockEachStatementWithIndent(GtNode Node) {
@@ -340,7 +340,7 @@ public class JavaSourceGenerator extends SourceGenerator {
 		}
 
 		Program += this.Eval(Body);
-		this.WriteTranslatedCode(Program);
+		this.WriteLineCode(Program);
 	}
 
 	@Override public Object Eval(GtNode Node) {
@@ -355,6 +355,6 @@ public class JavaSourceGenerator extends SourceGenerator {
 
 	}
 
-	@Override public void SetLanguageContext(GtClassContext Context) {
+	@Override public void InitContext(GtClassContext Context) {
 	}
 }

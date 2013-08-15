@@ -984,23 +984,28 @@ class GtPolyFunc {
 
 
 class GtGenerator extends GtStatic {
-	/*field*/public String     LangName;
-	/*field*/public GtClassContext  Context;
+	/*field*/public final String      TargetCode;
+	/*field*/public GtClassContext    Context;
 	/*field*/public ArrayList<Object> GeneratedCodeStack;
-
-	GtGenerator/*constructor*/(String LangName) {
-		this.LangName = LangName;
+	/*field*/public String OutputFile;
+	/*field*/public int GeneratorFlag;
+	
+	GtGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
+		this.TargetCode = TargetCode;
+		this.OutputFile = OutputFile;
+		this.GeneratorFlag = GeneratorFlag;
 		this.Context = null;
-		this.GeneratedCodeStack = new ArrayList<Object>();
+		this.GeneratedCodeStack = null;
 	}
 
-	public void SetLanguageContext(GtClassContext Context) {
+	public void InitContext(GtClassContext Context) {
 		this.Context = Context;
+		this.GeneratedCodeStack = new ArrayList<Object>();
 	}
 
 	public final GtNode UnsupportedNode(GtType Type, GtSyntaxTree ParsedTree) {
 		/*local*/GtToken Token = ParsedTree.KeyToken;
-		ParsedTree.NameSpace.Context.ReportError(ErrorLevel, Token, this.LangName + " has no language support for " + Token.ParsedText);
+		ParsedTree.NameSpace.Context.ReportError(ErrorLevel, Token, this.TargetCode + " has no language support for " + Token.ParsedText);
 		return new ErrorNode(ParsedTree.NameSpace.Context.VoidType, ParsedTree.KeyToken);
 	}
 
@@ -1385,6 +1390,10 @@ class GtGenerator extends GtStatic {
 		return null;
 	}
 
+	public void FlushBuffer() {
+		/*extension*/
+	}
+
 	public String BlockComment(String Comment) {
 		return "/*" + Comment + "*/";
 	}
@@ -1411,15 +1420,51 @@ class GtGenerator extends GtStatic {
 }
 
 class SourceGenerator extends GtGenerator {
+	/*field*/public String    HeaderSource;
+	/*field*/public String    BodySource;
+
+	/*field*/public String    LineFeed;
 	/*field*/public int       IndentLevel;
 	/*field*/public String    CurrentLevelIndentString;
 
-	SourceGenerator/*constructor*/(String LangName) {
-		super(LangName);
+	SourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
+		super(TargetCode, OutputFile, GeneratorFlag);
+		this.LineFeed = "\n";
 		this.IndentLevel = 0;
 		this.CurrentLevelIndentString = null;
+		this.HeaderSource = "";
+		this.BodySource = "";
+		
 	}
 
+	@Override public void InitContext(GtClassContext Context) {
+		super.InitContext(Context);
+		this.HeaderSource = "";
+		this.BodySource = "";
+	}
+
+	public final void WriteHeader(String Text) {
+		this.HeaderSource += Text;
+	}
+
+	public final void WriteLineHeader(String Text) {
+		this.HeaderSource += Text + this.LineFeed;
+	}
+
+	public final void WriteCode(String Text) {
+		this.BodySource += Text;
+	}
+
+	public final void WriteLineCode(String Text) {
+		this.BodySource += Text + this.LineFeed;
+	}
+
+	@Override public void FlushBuffer() {
+		LangDeps.WriteCode(this.OutputFile, this.HeaderSource + this.BodySource);			
+		this.HeaderSource = "";
+		this.BodySource = "";
+	}
+	
 	/* GeneratorUtils */
 
 	public final void Indent() {
@@ -1501,10 +1546,6 @@ class SourceGenerator extends GtGenerator {
 			i = i + 1;
 		}
 		return Code;
-	}
-
-	public final void WriteTranslatedCode(String Text) {
-		LangDeps.println(Text);
 	}
 
 }
