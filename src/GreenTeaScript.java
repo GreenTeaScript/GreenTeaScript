@@ -2712,7 +2712,13 @@ final class DScriptGrammar extends GtGrammar {
 				/*local*/GtVariableInfo FieldInfo = Gamma.LookupDeclaredVariable(FieldName);
 				FieldList.add(FieldInfo);
 			}
-			else if(FieldTree.Pattern.PatternName.equals("$FuncDecl$")) {
+			FieldOffset += 1;
+		}
+		Gamma.Generator.GenerateClassField(Gamma.NameSpace, NewType, FieldList);
+		FieldOffset = ClassBlockOffset;
+		while(FieldOffset < ParsedTree.TreeList.size()) {
+			/*local*/GtSyntaxTree FieldTree = ParsedTree.GetSyntaxTreeAt(FieldOffset);
+			if(FieldTree.Pattern.PatternName.equals("$FuncDecl$")) {
 				/*local*/GtSyntaxTree ReturnTree = FieldTree.GetSyntaxTreeAt(FuncDeclReturnType);
 				/*local*/ArrayList<GtSyntaxTree> NewTreeList = new ArrayList<GtSyntaxTree>();
 				/*local*/int i = 0;
@@ -2746,10 +2752,8 @@ final class DScriptGrammar extends GtGrammar {
 				FieldTree.GetSyntaxTreeAt(FuncDeclName).ConstValue = "constructor";
 				Gamma.TypeCheck(FieldTree, NewType, DefaultTypeCheckPolicy);
 			}
-
 			FieldOffset += 1;
 		}
-		Gamma.Generator.GenerateClassField(Gamma.NameSpace, NewType, FieldList);
 		return Gamma.Generator.CreateConstNode(ParsedTree.NameSpace.Context.TypeType, ParsedTree, NewType);
 	}
 
@@ -3019,12 +3023,11 @@ final class GtClassContext extends GtStatic {
 	/*field*/public final GtType		VarType;
 
 	/*field*/public final GtType		TypeType;
-	/*field*/public GtType		PolyFuncType;
+	/*field*/public GtType		        PolyFuncType;
 
 	/*field*/public final  GtMap               SourceMap;
 	/*field*/public final  GtMap			   ClassNameMap;
 	/*field*/public final  GtMap               UniqueMethodMap;
-
 	/*field*/public int ClassCount;
 	/*field*/public int MethodCount;
 	/*field*/public final GtStat Stat;
@@ -3059,6 +3062,7 @@ final class GtClassContext extends GtStatic {
 		this.ArrayType.Types[0] = this.AnyType;
 		this.FuncType.Types = new GtType[1];
 		this.FuncType.Types[0] = this.AnyType;
+
 //ifdef JAVA
 		this.ClassNameMap.put("java.lang.Void",    this.VoidType);
 		this.ClassNameMap.put("java.lang.Boolean", this.BooleanType);
