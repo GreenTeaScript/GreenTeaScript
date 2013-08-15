@@ -2,6 +2,7 @@
 
 // This test fails always to check assert() availability;
 
+@Export
 int main() {
 	assert(false);
 	return 0;
