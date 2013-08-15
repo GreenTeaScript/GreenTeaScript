@@ -19,7 +19,7 @@ ts=""
 
 for s in ${source}; do
     perl src/TypeScript/ToTypeScript.pl < ${SourceDir}${s}.java > ${build}${s}.ts
-    ts="${ts} ${build}/LangDeps.ts\ ${build}${s}.ts"
+    ts="${ts} ${build}${s}.ts"
 done
 
-tsc ${ts}
+tsc ${build}/LangDeps.ts ${ts}

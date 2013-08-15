@@ -67,7 +67,7 @@ pip-log.txt
 ## generated files
 #############
 Test.xml
-#src/TypeScript/*.js.map
-#src/TypeScript/*.js
-#src/TypeScript/*.ts
+src/TypeScript/*.js.map
+src/TypeScript/*.js
+src/TypeScript/*.ts
 /bin
