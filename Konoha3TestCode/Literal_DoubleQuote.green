@@ -1,0 +1,6 @@
+// written by kimio
+"konoha"
+
+"\\"
+
+"\""
