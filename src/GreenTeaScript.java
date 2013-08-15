@@ -50,19 +50,21 @@ interface GtConst {
 	public final static int		ConstMethod			= 1 << 8;
 	public final static int     ImplicitMethod      = 1 << 9;  // used for implicit cast
 
-	public final static int		SymbolMaskSize					= 3;
-	public final static int		LowerSymbolMask					= 1;
-	public final static int		GetterSymbolMask				= (1 << 1);
-	public final static int		SetterSymbolMask				= (1 << 2);
-	public final static int		MetaSymbolMask					= (GetterSymbolMask | SetterSymbolMask);
-	public final static String	GetterPrefix					= "Get";
-	public final static String	SetterPrefix					= "Set";
-	public final static String	MetaPrefix						= "\\";
+//	public final static int		SymbolMaskSize					= 3;
+//	public final static int		LowerSymbolMask					= 1;
+//	public final static int		GetterSymbolMask				= (1 << 1);
+//	public final static int		SetterSymbolMask				= (1 << 2);
+//	public final static int		MetaSymbolMask					= (GetterSymbolMask | SetterSymbolMask);
+//	public final static String	GetterPrefix					= "Get";
+//	public final static String	SetterPrefix					= "Set";
+//	public final static String	MetaPrefix						= "\\";
+//	public final static String	GlobalConstName					= "global";
+//	public final static ArrayList<String> SymbolList = new ArrayList<String>();
+//	public final static GtMap   SymbolMap  = new GtMap();
+//	public final static int		CreateNewSymbolId				= -1;
+//	public final static int		BreakPreProcess					= -1;
 
-	public final static int		CreateNewSymbolId				= -1;
 	public final static int		NoMatch							= -1;
-	public final static int		BreakPreProcess					= -1;
-
 	public final static boolean Optional = true;
 	public final static boolean Required = false;
 
@@ -256,15 +258,9 @@ interface GtConst {
 	public final static int AllowVoidPolicy                 = (1 << 4);
 	public final static int AllowCoercionPolicy             = (1 << 5);
 
-//	public final static String	GlobalConstName					= "global";
-
-	public final static ArrayList<String> SymbolList = new ArrayList<String>();
-	public final static GtMap   SymbolMap  = new GtMap();
-
 	public final static String[] ShellGrammarReservedKeywords = {"true", "false", "as", "if"};
 
 	public final static boolean UseLangStat = true;
-
 //ifdef JAVA
 }
 
@@ -484,7 +480,7 @@ class GtStatic implements GtConst {
 		while(CurrentPattern != null) {
 			/*local*/GtDelegateMatch delegate = CurrentPattern.MatchFunc;
 			TokenContext.CurrentPosition = Pos;
-			if(CurrentPattern.ParentPattern != null) {
+			if(CurrentPattern.ParentPattern != null) {   // This means it has next patterns
 				TokenContext.ParseFlag = ParseFlag | BackTrackParseFlag;
 			}
 			//DebugP("B :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + ", next=" + CurrentPattern.ParentPattern);
