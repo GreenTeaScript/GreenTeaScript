@@ -4,13 +4,15 @@ import sys, os;
 import subprocess;
 import tempfile;
 
+test_result_dir = "test/codegen/";
+
 def testcase():
     case = [];
-    files = os.listdir("./test/")
+    files = os.listdir(test_result_dir)
     for path in files:
         root, ext = os.path.splitext(path)
         if(ext == ".green"):
-            case.append(os.path.realpath("test/" + path))
+            case.append(os.path.realpath(test_result_dir + path))
     return case
 
 target = [];
