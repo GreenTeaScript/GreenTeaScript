@@ -1743,7 +1743,11 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	public static GtNode TypeNull(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		return Gamma.Generator.CreateNullNode(ContextType, ParsedTree);
+		/*local*/GtType ThisType = ContextType;
+		if(ThisType == Gamma.VarType) {
+			ThisType = Gamma.AnyType;
+		}
+		return Gamma.Generator.CreateNullNode(ThisType, ParsedTree);
 	}
 
 	public static GtSyntaxTree ParseSymbol(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
@@ -2760,7 +2764,7 @@ final class DScriptGrammar extends GtGrammar {
 			}
 			FieldOffset += 1;
 		}
-		return Gamma.Generator.CreateConstNode(ParsedTree.NameSpace.Context.TypeType, ParsedTree, NewType);
+		return Gamma.Generator.CreateEmptyNode(ParsedTree.NameSpace.Context.TypeType);
 	}
 
 	// constructor
