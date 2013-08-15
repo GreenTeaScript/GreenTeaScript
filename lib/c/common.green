@@ -24,7 +24,7 @@ boolean ==(any x, any y) as "$0  == $1";
 boolean !=(any x, any y) as "$0  != $1";
 
 void print(String x) as "puts($0)";
-@Export void assert(boolean x) as "assert($0)";
+void assert(boolean x) as "assert($0)";
 
 // int fibo(int n) {
 // 	if(n < 3) return 1;
