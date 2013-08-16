@@ -227,24 +227,24 @@ public abstract class LangDeps {
 	}
 
 	public final static GtGenerator CodeGenerator(String TargetCode, String OutputFile, int GeneratorFlag) {
-		String Extenstion = OutputFile == null ? "-" : OutputFile;
+		String Extension = OutputFile == null ? "-" : OutputFile;
 		TargetCode = TargetCode.toLowerCase();
-		if(Extenstion.endsWith(".js") || TargetCode.startsWith("js") || TargetCode.startsWith("javascript")) {
+		if(Extension.endsWith(".js") || TargetCode.startsWith("js") || TargetCode.startsWith("javascript")) {
 			return new JavaScriptSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
-		else if(Extenstion.endsWith(".pl") || TargetCode.startsWith("perl")) {
+		else if(Extension.endsWith(".pl") || TargetCode.startsWith("perl")) {
 			return new PerlSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
-		else if(Extenstion.endsWith(".pl") || TargetCode.startsWith("python")) {
+		else if(Extension.endsWith(".py") || TargetCode.startsWith("python")) {
 			return new PythonSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
-		else if(Extenstion.endsWith(".sh") || TargetCode.startsWith("bash")) {
+		else if(Extension.endsWith(".sh") || TargetCode.startsWith("bash")) {
 			return new BashSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
-		else if(Extenstion.endsWith(".java") || TargetCode.startsWith("java")) {
+		else if(Extension.endsWith(".java") || TargetCode.startsWith("java")) {
 			return new JavaSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
-		else if(Extenstion.endsWith(".c") || TargetCode.startsWith("c")) {
+		else if(Extension.endsWith(".c") || TargetCode.startsWith("c")) {
 			return new CSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
 		else if(TargetCode.startsWith("X") || TargetCode.startsWith("exe")) {

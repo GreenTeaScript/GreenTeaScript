@@ -801,12 +801,16 @@ final class GtTokenContext extends GtStatic {
 	}
 
 	public GtToken GetToken() {
-		while((this.CurrentPosition < this.SourceList.size())) {
+		while(this.CurrentPosition < this.SourceList.size()) {
 			/*local*/GtToken Token = this.SourceList.get(this.CurrentPosition);
 			if(Token.IsSource()) {
 				this.SourceList.remove(this.SourceList.size()-1);
 				this.Tokenize(Token.ParsedText, Token.FileLine);
-				Token = this.SourceList.get(this.CurrentPosition);
+				if(this.CurrentPosition < this.SourceList.size()){
+					Token = this.SourceList.get(this.CurrentPosition);
+				}else{
+					break;
+				}
 			}
 			if(IsFlag(this.ParseFlag, SkipIndentParseFlag) && Token.IsIndent()) {
 				this.CurrentPosition = this.CurrentPosition + 1;
@@ -3470,7 +3474,7 @@ public class GreenTeaScript extends GtStatic {
 	}
 
 	public final static void main(String[] Args) {
-		ParseCommandOption(Args);
+		GreenTeaScript.ParseCommandOption(Args);
 	}
 	
 //	public final static void main(String[] Args) {
