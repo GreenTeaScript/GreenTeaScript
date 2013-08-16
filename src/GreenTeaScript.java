@@ -2044,13 +2044,13 @@ final class DScriptGrammar extends GtGrammar {
 			BaseType = FuncNode.Type;
 			return Gamma.CreateErrorNode2(ParsedTree, FuncNode.Type + "undeveloped!!");
 		}
-		/*local*/GtMethod UniqueMethod = null;
+		/*local*/GtMethod ResolvedFunc = null;
 		/*local*/int ParamIndex = 1;
 		NodeList.add(FuncNode);
 		if(FuncNode instanceof ConstNode) { /* Func style .. f x, y .. */
 			/*local*/Object Func = ((/*cast*/ConstNode)FuncNode).ConstValue;
 			if(Func instanceof GtMethod) {
-				UniqueMethod = (/*cast*/GtMethod)Func;
+				ResolvedFunc = (/*cast*/GtMethod)Func;
 			}
 			if(Func instanceof GtPolyFunc) {
 				/*local*/GtPolyFunc PolyFunc = (/*cast*/GtPolyFunc)Func;
@@ -2061,21 +2061,20 @@ final class DScriptGrammar extends GtGrammar {
 					}
 					NodeList.add(Node);
 					ParamIndex = ParamIndex + 1;
-					UniqueMethod = PolyFunc.IncrementalMatch(1, NodeList, ParamIndex);
-					if(UniqueMethod != null) {
-						((/*cast*/ConstNode)FuncNode).ConstValue = UniqueMethod;
-						((/*cast*/ConstNode)FuncNode).Type = UniqueMethod.GetFuncType();
+					ResolvedFunc = PolyFunc.IncrementalMatch(1, NodeList, ParamIndex);
+					if(ResolvedFunc != null) {
+						((/*cast*/ConstNode)FuncNode).ConstValue = ResolvedFunc;
+						((/*cast*/ConstNode)FuncNode).Type = ResolvedFunc.GetFuncType();
 						break;
 					}
 				}
-				if(UniqueMethod != null) {
+				if(ResolvedFunc != null) {
 					
 				}
 			}
 		}
 		/*local*/GtType ReturnType = Gamma.AnyType;
 		if(FuncNode.Type == Gamma.AnyType) {
-			ParamIndex = 1;
 			while(ParamIndex < ListSize(ParsedTree.TreeList)) {
 				/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(ParamIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
 				if(Node.IsError()) {
@@ -2087,7 +2086,7 @@ final class DScriptGrammar extends GtGrammar {
 		}
 		else if(FuncNode.Type.BaseClass == Gamma.FuncType) {
 			/*local*/GtType FuncType = FuncNode.Type;
-			ParamIndex = 1;
+			LangDeps.Assert(ListSize(ParsedTree.TreeList) == FuncType.Types.length); // FIXME: add check paramerter size
 			while(ParamIndex < ListSize(ParsedTree.TreeList)) {
 				/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(ParamIndex, Gamma, FuncType.Types[ParamIndex], DefaultTypeCheckPolicy);
 				if(Node.IsError()) {
@@ -2101,7 +2100,7 @@ final class DScriptGrammar extends GtGrammar {
 		else {
 			return Gamma.CreateErrorNode2(ParsedTree, FuncNode.Type + " is not applicapable");
 		}
-		/*local*/GtNode Node = Gamma.Generator.CreateApplyNode(ReturnType, ParsedTree, null);
+		/*local*/GtNode Node = Gamma.Generator.CreateApplyNode(ReturnType, ParsedTree, ResolvedFunc);
 		/*local*/int i = 0;
 		while(i < NodeList.size()) {
 			Node.Append(NodeList.get(i));

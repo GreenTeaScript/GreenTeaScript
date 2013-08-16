@@ -813,7 +813,7 @@ class GtType extends GtStatic {
 		GenericType.BaseClass = this.BaseClass;
 		GenericType.SearchSuperMethodClass = this.BaseClass;
 		GenericType.SuperClass = this.SuperClass;
-		this.Types = LangDeps.CompactTypeList(BaseIndex, TypeList);
+		GenericType.Types = LangDeps.CompactTypeList(BaseIndex, TypeList);
 		DebugP("new class: " + GenericType.ShortClassName + ", ClassId=" + GenericType.ClassId);
 		return GenericType;
 	}
@@ -881,7 +881,6 @@ class GtMethod extends GtStatic {
 	/*field*/public GtType[]		Types;
 	/*field*/private GtType         FuncType;
 	/*field*/public GtMethod        ListedMethods;
-	/*field*/public String          SourceMacro;
 	/*field*/public Object          NativeRef;
 
 	GtMethod/*constructor*/(int MethodFlag, String MethodName, int BaseIndex, ArrayList<GtType> ParamList, Object NativeRef) {
@@ -892,11 +891,7 @@ class GtMethod extends GtStatic {
 		LangDeps.Assert(this.Types.length > 0);
 		this.ListedMethods = null;
 		this.FuncType = null;
-		if(NativeRef instanceof String) {
-			this.SourceMacro = (/*cast*/String) NativeRef;
-		} else {
-			this.NativeRef = NativeRef;
-		}
+		this.NativeRef = NativeRef;
 		this.MangledName = GtStatic.MangleMethodName(this.GetRecvType(), this.MethodName, BaseIndex+2, ParamList);
 	}
 
@@ -963,13 +958,13 @@ class GtMethod extends GtStatic {
 	}
 
 	public String ApplyNativeMacro(int BaseIndex, String[] ParamCode) {
-		/*local*/String NativeMacro = IsFlag(this.MethodFlag, NativeMacroMethod) ? (/*cast*/String)this.NativeRef : "$1 " + this.MethodName + " $2";
-		/*local*/String Code = NativeMacro.replace("$1", ParamCode[BaseIndex]);
+		/*local*/String NativeMacro = IsFlag(this.MethodFlag, NativeMacroMethod) ? (/*cast*/String)this.NativeRef : "$0 " + this.MethodName + " $1";
+		/*local*/String Code = NativeMacro.replace("$0", ParamCode[BaseIndex]);
 		if(ParamCode.length == BaseIndex + 1) {
-			Code = Code.replace("$2", "");
+			Code = Code.replace("$1", "");
 		}
 		else {
-			Code = Code.replace("$2", ParamCode[BaseIndex + 1]);
+			Code = Code.replace("$1", ParamCode[BaseIndex + 1]);
 		}
 		return Code;
 	}
