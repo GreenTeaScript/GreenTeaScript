@@ -531,26 +531,6 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		return classWriter.toByteArray();
 	}
 
-//	public GtMethodInvoker Build(GtNameSpace NameSpace, TypedNode Node, GtMethod Method, ArrayList<String> NameList) {
-//		ArrayList<Local> Param = null;
-//		if(Method != null) {
-//			Param = new ArrayList<Local>();
-//			if(Method.GetRecvType().equals(Context.VoidType)) {
-//				LangDeps.DebugP("Reciever Type is Void!! Fix Me!!");
-//				return null;
-//			}
-//			Param.add(new Local(0, Method.GetRecvType(), "this"));
-//			for(int i = 1; i < Method.GetParamSize(); i++) {
-//				GtType Type = Method.GetParamType(i);
-//				String Arg = NameList.get(i-1);//"arg" + i; //FIXME Method.GetParamName(i);
-//				//String Arg = P.ArgNames[i];
-//				Local l = new Local(i, Type, Arg);
-//				Param.add(l);
-//			}
-//		}
-//		return this.Compile(NameSpace, Node, Method, Param);
-//	}
-
 	@Override public Object Eval(GtNode Node) {
 		int acc = ACC_PUBLIC | ACC_STATIC;
 		String methodName = "__eval";
@@ -561,11 +541,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		TypeResolver.StoreClassNode(c);
 
 		this.Builder = new JVMBuilder(null, mn, TypeResolver, null);
-		GtNode Current = Node;
-		while(Current != null) {
-			Current.Evaluate(this);
-			Current = Current.NextNode;
-		}
+		this.VisitBlock(Node);
 		this.Builder.boxingReturn();
 		try {
 			this.OutputClassFile(defaultClassName, ".");
@@ -621,11 +597,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 
 		this.Builder = new JVMBuilder(Method, mn, TypeResolver, null);
 		this.Builder.LocalVals.addAll(locals);
-		GtNode Current = Body;
-		while(Current != null) {
-			Current.Evaluate(this);
-			Current = Current.NextNode;
-		}
+		this.VisitBlock(Body);
 
 		try {
 			this.OutputClassFile(defaultClassName, ".");
@@ -802,13 +774,47 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 	}
 
 	@Override public void VisitAndNode(AndNode Node) {
+		Label elseLabel = new Label();
+		Label mergeLabel = new Label();
 		Node.LeftNode.Evaluate(this);
+		this.Builder.typeStack.pop();
+		this.Builder.methodVisitor.visitJumpInsn(IFEQ, elseLabel);
+
 		Node.RightNode.Evaluate(this);
+		this.Builder.typeStack.pop();
+		this.Builder.methodVisitor.visitJumpInsn(IFEQ, elseLabel);
+
+		this.Builder.methodVisitor.visitLdcInsn(true);
+		this.Builder.methodVisitor.visitJumpInsn(GOTO, mergeLabel);
+
+		this.Builder.methodVisitor.visitLabel(elseLabel);
+		this.Builder.methodVisitor.visitLdcInsn(false);
+		this.Builder.methodVisitor.visitJumpInsn(GOTO, mergeLabel);
+
+		this.Builder.methodVisitor.visitLabel(mergeLabel);
+		this.Builder.typeStack.push(Type.BOOLEAN_TYPE);
 	}
 
 	@Override public void VisitOrNode(OrNode Node) {
+		Label thenLabel = new Label();
+		Label mergeLabel = new Label();
 		Node.LeftNode.Evaluate(this);
+		this.Builder.typeStack.pop();
+		this.Builder.methodVisitor.visitJumpInsn(IFNE, thenLabel);
+
 		Node.RightNode.Evaluate(this);
+		this.Builder.typeStack.pop();
+		this.Builder.methodVisitor.visitJumpInsn(IFNE, thenLabel);
+
+		this.Builder.methodVisitor.visitLdcInsn(false);
+		this.Builder.methodVisitor.visitJumpInsn(GOTO, mergeLabel);
+
+		this.Builder.methodVisitor.visitLabel(thenLabel);
+		this.Builder.methodVisitor.visitLdcInsn(true);
+		this.Builder.methodVisitor.visitJumpInsn(GOTO, mergeLabel);
+
+		this.Builder.methodVisitor.visitLabel(mergeLabel);
+		this.Builder.typeStack.push(Type.BOOLEAN_TYPE);
 	}
 
 	@Override public void VisitAssignNode(AssignNode Node) {
@@ -835,8 +841,9 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 	}
 
 	@Override public void VisitLetNode(LetNode Node) {
-		//FIXME we need to visit InitNode
-		this.Builder.AddLocal(Node.Type, Node.VariableName);
+		Local local = this.Builder.AddLocal(Node.Type, Node.VariableName);
+		Node.InitNode.Evaluate(this);
+		this.Builder.StoreLocal(local);
 		this.VisitBlock(Node.BlockNode);
 	}
 
@@ -976,6 +983,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		String ps = Type.getDescriptor(System.err.getClass());
 		this.Builder.methodVisitor.visitFieldInsn(GETSTATIC, "java/lang/System", "err", ps);
 //		this.Builder.methodVisitor.visitLdcInsn(Node.ErrorMessage); // FIXME
+		this.Builder.methodVisitor.visitLdcInsn("(ErrorNode)");
 		this.Builder.methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V");
 	}
 
@@ -985,7 +993,6 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 	}
 
 	public void VisitEnd() {
-		//this.Builder.methodVisitor.visitInsn(RETURN);//FIXME
 		this.Builder.methodVisitor.visitEnd();
 	}
 }
