@@ -957,19 +957,21 @@ class GtMethod extends GtStatic {
 	public final int GetMethodParamSize() {
 		return this.Types.length - 2;
 	}
-
+	
 	public final String GetNativeMacro() {
 		return (/*cast*/String)this.NativeRef;
 	}
 
-	public final String ExpandMacro1(String Arg0) {
-		String NativeMacro = IsFlag(this.MethodFlag, NativeMacroMethod) ? (/*cast*/String)this.NativeRef : this.MethodName + " $1";
-		return NativeMacro.replaceAll("$0", Arg0);
-	}
-
-	public final String ExpandMacro2(String Arg0, String Arg1) {
-		String NativeMacro = IsFlag(this.MethodFlag, NativeMacroMethod) ? (/*cast*/String)this.NativeRef : "$1 " + this.MethodName + " $2";
-		return NativeMacro.replaceAll("$0", Arg0);
+	public String ApplyNativeMacro(String[] ParamCode) {
+		/*local*/String NativeMacro = IsFlag(this.MethodFlag, NativeMacroMethod) ? (/*cast*/String)this.NativeRef : "$1 " + this.MethodName + " $2";
+		/*local*/String Code = NativeMacro.replace("$1", ParamCode[0]);
+		if(ParamCode.length == 1) {
+			Code = Code.replace("$2", "");
+		}
+		else {
+			Code = Code.replace("$2", ParamCode[1]);
+		}
+		return Code;
 	}
 }
 
@@ -1001,6 +1003,7 @@ class GtGenerator extends GtStatic {
 	public void InitContext(GtClassContext Context) {
 		this.Context = Context;
 		this.GeneratedCodeStack = new ArrayList<Object>();
+		Context.Eval(LangDeps.LoadLibFile(this.TargetCode, "common.green"), 1);
 	}
 
 	public final GtNode UnsupportedNode(GtType Type, GtSyntaxTree ParsedTree) {
@@ -1546,6 +1549,34 @@ class SourceGenerator extends GtGenerator {
 			i = i + 1;
 		}
 		return Code;
+	}
+
+	public final static String GenerateApplyMethod1(GtMethod Method, String MethodName, String Arg1) {
+		String Macro = null;
+		if(Method != null) {
+			MethodName = Method.GetNativeFuncName();
+			if(IsFlag(Method.MethodFlag, NativeMacroMethod)) {
+				Macro = Method.GetNativeMacro();
+			}
+		}
+		if(Macro == null) {
+			Macro = "$1 " + MethodName;
+		}
+		return Macro.replace("$1", Arg1);
+	}
+
+	public final static String GenerateApplyMethod2(GtMethod Method, String MethodName, String Arg1, String Arg2) {
+		String Macro = null;
+		if(Method != null) {
+			MethodName = Method.GetNativeFuncName();
+			if(IsFlag(Method.MethodFlag, NativeMacroMethod)) {
+				Macro = Method.GetNativeMacro();
+			}
+		}
+		if(Macro == null) {
+			Macro = "$1 " + MethodName + " $2";
+		}
+		return Macro.replace("$1", Arg1).replace("$2", Arg2);
 	}
 
 }

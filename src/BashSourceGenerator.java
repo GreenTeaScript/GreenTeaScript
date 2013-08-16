@@ -34,12 +34,11 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	BashSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
-		this.WriteLineCode("#!/bin/bash\n");
 	}
 
 	@Override public void InitContext(GtClassContext Context) {
 		super.InitContext(Context);
-		Context.Eval(LangDeps.LoadFile("lib/bash/common.green"), 1);
+		this.WriteLineHeader("#!/bin/bash");
 	}
 	
 	public void VisitBlockWithIndent(GtNode Node, boolean inBlock) {

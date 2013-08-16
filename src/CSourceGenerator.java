@@ -406,8 +406,4 @@ public class CSourceGenerator extends SourceGenerator {
 		this.WriteLineCode("#include \"GreenTea.h\"");
 	}
 
-	@Override public void InitContext(GtClassContext Context) {
-		super.InitContext(Context);
-		Context.Eval(LangDeps.LoadFile("lib/c/common.green"), 1);
-	}
 }

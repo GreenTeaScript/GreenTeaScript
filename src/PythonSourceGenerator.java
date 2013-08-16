@@ -32,12 +32,6 @@ public class PythonSourceGenerator extends SourceGenerator {
 
 	PythonSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
-//		this.WriteLineCode("import subprocess\n");
-	}
-
-	@Override public void InitContext(GtClassContext Context) {
-		super.InitContext(Context);
-		Context.Eval(LangDeps.LoadFile("lib/python/common.green"), 1);
 	}
 
 	public void VisitBlockWithIndent(GtNode Node, boolean inBlock) {
@@ -50,7 +44,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 			CurrentNode.Evaluate(this);
 			/*local*/String poppedCode = this.PopSourceCode();
 			if(!poppedCode.equals("")) {
-				Code += this.GetIndentString() + poppedCode + "\n";
+				Code += this.GetIndentString() + poppedCode + this.LineFeed;
 			}
 			CurrentNode = CurrentNode.NextNode;
 		}
@@ -79,7 +73,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitWhileNode(WhileNode Node) {
 		Node.CondExpr.Evaluate(this);
-		/*local*/String Program = "while " + this.PopSourceCode() + ":\n";
+		/*local*/String Program = "while " + this.PopSourceCode() + ":" + this.LineFeed;
 		this.VisitBlockWithIndent(Node.LoopBody, true);
 		Program += this.PopSourceCode();
 		this.PushSourceCode(Program);
@@ -88,9 +82,9 @@ public class PythonSourceGenerator extends SourceGenerator {
 	@Override public void VisitDoWhileNode(DoWhileNode Node) {
 		this.VisitBlockWithIndent(Node.LoopBody, true);
 		/*local*/String LoopBody = this.PopSourceCode();
-		/*local*/String Program = "if True:\n" + LoopBody;
+		/*local*/String Program = "if True:" + this.LineFeed + LoopBody;
 		Node.CondExpr.Evaluate(this);
-		Program += "while " + this.PopSourceCode() + ":\n";
+		Program += "while " + this.PopSourceCode() + ":" + this.LineFeed;
 		this.PushSourceCode(Program + LoopBody);
 	}
 
@@ -107,7 +101,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		/*local*/String Iter = this.PopSourceCode();
 		/*local*/String Variable = this.PopSourceCode();
 		
-		/*local*/String Program = "for " + Variable + " in " + Iter + ":\n";
+		/*local*/String Program = "for " + Variable + " in " + Iter + ":" + this.LineFeed;
 		this.VisitBlockWithIndent(Node.LoopBody, true);
 		Program += this.PopSourceCode();
 		this.PushSourceCode(Program);
@@ -127,12 +121,6 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(value);
 	}
 
-	@Override public void VisitNewNode(NewNode Node) {
-		/*local*/String Type = Node.Type.ShortClassName;
-		/*local*/String paramString = this.AppendParams(this.EvaluateParam(Node.Params));
-		this.PushSourceCode(Type + "(" + paramString + ")");
-	}
-
 	@Override public void VisitNullNode(NullNode Node) {
 		this.PushSourceCode("None");
 	}
@@ -143,39 +131,59 @@ public class PythonSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitGetterNode(GetterNode Node) {
 		Node.Expr.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + "." + Node.Method.MethodName);
+		this.PushSourceCode(this.PopSourceCode() + "." + Node.Token.ParsedText);
 	}
 
-	private String[] EvaluateParam(ArrayList<GtNode> Params) {
-		/*local*/int Size = Params.size();
-		/*local*/String[] Programs = new String[Size];
+	protected String[] MakeParamCode1(GtNode Node) {
+		/*local*/String[] ParamCode = new String[1];
+		Node.Evaluate(this);
+		ParamCode[0] = this.PopSourceCode();
+		return ParamCode;
+	}
+	
+	protected String[] MakeParamCode2(GtNode Node, GtNode Node2) {
+		/*local*/String[] ParamCode = new String[2];
+		Node.Evaluate(this);
+		Node2.Evaluate(this);
+		ParamCode[1] = this.PopSourceCode();
+		ParamCode[0] = this.PopSourceCode();
+		return ParamCode;
+	}
+
+	protected String[] MakeParamCode(ArrayList<GtNode> ParamList) {
+		/*local*/int Size = GtStatic.ListSize(ParamList);
+		/*local*/String[] ParamCode = new String[Size];
 		/*local*/int i = 0;
 		while(i < Size) {
-			/*local*/GtNode Node = Params.get(i);
+			/*local*/GtNode Node = ParamList.get(i);
 			Node.Evaluate(this);
-			Programs[Size - i - 1] = this.PopSourceCode();
+			ParamCode[Size - i - 1] = this.PopSourceCode();
 			i = i + 1;
 		}
-		return Programs;
+		return ParamCode;
 	}
 
-	private String AppendParams(String[] Params) {
-		/*local*/String param = "";
-		/*local*/int i = 0;
-		while(i < Params.length) {
-			/*local*/String P = Params[i];
-			if(i != 0) {
-				param += ", ";
+	protected String JoinCode(String BeginCode, int BeginIdx, String[] CodeExprs, String EndCode) {
+		/*local*/String JoinedCode = BeginCode;
+		/*local*/int i = BeginIdx;
+		while(i < CodeExprs.length) {
+			/*local*/String P = CodeExprs[i];
+			if(i != BeginIdx) {
+				JoinedCode += ", ";
 			}
-			param += P;
+			JoinedCode += P;
 			i = i + 1;
 		}
-		return param;
+		return JoinedCode + EndCode;
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
-		/*local*/String paramString = this.AppendParams(this.EvaluateParam(Node.Params));
-		this.PushSourceCode(Node.Method.MethodName + "(" + paramString + ")");
+		/*local*/String[] ParamCode = this.MakeParamCode(Node.Params);
+		this.PushSourceCode(this.JoinCode(ParamCode[0] + "(", 1, ParamCode, ")"));
+//		if(Node.Method != null) {
+//		}
+//		/*local*/String paramString = this.AppendParams(this.EvaluateParam(Node.Params));
+//		this.PushSourceCode(Node.Method.GetNativeFuncName() + "(" + paramString + ")");
 	}
 
 	@Override public void VisitSuffixNode(SuffixNode Node) {	//FIXME
@@ -194,6 +202,15 @@ public class PythonSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitUnaryNode(UnaryNode Node) {
+		if(Node.Method == null) {
+			Node.Expr.Evaluate(this);
+			this.PushSourceCode("(" + Node.Token.ParsedText + this.PopSourceCode() + ")");
+		}
+		else {
+			/*local*/String[] ParamCode = MakeParamCode1(Node.Expr);
+			this.PushSourceCode("(" + Node.Method.ApplyNativeMacro(ParamCode) + ")");
+		}
+
 		/*local*/String MethodName = Node.Token.ParsedText;
 		if(MethodName.equals("+")) {
 		}
@@ -215,58 +232,33 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(MethodName + this.PopSourceCode());
 	}
 
+	@Override public void VisitNewNode(NewNode Node) {
+		/*local*/String Type = Node.Type.ShortClassName;
+		this.PushSourceCode( this.JoinCode(Type + "(", 0, this.MakeParamCode(Node.Params), ")"));
+	}
+
 	@Override public void VisitBinaryNode(BinaryNode Node) {
-		/*local*/String MethodName = Node.Token.ParsedText;
-		if(MethodName.equals("+")) {
-		}
-		else if(MethodName.equals("-")) {
-		}
-		else if(MethodName.equals("*")) {
-		}
-		else if(MethodName.equals("/")) {
-		}
-		else if(MethodName.equals("%")) {
-		}
-		else if(MethodName.equals("<<")) {
-		}
-		else if(MethodName.equals(">>")) {
-		}
-		else if(MethodName.equals("&")) {
-		}
-		else if(MethodName.equals("|")) {
-		}
-		else if(MethodName.equals("^")) {
-		}
-		else if(MethodName.equals("<=")) {
-		}
-		else if(MethodName.equals("<")) {
-		}
-		else if(MethodName.equals(">=")) {
-		}
-		else if(MethodName.equals(">")) {
-		}
-		else if(MethodName.equals("!=")) {
-		}
-		else if(MethodName.equals("==")) {
+		if(Node.Method == null) {
+			Node.RightNode.Evaluate(this);
+			Node.LeftNode.Evaluate(this);
+			this.PushSourceCode("(" + this.PopSourceCode() + " " +  Node.Token.ParsedText + " " + this.PopSourceCode() + ")");
 		}
 		else {
-			LangDeps.DebugP(MethodName + " is not supported binary operator!!");
+			/*local*/String[] ParamCode = MakeParamCode2(Node.LeftNode, Node.RightNode);
+			this.PushSourceCode("(" + Node.Method.ApplyNativeMacro(ParamCode) + ")");
 		}
-		Node.RightNode.Evaluate(this);
-		Node.LeftNode.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + " " + MethodName + " " + this.PopSourceCode());
 	}
 
 	@Override public void VisitAndNode(AndNode Node) {
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + " and " + this.PopSourceCode());
+		this.PushSourceCode("(" + this.PopSourceCode() + " and " + this.PopSourceCode() + ")");
 	}
 
 	@Override public void VisitOrNode(OrNode Node) {
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + " or " + this.PopSourceCode());
+		this.PushSourceCode("(" + this.PopSourceCode() + " or " + this.PopSourceCode() + ")");
 	}
 
 	@Override public void VisitAssignNode(AssignNode Node) {
@@ -282,7 +274,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 			Node.InitNode.Evaluate(this);
 			InitValue = this.PopSourceCode();
 		}
-		Code += " = " + InitValue + "\n";
+		Code += " = " + InitValue + this.LineFeed;
 		this.VisitBlockWithIndent(Node.BlockNode, false);
 		this.PushSourceCode(Code + this.PopSourceCode());
 	}
@@ -295,9 +287,9 @@ public class PythonSourceGenerator extends SourceGenerator {
 		/*local*/String ElseBlock = this.PopSourceCode();
 		/*local*/String ThenBlock = this.PopSourceCode();
 		/*local*/String CondExpr = this.PopSourceCode();
-		/*local*/String Code = "if " + CondExpr + ":\n" + ThenBlock;
+		/*local*/String Code = "if " + CondExpr + ":" + this.LineFeed + ThenBlock;
 		if(Node.ElseNode != null) {
-			Code += "else:\n" + ElseBlock;
+			Code += "else:" + this.LineFeed + ElseBlock;
 		}
 		this.PushSourceCode(Code);
 	}
@@ -314,12 +306,6 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode("return " + retValue);
 	}
 
-	@Override public void VisitLabelNode(LabelNode Node) {
-	}
-
-	@Override public void VisitJumpNode(JumpNode Node) {
-	}
-
 	@Override public void VisitBreakNode(BreakNode Node) {
 		/*local*/String Code = "break";
 		this.PushSourceCode(Code);
@@ -331,16 +317,16 @@ public class PythonSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitTryNode(TryNode Node) {
-		/*local*/String Code = "try:\n";
+		/*local*/String Code = "try:" + this.LineFeed;
 		this.VisitBlockWithIndent(Node.TryBlock, true);
 		Code += this.PopSourceCode();
 		/*local*/LetNode Val = (/*cast*/LetNode) Node.CatchExpr;
-		Code += "except " + Val.Type.toString() + ", " + Val.VariableName + ":\n";
+		Code += "except " + Val.Type.toString() + ", " + Val.VariableName + ":" + this.LineFeed;
 		this.VisitBlockWithIndent(Node.CatchBlock, true);
 		Code += this.PopSourceCode();
 		if(Node.FinallyBlock != null) {
 			this.VisitBlockWithIndent(Node.FinallyBlock, true);
-			Code += " finally:\n" + this.PopSourceCode();
+			Code += " finally:" + this.LineFeed + this.PopSourceCode();
 		}
 		this.PushSourceCode(Code);
 	}
@@ -358,7 +344,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitErrorNode(ErrorNode Node) {
-		/*local*/String Code = "raise Error(\"" + Node.Token.ParsedText + "\")";
+		/*local*/String Code = "raise SoftwareFault(\"" + Node.Token.ParsedText + "\")";
 		this.PushSourceCode(Code);
 	}
 
@@ -401,7 +387,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 
 	@Override public void GenerateMethod(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
 		/*local*/String Function = "def ";
-		Function += Method.MethodName + "(";
+		Function += Method.GetNativeFuncName() + "(";
 		/*local*/int i = 0;
 		/*local*/int size = ParamNameList.size();
 		while(i < size) {
@@ -412,7 +398,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 			i = i + 1;
 		}
 		this.VisitBlockWithIndent(Body, true);
-		Function += "):\n" + this.PopSourceCode() + "\n";
+		Function += "):" + this.LineFeed + this.PopSourceCode() + this.LineFeed;
 		this.WriteLineCode(Function);
 	}
 

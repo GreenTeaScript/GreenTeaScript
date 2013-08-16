@@ -192,6 +192,17 @@ public abstract class LangDeps {
 		return Tuple;
 	}
 
+	public static ArrayList<String> MapGetKeys(GtMap Map) {
+		/*local*/Iterator<String> itr = Map.Map.keySet().iterator();
+		/*local*/ArrayList<String> List = new ArrayList<String>(Map.Map.size());
+		/*local*/int i = 0;
+		while(itr.hasNext()) {
+			List.add(itr.next());
+			i = i + 1;
+		}
+		return List;
+	}
+
 	public final static void Usage() {
 		System.out.println("usage : ");
 		System.out.println("  --lang|-l LANG        Set Target Language");
@@ -309,14 +320,13 @@ public abstract class LangDeps {
 		return "";
 	}
 
-	public static ArrayList<String> MapGetKeys(GtMap Map) {
-		/*local*/Iterator<String> itr = Map.Map.keySet().iterator();
-		/*local*/ArrayList<String> List = new ArrayList<String>(Map.Map.size());
-		/*local*/int i = 0;
-		while(itr.hasNext()) {
-			List.add(itr.next());
-			i = i + 1;
-		}
-		return List;
+	public final static boolean IsSupportedTarget(String TargetCode) {
+		return HasFile("lib/" + TargetCode + "/common.green");
 	}
+	
+	public final static String LoadLibFile(String TargetCode, String FileName) {
+		return LoadFile("lib/" + TargetCode + "/" + FileName);
+	}
+
+	
 }
