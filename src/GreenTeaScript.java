@@ -2030,18 +2030,17 @@ final class DScriptGrammar extends GtGrammar {
 
 	public static GtNode TypeApply(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtNode FuncNode = ParsedTree.TypeCheckNodeAt(0, Gamma, Gamma.FuncType, NoCheckPolicy);
-		/*local*/String MethodName = FuncNode.Token.ParsedText;
-		/*local*/GtType BaseType = null;
+		///*local*/String MethodName = FuncNode.Token.ParsedText;
+		///*local*/GtType BaseType = null;
 		/*local*/ArrayList<GtNode> NodeList = new ArrayList<GtNode>();
 		if(FuncNode.IsError()) {
 			return FuncNode;
 		}
-		NodeList.add(FuncNode);
-		/*local*/int ParamSize = ListSize(ParsedTree.TreeList) - 1;
+		///*local*/int ParamSize = ListSize(ParsedTree.TreeList) - 1;
 		if(FuncNode instanceof GetterNode) { /* Method style .. o.f x, y, .. */
 			/*local*/GtNode BaseNode = ((/*cast*/GetterNode)FuncNode).Expr;
 			NodeList.add(BaseNode);
-			BaseType = FuncNode.Type;
+			//BaseType = FuncNode.Type;
 			return Gamma.CreateErrorNode2(ParsedTree, FuncNode.Type + "undeveloped!!");
 		}
 		/*local*/GtMethod ResolvedFunc = null;
@@ -2103,6 +2102,7 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/GtNode Node = Gamma.Generator.CreateApplyNode(ReturnType, ParsedTree, ResolvedFunc);
 		/*local*/int i = 0;
 		while(i < NodeList.size()) {
+			DebugP("i=" + i + ", " + NodeList.get(i));
 			Node.Append(NodeList.get(i));
 			i = i + 1;
 		}
