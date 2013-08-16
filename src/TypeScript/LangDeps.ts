@@ -17,6 +17,9 @@ Array.prototype.add = function(v){
 }
 
 Array.prototype.get = function(i){
+	if(i >= this.length){
+		throw new RangeError("invalid array index");
+	}
 	return this[i];
 }
 
@@ -25,6 +28,9 @@ Array.prototype.set = function(i, v): void{
 }
 
 Array.prototype.remove = function(i){
+	if(i >= this.length){
+		throw new RangeError("invalid array index");
+	}
 	var v = this[i];
 	this.splice(i, 1);
 	return v;
@@ -45,7 +51,7 @@ interface String {
 }
 
 String.prototype["startsWith"] = function(key): boolean{
-	return this.IndexOf(key, 0) == 0;
+	return this.indexOf(key, 0) == 0;
 }
 
 String.prototype["endsWith"] = function(key): boolean{
@@ -83,6 +89,14 @@ class GtMap {
 }
 
 class LangDeps {
+
+	static StartsWith(self: string, key: string): boolean {
+		return self.indexOf(key, 0) == 0;
+	}
+
+	static EndsWith(self: string, key: string): boolean {
+		return self.lastIndexOf(key, 0) == 0;
+	}
 
 	static Exit(status: number, message: string): void {
 		throw new Error("Exit: " + message);
@@ -202,41 +216,67 @@ class LangDeps {
 		return Tuple;
 	}
 
-	static CodeGenerator(Option: string): GtGenerator{
-		if(Option == "--js"){
-			return new JavaScriptSourceGenerator();
-		}else if(Option == "--java"){
-			return new JavaSourceGenerator();
-		}else if(Option == "--perl"){
-			return new PerlSourceGenerator();
-		}else if(Option == "--bash"){
-			return new JavaScriptSourceGenerator();
-		}else if(Option == "--c"){
-			return new CSourceGenerator();
+	static CodeGenerator(TargetCode: string, OutputFile: string, GeneratorFlag: number): GtGenerator{
+		var Extension: string = (OutputFile == null ? "-" : OutputFile)
+		if(LangDeps.EndsWith(Extension, ".js") || LangDeps.StartsWith(TargetCode, "js") || LangDeps.StartsWith(TargetCode, "javascript")){
+			return new JavaScriptSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+		}else if(LangDeps.EndsWith(Extension, ".pl") || LangDeps.StartsWith(TargetCode, "perl")){
+			return new PerlSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+		}else if(LangDeps.EndsWith(Extension, ".py") || LangDeps.StartsWith(TargetCode, "python")){
+			return new PythonSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+		}else if(LangDeps.EndsWith(Extension, ".sh") || LangDeps.StartsWith(TargetCode, "bash")){
+			return new BashSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+		}else if(LangDeps.EndsWith(Extension, ".java") || LangDeps.StartsWith(TargetCode, "java")){
+			return new JavaSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+		}else if(LangDeps.EndsWith(Extension, ".c") || LangDeps.StartsWith(TargetCode, "c")){
+			return new CSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+		}else if(LangDeps.EndsWith(Extension, "X") || LangDeps.StartsWith(TargetCode, "exe")){
+			throw new Error("JavaByteCodeGenerator is not implemented for this environment");
 		}
-		return new JavaScriptSourceGenerator();
+		return null;
 	}
 
-	static HasFile(FileName: string){
-		throw new Error("LangDeps.LoadFile is not implemented for this environment");
+	static HasFile(FileName: string): boolean{
+		//throw new Error("LangDeps.HasFile is not implemented for this environment");
+		return false;
+	}
+
+	static LoadFile(FileName: string): string{
+		//throw new Error("LangDeps.LoadFile is not implemented for this environment");
 		return "";
 	}
 
-	static LoadFile(FileName: string){
-		throw new Error("LangDeps.LoadFile is not implemented for this environment");
-		return "";
-	}
-
-	static MapGetKeys(Map: GtMap): Array<string> {
+	static MapGetKeys(Map: GtMap): string[] {
 		throw new Error("LangDeps.MapGetKeys is not implemented for this environment");
 		return [];
 	}
 
-	static Usage(): void{
+	static Usage(): void {
 	}
 
 	static ReadLine(prompt: string): string {
+		throw new Error("LangDeps.ReadLine is not implemented for this environment");
 		return "";
+	}
+
+	static LoadLibFile(TargetCode: string, FileName: string): string {
+		return LangDeps.LoadFile("lib/" + TargetCode + "/" + FileName);
+	}
+
+	static WriteCode(OutputFile: string, SourceCode: string): void {
+		if(OutputFile == null){
+			LangDeps.Eval(SourceCode);
+		}
+		else if(OutputFile == "-"){
+			console.log(SourceCode);
+		}
+		else {
+			throw new Error("LangDeps.WriteCode cannon write code into a file in this environment");
+		}
+	}
+
+	static Eval(SourceCode: string): void {
+		eval(SourceCode);
 	}
 }
 
