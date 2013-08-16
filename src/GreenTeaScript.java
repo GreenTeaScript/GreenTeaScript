@@ -3030,8 +3030,13 @@ final class DScriptGrammar extends GtGrammar {
 		NameSpace.DefineExtendedPattern(">=", BinaryOperator | Precedence_CStyleCOMPARE, ParseBinary, TypeBinary);
 		NameSpace.DefineExtendedPattern("==", BinaryOperator | Precedence_CStyleEquals, ParseBinary, TypeBinary);
 		NameSpace.DefineExtendedPattern("!=", BinaryOperator | Precedence_CStyleEquals, ParseBinary, TypeBinary);
-		//NameSpace.DefineExtendedPattern("!==", BinaryOperator | Precedence_CStyleEquals, ParseBinary, TypeBinary);
 
+		NameSpace.DefineExtendedPattern("<<", BinaryOperator | Precedence_CStyleSHIFT, ParseBinary, TypeBinary);
+		NameSpace.DefineExtendedPattern(">>", BinaryOperator | Precedence_CStyleSHIFT, ParseBinary, TypeBinary);
+		NameSpace.DefineExtendedPattern("&", BinaryOperator | Precedence_CStyleBITAND, ParseBinary, TypeBinary);
+		NameSpace.DefineExtendedPattern("|", BinaryOperator | Precedence_CStyleBITOR, ParseBinary, TypeBinary);
+		NameSpace.DefineExtendedPattern("^", BinaryOperator | Precedence_CStyleBITXOR, ParseBinary, TypeBinary);
+		
 		NameSpace.DefineExtendedPattern("=", BinaryOperator | Precedence_CStyleAssign | LeftJoin, ParseBinary, FunctionC(this, "TypeAssign"));
 		NameSpace.DefineExtendedPattern("&&", BinaryOperator | Precedence_CStyleAND, ParseBinary, FunctionC(this, "TypeAnd"));
 		NameSpace.DefineExtendedPattern("||", BinaryOperator | Precedence_CStyleOR, ParseBinary, FunctionC(this, "TypeOr"));
@@ -3476,8 +3481,6 @@ final class GtClassContext extends GtStatic {
 }
 
 public class GreenTeaScript extends GtStatic {
-
-	
 	public final static void ParseCommandOption(String[] Args) {
 		/*local*/String TargetCode = "exe";  // self executable
 		/*local*/int GeneratorFlag = 0;
