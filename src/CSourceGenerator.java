@@ -152,8 +152,8 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	private String GenerateMacro(ApplyNode Node) {
-		if(Node.Method.SourceMacro != null) {
-			return Node.Method.SourceMacro;
+		if(Node.Method.Is(NativeMacroMethod)) {
+			return Node.Method.GetNativeMacro();  // I don't understand what you want to do here at all.
 		}
 		/*local*/String Template = Node.Method.GetNativeFuncName() + "(";
 		/*local*/int i = 0;
