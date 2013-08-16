@@ -962,26 +962,46 @@ class GtMethod extends GtStatic {
 		return (/*cast*/String)this.NativeRef;
 	}
 
-	public String ApplyNativeMacro(String[] ParamCode) {
+	public String ApplyNativeMacro(int BaseIndex, String[] ParamCode) {
 		/*local*/String NativeMacro = IsFlag(this.MethodFlag, NativeMacroMethod) ? (/*cast*/String)this.NativeRef : "$1 " + this.MethodName + " $2";
-		/*local*/String Code = NativeMacro.replace("$1", ParamCode[0]);
-		if(ParamCode.length == 1) {
+		/*local*/String Code = NativeMacro.replace("$1", ParamCode[BaseIndex]);
+		if(ParamCode.length == BaseIndex + 1) {
 			Code = Code.replace("$2", "");
 		}
 		else {
-			Code = Code.replace("$2", ParamCode[1]);
+			Code = Code.replace("$2", ParamCode[BaseIndex + 1]);
 		}
 		return Code;
 	}
 }
 
 class GtPolyFunc {
+	/*field*/public GtNameSpace NameSpace;
 	/*field*/public ArrayList<GtMethod> FuncList;
-	GtPolyFunc/*constructor*/(GtMethod Func1, GtMethod Func2) {
+	GtPolyFunc/*constructor*/(GtNameSpace NameSpace, GtMethod Func1, GtMethod Func2) {
+		this.NameSpace = NameSpace;
 		this.FuncList = new ArrayList<GtMethod>();
 		this.FuncList.add(Func1);
 		this.FuncList.add(Func2);
 	}
+	public final GtPolyFunc Append(GtNameSpace NameSpace, GtMethod Func) {
+		/*local*/GtPolyFunc PolyFunc = this;
+		if(this.NameSpace != NameSpace) {
+			PolyFunc = new GtPolyFunc(NameSpace, this.FuncList.get(0), this.FuncList.get(1));
+			/*local*/int i = 2;
+			while(i < this.FuncList.size()) {
+				PolyFunc.FuncList.add(this.FuncList.get(i));
+				i = i + 1;
+			}
+		}
+		PolyFunc.FuncList.add(Func);
+		return PolyFunc;
+	}
+	public GtMethod IncrementalMatch(int BaseIndex, ArrayList<GtNode> NodeList, int ParamIndex) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
 }
 
 

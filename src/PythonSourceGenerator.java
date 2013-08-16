@@ -179,11 +179,17 @@ public class PythonSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
 		/*local*/String[] ParamCode = this.MakeParamCode(Node.Params);
-		this.PushSourceCode(this.JoinCode(ParamCode[0] + "(", 1, ParamCode, ")"));
-//		if(Node.Method != null) {
-//		}
-//		/*local*/String paramString = this.AppendParams(this.EvaluateParam(Node.Params));
-//		this.PushSourceCode(Node.Method.GetNativeFuncName() + "(" + paramString + ")");
+		if(Node.Method == null) {
+			this.PushSourceCode(this.JoinCode(ParamCode[0] + "(", 1, ParamCode, ")"));
+		}
+		else if(Node.Method.Is(NativeMethod)) {
+			this.PushSourceCode(this.JoinCode(ParamCode[0] + "." + Node.Method.MethodName + "(", 1, ParamCode, ")"));			
+		}
+		else if(Node.Method.Is(NativeMacroMethod)) {
+			this.PushSourceCode(Node.Method.ApplyNativeMacro(1, ParamCode));						
+		}else {
+			this.PushSourceCode(this.JoinCode(Node.Method.GetNativeFuncName() + "(", 1, ParamCode, ")"));						
+		}
 	}
 
 	@Override public void VisitSuffixNode(SuffixNode Node) {	//FIXME
@@ -201,6 +207,11 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(this.PopSourceCode() + MethodName);
 	}
 
+	@Override public void VisitNewNode(NewNode Node) {
+		/*local*/String Type = Node.Type.ShortClassName;
+		this.PushSourceCode( this.JoinCode(Type + "(", 0, this.MakeParamCode(Node.Params), ")"));
+	}
+
 	@Override public void VisitUnaryNode(UnaryNode Node) {
 		if(Node.Method == null) {
 			Node.Expr.Evaluate(this);
@@ -208,33 +219,8 @@ public class PythonSourceGenerator extends SourceGenerator {
 		}
 		else {
 			/*local*/String[] ParamCode = MakeParamCode1(Node.Expr);
-			this.PushSourceCode("(" + Node.Method.ApplyNativeMacro(ParamCode) + ")");
+			this.PushSourceCode("(" + Node.Method.ApplyNativeMacro(0, ParamCode) + ")");
 		}
-
-		/*local*/String MethodName = Node.Token.ParsedText;
-		if(MethodName.equals("+")) {
-		}
-		else if(MethodName.equals("-")) {
-		}
-		else if(MethodName.equals("~")) {
-		}
-		else if(MethodName.equals("!")) {
-			MethodName = "not ";
-		}
-//		else if(MethodName.equals("++")) {	//FIXME
-//		}
-//		else if(MethodName.equals("--")) {
-//		}
-		else {
-			LangDeps.DebugP(MethodName + " is not supported unary operator!!");
-		}
-		Node.Expr.Evaluate(this);
-		this.PushSourceCode(MethodName + this.PopSourceCode());
-	}
-
-	@Override public void VisitNewNode(NewNode Node) {
-		/*local*/String Type = Node.Type.ShortClassName;
-		this.PushSourceCode( this.JoinCode(Type + "(", 0, this.MakeParamCode(Node.Params), ")"));
 	}
 
 	@Override public void VisitBinaryNode(BinaryNode Node) {
@@ -245,7 +231,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		}
 		else {
 			/*local*/String[] ParamCode = MakeParamCode2(Node.LeftNode, Node.RightNode);
-			this.PushSourceCode("(" + Node.Method.ApplyNativeMacro(ParamCode) + ")");
+			this.PushSourceCode("(" + Node.Method.ApplyNativeMacro(0, ParamCode) + ")");
 		}
 	}
 

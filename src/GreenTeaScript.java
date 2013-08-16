@@ -1362,9 +1362,17 @@ final class GtTypeEnv extends GtStatic {
 		if(Value == null) {
 			this.NameSpace.DefineSymbol(Method.MethodName, Method);
 		}
+		else if(Value instanceof GtMethod) {
+			GtPolyFunc PolyFunc = new GtPolyFunc(this.NameSpace, (/*cast*/GtMethod)Value, Method);
+			this.NameSpace.DefineSymbol(Method.MethodName, PolyFunc);
+		}
+		else if(Value instanceof GtPolyFunc) {
+			GtPolyFunc PolyFunc = (/*cast*/GtPolyFunc)Value;
+			PolyFunc = PolyFunc.Append(this.NameSpace, Method);
+			this.NameSpace.DefineSymbol(Method.MethodName, PolyFunc);
+		}
 		this.Method = Method;
 	}
-
 }
 
 // NameSpace
@@ -1786,11 +1794,11 @@ final class DScriptGrammar extends GtGrammar {
 		if(VariableInfo != null) {
 			return Gamma.Generator.CreateLocalNode(VariableInfo.Type, ParsedTree, VariableInfo.LocalName);
 		}
-		/*local*/Object ConstValue = (/*cast*/Object) Gamma.NameSpace.GetSymbol(Name);
+		/*local*/Object ConstValue = (/*cast*/Object) ParsedTree.NameSpace.GetSymbol(Name);
 		if(ConstValue != null) {
 			return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(ConstValue), ParsedTree, ConstValue);
 		}
-		GtNode Node = Gamma.Generator.CreateConstNode(Gamma.AnyType, ParsedTree, Name);
+		GtNode Node = Gamma.Generator.CreateLocalNode(Gamma.AnyType, ParsedTree, Name + Gamma.Generator.BlockComment("undefined"));
 		return Gamma.ReportTypeResult(ParsedTree, Node, ErrorLevel, "undefined name: " + Name);
 	}
 
@@ -2021,26 +2029,82 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/String MethodName = FuncNode.Token.ParsedText;
 		/*local*/GtType BaseType = null;
 		/*local*/ArrayList<GtNode> NodeList = new ArrayList<GtNode>();
-		/*local*/int ParamIndex = 1;
-		/*local*/int ParamSize = ListSize(ParsedTree.TreeList) - 1;
 		if(FuncNode.IsError()) {
 			return FuncNode;
 		}
-		if(FuncNode instanceof GetterNode) {
+		NodeList.add(FuncNode);
+		/*local*/int ParamSize = ListSize(ParsedTree.TreeList) - 1;
+		if(FuncNode instanceof GetterNode) { /* Method style .. o.f x, y, .. */
 			/*local*/GtNode BaseNode = ((/*cast*/GetterNode)FuncNode).Expr;
 			NodeList.add(BaseNode);
 			BaseType = FuncNode.Type;
+			return Gamma.CreateErrorNode2(ParsedTree, FuncNode.Type + "undeveloped!!");
 		}
-		else if(ParamSize > 0) {
-			/*local*/GtNode BaseNode = ParsedTree.TypeCheckNodeAt(1, Gamma, Gamma.AnyType, DefaultTypeCheckPolicy);
-			NodeList.add(BaseNode);
-			ParamIndex = 2;
-			BaseType = BaseNode.Type;
+		/*local*/GtMethod UniqueMethod = null;
+		/*local*/int ParamIndex = 1;
+		NodeList.add(FuncNode);
+		if(FuncNode instanceof ConstNode) { /* Func style .. f x, y .. */
+			/*local*/Object Func = ((/*cast*/ConstNode)FuncNode).ConstValue;
+			if(Func instanceof GtMethod) {
+				UniqueMethod = (/*cast*/GtMethod)Func;
+			}
+			if(Func instanceof GtPolyFunc) {
+				/*local*/GtPolyFunc PolyFunc = (/*cast*/GtPolyFunc)Func;
+				while(ParamIndex < ListSize(ParsedTree.TreeList)) {
+					/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(ParamIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+					if(Node.IsError()) {
+						return Node;
+					}
+					NodeList.add(Node);
+					ParamIndex = ParamIndex + 1;
+					UniqueMethod = PolyFunc.IncrementalMatch(1, NodeList, ParamIndex);
+					if(UniqueMethod != null) {
+						((/*cast*/ConstNode)FuncNode).ConstValue = UniqueMethod;
+						((/*cast*/ConstNode)FuncNode).Type = UniqueMethod.GetFuncType();
+						break;
+					}
+				}
+				if(UniqueMethod != null) {
+					
+				}
+			}
+		}
+		/*local*/GtType ReturnType = Gamma.AnyType;
+		if(FuncNode.Type == Gamma.AnyType) {
+			ParamIndex = 1;
+			while(ParamIndex < ListSize(ParsedTree.TreeList)) {
+				/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(ParamIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+				if(Node.IsError()) {
+					return Node;
+				}
+				NodeList.add(Node);
+				ParamIndex = ParamIndex + 1;
+			}
+		}
+		else if(FuncNode.Type.BaseClass == Gamma.FuncType) {
+			/*local*/GtType FuncType = FuncNode.Type;
+			ParamIndex = 1;
+			while(ParamIndex < ListSize(ParsedTree.TreeList)) {
+				/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(ParamIndex, Gamma, FuncType.Types[ParamIndex], DefaultTypeCheckPolicy);
+				if(Node.IsError()) {
+					return Node;
+				}
+				NodeList.add(Node);
+				ParamIndex = ParamIndex + 1;
+			}
+			ReturnType = FuncType.Types[0];
 		}
 		else {
-			BaseType = Gamma.VoidType;
+			return Gamma.CreateErrorNode2(ParsedTree, FuncNode.Type + " is not applicapable");
 		}
-		return DScriptGrammar.TypeFuncParam(Gamma, ParsedTree, MethodName, BaseType, NodeList, ParamIndex, ParamSize);
+		/*local*/GtNode Node = Gamma.Generator.CreateApplyNode(ReturnType, ParsedTree, null);
+		/*local*/int i = 0;
+		while(i < NodeList.size()) {
+			Node.Append(NodeList.get(i));
+			i = i + 1;
+		}
+		return Node;
+
 	}
 
 	private static GtNode TypeFuncParam(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, String MethodName, GtType BaseType, ArrayList<GtNode> NodeList, int ParamIndex, int ParamSize) {
@@ -2557,8 +2621,9 @@ final class DScriptGrammar extends GtGrammar {
 
 	public static GtNode TypeFuncDecl(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/int MethodFlag = Gamma.Generator.ParseMethodFlag(0, ParsedTree);
-		Gamma = new GtTypeEnv(ParsedTree.NameSpace);  // creation of new type environment
 		/*local*/String MethodName = (/*cast*/String)ParsedTree.GetSyntaxTreeAt(FuncDeclName).ConstValue;
+		// TODO Check MethodName
+		Gamma = new GtTypeEnv(ParsedTree.NameSpace);  // creation of new type environment
 		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
 		/*local*/GtType ReturnType = ParsedTree.GetSyntaxTreeAt(FuncDeclReturnType).GetParsedType();
 		TypeList.add(ReturnType);
@@ -2574,9 +2639,11 @@ final class DScriptGrammar extends GtGrammar {
 			ParamBase += 3;
 			i = i + 1;
 		}
-
 		/*local*/GtMethod Method = null;
 		/*local*/String NativeMacro =  (/*cast*/String)ParsedTree.ConstValue;
+		if(NativeMacro != null) {
+			MethodFlag |= NativeMacroMethod;
+		}
 		if(NativeMacro == null && !ParsedTree.HasNodeAt(FuncDeclBlock)) {
 			MethodFlag |= AbstractMethod;
 		}
@@ -3122,6 +3189,9 @@ final class GtClassContext extends GtStatic {
 	public final GtType GuessType (Object Value) {
 		if(Value instanceof GtMethod) {
 			return ((/*cast*/GtMethod)Value).GetFuncType();
+		}
+		else if(Value instanceof GtPolyFunc) {
+			return this.FuncType;
 		}
 		else if(Value instanceof GreenTeaTopObject) {
 			return ((/*cast*/GreenTeaTopObject)Value).GreenType;
