@@ -29,12 +29,8 @@ import java.util.ArrayList;
 //GreenTea Generator should be written in each language.
 
 public class CSourceGenerator extends SourceGenerator {
-	/*field*/public final String[] DefaultTypes = {"void", "int", "boolean", "float", "double", "String", "Object", "Array", "Func", "var", "any"};
-	/*field*/public final GtMap DefinedClass;
-	
 	CSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
-		this.DefinedClass = new GtMap();
 	}
 
 	public void VisitBlockEachStatementWithIndent(GtNode Node, boolean NeedBlock) {
@@ -360,19 +356,6 @@ public class CSourceGenerator extends SourceGenerator {
 		return Code;
 	}
 
-	protected boolean IsDefiendType(String TypeName) {
-		/*local*/int i = 0;
-		while(i < this.DefaultTypes.length) {
-			if(this.DefaultTypes[i].equals(TypeName)) {
-				return true;
-			}
-			i = i + 1;
-		}
-		// FIXME care about "var", "any"
-		
-		return false;
-	}
-
 	@Override public void GenerateClassField(GtNameSpace NameSpace, GtType Type, ArrayList<GtVariableInfo> FieldList) {
 		/*local*/int i = 0;
 		/*local*/String Program = this.GetIndentString() + "struct " + Type.ShortClassName + "{\n";
@@ -385,7 +368,6 @@ public class CSourceGenerator extends SourceGenerator {
 			/*local*/GtType VarType = VarInfo.Type;
 			/*local*/String VarName = VarInfo.Name;
 			Program += this.GetIndentString() + VarType.ShortClassName + " " + VarName + ";\n";
-			this.DefinedClass.put(Type.ShortClassName, Program);
 			ArrayList<GtType> ParamList = new ArrayList<GtType>();
 			ParamList.add(VarType);
 			ParamList.add(Type);
@@ -408,9 +390,6 @@ public class CSourceGenerator extends SourceGenerator {
 
 	@Override public void AddClass(GtType Type) {
 		/*local*/String TypeName = Type.ShortClassName;
-		if(this.IsDefiendType(TypeName) == true) {
-			return;
-		}
 		/*local*/String Program = this.GetIndentString() + "typedef struct " + TypeName;
 		this.WriteLineCode(Program + " " + TypeName + ";");
 	}
