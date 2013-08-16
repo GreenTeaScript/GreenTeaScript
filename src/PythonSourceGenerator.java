@@ -220,7 +220,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 			this.PushSourceCode("(" + Node.Token.ParsedText + this.PopSourceCode() + ")");
 		}
 		else {
-			/*local*/String[] ParamCode = MakeParamCode1(Node.Expr);
+			/*local*/String[] ParamCode = this.MakeParamCode1(Node.Expr);
 			this.PushSourceCode("(" + Node.Method.ApplyNativeMacro(0, ParamCode) + ")");
 		}
 	}
@@ -232,7 +232,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 			this.PushSourceCode("(" + this.PopSourceCode() + " " +  Node.Token.ParsedText + " " + this.PopSourceCode() + ")");
 		}
 		else {
-			/*local*/String[] ParamCode = MakeParamCode2(Node.LeftNode, Node.RightNode);
+			/*local*/String[] ParamCode = this.MakeParamCode2(Node.LeftNode, Node.RightNode);
 			this.PushSourceCode("(" + Node.Method.ApplyNativeMacro(0, ParamCode) + ")");
 		}
 	}
