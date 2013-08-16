@@ -108,17 +108,19 @@ public class PythonSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitConstNode(ConstNode Node) {
-		/*local*/String value = this.StringfyConstValue(Node.ConstValue);
-		if(Node.Type.equals(Node.Type.Context.BooleanType) || 
-				value.equals("true") || value.equals("false")) {
-			if(value.equals("true")) {
-				value = "True";
+		/*local*/String StringfiedValue = this.StringfyConstValue(Node.ConstValue);
+		if(Node.ConstValue instanceof GtMethod) {
+			StringfiedValue = ((/*cast*/GtMethod)Node.ConstValue).GetNativeFuncName();
+		}
+		else if(Node.Type.equals(Node.Type.Context.BooleanType) || StringfiedValue.equals("true") || StringfiedValue.equals("false")) {
+			if(StringfiedValue.equals("true")) {
+				StringfiedValue = "True";
 			}
-			else if(value.equals("false")) {
-				value = "False";
+			else if(StringfiedValue.equals("false")) {
+				StringfiedValue = "False";
 			}
 		}
-		this.PushSourceCode(value);
+		this.PushSourceCode(StringfiedValue);
 	}
 
 	@Override public void VisitNullNode(NullNode Node) {
