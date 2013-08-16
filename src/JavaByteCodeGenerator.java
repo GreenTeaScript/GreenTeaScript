@@ -40,6 +40,7 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 
 // GreenTea Generator should be written in each language.
@@ -81,14 +82,20 @@ class LabelStack {
 
 class GtClassNode implements Opcodes {
 	final String					name;
+	final String					superClass;
 	final Map<String, MethodNode>	methods	= new HashMap<String, MethodNode>();
+	final Map<String, FieldNode>	fields	= new HashMap<String, FieldNode>();
 
-	public GtClassNode(String name) {
+	public GtClassNode(String name, String superClass) {
 		this.name = name;
+		this.superClass = superClass;
 	}
 
 	public void accept(ClassVisitor cv) {
-		cv.visit(V1_6, ACC_PUBLIC, this.name, null, "java/lang/Object", null);
+		cv.visit(V1_6, ACC_PUBLIC, this.name, null, this.superClass, null);
+		for(FieldNode f : this.fields.values()) {
+			f.accept(cv);
+		}
 		for(MethodNode m : this.methods.values()) {
 			m.accept(cv);
 		}
@@ -96,6 +103,9 @@ class GtClassNode implements Opcodes {
 
 	public MethodNode getMethodNode(String name) {
 		return this.methods.get(name);
+	}
+	public FieldNode getFieldNode(String name) {
+		return this.fields.get(name);
 	}
 }
 
@@ -566,8 +576,8 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		return null;
 	}
 
-	private final String defaultClassName = "Script";
-	private GtClassNode globalNode = new GtClassNode(defaultClassName);
+	private final String defaultClassName = "Global";
+	private GtClassNode globalNode = new GtClassNode(defaultClassName, "java/lang/Object");
 
 	@Override public void GenerateMethod(GtMethod Method, ArrayList<String> NameList, GtNode Body) {
 		if(NMMap.Exist(Method)) {
@@ -605,6 +615,36 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 			e.printStackTrace();
 		}
 	}
+
+	@Override public void GenerateClassField(GtNameSpace NameSpace, GtType Type, ArrayList<GtVariableInfo> FieldList) {
+		String className = Type.ShortClassName;
+		GtClassNode superClassNode = TypeResolver.FindClassNode(Type.SuperClass.ShortClassName);
+		String superClassName = superClassNode != null ? superClassNode.name : "java/lang/Object";
+		GtClassNode classNode = new GtClassNode(className, superClassName);
+		TypeResolver.StoreClassNode(classNode);
+		// generate field
+		for(GtVariableInfo field : FieldList) {
+			int access = ACC_PUBLIC;
+			String fieldName = field.LocalName;
+			Type fieldType = TypeResolver.GetAsmType(field.Type);
+			FieldNode node = new FieldNode(access, fieldName, fieldType.getDescriptor(), null, null);
+			classNode.fields.put(fieldName, node);
+		}
+		// generate default constructor (for jvm)
+		MethodNode constructor = new MethodNode(ACC_PUBLIC, "<init>", "()V", null, null);
+		constructor.visitVarInsn(ALOAD, 0);
+		constructor.visitMethodInsn(INVOKESPECIAL, superClassName, "<init>", "()V");
+		constructor.visitInsn(RETURN);
+		classNode.methods.put("<init>", constructor);
+		try {
+			this.OutputClassFile(className, ".");
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+//	@Override public void AddClass(GtType Type) {
+//	}
 
 	@Override public void InitContext(GtClassContext Context) {
 		this.Context = Context;
@@ -658,6 +698,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		String owner = type.getInternalName();
 		this.Builder.methodVisitor.visitTypeInsn(NEW, owner);
 		this.Builder.methodVisitor.visitInsn(DUP);
+		this.Builder.methodVisitor.visitMethodInsn(INVOKESPECIAL, owner, "<init>", "()V");
 		this.Builder.typeStack.push(type);
 	}
 
