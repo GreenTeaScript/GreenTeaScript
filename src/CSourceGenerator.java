@@ -207,7 +207,7 @@ public class CSourceGenerator extends SourceGenerator {
 		/*local*/String Type = Node.DeclType.ShortClassName;
 		/*local*/String VarName = Node.VariableName;
 		/*local*/String Code = Type + " " + VarName;
-		/*local*/boolean CreateNewScope = false;
+		/*local*/boolean CreateNewScope = true;
 		if(Node.InitNode != null) {
 			Node.InitNode.Evaluate(this);
 			Code += " = " + this.PopSourceCode();

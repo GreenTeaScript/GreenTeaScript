@@ -1,10 +1,12 @@
 #include "GreenTea.h"
-struct X{
+typedef struct X *X;
+struct X {
    record __base;
 };
 static int f__012(X this0){
 }
-struct Y{
+typedef struct Y *Y;
+struct Y {
    record __base;
 };
 static int f__013(Y this0){

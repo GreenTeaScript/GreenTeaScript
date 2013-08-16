@@ -1,0 +1,7 @@
+int f(int left, int right) {
+    return left;
+}
+
+@Export void main() {
+    assert(f(10, null) == 10);
+}
