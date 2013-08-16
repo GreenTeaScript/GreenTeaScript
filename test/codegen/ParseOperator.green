@@ -89,7 +89,7 @@ void g2() {
     10 >= m;
 }
 
-void const3() {
+void g3() {
     const n = 10;
     const m = 20;
     n +  m;
@@ -104,5 +104,4 @@ void const3() {
     n >  m;
     n >= m;
 }
-
 
