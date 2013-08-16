@@ -2444,6 +2444,7 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
 		/*local*/int ParamIndex = 1;
 		/*local*/int ParamSize = ListSize(ParsedTree.TreeList);
+		ParamList.add(null); // FIXME ???
 		ParamList.add(Gamma.Generator.CreateNewNode(ReturnType, ParsedTree));
 		return DScriptGrammar.TypeFuncParam(Gamma, ParsedTree, MethodName, ReturnType, ParamList, ParamIndex, ParamSize);
 	}

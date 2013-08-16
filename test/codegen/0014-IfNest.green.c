@@ -1,5 +1,4 @@
 #include "GreenTea.h"
-#include "GreenTea.h"
 static int f__0505(int a0, int b1){
    int n2 = 1;
    {
@@ -22,5 +21,6 @@ static int f__0505(int a0, int b1){
       return n2;
    };
 }
-f__0505(10000 ,20000);
+f__0505(10000, 20000);
+
 

@@ -142,7 +142,7 @@ public class CSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
 		/*local*/String Program = this.GenerateMacro(Node);
-		/*local*/int i = 0;
+		/*local*/int i = 1;
 		while(i < GtStatic.ListSize(Node.Params)) {
 			Node.Params.get(i).Evaluate(this);
 			Program = Program.replace("$" + i, this.PopSourceCode());
@@ -152,15 +152,28 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	private String GenerateMacro(ApplyNode Node) {
-		if(Node.Method.Is(NativeMacroMethod)) {
-			return Node.Method.GetNativeMacro();  // I don't understand what you want to do here at all.
+		/*local*/int BeginIdx = 1;
+		/*local*/String Template = "";
+		if(Node.Method == null) {
+			Template = "$1";
+			BeginIdx = 2;
 		}
-		/*local*/String Template = Node.Method.GetNativeFuncName() + "(";
-		/*local*/int i = 0;
+		else if(Node.Method.Is(NativeMethod)) {
+			Template = "$1." + Node.Method.MethodName;
+			BeginIdx = 2;
+		}
+		else if(Node.Method.Is(NativeMacroMethod)) {
+			return Node.Method.GetNativeMacro();
+		}
+		else {
+			Template = Node.Method.GetNativeFuncName();
+		}
+		Template += "(";
+		/*local*/int i = BeginIdx;
 		/*local*/int ParamSize = Node.Params.size();
 		while(i < ParamSize) {
-			if(i != 0) {
-				Template += " ,";
+			if(i != BeginIdx) {
+				Template += ", ";
 			}
 			Template += "$" + i;
 			i = i + 1;
