@@ -21,8 +21,8 @@ $(function () {
 			DebugPrintOption = true;
 			var generatedCode = Context.Eval(src);
 			editor_js.setValue(generatedCode);
-			var error = Context.GetReportedErrors().join("\n");
-			$("#editor-error").text(error.length == 0 ? "No Error" : error);
+			var error = Context.GetReportedErrors().join("<br>");
+			$("#editor-error").html(error.length == 0 ? "No Error" : error);
 		//}catch(e){
 		//	$("#editor-error").text(e.toString());
 		//}
