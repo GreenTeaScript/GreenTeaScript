@@ -51,7 +51,7 @@ public class BashSourceGenerator extends SourceGenerator {
 			CurrentNode.Evaluate(this);
 			/*local*/String poppedCode = this.PopSourceCode();
 			if(!poppedCode.equals("")) {
-				Code += this.GetIndentString() + poppedCode + "\n";
+				Code += this.GetIndentString() + poppedCode + this.LineFeed;
 			}
 			CurrentNode = CurrentNode.NextNode;
 		}
@@ -82,7 +82,7 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitWhileNode(WhileNode Node) {
 		Node.CondExpr.Evaluate(this);
-		/*local*/String Program = "while " + this.PopSourceCode() + " ;do\n";
+		/*local*/String Program = "while " + this.PopSourceCode() + " ;do" + this.LineFeed;
 		this.VisitBlockWithIndent(Node.LoopBody, true);
 		Program += this.PopSourceCode() + "done";
 		this.PushSourceCode(Program);
@@ -91,9 +91,9 @@ public class BashSourceGenerator extends SourceGenerator {
 	@Override public void VisitDoWhileNode(DoWhileNode Node) {
 		this.VisitBlockWithIndent(Node.LoopBody, true);
 		/*local*/String LoopBody = this.PopSourceCode();
-		/*local*/String Program = "if true ;then\n" + LoopBody + "fi\n";
+		/*local*/String Program = "if true ;then" + this.LineFeed + LoopBody + "fi" + this.LineFeed;
 		Node.CondExpr.Evaluate(this);
-		Program += "while " + this.PopSourceCode() + " ;do\n";
+		Program += "while " + this.PopSourceCode() + " ;do" + this.LineFeed;
 		Program += LoopBody + "done";
 		this.PushSourceCode(Program);
 	}
@@ -104,7 +104,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/String Cond = this.PopSourceCode();
 		/*local*/String Iter = this.PopSourceCode();
 		
-		/*local*/String Program = "for((; " + Cond  + "; " + Iter + " )) ;do\n";
+		/*local*/String Program = "for((; " + Cond  + "; " + Iter + " )) ;do" + this.LineFeed;
 		this.VisitBlockWithIndent(Node.LoopBody, true);
 		Program += this.PopSourceCode() + "done";
 		this.PushSourceCode(Program);
@@ -116,7 +116,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/String Variable = this.PopSourceCode();
 		/*local*/String Iter = this.PopSourceCode();
 		
-		/*local*/String Program = "for " + Variable + " in " + "${" + Iter + "[@]} ;do/n";
+		/*local*/String Program = "for " + Variable + " in " + "${" + Iter + "[@]} ;do" + this.LineFeed;
 		this.VisitBlockWithIndent(Node.LoopBody, true);
 		Program += this.PopSourceCode() + "done";
 		this.PushSourceCode(Program);
@@ -167,7 +167,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
-		/*local*/String Program = Node.Method.MethodName + " ";
+		/*local*/String Program = Node.Method.GetNativeFuncName() + " ";
 		/*local*/String[] Params = this.EvaluateParam(Node.Params);
 		/*local*/int i = 0;
 		while(i < Params.length) {
@@ -316,14 +316,14 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/String VarName = Node.VariableName;
 		/*local*/String Code = "";
 		if(this.inFunc) {
-			Code += "local " + VarName + "\n" + this.GetIndentString();
+			Code += "local " + VarName + this.LineFeed + this.GetIndentString();
 		}
 		Code += VarName;
 		if(Node.InitNode != null) {
 			Node.InitNode.Evaluate(this);
 			Code += "=" + this.ResolveValueType(Node.InitNode, this.PopSourceCode());
 		}
-		Code +=  "\n";
+		Code +=  this.LineFeed;
 		this.VisitBlockWithIndent(Node.BlockNode, false);
 		this.PushSourceCode(Code + this.PopSourceCode());
 	}
@@ -336,9 +336,9 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/String ElseBlock = this.PopSourceCode();
 		/*local*/String ThenBlock = this.PopSourceCode();
 		/*local*/String CondExpr = this.PopSourceCode();
-		/*local*/String Code = "if " + CondExpr + " ;then\n" + ThenBlock;
+		/*local*/String Code = "if " + CondExpr + " ;then" + this.LineFeed + ThenBlock;
 		if(Node.ElseNode != null) {
-			Code += "else\n" + ElseBlock;
+			Code += "else" + this.LineFeed + ElseBlock;
 		}
 		Code += "fi";
 		this.PushSourceCode(Code);
@@ -355,15 +355,15 @@ public class BashSourceGenerator extends SourceGenerator {
 			if(Node.Expr instanceof ApplyNode || Node.Expr instanceof CommandNode) {
 				if(Node.Type.equals(Node.Type.Context.BooleanType) || 
 						Node.Type.equals(Node.Type.Context.IntType)) {
-					/*local*/String Code = "local value=" + ret + "\n";
-					Code += this.GetIndentString() + "local ret=$?\n";
-					Code += this.GetIndentString() + "echo $value\n";
-					Code += this.GetIndentString() + "return $ret\n";
+					/*local*/String Code = "local value=" + ret + this.LineFeed;
+					Code += this.GetIndentString() + "local ret=$?" + this.LineFeed;
+					Code += this.GetIndentString() + "echo $value" + this.LineFeed;
+					Code += this.GetIndentString() + "return $ret" + this.LineFeed;
 					this.PushSourceCode(Code);
 					return;
 				}
 			}
-			this.PushSourceCode("echo " + ret + "\n" + this.GetIndentString() + "return 0");
+			this.PushSourceCode("echo " + ret + this.LineFeed + this.GetIndentString() + "return 0");
 		}
 	}
 
@@ -449,20 +449,20 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/String MethodName = "execCmd";
 		/*local*/String RunnableCmd = cmd;
 		if(Node.Type.equals(Node.Type.Context.StringType)) {
-			RunnableCmd = "function " + MethodName + this.cmdCounter + "() {\n";
-			RunnableCmd += this.GetIndentString() + "echo $(" + cmd + ")\n";
-			RunnableCmd += this.GetIndentString() + "return 0\n}\n";
+			RunnableCmd = "function " + MethodName + this.cmdCounter + "() {" + this.LineFeed;
+			RunnableCmd += this.GetIndentString() + "echo $(" + cmd + ")" + this.LineFeed;
+			RunnableCmd += this.GetIndentString() + "return 0" + this.LineFeed + "}" + this.LineFeed;
 			this.WriteLineCode(RunnableCmd);
 			RunnableCmd = MethodName + this.cmdCounter;
 			this.cmdCounter++;
 		}
 		else if(Node.Type.equals(Node.Type.Context.IntType) || 
 				Node.Type.equals(Node.Type.Context.BooleanType)) {
-			RunnableCmd = "function " + MethodName + this.cmdCounter + "() {\n";
-			RunnableCmd += this.GetIndentString() + cmd + " >&2\n";
-			RunnableCmd += this.GetIndentString() + "local ret=$?\n";
-			RunnableCmd += this.GetIndentString() + "echo $ret\n";
-			RunnableCmd += this.GetIndentString() + "return $ret\n}\n";
+			RunnableCmd = "function " + MethodName + this.cmdCounter + "() {" + this.LineFeed;
+			RunnableCmd += this.GetIndentString() + cmd + " >&2" + this.LineFeed;
+			RunnableCmd += this.GetIndentString() + "local ret=$?" + this.LineFeed;
+			RunnableCmd += this.GetIndentString() + "echo $ret" + this.LineFeed;
+			RunnableCmd += this.GetIndentString() + "return $ret" + this.LineFeed + "}" + this.LineFeed;
 			this.WriteLineCode(RunnableCmd);
 			RunnableCmd = MethodName + this.cmdCounter;
 			this.cmdCounter++;
@@ -507,9 +507,9 @@ public class BashSourceGenerator extends SourceGenerator {
 	@Override public void GenerateMethod(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
 		/*local*/String Function = "function ";
 		this.inFunc = true;
-		Function += Method.MethodName + "() {\n";
+		Function += Method.GetNativeFuncName() + "() {" + this.LineFeed;
 		this.VisitBlockWithIndent(this.ResolveParamName(ParamNameList, Body), true);
-		Function += this.PopSourceCode() + "}\n";
+		Function += this.PopSourceCode() + "}" + this.LineFeed;
 		this.WriteLineCode(Function);
 		this.inFunc = false;
 	}
