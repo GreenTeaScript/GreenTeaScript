@@ -120,7 +120,7 @@ public class CSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitNewNode(NewNode Node) {
 		/*local*/String Type = Node.Type.ShortClassName;
-		this.PushSourceCode("new " + Type + "()");
+		this.PushSourceCode("GC_new(" + Type + ")");
 	}
 
 	@Override public void VisitNullNode(NullNode Node) {
@@ -207,13 +207,17 @@ public class CSourceGenerator extends SourceGenerator {
 		/*local*/String Type = Node.DeclType.ShortClassName;
 		/*local*/String VarName = Node.VariableName;
 		/*local*/String Code = Type + " " + VarName;
+		/*local*/boolean CreateNewScope = false;
 		if(Node.InitNode != null) {
 			Node.InitNode.Evaluate(this);
 			Code += " = " + this.PopSourceCode();
 		}
 		Code +=  ";\n";
-		this.VisitBlockEachStatementWithIndent(Node.BlockNode, true);
-		this.PushSourceCode(Code + this.GetIndentString() + this.PopSourceCode());
+		if(CreateNewScope) {
+			Code += this.GetIndentString();
+		}
+		this.VisitBlockEachStatementWithIndent(Node.BlockNode, CreateNewScope);
+		this.PushSourceCode(Code + this.PopSourceCode());
 	}
 
 	@Override public void VisitIfNode(IfNode Node) {
@@ -358,7 +362,10 @@ public class CSourceGenerator extends SourceGenerator {
 
 	@Override public void GenerateClassField(GtNameSpace NameSpace, GtType Type, ArrayList<GtVariableInfo> FieldList) {
 		/*local*/int i = 0;
-		/*local*/String Program = this.GetIndentString() + "struct " + Type.ShortClassName + "{\n";
+		/*local*/String TypeName = Type.ShortClassName;
+		/*local*/String Program = this.GetIndentString() + "typedef struct " + TypeName;
+		this.WriteLineCode(this.GetIndentString() + Program + " *" + TypeName + ";");
+		Program = this.GetIndentString() + "struct " + Type.ShortClassName + " {\n";
 		this.Indent();
 		if(Type.SuperClass != null) {
 			Program += this.GetIndentString() + Type.SuperClass.ShortClassName + " __base;\n";
@@ -387,12 +394,6 @@ public class CSourceGenerator extends SourceGenerator {
 //		this.UnIndent();
 //		this.DefinedClass.put(Type.ShortClassName, Program);
 //	}
-
-	@Override public void AddClass(GtType Type) {
-		/*local*/String TypeName = Type.ShortClassName;
-		/*local*/String Program = this.GetIndentString() + "typedef struct " + TypeName;
-		this.WriteLineCode(Program + " " + TypeName + ";");
-	}
 
 	@Override public void StartCompilationUnit() {
 		this.WriteLineCode("#include \"GreenTea.h\"");
