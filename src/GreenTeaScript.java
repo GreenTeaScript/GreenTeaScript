@@ -1566,6 +1566,7 @@ final class GtNameSpace extends GtStatic {
 			if(!RecursiveSearch) {
 				break;
 			}
+			ClassType = ClassType.SuperType;
 		}
 		return PolyFunc;
 	}
@@ -3199,7 +3200,6 @@ final class GtClassContext extends GtStatic {
 
 	// basic class
 	/*field*/public final GtType		VoidType;
-//	/*field*/public final GtType		ObjectType;
 	/*field*/public final GtType		BooleanType;
 	/*field*/public final GtType		IntType;
 	/*field*/public final GtType		StringType;
@@ -3270,11 +3270,7 @@ final class GtClassContext extends GtStatic {
 	public void LoadGrammar(GtGrammar Grammar) {
 		Grammar.LoadTo(this.TopLevelNameSpace);
 	}
-
-//	public void Define(String Symbol, Object Value) {
-//		this.RootNameSpace.DefineSymbol(Symbol, Value);
-//	}
-
+	
 	public Object Eval(String ScriptSource, long FileLine) {
 		/*local*/Object resultValue = null;
 		DebugP("Eval: " + ScriptSource);
@@ -3350,14 +3346,6 @@ final class GtClassContext extends GtStatic {
 	}
 
 	public final boolean CheckExportableName(GtFunc Func) {
-//		if(Func.Is(ExportFunc)) {
-//			Object Value = this.UniqueFuncMap.get(Func.FuncName);
-//			if(Value == null) {
-//				this.UniqueFuncMap.put(Func.FuncName, Func);
-//				return true;
-//			}
-//			return false;
-//		}
 		return true;
 	}
 
@@ -3461,55 +3449,4 @@ public class GreenTeaScript extends GtStatic {
 	public final static void main(String[] Args) {
 		GreenTeaScript.ParseCommandOption(Args);
 	}
-	
-//	public final static void main(String[] Args) {
-//		/*local*/String CodeGeneratorName = "--java";
-//		/*local*/int Index = 0;
-//		/*local*/String OneLiner = null;
-//		while(Index < Args.length) {
-//			/*local*/String Argu = Args[Index];
-//			if(!Argu.startsWith("-")) {
-//				break;
-//			}
-//			Index += 1;
-//			if(Argu.startsWith("--")) {
-//				CodeGeneratorName = Argu;
-//				continue;
-//			}
-//			if(Argu.equals("-e") && Index < Args.length) {
-//				OneLiner = Args[Index];
-//				Index += 1;
-//				continue;
-//			}
-//			if(Argu.equals("-verbose")) {
-//				GtStatic.DebugPrintOption = true;
-//				continue;
-//			}
-//			LangDeps.Usage();
-//		}
-//		/*local*/GtGenerator Generator = LangDeps.CodeGenerator(CodeGeneratorName);
-//		if(Generator == null) {
-//			LangDeps.Usage();
-//		}
-//		/*local*/GtClassContext Context = new GtClassContext(new DScriptGrammar(), Generator);
-//		/*local*/boolean ShellMode = true;
-//		if(OneLiner != null) {
-//			Context.Eval(OneLiner, 1);
-//			ShellMode = false;
-//		}
-//		while(Index < Args.length) {
-//			Context.Eval(LangDeps.LoadFile(Args[Index]), 1);
-//			ShellMode = false;
-//			Index += 1;
-//		}
-//		if(ShellMode) {
-//			/*local*/int linenum = 1;
-//			/*local*/String Line = null;
-//			while((Line = LangDeps.ReadLine(">>> ")) != null) {
-//				Context.Eval(Line, linenum);
-//				linenum += 1;
-//			}
-//		}
-//	}
-
 }

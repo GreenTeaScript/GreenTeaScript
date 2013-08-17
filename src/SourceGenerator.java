@@ -980,6 +980,7 @@ class GtFunc extends GtStatic {
 				if(this.Types[i] != AFunc.Types[i]) {
 					return false;
 				}
+				i = i + 1;
 			}
 			return true;
 		}

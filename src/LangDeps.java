@@ -287,7 +287,7 @@ public abstract class LangDeps {
 			Console = System.console();
 		}
 		String Line = Console.readLine(Prompt);
-		if(Line != null) {
+		if(Line == null) {
 			System.exit(0);
 		}
 		return Line;
