@@ -379,7 +379,7 @@ public class CSourceGenerator extends SourceGenerator {
 			ParamList.add(VarType);
 			ParamList.add(Type);
 			GtMethod GetterMethod = new GtMethod(0, VarName, 0, ParamList, null);
-			NameSpace.Context.DefineGetterMethod(GetterMethod);
+			NameSpace.Context.DefineGetterFunc(GetterMethod);
 			i = i + 1;
 		}
 		this.UnIndent();

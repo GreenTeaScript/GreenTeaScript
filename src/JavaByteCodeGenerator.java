@@ -1097,12 +1097,12 @@ class EmbeddedMethodDef extends GtStatic {
 		GtType[] paramTypes = LangDeps.CompactTypeList(0, ParamTypeList);
 		Method mtd = LookupMethod(Callee, LocalName);
 		NMMap.PutMethodInvoker(newMethod, new NativeMethodInvoker(paramTypes, mtd));
-		NameSpace.Context.DefineMethod(newMethod);
+		NameSpace.AppendMethod(newMethod);
 	}
 
 	GtType RegisterClass(int ClassFlag, String ClassName, Object DefaultNullValue) {
 		GtType newClass = new GtType(NameSpace.Context, ClassFlag, ClassName, DefaultNullValue, null);
-		NameSpace.DefineClassSymbol(newClass);
+		NameSpace.AppendTypeSymbol(newClass);
 		return newClass;
 	}
 }

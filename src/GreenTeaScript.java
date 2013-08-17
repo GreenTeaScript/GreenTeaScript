@@ -1356,7 +1356,7 @@ final class GtTypeEnv extends GtStatic {
 		if(Node.Type == Type || Type == this.VarType || Type.Accept(Node.Type)) {
 			return Node;
 		}
-		GtMethod Method = Type.Context.GetCastMethod(Node.Type, Type, true);
+		GtMethod Method = Type.Context.GetCoercionFunc(Node.Type, Type, true);
 		if(Method != null && (IsFlag(TypeCheckPolicy, CastPolicy) || Method.Is(ImplicitMethod))) {
 			GtNode ApplyNode = this.Generator.CreateApplyNode(Type, ParsedTree, Method);
 			ApplyNode.Append(Node);
@@ -1366,21 +1366,12 @@ final class GtTypeEnv extends GtStatic {
 	}
 
 	public final void DefineMethod(GtMethod Method) {
-		this.NameSpace.Context.DefineMethod(Method);
-		/*local*/Object Value = this.NameSpace.GetSymbol(Method.MethodName);
-		if(Value == null) {
-			this.NameSpace.DefineSymbol(Method.MethodName, Method);
-		}
-		else if(Value instanceof GtMethod) {
-			GtPolyFunc PolyFunc = new GtPolyFunc(this.NameSpace, (/*cast*/GtMethod)Value, Method);
-			this.NameSpace.DefineSymbol(Method.MethodName, PolyFunc);
-		}
-		else if(Value instanceof GtPolyFunc) {
-			GtPolyFunc PolyFunc = (/*cast*/GtPolyFunc)Value;
-			PolyFunc = PolyFunc.Append(this.NameSpace, Method);
-			this.NameSpace.DefineSymbol(Method.MethodName, PolyFunc);
-		}
+		this.NameSpace.AppendMethod(Method);
 		this.Method = Method;
+	}
+
+	public final GtMethod GetCoercionFunc(GtType FromType, GtType ToType, boolean RecursiveSearch) {
+		return FromType.Context.GetCoercionFunc(FromType, ToType, RecursiveSearch);
 	}
 
 }
@@ -1483,7 +1474,7 @@ final class GtNameSpace extends GtStatic {
 		this.AppendPattern("\t" + PatternName, Pattern);
 	}
 
-	public final GtType DefineClassSymbol(GtType ClassInfo) {
+	public final GtType AppendTypeSymbol(GtType ClassInfo) {
 		if(ClassInfo.PackageNameSpace == null) {
 			ClassInfo.PackageNameSpace = this;
 			if(this.PackageName != null) {
@@ -1494,6 +1485,22 @@ final class GtNameSpace extends GtStatic {
 			this.DefineSymbol(ClassInfo.ShortClassName, ClassInfo);
 		}
 		return ClassInfo;
+	}
+
+	public final void AppendMethod(GtMethod Method) {
+		/*local*/Object Value = this.GetSymbol(Method.MethodName);
+		if(Value == null) {
+			this.DefineSymbol(Method.MethodName, Method);
+		}
+		else if(Value instanceof GtMethod) {
+			GtPolyFunc PolyFunc = new GtPolyFunc(this, (/*cast*/GtMethod)Value, Method);
+			this.DefineSymbol(Method.MethodName, PolyFunc);
+		}
+		else if(Value instanceof GtPolyFunc) {
+			GtPolyFunc PolyFunc = (/*cast*/GtPolyFunc)Value;
+			PolyFunc = PolyFunc.Append(this, Method);
+			this.DefineSymbol(Method.MethodName, PolyFunc);
+		}
 	}
 
 }
@@ -1885,21 +1892,38 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	public static GtNode TypeUnary(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		/*local*/String Operator = ParsedTree.KeyToken.ParsedText;
+		/*local*/String OperatorSymbol = ParsedTree.KeyToken.ParsedText;
 		/*local*/GtNode ExprNode  = ParsedTree.TypeCheckNodeAt(UnaryTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-
-		if(!ExprNode.IsError()) {
-			/*local*/GtType BaseType = ExprNode.Type;
-			while(BaseType != null) {
-				/*local*/GtMethod Method = Gamma.Context.GetListedMethod(BaseType, Operator, 1, false);
-				if(Method != null) {
-					return Gamma.Generator.CreateUnaryNode(Method.GetReturnType(), ParsedTree, Method, ExprNode);
-				}
-				BaseType = BaseType.SearchSuperMethodClass;
-			}
-			Gamma.Context.ReportError(WarningLevel, ParsedTree.KeyToken, "undefined operator: " + Operator + " of " + ExprNode.Type);
+		if(ExprNode.IsError()) {
+			return ExprNode;
 		}
-		return Gamma.Generator.CreateUnaryNode(ContextType, ParsedTree, null/*Method*/, ExprNode);
+		/*local*/GtType BaseType = ExprNode.Type;
+		/*local*/Object Func = BaseType.GetClassSymbol(OperatorSymbol, true);
+		/*local*/GtMethod ResolvedFunc = null;
+		/*local*/GtType ReturnType = Gamma.AnyType;
+		if(Func instanceof GtMethod) {
+			ResolvedFunc = (/*cast*/GtMethod)Func;
+			if(ResolvedFunc.GetFuncParamSize() != 1 || !ResolvedFunc.GetRecvType().Accept(BaseType)) {
+				Gamma.Context.ReportError(ErrorLevel, ParsedTree.KeyToken, "mismatched operator: " + ResolvedFunc);
+				ResolvedFunc = null;
+			}
+		}
+		else if(Func instanceof GtPolyFunc) {
+			/*local*/GtPolyFunc PolyFunc = (/*cast*/GtPolyFunc)Func;
+			ResolvedFunc = PolyFunc.MatchFuncParamSize(1);
+			if(ResolvedFunc == null || !ResolvedFunc.GetRecvType().Accept(BaseType)) {
+				Gamma.Context.ReportError(ErrorLevel, ParsedTree.KeyToken, "mismatched operators: " + PolyFunc);
+				ResolvedFunc = null;
+			}
+		}
+		if(ResolvedFunc != null) {
+			ReturnType = ResolvedFunc.GetReturnType();
+		}
+		/*local*/GtNode UnaryNode =  Gamma.Generator.CreateUnaryNode(ReturnType, ParsedTree, ResolvedFunc, ExprNode);
+		if(ResolvedFunc == null && !BaseType.IsDynamic()) {
+			return Gamma.ReportTypeResult(ParsedTree, UnaryNode, ErrorLevel, "undefined operator: "+ OperatorSymbol + " of " + BaseType);
+		}
+		return UnaryNode;
 	}
 
 	public static GtSyntaxTree ParseBinary(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
@@ -1928,24 +1952,51 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	public static GtNode TypeBinary(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		/*local*/String Operator = ParsedTree.KeyToken.ParsedText;
+		/*local*/String OperatorSymbol = ParsedTree.KeyToken.ParsedText;
 		/*local*/GtNode LeftNode  = ParsedTree.TypeCheckNodeAt(LeftHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-		/*local*/GtNode RightNode = ParsedTree.TypeCheckNodeAt(RightHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-		if(!LeftNode.IsError() && !RightNode.IsError()) {
-			/*local*/GtType BaseType = LeftNode.Type;
-			while(BaseType != null) {
-				/*local*/GtMethod Method = Gamma.Context.GetListedMethod(BaseType, Operator, 1, false);
-				while(Method != null) {
-					if(Method.GetFuncParamType(1).Accept(RightNode.Type)) {
-						return Gamma.Generator.CreateBinaryNode(Method.GetReturnType(), ParsedTree, Method, LeftNode, RightNode);
-					}
-					Method = Method.ListedMethods;
-				}
-				BaseType = BaseType.SearchSuperMethodClass;
-			}
-			Gamma.Context.ReportError(WarningLevel, ParsedTree.KeyToken, "undefined operator: " + Operator + " of " + LeftNode.Type);
+		/*local*/GtNode RightNode = null;
+		if(LeftNode.IsError()) {
+			return LeftNode;
 		}
-		return Gamma.Generator.CreateBinaryNode(ContextType, ParsedTree, null, LeftNode, RightNode);
+		/*local*/GtType BaseType = LeftNode.Type;
+		/*local*/Object Func = BaseType.GetClassSymbol(OperatorSymbol, true);
+		/*local*/GtMethod ResolvedFunc = null;
+		/*local*/GtType ReturnType = Gamma.AnyType;
+		if(Func instanceof GtMethod) {
+			ResolvedFunc = (/*cast*/GtMethod)Func;
+			if(ResolvedFunc.GetFuncParamSize() != 2 || !ResolvedFunc.GetRecvType().Accept(BaseType)) {
+				Gamma.Context.ReportError(ErrorLevel, ParsedTree.KeyToken, "mismatched operator: " + ResolvedFunc);
+				ResolvedFunc = null;
+			}
+			else {
+				RightNode = ParsedTree.TypeCheckNodeAt(RightHandTerm, Gamma, ResolvedFunc.GetFuncParamType(2), DefaultTypeCheckPolicy);
+			}
+		}
+		else if(Func instanceof GtPolyFunc) {
+			/*local*/GtPolyFunc PolyFunc = (/*cast*/GtPolyFunc)Func;
+			RightNode = ParsedTree.TypeCheckNodeAt(RightHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+			if(RightNode.IsError()) {
+				return RightNode;
+			}
+			GtNode[] BinaryNodes = new BinaryNode[2];
+			BinaryNodes[0] = LeftNode; BinaryNodes[1] = RightNode;
+			ResolvedFunc = PolyFunc.MatchBinaryOperator(Gamma, BinaryNodes);
+			LeftNode = BinaryNodes[0]; RightNode = BinaryNodes[1];
+			if(ResolvedFunc == null) {
+				Gamma.Context.ReportError(ErrorLevel, ParsedTree.KeyToken, "mismatched operators: " + PolyFunc);					
+			}
+		}
+		if(ResolvedFunc != null) {
+			ReturnType = ResolvedFunc.GetReturnType();
+		}
+		if(RightNode == null) {
+			RightNode = ParsedTree.TypeCheckNodeAt(RightHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);			
+		}
+		/*local*/GtNode BinaryNode =  Gamma.Generator.CreateBinaryNode(ReturnType, ParsedTree, ResolvedFunc, LeftNode, RightNode);
+		if(ResolvedFunc == null && !BaseType.IsDynamic()) {
+			return Gamma.ReportTypeResult(ParsedTree, BinaryNode, ErrorLevel, "undefined operator: "+ OperatorSymbol + " of " + LeftNode.Type);
+		}
+		return BinaryNode;
 	}
 
 	public static GtSyntaxTree ParseGetter(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
@@ -2416,7 +2467,7 @@ final class DScriptGrammar extends GtGrammar {
 			}
 		}
 		if(!EnumTree.IsEmptyOrError()) {
-			NameSpace.DefineClassSymbol(NewEnumType);
+			NameSpace.AppendTypeSymbol(NewEnumType);
 			EnumTree.ConstValue = NewEnumType;
 		}
 		return EnumTree;
@@ -2598,13 +2649,13 @@ final class DScriptGrammar extends GtGrammar {
 	private static GtMethod CreateConverterMethod(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, int MethodFlag, ArrayList<GtType> TypeList) {
 		/*local*/GtType ToType = TypeList.get(0);
 		/*local*/GtType FromType = TypeList.get(1);
-		/*local*/GtMethod Method = Gamma.Context.GetCastMethod(FromType, ToType, false);
+		/*local*/GtMethod Method = Gamma.Context.GetCoercionFunc(FromType, ToType, false);
 		if(Method != null) {
 			Gamma.Context.ReportError(ErrorLevel, ParsedTree.KeyToken, "already defined: " + FromType + " to " + ToType);
 			return null;
 		}
 		Method = Gamma.Generator.CreateMethod(MethodFlag, "to" + ToType.ShortClassName, 0, TypeList, ParsedTree.ConstValue);
-		Gamma.Context.DefineConverterMethod(Method);
+		Gamma.Context.DefineCoercionFunc(Method);
 		return Method;
 	}
 
@@ -2613,26 +2664,26 @@ final class DScriptGrammar extends GtGrammar {
 		if(TypeList.size() > 1) {
 			RecvType = TypeList.get(1);
 		}
-		/*local*/GtMethod Method = Gamma.Context.GetMethod(RecvType, MethodName, 2, TypeList, true);
-		if(Method != null) {
-			if(Method.GetRecvType() != RecvType) {
-				if(!Method.Is(VirtualMethod)) {
-					// not virtual method
-					return null;
-				}
-				Method = null;
-			}
-			else {
-				if(!Method.Is(AbstractMethod)) {
-					// not override
-					return null;
-				}
-				if(GtStatic.IsFlag(MethodFlag, AbstractMethod)) {
-					// do nothing
-					return null;
-				}
-			}
-		}
+		/*local*/GtMethod Method = null; //Gamma.Context.GetMethod(RecvType, MethodName, 2, TypeList, true);
+//		if(Method != null) {
+//			if(Method.GetRecvType() != RecvType) {
+//				if(!Method.Is(VirtualMethod)) {
+//					// not virtual method
+//					return null;
+//				}
+//				Method = null;
+//			}
+//			else {
+//				if(!Method.Is(AbstractMethod)) {
+//					// not override
+//					return null;
+//				}
+//				if(GtStatic.IsFlag(MethodFlag, AbstractMethod)) {
+//					// do nothing
+//					return null;
+//				}
+//			}
+//		}
 		if(Method == null) {
 			Method = Gamma.Generator.CreateMethod(MethodFlag, MethodName, 0, TypeList, NativeMacro);
 		}
@@ -2663,7 +2714,7 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/GreenTeaTopObject DefaultObject = new GreenTeaTopObject(NewType);
 		NewType.DefaultNullValue = DefaultObject;
 
-		NameSpace.DefineClassSymbol(NewType);
+		NameSpace.AppendTypeSymbol(NewType);
 		ClassDeclTree.ConstValue = NewType;
 
 		/*local*/int ParseFlag = TokenContext.SetBackTrack(false) | SkipIndentParseFlag;
@@ -3069,15 +3120,15 @@ final class GtClassContext extends GtStatic {
 		this.StructType  = this.TopType.CreateSubType(0, "record", null, null);  //  unregistered
 		this.EnumType    = this.TopType.CreateSubType(EnumClass, "enum", null, null);    //  unregistered
 
-		this.VoidType    = this.RootNameSpace.DefineClassSymbol(new GtType(this, NativeClass, "void", null, Void.class));
-		this.BooleanType = this.RootNameSpace.DefineClassSymbol(new GtType(this, NativeClass, "boolean", false, Boolean.class));
-		this.IntType     = this.RootNameSpace.DefineClassSymbol(new GtType(this, NativeClass, "int", 0L, Long.class));
-		this.StringType  = this.RootNameSpace.DefineClassSymbol(new GtType(this, NativeClass, "String", "", String.class));
-		this.VarType     = this.RootNameSpace.DefineClassSymbol(new GtType(this, 0, "var", null, null));
-		this.AnyType     = this.RootNameSpace.DefineClassSymbol(new GtType(this, DynamicClass, "any", null, null));
-		this.TypeType    = this.RootNameSpace.DefineClassSymbol(this.TopType.CreateSubType(0, "Type", null, null));
-		this.ArrayType   = this.RootNameSpace.DefineClassSymbol(this.TopType.CreateSubType(0, "Array", null, null));
-		this.FuncType    = this.RootNameSpace.DefineClassSymbol(this.TopType.CreateSubType(0, "Func", null, null));
+		this.VoidType    = this.RootNameSpace.AppendTypeSymbol(new GtType(this, NativeClass, "void", null, Void.class));
+		this.BooleanType = this.RootNameSpace.AppendTypeSymbol(new GtType(this, NativeClass, "boolean", false, Boolean.class));
+		this.IntType     = this.RootNameSpace.AppendTypeSymbol(new GtType(this, NativeClass, "int", 0L, Long.class));
+		this.StringType  = this.RootNameSpace.AppendTypeSymbol(new GtType(this, NativeClass, "String", "", String.class));
+		this.VarType     = this.RootNameSpace.AppendTypeSymbol(new GtType(this, 0, "var", null, null));
+		this.AnyType     = this.RootNameSpace.AppendTypeSymbol(new GtType(this, DynamicClass, "any", null, null));
+		this.TypeType    = this.RootNameSpace.AppendTypeSymbol(this.TopType.CreateSubType(0, "Type", null, null));
+		this.ArrayType   = this.RootNameSpace.AppendTypeSymbol(this.TopType.CreateSubType(0, "Array", null, null));
+		this.FuncType    = this.RootNameSpace.AppendTypeSymbol(this.TopType.CreateSubType(0, "Func", null, null));
 
 		this.ArrayType.Types = new GtType[1];
 		this.ArrayType.Types[0] = this.AnyType;
@@ -3142,6 +3193,10 @@ final class GtClassContext extends GtStatic {
 		}
 	}
 
+	private final String SubtypeKey(GtType FromType, GtType ToType) {
+		return FromType.GetSignature() + "<" + ToType.GetSignature();
+	}
+
 	public final boolean CheckSubType(GtType SubType, GtType SuperType) {
 		// TODO: Structual Typing database
 		return false;
@@ -3193,7 +3248,7 @@ final class GtClassContext extends GtStatic {
 		return BaseType.GetSignature() + "@" + Name;
 	}
 
-	public void DefineGetterMethod(GtMethod Method) {
+	public void DefineGetterFunc(GtMethod Method) {
 		/*local*/String Key = this.GetterName(Method.GetRecvType(), Method.MethodName);
 		if(this.UniqueMethodMap.get(Key) == null) {
 			this.UniqueMethodMap.put(Key, Method);
@@ -3215,174 +3270,170 @@ final class GtClassContext extends GtStatic {
 		return null;
 	}
 
-	/* methods */
-	private void SetUniqueMethod(String Key, GtMethod Method) {
-		/*local*/Object Value = this.UniqueMethodMap.get(Key);
-		if(Value == null) {
-			this.UniqueMethodMap.put(Key, Method);
-		}
-		else if(Value instanceof GtMethod) {
-			this.UniqueMethodMap.put(Key, Key);  // not unique !!
-		}
-	}
-
-	private void AddOverloadedMethod(String Key, GtMethod Method) {
-		/*local*/Object Value = this.UniqueMethodMap.get(Key);
-		if(Value instanceof GtMethod) {
-			/*local*/GtMethod OverloadedMethod = (/*cast*/GtMethod)Value;
-			/*local*/GtMethod HeadMethod = OverloadedMethod;
-			while(HeadMethod != null) {
-				if(HeadMethod == Method) {
-					// Already registered
-					return;
-				}
-				HeadMethod = HeadMethod.ListedMethods;
-			}
-			Method.ListedMethods = OverloadedMethod;
-		}
-		this.UniqueMethodMap.put(Key, Method);  // not unique !!
-	}
-
-	private final String FuncNameParamSize(String Name, int ParamSize) {
-		return Name + "@" + ParamSize;
-	}
-
-	private String MethodNameParamSize(GtType BaseType, String Name, int ParamSize) {
-		return BaseType.GetSignature() + ":" + Name + "@" + ParamSize;
-	}
-
-	public void DefineMethod(GtMethod Method) {
-		/*local*/String MethodName = Method.MethodName;
-		this.SetUniqueMethod(MethodName, Method);
-		/*local*/String Key = this.FuncNameParamSize(MethodName, (Method.Types.length - 1));
-		this.SetUniqueMethod(Key, Method);
-		/*local*/GtType RecvType = Method.GetRecvType();
-		Key = this.MethodNameParamSize(RecvType, MethodName, (Method.Types.length - 2));
-		this.SetUniqueMethod(Key, Method);
-		this.AddOverloadedMethod(Key, Method);
-		this.SetUniqueMethod(Method.MangledName, Method);
-	}
-
-	public GtMethod GetUniqueFunctionName(String Name) {
-		/*local*/Object Value = this.UniqueMethodMap.get(Name);
-		if(Value != null && Value instanceof GtMethod) {
-			return (/*cast*/GtMethod)Value;
-		}
-		return null;
-	}
-
-	public GtMethod GetUniqueFunction(String Name, int FuncParamSize) {
-		/*local*/Object Value = this.UniqueMethodMap.get(this.FuncNameParamSize(Name, FuncParamSize));
-		if(Value != null && Value instanceof GtMethod) {
-			return (/*cast*/GtMethod)Value;
-		}
-		return null;
-	}
-
-	public final GtMethod GetGreenListedMethod(GtType BaseType, String MethodName, int MethodParamSize, boolean RecursiveSearch) {
-		while(BaseType != null) {
-			/*local*/Object Value = this.UniqueMethodMap.get(this.MethodNameParamSize(BaseType, MethodName, MethodParamSize));
-			if(Value instanceof GtMethod) {
-				return (/*cast*/GtMethod)Value;
-			}
-			if(!RecursiveSearch) {
-				break;
-			}
-			BaseType = BaseType.SearchSuperMethodClass;
-		}
-		return null;
-	}
-
-	public final GtMethod GetListedMethod(GtType BaseType, String MethodName, int MethodParamSize, boolean RecursiveSearch) {
-		/*local*/GtMethod Method = this.GetGreenListedMethod(BaseType, MethodName, MethodParamSize, RecursiveSearch);
-		if(Method == null && BaseType.IsNative() && this.Generator.TransformNativeMethods(BaseType, MethodName)) {
-			Method = this.GetGreenListedMethod(BaseType, MethodName, MethodParamSize, RecursiveSearch);
-		}
-		return Method;
-	}
-
-	public final GtMethod GetGreenMethod(GtType BaseType, String Name, int BaseIndex, ArrayList<GtType> TypeList, boolean RecursiveSearch) {
-		while(BaseType != null) {
-			/*local*/String Key = GtStatic.MangleMethodName(BaseType, Name, BaseIndex, TypeList);
-			/*local*/Object Value = this.UniqueMethodMap.get(Key);
-			if(Value instanceof GtMethod) {
-				return (/*cast*/GtMethod)Value;
-			}
-			if(!RecursiveSearch) {
-				break;
-			}
-			BaseType = BaseType.SearchSuperMethodClass;
-		}
-		return null;
-	}
-
-	public final GtMethod GetMethod(GtType BaseType, String Name, int BaseIndex, ArrayList<GtType> TypeList, boolean RecursiveSearch) {
-		/*local*/GtMethod Method = this.GetGreenMethod(BaseType, Name, BaseIndex, TypeList, RecursiveSearch);
-		if(Method == null && BaseType.IsNative() && this.Generator.TransformNativeMethods(BaseType, Name)) {
-			Method = this.GetGreenMethod(BaseType, Name, BaseIndex, TypeList, RecursiveSearch);
-		}
-		return Method;
-	}
+//	/* methods */
+//	private void SetUniqueMethod(String Key, GtMethod Method) {
+//		/*local*/Object Value = this.UniqueMethodMap.get(Key);
+//		if(Value == null) {
+//			this.UniqueMethodMap.put(Key, Method);
+//		}
+//		else if(Value instanceof GtMethod) {
+//			this.UniqueMethodMap.put(Key, Key);  // not unique !!
+//		}
+//	}
+//
+//	private void AddOverloadedMethod(String Key, GtMethod Method) {
+//		/*local*/Object Value = this.UniqueMethodMap.get(Key);
+//		if(Value instanceof GtMethod) {
+//			/*local*/GtMethod OverloadedMethod = (/*cast*/GtMethod)Value;
+//			/*local*/GtMethod HeadMethod = OverloadedMethod;
+//			while(HeadMethod != null) {
+//				if(HeadMethod == Method) {
+//					// Already registered
+//					return;
+//				}
+//				HeadMethod = HeadMethod.ListedMethods;
+//			}
+//			Method.ListedMethods = OverloadedMethod;
+//		}
+//		this.UniqueMethodMap.put(Key, Method);  // not unique !!
+//	}
+//
+//	private final String FuncNameParamSize(String Name, int ParamSize) {
+//		return Name + "@" + ParamSize;
+//	}
+//
+//	private String MethodNameParamSize(GtType BaseType, String Name, int ParamSize) {
+//		return BaseType.GetSignature() + ":" + Name + "@" + ParamSize;
+//	}
+//
+//	public void DefineMethod(GtMethod Method) {
+//		/*local*/String MethodName = Method.MethodName;
+//		this.SetUniqueMethod(MethodName, Method);
+//		/*local*/String Key = this.FuncNameParamSize(MethodName, (Method.Types.length - 1));
+//		this.SetUniqueMethod(Key, Method);
+//		/*local*/GtType RecvType = Method.GetRecvType();
+//		Key = this.MethodNameParamSize(RecvType, MethodName, (Method.Types.length - 2));
+//		this.SetUniqueMethod(Key, Method);
+//		this.AddOverloadedMethod(Key, Method);
+//		this.SetUniqueMethod(Method.MangledName, Method);
+//	}
+//
+//	public GtMethod GetUniqueFunctionName(String Name) {
+//		/*local*/Object Value = this.UniqueMethodMap.get(Name);
+//		if(Value != null && Value instanceof GtMethod) {
+//			return (/*cast*/GtMethod)Value;
+//		}
+//		return null;
+//	}
+//
+//	public GtMethod GetUniqueFunction(String Name, int FuncParamSize) {
+//		/*local*/Object Value = this.UniqueMethodMap.get(this.FuncNameParamSize(Name, FuncParamSize));
+//		if(Value != null && Value instanceof GtMethod) {
+//			return (/*cast*/GtMethod)Value;
+//		}
+//		return null;
+//	}
+//
+//	public final GtMethod GetGreenListedMethod(GtType BaseType, String MethodName, int MethodParamSize, boolean RecursiveSearch) {
+//		while(BaseType != null) {
+//			/*local*/Object Value = this.UniqueMethodMap.get(this.MethodNameParamSize(BaseType, MethodName, MethodParamSize));
+//			if(Value instanceof GtMethod) {
+//				return (/*cast*/GtMethod)Value;
+//			}
+//			if(!RecursiveSearch) {
+//				break;
+//			}
+//			BaseType = BaseType.SearchSuperMethodClass;
+//		}
+//		return null;
+//	}
+//
+//	public final GtMethod GetListedMethod(GtType BaseType, String MethodName, int MethodParamSize, boolean RecursiveSearch) {
+//		/*local*/GtMethod Method = this.GetGreenListedMethod(BaseType, MethodName, MethodParamSize, RecursiveSearch);
+//		if(Method == null && BaseType.IsNative() && this.Generator.TransformNativeMethods(BaseType, MethodName)) {
+//			Method = this.GetGreenListedMethod(BaseType, MethodName, MethodParamSize, RecursiveSearch);
+//		}
+//		return Method;
+//	}
+//
+//	public final GtMethod GetGreenMethod(GtType BaseType, String Name, int BaseIndex, ArrayList<GtType> TypeList, boolean RecursiveSearch) {
+//		while(BaseType != null) {
+//			/*local*/String Key = GtStatic.MangleMethodName(BaseType, Name, BaseIndex, TypeList);
+//			/*local*/Object Value = this.UniqueMethodMap.get(Key);
+//			if(Value instanceof GtMethod) {
+//				return (/*cast*/GtMethod)Value;
+//			}
+//			if(!RecursiveSearch) {
+//				break;
+//			}
+//			BaseType = BaseType.SearchSuperMethodClass;
+//		}
+//		return null;
+//	}
+//
+//	public final GtMethod GetMethod(GtType BaseType, String Name, int BaseIndex, ArrayList<GtType> TypeList, boolean RecursiveSearch) {
+//		/*local*/GtMethod Method = this.GetGreenMethod(BaseType, Name, BaseIndex, TypeList, RecursiveSearch);
+//		if(Method == null && BaseType.IsNative() && this.Generator.TransformNativeMethods(BaseType, Name)) {
+//			Method = this.GetGreenMethod(BaseType, Name, BaseIndex, TypeList, RecursiveSearch);
+//		}
+//		return Method;
+//	}
 
 	/* convertor, wrapper */
-	private final String ConverterName(GtType FromType, GtType ToType) {
+	private final String CoercionKey(GtType FromType, GtType ToType) {
 		return FromType.GetSignature() + ">" + ToType.GetSignature();
 	}
 
-	private final String WrapperName(GtType FromType, GtType ToType) {
-		return FromType.GetSignature() + "<" + ToType.GetSignature();
-	}
-
-	public GtMethod GetConverterMethod(GtType FromType, GtType ToType, boolean RecursiveSearch) {
-		/*local*/String Key = this.ConverterName(FromType, ToType);
-		/*local*/Object Method = this.UniqueMethodMap.get(Key);
-		if(Method != null) {
-			return (/*cast*/GtMethod)Method;
-		}
-		if(RecursiveSearch && FromType.SearchSuperMethodClass != null) {
-			return this.GetConverterMethod(FromType.SearchSuperMethodClass, ToType, RecursiveSearch);
-		}
-		return null;
-	}
-
-	public GtMethod GetWrapperMethod(GtType FromType, GtType ToType, boolean RecursiveSearch) {
-		/*local*/String Key = this.WrapperName(FromType, ToType);
-		/*local*/Object Method = this.UniqueMethodMap.get(Key);
-		if(Method != null) {
-			return (/*cast*/GtMethod)Method;
-		}
-		if(RecursiveSearch && FromType.SearchSuperMethodClass != null) {
-			return this.GetWrapperMethod(FromType.SearchSuperMethodClass, ToType, RecursiveSearch);
-		}
-		return null;
-	}
-
-	public GtMethod GetCastMethod(GtType FromType, GtType ToType, boolean RecursiveSearch) {
-		/*local*/String Key = this.WrapperName(FromType, ToType);
-		/*local*/Object Method = this.UniqueMethodMap.get(Key);
-		if(Method != null) {
-			return (/*cast*/GtMethod)Method;
-		}
-		Key = this.ConverterName(FromType, ToType);
-		Method = this.UniqueMethodMap.get(Key);
-		if(Method != null) {
-			return (/*cast*/GtMethod)Method;
-		}
-		if(RecursiveSearch && FromType.SearchSuperMethodClass != null) {
-			return this.GetCastMethod(FromType.SearchSuperMethodClass, ToType, RecursiveSearch);
-		}
-		return null;
-	}
-
-	public final void DefineConverterMethod(GtMethod Method) {
-		/*local*/String Key = this.ConverterName(Method.GetRecvType(), Method.GetReturnType());
+	public final void DefineCoercionFunc(GtMethod Method) {
+		/*local*/String Key = this.CoercionKey(Method.GetRecvType(), Method.GetReturnType());
 		this.UniqueMethodMap.put(Key, Method);
 	}
 
-	public final void DefineWrapperMethod(GtMethod Method) {
-		/*local*/String Key = this.WrapperName(Method.GetRecvType(), Method.GetReturnType());
-		this.UniqueMethodMap.put(Key, Method);
+	public GtMethod GetCoercionFunc(GtType FromType, GtType ToType, boolean RecursiveSearch) {
+		/*local*/String Key = this.CoercionKey(FromType, ToType);
+		/*local*/Object Method = this.UniqueMethodMap.get(Key);
+		if(Method != null) {
+			return (/*cast*/GtMethod)Method;
+		}
+		if(RecursiveSearch && FromType.SearchSuperMethodClass != null) {
+			return this.GetCoercionFunc(FromType.SearchSuperMethodClass, ToType, RecursiveSearch);
+		}
+		return null;
 	}
+//
+//	public GtMethod GetWrapperMethod(GtType FromType, GtType ToType, boolean RecursiveSearch) {
+//		/*local*/String Key = this.SubtypeKey(FromType, ToType);
+//		/*local*/Object Method = this.UniqueMethodMap.get(Key);
+//		if(Method != null) {
+//			return (/*cast*/GtMethod)Method;
+//		}
+//		if(RecursiveSearch && FromType.SearchSuperMethodClass != null) {
+//			return this.GetWrapperMethod(FromType.SearchSuperMethodClass, ToType, RecursiveSearch);
+//		}
+//		return null;
+//	}
+//
+//	public GtMethod GetCastMethod(GtType FromType, GtType ToType, boolean RecursiveSearch) {
+//		/*local*/String Key = this.SubtypeKey(FromType, ToType);
+//		/*local*/Object Method = this.UniqueMethodMap.get(Key);
+//		if(Method != null) {
+//			return (/*cast*/GtMethod)Method;
+//		}
+//		Key = this.CoercionKey(FromType, ToType);
+//		Method = this.UniqueMethodMap.get(Key);
+//		if(Method != null) {
+//			return (/*cast*/GtMethod)Method;
+//		}
+//		if(RecursiveSearch && FromType.SearchSuperMethodClass != null) {
+//			return this.GetCastMethod(FromType.SearchSuperMethodClass, ToType, RecursiveSearch);
+//		}
+//		return null;
+//	}
+//
+//	public final void DefineWrapperMethod(GtMethod Method) {
+//		/*local*/String Key = this.SubtypeKey(Method.GetRecvType(), Method.GetReturnType());
+//		this.UniqueMethodMap.put(Key, Method);
+//	}
 
 	private final String GetSourcePosition(long FileLine) {
 		return "(eval:" + (int) FileLine + ")";  // FIXME: USE SourceMap

@@ -851,6 +851,26 @@ class GtType extends GtStatic {
 		}
 		this.ClassSymbolTable.put(Key, Value);
 	}
+	
+	public final boolean AppendMethod(GtMethod Method) {
+		/*local*/Object Value = this.GetClassSymbol(Method.MethodName, false);
+		if(Value == null) {
+			this.SetClassSymbol(Method.MethodName, Method);
+			return true;
+		}
+		else if(Value instanceof GtMethod) {
+			GtPolyFunc PolyFunc = new GtPolyFunc(null, (/*cast*/GtMethod)Value, Method);
+			this.SetClassSymbol(Method.MethodName, PolyFunc);
+			return true;
+		}
+		else if(Value instanceof GtPolyFunc) {
+			GtPolyFunc PolyFunc = (/*cast*/GtPolyFunc)Value;
+			PolyFunc = PolyFunc.Append(null, Method);
+			this.SetClassSymbol(Method.MethodName, PolyFunc);
+			return true;
+		}
+		return false;
+	}
 
 	
 	public final String GetSignature() {
@@ -979,6 +999,20 @@ class GtPolyFunc extends GtStatic {
 		this.FuncList.add(Func1);
 		this.FuncList.add(Func2);
 	}
+	
+	@Override public String toString() { // this is used in an error message
+		/*local*/String s = "";
+		/*local*/int i = 0;
+		while(i < this.FuncList.size()) {
+			if(i > 0) {
+				s = s + " ";
+			}
+			s = s + this.FuncList.get(i);
+			i = i + 1;
+		}
+		return s;
+	}
+	
 	public final GtPolyFunc Append(GtNameSpace NameSpace, GtMethod Func) {
 		/*local*/GtPolyFunc PolyFunc = this;
 		if(this.NameSpace != NameSpace) {
@@ -1050,12 +1084,14 @@ class GtPolyFunc extends GtStatic {
 						p = p + 1;
 						continue;
 					}
-					GtMethod TypeCoercion = ParamType.Context.GetConverterMethod(Node.Type, ParamType, true);
+					GtMethod TypeCoercion = Gamma.GetCoercionFunc(Node.Type, ParamType, true);
 					if(TypeCoercion != null && TypeCoercion.Is(ImplicitMethod)) {
 						if(Coercions == null) {
 							Coercions = new GtNode[NodeList.size()];
 						}
 						Coercions[p] = Gamma.CreateCoercionNode(ParamType, TypeCoercion, Node);
+						p = p + 1;
+						continue;
 					}
 					Func = null;
 					Coercions = null;
@@ -1072,6 +1108,30 @@ class GtPolyFunc extends GtStatic {
 						}
 						Coercions = null;
 					}
+					return Func;
+				}
+			}
+			i = i - 1;
+		}
+		return null;
+	}
+
+	public final GtMethod MatchBinaryOperator(GtTypeEnv Gamma, GtNode[] BinaryNodes) {
+		/*local*/int i = this.FuncList.size() - 1;
+		while(i >= 0) {
+			/*local*/GtMethod Func = this.FuncList.get(i);
+			if(Func.GetFuncParamSize() == 2 && Func.Types[1].Accept(BinaryNodes[0].Type) && Func.Types[2].Accept(BinaryNodes[1].Type)) {
+				return Func;
+			}
+			i = i - 1;
+		}
+		i = this.FuncList.size() - 1;
+		while(i >= 0) {
+			/*local*/GtMethod Func = this.FuncList.get(i);
+			if(Func.GetFuncParamSize() == 2 && Func.Types[1].Accept(BinaryNodes[0].Type)) {
+				GtMethod TypeCoercion = Gamma.GetCoercionFunc(BinaryNodes[1].Type, Func.Types[2], true);
+				if(TypeCoercion != null && TypeCoercion.Is(ImplicitMethod)) {
+					BinaryNodes[1] = Gamma.CreateCoercionNode(Func.Types[2], TypeCoercion, BinaryNodes[1]);
 					return Func;
 				}
 			}
@@ -1275,7 +1335,7 @@ class GtGenerator extends GtStatic {
 						}
 					}
 					GtMethod NativeMethod = new GtMethod(MethodFlag, MethodName, 0, TypeList, List[i]);
-					this.Context.DefineMethod(NativeMethod);
+					NativeBaseType.AppendMethod(NativeMethod);
 					TransformedResult = false;
 				}
 			}
