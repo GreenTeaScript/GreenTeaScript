@@ -251,6 +251,7 @@ interface GtConst {
 	public final static int AllowVoidPolicy                 = (1 << 4);
 	public final static int AllowCoercionPolicy             = (1 << 5);
 
+	public final static String NativeNameSuffix = "__";
 	public final static String[] ShellGrammarReservedKeywords = {"true", "false", "as", "if"};
 
 	public final static boolean UseLangStat = true;
@@ -395,7 +396,7 @@ class GtStatic implements GtConst {
 	}
 
 	public final static String MangleGenericType(GtType BaseType, int BaseIdx, ArrayList<GtType> TypeList) {
-		/*local*/String s = BaseType.ShortClassName + "__";
+		/*local*/String s = BaseType.ShortClassName + NativeNameSuffix;
 		/*local*/int i = BaseIdx;
 		while(i < ListSize(TypeList)) {
 			s = s + NumberToAscii(TypeList.get(i).ClassId);
@@ -405,7 +406,7 @@ class GtStatic implements GtConst {
 	}
 
 	public final static String MangleFuncName(GtType BaseType, String FuncName, int BaseIdx, ArrayList<GtType> TypeList) {
-		/*local*/String s = FuncName + "__" + NumberToAscii(BaseType.ClassId);
+		/*local*/String s = FuncName + NativeNameSuffix + NumberToAscii(BaseType.ClassId);
 		/*local*/int i = BaseIdx;
 		while(i < ListSize(TypeList)) {
 			s = s + NumberToAscii(TypeList.get(i).ClassId);
@@ -1184,12 +1185,12 @@ class GtSyntaxTree extends GtStatic {
 final class GtVariableInfo {
 	/*field*/public GtType	Type;
 	/*field*/public String	Name;
-	/*field*/public String	LocalName;
+	/*field*/public String	NativeName;
 
 	GtVariableInfo/*constructor*/(GtType Type, String Name, int Index) {
 		this.Type = Type;
 		this.Name = Name;
-		this.LocalName = Name + Index;
+		this.NativeName = Name + Index;
 	}
 }
 
@@ -1806,7 +1807,7 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/String Name = ParsedTree.KeyToken.ParsedText;
 		/*local*/GtVariableInfo VariableInfo = Gamma.LookupDeclaredVariable(Name);
 		if(VariableInfo != null) {
-			return Gamma.Generator.CreateLocalNode(VariableInfo.Type, ParsedTree, VariableInfo.LocalName);
+			return Gamma.Generator.CreateLocalNode(VariableInfo.Type, ParsedTree, VariableInfo.NativeName);
 		}
 		/*local*/Object ConstValue = (/*cast*/Object) ParsedTree.NameSpace.GetSymbol(Name);
 		if(ConstValue != null) {
@@ -2617,7 +2618,7 @@ final class DScriptGrammar extends GtGrammar {
 			/*local*/GtType ParamType = ParsedTree.GetSyntaxTreeAt(ParamBase).GetParsedType();
 			/*local*/String ParamName = ParsedTree.GetSyntaxTreeAt(ParamBase+1).KeyToken.ParsedText;
 			TypeList.add(ParamType);
-			ParamNameList.add(ParamName + i);
+			ParamNameList.add(ParamName + NativeNameSuffix + i);
 			Gamma.AppendDeclaredVariable(ParamType, ParamName);
 			ParamBase += 3;
 			i = i + 1;

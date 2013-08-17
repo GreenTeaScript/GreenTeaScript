@@ -625,7 +625,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		// generate field
 		for(GtVariableInfo field : FieldList) {
 			int access = ACC_PUBLIC;
-			String fieldName = field.LocalName;
+			String fieldName = field.NativeName;
 			Type fieldType = TypeResolver.GetAsmType(field.Type);
 			FieldNode node = new FieldNode(access, fieldName, fieldType.getDescriptor(), null, null);
 			classNode.fields.put(fieldName, node);
