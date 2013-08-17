@@ -142,7 +142,7 @@ class NullNode extends GtNode {
 
 //E.g., "~" $Expr
 class CastNode extends GtNode {
-	/*field*/public GtMethod    Method;
+	/*field*/public GtFunc    Func;
 	/*field*/public GtType	CastType;
 	/*field*/public GtNode	Expr;
 	CastNode/*constructor*/(GtType Type, GtToken Token, GtType CastType, GtNode Expr) {
@@ -157,11 +157,11 @@ class CastNode extends GtNode {
 
 // E.g., "~" $Expr
 class UnaryNode extends GtNode {
-	/*field*/public GtMethod    Method;
+	/*field*/public GtFunc    Func;
 	/*field*/public GtNode	Expr;
-	UnaryNode/*constructor*/(GtType Type, GtToken Token, GtMethod Method, GtNode Expr) {
+	UnaryNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func, GtNode Expr) {
 		super(Type, Token);
-		this.Method = Method;
+		this.Func = Func;
 		this.Expr = Expr;
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
@@ -171,11 +171,11 @@ class UnaryNode extends GtNode {
 
 // E.g.,  $Expr "++"
 class SuffixNode extends GtNode {
-	/*field*/public GtMethod    Method;
+	/*field*/public GtFunc    Func;
 	/*field*/public GtNode	Expr;
-	SuffixNode/*constructor*/(GtType Type, GtToken Token, GtMethod Method, GtNode Expr) {
+	SuffixNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func, GtNode Expr) {
 		super(Type, Token);
-		this.Method = Method;
+		this.Func = Func;
 		this.Expr = Expr;
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
@@ -185,11 +185,11 @@ class SuffixNode extends GtNode {
 
 //E.g., "exists" $Expr
 class ExistsNode extends GtNode {
-	/*field*/public GtMethod    Method;
+	/*field*/public GtFunc    Func;
 	/*field*/public GtNode	Expr;
-	ExistsNode/*constructor*/(GtType Type, GtToken Token, GtMethod Method, GtNode Expr) {
+	ExistsNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func, GtNode Expr) {
 		super(Type, Token);
-		this.Method = Method;
+		this.Func = Func;
 		this.Expr = Expr;
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
@@ -247,12 +247,12 @@ class InstanceOfNode extends GtNode {
 
 // E.g., $LeftNode "+" $RightNode
 class BinaryNode extends GtNode {
-	/*field*/public GtMethod    Method;
+	/*field*/public GtFunc    Func;
 	/*field*/public GtNode   LeftNode;
 	/*field*/public GtNode	RightNode;
-	BinaryNode/*constructor*/(GtType Type, GtToken Token, GtMethod Method, GtNode Left, GtNode Right) {
+	BinaryNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func, GtNode Left, GtNode Right) {
 		super(Type, Token);
-		this.Method = Method;
+		this.Func = Func;
 		this.LeftNode  = Left;
 		this.RightNode = Right;
 	}
@@ -297,7 +297,7 @@ class OrNode extends GtNode {
 
 //E.g., $CondExpr "?" $ThenExpr ":" $ElseExpr
 class TrinaryNode extends GtNode {
-	/*field*/public GtMethod    Method;
+	/*field*/public GtFunc    Func;
 	/*field*/public GtNode	CondExpr;
 	/*field*/public GtNode	ThenExpr;
 	/*field*/public GtNode	ElseExpr;
@@ -315,28 +315,28 @@ class TrinaryNode extends GtNode {
 //E.g., $Expr . Token.ParsedText
 class GetterNode extends GtNode {
 	/*field*/public GtNode Expr;
-	/*field*/public GtMethod  Method;
-	GetterNode/*constructor*/(GtType Type, GtToken Token, GtMethod Method, GtNode Expr) {
+	/*field*/public GtFunc  Func;
+	GetterNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func, GtNode Expr) {
 		super(Type, Token);
-		this.Method = Method;
+		this.Func = Func;
 		this.Expr = Expr;
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitGetterNode(this);
 	}
 	@Override public String toString() {
-		return "(Getter:" + this.Type + " " + GtNode.Stringify(this.Expr) + ", " + this.Method.MethodName + ")";
+		return "(Getter:" + this.Type + " " + GtNode.Stringify(this.Expr) + ", " + this.Func.FuncName + ")";
 	}
 }
 
 //E.g., $Expr "[" $Indexer "]"
 class IndexerNode extends GtNode {
-	/*field*/public GtMethod  Method;
+	/*field*/public GtFunc  Func;
 	/*field*/public GtNode Expr;
 	/*field*/public GtNode IndexAt;
-	IndexerNode/*constructor*/(GtType Type, GtToken Token, GtMethod Method, GtNode Expr, GtNode IndexAt) {
+	IndexerNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func, GtNode Expr, GtNode IndexAt) {
 		super(Type, Token);
-		this.Method = Method;
+		this.Func = Func;
 		this.Expr = Expr;
 		this.IndexAt = IndexAt;
 	}
@@ -350,13 +350,13 @@ class IndexerNode extends GtNode {
 
 //E.g., $Expr "[" $Index ":" $Index2 "]"
 class SliceNode extends GtNode {
-	/*field*/public GtMethod  Method;
+	/*field*/public GtFunc  Func;
 	/*field*/public GtNode Expr;
 	/*field*/public GtNode Index1;
 	/*field*/public GtNode Index2;
-	SliceNode/*constructor*/(GtType Type, GtToken Token, GtMethod Method, GtNode Expr, GtNode Index1, GtNode Index2) {
+	SliceNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func, GtNode Expr, GtNode Index1, GtNode Index2) {
 		super(Type, Token);
-		this.Method = Method;
+		this.Func = Func;
 		this.Expr = Expr;
 		this.Index1 = Index1;
 		this.Index2 = Index2;
@@ -397,11 +397,11 @@ class LetNode extends GtNode {
 
 // E.g., $Param[0] "(" $Param[1], $Param[2], ... ")"
 class ApplyNode extends GtNode {
-	/*field*/public GtMethod	Method;
+	/*field*/public GtFunc	Func;
 	/*field*/public ArrayList<GtNode>  Params; /* [arg1, arg2, ...] */
-	ApplyNode/*constructor*/(GtType Type, GtToken KeyToken, GtMethod Method) {
+	ApplyNode/*constructor*/(GtType Type, GtToken KeyToken, GtFunc Func) {
 		super(Type, KeyToken);
-		this.Method = Method;
+		this.Func = Func;
 		this.Params = new ArrayList<GtNode>();
 	}
 	@Override public void Append(GtNode Expr) {
@@ -426,14 +426,14 @@ class ApplyNode extends GtNode {
 	}
 }
 
-//E.g., $Recv.Method "(" $Param[0], $Param[1], ... ")"
+//E.g., $Recv.Func "(" $Param[0], $Param[1], ... ")"
 class MessageNode extends GtNode {
-	/*field*/public GtMethod	Method;
+	/*field*/public GtFunc	Func;
 	/*field*/public GtNode   RecvNode;
 	/*field*/public ArrayList<GtNode>  Params;
-	MessageNode/*constructor*/(GtType Type, GtToken KeyToken, GtMethod Method, GtNode RecvNode) {
+	MessageNode/*constructor*/(GtType Type, GtToken KeyToken, GtFunc Func, GtNode RecvNode) {
 		super(Type, KeyToken);
-		this.Method = Method;
+		this.Func = Func;
 		this.RecvNode = RecvNode;
 		this.Params = new ArrayList<GtNode>();
 	}
@@ -778,7 +778,7 @@ class GtType extends GtStatic {
 	/*field*/int                    ClassId;
 	/*field*/public String			ShortClassName;
 	/*field*/GtType					SuperClass;
-	/*field*/public GtType			SearchSuperMethodClass;
+	/*field*/public GtType			SearchSuperFuncClass;
 	/*field*/public Object			DefaultNullValue;
 	/*field*/public GtMap           ClassSymbolTable;
 	/*field*/GtType					BaseClass;
@@ -791,7 +791,7 @@ class GtType extends GtStatic {
 		this.ShortClassName = ClassName;
 		this.SuperClass = null;
 		this.BaseClass = this;
-		this.SearchSuperMethodClass = null;
+		this.SearchSuperFuncClass = null;
 		this.DefaultNullValue = DefaultNullValue;
 		this.NativeSpec = NativeSpec;
 		this.ClassSymbolTable = IsFlag(ClassFlag, EnumClass) ? (/*cast*/GtMap)NativeSpec : null;
@@ -803,7 +803,7 @@ class GtType extends GtStatic {
 	public GtType CreateSubType(int ClassFlag, String ClassName, Object DefaultNullValue, Object NativeSpec) {
 		GtType SubType = new GtType(this.Context, ClassFlag, ClassName, DefaultNullValue, NativeSpec);
 		SubType.SuperClass = this;
-		SubType.SearchSuperMethodClass = this;
+		SubType.SearchSuperFuncClass = this;
 		return SubType;
 	}
 	
@@ -811,7 +811,7 @@ class GtType extends GtStatic {
 	public GtType CreateGenericType(int BaseIndex, ArrayList<GtType> TypeList, String ShortName) {
 		GtType GenericType = new GtType(this.Context, this.ClassFlag, ShortName, null, null);
 		GenericType.BaseClass = this.BaseClass;
-		GenericType.SearchSuperMethodClass = this.BaseClass;
+		GenericType.SearchSuperFuncClass = this.BaseClass;
 		GenericType.SuperClass = this.SuperClass;
 		GenericType.Types = LangDeps.CompactTypeList(BaseIndex, TypeList);
 		DebugP("new class: " + GenericType.ShortClassName + ", ClassId=" + GenericType.ClassId);
@@ -852,21 +852,21 @@ class GtType extends GtStatic {
 		this.ClassSymbolTable.put(Key, Value);
 	}
 	
-	public final boolean AppendMethod(GtMethod Method) {
-		/*local*/Object Value = this.GetClassSymbol(Method.MethodName, false);
+	public final boolean AppendFunc(GtFunc Func) {
+		/*local*/Object Value = this.GetClassSymbol(Func.FuncName, false);
 		if(Value == null) {
-			this.SetClassSymbol(Method.MethodName, Method);
+			this.SetClassSymbol(Func.FuncName, Func);
 			return true;
 		}
-		else if(Value instanceof GtMethod) {
-			GtPolyFunc PolyFunc = new GtPolyFunc(null, (/*cast*/GtMethod)Value, Method);
-			this.SetClassSymbol(Method.MethodName, PolyFunc);
+		else if(Value instanceof GtFunc) {
+			GtPolyFunc PolyFunc = new GtPolyFunc(null, (/*cast*/GtFunc)Value, Func);
+			this.SetClassSymbol(Func.FuncName, PolyFunc);
 			return true;
 		}
 		else if(Value instanceof GtPolyFunc) {
 			GtPolyFunc PolyFunc = (/*cast*/GtPolyFunc)Value;
-			PolyFunc = PolyFunc.Append(null, Method);
-			this.SetClassSymbol(Method.MethodName, PolyFunc);
+			PolyFunc = PolyFunc.Append(null, Func);
+			this.SetClassSymbol(Func.FuncName, PolyFunc);
 			return true;
 		}
 		return false;
@@ -893,31 +893,31 @@ class GtType extends GtStatic {
 
 }
 
-class GtMethod extends GtStatic {
-	/*field*/public int				MethodFlag;
-//	/*field*/int					MethodSymbolId;
-	/*field*/public String			MethodName;
+class GtFunc extends GtStatic {
+	/*field*/public int				FuncFlag;
+//	/*field*/int					FuncSymbolId;
+	/*field*/public String			FuncName;
 	/*field*/public String          MangledName;
 	/*field*/public GtType[]		Types;
 	/*field*/private GtType         FuncType;
-	/*field*/public GtMethod        ListedMethods;
+	/*field*/public GtFunc        ListedFuncs;
 	/*field*/public Object          NativeRef;
 
-	GtMethod/*constructor*/(int MethodFlag, String MethodName, int BaseIndex, ArrayList<GtType> ParamList, Object NativeRef) {
-		this.MethodFlag = MethodFlag;
-		this.MethodName = MethodName;
-//		this.MethodSymbolId = GtStatic.GetSymbolId(MethodName, CreateNewSymbolId);
+	GtFunc/*constructor*/(int FuncFlag, String FuncName, int BaseIndex, ArrayList<GtType> ParamList, Object NativeRef) {
+		this.FuncFlag = FuncFlag;
+		this.FuncName = FuncName;
+//		this.FuncSymbolId = GtStatic.GetSymbolId(FuncName, CreateNewSymbolId);
 		this.Types = LangDeps.CompactTypeList(BaseIndex, ParamList);
 		LangDeps.Assert(this.Types.length > 0);
-		this.ListedMethods = null;
+		this.ListedFuncs = null;
 		this.FuncType = null;
 		this.NativeRef = NativeRef;
-		this.MangledName = GtStatic.MangleMethodName(this.GetRecvType(), this.MethodName, BaseIndex+2, ParamList);
+		this.MangledName = GtStatic.MangleFuncName(this.GetRecvType(), this.FuncName, BaseIndex+2, ParamList);
 	}
 
 	public final String GetNativeFuncName() {
-		if(this.Is(ExportMethod)) {
-			return this.MethodName;
+		if(this.Is(ExportFunc)) {
+			return this.FuncName;
 		}
 		else {
 			return this.MangledName;
@@ -933,7 +933,7 @@ class GtMethod extends GtStatic {
 	}
 
 	@Override public String toString() {
-		/*local*/String s = this.MethodName + "(";
+		/*local*/String s = this.FuncName + "(";
 		/*local*/int i = 0;
 		while(i < this.GetFuncParamSize()) {
 			/*local*/GtType ParamType = this.GetFuncParamType(i);
@@ -947,7 +947,7 @@ class GtMethod extends GtStatic {
 	}
 
 	public boolean Is(int Flag) {
-		return IsFlag(this.MethodFlag, Flag);
+		return IsFlag(this.FuncFlag, Flag);
 	}
 
 	public final GtType GetReturnType() {
@@ -978,7 +978,7 @@ class GtMethod extends GtStatic {
 	}
 
 	public String ApplyNativeMacro(int BaseIndex, String[] ParamCode) {
-		/*local*/String NativeMacro = IsFlag(this.MethodFlag, NativeMacroMethod) ? (/*cast*/String)this.NativeRef : "$0 " + this.MethodName + " $1";
+		/*local*/String NativeMacro = IsFlag(this.FuncFlag, NativeMacroFunc) ? (/*cast*/String)this.NativeRef : "$0 " + this.FuncName + " $1";
 		/*local*/String Code = NativeMacro.replace("$0", ParamCode[BaseIndex]);
 		if(ParamCode.length == BaseIndex + 1) {
 			Code = Code.replace("$1", "");
@@ -992,10 +992,10 @@ class GtMethod extends GtStatic {
 
 class GtPolyFunc extends GtStatic {
 	/*field*/public GtNameSpace NameSpace;
-	/*field*/public ArrayList<GtMethod> FuncList;
-	GtPolyFunc/*constructor*/(GtNameSpace NameSpace, GtMethod Func1, GtMethod Func2) {
+	/*field*/public ArrayList<GtFunc> FuncList;
+	GtPolyFunc/*constructor*/(GtNameSpace NameSpace, GtFunc Func1, GtFunc Func2) {
 		this.NameSpace = NameSpace;
-		this.FuncList = new ArrayList<GtMethod>();
+		this.FuncList = new ArrayList<GtFunc>();
 		this.FuncList.add(Func1);
 		this.FuncList.add(Func2);
 	}
@@ -1013,7 +1013,7 @@ class GtPolyFunc extends GtStatic {
 		return s;
 	}
 	
-	public final GtPolyFunc Append(GtNameSpace NameSpace, GtMethod Func) {
+	public final GtPolyFunc Append(GtNameSpace NameSpace, GtFunc Func) {
 		/*local*/GtPolyFunc PolyFunc = this;
 		if(this.NameSpace != NameSpace) {
 			PolyFunc = new GtPolyFunc(NameSpace, this.FuncList.get(0), this.FuncList.get(1));
@@ -1027,11 +1027,11 @@ class GtPolyFunc extends GtStatic {
 		return PolyFunc;
 	}
 	
-	public GtMethod MatchFuncParamSize(int ParamSize) {
+	public GtFunc MatchFuncParamSize(int ParamSize) {
 		/*local*/int i = this.FuncList.size() - 1;
-		/*local*/GtMethod FoundFunc = null;
+		/*local*/GtFunc FoundFunc = null;
 		while(i >= 0) {
-			/*local*/GtMethod Func = this.FuncList.get(i);
+			/*local*/GtFunc Func = this.FuncList.get(i);
 			if(Func.GetFuncParamSize() == ParamSize) {
 				if(FoundFunc != null) {
 					return null; // two more func
@@ -1043,11 +1043,11 @@ class GtPolyFunc extends GtStatic {
 		return FoundFunc;
 	}
 
-	public GtMethod IncrementalMatch(int FuncParamSize, ArrayList<GtNode> NodeList, int BaseIndex, int ParamIndex) {
+	public GtFunc IncrementalMatch(int FuncParamSize, ArrayList<GtNode> NodeList, int BaseIndex, int ParamIndex) {
 		/*local*/int i = this.FuncList.size() - 1;
-		/*local*/GtMethod FoundFunc = null;
+		/*local*/GtFunc FoundFunc = null;
 		while(i >= 0) {
-			/*local*/GtMethod Func = this.FuncList.get(i);
+			/*local*/GtFunc Func = this.FuncList.get(i);
 			if(Func.GetFuncParamSize() == FuncParamSize) {
 				/*local*/int p = BaseIndex;
 				while(p < ParamIndex) {
@@ -1070,10 +1070,10 @@ class GtPolyFunc extends GtStatic {
 		return FoundFunc;
 	}
 	
-	public GtMethod MatchAcceptableFunc(GtTypeEnv Gamma, int ParamSize, ArrayList<GtNode> NodeList, int BaseIndex) {
+	public GtFunc MatchAcceptableFunc(GtTypeEnv Gamma, int ParamSize, ArrayList<GtNode> NodeList, int BaseIndex) {
 		/*local*/int i = this.FuncList.size() - 1;
 		while(i >= 0) {
-			/*local*/GtMethod Func = this.FuncList.get(i);
+			/*local*/GtFunc Func = this.FuncList.get(i);
 			if(Func.GetFuncParamSize() == ParamSize) {
 				/*local*/int p = BaseIndex;
 				/*local*/GtNode Coercions[] = null;
@@ -1084,8 +1084,8 @@ class GtPolyFunc extends GtStatic {
 						p = p + 1;
 						continue;
 					}
-					GtMethod TypeCoercion = Gamma.GetCoercionFunc(Node.Type, ParamType, true);
-					if(TypeCoercion != null && TypeCoercion.Is(ImplicitMethod)) {
+					GtFunc TypeCoercion = Gamma.GetCoercionFunc(Node.Type, ParamType, true);
+					if(TypeCoercion != null && TypeCoercion.Is(ImplicitFunc)) {
 						if(Coercions == null) {
 							Coercions = new GtNode[NodeList.size()];
 						}
@@ -1116,10 +1116,10 @@ class GtPolyFunc extends GtStatic {
 		return null;
 	}
 
-	public final GtMethod MatchBinaryOperator(GtTypeEnv Gamma, GtNode[] BinaryNodes) {
+	public final GtFunc MatchBinaryOperator(GtTypeEnv Gamma, GtNode[] BinaryNodes) {
 		/*local*/int i = this.FuncList.size() - 1;
 		while(i >= 0) {
-			/*local*/GtMethod Func = this.FuncList.get(i);
+			/*local*/GtFunc Func = this.FuncList.get(i);
 			if(Func.GetFuncParamSize() == 2 && Func.Types[1].Accept(BinaryNodes[0].Type) && Func.Types[2].Accept(BinaryNodes[1].Type)) {
 				return Func;
 			}
@@ -1127,10 +1127,10 @@ class GtPolyFunc extends GtStatic {
 		}
 		i = this.FuncList.size() - 1;
 		while(i >= 0) {
-			/*local*/GtMethod Func = this.FuncList.get(i);
+			/*local*/GtFunc Func = this.FuncList.get(i);
 			if(Func.GetFuncParamSize() == 2 && Func.Types[1].Accept(BinaryNodes[0].Type)) {
-				GtMethod TypeCoercion = Gamma.GetCoercionFunc(BinaryNodes[1].Type, Func.Types[2], true);
-				if(TypeCoercion != null && TypeCoercion.Is(ImplicitMethod)) {
+				GtFunc TypeCoercion = Gamma.GetCoercionFunc(BinaryNodes[1].Type, Func.Types[2], true);
+				if(TypeCoercion != null && TypeCoercion.Is(ImplicitFunc)) {
 					BinaryNodes[1] = Gamma.CreateCoercionNode(Func.Types[2], TypeCoercion, BinaryNodes[1]);
 					return Func;
 				}
@@ -1182,36 +1182,36 @@ class GtGenerator extends GtStatic {
 		return new LocalNode(Type, ParsedTree.KeyToken, LocalName);
 	}
 
-	public GtNode CreateGetterNode(GtType Type, GtSyntaxTree ParsedTree, GtMethod Method, GtNode Expr) {
-		return new GetterNode(Type, ParsedTree.KeyToken, Method, Expr);
+	public GtNode CreateGetterNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, GtNode Expr) {
+		return new GetterNode(Type, ParsedTree.KeyToken, Func, Expr);
 	}
 
-	public GtNode CreateIndexerNode(GtType Type, GtSyntaxTree ParsedTree, GtMethod Method, GtNode Expr, GtNode Index) {
-		return new IndexerNode(Type, ParsedTree.KeyToken, Method, Expr, Index);
+	public GtNode CreateIndexerNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, GtNode Expr, GtNode Index) {
+		return new IndexerNode(Type, ParsedTree.KeyToken, Func, Expr, Index);
 	}
 
-	public GtNode CreateApplyNode(GtType Type, GtSyntaxTree ParsedTree, GtMethod Method) {
-		return new ApplyNode(Type, ParsedTree == null ? GtTokenContext.NullToken : ParsedTree.KeyToken, Method);
+	public GtNode CreateApplyNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func) {
+		return new ApplyNode(Type, ParsedTree == null ? GtTokenContext.NullToken : ParsedTree.KeyToken, Func);
 	}
 
-	public GtNode CreateMessageNode(GtType Type, GtSyntaxTree ParsedTree, GtNode RecvNode, GtMethod Method) {
-		return new MessageNode(Type, ParsedTree.KeyToken, Method, RecvNode);
+	public GtNode CreateMessageNode(GtType Type, GtSyntaxTree ParsedTree, GtNode RecvNode, GtFunc Func) {
+		return new MessageNode(Type, ParsedTree.KeyToken, Func, RecvNode);
 	}
 
 	public GtNode CreateNewNode(GtType Type, GtSyntaxTree ParsedTree) {
 		return new NewNode(Type, ParsedTree.KeyToken);
 	}
 
-	public GtNode CreateUnaryNode(GtType Type, GtSyntaxTree ParsedTree, GtMethod Method, GtNode Expr) {
-		return new UnaryNode(Type, ParsedTree.KeyToken, Method, Expr);
+	public GtNode CreateUnaryNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, GtNode Expr) {
+		return new UnaryNode(Type, ParsedTree.KeyToken, Func, Expr);
 	}
 
-	public GtNode CreateSuffixNode(GtType Type, GtSyntaxTree ParsedTree, GtMethod Method, GtNode Expr) {
-		return new SuffixNode(Type, ParsedTree.KeyToken, Method, Expr);
+	public GtNode CreateSuffixNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, GtNode Expr) {
+		return new SuffixNode(Type, ParsedTree.KeyToken, Func, Expr);
 	}
 
-	public GtNode CreateBinaryNode(GtType Type, GtSyntaxTree ParsedTree, GtMethod Method, GtNode Left, GtNode Right) {
-		return new BinaryNode(Type, ParsedTree.KeyToken, Method, Left, Right);
+	public GtNode CreateBinaryNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, GtNode Left, GtNode Right) {
+		return new BinaryNode(Type, ParsedTree.KeyToken, Func, Left, Right);
 	}
 
 	public GtNode CreateAndNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Left, GtNode Right) {
@@ -1313,17 +1313,17 @@ class GtGenerator extends GtStatic {
 		return NativeType;
 	}
 
-	public boolean TransformNativeMethods(GtType NativeBaseType, String MethodName) {
+	public boolean TransformNativeFuncs(GtType NativeBaseType, String FuncName) {
 		boolean TransformedResult = false;
 //ifdef JAVA
 		Class<?> NativeClassInfo = (Class<?>)NativeBaseType.NativeSpec;
 		Method[] List = NativeClassInfo.getMethods();
 		if(List != null) {
 			for(int i = 0; i < List.length; i++) {
-				if(MethodName.equals(List[i].getName())) {
-					int MethodFlag = NativeMethod;
+				if(FuncName.equals(List[i].getName())) {
+					int FuncFlag = NativeFunc;
 					if(Modifier.isStatic(List[i].getModifiers())) {
-						MethodFlag |= NativeStaticMethod;
+						FuncFlag |= NativeStaticFunc;
 					}
 					ArrayList<GtType> TypeList = new ArrayList<GtType>();
 					TypeList.add(this.GetNativeType(List[i].getReturnType()));
@@ -1334,8 +1334,8 @@ class GtGenerator extends GtStatic {
 							TypeList.add(this.GetNativeType(ParamTypes[j]));
 						}
 					}
-					GtMethod NativeMethod = new GtMethod(MethodFlag, MethodName, 0, TypeList, List[i]);
-					NativeBaseType.AppendMethod(NativeMethod);
+					GtFunc NativeFunc = new GtFunc(FuncFlag, FuncName, 0, TypeList, List[i]);
+					NativeBaseType.AppendFunc(NativeFunc);
 					TransformedResult = false;
 				}
 			}
@@ -1362,18 +1362,18 @@ class GtGenerator extends GtStatic {
 		/*extension*/
 	}
 
-	public int ParseMethodFlag(int MethodFlag, GtSyntaxTree MethodDeclTree) {
-		if(MethodDeclTree.HasAnnotation("Export")) {
-			MethodFlag = MethodFlag | ExportMethod;
+	public int ParseFuncFlag(int FuncFlag, GtSyntaxTree FuncDeclTree) {
+		if(FuncDeclTree.HasAnnotation("Export")) {
+			FuncFlag = FuncFlag | ExportFunc;
 		}
-		return MethodFlag;
+		return FuncFlag;
 	}
 
-	public GtMethod CreateMethod(int MethodFlag, String MethodName, int BaseIndex, ArrayList<GtType> TypeList, Object NativeRef) {
-		return new GtMethod(MethodFlag, MethodName, BaseIndex, TypeList, NativeRef);
+	public GtFunc CreateFunc(int FuncFlag, String FuncName, int BaseIndex, ArrayList<GtType> TypeList, Object NativeRef) {
+		return new GtFunc(FuncFlag, FuncName, BaseIndex, TypeList, NativeRef);
 	}
 
-	public void GenerateMethod(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
+	public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
 		/*extenstion*/
 
 	}
@@ -1709,30 +1709,30 @@ class SourceGenerator extends GtGenerator {
 		return Code;
 	}
 
-	public final static String GenerateApplyMethod1(GtMethod Method, String MethodName, String Arg1) {
+	public final static String GenerateApplyFunc1(GtFunc Func, String FuncName, String Arg1) {
 		String Macro = null;
-		if(Method != null) {
-			MethodName = Method.GetNativeFuncName();
-			if(IsFlag(Method.MethodFlag, NativeMacroMethod)) {
-				Macro = Method.GetNativeMacro();
+		if(Func != null) {
+			FuncName = Func.GetNativeFuncName();
+			if(IsFlag(Func.FuncFlag, NativeMacroFunc)) {
+				Macro = Func.GetNativeMacro();
 			}
 		}
 		if(Macro == null) {
-			Macro = "$1 " + MethodName;
+			Macro = "$1 " + FuncName;
 		}
 		return Macro.replace("$1", Arg1);
 	}
 
-	public final static String GenerateApplyMethod2(GtMethod Method, String MethodName, String Arg1, String Arg2) {
+	public final static String GenerateApplyFunc2(GtFunc Func, String FuncName, String Arg1, String Arg2) {
 		String Macro = null;
-		if(Method != null) {
-			MethodName = Method.GetNativeFuncName();
-			if(IsFlag(Method.MethodFlag, NativeMacroMethod)) {
-				Macro = Method.GetNativeMacro();
+		if(Func != null) {
+			FuncName = Func.GetNativeFuncName();
+			if(IsFlag(Func.FuncFlag, NativeMacroFunc)) {
+				Macro = Func.GetNativeMacro();
 			}
 		}
 		if(Macro == null) {
-			Macro = "$1 " + MethodName + " $2";
+			Macro = "$1 " + FuncName + " $2";
 		}
 		return Macro.replace("$1", Arg1).replace("$2", Arg2);
 	}

@@ -34,9 +34,9 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 
 	private boolean UseLetKeyword;
 
-	@Override public void GenerateMethod(GtMethod Method, ArrayList<String> NameList, GtNode Body) {
-		/*local*/int ArgCount = Method.Types.length - 1;
-		/*local*/String Code = "var " + Method.GetNativeFuncName() + " = (function(";
+	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> NameList, GtNode Body) {
+		/*local*/int ArgCount = Func.Types.length - 1;
+		/*local*/String Code = "var " + Func.GetNativeFuncName() + " = (function(";
 		/*local*/int i = 0;
 		while(i < ArgCount){
 			if(i > 0){
@@ -112,7 +112,7 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
-		/*local*/String methodName = Node.Method.GetNativeFuncName();
+		/*local*/String methodName = Node.Func.GetNativeFuncName();
 		/*local*/int ParamCount = Node.Params.size();
 		/*local*/int i = 0;
 		while(i < ParamCount) {

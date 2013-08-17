@@ -167,7 +167,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
-		/*local*/String Program = Node.Method.GetNativeFuncName() + " ";
+		/*local*/String Program = Node.Func.GetNativeFuncName() + " ";
 		/*local*/String[] Params = this.EvaluateParam(Node.Params);
 		/*local*/int i = 0;
 		while(i < Params.length) {
@@ -182,55 +182,55 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitSuffixNode(SuffixNode Node) {
-		/*local*/String MethodName = Node.Token.ParsedText;
-		if(MethodName.equals("++")) {
+		/*local*/String FuncName = Node.Token.ParsedText;
+		if(FuncName.equals("++")) {
 		}
-		else if(MethodName.equals("--")) {
+		else if(FuncName.equals("--")) {
 		}
 		else {
-			LangDeps.DebugP(MethodName + " is not supported suffix operator!!");
+			LangDeps.DebugP(FuncName + " is not supported suffix operator!!");
 		}
 		Node.Expr.Evaluate(this);
-		this.PushSourceCode("((" + this.PopSourceCode() + MethodName + "))");
+		this.PushSourceCode("((" + this.PopSourceCode() + FuncName + "))");
 	}
 
 	@Override public void VisitUnaryNode(UnaryNode Node) {
-		/*local*/String MethodName = Node.Token.ParsedText;
-		if(MethodName.equals("+")) {
+		/*local*/String FuncName = Node.Token.ParsedText;
+		if(FuncName.equals("+")) {
 		}
-		else if(MethodName.equals("-")) {
+		else if(FuncName.equals("-")) {
 		}
-		else if(MethodName.equals("~")) {
+		else if(FuncName.equals("~")) {
 		}
-		else if(MethodName.equals("!")) {
+		else if(FuncName.equals("!")) {
 		}
-		else if(MethodName.equals("++")) {
+		else if(FuncName.equals("++")) {
 		}
-		else if(MethodName.equals("--")) {
+		else if(FuncName.equals("--")) {
 		}
 		else {
-			LangDeps.DebugP(MethodName + " is not supported unary operator!!");
+			LangDeps.DebugP(FuncName + " is not supported unary operator!!");
 		}
 		Node.Expr.Evaluate(this);
-		this.PushSourceCode("((" + MethodName + this.PopSourceCode() + "))");
+		this.PushSourceCode("((" + FuncName + this.PopSourceCode() + "))");
 	}
 
 	@Override public void VisitBinaryNode(BinaryNode Node) {
-		/*local*/String MethodName = Node.Token.ParsedText;
+		/*local*/String FuncName = Node.Token.ParsedText;
 		if(Node.Type.equals(Node.Type.Context.StringType)) {
 			Node.RightNode.Evaluate(this);
 			Node.LeftNode.Evaluate(this);
 
-			if(MethodName.equals("+")) {
+			if(FuncName.equals("+")) {
 				this.PushSourceCode(this.PopSourceCode() + this.PopSourceCode());
 				return;
 			}
-			else if(MethodName.equals("!=")) {
+			else if(FuncName.equals("!=")) {
 			}
-			else if(MethodName.equals("==")) {
+			else if(FuncName.equals("==")) {
 			}
 			else {
-				LangDeps.DebugP(MethodName + " is not supported binary operator!!");
+				LangDeps.DebugP(FuncName + " is not supported binary operator!!");
 			}
 
 			Node.RightNode.Evaluate(this);
@@ -241,40 +241,40 @@ public class BashSourceGenerator extends SourceGenerator {
 			return;
 		}
 
-		if(MethodName.equals("+")) {
+		if(FuncName.equals("+")) {
 		}
-		else if(MethodName.equals("-")) {
+		else if(FuncName.equals("-")) {
 		}
-		else if(MethodName.equals("*")) {
+		else if(FuncName.equals("*")) {
 		}
-		else if(MethodName.equals("/")) {
+		else if(FuncName.equals("/")) {
 		}
-		else if(MethodName.equals("%")) {
+		else if(FuncName.equals("%")) {
 		}
-		else if(MethodName.equals("<<")) {
+		else if(FuncName.equals("<<")) {
 		}
-		else if(MethodName.equals(">>")) {
+		else if(FuncName.equals(">>")) {
 		}
-		else if(MethodName.equals("&")) {
+		else if(FuncName.equals("&")) {
 		}
-		else if(MethodName.equals("|")) {
+		else if(FuncName.equals("|")) {
 		}
-		else if(MethodName.equals("^")) {
+		else if(FuncName.equals("^")) {
 		}
-		else if(MethodName.equals("<=")) {
+		else if(FuncName.equals("<=")) {
 		}
-		else if(MethodName.equals("<")) {
+		else if(FuncName.equals("<")) {
 		}
-		else if(MethodName.equals(">=")) {
+		else if(FuncName.equals(">=")) {
 		}
-		else if(MethodName.equals(">")) {
+		else if(FuncName.equals(">")) {
 		}
-		else if(MethodName.equals("!=")) {
+		else if(FuncName.equals("!=")) {
 		}
-		else if(MethodName.equals("==")) {
+		else if(FuncName.equals("==")) {
 		}
 		else {
-			LangDeps.DebugP(MethodName + " is not supported binary operator!!");
+			LangDeps.DebugP(FuncName + " is not supported binary operator!!");
 		}
 
 		Node.RightNode.Evaluate(this);
@@ -283,11 +283,11 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/String right = this.ResolveValueType(Node.RightNode, this.PopSourceCode());
 		
 //		if(Node.Type.equals(Node.Type.Context.Float)) {	// support float value
-//			this.PushSourceCode("(echo \"scale=10; " + left + " " + MethodName + " " + right + "\" | bc)");
+//			this.PushSourceCode("(echo \"scale=10; " + left + " " + FuncName + " " + right + "\" | bc)");
 //			return;
 //		}
 		
-		this.PushSourceCode("((" + left + " " + MethodName + " " + right + "))");
+		this.PushSourceCode("((" + left + " " + FuncName + " " + right + "))");
 	}
 
 	@Override public void VisitAndNode(AndNode Node) {
@@ -421,7 +421,7 @@ public class BashSourceGenerator extends SourceGenerator {
 			count += 1;
 			CurrentNode = (/*cast*/CommandNode) CurrentNode.PipedNextNode;
 		}
-		this.PushSourceCode(this.CreateCommandMethod(Code, Node));
+		this.PushSourceCode(this.CreateCommandFunc(Code, Node));
 		
 		//sample
 //		function f() {
@@ -445,26 +445,26 @@ public class BashSourceGenerator extends SourceGenerator {
 		return Code;
 	}
 	
-	private String CreateCommandMethod(String cmd, CommandNode Node) {
-		/*local*/String MethodName = "execCmd";
+	private String CreateCommandFunc(String cmd, CommandNode Node) {
+		/*local*/String FuncName = "execCmd";
 		/*local*/String RunnableCmd = cmd;
 		if(Node.Type.equals(Node.Type.Context.StringType)) {
-			RunnableCmd = "function " + MethodName + this.cmdCounter + "() {" + this.LineFeed;
+			RunnableCmd = "function " + FuncName + this.cmdCounter + "() {" + this.LineFeed;
 			RunnableCmd += this.GetIndentString() + "echo $(" + cmd + ")" + this.LineFeed;
 			RunnableCmd += this.GetIndentString() + "return 0" + this.LineFeed + "}" + this.LineFeed;
 			this.WriteLineCode(RunnableCmd);
-			RunnableCmd = MethodName + this.cmdCounter;
+			RunnableCmd = FuncName + this.cmdCounter;
 			this.cmdCounter++;
 		}
 		else if(Node.Type.equals(Node.Type.Context.IntType) || 
 				Node.Type.equals(Node.Type.Context.BooleanType)) {
-			RunnableCmd = "function " + MethodName + this.cmdCounter + "() {" + this.LineFeed;
+			RunnableCmd = "function " + FuncName + this.cmdCounter + "() {" + this.LineFeed;
 			RunnableCmd += this.GetIndentString() + cmd + " >&2" + this.LineFeed;
 			RunnableCmd += this.GetIndentString() + "local ret=$?" + this.LineFeed;
 			RunnableCmd += this.GetIndentString() + "echo $ret" + this.LineFeed;
 			RunnableCmd += this.GetIndentString() + "return $ret" + this.LineFeed + "}" + this.LineFeed;
 			this.WriteLineCode(RunnableCmd);
-			RunnableCmd = MethodName + this.cmdCounter;
+			RunnableCmd = FuncName + this.cmdCounter;
 			this.cmdCounter++;
 		}
 		
@@ -504,10 +504,10 @@ public class BashSourceGenerator extends SourceGenerator {
 		return resolvedValue;
 	}
 
-	@Override public void GenerateMethod(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
+	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
 		/*local*/String Function = "function ";
 		this.inFunc = true;
-		Function += Method.GetNativeFuncName() + "() {" + this.LineFeed;
+		Function += Func.GetNativeFuncName() + "() {" + this.LineFeed;
 		this.VisitBlockWithIndent(this.ResolveParamName(ParamNameList, Body), true);
 		Function += this.PopSourceCode() + "}" + this.LineFeed;
 		this.WriteLineCode(Function);

@@ -109,8 +109,8 @@ public class PythonSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitConstNode(ConstNode Node) {
 		/*local*/String StringfiedValue = this.StringfyConstValue(Node.ConstValue);
-		if(Node.ConstValue instanceof GtMethod) {
-			StringfiedValue = ((/*cast*/GtMethod)Node.ConstValue).GetNativeFuncName();
+		if(Node.ConstValue instanceof GtFunc) {
+			StringfiedValue = ((/*cast*/GtFunc)Node.ConstValue).GetNativeFuncName();
 		}
 		else if(Node.Type.equals(Node.Type.Context.BooleanType) || StringfiedValue.equals("true") || StringfiedValue.equals("false")) {
 			if(StringfiedValue.equals("true")) {
@@ -181,32 +181,32 @@ public class PythonSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
 		/*local*/String[] ParamCode = this.MakeParamCode(Node.Params);
-		if(Node.Method == null) {
+		if(Node.Func == null) {
 			this.PushSourceCode(this.JoinCode(ParamCode[0] + "(", 0, ParamCode, ")"));
 		}
-		else if(Node.Method.Is(NativeMethod)) {
-			this.PushSourceCode(this.JoinCode(ParamCode[0] + "." + Node.Method.MethodName + "(", 0, ParamCode, ")"));			
+		else if(Node.Func.Is(NativeFunc)) {
+			this.PushSourceCode(this.JoinCode(ParamCode[0] + "." + Node.Func.FuncName + "(", 0, ParamCode, ")"));			
 		}
-		else if(Node.Method.Is(NativeMacroMethod)) {
-			this.PushSourceCode(Node.Method.ApplyNativeMacro(0, ParamCode));						
+		else if(Node.Func.Is(NativeMacroFunc)) {
+			this.PushSourceCode(Node.Func.ApplyNativeMacro(0, ParamCode));						
 		}else {
-			this.PushSourceCode(this.JoinCode(Node.Method.GetNativeFuncName() + "(", 0, ParamCode, ")"));						
+			this.PushSourceCode(this.JoinCode(Node.Func.GetNativeFuncName() + "(", 0, ParamCode, ")"));						
 		}
 	}
 
 	@Override public void VisitSuffixNode(SuffixNode Node) {	//FIXME
-		/*local*/String MethodName = Node.Token.ParsedText;
-		if(MethodName.equals("++")) {
-			MethodName = " += 1";
+		/*local*/String FuncName = Node.Token.ParsedText;
+		if(FuncName.equals("++")) {
+			FuncName = " += 1";
 		}
-		else if(MethodName.equals("--")) {
-			MethodName = " -= 1";
+		else if(FuncName.equals("--")) {
+			FuncName = " -= 1";
 		}
 		else {
-			LangDeps.DebugP(MethodName + " is not supported suffix operator!!");
+			LangDeps.DebugP(FuncName + " is not supported suffix operator!!");
 		}
 		Node.Expr.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + MethodName);
+		this.PushSourceCode(this.PopSourceCode() + FuncName);
 	}
 
 	@Override public void VisitNewNode(NewNode Node) {
@@ -215,25 +215,25 @@ public class PythonSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitUnaryNode(UnaryNode Node) {
-		if(Node.Method == null) {
+		if(Node.Func == null) {
 			Node.Expr.Evaluate(this);
 			this.PushSourceCode("(" + Node.Token.ParsedText + this.PopSourceCode() + ")");
 		}
 		else {
 			/*local*/String[] ParamCode = this.MakeParamCode1(Node.Expr);
-			this.PushSourceCode("(" + Node.Method.ApplyNativeMacro(0, ParamCode) + ")");
+			this.PushSourceCode("(" + Node.Func.ApplyNativeMacro(0, ParamCode) + ")");
 		}
 	}
 
 	@Override public void VisitBinaryNode(BinaryNode Node) {
-		if(Node.Method == null) {
+		if(Node.Func == null) {
 			Node.RightNode.Evaluate(this);
 			Node.LeftNode.Evaluate(this);
 			this.PushSourceCode("(" + this.PopSourceCode() + " " +  Node.Token.ParsedText + " " + this.PopSourceCode() + ")");
 		}
 		else {
 			/*local*/String[] ParamCode = this.MakeParamCode2(Node.LeftNode, Node.RightNode);
-			this.PushSourceCode("(" + Node.Method.ApplyNativeMacro(0, ParamCode) + ")");
+			this.PushSourceCode("(" + Node.Func.ApplyNativeMacro(0, ParamCode) + ")");
 		}
 	}
 
@@ -373,9 +373,9 @@ public class PythonSourceGenerator extends SourceGenerator {
 		return Code;
 	}
 
-	@Override public void GenerateMethod(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
+	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
 		/*local*/String Function = "def ";
-		Function += Method.GetNativeFuncName() + "(";
+		Function += Func.GetNativeFuncName() + "(";
 		/*local*/int i = 0;
 		/*local*/int size = ParamNameList.size();
 		while(i < size) {

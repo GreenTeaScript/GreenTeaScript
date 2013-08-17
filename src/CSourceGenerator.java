@@ -57,15 +57,15 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitSuffixNode(SuffixNode Node) {
-		/*local*/String MethodName = Node.Token.ParsedText;
+		/*local*/String FuncName = Node.Token.ParsedText;
 		Node.Expr.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + MethodName);
+		this.PushSourceCode(this.PopSourceCode() + FuncName);
 	}
 
 	@Override public void VisitUnaryNode(UnaryNode Node) {
-		/*local*/String MethodName = Node.Token.ParsedText;
+		/*local*/String FuncName = Node.Token.ParsedText;
 		Node.Expr.Evaluate(this);
-		this.PushSourceCode(MethodName + this.PopSourceCode());
+		this.PushSourceCode(FuncName + this.PopSourceCode());
 	}
 
 	@Override public void VisitIndexerNode(IndexerNode Node) {
@@ -133,7 +133,7 @@ public class CSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitGetterNode(GetterNode Node) {
 		Node.Expr.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + "->" + Node.Method.MethodName);
+		this.PushSourceCode(this.PopSourceCode() + "->" + Node.Func.FuncName);
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
@@ -150,19 +150,19 @@ public class CSourceGenerator extends SourceGenerator {
 	private String GenerateMacro(ApplyNode Node) {
 		/*local*/int BeginIdx = 1;
 		/*local*/String Template = "";
-		if(Node.Method == null) {
+		if(Node.Func == null) {
 			Template = "$1";
 			BeginIdx = 2;
 		}
-		else if(Node.Method.Is(NativeMethod)) {
-			Template = "$1." + Node.Method.MethodName;
+		else if(Node.Func.Is(NativeFunc)) {
+			Template = "$1." + Node.Func.FuncName;
 			BeginIdx = 2;
 		}
-		else if(Node.Method.Is(NativeMacroMethod)) {
-			return Node.Method.GetNativeMacro();
+		else if(Node.Func.Is(NativeMacroFunc)) {
+			return Node.Func.GetNativeMacro();
 		}
 		else {
-			Template = Node.Method.GetNativeFuncName();
+			Template = Node.Func.GetNativeFuncName();
 		}
 		Template += "(";
 		/*local*/int i = BeginIdx;
@@ -179,10 +179,10 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitBinaryNode(BinaryNode Node) {
-		/*local*/String MethodName = Node.Token.ParsedText;
+		/*local*/String FuncName = Node.Token.ParsedText;
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + " " + MethodName + " " + this.PopSourceCode());
+		this.PushSourceCode(this.PopSourceCode() + " " + FuncName + " " + this.PopSourceCode());
 	}
 
 	@Override public void VisitAndNode(AndNode Node) {
@@ -328,16 +328,16 @@ public class CSourceGenerator extends SourceGenerator {
 		return Type.ShortClassName;
 	}
 
-	@Override public void GenerateMethod(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
+	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
 		/*local*/String Code = "";
-		if(!Method.Is(ExportMethod)) {
+		if(!Func.Is(ExportFunc)) {
 			Code = "static ";
 		}
-		/*local*/String RetTy = this.LocalTypeName(Method.GetReturnType());
-		Code += RetTy + " " + Method.GetNativeFuncName() + "(";
+		/*local*/String RetTy = this.LocalTypeName(Func.GetReturnType());
+		Code += RetTy + " " + Func.GetNativeFuncName() + "(";
 		/*local*/int i = 0;
 		while(i < ParamNameList.size()) {
-			String ParamTy = this.LocalTypeName(Method.GetFuncParamType(i));
+			String ParamTy = this.LocalTypeName(Func.GetFuncParamType(i));
 			if(i > 0) {
 				Code += ", ";
 			}
@@ -378,8 +378,8 @@ public class CSourceGenerator extends SourceGenerator {
 			ArrayList<GtType> ParamList = new ArrayList<GtType>();
 			ParamList.add(VarType);
 			ParamList.add(Type);
-			GtMethod GetterMethod = new GtMethod(0, VarName, 0, ParamList, null);
-			NameSpace.Context.DefineGetterFunc(GetterMethod);
+			GtFunc GetterFunc = new GtFunc(0, VarName, 0, ParamList, null);
+			NameSpace.Context.DefineGetterFunc(GetterFunc);
 			i = i + 1;
 		}
 		this.UnIndent();
@@ -387,10 +387,10 @@ public class CSourceGenerator extends SourceGenerator {
 		this.WriteLineCode(Program);
 	}
 
-//	@Override public void DefineClassMethod(GtNameSpace NameSpace, GtType Type, GtMethod Method) {
+//	@Override public void DefineClassFunc(GtNameSpace NameSpace, GtType Type, GtFunc Func) {
 //		/*local*/String Program = (/*cast*/String) this.DefinedClass.get(Type.ShortClassName);
 //		this.Indent();
-//		Program += this.GetIndentString() + Method.GetFuncType().ShortClassName + " " + Method.MangledName + ";\n";
+//		Program += this.GetIndentString() + Func.GetFuncType().ShortClassName + " " + Func.MangledName + ";\n";
 //		this.UnIndent();
 //		this.DefinedClass.put(Type.ShortClassName, Program);
 //	}
