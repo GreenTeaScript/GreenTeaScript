@@ -115,16 +115,16 @@ class ConstNode extends GtNode {
 }
 
 class LocalNode extends GtNode {
-	/*field*/public String LocalName;
-	LocalNode/*constructor*/(GtType Type, GtToken Token, String LocalName) {
+	/*field*/public String NativeName;
+	LocalNode/*constructor*/(GtType Type, GtToken Token, String NativeName) {
 		super(Type, Token);
-		this.LocalName = LocalName;
+		this.NativeName = NativeName;
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitLocalNode(this);
 	}
 	@Override public String toString() {
-		return "(Local:" + this.Type + " " + this.LocalName + ")";
+		return "(Local:" + this.Type + " " + this.NativeName + ")";
 	}
 }
 

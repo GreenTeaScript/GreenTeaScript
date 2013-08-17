@@ -716,7 +716,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 	}
 
 	@Override public void VisitLocalNode(LocalNode Node) {
-		String FieldName = Node.LocalName;
+		String FieldName = Node.NativeName;
 		Local local;
 		if((local = this.Builder.FindLocalVariable(FieldName)) == null) {
 			throw new RuntimeException("local variable not found:" + FieldName);
@@ -872,7 +872,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		else {
 			assert (Node.LeftNode instanceof LocalNode);
 			LocalNode Left = (LocalNode) Node.LeftNode;
-			String Name = Left.LocalName;
+			String Name = Left.NativeName;
 			Local local = this.Builder.FindLocalVariable(Name);
 			if(local == null) {
 				throw new RuntimeException("local variable " + Name + " is not found in this context");

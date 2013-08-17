@@ -137,7 +137,7 @@ public class JavaSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitLocalNode(LocalNode Node) {
-		this.PushSourceCode(Node.LocalName);
+		this.PushSourceCode(Node.NativeName);
 	}
 
 	@Override public void VisitGetterNode(GetterNode Node) {

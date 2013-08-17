@@ -379,11 +379,11 @@ class GtStatic implements GtConst {
 //	}
 
 	private final static String n2s(int n) {
-		if(n < 10) {
-			return LangDeps.CharToString((char)(48 + (n)));
+		if(n < (27)) {
+			return LangDeps.CharToString((char)(65 + (n - 0)));
 		}
 		else if(n < (27 + 10)) {
-			return LangDeps.CharToString((char)(65 + (n - 10)));
+			return LangDeps.CharToString((char)(48 + (n - 27)));
 		}
 		else {
 			return LangDeps.CharToString((char)(97 + (n - 37)));
@@ -392,9 +392,13 @@ class GtStatic implements GtConst {
 
 	public final static String NumberToAscii(int number) {
 		LangDeps.Assert(number < (62 * 62));
-		return n2s((number / 62)) + (number % 62);
+		return n2s((number / 62)) + n2s((number % 62));
 	}
 
+	public final static String NativeVariableName(String Name, int Index) {
+		return Name + NativeNameSuffix + NumberToAscii(Index);
+	}
+	
 	public final static String MangleGenericType(GtType BaseType, int BaseIdx, ArrayList<GtType> TypeList) {
 		/*local*/String s = BaseType.ShortClassName + NativeNameSuffix;
 		/*local*/int i = BaseIdx;
@@ -414,6 +418,7 @@ class GtStatic implements GtConst {
 		}
 		return s;
 	}
+	
 
 //ifdef JAVA
 	public final static GtDelegateToken FunctionA(Object Callee, String FuncName) {
@@ -1182,7 +1187,7 @@ class GtSyntaxTree extends GtStatic {
 
 /* typing */
 
-final class GtVariableInfo {
+final class GtVariableInfo extends GtStatic {
 	/*field*/public GtType	Type;
 	/*field*/public String	Name;
 	/*field*/public String	NativeName;
@@ -1190,7 +1195,7 @@ final class GtVariableInfo {
 	GtVariableInfo/*constructor*/(GtType Type, String Name, int Index) {
 		this.Type = Type;
 		this.Name = Name;
-		this.NativeName = Name + Index;
+		this.NativeName = GtStatic.NativeVariableName(Name, Index);
 	}
 }
 
@@ -1863,7 +1868,7 @@ final class DScriptGrammar extends GtGrammar {
 		}
 		/*local*/GtNode BlockNode = Gamma.TypeBlock(ParsedTree.NextTree, ContextType);
 		ParsedTree.NextTree = null;
-		return Gamma.Generator.CreateLetNode(DeclType, ParsedTree, DeclType, ((/*cast*/LocalNode)VariableNode).LocalName, InitValueNode, BlockNode);
+		return Gamma.Generator.CreateLetNode(DeclType, ParsedTree, DeclType, ((/*cast*/LocalNode)VariableNode).NativeName, InitValueNode, BlockNode);
 	}
 
 	// Parse And Type
@@ -2618,7 +2623,7 @@ final class DScriptGrammar extends GtGrammar {
 			/*local*/GtType ParamType = ParsedTree.GetSyntaxTreeAt(ParamBase).GetParsedType();
 			/*local*/String ParamName = ParsedTree.GetSyntaxTreeAt(ParamBase+1).KeyToken.ParsedText;
 			TypeList.add(ParamType);
-			ParamNameList.add(ParamName + NativeNameSuffix + i);
+			ParamNameList.add(NativeVariableName(ParamName, i));
 			Gamma.AppendDeclaredVariable(ParamType, ParamName);
 			ParamBase += 3;
 			i = i + 1;
