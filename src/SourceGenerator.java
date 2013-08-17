@@ -970,7 +970,7 @@ class GtMethod extends GtStatic {
 	}
 }
 
-class GtPolyFunc {
+class GtPolyFunc extends GtStatic {
 	/*field*/public GtNameSpace NameSpace;
 	/*field*/public ArrayList<GtMethod> FuncList;
 	GtPolyFunc/*constructor*/(GtNameSpace NameSpace, GtMethod Func1, GtMethod Func2) {
@@ -992,8 +992,91 @@ class GtPolyFunc {
 		PolyFunc.FuncList.add(Func);
 		return PolyFunc;
 	}
-	public GtMethod IncrementalMatch(int BaseIndex, ArrayList<GtNode> NodeList, int ParamIndex) {
-		// TODO Auto-generated method stub
+	
+	public GtMethod MatchFuncParamSize(int ParamSize) {
+		/*local*/int i = this.FuncList.size() - 1;
+		/*local*/GtMethod FoundFunc = null;
+		while(i >= 0) {
+			/*local*/GtMethod Func = this.FuncList.get(i);
+			if(Func.GetFuncParamSize() == ParamSize) {
+				if(FoundFunc != null) {
+					return null; // two more func
+				}
+				FoundFunc = Func;
+			}
+			i = i - 1;
+		}
+		return FoundFunc;
+	}
+
+	public GtMethod IncrementalMatch(int FuncParamSize, ArrayList<GtNode> NodeList, int BaseIndex, int ParamIndex) {
+		/*local*/int i = this.FuncList.size() - 1;
+		/*local*/GtMethod FoundFunc = null;
+		while(i >= 0) {
+			/*local*/GtMethod Func = this.FuncList.get(i);
+			if(Func.GetFuncParamSize() == FuncParamSize) {
+				/*local*/int p = BaseIndex;
+				while(p < ParamIndex) {
+					GtNode Node = NodeList.get(p);
+					if(Node.Type != Func.Types[p - BaseIndex + 1]) {
+						Func = null;
+						break;
+					}
+					p = p + 1;
+				}
+				if(Func != null) {
+					if(FoundFunc != null) {
+						return null; // two more func
+					}
+					FoundFunc = Func;
+				}
+			}
+			i = i - 1;
+		}
+		return FoundFunc;
+	}
+	
+	public GtMethod MatchAcceptableFunc(GtTypeEnv Gamma, int ParamSize, ArrayList<GtNode> NodeList, int BaseIndex) {
+		/*local*/int i = this.FuncList.size() - 1;
+		while(i >= 0) {
+			/*local*/GtMethod Func = this.FuncList.get(i);
+			if(Func.GetFuncParamSize() == ParamSize) {
+				/*local*/int p = BaseIndex;
+				/*local*/GtNode Coercions[] = null;
+				while(p < NodeList.size()) {
+					GtNode Node = NodeList.get(p);
+					GtType ParamType = Func.Types[p - BaseIndex + 1];
+					if(ParamType.Accept(Node.Type)) {
+						p = p + 1;
+						continue;
+					}
+					GtMethod TypeCoercion = ParamType.Context.GetConverterMethod(Node.Type, ParamType, true);
+					if(TypeCoercion != null && TypeCoercion.Is(ImplicitMethod)) {
+						if(Coercions == null) {
+							Coercions = new GtNode[NodeList.size()];
+						}
+						Coercions[p] = Gamma.CreateCoercionNode(ParamType, TypeCoercion, Node);
+					}
+					Func = null;
+					Coercions = null;
+					break;
+				}
+				if(Func != null) {
+					if(Coercions != null) {
+						i = 1;
+						while(i < Coercions.length) {
+							if(Coercions[i] != null) {
+								NodeList.set(i, Coercions[i]);
+							}
+							i = i + 1;
+						}
+						Coercions = null;
+					}
+					return Func;
+				}
+			}
+			i = i - 1;
+		}
 		return null;
 	}
 	
@@ -1048,7 +1131,7 @@ class GtGenerator extends GtStatic {
 	}
 
 	public GtNode CreateApplyNode(GtType Type, GtSyntaxTree ParsedTree, GtMethod Method) {
-		return new ApplyNode(Type, ParsedTree.KeyToken, Method);
+		return new ApplyNode(Type, ParsedTree == null ? GtTokenContext.NullToken : ParsedTree.KeyToken, Method);
 	}
 
 	public GtNode CreateMessageNode(GtType Type, GtSyntaxTree ParsedTree, GtNode RecvNode, GtMethod Method) {

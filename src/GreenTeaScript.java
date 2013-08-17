@@ -1269,6 +1269,12 @@ final class GtTypeEnv extends GtStatic {
 		return null;
 	}
 
+	public final GtNode CreateCoercionNode(GtType ParamType, GtMethod TypeCoercion, GtNode Node) {
+		GtNode ApplyNode = this.Generator.CreateApplyNode(ParamType, null, TypeCoercion);
+		ApplyNode.Append(Node);
+		return ApplyNode;
+	}
+
 	public final GtNode ReportTypeResult(GtSyntaxTree ParsedTree, GtNode Node, int Level, String Message) {
 		this.NameSpace.Context.ReportError(Level, Node.Token, Message);
 		if(!this.IsStrictMode()) {
@@ -1376,6 +1382,7 @@ final class GtTypeEnv extends GtStatic {
 		}
 		this.Method = Method;
 	}
+
 }
 
 // NameSpace
@@ -2042,22 +2049,50 @@ final class DScriptGrammar extends GtGrammar {
 
 	public static GtNode TypeApply(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtNode FuncNode = ParsedTree.TypeCheckNodeAt(0, Gamma, Gamma.FuncType, NoCheckPolicy);
-		///*local*/String MethodName = FuncNode.Token.ParsedText;
-		///*local*/GtType BaseType = null;
-		/*local*/ArrayList<GtNode> NodeList = new ArrayList<GtNode>();
 		if(FuncNode.IsError()) {
 			return FuncNode;
 		}
-		///*local*/int ParamSize = ListSize(ParsedTree.TreeList) - 1;
+		/*local*/ArrayList<GtNode> NodeList = new ArrayList<GtNode>();
+		NodeList.add(FuncNode);
+		/*local*/GtMethod ResolvedFunc = null;
+		/*local*/int TypedParamIndex = 1;
 		if(FuncNode instanceof GetterNode) { /* Method style .. o.f x, y, .. */
 			/*local*/GtNode BaseNode = ((/*cast*/GetterNode)FuncNode).Expr;
+			/*local*/String MethodName = FuncNode.Token.ParsedText;
 			NodeList.add(BaseNode);
-			//BaseType = FuncNode.Type;
-			return Gamma.CreateErrorNode2(ParsedTree, FuncNode.Type + "undeveloped!!");
+			/*local*/Object Func = BaseNode.Type.GetClassSymbol(MethodName, true);
+			if(Func instanceof GtMethod) {
+				ResolvedFunc = (/*cast*/GtMethod)Func;
+			}
+			if(Func instanceof GtPolyFunc) {
+				/*local*/GtPolyFunc PolyFunc = (/*cast*/GtPolyFunc)Func;
+				/*local*/int ParamSize = ListSize(ParsedTree.TreeList);
+				ResolvedFunc = PolyFunc.IncrementalMatch(ParamSize, NodeList, 1, TypedParamIndex + 1);
+				if(ResolvedFunc == null) {
+					while(TypedParamIndex < ListSize(ParsedTree.TreeList)) {
+						/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(TypedParamIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+						if(Node.IsError()) {
+							return Node;
+						}
+						NodeList.add(Node);
+						TypedParamIndex = TypedParamIndex + 1;
+						ResolvedFunc = PolyFunc.IncrementalMatch(ParamSize, NodeList, 1, TypedParamIndex + 1);
+						if(ResolvedFunc != null) {
+							break;
+						}
+					}
+					if(ResolvedFunc == null) {
+						ResolvedFunc = PolyFunc.MatchAcceptableFunc(Gamma, ParamSize, NodeList, 1);
+						if(ResolvedFunc == null) {
+							return Gamma.CreateErrorNode2(ParsedTree, "mismatched function: " + PolyFunc);
+						}
+					}
+				}
+				// reset ConstValue as if non-polymorphic function were found 
+				((/*cast*/ConstNode)FuncNode).ConstValue = ResolvedFunc;
+				((/*cast*/ConstNode)FuncNode).Type = ResolvedFunc.GetFuncType();
+			}
 		}
-		/*local*/GtMethod ResolvedFunc = null;
-		/*local*/int ParamIndex = 1;
-		NodeList.add(FuncNode);
 		if(FuncNode instanceof ConstNode) { /* Func style .. f x, y .. */
 			/*local*/Object Func = ((/*cast*/ConstNode)FuncNode).ConstValue;
 			if(Func instanceof GtMethod) {
@@ -2065,46 +2100,54 @@ final class DScriptGrammar extends GtGrammar {
 			}
 			if(Func instanceof GtPolyFunc) {
 				/*local*/GtPolyFunc PolyFunc = (/*cast*/GtPolyFunc)Func;
-				while(ParamIndex < ListSize(ParsedTree.TreeList)) {
-					/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(ParamIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-					if(Node.IsError()) {
-						return Node;
+				/*local*/int ParamSize = ListSize(ParsedTree.TreeList) - 1;
+				ResolvedFunc = PolyFunc.MatchFuncParamSize(ParamSize);
+				if(ResolvedFunc == null) {
+					while(TypedParamIndex < ListSize(ParsedTree.TreeList)) {
+						/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(TypedParamIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+						if(Node.IsError()) {
+							return Node;
+						}
+						NodeList.add(Node);
+						TypedParamIndex = TypedParamIndex + 1;
+						ResolvedFunc = PolyFunc.IncrementalMatch(ParamSize, NodeList, 1, TypedParamIndex);
+						if(ResolvedFunc != null) {
+							break;
+						}
 					}
-					NodeList.add(Node);
-					ParamIndex = ParamIndex + 1;
-					ResolvedFunc = PolyFunc.IncrementalMatch(1, NodeList, ParamIndex);
-					if(ResolvedFunc != null) {
-						((/*cast*/ConstNode)FuncNode).ConstValue = ResolvedFunc;
-						((/*cast*/ConstNode)FuncNode).Type = ResolvedFunc.GetFuncType();
-						break;
+					if(ResolvedFunc == null) {
+						ResolvedFunc = PolyFunc.MatchAcceptableFunc(Gamma, ParamSize, NodeList, 1);
+						if(ResolvedFunc == null) {
+							return Gamma.CreateErrorNode2(ParsedTree, "mismatched function: " + PolyFunc);
+						}
 					}
 				}
-				if(ResolvedFunc != null) {
-					
-				}
+				// reset ConstValue as if non-polymorphic function were found 
+				((/*cast*/ConstNode)FuncNode).ConstValue = ResolvedFunc;
+				((/*cast*/ConstNode)FuncNode).Type = ResolvedFunc.GetFuncType();
 			}
 		}
 		/*local*/GtType ReturnType = Gamma.AnyType;
 		if(FuncNode.Type == Gamma.AnyType) {
-			while(ParamIndex < ListSize(ParsedTree.TreeList)) {
-				/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(ParamIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+			while(TypedParamIndex < ListSize(ParsedTree.TreeList)) {
+				/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(TypedParamIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
 				if(Node.IsError()) {
 					return Node;
 				}
 				NodeList.add(Node);
-				ParamIndex = ParamIndex + 1;
+				TypedParamIndex = TypedParamIndex + 1;
 			}
 		}
 		else if(FuncNode.Type.BaseClass == Gamma.FuncType) {
 			/*local*/GtType FuncType = FuncNode.Type;
 			LangDeps.Assert(ListSize(ParsedTree.TreeList) == FuncType.Types.length); // FIXME: add check paramerter size
-			while(ParamIndex < ListSize(ParsedTree.TreeList)) {
-				/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(ParamIndex, Gamma, FuncType.Types[ParamIndex], DefaultTypeCheckPolicy);
+			while(TypedParamIndex < ListSize(ParsedTree.TreeList)) {
+				/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(TypedParamIndex, Gamma, FuncType.Types[TypedParamIndex], DefaultTypeCheckPolicy);
 				if(Node.IsError()) {
 					return Node;
 				}
 				NodeList.add(Node);
-				ParamIndex = ParamIndex + 1;
+				TypedParamIndex = TypedParamIndex + 1;
 			}
 			ReturnType = FuncType.Types[0];
 		}
@@ -2114,135 +2157,10 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/GtNode Node = Gamma.Generator.CreateApplyNode(ReturnType, ParsedTree, ResolvedFunc);
 		/*local*/int i = 0;
 		while(i < NodeList.size()) {
-			DebugP("i=" + i + ", " + NodeList.get(i));
 			Node.Append(NodeList.get(i));
 			i = i + 1;
 		}
 		return Node;
-
-	}
-
-	private static GtNode TypeFuncParam(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, String MethodName, GtType BaseType, ArrayList<GtNode> NodeList, int ParamIndex, int ParamSize) {
-		/*local*/GtMethod Method = Gamma.Context.GetListedMethod(BaseType, MethodName, ParamSize - 1, true);
-		/*local*/GtType ReturnType = Gamma.AnyType;
-		if(Method == null) {
-			if(!BaseType.IsDynamic()) {
-				/*local*/GtNode TypeError = Gamma.CreateErrorNode2(ParsedTree, "undefined function " + MethodName + " of " + BaseType);
-				if(Gamma.IsStrictMode()) {
-					return TypeError;
-				}
-			}
-			else {
-				while(ParamIndex < ListSize(ParsedTree.TreeList)) {
-					/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(ParamIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-					if(Node.IsError()) {
-						return Node;
-					}
-					NodeList.add(Node);
-					ParamIndex = ParamIndex + 1;
-				}
-			}
-		}
-		else { //if(Method != null) {
-			if(Method.ListedMethods == null) {
-				DebugP("Contextual Typing");
-				/*local*/int i = 1;
-				while(ParamIndex < ListSize(ParsedTree.TreeList)) {
-					/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(ParamIndex, Gamma, Method.GetFuncParamType(i), DefaultTypeCheckPolicy);
-					if(Node.IsError()) {
-						return Node;
-					}
-					NodeList.add(Node);
-					ParamIndex = ParamIndex + 1;
-					i = i + 1;
-				}
-				ReturnType = Method.GetReturnType();
-			}
-			else {
-				while(ParamIndex < ListSize(ParsedTree.TreeList)) {
-					/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(ParamIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-					if(Node.IsError()) {
-						return Node;
-					}
-					NodeList.add(Node);
-					ParamIndex = ParamIndex + 1;
-				}
-				Method = DScriptGrammar.LookupOverloadedMethod(Gamma, Method, NodeList);
-				if(Method == null) {
-					/*local*/GtNode TypeError = Gamma.CreateErrorNode2(ParsedTree, "mismatched method " + MethodName + " of " + BaseType);
-					if(Gamma.IsStrictMode()) {
-						return TypeError;
-					}
-				}
-				ReturnType = Method.GetReturnType();
-			}
-		}
-		/*local*/GtNode Node = Gamma.Generator.CreateApplyNode(ReturnType, ParsedTree, Method);
-		/*local*/int i = 0;
-		while(i < NodeList.size()) {
-			Node.Append(NodeList.get(i));
-			i = i + 1;
-		}
-		return Node;
-	}
-
-	private static boolean ExactlyMatchMethod(GtMethod Method, ArrayList<GtNode> NodeList) {
-		/*local*/int p = 1;
-		while(p < ListSize(NodeList)) {
-			/*local*/GtNode ParamNode = NodeList.get(p);
-			if(Method.Types[p+1] != ParamNode.Type) {
-				return false;
-			}
-			p = p + 1;
-		}
-		return true;
-	}
-
-	private static boolean AcceptablyMatchMethod(GtTypeEnv Gamma, GtMethod Method, ArrayList<GtNode> NodeList) {
-		/*local*/int p = 1;
-		while(p < ListSize(NodeList)) {
-			/*local*/GtNode ParamNode = NodeList.get(p);
-			if(!Method.Types[p+1].Accept(ParamNode.Type)) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	private static GtMethod LookupOverloadedMethod(GtTypeEnv Gamma, GtMethod Method, ArrayList<GtNode> NodeList) {
-		/*local*/GtMethod StartMethod = Method;
-		/*local*/GtType BaseType = Method.GetRecvType();
-		/*local*/String MethodName = Method.MangledName;
-		/*local*/int ParamSize = Method.GetMethodParamSize();
-		while(Method != null) {
-			if(DScriptGrammar.ExactlyMatchMethod(Method, NodeList)) {
-				return Method;
-			}
-			Method = Method.ListedMethods;
-			if(Method == null) {
-				BaseType = BaseType.SearchSuperMethodClass;
-				if(BaseType == null) {
-					break;
-				}
-				Method = Gamma.Context.GetListedMethod(BaseType, MethodName, ParamSize, false);
-			}
-		}
-		Method = StartMethod;
-		BaseType = Method.GetRecvType();
-		while(Method != null) {
-			if(DScriptGrammar.AcceptablyMatchMethod(Gamma, Method, NodeList)) {
-				return Method;
-			}
-			Method = Method.ListedMethods;
-			if(Method == null) {
-				BaseType = BaseType.SearchSuperMethodClass;
-				if(BaseType == null) {
-					break;
-				}
-				Method = Gamma.Context.GetListedMethod(BaseType, MethodName, ParamSize, false);
-			}
-		}
-		return null;
 	}
 
 	public static GtNode TypeAnd(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
@@ -2458,7 +2376,8 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/int ParamSize = ListSize(ParsedTree.TreeList);
 		ParamList.add(null); // FIXME ???
 		ParamList.add(Gamma.Generator.CreateNewNode(ReturnType, ParsedTree));
-		return DScriptGrammar.TypeFuncParam(Gamma, ParsedTree, MethodName, ReturnType, ParamList, ParamIndex, ParamSize);
+		//return DScriptGrammar.TypeFuncParam(Gamma, ParsedTree, MethodName, ReturnType, ParamList, ParamIndex, ParamSize);
+		return null; // TODO
 	}
 
 	// switch
