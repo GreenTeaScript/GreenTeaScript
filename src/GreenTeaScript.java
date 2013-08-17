@@ -391,12 +391,18 @@ class GtStatic implements GtConst {
 	}
 
 	public final static String NumberToAscii(int number) {
-		LangDeps.Assert(number < (62 * 62));
-		return n2s((number / 62)) + n2s((number % 62));
+		if(number >= 3600) {
+			return n2s(number / 3600) + NumberToAscii(number % 3600);
+		}
+		return n2s((number / 60)) + n2s((number % 60));
 	}
 
 	public final static String NativeVariableName(String Name, int Index) {
 		return Name + NativeNameSuffix + NumberToAscii(Index);
+	}
+		
+	public final static String ClassSymbol(GtType ClassType, String Symbol) {
+		return ClassType.GetUniqueName() + "." + Symbol; 
 	}
 	
 	public final static String MangleGenericType(GtType BaseType, int BaseIdx, ArrayList<GtType> TypeList) {
@@ -419,6 +425,33 @@ class GtStatic implements GtConst {
 		return s;
 	}
 	
+	private final static GtPolyFunc JoinPolyFuncFunc(GtType ClassType, GtPolyFunc PolyFunc, GtFunc Func) {
+		if(ClassType == null || Func.GetRecvType() == ClassType) {
+			if(PolyFunc == null) {
+				PolyFunc = new GtPolyFunc(null, Func);
+			}
+			else {
+				PolyFunc.FuncList.add(Func);
+			}
+		}
+		return PolyFunc;
+	}
+
+	public final static GtPolyFunc JoinPolyFunc(GtType ClassType, GtPolyFunc PolyFunc, Object FuncValue) {
+		if(FuncValue instanceof GtFunc) {
+			return JoinPolyFuncFunc(ClassType, PolyFunc, (/*cast*/GtFunc)FuncValue);
+		}
+		if(FuncValue instanceof GtPolyFunc) {
+			/*local*/GtPolyFunc Poly = (/*cast*/GtPolyFunc)FuncValue;
+			/*local*/int i = 0;
+			while(i < Poly.FuncList.size()) {
+				PolyFunc = JoinPolyFuncFunc(ClassType, PolyFunc, Poly.FuncList.get(i));
+				i += 1;
+			}
+		}
+		return PolyFunc;
+	}
+
 
 //ifdef JAVA
 	public final static GtDelegateToken FunctionA(Object Callee, String FuncName) {
@@ -1182,7 +1215,6 @@ class GtSyntaxTree extends GtStatic {
 		}
 		return Gamma.CreateSyntaxErrorNode(this, "not empty");
 	}
-
 }
 
 /* typing */
@@ -1359,7 +1391,7 @@ final class GtTypeEnv extends GtStatic {
 		if(Node.Type == Type || Type == this.VarType || Type.Accept(Node.Type)) {
 			return Node;
 		}
-		GtFunc Func = Type.Context.GetCoercionFunc(Node.Type, Type, true);
+		GtFunc Func = ParsedTree.NameSpace.GetCoercionFunc(Node.Type, Type, true);
 		if(Func != null && (IsFlag(TypeCheckPolicy, CastPolicy) || Func.Is(ImplicitFunc))) {
 			GtNode ApplyNode = this.Generator.CreateApplyNode(Type, ParsedTree, Func);
 			ApplyNode.Append(Node);
@@ -1368,14 +1400,10 @@ final class GtTypeEnv extends GtStatic {
 		return this.ReportTypeResult(ParsedTree, Node, TypeErrorLevel, "type error: requested = " + Type + ", given = " + Node.Type);
 	}
 
-	public final void DefineFunc(GtFunc Func) {
-		this.NameSpace.AppendFunc(Func);
-		this.Func = Func;
-	}
-
-	public final GtFunc GetCoercionFunc(GtType FromType, GtType ToType, boolean RecursiveSearch) {
-		return FromType.Context.GetCoercionFunc(FromType, ToType, RecursiveSearch);
-	}
+//	public final void DefineFunc(GtFunc Func) {
+//		this.NameSpace.AppendFunc(Func);
+//		this.Func = Func;
+//	}
 
 }
 
@@ -1436,7 +1464,7 @@ final class GtNameSpace extends GtStatic {
 		return null;
 	}
 
-	public void DefineSymbol(String Key, Object Value) {
+	public void SetSymbol(String Key, Object Value) {
 		if(this.SymbolPatternTable == null) {
 			this.SymbolPatternTable = new GtMap();
 		}
@@ -1463,47 +1491,134 @@ final class GtNameSpace extends GtStatic {
 		LangDeps.Assert(NewPattern.ParentPattern == null);
 		/*local*/GtSyntaxPattern ParentPattern = this.GetPattern(PatternName);
 		NewPattern.ParentPattern = ParentPattern;
-		this.DefineSymbol(PatternName, NewPattern);
+		this.SetSymbol(PatternName, NewPattern);
 	}
 
-	public void DefineSyntaxPattern(String PatternName, GtDelegateMatch MatchFunc, GtDelegateType TypeFunc) {
+	public void AppendSyntax(String PatternName, GtDelegateMatch MatchFunc, GtDelegateType TypeFunc) {
 		/*local*/GtSyntaxPattern Pattern = new GtSyntaxPattern(this, PatternName, MatchFunc, TypeFunc);
 		this.AppendPattern(PatternName, Pattern);
 	}
 
-	public void DefineExtendedPattern(String PatternName, int SyntaxFlag, GtDelegateMatch MatchFunc, GtDelegateType TypeFunc) {
+	public void AppendExtendedSyntax(String PatternName, int SyntaxFlag, GtDelegateMatch MatchFunc, GtDelegateType TypeFunc) {
 		/*local*/GtSyntaxPattern Pattern = new GtSyntaxPattern(this, PatternName, MatchFunc, TypeFunc);
 		Pattern.SyntaxFlag = SyntaxFlag;
 		this.AppendPattern("\t" + PatternName, Pattern);
 	}
 
-	public final GtType AppendTypeSymbol(GtType ClassInfo) {
+	public final GtType AppendTypeName(GtType ClassInfo) {
 		if(ClassInfo.PackageNameSpace == null) {
 			ClassInfo.PackageNameSpace = this;
 			if(this.PackageName != null) {
 				this.Context.ClassNameMap.put(this.PackageName + "." + ClassInfo.ShortClassName, ClassInfo);
 			}
 		}
-		if(ClassInfo.BaseClass == ClassInfo) {
-			this.DefineSymbol(ClassInfo.ShortClassName, ClassInfo);
+		if(ClassInfo.BaseType == ClassInfo) {
+			this.SetSymbol(ClassInfo.ShortClassName, ClassInfo);
 		}
 		return ClassInfo;
 	}
+	
+	public final Object GetClassSymbol(GtType ClassType, String Symbol, boolean RecursiveSearch) {
+		while(ClassType != null) {
+			String Key = ClassSymbol(ClassType, Symbol);
+			Object Value = this.GetSymbol(Key);
+			if(Value != null) {
+				return Value;
+			}
+			if(!RecursiveSearch) {
+				break;
+			}
+			ClassType = ClassType.SuperType;
+		}
+		return null;
+	}
+	
+	public final GtFunc GetGetterFunc(GtType ClassType, String Symbol, boolean RecursiveSearch) {
+		Object Func = this.Context.RootNameSpace.GetClassSymbol(ClassType, Symbol, RecursiveSearch);
+		if(Func instanceof GtFunc) {
+			return (/*cast*/GtFunc)Func;
+		}
+		return null;
+	}
 
-	public final void AppendFunc(GtFunc Func) {
-		/*local*/Object Value = this.GetSymbol(Func.FuncName);
-		if(Value == null) {
-			this.DefineSymbol(Func.FuncName, Func);
+	public final GtFunc GetSetterFunc(GtType ClassType, String Symbol, boolean RecursiveSearch) {
+		Object Func = this.Context.RootNameSpace.GetClassSymbol(ClassType, Symbol + "=", RecursiveSearch);
+		if(Func instanceof GtFunc) {
+			return (/*cast*/GtFunc)Func;
 		}
-		else if(Value instanceof GtFunc) {
-			GtPolyFunc PolyFunc = new GtPolyFunc(this, (/*cast*/GtFunc)Value, Func);
-			this.DefineSymbol(Func.FuncName, PolyFunc);
+		return null;
+	}
+	
+	public final GtFunc GetCoercionFunc(GtType FromType, GtType ToType, boolean RecursiveSearch) {
+		Object Func = this.Context.RootNameSpace.GetClassSymbol(FromType, ToType.GetUniqueName(), RecursiveSearch);
+		if(Func instanceof GtFunc) {
+			return (/*cast*/GtFunc)Func;
 		}
-		else if(Value instanceof GtPolyFunc) {
-			GtPolyFunc PolyFunc = (/*cast*/GtPolyFunc)Value;
-			PolyFunc = PolyFunc.Append(this, Func);
-			this.DefineSymbol(Func.FuncName, PolyFunc);
+		return null;
+	}
+
+	public final GtPolyFunc GetMethod(GtType ClassType, String Symbol, boolean RecursiveSearch) {
+		GtPolyFunc PolyFunc = null;
+		while(ClassType != null) {
+			String Key = ClassSymbol(ClassType, Symbol);
+			PolyFunc = GtStatic.JoinPolyFunc(ClassType, PolyFunc, this.GetSymbol(Key));
+			ClassType = ClassType.SuperType;
+			if(!RecursiveSearch) {
+				break;
+			}
 		}
+		return PolyFunc;
+	}
+	
+	public final GtPolyFunc GetConstructorFunc(GtType ClassType) {
+		return this.Context.RootNameSpace.GetMethod(ClassType, "", false);
+	}
+
+	public final Object AppendFuncName(String Key, GtFunc Func) {
+		/*local*/Object OldValue = this.GetSymbol(Key);
+		if(OldValue instanceof GtFunc) {
+			/*local*/GtPolyFunc PolyFunc = new GtPolyFunc(this, (/*cast*/GtFunc)OldValue);
+			this.SetSymbol(Key, PolyFunc);
+			return PolyFunc.Append(Func);
+		}
+		else if(OldValue instanceof GtPolyFunc) {
+			/*local*/GtPolyFunc PolyFunc = ((/*cast*/GtPolyFunc)OldValue).Dup(this);
+			this.SetSymbol(Key, PolyFunc);
+			return PolyFunc.Append(Func);
+		}
+		else {
+			this.SetSymbol(Key, Func);
+		}
+		return OldValue;
+	}
+
+	public final Object AppendFunc(GtFunc Func) {
+		return this.AppendFuncName(Func.FuncName, Func);
+	}
+	
+	public final Object AppendMethod(GtType ClassType, GtFunc Func) {
+		/*local*/String Key = ClassSymbol(ClassType, Func.FuncName);
+		return this.AppendFuncName(Key, Func);
+	}
+
+	public final void AppendConstructor(GtType ClassType, GtFunc Func) {
+		/*local*/String Key = ClassSymbol(ClassType, "");
+		this.Context.RootNameSpace.SymbolPatternTable.put(Key, Func);  // @Public
+	}
+
+	public final void SetGetterFunc(GtType ClassType, String Name, GtFunc Func) {
+		/*local*/String Key = ClassSymbol(ClassType, Name);
+		this.Context.RootNameSpace.SymbolPatternTable.put(Key, Func);  // @Public
+	}
+
+	public final void SetSetterFunc(GtType ClassType, String Name, GtFunc Func) {
+		/*local*/String Key = ClassSymbol(ClassType, Name + "=");
+		this.Context.RootNameSpace.SymbolPatternTable.put(Key, Func);  // @Public
+	}
+
+	public final void SetCoercionFunc(GtType ClassType, GtType ToType, GtFunc Func) {
+		/*local*/String Key = ClassSymbol(ClassType, "to" + ToType);
+		this.SymbolPatternTable.put(Key, Func);  // @Public
 	}
 
 }
@@ -2027,7 +2142,7 @@ final class DScriptGrammar extends GtGrammar {
 				return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(ConstValue), ParsedTree, ConstValue);
 			}
 		}
-		/*local*/GtFunc Func = Gamma.Context.GetGetterFunc(ObjectNode.Type, Name, true);
+		/*local*/GtFunc Func = ParsedTree.NameSpace.GetGetterFunc(ObjectNode.Type, Name, true);
 		/*local*/GtType ReturnType = (Func != null) ? Func.GetReturnType() : Gamma.AnyType;
 		/*local*/GtNode Node = Gamma.Generator.CreateGetterNode(ReturnType, ParsedTree, Func, ObjectNode);
 		if(Func == null) {
@@ -2192,18 +2307,18 @@ final class DScriptGrammar extends GtGrammar {
 				TypedParamIndex = TypedParamIndex + 1;
 			}
 		}
-		else if(FuncNode.Type.BaseClass == Gamma.FuncType) {
+		else if(FuncNode.Type.BaseType == Gamma.FuncType) {
 			/*local*/GtType FuncType = FuncNode.Type;
-			LangDeps.Assert(ListSize(ParsedTree.TreeList) == FuncType.Types.length); // FIXME: add check paramerter size
+			LangDeps.Assert(ListSize(ParsedTree.TreeList) == FuncType.TypeParams.length); // FIXME: add check paramerter size
 			while(TypedParamIndex < ListSize(ParsedTree.TreeList)) {
-				/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(TypedParamIndex, Gamma, FuncType.Types[TypedParamIndex], DefaultTypeCheckPolicy);
+				/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(TypedParamIndex, Gamma, FuncType.TypeParams[TypedParamIndex], DefaultTypeCheckPolicy);
 				if(Node.IsError()) {
 					return Node;
 				}
 				NodeList.add(Node);
 				TypedParamIndex = TypedParamIndex + 1;
 			}
-			ReturnType = FuncType.Types[0];
+			ReturnType = FuncType.TypeParams[0];
 		}
 		else {
 			return Gamma.CreateSyntaxErrorNode(ParsedTree, FuncNode.Type + " is not applicapable");
@@ -2470,7 +2585,7 @@ final class DScriptGrammar extends GtGrammar {
 			}
 		}
 		if(!EnumTree.IsEmptyOrError()) {
-			NameSpace.AppendTypeSymbol(NewEnumType);
+			NameSpace.AppendTypeName(NewEnumType);
 			EnumTree.ConstValue = NewEnumType;
 		}
 		return EnumTree;
@@ -2540,7 +2655,7 @@ final class DScriptGrammar extends GtGrammar {
 				if(NameSpace.GetSymbol(ConstName) != null) {
 
 				}
-				NameSpace.DefineSymbol(ConstName, ConstValue);
+				NameSpace.SetSymbol(ConstName, ConstValue);
 			}
 		}
 		return ConstDeclTree;
@@ -2555,7 +2670,7 @@ final class DScriptGrammar extends GtGrammar {
 			return Gamma.CreateSyntaxErrorNode(ParsedTree, "definition of variable " + VariableName + " is not constant");
 		}
 		/*local*/ConstNode CNode = (/*cast*/ConstNode) ValueNode;
-		Gamma.NameSpace.DefineSymbol(VariableName, CNode.ConstValue);
+		Gamma.NameSpace.SetSymbol(VariableName, CNode.ConstValue);
 		return Gamma.Generator.CreateEmptyNode(ContextType);
 	}
 
@@ -2652,13 +2767,13 @@ final class DScriptGrammar extends GtGrammar {
 	private static GtFunc CreateConverterFunc(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, int FuncFlag, ArrayList<GtType> TypeList) {
 		/*local*/GtType ToType = TypeList.get(0);
 		/*local*/GtType FromType = TypeList.get(1);
-		/*local*/GtFunc Func = Gamma.Context.GetCoercionFunc(FromType, ToType, false);
+		/*local*/GtFunc Func = ParsedTree.NameSpace.GetCoercionFunc(FromType, ToType, false);
 		if(Func != null) {
 			Gamma.Context.ReportError(WarningLevel, ParsedTree.KeyToken, "already defined: " + FromType + " to " + ToType);
 			return null;
 		}
 		Func = Gamma.Generator.CreateFunc(FuncFlag, "to" + ToType.ShortClassName, 0, TypeList, ParsedTree.ConstValue);
-		Gamma.Context.DefineCoercionFunc(Func);
+		ParsedTree.NameSpace.SetCoercionFunc(FromType, ToType, Func);
 		return Func;
 	}
 
@@ -2690,7 +2805,7 @@ final class DScriptGrammar extends GtGrammar {
 		if(Func == null) {
 			Func = Gamma.Generator.CreateFunc(FuncFlag, FuncName, 0, TypeList, NativeMacro);
 		}
-		Gamma.DefineFunc(Func);
+		ParsedTree.NameSpace.AppendFunc(Func);
 		return Func;
 	}
 
@@ -2717,7 +2832,7 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/GreenTeaTopObject DefaultObject = new GreenTeaTopObject(NewType);
 		NewType.DefaultNullValue = DefaultObject;
 
-		NameSpace.AppendTypeSymbol(NewType);
+		NameSpace.AppendTypeName(NewType);
 		ClassDeclTree.ConstValue = NewType;
 
 		/*local*/int ParseFlag = TokenContext.SetBackTrack(false) | SkipIndentParseFlag;
@@ -2976,9 +3091,9 @@ final class DScriptGrammar extends GtGrammar {
 
 	@Override public void LoadTo(GtNameSpace NameSpace) {
 		// Define Constants
-		NameSpace.DefineSymbol("true", true);
-		NameSpace.DefineSymbol("false", false);
-		NameSpace.DefineSymbol("null", null);
+		NameSpace.SetSymbol("true", true);
+		NameSpace.SetSymbol("false", false);
+		NameSpace.SetSymbol("null", null);
 
 		NameSpace.DefineTokenFunc(" \t", FunctionA(this, "WhiteSpaceToken"));
 		NameSpace.DefineTokenFunc("\n",  FunctionA(this, "IndentToken"));
@@ -2998,72 +3113,72 @@ final class DScriptGrammar extends GtGrammar {
 		GtDelegateType  TypeConst      = FunctionC(this, "TypeConst");
 		GtDelegateType  TypeBlock      = FunctionC(this, "TypeBlock");
 //endif VAJA
-		NameSpace.DefineSyntaxPattern("+", ParseUnary, TypeUnary);
-		NameSpace.DefineSyntaxPattern("-", ParseUnary, TypeUnary);
-		NameSpace.DefineSyntaxPattern("!", ParseUnary, TypeUnary);
+		NameSpace.AppendSyntax("+", ParseUnary, TypeUnary);
+		NameSpace.AppendSyntax("-", ParseUnary, TypeUnary);
+		NameSpace.AppendSyntax("!", ParseUnary, TypeUnary);
 
-		NameSpace.DefineExtendedPattern("*", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeBinary);
-		NameSpace.DefineExtendedPattern("/", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeBinary);
-		NameSpace.DefineExtendedPattern("%", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeBinary);
+		NameSpace.AppendExtendedSyntax("*", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeBinary);
+		NameSpace.AppendExtendedSyntax("/", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeBinary);
+		NameSpace.AppendExtendedSyntax("%", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeBinary);
 
-		NameSpace.DefineExtendedPattern("+", BinaryOperator | Precedence_CStyleADD, ParseBinary, TypeBinary);
-		NameSpace.DefineExtendedPattern("-", BinaryOperator | Precedence_CStyleADD, ParseBinary, TypeBinary);
+		NameSpace.AppendExtendedSyntax("+", BinaryOperator | Precedence_CStyleADD, ParseBinary, TypeBinary);
+		NameSpace.AppendExtendedSyntax("-", BinaryOperator | Precedence_CStyleADD, ParseBinary, TypeBinary);
 
-		NameSpace.DefineExtendedPattern("<", BinaryOperator | Precedence_CStyleCOMPARE, ParseBinary, TypeBinary);
-		NameSpace.DefineExtendedPattern("<=", BinaryOperator | Precedence_CStyleCOMPARE, ParseBinary, TypeBinary);
-		NameSpace.DefineExtendedPattern(">", BinaryOperator | Precedence_CStyleCOMPARE, ParseBinary, TypeBinary);
-		NameSpace.DefineExtendedPattern(">=", BinaryOperator | Precedence_CStyleCOMPARE, ParseBinary, TypeBinary);
-		NameSpace.DefineExtendedPattern("==", BinaryOperator | Precedence_CStyleEquals, ParseBinary, TypeBinary);
-		NameSpace.DefineExtendedPattern("!=", BinaryOperator | Precedence_CStyleEquals, ParseBinary, TypeBinary);
+		NameSpace.AppendExtendedSyntax("<", BinaryOperator | Precedence_CStyleCOMPARE, ParseBinary, TypeBinary);
+		NameSpace.AppendExtendedSyntax("<=", BinaryOperator | Precedence_CStyleCOMPARE, ParseBinary, TypeBinary);
+		NameSpace.AppendExtendedSyntax(">", BinaryOperator | Precedence_CStyleCOMPARE, ParseBinary, TypeBinary);
+		NameSpace.AppendExtendedSyntax(">=", BinaryOperator | Precedence_CStyleCOMPARE, ParseBinary, TypeBinary);
+		NameSpace.AppendExtendedSyntax("==", BinaryOperator | Precedence_CStyleEquals, ParseBinary, TypeBinary);
+		NameSpace.AppendExtendedSyntax("!=", BinaryOperator | Precedence_CStyleEquals, ParseBinary, TypeBinary);
 
-		NameSpace.DefineExtendedPattern("<<", BinaryOperator | Precedence_CStyleSHIFT, ParseBinary, TypeBinary);
-		NameSpace.DefineExtendedPattern(">>", BinaryOperator | Precedence_CStyleSHIFT, ParseBinary, TypeBinary);
-		NameSpace.DefineExtendedPattern("&", BinaryOperator | Precedence_CStyleBITAND, ParseBinary, TypeBinary);
-		NameSpace.DefineExtendedPattern("|", BinaryOperator | Precedence_CStyleBITOR, ParseBinary, TypeBinary);
-		NameSpace.DefineExtendedPattern("^", BinaryOperator | Precedence_CStyleBITXOR, ParseBinary, TypeBinary);
+		NameSpace.AppendExtendedSyntax("<<", BinaryOperator | Precedence_CStyleSHIFT, ParseBinary, TypeBinary);
+		NameSpace.AppendExtendedSyntax(">>", BinaryOperator | Precedence_CStyleSHIFT, ParseBinary, TypeBinary);
+		NameSpace.AppendExtendedSyntax("&", BinaryOperator | Precedence_CStyleBITAND, ParseBinary, TypeBinary);
+		NameSpace.AppendExtendedSyntax("|", BinaryOperator | Precedence_CStyleBITOR, ParseBinary, TypeBinary);
+		NameSpace.AppendExtendedSyntax("^", BinaryOperator | Precedence_CStyleBITXOR, ParseBinary, TypeBinary);
 		
-		NameSpace.DefineExtendedPattern("=", BinaryOperator | Precedence_CStyleAssign | LeftJoin, ParseBinary, FunctionC(this, "TypeAssign"));
-		NameSpace.DefineExtendedPattern("&&", BinaryOperator | Precedence_CStyleAND, ParseBinary, FunctionC(this, "TypeAnd"));
-		NameSpace.DefineExtendedPattern("||", BinaryOperator | Precedence_CStyleOR, ParseBinary, FunctionC(this, "TypeOr"));
+		NameSpace.AppendExtendedSyntax("=", BinaryOperator | Precedence_CStyleAssign | LeftJoin, ParseBinary, FunctionC(this, "TypeAssign"));
+		NameSpace.AppendExtendedSyntax("&&", BinaryOperator | Precedence_CStyleAND, ParseBinary, FunctionC(this, "TypeAnd"));
+		NameSpace.AppendExtendedSyntax("||", BinaryOperator | Precedence_CStyleOR, ParseBinary, FunctionC(this, "TypeOr"));
 
-		NameSpace.DefineSyntaxPattern("$Empty$", FunctionB(this, "ParseEmpty"), FunctionC(this, "TypeEmpty"));
+		NameSpace.AppendSyntax("$Empty$", FunctionB(this, "ParseEmpty"), FunctionC(this, "TypeEmpty"));
 
-		NameSpace.DefineSyntaxPattern("$Symbol$", FunctionB(this, "ParseSymbol"), null);
-		NameSpace.DefineSyntaxPattern("$Type$", FunctionB(this, "ParseType"), TypeConst);
-		NameSpace.DefineSyntaxPattern("$Variable$", FunctionB(this, "ParseVariable"), FunctionC(this, "TypeVariable"));
-		NameSpace.DefineSyntaxPattern("$Const$", FunctionB(this, "ParseConst"), TypeConst);
-		NameSpace.DefineSyntaxPattern("$StringLiteral$", FunctionB(this, "ParseStringLiteral"), TypeConst);
-		NameSpace.DefineSyntaxPattern("$IntegerLiteral$", FunctionB(this, "ParseIntegerLiteral"), TypeConst);
+		NameSpace.AppendSyntax("$Symbol$", FunctionB(this, "ParseSymbol"), null);
+		NameSpace.AppendSyntax("$Type$", FunctionB(this, "ParseType"), TypeConst);
+		NameSpace.AppendSyntax("$Variable$", FunctionB(this, "ParseVariable"), FunctionC(this, "TypeVariable"));
+		NameSpace.AppendSyntax("$Const$", FunctionB(this, "ParseConst"), TypeConst);
+		NameSpace.AppendSyntax("$StringLiteral$", FunctionB(this, "ParseStringLiteral"), TypeConst);
+		NameSpace.AppendSyntax("$IntegerLiteral$", FunctionB(this, "ParseIntegerLiteral"), TypeConst);
 
-		NameSpace.DefineSyntaxPattern("$ShellExpression$", FunctionB(this, "ParseShell"), FunctionC(this, "TypeShell"));
+		NameSpace.AppendSyntax("$ShellExpression$", FunctionB(this, "ParseShell"), FunctionC(this, "TypeShell"));
 
-		NameSpace.DefineExtendedPattern(".", 0, FunctionB(this, "ParseGetter"), FunctionC(this, "TypeGetter"));
-		NameSpace.DefineSyntaxPattern("(", FunctionB(this, "ParseGroup"), FunctionC(this, "TypeGroup"));
-		NameSpace.DefineSyntaxPattern("(", FunctionB(this, "ParseCast"), FunctionC(this, "TypeCast"));
-		NameSpace.DefineExtendedPattern("(", 0, FunctionB(this, "ParseApply"), FunctionC(this, "TypeApply"));
+		NameSpace.AppendExtendedSyntax(".", 0, FunctionB(this, "ParseGetter"), FunctionC(this, "TypeGetter"));
+		NameSpace.AppendSyntax("(", FunctionB(this, "ParseGroup"), FunctionC(this, "TypeGroup"));
+		NameSpace.AppendSyntax("(", FunctionB(this, "ParseCast"), FunctionC(this, "TypeCast"));
+		NameSpace.AppendExtendedSyntax("(", 0, FunctionB(this, "ParseApply"), FunctionC(this, "TypeApply"));
 		//future: NameSpace.DefineExtendedPattern("[", 0, FunctionB(this, "ParseIndexer"), FunctionC(this, "TypeIndexer"));
 
-		NameSpace.DefineSyntaxPattern("$Block$", FunctionB(this, "ParseBlock"), TypeBlock);
-		NameSpace.DefineSyntaxPattern("$Statement$", FunctionB(this, "ParseStatement"), TypeBlock);
-		NameSpace.DefineSyntaxPattern("$Expression$", FunctionB(this, "ParseExpression"), TypeBlock);
+		NameSpace.AppendSyntax("$Block$", FunctionB(this, "ParseBlock"), TypeBlock);
+		NameSpace.AppendSyntax("$Statement$", FunctionB(this, "ParseStatement"), TypeBlock);
+		NameSpace.AppendSyntax("$Expression$", FunctionB(this, "ParseExpression"), TypeBlock);
 
-		NameSpace.DefineSyntaxPattern("$FuncName$", FunctionB(this, "ParseFuncName"), TypeConst);
-		NameSpace.DefineSyntaxPattern("$FuncDecl$", FunctionB(this, "ParseFuncDecl"), FunctionC(this, "TypeFuncDecl"));
-		NameSpace.DefineSyntaxPattern("$VarDecl$",  FunctionB(this, "ParseVarDecl"), FunctionC(this, "TypeVarDecl"));
+		NameSpace.AppendSyntax("$FuncName$", FunctionB(this, "ParseFuncName"), TypeConst);
+		NameSpace.AppendSyntax("$FuncDecl$", FunctionB(this, "ParseFuncDecl"), FunctionC(this, "TypeFuncDecl"));
+		NameSpace.AppendSyntax("$VarDecl$",  FunctionB(this, "ParseVarDecl"), FunctionC(this, "TypeVarDecl"));
 
-		NameSpace.DefineSyntaxPattern("null", FunctionB(this, "ParseNull"), FunctionC(this, "TypeNull"));
-		NameSpace.DefineSyntaxPattern("if", FunctionB(this, "ParseIf"), FunctionC(this, "TypeIf"));
-		NameSpace.DefineSyntaxPattern("while", FunctionB(this, "ParseWhile"), FunctionC(this, "TypeWhile"));
-		NameSpace.DefineSyntaxPattern("continue", FunctionB(this, "ParseContinue"), FunctionC(this, "TypeContinue"));
-		NameSpace.DefineSyntaxPattern("break", FunctionB(this, "ParseBreak"), FunctionC(this, "TypeBreak"));
-		NameSpace.DefineSyntaxPattern("return", FunctionB(this, "ParseReturn"), FunctionC(this, "TypeReturn"));
-		NameSpace.DefineSyntaxPattern("const", FunctionB(this, "ParseConstDecl"), FunctionC(this, "TypeConstDecl"));
-		NameSpace.DefineSyntaxPattern("class", FunctionB(this, "ParseClassDecl"), FunctionC(this, "TypeClassDecl"));
-		NameSpace.DefineSyntaxPattern("constructor", FunctionB(this, "ParseConstructor"), FunctionC(this, "TypeFuncDecl"));
-		NameSpace.DefineSyntaxPattern("try", FunctionB(this, "ParseTry"), FunctionC(this, "TypeTry"));
-		NameSpace.DefineSyntaxPattern("throw", FunctionB(this, "ParseThrow"), FunctionC(this, "TypeThrow"));
-		NameSpace.DefineSyntaxPattern("new", FunctionB(this, "ParseNew"), FunctionC(this, "TypeNew"));
-		NameSpace.DefineSyntaxPattern("enum", FunctionB(this, "ParseEnum"), FunctionC(this, "TypeEnum"));
+		NameSpace.AppendSyntax("null", FunctionB(this, "ParseNull"), FunctionC(this, "TypeNull"));
+		NameSpace.AppendSyntax("if", FunctionB(this, "ParseIf"), FunctionC(this, "TypeIf"));
+		NameSpace.AppendSyntax("while", FunctionB(this, "ParseWhile"), FunctionC(this, "TypeWhile"));
+		NameSpace.AppendSyntax("continue", FunctionB(this, "ParseContinue"), FunctionC(this, "TypeContinue"));
+		NameSpace.AppendSyntax("break", FunctionB(this, "ParseBreak"), FunctionC(this, "TypeBreak"));
+		NameSpace.AppendSyntax("return", FunctionB(this, "ParseReturn"), FunctionC(this, "TypeReturn"));
+		NameSpace.AppendSyntax("const", FunctionB(this, "ParseConstDecl"), FunctionC(this, "TypeConstDecl"));
+		NameSpace.AppendSyntax("class", FunctionB(this, "ParseClassDecl"), FunctionC(this, "TypeClassDecl"));
+		NameSpace.AppendSyntax("constructor", FunctionB(this, "ParseConstructor"), FunctionC(this, "TypeFuncDecl"));
+		NameSpace.AppendSyntax("try", FunctionB(this, "ParseTry"), FunctionC(this, "TypeTry"));
+		NameSpace.AppendSyntax("throw", FunctionB(this, "ParseThrow"), FunctionC(this, "TypeThrow"));
+		NameSpace.AppendSyntax("new", FunctionB(this, "ParseNew"), FunctionC(this, "TypeNew"));
+		NameSpace.AppendSyntax("enum", FunctionB(this, "ParseEnum"), FunctionC(this, "TypeEnum"));
 	}
 }
 
@@ -3123,20 +3238,20 @@ final class GtClassContext extends GtStatic {
 		this.StructType  = this.TopType.CreateSubType(0, "record", null, null);  //  unregistered
 		this.EnumType    = this.TopType.CreateSubType(EnumClass, "enum", null, null);    //  unregistered
 
-		this.VoidType    = this.RootNameSpace.AppendTypeSymbol(new GtType(this, NativeClass, "void", null, Void.class));
-		this.BooleanType = this.RootNameSpace.AppendTypeSymbol(new GtType(this, NativeClass, "boolean", false, Boolean.class));
-		this.IntType     = this.RootNameSpace.AppendTypeSymbol(new GtType(this, NativeClass, "int", 0L, Long.class));
-		this.StringType  = this.RootNameSpace.AppendTypeSymbol(new GtType(this, NativeClass, "String", "", String.class));
-		this.VarType     = this.RootNameSpace.AppendTypeSymbol(new GtType(this, 0, "var", null, null));
-		this.AnyType     = this.RootNameSpace.AppendTypeSymbol(new GtType(this, DynamicClass, "any", null, null));
-		this.TypeType    = this.RootNameSpace.AppendTypeSymbol(this.TopType.CreateSubType(0, "Type", null, null));
-		this.ArrayType   = this.RootNameSpace.AppendTypeSymbol(this.TopType.CreateSubType(0, "Array", null, null));
-		this.FuncType    = this.RootNameSpace.AppendTypeSymbol(this.TopType.CreateSubType(0, "Func", null, null));
+		this.VoidType    = this.RootNameSpace.AppendTypeName(new GtType(this, NativeClass, "void", null, Void.class));
+		this.BooleanType = this.RootNameSpace.AppendTypeName(new GtType(this, NativeClass, "boolean", false, Boolean.class));
+		this.IntType     = this.RootNameSpace.AppendTypeName(new GtType(this, NativeClass, "int", 0L, Long.class));
+		this.StringType  = this.RootNameSpace.AppendTypeName(new GtType(this, NativeClass, "String", "", String.class));
+		this.VarType     = this.RootNameSpace.AppendTypeName(new GtType(this, 0, "var", null, null));
+		this.AnyType     = this.RootNameSpace.AppendTypeName(new GtType(this, DynamicClass, "any", null, null));
+		this.TypeType    = this.RootNameSpace.AppendTypeName(this.TopType.CreateSubType(0, "Type", null, null));
+		this.ArrayType   = this.RootNameSpace.AppendTypeName(this.TopType.CreateSubType(0, "Array", null, null));
+		this.FuncType    = this.RootNameSpace.AppendTypeName(this.TopType.CreateSubType(0, "Func", null, null));
 
-		this.ArrayType.Types = new GtType[1];
-		this.ArrayType.Types[0] = this.AnyType;
-		this.FuncType.Types = new GtType[1];
-		this.FuncType.Types[0] = this.AnyType;
+		this.ArrayType.TypeParams = new GtType[1];
+		this.ArrayType.TypeParams[0] = this.AnyType;
+		this.FuncType.TypeParams = new GtType[1];
+		this.FuncType.TypeParams[0] = this.AnyType;
 
 //ifdef JAVA
 		this.ClassNameMap.put("java.lang.Void",    this.VoidType);
@@ -3197,7 +3312,7 @@ final class GtClassContext extends GtStatic {
 	}
 
 	private final String SubtypeKey(GtType FromType, GtType ToType) {
-		return FromType.GetSignature() + "<" + ToType.GetSignature();
+		return FromType.GetUniqueName() + "<" + ToType.GetUniqueName();
 	}
 
 	public final boolean CheckSubType(GtType SubType, GtType SuperType) {
@@ -3245,198 +3360,6 @@ final class GtClassContext extends GtStatic {
 //		}
 		return true;
 	}
-
-	/* getter */
-	private String GetterName(GtType BaseType, String Name) {
-		return BaseType.GetSignature() + "@" + Name;
-	}
-
-	public void DefineGetterFunc(GtFunc Func) {
-		/*local*/String Key = this.GetterName(Func.GetRecvType(), Func.FuncName);
-		if(this.UniqueFuncMap.get(Key) == null) {
-			this.UniqueFuncMap.put(Key, Func);
-		}
-	}
-
-	public GtFunc GetGetterFunc(GtType BaseType, String Name, boolean RecursiveSearch) {
-		while(BaseType != null) {
-			/*local*/String Key = this.GetterName(BaseType, Name);
-			/*local*/Object Func = this.UniqueFuncMap.get(Key);
-			if(Func != null) {
-				return (/*cast*/GtFunc)Func;
-			}
-			if(!RecursiveSearch) {
-				break;
-			}
-			BaseType = BaseType.SearchSuperFuncClass;
-		}
-		return null;
-	}
-
-//	/* methods */
-//	private void SetUniqueFunc(String Key, GtFunc Func) {
-//		/*local*/Object Value = this.UniqueFuncMap.get(Key);
-//		if(Value == null) {
-//			this.UniqueFuncMap.put(Key, Func);
-//		}
-//		else if(Value instanceof GtFunc) {
-//			this.UniqueFuncMap.put(Key, Key);  // not unique !!
-//		}
-//	}
-//
-//	private void AddOverloadedFunc(String Key, GtFunc Func) {
-//		/*local*/Object Value = this.UniqueFuncMap.get(Key);
-//		if(Value instanceof GtFunc) {
-//			/*local*/GtFunc OverloadedFunc = (/*cast*/GtFunc)Value;
-//			/*local*/GtFunc HeadFunc = OverloadedFunc;
-//			while(HeadFunc != null) {
-//				if(HeadFunc == Func) {
-//					// Already registered
-//					return;
-//				}
-//				HeadFunc = HeadFunc.ListedFuncs;
-//			}
-//			Func.ListedFuncs = OverloadedFunc;
-//		}
-//		this.UniqueFuncMap.put(Key, Func);  // not unique !!
-//	}
-//
-//	private final String FuncNameParamSize(String Name, int ParamSize) {
-//		return Name + "@" + ParamSize;
-//	}
-//
-//	private String FuncNameParamSize(GtType BaseType, String Name, int ParamSize) {
-//		return BaseType.GetSignature() + ":" + Name + "@" + ParamSize;
-//	}
-//
-//	public void DefineFunc(GtFunc Func) {
-//		/*local*/String FuncName = Func.FuncName;
-//		this.SetUniqueFunc(FuncName, Func);
-//		/*local*/String Key = this.FuncNameParamSize(FuncName, (Func.Types.length - 1));
-//		this.SetUniqueFunc(Key, Func);
-//		/*local*/GtType RecvType = Func.GetRecvType();
-//		Key = this.FuncNameParamSize(RecvType, FuncName, (Func.Types.length - 2));
-//		this.SetUniqueFunc(Key, Func);
-//		this.AddOverloadedFunc(Key, Func);
-//		this.SetUniqueFunc(Func.MangledName, Func);
-//	}
-//
-//	public GtFunc GetUniqueFunctionName(String Name) {
-//		/*local*/Object Value = this.UniqueFuncMap.get(Name);
-//		if(Value != null && Value instanceof GtFunc) {
-//			return (/*cast*/GtFunc)Value;
-//		}
-//		return null;
-//	}
-//
-//	public GtFunc GetUniqueFunction(String Name, int FuncParamSize) {
-//		/*local*/Object Value = this.UniqueFuncMap.get(this.FuncNameParamSize(Name, FuncParamSize));
-//		if(Value != null && Value instanceof GtFunc) {
-//			return (/*cast*/GtFunc)Value;
-//		}
-//		return null;
-//	}
-//
-//	public final GtFunc GetGreenListedFunc(GtType BaseType, String FuncName, int FuncParamSize, boolean RecursiveSearch) {
-//		while(BaseType != null) {
-//			/*local*/Object Value = this.UniqueFuncMap.get(this.FuncNameParamSize(BaseType, FuncName, FuncParamSize));
-//			if(Value instanceof GtFunc) {
-//				return (/*cast*/GtFunc)Value;
-//			}
-//			if(!RecursiveSearch) {
-//				break;
-//			}
-//			BaseType = BaseType.SearchSuperFuncClass;
-//		}
-//		return null;
-//	}
-//
-//	public final GtFunc GetListedFunc(GtType BaseType, String FuncName, int FuncParamSize, boolean RecursiveSearch) {
-//		/*local*/GtFunc Func = this.GetGreenListedFunc(BaseType, FuncName, FuncParamSize, RecursiveSearch);
-//		if(Func == null && BaseType.IsNative() && this.Generator.TransformNativeFuncs(BaseType, FuncName)) {
-//			Func = this.GetGreenListedFunc(BaseType, FuncName, FuncParamSize, RecursiveSearch);
-//		}
-//		return Func;
-//	}
-//
-//	public final GtFunc GetGreenFunc(GtType BaseType, String Name, int BaseIndex, ArrayList<GtType> TypeList, boolean RecursiveSearch) {
-//		while(BaseType != null) {
-//			/*local*/String Key = GtStatic.MangleFuncName(BaseType, Name, BaseIndex, TypeList);
-//			/*local*/Object Value = this.UniqueFuncMap.get(Key);
-//			if(Value instanceof GtFunc) {
-//				return (/*cast*/GtFunc)Value;
-//			}
-//			if(!RecursiveSearch) {
-//				break;
-//			}
-//			BaseType = BaseType.SearchSuperFuncClass;
-//		}
-//		return null;
-//	}
-//
-//	public final GtFunc GetFunc(GtType BaseType, String Name, int BaseIndex, ArrayList<GtType> TypeList, boolean RecursiveSearch) {
-//		/*local*/GtFunc Func = this.GetGreenFunc(BaseType, Name, BaseIndex, TypeList, RecursiveSearch);
-//		if(Func == null && BaseType.IsNative() && this.Generator.TransformNativeFuncs(BaseType, Name)) {
-//			Func = this.GetGreenFunc(BaseType, Name, BaseIndex, TypeList, RecursiveSearch);
-//		}
-//		return Func;
-//	}
-
-	/* convertor, wrapper */
-	private final String CoercionKey(GtType FromType, GtType ToType) {
-		return FromType.GetSignature() + ">" + ToType.GetSignature();
-	}
-
-	public final void DefineCoercionFunc(GtFunc Func) {
-		/*local*/String Key = this.CoercionKey(Func.GetRecvType(), Func.GetReturnType());
-		this.UniqueFuncMap.put(Key, Func);
-	}
-
-	public GtFunc GetCoercionFunc(GtType FromType, GtType ToType, boolean RecursiveSearch) {
-		/*local*/String Key = this.CoercionKey(FromType, ToType);
-		/*local*/Object Func = this.UniqueFuncMap.get(Key);
-		if(Func != null) {
-			return (/*cast*/GtFunc)Func;
-		}
-		if(RecursiveSearch && FromType.SearchSuperFuncClass != null) {
-			return this.GetCoercionFunc(FromType.SearchSuperFuncClass, ToType, RecursiveSearch);
-		}
-		return null;
-	}
-//
-//	public GtFunc GetWrapperFunc(GtType FromType, GtType ToType, boolean RecursiveSearch) {
-//		/*local*/String Key = this.SubtypeKey(FromType, ToType);
-//		/*local*/Object Func = this.UniqueFuncMap.get(Key);
-//		if(Func != null) {
-//			return (/*cast*/GtFunc)Func;
-//		}
-//		if(RecursiveSearch && FromType.SearchSuperFuncClass != null) {
-//			return this.GetWrapperFunc(FromType.SearchSuperFuncClass, ToType, RecursiveSearch);
-//		}
-//		return null;
-//	}
-//
-//	public GtFunc GetCastFunc(GtType FromType, GtType ToType, boolean RecursiveSearch) {
-//		/*local*/String Key = this.SubtypeKey(FromType, ToType);
-//		/*local*/Object Func = this.UniqueFuncMap.get(Key);
-//		if(Func != null) {
-//			return (/*cast*/GtFunc)Func;
-//		}
-//		Key = this.CoercionKey(FromType, ToType);
-//		Func = this.UniqueFuncMap.get(Key);
-//		if(Func != null) {
-//			return (/*cast*/GtFunc)Func;
-//		}
-//		if(RecursiveSearch && FromType.SearchSuperFuncClass != null) {
-//			return this.GetCastFunc(FromType.SearchSuperFuncClass, ToType, RecursiveSearch);
-//		}
-//		return null;
-//	}
-//
-//	public final void DefineWrapperFunc(GtFunc Func) {
-//		/*local*/String Key = this.SubtypeKey(Func.GetRecvType(), Func.GetReturnType());
-//		this.UniqueFuncMap.put(Key, Func);
-//	}
 
 	private final String GetSourcePosition(long FileLine) {
 		return "(eval:" + (int) FileLine + ")";  // FIXME: USE SourceMap

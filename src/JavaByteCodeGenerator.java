@@ -618,7 +618,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 
 	@Override public void GenerateClassField(GtNameSpace NameSpace, GtType Type, ArrayList<GtVariableInfo> FieldList) {
 		String className = Type.ShortClassName;
-		GtClassNode superClassNode = TypeResolver.FindClassNode(Type.SuperClass.ShortClassName);
+		GtClassNode superClassNode = TypeResolver.FindClassNode(Type.SuperType.ShortClassName);
 		String superClassName = superClassNode != null ? superClassNode.name : "java/lang/Object";
 		GtClassNode classNode = new GtClassNode(className, superClassName);
 		TypeResolver.StoreClassNode(classNode);
@@ -1097,12 +1097,13 @@ class EmbeddedFuncDef extends GtStatic {
 		GtType[] paramTypes = LangDeps.CompactTypeList(0, ParamTypeList);
 		Method mtd = LookupFunc(Callee, LocalName);
 		NMMap.PutFuncInvoker(newFunc, new JavaMethodInvoker(paramTypes, mtd));
-		NameSpace.AppendFunc(newFunc);
+		//Code generator does not need to regeister any functions (all things are controlled in parser)
+		//NameSpace.AppendFunc(newFunc);
 	}
 
 	GtType RegisterClass(int ClassFlag, String ClassName, Object DefaultNullValue) {
 		GtType newClass = new GtType(NameSpace.Context, ClassFlag, ClassName, DefaultNullValue, null);
-		NameSpace.AppendTypeSymbol(newClass);
+		NameSpace.AppendTypeName(newClass);
 		return newClass;
 	}
 }

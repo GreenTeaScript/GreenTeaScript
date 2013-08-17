@@ -777,32 +777,32 @@ class GtType extends GtStatic {
 	/*field*/int					ClassFlag;
 	/*field*/int                    ClassId;
 	/*field*/public String			ShortClassName;
-	/*field*/GtType					SuperClass;
+	/*field*/GtType					SuperType;
 	/*field*/public GtType			SearchSuperFuncClass;
 	/*field*/public Object			DefaultNullValue;
 	/*field*/public GtMap           ClassSymbolTable;
-	/*field*/GtType					BaseClass;
-	/*field*/GtType[]				Types;
+	/*field*/GtType					BaseType;
+	/*field*/GtType[]				TypeParams;
 	/*field*/public Object          NativeSpec;
 
 	GtType/*constructor*/(GtClassContext Context, int ClassFlag, String ClassName, Object DefaultNullValue, Object NativeSpec) {
 		this.Context = Context;
 		this.ClassFlag = ClassFlag;
 		this.ShortClassName = ClassName;
-		this.SuperClass = null;
-		this.BaseClass = this;
+		this.SuperType = null;
+		this.BaseType = this;
 		this.SearchSuperFuncClass = null;
 		this.DefaultNullValue = DefaultNullValue;
 		this.NativeSpec = NativeSpec;
 		this.ClassSymbolTable = IsFlag(ClassFlag, EnumClass) ? (/*cast*/GtMap)NativeSpec : null;
 		this.ClassId = Context.ClassCount;
 		Context.ClassCount += 1;
-		this.Types = null;
+		this.TypeParams = null;
 	}
 
 	public GtType CreateSubType(int ClassFlag, String ClassName, Object DefaultNullValue, Object NativeSpec) {
 		GtType SubType = new GtType(this.Context, ClassFlag, ClassName, DefaultNullValue, NativeSpec);
-		SubType.SuperClass = this;
+		SubType.SuperType = this;
 		SubType.SearchSuperFuncClass = this;
 		return SubType;
 	}
@@ -810,10 +810,10 @@ class GtType extends GtStatic {
 	// Note Don't call this directly. Use Context.GetGenericType instead.
 	public GtType CreateGenericType(int BaseIndex, ArrayList<GtType> TypeList, String ShortName) {
 		GtType GenericType = new GtType(this.Context, this.ClassFlag, ShortName, null, null);
-		GenericType.BaseClass = this.BaseClass;
-		GenericType.SearchSuperFuncClass = this.BaseClass;
-		GenericType.SuperClass = this.SuperClass;
-		GenericType.Types = LangDeps.CompactTypeList(BaseIndex, TypeList);
+		GenericType.BaseType = this.BaseType;
+		GenericType.SearchSuperFuncClass = this.BaseType;
+		GenericType.SuperType = this.SuperType;
+		GenericType.TypeParams = LangDeps.CompactTypeList(BaseIndex, TypeList);
 		DebugP("new class: " + GenericType.ShortClassName + ", ClassId=" + GenericType.ClassId);
 		return GenericType;
 	}
@@ -827,7 +827,7 @@ class GtType extends GtStatic {
 	}
 
 	public final boolean IsGenericType() {
-		return (this.Types != null);
+		return (this.TypeParams != null);
 	}
 
 	@Override public String toString() {
@@ -840,7 +840,7 @@ class GtType extends GtStatic {
 			if(Type.ClassSymbolTable != null) {
 				return Type.ClassSymbolTable.get(Key);
 			}
-			Type = (RecursiveSearch) ? Type.SuperClass : null;
+			Type = (RecursiveSearch) ? Type.SuperType : null;
 		}
 		return null;
 	}
@@ -852,41 +852,25 @@ class GtType extends GtStatic {
 		this.ClassSymbolTable.put(Key, Value);
 	}
 	
-	public final boolean AppendFunc(GtFunc Func) {
-		/*local*/Object Value = this.GetClassSymbol(Func.FuncName, false);
-		if(Value == null) {
-			this.SetClassSymbol(Func.FuncName, Func);
-			return true;
+	public final String GetUniqueName() {
+		if(GtStatic.DebugPrintOption) {
+			return this.BaseType.ShortClassName + NativeNameSuffix + GtStatic.NumberToAscii(this.ClassId);
 		}
-		else if(Value instanceof GtFunc) {
-			GtPolyFunc PolyFunc = new GtPolyFunc(null, (/*cast*/GtFunc)Value, Func);
-			this.SetClassSymbol(Func.FuncName, PolyFunc);
-			return true;
+		else {
+			return GtStatic.NumberToAscii(this.ClassId);
 		}
-		else if(Value instanceof GtPolyFunc) {
-			GtPolyFunc PolyFunc = (/*cast*/GtPolyFunc)Value;
-			PolyFunc = PolyFunc.Append(null, Func);
-			this.SetClassSymbol(Func.FuncName, PolyFunc);
-			return true;
-		}
-		return false;
-	}
-
-	
-	public final String GetSignature() {
-		return GtStatic.NumberToAscii(this.ClassId);
 	}
 
 	public final boolean Accept(GtType Type) {
 		if(this == Type || this == this.Context.AnyType) {
 			return true;
 		}
-		GtType SuperClass = this.SuperClass;
+		GtType SuperClass = this.SuperType;
 		while(SuperClass != null) {
 			if(SuperClass == Type) {
 				return true;
 			}
-			SuperClass = SuperClass.SuperClass;
+			SuperClass = SuperClass.SuperType;
 		}
 		return this.Context.CheckSubType(Type, this);
 	}
@@ -988,16 +972,30 @@ class GtFunc extends GtStatic {
 		}
 		return Code;
 	}
+
+	public final boolean EqualsType(GtFunc AFunc) {
+		if(AFunc.Types.length == this.Types.length) {
+			/*local*/int i = 0;
+			while(i < this.Types.length) {
+				if(this.Types[i] != AFunc.Types[i]) {
+					return false;
+				}
+			}
+			return true;
+		}
+		return false;
+	}
+	
 }
 
 class GtPolyFunc extends GtStatic {
 	/*field*/public GtNameSpace NameSpace;
 	/*field*/public ArrayList<GtFunc> FuncList;
-	GtPolyFunc/*constructor*/(GtNameSpace NameSpace, GtFunc Func1, GtFunc Func2) {
+
+	GtPolyFunc/*constructor*/(GtNameSpace NameSpace, GtFunc Func1) {
 		this.NameSpace = NameSpace;
 		this.FuncList = new ArrayList<GtFunc>();
 		this.FuncList.add(Func1);
-		this.FuncList.add(Func2);
 	}
 	
 	@Override public String toString() { // this is used in an error message
@@ -1013,20 +1011,36 @@ class GtPolyFunc extends GtStatic {
 		return s;
 	}
 	
-	public final GtPolyFunc Append(GtNameSpace NameSpace, GtFunc Func) {
-		/*local*/GtPolyFunc PolyFunc = this;
+	public final GtPolyFunc Dup(GtNameSpace NameSpace) {
 		if(this.NameSpace != NameSpace) {
-			PolyFunc = new GtPolyFunc(NameSpace, this.FuncList.get(0), this.FuncList.get(1));
-			/*local*/int i = 2;
+			/*local*/GtPolyFunc PolyFunc = new GtPolyFunc(NameSpace, this.FuncList.get(0));
+			/*local*/int i = 1;
 			while(i < this.FuncList.size()) {
 				PolyFunc.FuncList.add(this.FuncList.get(i));
 				i = i + 1;
 			}
+			return PolyFunc;
 		}
-		PolyFunc.FuncList.add(Func);
-		return PolyFunc;
+		return this;
 	}
-	
+
+	public final GtFunc Append(GtFunc Func) {
+		/*local*/int i = 0;
+		while(i < this.FuncList.size()) {
+			/*local*/GtFunc ListedFunc = this.FuncList.get(i); 
+			if(ListedFunc == Func) {
+				return null; /* same function */
+			}
+			if(Func.EqualsType(ListedFunc)) {
+				this.FuncList.add(Func);
+				return ListedFunc;
+			}
+			i = i + 1;
+		}
+		this.FuncList.add(Func);
+		return null;
+	}
+
 	public GtFunc MatchFuncParamSize(int ParamSize) {
 		/*local*/int i = this.FuncList.size() - 1;
 		/*local*/GtFunc FoundFunc = null;
@@ -1084,7 +1098,7 @@ class GtPolyFunc extends GtStatic {
 						p = p + 1;
 						continue;
 					}
-					GtFunc TypeCoercion = Gamma.GetCoercionFunc(Node.Type, ParamType, true);
+					GtFunc TypeCoercion = Gamma.NameSpace.GetCoercionFunc(Node.Type, ParamType, true);
 					if(TypeCoercion != null && TypeCoercion.Is(ImplicitFunc)) {
 						if(Coercions == null) {
 							Coercions = new GtNode[NodeList.size()];
@@ -1129,7 +1143,7 @@ class GtPolyFunc extends GtStatic {
 		while(i >= 0) {
 			/*local*/GtFunc Func = this.FuncList.get(i);
 			if(Func.GetFuncParamSize() == 2 && Func.Types[1].Accept(BinaryNodes[0].Type)) {
-				GtFunc TypeCoercion = Gamma.GetCoercionFunc(BinaryNodes[1].Type, Func.Types[2], true);
+				GtFunc TypeCoercion = Gamma.NameSpace.GetCoercionFunc(BinaryNodes[1].Type, Func.Types[2], true);
 				if(TypeCoercion != null && TypeCoercion.Is(ImplicitFunc)) {
 					BinaryNodes[1] = Gamma.CreateCoercionNode(Func.Types[2], TypeCoercion, BinaryNodes[1]);
 					return Func;
@@ -1335,7 +1349,7 @@ class GtGenerator extends GtStatic {
 						}
 					}
 					GtFunc NativeFunc = new GtFunc(FuncFlag, FuncName, 0, TypeList, List[i]);
-					NativeBaseType.AppendFunc(NativeFunc);
+					NativeBaseType.Context.RootNameSpace.AppendMethod(NativeBaseType, NativeFunc);
 					TransformedResult = false;
 				}
 			}

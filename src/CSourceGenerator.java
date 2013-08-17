@@ -367,8 +367,8 @@ public class CSourceGenerator extends SourceGenerator {
 		this.WriteLineCode(this.GetIndentString() + Program + " *" + TypeName + ";");
 		Program = this.GetIndentString() + "struct " + Type.ShortClassName + " {\n";
 		this.Indent();
-		if(Type.SuperClass != null) {
-			Program += this.GetIndentString() + Type.SuperClass.ShortClassName + " __base;\n";
+		if(Type.SuperType != null) {
+			Program += this.GetIndentString() + Type.SuperType.ShortClassName + " __base;\n";
 		}
 		while (i < FieldList.size()) {
 			/*local*/GtVariableInfo VarInfo = FieldList.get(i);
@@ -379,7 +379,8 @@ public class CSourceGenerator extends SourceGenerator {
 			ParamList.add(VarType);
 			ParamList.add(Type);
 			GtFunc GetterFunc = new GtFunc(0, VarName, 0, ParamList, null);
-			NameSpace.Context.DefineGetterFunc(GetterFunc);
+			//Code generator does not need to regeister any functions (all things are controlled in parser)
+			//NameSpace.Context.DefineGetterFunc(GetterFunc);
 			i = i + 1;
 		}
 		this.UnIndent();
