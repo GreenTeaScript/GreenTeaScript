@@ -2518,38 +2518,38 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	public static GtSyntaxTree ParseFuncDecl(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		/*local*/GtSyntaxTree Tree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetToken(), null);
+		/*local*/GtSyntaxTree FuncDeclTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetToken(), null);
 		if(LeftTree == null) {
-			Tree.SetMatchedPatternAt(FuncDeclReturnType, NameSpace, TokenContext, "$Type$", Required);
+			FuncDeclTree.SetMatchedPatternAt(FuncDeclReturnType, NameSpace, TokenContext, "$Type$", Required);
 		}
 		else {
-			Tree.SetSyntaxTreeAt(FuncDeclReturnType, LeftTree);
+			FuncDeclTree.SetSyntaxTreeAt(FuncDeclReturnType, LeftTree);
 		}
-		Tree.SetMatchedPatternAt(FuncDeclName, NameSpace, TokenContext, "$FuncName$", Required);
+		FuncDeclTree.SetMatchedPatternAt(FuncDeclName, NameSpace, TokenContext, "$FuncName$", Required);
 		if(TokenContext.MatchToken("(")) {
 			/*local*/int ParseFlag = TokenContext.SetBackTrack(false);  // disabled
 			/*local*/int ParamBase = FuncDeclParam;
-			while(!Tree.IsEmptyOrError() && !TokenContext.MatchToken(")")) {
+			while(!FuncDeclTree.IsEmptyOrError() && !TokenContext.MatchToken(")")) {
 				if(ParamBase != FuncDeclParam) {
-					Tree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ",", Required);
+					FuncDeclTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ",", Required);
 				}
-				Tree.SetMatchedPatternAt(ParamBase + VarDeclType, NameSpace, TokenContext, "$Type$", Required);
-				Tree.SetMatchedPatternAt(ParamBase + VarDeclName, NameSpace, TokenContext, "$Variable$", Required);
+				FuncDeclTree.SetMatchedPatternAt(ParamBase + VarDeclType, NameSpace, TokenContext, "$Type$", Required);
+				FuncDeclTree.SetMatchedPatternAt(ParamBase + VarDeclName, NameSpace, TokenContext, "$Variable$", Required);
 				if(TokenContext.MatchToken("=")) {
-					Tree.SetMatchedPatternAt(ParamBase + VarDeclValue, NameSpace, TokenContext, "$Expression$", Required);
+					FuncDeclTree.SetMatchedPatternAt(ParamBase + VarDeclValue, NameSpace, TokenContext, "$Expression$", Required);
 				}
 				ParamBase += 3;
 			}
 			TokenContext.SkipIndent();
-			if(TokenContext.MatchToken("as")) {  // this is little ad hoc
+			if(TokenContext.MatchToken("as")) {
 				/*local*/GtToken Token = TokenContext.Next();
-				Tree.ConstValue = Token.ParsedText;
+				FuncDeclTree.ConstValue = Token.ParsedText;
 			}
 			else {
-				Tree.SetMatchedPatternAt(FuncDeclBlock, NameSpace, TokenContext, "$Block$", Optional);
+				FuncDeclTree.SetMatchedPatternAt(FuncDeclBlock, NameSpace, TokenContext, "$Block$", Optional);
 			}
 			TokenContext.ParseFlag = ParseFlag;
-			return Tree;
+			return FuncDeclTree;
 		}
 		return null;
 	}
@@ -2574,7 +2574,7 @@ final class DScriptGrammar extends GtGrammar {
 			ParamBase += 3;
 			i = i + 1;
 		}
-		/*local*/GtMethod Method = null;
+		/*local*/GtMethod DefinedFunc = null;
 		/*local*/String NativeMacro =  (/*cast*/String)ParsedTree.ConstValue;
 		if(NativeMacro != null) {
 			MethodFlag |= NativeMacroMethod;
@@ -2583,14 +2583,14 @@ final class DScriptGrammar extends GtGrammar {
 			MethodFlag |= AbstractMethod;
 		}
 		if(MethodName.equals("converter")) {
-			Method = DScriptGrammar.CreateConverterMethod(Gamma, ParsedTree, MethodFlag, TypeList);
+			DefinedFunc = DScriptGrammar.CreateConverterMethod(Gamma, ParsedTree, MethodFlag, TypeList);
 		}
 		else {
-			Method = DScriptGrammar.CreateMethod(Gamma, ParsedTree, MethodFlag, MethodName, TypeList, NativeMacro);
+			DefinedFunc = DScriptGrammar.CreateMethod(Gamma, ParsedTree, MethodFlag, MethodName, TypeList, NativeMacro);
 		}
-		if(Method != null && NativeMacro == null && ParsedTree.HasNodeAt(FuncDeclBlock)) {
+		if(DefinedFunc != null && NativeMacro == null && ParsedTree.HasNodeAt(FuncDeclBlock)) {
 			/*local*/GtNode BodyNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(FuncDeclBlock), ReturnType);
-			Gamma.Generator.GenerateMethod(Method, ParamNameList, BodyNode);
+			Gamma.Generator.GenerateMethod(DefinedFunc, ParamNameList, BodyNode);
 		}
 		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
 	}
