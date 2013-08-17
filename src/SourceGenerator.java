@@ -1166,8 +1166,8 @@ class GtGenerator extends GtStatic {
 
 	public final GtNode UnsupportedNode(GtType Type, GtSyntaxTree ParsedTree) {
 		/*local*/GtToken Token = ParsedTree.KeyToken;
-		ParsedTree.NameSpace.Context.ReportError(ErrorLevel, Token, this.TargetCode + " has no language support for " + Token.ParsedText);
-		return new ErrorNode(ParsedTree.NameSpace.Context.VoidType, ParsedTree.KeyToken);
+		Type.Context.ReportError(ErrorLevel, Token, this.TargetCode + " has no language support for " + Token.ParsedText);
+		return new ErrorNode(Type.Context.VoidType, ParsedTree.KeyToken);
 	}
 
 	public GtNode CreateConstNode(GtType Type, GtSyntaxTree ParsedTree, Object Value) {
@@ -1543,7 +1543,7 @@ class GtGenerator extends GtStatic {
 	// This must be extended in each language
 
 	public boolean IsStrictMode() {
-		return true; /* override this */
+		return false; /* override this */
 	}
 
 	public Object Eval(GtNode Node) {

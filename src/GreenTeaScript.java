@@ -69,8 +69,9 @@ interface GtConst {
 	public final static boolean Required = false;
 
 	public final static int		ErrorLevel						= 0;
-	public final static int		WarningLevel					= 1;
-	public final static int		InfoLevel					     = 2;
+	public final static int     TypeErrorLevel                  = 1;
+	public final static int		WarningLevel					= 2;
+	public final static int		InfoLevel					    = 3;
 
 	public final static int	NullChar				= 0;
 	public final static int	UndefinedChar			= 1;
@@ -226,12 +227,7 @@ interface GtConst {
 
 	public final static int BinaryOperator					= 1;
 	public final static int LeftJoin						= 1 << 1;
-//	public final static int Parenthesis						= 1 << 2;
 	public final static int PrecedenceShift					= 3;
-//	public final static int Precedence_CStyleValue			= (1 << PrecedenceShift);
-//	public final static int Precedence_CPPStyleScope		= (50 << PrecedenceShift);
-//	public final static int Precedence_CStyleSuffixCall		= (100 << PrecedenceShift);				/*x(); x[]; x.x x->x x++ */
-//	public final static int Precedence_CStylePrefixOperator	= (200 << PrecedenceShift);				/*++x; --x; sizeof x &x +x -x !x (T)x  */
 	//	Precedence_CppMember      = 300;  /* .x ->x */
 	public final static int Precedence_CStyleMUL			= (400 << PrecedenceShift);				/* x * x; x / x; x % x*/
 	public final static int Precedence_CStyleADD			= (500 << PrecedenceShift);				/* x + x; x - x */
@@ -246,9 +242,6 @@ interface GtConst {
 	public final static int Precedence_CStyleTRINARY		= (1400 << PrecedenceShift);				/* ? : */
 	public final static int Precedence_CStyleAssign			= (1500 << PrecedenceShift);
 	public final static int Precedence_CStyleCOMMA			= (1600 << PrecedenceShift);
-//	public final static int Precedence_Error				= (1700 << PrecedenceShift);
-//	public final static int Precedence_Statement			= (1900 << PrecedenceShift);
-//	public final static int Precedence_CStyleDelim			= (2000 << PrecedenceShift);
 
 	public final static int DefaultTypeCheckPolicy			= 0;
 	public final static int NoCheckPolicy                   = 1;
@@ -831,7 +824,7 @@ final class GtTokenContext extends GtStatic {
 	}
 
 	public void SkipIndent() {
-		GtToken Token = this.GetToken();
+		/*local*/GtToken Token = this.GetToken();
 		while(Token.IsIndent()) {
 			this.CurrentPosition = this.CurrentPosition + 1;
 			Token = this.GetToken();
@@ -922,7 +915,7 @@ final class GtTokenContext extends GtStatic {
 	public final GtMap SkipAndGetAnnotation(boolean IsAllowedDelim) {
 		// this is tentative implementation. In the future, you have to
 		// use this pattern.
-		GtMap Annotation = null;
+		/*local*/GtMap Annotation = null;
 		this.SkipIndent();
 		while(this.MatchToken("@")) {
 			/*local*/GtToken Token = this.Next();
@@ -1181,7 +1174,7 @@ class GtSyntaxTree extends GtStatic {
 		if(IsFlag(TypeCheckPolicy, AllowEmptyPolicy)) {
 			return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
 		}
-		return Gamma.CreateErrorNode2(this, "not empty");
+		return Gamma.CreateSyntaxErrorNode(this, "not empty");
 	}
 
 }
@@ -1240,7 +1233,7 @@ final class GtTypeEnv extends GtStatic {
 	public final boolean IsStrictMode() {
 		return this.Generator.IsStrictMode();
 	}
-
+		
 	public final boolean IsTopLevel() {
 		return (this.Func == null);
 	}
@@ -1276,14 +1269,18 @@ final class GtTypeEnv extends GtStatic {
 	}
 
 	public final GtNode ReportTypeResult(GtSyntaxTree ParsedTree, GtNode Node, int Level, String Message) {
-		this.NameSpace.Context.ReportError(Level, Node.Token, Message);
-		if(!this.IsStrictMode()) {
-			return Node;
+		if(Level == ErrorLevel || (this.IsStrictMode() && Level == TypeErrorLevel)) {
+			LangDeps.Assert(Node.Token == ParsedTree.KeyToken);
+			this.NameSpace.Context.ReportError(ErrorLevel, Node.Token, Message);
+			return this.Generator.CreateErrorNode(this.VoidType, ParsedTree);
 		}
-		return this.Generator.CreateErrorNode(this.VoidType, ParsedTree);
+		else {
+			this.NameSpace.Context.ReportError(Level, Node.Token, Message);
+		}
+		return Node;
 	}
 
-	public GtNode CreateErrorNode2(GtSyntaxTree ParsedTree, String Message) {
+	public GtNode CreateSyntaxErrorNode(GtSyntaxTree ParsedTree, String Message) {
 		this.NameSpace.Context.ReportError(ErrorLevel, ParsedTree.KeyToken, Message);
 		return this.Generator.CreateErrorNode(this.VoidType, ParsedTree);
 	}
@@ -1292,15 +1289,15 @@ final class GtTypeEnv extends GtStatic {
 		if(Type.DefaultNullValue != null) {
 			return this.Generator.CreateConstNode(Type, ParsedTree, Type.DefaultNullValue);
 		}
-		return this.CreateErrorNode2(ParsedTree, "undefined initial value of " + Type);
+		return this.CreateSyntaxErrorNode(ParsedTree, "undefined initial value of " + Type);
 	}
 
 	public GtNode SupportedOnlyTopLevelError(GtSyntaxTree ParsedTree) {
-		return this.CreateErrorNode2(ParsedTree, "supported only at top level " + ParsedTree.Pattern);
+		return this.CreateSyntaxErrorNode(ParsedTree, "supported only at top level " + ParsedTree.Pattern);
 	}
 
 	public GtNode UnsupportedTopLevelError(GtSyntaxTree ParsedTree) {
-		return this.CreateErrorNode2(ParsedTree, "unsupported at top level " + ParsedTree.Pattern);
+		return this.CreateSyntaxErrorNode(ParsedTree, "unsupported at top level " + ParsedTree.Pattern);
 	}
 
 	/* typing */
@@ -1351,7 +1348,7 @@ final class GtTypeEnv extends GtStatic {
 			return Node;
 		}
 		if(Node.Type == this.VarType) {
-			return this.ReportTypeResult(ParsedTree, Node, ErrorLevel, "unspecified type: " + Node.Token.ParsedText);
+			return this.ReportTypeResult(ParsedTree, Node, TypeErrorLevel, "unspecified type: " + Node.Token.ParsedText);
 		}
 		if(Node.Type == Type || Type == this.VarType || Type.Accept(Node.Type)) {
 			return Node;
@@ -1362,7 +1359,7 @@ final class GtTypeEnv extends GtStatic {
 			ApplyNode.Append(Node);
 			return ApplyNode;
 		}
-		return this.ReportTypeResult(ParsedTree, Node, ErrorLevel, "type error: requested = " + Type + ", given = " + Node.Type);
+		return this.ReportTypeResult(ParsedTree, Node, TypeErrorLevel, "type error: requested = " + Type + ", given = " + Node.Type);
 	}
 
 	public final void DefineFunc(GtFunc Func) {
@@ -1816,7 +1813,7 @@ final class DScriptGrammar extends GtGrammar {
 			return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(ConstValue), ParsedTree, ConstValue);
 		}
 		GtNode Node = Gamma.Generator.CreateLocalNode(Gamma.AnyType, ParsedTree, Name + Gamma.Generator.BlockComment("undefined"));
-		return Gamma.ReportTypeResult(ParsedTree, Node, ErrorLevel, "undefined name: " + Name);
+		return Gamma.ReportTypeResult(ParsedTree, Node, TypeErrorLevel, "undefined name: " + Name);
 	}
 
 	public static GtSyntaxTree ParseVarDecl(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
@@ -1904,7 +1901,7 @@ final class DScriptGrammar extends GtGrammar {
 		if(Func instanceof GtFunc) {
 			ResolvedFunc = (/*cast*/GtFunc)Func;
 			if(ResolvedFunc.GetFuncParamSize() != 1 || !ResolvedFunc.GetRecvType().Accept(BaseType)) {
-				Gamma.Context.ReportError(ErrorLevel, ParsedTree.KeyToken, "mismatched operator: " + ResolvedFunc);
+				Gamma.Context.ReportError(TypeErrorLevel, ParsedTree.KeyToken, "mismatched operator: " + ResolvedFunc);
 				ResolvedFunc = null;
 			}
 		}
@@ -1912,7 +1909,7 @@ final class DScriptGrammar extends GtGrammar {
 			/*local*/GtPolyFunc PolyFunc = (/*cast*/GtPolyFunc)Func;
 			ResolvedFunc = PolyFunc.MatchFuncParamSize(1);
 			if(ResolvedFunc == null || !ResolvedFunc.GetRecvType().Accept(BaseType)) {
-				Gamma.Context.ReportError(ErrorLevel, ParsedTree.KeyToken, "mismatched operators: " + PolyFunc);
+				Gamma.Context.ReportError(TypeErrorLevel, ParsedTree.KeyToken, "mismatched operators: " + PolyFunc);
 				ResolvedFunc = null;
 			}
 		}
@@ -1921,7 +1918,7 @@ final class DScriptGrammar extends GtGrammar {
 		}
 		/*local*/GtNode UnaryNode =  Gamma.Generator.CreateUnaryNode(ReturnType, ParsedTree, ResolvedFunc, ExprNode);
 		if(ResolvedFunc == null && !BaseType.IsDynamic()) {
-			return Gamma.ReportTypeResult(ParsedTree, UnaryNode, ErrorLevel, "undefined operator: "+ OperatorSymbol + " of " + BaseType);
+			return Gamma.ReportTypeResult(ParsedTree, UnaryNode, TypeErrorLevel, "undefined operator: "+ OperatorSymbol + " of " + BaseType);
 		}
 		return UnaryNode;
 	}
@@ -1965,7 +1962,7 @@ final class DScriptGrammar extends GtGrammar {
 		if(Func instanceof GtFunc) {
 			ResolvedFunc = (/*cast*/GtFunc)Func;
 			if(ResolvedFunc.GetFuncParamSize() != 2 || !ResolvedFunc.GetRecvType().Accept(BaseType)) {
-				Gamma.Context.ReportError(ErrorLevel, ParsedTree.KeyToken, "mismatched operator: " + ResolvedFunc);
+				Gamma.Context.ReportError(TypeErrorLevel, ParsedTree.KeyToken, "mismatched operator: " + ResolvedFunc);
 				ResolvedFunc = null;
 			}
 			else {
@@ -1983,7 +1980,7 @@ final class DScriptGrammar extends GtGrammar {
 			ResolvedFunc = PolyFunc.MatchBinaryOperator(Gamma, BinaryNodes);
 			LeftNode = BinaryNodes[0]; RightNode = BinaryNodes[1];
 			if(ResolvedFunc == null) {
-				Gamma.Context.ReportError(ErrorLevel, ParsedTree.KeyToken, "mismatched operators: " + PolyFunc);					
+				Gamma.Context.ReportError(TypeErrorLevel, ParsedTree.KeyToken, "mismatched operators: " + PolyFunc);					
 			}
 		}
 		if(ResolvedFunc != null) {
@@ -1994,7 +1991,7 @@ final class DScriptGrammar extends GtGrammar {
 		}
 		/*local*/GtNode BinaryNode =  Gamma.Generator.CreateBinaryNode(ReturnType, ParsedTree, ResolvedFunc, LeftNode, RightNode);
 		if(ResolvedFunc == null && !BaseType.IsDynamic()) {
-			return Gamma.ReportTypeResult(ParsedTree, BinaryNode, ErrorLevel, "undefined operator: "+ OperatorSymbol + " of " + LeftNode.Type);
+			return Gamma.ReportTypeResult(ParsedTree, BinaryNode, TypeErrorLevel, "undefined operator: "+ OperatorSymbol + " of " + LeftNode.Type);
 		}
 		return BinaryNode;
 	}
@@ -2029,7 +2026,7 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/GtNode Node = Gamma.Generator.CreateGetterNode(ReturnType, ParsedTree, Func, ObjectNode);
 		if(Func == null) {
 			if(!ObjectNode.Type.IsDynamic() && ContextType != Gamma.FuncType) {
-				return Gamma.ReportTypeResult(ParsedTree, Node, ErrorLevel, "undefined name " + Name + " of " + ObjectNode.Type);
+				return Gamma.ReportTypeResult(ParsedTree, Node, TypeErrorLevel, "undefined name " + Name + " of " + ObjectNode.Type);
 			}
 		}
 		return Node;
@@ -2135,7 +2132,7 @@ final class DScriptGrammar extends GtGrammar {
 					if(ResolvedFunc == null) {
 						ResolvedFunc = PolyFunc.MatchAcceptableFunc(Gamma, ParamSize, NodeList, 1);
 						if(ResolvedFunc == null) {
-							return Gamma.CreateErrorNode2(ParsedTree, "mismatched function: " + PolyFunc);
+							return Gamma.CreateSyntaxErrorNode(ParsedTree, "mismatched function: " + PolyFunc);
 						}
 					}
 				}
@@ -2169,7 +2166,7 @@ final class DScriptGrammar extends GtGrammar {
 					if(ResolvedFunc == null) {
 						ResolvedFunc = PolyFunc.MatchAcceptableFunc(Gamma, ParamSize, NodeList, 1);
 						if(ResolvedFunc == null) {
-							return Gamma.CreateErrorNode2(ParsedTree, "mismatched function: " + PolyFunc);
+							return Gamma.CreateSyntaxErrorNode(ParsedTree, "mismatched function: " + PolyFunc);
 						}
 					}
 				}
@@ -2203,7 +2200,7 @@ final class DScriptGrammar extends GtGrammar {
 			ReturnType = FuncType.Types[0];
 		}
 		else {
-			return Gamma.CreateErrorNode2(ParsedTree, FuncNode.Type + " is not applicapable");
+			return Gamma.CreateSyntaxErrorNode(ParsedTree, FuncNode.Type + " is not applicapable");
 		}
 		/*local*/GtNode Node = Gamma.Generator.CreateApplyNode(ReturnType, ParsedTree, ResolvedFunc);
 		/*local*/int i = 0;
@@ -2441,7 +2438,7 @@ final class DScriptGrammar extends GtGrammar {
 		if(!EnumTree.IsEmptyOrError()) {
 			EnumTypeName = EnumTree.GetSyntaxTreeAt(EnumNameTreeIndex).KeyToken.ParsedText;
 			if(NameSpace.GetSymbol(EnumTypeName) != null) {
-				NameSpace.Context.ReportError(ErrorLevel, EnumTree.KeyToken, "already defined name: " + EnumTypeName);
+				NameSpace.Context.ReportError(WarningLevel, EnumTree.KeyToken, "already defined name: " + EnumTypeName);
 			}
 			NewEnumType = new GtType(NameSpace.Context, EnumClass, EnumTypeName, null, VocabMap);
 		}
@@ -2549,7 +2546,7 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/String VariableName = NameTree.KeyToken.ParsedText;
 		/*local*/GtNode ValueNode = Gamma.TypeCheck(ValueTree, Gamma.AnyType, DefaultTypeCheckPolicy);
 		if(!(ValueNode instanceof ConstNode)) {
-			return Gamma.CreateErrorNode2(ParsedTree, "definition of variable " + VariableName + " is not constant");
+			return Gamma.CreateSyntaxErrorNode(ParsedTree, "definition of variable " + VariableName + " is not constant");
 		}
 		/*local*/ConstNode CNode = (/*cast*/ConstNode) ValueNode;
 		Gamma.NameSpace.DefineSymbol(VariableName, CNode.ConstValue);
@@ -2651,7 +2648,7 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/GtType FromType = TypeList.get(1);
 		/*local*/GtFunc Func = Gamma.Context.GetCoercionFunc(FromType, ToType, false);
 		if(Func != null) {
-			Gamma.Context.ReportError(ErrorLevel, ParsedTree.KeyToken, "already defined: " + FromType + " to " + ToType);
+			Gamma.Context.ReportError(WarningLevel, ParsedTree.KeyToken, "already defined: " + FromType + " to " + ToType);
 			return null;
 		}
 		Func = Gamma.Generator.CreateFunc(FuncFlag, "to" + ToType.ShortClassName, 0, TypeList, ParsedTree.ConstValue);
@@ -3444,6 +3441,9 @@ final class GtClassContext extends GtStatic {
 			if(Level == ErrorLevel) {
 				Message = "(error) " + this.GetSourcePosition(Token.FileLine) + " " + Message;
 				Token.ToErrorToken(Message);
+			}
+			else if(Level == TypeErrorLevel) {
+				Message = "(error) " + this.GetSourcePosition(Token.FileLine) + " " + Message;
 			}
 			else if(Level == WarningLevel) {
 				Message = "(warning) " + this.GetSourcePosition(Token.FileLine) + " " + Message;
