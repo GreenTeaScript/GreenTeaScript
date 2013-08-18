@@ -25,10 +25,10 @@
 //ifdef  JAVA
 //endif VAJA
 
-class GtGenerator2 extends GtGenerator {
+class ConstantFolder extends GtGenerator {
 	private GtType BooleanType;
 
-	GtGenerator2/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
+	ConstantFolder/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
 	}
 	@Override public void InitContext(GtClassContext Context) {

@@ -29,10 +29,10 @@ import java.util.ArrayList;
 //GreenTea Generator should be written in each language.
 
 public class CSourceGenerator extends SourceGenerator {
-	/*field*/GtGenerator2 Opt;
+	/*field*/ConstantFolder Opt;
 	CSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
-		this.Opt = new GtGenerator2(TargetCode, OutputFile, GeneratorFlag);
+		this.Opt = new ConstantFolder(TargetCode, OutputFile, GeneratorFlag);
 	}
 	@Override public void InitContext(GtClassContext Context) {
 		super.InitContext(Context);
