@@ -25,7 +25,7 @@
 //ifdef  JAVA
 //endif VAJA
 
-class ConstantFolder extends GtGenerator {
+public class ConstantFolder extends GtGenerator {
 	private GtType BooleanType;
 
 	ConstantFolder/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
@@ -212,7 +212,7 @@ class ConstantFolder extends GtGenerator {
 		Node.CondExpr = this.Fold(Node.CondExpr);
 		Node.ThenNode = this.FoldBlock(Node.ThenNode);
 		Node.ElseNode = this.FoldBlock(Node.ElseNode);
-		if(Node.CondExpr.Type == this.BooleanType) {
+		if(Node.CondExpr.Type == this.BooleanType && Node.CondExpr instanceof ConstNode) {
 			if(this.ConstValue(Node.CondExpr).equals(true)) {
 				return Node.ThenNode;
 			} else {

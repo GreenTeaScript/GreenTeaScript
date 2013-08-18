@@ -14,7 +14,7 @@ source="${source} CSourceGenerator"
 source="${source} JavaSourceGenerator"
 source="${source} PerlSourceGenerator"
 source="${source} PythonSourceGenerator"
-source="${source} Optimizer"
+source="${source} ConstantFolder"
 
 ts=""
 
