@@ -1373,7 +1373,7 @@ class GtGenerator extends GtStatic {
 		/*extension*/
 	}
 
-	public void GenerateClassField(GtNameSpace NameSpace, GtType Type, ArrayList<GtVariableInfo> FieldList) {
+	public void GenerateClassField(GtType Type, ArrayList<GtVariableInfo> FieldList) {
 		/*extension*/
 	}
 

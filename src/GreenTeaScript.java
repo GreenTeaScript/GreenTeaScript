@@ -2849,9 +2849,15 @@ final class DScriptGrammar extends GtGrammar {
 				}
 				/*local*/GtSyntaxTree VarDecl = TokenContext.ParsePattern(NameSpace, "$VarDecl$", Optional);
 				if(VarDecl != null) {
-					ClassDeclTree.SetSyntaxTreeAt(i, VarDecl);
 					TokenContext.MatchToken(";");
-					i = i + 1;
+					VarDecl = GtStatic.TreeHead(VarDecl);
+					while(VarDecl != null) {
+						/*local*/GtSyntaxTree NextTree = VarDecl.NextTree;
+						VarDecl.NextTree = null;
+						ClassDeclTree.SetSyntaxTreeAt(i, VarDecl);
+						i = i + 1;
+						VarDecl = NextTree;
+					}
 				}
 				/*local*/GtSyntaxTree InitDecl = TokenContext.ParsePatternAfter(NameSpace, ClassNameTree, "constructor", Optional);
 				if(InitDecl != null) {
@@ -2895,10 +2901,15 @@ final class DScriptGrammar extends GtGrammar {
 				/*local*/String FieldName = FieldTree.GetSyntaxTreeAt(VarDeclName).KeyToken.ParsedText;
 				/*local*/GtVariableInfo FieldInfo = Gamma.LookupDeclaredVariable(FieldName);
 				FieldList.add(FieldInfo);
+				ArrayList<GtType> ParamList = new ArrayList<GtType>();
+				ParamList.add(FieldInfo.Type);
+				ParamList.add(NewType);
+				GtFunc GetterFunc = new GtFunc(0, FieldInfo.Name, 0, ParamList, null);
+				Gamma.NameSpace.SetGetterFunc(NewType, FieldInfo.Name, GetterFunc);
 			}
 			FieldOffset += 1;
 		}
-		Gamma.Generator.GenerateClassField(Gamma.NameSpace, NewType, FieldList);
+		Gamma.Generator.GenerateClassField(NewType, FieldList);
 		FieldOffset = ClassBlockOffset;
 		while(FieldOffset < ParsedTree.TreeList.size()) {
 			/*local*/GtSyntaxTree FieldTree = ParsedTree.GetSyntaxTreeAt(FieldOffset);

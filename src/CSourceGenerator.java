@@ -360,7 +360,7 @@ public class CSourceGenerator extends SourceGenerator {
 		return Code;
 	}
 
-	@Override public void GenerateClassField(GtNameSpace NameSpace, GtType Type, ArrayList<GtVariableInfo> FieldList) {
+	@Override public void GenerateClassField(GtType Type, ArrayList<GtVariableInfo> FieldList) {
 		/*local*/int i = 0;
 		/*local*/String TypeName = Type.ShortClassName;
 		/*local*/String Program = this.GetIndentString() + "typedef struct " + TypeName;
@@ -375,12 +375,6 @@ public class CSourceGenerator extends SourceGenerator {
 			/*local*/GtType VarType = VarInfo.Type;
 			/*local*/String VarName = VarInfo.Name;
 			Program += this.GetIndentString() + VarType.ShortClassName + " " + VarName + ";\n";
-			ArrayList<GtType> ParamList = new ArrayList<GtType>();
-			ParamList.add(VarType);
-			ParamList.add(Type);
-			GtFunc GetterFunc = new GtFunc(0, VarName, 0, ParamList, null);
-			//Code generator does not need to regeister any functions (all things are controlled in parser)
-			//NameSpace.Context.DefineGetterFunc(GetterFunc);
 			i = i + 1;
 		}
 		this.UnIndent();
