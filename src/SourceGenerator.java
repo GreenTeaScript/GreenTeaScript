@@ -1393,6 +1393,9 @@ class GtGenerator extends GtStatic {
 
 	}
 
+	public final void StopVisitor(GtNode Node) {
+		Node.NextNode = null;
+	}
 	//------------------------------------------------------------------------
 
 	public void VisitEmptyNode(GtNode EmptyNode) {
@@ -1669,11 +1672,16 @@ class SourceGenerator extends GtGenerator {
 	}
 
 	protected final void PushSourceCode(String Code){
-		this.GeneratedCodeStack.add(Code);
+		this.PushCode(Code);
 	}
 
 	protected final String PopSourceCode(){
-		return (/*cast*/String)this.PopCode();
+		return (/*cast*/String) this.PopCode();
+	}
+
+	public final String VisitNode(GtNode Node) {
+		Node.Evaluate(this);
+		return this.PopSourceCode();
 	}
 
 	protected final String[] PopManyCode(int n) {
@@ -1782,8 +1790,8 @@ class SourceGenerator extends GtGenerator {
 		Template += ")";
 		i = 1;
 		while(i < GtStatic.ListSize(Node.Params)) {
-			Node.Params.get(i).Evaluate(this);
-			Template = Template.replace("$" + i, this.PopSourceCode());
+			String Param = this.VisitNode(Node.Params.get(i));
+			Template = Template.replace("$" + i, Param);
 			i = i + 1;
 		}
 		return Template;

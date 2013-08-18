@@ -33,6 +33,9 @@ class GtGenerator2 extends GtGenerator {
 	GtNode FoldBinaryNode(GtFunc Func, GtNode Left, GtNode Right) {
 		if(Left instanceof ConstNode) {
 			if(Right instanceof ConstNode) {
+				if(Func.Is(ConstFunc)) {
+					// Eval();
+				}
 			}
 		}
 		return null;
