@@ -2535,20 +2535,27 @@ final class DScriptGrammar extends GtGrammar {
 			}
 		}
 		TokenContext.ParseFlag = ParseFlag;
-		return NewTree;
+		if(!NewTree.IsEmptyOrError()) {
+			// translate 'new $Type$($Params$)' => 'constructor(new $Type$, $Params$)'
+			/*local*/GtSyntaxTree ApplyTree = new GtSyntaxTree(NameSpace.GetPattern("$Apply$"), NameSpace, new GtToken("(", 0), null);
+			/*local*/GtSyntaxTree FuncNameTree = new GtSyntaxTree(NameSpace.GetPattern("$Variable$"), NameSpace, new GtToken("constructor", 0), "constructor");
+			ApplyTree.AppendParsedTree(FuncNameTree);
+			ApplyTree.SetSyntaxTreeAt(CallParameterOffset, NewTree);
+			/*local*/int i = 1;
+			/*local*/int ParamOffset = CallParameterOffset+1;
+			while(i < ListSize(NewTree.TreeList)) {
+				ApplyTree.SetSyntaxTreeAt(ParamOffset, NewTree.GetSyntaxTreeAt(i));
+				i = i + 1;
+				ParamOffset = ParamOffset + 1;
+			}
+			return ApplyTree;
+		}
+		return null;
 	}
 
 	public static GtNode TypeNew(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		// new $Type$($Params$) => constructor(new $Type$, $Params$)
-		/*local*/GtType ReturnType = ParsedTree.GetSyntaxTreeAt(CallExpressionOffset).GetParsedType();
-		/*local*/String FuncName = "constructor";
-		/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
-		/*local*/int ParamIndex = 1;
-		/*local*/int ParamSize = ListSize(ParsedTree.TreeList);
-		ParamList.add(null); // FIXME ???
-		ParamList.add(Gamma.Generator.CreateNewNode(ReturnType, ParsedTree));
-		//return DScriptGrammar.TypeFuncParam(Gamma, ParsedTree, FuncName, ReturnType, ParamList, ParamIndex, ParamSize);
-		return null; // TODO
+		/*local*/GtType ThisType = ParsedTree.GetSyntaxTreeAt(CallExpressionOffset).GetParsedType();
+		return Gamma.Generator.CreateNewNode(ThisType, ParsedTree);
 	}
 
 	// switch
@@ -3180,6 +3187,7 @@ final class DScriptGrammar extends GtGrammar {
 		NameSpace.AppendSyntax("(", FunctionB(this, "ParseGroup"), FunctionC(this, "TypeGroup"));
 		NameSpace.AppendSyntax("(", FunctionB(this, "ParseCast"), FunctionC(this, "TypeCast"));
 		NameSpace.AppendExtendedSyntax("(", 0, FunctionB(this, "ParseApply"), FunctionC(this, "TypeApply"));
+		NameSpace.AppendSyntax("$Apply$", FunctionB(this, "ParseApply"), FunctionC(this, "TypeApply"));
 		//future: NameSpace.DefineExtendedPattern("[", 0, FunctionB(this, "ParseIndexer"), FunctionC(this, "TypeIndexer"));
 
 		NameSpace.AppendSyntax("$Block$", FunctionB(this, "ParseBlock"), TypeBlock);
