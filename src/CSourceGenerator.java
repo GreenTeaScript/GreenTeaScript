@@ -137,45 +137,8 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
-		/*local*/String Program = this.GenerateMacro(Node);
-		/*local*/int i = 1;
-		while(i < GtStatic.ListSize(Node.Params)) {
-			Node.Params.get(i).Evaluate(this);
-			Program = Program.replace("$" + i, this.PopSourceCode());
-			i = i + 1;
-		}
+		/*local*/String Program = this.GenerateApplyFunc(Node);
 		this.PushSourceCode(Program);
-	}
-
-	private String GenerateMacro(ApplyNode Node) {
-		/*local*/int BeginIdx = 1;
-		/*local*/String Template = "";
-		if(Node.Func == null) {
-			Template = "$1";
-			BeginIdx = 2;
-		}
-		else if(Node.Func.Is(NativeFunc)) {
-			Template = "$1." + Node.Func.FuncName;
-			BeginIdx = 2;
-		}
-		else if(Node.Func.Is(NativeMacroFunc)) {
-			return Node.Func.GetNativeMacro();
-		}
-		else {
-			Template = Node.Func.GetNativeFuncName();
-		}
-		Template += "(";
-		/*local*/int i = BeginIdx;
-		/*local*/int ParamSize = Node.Params.size();
-		while(i < ParamSize) {
-			if(i != BeginIdx) {
-				Template += ", ";
-			}
-			Template += "$" + i;
-			i = i + 1;
-		}
-		Template += ")";
-		return Template;
 	}
 
 	@Override public void VisitBinaryNode(BinaryNode Node) {

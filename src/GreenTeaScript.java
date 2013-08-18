@@ -2759,6 +2759,7 @@ final class DScriptGrammar extends GtGrammar {
 			DefinedFunc = DScriptGrammar.CreateFunc(Gamma, ParsedTree, FuncFlag, FuncName, TypeList, NativeMacro);
 		}
 		if(DefinedFunc != null && NativeMacro == null && ParsedTree.HasNodeAt(FuncDeclBlock)) {
+			Gamma.Func = DefinedFunc;
 			/*local*/GtNode BodyNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(FuncDeclBlock), ReturnType);
 			Gamma.Generator.GenerateFunc(DefinedFunc, ParamNameList, BodyNode);
 		}

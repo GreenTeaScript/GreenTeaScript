@@ -1752,4 +1752,40 @@ class SourceGenerator extends GtGenerator {
 		return Macro.replace("$1", Arg1).replace("$2", Arg2);
 	}
 
+	public String GenerateApplyFunc(ApplyNode Node) {
+		/*local*/int BeginIdx = 1;
+		/*local*/String Template = "";
+		if(Node.Func == null) {
+			Template = "$1";
+			BeginIdx = 2;
+		}
+		else if(Node.Func.Is(NativeFunc)) {
+			Template = "$1." + Node.Func.FuncName;
+			BeginIdx = 2;
+		}
+		else if(Node.Func.Is(NativeMacroFunc)) {
+			return Node.Func.GetNativeMacro();
+		}
+		else {
+			Template = Node.Func.GetNativeFuncName();
+		}
+		Template += "(";
+		/*local*/int i = BeginIdx;
+		/*local*/int ParamSize = Node.Params.size();
+		while(i < ParamSize) {
+			if(i != BeginIdx) {
+				Template += ", ";
+			}
+			Template += "$" + i;
+			i = i + 1;
+		}
+		Template += ")";
+		i = 1;
+		while(i < GtStatic.ListSize(Node.Params)) {
+			Node.Params.get(i).Evaluate(this);
+			Template = Template.replace("$" + i, this.PopSourceCode());
+			i = i + 1;
+		}
+		return Template;
+	}
 }
