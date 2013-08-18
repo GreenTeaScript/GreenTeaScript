@@ -1562,7 +1562,6 @@ final class GtNameSpace extends GtStatic {
 		while(ClassType != null) {
 			String Key = ClassSymbol(ClassType, Symbol);
 			PolyFunc = GtStatic.JoinPolyFunc(ClassType, PolyFunc, this.GetSymbol(Key));
-			ClassType = ClassType.SuperType;
 			if(!RecursiveSearch) {
 				break;
 			}
@@ -2230,11 +2229,11 @@ final class DScriptGrammar extends GtGrammar {
 			/*local*/GtNode BaseNode = ((/*cast*/GetterNode)FuncNode).Expr;
 			/*local*/String FuncName = FuncNode.Token.ParsedText;
 			NodeList.add(BaseNode);
-			/*local*/Object Func = BaseNode.Type.GetClassSymbol(FuncName, true);
+			/*local*/Object Func = Gamma.NameSpace.GetMethod(BaseNode.Type, FuncName, true);
 			if(Func instanceof GtFunc) {
 				ResolvedFunc = (/*cast*/GtFunc)Func;
 			}
-			if(Func instanceof GtPolyFunc) {
+			else if(Func instanceof GtPolyFunc) {
 				/*local*/GtPolyFunc PolyFunc = (/*cast*/GtPolyFunc)Func;
 				/*local*/int ParamSize = ListSize(ParsedTree.TreeList);
 				ResolvedFunc = PolyFunc.IncrementalMatch(ParamSize, NodeList, 1, TypedParamIndex + 1);
@@ -2263,12 +2262,12 @@ final class DScriptGrammar extends GtGrammar {
 				((/*cast*/ConstNode)FuncNode).Type = ResolvedFunc.GetFuncType();
 			}
 		}
-		if(FuncNode instanceof ConstNode) { /* Func style .. f x, y .. */
+		else if(FuncNode instanceof ConstNode) { /* Func style .. f x, y .. */
 			/*local*/Object Func = ((/*cast*/ConstNode)FuncNode).ConstValue;
 			if(Func instanceof GtFunc) {
 				ResolvedFunc = (/*cast*/GtFunc)Func;
 			}
-			if(Func instanceof GtPolyFunc) {
+			else if(Func instanceof GtPolyFunc) {
 				/*local*/GtPolyFunc PolyFunc = (/*cast*/GtPolyFunc)Func;
 				/*local*/int ParamSize = ListSize(ParsedTree.TreeList) - 1;
 				ResolvedFunc = PolyFunc.MatchFuncParamSize(ParamSize);
