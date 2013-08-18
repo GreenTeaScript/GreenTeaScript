@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdbool.h>
 
 #ifndef GREEN_TEA_H
 #define GREEN_TEA_H

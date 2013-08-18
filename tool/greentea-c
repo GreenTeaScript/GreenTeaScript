@@ -1,0 +1,17 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use File::Temp qw/ tempfile tempdir /;
+
+my $output = `greentea -l c $ARGV[0]`;
+my ($fh, $file) = tempfile("tmpfileXXXXXX", SUFFIX => '.c', UNLINK => 1);
+print $fh $output;
+
+my $include_path = `which greentea`;
+chomp($include_path);
+$include_path =~ s/greentea$/..\/include\//;
+print $include_path;
+print "gcc -I$include_path $file";
+$output = `gcc -I$include_path $file`;
+close $fh;
