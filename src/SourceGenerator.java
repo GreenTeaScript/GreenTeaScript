@@ -1762,7 +1762,10 @@ class SourceGenerator extends GtGenerator {
 
 	public String GenerateApplyFunc(ApplyNode Node) {
 		/*local*/int BeginIdx = 1;
+		/*local*/int i = BeginIdx;
+		/*local*/int ParamSize = Node.Params.size();
 		/*local*/String Template = "";
+		/*local*/boolean IsNative = false;
 		if(Node.Func == null) {
 			Template = "$1";
 			BeginIdx = 2;
@@ -1772,22 +1775,23 @@ class SourceGenerator extends GtGenerator {
 			BeginIdx = 2;
 		}
 		else if(Node.Func.Is(NativeMacroFunc)) {
-			return Node.Func.GetNativeMacro();
+			Template = Node.Func.GetNativeMacro();
+			IsNative = true;
 		}
 		else {
 			Template = Node.Func.GetNativeFuncName();
 		}
-		Template += "(";
-		/*local*/int i = BeginIdx;
-		/*local*/int ParamSize = Node.Params.size();
-		while(i < ParamSize) {
-			if(i != BeginIdx) {
-				Template += ", ";
+		if(IsNative == false) {
+			Template += "(";
+			while(i < ParamSize) {
+				if(i != BeginIdx) {
+					Template += ", ";
+				}
+				Template += "$" + i;
+				i = i + 1;
 			}
-			Template += "$" + i;
-			i = i + 1;
+			Template += ")";
 		}
-		Template += ")";
 		i = 1;
 		while(i < GtStatic.ListSize(Node.Params)) {
 			String Param = this.VisitNode(Node.Params.get(i));

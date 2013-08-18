@@ -1560,7 +1560,7 @@ final class GtNameSpace extends GtStatic {
 	public final GtPolyFunc GetMethod(GtType ClassType, String Symbol, boolean RecursiveSearch) {
 		GtPolyFunc PolyFunc = null;
 		while(ClassType != null) {
-			String Key = ClassSymbol(ClassType, Symbol);
+			String Key = GtStatic.ClassSymbol(ClassType, Symbol);
 			PolyFunc = GtStatic.JoinPolyFunc(ClassType, PolyFunc, this.GetSymbol(Key));
 			if(!RecursiveSearch) {
 				break;
@@ -2257,9 +2257,9 @@ final class DScriptGrammar extends GtGrammar {
 						}
 					}
 				}
-				// reset ConstValue as if non-polymorphic function were found 
-				((/*cast*/ConstNode)FuncNode).ConstValue = ResolvedFunc;
-				((/*cast*/ConstNode)FuncNode).Type = ResolvedFunc.GetFuncType();
+				// reset GetterNode as if non-polymorphic function were found
+				((/*cast*/GetterNode)FuncNode).Func = ResolvedFunc;
+				FuncNode.Type = ResolvedFunc.GetFuncType();
 			}
 		}
 		else if(FuncNode instanceof ConstNode) { /* Func style .. f x, y .. */
@@ -2309,8 +2309,10 @@ final class DScriptGrammar extends GtGrammar {
 		}
 		else if(FuncNode.Type.BaseType == Gamma.FuncType) {
 			/*local*/GtType FuncType = FuncNode.Type;
-			LangDeps.Assert(ListSize(ParsedTree.TreeList) == FuncType.TypeParams.length); // FIXME: add check paramerter size
-			while(TypedParamIndex < ListSize(ParsedTree.TreeList)) {
+			/*local*/int ParamSize = ListSize(ParsedTree.TreeList);
+			/*local*/int ExpectedParamSize = FuncType.TypeParams.length + ((FuncNode instanceof GetterNode) ? -1 : 0);
+			LangDeps.Assert(ParamSize == ExpectedParamSize); // FIXME: add check paramerter size
+			while(TypedParamIndex < ParamSize) {
 				/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(TypedParamIndex, Gamma, FuncType.TypeParams[TypedParamIndex], DefaultTypeCheckPolicy);
 				if(Node.IsError()) {
 					return Node;
@@ -2734,6 +2736,10 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/ArrayList<String> ParamNameList = new ArrayList<String>();
 		/*local*/int ParamBase = FuncDeclParam;
 		/*local*/int i = 0;
+		/*local*/GtType RecvType = null;
+		if(ParsedTree.HasNodeAt(FuncDeclClass) && ParsedTree.GetSyntaxTreeAt(FuncDeclClass) != null) {
+			RecvType = ParsedTree.GetSyntaxTreeAt(FuncDeclClass).GetParsedType();
+		}
 		while(ParamBase < ParsedTree.TreeList.size()) {
 			/*local*/GtType ParamType = ParsedTree.GetSyntaxTreeAt(ParamBase).GetParsedType();
 			/*local*/String ParamName = ParsedTree.GetSyntaxTreeAt(ParamBase+1).KeyToken.ParsedText;
@@ -2755,10 +2761,10 @@ final class DScriptGrammar extends GtGrammar {
 			DefinedFunc = DScriptGrammar.CreateConverterFunc(Gamma, ParsedTree, FuncFlag, TypeList);
 		}
 		else {
-			DefinedFunc = DScriptGrammar.CreateFunc(Gamma, ParsedTree, FuncFlag, FuncName, TypeList, NativeMacro);
+			DefinedFunc = DScriptGrammar.CreateFunc(Gamma, ParsedTree, FuncFlag, FuncName, RecvType, TypeList, NativeMacro);
 		}
 		if(DefinedFunc != null && NativeMacro == null && ParsedTree.HasNodeAt(FuncDeclBlock)) {
-			Gamma.Func = DefinedFunc;
+			Gamma.Func = DefinedFunc; //FIXME restore old Func
 			/*local*/GtNode BodyNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(FuncDeclBlock), ReturnType);
 			Gamma.Generator.GenerateFunc(DefinedFunc, ParamNameList, BodyNode);
 		}
@@ -2778,11 +2784,7 @@ final class DScriptGrammar extends GtGrammar {
 		return Func;
 	}
 
-	private static GtFunc CreateFunc(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, int FuncFlag, String FuncName, ArrayList<GtType> TypeList, String NativeMacro) {
-		/*local*/GtType RecvType = Gamma.VoidType;
-		if(TypeList.size() > 1) {
-			RecvType = TypeList.get(1);
-		}
+	private static GtFunc CreateFunc(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, int FuncFlag, String FuncName, GtType RecvType, ArrayList<GtType> TypeList, String NativeMacro) {
 		/*local*/GtFunc Func = null; //Gamma.Context.GetFunc(RecvType, FuncName, 2, TypeList, true);
 //		if(Func != null) {
 //			if(Func.GetRecvType() != RecvType) {
@@ -2806,7 +2808,12 @@ final class DScriptGrammar extends GtGrammar {
 		if(Func == null) {
 			Func = Gamma.Generator.CreateFunc(FuncFlag, FuncName, 0, TypeList, NativeMacro);
 		}
-		ParsedTree.NameSpace.AppendFunc(Func);
+		if(RecvType != null) {
+			ParsedTree.NameSpace.AppendMethod(RecvType, Func);
+		}
+		else {
+			ParsedTree.NameSpace.AppendFunc(Func);
+		}
 		return Func;
 	}
 
@@ -2931,8 +2938,13 @@ final class DScriptGrammar extends GtGrammar {
 				if(ParamBase + 2 < NewTreeList.size()) {
 					NewTreeList.set(ParamBase + 2, null);
 				}
+				/*local*/ArrayList<GtNode> NodeList = new ArrayList<GtNode>();
+				NodeList.add(Gamma.DefaultValueConstNode(ParsedTree, NewType));
 				while(ParamBase < FieldTree.TreeList.size()) {
-					NewTreeList.set(ParamBase + 3, FieldTree.GetSyntaxTreeAt(ParamBase + 0));
+					/*local*/GtSyntaxTree ParamTypeTree = FieldTree.GetSyntaxTreeAt(ParamBase + 0);
+					/*local*/GtType ParamType = ParamTypeTree.GetParsedType();
+					NodeList.add(Gamma.DefaultValueConstNode(ParsedTree, ParamType));
+					NewTreeList.set(ParamBase + 3, ParamTypeTree);
 					NewTreeList.set(ParamBase + 4, FieldTree.GetSyntaxTreeAt(ParamBase + 1));
 					if(ParamBase + 5 < FieldTree.TreeList.size()) {
 						NewTreeList.set(ParamBase + 5, FieldTree.GetSyntaxTreeAt(ParamBase + 2));
