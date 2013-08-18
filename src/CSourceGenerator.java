@@ -29,8 +29,14 @@ import java.util.ArrayList;
 //GreenTea Generator should be written in each language.
 
 public class CSourceGenerator extends SourceGenerator {
+	/*field*/GtGenerator2 Opt;
 	CSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
+		this.Opt = new GtGenerator2(TargetCode, OutputFile, GeneratorFlag);
+	}
+	@Override public void InitContext(GtClassContext Context) {
+		super.InitContext(Context);
+		this.Opt.InitContext(Context);
 	}
 
 	public void VisitBlockEachStatementWithIndent(GtNode Node, boolean NeedBlock) {
@@ -110,7 +116,7 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitNewNode(NewNode Node) {
-		/*local*/String Type = Node.Type.ShortClassName;
+		/*local*/String Type = this.LocalTypeName(Node.Type);
 		this.PushSourceCode("GC_new(" + Type + ")");
 	}
 
@@ -151,7 +157,7 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitLetNode(LetNode Node) {
-		/*local*/String Type = Node.DeclType.ShortClassName;
+		/*local*/String Type = this.LocalTypeName(Node.DeclType);
 		/*local*/String VarName = Node.VariableName;
 		/*local*/String Code = Type + " " + VarName;
 		/*local*/boolean CreateNewScope = true;
@@ -282,6 +288,7 @@ public class CSourceGenerator extends SourceGenerator {
 		if(!Func.Is(ExportFunc)) {
 			Code = "static ";
 		}
+		Body = this.Opt.Fold(Body);
 		/*local*/String RetTy = this.LocalTypeName(Func.GetReturnType());
 		Code += RetTy + " " + Func.GetNativeFuncName() + "(";
 		/*local*/int i = 0;
@@ -300,6 +307,7 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public Object Eval(GtNode Node) {
+		Node = this.Opt.Fold(Node);
 		this.VisitBlockEachStatementWithIndent(Node, false);
 		/*local*/String Code = this.PopSourceCode();
 		if(Code.equals(";\n")) {
@@ -311,19 +319,19 @@ public class CSourceGenerator extends SourceGenerator {
 
 	@Override public void GenerateClassField(GtType Type, ArrayList<GtVariableInfo> FieldList) {
 		/*local*/int i = 0;
-		/*local*/String TypeName = Type.ShortClassName;
+		/*local*/String TypeName = this.LocalTypeName(Type);
 		/*local*/String Program = this.GetIndentString() + "typedef struct " + TypeName;
 		this.WriteLineCode(this.GetIndentString() + Program + " *" + TypeName + ";");
-		Program = this.GetIndentString() + "struct " + Type.ShortClassName + " {\n";
+		Program = this.GetIndentString() + "struct " + TypeName + " {\n";
 		this.Indent();
 		if(Type.SuperType != null) {
-			Program += this.GetIndentString() + Type.SuperType.ShortClassName + " __base;\n";
+			Program += this.GetIndentString() + this.LocalTypeName(Type.SuperType) + " __base;\n";
 		}
 		while (i < FieldList.size()) {
 			/*local*/GtVariableInfo VarInfo = FieldList.get(i);
 			/*local*/GtType VarType = VarInfo.Type;
 			/*local*/String VarName = VarInfo.Name;
-			Program += this.GetIndentString() + VarType.ShortClassName + " " + VarName + ";\n";
+			Program += this.GetIndentString() + this.LocalTypeName(VarType) + " " + VarName + ";\n";
 			i = i + 1;
 		}
 		this.UnIndent();
@@ -334,9 +342,9 @@ public class CSourceGenerator extends SourceGenerator {
 //	@Override public void DefineClassFunc(GtNameSpace NameSpace, GtType Type, GtFunc Func) {
 //		/*local*/String Program = (/*cast*/String) this.DefinedClass.get(Type.ShortClassName);
 //		this.Indent();
-//		Program += this.GetIndentString() + Func.GetFuncType().ShortClassName + " " + Func.MangledName + ";\n";
+//		Program += this.GetIndentString() + this.LocalTypeName(Func.GetFuncType()) + " " + Func.MangledName + ";\n";
 //		this.UnIndent();
-//		this.DefinedClass.put(Type.ShortClassName, Program);
+//		this.DefinedClass.put(this.LocalTypeName(Type), Program);
 //	}
 
 	@Override public void StartCompilationUnit() {

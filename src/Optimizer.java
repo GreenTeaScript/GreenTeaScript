@@ -31,11 +31,14 @@ class GtGenerator2 extends GtGenerator {
 	GtGenerator2/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
 	}
-	public void Init(GtTypeEnv Gamma) {
-		this.BooleanType = Gamma.BooleanType;
+	@Override public void InitContext(GtClassContext Context) {
+		this.BooleanType = Context.BooleanType;
 	}
 
-	private GtNode FoldBlock(GtNode Block) {
+	GtNode FoldBlock(GtNode Block) {
+		if(Block == null) {
+			return null;
+		}
 		/*local*/GtNode Head = this.Fold(Block);
 		/*local*/GtNode Tmp = Head;
 		Block = Block.NextNode;
@@ -96,10 +99,12 @@ class GtGenerator2 extends GtGenerator {
 	GtNode FoldBinaryNode(BinaryNode Original, GtFunc Func, GtNode Left, GtNode Right) {
 		Left = this.Fold(Left);
 		Right = this.Fold(Right);
-		if(Left instanceof ConstNode) {
-			if(Right instanceof ConstNode) {
-				if(Func.Is(ConstFunc)) {
-					// Eval();
+		if(Func != null) {
+			if(Left instanceof ConstNode) {
+				if(Right instanceof ConstNode) {
+					if(Func.Is(ConstFunc)) {
+						// Eval();
+					}
 				}
 			}
 		}
@@ -136,15 +141,12 @@ class GtGenerator2 extends GtGenerator {
 		if(Left.Type == this.BooleanType && Right.Type == this.BooleanType) {
 			if(Left instanceof ConstNode) {
 				if(this.ConstValue(Left).equals(false)) {
-					return Left;
-				}
-				if(Right instanceof ConstNode && this.ConstValue(Right).equals(true)) {
-					return Left;
+					return Right;
 				}
 			}
 			if(Right instanceof ConstNode) {
 				if(this.ConstValue(Right).equals(false)) {
-					return Right;
+					return Left;
 				}
 			}
 		}
@@ -192,6 +194,7 @@ class GtGenerator2 extends GtGenerator {
 		while(i < Node.Params.size()) {
 			/*local*/GtNode Param = Node.Params.get(i);
 			Node.Params.set(i, this.Fold(Param));
+			i = i + 1;
 		}
 		return Node;
 	}
@@ -201,25 +204,40 @@ class GtGenerator2 extends GtGenerator {
 		while(i < Node.Params.size()) {
 			/*local*/GtNode Param = Node.Params.get(i);
 			Node.Params.set(i, this.Fold(Param));
+			i = i + 1;
 		}
 		return Node;
 	}
 	GtNode FoldIf(IfNode Node) {
 		Node.CondExpr = this.Fold(Node.CondExpr);
 		Node.ThenNode = this.FoldBlock(Node.ThenNode);
-		Node.ElseNode = this.FoldBlock(Node.ThenNode);
-		if(Node.CondExpr instanceof ConstNode) {
+		Node.ElseNode = this.FoldBlock(Node.ElseNode);
+		if(Node.CondExpr.Type == this.BooleanType) {
+			if(this.ConstValue(Node.CondExpr).equals(true)) {
+				return Node.ThenNode;
+			} else {
+				if(Node.ElseNode == null) {
+					return this.CreateEmptyNode(Node.Type);
+				}
+				return Node.ElseNode;
+			}
 		}
 		return Node;
 	}
 	GtNode FoldWhile(WhileNode Node) {
 		Node.CondExpr = this.Fold(Node.CondExpr);
 		Node.LoopBody = this.FoldBlock(Node.LoopBody);
+		if(this.ConstValue(Node.CondExpr).equals(false)) {
+			return this.CreateEmptyNode(Node.Type);
+		}
 		return Node;
 	}
 	GtNode FoldDoWhile(DoWhileNode Node) {
 		Node.CondExpr = this.Fold(Node.CondExpr);
 		Node.LoopBody = this.FoldBlock(Node.LoopBody);
+		if(this.ConstValue(Node.CondExpr).equals(false)) {
+			return Node.LoopBody;
+		}
 		return Node;
 	}
 	GtNode FoldFor(ForNode Node) {
@@ -247,6 +265,7 @@ class GtGenerator2 extends GtGenerator {
 		while(i < Node.Params.size()) {
 			/*local*/GtNode Param = Node.Params.get(i);
 			Node.Params.set(i, this.Fold(Param));
+			i = i + 1;
 		}
 		return Node;
 	}
