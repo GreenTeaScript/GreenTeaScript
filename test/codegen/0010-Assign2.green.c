@@ -1,11 +1,11 @@
 #include "GreenTea.h"
-static boolean g__05(int a0){
-   boolean a1 = false;
+static boolean g__AF(int a__AA){
+   boolean a__AB = false;
    {
-      a1 = true;
-      return a1;
+      a__AB = true;
+      return a__AB;
    };
 }
-g__05(100);
+g__AF(100);
 
 

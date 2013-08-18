@@ -1,5 +1,5 @@
 #include "GreenTea.h"
-static int f__0505(int a0, int b1){
+static int f__AFAF(int a__AA, int b__AB){
    return 10;
 }
 
