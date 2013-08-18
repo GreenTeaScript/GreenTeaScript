@@ -1,5 +1,5 @@
 #include "GreenTea.h"
-static void f0__03(){
+static void f0__AD(){
    10 + 20;
    10 - 20;
    10 * 20;
@@ -12,58 +12,58 @@ static void f0__03(){
    10 > 20;
    10 >= 20;
 }
-static void f1__03(){
-   int n0 = 10;
+static void f1__AD(){
+   int n__AA = 10;
    {
-      n0 + 20;
-      n0 - 20;
-      n0 * 20;
-      n0 / 20;
-      n0 % 20;
-      n0 == 20;
-      n0 != 20;
-      n0 < 20;
-      n0 <= 20;
-      n0 > 20;
-      n0 >= 20;
+      n__AA + 20;
+      n__AA - 20;
+      n__AA * 20;
+      n__AA / 20;
+      n__AA % 20;
+      n__AA == 20;
+      n__AA != 20;
+      n__AA < 20;
+      n__AA <= 20;
+      n__AA > 20;
+      n__AA >= 20;
    };
 }
-static void f2__03(){
-   int m0 = 20;
+static void f2__AD(){
+   int m__AA = 20;
    {
-      10 + m0;
-      10 - m0;
-      10 * m0;
-      10 / m0;
-      10 % m0;
-      10 == m0;
-      10 != m0;
-      10 < m0;
-      10 <= m0;
-      10 > m0;
-      10 >= m0;
+      10 + m__AA;
+      10 - m__AA;
+      10 * m__AA;
+      10 / m__AA;
+      10 % m__AA;
+      10 == m__AA;
+      10 != m__AA;
+      10 < m__AA;
+      10 <= m__AA;
+      10 > m__AA;
+      10 >= m__AA;
    };
 }
-static void f3__03(){
-   int n0 = 10;
+static void f3__AD(){
+   int n__AA = 10;
    {
-      int m1 = 20;
+      int m__AB = 20;
       {
-         n0 + m1;
-         n0 - m1;
-         n0 * m1;
-         n0 / m1;
-         n0 % m1;
-         n0 == m1;
-         n0 != m1;
-         n0 < m1;
-         n0 <= m1;
-         n0 > m1;
-         n0 >= m1;
+         n__AA + m__AB;
+         n__AA - m__AB;
+         n__AA * m__AB;
+         n__AA / m__AB;
+         n__AA % m__AB;
+         n__AA == m__AB;
+         n__AA != m__AB;
+         n__AA < m__AB;
+         n__AA <= m__AB;
+         n__AA > m__AB;
+         n__AA >= m__AB;
       };
    };
 }
-static void g1__03(){
+static void g1__AD(){
    ;
    10 + 20;
    10 - 20;
@@ -77,7 +77,7 @@ static void g1__03(){
    10 > 20;
    10 >= 20;
 }
-static void g2__03(){
+static void g2__AD(){
    ;
    10 + 20;
    10 - 20;
@@ -91,7 +91,7 @@ static void g2__03(){
    10 > 20;
    10 >= 20;
 }
-static void const3__03(){
+static void g3__AD(){
    ;
    ;
    10 + 20;

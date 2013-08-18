@@ -1,11 +1,10 @@
 #include "GreenTea.h"
-static void f__05(int a0){
+static void f__AF(int a__AA){
    10;
    try {
       20;
-      throw a0;
-      30;
-   } catch (int e1) {
+      throw a__AA;
+   } catch (int e__AB) {
       40;
       50;
    } finally {

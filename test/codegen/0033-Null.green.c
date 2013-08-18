@@ -1,8 +1,8 @@
 #include "GreenTea.h"
-static int f__0505(int left0, int right1){
-   return left0;
+static int f__AFAF(int left__AA, int right__AB){
+   return left__AA;
 }
 void main(){
-   assert(f__0505(10, NULL) == 10);
+   assert(f__AFAF(10, NULL) == 10);
 }
 
