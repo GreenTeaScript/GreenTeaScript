@@ -69,8 +69,10 @@ String.prototype["equals"] = function(other): boolean{
 class GtMap {
 	private map: Object;
 	private length: number;
+	private key: string[]
 	constructor(){
 		this.map = new Object;
+		this.key = [];
 		this.length = 0;
 	}
 	get(index: any): any{
@@ -79,16 +81,25 @@ class GtMap {
 	put(key: any, obj: any): void{
 		this.length++;
 		this.map[key] = obj;
+		this.key.push(key);
 	}
 	size(): number{
 		return this.length;
 	}
-	keys(): Array<string> {
-		return LangDeps.MapGetKeys(this);
+	keys(): string[] {
+		return this.key;
 	}
 }
 
+declare var fs: any;
+declare var process: any;
+declare var GreenTeaLibraries: { [key: string]: string; };
+
 class LangDeps {
+
+	// typescript only
+	static isNodeJS: boolean = typeof(process) != "undefined";
+	static hasFileSystem = typeof(fs) != "undefined";
 
 	static StartsWith(self: string, key: string): boolean {
 		return self.indexOf(key, 0) == 0;
@@ -237,18 +248,27 @@ class LangDeps {
 	}
 
 	static HasFile(FileName: string): boolean{
-		//throw new Error("LangDeps.HasFile is not implemented for this environment");
+		if(LangDeps.hasFileSystem){
+			return fs.existsSync(FileName).toString()
+		}else{
+			return !!GreenTeaLibraries[FileName];
+			//throw new Error("LangDeps.HasFile is not implemented for this environment");
+		}
 		return false;
 	}
 
 	static LoadFile(FileName: string): string{
-		//throw new Error("LangDeps.LoadFile is not implemented for this environment");
+		if(LangDeps.hasFileSystem){
+			return fs.readFileSync(FileName);
+		}else{
+			return GreenTeaLibraries[FileName];
+			//throw new Error("LangDeps.LoadFile is not implemented for this environment");
+		}
 		return "";
 	}
 
 	static MapGetKeys(Map: GtMap): string[] {
-		throw new Error("LangDeps.MapGetKeys is not implemented for this environment");
-		return [];
+		return Map.keys();
 	}
 
 	static Usage(): void {
