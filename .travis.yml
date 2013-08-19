@@ -19,3 +19,10 @@ before_script:
     - "make"
 
 script: "make test || echo"
+
+notifications:
+    email:
+        - imasahiro9@gmail.com
+        - matsumura.t.lab@gmail.com
+    on_success: change
+    on_failure: always

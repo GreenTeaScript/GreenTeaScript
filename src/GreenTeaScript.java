@@ -2136,7 +2136,9 @@ final class DScriptGrammar extends GtGrammar {
 			while(!FuncTree.IsEmptyOrError()) {
 				/*local*/GtSyntaxTree Tree = TokenContext.ParsePattern(NameSpace, "$Expression$", Required);
 				FuncTree.AppendParsedTree(Tree);
-				if(TokenContext.MatchToken(")")) break;
+				if(TokenContext.MatchToken(")")) {
+					break;
+				}
 				FuncTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ",", Required);
 			}
 		}
@@ -2171,9 +2173,10 @@ final class DScriptGrammar extends GtGrammar {
 				if(PolyFunc == null) {
 					return Gamma.CreateSyntaxErrorNode(ParsedTree, "no constructor: " + ClassType);
 				}
+				NodeList.set(0, Gamma.Generator.CreateNullNode(ClassType, ParsedTree));
 				ResolvedFunc = PolyFunc.ResolveFunc(Gamma, ParsedTree, 1, NodeList);
 				if(ResolvedFunc == null) {
-					
+					Gamma.Context.ReportError(TypeErrorLevel, ParsedTree.KeyToken, "mismatched : constructor" + PolyFunc);
 				}
 				/*local*/GtNode NewNode = Gamma.Generator.CreateNewNode(ClassType, ParsedTree, ResolvedFunc);
 				NewNode.AppendNodeList(NodeList);
@@ -2633,8 +2636,8 @@ final class DScriptGrammar extends GtGrammar {
 		if(ParsedTree.HasNodeAt(FuncDeclClass) && ParsedTree.GetSyntaxTreeAt(FuncDeclClass) != null) {
 			RecvType = ParsedTree.GetSyntaxTreeAt(FuncDeclClass).GetParsedType();
 			TypeList.add(RecvType);
-			ParamNameList.add("this");
 			Gamma.AppendDeclaredVariable(RecvType, "this");
+			ParamNameList.add(Gamma.LookupDeclaredVariable("this").NativeName);
 		}
 		/*local*/int TreeIndex = FuncDeclParam;
 		while(TreeIndex < ParsedTree.TreeList.size()) {

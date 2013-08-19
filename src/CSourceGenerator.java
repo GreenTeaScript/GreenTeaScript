@@ -116,8 +116,11 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitNewNode(NewNode Node) {
+		/*local*/int ParamSize = GtStatic.ListSize(Node.Params);
 		/*local*/String Type = this.LocalTypeName(Node.Type);
-		this.PushSourceCode("GT_New(" + Type + ")");
+		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
+		Template = Template.replace("$1", "GT_New(" + Type + ")");
+		this.PushSourceCode(this.ApplyMacro(Template, Node.Params));
 	}
 
 	@Override public void VisitNullNode(NullNode Node) {

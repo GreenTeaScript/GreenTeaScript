@@ -470,9 +470,12 @@ class MessageNode extends GtNode {
 //E.g., "new" $Type "(" $Param[0], $Param[1], ... ")"
 class NewNode extends GtNode {
 	/*field*/public ArrayList<GtNode>	Params;
-	NewNode/*constructor*/(GtType Type, GtToken Token) {
+	/*field*/GtFunc Func;
+	NewNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func) {
 		super(Type, Token);
 		this.Params = new ArrayList<GtNode>();
+		this.Func = Func;
+		this.Params.add(new ConstNode(Func.GetFuncType(), Token, Func));
 	}
 	@Override public void Append(GtNode Expr) {
 		this.Params.add(Expr);
@@ -1267,7 +1270,7 @@ class GtGenerator extends GtStatic {
 	}
 
 	public GtNode CreateNewNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func) {
-		return new NewNode(Type, ParsedTree.KeyToken);
+		return new NewNode(Type, ParsedTree.KeyToken, Func);
 	}
 
 	public GtNode CreateUnaryNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, GtNode Expr) {
@@ -1813,27 +1816,26 @@ class SourceGenerator extends GtGenerator {
 		}
 		return Macro.replace("$1", Arg1).replace("$2", Arg2);
 	}
-
-	public String GenerateApplyFunc(ApplyNode Node) {
+	
+	public String GenerateFuncTemplate(int ParamSize, GtFunc Func) {
 		/*local*/int BeginIdx = 1;
 		/*local*/int i = BeginIdx;
-		/*local*/int ParamSize = Node.Params.size();
 		/*local*/String Template = "";
 		/*local*/boolean IsNative = false;
-		if(Node.Func == null) {
+		if(Func == null) {
 			Template = "$1";
 			BeginIdx = 2;
 		}
-		else if(Node.Func.Is(NativeFunc)) {
-			Template = "$1." + Node.Func.FuncName;
+		else if(Func.Is(NativeFunc)) {
+			Template = "$1." + Func.FuncName;
 			BeginIdx = 2;
 		}
-		else if(Node.Func.Is(NativeMacroFunc)) {
-			Template = Node.Func.GetNativeMacro();
+		else if(Func.Is(NativeMacroFunc)) {
+			Template = Func.GetNativeMacro();
 			IsNative = true;
 		}
 		else {
-			Template = Node.Func.GetNativeFuncName();
+			Template = Func.GetNativeFuncName();
 		}
 		if(IsNative == false) {
 			Template += "(";
@@ -1846,12 +1848,23 @@ class SourceGenerator extends GtGenerator {
 			}
 			Template += ")";
 		}
-		i = 1;
-		while(i < GtStatic.ListSize(Node.Params)) {
-			String Param = this.VisitNode(Node.Params.get(i));
+		return Template;
+	}
+
+	public String ApplyMacro(String Template, ArrayList<GtNode> NodeList) {
+		/*local*/int i = 1;
+		/*local*/int ParamSize = GtStatic.ListSize(NodeList);
+		while(i < ParamSize) {
+			/*local*/String Param = this.VisitNode(NodeList.get(i));
 			Template = Template.replace("$" + i, Param);
 			i = i + 1;
 		}
 		return Template;
+	}
+
+	public String GenerateApplyFunc(ApplyNode Node) {
+		/*local*/int ParamSize = GtStatic.ListSize(Node.Params);
+		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
+		return this.ApplyMacro(Template, Node.Params);
 	}
 }
