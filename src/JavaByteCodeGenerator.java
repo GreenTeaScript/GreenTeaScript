@@ -303,7 +303,7 @@ class JVMConstPool {
 		}
 	}
 
-	public Object getConstValue(int id) {
+	public Object get(int id) {
 		return constValues.get(id);
 	}
 }
@@ -352,6 +352,10 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		else {
 			this.Builder.methodVisitor.visitLdcInsn(o);
 		}
+	}
+
+	public static Object getConstValue(int id) {
+		return constPool.get(id);
 	}
 
 	public void OutputClassFile(String className, String dir) throws IOException {
@@ -784,42 +788,56 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 	}
 
 	@Override public void VisitTryNode(TryNode Node) { //FIXME
-//		int catchSize = Node.CatchBlock.size();
-//		MethodVisitor mv = this.Builder.methodVisitor;
-//		Label beginTryLabel = new Label();
-//		Label endTryLabel = new Label();
-//		Label finallyLabel = new Label();
-//		Label catchLabel[] = new Label[catchSize];
-//
-//		// prepare
-//		for(int i = 0; i < catchSize; i++) { //TODO: add exception class name
-//			catchLabel[i] = new Label();
-//			mv.visitTryCatchBlock(beginTryLabel, endTryLabel, catchLabel[i], null);
-//		}
-//
-//		// try block
-//		mv.visitLabel(beginTryLabel);
-//		this.VisitBlock(Node.TryBlock);
-//		mv.visitLabel(endTryLabel);
-//		mv.visitJumpInsn(GOTO, finallyLabel);
-//
-//		// catch block
-//		for(int i = 0; i < catchSize; i++) { //TODO: add exception class name
-//			TypedNode Block = (TypedNode) Node.CatchBlock.get(i);
-//			TypedNode Exception = (TypedNode) Node.TargetException.get(i);
-//			mv.visitLabel(catchLabel[i]);
-//			this.VisitBlock(Block);
-//			mv.visitJumpInsn(GOTO, finallyLabel);
-//		}
-//
-//		// finally block
-//		mv.visitLabel(finallyLabel);
-//		this.VisitBlock(Node.FinallyBlock);
+		int catchSize = 1;
+		MethodVisitor mv = this.Builder.methodVisitor;
+		Label beginTryLabel = new Label();
+		Label endTryLabel = new Label();
+		Label finallyLabel = new Label();
+		Label catchLabel[] = new Label[catchSize];
+		String throwType = Type.getInternalName(Throwable.class);
+
+		// prepare
+		for(int i = 0; i < catchSize; i++) { //TODO: add exception class name
+			catchLabel[i] = new Label();
+			mv.visitTryCatchBlock(beginTryLabel, endTryLabel, catchLabel[i], throwType);
+		}
+
+		// try block
+		mv.visitLabel(beginTryLabel);
+		this.VisitBlock(Node.TryBlock);
+		mv.visitLabel(endTryLabel);
+		mv.visitJumpInsn(GOTO, finallyLabel);
+
+		// catch block
+		{ //for(int i = 0; i < catchSize; i++) { //TODO: add exception class name
+			int i = 0;
+			GtNode block = Node.CatchBlock;
+			mv.visitLabel(catchLabel[i]);
+			this.VisitBlock(block);
+			mv.visitJumpInsn(GOTO, finallyLabel);
+		}
+
+		// finally block
+		mv.visitLabel(finallyLabel);
+		this.VisitBlock(Node.FinallyBlock);
+	}
+
+	public static class WrappedThrowable extends Throwable {
+		public final Object object;
+		public WrappedThrowable(Object object) {
+			this.object = object;
+		}
 	}
 
 	@Override public void VisitThrowNode(ThrowNode Node) {
+		// use wrapper
+		String name = Type.getInternalName(WrappedThrowable.class);
+		this.Builder.methodVisitor.visitTypeInsn(NEW, name);
+		this.Builder.methodVisitor.visitInsn(DUP);
 		Node.Expr.Evaluate(this);
+		this.Builder.box();
 		this.Builder.typeStack.pop();
+		this.Builder.methodVisitor.visitMethodInsn(INVOKESPECIAL, name, "<init>", "(Ljava/lang/Object;)V");
 		this.Builder.methodVisitor.visitInsn(ATHROW);
 	}
 
