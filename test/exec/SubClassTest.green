@@ -1,9 +1,7 @@
 // written by kimio
 
 class Point {
-	//int x, y;
-	int x;
-	int y;
+	int x, y;
 	constructor(int x, int y) {
 		this.x = x;
 		this.y = y;
