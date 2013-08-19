@@ -68,6 +68,14 @@ class GtNode extends GtStatic {
 		/*extension*/
 	}
 
+	public final void AppendNodeList(ArrayList<GtNode> NodeList) {
+		/*local*/int i = 0;
+		while(i < ListSize(NodeList)) {
+			this.Append(NodeList.get(i));
+			i = i + 1;
+		}
+	}
+	
 	public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitEmptyNode(this);  /* must override */
 	}
@@ -1062,59 +1070,80 @@ class GtPolyFunc extends GtStatic {
 		return null;
 	}
 
-	public GtFunc MatchFuncParamSize(int ParamSize) {
+	public GtFunc ResolveUnaryFunc(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtNode ExprNode) {
 		/*local*/int i = this.FuncList.size() - 1;
-		/*local*/GtFunc FoundFunc = null;
 		while(i >= 0) {
 			/*local*/GtFunc Func = this.FuncList.get(i);
-			if(Func.GetFuncParamSize() == ParamSize) {
-				if(FoundFunc != null) {
-					return null; // two more func
-				}
-				FoundFunc = Func;
+			if(Func.GetFuncParamSize() == 1 && Func.Types[1].Accept(ExprNode.Type)) {
+				return Func;
 			}
 			i = i - 1;
 		}
-		return FoundFunc;
+		return null;
 	}
 
-	public GtFunc IncrementalMatch(int FuncParamSize, ArrayList<GtNode> NodeList, int BaseIndex, int ParamIndex) {
+	public final GtFunc ResolveBinaryFunc(GtTypeEnv Gamma, GtNode[] BinaryNodes) {
 		/*local*/int i = this.FuncList.size() - 1;
-		/*local*/GtFunc FoundFunc = null;
+		while(i >= 0) {
+			/*local*/GtFunc Func = this.FuncList.get(i);
+			if(Func.GetFuncParamSize() == 2 && Func.Types[1].Accept(BinaryNodes[0].Type) && Func.Types[2].Accept(BinaryNodes[1].Type)) {
+				return Func;
+			}
+			i = i - 1;
+		}
+		i = this.FuncList.size() - 1;
+		while(i >= 0) {
+			/*local*/GtFunc Func = this.FuncList.get(i);
+			if(Func.GetFuncParamSize() == 2 && Func.Types[1].Accept(BinaryNodes[0].Type)) {
+				GtFunc TypeCoercion = Gamma.NameSpace.GetCoercionFunc(BinaryNodes[1].Type, Func.Types[2], true);
+				if(TypeCoercion != null) {
+					BinaryNodes[1] = Gamma.CreateCoercionNode(Func.Types[2], TypeCoercion, BinaryNodes[1]);
+					return Func;
+				}
+			}
+			i = i - 1;
+		}
+		return null;
+	}
+
+	public GtFunc IncrementalMatch(int FuncParamSize, ArrayList<GtNode> NodeList) {
+		/*local*/int i = this.FuncList.size() - 1;
+		/*local*/GtFunc ResolvedFunc = null;
 		while(i >= 0) {
 			/*local*/GtFunc Func = this.FuncList.get(i);
 			if(Func.GetFuncParamSize() == FuncParamSize) {
-				/*local*/int p = BaseIndex;
-				while(p < ParamIndex) {
+				/*local*/int p = 0;
+				while(p < NodeList.size()) {
 					GtNode Node = NodeList.get(p);
-					if(Node.Type != Func.Types[p - BaseIndex + 1]) {
+					if(!Func.Types[p + 1].Accept(Node.Type)) {
 						Func = null;
 						break;
 					}
 					p = p + 1;
 				}
 				if(Func != null) {
-					if(FoundFunc != null) {
+					if(ResolvedFunc != null) {
 						return null; // two more func
 					}
-					FoundFunc = Func;
+					ResolvedFunc = Func;
 				}
 			}
 			i = i - 1;
 		}
-		return FoundFunc;
+		return ResolvedFunc;
 	}
+
 	
-	public GtFunc MatchAcceptableFunc(GtTypeEnv Gamma, int ParamSize, ArrayList<GtNode> NodeList, int BaseIndex) {
+	public GtFunc MatchAcceptableFunc(GtTypeEnv Gamma, int FuncParamSize, ArrayList<GtNode> NodeList) {
 		/*local*/int i = this.FuncList.size() - 1;
 		while(i >= 0) {
 			/*local*/GtFunc Func = this.FuncList.get(i);
-			if(Func.GetFuncParamSize() == ParamSize) {
-				/*local*/int p = BaseIndex;
+			if(Func.GetFuncParamSize() == FuncParamSize) {
+				/*local*/int p = 0;
 				/*local*/GtNode Coercions[] = null;
 				while(p < NodeList.size()) {
 					GtNode Node = NodeList.get(p);
-					GtType ParamType = Func.Types[p - BaseIndex + 1];
+					GtType ParamType = Func.Types[p + 1];
 					if(ParamType.Accept(Node.Type)) {
 						p = p + 1;
 						continue;
@@ -1151,29 +1180,33 @@ class GtPolyFunc extends GtStatic {
 		return null;
 	}
 
-	public final GtFunc MatchBinaryOperator(GtTypeEnv Gamma, GtNode[] BinaryNodes) {
-		/*local*/int i = this.FuncList.size() - 1;
-		while(i >= 0) {
-			/*local*/GtFunc Func = this.FuncList.get(i);
-			if(Func.GetFuncParamSize() == 2 && Func.Types[1].Accept(BinaryNodes[0].Type) && Func.Types[2].Accept(BinaryNodes[1].Type)) {
-				return Func;
+	public GtFunc ResolveFunc(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, int TreeIndex, ArrayList<GtNode> NodeList) {
+		/*local*/int FuncParamSize = ListSize(ParsedTree.TreeList) - TreeIndex + NodeList.size();
+		/*local*/GtFunc ResolvedFunc = this.IncrementalMatch(FuncParamSize, NodeList);
+		while(ResolvedFunc == null && TreeIndex < ListSize(ParsedTree.TreeList)) {
+			/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(TreeIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+			NodeList.add(Node);
+			if(Node.IsError()) {
+				return null;
 			}
-			i = i - 1;
+			TreeIndex = TreeIndex + 1;
+			ResolvedFunc = this.IncrementalMatch(FuncParamSize, NodeList);
 		}
-		i = this.FuncList.size() - 1;
-		while(i >= 0) {
-			/*local*/GtFunc Func = this.FuncList.get(i);
-			if(Func.GetFuncParamSize() == 2 && Func.Types[1].Accept(BinaryNodes[0].Type)) {
-				GtFunc TypeCoercion = Gamma.NameSpace.GetCoercionFunc(BinaryNodes[1].Type, Func.Types[2], true);
-				if(TypeCoercion != null) {
-					BinaryNodes[1] = Gamma.CreateCoercionNode(Func.Types[2], TypeCoercion, BinaryNodes[1]);
-					return Func;
-				}
+		if(ResolvedFunc == null) {
+			return this.MatchAcceptableFunc(Gamma, FuncParamSize, NodeList);
+		}
+		while(TreeIndex < ListSize(ParsedTree.TreeList)) {
+			/*local*/GtType ContextType = ResolvedFunc.Types[NodeList.size()];
+			/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(TreeIndex, Gamma, ContextType, DefaultTypeCheckPolicy);
+			NodeList.add(Node);
+			if(Node.IsError()) {
+				return null;
 			}
-			i = i - 1;
+			TreeIndex = TreeIndex + 1;
 		}
-		return null;
+		return ResolvedFunc;
 	}
+
 	
 }
 
@@ -1233,7 +1266,7 @@ class GtGenerator extends GtStatic {
 		return new MessageNode(Type, ParsedTree.KeyToken, Func, RecvNode);
 	}
 
-	public GtNode CreateNewNode(GtType Type, GtSyntaxTree ParsedTree) {
+	public GtNode CreateNewNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func) {
 		return new NewNode(Type, ParsedTree.KeyToken);
 	}
 
