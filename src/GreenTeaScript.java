@@ -2009,12 +2009,12 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/GtSyntaxTree ValueTree = ParsedTree.GetSyntaxTreeAt(VarDeclValue);
 		/*local*/GtType DeclType = TypeTree.GetParsedType();
 		/*local*/String VariableName = NameTree.KeyToken.ParsedText;
-		Gamma.AppendDeclaredVariable(0, DeclType, VariableName);
+		Gamma.AppendDeclaredVariable(VarFlag, DeclType, VariableName);
 		/*local*/GtNode VariableNode = Gamma.TypeCheck(NameTree, DeclType, DefaultTypeCheckPolicy);
 		if(VariableNode.IsError()) {
 			return VariableNode;
 		}
-		/*local*/GtNode InitValueNode = (ValueTree == null) ? null : Gamma.TypeCheck(ValueTree, DeclType, DefaultTypeCheckPolicy);
+		/*local*/GtNode InitValueNode = (ValueTree == null) ? Gamma.CreateDefaultValue(ParsedTree, DeclType) : Gamma.TypeCheck(ValueTree, DeclType, DefaultTypeCheckPolicy);
 		/*local*/GtNode BlockNode = Gamma.TypeBlock(ParsedTree.NextTree, ContextType);
 		ParsedTree.NextTree = null;
 		return Gamma.Generator.CreateLetNode(DeclType, ParsedTree, DeclType, ((/*cast*/LocalNode)VariableNode).NativeName, InitValueNode, BlockNode);
@@ -2474,16 +2474,6 @@ final class DScriptGrammar extends GtGrammar {
 			return Gamma.Generator.CreateReturnNode(ReturnType, ParsedTree, null);
 		}
 	}
-
-	public static GtNode TypeAutoReturn(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		/*local*/GtType ReturnType = Gamma.Func.GetReturnType();
-		/*local*/GtNode Expr = ParsedTree.TypeCheckNodeAt(ReturnExpr, Gamma, ReturnType, DefaultTypeCheckPolicy);
-		if(ReturnType == Gamma.VoidType){
-			return Gamma.Generator.CreateReturnNode(Expr.Type, ParsedTree, null);
-		}
-		return Gamma.Generator.CreateReturnNode(Expr.Type, ParsedTree, Expr);
-	}
-
 	
 	// try
 	public static GtSyntaxTree ParseTry(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
