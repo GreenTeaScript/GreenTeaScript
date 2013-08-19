@@ -112,7 +112,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		if(Node.ConstValue instanceof GtFunc) {
 			StringfiedValue = ((/*cast*/GtFunc)Node.ConstValue).GetNativeFuncName();
 		}
-		else if(Node.Type.equals(Node.Type.Context.BooleanType) || StringfiedValue.equals("true") || StringfiedValue.equals("false")) {
+		else if(Node.Type.equals(Node.Type.Context.BooleanType)) {
 			if(StringfiedValue.equals("true")) {
 				StringfiedValue = "True";
 			}
@@ -185,12 +185,12 @@ public class PythonSourceGenerator extends SourceGenerator {
 			this.PushSourceCode(this.JoinCode(ParamCode[0] + "(", 0, ParamCode, ")"));
 		}
 		else if(Node.Func.Is(NativeFunc)) {
-			this.PushSourceCode(this.JoinCode(ParamCode[0] + "." + Node.Func.FuncName + "(", 0, ParamCode, ")"));			
+			this.PushSourceCode(this.JoinCode(ParamCode[0] + "." + Node.Func.FuncName + "(", 0, ParamCode, ")"));
 		}
 		else if(Node.Func.Is(NativeMacroFunc)) {
-			this.PushSourceCode(Node.Func.ApplyNativeMacro(0, ParamCode));						
+			this.PushSourceCode(Node.Func.ApplyNativeMacro(0, ParamCode));
 		}else {
-			this.PushSourceCode(this.JoinCode(Node.Func.GetNativeFuncName() + "(", 0, ParamCode, ")"));						
+			this.PushSourceCode(this.JoinCode(Node.Func.GetNativeFuncName() + "(", 0, ParamCode, ")"));
 		}
 	}
 
@@ -353,7 +353,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 			Code = "subprocess.check_output(\"" + Code + "\", shell=True)";
 		}
 		else if(Node.Type.equals(Node.Type.Context.BooleanType)) {
-			Code = "True if subprocess.call(\"" + Code + "\", shell=True) == 0 else False";
+			Code = "(subprocess.call(\"" + Code + "\", shell=True) == 0)";
 		}
 		else {
 			Code = "subprocess.call(\"" + Code + "\", shell=True)";
@@ -388,6 +388,32 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.VisitBlockWithIndent(Body, true);
 		Function += "):" + this.LineFeed + this.PopSourceCode() + this.LineFeed;
 		this.WriteLineCode(Function);
+	}
+	
+	@Override public void GenerateClassField(GtType Type, ArrayList<GtVariableInfo> FieldList) {
+		/*local*/int i = 0;
+		/*local*/String Program = this.GetIndentString() + "class " + Type.ShortClassName;
+		if(Type.SuperType != null) {
+			Program += "(" + Type.SuperType.ShortClassName + ")";
+		}
+		Program += ":" + this.LineFeed;
+		this.Indent();
+		
+		Program += this.GetIndentString() + "def __init__(self)" + this.LineFeed;
+		this.Indent();
+		if(Type.SuperType != null) {
+			Program += this.GetIndentString() + 
+					Type.SuperType.ShortClassName + ".__init__(self)" + this.LineFeed;
+		}
+		while (i < FieldList.size()) {
+			/*local*/String VarName = FieldList.get(i).Name;
+			Program += this.GetIndentString() + "self." + VarName + " = None" + this.LineFeed;
+			i = i + 1;
+		}
+		this.UnIndent();
+		
+		this.UnIndent();
+		this.WriteLineCode(Program);
 	}
 
 	@Override public Object Eval(GtNode Node) {

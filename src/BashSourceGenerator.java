@@ -152,33 +152,48 @@ public class BashSourceGenerator extends SourceGenerator {
 	@Override public void VisitGetterNode(GetterNode Node) {
 		// not support
 	}
-
-	private String[] EvaluateParam(ArrayList<GtNode> Params) {
-		/*local*/int Size = Params.size();
-		/*local*/String[] Programs = new String[Size];
-		/*local*/int i = 0;
+	
+	protected String[] MakeParamCode(ArrayList<GtNode> ParamList) {
+		/*local*/int Size = GtStatic.ListSize(ParamList);
+		/*local*/String[] ParamCode = new String[Size - 1];
+		/*local*/int i = 1;
 		while(i < Size) {
-			/*local*/GtNode Node = Params.get(i);
+			/*local*/GtNode Node = ParamList.get(i);
 			Node.Evaluate(this);
-			Programs[Size - i - 1] = this.ResolveValueType(Node, this.PopSourceCode());
+			ParamCode[Size - i - 1] = this.ResolveValueType(Node, this.PopSourceCode());
 			i = i + 1;
 		}
-		return Programs;
+		return ParamCode;
+	}
+
+	protected String JoinCode(String BeginCode, int BeginIdx, String[] ParamCode, String EndCode) {
+		/*local*/String JoinedCode = BeginCode;
+		/*local*/int i = BeginIdx;
+		while(i < ParamCode.length) {
+			/*local*/String P = ParamCode[i];
+			if(i != BeginIdx) {
+				JoinedCode += " ";
+			}
+			JoinedCode += P;
+			i = i + 1;
+		}
+		return JoinedCode + EndCode;
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
-		/*local*/String Program = Node.Func.GetNativeFuncName() + " ";
-		/*local*/String[] Params = this.EvaluateParam(Node.Params);
-		/*local*/int i = 0;
-		while(i < Params.length) {
-			/*local*/String P = Params[i];
-			if(i != 0) {
-				Program += " ";
-			}
-			Program += P;
-			i = i + 1;
+		/*local*/String[] ParamCode = this.MakeParamCode(Node.Params);
+		if(Node.Func == null) {
+			this.PushSourceCode(this.JoinCode(ParamCode[0] + " ", 0, ParamCode, ""));
 		}
-		this.PushSourceCode(Program);
+//		else if(Node.Func.Is(NativeFunc)) {
+//			this.PushSourceCode(this.JoinCode(ParamCode[0] + "." + Node.Func.FuncName + " ", 0, ParamCode, ""));
+//		}
+		else if(Node.Func.Is(NativeMacroFunc)) {
+			this.PushSourceCode(Node.Func.ApplyNativeMacro(0, ParamCode));
+		}
+		else {
+			this.PushSourceCode(this.JoinCode(Node.Func.GetNativeFuncName() + " ", 0, ParamCode, ""));
+		}
 	}
 
 	@Override public void VisitSuffixNode(SuffixNode Node) {
@@ -365,12 +380,6 @@ public class BashSourceGenerator extends SourceGenerator {
 			}
 			this.PushSourceCode("echo " + ret + this.LineFeed + this.GetIndentString() + "return 0");
 		}
-	}
-
-	@Override public void VisitLabelNode(LabelNode Node) {
-	}
-
-	@Override public void VisitJumpNode(JumpNode Node) {
 	}
 
 	@Override public void VisitBreakNode(BreakNode Node) {

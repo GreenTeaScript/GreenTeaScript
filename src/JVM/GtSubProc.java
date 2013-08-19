@@ -70,7 +70,7 @@ public class GtSubProc {
 					stdout = subProcs[i].getStdout();
 				} else {
 					subProcs[i].console();
-					ret = subProcs[i].getRet() == 0 ? true : false;
+					ret = (subProcs[i].getRet() == 0);
 				}
 			}
 		}
