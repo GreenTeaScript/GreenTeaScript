@@ -117,7 +117,7 @@ public class CSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitNewNode(NewNode Node) {
 		/*local*/String Type = this.LocalTypeName(Node.Type);
-		this.PushSourceCode("GC_new(" + Type + ")");
+		this.PushSourceCode("GT_New(" + Type + ")");
 	}
 
 	@Override public void VisitNullNode(NullNode Node) {
@@ -129,7 +129,16 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitGetterNode(GetterNode Node) {
-		this.PushSourceCode(this.VisitNode(Node.Expr) + "->" + Node.Func.FuncName);
+		/*local*/String Program = this.VisitNode(Node.Expr);
+		/*local*/String FieldName = Node.Func.FuncName;
+		/*local*/GtType RecvType = Node.Func.GetRecvType();
+		if(Node.Expr.Type == RecvType) {
+			Program = Program + "->" + FieldName;
+		}
+		else {
+			Program = "GT_GetField(" + this.LocalTypeName(RecvType) + ", " + Program + ", " + FieldName + ")";
+		}
+		this.PushSourceCode(Program);
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
@@ -325,7 +334,7 @@ public class CSourceGenerator extends SourceGenerator {
 		Program = this.GetIndentString() + "struct " + TypeName + " {\n";
 		this.Indent();
 		if(Type.SuperType != null) {
-			Program += this.GetIndentString() + this.LocalTypeName(Type.SuperType) + " __base;\n";
+			Program += this.GetIndentString() + "struct " + this.LocalTypeName(Type.SuperType) + " __base;\n";
 		}
 		while (i < FieldList.size()) {
 			/*local*/GtVariableInfo VarInfo = FieldList.get(i);

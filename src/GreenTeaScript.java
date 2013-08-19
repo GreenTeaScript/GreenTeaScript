@@ -2399,6 +2399,32 @@ final class DScriptGrammar extends GtGrammar {
 		return Gamma.Generator.CreateThrowNode(ExprNode.Type, ParsedTree, ExprNode);
 	}
 
+	public static GtSyntaxTree ParseSuper(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtToken Token =TokenContext.GetMatchedToken("super");
+		/*local*/GtSyntaxTree Tree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
+		/*local*/int ParseFlag = TokenContext.ParseFlag;
+		TokenContext.ParseFlag |= SkipIndentParseFlag;
+		Tree.SetSyntaxTreeAt(CallExpressionOffset, new GtSyntaxTree(NameSpace.GetPattern("$Variable$"), NameSpace, Token, null)); 
+		Tree.SetSyntaxTreeAt(CallParameterOffset,  new GtSyntaxTree(NameSpace.GetPattern("$Variable$"), NameSpace, new GtToken("this", 0), null)); 
+		TokenContext.MatchToken("(");
+		if(!TokenContext.MatchToken(")")) {
+			while(!Tree.IsEmptyOrError()) {
+				/*local*/GtSyntaxTree ParamTree = TokenContext.ParsePattern(NameSpace, "$Expression$", Required);
+				Tree.AppendParsedTree(ParamTree);
+				if(TokenContext.MatchToken(")")) {
+					break;
+				}
+				Tree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ",", Required);
+			}
+		}
+		TokenContext.ParseFlag = ParseFlag;
+		if(!Tree.IsEmptyOrError()) {
+			// translate '$super$(this, $Params$)' => 'super(this, $Params$)'
+			Tree.Pattern = NameSpace.GetExtendedPattern("(");
+			return Tree;
+		}
+		return Tree;
+	}
 	// new $Type ( $Expr$ [, $Expr$] )
 	public static GtSyntaxTree ParseNew(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("new"), null);
@@ -2417,22 +2443,26 @@ final class DScriptGrammar extends GtGrammar {
 			}
 		}
 		TokenContext.ParseFlag = ParseFlag;
-		if(!NewTree.IsEmptyOrError()) {
-			// translate 'new $Type$($Params$)' => 'constructor(new $Type$, $Params$)'
-			/*local*/GtSyntaxTree ApplyTree = new GtSyntaxTree(NameSpace.GetPattern("$Apply$"), NameSpace, new GtToken("(", 0), null);
-			/*local*/GtSyntaxTree FuncNameTree = new GtSyntaxTree(NameSpace.GetPattern("$Variable$"), NameSpace, new GtToken("constructor", 0), "constructor");
-			ApplyTree.AppendParsedTree(FuncNameTree);
-			ApplyTree.SetSyntaxTreeAt(CallParameterOffset, NewTree);
-			/*local*/int i = 1;
-			/*local*/int ParamOffset = CallParameterOffset+1;
-			while(i < ListSize(NewTree.TreeList)) {
-				ApplyTree.SetSyntaxTreeAt(ParamOffset, NewTree.GetSyntaxTreeAt(i));
-				i = i + 1;
-				ParamOffset = ParamOffset + 1;
-			}
-			return ApplyTree;
+		if(NewTree.IsEmptyOrError()) {
+			return null;
 		}
-		return null;
+		// translate 'new $Type$($Params$)' => 'constructor(new $Type$, $Params$)'
+		/*local*/GtSyntaxTree TypeTree = NewTree.GetSyntaxTreeAt(CallExpressionOffset);
+		/*local*/GtSyntaxTree ApplyTree = new GtSyntaxTree(NameSpace.GetExtendedPattern("("), NameSpace, new GtToken("(", 0), null);
+		/*local*/GtSyntaxTree FuncNameTree = new GtSyntaxTree(NameSpace.GetExtendedPattern("."), NameSpace, new GtToken("constructor", 0), null);
+		FuncNameTree.AppendParsedTree(TypeTree);
+		ApplyTree.SetSyntaxTreeAt(CallExpressionOffset, FuncNameTree);
+		ApplyTree.SetSyntaxTreeAt(CallParameterOffset, NewTree);
+		/*local*/int i = 1;
+		/*local*/int ParamOffset = CallParameterOffset+1;
+		while(i < ListSize(NewTree.TreeList)) {
+			ApplyTree.SetSyntaxTreeAt(ParamOffset, NewTree.GetSyntaxTreeAt(i));
+			i = i + 1;
+			ParamOffset = ParamOffset + 1;
+		}
+		NewTree.TreeList.clear();
+		NewTree.AppendParsedTree(TypeTree);
+		return ApplyTree;
 	}
 
 	public static GtNode TypeNew(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
@@ -2764,10 +2794,13 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/GtSyntaxTree ClassNameTree = ParsedTree.GetSyntaxTreeAt(ClassNameOffset);
 		/*local*/GtType NewType = ParsedTree.GetParsedType();
 		/*local*/int FieldOffset = ClassBlockOffset;
-		Gamma = new GtTypeEnv(ParsedTree.NameSpace);  // creation of new type environment
+		Gamma = new GtTypeEnv(ParsedTree.NameSpace);
 		Gamma.AppendDeclaredVariable(NewType, "this");
 		ClassNameTree.ConstValue = NewType;
 		/*local*/ArrayList<GtVariableInfo> FieldList = new ArrayList<GtVariableInfo>();
+		/*local*/Object OldVal = Gamma.NameSpace.GetSymbol("super");
+		/*local*/GtPolyFunc Func = Gamma.NameSpace.GetMethod(NewType.SuperType, "constructor", true);
+		Gamma.NameSpace.SetSymbol("super", Func);
 
 		while(FieldOffset < ParsedTree.TreeList.size()) {
 			/*local*/GtSyntaxTree FieldTree = ParsedTree.GetSyntaxTreeAt(FieldOffset);
@@ -2829,9 +2862,12 @@ final class DScriptGrammar extends GtGrammar {
 				FieldTree.Pattern = Gamma.NameSpace.GetPattern("$FuncDecl$");
 				FieldTree.GetSyntaxTreeAt(FuncDeclName).ConstValue = "constructor";
 				Gamma.TypeCheck(FieldTree, NewType, DefaultTypeCheckPolicy);
+				Func = Gamma.NameSpace.GetMethod(NewType, "constructor", true);
+				NewType.SetClassSymbol("constructor", Func);
 			}
 			FieldOffset += 1;
 		}
+		Gamma.NameSpace.SetSymbol("super", OldVal);
 		return Gamma.Generator.CreateEmptyNode(ParsedTree.NameSpace.Context.TypeType);
 	}
 
@@ -2840,32 +2876,33 @@ final class DScriptGrammar extends GtGrammar {
 		LangDeps.Assert(LeftTree != null);
 		/*local*/GtSyntaxTree Tree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetToken(), null);
 		Tree.SetSyntaxTreeAt(FuncDeclReturnType, LeftTree);
+		Tree.SetSyntaxTreeAt(FuncDeclClass, LeftTree);
 		Tree.SetMatchedTokenAt(FuncDeclName, NameSpace, TokenContext, "constructor", Required);
 		if(!Tree.HasNodeAt(FuncDeclName)) {
 			return null;
 		}
-		if(TokenContext.MatchToken("(")) {
-			/*local*/int ParseFlag = TokenContext.SetBackTrack(false);  // disabled
-			/*local*/int ParamBase = FuncDeclParam + 3;
-			Tree.SetSyntaxTreeAt(FuncDeclParam + 0, LeftTree);
-			Tree.SetSyntaxTreeAt(FuncDeclParam + 1, new GtSyntaxTree(NameSpace.GetPattern("$Variable$"), NameSpace, new GtToken("this", 0), null));
-			while(!Tree.IsEmptyOrError() && !TokenContext.MatchToken(")")) {
-				if(ParamBase != FuncDeclParam + 3) {
-					Tree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ",", Required);
-				}
-				Tree.SetMatchedPatternAt(ParamBase + VarDeclType, NameSpace, TokenContext, "$Type$", Required);
-				Tree.SetMatchedPatternAt(ParamBase + VarDeclName, NameSpace, TokenContext, "$Variable$", Required);
-				if(TokenContext.MatchToken("=")) {
-					Tree.SetMatchedPatternAt(ParamBase + VarDeclValue, NameSpace, TokenContext, "$Expression$", Required);
-				}
-				ParamBase += 3;
-			}
-			TokenContext.SkipIndent();
-			Tree.SetMatchedPatternAt(FuncDeclBlock, NameSpace, TokenContext, "$Block$", Optional);
-			TokenContext.ParseFlag = ParseFlag;
-			return Tree;
+		if(!TokenContext.MatchToken("(")) {
+			return null;
 		}
-		return null;
+		/*local*/int ParseFlag = TokenContext.SetBackTrack(false);  // disabled
+		/*local*/int ParamBase = FuncDeclParam + 3;
+		Tree.SetSyntaxTreeAt(FuncDeclParam + 0, LeftTree);
+		Tree.SetSyntaxTreeAt(FuncDeclParam + 1, new GtSyntaxTree(NameSpace.GetPattern("$Variable$"), NameSpace, new GtToken("this", 0), null));
+		while(!Tree.IsEmptyOrError() && !TokenContext.MatchToken(")")) {
+			if(ParamBase != FuncDeclParam + 3) {
+				Tree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ",", Required);
+			}
+			Tree.SetMatchedPatternAt(ParamBase + VarDeclType, NameSpace, TokenContext, "$Type$", Required);
+			Tree.SetMatchedPatternAt(ParamBase + VarDeclName, NameSpace, TokenContext, "$Variable$", Required);
+			if(TokenContext.MatchToken("=")) {
+				Tree.SetMatchedPatternAt(ParamBase + VarDeclValue, NameSpace, TokenContext, "$Expression$", Required);
+			}
+			ParamBase += 3;
+		}
+		TokenContext.SkipIndent();
+		Tree.SetMatchedPatternAt(FuncDeclBlock, NameSpace, TokenContext, "$Block$", Optional);
+		TokenContext.ParseFlag = ParseFlag;
+		return Tree;
 	}
 
 	// shell grammar
@@ -3051,7 +3088,6 @@ final class DScriptGrammar extends GtGrammar {
 		NameSpace.AppendSyntax("(", FunctionB(this, "ParseGroup"), FunctionC(this, "TypeGroup"));
 		NameSpace.AppendSyntax("(", FunctionB(this, "ParseCast"), FunctionC(this, "TypeCast"));
 		NameSpace.AppendExtendedSyntax("(", 0, FunctionB(this, "ParseApply"), FunctionC(this, "TypeApply"));
-		NameSpace.AppendSyntax("$Apply$", FunctionB(this, "ParseApply"), FunctionC(this, "TypeApply"));
 		//future: NameSpace.DefineExtendedPattern("[", 0, FunctionB(this, "ParseIndexer"), FunctionC(this, "TypeIndexer"));
 
 		NameSpace.AppendSyntax("$Block$", FunctionB(this, "ParseBlock"), TypeBlock);
@@ -3062,6 +3098,9 @@ final class DScriptGrammar extends GtGrammar {
 		NameSpace.AppendSyntax("$FuncDecl$", FunctionB(this, "ParseFuncDecl"), FunctionC(this, "TypeFuncDecl"));
 		NameSpace.AppendSyntax("$VarDecl$",  FunctionB(this, "ParseVarDecl"), FunctionC(this, "TypeVarDecl"));
 
+		NameSpace.AppendSyntax("$Constructor$", FunctionB(this, "ParseConstructor"), null);
+		NameSpace.AppendSyntax("super", FunctionB(this, "ParseSuper"), null);
+
 		NameSpace.AppendSyntax("null", FunctionB(this, "ParseNull"), FunctionC(this, "TypeNull"));
 		NameSpace.AppendSyntax("if", FunctionB(this, "ParseIf"), FunctionC(this, "TypeIf"));
 		NameSpace.AppendSyntax("while", FunctionB(this, "ParseWhile"), FunctionC(this, "TypeWhile"));
@@ -3070,7 +3109,6 @@ final class DScriptGrammar extends GtGrammar {
 		NameSpace.AppendSyntax("return", FunctionB(this, "ParseReturn"), FunctionC(this, "TypeReturn"));
 		NameSpace.AppendSyntax("const", FunctionB(this, "ParseConstDecl"), FunctionC(this, "TypeConstDecl"));
 		NameSpace.AppendSyntax("class", FunctionB(this, "ParseClassDecl"), FunctionC(this, "TypeClassDecl"));
-		NameSpace.AppendSyntax("$Constructor$", FunctionB(this, "ParseConstructor"), FunctionC(this, "TypeFuncDecl"));
 		NameSpace.AppendSyntax("try", FunctionB(this, "ParseTry"), FunctionC(this, "TypeTry"));
 		NameSpace.AppendSyntax("throw", FunctionB(this, "ParseThrow"), FunctionC(this, "TypeThrow"));
 		NameSpace.AppendSyntax("new", FunctionB(this, "ParseNew"), FunctionC(this, "TypeNew"));
@@ -3196,6 +3234,9 @@ final class GtClassContext extends GtStatic {
 		}
 		else if(Value instanceof GreenTeaTopObject) {
 			return ((/*cast*/GreenTeaTopObject)Value).GreenType;
+		}
+		else if(Value instanceof GtType) {
+			return this.TypeType;
 		}
 		else {
 			return this.Generator.GetNativeType(Value);

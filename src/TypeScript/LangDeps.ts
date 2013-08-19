@@ -5,6 +5,7 @@ interface Array {
 	set(index: number, value: any): void;
 	add(obj: any): void;
 	size(): number;
+	clear(): void;
 	remove(index: number): any;
 }
 
@@ -34,6 +35,10 @@ Array.prototype.remove = function(i){
 	var v = this[i];
 	this.splice(i, 1);
 	return v;
+}
+
+Array.prototype.clear = function(){
+	this.length = 0;
 }
 
 interface Object {

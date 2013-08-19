@@ -14,6 +14,8 @@ typedef struct record {
   struct GreenTeaObject base;
 } record;
 
-#define GC_new(TYPE) ((TYPE) GC_malloc(sizeof(*(Point)NULL)))
+#define GT_SizeOf(TYPE) (sizeof(*(TYPE)NULL))
+#define GT_New(TYPE) ((TYPE) GC_malloc(GT_SizeOf(TYPE)))
+#define GT_GetField(TYPE, THIS, FIELD) (((TYPE) THIS)->FIELD)
 
 #endif /* end of include guard */
