@@ -23,7 +23,7 @@ for s in ${source}; do
     ts="${ts} ${build}${s}.ts"
 done
 
-perl src/TypeScript/PackLibraries.pl > ${build}GreenTeaLibraries.ts
+perl src/TypeScript/PackLibraries.pl lib > ${build}GreenTeaLibraries.ts
 ts="${ts} ${build}GreenTeaLibraries.ts"
 
 tsc ${build}/LangDeps.ts ${ts}
