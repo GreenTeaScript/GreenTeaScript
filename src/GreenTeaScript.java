@@ -1134,22 +1134,9 @@ class GtSyntaxTree extends GtStatic {
 }
 
 /* typing */
-
-class GtVariableInfo extends GtStatic {
-	/*field*/public int     VariableFlag;
-	/*field*/public GtType	Type;
-	/*field*/public String	Name;
-	/*field*/public String	NativeName;
-
-	GtVariableInfo/*constructor*/(GtType Type, String Name, int Index) {
-		this.Type = Type;
-		this.Name = Name;
-		this.NativeName = GtStatic.NativeVariableName(Name, Index);
-	}
-}
-
 class GtFieldInfo extends GtStatic {
 	/*field*/public int     FieldFlag;
+	/*field*/public int     FieldIndex;
 	/*field*/public GtType	Type;
 	/*field*/public String	Name;
 	/*field*/public String	NativeName;
@@ -1157,10 +1144,15 @@ class GtFieldInfo extends GtStatic {
 	/*field*/public GtFunc	GetterFunc;
 	/*field*/public GtFunc	SetterFunc;
 
-	GtFieldInfo/*constructor*/(int FieldFlag, GtType Type, String Name) {
+	GtFieldInfo/*constructor*/(int FieldFlag, GtType Type, String Name, int FieldIndex) {
 		this.FieldFlag = FieldFlag;
 		this.Type = Type;
 		this.Name = Name;
+		this.NativeName = Name; // use this in a generator
+		this.FieldIndex = FieldIndex;
+		this.InitValue = null;
+		this.GetterFunc = null;
+		this.SetterFunc = null;
 	}
 }
 
@@ -1186,14 +1178,30 @@ final class GtClassField {
 		while(i < this.FieldList.size()) {
 			/*local*/GtFieldInfo FieldInfo = this.FieldList.get(i);
 			if(FieldInfo.Name.equals(Name)) {
-				return null;
+				return null;  // report error
 			}
+			i = i + 1;
 		}
-		GtFieldInfo FieldInfo = new GtFieldInfo(FieldFlag, Type, Name);
+		GtFieldInfo FieldInfo = new GtFieldInfo(FieldFlag, Type, Name, this.FieldList.size());
 		this.FieldList.add(FieldInfo);
 		return FieldInfo;
 	}
+	
 }
+
+class GtVariableInfo extends GtStatic {
+	/*field*/public int     VariableFlag;
+	/*field*/public GtType	Type;
+	/*field*/public String	Name;
+	/*field*/public String	NativeName;
+
+	GtVariableInfo/*constructor*/(GtType Type, String Name, int Index) {
+		this.Type = Type;
+		this.Name = Name;
+		this.NativeName = GtStatic.NativeVariableName(Name, Index);
+	}
+}
+
 
 final class GtTypeEnv extends GtStatic {
 	/*field*/public final GtClassContext    Context;
