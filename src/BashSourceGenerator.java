@@ -39,6 +39,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	@Override public void InitContext(GtClassContext Context) {
 		super.InitContext(Context);
 		this.WriteLineHeader("#!/bin/bash");
+		this.WriteLineCode("source assert.sh");
 	}
 	
 	public String VisitBlockWithIndent(GtNode Node, boolean inBlock) {
@@ -136,6 +137,19 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitGetterNode(GetterNode Node) {
 		this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + Node.Func.FuncName + "]");
+	}
+	
+	protected String[] MakeParamCode1(GtNode Node) {
+		/*local*/String[] ParamCode = new String[1];
+		ParamCode[0] = this.VisitNode(Node);
+		return ParamCode;
+	}
+	
+	protected String[] MakeParamCode2(GtNode Node, GtNode Node2) {
+		/*local*/String[] ParamCode = new String[2];
+		ParamCode[0] = this.ResolveValueType(Node);
+		ParamCode[1] = this.ResolveValueType(Node2);
+		return ParamCode;
 	}
 	
 	protected String[] MakeParamCode(ArrayList<GtNode> ParamList) {
@@ -462,8 +476,8 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/String ResolvedValue;
 		/*local*/String Value = this.VisitNode(TargetNode);
 		
-		if(TargetNode instanceof ConstNode || TargetNode instanceof NullNode) {
-			ResolvedValue = Value;
+		if(TargetNode instanceof LocalNode) {
+			ResolvedValue = "$" + Value;
 		}
 		else if(TargetNode instanceof IndexerNode || TargetNode instanceof GetterNode) {
 			ResolvedValue = "${" + Value + "}";
@@ -472,7 +486,7 @@ public class BashSourceGenerator extends SourceGenerator {
 			ResolvedValue = "$(" + Value + ")";
 		}
 		else {
-			ResolvedValue = "$" + Value;
+			ResolvedValue = Value;
 		}
 		return ResolvedValue;
 	}

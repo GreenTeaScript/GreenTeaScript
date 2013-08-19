@@ -1,16 +1,16 @@
 int +(int x) as "$0";
 int -(int x) as "-$0";
-// int ~(int x) as "~$0";
+int ~(int x) as "~$0";
 int +(int x, int y)      as "$0  +  $1";
 int -(int x, int y)      as "$0  -  $1";
 int *(int x, int y)      as "$0  *  $1";
 int /(int x, int y)      as "$0  /  $1";
 int %(int x, int y)      as "$0  %  $1";
-// int <<(int x, int y)     as "$0  << $1";
-// int >>(int x, int y)     as "$0  >> $1";
-// int ^(int x, int y)      as "$0  ^  $1";
-// int |(int x, int y)      as "$0  |  $1";
-// int &(int x, int y)      as "$0  &  $1";
+int <<(int x, int y)     as "$0  << $1";
+int >>(int x, int y)     as "$0  >> $1";
+int ^(int x, int y)      as "$0  ^  $1";
+int |(int x, int y)      as "$0  |  $1";
+int &(int x, int y)      as "$0  &  $1";
 boolean <(int x,  int y) as "$0  <  $1";
 boolean <=(int x, int y) as "$0  <= $1";
 boolean >(int x,  int y) as "$0  >  $1";
@@ -18,23 +18,10 @@ boolean >=(int x, int y) as "$0  >= $1";
 boolean ==(int x, int y) as "$0  == $1";
 boolean !=(int x, int y) as "$0  != $1";
 
-String +(String x, String y)      as "$0  +  $1";
+String +(String x, String y)      as "$0$1";
 
 boolean ==(any x, any y) as "$0  == $1";
 boolean !=(any x, any y) as "$0  != $1";
 
-// void print(String x) as "puts($0)";
-// void assert(boolean x) as "assert($0)";
-
-// int fibo(int n) {
-// 	if(n < 3) return 1;
-// 	return fibo(n-1) + fibo(n-2);
-// }
-// 
-// void f(){
-// 	assert(fibo(10) == 55);
-// 	String x = "hello" + " " + "world";
-// 	print(x);
-// }
-// 
-// f();
+void print(String x) as "echo -e $0 >&2";
+void assert(boolean x) as "assert $0";
