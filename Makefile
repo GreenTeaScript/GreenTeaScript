@@ -8,7 +8,7 @@ INSTALL_PREFIX="$(HOME)/bin"
 
 all: build test
 
-build: buildj buildts
+build: buildj buildts buildpy
 
 dist: distj distts
 
@@ -25,6 +25,11 @@ $(JavaBin): check_java_env
 	echo Building Java implementation
 	ant jar
 
+buildpy:
+	echo Building Python implementation
+	python --version  > /dev/null
+	sh ./tool/ToPython
+
 buildts:
 	echo Building TypeScript implementation
 	ruby -v > /dev/null
@@ -35,6 +40,10 @@ buildts:
 testj:
 	echo Testing Java implementation
 	python ./tool/TestAll.py --target=c
+
+testpy:
+	echo Testing Python implementation
+	python ./tool/TestAll.py --target=python
 
 testts: buildts
 	echo Testing JavaScript implementation...

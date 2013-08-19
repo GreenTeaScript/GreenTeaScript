@@ -17,6 +17,13 @@ def testcase():
 
 target = [];
 
+def ext(t):
+    if(t == "python"):
+        return "py"
+    if(t == "javascript"):
+        return "js"
+    return t
+
 def get_result(case, jar, target):
     ret = subprocess.check_output(
             ["java", "-jar", jar, "-l", target, case],
@@ -32,7 +39,7 @@ def generate():
     for t in target:
         for case in testcase():
             actual = get_result(case, "./GreenTeaScript.jar", t);
-            f = open(case + "." + t, 'w')
+            f = open(case + "." + ext(t), 'w')
             f.write(actual)
             f.close();
 
@@ -49,7 +56,7 @@ def test():
     failed_tests = []
     for t in target:
         for case in testcase():
-            answer = case + "." + t
+            answer = case + "." + ext(t)
             print("testing taget=" + t + " case=" + case)
             ret = subprocess.call(
                     ["java", "-jar", "./GreenTeaScript-TestRunner.jar", t, case, answer],
@@ -62,6 +69,21 @@ def test():
                 failures = failures + 1;
             result = result + '<system-out></system-out>\n'
             result = result + '</testcase>\n'
+
+            #if(t == "py"):
+            #    print("syntax checking taget=" + t + " case=" + case)
+            #    ret = subprocess.call(
+            #            ["./tool/check-syntax-py", case],
+            #           )
+            #    result = result + '<testcase classname="SyntaxCheck.py" name="' + answer + '" time="0">\n'
+            #    tests = tests + 1
+            #    if(ret != 0):
+            #        failed_tests.append((case, t))
+            #        result = result + '<failure>SyntaxAssertion</failure>\n'
+            #        failures = failures + 1;
+            #    result = result + '<system-out></system-out>\n'
+            #    result = result + '</testcase>\n'
+
         #
     #
     header = '<?xml version="1.0"?>\n'

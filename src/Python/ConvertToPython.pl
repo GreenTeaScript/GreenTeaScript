@@ -5,8 +5,8 @@ my $Indent = "";
 my $JavaOnly = 0;
 
 my $DefaultTarget = "ts";
-my $UsePython = 0;
-my $UseTypeScript = 1;
+my $UsePython = 1;
+my $UseTypeScript = 0;
 
 sub Config {
 	if($UseTypeScript == 1) {
@@ -40,6 +40,7 @@ sub PythonSelf {
 	if($UsePython == 0) {
 		return $line;
 	}
+	$line =~ s/\/\//\# /g;
 	if($line =~ /static/) {
 		return $line;
 	}
@@ -47,7 +48,6 @@ sub PythonSelf {
 	$line =~ s/private(.*)\(\)(.*)$/def$1(self) $2/;
 	$line =~ s/public(.*)\((.*)$/def$1(self, $2/;
 	$line =~ s/private(.*)\((.*)$/def$1(self, $2/;
-	$line =~ s/\/\//\# /g;
 	$line =~ s/\/\*field\*\/(.*)/\# $1/g;
 	return $line;
 }
@@ -76,24 +76,14 @@ sub PythonSyntax {
 	$line =~ s/ \<\<\: (\w+)/ ($1)/g;
 	$line =~ s/(\w+) \<\:\?/type($1) ==/g;
 	$line =~ s/local //g;
+	$line =~ s/const //g;
 	$line =~ s/\/\*extension\*\//pass/g;
 	return $line;
 }
 
 sub Convert {
-	my %opts = ();
-	GetOptions(\%opts,
-		'target=s'
-	);
-
-	if($opts{target} eq "ts") {
-		$UsePython = 0;
-		$UseTypeScript = 1;
-	}
-	if ($opts{target} eq "py") {
-		$UsePython = 1;
-		$UseTypeScript = 0;
-	}
+	$UsePython = 1;
+	$UseTypeScript = 0;
 
 	Config();
 	while ($line = <>)  {

@@ -1687,6 +1687,7 @@ class SourceGenerator extends GtGenerator {
 	/*field*/public String    HeaderSource;
 	/*field*/public String    BodySource;
 
+	/*field*/public String    Tab;
 	/*field*/public String    LineFeed;
 	/*field*/public int       IndentLevel;
 	/*field*/public String    CurrentLevelIndentString;
@@ -1695,6 +1696,7 @@ class SourceGenerator extends GtGenerator {
 		super(TargetCode, OutputFile, GeneratorFlag);
 		this.LineFeed = "\n";
 		this.IndentLevel = 0;
+		this.Tab = "   ";
 		this.CurrentLevelIndentString = null;
 		this.HeaderSource = "";
 		this.BodySource = "";
@@ -1744,7 +1746,7 @@ class SourceGenerator extends GtGenerator {
 
 	public final String GetIndentString() {
 		if(this.CurrentLevelIndentString == null) {
-			this.CurrentLevelIndentString = JoinStrings("   ", this.IndentLevel);
+			this.CurrentLevelIndentString = JoinStrings(this.Tab, this.IndentLevel);
 		}
 		return this.CurrentLevelIndentString;
 	}

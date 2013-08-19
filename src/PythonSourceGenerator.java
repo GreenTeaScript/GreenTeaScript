@@ -32,6 +32,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 
 	PythonSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
+		this.Tab = "    ";
 	}
 
 	public String VisitBlockWithIndent(GtNode Node, boolean inBlock) {
@@ -195,8 +196,11 @@ public class PythonSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitNewNode(NewNode Node) {
+		/*local*/int ParamSize = GtStatic.ListSize(Node.Params);
 		/*local*/String Type = Node.Type.ShortClassName;
-		this.PushSourceCode( this.JoinCode(Type + "(", 0, this.MakeParamCode(Node.Params), ")"));
+		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
+		Template = Template.replace("$1", Type + "()");
+		this.PushSourceCode(this.ApplyMacro(Template, Node.Params));
 	}
 
 	@Override public void VisitUnaryNode(UnaryNode Node) {
@@ -283,7 +287,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		Code += this.VisitBlockWithIndent(Node.CatchBlock, true);
 		if(Node.FinallyBlock != null) {
 			/*local*/String Finally = this.VisitBlockWithIndent(Node.FinallyBlock, true);
-			Code += " finally:" + this.LineFeed + Finally;
+			Code += "finally:" + this.LineFeed + Finally;
 		}
 		this.PushSourceCode(Code);
 	}
@@ -370,7 +374,11 @@ public class PythonSourceGenerator extends SourceGenerator {
 		/*local*/int i = 0;
 		while (i < ClassField.FieldList.size()) {
 			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
-			Program += this.GetIndentString() + this.GetRecvName() + "." + FieldInfo.NativeName + " = " + this.StringfyConstValue(FieldInfo.InitValue) + this.LineFeed;
+			/*local*/String InitValue = this.StringfyConstValue(FieldInfo.InitValue);
+			if(!FieldInfo.Type.IsNative()) {
+				InitValue = "None";
+			}
+			Program += this.GetIndentString() + this.GetRecvName() + "." + FieldInfo.NativeName + " = " + InitValue + this.LineFeed;
 			i = i + 1;
 		}
 		this.UnIndent();
@@ -391,4 +399,8 @@ public class PythonSourceGenerator extends SourceGenerator {
 		return "self";
 	}
 
+	@Override public void FinishCompilationUnit() {
+		//this.WriteLineCode("if __name__ == '__main__':");
+		//this.WriteLineCode(this.Tab + "main()");
+	}
 }
