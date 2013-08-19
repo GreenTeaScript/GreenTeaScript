@@ -616,7 +616,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		}
 	}
 
-	@Override public void GenerateClassField(GtNameSpace NameSpace, GtType Type, ArrayList<GtVariableInfo> FieldList) {
+	@Override public void GenerateClassField(GtType Type, ArrayList<GtVariableInfo> FieldList) {
 		String className = Type.ShortClassName;
 		GtClassNode superClassNode = TypeResolver.FindClassNode(Type.SuperType.ShortClassName);
 		String superClassName = superClassNode != null ? superClassNode.name : "java/lang/Object";

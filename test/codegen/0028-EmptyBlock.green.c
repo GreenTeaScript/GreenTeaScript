@@ -1,5 +1,5 @@
 #include "GreenTea.h"
-static void f__03(){
+static void f__AD(){
    ;
 }
 

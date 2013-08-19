@@ -1427,7 +1427,7 @@ class GtGenerator extends GtStatic {
 		/*extension*/
 	}
 
-	public void GenerateClassField(GtNameSpace NameSpace, GtType Type, ArrayList<GtVariableInfo> FieldList) {
+	public void GenerateClassField(GtType Type, ArrayList<GtVariableInfo> FieldList) {
 		/*extension*/
 	}
 
@@ -1447,6 +1447,9 @@ class GtGenerator extends GtStatic {
 
 	}
 
+	public final void StopVisitor(GtNode Node) {
+		Node.NextNode = null;
+	}
 	//------------------------------------------------------------------------
 
 	public void VisitEmptyNode(GtNode EmptyNode) {
@@ -1723,11 +1726,16 @@ class SourceGenerator extends GtGenerator {
 	}
 
 	protected final void PushSourceCode(String Code){
-		this.GeneratedCodeStack.add(Code);
+		this.PushCode(Code);
 	}
 
 	protected final String PopSourceCode(){
-		return (/*cast*/String)this.PopCode();
+		return (/*cast*/String) this.PopCode();
+	}
+
+	public final String VisitNode(GtNode Node) {
+		Node.Evaluate(this);
+		return this.PopSourceCode();
 	}
 
 	protected final String[] PopManyCode(int n) {
@@ -1806,4 +1814,44 @@ class SourceGenerator extends GtGenerator {
 		return Macro.replace("$1", Arg1).replace("$2", Arg2);
 	}
 
+	public String GenerateApplyFunc(ApplyNode Node) {
+		/*local*/int BeginIdx = 1;
+		/*local*/int i = BeginIdx;
+		/*local*/int ParamSize = Node.Params.size();
+		/*local*/String Template = "";
+		/*local*/boolean IsNative = false;
+		if(Node.Func == null) {
+			Template = "$1";
+			BeginIdx = 2;
+		}
+		else if(Node.Func.Is(NativeFunc)) {
+			Template = "$1." + Node.Func.FuncName;
+			BeginIdx = 2;
+		}
+		else if(Node.Func.Is(NativeMacroFunc)) {
+			Template = Node.Func.GetNativeMacro();
+			IsNative = true;
+		}
+		else {
+			Template = Node.Func.GetNativeFuncName();
+		}
+		if(IsNative == false) {
+			Template += "(";
+			while(i < ParamSize) {
+				if(i != BeginIdx) {
+					Template += ", ";
+				}
+				Template += "$" + i;
+				i = i + 1;
+			}
+			Template += ")";
+		}
+		i = 1;
+		while(i < GtStatic.ListSize(Node.Params)) {
+			String Param = this.VisitNode(Node.Params.get(i));
+			Template = Template.replace("$" + i, Param);
+			i = i + 1;
+		}
+		return Template;
+	}
 }

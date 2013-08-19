@@ -1,10 +1,10 @@
-
 # build:  do static checking and build of js
 # test:   test both implementations, typescript and java
 # testts: test python implementation
 # testj:  test javascript implementation
 .SILENT:
 JavaBin="./GreenTeaScript.jar"
+INSTALL_PREFIX="$(HOME)/bin"
 
 all: build test
 
@@ -55,4 +55,14 @@ distts: buildts
 clean:
 	-rm -rf bin/*.class *.jar GTAGS GPATH GRTAGS
 
-.PHONY: all build buildj buildts test testp testj clean dist buildj buildts
+install: installj
+
+installj: distj
+	echo Installing Java implementation
+	install -d $(INSTALL_PREFIX)
+	cp -f generated/jar/GreenTeaScript.jar $(INSTALL_PREFIX)/
+	install -m 755 tool/greentea $(INSTALL_PREFIX)/greentea
+	install -d $(INSTALL_PREFIX)/../include
+	cp -f src/C/*.h $(INSTALL_PREFIX)/../include/
+
+.PHONY: all build buildj buildts test testp testj clean dist buildj buildts installj
