@@ -50,12 +50,16 @@ public class CSourceGenerator extends SourceGenerator {
 		return TypeName;
 
 	}
-	public String LocalNativeType(GtType Type) {
+	public String NativeTypeName(GtType Type) {
 		return GetLocalType(Type, false);
 	}
 
 	public String LocalTypeName(GtType Type) {
 		return GetLocalType(Type, true);
+	}
+
+	public String GreenTeaTypeName(GtType Type) {
+		return Type.ShortClassName;
 	}
 
 	@Override protected String StringfyConstValue(Object ConstValue) {
@@ -149,7 +153,7 @@ public class CSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitNewNode(NewNode Node) {
 		/*local*/int ParamSize = GtStatic.ListSize(Node.Params);
-		/*local*/String Type = this.LocalTypeName(Node.Type);
+		/*local*/String Type = this.GreenTeaTypeName(Node.Type);
 		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
 		Template = Template.replace("$1", "NEW_" + Type + "()");
 		this.PushSourceCode(this.ApplyMacro(Template, Node.Params));
@@ -360,7 +364,6 @@ public class CSourceGenerator extends SourceGenerator {
 	@Override public void GenerateClassField(GtType Type, GtClassField ClassField) {
 		/*local*/String TypeName = Type.ShortClassName;
 		/*local*/String LocalType = this.LocalTypeName(Type);
-		/*local*/String NativeType = this.LocalNativeType(Type);
 		/*local*/String Program = this.GetIndentString() + "struct " + TypeName + " {" + this.LineFeed;
 		this.Indent();
 //		if(Type.SuperType != null) {
@@ -376,10 +379,10 @@ public class CSourceGenerator extends SourceGenerator {
 		}
 		this.UnIndent();
 		Program += this.GetIndentString() + "};" + this.LineFeed;
-		Program += this.GetIndentString() + LocalType + " New_" + TypeName + "() {" + this.LineFeed;
+		Program += this.GetIndentString() + LocalType + " NEW_" + TypeName + "() {" + this.LineFeed;
 		this.Indent();
 		i = 0;
-		Program +=  this.GetIndentString() + LocalType + " " + this.GetRecvName() + " = " + "GT_New("+NativeType+");" + this.LineFeed;
+		Program +=  this.GetIndentString() + LocalType + " " + this.GetRecvName() + " = " + "GT_New("+LocalType+");" + this.LineFeed;
 		while (i < ClassField.FieldList.size()) {
 			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
 			/*local*/String VarName = FieldInfo.NativeName;
