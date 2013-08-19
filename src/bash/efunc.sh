@@ -8,3 +8,12 @@ function assert() {
 }
 
 # assert "(( 12 < 2))"
+
+function concat() {
+    local x=$1
+    local y=$2
+    echo $x$y
+    return 0
+}
+
+# concat $A $b
