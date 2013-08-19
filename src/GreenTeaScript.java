@@ -2589,32 +2589,32 @@ final class DScriptGrammar extends GtGrammar {
 			FuncDeclTree.SetSyntaxTreeAt(FuncDeclReturnType, LeftTree);
 		}
 		FuncDeclTree.SetMatchedPatternAt(FuncDeclName, NameSpace, TokenContext, "$FuncName$", Required);
-		if(TokenContext.MatchToken("(")) {
-			/*local*/int ParseFlag = TokenContext.SetBackTrack(false);  // disabled
-			/*local*/int ParamBase = FuncDeclParam;
-			while(!FuncDeclTree.IsEmptyOrError() && !TokenContext.MatchToken(")")) {
-				if(ParamBase != FuncDeclParam) {
-					FuncDeclTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ",", Required);
-				}
-				FuncDeclTree.SetMatchedPatternAt(ParamBase + VarDeclType, NameSpace, TokenContext, "$Type$", Required);
-				FuncDeclTree.SetMatchedPatternAt(ParamBase + VarDeclName, NameSpace, TokenContext, "$Variable$", Required);
-				if(TokenContext.MatchToken("=")) {
-					FuncDeclTree.SetMatchedPatternAt(ParamBase + VarDeclValue, NameSpace, TokenContext, "$Expression$", Required);
-				}
-				ParamBase += 3;
-			}
+		FuncDeclTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "(", Required);
+		/*local*/int ParseFlag = TokenContext.SetBackTrack(false);  // disabled
+		/*local*/int ParamBase = FuncDeclParam;
+		while(!FuncDeclTree.IsEmptyOrError() && !TokenContext.MatchToken(")")) {
 			TokenContext.SkipIndent();
-			if(TokenContext.MatchToken("as")) {
-				/*local*/GtToken Token = TokenContext.Next();
-				FuncDeclTree.ConstValue = Token.ParsedText;
+			if(ParamBase != FuncDeclParam) {
+				FuncDeclTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ",", Required);
+				TokenContext.SkipIndent();
 			}
-			else {
-				FuncDeclTree.SetMatchedPatternAt(FuncDeclBlock, NameSpace, TokenContext, "$Block$", Optional);
+			FuncDeclTree.SetMatchedPatternAt(ParamBase + VarDeclType, NameSpace, TokenContext, "$Type$", Required);
+			FuncDeclTree.SetMatchedPatternAt(ParamBase + VarDeclName, NameSpace, TokenContext, "$Variable$", Required);
+			if(TokenContext.MatchToken("=")) {
+				FuncDeclTree.SetMatchedPatternAt(ParamBase + VarDeclValue, NameSpace, TokenContext, "$Expression$", Required);
 			}
-			TokenContext.ParseFlag = ParseFlag;
-			return FuncDeclTree;
+			ParamBase += 3;
 		}
-		return null;
+		TokenContext.SkipIndent();
+		if(TokenContext.MatchToken("as")) {
+			/*local*/GtToken Token = TokenContext.Next();
+			FuncDeclTree.ConstValue = Token.ParsedText;
+		}
+		else {
+			FuncDeclTree.SetMatchedPatternAt(FuncDeclBlock, NameSpace, TokenContext, "$Block$", Optional);
+		}
+		TokenContext.ParseFlag = ParseFlag;
+		return FuncDeclTree;
 	}
 
 	public static GtNode TypeFuncDecl(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
