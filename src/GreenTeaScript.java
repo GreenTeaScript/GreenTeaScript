@@ -257,17 +257,17 @@ class GtStatic implements GtConst {
 	public static boolean DebugPrintOption = false;
 
 	public final static void println(String msg) {
-		LangDeps.println(msg);
+		LibGreenTea.println(msg);
 	}
 
 	public final static void DebugP(String msg) {
 		if(DebugPrintOption) {
-			LangDeps.println("DEBUG" + LangDeps.GetStackInfo(2) + ": " + msg);
+			LibGreenTea.println("DEBUG" + LibGreenTea.GetStackInfo(2) + ": " + msg);
 		}
 	}
 
 	public final static void TODO(String msg) {
-		LangDeps.println("TODO" + LangDeps.GetStackInfo(2) + ": " + msg);
+		LibGreenTea.println("TODO" + LibGreenTea.GetStackInfo(2) + ": " + msg);
 	}
 
 	public final static String JoinStrings(String Unit, int Times) {
@@ -300,13 +300,13 @@ class GtStatic implements GtConst {
 
 	private final static String n2s(int n) {
 		if(n < (27)) {
-			return LangDeps.CharToString((char)(65 + (n - 0)));
+			return LibGreenTea.CharToString((char)(65 + (n - 0)));
 		}
 		else if(n < (27 + 10)) {
-			return LangDeps.CharToString((char)(48 + (n - 27)));
+			return LibGreenTea.CharToString((char)(48 + (n - 27)));
 		}
 		else {
-			return LangDeps.CharToString((char)(97 + (n - 37)));
+			return LibGreenTea.CharToString((char)(97 + (n - 37)));
 		}
 	}
 
@@ -375,22 +375,22 @@ class GtStatic implements GtConst {
 
 //ifdef JAVA
 	public final static GtDelegateToken FunctionA(Object Callee, String FuncName) {
-		return new GtDelegateToken(Callee, LangDeps.LookupFunc(Callee, FuncName));
+		return new GtDelegateToken(Callee, LibGreenTea.LookupFunc(Callee, FuncName));
 	}
 
 	public final static GtDelegateMatch FunctionB(Object Callee, String FuncName) {
-		return new GtDelegateMatch(Callee, LangDeps.LookupFunc(Callee, FuncName));
+		return new GtDelegateMatch(Callee, LibGreenTea.LookupFunc(Callee, FuncName));
 	}
 
 	public final static GtDelegateType FunctionC(Object Callee, String FuncName) {
-		return new GtDelegateType(Callee, LangDeps.LookupFunc(Callee, FuncName));
+		return new GtDelegateType(Callee, LibGreenTea.LookupFunc(Callee, FuncName));
 	}
 //endif VAJA
 
 	public final static int ApplyTokenFunc(TokenFunc TokenFunc, GtTokenContext TokenContext, String ScriptSource, int Pos) {
 		while(TokenFunc != null) {
 			/*local*/GtDelegateToken delegate = TokenFunc.Func;
-			/*local*/int NextIdx = LangDeps.ApplyTokenFunc(delegate, TokenContext, ScriptSource, Pos);
+			/*local*/int NextIdx = LibGreenTea.ApplyTokenFunc(delegate, TokenContext, ScriptSource, Pos);
 			if(NextIdx > Pos) return NextIdx;
 			TokenFunc = TokenFunc.ParentFunc;
 		}
@@ -437,7 +437,7 @@ class GtStatic implements GtConst {
 			}
 			//DebugP("B :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + ", next=" + CurrentPattern.ParentPattern);
 			TokenContext.IndentLevel += 1;
-			/*local*/GtSyntaxTree ParsedTree = (/*cast*/GtSyntaxTree)LangDeps.ApplyMatchFunc(delegate, NameSpace, TokenContext, LeftTree, CurrentPattern);
+			/*local*/GtSyntaxTree ParsedTree = (/*cast*/GtSyntaxTree)LibGreenTea.ApplyMatchFunc(delegate, NameSpace, TokenContext, LeftTree, CurrentPattern);
 			TokenContext.IndentLevel -= 1;
 			if(ParsedTree != null && ParsedTree.IsEmpty()) {
 				ParsedTree = null;
@@ -474,8 +474,8 @@ class GtStatic implements GtConst {
 
 	// typing
 	public final static GtNode ApplyTypeFunc(GtDelegateType delegate, GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
-		LangDeps.Assert(delegate != null);
-		return (/*cast*/GtNode)LangDeps.ApplyTypeFunc(delegate, Gamma, ParsedTree, Type);
+		LibGreenTea.Assert(delegate != null);
+		return (/*cast*/GtNode)LibGreenTea.ApplyTypeFunc(delegate, Gamma, ParsedTree, Type);
 	}
 
 	public final static GtNode LinkNode(GtNode LastNode, GtNode Node) {
@@ -508,7 +508,7 @@ final class GtMap {
 	}
 
 	public ArrayList<String> keys() {
-		return LangDeps.MapGetKeys(this);
+		return LibGreenTea.MapGetKeys(this);
 	}
 }
 
@@ -605,7 +605,7 @@ final class GtToken extends GtStatic {
 	}
 
 	public String GetErrorMessage() {
-		LangDeps.Assert(this.IsError());
+		LibGreenTea.Assert(this.IsError());
 		return this.ParsedText;
 	}
 }
@@ -649,7 +649,7 @@ final class GtTokenContext extends GtStatic {
 		Token.TokenFlag |= TokenFlag;
 		if(PatternName != null) {
 			Token.PresetPattern = this.TopLevelNameSpace.GetPattern(PatternName);
-			LangDeps.Assert(Token.PresetPattern != null);
+			LibGreenTea.Assert(Token.PresetPattern != null);
 		}
 		//DebugP("<< " + Text + " : " + PatternName);
 		this.SourceList.add(Token);
@@ -699,7 +699,7 @@ final class GtTokenContext extends GtStatic {
 				return this.NewErrorSyntaxTree(Token, TokenText + " is expected after " + Token.ParsedText);
 			}
 			Token = this.GetToken();
-			LangDeps.Assert(Token != GtTokenContext.NullToken);
+			LibGreenTea.Assert(Token != GtTokenContext.NullToken);
 			return this.NewErrorSyntaxTree(Token, TokenText + " is expected at " + Token.ParsedText);
 		}
 		return null;
@@ -729,7 +729,7 @@ final class GtTokenContext extends GtStatic {
 		/*local*/TokenFunc TokenFunc = this.TopLevelNameSpace.GetTokenFunc(GtChar);
 		/*local*/int NextIdx = GtStatic.ApplyTokenFunc(TokenFunc, this, ScriptSource, pos);
 		if(NextIdx == NoMatch) {
-			DebugP("undefined tokenizer: " + LangDeps.CharAt(ScriptSource, pos));
+			DebugP("undefined tokenizer: " + LibGreenTea.CharAt(ScriptSource, pos));
 			this.AddNewToken(ScriptSource.substring(pos, pos + 1), 0, null);
 			return pos + 1;
 		}
@@ -741,7 +741,7 @@ final class GtTokenContext extends GtStatic {
 		/*local*/int len = ScriptSource.length();
 		this.ParsingLine = CurrentLine;
 		while(currentPos < len) {
-			/*local*/int gtCode = AsciiToTokenMatrixIndex(LangDeps.CharAt(ScriptSource, currentPos));
+			/*local*/int gtCode = AsciiToTokenMatrixIndex(LibGreenTea.CharAt(ScriptSource, currentPos));
 			/*local*/int nextPos = this.DispatchFunc(ScriptSource, gtCode, currentPos);
 			if(currentPos >= nextPos) {
 				break;
@@ -1009,7 +1009,7 @@ class GtSyntaxTree extends GtStatic {
 	}
 
 	public void ToError(GtToken Token) {
-		LangDeps.Assert(Token.IsError());
+		LibGreenTea.Assert(Token.IsError());
 		this.KeyToken = Token;
 		this.TreeList = null;
 	}
@@ -1293,7 +1293,7 @@ final class GtTypeEnv extends GtStatic {
 
 	public final GtNode ReportTypeResult(GtSyntaxTree ParsedTree, GtNode Node, int Level, String Message) {
 		if(Level == ErrorLevel || (this.IsStrictMode() && Level == TypeErrorLevel)) {
-			LangDeps.Assert(Node.Token == ParsedTree.KeyToken);
+			LibGreenTea.Assert(Node.Token == ParsedTree.KeyToken);
 			this.NameSpace.Context.ReportError(ErrorLevel, Node.Token, Message);
 			return this.Generator.CreateErrorNode(this.VoidType, ParsedTree);
 		}
@@ -1449,8 +1449,8 @@ final class GtNameSpace extends GtStatic {
 		}
 		i = 0;
 		while(i < keys.length()) {
-			/*local*/int kchar = GtStatic.AsciiToTokenMatrixIndex(LangDeps.CharAt(keys, i));
-			this.TokenMatrix[kchar] = LangDeps.CreateOrReuseTokenFunc(f, this.TokenMatrix[kchar]);
+			/*local*/int kchar = GtStatic.AsciiToTokenMatrixIndex(LibGreenTea.CharAt(keys, i));
+			this.TokenMatrix[kchar] = LibGreenTea.CreateOrReuseTokenFunc(f, this.TokenMatrix[kchar]);
 			i += 1;
 		}
 	}
@@ -1493,7 +1493,7 @@ final class GtNameSpace extends GtStatic {
 	}
 
 	private void AppendPattern(String PatternName, GtSyntaxPattern NewPattern) {
-		LangDeps.Assert(NewPattern.ParentPattern == null);
+		LibGreenTea.Assert(NewPattern.ParentPattern == null);
 		/*local*/GtSyntaxPattern ParentPattern = this.GetPattern(PatternName);
 		NewPattern.ParentPattern = ParentPattern;
 		this.SetSymbol(PatternName, NewPattern);
@@ -1672,8 +1672,8 @@ final class DScriptGrammar extends GtGrammar {
 	public static int WhiteSpaceToken(GtTokenContext TokenContext, String SourceText, int pos) {
 		TokenContext.FoundWhiteSpace();
 		while(pos < SourceText.length()) {
-			/*local*/char ch = LangDeps.CharAt(SourceText, pos);
-			if(!LangDeps.IsWhitespace(ch)) {
+			/*local*/char ch = LibGreenTea.CharAt(SourceText, pos);
+			if(!LibGreenTea.IsWhitespace(ch)) {
 				break;
 			}
 			pos += 1;
@@ -1686,8 +1686,8 @@ final class DScriptGrammar extends GtGrammar {
 		TokenContext.FoundLineFeed(1);
 		pos = pos + 1;
 		while(pos < SourceText.length()) {
-			/*local*/char ch = LangDeps.CharAt(SourceText, pos);
-			if(!LangDeps.IsWhitespace(ch)) {
+			/*local*/char ch = LibGreenTea.CharAt(SourceText, pos);
+			if(!LibGreenTea.IsWhitespace(ch)) {
 				break;
 			}
 			pos += 1;
@@ -1705,8 +1705,8 @@ final class DScriptGrammar extends GtGrammar {
 	public static int SymbolToken(GtTokenContext TokenContext, String SourceText, int pos) {
 		/*local*/int start = pos;
 		while(pos < SourceText.length()) {
-			/*local*/char ch = LangDeps.CharAt(SourceText, pos);
-			if(!LangDeps.IsLetter(ch) && !LangDeps.IsDigit(ch) && ch != '_') {
+			/*local*/char ch = LibGreenTea.CharAt(SourceText, pos);
+			if(!LibGreenTea.IsLetter(ch) && !LibGreenTea.IsDigit(ch) && ch != '_') {
 				break;
 			}
 			pos += 1;
@@ -1718,8 +1718,8 @@ final class DScriptGrammar extends GtGrammar {
 	public static int OperatorToken(GtTokenContext TokenContext, String SourceText, int pos) {
 		/*local*/int NextPos = pos + 1;
 		while(NextPos < SourceText.length()) {
-			/*local*/char ch = LangDeps.CharAt(SourceText, NextPos);
-			if(LangDeps.IsWhitespace(ch) || LangDeps.IsLetter(ch) || LangDeps.IsDigit(ch)) {
+			/*local*/char ch = LibGreenTea.CharAt(SourceText, NextPos);
+			if(LibGreenTea.IsWhitespace(ch) || LibGreenTea.IsLetter(ch) || LibGreenTea.IsDigit(ch)) {
 				break;
 			}
 			NextPos += 1;
@@ -1745,7 +1745,7 @@ final class DScriptGrammar extends GtGrammar {
 	public static int CommentToken(GtTokenContext TokenContext, String SourceText, int pos) {
 		/*local*/int NextPos = pos + 1;
 		if(NextPos < SourceText.length()) {
-			/*local*/char NextChar = LangDeps.CharAt(SourceText, NextPos);
+			/*local*/char NextChar = LibGreenTea.CharAt(SourceText, NextPos);
 			if(NextChar != '/' && NextChar != '*') {
 				return NoMatch;
 			}
@@ -1755,7 +1755,7 @@ final class DScriptGrammar extends GtGrammar {
 				Level = 1;
 			}
 			while(NextPos < SourceText.length()) {
-				NextChar = LangDeps.CharAt(SourceText, NextPos);
+				NextChar = LibGreenTea.CharAt(SourceText, NextPos);
 				if(NextChar == '\n' && Level == 0) {
 					return DScriptGrammar.IndentToken(TokenContext, SourceText, NextPos);
 				}
@@ -1779,8 +1779,8 @@ final class DScriptGrammar extends GtGrammar {
 	public static int NumberLiteralToken(GtTokenContext TokenContext, String SourceText, int pos) {
 		/*local*/int start = pos;
 		while(pos < SourceText.length()) {
-			/*local*/char ch = LangDeps.CharAt(SourceText, pos);
-			if(!LangDeps.IsDigit(ch)) {
+			/*local*/char ch = LibGreenTea.CharAt(SourceText, pos);
+			if(!LibGreenTea.IsDigit(ch)) {
 				break;
 			}
 			pos += 1;
@@ -1794,7 +1794,7 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/char prev = '"';
 		pos = pos + 1; // eat "\""
 		while(pos < SourceText.length()) {
-			/*local*/char ch = LangDeps.CharAt(SourceText, pos);
+			/*local*/char ch = LibGreenTea.CharAt(SourceText, pos);
 			if(ch == '"' && prev != '\\') {
 				TokenContext.AddNewToken(SourceText.substring(start, pos), QuotedTokenFlag, "$StringLiteral$");
 				return pos + 1;
@@ -1816,13 +1816,13 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/int NextPos = start;
 		/*local*/char prev = '"';
 		while(NextPos < SourceText.length()) {
-			/*local*/char ch = LangDeps.CharAt(SourceText, NextPos);
+			/*local*/char ch = LibGreenTea.CharAt(SourceText, NextPos);
 			if(ch == '$') {
 				/*local*/int end = NextPos + 1;
-				ch = LangDeps.CharAt(SourceText, end);
+				ch = LibGreenTea.CharAt(SourceText, end);
 				if(ch == '{') {
 					while(end < SourceText.length()) {
-						ch = LangDeps.CharAt(SourceText, end);
+						ch = LibGreenTea.CharAt(SourceText, end);
 						if(ch == '}') {
 							break;
 						}
@@ -1954,8 +1954,8 @@ final class DScriptGrammar extends GtGrammar {
 
 	public static GtSyntaxTree ParseVariable(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.Next();
-		/*local*/char ch = LangDeps.CharAt(Token.ParsedText, 0);
-		if(LangDeps.IsLetter(ch) || ch == '_') {
+		/*local*/char ch = LibGreenTea.CharAt(Token.ParsedText, 0);
+		if(LibGreenTea.IsLetter(ch) || ch == '_') {
 			return new GtSyntaxTree(Pattern, NameSpace, Token, null);
 		}
 		return null;
@@ -2023,7 +2023,7 @@ final class DScriptGrammar extends GtGrammar {
 	// Parse And Type
 	public static GtSyntaxTree ParseIntegerLiteral(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.Next();
-		return new GtSyntaxTree(Pattern, NameSpace, Token, LangDeps.ParseInt(Token.ParsedText));
+		return new GtSyntaxTree(Pattern, NameSpace, Token, LibGreenTea.ParseInt(Token.ParsedText));
 	}
 
 	public static GtSyntaxTree ParseStringLiteral(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
@@ -2288,7 +2288,7 @@ final class DScriptGrammar extends GtGrammar {
 		}
 		else if(FuncNode.Type.BaseType == Gamma.FuncType) {
 			/*local*/GtType FuncType = FuncNode.Type;
-			LangDeps.Assert(ListSize(ParsedTree.TreeList) == FuncType.TypeParams.length); // FIXME: add check paramerter size
+			LibGreenTea.Assert(ListSize(ParsedTree.TreeList) == FuncType.TypeParams.length); // FIXME: add check paramerter size
 			while(TreeIndex < ListSize(ParsedTree.TreeList)) {
 				/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(TreeIndex, Gamma, FuncType.TypeParams[TreeIndex], DefaultTypeCheckPolicy);
 				if(Node.IsError()) {
@@ -2588,7 +2588,7 @@ final class DScriptGrammar extends GtGrammar {
 				break;
 			}
 			/*local*/GtToken Token = TokenContext.Next();
-			if(LangDeps.IsLetter(LangDeps.CharAt(Token.ParsedText, 0))) {
+			if(LibGreenTea.IsLetter(LibGreenTea.CharAt(Token.ParsedText, 0))) {
 				if(VocabMap.get(Token.ParsedText) != null) {
 					NameSpace.Context.ReportError(WarningLevel, Token, "already defined name: " + Token.ParsedText);
 					continue;
@@ -2687,7 +2687,7 @@ final class DScriptGrammar extends GtGrammar {
 	public static GtSyntaxTree ParseFuncName(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.Next();
 		if(Token != GtTokenContext.NullToken) {
-			/*local*/char ch = LangDeps.CharAt(Token.ParsedText, 0);
+			/*local*/char ch = LibGreenTea.CharAt(Token.ParsedText, 0);
 			if(ch != '.') {
 				return new GtSyntaxTree(Pattern, NameSpace, Token, Token.ParsedText);
 			}
@@ -2789,7 +2789,7 @@ final class DScriptGrammar extends GtGrammar {
 
 	private static GtFunc CreateFunc(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, int FuncFlag, String FuncName, int BaseIndex, ArrayList<GtType> TypeList) {
 		/*local*/GtType RecvType = (TypeList.size() > 1) ? TypeList.get(1) : Gamma.VoidType;
-		/*local*/GtFunc Func = ParsedTree.NameSpace.GetFuncParam(FuncName, 0, LangDeps.CompactTypeList(BaseIndex, TypeList));
+		/*local*/GtFunc Func = ParsedTree.NameSpace.GetFuncParam(FuncName, 0, LibGreenTea.CompactTypeList(BaseIndex, TypeList));
 		if(Func != null && Func.IsAbstract()) {
 			return Func;
 		}
@@ -2925,7 +2925,7 @@ final class DScriptGrammar extends GtGrammar {
 	
 	// constructor
 	public static GtSyntaxTree ParseConstructor(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		LangDeps.Assert(LeftTree != null);
+		LibGreenTea.Assert(LeftTree != null);
 		/*local*/GtSyntaxTree ConstructorTreeDecl = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetBeforeToken(), null);
 		ConstructorTreeDecl.SetSyntaxTreeAt(FuncDeclName, new GtSyntaxTree(null, NameSpace, ConstructorTreeDecl.KeyToken, "constructor"));
 		ConstructorTreeDecl.SetSyntaxTreeAt(FuncDeclReturnType, LeftTree);
@@ -2970,7 +2970,7 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/String[] path = System.getenv("PATH").split(":");
 		/*local*/int i = 0;
 		while(i < path.length) {
-			if(LangDeps.HasFile(path[i] + "/" + cmd)) {
+			if(LibGreenTea.HasFile(path[i] + "/" + cmd)) {
 				return true;
 			}
 			i = i + 1;
@@ -2991,11 +2991,11 @@ final class DScriptGrammar extends GtGrammar {
 		}
 
 		while(pos < SourceText.length()) {
-			/*local*/char ch = LangDeps.CharAt(SourceText, pos);
+			/*local*/char ch = LibGreenTea.CharAt(SourceText, pos);
 			// a-zA-Z0-9_-
-			if(LangDeps.IsLetter(ch)) {
+			if(LibGreenTea.IsLetter(ch)) {
 			}
-			else if(LangDeps.IsDigit(ch)) {
+			else if(LibGreenTea.IsDigit(ch)) {
 			}
 			else if(ch == '_') {
 			}
@@ -3312,7 +3312,7 @@ final class GtClassContext extends GtStatic {
 	}
 
 	public GtType GetGenericType(GtType BaseType, int BaseIdx, ArrayList<GtType> TypeList, boolean IsCreation) {
-		LangDeps.Assert(BaseType.IsGenericType());
+		LibGreenTea.Assert(BaseType.IsGenericType());
 		/*local*/String MangleName = GtStatic.MangleGenericType(BaseType, BaseIdx, TypeList);
 		/*local*/GtType GenericType = (/*cast*/GtType)this.ClassNameMap.get(MangleName);
 		if(GenericType == null && IsCreation) {
@@ -3411,11 +3411,11 @@ public class GreenTeaScript extends GtStatic {
 				GtStatic.DebugPrintOption = true;
 				continue;
 			}
-			LangDeps.Usage();
+			LibGreenTea.Usage();
 		}
-		/*local*/GtGenerator Generator = LangDeps.CodeGenerator(TargetCode, OutputFile, GeneratorFlag);
+		/*local*/GtGenerator Generator = LibGreenTea.CodeGenerator(TargetCode, OutputFile, GeneratorFlag);
 		if(Generator == null) {
-			LangDeps.Usage();
+			LibGreenTea.Usage();
 		}
 		/*local*/GtClassContext Context = new GtClassContext(new DScriptGrammar(), Generator);
 		/*local*/boolean ShellMode = true;
@@ -3424,14 +3424,14 @@ public class GreenTeaScript extends GtStatic {
 			ShellMode = false;
 		}
 		while(Index < Args.length) {
-			Context.Eval(LangDeps.LoadFile(Args[Index]), 1);
+			Context.Eval(LibGreenTea.LoadFile(Args[Index]), 1);
 			ShellMode = false;
 			Index += 1;
 		}
 		if(ShellMode) {
 			/*local*/int linenum = 1;
 			/*local*/String Line = null;
-			while((Line = LangDeps.ReadLine(">>> ")) != null) {
+			while((Line = LibGreenTea.ReadLine(">>> ")) != null) {
 				Context.Eval(Line, linenum);
 				linenum += 1;
 			}

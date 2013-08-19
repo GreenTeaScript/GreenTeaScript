@@ -824,7 +824,7 @@ class GtType extends GtStatic {
 		GenericType.BaseType = this.BaseType;
 		GenericType.SearchSuperFuncClass = this.BaseType;
 		GenericType.SuperType = this.SuperType;
-		GenericType.TypeParams = LangDeps.CompactTypeList(BaseIndex, TypeList);
+		GenericType.TypeParams = LibGreenTea.CompactTypeList(BaseIndex, TypeList);
 		DebugP("new class: " + GenericType.ShortClassName + ", ClassId=" + GenericType.ClassId);
 		return GenericType;
 	}
@@ -902,8 +902,8 @@ class GtFunc extends GtStatic {
 		this.FuncFlag = FuncFlag;
 		this.FuncName = FuncName;
 //		this.FuncSymbolId = GtStatic.GetSymbolId(FuncName, CreateNewSymbolId);
-		this.Types = LangDeps.CompactTypeList(BaseIndex, ParamList);
-		LangDeps.Assert(this.Types.length > 0);
+		this.Types = LibGreenTea.CompactTypeList(BaseIndex, ParamList);
+		LibGreenTea.Assert(this.Types.length > 0);
 		this.ListedFuncs = null;
 		this.FuncType = null;
 		this.NativeRef = null;
@@ -991,7 +991,7 @@ class GtFunc extends GtStatic {
 	}
 	
 	public final void SetNativeMacro(String NativeMacro) {
-		LangDeps.Assert(this.NativeRef == null);
+		LibGreenTea.Assert(this.NativeRef == null);
 		this.FuncFlag |= NativeMacroFunc;
 		this.NativeRef = NativeMacro;
 	}
@@ -1013,7 +1013,7 @@ class GtFunc extends GtStatic {
 	}
 
 	public final void SetNativeMethod(int OptionalFuncFlag, Object Method) {
-		LangDeps.Assert(this.NativeRef == null);
+		LibGreenTea.Assert(this.NativeRef == null);
 		this.FuncFlag |= NativeFunc | OptionalFuncFlag;
 		this.NativeRef = Method;
 	}
@@ -1232,7 +1232,7 @@ class GtGenerator extends GtStatic {
 	public void InitContext(GtClassContext Context) {
 		this.Context = Context;
 		this.GeneratedCodeStack = new ArrayList<Object>();
-		Context.Eval(LangDeps.LoadLibFile(this.TargetCode, "common.green"), 1);
+		Context.Eval(LibGreenTea.LoadLibFile(this.TargetCode, "common.green"), 1);
 	}
 
 	public final GtNode UnsupportedNode(GtType Type, GtSyntaxTree ParsedTree) {
@@ -1720,7 +1720,7 @@ class SourceGenerator extends GtGenerator {
 	}
 
 	@Override public void FlushBuffer() {
-		LangDeps.WriteCode(this.OutputFile, this.HeaderSource + this.BodySource);			
+		LibGreenTea.WriteCode(this.OutputFile, this.HeaderSource + this.BodySource);			
 		this.HeaderSource = "";
 		this.BodySource = "";
 	}
@@ -1735,7 +1735,7 @@ class SourceGenerator extends GtGenerator {
 	public final void UnIndent() {
 		this.IndentLevel -= 1;
 		this.CurrentLevelIndentString = null;
-		LangDeps.Assert(this.IndentLevel >= 0);
+		LibGreenTea.Assert(this.IndentLevel >= 0);
 	}
 
 	public final String GetIndentString() {

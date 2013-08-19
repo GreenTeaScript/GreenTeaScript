@@ -218,7 +218,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		else if(FuncName.equals("--")) {
 		}
 		else {
-			LangDeps.DebugP(FuncName + " is not supported suffix operator!!");
+			LibGreenTea.DebugP(FuncName + " is not supported suffix operator!!");
 		}
 		this.PushSourceCode("((" + this.VisitNode(Node.Expr) + FuncName + "))");
 	}
@@ -238,7 +238,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		else if(FuncName.equals("--")) {
 		}
 		else {
-			LangDeps.DebugP(FuncName + " is not supported unary operator!!");
+			LibGreenTea.DebugP(FuncName + " is not supported unary operator!!");
 		}
 		this.PushSourceCode("((" + FuncName + this.VisitNode(Node.Expr) + "))");
 	}

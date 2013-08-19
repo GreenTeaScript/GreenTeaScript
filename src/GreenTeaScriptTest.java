@@ -29,8 +29,8 @@ import java.util.concurrent.TimeUnit;
 
 class GtScriptRunner {
 	public static String LoadFile(String Path) {
-		if(LangDeps.HasFile(Path)) {
-			return LangDeps.LoadFile(Path);
+		if(LibGreenTea.HasFile(Path)) {
+			return LibGreenTea.LoadFile(Path);
 		}
 		return null;
 	}
@@ -90,7 +90,7 @@ class GtScriptRunner {
 			System.out.println("---------- Actual ----------");
 			System.out.println(Actual);
 		}
-		LangDeps.Assert(Expected.equals(Actual));
+		LibGreenTea.Assert(Expected.equals(Actual));
 		//LangDeps.println("Testing " + ScriptPath + " (Target:" + Target + ") ... OK");
 	}
 }
@@ -102,14 +102,14 @@ public class GreenTeaScriptTest {
 		/*local*/int i = 0;
 		while(i < TokenTestList.length) {
 			/*local*/String TokenText = TokenTestList[i];
-			LangDeps.Assert(TokenContext.MatchToken(TokenText));
+			LibGreenTea.Assert(TokenContext.MatchToken(TokenText));
 			i = i + 1;
 		}
 	}
 
 	public static GtClassContext CreateContext() {
 		/*local*/String CodeGeneratorName = "java";
-		/*local*/GtGenerator Generator = LangDeps.CodeGenerator(CodeGeneratorName, "-", 0);
+		/*local*/GtGenerator Generator = LibGreenTea.CodeGenerator(CodeGeneratorName, "-", 0);
 		return new GtClassContext(new DScriptGrammar(), Generator);
 	}
 

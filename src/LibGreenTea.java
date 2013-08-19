@@ -35,7 +35,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public abstract class LangDeps {
+public abstract class LibGreenTea {
 
 	public final static void println(String msg) {
 		System.out.println(msg);
@@ -43,7 +43,7 @@ public abstract class LangDeps {
 
 	public final static void DebugP(String msg) {
 		if(GtStatic.DebugPrintOption) {
-			LangDeps.println("DEBUG" + LangDeps.GetStackInfo(2) + ": " + msg);
+			LibGreenTea.println("DEBUG" + LibGreenTea.GetStackInfo(2) + ": " + msg);
 		}
 	}
 
@@ -260,7 +260,7 @@ public abstract class LangDeps {
 	
 	public final static void WriteCode(String OutputFile, String SourceCode) {
 		if(OutputFile == null) {
-			LangDeps.Eval(SourceCode);
+			LibGreenTea.Eval(SourceCode);
 		}
 		if(OutputFile.equals("-")) {
 			System.out.println(SourceCode);

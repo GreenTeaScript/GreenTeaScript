@@ -189,7 +189,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 			FuncName = " -= 1";
 		}
 		else {
-			LangDeps.DebugP(FuncName + " is not supported suffix operator!!");
+			LibGreenTea.DebugP(FuncName + " is not supported suffix operator!!");
 		}
 		this.PushSourceCode(this.VisitNode(Node.Expr) + FuncName);
 	}
