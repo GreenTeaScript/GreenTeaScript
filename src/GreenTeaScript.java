@@ -1167,7 +1167,7 @@ final class GtClassField {
 	GtClassField/*constructor*/(GtType SuperClass) {
 		this.FieldList = new ArrayList<GtFieldInfo>();
 		if(SuperClass.NativeSpec instanceof GtClassField) {
-			/*local*/GtClassField SuperField = (GtClassField)SuperClass.NativeSpec;
+			/*local*/GtClassField SuperField = (/*cast*/GtClassField)SuperClass.NativeSpec;
 			/*local*/int i = 0;
 			while(i < SuperField.FieldList.size()) {
 				this.FieldList.add(SuperField.FieldList.get(i));
@@ -2875,11 +2875,11 @@ final class DScriptGrammar extends GtGrammar {
 			}
 			TokenContext.ParseFlag = ParseFlag;				
 		}
+		NameSpace0.AppendTypeName(NewType);
 		return ClassDeclTree;
 	}
 
 	public static GtNode TypeClassDecl(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		/*local*/GtSyntaxTree ClassNameTree = ParsedTree.GetSyntaxTreeAt(ClassDeclName);
 		/*local*/GtType DefinedType = ParsedTree.GetParsedType();
 		/*local*/int TreeIndex = ClassDeclFieldStartIndex;
 		/*local*/GtClassField ClassField = new GtClassField(DefinedType.SuperType);
@@ -2910,6 +2910,7 @@ final class DScriptGrammar extends GtGrammar {
 			}
 			TreeIndex += 1;
 		}
+		DefinedType.SetClassField(ClassField);
 		Gamma.Generator.GenerateClassField(DefinedType, ClassField);
 		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
 	}
@@ -3157,7 +3158,7 @@ final class DScriptGrammar extends GtGrammar {
 		NameSpace.AppendSyntax("$FuncDecl$", FunctionB(this, "ParseFuncDecl"), FunctionC(this, "TypeFuncDecl"));
 		NameSpace.AppendSyntax("$VarDecl$",  FunctionB(this, "ParseVarDecl"), FunctionC(this, "TypeVarDecl"));
 
-		NameSpace.AppendSyntax("$Constructor$", FunctionB(this, "ParseConstructor"), null);
+		NameSpace.AppendSyntax("$Constructor$", FunctionB(this, "ParseConstructor"), FunctionC(this, "TypeConstructor"));
 		NameSpace.AppendSyntax("super", FunctionB(this, "ParseSuper"), null);
 
 		NameSpace.AppendSyntax("null", FunctionB(this, "ParseNull"), FunctionC(this, "TypeNull"));

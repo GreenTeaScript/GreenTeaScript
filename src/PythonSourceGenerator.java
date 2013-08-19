@@ -365,12 +365,12 @@ public class PythonSourceGenerator extends SourceGenerator {
 		Program += ":" + this.LineFeed;
 		this.Indent();
 		
-		Program += this.GetIndentString() + "def __init__(self):" + this.LineFeed;
+		Program += this.GetIndentString() + "def __init__(" + this.GetRecvName() + ")" + ":" + this.LineFeed;
 		this.Indent();
 		/*local*/int i = 0;
 		while (i < ClassField.FieldList.size()) {
 			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
-			Program += this.GetIndentString() + "self." + FieldInfo.NativeName + " = " + this.StringfyConstValue(FieldInfo.InitValue) + this.LineFeed;
+			Program += this.GetIndentString() + this.GetRecvName() + "." + FieldInfo.NativeName + " = " + this.StringfyConstValue(FieldInfo.InitValue) + this.LineFeed;
 			i = i + 1;
 		}
 		this.UnIndent();
@@ -381,11 +381,14 @@ public class PythonSourceGenerator extends SourceGenerator {
 
 	@Override public Object Eval(GtNode Node) {
 		/*local*/String Code = this.VisitBlockWithIndent(Node, false);
-		if(Code.equals("")) {
-			return "";
+		if(!Code.equals("")) {
+			this.WriteLineCode(Code);
 		}
-		this.WriteLineCode(Code);
 		return Code;
+	}
+
+	@Override public String GetRecvName() {
+		return "self";
 	}
 
 }

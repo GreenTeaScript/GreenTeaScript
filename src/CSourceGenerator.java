@@ -39,6 +39,25 @@ public class CSourceGenerator extends SourceGenerator {
 		this.Opt.InitContext(Context);
 	}
 
+	private String GetLocalType(GtType Type, boolean IsPointer) {
+		if(Type.IsDynamic() || Type.IsNative()) {
+			return Type.ShortClassName;
+		}
+		/*local*/String TypeName = "struct " + Type.ShortClassName;
+		if(IsPointer) {
+			TypeName += "*";
+		}
+		return TypeName;
+
+	}
+	public String LocalNativeType(GtType Type) {
+		return GetLocalType(Type, false);
+	}
+
+	public String LocalTypeName(GtType Type) {
+		return GetLocalType(Type, true);
+	}
+
 	public void VisitBlockEachStatementWithIndent(GtNode Node, boolean NeedBlock) {
 		/*local*/String Code = "";
 		if(NeedBlock) {
@@ -119,7 +138,7 @@ public class CSourceGenerator extends SourceGenerator {
 		/*local*/int ParamSize = GtStatic.ListSize(Node.Params);
 		/*local*/String Type = this.LocalTypeName(Node.Type);
 		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
-		Template = Template.replace("$1", "GT_New(" + Type + ")");
+		Template = Template.replace("$1", "NEW_" + Type + "()");
 		this.PushSourceCode(this.ApplyMacro(Template, Node.Params));
 	}
 
@@ -291,10 +310,6 @@ public class CSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	public String LocalTypeName(GtType Type) {
-		return Type.ShortClassName;
-	}
-
 	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
 		/*local*/String Code = "";
 		if(!Func.Is(ExportFunc)) {
@@ -330,10 +345,10 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void GenerateClassField(GtType Type, GtClassField ClassField) {
-		/*local*/String TypeName = this.LocalTypeName(Type);
-		/*local*/String Program = this.GetIndentString() + "typedef struct " + TypeName;
-		this.WriteLineCode(this.GetIndentString() + Program + " *" + TypeName + ";");
-		Program = this.GetIndentString() + "struct " + TypeName + " {" + this.LineFeed;
+		/*local*/String TypeName = Type.ShortClassName;
+		/*local*/String LocalType = this.LocalTypeName(Type);
+		/*local*/String NativeType = this.LocalNativeType(Type);
+		/*local*/String Program = this.GetIndentString() + "struct " + TypeName + " {" + this.LineFeed;
 		this.Indent();
 //		if(Type.SuperType != null) {
 //			Program += this.GetIndentString() + "struct " + this.LocalTypeName(Type.SuperType) + " __base;" + this.LineFeed;
@@ -342,41 +357,35 @@ public class CSourceGenerator extends SourceGenerator {
 		while (i < ClassField.FieldList.size()) {
 			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
 			/*local*/GtType VarType = FieldInfo.Type;
-			/*local*/String VarName = FieldInfo.Name;
+			/*local*/String VarName = FieldInfo.NativeName;
 			Program += this.GetIndentString() + this.LocalTypeName(VarType) + " " + VarName + ";" + this.LineFeed;
 			i = i + 1;
 		}
 		this.UnIndent();
-		Program += this.GetIndentString() + "};";
-
-		Program = this.GetIndentString() + this.NaitiveTypeName() + " Malloc_" + TypeName + "() {" + this.LineFeed;
+		Program += this.GetIndentString() + "};" + this.LineFeed;
+		Program += this.GetIndentString() + LocalType + " New_" + TypeName + "() {" + this.LineFeed;
 		this.Indent();
-		Program = this.GetIndentString() + this.NaitiveTypeName() + " Malloc_" + TypeName + "() {" + this.LineFeed;
-
-		/*local*/int i = 0;
+		i = 0;
+		Program +=  this.GetIndentString() + LocalType + " " + this.GetRecvName() + " = " + "GT_New("+NativeType+");" + this.LineFeed;
 		while (i < ClassField.FieldList.size()) {
 			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
-			/*local*/GtType VarType = FieldInfo.Type;
-			/*local*/String VarName = FieldInfo.Name;
-			Program += this.GetIndentString() + this.LocalTypeName(VarType) + " " + VarName + ";" + this.LineFeed;
+			/*local*/String VarName = FieldInfo.NativeName;
+			Program += this.GetIndentString() + this.GetRecvName() + "->" + VarName + " = " + this.StringfyConstValue(FieldInfo.InitValue) + ";" + this.LineFeed;
 			i = i + 1;
 		}
+		Program += this.GetIndentString() + "return " + this.GetRecvName() + ";" + this.LineFeed;
 		this.UnIndent();
 		Program += this.GetIndentString() + "};";
 		
 		this.WriteLineCode(Program);
 	}
 
-//	@Override public void DefineClassFunc(GtNameSpace NameSpace, GtType Type, GtFunc Func) {
-//		/*local*/String Program = (/*cast*/String) this.DefinedClass.get(Type.ShortClassName);
-//		this.Indent();
-//		Program += this.GetIndentString() + this.LocalTypeName(Func.GetFuncType()) + " " + Func.MangledName + ";" + this.LineFeed;
-//		this.UnIndent();
-//		this.DefinedClass.put(this.LocalTypeName(Type), Program);
-//	}
-
 	@Override public void StartCompilationUnit() {
 		this.WriteLineCode("#include \"GreenTea.h\"");
+	}
+
+	@Override public String GetRecvName() {
+		return "self";
 	}
 
 }

@@ -886,6 +886,10 @@ class GtType extends GtStatic {
 		return this.Context.CheckSubType(Type, this);
 	}
 
+	public void SetClassField(GtClassField ClassField) {
+		this.NativeSpec = ClassField;
+	}
+
 }
 
 class GtFunc extends GtStatic {

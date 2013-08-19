@@ -1,7 +1,6 @@
 #include "GreenTea.h"
-typedef struct X *X;
-struct X {
+struct struct X {
    struct record __base;
-   X next;
+   struct X next;
 };
 

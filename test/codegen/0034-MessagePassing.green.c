@@ -1,12 +1,11 @@
 #include "GreenTea.h"
-typedef struct X *X;
-struct X {
+struct struct X {
    struct record __base;
 };
-static int hello__AMAF(X this__AA, int x__AB){
+static int hello__AMAF(struct X* this__AA, int x__AB){
    ;
 }
-static void f__AM(X x__AA){
-   hello__AMAF(x__AA, 10);
+static void f__AM(struct X* x__AA){
+   x__AA(, x__AA10, 10);
 }
 
