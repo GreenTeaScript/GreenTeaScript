@@ -39,7 +39,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	@Override public void InitContext(GtClassContext Context) {
 		super.InitContext(Context);
 		this.WriteLineHeader("#!/bin/bash");
-		this.WriteLineCode("source assert.sh");
+		this.WriteLineCode(this.LineFeed + "source assert.sh" + this.LineFeed);
 	}
 	
 	public String VisitBlockWithIndent(GtNode Node, boolean inBlock) {
@@ -177,6 +177,18 @@ public class BashSourceGenerator extends SourceGenerator {
 		}
 		return JoinedCode + EndCode;
 	}
+	
+	private String CreateAssertFunc(ApplyNode Node) {
+		/*local*/ArrayList<GtNode> ParamList = Node.Params;
+		/*local*/int Size = GtStatic.ListSize(ParamList);
+		/*local*/String[] ParamCode = new String[Size - 1];
+		/*local*/int i = 1;
+		while(i < Size) {
+			ParamCode[Size - i - 1] = "\"" + this.VisitNode(ParamList.get(i)) + "\"";
+			i = i + 1;
+		}
+		return this.JoinCode("assert ", 0, ParamCode, "");
+	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
 		/*local*/String[] ParamCode = this.MakeParamCode(Node.Params);
@@ -187,6 +199,11 @@ public class BashSourceGenerator extends SourceGenerator {
 //			this.PushSourceCode(this.JoinCode(ParamCode[0] + "." + Node.Func.FuncName + " ", 0, ParamCode, ""));
 //		}
 		else if(Node.Func.Is(NativeMacroFunc)) {
+			/*local*/String NativeMacro = (/*cast*/String) Node.Func.NativeRef;
+			if(NativeMacro.startsWith("assert")) {
+				this.PushSourceCode(this.CreateAssertFunc(Node));
+				return;
+			}
 			this.PushSourceCode(Node.Func.ApplyNativeMacro(0, ParamCode));
 		}
 		else {
@@ -227,67 +244,20 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitBinaryNode(BinaryNode Node) {
-		/*local*/String FuncName = Node.Token.ParsedText;
-		/*local*/String Left = this.ResolveValueType(Node.LeftNode);
-		/*local*/String Right = this.ResolveValueType(Node.RightNode);
-		
-		if(Node.Type.equals(Node.Type.Context.StringType)) {
-			if(FuncName.equals("+")) {
-				this.PushSourceCode(Left + Right);
-				return;
-			}
-			else if(FuncName.equals("!=")) {
-			}
-			else if(FuncName.equals("==")) {
-			}
-			else {
-				LangDeps.DebugP(FuncName + " is not supported binary operator!!");
-			}
-			this.PushSourceCode("((" + Left + " " + FuncName + " " + Right + "))");
-			return;
-		}
-
-		if(FuncName.equals("+")) {
-		}
-		else if(FuncName.equals("-")) {
-		}
-		else if(FuncName.equals("*")) {
-		}
-		else if(FuncName.equals("/")) {
-		}
-		else if(FuncName.equals("%")) {
-		}
-		else if(FuncName.equals("<<")) {
-		}
-		else if(FuncName.equals(">>")) {
-		}
-		else if(FuncName.equals("&")) {
-		}
-		else if(FuncName.equals("|")) {
-		}
-		else if(FuncName.equals("^")) {
-		}
-		else if(FuncName.equals("<=")) {
-		}
-		else if(FuncName.equals("<")) {
-		}
-		else if(FuncName.equals(">=")) {
-		}
-		else if(FuncName.equals(">")) {
-		}
-		else if(FuncName.equals("!=")) {
-		}
-		else if(FuncName.equals("==")) {
+		if(Node.Func == null) {
+			/*local*/String Left = this.ResolveValueType(Node.LeftNode);
+			/*local*/String Right = this.ResolveValueType(Node.RightNode);
+			this.PushSourceCode("((" + Left + " " +  Node.Token.ParsedText + " " + Right + "))");
 		}
 		else {
-			LangDeps.DebugP(FuncName + " is not supported binary operator!!");
+			/*local*/String[] ParamCode = this.MakeParamCode2(Node.LeftNode, Node.RightNode);
+			this.PushSourceCode("((" + Node.Func.ApplyNativeMacro(0, ParamCode) + "))");
 		}
 		
 //		if(Node.Type.equals(Node.Type.Context.Float)) {	// support float value
 //			this.PushSourceCode("(echo \"scale=10; " + Left + " " + FuncName + " " + Right + "\" | bc)");
 //			return;
-//		}	
-		this.PushSourceCode("((" + Left  + " " + FuncName + " " + Right + "))");
+//		}
 	}
 
 	@Override public void VisitAndNode(AndNode Node) {
@@ -351,7 +321,7 @@ public class BashSourceGenerator extends SourceGenerator {
 					/*local*/String Code = "local value=" + Ret + this.LineFeed;
 					Code += this.GetIndentString() + "local ret=$?" + this.LineFeed;
 					Code += this.GetIndentString() + "echo $value" + this.LineFeed;
-					Code += this.GetIndentString() + "return $ret" + this.LineFeed;
+					Code += this.GetIndentString() + "return $ret";
 					this.PushSourceCode(Code);
 					return;
 				}
@@ -466,7 +436,7 @@ public class BashSourceGenerator extends SourceGenerator {
 			return Body;
 		}
 
-		/*local*/GtNode oldVarNode = new LocalNode(null, null, "" +(index + 1));
+		/*local*/GtNode oldVarNode = new LocalNode(null, null, "" + (index + 1));
 		/*local*/GtNode Let = new LetNode(null, null, null, ParamNameList.get(index), oldVarNode, null);
 		Let.NextNode = this.ConvertParamName(ParamNameList, Body, index+1);
 		return Let;
@@ -476,8 +446,8 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/String ResolvedValue;
 		/*local*/String Value = this.VisitNode(TargetNode);
 		
-		if(TargetNode instanceof LocalNode) {
-			ResolvedValue = "$" + Value;
+		if(TargetNode instanceof ConstNode || TargetNode instanceof NullNode) {
+			ResolvedValue = Value;
 		}
 		else if(TargetNode instanceof IndexerNode || TargetNode instanceof GetterNode) {
 			ResolvedValue = "${" + Value + "}";
@@ -486,7 +456,7 @@ public class BashSourceGenerator extends SourceGenerator {
 			ResolvedValue = "$(" + Value + ")";
 		}
 		else {
-			ResolvedValue = Value;
+			ResolvedValue = "$" + Value;
 		}
 		return ResolvedValue;
 	}
