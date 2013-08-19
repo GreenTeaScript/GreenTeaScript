@@ -3,7 +3,7 @@ use File::Find;
 
 my $ArrayName = "GreenTeaLibraries";
 
-print "GreenTeaLibraries = [];\n";
+print "var GreenTeaLibraries: { [key: string]: string; } = {};\n";
 
 sub process{
 	my $name = $_;

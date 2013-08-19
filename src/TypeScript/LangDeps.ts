@@ -98,7 +98,6 @@ class GtMap {
 
 declare var fs: any;
 declare var process: any;
-declare var GreenTeaLibraries: { [key: string]: string; };
 
 class LangDeps {
 
