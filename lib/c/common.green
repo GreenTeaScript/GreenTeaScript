@@ -1,29 +1,29 @@
 int +(int x) as "$0";
 int -(int x) as "-$0";
 // int ~(int x) as "~$0";
-int +(int x, int y)      as "$0  +  $1";
-int -(int x, int y)      as "$0  -  $1";
-int *(int x, int y)      as "$0  *  $1";
-int /(int x, int y)      as "$0  /  $1";
-int %(int x, int y)      as "$0  %  $1";
-// int <<(int x, int y)     as "$0  << $1";
-// int >>(int x, int y)     as "$0  >> $1";
-// int ^(int x, int y)      as "$0  ^  $1";
-// int |(int x, int y)      as "$0  |  $1";
-// int &(int x, int y)      as "$0  &  $1";
-boolean <(int x,  int y) as "$0  <  $1";
-boolean <=(int x, int y) as "$0  <= $1";
-boolean >(int x,  int y) as "$0  >  $1";
-boolean >=(int x, int y) as "$0  >= $1";
-boolean ==(int x, int y) as "$0  == $1";
-boolean !=(int x, int y) as "$0  != $1";
+int +(int x, int y)      as "$1 + $2";
+int -(int x, int y)      as "$1 - $2";
+int *(int x, int y)      as "$1 * $2";
+int /(int x, int y)      as "$1 / $2";
+int %(int x, int y)      as "$1 % $2";
+int <<(int x, int y)     as "$1 << $2";
+int >>(int x, int y)     as "$1 >> $2";
+int ^(int x, int y)      as "$1 ^ $2";
+int |(int x, int y)      as "$1 | $2";
+int &(int x, int y)      as "$1 & $2";
+boolean <(int x,  int y) as "$1 < $2";
+boolean <=(int x, int y) as "$1 <= $2";
+boolean >(int x,  int y) as "$1 > $2";
+boolean >=(int x, int y) as "$1 >= $2";
+boolean ==(int x, int y) as "$1 == $2";
+boolean !=(int x, int y) as "$1 != $2";
 
-String +(String x, String y) as "$0  +  $1";
+String +(String x, String y) as "$1 + $2";
 
-String converter(int x) as "ToStr($0)";
+String converter(int x) as "ToStr($1)";
 
-boolean ==(any x, any y) as "$0  == $1";
-boolean !=(any x, any y) as "$0  != $1";
+boolean ==(any x, any y) as "$1 == $2";
+boolean !=(any x, any y) as "$1 != $2";
 
-void print(String x) as "puts($0)";
-void assert(boolean x) as "assert($0)";
+void print(String x) as "puts($1)";
+void assert(boolean x) as "assert($1)";

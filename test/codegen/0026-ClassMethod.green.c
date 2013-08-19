@@ -1,13 +1,15 @@
 #include "GreenTea.h"
-#include "GreenTea.h"
-struct X{
-   record __base;
+typedef struct X *X;
+struct X {
+   struct record __base;
 };
-static int f__012(X this0){
+static int f__AM(X this__AA){
 }
-struct Y{
-   record __base;
+typedef struct Y *Y;
+struct Y {
+   struct record __base;
 };
-static int f__013(Y this0){
+static int f__AN(Y this__AA){
    return 10;
 }
+

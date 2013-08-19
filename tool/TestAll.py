@@ -19,7 +19,7 @@ target = [];
 
 def get_result(case, jar, target):
     ret = subprocess.check_output(
-            ["java", "-jar", jar, "--" + target, case],
+            ["java", "-jar", jar, "-l", target, case],
             universal_newlines=True
            )
     return ret;
@@ -52,7 +52,7 @@ def test():
             answer = case + "." + t
             print("testing taget=" + t + " case=" + case)
             ret = subprocess.call(
-                    ["java", "-jar", "./GreenTeaScript-TestRunner.jar", "--" + t, case, answer],
+                    ["java", "-jar", "./GreenTeaScript-TestRunner.jar", t, case, answer],
                    )
             result = result + '<testcase classname="GeenTeaScriptTest.' + t + '" name="' + answer + '" time="0">\n'
             tests = tests + 1

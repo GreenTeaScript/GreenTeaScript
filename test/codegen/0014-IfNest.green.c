@@ -1,26 +1,26 @@
 #include "GreenTea.h"
-#include "GreenTea.h"
-static int f__0505(int a0, int b1){
-   int n2 = 1;
+static int f__AFAF(int a__AA, int b__AB){
+   int n__AC = 1;
    {
-      if(a0 < 10) {
-         if(b1 < 100) {
-            n2 = n2 + 2;
+      if(a__AA < 10) {
+         if(b__AB < 100) {
+            n__AC = n__AC + 2;
          } else {
-            n2 = n2 + 4;
+            n__AC = n__AC + 4;
          };
-         n2 = n2 + 6;
+         n__AC = n__AC + 6;
       } else {
-         if(b1 < 200) {
-            n2 = n2 + 20;
+         if(b__AB < 200) {
+            n__AC = n__AC + 20;
          } else {
-            n2 = n2 + 40;
+            n__AC = n__AC + 40;
          };
-         n2 = n2 + 60;
+         n__AC = n__AC + 60;
       };
-      n2 = n2 + 200;
-      return n2;
+      n__AC = n__AC + 200;
+      return n__AC;
    };
 }
-f__0505(10000 ,20000);
+f__AFAF(10000, 20000);
+
 

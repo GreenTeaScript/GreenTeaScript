@@ -1,8 +1,10 @@
 #include "GreenTea.h"
-#include "GreenTea.h"
-struct X{
-   record __base;
+typedef struct X *X;
+struct X {
+   struct record __base;
 };
-struct Y{
-   X __base;
+typedef struct Y *Y;
+struct Y {
+   struct X __base;
 };
+

@@ -1,11 +1,11 @@
 #include "GreenTea.h"
-#include "GreenTea.h"
-static int f__05(int a0){
-   if(a0 < 10) {
+static int f__AF(int a__AA){
+   if(a__AA < 10) {
       return 1;
    } else {
       return 100;
    };
 }
-f__05(10);
+f__AF(10);
+
 

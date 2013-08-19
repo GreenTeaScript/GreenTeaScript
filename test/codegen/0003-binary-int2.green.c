@@ -1,4 +1,5 @@
 #include "GreenTea.h"
-#include "GreenTea.h"
-1 + 2 * 3;
+static void f__AD(){
+   1 + 2 * 3;
+}
 

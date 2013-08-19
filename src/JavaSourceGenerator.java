@@ -51,32 +51,32 @@ public class JavaSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitSuffixNode(SuffixNode Node) {
-		String MethodName = Node.Token.ParsedText;
+		String FuncName = Node.Token.ParsedText;
 
-		if(MethodName.equals("++")) {
+		if(FuncName.equals("++")) {
 		}
-		else if(MethodName.equals("--")) {
+		else if(FuncName.equals("--")) {
 		}
 		Node.Expr.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + MethodName);
+		this.PushSourceCode(this.PopSourceCode() + FuncName);
 	}
 
 	@Override public void VisitUnaryNode(UnaryNode Node) {
-		String MethodName = Node.Token.ParsedText;
-		if(MethodName.equals("+")) {
+		String FuncName = Node.Token.ParsedText;
+		if(FuncName.equals("+")) {
 		}
-		else if(MethodName.equals("-")) {
+		else if(FuncName.equals("-")) {
 		}
-		else if(MethodName.equals("~")) {
+		else if(FuncName.equals("~")) {
 		}
-		else if(MethodName.equals("!")) {
+		else if(FuncName.equals("!")) {
 		}
-		else if(MethodName.equals("++")) {
+		else if(FuncName.equals("++")) {
 		}
-		else if(MethodName.equals("--")) {
+		else if(FuncName.equals("--")) {
 		}
 		Node.Expr.Evaluate(this);
-		this.PushSourceCode(MethodName + this.PopSourceCode());
+		this.PushSourceCode(FuncName + this.PopSourceCode());
 	}
 
 	@Override public void VisitIndexerNode(IndexerNode Node) {
@@ -137,12 +137,12 @@ public class JavaSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitLocalNode(LocalNode Node) {
-		this.PushSourceCode(Node.LocalName);
+		this.PushSourceCode(Node.NativeName);
 	}
 
 	@Override public void VisitGetterNode(GetterNode Node) {
 		Node.Expr.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + "." + Node.Method.MethodName);
+		this.PushSourceCode(this.PopSourceCode() + "." + Node.Func.FuncName);
 	}
 
 	private String[] EvaluateParam(ArrayList<GtNode> Params) {
@@ -157,7 +157,7 @@ public class JavaSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
-		/*local*/String Program = Node.Method.MethodName + "(";
+		/*local*/String Program = Node.Func.FuncName + "(";
 		/*local*/String[] Params = this.EvaluateParam(Node.Params);
 		for(int i = 0; i < Params.length; i++) {
 			String P = Params[i];
@@ -171,43 +171,43 @@ public class JavaSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitBinaryNode(BinaryNode Node) {
-		String MethodName = Node.Token.ParsedText;
-		if(MethodName.equals("+")) {
+		String FuncName = Node.Token.ParsedText;
+		if(FuncName.equals("+")) {
 		}
-		else if(MethodName.equals("-")) {
+		else if(FuncName.equals("-")) {
 		}
-		else if(MethodName.equals("*")) {
+		else if(FuncName.equals("*")) {
 		}
-		else if(MethodName.equals("/")) {
+		else if(FuncName.equals("/")) {
 		}
-		else if(MethodName.equals("%")) {
+		else if(FuncName.equals("%")) {
 		}
-		else if(MethodName.equals("<<")) {
+		else if(FuncName.equals("<<")) {
 		}
-		else if(MethodName.equals(">>")) {
+		else if(FuncName.equals(">>")) {
 		}
-		else if(MethodName.equals("&")) {
+		else if(FuncName.equals("&")) {
 		}
-		else if(MethodName.equals("|")) {
+		else if(FuncName.equals("|")) {
 		}
-		else if(MethodName.equals("^")) {
+		else if(FuncName.equals("^")) {
 		}
-		else if(MethodName.equals("<=")) {
+		else if(FuncName.equals("<=")) {
 		}
-		else if(MethodName.equals("<")) {
+		else if(FuncName.equals("<")) {
 		}
-		else if(MethodName.equals(">=")) {
+		else if(FuncName.equals(">=")) {
 		}
-		else if(MethodName.equals(">")) {
+		else if(FuncName.equals(">")) {
 		}
-		else if(MethodName.equals("!=")) {
+		else if(FuncName.equals("!=")) {
 		}
-		else if(MethodName.equals("==")) {
+		else if(FuncName.equals("==")) {
 		}
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
 		/* FIXME TOO MANY PARENTHESIS */
-		this.PushSourceCode("(" + this.PopSourceCode() + " " + MethodName + " " + this.PopSourceCode() + ")");
+		this.PushSourceCode("(" + this.PopSourceCode() + " " + FuncName + " " + this.PopSourceCode() + ")");
 	}
 
 	@Override public void VisitAndNode(AndNode Node) {
@@ -327,15 +327,15 @@ public class JavaSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void GenerateMethod(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
+	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
 		//FIXME
 		String Program = "";
-		String RetTy = Method.GetReturnType().ShortClassName;
-		String ThisTy = Method.GetRecvType().ShortClassName;
-		Program += RetTy + " " + ThisTy + "_" + Method.GetNativeFuncName() + "(";
+		String RetTy = Func.GetReturnType().ShortClassName;
+		String ThisTy = Func.GetRecvType().ShortClassName;
+		Program += RetTy + " " + ThisTy + "_" + Func.GetNativeFuncName() + "(";
 		Program += ThisTy + " " + "this";
 		for(int i = 0; i < ParamNameList.size(); i++) {
-			String ParamTy = Method.GetFuncParamType(i).ShortClassName;
+			String ParamTy = Func.GetFuncParamType(i).ShortClassName;
 			Program += " ," + ParamTy + " " + ParamNameList.get(i);
 		}
 

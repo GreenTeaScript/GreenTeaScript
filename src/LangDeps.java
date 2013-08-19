@@ -93,21 +93,21 @@ public abstract class LangDeps {
 		return Integer.parseInt(Text);
 	}
 
-	public final static Method LookupMethod(Object Callee, String MethodName) {
-		if(MethodName != null) {
-			// DebugP("looking up method : " + Callee.getClass().getSimpleName() + "." + MethodName);
+	public final static Method LookupFunc(Object Callee, String FuncName) {
+		if(FuncName != null) {
+			// DebugP("looking up method : " + Callee.getClass().getSimpleName() + "." + FuncName);
 			Method[] methods = Callee.getClass().getMethods();
 			for(int i = 0; i < methods.length; i++) {
-				if(MethodName.equals(methods[i].getName())) {
+				if(FuncName.equals(methods[i].getName())) {
 					return methods[i];
 				}
 			}
-			DebugP("method not found: " + Callee.getClass().getSimpleName() + "." + MethodName);
+			DebugP("method not found: " + Callee.getClass().getSimpleName() + "." + FuncName);
 		}
 		return null; /*throw new GtParserException("method not found: " + callee.getClass().getName() + "." + methodName);*/
 	}
 
-	public final static boolean EqualsMethod(Method m1, Method m2) {
+	public final static boolean EqualsFunc(Method m1, Method m2) {
 		if(m1 == null) {
 			return (m2 == null) ? true : false;
 		}
@@ -117,7 +117,7 @@ public abstract class LangDeps {
 	}
 
 	public final static TokenFunc CreateOrReuseTokenFunc(GtDelegateToken f, TokenFunc prev) {
-		if(prev != null && EqualsMethod(prev.Func.Method, f.Method)) {
+		if(prev != null && EqualsFunc(prev.Func.Func, f.Func)) {
 			return prev;
 		}
 		return new TokenFunc(f, prev);
@@ -125,7 +125,7 @@ public abstract class LangDeps {
 
 	public final static int ApplyTokenFunc(GtDelegateToken Delegate, Object TokenContext, String Text, int pos) {
 		try {
-			Integer n = (Integer)Delegate.Method.invoke(Delegate.Self, TokenContext, Text, pos);
+			Integer n = (Integer)Delegate.Func.invoke(Delegate.Self, TokenContext, Text, pos);
 			return n.intValue();
 		}
 		catch (InvocationTargetException e) {
@@ -143,7 +143,7 @@ public abstract class LangDeps {
 
 	public final static GtSyntaxTree ApplyMatchFunc(GtDelegateMatch Delegate, Object NameSpace, Object TokenContext, Object LeftTree, Object Pattern) {
 		try {
-			return (GtSyntaxTree)Delegate.Method.invoke(Delegate.Self, NameSpace, TokenContext, LeftTree, Pattern);
+			return (GtSyntaxTree)Delegate.Func.invoke(Delegate.Self, NameSpace, TokenContext, LeftTree, Pattern);
 		}
 		catch (InvocationTargetException e) {
 			e.printStackTrace();
@@ -160,7 +160,7 @@ public abstract class LangDeps {
 
 	public final static GtNode ApplyTypeFunc(GtDelegateType Delegate, Object Gamma, Object ParsedTree, Object TypeInfo) {
 		try {
-			return (GtNode)Delegate.Method.invoke(Delegate.Self, Gamma, ParsedTree, TypeInfo);
+			return (GtNode)Delegate.Func.invoke(Delegate.Self, Gamma, ParsedTree, TypeInfo);
 		}
 		catch (InvocationTargetException e) {
 			e.printStackTrace();
@@ -287,7 +287,7 @@ public abstract class LangDeps {
 			Console = System.console();
 		}
 		String Line = Console.readLine(Prompt);
-		if(Line != null) {
+		if(Line == null) {
 			System.exit(0);
 		}
 		return Line;

@@ -40,6 +40,7 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 
 // GreenTea Generator should be written in each language.
@@ -81,14 +82,20 @@ class LabelStack {
 
 class GtClassNode implements Opcodes {
 	final String					name;
+	final String					superClass;
 	final Map<String, MethodNode>	methods	= new HashMap<String, MethodNode>();
+	final Map<String, FieldNode>	fields	= new HashMap<String, FieldNode>();
 
-	public GtClassNode(String name) {
+	public GtClassNode(String name, String superClass) {
 		this.name = name;
+		this.superClass = superClass;
 	}
 
 	public void accept(ClassVisitor cv) {
-		cv.visit(V1_6, ACC_PUBLIC, this.name, null, "java/lang/Object", null);
+		cv.visit(V1_6, ACC_PUBLIC, this.name, null, this.superClass, null);
+		for(FieldNode f : this.fields.values()) {
+			f.accept(cv);
+		}
 		for(MethodNode m : this.methods.values()) {
 			m.accept(cv);
 		}
@@ -96,6 +103,9 @@ class GtClassNode implements Opcodes {
 
 	public MethodNode getMethodNode(String name) {
 		return this.methods.get(name);
+	}
+	public FieldNode getFieldNode(String name) {
+		return this.fields.get(name);
 	}
 }
 
@@ -124,13 +134,13 @@ class Local {
 	}
 }
 
-class MethodPath {
+class FuncPath {
 	GtNode Run(GtNameSpace NameSpace, GtType ReturnType, GtNode Block) {
 		return null;
 	}
 }
 
-class CheckReturnNodePath extends MethodPath {
+class CheckReturnNodePath extends FuncPath {
 	@Override GtNode Run(GtNameSpace NameSpace, GtType ReturnType, GtNode Block) {
 		GtNode TailNode = null;
 		if(Block != null) {
@@ -178,11 +188,11 @@ class CheckReturnNodePath extends MethodPath {
 //	}
 //}
 
-abstract class GtMethodInvoker {	//TODO: using GtMethod
+abstract class GtFuncInvoker {	//TODO: using GtFunc
 	public GtType[]		ParamTypes;
 	public Object	CompiledCode;
 
-	public GtMethodInvoker(GtType[] ParamTypes, Object CompiledCode) {
+	public GtFuncInvoker(GtType[] ParamTypes, Object CompiledCode) {
 		this.ParamTypes = ParamTypes;
 		this.CompiledCode = CompiledCode;
 
@@ -193,58 +203,58 @@ abstract class GtMethodInvoker {	//TODO: using GtMethod
 	}
 }
 
-class NativeMethodInvoker extends GtMethodInvoker {
+class JavaMethodInvoker extends GtFuncInvoker {
 
-	public NativeMethodInvoker(GtType[] ParamTypes, Method MethodRef) {
-		super(ParamTypes, MethodRef);
+	public JavaMethodInvoker(GtType[] ParamTypes, Method FuncRef) {
+		super(ParamTypes, FuncRef);
 	}
 
-	public Method GetMethodRef() {
+	public Method GetFuncRef() {
 		return (Method) this.CompiledCode;
 	}
 
 	boolean IsStaticInvocation() {
-		return Modifier.isStatic(this.GetMethodRef().getModifiers());
+		return Modifier.isStatic(this.GetFuncRef().getModifiers());
 	}
 
 	@Override public Object Invoke(Object[] Args) {
 		int ParamSize = this.ParamTypes != null ? this.ParamTypes.length - 1 : 0;
 		try {
-			Method MethodRef = this.GetMethodRef();
+			Method FuncRef = this.GetFuncRef();
 			if(this.IsStaticInvocation()) {
 				switch (ParamSize) {
 				case 0:
-					return MethodRef.invoke(null, Args[0]);
+					return FuncRef.invoke(null, Args[0]);
 				case 1:
-					return MethodRef.invoke(null, Args[0], Args[1]);
+					return FuncRef.invoke(null, Args[0], Args[1]);
 				case 2:
-					return MethodRef.invoke(null, Args[0], Args[0], Args[2]);
+					return FuncRef.invoke(null, Args[0], Args[0], Args[2]);
 				case 3:
-					return MethodRef.invoke(null, Args[0], Args[0], Args[2], Args[3]);
+					return FuncRef.invoke(null, Args[0], Args[0], Args[2], Args[3]);
 				case 4:
-					return MethodRef.invoke(null, Args[0], Args[1], Args[2], Args[3], Args[4]);
+					return FuncRef.invoke(null, Args[0], Args[1], Args[2], Args[3], Args[4]);
 				case 5:
-					return MethodRef.invoke(null, Args[0], Args[1], Args[2], Args[3], Args[4], Args[5]);
+					return FuncRef.invoke(null, Args[0], Args[1], Args[2], Args[3], Args[4], Args[5]);
 				default:
-					return MethodRef.invoke(null, Args); // FIXME
+					return FuncRef.invoke(null, Args); // FIXME
 				}
 			}
 			else {
 				switch (ParamSize) {
 				case 0:
-					return MethodRef.invoke(Args[0]);
+					return FuncRef.invoke(Args[0]);
 				case 1:
-					return MethodRef.invoke(Args[0], Args[1]);
+					return FuncRef.invoke(Args[0], Args[1]);
 				case 2:
-					return MethodRef.invoke(Args[0], Args[0], Args[2]);
+					return FuncRef.invoke(Args[0], Args[0], Args[2]);
 				case 3:
-					return MethodRef.invoke(Args[0], Args[0], Args[2], Args[3]);
+					return FuncRef.invoke(Args[0], Args[0], Args[2], Args[3]);
 				case 4:
-					return MethodRef.invoke(Args[0], Args[1], Args[2], Args[3], Args[4]);
+					return FuncRef.invoke(Args[0], Args[1], Args[2], Args[3], Args[4]);
 				case 5:
-					return MethodRef.invoke(Args[0], Args[1], Args[2], Args[3], Args[4], Args[5]);
+					return FuncRef.invoke(Args[0], Args[1], Args[2], Args[3], Args[4], Args[5]);
 				default:
-					return MethodRef.invoke(Args[0], Args); // FIXME
+					return FuncRef.invoke(Args[0], Args); // FIXME
 				}
 			}
 		} catch (IllegalArgumentException e) {
@@ -264,7 +274,7 @@ class NativeMethodInvoker extends GtMethodInvoker {
 class JVMBuilder implements Opcodes {
 
 	ArrayList<Local>                LocalVals;
-	GtMethod                        MethodInfo;
+	GtFunc                        FuncInfo;
 
 	MethodVisitor                   methodVisitor;
 	Stack<Type>                     typeStack;
@@ -272,9 +282,9 @@ class JVMBuilder implements Opcodes {
 	GtNameSpace                     NameSpace;
 	TypeResolver                    TypeResolver;
 
-	public JVMBuilder(GtMethod method, MethodVisitor mv, TypeResolver TypeResolver, GtNameSpace NameSpace) {
+	public JVMBuilder(GtFunc method, MethodVisitor mv, TypeResolver TypeResolver, GtNameSpace NameSpace) {
 		this.LocalVals = new ArrayList<Local>();
-		this.MethodInfo = method;
+		this.FuncInfo = method;
 
 		this.methodVisitor = mv;
 		this.typeStack = new Stack<Type>();
@@ -437,7 +447,7 @@ class TypeResolver {
 		}
 	}
 
-	public String GetJavaMethodDescriptor(GtMethod method) {
+	public String GetJavaFuncDescriptor(GtFunc method) {
 		GtType returnType = method.GetReturnType();
 		//paramTypes.remove(0);
 		StringBuilder signature = new StringBuilder();
@@ -450,7 +460,7 @@ class TypeResolver {
 			signature.append(this.GetJavaTypeDescriptor(ParamType));
 		}
 		signature.append(")");
-		if(method.MethodName.equals("New")) {
+		if(method.FuncName.equals("New")) {
 			signature.append(Type.VOID_TYPE.getDescriptor());
 		}
 		else {
@@ -476,36 +486,36 @@ class TypeResolver {
 	}
 }
 
-class NativeMethodMap {
-	private final HashMap<GtMethod, GtMethodInvoker> methodInvokerMap;
+class NativeFuncMap {
+	private final HashMap<GtFunc, GtFuncInvoker> methodInvokerMap;
 
-	public NativeMethodMap() {
-		this.methodInvokerMap = new HashMap<GtMethod, GtMethodInvoker>();
+	public NativeFuncMap() {
+		this.methodInvokerMap = new HashMap<GtFunc, GtFuncInvoker>();
 	}
 
-	public GtMethodInvoker GetMethodInvoker(GtMethod Method) {
-		return this.methodInvokerMap.get(Method);
+	public GtFuncInvoker GetFuncInvoker(GtFunc Func) {
+		return this.methodInvokerMap.get(Func);
 	}
 
-	public void PutMethodInvoker(GtMethod KeyMethod, GtMethodInvoker MethodInvoker) {
-		this.methodInvokerMap.put(KeyMethod, MethodInvoker);
+	public void PutFuncInvoker(GtFunc KeyFunc, GtFuncInvoker FuncInvoker) {
+		this.methodInvokerMap.put(KeyFunc, FuncInvoker);
 	}
 
-	public boolean Exist(GtMethod Method) {
-		return this.methodInvokerMap.containsKey(Method);
+	public boolean Exist(GtFunc Func) {
+		return this.methodInvokerMap.containsKey(Func);
 	}
 }
 
 public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 	private TypeResolver	TypeResolver;
 	private JVMBuilder Builder;
-	private final NativeMethodMap NMMap;
+	private final NativeFuncMap NMMap;
 	private GtClassContext Context;
 
 	public JavaByteCodeGenerator(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
 		this.TypeResolver = null;
-		this.NMMap = new NativeMethodMap();
+		this.NMMap = new NativeFuncMap();
 		this.Context = null;
 	}
 
@@ -566,28 +576,28 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		return null;
 	}
 
-	private final String defaultClassName = "Script";
-	private GtClassNode globalNode = new GtClassNode(defaultClassName);
+	private final String defaultClassName = "Global";
+	private GtClassNode globalNode = new GtClassNode(defaultClassName, "java/lang/Object");
 
-	@Override public void GenerateMethod(GtMethod Method, ArrayList<String> NameList, GtNode Body) {
-		if(NMMap.Exist(Method)) {
+	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> NameList, GtNode Body) {
+		if(NMMap.Exist(Func)) {
 			return;
 		}
 		int acc = ACC_PUBLIC;
-		if(!Method.Is(ExportMethod)) {
+		if(!Func.Is(ExportFunc)) {
 			acc |= ACC_STATIC;
 		}
-		Type retType = TypeResolver.GetAsmType(Method.GetReturnType());
+		Type retType = TypeResolver.GetAsmType(Func.GetReturnType());
 		ArrayList<Type> argTypes = new ArrayList<Type>();
 		ArrayList<Local> locals  = new ArrayList<Local>();
 		for(int i=0; i<NameList.size(); i++) {
-			GtType type = Method.GetFuncParamType(i);
+			GtType type = Func.GetFuncParamType(i);
 			String name = NameList.get(i);
 			argTypes.add(TypeResolver.GetAsmType(type));
 			locals.add(new Local(i, type, name));
 		}
 
-		String methodName = Method.MethodName;
+		String methodName = Func.FuncName;
 		String methodDesc = Type.getMethodDescriptor(retType, argTypes.toArray(new Type[0]));
 
 		MethodNode mn = new MethodNode(acc, methodName, methodDesc, null, null);
@@ -595,7 +605,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		c.methods.put(methodName, mn);
 		TypeResolver.StoreClassNode(c);
 
-		this.Builder = new JVMBuilder(Method, mn, TypeResolver, null);
+		this.Builder = new JVMBuilder(Func, mn, TypeResolver, null);
 		this.Builder.LocalVals.addAll(locals);
 		this.VisitBlock(Body);
 
@@ -606,25 +616,55 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		}
 	}
 
+	@Override public void GenerateClassField(GtType Type, ArrayList<GtVariableInfo> FieldList) {
+		String className = Type.ShortClassName;
+		GtClassNode superClassNode = TypeResolver.FindClassNode(Type.SuperType.ShortClassName);
+		String superClassName = superClassNode != null ? superClassNode.name : "java/lang/Object";
+		GtClassNode classNode = new GtClassNode(className, superClassName);
+		TypeResolver.StoreClassNode(classNode);
+		// generate field
+		for(GtVariableInfo field : FieldList) {
+			int access = ACC_PUBLIC;
+			String fieldName = field.NativeName;
+			Type fieldType = TypeResolver.GetAsmType(field.Type);
+			FieldNode node = new FieldNode(access, fieldName, fieldType.getDescriptor(), null, null);
+			classNode.fields.put(fieldName, node);
+		}
+		// generate default constructor (for jvm)
+		MethodNode constructor = new MethodNode(ACC_PUBLIC, "<init>", "()V", null, null);
+		constructor.visitVarInsn(ALOAD, 0);
+		constructor.visitMethodInsn(INVOKESPECIAL, superClassName, "<init>", "()V");
+		constructor.visitInsn(RETURN);
+		classNode.methods.put("<init>", constructor);
+		try {
+			this.OutputClassFile(className, ".");
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+//	@Override public void AddClass(GtType Type) {
+//	}
+
 	@Override public void InitContext(GtClassContext Context) {
 		this.Context = Context;
 		this.TypeResolver = new TypeResolver(Context);
-		InitEmbeddedMethod();
+		InitEmbeddedFunc();
 	}
 
-	private void InitEmbeddedMethod() {
+	private void InitEmbeddedFunc() {
 //		new GtIntDef(Context.RootNameSpace, NMMap).MakeDefinition();
 //		new GtStringDef(Context.RootNameSpace, NMMap).MakeDefinition();
 //		new GtSystemDef(Context.RootNameSpace, NMMap).MakeDefinition();
 	}
 
-	void Call(int opcode, GtMethod Method) { //FIXME
-		//if(Method.MethodInvoker instanceof NativeMethodInvoker) {
-		//	NativeMethodInvoker i = (NativeMethodInvoker) Method.MethodInvoker;
+	void Call(int opcode, GtFunc Func) { //FIXME
+		//if(Func.FuncInvoker instanceof NativeFuncInvoker) {
+		//	NativeFuncInvoker i = (NativeFuncInvoker) Func.FuncInvoker;
 		//
-		if(NMMap.Exist(Method)) {
-			NativeMethodInvoker i = (NativeMethodInvoker) NMMap.GetMethodInvoker(Method);
-			Method m = i.GetMethodRef();
+		if(NMMap.Exist(Func)) {
+			JavaMethodInvoker i = (JavaMethodInvoker) NMMap.GetFuncInvoker(Func);
+			Method m = i.GetFuncRef();
 			String owner = this.TypeResolver.GetAsmType(m.getDeclaringClass()).getInternalName();
 			String methodName = m.getName();
 			String methodDescriptor = Type.getMethodDescriptor(m);
@@ -635,16 +675,16 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 			this.Builder.typeStack.push(this.TypeResolver.GetAsmType(m.getReturnType()));
 		}
 		else {
-//			Class<?> OwnerClass = Method.ClassInfo.HostedClassInfo;
+//			Class<?> OwnerClass = Func.ClassInfo.HostedClassInfo;
 //			if(OwnerClass == null) {
-//				OwnerClass = Method.ClassInfo.DefaultNullValue.getClass();
+//				OwnerClass = Func.ClassInfo.DefaultNullValue.getClass();
 //			}
 //			String owner = OwnerClass.getName().replace(".", "/");
 			String owner = defaultClassName;//FIXME
-			String methodName = Method.MethodName;
-			String methodDescriptor = this.TypeResolver.GetJavaMethodDescriptor(Method);
+			String methodName = Func.FuncName;
+			String methodDescriptor = this.TypeResolver.GetJavaFuncDescriptor(Func);
 			this.Builder.methodVisitor.visitMethodInsn(opcode, owner, methodName, methodDescriptor);
-			this.Builder.typeStack.push(this.TypeResolver.GetAsmType(Method.GetReturnType()));
+			this.Builder.typeStack.push(this.TypeResolver.GetAsmType(Func.GetReturnType()));
 		}
 	}
 
@@ -658,6 +698,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		String owner = type.getInternalName();
 		this.Builder.methodVisitor.visitTypeInsn(NEW, owner);
 		this.Builder.methodVisitor.visitInsn(DUP);
+		this.Builder.methodVisitor.visitMethodInsn(INVOKESPECIAL, owner, "<init>", "()V");
 		this.Builder.typeStack.push(type);
 	}
 
@@ -675,7 +716,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 	}
 
 	@Override public void VisitLocalNode(LocalNode Node) {
-		String FieldName = Node.LocalName;
+		String FieldName = Node.NativeName;
 		Local local;
 		if((local = this.Builder.FindLocalVariable(FieldName)) == null) {
 			throw new RuntimeException("local variable not found:" + FieldName);
@@ -688,11 +729,11 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
-		GtMethod Method = Node.Method;
+		GtFunc Func = Node.Func;
 		for(int i = 0; i < Node.Params.size(); i++) {
 			GtNode Param = Node.Params.get(i);
 			Param.Evaluate(this);
-			Type requireType = this.TypeResolver.GetAsmType(Method.GetFuncParamType(i));
+			Type requireType = this.TypeResolver.GetAsmType(Func.GetFuncParamType(i));
 			Type foundType = this.Builder.typeStack.peek();
 			if(requireType.equals(Type.getType(Object.class)) && this.Builder.isPrimitiveType(foundType)) {
 				// boxing
@@ -702,20 +743,20 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 				this.Builder.typeStack.pop();
 			}
 		}
-		if(Method.MethodName.equals("New")) {
-			Type type = this.TypeResolver.GetAsmType(Method.GetReturnType());
+		if(Func.FuncName.equals("New")) {
+			Type type = this.TypeResolver.GetAsmType(Func.GetReturnType());
 			String owner = type.getInternalName();
 			String methodName = "<init>";
-			String methodDesc = TypeResolver.GetJavaMethodDescriptor(Method);//"()V";//Node.Params;
+			String methodDesc = TypeResolver.GetJavaFuncDescriptor(Func);//"()V";//Node.Params;
 			this.Builder.methodVisitor.visitMethodInsn(INVOKESPECIAL, owner, methodName, methodDesc);
 			this.Builder.typeStack.push(type);
 		}
 		else {
 			int opcode = INVOKEVIRTUAL;
-			//if(Node.Method.Is(KonohaConst.StaticMethod)) {
+			//if(Node.Func.Is(KonohaConst.StaticFunc)) {
 			opcode = INVOKESTATIC;
 			//}
-			this.Call(opcode, Method);
+			this.Call(opcode, Func);
 		}
 	}
 
@@ -767,7 +808,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 	}
 
 	@Override public void VisitUnaryNode(UnaryNode Node) {
-		ApplyNode applyNode = new ApplyNode(Node.Type, Node.Token, Node.Method);
+		ApplyNode applyNode = new ApplyNode(Node.Type, Node.Token, Node.Func);
 		applyNode.Append(Node.Expr);
 
 		VisitApplyNode(applyNode);
@@ -831,7 +872,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		else {
 			assert (Node.LeftNode instanceof LocalNode);
 			LocalNode Left = (LocalNode) Node.LeftNode;
-			String Name = Left.LocalName;
+			String Name = Left.NativeName;
 			Local local = this.Builder.FindLocalVariable(Name);
 			if(local == null) {
 				throw new RuntimeException("local variable " + Name + " is not found in this context");
@@ -988,8 +1029,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 	}
 
 	@Override public void VisitCommandNode(CommandNode Node) {
-		String Source = ShellConverter.Convert(Node);
-		Context.Eval(Source, 0);
+		//TODO: call GtSubProc#ExecCommandString, ExecCommandBool, ExecCommandVoid,
 	}
 
 	public void VisitEnd() {
@@ -997,9 +1037,9 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 	}
 }
 
-class EmbeddedMethodDef extends GtStatic {
+class EmbeddedFuncDef extends GtStatic {
 	private GtNameSpace NameSpace;
-	private NativeMethodMap NMMap;
+	private NativeFuncMap NMMap;
 
 	// Embedded GtType
 	final GtType VoidType;
@@ -1010,16 +1050,16 @@ class EmbeddedMethodDef extends GtStatic {
 	final GtType VarType;
 	final GtType AnyType;
 
-	public static Method LookupMethod(Object Callee, String MethodName) {
-		if(MethodName != null) {
-			// DebugP("looking up method : " + Callee.getClass().getSimpleName() + "." + MethodName);
+	public static Method LookupFunc(Object Callee, String FuncName) {
+		if(FuncName != null) {
+			// DebugP("looking up method : " + Callee.getClass().getSimpleName() + "." + FuncName);
 			Method[] methods = Callee.getClass().getMethods();
 			for(int i = 0; i < methods.length; i++) {
-				if(MethodName.equals(methods[i].getName())) {
+				if(FuncName.equals(methods[i].getName())) {
 					return methods[i];
 				}
 			}
-			DebugP("method not found: " + Callee.getClass().getSimpleName() + "." + MethodName);
+			DebugP("method not found: " + Callee.getClass().getSimpleName() + "." + FuncName);
 		}
 		return null;
 		/*throw new KonohaParserException("method not found: " + callee.getClass().getName() + "." + methodName);*/
@@ -1035,7 +1075,7 @@ class EmbeddedMethodDef extends GtStatic {
 		return paramTypeList;
 	}
 
-	public EmbeddedMethodDef(GtNameSpace NameSpace, NativeMethodMap NMMap) {
+	public EmbeddedFuncDef(GtNameSpace NameSpace, NativeFuncMap NMMap) {
 		this.NameSpace = NameSpace;
 		this.NMMap = NMMap;
 
@@ -1052,157 +1092,21 @@ class EmbeddedMethodDef extends GtStatic {
 
 	}
 
-	void RegisterMethod(int MethodFlag, String MethodName, ArrayList<GtType> ParamTypeList, Object Callee, String LocalName) {
-		GtMethod newMethod = new GtMethod(MethodFlag | NativeMethod, MethodName, 0, ParamTypeList, null);
-		GtType[] paramTypes = LangDeps.CompactTypeList(0, ParamTypeList);
-		Method mtd = LookupMethod(Callee, LocalName);
-		NMMap.PutMethodInvoker(newMethod, new NativeMethodInvoker(paramTypes, mtd));
-		NameSpace.Context.DefineMethod(newMethod);
+	void RegisterFunc(int FuncFlag, String FuncName, ArrayList<GtType> ParamTypeList, Object Callee, String LocalName) {
+		// Code generator does not need to regeister any functions (all things are controlled in parser)
+		// Add native method to GtFunc that is generated in the parser
+//		GtFunc newFunc = new GtFunc(FuncFlag | NativeFunc, FuncName, 0, ParamTypeList);
+//		GtType[] paramTypes = LangDeps.CompactTypeList(0, ParamTypeList);
+//		Method mtd = LookupFunc(Callee, LocalName);
+//		NMMap.PutFuncInvoker(newFunc, new JavaMethodInvoker(paramTypes, mtd));
+		//Code generator does not need to regeister any functions (all things are controlled in parser)
+		//NameSpace.AppendFunc(newFunc);
 	}
 
 	GtType RegisterClass(int ClassFlag, String ClassName, Object DefaultNullValue) {
 		GtType newClass = new GtType(NameSpace.Context, ClassFlag, ClassName, DefaultNullValue, null);
-		NameSpace.DefineClassSymbol(newClass);
+		NameSpace.AppendTypeName(newClass);
 		return newClass;
-	}
-}
-
-class ShellConverter {
-	private static final String ProcessClassName = "Process";
-	private static final String MonitorClassName = "ProcessMonitor";
-	private static final boolean enableMonitor = true;
-	private static int shellMethodCounter = 0;
-
-	public static String Convert(CommandNode Node) {
-		GtType StringType = Node.Type.Context.StringType;
-		boolean isExpr = Node.Type.equals(StringType);
-		String retType = isExpr ? "String" : "void";
-		String shellMethodName = "ShellMethod" + shellMethodCounter;
-		String body = CreateShellMethodBody(Node, isExpr);
-		StringBuilder srcBuilder = new StringBuilder();
-		
-		srcBuilder.append(retType + " " + shellMethodName + "(){\n\n" + body+ "\n}\n");
-		srcBuilder.append(shellMethodName + "()");
-		if(!isExpr) {
-			srcBuilder.append(";");
-		}
-		shellMethodCounter++;
-		
-		return srcBuilder.toString();
-	}
-
-	private static String CreateShellMethodBody(CommandNode Node, boolean isExpr) {
-		StringBuilder srcBuilder = new StringBuilder();
-		String monitorName = "monitor";
-		Stack<String> procNameStack = new Stack<String>();
-		
-		if(enableMonitor) {
-			srcBuilder.append(MonitorClassName + " " + monitorName + " = new " + MonitorClassName + "();\n");
-		}
-		
-		int i = 0;
-		CommandNode CurrentNode = Node;
-		while(CurrentNode != null) {
-			String procName = "p" + i;
-			srcBuilder.append(CreateProc(monitorName, procName, CurrentNode));
-			if(i == 0) {
-				srcBuilder.append(CreateInputRediret(procName, CurrentNode));
-			}
-			else if(i > 0) {
-				String preProcName = procNameStack.peek();
-				srcBuilder.append(CreatePipe(preProcName, procName));
-			}
-			i++;
-			CurrentNode = (CommandNode) CurrentNode.PipedNextNode;
-			procNameStack.push(procName);
-		}
-		srcBuilder.append(CreateOutputRediret(procNameStack.peek(), CurrentNode, isExpr));
-		if(enableMonitor) {
-			srcBuilder.append(monitorName + ".ThrowException();\n");
-		}
-		
-		return srcBuilder.toString();
-	}
-
-	private static String CreateProc(String monitorName, String procName, CommandNode CurrentNode) {
-		StringBuilder srcBuilder = new StringBuilder();
-		ArrayList<String> argList = CreateArgument(CurrentNode.Params);
-		
-		srcBuilder.append(ProcessClassName + " " + procName + " = new " + ProcessClassName + "();\n");
-		if(enableMonitor) {
-			srcBuilder.append(monitorName + ".SetProcess(" + procName + ");\n");
-		}
-		for(String arg : argList) {
-			srcBuilder.append(procName + ".SetArgument(\"" + arg + "\");\n");
-		}
-		srcBuilder.append(procName + ".Start();\n");
-		
-		return srcBuilder.toString();
-	}
-
-	private static ArrayList<String> CreateArgument(ArrayList<GtNode> nodeList) {
-		ArrayList<String> argList = new ArrayList<String>();
-		int size = nodeList.size();
-		
-		for(int i = 0; i < size; i++) {
-			GtNode node = nodeList.get(i);
-			GtType voidType = node.Type.Context.VoidType;
-			String token = node.Token.ParsedText;
-			if((token.equals("<") || token.equals(">"))
-					&& node.Type.equals(voidType)) {
-				size = i;
-				break;
-			}
-		}
-		for(int i = 0; i < size; i++) {
-			argList.add(nodeList.get(i).Token.ParsedText);
-		}
-		return argList;
-	}
-
-	private static String CreateInputRediret(String procName, CommandNode CurrentNode) {
-		String input = FindRedirect(CurrentNode.Params, true);
-		if(input != null) {
-			return procName + ".SetInputFileName(\"" + input + "\");\n";
-		}
-		return "";
-	}
-
-	private static String CreateOutputRediret(String procName, CommandNode CurrentNode, boolean isExpr) {
-		StringBuilder srcBuilder = new StringBuilder();
-		String output = FindRedirect(CurrentNode.Params, false);
-		if(output != null) {
-			srcBuilder.append(procName + ".SetOutputFileName(\"" + output + "\");\n");
-		}
-		
-		if(isExpr) {
-			srcBuilder.append(procName + ".WaitResult();\n");
-			srcBuilder.append("String out = " + procName + ".GetOut();\n");
-		}
-		else {
-			srcBuilder.append(procName + ".Console();\n");
-		}
-		
-		return srcBuilder.toString();
-	}
-
-	private static String CreatePipe(String preProcName, String procName) {
-		return preProcName + ".Pipe(" + procName + ");\n";
-	}
-
-	private static String FindRedirect(ArrayList<GtNode> nodeList, boolean isInputRedir) {
-		int size = nodeList.size();
-		String symbol = isInputRedir ? "<" : ">";
-		
-		for(int i = 0; i < size; i++) {
-			GtNode node = nodeList.get(i);
-			GtType voidType = node.Type.Context.VoidType;
-			String token = node.Token.ParsedText;
-			if(token.equals(symbol) && node.Type.equals(voidType) && i + 1 < size) {
-				return nodeList.get(i + 1).Token.ParsedText;
-			}
-		}
-		return null;
 	}
 }
 
@@ -1217,11 +1121,11 @@ class ShellConverter {
 //      //FIXME int[] only
 //      GtType BaseClass = ns.LookupHostLangType(int[].class);
 //      GtParam GetterParam = GtParam.ParseOf(ns, "int int i");
-//      BaseClass.DefineMethod(ImmutableMethod, "get", GetterParam, this, "ArrayGetter");
+//      BaseClass.DefineFunc(ImmutableFunc, "get", GetterParam, this, "ArrayGetter");
 //      GtParam SetterParam = GtParam.ParseOf(ns, "void int i int v");
-//      BaseClass.DefineMethod(0, "set", SetterParam, this, "ArraySetter");
+//      BaseClass.DefineFunc(0, "set", SetterParam, this, "ArraySetter");
 //      GtParam GetSizeParam = GtParam.ParseOf(ns, "int");
-//      BaseClass.DefineMethod(ImmutableMethod | ConstMethod, "getSize", GetSizeParam, this, "ArrayGetSize");
+//      BaseClass.DefineFunc(ImmutableFunc | ConstFunc, "getSize", GetSizeParam, this, "ArrayGetSize");
 //  }
 //
 //  public static int ArrayGetter(int[] a, int i) {
@@ -1238,60 +1142,60 @@ class ShellConverter {
 //}
 //endif VAJA
 
-//public GtMethod FindMethod(String MethodName, int ParamSize) {
+//public GtFunc FindFunc(String FuncName, int ParamSize) {
 ///*local*/int i = 0;
-//while(i < this.ClassMethodList.size()) {
-//	GtMethod Method = this.ClassMethodList.get(i);
-//	if(Method.Match(MethodName, ParamSize)) {
-//		return Method;
+//while(i < this.ClassFuncList.size()) {
+//	GtFunc Func = this.ClassFuncList.get(i);
+//	if(Func.Match(FuncName, ParamSize)) {
+//		return Func;
 //	}
 //	i += 1;
 //}
 //return null;
 //}
 //
-//public GtMethod LookupMethod(String MethodName, int ParamSize) {
-///*local*/GtMethod Method = this.FindMethod(MethodName, ParamSize);
-//if(Method != null) {
-//	return Method;
+//public GtFunc LookupFunc(String FuncName, int ParamSize) {
+///*local*/GtFunc Func = this.FindFunc(FuncName, ParamSize);
+//if(Func != null) {
+//	return Func;
 //}
-//if(this.SearchSuperMethodClass != null) {
-//	Method = this.SearchSuperMethodClass.LookupMethod(MethodName, ParamSize);
-//	if(Method != null) {
-//		return Method;
+//if(this.SearchSuperFuncClass != null) {
+//	Func = this.SearchSuperFuncClass.LookupFunc(FuncName, ParamSize);
+//	if(Func != null) {
+//		return Func;
 //	}
 //}
-//if(GtContext.Generator.CreateMethods(this.NativeSpec, MethodName)) {
-//	return this.LookupMethod(MethodName, ParamSize);
+//if(GtContext.Generator.CreateFuncs(this.NativeSpec, FuncName)) {
+//	return this.LookupFunc(FuncName, ParamSize);
 //}
 //ifdef JAVA
 //if(this.NativeSpec instanceof Class) {
-//	if(this.CreateMethods(MethodName) > 0) {
-//		return this.FindMethod(MethodName, ParamSize);
+//	if(this.CreateFuncs(FuncName) > 0) {
+//		return this.FindFunc(FuncName, ParamSize);
 //	}
 //}
 //endif JAVA
 //return null;
 //}
 //
-//public boolean DefineNewMethod(GtMethod NewMethod) {
+//public boolean DefineNewFunc(GtFunc NewFunc) {
 ///*local*/int i = 0;
-//while(i < this.ClassMethodList.size()) {
-//	/*local*/GtMethod DefinedMethod = (GtMethod) this.ClassMethodList.get(i);
-//	if(NewMethod.Match(DefinedMethod)) {
+//while(i < this.ClassFuncList.size()) {
+//	/*local*/GtFunc DefinedFunc = (GtFunc) this.ClassFuncList.get(i);
+//	if(NewFunc.Match(DefinedFunc)) {
 //		return false;
 //	}
 //	i += 1;
 //}
-//this.AddMethod(NewMethod);
+//this.AddFunc(NewFunc);
 //return true;
 //}
 //
 ////ifdef JAVA
 //
-//public void DefineMethod(int MethodFlag, String MethodName, GtParam Param, Object Callee, String LocalName) {
-//GtMethod Method = new GtMethod(MethodFlag, this, MethodName, Param, LangDeps.LookupMethod(Callee, LocalName));
-//this.AddMethod(Method);
+//public void DefineFunc(int FuncFlag, String FuncName, GtParam Param, Object Callee, String LocalName) {
+//GtFunc Func = new GtFunc(FuncFlag, this, FuncName, Param, LangDeps.LookupFunc(Callee, LocalName));
+//this.AddFunc(Func);
 //}
 //
 //public GtType(GtContext GtContext, Class<?> ClassInfo) {
@@ -1304,39 +1208,39 @@ class ShellConverter {
 //}
 //}
 //
-//static GtMethod ConvertMethod(GtContext GtContext, Method Method) {
-//GtType ThisType = GtContext.LookupHostLangType(Method.getClass());
-//Class<?>[] ParamTypes = Method.getParameterTypes();
+//static GtFunc ConvertFunc(GtContext GtContext, Func Func) {
+//GtType ThisType = GtContext.LookupHostLangType(Func.getClass());
+//Class<?>[] ParamTypes = Func.getParameterTypes();
 //GtType[] ParamData = new GtType[ParamTypes.length + 1];
 //String[] ArgNames = new String[ParamTypes.length + 1];
-//ParamData[0] = GtContext.LookupHostLangType(Method.getReturnType());
+//ParamData[0] = GtContext.LookupHostLangType(Func.getReturnType());
 //for(int i = 0; i < ParamTypes.length; i++) {
 //	ParamData[i + 1] = GtContext.LookupHostLangType(ParamTypes[i]);
 //	ArgNames[i] = "arg" + i;
 //}
 //GtParam Param = new GtParam(ParamData.length, ParamData, ArgNames);
-//GtMethod Mtd = new GtMethod(0, ThisType, Method.getName(), Param, Method);
-//ThisType.AddMethod(Mtd);
+//GtFunc Mtd = new GtFunc(0, ThisType, Func.getName(), Param, Func);
+//ThisType.AddFunc(Mtd);
 //return Mtd;
 //}
 //
-//int CreateMethods(String MethodName) {
+//int CreateFuncs(String FuncName) {
 //int Count = 0;
-//Method[] Methods = ((Class<?>)this.NativeSpec).getMethods();
-//for(int i = 0; i < Methods.length; i++) {
-//	if(MethodName.equals(Methods[i].getName())) {
-//		GtType.ConvertMethod(this.GtContext, Methods[i]);
+//Func[] Funcs = ((Class<?>)this.NativeSpec).getFuncs();
+//for(int i = 0; i < Funcs.length; i++) {
+//	if(FuncName.equals(Funcs[i].getName())) {
+//		GtType.ConvertFunc(this.GtContext, Funcs[i]);
 //		Count = Count + 1;
 //	}
 //}
 //return Count;
 //}
 //
-//public boolean RegisterCompiledMethod(GtMethod NewMethod) {
-//for(int i = 0; i < this.ClassMethodList.size(); i++) {
-//	GtMethod DefinedMethod = (GtMethod) this.ClassMethodList.get(i);
-//	if(NewMethod.Match(DefinedMethod)) {
-//		this.ClassMethodList.set(i, NewMethod);
+//public boolean RegisterCompiledFunc(GtFunc NewFunc) {
+//for(int i = 0; i < this.ClassFuncList.size(); i++) {
+//	GtFunc DefinedFunc = (GtFunc) this.ClassFuncList.get(i);
+//	if(NewFunc.Match(DefinedFunc)) {
+//		this.ClassFuncList.set(i, NewFunc);
 //		return true;
 //	}
 //}

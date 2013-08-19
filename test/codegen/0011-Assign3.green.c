@@ -1,25 +1,24 @@
 #include "GreenTea.h"
-#include "GreenTea.h"
-static int f__03(){
-   int a0 = 1;
+static int f__AD(){
+   int a__AA = 1;
    {
-      int b1 = 10;
+      int b__AB = 10;
       {
-         int c2 = 100;
+         int c__AC = 100;
          {
-            int d3 = 1000;
+            int d__AD = 1000;
             {
-               int e4 = 10000;
+               int e__AE = 10000;
                {
-                  int f5 = 100000;
+                  int f__AF = 100000;
                   {
-                     int g6 = 1000000;
+                     int g__AG = 1000000;
                      {
-                        int h7 = 10000000;
+                        int h__AH = 10000000;
                         {
-                           int i8 = 100000000;
+                           int i__AI = 100000000;
                            {
-                              return a0 + b1 + c2 + d3 + e4 + f5 + g6 + h7 + i8;
+                              return a__AA + b__AB + c__AC + d__AD + e__AE + f__AF + g__AG + h__AH + i__AI;
                            };
                         };
                      };
@@ -30,5 +29,6 @@ static int f__03(){
       };
    };
 }
-f__03();
+f__AD();
+
 

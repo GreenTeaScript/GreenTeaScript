@@ -1,13 +1,13 @@
 #include "GreenTea.h"
-#include "GreenTea.h"
-static int f__05(int a0){
-   int b1 = a0 + 10;
+static int f__AF(int a__AA){
+   int b__AB = a__AA + 10;
    {
-      int c2 = b1 + 20;
+      int c__AC = b__AB + 20;
       {
-         return c2;
+         return c__AC;
       };
    };
 }
-f__05(10);
+f__AF(10);
+
 

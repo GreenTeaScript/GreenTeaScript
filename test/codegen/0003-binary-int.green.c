@@ -1,4 +1,5 @@
 #include "GreenTea.h"
-#include "GreenTea.h"
-100 + 11;
+static void f__AD(){
+   100 + 11;
+}
 

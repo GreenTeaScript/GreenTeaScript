@@ -1,0 +1,30 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use File::Temp qw/ tempfile tempdir /;
+use File::Basename;
+
+
+if (@ARGV < 1) {
+    print("usage: $0 hoge.c [OutputFileName.exe]\n");
+    exit(1);
+}
+my $outname = $ARGV[0] . ".exe";
+if (@ARGV == 2) {
+    $outname = $ARGV[1];
+}
+
+print "Translating Greentea script to C program.\n";
+my $output = `greentea -l c $ARGV[0]`;
+my ($fh, $file) = tempfile("tmpfileXXXXXX", SUFFIX => '.c', UNLINK => 1);
+print $fh $output;
+
+my $include_path = `which greentea`;
+chomp($include_path);
+$include_path =~ s/greentea$/..\/include\//;
+print "Compiling C program.\n";
+print "gcc -I$include_path $file -o $outname -lgc\n";
+$output = `gcc -I$include_path $file -o $outname -lgc`;
+close $fh;
+print "Done.\n";

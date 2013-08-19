@@ -71,3 +71,4 @@ src/TypeScript/*.js.map
 src/TypeScript/*.js
 src/TypeScript/*.ts
 /bin
+*.exe

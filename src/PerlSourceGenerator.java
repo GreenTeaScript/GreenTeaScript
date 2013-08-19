@@ -51,37 +51,37 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitSuffixNode(SuffixNode Node) {
-		/*local*/String MethodName = Node.Token.ParsedText;
-		if(MethodName.equals("++")) {
+		/*local*/String FuncName = Node.Token.ParsedText;
+		if(FuncName.equals("++")) {
 		}
-		else if(MethodName.equals("--")) {
+		else if(FuncName.equals("--")) {
 		}
 		else {
 			//throw new RuntimeException("NotSupportOperator");
 		}
 		Node.Expr.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + MethodName);
+		this.PushSourceCode(this.PopSourceCode() + FuncName);
 	}
 
 	@Override public void VisitUnaryNode(UnaryNode Node) {
-		/*local*/String MethodName = Node.Token.ParsedText;
-		if(MethodName.equals("+")) {
+		/*local*/String FuncName = Node.Token.ParsedText;
+		if(FuncName.equals("+")) {
 		}
-		else if(MethodName.equals("-")) {
+		else if(FuncName.equals("-")) {
 		}
-		else if(MethodName.equals("~")) {
+		else if(FuncName.equals("~")) {
 		}
-		else if(MethodName.equals("!")) {
+		else if(FuncName.equals("!")) {
 		}
-		else if(MethodName.equals("++")) {
+		else if(FuncName.equals("++")) {
 		}
-		else if(MethodName.equals("--")) {
+		else if(FuncName.equals("--")) {
 		}
 		else {
 			//throw new RuntimeException("NotSupportOperator");
 		}
 		Node.Expr.Evaluate(this);
-		this.PushSourceCode(MethodName + this.PopSourceCode());
+		this.PushSourceCode(FuncName + this.PopSourceCode());
 	}
 
 	@Override public void VisitIndexerNode(IndexerNode Node) {
@@ -144,12 +144,12 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitLocalNode(LocalNode Node) {
-		this.PushSourceCode("$" + Node.LocalName);
+		this.PushSourceCode("$" + Node.NativeName);
 	}
 
 	@Override public void VisitGetterNode(GetterNode Node) {
 		Node.Expr.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + "->" + Node.Method.MethodName);
+		this.PushSourceCode(this.PopSourceCode() + "->" + Node.Func.FuncName);
 	}
 
 	private String[] EvaluateParam(ArrayList<GtNode> Params) {
@@ -166,7 +166,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
-		/*local*/String Program = Node.Method.GetNativeFuncName() + "(";
+		/*local*/String Program = Node.Func.GetNativeFuncName() + "(";
 		/*local*/String[] Params = this.EvaluateParam(Node.Params);
 		/*local*/int i = 0;
 		while(i < Params.length) {
@@ -182,43 +182,43 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitBinaryNode(BinaryNode Node) {
-		/*local*/String MethodName = Node.Token.ParsedText;
-		if(MethodName.equals("+")) {
+		/*local*/String FuncName = Node.Token.ParsedText;
+		if(FuncName.equals("+")) {
 		}
-		else if(MethodName.equals("-")) {
+		else if(FuncName.equals("-")) {
 		}
-		else if(MethodName.equals("*")) {
+		else if(FuncName.equals("*")) {
 		}
-		else if(MethodName.equals("/")) {
+		else if(FuncName.equals("/")) {
 		}
-		else if(MethodName.equals("%")) {
+		else if(FuncName.equals("%")) {
 		}
-		else if(MethodName.equals("<<")) {
+		else if(FuncName.equals("<<")) {
 		}
-		else if(MethodName.equals(">>")) {
+		else if(FuncName.equals(">>")) {
 		}
-		else if(MethodName.equals("&")) {
+		else if(FuncName.equals("&")) {
 		}
-		else if(MethodName.equals("|")) {
+		else if(FuncName.equals("|")) {
 		}
-		else if(MethodName.equals("^")) {
+		else if(FuncName.equals("^")) {
 		}
-		else if(MethodName.equals("<=")) {
+		else if(FuncName.equals("<=")) {
 		}
-		else if(MethodName.equals("<")) {
+		else if(FuncName.equals("<")) {
 		}
-		else if(MethodName.equals(">=")) {
+		else if(FuncName.equals(">=")) {
 		}
-		else if(MethodName.equals(">")) {
+		else if(FuncName.equals(">")) {
 		}
-		else if(MethodName.equals("!=")) {
-			if(Node.Method.GetRecvType() == this.Context.StringType) {
-				MethodName = "ne";
+		else if(FuncName.equals("!=")) {
+			if(Node.Func.GetRecvType() == this.Context.StringType) {
+				FuncName = "ne";
 			}
 		}
-		else if(MethodName.equals("==")) {
-			if(Node.Method.GetRecvType() == this.Context.StringType) {
-				MethodName = "eq";
+		else if(FuncName.equals("==")) {
+			if(Node.Func.GetRecvType() == this.Context.StringType) {
+				FuncName = "eq";
 			}
 		}
 		else {
@@ -226,7 +226,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		}
 		Node.RightNode.Evaluate(this);
 		Node.LeftNode.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + " " + MethodName + " " + this.PopSourceCode());
+		this.PushSourceCode(this.PopSourceCode() + " " + FuncName + " " + this.PopSourceCode());
 	}
 
 	@Override public void VisitAndNode(AndNode Node) {
@@ -354,17 +354,17 @@ public class PerlSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void GenerateMethod(GtMethod Method, ArrayList<String> ParamNameList, GtNode Body) {
+	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
 		/*local*/String Program = "";
-		/*local*/String RetTy = Method.GetReturnType().ShortClassName;
-		/*local*/String FuncName = Method.GetNativeFuncName();
+		/*local*/String RetTy = Func.GetReturnType().ShortClassName;
+		/*local*/String FuncName = Func.GetNativeFuncName();
 		/*local*/String Signature = "# ";
 		/*local*/String Arguments = "";
 		Signature += RetTy + " " + FuncName + "(";
 		this.Indent();
 		/*local*/int i = 0;
 		while(i < ParamNameList.size()) {
-			String ParamTy = Method.GetFuncParamType(i).ShortClassName;
+			String ParamTy = Func.GetFuncParamType(i).ShortClassName;
 			Signature += " ," + ParamTy + " " + ParamNameList.get(i);
 			Arguments += this.GetIndentString() + "my $" + ParamNameList.get(i) + " = $_[" + i + "];\n";
 			i = i + 1;
