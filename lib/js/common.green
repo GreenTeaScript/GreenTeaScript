@@ -1,0 +1,28 @@
+int +(int x) as "$0";
+int -(int x) as "-$0";
+// int ~(int x) as "~$0";
+int +(int x, int y)      as "$0 + $1";
+int -(int x, int y)      as "$0 - $1";
+int *(int x, int y)      as "$0 * $1";
+int /(int x, int y)      as "$0 / $1";
+int %(int x, int y)      as "$0 % $1";
+// int <<(int x, int y)     as "$0 << $1";
+// int >>(int x, int y)     as "$0 >> $1";
+// int ^(int x, int y)      as "$0 ^ $1";
+// int |(int x, int y)      as "$0 | $1";
+// int &(int x, int y)      as "$0 & $1";
+boolean <(int x,  int y) as "$0 < $1";
+boolean <=(int x, int y) as "$0 <= $1";
+boolean >(int x,  int y) as "$0 > $1";
+boolean >=(int x, int y) as "$0 >= $1";
+boolean ==(int x, int y) as "$0 == $1";
+boolean !=(int x, int y) as "$0 != $1";
+
+String +(String x, String y)      as "$0 + $1";
+
+boolean ==(any x, any y) as "$0 == $1";
+boolean !=(any x, any y) as "$0 != $1";
+
+void print(String x) as "console.log($0)";
+void println(String x) as "console.log($0)";
+void assert(boolean x) as "assert($0)";
