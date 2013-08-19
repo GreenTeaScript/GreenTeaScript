@@ -2171,9 +2171,10 @@ final class DScriptGrammar extends GtGrammar {
 				if(PolyFunc == null) {
 					return Gamma.CreateSyntaxErrorNode(ParsedTree, "no constructor: " + ClassType);
 				}
+				NodeList.set(0, Gamma.Generator.CreateNullNode(ClassType, ParsedTree));
 				ResolvedFunc = PolyFunc.ResolveFunc(Gamma, ParsedTree, 1, NodeList);
 				if(ResolvedFunc == null) {
-					
+					Gamma.Context.ReportError(TypeErrorLevel, ParsedTree.KeyToken, "mismatched : constructor" + PolyFunc);
 				}
 				/*local*/GtNode NewNode = Gamma.Generator.CreateNewNode(ClassType, ParsedTree, ResolvedFunc);
 				NewNode.AppendNodeList(NodeList);
