@@ -3111,7 +3111,8 @@ final class GtClassContext extends GtStatic {
 		this.ClassCount = 0;
 		this.FuncCount = 0;
 		this.Stat = new GtStat();
-
+		this.ReportedErrorList = new ArrayList<String>();
+		
 		this.TopType     = new GtType(this, 0, "top", null, null);               //  unregistered
 		this.StructType  = this.TopType.CreateSubType(0, "record", null, null);  //  unregistered
 		this.EnumType    = this.TopType.CreateSubType(EnumClass, "enum", null, null);    //  unregistered
@@ -3142,7 +3143,6 @@ final class GtClassContext extends GtStatic {
 		Grammar.LoadTo(this.RootNameSpace);
 		this.TopLevelNameSpace = new GtNameSpace(this, this.RootNameSpace);
 		this.Generator.InitContext(this);
-		this.ReportedErrorList = new ArrayList<String>();
 	}
 
 	public void LoadGrammar(GtGrammar Grammar) {

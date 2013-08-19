@@ -24,7 +24,11 @@ $(function () {
 			var error = Context.GetReportedErrors().join("<br>");
 			$("#editor-error").html(error.length == 0 ? "No Error" : error);
 		}catch(e){
-			$("#editor-error").text(e.toString());
+			var error = e.toString();
+			if(Context){
+				error = error + "<br>----<br>" + Context.GetReportedErrors().join("<br>");
+			}
+			$("#editor-error").text(error);
 			editor_js.setValue("");
 			throw e;
 		}
