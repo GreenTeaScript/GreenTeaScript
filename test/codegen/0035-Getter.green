@@ -1,0 +1,24 @@
+class X {
+    int a;
+}
+
+class Y extends X {
+    int b;
+    int c;
+}
+
+int f(X x) {
+    return x.a;
+}
+
+int g0(Y y) {
+    return y.a;
+}
+
+int g1(Y y) {
+    return y.b;
+}
+
+int g2(Y y) {
+    return y.c;
+}

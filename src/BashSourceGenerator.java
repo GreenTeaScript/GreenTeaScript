@@ -41,15 +41,14 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.WriteLineHeader("#!/bin/bash");
 	}
 	
-	public void VisitBlockWithIndent(GtNode Node, boolean inBlock) {
+	public String VisitBlockWithIndent(GtNode Node, boolean inBlock) {
 		/*local*/String Code = "";
 		if(inBlock) {
 			this.Indent();
 		}
 		/*local*/GtNode CurrentNode = Node;
 		while(CurrentNode != null) {
-			CurrentNode.Evaluate(this);
-			/*local*/String poppedCode = this.PopSourceCode();
+			/*local*/String poppedCode = this.VisitNode(CurrentNode);
 			if(!poppedCode.equals("")) {
 				Code += this.GetIndentString() + poppedCode + this.LineFeed;
 			}
@@ -64,16 +63,14 @@ public class BashSourceGenerator extends SourceGenerator {
 				Code = Code.substring(0, Code.length() - 1);
 			}
 		}
-		this.PushSourceCode(Code);
+		return Code;
 	}
 
 	@Override public void VisitEmptyNode(GtNode Node) {
 	}
 
 	@Override public void VisitIndexerNode(IndexerNode Node) {
-		Node.IndexAt.Evaluate(this);
-		Node.Expr.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + "[" + this.PopSourceCode() + "]");
+		this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + this.VisitNode(Node.IndexAt) + "]");
 	}
 
 	@Override public void VisitMessageNode(MessageNode Node) {
@@ -81,50 +78,38 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitWhileNode(WhileNode Node) {
-		Node.CondExpr.Evaluate(this);
-		/*local*/String Program = "while " + this.PopSourceCode() + " ;do" + this.LineFeed;
-		this.VisitBlockWithIndent(Node.LoopBody, true);
-		Program += this.PopSourceCode() + "done";
+		/*local*/String Program = "while " + this.VisitNode(Node.CondExpr) + " ;do" + this.LineFeed;
+		Program += this.VisitBlockWithIndent(Node.LoopBody, true) + "done";
 		this.PushSourceCode(Program);
 	}
 
 	@Override public void VisitDoWhileNode(DoWhileNode Node) {
-		this.VisitBlockWithIndent(Node.LoopBody, true);
-		/*local*/String LoopBody = this.PopSourceCode();
+		/*local*/String LoopBody = this.VisitBlockWithIndent(Node.LoopBody, true);
 		/*local*/String Program = "if true ;then" + this.LineFeed + LoopBody + "fi" + this.LineFeed;
-		Node.CondExpr.Evaluate(this);
-		Program += "while " + this.PopSourceCode() + " ;do" + this.LineFeed;
+		Program += "while " + this.VisitNode(Node.CondExpr) + " ;do" + this.LineFeed;
 		Program += LoopBody + "done";
 		this.PushSourceCode(Program);
 	}
 
 	@Override public void VisitForNode(ForNode Node) {
-		Node.IterExpr.Evaluate(this);
-		Node.CondExpr.Evaluate(this);
-		/*local*/String Cond = this.PopSourceCode();
-		/*local*/String Iter = this.PopSourceCode();
-		
+		/*local*/String Cond = this.VisitNode(Node.CondExpr);
+		/*local*/String Iter = this.VisitNode(Node.IterExpr);
 		/*local*/String Program = "for((; " + Cond  + "; " + Iter + " )) ;do" + this.LineFeed;
-		this.VisitBlockWithIndent(Node.LoopBody, true);
-		Program += this.PopSourceCode() + "done";
+		Program += this.VisitBlockWithIndent(Node.LoopBody, true) + "done";
 		this.PushSourceCode(Program);
 	}
 
 	@Override public void VisitForEachNode(ForEachNode Node) {
-		Node.IterExpr.Evaluate(this);
-		Node.Variable.Evaluate(this);
-		/*local*/String Variable = this.PopSourceCode();
-		/*local*/String Iter = this.PopSourceCode();
+		/*local*/String Variable = this.VisitNode(Node.Variable);
+		/*local*/String Iter = this.VisitNode(Node.IterExpr);
 		
 		/*local*/String Program = "for " + Variable + " in " + "${" + Iter + "[@]} ;do" + this.LineFeed;
-		this.VisitBlockWithIndent(Node.LoopBody, true);
-		Program += this.PopSourceCode() + "done";
+		Program += this.VisitBlockWithIndent(Node.LoopBody, true) + "done";
 		this.PushSourceCode(Program);
 	}
 
 	@Override public void VisitConstNode(ConstNode Node) {
 		/*local*/String value = this.StringfyConstValue(Node.ConstValue);
-
 		if(Node.Type.equals(Node.Type.Context.BooleanType)) {
 			if(value.equals("true")) {
 				value = "0";
@@ -150,7 +135,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitGetterNode(GetterNode Node) {
-		// not support
+		this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + Node.Func.FuncName + "]");
 	}
 	
 	protected String[] MakeParamCode(ArrayList<GtNode> ParamList) {
@@ -159,8 +144,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/int i = 1;
 		while(i < Size) {
 			/*local*/GtNode Node = ParamList.get(i);
-			Node.Evaluate(this);
-			ParamCode[Size - i - 1] = this.ResolveValueType(Node, this.PopSourceCode());
+			ParamCode[Size - i - 1] = this.ResolveValueType(Node);
 			i = i + 1;
 		}
 		return ParamCode;
@@ -205,8 +189,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		else {
 			LangDeps.DebugP(FuncName + " is not supported suffix operator!!");
 		}
-		Node.Expr.Evaluate(this);
-		this.PushSourceCode("((" + this.PopSourceCode() + FuncName + "))");
+		this.PushSourceCode("((" + this.VisitNode(Node.Expr) + FuncName + "))");
 	}
 
 	@Override public void VisitUnaryNode(UnaryNode Node) {
@@ -226,18 +209,17 @@ public class BashSourceGenerator extends SourceGenerator {
 		else {
 			LangDeps.DebugP(FuncName + " is not supported unary operator!!");
 		}
-		Node.Expr.Evaluate(this);
-		this.PushSourceCode("((" + FuncName + this.PopSourceCode() + "))");
+		this.PushSourceCode("((" + FuncName + this.VisitNode(Node.Expr) + "))");
 	}
 
 	@Override public void VisitBinaryNode(BinaryNode Node) {
 		/*local*/String FuncName = Node.Token.ParsedText;
+		/*local*/String Left = this.ResolveValueType(Node.LeftNode);
+		/*local*/String Right = this.ResolveValueType(Node.RightNode);
+		
 		if(Node.Type.equals(Node.Type.Context.StringType)) {
-			Node.RightNode.Evaluate(this);
-			Node.LeftNode.Evaluate(this);
-
 			if(FuncName.equals("+")) {
-				this.PushSourceCode(this.PopSourceCode() + this.PopSourceCode());
+				this.PushSourceCode(Left + Right);
 				return;
 			}
 			else if(FuncName.equals("!=")) {
@@ -247,12 +229,7 @@ public class BashSourceGenerator extends SourceGenerator {
 			else {
 				LangDeps.DebugP(FuncName + " is not supported binary operator!!");
 			}
-
-			Node.RightNode.Evaluate(this);
-			Node.LeftNode.Evaluate(this);
-			/*local*/String left = this.ResolveValueType(Node.LeftNode, this.PopSourceCode());
-			/*local*/String right = this.ResolveValueType(Node.RightNode, this.PopSourceCode());
-			this.PushSourceCode("((" + this.PopSourceCode() + " " + left  + " " + right + "))");
+			this.PushSourceCode("((" + Left + " " + FuncName + " " + Right + "))");
 			return;
 		}
 
@@ -291,66 +268,55 @@ public class BashSourceGenerator extends SourceGenerator {
 		else {
 			LangDeps.DebugP(FuncName + " is not supported binary operator!!");
 		}
-
-		Node.RightNode.Evaluate(this);
-		Node.LeftNode.Evaluate(this);
-		/*local*/String left = this.ResolveValueType(Node.LeftNode, this.PopSourceCode());
-		/*local*/String right = this.ResolveValueType(Node.RightNode, this.PopSourceCode());
 		
 //		if(Node.Type.equals(Node.Type.Context.Float)) {	// support float value
-//			this.PushSourceCode("(echo \"scale=10; " + left + " " + FuncName + " " + right + "\" | bc)");
+//			this.PushSourceCode("(echo \"scale=10; " + Left + " " + FuncName + " " + Right + "\" | bc)");
 //			return;
-//		}
-		
-		this.PushSourceCode("((" + left + " " + FuncName + " " + right + "))");
+//		}	
+		this.PushSourceCode("((" + Left  + " " + FuncName + " " + Right + "))");
 	}
 
 	@Override public void VisitAndNode(AndNode Node) {
-		Node.RightNode.Evaluate(this);
-		Node.LeftNode.Evaluate(this);
-		this.PushSourceCode("(" + this.PopSourceCode() + " && " + this.PopSourceCode() + ")");
+		this.PushSourceCode("(" + this.VisitNode(Node.LeftNode) + " && " + this.VisitNode(Node.RightNode) + ")");
 	}
 
 	@Override public void VisitOrNode(OrNode Node) {
-		Node.RightNode.Evaluate(this);
-		Node.LeftNode.Evaluate(this);
-		this.PushSourceCode("(" + this.PopSourceCode() + " || " + this.PopSourceCode() + ")");
+		this.PushSourceCode("(" + this.VisitNode(Node.LeftNode) + " || " + this.VisitNode(Node.RightNode) + ")");
 	}
 
 	@Override public void VisitAssignNode(AssignNode Node) {
-		Node.RightNode.Evaluate(this);
-		Node.LeftNode.Evaluate(this);
-		/*local*/String left = this.PopSourceCode();
-		/*local*/String code = this.PopSourceCode();
-		/*local*/String right = this.ResolveValueType(Node.RightNode, code);
-
-		this.PushSourceCode(left + "=" + right);
+		/*local*/String Left = this.VisitNode(Node.LeftNode);
+		/*local*/String Right = this.ResolveValueType(Node.RightNode);
+		/*local*/String Head = "";
+		if(Node.LeftNode instanceof GetterNode) {
+			Head = "eval ";
+		}
+		this.PushSourceCode(Head + Left + "=" + Right);
 	}
 
 	@Override public void VisitLetNode(LetNode Node) {
 		/*local*/String VarName = Node.VariableName;
 		/*local*/String Code = "";
+		/*local*/String Head = "";
 		if(this.inFunc) {
 			Code += "local " + VarName + this.LineFeed + this.GetIndentString();
 		}
-		Code += VarName;
-		if(Node.InitNode != null) {
-			Node.InitNode.Evaluate(this);
-			Code += "=" + this.ResolveValueType(Node.InitNode, this.PopSourceCode());
+		
+		if(Node.InitNode != null && Node.InitNode instanceof GetterNode) {
+			Head = "eval ";
 		}
+		Code += Head + VarName;
+		if(Node.InitNode != null) {
+			Code += "=" + this.ResolveValueType(Node.InitNode);
+		} 
 		Code +=  this.LineFeed;
-		this.VisitBlockWithIndent(Node.BlockNode, false);
-		this.PushSourceCode(Code + this.PopSourceCode());
+		this.PushSourceCode(Code + this.VisitBlockWithIndent(Node.BlockNode, false));
 	}
 
 	@Override public void VisitIfNode(IfNode Node) {
-		Node.CondExpr.Evaluate(this);
-		this.VisitBlockWithIndent(Node.ThenNode, true);
-		this.VisitBlockWithIndent(Node.ElseNode, true);
-		
-		/*local*/String ElseBlock = this.PopSourceCode();
-		/*local*/String ThenBlock = this.PopSourceCode();
-		/*local*/String CondExpr = this.PopSourceCode();
+		/*local*/String CondExpr = this.VisitNode(Node.CondExpr);
+		/*local*/String ThenBlock = this.VisitBlockWithIndent(Node.ThenNode, true);
+		/*local*/String ElseBlock = this.VisitBlockWithIndent(Node.ElseNode, true);
 		/*local*/String Code = "if " + CondExpr + " ;then" + this.LineFeed + ThenBlock;
 		if(Node.ElseNode != null) {
 			Code += "else" + this.LineFeed + ElseBlock;
@@ -364,13 +330,11 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitReturnNode(ReturnNode Node) {
 		if(this.inFunc && Node.Expr != null) {
-			Node.Expr.Evaluate(this);
-			/*local*/String expr = this.PopSourceCode();
-			/*local*/String ret = this.ResolveValueType(Node.Expr, expr);
+			/*local*/String Ret = this.ResolveValueType(Node.Expr);
 			if(Node.Expr instanceof ApplyNode || Node.Expr instanceof CommandNode) {
 				if(Node.Type.equals(Node.Type.Context.BooleanType) || 
 						Node.Type.equals(Node.Type.Context.IntType)) {
-					/*local*/String Code = "local value=" + ret + this.LineFeed;
+					/*local*/String Code = "local value=" + Ret + this.LineFeed;
 					Code += this.GetIndentString() + "local ret=$?" + this.LineFeed;
 					Code += this.GetIndentString() + "echo $value" + this.LineFeed;
 					Code += this.GetIndentString() + "return $ret" + this.LineFeed;
@@ -378,7 +342,7 @@ public class BashSourceGenerator extends SourceGenerator {
 					return;
 				}
 			}
-			this.PushSourceCode("echo " + ret + this.LineFeed + this.GetIndentString() + "return 0");
+			this.PushSourceCode("echo " + Ret + this.LineFeed + this.GetIndentString() + "return 0");
 		}
 	}
 
@@ -447,8 +411,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/int size = CurrentNode.Params.size();
 		/*local*/int i = 0;
 		while(i < size) {
-			CurrentNode.Params.get(i).Evaluate(this);
-			Code += this.PopSourceCode() + " ";
+			Code += this.VisitNode(CurrentNode.Params.get(i)) + " ";
 			i = i + 1;
 		}
 		return Code;
@@ -495,37 +458,37 @@ public class BashSourceGenerator extends SourceGenerator {
 		return Let;
 	}
 
-	private String ResolveValueType(GtNode TargetNode, String value) {
-		/*local*/String resolvedValue;
+	private String ResolveValueType(GtNode TargetNode) {
+		/*local*/String ResolvedValue;
+		/*local*/String Value = this.VisitNode(TargetNode);
 		
 		if(TargetNode instanceof ConstNode || TargetNode instanceof NullNode) {
-			resolvedValue = value;
+			ResolvedValue = Value;
 		}
-		else if(TargetNode instanceof IndexerNode) {
-			resolvedValue = "${" + value + "}";
+		else if(TargetNode instanceof IndexerNode || TargetNode instanceof GetterNode) {
+			ResolvedValue = "${" + Value + "}";
 		}
 		else if(TargetNode instanceof ApplyNode || TargetNode instanceof CommandNode) {
-			resolvedValue = "$(" + value + ")";
+			ResolvedValue = "$(" + Value + ")";
 		}
 		else {
-			resolvedValue = "$" + value;
+			ResolvedValue = "$" + Value;
 		}
-		return resolvedValue;
+		return ResolvedValue;
 	}
 
 	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
 		/*local*/String Function = "function ";
 		this.inFunc = true;
 		Function += Func.GetNativeFuncName() + "() {" + this.LineFeed;
-		this.VisitBlockWithIndent(this.ResolveParamName(ParamNameList, Body), true);
-		Function += this.PopSourceCode() + "}" + this.LineFeed;
+		/*local*/String Block = this.VisitBlockWithIndent(this.ResolveParamName(ParamNameList, Body), true);
+		Function += Block + "}" + this.LineFeed;
 		this.WriteLineCode(Function);
 		this.inFunc = false;
 	}
 
 	@Override public Object Eval(GtNode Node) {
-		this.VisitBlockWithIndent(Node, false);
-		/*local*/String Code = this.PopSourceCode();
+		/*local*/String Code = this.VisitBlockWithIndent(Node, false);
 		if(Code.equals("")) {
 			return "";
 		}

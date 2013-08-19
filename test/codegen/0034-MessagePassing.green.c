@@ -1,7 +1,7 @@
 #include "GreenTea.h"
 typedef struct X *X;
 struct X {
-   record __base;
+   struct record __base;
 };
 static int hello__AMAF(X this__AA, int x__AB){
    ;
