@@ -885,9 +885,9 @@ class GtFunc extends GtStatic {
 	/*field*/public GtType[]		Types;
 	/*field*/private GtType         FuncType;
 	/*field*/public GtFunc        ListedFuncs;
-	/*field*/public Object          NativeRef;
+	/*field*/public Object          NativeRef;  // Abstract function if null 
 
-	GtFunc/*constructor*/(int FuncFlag, String FuncName, int BaseIndex, ArrayList<GtType> ParamList, Object NativeRef) {
+	GtFunc/*constructor*/(int FuncFlag, String FuncName, int BaseIndex, ArrayList<GtType> ParamList) {
 		this.FuncFlag = FuncFlag;
 		this.FuncName = FuncName;
 //		this.FuncSymbolId = GtStatic.GetSymbolId(FuncName, CreateNewSymbolId);
@@ -895,7 +895,7 @@ class GtFunc extends GtStatic {
 		LangDeps.Assert(this.Types.length > 0);
 		this.ListedFuncs = null;
 		this.FuncType = null;
-		this.NativeRef = NativeRef;
+		this.NativeRef = null;
 		this.MangledName = GtStatic.MangleFuncName(this.GetRecvType(), this.FuncName, BaseIndex+2, ParamList);
 	}
 
@@ -956,12 +956,40 @@ class GtFunc extends GtStatic {
 	public final int GetMethodParamSize() {
 		return this.Types.length - 2;
 	}
+		
+	public final boolean EqualsParamTypes(int BaseIndex, GtType[] ParamTypes) {
+		if(this.Types.length == ParamTypes.length) {
+			/*local*/int i = BaseIndex;
+			while(i < this.Types.length) {
+				if(this.Types[i] != ParamTypes[i]) {
+					return false;
+				}
+				i = i + 1;
+			}
+			return true;
+		}
+		return false;
+	}
+
+	public final boolean EqualsType(GtFunc AFunc) {
+		return this.EqualsParamTypes(0, this.Types);
+	}
+
+	public final boolean IsAbstract() {
+		return this.NativeRef == null;
+	}
+	
+	public final void SetNativeMacro(String NativeMacro) {
+		LangDeps.Assert(this.NativeRef == null);
+		this.FuncFlag |= NativeMacroFunc;
+		this.NativeRef = NativeMacro;
+	}
 	
 	public final String GetNativeMacro() {
 		return (/*cast*/String)this.NativeRef;
 	}
 
-	public String ApplyNativeMacro(int BaseIndex, String[] ParamCode) {
+	public final String ApplyNativeMacro(int BaseIndex, String[] ParamCode) {
 		/*local*/String NativeMacro = IsFlag(this.FuncFlag, NativeMacroFunc) ? (/*cast*/String)this.NativeRef : "$0 " + this.FuncName + " $1";
 		/*local*/String Code = NativeMacro.replace("$0", ParamCode[BaseIndex]);
 		if(ParamCode.length == BaseIndex + 1) {
@@ -973,20 +1001,12 @@ class GtFunc extends GtStatic {
 		return Code;
 	}
 
-	public final boolean EqualsType(GtFunc AFunc) {
-		if(AFunc.Types.length == this.Types.length) {
-			/*local*/int i = 0;
-			while(i < this.Types.length) {
-				if(this.Types[i] != AFunc.Types[i]) {
-					return false;
-				}
-				i = i + 1;
-			}
-			return true;
-		}
-		return false;
+	public final void SetNativeMethod(int OptionalFuncFlag, Object Method) {
+		LangDeps.Assert(this.NativeRef == null);
+		this.FuncFlag |= NativeFunc | OptionalFuncFlag;
+		this.NativeRef = Method;
 	}
-	
+		
 }
 
 class GtPolyFunc extends GtStatic {
@@ -1100,7 +1120,7 @@ class GtPolyFunc extends GtStatic {
 						continue;
 					}
 					GtFunc TypeCoercion = Gamma.NameSpace.GetCoercionFunc(Node.Type, ParamType, true);
-					if(TypeCoercion != null && TypeCoercion.Is(ImplicitFunc)) {
+					if(TypeCoercion != null) {
 						if(Coercions == null) {
 							Coercions = new GtNode[NodeList.size()];
 						}
@@ -1145,7 +1165,7 @@ class GtPolyFunc extends GtStatic {
 			/*local*/GtFunc Func = this.FuncList.get(i);
 			if(Func.GetFuncParamSize() == 2 && Func.Types[1].Accept(BinaryNodes[0].Type)) {
 				GtFunc TypeCoercion = Gamma.NameSpace.GetCoercionFunc(BinaryNodes[1].Type, Func.Types[2], true);
-				if(TypeCoercion != null && TypeCoercion.Is(ImplicitFunc)) {
+				if(TypeCoercion != null) {
 					BinaryNodes[1] = Gamma.CreateCoercionNode(Func.Types[2], TypeCoercion, BinaryNodes[1]);
 					return Func;
 				}
@@ -1332,24 +1352,25 @@ class GtGenerator extends GtStatic {
 		boolean TransformedResult = false;
 //ifdef JAVA
 		Class<?> NativeClassInfo = (Class<?>)NativeBaseType.NativeSpec;
-		Method[] List = NativeClassInfo.getMethods();
-		if(List != null) {
-			for(int i = 0; i < List.length; i++) {
-				if(FuncName.equals(List[i].getName())) {
+		Method[] Methods = NativeClassInfo.getMethods();
+		if(Methods != null) {
+			for(int i = 0; i < Methods.length; i++) {
+				if(FuncName.equals(Methods[i].getName())) {
 					int FuncFlag = NativeFunc;
-					if(Modifier.isStatic(List[i].getModifiers())) {
+					if(Modifier.isStatic(Methods[i].getModifiers())) {
 						FuncFlag |= NativeStaticFunc;
 					}
 					ArrayList<GtType> TypeList = new ArrayList<GtType>();
-					TypeList.add(this.GetNativeType(List[i].getReturnType()));
+					TypeList.add(this.GetNativeType(Methods[i].getReturnType()));
 					TypeList.add(NativeBaseType);
-					Class<?>[] ParamTypes = List[i].getParameterTypes();
+					Class<?>[] ParamTypes = Methods[i].getParameterTypes();
 					if(ParamTypes != null) {
-						for(int j = 0; j < List.length; j++) {
+						for(int j = 0; j < Methods.length; j++) {
 							TypeList.add(this.GetNativeType(ParamTypes[j]));
 						}
 					}
-					GtFunc NativeFunc = new GtFunc(FuncFlag, FuncName, 0, TypeList, List[i]);
+					GtFunc NativeFunc = new GtFunc(FuncFlag, FuncName, 0, TypeList);
+					NativeFunc.SetNativeMethod(FuncFlag, Methods[i]);
 					NativeBaseType.Context.RootNameSpace.AppendMethod(NativeBaseType, NativeFunc);
 					TransformedResult = false;
 				}
@@ -1384,8 +1405,8 @@ class GtGenerator extends GtStatic {
 		return FuncFlag;
 	}
 
-	public GtFunc CreateFunc(int FuncFlag, String FuncName, int BaseIndex, ArrayList<GtType> TypeList, Object NativeRef) {
-		return new GtFunc(FuncFlag, FuncName, BaseIndex, TypeList, NativeRef);
+	public GtFunc CreateFunc(int FuncFlag, String FuncName, int BaseIndex, ArrayList<GtType> TypeList) {
+		return new GtFunc(FuncFlag, FuncName, BaseIndex, TypeList);
 	}
 
 	public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {

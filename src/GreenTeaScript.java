@@ -39,8 +39,8 @@ interface GtConst {
 	public final static int     OpenClass                       = 1 << 4;
 
 	// FuncFlag
-	public final static int		ExportFunc		    = 1 << 0;
-	public final static int		AbstractFunc		= 1 << 1;
+	public final static int     PublicFunc          = 1 << 0;
+	public final static int		ExportFunc		    = 1 << 1;
 	public final static int		VirtualFunc		    = 1 << 2;
 	public final static int		NativeFunc		    = 1 << 3;
 	public final static int		NativeStaticFunc	= 1 << 4;
@@ -48,21 +48,7 @@ interface GtConst {
 	public final static int		NativeVariadicFunc	= 1 << 6;
 	public final static int		DynamicFunc		    = 1 << 7;
 	public final static int		ConstFunc			= 1 << 8;
-	public final static int     ImplicitFunc        = 1 << 9;  // used for implicit cast
-
-//	public final static int		SymbolMaskSize					= 3;
-//	public final static int		LowerSymbolMask					= 1;
-//	public final static int		GetterSymbolMask				= (1 << 1);
-//	public final static int		SetterSymbolMask				= (1 << 2);
-//	public final static int		MetaSymbolMask					= (GetterSymbolMask | SetterSymbolMask);
-//	public final static String	GetterPrefix					= "Get";
-//	public final static String	SetterPrefix					= "Set";
-//	public final static String	MetaPrefix						= "\\";
-//	public final static String	GlobalConstName					= "global";
-//	public final static ArrayList<String> SymbolList = new ArrayList<String>();
-//	public final static GtMap   SymbolMap  = new GtMap();
-//	public final static int		CreateNewSymbolId				= -1;
-//	public final static int		BreakPreProcess					= -1;
+//	public final static int		AbstractFunc		= 1 << 2;
 
 	public final static int		NoMatch							= -1;
 	public final static boolean Optional = true;
@@ -1392,7 +1378,7 @@ final class GtTypeEnv extends GtStatic {
 			return Node;
 		}
 		GtFunc Func = ParsedTree.NameSpace.GetCoercionFunc(Node.Type, Type, true);
-		if(Func != null && (IsFlag(TypeCheckPolicy, CastPolicy) || Func.Is(ImplicitFunc))) {
+		if(Func != null && IsFlag(TypeCheckPolicy, CastPolicy)) {
 			GtNode ApplyNode = this.Generator.CreateApplyNode(Type, ParsedTree, Func);
 			ApplyNode.Append(Node);
 			return ApplyNode;
@@ -1558,9 +1544,9 @@ final class GtNameSpace extends GtStatic {
 	}
 
 	public final GtPolyFunc GetMethod(GtType ClassType, String Symbol, boolean RecursiveSearch) {
-		GtPolyFunc PolyFunc = null;
+		/*local*/GtPolyFunc PolyFunc = null;
 		while(ClassType != null) {
-			String Key = ClassSymbol(ClassType, Symbol);
+			/*local*/String Key = ClassSymbol(ClassType, Symbol);
 			PolyFunc = GtStatic.JoinPolyFunc(ClassType, PolyFunc, this.GetSymbol(Key));
 			ClassType = ClassType.SuperType;
 			if(!RecursiveSearch) {
@@ -1575,6 +1561,28 @@ final class GtNameSpace extends GtStatic {
 		return this.Context.RootNameSpace.GetMethod(ClassType, "", false);
 	}
 
+	public final GtFunc GetFuncParam(String FuncName, int BaseIndex, GtType[] ParamTypes) {
+		/*local*/Object FuncValue = this.GetSymbol(FuncName);
+		if(FuncValue instanceof GtFunc) {
+			/*local*/GtFunc Func = (/*cast*/GtFunc)FuncValue;
+			if(Func.EqualsParamTypes(BaseIndex, ParamTypes)) {
+				return Func;
+			}
+		}
+		else if(FuncValue instanceof GtPolyFunc) {
+			/*local*/GtPolyFunc PolyFunc = (/*cast*/GtPolyFunc)FuncValue;
+			/*local*/int i = PolyFunc.FuncList.size();
+			while(i >= 0) {
+				if(PolyFunc.FuncList.get(i).EqualsParamTypes(BaseIndex, ParamTypes)) {
+					return PolyFunc.FuncList.get(i);
+				}
+				i = i - 1;
+			}
+		}
+		return null;
+	}
+
+	
 	public final Object AppendFuncName(String Key, GtFunc Func) {
 		/*local*/Object OldValue = this.GetSymbol(Key);
 		if(OldValue instanceof GtFunc) {
@@ -2745,68 +2753,46 @@ final class DScriptGrammar extends GtGrammar {
 			i = i + 1;
 		}
 		/*local*/GtFunc DefinedFunc = null;
-		/*local*/String NativeMacro =  (/*cast*/String)ParsedTree.ConstValue;
-		if(NativeMacro != null) {
-			FuncFlag |= NativeMacroFunc;
-		}
-		if(NativeMacro == null && !ParsedTree.HasNodeAt(FuncDeclBlock)) {
-			FuncFlag |= AbstractFunc;
-		}
 		if(FuncName.equals("converter")) {
-			DefinedFunc = DScriptGrammar.CreateConverterFunc(Gamma, ParsedTree, FuncFlag, TypeList);
+			DefinedFunc = DScriptGrammar.CreateCoercionFunc(Gamma, ParsedTree, FuncFlag, 0, TypeList);
 		}
 		else {
-			DefinedFunc = DScriptGrammar.CreateFunc(Gamma, ParsedTree, FuncFlag, FuncName, TypeList, NativeMacro);
+			DefinedFunc = DScriptGrammar.CreateFunc(Gamma, ParsedTree, FuncFlag, FuncName, 0, TypeList);
 		}
-		if(DefinedFunc != null && NativeMacro == null && ParsedTree.HasNodeAt(FuncDeclBlock)) {
+		if(ParsedTree.ConstValue instanceof String) {
+			DefinedFunc.SetNativeMacro((/*cast*/String)ParsedTree.ConstValue);
+		}
+		else if(ParsedTree.HasNodeAt(FuncDeclBlock)) {
+			Gamma.Func = DefinedFunc;
 			/*local*/GtNode BodyNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(FuncDeclBlock), ReturnType);
 			Gamma.Generator.GenerateFunc(DefinedFunc, ParamNameList, BodyNode);
 		}
 		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
 	}
 
-	private static GtFunc CreateConverterFunc(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, int FuncFlag, ArrayList<GtType> TypeList) {
+	private static GtFunc CreateCoercionFunc(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, int FuncFlag, int BaseIndex, ArrayList<GtType> TypeList) {
 		/*local*/GtType ToType = TypeList.get(0);
 		/*local*/GtType FromType = TypeList.get(1);
 		/*local*/GtFunc Func = ParsedTree.NameSpace.GetCoercionFunc(FromType, ToType, false);
 		if(Func != null) {
 			Gamma.Context.ReportError(WarningLevel, ParsedTree.KeyToken, "already defined: " + FromType + " to " + ToType);
-			return null;
 		}
-		Func = Gamma.Generator.CreateFunc(FuncFlag, "to" + ToType.ShortClassName, 0, TypeList, ParsedTree.ConstValue);
+		Func = Gamma.Generator.CreateFunc(FuncFlag, "to" + ToType.ShortClassName, BaseIndex, TypeList);
 		ParsedTree.NameSpace.SetCoercionFunc(FromType, ToType, Func);
 		return Func;
 	}
 
-	private static GtFunc CreateFunc(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, int FuncFlag, String FuncName, ArrayList<GtType> TypeList, String NativeMacro) {
-		/*local*/GtType RecvType = Gamma.VoidType;
-		if(TypeList.size() > 1) {
-			RecvType = TypeList.get(1);
+	private static GtFunc CreateFunc(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, int FuncFlag, String FuncName, int BaseIndex, ArrayList<GtType> TypeList) {
+		/*local*/GtType RecvType = (TypeList.size() > 1) ? TypeList.get(1) : Gamma.VoidType;
+		/*local*/GtFunc Func = ParsedTree.NameSpace.GetFuncParam(FuncName, 0, LangDeps.CompactTypeList(BaseIndex, TypeList));
+		if(Func != null && Func.IsAbstract()) {
+			return Func;
 		}
-		/*local*/GtFunc Func = null; //Gamma.Context.GetFunc(RecvType, FuncName, 2, TypeList, true);
-//		if(Func != null) {
-//			if(Func.GetRecvType() != RecvType) {
-//				if(!Func.Is(VirtualFunc)) {
-//					// not virtual method
-//					return null;
-//				}
-//				Func = null;
-//			}
-//			else {
-//				if(!Func.Is(AbstractFunc)) {
-//					// not override
-//					return null;
-//				}
-//				if(GtStatic.IsFlag(FuncFlag, AbstractFunc)) {
-//					// do nothing
-//					return null;
-//				}
-//			}
-//		}
 		if(Func == null) {
-			Func = Gamma.Generator.CreateFunc(FuncFlag, FuncName, 0, TypeList, NativeMacro);
+			Func = Gamma.Generator.CreateFunc(FuncFlag, FuncName, BaseIndex, TypeList);
 		}
 		ParsedTree.NameSpace.AppendFunc(Func);
+		ParsedTree.NameSpace.AppendMethod(RecvType, Func);
 		return Func;
 	}
 
