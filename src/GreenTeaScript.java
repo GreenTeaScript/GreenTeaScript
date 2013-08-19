@@ -1498,8 +1498,8 @@ final class GtNameSpace extends GtStatic {
 		else if(FuncValue instanceof GtPolyFunc) {
 			/*local*/GtPolyFunc PolyFunc = (/*cast*/GtPolyFunc)FuncValue;
 			/*local*/int i = PolyFunc.FuncList.size();
-			while(i >= 0) {
-				if(PolyFunc.FuncList.get(i).EqualsParamTypes(BaseIndex, ParamTypes)) {
+			while(i >= 1) {
+				if(PolyFunc.FuncList.get(i-1).EqualsParamTypes(BaseIndex, ParamTypes)) {
 					return PolyFunc.FuncList.get(i);
 				}
 				i = i - 1;
@@ -2021,7 +2021,7 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/GtFunc ResolvedFunc = null;
 		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(BaseType, OperatorSymbol, true);
 		if(PolyFunc != null) {
-			/*local*/GtNode[] BinaryNodes = new BinaryNode[2];
+			/*local*/GtNode[] BinaryNodes = new GtNode[2];
 			BinaryNodes[0] = LeftNode; 
 			BinaryNodes[1] = RightNode;
 			ResolvedFunc = PolyFunc.ResolveBinaryFunc(Gamma, BinaryNodes);
@@ -2446,36 +2446,7 @@ final class DScriptGrammar extends GtGrammar {
 		if(NewTree.IsEmptyOrError()) {
 			return null;
 		}
-		// translate 'new $Type$($Params$)' => 'constructor(new $Type$, $Params$)'
-		/*local*/GtSyntaxTree TypeTree = NewTree.GetSyntaxTreeAt(CallExpressionOffset);
-		/*local*/GtSyntaxTree ApplyTree = new GtSyntaxTree(NameSpace.GetExtendedPattern("("), NameSpace, new GtToken("(", 0), null);
-		/*local*/GtSyntaxTree FuncNameTree = new GtSyntaxTree(NameSpace.GetExtendedPattern("."), NameSpace, new GtToken("constructor", 0), null);
-		FuncNameTree.AppendParsedTree(TypeTree);
-		ApplyTree.SetSyntaxTreeAt(CallExpressionOffset, FuncNameTree);
-		ApplyTree.SetSyntaxTreeAt(CallParameterOffset, NewTree);
-		/*local*/int i = 1;
-		/*local*/int ParamOffset = CallParameterOffset+1;
-		while(i < ListSize(NewTree.TreeList)) {
-			ApplyTree.SetSyntaxTreeAt(ParamOffset, NewTree.GetSyntaxTreeAt(i));
-			i = i + 1;
-			ParamOffset = ParamOffset + 1;
-		}
-		NewTree.TreeList.clear();
-		NewTree.AppendParsedTree(TypeTree);
-		return ApplyTree;
-	}
-
-	public static GtNode TypeNew(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-//		// new $Type$($Params$) => constructor(new $Type$, $Params$)
-//		/*local*/GtType ReturnType = ParsedTree.GetSyntaxTreeAt(CallExpressionOffset).GetParsedType();
-//		/*local*/String FuncName = "constructor";
-//		/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
-//		/*local*/int ParamIndex = 1;
-//		/*local*/int ParamSize = ListSize(ParsedTree.TreeList);
-//		ParamList.add(null); // FIXME ???
-//		ParamList.add(Gamma.Generator.CreateNewNode(ReturnType, ParsedTree));
-//		//return DScriptGrammar.TypeFuncParam(Gamma, ParsedTree, FuncName, ReturnType, ParamList, ParamIndex, ParamSize);
-		return null; // TODO
+		return NewTree;
 	}
 
 	// switch
@@ -2862,8 +2833,6 @@ final class DScriptGrammar extends GtGrammar {
 				FieldTree.Pattern = Gamma.NameSpace.GetPattern("$FuncDecl$");
 				FieldTree.GetSyntaxTreeAt(FuncDeclName).ConstValue = "constructor";
 				Gamma.TypeCheck(FieldTree, NewType, DefaultTypeCheckPolicy);
-				Func = Gamma.NameSpace.GetMethod(NewType, "constructor", true);
-				NewType.SetClassSymbol("constructor", Func);
 			}
 			FieldOffset += 1;
 		}
@@ -3111,7 +3080,7 @@ final class DScriptGrammar extends GtGrammar {
 		NameSpace.AppendSyntax("class", FunctionB(this, "ParseClassDecl"), FunctionC(this, "TypeClassDecl"));
 		NameSpace.AppendSyntax("try", FunctionB(this, "ParseTry"), FunctionC(this, "TypeTry"));
 		NameSpace.AppendSyntax("throw", FunctionB(this, "ParseThrow"), FunctionC(this, "TypeThrow"));
-		NameSpace.AppendSyntax("new", FunctionB(this, "ParseNew"), FunctionC(this, "TypeNew"));
+		NameSpace.AppendSyntax("new", FunctionB(this, "ParseNew"), FunctionC(this, "TypeApply"));
 		NameSpace.AppendSyntax("enum", FunctionB(this, "ParseEnum"), FunctionC(this, "TypeEnum"));
 	}
 }
