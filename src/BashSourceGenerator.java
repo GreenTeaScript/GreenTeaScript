@@ -39,7 +39,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	@Override public void InitContext(GtClassContext Context) {
 		super.InitContext(Context);
 		this.WriteLineHeader("#!/bin/bash");
-		this.WriteLineCode(this.LineFeed + "source assert.sh" + this.LineFeed);
+		this.WriteLineCode(this.LineFeed + "source ./efunc.sh" + this.LineFeed);
 	}
 	
 	public String VisitBlockWithIndent(GtNode Node, boolean inBlock) {
@@ -251,7 +251,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		}
 		else {
 			/*local*/String[] ParamCode = this.MakeParamCode2(Node.LeftNode, Node.RightNode);
-			this.PushSourceCode("((" + Node.Func.ApplyNativeMacro(0, ParamCode) + "))");
+			this.PushSourceCode(Node.Func.ApplyNativeMacro(0, ParamCode));
 		}
 		
 //		if(Node.Type.equals(Node.Type.Context.Float)) {	// support float value
