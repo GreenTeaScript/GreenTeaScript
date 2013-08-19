@@ -58,6 +58,19 @@ public class CSourceGenerator extends SourceGenerator {
 		return GetLocalType(Type, true);
 	}
 
+	@Override protected String StringfyConstValue(Object ConstValue) {
+		if(ConstValue == null) {
+			return "NULL";
+		}
+		if(ConstValue instanceof Boolean) {
+			if(ConstValue.equals(true)) {
+				return "1";
+			}
+			return "0";
+		}
+		return super.StringfyConstValue(ConstValue);
+	}
+
 	public void VisitBlockEachStatementWithIndent(GtNode Node, boolean NeedBlock) {
 		/*local*/String Code = "";
 		if(NeedBlock) {
@@ -370,7 +383,11 @@ public class CSourceGenerator extends SourceGenerator {
 		while (i < ClassField.FieldList.size()) {
 			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
 			/*local*/String VarName = FieldInfo.NativeName;
-			Program += this.GetIndentString() + this.GetRecvName() + "->" + VarName + " = " + this.StringfyConstValue(FieldInfo.InitValue) + ";" + this.LineFeed;
+			/*local*/String InitValue = this.StringfyConstValue(FieldInfo.InitValue);
+			if(!FieldInfo.Type.IsNative()) {
+				InitValue = "NULL";
+			}
+			Program += this.GetIndentString() + this.GetRecvName() + "->" + VarName + " = " + InitValue + ";" + this.LineFeed;
 			i = i + 1;
 		}
 		Program += this.GetIndentString() + "return " + this.GetRecvName() + ";" + this.LineFeed;
