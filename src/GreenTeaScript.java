@@ -2136,7 +2136,9 @@ final class DScriptGrammar extends GtGrammar {
 			while(!FuncTree.IsEmptyOrError()) {
 				/*local*/GtSyntaxTree Tree = TokenContext.ParsePattern(NameSpace, "$Expression$", Required);
 				FuncTree.AppendParsedTree(Tree);
-				if(TokenContext.MatchToken(")")) break;
+				if(TokenContext.MatchToken(")")) {
+					break;
+				}
 				FuncTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ",", Required);
 			}
 		}
