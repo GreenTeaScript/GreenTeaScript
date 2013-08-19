@@ -96,19 +96,21 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Program);
 	}
 
+	@Override protected String StringfyConstValue(Object ConstValue) {
+		if(ConstValue == null) {
+			return "None";
+		}
+		if(ConstValue instanceof Boolean) {
+			if(ConstValue.equals(true)) {
+				return "True";
+			}
+			return "False";
+		}
+		return super.StringfyConstValue(ConstValue);
+	}
+
 	@Override public void VisitConstNode(ConstNode Node) {
 		/*local*/String StringfiedValue = this.StringfyConstValue(Node.ConstValue);
-		if(Node.ConstValue instanceof GtFunc) {
-			StringfiedValue = ((/*cast*/GtFunc)Node.ConstValue).GetNativeFuncName();
-		}
-		else if(Node.Type.equals(Node.Type.Context.BooleanType)) {
-			if(StringfiedValue.equals("true")) {
-				StringfiedValue = "True";
-			}
-			else if(StringfiedValue.equals("false")) {
-				StringfiedValue = "False";
-			}
-		}
 		this.PushSourceCode(StringfiedValue);
 	}
 
@@ -355,8 +357,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.WriteLineCode(Function);
 	}
 	
-	@Override public void GenerateClassField(GtType Type, ArrayList<GtVariableInfo> FieldList) {
-		/*local*/int i = 0;
+	@Override public void GenerateClassField(GtType Type, GtClassField ClassField) {
 		/*local*/String Program = this.GetIndentString() + "class " + Type.ShortClassName;
 		if(Type.SuperType != null) {
 			Program += "(" + Type.SuperType.ShortClassName + ")";
@@ -364,15 +365,12 @@ public class PythonSourceGenerator extends SourceGenerator {
 		Program += ":" + this.LineFeed;
 		this.Indent();
 		
-		Program += this.GetIndentString() + "def __init__(self)" + this.LineFeed;
+		Program += this.GetIndentString() + "def __init__(self):" + this.LineFeed;
 		this.Indent();
-		if(Type.SuperType != null) {
-			Program += this.GetIndentString() + 
-					Type.SuperType.ShortClassName + ".__init__(self)" + this.LineFeed;
-		}
-		while (i < FieldList.size()) {
-			/*local*/String VarName = FieldList.get(i).Name;
-			Program += this.GetIndentString() + "self." + VarName + " = None" + this.LineFeed;
+		/*local*/int i = 0;
+		while (i < ClassField.FieldList.size()) {
+			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
+			Program += this.GetIndentString() + "self." + FieldInfo.NativeName + " = " + this.StringfyConstValue(FieldInfo.InitValue) + this.LineFeed;
 			i = i + 1;
 		}
 		this.UnIndent();
@@ -388,9 +386,6 @@ public class PythonSourceGenerator extends SourceGenerator {
 		}
 		this.WriteLineCode(Code);
 		return Code;
-	}
-
-	@Override public void AddClass(GtType Type) {
 	}
 
 }

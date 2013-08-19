@@ -385,14 +385,5 @@ public class PerlSourceGenerator extends SourceGenerator {
 		return this.PopSourceCode();
 	}
 
-	@Override public void AddClass(GtType Type) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override public void InitContext(GtClassContext Context) {
-		// TODO Auto-generated method stub
-
-	}
 
 }

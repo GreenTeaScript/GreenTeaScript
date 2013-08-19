@@ -42,12 +42,12 @@ public class CSourceGenerator extends SourceGenerator {
 	public void VisitBlockEachStatementWithIndent(GtNode Node, boolean NeedBlock) {
 		/*local*/String Code = "";
 		if(NeedBlock) {
-			Code += "{\n";
+			Code += "{" + this.LineFeed;
 			this.Indent();
 		}
 		/*local*/GtNode CurrentNode = Node;
 		while(CurrentNode != null) {
-			Code += this.GetIndentString() + this.VisitNode(CurrentNode) + ";\n";
+			Code += this.GetIndentString() + this.VisitNode(CurrentNode) + ";" + this.LineFeed;
 			CurrentNode = CurrentNode.NextNode;
 		}
 		if(NeedBlock) {
@@ -176,7 +176,7 @@ public class CSourceGenerator extends SourceGenerator {
 		if(Node.InitNode != null) {
 			Code += " = " + this.VisitNode(Node.InitNode);
 		}
-		Code +=  ";\n";
+		Code +=  ";" + this.LineFeed;
 		if(CreateNewScope) {
 			Code += this.GetIndentString();
 		}
@@ -287,7 +287,7 @@ public class CSourceGenerator extends SourceGenerator {
 			Command += "(" + this.PopSourceCode() + ")";
 			i = i + 1;
 		}
-		Code = Command + ";\n" + this.GetIndentString() + Code + "__Command)";
+		Code = Command + ";" + this.LineFeed + this.GetIndentString() + Code + "__Command)";
 		this.PushSourceCode(Code);
 	}
 
@@ -322,39 +322,55 @@ public class CSourceGenerator extends SourceGenerator {
 		Node = this.Opt.Fold(Node);
 		this.VisitBlockEachStatementWithIndent(Node, false);
 		/*local*/String Code = this.PopSourceCode();
-		if(Code.equals(";\n")) {
+		if(Code.equals(";" + this.LineFeed)) {
 			return "";
 		}
 		this.WriteLineCode(Code);
 		return Code;
 	}
 
-	@Override public void GenerateClassField(GtType Type, ArrayList<GtVariableInfo> FieldList) {
-		/*local*/int i = 0;
+	@Override public void GenerateClassField(GtType Type, GtClassField ClassField) {
 		/*local*/String TypeName = this.LocalTypeName(Type);
 		/*local*/String Program = this.GetIndentString() + "typedef struct " + TypeName;
 		this.WriteLineCode(this.GetIndentString() + Program + " *" + TypeName + ";");
-		Program = this.GetIndentString() + "struct " + TypeName + " {\n";
+		Program = this.GetIndentString() + "struct " + TypeName + " {" + this.LineFeed;
 		this.Indent();
-		if(Type.SuperType != null) {
-			Program += this.GetIndentString() + "struct " + this.LocalTypeName(Type.SuperType) + " __base;\n";
-		}
-		while (i < FieldList.size()) {
-			/*local*/GtVariableInfo VarInfo = FieldList.get(i);
-			/*local*/GtType VarType = VarInfo.Type;
-			/*local*/String VarName = VarInfo.Name;
-			Program += this.GetIndentString() + this.LocalTypeName(VarType) + " " + VarName + ";\n";
+//		if(Type.SuperType != null) {
+//			Program += this.GetIndentString() + "struct " + this.LocalTypeName(Type.SuperType) + " __base;" + this.LineFeed;
+//		}
+		/*local*/int i = 0;
+		while (i < ClassField.FieldList.size()) {
+			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
+			/*local*/GtType VarType = FieldInfo.Type;
+			/*local*/String VarName = FieldInfo.Name;
+			Program += this.GetIndentString() + this.LocalTypeName(VarType) + " " + VarName + ";" + this.LineFeed;
 			i = i + 1;
 		}
 		this.UnIndent();
 		Program += this.GetIndentString() + "};";
+
+		Program = this.GetIndentString() + this.NaitiveTypeName() + " Malloc_" + TypeName + "() {" + this.LineFeed;
+		this.Indent();
+		Program = this.GetIndentString() + this.NaitiveTypeName() + " Malloc_" + TypeName + "() {" + this.LineFeed;
+
+		/*local*/int i = 0;
+		while (i < ClassField.FieldList.size()) {
+			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
+			/*local*/GtType VarType = FieldInfo.Type;
+			/*local*/String VarName = FieldInfo.Name;
+			Program += this.GetIndentString() + this.LocalTypeName(VarType) + " " + VarName + ";" + this.LineFeed;
+			i = i + 1;
+		}
+		this.UnIndent();
+		Program += this.GetIndentString() + "};";
+		
 		this.WriteLineCode(Program);
 	}
 
 //	@Override public void DefineClassFunc(GtNameSpace NameSpace, GtType Type, GtFunc Func) {
 //		/*local*/String Program = (/*cast*/String) this.DefinedClass.get(Type.ShortClassName);
 //		this.Indent();
-//		Program += this.GetIndentString() + this.LocalTypeName(Func.GetFuncType()) + " " + Func.MangledName + ";\n";
+//		Program += this.GetIndentString() + this.LocalTypeName(Func.GetFuncType()) + " " + Func.MangledName + ";" + this.LineFeed;
 //		this.UnIndent();
 //		this.DefinedClass.put(this.LocalTypeName(Type), Program);
 //	}

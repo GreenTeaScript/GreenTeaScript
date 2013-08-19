@@ -349,12 +349,4 @@ public class JavaSourceGenerator extends SourceGenerator {
 		return this.PopSourceCode();
 	}
 
-	@Override public void AddClass(GtType Type) {
-		//FIXME
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override public void InitContext(GtClassContext Context) {
-	}
 }

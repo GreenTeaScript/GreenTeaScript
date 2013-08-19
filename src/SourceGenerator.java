@@ -1416,29 +1416,44 @@ class GtGenerator extends GtStatic {
 		return TransformedResult;
 	}
 
-	public int ParseClassFlag(int ClassFlag, GtSyntaxTree ClassDeclTree) {
-//		if(ClassDeclTree.HasAnnotation("Final")) {
-//			ClassFlag = ClassFlag | FinalClass;
-//		}
-//		if(ClassDeclTree.HasAnnotation("Private")) {
-//			ClassFlag = ClassFlag | PrivateClass;
-//		}
+	public void GenerateClassField(GtType Type, GtClassField ClassField) {
+		/*extension*/
+	}
+
+	public final boolean HasAnnotation(GtMap Annotation, String Key) {
+		if(Annotation != null) {
+			/*local*/Object Value = Annotation.get(Key);
+			if(Value instanceof Boolean) {
+				Annotation.put(Key, false);  // consumed;
+			}
+			return (Value != null);
+		}
+		return false;
+	}
+	
+	public int ParseClassFlag(int ClassFlag, GtMap Annotation) {
 		return ClassFlag;
 	}
 
-	public void AddClass(GtType Type) {
-		/*extension*/
-	}
-
-	public void GenerateClassField(GtType Type, ArrayList<GtVariableInfo> FieldList) {
-		/*extension*/
-	}
-
-	public int ParseFuncFlag(int FuncFlag, GtSyntaxTree FuncDeclTree) {
-		if(FuncDeclTree.HasAnnotation("Export")) {
-			FuncFlag = FuncFlag | ExportFunc;
+	public int ParseFuncFlag(int FuncFlag, GtMap Annotation) {
+		if(Annotation != null) {
+			if(this.HasAnnotation(Annotation, "Export")) {
+				FuncFlag = FuncFlag | ExportFunc;
+			}
+			if(this.HasAnnotation(Annotation, "Public")) {
+				FuncFlag = FuncFlag | PublicFunc;
+			}
 		}
 		return FuncFlag;
+	}
+
+	public int ParseVarFlag(int VarFlag, GtMap Annotation) {
+		if(Annotation != null) {
+			if(this.HasAnnotation(Annotation, "ReadOnly")) {
+				VarFlag = VarFlag | ReadOnlyVar;
+			}
+		}
+		return VarFlag;
 	}
 
 	public GtFunc CreateFunc(int FuncFlag, String FuncName, int BaseIndex, ArrayList<GtType> TypeList) {
@@ -1447,12 +1462,17 @@ class GtGenerator extends GtStatic {
 
 	public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
 		/*extenstion*/
-
 	}
 
+	public void SyncCodeGeneration() {
+		/*extension*/
+	}
+	
+	
 	public final void StopVisitor(GtNode Node) {
 		Node.NextNode = null;
 	}
+	
 	//------------------------------------------------------------------------
 
 	public void VisitEmptyNode(GtNode EmptyNode) {
@@ -1652,6 +1672,10 @@ class GtGenerator extends GtStatic {
 			return this.GeneratedCodeStack.remove(Size - 1);
 		}
 		return "";
+	}
+
+	public String GetRecvName() {
+		return "this";  // default 
 	}
 }
 

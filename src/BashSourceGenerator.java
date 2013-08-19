@@ -480,7 +480,4 @@ public class BashSourceGenerator extends SourceGenerator {
 		return Code;
 	}
 
-	@Override public void AddClass(GtType Type) {
-	}
-
 }
