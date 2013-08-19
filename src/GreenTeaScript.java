@@ -2634,8 +2634,8 @@ final class DScriptGrammar extends GtGrammar {
 		if(ParsedTree.HasNodeAt(FuncDeclClass) && ParsedTree.GetSyntaxTreeAt(FuncDeclClass) != null) {
 			RecvType = ParsedTree.GetSyntaxTreeAt(FuncDeclClass).GetParsedType();
 			TypeList.add(RecvType);
-			ParamNameList.add("this");
 			Gamma.AppendDeclaredVariable(RecvType, "this");
+			ParamNameList.add(Gamma.LookupDeclaredVariable("this").NativeName);
 		}
 		/*local*/int TreeIndex = FuncDeclParam;
 		while(TreeIndex < ParsedTree.TreeList.size()) {
