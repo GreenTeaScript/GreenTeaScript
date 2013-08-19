@@ -780,7 +780,7 @@ class GtType extends GtStatic {
 	/*field*/GtType					SuperType;
 	/*field*/public GtType			SearchSuperFuncClass;
 	/*field*/public Object			DefaultNullValue;
-	/*field*/public GtMap           ClassSymbolTable;
+//	/*field*/public GtMap           ClassSymbolTable;
 	/*field*/GtType					BaseType;
 	/*field*/GtType[]				TypeParams;
 	/*field*/public Object          NativeSpec;
@@ -794,7 +794,7 @@ class GtType extends GtStatic {
 		this.SearchSuperFuncClass = null;
 		this.DefaultNullValue = DefaultNullValue;
 		this.NativeSpec = NativeSpec;
-		this.ClassSymbolTable = IsFlag(ClassFlag, EnumClass) ? (/*cast*/GtMap)NativeSpec : null;
+//		this.ClassSymbolTable = IsFlag(ClassFlag, EnumClass) ? (/*cast*/GtMap)NativeSpec : null;
 		this.ClassId = Context.ClassCount;
 		Context.ClassCount += 1;
 		this.TypeParams = null;
@@ -834,23 +834,23 @@ class GtType extends GtStatic {
 		return this.ShortClassName;
 	}
 
-	public final Object GetClassSymbol(String Key, boolean RecursiveSearch) {
-		GtType Type = this;
-		while(Type != null) {
-			if(Type.ClassSymbolTable != null) {
-				return Type.ClassSymbolTable.get(Key);
-			}
-			Type = (RecursiveSearch) ? Type.SuperType : null;
-		}
-		return null;
-	}
-
-	public final void SetClassSymbol(String Key, Object Value) {
-		if(this.ClassSymbolTable == null) {
-			this.ClassSymbolTable = new GtMap();
-		}
-		this.ClassSymbolTable.put(Key, Value);
-	}
+//	public final Object GetClassSymbol(String Key, boolean RecursiveSearch) {
+//		GtType Type = this;
+//		while(Type != null) {
+//			if(Type.ClassSymbolTable != null) {
+//				return Type.ClassSymbolTable.get(Key);
+//			}
+//			Type = (RecursiveSearch) ? Type.SuperType : null;
+//		}
+//		return null;
+//	}
+//
+//	public final void SetClassSymbol(String Key, Object Value) {
+//		if(this.ClassSymbolTable == null) {
+//			this.ClassSymbolTable = new GtMap();
+//		}
+//		this.ClassSymbolTable.put(Key, Value);
+//	}
 	
 	public final String GetUniqueName() {
 		if(GtStatic.DebugPrintOption) {

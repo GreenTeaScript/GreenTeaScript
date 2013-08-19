@@ -291,79 +291,6 @@ class GtStatic implements GtConst {
 		return UnicodeChar;
 	}
 
-//	// Symbol
-//	public final static boolean IsGetterSymbol(int SymbolId) {
-//		return IsFlag(SymbolId, GetterSymbolMask);
-//	}
-//
-//	public final static boolean IsSetterSymbol(int SymbolId) {
-//		return IsFlag(SymbolId, SetterSymbolMask);
-//	}
-//
-//	public final static int ToSetterSymbol(int SymbolId) {
-//		LangDeps.Assert(IsGetterSymbol(SymbolId));
-//		return (SymbolId & (~GetterSymbolMask)) | SetterSymbolMask;
-//	}
-//
-//	public final static int MaskSymbol(int SymbolId, int Mask) {
-//		return (SymbolId << SymbolMaskSize) | Mask;
-//	}
-//
-//	public final static int UnmaskSymbol(int SymbolId) {
-//		return SymbolId >> SymbolMaskSize;
-//	}
-//
-//	public final static String StringfySymbol(int SymbolId) {
-//		/*local*/String Key = SymbolList.get(UnmaskSymbol(SymbolId));
-//		if(IsFlag(SymbolId, GetterSymbolMask)) {
-//			return GetterPrefix + Key;
-//		}
-//		if(IsFlag(SymbolId, SetterSymbolMask)) {
-//			return SetterPrefix + Key;
-//		}
-//		if(IsFlag(SymbolId, MetaSymbolMask)) {
-//			return MetaPrefix + Key;
-//		}
-//		return Key;
-//	}
-//
-//	public final static int GetSymbolId(String Symbol, int DefaultSymbolId) {
-//		/*local*/String Key = Symbol;
-//		/*local*/int Mask = 0;
-//		if(Symbol.length() >= 3 && LangDeps.CharAt(Symbol, 1) == 'e' && LangDeps.CharAt(Symbol, 2) == 't') {
-//			if(LangDeps.CharAt(Symbol, 0) == 'g' && LangDeps.CharAt(Symbol, 0) == 'G') {
-//				Key = Symbol.substring(3);
-//				Mask = GetterSymbolMask;
-//			}
-//			if(LangDeps.CharAt(Symbol, 0) == 's' && LangDeps.CharAt(Symbol, 0) == 'S') {
-//				Key = Symbol.substring(3);
-//				Mask = SetterSymbolMask;
-//			}
-//		}
-//		if(Symbol.startsWith("\\")) {
-//			Mask = MetaSymbolMask;
-//		}
-//		/*local*/Integer SymbolObject = (/*cast*/Integer)SymbolMap.get(Key);
-//		if(SymbolObject == null) {
-//			if(DefaultSymbolId == CreateNewSymbolId) {
-//				/*local*/int SymbolId = SymbolList.size();
-//				SymbolList.add(Key);
-//				SymbolMap.put(Key, SymbolId); //new Integer(SymbolId));
-//				return MaskSymbol(SymbolId, Mask);
-//			}
-//			return DefaultSymbolId;
-//		}
-//		return MaskSymbol(SymbolObject.intValue(), Mask);
-//	}
-//
-//	public final static String CanonicalSymbol(String Symbol) {
-//		return Symbol.toLowerCase().replaceAll("_", "");
-//	}
-//
-//	public final static int GetCanonicalSymbolId(String Symbol) {
-//		return GetSymbolId(CanonicalSymbol(Symbol), CreateNewSymbolId);
-//	}
-
 	private final static String n2s(int n) {
 		if(n < (27)) {
 			return LangDeps.CharToString((char)(65 + (n - 0)));
@@ -1630,6 +1557,17 @@ final class GtNameSpace extends GtStatic {
 		this.SymbolPatternTable.put(Key, Func);  // @Public
 	}
 
+	public final void ReportOverrideName(GtToken Token, GtType ClassType, String Symbol) {
+		String Message = "duplicated symbol: ";
+		if(ClassType == null) {
+			Message += Symbol;
+		}
+		else {
+			Message += ClassType + "." + Symbol;
+		}
+		this.Context.ReportError(WarningLevel, Token, Message);
+	}
+
 }
 
 class GtGrammar extends GtStatic {
@@ -2025,18 +1963,10 @@ final class DScriptGrammar extends GtGrammar {
 			return ExprNode;
 		}
 		/*local*/GtType BaseType = ExprNode.Type;
-		/*local*/Object Func = BaseType.GetClassSymbol(OperatorSymbol, true);
-		/*local*/GtFunc ResolvedFunc = null;
 		/*local*/GtType ReturnType = Gamma.AnyType;
-		if(Func instanceof GtFunc) {
-			ResolvedFunc = (/*cast*/GtFunc)Func;
-			if(ResolvedFunc.GetFuncParamSize() != 1 || !ResolvedFunc.GetRecvType().Accept(BaseType)) {
-				Gamma.Context.ReportError(TypeErrorLevel, ParsedTree.KeyToken, "mismatched operator: " + ResolvedFunc);
-				ResolvedFunc = null;
-			}
-		}
-		else if(Func instanceof GtPolyFunc) {
-			/*local*/GtPolyFunc PolyFunc = (/*cast*/GtPolyFunc)Func;
+		/*local*/GtFunc ResolvedFunc = null;
+		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(BaseType, OperatorSymbol, true);
+		if(PolyFunc != null) {
 			ResolvedFunc = PolyFunc.MatchFuncParamSize(1);
 			if(ResolvedFunc == null || !ResolvedFunc.GetRecvType().Accept(BaseType)) {
 				Gamma.Context.ReportError(TypeErrorLevel, ParsedTree.KeyToken, "mismatched operators: " + PolyFunc);
@@ -2081,85 +2011,34 @@ final class DScriptGrammar extends GtGrammar {
 	public static GtNode TypeBinary(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/String OperatorSymbol = ParsedTree.KeyToken.ParsedText;
 		/*local*/GtNode LeftNode  = ParsedTree.TypeCheckNodeAt(LeftHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-		/*local*/GtNode RightNode = null;
+		/*local*/GtNode RightNode = ParsedTree.TypeCheckNodeAt(RightHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
 		if(LeftNode.IsError()) {
 			return LeftNode;
 		}
-		/*local*/GtType BaseType = LeftNode.Type;
-		/*local*/Object Func = BaseType.GetClassSymbol(OperatorSymbol, true);
-		/*local*/GtFunc ResolvedFunc = null;
-		/*local*/GtType ReturnType = Gamma.AnyType;
-		if(Func instanceof GtFunc) {
-			ResolvedFunc = (/*cast*/GtFunc)Func;
-			if(ResolvedFunc.GetFuncParamSize() != 2 || !ResolvedFunc.GetRecvType().Accept(BaseType)) {
-				Gamma.Context.ReportError(TypeErrorLevel, ParsedTree.KeyToken, "mismatched operator: " + ResolvedFunc);
-				ResolvedFunc = null;
-			}
-			else {
-				RightNode = ParsedTree.TypeCheckNodeAt(RightHandTerm, Gamma, ResolvedFunc.GetFuncParamType(2), DefaultTypeCheckPolicy);
-			}
+		if(RightNode.IsError()) {
+			return RightNode;
 		}
-		else if(Func instanceof GtPolyFunc) {
-			/*local*/GtPolyFunc PolyFunc = (/*cast*/GtPolyFunc)Func;
-			RightNode = ParsedTree.TypeCheckNodeAt(RightHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-			if(RightNode.IsError()) {
-				return RightNode;
-			}
-			GtNode[] BinaryNodes = new BinaryNode[2];
+		/*local*/GtType BaseType = LeftNode.Type;
+		/*local*/GtType ReturnType = Gamma.AnyType;
+		/*local*/GtFunc ResolvedFunc = null;
+		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(BaseType, OperatorSymbol, true);
+		if(PolyFunc != null) {
+			/*local*/GtNode[] BinaryNodes = new BinaryNode[2];
 			BinaryNodes[0] = LeftNode; BinaryNodes[1] = RightNode;
 			ResolvedFunc = PolyFunc.MatchBinaryOperator(Gamma, BinaryNodes);
 			LeftNode = BinaryNodes[0]; RightNode = BinaryNodes[1];
-			if(ResolvedFunc == null) {
-				Gamma.Context.ReportError(TypeErrorLevel, ParsedTree.KeyToken, "mismatched operators: " + PolyFunc);					
-			}
 		}
-		if(ResolvedFunc != null) {
+		if(ResolvedFunc == null) {
+			Gamma.Context.ReportError(TypeErrorLevel, ParsedTree.KeyToken, "mismatched operators: " + PolyFunc);					
+		}
+		else {
 			ReturnType = ResolvedFunc.GetReturnType();
-		}
-		if(RightNode == null) {
-			RightNode = ParsedTree.TypeCheckNodeAt(RightHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);			
 		}
 		/*local*/GtNode BinaryNode =  Gamma.Generator.CreateBinaryNode(ReturnType, ParsedTree, ResolvedFunc, LeftNode, RightNode);
 		if(ResolvedFunc == null && !BaseType.IsDynamic()) {
 			return Gamma.ReportTypeResult(ParsedTree, BinaryNode, TypeErrorLevel, "undefined operator: "+ OperatorSymbol + " of " + LeftNode.Type);
 		}
 		return BinaryNode;
-	}
-
-	public static GtSyntaxTree ParseGetter(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		TokenContext.MatchToken(".");
-		/*local*/GtToken Token = TokenContext.Next();
-		if(Token.IsNameSymbol()) {
-			/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
-			NewTree.AppendParsedTree(LeftTree);
-			return NewTree;
-		}
-		return TokenContext.ReportExpectedToken("field name");
-	}
-
-	public static GtNode TypeGetter(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		/*local*/String Name = ParsedTree.KeyToken.ParsedText;
-		/*local*/GtNode ObjectNode = ParsedTree.TypeCheckNodeAt(UnaryTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-		if(ObjectNode.IsError()) {
-			return ObjectNode;
-		}
-		// To start, check class const such as Math.Pi if base is a type value
-		if(ObjectNode instanceof ConstNode && ObjectNode.Type == Gamma.Context.TypeType) {
-			/*local*/GtType ObjectType = (/*cast*/GtType)((/*cast*/ConstNode)ObjectNode).ConstValue;
-			/*local*/Object ConstValue = ObjectType.GetClassSymbol(Name, true);
-			if(ConstValue != null) {
-				return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(ConstValue), ParsedTree, ConstValue);
-			}
-		}
-		/*local*/GtFunc Func = ParsedTree.NameSpace.GetGetterFunc(ObjectNode.Type, Name, true);
-		/*local*/GtType ReturnType = (Func != null) ? Func.GetReturnType() : Gamma.AnyType;
-		/*local*/GtNode Node = Gamma.Generator.CreateGetterNode(ReturnType, ParsedTree, Func, ObjectNode);
-		if(Func == null) {
-			if(!ObjectNode.Type.IsDynamic() && ContextType != Gamma.FuncType) {
-				return Gamma.ReportTypeResult(ParsedTree, Node, TypeErrorLevel, "undefined name " + Name + " of " + ObjectNode.Type);
-			}
-		}
-		return Node;
 	}
 
 	// PatternName: "("
@@ -2208,6 +2087,43 @@ final class DScriptGrammar extends GtGrammar {
 		return ParsedTree.TypeCheckNodeAt(RightHandTerm, Gamma, CastType, TypeCheckPolicy);
 	}
 
+	public static GtSyntaxTree ParseGetter(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		TokenContext.MatchToken(".");
+		/*local*/GtToken Token = TokenContext.Next();
+		if(Token.IsNameSymbol()) {
+			/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
+			NewTree.AppendParsedTree(LeftTree);
+			return NewTree;
+		}
+		return TokenContext.ReportExpectedToken("field name");
+	}
+
+	public static GtNode TypeGetter(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+		/*local*/String Name = ParsedTree.KeyToken.ParsedText;
+		/*local*/GtNode ObjectNode = ParsedTree.TypeCheckNodeAt(UnaryTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+		if(ObjectNode.IsError()) {
+			return ObjectNode;
+		}
+		// To start, check class const such as Math.Pi if base is a type value
+		if(ObjectNode instanceof ConstNode && ObjectNode.Type == Gamma.Context.TypeType) {
+			/*local*/GtType ObjectType = (/*cast*/GtType)((/*cast*/ConstNode)ObjectNode).ConstValue;
+			/*local*/Object ConstValue = ParsedTree.NameSpace.GetClassSymbol(ObjectType, Name, true);
+			if(ConstValue != null) {
+				return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(ConstValue), ParsedTree, ConstValue);
+			}
+		}
+		/*local*/GtFunc GetterFunc = ParsedTree.NameSpace.GetGetterFunc(ObjectNode.Type, Name, true);
+		/*local*/GtType ReturnType = (GetterFunc != null) ? GetterFunc.GetReturnType() : Gamma.AnyType;
+		/*local*/GtNode Node = Gamma.Generator.CreateGetterNode(ReturnType, ParsedTree, GetterFunc, ObjectNode);
+		if(GetterFunc == null) {
+			if(!ObjectNode.Type.IsDynamic() && ContextType != Gamma.FuncType) {
+				return Gamma.ReportTypeResult(ParsedTree, Node, TypeErrorLevel, "undefined name " + Name + " of " + ObjectNode.Type);
+			}
+		}
+		return Node;
+	}
+
+
 	public static GtSyntaxTree ParseApply(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/int ParseFlag = TokenContext.ParseFlag;
 		TokenContext.ParseFlag |= SkipIndentParseFlag;
@@ -2238,34 +2154,25 @@ final class DScriptGrammar extends GtGrammar {
 			/*local*/GtNode BaseNode = ((/*cast*/GetterNode)FuncNode).Expr;
 			/*local*/String FuncName = FuncNode.Token.ParsedText;
 			NodeList.add(BaseNode);
-			/*local*/Object Func = BaseNode.Type.GetClassSymbol(FuncName, true);
-			if(Func instanceof GtFunc) {
-				ResolvedFunc = (/*cast*/GtFunc)Func;
-			}
-			if(Func instanceof GtPolyFunc) {
-				/*local*/GtPolyFunc PolyFunc = (/*cast*/GtPolyFunc)Func;
-				/*local*/int ParamSize = ListSize(ParsedTree.TreeList);
-				ResolvedFunc = PolyFunc.IncrementalMatch(ParamSize, NodeList, 1, TypedParamIndex + 1);
-				if(ResolvedFunc == null) {
-					while(TypedParamIndex < ListSize(ParsedTree.TreeList)) {
-						/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(TypedParamIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-						if(Node.IsError()) {
-							return Node;
-						}
-						NodeList.add(Node);
-						TypedParamIndex = TypedParamIndex + 1;
-						ResolvedFunc = PolyFunc.IncrementalMatch(ParamSize, NodeList, 1, TypedParamIndex + 1);
-						if(ResolvedFunc != null) {
-							break;
-						}
-					}
-					if(ResolvedFunc == null) {
-						ResolvedFunc = PolyFunc.MatchAcceptableFunc(Gamma, ParamSize, NodeList, 1);
-						if(ResolvedFunc == null) {
-							return Gamma.CreateSyntaxErrorNode(ParsedTree, "mismatched function: " + PolyFunc);
-						}
-					}
+			/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(BaseNode.Type, FuncName, true);
+			/*local*/int ParamSize = ListSize(ParsedTree.TreeList);
+			ResolvedFunc = PolyFunc.IncrementalMatch(ParamSize, NodeList, 1, TypedParamIndex + 1);
+			while(ResolvedFunc == null && TypedParamIndex < ListSize(ParsedTree.TreeList)) {
+				/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(TypedParamIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+				if(Node.IsError()) {
+					return Node;
 				}
+				NodeList.add(Node);
+				TypedParamIndex = TypedParamIndex + 1;
+				ResolvedFunc = PolyFunc.IncrementalMatch(ParamSize, NodeList, 1, TypedParamIndex + 1);
+			}
+			if(ResolvedFunc == null) {
+				ResolvedFunc = PolyFunc.MatchAcceptableFunc(Gamma, ParamSize, NodeList, 1);
+				if(ResolvedFunc == null) {
+					return Gamma.CreateSyntaxErrorNode(ParsedTree, "mismatched function: " + PolyFunc);
+				}
+			}
+			if(ResolvedFunc != null) {
 				// reset ConstValue as if non-polymorphic function were found 
 				((/*cast*/ConstNode)FuncNode).ConstValue = ResolvedFunc;
 				((/*cast*/ConstNode)FuncNode).Type = ResolvedFunc.GetFuncType();
@@ -2647,6 +2554,9 @@ final class DScriptGrammar extends GtGrammar {
 
 		if(!ConstDeclTree.IsEmptyOrError()) {
 			/*local*/String ConstName = ConstDeclTree.GetSyntaxTreeAt(ConstDeclNameIndex).KeyToken.ParsedText;
+			if(ConstClass != null) {
+				ConstName = ClassSymbol(ConstClass, ConstName);
+			}
 			/*local*/Object ConstValue = null;
 			if(ConstDeclTree.GetSyntaxTreeAt(ConstDeclValueIndex).Pattern.PatternName.equals("$Const$")) {
 				ConstValue = ConstDeclTree.GetSyntaxTreeAt(ConstDeclValueIndex).ConstValue;
@@ -2654,18 +2564,10 @@ final class DScriptGrammar extends GtGrammar {
 			if(ConstValue == null) {
 
 			}
-			if(ConstClass != null) {
-				if(ConstClass.GetClassSymbol(ConstName, false) != null) {
-
-				}
-				ConstClass.SetClassSymbol(ConstName, ConstValue);
+			if(NameSpace.GetSymbol(ConstName) != null) {
+				NameSpace.ReportOverrideName(ConstDeclTree.KeyToken, ConstClass, ConstName);
 			}
-			else {
-				if(NameSpace.GetSymbol(ConstName) != null) {
-
-				}
-				NameSpace.SetSymbol(ConstName, ConstValue);
-			}
+			NameSpace.SetSymbol(ConstName, ConstValue);
 		}
 		return ConstDeclTree;
 	}

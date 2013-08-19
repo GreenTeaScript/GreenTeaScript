@@ -1093,10 +1093,12 @@ class EmbeddedFuncDef extends GtStatic {
 	}
 
 	void RegisterFunc(int FuncFlag, String FuncName, ArrayList<GtType> ParamTypeList, Object Callee, String LocalName) {
-		GtFunc newFunc = new GtFunc(FuncFlag | NativeFunc, FuncName, 0, ParamTypeList, null);
-		GtType[] paramTypes = LangDeps.CompactTypeList(0, ParamTypeList);
-		Method mtd = LookupFunc(Callee, LocalName);
-		NMMap.PutFuncInvoker(newFunc, new JavaMethodInvoker(paramTypes, mtd));
+		// Code generator does not need to regeister any functions (all things are controlled in parser)
+		// Add native method to GtFunc that is generated in the parser
+//		GtFunc newFunc = new GtFunc(FuncFlag | NativeFunc, FuncName, 0, ParamTypeList);
+//		GtType[] paramTypes = LangDeps.CompactTypeList(0, ParamTypeList);
+//		Method mtd = LookupFunc(Callee, LocalName);
+//		NMMap.PutFuncInvoker(newFunc, new JavaMethodInvoker(paramTypes, mtd));
 		//Code generator does not need to regeister any functions (all things are controlled in parser)
 		//NameSpace.AppendFunc(newFunc);
 	}

@@ -378,8 +378,8 @@ public class CSourceGenerator extends SourceGenerator {
 			ArrayList<GtType> ParamList = new ArrayList<GtType>();
 			ParamList.add(VarType);
 			ParamList.add(Type);
-			GtFunc GetterFunc = new GtFunc(0, VarName, 0, ParamList, null);
 			//Code generator does not need to regeister any functions (all things are controlled in parser)
+			//GtFunc GetterFunc = new GtFunc(0, VarName, 0, ParamList);
 			//NameSpace.Context.DefineGetterFunc(GetterFunc);
 			i = i + 1;
 		}
