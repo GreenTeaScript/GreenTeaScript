@@ -27,7 +27,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,41 +43,6 @@ import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 
 // GreenTea Generator should be written in each language.
-
-class LabelStack {
-	ArrayList<String>	LabelNames;
-	ArrayList<Label>	Labels;
-
-	LabelStack() {
-		this.LabelNames = new ArrayList<String>();
-		this.Labels = new ArrayList<Label>();
-	}
-
-	void AddLabel(String Name, Label Label) {
-		this.LabelNames.add(Name);
-		this.Labels.add(Label);
-	}
-
-	Label FindLabel(String Name) {
-		for(int i = this.LabelNames.size() - 1; i >= 0; i--) {
-			String LName = this.LabelNames.get(i);
-			if(LName.equals(Name)) {
-				return this.Labels.get(i);
-			}
-		}
-		return null;
-	}
-
-	void RemoveLabel(String Name) {
-		for(int i = this.LabelNames.size() - 1; i >= 0; i--) {
-			String LName = this.LabelNames.get(i);
-			if(LName.equals(Name)) {
-				this.LabelNames.remove(i);
-				this.Labels.remove(i);
-			}
-		}
-	}
-}
 
 class GtClassNode implements Opcodes {
 	final String					name;
@@ -122,168 +86,66 @@ class GtClassLoader extends ClassLoader {
 	}
 }
 
-class Local {
+class LabelStack {
+	ArrayList<String>	LabelNames;
+	ArrayList<Label>	Labels;
+
+	LabelStack() {
+		this.LabelNames = new ArrayList<String>();
+		this.Labels = new ArrayList<Label>();
+	}
+
+	void AddLabel(String Name, Label Label) {
+		this.LabelNames.add(Name);
+		this.Labels.add(Label);
+	}
+
+	Label FindLabel(String Name) {
+		for(int i = this.LabelNames.size() - 1; i >= 0; i--) {
+			String LName = this.LabelNames.get(i);
+			if(LName.equals(Name)) {
+				return this.Labels.get(i);
+			}
+		}
+		return null;
+	}
+
+	void RemoveLabel(String Name) {
+		for(int i = this.LabelNames.size() - 1; i >= 0; i--) {
+			String LName = this.LabelNames.get(i);
+			if(LName.equals(Name)) {
+				this.LabelNames.remove(i);
+				this.Labels.remove(i);
+			}
+		}
+	}
+}
+
+class JVMLocal {
 	public String		Name;
 	public GtType		TypeInfo;
 	public int			Index;
 
-	public Local(int Index, GtType TypeInfo, String Name) {
+	public JVMLocal(int Index, GtType TypeInfo, String Name) {
 		this.Index = Index;
 		this.TypeInfo = TypeInfo;
 		this.Name = Name;
 	}
 }
 
-class FuncPath {
-	GtNode Run(GtNameSpace NameSpace, GtType ReturnType, GtNode Block) {
-		return null;
-	}
-}
-
-class CheckReturnNodePath extends FuncPath {
-	@Override GtNode Run(GtNameSpace NameSpace, GtType ReturnType, GtNode Block) {
-		GtNode TailNode = null;
-		if(Block != null) {
-			TailNode = Block.MoveTailNode();
-			if(TailNode instanceof ReturnNode) {
-				// Block has ReturnInst
-				return Block;
-			}
-		}
-		GtNode ReturnNode = null;
-		GtClassContext Context = NameSpace.Context;
-		if(ReturnType.equals(Context.VoidType)) {
-			ReturnNode = new ReturnNode(ReturnType, null, null);
-		}
-		else {
-			ReturnNode = new ReturnNode(ReturnType, null, new NullNode(ReturnType, null));
-		}
-		if(Block == null) {
-			return ReturnNode;
-		}
-		GtStatic.LinkNode(Block.MoveTailNode(), ReturnNode); 	//Block.Next(ReturnNode);
-
-		return Block;
-	}
-}
-
-//private class GtDef extends GtStatic {
-//
-//	public void MakeDefinition(GtNameSpace NameSpace) {
-//
-//	}
-//
-//}
-//
-//class GtClass extends GtDef {
-//	public GtType	ClassInfo;
-//
-//	//@HostLang
-//	public GtClass(GtType ClassInfo) {
-//		this.ClassInfo = ClassInfo;
-//	}
-//
-//	@Override
-//	public void MakeDefinition(GtNameSpace NameSpace) {
-//	}
-//}
-
-abstract class GtFuncInvoker {	//TODO: using GtFunc
-	public GtType[]		ParamTypes;
-	public Object	CompiledCode;
-
-	public GtFuncInvoker(GtType[] ParamTypes, Object CompiledCode) {
-		this.ParamTypes = ParamTypes;
-		this.CompiledCode = CompiledCode;
-
-	}
-
-	public Object Invoke(Object[] Args) {
-		return null;
-	}
-}
-
-class JavaMethodInvoker extends GtFuncInvoker {
-
-	public JavaMethodInvoker(GtType[] ParamTypes, Method FuncRef) {
-		super(ParamTypes, FuncRef);
-	}
-
-	public Method GetFuncRef() {
-		return (Method) this.CompiledCode;
-	}
-
-	boolean IsStaticInvocation() {
-		return Modifier.isStatic(this.GetFuncRef().getModifiers());
-	}
-
-	@Override public Object Invoke(Object[] Args) {
-		int ParamSize = this.ParamTypes != null ? this.ParamTypes.length - 1 : 0;
-		try {
-			Method FuncRef = this.GetFuncRef();
-			if(this.IsStaticInvocation()) {
-				switch (ParamSize) {
-				case 0:
-					return FuncRef.invoke(null, Args[0]);
-				case 1:
-					return FuncRef.invoke(null, Args[0], Args[1]);
-				case 2:
-					return FuncRef.invoke(null, Args[0], Args[0], Args[2]);
-				case 3:
-					return FuncRef.invoke(null, Args[0], Args[0], Args[2], Args[3]);
-				case 4:
-					return FuncRef.invoke(null, Args[0], Args[1], Args[2], Args[3], Args[4]);
-				case 5:
-					return FuncRef.invoke(null, Args[0], Args[1], Args[2], Args[3], Args[4], Args[5]);
-				default:
-					return FuncRef.invoke(null, Args); // FIXME
-				}
-			}
-			else {
-				switch (ParamSize) {
-				case 0:
-					return FuncRef.invoke(Args[0]);
-				case 1:
-					return FuncRef.invoke(Args[0], Args[1]);
-				case 2:
-					return FuncRef.invoke(Args[0], Args[0], Args[2]);
-				case 3:
-					return FuncRef.invoke(Args[0], Args[0], Args[2], Args[3]);
-				case 4:
-					return FuncRef.invoke(Args[0], Args[1], Args[2], Args[3], Args[4]);
-				case 5:
-					return FuncRef.invoke(Args[0], Args[1], Args[2], Args[3], Args[4], Args[5]);
-				default:
-					return FuncRef.invoke(Args[0], Args); // FIXME
-				}
-			}
-		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
-	}
-}
-
 class JVMBuilder implements Opcodes {
 
-	ArrayList<Local>                LocalVals;
+	ArrayList<JVMLocal>                LocalVals;
 	GtFunc                        FuncInfo;
 
 	MethodVisitor                   methodVisitor;
 	Stack<Type>                     typeStack;
 	LabelStack                      LabelStack;
 	GtNameSpace                     NameSpace;
-	TypeResolver                    TypeResolver;
+	JVMTypeResolver                    TypeResolver;
 
-	public JVMBuilder(GtFunc method, MethodVisitor mv, TypeResolver TypeResolver, GtNameSpace NameSpace) {
-		this.LocalVals = new ArrayList<Local>();
+	public JVMBuilder(GtFunc method, MethodVisitor mv, JVMTypeResolver TypeResolver, GtNameSpace NameSpace) {
+		this.LocalVals = new ArrayList<JVMLocal>();
 		this.FuncInfo = method;
 
 		this.methodVisitor = mv;
@@ -293,49 +155,18 @@ class JVMBuilder implements Opcodes {
 		this.NameSpace = NameSpace;
 	}
 
-	void LoadLocal(Local local) {
+	void LoadLocal(JVMLocal local) {
 		GtType gtype = local.TypeInfo;
 		Type type = this.TypeResolver.GetAsmType(gtype);
 		this.typeStack.push(type);
 		this.methodVisitor.visitVarInsn(type.getOpcode(ILOAD), local.Index);
 	}
 
-	void StoreLocal(Local local) {
+	void StoreLocal(JVMLocal local) {
 		GtType gtype = local.TypeInfo;
 		Type type = this.TypeResolver.GetAsmType(gtype);
 		this.typeStack.pop(); //TODO: check cast
 		this.methodVisitor.visitVarInsn(type.getOpcode(ISTORE), local.Index);
-	}
-
-	void LoadConst(Object o) {
-		Type type;
-		boolean unsupportType = false;
-		if(o instanceof Integer) {
-			type = Type.INT_TYPE;
-		}
-		else if(o instanceof Boolean) {
-			type = Type.BOOLEAN_TYPE;
-		}
-		else if(o instanceof String) {
-			type = this.TypeResolver.GetAsmType(o.getClass());
-		}
-		else {
-			unsupportType = true;
-			type = this.TypeResolver.GetAsmType(o.getClass());
-		}
-		this.typeStack.push(type);
-		if(unsupportType) {
-			int id = addConstValue(o);
-			String owner = Type.getInternalName(this.getClass());
-			String methodName = "getConstValue";
-			String methodDesc = "(I)Ljava/lang/Object;";
-			this.methodVisitor.visitLdcInsn(id);
-			this.methodVisitor.visitMethodInsn(INVOKESTATIC, owner, methodName, methodDesc);
-			this.methodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(o.getClass()));
-		}
-		else {
-			this.methodVisitor.visitLdcInsn(o);
-		}
 	}
 
 	public void boxingReturn() {
@@ -348,25 +179,9 @@ class JVMBuilder implements Opcodes {
 		this.methodVisitor.visitInsn(ARETURN);
 	}
 
-	static List<Object> constValues = new ArrayList<Object>();
-	static int addConstValue(Object o) {
-		int id = constValues.indexOf(o);
-		if(id != -1) {
-			return id;
-		}
-		else {
-			constValues.add(o);
-			return constValues.size() - 1;
-		}
-	}
-
-	public static Object getConstValue(int id) {
-		return constValues.get(id);
-	}
-
-	public Local FindLocalVariable(String Name) {
+	public JVMLocal FindLocalVariable(String Name) {
 		for(int i = 0; i < this.LocalVals.size(); i++) {
-			Local l = this.LocalVals.get(i);
+			JVMLocal l = this.LocalVals.get(i);
 			if(l.Name.compareTo(Name) == 0) {
 				return l;
 			}
@@ -374,18 +189,10 @@ class JVMBuilder implements Opcodes {
 		return null;
 	}
 
-	public Local AddLocal(GtType Type, String Name) {
-		Local local = new Local(this.LocalVals.size(), Type, Name);
+	public JVMLocal AddLocal(GtType Type, String Name) {
+		JVMLocal local = new JVMLocal(this.LocalVals.size(), Type, Name);
 		this.LocalVals.add(local);
 		return local;
-	}
-
-	public GtNode VerifyBlock(GtNameSpace NameSpace, boolean IsEval, GtType ReturnType, GtNode Block) {
-		if(IsEval) {
-			return Block;
-		}
-		Block = new CheckReturnNodePath().Run(NameSpace, ReturnType, Block);
-		return Block;
 	}
 
 	boolean isPrimitiveType(Type type) {
@@ -416,15 +223,11 @@ class JVMBuilder implements Opcodes {
 	}
 }
 
-class TypeResolver {
+class JVMTypeResolver {
 	private final Map<String, GtClassNode>	classMap			= new HashMap<String, GtClassNode>();
 	private final Map<String, String>		typeDescriptorMap	= new HashMap<String, String>();
 
-//	// FIXME
-//	String globalType = Type.getType(GtObject.class).getDescriptor();
-
-	public TypeResolver(GtClassContext Context) {
-//		this.typeDescriptorMap.put("global", globalType);
+	public JVMTypeResolver(GtClassContext Context) {
 		this.typeDescriptorMap.put(Context.VoidType.ShortClassName, Type.getType(void.class).getDescriptor());
 		this.typeDescriptorMap.put(Context.BooleanType.ShortClassName, Type.getType(boolean.class).getDescriptor());
 		this.typeDescriptorMap.put(Context.IntType.ShortClassName, Type.getType(int.class).getDescriptor());
@@ -440,7 +243,7 @@ class TypeResolver {
 			return descriptor;
 		}
 		if(type.NativeSpec != null) { //HostedClassInfo -> NativeSpec
-			return Type.getDescriptor((Class) type.NativeSpec); //HostedClassInfo -> NativeSpec
+			return Type.getDescriptor((Class<?>) type.NativeSpec); //HostedClassInfo -> NativeSpec
 		}
 		else {
 			return "L" + type.ShortClassName + ";";//FIXME
@@ -486,37 +289,69 @@ class TypeResolver {
 	}
 }
 
-class NativeFuncMap {
-	private final HashMap<GtFunc, GtFuncInvoker> methodInvokerMap;
+class JVMConstPool {
+	private final List<Object> constValues = new ArrayList<Object>();
 
-	public NativeFuncMap() {
-		this.methodInvokerMap = new HashMap<GtFunc, GtFuncInvoker>();
+	public int add(Object o) {
+		int id = constValues.indexOf(o);
+		if(id != -1) {
+			return id;
+		}
+		else {
+			constValues.add(o);
+			return constValues.size() - 1;
+		}
 	}
 
-	public GtFuncInvoker GetFuncInvoker(GtFunc Func) {
-		return this.methodInvokerMap.get(Func);
-	}
-
-	public void PutFuncInvoker(GtFunc KeyFunc, GtFuncInvoker FuncInvoker) {
-		this.methodInvokerMap.put(KeyFunc, FuncInvoker);
-	}
-
-	public boolean Exist(GtFunc Func) {
-		return this.methodInvokerMap.containsKey(Func);
+	public Object getConstValue(int id) {
+		return constValues.get(id);
 	}
 }
 
 public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
-	private TypeResolver	TypeResolver;
+	private static JVMConstPool constPool = new JVMConstPool();
+	private JVMTypeResolver TypeResolver;
 	private JVMBuilder Builder;
-	private final NativeFuncMap NMMap;
 	private GtClassContext Context;
+
+	private final String defaultClassName = "Global";
+	private GtClassNode globalNode = new GtClassNode(defaultClassName, "java/lang/Object");
 
 	public JavaByteCodeGenerator(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
 		this.TypeResolver = null;
-		this.NMMap = new NativeFuncMap();
 		this.Context = null;
+	}
+
+	void LoadConst(Object o) {
+		Type type;
+		boolean unsupportType = false;
+		if(o instanceof Integer) {
+			type = Type.INT_TYPE;
+		}
+		else if(o instanceof Boolean) {
+			type = Type.BOOLEAN_TYPE;
+		}
+		else if(o instanceof String) {
+			type = this.TypeResolver.GetAsmType(o.getClass());
+		}
+		else {
+			unsupportType = true;
+			type = this.TypeResolver.GetAsmType(o.getClass());
+		}
+		this.Builder.typeStack.push(type);
+		if(unsupportType) {
+			int id = constPool.add(o);
+			String owner = Type.getInternalName(this.getClass());
+			String methodName = "getConstValue";
+			String methodDesc = "(I)Ljava/lang/Object;";
+			this.Builder.methodVisitor.visitLdcInsn(id);
+			this.Builder.methodVisitor.visitMethodInsn(INVOKESTATIC, owner, methodName, methodDesc);
+			this.Builder.methodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(o.getClass()));
+		}
+		else {
+			this.Builder.methodVisitor.visitLdcInsn(o);
+		}
 	}
 
 	public void OutputClassFile(String className, String dir) throws IOException {
@@ -576,25 +411,19 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		return null;
 	}
 
-	private final String defaultClassName = "Global";
-	private GtClassNode globalNode = new GtClassNode(defaultClassName, "java/lang/Object");
-
 	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> NameList, GtNode Body) {
-		if(NMMap.Exist(Func)) {
-			return;
-		}
 		int acc = ACC_PUBLIC;
 		if(!Func.Is(ExportFunc)) {
 			acc |= ACC_STATIC;
 		}
 		Type retType = TypeResolver.GetAsmType(Func.GetReturnType());
 		ArrayList<Type> argTypes = new ArrayList<Type>();
-		ArrayList<Local> locals  = new ArrayList<Local>();
+		ArrayList<JVMLocal> locals  = new ArrayList<JVMLocal>();
 		for(int i=0; i<NameList.size(); i++) {
 			GtType type = Func.GetFuncParamType(i);
 			String name = NameList.get(i);
 			argTypes.add(TypeResolver.GetAsmType(type));
-			locals.add(new Local(i, type, name));
+			locals.add(new JVMLocal(i, type, name));
 		}
 
 		String methodName = Func.FuncName;
@@ -648,7 +477,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 
 	@Override public void InitContext(GtClassContext Context) {
 		this.Context = Context;
-		this.TypeResolver = new TypeResolver(Context);
+		this.TypeResolver = new JVMTypeResolver(Context);
 		InitEmbeddedFunc();
 	}
 
@@ -658,39 +487,17 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 //		new GtSystemDef(Context.RootNameSpace, NMMap).MakeDefinition();
 	}
 
-	void Call(int opcode, GtFunc Func) { //FIXME
-		//if(Func.FuncInvoker instanceof NativeFuncInvoker) {
-		//	NativeFuncInvoker i = (NativeFuncInvoker) Func.FuncInvoker;
-		//
-		if(NMMap.Exist(Func)) {
-			JavaMethodInvoker i = (JavaMethodInvoker) NMMap.GetFuncInvoker(Func);
-			Method m = i.GetFuncRef();
-			String owner = this.TypeResolver.GetAsmType(m.getDeclaringClass()).getInternalName();
-			String methodName = m.getName();
-			String methodDescriptor = Type.getMethodDescriptor(m);
-			if(Modifier.isStatic(m.getModifiers())) {
-				opcode = INVOKESTATIC;
-			}
-			this.Builder.methodVisitor.visitMethodInsn(opcode, owner, methodName, methodDescriptor);
-			this.Builder.typeStack.push(this.TypeResolver.GetAsmType(m.getReturnType()));
-		}
-		else {
-//			Class<?> OwnerClass = Func.ClassInfo.HostedClassInfo;
-//			if(OwnerClass == null) {
-//				OwnerClass = Func.ClassInfo.DefaultNullValue.getClass();
-//			}
-//			String owner = OwnerClass.getName().replace(".", "/");
-			String owner = defaultClassName;//FIXME
-			String methodName = Func.FuncName;
-			String methodDescriptor = this.TypeResolver.GetJavaFuncDescriptor(Func);
-			this.Builder.methodVisitor.visitMethodInsn(opcode, owner, methodName, methodDescriptor);
-			this.Builder.typeStack.push(this.TypeResolver.GetAsmType(Func.GetReturnType()));
-		}
+	void Call(int opcode, GtFunc Func) {
+		String owner = defaultClassName;//FIXME
+		String methodName = Func.FuncName;
+		String methodDescriptor = this.TypeResolver.GetJavaFuncDescriptor(Func);
+		this.Builder.methodVisitor.visitMethodInsn(opcode, owner, methodName, methodDescriptor);
+		this.Builder.typeStack.push(this.TypeResolver.GetAsmType(Func.GetReturnType()));
 	}
 
 	@Override public void VisitConstNode(ConstNode Node) {
 		Object constValue = Node.ConstValue;
-		this.Builder.LoadConst(constValue);
+		this.LoadConst(constValue);
 	}
 
 	@Override public void VisitNewNode(NewNode Node) {
@@ -705,8 +512,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 	@Override public void VisitNullNode(NullNode Node) {
 		GtType TypeInfo = Node.Type;
 		if(TypeInfo.DefaultNullValue != null) {
-			this.Builder.typeStack.push(this.TypeResolver.GetAsmType(TypeInfo.DefaultNullValue.getClass()));
-			this.Builder.LoadConst(TypeInfo.DefaultNullValue);
+			this.LoadConst(TypeInfo.DefaultNullValue);
 		}
 		else {
 			// FIXME support primitive type (e.g. int)
@@ -717,7 +523,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 
 	@Override public void VisitLocalNode(LocalNode Node) {
 		String FieldName = Node.NativeName;
-		Local local;
+		JVMLocal local;
 		if((local = this.Builder.FindLocalVariable(FieldName)) == null) {
 			throw new RuntimeException("local variable not found:" + FieldName);
 		}
@@ -730,10 +536,10 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
 		GtFunc Func = Node.Func;
-		for(int i = 0; i < Node.Params.size(); i++) {
+		for(int i = 1; i < Node.Params.size(); i++) {
 			GtNode Param = Node.Params.get(i);
 			Param.Evaluate(this);
-			Type requireType = this.TypeResolver.GetAsmType(Func.GetFuncParamType(i));
+			Type requireType = this.TypeResolver.GetAsmType(Func.GetFuncParamType(i - 1));
 			Type foundType = this.Builder.typeStack.peek();
 			if(requireType.equals(Type.getType(Object.class)) && this.Builder.isPrimitiveType(foundType)) {
 				// boxing
@@ -873,7 +679,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 			assert (Node.LeftNode instanceof LocalNode);
 			LocalNode Left = (LocalNode) Node.LeftNode;
 			String Name = Left.NativeName;
-			Local local = this.Builder.FindLocalVariable(Name);
+			JVMLocal local = this.Builder.FindLocalVariable(Name);
 			if(local == null) {
 				throw new RuntimeException("local variable " + Name + " is not found in this context");
 			}
@@ -882,7 +688,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 	}
 
 	@Override public void VisitLetNode(LetNode Node) {
-		Local local = this.Builder.AddLocal(Node.Type, Node.VariableName);
+		JVMLocal local = this.Builder.AddLocal(Node.Type, Node.VariableName);
 		Node.InitNode.Evaluate(this);
 		this.Builder.StoreLocal(local);
 		this.VisitBlock(Node.BlockNode);
@@ -1039,7 +845,6 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 
 class EmbeddedFuncDef extends GtStatic {
 	private GtNameSpace NameSpace;
-	private NativeFuncMap NMMap;
 
 	// Embedded GtType
 	final GtType VoidType;
@@ -1075,9 +880,8 @@ class EmbeddedFuncDef extends GtStatic {
 		return paramTypeList;
 	}
 
-	public EmbeddedFuncDef(GtNameSpace NameSpace, NativeFuncMap NMMap) {
+	public EmbeddedFuncDef(GtNameSpace NameSpace) {
 		this.NameSpace = NameSpace;
-		this.NMMap = NMMap;
 
 		this.VoidType = NameSpace.Context.VoidType;
 		//this.ObjectType = NameSpace.Context.ObjectType;
@@ -1109,141 +913,3 @@ class EmbeddedFuncDef extends GtStatic {
 		return newClass;
 	}
 }
-
-// The code below was moved from GreenTeaScript.java
-// Consider whether it is available?
-
-//ifdef JAVA
-
-//class ArrayList<?>Def extends GtStatic {
-//
-//	public void MakeDefinition(GtNameSpace ns) {
-//      //FIXME int[] only
-//      GtType BaseClass = ns.LookupHostLangType(int[].class);
-//      GtParam GetterParam = GtParam.ParseOf(ns, "int int i");
-//      BaseClass.DefineFunc(ImmutableFunc, "get", GetterParam, this, "ArrayGetter");
-//      GtParam SetterParam = GtParam.ParseOf(ns, "void int i int v");
-//      BaseClass.DefineFunc(0, "set", SetterParam, this, "ArraySetter");
-//      GtParam GetSizeParam = GtParam.ParseOf(ns, "int");
-//      BaseClass.DefineFunc(ImmutableFunc | ConstFunc, "getSize", GetSizeParam, this, "ArrayGetSize");
-//  }
-//
-//  public static int ArrayGetter(int[] a, int i) {
-//      return a[i];
-//  }
-//
-//  public static void ArraySetter(int[] a, int i, int v) {
-//      a[i] = v;
-//  }
-//
-//  public static int ArrayGetSize(int[] a) {
-//      return a.length;
-//  }
-//}
-//endif VAJA
-
-//public GtFunc FindFunc(String FuncName, int ParamSize) {
-///*local*/int i = 0;
-//while(i < this.ClassFuncList.size()) {
-//	GtFunc Func = this.ClassFuncList.get(i);
-//	if(Func.Match(FuncName, ParamSize)) {
-//		return Func;
-//	}
-//	i += 1;
-//}
-//return null;
-//}
-//
-//public GtFunc LookupFunc(String FuncName, int ParamSize) {
-///*local*/GtFunc Func = this.FindFunc(FuncName, ParamSize);
-//if(Func != null) {
-//	return Func;
-//}
-//if(this.SearchSuperFuncClass != null) {
-//	Func = this.SearchSuperFuncClass.LookupFunc(FuncName, ParamSize);
-//	if(Func != null) {
-//		return Func;
-//	}
-//}
-//if(GtContext.Generator.CreateFuncs(this.NativeSpec, FuncName)) {
-//	return this.LookupFunc(FuncName, ParamSize);
-//}
-//ifdef JAVA
-//if(this.NativeSpec instanceof Class) {
-//	if(this.CreateFuncs(FuncName) > 0) {
-//		return this.FindFunc(FuncName, ParamSize);
-//	}
-//}
-//endif JAVA
-//return null;
-//}
-//
-//public boolean DefineNewFunc(GtFunc NewFunc) {
-///*local*/int i = 0;
-//while(i < this.ClassFuncList.size()) {
-//	/*local*/GtFunc DefinedFunc = (GtFunc) this.ClassFuncList.get(i);
-//	if(NewFunc.Match(DefinedFunc)) {
-//		return false;
-//	}
-//	i += 1;
-//}
-//this.AddFunc(NewFunc);
-//return true;
-//}
-//
-////ifdef JAVA
-//
-//public void DefineFunc(int FuncFlag, String FuncName, GtParam Param, Object Callee, String LocalName) {
-//GtFunc Func = new GtFunc(FuncFlag, this, FuncName, Param, LangDeps.LookupFunc(Callee, LocalName));
-//this.AddFunc(Func);
-//}
-//
-//public GtType(GtContext GtContext, Class<?> ClassInfo) {
-//this(GtContext, 0, ClassInfo.getSimpleName(), null);
-//this.NativeSpec = ClassInfo;
-//// this.ClassFlag = ClassFlag;
-//Class<?> SuperClass = ClassInfo.getSuperclass();
-//if(ClassInfo != Object.class && SuperClass != null) {
-//	this.SuperClass = GtContext.LookupHostLangType(ClassInfo.getSuperclass());
-//}
-//}
-//
-//static GtFunc ConvertFunc(GtContext GtContext, Func Func) {
-//GtType ThisType = GtContext.LookupHostLangType(Func.getClass());
-//Class<?>[] ParamTypes = Func.getParameterTypes();
-//GtType[] ParamData = new GtType[ParamTypes.length + 1];
-//String[] ArgNames = new String[ParamTypes.length + 1];
-//ParamData[0] = GtContext.LookupHostLangType(Func.getReturnType());
-//for(int i = 0; i < ParamTypes.length; i++) {
-//	ParamData[i + 1] = GtContext.LookupHostLangType(ParamTypes[i]);
-//	ArgNames[i] = "arg" + i;
-//}
-//GtParam Param = new GtParam(ParamData.length, ParamData, ArgNames);
-//GtFunc Mtd = new GtFunc(0, ThisType, Func.getName(), Param, Func);
-//ThisType.AddFunc(Mtd);
-//return Mtd;
-//}
-//
-//int CreateFuncs(String FuncName) {
-//int Count = 0;
-//Func[] Funcs = ((Class<?>)this.NativeSpec).getFuncs();
-//for(int i = 0; i < Funcs.length; i++) {
-//	if(FuncName.equals(Funcs[i].getName())) {
-//		GtType.ConvertFunc(this.GtContext, Funcs[i]);
-//		Count = Count + 1;
-//	}
-//}
-//return Count;
-//}
-//
-//public boolean RegisterCompiledFunc(GtFunc NewFunc) {
-//for(int i = 0; i < this.ClassFuncList.size(); i++) {
-//	GtFunc DefinedFunc = (GtFunc) this.ClassFuncList.get(i);
-//	if(NewFunc.Match(DefinedFunc)) {
-//		this.ClassFuncList.set(i, NewFunc);
-//		return true;
-//	}
-//}
-//return false;
-//}
-////endif VAJA
