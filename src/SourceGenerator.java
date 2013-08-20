@@ -1236,7 +1236,7 @@ class GtGenerator extends GtStatic {
 	public void InitContext(GtClassContext Context) {
 		this.Context = Context;
 		this.GeneratedCodeStack = new ArrayList<Object>();
-		Context.Eval(LibGreenTea.LoadLibFile(this.TargetCode, "common.green"), 1);
+		Context.LoadFile(LibGreenTea.GetLibPath(this.TargetCode, "common"));
 	}
 
 	public final GtNode UnsupportedNode(GtType Type, GtSyntaxTree ParsedTree) {

@@ -3259,6 +3259,7 @@ final class GtClassContext extends GtStatic {
 	/*field*/public GtType		        PolyFuncType;
 
 	/*field*/public final  GtMap               SourceMap;
+	/*field*/public final  ArrayList<String>   SourceList;
 	/*field*/public final  GtMap			   ClassNameMap;
 	/*field*/public final  GtMap               UniqueFuncMap;
 	/*field*/public int ClassCount;
@@ -3270,6 +3271,7 @@ final class GtClassContext extends GtStatic {
 		this.Generator    = Generator;
 		this.Generator.Context = this;
 		this.SourceMap = new GtMap();
+		this.SourceList = new ArrayList<String>();
 		this.ClassNameMap = new GtMap();
 		this.UniqueFuncMap = new GtMap();
 		this.RootNameSpace = new GtNameSpace(this, null);
@@ -3314,27 +3316,6 @@ final class GtClassContext extends GtStatic {
 		Grammar.LoadTo(this.TopLevelNameSpace);
 	}
 	
-	public Object Eval(String ScriptSource, long FileLine) {
-		/*local*/Object resultValue = null;
-		DebugP("Eval: " + ScriptSource);
-		/*local*/GtTokenContext TokenContext = new GtTokenContext(this.TopLevelNameSpace, ScriptSource, FileLine);
-		this.Generator.StartCompilationUnit();
-		TokenContext.SkipEmptyStatement();
-		while(TokenContext.HasNext()) {
-			/*local*/GtMap annotation = TokenContext.SkipAndGetAnnotation(true);
-			/*local*/GtSyntaxTree topLevelTree = GtStatic.ParseExpression(this.TopLevelNameSpace, TokenContext);
-			topLevelTree.SetAnnotation(annotation);
-			DebugP("untyped tree: " + topLevelTree);
-			/*local*/GtTypeEnv gamma = new GtTypeEnv(this.TopLevelNameSpace);
-			/*local*/GtNode node = gamma.TypeCheckEachNode(topLevelTree, gamma.VoidType, DefaultTypeCheckPolicy);
-			resultValue = this.Generator.Eval(node);
-			TokenContext.SkipEmptyStatement();
-			TokenContext.Vacume();
-		}
-		this.Generator.FinishCompilationUnit();
-		return resultValue;
-	}
-
 	public final GtType GuessType (Object Value) {
 		if(Value instanceof GtFunc) {
 			return ((/*cast*/GtFunc)Value).GetFuncType();
@@ -3395,8 +3376,48 @@ final class GtClassContext extends GtStatic {
 		return true;
 	}
 
+	public final Object Eval(String ScriptSource, long FileLine) {
+		/*local*/Object resultValue = null;
+		DebugP("Eval: " + ScriptSource);
+		/*local*/GtTokenContext TokenContext = new GtTokenContext(this.TopLevelNameSpace, ScriptSource, FileLine);
+		this.Generator.StartCompilationUnit();
+		TokenContext.SkipEmptyStatement();
+		while(TokenContext.HasNext()) {
+			/*local*/GtMap annotation = TokenContext.SkipAndGetAnnotation(true);
+			/*local*/GtSyntaxTree topLevelTree = GtStatic.ParseExpression(this.TopLevelNameSpace, TokenContext);
+			topLevelTree.SetAnnotation(annotation);
+			DebugP("untyped tree: " + topLevelTree);
+			/*local*/GtTypeEnv gamma = new GtTypeEnv(this.TopLevelNameSpace);
+			/*local*/GtNode node = gamma.TypeCheckEachNode(topLevelTree, gamma.VoidType, DefaultTypeCheckPolicy);
+			resultValue = this.Generator.Eval(node);
+			TokenContext.SkipEmptyStatement();
+			TokenContext.Vacume();
+		}
+		this.Generator.FinishCompilationUnit();
+		return resultValue;
+	}
+
+	public final void LoadFile(String FileName) {
+		String ScriptText = LibGreenTea.LoadFile(FileName);
+		long FileLine = this.GetFileLine(FileName, 1);
+		this.Eval(ScriptText, FileLine);
+	}
+
+	public final long GetFileLine(String FileName, int Line) {
+		/*local*/Integer Id = (/*cast*/Integer)this.SourceMap.get(FileName);
+		if(Id == null) {
+			this.SourceList.add(FileName);
+			Id = this.SourceList.size();
+			this.SourceMap.put(FileName, Id);
+		}
+		return LibGreenTea.JoinIntId(Id, Line);
+	}
+
 	private final String GetSourcePosition(long FileLine) {
-		return "(eval:" + (int) FileLine + ")";  // FIXME: USE SourceMap
+		/*local*/int FileId = LibGreenTea.UpperId(FileLine);
+		/*local*/int Line = LibGreenTea.LowerId(FileLine); 
+		String FileName = (FileId == 0) ? "eval" : this.SourceList.get(FileId - 1);
+		return "(" + FileName + ":" + Line + ")";
 	}
 
 	public final void ReportError(int Level, GtToken Token, String Message) {
@@ -3419,10 +3440,19 @@ final class GtClassContext extends GtStatic {
 		}
 	}
 
-	public final ArrayList<String> GetReportedErrors() {
+	public final String[] GetReportedErrors() {
 		ArrayList<String> List = this.ReportedErrorList;
 		this.ReportedErrorList = new ArrayList<String>();
-		return List;
+		return List.toArray(new String[List.size()]);
+	}
+	
+	public final void ShowReportedErrors() {
+		/*local*/int i = 0;
+		/*local*/String[] Messages = this.GetReportedErrors();
+		while(i < Messages.length) {
+			LibGreenTea.println(Messages[i]);
+			i = i + 1;
+		}
 	}
 }
 
@@ -3486,6 +3516,7 @@ public class GreenTeaScript extends GtStatic {
 			/*local*/String Line = null;
 			while((Line = LibGreenTea.ReadLine(">>> ")) != null) {
 				Context.Eval(Line, linenum);
+				Context.ShowReportedErrors();
 				linenum += 1;
 			}
 		}

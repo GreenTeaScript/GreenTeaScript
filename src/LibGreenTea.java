@@ -317,12 +317,9 @@ public abstract class LibGreenTea {
 		} catch (FileNotFoundException e) {
 			System.err.println(e.getMessage());
 			System.exit(1);
-			// TODO Auto-generated catch block
-			//e.printStackTrace();
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
 			System.exit(1);
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return "";
@@ -332,9 +329,25 @@ public abstract class LibGreenTea {
 		return HasFile("lib/" + TargetCode + "/common.green");
 	}
 	
-	public final static String LoadLibFile(String TargetCode, String FileName) {
-		return LoadFile("lib/" + TargetCode + "/" + FileName);
+	public final static String GetLibPath(String TargetCode, String LibName) {
+		return LoadFile("lib/" + TargetCode + "/" + LibName + ".green");
 	}
+
+	public static long JoinIntId(int UpperId, int LowerId) {
+		long id = UpperId;
+		id = (id << 32) + LowerId;
+		return id;
+	}
+
+	public static int UpperId(long FileLine) {
+		return (int)(FileLine >> 32);
+	}
+
+	public static int LowerId(long FileLine) {
+		return (int)FileLine;
+	}
+
+
 
 
 	
