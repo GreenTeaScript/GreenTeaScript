@@ -43,7 +43,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		/*local*/GtNode CurrentNode = Node;
 		while(CurrentNode != null) {
 			/*local*/String poppedCode = this.VisitNode(CurrentNode);
-			if(!poppedCode.equals("")) {
+			if(!LibGreenTea.EqualsString(poppedCode, "")) {
 				Code += this.GetIndentString() + poppedCode + this.LineFeed;
 			}
 			CurrentNode = CurrentNode.NextNode;
@@ -51,7 +51,8 @@ public class PythonSourceGenerator extends SourceGenerator {
 		if(inBlock) {
 			this.UnIndent();
 			Code += this.GetIndentString();
-		}		else {
+		}
+		else {
 			if(Code.length() > 0) {
 				Code = Code.substring(0, Code.length() - 1);
 			}
@@ -152,20 +153,6 @@ public class PythonSourceGenerator extends SourceGenerator {
 		return ParamCode;
 	}
 
-	private String JoinCode(String BeginCode, int BeginIdx, String[] ParamCode, String EndCode) {
-		/*local*/String JoinedCode = BeginCode;
-		/*local*/int i = BeginIdx;
-		while(i < ParamCode.length) {
-			/*local*/String P = ParamCode[i];
-			if(i != BeginIdx) {
-				JoinedCode += ", ";
-			}
-			JoinedCode += P;
-			i = i + 1;
-		}
-		return JoinedCode + EndCode;
-	}
-
 	@Override public void VisitApplyNode(ApplyNode Node) {
 		/*local*/String Program = this.GenerateApplyFunc(Node);
 		this.PushSourceCode(Program);
@@ -173,10 +160,10 @@ public class PythonSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitSuffixNode(SuffixNode Node) {	//FIXME
 		/*local*/String FuncName = Node.Token.ParsedText;
-		if(FuncName.equals("++")) {
+		if(LibGreenTea.EqualsString(FuncName, "++")) {
 			FuncName = " += 1";
 		}
-		else if(FuncName.equals("--")) {
+		else if(LibGreenTea.EqualsString(FuncName, "--")) {
 			FuncName = " -= 1";
 		}
 		else {
@@ -375,7 +362,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 
 	@Override public Object Eval(GtNode Node) {
 		/*local*/String Code = this.VisitBlockWithIndent(Node, false);
-		if(!Code.equals("")) {
+		if(!LibGreenTea.EqualsString(Code, "")) {
 			this.WriteLineCode(Code);
 		}
 		return Code;

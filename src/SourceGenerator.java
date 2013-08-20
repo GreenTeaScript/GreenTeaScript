@@ -1788,7 +1788,20 @@ class SourceGenerator extends GtGenerator {
 		Node.Evaluate(this);
 		return this.PopSourceCode();
 	}
-
+	
+	public final String JoinCode(String BeginCode, int BeginIdx, String[] ParamCode, String EndCode, String Delim) {
+		/*local*/String JoinedCode = BeginCode;
+		/*local*/int i = BeginIdx;
+		while(i < ParamCode.length) {
+			/*local*/String P = ParamCode[i];
+			if(i != BeginIdx) {
+				JoinedCode += Delim;
+			}
+			JoinedCode += P;
+			i = i + 1;
+		}
+		return JoinedCode + EndCode;
+	}
 
 	public final static String GenerateApplyFunc1(GtFunc Func, String FuncName, boolean IsSuffixOp, String Arg1) {
 		/*local*/String Macro = null;
