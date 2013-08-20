@@ -105,7 +105,7 @@ public class CSourceGenerator extends SourceGenerator {
 	@Override public void VisitUnaryNode(UnaryNode Node) {
 		/*local*/String FuncName = Node.Token.ParsedText;
 		/*local*/String Expr = this.VisitNode(Node.Expr);
-		this.PushSourceCode(SourceGenerator.GenerateApplyFunc1(Node.Func, FuncName, Expr));
+		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc1(Node.Func, FuncName, false, Expr) + ")");
 	}
 
 	@Override public void VisitIndexerNode(IndexerNode Node) {
@@ -189,7 +189,7 @@ public class CSourceGenerator extends SourceGenerator {
 		/*local*/String FuncName = Node.Token.ParsedText;
 		/*local*/String Left = this.VisitNode(Node.LeftNode);
 		/*local*/String Right = this.VisitNode(Node.RightNode);
-		this.PushSourceCode(SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right));
+		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right) + ")");
 	}
 
 	@Override public void VisitAndNode(AndNode Node) {

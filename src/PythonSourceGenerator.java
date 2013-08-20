@@ -127,20 +127,20 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(this.VisitNode(Node.Expr) + "." + Node.Token.ParsedText);
 	}
 
-	protected String[] MakeParamCode1(GtNode Node) {
+	private String[] MakeParamCode1(GtNode Node) {
 		/*local*/String[] ParamCode = new String[1];
 		ParamCode[0] = this.VisitNode(Node);
 		return ParamCode;
 	}
 	
-	protected String[] MakeParamCode2(GtNode Node, GtNode Node2) {
+	private String[] MakeParamCode2(GtNode Node, GtNode Node2) {
 		/*local*/String[] ParamCode = new String[2];
 		ParamCode[0] = this.VisitNode(Node);
 		ParamCode[1] = this.VisitNode(Node2);
 		return ParamCode;
 	}
 
-	protected String[] MakeParamCode(ArrayList<GtNode> ParamList) {
+	private String[] MakeParamCode(ArrayList<GtNode> ParamList) {
 		/*local*/int Size = GtStatic.ListSize(ParamList);
 		/*local*/String[] ParamCode = new String[Size - 1];
 		/*local*/int i = 1;
@@ -152,7 +152,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		return ParamCode;
 	}
 
-	protected String JoinCode(String BeginCode, int BeginIdx, String[] ParamCode, String EndCode) {
+	private String JoinCode(String BeginCode, int BeginIdx, String[] ParamCode, String EndCode) {
 		/*local*/String JoinedCode = BeginCode;
 		/*local*/int i = BeginIdx;
 		while(i < ParamCode.length) {
@@ -167,18 +167,8 @@ public class PythonSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
-		/*local*/String[] ParamCode = this.MakeParamCode(Node.Params);
-		if(Node.Func == null) {
-			this.PushSourceCode(this.JoinCode(ParamCode[0] + "(", 0, ParamCode, ")"));
-		}
-		else if(Node.Func.Is(NativeFunc)) {
-			this.PushSourceCode(this.JoinCode(ParamCode[0] + "." + Node.Func.FuncName + "(", 0, ParamCode, ")"));
-		}
-		else if(Node.Func.Is(NativeMacroFunc)) {
-			this.PushSourceCode(Node.Func.ApplyNativeMacro(0, ParamCode));
-		}else {
-			this.PushSourceCode(this.JoinCode(Node.Func.GetNativeFuncName() + "(", 0, ParamCode, ")"));
-		}
+		/*local*/String Program = this.GenerateApplyFunc(Node);
+		this.PushSourceCode(Program);
 	}
 
 	@Override public void VisitSuffixNode(SuffixNode Node) {	//FIXME
@@ -204,13 +194,9 @@ public class PythonSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitUnaryNode(UnaryNode Node) {
-		if(Node.Func == null) {
-			this.PushSourceCode("(" + Node.Token.ParsedText + this.VisitNode(Node.Expr) + ")");
-		}
-		else {
-			/*local*/String[] ParamCode = this.MakeParamCode1(Node.Expr);
-			this.PushSourceCode("(" + Node.Func.ApplyNativeMacro(0, ParamCode) + ")");
-		}
+		/*local*/String FuncName = Node.Token.ParsedText;
+		/*local*/String Expr = this.VisitNode(Node.Expr);
+		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc1(Node.Func, FuncName, false, Expr) + ")");
 	}
 
 	@Override public void VisitBinaryNode(BinaryNode Node) {

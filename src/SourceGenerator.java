@@ -1005,13 +1005,16 @@ class GtFunc extends GtStatic {
 	}
 
 	public final String ApplyNativeMacro(int BaseIndex, String[] ParamCode) {
-		/*local*/String NativeMacro = IsFlag(this.FuncFlag, NativeMacroFunc) ? (/*cast*/String)this.NativeRef : "$0 " + this.FuncName + " $1";
-		/*local*/String Code = NativeMacro.replace("$0", ParamCode[BaseIndex]);
+		/*local*/String NativeMacro = "$1 " + this.FuncName + " $2";
+		if(IsFlag(this.FuncFlag, NativeMacroFunc)) {
+			NativeMacro = this.GetNativeMacro();
+		}
+		/*local*/String Code = NativeMacro.replace("$1", ParamCode[BaseIndex]);
 		if(ParamCode.length == BaseIndex + 1) {
-			Code = Code.replace("$1", "");
+			Code = Code.replace("$2", "");
 		}
 		else {
-			Code = Code.replace("$1", ParamCode[BaseIndex + 1]);
+			Code = Code.replace("$2", ParamCode[BaseIndex + 1]);
 		}
 		return Code;
 	}
@@ -1823,7 +1826,7 @@ class SourceGenerator extends GtGenerator {
 		return Code;
 	}
 
-	public final static String GenerateApplyFunc1(GtFunc Func, String FuncName, String Arg1) {
+	public final static String GenerateApplyFunc1(GtFunc Func, String FuncName, boolean IsSuffixOp, String Arg1) {
 		String Macro = null;
 		if(Func != null) {
 			FuncName = Func.GetNativeFuncName();
@@ -1832,7 +1835,12 @@ class SourceGenerator extends GtGenerator {
 			}
 		}
 		if(Macro == null) {
-			Macro = "$1 " + FuncName;
+			if(IsSuffixOp) {
+				Macro = FuncName + " $1";
+			}
+			else {
+				Macro = "$1 " + FuncName;
+			}
 		}
 		return Macro.replace("$1", Arg1);
 	}
