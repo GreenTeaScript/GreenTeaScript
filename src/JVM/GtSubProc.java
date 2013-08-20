@@ -106,7 +106,7 @@ class CommandBuilder {
 		ArrayList<String> cmdBuffer = new ArrayList<String>();
 		boolean inInputRedirect = false;
 		boolean inOutputRedirect = false;
-		for(int i = 0; i < size; i++){
+		for(int i = 0; i < size; i++) {
 			if(targetCmds[i].equals("<") && i + 1 < size) {
 				inInputRedirect = true;
 			}
@@ -489,7 +489,7 @@ class ProcessMonitor {
 			Matcher m1, m2, m3;
 			
 			String line;
-			while((line = br.readLine()) != null){
+			while((line = br.readLine()) != null) {
 				m1 = p1.matcher(line);
 				m2 = p2.matcher(line);
 				if(m1.find() && !m2.find()) {

@@ -89,6 +89,7 @@ void main() {
         data = replace(args[i], data, "@Override\n\t",  "@Override\n\t",  "@Override ");
         data = replace(args[i], data, "if \\(",  "if (",  "if(");
         data = replace(args[i], data, "} else",  "} else",  "}\nelse");
+        data = replace(args[i], data, "\\){",  "){",  ") {");
         data = replace(args[i], data, "for \\(", "for (", "for(");
         data = replace(args[i], data, "while \\(", "while (", "while(");
         data = replace(args[i], data, "\\/\\* field \\*\\/",  "/* field */",  "/*field*/");

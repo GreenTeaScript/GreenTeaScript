@@ -270,7 +270,7 @@ class GtStatic implements GtConst {
 	}
 
 	public final static int ListSize(ArrayList<?> a) {
-		if(a == null){
+		if(a == null) {
 			return 0;
 		}
 		return a.size();
@@ -505,7 +505,7 @@ class GtDelegateCommon {
 		this.Func = method;
 	}
 	@Override public final String toString() {
-		if(this.Func == null){
+		if(this.Func == null) {
 			return "*undefined*";
 		}
 		return this.Func.getName();
@@ -691,7 +691,7 @@ final class GtTokenContext extends GtStatic {
 	}
 
 	public GtSyntaxTree ReportExpectedPattern(GtSyntaxPattern Pattern) {
-		if(Pattern == null){
+		if(Pattern == null) {
 			return this.ReportExpectedToken("null");
 		}
 		return this.ReportExpectedToken(Pattern.PatternName);
@@ -742,7 +742,7 @@ final class GtTokenContext extends GtStatic {
 			if(Token.IsSource()) {
 				this.SourceList.remove(this.SourceList.size()-1);
 				this.Tokenize(Token.ParsedText, Token.FileLine);
-				if(this.CurrentPosition < this.SourceList.size()){
+				if(this.CurrentPosition < this.SourceList.size()) {
 					Token = this.SourceList.get(this.CurrentPosition);
 				}else{
 					break;
@@ -964,7 +964,7 @@ class GtSyntaxTree extends GtStatic {
 		/*local*/int i = 0;
 		while(i < ListSize(this.TreeList)) {
 			/*local*/GtSyntaxTree SubTree = this.TreeList.get(i);
-			while(SubTree != null){
+			while(SubTree != null) {
 				/*local*/String Entry = SubTree.toString();
 				if(ListSize(SubTree.TreeList) == 0) {
 					Entry = SubTree.KeyToken.ParsedText;
@@ -1357,7 +1357,7 @@ final class GtTypeEnv extends GtStatic {
 			ParsedTree = ParsedTree.NextTree;
 		}
 		this.StackTopIndex = StackTopIndex;
-		if(LastNode == null){
+		if(LastNode == null) {
 			return null;
 		}
 		return LastNode.MoveHeadNode();
@@ -1462,7 +1462,7 @@ final class GtNameSpace extends GtStatic {
 
 	public GtSyntaxPattern GetPattern(String PatternName) {
 		/*local*/Object Body = this.GetSymbol(PatternName);
-		if(Body instanceof GtSyntaxPattern){
+		if(Body instanceof GtSyntaxPattern) {
 			return (/*cast*/GtSyntaxPattern)Body;
 		}
 		return null;
@@ -1470,7 +1470,7 @@ final class GtNameSpace extends GtStatic {
 
 	public GtSyntaxPattern GetExtendedPattern(String PatternName) {
 		/*local*/Object Body = this.GetSymbol("\t" + PatternName);
-		if(Body instanceof GtSyntaxPattern){
+		if(Body instanceof GtSyntaxPattern) {
 			return (/*cast*/GtSyntaxPattern)Body;
 		}
 		return null;
@@ -2453,7 +2453,7 @@ final class DScriptGrammar extends GtGrammar {
 				Gamma.Func.Types[0] = Expr.Type;
 				Gamma.ReportTypeInference(ParsedTree.KeyToken, "return value of " + Gamma.Func.FuncName, Expr.Type);
 			}
-			if(ReturnType == Gamma.VoidType){
+			if(ReturnType == Gamma.VoidType) {
 				Gamma.Context.ReportError(WarningLevel, ParsedTree.KeyToken, "ignored return value");
 				return Gamma.Generator.CreateReturnNode(ReturnType, ParsedTree, null);
 			}
@@ -3143,7 +3143,7 @@ final class DScriptGrammar extends GtGrammar {
 
 		NameSpace.DefineTokenFunc(" \t", FunctionA(this, "WhiteSpaceToken"));
 		NameSpace.DefineTokenFunc("\n",  FunctionA(this, "IndentToken"));
-		NameSpace.DefineTokenFunc("(){}[]<>.,:;+-*/%=&|!@", FunctionA(this, "OperatorToken"));
+		NameSpace.DefineTokenFunc("{}()[]<>.,:;+-*/%=&|!@", FunctionA(this, "OperatorToken"));
 		NameSpace.DefineTokenFunc("/", FunctionA(this, "CommentToken"));  // overloading
 		NameSpace.DefineTokenFunc("Aa", FunctionA(this, "SymbolToken"));
 		NameSpace.DefineTokenFunc("Aa-/", FunctionA(this, "SymbolShellToken")); // overloading

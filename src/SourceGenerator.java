@@ -91,7 +91,7 @@ class GtNode extends GtStatic {
 	public int CountForrowingNode() {
 		/*local*/int n = 0;
 		/*local*/GtNode node = this;
-		while(node != null){
+		while(node != null) {
 			n++;
 			node = node.NextNode;
 		}
@@ -861,7 +861,7 @@ class GtFunc extends GtStatic {
 	}
 
 	public final GtType GetRecvType() {
-		if(this.Types.length == 1){
+		if(this.Types.length == 1) {
 			return this.Types[0].Context.VoidType;
 		}
 		return this.Types[1];
@@ -1575,13 +1575,13 @@ class GtGenerator extends GtStatic {
 		/*extension*/
 	}
 
-	protected void PushCode(Object Code){
+	protected void PushCode(Object Code) {
 		this.GeneratedCodeStack.add(Code);
 	}
 
-	protected final Object PopCode(){
+	protected final Object PopCode() {
 		/*local*/int Size = this.GeneratedCodeStack.size();
-		if(Size > 0){
+		if(Size > 0) {
 			return this.GeneratedCodeStack.remove(Size - 1);
 		}
 		return "";
@@ -1704,11 +1704,11 @@ class SourceGenerator extends GtGenerator {
 		return "new " + Type.ShortClassName + "()";
 	}
 
-	protected final void PushSourceCode(String Code){
+	protected final void PushSourceCode(String Code) {
 		this.PushCode(Code);
 	}
 
-	protected final String PopSourceCode(){
+	protected final String PopSourceCode() {
 		return (/*cast*/String) this.PopCode();
 	}
 

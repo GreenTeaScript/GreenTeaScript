@@ -51,11 +51,11 @@ public abstract class LibGreenTea {
 
 	public static boolean DebugMode = false;
 
-	private final static String GetStackInfo(int depth){
+	private final static String GetStackInfo(int depth) {
 		String LineNumber = " ";
 		Exception e =  new Exception();
 		StackTraceElement[] Elements = e.getStackTrace();
-		if(depth < Elements.length){
+		if(depth < Elements.length) {
 			StackTraceElement elem = Elements[depth];
 			LineNumber += elem;
 		}
@@ -103,11 +103,11 @@ public abstract class LibGreenTea {
 		return Text.charAt(Pos);
 	}
 
-	public final static String CharToString(char code){
+	public final static String CharToString(char code) {
 		return Character.toString(code);
 	}
 
-	public final static boolean EqualsString(String s, String s2){
+	public final static boolean EqualsString(String s, String s2) {
 		return s.equals(s2);
 	}
 

@@ -38,8 +38,8 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 		/*local*/int ArgCount = Func.Types.length - 1;
 		/*local*/String Code = "var " + Func.GetNativeFuncName() + " = (function(";
 		/*local*/int i = 0;
-		while(i < ArgCount){
-			if(i > 0){
+		while(i < ArgCount) {
+			if(i > 0) {
 				Code = Code + ", ";
 			}
 			Code = Code + NameList.get(i);
@@ -72,7 +72,7 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 		/*local*/String Right = this.VisitNode(Node.RightNode);
 		/*local*/String Source = "(" + SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right) + ")";
 		/*local*/String operator = Node.Token.ParsedText;
-		if(LibGreenTea.EqualsString(operator, "/") /*&& Node.Type == Context.IntType*/ ){
+		if(LibGreenTea.EqualsString(operator, "/") /*&& Node.Type == Context.IntType*/ ) {
 			Source = "(" + Source + " | 0)";
 		}
 		this.PushSourceCode(Source);
@@ -172,9 +172,9 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 	@Override public Object Eval(GtNode Node) {
 		this.VisitBlock(Node);
 		/*local*/String ret = "";
-		while(this.GeneratedCodeStack.size() > 0){
+		while(this.GeneratedCodeStack.size() > 0) {
 			/*local*/String Line = this.PopSourceCode();
-			if(Line.length() > 0){
+			if(Line.length() > 0) {
 				ret =  Line + ";\n" + ret;
 			}
 		}
