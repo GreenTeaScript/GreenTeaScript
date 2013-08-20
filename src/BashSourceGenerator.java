@@ -251,11 +251,11 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitAndNode(AndNode Node) {
-		this.PushSourceCode("(" + this.VisitNode(Node.LeftNode) + " && " + this.VisitNode(Node.RightNode) + ")");
+		this.PushSourceCode("(" + this.ResolveValueType(Node.LeftNode) + " && " + this.ResolveValueType(Node.RightNode) + ")");
 	}
 
 	@Override public void VisitOrNode(OrNode Node) {
-		this.PushSourceCode("(" + this.VisitNode(Node.LeftNode) + " || " + this.VisitNode(Node.RightNode) + ")");
+		this.PushSourceCode("(" + this.ResolveValueType(Node.LeftNode) + " || " + this.ResolveValueType(Node.RightNode) + ")");
 	}
 
 	@Override public void VisitAssignNode(AssignNode Node) {
