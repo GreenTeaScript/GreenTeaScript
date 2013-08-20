@@ -232,7 +232,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		/*local*/int i = 0;
 		while(i < ClassField.FieldList.size()) {
 			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
-			/*local*/String InitValue = this.StringfyConstValue(FieldInfo.InitValue);
+			/*local*/String InitValue = this.StringifyConstValue(FieldInfo.InitValue);
 			if(!FieldInfo.Type.IsNative()) {
 				InitValue = "None";
 			}

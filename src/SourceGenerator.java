@@ -1671,7 +1671,7 @@ class SourceGenerator extends GtGenerator {
 		return this.CurrentLevelIndentString;
 	}
 
-	protected String StringfyConstValue(Object ConstValue) {
+	protected String StringifyConstValue(Object ConstValue) {
 		if(ConstValue == null) {
 			return this.NullLiteral;
 		}
@@ -1821,7 +1821,7 @@ class SourceGenerator extends GtGenerator {
 	}
 
 	@Override public final void VisitConstNode(ConstNode Node) {
-		this.PushSourceCode(this.StringfyConstValue(Node.ConstValue));
+		this.PushSourceCode(this.StringifyConstValue(Node.ConstValue));
 	}
 
 	@Override public final void VisitNullNode(NullNode Node) {

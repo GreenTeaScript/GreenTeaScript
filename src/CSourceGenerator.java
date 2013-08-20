@@ -255,7 +255,7 @@ public class CSourceGenerator extends SourceGenerator {
 		while(i < ClassField.FieldList.size()) {
 			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
 			/*local*/String VarName = FieldInfo.NativeName;
-			/*local*/String InitValue = this.StringfyConstValue(FieldInfo.InitValue);
+			/*local*/String InitValue = this.StringifyConstValue(FieldInfo.InitValue);
 			if(!FieldInfo.Type.IsNative()) {
 				InitValue = this.NullLiteral;
 			}
