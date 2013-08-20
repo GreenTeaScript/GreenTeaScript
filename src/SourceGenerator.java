@@ -1681,6 +1681,10 @@ class GtGenerator extends GtStatic {
 	public String GetRecvName() {
 		return "this";  // default 
 	}
+
+	public void InvokeMainFunc(String MainFuncName) {
+		/*extension*/
+	}
 }
 
 class SourceGenerator extends GtGenerator {

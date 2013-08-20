@@ -45,7 +45,7 @@ public abstract class LibGreenTea {
 		System.out.println(msg);
 	}
 
-	public static boolean DebugMode = true;
+	public static boolean DebugMode = false;
 	
 	private final static String GetStackInfo(int depth){
 		String LineNumber = " ";

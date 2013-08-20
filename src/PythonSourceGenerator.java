@@ -403,4 +403,10 @@ public class PythonSourceGenerator extends SourceGenerator {
 		//this.WriteLineCode("if __name__ == '__main__':");
 		//this.WriteLineCode(this.Tab + "main()");
 	}
+	
+	@Override public void InvokeMainFunc(String MainFuncName) {
+		this.WriteLineCode("if __name__ == '__main__':");
+		this.WriteLineCode(this.Tab + MainFuncName + "()");
+	}
+
 }
