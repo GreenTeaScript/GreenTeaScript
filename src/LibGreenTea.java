@@ -342,7 +342,7 @@ public abstract class LibGreenTea {
 	}
 	
 	public final static String GetLibPath(String TargetCode, String LibName) {
-		return LoadFile("lib/" + TargetCode + "/" + LibName + ".green");
+		return "lib/" + TargetCode + "/" + LibName + ".green";
 	}
 
 	public static long JoinIntId(int UpperId, int LowerId) {

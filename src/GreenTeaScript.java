@@ -3253,9 +3253,9 @@ final class GtClassContext extends GtStatic {
 	GtClassContext/*constructor*/(GtGrammar Grammar, GtGenerator Generator) {
 		this.Generator    = Generator;
 		this.Generator.Context = this;
-		this.SourceMap = new GtMap();
-		this.SourceList = new ArrayList<String>();
-		this.ClassNameMap = new GtMap();
+		this.SourceMap     = new GtMap();
+		this.SourceList    = new ArrayList<String>();
+		this.ClassNameMap  = new GtMap();
 		this.UniqueFuncMap = new GtMap();
 		this.RootNameSpace = new GtNameSpace(this, null);
 		this.ClassCount = 0;
