@@ -69,3 +69,5 @@ do
 	echo "" >> $OUTFILE
 done
 
+cat $OUTFILE
+
