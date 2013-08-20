@@ -1953,6 +1953,12 @@ final class DScriptGrammar extends GtGrammar {
 		if(VariableInfo != null) {
 			return Gamma.Generator.CreateLocalNode(VariableInfo.Type, ParsedTree, VariableInfo.NativeName);
 		}
+		if(Name.equals("this")) {
+			VariableInfo = Gamma.LookupDeclaredVariable(Gamma.Generator.GetRecvName());
+			if(VariableInfo != null) {
+				return Gamma.Generator.CreateLocalNode(VariableInfo.Type, ParsedTree, VariableInfo.NativeName);
+			}
+		}
 		/*local*/Object ConstValue = (/*cast*/Object) ParsedTree.NameSpace.GetSymbol(Name);
 		if(ConstValue != null) {
 			return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(ConstValue), ParsedTree, ConstValue);
