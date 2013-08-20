@@ -492,19 +492,15 @@ final class GtMap {
 		this.Map = new HashMap<String, Object>();
 	}
 
-	public int size() {
-		return this.Map.size();
-	}
-
-	public void put(String Key, Object Value) {
+	public final void put(String Key, Object Value) {
 		this.Map.put(Key, Value);
 	}
 
-	public Object get(String Key) {
+	public final Object get(String Key) {
 		return this.Map.get(Key);
 	}
 
-	public ArrayList<String> keys() {
+	public final String[] keys() {
 		return LibGreenTea.MapGetKeys(this);
 	}
 }
@@ -1211,7 +1207,7 @@ class GtVariableInfo extends GtStatic {
 final class GtTypeEnv extends GtStatic {
 	/*field*/public final GtClassContext    Context;
 	/*field*/public final GtGenerator       Generator;
-	/*field*/public final GtNameSpace	    NameSpace;
+	/*field*/public GtNameSpace	    NameSpace;
 
 	/*field*/public GtFunc	Func;
 	/*field*/public ArrayList<GtVariableInfo> LocalStackList;
