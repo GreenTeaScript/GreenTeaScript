@@ -1843,6 +1843,7 @@ class SourceGenerator extends GtGenerator {
 			FuncName = Func.GetNativeFuncName();
 			if(IsFlag(Func.FuncFlag, NativeMacroFunc)) {
 				Macro = Func.GetNativeMacro();
+				Macro = Macro.substring(1, Macro.length() - 1); // remove ""
 			}
 		}
 		if(Macro == null) {
@@ -1862,6 +1863,7 @@ class SourceGenerator extends GtGenerator {
 			FuncName = Func.GetNativeFuncName();
 			if(IsFlag(Func.FuncFlag, NativeMacroFunc)) {
 				Macro = Func.GetNativeMacro();
+				Macro = Macro.substring(1, Macro.length() - 1); // remove ""
 			}
 		}
 		if(Macro == null) {
@@ -1885,6 +1887,7 @@ class SourceGenerator extends GtGenerator {
 		}
 		else if(Func.Is(NativeMacroFunc)) {
 			Template = Func.GetNativeMacro();
+			Template = Template.substring(1, Template.length() - 1); // remove ""
 			IsNative = true;
 		}
 		else {
