@@ -1,8 +1,8 @@
-class X(record):
+class X:
     def __init__(self):
         self.a = 0
 
-class Y(X):
+class Y:
     def __init__(self):
         self.a = 0
         self.b = 0

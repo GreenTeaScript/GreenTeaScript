@@ -1,7 +1,7 @@
-class X(record):
+class X:
     def __init__(self):
 
-class Y(record):
+class Y:
     def __init__(self):
 
 def f__AN(self):

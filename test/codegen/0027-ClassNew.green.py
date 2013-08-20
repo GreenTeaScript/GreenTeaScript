@@ -1,4 +1,4 @@
-class X(record):
+class X:
     def __init__(self):
 
 def constructor__AMAF(self, x__AB):
