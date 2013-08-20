@@ -249,29 +249,54 @@ public abstract class LibGreenTea {
 		System.out.println("  --verbose             Printing Debug infomation");
 		System.exit(0);
 	}
+	public final static String DetectTargetCode(String Extension, String TargetCode) {
+		if(Extension.endsWith(".js")) {
+			return "js";
+		}
+		else if(Extension.endsWith(".pl")) {
+			return "perl";
+		}
+		else if(Extension.endsWith(".py")) {
+			return "python";
+		}
+		else if(Extension.endsWith(".sh")) {
+			return "bash";
+		}
+		else if(Extension.endsWith(".java")) {
+			return "java";
+		}
+		else if(Extension.endsWith(".c")) {
+			return "c";
+		}
+		else if(TargetCode.startsWith("X")) {
+			return "exe";
+		}
+		return TargetCode;
+	}
 
 	public final static GtGenerator CodeGenerator(String TargetCode, String OutputFile, int GeneratorFlag) {
 		String Extension = (OutputFile == null) ? "-" : OutputFile;
+		TargetCode = DetectTargetCode(Extension, TargetCode);
 		TargetCode = TargetCode.toLowerCase();
-		if(Extension.endsWith(".js") || TargetCode.startsWith("js") || TargetCode.startsWith("javascript")) {
+		if(TargetCode.startsWith("js") || TargetCode.startsWith("javascript")) {
 			return new JavaScriptSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
-		else if(Extension.endsWith(".pl") || TargetCode.startsWith("perl")) {
+		else if(TargetCode.startsWith("perl")) {
 			return new PerlSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
-		else if(Extension.endsWith(".py") || TargetCode.startsWith("python")) {
+		else if(TargetCode.startsWith("python")) {
 			return new PythonSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
-		else if(Extension.endsWith(".sh") || TargetCode.startsWith("bash")) {
+		else if(TargetCode.startsWith("bash")) {
 			return new BashSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
-		else if(Extension.endsWith(".java") || TargetCode.startsWith("java")) {
+		else if(TargetCode.startsWith("java")) {
 			return new JavaSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
-		else if(Extension.endsWith(".c") || TargetCode.startsWith("c")) {
+		else if(TargetCode.startsWith("c")) {
 			return new CSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
-		else if(TargetCode.startsWith("X") || TargetCode.startsWith("exe")) {
+		else if(TargetCode.startsWith("exe")) {
 			return new JavaByteCodeGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
 		return null;
@@ -318,8 +343,7 @@ public abstract class LibGreenTea {
 	}
 
 	public final static boolean HasFile(String Path) {
-		URL url = LibGreenTea.class.getResource(Path);
-		if(url != null) {
+		if(LibGreenTea.class.getResource(Path) != null) {
 			return true;
 		}
 		return new File(Path).exists();
@@ -349,7 +373,6 @@ public abstract class LibGreenTea {
 			System.exit(1);
 			e.printStackTrace();
 		}
-		System.out.println(buffer);
 		return buffer;
 	}
 
