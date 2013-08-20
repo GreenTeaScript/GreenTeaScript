@@ -2,10 +2,10 @@
 
 GREENTEA='java -jar GreenTeaScript.jar'
 BASEDIR="test/exec"
-if [ -d $1 ]
-then
-	BASEDIR=$1
-endif
+##if [ -d $1 ]
+##then
+##	BASEDIR=$1
+##fi
 
 OUTDIR="$BASEDIR/test-result"
 OUTFILE="$OUTDIR/TestResult.csv"
