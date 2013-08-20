@@ -1,8 +1,8 @@
 #include "GreenTea.h"
 static boolean g__AF(int a__AA){
-   boolean a__AB = false;
+   boolean a__AB = 0;
    {
-      a__AB = true;
+      a__AB = 1;
       return a__AB;
    };
 }
