@@ -1586,7 +1586,10 @@ final class GtNameSpace extends GtStatic {
 		return null;
 	}
 
-
+	private final GtNameSpace PublicNameSpace(boolean IsPublic) {
+		return IsPublic ? this.Context.RootNameSpace : this;
+	}
+	
 	public final Object AppendFuncName(String Key, GtFunc Func) {
 		/*local*/Object OldValue = this.GetSymbol(Key);
 		if(OldValue instanceof GtFunc) {
@@ -1606,32 +1609,35 @@ final class GtNameSpace extends GtStatic {
 	}
 
 	public final Object AppendFunc(GtFunc Func) {
-		return this.AppendFuncName(Func.FuncName, Func);
+		return this.PublicNameSpace(Func.Is(PublicFunc)).AppendFuncName(Func.FuncName, Func);
 	}
 
 	public final Object AppendMethod(GtType ClassType, GtFunc Func) {
 		/*local*/String Key = ClassSymbol(ClassType, Func.FuncName);
-		return this.AppendFuncName(Key, Func);
+		return this.PublicNameSpace(Func.Is(PublicFunc)).AppendFuncName(Key, Func);
 	}
 
 	public final void AppendConstructor(GtType ClassType, GtFunc Func) {
 		/*local*/String Key = ClassSymbol(ClassType, "");
-		this.Context.RootNameSpace.SymbolPatternTable.put(Key, Func);  // @Public
+		Func.FuncFlag |= ConstructorFunc;
+		this.Context.RootNameSpace.AppendFuncName(Key, Func);  // @Public
 	}
 
 	public final void SetGetterFunc(GtType ClassType, String Name, GtFunc Func) {
 		/*local*/String Key = ClassSymbol(ClassType, Name);
-		this.Context.RootNameSpace.SymbolPatternTable.put(Key, Func);  // @Public
+		Func.FuncFlag |= GetterFunc;
+		this.Context.RootNameSpace.SetSymbol(Key, Func);  // @Public
 	}
 
 	public final void SetSetterFunc(GtType ClassType, String Name, GtFunc Func) {
 		/*local*/String Key = ClassSymbol(ClassType, Name + "=");
-		this.Context.RootNameSpace.SymbolPatternTable.put(Key, Func);  // @Public
+		Func.FuncFlag |= SetterFunc;
+		this.Context.RootNameSpace.SetSymbol(Key, Func);  // @Public
 	}
 
 	public final void SetCoercionFunc(GtType ClassType, GtType ToType, GtFunc Func) {
 		/*local*/String Key = ClassSymbol(ClassType, "to" + ToType);
-		this.SymbolPatternTable.put(Key, Func);  // @Public
+		this.PublicNameSpace(Func.Is(PublicFunc)).SetSymbol(Key, Func);
 	}
 
 	public final void ReportOverrideName(GtToken Token, GtType ClassType, String Symbol) {
@@ -2799,7 +2805,9 @@ final class DScriptGrammar extends GtGrammar {
 			ParsedTree.NameSpace.AppendConstructor(RecvType, Func);
 		}
 		else {
-			ParsedTree.NameSpace.AppendFunc(Func);
+			if(LibGreenTea.IsLetter(LibGreenTea.CharAt(Func.FuncName, 0))) {
+				ParsedTree.NameSpace.AppendFunc(Func);
+			}
 			if(RecvType != Gamma.VoidType) {
 				ParsedTree.NameSpace.AppendMethod(RecvType, Func);
 			}
