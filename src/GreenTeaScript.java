@@ -212,11 +212,6 @@ interface GtConst {
 	// Enum
 	public final static int EnumNameTreeIndex = 0;
 
-//	// spec
-//	public final static int TokenFuncSpec     = 0;
-//	public final static int SymbolPatternSpec = 1;
-//	public final static int ExtendedPatternSpec = 2;
-
 	public final static int BinaryOperator					= 1;
 	public final static int LeftJoin						= 1 << 1;
 	public final static int PrecedenceShift					= 3;
@@ -253,6 +248,7 @@ interface GtConst {
 
 class GtStatic implements GtConst {
 //endif VAJA
+	
 	// debug flags
 	public static boolean DebugPrintOption = false;
 
@@ -475,6 +471,7 @@ class GtStatic implements GtConst {
 	// typing
 	public final static GtNode ApplyTypeFunc(GtDelegateType delegate, GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
 		LibGreenTea.Assert(delegate != null);
+		Gamma.NameSpace = ParsedTree.NameSpace;
 		return (/*cast*/GtNode)LibGreenTea.ApplyTypeFunc(delegate, Gamma, ParsedTree, Type);
 	}
 

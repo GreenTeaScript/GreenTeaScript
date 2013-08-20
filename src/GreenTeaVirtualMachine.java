@@ -22,10 +22,6 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-enum Op {
-	Nop, 
-}
-
 final class GtStack {
 	/*field*/public final Object[] Stack;
 	/*field*/public int StackTop;
@@ -160,15 +156,13 @@ public class GreenTeaVirtualMachine implements CodeSet {
 				IntReg = Stack.GetIntAt(_Code.Index_A) + Stack.GetIntAt(_Code.Index_B);
 				Stack.SetValueAt(_Code.Index_C, IntReg);
 				pc = pc + 1;
-				break;				
-				
+				break;						
 			}
 		}
 		return null;
 	}
 
 	private static Object CallNative(Object Ref, GtStack Stack, int ParamSize) {
-
 		return null;
 	}
 }

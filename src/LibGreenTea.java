@@ -192,7 +192,7 @@ public abstract class LibGreenTea {
 		return Tuple;
 	}
 
-	public static ArrayList<String> MapGetKeys(GtMap Map) {
+	public static String[] MapGetKeys(GtMap Map) {
 		/*local*/Iterator<String> itr = Map.Map.keySet().iterator();
 		/*local*/ArrayList<String> List = new ArrayList<String>(Map.Map.size());
 		/*local*/int i = 0;
@@ -200,7 +200,7 @@ public abstract class LibGreenTea {
 			List.add(itr.next());
 			i = i + 1;
 		}
-		return List;
+		return List.toArray(new String[List.size()]);
 	}
 
 	public final static void Usage() {
