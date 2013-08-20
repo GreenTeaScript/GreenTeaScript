@@ -1344,11 +1344,11 @@ class GtGenerator extends GtStatic {
 		return new JumpNode(Type, ParsedTree.KeyToken, Label);
 	}
 
-	public GtNode CreateBreakNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Node, String Label) {
+	public GtNode CreateBreakNode(GtType Type, GtSyntaxTree ParsedTree, String Label) {
 		return new BreakNode(Type, ParsedTree.KeyToken, Label);
 	}
 
-	public GtNode CreateContinueNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Node, String Label) {
+	public GtNode CreateContinueNode(GtType Type, GtSyntaxTree ParsedTree, String Label) {
 		return new ContinueNode(Type, ParsedTree.KeyToken, Label);
 	}
 

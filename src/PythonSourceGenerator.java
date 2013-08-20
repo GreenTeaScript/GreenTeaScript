@@ -70,17 +70,23 @@ public class PythonSourceGenerator extends SourceGenerator {
 		return Code;
 	}
 
+	public GtNode CreateDoWhileNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Cond, GtNode Block) {
+		/*
+		 * do { Block } while(Cond)
+		 * => while(True) { Block; if(Cond) { break; } }
+		 */
+		/*local*/GtNode Break = this.CreateBreakNode(Type, ParsedTree, null);
+		/*local*/GtNode IfBlock = this.CreateIfNode(Type, ParsedTree, Cond, Break, null);
+		GtStatic.LinkNode(IfBlock, Block);
+		/*local*/GtNode TrueNode = this.CreateConstNode(ParsedTree.NameSpace.Context.BooleanType, ParsedTree, true);
+		return this.CreateWhileNode(Type, ParsedTree, TrueNode, Block);
+	}
+
+	// Visitor API
 	@Override public void VisitWhileNode(WhileNode Node) {
 		/*local*/String Program = "while " + this.VisitNode(Node.CondExpr) + ":" + this.LineFeed;
 		Program += this.VisitBlockWithIndent(Node.LoopBody, true);
 		this.PushSourceCode(Program);
-	}
-
-	@Override public void VisitDoWhileNode(DoWhileNode Node) {
-		/*local*/String LoopBody = this.VisitBlockWithIndent(Node.LoopBody, true);
-		/*local*/String Program = "if " + this.TrueLiteral + ":" + this.LineFeed + LoopBody;
-		Program += "while " + this.VisitNode(Node.CondExpr) + ":" + this.LineFeed;
-		this.PushSourceCode(Program + LoopBody);
 	}
 
 	@Override public void VisitForNode(ForNode Node) {
@@ -114,7 +120,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		else {
 			LibGreenTea.DebugP(FuncName + " is not supported suffix operator!!");
 		}
-		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc1(Node.Func, FuncName, true, Expr) + ")");
+		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc1(null, FuncName, true, Expr) + ")");
 	}
 
 	@Override public void VisitLetNode(LetNode Node) {
