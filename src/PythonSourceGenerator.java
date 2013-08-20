@@ -193,6 +193,24 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(this.ApplyMacro(Template, Node.Params));
 	}
 
+	@Override public void VisitUnaryNode(UnaryNode Node) {
+		/*local*/String FuncName = Node.Token.ParsedText;
+		/*local*/String Expr = this.VisitNode(Node.Expr);
+		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc1(Node.Func, FuncName, false, Expr) + ")");
+	}
+
+	@Override public void VisitBinaryNode(BinaryNode Node) {
+		if(Node.Func == null) {
+			/*local*/String Left = this.VisitNode(Node.LeftNode);
+			/*local*/String Right = this.VisitNode(Node.RightNode);
+			this.PushSourceCode("(" + Left + " " +  Node.Token.ParsedText + " " + Right + ")");
+		}
+		else {
+			/*local*/String[] ParamCode = this.MakeParamCode2(Node.LeftNode, Node.RightNode);
+			this.PushSourceCode("(" + Node.Func.ApplyNativeMacro(0, ParamCode) + ")");
+		}
+	}
+
 	@Override public void VisitAndNode(AndNode Node) {
 		this.PushSourceCode("(" + this.VisitNode(Node.LeftNode) + " and " + this.VisitNode(Node.RightNode) + ")");
 	}
@@ -331,9 +349,9 @@ public class PythonSourceGenerator extends SourceGenerator {
 
 	@Override public void GenerateClassField(GtType Type, GtClassField ClassField) {
 		/*local*/String Program = this.GetIndentString() + "class " + Type.ShortClassName;
-		if(Type.SuperType != null) {
-			Program += "(" + Type.SuperType.ShortClassName + ")";
-		}
+//		if(Type.SuperType != null) {
+//			Program += "(" + Type.SuperType.ShortClassName + ")";
+//		}
 		Program += ":" + this.LineFeed;
 		this.Indent();
 		

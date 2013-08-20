@@ -16,7 +16,7 @@ $(function () {
 	var Generate = function(){
 		try{
 			var src = editor_gs.getValue();
-			var Generator = LangDeps.CodeGenerator(PlayGround_CodeGenTarget, "-", 0);
+			var Generator = LibGreenTea.CodeGenerator(PlayGround_CodeGenTarget, "-", 0);
 			var Context = new GtClassContext(new DScriptGrammar(), Generator);
 			DebugPrintOption = true;
 			var generatedCode = Context.Eval(src);

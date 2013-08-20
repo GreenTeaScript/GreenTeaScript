@@ -34,7 +34,7 @@ public class JavaSourceGenerator extends SourceGenerator {
 	}
 
 	public void VisitBlockEachStatementWithIndent(GtNode Node) {
-		String Code = "{\n";
+		/*local*/String Code = "{\n";
 		this.Indent();
 		/*local*/GtNode CurrentNode = Node;
 		while(CurrentNode != null) {
@@ -51,7 +51,7 @@ public class JavaSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitSuffixNode(SuffixNode Node) {
-		String FuncName = Node.Token.ParsedText;
+		/*local*/String FuncName = Node.Token.ParsedText;
 
 		if(FuncName.equals("++")) {
 		}
@@ -62,7 +62,7 @@ public class JavaSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitUnaryNode(UnaryNode Node) {
-		String FuncName = Node.Token.ParsedText;
+		/*local*/String FuncName = Node.Token.ParsedText;
 		if(FuncName.equals("+")) {
 		}
 		else if(FuncName.equals("-")) {
@@ -92,14 +92,14 @@ public class JavaSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitWhileNode(WhileNode Node) {
 		Node.CondExpr.Evaluate(this);
-		String Program = "while(" + this.PopSourceCode() + ")";
+		/*local*/String Program = "while(" + this.PopSourceCode() + ")";
 		this.VisitBlockEachStatementWithIndent(Node.LoopBody);
 		Program += this.PopSourceCode();
 		this.PushSourceCode(Program);
 	}
 
 	@Override public void VisitDoWhileNode(DoWhileNode Node) {
-		String Program = "do";
+		/*local*/String Program = "do";
 		this.VisitBlockEachStatementWithIndent(Node.LoopBody);
 		Node.CondExpr.Evaluate(this);
 		Program += " while(" + this.PopSourceCode() + ")";
@@ -109,10 +109,10 @@ public class JavaSourceGenerator extends SourceGenerator {
 	@Override public void VisitForNode(ForNode Node) {
 		Node.IterExpr.Evaluate(this);
 		Node.CondExpr.Evaluate(this);
-		String Cond = this.PopSourceCode();
-		String Iter = this.PopSourceCode();
+		/*local*/String Cond = this.PopSourceCode();
+		/*local*/String Iter = this.PopSourceCode();
 
-		String Program = "for(; " + Cond  + "; " + Iter + ")";
+		/*local*/String Program = "for(; " + Cond  + "; " + Iter + ")";
 		Node.LoopBody.Evaluate(this);
 		Program += this.PopSourceCode();
 		this.PushSourceCode(Program);
@@ -128,7 +128,7 @@ public class JavaSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitNewNode(NewNode Node) {
-		String Type = Node.Type.ShortClassName;
+		/*local*/String Type = Node.Type.ShortClassName;
 		this.PushSourceCode("new " + Type);
 	}
 
@@ -146,10 +146,10 @@ public class JavaSourceGenerator extends SourceGenerator {
 	}
 
 	private String[] EvaluateParam(ArrayList<GtNode> Params) {
-		int Size = Params.size();
-		String[] Programs = new String[Size];
-		for(int i = 0; i < Size; i++) {
-			GtNode Node = Params.get(i);
+		/*local*/int Size = Params.size();
+		/*local*/String[] Programs = new String[Size];
+		for(/*local*/int i = 0; i < Size; i++) {
+			/*local*/GtNode Node = Params.get(i);
 			Node.Evaluate(this);
 			Programs[Size - i - 1] = this.PopSourceCode();
 		}
@@ -159,8 +159,8 @@ public class JavaSourceGenerator extends SourceGenerator {
 	@Override public void VisitApplyNode(ApplyNode Node) {
 		/*local*/String Program = Node.Func.FuncName + "(";
 		/*local*/String[] Params = this.EvaluateParam(Node.Params);
-		for(int i = 0; i < Params.length; i++) {
-			String P = Params[i];
+		for(/*local*/int i = 0; i < Params.length; i++) {
+			/*local*/String P = Params[i];
 			if(i != 0) {
 				Program += ",";
 			}
@@ -171,7 +171,7 @@ public class JavaSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitBinaryNode(BinaryNode Node) {
-		String FuncName = Node.Token.ParsedText;
+		/*local*/String FuncName = Node.Token.ParsedText;
 		if(FuncName.equals("+")) {
 		}
 		else if(FuncName.equals("-")) {
@@ -246,10 +246,10 @@ public class JavaSourceGenerator extends SourceGenerator {
 		this.VisitBlockEachStatementWithIndent(Node.ThenNode);
 		this.VisitBlockEachStatementWithIndent(Node.ElseNode);
 
-		String ElseBlock = this.PopSourceCode();
-		String ThenBlock = this.PopSourceCode();
-		String CondExpr = this.PopSourceCode();
-		String Code = "if(" + CondExpr + ") " + ThenBlock;
+		/*local*/String ElseBlock = this.PopSourceCode();
+		/*local*/String ThenBlock = this.PopSourceCode();
+		/*local*/String CondExpr = this.PopSourceCode();
+		/*local*/String Code = "if(" + CondExpr + ") " + ThenBlock;
 		if(Node.ElseNode != null) {
 			Code += " else " + ElseBlock;
 		}
@@ -259,11 +259,10 @@ public class JavaSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitSwitchNode(SwitchNode Node) {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override public void VisitReturnNode(ReturnNode Node) {
-		String Code = "return";
+		/*local*/String Code = "return";
 		if(Node.Expr != null) {
 			Node.Expr.Evaluate(this);
 			Code += " " + this.PopSourceCode();
@@ -272,18 +271,18 @@ public class JavaSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitLabelNode(LabelNode Node) {
-		String Label = Node.Label;
+		/*local*/String Label = Node.Label;
 		this.PushSourceCode(Label + ":");
 	}
 
 	@Override public void VisitJumpNode(JumpNode Node) {
-		String Label = Node.Label;
+		/*local*/String Label = Node.Label;
 		this.PushSourceCode("goto " + Label);
 	}
 
 	@Override public void VisitBreakNode(BreakNode Node) {
-		String Code = "break";
-		String Label = Node.Label;
+		/*local*/String Code = "break";
+		/*local*/String Label = Node.Label;
 		if(Label != null) {
 			Code += " " + Label;
 		}
@@ -291,8 +290,8 @@ public class JavaSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitContinueNode(ContinueNode Node) {
-		String Code = "continue";
-		String Label = Node.Label;
+		/*local*/String Code = "continue";
+		/*local*/String Label = Node.Label;
 		if(Label != null) {
 			Code += " " + Label;
 		}
@@ -300,7 +299,7 @@ public class JavaSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitTryNode(TryNode Node) {
-		String Code = "try";
+		/*local*/String Code = "try";
 		//this.VisitEach(Node.CatchBlock);
 		this.VisitBlockEachStatementWithIndent(Node.TryBlock);
 		Code += this.PopSourceCode();
@@ -313,29 +312,28 @@ public class JavaSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitThrowNode(ThrowNode Node) {
 		Node.Expr.Evaluate(this);
-		String Code = "throw " + this.PopSourceCode();
+		/*local*/String Code = "throw " + this.PopSourceCode();
 		this.PushSourceCode(Code);
 	}
 
 	@Override public void VisitFunctionNode(FunctionNode Node) {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override public void VisitErrorNode(ErrorNode Node) {
-		String Code = "throw RuntimeError(\"" + Node.Token.ParsedText + "\")";
+		/*local*/String Code = "throw RuntimeError(\"" + Node.Token.ParsedText + "\")";
 		this.PushSourceCode(Code);
 	}
 
 	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
 		//FIXME
-		String Program = "";
-		String RetTy = Func.GetReturnType().ShortClassName;
-		String ThisTy = Func.GetRecvType().ShortClassName;
+		/*local*/String Program = "";
+		/*local*/String RetTy = Func.GetReturnType().ShortClassName;
+		/*local*/String ThisTy = Func.GetRecvType().ShortClassName;
 		Program += RetTy + " " + ThisTy + "_" + Func.GetNativeFuncName() + "(";
 		Program += ThisTy + " " + "this";
-		for(int i = 0; i < ParamNameList.size(); i++) {
-			String ParamTy = Func.GetFuncParamType(i).ShortClassName;
+		for(/*local*/int i = 0; i < ParamNameList.size(); i++) {
+			/*local*/String ParamTy = Func.GetFuncParamType(i).ShortClassName;
 			Program += " ," + ParamTy + " " + ParamNameList.get(i);
 		}
 
