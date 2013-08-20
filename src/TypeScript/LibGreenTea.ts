@@ -106,8 +106,8 @@ class LibGreenTea {
 	static hasFileSystem = typeof(fs) != "undefined";
 
 	static GetPlatform(): string {
-		return "TypeScript 0.9.0.1, " + (LibGreenTea.isNodeJS ? 
-			"Node.js " + process.version + " " + process.platform: 
+		return "TypeScript 0.9.0.1, " + (LibGreenTea.isNodeJS ?
+			"Node.js " + process.version + " " + process.platform:
 			navigator.appName + " " + navigator.appVersion);
 	}
 
@@ -271,10 +271,6 @@ class LibGreenTea {
 		return null;
 	}
 
-	static Eval(SourceCode: string): void {
-		eval(SourceCode);
-	}
-
 	static WriteCode(OutputFile: string, SourceCode: string): void {
 		if(OutputFile == null){
 			LibGreenTea.Eval(SourceCode);
@@ -327,15 +323,42 @@ class LibGreenTea {
 	private static Int32Max = Math.pow(2, 32);
 
 	static JoinIntId(UpperId: number, LowerId: number): number {
-		return UpperId * LibGreenTea.Int32Max + LowerId; 
+		return UpperId * LibGreenTea.Int32Max + LowerId;
 	}
 
 	static UpperId(Fileline: number): number {
-		return (Fileline / LibGreenTea.Int32Max) | 0; 
+		return (Fileline / LibGreenTea.Int32Max) | 0;
 	}
 
 	static LowerId(Fileline: number): number {
-		return Fileline | Fileline; 
+		return Fileline | Fileline;
+	}
+
+	static Eval(SourceCode: string): void {
+		return eval(SourceCode);
+	}
+
+	public static EvalCast(CastType: GtType, Value: any): any {
+		return null;
+	}
+
+	public static EvalInstanceOf(Value: any, Type: GtType): any {
+		return false;
+	}
+
+	public static EvalUnary(Type: GtType, Operator: string, Value: any): any {
+		return null;
+	}
+
+	public static EvalSuffix(Type: GtType, Value: any, Operator: string): any {
+		return null;
+	}
+
+	public static EvalBinary(Type: GtType, LeftValue: any, Operator: string, RightValue: any): any {
+		return null;
+	}
+
+	public static EvalGetter(Type: GtType, Value: any, FieldName: string): any {
+		return null;
 	}
 }
-

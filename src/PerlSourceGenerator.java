@@ -32,6 +32,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 	PerlSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
 		this.NullLiteral = "NULL";
+		this.MemberAccessOperator = "->";
 	}
 
 	public void VisitBlockEachStatementWithIndent(GtNode Node) {
@@ -78,11 +79,6 @@ public class PerlSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitLocalNode(LocalNode Node) {
 		this.PushSourceCode("$" + Node.NativeName);
-	}
-
-	@Override public void VisitGetterNode(GetterNode Node) {
-		Node.Expr.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + "->" + Node.Func.FuncName);
 	}
 
 	@Override public void VisitLetNode(LetNode Node) {

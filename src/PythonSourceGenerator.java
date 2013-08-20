@@ -104,10 +104,6 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Program);
 	}
 
-	@Override public void VisitGetterNode(GetterNode Node) {
-		this.PushSourceCode(this.VisitNode(Node.Expr) + "." + Node.Token.ParsedText);
-	}
-
 	@Override public void VisitSuffixNode(SuffixNode Node) {
 		/*local*/String FuncName = Node.Token.ParsedText;
 		/*local*/String Expr = this.VisitNode(Node.Expr);
@@ -234,9 +230,9 @@ public class PythonSourceGenerator extends SourceGenerator {
 		Program += this.GetIndentString() + "def __init__(" + this.GetRecvName() + ")" + ":" + this.LineFeed;
 		this.Indent();
 		/*local*/int i = 0;
-		while (i < ClassField.FieldList.size()) {
+		while(i < ClassField.FieldList.size()) {
 			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
-			/*local*/String InitValue = this.StringfyConstValue(FieldInfo.InitValue);
+			/*local*/String InitValue = this.StringifyConstValue(FieldInfo.InitValue);
 			if(!FieldInfo.Type.IsNative()) {
 				InitValue = "None";
 			}

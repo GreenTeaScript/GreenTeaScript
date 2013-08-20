@@ -60,7 +60,7 @@ public class ConstantFolder extends GtGenerator {
 		// Node = Eval(Node);
 		return Node;
 	}
-	
+
 	GtNode FoldSuffix(SuffixNode Node) {
 		Node.Expr = this.Fold(Node.Expr);
 		// Node = Eval(Node);
@@ -114,7 +114,7 @@ public class ConstantFolder extends GtGenerator {
 		}
 		return Original;
 	}
-	
+
 	private GtNode FoldTrinary(TrinaryNode Node) {
 		Node.CondExpr = this.Fold(Node.CondExpr);
 		Node.ThenExpr = this.Fold(Node.ThenExpr);
@@ -122,7 +122,8 @@ public class ConstantFolder extends GtGenerator {
 		if(Node.CondExpr instanceof ConstNode && Node.CondExpr.Type.equals(this.BooleanType)) {
 			if(this.ConstValue(Node.CondExpr).equals(true)) {
 				return Node.ThenExpr;
-			} else {
+			}
+			else {
 				return Node.ElseExpr;
 			}
 		}
@@ -158,7 +159,7 @@ public class ConstantFolder extends GtGenerator {
 		/*local*/GtNode Right = Node.RightNode;
 		return this.FoldAndNode(Node, Left, Right);
 	}
-	
+
 	private GtNode FoldAndNode(GtNode Original, GtNode Left, GtNode Right) {
 		Left = this.Fold(Left);
 		Right = this.Fold(Right);
@@ -215,7 +216,8 @@ public class ConstantFolder extends GtGenerator {
 		if(Node.CondExpr.Type == this.BooleanType && Node.CondExpr instanceof ConstNode) {
 			if(this.ConstValue(Node.CondExpr).equals(true)) {
 				return Node.ThenNode;
-			} else {
+			}
+			else {
 				if(Node.ElseNode == null) {
 					return this.CreateEmptyNode(Node.Type);
 				}
@@ -441,7 +443,8 @@ public class ConstantFolder extends GtGenerator {
 			if(Cond instanceof ConstNode) {
 				if(this.ConstValue(Cond).equals(true)) {
 					return Then;
-				} else {
+				}
+				else {
 					return Else;
 				}
 			}

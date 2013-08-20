@@ -21,21 +21,21 @@ import java.util.regex.Pattern;
 
 public class GtSubProc {
 	public static boolean enableMonitor = true;
-	
+
 	// called by VisitCommandNode at JavaByteCodeGenerator 
 	public static String ExecCommandString(String[] cmds) throws Exception {
 		return createSubProc(cmds, true).str;
 	}
-	
+
 	public static boolean ExecCommandBool(String[] cmds) throws Exception {
 		return createSubProc(cmds, false).bool;
 	}
-	
+
 	public static void ExecCommandVoid(String[] cmds) throws Exception {
 		createSubProc(cmds, false);
 	}
 	//---------------------------------------------
-	
+
 	private static RetPair createSubProc(String[] cmds, boolean isExpr) throws Exception {
 		CommandBuilder builder = new CommandBuilder(cmds);
 		int size = builder.cmdsList.size();
@@ -56,7 +56,8 @@ public class GtSubProc {
 				if(builder.inputFilePath != null) {
 					subProcs[i].readFromFile(builder.inputFilePath);
 				}
-			} else {
+			}
+			else {
 				subProcs[i - i].pipe(subProcs[i]);
 			}
 			
@@ -68,7 +69,7 @@ public class GtSubProc {
 				if(isExpr) {
 					subProcs[i].waitResult();
 					stdout = subProcs[i].getStdout();
-				} else {
+				}				else {
 					subProcs[i].console();
 					ret = (subProcs[i].getRet() == 0);
 				}
@@ -84,7 +85,7 @@ public class GtSubProc {
 class RetPair {
 	public String str;
 	public boolean bool;
-	
+
 	public RetPair(String str, boolean bool) {
 		this.str = str;
 		this.bool = bool;
@@ -95,7 +96,7 @@ class CommandBuilder {
 	public String inputFilePath;
 	public String outputFilePath;
 	public ArrayList<String[]> cmdsList;
-	
+
 	public CommandBuilder(String[] targetCmds) {
 		this.inputFilePath = null;
 		this.outputFilePath = null;
@@ -108,12 +109,15 @@ class CommandBuilder {
 		for(int i = 0; i < size; i++){
 			if(targetCmds[i].equals("<") && i + 1 < size) {
 				inInputRedirect = true;
-			} else if(targetCmds[i].equals(">") && i + 1 < size) {
+			}
+			else if(targetCmds[i].equals(">") && i + 1 < size) {
 				inOutputRedirect = true;
-			} else if(targetCmds[i].equals("|") && i + 1 < size) {
+			}
+			else if(targetCmds[i].equals("|") && i + 1 < size) {
 				this.cmdsList.add(convert(cmdBuffer));
 				cmdBuffer = new ArrayList<String>();
-			} else {
+			}
+			else {
 				if(inInputRedirect || inOutputRedirect) {
 					if(inInputRedirect) {
 						this.inputFilePath = targetCmds[i];
@@ -123,7 +127,7 @@ class CommandBuilder {
 						this.outputFilePath = targetCmds[i];
 						inOutputRedirect = false;
 					}
-				} else {
+				}				else {
 					cmdBuffer.add(targetCmds[i]);
 				}
 			}
@@ -132,7 +136,7 @@ class CommandBuilder {
 			this.cmdsList.add(convert(cmdBuffer));
 		}
 	}
-	
+
 	private static String[] convert(ArrayList<String> list) {
 		int size = list.size();
 		String[] array = new String[size];
@@ -145,25 +149,25 @@ class CommandBuilder {
 
 class SubProc {
 	private Process proc;
-	
+
 	private OutputStream stdin = null;
 	private InputStream stdout = null;
 	private InputStream stderr = null;
-	
+
 	private StringBuilder cmdNameBuilder;
 	private ArrayList<String> commandList;
 	private boolean enableSyscallTrace = false;
 	public boolean isKilled = false;
 	private final String logdirPath = "/tmp/strace-log";
 	public String logFilePath = null;
-	
+
 	private boolean stdoutIsRedireted = false;
 	private boolean stderrIsRedireted = false;
 	private boolean streamIsLocked = false;
-	
+
 	private ByteArrayOutputStream outBuf;
 	private ByteArrayOutputStream errBuf;
-	
+
 	public SubProc() {
 		this.cmdNameBuilder = new StringBuilder();
 		this.commandList = new ArrayList<String>();
@@ -272,7 +276,7 @@ class SubProc {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private void handleOutputStream(OutputStream out, OutputStream err, boolean closeStream) {
 		if(streamIsLocked) {
 			return;
@@ -318,7 +322,7 @@ class SubProc {
 	public String getStderr() {
 		return this.stderrIsRedireted ? "" : this.errBuf.toString();
 	}
-	
+
 	public void console() {
 		handleOutputStream(System.out, System.err, false);
 	}
@@ -407,8 +411,7 @@ class PipeStreamHandler extends Thread {
 		this.closeStream = closeStream;
 	}
 
-	@Override
-	public void run() {
+	@Override public void run() {
 		try {
 			byte[] buffer = new byte[512];
 			int read = 0;
@@ -455,7 +458,8 @@ class ProcessMonitor {
 					throw createException(message, syscallStack.peek());
 				}
 				deleteLogFile(logFilePath);
-			} else {
+			}
+			else {
 				if(targetProc.getRet() != 0) {
 					throw new Exception(message);
 				}
@@ -519,7 +523,7 @@ class ProcessMonitor {
 			case '(':
 				if(openBracketCount++ == 0) {
 					parsedSyscallTemp[p++] = new String(sBuilder.toString());
-					sBuilder = new StringBuilder();	
+					sBuilder = new StringBuilder();
 				}
 				break;
 			case ')':
@@ -639,7 +643,6 @@ class ReadOnlyException extends Exception {
 		super(message);
 	}
 }
-
 
 enum Syscall {
 	open, openat, connect,

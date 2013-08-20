@@ -34,12 +34,11 @@ public class JavaSourceGenerator extends SourceGenerator {
 	}
 
 	public void VisitBlockEachStatementWithIndent(GtNode Node) {
-		/*local*/String Code = "{\n";
+		/*local*/String Code = "{" + this.LineFeed;
 		this.Indent();
 		/*local*/GtNode CurrentNode = Node;
 		while(CurrentNode != null) {
-			CurrentNode.Evaluate(this);
-			Code += this.GetIndentString() + this.PopSourceCode() + ";\n";
+			Code += this.GetIndentString() + this.VisitNode(CurrentNode) + ";" + this.LineFeed;
 			CurrentNode = CurrentNode.NextNode;
 		}
 		this.UnIndent();
@@ -48,8 +47,7 @@ public class JavaSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitWhileNode(WhileNode Node) {
-		Node.CondExpr.Evaluate(this);
-		/*local*/String Program = "while(" + this.PopSourceCode() + ")";
+		/*local*/String Program = "while(" + this.VisitNode(Node.CondExpr) + ")";
 		this.VisitBlockEachStatementWithIndent(Node.LoopBody);
 		Program += this.PopSourceCode();
 		this.PushSourceCode(Program);
@@ -58,26 +56,16 @@ public class JavaSourceGenerator extends SourceGenerator {
 	@Override public void VisitDoWhileNode(DoWhileNode Node) {
 		/*local*/String Program = "do";
 		this.VisitBlockEachStatementWithIndent(Node.LoopBody);
-		Node.CondExpr.Evaluate(this);
-		Program += " while(" + this.PopSourceCode() + ")";
+		Program += " while(" + this.VisitNode(Node.CondExpr) + ")";
 		this.PushSourceCode(Program);
 	}
 
 	@Override public void VisitForNode(ForNode Node) {
-		Node.IterExpr.Evaluate(this);
-		Node.CondExpr.Evaluate(this);
-		/*local*/String Cond = this.PopSourceCode();
-		/*local*/String Iter = this.PopSourceCode();
-
+		/*local*/String Cond = this.VisitNode(Node.CondExpr);
+		/*local*/String Iter = this.VisitNode(Node.IterExpr);
 		/*local*/String Program = "for(; " + Cond  + "; " + Iter + ")";
-		Node.LoopBody.Evaluate(this);
-		Program += this.PopSourceCode();
+		Program += this.VisitNode(Node.LoopBody);
 		this.PushSourceCode(Program);
-	}
-
-	@Override public void VisitGetterNode(GetterNode Node) {
-		Node.Expr.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + "." + Node.Func.FuncName);
 	}
 
 	@Override public void VisitLetNode(LetNode Node) {
@@ -85,28 +73,23 @@ public class JavaSourceGenerator extends SourceGenerator {
 		/*local*/String VarName = Node.VariableName;
 		/*local*/String Code = Type + " " + VarName;
 		if(Node.InitNode != null) {
-			Node.InitNode.Evaluate(this);
-			Code += " = " + this.PopSourceCode();
+			Code += " = " + this.VisitNode(Node.InitNode);
 		}
-		Code +=  ";\n";
-		Node.BlockNode.Evaluate(this);
+		Code +=  ";" + this.LineFeed;
+		this.VisitBlockEachStatementWithIndent(Node.BlockNode);
 		this.PushSourceCode(Code + this.PopSourceCode());
 	}
 
 	@Override public void VisitIfNode(IfNode Node) {
-		Node.CondExpr.Evaluate(this);
+		/*local*/String CondExpr = this.VisitNode(Node.CondExpr);
 		this.VisitBlockEachStatementWithIndent(Node.ThenNode);
-		this.VisitBlockEachStatementWithIndent(Node.ElseNode);
-
-		/*local*/String ElseBlock = this.PopSourceCode();
 		/*local*/String ThenBlock = this.PopSourceCode();
-		/*local*/String CondExpr = this.PopSourceCode();
 		/*local*/String Code = "if(" + CondExpr + ") " + ThenBlock;
 		if(Node.ElseNode != null) {
-			Code += " else " + ElseBlock;
+			this.VisitBlockEachStatementWithIndent(Node.ElseNode);
+			Code += " else " + this.PopSourceCode();
 		}
 		this.PushSourceCode(Code);
-
 	}
 
 	@Override public void VisitTryNode(TryNode Node) {
@@ -122,8 +105,7 @@ public class JavaSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitThrowNode(ThrowNode Node) {
-		Node.Expr.Evaluate(this);
-		/*local*/String Code = "throw " + this.PopSourceCode();
+		/*local*/String Code = "throw " + this.VisitNode(Node.Expr);
 		this.PushSourceCode(Code);
 	}
 

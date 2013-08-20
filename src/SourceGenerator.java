@@ -75,7 +75,7 @@ class GtNode extends GtStatic {
 			i = i + 1;
 		}
 	}
-	
+
 	public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitEmptyNode(this);  /* must override */
 	}
@@ -170,7 +170,7 @@ final class UnaryNode extends GtNode {
 	@Override public Object ToConstValue() {
 		/*local*/Object Value = this.Expr.ToConstValue();
 		if(Value != null) {
-			return LibGreenTea.EvalUnary(this.Type, Token.ParsedText, Value);
+			return LibGreenTea.EvalUnary(this.Type, this.Token.ParsedText, Value);
 		}
 		return Value;
 	}	
@@ -191,7 +191,7 @@ class SuffixNode extends GtNode {
 	@Override public Object ToConstValue() {
 		/*local*/Object Value = this.Expr.ToConstValue();
 		if(Value != null) {
-			return LibGreenTea.EvalSuffix(this.Type, Value, Token.ParsedText);
+			return LibGreenTea.EvalSuffix(this.Type, Value, this.Token.ParsedText);
 		}
 		return Value;
 	}
@@ -254,7 +254,7 @@ class InstanceOfNode extends GtNode {
 	@Override public Object ToConstValue() {
 		/*local*/Object Value = this.ExprNode.ToConstValue();
 		if(Value != null) {
-			return LibGreenTea.EvalInstanceOf(Value, TypeInfo);
+			return LibGreenTea.EvalInstanceOf(Value, this.TypeInfo);
 		}
 		return Value;
 	}
@@ -279,7 +279,7 @@ class BinaryNode extends GtNode {
 		if(LeftValue != null) {
 			/*local*/Object RightValue = this.RightNode.ToConstValue();
 			if(RightValue != null) {
-				return LibGreenTea.EvalBinary(this.Type, LeftValue, Token.ParsedText, RightValue);
+				return LibGreenTea.EvalBinary(this.Type, LeftValue, this.Token.ParsedText, RightValue);
 			}
 		}
 		return null;
@@ -301,9 +301,11 @@ class AndNode extends GtNode {
 	}
 	@Override public Object ToConstValue() {
 		/*local*/Object LeftValue = this.LeftNode.ToConstValue();
+//ifdef JAVA
 		if(LeftValue instanceof Boolean && ((/*cast*/Boolean)LeftValue).booleanValue()) {
 			return this.RightNode.ToConstValue();
 		}
+//endif VAJA
 		return null;
 	}
 }
@@ -322,13 +324,16 @@ class OrNode extends GtNode {
 	}
 	@Override public Object ToConstValue() {
 		/*local*/Object LeftValue = this.LeftNode.ToConstValue();
+//ifdef JAVA
 		if(LeftValue instanceof Boolean) {
 			if(((/*cast*/Boolean)LeftValue).booleanValue()) {
 				return LeftValue;
-			} else {
+			}
+			else {
 				return this.RightNode.ToConstValue();
 			}
 		}
+//endif VAJA
 		return null;
 	}
 }
@@ -350,13 +355,16 @@ class TrinaryNode extends GtNode {
 	}
 	@Override public Object ToConstValue() {
 		/*local*/Object CondValue = this.CondExpr.ToConstValue();
+//ifdef JAVA
 		if(CondValue instanceof Boolean) {
 			if(((/*cast*/Boolean)CondValue).booleanValue()) {
 				return this.ThenExpr.ToConstValue();
-			} else {
+			}
+			else {
 				return this.ElseExpr.ToConstValue();
 			}
 		}
+//endif VAJA
 		return null;
 	}
 }
@@ -373,11 +381,11 @@ class GetterNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitGetterNode(this);
 	}
-	
+
 	@Override public Object ToConstValue() {
 		/*local*/Object Value = this.Expr.ToConstValue();
 		if(Value != null) {
-			return LibGreenTea.EvalGetter(this.Type, Value, Token.ParsedText);
+			return LibGreenTea.EvalGetter(this.Type, Value, this.Token.ParsedText);
 		}
 		return Value;
 	}
@@ -734,7 +742,7 @@ class GtType extends GtStatic {
 		SubType.SearchSuperFuncClass = this;
 		return SubType;
 	}
-	
+
 	// Note Don't call this directly. Use Context.GetGenericType instead.
 	public GtType CreateGenericType(int BaseIndex, ArrayList<GtType> TypeList, String ShortName) {
 		/*local*/GtType GenericType = new GtType(this.Context, this.ClassFlag, ShortName, null, null);
@@ -761,7 +769,7 @@ class GtType extends GtStatic {
 	@Override public String toString() {
 		return this.ShortClassName;
 	}
-	
+
 	public final String GetUniqueName() {
 		if(LibGreenTea.DebugMode) {
 			return this.BaseType.ShortClassName + NativeNameSuffix + GtStatic.NumberToAscii(this.ClassId);
@@ -892,15 +900,18 @@ class GtFunc extends GtStatic {
 	public final boolean IsAbstract() {
 		return this.NativeRef == null;
 	}
-	
+
 	public final void SetNativeMacro(String NativeMacro) {
 		LibGreenTea.Assert(this.NativeRef == null);
 		this.FuncFlag |= NativeMacroFunc;
 		this.NativeRef = NativeMacro;
 	}
-	
+
 	public final String GetNativeMacro() {
-		return (/*cast*/String)this.NativeRef;
+		/*local*/String NativeMacro = (/*cast*/String)this.NativeRef;
+		NativeMacro = NativeMacro.substring(1, NativeMacro.length() - 1); // remove ""
+		// FIXME
+		return NativeMacro;
 	}
 
 	public final String ApplyNativeMacro(int BaseIndex, String[] ParamCode) {
@@ -935,7 +946,7 @@ class GtPolyFunc extends GtStatic {
 		this.FuncList = new ArrayList<GtFunc>();
 		this.FuncList.add(Func1);
 	}
-	
+
 	@Override public String toString() { // this is used in an error message
 		/*local*/String s = "";
 		/*local*/int i = 0;
@@ -948,7 +959,7 @@ class GtPolyFunc extends GtStatic {
 		}
 		return s;
 	}
-	
+
 	public final GtPolyFunc Dup(GtNameSpace NameSpace) {
 		if(this.NameSpace != NameSpace) {
 			/*local*/GtPolyFunc PolyFunc = new GtPolyFunc(NameSpace, this.FuncList.get(0));
@@ -965,7 +976,7 @@ class GtPolyFunc extends GtStatic {
 	public final GtFunc Append(GtFunc Func) {
 		/*local*/int i = 0;
 		while(i < this.FuncList.size()) {
-			/*local*/GtFunc ListedFunc = this.FuncList.get(i); 
+			/*local*/GtFunc ListedFunc = this.FuncList.get(i);
 			if(ListedFunc == Func) {
 				return null; /* same function */
 			}
@@ -1042,7 +1053,6 @@ class GtPolyFunc extends GtStatic {
 		return ResolvedFunc;
 	}
 
-	
 	public GtFunc MatchAcceptableFunc(GtTypeEnv Gamma, int FuncParamSize, ArrayList<GtNode> NodeList) {
 		/*local*/int i = this.FuncList.size() - 1;
 		while(i >= 0) {
@@ -1116,9 +1126,7 @@ class GtPolyFunc extends GtStatic {
 		return ResolvedFunc;
 	}
 
-	
 }
-
 
 class GtGenerator extends GtStatic {
 	/*field*/public final String      TargetCode;
@@ -1126,7 +1134,7 @@ class GtGenerator extends GtStatic {
 	/*field*/public ArrayList<Object> GeneratedCodeStack;
 	/*field*/public String OutputFile;
 	/*field*/public int GeneratorFlag;
-	
+
 	GtGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		this.TargetCode = TargetCode;
 		this.OutputFile = OutputFile;
@@ -1336,7 +1344,7 @@ class GtGenerator extends GtStatic {
 		}
 		return false;
 	}
-	
+
 	public int ParseClassFlag(int ClassFlag, GtMap Annotation) {
 		return ClassFlag;
 	}
@@ -1373,12 +1381,11 @@ class GtGenerator extends GtStatic {
 	public void SyncCodeGeneration() {
 		/*extension*/
 	}
-	
-	
+
 	public final void StopVisitor(GtNode Node) {
 		Node.NextNode = null;
 	}
-	
+
 	//------------------------------------------------------------------------
 
 	public void VisitEmptyNode(GtNode EmptyNode) {
@@ -1606,7 +1613,6 @@ class SourceGenerator extends GtGenerator {
 	/*field*/public String    FalseLiteral = "false";
 	/*field*/public String    NullLiteral = "null";
 
-
 	SourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
 		this.LineFeed = "\n";
@@ -1644,7 +1650,7 @@ class SourceGenerator extends GtGenerator {
 		this.HeaderSource = "";
 		this.BodySource = "";
 	}
-	
+
 	/* GeneratorUtils */
 
 	public final void Indent() {
@@ -1665,7 +1671,7 @@ class SourceGenerator extends GtGenerator {
 		return this.CurrentLevelIndentString;
 	}
 
-	protected String StringfyConstValue(Object ConstValue) {
+	protected String StringifyConstValue(Object ConstValue) {
 		if(ConstValue == null) {
 			return this.NullLiteral;
 		}
@@ -1731,7 +1737,6 @@ class SourceGenerator extends GtGenerator {
 			FuncName = Func.GetNativeFuncName();
 			if(IsFlag(Func.FuncFlag, NativeMacroFunc)) {
 				Macro = Func.GetNativeMacro();
-				Macro = Macro.substring(1, Macro.length() - 1); // remove ""
 			}
 		}
 		if(Macro == null) {
@@ -1751,7 +1756,6 @@ class SourceGenerator extends GtGenerator {
 			FuncName = Func.GetNativeFuncName();
 			if(IsFlag(Func.FuncFlag, NativeMacroFunc)) {
 				Macro = Func.GetNativeMacro();
-				Macro = Macro.substring(1, Macro.length() - 1); // remove ""
 			}
 		}
 		if(Macro == null) {
@@ -1775,7 +1779,6 @@ class SourceGenerator extends GtGenerator {
 		}
 		else if(Func.Is(NativeMacroFunc)) {
 			Template = Func.GetNativeMacro();
-			Template = Template.substring(1, Template.length() - 1); // remove ""
 			IsNative = true;
 		}
 		else {
@@ -1811,14 +1814,14 @@ class SourceGenerator extends GtGenerator {
 		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
 		return this.ApplyMacro(Template, Node.Params);
 	}
-	
+
 	// Visitor API
 	@Override public void VisitEmptyNode(GtNode Node) {
 		this.PushSourceCode("");
 	}
 
 	@Override public final void VisitConstNode(ConstNode Node) {
-		this.PushSourceCode(this.StringfyConstValue(Node.ConstValue));
+		this.PushSourceCode(this.StringifyConstValue(Node.ConstValue));
 	}
 
 	@Override public final void VisitNullNode(NullNode Node) {
@@ -1840,6 +1843,19 @@ class SourceGenerator extends GtGenerator {
 
 	@Override public final void VisitIndexerNode(IndexerNode Node) {
 		this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + this.VisitNode(Node.IndexAt) + "]");
+	}
+
+	@Override public final void VisitNewNode(NewNode Node) {
+		/*local*/int ParamSize = GtStatic.ListSize(Node.Params);
+		/*local*/String NewOperator = this.GetNewOperator(Node.Type);
+		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
+		Template = Template.replace("$1", NewOperator);
+		this.PushSourceCode(this.ApplyMacro(Template, Node.Params));
+	}
+
+	@Override public void VisitApplyNode(ApplyNode Node) {
+		/*local*/String Program = this.GenerateApplyFunc(Node);
+		this.PushSourceCode(Program);
 	}
 
 	@Override public void VisitSuffixNode(SuffixNode Node) {
@@ -1867,20 +1883,10 @@ class SourceGenerator extends GtGenerator {
 		/*local*/String Right = this.VisitNode(Node.RightNode);
 		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right) + ")");
 	}
-	
-	@Override public final void VisitNewNode(NewNode Node) {
-		/*local*/int ParamSize = GtStatic.ListSize(Node.Params);
-		/*local*/String NewOperator = this.GetNewOperator(Node.Type);
-		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
-		Template = Template.replace("$1", NewOperator);
-		this.PushSourceCode(this.ApplyMacro(Template, Node.Params));
-	}
 
-	@Override public void VisitApplyNode(ApplyNode Node) {
-		/*local*/String Program = this.GenerateApplyFunc(Node);
-		this.PushSourceCode(Program);
+	@Override public void VisitGetterNode(GetterNode Node) {
+		this.PushSourceCode(this.VisitNode(Node.Expr) + this.MemberAccessOperator + Node.Func.FuncName);
 	}
-	
 	@Override public void VisitAssignNode(AssignNode Node) {
 		this.PushSourceCode(this.VisitNode(Node.LeftNode) + " = " + this.VisitNode(Node.RightNode));
 	}
@@ -1921,4 +1927,14 @@ class SourceGenerator extends GtGenerator {
 		this.StopVisitor(Node);
 	}
 
+	@Override public void VisitLabelNode(LabelNode Node) {
+//		/*local*/String Label = Node.Label;
+//		this.PushSourceCode(Label + ":");
+	}
+
+	@Override public void VisitJumpNode(JumpNode Node) {
+//		/*local*/String Label = Node.Label;
+//		this.PushSourceCode("goto " + Label);
+//		this.StopVisitor(Node);
+	}
 }

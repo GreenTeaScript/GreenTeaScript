@@ -52,4 +52,3 @@ class GreenTeaEnum extends GreenTeaTopObject {
 		this.EnumSymbol = EnumSymbol;
 	}
 }
-

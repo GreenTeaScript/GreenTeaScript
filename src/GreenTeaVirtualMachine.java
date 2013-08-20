@@ -86,7 +86,7 @@ final class GtCode implements CodeSet {
 }
 
 public class GreenTeaVirtualMachine implements CodeSet {
-	
+
 	public static Object Run(GtStack Stack, int pc, GtCode Code[]) {	
 		Object ObjectReg = null;
 		long IntReg = 0;

@@ -78,11 +78,6 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Source);
 	}
 
-	@Override public void VisitGetterNode(GetterNode Node) {
-		Node.Expr.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + "." + Node.Token.ParsedText);
-	}
-
 	@Override public void VisitAssignNode(AssignNode Node) {
 		/*local*/String Right = this.VisitNode(Node.LeftNode);
 		/*local*/String Left = this.VisitNode(Node.RightNode);
@@ -112,10 +107,6 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 			Source = Source + " else " + this.PopSourceCode();
 		}
 		this.PushSourceCode(Source);
-	}
-
-	@Override public void VisitSwitchNode(SwitchNode Node) {
-		// TODO Auto-generated method stub
 	}
 
 	@Override public void VisitWhileNode(WhileNode Node) {
@@ -168,11 +159,6 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 		Node.Expr.Evaluate(this);
 		/*local*/String Expr = this.PopSourceCode();
 		this.PushSourceCode("throw " + Expr);
-		return;
-	}
-
-	@Override public void VisitFunctionNode(FunctionNode Node) {
-		// TODO Auto-generated method stub
 		return;
 	}
 
