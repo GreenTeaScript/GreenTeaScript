@@ -313,7 +313,7 @@ class LibGreenTea {
 	}
 
 	static IsSupportedTarget(TargetCode: string){
-		return LibGreenTea.HasFile(LibGreenTea.GetLibPath(TargetCode, "common.green"));
+		return LibGreenTea.HasFile(LibGreenTea.GetLibPath(TargetCode, "common"));
 	}
 
 	static GetLibFile(TargetCode: string, FileName: string): string {
@@ -321,7 +321,7 @@ class LibGreenTea {
 	}
 
 	static GetLibPath(TargetCode: string, FileName: string): string {
-		return ("lib/" + TargetCode + "/" + FileName);
+		return ("lib/" + TargetCode + "/" + FileName + ".green");
 	}
 
 	private static Int32Max = Math.pow(2, 32);
