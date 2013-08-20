@@ -114,12 +114,12 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 	@Override public void VisitApplyNode(ApplyNode Node) {
 		/*local*/String methodName = Node.Func.GetNativeFuncName();
 		/*local*/int ParamCount = Node.Params.size();
-		/*local*/int i = 0;
+		/*local*/int i = 1; // Skip 0, it contains a function itself.
 		while(i < ParamCount) {
 			Node.Params.get(i).Evaluate(this);
 			i = i + 1;
 		}
-		/*local*/String params = "(" + this.PopManyCodeAndJoin(ParamCount, true, null, null, ", ") + ")";
+		/*local*/String params = "(" + this.PopManyCodeAndJoin(ParamCount - 1, true, null, null, ", ") + ")";
 		this.PushSourceCode(methodName + params);
 	}
 
