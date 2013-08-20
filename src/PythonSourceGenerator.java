@@ -200,10 +200,15 @@ public class PythonSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitBinaryNode(BinaryNode Node) {
-		/*local*/String FuncName = Node.Token.ParsedText;
-		/*local*/String Left = this.VisitNode(Node.LeftNode);
-		/*local*/String Right = this.VisitNode(Node.RightNode);
-		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right) + ")");
+		if(Node.Func == null) {
+			/*local*/String Left = this.VisitNode(Node.LeftNode);
+			/*local*/String Right = this.VisitNode(Node.RightNode);
+			this.PushSourceCode("(" + Left + " " +  Node.Token.ParsedText + " " + Right + ")");
+		}
+		else {
+			/*local*/String[] ParamCode = this.MakeParamCode2(Node.LeftNode, Node.RightNode);
+			this.PushSourceCode("(" + Node.Func.ApplyNativeMacro(0, ParamCode) + ")");
+		}
 	}
 
 	@Override public void VisitAndNode(AndNode Node) {

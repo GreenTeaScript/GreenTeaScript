@@ -40,7 +40,7 @@ class GtScriptRunner {
 		//FIXME
 //ifdef JAVA
 		try {
-			/*local*/Process proc = new ProcessBuilder(cmd).start();
+			Process proc = new ProcessBuilder(cmd).start();
 			long begin = System.currentTimeMillis();
 			for (;;) {
 				try {
@@ -63,9 +63,9 @@ class GtScriptRunner {
 			if(proc.exitValue() != 0) {
 				return null;
 			}
-			/*local*/InputStream stdout = proc.getInputStream();
-			/*local*/byte[] buffer = new byte[512];
-			/*local*/int read = 0;
+			InputStream stdout = proc.getInputStream();
+			byte[] buffer = new byte[512];
+			int read = 0;
 			while(read > -1) {
 				read = stdout.read(buffer, 0, buffer.length);
 				if(read > -1) {
@@ -114,7 +114,7 @@ public class GreenTeaScriptTest {
 	}
 
 	public static void TokenizeOperator0() {
-		GtClassContext Context = GreenTeaScriptTest.CreateContext();
+		/*local*/GtClassContext Context = GreenTeaScriptTest.CreateContext();
 		/*local*/String[] TokenTestList0 = {"1", "||", "2"};
 		GreenTeaScriptTest.TestToken(Context, "1 || 2", TokenTestList0);
 
@@ -132,7 +132,7 @@ public class GreenTeaScriptTest {
 	}
 
 	public static void TokenizeStatement() {
-		GtClassContext Context = GreenTeaScriptTest.CreateContext();
+		/*local*/GtClassContext Context = GreenTeaScriptTest.CreateContext();
 		/*local*/String[] TokenTestList0 = {"int", "+", "(", "int", "x", ")", ";"};
 		GreenTeaScriptTest.TestToken(Context, "int + (int x);", TokenTestList0);
 	}

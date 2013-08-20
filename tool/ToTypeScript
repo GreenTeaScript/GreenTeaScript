@@ -26,4 +26,4 @@ done
 perl src/TypeScript/PackLibraries.pl lib > ${build}GreenTeaLibraries.ts
 ts="${ts} ${build}GreenTeaLibraries.ts"
 
-tsc ${build}/LangDeps.ts ${ts}
+tsc ${build}/LibGreenTea.ts ${ts}
