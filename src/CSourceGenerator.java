@@ -65,7 +65,7 @@ public class CSourceGenerator extends SourceGenerator {
 	public String GreenTeaTypeName(GtType Type) {
 		return Type.ShortClassName;
 	}
-	
+
 	@Override protected String GetNewOperator(GtType Type) {
 		/*local*/String TypeName = this.GreenTeaTypeName(Type);
 		return "NEW_" + TypeName + "()";
@@ -239,7 +239,7 @@ public class CSourceGenerator extends SourceGenerator {
 			Program += this.GetIndentString() + "// " + this.LocalTypeName(Type.SuperType) + " __base;" + this.LineFeed;
 		}
 		/*local*/int i = 0;
-		while (i < ClassField.FieldList.size()) {
+		while(i < ClassField.FieldList.size()) {
 			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
 			/*local*/GtType VarType = FieldInfo.Type;
 			/*local*/String VarName = FieldInfo.NativeName;
@@ -252,7 +252,7 @@ public class CSourceGenerator extends SourceGenerator {
 		this.Indent();
 		i = 0;
 		Program +=  this.GetIndentString() + LocalType + " " + this.GetRecvName() + " = " + "GT_New("+LocalType+");" + this.LineFeed;
-		while (i < ClassField.FieldList.size()) {
+		while(i < ClassField.FieldList.size()) {
 			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
 			/*local*/String VarName = FieldInfo.NativeName;
 			/*local*/String InitValue = this.StringfyConstValue(FieldInfo.InitValue);

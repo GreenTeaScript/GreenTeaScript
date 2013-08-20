@@ -42,7 +42,7 @@ class GtScriptRunner {
 		try {
 			Process proc = new ProcessBuilder(cmd).start();
 			long begin = System.currentTimeMillis();
-			for (;;) {
+			for(;;) {
 				try {
 					Thread.sleep(100);
 				} catch (InterruptedException e) {
@@ -51,7 +51,7 @@ class GtScriptRunner {
 					proc.exitValue();
 				} catch (IllegalThreadStateException e) {
 					long now = System.currentTimeMillis();
-					if (TimeUnit.MILLISECONDS.toSeconds(now - begin) < 10) {
+					if(TimeUnit.MILLISECONDS.toSeconds(now - begin) < 10) {
 						continue;
 					}
 					proc.destroy();

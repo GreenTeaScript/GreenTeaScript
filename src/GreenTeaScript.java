@@ -361,7 +361,6 @@ class GtStatic implements GtConst {
 		return PolyFunc;
 	}
 
-
 //ifdef JAVA
 	public final static GtDelegateToken FunctionA(Object Callee, String FuncName) {
 		return new GtDelegateToken(Callee, LibGreenTea.LookupNativeMethod(Callee, FuncName));
@@ -1318,14 +1317,12 @@ final class GtTypeEnv extends GtStatic {
 		return this.Generator.CreateConstNode(Type, ParsedTree, Type.DefaultNullValue);
 	}
 
-
 //	public GtNode DefaultValueConstNode(GtSyntaxTree ParsedTree, GtType Type) {
 //		if(Type.DefaultNullValue != null) {
 //			return this.Generator.CreateConstNode(Type, ParsedTree, Type.DefaultNullValue);
 //		}
 //		return this.CreateSyntaxErrorNode(ParsedTree, "undefined initial value of " + Type);
 //	}
-
 
 	/* typing */
 	public GtNode TypeEachNode(GtSyntaxTree Tree, GtType Type) {
@@ -1388,8 +1385,6 @@ final class GtTypeEnv extends GtStatic {
 		}
 		return this.ReportTypeResult(ParsedTree, Node, TypeErrorLevel, "type error: requested = " + Type + ", given = " + Node.Type);
 	}
-
-
 
 //	public final void DefineFunc(GtFunc Func) {
 //		this.NameSpace.AppendFunc(Func);
@@ -1585,7 +1580,6 @@ final class GtNameSpace extends GtStatic {
 		}
 		return null;
 	}
-
 
 	public final Object AppendFuncName(String Key, GtFunc Func) {
 		/*local*/Object OldValue = this.GetSymbol(Key);
@@ -2202,7 +2196,6 @@ final class DScriptGrammar extends GtGrammar {
 		}
 		return Node;
 	}
-
 
 	public static GtSyntaxTree ParseApply(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/int ParseFlag = TokenContext.ParseFlag;

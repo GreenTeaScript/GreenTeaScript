@@ -75,7 +75,7 @@ class GtNode extends GtStatic {
 			i = i + 1;
 		}
 	}
-	
+
 	public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitEmptyNode(this);  /* must override */
 	}
@@ -325,7 +325,8 @@ class OrNode extends GtNode {
 		if(LeftValue instanceof Boolean) {
 			if(((/*cast*/Boolean)LeftValue).booleanValue()) {
 				return LeftValue;
-			} else {
+			}
+			else {
 				return this.RightNode.ToConstValue();
 			}
 		}
@@ -353,7 +354,8 @@ class TrinaryNode extends GtNode {
 		if(CondValue instanceof Boolean) {
 			if(((/*cast*/Boolean)CondValue).booleanValue()) {
 				return this.ThenExpr.ToConstValue();
-			} else {
+			}
+			else {
 				return this.ElseExpr.ToConstValue();
 			}
 		}
@@ -373,7 +375,7 @@ class GetterNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitGetterNode(this);
 	}
-	
+
 	@Override public Object ToConstValue() {
 		/*local*/Object Value = this.Expr.ToConstValue();
 		if(Value != null) {
@@ -734,7 +736,7 @@ class GtType extends GtStatic {
 		SubType.SearchSuperFuncClass = this;
 		return SubType;
 	}
-	
+
 	// Note Don't call this directly. Use Context.GetGenericType instead.
 	public GtType CreateGenericType(int BaseIndex, ArrayList<GtType> TypeList, String ShortName) {
 		/*local*/GtType GenericType = new GtType(this.Context, this.ClassFlag, ShortName, null, null);
@@ -761,7 +763,7 @@ class GtType extends GtStatic {
 	@Override public String toString() {
 		return this.ShortClassName;
 	}
-	
+
 	public final String GetUniqueName() {
 		if(LibGreenTea.DebugMode) {
 			return this.BaseType.ShortClassName + NativeNameSuffix + GtStatic.NumberToAscii(this.ClassId);
@@ -892,13 +894,13 @@ class GtFunc extends GtStatic {
 	public final boolean IsAbstract() {
 		return this.NativeRef == null;
 	}
-	
+
 	public final void SetNativeMacro(String NativeMacro) {
 		LibGreenTea.Assert(this.NativeRef == null);
 		this.FuncFlag |= NativeMacroFunc;
 		this.NativeRef = NativeMacro;
 	}
-	
+
 	public final String GetNativeMacro() {
 		return (/*cast*/String)this.NativeRef;
 	}
@@ -935,7 +937,7 @@ class GtPolyFunc extends GtStatic {
 		this.FuncList = new ArrayList<GtFunc>();
 		this.FuncList.add(Func1);
 	}
-	
+
 	@Override public String toString() { // this is used in an error message
 		/*local*/String s = "";
 		/*local*/int i = 0;
@@ -948,7 +950,7 @@ class GtPolyFunc extends GtStatic {
 		}
 		return s;
 	}
-	
+
 	public final GtPolyFunc Dup(GtNameSpace NameSpace) {
 		if(this.NameSpace != NameSpace) {
 			/*local*/GtPolyFunc PolyFunc = new GtPolyFunc(NameSpace, this.FuncList.get(0));
@@ -965,7 +967,7 @@ class GtPolyFunc extends GtStatic {
 	public final GtFunc Append(GtFunc Func) {
 		/*local*/int i = 0;
 		while(i < this.FuncList.size()) {
-			/*local*/GtFunc ListedFunc = this.FuncList.get(i); 
+			/*local*/GtFunc ListedFunc = this.FuncList.get(i);
 			if(ListedFunc == Func) {
 				return null; /* same function */
 			}
@@ -1042,7 +1044,6 @@ class GtPolyFunc extends GtStatic {
 		return ResolvedFunc;
 	}
 
-	
 	public GtFunc MatchAcceptableFunc(GtTypeEnv Gamma, int FuncParamSize, ArrayList<GtNode> NodeList) {
 		/*local*/int i = this.FuncList.size() - 1;
 		while(i >= 0) {
@@ -1116,9 +1117,7 @@ class GtPolyFunc extends GtStatic {
 		return ResolvedFunc;
 	}
 
-	
 }
-
 
 class GtGenerator extends GtStatic {
 	/*field*/public final String      TargetCode;
@@ -1126,7 +1125,7 @@ class GtGenerator extends GtStatic {
 	/*field*/public ArrayList<Object> GeneratedCodeStack;
 	/*field*/public String OutputFile;
 	/*field*/public int GeneratorFlag;
-	
+
 	GtGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		this.TargetCode = TargetCode;
 		this.OutputFile = OutputFile;
@@ -1336,7 +1335,7 @@ class GtGenerator extends GtStatic {
 		}
 		return false;
 	}
-	
+
 	public int ParseClassFlag(int ClassFlag, GtMap Annotation) {
 		return ClassFlag;
 	}
@@ -1373,12 +1372,11 @@ class GtGenerator extends GtStatic {
 	public void SyncCodeGeneration() {
 		/*extension*/
 	}
-	
-	
+
 	public final void StopVisitor(GtNode Node) {
 		Node.NextNode = null;
 	}
-	
+
 	//------------------------------------------------------------------------
 
 	public void VisitEmptyNode(GtNode EmptyNode) {
@@ -1606,7 +1604,6 @@ class SourceGenerator extends GtGenerator {
 	/*field*/public String    FalseLiteral = "false";
 	/*field*/public String    NullLiteral = "null";
 
-
 	SourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
 		this.LineFeed = "\n";
@@ -1644,7 +1641,7 @@ class SourceGenerator extends GtGenerator {
 		this.HeaderSource = "";
 		this.BodySource = "";
 	}
-	
+
 	/* GeneratorUtils */
 
 	public final void Indent() {
@@ -1811,7 +1808,7 @@ class SourceGenerator extends GtGenerator {
 		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
 		return this.ApplyMacro(Template, Node.Params);
 	}
-	
+
 	// Visitor API
 	@Override public void VisitEmptyNode(GtNode Node) {
 		this.PushSourceCode("");
@@ -1854,7 +1851,7 @@ class SourceGenerator extends GtGenerator {
 		/*local*/String Program = this.GenerateApplyFunc(Node);
 		this.PushSourceCode(Program);
 	}
-	
+
 	@Override public void VisitSuffixNode(SuffixNode Node) {
 		/*local*/String FuncName = Node.Token.ParsedText;
 		/*local*/String Expr = this.VisitNode(Node.Expr);
@@ -1923,14 +1920,12 @@ class SourceGenerator extends GtGenerator {
 		this.PushSourceCode(Code);
 		this.StopVisitor(Node);
 	}
-	
-	
-	
+
 	@Override public void VisitLabelNode(LabelNode Node) {
 //		/*local*/String Label = Node.Label;
 //		this.PushSourceCode(Label + ":");
 	}
-	
+
 	@Override public void VisitJumpNode(JumpNode Node) {
 //		/*local*/String Label = Node.Label;
 //		this.PushSourceCode("goto " + Label);

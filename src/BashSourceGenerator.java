@@ -44,7 +44,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.WriteLineHeader("#!/bin/bash");
 		this.WriteLineCode(this.LineFeed + "source ./efunc.sh" + this.LineFeed);
 	}
-	
+
 	public String VisitBlockWithIndent(GtNode Node, boolean inBlock) {
 		/*local*/String Code = "";
 		if(inBlock) {
@@ -111,7 +111,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		}
 		return ParamCode;
 	}
-	
+
 	private String CreateAssertFunc(ApplyNode Node) {
 		/*local*/ArrayList<GtNode> ParamList = Node.Params;
 		/*local*/int Size = GtStatic.ListSize(ParamList);
@@ -274,7 +274,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		}
 		return Code;
 	}
-	
+
 	private String CreateCommandFunc(String cmd, GtType Type) {
 		/*local*/String FuncName = "execCmd";
 		/*local*/String RunnableCmd = cmd;

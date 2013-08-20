@@ -50,7 +50,7 @@ public abstract class LibGreenTea {
 	}
 
 	public static boolean DebugMode = false;
-	
+
 	private final static String GetStackInfo(int depth){
 		String LineNumber = " ";
 		Exception e =  new Exception();
@@ -61,7 +61,6 @@ public abstract class LibGreenTea {
 		}
 		return LineNumber;
 	}
-
 
 	public final static void TODO(String msg) {
 		LibGreenTea.println("TODO" + LibGreenTea.GetStackInfo(2) + ": " + msg);
@@ -76,7 +75,6 @@ public abstract class LibGreenTea {
 	public final static void VerboseLog(int VerboseFlag, String Message) {
 		LibGreenTea.println(Message);
 	}
-	
 
 	public final static void Exit(int status, String Message) {
 		System.err.println(Message);
@@ -100,7 +98,7 @@ public abstract class LibGreenTea {
 	public final static boolean IsDigit(char ch) {
 		return Character.isDigit(ch);
 	}
-	
+
 	public final static char CharAt(String Text, int Pos) {
 		return Text.charAt(Pos);
 	}
@@ -112,7 +110,7 @@ public abstract class LibGreenTea {
 	public final static boolean EqualsString(String s, String s2){
 		return s.equals(s2);
 	}
-	
+
 	public final static int ParseInt(String Text) {
 		return Integer.parseInt(Text);
 	}
@@ -301,7 +299,7 @@ public abstract class LibGreenTea {
 		}
 		return null;
 	}
-	
+
 	public final static void WriteCode(String OutputFile, String SourceCode) {
 		if(OutputFile == null) {
 			LibGreenTea.Eval(SourceCode);
@@ -323,7 +321,7 @@ public abstract class LibGreenTea {
 			}
 		}
 	}
-	
+
 	private static java.io.Console Console = null;
 
 	public final static String ReadLine(String Prompt) {
@@ -374,7 +372,7 @@ public abstract class LibGreenTea {
 	public final static boolean IsSupportedTarget(String TargetCode) {
 		return HasFile("lib/" + TargetCode + "/common.green");
 	}
-	
+
 	public final static String GetLibPath(String TargetCode, String LibName) {
 		/*local*/String Path = "lib/" + TargetCode + "/" + LibName + ".green";
 		return Path;
@@ -400,7 +398,6 @@ public abstract class LibGreenTea {
 		return null;
 	}
 
-	
 	public static Object EvalCast(GtType CastType, Object Value) {
 		if(Value != null) {
 			GtType ValueType = CastType.Context.GuessType(Value);
@@ -589,9 +586,4 @@ public abstract class LibGreenTea {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
-
-
-
-	
 }
