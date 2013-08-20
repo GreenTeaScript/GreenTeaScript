@@ -152,18 +152,6 @@ public class CSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
-//	@Override public void VisitLabelNode(LabelNode Node) {
-//		/*local*/String Label = Node.Label;
-//		this.PushSourceCode(Label + ":");
-//	}
-//
-//	@Override public void VisitJumpNode(JumpNode Node) {
-//		/*local*/String Label = Node.Label;
-//		this.PushSourceCode("goto " + Label);
-//		this.StopVisitor(Node);
-//	}
-
-
 	@Override public void VisitTryNode(TryNode Node) {
 		/*local*/String Code = "try ";
 		this.VisitBlockEachStatementWithIndent(Node.TryBlock, true);

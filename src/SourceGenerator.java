@@ -1842,6 +1842,19 @@ class SourceGenerator extends GtGenerator {
 		this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + this.VisitNode(Node.IndexAt) + "]");
 	}
 
+	@Override public final void VisitNewNode(NewNode Node) {
+		/*local*/int ParamSize = GtStatic.ListSize(Node.Params);
+		/*local*/String NewOperator = this.GetNewOperator(Node.Type);
+		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
+		Template = Template.replace("$1", NewOperator);
+		this.PushSourceCode(this.ApplyMacro(Template, Node.Params));
+	}
+
+	@Override public void VisitApplyNode(ApplyNode Node) {
+		/*local*/String Program = this.GenerateApplyFunc(Node);
+		this.PushSourceCode(Program);
+	}
+	
 	@Override public void VisitSuffixNode(SuffixNode Node) {
 		/*local*/String FuncName = Node.Token.ParsedText;
 		/*local*/String Expr = this.VisitNode(Node.Expr);
@@ -1867,20 +1880,10 @@ class SourceGenerator extends GtGenerator {
 		/*local*/String Right = this.VisitNode(Node.RightNode);
 		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right) + ")");
 	}
-	
-	@Override public final void VisitNewNode(NewNode Node) {
-		/*local*/int ParamSize = GtStatic.ListSize(Node.Params);
-		/*local*/String NewOperator = this.GetNewOperator(Node.Type);
-		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
-		Template = Template.replace("$1", NewOperator);
-		this.PushSourceCode(this.ApplyMacro(Template, Node.Params));
-	}
 
-	@Override public void VisitApplyNode(ApplyNode Node) {
-		/*local*/String Program = this.GenerateApplyFunc(Node);
-		this.PushSourceCode(Program);
+	@Override public void VisitGetterNode(GetterNode Node) {
+		this.PushSourceCode(this.VisitNode(Node.Expr) + this.MemberAccessOperator + Node.Func.FuncName);
 	}
-	
 	@Override public void VisitAssignNode(AssignNode Node) {
 		this.PushSourceCode(this.VisitNode(Node.LeftNode) + " = " + this.VisitNode(Node.RightNode));
 	}
@@ -1920,5 +1923,17 @@ class SourceGenerator extends GtGenerator {
 		this.PushSourceCode(Code);
 		this.StopVisitor(Node);
 	}
-
+	
+	
+	
+	@Override public void VisitLabelNode(LabelNode Node) {
+//		/*local*/String Label = Node.Label;
+//		this.PushSourceCode(Label + ":");
+	}
+	
+	@Override public void VisitJumpNode(JumpNode Node) {
+//		/*local*/String Label = Node.Label;
+//		this.PushSourceCode("goto " + Label);
+//		this.StopVisitor(Node);
+	}
 }

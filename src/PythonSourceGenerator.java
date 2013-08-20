@@ -104,10 +104,6 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Program);
 	}
 
-	@Override public void VisitGetterNode(GetterNode Node) {
-		this.PushSourceCode(this.VisitNode(Node.Expr) + "." + Node.Token.ParsedText);
-	}
-
 	@Override public void VisitSuffixNode(SuffixNode Node) {
 		/*local*/String FuncName = Node.Token.ParsedText;
 		/*local*/String Expr = this.VisitNode(Node.Expr);
