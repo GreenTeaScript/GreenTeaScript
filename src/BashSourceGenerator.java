@@ -50,7 +50,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/GtNode CurrentNode = Node;
 		while(CurrentNode != null) {
 			/*local*/String poppedCode = this.VisitNode(CurrentNode);
-			if(!poppedCode.equals("")) {
+			if(!LibGreenTea.EqualsString(poppedCode, "")) {
 				Code += this.GetIndentString() + poppedCode + this.LineFeed;
 			}
 			CurrentNode = CurrentNode.NextNode;
@@ -111,11 +111,11 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitConstNode(ConstNode Node) {
 		/*local*/String value = this.StringfyConstValue(Node.ConstValue);
-		if(Node.Type.equals(Node.Type.Context.BooleanType)) {
-			if(value.equals("true")) {
+		if(Node.Type == Node.Type.Context.BooleanType) {
+			if(LibGreenTea.EqualsString(value, "true")) {
 				value = "0";
 			}
-			else if(value.equals("false")) {
+			else {
 				value = "1";
 			}
 		}
@@ -163,14 +163,14 @@ public class BashSourceGenerator extends SourceGenerator {
 		}
 		return ParamCode;
 	}
-
-	private String JoinCode(String BeginCode, int BeginIdx, String[] ParamCode, String EndCode) {
+	
+	private String JoinCode(String BeginCode, int BeginIdx, String[] ParamCode, String EndCode, String Delim) {
 		/*local*/String JoinedCode = BeginCode;
 		/*local*/int i = BeginIdx;
 		while(i < ParamCode.length) {
 			/*local*/String P = ParamCode[i];
 			if(i != BeginIdx) {
-				JoinedCode += " ";
+				JoinedCode += Delim;
 			}
 			JoinedCode += P;
 			i = i + 1;
@@ -187,13 +187,13 @@ public class BashSourceGenerator extends SourceGenerator {
 			ParamCode[Size - i - 1] = "\"" + this.VisitNode(ParamList.get(i)) + "\"";
 			i = i + 1;
 		}
-		return this.JoinCode("assert ", 0, ParamCode, "");
+		return this.JoinCode("assert ", 0, ParamCode, "", " ");
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
 		/*local*/String[] ParamCode = this.MakeParamCode(Node.Params);
 		if(Node.Func == null) {
-			this.PushSourceCode(this.JoinCode(ParamCode[0] + " ", 0, ParamCode, ""));
+			this.PushSourceCode(this.JoinCode(ParamCode[0] + " ", 0, ParamCode, "", " "));
 		}
 //		else if(Node.Func.Is(NativeFunc)) {
 //			this.PushSourceCode(this.JoinCode(ParamCode[0] + "." + Node.Func.FuncName + " ", 0, ParamCode, ""));
@@ -207,15 +207,15 @@ public class BashSourceGenerator extends SourceGenerator {
 			this.PushSourceCode(Node.Func.ApplyNativeMacro(0, ParamCode));
 		}
 		else {
-			this.PushSourceCode(this.JoinCode(Node.Func.GetNativeFuncName() + " ", 0, ParamCode, ""));
+			this.PushSourceCode(this.JoinCode(Node.Func.GetNativeFuncName() + " ", 0, ParamCode, "", " "));
 		}
 	}
 
 	@Override public void VisitSuffixNode(SuffixNode Node) {
 		/*local*/String FuncName = Node.Token.ParsedText;
-		if(FuncName.equals("++")) {
+		if(LibGreenTea.EqualsString(FuncName, "++")) {
 		}
-		else if(FuncName.equals("--")) {
+		else if(LibGreenTea.EqualsString(FuncName, "--")) {
 		}
 		else {
 			LibGreenTea.DebugP(FuncName + " is not supported suffix operator!!");
@@ -306,7 +306,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		if(this.inFunc && Node.Expr != null) {
 			/*local*/String Ret = this.ResolveValueType(Node.Expr);
 			if(Node.Expr instanceof ApplyNode || Node.Expr instanceof CommandNode) {
-				if(Node.Type.equals(Node.Type.Context.BooleanType)) {
+				if(Node.Type == Node.Type.Context.BooleanType) {
 					/*local*/String Code = "local value=" + Ret + this.LineFeed;
 					Code += this.GetIndentString() + "echo $value" + this.LineFeed;
 					Code += this.GetIndentString() + "return $value";
@@ -387,7 +387,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	private String CreateCommandFunc(String cmd, GtType Type) {
 		/*local*/String FuncName = "execCmd";
 		/*local*/String RunnableCmd = cmd;
-		if(Type.equals(Type.Context.StringType)) {
+		if(Type == Type.Context.StringType) {
 			RunnableCmd = "function " + FuncName + this.cmdCounter + "() {" + this.LineFeed;
 			RunnableCmd += this.GetIndentString() + "echo $(" + cmd + ")" + this.LineFeed;
 			RunnableCmd += this.GetIndentString() + "return 0" + this.LineFeed + "}" + this.LineFeed;
@@ -395,7 +395,7 @@ public class BashSourceGenerator extends SourceGenerator {
 			RunnableCmd = FuncName + this.cmdCounter;
 			this.cmdCounter++;
 		}
-		else if(Type.equals(Type.Context.IntType) || Type.equals(Type.Context.BooleanType)) {
+		else if(Type == Type.Context.IntType || Type == Type.Context.BooleanType) {
 			RunnableCmd = "function " + FuncName + this.cmdCounter + "() {" + this.LineFeed;
 			RunnableCmd += this.GetIndentString() + cmd + " >&2" + this.LineFeed;
 			RunnableCmd += this.GetIndentString() + "local ret=$?" + this.LineFeed;
@@ -454,7 +454,7 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	@Override public Object Eval(GtNode Node) {
 		/*local*/String Code = this.VisitBlockWithIndent(Node, false);
-		if(Code.equals("")) {
+		if(LibGreenTea.EqualsString(Code, "")) {
 			return "";
 		}
 		this.WriteLineCode(Code);
