@@ -377,7 +377,7 @@ class GetterNode extends GtNode {
 	@Override public Object ToConstValue() {
 		/*local*/Object Value = this.Expr.ToConstValue();
 		if(Value != null) {
-			return LibGreenTea.EvalGetter(Value, Token.ParsedText);
+			return LibGreenTea.EvalGetter(this.Type, Value, Token.ParsedText);
 		}
 		return Value;
 	}

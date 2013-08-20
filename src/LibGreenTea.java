@@ -301,11 +301,6 @@ public abstract class LibGreenTea {
 		}
 		return null;
 	}
-
-	public final static void Eval(String SourceCode) {
-		//eval(SourceCode);
-		System.out.println("Eval: " + SourceCode);  // In Java, no eval
-	}
 	
 	public final static void WriteCode(String OutputFile, String SourceCode) {
 		if(OutputFile == null) {
@@ -399,27 +394,198 @@ public abstract class LibGreenTea {
 		return (int)FileLine;
 	}
 
-	public static Object EvalCast(GtType castType, Object value) {
-		// TODO Auto-generated method stub
+	public final static Object Eval(String SourceCode) {
+		//eval(SourceCode);
+		//System.out.println("Eval: " + SourceCode);  // In Java, no eval
+		return null;
+	}
+
+	
+	public static Object EvalCast(GtType CastType, Object Value) {
+		if(Value != null) {
+			GtType ValueType = CastType.Context.GuessType(Value);
+			if(ValueType == CastType || CastType.Accept(ValueType)) {
+				return Value;
+			}
+			TODO("Add Invoke Coercion.. from " + ValueType + " to " + CastType);
+			if(CastType == CastType.Context.StringType) {
+				return Value.toString();
+			}
+		}
 		return null;
 	}
 
 	public static Object EvalInstanceOf(Object Value, GtType Type) {
-		// TODO Auto-generated method stub
-		return null;
+		if(Value != null) {
+			GtType ValueType = Type.Context.GuessType(Value);
+			if(ValueType == Type || Type.Accept(ValueType)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public static Object EvalUnary(GtType Type, String Operator, Object Value) {
-		// TODO Auto-generated method stub
+		if(Value instanceof Boolean) {
+			if(Operator.equals("!") || Operator.equals("not")) {
+				return EvalCast(Type, !((Boolean)Value).booleanValue());
+			}
+			return null;
+		}
+		if(Value instanceof Long || Value instanceof Integer  || Value instanceof Short) {
+			if(Operator.equals("-")) {
+				return EvalCast(Type, -((Number)Value).longValue());
+			}
+			if(Operator.equals("+")) {
+				return EvalCast(Type, +((Number)Value).longValue());
+			}
+			return null;
+		}
 		return null;
 	}
 
 	public static Object EvalSuffix(GtType Type, Object Value, String Operator) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
-	public static Object EvalBinary(GtType Type, Object LeftValue, String Opetator, Object RightValue) {
+	public static Object EvalBinary(GtType Type, Object LeftValue, String Operator, Object RightValue) {
+		if(LeftValue instanceof String || RightValue instanceof String) {
+			String left = EvalCast(Type, LeftValue).toString();
+			String right = EvalCast(Type, LeftValue).toString();
+			if(Operator.equals("+")) {
+				return  EvalCast(Type, left + right);
+			}
+			if(Operator.equals("==")) {
+				return  EvalCast(Type, left.equals(right));
+			}
+			if(Operator.equals("!=")) {
+				return EvalCast(Type, !left.equals(right));
+			}
+			if(Operator.equals("<")) {
+				return EvalCast(Type, left.compareTo(right) < 0);
+			}
+			if(Operator.equals("<=")) {
+				return EvalCast(Type, left.compareTo(right) <= 0);
+			}
+			if(Operator.equals(">")) {
+				return EvalCast(Type, left.compareTo(right) > 0);
+			}
+			if(Operator.equals(">=")) {
+				return EvalCast(Type, left.compareTo(right) >= 0);
+			}
+			return null;
+		}
+		if(LeftValue instanceof Double || LeftValue instanceof Float || RightValue instanceof Double || RightValue instanceof Float) {
+			try {
+				double left = ((Number)LeftValue).doubleValue();
+				double right = ((Number)RightValue).doubleValue();
+				if(Operator.equals("+")) {
+					return EvalCast(Type, left + right);
+				}
+				if(Operator.equals("-")) {
+					return EvalCast(Type, left - right);
+				}
+				if(Operator.equals("*")) {
+					return EvalCast(Type, left * right);
+				}
+				if(Operator.equals("/")) {
+					return EvalCast(Type, left / right);
+				}
+				if(Operator.equals("%") || Operator.equals("mod")) {
+					return EvalCast(Type, left % right);
+				}
+				if(Operator.equals("==")) {
+					return EvalCast(Type, left == right);
+				}
+				if(Operator.equals("!=")) {
+					return EvalCast(Type, left != right);
+				}
+				if(Operator.equals("<")) {
+					return EvalCast(Type, left < right);
+				}
+				if(Operator.equals("<=")) {
+					return EvalCast(Type, left <= right);
+				}
+				if(Operator.equals(">")) {
+					return EvalCast(Type, left > right);
+				}
+				if(Operator.equals(">=")) {
+					return EvalCast(Type, left >= right);
+				}
+			}
+			catch(ClassCastException e) {
+			}
+			return null;
+		}
+		if(LeftValue instanceof Boolean && RightValue instanceof Boolean) {
+			boolean left = (Boolean)LeftValue;
+			boolean right = (Boolean)RightValue;
+			if(Operator.equals("==")) {
+				return EvalCast(Type, left == right);
+			}
+			if(Operator.equals("!=")) {
+				return EvalCast(Type, left != right);
+			}
+			return null;
+		}
+		try {
+			long left = ((Number)LeftValue).longValue();
+			long right = ((Number)RightValue).longValue();
+			if(Operator.equals("+")) {
+				return EvalCast(Type, left + right);
+			}
+			if(Operator.equals("-")) {
+				return EvalCast(Type, left - right);
+			}
+			if(Operator.equals("*")) {
+				return EvalCast(Type, left * right);
+			}
+			if(Operator.equals("/")) {
+				return EvalCast(Type, left / right);
+			}
+			if(Operator.equals("%") || Operator.equals("mod")) {
+				return EvalCast(Type, left % right);
+			}
+			if(Operator.equals("==")) {
+				return EvalCast(Type, left == right);
+			}
+			if(Operator.equals("!=")) {
+				return EvalCast(Type, left != right);
+			}
+			if(Operator.equals("<")) {
+				return EvalCast(Type, left < right);
+			}
+			if(Operator.equals("<=")) {
+				return EvalCast(Type, left <= right);
+			}
+			if(Operator.equals(">")) {
+				return EvalCast(Type, left > right);
+			}
+			if(Operator.equals(">=")) {
+				return EvalCast(Type, left >= right);
+			}
+			if(Operator.equals("|")) {
+				return EvalCast(Type, left | right);
+			}
+			if(Operator.equals("&")) {
+				return EvalCast(Type, left & right);
+			}
+			if(Operator.equals("<<")) {
+				return EvalCast(Type, left << right);
+			}
+			if(Operator.equals(">>")) {
+				return EvalCast(Type, left >> right);
+			}
+			if(Operator.equals("^")) {
+				return EvalCast(Type, left ^ right);
+			}
+		}
+		catch(ClassCastException e) {
+		}
+		return null;
+	}
+
+	public static Object EvalGetter(GtType Type, Object Value, String FieldName) {
 		// TODO Auto-generated method stub
 		return null;
 	}
