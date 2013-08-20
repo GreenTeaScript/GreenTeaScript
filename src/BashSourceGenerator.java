@@ -34,8 +34,8 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	BashSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
-		this.TrueLiteral  = "1";
-		this.FalseLiteral = "0";
+		this.TrueLiteral  = "0";
+		this.FalseLiteral = "1";
 		this.NullLiteral = "NULL";
 	}
 
@@ -138,7 +138,7 @@ public class BashSourceGenerator extends SourceGenerator {
 //		}
 		else if(Node.Func.Is(NativeMacroFunc)) {
 			/*local*/String NativeMacro = Node.Func.GetNativeMacro();
-			if(LibGreenTea.EqualsString(NativeMacro, "\"assert $1\"")) {
+			if(LibGreenTea.EqualsString(NativeMacro, "assert $1")) {
 				this.PushSourceCode(this.CreateAssertFunc(Node));
 				return;
 			}
@@ -227,20 +227,16 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitTryNode(TryNode Node) {
+		/*local*/GtNode TrueNode = new ConstNode(Node.Type.Context.BooleanType, null, true);
 		/*local*/String Code = "trap ";
-		/*local*/String Try = this.VisitBlockWithIndent(Node.TryBlock, true);
-		/*local*/String Catch = this.VisitBlockWithIndent(Node.CatchBlock, true);
-		/*local*/String Finally = "";
+		/*local*/String Try = this.VisitNode(new IfNode(null, null, TrueNode, Node.TryBlock, null));
+		/*local*/String Catch = this.VisitNode(new IfNode(null, null, TrueNode, Node.CatchBlock, null));
+		Code += "\"" + Catch + "\" ERR" + this.LineFeed;
+		Code += this.GetIndentString() + Try + this.LineFeed + this.GetIndentString() + "trap ERR";
 		if(Node.FinallyBlock != null) {
-			Finally = this.VisitBlockWithIndent(Node.FinallyBlock, true);
-			Finally = this.LineFeed + 
-					this.GetIndentString() + "if true ;then" + this.LineFeed + Finally + "fi";
+			/*local*/String Finally = this.VisitNode(new IfNode(null, null, TrueNode, Node.FinallyBlock, null));
+			Code += this.LineFeed + this.GetIndentString() + Finally;
 		}
-		Code += "\"if true ;then" + this.LineFeed + Catch + "fi\" ERR" + this.LineFeed;
-		Code += this.GetIndentString() + "if true ;then" + this.LineFeed + Try + "fi" + this.LineFeed;
-		Code += this.GetIndentString() + "trap ERR";
-		Code += Finally;
-		
 		this.PushSourceCode(Code);
 	}
 
