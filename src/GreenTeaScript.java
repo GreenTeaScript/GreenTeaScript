@@ -2244,7 +2244,7 @@ final class DScriptGrammar extends GtGrammar {
 			if(Func instanceof GtFunc) {
 				ResolvedFunc = (/*cast*/GtFunc)Func;
 			}
-			if(Func instanceof GtType) {  // constructor;
+			else if(Func instanceof GtType) {  // constructor;
 				GtType ClassType = (/*cast*/GtType)Func;
 				GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetConstructorFunc(/*GtFunc*/ClassType);
 				if(PolyFunc == null) {
@@ -2259,12 +2259,15 @@ final class DScriptGrammar extends GtGrammar {
 				NewNode.AppendNodeList(NodeList);
 				return NewNode;
 			}
-			if(Func instanceof GtPolyFunc) {
+			else if(Func instanceof GtPolyFunc) {
 				/*local*/GtPolyFunc PolyFunc = (/*cast*/GtPolyFunc)Func;
-				ResolvedFunc = PolyFunc.ResolveFunc(Gamma, ParsedTree, 1, NodeList);
-//				// reset ConstValue as if non-polymorphic function were found 
-//				((/*cast*/ConstNode)FuncNode).ConstValue = ResolvedFunc;
-//				((/*cast*/ConstNode)FuncNode).Type = ResolvedFunc.GetFuncType();
+				/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
+				ResolvedFunc = PolyFunc.ResolveFunc(Gamma, ParsedTree, 1, ParamList);
+				if(ResolvedFunc != null) {
+					// reset ConstValue as if non-polymorphic function were found
+					((/*cast*/ConstNode)FuncNode).ConstValue = ResolvedFunc;
+					((/*cast*/ConstNode)FuncNode).Type = ResolvedFunc.GetFuncType();
+				}
 			}
 		}
 		/*local*/GtType ReturnType = Gamma.AnyType;
