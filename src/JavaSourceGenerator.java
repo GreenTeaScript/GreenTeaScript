@@ -47,49 +47,6 @@ public class JavaSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void VisitEmptyNode(GtNode Node) {
-	}
-
-	@Override public void VisitSuffixNode(SuffixNode Node) {
-		/*local*/String FuncName = Node.Token.ParsedText;
-
-		if(FuncName.equals("++")) {
-		}
-		else if(FuncName.equals("--")) {
-		}
-		Node.Expr.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + FuncName);
-	}
-
-	@Override public void VisitUnaryNode(UnaryNode Node) {
-		/*local*/String FuncName = Node.Token.ParsedText;
-		if(FuncName.equals("+")) {
-		}
-		else if(FuncName.equals("-")) {
-		}
-		else if(FuncName.equals("~")) {
-		}
-		else if(FuncName.equals("!")) {
-		}
-		else if(FuncName.equals("++")) {
-		}
-		else if(FuncName.equals("--")) {
-		}
-		Node.Expr.Evaluate(this);
-		this.PushSourceCode(FuncName + this.PopSourceCode());
-	}
-
-	@Override public void VisitIndexerNode(IndexerNode Node) {
-		Node.IndexAt.Evaluate(this);
-		Node.Expr.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + "[" + this.PopSourceCode() + "]");
-	}
-
-	@Override public void VisitMessageNode(MessageNode Node) {
-		// TODO Auto-generated method stub
-
-	}
-
 	@Override public void VisitWhileNode(WhileNode Node) {
 		Node.CondExpr.Evaluate(this);
 		/*local*/String Program = "while(" + this.PopSourceCode() + ")";
@@ -118,114 +75,9 @@ public class JavaSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Program);
 	}
 
-	@Override public void VisitForEachNode(ForEachNode Node) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override public void VisitConstNode(ConstNode Node) {
-		this.PushSourceCode(Node.ConstValue.toString());
-	}
-
-	@Override public void VisitNewNode(NewNode Node) {
-		/*local*/String Type = Node.Type.ShortClassName;
-		this.PushSourceCode("new " + Type);
-	}
-
-	@Override public void VisitNullNode(NullNode Node) {
-		this.PushSourceCode("NULL");
-	}
-
-	@Override public void VisitLocalNode(LocalNode Node) {
-		this.PushSourceCode(Node.NativeName);
-	}
-
 	@Override public void VisitGetterNode(GetterNode Node) {
 		Node.Expr.Evaluate(this);
 		this.PushSourceCode(this.PopSourceCode() + "." + Node.Func.FuncName);
-	}
-
-	private String[] EvaluateParam(ArrayList<GtNode> Params) {
-		/*local*/int Size = Params.size();
-		/*local*/String[] Programs = new String[Size];
-		for(/*local*/int i = 0; i < Size; i++) {
-			/*local*/GtNode Node = Params.get(i);
-			Node.Evaluate(this);
-			Programs[Size - i - 1] = this.PopSourceCode();
-		}
-		return Programs;
-	}
-
-	@Override public void VisitApplyNode(ApplyNode Node) {
-		/*local*/String Program = Node.Func.FuncName + "(";
-		/*local*/String[] Params = this.EvaluateParam(Node.Params);
-		for(/*local*/int i = 0; i < Params.length; i++) {
-			/*local*/String P = Params[i];
-			if(i != 0) {
-				Program += ",";
-			}
-			Program += P;
-		}
-		Program += ")";
-		this.PushSourceCode(Program);
-	}
-
-	@Override public void VisitBinaryNode(BinaryNode Node) {
-		/*local*/String FuncName = Node.Token.ParsedText;
-		if(FuncName.equals("+")) {
-		}
-		else if(FuncName.equals("-")) {
-		}
-		else if(FuncName.equals("*")) {
-		}
-		else if(FuncName.equals("/")) {
-		}
-		else if(FuncName.equals("%")) {
-		}
-		else if(FuncName.equals("<<")) {
-		}
-		else if(FuncName.equals(">>")) {
-		}
-		else if(FuncName.equals("&")) {
-		}
-		else if(FuncName.equals("|")) {
-		}
-		else if(FuncName.equals("^")) {
-		}
-		else if(FuncName.equals("<=")) {
-		}
-		else if(FuncName.equals("<")) {
-		}
-		else if(FuncName.equals(">=")) {
-		}
-		else if(FuncName.equals(">")) {
-		}
-		else if(FuncName.equals("!=")) {
-		}
-		else if(FuncName.equals("==")) {
-		}
-		Node.RightNode.Evaluate(this);
-		Node.LeftNode.Evaluate(this);
-		/* FIXME TOO MANY PARENTHESIS */
-		this.PushSourceCode("(" + this.PopSourceCode() + " " + FuncName + " " + this.PopSourceCode() + ")");
-	}
-
-	@Override public void VisitAndNode(AndNode Node) {
-		Node.RightNode.Evaluate(this);
-		Node.LeftNode.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + " && " + this.PopSourceCode());
-	}
-
-	@Override public void VisitOrNode(OrNode Node) {
-		Node.RightNode.Evaluate(this);
-		Node.LeftNode.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + " || " + this.PopSourceCode());
-	}
-
-	@Override public void VisitAssignNode(AssignNode Node) {
-		Node.RightNode.Evaluate(this);
-		Node.LeftNode.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + " = " + this.PopSourceCode());
 	}
 
 	@Override public void VisitLetNode(LetNode Node) {
@@ -257,47 +109,6 @@ public class JavaSourceGenerator extends SourceGenerator {
 
 	}
 
-	@Override public void VisitSwitchNode(SwitchNode Node) {
-		// TODO Auto-generated method stub
-	}
-
-	@Override public void VisitReturnNode(ReturnNode Node) {
-		/*local*/String Code = "return";
-		if(Node.Expr != null) {
-			Node.Expr.Evaluate(this);
-			Code += " " + this.PopSourceCode();
-		}
-		this.PushSourceCode(Code);
-	}
-
-	@Override public void VisitLabelNode(LabelNode Node) {
-		/*local*/String Label = Node.Label;
-		this.PushSourceCode(Label + ":");
-	}
-
-	@Override public void VisitJumpNode(JumpNode Node) {
-		/*local*/String Label = Node.Label;
-		this.PushSourceCode("goto " + Label);
-	}
-
-	@Override public void VisitBreakNode(BreakNode Node) {
-		/*local*/String Code = "break";
-		/*local*/String Label = Node.Label;
-		if(Label != null) {
-			Code += " " + Label;
-		}
-		this.PushSourceCode(Code);
-	}
-
-	@Override public void VisitContinueNode(ContinueNode Node) {
-		/*local*/String Code = "continue";
-		/*local*/String Label = Node.Label;
-		if(Label != null) {
-			Code += " " + Label;
-		}
-		this.PushSourceCode(Code);
-	}
-
 	@Override public void VisitTryNode(TryNode Node) {
 		/*local*/String Code = "try";
 		//this.VisitEach(Node.CatchBlock);
@@ -314,10 +125,6 @@ public class JavaSourceGenerator extends SourceGenerator {
 		Node.Expr.Evaluate(this);
 		/*local*/String Code = "throw " + this.PopSourceCode();
 		this.PushSourceCode(Code);
-	}
-
-	@Override public void VisitFunctionNode(FunctionNode Node) {
-		// TODO Auto-generated method stub
 	}
 
 	@Override public void VisitErrorNode(ErrorNode Node) {

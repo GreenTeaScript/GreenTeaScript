@@ -33,6 +33,10 @@ public class CSourceGenerator extends SourceGenerator {
 	CSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
 		this.Opt = new ConstantFolder(TargetCode, OutputFile, GeneratorFlag);
+		this.TrueLiteral  = "1";
+		this.FalseLiteral = "0";
+		this.NullLiteral = "NULL";
+		this.MemberAccessOperator = "->";
 	}
 	@Override public void InitContext(GtClassContext Context) {
 		super.InitContext(Context);
@@ -61,18 +65,10 @@ public class CSourceGenerator extends SourceGenerator {
 	public String GreenTeaTypeName(GtType Type) {
 		return Type.ShortClassName;
 	}
-
-	@Override protected String StringfyConstValue(Object ConstValue) {
-		if(ConstValue == null) {
-			return "NULL";
-		}
-		if(ConstValue instanceof Boolean) {
-			if(ConstValue.equals(true)) {
-				return "1";
-			}
-			return "0";
-		}
-		return super.StringfyConstValue(ConstValue);
+	
+	@Override protected String GetNewOperator(GtType Type) {
+		/*local*/String TypeName = this.GreenTeaTypeName(Type);
+		return "NEW_" + TypeName + "()";
 	}
 
 	public void VisitBlockEachStatementWithIndent(GtNode Node, boolean NeedBlock) {
@@ -91,24 +87,6 @@ public class CSourceGenerator extends SourceGenerator {
 			Code += this.GetIndentString() + "}";
 		}
 		this.PushSourceCode(Code);
-	}
-
-	@Override public void VisitEmptyNode(GtNode Node) {
-		this.PushSourceCode("");
-	}
-
-	@Override public void VisitSuffixNode(SuffixNode Node) {
-		/*local*/String FuncName = Node.Token.ParsedText;
-		this.PushSourceCode(this.VisitNode(Node.Expr) + FuncName);
-	}
-
-
-	@Override public void VisitIndexerNode(IndexerNode Node) {
-		this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + this.VisitNode(Node.IndexAt) + "]");
-	}
-
-	@Override public void VisitMessageNode(MessageNode Node) {
-		// TODO Auto-generated method stub
 	}
 
 	@Override public void VisitWhileNode(WhileNode Node) {
@@ -133,27 +111,6 @@ public class CSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Program);
 	}
 
-	@Override public void VisitForEachNode(ForEachNode Node) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override public void VisitConstNode(ConstNode Node) {
-		/*local*/String Code = "NULL";
-		if(Node.ConstValue != null) {
-			Code = this.StringfyConstValue(Node.ConstValue);
-		}
-		this.PushSourceCode(Code);
-	}
-
-	@Override public void VisitNullNode(NullNode Node) {
-		this.PushSourceCode("NULL");
-	}
-
-	@Override public void VisitLocalNode(LocalNode Node) {
-		this.PushSourceCode(Node.NativeName);
-	}
-
 	@Override public void VisitGetterNode(GetterNode Node) {
 		/*local*/String Program = this.VisitNode(Node.Expr);
 		/*local*/String FieldName = Node.Func.FuncName;
@@ -165,24 +122,6 @@ public class CSourceGenerator extends SourceGenerator {
 			Program = "GT_GetField(" + this.LocalTypeName(RecvType) + ", " + Program + ", " + FieldName + ")";
 		}
 		this.PushSourceCode(Program);
-	}
-
-	@Override public void VisitApplyNode(ApplyNode Node) {
-		/*local*/String Program = this.GenerateApplyFunc(Node);
-		this.PushSourceCode(Program);
-	}
-
-
-	@Override public void VisitAndNode(AndNode Node) {
-		this.PushSourceCode(this.VisitNode(Node.LeftNode) + " && " + this.VisitNode(Node.RightNode));
-	}
-
-	@Override public void VisitOrNode(OrNode Node) {
-		this.PushSourceCode(this.VisitNode(Node.LeftNode) + " || " + this.VisitNode(Node.RightNode));
-	}
-
-	@Override public void VisitAssignNode(AssignNode Node) {
-		this.PushSourceCode(this.VisitNode(Node.LeftNode) + " = " + this.VisitNode(Node.RightNode));
 	}
 
 	@Override public void VisitLetNode(LetNode Node) {
@@ -204,60 +143,26 @@ public class CSourceGenerator extends SourceGenerator {
 	@Override public void VisitIfNode(IfNode Node) {
 		/*local*/String CondExpr = this.VisitNode(Node.CondExpr);
 		this.VisitBlockEachStatementWithIndent(Node.ThenNode, true);
-		this.VisitBlockEachStatementWithIndent(Node.ElseNode, true);
-		/*local*/String ElseBlock = this.PopSourceCode();
 		/*local*/String ThenBlock = this.PopSourceCode();
 		/*local*/String Code = "if(" + CondExpr + ") " + ThenBlock;
 		if(Node.ElseNode != null) {
-			Code += " else " + ElseBlock;
+			this.VisitBlockEachStatementWithIndent(Node.ElseNode, true);
+			Code += " else " + this.PopSourceCode();
 		}
 		this.PushSourceCode(Code);
-
 	}
 
-	@Override public void VisitSwitchNode(SwitchNode Node) {
-		// TODO Auto-generated method stub
-	}
+//	@Override public void VisitLabelNode(LabelNode Node) {
+//		/*local*/String Label = Node.Label;
+//		this.PushSourceCode(Label + ":");
+//	}
+//
+//	@Override public void VisitJumpNode(JumpNode Node) {
+//		/*local*/String Label = Node.Label;
+//		this.PushSourceCode("goto " + Label);
+//		this.StopVisitor(Node);
+//	}
 
-	@Override public void VisitReturnNode(ReturnNode Node) {
-		/*local*/String Code = "return";
-		if(Node.Expr != null) {
-			Code += " " + this.VisitNode(Node.Expr);
-		}
-		this.PushSourceCode(Code);
-		this.StopVisitor(Node);
-	}
-
-	@Override public void VisitLabelNode(LabelNode Node) {
-		/*local*/String Label = Node.Label;
-		this.PushSourceCode(Label + ":");
-	}
-
-	@Override public void VisitJumpNode(JumpNode Node) {
-		/*local*/String Label = Node.Label;
-		this.PushSourceCode("goto " + Label);
-		this.StopVisitor(Node);
-	}
-
-	@Override public void VisitBreakNode(BreakNode Node) {
-		/*local*/String Code = "break";
-		/*local*/String Label = Node.Label;
-		if(Label != null) {
-			Code += " " + Label;
-		}
-		this.PushSourceCode(Code);
-		this.StopVisitor(Node);
-	}
-
-	@Override public void VisitContinueNode(ContinueNode Node) {
-		/*local*/String Code = "continue";
-		/*local*/String Label = Node.Label;
-		if(Label != null) {
-			Code += " " + Label;
-		}
-		this.PushSourceCode(Code);
-		this.StopVisitor(Node);
-	}
 
 	@Override public void VisitTryNode(TryNode Node) {
 		/*local*/String Code = "try ";
@@ -278,10 +183,6 @@ public class CSourceGenerator extends SourceGenerator {
 		/*local*/String Code = "throw " + this.VisitNode(Node.Expr);
 		this.PushSourceCode(Code);
 		this.StopVisitor(Node);
-	}
-
-	@Override public void VisitFunctionNode(FunctionNode Node) {
-		// TODO Auto-generated method stub
 	}
 
 	@Override public void VisitErrorNode(ErrorNode Node) {
@@ -334,7 +235,7 @@ public class CSourceGenerator extends SourceGenerator {
 		Node = this.Opt.Fold(Node);
 		this.VisitBlockEachStatementWithIndent(Node, false);
 		/*local*/String Code = this.PopSourceCode();
-		if(Code.equals(";" + this.LineFeed)) {
+		if(LibGreenTea.EqualsString(Code, ";" + this.LineFeed)) {
 			return "";
 		}
 		this.WriteLineCode(Code);
@@ -368,7 +269,7 @@ public class CSourceGenerator extends SourceGenerator {
 			/*local*/String VarName = FieldInfo.NativeName;
 			/*local*/String InitValue = this.StringfyConstValue(FieldInfo.InitValue);
 			if(!FieldInfo.Type.IsNative()) {
-				InitValue = "NULL";
+				InitValue = this.NullLiteral;
 			}
 			Program += this.GetIndentString() + this.GetRecvName() + "->" + VarName + " = " + InitValue + ";" + this.LineFeed;
 			i = i + 1;

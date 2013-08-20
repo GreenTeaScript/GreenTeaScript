@@ -34,6 +34,9 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	BashSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
+		this.TrueLiteral  = "1";
+		this.FalseLiteral = "0";
+		this.NullLiteral = "NULL";
 	}
 
 	@Override public void InitContext(GtClassContext Context) {
@@ -67,17 +70,6 @@ public class BashSourceGenerator extends SourceGenerator {
 		return Code;
 	}
 
-	@Override public void VisitEmptyNode(GtNode Node) {
-	}
-
-	@Override public void VisitIndexerNode(IndexerNode Node) {
-		this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + this.VisitNode(Node.IndexAt) + "]");
-	}
-
-	@Override public void VisitMessageNode(MessageNode Node) {
-		// not support
-	}
-
 	@Override public void VisitWhileNode(WhileNode Node) {
 		/*local*/String Program = "while " + this.VisitNode(Node.CondExpr) + " ;do" + this.LineFeed;
 		Program += this.VisitBlockWithIndent(Node.LoopBody, true) + "done";
@@ -108,49 +100,6 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Program);
 	}
 
-	@Override public void VisitConstNode(ConstNode Node) {
-		/*local*/String value = this.StringfyConstValue(Node.ConstValue);
-		if(Node.Type == Node.Type.Context.BooleanType) {
-			if(LibGreenTea.EqualsString(value, "true")) {
-				value = "0";
-			}
-			else {
-				value = "1";
-			}
-		}
-		this.PushSourceCode(value);
-	}
-
-	@Override public void VisitNewNode(NewNode Node) {
-//		/*local*/String Type = Node.Type.ShortClassName;
-//		this.PushSourceCode("new " + Type);
-	}
-
-	@Override public void VisitNullNode(NullNode Node) {
-		this.PushSourceCode("NULL");
-	}
-
-	@Override public void VisitLocalNode(LocalNode Node) {
-		this.PushSourceCode(Node.NativeName);
-	}
-
-	@Override public void VisitGetterNode(GetterNode Node) {
-		this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + Node.Func.FuncName + "]");
-	}
-	
-	private String[] MakeParamCode1(GtNode Node) {
-		/*local*/String[] ParamCode = new String[1];
-		ParamCode[0] = this.VisitNode(Node);
-		return ParamCode;
-	}
-	
-	private String[] MakeParamCode2(GtNode Node, GtNode Node2) {
-		/*local*/String[] ParamCode = new String[2];
-		ParamCode[0] = this.ResolveValueType(Node);
-		ParamCode[1] = this.ResolveValueType(Node2);
-		return ParamCode;
-	}
-	
 	private String[] MakeParamCode(ArrayList<GtNode> ParamList) {
 		/*local*/int Size = GtStatic.ListSize(ParamList);
 		/*local*/String[] ParamCode = new String[Size - 1];
@@ -196,38 +145,11 @@ public class BashSourceGenerator extends SourceGenerator {
 		}
 	}
 
-	@Override public void VisitSuffixNode(SuffixNode Node) {
-		/*local*/String FuncName = Node.Token.ParsedText;
-		if(LibGreenTea.EqualsString(FuncName, "++")) {
-		}
-		else if(LibGreenTea.EqualsString(FuncName, "--")) {
-		}
-		else {
-			LibGreenTea.DebugP(FuncName + " is not supported suffix operator!!");
-		}
-		this.PushSourceCode("((" + this.VisitNode(Node.Expr) + FuncName + "))");
-	}
-
-	@Override public void VisitUnaryNode(UnaryNode Node) {
-		if(Node.Func == null) {
-			this.PushSourceCode("((" + Node.Token.ParsedText + this.VisitNode(Node.Expr) + "))");
-		}
-		else {
-			/*local*/String[] ParamCode = this.MakeParamCode1(Node.Expr);
-			this.PushSourceCode(Node.Func.ApplyNativeMacro(0, ParamCode));
-		}
-	}
-
 	@Override public void VisitBinaryNode(BinaryNode Node) {
-		if(Node.Func == null) {
-			/*local*/String Left = this.ResolveValueType(Node.LeftNode);
-			/*local*/String Right = this.ResolveValueType(Node.RightNode);
-			this.PushSourceCode("((" + Left + " " +  Node.Token.ParsedText + " " + Right + "))");
-		}
-		else {
-			/*local*/String[] ParamCode = this.MakeParamCode2(Node.LeftNode, Node.RightNode);
-			this.PushSourceCode(Node.Func.ApplyNativeMacro(0, ParamCode));
-		}
+		/*local*/String FuncName = Node.Token.ParsedText;
+		/*local*/String Left = this.VisitNode(Node.LeftNode);
+		/*local*/String Right = this.VisitNode(Node.RightNode);
+		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right) + ")");
 		
 //		if(Node.Type.equals(Node.Type.Context.Float)) {	// support float value
 //			this.PushSourceCode("(echo \"scale=10; " + Left + " " + FuncName + " " + Right + "\" | bc)");
@@ -284,9 +206,6 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void VisitSwitchNode(SwitchNode Node) {
-	}
-
 	@Override public void VisitReturnNode(ReturnNode Node) {
 		if(this.inFunc && Node.Expr != null) {
 			/*local*/String Ret = this.ResolveValueType(Node.Expr);
@@ -301,16 +220,6 @@ public class BashSourceGenerator extends SourceGenerator {
 			}
 			this.PushSourceCode("echo " + Ret + this.LineFeed + this.GetIndentString() + "return 0");
 		}
-	}
-
-	@Override public void VisitBreakNode(BreakNode Node) {
-		/*local*/String Code = "break";	// not support label
-		this.PushSourceCode(Code);
-	}
-
-	@Override public void VisitContinueNode(ContinueNode Node) {
-		/*local*/String Code = "continue";	// not support label
-		this.PushSourceCode(Code);
 	}
 
 	@Override public void VisitTryNode(TryNode Node) {
@@ -333,9 +242,6 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitThrowNode(ThrowNode Node) {
 		this.PushSourceCode("kill &> /dev/zero");
-	}
-
-	@Override public void VisitFunctionNode(FunctionNode Node) {
 	}
 
 	@Override public void VisitErrorNode(ErrorNode Node) {
