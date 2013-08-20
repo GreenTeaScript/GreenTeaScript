@@ -1789,55 +1789,8 @@ class SourceGenerator extends GtGenerator {
 		return this.PopSourceCode();
 	}
 
-	protected final String[] PopManyCode(int n) {
-		/*local*/String[] array = new String[n];
-		/*local*/int i = 0;
-		while(i < n) {
-			array[i] = this.PopSourceCode();
-			i = i + 1;
-		}
-		return array;
-	}
 
-	protected final String[] PopManyCodeReverse(int n) {
-		/*local*/String[] array = new String[n];
-		/*local*/int i = 0;
-		while(i < n) {
-			array[n - i - 1] = this.PopSourceCode();
-			i = i  + 1;
-		}
-		return array;
-	}
-
-	protected final String PopManyCodeAndJoin(int n, boolean reverse, String prefix, String suffix, String delim) {
-		if(prefix == null) {
-			prefix = "";
-		}
-		if(suffix == null) {
-			suffix = "";
-		}
-		if(delim == null) {
-			delim = "";
-		}
-		/*local*/String[] array = null;
-		if(reverse) {
-			array = this.PopManyCodeReverse(n);
-		}else{
-			array = this.PopManyCode(n);
-		}
-		/*local*/String Code = "";
-		/*local*/int i = 0;
-		while(i < n) {
-			if(i > 0) {
-				Code += delim;
-			}
-			Code = Code + prefix + array[i] + suffix;
-			i = i + 1;
-		}
-		return Code;
-	}
-
-	public final static String GenerateApplyFunc1(GtFunc Func, String FuncName, boolean IsSuffixOp, String Arg1) {
+	private final static String GenerateApplyFunc1(GtFunc Func, String FuncName, boolean IsSuffixOp, String Arg1) {
 		String Macro = null;
 		if(Func != null) {
 			FuncName = Func.GetNativeFuncName();
@@ -1857,7 +1810,13 @@ class SourceGenerator extends GtGenerator {
 		return Macro.replace("$1", Arg1);
 	}
 
-	public final static String GenerateApplyFunc2(GtFunc Func, String FuncName, String Arg1, String Arg2) {
+	@Override public final void VisitUnaryNode(UnaryNode Node) {
+		/*local*/String FuncName = Node.Token.ParsedText;
+		/*local*/String Expr = this.VisitNode(Node.Expr);
+		this.PushSourceCode("(" + this.GenerateApplyFunc1(Node.Func, FuncName, false, Expr) + ")");
+	}
+
+	private final static String GenerateApplyFunc2(GtFunc Func, String FuncName, String Arg1, String Arg2) {
 		String Macro = null;
 		if(Func != null) {
 			FuncName = Func.GetNativeFuncName();
@@ -1872,7 +1831,14 @@ class SourceGenerator extends GtGenerator {
 		return Macro.replace("$1", Arg1).replace("$2", Arg2);
 	}
 	
-	public String GenerateFuncTemplate(int ParamSize, GtFunc Func) {
+	@Override public final void VisitBinaryNode(BinaryNode Node) {
+		/*local*/String FuncName = Node.Token.ParsedText;
+		/*local*/String Left = this.VisitNode(Node.LeftNode);
+		/*local*/String Right = this.VisitNode(Node.RightNode);
+		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right) + ")");
+	}
+	
+	private String GenerateFuncTemplate(int ParamSize, GtFunc Func) {
 		/*local*/int BeginIdx = 1;
 		/*local*/int i = BeginIdx;
 		/*local*/String Template = "";
@@ -1907,7 +1873,7 @@ class SourceGenerator extends GtGenerator {
 		return Template;
 	}
 
-	public String ApplyMacro(String Template, ArrayList<GtNode> NodeList) {
+	public final String ApplyMacro(String Template, ArrayList<GtNode> NodeList) {
 		/*local*/int i = 1;
 		/*local*/int ParamSize = GtStatic.ListSize(NodeList);
 		while(i < ParamSize) {
@@ -1918,9 +1884,19 @@ class SourceGenerator extends GtGenerator {
 		return Template;
 	}
 
-	public String GenerateApplyFunc(ApplyNode Node) {
+	public final String GenerateApplyFunc(ApplyNode Node) {
 		/*local*/int ParamSize = GtStatic.ListSize(Node.Params);
 		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
 		return this.ApplyMacro(Template, Node.Params);
 	}
+	
+	
+	@Override public void VisitNewNode(NewNode Node) {
+		/*local*/int ParamSize = GtStatic.ListSize(Node.Params);
+		/*local*/String Type = this.GreenTeaTypeName(Node.Type);
+		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
+		Template = Template.replace("$1", "NEW_" + Type + "()");
+		this.PushSourceCode(this.ApplyMacro(Template, Node.Params));
+	}
+
 }

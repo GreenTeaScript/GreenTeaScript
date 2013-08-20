@@ -193,19 +193,6 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(this.ApplyMacro(Template, Node.Params));
 	}
 
-	@Override public void VisitUnaryNode(UnaryNode Node) {
-		/*local*/String FuncName = Node.Token.ParsedText;
-		/*local*/String Expr = this.VisitNode(Node.Expr);
-		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc1(Node.Func, FuncName, false, Expr) + ")");
-	}
-
-	@Override public void VisitBinaryNode(BinaryNode Node) {
-		/*local*/String FuncName = Node.Token.ParsedText;
-		/*local*/String Left = this.VisitNode(Node.LeftNode);
-		/*local*/String Right = this.VisitNode(Node.RightNode);
-		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right) + ")");
-	}
-
 	@Override public void VisitAndNode(AndNode Node) {
 		this.PushSourceCode("(" + this.VisitNode(Node.LeftNode) + " and " + this.VisitNode(Node.RightNode) + ")");
 	}
@@ -378,11 +365,6 @@ public class PythonSourceGenerator extends SourceGenerator {
 
 	@Override public String GetRecvName() {
 		return "self";
-	}
-
-	@Override public void FinishCompilationUnit() {
-		//this.WriteLineCode("if __name__ == '__main__':");
-		//this.WriteLineCode(this.Tab + "main()");
 	}
 	
 	@Override public void InvokeMainFunc(String MainFuncName) {

@@ -102,11 +102,6 @@ public class CSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(this.VisitNode(Node.Expr) + FuncName);
 	}
 
-	@Override public void VisitUnaryNode(UnaryNode Node) {
-		/*local*/String FuncName = Node.Token.ParsedText;
-		/*local*/String Expr = this.VisitNode(Node.Expr);
-		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc1(Node.Func, FuncName, false, Expr) + ")");
-	}
 
 	@Override public void VisitIndexerNode(IndexerNode Node) {
 		this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + this.VisitNode(Node.IndexAt) + "]");
@@ -151,14 +146,6 @@ public class CSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void VisitNewNode(NewNode Node) {
-		/*local*/int ParamSize = GtStatic.ListSize(Node.Params);
-		/*local*/String Type = this.GreenTeaTypeName(Node.Type);
-		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
-		Template = Template.replace("$1", "NEW_" + Type + "()");
-		this.PushSourceCode(this.ApplyMacro(Template, Node.Params));
-	}
-
 	@Override public void VisitNullNode(NullNode Node) {
 		this.PushSourceCode("NULL");
 	}
@@ -185,12 +172,6 @@ public class CSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Program);
 	}
 
-	@Override public void VisitBinaryNode(BinaryNode Node) {
-		/*local*/String FuncName = Node.Token.ParsedText;
-		/*local*/String Left = this.VisitNode(Node.LeftNode);
-		/*local*/String Right = this.VisitNode(Node.RightNode);
-		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right) + ")");
-	}
 
 	@Override public void VisitAndNode(AndNode Node) {
 		this.PushSourceCode(this.VisitNode(Node.LeftNode) + " && " + this.VisitNode(Node.RightNode));
