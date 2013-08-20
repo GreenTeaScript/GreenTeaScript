@@ -1760,7 +1760,18 @@ class SourceGenerator extends GtGenerator {
 
 	protected String StringfyConstValue(Object ConstValue) {
 		if(ConstValue instanceof String) {
-			return "\"" + ConstValue + "\"";  // FIXME \n
+			/*local*/int i = 0;
+			/*local*/String Value = ConstValue.toString();
+			/*local*/String[] List = Value.split("\n");
+			Value = "";
+			while(i < List.length) {
+				Value += List[i];
+				if(i > 0) {
+					 Value += "\n";
+				}
+				i = i + 1;
+			}
+			return Value;
 		}
 		return ConstValue.toString();
 	}

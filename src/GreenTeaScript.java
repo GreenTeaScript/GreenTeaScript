@@ -1776,13 +1776,13 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	public static int StringLiteralToken(GtTokenContext TokenContext, String SourceText, int pos) {
-		/*local*/int start = pos + 1;
+		/*local*/int start = pos;
 		/*local*/char prev = '"';
 		pos = pos + 1; // eat "\""
 		while(pos < SourceText.length()) {
 			/*local*/char ch = LibGreenTea.CharAt(SourceText, pos);
 			if(ch == '"' && prev != '\\') {
-				TokenContext.AddNewToken(SourceText.substring(start, pos), QuotedTokenFlag, "$StringLiteral$");
+				TokenContext.AddNewToken(SourceText.substring(start, pos + 1), QuotedTokenFlag, "$StringLiteral$");
 				return pos + 1;
 			}
 			if(ch == '\n') {
@@ -1818,7 +1818,7 @@ final class DScriptGrammar extends GtGrammar {
 					/*local*/GtTokenContext LocalContext = new GtTokenContext(TokenContext.TopLevelNameSpace, Expr, TokenContext.ParsingLine);
 					LocalContext.SkipEmptyStatement();
 
-					TokenContext.AddNewToken(SourceText.substring(start, NextPos), 0, "$StringLiteral$");
+					TokenContext.AddNewToken("\"" + SourceText.substring(start, NextPos) + "\"", 0, "$StringLiteral$");
 					TokenContext.AddNewToken("+", 0, null);
 					while(LocalContext.HasNext()) {
 						GtToken NewToken = LocalContext.Next();
@@ -1830,14 +1830,14 @@ final class DScriptGrammar extends GtGrammar {
 					NextPos = end;
 					prev = ch;
 					if(ch == '"') {
-						TokenContext.AddNewToken(SourceText.substring(start, NextPos), 0, "$StringLiteral$");
+						TokenContext.AddNewToken("\"" + SourceText.substring(start, NextPos) + "\"", 0, "$StringLiteral$");
 						return NextPos + 1;
 					}
 					continue;
 				}
 			}
 			if(ch == '"' && prev != '\\') {
-				TokenContext.AddNewToken(SourceText.substring(start, NextPos), 0, "$StringLiteral$");
+				TokenContext.AddNewToken("\"" + SourceText.substring(start, NextPos) + "\"", 0, "$StringLiteral$");
 				return NextPos + 1;
 			}
 			if(ch == '\n') {
