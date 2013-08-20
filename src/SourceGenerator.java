@@ -1005,13 +1005,16 @@ class GtFunc extends GtStatic {
 	}
 
 	public final String ApplyNativeMacro(int BaseIndex, String[] ParamCode) {
-		/*local*/String NativeMacro = IsFlag(this.FuncFlag, NativeMacroFunc) ? (/*cast*/String)this.NativeRef : "$0 " + this.FuncName + " $1";
-		/*local*/String Code = NativeMacro.replace("$0", ParamCode[BaseIndex]);
+		/*local*/String NativeMacro = "$1 " + this.FuncName + " $2";
+		if(IsFlag(this.FuncFlag, NativeMacroFunc)) {
+			NativeMacro = this.GetNativeMacro();
+		}
+		/*local*/String Code = NativeMacro.replace("$1", ParamCode[BaseIndex]);
 		if(ParamCode.length == BaseIndex + 1) {
-			Code = Code.replace("$1", "");
+			Code = Code.replace("$2", "");
 		}
 		else {
-			Code = Code.replace("$1", ParamCode[BaseIndex + 1]);
+			Code = Code.replace("$2", ParamCode[BaseIndex + 1]);
 		}
 		return Code;
 	}
@@ -1681,6 +1684,10 @@ class GtGenerator extends GtStatic {
 	public String GetRecvName() {
 		return "this";  // default 
 	}
+
+	public void InvokeMainFunc(String MainFuncName) {
+		/*extension*/
+	}
 }
 
 class SourceGenerator extends GtGenerator {
@@ -1753,7 +1760,18 @@ class SourceGenerator extends GtGenerator {
 
 	protected String StringfyConstValue(Object ConstValue) {
 		if(ConstValue instanceof String) {
-			return "\"" + ConstValue + "\"";  // FIXME \n
+			/*local*/int i = 0;
+			/*local*/String Value = ConstValue.toString();
+			/*local*/String[] List = Value.split("\n");
+			Value = "";
+			while(i < List.length) {
+				Value += List[i];
+				if(i > 0) {
+					 Value += "\n";
+				}
+				i = i + 1;
+			}
+			return Value;
 		}
 		return ConstValue.toString();
 	}
@@ -1819,16 +1837,22 @@ class SourceGenerator extends GtGenerator {
 		return Code;
 	}
 
-	public final static String GenerateApplyFunc1(GtFunc Func, String FuncName, String Arg1) {
+	public final static String GenerateApplyFunc1(GtFunc Func, String FuncName, boolean IsSuffixOp, String Arg1) {
 		/*local*/String Macro = null;
 		if(Func != null) {
 			FuncName = Func.GetNativeFuncName();
 			if(IsFlag(Func.FuncFlag, NativeMacroFunc)) {
 				Macro = Func.GetNativeMacro();
+				Macro = Macro.substring(1, Macro.length() - 1); // remove ""
 			}
 		}
 		if(Macro == null) {
-			Macro = "$1 " + FuncName;
+			if(IsSuffixOp) {
+				Macro = FuncName + " $1";
+			}
+			else {
+				Macro = "$1 " + FuncName;
+			}
 		}
 		return Macro.replace("$1", Arg1);
 	}
@@ -1839,6 +1863,7 @@ class SourceGenerator extends GtGenerator {
 			FuncName = Func.GetNativeFuncName();
 			if(IsFlag(Func.FuncFlag, NativeMacroFunc)) {
 				Macro = Func.GetNativeMacro();
+				Macro = Macro.substring(1, Macro.length() - 1); // remove ""
 			}
 		}
 		if(Macro == null) {
@@ -1862,6 +1887,7 @@ class SourceGenerator extends GtGenerator {
 		}
 		else if(Func.Is(NativeMacroFunc)) {
 			Template = Func.GetNativeMacro();
+			Template = Template.substring(1, Template.length() - 1); // remove ""
 			IsNative = true;
 		}
 		else {

@@ -24,14 +24,18 @@
 
 // LangBase is a language-dependent code used in GreenTea.java
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -45,7 +49,7 @@ public abstract class LibGreenTea {
 		System.out.println(msg);
 	}
 
-	public static boolean DebugMode = true;
+	public static boolean DebugMode = false;
 	
 	private final static String GetStackInfo(int depth){
 		String LineNumber = " ";
@@ -245,29 +249,54 @@ public abstract class LibGreenTea {
 		System.out.println("  --verbose             Printing Debug infomation");
 		System.exit(0);
 	}
+	public final static String DetectTargetCode(String Extension, String TargetCode) {
+		if(Extension.endsWith(".js")) {
+			return "js";
+		}
+		else if(Extension.endsWith(".pl")) {
+			return "perl";
+		}
+		else if(Extension.endsWith(".py")) {
+			return "python";
+		}
+		else if(Extension.endsWith(".sh")) {
+			return "bash";
+		}
+		else if(Extension.endsWith(".java")) {
+			return "java";
+		}
+		else if(Extension.endsWith(".c")) {
+			return "c";
+		}
+		else if(TargetCode.startsWith("X")) {
+			return "exe";
+		}
+		return TargetCode;
+	}
 
 	public final static GtGenerator CodeGenerator(String TargetCode, String OutputFile, int GeneratorFlag) {
 		String Extension = (OutputFile == null) ? "-" : OutputFile;
+		TargetCode = DetectTargetCode(Extension, TargetCode);
 		TargetCode = TargetCode.toLowerCase();
-		if(Extension.endsWith(".js") || TargetCode.startsWith("js") || TargetCode.startsWith("javascript")) {
+		if(TargetCode.startsWith("js") || TargetCode.startsWith("javascript")) {
 			return new JavaScriptSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
-		else if(Extension.endsWith(".pl") || TargetCode.startsWith("perl")) {
+		else if(TargetCode.startsWith("perl")) {
 			return new PerlSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
-		else if(Extension.endsWith(".py") || TargetCode.startsWith("python")) {
+		else if(TargetCode.startsWith("python")) {
 			return new PythonSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
-		else if(Extension.endsWith(".sh") || TargetCode.startsWith("bash")) {
+		else if(TargetCode.startsWith("bash")) {
 			return new BashSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
-		else if(Extension.endsWith(".java") || TargetCode.startsWith("java")) {
+		else if(TargetCode.startsWith("java")) {
 			return new JavaSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
-		else if(Extension.endsWith(".c") || TargetCode.startsWith("c")) {
+		else if(TargetCode.startsWith("c")) {
 			return new CSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
-		else if(TargetCode.startsWith("X") || TargetCode.startsWith("exe")) {
+		else if(TargetCode.startsWith("exe")) {
 			return new JavaByteCodeGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
 		return null;
@@ -314,27 +343,37 @@ public abstract class LibGreenTea {
 	}
 
 	public final static boolean HasFile(String Path) {
+		if(LibGreenTea.class.getResource(Path) != null) {
+			return true;
+		}
 		return new File(Path).exists();
 	}
 
 	public final static String LoadFile(String FileName) {
-		File f = new File(FileName);
-		byte[] b = new byte[(int) f.length()];
-		FileInputStream fi;
+		InputStream ins = LibGreenTea.class.getResourceAsStream(FileName);
+		if(ins == null) {
+			File f = new File(FileName);
+			try {
+				ins = new FileInputStream(f);
+			} catch (FileNotFoundException e) {
+				// e.printStackTrace();
+				System.err.println(e.getMessage());
+				System.exit(1);
+			}
+		}
+		BufferedReader reader = new BufferedReader(new InputStreamReader(ins));
+		String line = "";
+		String buffer = "";
 		try {
-			fi = new FileInputStream(f);
-			fi.read(b);
-			fi.close();
-			return new String(b);
-		} catch (FileNotFoundException e) {
-			System.err.println(e.getMessage());
-			System.exit(1);
+			while((line = reader.readLine()) != null) {
+				buffer += line + "\n";
+			}
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
 			System.exit(1);
 			e.printStackTrace();
 		}
-		return "";
+		return buffer;
 	}
 
 	public final static boolean IsSupportedTarget(String TargetCode) {
@@ -342,7 +381,8 @@ public abstract class LibGreenTea {
 	}
 	
 	public final static String GetLibPath(String TargetCode, String LibName) {
-		return LoadFile("lib/" + TargetCode + "/" + LibName + ".green");
+		/*local*/String Path = "lib/" + TargetCode + "/" + LibName + ".green";
+		return Path;
 	}
 
 	public static long JoinIntId(int UpperId, int LowerId) {

@@ -6,7 +6,8 @@ int fibo(int n) {
 }
 
 @Export
-void main() {
+int main() {
 	assert(fibo(10) == 55);
+	return 0;
 }
 

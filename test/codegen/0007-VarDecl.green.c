@@ -1,6 +1,6 @@
 #include "GreenTea.h"
 static int f__AF(int a__AA){
-   int b__AB = a__AA + 10;
+   int b__AB = (a__AA + 10);
    {
       return b__AB;
    };

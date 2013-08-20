@@ -1,6 +1,6 @@
-int +(int x) as "$0";
-int -(int x) as "-$0";
-// int ~(int x) as "~$0";
+int +(int x) as "$1";
+int -(int x) as "-$1";
+// int ~(int x) as "~$1";
 int +(int x, int y)      as "$1 + $2";
 int -(int x, int y)      as "$1 - $2";
 int *(int x, int y)      as "$1 * $2";

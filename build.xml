@@ -21,6 +21,7 @@
 	<target name="jar" depends="build">
 		<jar jarfile="${BinaryName}.jar">
 			<fileset dir="bin" includes="**/*.class" />
+			<fileset dir="." includes="lib/**/*.green" />
 			<exclude name="**/*Test.class" />
 			<manifest>
 				<attribute name="Main-Class" value="GreenTeaScript" />

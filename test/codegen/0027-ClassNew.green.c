@@ -1,12 +1,16 @@
 #include "GreenTea.h"
-struct struct X {
-   struct record __base;
+struct X {
+   // struct record* __base;
 };
-static struct X* constructor__AMAF(struct X* this__AA, int x__AB){
+struct X* NEW_X() {
+   struct X* self = GT_New(struct X*);
+   return self;
+};
+static struct X* constructor__AMAF(struct X* self, int x__AB){
    ;
-   return this__AA;
+   return self;
 }
 static void f__AD(){
-   constructor__AMAF(GT_New(struct X*), 10);
+   constructor__AMAF(NEW_X(), 10);
 }
 

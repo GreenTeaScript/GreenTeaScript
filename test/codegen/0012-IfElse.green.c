@@ -1,6 +1,6 @@
 #include "GreenTea.h"
 static int f__AF(int a__AA){
-   if(a__AA < 10) {
+   if((a__AA < 10)) {
       return 1;
    } else {
       return 100;
