@@ -812,7 +812,7 @@ class GtType extends GtStatic {
 	}
 
 	public GtType CreateSubType(int ClassFlag, String ClassName, Object DefaultNullValue, Object NativeSpec) {
-		GtType SubType = new GtType(this.Context, ClassFlag, ClassName, DefaultNullValue, NativeSpec);
+		/*local*/GtType SubType = new GtType(this.Context, ClassFlag, ClassName, DefaultNullValue, NativeSpec);
 		SubType.SuperType = this;
 		SubType.SearchSuperFuncClass = this;
 		return SubType;
@@ -820,7 +820,7 @@ class GtType extends GtStatic {
 	
 	// Note Don't call this directly. Use Context.GetGenericType instead.
 	public GtType CreateGenericType(int BaseIndex, ArrayList<GtType> TypeList, String ShortName) {
-		GtType GenericType = new GtType(this.Context, this.ClassFlag, ShortName, null, null);
+		/*local*/GtType GenericType = new GtType(this.Context, this.ClassFlag, ShortName, null, null);
 		GenericType.BaseType = this.BaseType;
 		GenericType.SearchSuperFuncClass = this.BaseType;
 		GenericType.SuperType = this.SuperType;
@@ -846,7 +846,7 @@ class GtType extends GtStatic {
 	}
 
 //	public final Object GetClassSymbol(String Key, boolean RecursiveSearch) {
-//		GtType Type = this;
+//		/*local*/GtType Type = this;
 //		while(Type != null) {
 //			if(Type.ClassSymbolTable != null) {
 //				return Type.ClassSymbolTable.get(Key);
@@ -876,7 +876,7 @@ class GtType extends GtStatic {
 		if(this == Type || this == this.Context.AnyType) {
 			return true;
 		}
-		GtType SuperClass = this.SuperType;
+		/*local*/GtType SuperClass = this.SuperType;
 		while(SuperClass != null) {
 			if(SuperClass == Type) {
 				return true;
@@ -925,7 +925,7 @@ class GtFunc extends GtStatic {
 
 	public final GtType GetFuncType() {
 		if(this.FuncType == null) {
-			GtClassContext Context = this.GetRecvType().Context;
+			/*local*/GtClassContext Context = this.GetRecvType().Context;
 			this.FuncType = Context.GetGenericType(Context.FuncType, 0, new ArrayList<GtType>(Arrays.asList(this.Types)), true);
 		}
 		return this.FuncType;
@@ -1102,7 +1102,7 @@ class GtPolyFunc extends GtStatic {
 		while(i >= 0) {
 			/*local*/GtFunc Func = this.FuncList.get(i);
 			if(Func.GetFuncParamSize() == 2 && Func.Types[1].Accept(BinaryNodes[0].Type)) {
-				GtFunc TypeCoercion = Gamma.NameSpace.GetCoercionFunc(BinaryNodes[1].Type, Func.Types[2], true);
+				/*local*/GtFunc TypeCoercion = Gamma.NameSpace.GetCoercionFunc(BinaryNodes[1].Type, Func.Types[2], true);
 				if(TypeCoercion != null) {
 					BinaryNodes[1] = Gamma.CreateCoercionNode(Func.Types[2], TypeCoercion, BinaryNodes[1]);
 					return Func;
@@ -1121,7 +1121,7 @@ class GtPolyFunc extends GtStatic {
 			if(Func.GetFuncParamSize() == FuncParamSize) {
 				/*local*/int p = 0;
 				while(p < NodeList.size()) {
-					GtNode Node = NodeList.get(p);
+					/*local*/GtNode Node = NodeList.get(p);
 					if(!Func.Types[p + 1].Accept(Node.Type)) {
 						Func = null;
 						break;
@@ -1149,13 +1149,13 @@ class GtPolyFunc extends GtStatic {
 				/*local*/int p = 0;
 				/*local*/GtNode Coercions[] = null;
 				while(p < NodeList.size()) {
-					GtNode Node = NodeList.get(p);
-					GtType ParamType = Func.Types[p + 1];
+					/*local*/GtType ParamType = Func.Types[p + 1];
+					/*local*/GtNode Node = NodeList.get(p);
 					if(ParamType.Accept(Node.Type)) {
 						p = p + 1;
 						continue;
 					}
-					GtFunc TypeCoercion = Gamma.NameSpace.GetCoercionFunc(Node.Type, ParamType, true);
+					/*local*/GtFunc TypeCoercion = Gamma.NameSpace.GetCoercionFunc(Node.Type, ParamType, true);
 					if(TypeCoercion != null) {
 						if(Coercions == null) {
 							Coercions = new GtNode[NodeList.size()];
@@ -1376,7 +1376,7 @@ class GtGenerator extends GtStatic {
 	/* language constructor */
 
 	public GtType GetNativeType(Object Value) {
-		GtType NativeType = this.Context.AnyType;  // if unknown 
+		/*local*/GtType NativeType = this.Context.AnyType;  // if unknown 
 //ifdef JAVA
 		Class<?> NativeClassInfo = Value instanceof Class<?> ? (Class<?>)Value : Value.getClass();
 		NativeType = (GtType)this.Context.ClassNameMap.get(NativeClassInfo.getName());
@@ -1389,7 +1389,7 @@ class GtGenerator extends GtStatic {
 	}
 
 	public boolean TransformNativeFuncs(GtType NativeBaseType, String FuncName) {
-		boolean TransformedResult = false;
+		/*local*/boolean TransformedResult = false;
 //ifdef JAVA
 		Class<?> NativeClassInfo = (Class<?>)NativeBaseType.NativeSpec;
 		Method[] Methods = NativeClassInfo.getMethods();
@@ -1820,7 +1820,7 @@ class SourceGenerator extends GtGenerator {
 	}
 
 	public final static String GenerateApplyFunc1(GtFunc Func, String FuncName, String Arg1) {
-		String Macro = null;
+		/*local*/String Macro = null;
 		if(Func != null) {
 			FuncName = Func.GetNativeFuncName();
 			if(IsFlag(Func.FuncFlag, NativeMacroFunc)) {
@@ -1834,7 +1834,7 @@ class SourceGenerator extends GtGenerator {
 	}
 
 	public final static String GenerateApplyFunc2(GtFunc Func, String FuncName, String Arg1, String Arg2) {
-		String Macro = null;
+		/*local*/String Macro = null;
 		if(Func != null) {
 			FuncName = Func.GetNativeFuncName();
 			if(IsFlag(Func.FuncFlag, NativeMacroFunc)) {

@@ -215,8 +215,8 @@ public class PythonSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitBinaryNode(BinaryNode Node) {
 		if(Node.Func == null) {
-			String Left = this.VisitNode(Node.LeftNode);
-			String Right = this.VisitNode(Node.RightNode);
+			/*local*/String Left = this.VisitNode(Node.LeftNode);
+			/*local*/String Right = this.VisitNode(Node.RightNode);
 			this.PushSourceCode("(" + Left + " " +  Node.Token.ParsedText + " " + Right + ")");
 		}
 		else {

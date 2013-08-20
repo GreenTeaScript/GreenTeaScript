@@ -99,18 +99,37 @@ class GtMap {
 declare var fs: any;
 declare var process: any;
 
-class LangDeps {
+class LibGreenTea {
 
 	// typescript only
 	static isNodeJS: boolean = typeof(process) != "undefined";
 	static hasFileSystem = typeof(fs) != "undefined";
 
-	static StartsWith(self: string, key: string): boolean {
-		return self.indexOf(key, 0) == 0;
+	static GetPlatform(): string {
+		return "TypeScript 0.9.0.1, " + (LibGreenTea.isNodeJS ? 
+			"Node.js " + process.version + " " + process.platform: 
+			navigator.appName + " " + navigator.appVersion);
 	}
 
-	static EndsWith(self: string, key: string): boolean {
-		return self.lastIndexOf(key, 0) == 0;
+	static println(msg: string): void {
+		console.log(msg);
+	}
+
+	static DebugMode: boolean = true;
+
+	static GetStackInfo(depth: number): string{
+		// TODO
+		return " ";//LineNumber;
+	}
+
+	static DebugP(msg: string): void {
+		if(LibGreenTea.DebugMode) {
+			LibGreenTea.println("DEBUG" + LibGreenTea.GetStackInfo(2) + ": " + msg);
+		}
+	}
+
+	static VerboseLog(VerboseFlag: number, msg: string): void {
+		LibGreenTea.println(msg);
 	}
 
 	static Exit(status: number, message: string): void {
@@ -121,21 +140,6 @@ class LangDeps {
 		if(!expect){
 			throw new Error("Assertion Failed");
 		}
-	}
-
-	static println(msg: string): void {
-		console.log(msg);
-	}
-
-	static DebugP(msg: string): void {
-		if(DebugPrintOption) {
-			LangDeps.println("DEBUG" + LangDeps.GetStackInfo(2) + ": " + msg);
-		}
-	}
-
-	static GetStackInfo(depth: number): string{
-		// TODO
-		return " ";//LineNumber;
 	}
 
 	static IsWhitespace(ch: number): boolean {
@@ -161,21 +165,35 @@ class LangDeps {
 		return String.fromCharCode(code);
 	}
 
+	static EqualsString(s1: string, s2: string): boolean {
+		return s1 == s2;
+	}
+
 	static ParseInt(Text: string): number {
 		//return number.parseInt(Text);
 		return <any>Text - 0;
 	}
 
-	static LookupMethod(Callee: Object, MethodName: string): any {
+
+	static StartsWith(self: string, key: string): boolean {
+		return self.indexOf(key, 0) == 0;
+	}
+
+	static EndsWith(self: string, key: string): boolean {
+		return self.lastIndexOf(key, 0) == 0;
+	}
+
+
+	static LookupNativeMethod(Callee: Object, MethodName: string): any {
 		return Callee[MethodName];
 	}
 
-	static EqualsMethod(m1: any, m2: any): boolean {
+	static EqualsFunc(m1: any, m2: any): boolean {
 		return m1 === m2;
 	}
 
 	static CreateOrReuseTokenFunc(f: any, prev: TokenFunc): TokenFunc {
-		if(prev != null && LangDeps.EqualsMethod(prev.Func, f)) {
+		if(prev != null && LibGreenTea.EqualsFunc(prev.Func, f)) {
 			return prev;
 		}
 		return new TokenFunc(f, prev);
@@ -188,7 +206,7 @@ class LangDeps {
 		catch (e) {
 			console.log(e);
 		}
-		LangDeps.Exit(1, "Failed ApplyTokenFunc");
+		LibGreenTea.Exit(1, "Failed ApplyTokenFunc");
 		return -1;
 	}
 
@@ -199,7 +217,7 @@ class LangDeps {
 		catch (e) {
 			console.log(e);
 		}
-		LangDeps.Exit(1, "Failed ApplyMatchFunc");
+		LibGreenTea.Exit(1, "Failed ApplyMatchFunc");
 		return null;
 	}
 
@@ -210,7 +228,7 @@ class LangDeps {
 		catch (e) {
 			console.log(e);
 		}
-		LangDeps.Exit(1, "Failed ApplyTypeFunc");
+		LibGreenTea.Exit(1, "Failed ApplyTypeFunc");
 		return null;
 	}
 
@@ -223,52 +241,7 @@ class LangDeps {
 	}
 
 	static CompactStringList(List: string[]): string[] {
-		if(List == null) return null;
-		var Tuple: string[] = new Array<string>(List.length);
-		for(var i = 0; i < List.length; i++) {
-			Tuple[i] = List[i];
-		}
-		return Tuple;
-	}
-
-	static CodeGenerator(TargetCode: string, OutputFile: string, GeneratorFlag: number): GtGenerator{
-		var Extension: string = (OutputFile == null ? "-" : OutputFile)
-		if(LangDeps.EndsWith(Extension, ".js") || LangDeps.StartsWith(TargetCode, "js") || LangDeps.StartsWith(TargetCode, "javascript")){
-			return new JavaScriptSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
-		}else if(LangDeps.EndsWith(Extension, ".pl") || LangDeps.StartsWith(TargetCode, "perl")){
-			return new PerlSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
-		}else if(LangDeps.EndsWith(Extension, ".py") || LangDeps.StartsWith(TargetCode, "python")){
-			return new PythonSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
-		}else if(LangDeps.EndsWith(Extension, ".sh") || LangDeps.StartsWith(TargetCode, "bash")){
-			return new BashSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
-		}else if(LangDeps.EndsWith(Extension, ".java") || LangDeps.StartsWith(TargetCode, "java")){
-			return new JavaSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
-		}else if(LangDeps.EndsWith(Extension, ".c") || LangDeps.StartsWith(TargetCode, "c")){
-			return new CSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
-		}else if(LangDeps.EndsWith(Extension, "X") || LangDeps.StartsWith(TargetCode, "exe")){
-			throw new Error("JavaByteCodeGenerator is not implemented for this environment");
-		}
-		return null;
-	}
-
-	static HasFile(FileName: string): boolean{
-		if(LangDeps.hasFileSystem){
-			return fs.existsSync(FileName).toString()
-		}else{
-			return !!GreenTeaLibraries[FileName];
-			//throw new Error("LangDeps.HasFile is not implemented for this environment");
-		}
-		return false;
-	}
-
-	static LoadFile(FileName: string): string{
-		if(LangDeps.hasFileSystem){
-			return fs.readFileSync(FileName);
-		}else{
-			return GreenTeaLibraries[FileName];
-			//throw new Error("LangDeps.LoadFile is not implemented for this environment");
-		}
-		return "";
+		return List.slice(0);
 	}
 
 	static MapGetKeys(Map: GtMap): string[] {
@@ -278,29 +251,91 @@ class LangDeps {
 	static Usage(): void {
 	}
 
-	static ReadLine(prompt: string): string {
-		throw new Error("LangDeps.ReadLine is not implemented for this environment");
-		return "";
+	static CodeGenerator(TargetCode: string, OutputFile: string, GeneratorFlag: number): GtGenerator{
+		var Extension: string = (OutputFile == null ? "-" : OutputFile)
+		if(LibGreenTea.EndsWith(Extension, ".js") || LibGreenTea.StartsWith(TargetCode, "js") || LibGreenTea.StartsWith(TargetCode, "javascript")){
+			return new JavaScriptSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+		}else if(LibGreenTea.EndsWith(Extension, ".pl") || LibGreenTea.StartsWith(TargetCode, "perl")){
+			return new PerlSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+		}else if(LibGreenTea.EndsWith(Extension, ".py") || LibGreenTea.StartsWith(TargetCode, "python")){
+			return new PythonSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+		}else if(LibGreenTea.EndsWith(Extension, ".sh") || LibGreenTea.StartsWith(TargetCode, "bash")){
+			return new BashSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+		}else if(LibGreenTea.EndsWith(Extension, ".java") || LibGreenTea.StartsWith(TargetCode, "java")){
+			return new JavaSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+		}else if(LibGreenTea.EndsWith(Extension, ".c") || LibGreenTea.StartsWith(TargetCode, "c")){
+			return new CSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+		}else if(LibGreenTea.EndsWith(Extension, "X") || LibGreenTea.StartsWith(TargetCode, "exe")){
+			throw new Error("JavaByteCodeGenerator is not implemented for this environment");
+		}
+		return null;
 	}
 
-	static LoadLibFile(TargetCode: string, FileName: string): string {
-		return LangDeps.LoadFile("lib/" + TargetCode + "/" + FileName);
+	static Eval(SourceCode: string): void {
+		eval(SourceCode);
 	}
 
 	static WriteCode(OutputFile: string, SourceCode: string): void {
 		if(OutputFile == null){
-			LangDeps.Eval(SourceCode);
+			LibGreenTea.Eval(SourceCode);
 		}
 		else if(OutputFile == "-"){
 			console.log(SourceCode);
 		}
 		else {
-			throw new Error("LangDeps.WriteCode cannon write code into a file in this environment");
+			throw new Error("LibGreenTea.WriteCode cannon write code into a file in this environment");
 		}
 	}
 
-	static Eval(SourceCode: string): void {
-		eval(SourceCode);
+	static ReadLine(prompt: string): string {
+		throw new Error("LibGreenTea.ReadLine is not implemented for this environment");
+		return "";
+	}
+
+	static HasFile(FileName: string): boolean{
+		if(LibGreenTea.hasFileSystem){
+			return fs.existsSync(FileName).toString()
+		}else{
+			return !!GreenTeaLibraries[FileName];
+			//throw new Error("LibGreenTea.HasFile is not implemented for this environment");
+		}
+		return false;
+	}
+
+	static LoadFile(FileName: string): string{
+		if(LibGreenTea.hasFileSystem){
+			return fs.readFileSync(FileName);
+		}else{
+			return GreenTeaLibraries[FileName];
+			//throw new Error("LibGreenTea.LoadFile is not implemented for this environment");
+		}
+		return "";
+	}
+
+	static IsSupportedTarget(TargetCode: string){
+		return LibGreenTea.HasFile(LibGreenTea.GetLibPath(TargetCode, "common.green"));
+	}
+
+	static GetLibFile(TargetCode: string, FileName: string): string {
+		return LibGreenTea.LoadFile(LibGreenTea.GetLibPath(TargetCode, FileName));
+	}
+
+	static GetLibPath(TargetCode: string, FileName: string): string {
+		return ("lib/" + TargetCode + "/" + FileName);
+	}
+
+	private static Int32Max = Math.pow(2, 32);
+
+	static JoinIntId(UpperId: number, LowerId: number): number {
+		return UpperId * LibGreenTea.Int32Max + LowerId; 
+	}
+
+	static UpperId(Fileline: number): number {
+		return (Fileline / LibGreenTea.Int32Max) | 0; 
+	}
+
+	static LowerId(Fileline: number): number {
+		return Fileline | Fileline; 
 	}
 }
 

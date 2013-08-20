@@ -93,7 +93,6 @@ public class PerlSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitMessageNode(MessageNode Node) {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override public void VisitWhileNode(WhileNode Node) {
@@ -157,7 +156,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		/*local*/String[] Programs = new String[Size];
 		/*local*/int i = 0;
 		while(i < Size) {
-			GtNode Node = Params.get(i);
+			/*local*/GtNode Node = Params.get(i);
 			Node.Evaluate(this);
 			Programs[Size - i - 1] = this.PopSourceCode();
 			i = i + 1;
@@ -170,7 +169,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		/*local*/String[] Params = this.EvaluateParam(Node.Params);
 		/*local*/int i = 0;
 		while(i < Params.length) {
-			String P = Params[i];
+			/*local*/String P = Params[i];
 			if(i != 0) {
 				Program += ",";
 			}
@@ -273,12 +272,10 @@ public class PerlSourceGenerator extends SourceGenerator {
 			Code += " else " + ElseBlock;
 		}
 		this.PushSourceCode(Code);
-
 	}
 
 	@Override public void VisitSwitchNode(SwitchNode Node) {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override public void VisitReturnNode(ReturnNode Node) {
@@ -323,26 +320,24 @@ public class PerlSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitThrowNode(ThrowNode Node) {
 		Node.Expr.Evaluate(this);
-		String Code = "throw " + this.PopSourceCode();
+		/*local*/String Code = "throw " + this.PopSourceCode();
 		this.PushSourceCode(Code);
 	}
 
 	@Override public void VisitFunctionNode(FunctionNode Node) {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override public void VisitErrorNode(ErrorNode Node) {
-		String Code = "throw Error(\"" + Node.Token.ParsedText + "\")";
+		/*local*/String Code = "throw Error(\"" + Node.Token.ParsedText + "\")";
 		this.PushSourceCode(Code);
-
 	}
 
 	@Override public void VisitCommandNode(CommandNode Node) {
 		/*local*/String Code = "system(\"";
 		/*local*/int i = 0;
 		while(i < Node.Params.size()) {
-			GtNode Param = Node.Params.get(i);
+			/*local*/GtNode Param = Node.Params.get(i);
 			if(i != 0) {
 				Code += " ";
 			}
@@ -364,7 +359,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		this.Indent();
 		/*local*/int i = 0;
 		while(i < ParamNameList.size()) {
-			String ParamTy = Func.GetFuncParamType(i).ShortClassName;
+			/*local*/String ParamTy = Func.GetFuncParamType(i).ShortClassName;
 			Signature += " ," + ParamTy + " " + ParamNameList.get(i);
 			Arguments += this.GetIndentString() + "my $" + ParamNameList.get(i) + " = $_[" + i + "];\n";
 			i = i + 1;
@@ -384,6 +379,4 @@ public class PerlSourceGenerator extends SourceGenerator {
 		SingleNode.Evaluate(this);
 		return this.PopSourceCode();
 	}
-
-
 }

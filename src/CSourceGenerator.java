@@ -51,11 +51,11 @@ public class CSourceGenerator extends SourceGenerator {
 
 	}
 	public String NativeTypeName(GtType Type) {
-		return GetLocalType(Type, false);
+		return this.GetLocalType(Type, false);
 	}
 
 	public String LocalTypeName(GtType Type) {
-		return GetLocalType(Type, true);
+		return this.GetLocalType(Type, true);
 	}
 
 	public String GreenTeaTypeName(GtType Type) {
@@ -301,7 +301,6 @@ public class CSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitFunctionNode(FunctionNode Node) {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override public void VisitErrorNode(ErrorNode Node) {
@@ -315,7 +314,7 @@ public class CSourceGenerator extends SourceGenerator {
 		/*local*/int i = 0;
 		/*local*/String Command = "String __Command = ";
 		while(i < GtStatic.ListSize(Node.Params)) {
-			GtNode Param = Node.Params.get(i);
+			/*local*/GtNode Param = Node.Params.get(i);
 			if(i != 0) {
 				Command += " + ";
 			}
@@ -337,7 +336,7 @@ public class CSourceGenerator extends SourceGenerator {
 		Code += RetTy + " " + Func.GetNativeFuncName() + "(";
 		/*local*/int i = 0;
 		while(i < ParamNameList.size()) {
-			String ParamTy = this.LocalTypeName(Func.GetFuncParamType(i));
+			/*local*/String ParamTy = this.LocalTypeName(Func.GetFuncParamType(i));
 			if(i > 0) {
 				Code += ", ";
 			}
