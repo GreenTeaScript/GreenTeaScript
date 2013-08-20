@@ -367,7 +367,7 @@ public class CSourceGenerator extends SourceGenerator {
 		/*local*/String Program = this.GetIndentString() + "struct " + TypeName + " {" + this.LineFeed;
 		this.Indent();
 		if(Type.SuperType != null) {
-			Program += this.GetIndentString() + "// struct " + this.LocalTypeName(Type.SuperType) + " __base;" + this.LineFeed;
+			Program += this.GetIndentString() + "// " + this.LocalTypeName(Type.SuperType) + " __base;" + this.LineFeed;
 		}
 		/*local*/int i = 0;
 		while (i < ClassField.FieldList.size()) {
