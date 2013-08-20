@@ -12,7 +12,8 @@ build: buildj buildts buildpy
 
 dist: distj distts
 
-test: testj testp
+test: testj testpy
+	sh tool/ReleaseCheck.sh
 
 buildj: $(JavaBin)
 	echo Build GreenTeaScript;
@@ -72,6 +73,6 @@ installj: distj
 	cp -f generated/jar/GreenTeaScript.jar $(INSTALL_PREFIX)/
 	install -m 755 tool/greentea $(INSTALL_PREFIX)/greentea
 	install -d $(INSTALL_PREFIX)/../include
-	cp -f src/C/*.h $(INSTALL_PREFIX)/../include/
+	cp -f include/c/*.h $(INSTALL_PREFIX)/../include/
 
 .PHONY: all build buildj buildts test testp testj clean dist buildj buildts installj

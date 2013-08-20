@@ -1760,6 +1760,7 @@ final class DScriptGrammar extends GtGrammar {
 						Level = Level + 1;
 					}
 				}
+				PrevChar = NextChar;
 				NextPos = NextPos + 1;
 			}
 		}
