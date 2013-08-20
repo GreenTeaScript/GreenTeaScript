@@ -170,7 +170,7 @@ final class UnaryNode extends GtNode {
 	@Override public Object ToConstValue() {
 		/*local*/Object Value = this.Expr.ToConstValue();
 		if(Value != null) {
-			return LibGreenTea.EvalUnary(this.Type, Token.ParsedText, Value);
+			return LibGreenTea.EvalUnary(this.Type, this.Token.ParsedText, Value);
 		}
 		return Value;
 	}	
@@ -191,7 +191,7 @@ class SuffixNode extends GtNode {
 	@Override public Object ToConstValue() {
 		/*local*/Object Value = this.Expr.ToConstValue();
 		if(Value != null) {
-			return LibGreenTea.EvalSuffix(this.Type, Value, Token.ParsedText);
+			return LibGreenTea.EvalSuffix(this.Type, Value, this.Token.ParsedText);
 		}
 		return Value;
 	}
@@ -254,7 +254,7 @@ class InstanceOfNode extends GtNode {
 	@Override public Object ToConstValue() {
 		/*local*/Object Value = this.ExprNode.ToConstValue();
 		if(Value != null) {
-			return LibGreenTea.EvalInstanceOf(Value, TypeInfo);
+			return LibGreenTea.EvalInstanceOf(Value, this.TypeInfo);
 		}
 		return Value;
 	}
@@ -279,7 +279,7 @@ class BinaryNode extends GtNode {
 		if(LeftValue != null) {
 			/*local*/Object RightValue = this.RightNode.ToConstValue();
 			if(RightValue != null) {
-				return LibGreenTea.EvalBinary(this.Type, LeftValue, Token.ParsedText, RightValue);
+				return LibGreenTea.EvalBinary(this.Type, LeftValue, this.Token.ParsedText, RightValue);
 			}
 		}
 		return null;
@@ -301,9 +301,11 @@ class AndNode extends GtNode {
 	}
 	@Override public Object ToConstValue() {
 		/*local*/Object LeftValue = this.LeftNode.ToConstValue();
+//ifdef JAVA
 		if(LeftValue instanceof Boolean && ((/*cast*/Boolean)LeftValue).booleanValue()) {
 			return this.RightNode.ToConstValue();
 		}
+//endif VAJA
 		return null;
 	}
 }
@@ -322,6 +324,7 @@ class OrNode extends GtNode {
 	}
 	@Override public Object ToConstValue() {
 		/*local*/Object LeftValue = this.LeftNode.ToConstValue();
+//ifdef JAVA
 		if(LeftValue instanceof Boolean) {
 			if(((/*cast*/Boolean)LeftValue).booleanValue()) {
 				return LeftValue;
@@ -330,6 +333,7 @@ class OrNode extends GtNode {
 				return this.RightNode.ToConstValue();
 			}
 		}
+//endif VAJA
 		return null;
 	}
 }
@@ -351,6 +355,7 @@ class TrinaryNode extends GtNode {
 	}
 	@Override public Object ToConstValue() {
 		/*local*/Object CondValue = this.CondExpr.ToConstValue();
+//ifdef JAVA
 		if(CondValue instanceof Boolean) {
 			if(((/*cast*/Boolean)CondValue).booleanValue()) {
 				return this.ThenExpr.ToConstValue();
@@ -359,6 +364,7 @@ class TrinaryNode extends GtNode {
 				return this.ElseExpr.ToConstValue();
 			}
 		}
+//endif VAJA
 		return null;
 	}
 }
@@ -379,7 +385,7 @@ class GetterNode extends GtNode {
 	@Override public Object ToConstValue() {
 		/*local*/Object Value = this.Expr.ToConstValue();
 		if(Value != null) {
-			return LibGreenTea.EvalGetter(this.Type, Value, Token.ParsedText);
+			return LibGreenTea.EvalGetter(this.Type, Value, this.Token.ParsedText);
 		}
 		return Value;
 	}

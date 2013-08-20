@@ -1083,6 +1083,9 @@ class GtSyntaxTree extends GtStatic {
 
 	public void AppendParsedTree(GtSyntaxTree Tree) {
 		if(!this.IsError()) {
+			if(Tree == null) {
+				LibGreenTea.DebugP("");
+			}
 			if(Tree.IsError()) {
 				this.ToError(Tree.KeyToken);
 			}
@@ -2204,6 +2207,9 @@ final class DScriptGrammar extends GtGrammar {
 		FuncTree.AppendParsedTree(LeftTree);
 		if(!TokenContext.MatchToken(")")) {
 			while(!FuncTree.IsEmptyOrError()) {
+				if(TokenContext.CurrentPosition > 150) {
+					LibGreenTea.DebugP("");
+				}
 				/*local*/GtSyntaxTree Tree = TokenContext.ParsePattern(NameSpace, "$Expression$", Required);
 				FuncTree.AppendParsedTree(Tree);
 				if(TokenContext.MatchToken(")")) {
