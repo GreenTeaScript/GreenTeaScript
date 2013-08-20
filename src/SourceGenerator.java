@@ -825,7 +825,7 @@ class GtType extends GtStatic {
 		GenericType.SearchSuperFuncClass = this.BaseType;
 		GenericType.SuperType = this.SuperType;
 		GenericType.TypeParams = LibGreenTea.CompactTypeList(BaseIndex, TypeList);
-		DebugP("new class: " + GenericType.ShortClassName + ", ClassId=" + GenericType.ClassId);
+		LibGreenTea.DebugP("new class: " + GenericType.ShortClassName + ", ClassId=" + GenericType.ClassId);
 		return GenericType;
 	}
 
@@ -864,11 +864,11 @@ class GtType extends GtStatic {
 //	}
 	
 	public final String GetUniqueName() {
-		if(GtStatic.DebugPrintOption) {
+		if(LibGreenTea.DebugMode) {
 			return this.BaseType.ShortClassName + NativeNameSuffix + GtStatic.NumberToAscii(this.ClassId);
 		}
 		else {
-			return GtStatic.NumberToAscii(this.ClassId);
+			return NativeNameSuffix + GtStatic.NumberToAscii(this.ClassId);
 		}
 	}
 
@@ -1480,7 +1480,7 @@ class GtGenerator extends GtStatic {
 	//------------------------------------------------------------------------
 
 	public void VisitEmptyNode(GtNode EmptyNode) {
-		GtStatic.DebugP("empty node: " + EmptyNode.Token.ParsedText);
+		LibGreenTea.DebugP("empty node: " + EmptyNode.Token.ParsedText);
 	}
 
 	public void VisitInstanceOfNode(InstanceOfNode Node) {

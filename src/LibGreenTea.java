@@ -45,13 +45,9 @@ public abstract class LibGreenTea {
 		System.out.println(msg);
 	}
 
-	public final static void DebugP(String msg) {
-		if(GtStatic.DebugPrintOption) {
-			LibGreenTea.println("DEBUG" + LibGreenTea.GetStackInfo(2) + ": " + msg);
-		}
-	}
-
-	public final static String GetStackInfo(int depth){
+	public static boolean DebugMode = true;
+	
+	private final static String GetStackInfo(int depth){
 		String LineNumber = " ";
 		Exception e =  new Exception();
 		StackTraceElement[] Elements = e.getStackTrace();
@@ -61,6 +57,22 @@ public abstract class LibGreenTea {
 		}
 		return LineNumber;
 	}
+
+
+	public final static void TODO(String msg) {
+		LibGreenTea.println("TODO" + LibGreenTea.GetStackInfo(2) + ": " + msg);
+	}
+
+	public final static void DebugP(String msg) {
+		if(LibGreenTea.DebugMode) {
+			LibGreenTea.println("DEBUG" + LibGreenTea.GetStackInfo(2) + ": " + msg);
+		}
+	}
+
+	public final static void VerboseLog(int VerboseFlag, String Message) {
+		LibGreenTea.println(Message);
+	}
+	
 
 	public final static void Exit(int status, String Message) {
 		System.err.println(Message);
@@ -103,14 +115,14 @@ public abstract class LibGreenTea {
 
 	public final static Method LookupNativeMethod(Object Callee, String FuncName) {
 		if(FuncName != null) {
-			// DebugP("looking up method : " + Callee.getClass().getSimpleName() + "." + FuncName);
+			// LibGreenTea.DebugP("looking up method : " + Callee.getClass().getSimpleName() + "." + FuncName);
 			Method[] methods = Callee.getClass().getMethods();
 			for(int i = 0; i < methods.length; i++) {
 				if(FuncName.equals(methods[i].getName())) {
 					return methods[i];
 				}
 			}
-			DebugP("method not found: " + Callee.getClass().getSimpleName() + "." + FuncName);
+			LibGreenTea.DebugP("method not found: " + Callee.getClass().getSimpleName() + "." + FuncName);
 		}
 		return null;
 	}

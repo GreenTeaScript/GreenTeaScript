@@ -875,14 +875,14 @@ class EmbeddedFuncDef extends GtStatic {
 
 	public static Method LookupFunc(Object Callee, String FuncName) {
 		if(FuncName != null) {
-			// DebugP("looking up method : " + Callee.getClass().getSimpleName() + "." + FuncName);
+			// LibGreenTea.DebugP("looking up method : " + Callee.getClass().getSimpleName() + "." + FuncName);
 			Method[] methods = Callee.getClass().getMethods();
 			for(int i = 0; i < methods.length; i++) {
 				if(FuncName.equals(methods[i].getName())) {
 					return methods[i];
 				}
 			}
-			DebugP("method not found: " + Callee.getClass().getSimpleName() + "." + FuncName);
+			LibGreenTea.DebugP("method not found: " + Callee.getClass().getSimpleName() + "." + FuncName);
 		}
 		return null;
 		/*throw new KonohaParserException("method not found: " + callee.getClass().getName() + "." + methodName);*/
