@@ -31,6 +31,16 @@ import java.util.HashMap;
 //ifdef JAVA
 interface GtConst {
 //endif VAJA
+	// Version
+	public final static String  ProgName  = "GreenTeaScript";
+	public final static String  CodeName  = "Reference Implementation of D-Script";
+	public final static int     MajorVersion = 0;
+	public final static int     MinerVersion = 1;
+	public final static int     PatchLevel   = 0;
+	public final static String  Version = "0.1"; 
+	public final static String  Copyright = "Copyright (c) 2013, JST/CREST DEOS project authors";
+	public final static String  License = "BSD-Style Open Source";
+	
 	// ClassFlag
 	public final static int		NativeClass	     				= 1 << 0;
 	public final static int		InterfaceClass				   	= 1 << 1;
@@ -371,15 +381,15 @@ class GtStatic implements GtConst {
 
 //ifdef JAVA
 	public final static GtDelegateToken FunctionA(Object Callee, String FuncName) {
-		return new GtDelegateToken(Callee, LibGreenTea.LookupFunc(Callee, FuncName));
+		return new GtDelegateToken(Callee, LibGreenTea.LookupNativeMethod(Callee, FuncName));
 	}
 
 	public final static GtDelegateMatch FunctionB(Object Callee, String FuncName) {
-		return new GtDelegateMatch(Callee, LibGreenTea.LookupFunc(Callee, FuncName));
+		return new GtDelegateMatch(Callee, LibGreenTea.LookupNativeMethod(Callee, FuncName));
 	}
 
 	public final static GtDelegateType FunctionC(Object Callee, String FuncName) {
-		return new GtDelegateType(Callee, LibGreenTea.LookupFunc(Callee, FuncName));
+		return new GtDelegateType(Callee, LibGreenTea.LookupNativeMethod(Callee, FuncName));
 	}
 //endif VAJA
 
@@ -3470,6 +3480,8 @@ public class GreenTeaScript extends GtStatic {
 			Index += 1;
 		}
 		if(ShellMode) {
+			LibGreenTea.println(GtStatic.ProgName + GtStatic.Version + " (" + GtStatic.CodeName + ") on " + LibGreenTea.GetPlatform());
+			LibGreenTea.println(GtStatic.Copyright);
 			/*local*/int linenum = 1;
 			/*local*/String Line = null;
 			while((Line = LibGreenTea.ReadLine(">>> ")) != null) {

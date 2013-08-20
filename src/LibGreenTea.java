@@ -37,6 +37,10 @@ import java.util.Iterator;
 
 public abstract class LibGreenTea {
 
+	public final static String GetPlatform() {
+		return "Java JVM-" + System.getProperty("java.version");
+	}
+
 	public final static void println(String msg) {
 		System.out.println(msg);
 	}
@@ -89,11 +93,15 @@ public abstract class LibGreenTea {
 		return Character.toString(code);
 	}
 
+	public final static boolean EqualsString(String s, String s2){
+		return s.equals(s2);
+	}
+	
 	public final static int ParseInt(String Text) {
 		return Integer.parseInt(Text);
 	}
 
-	public final static Method LookupFunc(Object Callee, String FuncName) {
+	public final static Method LookupNativeMethod(Object Callee, String FuncName) {
 		if(FuncName != null) {
 			// DebugP("looking up method : " + Callee.getClass().getSimpleName() + "." + FuncName);
 			Method[] methods = Callee.getClass().getMethods();
@@ -104,7 +112,7 @@ public abstract class LibGreenTea {
 			}
 			DebugP("method not found: " + Callee.getClass().getSimpleName() + "." + FuncName);
 		}
-		return null; /*throw new GtParserException("method not found: " + callee.getClass().getName() + "." + methodName);*/
+		return null;
 	}
 
 	public final static boolean EqualsFunc(Method m1, Method m2) {
@@ -227,7 +235,7 @@ public abstract class LibGreenTea {
 	}
 
 	public final static GtGenerator CodeGenerator(String TargetCode, String OutputFile, int GeneratorFlag) {
-		String Extension = OutputFile == null ? "-" : OutputFile;
+		String Extension = (OutputFile == null) ? "-" : OutputFile;
 		TargetCode = TargetCode.toLowerCase();
 		if(Extension.endsWith(".js") || TargetCode.startsWith("js") || TargetCode.startsWith("javascript")) {
 			return new JavaScriptSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
@@ -327,6 +335,7 @@ public abstract class LibGreenTea {
 	public final static String LoadLibFile(String TargetCode, String FileName) {
 		return LoadFile("lib/" + TargetCode + "/" + FileName);
 	}
+
 
 	
 }
