@@ -24,14 +24,18 @@
 
 // LangBase is a language-dependent code used in GreenTea.java
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -314,27 +318,39 @@ public abstract class LibGreenTea {
 	}
 
 	public final static boolean HasFile(String Path) {
+		URL url = LibGreenTea.class.getResource(Path);
+		if(url != null) {
+			return true;
+		}
 		return new File(Path).exists();
 	}
 
 	public final static String LoadFile(String FileName) {
-		File f = new File(FileName);
-		byte[] b = new byte[(int) f.length()];
-		FileInputStream fi;
+		InputStream ins = LibGreenTea.class.getResourceAsStream(FileName);
+		if(ins == null) {
+			File f = new File(FileName);
+			try {
+				ins = new FileInputStream(f);
+			} catch (FileNotFoundException e) {
+				// e.printStackTrace();
+				System.err.println(e.getMessage());
+				System.exit(1);
+			}
+		}
+		BufferedReader reader = new BufferedReader(new InputStreamReader(ins));
+		String line = "";
+		String buffer = "";
 		try {
-			fi = new FileInputStream(f);
-			fi.read(b);
-			fi.close();
-			return new String(b);
-		} catch (FileNotFoundException e) {
-			System.err.println(e.getMessage());
-			System.exit(1);
+			while((line = reader.readLine()) != null) {
+				buffer += line + "\n";
+			}
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
 			System.exit(1);
 			e.printStackTrace();
 		}
-		return "";
+		System.out.println(buffer);
+		return buffer;
 	}
 
 	public final static boolean IsSupportedTarget(String TargetCode) {
@@ -342,7 +358,8 @@ public abstract class LibGreenTea {
 	}
 	
 	public final static String GetLibPath(String TargetCode, String LibName) {
-		return "lib/" + TargetCode + "/" + LibName + ".green";
+		/*local*/String Path = "lib/" + TargetCode + "/" + LibName + ".green";
+		return Path;
 	}
 
 	public static long JoinIntId(int UpperId, int LowerId) {
