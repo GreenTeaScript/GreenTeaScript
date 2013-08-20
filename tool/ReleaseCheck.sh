@@ -3,7 +3,9 @@
 GREENTEA='java -jar GreenTeaScript.jar'
 BASEDIR="test/exec"
 OUTDIR="test-result"
+SRCDIR="src"
 OUTFILE="$OUTDIR/TestResult.csv"
+CFLAGS="-I$SRCDIR/C/ -g -Wall"
 
 CC=`which gcc`
 PY=`which python`
@@ -14,7 +16,7 @@ then
 	$GREENTEA -o $OUTDIR/$1.c $BASEDIR/$1
 	if [ -f "$OUTDIR/$1.c" ]
 	then
-		$CC -o $OUTDIR/$1.exe $OUTDIR/$1.c
+		$CC $CFLAGS -o $OUTDIR/$1.exe $OUTDIR/$1.c
 		if [ -x "$OUTDIR/$1.exe" ]
 		then
 			./$OUTDIR/$1.exe
