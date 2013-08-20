@@ -29,6 +29,14 @@ public class GreenTeaTopObject {
 	}
 }
 
+final class GreenTeaAnyObject extends GreenTeaTopObject {
+	/*field*/public final Object NativeValue;
+	GreenTeaAnyObject/*constructor*/(GtType GreenType, Object NativeValue) {
+		super(GreenType);
+		this.NativeValue = NativeValue;
+	}
+}
+
 class GreenTeaArray extends GreenTeaTopObject {
 	GreenTeaArray/*constructor*/(GtType GreenType) {
 		super(GreenType);
