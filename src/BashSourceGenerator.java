@@ -316,12 +316,10 @@ public class BashSourceGenerator extends SourceGenerator {
 		if(this.inFunc && Node.Expr != null) {
 			/*local*/String Ret = this.ResolveValueType(Node.Expr);
 			if(Node.Expr instanceof ApplyNode || Node.Expr instanceof CommandNode) {
-				if(Node.Type.equals(Node.Type.Context.BooleanType) || 
-						Node.Type.equals(Node.Type.Context.IntType)) {
+				if(Node.Type.equals(Node.Type.Context.BooleanType)) {
 					/*local*/String Code = "local value=" + Ret + this.LineFeed;
-					Code += this.GetIndentString() + "local ret=$?" + this.LineFeed;
 					Code += this.GetIndentString() + "echo $value" + this.LineFeed;
-					Code += this.GetIndentString() + "return $ret";
+					Code += this.GetIndentString() + "return $value";
 					this.PushSourceCode(Code);
 					return;
 				}
@@ -395,7 +393,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/int size = CurrentNode.Params.size();
 		/*local*/int i = 0;
 		while(i < size) {
-			Code += this.VisitNode(CurrentNode.Params.get(i)) + " ";
+			Code += this.ResolveValueType(CurrentNode.Params.get(i)) + " ";
 			i = i + 1;
 		}
 		return Code;
