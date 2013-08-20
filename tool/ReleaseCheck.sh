@@ -12,11 +12,14 @@ TestC() {
 if [ -x $CC ]
 then
 	$GREENTEA -o $OUTDIR/$1.c $BASEDIR/$1
-	$CC -o $OUTDIR/$1.exe $OUTDIR/$1.c
-	if [ -x "$OUTDIR/$1.exe" ]
+	if [ -f "$OUTDIR/$1.c" ]
 	then
-		./$OUTDIR/$1.exe
-		return $?
+		$CC -o $OUTDIR/$1.exe $OUTDIR/$1.c
+		if [ -x "$OUTDIR/$1.exe" ]
+		then
+			./$OUTDIR/$1.exe
+			return $?
+		fi
 	fi
 fi
 return 1
