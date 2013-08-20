@@ -11,48 +11,104 @@ JAVA=`which java`
 CC=`which gcc`
 NODE=`which node`
 PY=`which python`
-BASH=`which bash`
+BASH=`which bash3`
 
-TestJava() {
-if [ -x $JAVA ]
-then
-	$GREENTEA -o $OUTDIR/$1.java $BASEDIR/$1
-	if [ -f "$OUTFILE/$1.java" ] 
+VERBOSE=""
+Verbose() {
+	VERBOSE="$VERBOSE$1 "
+}
+
+VerboseLine() {
+	echo -n $VERBOSE
+	echo " $1"
+	VERBOSE=""
+}
+
+Report() {
+	if [ $1 -eq 0 ]
 	then
+		echo -n ", OK" >> $OUTFILE
+	else
+		echo -n ", FAILED($1)" >> $OUTFILE
+	fi
+}
+
+ReportFile() {
+	if [ -f $1 ]
+	then
+		echo -n ", Yes" >> $OUTFILE
+	else
+		echo -n ", No" >> $OUTFILE 
+	fi
+}
+
+
+TestEach() { #$1: command $2 file $3 stage 
+	if [ $1 = $CC ]
+	then
+		if [ $3 -eq 1 ] 
+		then
+			$GREENTEA -o $2.c $2
+			$CC $CFLAGS -o $2.exe $2.c
+			ReportFile "$2.exe"
+		elif [ $3 -eq 2 ]
+		then
+			if [ -x $1 -a -x "$2.exe" ]
+			then
+				Verbose `basename $2.exe`
+				./$2.exe
+				Report $?
+			else
+				echo -n ", N/A" >> $OUTFILE
+			fi
+		else
+			echo -n ", $2" >> $OUTFILE
+		fi
 		return 0
 	fi
-fi
-return 1
+	if [ $1 = $PY ]
+        then
+                if [ $3 -eq 1 ]
+                then
+                        $GREENTEA -o $2.py $2
+                        ReportFile "$2.py"
+                elif [ $3 -eq 2 ]
+                then
+                        if [ -x $1 -a -f "$2.py" ]
+                        then
+				Verbose `basename $2.py`
+                                $1 $2.py
+                                Report $?
+                        else
+                                echo -n ", N/A" >> $OUTFILE
+                        fi
+                else
+                        echo -n ", $2" >> $OUTFILE
+                fi
+		return 0
+        fi
+
 }
 
-TestC() {
-if [ -x $CC ]
-then
-	$GREENTEA -o $OUTDIR/$1.c $BASEDIR/$1
-	if [ -f "$OUTDIR/$1.c" ]
-	then
-		$CC $CFLAGS -o $OUTDIR/$1.exe $OUTDIR/$1.c
-		if [ -x "$OUTDIR/$1.exe" ]
-		then
-			$OUTDIR/$1.exe
-			return $?
-		fi
-	fi
-fi
-return 1
+MakeHead() {
+	TestEach $PY ".py" 0
+	TestEach $CC ".c"  0
+	TestEach $PY `basename $PY` 0
+	TestEach $CC `basename $CC` 0
 }
 
-TestPython() {
-if [ -x $PY ]
-then
-	$GREENTEA -o $OUTDIR/$1.py $BASEDIR/$1
-	if [ -f "$OUTDIR/$1.py" ]
-	then
-		python $OUTDIR/$1.py
-		return $?
-	fi
-fi
-return 1
+TestTimeEach() {
+	START_TIME=`date +%s`
+	TestEach $1 $2 $3	
+	END_TIME=`date +%s`
+	SS=`expr ${END_TIME} - ${START_TIME}`
+}
+
+TestAll() {
+	TestEach $PY $1 1
+	TestEach $CC $1 1
+	TestEach $PY $1 2
+	TestEach $CC $1 2
 }
 
 TestBash() {
@@ -71,49 +127,37 @@ return 1
 
 ## test script
 
-mkdir -p $OUTDIR
+Prepare() {
+	mkdir -p $OUTDIR
+	if [ -f $OUTFILE ]
+	then
+		rm -rf $OUTDIR/*
+	fi
+	echo -n "Test" >> $OUTFILE
+	MakeHead
+	echo >> $OUTFILE
+}
 
-if [ -f $OUTFILE ]
-then
-	rm -rf $OUTDIR/*
-fi
+TFILE=""
 
-echo -n "TestName" >> $OUTFILE
-if [ -x $JAVA ]
-then
-	echo -n ", Java" >> $OUTFILE
-fi
+Source() {
+	for TPATH in $BASEDIR/*.green
+	do
+		TFILE=`basename $TPATH`
+		echo -n ${TFILE%.*} >> $OUTFILE
+		Verbose "Testing ${TFILE%.*}"
+		TFILE="$OUTDIR/$TFILE"
+		cp $TPATH $TFILE
+		STIME=`date +%s`
+        	TestAll $TFILE 1> $TFILE.log1 2> $TFILE.log2
+		ETIME=`date +%s`
+		SS=`expr ${ETIME} - ${STIME}`
+		VerboseLine "(elapsed-time: $SS sec)"
+		echo >> $OUTFILE
+	done
+}
 
-if [ -x $CC ]
-then
-	echo -n ", C" >> $OUTFILE
-fi
-
-if [ -x $PY ]
-then
-	echo -n ", Python" >> $OUTFILE
-fi
-
-if [ -x $BASH ]
-then
-	echo -n ", Bash" >> $OUTFILE
-fi
-
-echo "" >> $OUTFILE
-
-for GREEN in $BASEDIR/*.green
-do
-	echo -n `basename $GREEN` >> $OUTFILE
-	TestJava `basename $GREEN`
-	echo -n ", $?" >> $OUTFILE
-	TestC `basename $GREEN`
-	echo -n ", $?" >> $OUTFILE
-	TestPython `basename $GREEN`
-	echo -n ", $?" >> $OUTFILE
-	TestBash `basename $GREEN`
-	echo -n ", $?" >> $OUTFILE
-	echo "" >> $OUTFILE
-done
-
+Prepare
+Source
 cat $OUTFILE
 

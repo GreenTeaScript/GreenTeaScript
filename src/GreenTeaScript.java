@@ -3447,7 +3447,7 @@ final class GtClassContext extends GtStatic {
 	public final String[] GetReportedErrors() {
 		/*local*/ArrayList<String> List = this.ReportedErrorList;
 		this.ReportedErrorList = new ArrayList<String>();
-		return (/*cast*/String[])List.toArray();
+		return List.toArray(new String[List.size()]);  // just return List in case of non-java
 	}
 
 	public final void ShowReportedErrors() {
