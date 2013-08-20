@@ -53,51 +53,29 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 	}
 
 	public  void VisitBlockJS(GtNode Node) {
+		/*local*/String Code = "";
+		Code += "{" + this.LineFeed;
 		this.Indent();
-		/*local*/String highLevelIndent = this.GetIndentString();
-		super.VisitBlock(Node);
+		/*local*/GtNode CurrentNode = Node;
+		while(CurrentNode != null) {
+			Code += this.GetIndentString() + this.VisitNode(CurrentNode) + ";" + this.LineFeed;
+			CurrentNode = CurrentNode.NextNode;
+		}
 		this.UnIndent();
-		/*local*/int Size = Node.CountForrowingNode();
-		/*local*/String Block = this.PopManyCodeAndJoin(Size, true, "\n" + highLevelIndent, ";", null);
-		this.PushSourceCode("{" + Block + "\n" + this.GetIndentString() + "}");
-	}
-
-	@Override public void VisitConstNode(ConstNode Node) {
-		this.PushSourceCode(Node.ConstValue == null ? "null" : Node.ConstValue.toString());
-	}
-
-	@Override public void VisitUnaryNode(UnaryNode UnaryNode) {
-		UnaryNode.Expr.Evaluate(this);
-		this.PushSourceCode(UnaryNode.Token.ParsedText + this.PopSourceCode());
+		Code += this.GetIndentString() + "}";
+		this.PushSourceCode(Code);
 	}
 
 	@Override public void VisitBinaryNode(BinaryNode Node) {
-		Node.RightNode.Evaluate(this);
-		Node.LeftNode.Evaluate(this);
+		/*local*/String FuncName = Node.Token.ParsedText;
+		/*local*/String Left = this.VisitNode(Node.LeftNode);
+		/*local*/String Right = this.VisitNode(Node.RightNode);
+		/*local*/String Source = "(" + SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right) + ")";
 		/*local*/String operator = Node.Token.ParsedText;
-		if(operator.equals("/") /*&& Node.Type == Context.IntType*/ ){
-			this.PushSourceCode("((" + this.PopSourceCode() + " " + operator + " " + this.PopSourceCode() + ") | 0)");
-		}else{
-			this.PushSourceCode("(" + this.PopSourceCode() + " " + operator + " " + this.PopSourceCode() + ")");
+		if(LibGreenTea.EqualsString(operator, "/") /*&& Node.Type == Context.IntType*/ ){
+			Source = "(" + Source + " | 0)";
 		}
-	}
-
-	@Override public void VisitNewNode(NewNode Node) {
-		/*local*/int i = 0;
-		while(i < Node.Params.size()) {
-			/*local*/GtNode Param = Node.Params.get(i);
-			Param.Evaluate(this);
-			i = i + 1;
-		}
-		this.PushSourceCode("new " + Node.Type.ShortClassName + "()");
-	}
-
-	@Override public void VisitNullNode(NullNode Node) {
-		this.PushSourceCode("null");
-	}
-
-	@Override public void VisitLocalNode(LocalNode Node) {
-		this.PushSourceCode(Node.NativeName);
+		this.PushSourceCode(Source);
 	}
 
 	@Override public void VisitGetterNode(GetterNode Node) {
@@ -105,45 +83,9 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(this.PopSourceCode() + "." + Node.Token.ParsedText);
 	}
 
-	@Override public void VisitIndexerNode(IndexerNode Node) {
-		Node.IndexAt.Evaluate(this);
-		Node.Expr.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + "." + Node.Token.ParsedText + "[" +this.PopSourceCode() + "]");
-	}
-
-	@Override public void VisitApplyNode(ApplyNode Node) {
-		/*local*/String methodName = Node.Func.GetNativeFuncName();
-		/*local*/int ParamCount = Node.Params.size();
-		/*local*/int i = 1; // Skip 0, it contains a function itself.
-		while(i < ParamCount) {
-			Node.Params.get(i).Evaluate(this);
-			i = i + 1;
-		}
-		/*local*/String params = "(" + this.PopManyCodeAndJoin(ParamCount - 1, true, null, null, ", ") + ")";
-		this.PushSourceCode(methodName + params);
-	}
-
-	@Override public void VisitAndNode(AndNode Node) {
-		Node.LeftNode.Evaluate(this);
-		Node.RightNode.Evaluate(this);
-		/*local*/String Right = this.PopSourceCode();
-		/*local*/String Left = this.PopSourceCode();
-		this.PushSourceCode(Left + " && " + Right);
-	}
-
-	@Override public void VisitOrNode(OrNode Node) {
-		Node.LeftNode.Evaluate(this);
-		Node.RightNode.Evaluate(this);
-		/*local*/String Right = this.PopSourceCode();
-		/*local*/String Left = this.PopSourceCode();
-		this.PushSourceCode(Left + " || " + Right);
-	}
-
 	@Override public void VisitAssignNode(AssignNode Node) {
-		Node.LeftNode.Evaluate(this);
-		Node.RightNode.Evaluate(this);
-		/*local*/String Right = this.PopSourceCode();
-		/*local*/String Left = this.PopSourceCode();
+		/*local*/String Right = this.VisitNode(Node.LeftNode);
+		/*local*/String Left = this.VisitNode(Node.RightNode);
 		this.PushSourceCode((this.UseLetKeyword ? "let " : "var ") + Left + " = " + Right);
 	}
 
@@ -204,27 +146,6 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitForEachNode(ForEachNode ForEachNode) {
 		// TODO Auto-generated method stub
-	}
-
-	@Override public void VisitEmptyNode(GtNode Node) {
-		this.PushSourceCode("");
-	}
-
-	@Override public void VisitReturnNode(ReturnNode Node) {
-		if(Node.Expr != null){
-			Node.Expr.Evaluate(this);
-			this.PushSourceCode("return " + this.PopSourceCode());
-		}else{
-			this.PushSourceCode("return");
-		}
-	}
-
-	@Override public void VisitBreakNode(BreakNode Node) {
-		this.PushSourceCode("break");
-	}
-
-	@Override public void VisitContinueNode(ContinueNode Node) {
-		this.PushSourceCode("continue");
 	}
 
 	@Override public void VisitTryNode(TryNode Node) {

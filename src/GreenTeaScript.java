@@ -2415,7 +2415,7 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	public static GtNode TypeBreak(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		return Gamma.Generator.CreateBreakNode(Gamma.VoidType, ParsedTree, null, "");
+		return Gamma.Generator.CreateBreakNode(Gamma.VoidType, ParsedTree, "");
 	}
 
 	public static GtSyntaxTree ParseContinue(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
@@ -2425,7 +2425,7 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	public static GtNode TypeContinue(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		return Gamma.Generator.CreateContinueNode(Gamma.VoidType, ParsedTree, null, "");
+		return Gamma.Generator.CreateContinueNode(Gamma.VoidType, ParsedTree, "");
 	}
 
 	// Return Statement

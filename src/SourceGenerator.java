@@ -1243,11 +1243,11 @@ class GtGenerator extends GtStatic {
 		return new JumpNode(Type, ParsedTree.KeyToken, Label);
 	}
 
-	public GtNode CreateBreakNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Node, String Label) {
+	public GtNode CreateBreakNode(GtType Type, GtSyntaxTree ParsedTree, String Label) {
 		return new BreakNode(Type, ParsedTree.KeyToken, Label);
 	}
 
-	public GtNode CreateContinueNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Node, String Label) {
+	public GtNode CreateContinueNode(GtType Type, GtSyntaxTree ParsedTree, String Label) {
 		return new ContinueNode(Type, ParsedTree.KeyToken, Label);
 	}
 
@@ -1297,7 +1297,7 @@ class GtGenerator extends GtStatic {
 		Method[] Methods = NativeClassInfo.getMethods();
 		if(Methods != null) {
 			for(int i = 0; i < Methods.length; i++) {
-				if(FuncName.equals(Methods[i].getName())) {
+				if(LibGreenTea.EqualsString(FuncName, Methods[i].getName())) {
 					int FuncFlag = NativeFunc;
 					if(Modifier.isStatic(Methods[i].getModifiers())) {
 						FuncFlag |= NativeStaticFunc;
@@ -1598,6 +1598,15 @@ class SourceGenerator extends GtGenerator {
 	/*field*/public int       IndentLevel;
 	/*field*/public String    CurrentLevelIndentString;
 
+	/*field*/public boolean   HasLabelSupport = false;
+	/*field*/public String    LogicalOrOperator  = "||";
+	/*field*/public String    LogicalAndOperator = "&&";
+	/*field*/public String    MemberAccessOperator = ".";
+	/*field*/public String    TrueLiteral  = "true";
+	/*field*/public String    FalseLiteral = "false";
+	/*field*/public String    NullLiteral = "null";
+
+
 	SourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
 		this.LineFeed = "\n";
@@ -1606,7 +1615,6 @@ class SourceGenerator extends GtGenerator {
 		this.CurrentLevelIndentString = null;
 		this.HeaderSource = "";
 		this.BodySource = "";
-		
 	}
 
 	@Override public void InitContext(GtClassContext Context) {
@@ -1658,6 +1666,17 @@ class SourceGenerator extends GtGenerator {
 	}
 
 	protected String StringfyConstValue(Object ConstValue) {
+		if(ConstValue == null) {
+			return this.NullLiteral;
+		}
+		if(ConstValue instanceof Boolean) {
+			if(ConstValue.equals(true)) {
+				return this.TrueLiteral;
+			}
+			else {
+				return this.FalseLiteral;
+			}
+		}
 		if(ConstValue instanceof String) {
 			/*local*/int i = 0;
 			/*local*/String Value = ConstValue.toString();
@@ -1675,6 +1694,10 @@ class SourceGenerator extends GtGenerator {
 		return ConstValue.toString();
 	}
 
+	protected String GetNewOperator(GtType Type) {
+		return "new " + Type.ShortClassName + "()";
+	}
+
 	protected final void PushSourceCode(String Code){
 		this.PushCode(Code);
 	}
@@ -1688,6 +1711,19 @@ class SourceGenerator extends GtGenerator {
 		return this.PopSourceCode();
 	}
 
+	public final String JoinCode(String BeginCode, int BeginIdx, String[] ParamCode, String EndCode, String Delim) {
+		/*local*/String JoinedCode = BeginCode;
+		/*local*/int i = BeginIdx;
+		while(i < ParamCode.length) {
+			/*local*/String P = ParamCode[i];
+			if(i != BeginIdx) {
+				JoinedCode += Delim;
+			}
+			JoinedCode += P;
+			i = i + 1;
+		}
+		return JoinedCode + EndCode;
+	}
 
 	public final static String GenerateApplyFunc1(GtFunc Func, String FuncName, boolean IsSuffixOp, String Arg1) {
 		/*local*/String Macro = null;
@@ -1709,12 +1745,6 @@ class SourceGenerator extends GtGenerator {
 		return Macro.replace("$1", Arg1);
 	}
 
-//	@Override public final void VisitUnaryNode(UnaryNode Node) {
-//		/*local*/String FuncName = Node.Token.ParsedText;
-//		/*local*/String Expr = this.VisitNode(Node.Expr);
-//		this.PushSourceCode("(" + this.GenerateApplyFunc1(Node.Func, FuncName, false, Expr) + ")");
-//	}
-
 	public final static String GenerateApplyFunc2(GtFunc Func, String FuncName, String Arg1, String Arg2) {
 		/*local*/String Macro = null;
 		if(Func != null) {
@@ -1729,14 +1759,7 @@ class SourceGenerator extends GtGenerator {
 		}
 		return Macro.replace("$1", Arg1).replace("$2", Arg2);
 	}
-	
-//	@Override public final void VisitBinaryNode(BinaryNode Node) {
-//		/*local*/String FuncName = Node.Token.ParsedText;
-//		/*local*/String Left = this.VisitNode(Node.LeftNode);
-//		/*local*/String Right = this.VisitNode(Node.RightNode);
-//		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right) + ")");
-//	}
-	
+
 	public String GenerateFuncTemplate(int ParamSize, GtFunc Func) {
 		/*local*/int BeginIdx = 1;
 		/*local*/int i = BeginIdx;
@@ -1747,7 +1770,7 @@ class SourceGenerator extends GtGenerator {
 			BeginIdx = 2;
 		}
 		else if(Func.Is(NativeFunc)) {
-			Template = "$1." + Func.FuncName;
+			Template = "$1" + this.MemberAccessOperator + Func.FuncName;
 			BeginIdx = 2;
 		}
 		else if(Func.Is(NativeMacroFunc)) {
@@ -1789,13 +1812,113 @@ class SourceGenerator extends GtGenerator {
 		return this.ApplyMacro(Template, Node.Params);
 	}
 	
+	// Visitor API
+	@Override public void VisitEmptyNode(GtNode Node) {
+		this.PushSourceCode("");
+	}
+
+	@Override public final void VisitConstNode(ConstNode Node) {
+		this.PushSourceCode(this.StringfyConstValue(Node.ConstValue));
+	}
+
+	@Override public final void VisitNullNode(NullNode Node) {
+		this.PushSourceCode(this.NullLiteral);
+	}
+
+	@Override public void VisitLocalNode(LocalNode Node) {
+		this.PushSourceCode(Node.NativeName);
+	}
+
+	@Override public void VisitReturnNode(ReturnNode Node) {
+		/*local*/String Code = "return";
+		if(Node.Expr != null) {
+			Code += " " + this.VisitNode(Node.Expr);
+		}
+		this.PushSourceCode(Code);
+		this.StopVisitor(Node);
+	}
+
+	@Override public final void VisitIndexerNode(IndexerNode Node) {
+		this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + this.VisitNode(Node.IndexAt) + "]");
+	}
+
+	@Override public void VisitSuffixNode(SuffixNode Node) {
+		/*local*/String FuncName = Node.Token.ParsedText;
+		/*local*/String Expr = this.VisitNode(Node.Expr);
+		if(LibGreenTea.EqualsString(FuncName, "++")) {
+		}
+		else if(LibGreenTea.EqualsString(FuncName, "--")) {
+		}
+		else {
+			LibGreenTea.DebugP(FuncName + " is not supported suffix operator!!");
+		}
+		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc1(Node.Func, FuncName, true, Expr) + ")");
+	}
+
+	@Override public void VisitUnaryNode(UnaryNode Node) {
+		/*local*/String FuncName = Node.Token.ParsedText;
+		/*local*/String Expr = this.VisitNode(Node.Expr);
+		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc1(Node.Func, FuncName, false, Expr) + ")");
+	}
+
+	@Override public void VisitBinaryNode(BinaryNode Node) {
+		/*local*/String FuncName = Node.Token.ParsedText;
+		/*local*/String Left = this.VisitNode(Node.LeftNode);
+		/*local*/String Right = this.VisitNode(Node.RightNode);
+		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right) + ")");
+	}
 	
-//	@Override public void VisitNewNode(NewNode Node) {
-//		/*local*/int ParamSize = GtStatic.ListSize(Node.Params);
-//		/*local*/String Type = this.GreenTeaTypeName(Node.Type);
-//		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
-//		Template = Template.replace("$1", "NEW_" + Type + "()");
-//		this.PushSourceCode(this.ApplyMacro(Template, Node.Params));
-//	}
+	@Override public final void VisitNewNode(NewNode Node) {
+		/*local*/int ParamSize = GtStatic.ListSize(Node.Params);
+		/*local*/String NewOperator = this.GetNewOperator(Node.Type);
+		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
+		Template = Template.replace("$1", NewOperator);
+		this.PushSourceCode(this.ApplyMacro(Template, Node.Params));
+	}
+
+	@Override public void VisitApplyNode(ApplyNode Node) {
+		/*local*/String Program = this.GenerateApplyFunc(Node);
+		this.PushSourceCode(Program);
+	}
+	
+	@Override public void VisitAssignNode(AssignNode Node) {
+		this.PushSourceCode(this.VisitNode(Node.LeftNode) + " = " + this.VisitNode(Node.RightNode));
+	}
+
+	@Override public void VisitAndNode(AndNode Node) {
+		/*local*/String Left = this.VisitNode(Node.LeftNode);
+		/*local*/String Right = this.VisitNode(Node.RightNode);
+		this.PushSourceCode("(" + Left + " " + this.LogicalAndOperator +" " + Right + ")");
+	}
+
+	@Override public void VisitOrNode(OrNode Node) {
+		/*local*/String Left = this.VisitNode(Node.LeftNode);
+		/*local*/String Right = this.VisitNode(Node.RightNode);
+		this.PushSourceCode("(" + Left + " " + this.LogicalOrOperator +" " + Right + ")");
+	}
+
+	@Override public void VisitBreakNode(BreakNode Node) {
+		/*local*/String Code = "break";
+		if(this.HasLabelSupport) {
+			/*local*/String Label = Node.Label;
+			if(Label != null) {
+				Code += " " + Label;
+			}
+		}
+		this.PushSourceCode(Code);
+		this.StopVisitor(Node);
+	}
+
+	@Override public void VisitContinueNode(ContinueNode Node) {
+		/*local*/String Code = "continue";
+		if(this.HasLabelSupport) {
+			/*local*/String Label = Node.Label;
+			if(Label != null) {
+				Code += " " + Label;
+			}
+		}
+		this.PushSourceCode(Code);
+		this.StopVisitor(Node);
+	}
 
 }

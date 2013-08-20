@@ -4,7 +4,7 @@ static int f__AF(int a__AA){
    {
       while((i__AB < a__AA)){
          i__AB = (i__AB + 1);
-         continue ;
+         continue;
       };
       return i__AB;
    };
