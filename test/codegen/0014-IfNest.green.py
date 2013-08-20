@@ -19,5 +19,5 @@ def f__AFAF(a__AA, b__AB):
     return n__AC
 
 
-f__AFAF(20000, 10000)
+f__AFAF(10000, 20000)
 
