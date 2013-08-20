@@ -206,7 +206,9 @@ public abstract class LibGreenTea {
 	}
 
 	public final static String[] CompactStringList(ArrayList<String> List) {
-		if(List == null) return null;
+		if(List == null) {
+			return null;
+		}
 		String[] Tuple = new String[List.size()];
 		for(int i = 0; i < List.size(); i++) {
 			Tuple[i] = List.get(i);

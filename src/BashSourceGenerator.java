@@ -69,7 +69,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		}
 		return Code;
 	}
-	
+
 	public GtNode CreateDoWhileNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Cond, GtNode Block) {
 		/*
 		 * do { Block } while(Cond)
@@ -87,7 +87,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		Program += this.VisitBlockWithIndent(Node.LoopBody, true) + "done";
 		this.PushSourceCode(Program);
 	}
-	
+
 	@Override public void VisitForNode(ForNode Node) {
 		/*local*/String Cond = this.VisitNode(Node.CondExpr);
 		/*local*/String Iter = this.VisitNode(Node.IterExpr);
