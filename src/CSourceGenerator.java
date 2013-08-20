@@ -270,7 +270,7 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void StartCompilationUnit() {
-		this.WriteLineCode("#include \"GreenTea.h\"");
+		this.WriteLineCode("#include \"GreenTeaPlus.h\"");
 	}
 
 	@Override public String GetRecvName() {

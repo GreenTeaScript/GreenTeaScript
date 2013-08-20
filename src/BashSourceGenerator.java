@@ -42,7 +42,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	@Override public void InitContext(GtClassContext Context) {
 		super.InitContext(Context);
 		this.WriteLineHeader("#!/bin/bash");
-		this.WriteLineCode(this.LineFeed + "source ./efunc.sh" + this.LineFeed);
+		this.WriteLineCode(this.LineFeed + "source $GREENTEA_HOME/include/bash/GreenTeaPlus.sh" + this.LineFeed);
 	}
 
 	public String VisitBlockWithIndent(GtNode Node, boolean inBlock) {
@@ -133,7 +133,7 @@ public class BashSourceGenerator extends SourceGenerator {
 //			this.PushSourceCode(this.JoinCode(ParamCode[0] + "." + Node.Func.FuncName + " ", 0, ParamCode, ""));
 //		}
 		else if(Node.Func.Is(NativeMacroFunc)) {
-			/*local*/String NativeMacro = (/*cast*/String) Node.Func.NativeRef;
+			/*local*/String NativeMacro = Node.Func.GetNativeMacro();
 			if(NativeMacro.startsWith("assert")) {
 				this.PushSourceCode(this.CreateAssertFunc(Node));
 				return;

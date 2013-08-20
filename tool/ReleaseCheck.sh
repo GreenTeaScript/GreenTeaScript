@@ -3,9 +3,9 @@
 GREENTEA='java -jar GreenTeaScript.jar'
 BASEDIR="test/exec"
 OUTDIR="test-result"
-SRCDIR="src"
+INCLUDEDIR="include"
 OUTFILE="$OUTDIR/TestResult.csv"
-CFLAGS="-I$SRCDIR/C/ -g -Wall"
+CFLAGS="-I$INCLUDEDIR/c/ -g -Wall"
 
 JAVA=`which java`
 CC=`which gcc`
@@ -34,7 +34,7 @@ then
 		$CC $CFLAGS -o $OUTDIR/$1.exe $OUTDIR/$1.c
 		if [ -x "$OUTDIR/$1.exe" ]
 		then
-			./$OUTDIR/$1.exe
+			$OUTDIR/$1.exe
 			return $?
 		fi
 	fi
@@ -58,6 +58,7 @@ return 1
 TestBash() {
 if [ -x $BASH ]
 then
+	export GREENTEA_HOME=$BASEDIR/../../
 	$GREENTEA -o $OUTDIR/$1.sh $BASEDIR/$1
 	if [ -f "$OUTDIR/$1.sh" ]
 	then
