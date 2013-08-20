@@ -2,9 +2,15 @@
 
 GREENTEA='java -jar GreenTeaScript.jar'
 BASEDIR="test/exec"
-OUTDIR="test-result"
-INCLUDEDIR="include"
+if [ -d $1 ]
+then
+	BASEDIR=$1
+endif
+
+OUTDIR="$BASEDIR/test-result"
 OUTFILE="$OUTDIR/TestResult.csv"
+
+INCLUDEDIR="include"
 CFLAGS="-I$INCLUDEDIR/c/ -g -Wall"
 
 JAVA=`which java`
