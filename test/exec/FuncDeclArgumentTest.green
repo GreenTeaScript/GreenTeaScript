@@ -220,7 +220,7 @@ int f(int a0, int a1, int a2, int a3, int a4, int a5, int a6, int a7, int a8, in
 }
 
 @Export
-int main(void) {
+int main() {
     assert(f() == 0);
     assert(f(1) == 1);
     assert(f(1, 1) == 2);

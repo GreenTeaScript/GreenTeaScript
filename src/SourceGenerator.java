@@ -1908,12 +1908,12 @@ class SourceGenerator extends GtGenerator {
 	}
 
 	public String ApplyMacro(String Template, ArrayList<GtNode> NodeList) {
-		/*local*/int i = 1;
 		/*local*/int ParamSize = GtStatic.ListSize(NodeList);
-		while(i < ParamSize) {
-			/*local*/String Param = this.VisitNode(NodeList.get(i));
-			Template = Template.replace("$" + i, Param);
-			i = i + 1;
+		/*local*/int ParamIndex = ParamSize - 1;
+		while(ParamIndex >= 1) {
+			/*local*/String Param = this.VisitNode(NodeList.get(ParamIndex));
+			Template = Template.replace("$" + ParamIndex, Param);
+			ParamIndex = ParamIndex - 1;
 		}
 		return Template;
 	}
