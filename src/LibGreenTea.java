@@ -399,6 +399,31 @@ public abstract class LibGreenTea {
 		return (int)FileLine;
 	}
 
+	public static Object EvalCast(GtType castType, Object value) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public static Object EvalInstanceOf(Object Value, GtType Type) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public static Object EvalUnary(GtType Type, String Operator, Object Value) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public static Object EvalSuffix(GtType Type, Object Value, String Operator) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public static Object EvalBinary(GtType Type, Object LeftValue, String Opetator, Object RightValue) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 
 
