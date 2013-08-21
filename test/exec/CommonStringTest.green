@@ -1,0 +1,22 @@
+// written by kimio kuramitsu
+
+voit TestStringEquals() {
+	String s = "abc";
+	String s2 = "abc";
+	assert(s == s2);
+}
+
+void TestStringConcat() {
+	String s = "ABC";
+	String s2 = "abc";
+	assert(s + s2 == "ABCabc");
+}
+
+
+
+@Export
+int main() {
+	TestStringEquals();
+	TestStringConcat();
+	return 0;
+}

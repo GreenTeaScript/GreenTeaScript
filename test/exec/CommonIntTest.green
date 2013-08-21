@@ -1,0 +1,20 @@
+// written by kimio kuramitsu
+
+void TestIntEquals() {
+	int n = 123;
+	int n2 = 123;
+	assert(n == n2);
+}
+
+void TestIntConcat() {
+	int n = 246;
+	int n2 = 123;
+	assert(n + n2 == 369);
+}
+
+@Export
+int main() {
+	TestIntEquals();
+	TestIntConcat();
+	return 0;
+}
