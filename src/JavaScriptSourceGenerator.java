@@ -154,8 +154,6 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void InvokeMainFunc(String MainFuncName) {
-		this.WriteLineCode("if(__name__ == '__main__'){");
-		this.WriteLineCode(this.Tab + MainFuncName + "();");
-		this.WriteLineCode("}");
+		this.WriteLineCode(MainFuncName + "();");
 	}
 }

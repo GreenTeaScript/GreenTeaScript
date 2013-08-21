@@ -185,6 +185,17 @@ public abstract class LibGreenTea {
 	public final static int ParseInt(String Text) {
 		return Integer.parseInt(Text);
 	}
+	
+	public final static GtType GetNativeType(GtClassContext Context, Object Value) {
+		GtType NativeType = null;
+		Class<?> NativeClassInfo = Value instanceof Class<?> ? (Class<?>)Value : Value.getClass();
+		NativeType = (GtType) Context.ClassNameMap.get(NativeClassInfo.getName());
+		if(NativeType == null) {
+			NativeType = new GtType(Context, GtStatic.NativeClass, NativeClassInfo.getSimpleName(), null, NativeClassInfo);
+			Context.ClassNameMap.put(NativeClassInfo.getName(), NativeType);
+		}
+		return NativeType;
+	}
 
 	public final static Method LookupNativeMethod(Object Callee, String FuncName) {
 		if(FuncName != null) {

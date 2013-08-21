@@ -112,6 +112,7 @@ $src =~ s/\bextends GtStatic\s*//g;
 $src =~ s/\bGtStatic\.//g;
 $src =~ s/\binstanceof\s+string\b/instanceof String/g;
 $src =~ s/\binstanceof\s+number\b/instanceof Number/g;
+$src =~ s/\b([a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*) instanceof String/(typeof $1 == 'string' || $1 instanceof String)/g;
 
 $src =~ s/number.class/Number/g;
 $src =~ s/string.class/String/g;

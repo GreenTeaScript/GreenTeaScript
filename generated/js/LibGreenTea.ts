@@ -184,26 +184,6 @@ class LibGreenTea {
 		return <any>Text - 0;
 	}
 
-    static GetNativeType(Context: GtClassContext, Value: any): GtType {
-        var NativeType: GtType = null;
-        var NativeClassInfo: any = Value.constructor;
-        if(typeof Value == 'number' || Value instanceof Number) {
-            if((<any>Value | 0) == <any>Value) {
-                return Context.IntType;
-            }
-            //FIXME support Float
-        }
-        if(typeof Value == 'string' || Value instanceof String) {
-            return Context.StringType;
-        }
-        NativeType = <GtType> Context.ClassNameMap.get(NativeClassInfo.name);
-        if(NativeType == null) {
-            NativeType = new GtType(Context, NativeClass, NativeClassInfo.getSimpleName(), null, NativeClassInfo);
-            Context.ClassNameMap.put(NativeClassInfo.getName(), NativeType);
-        }
-        return NativeType;
-    }
-    
 
 	static StartsWith(self: string, key: string): boolean {
 		return self.indexOf(key, 0) == 0;
