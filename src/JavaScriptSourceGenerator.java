@@ -32,25 +32,7 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 		super(TargetCode, OutputFile, GeneratorFlag);
 	}
 
-	private boolean UseLetKeyword;
-
-	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> NameList, GtNode Body) {
-		/*local*/int ArgCount = Func.Types.length - 1;
-		/*local*/String Code = "var " + Func.GetNativeFuncName() + " = (function(";
-		/*local*/int i = 0;
-		while(i < ArgCount) {
-			if(i > 0) {
-				Code = Code + ", ";
-			}
-			Code = Code + NameList.get(i);
-			i = i + 1;
-		}
-		Code = Code + ") ";
-		this.VisitBlockJS(Body);
-		Code += this.PopSourceCode() + ")";
-		this.PushSourceCode(Code);
-		this.WriteLineCode(Code);
-	}
+	/*field*/private boolean UseLetKeyword;
 
 	public  void VisitBlockJS(GtNode Node) {
 		/*local*/String Code = "";
@@ -153,16 +135,35 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 	}
 
 	// This must be extended in each language
+	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> NameList, GtNode Body) {
+		/*local*/int ArgCount = Func.Types.length - 1;
+		/*local*/String Code = "var " + Func.GetNativeFuncName() + " = (function(";
+		/*local*/int i = 0;
+		while(i < ArgCount) {
+			if(i > 0) {
+				Code = Code + ", ";
+			}
+			Code = Code + NameList.get(i);
+			i = i + 1;
+		}
+		Code = Code + ") ";
+		this.VisitBlockJS(Body);
+		Code += this.PopSourceCode() + ")";
+		//this.PushSourceCode(Code);
+		this.WriteLineCode(Code);
+	}
+
 	@Override public Object Eval(GtNode Node) {
 		this.VisitBlock(Node);
 		/*local*/String ret = "";
-		while(this.GeneratedCodeStack.size() > 0) {
-			/*local*/String Line = this.PopSourceCode();
-			if(Line.length() > 0) {
-				ret =  Line + ";\n" + ret;
-			}
-		}
-		//this.WriteLineCode(ret);
+//		while(this.GeneratedCodeStack.size() > 0) {
+//			/*local*/String Line = this.PopSourceCode();
+//			if(Line.length() > 0) {
+//				ret =  Line + ";\n" + ret;
+//			}
+//		}
+		ret = this.PopSourceCode();
+		this.WriteLineCode(ret);
 		return ret;
 	}
 

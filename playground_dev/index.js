@@ -16,10 +16,17 @@ $(function () {
 	var Generate = function(){
 		try{
 			var src = editor_gs.getValue();
+			LibGreenTea.Program = "";
+			LibGreenTea.WriteCode = function(OutputFile, SourceCode) {
+				this.Program = this.Program + SourceCode;
+			};
 			var Generator = LibGreenTea.CodeGenerator(PlayGround_CodeGenTarget, "-", 0);
 			var Context = new GtClassContext(new DScriptGrammar(), Generator);
 			DebugPrintOption = true;
-			var generatedCode = Context.Eval(src);
+			Context.Eval(src);
+			Generator.FlushBuffer();
+			var generatedCode = LibGreenTea.Program;
+			console.log(LibGreenTea.Program);
 			editor_js.setValue(generatedCode);
 			var error = Context.GetReportedErrors().join("<br>");
 			$("#editor-error").html(error.length == 0 ? "No Error" : error);
