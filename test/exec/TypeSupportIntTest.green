@@ -1,0 +1,11 @@
+// written by kimio kuramitsu
+
+int ReturnTest(int n) {
+	return n + 1;
+}
+
+@Export
+int main() {
+	assert(ReturnTest(2) == 3);
+	return 0;
+}

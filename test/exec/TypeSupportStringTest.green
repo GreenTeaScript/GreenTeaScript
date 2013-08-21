@@ -1,0 +1,11 @@
+// written by kimio kuramitsu
+
+String ReturnTest(String s) {
+	return s + "abc";
+}
+
+@Export
+int main() {
+	assert(ReturnTest("ABC") == "ABCabc");
+	return 0;
+}

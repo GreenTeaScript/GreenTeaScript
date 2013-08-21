@@ -1,0 +1,21 @@
+// written by kimio kuramitsu
+// the above is not good for testing const folding
+
+const NUM = 10;
+const STR = "ABC";
+
+void TestIntFolding() {
+	assert(NUM + 7 == 17);
+	// adding other const folding
+}
+
+void TestStringFolding() {
+	assert(STR + "abc" == "ABCabc");
+}
+
+@Export
+int main() {
+	TestIntFolding();
+	return 0;
+}
+

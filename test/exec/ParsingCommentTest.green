@@ -1,0 +1,48 @@
+// written by kimio kuramitsu
+
+void TestFunc(int n) {
+	assert(n == 0);
+}
+
+void TestFunc2(/*comment*/int n) {
+        assert(n == 0);
+}
+
+void TestFunc3(int n) { /*comment*/
+        assert(n == 0);
+}
+
+void TestFunc4(int n) { // comment
+        assert(n == 0);
+}
+
+void TestFunc5(int n) {
+	//assert(n == 1);
+        assert(n == 0);
+}
+
+void TestFunc6(int n) {
+	/* assert(n == 1) */
+        assert(n == 0);
+}
+
+void TestFunc7(int n) {
+	/* 
+	assert(n == 1)
+	*/
+	assert(n == 0);
+}
+
+@Export
+int main() {
+	TestFunc(0);
+	TestFunc1(0);
+	TestFunc2(0);
+	TestFunc3(0);
+	TestFunc4(0);
+	TestFunc5(0);
+	TestFunc6(0);
+	TestFunc7(0);
+	return 0;
+}
+

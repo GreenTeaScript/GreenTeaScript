@@ -1,0 +1,26 @@
+// written by Kimio Kuramitsu
+
+void TestFunc(int n) {  // normal style
+	assert(n == 0);
+}
+
+void TestFunc1(int n) { assert(n == 0); } 
+
+void TestFunc2(int n)
+{
+	assert(n == 0);
+}
+
+void TestFunc3(int n)
+{
+assert(n == 0);
+}
+
+
+@Export
+int main() {
+	TestFunc(0);
+	TestFunc1(0);
+	TestFunc2(0);
+	TestFunc3(0);
+}

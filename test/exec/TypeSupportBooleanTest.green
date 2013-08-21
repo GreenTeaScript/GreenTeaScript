@@ -1,0 +1,12 @@
+// written by kimio kuramitsu
+
+boolean ReturnTest(boolean n) {
+	return not n;
+}
+
+@Export
+int main() {
+	assert(ReturnTest(true) == false);
+	assert(ReturnTest(false) == true);
+	return 0;
+}
