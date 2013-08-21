@@ -91,7 +91,8 @@ public class PythonSourceGenerator extends SourceGenerator {
 		/*local*/String Program = "while " + this.VisitNode(Node.CondExpr) + ":" + this.LineFeed;
 		if(this.IsEmptyBlock(Node.LoopBody)) {
 			Program += this.GetIndentString() + "pass";
-		} else {
+		}
+		else {
 			Program += this.VisitBlockWithIndent(Node.LoopBody, true);
 		}
 		this.PushSourceCode(Program);
@@ -190,7 +191,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 			count += 1;
 			CurrentNode = (/*cast*/CommandNode) CurrentNode.PipedNextNode;
 		}
-		
+
 		if(Node.Type.equals(Node.Type.Context.StringType)) {
 			Code = "subprocess.check_output(\"" + Code + "\", shell=True)";
 		}
@@ -238,7 +239,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 //		}
 		Program += ":" + this.LineFeed;
 		this.Indent();
-		
+
 		Program += this.GetIndentString() + "def __init__(" + this.GetRecvName() + ")" + ":" + this.LineFeed;
 		this.Indent();
 		/*local*/int i = 0;
@@ -252,7 +253,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 			i = i + 1;
 		}
 		this.UnIndent();
-		
+
 		this.UnIndent();
 		this.WriteLineCode(Program);
 	}
