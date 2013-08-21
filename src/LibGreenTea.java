@@ -35,7 +35,6 @@ import java.io.InputStreamReader;
 import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -106,7 +105,7 @@ public abstract class LibGreenTea {
 	public final static String CharToString(char code) {
 		return Character.toString(code);
 	}
-	
+
 	public static final String UnescapeString(String Text) {
 		/*local*/String Buf = "";
 		/*local*/int i = 0;
@@ -185,7 +184,7 @@ public abstract class LibGreenTea {
 	public final static int ParseInt(String Text) {
 		return Integer.parseInt(Text);
 	}
-	
+
 	public final static GtType GetNativeType(GtClassContext Context, Object Value) {
 		GtType NativeType = null;
 		Class<?> NativeClassInfo = Value instanceof Class<?> ? (Class<?>)Value : Value.getClass();

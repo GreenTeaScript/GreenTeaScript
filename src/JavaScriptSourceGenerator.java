@@ -27,26 +27,27 @@ import java.util.ArrayList;
 //endif VAJA
 
 public class JavaScriptSourceGenerator extends SourceGenerator {
+	/*field*/private boolean UseLetKeyword;
+	/*field*/private boolean IsNodeJS;
 
 	JavaScriptSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
+		this.IsNodeJS = LibGreenTea.EqualsString(TargetCode, "nodejs");
 	}
 
-	/*field*/private boolean UseLetKeyword;
-	
 	public  String VisitBlockJS(GtNode Node) {
 		/*local*/String Code = "";
 		/*local*/GtNode CurrentNode = Node;
 		while(CurrentNode != null) {
 			/*local*/String Statement = this.VisitNode(CurrentNode);
-			if(Statement.trim().length() >0){
+			if(Statement.trim().length() >0) {
 				Code += this.GetIndentString() + Statement + ";" + this.LineFeed;
 			}
 			CurrentNode = CurrentNode.NextNode;
 		}
 		return Code;
 	}
-	
+
 	public  String VisitBlockJSWithIndent(GtNode Node) {
 		/*local*/String Code = "";
 		Code += "{" + this.LineFeed;
@@ -147,10 +148,45 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 		this.WriteLineCode(Code);
 	}
 
+	@Override public void GenerateClassField(GtType Type, GtClassField ClassField) {
+		/*local*/String TypeName = Type.ShortClassName;
+		/*local*/String Program = this.GetIndentString() + "var " + TypeName + " = (function() {" + this.LineFeed;
+//		if(Type.SuperType != null) {
+//			Program += "(" + Type.SuperType.ShortClassName + ")";
+//		}
+		this.Indent();
+		Program += this.GetIndentString() + "function " + TypeName + "() {" + this.LineFeed;
+		this.Indent();
+		/*local*/int i = 0;
+		while(i < ClassField.FieldList.size()) {
+			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
+			/*local*/String InitValue = this.StringifyConstValue(FieldInfo.InitValue);
+			if(!FieldInfo.Type.IsNative()) {
+				InitValue = this.NullLiteral;
+			}
+			Program += this.GetIndentString() + this.GetRecvName() + "." + FieldInfo.NativeName + " = " + InitValue + ";" + this.LineFeed;
+			i = i + 1;
+		}
+		this.UnIndent();
+		Program += this.GetIndentString() + "};" + this.LineFeed;
+		Program += this.GetIndentString() + "return " + TypeName + ";" + this.LineFeed;
+		this.UnIndent();
+		Program += this.GetIndentString() + "})();" + this.LineFeed;
+		this.WriteLineCode(Program);
+	}
 	@Override public Object Eval(GtNode Node) {
 		/*local*/String ret = this.VisitBlockJS(Node);
 		this.WriteLineCode(ret);
 		return ret;
+	}
+
+	@Override public void StartCompilationUnit() {
+		if(this.IsNodeJS) {
+			this.WriteLineCode("var assert = require('assert');");
+		}
+		else {			
+			this.WriteLineCode("var assert = console.assert;");
+		}
 	}
 
 	@Override public void InvokeMainFunc(String MainFuncName) {
