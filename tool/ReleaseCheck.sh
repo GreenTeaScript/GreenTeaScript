@@ -259,7 +259,14 @@ TestEach() { #$1: command $2 file $3 stage
 		fi
 		return 0
 	fi
-
+	if [ $1 = "VM" ]
+	then
+		if [ $3 -eq 2 ]
+		then
+			$GREENTEA $2
+			Report $?
+		fi
+	fi
 }
 
 MakeHead() {
@@ -268,6 +275,7 @@ MakeHead() {
 	TestEach $PERL ".pl" 0
 	TestEach $BASH ".sh" 0
 	TestEach $CC ".c"  0
+	TestEach "VM" "GREEN-JVM" 0
 	TestEach $PYTHON `basename $PYTHON` 0
 	TestEach $NODE `basename $NODE` 0
 	TestEach $PERL `basename $PERL` 0
@@ -293,6 +301,7 @@ TestAll() {
 	TestEach $JAVA $1 1
 	TestEach $CC $1 1
 	# 2 means execution test
+	TestEach "VM" $1 2
 	TestEach $PYTHON $1 2
 	TestEach $NODE $1 2
 	TestEach $PERL $1 2
