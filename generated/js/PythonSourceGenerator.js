@@ -1,39 +1,49 @@
-//  *************************************************************************** //
-//  Copyright (c) 2013, JST/CRESTproject: authors: DEOS.rights: reserved: All. //
-// and: Redistributionin: useand: sourceforms: binary,or: without: with //
-//  modification,permitted: arethat: providedfollowing: theare: met: conditions: //
-//  //
-//  * of: Redistributionscode: sourceretain: mustabove: thenotice: copyright, //
-//    list: thisconditions: ofthe: anddisclaimer: following. //
-//  * in: Redistributionsform: binaryreproduce: mustabove: copyright: the //
-//     notice,list: thisconditions: ofthe: anddisclaimer: followingthe: in //
-//    and: documentation/ormaterials: otherwith: provideddistribution: the. //
-//  //
-// SOFTWARE: THISPROVIDED: ISTHE: BYHOLDERS: COPYRIGHTCONTRIBUTORS: AND //
-//  "IS: AS"ANY: ANDOR: EXPRESSWARRANTIES: IMPLIED, INCLUDING,NOT: LIMITED: BUT //
-//  TO,IMPLIED: THEOF: WARRANTIESAND: MERCHANTABILITYFOR: FITNESSPARTICULAR: A //
-// ARE: DISCLAIMED: PURPOSE.NO: INSHALL: EVENTCOPYRIGHT: THEOR: HOLDER //
-// BE: CONTRIBUTORSFOR: LIABLEDIRECT: ANY, INDIRECT, INCIDENTAL, SPECIAL, //
-//  EXEMPLARY,CONSEQUENTIAL: DAMAGES: OR (INCLUDING,NOT: BUTTO: LIMITED, //
-// OF: PROCUREMENTGOODS: SUBSTITUTESERVICES: OR;OF: USE: LOSS, DATA,PROFITS: OR; //
-// BUSINESS: INTERRUPTION: OR)CAUSED: HOWEVERON: ANDTHEORY: ANYLIABILITY: OF, //
-// IN: CONTRACT: WHETHER,LIABILITY: STRICT,TORT: OR (INCLUDINGOR: NEGLIGENCE //
-//  OTHERWISE)IN: ARISINGWAY: ANYOF: OUTUSE: THETHIS: SOFTWARE: OF,IF: EVEN //
-// OF: ADVISEDPOSSIBILITY: THESUCH: DAMAGE: OF. //
-//  ************************************************************************** //
+// ***************************************************************************
+// Copyright (c) 2013, JST/CREST DEOS project authors. All rights reserved.
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// *  Redistributions of source code must retain the above copyright notice,
+//    this list of conditions and the following disclaimer.
+// *  Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// #STR0# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+// TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// **************************************************************************
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-//Generator: GreenTeabe: shouldin: writtenlanguage: each. //
+//GreenTea Generator should be written in each language.
 var PythonSourceGenerator = (function (_super) {
     __extends(PythonSourceGenerator, _super);
-    function PythonSourceGenerator() {
-        _super.call(this, "PythonSource");
-        this.WriteTranslatedCode("os: import\n");
+    function PythonSourceGenerator(TargetCode, OutputFile, GeneratorFlag) {
+        _super.call(this, TargetCode, OutputFile, GeneratorFlag);
+        this.Tab = "    ";
+        this.LogicalAndOperator = "and";
+        this.LogicalOrOperator = "or";
+        this.TrueLiteral = "True";
+        this.FalseLiteral = "False";
+        this.NullLiteral = "None";
     }
+    PythonSourceGenerator.prototype.GetNewOperator = function (Type) {
+        var TypeName = Type.ShortClassName;
+        return TypeName + "()";
+    };
+
     PythonSourceGenerator.prototype.VisitBlockWithIndent = function (Node, inBlock) {
         var Code = "";
         if (inBlock) {
@@ -41,10 +51,9 @@ var PythonSourceGenerator = (function (_super) {
         }
         var CurrentNode = Node;
         while (CurrentNode != null) {
-            CurrentNode.Evaluate(this);
-            var poppedCode = this.PopSourceCode();
-            if (!poppedCode.equals("")) {
-                Code += this.GetIndentString() + poppedCode + "\n";
+            var poppedCode = this.VisitNode(CurrentNode);
+            if (!LibGreenTea.EqualsString(poppedCode, "")) {
+                Code += this.GetIndentString() + poppedCode + this.LineFeed;
             }
             CurrentNode = CurrentNode.NextNode;
         }
@@ -56,36 +65,26 @@ var PythonSourceGenerator = (function (_super) {
                 Code = Code.substring(0, Code.length - 1);
             }
         }
-        this.PushSourceCode(Code);
+        return Code;
     };
 
-    PythonSourceGenerator.prototype.VisitEmptyNode = function (Node) {
+    PythonSourceGenerator.prototype.CreateDoWhileNode = function (Type, ParsedTree, Cond, Block) {
+        /*
+        * do { Block } while(Cond)
+        * => while(True) { Block; if(Cond) { break; } }
+        */
+        var Break = this.CreateBreakNode(Type, ParsedTree, null);
+        var IfBlock = this.CreateIfNode(Type, ParsedTree, Cond, Break, null);
+        LinkNode(IfBlock, Block);
+        var TrueNode = this.CreateConstNode(ParsedTree.NameSpace.Context.BooleanType, ParsedTree, true);
+        return this.CreateWhileNode(Type, ParsedTree, TrueNode, Block);
     };
 
-    PythonSourceGenerator.prototype.VisitIndexerNode = function (Node) {
-        Node.IndexAt.Evaluate(this);
-        Node.Expr.Evaluate(this);
-        this.PushSourceCode(this.PopSourceCode() + "[" + this.PopSourceCode() + "]");
-    };
-
-    PythonSourceGenerator.prototype.VisitMessageNode = function (Node) {
-    };
-
+    // Visitor API
     PythonSourceGenerator.prototype.VisitWhileNode = function (Node) {
-        Node.CondExpr.Evaluate(this);
-        var Program = "while " + this.PopSourceCode() + ":\n";
-        this.VisitBlockWithIndent(Node.LoopBody, true);
-        Program += this.PopSourceCode();
+        var Program = "while " + this.VisitNode(Node.CondExpr) + ":" + this.LineFeed;
+        Program += this.VisitBlockWithIndent(Node.LoopBody, true);
         this.PushSourceCode(Program);
-    };
-
-    PythonSourceGenerator.prototype.VisitDoWhileNode = function (Node) {
-        this.VisitBlockWithIndent(Node.LoopBody, true);
-        var LoopBody = this.PopSourceCode();
-        var Program = "True: if:\n" + LoopBody;
-        Node.CondExpr.Evaluate(this);
-        Program += "while " + this.PopSourceCode() + ":\n";
-        this.PushSourceCode(Program + LoopBody);
     };
 
     PythonSourceGenerator.prototype.VisitForNode = function (Node) {
@@ -96,212 +95,56 @@ var PythonSourceGenerator = (function (_super) {
     };
 
     PythonSourceGenerator.prototype.VisitForEachNode = function (Node) {
-        Node.Variable.Evaluate(this);
-        Node.IterExpr.Evaluate(this);
-        var Iter = this.PopSourceCode();
-        var Variable = this.PopSourceCode();
-
-        var Program = "for " + Variable + " in " + Iter + ":\n";
-        this.VisitBlockWithIndent(Node.LoopBody, true);
-        Program += this.PopSourceCode();
+        var Iter = this.VisitNode(Node.IterExpr);
+        var Variable = this.VisitNode(Node.Variable);
+        var Program = "for " + Variable + " in " + Iter + ":" + this.LineFeed;
+        Program += this.VisitBlockWithIndent(Node.LoopBody, true);
         this.PushSourceCode(Program);
     };
 
-    PythonSourceGenerator.prototype.VisitConstNode = function (Node) {
-        var value = this.StringfyConstValue(Node.ConstValue);
-        if (Node.Type.equals(Node.Type.Context.BooleanType) || value.equals("true") || value.equals("false")) {
-            if (value.equals("true")) {
-                value = "True";
-            } else if (value.equals("false")) {
-                value = "False";
-            }
-        }
-        this.PushSourceCode(value);
-    };
-
-    PythonSourceGenerator.prototype.VisitNewNode = function (Node) {
-        var Type = Node.Type.ShortClassName;
-        var paramString = this.AppendParams(this.EvaluateParam(Node.Params));
-        this.PushSourceCode(Type + "(" + paramString + ")");
-    };
-
-    PythonSourceGenerator.prototype.VisitNullNode = function (Node) {
-        this.PushSourceCode("None");
-    };
-
-    PythonSourceGenerator.prototype.VisitLocalNode = function (Node) {
-        this.PushSourceCode(Node.LocalName);
-    };
-
-    PythonSourceGenerator.prototype.VisitGetterNode = function (Node) {
-    };
-
-    PythonSourceGenerator.prototype.EvaluateParam = function (Params) {
-        var Size = Params.size();
-        var Programs = new Array(Size);
-        var i = 0;
-        while (i < Size) {
-            var Node = Params.get(i);
-            Node.Evaluate(this);
-            Programs[Size - i - 1] = this.PopSourceCode();
-            i = i + 1;
-        }
-        return Programs;
-    };
-
-    PythonSourceGenerator.prototype.AppendParams = function (Params) {
-        var param = "";
-        var i = 0;
-        while (i < Params.length) {
-            var P = Params[i];
-            if (i != 0) {
-                param += ", ";
-            }
-            param += P;
-            i = i + 1;
-        }
-        return param;
-    };
-
-    PythonSourceGenerator.prototype.VisitApplyNode = function (Node) {
-        var paramString = this.AppendParams(this.EvaluateParam(Node.Params));
-        this.PushSourceCode(Node.Method.MethodName + "(" + paramString + ")");
-    };
-
     PythonSourceGenerator.prototype.VisitSuffixNode = function (Node) {
-        var MethodName = Node.Token.ParsedText;
-        if (MethodName.equals("++")) {
-            MethodName = " += 1";
-        } else if (MethodName.equals("--")) {
-            MethodName = " -= 1";
+        var FuncName = Node.Token.ParsedText;
+        var Expr = this.VisitNode(Node.Expr);
+        if (LibGreenTea.EqualsString(FuncName, "++")) {
+            FuncName = " += 1";
+        } else if (LibGreenTea.EqualsString(FuncName, "--")) {
+            FuncName = " -= 1";
         } else {
-            console.log("DEBUG: " + MethodName + "not: issuffix: operator: supported!!");
+            console.log("DEBUG: " + FuncName + " is not supported suffix operator!!");
         }
-        Node.Expr.Evaluate(this);
-        this.PushSourceCode(this.PopSourceCode() + MethodName);
-    };
-
-    PythonSourceGenerator.prototype.VisitUnaryNode = function (Node) {
-        var MethodName = Node.Token.ParsedText;
-        if (MethodName.equals("+")) {
-        } else if (MethodName.equals("-")) {
-        } else if (MethodName.equals("~")) {
-        } else if (MethodName.equals("!")) {
-            MethodName = "not ";
-        } else {
-            console.log("DEBUG: " + MethodName + "not: isunary: operator: supported!!");
-        }
-        Node.Expr.Evaluate(this);
-        this.PushSourceCode(MethodName + this.PopSourceCode());
-    };
-
-    PythonSourceGenerator.prototype.VisitBinaryNode = function (Node) {
-        var MethodName = Node.Token.ParsedText;
-        if (MethodName.equals("+")) {
-        } else if (MethodName.equals("-")) {
-        } else if (MethodName.equals("*")) {
-        } else if (MethodName.equals("/")) {
-        } else if (MethodName.equals("%")) {
-        } else if (MethodName.equals("<<")) {
-        } else if (MethodName.equals(">>")) {
-        } else if (MethodName.equals("&")) {
-        } else if (MethodName.equals("|")) {
-        } else if (MethodName.equals("^")) {
-        } else if (MethodName.equals("<=")) {
-        } else if (MethodName.equals("<")) {
-        } else if (MethodName.equals(">=")) {
-        } else if (MethodName.equals(">")) {
-        } else if (MethodName.equals("!=")) {
-        } else if (MethodName.equals("==")) {
-        } else {
-            console.log("DEBUG: " + MethodName + "not: isbinary: operator: supported!!");
-        }
-        Node.RightNode.Evaluate(this);
-        Node.LeftNode.Evaluate(this);
-        this.PushSourceCode(this.PopSourceCode() + " " + MethodName + " " + this.PopSourceCode());
-    };
-
-    PythonSourceGenerator.prototype.VisitAndNode = function (Node) {
-        Node.RightNode.Evaluate(this);
-        Node.LeftNode.Evaluate(this);
-        this.PushSourceCode(this.PopSourceCode() + " and " + this.PopSourceCode());
-    };
-
-    PythonSourceGenerator.prototype.VisitOrNode = function (Node) {
-        Node.RightNode.Evaluate(this);
-        Node.LeftNode.Evaluate(this);
-        this.PushSourceCode(this.PopSourceCode() + " or " + this.PopSourceCode());
-    };
-
-    PythonSourceGenerator.prototype.VisitAssignNode = function (Node) {
-        Node.RightNode.Evaluate(this);
-        Node.LeftNode.Evaluate(this);
-        this.PushSourceCode(this.PopSourceCode() + " = " + this.PopSourceCode());
+        this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc1(null, FuncName, true, Expr) + ")");
     };
 
     PythonSourceGenerator.prototype.VisitLetNode = function (Node) {
         var Code = Node.VariableName;
-        var InitValue = "None";
+        var InitValue = this.NullLiteral;
         if (Node.InitNode != null) {
-            Node.InitNode.Evaluate(this);
-            InitValue = this.PopSourceCode();
+            InitValue = this.VisitNode(Node.InitNode);
         }
-        Code += " = " + InitValue + "\n";
-        this.VisitBlockWithIndent(Node.BlockNode, false);
-        this.PushSourceCode(Code + this.PopSourceCode());
+        Code += " = " + InitValue + this.LineFeed;
+        this.PushSourceCode(Code + this.VisitBlockWithIndent(Node.BlockNode, false));
     };
 
     PythonSourceGenerator.prototype.VisitIfNode = function (Node) {
-        Node.CondExpr.Evaluate(this);
-        this.VisitBlockWithIndent(Node.ThenNode, true);
-        this.VisitBlockWithIndent(Node.ElseNode, true);
-
-        var ElseBlock = this.PopSourceCode();
-        var ThenBlock = this.PopSourceCode();
-        var CondExpr = this.PopSourceCode();
-        var Code = "if " + CondExpr + ":\n" + ThenBlock;
+        var CondExpr = this.VisitNode(Node.CondExpr);
+        var ThenBlock = this.VisitBlockWithIndent(Node.ThenNode, true);
+        var ElseBlock = this.VisitBlockWithIndent(Node.ElseNode, true);
+        var Code = "if " + CondExpr + ":" + this.LineFeed + ThenBlock;
         if (Node.ElseNode != null) {
-            Code += "else:\n" + ElseBlock;
+            Code += "else:" + this.LineFeed + ElseBlock;
         }
-        this.PushSourceCode(Code);
-    };
-
-    PythonSourceGenerator.prototype.VisitSwitchNode = function (Node) {
-    };
-
-    PythonSourceGenerator.prototype.VisitReturnNode = function (Node) {
-        var retValue = "";
-        if (Node.Expr != null) {
-            Node.Expr.Evaluate(this);
-            retValue = this.PopSourceCode();
-        }
-        this.PushSourceCode("return " + retValue);
-    };
-
-    PythonSourceGenerator.prototype.VisitLabelNode = function (Node) {
-    };
-
-    PythonSourceGenerator.prototype.VisitJumpNode = function (Node) {
-    };
-
-    PythonSourceGenerator.prototype.VisitBreakNode = function (Node) {
-        var Code = "break";
-        this.PushSourceCode(Code);
-    };
-
-    PythonSourceGenerator.prototype.VisitContinueNode = function (Node) {
-        var Code = "continue";
         this.PushSourceCode(Code);
     };
 
     PythonSourceGenerator.prototype.VisitTryNode = function (Node) {
-        var Code = "try:\n";
-        this.VisitBlockWithIndent(Node.TryBlock, true);
-        Code += this.PopSourceCode();
-
+        var Code = "try:" + this.LineFeed;
+        Code += this.VisitBlockWithIndent(Node.TryBlock, true);
+        var Val = Node.CatchExpr;
+        Code += "except " + Val.Type.toString() + ", " + Val.VariableName + ":" + this.LineFeed;
+        Code += this.VisitBlockWithIndent(Node.CatchBlock, true);
         if (Node.FinallyBlock != null) {
-            this.VisitBlockWithIndent(Node.FinallyBlock, true);
-            Code += " finally:\n" + this.PopSourceCode();
+            var Finally = this.VisitBlockWithIndent(Node.FinallyBlock, true);
+            Code += "finally:" + this.LineFeed + Finally;
         }
         this.PushSourceCode(Code);
     };
@@ -309,17 +152,13 @@ var PythonSourceGenerator = (function (_super) {
     PythonSourceGenerator.prototype.VisitThrowNode = function (Node) {
         var expr = "";
         if (Node.Expr != null) {
-            Node.Expr.Evaluate(this);
-            expr = this.PopSourceCode();
+            expr = this.VisitNode(Node.Expr);
         }
         this.PushSourceCode("raise " + expr);
     };
 
-    PythonSourceGenerator.prototype.VisitFunctionNode = function (Node) {
-    };
-
     PythonSourceGenerator.prototype.VisitErrorNode = function (Node) {
-        var Code = "Error(\"" + Node.Token.ParsedText + "\"): raise";
+        var Code = "raise SoftwareFault(\"" + Node.Token.ParsedText + "\")";
         this.PushSourceCode(Code);
     };
 
@@ -331,28 +170,35 @@ var PythonSourceGenerator = (function (_super) {
             if (count > 0) {
                 Code += " | ";
             }
-            Code += this.CreateCommand(CurrentNode);
+            Code += this.AppendCommand(CurrentNode);
             count += 1;
             CurrentNode = CurrentNode.PipedNextNode;
         }
-        this.PushSourceCode("os.system(\"" + Code + "\")");
+
+        if (Node.Type.equals(Node.Type.Context.StringType)) {
+            Code = "subprocess.check_output(\"" + Code + "\", shell=True)";
+        } else if (Node.Type.equals(Node.Type.Context.BooleanType)) {
+            Code = "(subprocess.call(\"" + Code + "\", shell=True) == 0)";
+        } else {
+            Code = "subprocess.call(\"" + Code + "\", shell=True)";
+        }
+        this.PushSourceCode(Code);
     };
 
-    PythonSourceGenerator.prototype.CreateCommand = function (CurrentNode) {
+    PythonSourceGenerator.prototype.AppendCommand = function (CurrentNode) {
         var Code = "";
         var size = CurrentNode.Params.size();
         var i = 0;
         while (i < size) {
-            CurrentNode.Params.get(i).Evaluate(this);
-            Code += this.PopSourceCode() + " ";
+            Code += this.VisitNode(CurrentNode.Params.get(i)) + " ";
             i = i + 1;
         }
         return Code;
     };
 
-    PythonSourceGenerator.prototype.GenerateMethod = function (Method, ParamNameList, Body) {
+    PythonSourceGenerator.prototype.GenerateFunc = function (Func, ParamNameList, Body) {
         var Function = "def ";
-        Function += Method.MethodName + "(";
+        Function += Func.GetNativeFuncName() + "(";
         var i = 0;
         var size = ParamNameList.size();
         while (i < size) {
@@ -362,25 +208,53 @@ var PythonSourceGenerator = (function (_super) {
             Function += ParamNameList.get(i);
             i = i + 1;
         }
-        this.VisitBlockWithIndent(Body, true);
-        Function += "):\n" + this.PopSourceCode() + "\n";
-        this.WriteTranslatedCode(Function);
+        var Block = this.VisitBlockWithIndent(Body, true);
+        Function += "):" + this.LineFeed + Block + this.LineFeed;
+        this.WriteLineCode(Function);
+    };
+
+    PythonSourceGenerator.prototype.GenerateClassField = function (Type, ClassField) {
+        var Program = this.GetIndentString() + "class " + Type.ShortClassName;
+
+        //		if(Type.SuperType != null) {
+        //			Program += #STR54# + Type.SuperType.ShortClassName + #STR55#;
+        //		}
+        Program += ":" + this.LineFeed;
+        this.Indent();
+
+        Program += this.GetIndentString() + "def __init__(" + this.GetRecvName() + ")" + ":" + this.LineFeed;
+        this.Indent();
+        var i = 0;
+        while (i < ClassField.FieldList.size()) {
+            var FieldInfo = ClassField.FieldList.get(i);
+            var InitValue = this.StringifyConstValue(FieldInfo.InitValue);
+            if (!FieldInfo.Type.IsNative()) {
+                InitValue = "None";
+            }
+            Program += this.GetIndentString() + this.GetRecvName() + "." + FieldInfo.NativeName + " = " + InitValue + this.LineFeed;
+            i = i + 1;
+        }
+        this.UnIndent();
+
+        this.UnIndent();
+        this.WriteLineCode(Program);
     };
 
     PythonSourceGenerator.prototype.Eval = function (Node) {
-        this.VisitBlockWithIndent(Node, false);
-        var Code = this.PopSourceCode();
-        if (Code.equals("")) {
-            return "";
+        var Code = this.VisitBlockWithIndent(Node, false);
+        if (!LibGreenTea.EqualsString(Code, "")) {
+            this.WriteLineCode(Code);
         }
-        this.WriteTranslatedCode(Code);
         return Code;
     };
 
-    PythonSourceGenerator.prototype.AddClass = function (Type) {
+    PythonSourceGenerator.prototype.GetRecvName = function () {
+        return "self";
     };
 
-    PythonSourceGenerator.prototype.SetLanguageContext = function (Context) {
+    PythonSourceGenerator.prototype.InvokeMainFunc = function (MainFuncName) {
+        this.WriteLineCode("if __name__ == '__main__':");
+        this.WriteLineCode(this.Tab + MainFuncName + "()");
     };
     return PythonSourceGenerator;
 })(SourceGenerator);
