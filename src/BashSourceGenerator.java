@@ -56,10 +56,10 @@ public class BashSourceGenerator extends SourceGenerator {
 			this.Indent();
 		}
 		/*local*/GtNode CurrentNode = Node;
-		if(IsEmptyNode(Node) && allowDummyBlock) {
+		if(this.IsEmptyNode(Node) && allowDummyBlock) {
 			Code += this.GetIndentString() + "echo \"dummy block!!\" &> /dev/zero" + this.LineFeed;
 		}
-		while(!IsEmptyNode(CurrentNode)) {
+		while(!this.IsEmptyNode(CurrentNode)) {
 			/*local*/String poppedCode = this.VisitNode(CurrentNode);
 			if(!LibGreenTea.EqualsString(poppedCode, "")) {
 				Code += this.GetIndentString() + poppedCode + this.LineFeed;
@@ -96,7 +96,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		}
 		
 		if(Node instanceof ConstNode) {
-			ConstNode Const = (/*cast*/ConstNode) Node;
+			/*local*/ConstNode Const = (/*cast*/ConstNode) Node;
 			if(Const.ConstValue.equals(true)) {
 				return "true";
 			}
@@ -150,7 +150,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		while(i < Size) {
 			/*local*/String Param = this.VisitNode(ParamList.get(i));
 			if(ParamList.get(i) instanceof ConstNode) {
-				/*local*/ConstNode Const = (/*local*/ConstNode) ParamList.get(i);
+				/*local*/ConstNode Const = (/*cast*/ConstNode)ParamList.get(i);
 				if(Const.Type.equals(Const.Type.Context.BooleanType)) {
 					if(Const.ConstValue.equals(true)) {
 						Param = "true";
@@ -241,7 +241,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/String ThenBlock = this.VisitBlockWithIndent(Node.ThenNode, true, true);
 		/*local*/String ElseBlock = this.VisitBlockWithIndent(Node.ElseNode, true, false);
 		/*local*/String Code = "if " + CondExpr + " ;then" + this.LineFeed + ThenBlock;
-		if(!IsEmptyNode(Node.ElseNode)) {
+		if(!this.IsEmptyNode(Node.ElseNode)) {
 			Code += "else" + this.LineFeed + ElseBlock;
 		}
 		Code += "fi";
