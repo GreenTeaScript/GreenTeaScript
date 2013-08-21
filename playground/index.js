@@ -14,18 +14,30 @@ $(function () {
 		mode: "text/x-csrc"});
 
 	var Generate = function(){
-		//try{
+		try{
 			var src = editor_gs.getValue();
-			var Generator = LangDeps.CodeGenerator(PlayGround_CodeGenTarget, "-", 0);
+			LibGreenTea.Program = "";
+			LibGreenTea.WriteCode = function(OutputFile, SourceCode) {
+				this.Program = this.Program + SourceCode;
+			};
+			var Generator = LibGreenTea.CodeGenerator(PlayGround_CodeGenTarget, "-", 0);
 			var Context = new GtClassContext(new DScriptGrammar(), Generator);
 			DebugPrintOption = true;
-			var generatedCode = Context.Eval(src);
+			Context.Eval(src);
+			Generator.FlushBuffer();
+			var generatedCode = LibGreenTea.Program;
 			editor_js.setValue(generatedCode);
 			var error = Context.GetReportedErrors().join("<br>");
 			$("#editor-error").html(error.length == 0 ? "No Error" : error);
-		//}catch(e){
-		//	$("#editor-error").text(e.toString());
-		//}
+		}catch(e){
+			var error = e.toString();
+			if(Context){
+				error = "JavaScript Error:<br>"+ error + "<br>----<br>" + Context.GetReportedErrors().join("<br>");
+			}
+			$("#editor-error").html(error);
+			editor_js.setValue("");
+			throw e;
+		}
 	}
 
 	editor_gs.on("change", function(cm, obj) {

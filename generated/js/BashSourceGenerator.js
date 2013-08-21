@@ -1,38 +1,15 @@
-// ***************************************************************************
-// Copyright (c) 2013, JST/CREST DEOS project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-//
-// *  Redistributions of source code must retain the above copyright notice,
-//    this list of conditions and the following disclaimer.
-// *  Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
-// TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// **************************************************************************
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-//GreenTea Generator should be written in each language.
 var BashSourceGenerator = (function (_super) {
     __extends(BashSourceGenerator, _super);
     function BashSourceGenerator(TargetCode, OutputFile, GeneratorFlag) {
         _super.call(this, TargetCode, OutputFile, GeneratorFlag);
         this.inFunc = false;
+        this.inMainFunc = false;
         this.cmdCounter = 0;
         this.TrueLiteral = "0";
         this.FalseLiteral = "1";
@@ -42,7 +19,6 @@ var BashSourceGenerator = (function (_super) {
         _super.prototype.InitContext.call(this, Context);
         this.WriteLineHeader("#!/bin/bash");
         this.WriteLineCode(this.LineFeed + "source $GREENTEA_HOME/include/bash/GreenTeaPlus.sh" + this.LineFeed);
-        //this.WriteLineCode(this.LineFeed + "source ./GreenTeaPlus.sh" + this.LineFeed);
     };
 
     BashSourceGenerator.prototype.IsEmptyNode = function (Node) {
@@ -77,10 +53,6 @@ var BashSourceGenerator = (function (_super) {
     };
 
     BashSourceGenerator.prototype.CreateDoWhileNode = function (Type, ParsedTree, Cond, Block) {
-        /*
-        * do { Block } while(Cond)
-        * => while(True) { Block; if(Cond) { break; } }
-        */
         var Break = this.CreateBreakNode(Type, ParsedTree, null);
         var IfBlock = this.CreateIfNode(Type, ParsedTree, Cond, Break, null);
         LinkNode(IfBlock, Block);
@@ -90,6 +62,7 @@ var BashSourceGenerator = (function (_super) {
 
     BashSourceGenerator.prototype.ResolveCondition = function (Node) {
         if (!Node.Type.equals(Node.Type.Context.BooleanType)) {
+            LibGreenTea.DebugP("invalid condition type");
             return null;
         }
 
@@ -99,8 +72,6 @@ var BashSourceGenerator = (function (_super) {
                 return "true";
             }
             return "false";
-        } else if (Node instanceof BinaryNode || Node instanceof ApplyNode || Node instanceof CommandNode) {
-            return this.VisitNode(Node) + " &> /dev/zero";
         }
         return this.VisitNode(Node);
     };
@@ -183,10 +154,6 @@ var BashSourceGenerator = (function (_super) {
         var Left = this.ResolveValueType(Node.LeftNode);
         var Right = this.ResolveValueType(Node.RightNode);
         this.PushSourceCode(SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right));
-        //		if(Node.Type.equals(Node.Type.Context.Float)) {	// support float value
-        //			this.PushSourceCode("(echo \"scale=10; " + Left + " " + FuncName + " " + Right + "\" | bc)");
-        //			return;
-        //		}
     };
 
     BashSourceGenerator.prototype.VisitAndNode = function (Node) {
@@ -245,19 +212,14 @@ var BashSourceGenerator = (function (_super) {
 
         if (Node.Expr != null) {
             var Ret = this.ResolveValueType(Node.Expr);
-            if (Node.Expr instanceof ApplyNode || Node.Expr instanceof CommandNode || Node.Expr instanceof BinaryNode || Node.Expr instanceof UnaryNode) {
-                if (Node.Type.equals(Node.Type.Context.BooleanType)) {
-                    var Code = "local value=" + Ret + this.LineFeed;
-                    Code += this.GetIndentString() + "echo $value" + this.LineFeed;
-                    Code += this.GetIndentString() + "return $value";
-                    this.PushSourceCode(Code);
-                    return;
-                }
+            if (Node.Type.equals(Node.Type.Context.BooleanType) || (Node.Type.equals(Node.Type.Context.IntType) && this.inMainFunc)) {
+                this.PushSourceCode("return " + Ret + this.LineFeed);
+                return;
             }
             this.PushSourceCode("echo " + Ret + this.LineFeed + this.GetIndentString() + "return 0");
-        } else {
-            this.PushSourceCode("return 0");
+            return;
         }
+        this.PushSourceCode("return 0");
     };
 
     BashSourceGenerator.prototype.VisitTryNode = function (Node) {
@@ -279,8 +241,6 @@ var BashSourceGenerator = (function (_super) {
     };
 
     BashSourceGenerator.prototype.VisitErrorNode = function (Node) {
-        //		/*local*/String Code = "throw Error(\"" + Node.Token.ParsedText + "\")";
-        //		this.PushSourceCode(Code);
     };
 
     BashSourceGenerator.prototype.VisitCommandNode = function (Node) {
@@ -319,12 +279,10 @@ var BashSourceGenerator = (function (_super) {
             this.WriteLineCode(RunnableCmd);
             RunnableCmd = FuncName + this.cmdCounter;
             this.cmdCounter++;
-        } else if (Type.equals(Type.Context.IntType) || Type.equals(Type.Context.BooleanType)) {
+        } else if (Type.equals(Type.Context.BooleanType)) {
             RunnableCmd = FuncName + this.cmdCounter + "() {" + this.LineFeed;
             RunnableCmd += this.GetIndentString() + cmd + " >&2" + this.LineFeed;
-            RunnableCmd += this.GetIndentString() + "local ret=$?" + this.LineFeed;
-            RunnableCmd += this.GetIndentString() + "echo $ret" + this.LineFeed;
-            RunnableCmd += this.GetIndentString() + "return $ret" + this.LineFeed + "}" + this.LineFeed;
+            RunnableCmd += this.GetIndentString() + "return $?" + this.LineFeed + "}" + this.LineFeed;
             this.WriteLineCode(RunnableCmd);
             RunnableCmd = FuncName + this.cmdCounter;
             this.cmdCounter++;
@@ -354,7 +312,7 @@ var BashSourceGenerator = (function (_super) {
         var Tail = "";
 
         if (TargetNode.Type != null && TargetNode.Type.equals(TargetNode.Type.Context.BooleanType)) {
-            if (TargetNode instanceof ApplyNode || TargetNode instanceof CommandNode || TargetNode instanceof BinaryNode) {
+            if (TargetNode instanceof ApplyNode || TargetNode instanceof UnaryNode || TargetNode instanceof CommandNode || TargetNode instanceof BinaryNode) {
                 return "$(retBool \"" + Value + "\")";
             }
         }
@@ -379,12 +337,17 @@ var BashSourceGenerator = (function (_super) {
 
     BashSourceGenerator.prototype.GenerateFunc = function (Func, ParamNameList, Body) {
         var Function = "";
+        var FuncName = Func.GetNativeFuncName();
         this.inFunc = true;
-        Function += Func.GetNativeFuncName() + "() {" + this.LineFeed;
+        if (LibGreenTea.EqualsString(FuncName, "main")) {
+            this.inMainFunc = true;
+        }
+        Function += FuncName + "() {" + this.LineFeed;
         var Block = this.VisitBlockWithIndent(this.ResolveParamName(ParamNameList, Body), true, true);
         Function += Block + "}" + this.LineFeed;
         this.WriteLineCode(Function);
         this.inFunc = false;
+        this.inMainFunc = false;
     };
 
     BashSourceGenerator.prototype.Eval = function (Node) {

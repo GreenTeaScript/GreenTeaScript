@@ -1,34 +1,9 @@
-// ***************************************************************************
-// Copyright (c) 2013, JST/CREST DEOS project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-//
-// *  Redistributions of source code must retain the above copyright notice,
-//    this list of conditions and the following disclaimer.
-// *  Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
-// TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// **************************************************************************
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-/* language */
-// GreenTea Generator should be written in each language.
 var GtNode = (function () {
     function GtNode(Type, Token) {
         this.Type = Type;
@@ -54,7 +29,6 @@ var GtNode = (function () {
     };
 
     GtNode.prototype.Append = function (Node) {
-        /*extension*/
     };
 
     GtNode.prototype.AppendNodeList = function (NodeList) {
@@ -66,7 +40,6 @@ var GtNode = (function () {
     };
 
     GtNode.prototype.Evaluate = function (Visitor) {
-        /* must override */
     };
 
     GtNode.prototype.IsError = function () {
@@ -135,7 +108,6 @@ var NullNode = (function (_super) {
     return NullNode;
 })(GtNode);
 
-//E.g., (T) $Expr
 var CastNode = (function (_super) {
     __extends(CastNode, _super);
     function CastNode(Type, Token, CastType, Expr) {
@@ -156,7 +128,6 @@ var CastNode = (function (_super) {
     return CastNode;
 })(GtNode);
 
-// E.g., "~" $Expr
 var UnaryNode = (function (_super) {
     __extends(UnaryNode, _super);
     function UnaryNode(Type, Token, Func, Expr) {
@@ -177,7 +148,6 @@ var UnaryNode = (function (_super) {
     return UnaryNode;
 })(GtNode);
 
-// E.g.,  $Expr "++"
 var SuffixNode = (function (_super) {
     __extends(SuffixNode, _super);
     function SuffixNode(Type, Token, Func, Expr) {
@@ -198,7 +168,6 @@ var SuffixNode = (function (_super) {
     return SuffixNode;
 })(GtNode);
 
-//E.g., "exists" $Expr
 var ExistsNode = (function (_super) {
     __extends(ExistsNode, _super);
     function ExistsNode(Type, Token, Func, Expr) {
@@ -212,7 +181,6 @@ var ExistsNode = (function (_super) {
     return ExistsNode;
 })(GtNode);
 
-//E.g., $LeftNode = $RightNode
 var AssignNode = (function (_super) {
     __extends(AssignNode, _super);
     function AssignNode(Type, Token, Left, Right) {
@@ -226,7 +194,6 @@ var AssignNode = (function (_super) {
     return AssignNode;
 })(GtNode);
 
-//E.g., $LeftNode += $RightNode
 var SelfAssignNode = (function (_super) {
     __extends(SelfAssignNode, _super);
     function SelfAssignNode(Type, Token, Left, Right) {
@@ -240,7 +207,6 @@ var SelfAssignNode = (function (_super) {
     return SelfAssignNode;
 })(GtNode);
 
-//E.g., $LeftNode || $RightNode
 var InstanceOfNode = (function (_super) {
     __extends(InstanceOfNode, _super);
     function InstanceOfNode(Type, Token, ExprNode, TypeInfo) {
@@ -261,7 +227,6 @@ var InstanceOfNode = (function (_super) {
     return InstanceOfNode;
 })(GtNode);
 
-// E.g., $LeftNode "+" $RightNode
 var BinaryNode = (function (_super) {
     __extends(BinaryNode, _super);
     function BinaryNode(Type, Token, Func, Left, Right) {
@@ -286,7 +251,6 @@ var BinaryNode = (function (_super) {
     return BinaryNode;
 })(GtNode);
 
-//E.g., $LeftNode && $RightNode
 var AndNode = (function (_super) {
     __extends(AndNode, _super);
     function AndNode(Type, Token, Left, Right) {
@@ -305,7 +269,6 @@ var AndNode = (function (_super) {
     return AndNode;
 })(GtNode);
 
-//E.g., $LeftNode || $RightNode
 var OrNode = (function (_super) {
     __extends(OrNode, _super);
     function OrNode(Type, Token, Left, Right) {
@@ -324,7 +287,6 @@ var OrNode = (function (_super) {
     return OrNode;
 })(GtNode);
 
-//E.g., $CondExpr "?" $ThenExpr ":" $ElseExpr
 var TrinaryNode = (function (_super) {
     __extends(TrinaryNode, _super);
     function TrinaryNode(Type, Token, CondExpr, ThenExpr, ElseExpr) {
@@ -344,7 +306,6 @@ var TrinaryNode = (function (_super) {
     return TrinaryNode;
 })(GtNode);
 
-//E.g., $Expr . Token.ParsedText
 var GetterNode = (function (_super) {
     __extends(GetterNode, _super);
     function GetterNode(Type, Token, Func, Expr) {
@@ -366,7 +327,6 @@ var GetterNode = (function (_super) {
     return GetterNode;
 })(GtNode);
 
-//E.g., $Expr "[" $Indexer "]"
 var IndexerNode = (function (_super) {
     __extends(IndexerNode, _super);
     function IndexerNode(Type, Token, Func, Expr, IndexAt) {
@@ -381,7 +341,6 @@ var IndexerNode = (function (_super) {
     return IndexerNode;
 })(GtNode);
 
-//E.g., $Expr "[" $Index ":" $Index2 "]"
 var SliceNode = (function (_super) {
     __extends(SliceNode, _super);
     function SliceNode(Type, Token, Func, Expr, Index1, Index2) {
@@ -399,7 +358,6 @@ var SliceNode = (function (_super) {
 
 var LetNode = (function (_super) {
     __extends(LetNode, _super);
-    /* let VarNode in Block end */
     function LetNode(Type, Token, DeclType, VarName, InitNode, Block) {
         _super.call(this, Type, Token);
         this.VariableName = VarName;
@@ -413,7 +371,6 @@ var LetNode = (function (_super) {
     return LetNode;
 })(GtNode);
 
-// E.g., $Param[0] "(" $Param[1], $Param[2], ... ")"
 var ApplyNode = (function (_super) {
     __extends(ApplyNode, _super);
     function ApplyNode(Type, KeyToken, Func) {
@@ -431,7 +388,6 @@ var ApplyNode = (function (_super) {
     return ApplyNode;
 })(GtNode);
 
-//E.g., $Recv.Func "(" $Param[0], $Param[1], ... ")"
 var MessageNode = (function (_super) {
     __extends(MessageNode, _super);
     function MessageNode(Type, KeyToken, Func, RecvNode) {
@@ -450,7 +406,6 @@ var MessageNode = (function (_super) {
     return MessageNode;
 })(GtNode);
 
-//E.g., "new" $Type "(" $Param[0], $Param[1], ... ")"
 var NewNode = (function (_super) {
     __extends(NewNode, _super);
     function NewNode(Type, Token, Func) {
@@ -468,10 +423,8 @@ var NewNode = (function (_super) {
     return NewNode;
 })(GtNode);
 
-//E.g., "if" "(" $Cond ")" $ThenNode "else" $ElseNode
 var IfNode = (function (_super) {
     __extends(IfNode, _super);
-    /* If CondExpr then ThenBlock else ElseBlock */
     function IfNode(Type, Token, CondExpr, ThenBlock, ElseNode) {
         _super.call(this, Type, Token);
         this.CondExpr = CondExpr;
@@ -484,7 +437,6 @@ var IfNode = (function (_super) {
     return IfNode;
 })(GtNode);
 
-//E.g., "while" "(" $CondExpr ")" $LoopBody
 var WhileNode = (function (_super) {
     __extends(WhileNode, _super);
     function WhileNode(Type, Token, CondExpr, LoopBody) {
@@ -511,7 +463,6 @@ var DoWhileNode = (function (_super) {
     return DoWhileNode;
 })(GtNode);
 
-//E.g., "for" "(" ";" $CondExpr ";" $IterExpr ")" $LoopNode
 var ForNode = (function (_super) {
     __extends(ForNode, _super);
     function ForNode(Type, Token, CondExpr, IterExpr, LoopBody) {
@@ -526,7 +477,6 @@ var ForNode = (function (_super) {
     return ForNode;
 })(GtNode);
 
-//E.g., "for" "(" $Variable ":" $IterExpr ")" $LoopNode
 var ForEachNode = (function (_super) {
     __extends(ForEachNode, _super);
     function ForEachNode(Type, Token, Variable, IterExpr, LoopBody) {
@@ -637,7 +587,6 @@ var SwitchNode = (function (_super) {
         Visitor.VisitSwitchNode(this);
     };
     SwitchNode.prototype.ToConstValue = function () {
-        //FIXME
         return "(Switch:" + this.Type + ")";
     };
     return SwitchNode;
@@ -665,7 +614,6 @@ var ErrorNode = (function (_super) {
     return ErrorNode;
 })(GtNode);
 
-// E.g., "ls" "-a"..
 var CommandNode = (function (_super) {
     __extends(CommandNode, _super);
     function CommandNode(Type, KeyToken, PipedNextNode) {
@@ -694,7 +642,6 @@ var GtType = (function () {
         this.DefaultNullValue = DefaultNullValue;
         this.NativeSpec = NativeSpec;
 
-        //		this.ClassSymbolTable = IsFlag(ClassFlag, EnumClass) ? (/*cast*/GtMap)NativeSpec : null;
         this.ClassId = Context.ClassCount;
         Context.ClassCount += 1;
         this.TypeParams = null;
@@ -706,14 +653,13 @@ var GtType = (function () {
         return SubType;
     };
 
-    // Note Don't call this directly. Use Context.GetGenericType instead.
     GtType.prototype.CreateGenericType = function (BaseIndex, TypeList, ShortName) {
         var GenericType = new GtType(this.Context, this.ClassFlag, ShortName, null, null);
         GenericType.BaseType = this.BaseType;
         GenericType.SearchSuperFuncClass = this.BaseType;
         GenericType.SuperType = this.SuperType;
         GenericType.TypeParams = LibGreenTea.CompactTypeList(BaseIndex, TypeList);
-        console.log("DEBUG: " + "new class: " + GenericType.ShortClassName + ", ClassId=" + GenericType.ClassId);
+        LibGreenTea.DebugP("new class: " + GenericType.ShortClassName + ", ClassId=" + GenericType.ClassId);
         return GenericType;
     };
 
@@ -766,7 +712,6 @@ var GtFunc = (function () {
         this.FuncFlag = FuncFlag;
         this.FuncName = FuncName;
 
-        //		this.FuncSymbolId = GtStatic.GetSymbolId(FuncName, CreateNewSymbolId);
         this.Types = LibGreenTea.CompactTypeList(BaseIndex, ParamList);
         LibGreenTea.Assert(this.Types.length > 0);
         this.ListedFuncs = null;
@@ -863,7 +808,6 @@ var GtFunc = (function () {
         var NativeMacro = this.NativeRef;
         NativeMacro = NativeMacro.substring(1, NativeMacro.length - 1);
 
-        // FIXME
         return NativeMacro;
     };
 
@@ -1224,7 +1168,6 @@ var GtGenerator = (function () {
         return new CommandNode(Type, ParsedTree.KeyToken, PipedNextNode);
     };
 
-    /* language constructor */
     GtGenerator.prototype.GetNativeType = function (Value) {
         var NativeType = null;
         NativeType = LibGreenTea.GetNativeType(this.Context, Value);
@@ -1241,7 +1184,6 @@ var GtGenerator = (function () {
     };
 
     GtGenerator.prototype.GenerateClassField = function (Type, ClassField) {
-        /*extension*/
     };
 
     GtGenerator.prototype.HasAnnotation = function (Annotation, Key) {
@@ -1285,168 +1227,128 @@ var GtGenerator = (function () {
     };
 
     GtGenerator.prototype.GenerateFunc = function (Func, ParamNameList, Body) {
-        /*extenstion*/
     };
 
     GtGenerator.prototype.SyncCodeGeneration = function () {
-        /*extension*/
     };
 
     GtGenerator.prototype.StopVisitor = function (Node) {
         Node.NextNode = null;
     };
 
-    //------------------------------------------------------------------------
     GtGenerator.prototype.VisitEmptyNode = function (EmptyNode) {
-        console.log("DEBUG: " + "empty node: " + EmptyNode.Token.ParsedText);
+        LibGreenTea.DebugP("empty node: " + EmptyNode.Token.ParsedText);
     };
 
     GtGenerator.prototype.VisitInstanceOfNode = function (Node) {
-        /*extention*/
     };
 
     GtGenerator.prototype.VisitSelfAssignNode = function (Node) {
-        /*extention*/
     };
 
     GtGenerator.prototype.VisitTrinaryNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitExistsNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitCastNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitSliceNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitSuffixNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitUnaryNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitIndexerNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitMessageNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitWhileNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitDoWhileNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitForNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitForEachNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitConstNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitNewNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitNullNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitLocalNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitGetterNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitApplyNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitBinaryNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitAndNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitOrNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitAssignNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitLetNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitIfNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitSwitchNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitReturnNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitLabelNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitJumpNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitBreakNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitContinueNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitTryNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitThrowNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitFunctionNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitErrorNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitCommandNode = function (Node) {
-        /*extension*/
     };
 
     GtGenerator.prototype.VisitBlock = function (Node) {
@@ -1457,7 +1359,6 @@ var GtGenerator = (function () {
         }
     };
 
-    // This must be extended in each language
     GtGenerator.prototype.IsStrictMode = function () {
         return false;
     };
@@ -1468,7 +1369,6 @@ var GtGenerator = (function () {
     };
 
     GtGenerator.prototype.FlushBuffer = function () {
-        /*extension*/
     };
 
     GtGenerator.prototype.BlockComment = function (Comment) {
@@ -1476,11 +1376,9 @@ var GtGenerator = (function () {
     };
 
     GtGenerator.prototype.StartCompilationUnit = function () {
-        /*extension*/
     };
 
     GtGenerator.prototype.FinishCompilationUnit = function () {
-        /*extension*/
     };
 
     GtGenerator.prototype.PushCode = function (Code) {
@@ -1500,7 +1398,6 @@ var GtGenerator = (function () {
     };
 
     GtGenerator.prototype.InvokeMainFunc = function (MainFuncName) {
-        /*extension*/
     };
     return GtGenerator;
 })();
@@ -1551,7 +1448,6 @@ var SourceGenerator = (function (_super) {
         this.BodySource = "";
     };
 
-    /* GeneratorUtils */
     SourceGenerator.prototype.Indent = function () {
         this.IndentLevel += 1;
         this.CurrentLevelIndentString = null;
@@ -1709,7 +1605,6 @@ var SourceGenerator = (function (_super) {
         return this.ApplyMacro(Template, Node.Params);
     };
 
-    // Visitor API
     SourceGenerator.prototype.VisitEmptyNode = function (Node) {
         this.PushSourceCode("");
     };
@@ -1758,7 +1653,7 @@ var SourceGenerator = (function (_super) {
         if (LibGreenTea.EqualsString(FuncName, "++")) {
         } else if (LibGreenTea.EqualsString(FuncName, "--")) {
         } else {
-            console.log("DEBUG: " + FuncName + " is not supported suffix operator!!");
+            LibGreenTea.DebugP(FuncName + " is not supported suffix operator!!");
         }
         this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc1(Node.Func, FuncName, true, Expr) + ")");
     };
@@ -1820,14 +1715,9 @@ var SourceGenerator = (function (_super) {
     };
 
     SourceGenerator.prototype.VisitLabelNode = function (Node) {
-        //		/*local*/String Label = Node.Label;
-        //		this.PushSourceCode(Label + ":");
     };
 
     SourceGenerator.prototype.VisitJumpNode = function (Node) {
-        //		/*local*/String Label = Node.Label;
-        //		this.PushSourceCode("goto " + Label);
-        //		this.StopVisitor(Node);
     };
     return SourceGenerator;
 })(GtGenerator);

@@ -121,7 +121,7 @@ class PythonSourceGenerator extends SourceGenerator {
 			FuncName = " -= 1";
 		}
 		else {
-			console.log("DEBUG: " + FuncName + " is not supported suffix operator!!");
+			LibGreenTea.DebugP(FuncName + " is not supported suffix operator!!");
 		}
 		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc1(null, FuncName, true, Expr) + ")");
 	}

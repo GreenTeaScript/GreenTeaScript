@@ -1,4 +1,3 @@
-/// <reference path="SourceGenerator.ts" />
 Array.prototype.size = function () {
     return this.length;
 };
@@ -86,7 +85,6 @@ var LibGreenTea = (function () {
     };
 
     LibGreenTea.GetStackInfo = function (depth) {
-        // TODO
         return " ";
     };
 
@@ -134,12 +132,10 @@ var LibGreenTea = (function () {
     };
 
     LibGreenTea.UnescapeString = function (Text) {
-        //FIXME
         return Text;
     };
 
     LibGreenTea.EscapeString = function (Text) {
-        //FIXME
         return Text;
     };
 
@@ -148,7 +144,6 @@ var LibGreenTea = (function () {
     };
 
     LibGreenTea.ParseInt = function (Text) {
-        //return number.parseInt(Text);
         return Text - 0;
     };
 
@@ -159,7 +154,6 @@ var LibGreenTea = (function () {
             if ((Value | 0) == Value) {
                 return Context.IntType;
             }
-            //FIXME support Float
         }
         if (typeof Value == 'string' || Value instanceof String) {
             return Context.StringType;
@@ -284,7 +278,6 @@ var LibGreenTea = (function () {
             return fs.existsSync(FileName).toString();
         } else {
             return !!GreenTeaLibraries[FileName];
-            //throw new Error("LibGreenTea.HasFile is not implemented for this environment");
         }
         return false;
     };
@@ -294,7 +287,6 @@ var LibGreenTea = (function () {
             return fs.readFileSync(FileName);
         } else {
             return GreenTeaLibraries[FileName];
-            //throw new Error("LibGreenTea.LoadFile is not implemented for this environment");
         }
         return "";
     };

@@ -1,33 +1,9 @@
-// ***************************************************************************
-// Copyright (c) 2013, JST/CREST DEOS project authors. All rights reserved.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-//
-// *  Redistributions of source code must retain the above copyright notice,
-//    this list of conditions and the following disclaimer.
-// *  Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
-// TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// **************************************************************************
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-//GreenTea Generator should be written in each language.
 var PythonSourceGenerator = (function (_super) {
     __extends(PythonSourceGenerator, _super);
     function PythonSourceGenerator(TargetCode, OutputFile, GeneratorFlag) {
@@ -69,10 +45,6 @@ var PythonSourceGenerator = (function (_super) {
     };
 
     PythonSourceGenerator.prototype.CreateDoWhileNode = function (Type, ParsedTree, Cond, Block) {
-        /*
-        * do { Block } while(Cond)
-        * => while(True) { Block; if(Cond) { break; } }
-        */
         var Break = this.CreateBreakNode(Type, ParsedTree, null);
         var IfBlock = this.CreateIfNode(Type, ParsedTree, Cond, Break, null);
         LinkNode(IfBlock, Block);
@@ -84,7 +56,6 @@ var PythonSourceGenerator = (function (_super) {
         return (Node instanceof EmptyNode) && Node.NextNode == null;
     };
 
-    // Visitor API
     PythonSourceGenerator.prototype.VisitWhileNode = function (Node) {
         var Program = "while " + this.VisitNode(Node.CondExpr) + ":" + this.LineFeed;
         if (this.IsEmptyBlock(Node.LoopBody)) {
@@ -118,7 +89,7 @@ var PythonSourceGenerator = (function (_super) {
         } else if (LibGreenTea.EqualsString(FuncName, "--")) {
             FuncName = " -= 1";
         } else {
-            console.log("DEBUG: " + FuncName + " is not supported suffix operator!!");
+            LibGreenTea.DebugP(FuncName + " is not supported suffix operator!!");
         }
         this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc1(null, FuncName, true, Expr) + ")");
     };
@@ -228,9 +199,6 @@ var PythonSourceGenerator = (function (_super) {
     PythonSourceGenerator.prototype.GenerateClassField = function (Type, ClassField) {
         var Program = this.GetIndentString() + "class " + Type.ShortClassName;
 
-        //		if(Type.SuperType != null) {
-        //			Program += "(" + Type.SuperType.ShortClassName + ")";
-        //		}
         Program += ":" + this.LineFeed;
         this.Indent();
 

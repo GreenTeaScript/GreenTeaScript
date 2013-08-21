@@ -729,7 +729,7 @@ class GtType {
 		GenericType.SearchSuperFuncClass = this.BaseType;
 		GenericType.SuperType = this.SuperType;
 		GenericType.TypeParams = LibGreenTea.CompactTypeList(BaseIndex, TypeList);
-		console.log("DEBUG: " + "new class: " + GenericType.ShortClassName + ", ClassId=" + GenericType.ClassId);
+		LibGreenTea.DebugP("new class: " + GenericType.ShortClassName + ", ClassId=" + GenericType.ClassId);
 		return GenericType;
 	}
 
@@ -1338,7 +1338,7 @@ class GtGenerator {
 	//------------------------------------------------------------------------
 
 	public VisitEmptyNode(EmptyNode: EmptyNode): void {
-		console.log("DEBUG: " + "empty node: " + EmptyNode.Token.ParsedText);
+		LibGreenTea.DebugP("empty node: " + EmptyNode.Token.ParsedText);
 	}
 
 	public VisitInstanceOfNode(Node: InstanceOfNode): void {
@@ -1815,7 +1815,7 @@ class SourceGenerator extends GtGenerator {
 		else if(LibGreenTea.EqualsString(FuncName, "--")) {
 		}
 		else {
-			console.log("DEBUG: " + FuncName + " is not supported suffix operator!!");
+			LibGreenTea.DebugP(FuncName + " is not supported suffix operator!!");
 		}
 		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc1(Node.Func, FuncName, true, Expr) + ")");
 	}

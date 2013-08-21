@@ -131,9 +131,10 @@ $src =~ s/(?!\.)\b((?:Parse|Type)(?:Unary|Binary|Const|Block))\b(?!\()/DScriptGr
 $src =~ s/\bGtDelegate(?:Common|Token|Match|Type)\b/any/g;
 $src =~ s/DScriptGrammar\.DScriptGrammar\./DScriptGrammar./g;
 
-$src =~ s/(LibGreenTea\.)?DebugP\(/console.log("DEBUG: " + /g;
-$src =~ s/LibGreenTea\.println\(/console.log(/g;
-$src =~ s/function console.log\("DEBUG: " \+ /function DebugP(/g;
+# For debug
+#$src =~ s/(LibGreenTea\.)?DebugP\(/console.log("DEBUG: " + /g;
+#$src =~ s/LibGreenTea\.println\(/console.log(/g;
+#src =~ s/function console.log\("DEBUG: " \+ /function DebugP(/g;
 
 my $n = @Comments;
 my $i = 0;

@@ -28,6 +28,7 @@
 
 class BashSourceGenerator extends SourceGenerator {
 	inFunc: boolean = false;
+	inMainFunc: boolean = false;
 	cmdCounter: number = 0;
 
 	 constructor(TargetCode: string, OutputFile: string, GeneratorFlag: number) {
@@ -90,6 +91,7 @@ class BashSourceGenerator extends SourceGenerator {
 
 	private ResolveCondition(Node: GtNode): string {
 		if(!Node.Type.equals(Node.Type.Context.BooleanType)) {
+			LibGreenTea.DebugP("invalid condition type");
 			return null;
 		}
 		
@@ -99,9 +101,6 @@ class BashSourceGenerator extends SourceGenerator {
 				return "true";
 			}
 			return "false";
-		}
-		else if(Node instanceof BinaryNode || Node instanceof ApplyNode || Node instanceof CommandNode) {
-			return this.VisitNode(Node) + " &> /dev/zero";
 		}
 		return this.VisitNode(Node);
 	}
@@ -253,21 +252,15 @@ class BashSourceGenerator extends SourceGenerator {
 		
 		if(Node.Expr != null) {
 			var Ret: string = this.ResolveValueType(Node.Expr);
-			if(Node.Expr instanceof ApplyNode || Node.Expr instanceof CommandNode || 
-					Node.Expr instanceof BinaryNode || Node.Expr instanceof UnaryNode) {
-				if(Node.Type.equals(Node.Type.Context.BooleanType)) {
-					var Code: string = "local value=" + Ret + this.LineFeed;
-					Code += this.GetIndentString() + "echo $value" + this.LineFeed;
-					Code += this.GetIndentString() + "return $value";
-					this.PushSourceCode(Code);
-					return;
-				}
+			if(Node.Type.equals(Node.Type.Context.BooleanType) || 
+					(Node.Type.equals(Node.Type.Context.IntType) && this.inMainFunc)) {
+				this.PushSourceCode("return " + Ret + this.LineFeed);
+				return;
 			}
 			this.PushSourceCode("echo " + Ret + this.LineFeed + this.GetIndentString() + "return 0");
+			return;
 		}
-		else {
-			this.PushSourceCode("return 0");
-		}
+		this.PushSourceCode("return 0");
 	}
 
 	public VisitTryNode(Node: TryNode): void {
@@ -330,12 +323,10 @@ class BashSourceGenerator extends SourceGenerator {
 			RunnableCmd = FuncName + this.cmdCounter;
 			this.cmdCounter++;
 		}
-		else if(Type.equals(Type.Context.IntType) || Type.equals(Type.Context.BooleanType)) {
+		else if(Type.equals(Type.Context.BooleanType)) {
 			RunnableCmd = FuncName + this.cmdCounter + "() {" + this.LineFeed;
 			RunnableCmd += this.GetIndentString() + cmd + " >&2" + this.LineFeed;
-			RunnableCmd += this.GetIndentString() + "local ret=$?" + this.LineFeed;
-			RunnableCmd += this.GetIndentString() + "echo $ret" + this.LineFeed;
-			RunnableCmd += this.GetIndentString() + "return $ret" + this.LineFeed + "}" + this.LineFeed;
+			RunnableCmd += this.GetIndentString() + "return $?" + this.LineFeed + "}" + this.LineFeed;
 			this.WriteLineCode(RunnableCmd);
 			RunnableCmd = FuncName + this.cmdCounter;
 			this.cmdCounter++;
@@ -365,7 +356,7 @@ class BashSourceGenerator extends SourceGenerator {
 		var Tail: string = "";
 		
 		if(TargetNode.Type != null && TargetNode.Type.equals(TargetNode.Type.Context.BooleanType)) {
-			if(TargetNode instanceof ApplyNode || 
+			if(TargetNode instanceof ApplyNode || TargetNode instanceof UnaryNode || 
 					TargetNode instanceof CommandNode || TargetNode instanceof BinaryNode) {
 				return "$(retBool \"" + Value + "\")";
 			}
@@ -394,12 +385,17 @@ class BashSourceGenerator extends SourceGenerator {
 
 	public GenerateFunc(Func: GtFunc, ParamNameList: Array<string>, Body: GtNode): void {
 		var Function: string = "";
+		var FuncName: string = Func.GetNativeFuncName();
 		this.inFunc = true;
-		Function += Func.GetNativeFuncName() + "() {" + this.LineFeed;
+		if(LibGreenTea.EqualsString(FuncName, "main")) {
+			this.inMainFunc = true;
+		}
+		Function += FuncName + "() {" + this.LineFeed;
 		var Block: string = this.VisitBlockWithIndent(this.ResolveParamName(ParamNameList, Body), true, true);
 		Function += Block + "}" + this.LineFeed;
 		this.WriteLineCode(Function);
 		this.inFunc = false;
+		this.inMainFunc = false;
 	}
 
 	public Eval(Node: GtNode): Object {

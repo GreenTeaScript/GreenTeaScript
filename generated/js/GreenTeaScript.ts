@@ -419,7 +419,7 @@
 			TokenContext.CurrentPosition = Pos;
 		}
 		if(Pattern == null) {
-			console.log("DEBUG: " + "undefined syntax pattern: " + Pattern);
+			LibGreenTea.DebugP("undefined syntax pattern: " + Pattern);
 		}
 		return TokenContext.ReportExpectedPattern(Pattern);
 	}
@@ -636,7 +636,7 @@
 		var TokenFunc: TokenFunc = this.TopLevelNameSpace.GetTokenFunc(GtChar);
 		var NextIdx: number = ApplyTokenFunc(TokenFunc, this, ScriptSource, pos);
 		if(NextIdx == NoMatch) {
-			console.log("DEBUG: " + "undefined tokenizer: " + LibGreenTea.CharAt(ScriptSource, pos));
+			LibGreenTea.DebugP("undefined tokenizer: " + LibGreenTea.CharAt(ScriptSource, pos));
 			this.AddNewToken(ScriptSource.substring(pos, pos + 1), 0, null);
 			return pos + 1;
 		}
@@ -819,7 +819,7 @@
 		var pos: number = this.CurrentPosition;
 		while(pos < this.SourceList.size()) {
 			var token: GtToken = this.SourceList.get(pos);
-			console.log("DEBUG: " + "["+pos+"]\t" + token + " : " + token.PresetPattern);
+			LibGreenTea.DebugP("["+pos+"]\t" + token + " : " + token.PresetPattern);
 			pos += 1;
 		}
 	}
@@ -1006,7 +1006,7 @@ class GtSyntaxTree {
 	public AppendParsedTree(Tree: GtSyntaxTree): void {
 		if(!this.IsError()) {
 			if(Tree == null) {
-				console.log("DEBUG: " + "");
+				LibGreenTea.DebugP("");
 			}
 			if(Tree.IsError()) {
 				this.ToError(Tree.KeyToken);
@@ -2141,7 +2141,7 @@ class GtGrammar {
 		if(!TokenContext.MatchToken(")")) {
 			while(!FuncTree.IsEmptyOrError()) {
 				if(TokenContext.CurrentPosition > 150) {
-					console.log("DEBUG: " + "");
+					LibGreenTea.DebugP("");
 				}
 				var Tree: GtSyntaxTree = TokenContext.ParsePattern(NameSpace, "$Expression$", Required);
 				FuncTree.AppendParsedTree(Tree);
@@ -3039,7 +3039,7 @@ class GtGrammar {
 				if((typeof CNode.ConstValue == 'string' || CNode.ConstValue instanceof String)) {
 					var Val: string = <string> CNode.ConstValue;
 					if(Val.equals("|")) {
-						console.log("DEBUG: " + "PIPE");
+						LibGreenTea.DebugP("PIPE");
 						var PrevNode: CommandNode = Node;
 						Node = <CommandNode> Gamma.Generator.CreateCommandNode(ContextType, ParsedTree, null);
 						PrevNode.PipedNextNode = Node;
@@ -3285,7 +3285,7 @@ class GtGrammar {
 
 	public  Eval(ScriptSource: string, FileLine: number): Object {
 		var resultValue: Object = null;
-		console.log("DEBUG: " + "Eval: " + ScriptSource);
+		LibGreenTea.DebugP("Eval: " + ScriptSource);
 		var TokenContext: GtTokenContext = new GtTokenContext(this.TopLevelNameSpace, ScriptSource, FileLine);
 		this.Generator.StartCompilationUnit();
 		TokenContext.SkipEmptyStatement();
@@ -3293,7 +3293,7 @@ class GtGrammar {
 			var annotation: GtMap = TokenContext.SkipAndGetAnnotation(true);
 			var topLevelTree: GtSyntaxTree = ParseExpression(this.TopLevelNameSpace, TokenContext);
 			topLevelTree.SetAnnotation(annotation);
-			console.log("DEBUG: " + "untyped tree: " + topLevelTree);
+			LibGreenTea.DebugP("untyped tree: " + topLevelTree);
 			var gamma: GtTypeEnv = new GtTypeEnv(this.TopLevelNameSpace);
 			var node: GtNode = gamma.TypeCheckEachNode(topLevelTree, gamma.VoidType, DefaultTypeCheckPolicy);
 			resultValue = this.Generator.Eval(node);
@@ -3357,7 +3357,7 @@ class GtGrammar {
 		var i: number = 0;
 		var Messages: string[] = this.GetReportedErrors();
 		while(i < Messages.length) {
-			console.log(Messages[i]);
+			LibGreenTea.println(Messages[i]);
 			i = i + 1;
 		}
 	}
@@ -3417,8 +3417,8 @@ class GreenTeaScript {
 			Index += 1;
 		}
 		if(ShellMode) {
-			console.log(ProgName + Version + " (" + CodeName + ") on " + LibGreenTea.GetPlatform());
-			console.log(Copyright);
+			LibGreenTea.println(ProgName + Version + " (" + CodeName + ") on " + LibGreenTea.GetPlatform());
+			LibGreenTea.println(Copyright);
 			var linenum: number = 1;
 			var Line: string = null;
 			while((Line = LibGreenTea.ReadLine(">>> ")) != null) {
