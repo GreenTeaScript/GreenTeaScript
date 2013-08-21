@@ -1,6 +1,6 @@
 // written by kimio kuramitsu
 
-voit TestStringEquals() {
+void TestStringEquals() {
 	String s = "abc";
 	String s2 = "abc";
 	assert(s == s2);

@@ -61,6 +61,7 @@ ReportRuntime() {
 		echo "Java: $JAVA"
 		echo "============"
 		$JAVA -version
+		echo
 	else
 		JAVA="#java"
 	fi
@@ -69,6 +70,7 @@ ReportRuntime() {
 		echo "Python: $PYTHON"
 		echo "=========="
 		$PYTHON --version
+		echo
 	else
 		PYTHON="#python"
 	fi
@@ -77,6 +79,7 @@ ReportRuntime() {
                 echo "Perl: $PERL"
                 echo "=========="
                 $PERL --version
+		echo
 	else
 		PERL="#perl"
         fi
@@ -85,6 +88,7 @@ ReportRuntime() {
                 echo "Shell: $BASH"
                 echo "=========="
                 $BASH --version
+		echo
 	else
 		BASH="#bash"
         fi
@@ -93,6 +97,7 @@ ReportRuntime() {
                 echo "Ruby: $RUBY"
                 echo "=========="
                 $RUBY --version
+		echo
 	else
 		RUBY="#ruby"
         fi
@@ -101,6 +106,7 @@ ReportRuntime() {
 		echo "Node: $NODE"
 		echo "=========="
 		$NODE -v
+		echo
 	else
 		NODE="#node"
 	fi
@@ -109,6 +115,7 @@ ReportRuntime() {
                 echo "TypeScript: $TS"
                 echo "=========="
                 $TS -v
+		echo
 	else
 		TS="#tsc"
         fi
@@ -117,6 +124,7 @@ ReportRuntime() {
 		echo "C Compiler: $CC"
                 echo "=========="
                 $CC -v
+		echo
 	else
 		CC="#gcc"
 	fi
@@ -156,7 +164,13 @@ TestEach() { #$1: command $2 file $3 stage
                 if [ $3 -eq 1 ]
                 then
                         $GREENTEA -o $2.py $2
-                        ReportFile "$2.py"
+			if [ -x $1 ]
+			then
+				$1 -m py_compile $2.py
+				ReportFile $2.pyc
+			else
+                        	ReportFile $2.py
+			fi
                 elif [ $3 -eq 2 ]
                 then
                         if [ -x $1 -a -f "$2.py" ]
@@ -177,7 +191,17 @@ TestEach() { #$1: command $2 file $3 stage
                 if [ $3 -eq 1 ]
                 then
                         $GREENTEA -o $2.pl $2
-                        ReportFile "$2.pl"
+                        if [ -x $1 -a -f "$2.pl" ]
+			then
+				#perl -cw
+				$1 -cw $2.pl
+				if [ $? -ne 0 ]
+				then
+					echo -n ", No" >> $OUTFILE
+					return 0
+				fi
+			fi
+			ReportFile "$2.pl"
                 elif [ $3 -eq 2 ]
                 then
                         if [ -x $1 -a -f "$2.pl" ]
