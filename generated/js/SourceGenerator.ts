@@ -10,7 +10,7 @@
 //    documentation and/or other materials provided with the distribution.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// #STR0# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
 // TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
 // PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
@@ -72,7 +72,7 @@ class GtNode {
 	}
 
 	public Evaluate(Visitor: GtGenerator): void {
-		Visitor.VisitEmptyNode(this);  /* must override */
+		/* must override */
 	}
 
 	public  IsError(): boolean {
@@ -91,6 +91,12 @@ class GtNode {
 			node = node.NextNode;
 		}
 		return n;
+	}
+}
+
+ class EmptyNode extends GtNode {
+	 constructor(Type: GtType, Token: GtToken) {
+		super(Type, Token);
 	}
 }
 
@@ -150,7 +156,7 @@ class NullNode extends GtNode {
 	}
 }
 
-// E.g., #STR1# $Expr
+// E.g., "~" $Expr
  class UnaryNode extends GtNode {
 	public Func: GtFunc;
 	public Expr: GtNode;
@@ -171,7 +177,7 @@ class NullNode extends GtNode {
 	}	
 }
 
-// E.g.,  $Expr #STR2#
+// E.g.,  $Expr "++"
 class SuffixNode extends GtNode {
 	public Func: GtFunc;
 	public Expr: GtNode;
@@ -192,7 +198,7 @@ class SuffixNode extends GtNode {
 	}
 }
 
-//E.g., #STR3# $Expr
+//E.g., "exists" $Expr
 class ExistsNode extends GtNode {
 	public Func: GtFunc;
 	public Expr: GtNode;
@@ -255,7 +261,7 @@ class InstanceOfNode extends GtNode {
 	}
 }
 
-// E.g., $LeftNode #STR4# $RightNode
+// E.g., $LeftNode "+" $RightNode
 class BinaryNode extends GtNode {
 	public Func: GtFunc;
 	public LeftNode: GtNode;
@@ -320,7 +326,7 @@ class OrNode extends GtNode {
 	}
 }
 
-//E.g., $CondExpr #STR5# $ThenExpr #STR6# $ElseExpr
+//E.g., $CondExpr "?" $ThenExpr ":" $ElseExpr
 class TrinaryNode extends GtNode {
 	public Func: GtFunc;
 	public CondExpr: GtNode;
@@ -364,7 +370,7 @@ class GetterNode extends GtNode {
 	}
 }
 
-//E.g., $Expr #STR7# $Indexer #STR8#
+//E.g., $Expr "[" $Indexer "]"
 class IndexerNode extends GtNode {
 	public Func: GtFunc;
 	public Expr: GtNode;
@@ -380,7 +386,7 @@ class IndexerNode extends GtNode {
 	}
 }
 
-//E.g., $Expr #STR9# $Index #STR10# $Index2 #STR11#
+//E.g., $Expr "[" $Index ":" $Index2 "]"
 class SliceNode extends GtNode {
 	public Func: GtFunc;
 	public Expr: GtNode;
@@ -416,7 +422,7 @@ class LetNode extends GtNode {
 	}
 }
 
-// E.g., $Param[0] #STR12# $Param[1], $Param[2], ... #STR13#
+// E.g., $Param[0] "(" $Param[1], $Param[2], ... ")"
 class ApplyNode extends GtNode {
 	public Func: GtFunc;
 	public Params: Array<GtNode>; /* [arg1, arg2, ...] */
@@ -434,7 +440,7 @@ class ApplyNode extends GtNode {
 	}
 }
 
-//E.g., $Recv.Func #STR14# $Param[0], $Param[1], ... #STR15#
+//E.g., $Recv.Func "(" $Param[0], $Param[1], ... ")"
 class MessageNode extends GtNode {
 	public Func: GtFunc;
 	public RecvNode: GtNode;
@@ -454,7 +460,7 @@ class MessageNode extends GtNode {
 	}
 }
 
-//E.g., #STR16# $Type #STR17# $Param[0], $Param[1], ... #STR18#
+//E.g., "new" $Type "(" $Param[0], $Param[1], ... ")"
 class NewNode extends GtNode {
 	public Params: Array<GtNode>;
 	Func: GtFunc;
@@ -472,7 +478,7 @@ class NewNode extends GtNode {
 	}
 }
 
-//E.g., #STR19# #STR20# $Cond #STR21# $ThenNode #STR22# $ElseNode
+//E.g., "if" "(" $Cond ")" $ThenNode "else" $ElseNode
 class IfNode extends GtNode {
 	public CondExpr: GtNode;
 	public ThenNode: GtNode;
@@ -489,7 +495,7 @@ class IfNode extends GtNode {
 	}
 }
 
-//E.g., #STR23# #STR24# $CondExpr #STR25# $LoopBody
+//E.g., "while" "(" $CondExpr ")" $LoopBody
 class WhileNode extends GtNode {
 	public CondExpr: GtNode;
 	public LoopBody: GtNode;
@@ -516,7 +522,7 @@ class DoWhileNode extends GtNode {
 	}
 }
 
-//E.g., #STR26# #STR27# #STR28# $CondExpr #STR29# $IterExpr #STR30# $LoopNode
+//E.g., "for" "(" ";" $CondExpr ";" $IterExpr ")" $LoopNode
 class ForNode extends GtNode {
 	public CondExpr: GtNode;
 	public IterExpr: GtNode;
@@ -532,7 +538,7 @@ class ForNode extends GtNode {
 	}
 }
 
-//E.g., #STR31# #STR32# $Variable #STR33# $IterExpr #STR34# $LoopNode
+//E.g., "for" "(" $Variable ":" $IterExpr ")" $LoopNode
 class ForEachNode extends GtNode {
 	public Variable: GtNode;
 	public IterExpr: GtNode;
@@ -662,9 +668,9 @@ class ErrorNode extends GtNode {
 	}
 }
 
-// E.g., #STR37# #STR38#..
+// E.g., "ls" "-a"..
 class CommandNode extends GtNode {
-	public Params: Array<GtNode>; /* [#STR39#, #STR40#, #STR41#, ...] */
+	public Params: Array<GtNode>; /* ["ls", "-la", "/", ...] */
 	public PipedNextNode: GtNode;
 	 constructor(Type: GtType, KeyToken: GtToken, PipedNextNode: GtNode) {
 		super(Type, KeyToken);
@@ -882,7 +888,7 @@ class GtFunc {
 
 	public  GetNativeMacro(): string {
 		var NativeMacro: string = <string>this.NativeRef;
-		NativeMacro = NativeMacro.substring(1, NativeMacro.length - 1); // remove #STR47#
+		NativeMacro = NativeMacro.substring(1, NativeMacro.length - 1); // remove ""
 		// FIXME
 		return NativeMacro;
 	}
@@ -1245,7 +1251,7 @@ class GtGenerator {
 	}
 
 	public CreateEmptyNode(Type: GtType): GtNode {
-		return new GtNode(Type, GtTokenContext.NullToken);
+		return new EmptyNode(Type, GtTokenContext.NullToken);
 	}
 
 	public CreateErrorNode(Type: GtType, ParsedTree: GtSyntaxTree): GtNode {
@@ -1259,8 +1265,11 @@ class GtGenerator {
 	/* language constructor */
 
 	public GetNativeType(Value: Object): GtType {
-		var NativeType: GtType = this.Context.AnyType;  // if unknown 
-
+		var NativeType: GtType = null;
+		NativeType = LibGreenTea.GetNativeType(this.Context, Value);
+		if(NativeType == null) {
+			NativeType = this.Context.AnyType;  // if unknown 
+		}
 		return NativeType;
 	}
 
@@ -1328,7 +1337,7 @@ class GtGenerator {
 
 	//------------------------------------------------------------------------
 
-	public VisitEmptyNode(EmptyNode: GtNode): void {
+	public VisitEmptyNode(EmptyNode: EmptyNode): void {
 		console.log("DEBUG: " + "empty node: " + EmptyNode.Token.ParsedText);
 	}
 
@@ -1623,7 +1632,7 @@ class SourceGenerator extends GtGenerator {
 				return this.FalseLiteral;
 			}
 		}
-		if(ConstValue instanceof String) {
+		if((typeof ConstValue == 'string' || ConstValue instanceof String)) {
 			var i: number = 0;
 			var Value: string = ConstValue.toString();
 			var List: string[] = Value.split("\n");
@@ -1756,7 +1765,7 @@ class SourceGenerator extends GtGenerator {
 	}
 
 	// Visitor API
-	public VisitEmptyNode(Node: GtNode): void {
+	public VisitEmptyNode(Node: EmptyNode): void {
 		this.PushSourceCode("");
 	}
 
@@ -1869,12 +1878,12 @@ class SourceGenerator extends GtGenerator {
 
 	public VisitLabelNode(Node: LabelNode): void {
 //		/*local*/String Label = Node.Label;
-//		this.PushSourceCode(Label + #STR128#);
+//		this.PushSourceCode(Label + ":");
 	}
 
 	public VisitJumpNode(Node: JumpNode): void {
 //		/*local*/String Label = Node.Label;
-//		this.PushSourceCode(#STR129# + Label);
+//		this.PushSourceCode("goto " + Label);
 //		this.StopVisitor(Node);
 	}
 }

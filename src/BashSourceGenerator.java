@@ -49,7 +49,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	private boolean IsEmptyNode(GtNode Node) {
 		return (Node == null || Node instanceof EmptyNode);
 	}
-	
+
 	public String VisitBlockWithIndent(GtNode Node, boolean inBlock, boolean allowDummyBlock) {
 		/*local*/String Code = "";
 		if(inBlock) {
@@ -89,7 +89,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/GtNode TrueNode = this.CreateConstNode(ParsedTree.NameSpace.Context.BooleanType, ParsedTree, true);
 		return this.CreateWhileNode(Type, ParsedTree, TrueNode, Block);
 	}
-	
+
 	private String ResolveCondition(GtNode Node) {
 		if(!Node.Type.equals(Node.Type.Context.BooleanType)) {
 			return null;
@@ -266,7 +266,8 @@ public class BashSourceGenerator extends SourceGenerator {
 				}
 			}
 			this.PushSourceCode("echo " + Ret + this.LineFeed + this.GetIndentString() + "return 0");
-		} else {
+		}
+		else {
 			this.PushSourceCode("return 0");
 		}
 	}

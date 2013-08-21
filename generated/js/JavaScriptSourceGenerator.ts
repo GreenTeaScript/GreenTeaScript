@@ -10,7 +10,7 @@
 //    documentation and/or other materials provided with the distribution.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// #STR0# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
 // TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
 // PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
@@ -25,25 +25,35 @@
 
 
 class JavaScriptSourceGenerator extends SourceGenerator {
+	private UseLetKeyword: boolean;
+	private IsNodeJS: boolean;
 
 	 constructor(TargetCode: string, OutputFile: string, GeneratorFlag: number) {
 		super(TargetCode, OutputFile, GeneratorFlag);
+		this.IsNodeJS = LibGreenTea.EqualsString(TargetCode, "nodejs");
 	}
 
-	private UseLetKeyword: boolean;
+	public  VisitBlockJS(Node: GtNode): string {
+		var Code: string = "";
+		var CurrentNode: GtNode = Node;
+		while(CurrentNode != null) {
+			var Statement: string = this.VisitNode(CurrentNode);
+			if(Statement.trim().length >0) {
+				Code += this.GetIndentString() + Statement + ";" + this.LineFeed;
+			}
+			CurrentNode = CurrentNode.NextNode;
+		}
+		return Code;
+	}
 
-	public  VisitBlockJS(Node: GtNode): void {
+	public  VisitBlockJSWithIndent(Node: GtNode): string {
 		var Code: string = "";
 		Code += "{" + this.LineFeed;
 		this.Indent();
-		var CurrentNode: GtNode = Node;
-		while(CurrentNode != null) {
-			Code += this.GetIndentString() + this.VisitNode(CurrentNode) + ";" + this.LineFeed;
-			CurrentNode = CurrentNode.NextNode;
-		}
+		Code += this.VisitBlockJS(Node);
 		this.UnIndent();
 		Code += this.GetIndentString() + "}";
-		this.PushSourceCode(Code);
+		return Code;
 	}
 
 	public VisitBinaryNode(Node: BinaryNode): void {
@@ -66,65 +76,54 @@ class JavaScriptSourceGenerator extends SourceGenerator {
 			Source += " = " + this.PopSourceCode();
 		}
 		Source +=  ";";
-		this.VisitBlockJS(Node.BlockNode);
+		this.VisitBlockJSWithIndent(Node.BlockNode);
 		this.PushSourceCode(Source + this.PopSourceCode());
 	}
 
 	public VisitIfNode(Node: IfNode): void {
-		Node.CondExpr.Evaluate(this);
-		this.VisitBlockJS(Node.ThenNode);
-		var ThenBlock: string = this.PopSourceCode();
-		var CondExpr: string = this.PopSourceCode();
+		var ThenBlock: string = this.VisitBlockJSWithIndent(Node.ThenNode);
+		var CondExpr: string = this.VisitNode(Node.CondExpr);
 		var Source: string = "if(" + CondExpr + ") " + ThenBlock;
 		if(Node.ElseNode != null) {
-			this.VisitBlockJS(Node.ElseNode);
-			Source = Source + " else " + this.PopSourceCode();
+			Source = Source + " else " + this.VisitBlockJSWithIndent(Node.ElseNode);
 		}
 		this.PushSourceCode(Source);
 	}
 
 	public VisitWhileNode(Node: WhileNode): void {
-		this.VisitBlockJS(Node.LoopBody);
-		var LoopBody: string = this.PopSourceCode();
+		var LoopBody: string = this.VisitBlockJSWithIndent(Node.LoopBody);
 		var CondExpr: string = this.VisitNode(Node.CondExpr);
 		this.PushSourceCode("while(" + CondExpr + ") {" + LoopBody + "}");
 	}
 
 	public VisitForNode(Node: ForNode): void {
-		this.VisitBlockJS(Node.LoopBody);
-		var LoopBody: string = this.PopSourceCode();
+		var LoopBody: string = this.VisitBlockJSWithIndent(Node.LoopBody);
 		var IterExpr: string = this.VisitNode(Node.IterExpr);
 		var CondExpr: string = this.VisitNode(Node.CondExpr);
 		this.PushSourceCode("for(;" + CondExpr + "; " + IterExpr + ") {" + LoopBody + "}");
 	}
 
 	public VisitDoWhileNode(Node: DoWhileNode): void {
-		this.VisitBlockJS(Node.LoopBody);
-		var LoopBody: string = this.PopSourceCode();
+		var LoopBody: string = this.VisitBlockJSWithIndent(Node.LoopBody);
 		var CondExpr: string = this.VisitNode(Node.CondExpr);
 		this.PushSourceCode("do {" + LoopBody + "}while(" + CondExpr + ");");
 	}
 
 	public VisitTryNode(Node: TryNode): void {
 		var Code: string = "try ";
-		this.VisitBlockJS(Node.TryBlock);
-		Code += this.PopSourceCode();
+		Code += this.VisitBlockJSWithIndent(Node.TryBlock);
 		var Val: LetNode = <LetNode> Node.CatchExpr;
 		Code += " catch (" + Val.Type.toString() + " " + Val.VariableName + ") ";
-		this.VisitBlockJS(Node.CatchBlock);
-		Code += this.PopSourceCode();
+		Code += this.VisitBlockJSWithIndent(Node.CatchBlock);
 		if(Node.FinallyBlock != null) {
-			this.VisitBlockJS(Node.FinallyBlock);
-			Code += " finally " + this.PopSourceCode();
+			Code += " finally " + this.VisitBlockJSWithIndent(Node.FinallyBlock);
 		}
 		this.PushSourceCode(Code);
 	}
 
 	public VisitThrowNode(Node: ThrowNode): void {
-		Node.Expr.Evaluate(this);
-		var Expr: string = this.PopSourceCode();
+		var Expr: string = this.VisitNode(Node.Expr);
 		this.PushSourceCode("throw " + Expr);
-		return;
 	}
 
 	public VisitErrorNode(Node: ErrorNode): void {
@@ -132,7 +131,6 @@ class JavaScriptSourceGenerator extends SourceGenerator {
 		this.PushSourceCode("(function() {throw new Error(\"" + Expr + "\") })()");
 	}
 
-	// This must be extended in each language
 	public GenerateFunc(Func: GtFunc, NameList: Array<string>, Body: GtNode): void {
 		var ArgCount: number = Func.Types.length - 1;
 		var Code: string = "var " + Func.GetNativeFuncName() + " = (function(";
@@ -144,25 +142,52 @@ class JavaScriptSourceGenerator extends SourceGenerator {
 			Code = Code + NameList.get(i);
 			i = i + 1;
 		}
-		Code = Code + ") ";
-		this.VisitBlockJS(Body);
-		Code += this.PopSourceCode() + ")";
-		//this.PushSourceCode(Code);
+		Code = Code + ") " + this.VisitBlockJSWithIndent(Body) + ");";
 		this.WriteLineCode(Code);
 	}
 
-	public Eval(Node: GtNode): Object {
-		this.VisitBlock(Node);
-		var ret: string = "";
-//		while(this.GeneratedCodeStack.size() > 0) {
-//			/*local*/String Line = this.PopSourceCode();
-//			if(Line.length() > 0) {
-//				ret =  Line + #STR43# + ret;
-//			}
+	public GenerateClassField(Type: GtType, ClassField: GtClassField): void {
+		var TypeName: string = Type.ShortClassName;
+		var Program: string = this.GetIndentString() + "var " + TypeName + " = (function() {" + this.LineFeed;
+//		if(Type.SuperType != null) {
+//			Program += "(" + Type.SuperType.ShortClassName + ")";
 //		}
-		ret = this.PopSourceCode();
+		this.Indent();
+		Program += this.GetIndentString() + "function " + TypeName + "() {" + this.LineFeed;
+		this.Indent();
+		var i: number = 0;
+		while(i < ClassField.FieldList.size()) {
+			var FieldInfo: GtFieldInfo = ClassField.FieldList.get(i);
+			var InitValue: string = this.StringifyConstValue(FieldInfo.InitValue);
+			if(!FieldInfo.Type.IsNative()) {
+				InitValue = this.NullLiteral;
+			}
+			Program += this.GetIndentString() + this.GetRecvName() + "." + FieldInfo.NativeName + " = " + InitValue + ";" + this.LineFeed;
+			i = i + 1;
+		}
+		this.UnIndent();
+		Program += this.GetIndentString() + "};" + this.LineFeed;
+		Program += this.GetIndentString() + "return " + TypeName + ";" + this.LineFeed;
+		this.UnIndent();
+		Program += this.GetIndentString() + "})();" + this.LineFeed;
+		this.WriteLineCode(Program);
+	}
+	public Eval(Node: GtNode): Object {
+		var ret: string = this.VisitBlockJS(Node);
 		this.WriteLineCode(ret);
 		return ret;
 	}
 
+	public StartCompilationUnit(): void {
+		if(this.IsNodeJS) {
+			this.WriteLineCode("var assert = require('assert');");
+		}
+		else {			
+			this.WriteLineCode("var assert = console.assert;");
+		}
+	}
+
+	public InvokeMainFunc(MainFuncName: string): void {
+		this.WriteLineCode(MainFuncName + "();");
+	}
 }

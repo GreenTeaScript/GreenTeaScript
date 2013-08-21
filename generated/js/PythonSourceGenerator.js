@@ -10,7 +10,7 @@
 //    documentation and/or other materials provided with the distribution.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// #STR0# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
 // TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
 // PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
@@ -80,10 +80,18 @@ var PythonSourceGenerator = (function (_super) {
         return this.CreateWhileNode(Type, ParsedTree, TrueNode, Block);
     };
 
+    PythonSourceGenerator.prototype.IsEmptyBlock = function (Node) {
+        return (Node instanceof EmptyNode) && Node.NextNode == null;
+    };
+
     // Visitor API
     PythonSourceGenerator.prototype.VisitWhileNode = function (Node) {
         var Program = "while " + this.VisitNode(Node.CondExpr) + ":" + this.LineFeed;
-        Program += this.VisitBlockWithIndent(Node.LoopBody, true);
+        if (this.IsEmptyBlock(Node.LoopBody)) {
+            Program += this.GetIndentString() + "pass";
+        } else {
+            Program += this.VisitBlockWithIndent(Node.LoopBody, true);
+        }
         this.PushSourceCode(Program);
     };
 
@@ -128,9 +136,13 @@ var PythonSourceGenerator = (function (_super) {
     PythonSourceGenerator.prototype.VisitIfNode = function (Node) {
         var CondExpr = this.VisitNode(Node.CondExpr);
         var ThenBlock = this.VisitBlockWithIndent(Node.ThenNode, true);
-        var ElseBlock = this.VisitBlockWithIndent(Node.ElseNode, true);
         var Code = "if " + CondExpr + ":" + this.LineFeed + ThenBlock;
-        if (Node.ElseNode != null) {
+        if (this.IsEmptyBlock(Node.ThenNode)) {
+            Code += this.GetIndentString() + "pass" + this.LineFeed + this.GetIndentString();
+        }
+
+        if (Node.ElseNode != null && !this.IsEmptyBlock(Node.ElseNode)) {
+            var ElseBlock = this.VisitBlockWithIndent(Node.ElseNode, true);
             Code += "else:" + this.LineFeed + ElseBlock;
         }
         this.PushSourceCode(Code);
@@ -217,7 +229,7 @@ var PythonSourceGenerator = (function (_super) {
         var Program = this.GetIndentString() + "class " + Type.ShortClassName;
 
         //		if(Type.SuperType != null) {
-        //			Program += #STR54# + Type.SuperType.ShortClassName + #STR55#;
+        //			Program += "(" + Type.SuperType.ShortClassName + ")";
         //		}
         Program += ":" + this.LineFeed;
         this.Indent();

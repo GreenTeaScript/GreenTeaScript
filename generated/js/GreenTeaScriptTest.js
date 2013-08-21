@@ -10,7 +10,7 @@
 //    documentation and/or other materials provided with the distribution.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// #STR0# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
 // TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
 // PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
@@ -39,7 +39,7 @@ var GtScriptRunner = (function () {
     };
 
     GtScriptRunner.Test = function (Target, ScriptPath, ResultPath) {
-        //LangDeps.println(#STR7# + ScriptPath + #STR8# + Target + #STR9#);
+        //LangDeps.println("Testing " + ScriptPath + " (Target:" + Target + ") ... ");
         var Expected = GtScriptRunner.LoadFile(ResultPath);
         var Actual = GtScriptRunner.ExecuteScript(ScriptPath, Target);
         if (!Expected.equals(Actual)) {
@@ -49,7 +49,7 @@ var GtScriptRunner = (function () {
             console.log(Actual);
         }
         LibGreenTea.Assert(Expected.equals(Actual));
-        //LangDeps.println(#STR12# + ScriptPath + #STR13# + Target + #STR14#);
+        //LangDeps.println("Testing " + ScriptPath + " (Target:" + Target + ") ... OK");
     };
     return GtScriptRunner;
 })();
