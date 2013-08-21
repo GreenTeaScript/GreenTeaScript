@@ -19,7 +19,8 @@ boolean ==(int x, int y) as "(eqInt $1 $2)";
 boolean !=(int x, int y) as "(neInt $1 $2)";
 
 String +(String x, String y) as "(concat $1 $2)";
-boolean ==(String x, String y) as "(eqstr $1 $2)";
+boolean ==(String x, String y) as "(eqStr $1 $2)";
+boolean !=(String x, String y) as "(neStr $1 $2)";
 
 boolean not(boolean x)   as "(notBool $1)";
 boolean ==(boolean x, boolean y) as "(eqBool $1 $2)";

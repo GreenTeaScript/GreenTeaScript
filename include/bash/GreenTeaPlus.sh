@@ -5,7 +5,6 @@ assert() {
     if (( $? != 0 )) ;then
         local line=${BASH_LINENO[0]}
         local src=${BASH_SOURCE[1]}
-        local func=${FUNCNAME[0]}
         echo "Assertion Error at $src line $line" >&2
     fi
 }
@@ -21,7 +20,7 @@ concat() {
 
 # concat $A $b
 
-eqstr() {
+eqStr() {
     local x=$1
     local y=$2
 
@@ -33,6 +32,17 @@ eqstr() {
 }
 
 # eqstr "you" "you"
+
+neStr() {
+    local x=$1
+    local y=$2
+
+    if [ "$x" != "$y" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
 
 ltInt() {
     (( $1 < $2 ))

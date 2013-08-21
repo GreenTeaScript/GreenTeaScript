@@ -142,27 +142,17 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	private String CreateAssertFunc(ApplyNode Node) {
-		/*local*/ArrayList<GtNode> ParamList = Node.Params;
-		/*local*/int Size = GtStatic.ListSize(ParamList);
-		/*local*/String[] ParamCode = new String[Size - 1];
-		/*local*/int i = 1;
-		while(i < Size) {
-			/*local*/String Param = this.VisitNode(ParamList.get(i));
-			if(ParamList.get(i) instanceof ConstNode) {
-				/*local*/ConstNode Const = (/*cast*/ConstNode)ParamList.get(i);
-				if(Const.Type.equals(Const.Type.Context.BooleanType)) {
-					if(Const.ConstValue.equals(true)) {
-						Param = "true";
-					}
-					else {
-						Param = "false";
-					}
-				}
+		/*local*/GtNode ParamNode = Node.Params.get(1);
+		/*local*/String Param = this.VisitNode(ParamNode);
+		if(ParamNode instanceof ConstNode && 
+				ParamNode.Type.equals(ParamNode.Type.Context.BooleanType)) {
+			/*local*/ConstNode Const = (/*cast*/ConstNode)ParamNode;
+			Param = "false";
+			if(Const.ConstValue.equals(true)) {
+				Param = "true";
 			}
-			ParamCode[i - 1] = "\"" + Param + "\"";
-			i = i + 1;
 		}
-		return this.JoinCode("assert ", 0, ParamCode, "", " ");
+		return "assert \"" + Param + "\"";
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
@@ -256,7 +246,7 @@ public class BashSourceGenerator extends SourceGenerator {
 			/*local*/String Ret = this.ResolveValueType(Node.Expr);
 			if(Node.Type.equals(Node.Type.Context.BooleanType) || 
 					(Node.Type.equals(Node.Type.Context.IntType) && this.inMainFunc)) {
-				this.PushSourceCode("return " + Ret + this.LineFeed);
+				this.PushSourceCode("return " + Ret);
 				return;
 			}
 			this.PushSourceCode("echo " + Ret + this.LineFeed + this.GetIndentString() + "return 0");
