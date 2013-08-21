@@ -33,19 +33,28 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 	}
 
 	/*field*/private boolean UseLetKeyword;
-
-	public  void VisitBlockJS(GtNode Node) {
+	
+	public  String VisitBlockJS(GtNode Node) {
+		/*local*/String Code = "";
+		/*local*/GtNode CurrentNode = Node;
+		while(CurrentNode != null) {
+			/*local*/String Statement = this.VisitNode(CurrentNode);
+			if(Statement.trim().length() >0){
+				Code += this.GetIndentString() + Statement + ";" + this.LineFeed;
+			}
+			CurrentNode = CurrentNode.NextNode;
+		}
+		return Code;
+	}
+	
+	public  String VisitBlockJSWithIndent(GtNode Node) {
 		/*local*/String Code = "";
 		Code += "{" + this.LineFeed;
 		this.Indent();
-		/*local*/GtNode CurrentNode = Node;
-		while(CurrentNode != null) {
-			Code += this.GetIndentString() + this.VisitNode(CurrentNode) + ";" + this.LineFeed;
-			CurrentNode = CurrentNode.NextNode;
-		}
+		Code += this.VisitBlockJS(Node);
 		this.UnIndent();
 		Code += this.GetIndentString() + "}";
-		this.PushSourceCode(Code);
+		return Code;
 	}
 
 	@Override public void VisitBinaryNode(BinaryNode Node) {
@@ -68,65 +77,54 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 			Source += " = " + this.PopSourceCode();
 		}
 		Source +=  ";";
-		this.VisitBlockJS(Node.BlockNode);
+		this.VisitBlockJSWithIndent(Node.BlockNode);
 		this.PushSourceCode(Source + this.PopSourceCode());
 	}
 
 	@Override public void VisitIfNode(IfNode Node) {
-		Node.CondExpr.Evaluate(this);
-		this.VisitBlockJS(Node.ThenNode);
-		/*local*/String ThenBlock = this.PopSourceCode();
-		/*local*/String CondExpr = this.PopSourceCode();
+		/*local*/String ThenBlock = this.VisitBlockJSWithIndent(Node.ThenNode);
+		/*local*/String CondExpr = this.VisitNode(Node.CondExpr);
 		/*local*/String Source = "if(" + CondExpr + ") " + ThenBlock;
 		if(Node.ElseNode != null) {
-			this.VisitBlockJS(Node.ElseNode);
-			Source = Source + " else " + this.PopSourceCode();
+			Source = Source + " else " + this.VisitBlockJSWithIndent(Node.ElseNode);
 		}
 		this.PushSourceCode(Source);
 	}
 
 	@Override public void VisitWhileNode(WhileNode Node) {
-		this.VisitBlockJS(Node.LoopBody);
-		/*local*/String LoopBody = this.PopSourceCode();
+		/*local*/String LoopBody = this.VisitBlockJSWithIndent(Node.LoopBody);
 		/*local*/String CondExpr = this.VisitNode(Node.CondExpr);
 		this.PushSourceCode("while(" + CondExpr + ") {" + LoopBody + "}");
 	}
 
 	@Override public void VisitForNode(ForNode Node) {
-		this.VisitBlockJS(Node.LoopBody);
-		/*local*/String LoopBody = this.PopSourceCode();
+		/*local*/String LoopBody = this.VisitBlockJSWithIndent(Node.LoopBody);
 		/*local*/String IterExpr = this.VisitNode(Node.IterExpr);
 		/*local*/String CondExpr = this.VisitNode(Node.CondExpr);
 		this.PushSourceCode("for(;" + CondExpr + "; " + IterExpr + ") {" + LoopBody + "}");
 	}
 
 	@Override public void VisitDoWhileNode(DoWhileNode Node) {
-		this.VisitBlockJS(Node.LoopBody);
-		/*local*/String LoopBody = this.PopSourceCode();
+		/*local*/String LoopBody = this.VisitBlockJSWithIndent(Node.LoopBody);
 		/*local*/String CondExpr = this.VisitNode(Node.CondExpr);
 		this.PushSourceCode("do {" + LoopBody + "}while(" + CondExpr + ");");
 	}
 
 	@Override public void VisitTryNode(TryNode Node) {
 		/*local*/String Code = "try ";
-		this.VisitBlockJS(Node.TryBlock);
-		Code += this.PopSourceCode();
+		Code += this.VisitBlockJSWithIndent(Node.TryBlock);
 		/*local*/LetNode Val = (/*cast*/LetNode) Node.CatchExpr;
 		Code += " catch (" + Val.Type.toString() + " " + Val.VariableName + ") ";
-		this.VisitBlockJS(Node.CatchBlock);
-		Code += this.PopSourceCode();
+		Code += this.VisitBlockJSWithIndent(Node.CatchBlock);
 		if(Node.FinallyBlock != null) {
-			this.VisitBlockJS(Node.FinallyBlock);
-			Code += " finally " + this.PopSourceCode();
+			Code += " finally " + this.VisitBlockJSWithIndent(Node.FinallyBlock);
 		}
 		this.PushSourceCode(Code);
 	}
 
 	@Override public void VisitThrowNode(ThrowNode Node) {
-		Node.Expr.Evaluate(this);
-		/*local*/String Expr = this.PopSourceCode();
+		/*local*/String Expr = this.VisitNode(Node.Expr);
 		this.PushSourceCode("throw " + Expr);
-		return;
 	}
 
 	@Override public void VisitErrorNode(ErrorNode Node) {
@@ -134,7 +132,6 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 		this.PushSourceCode("(function() {throw new Error(\"" + Expr + "\") })()");
 	}
 
-	// This must be extended in each language
 	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> NameList, GtNode Body) {
 		/*local*/int ArgCount = Func.Types.length - 1;
 		/*local*/String Code = "var " + Func.GetNativeFuncName() + " = (function(";
@@ -146,25 +143,19 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 			Code = Code + NameList.get(i);
 			i = i + 1;
 		}
-		Code = Code + ") ";
-		this.VisitBlockJS(Body);
-		Code += this.PopSourceCode() + ")";
-		//this.PushSourceCode(Code);
+		Code = Code + ") " + this.VisitBlockJSWithIndent(Body) + ");";
 		this.WriteLineCode(Code);
 	}
 
 	@Override public Object Eval(GtNode Node) {
-		this.VisitBlock(Node);
-		/*local*/String ret = "";
-//		while(this.GeneratedCodeStack.size() > 0) {
-//			/*local*/String Line = this.PopSourceCode();
-//			if(Line.length() > 0) {
-//				ret =  Line + ";\n" + ret;
-//			}
-//		}
-		ret = this.PopSourceCode();
+		/*local*/String ret = this.VisitBlockJS(Node);
 		this.WriteLineCode(ret);
 		return ret;
 	}
 
+	@Override public void InvokeMainFunc(String MainFuncName) {
+		this.WriteLineCode("if(__name__ == '__main__'){");
+		this.WriteLineCode(this.Tab + MainFuncName + "();");
+		this.WriteLineCode("}");
+	}
 }

@@ -9,12 +9,20 @@ my $Attr = "(?:\\b(?:public|private|protected|static|final)\\b\\s*)";
 my $src = join '', <STDIN>;
 
 my @StringLiterals;
+my @Comments;
 
 sub ProtectString{
 	my $n = @StringLiterals;
 	my $text = $_[0];
 	$StringLiterals[$n] = $text;
 	return "#STR$n#"
+}
+
+sub ProtectComment{
+	my $n = @Comments;
+	my $text = $_[0];
+	$Comments[$n] = $text;
+	return "#COMMENT$n#"
 }
 
 # Delegates.
@@ -52,7 +60,7 @@ $src =~ s/class GtStatic(.*?)^}/GtStaticSection($1)/ems;
 
 # Comments
 $src =~ s/^\/\/[#\s]*ifdef\s+JAVA.*?VAJA//gms;
-$src =~ s/(\/\/.*?)$/&ProtectString($1)/gems;
+$src =~ s/(\/\/.*?)$/&ProtectComment($1)/gems;
 # Fields. public static int n = 0; => public static n: int = 0;
 $src =~ s/\/\*field\*\/($Attr*)($Type)\s+($Sym)/$1$3: $2/gm;
 # Local variables.  int n = 0; => var n: int = 0;
@@ -67,7 +75,7 @@ $src =~ s/\(\/\*cast\*\/($Type)\)/<$1>/g;
 $src =~ s/\/\*BeginArray\*\/{/\[/g;
 $src =~ s/\/\*EndArray\*\/}/\]/g;
 # Protect Comments
-$src =~ s/(\/\*.*?\*\/)/&ProtectString($1)/gmse;
+$src =~ s/(\/\*.*?\*\/)/&ProtectComment($1)/gmse;
 
 # Methods. public int f(float n){...} => public f(#params#float n): int{...}
 $src =~ s/($Attr*)($Type)\s+($Sym)\s*\((.*?)\)/$1$3(#params#$4): $2/g;
@@ -126,15 +134,15 @@ $src =~ s/(LibGreenTea\.)?DebugP\(/console.log("DEBUG: " + /g;
 $src =~ s/LibGreenTea\.println\(/console.log(/g;
 $src =~ s/function console.log\("DEBUG: " \+ /function DebugP(/g;
 
-# For string literal
-#$src =~ s/name\: undefined/undefined name/g;
-#$src =~ s/tree\: untyped/untyped tree/g;
-#$src =~ s/undefinedchecker: type/undefined type checker/g;
-#$src =~ s/expected\: (after|at)\: is / is expected $1 /g;
-#$src =~ s/expected \\"close: tostring\: literal: the/expected \\" to close the string literal/g;
-
-my $n = @StringLiterals;
+my $n = @Comments;
 my $i = 0;
+while($i < $n){
+	$src =~ s/#COMMENT$i#/$Comments[$i]/;
+	$i = $i + 1;
+}
+
+$n = @StringLiterals;
+$i = 0;
 while($i < $n){
 	$src =~ s/#STR$i#/$StringLiterals[$i]/;
 	$i = $i + 1;
