@@ -80,7 +80,7 @@ int main() {
 	assert(TestFunc2(0) == 0);
 	assert(TestFunc3(1) == 1);
 	assert(TestFunc3(0) == 0);
-	assert(TestFunc4(1) == 0);
+	assert(TestFunc4(1) == 1);
 	assert(TestFunc4(0) == 0);
 	assert(TestFunc5(1) == 1);
 	assert(TestFunc5(0) == 0);
