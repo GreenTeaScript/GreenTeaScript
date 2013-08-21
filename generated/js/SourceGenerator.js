@@ -10,7 +10,7 @@
 //    documentation and/or other materials provided with the distribution.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// #STR0# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
 // TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
 // PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
@@ -66,7 +66,7 @@ var GtNode = (function () {
     };
 
     GtNode.prototype.Evaluate = function (Visitor) {
-        Visitor.VisitEmptyNode(this);
+        /* must override */
     };
 
     GtNode.prototype.IsError = function () {
@@ -88,6 +88,14 @@ var GtNode = (function () {
     };
     return GtNode;
 })();
+
+var EmptyNode = (function (_super) {
+    __extends(EmptyNode, _super);
+    function EmptyNode(Type, Token) {
+        _super.call(this, Type, Token);
+    }
+    return EmptyNode;
+})(GtNode);
 
 var ConstNode = (function (_super) {
     __extends(ConstNode, _super);
@@ -148,7 +156,7 @@ var CastNode = (function (_super) {
     return CastNode;
 })(GtNode);
 
-// E.g., #STR1# $Expr
+// E.g., "~" $Expr
 var UnaryNode = (function (_super) {
     __extends(UnaryNode, _super);
     function UnaryNode(Type, Token, Func, Expr) {
@@ -169,7 +177,7 @@ var UnaryNode = (function (_super) {
     return UnaryNode;
 })(GtNode);
 
-// E.g.,  $Expr #STR2#
+// E.g.,  $Expr "++"
 var SuffixNode = (function (_super) {
     __extends(SuffixNode, _super);
     function SuffixNode(Type, Token, Func, Expr) {
@@ -190,7 +198,7 @@ var SuffixNode = (function (_super) {
     return SuffixNode;
 })(GtNode);
 
-//E.g., #STR3# $Expr
+//E.g., "exists" $Expr
 var ExistsNode = (function (_super) {
     __extends(ExistsNode, _super);
     function ExistsNode(Type, Token, Func, Expr) {
@@ -253,7 +261,7 @@ var InstanceOfNode = (function (_super) {
     return InstanceOfNode;
 })(GtNode);
 
-// E.g., $LeftNode #STR4# $RightNode
+// E.g., $LeftNode "+" $RightNode
 var BinaryNode = (function (_super) {
     __extends(BinaryNode, _super);
     function BinaryNode(Type, Token, Func, Left, Right) {
@@ -316,7 +324,7 @@ var OrNode = (function (_super) {
     return OrNode;
 })(GtNode);
 
-//E.g., $CondExpr #STR5# $ThenExpr #STR6# $ElseExpr
+//E.g., $CondExpr "?" $ThenExpr ":" $ElseExpr
 var TrinaryNode = (function (_super) {
     __extends(TrinaryNode, _super);
     function TrinaryNode(Type, Token, CondExpr, ThenExpr, ElseExpr) {
@@ -358,7 +366,7 @@ var GetterNode = (function (_super) {
     return GetterNode;
 })(GtNode);
 
-//E.g., $Expr #STR7# $Indexer #STR8#
+//E.g., $Expr "[" $Indexer "]"
 var IndexerNode = (function (_super) {
     __extends(IndexerNode, _super);
     function IndexerNode(Type, Token, Func, Expr, IndexAt) {
@@ -373,7 +381,7 @@ var IndexerNode = (function (_super) {
     return IndexerNode;
 })(GtNode);
 
-//E.g., $Expr #STR9# $Index #STR10# $Index2 #STR11#
+//E.g., $Expr "[" $Index ":" $Index2 "]"
 var SliceNode = (function (_super) {
     __extends(SliceNode, _super);
     function SliceNode(Type, Token, Func, Expr, Index1, Index2) {
@@ -405,7 +413,7 @@ var LetNode = (function (_super) {
     return LetNode;
 })(GtNode);
 
-// E.g., $Param[0] #STR12# $Param[1], $Param[2], ... #STR13#
+// E.g., $Param[0] "(" $Param[1], $Param[2], ... ")"
 var ApplyNode = (function (_super) {
     __extends(ApplyNode, _super);
     function ApplyNode(Type, KeyToken, Func) {
@@ -423,7 +431,7 @@ var ApplyNode = (function (_super) {
     return ApplyNode;
 })(GtNode);
 
-//E.g., $Recv.Func #STR14# $Param[0], $Param[1], ... #STR15#
+//E.g., $Recv.Func "(" $Param[0], $Param[1], ... ")"
 var MessageNode = (function (_super) {
     __extends(MessageNode, _super);
     function MessageNode(Type, KeyToken, Func, RecvNode) {
@@ -442,7 +450,7 @@ var MessageNode = (function (_super) {
     return MessageNode;
 })(GtNode);
 
-//E.g., #STR16# $Type #STR17# $Param[0], $Param[1], ... #STR18#
+//E.g., "new" $Type "(" $Param[0], $Param[1], ... ")"
 var NewNode = (function (_super) {
     __extends(NewNode, _super);
     function NewNode(Type, Token, Func) {
@@ -460,7 +468,7 @@ var NewNode = (function (_super) {
     return NewNode;
 })(GtNode);
 
-//E.g., #STR19# #STR20# $Cond #STR21# $ThenNode #STR22# $ElseNode
+//E.g., "if" "(" $Cond ")" $ThenNode "else" $ElseNode
 var IfNode = (function (_super) {
     __extends(IfNode, _super);
     /* If CondExpr then ThenBlock else ElseBlock */
@@ -476,7 +484,7 @@ var IfNode = (function (_super) {
     return IfNode;
 })(GtNode);
 
-//E.g., #STR23# #STR24# $CondExpr #STR25# $LoopBody
+//E.g., "while" "(" $CondExpr ")" $LoopBody
 var WhileNode = (function (_super) {
     __extends(WhileNode, _super);
     function WhileNode(Type, Token, CondExpr, LoopBody) {
@@ -503,7 +511,7 @@ var DoWhileNode = (function (_super) {
     return DoWhileNode;
 })(GtNode);
 
-//E.g., #STR26# #STR27# #STR28# $CondExpr #STR29# $IterExpr #STR30# $LoopNode
+//E.g., "for" "(" ";" $CondExpr ";" $IterExpr ")" $LoopNode
 var ForNode = (function (_super) {
     __extends(ForNode, _super);
     function ForNode(Type, Token, CondExpr, IterExpr, LoopBody) {
@@ -518,7 +526,7 @@ var ForNode = (function (_super) {
     return ForNode;
 })(GtNode);
 
-//E.g., #STR31# #STR32# $Variable #STR33# $IterExpr #STR34# $LoopNode
+//E.g., "for" "(" $Variable ":" $IterExpr ")" $LoopNode
 var ForEachNode = (function (_super) {
     __extends(ForEachNode, _super);
     function ForEachNode(Type, Token, Variable, IterExpr, LoopBody) {
@@ -657,7 +665,7 @@ var ErrorNode = (function (_super) {
     return ErrorNode;
 })(GtNode);
 
-// E.g., #STR37# #STR38#..
+// E.g., "ls" "-a"..
 var CommandNode = (function (_super) {
     __extends(CommandNode, _super);
     function CommandNode(Type, KeyToken, PipedNextNode) {
@@ -1205,7 +1213,7 @@ var GtGenerator = (function () {
     };
 
     GtGenerator.prototype.CreateEmptyNode = function (Type) {
-        return new GtNode(Type, GtTokenContext.NullToken);
+        return new EmptyNode(Type, GtTokenContext.NullToken);
     };
 
     GtGenerator.prototype.CreateErrorNode = function (Type, ParsedTree) {
@@ -1218,8 +1226,11 @@ var GtGenerator = (function () {
 
     /* language constructor */
     GtGenerator.prototype.GetNativeType = function (Value) {
-        var NativeType = this.Context.AnyType;
-
+        var NativeType = null;
+        NativeType = LibGreenTea.GetNativeType(this.Context, Value);
+        if (NativeType == null) {
+            NativeType = this.Context.AnyType;
+        }
         return NativeType;
     };
 
@@ -1570,7 +1581,7 @@ var SourceGenerator = (function (_super) {
                 return this.FalseLiteral;
             }
         }
-        if (ConstValue instanceof String) {
+        if ((typeof ConstValue == 'string' || ConstValue instanceof String)) {
             var i = 0;
             var Value = ConstValue.toString();
             var List = Value.split("\n");
@@ -1810,12 +1821,12 @@ var SourceGenerator = (function (_super) {
 
     SourceGenerator.prototype.VisitLabelNode = function (Node) {
         //		/*local*/String Label = Node.Label;
-        //		this.PushSourceCode(Label + #STR128#);
+        //		this.PushSourceCode(Label + ":");
     };
 
     SourceGenerator.prototype.VisitJumpNode = function (Node) {
         //		/*local*/String Label = Node.Label;
-        //		this.PushSourceCode(#STR129# + Label);
+        //		this.PushSourceCode("goto " + Label);
         //		this.StopVisitor(Node);
     };
     return SourceGenerator;

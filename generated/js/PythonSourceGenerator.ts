@@ -10,7 +10,7 @@
 //    documentation and/or other materials provided with the distribution.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// #STR0# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
 // TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
 // PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
@@ -80,10 +80,19 @@ class PythonSourceGenerator extends SourceGenerator {
 		return this.CreateWhileNode(Type, ParsedTree, TrueNode, Block);
 	}
 
+	IsEmptyBlock(Node: GtNode): boolean {
+		return (Node instanceof EmptyNode) && Node.NextNode == null;
+	}
+
 	// Visitor API
 	public VisitWhileNode(Node: WhileNode): void {
 		var Program: string = "while " + this.VisitNode(Node.CondExpr) + ":" + this.LineFeed;
-		Program += this.VisitBlockWithIndent(Node.LoopBody, true);
+		if(this.IsEmptyBlock(Node.LoopBody)) {
+			Program += this.GetIndentString() + "pass";
+		}
+		else {
+			Program += this.VisitBlockWithIndent(Node.LoopBody, true);
+		}
 		this.PushSourceCode(Program);
 	}
 
@@ -130,9 +139,13 @@ class PythonSourceGenerator extends SourceGenerator {
 	public VisitIfNode(Node: IfNode): void {
 		var CondExpr: string = this.VisitNode(Node.CondExpr);
 		var ThenBlock: string = this.VisitBlockWithIndent(Node.ThenNode, true);
-		var ElseBlock: string = this.VisitBlockWithIndent(Node.ElseNode, true);
 		var Code: string = "if " + CondExpr + ":" + this.LineFeed + ThenBlock;
-		if(Node.ElseNode != null) {
+		if(this.IsEmptyBlock(Node.ThenNode)) {
+			Code += this.GetIndentString() + "pass" + this.LineFeed + this.GetIndentString();
+		}
+
+		if(Node.ElseNode != null && !this.IsEmptyBlock(Node.ElseNode)) {
+			var ElseBlock: string = this.VisitBlockWithIndent(Node.ElseNode, true);
 			Code += "else:" + this.LineFeed + ElseBlock;
 		}
 		this.PushSourceCode(Code);
@@ -176,7 +189,7 @@ class PythonSourceGenerator extends SourceGenerator {
 			count += 1;
 			CurrentNode = <CommandNode> CurrentNode.PipedNextNode;
 		}
-		
+
 		if(Node.Type.equals(Node.Type.Context.StringType)) {
 			Code = "subprocess.check_output(\"" + Code + "\", shell=True)";
 		}
@@ -220,11 +233,11 @@ class PythonSourceGenerator extends SourceGenerator {
 	public GenerateClassField(Type: GtType, ClassField: GtClassField): void {
 		var Program: string = this.GetIndentString() + "class " + Type.ShortClassName;
 //		if(Type.SuperType != null) {
-//			Program += #STR54# + Type.SuperType.ShortClassName + #STR55#;
+//			Program += "(" + Type.SuperType.ShortClassName + ")";
 //		}
 		Program += ":" + this.LineFeed;
 		this.Indent();
-		
+
 		Program += this.GetIndentString() + "def __init__(" + this.GetRecvName() + ")" + ":" + this.LineFeed;
 		this.Indent();
 		var i: number = 0;
@@ -238,7 +251,7 @@ class PythonSourceGenerator extends SourceGenerator {
 			i = i + 1;
 		}
 		this.UnIndent();
-		
+
 		this.UnIndent();
 		this.WriteLineCode(Program);
 	}

@@ -152,6 +152,26 @@ var LibGreenTea = (function () {
         return Text - 0;
     };
 
+    LibGreenTea.GetNativeType = function (Context, Value) {
+        var NativeType = null;
+        var NativeClassInfo = Value.constructor;
+        if (typeof Value == 'number' || Value instanceof Number) {
+            if ((Value | 0) == Value) {
+                return Context.IntType;
+            }
+            //FIXME support Float
+        }
+        if (typeof Value == 'string' || Value instanceof String) {
+            return Context.StringType;
+        }
+        NativeType = Context.ClassNameMap.get(NativeClassInfo.name);
+        if (NativeType == null) {
+            NativeType = new GtType(Context, NativeClass, NativeClassInfo.getSimpleName(), null, NativeClassInfo);
+            Context.ClassNameMap.put(NativeClassInfo.getName(), NativeType);
+        }
+        return NativeType;
+    };
+
     LibGreenTea.StartsWith = function (self, key) {
         return self.indexOf(key, 0) == 0;
     };
