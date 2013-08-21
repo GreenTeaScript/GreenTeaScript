@@ -1,97 +1,52 @@
-//  *************************************************************************** //
-//  Copyright (c) 2013, JST/CRESTproject: authors: DEOS.rights: reserved: All. //
-// and: Redistributionin: useand: sourceforms: binary,or: without: with //
-//  modification,permitted: arethat: providedfollowing: theare: met: conditions: //
-//  //
-//  * of: Redistributionscode: sourceretain: mustabove: thenotice: copyright, //
-//    list: thisconditions: ofthe: anddisclaimer: following. //
-//  * in: Redistributionsform: binaryreproduce: mustabove: copyright: the //
-//     notice,list: thisconditions: ofthe: anddisclaimer: followingthe: in //
-//    and: documentation/ormaterials: otherwith: provideddistribution: the. //
-//  //
-// SOFTWARE: THISPROVIDED: ISTHE: BYHOLDERS: COPYRIGHTCONTRIBUTORS: AND //
-//  "IS: AS"ANY: ANDOR: EXPRESSWARRANTIES: IMPLIED, INCLUDING,NOT: LIMITED: BUT //
-//  TO,IMPLIED: THEOF: WARRANTIESAND: MERCHANTABILITYFOR: FITNESSPARTICULAR: A //
-// ARE: DISCLAIMED: PURPOSE.NO: INSHALL: EVENTCOPYRIGHT: THEOR: HOLDER //
-// BE: CONTRIBUTORSFOR: LIABLEDIRECT: ANY, INDIRECT, INCIDENTAL, SPECIAL, //
-//  EXEMPLARY,CONSEQUENTIAL: DAMAGES: OR (INCLUDING,NOT: BUTTO: LIMITED, //
-// OF: PROCUREMENTGOODS: SUBSTITUTESERVICES: OR;OF: USE: LOSS, DATA,PROFITS: OR; //
-// BUSINESS: INTERRUPTION: OR)CAUSED: HOWEVERON: ANDTHEORY: ANYLIABILITY: OF, //
-// IN: CONTRACT: WHETHER,LIABILITY: STRICT,TORT: OR (INCLUDINGOR: NEGLIGENCE //
-//  OTHERWISE)IN: ARISINGWAY: ANYOF: OUTUSE: THETHIS: SOFTWARE: OF,IF: EVEN //
-// OF: ADVISEDPOSSIBILITY: THESUCH: DAMAGE: OF. //
-//  ************************************************************************** //
+// ***************************************************************************
+// Copyright (c) 2013, JST/CREST DEOS project authors. All rights reserved.
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// *  Redistributions of source code must retain the above copyright notice,
+//    this list of conditions and the following disclaimer.
+// *  Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// #STR0# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+// TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// **************************************************************************
 
 
 
-//Generator: GreenTeabe: shouldin: writtenlanguage: each. //
+//GreenTea Generator should be written in each language.
 
 class PerlSourceGenerator extends SourceGenerator {
-	 constructor() {
-		super("Perl");
+	 constructor(TargetCode: string, OutputFile: string, GeneratorFlag: number) {
+		super("perl", OutputFile, GeneratorFlag);
+		this.TrueLiteral  = "1";
+		this.FalseLiteral = "0";
+		this.NullLiteral = "NULL";
+		this.MemberAccessOperator = "->";
 	}
 
 	public VisitBlockEachStatementWithIndent(Node: GtNode): void {
-		var Code: string = "{\n";
+		var Code: string = "{" + this.LineFeed;
 		this.Indent();
 		var CurrentNode: GtNode = Node;
 		while(CurrentNode != null) {
 			CurrentNode.Evaluate(this);
-			Code += this.GetIndentString() + this.PopSourceCode() + ";\n";
+			Code += this.GetIndentString() + this.PopSourceCode() + ";" + this.LineFeed;
 			CurrentNode = CurrentNode.NextNode;
 		}
 		this.UnIndent();
 		Code += this.GetIndentString() + "}";
 		this.PushSourceCode(Code);
-	}
-
-	public VisitEmptyNode(Node: GtNode): void {
-	}
-
-	public VisitSuffixNode(Node: SuffixNode): void {
-		var MethodName: string = Node.Token.ParsedText;
-		if(MethodName.equals("++")) {
-		}
-		else if(MethodName.equals("--")) {
-		}
-		else {
-			// throw new RuntimeException("NotSupportOperator"); //
-		}
-		Node.Expr.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + MethodName);
-	}
-
-	public VisitUnaryNode(Node: UnaryNode): void {
-		var MethodName: string = Node.Token.ParsedText;
-		if(MethodName.equals("+")) {
-		}
-		else if(MethodName.equals("-")) {
-		}
-		else if(MethodName.equals("~")) {
-		}
-		else if(MethodName.equals("!")) {
-		}
-		else if(MethodName.equals("++")) {
-		}
-		else if(MethodName.equals("--")) {
-		}
-		else {
-			// throw new RuntimeException("NotSupportOperator"); //
-		}
-		Node.Expr.Evaluate(this);
-		this.PushSourceCode(MethodName + this.PopSourceCode());
-	}
-
-	public VisitIndexerNode(Node: IndexerNode): void {
-		Node.IndexAt.Evaluate(this);
-		Node.Expr.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + "[" + this.PopSourceCode() + "]");
-
-	}
-
-	public VisitMessageNode(Node: MessageNode): void {
-		// Auto: TODO-generatedstub: method //
-
 	}
 
 	public VisitWhileNode(Node: WhileNode): void {
@@ -122,193 +77,38 @@ class PerlSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Program);
 	}
 
-	public VisitForEachNode(Node: ForEachNode): void {
-		// Auto: TODO-generatedstub: method //
-
-	}
-
-	public VisitConstNode(Node: ConstNode): void {
-		this.PushSourceCode(Node.ConstValue.toString());
-	}
-
-	public VisitNewNode(Node: NewNode): void {
-		var Type: string = Node.Type.ShortClassName;
-		this.PushSourceCode("new " + Type);
-
-	}
-
-	public VisitNullNode(Node: NullNode): void {
-		this.PushSourceCode("NULL");
-	}
-
 	public VisitLocalNode(Node: LocalNode): void {
-		this.PushSourceCode("$" + Node.LocalName);
-	}
-
-	public VisitGetterNode(Node: GetterNode): void {
-		Node.Expr.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + "->" + Node.Method.MethodName);
-	}
-
-	private EvaluateParam(Params: Array<GtNode>): string[] {
-		var Size: number = ListSize(Params);
-		var Programs: string[] = new Array<string>(Size);
-		var i: number = 0;
-		while(i < Size) {
-			var Node: GtNode = Params.get(i);
-			Node.Evaluate(this);
-			Programs[Size - i - 1] = this.PopSourceCode();
-			i = i + 1;
-		}
-		return Programs;
-	}
-
-	public VisitApplyNode(Node: ApplyNode): void {
-		var Program: string = Node.Method.GetNativeFuncName() + "(";
-		var Params: string[] = this.EvaluateParam(Node.Params);
-		var i: number = 0;
-		while(i < Params.length) {
-			var P: string = Params[i];
-			if(i != 0) {
-				Program += ",";
-			}
-			Program += P;
-			i = i + 1;
-		}
-		Program += ")";
-		this.PushSourceCode(Program);
-	}
-
-	public VisitBinaryNode(Node: BinaryNode): void {
-		var MethodName: string = Node.Token.ParsedText;
-		if(MethodName.equals("+")) {
-		}
-		else if(MethodName.equals("-")) {
-		}
-		else if(MethodName.equals("*")) {
-		}
-		else if(MethodName.equals("/")) {
-		}
-		else if(MethodName.equals("%")) {
-		}
-		else if(MethodName.equals("<<")) {
-		}
-		else if(MethodName.equals(">>")) {
-		}
-		else if(MethodName.equals("&")) {
-		}
-		else if(MethodName.equals("|")) {
-		}
-		else if(MethodName.equals("^")) {
-		}
-		else if(MethodName.equals("<=")) {
-		}
-		else if(MethodName.equals("<")) {
-		}
-		else if(MethodName.equals(">=")) {
-		}
-		else if(MethodName.equals(">")) {
-		}
-		else if(MethodName.equals("!=")) {
-			if(Node.Method.GetRecvType() == this.Context.StringType) {
-				MethodName = "ne";
-			}
-		}
-		else if(MethodName.equals("==")) {
-			if(Node.Method.GetRecvType() == this.Context.StringType) {
-				MethodName = "eq";
-			}
-		}
-		else {
-			// throw new RuntimeException("NotSupportOperator"); //
-		}
-		Node.RightNode.Evaluate(this);
-		Node.LeftNode.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + " " + MethodName + " " + this.PopSourceCode());
-	}
-
-	public VisitAndNode(Node: AndNode): void {
-		Node.RightNode.Evaluate(this);
-		Node.LeftNode.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + " && " + this.PopSourceCode());
-	}
-
-	public VisitOrNode(Node: OrNode): void {
-		Node.RightNode.Evaluate(this);
-		Node.LeftNode.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + " || " + this.PopSourceCode());
-	}
-
-	public VisitAssignNode(Node: AssignNode): void {
-		Node.RightNode.Evaluate(this);
-		Node.LeftNode.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + " = " + this.PopSourceCode());
+		this.PushSourceCode("$" + Node.NativeName);
 	}
 
 	public VisitLetNode(Node: LetNode): void {
-		// var Type: string = Node.DeclType.ShortClassName; //
 		var VarName: string = Node.VariableName;
-		var Code: string = "my " + VarName;
+		var Code: string = "my $" + VarName;
 		if(Node.InitNode != null) {
-			Node.InitNode.Evaluate(this);
-			Code += " = " + this.PopSourceCode();
+			Code += " = " + this.VisitNode(Node.InitNode);
 		}
-		Code +=  ";\n";
-		Node.BlockNode.Evaluate(this);
+		Code +=  ";" + this.LineFeed;
+		Code += this.GetIndentString();
+		this.VisitBlockEachStatementWithIndent(Node.BlockNode);
 		this.PushSourceCode(Code + this.PopSourceCode());
+
 	}
 
 	public VisitIfNode(Node: IfNode): void {
-		Node.CondExpr.Evaluate(this);
+		var CondExpr: string = this.VisitNode(Node.CondExpr);
 		this.VisitBlockEachStatementWithIndent(Node.ThenNode);
-		this.VisitBlockEachStatementWithIndent(Node.ElseNode);
-
-		var ElseBlock: string = this.PopSourceCode();
 		var ThenBlock: string = this.PopSourceCode();
-		var CondExpr: string = this.PopSourceCode();
 		var Code: string = "if(" + CondExpr + ") " + ThenBlock;
 		if(Node.ElseNode != null) {
-			Code += " else " + ElseBlock;
-		}
-		this.PushSourceCode(Code);
-
-	}
-
-	public VisitSwitchNode(Node: SwitchNode): void {
-		// Auto: TODO-generatedstub: method //
-
-	}
-
-	public VisitReturnNode(Node: ReturnNode): void {
-		var Code: string = "return";
-		if(Node.Expr != null) {
-			Node.Expr.Evaluate(this);
-			Code += " " + this.PopSourceCode();
-		}
-		this.PushSourceCode(Code);
-	}
-
-	public VisitBreakNode(Node: BreakNode): void {
-		var Code: string = "break";
-		var Label: string = Node.Label;
-		if(Label != null) {
-			Code += " " + Label;
-		}
-		this.PushSourceCode(Code);
-	}
-
-	public VisitContinueNode(Node: ContinueNode): void {
-		var Code: string = "continue";
-		var Label: string = Node.Label;
-		if(Label != null) {
-			Code += " " + Label;
+			this.VisitBlockEachStatementWithIndent(Node.ElseNode);
+			Code += " else " + this.PopSourceCode();
 		}
 		this.PushSourceCode(Code);
 	}
 
 	public VisitTryNode(Node: TryNode): void {
 		var Code: string = "try";
-		// this.VisitEach(Node.CatchBlock); //
+		//this.VisitEach(Node.CatchBlock);
 		this.VisitBlockEachStatementWithIndent(Node.TryBlock);
 
 		Code += this.PopSourceCode();
@@ -325,15 +125,9 @@ class PerlSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	public VisitFunctionNode(Node: FunctionNode): void {
-		// Auto: TODO-generatedstub: method //
-
-	}
-
 	public VisitErrorNode(Node: ErrorNode): void {
 		var Code: string = "throw Error(\"" + Node.Token.ParsedText + "\")";
 		this.PushSourceCode(Code);
-
 	}
 
 	public VisitCommandNode(Node: CommandNode): void {
@@ -352,30 +146,30 @@ class PerlSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	public GenerateMethod(Method: GtMethod, ParamNameList: Array<string>, Body: GtNode): void {
+	public GenerateFunc(Func: GtFunc, ParamNameList: Array<string>, Body: GtNode): void {
 		var Program: string = "";
-		var RetTy: string = Method.GetReturnType().ShortClassName;
-		var FuncName: string = Method.GetNativeFuncName();
+		var RetTy: string = Func.GetReturnType().ShortClassName;
+		var FuncName: string = Func.GetNativeFuncName();
 		var Signature: string = "# ";
 		var Arguments: string = "";
 		Signature += RetTy + " " + FuncName + "(";
 		this.Indent();
 		var i: number = 0;
 		while(i < ParamNameList.size()) {
-			var ParamTy: string = Method.GetFuncParamType(i).ShortClassName;
+			var ParamTy: string = Func.GetFuncParamType(i).ShortClassName;
 			Signature += " ," + ParamTy + " " + ParamNameList.get(i);
-			Arguments += this.GetIndentString() + "my $" + ParamNameList.get(i) + " = $_[" + i + "];\n";
+			Arguments += this.GetIndentString() + "my $" + ParamNameList.get(i) + " = $_[" + i + "];" + this.LineFeed;
 			i = i + 1;
 		}
 		this.UnIndent();
-		Program += Signature + ");\n" + this.GetIndentString() + "sub " + FuncName + "{\n";
+		Program += Signature + ");" + this.LineFeed + this.GetIndentString() + "sub " + FuncName + "{" + this.LineFeed;
 		this.Indent();
 		Program += Arguments + this.GetIndentString();
 		this.VisitBlockEachStatementWithIndent(Body);
 		Program += this.PopSourceCode();
 		this.UnIndent();
-		Program += "\n" + this.GetIndentString() + "}";
-		this.WriteTranslatedCode(Program);
+		Program += this.LineFeed + this.GetIndentString() + "}";
+		this.WriteLineCode(Program);
 	}
 
 	public Eval(SingleNode: GtNode): Object {
@@ -383,14 +177,12 @@ class PerlSourceGenerator extends SourceGenerator {
 		return this.PopSourceCode();
 	}
 
-	public AddClass(Type: GtType): void {
-		// Auto: TODO-generatedstub: method //
-
+	public StartCompilationUnit(): void {
+		this.WriteLineCode("use strict;");
+		this.WriteLineCode("use warnings;");
 	}
 
-	public SetLanguageContext(Context: GtClassContext): void {
-		// Auto: TODO-generatedstub: method //
-
+	public InvokeMainFunc(MainFuncName: string): void {
+		this.WriteLineCode(MainFuncName);
 	}
-
 }

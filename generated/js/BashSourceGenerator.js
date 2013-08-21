@@ -1,40 +1,49 @@
-//  *************************************************************************** //
-//  Copyright (c) 2013, JST/CRESTproject: authors: DEOS.rights: reserved: All. //
-// and: Redistributionin: useand: sourceforms: binary,or: without: with //
-//  modification,permitted: arethat: providedfollowing: theare: met: conditions: //
-//  //
-//  * of: Redistributionscode: sourceretain: mustabove: thenotice: copyright, //
-//    list: thisconditions: ofthe: anddisclaimer: following. //
-//  * in: Redistributionsform: binaryreproduce: mustabove: copyright: the //
-//     notice,list: thisconditions: ofthe: anddisclaimer: followingthe: in //
-//    and: documentation/ormaterials: otherwith: provideddistribution: the. //
-//  //
-// SOFTWARE: THISPROVIDED: ISTHE: BYHOLDERS: COPYRIGHTCONTRIBUTORS: AND //
-//  "IS: AS"ANY: ANDOR: EXPRESSWARRANTIES: IMPLIED, INCLUDING,NOT: LIMITED: BUT //
-//  TO,IMPLIED: THEOF: WARRANTIESAND: MERCHANTABILITYFOR: FITNESSPARTICULAR: A //
-// ARE: DISCLAIMED: PURPOSE.NO: INSHALL: EVENTCOPYRIGHT: THEOR: HOLDER //
-// BE: CONTRIBUTORSFOR: LIABLEDIRECT: ANY, INDIRECT, INCIDENTAL, SPECIAL, //
-//  EXEMPLARY,CONSEQUENTIAL: DAMAGES: OR (INCLUDING,NOT: BUTTO: LIMITED, //
-// OF: PROCUREMENTGOODS: SUBSTITUTESERVICES: OR;OF: USE: LOSS, DATA,PROFITS: OR; //
-// BUSINESS: INTERRUPTION: OR)CAUSED: HOWEVERON: ANDTHEORY: ANYLIABILITY: OF, //
-// IN: CONTRACT: WHETHER,LIABILITY: STRICT,TORT: OR (INCLUDINGOR: NEGLIGENCE //
-//  OTHERWISE)IN: ARISINGWAY: ANYOF: OUTUSE: THETHIS: SOFTWARE: OF,IF: EVEN //
-// OF: ADVISEDPOSSIBILITY: THESUCH: DAMAGE: OF. //
-//  ************************************************************************** //
+// ***************************************************************************
+// Copyright (c) 2013, JST/CREST DEOS project authors. All rights reserved.
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// *  Redistributions of source code must retain the above copyright notice,
+//    this list of conditions and the following disclaimer.
+// *  Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// #STR0# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+// TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// **************************************************************************
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-//Generator: GreenTeabe: shouldin: writtenlanguage: each. //
+//GreenTea Generator should be written in each language.
 var BashSourceGenerator = (function (_super) {
     __extends(BashSourceGenerator, _super);
-    function BashSourceGenerator() {
-        _super.call(this, "BashSource");
+    function BashSourceGenerator(TargetCode, OutputFile, GeneratorFlag) {
+        _super.call(this, TargetCode, OutputFile, GeneratorFlag);
         this.inFunc = false;
-        this.WriteTranslatedCode("#!/bin/bash\n");
+        this.cmdCounter = 0;
+        this.TrueLiteral = "0";
+        this.FalseLiteral = "1";
+        this.NullLiteral = "NULL";
     }
+    BashSourceGenerator.prototype.InitContext = function (Context) {
+        _super.prototype.InitContext.call(this, Context);
+        this.WriteLineHeader("#!/bin/bash");
+        this.WriteLineCode(this.LineFeed + "source $GREENTEA_HOME/include/bash/GreenTeaPlus.sh" + this.LineFeed);
+    };
+
     BashSourceGenerator.prototype.VisitBlockWithIndent = function (Node, inBlock) {
         var Code = "";
         if (inBlock) {
@@ -42,10 +51,9 @@ var BashSourceGenerator = (function (_super) {
         }
         var CurrentNode = Node;
         while (CurrentNode != null) {
-            CurrentNode.Evaluate(this);
-            var poppedCode = this.PopSourceCode();
-            if (!poppedCode.equals("")) {
-                Code += this.GetIndentString() + poppedCode + "\n";
+            var poppedCode = this.VisitNode(CurrentNode);
+            if (!LibGreenTea.EqualsString(poppedCode, "")) {
+                Code += this.GetIndentString() + poppedCode + this.LineFeed;
             }
             CurrentNode = CurrentNode.NextNode;
         }
@@ -57,309 +65,180 @@ var BashSourceGenerator = (function (_super) {
                 Code = Code.substring(0, Code.length - 1);
             }
         }
-        this.PushSourceCode(Code);
+        return Code;
     };
 
-    BashSourceGenerator.prototype.VisitEmptyNode = function (Node) {
-    };
-
-    BashSourceGenerator.prototype.VisitIndexerNode = function (Node) {
-        Node.IndexAt.Evaluate(this);
-        Node.Expr.Evaluate(this);
-        this.PushSourceCode(this.PopSourceCode() + "[" + this.PopSourceCode() + "]");
-    };
-
-    BashSourceGenerator.prototype.VisitMessageNode = function (Node) {
-        // support: not //
+    BashSourceGenerator.prototype.CreateDoWhileNode = function (Type, ParsedTree, Cond, Block) {
+        /*
+        * do { Block } while(Cond)
+        * => while(True) { Block; if(Cond) { break; } }
+        */
+        var Break = this.CreateBreakNode(Type, ParsedTree, null);
+        var IfBlock = this.CreateIfNode(Type, ParsedTree, Cond, Break, null);
+        LinkNode(IfBlock, Block);
+        var TrueNode = this.CreateConstNode(ParsedTree.NameSpace.Context.BooleanType, ParsedTree, true);
+        return this.CreateWhileNode(Type, ParsedTree, TrueNode, Block);
     };
 
     BashSourceGenerator.prototype.VisitWhileNode = function (Node) {
-        Node.CondExpr.Evaluate(this);
-        var Program = "while " + this.PopSourceCode() + " ;do\n";
-        this.VisitBlockWithIndent(Node.LoopBody, true);
-        Program += this.PopSourceCode() + "done";
-        this.PushSourceCode(Program);
-    };
-
-    BashSourceGenerator.prototype.VisitDoWhileNode = function (Node) {
-        this.VisitBlockWithIndent(Node.LoopBody, true);
-        var LoopBody = this.PopSourceCode();
-        var Program = "true: if ;then\n" + LoopBody + "fi\n";
-        Node.CondExpr.Evaluate(this);
-        Program += "while " + this.PopSourceCode() + " ;do\n";
-        Program += LoopBody + "done";
+        var Program = "while " + this.VisitNode(Node.CondExpr) + " ;do" + this.LineFeed;
+        Program += this.VisitBlockWithIndent(Node.LoopBody, true) + "done";
         this.PushSourceCode(Program);
     };
 
     BashSourceGenerator.prototype.VisitForNode = function (Node) {
-        Node.IterExpr.Evaluate(this);
-        Node.CondExpr.Evaluate(this);
-        var Cond = this.PopSourceCode();
-        var Iter = this.PopSourceCode();
-
-        var Program = "for((; " + Cond + "; " + Iter + " )) ;do\n";
-        this.VisitBlockWithIndent(Node.LoopBody, true);
-        Program += this.PopSourceCode() + "done";
+        var Cond = this.VisitNode(Node.CondExpr);
+        var Iter = this.VisitNode(Node.IterExpr);
+        var Program = "for((; " + Cond + "; " + Iter + " )) ;do" + this.LineFeed;
+        Program += this.VisitBlockWithIndent(Node.LoopBody, true) + "done";
         this.PushSourceCode(Program);
     };
 
     BashSourceGenerator.prototype.VisitForEachNode = function (Node) {
-        Node.IterExpr.Evaluate(this);
-        Node.Variable.Evaluate(this);
-        var Variable = this.PopSourceCode();
-        var Iter = this.PopSourceCode();
-
-        var Program = "for " + Variable + " in " + "${" + Iter + "[@]} ;do/n";
-        this.VisitBlockWithIndent(Node.LoopBody, true);
-        Program += this.PopSourceCode() + "done";
+        var Variable = this.VisitNode(Node.Variable);
+        var Iter = this.VisitNode(Node.IterExpr);
+        var Program = "for " + Variable + " in " + "${" + Iter + "[@]} ;do" + this.LineFeed;
+        Program += this.VisitBlockWithIndent(Node.LoopBody, true) + "done";
         this.PushSourceCode(Program);
     };
 
-    BashSourceGenerator.prototype.VisitConstNode = function (Node) {
-        var value = this.StringfyConstValue(Node.ConstValue);
-
-        if (Node.Type.equals(Node.Type.Context.BooleanType)) {
-            if (value.equals("true")) {
-                value = "0";
-            } else if (value.equals("false")) {
-                value = "1";
-            }
-        }
-        this.PushSourceCode(value);
-    };
-
-    BashSourceGenerator.prototype.VisitNewNode = function (Node) {
-        // 		var Type: string = Node.Type.ShortClassName; //
-        // 		this.PushSourceCode("new " + Type); //
-    };
-
-    BashSourceGenerator.prototype.VisitNullNode = function (Node) {
-        this.PushSourceCode("NULL");
-    };
-
-    BashSourceGenerator.prototype.VisitLocalNode = function (Node) {
-        this.PushSourceCode(Node.LocalName);
-    };
-
-    BashSourceGenerator.prototype.VisitGetterNode = function (Node) {
-        // support: not //
-    };
-
-    BashSourceGenerator.prototype.EvaluateParam = function (Params) {
-        var Size = Params.size();
-        var Programs = new Array(Size);
-        var i = 0;
+    BashSourceGenerator.prototype.MakeParamCode = function (ParamList) {
+        var Size = ListSize(ParamList);
+        var ParamCode = new Array(Size - 1);
+        var i = 1;
         while (i < Size) {
-            var Node = Params.get(i);
-            Node.Evaluate(this);
-            Programs[Size - i - 1] = this.ResolveValueType(Node, this.PopSourceCode());
+            var Node = ParamList.get(i);
+            ParamCode[Size - i - 1] = this.ResolveValueType(Node);
             i = i + 1;
         }
-        return Programs;
+        return ParamCode;
+    };
+
+    BashSourceGenerator.prototype.CreateAssertFunc = function (Node) {
+        var ParamList = Node.Params;
+        var Size = ListSize(ParamList);
+        var ParamCode = new Array(Size - 1);
+        var i = 1;
+        while (i < Size) {
+            ParamCode[Size - i - 1] = "\"" + this.VisitNode(ParamList.get(i)) + "\"";
+            i = i + 1;
+        }
+        return this.JoinCode("assert ", 0, ParamCode, "", " ");
     };
 
     BashSourceGenerator.prototype.VisitApplyNode = function (Node) {
-        var Program = Node.Method.MethodName + " ";
-        var Params = this.EvaluateParam(Node.Params);
-        var i = 0;
-        while (i < Params.length) {
-            var P = Params[i];
-            if (i != 0) {
-                Program += " ";
+        var ParamCode = this.MakeParamCode(Node.Params);
+        if (Node.Func == null) {
+            this.PushSourceCode(this.JoinCode(ParamCode[0] + " ", 0, ParamCode, "", " "));
+        } else if (Node.Func.Is(NativeMacroFunc)) {
+            var NativeMacro = Node.Func.GetNativeMacro();
+            if (LibGreenTea.EqualsString(NativeMacro, "assert $1")) {
+                this.PushSourceCode(this.CreateAssertFunc(Node));
+                return;
             }
-            Program += P;
-            i = i + 1;
-        }
-        this.PushSourceCode(Program);
-    };
-
-    BashSourceGenerator.prototype.VisitSuffixNode = function (Node) {
-        var MethodName = Node.Token.ParsedText;
-        if (MethodName.equals("++")) {
-        } else if (MethodName.equals("--")) {
+            this.PushSourceCode(Node.Func.ApplyNativeMacro(0, ParamCode));
         } else {
-            console.log("DEBUG: " + MethodName + "not: issuffix: operator: supported!!");
+            this.PushSourceCode(this.JoinCode(Node.Func.GetNativeFuncName() + " ", 0, ParamCode, "", " "));
         }
-        Node.Expr.Evaluate(this);
-        this.PushSourceCode("((" + this.PopSourceCode() + MethodName + "))");
-    };
-
-    BashSourceGenerator.prototype.VisitUnaryNode = function (Node) {
-        var MethodName = Node.Token.ParsedText;
-        if (MethodName.equals("+")) {
-        } else if (MethodName.equals("-")) {
-        } else if (MethodName.equals("~")) {
-        } else if (MethodName.equals("!")) {
-        } else if (MethodName.equals("++")) {
-        } else if (MethodName.equals("--")) {
-        } else {
-            console.log("DEBUG: " + MethodName + "not: isunary: operator: supported!!");
-        }
-        Node.Expr.Evaluate(this);
-        this.PushSourceCode("((" + MethodName + this.PopSourceCode() + "))");
     };
 
     BashSourceGenerator.prototype.VisitBinaryNode = function (Node) {
-        var MethodName = Node.Token.ParsedText;
-        if (Node.Type.equals(Node.Type.Context.StringType)) {
-            Node.RightNode.Evaluate(this);
-            Node.LeftNode.Evaluate(this);
-
-            if (MethodName.equals("+")) {
-                this.PushSourceCode(this.PopSourceCode() + this.PopSourceCode());
-                return;
-            } else if (MethodName.equals("!=")) {
-            } else if (MethodName.equals("==")) {
-            } else {
-                console.log("DEBUG: " + MethodName + "not: isbinary: operator: supported!!");
-            }
-
-            Node.RightNode.Evaluate(this);
-            Node.LeftNode.Evaluate(this);
-            var left = this.ResolveValueType(Node.LeftNode, this.PopSourceCode());
-            var right = this.ResolveValueType(Node.RightNode, this.PopSourceCode());
-            this.PushSourceCode("((" + this.PopSourceCode() + " " + left + " " + right + "))");
-            return;
-        }
-
-        if (MethodName.equals("+")) {
-        } else if (MethodName.equals("-")) {
-        } else if (MethodName.equals("*")) {
-        } else if (MethodName.equals("/")) {
-        } else if (MethodName.equals("%")) {
-        } else if (MethodName.equals("<<")) {
-        } else if (MethodName.equals(">>")) {
-        } else if (MethodName.equals("&")) {
-        } else if (MethodName.equals("|")) {
-        } else if (MethodName.equals("^")) {
-        } else if (MethodName.equals("<=")) {
-        } else if (MethodName.equals("<")) {
-        } else if (MethodName.equals(">=")) {
-        } else if (MethodName.equals(">")) {
-        } else if (MethodName.equals("!=")) {
-        } else if (MethodName.equals("==")) {
-        } else {
-            console.log("DEBUG: " + MethodName + "not: isbinary: operator: supported!!");
-        }
-
-        Node.RightNode.Evaluate(this);
-        Node.LeftNode.Evaluate(this);
-        var left = this.ResolveValueType(Node.LeftNode, this.PopSourceCode());
-        var right = this.ResolveValueType(Node.RightNode, this.PopSourceCode());
-
-        // 		if(Node.Type.equals(Node.Type.Context.number)) {	//number: value: support //
-        // 			this.PushSourceCode("(echo \"scale=10; " + left + " " + MethodName + " " + right + "\" | bc)"); //
-        // 			return; //
-        // 		} //
-        this.PushSourceCode("((" + left + " " + MethodName + " " + right + "))");
+        var FuncName = Node.Token.ParsedText;
+        var Left = this.ResolveValueType(Node.LeftNode);
+        var Right = this.ResolveValueType(Node.RightNode);
+        this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right) + ")");
+        //		if(Node.Type.equals(Node.Type.Context.Float)) {	// support float value
+        //			this.PushSourceCode(#STR38#scale=10; #STR39# #STR40# #STR41#\#STR42#);
+        //			return;
+        //		}
     };
 
     BashSourceGenerator.prototype.VisitAndNode = function (Node) {
-        Node.RightNode.Evaluate(this);
-        Node.LeftNode.Evaluate(this);
-        this.PushSourceCode("(" + this.PopSourceCode() + " && " + this.PopSourceCode() + ")");
+        this.PushSourceCode("(" + this.ResolveValueType(Node.LeftNode) + " && " + this.ResolveValueType(Node.RightNode) + ")");
     };
 
     BashSourceGenerator.prototype.VisitOrNode = function (Node) {
-        Node.RightNode.Evaluate(this);
-        Node.LeftNode.Evaluate(this);
-        this.PushSourceCode("(" + this.PopSourceCode() + " || " + this.PopSourceCode() + ")");
+        this.PushSourceCode("(" + this.ResolveValueType(Node.LeftNode) + " || " + this.ResolveValueType(Node.RightNode) + ")");
     };
 
     BashSourceGenerator.prototype.VisitAssignNode = function (Node) {
-        Node.RightNode.Evaluate(this);
-        Node.LeftNode.Evaluate(this);
-        var left = this.PopSourceCode();
-        var code = this.PopSourceCode();
-        var right = this.ResolveValueType(Node.RightNode, code);
-
-        this.PushSourceCode(left + "=" + right);
+        var Left = this.VisitNode(Node.LeftNode);
+        var Right = this.ResolveValueType(Node.RightNode);
+        var Head = "";
+        if (Node.LeftNode instanceof GetterNode) {
+            Head = "eval ";
+        }
+        this.PushSourceCode(Head + Left + "=" + Right);
     };
 
     BashSourceGenerator.prototype.VisitLetNode = function (Node) {
         var VarName = Node.VariableName;
         var Code = "";
+        var Head = "";
         if (this.inFunc) {
-            Code += "local " + VarName + "\n" + this.GetIndentString();
+            Code += "local " + VarName + this.LineFeed + this.GetIndentString();
         }
-        Code += VarName;
+
+        if (Node.InitNode != null && Node.InitNode instanceof GetterNode) {
+            Head = "eval ";
+        }
+        Code += Head + VarName;
         if (Node.InitNode != null) {
-            Node.InitNode.Evaluate(this);
-            Code += "=" + this.ResolveValueType(Node.InitNode, this.PopSourceCode());
+            Code += "=" + this.ResolveValueType(Node.InitNode);
         }
-        Code += "\n";
-        this.VisitBlockWithIndent(Node.BlockNode, false);
-        this.PushSourceCode(Code + this.PopSourceCode());
+        Code += this.LineFeed;
+        this.PushSourceCode(Code + this.VisitBlockWithIndent(Node.BlockNode, false));
     };
 
     BashSourceGenerator.prototype.VisitIfNode = function (Node) {
-        Node.CondExpr.Evaluate(this);
-        this.VisitBlockWithIndent(Node.ThenNode, true);
-        this.VisitBlockWithIndent(Node.ElseNode, true);
-
-        var ElseBlock = this.PopSourceCode();
-        var ThenBlock = this.PopSourceCode();
-        var CondExpr = this.PopSourceCode();
-        var Code = "if " + CondExpr + " ;then\n" + ThenBlock;
+        var CondExpr = this.VisitNode(Node.CondExpr);
+        var ThenBlock = this.VisitBlockWithIndent(Node.ThenNode, true);
+        var ElseBlock = this.VisitBlockWithIndent(Node.ElseNode, true);
+        var Code = "if " + CondExpr + " ;then" + this.LineFeed + ThenBlock;
         if (Node.ElseNode != null) {
-            Code += "else\n" + ElseBlock;
+            Code += "else" + this.LineFeed + ElseBlock;
         }
         Code += "fi";
         this.PushSourceCode(Code);
     };
 
-    BashSourceGenerator.prototype.VisitSwitchNode = function (Node) {
-    };
-
     BashSourceGenerator.prototype.VisitReturnNode = function (Node) {
         if (this.inFunc && Node.Expr != null) {
-            Node.Expr.Evaluate(this);
-            var expr = this.PopSourceCode();
-            var ret = this.ResolveValueType(Node.Expr, expr);
-            this.PushSourceCode("echo " + ret + "\n" + this.GetIndentString() + "return 0");
+            var Ret = this.ResolveValueType(Node.Expr);
+            if (Node.Expr instanceof ApplyNode || Node.Expr instanceof CommandNode) {
+                if (Node.Type.equals(Node.Type.Context.BooleanType)) {
+                    var Code = "local value=" + Ret + this.LineFeed;
+                    Code += this.GetIndentString() + "echo $value" + this.LineFeed;
+                    Code += this.GetIndentString() + "return $value";
+                    this.PushSourceCode(Code);
+                    return;
+                }
+            }
+            this.PushSourceCode("echo " + Ret + this.LineFeed + this.GetIndentString() + "return 0");
         }
     };
 
-    BashSourceGenerator.prototype.VisitLabelNode = function (Node) {
-    };
-
-    BashSourceGenerator.prototype.VisitJumpNode = function (Node) {
-    };
-
-    BashSourceGenerator.prototype.VisitBreakNode = function (Node) {
-        var Code = "break";
-        this.PushSourceCode(Code);
-    };
-
-    BashSourceGenerator.prototype.VisitContinueNode = function (Node) {
-        var Code = "continue";
-        this.PushSourceCode(Code);
-    };
-
     BashSourceGenerator.prototype.VisitTryNode = function (Node) {
-        // 		var Code: string = "try"; //
-        // 		//this.VisitEach(Node.CatchBlock); //
-        // 		this.VisitEach(Node.TryBlock); //
-        // 		Code += this.PopSourceCode(); //
-        // 		if(Node.FinallyBlock != null) { //
-        // 			this.VisitEach(Node.FinallyBlock); //
-        // 			Code += " finally " + this.PopSourceCode(); //
-        // 		} //
-        // 		this.PushSourceCode(Code); //
+        var TrueNode = new ConstNode(Node.Type.Context.BooleanType, null, true);
+        var Code = "trap ";
+        var Try = this.VisitNode(new IfNode(null, null, TrueNode, Node.TryBlock, null));
+        var Catch = this.VisitNode(new IfNode(null, null, TrueNode, Node.CatchBlock, null));
+        Code += "\"" + Catch + "\" ERR" + this.LineFeed;
+        Code += this.GetIndentString() + Try + this.LineFeed + this.GetIndentString() + "trap ERR";
+        if (Node.FinallyBlock != null) {
+            var Finally = this.VisitNode(new IfNode(null, null, TrueNode, Node.FinallyBlock, null));
+            Code += this.LineFeed + this.GetIndentString() + Finally;
+        }
+        this.PushSourceCode(Code);
     };
 
     BashSourceGenerator.prototype.VisitThrowNode = function (Node) {
-        // 		Node.Expr.Evaluate(this); //
-        // 		var Code: string = "throw " + this.PopSourceCode(); //
-        // 		this.PushSourceCode(Code); //
-    };
-
-    BashSourceGenerator.prototype.VisitFunctionNode = function (Node) {
+        this.PushSourceCode("kill &> /dev/zero");
     };
 
     BashSourceGenerator.prototype.VisitErrorNode = function (Node) {
-        // 		var Code: string = "throw Error(\"" + Node.Token.ParsedText + "\")"; //
-        // 		this.PushSourceCode(Code); //
+        //		/*local*/String Code = #STR72##STR73#\#STR74#;
+        //		this.PushSourceCode(Code);
     };
 
     BashSourceGenerator.prototype.VisitCommandNode = function (Node) {
@@ -370,30 +249,45 @@ var BashSourceGenerator = (function (_super) {
             if (count > 0) {
                 Code += " | ";
             }
-            Code += this.CreateCommand(CurrentNode);
+            Code += this.AppendCommand(CurrentNode);
             count += 1;
             CurrentNode = CurrentNode.PipedNextNode;
         }
-        this.PushSourceCode(Code);
-        // sample //
-        // 		function f() { //
-        // 			echo -e "$(pstree -p |firefox: grep)" >&2 //
-        // 			echo "sucess: ret" //
-        // 		} //
-        //  //
-        // 		ret=$(f) //
+        this.PushSourceCode(this.CreateCommandFunc(Code, Node.Type));
     };
 
-    BashSourceGenerator.prototype.CreateCommand = function (CurrentNode) {
+    BashSourceGenerator.prototype.AppendCommand = function (CurrentNode) {
         var Code = "";
         var size = CurrentNode.Params.size();
         var i = 0;
         while (i < size) {
-            CurrentNode.Params.get(i).Evaluate(this);
-            Code += this.PopSourceCode() + " ";
+            Code += this.ResolveValueType(CurrentNode.Params.get(i)) + " ";
             i = i + 1;
         }
         return Code;
+    };
+
+    BashSourceGenerator.prototype.CreateCommandFunc = function (cmd, Type) {
+        var FuncName = "execCmd";
+        var RunnableCmd = cmd;
+        if (Type.equals(Type.Context.StringType)) {
+            RunnableCmd = "function " + FuncName + this.cmdCounter + "() {" + this.LineFeed;
+            RunnableCmd += this.GetIndentString() + "echo $(" + cmd + ")" + this.LineFeed;
+            RunnableCmd += this.GetIndentString() + "return 0" + this.LineFeed + "}" + this.LineFeed;
+            this.WriteLineCode(RunnableCmd);
+            RunnableCmd = FuncName + this.cmdCounter;
+            this.cmdCounter++;
+        } else if (Type.equals(Type.Context.IntType) || Type.equals(Type.Context.BooleanType)) {
+            RunnableCmd = "function " + FuncName + this.cmdCounter + "() {" + this.LineFeed;
+            RunnableCmd += this.GetIndentString() + cmd + " >&2" + this.LineFeed;
+            RunnableCmd += this.GetIndentString() + "local ret=$?" + this.LineFeed;
+            RunnableCmd += this.GetIndentString() + "echo $ret" + this.LineFeed;
+            RunnableCmd += this.GetIndentString() + "return $ret" + this.LineFeed + "}" + this.LineFeed;
+            this.WriteLineCode(RunnableCmd);
+            RunnableCmd = FuncName + this.cmdCounter;
+            this.cmdCounter++;
+        }
+        return RunnableCmd;
     };
 
     BashSourceGenerator.prototype.ResolveParamName = function (ParamNameList, Body) {
@@ -401,7 +295,7 @@ var BashSourceGenerator = (function (_super) {
     };
 
     BashSourceGenerator.prototype.ConvertParamName = function (ParamNameList, Body, index) {
-        if (index == ParamNameList.size()) {
+        if (ParamNameList == null || index == ParamNameList.size()) {
             return Body;
         }
 
@@ -411,45 +305,42 @@ var BashSourceGenerator = (function (_super) {
         return Let;
     };
 
-    BashSourceGenerator.prototype.ResolveValueType = function (TargetNode, value) {
-        var resolvedValue;
+    BashSourceGenerator.prototype.ResolveValueType = function (TargetNode) {
+        var ResolvedValue;
+        var Value = this.VisitNode(TargetNode);
 
         if (TargetNode instanceof ConstNode || TargetNode instanceof NullNode) {
-            resolvedValue = value;
-        } else if (TargetNode instanceof IndexerNode) {
-            resolvedValue = "${" + value + "}";
+            ResolvedValue = Value;
+        } else if (TargetNode instanceof IndexerNode || TargetNode instanceof GetterNode) {
+            ResolvedValue = "${" + Value + "}";
         } else if (TargetNode instanceof ApplyNode || TargetNode instanceof CommandNode) {
-            resolvedValue = "$(" + value + ")";
+            ResolvedValue = "$(" + Value + ")";
         } else {
-            resolvedValue = "$" + value;
+            ResolvedValue = "$" + Value;
         }
-        return resolvedValue;
+        return ResolvedValue;
     };
 
-    BashSourceGenerator.prototype.GenerateMethod = function (Method, ParamNameList, Body) {
+    BashSourceGenerator.prototype.GenerateFunc = function (Func, ParamNameList, Body) {
         var Function = "function ";
         this.inFunc = true;
-        Function += Method.MethodName + "() {\n";
-        this.VisitBlockWithIndent(this.ResolveParamName(ParamNameList, Body), true);
-        Function += this.PopSourceCode() + "}\n";
-        this.WriteTranslatedCode(Function);
+        Function += Func.GetNativeFuncName() + "() {" + this.LineFeed;
+        var Block = this.VisitBlockWithIndent(this.ResolveParamName(ParamNameList, Body), true);
+        Function += Block + "}" + this.LineFeed;
+        this.WriteLineCode(Function);
         this.inFunc = false;
     };
 
     BashSourceGenerator.prototype.Eval = function (Node) {
-        this.VisitBlockWithIndent(Node, false);
-        var Code = this.PopSourceCode();
-        if (Code.equals("")) {
-            return "";
+        var Code = this.VisitBlockWithIndent(Node, false);
+        if (!LibGreenTea.EqualsString(Code, "")) {
+            this.WriteLineCode(Code);
         }
-        this.WriteTranslatedCode(Code);
         return Code;
     };
 
-    BashSourceGenerator.prototype.AddClass = function (Type) {
-    };
-
-    BashSourceGenerator.prototype.SetLanguageContext = function (Context) {
+    BashSourceGenerator.prototype.InvokeMainFunc = function (MainFuncName) {
+        this.WriteLineCode(MainFuncName);
     };
     return BashSourceGenerator;
 })(SourceGenerator);

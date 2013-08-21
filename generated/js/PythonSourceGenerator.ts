@@ -1,90 +1,90 @@
-//  *************************************************************************** //
-//  Copyright (c) 2013, JST/CRESTproject: authors: DEOS.rights: reserved: All. //
-// and: Redistributionin: useand: sourceforms: binary,or: without: with //
-//  modification,permitted: arethat: providedfollowing: theare: met: conditions: //
-//  //
-//  * of: Redistributionscode: sourceretain: mustabove: thenotice: copyright, //
-//    list: thisconditions: ofthe: anddisclaimer: following. //
-//  * in: Redistributionsform: binaryreproduce: mustabove: copyright: the //
-//     notice,list: thisconditions: ofthe: anddisclaimer: followingthe: in //
-//    and: documentation/ormaterials: otherwith: provideddistribution: the. //
-//  //
-// SOFTWARE: THISPROVIDED: ISTHE: BYHOLDERS: COPYRIGHTCONTRIBUTORS: AND //
-//  "IS: AS"ANY: ANDOR: EXPRESSWARRANTIES: IMPLIED, INCLUDING,NOT: LIMITED: BUT //
-//  TO,IMPLIED: THEOF: WARRANTIESAND: MERCHANTABILITYFOR: FITNESSPARTICULAR: A //
-// ARE: DISCLAIMED: PURPOSE.NO: INSHALL: EVENTCOPYRIGHT: THEOR: HOLDER //
-// BE: CONTRIBUTORSFOR: LIABLEDIRECT: ANY, INDIRECT, INCIDENTAL, SPECIAL, //
-//  EXEMPLARY,CONSEQUENTIAL: DAMAGES: OR (INCLUDING,NOT: BUTTO: LIMITED, //
-// OF: PROCUREMENTGOODS: SUBSTITUTESERVICES: OR;OF: USE: LOSS, DATA,PROFITS: OR; //
-// BUSINESS: INTERRUPTION: OR)CAUSED: HOWEVERON: ANDTHEORY: ANYLIABILITY: OF, //
-// IN: CONTRACT: WHETHER,LIABILITY: STRICT,TORT: OR (INCLUDINGOR: NEGLIGENCE //
-//  OTHERWISE)IN: ARISINGWAY: ANYOF: OUTUSE: THETHIS: SOFTWARE: OF,IF: EVEN //
-// OF: ADVISEDPOSSIBILITY: THESUCH: DAMAGE: OF. //
-//  ************************************************************************** //
+// ***************************************************************************
+// Copyright (c) 2013, JST/CREST DEOS project authors. All rights reserved.
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// *  Redistributions of source code must retain the above copyright notice,
+//    this list of conditions and the following disclaimer.
+// *  Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// #STR0# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+// TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// **************************************************************************
 
 
 
-//Generator: GreenTeabe: shouldin: writtenlanguage: each. //
+//GreenTea Generator should be written in each language.
 
 class PythonSourceGenerator extends SourceGenerator {
 
-	 constructor() {
-		super("PythonSource");
-		this.WriteTranslatedCode("os: import\n");
+	 constructor(TargetCode: string, OutputFile: string, GeneratorFlag: number) {
+		super(TargetCode, OutputFile, GeneratorFlag);
+		this.Tab = "    ";
+		this.LogicalAndOperator = "and";
+		this.LogicalOrOperator  = "or";
+		this.TrueLiteral  = "True";
+		this.FalseLiteral = "False";
+		this.NullLiteral = "None";
 	}
 
-	public VisitBlockWithIndent(Node: GtNode, inBlock: boolean): void {
+	GetNewOperator(Type: GtType): string {
+		var TypeName: string = Type.ShortClassName;
+		return TypeName + "()";
+	}
+
+	public VisitBlockWithIndent(Node: GtNode, inBlock: boolean): string {
 		var Code: string = "";
 		if(inBlock) {
 			this.Indent();
 		}
 		var CurrentNode: GtNode = Node;
 		while(CurrentNode != null) {
-			CurrentNode.Evaluate(this);
-			var poppedCode: string = this.PopSourceCode();
-			if(!poppedCode.equals("")) {
-				Code += this.GetIndentString() + poppedCode + "\n";
+			var poppedCode: string = this.VisitNode(CurrentNode);
+			if(!LibGreenTea.EqualsString(poppedCode, "")) {
+				Code += this.GetIndentString() + poppedCode + this.LineFeed;
 			}
 			CurrentNode = CurrentNode.NextNode;
 		}
 		if(inBlock) {
 			this.UnIndent();
 			Code += this.GetIndentString();
-		}		else {
+		}
+		else {
 			if(Code.length > 0) {
 				Code = Code.substring(0, Code.length - 1);
 			}
 		}
-		this.PushSourceCode(Code);
+		return Code;
 	}
 
-	public VisitEmptyNode(Node: GtNode): void {
+	public CreateDoWhileNode(Type: GtType, ParsedTree: GtSyntaxTree, Cond: GtNode, Block: GtNode): GtNode {
+		/*
+		 * do { Block } while(Cond)
+		 * => while(True) { Block; if(Cond) { break; } }
+		 */
+		var Break: GtNode = this.CreateBreakNode(Type, ParsedTree, null);
+		var IfBlock: GtNode = this.CreateIfNode(Type, ParsedTree, Cond, Break, null);
+		LinkNode(IfBlock, Block);
+		var TrueNode: GtNode = this.CreateConstNode(ParsedTree.NameSpace.Context.BooleanType, ParsedTree, true);
+		return this.CreateWhileNode(Type, ParsedTree, TrueNode, Block);
 	}
 
-	public VisitIndexerNode(Node: IndexerNode): void {
-		Node.IndexAt.Evaluate(this);
-		Node.Expr.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + "[" + this.PopSourceCode() + "]");
-	}
-
-	public VisitMessageNode(Node: MessageNode): void {
-	}
-
+	// Visitor API
 	public VisitWhileNode(Node: WhileNode): void {
-		Node.CondExpr.Evaluate(this);
-		var Program: string = "while " + this.PopSourceCode() + ":\n";
-		this.VisitBlockWithIndent(Node.LoopBody, true);
-		Program += this.PopSourceCode();
+		var Program: string = "while " + this.VisitNode(Node.CondExpr) + ":" + this.LineFeed;
+		Program += this.VisitBlockWithIndent(Node.LoopBody, true);
 		this.PushSourceCode(Program);
-	}
-
-	public VisitDoWhileNode(Node: DoWhileNode): void {
-		this.VisitBlockWithIndent(Node.LoopBody, true);
-		var LoopBody: string = this.PopSourceCode();
-		var Program: string = "True: if:\n" + LoopBody;
-		Node.CondExpr.Evaluate(this);
-		Program += "while " + this.PopSourceCode() + ":\n";
-		this.PushSourceCode(Program + LoopBody);
 	}
 
 	public VisitForNode(Node: ForNode): void {
@@ -95,240 +95,58 @@ class PythonSourceGenerator extends SourceGenerator {
 	}
 
 	public VisitForEachNode(Node: ForEachNode): void {
-		Node.Variable.Evaluate(this);
-		Node.IterExpr.Evaluate(this);
-		var Iter: string = this.PopSourceCode();
-		var Variable: string = this.PopSourceCode();
-		
-		var Program: string = "for " + Variable + " in " + Iter + ":\n";
-		this.VisitBlockWithIndent(Node.LoopBody, true);
-		Program += this.PopSourceCode();
+		var Iter: string = this.VisitNode(Node.IterExpr);
+		var Variable: string = this.VisitNode(Node.Variable);
+		var Program: string = "for " + Variable + " in " + Iter + ":" + this.LineFeed;
+		Program += this.VisitBlockWithIndent(Node.LoopBody, true);
 		this.PushSourceCode(Program);
 	}
 
-	public VisitConstNode(Node: ConstNode): void {
-		var value: string = this.StringfyConstValue(Node.ConstValue);
-		if(Node.Type.equals(Node.Type.Context.BooleanType) || 
-				value.equals("true") || value.equals("false")) {
-			if(value.equals("true")) {
-				value = "True";
-			}			else if(value.equals("false")) {
-				value = "False";
-			}
+	public VisitSuffixNode(Node: SuffixNode): void {
+		var FuncName: string = Node.Token.ParsedText;
+		var Expr: string = this.VisitNode(Node.Expr);
+		if(LibGreenTea.EqualsString(FuncName, "++")) {
+			FuncName = " += 1";
 		}
-		this.PushSourceCode(value);
-	}
-
-	public VisitNewNode(Node: NewNode): void {
-		var Type: string = Node.Type.ShortClassName;
-		var paramString: string = this.AppendParams(this.EvaluateParam(Node.Params));
-		this.PushSourceCode(Type + "(" + paramString + ")");
-	}
-
-	public VisitNullNode(Node: NullNode): void {
-		this.PushSourceCode("None");
-	}
-
-	public VisitLocalNode(Node: LocalNode): void {
-		this.PushSourceCode(Node.LocalName);
-	}
-
-	public VisitGetterNode(Node: GetterNode): void {
-		
-	}
-
-	private EvaluateParam(Params: Array<GtNode>): string[] {
-		var Size: number = Params.size();
-		var Programs: string[] = new Array<string>(Size);
-		var i: number = 0;
-		while(i < Size) {
-			var Node: GtNode = Params.get(i);
-			Node.Evaluate(this);
-			Programs[Size - i - 1] = this.PopSourceCode();
-			i = i + 1;
-		}
-		return Programs;
-	}
-
-	private AppendParams(Params: string[]): string {
-		var param: string = "";
-		var i: number = 0;
-		while(i < Params.length) {
-			var P: string = Params[i];
-			if(i != 0) {
-				param += ", ";
-			}
-			param += P;
-			i = i + 1;
-		}
-		return param;
-	}
-
-	public VisitApplyNode(Node: ApplyNode): void {
-		var paramString: string = this.AppendParams(this.EvaluateParam(Node.Params));
-		this.PushSourceCode(Node.Method.MethodName + "(" + paramString + ")");
-	}
-
-	public VisitSuffixNode(Node: SuffixNode): void {	// FIXME //
-		var MethodName: string = Node.Token.ParsedText;
-		if(MethodName.equals("++")) {
-			MethodName = " += 1";
-		}
-		else if(MethodName.equals("--")) {
-			MethodName = " -= 1";
+		else if(LibGreenTea.EqualsString(FuncName, "--")) {
+			FuncName = " -= 1";
 		}
 		else {
-			console.log("DEBUG: " + MethodName + "not: issuffix: operator: supported!!");
+			console.log("DEBUG: " + FuncName + " is not supported suffix operator!!");
 		}
-		Node.Expr.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + MethodName);
-	}
-
-	public VisitUnaryNode(Node: UnaryNode): void {
-		var MethodName: string = Node.Token.ParsedText;
-		if(MethodName.equals("+")) {
-		}
-		else if(MethodName.equals("-")) {
-		}
-		else if(MethodName.equals("~")) {
-		}
-		else if(MethodName.equals("!")) {
-			MethodName = "not ";
-		}
-// 		else if(MethodName.equals("++")) {	//FIXME //
-// 		} //
-// 		else if(MethodName.equals("--")) { //
-// 		} //
-		else {
-			console.log("DEBUG: " + MethodName + "not: isunary: operator: supported!!");
-		}
-		Node.Expr.Evaluate(this);
-		this.PushSourceCode(MethodName + this.PopSourceCode());
-	}
-
-	public VisitBinaryNode(Node: BinaryNode): void {
-		var MethodName: string = Node.Token.ParsedText;
-		if(MethodName.equals("+")) {
-		}
-		else if(MethodName.equals("-")) {
-		}
-		else if(MethodName.equals("*")) {
-		}
-		else if(MethodName.equals("/")) {
-		}
-		else if(MethodName.equals("%")) {
-		}
-		else if(MethodName.equals("<<")) {
-		}
-		else if(MethodName.equals(">>")) {
-		}
-		else if(MethodName.equals("&")) {
-		}
-		else if(MethodName.equals("|")) {
-		}
-		else if(MethodName.equals("^")) {
-		}
-		else if(MethodName.equals("<=")) {
-		}
-		else if(MethodName.equals("<")) {
-		}
-		else if(MethodName.equals(">=")) {
-		}
-		else if(MethodName.equals(">")) {
-		}
-		else if(MethodName.equals("!=")) {
-		}
-		else if(MethodName.equals("==")) {
-		}
-		else {
-			console.log("DEBUG: " + MethodName + "not: isbinary: operator: supported!!");
-		}
-		Node.RightNode.Evaluate(this);
-		Node.LeftNode.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + " " + MethodName + " " + this.PopSourceCode());
-	}
-
-	public VisitAndNode(Node: AndNode): void {
-		Node.RightNode.Evaluate(this);
-		Node.LeftNode.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + " and " + this.PopSourceCode());
-	}
-
-	public VisitOrNode(Node: OrNode): void {
-		Node.RightNode.Evaluate(this);
-		Node.LeftNode.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + " or " + this.PopSourceCode());
-	}
-
-	public VisitAssignNode(Node: AssignNode): void {
-		Node.RightNode.Evaluate(this);
-		Node.LeftNode.Evaluate(this);
-		this.PushSourceCode(this.PopSourceCode() + " = " + this.PopSourceCode());
+		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc1(null, FuncName, true, Expr) + ")");
 	}
 
 	public VisitLetNode(Node: LetNode): void {
 		var Code: string = Node.VariableName;
-		var InitValue: string = "None";
+		var InitValue: string = this.NullLiteral;
 		if(Node.InitNode != null) {
-			Node.InitNode.Evaluate(this);
-			InitValue = this.PopSourceCode();
+			InitValue = this.VisitNode(Node.InitNode);
 		}
-		Code += " = " + InitValue + "\n";
-		this.VisitBlockWithIndent(Node.BlockNode, false);
-		this.PushSourceCode(Code + this.PopSourceCode());
+		Code += " = " + InitValue + this.LineFeed;
+		this.PushSourceCode(Code + this.VisitBlockWithIndent(Node.BlockNode, false));
 	}
 
 	public VisitIfNode(Node: IfNode): void {
-		Node.CondExpr.Evaluate(this);
-		this.VisitBlockWithIndent(Node.ThenNode, true);
-		this.VisitBlockWithIndent(Node.ElseNode, true);
-		
-		var ElseBlock: string = this.PopSourceCode();
-		var ThenBlock: string = this.PopSourceCode();
-		var CondExpr: string = this.PopSourceCode();
-		var Code: string = "if " + CondExpr + ":\n" + ThenBlock;
+		var CondExpr: string = this.VisitNode(Node.CondExpr);
+		var ThenBlock: string = this.VisitBlockWithIndent(Node.ThenNode, true);
+		var ElseBlock: string = this.VisitBlockWithIndent(Node.ElseNode, true);
+		var Code: string = "if " + CondExpr + ":" + this.LineFeed + ThenBlock;
 		if(Node.ElseNode != null) {
-			Code += "else:\n" + ElseBlock;
+			Code += "else:" + this.LineFeed + ElseBlock;
 		}
 		this.PushSourceCode(Code);
 	}
 
-	public VisitSwitchNode(Node: SwitchNode): void {
-	}
-
-	public VisitReturnNode(Node: ReturnNode): void {
-		var retValue: string = "";
-		if(Node.Expr != null) {
-			Node.Expr.Evaluate(this);
-			retValue = this.PopSourceCode();
-		}
-		this.PushSourceCode("return " + retValue);
-	}
-
-	public VisitLabelNode(Node: LabelNode): void {
-	}
-
-	public VisitJumpNode(Node: JumpNode): void {
-	}
-
-	public VisitBreakNode(Node: BreakNode): void {
-		var Code: string = "break";
-		this.PushSourceCode(Code);
-	}
-
-	public VisitContinueNode(Node: ContinueNode): void {
-		var Code: string = "continue";
-		this.PushSourceCode(Code);
-	}
-
-	public VisitTryNode(Node: TryNode): void { // TODO:block: catch //
-		var Code: string = "try:\n";
-		this.VisitBlockWithIndent(Node.TryBlock, true);
-		Code += this.PopSourceCode();
-		
+	public VisitTryNode(Node: TryNode): void {
+		var Code: string = "try:" + this.LineFeed;
+		Code += this.VisitBlockWithIndent(Node.TryBlock, true);
+		var Val: LetNode = <LetNode> Node.CatchExpr;
+		Code += "except " + Val.Type.toString() + ", " + Val.VariableName + ":" + this.LineFeed;
+		Code += this.VisitBlockWithIndent(Node.CatchBlock, true);
 		if(Node.FinallyBlock != null) {
-			this.VisitBlockWithIndent(Node.FinallyBlock, true);
-			Code += " finally:\n" + this.PopSourceCode();
+			var Finally: string = this.VisitBlockWithIndent(Node.FinallyBlock, true);
+			Code += "finally:" + this.LineFeed + Finally;
 		}
 		this.PushSourceCode(Code);
 	}
@@ -336,21 +154,17 @@ class PythonSourceGenerator extends SourceGenerator {
 	public VisitThrowNode(Node: ThrowNode): void {
 		var expr: string = "";
 		if(Node.Expr != null) {
-			Node.Expr.Evaluate(this);
-			expr = this.PopSourceCode();
+			expr = this.VisitNode(Node.Expr);
 		}
 		this.PushSourceCode("raise " + expr);
 	}
 
-	public VisitFunctionNode(Node: FunctionNode): void {
-	}
-
 	public VisitErrorNode(Node: ErrorNode): void {
-		var Code: string = "Error(\"" + Node.Token.ParsedText + "\"): raise";
+		var Code: string = "raise SoftwareFault(\"" + Node.Token.ParsedText + "\")";
 		this.PushSourceCode(Code);
 	}
 
-	public VisitCommandNode(Node: CommandNode): void {	// only: currentlystatement: support //
+	public VisitCommandNode(Node: CommandNode): void {
 		var Code: string = "";
 		var count: number = 0;
 		var CurrentNode: CommandNode = Node;
@@ -358,28 +172,37 @@ class PythonSourceGenerator extends SourceGenerator {
 			if(count > 0) {
 				Code += " | ";
 			}
-			Code += this.CreateCommand(CurrentNode);
+			Code += this.AppendCommand(CurrentNode);
 			count += 1;
 			CurrentNode = <CommandNode> CurrentNode.PipedNextNode;
 		}
-		this.PushSourceCode("os.system(\"" + Code + "\")");
+		
+		if(Node.Type.equals(Node.Type.Context.StringType)) {
+			Code = "subprocess.check_output(\"" + Code + "\", shell=True)";
+		}
+		else if(Node.Type.equals(Node.Type.Context.BooleanType)) {
+			Code = "(subprocess.call(\"" + Code + "\", shell=True) == 0)";
+		}
+		else {
+			Code = "subprocess.call(\"" + Code + "\", shell=True)";
+		}
+		this.PushSourceCode(Code);
 	}
 
-	private CreateCommand(CurrentNode: CommandNode): string {
+	private AppendCommand(CurrentNode: CommandNode): string {
 		var Code: string = "";
 		var size: number = CurrentNode.Params.size();
 		var i: number = 0;
 		while(i < size) {
-			CurrentNode.Params.get(i).Evaluate(this);
-			Code += this.PopSourceCode() + " ";
+			Code += this.VisitNode(CurrentNode.Params.get(i)) + " ";
 			i = i + 1;
 		}
 		return Code;
 	}
 
-	public GenerateMethod(Method: GtMethod, ParamNameList: Array<string>, Body: GtNode): void {
+	public GenerateFunc(Func: GtFunc, ParamNameList: Array<string>, Body: GtNode): void {
 		var Function: string = "def ";
-		Function += Method.MethodName + "(";
+		Function += Func.GetNativeFuncName() + "(";
 		var i: number = 0;
 		var size: number = ParamNameList.size();
 		while(i < size) {
@@ -389,24 +212,52 @@ class PythonSourceGenerator extends SourceGenerator {
 			Function += ParamNameList.get(i);
 			i = i + 1;
 		}
-		this.VisitBlockWithIndent(Body, true);
-		Function += "):\n" + this.PopSourceCode() + "\n";
-		this.WriteTranslatedCode(Function);
+		var Block: string = this.VisitBlockWithIndent(Body, true);
+		Function += "):" + this.LineFeed + Block + this.LineFeed;
+		this.WriteLineCode(Function);
+	}
+
+	public GenerateClassField(Type: GtType, ClassField: GtClassField): void {
+		var Program: string = this.GetIndentString() + "class " + Type.ShortClassName;
+//		if(Type.SuperType != null) {
+//			Program += #STR54# + Type.SuperType.ShortClassName + #STR55#;
+//		}
+		Program += ":" + this.LineFeed;
+		this.Indent();
+		
+		Program += this.GetIndentString() + "def __init__(" + this.GetRecvName() + ")" + ":" + this.LineFeed;
+		this.Indent();
+		var i: number = 0;
+		while(i < ClassField.FieldList.size()) {
+			var FieldInfo: GtFieldInfo = ClassField.FieldList.get(i);
+			var InitValue: string = this.StringifyConstValue(FieldInfo.InitValue);
+			if(!FieldInfo.Type.IsNative()) {
+				InitValue = "None";
+			}
+			Program += this.GetIndentString() + this.GetRecvName() + "." + FieldInfo.NativeName + " = " + InitValue + this.LineFeed;
+			i = i + 1;
+		}
+		this.UnIndent();
+		
+		this.UnIndent();
+		this.WriteLineCode(Program);
 	}
 
 	public Eval(Node: GtNode): Object {
-		this.VisitBlockWithIndent(Node, false);
-		var Code: string = this.PopSourceCode();
-		if(Code.equals("")) {
-			return "";
+		var Code: string = this.VisitBlockWithIndent(Node, false);
+		if(!LibGreenTea.EqualsString(Code, "")) {
+			this.WriteLineCode(Code);
 		}
-		this.WriteTranslatedCode(Code);
 		return Code;
 	}
 
-	public AddClass(Type: GtType): void {
+	public GetRecvName(): string {
+		return "self";
 	}
 
-	public SetLanguageContext(Context: GtClassContext): void {
+	public InvokeMainFunc(MainFuncName: string): void {
+		this.WriteLineCode("if __name__ == '__main__':");
+		this.WriteLineCode(this.Tab + MainFuncName + "()");
 	}
+
 }
