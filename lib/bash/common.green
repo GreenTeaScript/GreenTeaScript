@@ -11,14 +11,15 @@ int >>(int x, int y)     as "(($1 >> $2))";
 int ^(int x, int y)      as "(($1 ^ $2))";
 int |(int x, int y)      as "(($1 | $2))";
 int &(int x, int y)      as "(($1 & $2))";
-boolean <(int x,  int y) as "(($1 < $2))";
-boolean <=(int x, int y) as "(($1 <= $2))";
-boolean >(int x,  int y) as "(($1 > $2))";
-boolean >=(int x, int y) as "(($1 >= $2))";
-boolean ==(int x, int y) as "(($1 == $2))";
-boolean !=(int x, int y) as "(($1 != $2))";
+boolean <(int x,  int y) as "(ltInt $1 $2)";
+boolean <=(int x, int y) as "(lteInt $1 $2)";
+boolean >(int x,  int y) as "(gtInt $1 $2)";
+boolean >=(int x, int y) as "(gteInt $1 $2)";
+boolean ==(int x, int y) as "(eqInt $1 $2)";
+boolean !=(int x, int y) as "(neInt $1 $2)";
 
 String +(String x, String y) as "(concat $1 $2)";
+boolean ==(String x, String y) as "(eqstr $1 $2)";
 
 boolean ==(any x, any y) as "(($1 == $2))";
 boolean !=(any x, any y) as "(($1 != $2))";
