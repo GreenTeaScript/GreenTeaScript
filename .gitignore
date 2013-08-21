@@ -70,5 +70,12 @@ Test.xml
 src/TypeScript/*.js.map
 src/TypeScript/*.js
 src/TypeScript/*.ts
+src/Python/*.py
+test/exec/test-result
 /bin
 *.exe
+
+GPATH
+GRTAGS
+GTAGS
+GSYMS
