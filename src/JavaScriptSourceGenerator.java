@@ -148,6 +148,24 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 		this.WriteLineCode(Code);
 	}
 
+/**
+JavaScript code to be generated:
+
+var CLASS = (function (_super) {
+    __extends(CLASS, _super);                                // Derived class only.
+    function CLASS(param) {                                   // Constructor.
+        _super.call(this, param);
+        this.FIELD = param;                                      // Field definition and initialization.
+    };
+    CLASS.STATIC_FIELD = "value";                      // Static fields
+    
+    CLASS.prototype.METHOD = function () {    // Methods.
+    };
+    CLASS.STATIC_METHOD = function () {         // Static methods.
+    };
+    return CLASS;
+})(SUPERCLASS);
+ */
 	@Override public void GenerateClassField(GtType Type, GtClassField ClassField) {
 		/*local*/String TypeName = Type.ShortClassName;
 		/*local*/String Program = this.GetIndentString() + "var " + TypeName + " = (function() {" + this.LineFeed;
