@@ -336,8 +336,6 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 	private static JVMConstPool constPool = new JVMConstPool();
 	private JVMTypeResolver TypeResolver;
 	private JVMBuilder Builder;
-	private GtClassContext Context;
-
 	private final String defaultClassName = "Global";
 	private GtClassNode globalNode = new GtClassNode(defaultClassName, "java/lang/Object") {{
 		// create default methods
@@ -360,7 +358,6 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 	public JavaByteCodeGenerator(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
 		this.TypeResolver = null;
-		this.Context = null;
 	}
 
 	void LoadConst(Object o) {
@@ -523,7 +520,6 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 //	}
 
 	@Override public void InitContext(GtClassContext Context) {
-		this.Context = Context;
 		this.TypeResolver = new JVMTypeResolver(Context);
 		InitEmbeddedFunc();
 		super.InitContext(Context);
