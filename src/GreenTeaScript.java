@@ -1905,6 +1905,9 @@ final class DScriptGrammar extends GtGrammar {
 	}
 
 	public static GtNode TypeConst(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+		if(ParsedTree.ConstValue instanceof String) {
+			ParsedTree.ConstValue = LibGreenTea.UnescapeString((/*cast*/String) ParsedTree.ConstValue);
+		}
 		return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(ParsedTree.ConstValue), ParsedTree, ParsedTree.ConstValue);
 	}
 
@@ -2767,7 +2770,7 @@ final class DScriptGrammar extends GtGrammar {
 			DefinedFunc = DScriptGrammar.CreateFunc(Gamma, ParsedTree, FuncFlag, FuncName, 0, TypeList);
 		}
 		if(ParsedTree.ConstValue instanceof String) {
-			DefinedFunc.SetNativeMacro((/*cast*/String)ParsedTree.ConstValue);
+			DefinedFunc.SetNativeMacro(LibGreenTea.UnescapeString((/*cast*/String)ParsedTree.ConstValue));
 		}
 		else if(ParsedTree.HasNodeAt(FuncDeclBlock)) {
 			Gamma.Func = DefinedFunc;

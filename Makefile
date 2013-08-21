@@ -13,7 +13,7 @@ build: buildj buildts buildpy
 dist: distj distts
 
 test: testj testpy
-	sh tool/ReleaseCheck.sh
+	#sh tool/ReleaseCheck.sh
 
 buildj: $(JavaBin)
 	echo Build GreenTeaScript;

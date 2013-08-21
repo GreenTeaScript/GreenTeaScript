@@ -30,7 +30,9 @@ import java.util.ArrayList;
 
 public class PerlSourceGenerator extends SourceGenerator {
 	PerlSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
-		super(TargetCode, OutputFile, GeneratorFlag);
+		super("perl", OutputFile, GeneratorFlag);
+		this.TrueLiteral  = "1";
+		this.FalseLiteral = "0";
 		this.NullLiteral = "NULL";
 		this.MemberAccessOperator = "->";
 	}
@@ -83,14 +85,15 @@ public class PerlSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitLetNode(LetNode Node) {
 		/*local*/String VarName = Node.VariableName;
-		/*local*/String Code = "my " + VarName;
+		/*local*/String Code = "my $" + VarName;
 		if(Node.InitNode != null) {
-			Node.InitNode.Evaluate(this);
-			Code += " = " + this.PopSourceCode();
+			Code += " = " + this.VisitNode(Node.InitNode);
 		}
 		Code +=  ";" + this.LineFeed;
-		Node.BlockNode.Evaluate(this);
+		Code += this.GetIndentString();
+		this.VisitBlockEachStatementWithIndent(Node.BlockNode);
 		this.PushSourceCode(Code + this.PopSourceCode());
+
 	}
 
 	@Override public void VisitIfNode(IfNode Node) {
@@ -174,5 +177,14 @@ public class PerlSourceGenerator extends SourceGenerator {
 	@Override public Object Eval(GtNode SingleNode) {
 		SingleNode.Evaluate(this);
 		return this.PopSourceCode();
+	}
+
+	@Override public void StartCompilationUnit() {
+		this.WriteLineCode("use strict;");
+		this.WriteLineCode("use warnings;");
+	}
+
+	@Override public void InvokeMainFunc(String MainFuncName) {
+		this.WriteLineCode(MainFuncName);
 	}
 }

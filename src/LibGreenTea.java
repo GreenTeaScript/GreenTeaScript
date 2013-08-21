@@ -106,7 +106,78 @@ public abstract class LibGreenTea {
 	public final static String CharToString(char code) {
 		return Character.toString(code);
 	}
+	
+	public static final String UnescapeString(String Text) {
+		/*local*/String Buf = "";
+		/*local*/int i = 0;
+		if(Text.indexOf('\\') == -1) {
+			return Text;
+		}
+		while(i < Text.length() - 1) {
+			/*local*/char ch = LibGreenTea.CharAt(Text, i);
+			if(ch == '\\') {
+				char next = LibGreenTea.CharAt(Text, i + 1);
+				switch (next) {
+				case 'b':
+					ch = '\b';
+					break;
+				case 't':
+					ch = '\t';
+					break;
+				case 'n':
+					ch = '\n';
+					break;
+				case '"':
+					ch = '"';
+					break;
+				case '\'':
+					ch = '\'';
+					break;
+				default:
+					LibGreenTea.DebugP("unsupported escape sequence");
+					break;
+				}
+				i = i + 1;
+			}
+			Buf += LibGreenTea.CharToString(ch);
+			i = i + 1;
+		}
+		Buf += LibGreenTea.CharToString(LibGreenTea.CharAt(Text, i));
+		return Buf;
+	}
 
+	public static final String EscapeString(String Text) {
+		/*local*/String Buf = "";
+		/*local*/int i = 0;
+		while(i < Text.length()) {
+			/*local*/char ch = LibGreenTea.CharAt(Text, i);
+			switch (ch) {
+			case '\b':
+				Buf += LibGreenTea.CharToString('\\');
+				ch = 'b';
+				break;
+			case 't':
+				Buf += LibGreenTea.CharToString('\\');
+				ch = 't';
+				break;
+			case 'n':
+				Buf += LibGreenTea.CharToString('\\');
+				ch = 'n';
+				break;
+			case '"':
+				Buf += LibGreenTea.CharToString('\\');
+				ch = '"';
+				break;
+			case '\'':
+				Buf += LibGreenTea.CharToString('\\');
+				ch = '\'';
+				break;
+			}
+			Buf += LibGreenTea.CharToString(ch);
+			i = i + 1;
+		}
+		return Buf;
+	}
 	public final static boolean EqualsString(String s, String s2) {
 		return s.equals(s2);
 	}
@@ -281,7 +352,7 @@ public abstract class LibGreenTea {
 		if(TargetCode.startsWith("js") || TargetCode.startsWith("javascript")) {
 			return new JavaScriptSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
-		else if(TargetCode.startsWith("perl")) {
+		else if(TargetCode.startsWith("pl") || TargetCode.startsWith("perl")) {
 			return new PerlSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
 		else if(TargetCode.startsWith("python")) {

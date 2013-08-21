@@ -276,5 +276,4 @@ public class CSourceGenerator extends SourceGenerator {
 	@Override public String GetRecvName() {
 		return "self";
 	}
-
 }
