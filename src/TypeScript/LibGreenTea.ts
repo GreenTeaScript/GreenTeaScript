@@ -165,6 +165,16 @@ class LibGreenTea {
 		return String.fromCharCode(code);
 	}
 
+	static UnescapeString(Text: string): string {
+		//FIXME
+		return Text;
+	}
+
+	static EscapeString(Text: string): string {
+		//FIXME
+		return Text;
+	}
+
 	static EqualsString(s1: string, s2: string): boolean {
 		return s1 == s2;
 	}
