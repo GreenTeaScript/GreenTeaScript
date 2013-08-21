@@ -51,12 +51,12 @@ ReportFile() {
 	then
 		echo -n ", Yes" >> $OUTFILE
 	else
-		echo -n ", No" >> $OUTFILE 
+		echo -n ", No" >> $OUTFILE
 	fi
 }
 
 ReportRuntime() {
-	if [ -x $JAVA ] 
+	if [ -x $JAVA ]
 	then
 		echo "Java: $JAVA"
 		echo "============"
@@ -75,32 +75,32 @@ ReportRuntime() {
 		PYTHON="#python"
 	fi
 	if [ -x $PERL ]
-        then
-                echo "Perl: $PERL"
-                echo "=========="
-                $PERL --version
+	then
+		echo "Perl: $PERL"
+		echo "=========="
+		$PERL --version
 		echo
 	else
 		PERL="#perl"
-        fi
+	fi
 	if [ -x $BASH ]
-        then
-                echo "Shell: $BASH"
-                echo "=========="
-                $BASH --version
+	then
+		echo "Shell: $BASH"
+		echo "=========="
+		$BASH --version
 		echo
 	else
 		BASH="#bash"
-        fi
+	fi
 	if [ -x $RUBY ]
-        then
-                echo "Ruby: $RUBY"
-                echo "=========="
-                $RUBY --version
+	then
+		echo "Ruby: $RUBY"
+		echo "=========="
+		$RUBY --version
 		echo
 	else
 		RUBY="#ruby"
-        fi
+	fi
 	if [ -x $NODE ]
 	then
 		echo "Node: $NODE"
@@ -111,19 +111,19 @@ ReportRuntime() {
 		NODE="#node"
 	fi
 	if [ -x $TS ]
-        then    
-                echo "TypeScript: $TS"
-                echo "=========="
-                $TS -v
+	then
+		echo "TypeScript: $TS"
+		echo "=========="
+		$TS -v
 		echo
 	else
 		TS="#tsc"
-        fi
+	fi
 	if [ -x $CC ]
 	then
 		echo "C Compiler: $CC"
-                echo "=========="
-                $CC -v
+		echo "=========="
+		$CC -v
 		echo
 	else
 		CC="#gcc"
@@ -131,7 +131,7 @@ ReportRuntime() {
 
 }
 
-TestEach() { #$1: command $2 file $3 stage 
+TestEach() { #$1: command $2 file $3 stage
 	if [ $3 -eq 0 ]
 	then
 		echo -n ", $2" >> $OUTFILE
@@ -139,7 +139,7 @@ TestEach() { #$1: command $2 file $3 stage
 	fi
 	if [ $1 = $CC ]
 	then
-		if [ $3 -eq 1 ] 
+		if [ $3 -eq 1 ]
 		then
 			$GREENTEA -o $2.c $2
 			$CC $CFLAGS -o $2.exe $2.c
@@ -160,38 +160,38 @@ TestEach() { #$1: command $2 file $3 stage
 		return 0
 	fi
 	if [ $1 = $PYTHON ]
-        then
-                if [ $3 -eq 1 ]
-                then
-                        $GREENTEA -o $2.py $2
+	then
+		if [ $3 -eq 1 ]
+		then
+			$GREENTEA -o $2.py $2
 			if [ -x $1 ]
 			then
 				$1 -m py_compile $2.py
 				ReportFile $2.pyc
 			else
-                        	ReportFile $2.py
+				ReportFile $2.py
 			fi
-                elif [ $3 -eq 2 ]
-                then
-                        if [ -x $1 -a -f "$2.py" ]
-                        then
+		elif [ $3 -eq 2 ]
+		then
+			if [ -x $1 -a -f "$2.py" ]
+			then
 				Verbose `basename $2.py`
-                                $1 $2.py
-                                Report $?
-                        else
-                                echo -n ", N/A" >> $OUTFILE
-                        fi
-                else
-                        echo -n ", $2" >> $OUTFILE
-                fi
+				$1 $2.py
+				Report $?
+			else
+				echo -n ", N/A" >> $OUTFILE
+			fi
+		else
+			echo -n ", $2" >> $OUTFILE
+		fi
 		return 0
-        fi
+	fi
 	if [ $1 = $PERL ]
-        then
-                if [ $3 -eq 1 ]
-                then
-                        $GREENTEA -o $2.pl $2
-                        if [ -x $1 -a -f "$2.pl" ]
+	then
+		if [ $3 -eq 1 ]
+		then
+			$GREENTEA -o $2.pl $2
+			if [ -x $1 -a -f "$2.pl" ]
 			then
 				#perl -cw
 				$1 -cw $2.pl
@@ -202,63 +202,63 @@ TestEach() { #$1: command $2 file $3 stage
 				fi
 			fi
 			ReportFile "$2.pl"
-                elif [ $3 -eq 2 ]
-                then
-                        if [ -x $1 -a -f "$2.pl" ]
-                        then
-                                Verbose `basename $2.pl`
-                                $1 $2.pl
-                                Report $?
-                        else
-                                echo -n ", N/A" >> $OUTFILE
-                        fi
-                else
-                        echo -n ", $2" >> $OUTFILE
-                fi
-                return 0
-        fi
+		elif [ $3 -eq 2 ]
+		then
+			if [ -x $1 -a -f "$2.pl" ]
+			then
+				Verbose `basename $2.pl`
+				$1 $2.pl
+				Report $?
+			else
+				echo -n ", N/A" >> $OUTFILE
+			fi
+		else
+			echo -n ", $2" >> $OUTFILE
+		fi
+		return 0
+	fi
 	if [ $1 = $NODE ]
-        then
-                if [ $3 -eq 1 ]
-                then
-                        $GREENTEA -o $2.js $2
-                        ReportFile "$2.js"
-                elif [ $3 -eq 2 ]
-                then
-                        if [ -x $1 -a -f "$2.js" ]
-                        then
-                                Verbose `basename $2.js`
-                                $1 $2.js
-                                Report $?
-                        else
-                                echo -n ", N/A" >> $OUTFILE
-                        fi
-                else
-                        echo -n ", $2" >> $OUTFILE
-                fi
-                return 0
-        fi
+	then
+		if [ $3 -eq 1 ]
+		then
+			$GREENTEA -o $2.js $2
+			ReportFile "$2.js"
+		elif [ $3 -eq 2 ]
+		then
+			if [ -x $1 -a -f "$2.js" ]
+			then
+				Verbose `basename $2.js`
+				$1 $2.js
+				Report $?
+			else
+				echo -n ", N/A" >> $OUTFILE
+			fi
+		else
+			echo -n ", $2" >> $OUTFILE
+		fi
+		return 0
+	fi
 	if [ $1 = $BASH ]
-        then
-                if [ $3 -eq 1 ]
-                then
-                        $GREENTEA -o $2.sh $2
-                        ReportFile "$2.sh"
-                elif [ $3 -eq 2 ]
-                then
-                        if [ -x $1 -a -f "$2.sh" ]
-                        then
-                                Verbose `basename $2.sh`
-                                $1 $2.sh
-                                Report $?
-                        else
-                                echo -n ", N/A" >> $OUTFILE
-                        fi
-                else
-                        echo -n ", $2" >> $OUTFILE
-                fi
-                return 0
-        fi
+	then
+		if [ $3 -eq 1 ]
+		then
+			$GREENTEA -o $2.sh $2
+			ReportFile "$2.sh"
+		elif [ $3 -eq 2 ]
+		then
+			if [ -x $1 -a -f "$2.sh" ]
+			then
+				Verbose `basename $2.sh`
+				$1 $2.sh
+				Report $?
+			else
+				echo -n ", N/A" >> $OUTFILE
+			fi
+		else
+			echo -n ", $2" >> $OUTFILE
+		fi
+		return 0
+	fi
 
 }
 
@@ -278,7 +278,7 @@ MakeHead() {
 
 TestTimeEach() {
 	START_TIME=`date +%s`
-	TestEach $1 $2 $3	
+	TestEach $1 $2 $3
 	END_TIME=`date +%s`
 	SS=`expr ${END_TIME} - ${START_TIME}`
 }
@@ -326,7 +326,7 @@ Source() {
 		TFILE="$OUTDIR/$TFILE"
 		cp $TPATH $TFILE
 		STIME=`date +%s`
-        	TestAll $TFILE 1> $TFILE.log1 2> $TFILE.log2
+		TestAll $TFILE 1> $TFILE.log1 2> $TFILE.log2
 		ETIME=`date +%s`
 		SS=`expr ${ETIME} - ${STIME}`
 		VerboseLine "(elapsed-time: $SS sec)"
