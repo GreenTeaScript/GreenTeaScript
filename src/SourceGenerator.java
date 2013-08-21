@@ -1286,15 +1286,11 @@ class GtGenerator extends GtStatic {
 	/* language constructor */
 
 	public GtType GetNativeType(Object Value) {
-		/*local*/GtType NativeType = this.Context.AnyType;  // if unknown 
-//ifdef JAVA
-		Class<?> NativeClassInfo = Value instanceof Class<?> ? (Class<?>)Value : Value.getClass();
-		NativeType = (GtType)this.Context.ClassNameMap.get(NativeClassInfo.getName());
+		/*local*/GtType NativeType = null;
+		NativeType = LibGreenTea.GetNativeType(this.Context, Value);
 		if(NativeType == null) {
-			NativeType = new GtType(this.Context, NativeClass, NativeClassInfo.getSimpleName(), null, NativeClassInfo);
-			this.Context.ClassNameMap.put(NativeClassInfo.getName(), NativeType);
+			NativeType = this.Context.AnyType;  // if unknown 
 		}
-//endif VAJA
 		return NativeType;
 	}
 

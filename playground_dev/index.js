@@ -26,7 +26,6 @@ $(function () {
 			Context.Eval(src);
 			Generator.FlushBuffer();
 			var generatedCode = LibGreenTea.Program;
-			console.log(LibGreenTea.Program);
 			editor_js.setValue(generatedCode);
 			var error = Context.GetReportedErrors().join("<br>");
 			$("#editor-error").html(error.length == 0 ? "No Error" : error);
