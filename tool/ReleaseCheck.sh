@@ -275,7 +275,7 @@ MakeHead() {
 	TestEach $PERL ".pl" 0
 	TestEach $BASH ".sh" 0
 	TestEach $CC ".c"  0
-	TestEach "VM" "GREEN-JVM" 0
+	TestEach "VM" "green-jvm" 0
 	TestEach $PYTHON `basename $PYTHON` 0
 	TestEach $NODE `basename $NODE` 0
 	TestEach $PERL `basename $PERL` 0
