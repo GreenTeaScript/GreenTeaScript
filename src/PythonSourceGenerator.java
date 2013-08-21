@@ -82,10 +82,18 @@ public class PythonSourceGenerator extends SourceGenerator {
 		return this.CreateWhileNode(Type, ParsedTree, TrueNode, Block);
 	}
 
+	boolean IsEmptyBlock(GtNode Node) {
+		return (Node instanceof EmptyNode) && Node.NextNode == null;
+	}
+
 	// Visitor API
 	@Override public void VisitWhileNode(WhileNode Node) {
 		/*local*/String Program = "while " + this.VisitNode(Node.CondExpr) + ":" + this.LineFeed;
-		Program += this.VisitBlockWithIndent(Node.LoopBody, true);
+		if(this.IsEmptyBlock(Node.LoopBody)) {
+			Program += this.GetIndentString() + "pass";
+		} else {
+			Program += this.VisitBlockWithIndent(Node.LoopBody, true);
+		}
 		this.PushSourceCode(Program);
 	}
 
@@ -129,15 +137,11 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code + this.VisitBlockWithIndent(Node.BlockNode, false));
 	}
 
-	private boolean IsEmptyBlock(GtNode Node) {
-		return (Node instanceof EmptyNode) && Node.NextNode == null;
-	}
-
 	@Override public void VisitIfNode(IfNode Node) {
 		/*local*/String CondExpr = this.VisitNode(Node.CondExpr);
 		/*local*/String ThenBlock = this.VisitBlockWithIndent(Node.ThenNode, true);
 		/*local*/String Code = "if " + CondExpr + ":" + this.LineFeed + ThenBlock;
-		if(IsEmptyBlock(Node.ThenNode)) {
+		if(this.IsEmptyBlock(Node.ThenNode)) {
 			Code += this.GetIndentString() + "pass" + this.LineFeed + this.GetIndentString();
 		}
 

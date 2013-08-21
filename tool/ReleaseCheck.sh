@@ -2,7 +2,7 @@
 
 if [ -z $GREENTEA ]
 then
-	GREENTEA='java -jar GreenTeaScript.jar'
+	GREENTEA='java -ea -jar GreenTeaScript.jar'
 fi
 
 BASEDIR="test/exec"
