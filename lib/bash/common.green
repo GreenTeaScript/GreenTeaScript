@@ -21,8 +21,12 @@ boolean !=(int x, int y) as "(neInt $1 $2)";
 String +(String x, String y) as "(concat $1 $2)";
 boolean ==(String x, String y) as "(eqstr $1 $2)";
 
-boolean ==(any x, any y) as "(($1 == $2))";
-boolean !=(any x, any y) as "(($1 != $2))";
+boolean not(boolean x)   as "(notBool $1)";
+boolean ==(boolean x, boolean y) as "(eqBool $1 $2)";
+boolean !=(boolean x, boolean y) as "(neBool $1 $2)";
+
+boolean ==(any x, any y) as "(eqAny $1 $2)";
+boolean !=(any x, any y) as "(neAny $1 $2)";
 
 void print(String x) as "echo -e $1 >&2";
 void assert(boolean x) as "assert $1";

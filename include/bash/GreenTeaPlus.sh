@@ -64,9 +64,38 @@ neInt() {
     return $?
 }
 
-assignBool() {
+retBool() {
     eval $1
     local ret=$?
     echo ret$
     return 0
 }
+
+notBool() {
+    if (( $1 == 0 )) ;then
+        return 1
+    else
+        return 0
+    fi
+}
+
+eqBool() {
+    (( $1 == $2 ))
+    return $?
+}
+
+neBool() {
+    (( $1 != $2 ))
+    return $?
+}
+
+eqAny() {
+    echo "eqAny is not support!!" >&2
+    return 1   
+}
+
+neAny() {
+    echo "neAny is not support!!" >&2
+    return 1
+}
+
