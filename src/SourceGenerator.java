@@ -77,7 +77,7 @@ class GtNode extends GtStatic {
 	}
 
 	public void Evaluate(GtGenerator Visitor) {
-		Visitor.VisitEmptyNode(this);  /* must override */
+		/* must override */
 	}
 
 	public final boolean IsError() {
@@ -96,6 +96,12 @@ class GtNode extends GtStatic {
 			node = node.NextNode;
 		}
 		return n;
+	}
+}
+
+final class EmptyNode extends GtNode {
+	EmptyNode/*constructor*/(GtType Type, GtToken Token) {
+		super(Type, Token);
 	}
 }
 
@@ -1272,7 +1278,7 @@ class GtGenerator extends GtStatic {
 	}
 
 	public GtNode CreateEmptyNode(GtType Type) {
-		return new GtNode(Type, GtTokenContext.NullToken);
+		return new EmptyNode(Type, GtTokenContext.NullToken);
 	}
 
 	public GtNode CreateErrorNode(GtType Type, GtSyntaxTree ParsedTree) {
@@ -1384,7 +1390,7 @@ class GtGenerator extends GtStatic {
 
 	//------------------------------------------------------------------------
 
-	public void VisitEmptyNode(GtNode EmptyNode) {
+	public void VisitEmptyNode(EmptyNode EmptyNode) {
 		LibGreenTea.DebugP("empty node: " + EmptyNode.Token.ParsedText);
 	}
 
@@ -1812,7 +1818,7 @@ class SourceGenerator extends GtGenerator {
 	}
 
 	// Visitor API
-	@Override public void VisitEmptyNode(GtNode Node) {
+	@Override public void VisitEmptyNode(EmptyNode Node) {
 		this.PushSourceCode("");
 	}
 

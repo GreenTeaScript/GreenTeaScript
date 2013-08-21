@@ -129,12 +129,20 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code + this.VisitBlockWithIndent(Node.BlockNode, false));
 	}
 
+	private boolean IsEmptyBlock(GtNode Node) {
+		return (Node instanceof EmptyNode) && Node.NextNode == null;
+	}
+
 	@Override public void VisitIfNode(IfNode Node) {
 		/*local*/String CondExpr = this.VisitNode(Node.CondExpr);
 		/*local*/String ThenBlock = this.VisitBlockWithIndent(Node.ThenNode, true);
-		/*local*/String ElseBlock = this.VisitBlockWithIndent(Node.ElseNode, true);
 		/*local*/String Code = "if " + CondExpr + ":" + this.LineFeed + ThenBlock;
-		if(Node.ElseNode != null) {
+		if(IsEmptyBlock(Node.ThenNode)) {
+			Code += this.GetIndentString() + "pass" + this.LineFeed + this.GetIndentString();
+		}
+
+		if(Node.ElseNode != null && !this.IsEmptyBlock(Node.ElseNode)) {
+			/*local*/String ElseBlock = this.VisitBlockWithIndent(Node.ElseNode, true);
 			Code += "else:" + this.LineFeed + ElseBlock;
 		}
 		this.PushSourceCode(Code);
