@@ -1768,7 +1768,6 @@ class SourceGenerator extends GtGenerator {
 
 	public String GenerateFuncTemplate(int ParamSize, GtFunc Func) {
 		/*local*/int BeginIdx = 1;
-		/*local*/int i = BeginIdx;
 		/*local*/String Template = "";
 		/*local*/boolean IsNative = false;
 		if(Func == null) {
@@ -1786,6 +1785,7 @@ class SourceGenerator extends GtGenerator {
 		else {
 			Template = Func.GetNativeFuncName();
 		}
+		/*local*/int i = BeginIdx;
 		if(IsNative == false) {
 			Template += "(";
 			while(i < ParamSize) {

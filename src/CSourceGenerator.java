@@ -217,6 +217,7 @@ public class CSourceGenerator extends SourceGenerator {
 		this.VisitBlockEachStatementWithIndent(Body, true);
 		Code += this.PopSourceCode();
 		this.WriteLineCode(Code);
+		//System.out.println(Code);
 	}
 
 	@Override public Object Eval(GtNode Node) {
