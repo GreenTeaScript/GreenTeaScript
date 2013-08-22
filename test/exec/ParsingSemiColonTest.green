@@ -1,0 +1,33 @@
+// written by kimio kuramitsu
+
+int TestFunc() {
+;
+;
+;
+;
+return 1;
+}
+
+int TestFunc2() {
+;
+  ;
+;
+;;; ;
+;
+
+
+;
+return 1;
+}
+
+int TestFunc3() {
+;return 1;
+}
+
+@Export
+int main() {
+	assert(TestFunc() == 1);
+	assert(TestFunc2() == 1);
+	assert(TestFunc3() == 1);
+	return 0;
+}
