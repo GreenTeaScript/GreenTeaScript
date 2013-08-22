@@ -29,7 +29,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
@@ -41,6 +40,9 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
+
+import JVM.GtThrowableWrapper;
+import JVM.JVMConstPool;
 
 // GreenTea Generator should be written in each language.
 
@@ -313,27 +315,7 @@ class JVMTypeResolver {
 	}
 }
 
-class JVMConstPool {
-	private final List<Object> constValues = new ArrayList<Object>();
-
-	public int add(Object o) {
-		int id = constValues.indexOf(o);
-		if(id != -1) {
-			return id;
-		}
-		else {
-			constValues.add(o);
-			return constValues.size() - 1;
-		}
-	}
-
-	public Object get(int id) {
-		return constValues.get(id);
-	}
-}
-
 public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
-	private static JVMConstPool constPool = new JVMConstPool();
 	private JVMTypeResolver TypeResolver;
 	private JVMBuilder Builder;
 	private final String defaultClassName = "Global";
@@ -378,7 +360,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		}
 		this.Builder.typeStack.push(type);
 		if(unsupportType) {
-			int id = constPool.add(o);
+			int id = JVMConstPool.add(o);
 			String owner = Type.getInternalName(this.getClass());
 			String methodName = "getConstValue";
 			String methodDesc = "(I)Ljava/lang/Object;";
@@ -392,7 +374,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 	}
 
 	public static Object getConstValue(int id) {
-		return constPool.get(id);
+		return JVMConstPool.get(id);
 	}
 
 	public void OutputClassFile(String className, String dir) throws IOException {
@@ -528,14 +510,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 
 	@Override public void InitContext(GtClassContext Context) {
 		this.TypeResolver = new JVMTypeResolver(Context);
-		InitEmbeddedFunc();
 		super.InitContext(Context);
-	}
-
-	private void InitEmbeddedFunc() {
-//		new GtIntDef(Context.RootNameSpace, NMMap).MakeDefinition();
-//		new GtStringDef(Context.RootNameSpace, NMMap).MakeDefinition();
-//		new GtSystemDef(Context.RootNameSpace, NMMap).MakeDefinition();
 	}
 
 	void Call(int opcode, GtFunc Func) {
@@ -900,16 +875,9 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		this.VisitBlock(Node.FinallyBlock);
 	}
 
-	public static class WrappedThrowable extends Throwable {
-		public final Object object;
-		public WrappedThrowable(Object object) {
-			this.object = object;
-		}
-	}
-
 	@Override public void VisitThrowNode(ThrowNode Node) {
 		// use wrapper
-		String name = Type.getInternalName(WrappedThrowable.class);
+		String name = Type.getInternalName(GtThrowableWrapper.class);
 		this.Builder.methodVisitor.visitTypeInsn(NEW, name);
 		this.Builder.methodVisitor.visitInsn(DUP);
 		Node.Expr.Evaluate(this);
@@ -962,76 +930,5 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 
 	public void VisitEnd() {
 		this.Builder.methodVisitor.visitEnd();
-	}
-}
-
-class EmbeddedFuncDef extends GtStatic {
-	private GtNameSpace NameSpace;
-
-	// Embedded GtType
-	final GtType VoidType;
-	//final GtType ObjectType;
-	final GtType BooleanType;
-	final GtType IntType;
-	final GtType StringType;
-	final GtType VarType;
-	final GtType AnyType;
-
-	public static Method LookupFunc(Object Callee, String FuncName) {
-		if(FuncName != null) {
-			// LibGreenTea.DebugP("looking up method : " + Callee.getClass().getSimpleName() + "." + FuncName);
-			Method[] methods = Callee.getClass().getMethods();
-			for(int i = 0; i < methods.length; i++) {
-				if(FuncName.equals(methods[i].getName())) {
-					return methods[i];
-				}
-			}
-			LibGreenTea.DebugP("method not found: " + Callee.getClass().getSimpleName() + "." + FuncName);
-		}
-		return null;
-		/*throw new KonohaParserException("method not found: " + callee.getClass().getName() + "." + methodName);*/
-	}
-
-	public static ArrayList<GtType> MakeParamTypeList(GtType ReturnType, GtType RecvType, GtType...ParamTypes) {
-		ArrayList<GtType> paramTypeList = new ArrayList<GtType>();
-		paramTypeList.add(ReturnType);
-		paramTypeList.add(RecvType);
-		for(int i = 0; i < ParamTypes.length; i++) {
-			paramTypeList.add(ParamTypes[i]);
-		}
-		return paramTypeList;
-	}
-
-	public EmbeddedFuncDef(GtNameSpace NameSpace) {
-		this.NameSpace = NameSpace;
-
-		this.VoidType = NameSpace.Context.VoidType;
-		//this.ObjectType = NameSpace.Context.ObjectType;
-		this.BooleanType = NameSpace.Context.BooleanType;
-		this.IntType = NameSpace.Context.IntType;
-		this.StringType = NameSpace.Context.StringType;
-		this.VarType = NameSpace.Context.VarType;
-		this.AnyType = NameSpace.Context.AnyType;
-	}
-
-	public void MakeDefinition() {
-
-	}
-
-	void RegisterFunc(int FuncFlag, String FuncName, ArrayList<GtType> ParamTypeList, Object Callee, String LocalName) {
-		// Code generator does not need to regeister any functions (all things are controlled in parser)
-		// Add native method to GtFunc that is generated in the parser
-//		GtFunc newFunc = new GtFunc(FuncFlag | NativeFunc, FuncName, 0, ParamTypeList);
-//		GtType[] paramTypes = LangDeps.CompactTypeList(0, ParamTypeList);
-//		Method mtd = LookupFunc(Callee, LocalName);
-//		NMMap.PutFuncInvoker(newFunc, new JavaMethodInvoker(paramTypes, mtd));
-		//Code generator does not need to regeister any functions (all things are controlled in parser)
-		//NameSpace.AppendFunc(newFunc);
-	}
-
-	GtType RegisterClass(int ClassFlag, String ClassName, Object DefaultNullValue) {
-		GtType newClass = new GtType(NameSpace.Context, ClassFlag, ClassName, DefaultNullValue, null);
-		NameSpace.AppendTypeName(newClass);
-		return newClass;
 	}
 }
