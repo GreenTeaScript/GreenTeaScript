@@ -531,7 +531,7 @@ public abstract class LibGreenTea {
 	public static Object EvalBinary(GtType Type, Object LeftValue, String Operator, Object RightValue) {
 		if(LeftValue instanceof String || RightValue instanceof String) {
 			String left = EvalCast(Type, LeftValue).toString();
-			String right = EvalCast(Type, LeftValue).toString();
+			String right = EvalCast(Type, RightValue).toString();
 			if(Operator.equals("+")) {
 				return  EvalCast(Type, left + right);
 			}

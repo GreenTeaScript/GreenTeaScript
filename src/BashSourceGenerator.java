@@ -44,11 +44,6 @@ public class BashSourceGenerator extends SourceGenerator {
 		super.InitContext(Context);
 		this.WriteLineHeader("#!/bin/bash");
 		this.WriteLineCode(this.LineFeed + "source $GREENTEA_HOME/include/bash/GreenTeaPlus.sh" + this.LineFeed);
-		//this.WriteLineCode(this.LineFeed + "source ./GreenTeaPlus.sh" + this.LineFeed);
-	}
-
-	private boolean IsEmptyNode(GtNode Node) {
-		return (Node == null || Node instanceof EmptyNode);
 	}
 
 	public String VisitBlockWithIndent(GtNode Node, boolean inBlock, boolean allowDummyBlock) {
@@ -57,10 +52,10 @@ public class BashSourceGenerator extends SourceGenerator {
 			this.Indent();
 		}
 		/*local*/GtNode CurrentNode = Node;
-		if(this.IsEmptyNode(Node) && allowDummyBlock) {
+		if(this.IsEmptyBlock(Node) && allowDummyBlock) {
 			Code += this.GetIndentString() + "echo \"dummy block!!\" &> /dev/zero" + this.LineFeed;
 		}
-		while(!this.IsEmptyNode(CurrentNode)) {
+		while(!this.IsEmptyBlock(CurrentNode)) {
 			/*local*/String poppedCode = this.VisitNode(CurrentNode);
 			if(!LibGreenTea.EqualsString(poppedCode, "")) {
 				Code += this.GetIndentString() + poppedCode + this.LineFeed;
@@ -230,7 +225,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/String ThenBlock = this.VisitBlockWithIndent(Node.ThenNode, true, true);
 		/*local*/String ElseBlock = this.VisitBlockWithIndent(Node.ElseNode, true, false);
 		/*local*/String Code = "if " + CondExpr + " ;then" + this.LineFeed + ThenBlock;
-		if(!this.IsEmptyNode(Node.ElseNode)) {
+		if(!this.IsEmptyBlock(Node.ElseNode)) {
 			Code += "else" + this.LineFeed + ElseBlock;
 		}
 		Code += "fi";
@@ -341,7 +336,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		return Let;
 	}
 
-	private String ResolveValueType(GtNode TargetNode) {
+	private String ResolveValueType(GtNode TargetNode) {	//TODO: support constant folding
 		/*local*/String ResolvedValue;
 		/*local*/String Value = this.VisitNode(TargetNode);
 		/*local*/String Head = "";
@@ -350,7 +345,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		if(TargetNode.Type != null && TargetNode.Type.equals(TargetNode.Type.Context.BooleanType)) {
 			if(TargetNode instanceof ApplyNode || TargetNode instanceof UnaryNode || 
 					TargetNode instanceof CommandNode || TargetNode instanceof BinaryNode) {
-				return "$(retBool \"" + Value + "\")";
+				return "$(valueOfBool \"" + Value + "\")";
 			}
 		}
 		
@@ -365,6 +360,19 @@ public class BashSourceGenerator extends SourceGenerator {
 		}
 		else {
 			ResolvedValue = "$" + Value;
+			if(TargetNode instanceof UnaryNode) {
+				/*local*/UnaryNode Unary = (/*cast*/UnaryNode) TargetNode;
+				if(Unary.Expr instanceof ConstNode) {
+					ResolvedValue = Value;
+				}
+			}
+			else if(TargetNode instanceof BinaryNode) {
+				/*local*/BinaryNode Binary = (/*cast*/BinaryNode) TargetNode;
+				if(Binary.LeftNode instanceof ConstNode && 
+						Binary.RightNode instanceof ConstNode) {
+					ResolvedValue = Value;
+				}
+			}
 		}
 		if(TargetNode.Type != null) {
 			if(TargetNode.Type.equals(TargetNode.Type.Context.StringType)) {

@@ -1,4 +1,4 @@
-int +(int x) as "(($a1))";
+int +(int x) as "(($1))";
 int -(int x) as "((-$1))";
 int ~(int x) as "((~$1))";
 int +(int x, int y)      as "(($1 + $2))";
@@ -11,20 +11,20 @@ int >>(int x, int y)     as "(($1 >> $2))";
 int ^(int x, int y)      as "(($1 ^ $2))";
 int |(int x, int y)      as "(($1 | $2))";
 int &(int x, int y)      as "(($1 & $2))";
-boolean <(int x,  int y) as "(ltInt $1 $2)";
-boolean <=(int x, int y) as "(lteInt $1 $2)";
-boolean >(int x,  int y) as "(gtInt $1 $2)";
-boolean >=(int x, int y) as "(gteInt $1 $2)";
-boolean ==(int x, int y) as "(eqInt $1 $2)";
-boolean !=(int x, int y) as "(neInt $1 $2)";
+boolean <(int x,  int y) as "(($1 < $2))";
+boolean <=(int x, int y) as "(($1 <= $2))";
+boolean >(int x,  int y) as "(($1 > $2))";
+boolean >=(int x, int y) as "(($1 >= $2))";
+boolean ==(int x, int y) as "(($1 == $2))";
+boolean !=(int x, int y) as "(($1 != $2))";
 
 String +(String x, String y) as "(concat $1 $2)";
 boolean ==(String x, String y) as "(eqStr $1 $2)";
 boolean !=(String x, String y) as "(neStr $1 $2)";
 
 boolean not(boolean x)   as "(notBool $1)";
-boolean ==(boolean x, boolean y) as "(eqBool $1 $2)";
-boolean !=(boolean x, boolean y) as "(neBool $1 $2)";
+boolean ==(boolean x, boolean y) as "(($1 == $2))";
+boolean !=(boolean x, boolean y) as "(($1 != $2))";
 
 boolean ==(any x, any y) as "(eqAny $1 $2)";
 boolean !=(any x, any y) as "(neAny $1 $2)";

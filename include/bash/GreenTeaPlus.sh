@@ -44,41 +44,11 @@ neStr() {
     fi
 }
 
-ltInt() {
-    (( $1 < $2 ))
-    return $?
-}
-
-lteInt() {
-    (( $1 <= $2 ))
-    return $?
-}
-
-gtInt() {
-    (( $1 > $2 ))
-    return $?
-}
-
-gteInt() {
-    (( $1 >= $2 ))
-    return $?
-}
-
-eqInt() {
-    (( $1 == $2 ))
-    return $?
-}
-
-neInt() {
-    (( $1 != $2 ))
-    return $?
-}
-
-retBool() {
+valueOfBool() {
     eval $1
     local ret=$?
-    echo ret$
-    return 0
+    echo $ret
+    return $ret
 }
 
 notBool() {
@@ -87,16 +57,6 @@ notBool() {
     else
         return 0
     fi
-}
-
-eqBool() {
-    (( $1 == $2 ))
-    return $?
-}
-
-neBool() {
-    (( $1 != $2 ))
-    return $?
 }
 
 eqAny() {
