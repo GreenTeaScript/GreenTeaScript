@@ -1743,10 +1743,10 @@ class SourceGenerator extends GtGenerator {
 		}
 		if(Macro == null) {
 			if(IsSuffixOp) {
-				Macro = FuncName + " $1";
+				Macro = "$1 " + FuncName;
 			}
 			else {
-				Macro = "$1 " + FuncName;
+				Macro = FuncName + " $1";
 			}
 		}
 		return Macro.replace("$1", Arg1);
