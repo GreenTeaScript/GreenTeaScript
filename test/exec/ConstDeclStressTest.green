@@ -1,5 +1,4 @@
 // written by kimio kuramitsu
-import("Konoha.NameSpace");  // konoha.const is obsolete
 
 const N0 = 0;
 const N1 = 1;
@@ -10002,6 +10001,8 @@ const N9997 = 9997;
 const N9998 = 9998;
 const N9999 = 9999;
 
+@Export 
+int main() {
 assert(N0 == 0);
 assert(N1 == 1);
 assert(N2 == 2);
@@ -20002,4 +20003,5 @@ assert(N9996 == 9996);
 assert(N9997 == 9997);
 assert(N9998 == 9998);
 assert(N9999 == 9999);
+}
 

@@ -1,0 +1,12 @@
+// written by kimio kuramitsu
+
+const MAX=10
+const NAME="konoha";
+
+@Export
+int main() {
+	assert(MAX==10);
+	assert(NAME=="konoha");
+	return 0;
+}
+
