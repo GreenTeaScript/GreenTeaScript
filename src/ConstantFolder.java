@@ -199,13 +199,13 @@ public class ConstantFolder extends GtGenerator {
 		return Node;
 	}
 	private GtNode FoldApply(ApplyNode Node) {
-		FoldList(Node.Params);
+		this.FoldList(Node.Params);
 		return Node;
 	}
 
 	private GtNode FoldMessage(MessageNode Node) {
 		Node.RecvNode = this.Fold(Node.RecvNode);
-		FoldList(Node.Params);
+		this.FoldList(Node.Params);
 		return Node;
 	}
 
@@ -263,7 +263,7 @@ public class ConstantFolder extends GtGenerator {
 		return Node;
 	}
 	private GtNode FoldCommand(CommandNode Node) {
-		FoldList(Node.Params);
+		this.FoldList(Node.Params);
 		return Node;
 	}
 
