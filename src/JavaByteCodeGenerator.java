@@ -443,7 +443,14 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		} catch(ClassNotFoundException e) {
 			e.printStackTrace();
 		} catch(InvocationTargetException e) {
-			e.getTargetException().printStackTrace();
+			Throwable cause = e.getCause();
+			if(cause instanceof RuntimeException) {
+				throw (RuntimeException)cause;
+			}
+			if(cause instanceof Error) {
+				throw (Error)cause;
+			}
+			cause.printStackTrace();
 		} catch(IllegalAccessException e) {
 			e.printStackTrace();
 		} catch(NoSuchMethodException e) {
@@ -593,6 +600,12 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
+		//FIXME -n
+		if(Node.Params.size() == 1 && Node.Token.EqualsText("-")) {
+			Node.Params.get(0).Evaluate(this);
+			this.Builder.methodVisitor.visitInsn(INEG);
+			return;
+		}
 		GtFunc Func = Node.Func;
 		for(int i = 1; i < Node.Params.size(); i++) {
 			GtNode Param = Node.Params.get(i);
@@ -932,7 +945,14 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		} catch(ClassNotFoundException e) {
 			e.printStackTrace();
 		} catch(InvocationTargetException e) {
-			e.getTargetException().printStackTrace();
+			Throwable cause = e.getCause();
+			if(cause instanceof RuntimeException) {
+				throw (RuntimeException)cause;
+			}
+			if(cause instanceof Error) {
+				throw (Error)cause;
+			}
+			cause.printStackTrace();
 		} catch(IllegalAccessException e) {
 			e.printStackTrace();
 		} catch(NoSuchMethodException e) {
