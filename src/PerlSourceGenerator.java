@@ -96,6 +96,10 @@ public class PerlSourceGenerator extends SourceGenerator {
 
 	}
 
+	@Override public void VisitGetterNode(GetterNode Node) {
+		this.PushSourceCode(this.VisitNode(Node.Expr) + this.MemberAccessOperator + "{'" + Node.Func.FuncName + "'}");
+	}
+
 	@Override public void VisitIfNode(IfNode Node) {
 		/*local*/String CondExpr = this.VisitNode(Node.CondExpr);
 		this.VisitBlockEachStatementWithIndent(Node.ThenNode);
@@ -164,13 +168,40 @@ public class PerlSourceGenerator extends SourceGenerator {
 			i = i + 1;
 		}
 		this.UnIndent();
-		Program += Signature + ");" + this.LineFeed + this.GetIndentString() + "sub " + FuncName + "{" + this.LineFeed;
+		Program += Signature + ");" + this.LineFeed + this.GetIndentString() + "sub " + FuncName + " {" + this.LineFeed;
 		this.Indent();
 		Program += Arguments + this.GetIndentString();
 		this.VisitBlockEachStatementWithIndent(Body);
 		Program += this.PopSourceCode();
 		this.UnIndent();
 		Program += this.LineFeed + this.GetIndentString() + "}";
+		this.WriteLineCode(Program);
+	}
+
+	@Override public void GenerateClassField(GtType Type, GtClassField ClassField) {
+		/*local*/String TypeName = Type.ShortClassName;
+		/*local*/String Program = this.GetIndentString() + "package " + TypeName + ";" + this.LineFeed;
+		if(Type.SuperType != null) {
+			Program += this.GetIndentString() + "# our @ISA = ('" + Type.SuperType.ShortClassName + "');" + this.LineFeed;
+		}
+		Program += this.GetIndentString() + "sub new {" + this.LineFeed;
+		this.Indent();
+		/*local*/int i = 0;
+		Program += this.GetIndentString() + "my $class = shift;" + this.LineFeed;
+		Program += this.GetIndentString() + "my $" + this.GetRecvName() + " = {};" + this.LineFeed;
+		while(i < ClassField.FieldList.size()) {
+			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
+			/*local*/String InitValue = this.StringifyConstValue(FieldInfo.InitValue);
+			if(!FieldInfo.Type.IsNative()) {
+				InitValue = this.NullLiteral;
+			}
+			Program += this.GetIndentString() + "$" + this.GetRecvName() + "->{'" + FieldInfo.NativeName + "'} = " + InitValue + ";" + this.LineFeed;
+			i = i + 1;
+		}
+		Program += this.GetIndentString() + "return bless $" + this.GetRecvName() + ", $class" + this.LineFeed;
+		this.UnIndent();
+		Program += this.GetIndentString() + "}" + this.LineFeed;
+		Program += this.GetIndentString() + "package main;" + this.LineFeed;
 		this.WriteLineCode(Program);
 	}
 
@@ -182,6 +213,10 @@ public class PerlSourceGenerator extends SourceGenerator {
 	@Override public void StartCompilationUnit() {
 		this.WriteLineCode("use strict;");
 		this.WriteLineCode("use warnings;");
+	}
+
+	@Override public String GetRecvName() {
+		return "self";
 	}
 
 	@Override public void InvokeMainFunc(String MainFuncName) {
