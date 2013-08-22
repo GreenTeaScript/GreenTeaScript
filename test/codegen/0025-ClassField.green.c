@@ -8,6 +8,7 @@ struct X* NEW_X() {
    self->a = 0;
    return self;
 };
+
 struct Y {
    // struct X* __base;
    int a;
@@ -21,4 +22,5 @@ struct Y* NEW_Y() {
    self->c = 0;
    return self;
 };
+
 

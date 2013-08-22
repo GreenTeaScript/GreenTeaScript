@@ -219,6 +219,11 @@ interface GtConst {
 	public final static int CatchBody       = 2;
 	public final static int FinallyBody     = 3;
 
+	// switch-case
+	static final int SwitchCaseCondExpr = 0;
+	static final int SwitchCaseDefaultBlock = 1;
+	static final int SwitchCaseCaseIndex = 2;
+
 	// Enum
 	public final static int EnumNameTreeIndex = 0;
 
@@ -2614,29 +2619,86 @@ final class DScriptGrammar extends GtGrammar {
 		/*local*/Object EnumType = ParsedTree.ConstValue;
 		return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(EnumType), ParsedTree, EnumType);
 	}
+	
+	public static GtSyntaxTree ParseCaseBlock(GtNameSpace ParentNameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtSyntaxTree PrevTree = null;
+		/*local*/GtNameSpace NameSpace = new GtNameSpace(ParentNameSpace.Context, ParentNameSpace);
+		/*local*/boolean IsCaseBlock = TokenContext.MatchToken("{"); // case EXPR : {}
+		while(TokenContext.SkipEmptyStatement()) {
+			if(TokenContext.MatchToken("case")) {
+				TokenContext.CurrentPosition -= 1;
+				break;
+			}
+			if(TokenContext.MatchToken("default")) {
+				TokenContext.CurrentPosition -= 1;
+				break;
+			}
+			if(TokenContext.MatchToken("}")) {
+				if(!IsCaseBlock) {
+					TokenContext.CurrentPosition -= 1;
+				}
+				break;
+			}
+			/*local*/GtMap Annotation = TokenContext.SkipAndGetAnnotation(true);
+			/*local*/GtSyntaxTree CurrentTree = GtStatic.ParseExpression(NameSpace, TokenContext);
+			if(GtStatic.IsEmptyOrError(CurrentTree)) {
+				return CurrentTree;
+			}
+			CurrentTree.SetAnnotation(Annotation);
+			PrevTree = GtStatic.LinkTree(PrevTree, CurrentTree);
+		}
+		if(PrevTree == null) {
+			return TokenContext.ParsePattern(NameSpace, "$Empty$", Required);
+		}
+		return GtStatic.TreeHead(PrevTree);
+	}
 
 	public static GtSyntaxTree ParseSwitch(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree SwitchTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("switch"), null);
 		SwitchTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "(", Required);
-		SwitchTree.SetMatchedPatternAt(CatchVariable, NameSpace, TokenContext, "$Expression$", Required);
+		SwitchTree.SetMatchedPatternAt(SwitchCaseCondExpr, NameSpace, TokenContext, "$Expression$", Required);
 		SwitchTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ")", Required);
 		SwitchTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "{", Required);
+		/*local*/int ParseFlag = TokenContext.ParseFlag;
+		TokenContext.ParseFlag |= SkipIndentParseFlag;
+
+		/*local*/int CaseIndex = SwitchCaseCaseIndex;
 		while(!SwitchTree.IsEmptyOrError() && !TokenContext.MatchToken("}")) {
 			if(TokenContext.MatchToken("case")) {
-				SwitchTree.SetMatchedPatternAt(CatchVariable, NameSpace, TokenContext, "$Expression$", Required);
+				SwitchTree.SetMatchedPatternAt(CaseIndex, NameSpace, TokenContext, "$Expression$", Required);
 				SwitchTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ":", Required);
-				SwitchTree.SetMatchedPatternAt(TryBody, NameSpace, TokenContext, "$CaseBlock$", Required);
+				SwitchTree.SetMatchedPatternAt(CaseIndex + 1, NameSpace, TokenContext, "$CaseBlock$", Required);
+				CaseIndex += 2;
 				continue;
 			}
-			SwitchTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "default", Required);
-			SwitchTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ":", Required);
-			SwitchTree.SetMatchedPatternAt(TryBody, NameSpace, TokenContext, "$CaseBlock$", Required);
+			if(TokenContext.MatchToken("default")) {
+				SwitchTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ":", Required);
+				SwitchTree.SetMatchedPatternAt(SwitchCaseDefaultBlock, NameSpace, TokenContext, "$CaseBlock$", Required);
+			}
 		}
+		TokenContext.ParseFlag = ParseFlag;
 		return SwitchTree;
 	}
 
 	public static GtNode TypeSwitch(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		return null;
+		/*local*/GtNode CondNode = ParsedTree.TypeCheckNodeAt(IfCond, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+		/*local*/GtNode DefaultNode = null;
+		if(ParsedTree.HasNodeAt(SwitchCaseDefaultBlock)) {
+			DefaultNode = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(SwitchCaseDefaultBlock), ContextType);
+		}
+		/*local*/GtNode Node = Gamma.Generator.CreateSwitchNode(Gamma.VoidType/*FIXME*/, ParsedTree, CondNode, DefaultNode);
+		/*local*/int CaseIndex = SwitchCaseCaseIndex;
+		while(CaseIndex < ParsedTree.TreeList.size()) {
+			/*local*/GtNode CaseExpr  = ParsedTree.TypeCheckNodeAt(CaseIndex, Gamma, CondNode.Type, DefaultTypeCheckPolicy);
+			/*local*/GtNode CaseBlock = null;
+			if(ParsedTree.HasNodeAt(CaseIndex+1)) {
+				CaseBlock = Gamma.TypeBlock(ParsedTree.GetSyntaxTreeAt(CaseIndex+1), ContextType);
+			}
+			Node.Append(CaseExpr);
+			Node.Append(CaseBlock);
+			CaseIndex += 2;
+		}
+		return Node;
 	}
 
 	// const decl
@@ -3231,6 +3293,9 @@ final class DScriptGrammar extends GtGrammar {
 		NameSpace.AppendSyntax("throw", FunctionB(this, "ParseThrow"), FunctionC(this, "TypeThrow"));
 		NameSpace.AppendSyntax("new", FunctionB(this, "ParseNew"), FunctionC(this, "TypeApply"));
 		NameSpace.AppendSyntax("enum", FunctionB(this, "ParseEnum"), FunctionC(this, "TypeEnum"));
+
+		NameSpace.AppendSyntax("switch", FunctionB(this, "ParseSwitch"), FunctionC(this, "TypeSwitch"));
+		NameSpace.AppendSyntax("$CaseBlock$", FunctionB(this, "ParseCaseBlock"), TypeBlock);
 	}
 }
 

@@ -9,6 +9,7 @@ static int f__AF(int a__AA){
       return i__AB;
    };
 }
+
 f__AF(10);
 
 

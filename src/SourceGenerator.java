@@ -665,15 +665,21 @@ class TryNode extends GtNode {
 }
 
 class SwitchNode extends GtNode {
-	SwitchNode/*constructor*/(GtType Type, GtToken Token) {
+	/*field*/public GtNode	MatchNode;
+	/*field*/public GtNode	DefaultBlock;
+	/*field*/public ArrayList<GtNode> CaseList; // [expr, block, expr, block, ....]
+
+	SwitchNode/*constructor*/(GtType Type, GtToken Token, GtNode MatchNode, GtNode DefaultBlock) {
 		super(Type, Token);
+		this.MatchNode = MatchNode;
+		this.DefaultBlock = DefaultBlock;
+		this.CaseList = new ArrayList<GtNode>();
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitSwitchNode(this);
 	}
-	@Override public Object ToConstValue() {
-		//FIXME
-		return "(Switch:" + this.Type + ")";
+	@Override public void Append(GtNode Expr) {
+		this.CaseList.add(Expr);
 	}
 }
 
@@ -1225,8 +1231,8 @@ class GtGenerator extends GtStatic {
 		return new IfNode(Type, ParsedTree.KeyToken, Cond, Then, Else);
 	}
 
-	public GtNode CreateSwitchNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Match) {
-		return null;
+	public GtNode CreateSwitchNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Match, GtNode DefaultBlock) {
+		return new SwitchNode(Type, ParsedTree.KeyToken, Match, DefaultBlock);
 	}
 
 	public GtNode CreateWhileNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Cond, GtNode Block) {
@@ -1722,7 +1728,8 @@ class SourceGenerator extends GtGenerator {
 		/*local*/Object ConstValue = Node.ToConstValue();
 		if(ConstValue != null) {
 			return this.StringifyConstValue(ConstValue);
-		}		else {
+		}
+		else {
 			Node.Evaluate(this);
 			return this.PopSourceCode();
 		}

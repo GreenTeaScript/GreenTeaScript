@@ -10,7 +10,9 @@ static struct X* constructor__AMAF(struct X* self, int x__AB){
    ;
    return self;
 }
+
 static void f__AD(){
    constructor__AMAF(NEW_X(), 10);
 }
+
 

@@ -1,0 +1,17 @@
+enum Color {
+    Red,
+    Blue
+}
+
+
+@Export int main() {
+    int c = 3;
+    switch (c) {
+        case 0:
+        case 1: {
+            break;
+        }
+        case 2:
+            break;
+    }
+}

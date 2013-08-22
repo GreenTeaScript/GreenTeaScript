@@ -6,6 +6,7 @@ struct X* NEW_X() {
    struct X* self = GT_New(struct X*);
    return self;
 };
+
 struct Y {
    // struct record* __base;
 };
@@ -16,4 +17,5 @@ struct Y* NEW_Y() {
 static int f__AN(struct Y* self){
    return 10;
 }
+
 

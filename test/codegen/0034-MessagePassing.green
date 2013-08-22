@@ -1,9 +1,9 @@
-class X {
-    int hello(int x) {
-    }
-}
-
-
-void f(X x) {
-    x.hello(10);
-}
+//class X {
+//    int hello(int x) {
+//    }
+//}
+//
+//
+//void f(X x) {
+//    x.hello(10);
+//}

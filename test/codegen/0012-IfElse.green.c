@@ -6,6 +6,7 @@ static int f__AF(int a__AA){
       return 100;
    };
 }
+
 f__AF(10);
 
 

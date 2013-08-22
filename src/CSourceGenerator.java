@@ -79,7 +79,18 @@ public class CSourceGenerator extends SourceGenerator {
 		}
 		/*local*/GtNode CurrentNode = Node;
 		while(CurrentNode != null) {
-			Code += this.GetIndentString() + this.VisitNode(CurrentNode) + ";" + this.LineFeed;
+			if(!this.IsEmptyBlock(CurrentNode)) {
+				/*local*/String Stmt = this.VisitNode(CurrentNode);
+				/*local*/String SemiColon = "";
+				/*local*/String LineFeed = "";
+				if(!Stmt.endsWith(";")) {
+					SemiColon = ";";
+				}
+				if(!Stmt.endsWith(this.LineFeed)) {
+					LineFeed = this.LineFeed;
+				}
+				Code += this.GetIndentString() + Stmt + SemiColon + LineFeed;
+			}
 			CurrentNode = CurrentNode.NextNode;
 		}
 		if(NeedBlock) {
@@ -132,7 +143,7 @@ public class CSourceGenerator extends SourceGenerator {
 		if(Node.InitNode != null) {
 			Code += " = " + this.VisitNode(Node.InitNode);
 		}
-		Code +=  ";" + this.LineFeed;
+		Code += ";" + this.LineFeed;
 		if(CreateNewScope) {
 			Code += this.GetIndentString();
 		}
@@ -149,6 +160,33 @@ public class CSourceGenerator extends SourceGenerator {
 			this.VisitBlockEachStatementWithIndent(Node.ElseNode, true);
 			Code += " else " + this.PopSourceCode();
 		}
+		this.PushSourceCode(Code);
+	}
+
+	@Override public void VisitSwitchNode(SwitchNode Node) {
+		/*local*/String Code = "switch (" + this.VisitNode(Node.MatchNode) + ") {" + this.LineFeed;
+		/*local*/int i = 0;
+		while(i < Node.CaseList.size()) {
+			GtNode Case  = Node.CaseList.get(i);
+			GtNode Block = Node.CaseList.get(i+1);
+			Code += this.GetIndentString() + "case " + this.VisitNode(Case) + ":";
+			if(this.IsEmptyBlock(Block)) {
+				this.Indent();
+				Code += this.LineFeed + this.GetIndentString() + "/* fall-through */" + this.LineFeed;
+				this.UnIndent();
+			}
+			else {
+				this.VisitBlockEachStatementWithIndent(Block, true);
+				Code += this.PopSourceCode() + this.LineFeed;
+			}
+			i = i + 2;
+		}
+		if(Node.DefaultBlock != null) {
+			Code += this.GetIndentString() + "default:" + this.LineFeed;
+			this.VisitBlockEachStatementWithIndent(Node.DefaultBlock, true);
+			Code += this.PopSourceCode();
+		}
+		Code += this.GetIndentString() + "}";
 		this.PushSourceCode(Code);
 	}
 
@@ -217,7 +255,6 @@ public class CSourceGenerator extends SourceGenerator {
 		this.VisitBlockEachStatementWithIndent(Body, true);
 		Code += this.PopSourceCode();
 		this.WriteLineCode(Code);
-		//System.out.println(Code);
 	}
 
 	@Override public Object Eval(GtNode Node) {

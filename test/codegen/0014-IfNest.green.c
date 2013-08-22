@@ -21,6 +21,7 @@ static int f__AFAF(int a__AA, int b__AB){
       return n__AC;
    };
 }
+
 f__AFAF(10000, 20000);
 
 

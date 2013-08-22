@@ -6,6 +6,7 @@ static boolean g__AF(int a__AA){
       return a__AB;
    };
 }
+
 g__AF(100);
 
 
