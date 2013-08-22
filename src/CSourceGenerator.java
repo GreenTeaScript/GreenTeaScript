@@ -29,10 +29,10 @@ import java.util.ArrayList;
 //GreenTea Generator should be written in each language.
 
 public class CSourceGenerator extends SourceGenerator {
-	/*field*/ConstantFolder Opt;
+	///*field*/ConstantFolder Opt;
 	CSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
-		this.Opt = new ConstantFolder(TargetCode, OutputFile, GeneratorFlag);
+		//this.Opt = new ConstantFolder(TargetCode, OutputFile, GeneratorFlag);
 		this.TrueLiteral  = "1";
 		this.FalseLiteral = "0";
 		this.NullLiteral = "NULL";
@@ -40,7 +40,7 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 	@Override public void InitContext(GtClassContext Context) {
 		super.InitContext(Context);
-		this.Opt.InitContext(Context);
+		//this.Opt.InitContext(Context);
 	}
 
 	private String GetLocalType(GtType Type, boolean IsPointer) {
@@ -201,7 +201,7 @@ public class CSourceGenerator extends SourceGenerator {
 		if(!Func.Is(ExportFunc)) {
 			Code = "static ";
 		}
-		Body = this.Opt.Fold(Body);
+		//Body = this.Opt.Fold(Body);
 		/*local*/String RetTy = this.LocalTypeName(Func.GetReturnType());
 		Code += RetTy + " " + Func.GetNativeFuncName() + "(";
 		/*local*/int i = 0;
@@ -221,7 +221,7 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public Object Eval(GtNode Node) {
-		Node = this.Opt.Fold(Node);
+		//Node = this.Opt.Fold(Node);
 		this.VisitBlockEachStatementWithIndent(Node, false);
 		/*local*/String Code = this.PopSourceCode();
 		if(LibGreenTea.EqualsString(Code, ";" + this.LineFeed)) {

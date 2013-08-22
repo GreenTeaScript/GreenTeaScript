@@ -51,6 +51,10 @@ public class PerlSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
+	@Override protected final String GetNewOperator(GtType Type) {
+		return Type.ShortClassName + "->new";
+	}
+
 	@Override public void VisitWhileNode(WhileNode Node) {
 		Node.CondExpr.Evaluate(this);
 		/*local*/String Program = "while(" + this.PopSourceCode() + ")";

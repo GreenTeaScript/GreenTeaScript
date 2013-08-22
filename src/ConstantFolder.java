@@ -23,6 +23,7 @@
 // **************************************************************************
 
 //ifdef  JAVA
+import java.util.ArrayList;
 //endif VAJA
 
 public class ConstantFolder extends GtGenerator {
@@ -31,88 +32,95 @@ public class ConstantFolder extends GtGenerator {
 	ConstantFolder/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
 	}
+
 	@Override public void InitContext(GtClassContext Context) {
 		this.BooleanType = Context.BooleanType;
 	}
 
-	GtNode FoldBlock(GtNode Block) {
+	private void FoldList(ArrayList<GtNode> NodeList) {
+		/*local*/int i = 0;
+		while(i < NodeList.size()) {
+			/*local*/GtNode Param = NodeList.get(i);
+			NodeList.set(i, this.Fold(Param));
+			i = i + 1;
+		}
+	}
+
+	private GtNode Tail(GtNode Node) {
+		while(Node.NextNode != null) {
+			Node = Node.NextNode;
+		}
+		return Node;
+	}
+
+	private GtNode FoldBlock(GtNode Block) {
 		if(Block == null) {
 			return null;
 		}
-		/*local*/GtNode Head = this.Fold(Block);
-		/*local*/GtNode Tmp = Head;
+		/*local*/GtNode Head = this.FoldOnce(Block);
+		/*local*/GtNode Tmp  = this.Tail(Head);
 		Block = Block.NextNode;
 		while(Block != null) {
-			Tmp.NextNode = this.Fold(Block);
+			Tmp.NextNode = this.FoldOnce(Block);
 			Block = Block.NextNode;
-			Tmp = Tmp.NextNode;
+			Tmp = this.Tail(Tmp);
 		}
 		return Head;
 	}
 
-	GtNode FoldCast(CastNode Node) {
-		Node.Expr = this.Fold(Node.Expr);
-		// Node = Eval(Node);
-		return Node;
+	public final GtNode Fold(GtNode SourceNode) {
+		return this.FoldBlock(SourceNode);
 	}
-	GtNode FoldUnary(UnaryNode Node) {
-		Node.Expr = this.Fold(Node.Expr);
-		// Node = Eval(Node);
+
+	private GtNode EvalNode(GtNode Node) {
+		/*local*/Object Value = Node.ToConstValue();
+		if(Value != null) {
+			return this.CreateConstNode2(Node.Type, Node.Token, Value);
+		}
 		return Node;
 	}
 
-	GtNode FoldSuffix(SuffixNode Node) {
+	private GtNode FoldCast(CastNode Node) {
 		Node.Expr = this.Fold(Node.Expr);
-		// Node = Eval(Node);
-		return Node;
+		return this.EvalNode(Node);
 	}
-	GtNode FoldExists(ExistsNode Node) {
+	private GtNode FoldUnary(UnaryNode Node) {
 		Node.Expr = this.Fold(Node.Expr);
-		// Node = Eval(Node);
-		return Node;
+		return this.EvalNode(Node);
 	}
-	GtNode FoldAssign(AssignNode Node) {
+
+	private GtNode FoldSuffix(SuffixNode Node) {
+		Node.Expr = this.Fold(Node.Expr);
+		return this.EvalNode(Node);
+	}
+	private GtNode FoldExists(ExistsNode Node) {
+		Node.Expr = this.Fold(Node.Expr);
+		return this.EvalNode(Node);
+	}
+	private GtNode FoldAssign(AssignNode Node) {
 		Node.RightNode = this.Fold(Node.RightNode);
 		return Node;
 	}
-	GtNode FoldSelfAssign(SelfAssignNode Node) {
+	private GtNode FoldSelfAssign(SelfAssignNode Node) {
 		Node.RightNode = this.Fold(Node.RightNode);
 		return Node;
 	}
-	GtNode FoldInstanceOf(InstanceOfNode Node) {
+	private GtNode FoldInstanceOf(InstanceOfNode Node) {
 		Node.ExprNode = this.Fold(Node.ExprNode);
-		// Node = Eval(Node);
-		return Node;
+		return this.EvalNode(Node);
 	}
-	GtNode FoldGetter(GetterNode Node) {
+	private GtNode FoldGetter(GetterNode Node) {
 		Node.Expr = this.Fold(Node.Expr);
-		// Eval(Node);
-		return Node;
+		return this.EvalNode(Node);
 	}
-	GtNode FoldIndexer(IndexerNode Node) {
+	private GtNode FoldIndexer(IndexerNode Node) {
 		Node.IndexAt = this.Fold(Node.IndexAt);
-		return Node;
+		return this.EvalNode(Node);
 	}
-	GtNode FoldBinary(BinaryNode Node) {
-		return this.FoldBinaryNode(Node, Node.Func, Node.LeftNode, Node.RightNode);
-	}
-	GtNode FoldBinaryNode(BinaryNode Original, GtFunc Func, GtNode Left, GtNode Right) {
-		Left = this.Fold(Left);
-		Right = this.Fold(Right);
-		if(Func != null) {
-			if(Left instanceof ConstNode) {
-				if(Right instanceof ConstNode) {
-					if(Func.Is(ConstFunc)) {
-						// Eval();
-					}
-				}
-			}
-		}
-		if(Original != null) {
-			Original.LeftNode = Left;
-			Original.RightNode = Right;
-		}
-		return Original;
+	private GtNode FoldBinary(BinaryNode Node) {
+		Node.LeftNode = this.Fold(Node.LeftNode);
+		Node.RightNode = this.Fold(Node.RightNode);
+		return this.EvalNode(Node);
 	}
 
 	private GtNode FoldTrinary(TrinaryNode Node) {
@@ -154,7 +162,7 @@ public class ConstantFolder extends GtGenerator {
 		return Original;
 	}
 
-	GtNode FoldAnd(AndNode Node) {
+	private GtNode FoldAnd(AndNode Node) {
 		/*local*/GtNode Left = Node.LeftNode;
 		/*local*/GtNode Right = Node.RightNode;
 		return this.FoldAndNode(Node, Left, Right);
@@ -181,99 +189,89 @@ public class ConstantFolder extends GtGenerator {
 		return Original;
 	}
 
-	GtNode FoldLet(LetNode Node) {
+	private GtNode FoldLet(LetNode Node) {
 		Node.InitNode = this.Fold(Node.InitNode);
 		return Node;
 	}
-	GtNode FoldSlice(SliceNode Node) {
+	private GtNode FoldSlice(SliceNode Node) {
 		Node.Index1 = this.Fold(Node.Index1);
 		Node.Index2 = this.Fold(Node.Index2);
 		return Node;
 	}
-	GtNode FoldApply(ApplyNode Node) {
-		/*local*/int i = 0;
-		while(i < Node.Params.size()) {
-			/*local*/GtNode Param = Node.Params.get(i);
-			Node.Params.set(i, this.Fold(Param));
-			i = i + 1;
-		}
+	private GtNode FoldApply(ApplyNode Node) {
+		FoldList(Node.Params);
 		return Node;
 	}
-	GtNode FoldMessage(MessageNode Node) {
+
+	private GtNode FoldMessage(MessageNode Node) {
 		Node.RecvNode = this.Fold(Node.RecvNode);
-		/*local*/int i = 0;
-		while(i < Node.Params.size()) {
-			/*local*/GtNode Param = Node.Params.get(i);
-			Node.Params.set(i, this.Fold(Param));
-			i = i + 1;
-		}
+		FoldList(Node.Params);
 		return Node;
 	}
-	GtNode FoldIf(IfNode Node) {
+
+	private GtNode FoldIf(IfNode Node) {
 		Node.CondExpr = this.Fold(Node.CondExpr);
-		Node.ThenNode = this.FoldBlock(Node.ThenNode);
-		Node.ElseNode = this.FoldBlock(Node.ElseNode);
 		if(Node.CondExpr.Type == this.BooleanType && Node.CondExpr instanceof ConstNode) {
 			if(this.ConstValue(Node.CondExpr).equals(true)) {
-				return Node.ThenNode;
+				Node.ElseNode = this.CreateEmptyNode(Node.Type);
 			}
 			else {
-				if(Node.ElseNode == null) {
+				if(this.IsEmptyBlock(Node.ElseNode)) {
 					return this.CreateEmptyNode(Node.Type);
 				}
-				return Node.ElseNode;
+				Node.ThenNode = this.CreateEmptyNode(Node.Type);
 			}
 		}
+		Node.ThenNode = this.FoldBlock(Node.ThenNode);
+		Node.ElseNode = this.FoldBlock(Node.ElseNode);
 		return Node;
 	}
-	GtNode FoldWhile(WhileNode Node) {
+	private GtNode FoldWhile(WhileNode Node) {
 		Node.CondExpr = this.Fold(Node.CondExpr);
 		Node.LoopBody = this.FoldBlock(Node.LoopBody);
-		if(this.ConstValue(Node.CondExpr).equals(false)) {
+		if(Node.CondExpr instanceof ConstNode && this.ConstValue(Node.CondExpr).equals(false)) {
 			return this.CreateEmptyNode(Node.Type);
 		}
 		return Node;
 	}
-	GtNode FoldDoWhile(DoWhileNode Node) {
+	private GtNode FoldDoWhile(DoWhileNode Node) {
 		Node.CondExpr = this.Fold(Node.CondExpr);
 		Node.LoopBody = this.FoldBlock(Node.LoopBody);
-		if(this.ConstValue(Node.CondExpr).equals(false)) {
+		if(Node.CondExpr instanceof ConstNode && this.ConstValue(Node.CondExpr).equals(false)) {
 			return Node.LoopBody;
 		}
 		return Node;
 	}
-	GtNode FoldFor(ForNode Node) {
+	private GtNode FoldFor(ForNode Node) {
 		Node.IterExpr = this.Fold(Node.IterExpr);
 		Node.CondExpr = this.Fold(Node.CondExpr);
 		Node.LoopBody = this.FoldBlock(Node.LoopBody);
 		return Node;
 	}
-	GtNode FoldReturn(ReturnNode Node) {
+	private GtNode FoldReturn(ReturnNode Node) {
 		Node.Expr = this.Fold(Node.Expr);
 		return Node;
 	}
-	GtNode FoldThrow(ThrowNode Node) {
+	private GtNode FoldThrow(ThrowNode Node) {
 		Node.Expr = this.Fold(Node.Expr);
 		return Node;
 	}
-	GtNode FoldTry(TryNode Node) {
+	private GtNode FoldTry(TryNode Node) {
 		Node.TryBlock = this.FoldBlock(Node.TryBlock);
 		Node.CatchBlock = this.FoldBlock(Node.CatchBlock);
 		Node.FinallyBlock = this.FoldBlock(Node.FinallyBlock);
 		return Node;
 	}
-	GtNode FoldCommand(CommandNode Node) {
-		/*local*/int i = 0;
-		while(i < Node.Params.size()) {
-			/*local*/GtNode Param = Node.Params.get(i);
-			Node.Params.set(i, this.Fold(Param));
-			i = i + 1;
-		}
+	private GtNode FoldCommand(CommandNode Node) {
+		FoldList(Node.Params);
 		return Node;
 	}
-	GtNode Fold(GtNode SourceNode) {
+
+	private GtNode FoldOnce(GtNode SourceNode) {
 		if(SourceNode == null) {
 			return null;
+		}
+		else if(SourceNode instanceof EmptyNode) {
 		}
 		else if(SourceNode instanceof ConstNode) {
 		}
@@ -380,6 +378,10 @@ public class ConstantFolder extends GtGenerator {
 		return null;
 	}
 
+	private GtNode CreateConstNode2(GtType Type, GtToken KeyToken, Object Value) {
+		return new ConstNode(Type, KeyToken, Value);
+	}
+
 	@Override public GtNode CreateGetterNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, GtNode Expr) {
 		return new GetterNode(Type, ParsedTree.KeyToken, Func, this.Fold(Expr));
 	}
@@ -399,9 +401,14 @@ public class ConstantFolder extends GtGenerator {
 	@Override public GtNode CreateBinaryNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, GtNode Left, GtNode Right) {
 		Left = this.Fold(Left);
 		Right = this.Fold(Right);
-		/*local*/GtNode Node = this.FoldBinaryNode(null, Func, Left, Right);
-		if(Node != null) {
-			return Node;
+		/*local*/Object LeftValue = Left.ToConstValue();
+		/*local*/Object RightValue = Right.ToConstValue();
+		if(Func != null) {
+			/*local*/String Operator = Func.GetNativeFuncName();
+			/*local*/Object ConstValue = LibGreenTea.EvalBinary(Type, LeftValue, Operator, RightValue);
+			if(ConstValue != null) {
+				return this.CreateConstNode(Type, ParsedTree, ConstValue);
+			}
 		}
 		return new BinaryNode(Type, ParsedTree.KeyToken, Func, Left, Right);
 	}
@@ -436,43 +443,42 @@ public class ConstantFolder extends GtGenerator {
 		return new LetNode(Type, ParsedTree.KeyToken, DeclType, VarName, InitNode, Block);
 	}
 
-	@Override public GtNode CreateIfNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Cond, GtNode Then, GtNode Else) {
-		Cond = this.Fold(Cond);
+	@Override public GtNode CreateIfNode(GtType Type, GtSyntaxTree ParsedTree, GtNode CondNode, GtNode ThenNode, GtNode ElseNode) {
+		CondNode = this.Fold(CondNode);
+		ThenNode = this.Fold(ThenNode);
+		ElseNode = this.Fold(ElseNode);
 		/*local*/GtType BooleanType = ParsedTree.NameSpace.Context.BooleanType;
-		if(Cond.Type == BooleanType) {
-			if(Cond instanceof ConstNode) {
-				if(this.ConstValue(Cond).equals(true)) {
-					return Then;
-				}
-				else {
-					return Else;
-				}
+		if(CondNode.Type == BooleanType && CondNode instanceof ConstNode) {
+			if(this.ConstValue(CondNode).equals(true)) {
+				ElseNode = this.CreateEmptyNode(Type);
 			}
-		}
-		return new IfNode(Type, ParsedTree.KeyToken, Cond, Then, Else);
-	}
-
-	@Override public GtNode CreateWhileNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Cond, GtNode Block) {
-		Cond = this.Fold(Cond);
-		/*local*/GtType BooleanType = ParsedTree.NameSpace.Context.BooleanType;
-		if(Cond.Type == BooleanType) {
-			if(Cond instanceof ConstNode) {
-				if(this.ConstValue(Cond).equals(false)) {
+			else {
+				if(this.IsEmptyBlock(ElseNode)) {
 					return this.CreateEmptyNode(Type);
 				}
+				ThenNode = this.CreateEmptyNode(Type);
 			}
 		}
-		return new WhileNode(Type, ParsedTree.KeyToken, Cond, Block);
+		return new IfNode(Type, ParsedTree.KeyToken, CondNode, ThenNode, ElseNode);
+	}
+
+	@Override public GtNode CreateWhileNode(GtType Type, GtSyntaxTree ParsedTree, GtNode CondNode, GtNode Block) {
+		CondNode = this.Fold(CondNode);
+		/*local*/GtType BooleanType = ParsedTree.NameSpace.Context.BooleanType;
+		if(CondNode.Type == BooleanType && CondNode instanceof ConstNode) {
+			if(this.ConstValue(CondNode).equals(false)) {
+				return this.CreateEmptyNode(Type);
+			}
+		}
+		return new WhileNode(Type, ParsedTree.KeyToken, CondNode, Block);
 	}
 
 	@Override public GtNode CreateDoWhileNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Cond, GtNode Block) {
 		Cond = this.Fold(Cond);
 		/*local*/GtType BooleanType = ParsedTree.NameSpace.Context.BooleanType;
-		if(Cond.Type == BooleanType) {
-			if(Cond instanceof ConstNode) {
-				if(this.ConstValue(Cond).equals(false)) {
-					return Block;
-				}
+		if(Cond.Type == BooleanType && Cond instanceof ConstNode) {
+			if(this.ConstValue(Cond).equals(false)) {
+				return Block;
 			}
 		}
 		return new DoWhileNode(Type, ParsedTree.KeyToken, Cond, Block);

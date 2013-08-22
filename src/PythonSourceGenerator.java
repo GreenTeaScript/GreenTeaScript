@@ -82,10 +82,6 @@ public class PythonSourceGenerator extends SourceGenerator {
 		return this.CreateWhileNode(Type, ParsedTree, TrueNode, Block);
 	}
 
-	boolean IsEmptyBlock(GtNode Node) {
-		return (Node instanceof EmptyNode) && Node.NextNode == null;
-	}
-
 	// Visitor API
 	@Override public void VisitWhileNode(WhileNode Node) {
 		/*local*/String Program = "while " + this.VisitNode(Node.CondExpr) + ":" + this.LineFeed;
@@ -146,7 +142,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 			Code += this.GetIndentString() + "pass" + this.LineFeed + this.GetIndentString();
 		}
 
-		if(Node.ElseNode != null && !this.IsEmptyBlock(Node.ElseNode)) {
+		if(!this.IsEmptyBlock(Node.ElseNode)) {
 			/*local*/String ElseBlock = this.VisitBlockWithIndent(Node.ElseNode, true);
 			Code += "else:" + this.LineFeed + ElseBlock;
 		}

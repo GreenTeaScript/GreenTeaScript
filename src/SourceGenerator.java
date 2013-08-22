@@ -1388,6 +1388,10 @@ class GtGenerator extends GtStatic {
 		Node.NextNode = null;
 	}
 
+	public final boolean IsEmptyBlock(GtNode Node) {
+		return Node == null || (Node instanceof EmptyNode) && Node.NextNode == null;
+	}
+
 	//------------------------------------------------------------------------
 
 	public void VisitEmptyNode(EmptyNode EmptyNode) {
@@ -1715,8 +1719,13 @@ class SourceGenerator extends GtGenerator {
 	}
 
 	public final String VisitNode(GtNode Node) {
-		Node.Evaluate(this);
-		return this.PopSourceCode();
+		/*local*/Object ConstValue = Node.ToConstValue();
+		if(ConstValue != null) {
+			return this.StringifyConstValue(ConstValue);
+		}		else {
+			Node.Evaluate(this);
+			return this.PopSourceCode();
+		}
 	}
 
 	public final String JoinCode(String BeginCode, int BeginIdx, String[] ParamCode, String EndCode, String Delim) {
