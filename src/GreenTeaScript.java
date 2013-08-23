@@ -3240,6 +3240,7 @@ final class DScriptGrammar extends GtGrammar {
 		NameSpace.AppendSyntax("-", ParseUnary, TypeUnary);
 		NameSpace.AppendSyntax("~", ParseUnary, TypeUnary);
 		NameSpace.AppendSyntax("! not", ParseUnary, TypeUnary);
+		NameSpace.AppendSyntax("++ --", ParseUnary, TypeUnary);
 
 		NameSpace.AppendExtendedSyntax("*", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeBinary);
 		NameSpace.AppendExtendedSyntax("/", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeBinary);
@@ -3262,12 +3263,15 @@ final class DScriptGrammar extends GtGrammar {
 		NameSpace.AppendExtendedSyntax("^", BinaryOperator | Precedence_CStyleBITXOR, ParseBinary, TypeBinary);
 
 		NameSpace.AppendExtendedSyntax("=", BinaryOperator | Precedence_CStyleAssign | LeftJoin, ParseBinary, FunctionC(this, "TypeAssign"));
+		NameSpace.AppendExtendedSyntax("+= -= *= /= %= <<= >>= & | ^=", BinaryOperator | Precedence_CStyleAssign, ParseBinary, FunctionC(this, "TypeSelfAssign"));
+		NameSpace.AppendExtendedSyntax("++ --", 0, FunctionB(this, "ParseIncl"), FunctionC(this, "TypeEmpty"));
+
 		NameSpace.AppendExtendedSyntax("&& and", BinaryOperator | Precedence_CStyleAND, ParseBinary, FunctionC(this, "TypeAnd"));
 		NameSpace.AppendExtendedSyntax("|| or", BinaryOperator | Precedence_CStyleOR, ParseBinary, FunctionC(this, "TypeOr"));
-
 		NameSpace.AppendExtendedSyntax("<: instanceof", BinaryOperator | Precedence_CStyleBITXOR, ParseBinary, FunctionC(this, "TypeInstanceOf"));
 
-		
+		NameSpace.AppendExtendedSyntax("?", 0, FunctionB(this, "ParseTrinary"), FunctionC(this, "TypeTrinary"));
+
 		NameSpace.AppendSyntax("$Empty$", FunctionB(this, "ParseEmpty"), FunctionC(this, "TypeEmpty"));
 		NameSpace.AppendSyntax("$Symbol$", FunctionB(this, "ParseSymbol"), null);
 		NameSpace.AppendSyntax("$Type$", FunctionB(this, "ParseType"), TypeConst);
@@ -3282,8 +3286,8 @@ final class DScriptGrammar extends GtGrammar {
 		NameSpace.AppendSyntax("(", FunctionB(this, "ParseGroup"), FunctionC(this, "TypeGroup"));
 		NameSpace.AppendSyntax("(", FunctionB(this, "ParseCast"), FunctionC(this, "TypeCast"));
 		NameSpace.AppendExtendedSyntax("(", 0, FunctionB(this, "ParseApply"), FunctionC(this, "TypeApply"));
-
-		//future: NameSpace.DefineExtendedPattern("[", 0, FunctionB(this, "ParseIndexer"), FunctionC(this, "TypeIndexer"));
+		NameSpace.AppendExtendedSyntax("[", 0, FunctionB(this, "ParseIndexer"), FunctionC(this, "TypeIndexer"));
+		NameSpace.AppendSyntax("|", FunctionB(this, "ParseSizeOf"), FunctionC(this, "TypeSizeOf"));
 
 		NameSpace.AppendSyntax("$Block$", FunctionB(this, "ParseBlock"), TypeBlock);
 		NameSpace.AppendSyntax("$Statement$", FunctionB(this, "ParseStatement"), TypeBlock);
@@ -3293,22 +3297,27 @@ final class DScriptGrammar extends GtGrammar {
 		NameSpace.AppendSyntax("$FuncDecl$", FunctionB(this, "ParseFuncDecl"), FunctionC(this, "TypeFuncDecl"));
 		NameSpace.AppendSyntax("$VarDecl$",  FunctionB(this, "ParseVarDecl"), FunctionC(this, "TypeVarDecl"));
 
-		NameSpace.AppendSyntax("$Constructor$", FunctionB(this, "ParseConstructor"), FunctionC(this, "TypeConstructor"));
-		NameSpace.AppendSyntax("super", FunctionB(this, "ParseSuper"), null);
-
 		NameSpace.AppendSyntax("null", FunctionB(this, "ParseNull"), FunctionC(this, "TypeNull"));
+		NameSpace.AppendSyntax("defined", FunctionB(this, "ParseDefined"), FunctionC(this, "TypeDefined"));
+		NameSpace.AppendSyntax("require", FunctionB(this, "ParseRequire"), FunctionC(this, "TypeRequire"));
+		NameSpace.AppendSyntax("import", FunctionB(this, "ParseImport"), FunctionC(this, "TypeImport"));
+		
 		NameSpace.AppendSyntax("if", FunctionB(this, "ParseIf"), FunctionC(this, "TypeIf"));
 		NameSpace.AppendSyntax("while", FunctionB(this, "ParseWhile"), FunctionC(this, "TypeWhile"));
 		NameSpace.AppendSyntax("continue", FunctionB(this, "ParseContinue"), FunctionC(this, "TypeContinue"));
 		NameSpace.AppendSyntax("break", FunctionB(this, "ParseBreak"), FunctionC(this, "TypeBreak"));
 		NameSpace.AppendSyntax("return", FunctionB(this, "ParseReturn"), FunctionC(this, "TypeReturn"));
-		NameSpace.AppendSyntax("const", FunctionB(this, "ParseConstDecl"), FunctionC(this, "TypeConstDecl"));
-		NameSpace.AppendSyntax("class", FunctionB(this, "ParseClassDecl"), FunctionC(this, "TypeClassDecl"));
+		NameSpace.AppendSyntax("let const", FunctionB(this, "ParseConstDecl"), FunctionC(this, "TypeConstDecl"));
+
 		NameSpace.AppendSyntax("try", FunctionB(this, "ParseTry"), FunctionC(this, "TypeTry"));
 		NameSpace.AppendSyntax("throw", FunctionB(this, "ParseThrow"), FunctionC(this, "TypeThrow"));
+		
+		NameSpace.AppendSyntax("class", FunctionB(this, "ParseClassDecl"), FunctionC(this, "TypeClassDecl"));
+		NameSpace.AppendSyntax("$Constructor$", FunctionB(this, "ParseConstructor"), FunctionC(this, "TypeConstructor"));
+		NameSpace.AppendSyntax("super", FunctionB(this, "ParseSuper"), null);
 		NameSpace.AppendSyntax("new", FunctionB(this, "ParseNew"), FunctionC(this, "TypeApply"));
-		NameSpace.AppendSyntax("enum", FunctionB(this, "ParseEnum"), FunctionC(this, "TypeEnum"));
 
+		NameSpace.AppendSyntax("enum", FunctionB(this, "ParseEnum"), FunctionC(this, "TypeEnum"));
 		NameSpace.AppendSyntax("switch", FunctionB(this, "ParseSwitch"), FunctionC(this, "TypeSwitch"));
 		NameSpace.AppendSyntax("$CaseBlock$", FunctionB(this, "ParseCaseBlock"), TypeBlock);
 	}
