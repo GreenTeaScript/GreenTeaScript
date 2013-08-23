@@ -46,7 +46,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.WriteLineCode(this.LineFeed + "source $GREENTEA_HOME/include/bash/GreenTeaPlus.sh" + this.LineFeed);
 	}
 
-	public String VisitBlockWithIndent(GtNode Node, boolean inBlock, boolean allowDummyBlock) {
+	public String VisitBlockWithIndent(GtNode Node, boolean inBlock, boolean allowDummyBlock, boolean skipJump) {
 		/*local*/String Code = "";
 		if(inBlock) {
 			this.Indent();
@@ -57,6 +57,9 @@ public class BashSourceGenerator extends SourceGenerator {
 		}
 		while(!this.IsEmptyBlock(CurrentNode)) {
 			/*local*/String poppedCode = this.VisitNode(CurrentNode);
+			if(skipJump && (CurrentNode instanceof BreakNode || CurrentNode instanceof ContinueNode)) {
+				poppedCode = "echo \"skip jump code\" $> /dev/zero";
+			}
 			if(!LibGreenTea.EqualsString(poppedCode, "")) {
 				Code += this.GetIndentString() + poppedCode + this.LineFeed;
 			}
@@ -92,19 +95,19 @@ public class BashSourceGenerator extends SourceGenerator {
 			return null;
 		}
 		
-		if(Node instanceof ConstNode) {
-			/*local*/ConstNode Const = (/*cast*/ConstNode) Node;
-			if(Const.ConstValue.equals(true)) {
-				return "true";
-			}
-			return "false";
+		/*local*/String Cond = this.VisitNode(Node);
+		if(LibGreenTea.EqualsString(Cond, "0")) {
+			Cond = "true";
 		}
-		return this.VisitNode(Node);
+		else if(LibGreenTea.EqualsString(Cond, "1")) {
+			Cond = "false";
+		}
+		return Cond;
 	}
 
 	@Override public void VisitWhileNode(WhileNode Node) {
 		/*local*/String Program = "while " + this.ResolveCondition(Node.CondExpr) + " ;do" + this.LineFeed;
-		Program += this.VisitBlockWithIndent(Node.LoopBody, true, true) + "done";
+		Program += this.VisitBlockWithIndent(Node.LoopBody, true, true, false) + "done";
 		this.PushSourceCode(Program);
 	}
 
@@ -112,7 +115,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/String Cond = this.ResolveCondition(Node.CondExpr);
 		/*local*/String Iter = this.VisitNode(Node.IterExpr);
 		/*local*/String Program = "for((; " + Cond  + "; " + Iter + " )) ;do" + this.LineFeed;
-		Program += this.VisitBlockWithIndent(Node.LoopBody, true, true) + "done";
+		Program += this.VisitBlockWithIndent(Node.LoopBody, true, true, false) + "done";
 		this.PushSourceCode(Program);
 	}
 
@@ -120,7 +123,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/String Variable = this.VisitNode(Node.Variable);
 		/*local*/String Iter = this.VisitNode(Node.IterExpr);
 		/*local*/String Program = "for " + Variable + " in " + "${" + Iter + "[@]} ;do" + this.LineFeed;
-		Program += this.VisitBlockWithIndent(Node.LoopBody, true, true) + "done";
+		Program += this.VisitBlockWithIndent(Node.LoopBody, true, true, false) + "done";
 		this.PushSourceCode(Program);
 	}
 
@@ -138,16 +141,7 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	private String CreateAssertFunc(ApplyNode Node) {
 		/*local*/GtNode ParamNode = Node.Params.get(1);
-		/*local*/String Param = this.VisitNode(ParamNode);
-		if(ParamNode instanceof ConstNode && 
-				ParamNode.Type.equals(ParamNode.Type.Context.BooleanType)) {
-			/*local*/ConstNode Const = (/*cast*/ConstNode)ParamNode;
-			Param = "false";
-			if(Const.ConstValue.equals(true)) {
-				Param = "true";
-			}
-		}
-		return "assert \"" + Param + "\"";
+		return "assert \"" + this.ResolveCondition(ParamNode) + "\"";
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
@@ -217,18 +211,36 @@ public class BashSourceGenerator extends SourceGenerator {
 			Code += "=" + this.ResolveValueType(Node.InitNode);
 		} 
 		Code +=  this.LineFeed;
-		this.PushSourceCode(Code + this.VisitBlockWithIndent(Node.BlockNode, false, false));
+		this.PushSourceCode(Code + this.VisitBlockWithIndent(Node.BlockNode, false, false, false));
 	}
 
 	@Override public void VisitIfNode(IfNode Node) {
 		/*local*/String CondExpr = this.ResolveCondition(Node.CondExpr);
-		/*local*/String ThenBlock = this.VisitBlockWithIndent(Node.ThenNode, true, true);
-		/*local*/String ElseBlock = this.VisitBlockWithIndent(Node.ElseNode, true, false);
+		/*local*/String ThenBlock = this.VisitBlockWithIndent(Node.ThenNode, true, true, false);
+		/*local*/String ElseBlock = this.VisitBlockWithIndent(Node.ElseNode, true, false, false);
 		/*local*/String Code = "if " + CondExpr + " ;then" + this.LineFeed + ThenBlock;
 		if(!this.IsEmptyBlock(Node.ElseNode)) {
 			Code += "else" + this.LineFeed + ElseBlock;
 		}
 		Code += "fi";
+		this.PushSourceCode(Code);
+	}
+	
+	@Override public void VisitSwitchNode(SwitchNode Node) {
+		/*local*/String Code = "case " + this.ResolveValueType(Node.MatchNode) + " in";
+		/*local*/int i = 0;
+		while(i < Node.CaseList.size()) {
+			/*local*/GtNode Case  = Node.CaseList.get(i);
+			/*local*/GtNode Block = Node.CaseList.get(i+1);
+			Code += this.LineFeed + this.GetIndentString() + this.VisitNode(Case) + ")" + this.LineFeed;
+			Code += this.VisitBlockWithIndent(Block, true, true, true) + ";;";
+			i = i + 2;
+		}
+		if(Node.DefaultBlock != null) {
+			Code += this.LineFeed + this.GetIndentString() + "*)" + this.LineFeed;
+			Code += this.VisitBlockWithIndent(Node.DefaultBlock, true, false, true) + ";;";
+		}
+		Code += this.LineFeed + this.GetIndentString() + "esac";
 		this.PushSourceCode(Code);
 	}
 
@@ -391,7 +403,7 @@ public class BashSourceGenerator extends SourceGenerator {
 			this.inMainFunc = true;
 		}
 		Function += FuncName + "() {" + this.LineFeed;
-		/*local*/String Block = this.VisitBlockWithIndent(this.ResolveParamName(ParamNameList, Body), true, true);
+		/*local*/String Block = this.VisitBlockWithIndent(this.ResolveParamName(ParamNameList, Body), true, true, false);
 		Function += Block + "}" + this.LineFeed;
 		this.WriteLineCode(Function);
 		this.inFunc = false;
@@ -399,7 +411,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public Object Eval(GtNode Node) {
-		/*local*/String Code = this.VisitBlockWithIndent(Node, false, false);
+		/*local*/String Code = this.VisitBlockWithIndent(Node, false, false, false);
 		if(!LibGreenTea.EqualsString(Code, "")) {
 			this.WriteLineCode(Code);
 		}
