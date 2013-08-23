@@ -2904,7 +2904,7 @@ final class DScriptGrammar extends GtGrammar {
 		// FIXME: Obviously strange
 		/*local*/GreenTeaTopObject DefaultObject = new GreenTeaTopObject(NewType);
 		NewType.DefaultNullValue = DefaultObject;
-		ClassNameSpace.AppendTypeName(NewType);  // Tempollary
+		ClassNameSpace.AppendTypeName(NewType);  // temporary
 		ClassDeclTree.ConstValue = NewType;
 		ClassNameTree.ConstValue = NewType;
 
@@ -3205,7 +3205,8 @@ final class DScriptGrammar extends GtGrammar {
 		// Define Constants
 		NameSpace.SetSymbol("true", true);
 		NameSpace.SetSymbol("false", false);
-		NameSpace.SetSymbol("null", null);
+		// null must be set null Parser and TypeChecker
+		//NameSpace.SetSymbol("null", null);
 
 		NameSpace.DefineTokenFunc(" \t", FunctionA(this, "WhiteSpaceToken"));
 		NameSpace.DefineTokenFunc("\n",  FunctionA(this, "IndentToken"));
