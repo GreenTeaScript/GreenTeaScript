@@ -341,18 +341,39 @@ public class BashSourceGenerator extends SourceGenerator {
 		if(ParamNameList == null || index == ParamNameList.size()) {
 			return Body;
 		}
-
+		
 		/*local*/GtNode oldVarNode = new LocalNode(null, null, "" + (index + 1));
 		/*local*/GtNode Let = new LetNode(null, null, null, ParamNameList.get(index), oldVarNode, null);
 		Let.NextNode = this.ConvertParamName(ParamNameList, Body, index + 1);
 		return Let;
 	}
+	
+	private boolean CheckConstFolding(GtNode TargetNode) {
+		if(TargetNode instanceof ConstNode) {
+			return true;
+		}
+		else if(TargetNode instanceof UnaryNode) {
+			/*local*/UnaryNode Unary = (/*cast*/UnaryNode) TargetNode;
+			return this.CheckConstFolding(Unary.Expr);
+		}
+		else if(TargetNode instanceof BinaryNode) {
+			/*local*/BinaryNode Binary = (/*cast*/BinaryNode) TargetNode;
+			if(this.CheckConstFolding(Binary.LeftNode) && this.CheckConstFolding(Binary.RightNode)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
-	private String ResolveValueType(GtNode TargetNode) {	//TODO: support constant folding
+	private String ResolveValueType(GtNode TargetNode) {
 		/*local*/String ResolvedValue;
 		/*local*/String Value = this.VisitNode(TargetNode);
 		/*local*/String Head = "";
 		/*local*/String Tail = "";
+		
+		if(this.CheckConstFolding(TargetNode)) {
+			return Value;
+		}
 		
 		if(TargetNode.Type != null && TargetNode.Type.equals(TargetNode.Type.Context.BooleanType)) {
 			if(TargetNode instanceof ApplyNode || TargetNode instanceof UnaryNode || 
@@ -372,19 +393,6 @@ public class BashSourceGenerator extends SourceGenerator {
 		}
 		else {
 			ResolvedValue = "$" + Value;
-			if(TargetNode instanceof UnaryNode) {
-				/*local*/UnaryNode Unary = (/*cast*/UnaryNode) TargetNode;
-				if(Unary.Expr instanceof ConstNode) {
-					ResolvedValue = Value;
-				}
-			}
-			else if(TargetNode instanceof BinaryNode) {
-				/*local*/BinaryNode Binary = (/*cast*/BinaryNode) TargetNode;
-				if(Binary.LeftNode instanceof ConstNode && 
-						Binary.RightNode instanceof ConstNode) {
-					ResolvedValue = Value;
-				}
-			}
 		}
 		if(TargetNode.Type != null) {
 			if(TargetNode.Type.equals(TargetNode.Type.Context.StringType)) {
