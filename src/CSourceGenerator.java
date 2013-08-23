@@ -167,8 +167,8 @@ public class CSourceGenerator extends SourceGenerator {
 		/*local*/String Code = "switch (" + this.VisitNode(Node.MatchNode) + ") {" + this.LineFeed;
 		/*local*/int i = 0;
 		while(i < Node.CaseList.size()) {
-			GtNode Case  = Node.CaseList.get(i);
-			GtNode Block = Node.CaseList.get(i+1);
+			/*local*/GtNode Case  = Node.CaseList.get(i);
+			/*local*/GtNode Block = Node.CaseList.get(i+1);
 			Code += this.GetIndentString() + "case " + this.VisitNode(Case) + ":";
 			if(this.IsEmptyBlock(Block)) {
 				this.Indent();
