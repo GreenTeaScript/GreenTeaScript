@@ -46,6 +46,35 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.WriteLineHeader("#!/bin/bash");
 		this.WriteLineCode(this.LineFeed + "source $GREENTEA_HOME/include/bash/GreenTeaPlus.sh" + this.LineFeed);
 	}
+	
+	@Override public String GenerateFuncTemplate(int ParamSize, GtFunc Func) {
+		/*local*/int BeginIdx = 1;
+		/*local*/String Template = "";
+		/*local*/boolean IsNative = false;
+		if(Func == null) {
+			Template = "$1";
+			BeginIdx = 2;
+		}
+		else if(Func.Is(NativeFunc)) {
+			Template = "$1" + this.MemberAccessOperator + Func.FuncName;
+			BeginIdx = 2;
+		}
+		else if(Func.Is(NativeMacroFunc)) {
+			Template = Func.GetNativeMacro();
+			IsNative = true;
+		}
+		else {
+			Template = Func.GetNativeFuncName();
+		}
+		/*local*/int i = BeginIdx;
+		if(IsNative == false) {
+			while(i < ParamSize) {
+				Template += " $" + i;
+				i = i + 1;
+			}
+		}
+		return Template;
+	}
 
 	public String VisitBlockWithIndent(GtNode Node, boolean inBlock, boolean allowDummyBlock, boolean skipJump) {
 		/*local*/String Code = "";
@@ -168,9 +197,22 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitBinaryNode(BinaryNode Node) {
 		/*local*/String FuncName = Node.Token.ParsedText;
+		/*local*/GtFunc Func = Node.Func;
 		/*local*/String Left = this.ResolveValueType(Node.LeftNode);
 		/*local*/String Right = this.ResolveValueType(Node.RightNode);
-		this.PushSourceCode(SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right));
+//		this.PushSourceCode(SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right));
+		
+		/*local*/String Macro = null;
+		if(Func != null) {
+			FuncName = Func.GetNativeFuncName();
+			if(IsFlag(Func.FuncFlag, NativeMacroFunc)) {
+				Macro = Func.GetNativeMacro();
+			}
+		}
+		if(Macro == null) {
+			Macro = "(($1 " + FuncName + " $2))";
+		}
+		this.PushSourceCode(Macro.replace("$1", Left).replace("$2", Right));
 		
 //		if(Node.Type.equals(Node.Type.Context.Float)) {	// support float value
 //			this.PushSourceCode("(echo \"scale=10; " + Left + " " + FuncName + " " + Right + "\" | bc)");
@@ -398,8 +440,18 @@ public class BashSourceGenerator extends SourceGenerator {
 		else if(TargetNode instanceof IndexerNode || TargetNode instanceof GetterNode) {
 			ResolvedValue = "${" + Value + "}";
 		}
-		else if(TargetNode instanceof ApplyNode || TargetNode instanceof CommandNode) {
+		else if(TargetNode instanceof ApplyNode || 
+				TargetNode instanceof CommandNode || TargetNode instanceof NewNode) {
 			ResolvedValue = "$(" + Value + ")";
+		}
+		else if(TargetNode instanceof LocalNode && 
+				TargetNode.Type != null && !TargetNode.Type.IsNative()) {
+			/*local*/LocalNode Local = (/*cast*/LocalNode) TargetNode;
+			/*local*/String Name = Local.NativeName;
+			ResolvedValue = "\"(${" + Value + "[@]})\"";
+			if(Name.length() == 1 && LibGreenTea.IsDigit(LibGreenTea.CharAt(Name, 0))) {
+				ResolvedValue = "$" + Value;
+			}
 		}
 		else {
 			ResolvedValue = "$" + Value;
