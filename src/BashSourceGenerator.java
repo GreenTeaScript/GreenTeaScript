@@ -38,6 +38,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.TrueLiteral  = "0";
 		this.FalseLiteral = "1";
 		this.NullLiteral = "NULL";
+		this.MemberAccessOperator = "__MEMBER__";
 	}
 
 	@Override public void InitContext(GtClassContext Context) {
@@ -176,6 +177,14 @@ public class BashSourceGenerator extends SourceGenerator {
 //			return;
 //		}
 	}
+	
+	private String GetMemberIndex(GtType ClassType, String MemberName) {
+		return "$" + ClassType.ShortClassName + this.MemberAccessOperator + MemberName;
+	}
+	
+	@Override public void VisitGetterNode(GetterNode Node) {
+		this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + this.GetMemberIndex(Node.Expr.Type, Node.Func.FuncName) + "]");
+	}
 
 	@Override public void VisitAndNode(AndNode Node) {
 		this.PushSourceCode("(" + this.ResolveCondition(Node.LeftNode) + " && " + this.ResolveCondition(Node.RightNode) + ")");
@@ -188,24 +197,23 @@ public class BashSourceGenerator extends SourceGenerator {
 	@Override public void VisitAssignNode(AssignNode Node) {
 		/*local*/String Left = this.VisitNode(Node.LeftNode);
 		/*local*/String Right = this.ResolveValueType(Node.RightNode);
-		/*local*/String Head = "";
-		if(Node.LeftNode instanceof GetterNode) {
-			Head = "eval ";
-		}
-		this.PushSourceCode(Head + Left + "=" + Right);
+		this.PushSourceCode(Left + "=" + Right);
 	}
 
 	@Override public void VisitLetNode(LetNode Node) {
 		/*local*/String VarName = Node.VariableName;
+		/*local*/String Declare = "declare ";
+		/*local*/String Option = "";
 		/*local*/String Code = "";
 		/*local*/String Head = "";
 		if(this.inFunc) {
-			Code += "local " + VarName + this.LineFeed + this.GetIndentString();
+			Declare = "local ";
+		}
+		if(Node.DeclType != null && !Node.DeclType.IsNative()) {
+			Option = "-a ";
 		}
 		
-		if(Node.InitNode != null && Node.InitNode instanceof GetterNode) {
-			Head = "eval ";
-		}
+		Code += Declare + Option + VarName + this.LineFeed + this.GetIndentString();
 		Code += Head + VarName;
 		if(Node.InitNode != null) {
 			Code += "=" + this.ResolveValueType(Node.InitNode);
@@ -333,18 +341,20 @@ public class BashSourceGenerator extends SourceGenerator {
 		return RunnableCmd;
 	}
 
-	private GtNode ResolveParamName(ArrayList<String> ParamNameList, GtNode Body) {
-		return this.ConvertParamName(ParamNameList, Body, 0);
+	private GtNode ResolveParamName(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
+		return this.ConvertParamName(Func, ParamNameList, Body, 0);
 	}
 
-	private GtNode ConvertParamName(ArrayList<String> ParamNameList, GtNode Body, int index) {
+	private GtNode ConvertParamName(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body, int index) {
 		if(ParamNameList == null || index == ParamNameList.size()) {
 			return Body;
 		}
 		
-		/*local*/GtNode oldVarNode = new LocalNode(null, null, "" + (index + 1));
-		/*local*/GtNode Let = new LetNode(null, null, null, ParamNameList.get(index), oldVarNode, null);
-		Let.NextNode = this.ConvertParamName(ParamNameList, Body, index + 1);
+		/*local*/GtType ParamType = Func.GetFuncParamType(index);
+		/*local*/GtNode oldVarNode = new LocalNode(ParamType, null, "" + (index + 1));
+		/*local*/GtNode Let = new LetNode(null, null, ParamType, ParamNameList.get(index), oldVarNode, null);
+		index += 1;
+		Let.NextNode = this.ConvertParamName(Func, ParamNameList, Body, index);
 		return Let;
 	}
 	
@@ -365,7 +375,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		return false;
 	}
 
-	private String ResolveValueType(GtNode TargetNode) {
+	private String ResolveValueType(GtNode TargetNode) {	//TODO: support object
 		/*local*/String ResolvedValue;
 		/*local*/String Value = this.VisitNode(TargetNode);
 		/*local*/String Head = "";
@@ -411,11 +421,40 @@ public class BashSourceGenerator extends SourceGenerator {
 			this.inMainFunc = true;
 		}
 		Function += FuncName + "() {" + this.LineFeed;
-		/*local*/String Block = this.VisitBlockWithIndent(this.ResolveParamName(ParamNameList, Body), true, true, false);
+		/*local*/String Block = this.VisitBlockWithIndent(this.ResolveParamName(Func, ParamNameList, Body), true, true, false);
 		Function += Block + "}" + this.LineFeed;
 		this.WriteLineCode(Function);
 		this.inFunc = false;
 		this.inMainFunc = false;
+	}
+	
+	@Override protected String GetNewOperator(GtType Type) {
+		return "$(__NEW__" + Type.ShortClassName + ")";
+	}
+	
+	@Override public void GenerateClassField(GtType Type, GtClassField ClassField) {	//TODO: support super
+		/*local*/String Program = "__NEW__" + Type.ShortClassName + "() {" + this.LineFeed;
+		this.Indent();
+		Program += this.GetIndentString() + "local -a " + this.GetRecvName() + this.LineFeed;
+
+		/*local*/int i = 0;
+		while(i < ClassField.FieldList.size()) {
+			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
+			/*local*/String InitValue = this.StringifyConstValue(FieldInfo.InitValue);
+			if(!FieldInfo.Type.IsNative()) {
+				InitValue = "NULL";
+			}
+			this.WriteLineCode(Type.ShortClassName + this.MemberAccessOperator + FieldInfo.NativeName + "=" + i);
+			
+			Program += this.GetIndentString() + this.GetRecvName();
+			Program += "[" + this.GetMemberIndex(Type, FieldInfo.NativeName) + "]=" + InitValue + this.LineFeed;
+			i = i + 1;
+		}
+		Program += this.GetIndentString() + "echo \"(${" + this.GetRecvName() + "[@]})\"" + this.LineFeed;
+		this.UnIndent();
+		Program += "}";
+		
+		this.WriteLineCode(Program);
 	}
 
 	@Override public Object Eval(GtNode Node) {
