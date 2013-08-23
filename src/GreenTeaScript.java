@@ -1489,14 +1489,24 @@ final class GtNameSpace extends GtStatic {
 	}
 
 	public void AppendSyntax(String PatternName, GtDelegateMatch MatchFunc, GtDelegateType TypeFunc) {
-		/*local*/GtSyntaxPattern Pattern = new GtSyntaxPattern(this, PatternName, MatchFunc, TypeFunc);
+		/*local*/int Alias = PatternName.indexOf(" ");
+		/*local*/String Name = (Alias == -1) ? PatternName : PatternName.substring(0, Alias);
+		/*local*/GtSyntaxPattern Pattern = new GtSyntaxPattern(this, Name, MatchFunc, TypeFunc);
 		this.AppendPattern(PatternName, Pattern);
+		if(Alias != -1) {
+			this.AppendSyntax(PatternName.substring(Alias+1), MatchFunc, TypeFunc);
+		}
 	}
 
 	public void AppendExtendedSyntax(String PatternName, int SyntaxFlag, GtDelegateMatch MatchFunc, GtDelegateType TypeFunc) {
-		/*local*/GtSyntaxPattern Pattern = new GtSyntaxPattern(this, PatternName, MatchFunc, TypeFunc);
+		/*local*/int Alias = PatternName.indexOf(" ");
+		/*local*/String Name = (Alias == -1) ? PatternName : PatternName.substring(0, Alias);
+		/*local*/GtSyntaxPattern Pattern = new GtSyntaxPattern(this, Name, MatchFunc, TypeFunc);
 		Pattern.SyntaxFlag = SyntaxFlag;
-		this.AppendPattern("\t" + PatternName, Pattern);
+		this.AppendPattern("\t" + Name, Pattern);
+		if(Alias != -1) {
+			this.AppendExtendedSyntax(PatternName.substring(Alias+1), SyntaxFlag, MatchFunc, TypeFunc);
+		}
 	}
 
 	public final GtType AppendTypeName(GtType ClassInfo) {
@@ -3228,11 +3238,12 @@ final class DScriptGrammar extends GtGrammar {
 //endif VAJA
 		NameSpace.AppendSyntax("+", ParseUnary, TypeUnary);
 		NameSpace.AppendSyntax("-", ParseUnary, TypeUnary);
-		NameSpace.AppendSyntax("!", ParseUnary, TypeUnary);
+		NameSpace.AppendSyntax("~", ParseUnary, TypeUnary);
+		NameSpace.AppendSyntax("! not", ParseUnary, TypeUnary);
 
 		NameSpace.AppendExtendedSyntax("*", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeBinary);
 		NameSpace.AppendExtendedSyntax("/", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeBinary);
-		NameSpace.AppendExtendedSyntax("%", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeBinary);
+		NameSpace.AppendExtendedSyntax("% mod", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeBinary);
 
 		NameSpace.AppendExtendedSyntax("+", BinaryOperator | Precedence_CStyleADD, ParseBinary, TypeBinary);
 		NameSpace.AppendExtendedSyntax("-", BinaryOperator | Precedence_CStyleADD, ParseBinary, TypeBinary);
@@ -3251,11 +3262,13 @@ final class DScriptGrammar extends GtGrammar {
 		NameSpace.AppendExtendedSyntax("^", BinaryOperator | Precedence_CStyleBITXOR, ParseBinary, TypeBinary);
 
 		NameSpace.AppendExtendedSyntax("=", BinaryOperator | Precedence_CStyleAssign | LeftJoin, ParseBinary, FunctionC(this, "TypeAssign"));
-		NameSpace.AppendExtendedSyntax("&&", BinaryOperator | Precedence_CStyleAND, ParseBinary, FunctionC(this, "TypeAnd"));
-		NameSpace.AppendExtendedSyntax("||", BinaryOperator | Precedence_CStyleOR, ParseBinary, FunctionC(this, "TypeOr"));
+		NameSpace.AppendExtendedSyntax("&& and", BinaryOperator | Precedence_CStyleAND, ParseBinary, FunctionC(this, "TypeAnd"));
+		NameSpace.AppendExtendedSyntax("|| or", BinaryOperator | Precedence_CStyleOR, ParseBinary, FunctionC(this, "TypeOr"));
 
+		NameSpace.AppendExtendedSyntax("<: instanceof", BinaryOperator | Precedence_CStyleBITXOR, ParseBinary, FunctionC(this, "TypeInstanceOf"));
+
+		
 		NameSpace.AppendSyntax("$Empty$", FunctionB(this, "ParseEmpty"), FunctionC(this, "TypeEmpty"));
-
 		NameSpace.AppendSyntax("$Symbol$", FunctionB(this, "ParseSymbol"), null);
 		NameSpace.AppendSyntax("$Type$", FunctionB(this, "ParseType"), TypeConst);
 		NameSpace.AppendSyntax("$Variable$", FunctionB(this, "ParseVariable"), FunctionC(this, "TypeVariable"));
@@ -3269,6 +3282,7 @@ final class DScriptGrammar extends GtGrammar {
 		NameSpace.AppendSyntax("(", FunctionB(this, "ParseGroup"), FunctionC(this, "TypeGroup"));
 		NameSpace.AppendSyntax("(", FunctionB(this, "ParseCast"), FunctionC(this, "TypeCast"));
 		NameSpace.AppendExtendedSyntax("(", 0, FunctionB(this, "ParseApply"), FunctionC(this, "TypeApply"));
+
 		//future: NameSpace.DefineExtendedPattern("[", 0, FunctionB(this, "ParseIndexer"), FunctionC(this, "TypeIndexer"));
 
 		NameSpace.AppendSyntax("$Block$", FunctionB(this, "ParseBlock"), TypeBlock);
