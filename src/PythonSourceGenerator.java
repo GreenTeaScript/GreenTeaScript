@@ -249,7 +249,6 @@ public class PythonSourceGenerator extends SourceGenerator {
 			i = i + 1;
 		}
 		this.UnIndent();
-
 		this.UnIndent();
 		this.WriteLineCode(Program);
 	}
@@ -259,7 +258,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		if(!LibGreenTea.EqualsString(Code, "")) {
 			this.WriteLineCode(Code);
 		}
-		return Code;
+		return null;
 	}
 
 	@Override public String GetRecvName() {

@@ -1443,12 +1443,7 @@ final class GtTypeEnv extends GtStatic {
 		}
 		return this.ReportTypeResult(ParsedTree, Node, TypeErrorLevel, "type error: requested = " + Type + ", given = " + Node.Type);
 	}
-
-//	public final void DefineFunc(GtFunc Func) {
-//		this.NameSpace.AppendFunc(Func);
-//		this.Func = Func;
-//	}
-
+	
 }
 
 // NameSpace
@@ -1735,7 +1730,7 @@ final class GtNameSpace extends GtStatic {
 			TopLevelTree.SetAnnotation(Annotation);
 			/*local*/GtTypeEnv Gamma = new GtTypeEnv(this);
 			/*local*/GtNode Node = Gamma.TypeCheckEachNode(TopLevelTree, Gamma.VoidType, DefaultTypeCheckPolicy);
-			if(Node instanceof ConstNode) {
+			if(Node instanceof ConstNode || Node instanceof EmptyNode) {
 				ResultValue = Node.ToConstValue();
 			}
 			else {
@@ -3864,7 +3859,7 @@ public class GreenTeaScript extends GtStatic {
 				/*local*/Object EvaledValue = Context.TopLevelNameSpace.Eval(Line, linenum);
 				Context.ShowReportedErrors();
 				if(EvaledValue != null) {
-					LibGreenTea.println(" (" + Context.GuessType(EvaledValue) + ") " + EvaledValue);
+					LibGreenTea.println(" (" + Context.GuessType(EvaledValue) + ":" + EvaledValue.getClass().getName() + ") " + EvaledValue);
 				}
 				linenum += 1;
 			}
