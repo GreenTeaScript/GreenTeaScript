@@ -255,11 +255,16 @@ interface GtConst {
 	public final static int OnlyConstPolicy                 = (1 << 6);
 
 	public final static Object UndefinedSymbol = new Object();   // any class 
-	
 	public final static String NativeNameSuffix = "__";
 	public final static String[] ShellGrammarReservedKeywords = {"true", "false", "as", "if"};
 
 	public final static boolean UseLangStat = true;
+	
+	public final static int VerboseSymbol    = 1;
+	public final static int VerboseType      = (1 << 1);
+	public final static int VerboseFunc      = (1 << 2);
+	public final static int VerboseToken     = (1 << 3);
+	
 //ifdef JAVA
 }
 
@@ -570,6 +575,10 @@ final class GtToken extends GtStatic {
 		return IsFlag(this.TokenFlag, DelimTokenFlag);
 	}
 
+	public final boolean IsNextWhiteSpace() {
+		return IsFlag(this.TokenFlag, WhiteSpaceTokenFlag);
+	}
+	
 	public boolean IsQuoted() {
 		return IsFlag(this.TokenFlag, QuotedTokenFlag);
 	}
@@ -900,12 +909,33 @@ final class GtTokenContext extends GtStatic {
 		return (Token != GtTokenContext.NullToken);
 	}
 
-	public void Dump() {
-		/*local*/int pos = this.CurrentPosition;
-		while(pos < this.SourceList.size()) {
-			/*local*/GtToken token = this.SourceList.get(pos);
-			LibGreenTea.DebugP("["+pos+"]\t" + token + " : " + token.PresetPattern);
-			pos += 1;
+	public final String Stringfy(String PreText, int BeginIdx, int EndIdx) {
+		/*local*/String Buffer = PreText;
+		/*local*/int Position = BeginIdx;
+		while(Position < EndIdx) {
+			/*local*/GtToken Token = this.SourceList.get(Position);
+			if(Token.IsIndent()) {
+				Buffer += "\n";
+			}
+			Buffer += Token.ParsedText;
+			if(Token.IsNextWhiteSpace()) {
+				Buffer += " ";
+			}
+			Position += 1;
+		}
+		return Buffer;
+	}
+	
+	public final void Dump() {
+		/*local*/int Position = this.CurrentPosition;
+		while(Position < this.SourceList.size()) {
+			/*local*/GtToken Token = this.SourceList.get(Position);
+			/*local*/String DumpedToken = "["+Position+"] " + Token;
+			if(Token.PresetPattern != null) {
+				DumpedToken = DumpedToken + " : " + Token.PresetPattern;
+			}
+			LibGreenTea.VerboseLog(VerboseToken,  DumpedToken);
+			Position += 1;
 		}
 	}
 

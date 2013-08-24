@@ -71,8 +71,12 @@ public abstract class LibGreenTea {
 		}
 	}
 
+	public static int VerboseMask = GtStatic.VerboseSymbol | GtStatic.VerboseFunc;
+	
 	public final static void VerboseLog(int VerboseFlag, String Message) {
-		LibGreenTea.println(Message);
+		if((LibGreenTea.VerboseMask & VerboseFlag) == VerboseFlag) {
+			LibGreenTea.println("GreenTea: " + Message);
+		}
 	}
 
 	public final static void Exit(int status, String Message) {
