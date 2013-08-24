@@ -2094,7 +2094,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		/*local*/GtNode InitValueNode = (ValueTree == null) ? Gamma.CreateDefaultValue(ParsedTree, DeclType) : Gamma.TypeCheck(ValueTree, DeclType, DefaultTypeCheckPolicy);
 		/*local*/GtNode BlockNode = Gamma.TypeBlock(ParsedTree.NextTree, ContextType);
 		ParsedTree.NextTree = null;
-		return Gamma.Generator.CreateLetNode(DeclType, ParsedTree, DeclType, ((/*cast*/LocalNode)VariableNode).NativeName, InitValueNode, BlockNode);
+		return Gamma.Generator.CreateVarNode(DeclType, ParsedTree, DeclType, ((/*cast*/LocalNode)VariableNode).NativeName, InitValueNode, BlockNode);
 	}
 
 	// Parse And Type
@@ -3200,7 +3200,7 @@ final class GreenTeaGrammar extends GtGrammar {
 				ParamList.add(FieldInfo.Type);
 				FieldInfo.SetterFunc = new GtFunc(0, FieldInfo.Name, 0, ParamList);
 				Gamma.NameSpace.SetGetterFunc(DefinedType, FieldInfo.Name, FieldInfo.SetterFunc);
-				FieldInfo.InitValue = ((/*cast*/ConstNode)((/*cast*/LetNode)FieldNode).InitNode).ConstValue;
+				FieldInfo.InitValue = ((/*cast*/ConstNode)((/*cast*/VarNode)FieldNode).InitNode).ConstValue;
 			}
 			TreeIndex += 1;
 		}

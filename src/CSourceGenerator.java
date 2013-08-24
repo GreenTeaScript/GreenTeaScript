@@ -135,7 +135,7 @@ public class CSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Program);
 	}
 
-	@Override public void VisitLetNode(LetNode Node) {
+	@Override public void VisitVarNode(VarNode Node) {
 		/*local*/String Type = this.LocalTypeName(Node.DeclType);
 		/*local*/String VarName = Node.VariableName;
 		/*local*/String Code = Type + " " + VarName;
@@ -194,7 +194,7 @@ public class CSourceGenerator extends SourceGenerator {
 		/*local*/String Code = "try ";
 		this.VisitBlockEachStatementWithIndent(Node.TryBlock, true);
 		Code += this.PopSourceCode();
-		/*local*/LetNode Val = (/*cast*/LetNode) Node.CatchExpr;
+		/*local*/VarNode Val = (/*cast*/VarNode) Node.CatchExpr;
 		Code += " catch (" + Val.Type.toString() + " " + Val.VariableName + ") ";
 		this.VisitBlockEachStatementWithIndent(Node.CatchBlock, true);
 		Code += this.PopSourceCode();

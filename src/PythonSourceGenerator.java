@@ -124,7 +124,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc1(null, FuncName, true, Expr) + ")");
 	}
 
-	@Override public void VisitLetNode(LetNode Node) {
+	@Override public void VisitVarNode(VarNode Node) {
 		/*local*/String Code = Node.VariableName;
 		/*local*/String InitValue = this.NullLiteral;
 		if(Node.InitNode != null) {
@@ -152,7 +152,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 	@Override public void VisitTryNode(TryNode Node) {
 		/*local*/String Code = "try:" + this.LineFeed;
 		Code += this.VisitBlockWithIndent(Node.TryBlock, true);
-		/*local*/LetNode Val = (/*cast*/LetNode) Node.CatchExpr;
+		/*local*/VarNode Val = (/*cast*/VarNode) Node.CatchExpr;
 		Code += "except " + Val.Type.toString() + ", " + Val.VariableName + ":" + this.LineFeed;
 		Code += this.VisitBlockWithIndent(Node.CatchBlock, true);
 		if(Node.FinallyBlock != null) {

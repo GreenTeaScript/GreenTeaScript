@@ -68,7 +68,7 @@ public class JavaSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Program);
 	}
 
-	@Override public void VisitLetNode(LetNode Node) {
+	@Override public void VisitVarNode(VarNode Node) {
 		/*local*/String Type = Node.DeclType.ShortClassName;
 		/*local*/String VarName = Node.VariableName;
 		/*local*/String Code = Type + " " + VarName;

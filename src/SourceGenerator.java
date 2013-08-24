@@ -432,13 +432,13 @@ class SliceNode extends GtNode {
 	}
 }
 
-class LetNode extends GtNode {
+class VarNode extends GtNode {
 	/*field*/public GtType	DeclType;
 	/*field*/public String	VariableName;
 	/*field*/public GtNode	InitNode;
 	/*field*/public GtNode	BlockNode;
 	/* let VarNode in Block end */
-	LetNode/*constructor*/(GtType Type, GtToken Token, GtType DeclType, String VarName, GtNode InitNode, GtNode Block) {
+	VarNode/*constructor*/(GtType Type, GtToken Token, GtType DeclType, String VarName, GtNode InitNode, GtNode Block) {
 		super(Type, Token);
 		this.VariableName = VarName;
 		this.DeclType = DeclType;
@@ -446,7 +446,7 @@ class LetNode extends GtNode {
 		this.BlockNode = Block;
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
-		Visitor.VisitLetNode(this);
+		Visitor.VisitVarNode(this);
 	}
 }
 
@@ -1232,8 +1232,8 @@ class GtGenerator extends GtStatic {
 		return new SelfAssignNode(Type, ParsedTree.KeyToken, Left, Right);
 	}
 
-	public GtNode CreateLetNode(GtType Type, GtSyntaxTree ParsedTree, GtType DeclType, String VarName, GtNode InitNode, GtNode Block) {
-		return new LetNode(Type, ParsedTree.KeyToken, DeclType, VarName, InitNode, Block);
+	public GtNode CreateVarNode(GtType Type, GtSyntaxTree ParsedTree, GtType DeclType, String VarName, GtNode InitNode, GtNode Block) {
+		return new VarNode(Type, ParsedTree.KeyToken, DeclType, VarName, InitNode, Block);
 	}
 
 	public GtNode CreateTrinaryNode(GtType Type, GtSyntaxTree ParsedTree, GtNode CondNode, GtNode ThenNode, GtNode ElseNode) {
@@ -1582,7 +1582,7 @@ class GtGenerator extends GtStatic {
 		/*extension*/
 	}
 
-	public void VisitLetNode(LetNode Node) {
+	public void VisitVarNode(VarNode Node) {
 		/*extension*/
 	}
 

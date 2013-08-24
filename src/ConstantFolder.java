@@ -189,7 +189,7 @@ public class ConstantFolder extends GtGenerator {
 		return Original;
 	}
 
-	private GtNode FoldLet(LetNode Node) {
+	private GtNode FoldLet(VarNode Node) {
 		Node.InitNode = this.Fold(Node.InitNode);
 		return Node;
 	}
@@ -321,8 +321,8 @@ public class ConstantFolder extends GtGenerator {
 		else if(SourceNode instanceof SliceNode) {
 			return this.FoldSlice((/*cast*/SliceNode) SourceNode);
 		}
-		else if(SourceNode instanceof LetNode) {
-			return this.FoldLet((/*cast*/LetNode) SourceNode);
+		else if(SourceNode instanceof VarNode) {
+			return this.FoldLet((/*cast*/VarNode) SourceNode);
 		}
 		else if(SourceNode instanceof ApplyNode) {
 			return this.FoldApply((/*cast*/ApplyNode) SourceNode);
@@ -438,9 +438,9 @@ public class ConstantFolder extends GtGenerator {
 		return new AssignNode(Type, ParsedTree.KeyToken, Left, Right);
 	}
 
-	@Override public GtNode CreateLetNode(GtType Type, GtSyntaxTree ParsedTree, GtType DeclType, String VarName, GtNode InitNode, GtNode Block) {
+	@Override public GtNode CreateVarNode(GtType Type, GtSyntaxTree ParsedTree, GtType DeclType, String VarName, GtNode InitNode, GtNode Block) {
 		InitNode = this.Fold(InitNode);
-		return new LetNode(Type, ParsedTree.KeyToken, DeclType, VarName, InitNode, Block);
+		return new VarNode(Type, ParsedTree.KeyToken, DeclType, VarName, InitNode, Block);
 	}
 
 	@Override public GtNode CreateIfNode(GtType Type, GtSyntaxTree ParsedTree, GtNode CondNode, GtNode ThenNode, GtNode ElseNode) {

@@ -744,7 +744,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		}
 	}
 
-	@Override public void VisitLetNode(LetNode Node) {
+	@Override public void VisitVarNode(VarNode Node) {
 		JVMLocal local = this.Builder.AddLocal(Node.Type, Node.VariableName);
 		Node.InitNode.Evaluate(this);
 		this.Builder.StoreLocal(local);

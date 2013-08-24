@@ -242,7 +242,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Left + "=" + Right);
 	}
 
-	@Override public void VisitLetNode(LetNode Node) {
+	@Override public void VisitVarNode(VarNode Node) {
 		/*local*/String VarName = Node.VariableName;
 		/*local*/String Declare = "declare ";
 		/*local*/String Option = "";
@@ -394,7 +394,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		
 		/*local*/GtType ParamType = Func.GetFuncParamType(index);
 		/*local*/GtNode oldVarNode = new LocalNode(ParamType, null, "" + (index + 1));
-		/*local*/GtNode Let = new LetNode(null, null, ParamType, ParamNameList.get(index), oldVarNode, null);
+		/*local*/GtNode Let = new VarNode(null, null, ParamType, ParamNameList.get(index), oldVarNode, null);
 		index += 1;
 		Let.NextNode = this.ConvertParamName(Func, ParamNameList, Body, index);
 		return Let;
