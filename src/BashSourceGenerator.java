@@ -120,10 +120,10 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	private String ResolveCondition(GtNode Node) {
-		if(!Node.Type.equals(Node.Type.Context.BooleanType)) {
-			LibGreenTea.DebugP("invalid condition type");
-			return null;
-		}
+//		if(!Node.Type.equals(Node.Type.Context.BooleanType)) {
+//			LibGreenTea.DebugP("invalid condition type");
+//			return null;
+//		}
 		
 		/*local*/String Cond = this.VisitNode(Node);
 		if(LibGreenTea.EqualsString(Cond, "0")) {
@@ -163,7 +163,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/int i = 1;
 		while(i < Size) {
 			/*local*/GtNode Node = ParamList.get(i);
-			ParamCode[i - 1] = this.ResolveValueType(Node);
+			ParamCode[i - 1] = this.ResolveValueType(Node, false);
 			i = i + 1;
 		}
 		return ParamCode;
@@ -198,8 +198,8 @@ public class BashSourceGenerator extends SourceGenerator {
 	@Override public void VisitBinaryNode(BinaryNode Node) {
 		/*local*/String FuncName = Node.Token.ParsedText;
 		/*local*/GtFunc Func = Node.Func;
-		/*local*/String Left = this.ResolveValueType(Node.LeftNode);
-		/*local*/String Right = this.ResolveValueType(Node.RightNode);
+		/*local*/String Left = this.ResolveValueType(Node.LeftNode, false);
+		/*local*/String Right = this.ResolveValueType(Node.RightNode, false);
 //		this.PushSourceCode(SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right));
 		
 		/*local*/String Macro = null;
@@ -224,6 +224,13 @@ public class BashSourceGenerator extends SourceGenerator {
 		return "$" + ClassType.ShortClassName + this.MemberAccessOperator + MemberName;
 	}
 	
+	private boolean IsNativeType(GtType Type) {
+		if(Type != null && Type.IsNative()) {
+			return true;
+		}
+		return false;
+	}
+	
 	@Override public void VisitGetterNode(GetterNode Node) {
 		this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + this.GetMemberIndex(Node.Expr.Type, Node.Func.FuncName) + "]");
 	}
@@ -238,7 +245,7 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitAssignNode(AssignNode Node) {
 		/*local*/String Left = this.VisitNode(Node.LeftNode);
-		/*local*/String Right = this.ResolveValueType(Node.RightNode);
+		/*local*/String Right = this.ResolveValueType(Node.RightNode, true);
 		this.PushSourceCode(Left + "=" + Right);
 	}
 
@@ -251,14 +258,14 @@ public class BashSourceGenerator extends SourceGenerator {
 		if(this.inFunc) {
 			Declare = "local ";
 		}
-		if(Node.DeclType != null && !Node.DeclType.IsNative()) {
+		if(this.IsNativeType(Node.DeclType)) {
 			Option = "-a ";
 		}
 		
 		Code += Declare + Option + VarName + this.LineFeed + this.GetIndentString();
 		Code += Head + VarName;
 		if(Node.InitNode != null) {
-			Code += "=" + this.ResolveValueType(Node.InitNode);
+			Code += "=" + this.ResolveValueType(Node.InitNode, true);
 		} 
 		Code +=  this.LineFeed;
 		this.PushSourceCode(Code + this.VisitBlockWithIndent(Node.BlockNode, false, false, false));
@@ -277,7 +284,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 	
 	@Override public void VisitSwitchNode(SwitchNode Node) {
-		/*local*/String Code = "case " + this.ResolveValueType(Node.MatchNode) + " in";
+		/*local*/String Code = "case " + this.ResolveValueType(Node.MatchNode, false) + " in";
 		/*local*/int i = 0;
 		while(i < Node.CaseList.size()) {
 			/*local*/GtNode Case  = Node.CaseList.get(i);
@@ -300,7 +307,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		}
 		
 		if(Node.Expr != null) {
-			/*local*/String Ret = this.ResolveValueType(Node.Expr);
+			/*local*/String Ret = this.ResolveValueType(Node.Expr, false);
 			if(Node.Type.equals(Node.Type.Context.BooleanType) || 
 					(Node.Type.equals(Node.Type.Context.IntType) && this.inMainFunc)) {
 				this.PushSourceCode("return " + Ret);
@@ -355,7 +362,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/int size = CurrentNode.Params.size();
 		/*local*/int i = 0;
 		while(i < size) {
-			Code += this.ResolveValueType(CurrentNode.Params.get(i)) + " ";
+			Code += this.ResolveValueType(CurrentNode.Params.get(i), false) + " ";
 			i = i + 1;
 		}
 		return Code;
@@ -416,18 +423,18 @@ public class BashSourceGenerator extends SourceGenerator {
 		}
 		return false;
 	}
-
-	private String ResolveValueType(GtNode TargetNode) {	//TODO: support object
+	
+	private String ResolveValueType(GtNode TargetNode, boolean isAssign) {
 		/*local*/String ResolvedValue;
 		/*local*/String Value = this.VisitNode(TargetNode);
-		/*local*/String Head = "";
-		/*local*/String Tail = "";
+		/*local*/GtType Type = TargetNode.Type;
 		
+		// resolve constant folding
 		if(this.CheckConstFolding(TargetNode)) {
 			return Value;
 		}
 		
-		if(TargetNode.Type != null && TargetNode.Type.equals(TargetNode.Type.Context.BooleanType)) {
+		if(Type != null && Type.equals(Type.Context.BooleanType)) {
 			if(TargetNode instanceof ApplyNode || TargetNode instanceof UnaryNode || 
 					TargetNode instanceof CommandNode || TargetNode instanceof BinaryNode) {
 				return "$(valueOfBool \"" + Value + "\")";
@@ -444,11 +451,10 @@ public class BashSourceGenerator extends SourceGenerator {
 				TargetNode instanceof CommandNode || TargetNode instanceof NewNode) {
 			ResolvedValue = "$(" + Value + ")";
 		}
-		else if(TargetNode instanceof LocalNode && 
-				TargetNode.Type != null && !TargetNode.Type.IsNative()) {
+		else if(TargetNode instanceof LocalNode && !this.IsNativeType(Type)) {
 			/*local*/LocalNode Local = (/*cast*/LocalNode) TargetNode;
 			/*local*/String Name = Local.NativeName;
-			ResolvedValue = "\"(${" + Value + "[@]})\"";
+			ResolvedValue = "${" + Value + "[@]}";
 			if(Name.length() == 1 && LibGreenTea.IsDigit(LibGreenTea.CharAt(Name, 0))) {
 				ResolvedValue = "$" + Value;
 			}
@@ -456,13 +462,22 @@ public class BashSourceGenerator extends SourceGenerator {
 		else {
 			ResolvedValue = "$" + Value;
 		}
-		if(TargetNode.Type != null) {
-			if(TargetNode.Type.equals(TargetNode.Type.Context.StringType)) {
-				Head = "\"";
-				Tail = "\"";
+		
+		// resolve assigned object
+		if(isAssign) {
+			if(!this.IsNativeType(Type)) {
+				ResolvedValue = "(" + ResolvedValue + ")";
+				return ResolvedValue;
 			}
 		}
-		return Head + ResolvedValue + Tail;
+		
+		// resolve string and object value
+		if(Type != null) {
+			if(Type.equals(Type.Context.StringType) || !this.IsNativeType(Type)) {
+				ResolvedValue = "\"" + ResolvedValue + "\"";
+			}
+		}
+		return ResolvedValue;
 	}
 
 	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
@@ -481,11 +496,12 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 	
 	@Override protected String GetNewOperator(GtType Type) {
-		return "$(__NEW__" + Type.ShortClassName + ")";
+		return "\"$(__NEW__" + Type.ShortClassName + ")\"";
 	}
 	
 	@Override public void GenerateClassField(GtType Type, GtClassField ClassField) {	//TODO: support super
 		/*local*/String Program = "__NEW__" + Type.ShortClassName + "() {" + this.LineFeed;
+		this.WriteLineCode("#### define class " + Type.ShortClassName + " ####");
 		this.Indent();
 		Program += this.GetIndentString() + "local -a " + this.GetRecvName() + this.LineFeed;
 
@@ -502,11 +518,11 @@ public class BashSourceGenerator extends SourceGenerator {
 			Program += "[" + this.GetMemberIndex(Type, FieldInfo.NativeName) + "]=" + InitValue + this.LineFeed;
 			i = i + 1;
 		}
-		Program += this.GetIndentString() + "echo \"(${" + this.GetRecvName() + "[@]})\"" + this.LineFeed;
+		Program += this.GetIndentString() + "echo \"${" + this.GetRecvName() + "[@]}\"" + this.LineFeed;
 		this.UnIndent();
 		Program += "}";
 		
-		this.WriteLineCode(Program);
+		this.WriteLineCode("\n" + Program);
 	}
 
 	@Override public Object Eval(GtNode Node) {
