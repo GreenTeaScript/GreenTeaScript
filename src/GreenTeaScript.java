@@ -1111,7 +1111,7 @@ class GtSyntaxTree extends GtStatic {
 	}
 
 	public final GtType GetParsedType() {
-		return (/*cast*/GtType)this.ConstValue;
+		return (this.ConstValue instanceof GtType) ? (/*cast*/GtType)this.ConstValue : null;
 	}
 
 	public final boolean HasNodeAt(int Index) {
@@ -2420,6 +2420,16 @@ final class GreenTeaGrammar extends GtGrammar {
 		return Gamma.Generator.CreateOrNode(Gamma.BooleanType, ParsedTree, LeftNode, RightNode);
 	}
 
+	public static GtNode TypeInstanceOf(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+		/*local*/GtNode LeftNode = ParsedTree.TypeCheckNodeAt(LeftHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+		GtType GivenType = ParsedTree.GetSyntaxTreeAt(RightHandTerm).GetParsedType();
+		if(GivenType != null) {
+			return Gamma.CreateSyntaxErrorNode(ParsedTree,  "type is expected in" + ParsedTree.KeyToken);
+		}
+		return Gamma.Generator.CreateInstanceOfNode(Gamma.BooleanType, ParsedTree, LeftNode, GivenType);
+	}
+
+	
 	public static GtNode TypeAssign(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtNode LeftNode = ParsedTree.TypeCheckNodeAt(LeftHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
 		if(LeftNode instanceof LocalNode || LeftNode instanceof GetterNode || LeftNode instanceof IndexerNode) {
@@ -3389,7 +3399,7 @@ final class GreenTeaGrammar extends GtGrammar {
 
 		NameSpace.DefineTokenFunc(" \t", FunctionA(this, "WhiteSpaceToken"));
 		NameSpace.DefineTokenFunc("\n",  FunctionA(this, "IndentToken"));
-		NameSpace.DefineTokenFunc("{}()[]<>.,:;+-*/%=&|!@", FunctionA(this, "OperatorToken"));
+		NameSpace.DefineTokenFunc("{}()[]<>.,:;+-*/%=&|!@~^", FunctionA(this, "OperatorToken"));
 		NameSpace.DefineTokenFunc("/", FunctionA(this, "CommentToken"));  // overloading
 		NameSpace.DefineTokenFunc("Aa", FunctionA(this, "SymbolToken"));
 		NameSpace.DefineTokenFunc("Aa-/", FunctionA(this, "SymbolShellToken")); // overloading

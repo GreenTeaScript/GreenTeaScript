@@ -1220,6 +1220,10 @@ class GtGenerator extends GtStatic {
 		return new OrNode(Type, ParsedTree.KeyToken, Left, Right);
 	}
 
+	public GtNode CreateInstanceOfNode(GtType Type, GtSyntaxTree ParsedTree, GtNode LeftNode, GtType GivenType) {
+		return new InstanceOfNode(Type, ParsedTree.KeyToken, LeftNode, GivenType);
+	}
+
 	public GtNode CreateAssignNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Left, GtNode Right) {
 		return new AssignNode(Type, ParsedTree.KeyToken, Left, Right);
 	}
