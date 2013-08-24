@@ -254,6 +254,8 @@ interface GtConst {
 	public final static int AllowCoercionPolicy             = (1 << 5);
 	public final static int OnlyConstPolicy                 = (1 << 6);
 
+	public final static Object UndefinedSymbol = new Object();   // any class 
+	
 	public final static String NativeNameSuffix = "__";
 	public final static String[] ShellGrammarReservedKeywords = {"true", "false", "as", "if"};
 
@@ -3215,8 +3217,6 @@ final class DScriptGrammar extends GtGrammar {
 		// Define Constants
 		NameSpace.SetSymbol("true", true);
 		NameSpace.SetSymbol("false", false);
-		// null must be set null Parser and TypeChecker
-		//NameSpace.SetSymbol("null", null);
 
 		NameSpace.DefineTokenFunc(" \t", FunctionA(this, "WhiteSpaceToken"));
 		NameSpace.DefineTokenFunc("\n",  FunctionA(this, "IndentToken"));
