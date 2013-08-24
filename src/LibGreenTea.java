@@ -71,7 +71,7 @@ public abstract class LibGreenTea {
 		}
 	}
 
-	public static int VerboseMask = GtStatic.VerboseSymbol | GtStatic.VerboseFunc;
+	public static int VerboseMask = GtStatic.VerboseUndefined;
 	
 	public final static void VerboseLog(int VerboseFlag, String Message) {
 		if((LibGreenTea.VerboseMask & VerboseFlag) == VerboseFlag) {

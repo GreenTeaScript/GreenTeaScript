@@ -3797,6 +3797,11 @@ public class GreenTeaScript extends GtStatic {
 			}
 			if(Argu.equals("--verbose")) {
 				LibGreenTea.DebugMode = true;
+				LibGreenTea.VerboseMask |= (GtStatic.VerboseFile|GtStatic.VerboseSymbol);
+				continue;
+			}
+			if(Argu.equals("--verbose:token")) {
+				LibGreenTea.VerboseMask |= GtStatic.VerboseToken;
 				continue;
 			}
 			LibGreenTea.Usage();
