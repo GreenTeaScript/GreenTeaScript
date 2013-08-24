@@ -110,7 +110,7 @@ public class GreenTeaScriptTest {
 	public static GtClassContext CreateContext() {
 		/*local*/String CodeGeneratorName = "java";
 		/*local*/GtGenerator Generator = LibGreenTea.CodeGenerator(CodeGeneratorName, "-", 0);
-		return new GtClassContext(new DScriptGrammar(), Generator);
+		return new GtClassContext(new GreenTeaGrammar(), Generator);
 	}
 
 	public static void TokenizeOperator0() {

@@ -1733,7 +1733,7 @@ class GtGrammar extends GtStatic {
 	}
 }
 
-final class DScriptGrammar extends GtGrammar {
+final class GreenTeaGrammar extends GtGrammar {
 	// Token
 	public static int WhiteSpaceToken(GtTokenContext TokenContext, String SourceText, int pos) {
 		TokenContext.FoundWhiteSpace();
@@ -1823,7 +1823,7 @@ final class DScriptGrammar extends GtGrammar {
 			while(NextPos < SourceText.length()) {
 				NextChar = LibGreenTea.CharAt(SourceText, NextPos);
 				if(NextChar == '\n' && Level == 0) {
-					return DScriptGrammar.IndentToken(TokenContext, SourceText, NextPos);
+					return GreenTeaGrammar.IndentToken(TokenContext, SourceText, NextPos);
 				}
 				if(NextChar == '/' && PrevChar == '*') {
 					if(Level == 1) {
@@ -2037,12 +2037,13 @@ final class DScriptGrammar extends GtGrammar {
 		if(VariableInfo != null) {
 			return Gamma.Generator.CreateLocalNode(VariableInfo.Type, ParsedTree, VariableInfo.NativeName);
 		}
-		if(Name.equals("this")) {
-			VariableInfo = Gamma.LookupDeclaredVariable(Gamma.Generator.GetRecvName());
-			if(VariableInfo != null) {
-				return Gamma.Generator.CreateLocalNode(VariableInfo.Type, ParsedTree, VariableInfo.NativeName);
-			}
-		}
+//		Don't add ad hoc code
+//		if(Name.equals("this")) {
+//			VariableInfo = Gamma.LookupDeclaredVariable(Gamma.Generator.GetRecvName());
+//			if(VariableInfo != null) {
+//				return Gamma.Generator.CreateLocalNode(VariableInfo.Type, ParsedTree, VariableInfo.NativeName);
+//			}
+//		}
 		/*local*/Object ConstValue = (/*cast*/Object) ParsedTree.NameSpace.GetSymbol(Name);
 		if(ConstValue != null) {
 			return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(ConstValue), ParsedTree, ConstValue);
@@ -2444,7 +2445,7 @@ final class DScriptGrammar extends GtGrammar {
 			}
 			return Gamma.CreateSyntaxErrorNode(ParsedTree, "neither incremental nor decrimental");
 		}
-		return LeftNode.IsError() ? LeftNode : DScriptGrammar.TypeUnary(Gamma, ParsedTree, Type);
+		return LeftNode.IsError() ? LeftNode : GreenTeaGrammar.TypeUnary(Gamma, ParsedTree, Type);
 	}
 
 	
@@ -2474,7 +2475,7 @@ final class DScriptGrammar extends GtGrammar {
 				continue;
 			}
 		}
-		return DScriptGrammar.ParseEmpty(NameSpace, TokenContext, LeftTree, Pattern);
+		return GreenTeaGrammar.ParseEmpty(NameSpace, TokenContext, LeftTree, Pattern);
 	}
 
 	public static GtSyntaxTree ParseImport(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
@@ -2989,10 +2990,10 @@ final class DScriptGrammar extends GtGrammar {
 		}
 		/*local*/GtFunc DefinedFunc = null;
 		if(FuncName.equals("converter")) {
-			DefinedFunc = DScriptGrammar.CreateCoercionFunc(Gamma, ParsedTree, FuncFlag, 0, TypeList);
+			DefinedFunc = GreenTeaGrammar.CreateCoercionFunc(Gamma, ParsedTree, FuncFlag, 0, TypeList);
 		}
 		else {
-			DefinedFunc = DScriptGrammar.CreateFunc(Gamma, ParsedTree, FuncFlag, FuncName, 0, TypeList);
+			DefinedFunc = GreenTeaGrammar.CreateFunc(Gamma, ParsedTree, FuncFlag, FuncName, 0, TypeList);
 		}
 		if(ParsedTree.ConstValue instanceof String) {
 			DefinedFunc.SetNativeMacro((/*cast*/String)ParsedTree.ConstValue);
@@ -3218,7 +3219,7 @@ final class DScriptGrammar extends GtGrammar {
 			/*local*/GtPolyFunc Func = Gamma.NameSpace.GetConstructorFunc(DefinedType.SuperType);
 			ConstructorTree.GetSyntaxTreeAt(FuncDeclBlock).NameSpace.SetSymbol("super", Func);
 		}
-		return DScriptGrammar.TypeFuncDecl(Gamma, ConstructorTree, ContextType);
+		return GreenTeaGrammar.TypeFuncDecl(Gamma, ConstructorTree, ContextType);
 	}
 
 	// constructor
@@ -3311,7 +3312,7 @@ final class DScriptGrammar extends GtGrammar {
 			return pos;
 		}
 
-		if(DScriptGrammar.IsUnixCommand(Symbol)) {
+		if(GreenTeaGrammar.IsUnixCommand(Symbol)) {
 			TokenContext.AddNewToken(Symbol, 0, "$ShellExpression$");
 			return pos;
 		}
@@ -3719,7 +3720,7 @@ public class GreenTeaScript extends GtStatic {
 		if(Generator == null) {
 			LibGreenTea.Usage();
 		}
-		/*local*/GtClassContext Context = new GtClassContext(new DScriptGrammar(), Generator);
+		/*local*/GtClassContext Context = new GtClassContext(new GreenTeaGrammar(), Generator);
 		/*local*/boolean ShellMode = true;
 		if(OneLiner != null) {
 			Context.TopLevelNameSpace.Eval(OneLiner, 1);
