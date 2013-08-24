@@ -112,10 +112,13 @@ public abstract class LibGreenTea {
 
 	public static final String UnquoteString(String Text) {
 		StringBuilder sb = new StringBuilder();
-		/*local*/int i = 1;
-		/*local*/char quote = LibGreenTea.CharAt(Text, i);
-		while(i < Text.length() - 1) {
+		/*local*/char quote = LibGreenTea.CharAt(Text, 0);
+		/*local*/int i = (quote == '"' || quote == '\'') ? 1 : 0;
+		while(i < Text.length()) {
 			/*local*/char ch = LibGreenTea.CharAt(Text, i);
+			if(ch == quote) {  // end
+				break;
+			}
 			if(ch == '\\') {
 				i = i + 1;
 				char next = LibGreenTea.CharAt(Text, i);
@@ -132,6 +135,9 @@ public abstract class LibGreenTea {
 				case '\'':
 					ch = '\'';
 					break;
+				case '\\':
+					ch = '\\';
+					break;
 				default:
 					ch = next;
 					break;
@@ -145,36 +151,30 @@ public abstract class LibGreenTea {
 	}
 
 	public static final String QuoteString(String Text) {
-		/*local*/String Buf = "";
+		StringBuilder sb = new StringBuilder();
+		sb.append('"');
 		/*local*/int i = 0;
 		while(i < Text.length()) {
 			/*local*/char ch = LibGreenTea.CharAt(Text, i);
-			switch (ch) {
-			case '\b':
-				Buf += LibGreenTea.CharToString('\\');
-				ch = 'b';
-				break;
-			case 't':
-				Buf += LibGreenTea.CharToString('\\');
-				ch = 't';
-				break;
-			case 'n':
-				Buf += LibGreenTea.CharToString('\\');
-				ch = 'n';
-				break;
-			case '"':
-				Buf += LibGreenTea.CharToString('\\');
-				ch = '"';
-				break;
-			case '\'':
-				Buf += LibGreenTea.CharToString('\\');
-				ch = '\'';
-				break;
+			if(ch == '\n') {
+				sb.append("\\n");
 			}
-			Buf += LibGreenTea.CharToString(ch);
+			else if(ch == '\t') {
+				sb.append("\\t");
+			}
+			else if(ch == '"') {
+				sb.append("\\\"");
+			}
+			else if(ch == '\\') {
+				sb.append("\\\\");
+			}
+			else {
+				sb.append(ch);
+			}
 			i = i + 1;
 		}
-		return Buf;
+		sb.append('"');
+		return sb.toString();
 	}
 
 	public final static boolean EqualsString(String s, String s2) {
