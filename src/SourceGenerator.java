@@ -1942,7 +1942,7 @@ class SourceGenerator extends GtGenerator {
 		this.StopVisitor(Node);
 	}
 
-	@Override public final void VisitIndexerNode(IndexerNode Node) {
+	@Override public void VisitIndexerNode(IndexerNode Node) {
 		this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + this.VisitNode(Node.IndexAt) + "]");
 	}
 

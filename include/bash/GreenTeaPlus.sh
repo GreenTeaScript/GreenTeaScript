@@ -6,6 +6,7 @@ assert() {
         local line=${BASH_LINENO[0]}
         local src=${BASH_SOURCE[1]}
         echo "Assertion Error at $src line $line" >&2
+        echo " --> Caused by: $1" >&2
     fi
 }
 
