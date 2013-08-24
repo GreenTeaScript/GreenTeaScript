@@ -1734,8 +1734,13 @@ final class GtNameSpace extends GtStatic {
 			/*local*/GtSyntaxTree TopLevelTree = GtStatic.ParseExpression(this, TokenContext);
 			TopLevelTree.SetAnnotation(Annotation);
 			/*local*/GtTypeEnv Gamma = new GtTypeEnv(this);
-			/*local*/GtNode node = Gamma.TypeCheckEachNode(TopLevelTree, Gamma.VoidType, DefaultTypeCheckPolicy);
-			ResultValue = this.Context.Generator.Eval(node);
+			/*local*/GtNode Node = Gamma.TypeCheckEachNode(TopLevelTree, Gamma.VoidType, DefaultTypeCheckPolicy);
+			if(Node instanceof ConstNode) {
+				ResultValue = Node.ToConstValue();
+			}
+			else {
+				ResultValue = this.Context.Generator.Eval(Node);
+			}
 			TokenContext.SkipEmptyStatement();
 			TokenContext.Vacume();
 		}
@@ -2993,15 +2998,6 @@ final class GreenTeaGrammar extends GtGrammar {
 	}
 
 	public static GtNode TypeSymbolDecl(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		/*local*/GtSyntaxTree NameTree = ParsedTree.GetSyntaxTreeAt(SymbolDeclNameIndex);
-		/*local*/GtSyntaxTree ValueTree = ParsedTree.GetSyntaxTreeAt(SymbolDeclValueIndex);
-		/*local*/String VariableName = NameTree.KeyToken.ParsedText;
-		/*local*/GtNode ValueNode = Gamma.TypeCheck(ValueTree, Gamma.AnyType, DefaultTypeCheckPolicy);
-		if(!(ValueNode instanceof ConstNode)) {
-			return Gamma.CreateSyntaxErrorNode(ParsedTree, "definition of variable " + VariableName + " is not constant");
-		}
-		/*local*/ConstNode CNode = (/*cast*/ConstNode) ValueNode;
-		Gamma.NameSpace.SetSymbol(VariableName, CNode.ConstValue);
 		return Gamma.Generator.CreateEmptyNode(ContextType);
 	}
 
@@ -3865,8 +3861,11 @@ public class GreenTeaScript extends GtStatic {
 			/*local*/int linenum = 1;
 			/*local*/String Line = null;
 			while((Line = LibGreenTea.ReadLine(">>> ")) != null) {
-				Context.TopLevelNameSpace.Eval(Line, linenum);
+				/*local*/Object EvaledValue = Context.TopLevelNameSpace.Eval(Line, linenum);
 				Context.ShowReportedErrors();
+				if(EvaledValue != null) {
+					LibGreenTea.println(" (" + Context.GuessType(EvaledValue) + ") " + EvaledValue);
+				}
 				linenum += 1;
 			}
 			LibGreenTea.println("");
