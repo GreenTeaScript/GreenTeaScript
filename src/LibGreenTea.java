@@ -111,43 +111,37 @@ public abstract class LibGreenTea {
 	}
 
 	public static final String UnquoteString(String Text) {
-//		/*local*/String Buf = "";
-//		/*local*/int i = 0;
-//		if(Text.indexOf('\\') == -1) {
-//			return Text;
-//		}
-//		while(i < Text.length() - 1) {
-//			/*local*/char ch = LibGreenTea.CharAt(Text, i);
-//			if(ch == '\\') {
-//				char next = LibGreenTea.CharAt(Text, i + 1);
-//				switch (next) {
-//				case 'b':
-//					ch = '\b';
-//					break;
-//				case 't':
-//					ch = '\t';
-//					break;
-//				case 'n':
-//					ch = '\n';
-//					break;
-//				case '"':
-//					ch = '"';
-//					break;
-//				case '\'':
-//					ch = '\'';
-//					break;
-//				default:
-//					LibGreenTea.DebugP("unsupported escape sequence");
-//					break;
-//				}
-//				i = i + 1;
-//			}
-//			Buf += LibGreenTea.CharToString(ch);
-//			i = i + 1;
-//		}
-//		Buf += LibGreenTea.CharToString(LibGreenTea.CharAt(Text, i));
-//		return Buf;
-		return Text;
+		StringBuilder sb = new StringBuilder();
+		/*local*/int i = 1;
+		/*local*/char quote = LibGreenTea.CharAt(Text, i);
+		while(i < Text.length() - 1) {
+			/*local*/char ch = LibGreenTea.CharAt(Text, i);
+			if(ch == '\\') {
+				i = i + 1;
+				char next = LibGreenTea.CharAt(Text, i);
+				switch (next) {
+				case 't':
+					ch = '\t';
+					break;
+				case 'n':
+					ch = '\n';
+					break;
+				case '"':
+					ch = '"';
+					break;
+				case '\'':
+					ch = '\'';
+					break;
+				default:
+					ch = next;
+					break;
+				}
+				i = i + 1;
+			}
+			sb.append(ch);
+			i = i + 1;
+		}
+		return sb.toString();
 	}
 
 	public static final String QuoteString(String Text) {
@@ -187,8 +181,8 @@ public abstract class LibGreenTea {
 		return s.equals(s2);
 	}
 
-	public final static int ParseInt(String Text) {
-		return Integer.parseInt(Text);
+	public final static long ParseInt(String Text) {
+		return Long.parseLong(Text);
 	}
 
 	public final static GtType GetNativeType(GtClassContext Context, Object Value) {
