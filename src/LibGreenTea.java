@@ -198,6 +198,7 @@ public abstract class LibGreenTea {
 		if(NativeType == null) {
 			NativeType = new GtType(Context, GtStatic.NativeClass, NativeClassInfo.getSimpleName(), null, NativeClassInfo);
 			Context.ClassNameMap.put(NativeClassInfo.getName(), NativeType);
+			LibGreenTea.VerboseLog(GtStatic.VerboseNative, "native class: " + NativeClassInfo.getName());
 		}
 		return NativeType;
 	}
@@ -211,7 +212,7 @@ public abstract class LibGreenTea {
 					return methods[i];
 				}
 			}
-			LibGreenTea.DebugP("method not found: " + Callee.getClass().getSimpleName() + "." + FuncName);
+			LibGreenTea.VerboseLog(GtStatic.VerboseUndefined, "method not found: " + Callee.getClass().getSimpleName() + "." + FuncName);
 		}
 		return null;
 	}
@@ -436,6 +437,7 @@ public abstract class LibGreenTea {
 	}
 
 	public final static String LoadFile2(String FileName) {
+		LibGreenTea.VerboseLog(GtStatic.VerboseFile, "loading " + FileName);
 		InputStream Stream = LibGreenTea.class.getResourceAsStream(FileName);
 		if(Stream == null) {
 			File f = new File(FileName);
@@ -478,6 +480,7 @@ public abstract class LibGreenTea {
 	}
 
 	public final static Object Eval(String SourceCode) {
+		LibGreenTea.VerboseLog(GtStatic.VerboseEval, "native eval: " + SourceCode);
 		//eval(SourceCode);
 		//System.out.println("Eval: " + SourceCode);  // In Java, no eval
 		return null;
