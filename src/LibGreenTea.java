@@ -106,46 +106,47 @@ public abstract class LibGreenTea {
 		return Character.toString(code);
 	}
 
-	public static final String UnescapeString(String Text) {
-		/*local*/String Buf = "";
-		/*local*/int i = 0;
-		if(Text.indexOf('\\') == -1) {
-			return Text;
-		}
-		while(i < Text.length() - 1) {
-			/*local*/char ch = LibGreenTea.CharAt(Text, i);
-			if(ch == '\\') {
-				char next = LibGreenTea.CharAt(Text, i + 1);
-				switch (next) {
-				case 'b':
-					ch = '\b';
-					break;
-				case 't':
-					ch = '\t';
-					break;
-				case 'n':
-					ch = '\n';
-					break;
-				case '"':
-					ch = '"';
-					break;
-				case '\'':
-					ch = '\'';
-					break;
-				default:
-					LibGreenTea.DebugP("unsupported escape sequence");
-					break;
-				}
-				i = i + 1;
-			}
-			Buf += LibGreenTea.CharToString(ch);
-			i = i + 1;
-		}
-		Buf += LibGreenTea.CharToString(LibGreenTea.CharAt(Text, i));
-		return Buf;
+	public static final String UnquoteString(String Text) {
+//		/*local*/String Buf = "";
+//		/*local*/int i = 0;
+//		if(Text.indexOf('\\') == -1) {
+//			return Text;
+//		}
+//		while(i < Text.length() - 1) {
+//			/*local*/char ch = LibGreenTea.CharAt(Text, i);
+//			if(ch == '\\') {
+//				char next = LibGreenTea.CharAt(Text, i + 1);
+//				switch (next) {
+//				case 'b':
+//					ch = '\b';
+//					break;
+//				case 't':
+//					ch = '\t';
+//					break;
+//				case 'n':
+//					ch = '\n';
+//					break;
+//				case '"':
+//					ch = '"';
+//					break;
+//				case '\'':
+//					ch = '\'';
+//					break;
+//				default:
+//					LibGreenTea.DebugP("unsupported escape sequence");
+//					break;
+//				}
+//				i = i + 1;
+//			}
+//			Buf += LibGreenTea.CharToString(ch);
+//			i = i + 1;
+//		}
+//		Buf += LibGreenTea.CharToString(LibGreenTea.CharAt(Text, i));
+//		return Buf;
+		return Text;
 	}
 
-	public static final String EscapeString(String Text) {
+	public static final String QuoteString(String Text) {
 		/*local*/String Buf = "";
 		/*local*/int i = 0;
 		while(i < Text.length()) {
@@ -177,6 +178,7 @@ public abstract class LibGreenTea {
 		}
 		return Buf;
 	}
+
 	public final static boolean EqualsString(String s, String s2) {
 		return s.equals(s2);
 	}
@@ -425,19 +427,21 @@ public abstract class LibGreenTea {
 		return new File(Path).exists();
 	}
 
-	public final static String LoadFile(String FileName) {
-		InputStream ins = LibGreenTea.class.getResourceAsStream(FileName);
-		if(ins == null) {
+	public final static boolean IsSupportedTarget(String TargetCode) {
+		return HasFile("lib/" + TargetCode + "/common.green");
+	}
+
+	public final static String LoadFile2(String FileName) {
+		InputStream Stream = LibGreenTea.class.getResourceAsStream(FileName);
+		if(Stream == null) {
 			File f = new File(FileName);
 			try {
-				ins = new FileInputStream(f);
+				Stream = new FileInputStream(f);
 			} catch (FileNotFoundException e) {
-				// e.printStackTrace();
-				System.err.println(e.getMessage());
-				System.exit(1);
+				return null;
 			}
 		}
-		BufferedReader reader = new BufferedReader(new InputStreamReader(ins));
+		BufferedReader reader = new BufferedReader(new InputStreamReader(Stream));
 		String line = "";
 		String buffer = "";
 		try {
@@ -445,15 +449,9 @@ public abstract class LibGreenTea {
 				buffer += line + "\n";
 			}
 		} catch (IOException e) {
-			System.err.println(e.getMessage());
-			System.exit(1);
-			e.printStackTrace();
+			return null;
 		}
 		return buffer;
-	}
-
-	public final static boolean IsSupportedTarget(String TargetCode) {
-		return HasFile("lib/" + TargetCode + "/common.green");
 	}
 
 	public final static String GetLibPath(String TargetCode, String LibName) {

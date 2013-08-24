@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 class GtScriptRunner {
 	public static String LoadFile(String Path) {
 		if(LibGreenTea.HasFile(Path)) {
-			return LibGreenTea.LoadFile(Path);
+			return LibGreenTea.LoadFile2(Path);
 		}
 		return null;
 	}
