@@ -263,7 +263,9 @@ interface GtConst {
 	public final static int VerboseSymbol    = 1;
 	public final static int VerboseType      = (1 << 1);
 	public final static int VerboseFunc      = (1 << 2);
-	public final static int VerboseToken     = (1 << 3);
+	public final static int VerboseEval      = (1 << 3);
+	public final static int VerboseToken     = (1 << 4);
+	public final static int VerboseUndefined   = (1 << 5);
 	
 //ifdef JAVA
 }
@@ -453,7 +455,7 @@ class GtStatic implements GtConst {
 			TokenContext.CurrentPosition = Pos;
 		}
 		if(Pattern == null) {
-			LibGreenTea.DebugP("undefined syntax pattern: " + Pattern);
+			LibGreenTea.VerboseLog(VerboseUndefined, "undefined syntax pattern: " + Pattern);
 		}
 		return TokenContext.ReportExpectedPattern(Pattern);
 	}
@@ -652,7 +654,6 @@ final class GtTokenContext extends GtStatic {
 			Token.PresetPattern = this.TopLevelNameSpace.GetPattern(PatternName);
 			LibGreenTea.Assert(Token.PresetPattern != null);
 		}
-		//LibGreenTea.DebugP("<< " + Text + " : " + PatternName);
 		this.SourceList.add(Token);
 		return Token;
 	}
@@ -730,7 +731,7 @@ final class GtTokenContext extends GtStatic {
 		/*local*/TokenFunc TokenFunc = this.TopLevelNameSpace.GetTokenFunc(GtChar);
 		/*local*/int NextIdx = GtStatic.ApplyTokenFunc(TokenFunc, this, ScriptSource, pos);
 		if(NextIdx == NoMatch) {
-			LibGreenTea.DebugP("undefined tokenizer: " + LibGreenTea.CharAt(ScriptSource, pos));
+			LibGreenTea.VerboseLog(VerboseUndefined, "undefined tokenizer: " + LibGreenTea.CharAt(ScriptSource, pos));
 			this.AddNewToken(ScriptSource.substring(pos, pos + 1), 0, null);
 			return pos + 1;
 		}
@@ -1130,9 +1131,7 @@ class GtSyntaxTree extends GtStatic {
 
 	public void AppendParsedTree(GtSyntaxTree Tree) {
 		if(!this.IsError()) {
-			if(Tree == null) {
-				LibGreenTea.DebugP("");
-			}
+			LibGreenTea.Assert(Tree != null);
 			if(Tree.IsError()) {
 				this.ToError(Tree.KeyToken);
 			}
@@ -1509,6 +1508,7 @@ final class GtNameSpace extends GtStatic {
 			this.SymbolPatternTable = new GtMap();
 		}
 		this.SymbolPatternTable.put(Key, Value);
+		LibGreenTea.VerboseLog(VerboseSymbol, "symbol: " + Key + ", " + Value);
 	}
 
 	public final void SetUndefinedSymbol(String Symbol) {
@@ -1716,7 +1716,7 @@ final class GtNameSpace extends GtStatic {
 	
 	public final Object Eval(String ScriptSource, long FileLine) {
 		/*local*/Object ResultValue = null;
-//		LibGreenTea.DebugP("Eval: " + ScriptSource);
+		LibGreenTea.VerboseLog(VerboseEval, "Eval: " + ScriptSource);
 		/*local*/GtTokenContext TokenContext = new GtTokenContext(this, ScriptSource, FileLine);
 		this.Context.Generator.StartCompilationUnit();
 		TokenContext.SkipEmptyStatement();
@@ -1724,7 +1724,6 @@ final class GtNameSpace extends GtStatic {
 			/*local*/GtMap Annotation = TokenContext.SkipAndGetAnnotation(true);
 			/*local*/GtSyntaxTree TopLevelTree = GtStatic.ParseExpression(this, TokenContext);
 			TopLevelTree.SetAnnotation(Annotation);
-//			LibGreenTea.DebugP("untyped tree: " + TopLevelTree);
 			/*local*/GtTypeEnv Gamma = new GtTypeEnv(this);
 			/*local*/GtNode node = Gamma.TypeCheckEachNode(TopLevelTree, Gamma.VoidType, DefaultTypeCheckPolicy);
 			ResultValue = this.Context.Generator.Eval(node);
@@ -2365,9 +2364,10 @@ final class GreenTeaGrammar extends GtGrammar {
 		FuncTree.AppendParsedTree(LeftTree);
 		if(!TokenContext.MatchToken(")")) {
 			while(!FuncTree.IsEmptyOrError()) {
-				if(TokenContext.CurrentPosition > 150) {
-					LibGreenTea.DebugP("");
-				}
+//	            Meaningless ?
+//				if(TokenContext.CurrentPosition > 150) {
+//					LibGreenTea.DebugP("");
+//				}
 				/*local*/GtSyntaxTree Tree = TokenContext.ParsePattern(NameSpace, "$Expression$", Required);
 				FuncTree.AppendParsedTree(Tree);
 				if(TokenContext.MatchToken(")")) {
