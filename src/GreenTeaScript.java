@@ -3795,36 +3795,40 @@ public class GreenTeaScript extends GtStatic {
 					continue;
 				}
 			}
-			if(Argu.equals("--verbose")) {
+			if(LibGreenTea.EqualsString(Argu, "--verbose")) {
 				LibGreenTea.DebugMode = true;
 				LibGreenTea.VerboseMask |= (GtStatic.VerboseFile|GtStatic.VerboseSymbol|GtStatic.VerboseNative);
 				continue;
 			}
-			if(Argu.equals("--verbose:token")) {
+			if(LibGreenTea.EqualsString(Argu, "--verbose:token")) {
 				LibGreenTea.VerboseMask |= GtStatic.VerboseToken;
 				continue;
 			}
-			if(Argu.equals("--verbose:type")) {
+			if(LibGreenTea.EqualsString(Argu, "--verbose:type")) {
 				LibGreenTea.VerboseMask |= GtStatic.VerboseType;
 				continue;
 			}
-			if(Argu.equals("--verbose:symbol")) {
+			if(LibGreenTea.EqualsString(Argu, "--verbose:symbol")) {
 				LibGreenTea.VerboseMask |= GtStatic.VerboseSymbol;
 				continue;
 			}
-			if(Argu.equals("--verbose:native")) {
+			if(LibGreenTea.EqualsString(Argu, "--verbose:native")) {
 				LibGreenTea.VerboseMask |= GtStatic.VerboseNative;
 				continue;
 			}
-			if(Argu.equals("--verbose:func")) {
+			if(LibGreenTea.EqualsString(Argu, "--verbose:func")) {
 				LibGreenTea.VerboseMask |= GtStatic.VerboseFunc;
 				continue;
 			}
-			LibGreenTea.Usage();
+			if(LibGreenTea.EqualsString(Argu, "--verbose:no")) {
+				LibGreenTea.VerboseMask = 0;
+				continue;
+			}
+			LibGreenTea.Usage(Argu + " is unknown");
 		}
 		/*local*/GtGenerator Generator = LibGreenTea.CodeGenerator(TargetCode, OutputFile, GeneratorFlag);
 		if(Generator == null) {
-			LibGreenTea.Usage();
+			LibGreenTea.Usage("no target: " + TargetCode);
 		}
 		/*local*/GtClassContext Context = new GtClassContext(new GreenTeaGrammar(), Generator);
 		/*local*/boolean ShellMode = true;

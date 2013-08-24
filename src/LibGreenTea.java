@@ -315,8 +315,8 @@ public abstract class LibGreenTea {
 		return List.toArray(new String[List.size()]);
 	}
 
-	public final static void Usage() {
-		System.out.println("usage : ");
+	public final static void Usage(String Message) {
+		System.out.println("greentea usage :");
 		System.out.println("  --lang|-l LANG        Set Target Language");
 		System.out.println("      bash                Bash");
 		System.out.println("      C C99               C99");
@@ -337,8 +337,10 @@ public abstract class LibGreenTea {
 		System.out.println("  --verbose             Printing Debug infomation");
 		System.out.println("     --verbose:symbol     adding symbol info");
 		System.out.println("     --verbose:token      adding token info");
-		System.exit(0);
+		System.out.println("     --verbose:no         no log");
+		LibGreenTea.Exit(0, Message);
 	}
+	
 	public final static String DetectTargetCode(String Extension, String TargetCode) {
 		if(Extension.endsWith(".js")) {
 			return "js";
