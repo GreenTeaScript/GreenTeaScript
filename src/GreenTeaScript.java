@@ -1544,7 +1544,7 @@ final class GtNameSpace extends GtStatic {
 		/*local*/int Alias = PatternName.indexOf(" ");
 		/*local*/String Name = (Alias == -1) ? PatternName : PatternName.substring(0, Alias);
 		/*local*/GtSyntaxPattern Pattern = new GtSyntaxPattern(this, Name, MatchFunc, TypeFunc);
-		this.AppendPattern(PatternName, Pattern);
+		this.AppendPattern(Name, Pattern);
 		if(Alias != -1) {
 			this.AppendSyntax(PatternName.substring(Alias+1), MatchFunc, TypeFunc);
 		}
@@ -3856,6 +3856,7 @@ public class GreenTeaScript extends GtStatic {
 				Context.ShowReportedErrors();
 				linenum += 1;
 			}
+			LibGreenTea.println("");
 		}
 		else {
 			Generator.FlushBuffer();
