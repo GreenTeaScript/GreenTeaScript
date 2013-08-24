@@ -61,12 +61,18 @@ notBool() {
 }
 
 eqAny() {
-    echo "eqAny is not support!!" >&2
-    return 1   
+    if [ "($x)" = "($y)" ]; then
+        return 0
+    else
+        return 1
+    fi 
 }
 
 neAny() {
-    echo "neAny is not support!!" >&2
-    return 1
+    if [ "($x)" != "($y)" ]; then
+        return 0
+    else
+        return 1
+    fi
 }
 

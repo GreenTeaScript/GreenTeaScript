@@ -138,10 +138,10 @@ public class BashSourceGenerator extends SourceGenerator {
 	private String ResolveCondition(GtNode Node) {
 		/*local*/String Cond = this.VisitNode(Node);
 		if(LibGreenTea.EqualsString(Cond, "0")) {
-			Cond = "true";
+			Cond = "((1 == 1))";
 		}
 		else if(LibGreenTea.EqualsString(Cond, "1")) {
-			Cond = "false";
+			Cond = "((1 != 1))";
 		}
 		return Cond;
 	}
@@ -277,6 +277,13 @@ public class BashSourceGenerator extends SourceGenerator {
 		} 
 		Code +=  this.LineFeed;
 		this.PushSourceCode(Code + this.VisitBlockWithoutIndent(Node.BlockNode, false));
+	}
+	
+	@Override public void VisitTrinaryNode(TrinaryNode Node) {
+		/*local*/String CondExpr = this.ResolveCondition(Node.CondExpr);
+		/*local*/String Then = this.ResolveValueType(Node.ThenExpr, false);
+		/*local*/String Else = this.ResolveValueType(Node.ElseExpr, false);
+		this.PushSourceCode("((" + CondExpr + " ? " + Then + " : " + Else + "))");
 	}
 
 	@Override public void VisitIfNode(IfNode Node) {
