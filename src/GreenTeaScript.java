@@ -2206,8 +2206,25 @@ final class GreenTeaGrammar extends GtGrammar {
 		return BinaryNode;
 	}
 
-	
-	
+	public static GtSyntaxTree ParseTrinary(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtSyntaxTree TrinaryTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("?"), null);
+		TrinaryTree.SetSyntaxTreeAt(IfCond, LeftTree);
+		TrinaryTree.SetMatchedPatternAt(IfThen, NameSpace, TokenContext, "$expression$", Required);
+		TrinaryTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ":", Required);
+		TrinaryTree.SetMatchedPatternAt(IfElse, NameSpace, TokenContext, "$expression$", Required);
+		return TrinaryTree;
+	}
+
+	public static GtNode TypeTrinary(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+		/*local*/GtNode CondNode = ParsedTree.TypeCheckNodeAt(IfCond, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
+		/*local*/GtNode ThenNode = ParsedTree.TypeCheckNodeAt(IfThen, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+		if(ThenNode.IsError()) {
+			return ThenNode;
+		}
+		/*local*/GtNode ElseNode = ParsedTree.TypeCheckNodeAt(IfThen, Gamma, ThenNode.Type, DefaultTypeCheckPolicy);
+		return Gamma.Generator.CreateTrinaryNode(ThenNode.Type, ParsedTree, CondNode, ThenNode, ElseNode);
+	}
+
 	// PatternName: "("
 	public static GtSyntaxTree ParseGroup(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/int ParseFlag = TokenContext.ParseFlag;

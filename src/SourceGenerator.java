@@ -1232,6 +1232,10 @@ class GtGenerator extends GtStatic {
 		return new LetNode(Type, ParsedTree.KeyToken, DeclType, VarName, InitNode, Block);
 	}
 
+	public GtNode CreateTrinaryNode(GtType Type, GtSyntaxTree ParsedTree, GtNode CondNode, GtNode ThenNode, GtNode ElseNode) {
+		return new TrinaryNode(Type, ParsedTree.KeyToken, CondNode, ThenNode, ElseNode);
+	}
+
 	public GtNode CreateIfNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Cond, GtNode Then, GtNode Else) {
 		return new IfNode(Type, ParsedTree.KeyToken, Cond, Then, Else);
 	}
