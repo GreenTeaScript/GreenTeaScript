@@ -76,7 +76,19 @@ public class BashSourceGenerator extends SourceGenerator {
 		return Template;
 	}
 
-	public String VisitBlockWithIndent(GtNode Node, boolean inBlock, boolean allowDummyBlock, boolean skipJump) {
+	private String VisitBlock(GtNode Node, boolean allowDummyBlock) {
+		return this.VisitBlockWithOption(Node, true, allowDummyBlock, false);
+	}
+	
+	private String VisitBlockWithSkipJump(GtNode Node, boolean allowDummyBlock) {
+		return this.VisitBlockWithOption(Node, true, allowDummyBlock, true);
+	}
+	
+	private String VisitBlockWithoutIndent(GtNode Node, boolean allowDummyBlock) {
+		return this.VisitBlockWithOption(Node, false, allowDummyBlock, false);
+	}
+	
+	private String VisitBlockWithOption(GtNode Node, boolean inBlock, boolean allowDummyBlock, boolean skipJump) {
 		/*local*/String Code = "";
 		if(inBlock) {
 			this.Indent();
@@ -106,6 +118,10 @@ public class BashSourceGenerator extends SourceGenerator {
 		}
 		return Code;
 	}
+	
+	private String Quote(String Value) {
+		return "\"" + Value  + "\"";
+	}
 
 	public GtNode CreateDoWhileNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Cond, GtNode Block) {
 		/*
@@ -120,11 +136,6 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	private String ResolveCondition(GtNode Node) {
-//		if(!Node.Type.equals(Node.Type.Context.BooleanType)) {
-//			LibGreenTea.DebugP("invalid condition type");
-//			return null;
-//		}
-		
 		/*local*/String Cond = this.VisitNode(Node);
 		if(LibGreenTea.EqualsString(Cond, "0")) {
 			Cond = "true";
@@ -137,7 +148,7 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitWhileNode(WhileNode Node) {
 		/*local*/String Program = "while " + this.ResolveCondition(Node.CondExpr) + " ;do" + this.LineFeed;
-		Program += this.VisitBlockWithIndent(Node.LoopBody, true, true, false) + "done";
+		Program += this.VisitBlock(Node.LoopBody, true) + "done";
 		this.PushSourceCode(Program);
 	}
 
@@ -145,7 +156,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/String Cond = this.ResolveCondition(Node.CondExpr);
 		/*local*/String Iter = this.VisitNode(Node.IterExpr);
 		/*local*/String Program = "for((; " + Cond  + "; " + Iter + " )) ;do" + this.LineFeed;
-		Program += this.VisitBlockWithIndent(Node.LoopBody, true, true, false) + "done";
+		Program += this.VisitBlock(Node.LoopBody, true) + "done";
 		this.PushSourceCode(Program);
 	}
 
@@ -153,7 +164,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/String Variable = this.VisitNode(Node.Variable);
 		/*local*/String Iter = this.VisitNode(Node.IterExpr);
 		/*local*/String Program = "for " + Variable + " in " + "${" + Iter + "[@]} ;do" + this.LineFeed;
-		Program += this.VisitBlockWithIndent(Node.LoopBody, true, true, false) + "done";
+		Program += this.VisitBlock(Node.LoopBody, true) + "done";
 		this.PushSourceCode(Program);
 	}
 
@@ -162,8 +173,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/String[] ParamCode = new String[Size - 1];
 		/*local*/int i = 1;
 		while(i < Size) {
-			/*local*/GtNode Node = ParamList.get(i);
-			ParamCode[i - 1] = this.ResolveValueType(Node, false);
+			ParamCode[i - 1] = this.ResolveValueType(ParamList.get(i), false);
 			i = i + 1;
 		}
 		return ParamCode;
@@ -171,7 +181,7 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	private String CreateAssertFunc(ApplyNode Node) {
 		/*local*/GtNode ParamNode = Node.Params.get(1);
-		return "assert \"" + this.ResolveCondition(ParamNode) + "\"";
+		return "assert " + this.Quote(this.ResolveCondition(ParamNode));
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
@@ -200,8 +210,6 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/GtFunc Func = Node.Func;
 		/*local*/String Left = this.ResolveValueType(Node.LeftNode, false);
 		/*local*/String Right = this.ResolveValueType(Node.RightNode, false);
-//		this.PushSourceCode(SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right));
-		
 		/*local*/String Macro = null;
 		if(Func != null) {
 			FuncName = Func.GetNativeFuncName();
@@ -234,6 +242,10 @@ public class BashSourceGenerator extends SourceGenerator {
 	@Override public void VisitGetterNode(GetterNode Node) {
 		this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + this.GetMemberIndex(Node.Expr.Type, Node.Func.FuncName) + "]");
 	}
+	
+	@Override public void VisitIndexerNode(IndexerNode Node) {
+		this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + this.ResolveValueType(Node.IndexAt, false) + "]");
+	}
 
 	@Override public void VisitAndNode(AndNode Node) {
 		this.PushSourceCode("(" + this.ResolveCondition(Node.LeftNode) + " && " + this.ResolveCondition(Node.RightNode) + ")");
@@ -244,17 +256,13 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitAssignNode(AssignNode Node) {
-		/*local*/String Left = this.VisitNode(Node.LeftNode);
-		/*local*/String Right = this.ResolveValueType(Node.RightNode, true);
-		this.PushSourceCode(Left + "=" + Right);
+		this.PushSourceCode(this.VisitNode(Node.LeftNode) + "=" + this.ResolveValueType(Node.RightNode, true));
 	}
 
 	@Override public void VisitVarNode(VarNode Node) {
 		/*local*/String VarName = Node.VariableName;
 		/*local*/String Declare = "declare ";
 		/*local*/String Option = "";
-		/*local*/String Code = "";
-		/*local*/String Head = "";
 		if(this.inFunc) {
 			Declare = "local ";
 		}
@@ -262,22 +270,21 @@ public class BashSourceGenerator extends SourceGenerator {
 			Option = "-a ";
 		}
 		
-		Code += Declare + Option + VarName + this.LineFeed + this.GetIndentString();
-		Code += Head + VarName;
+		/*local*/String Code = Declare + Option + VarName + this.LineFeed;
+		Code += this.GetIndentString() + VarName;
 		if(Node.InitNode != null) {
 			Code += "=" + this.ResolveValueType(Node.InitNode, true);
 		} 
 		Code +=  this.LineFeed;
-		this.PushSourceCode(Code + this.VisitBlockWithIndent(Node.BlockNode, false, false, false));
+		this.PushSourceCode(Code + this.VisitBlockWithoutIndent(Node.BlockNode, false));
 	}
 
 	@Override public void VisitIfNode(IfNode Node) {
 		/*local*/String CondExpr = this.ResolveCondition(Node.CondExpr);
-		/*local*/String ThenBlock = this.VisitBlockWithIndent(Node.ThenNode, true, true, false);
-		/*local*/String ElseBlock = this.VisitBlockWithIndent(Node.ElseNode, true, false, false);
+		/*local*/String ThenBlock = this.VisitBlock(Node.ThenNode, true);
 		/*local*/String Code = "if " + CondExpr + " ;then" + this.LineFeed + ThenBlock;
 		if(!this.IsEmptyBlock(Node.ElseNode)) {
-			Code += "else" + this.LineFeed + ElseBlock;
+			Code += "else" + this.LineFeed + this.VisitBlock(Node.ElseNode, false);
 		}
 		Code += "fi";
 		this.PushSourceCode(Code);
@@ -290,12 +297,12 @@ public class BashSourceGenerator extends SourceGenerator {
 			/*local*/GtNode Case  = Node.CaseList.get(i);
 			/*local*/GtNode Block = Node.CaseList.get(i+1);
 			Code += this.LineFeed + this.GetIndentString() + this.VisitNode(Case) + ")" + this.LineFeed;
-			Code += this.VisitBlockWithIndent(Block, true, true, true) + ";;";
+			Code += this.VisitBlockWithSkipJump(Block, true) + ";;";
 			i = i + 2;
 		}
 		if(Node.DefaultBlock != null) {
 			Code += this.LineFeed + this.GetIndentString() + "*)" + this.LineFeed;
-			Code += this.VisitBlockWithIndent(Node.DefaultBlock, true, false, true) + ";;";
+			Code += this.VisitBlockWithSkipJump(Node.DefaultBlock, false) + ";;";
 		}
 		Code += this.LineFeed + this.GetIndentString() + "esac";
 		this.PushSourceCode(Code);
@@ -324,7 +331,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/String Code = "trap ";
 		/*local*/String Try = this.VisitNode(new IfNode(null, null, TrueNode, Node.TryBlock, null));
 		/*local*/String Catch = this.VisitNode(new IfNode(null, null, TrueNode, Node.CatchBlock, null));
-		Code += "\"" + Catch + "\" ERR" + this.LineFeed;
+		Code += this.Quote(Catch) + " ERR" + this.LineFeed;
 		Code += this.GetIndentString() + Try + this.LineFeed + this.GetIndentString() + "trap ERR";
 		if(Node.FinallyBlock != null) {
 			/*local*/String Finally = this.VisitNode(new IfNode(null, null, TrueNode, Node.FinallyBlock, null));
@@ -434,10 +441,11 @@ public class BashSourceGenerator extends SourceGenerator {
 			return Value;
 		}
 		
+		// resolve boolean function
 		if(Type != null && Type.equals(Type.Context.BooleanType)) {
 			if(TargetNode instanceof ApplyNode || TargetNode instanceof UnaryNode || 
 					TargetNode instanceof CommandNode || TargetNode instanceof BinaryNode) {
-				return "$(valueOfBool \"" + Value + "\")";
+				return "$(valueOfBool " + this.Quote(Value) + ")";
 			}
 		}
 		
@@ -474,7 +482,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		// resolve string and object value
 		if(Type != null) {
 			if(Type.equals(Type.Context.StringType) || !this.IsNativeType(Type)) {
-				ResolvedValue = "\"" + ResolvedValue + "\"";
+				ResolvedValue = this.Quote(ResolvedValue);
 			}
 		}
 		return ResolvedValue;
@@ -488,7 +496,7 @@ public class BashSourceGenerator extends SourceGenerator {
 			this.inMainFunc = true;
 		}
 		Function += FuncName + "() {" + this.LineFeed;
-		/*local*/String Block = this.VisitBlockWithIndent(this.ResolveParamName(Func, ParamNameList, Body), true, true, false);
+		/*local*/String Block = this.VisitBlock(this.ResolveParamName(Func, ParamNameList, Body), true);
 		Function += Block + "}" + this.LineFeed;
 		this.WriteLineCode(Function);
 		this.inFunc = false;
@@ -496,7 +504,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 	
 	@Override protected String GetNewOperator(GtType Type) {
-		return "\"$(__NEW__" + Type.ShortClassName + ")\"";
+		return this.Quote("$(__NEW__" + Type.ShortClassName + ")");
 	}
 	
 	@Override public void GenerateClassField(GtType Type, GtClassField ClassField) {	//TODO: support super
@@ -518,7 +526,8 @@ public class BashSourceGenerator extends SourceGenerator {
 			Program += "[" + this.GetMemberIndex(Type, FieldInfo.NativeName) + "]=" + InitValue + this.LineFeed;
 			i = i + 1;
 		}
-		Program += this.GetIndentString() + "echo \"${" + this.GetRecvName() + "[@]}\"" + this.LineFeed;
+		Program += this.GetIndentString() + "echo ";
+		Program += this.Quote("${" + this.GetRecvName() + "[@]}") + this.LineFeed;
 		this.UnIndent();
 		Program += "}";
 		
@@ -526,7 +535,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public Object Eval(GtNode Node) {
-		/*local*/String Code = this.VisitBlockWithIndent(Node, false, false, false);
+		/*local*/String Code = this.VisitBlockWithoutIndent(Node, false);
 		if(!LibGreenTea.EqualsString(Code, "")) {
 			this.WriteLineCode(Code);
 		}
