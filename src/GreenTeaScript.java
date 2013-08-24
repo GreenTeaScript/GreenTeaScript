@@ -1714,7 +1714,7 @@ final class GtNameSpace extends GtStatic {
 		/*local*/String Key = GtStatic.NativeNameSuffix + LibName.toLowerCase();
 		if(!this.HasSymbol(Key)) {
 			/*local*/String Path = LibGreenTea.GetLibPath(this.Context.Generator.TargetCode, LibName);
-			/*local*/String Script = LibGreenTea.LoadFile2(LibName);
+			/*local*/String Script = LibGreenTea.LoadFile2(Path);
 			if(Script == null) {
 				return false;
 			}
