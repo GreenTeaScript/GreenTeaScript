@@ -197,9 +197,9 @@ interface GtConst {
 	public static final int	CallParameterOffset		= 1;
 
 	// Const Decl;
-	public final static int	ConstDeclClassIndex	= 0;
-	public final static int	ConstDeclNameIndex	= 1;
-	public final static int	ConstDeclValueIndex	= 2;
+	public final static int	SymbolDeclClassIndex	= 0;
+	public final static int	SymbolDeclNameIndex	= 1;
+	public final static int	SymbolDeclValueIndex	= 2;
 
 	// Func Decl;
 	public final static int	FuncDeclReturnType	= 0;
@@ -1418,6 +1418,13 @@ final class GtTypeEnv extends GtStatic {
 	public final GtNode TypeCheckSingleNode(GtSyntaxTree ParsedTree, GtNode Node, GtType Type, int TypeCheckPolicy) {
 		if(Node.IsError() || IsFlag(TypeCheckPolicy, NoCheckPolicy)) {
 			return Node;
+		}
+		Object ConstValue = Node.ToConstValue();
+		if(ConstValue != null && !(Node instanceof ConstNode)) {
+			Node = this.Generator.CreateConstNode(Node.Type, ParsedTree, ConstValue);
+		}
+		if(IsFlag(TypeCheckPolicy, OnlyConstPolicy) && ConstValue == null) {
+			return this.CreateSyntaxErrorNode(ParsedTree, "value must be const");
 		}
 		if(IsFlag(TypeCheckPolicy, AllowVoidPolicy) || Type == this.VoidType) {
 			return Node;
@@ -2944,44 +2951,50 @@ final class GreenTeaGrammar extends GtGrammar {
 	}
 
 	// const decl
-	public static GtSyntaxTree ParseConstDecl(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		/*local*/GtSyntaxTree ConstDeclTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("const"), null);
+	public static GtSyntaxTree ParseSymbolDecl(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtSyntaxTree SymbolDeclTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.Next() /*const, let */, null);
 		/*local*/GtSyntaxTree ClassNameTree = TokenContext.ParsePattern(NameSpace, "$Type$", Optional);
 		/*local*/GtType ConstClass = null;
 		if(ClassNameTree != null) {
-			ConstDeclTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ".", Required);
-			if(!ConstDeclTree.IsEmptyOrError()) {
-				ConstDeclTree.SetSyntaxTreeAt(ConstDeclClassIndex, ClassNameTree);
-				ConstClass = ConstDeclTree.GetParsedType();
+			SymbolDeclTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ".", Required);
+			if(!SymbolDeclTree.IsEmptyOrError()) {
+				SymbolDeclTree.SetSyntaxTreeAt(SymbolDeclClassIndex, ClassNameTree);
+				ConstClass = SymbolDeclTree.GetParsedType();
 			}
 		}
-		ConstDeclTree.SetMatchedPatternAt(ConstDeclNameIndex, NameSpace, TokenContext, "$Variable$", Required);
-		ConstDeclTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "=", Required);
-		ConstDeclTree.SetMatchedPatternAt(ConstDeclValueIndex, NameSpace, TokenContext, "$Expression$", Required);
+		SymbolDeclTree.SetMatchedPatternAt(SymbolDeclNameIndex, NameSpace, TokenContext, "$Variable$", Required);
+		SymbolDeclTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "=", Required);
+		SymbolDeclTree.SetMatchedPatternAt(SymbolDeclValueIndex, NameSpace, TokenContext, "$Expression$", Required);
 
-		if(!ConstDeclTree.IsEmptyOrError()) {
-			/*local*/String ConstName = ConstDeclTree.GetSyntaxTreeAt(ConstDeclNameIndex).KeyToken.ParsedText;
+		if(!SymbolDeclTree.IsEmptyOrError()) {
+			/*local*/String ConstName = SymbolDeclTree.GetSyntaxTreeAt(SymbolDeclNameIndex).KeyToken.ParsedText;
 			if(ConstClass != null) {
 				ConstName = ClassSymbol(ConstClass, ConstName);
 			}
 			/*local*/Object ConstValue = null;
-			if(ConstDeclTree.GetSyntaxTreeAt(ConstDeclValueIndex).Pattern.PatternName.equals("$Const$")) {
-				ConstValue = ConstDeclTree.GetSyntaxTreeAt(ConstDeclValueIndex).ConstValue;
+			if(SymbolDeclTree.GetSyntaxTreeAt(SymbolDeclValueIndex).Pattern.EqualsName("$Const$")) {
+				ConstValue = SymbolDeclTree.GetSyntaxTreeAt(SymbolDeclValueIndex).ConstValue;
 			}
 			if(ConstValue == null) {
-
+				GtTypeEnv Gamma = new GtTypeEnv(NameSpace);
+				GtNode Node = SymbolDeclTree.TypeCheckNodeAt(SymbolDeclValueIndex, Gamma, Gamma.VarType, OnlyConstPolicy);
+				if(Node.IsError()) {
+					SymbolDeclTree.ToError(Node.Token);
+					return SymbolDeclTree;
+				}
+				ConstValue = Node.ToConstValue();
 			}
 			if(NameSpace.GetSymbol(ConstName) != null) {
-				NameSpace.ReportOverrideName(ConstDeclTree.KeyToken, ConstClass, ConstName);
+				NameSpace.ReportOverrideName(SymbolDeclTree.KeyToken, ConstClass, ConstName);
 			}
 			NameSpace.SetSymbol(ConstName, ConstValue);
 		}
-		return ConstDeclTree;
+		return SymbolDeclTree;
 	}
 
-	public static GtNode TypeConstDecl(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		/*local*/GtSyntaxTree NameTree = ParsedTree.GetSyntaxTreeAt(ConstDeclNameIndex);
-		/*local*/GtSyntaxTree ValueTree = ParsedTree.GetSyntaxTreeAt(ConstDeclValueIndex);
+	public static GtNode TypeSymbolDecl(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+		/*local*/GtSyntaxTree NameTree = ParsedTree.GetSyntaxTreeAt(SymbolDeclNameIndex);
+		/*local*/GtSyntaxTree ValueTree = ParsedTree.GetSyntaxTreeAt(SymbolDeclValueIndex);
 		/*local*/String VariableName = NameTree.KeyToken.ParsedText;
 		/*local*/GtNode ValueNode = Gamma.TypeCheck(ValueTree, Gamma.AnyType, DefaultTypeCheckPolicy);
 		if(!(ValueNode instanceof ConstNode)) {
@@ -3198,13 +3211,13 @@ final class GreenTeaGrammar extends GtGrammar {
 		VarDeclList.add(ClassDeclTree.GetSyntaxTreeAt(ClassDeclName));
 		while(TreeIndex < ClassDeclTree.TreeList.size()) {
 			/*local*/GtSyntaxTree FieldTree = ClassDeclTree.GetSyntaxTreeAt(TreeIndex);
-			if(FieldTree.Pattern.PatternName.equals("$VarDecl$")) {
+			if(FieldTree.Pattern.EqualsName("$VarDecl$")) {
 				VarDeclList.add(FieldTree);
 			}
-			else if(FieldTree.Pattern.PatternName.equals("$FuncDecl$")) {
+			else if(FieldTree.Pattern.EqualsName("$FuncDecl$")) {
 				ConstructorList.add(FieldTree);
 			}
-			else if(FieldTree.Pattern.PatternName.equals("$Constructor$")) {
+			else if(FieldTree.Pattern.EqualsName("$Constructor$")) {
 				MethodList.add(FieldTree);
 			}
 			TreeIndex = TreeIndex + 1;
@@ -3229,7 +3242,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		/*local*/GtClassField ClassField = new GtClassField(DefinedType.SuperType);
 		while(TreeIndex < ParsedTree.TreeList.size()) {
 			/*local*/GtSyntaxTree FieldTree = ParsedTree.GetSyntaxTreeAt(TreeIndex);
-			if(!FieldTree.Pattern.PatternName.equals("$VarDecl$")) {
+			if(!FieldTree.Pattern.EqualsName("$VarDecl$")) {
 				break;
 			}
 			/*local*/GtNode FieldNode = ParsedTree.TypeCheckNodeAt(TreeIndex, Gamma, Gamma.VarType, OnlyConstPolicy);
@@ -3259,7 +3272,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		Gamma.Generator.GenerateClassField(DefinedType, ClassField);
 		while(TreeIndex < ParsedTree.TreeList.size()) {
 			/*local*/GtSyntaxTree FieldTree = ParsedTree.GetSyntaxTreeAt(TreeIndex);
-			if(!FieldTree.Pattern.PatternName.equals("$FuncDecl$")) {
+			if(!FieldTree.Pattern.EqualsName("$FuncDecl$")) {
 				break;
 			}
 			ParsedTree.TypeCheckNodeAt(TreeIndex, Gamma, Gamma.VarType, OnlyConstPolicy);
@@ -3267,7 +3280,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		}
 		while(TreeIndex < ParsedTree.TreeList.size()) {
 			/*local*/GtSyntaxTree FieldTree = ParsedTree.GetSyntaxTreeAt(TreeIndex);
-			if(!FieldTree.Pattern.PatternName.equals("$Constructor$")) {
+			if(!FieldTree.Pattern.EqualsName("$Constructor$")) {
 				break;
 			}
 			ParsedTree.TypeCheckNodeAt(TreeIndex, Gamma, DefinedType, OnlyConstPolicy);
@@ -3348,7 +3361,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		if(TokenContext.SourceList.size() > 0) {
 			/*local*/GtToken PrevToken = TokenContext.SourceList.get(TokenContext.SourceList.size() - 1);
 			if(PrevToken != null && PrevToken.PresetPattern != null &&
-				PrevToken.PresetPattern.PatternName.equals("$ShellExpression$")) {
+				PrevToken.PresetPattern.EqualsName("$ShellExpression$")) {
 				ShellMode = true;
 			}
 		}
@@ -3537,7 +3550,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		NameSpace.AppendSyntax("continue", FunctionB(this, "ParseContinue"), FunctionC(this, "TypeContinue"));
 		NameSpace.AppendSyntax("break", FunctionB(this, "ParseBreak"), FunctionC(this, "TypeBreak"));
 		NameSpace.AppendSyntax("return", FunctionB(this, "ParseReturn"), FunctionC(this, "TypeReturn"));
-		NameSpace.AppendSyntax("let const", FunctionB(this, "ParseConstDecl"), FunctionC(this, "TypeConstDecl"));
+		NameSpace.AppendSyntax("let const", FunctionB(this, "ParseSymbolDecl"), FunctionC(this, "TypeSymbolDecl"));
 
 		NameSpace.AppendSyntax("try", FunctionB(this, "ParseTry"), FunctionC(this, "TypeTry"));
 		NameSpace.AppendSyntax("throw", FunctionB(this, "ParseThrow"), FunctionC(this, "TypeThrow"));
