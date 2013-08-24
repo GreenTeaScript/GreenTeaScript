@@ -945,6 +945,11 @@ final class GtSyntaxPattern extends GtStatic {
 		/*local*/int right = Right.SyntaxFlag >> PrecedenceShift;
 		return (left < right || (left == right && IsFlag(this.SyntaxFlag, LeftJoin) && IsFlag(Right.SyntaxFlag, LeftJoin)));
 	}
+
+	public final boolean EqualsName(String Name) {
+		return LibGreenTea.EqualsString(this.PatternName, Name);
+	}
+
 }
 
 class GtSyntaxTree extends GtStatic {
@@ -2306,6 +2311,22 @@ final class GreenTeaGrammar extends GtGrammar {
 		}
 		return Node;
 	}
+	
+	public static GtSyntaxTree ParseDefined(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		GtSyntaxTree DefinedTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("defined"), null);
+		DefinedTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "(", Required);
+		DefinedTree.SetMatchedPatternAt(UnaryTerm, NameSpace, TokenContext, "$Expression$", Required);
+		DefinedTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ")", Required);
+		return DefinedTree;
+	}
+
+	public static GtNode TypeDefined(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
+		Gamma.Context.SetNoErrorReport(true);
+		/*local*/GtNode ObjectNode = ParsedTree.TypeCheckNodeAt(UnaryTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+		Gamma.Context.SetNoErrorReport(false);
+		return Gamma.Generator.CreateConstNode(Gamma.BooleanType, ParsedTree, (ObjectNode instanceof ConstNode));
+	}
+
 
 	public static GtSyntaxTree ParseApply(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/int ParseFlag = TokenContext.ParseFlag;
@@ -2475,8 +2496,6 @@ final class GreenTeaGrammar extends GtGrammar {
 		return LeftNode.IsError() ? LeftNode : GreenTeaGrammar.TypeUnary(Gamma, ParsedTree, Type);
 	}
 
-	
-	
 	public static GtSyntaxTree ParseEmpty(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		return new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetBeforeToken(), null);
 	}
@@ -3542,6 +3561,7 @@ final class GtClassContext extends GtStatic {
 	/*field*/public int FuncCount;
 	/*field*/public final GtStat Stat;
 	/*field*/public ArrayList<String>    ReportedErrorList;
+	/*filed*/private boolean NoErrorReport;
 
 	GtClassContext/*constructor*/(GtGrammar Grammar, GtGenerator Generator) {
 		this.Generator    = Generator;
@@ -3554,6 +3574,7 @@ final class GtClassContext extends GtStatic {
 		this.ClassCount = 0;
 		this.FuncCount = 0;
 		this.Stat = new GtStat();
+		this.NoErrorReport = false;
 		this.ReportedErrorList = new ArrayList<String>();
 
 		this.TopType     = new GtType(this, 0, "top", null, null);               //  unregistered
@@ -3669,8 +3690,13 @@ final class GtClassContext extends GtStatic {
 		return "(" + FileName + ":" + Line + ")";
 	}
 
+	
+	public void SetNoErrorReport(boolean b) {
+		this.NoErrorReport = b;
+	}
+
 	public final void ReportError(int Level, GtToken Token, String Message) {
-		if(!Token.IsError()) {
+		if(!Token.IsError() || !this.NoErrorReport) {
 			if(Level == ErrorLevel) {
 				Message = "(error) " + this.GetSourcePosition(Token.FileLine) + " " + Message;
 				Token.ToErrorToken(Message);
