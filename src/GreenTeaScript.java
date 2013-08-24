@@ -1510,7 +1510,7 @@ final class GtNameSpace extends GtStatic {
 			this.SymbolPatternTable = new GtMap();
 		}
 		this.SymbolPatternTable.put(Key, Value);
-		LibGreenTea.VerboseLog(VerboseSymbol, "symbol: " + Key + ", " + Value);
+		LibGreenTea.VerboseLog(VerboseSymbol, "adding symbol: " + Key + ", " + Value);
 	}
 
 	public final void SetUndefinedSymbol(String Symbol) {
@@ -1718,7 +1718,7 @@ final class GtNameSpace extends GtStatic {
 	
 	public final Object Eval(String ScriptSource, long FileLine) {
 		/*local*/Object ResultValue = null;
-		LibGreenTea.VerboseLog(VerboseEval, "Eval: " + ScriptSource);
+		LibGreenTea.VerboseLog(VerboseEval, "eval: " + ScriptSource);
 		/*local*/GtTokenContext TokenContext = new GtTokenContext(this, ScriptSource, FileLine);
 		this.Context.Generator.StartCompilationUnit();
 		TokenContext.SkipEmptyStatement();
@@ -3797,11 +3797,27 @@ public class GreenTeaScript extends GtStatic {
 			}
 			if(Argu.equals("--verbose")) {
 				LibGreenTea.DebugMode = true;
-				LibGreenTea.VerboseMask |= (GtStatic.VerboseFile|GtStatic.VerboseSymbol);
+				LibGreenTea.VerboseMask |= (GtStatic.VerboseFile|GtStatic.VerboseSymbol|GtStatic.VerboseNative);
 				continue;
 			}
 			if(Argu.equals("--verbose:token")) {
 				LibGreenTea.VerboseMask |= GtStatic.VerboseToken;
+				continue;
+			}
+			if(Argu.equals("--verbose:type")) {
+				LibGreenTea.VerboseMask |= GtStatic.VerboseType;
+				continue;
+			}
+			if(Argu.equals("--verbose:symbol")) {
+				LibGreenTea.VerboseMask |= GtStatic.VerboseSymbol;
+				continue;
+			}
+			if(Argu.equals("--verbose:native")) {
+				LibGreenTea.VerboseMask |= GtStatic.VerboseNative;
+				continue;
+			}
+			if(Argu.equals("--verbose:func")) {
+				LibGreenTea.VerboseMask |= GtStatic.VerboseFunc;
 				continue;
 			}
 			LibGreenTea.Usage();

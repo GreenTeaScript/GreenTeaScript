@@ -198,7 +198,7 @@ public abstract class LibGreenTea {
 		if(NativeType == null) {
 			NativeType = new GtType(Context, GtStatic.NativeClass, NativeClassInfo.getSimpleName(), null, NativeClassInfo);
 			Context.ClassNameMap.put(NativeClassInfo.getName(), NativeType);
-			LibGreenTea.VerboseLog(GtStatic.VerboseNative, "native class: " + NativeClassInfo.getName());
+			LibGreenTea.VerboseLog(GtStatic.VerboseNative, "binding native class: " + NativeClassInfo.getName());
 		}
 		return NativeType;
 	}
@@ -212,7 +212,7 @@ public abstract class LibGreenTea {
 					return methods[i];
 				}
 			}
-			LibGreenTea.VerboseLog(GtStatic.VerboseUndefined, "method not found: " + Callee.getClass().getSimpleName() + "." + FuncName);
+			LibGreenTea.VerboseLog(GtStatic.VerboseUndefined, "undefined method: " + Callee.getClass().getSimpleName() + "." + FuncName);
 		}
 		return null;
 	}
@@ -332,9 +332,11 @@ public abstract class LibGreenTea {
 		System.out.println("      ruby                Ruby");
 		System.out.println("      typescript ts       TypeScript");
 		System.out.println("");
-		System.out.println("  --out|-o  FILE        Program passed in as string");
+		System.out.println("  --out|-o  FILE        Output filename");
 		System.out.println("  --eval|-e EXPR        Program passed in as string");
 		System.out.println("  --verbose             Printing Debug infomation");
+		System.out.println("     --verbose:symbol     adding symbol info");
+		System.out.println("     --verbose:token      adding token info");
 		System.exit(0);
 	}
 	public final static String DetectTargetCode(String Extension, String TargetCode) {
@@ -480,7 +482,7 @@ public abstract class LibGreenTea {
 	}
 
 	public final static Object Eval(String SourceCode) {
-		LibGreenTea.VerboseLog(GtStatic.VerboseEval, "native eval: " + SourceCode);
+		LibGreenTea.VerboseLog(GtStatic.VerboseEval, "eval as native code: " + SourceCode);
 		//eval(SourceCode);
 		//System.out.println("Eval: " + SourceCode);  // In Java, no eval
 		return null;
