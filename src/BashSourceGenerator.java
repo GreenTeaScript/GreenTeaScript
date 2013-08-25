@@ -138,10 +138,10 @@ public class BashSourceGenerator extends SourceGenerator {
 	private String ResolveCondition(GtNode Node) {
 		/*local*/String Cond = this.VisitNode(Node);
 		if(LibGreenTea.EqualsString(Cond, "0")) {
-			Cond = "true";
+			Cond = "((1 == 1))";
 		}
 		else if(LibGreenTea.EqualsString(Cond, "1")) {
-			Cond = "false";
+			Cond = "((1 != 1))";
 		}
 		return Cond;
 	}
@@ -278,6 +278,13 @@ public class BashSourceGenerator extends SourceGenerator {
 		Code +=  this.LineFeed;
 		this.PushSourceCode(Code + this.VisitBlockWithoutIndent(Node.BlockNode, false));
 	}
+	
+	@Override public void VisitTrinaryNode(TrinaryNode Node) {
+		/*local*/String CondExpr = this.ResolveCondition(Node.CondExpr);
+		/*local*/String Then = this.ResolveValueType(Node.ThenExpr, false);
+		/*local*/String Else = this.ResolveValueType(Node.ElseExpr, false);
+		this.PushSourceCode("((" + CondExpr + " ? " + Then + " : " + Else + "))");
+	}
 
 	@Override public void VisitIfNode(IfNode Node) {
 		/*local*/String CondExpr = this.ResolveCondition(Node.CondExpr);
@@ -351,14 +358,9 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitCommandNode(CommandNode Node) {
 		/*local*/String Code = "";
-		/*local*/int count = 0;
 		/*local*/CommandNode CurrentNode = Node;
 		while(CurrentNode != null) {
-			if(count > 0) {
-				Code += " | ";
-			}
 			Code += this.AppendCommand(CurrentNode);
-			count += 1;
 			CurrentNode = (/*cast*/CommandNode) CurrentNode.PipedNextNode;
 		}
 		this.PushSourceCode(this.CreateCommandFunc(Code, Node.Type));

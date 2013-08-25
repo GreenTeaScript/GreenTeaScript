@@ -190,6 +190,18 @@ public abstract class LibGreenTea {
 	public final static long ParseInt(String Text) {
 		return Long.parseLong(Text);
 	}
+	
+	public final static boolean IsUnixCommand(String cmd) {
+		String[] path = System.getenv("PATH").split(":");
+		int i = 0;
+		while(i < path.length) {
+			if(LibGreenTea.HasFile(path[i] + "/" + cmd)) {
+				return true;
+			}
+			i = i + 1;
+		}
+		return false;
+	}
 
 	public final static GtType GetNativeType(GtClassContext Context, Object Value) {
 		GtType NativeType = null;

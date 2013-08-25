@@ -19,8 +19,8 @@ boolean ==(int x, int y) as "(($1 == $2))";
 boolean !=(int x, int y) as "(($1 != $2))";
 
 String +(String x, String y) as "(concat $1 $2)";
-boolean ==(String x, String y) as "(eqStr $1 $2)";
-boolean !=(String x, String y) as "(neStr $1 $2)";
+//boolean ==(String x, String y) as "(eqStr $1 $2)";
+//boolean !=(String x, String y) as "(neStr $1 $2)";
 
 boolean not(boolean x)   as "(notBool $1)";
 boolean ==(boolean x, boolean y) as "(($1 == $2))";
@@ -32,4 +32,4 @@ boolean !=(any x, any y) as "(neAny $1 $2)";
 void print(String x) as "echo -e $1 >&2";
 void assert(boolean x) as "assert $1";
 
-void rec(int n) as "rec $1"
+void rec(int n) as "rec $1";
