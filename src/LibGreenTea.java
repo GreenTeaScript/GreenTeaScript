@@ -113,7 +113,13 @@ public abstract class LibGreenTea {
 	public static final String UnquoteString(String Text) {
 		StringBuilder sb = new StringBuilder();
 		/*local*/char quote = LibGreenTea.CharAt(Text, 0);
-		/*local*/int i = (quote == '"' || quote == '\'') ? 1 : 0;
+		/*local*/int i = 0;
+		if(quote == '"' || quote == '\'') {
+			i = 1;
+		}
+		else {
+			quote = '\0';
+		}
 		while(i < Text.length()) {
 			/*local*/char ch = LibGreenTea.CharAt(Text, i);
 			if(ch == quote) {  // end

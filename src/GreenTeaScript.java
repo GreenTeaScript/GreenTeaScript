@@ -2593,20 +2593,15 @@ final class GreenTeaGrammar extends GtGrammar {
 	public static GtSyntaxTree ParseImport(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		GtSyntaxTree ImportTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("import"), null);
 		/*local*/GtToken Token = TokenContext.Next();
-		/*local*/String PackageName = "";
-		if(Token.IsQuoted()) {
-			PackageName = LibGreenTea.UnquoteString(Token.ParsedText);  // FIXME: unquoted
-		}
-		else {
-			PackageName = Token.ParsedText;
-			while(TokenContext.HasNext()) {
-				Token = TokenContext.Next();
-				if(Token.IsNameSymbol() || TokenContext.MatchToken(".")) {
-					PackageName += Token.ParsedText;
-				}
-				break;
+		/*local*/String PackageName = LibGreenTea.UnquoteString(Token.ParsedText);
+		while(TokenContext.HasNext()) {
+			Token = TokenContext.Next();
+			if(Token.IsNameSymbol() || LibGreenTea.EqualsString(Token.ParsedText, ".")) {
+				PackageName += Token.ParsedText;
+				continue;
 			}
-		}	
+			break;
+		}
 		ImportTree.ConstValue = PackageName;
 		return ImportTree;
 	}
@@ -3556,7 +3551,7 @@ final class GreenTeaGrammar extends GtGrammar {
 
 		NameSpace.AppendSyntax("null", FunctionB(this, "ParseNull"), FunctionC(this, "TypeNull"));
 		NameSpace.AppendSyntax("defined", FunctionB(this, "ParseDefined"), FunctionC(this, "TypeDefined"));
-		NameSpace.AppendSyntax("require", FunctionB(this, "ParseRequire"), FunctionC(this, "TypeRequire"));
+		NameSpace.AppendSyntax("require", FunctionB(this, "ParseRequire"), null);
 		NameSpace.AppendSyntax("import", FunctionB(this, "ParseImport"), FunctionC(this, "TypeImport"));
 		
 		NameSpace.AppendSyntax("if", FunctionB(this, "ParseIf"), FunctionC(this, "TypeIf"));
