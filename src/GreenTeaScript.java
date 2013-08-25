@@ -257,7 +257,7 @@ interface GtConst {
 	
 	public final static Object UndefinedSymbol = new Object();   // any class 
 	public final static String NativeNameSuffix = "__";
-	public final static String[] ShellGrammarReservedKeywords = {"true", "false", "as", "if"};
+	public final static String[] ShellGrammarReservedKeywords = {"true", "false", "as", "if", "/"};
 
 	public final static boolean UseLangStat = true;
 	
@@ -3355,52 +3355,29 @@ final class GreenTeaGrammar extends GtGrammar {
 	}
 
 	// shell grammar
-	private static boolean IsUnixCommand(String cmd) {
-//ifdef  JAVA
-		String[] path = System.getenv("PATH").split(":");
-		int i = 0;
-		while(i < path.length) {
-			if(LibGreenTea.HasFile(path[i] + "/" + cmd)) {
-				return true;
-			}
-			i = i + 1;
-		}
-//endif VAJA
-		return false;
-	}
-
 	public static int SymbolShellToken(GtTokenContext TokenContext, String SourceText, int pos) {
-		/*local*/boolean ShellMode = false;
 		/*local*/int start = pos;
-		if(TokenContext.SourceList.size() > 0) {
-			/*local*/GtToken PrevToken = TokenContext.SourceList.get(TokenContext.SourceList.size() - 1);
-			if(PrevToken != null && PrevToken.PresetPattern != null &&
-				PrevToken.PresetPattern.EqualsName("$ShellExpression$")) {
-				ShellMode = true;
-			}
-		}
-
+		/*local*/boolean isHeadOfToken = true;
 		while(pos < SourceText.length()) {
 			/*local*/char ch = LibGreenTea.CharAt(SourceText, pos);
 			// a-zA-Z0-9_-
-			if(LibGreenTea.IsLetter(ch)) {
-			}
-			else if(LibGreenTea.IsDigit(ch)) {
-			}
-			else if(ch == '_') {
-			}
-			else if(ShellMode && (ch == '-' || ch == '/')) {
-			}
-			else {
+			if(ch == ' ' || ch == '\t' || ch == '\n' || ch == ';') {
 				break;
 			}
+			else if(ch == '|' || ch == '>' || ch == '<') {
+				if(isHeadOfToken) {
+					pos += 1;
+				}
+				break;
+			}
+			isHeadOfToken = false;
 			pos += 1;
 		}
 		if(start == pos) {
 			return NoMatch;
 		}
 		/*local*/String Symbol = SourceText.substring(start, pos);
-
+		
 		/*local*/int i = 0;
 		while(i < ShellGrammarReservedKeywords.length) {
 			/*local*/String Keyword = ShellGrammarReservedKeywords[i];
@@ -3409,17 +3386,36 @@ final class GreenTeaGrammar extends GtGrammar {
 			}
 			i = i + 1;
 		}
-		if(Symbol.startsWith("/") || Symbol.startsWith("-")) {
+		
+		if(Symbol.startsWith("/")) {
 			if(Symbol.startsWith("//")) { // One-Line Comment
 				return GtStatic.NoMatch;
 			}
-			TokenContext.AddNewToken(Symbol, 0, "$StringLiteral$");
+			if(Symbol.startsWith("/*")) {
+				return GtStatic.NoMatch;
+			}
+		}
+		
+		if(LibGreenTea.IsUnixCommand(Symbol)) {
+			TokenContext.AddNewToken(Symbol, WhiteSpaceTokenFlag, "$ShellExpression$");
 			return pos;
 		}
-
-		if(GreenTeaGrammar.IsUnixCommand(Symbol)) {
-			TokenContext.AddNewToken(Symbol, 0, "$ShellExpression$");
-			return pos;
+		
+		/*local*/int SrcListSize = TokenContext.SourceList.size();
+		if(SrcListSize > 0) {
+			/*local*/int index = SrcListSize - 1;
+			while(index >= 0) {
+				/*local*/GtToken PrevToken = TokenContext.SourceList.get(index);
+				if(PrevToken.PresetPattern != null &&
+					PrevToken.PresetPattern.EqualsName("$ShellExpression$")) {
+					TokenContext.AddNewToken(Symbol, WhiteSpaceTokenFlag, "$StringLiteral$");
+					return pos;
+				}
+				if(PrevToken.IsIndent() || PrevToken.EqualsText(";")) {
+					break;
+				}
+				index = index - 1;
+			}
 		}
 		return GtStatic.NoMatch;
 	}
@@ -3432,8 +3428,12 @@ final class GreenTeaGrammar extends GtGrammar {
 			if(TokenContext.GetToken().IsDelim() || TokenContext.GetToken().IsIndent()) {
 				break;
 			}
-			if(TokenContext.MatchToken("$ShellExpression$")) {
-				// FIXME
+			
+			if(TokenContext.GetToken().IsNextWhiteSpace()) {
+				Tree = TokenContext.ParsePattern(NameSpace, "$StringLiteral$", Optional);
+				if(Tree == null) {
+					Tree = TokenContext.ParsePattern(NameSpace, "$ShellExpression$", Optional);
+				}
 			}
 			if(Tree == null) {
 				Tree = TokenContext.ParsePattern(NameSpace, "$Expression$", Optional);
@@ -3480,7 +3480,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		NameSpace.DefineTokenFunc("{}()[]<>.,:;+-*/%=&|!@~^", FunctionA(this, "OperatorToken"));
 		NameSpace.DefineTokenFunc("/", FunctionA(this, "CommentToken"));  // overloading
 		NameSpace.DefineTokenFunc("Aa", FunctionA(this, "SymbolToken"));
-		NameSpace.DefineTokenFunc("Aa-/", FunctionA(this, "SymbolShellToken")); // overloading
+		NameSpace.DefineTokenFunc("Aa-/1.<>|", FunctionA(this, "SymbolShellToken")); // overloading
 
 		NameSpace.DefineTokenFunc("\"", FunctionA(this, "StringLiteralToken"));
 		NameSpace.DefineTokenFunc("\"", FunctionA(this, "StringLiteralToken_StringInterpolation"));

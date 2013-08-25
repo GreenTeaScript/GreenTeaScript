@@ -32,4 +32,4 @@ boolean !=(any x, any y) as "(neAny $1 $2)";
 void print(String x) as "echo -e $1 >&2";
 void assert(boolean x) as "assert $1";
 
-void rec(int n) as "rec $1"
+void rec(int n) as "rec $1";
