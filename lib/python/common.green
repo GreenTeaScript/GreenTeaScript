@@ -2,7 +2,8 @@
 
 // unary operator
 // any
-boolean not(int boolean) as "not $1"
+boolean not(boolean x) as "not $1"
+boolean !(boolean x) as "not $1"
 int +(int x) as "$1";
 int -(int x) as "-$1";
 int ~(int x) as "~$1";
@@ -17,7 +18,7 @@ boolean ==(boolean x, boolean y) as "$1  == $2";
 boolean !=(boolean x, boolean y) as "$1  != $2";
 String convert(boolean x) as "green_toString($1)";
 
-// int 
+// int
 int +(int x, int y)      as "$1 + $2";
 int -(int x, int y)      as "$1 - $2";
 int *(int x, int y)      as "$1 * $2";
@@ -51,7 +52,7 @@ boolean endsWith(String x, String y) as "$1.endswith($2)";
 int indexOf(String x, String sub) as "$1.find($2)";
 int lastIndexOf(String x, String sub) as "$1.rfind($2)";
 String substring(String x, int s) as "$1[$2:]"
-String substring(String x, int s, int e) as "$1[$2:$3]"; 
+String substring(String x, int s, int e) as "$1[$2:$3]";
 String toLower(String x) as "$1.lower()";
 String toUpper(String x) as "$1.upper()";
 String replace(String x, String old, String new) as "$1.replace($2, $3)";
