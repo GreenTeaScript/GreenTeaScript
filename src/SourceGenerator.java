@@ -726,7 +726,7 @@ class CommandNode extends GtNode {
 }
 
 class GtType extends GtStatic {
-	/*field*/public final GtClassContext	Context;
+	/*field*/public final GtContext	Context;
 	/*field*/public GtNameSpace     PackageNameSpace;
 	/*field*/int					ClassFlag;
 	/*field*/int                    ClassId;
@@ -739,7 +739,7 @@ class GtType extends GtStatic {
 	/*field*/GtType[]				TypeParams;
 	/*field*/public Object          NativeSpec;
 
-	GtType/*constructor*/(GtClassContext Context, int ClassFlag, String ClassName, Object DefaultNullValue, Object NativeSpec) {
+	GtType/*constructor*/(GtContext Context, int ClassFlag, String ClassName, Object DefaultNullValue, Object NativeSpec) {
 		this.Context = Context;
 		this.ClassFlag = ClassFlag;
 		this.ShortClassName = ClassName;
@@ -833,13 +833,13 @@ class GtFunc extends GtStatic {
 		LibGreenTea.Assert(this.Types.length > 0);
 		this.FuncType = null;
 		this.NativeRef = null;
-		/*local*/GtClassContext Context = this.GetContext();
+		/*local*/GtContext Context = this.GetContext();
 		this.FuncId = Context.FuncCount;
 		Context.FuncCount += 1;
 		this.MangledName = FuncName + NativeNameSuffix + this.FuncId;
 	}
 
-	public final GtClassContext GetContext() {
+	public final GtContext GetContext() {
 		return this.GetReturnType().Context;
 	}
 	
@@ -854,7 +854,7 @@ class GtFunc extends GtStatic {
 
 	public final GtType GetFuncType() {
 		if(this.FuncType == null) {
-			/*local*/GtClassContext Context = this.GetRecvType().Context;
+			/*local*/GtContext Context = this.GetRecvType().Context;
 			this.FuncType = Context.GetGenericType(Context.FuncType, 0, new ArrayList<GtType>(Arrays.asList(this.Types)), true);
 		}
 		return this.FuncType;
@@ -1148,7 +1148,7 @@ class GtPolyFunc extends GtStatic {
 
 class GtGenerator extends GtStatic {
 	/*field*/public final String      TargetCode;
-	/*field*/public GtClassContext    Context;
+	/*field*/public GtContext    Context;
 	/*field*/public ArrayList<Object> GeneratedCodeStack;
 	/*field*/public String OutputFile;
 	/*field*/public int GeneratorFlag;
@@ -1161,7 +1161,7 @@ class GtGenerator extends GtStatic {
 		this.GeneratedCodeStack = null;
 	}
 
-	public void InitContext(GtClassContext Context) {
+	public void InitContext(GtContext Context) {
 		this.Context = Context;
 		this.GeneratedCodeStack = new ArrayList<Object>();
 		Context.RootNameSpace.LoadRequiredLib("common");
@@ -1717,7 +1717,7 @@ class SourceGenerator extends GtGenerator {
 		this.BodySource = "";
 	}
 
-	@Override public void InitContext(GtClassContext Context) {
+	@Override public void InitContext(GtContext Context) {
 		super.InitContext(Context);
 		this.HeaderSource = "";
 		this.BodySource = "";

@@ -33,7 +33,7 @@ public class ConstantFolder extends GtGenerator {
 		super(TargetCode, OutputFile, GeneratorFlag);
 	}
 
-	@Override public void InitContext(GtClassContext Context) {
+	@Override public void InitContext(GtContext Context) {
 		this.BooleanType = Context.BooleanType;
 	}
 
