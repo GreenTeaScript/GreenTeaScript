@@ -1448,7 +1448,7 @@ final class GtTypeEnv extends GtStatic {
 		if(Node.IsError() || IsFlag(TypeCheckPolicy, NoCheckPolicy)) {
 			return Node;
 		}
-		Object ConstValue = Node.ToConstValue();
+		Object ConstValue = Node.ToConstValue(IsFlag(TypeCheckPolicy, OnlyConstPolicy));
 		if(ConstValue != null && !(Node instanceof ConstNode)) {
 			Node = this.Generator.CreateConstNode(Node.Type, ParsedTree, ConstValue);
 		}
@@ -1760,7 +1760,7 @@ final class GtNameSpace extends GtStatic {
 			/*local*/GtTypeEnv Gamma = new GtTypeEnv(this);
 			/*local*/GtNode Node = TopLevelTree.TypeCheck(Gamma, Gamma.VoidType, DefaultTypeCheckPolicy);
 			if(Node instanceof ConstNode || Node instanceof EmptyNode) {
-				ResultValue = Node.ToConstValue();
+				ResultValue = Node.ToConstValue(true/*EnforceConst*/);
 			}
 			else {
 				ResultValue = this.Context.Generator.Eval(Node);
@@ -3002,7 +3002,7 @@ final class GreenTeaGrammar extends GtGrammar {
 					SymbolDeclTree.ToError(Node.Token);
 					return SymbolDeclTree;
 				}
-				ConstValue = Node.ToConstValue();
+				ConstValue = Node.ToConstValue(true);
 			}
 			if(NameSpace.GetSymbol(ConstName) != null) {
 				NameSpace.ReportOverrideName(SymbolDeclTree.KeyToken, ConstClass, ConstName);

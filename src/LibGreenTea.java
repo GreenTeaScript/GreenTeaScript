@@ -80,6 +80,10 @@ public abstract class LibGreenTea {
 		}
 	}
 
+	public final static void VerboseException(Exception e) {
+		LibGreenTea.VerboseLog(GtStatic.VerboseException, e.toString());
+	}
+
 	public final static void Exit(int status, String Message) {
 		System.err.println(Message);
 		System.exit(1);
@@ -744,4 +748,6 @@ public abstract class LibGreenTea {
 		// TODO Auto-generated method stub
 		return null;
 	}
+	
+	
 }
