@@ -80,7 +80,16 @@ public abstract class LibGreenTea {
 		}
 	}
 
-	public final static void VerboseException(Exception e) {
+	public final static void VerboseException(Throwable e) {
+		if(e instanceof InvocationTargetException) {
+			Throwable cause = e.getCause();
+			if(cause instanceof RuntimeException) {
+				throw (RuntimeException)cause;
+			}
+			if(cause instanceof Error) {
+				throw (Error)cause;
+			}
+		}
 		LibGreenTea.VerboseLog(GtStatic.VerboseException, e.toString());
 	}
 

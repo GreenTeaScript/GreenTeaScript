@@ -1609,7 +1609,7 @@ class GtGenerator extends GtStatic {
 		return false; /* override this */
 	}
 
-	public Object Eval(GtNode Node) {
+	@Deprecated public Object Eval(GtNode Node) {
 		this.VisitBlock(Node);
 		return null;
 	}
