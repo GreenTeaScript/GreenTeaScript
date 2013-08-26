@@ -41,7 +41,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.MemberAccessOperator = "__MEMBER__";
 	}
 
-	@Override public void InitContext(GtClassContext Context) {
+	@Override public void InitContext(GtContext Context) {
 		super.InitContext(Context);
 		this.WriteLineHeader("#!/bin/bash");
 		this.WriteLineCode(this.LineFeed + "source $GREENTEA_HOME/include/bash/GreenTeaPlus.sh" + this.LineFeed);

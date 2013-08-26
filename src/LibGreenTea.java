@@ -207,13 +207,13 @@ public abstract class LibGreenTea {
 		return false;
 	}
 
-	public final static GtType GetNativeType(GtClassContext Context, Object Value) {
+	public final static GtType GetNativeType(GtContext Context, Object Value) {
 		GtType NativeType = null;
 		Class<?> NativeClassInfo = Value instanceof Class<?> ? (Class<?>)Value : Value.getClass();
 		NativeType = (GtType) Context.ClassNameMap.get(NativeClassInfo.getName());
 		if(NativeType == null) {
 			NativeType = new GtType(Context, GtStatic.NativeClass, NativeClassInfo.getSimpleName(), null, NativeClassInfo);
-			Context.ClassNameMap.put(NativeClassInfo.getName(), NativeType);
+			Context.SetGlobalTypeName(NativeClassInfo.getName(), NativeType);
 			LibGreenTea.VerboseLog(GtStatic.VerboseNative, "binding native class: " + NativeClassInfo.getName());
 		}
 		return NativeType;
@@ -223,7 +223,7 @@ public abstract class LibGreenTea {
 		return Value.getClass().getName();
 	}
 
-	public final static GtFunc ConvertNativeMethodToFunc(GtClassContext Context, Method JavaMethod) {
+	public final static GtFunc ConvertNativeMethodToFunc(GtContext Context, Method JavaMethod) {
 		/*local*/int FuncFlag = GtStatic.NativeFunc;
 		if(Modifier.isStatic(JavaMethod.getModifiers())) {
 			FuncFlag |= GtStatic.NativeStaticFunc;

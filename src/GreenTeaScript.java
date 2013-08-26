@@ -1267,7 +1267,7 @@ class GtVariableInfo extends GtStatic {
 }
 
 final class GtTypeEnv extends GtStatic {
-	/*field*/public final GtClassContext    Context;
+	/*field*/public final GtContext    Context;
 	/*field*/public final GtGenerator       Generator;
 	/*field*/public GtNameSpace	    NameSpace;
 
@@ -1468,14 +1468,14 @@ final class GtTypeEnv extends GtStatic {
 // NameSpace
 
 final class GtNameSpace extends GtStatic {
-	/*field*/public final GtClassContext		Context;
+	/*field*/public final GtContext		Context;
 	/*field*/public final GtNameSpace		    ParentNameSpace;
 	/*field*/public String                      PackageName;
 
 	/*field*/TokenFunc[] TokenMatrix;
 	/*field*/GtMap	 SymbolPatternTable;
 
-	GtNameSpace/*constructor*/(GtClassContext Context, GtNameSpace ParentNameSpace) {
+	GtNameSpace/*constructor*/(GtContext Context, GtNameSpace ParentNameSpace) {
 		this.Context = Context;
 		this.ParentNameSpace = ParentNameSpace;
 		this.PackageName = (ParentNameSpace != null) ? ParentNameSpace.PackageName : null;
@@ -1586,7 +1586,7 @@ final class GtNameSpace extends GtStatic {
 		if(ClassInfo.PackageNameSpace == null) {
 			ClassInfo.PackageNameSpace = this;
 			if(this.PackageName != null) {
-				this.Context.ClassNameMap.put(this.PackageName + "." + ClassInfo.ShortClassName, ClassInfo);
+				this.Context.SetGlobalTypeName(this.PackageName + "." + ClassInfo.ShortClassName, ClassInfo);
 			}
 		}
 		if(ClassInfo.BaseType == ClassInfo) {
@@ -3577,7 +3577,7 @@ final class GtStat {
 	}
 }
 
-final class GtClassContext extends GtStatic {
+final class GtContext extends GtStatic {
 	/*field*/public final  GtGenerator   Generator;
 	/*field*/public final  GtNameSpace		   RootNameSpace;
 	/*field*/public GtNameSpace		           TopLevelNameSpace;
@@ -3609,7 +3609,7 @@ final class GtClassContext extends GtStatic {
 	/*field*/public ArrayList<String>    ReportedErrorList;
 	/*filed*/private boolean NoErrorReport;
 
-	GtClassContext/*constructor*/(GtGrammar Grammar, GtGenerator Generator) {
+	GtContext/*constructor*/(GtGrammar Grammar, GtGenerator Generator) {
 		this.Generator    = Generator;
 		this.Generator.Context = this;
 		this.SourceMap     = new GtMap();
@@ -3640,15 +3640,15 @@ final class GtClassContext extends GtStatic {
 		this.ArrayType.TypeParams = new GtType[1];
 		this.ArrayType.TypeParams[0] = this.AnyType;
 		this.FuncType.TypeParams = new GtType[1];
-		this.FuncType.TypeParams[0] = this.AnyType;
+		this.FuncType.TypeParams[0] = this.VarType;  // for PolyFunc
 
 //ifdef JAVA
-		this.ClassNameMap.put("java.lang.Void",    this.VoidType);
-		this.ClassNameMap.put("java.lang.Boolean", this.BooleanType);
-		this.ClassNameMap.put("java.lang.Integer", this.IntType);
-		this.ClassNameMap.put("java.lang.Long",    this.IntType);
-		this.ClassNameMap.put("java.lang.Short",   this.IntType);
-		this.ClassNameMap.put("java.lang.String",  this.StringType);
+		this.SetGlobalTypeName("java.lang.Void",    this.VoidType);
+		this.SetGlobalTypeName("java.lang.Boolean", this.BooleanType);
+		this.SetGlobalTypeName("java.lang.Integer", this.IntType);
+		this.SetGlobalTypeName("java.lang.Long",    this.IntType);
+		this.SetGlobalTypeName("java.lang.Short",   this.IntType);
+		this.SetGlobalTypeName("java.lang.String",  this.StringType);
 //endif VAJA
 		Grammar.LoadTo(this.RootNameSpace);
 		this.TopLevelNameSpace = new GtNameSpace(this, this.RootNameSpace);
@@ -3686,6 +3686,11 @@ final class GtClassContext extends GtStatic {
 		return false;
 	}
 
+	public void SetGlobalTypeName(String Name, GtType Type) {
+		this.ClassNameMap.put(Name, Type);
+		LibGreenTea.VerboseLog(VerboseSymbol, "global type name: " + Name + ", " + Type);
+	}
+	
 	public GtType GetGenericType(GtType BaseType, int BaseIdx, ArrayList<GtType> TypeList, boolean IsCreation) {
 		LibGreenTea.Assert(BaseType.IsGenericType());
 		/*local*/String MangleName = GtStatic.MangleGenericType(BaseType, BaseIdx, TypeList);
@@ -3704,7 +3709,7 @@ final class GtClassContext extends GtStatic {
 				}
 			}
 			GenericType = BaseType.CreateGenericType(BaseIdx, TypeList, s);
-			this.ClassNameMap.put(MangleName, GenericType);
+			this.SetGlobalTypeName(MangleName, GenericType);
 		}
 		return GenericType;
 	}
@@ -3713,10 +3718,6 @@ final class GtClassContext extends GtStatic {
 		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
 		TypeList.add(ParamType);
 		return this.GetGenericType(BaseType, 0, TypeList, IsCreation);
-	}
-
-	public final boolean CheckExportableName(GtFunc Func) {
-		return true;
 	}
 
 	public final long GetFileLine(String FileName, int Line) {
@@ -3757,7 +3758,6 @@ final class GtClassContext extends GtStatic {
 				Message = "(info) " + this.GetSourcePosition(Token.FileLine) + " " + Message;
 			}
 			this.ReportedErrorList.add(Message);
-			//GtStatic.println(Message);
 		}
 	}
 
@@ -3844,7 +3844,7 @@ public class GreenTeaScript extends GtStatic {
 		if(Generator == null) {
 			LibGreenTea.Usage("no target: " + TargetCode);
 		}
-		/*local*/GtClassContext Context = new GtClassContext(new GreenTeaGrammar(), Generator);
+		/*local*/GtContext Context = new GtContext(new GreenTeaGrammar(), Generator);
 		/*local*/boolean ShellMode = true;
 		if(OneLiner != null) {
 			Context.TopLevelNameSpace.Eval(OneLiner, 1);

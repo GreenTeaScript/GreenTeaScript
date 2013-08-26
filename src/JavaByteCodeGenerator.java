@@ -259,7 +259,7 @@ class JVMTypeResolver {
 	private final Map<String, GtClassNode>	classMap			= new HashMap<String, GtClassNode>();
 	private final Map<String, String>		typeDescriptorMap	= new HashMap<String, String>();
 
-	public JVMTypeResolver(GtClassContext Context) {
+	public JVMTypeResolver(GtContext Context) {
 		this.typeDescriptorMap.put(Context.VoidType.ShortClassName, Type.getType(void.class).getDescriptor());
 		this.typeDescriptorMap.put(Context.BooleanType.ShortClassName, Type.getType(boolean.class).getDescriptor());
 		this.typeDescriptorMap.put(Context.IntType.ShortClassName, Type.getType(int.class).getDescriptor());
@@ -517,7 +517,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 //	@Override public void AddClass(GtType Type) {
 //	}
 
-	@Override public void InitContext(GtClassContext Context) {
+	@Override public void InitContext(GtContext Context) {
 		this.TypeResolver = new JVMTypeResolver(Context);
 		super.InitContext(Context);
 	}

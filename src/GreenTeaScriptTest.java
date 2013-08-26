@@ -96,7 +96,7 @@ class GtScriptRunner {
 }
 
 public class GreenTeaScriptTest {
-	public static void TestToken(GtClassContext Context, String Source, String[] TokenTestList) {
+	public static void TestToken(GtContext Context, String Source, String[] TokenTestList) {
 		/*local*/GtNameSpace NameSpace = Context.TopLevelNameSpace;
 		/*local*/GtTokenContext TokenContext = new GtTokenContext(NameSpace, Source, 1);
 		/*local*/int i = 0;
@@ -107,14 +107,14 @@ public class GreenTeaScriptTest {
 		}
 	}
 
-	public static GtClassContext CreateContext() {
+	public static GtContext CreateContext() {
 		/*local*/String CodeGeneratorName = "java";
 		/*local*/GtGenerator Generator = LibGreenTea.CodeGenerator(CodeGeneratorName, "-", 0);
-		return new GtClassContext(new GreenTeaGrammar(), Generator);
+		return new GtContext(new GreenTeaGrammar(), Generator);
 	}
 
 	public static void TokenizeOperator0() {
-		/*local*/GtClassContext Context = GreenTeaScriptTest.CreateContext();
+		/*local*/GtContext Context = GreenTeaScriptTest.CreateContext();
 		/*local*/String[] TokenTestList0 = {"1", "||", "2"};
 		GreenTeaScriptTest.TestToken(Context, "1 || 2", TokenTestList0);
 
@@ -132,7 +132,7 @@ public class GreenTeaScriptTest {
 	}
 
 	public static void TokenizeStatement() {
-		/*local*/GtClassContext Context = GreenTeaScriptTest.CreateContext();
+		/*local*/GtContext Context = GreenTeaScriptTest.CreateContext();
 		/*local*/String[] TokenTestList0 = {"int", "+", "(", "int", "x", ")", ";"};
 		GreenTeaScriptTest.TestToken(Context, "int + (int x);", TokenTestList0);
 	}
