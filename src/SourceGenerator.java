@@ -93,7 +93,7 @@ class GtNode extends GtStatic {
 		return null;
 	}
 
-	public int CountForrowingNode() {
+	public int CountForrowingNode() {  // FIXME: typo? Following
 		/*local*/int n = 0;
 		/*local*/GtNode node = this;
 		while(node != null) {
