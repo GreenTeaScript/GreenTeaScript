@@ -35,6 +35,7 @@ import java.io.InputStreamReader;
 import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -212,6 +213,60 @@ public abstract class LibGreenTea {
 			LibGreenTea.VerboseLog(GtStatic.VerboseNative, "binding native class: " + NativeClassInfo.getName());
 		}
 		return NativeType;
+	}
+
+	public final static GtFunc ConvertNativeMethodToFunc(GtClassContext Context, Method JavaMethod) {
+		/*local*/int FuncFlag = GtStatic.NativeFunc;
+		if(Modifier.isStatic(JavaMethod.getModifiers())) {
+			FuncFlag |= GtStatic.NativeStaticFunc;
+		}
+		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
+		TypeList.add(LibGreenTea.GetNativeType(Context, JavaMethod.getReturnType()));
+		TypeList.add(LibGreenTea.GetNativeType(Context, JavaMethod.getClass()));
+		/*local*/Class<?>[] ParamTypes = JavaMethod.getParameterTypes();
+		if(ParamTypes != null) {
+			for(int j = 0; j < ParamTypes.length; j++) {
+				TypeList.add(LibGreenTea.GetNativeType(Context, ParamTypes[j]));
+			}
+		}
+		/*local*/GtFunc NativeFunc = new GtFunc(FuncFlag, JavaMethod.getName(), 0, TypeList);
+		NativeFunc.SetNativeMethod(FuncFlag, JavaMethod);
+		return NativeFunc;
+	}
+
+	public final static Method ImportNativeMethod(String FullName, boolean StaticMethodOnly) {
+		/*local*/Method FoundMethod = null;
+		int Index = FullName.lastIndexOf(".");
+		if(Index != -1) {
+			/*local*/String FuncName = FullName.substring(Index+1);
+			try {
+				/*local*/Class<?> NativeClass = Class.forName(FullName.substring(0, Index));
+				Method[] Methods = NativeClass.getDeclaredMethods();
+				if(Methods != null) {
+					for(int i = 0; i < Methods.length; i++) {
+						if(LibGreenTea.EqualsString(FuncName, Methods[i].getName())) {
+							if(!Modifier.isPublic(Methods[i].getModifiers())) {
+								continue;
+							}
+							if(StaticMethodOnly && !Modifier.isStatic(Methods[i].getModifiers())) {
+								continue;
+							}
+						}
+						if(FoundMethod != null) {
+							LibGreenTea.VerboseLog(GtStatic.VerboseUndefined, "overloaded method: " + FullName);
+							return FoundMethod; // return the first one
+						}
+						FoundMethod = Methods[i];
+					}
+				}
+			} catch (ClassNotFoundException e) {
+				LibGreenTea.VerboseLog(GtStatic.VerboseException, e.toString());			
+			}
+		}
+		if(FoundMethod == null) {
+			LibGreenTea.VerboseLog(GtStatic.VerboseUndefined, "undefined method: " + FullName);
+		}
+		return FoundMethod;	
 	}
 
 	public final static Method LookupNativeMethod(Object Callee, String FuncName) {

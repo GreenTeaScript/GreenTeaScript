@@ -1315,25 +1315,19 @@ class GtGenerator extends GtStatic {
 			/*local*/Class<?> NativeClass = Class.forName(PackageName);
 			return LibGreenTea.GetNativeType(this.Context, NativeClass);
 		} catch (ClassNotFoundException e) {
-			
+			LibGreenTea.VerboseLog(VerboseException, e.toString());
 		}
-		int Index = PackageName.lastIndexOf(".");
-		if(Index != -1) {
-			try {
-				/*local*/Class<?> NativeClass = Class.forName(PackageName.substring(0, Index));
-				
-				return LibGreenTea.GetNativeType(this.Context, NativeClass);
-			} catch (ClassNotFoundException e) {
-			}
+		Method NativeMethod = LibGreenTea.ImportNativeMethod(PackageName, true/*static only*/);
+		if(NativeMethod != null) {
+			return LibGreenTea.ConvertNativeMethodToFunc(this.Context, NativeMethod);
 		}
 //endif VAJA
 		return null;
 	}
-
+	
 	public GtType GetNativeType(Object Value) {
 		return LibGreenTea.GetNativeType(this.Context, Value);
 	}
-
 
 	public boolean LoadNativeField(GtType NativeBaseType, String FieldName) {
 //ifdef JAVA
@@ -1346,35 +1340,24 @@ class GtGenerator extends GtStatic {
 		} catch (NoSuchFieldException e) {
 			e.printStackTrace();
 		}
-//endif VAJA
 		NativeBaseType.Context.RootNameSpace.SetUndefinedSymbol(ClassSymbol(NativeBaseType, FieldName));
 		NativeBaseType.Context.RootNameSpace.SetUndefinedSymbol(ClassSymbol(NativeBaseType, FieldName)+"="); // for setter
+//endif VAJA
 		return false;
 	}
 	
-	public boolean LoadNativeMethod(GtType NativeBaseType, String FuncName) {
+	public boolean LoadNativeMethods(GtType NativeBaseType, String FuncName) {
 //ifdef JAVA
 		Class<?> NativeClassInfo = (Class<?>)NativeBaseType.NativeSpec;
-		Method[] Methods = NativeClassInfo.getMethods();
+		Method[] Methods = NativeClassInfo.getDeclaredMethods();
 		if(Methods != null) {
 			/*local*/boolean TransformedResult = false;
 			for(int i = 0; i < Methods.length; i++) {
 				if(LibGreenTea.EqualsString(FuncName, Methods[i].getName())) {
-					int FuncFlag = NativeFunc;
-					if(Modifier.isStatic(Methods[i].getModifiers())) {
-						FuncFlag |= NativeStaticFunc;
+					if(!Modifier.isPublic(Methods[i].getModifiers())) {
+						continue;
 					}
-					ArrayList<GtType> TypeList = new ArrayList<GtType>();
-					TypeList.add(this.GetNativeType(Methods[i].getReturnType()));
-					TypeList.add(NativeBaseType);
-					Class<?>[] ParamTypes = Methods[i].getParameterTypes();
-					if(ParamTypes != null) {
-						for(int j = 0; j < Methods.length; j++) {
-							TypeList.add(this.GetNativeType(ParamTypes[j]));
-						}
-					}
-					GtFunc NativeFunc = new GtFunc(FuncFlag, FuncName, 0, TypeList);
-					NativeFunc.SetNativeMethod(FuncFlag, Methods[i]);
+					GtFunc NativeFunc = LibGreenTea.ConvertNativeMethodToFunc(this.Context, Methods[i]);
 					NativeBaseType.Context.RootNameSpace.AppendMethod(NativeBaseType, NativeFunc);
 					TransformedResult = true;
 				}
@@ -1386,38 +1369,6 @@ class GtGenerator extends GtStatic {
 //endif VAJA
 		NativeBaseType.Context.RootNameSpace.SetUndefinedSymbol(ClassSymbol(NativeBaseType, FuncName));
 		return false;
-	}
-	
-	public boolean TransformNativeFuncs(GtType NativeBaseType, String FuncName) {
-		/*local*/boolean TransformedResult = false;
-//ifdef JAVA
-		Class<?> NativeClassInfo = (Class<?>)NativeBaseType.NativeSpec;
-		Method[] Methods = NativeClassInfo.getMethods();
-		if(Methods != null) {
-			for(int i = 0; i < Methods.length; i++) {
-				if(LibGreenTea.EqualsString(FuncName, Methods[i].getName())) {
-					int FuncFlag = NativeFunc;
-					if(Modifier.isStatic(Methods[i].getModifiers())) {
-						FuncFlag |= NativeStaticFunc;
-					}
-					ArrayList<GtType> TypeList = new ArrayList<GtType>();
-					TypeList.add(this.GetNativeType(Methods[i].getReturnType()));
-					TypeList.add(NativeBaseType);
-					Class<?>[] ParamTypes = Methods[i].getParameterTypes();
-					if(ParamTypes != null) {
-						for(int j = 0; j < Methods.length; j++) {
-							TypeList.add(this.GetNativeType(ParamTypes[j]));
-						}
-					}
-					GtFunc NativeFunc = new GtFunc(FuncFlag, FuncName, 0, TypeList);
-					NativeFunc.SetNativeMethod(FuncFlag, Methods[i]);
-					NativeBaseType.Context.RootNameSpace.AppendMethod(NativeBaseType, NativeFunc);
-					TransformedResult = false;
-				}
-			}
-		}
-//endif VAJA
-		return TransformedResult;
 	}
 
 	public void GenerateClassField(GtType Type, GtClassField ClassField) {
@@ -1446,6 +1397,9 @@ class GtGenerator extends GtStatic {
 			}
 			if(this.HasAnnotation(Annotation, "Public")) {
 				FuncFlag = FuncFlag | PublicFunc;
+			}
+			if(this.HasAnnotation(Annotation, "Const")) {
+				FuncFlag = FuncFlag | ConstFunc;
 			}
 		}
 		return FuncFlag;

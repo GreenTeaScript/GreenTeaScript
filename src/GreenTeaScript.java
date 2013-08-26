@@ -267,8 +267,10 @@ interface GtConst {
 	public final static int VerboseEval      = (1 << 3);
 	public final static int VerboseToken     = (1 << 4);
 	public final static int VerboseUndefined   = (1 << 5);
+	
 	public final static int VerboseNative    = (1 << 6);
 	public final static int VerboseFile      = (1 << 7);
+	public final static int VerboseException = (1 << 8);
 	
 //ifdef JAVA
 }
