@@ -872,7 +872,7 @@ final class GtTokenContext extends GtStatic {
 		// this is tentative implementation. In the future, you have to
 		// use this pattern.
 		/*local*/GtMap Annotation = null;
-		this.SkipIndent();
+		this.SkipEmptyStatement();
 		while(this.MatchToken("@")) {
 			/*local*/GtToken Token = this.Next();
 			if(Annotation == null) {
@@ -2618,7 +2618,8 @@ final class GreenTeaGrammar extends GtGrammar {
 		if(TokenContext.MatchToken("{")) {
 			/*local*/GtSyntaxTree PrevTree = null;
 			/*local*/GtNameSpace NameSpace = new GtNameSpace(ParentNameSpace.Context, ParentNameSpace);
-			while(TokenContext.SkipEmptyStatement()) {
+//			while(TokenContext.SkipEmptyStatement()) {
+			while(TokenContext.HasNext()) {
 				if(TokenContext.MatchToken("}")) {
 					break;
 				}
