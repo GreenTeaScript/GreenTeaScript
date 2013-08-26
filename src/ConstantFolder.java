@@ -73,7 +73,7 @@ public class ConstantFolder extends GtGenerator {
 	}
 
 	private GtNode EvalNode(GtNode Node) {
-		/*local*/Object Value = Node.ToConstValue();
+		/*local*/Object Value = Node.ToConstValue(false);  // FIXME
 		if(Value != null) {
 			return this.CreateConstNode2(Node.Type, Node.Token, Value);
 		}
@@ -401,8 +401,8 @@ public class ConstantFolder extends GtGenerator {
 	@Override public GtNode CreateBinaryNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, GtNode Left, GtNode Right) {
 		Left = this.Fold(Left);
 		Right = this.Fold(Right);
-		/*local*/Object LeftValue = Left.ToConstValue();
-		/*local*/Object RightValue = Right.ToConstValue();
+		/*local*/Object LeftValue = Left.ToConstValue(false);
+		/*local*/Object RightValue = Right.ToConstValue(false);
 		if(Func != null) {
 			/*local*/String Operator = Func.GetNativeFuncName();
 			/*local*/Object ConstValue = LibGreenTea.EvalBinary(Type, LeftValue, Operator, RightValue);

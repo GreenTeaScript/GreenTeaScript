@@ -24,6 +24,7 @@
 
 //ifdef JAVA
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -85,7 +86,7 @@ class GtNode extends GtStatic {
 		return (this instanceof ErrorNode);
 	}
 
-	public Object ToConstValue() {
+	public Object ToConstValue(boolean EnforceConst)  {
 		return null;
 	}
 
@@ -115,7 +116,7 @@ final class ConstNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitConstNode(this);
 	}
-	@Override public Object ToConstValue() {
+	@Override public Object ToConstValue(boolean EnforceConst)  {
 		return this.ConstValue;
 	}
 }
@@ -153,8 +154,8 @@ final class CastNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitCastNode(this);
 	}
-	@Override public Object ToConstValue() {
-		/*local*/Object Value = this.Expr.ToConstValue();
+	@Override public Object ToConstValue(boolean EnforceConst)  {
+		/*local*/Object Value = this.Expr.ToConstValue(EnforceConst) ;
 		if(Value != null) {
 			return LibGreenTea.EvalCast(this.CastType, Value);
 		}
@@ -174,8 +175,8 @@ final class UnaryNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitUnaryNode(this);
 	}
-	@Override public Object ToConstValue() {
-		/*local*/Object Value = this.Expr.ToConstValue();
+	@Override public Object ToConstValue(boolean EnforceConst)  {
+		/*local*/Object Value = this.Expr.ToConstValue(EnforceConst) ;
 		if(Value != null) {
 			return LibGreenTea.EvalUnary(this.Type, this.Token.ParsedText, Value);
 		}
@@ -195,8 +196,8 @@ class SuffixNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitSuffixNode(this);
 	}
-	@Override public Object ToConstValue() {
-		/*local*/Object Value = this.Expr.ToConstValue();
+	@Override public Object ToConstValue(boolean EnforceConst)  {
+		/*local*/Object Value = this.Expr.ToConstValue(EnforceConst) ;
 		if(Value != null) {
 			return LibGreenTea.EvalSuffix(this.Type, Value, this.Token.ParsedText);
 		}
@@ -258,8 +259,8 @@ class InstanceOfNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitInstanceOfNode(this);
 	}
-	@Override public Object ToConstValue() {
-		/*local*/Object Value = this.ExprNode.ToConstValue();
+	@Override public Object ToConstValue(boolean EnforceConst)  {
+		/*local*/Object Value = this.ExprNode.ToConstValue(EnforceConst) ;
 		if(Value != null) {
 			return LibGreenTea.EvalInstanceOf(Value, this.TypeInfo);
 		}
@@ -281,10 +282,10 @@ class BinaryNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitBinaryNode(this);
 	}
-	@Override public Object ToConstValue() {
-		/*local*/Object LeftValue = this.LeftNode.ToConstValue();
+	@Override public Object ToConstValue(boolean EnforceConst)  {
+		/*local*/Object LeftValue = this.LeftNode.ToConstValue(EnforceConst) ;
 		if(LeftValue != null) {
-			/*local*/Object RightValue = this.RightNode.ToConstValue();
+			/*local*/Object RightValue = this.RightNode.ToConstValue(EnforceConst) ;
 			if(RightValue != null) {
 				return LibGreenTea.EvalBinary(this.Type, LeftValue, this.Token.ParsedText, RightValue);
 			}
@@ -306,11 +307,11 @@ class AndNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitAndNode(this);
 	}
-	@Override public Object ToConstValue() {
-		/*local*/Object LeftValue = this.LeftNode.ToConstValue();
+	@Override public Object ToConstValue(boolean EnforceConst)  {
+		/*local*/Object LeftValue = this.LeftNode.ToConstValue(EnforceConst) ;
 //ifdef JAVA
 		if(LeftValue instanceof Boolean && ((/*cast*/Boolean)LeftValue).booleanValue()) {
-			return this.RightNode.ToConstValue();
+			return this.RightNode.ToConstValue(EnforceConst) ;
 		}
 //endif VAJA
 		return null;
@@ -329,15 +330,15 @@ class OrNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitOrNode(this);
 	}
-	@Override public Object ToConstValue() {
-		/*local*/Object LeftValue = this.LeftNode.ToConstValue();
+	@Override public Object ToConstValue(boolean EnforceConst)  {
+		/*local*/Object LeftValue = this.LeftNode.ToConstValue(EnforceConst) ;
 //ifdef JAVA
 		if(LeftValue instanceof Boolean) {
 			if(((/*cast*/Boolean)LeftValue).booleanValue()) {
 				return LeftValue;
 			}
 			else {
-				return this.RightNode.ToConstValue();
+				return this.RightNode.ToConstValue(EnforceConst) ;
 			}
 		}
 //endif VAJA
@@ -360,15 +361,15 @@ class TrinaryNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitTrinaryNode(this);
 	}
-	@Override public Object ToConstValue() {
-		/*local*/Object CondValue = this.CondExpr.ToConstValue();
+	@Override public Object ToConstValue(boolean EnforceConst)  {
+		/*local*/Object CondValue = this.CondExpr.ToConstValue(EnforceConst) ;
 //ifdef JAVA
 		if(CondValue instanceof Boolean) {
 			if(((/*cast*/Boolean)CondValue).booleanValue()) {
-				return this.ThenExpr.ToConstValue();
+				return this.ThenExpr.ToConstValue(EnforceConst) ;
 			}
 			else {
-				return this.ElseExpr.ToConstValue();
+				return this.ElseExpr.ToConstValue(EnforceConst) ;
 			}
 		}
 //endif VAJA
@@ -389,8 +390,8 @@ class GetterNode extends GtNode {
 		Visitor.VisitGetterNode(this);
 	}
 
-	@Override public Object ToConstValue() {
-		/*local*/Object Value = this.Expr.ToConstValue();
+	@Override public Object ToConstValue(boolean EnforceConst)  {
+		/*local*/Object Value = this.Expr.ToConstValue(EnforceConst) ;
 		if(Value != null) {
 			return LibGreenTea.EvalGetter(this.Type, Value, this.Token.ParsedText);
 		}
@@ -465,6 +466,10 @@ class ApplyNode extends GtNode {
 
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitApplyNode(this);
+	}
+	
+	@Override public Object ToConstValue(boolean EnforceConst)  {
+		return this.Type.Context.Generator.EvalApplyNode(this, EnforceConst);
 	}
 }
 
@@ -921,8 +926,7 @@ class GtFunc extends GtStatic {
 	}
 
 	public final String GetNativeMacro() {
-		/*local*/String NativeMacro = (/*cast*/String)this.NativeRef;
-		return NativeMacro;
+		return (/*cast*/String)this.NativeRef;
 	}
 
 	public final String ApplyNativeMacro(int BaseIndex, String[] ParamCode) {
@@ -1315,25 +1319,19 @@ class GtGenerator extends GtStatic {
 			/*local*/Class<?> NativeClass = Class.forName(PackageName);
 			return LibGreenTea.GetNativeType(this.Context, NativeClass);
 		} catch (ClassNotFoundException e) {
-			
+			LibGreenTea.VerboseLog(VerboseException, e.toString());
 		}
-		int Index = PackageName.lastIndexOf(".");
-		if(Index != -1) {
-			try {
-				/*local*/Class<?> NativeClass = Class.forName(PackageName.substring(0, Index));
-				
-				return LibGreenTea.GetNativeType(this.Context, NativeClass);
-			} catch (ClassNotFoundException e) {
-			}
+		Method NativeMethod = LibGreenTea.ImportNativeMethod(PackageName, true/*static only*/);
+		if(NativeMethod != null) {
+			return LibGreenTea.ConvertNativeMethodToFunc(this.Context, NativeMethod);
 		}
 //endif VAJA
 		return null;
 	}
-
+	
 	public GtType GetNativeType(Object Value) {
 		return LibGreenTea.GetNativeType(this.Context, Value);
 	}
-
 
 	public boolean LoadNativeField(GtType NativeBaseType, String FieldName) {
 //ifdef JAVA
@@ -1346,35 +1344,24 @@ class GtGenerator extends GtStatic {
 		} catch (NoSuchFieldException e) {
 			e.printStackTrace();
 		}
-//endif VAJA
 		NativeBaseType.Context.RootNameSpace.SetUndefinedSymbol(ClassSymbol(NativeBaseType, FieldName));
 		NativeBaseType.Context.RootNameSpace.SetUndefinedSymbol(ClassSymbol(NativeBaseType, FieldName)+"="); // for setter
+//endif VAJA
 		return false;
 	}
 	
-	public boolean LoadNativeMethod(GtType NativeBaseType, String FuncName) {
+	public boolean LoadNativeMethods(GtType NativeBaseType, String FuncName) {
 //ifdef JAVA
 		Class<?> NativeClassInfo = (Class<?>)NativeBaseType.NativeSpec;
-		Method[] Methods = NativeClassInfo.getMethods();
+		Method[] Methods = NativeClassInfo.getDeclaredMethods();
 		if(Methods != null) {
 			/*local*/boolean TransformedResult = false;
 			for(int i = 0; i < Methods.length; i++) {
 				if(LibGreenTea.EqualsString(FuncName, Methods[i].getName())) {
-					int FuncFlag = NativeFunc;
-					if(Modifier.isStatic(Methods[i].getModifiers())) {
-						FuncFlag |= NativeStaticFunc;
+					if(!Modifier.isPublic(Methods[i].getModifiers())) {
+						continue;
 					}
-					ArrayList<GtType> TypeList = new ArrayList<GtType>();
-					TypeList.add(this.GetNativeType(Methods[i].getReturnType()));
-					TypeList.add(NativeBaseType);
-					Class<?>[] ParamTypes = Methods[i].getParameterTypes();
-					if(ParamTypes != null) {
-						for(int j = 0; j < Methods.length; j++) {
-							TypeList.add(this.GetNativeType(ParamTypes[j]));
-						}
-					}
-					GtFunc NativeFunc = new GtFunc(FuncFlag, FuncName, 0, TypeList);
-					NativeFunc.SetNativeMethod(FuncFlag, Methods[i]);
+					GtFunc NativeFunc = LibGreenTea.ConvertNativeMethodToFunc(this.Context, Methods[i]);
 					NativeBaseType.Context.RootNameSpace.AppendMethod(NativeBaseType, NativeFunc);
 					TransformedResult = true;
 				}
@@ -1386,38 +1373,6 @@ class GtGenerator extends GtStatic {
 //endif VAJA
 		NativeBaseType.Context.RootNameSpace.SetUndefinedSymbol(ClassSymbol(NativeBaseType, FuncName));
 		return false;
-	}
-	
-	public boolean TransformNativeFuncs(GtType NativeBaseType, String FuncName) {
-		/*local*/boolean TransformedResult = false;
-//ifdef JAVA
-		Class<?> NativeClassInfo = (Class<?>)NativeBaseType.NativeSpec;
-		Method[] Methods = NativeClassInfo.getMethods();
-		if(Methods != null) {
-			for(int i = 0; i < Methods.length; i++) {
-				if(LibGreenTea.EqualsString(FuncName, Methods[i].getName())) {
-					int FuncFlag = NativeFunc;
-					if(Modifier.isStatic(Methods[i].getModifiers())) {
-						FuncFlag |= NativeStaticFunc;
-					}
-					ArrayList<GtType> TypeList = new ArrayList<GtType>();
-					TypeList.add(this.GetNativeType(Methods[i].getReturnType()));
-					TypeList.add(NativeBaseType);
-					Class<?>[] ParamTypes = Methods[i].getParameterTypes();
-					if(ParamTypes != null) {
-						for(int j = 0; j < Methods.length; j++) {
-							TypeList.add(this.GetNativeType(ParamTypes[j]));
-						}
-					}
-					GtFunc NativeFunc = new GtFunc(FuncFlag, FuncName, 0, TypeList);
-					NativeFunc.SetNativeMethod(FuncFlag, Methods[i]);
-					NativeBaseType.Context.RootNameSpace.AppendMethod(NativeBaseType, NativeFunc);
-					TransformedResult = false;
-				}
-			}
-		}
-//endif VAJA
-		return TransformedResult;
 	}
 
 	public void GenerateClassField(GtType Type, GtClassField ClassField) {
@@ -1446,6 +1401,9 @@ class GtGenerator extends GtStatic {
 			}
 			if(this.HasAnnotation(Annotation, "Public")) {
 				FuncFlag = FuncFlag | PublicFunc;
+			}
+			if(this.HasAnnotation(Annotation, "Const")) {
+				FuncFlag = FuncFlag | ConstFunc;
 			}
 		}
 		return FuncFlag;
@@ -1653,6 +1611,44 @@ class GtGenerator extends GtStatic {
 		return null;
 	}
 
+	// EnforceConst : i
+	public Object EvalApplyNode(ApplyNode Node, boolean EnforceConst) {
+//ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
+		if(Node.Func != null && (EnforceConst || Node.Func.Is(ConstFunc)) && Node.Func.NativeRef instanceof Method) {
+			Method JavaMethod = (/*cast*/Method)Node.Func.NativeRef;
+			Object RecvObject = null;
+			int StartIndex = 1;
+			Object[] Arguments;
+			if(Node.Func.Is(NativeFunc)) {
+				RecvObject = Node.Params.get(1).ToConstValue(EnforceConst);
+				if(RecvObject == null) return null;
+				Arguments = new Object[Node.Params.size() - 2];
+				StartIndex = 2;
+			}
+			else {
+				Arguments = new Object[Node.Params.size() - 1];
+			}
+			for(int i = 0; i < Arguments.length; i++) {
+				Arguments[i] = Node.Params.get(StartIndex+i).ToConstValue(EnforceConst);
+				if(Arguments[i] == null && !(Node.Params.get(StartIndex+i) instanceof NullNode)) {
+					return null;
+				}
+			}
+			try {
+				return JavaMethod.invoke(RecvObject, Arguments);
+			} catch (IllegalArgumentException e) {
+				LibGreenTea.VerboseException(e);
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				LibGreenTea.VerboseException(e);
+			} catch (InvocationTargetException e) {
+				LibGreenTea.VerboseException(e);
+			}
+		}
+//endif VAJA
+		return null;  // if unsupported
+	}
+	
 	public void FlushBuffer() {
 		/*extension*/
 	}
@@ -1808,14 +1804,15 @@ class SourceGenerator extends GtGenerator {
 	}
 
 	public final String VisitNode(GtNode Node) {
-		/*local*/Object ConstValue = Node.ToConstValue();
-		if(ConstValue != null) {
-			return this.StringifyConstValue(ConstValue);
-		}
-		else {
-			Node.Evaluate(this);
-			return this.PopSourceCode();
-		}
+		// meaning less ??
+//		/*local*/Object ConstValue = Node.ToConstValue(false);
+//		if(ConstValue != null) {
+//			return this.StringifyConstValue(ConstValue);
+//		}
+//		else {
+		Node.Evaluate(this);
+		return this.PopSourceCode();
+//		}
 	}
 
 	public final String JoinCode(String BeginCode, int BeginIdx, String[] ParamCode, String EndCode, String Delim) {

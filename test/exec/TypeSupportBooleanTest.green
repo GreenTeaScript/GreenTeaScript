@@ -1,7 +1,7 @@
 // written by kimio kuramitsu
 
 boolean ReturnTest(boolean n) {
-	return not n;
+	return !n;
 }
 
 @Export
