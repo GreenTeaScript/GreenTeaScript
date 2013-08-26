@@ -43,13 +43,14 @@ import org.objectweb.asm.tree.MethodNode;
 
 import JVM.GtThrowableWrapper;
 import JVM.JVMConstPool;
+import JVM.StaticMethods;
 
 // GreenTea Generator should be written in each language.
 
 class GtClassNode implements Opcodes {
 	final String					name;
 	final String					superClass;
-	final Map<String, MethodNode>	methods	= new HashMap<String, MethodNode>();
+	final ArrayList<MethodNode>	methods	= new ArrayList<MethodNode>();
 	final Map<String, FieldNode>	fields	= new HashMap<String, FieldNode>();
 
 	public GtClassNode(String name, String superClass) {
@@ -62,14 +63,22 @@ class GtClassNode implements Opcodes {
 		for(FieldNode f : this.fields.values()) {
 			f.accept(cv);
 		}
-		for(MethodNode m : this.methods.values()) {
+		for(MethodNode m : this.methods) {
 			m.accept(cv);
 		}
 	}
 
-	public MethodNode getMethodNode(String name) {
-		return this.methods.get(name);
+	public void addMethodNode(MethodNode m) {
+		for(int i=0; i<methods.size(); i++) {
+			MethodNode node = this.methods.get(i);
+			if(node.name.equals(m.name) && node.desc.equals(m.desc)) {
+				this.methods.set(i, m);
+				return;
+			}
+		}
+		this.methods.add(m);
 	}
+
 	public FieldNode getFieldNode(String name) {
 		return this.fields.get(name);
 	}
@@ -322,18 +331,18 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 	private GtClassNode globalNode = new GtClassNode(defaultClassName, "java/lang/Object") {{
 		// create default methods
 		{
-		MethodNode p = new MethodNode(ACC_PUBLIC | ACC_STATIC, "println", "(I)V", null, null);
-		p.visitVarInsn(ILOAD, 0);
-		p.visitMethodInsn(INVOKESTATIC, "JVM/StaticMethods", "println", "(I)V");
+		MethodNode p = new MethodNode(ACC_PUBLIC | ACC_STATIC, "println", "(Ljava/lang/String;)V", null, null);
+		p.visitVarInsn(ALOAD, 0);
+		p.visitMethodInsn(INVOKESTATIC, "JVM/StaticMethods", "println", "(Ljava/lang/String;)V");
 		p.visitInsn(RETURN);
-		this.methods.put(p.name, p);
+		this.addMethodNode(p);
 		}
 		{
 		MethodNode p = new MethodNode(ACC_PUBLIC | ACC_STATIC, "assert", "(Z)V", null, null);
 		p.visitVarInsn(ILOAD, 0);
 		p.visitMethodInsn(INVOKESTATIC, "JVM/StaticMethods", "assert_", "(Z)V");
 		p.visitInsn(RETURN);
-		this.methods.put(p.name, p);
+		this.addMethodNode(p);
 		}
 	}};
 
@@ -405,7 +414,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		String methodDesc = "()Ljava/lang/Object;";
 		MethodNode mn = new MethodNode(acc, methodName, methodDesc, null, null);
 		GtClassNode c = globalNode;
-		c.methods.put(methodName, mn);
+		c.addMethodNode(mn);
 		TypeResolver.StoreClassNode(c);
 
 		this.Builder = new JVMBuilder(null, mn, TypeResolver, null);
@@ -461,7 +470,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 
 		MethodNode mn = new MethodNode(acc, methodName, methodDesc, null, null);
 		GtClassNode c = globalNode;
-		c.methods.put(methodName, mn);
+		c.addMethodNode(mn);
 		TypeResolver.StoreClassNode(c);
 
 		this.Builder = new JVMBuilder(Func, mn, TypeResolver, null);
@@ -497,7 +506,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		constructor.visitVarInsn(ALOAD, 0);
 		constructor.visitMethodInsn(INVOKESPECIAL, superClassName, "<init>", "()V");
 		constructor.visitInsn(RETURN);
-		classNode.methods.put("<init>", constructor);
+		classNode.addMethodNode(constructor);
 		try {
 			this.OutputClassFile(className, ".");
 		} catch(IOException e) {
@@ -523,6 +532,8 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 
 	@Override public void VisitConstNode(ConstNode Node) {
 		Object constValue = Node.ConstValue;
+		//FIXME
+		if(constValue instanceof Long) this.LoadConst(((Long)constValue).intValue()); else
 		this.LoadConst(constValue);
 	}
 
@@ -637,17 +648,32 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		String methodName = Node.Token.ParsedText;
 		Integer inst = opInstMap.get(methodName);
 		if(inst != null) {
-			this.Builder.methodVisitor.visitInsn(inst);
-			this.Builder.typeStack.pop();
-			this.Builder.typeStack.push(Type.INT_TYPE);
+			Type rightType = this.Builder.typeStack.pop();
+			Type leftType = this.Builder.typeStack.pop();
+			if(inst == IADD && leftType.equals(Type.getType(String.class))) {
+				this.Builder.typeStack.push(rightType);
+				this.Builder.box();
+				String owner = this.Builder.typeStack.pop().getInternalName();
+				this.Builder.typeStack.push(Type.getType(String.class));
+				this.Builder.methodVisitor.visitMethodInsn(INVOKEVIRTUAL, owner, "toString", "()Ljava/lang/String;");
+				this.Builder.methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "concat",
+						"(Ljava/lang/String;)Ljava/lang/String;");
+			} else {
+				this.Builder.typeStack.push(Type.INT_TYPE);
+				this.Builder.methodVisitor.visitInsn(inst);
+			}
 			return;
 		}
 		inst = relInstMap.get(methodName);
 		if(inst != null) {
 			Type t = this.Builder.typeStack.pop();
 			if(t.getDescriptor().startsWith("L")) {
-				if(inst == IF_ICMPEQ) inst = IF_ACMPEQ;
-				if(inst == IF_ICMPNE) inst = IF_ACMPNE;
+				String method = null;
+				if(inst == IF_ICMPEQ) method = "eqObject";
+				if(inst == IF_ICMPNE) method = "neObject";
+				this.Builder.methodVisitor.visitMethodInsn(INVOKESTATIC, Type.getInternalName(StaticMethods.class),
+						method, "(Ljava/lang/Object;Ljava/lang/Object;)Z");
+				return;
 			}
 			this.Builder.typeStack.pop();
 			this.Builder.typeStack.push(Type.BOOLEAN_TYPE);
