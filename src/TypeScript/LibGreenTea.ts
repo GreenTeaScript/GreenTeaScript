@@ -128,6 +128,8 @@ class LibGreenTea {
 		}
 	}
 
+	static VerboseMask: number = VerboseUndefined;
+
 	static VerboseLog(VerboseFlag: number, msg: string): void {
 		LibGreenTea.println(msg);
 	}
@@ -165,6 +167,16 @@ class LibGreenTea {
 		return String.fromCharCode(code);
 	}
 
+	static UnquoteString(Text: string): string {
+		return Text
+			.replace(/\\t/, "\t")
+			.replace(/\\n/, "\n")
+			.replace(/\\r/, "\r")
+			.replace(/\\"/, "\n")
+			.replace(/\\'/, "\n")
+			.replace(/\\\\/, "\n");
+	}
+
 	static UnescapeString(Text: string): string {
 		//FIXME
 		return Text;
@@ -184,6 +196,11 @@ class LibGreenTea {
 		return <any>Text - 0;
 	}
 
+	static IsUnixCommand(cmd: string): boolean {
+		//FIXME
+		return false;
+	}
+
     static GetNativeType(Context: GtClassContext, Value: any): GtType {
         var NativeType: GtType = null;
         var NativeClassInfo: any = Value.constructor;
@@ -191,7 +208,7 @@ class LibGreenTea {
             if((<any>Value | 0) == <any>Value) {
                 return Context.IntType;
             }
-            //FIXME support Float
+            //return Context.FloatType;
         }
         if(typeof Value == 'string' || Value instanceof String) {
             return Context.StringType;
@@ -204,15 +221,17 @@ class LibGreenTea {
         return NativeType;
     }
     
+    static GetClassName(Value: any): string {
+    	return typeof(Value);
+    }
 
 	static StartsWith(self: string, key: string): boolean {
 		return self.indexOf(key, 0) == 0;
 	}
 
 	static EndsWith(self: string, key: string): boolean {
-		return self.lastIndexOf(key, 0) == 0;
+		return self.lastIndexOf(key, 0) == (self.length - key.length);
 	}
-
 
 	static LookupNativeMethod(Callee: Object, MethodName: string): any {
 		return Callee[MethodName];
@@ -278,7 +297,7 @@ class LibGreenTea {
 		return Map.keys();
 	}
 
-	static Usage(): void {
+	static Usage(message: string): void {
 	}
 
 	static CodeGenerator(TargetCode: string, OutputFile: string, GeneratorFlag: number): GtGenerator{
@@ -328,7 +347,7 @@ class LibGreenTea {
 		return false;
 	}
 
-	static LoadFile(FileName: string): string{
+	static LoadFile2(FileName: string): string{
 		if(LibGreenTea.hasFileSystem){
 			return fs.readFileSync(FileName);
 		}else{
@@ -343,7 +362,7 @@ class LibGreenTea {
 	}
 
 	static GetLibFile(TargetCode: string, FileName: string): string {
-		return LibGreenTea.LoadFile(LibGreenTea.GetLibPath(TargetCode, FileName));
+		return LibGreenTea.LoadFile2(LibGreenTea.GetLibPath(TargetCode, FileName));
 	}
 
 	static GetLibPath(TargetCode: string, FileName: string): string {

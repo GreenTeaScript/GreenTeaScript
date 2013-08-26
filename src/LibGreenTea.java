@@ -227,6 +227,10 @@ public abstract class LibGreenTea {
 		}
 		return NativeType;
 	}
+	
+	public final static String GetClassName(Object Value){
+		return Value.getClass().getName();
+	}
 
 	public final static GtFunc ConvertNativeMethodToFunc(GtContext Context, Method JavaMethod) {
 		/*local*/int FuncFlag = GtStatic.NativeFunc;

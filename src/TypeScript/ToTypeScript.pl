@@ -6,6 +6,8 @@ my $Sym  = "(?:(?!$Keyword\\b)\\b(?!\\d)\\w+\\b)";
 my $Type = "(?:$Sym(?:<.*?>)?(?:\\[\\s*\\d*\\s*\\])*)";
 my $Attr = "(?:\\b(?:public|private|protected|static|final)\\b\\s*)";
 
+my $Grammar = "GreenTeaGrammar";
+
 my $src = join '', <STDIN>;
 
 my @StringLiterals;
@@ -26,9 +28,7 @@ sub ProtectComment{
 }
 
 # Delegates.
-$src =~ s/FunctionA\(this, "(.+?)"\)/DScriptGrammar.$1/g;
-$src =~ s/FunctionB\(this, "(.+?)"\)/DScriptGrammar.$1/g;
-$src =~ s/FunctionC\(this, "(.+?)"\)/DScriptGrammar.$1/g;
+$src =~ s/Function(?:A|B|C)\(this, "(.+?)"\)/$Grammar\["$1"\]/g;
 
 # Pritect String literal
 $src =~ s/(".*?")/&ProtectString($1)/ge;
@@ -127,9 +127,9 @@ $src =~ s/\blength\(\)/length/g;
 $src =~ s/\bSystem\.out\.println/console.log/g;
 
 # Delegates.
-$src =~ s/(?!\.)\b((?:Parse|Type)(?:Unary|Binary|Const|Block))\b(?!\()/DScriptGrammar.$1/g;
+$src =~ s/(?!\.)\b((?:Parse|Type)(?:Unary|Binary|Const|Block))\b(?!\()/$Grammar\["$1"\]/g;
 $src =~ s/\bGtDelegate(?:Common|Token|Match|Type)\b/any/g;
-$src =~ s/DScriptGrammar\.DScriptGrammar\./DScriptGrammar./g;
+$src =~ s/$Grammar\.$Grammar/$Grammar/g;
 
 # For debug
 #$src =~ s/(LibGreenTea\.)?DebugP\(/console.log("DEBUG: " + /g;
