@@ -477,7 +477,7 @@ class ApplyNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitApplyNode(this);
 	}
-	
+
 	@Override public Object ToConstValue(boolean EnforceConst)  {
 		return this.Type.Context.Generator.EvalApplyNode(this, EnforceConst);
 	}
@@ -850,7 +850,7 @@ class GtFunc extends GtStatic {
 	public final GtContext GetContext() {
 		return this.GetReturnType().Context;
 	}
-	
+
 	public final String GetNativeFuncName() {
 		if(this.Is(ExportFunc)) {
 			return this.FuncName;
@@ -1339,7 +1339,7 @@ class GtGenerator extends GtStatic {
 //endif VAJA
 		return null;
 	}
-	
+
 	public GtType GetNativeType(Object Value) {
 		return LibGreenTea.GetNativeType(this.Context, Value);
 	}
@@ -1360,7 +1360,7 @@ class GtGenerator extends GtStatic {
 //endif VAJA
 		return false;
 	}
-	
+
 	public boolean LoadNativeMethods(GtType NativeBaseType, String FuncName) {
 //ifdef JAVA
 		Class<?> NativeClassInfo = (Class<?>)NativeBaseType.NativeSpec;
@@ -1659,7 +1659,7 @@ class GtGenerator extends GtStatic {
 //endif VAJA
 		return null;  // if unsupported
 	}
-	
+
 	public void FlushBuffer() {
 		/*extension*/
 	}

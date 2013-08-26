@@ -73,7 +73,7 @@ public abstract class LibGreenTea {
 	}
 
 	public static int VerboseMask = GtStatic.VerboseUndefined;
-	
+
 	public final static void VerboseLog(int VerboseFlag, String Message) {
 		if((LibGreenTea.VerboseMask & VerboseFlag) == VerboseFlag) {
 			LibGreenTea.println("GreenTea: " + Message);
@@ -203,7 +203,7 @@ public abstract class LibGreenTea {
 	public final static long ParseInt(String Text) {
 		return Long.parseLong(Text);
 	}
-	
+
 	public final static boolean IsUnixCommand(String cmd) {
 		String[] path = System.getenv("PATH").split(":");
 		int i = 0;
@@ -227,8 +227,8 @@ public abstract class LibGreenTea {
 		}
 		return NativeType;
 	}
-	
-	public final static String GetClassName(Object Value){
+
+	public final static String GetClassName(Object Value) {
 		return Value.getClass().getName();
 	}
 
@@ -285,7 +285,7 @@ public abstract class LibGreenTea {
 		if(FoundMethod == null) {
 			LibGreenTea.VerboseLog(GtStatic.VerboseUndefined, "undefined method: " + FullName);
 		}
-		return FoundMethod;	
+		return FoundMethod;
 	}
 
 	public final static Method LookupNativeMethod(Object Callee, String FuncName) {
@@ -425,7 +425,7 @@ public abstract class LibGreenTea {
 		System.out.println("     --verbose:no         no log");
 		LibGreenTea.Exit(0, Message);
 	}
-	
+
 	public final static String DetectTargetCode(String Extension, String TargetCode) {
 		if(Extension.endsWith(".js")) {
 			return "js";
@@ -770,6 +770,5 @@ public abstract class LibGreenTea {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
-	
+
 }

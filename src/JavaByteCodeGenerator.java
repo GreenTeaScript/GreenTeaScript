@@ -364,7 +364,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 	private JVMTypeResolver TypeResolver;
 	private JVMBuilder Builder;
 	private final String defaultClassName = "Global";
-	
+
 	private MethodHolderClass DefaultHolderClass = new MethodHolderClass(defaultClassName, "java/lang/Object") {{
 		// create default methods
 		{
@@ -387,7 +387,6 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		super(TargetCode, OutputFile, GeneratorFlag);
 		this.TypeResolver = null;
 	}
-
 
 	public static Object getConstValue(int id) {
 		return JVMConstPool.get(id);
@@ -453,7 +452,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> NameList, GtNode Body) {
 		int acc = ACC_PUBLIC | ACC_STATIC;
 		Type ReturnType = this.GetAsmType(Func.GetReturnType());
-		
+
 		ArrayList<Type> argTypes = new ArrayList<Type>();
 		ArrayList<JVMLocal> locals  = new ArrayList<JVMLocal>();
 		for(int i=0; i<NameList.size(); i++) {
@@ -467,7 +466,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		String MethodDesc = Type.getMethodDescriptor(ReturnType, argTypes.toArray(new Type[0]));
 
 		MethodNode AsmMethodNode = new MethodNode(acc, MethodName, MethodDesc, null, null);
-		
+
 		MethodHolderClass c = DefaultHolderClass;
 		c.addMethodNode(AsmMethodNode);
 		TypeResolver.StoreClassNode(c);  // IMIFU
@@ -475,7 +474,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		this.Builder = new JVMBuilder(Func, AsmMethodNode, TypeResolver, null);
 		this.Builder.LocalVals.addAll(locals);
 		this.VisitBlock(Body);
-		
+
 		// JVM always needs return;
 		if(ReturnType.equals(Type.VOID_TYPE)) {
 			this.Builder.AsmMethodVisitor.visitInsn(RETURN);//FIXME
@@ -533,7 +532,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		Object constValue = Node.ConstValue;
 //		//FIXME
 //		if(constValue instanceof Long) {
-//			this.Builder.LoadConst(((Long)constValue).intValue()); 
+//			this.Builder.LoadConst(((Long)constValue).intValue());
 //		}
 //		else {
 		this.Builder.LoadConst(constValue);
@@ -660,7 +659,8 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 				this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKEVIRTUAL, owner, "toString", "()Ljava/lang/String;");
 				this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "concat",
 						"(Ljava/lang/String;)Ljava/lang/String;");
-			} else {
+			}
+			else {
 				this.Builder.typeStack.push(Type.INT_TYPE);
 				this.Builder.AsmMethodVisitor.visitInsn(inst);
 			}

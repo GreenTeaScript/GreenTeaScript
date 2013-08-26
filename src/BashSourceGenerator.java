@@ -46,7 +46,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.WriteLineHeader("#!/bin/bash");
 		this.WriteLineCode(this.LineFeed + "source $GREENTEA_HOME/include/bash/GreenTeaPlus.sh" + this.LineFeed);
 	}
-	
+
 	@Override public String GenerateFuncTemplate(int ParamSize, GtFunc Func) {
 		/*local*/int BeginIdx = 1;
 		/*local*/String Template = "";
@@ -79,15 +79,15 @@ public class BashSourceGenerator extends SourceGenerator {
 	private String VisitBlockWithIndent(GtNode Node, boolean allowDummyBlock) {
 		return this.VisitBlockWithOption(Node, true, allowDummyBlock, false);
 	}
-	
+
 	private String VisitBlockWithSkipJump(GtNode Node, boolean allowDummyBlock) {
 		return this.VisitBlockWithOption(Node, true, allowDummyBlock, true);
 	}
-	
+
 	private String VisitBlockWithoutIndent(GtNode Node, boolean allowDummyBlock) {
 		return this.VisitBlockWithOption(Node, false, allowDummyBlock, false);
 	}
-	
+
 	private String VisitBlockWithOption(GtNode Node, boolean inBlock, boolean allowDummyBlock, boolean skipJump) {
 		/*local*/String Code = "";
 		if(inBlock) {
@@ -118,7 +118,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		}
 		return Code;
 	}
-	
+
 	private String Quote(String Value) {
 		return "\"" + Value  + "\"";
 	}
@@ -204,7 +204,7 @@ public class BashSourceGenerator extends SourceGenerator {
 			this.PushSourceCode(this.JoinCode(Node.Func.GetNativeFuncName() + " ", 0, ParamCode, "", " "));
 		}
 	}
-	
+
 	@Override public void VisitUnaryNode(UnaryNode Node) {
 		/*local*/String FuncName = Node.Token.ParsedText;
 		/*local*/GtFunc Func = Node.Func;
@@ -244,22 +244,22 @@ public class BashSourceGenerator extends SourceGenerator {
 //			return;
 //		}
 	}
-	
+
 	private String GetMemberIndex(GtType ClassType, String MemberName) {
 		return "$" + ClassType.ShortClassName + this.MemberAccessOperator + MemberName;
 	}
-	
+
 	private boolean IsNativeType(GtType Type) {
 		if(Type != null && Type.IsNative()) {
 			return true;
 		}
 		return false;
 	}
-	
+
 	@Override public void VisitGetterNode(GetterNode Node) {
 		this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + this.GetMemberIndex(Node.Expr.Type, Node.Func.FuncName) + "]");
 	}
-	
+
 	@Override public void VisitIndexerNode(IndexerNode Node) {
 		this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + this.ResolveValueType(Node.IndexAt, false) + "]");
 	}
@@ -295,7 +295,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		Code +=  this.LineFeed;
 		this.PushSourceCode(Code + this.VisitBlockWithoutIndent(Node.BlockNode, false));
 	}
-	
+
 	@Override public void VisitTrinaryNode(TrinaryNode Node) {
 		/*local*/String CondExpr = this.ResolveCondition(Node.CondExpr);
 		/*local*/String Then = this.ResolveValueType(Node.ThenExpr, false);
@@ -313,7 +313,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		Code += "fi";
 		this.PushSourceCode(Code);
 	}
-	
+
 	@Override public void VisitSwitchNode(SwitchNode Node) {
 		/*local*/String Code = "case " + this.ResolveValueType(Node.MatchNode, false) + " in";
 		/*local*/int i = 0;
@@ -431,7 +431,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		Let.NextNode = this.ConvertParamName(Func, ParamNameList, Body, index);
 		return Let;
 	}
-	
+
 	private boolean CheckConstFolding(GtNode TargetNode) {
 		if(TargetNode instanceof ConstNode) {
 			return true;
@@ -448,7 +448,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		}
 		return false;
 	}
-	
+
 	private String ResolveValueType(GtNode TargetNode, boolean isAssign) {
 		/*local*/String ResolvedValue;
 		/*local*/String Value = this.VisitNode(TargetNode);
@@ -520,11 +520,11 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.inFunc = false;
 		this.inMainFunc = false;
 	}
-	
+
 	@Override protected String GetNewOperator(GtType Type) {
 		return this.Quote("$(__NEW__" + Type.ShortClassName + ")");
 	}
-	
+
 	@Override public void GenerateClassField(GtType Type, GtClassField ClassField) {	//TODO: support super
 		/*local*/String Program = "__NEW__" + Type.ShortClassName + "() {" + this.LineFeed;
 		this.WriteLineCode("#### define class " + Type.ShortClassName + " ####");

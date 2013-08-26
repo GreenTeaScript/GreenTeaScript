@@ -7,4 +7,3 @@ public class GtThrowableWrapper extends Throwable {
 		this.object = object;
 	}
 }
-
