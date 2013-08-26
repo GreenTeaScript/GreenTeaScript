@@ -61,7 +61,7 @@ notBool() {
 }
 
 eqAny() {
-    if [ "($x)" = "($y)" ]; then
+    if [ "($1)" = "($2)" ]; then
         return 0
     else
         return 1
@@ -69,7 +69,7 @@ eqAny() {
 }
 
 neAny() {
-    if [ "($x)" != "($y)" ]; then
+    if [ "($1)" != "($2)" ]; then
         return 0
     else
         return 1
