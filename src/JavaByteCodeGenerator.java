@@ -270,6 +270,11 @@ class JVMBuilder implements Opcodes {
 			this.AsmMethodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Integer", "intValue", "()I");
 			this.typeStack.push(Type.INT_TYPE);
 		}
+		else if(type.equals(Type.LONG_TYPE)) {
+			this.AsmMethodVisitor.visitTypeInsn(CHECKCAST, "java/lang/Long");
+			this.AsmMethodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Long", "longValue", "()L");  // ?
+			this.typeStack.push(Type.LONG_TYPE);
+		}
 		else if(type.equals(Type.DOUBLE_TYPE)) {
 			this.AsmMethodVisitor.visitTypeInsn(CHECKCAST, "java/lang/Double");
 			this.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Double", "doubleValue", "()D");
