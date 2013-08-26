@@ -3879,7 +3879,7 @@ public class GreenTeaScript extends GtStatic {
 				/*local*/Object EvaledValue = Context.TopLevelNameSpace.Eval(Line, linenum);
 				Context.ShowReportedErrors();
 				if(EvaledValue != null) {
-					LibGreenTea.println(" (" + Context.GuessType(EvaledValue) + ":" + EvaledValue.getClass().getName() + ") " + EvaledValue);
+					LibGreenTea.println(" (" + Context.GuessType(EvaledValue) + ":" + LibGreenTea.GetClassName(EvaledValue) + ") " + EvaledValue);
 				}
 				linenum += 1;
 			}

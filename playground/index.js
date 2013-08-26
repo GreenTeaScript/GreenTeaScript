@@ -44,8 +44,8 @@ $(function () {
 		Generate();
 	});
 
-	var TargetNames   = ["JavaScript", /*"Java"*/, "Perl", "Python", "Bash", "C"];
-	var TargetOptions = ["js", /*"java"*/, "perl", "python", "bash", "c"];
+	var TargetNames   = ["JavaScript", /*"Java",*/ "Perl", "Python", "Bash", "C"];
+	var TargetOptions = ["js", /*"java",*/ "perl", "python", "bash", "c"];
 
 	var bind = function(n){
 		var Target = $('#Tatget-' + TargetNames[n]);

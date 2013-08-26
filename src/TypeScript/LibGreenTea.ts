@@ -221,6 +221,9 @@ class LibGreenTea {
         return NativeType;
     }
     
+    static GetClassName(Value: any): string {
+    	return typeof(Value);
+    }
 
 	static StartsWith(self: string, key: string): boolean {
 		return self.indexOf(key, 0) == 0;
@@ -294,7 +297,7 @@ class LibGreenTea {
 		return Map.keys();
 	}
 
-	static Usage(): void {
+	static Usage(message: string): void {
 	}
 
 	static CodeGenerator(TargetCode: string, OutputFile: string, GeneratorFlag: number): GtGenerator{

@@ -28,7 +28,7 @@ sub ProtectComment{
 }
 
 # Delegates.
-$src =~ s/Function(?:A|B|C)\(this, "(.+?)"\)/$Grammar.$1/g;
+$src =~ s/Function(?:A|B|C)\(this, "(.+?)"\)/$Grammar\["$1"\]/g;
 
 # Pritect String literal
 $src =~ s/(".*?")/&ProtectString($1)/ge;
@@ -129,7 +129,7 @@ $src =~ s/\bSystem\.out\.println/console.log/g;
 # Delegates.
 $src =~ s/(?!\.)\b((?:Parse|Type)(?:Unary|Binary|Const|Block))\b(?!\()/$Grammar\["$1"\]/g;
 $src =~ s/\bGtDelegate(?:Common|Token|Match|Type)\b/any/g;
-$src =~ s/($Grammar\.){2}/$Grammar./g;
+$src =~ s/$Grammar\.$Grammar/$Grammar/g;
 
 # For debug
 #$src =~ s/(LibGreenTea\.)?DebugP\(/console.log("DEBUG: " + /g;
