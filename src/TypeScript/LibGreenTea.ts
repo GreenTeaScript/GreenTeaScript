@@ -177,12 +177,7 @@ class LibGreenTea {
 			.replace(/\\\\/, "\n");
 	}
 
-	static UnescapeString(Text: string): string {
-		//FIXME
-		return Text;
-	}
-
-	static EscapeString(Text: string): string {
+	static QuoteString(Text: string): string {
 		//FIXME
 		return Text;
 	}
