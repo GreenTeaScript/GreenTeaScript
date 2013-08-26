@@ -1193,14 +1193,12 @@ class GtSyntaxTree extends GtStatic {
 	}
 
 	public final GtNode TypeCheckNodeAt(int Index, GtTypeEnv Gamma, GtType ContextType, int TypeCheckPolicy) {
-		if(this.TreeList != null && Index < this.TreeList.size()) {
-			/*local*/GtSyntaxTree ParsedTree = this.GetSyntaxTreeAt(Index);
-			if(ContextType == Gamma.VoidType || IsFlag(TypeCheckPolicy, BlockPolicy)) {
-				return this.TypeBlock(Gamma, ParsedTree, ContextType);
-			}
-			else if (ParsedTree != null) {
-				return ParsedTree.TypeCheck(Gamma, ContextType, TypeCheckPolicy);
-			}
+		/*local*/GtSyntaxTree ParsedTree = this.GetSyntaxTreeAt(Index);
+		if(ContextType == Gamma.VoidType || IsFlag(TypeCheckPolicy, BlockPolicy)) {
+			return this.TypeBlock(Gamma, ParsedTree, ContextType);
+		}
+		else if (ParsedTree != null) {
+			return ParsedTree.TypeCheck(Gamma, ContextType, TypeCheckPolicy);
 		}
 		return Gamma.CreateSyntaxErrorNode(this, "not empty");
 	}
