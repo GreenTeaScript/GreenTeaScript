@@ -28,8 +28,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 //endif VAJA
 
-import javax.xml.stream.events.Namespace;
-
 //ifdef JAVA
 interface GtConst {
 //endif VAJA
