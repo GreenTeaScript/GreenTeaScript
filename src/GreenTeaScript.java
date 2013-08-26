@@ -343,7 +343,7 @@ class GtStatic implements GtConst {
 		return s;
 	}
 
-	public final static String MangleFuncName(GtType BaseType, String FuncName, int BaseIdx, ArrayList<GtType> TypeList) {
+	@Deprecated public final static String MangleFuncName(GtType BaseType, String FuncName, int BaseIdx, ArrayList<GtType> TypeList) {
 		/*local*/String s = FuncName + NativeNameSuffix + NumberToAscii(BaseType.ClassId);
 		/*local*/int i = BaseIdx;
 		while(i < ListSize(TypeList)) {
