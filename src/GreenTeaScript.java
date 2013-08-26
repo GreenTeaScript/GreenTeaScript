@@ -28,6 +28,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 //endif VAJA
 
+import javax.xml.stream.events.Namespace;
+
 //ifdef JAVA
 interface GtConst {
 //endif VAJA
@@ -3066,6 +3068,10 @@ final class GreenTeaGrammar extends GtGrammar {
 		}
 		else {
 			FuncDeclTree.SetMatchedPatternAt(FuncDeclBlock, NameSpace, TokenContext, "$Block$", Optional);
+			if(FuncDeclTree.HasNodeAt(FuncDeclBlock)) {
+				GtSyntaxTree ReturnTree = new GtSyntaxTree(NameSpace.GetPattern("return"), NameSpace, GtTokenContext.NullToken, null);
+				GtStatic.LinkTree(FuncDeclTree.GetSyntaxTreeAt(FuncDeclBlock), ReturnTree);
+			}
 		}
 		TokenContext.ParseFlag = ParseFlag;
 		return FuncDeclTree;
@@ -3614,12 +3620,11 @@ final class GtContext extends GtStatic {
 	/*field*/public final GtType		VarType;
 
 	/*field*/public final GtType		TypeType;
-	/*field*/public GtType		        PolyFuncType;
 
 	/*field*/public final  GtMap               SourceMap;
 	/*field*/public final  ArrayList<String>   SourceList;
 	/*field*/public final  GtMap			   ClassNameMap;
-	/*field*/public final  GtMap               UniqueFuncMap;
+	
 	/*field*/public int ClassCount;
 	/*field*/public int FuncCount;
 	/*field*/public final GtStat Stat;
@@ -3632,7 +3637,6 @@ final class GtContext extends GtStatic {
 		this.SourceMap     = new GtMap();
 		this.SourceList    = new ArrayList<String>();
 		this.ClassNameMap  = new GtMap();
-		this.UniqueFuncMap = new GtMap();
 		this.RootNameSpace = new GtNameSpace(this, null);
 		this.ClassCount = 0;
 		this.FuncCount = 0;
@@ -3662,9 +3666,9 @@ final class GtContext extends GtStatic {
 //ifdef JAVA
 		this.SetGlobalTypeName("java.lang.Void",    this.VoidType);
 		this.SetGlobalTypeName("java.lang.Boolean", this.BooleanType);
-		this.SetGlobalTypeName("java.lang.Integer", this.IntType);
+//		this.SetGlobalTypeName("java.lang.Integer", this.IntType);
 		this.SetGlobalTypeName("java.lang.Long",    this.IntType);
-		this.SetGlobalTypeName("java.lang.Short",   this.IntType);
+//		this.SetGlobalTypeName("java.lang.Short",   this.IntType);
 		this.SetGlobalTypeName("java.lang.String",  this.StringType);
 //endif VAJA
 		Grammar.LoadTo(this.RootNameSpace);
