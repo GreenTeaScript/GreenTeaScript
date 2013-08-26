@@ -1764,12 +1764,7 @@ final class GtNameSpace extends GtStatic {
 			TopLevelTree.SetAnnotation(Annotation);
 			/*local*/GtTypeEnv Gamma = new GtTypeEnv(this);
 			/*local*/GtNode Node = TopLevelTree.TypeCheck(Gamma, Gamma.VoidType, DefaultTypeCheckPolicy);
-//			if(Node instanceof ConstNode || Node instanceof EmptyNode) {
 			ResultValue = Node.ToConstValue(true/*EnforceConst*/);
-//			}
-//			else {
-//				ResultValue = this.Context.Generator.Eval(Node);
-//			}
 			TokenContext.SkipStatement();
 			TokenContext.Vacume();
 		}
@@ -2634,6 +2629,7 @@ final class GreenTeaGrammar extends GtGrammar {
 				if(GtStatic.IsEmptyOrError(CurrentTree)) {
 					return CurrentTree;
 				}
+				TokenContext.SkipStatement();  // check; and skip empty statement
 				CurrentTree.SetAnnotation(Annotation);
 				PrevTree = GtStatic.LinkTree(PrevTree, CurrentTree);
 			}
