@@ -88,6 +88,7 @@ class GtNode extends GtStatic {
 
 	public Object ToConstValue(boolean EnforceConst)  {
 		if(EnforceConst) {
+			LibGreenTea.DebugP("node type=" + this.getClass().getName());
 			this.Type.Context.ReportError(ErrorLevel, this.Token, "not statically valued");
 		}
 		return null;
@@ -107,6 +108,9 @@ class GtNode extends GtStatic {
 final class EmptyNode extends GtNode {
 	EmptyNode/*constructor*/(GtType Type, GtToken Token) {
 		super(Type, Token);
+	}
+	public Object ToConstValue(boolean EnforceConst)  {
+		return null;
 	}
 }
 
@@ -141,6 +145,9 @@ class NullNode extends GtNode {
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitNullNode(this);
+	}
+	public Object ToConstValue(boolean EnforceConst)  {
+		return null;
 	}
 }
 
@@ -737,7 +744,6 @@ class GtType extends GtStatic {
 	/*field*/GtType					SuperType;
 	/*field*/public GtType			SearchSuperFuncClass;
 	/*field*/public Object			DefaultNullValue;
-//	/*field*/public GtMap           ClassSymbolTable;
 	/*field*/GtType					BaseType;
 	/*field*/GtType[]				TypeParams;
 	/*field*/public Object          NativeSpec;
@@ -751,7 +757,6 @@ class GtType extends GtStatic {
 		this.SearchSuperFuncClass = null;
 		this.DefaultNullValue = DefaultNullValue;
 		this.NativeSpec = NativeSpec;
-//		this.ClassSymbolTable = IsFlag(ClassFlag, EnumClass) ? (/*cast*/GtMap)NativeSpec : null;
 		this.ClassId = Context.ClassCount;
 		Context.ClassCount += 1;
 		this.TypeParams = null;
@@ -793,15 +798,15 @@ class GtType extends GtStatic {
 
 	public final String GetUniqueName() {
 		if(LibGreenTea.DebugMode) {
-			return this.BaseType.ShortClassName + NativeNameSuffix + GtStatic.NumberToAscii(this.ClassId);
+			return this.BaseType.ShortClassName + NativeNameSuffix + this.ClassId;
 		}
 		else {
-			return NativeNameSuffix + GtStatic.NumberToAscii(this.ClassId);
+			return NativeNameSuffix + this.ClassId;
 		}
 	}
 
 	public final boolean Accept(GtType Type) {
-		if(this == Type || this == this.Context.AnyType) {
+		if(this == Type/* || this == this.Context.AnyType*/) {
 			return true;
 		}
 		/*local*/GtType SuperClass = this.SuperType;

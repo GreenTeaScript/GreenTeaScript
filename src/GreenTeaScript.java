@@ -909,7 +909,7 @@ final class GtTokenContext extends GtStatic {
 
 	public final void SkipIncompleteStatement() {
 		/*local*/GtToken Token = this.GetToken();
-		if(!Token.IsIndent() && !Token.IsDelim()) {
+		if(!Token.IsIndent() && !Token.IsDelim()  && Token != GtTokenContext.NullToken) {
 			this.TopLevelNameSpace.Context.ReportError(ErrorLevel, Token, "needs ;");
 			this.CurrentPosition += 1;
 			while((Token = this.GetToken()) != GtTokenContext.NullToken) {
@@ -1402,27 +1402,6 @@ final class GtTypeEnv extends GtStatic {
 		return this.Generator.CreateConstNode(Type, ParsedTree, Type.DefaultNullValue);
 	}
 
-//	public GtNode DefaultValueConstNode(GtSyntaxTree ParsedTree, GtType Type) {
-//		if(Type.DefaultNullValue != null) {
-//			return this.Generator.CreateConstNode(Type, ParsedTree, Type.DefaultNullValue);
-//		}
-//		return this.CreateSyntaxErrorNode(ParsedTree, "undefined initial value of " + Type);
-//	}
-
-	/* typing */
-//	public GtNode TypeEachNode(GtSyntaxTree Tree, GtType Type) {
-//		/*local*/GtNode Node = GtStatic.ApplyTypeFunc(Tree.Pattern.TypeFunc, this, Tree, Type);
-//		return Node;
-//	}
-
-//	public GtNode TypeCheckEachNode(GtSyntaxTree Tree, GtType Type, int TypeCheckPolicy) {
-//		/*local*/GtNode Node = this.TypeEachNode(Tree, Type);
-//		if(Node.IsError()) {
-//			return Node;
-//		}
-//		return Node;
-//	}
-
 //	public GtNode TypeBlock(GtSyntaxTree ParsedTree, GtType Type) {
 //		/*local*/int StackTopIndex = this.StackTopIndex;
 //		/*local*/GtNode LastNode = null;
@@ -1443,10 +1422,6 @@ final class GtTypeEnv extends GtStatic {
 //			return null;
 //		}
 //		return LastNode.MoveHeadNode();
-//	}
-//
-//	public GtNode TypeCheck(GtSyntaxTree ParsedTree, GtType Type, int TypeCheckPolicy) {
-//		return this.TypeBlock(ParsedTree, Type);
 //	}
 
 	public final GtNode TypeCheckSingleNode(GtSyntaxTree ParsedTree, GtNode Node, GtType Type, int TypeCheckPolicy) {
@@ -2658,7 +2633,6 @@ final class GreenTeaGrammar extends GtGrammar {
 		return StmtTree;
 	}
 
-
 	// If Statement
 	public static GtSyntaxTree ParseIf(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/int ParseFlag = TokenContext.ParseFlag;
@@ -3501,7 +3475,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		GtDelegateMatch ParseBinary    = FunctionB(this, "ParseBinary");
 		GtDelegateType  TypeBinary     = FunctionC(this, "TypeBinary");
 		GtDelegateType  TypeConst      = FunctionC(this, "TypeConst");
-		GtDelegateType  TypeBlock      = FunctionC(this, "TypeBlock");
+//		GtDelegateType  TypeBlock      = FunctionC(this, "TypeBlock");
 //endif VAJA
 		NameSpace.AppendSyntax("+", ParseUnary, TypeUnary);
 		NameSpace.AppendSyntax("-", ParseUnary, TypeUnary);
@@ -3556,9 +3530,9 @@ final class GreenTeaGrammar extends GtGrammar {
 		NameSpace.AppendExtendedSyntax("[", 0, FunctionB(this, "ParseIndexer"), FunctionC(this, "TypeIndexer"));
 		NameSpace.AppendSyntax("|", FunctionB(this, "ParseSizeOf"), FunctionC(this, "TypeSizeOf"));
 
-		NameSpace.AppendSyntax("$Block$", FunctionB(this, "ParseBlock"), TypeBlock);
-		NameSpace.AppendSyntax("$Statement$", FunctionB(this, "ParseStatement"), TypeBlock);
-		NameSpace.AppendSyntax("$Expression$", FunctionB(this, "ParseExpression"), TypeBlock);
+		NameSpace.AppendSyntax("$Block$", FunctionB(this, "ParseBlock"), null);
+		NameSpace.AppendSyntax("$Statement$", FunctionB(this, "ParseStatement"), null);
+		NameSpace.AppendSyntax("$Expression$", FunctionB(this, "ParseExpression"), null);
 
 		NameSpace.AppendSyntax("$FuncName$", FunctionB(this, "ParseFuncName"), TypeConst);
 		NameSpace.AppendSyntax("$FuncDecl$", FunctionB(this, "ParseFuncDecl"), FunctionC(this, "TypeFuncDecl"));
@@ -3586,7 +3560,7 @@ final class GreenTeaGrammar extends GtGrammar {
 
 		NameSpace.AppendSyntax("enum", FunctionB(this, "ParseEnum"), FunctionC(this, "TypeEnum"));
 		NameSpace.AppendSyntax("switch", FunctionB(this, "ParseSwitch"), FunctionC(this, "TypeSwitch"));
-		NameSpace.AppendSyntax("$CaseBlock$", FunctionB(this, "ParseCaseBlock"), TypeBlock);
+		NameSpace.AppendSyntax("$CaseBlock$", FunctionB(this, "ParseCaseBlock"), null);
 	}
 }
 
