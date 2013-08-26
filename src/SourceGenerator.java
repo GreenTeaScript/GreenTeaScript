@@ -1786,18 +1786,7 @@ class SourceGenerator extends GtGenerator {
 			}
 		}
 		if(ConstValue instanceof String) {
-			/*local*/int i = 0;
-			/*local*/String Value = ConstValue.toString();
-			/*local*/String[] List = Value.split("\n");
-			Value = "";
-			while(i < List.length) {
-				Value += List[i];
-				if(i > 0) {
-					 Value += "\n";
-				}
-				i = i + 1;
-			}
-			return Value;
+			return LibGreenTea.QuoteString((/*cast*/String)ConstValue);
 		}
 		return ConstValue.toString();
 	}
