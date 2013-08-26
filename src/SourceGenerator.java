@@ -819,26 +819,30 @@ class GtType extends GtStatic {
 
 class GtFunc extends GtStatic {
 	/*field*/public int				FuncFlag;
-//	/*field*/int					FuncSymbolId;
 	/*field*/public String			FuncName;
 	/*field*/public String          MangledName;
 	/*field*/public GtType[]		Types;
 	/*field*/private GtType         FuncType;
-	/*field*/public GtFunc        ListedFuncs;
+	/*field*/public int FuncId      ;
 	/*field*/public Object          NativeRef;  // Abstract function if null 
 
 	GtFunc/*constructor*/(int FuncFlag, String FuncName, int BaseIndex, ArrayList<GtType> ParamList) {
 		this.FuncFlag = FuncFlag;
 		this.FuncName = FuncName;
-//		this.FuncSymbolId = GtStatic.GetSymbolId(FuncName, CreateNewSymbolId);
 		this.Types = LibGreenTea.CompactTypeList(BaseIndex, ParamList);
 		LibGreenTea.Assert(this.Types.length > 0);
-		this.ListedFuncs = null;
 		this.FuncType = null;
 		this.NativeRef = null;
-		this.MangledName = GtStatic.MangleFuncName(this.GetRecvType(), this.FuncName, BaseIndex+2, ParamList);
+		/*local*/GtClassContext Context = this.GetContext();
+		this.FuncId = Context.FuncCount;
+		Context.FuncCount += 1;
+		this.MangledName = FuncName + NativeNameSuffix + this.FuncId;
 	}
 
+	public final GtClassContext GetContext() {
+		return this.GetReturnType().Context;
+	}
+	
 	public final String GetNativeFuncName() {
 		if(this.Is(ExportFunc)) {
 			return this.FuncName;
@@ -929,7 +933,7 @@ class GtFunc extends GtStatic {
 		return (/*cast*/String)this.NativeRef;
 	}
 
-	public final String ApplyNativeMacro(int BaseIndex, String[] ParamCode) {
+	@Deprecated public final String ApplyNativeMacro(int BaseIndex, String[] ParamCode) {
 		/*local*/String NativeMacro = "$1 " + this.FuncName + " $2";
 		if(IsFlag(this.FuncFlag, NativeMacroFunc)) {
 			NativeMacro = this.GetNativeMacro();
@@ -949,7 +953,6 @@ class GtFunc extends GtStatic {
 		this.FuncFlag |= NativeFunc | OptionalFuncFlag;
 		this.NativeRef = Method;
 	}
-		
 }
 
 class GtPolyFunc extends GtStatic {

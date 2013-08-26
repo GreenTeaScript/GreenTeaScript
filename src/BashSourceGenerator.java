@@ -76,7 +76,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		return Template;
 	}
 
-	private String VisitBlock(GtNode Node, boolean allowDummyBlock) {
+	private String VisitBlockWithIndent(GtNode Node, boolean allowDummyBlock) {
 		return this.VisitBlockWithOption(Node, true, allowDummyBlock, false);
 	}
 	
@@ -148,7 +148,7 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitWhileNode(WhileNode Node) {
 		/*local*/String Program = "while " + this.ResolveCondition(Node.CondExpr) + " ;do" + this.LineFeed;
-		Program += this.VisitBlock(Node.LoopBody, true) + "done";
+		Program += this.VisitBlockWithIndent(Node.LoopBody, true) + "done";
 		this.PushSourceCode(Program);
 	}
 
@@ -156,7 +156,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/String Cond = this.ResolveCondition(Node.CondExpr);
 		/*local*/String Iter = this.VisitNode(Node.IterExpr);
 		/*local*/String Program = "for((; " + Cond  + "; " + Iter + " )) ;do" + this.LineFeed;
-		Program += this.VisitBlock(Node.LoopBody, true) + "done";
+		Program += this.VisitBlockWithIndent(Node.LoopBody, true) + "done";
 		this.PushSourceCode(Program);
 	}
 
@@ -164,7 +164,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/String Variable = this.VisitNode(Node.Variable);
 		/*local*/String Iter = this.VisitNode(Node.IterExpr);
 		/*local*/String Program = "for " + Variable + " in " + "${" + Iter + "[@]} ;do" + this.LineFeed;
-		Program += this.VisitBlock(Node.LoopBody, true) + "done";
+		Program += this.VisitBlockWithIndent(Node.LoopBody, true) + "done";
 		this.PushSourceCode(Program);
 	}
 
@@ -203,6 +203,23 @@ public class BashSourceGenerator extends SourceGenerator {
 		else {
 			this.PushSourceCode(this.JoinCode(Node.Func.GetNativeFuncName() + " ", 0, ParamCode, "", " "));
 		}
+	}
+	
+	@Override public void VisitUnaryNode(UnaryNode Node) {
+		/*local*/String FuncName = Node.Token.ParsedText;
+		/*local*/GtFunc Func = Node.Func;
+		/*local*/String Expr = this.VisitNode(Node.Expr);
+		/*local*/String Macro = null;
+		if(Func != null) {
+			FuncName = Func.GetNativeFuncName();
+			if(IsFlag(Func.FuncFlag, NativeMacroFunc)) {
+				Macro = Func.GetNativeMacro();
+			}
+		}
+		if(Macro == null) {
+			Macro = "((" + FuncName + " $1))";
+		}
+		this.PushSourceCode(Macro.replace("$1", Expr));
 	}
 
 	@Override public void VisitBinaryNode(BinaryNode Node) {
@@ -288,10 +305,10 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitIfNode(IfNode Node) {
 		/*local*/String CondExpr = this.ResolveCondition(Node.CondExpr);
-		/*local*/String ThenBlock = this.VisitBlock(Node.ThenNode, true);
+		/*local*/String ThenBlock = this.VisitBlockWithIndent(Node.ThenNode, true);
 		/*local*/String Code = "if " + CondExpr + " ;then" + this.LineFeed + ThenBlock;
 		if(!this.IsEmptyBlock(Node.ElseNode)) {
-			Code += "else" + this.LineFeed + this.VisitBlock(Node.ElseNode, false);
+			Code += "else" + this.LineFeed + this.VisitBlockWithIndent(Node.ElseNode, false);
 		}
 		Code += "fi";
 		this.PushSourceCode(Code);
@@ -352,8 +369,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitErrorNode(ErrorNode Node) {
-//		/*local*/String Code = "throw Error(\"" + Node.Token.ParsedText + "\")";
-//		this.PushSourceCode(Code);
+		this.PushSourceCode("echo " + this.Quote(Node.Token.ParsedText) + " >&2");
 	}
 
 	@Override public void VisitCommandNode(CommandNode Node) {
@@ -498,7 +514,7 @@ public class BashSourceGenerator extends SourceGenerator {
 			this.inMainFunc = true;
 		}
 		Function += FuncName + "() {" + this.LineFeed;
-		/*local*/String Block = this.VisitBlock(this.ResolveParamName(Func, ParamNameList, Body), true);
+		/*local*/String Block = this.VisitBlockWithIndent(this.ResolveParamName(Func, ParamNameList, Body), true);
 		Function += Block + "}" + this.LineFeed;
 		this.WriteLineCode(Function);
 		this.inFunc = false;

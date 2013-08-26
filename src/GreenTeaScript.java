@@ -326,7 +326,7 @@ class GtStatic implements GtConst {
 	}
 
 	public final static String NativeVariableName(String Name, int Index) {
-		return Name + NativeNameSuffix + NumberToAscii(Index);
+		return Name + NativeNameSuffix + Index;
 	}
 
 	public final static String ClassSymbol(GtType ClassType, String Symbol) {
@@ -335,16 +335,6 @@ class GtStatic implements GtConst {
 
 	public final static String MangleGenericType(GtType BaseType, int BaseIdx, ArrayList<GtType> TypeList) {
 		/*local*/String s = BaseType.ShortClassName + NativeNameSuffix;
-		/*local*/int i = BaseIdx;
-		while(i < ListSize(TypeList)) {
-			s = s + NumberToAscii(TypeList.get(i).ClassId);
-			i = i + 1;
-		}
-		return s;
-	}
-
-	public final static String MangleFuncName(GtType BaseType, String FuncName, int BaseIdx, ArrayList<GtType> TypeList) {
-		/*local*/String s = FuncName + NativeNameSuffix + NumberToAscii(BaseType.ClassId);
 		/*local*/int i = BaseIdx;
 		while(i < ListSize(TypeList)) {
 			s = s + NumberToAscii(TypeList.get(i).ClassId);
