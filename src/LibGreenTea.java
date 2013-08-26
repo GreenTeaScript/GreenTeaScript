@@ -632,6 +632,10 @@ public abstract class LibGreenTea {
 			if(Operator.equals("+")) {
 				return  EvalCast(Type, left + right);
 			}
+		}
+		if(LeftValue instanceof String && RightValue instanceof String) {
+			String left = EvalCast(Type.Context.StringType, LeftValue).toString();
+			String right = EvalCast(Type.Context.StringType, RightValue).toString();
 			if(Operator.equals("==")) {
 				return  EvalCast(Type, left.equals(right));
 			}
