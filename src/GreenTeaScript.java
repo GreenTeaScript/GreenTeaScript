@@ -1167,8 +1167,8 @@ class GtSyntaxTree extends GtStatic {
 		/*local*/int StackTopIndex = Gamma.StackTopIndex;
 		/*local*/GtNode LastNode = null;
 		while(ParsedTree != null) {
-			/*local*/GtNode  Node = GtStatic.ApplyTypeFunc(this.Pattern.TypeFunc, Gamma, ParsedTree, Gamma.VoidType);
-			/*local*/Node = Gamma.TypeCheckSingleNode(this, Node, Gamma.VoidType, DefaultTypeCheckPolicy);
+			/*local*/GtNode  Node = GtStatic.ApplyTypeFunc(ParsedTree.Pattern.TypeFunc, Gamma, ParsedTree, Gamma.VoidType);
+			/*local*/Node = Gamma.TypeCheckSingleNode(ParsedTree, Node, Gamma.VoidType, DefaultTypeCheckPolicy);
 			if(Node instanceof ConstNode) {
 				continue;
 			}
@@ -3054,7 +3054,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		TokenContext.SkipIndent();
 		if(TokenContext.MatchToken("as")) {
 			/*local*/GtToken Token = TokenContext.Next();
-			FuncDeclTree.ConstValue = Token.ParsedText;
+			FuncDeclTree.ConstValue = LibGreenTea.UnquoteString(Token.ParsedText);
 		}
 		else {
 			FuncDeclTree.SetMatchedPatternAt(FuncDeclBlock, NameSpace, TokenContext, "$Block$", Optional);
