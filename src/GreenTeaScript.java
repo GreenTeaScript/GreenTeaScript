@@ -470,7 +470,7 @@ class GtStatic implements GtConst {
 	public final static GtSyntaxTree ParseExpression(GtNameSpace NameSpace, GtTokenContext TokenContext) {
 		/*local*/GtSyntaxPattern Pattern = TokenContext.GetFirstPattern();
 		/*local*/GtSyntaxTree LeftTree = GtStatic.ApplySyntaxPattern(NameSpace, TokenContext, null, Pattern);
-		while(!GtStatic.IsEmptyOrError(LeftTree) && !TokenContext.MatchToken(";")) {
+		while(!GtStatic.IsEmptyOrError(LeftTree) && !TokenContext.MatchToken(";")) {  // IMIFU
 			/*local*/GtSyntaxPattern ExtendedPattern = TokenContext.GetExtendedPattern();
 			if(ExtendedPattern == null) {
 				//LibGreenTea.DebugP("In $Expression$ ending: " + TokenContext.GetToken());
@@ -847,7 +847,7 @@ final class GtTokenContext extends GtStatic {
 		return null;
 	}
 
-	public boolean MatchToken(String TokenText) {
+	public final boolean MatchToken(String TokenText) {
 		/*local*/GtToken Token = this.GetToken();
 		if(Token.EqualsText(TokenText)) {
 			this.CurrentPosition += 1;
@@ -856,6 +856,19 @@ final class GtTokenContext extends GtStatic {
 		return false;
 	}
 
+	public final boolean MatchIndentToken(String TokenText) {
+		/*local*/int RollbackPosition = this.CurrentPosition;
+		/*local*/GtToken Token = this.Next();
+		while(Token.IsIndent()) {
+			Token = this.Next();
+		}
+		if(Token.EqualsText(TokenText)) {
+			return true;
+		}
+		this.CurrentPosition = RollbackPosition;
+		return false;
+	}
+	
 	public GtToken GetMatchedToken(String TokenText) {
 		/*local*/GtToken Token = this.GetToken();
 		while(Token != GtTokenContext.NullToken) {
@@ -929,8 +942,8 @@ final class GtTokenContext extends GtStatic {
 	}
 
 	public final void SkipEmptyStatement() {
-		/*local*/GtToken Token = null;
-		while((Token = this.GetToken()) != GtTokenContext.NullToken) {
+		while(this.HasNext()) {
+			/*local*/GtToken Token = this.GetToken();
 			if(Token.IsIndent() || Token.IsDelim()) {
 				this.CurrentPosition += 1;
 				continue;
@@ -941,18 +954,21 @@ final class GtTokenContext extends GtStatic {
 	}
 
 	public final void SkipIncompleteStatement() {
-		/*local*/GtToken Token = this.GetToken();
-		if(!Token.IsIndent() && !Token.IsDelim()  && Token != GtTokenContext.NullToken) {
-			this.TopLevelNameSpace.Context.ReportError(ErrorLevel, Token, "needs ;");
-			this.CurrentPosition += 1;
-			while((Token = this.GetToken()) != GtTokenContext.NullToken) {
-				if(Token.IsIndent() || Token.IsDelim()) {
-					break;
-				}
+		if(this.HasNext()) {
+			/*local*/GtToken Token = this.GetToken();
+			if(!Token.IsIndent() && !Token.IsDelim()) {
+				this.TopLevelNameSpace.Context.ReportError(WarningLevel, Token, "needs ;");
 				this.CurrentPosition += 1;
+				while(this.HasNext()) {
+					Token = this.GetToken();
+					if(Token.IsIndent() || Token.IsDelim()) {
+						break;
+					}
+					this.CurrentPosition += 1;
+				}
 			}
+			this.SkipEmptyStatement();
 		}
-		this.SkipEmptyStatement();
 	}
 
 	public final String Stringfy(String PreText, int BeginIdx, int EndIdx) {
@@ -2646,18 +2662,20 @@ final class GreenTeaGrammar extends GtGrammar {
 
 	// If Statement
 	public static GtSyntaxTree ParseIf(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		/*local*/int ParseFlag = TokenContext.ParseFlag;
-		TokenContext.ParseFlag |= SkipIndentParseFlag;
 		/*local*/GtToken Token = TokenContext.GetMatchedToken("if");
 		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
 		NewTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "(", Required);
+		/*local*/int ParseFlag = TokenContext.ParseFlag;
+		TokenContext.ParseFlag |= SkipIndentParseFlag;
 		NewTree.SetMatchedPatternAt(IfCond, NameSpace, TokenContext, "$Expression$", Required);
 		NewTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ")", Required);
+		TokenContext.ParseFlag = ParseFlag;
+		TokenContext.SkipIndent();
 		NewTree.SetMatchedPatternAt(IfThen, NameSpace, TokenContext, "$Statement$", Required);
-		if(TokenContext.MatchToken("else")) {
+		if(TokenContext.MatchIndentToken("else")) {
+			TokenContext.SkipIndent();
 			NewTree.SetMatchedPatternAt(IfElse, NameSpace, TokenContext, "$Statement$", Required);
 		}
-		TokenContext.ParseFlag = ParseFlag;
 		return NewTree;
 	}
 
@@ -3763,6 +3781,7 @@ final class GtContext extends GtStatic {
 			else if(Level == InfoLevel) {
 				Message = "(info) " + this.GetSourcePosition(Token.FileLine) + " " + Message;
 			}
+			LibGreenTea.DebugP(Message);
 			this.ReportedErrorList.add(Message);
 		}
 	}
