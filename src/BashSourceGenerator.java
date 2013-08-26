@@ -204,6 +204,23 @@ public class BashSourceGenerator extends SourceGenerator {
 			this.PushSourceCode(this.JoinCode(Node.Func.GetNativeFuncName() + " ", 0, ParamCode, "", " "));
 		}
 	}
+	
+	@Override public void VisitUnaryNode(UnaryNode Node) {
+		/*local*/String FuncName = Node.Token.ParsedText;
+		/*local*/GtFunc Func = Node.Func;
+		/*local*/String Expr = this.VisitNode(Node.Expr);
+		/*local*/String Macro = null;
+		if(Func != null) {
+			FuncName = Func.GetNativeFuncName();
+			if(IsFlag(Func.FuncFlag, NativeMacroFunc)) {
+				Macro = Func.GetNativeMacro();
+			}
+		}
+		if(Macro == null) {
+			Macro = "((" + FuncName + " $1))";
+		}
+		this.PushSourceCode(Macro.replace("$1", Expr));
+	}
 
 	@Override public void VisitBinaryNode(BinaryNode Node) {
 		/*local*/String FuncName = Node.Token.ParsedText;
