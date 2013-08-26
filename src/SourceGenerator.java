@@ -88,7 +88,7 @@ class GtNode extends GtStatic {
 
 	public Object ToConstValue(boolean EnforceConst)  {
 		if(EnforceConst) {
-			LibGreenTea.DebugP("node type=" + this.getClass().getName());
+			LibGreenTea.DebugP("node type=" + LibGreenTea.GetClassName(this));
 			this.Type.Context.ReportError(ErrorLevel, this.Token, "not statically valued");
 		}
 		return null;

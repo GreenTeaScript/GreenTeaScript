@@ -28,8 +28,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 //endif VAJA
 
-import javax.xml.stream.events.Namespace;
-
 //ifdef JAVA
 interface GtConst {
 //endif VAJA
@@ -1178,9 +1176,9 @@ class GtSyntaxTree extends GtStatic {
 		while(ParsedTree != null) {
 			/*local*/GtNode  Node = GtStatic.ApplyTypeFunc(ParsedTree.Pattern.TypeFunc, Gamma, ParsedTree, Gamma.VoidType);
 			/*local*/Node = Gamma.TypeCheckSingleNode(ParsedTree, Node, Gamma.VoidType, DefaultTypeCheckPolicy);
-			if(Node instanceof ConstNode) {
-				continue;
-			}
+//			if(Node instanceof ConstNode) { // FIXME IMIFU
+//				continue;
+//			}
 			/*local*/LastNode = GtStatic.LinkNode(LastNode, Node);
 			if(Node.IsError()) {
 				break;
@@ -3043,7 +3041,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		else {
 			FuncDeclTree.SetMatchedPatternAt(FuncDeclBlock, NameSpace, TokenContext, "$Block$", Optional);
 			if(FuncDeclTree.HasNodeAt(FuncDeclBlock)) {
-				GtSyntaxTree ReturnTree = new GtSyntaxTree(NameSpace.GetPattern("return"), NameSpace, GtTokenContext.NullToken, null);
+				/*local*/GtSyntaxTree ReturnTree = new GtSyntaxTree(NameSpace.GetPattern("return"), NameSpace, GtTokenContext.NullToken, null);
 				GtStatic.LinkTree(FuncDeclTree.GetSyntaxTreeAt(FuncDeclBlock), ReturnTree);
 			}
 		}
