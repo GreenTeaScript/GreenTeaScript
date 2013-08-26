@@ -893,7 +893,7 @@ final class GtTokenContext extends GtStatic {
 		return Annotation;
 	}
 
-	public final boolean SkipEmptyStatement() {
+	public final void SkipEmptyStatement() {
 		/*local*/GtToken Token = null;
 		while((Token = this.GetToken()) != GtTokenContext.NullToken) {
 			if(Token.IsIndent() || Token.IsDelim()) {
@@ -902,10 +902,10 @@ final class GtTokenContext extends GtStatic {
 			}
 			break;
 		}
-		return (Token != GtTokenContext.NullToken);
+//		return (Token != GtTokenContext.NullToken);
 	}
 
-	public final boolean SkipStatement() {
+	public final void SkipIncompleteStatement() {
 		/*local*/GtToken Token = this.GetToken();
 		if(!Token.IsIndent() && !Token.IsDelim()) {
 			this.TopLevelNameSpace.Context.ReportError(ErrorLevel, Token, "needs ;");
@@ -917,7 +917,7 @@ final class GtTokenContext extends GtStatic {
 				this.CurrentPosition += 1;
 			}
 		}
-		return this.SkipEmptyStatement();
+		this.SkipEmptyStatement();
 	}
 
 	public final String Stringfy(String PreText, int BeginIdx, int EndIdx) {
@@ -1763,7 +1763,7 @@ final class GtNameSpace extends GtStatic {
 			/*local*/GtTypeEnv Gamma = new GtTypeEnv(this);
 			/*local*/GtNode Node = TopLevelTree.TypeCheck(Gamma, Gamma.VoidType, DefaultTypeCheckPolicy);
 			ResultValue = Node.ToConstValue(true/*EnforceConst*/);
-			TokenContext.SkipStatement();
+			TokenContext.SkipIncompleteStatement();
 			TokenContext.Vacume();
 		}
 		this.Context.Generator.FinishCompilationUnit();
@@ -1837,7 +1837,12 @@ final class GreenTeaGrammar extends GtGrammar {
 		//TokenContext.AddNewToken(SourceText.substring(pos), SourceTokenFlag, null);
 		//return SourceText.length();
 	}
-
+	
+	public static int SemiColonToken(GtTokenContext TokenContext, String SourceText, int pos) {
+		TokenContext.AddNewToken(SourceText.substring(pos, pos+1), DelimTokenFlag, null);
+		return pos+1;
+	}
+	
 	public static int SymbolToken(GtTokenContext TokenContext, String SourceText, int pos) {
 		/*local*/int start = pos;
 		while(pos < SourceText.length()) {
@@ -2628,7 +2633,7 @@ final class GreenTeaGrammar extends GtGrammar {
 				if(GtStatic.IsEmptyOrError(CurrentTree)) {
 					return CurrentTree;
 				}
-				TokenContext.SkipStatement();  // check; and skip empty statement
+				TokenContext.SkipIncompleteStatement();  // check; and skip empty statement
 				CurrentTree.SetAnnotation(Annotation);
 				PrevTree = GtStatic.LinkTree(PrevTree, CurrentTree);
 			}
@@ -2893,7 +2898,8 @@ final class GreenTeaGrammar extends GtGrammar {
 		/*local*/GtSyntaxTree PrevTree = null;
 		/*local*/GtNameSpace NameSpace = new GtNameSpace(ParentNameSpace.Context, ParentNameSpace);
 		/*local*/boolean IsCaseBlock = TokenContext.MatchToken("{"); // case EXPR : {}
-		while(TokenContext.SkipEmptyStatement()) {
+		while(TokenContext.HasNext()) {
+			TokenContext.SkipEmptyStatement();
 			if(TokenContext.MatchToken("case")) {
 				TokenContext.CurrentPosition -= 1;
 				break;
@@ -3474,7 +3480,8 @@ final class GreenTeaGrammar extends GtGrammar {
 
 		NameSpace.DefineTokenFunc(" \t", FunctionA(this, "WhiteSpaceToken"));
 		NameSpace.DefineTokenFunc("\n",  FunctionA(this, "IndentToken"));
-		NameSpace.DefineTokenFunc("{}()[]<>.,:;+-*/%=&|!@~^", FunctionA(this, "OperatorToken"));
+		NameSpace.DefineTokenFunc(";", FunctionA(this, "SemiColonToken"));
+		NameSpace.DefineTokenFunc("{}()[]<>.,:+-*/%=&|!@~^", FunctionA(this, "OperatorToken"));
 		NameSpace.DefineTokenFunc("/", FunctionA(this, "CommentToken"));  // overloading
 		NameSpace.DefineTokenFunc("Aa", FunctionA(this, "SymbolToken"));
 		NameSpace.DefineTokenFunc("Aa-/1.<>|", FunctionA(this, "SymbolShellToken")); // overloading
