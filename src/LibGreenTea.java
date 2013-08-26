@@ -113,12 +113,17 @@ public abstract class LibGreenTea {
 	public static final String UnquoteString(String Text) {
 		StringBuilder sb = new StringBuilder();
 		/*local*/char quote = LibGreenTea.CharAt(Text, 0);
-		/*local*/int i = (quote == '"' || quote == '\'') ? 1 : 0;
-		while(i < Text.length()) {
+		/*local*/int i = 0;
+		/*local*/int Length = Text.length();
+		if(quote == '"' || quote == '\'') {
+			i = 1;
+			Length -= 1;
+		}
+		else {
+			quote = '\0';
+		}
+		while(i < Length) {
 			/*local*/char ch = LibGreenTea.CharAt(Text, i);
-			if(ch == quote) {  // end
-				break;
-			}
 			if(ch == '\\') {
 				i = i + 1;
 				char next = LibGreenTea.CharAt(Text, i);
@@ -183,6 +188,18 @@ public abstract class LibGreenTea {
 
 	public final static long ParseInt(String Text) {
 		return Long.parseLong(Text);
+	}
+	
+	public final static boolean IsUnixCommand(String cmd) {
+		String[] path = System.getenv("PATH").split(":");
+		int i = 0;
+		while(i < path.length) {
+			if(LibGreenTea.HasFile(path[i] + "/" + cmd)) {
+				return true;
+			}
+			i = i + 1;
+		}
+		return false;
 	}
 
 	public final static GtType GetNativeType(GtClassContext Context, Object Value) {

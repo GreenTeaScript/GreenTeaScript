@@ -922,8 +922,6 @@ class GtFunc extends GtStatic {
 
 	public final String GetNativeMacro() {
 		/*local*/String NativeMacro = (/*cast*/String)this.NativeRef;
-		NativeMacro = NativeMacro.substring(1, NativeMacro.length() - 1); // remove ""
-		// FIXME
 		return NativeMacro;
 	}
 
@@ -1313,9 +1311,11 @@ class GtGenerator extends GtStatic {
 	public final Object ImportNativeObject(String PackageName) {
 //ifdef JAVA
 		try {
+			LibGreenTea.VerboseLog(VerboseNative, "importing " + PackageName);
 			/*local*/Class<?> NativeClass = Class.forName(PackageName);
 			return LibGreenTea.GetNativeType(this.Context, NativeClass);
 		} catch (ClassNotFoundException e) {
+			
 		}
 		int Index = PackageName.lastIndexOf(".");
 		if(Index != -1) {

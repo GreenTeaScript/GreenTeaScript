@@ -358,14 +358,9 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitCommandNode(CommandNode Node) {
 		/*local*/String Code = "";
-		/*local*/int count = 0;
 		/*local*/CommandNode CurrentNode = Node;
 		while(CurrentNode != null) {
-			if(count > 0) {
-				Code += " | ";
-			}
 			Code += this.AppendCommand(CurrentNode);
-			count += 1;
 			CurrentNode = (/*cast*/CommandNode) CurrentNode.PipedNextNode;
 		}
 		this.PushSourceCode(this.CreateCommandFunc(Code, Node.Type));
