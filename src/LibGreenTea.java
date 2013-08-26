@@ -226,7 +226,9 @@ public abstract class LibGreenTea {
 		}
 		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
 		TypeList.add(LibGreenTea.GetNativeType(Context, JavaMethod.getReturnType()));
-		TypeList.add(LibGreenTea.GetNativeType(Context, JavaMethod.getClass()));
+		if(!Modifier.isStatic(JavaMethod.getModifiers())) {
+			TypeList.add(LibGreenTea.GetNativeType(Context, JavaMethod.getDeclaringClass()));
+		}
 		/*local*/Class<?>[] ParamTypes = JavaMethod.getParameterTypes();
 		if(ParamTypes != null) {
 			for(int j = 0; j < ParamTypes.length; j++) {
@@ -255,12 +257,12 @@ public abstract class LibGreenTea {
 							if(StaticMethodOnly && !Modifier.isStatic(Methods[i].getModifiers())) {
 								continue;
 							}
+							if(FoundMethod != null) {
+								LibGreenTea.VerboseLog(GtStatic.VerboseUndefined, "overloaded method: " + FullName);
+								return FoundMethod; // return the first one
+							}
+							FoundMethod = Methods[i];
 						}
-						if(FoundMethod != null) {
-							LibGreenTea.VerboseLog(GtStatic.VerboseUndefined, "overloaded method: " + FullName);
-							return FoundMethod; // return the first one
-						}
-						FoundMethod = Methods[i];
 					}
 				}
 			} catch (ClassNotFoundException e) {

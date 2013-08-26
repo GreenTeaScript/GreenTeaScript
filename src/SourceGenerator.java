@@ -926,8 +926,7 @@ class GtFunc extends GtStatic {
 	}
 
 	public final String GetNativeMacro() {
-		/*local*/String NativeMacro = (/*cast*/String)this.NativeRef;
-		return NativeMacro;
+		return (/*cast*/String)this.NativeRef;
 	}
 
 	public final String ApplyNativeMacro(int BaseIndex, String[] ParamCode) {
