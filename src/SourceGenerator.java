@@ -87,6 +87,9 @@ class GtNode extends GtStatic {
 	}
 
 	public Object ToConstValue(boolean EnforceConst)  {
+		if(EnforceConst) {
+			this.Type.Context.ReportError(ErrorLevel, this.Token, "not statically valued");
+		}
 		return null;
 	}
 

@@ -905,6 +905,21 @@ final class GtTokenContext extends GtStatic {
 		return (Token != GtTokenContext.NullToken);
 	}
 
+	public final boolean SkipStatement() {
+		/*local*/GtToken Token = this.GetToken();
+		if(!Token.IsIndent() && !Token.IsDelim()) {
+			this.TopLevelNameSpace.Context.ReportError(ErrorLevel, Token, "needs ;");
+			this.CurrentPosition += 1;
+			while((Token = this.GetToken()) != GtTokenContext.NullToken) {
+				if(Token.IsIndent() || Token.IsDelim()) {
+					break;
+				}
+				this.CurrentPosition += 1;
+			}
+		}
+		return this.SkipEmptyStatement();
+	}
+
 	public final String Stringfy(String PreText, int BeginIdx, int EndIdx) {
 		/*local*/String Buffer = PreText;
 		/*local*/int Position = BeginIdx;
@@ -1749,13 +1764,13 @@ final class GtNameSpace extends GtStatic {
 			TopLevelTree.SetAnnotation(Annotation);
 			/*local*/GtTypeEnv Gamma = new GtTypeEnv(this);
 			/*local*/GtNode Node = TopLevelTree.TypeCheck(Gamma, Gamma.VoidType, DefaultTypeCheckPolicy);
-			if(Node instanceof ConstNode || Node instanceof EmptyNode) {
-				ResultValue = Node.ToConstValue(true/*EnforceConst*/);
-			}
-			else {
-				ResultValue = this.Context.Generator.Eval(Node);
-			}
-			TokenContext.SkipEmptyStatement();
+//			if(Node instanceof ConstNode || Node instanceof EmptyNode) {
+			ResultValue = Node.ToConstValue(true/*EnforceConst*/);
+//			}
+//			else {
+//				ResultValue = this.Context.Generator.Eval(Node);
+//			}
+			TokenContext.SkipStatement();
 			TokenContext.Vacume();
 		}
 		this.Context.Generator.FinishCompilationUnit();
