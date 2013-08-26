@@ -1,7 +1,7 @@
 // written by kimio kuramitsu
 
-const MAX=10
-const NAME="konoha";
+let MAX=10
+let NAME="konoha";
 
 @Export
 int main() {
