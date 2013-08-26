@@ -114,17 +114,16 @@ public abstract class LibGreenTea {
 		StringBuilder sb = new StringBuilder();
 		/*local*/char quote = LibGreenTea.CharAt(Text, 0);
 		/*local*/int i = 0;
+		/*local*/int Length = Text.length();
 		if(quote == '"' || quote == '\'') {
 			i = 1;
+			Length -= 1;
 		}
 		else {
 			quote = '\0';
 		}
-		while(i < Text.length()) {
+		while(i < Length) {
 			/*local*/char ch = LibGreenTea.CharAt(Text, i);
-			if(ch == quote) {  // end
-				break;
-			}
 			if(ch == '\\') {
 				i = i + 1;
 				char next = LibGreenTea.CharAt(Text, i);

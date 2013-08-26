@@ -922,8 +922,6 @@ class GtFunc extends GtStatic {
 
 	public final String GetNativeMacro() {
 		/*local*/String NativeMacro = (/*cast*/String)this.NativeRef;
-		NativeMacro = NativeMacro.substring(1, NativeMacro.length() - 1); // remove ""
-		// FIXME
 		return NativeMacro;
 	}
 
