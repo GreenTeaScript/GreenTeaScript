@@ -1,0 +1,31 @@
+// written by kimio kuramitsu
+
+boolean TestFunc() {  /* this is sample */
+	int a = 0;
+	a = 1;
+	assert(a==1);
+	if(a==1) a = 2;
+	assert(a==2);
+	a = 3;
+	assert(a==3);
+	return true;
+}
+
+boolean TestFunc2() { /* this is no semi colon*/
+        int a = 0
+        a = 1
+        assert(a==1)
+        if(a==1) a = 2
+        assert(a==2)
+        a = 3
+        assert(a==3)
+        return true
+}
+
+@Export
+int main() {
+	assert(TestFunc());
+	assert(TestFunc2());
+	return 0;
+}
+
