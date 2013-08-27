@@ -42,11 +42,11 @@ interface GtConst {
 	public final static String  License = "BSD-Style Open Source";
 
 	// ClassFlag
-	public final static int		NativeClass	     				= 1 << 0;
-	public final static int		InterfaceClass				   	= 1 << 1;
-	public final static int		DynamicClass				    = 1 << 2;
-	public final static int     EnumClass                       = 1 << 3;
-	public final static int     OpenClass                       = 1 << 4;
+	public final static int		NativeClass	     	= 1 << 0;
+	public final static int		InterfaceClass		= 1 << 1;
+	public final static int		DynamicClass	    = 1 << 2;
+	public final static int     EnumClass           = 1 << 3;
+	public final static int     OpenClass           = 1 << 4;
 
 	// FuncFlag
 	public final static int     PublicFunc          = 1 << 0;
@@ -230,20 +230,20 @@ interface GtConst {
 	public final static int BinaryOperator					= 1;
 	public final static int LeftJoin						= 1 << 1;
 	public final static int PrecedenceShift					= 3;
-	//	Precedence_CppMember      = 300;  /* .x ->x */
-	public final static int Precedence_CStyleMUL			= (400 << PrecedenceShift);				/* x * x; x / x; x % x*/
-	public final static int Precedence_CStyleADD			= (500 << PrecedenceShift);				/* x + x; x - x */
-	public final static int Precedence_CStyleSHIFT			= (600 << PrecedenceShift);				/* x << x; x >> x */
-	public final static int Precedence_CStyleCOMPARE		= (700 << PrecedenceShift);
-	public final static int Precedence_CStyleEquals			= (800 << PrecedenceShift);
-	public final static int Precedence_CStyleBITAND			= (900 << PrecedenceShift);
-	public final static int Precedence_CStyleBITXOR			= (1000 << PrecedenceShift);
-	public final static int Precedence_CStyleBITOR			= (1100 << PrecedenceShift);
-	public final static int Precedence_CStyleAND			= (1200 << PrecedenceShift);
-	public final static int Precedence_CStyleOR				= (1300 << PrecedenceShift);
-	public final static int Precedence_CStyleTRINARY		= (1400 << PrecedenceShift);				/* ? : */
-	public final static int Precedence_CStyleAssign			= (1500 << PrecedenceShift);
-	public final static int Precedence_CStyleCOMMA			= (1600 << PrecedenceShift);
+	public final static int PrecedenceCStyleMUL			    = (100 << PrecedenceShift) | BinaryOperator;
+	public final static int PrecedenceCStyleADD			    = (200 << PrecedenceShift) | BinaryOperator;	
+	public final static int PrecedenceCStyleSHIFT			= (300 << PrecedenceShift) | BinaryOperator;	
+	public final static int PrecedenceCStyleCOMPARE		    = (400 << PrecedenceShift) | BinaryOperator;
+	public final static int PrecedenceInstanceof            = PrecedenceCStyleCOMPARE;
+	public final static int PrecedenceCStyleEquals			= (500 << PrecedenceShift) | BinaryOperator;
+	public final static int PrecedenceCStyleBITAND			= (600 << PrecedenceShift) | BinaryOperator;
+	public final static int PrecedenceCStyleBITXOR			= (700 << PrecedenceShift) | BinaryOperator;
+	public final static int PrecedenceCStyleBITOR			= (800 << PrecedenceShift) | BinaryOperator;
+	public final static int PrecedenceCStyleAND			    = (900 << PrecedenceShift) | BinaryOperator;
+	public final static int PrecedenceCStyleOR				= (1000 << PrecedenceShift) | BinaryOperator;
+	public final static int PrecedenceCStyleTRINARY		    = (1100 << PrecedenceShift) | BinaryOperator;				/* ? : */
+	public final static int PrecedenceCStyleAssign			= (1200 << PrecedenceShift) | BinaryOperator;
+	public final static int PrecedenceCStyleCOMMA			= (1300 << PrecedenceShift) | BinaryOperator;
 
 	public final static int DefaultTypeCheckPolicy			= 0;
 	public final static int NoCheckPolicy                   = 1;
@@ -3520,7 +3520,6 @@ final class GreenTeaGrammar extends GtGrammar {
 		GtDelegateMatch ParseBinary    = FunctionB(this, "ParseBinary");
 		GtDelegateType  TypeBinary     = FunctionC(this, "TypeBinary");
 		GtDelegateType  TypeConst      = FunctionC(this, "TypeConst");
-//		GtDelegateType  TypeBlock      = FunctionC(this, "TypeBlock");
 //endif VAJA
 		NameSpace.AppendSyntax("+", ParseUnary, TypeUnary);
 		NameSpace.AppendSyntax("-", ParseUnary, TypeUnary);
@@ -3528,33 +3527,24 @@ final class GreenTeaGrammar extends GtGrammar {
 		NameSpace.AppendSyntax("! not", ParseUnary, TypeUnary);
 		NameSpace.AppendSyntax("++ --", FunctionB(this, "ParseIncl"), FunctionC(this, "TypeIncl"));
 
-		NameSpace.AppendExtendedSyntax("*", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeBinary);
-		NameSpace.AppendExtendedSyntax("/", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeBinary);
-		NameSpace.AppendExtendedSyntax("% mod", BinaryOperator | Precedence_CStyleMUL, ParseBinary, TypeBinary);
+		NameSpace.AppendExtendedSyntax("* / % mod", PrecedenceCStyleMUL, ParseBinary, TypeBinary);
+		NameSpace.AppendExtendedSyntax("+ -", PrecedenceCStyleADD, ParseBinary, TypeBinary);
 
-		NameSpace.AppendExtendedSyntax("+", BinaryOperator | Precedence_CStyleADD, ParseBinary, TypeBinary);
-		NameSpace.AppendExtendedSyntax("-", BinaryOperator | Precedence_CStyleADD, ParseBinary, TypeBinary);
+		NameSpace.AppendExtendedSyntax("< <= > >=", PrecedenceCStyleCOMPARE, ParseBinary, TypeBinary);
+		NameSpace.AppendExtendedSyntax("== !=", PrecedenceCStyleEquals, ParseBinary, TypeBinary);
 
-		NameSpace.AppendExtendedSyntax("<", BinaryOperator | Precedence_CStyleCOMPARE, ParseBinary, TypeBinary);
-		NameSpace.AppendExtendedSyntax("<=", BinaryOperator | Precedence_CStyleCOMPARE, ParseBinary, TypeBinary);
-		NameSpace.AppendExtendedSyntax(">", BinaryOperator | Precedence_CStyleCOMPARE, ParseBinary, TypeBinary);
-		NameSpace.AppendExtendedSyntax(">=", BinaryOperator | Precedence_CStyleCOMPARE, ParseBinary, TypeBinary);
-		NameSpace.AppendExtendedSyntax("==", BinaryOperator | Precedence_CStyleEquals, ParseBinary, TypeBinary);
-		NameSpace.AppendExtendedSyntax("!=", BinaryOperator | Precedence_CStyleEquals, ParseBinary, TypeBinary);
+		NameSpace.AppendExtendedSyntax("<< >>", PrecedenceCStyleSHIFT, ParseBinary, TypeBinary);
+		NameSpace.AppendExtendedSyntax("&", PrecedenceCStyleBITAND, ParseBinary, TypeBinary);
+		NameSpace.AppendExtendedSyntax("|", PrecedenceCStyleBITOR, ParseBinary, TypeBinary);
+		NameSpace.AppendExtendedSyntax("^", PrecedenceCStyleBITXOR, ParseBinary, TypeBinary);
 
-		NameSpace.AppendExtendedSyntax("<<", BinaryOperator | Precedence_CStyleSHIFT, ParseBinary, TypeBinary);
-		NameSpace.AppendExtendedSyntax(">>", BinaryOperator | Precedence_CStyleSHIFT, ParseBinary, TypeBinary);
-		NameSpace.AppendExtendedSyntax("&", BinaryOperator | Precedence_CStyleBITAND, ParseBinary, TypeBinary);
-		NameSpace.AppendExtendedSyntax("|", BinaryOperator | Precedence_CStyleBITOR, ParseBinary, TypeBinary);
-		NameSpace.AppendExtendedSyntax("^", BinaryOperator | Precedence_CStyleBITXOR, ParseBinary, TypeBinary);
-
-		NameSpace.AppendExtendedSyntax("=", BinaryOperator | Precedence_CStyleAssign | LeftJoin, ParseBinary, FunctionC(this, "TypeAssign"));
-		NameSpace.AppendExtendedSyntax("+= -= *= /= %= <<= >>= & | ^=", BinaryOperator | Precedence_CStyleAssign, ParseBinary, FunctionC(this, "TypeSelfAssign"));
+		NameSpace.AppendExtendedSyntax("=", PrecedenceCStyleAssign | LeftJoin, ParseBinary, FunctionC(this, "TypeAssign"));
+		NameSpace.AppendExtendedSyntax("+= -= *= /= %= <<= >>= & | ^=", PrecedenceCStyleAssign, ParseBinary, FunctionC(this, "TypeSelfAssign"));
 		NameSpace.AppendExtendedSyntax("++ --", 0, FunctionB(this, "ParseIncl"), FunctionC(this, "TypeIncl"));
 
-		NameSpace.AppendExtendedSyntax("&& and", BinaryOperator | Precedence_CStyleAND, ParseBinary, FunctionC(this, "TypeAnd"));
-		NameSpace.AppendExtendedSyntax("|| or", BinaryOperator | Precedence_CStyleOR, ParseBinary, FunctionC(this, "TypeOr"));
-		NameSpace.AppendExtendedSyntax("<: instanceof", BinaryOperator | Precedence_CStyleBITXOR, ParseBinary, FunctionC(this, "TypeInstanceOf"));
+		NameSpace.AppendExtendedSyntax("&& and", PrecedenceCStyleAND, ParseBinary, FunctionC(this, "TypeAnd"));
+		NameSpace.AppendExtendedSyntax("|| or", PrecedenceCStyleOR, ParseBinary, FunctionC(this, "TypeOr"));
+		NameSpace.AppendExtendedSyntax("<: instanceof", PrecedenceInstanceof, ParseBinary, FunctionC(this, "TypeInstanceOf"));
 
 		NameSpace.AppendExtendedSyntax("?", 0, FunctionB(this, "ParseTrinary"), FunctionC(this, "TypeTrinary"));
 
