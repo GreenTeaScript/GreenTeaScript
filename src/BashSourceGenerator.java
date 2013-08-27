@@ -37,7 +37,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		super(TargetCode, OutputFile, GeneratorFlag);
 		this.TrueLiteral  = "0";
 		this.FalseLiteral = "1";
-		this.NullLiteral = "NULL";
+		this.NullLiteral = this.Quote("__NULL__");
 		this.MemberAccessOperator = "__MEMBER__";
 	}
 
@@ -208,13 +208,8 @@ public class BashSourceGenerator extends SourceGenerator {
 	@Override public void VisitUnaryNode(UnaryNode Node) {
 		/*local*/String FuncName = Node.Token.ParsedText;
 		/*local*/GtFunc Func = Node.Func;
-		/*local*/String Expr = this.VisitNode(Node.Expr);
+		/*local*/String Expr = this.ResolveValueType(Node.Expr, false);	//TODO: support ++ --
 		/*local*/String Macro = null;
-		
-		if(Node.Type.equals(Node.Type.Context.BooleanType)) {
-			Expr = this.ResolveValueType(Node.Expr, false);
-		}
-		
 		if(Func != null) {
 			FuncName = Func.GetNativeFuncName();
 			if(IsFlag(Func.FuncFlag, NativeMacroFunc)) {

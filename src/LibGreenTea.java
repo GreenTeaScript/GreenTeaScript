@@ -617,6 +617,9 @@ public abstract class LibGreenTea {
 			if(Operator.equals("+")) {
 				return EvalCast(Type, +((Number)Value).longValue());
 			}
+			if(Operator.equals("~")) {
+				return EvalCast(Type, ~((Number)Value).longValue());
+			}
 			return null;
 		}
 		return null;
