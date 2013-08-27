@@ -1,0 +1,17 @@
+// written by kimio kuramitsu
+
+let MAX=10;
+
+int TestFunc() {
+	int MAX=11;
+	return MAX;
+}
+
+@Export
+int main() {
+	assert(MAX==10);
+	assert(TestFunc() == 11);
+	assert(MAX==10);
+	return 0;
+}
+
