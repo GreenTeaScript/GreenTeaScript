@@ -40,8 +40,14 @@ $(function () {
 		}
 	}
 
+	var timer = null;
+
 	editor_gs.on("change", function(cm, obj) {
-		Generate();
+		if(timer){
+			clearTimeout(timer);
+			timer = null;
+		}
+		timer = setTimeout(Generate, 200);
 	});
 
 	var TargetNames   = ["JavaScript", /*"Java",*/ "Perl", "Python", "Bash", "C"];
@@ -53,6 +59,10 @@ $(function () {
 			PlayGround_CodeGenTarget = TargetOptions[n];
 			$('li.active').removeClass("active");
 			Target.parent().addClass("active");
+			if(timer){
+				clearTimeout(timer);
+				timer = null;
+			}
 			Generate();
 		});
 	}
