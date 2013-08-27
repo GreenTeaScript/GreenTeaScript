@@ -507,12 +507,6 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
-		//FIXME -n
-//		if(Node.Params.size() == 1 && Node.Token.EqualsText("-")) {
-//			Node.Params.get(0).Evaluate(this);
-//			this.Builder.AsmMethodVisitor.visitInsn(INEG);
-//			return;
-//		}
 		GtFunc Func = Node.Func;
 		for(int i = 1; i < Node.Params.size(); i++) {
 			GtNode ParamNode = Node.Params.get(i);
@@ -552,85 +546,41 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		}
 	}
 
-	Map<String, Integer> opInstMap = new HashMap<String, Integer>();
-	Map<String, Integer> relInstMap = new HashMap<String, Integer>();
-	{
-		opInstMap.put("+", IADD);
-		opInstMap.put("-", ISUB);
-		opInstMap.put("*", IMUL);
-		opInstMap.put("/", IDIV);
-		opInstMap.put("%", IREM);
-		opInstMap.put("<<", ISHL);
-		opInstMap.put(">>", ISHR);
-		relInstMap.put("==", IF_ICMPEQ);
-		relInstMap.put("!=", IF_ICMPNE);
-		relInstMap.put("<" , IF_ICMPLT);
-		relInstMap.put("<=", IF_ICMPLE);
-		relInstMap.put(">" , IF_ICMPGT);
-		relInstMap.put(">=", IF_ICMPGE);
+	private char GetOpDesc(Type type) {
+		// int->I, boolean->Z, Object->L
+		return type.getDescriptor().charAt(0);
 	}
 
 	@Override public void VisitBinaryNode(BinaryNode Node) {
 		Node.LeftNode.Evaluate(this);
 		Node.RightNode.Evaluate(this);
-
-		String methodName = Node.Token.ParsedText;
-		Integer inst = opInstMap.get(methodName);
-		if(inst != null) {
-			Type rightType = this.Builder.typeStack.pop();
-			Type leftType = this.Builder.typeStack.pop();
-			if(inst == IADD && leftType.equals(Type.getType(String.class))) {
-				this.Builder.typeStack.push(rightType);
-				this.Builder.box();
-				String owner = this.Builder.typeStack.pop().getInternalName();
-				this.Builder.typeStack.push(Type.getType(String.class));
-				this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKEVIRTUAL, owner, "toString", "()Ljava/lang/String;");
-				this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "concat",
-						"(Ljava/lang/String;)Ljava/lang/String;");
-			}
-			else {
-				this.Builder.typeStack.push(Type.INT_TYPE);
-				this.Builder.AsmMethodVisitor.visitInsn(inst);
-			}
+		Type rightType = this.Builder.typeStack.pop();
+		Type leftType = this.Builder.typeStack.pop();
+		String FuncName = Node.Func.FuncName;
+		String OperatorFuncName = "binary_" + FuncName + "_" + GetOpDesc(leftType) + GetOpDesc(rightType);
+		Method m = this.methodMap.get(OperatorFuncName);
+		if(m != null) {
+			String owner = Type.getInternalName(m.getDeclaringClass());
+			this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, owner, m.getName(), Type.getMethodDescriptor(m));
+			this.Builder.typeStack.push(Type.getReturnType(m));
 			return;
+		} else {
+			throw new RuntimeException("unsupport binary operator: " + FuncName);
 		}
-		inst = relInstMap.get(methodName);
-		if(inst != null) {
-			Type t = this.Builder.typeStack.pop();
-			if(t.getDescriptor().startsWith("L")) {
-				String method = null;
-				if(inst == IF_ICMPEQ) method = "eqObject";
-				if(inst == IF_ICMPNE) method = "neObject";
-				this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, Type.getInternalName(StaticMethods.class),
-						method, "(Ljava/lang/Object;Ljava/lang/Object;)Z");
-				return;
-			}
-			this.Builder.typeStack.pop();
-			this.Builder.typeStack.push(Type.BOOLEAN_TYPE);
-
-			Label thenLabel = new Label();
-			Label mergeLabel = new Label();
-			this.Builder.AsmMethodVisitor.visitJumpInsn(inst, thenLabel);
-			this.Builder.AsmMethodVisitor.visitInsn(ICONST_0);
-			this.Builder.AsmMethodVisitor.visitJumpInsn(GOTO, mergeLabel);
-			this.Builder.AsmMethodVisitor.visitLabel(thenLabel);
-			this.Builder.AsmMethodVisitor.visitInsn(ICONST_1);
-			this.Builder.AsmMethodVisitor.visitLabel(mergeLabel);
-			return;
-		}
-		throw new RuntimeException("unsupport binary operator: " + methodName);
 	}
 
 	@Override public void VisitUnaryNode(UnaryNode Node) {
 		Node.Expr.Evaluate(this);
-		GtFunc Func = Node.Func;
-		Method m = this.methodMap.get("unary_" + Func.FuncName);
+		Type type = this.Builder.typeStack.pop();
+		String FuncName = Node.Func.FuncName;
+		String OperatorFuncName = "unary_" + FuncName + "_" + GetOpDesc(type);
+		Method m = this.methodMap.get(OperatorFuncName);
 		if(m != null) {
 			String owner = Type.getInternalName(m.getDeclaringClass());
 			this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, owner, m.getName(), Type.getMethodDescriptor(m));
 			this.Builder.typeStack.push(Type.getReturnType(m));
 		} else {
-			throw new RuntimeException("unsupport unary operator: " + Func.FuncName);
+			throw new RuntimeException("unsupport unary operator: " + FuncName);
 		}
 
 	}
