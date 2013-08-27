@@ -1,0 +1,16 @@
+// written by kimio kuramitsu
+
+int max(int a, int b) {
+	if(a > b) return a;
+	return b;
+}
+
+let MAX = max;
+
+@Export
+int main() {
+	assert(max(10, 20) == 20);
+	assert(MAX(10, 20) == 20);
+	return 0;
+}
+

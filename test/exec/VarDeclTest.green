@@ -1,0 +1,81 @@
+// written by kimio kuramitsu
+
+int TestFunc123() {
+	int a = 123;
+	return a;
+}
+
+int TestFunc0() {
+	int a;
+	return a;
+}
+
+int TestFunc789() {
+	int a, b, c = 789;
+	assert(a == 0);
+	assert(b == 0);
+	assert(c == 789);
+	return c;
+}
+
+int TestFunc1() {
+	int a, b, c;
+	assert(a == 0);
+	assert(b == 0);
+	assert(c == 0);
+	return 1;
+}
+
+int TestFunc15() {
+	int a, b = 6, c = 9;
+	assert(a == 0);
+	assert(b == 6);
+	assert(c == 9);
+	return b+c;
+}
+
+int TestFunc456() {
+	int a, b = 456, c;
+	assert(a == 0);
+	assert(b == 456);
+	assert(c == 0);
+	return b;
+}
+
+int TestFunc10() {
+	int a = 1, b, c = 9;
+	assert(a == 1);
+	assert(b == 0);
+	assert(c == 7);
+	return a + c;
+}
+
+int TestFunc12() {
+	int a = 1, b = 4, c = 7;
+	assert(a == 1);
+	assert(b == 4);
+	assert(c == 7);
+	return 12;
+}
+
+int TestFunc5() {
+	int a = 1, b = 4, c;
+	assert(a == 1);
+	assert(b == 4);
+	assert(c == 0);
+	return a+b;
+}
+
+@Export
+int main() {
+	assert(TestFunc5() == 5);
+	assert(TestFunc12() == 12);
+	assert(TestFunc10() == 10);
+	assert(TestFunc456() == 456);
+	assert(TestFunc15() == 15);
+	assert(TestFunc1() == 1);
+	assert(TestFunc789() == 789);
+	assert(TestFunc0() == 0);
+	assert(TestFunc123() == 123);
+	return 0;
+}
