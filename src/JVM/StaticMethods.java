@@ -12,6 +12,14 @@ public class StaticMethods {
 		assert b;
 	}
 
+	public static int unary_minus(int n) {
+		return -n;
+	}
+
+	public static boolean unary_not(boolean b) {
+		return !b;
+	}
+
 	public static boolean eqObject(Object o1, Object o2) {
 		if(o1 == o2) {
 			return true;
@@ -38,6 +46,8 @@ public class StaticMethods {
 			Class<?> self = StaticMethods.class;
 			map.put("assert",  self.getMethod("assert_", boolean.class));
 			map.put("println", self.getMethod("println", String.class));
+			map.put("unary_-", self.getMethod("unary_minus", int.class));
+			map.put("unary_!", self.getMethod("unary_not", boolean.class));
 		} catch(Exception e) {
 			e.printStackTrace();
 		}

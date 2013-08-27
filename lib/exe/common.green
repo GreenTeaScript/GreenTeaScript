@@ -1,3 +1,36 @@
+// unary operator
+boolean not(boolean x);
+boolean !(boolean x);
+int +(int x);
+int -(int x);
+int ~(int x);
+
+// binary operator
+
+// boolean
+boolean ==(boolean x, boolean y);
+boolean !=(boolean x, boolean y);
+//String convert(boolean x) as "green_toString($1)";
+
+// int
+int +(int x, int y);
+int -(int x, int y);
+int *(int x, int y);
+int /(int x, int y);
+int %(int x, int y);
+int <<(int x, int y);
+int >>(int x, int y);
+int ^(int x, int y);
+int |(int x, int y);
+int &(int x, int y);
+boolean <(int x,  int y);
+boolean <=(int x, int y);
+boolean >(int x,  int y);
+boolean >=(int x, int y);
+boolean ==(int x, int y);
+boolean !=(int x, int y);
+
+// function
 void println(String s);
 void assert(boolean b);
 

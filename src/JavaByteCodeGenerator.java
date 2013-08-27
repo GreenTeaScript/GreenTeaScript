@@ -622,10 +622,17 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 	}
 
 	@Override public void VisitUnaryNode(UnaryNode Node) {
-		ApplyNode applyNode = new ApplyNode(Node.Type, Node.Token, Node.Func);
-		applyNode.Append(Node.Expr);
+		Node.Expr.Evaluate(this);
+		GtFunc Func = Node.Func;
+		Method m = this.methodMap.get("unary_" + Func.FuncName);
+		if(m != null) {
+			String owner = Type.getInternalName(m.getDeclaringClass());
+			this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, owner, m.getName(), Type.getMethodDescriptor(m));
+			this.Builder.typeStack.push(Type.getReturnType(m));
+		} else {
+			throw new RuntimeException("unsupport unary operator: " + Func.FuncName);
+		}
 
-		VisitApplyNode(applyNode);
 	}
 
 	@Override public void VisitAndNode(AndNode Node) {
@@ -708,28 +715,22 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 	}
 
 	@Override public void VisitIfNode(IfNode Node) {
-		Label ELSE = new Label();
-		Label END = new Label();
-		MethodVisitor mv = this.Builder.AsmMethodVisitor;
+		Label ElseLabel = new Label();
+		Label EndLabel = new Label();
 		Node.CondExpr.Evaluate(this);
 		this.Builder.typeStack.pop(); //TODO: check cast
-		mv.visitJumpInsn(IFEQ, ELSE);
-
+		this.Builder.AsmMethodVisitor.visitJumpInsn(IFEQ, ElseLabel);
 		// Then
-		if(Node.ThenNode != null) {
-			Node.ThenNode.Evaluate(this);
-		}
-		mv.visitJumpInsn(GOTO, END);
-
+		this.VisitBlock(Node.ThenNode);
+		this.Builder.AsmMethodVisitor.visitJumpInsn(GOTO, EndLabel);
 		// Else
-		mv.visitLabel(ELSE);
+		this.Builder.AsmMethodVisitor.visitLabel(ElseLabel);
 		if(Node.ElseNode != null) {
-			Node.ElseNode.Evaluate(this);
-			mv.visitJumpInsn(GOTO, END);
+			this.VisitBlock(Node.ElseNode);
+			this.Builder.AsmMethodVisitor.visitJumpInsn(GOTO, EndLabel);
 		}
-
 		// End
-		mv.visitLabel(END);
+		this.Builder.AsmMethodVisitor.visitLabel(EndLabel);
 	}
 
 	@Override public void VisitSwitchNode(SwitchNode Node) { //FIXME
