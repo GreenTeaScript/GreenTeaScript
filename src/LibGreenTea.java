@@ -537,12 +537,16 @@ public abstract class LibGreenTea {
 			}
 		}
 		BufferedReader reader = new BufferedReader(new InputStreamReader(Stream));
-		String line = "";
 		String buffer = "";
 		try {
-			while((line = reader.readLine()) != null) {
-				buffer += line + "\n";
+			int buflen = 4096;
+			int readed = 0;
+			char[] buf = new char[buflen];
+			StringBuilder builder = new StringBuilder();
+			while((readed = reader.read(buf, 0, buflen)) >= 0) {
+				builder.append(buf, 0, readed);
 			}
+			buffer = builder.toString();
 		} catch (IOException e) {
 			return null;
 		}
