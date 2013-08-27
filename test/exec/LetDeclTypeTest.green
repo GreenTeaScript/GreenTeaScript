@@ -1,0 +1,16 @@
+// written by kimio kuramitsu
+
+let Int = int;
+
+boolean TestTypeSymbol(int m) {
+	Int n = 1;
+	assert(n == m);
+	return true;
+}	
+
+@Export
+int main() {
+	assert(TestTypeSymbol(1));
+	return 0;
+}
+

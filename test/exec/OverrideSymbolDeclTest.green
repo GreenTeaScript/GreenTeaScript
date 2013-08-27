@@ -1,0 +1,10 @@
+// written by kimio kuramitsu
+
+let f = 1;
+let f = 2;
+
+@Export
+int main() {
+	assert(f == 2);
+	return 0;
+}

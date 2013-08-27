@@ -1,0 +1,42 @@
+// written by kimio kuramitsu
+
+boolean TestBoolean(boolean b) {
+	return b;
+}
+
+boolean TestBooleanTrue() {
+	return true;
+}
+
+int TestInt(int a) {
+	return a;
+}
+
+int TestInt123() {
+	return 123;
+}
+
+String TestString(String a) {
+	return a;
+}
+
+String TestStringABC() {
+	return "ABC";
+}
+
+void TestVoid() {
+
+}
+
+@Export
+int main() {
+	assert(TestBooleanTrue());
+	assert(TestBoolean(true));
+	assert(TestInt(123) == 123);
+	assert(TestInt123() == 123);
+	assert(TestStringABC() == "ABC");
+	assert(TestString("ABC") == "ABC");
+	TestVoid();
+	return 0;
+}
+	
