@@ -210,6 +210,11 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/GtFunc Func = Node.Func;
 		/*local*/String Expr = this.VisitNode(Node.Expr);
 		/*local*/String Macro = null;
+		
+		if(Node.Type.equals(Node.Type.Context.BooleanType)) {
+			Expr = this.ResolveValueType(Node.Expr, false);
+		}
+		
 		if(Func != null) {
 			FuncName = Func.GetNativeFuncName();
 			if(IsFlag(Func.FuncFlag, NativeMacroFunc)) {

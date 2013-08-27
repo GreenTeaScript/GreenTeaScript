@@ -2702,7 +2702,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		WhileTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "(", Required);
 		WhileTree.SetMatchedPatternAt(WhileCond, NameSpace, TokenContext, "$Expression$", Required);
 		WhileTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ")", Required);
-		WhileTree.SetMatchedPatternAt(WhileBody, NameSpace, TokenContext, "$Block$", Required);
+		WhileTree.SetMatchedPatternAt(WhileBody, NameSpace, TokenContext, "$Statement$", Required);
 		return WhileTree;
 	}
 
