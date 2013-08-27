@@ -1,0 +1,14 @@
+// written by kimio kuramitsu
+
+boolean TestFunc() {
+	String s = null;
+	assert(s == null);
+	return true;
+}
+
+@Export
+int main() {
+	assert(TestFunc());
+	return 0;
+}
+
