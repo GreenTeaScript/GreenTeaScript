@@ -73,14 +73,23 @@ public abstract class LibGreenTea {
 	}
 
 	public static int VerboseMask = GtStatic.VerboseUndefined;
-	
+
 	public final static void VerboseLog(int VerboseFlag, String Message) {
 		if((LibGreenTea.VerboseMask & VerboseFlag) == VerboseFlag) {
 			LibGreenTea.println("GreenTea: " + Message);
 		}
 	}
 
-	public final static void VerboseException(Exception e) {
+	public final static void VerboseException(Throwable e) {
+		if(e instanceof InvocationTargetException) {
+			Throwable cause = e.getCause();
+			if(cause instanceof RuntimeException) {
+				throw (RuntimeException)cause;
+			}
+			if(cause instanceof Error) {
+				throw (Error)cause;
+			}
+		}
 		LibGreenTea.VerboseLog(GtStatic.VerboseException, e.toString());
 	}
 
@@ -194,7 +203,7 @@ public abstract class LibGreenTea {
 	public final static long ParseInt(String Text) {
 		return Long.parseLong(Text);
 	}
-	
+
 	public final static boolean IsUnixCommand(String cmd) {
 		String[] path = System.getenv("PATH").split(":");
 		int i = 0;
@@ -218,8 +227,8 @@ public abstract class LibGreenTea {
 		}
 		return NativeType;
 	}
-	
-	public final static String GetClassName(Object Value){
+
+	public final static String GetClassName(Object Value) {
 		return Value.getClass().getName();
 	}
 
@@ -276,7 +285,7 @@ public abstract class LibGreenTea {
 		if(FoundMethod == null) {
 			LibGreenTea.VerboseLog(GtStatic.VerboseUndefined, "undefined method: " + FullName);
 		}
-		return FoundMethod;	
+		return FoundMethod;
 	}
 
 	public final static Method LookupNativeMethod(Object Callee, String FuncName) {
@@ -416,7 +425,7 @@ public abstract class LibGreenTea {
 		System.out.println("     --verbose:no         no log");
 		LibGreenTea.Exit(0, Message);
 	}
-	
+
 	public final static String DetectTargetCode(String Extension, String TargetCode) {
 		if(Extension.endsWith(".js")) {
 			return "js";
@@ -614,12 +623,19 @@ public abstract class LibGreenTea {
 	}
 
 	public static Object EvalBinary(GtType Type, Object LeftValue, String Operator, Object RightValue) {
+		if(LeftValue == null || RightValue == null) {
+			return null;
+		}
 		if(LeftValue instanceof String || RightValue instanceof String) {
-			String left = EvalCast(Type, LeftValue).toString();
-			String right = EvalCast(Type, RightValue).toString();
+			String left = EvalCast(Type.Context.StringType, LeftValue).toString();
+			String right = EvalCast(Type.Context.StringType, RightValue).toString();
 			if(Operator.equals("+")) {
 				return  EvalCast(Type, left + right);
 			}
+		}
+		if(LeftValue instanceof String && RightValue instanceof String) {
+			String left = EvalCast(Type.Context.StringType, LeftValue).toString();
+			String right = EvalCast(Type.Context.StringType, RightValue).toString();
 			if(Operator.equals("==")) {
 				return  EvalCast(Type, left.equals(right));
 			}
@@ -754,6 +770,5 @@ public abstract class LibGreenTea {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
-	
+
 }

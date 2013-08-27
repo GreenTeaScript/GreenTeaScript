@@ -177,12 +177,7 @@ class LibGreenTea {
 			.replace(/\\\\/, "\n");
 	}
 
-	static UnescapeString(Text: string): string {
-		//FIXME
-		return Text;
-	}
-
-	static EscapeString(Text: string): string {
+	static QuoteString(Text: string): string {
 		//FIXME
 		return Text;
 	}
@@ -201,29 +196,29 @@ class LibGreenTea {
 		return false;
 	}
 
-    static GetNativeType(Context: GtClassContext, Value: any): GtType {
-        var NativeType: GtType = null;
-        var NativeClassInfo: any = Value.constructor;
-        if(typeof Value == 'number' || Value instanceof Number) {
-            if((<any>Value | 0) == <any>Value) {
-                return Context.IntType;
-            }
-            //return Context.FloatType;
-        }
-        if(typeof Value == 'string' || Value instanceof String) {
-            return Context.StringType;
-        }
-        NativeType = <GtType> Context.ClassNameMap.get(NativeClassInfo.name);
-        if(NativeType == null) {
-            NativeType = new GtType(Context, NativeClass, NativeClassInfo.getSimpleName(), null, NativeClassInfo);
-            Context.ClassNameMap.put(NativeClassInfo.getName(), NativeType);
-        }
-        return NativeType;
-    }
-    
-    static GetClassName(Value: any): string {
-    	return typeof(Value);
-    }
+	static GetNativeType(Context: GtContext, Value: any): GtType {
+		var NativeType: GtType = null;
+		var NativeClassInfo: any = Value.constructor;
+		if(typeof Value == 'number' || Value instanceof Number) {
+			if((<any>Value | 0) == <any>Value) {
+				return Context.IntType;
+			}
+			//return Context.FloatType;
+		}
+		if(typeof Value == 'string' || Value instanceof String) {
+			return Context.StringType;
+		}
+		NativeType = <GtType> Context.ClassNameMap.get(NativeClassInfo.name);
+		if(NativeType == null) {
+			NativeType = new GtType(Context, NativeClass, NativeClassInfo.getSimpleName(), null, NativeClassInfo);
+			Context.ClassNameMap.put(NativeClassInfo.getName(), NativeType);
+		}
+		return NativeType;
+	}
+
+	static GetClassName(Value: any): string {
+		return typeof(Value);
+	}
 
 	static StartsWith(self: string, key: string): boolean {
 		return self.indexOf(key, 0) == 0;
@@ -302,21 +297,21 @@ class LibGreenTea {
 
 	static CodeGenerator(TargetCode: string, OutputFile: string, GeneratorFlag: number): GtGenerator{
 		var Extension: string = (OutputFile == null ? "-" : OutputFile)
-		if(LibGreenTea.EndsWith(Extension, ".js") || LibGreenTea.StartsWith(TargetCode, "js") || LibGreenTea.StartsWith(TargetCode, "javascript")){
-			return new JavaScriptSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
-		}else if(LibGreenTea.EndsWith(Extension, ".pl") || LibGreenTea.StartsWith(TargetCode, "perl")){
-			return new PerlSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
-		}else if(LibGreenTea.EndsWith(Extension, ".py") || LibGreenTea.StartsWith(TargetCode, "python")){
-			return new PythonSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
-		}else if(LibGreenTea.EndsWith(Extension, ".sh") || LibGreenTea.StartsWith(TargetCode, "bash")){
-			return new BashSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
-		}else if(LibGreenTea.EndsWith(Extension, ".java") || LibGreenTea.StartsWith(TargetCode, "java")){
-			return new JavaSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
-		}else if(LibGreenTea.EndsWith(Extension, ".c") || LibGreenTea.StartsWith(TargetCode, "c")){
-			return new CSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
-		}else if(LibGreenTea.EndsWith(Extension, "X") || LibGreenTea.StartsWith(TargetCode, "exe")){
-			throw new Error("JavaByteCodeGenerator is not implemented for this environment");
-		}
+			if(LibGreenTea.EndsWith(Extension, ".js") || LibGreenTea.StartsWith(TargetCode, "js") || LibGreenTea.StartsWith(TargetCode, "javascript")){
+				return new JavaScriptSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+			}else if(LibGreenTea.EndsWith(Extension, ".pl") || LibGreenTea.StartsWith(TargetCode, "perl")){
+				return new PerlSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+			}else if(LibGreenTea.EndsWith(Extension, ".py") || LibGreenTea.StartsWith(TargetCode, "python")){
+				return new PythonSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+			}else if(LibGreenTea.EndsWith(Extension, ".sh") || LibGreenTea.StartsWith(TargetCode, "bash")){
+				return new BashSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+			}else if(LibGreenTea.EndsWith(Extension, ".java") || LibGreenTea.StartsWith(TargetCode, "java")){
+				return new JavaSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+			}else if(LibGreenTea.EndsWith(Extension, ".c") || LibGreenTea.StartsWith(TargetCode, "c")){
+				return new CSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+			}else if(LibGreenTea.EndsWith(Extension, "X") || LibGreenTea.StartsWith(TargetCode, "exe")){
+				throw new Error("JavaByteCodeGenerator is not implemented for this environment");
+			}
 		return null;
 	}
 

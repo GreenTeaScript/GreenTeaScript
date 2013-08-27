@@ -36,7 +36,6 @@ void TestFunc7(int n) {
 @Export
 int main() {
     TestFunc(0);
-    TestFunc1(0);
     TestFunc2(0);
     TestFunc3(0);
     TestFunc4(0);
