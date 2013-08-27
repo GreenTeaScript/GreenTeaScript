@@ -1818,7 +1818,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		TokenContext.FoundWhiteSpace();
 		while(pos < SourceText.length()) {
 			/*local*/char ch = LibGreenTea.CharAt(SourceText, pos);
-			if(!LibGreenTea.IsWhitespace(ch)) {
+			if(ch == '\n' || !LibGreenTea.IsWhitespace(ch)) {
 				break;
 			}
 			pos += 1;
@@ -3448,6 +3448,8 @@ final class GreenTeaGrammar extends GtGrammar {
 	public final static GtSyntaxTree ParseShell(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
+		/*local*/int ParseFlag = TokenContext.ParseFlag;
+		TokenContext.ParseFlag = 0;
 		while(!GtStatic.IsEmptyOrError(NewTree) && !TokenContext.MatchToken(";")) {
 			/*local*/GtSyntaxTree Tree = null;
 			if(TokenContext.GetToken().IsDelim() || TokenContext.GetToken().IsIndent()) {
@@ -3465,6 +3467,7 @@ final class GreenTeaGrammar extends GtGrammar {
 			}
 			NewTree.AppendParsedTree(Tree);
 		}
+		TokenContext.ParseFlag = ParseFlag;
 		return NewTree;
 	}
 
