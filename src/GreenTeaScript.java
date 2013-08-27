@@ -1035,10 +1035,10 @@ final class GtSyntaxPattern extends GtStatic {
 		return IsFlag(this.SyntaxFlag, BinaryOperator);
 	}
 
-	public boolean IsLeftJoin(GtSyntaxPattern Right) {
-		/*local*/int left = this.SyntaxFlag >> PrecedenceShift;
-		/*local*/int right = Right.SyntaxFlag >> PrecedenceShift;
-		return (left < right || (left == right && IsFlag(this.SyntaxFlag, LeftJoin) && IsFlag(Right.SyntaxFlag, LeftJoin)));
+	public final boolean IsRightJoin(GtSyntaxPattern Right) {
+		/*local*/int left = this.SyntaxFlag;
+		/*local*/int right = Right.SyntaxFlag;
+		return (left < right || (left == right && !IsFlag(this.SyntaxFlag, LeftJoin) && !IsFlag(Right.SyntaxFlag, LeftJoin)));
 	}
 
 	public final boolean EqualsName(String Name) {
@@ -2236,25 +2236,34 @@ final class GreenTeaGrammar extends GtGrammar {
 		return UnaryNode;
 	}
 
+	private static GtSyntaxTree RightJoin(GtNameSpace NameSpace, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern, GtToken OperatorToken, GtSyntaxTree RightTree) {
+		/*local*/GtSyntaxTree RightLeft = RightTree.GetSyntaxTreeAt(LeftHandTerm);
+		if(RightLeft.Pattern.IsBinaryOperator() && Pattern.IsRightJoin(RightLeft.Pattern)) {
+			RightTree.SetSyntaxTreeAt(LeftHandTerm, RightJoin(NameSpace, LeftTree, Pattern, OperatorToken, RightLeft));
+		}
+		else {
+			/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, NameSpace, OperatorToken, null);
+			NewTree.SetSyntaxTreeAt(LeftHandTerm, LeftTree);
+			NewTree.SetSyntaxTreeAt(RightHandTerm, RightLeft);
+			RightTree.SetSyntaxTreeAt(LeftHandTerm, NewTree);
+		}
+		return RightTree;
+	}
+	
 	public static GtSyntaxTree ParseBinary(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		/*local*/GtToken Token = TokenContext.Next();
+		/*local*/GtToken OperatorToken = TokenContext.Next();
 		/*local*/GtSyntaxTree RightTree = GtStatic.ParseExpression(NameSpace, TokenContext);
 		if(GtStatic.IsEmptyOrError(RightTree)) {
 			return RightTree;
 		}
-		if(RightTree.Pattern.IsBinaryOperator()) {
-			if(Pattern.IsLeftJoin(RightTree.Pattern)) {
-				/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
-				NewTree.SetSyntaxTreeAt(LeftHandTerm, LeftTree);
-				NewTree.SetSyntaxTreeAt(RightHandTerm, RightTree.GetSyntaxTreeAt(LeftHandTerm));
-				RightTree.SetSyntaxTreeAt(LeftHandTerm, NewTree);
-				return RightTree;
-			}
+		if(RightTree.Pattern.IsBinaryOperator() && Pattern.IsRightJoin(RightTree.Pattern)) {
+			return RightJoin(NameSpace, LeftTree, Pattern, OperatorToken, RightTree);
 		}
-		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
+		// LeftJoin
+		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, NameSpace, OperatorToken, null);
 		NewTree.SetSyntaxTreeAt(LeftHandTerm, LeftTree);
 		NewTree.SetSyntaxTreeAt(RightHandTerm, RightTree);
-		if(RightTree.NextTree != null) {
+		if(RightTree.NextTree != null) {  // necesarry; don't remove 
 			GtStatic.LinkTree(NewTree, RightTree.NextTree);
 			RightTree.NextTree = null;
 		}
