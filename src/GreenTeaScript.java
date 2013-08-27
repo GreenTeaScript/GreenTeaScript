@@ -3506,7 +3506,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		NameSpace.DefineTokenFunc(" \t", FunctionA(this, "WhiteSpaceToken"));
 		NameSpace.DefineTokenFunc("\n",  FunctionA(this, "IndentToken"));
 		NameSpace.DefineTokenFunc(";", FunctionA(this, "SemiColonToken"));
-		NameSpace.DefineTokenFunc("{}()[]<>.,:+-*/%=&|!@~^", FunctionA(this, "OperatorToken"));
+		NameSpace.DefineTokenFunc("{}()[]<>.,?:+-*/%=&|!@~^", FunctionA(this, "OperatorToken"));
 		NameSpace.DefineTokenFunc("/", FunctionA(this, "CommentToken"));  // overloading
 		NameSpace.DefineTokenFunc("Aa", FunctionA(this, "SymbolToken"));
 		NameSpace.DefineTokenFunc("Aa-/1.<>|", FunctionA(this, "SymbolShellToken")); // overloading
