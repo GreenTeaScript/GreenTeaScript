@@ -2779,6 +2779,8 @@ final class GreenTeaGrammar extends GtGrammar {
 	public static GtSyntaxTree ParseTry(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree TryTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("try"), null);
 		TryTree.SetMatchedPatternAt(TryBody, NameSpace, TokenContext, "$Block$", Required);
+		/*local*/int ParseFlag = TokenContext.ParseFlag;
+		TokenContext.ParseFlag |= SkipIndentParseFlag;
 		if(TokenContext.MatchToken("catch")) {
 			TryTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "(", Required);
 			TryTree.SetMatchedPatternAt(CatchVariable, NameSpace, TokenContext, "$VarDecl$", Required);
@@ -2788,6 +2790,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		if(TokenContext.MatchToken("finally")) {
 			TryTree.SetMatchedPatternAt(FinallyBody, NameSpace, TokenContext, "$Block$", Required);
 		}
+		TokenContext.ParseFlag = ParseFlag;
 		return TryTree;
 	}
 
