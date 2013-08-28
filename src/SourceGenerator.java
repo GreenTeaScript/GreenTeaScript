@@ -1415,32 +1415,55 @@ class GtGenerator extends GtStatic {
 		return false;
 	}
 
-	public int ParseClassFlag(int ClassFlag, GtMap Annotation) {
-		return ClassFlag;
-	}
-
-	public int ParseFuncFlag(int FuncFlag, GtMap Annotation) {
+	public int ParseClassFlag(int Flag, GtMap Annotation) {
 		if(Annotation != null) {
 			if(this.HasAnnotation(Annotation, "Export")) {
-				FuncFlag = FuncFlag | ExportFunc;
+				Flag = Flag | ExportFunc;
 			}
 			if(this.HasAnnotation(Annotation, "Public")) {
-				FuncFlag = FuncFlag | PublicFunc;
+				Flag = Flag | PublicFunc;
 			}
-			if(this.HasAnnotation(Annotation, "Const")) {
-				FuncFlag = FuncFlag | ConstFunc;
+			if(this.HasAnnotation(Annotation, "Virtual")) {
+				Flag = Flag | VirtualFunc;
+			}
+			if(this.HasAnnotation(Annotation, "Deprecated")) {
+				Flag = Flag | DeprecatedFunc;
 			}
 		}
-		return FuncFlag;
+		return Flag;
 	}
 
-	public int ParseVarFlag(int VarFlag, GtMap Annotation) {
+	public int ParseFuncFlag(int Flag, GtMap Annotation) {
 		if(Annotation != null) {
-			if(this.HasAnnotation(Annotation, "ReadOnly")) {
-				VarFlag = VarFlag | ReadOnlyVar;
+			if(this.HasAnnotation(Annotation, "Export")) {
+				Flag = Flag | ExportFunc;
+			}
+			if(this.HasAnnotation(Annotation, "Public")) {
+				Flag = Flag | PublicFunc;
+			}
+			if(this.HasAnnotation(Annotation, "Const")) {
+				Flag = Flag | ConstFunc;
+			}
+			if(this.HasAnnotation(Annotation, "Operator")) {
+				Flag = Flag | OperatorFunc;
+			}
+			if(this.HasAnnotation(Annotation, "Coercion")) {
+				Flag = Flag | CoercionFunc;
+			}
+			if(this.HasAnnotation(Annotation, "Deprecated")) {
+				Flag = Flag | DeprecatedFunc;
 			}
 		}
-		return VarFlag;
+		return Flag;
+	}
+
+	public int ParseVarFlag(int Flag, GtMap Annotation) {
+		if(Annotation != null) {
+			if(this.HasAnnotation(Annotation, "ReadOnly")) {
+				Flag = Flag | ReadOnlyVar;
+			}
+		}
+		return Flag;
 	}
 
 	public GtFunc CreateFunc(int FuncFlag, String FuncName, int BaseIndex, ArrayList<GtType> TypeList) {
