@@ -89,20 +89,20 @@ class GtNode extends GtStatic {
 	public Object ToConstValue(boolean EnforceConst)  {
 		if(EnforceConst) {
 			LibGreenTea.DebugP("node type=" + LibGreenTea.GetClassName(this));
-			this.Type.Context.ReportError(ErrorLevel, this.Token, "not statically valued");
+			this.Type.Context.ReportError(ErrorLevel, this.Token, "not const value");
 		}
 		return null;
 	}
 
-	public int CountForrowingNode() {  // FIXME: typo? Following
-		/*local*/int n = 0;
-		/*local*/GtNode node = this;
-		while(node != null) {
-			n++;
-			node = node.NextNode;
-		}
-		return n;
-	}
+//	public int CountForrowingNode() {  // FIXME: typo? Following
+//		/*local*/int n = 0;
+//		/*local*/GtNode node = this;
+//		while(node != null) {
+//			n++;
+//			node = node.NextNode;
+//		}
+//		return n;
+//	}
 }
 
 final class EmptyNode extends GtNode {

@@ -1024,8 +1024,8 @@ final class GtTokenContext extends GtStatic {
 
 	public void StopParsing(boolean b) {
 		// TODO Auto-generated method stub
-
 	}
+	
 }
 
 final class GtSyntaxPattern extends GtStatic {
@@ -2159,6 +2159,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		/*local*/String Name = ParsedTree.KeyToken.ParsedText;
 		/*local*/GtVariableInfo VariableInfo = Gamma.LookupDeclaredVariable(Name);
 		if(VariableInfo != null) {
+			VariableInfo.Used();
 			return Gamma.Generator.CreateLocalNode(VariableInfo.Type, ParsedTree, VariableInfo.NativeName);
 		}
 //		Don't add ad hoc code
@@ -2602,6 +2603,7 @@ final class GreenTeaGrammar extends GtGrammar {
 
 	public static GtNode TypeAssign(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtNode LeftNode = ParsedTree.TypeCheckNodeAt(LeftHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+		
 		if(LeftNode instanceof LocalNode || LeftNode instanceof GetterNode || LeftNode instanceof IndexerNode) {
 			/*local*/GtNode RightNode = ParsedTree.TypeCheckNodeAt(RightHandTerm, Gamma, LeftNode.Type, DefaultTypeCheckPolicy);
 			return Gamma.Generator.CreateAssignNode(LeftNode.Type, ParsedTree, LeftNode, RightNode);
