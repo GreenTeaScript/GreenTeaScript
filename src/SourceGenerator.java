@@ -94,15 +94,6 @@ class GtNode extends GtStatic {
 		return null;
 	}
 
-//	public int CountForrowingNode() {  // FIXME: typo? Following
-//		/*local*/int n = 0;
-//		/*local*/GtNode node = this;
-//		while(node != null) {
-//			n++;
-//			node = node.NextNode;
-//		}
-//		return n;
-//	}
 }
 
 final class EmptyNode extends GtNode {
@@ -413,12 +404,10 @@ class GetterNode extends GtNode {
 class IndexerNode extends GtNode {
 	/*field*/public GtFunc  Func;
 	/*field*/public GtNode Expr;
-	/*field*/public GtNode IndexAt;
-	IndexerNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func, GtNode Expr, GtNode IndexAt) {
+	IndexerNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func, GtNode Expr) {
 		super(Type, Token);
 		this.Func = Func;
 		this.Expr = Expr;
-		this.IndexAt = IndexAt;
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitIndexerNode(this);
@@ -484,26 +473,6 @@ class ApplyNode extends GtNode {
 	}
 }
 
-//E.g., $Recv.Func "(" $Param[0], $Param[1], ... ")"
-@Deprecated class MessageNode extends GtNode {
-	/*field*/public GtFunc	Func;
-	/*field*/public GtNode   RecvNode;
-	/*field*/public ArrayList<GtNode>  Params;
-	MessageNode/*constructor*/(GtType Type, GtToken KeyToken, GtFunc Func, GtNode RecvNode) {
-		super(Type, KeyToken);
-		this.Func = Func;
-		this.RecvNode = RecvNode;
-		this.Params = new ArrayList<GtNode>();
-	}
-	@Override public void Append(GtNode Expr) {
-		this.Params.add(Expr);
-	}
-
-	@Override public void Evaluate(GtGenerator Visitor) {
-		Visitor.VisitMessageNode(this);
-	}
-}
-
 //E.g., "new" $Type "(" $Param[0], $Param[1], ... ")"
 class NewNode extends GtNode {
 	/*field*/public ArrayList<GtNode>	Params;
@@ -519,6 +488,22 @@ class NewNode extends GtNode {
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitNewNode(this);
+	}
+}
+
+//E.g., "new" $Type "(" $Param[0], $Param[1], ... ")"
+class ArrayNode extends GtNode {
+	/*field*/public ArrayList<GtNode>	NodeList;
+	/*field*/GtFunc Func;
+	ArrayNode/*constructor*/(GtType Type, GtToken Token) {
+		super(Type, Token);
+		this.NodeList = new ArrayList<GtNode>();
+	}
+	@Override public void Append(GtNode Expr) {
+		this.NodeList.add(Expr);
+	}
+	@Override public void Evaluate(GtGenerator Visitor) {
+		Visitor.VisitArrayNode(this);
 	}
 }
 
@@ -1216,16 +1201,12 @@ class GtGenerator extends GtStatic {
 		return new GetterNode(Type, ParsedTree.KeyToken, Func, Expr);
 	}
 
-	public GtNode CreateIndexerNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, GtNode Expr, GtNode Index) {
-		return new IndexerNode(Type, ParsedTree.KeyToken, Func, Expr, Index);
+	public GtNode CreateIndexerNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, GtNode Expr) {
+		return new IndexerNode(Type, ParsedTree.KeyToken, Func, Expr);
 	}
 
 	public GtNode CreateApplyNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func) {
 		return new ApplyNode(Type, ParsedTree == null ? GtTokenContext.NullToken : ParsedTree.KeyToken, Func);
-	}
-
-	public GtNode CreateMessageNode(GtType Type, GtSyntaxTree ParsedTree, GtNode RecvNode, GtFunc Func) {
-		return new MessageNode(Type, ParsedTree.KeyToken, Func, RecvNode);
 	}
 
 	public GtNode CreateNewNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func) {
@@ -1533,7 +1514,7 @@ class GtGenerator extends GtStatic {
 		/*extension*/
 	}
 
-	public void VisitMessageNode(MessageNode Node) {
+	public void VisitArrayNode(ArrayNode Node) {
 		/*extension*/
 	}
 
@@ -2006,7 +1987,7 @@ class SourceGenerator extends GtGenerator {
 	}
 
 	@Override public void VisitIndexerNode(IndexerNode Node) {
-		this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + this.VisitNode(Node.IndexAt) + "]");
+		//this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + this.VisitNode(Node.IndexAt) + "]");
 	}
 
 	@Override public final void VisitNewNode(NewNode Node) {
