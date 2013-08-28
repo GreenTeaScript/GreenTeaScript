@@ -2323,7 +2323,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		if(ThenNode.IsError()) {
 			return ThenNode;
 		}
-		/*local*/GtNode ElseNode = ParsedTree.TypeCheckNodeAt(IfThen, Gamma, ThenNode.Type, DefaultTypeCheckPolicy);
+		/*local*/GtNode ElseNode = ParsedTree.TypeCheckNodeAt(IfElse, Gamma, ThenNode.Type, DefaultTypeCheckPolicy);
 		return Gamma.Generator.CreateTrinaryNode(ThenNode.Type, ParsedTree, CondNode, ThenNode, ElseNode);
 	}
 
