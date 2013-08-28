@@ -2690,7 +2690,7 @@ final class GreenTeaGrammar extends GtGrammar {
 					return CurrentTree;
 				}
 				CurrentTree.SetAnnotation(Annotation);
-				PrevTree = GtStatic.LinkTree(PrevTree, CurrentTree);
+				PrevTree = GtStatic.TreeTail(GtStatic.LinkTree(PrevTree, GtStatic.TreeHead(CurrentTree)));
 				TokenContext.SkipIncompleteStatement();  // check; and skip empty statement
 			}
 			if(PrevTree == null) {
