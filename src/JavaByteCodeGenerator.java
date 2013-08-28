@@ -40,7 +40,9 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
+import static org.objectweb.asm.Opcodes.*;
 
+import JVM.GtSubProc;
 import JVM.GtThrowableWrapper;
 import JVM.JVMConstPool;
 import JVM.StaticMethods;
@@ -144,7 +146,7 @@ final class JVMLocal {
 	}
 }
 
-class JVMBuilder implements Opcodes {
+class JVMBuilder {
 	MethodVisitor                 AsmMethodVisitor;
 	ArrayList<JVMLocal>           LocalVals;
 	Stack<Type>                   typeStack;
@@ -285,17 +287,17 @@ class JVMBuilder implements Opcodes {
 	}
 }
 
-public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
+public class JavaByteCodeGenerator extends GtGenerator {
+	private boolean debug_mode = false;
 	private JVMBuilder Builder;
 	private final String defaultClassName = "Global";
 	private final Map<String, MethodHolderClass> classMap = new HashMap<String, MethodHolderClass>();
 	private final Map<String, Type> typeDescriptorMap = new HashMap<String, Type>();
 	private MethodHolderClass DefaultHolderClass = new MethodHolderClass(defaultClassName, "java/lang/Object");
-	private final Map<String, Method> methodMap;
+	private Map<String, Method> methodMap;
 
 	public JavaByteCodeGenerator(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
-		this.methodMap = StaticMethods.getAllStaticMethods();
 	}
 
 	@Override public void InitContext(GtContext Context) {
@@ -306,6 +308,7 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		//this.typeDescriptorMap.put(Context.ObjectType.ShortClassName, Type.getType(Object.class).getDescriptor());
 		this.typeDescriptorMap.put("Object", Type.getType(Object.class));
 		this.typeDescriptorMap.put(Context.StringType.ShortClassName, Type.getType(String.class));
+		this.methodMap = StaticMethods.getAllStaticMethods();
 	}
 
 	//-----------------------------------------------------
@@ -367,10 +370,12 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		this.Builder = new JVMBuilder(this, mn);
 		this.VisitBlock(Node);
 		this.Builder.boxingReturn();
-		try {
-			this.OutputClassFile(defaultClassName, ".");
-		} catch(IOException e) {
-			LibGreenTea.VerboseException(e);
+		if(debug_mode) {
+			try {
+				this.OutputClassFile(defaultClassName, ".");
+			} catch(IOException e) {
+				LibGreenTea.VerboseException(e);
+			}
 		}
 		//execute
 		try {
@@ -422,10 +427,12 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		}
 
 		// for debug purpose
-		try {
-			this.OutputClassFile(defaultClassName, ".");
-		} catch(IOException e) {
-			LibGreenTea.VerboseException(e);
+		if(debug_mode) {
+			try {
+				this.OutputClassFile(defaultClassName, ".");
+			} catch(IOException e) {
+				LibGreenTea.VerboseException(e);
+			}
 		}
 	}
 
@@ -449,10 +456,12 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		constructor.visitMethodInsn(INVOKESPECIAL, superClassName, "<init>", "()V");
 		constructor.visitInsn(RETURN);
 		classNode.addMethodNode(constructor);
-		try {
-			this.OutputClassFile(className, ".");
-		} catch(IOException e) {
-			LibGreenTea.VerboseException(e);
+		if(debug_mode) {
+			try {
+				this.OutputClassFile(className, ".");
+			} catch(IOException e) {
+				LibGreenTea.VerboseException(e);
+			}
 		}
 	}
 
@@ -553,9 +562,9 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 
 	@Override public void VisitBinaryNode(BinaryNode Node) {
 		Node.LeftNode.Evaluate(this);
+		Type leftType = this.Builder.typeStack.pop();
 		Node.RightNode.Evaluate(this);
 		Type rightType = this.Builder.typeStack.pop();
-		Type leftType = this.Builder.typeStack.pop();
 		String FuncName = Node.Func.FuncName;
 		String OperatorFuncName = "binary_" + FuncName + "_" + GetOpDesc(leftType) + GetOpDesc(rightType);
 		Method m = this.methodMap.get(OperatorFuncName);
@@ -695,10 +704,8 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 		MethodVisitor mv = this.Builder.AsmMethodVisitor;
 		Label HEAD = new Label();
 		Label END = new Label();
-
 		this.Builder.LabelStack.AddLabel("break", END);
 		this.Builder.LabelStack.AddLabel("continue", HEAD);
-
 		mv.visitLabel(HEAD);
 		Node.CondExpr.Evaluate(this);
 		this.Builder.typeStack.pop();
@@ -806,7 +813,25 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 	}
 
 	@Override public void VisitCommandNode(CommandNode Node) {
-		//TODO: call GtSubProc#ExecCommandString, ExecCommandBool, ExecCommandVoid,
+		ArrayList<GtNode> Args = new ArrayList<GtNode>();
+		CommandNode node = Node;
+		while(node != null) {
+			Args.addAll(node.Params);
+			node = (CommandNode) node.PipedNextNode;
+		}
+		this.Builder.AsmMethodVisitor.visitLdcInsn(Args.size());
+		this.Builder.AsmMethodVisitor.visitTypeInsn(ANEWARRAY, Type.getInternalName(String.class));
+		for(int i=0; i<Args.size(); i++) {
+			GtNode Arg = Args.get(i);
+			this.Builder.AsmMethodVisitor.visitInsn(DUP);
+			this.Builder.AsmMethodVisitor.visitLdcInsn(i);
+			Arg.Evaluate(this);
+			this.Builder.typeStack.pop();
+			this.Builder.AsmMethodVisitor.visitInsn(AASTORE);
+		}
+		this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, Type.getInternalName(GtSubProc.class),
+				"ExecCommandBool", "([Ljava/lang/String;)Z");
+		this.Builder.AsmMethodVisitor.visitInsn(POP);
 	}
 
 	@Override public void InvokeMainFunc(String MainFuncName) {
