@@ -42,26 +42,32 @@ interface GtConst {
 	public final static String  License = "BSD-Style Open Source";
 
 	// ClassFlag
-	public final static int		NativeClass	     	= 1 << 0;
-	public final static int		InterfaceClass		= 1 << 1;
-	public final static int		DynamicClass	    = 1 << 2;
-	public final static int     EnumClass           = 1 << 3;
-	public final static int     OpenClass           = 1 << 4;
+	public final static int     ExportClass         = 1 << 0;
+	public final static int     PublicClass         = 1 << 1;
+	public final static int		NativeClass	     	= 1 << 2;
+	public final static int		InterfaceClass		= 1 << 3;
+	public final static int     EnumClass           = 1 << 4;
+	public final static int		DynamicClass	    = 1 << 5;
+	
+	public final static int     OpenClass           = 1 << 6;
 
 	// FuncFlag
-	public final static int     PublicFunc          = 1 << 0;
-	public final static int		ExportFunc		    = 1 << 1;
-	public final static int		VirtualFunc		    = 1 << 2;
-	public final static int		NativeFunc		    = 1 << 3;
-	public final static int		NativeStaticFunc	= 1 << 4;
-	public final static int		NativeMacroFunc	    = 1 << 5;
-	public final static int		NativeVariadicFunc	= 1 << 6;
-	public final static int		DynamicFunc		    = 1 << 7;
-	public final static int		ConstFunc			= 1 << 8;
+	public final static int		ExportFunc		    = 1 << 0;
+	public final static int     PublicFunc          = 1 << 1;
+	public final static int		NativeFunc		    = 1 << 2;
+	public final static int		VirtualFunc		    = 1 << 3;
+	public final static int		ConstFunc			= 1 << 4;
+	public final static int		DynamicFunc		    = 1 << 5;
+
+	public final static int		NativeStaticFunc	= 1 << 6;
+	public final static int		NativeMacroFunc	    = 1 << 7;
+	public final static int		NativeVariadicFunc	= 1 << 8;
 	public final static int     ConstructorFunc     = 1 << 9;
 	public final static int     GetterFunc          = 1 << 10;
 	public final static int     SetterFunc          = 1 << 11;
-
+	public final static int     OperatorFunc        = 1 << 12;
+	public final static int     CoercionFunc        = 1 << 13;
+	
 	// VarFlag
 	public final static int  ReadOnlyVar = 1;              // @ReadOnly x = 1; disallow x = 2
 	//public final static int  MutableFieldVar  = (1 << 1);  // @Mutable x; x.y = 1 is allowed
