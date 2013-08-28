@@ -758,7 +758,7 @@ final class GtTokenContext extends GtStatic {
 		/*local*/TokenFunc TokenFunc = this.TopLevelNameSpace.GetTokenFunc(GtChar);
 		/*local*/int NextIdx = GtStatic.ApplyTokenFunc(TokenFunc, this, ScriptSource, pos);
 		if(NextIdx == NoMatch) {
-			LibGreenTea.VerboseLog(VerboseUndefined, "undefined tokenizer: " + LibGreenTea.CharAt(ScriptSource, pos));
+			LibGreenTea.VerboseLog(VerboseUndefined, "undefined tokenizer: " + ScriptSource.substring(pos, pos+1));
 			this.AddNewToken(ScriptSource.substring(pos, pos + 1), 0, null);
 			return pos + 1;
 		}
@@ -1818,7 +1818,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		TokenContext.FoundWhiteSpace();
 		while(pos < SourceText.length()) {
 			/*local*/char ch = LibGreenTea.CharAt(SourceText, pos);
-			if(ch == '\n' || !LibGreenTea.IsWhitespace(ch)) {
+			if(ch == '\n' || !LibGreenTea.IsWhitespace(SourceText, pos)) {
 				break;
 			}
 			pos += 1;
@@ -1831,8 +1831,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		TokenContext.FoundLineFeed(1);
 		pos = pos + 1;
 		while(pos < SourceText.length()) {
-			/*local*/char ch = LibGreenTea.CharAt(SourceText, pos);
-			if(!LibGreenTea.IsWhitespace(ch)) {
+			if(!LibGreenTea.IsWhitespace(SourceText, pos)) {
 				break;
 			}
 			pos += 1;
@@ -1855,8 +1854,7 @@ final class GreenTeaGrammar extends GtGrammar {
 	public static int SymbolToken(GtTokenContext TokenContext, String SourceText, int pos) {
 		/*local*/int start = pos;
 		while(pos < SourceText.length()) {
-			/*local*/char ch = LibGreenTea.CharAt(SourceText, pos);
-			if(!LibGreenTea.IsLetter(ch) && !LibGreenTea.IsDigit(ch) && ch != '_') {
+			if(!LibGreenTea.IsVariableName(SourceText, pos) && !LibGreenTea.IsDigit(SourceText, pos)) {
 				break;
 			}
 			pos += 1;
@@ -1868,8 +1866,7 @@ final class GreenTeaGrammar extends GtGrammar {
 	public static int OperatorToken(GtTokenContext TokenContext, String SourceText, int pos) {
 		/*local*/int NextPos = pos + 1;
 		while(NextPos < SourceText.length()) {
-			/*local*/char ch = LibGreenTea.CharAt(SourceText, NextPos);
-			if(LibGreenTea.IsWhitespace(ch) || LibGreenTea.IsLetter(ch) || LibGreenTea.IsDigit(ch)) {
+			if(LibGreenTea.IsWhitespace(SourceText, NextPos) || LibGreenTea.IsLetter(SourceText, NextPos) || LibGreenTea.IsDigit(SourceText, NextPos)) {
 				break;
 			}
 			NextPos += 1;
@@ -1930,8 +1927,7 @@ final class GreenTeaGrammar extends GtGrammar {
 	public static int NumberLiteralToken(GtTokenContext TokenContext, String SourceText, int pos) {
 		/*local*/int start = pos;
 		while(pos < SourceText.length()) {
-			/*local*/char ch = LibGreenTea.CharAt(SourceText, pos);
-			if(!LibGreenTea.IsDigit(ch)) {
+			if(!LibGreenTea.IsDigit(SourceText, pos)) {
 				break;
 			}
 			pos += 1;
@@ -2104,7 +2100,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		}
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/GtSyntaxTree VarTree = new GtSyntaxTree(NameSpace.GetPattern("$Variable$"), NameSpace, Token, null);
-		if(!LibGreenTea.IsVariableName(LibGreenTea.CharAt(Token.ParsedText, 0))) {
+		if(!LibGreenTea.IsVariableName(Token.ParsedText, 0)) {
 			NameSpace.Context.ReportError(ErrorLevel, Token, "illegal variable: '" + Token.ParsedText + "'");
 			VarTree.ToError(Token);
 		}
@@ -2113,11 +2109,8 @@ final class GreenTeaGrammar extends GtGrammar {
 
 	public static GtSyntaxTree ParseVariable(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.Next();
-		if(Token != GtTokenContext.NullToken) {
-			/*local*/char ch = LibGreenTea.CharAt(Token.ParsedText, 0);
-			if(LibGreenTea.IsLetter(ch) || ch == '_') {
-				return new GtSyntaxTree(Pattern, NameSpace, Token, null);
-			}
+		if(!LibGreenTea.IsVariableName(Token.ParsedText, 0)) {
+			return new GtSyntaxTree(Pattern, NameSpace, Token, null);
 		}
 		return null;
 	}
@@ -2900,7 +2893,7 @@ final class GreenTeaGrammar extends GtGrammar {
 				break;
 			}
 			/*local*/GtToken Token = TokenContext.Next();
-			if(LibGreenTea.IsLetter(LibGreenTea.CharAt(Token.ParsedText, 0))) {
+			if(LibGreenTea.IsVariableName(Token.ParsedText, 0)) {
 				if(VocabMap.get(Token.ParsedText) != null) {
 					NameSpace.Context.ReportError(WarningLevel, Token, "already defined name: " + Token.ParsedText);
 					continue;
@@ -3185,7 +3178,7 @@ final class GreenTeaGrammar extends GtGrammar {
 			ParsedTree.NameSpace.AppendConstructor(RecvType, DefinedFunc);
 		}
 		else {
-			if(LibGreenTea.IsLetter(LibGreenTea.CharAt(DefinedFunc.FuncName, 0))) {
+			if(LibGreenTea.IsLetter(DefinedFunc.FuncName, 0)) {
 				ParsedTree.NameSpace.AppendFunc(DefinedFunc);
 			}
 			if(RecvType != Gamma.VoidType) {

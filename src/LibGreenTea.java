@@ -104,25 +104,33 @@ public abstract class LibGreenTea {
 		}
 	}
 
-	public final static boolean IsWhitespace(char ch) {
+	public final static char CharAt(String Text, int Pos) {
+		if(Text.length() > 0) {
+			return Text.charAt(Pos);
+		}
+		return 0;
+	}
+
+	public final static boolean IsWhitespace(String Text, int Pos) {
+		char ch = LibGreenTea.CharAt(Text, Pos);
 		return Character.isWhitespace(ch);
 	}
 
-	public final static boolean IsLetter(char ch) {
+	public final static boolean IsLetter(String Text, int Pos) {
+		char ch = LibGreenTea.CharAt(Text, Pos);
 		return Character.isLetter(ch);
 	}
 
-	public final static boolean IsDigit(char ch) {
+	public final static boolean IsDigit(String Text, int Pos) {
+		char ch = LibGreenTea.CharAt(Text, Pos);
 		return Character.isDigit(ch);
 	}
 
-	public final static boolean IsVariableName(char ch) {
+	public final static boolean IsVariableName(String Text, int Pos) {
+		char ch = LibGreenTea.CharAt(Text, Pos);
 		return Character.isLetter(ch) || ch == '_' || ch > 255;
 	}
 
-	public final static char CharAt(String Text, int Pos) {
-		return Text.charAt(Pos);
-	}
 
 	public final static String CharToString(char code) {
 		return Character.toString(code);
