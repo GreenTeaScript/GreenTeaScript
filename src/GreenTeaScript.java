@@ -437,7 +437,7 @@ class GtStatic implements GtConst {
 		if(LastNode != null) {
 			LastNode.NextTree = Node;
 		}
-		return Node;
+		return GtStatic.TreeTail(Node);
 	}
 
 	public final static GtSyntaxTree ApplySyntaxPattern(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
@@ -2678,19 +2678,22 @@ final class GreenTeaGrammar extends GtGrammar {
 		if(TokenContext.MatchToken("{")) {
 			/*local*/GtSyntaxTree PrevTree = null;
 			/*local*/GtNameSpace NameSpace = new GtNameSpace(ParentNameSpace.Context, ParentNameSpace);
-//			while() {
 			while(TokenContext.HasNext()) {
 				TokenContext.SkipEmptyStatement();
 				if(TokenContext.MatchToken("}")) {
 					break;
 				}
 				/*local*/GtMap Annotation = TokenContext.SkipAndGetAnnotation(true);
-				/*local*/GtSyntaxTree CurrentTree = GtStatic.ParseExpression(NameSpace, TokenContext);
-				if(GtStatic.IsEmptyOrError(CurrentTree)) {
-					return CurrentTree;
+				/*local*/GtSyntaxTree ParsedTree = GtStatic.ParseExpression(NameSpace, TokenContext);
+				if(GtStatic.IsEmptyOrError(ParsedTree)) {
+					return ParsedTree;
 				}
-				CurrentTree.SetAnnotation(Annotation);
-				PrevTree = GtStatic.TreeTail(GtStatic.LinkTree(PrevTree, GtStatic.TreeHead(CurrentTree)));
+				ParsedTree.SetAnnotation(Annotation);
+				//PrevTree = GtStatic.TreeTail(GtStatic.LinkTree(PrevTree, GtStatic.TreeHead(CurrentTree)));
+				if(ParsedTree.PrevTree != null) {
+					ParsedTree = GtStatic.TreeHead(ParsedTree);
+				}
+				PrevTree = GtStatic.LinkTree(PrevTree, ParsedTree);
 				TokenContext.SkipIncompleteStatement();  // check; and skip empty statement
 			}
 			if(PrevTree == null) {
