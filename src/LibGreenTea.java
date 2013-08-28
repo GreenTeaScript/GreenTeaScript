@@ -116,6 +116,10 @@ public abstract class LibGreenTea {
 		return Character.isDigit(ch);
 	}
 
+	public final static boolean IsVariableName(char ch) {
+		return Character.isLetter(ch) || ch == '_' || ch > 255;
+	}
+
 	public final static char CharAt(String Text, int Pos) {
 		return Text.charAt(Pos);
 	}

@@ -2103,11 +2103,12 @@ final class GreenTeaGrammar extends GtGrammar {
 			return TypeTree;
 		}
 		/*local*/GtToken Token = TokenContext.Next();
-//		/*local*/Object ConstValue = NameSpace.GetSymbol(Token.ParsedText);
-//		if(ConstValue != null && !(ConstValue instanceof GtType)) {
-//			return new GtSyntaxTree(NameSpace.GetPattern("$Const$"), NameSpace, Token, ConstValue);
-//		}
-		return new GtSyntaxTree(NameSpace.GetPattern("$Variable$"), NameSpace, Token, null);
+		/*local*/GtSyntaxTree VarTree = new GtSyntaxTree(NameSpace.GetPattern("$Variable$"), NameSpace, Token, null);
+		if(!LibGreenTea.IsVariableName(LibGreenTea.CharAt(Token.ParsedText, 0))) {
+			NameSpace.Context.ReportError(ErrorLevel, Token, "illegal variable: '" + Token.ParsedText + "'");
+			VarTree.ToError(Token);
+		}
+		return VarTree;
 	}
 
 	public static GtSyntaxTree ParseVariable(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
