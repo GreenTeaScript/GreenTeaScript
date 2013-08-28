@@ -1015,16 +1015,11 @@ final class GtTokenContext extends GtStatic {
 
 	public final void SetSourceMap(String SourceMap) {
 		/*local*/int Index = SourceMap.lastIndexOf(':');
-		/*local*/String FileName;
-		if(Index == -1) {
-			FileName = this.TopLevelNameSpace.Context.GetSourceFileName(this.ParsingLine);
+		if(Index != -1) {
+			/*local*/String FileName = SourceMap.substring(0, Index);
+			/*local*/int Line = (int)LibGreenTea.ParseInt(SourceMap.substring(Index+1));
+			this.ParsingLine = this.TopLevelNameSpace.Context.GetFileLine(FileName, Line);
 		}
-		else {
-			FileName = SourceMap.substring(0, Index);
-		}
-		/*local*/int Line = (int)LibGreenTea.ParseInt(SourceMap.substring(Index+1));
-		System.err.println("******* newfile="+FileName+","+Line);
-		this.ParsingLine = this.TopLevelNameSpace.Context.GetFileLine(FileName, Line);
 	}
 
 	public void StopParsing(boolean b) {
