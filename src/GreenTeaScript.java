@@ -2308,9 +2308,9 @@ final class GreenTeaGrammar extends GtGrammar {
 	public static GtSyntaxTree ParseTrinary(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree TrinaryTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("?"), null);
 		TrinaryTree.SetSyntaxTreeAt(IfCond, LeftTree);
-		TrinaryTree.SetMatchedPatternAt(IfThen, NameSpace, TokenContext, "$expression$", Required);
+		TrinaryTree.SetMatchedPatternAt(IfThen, NameSpace, TokenContext, "$Expression$", Required);
 		TrinaryTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ":", Required);
-		TrinaryTree.SetMatchedPatternAt(IfElse, NameSpace, TokenContext, "$expression$", Required);
+		TrinaryTree.SetMatchedPatternAt(IfElse, NameSpace, TokenContext, "$Expression$", Required);
 		return TrinaryTree;
 	}
 
