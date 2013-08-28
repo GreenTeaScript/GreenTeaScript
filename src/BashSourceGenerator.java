@@ -39,6 +39,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.FalseLiteral = "1";
 		this.NullLiteral = this.Quote("__NULL__");
 		this.MemberAccessOperator = "__MEMBER__";
+		this.LineComment = "##";
 	}
 
 	@Override public void InitContext(GtContext Context) {
@@ -481,7 +482,7 @@ public class BashSourceGenerator extends SourceGenerator {
 			/*local*/LocalNode Local = (/*cast*/LocalNode) TargetNode;
 			/*local*/String Name = Local.NativeName;
 			ResolvedValue = "${" + Value + "[@]}";
-			if(Name.length() == 1 && LibGreenTea.IsDigit(LibGreenTea.CharAt(Name, 0))) {
+			if(Name.length() == 1 && LibGreenTea.IsDigit(Name, 0)) {
 				ResolvedValue = "$" + Value;
 			}
 		}
@@ -507,6 +508,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
+		this.FlushErrorReport();
 		/*local*/String Function = "";
 		/*local*/String FuncName = Func.GetNativeFuncName();
 		this.inFunc = true;

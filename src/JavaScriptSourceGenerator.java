@@ -134,6 +134,7 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> NameList, GtNode Body) {
+		this.FlushErrorReport();
 		/*local*/int ArgCount = Func.Types.length - 1;
 		/*local*/String Code = "var " + Func.GetNativeFuncName() + " = (function(";
 		/*local*/int i = 0;

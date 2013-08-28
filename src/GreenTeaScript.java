@@ -2110,7 +2110,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/GtSyntaxTree VarTree = new GtSyntaxTree(NameSpace.GetPattern("$Variable$"), NameSpace, Token, null);
 		if(!LibGreenTea.IsVariableName(Token.ParsedText, 0)) {
-			NameSpace.Context.ReportError(ErrorLevel, Token, "illegal variable: '" + Token.ParsedText + "'");
+			NameSpace.Context.ReportError(ErrorLevel, Token, "illegal variable name: '" + Token.ParsedText + "'");
 			VarTree.ToError(Token);
 		}
 		return VarTree;
@@ -2118,7 +2118,7 @@ final class GreenTeaGrammar extends GtGrammar {
 
 	public static GtSyntaxTree ParseVariable(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.Next();
-		if(!LibGreenTea.IsVariableName(Token.ParsedText, 0)) {
+		if(LibGreenTea.IsVariableName(Token.ParsedText, 0)) {
 			return new GtSyntaxTree(Pattern, NameSpace, Token, null);
 		}
 		return null;

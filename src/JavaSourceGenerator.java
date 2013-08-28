@@ -115,6 +115,7 @@ public class JavaSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
+		this.FlushErrorReport();
 		//FIXME
 		/*local*/String Program = "";
 		/*local*/String RetTy = Func.GetReturnType().ShortClassName;

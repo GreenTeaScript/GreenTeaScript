@@ -235,6 +235,7 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
+		this.FlushErrorReport();
 		/*local*/String Code = "";
 		if(!Func.Is(ExportFunc)) {
 			Code = "static ";

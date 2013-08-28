@@ -34,6 +34,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		this.TrueLiteral  = "1";
 		this.FalseLiteral = "0";
 		this.NullLiteral = "NULL";
+		this.LineComment = "##";
 		this.MemberAccessOperator = "->";
 	}
 
@@ -157,6 +158,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
+		this.FlushErrorReport();
 		/*local*/String Program = "";
 		/*local*/String RetTy = Func.GetReturnType().ShortClassName;
 		/*local*/String FuncName = Func.GetNativeFuncName();

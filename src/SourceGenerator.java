@@ -1736,21 +1736,22 @@ class GtGenerator extends GtStatic {
 }
 
 class SourceGenerator extends GtGenerator {
-	/*field*/public String    HeaderSource;
-	/*field*/public String    BodySource;
+	/*field*/protected String    HeaderSource;
+	/*field*/protected String    BodySource;
 
-	/*field*/public String    Tab;
-	/*field*/public String    LineFeed;
-	/*field*/public int       IndentLevel;
-	/*field*/public String    CurrentLevelIndentString;
+	/*field*/protected String    Tab;
+	/*field*/protected String    LineFeed;
+	/*field*/protected int       IndentLevel;
+	/*field*/protected String    CurrentLevelIndentString;
 
-	/*field*/public boolean   HasLabelSupport = false;
-	/*field*/public String    LogicalOrOperator  = "||";
-	/*field*/public String    LogicalAndOperator = "&&";
-	/*field*/public String    MemberAccessOperator = ".";
-	/*field*/public String    TrueLiteral  = "true";
-	/*field*/public String    FalseLiteral = "false";
-	/*field*/public String    NullLiteral = "null";
+	/*field*/protected boolean   HasLabelSupport;
+	/*field*/protected String    LogicalOrOperator;
+	/*field*/protected String    LogicalAndOperator;
+	/*field*/protected String    MemberAccessOperator;
+	/*field*/protected String    TrueLiteral;
+	/*field*/protected String    FalseLiteral;
+	/*field*/protected String    NullLiteral;
+	/*field*/protected String    LineComment;
 
 	SourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
@@ -1760,6 +1761,14 @@ class SourceGenerator extends GtGenerator {
 		this.CurrentLevelIndentString = null;
 		this.HeaderSource = "";
 		this.BodySource = "";
+		this.HasLabelSupport = false;
+		this.LogicalOrOperator  = "||";
+		this.LogicalAndOperator = "&&";
+		this.MemberAccessOperator = ".";
+		this.TrueLiteral  = "true";
+		this.FalseLiteral = "false";
+		this.NullLiteral  = "null";
+		this.LineComment  = "//";
 	}
 
 	@Override public void InitContext(GtContext Context) {
@@ -1782,6 +1791,21 @@ class SourceGenerator extends GtGenerator {
 
 	public final void WriteLineCode(String Text) {
 		this.BodySource += Text + this.LineFeed;
+	}
+
+	public final void WriteLineComment(String Text) {
+		this.BodySource += this.LineComment + " " + Text + this.LineFeed;
+	}
+
+	public final void FlushErrorReport() {
+		this.WriteLineCode("");
+		/*local*/String[] Reports = this.Context.GetReportedErrors();
+		/*local*/int i = 0;
+		while(i < Reports.length) {
+			this.WriteLineComment(Reports[i]);
+			i = i + 1;
+		}
+		this.WriteLineCode("");		
 	}
 
 	@Override public void FlushBuffer() {

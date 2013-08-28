@@ -38,6 +38,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.TrueLiteral  = "True";
 		this.FalseLiteral = "False";
 		this.NullLiteral = "None";
+		this.LineComment = "##";
 	}
 
 	@Override protected String GetNewOperator(GtType Type) {
@@ -214,6 +215,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
+		this.FlushErrorReport();
 		/*local*/String Function = "def ";
 		Function += Func.GetNativeFuncName() + "(";
 		/*local*/int i = 0;
@@ -231,6 +233,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void GenerateClassField(GtType Type, GtClassField ClassField) {
+		this.FlushErrorReport();
 		/*local*/String Program = this.GetIndentString() + "class " + Type.ShortClassName;
 //		if(Type.SuperType != null) {
 //			Program += "(" + Type.SuperType.ShortClassName + ")";
