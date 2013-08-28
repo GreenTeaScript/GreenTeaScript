@@ -1014,7 +1014,7 @@ final class GtTokenContext extends GtStatic {
 	}
 
 	public final void SetSourceMap(String SourceMap) {
-		/*local*/int Index = SourceMap.lastIndexOf(":");
+		/*local*/int Index = SourceMap.lastIndexOf(':');
 		/*local*/String FileName;
 		if(Index == -1) {
 			FileName = this.TopLevelNameSpace.Context.GetSourceFileName(this.ParsingLine);
@@ -1022,7 +1022,8 @@ final class GtTokenContext extends GtStatic {
 		else {
 			FileName = SourceMap.substring(0, Index);
 		}
-		/*local*/int Line = (int)LibGreenTea.ParseInt(SourceMap);
+		/*local*/int Line = (int)LibGreenTea.ParseInt(SourceMap.substring(Index+1));
+		System.err.println("******* newfile="+FileName+","+Line);
 		this.ParsingLine = this.TopLevelNameSpace.Context.GetFileLine(FileName, Line);
 	}
 
@@ -1932,6 +1933,7 @@ final class GreenTeaGrammar extends GtGrammar {
 			// SourceMap ${file:line}
 			if(LibGreenTea.CharAt(SourceText, NextPos+1) == '$' && LibGreenTea.CharAt(SourceText, NextPos+2) == '{') { 
 				int StartPos = NextPos + 3;
+				NextPos += 3;
 				while(NextChar != 0) {
 					NextChar = LibGreenTea.CharAt(SourceText, NextPos);
 					if(NextChar == '}') {
@@ -1941,7 +1943,7 @@ final class GreenTeaGrammar extends GtGrammar {
 					if(NextChar == '\n' || NextChar == '*') {
 						break;  // stop
 					}
-					NextChar += 3;
+					NextPos += 1;
 				}
 			}
 		}

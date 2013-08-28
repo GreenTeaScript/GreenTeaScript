@@ -213,7 +213,13 @@ public abstract class LibGreenTea {
 	}
 
 	public final static long ParseInt(String Text) {
-		return Long.parseLong(Text);
+		try {
+			return Long.parseLong(Text);
+		}
+		catch(NumberFormatException e) {
+			LibGreenTea.VerboseException(e);
+		}
+		return 0L;
 	}
 
 	public final static boolean IsUnixCommand(String cmd) {
