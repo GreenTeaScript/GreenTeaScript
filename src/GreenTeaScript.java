@@ -517,7 +517,7 @@ class GtStatic implements GtConst {
 			}
 			ParsedTree = ParsedTree.NextTree;
 		}
-		Gamma.StackTopIndex = StackTopIndex;
+		Gamma.PushBackStackIndex(StackTopIndex);
 		if(LastNode == null) {
 			return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
 		}
@@ -1411,9 +1411,19 @@ final class GtTypeEnv extends GtStatic {
 			if(VarInfo.Name.equals(Symbol)) {
 				return VarInfo;
 			}
-			i -= 1;
+			i = i - 1;
 		}
 		return null;
+	}
+	
+	public void PushBackStackIndex(int PushBackIndex) {
+		/*local*/int i = this.StackTopIndex - 1;
+		while(i >= PushBackIndex) {
+			/*local*/GtVariableInfo VarInfo = this.LocalStackList.get(i);
+			VarInfo.Check();
+			i = i - 1;
+		}
+		this.StackTopIndex = PushBackIndex;
 	}
 
 	public final GtNode CreateCoercionNode(GtType ParamType, GtFunc TypeCoercion, GtNode Node) {
@@ -1462,28 +1472,6 @@ final class GtTypeEnv extends GtStatic {
 	public final GtNode CreateDefaultValue(GtSyntaxTree ParsedTree, GtType Type) {
 		return this.Generator.CreateConstNode(Type, ParsedTree, Type.DefaultNullValue);
 	}
-
-//	public GtNode TypeBlock(GtSyntaxTree ParsedTree, GtType Type) {
-//		/*local*/int StackTopIndex = this.StackTopIndex;
-//		/*local*/GtNode LastNode = null;
-//		while(ParsedTree != null) {
-//			/*local*/GtType CurrentType = Type;
-//			if(ParsedTree.NextTree != null) {
-//				CurrentType = this.VoidType;
-//			}
-//			/*local*/GtNode TypedNode = this.TypeCheckEachNode(ParsedTree, CurrentType, DefaultTypeCheckPolicy);
-//			/*local*/LastNode = GtStatic.LinkNode(LastNode, TypedNode);
-//			if(TypedNode.IsError()) {
-//				break;
-//			}
-//			ParsedTree = ParsedTree.NextTree;
-//		}
-//		this.StackTopIndex = StackTopIndex;
-//		if(LastNode == null) {
-//			return null;
-//		}
-//		return LastNode.MoveHeadNode();
-//	}
 
 	public final GtNode TypeCheckSingleNode(GtSyntaxTree ParsedTree, GtNode Node, GtType Type, int TypeCheckPolicy) {
 		if(Node.IsError() || IsFlag(TypeCheckPolicy, NoCheckPolicy)) {
@@ -2213,10 +2201,9 @@ final class GreenTeaGrammar extends GtGrammar {
 			InitValueNode = Gamma.CreateDefaultValue(ParsedTree, DeclType);
 		}
 		Gamma.AppendDeclaredVariable(VarFlag, DeclType, VariableName, ParsedTree.GetSyntaxTreeAt(VarDeclName).KeyToken, InitValueNode.ToConstValue(false));
-		/*local*/GtNode VariableNode = ParsedTree.TypeCheckNodeAt(VarDeclName, Gamma, DeclType, DefaultTypeCheckPolicy);
 		/*local*/GtNode BlockNode = GtStatic.TypeBlock(Gamma, ParsedTree.NextTree, Gamma.VoidType);
 		ParsedTree.NextTree = null;
-		return Gamma.Generator.CreateVarNode(DeclType, ParsedTree, DeclType, VariableNode, InitValueNode, BlockNode);
+		return Gamma.Generator.CreateVarNode(DeclType, ParsedTree, DeclType, VariableName, InitValueNode, BlockNode);
 	}
 
 	// Parse And Type
