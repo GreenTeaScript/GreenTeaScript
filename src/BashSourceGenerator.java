@@ -474,8 +474,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		else if(TargetNode instanceof IndexerNode || TargetNode instanceof GetterNode) {
 			ResolvedValue = "${" + Value + "}";
 		}
-		else if(TargetNode instanceof ApplyNode || 
-				TargetNode instanceof CommandNode || TargetNode instanceof NewNode) {
+		else if(TargetNode instanceof ApplyNode || TargetNode instanceof CommandNode || TargetNode instanceof NewNode) {
 			ResolvedValue = "$(" + Value + ")";
 		}
 		else if(TargetNode instanceof LocalNode && !this.IsNativeType(Type)) {
