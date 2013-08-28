@@ -823,6 +823,14 @@ class GtType extends GtStatic {
 		this.NativeSpec = ClassField;
 	}
 
+	public final boolean IsFuncType() {
+		return (this.BaseType == this.Context.FuncType);
+	}
+
+	public final boolean IsVarType() {
+		return (this == this.Context.VarType);
+	}
+
 }
 
 class GtFunc extends GtStatic {
@@ -888,6 +896,11 @@ class GtFunc extends GtStatic {
 
 	public final GtType GetReturnType() {
 		return this.Types[0];
+	}
+
+	public final void SetReturnType(GtType ReturnType) {
+		LibGreenTea.Assert(this.GetReturnType().IsVarType());
+		this.Types[0] = ReturnType;
 	}
 
 	public final GtType GetRecvType() {
@@ -961,6 +974,7 @@ class GtFunc extends GtStatic {
 		this.FuncFlag |= NativeFunc | OptionalFuncFlag;
 		this.NativeRef = Method;
 	}
+
 }
 
 class GtPolyFunc extends GtStatic {
@@ -1323,16 +1337,16 @@ class GtGenerator extends GtStatic {
 
 	/* language constructor */
 
-	public final Object ImportNativeObject(String PackageName) {
+	public final Object ImportNativeObject(GtType ContextType, String PackageName) {
+		LibGreenTea.VerboseLog(VerboseNative, "importing " + PackageName);
 //ifdef JAVA
 		try {
-			LibGreenTea.VerboseLog(VerboseNative, "importing " + PackageName);
 			/*local*/Class<?> NativeClass = Class.forName(PackageName);
 			return LibGreenTea.GetNativeType(this.Context, NativeClass);
 		} catch (ClassNotFoundException e) {
 			LibGreenTea.VerboseLog(VerboseException, e.toString());
 		}
-		Method NativeMethod = LibGreenTea.ImportNativeMethod(PackageName, true/*static only*/);
+		Method NativeMethod = LibGreenTea.LoadNativeMethod(ContextType, PackageName, true/*static only*/);
 		if(NativeMethod != null) {
 			return LibGreenTea.ConvertNativeMethodToFunc(this.Context, NativeMethod);
 		}
