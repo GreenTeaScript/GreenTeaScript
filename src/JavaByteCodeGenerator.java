@@ -40,7 +40,9 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
+import static org.objectweb.asm.Opcodes.*;
 
+import JVM.GtSubProc;
 import JVM.GtThrowableWrapper;
 import JVM.JVMConstPool;
 import JVM.StaticMethods;
@@ -144,7 +146,7 @@ final class JVMLocal {
 	}
 }
 
-class JVMBuilder implements Opcodes {
+class JVMBuilder {
 	MethodVisitor                 AsmMethodVisitor;
 	ArrayList<JVMLocal>           LocalVals;
 	Stack<Type>                   typeStack;
@@ -285,7 +287,7 @@ class JVMBuilder implements Opcodes {
 	}
 }
 
-public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
+public class JavaByteCodeGenerator extends GtGenerator {
 	private JVMBuilder Builder;
 	private final String defaultClassName = "Global";
 	private final Map<String, MethodHolderClass> classMap = new HashMap<String, MethodHolderClass>();
@@ -553,9 +555,9 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 
 	@Override public void VisitBinaryNode(BinaryNode Node) {
 		Node.LeftNode.Evaluate(this);
+		Type leftType = this.Builder.typeStack.pop();
 		Node.RightNode.Evaluate(this);
 		Type rightType = this.Builder.typeStack.pop();
-		Type leftType = this.Builder.typeStack.pop();
 		String FuncName = Node.Func.FuncName;
 		String OperatorFuncName = "binary_" + FuncName + "_" + GetOpDesc(leftType) + GetOpDesc(rightType);
 		Method m = this.methodMap.get(OperatorFuncName);
@@ -806,7 +808,25 @@ public class JavaByteCodeGenerator extends GtGenerator implements Opcodes {
 	}
 
 	@Override public void VisitCommandNode(CommandNode Node) {
-		//TODO: call GtSubProc#ExecCommandString, ExecCommandBool, ExecCommandVoid,
+		ArrayList<GtNode> Args = new ArrayList<GtNode>();
+		CommandNode node = Node;
+		while(node != null) {
+			Args.addAll(node.Params);
+			node = (CommandNode) node.PipedNextNode;
+		}
+		this.Builder.AsmMethodVisitor.visitLdcInsn(Args.size());
+		this.Builder.AsmMethodVisitor.visitTypeInsn(ANEWARRAY, Type.getInternalName(String.class));
+		for(int i=0; i<Args.size(); i++) {
+			GtNode Arg = Args.get(i);
+			this.Builder.AsmMethodVisitor.visitInsn(DUP);
+			this.Builder.AsmMethodVisitor.visitLdcInsn(i);
+			Arg.Evaluate(this);
+			this.Builder.typeStack.pop();
+			this.Builder.AsmMethodVisitor.visitInsn(AASTORE);
+		}
+		this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, Type.getInternalName(GtSubProc.class),
+				"ExecCommandBool", "([Ljava/lang/String;)Z");
+		this.Builder.AsmMethodVisitor.visitInsn(POP);
 	}
 
 	@Override public void InvokeMainFunc(String MainFuncName) {
