@@ -105,7 +105,7 @@ public abstract class LibGreenTea {
 	}
 
 	public final static char CharAt(String Text, int Pos) {
-		if(Text.length() > 0) {
+		if(Pos < Text.length()) {
 			return Text.charAt(Pos);
 		}
 		return 0;

@@ -1013,6 +1013,19 @@ final class GtTokenContext extends GtStatic {
 		}
 	}
 
+	public final void SetSourceMap(String SourceMap) {
+		/*local*/int Index = SourceMap.lastIndexOf(":");
+		/*local*/String FileName;
+		if(Index == -1) {
+			FileName = this.TopLevelNameSpace.Context.GetSourceFileName(this.ParsingLine);
+		}
+		else {
+			FileName = SourceMap.substring(0, Index);
+		}
+		/*local*/int Line = (int)LibGreenTea.ParseInt(SourceMap);
+		this.ParsingLine = this.TopLevelNameSpace.Context.GetFileLine(FileName, Line);
+	}
+
 	public void StopParsing(boolean b) {
 		// TODO Auto-generated method stub
 
@@ -1908,35 +1921,48 @@ final class GreenTeaGrammar extends GtGrammar {
 
 	public static int CommentToken(GtTokenContext TokenContext, String SourceText, int pos) {
 		/*local*/int NextPos = pos + 1;
-		if(NextPos < SourceText.length()) {
-			/*local*/char NextChar = LibGreenTea.CharAt(SourceText, NextPos);
-			if(NextChar != '/' && NextChar != '*') {
-				return NoMatch;
-			}
-			/*local*/int Level = 0;
-			/*local*/char PrevChar = 0;
-			if(NextChar == '*') {
-				Level = 1;
-			}
-			while(NextPos < SourceText.length()) {
-				NextChar = LibGreenTea.CharAt(SourceText, NextPos);
-				if(NextChar == '\n' && Level == 0) {
-					return GreenTeaGrammar.IndentToken(TokenContext, SourceText, NextPos);
-				}
-				if(NextChar == '/' && PrevChar == '*') {
-					if(Level == 1) {
-						return NextPos + 1;
+		/*local*/char NextChar = LibGreenTea.CharAt(SourceText, NextPos);
+		if(NextChar != '/' && NextChar != '*') {
+			return NoMatch;
+		}
+		/*local*/int Level = 0;
+		/*local*/char PrevChar = 0;
+		if(NextChar == '*') {
+			Level = 1;
+			// SourceMap ${file:line}
+			if(LibGreenTea.CharAt(SourceText, NextPos+1) == '$' && LibGreenTea.CharAt(SourceText, NextPos+2) == '{') { 
+				int StartPos = NextPos + 3;
+				while(NextChar != 0) {
+					NextChar = LibGreenTea.CharAt(SourceText, NextPos);
+					if(NextChar == '}') {
+						TokenContext.SetSourceMap(SourceText.substring(StartPos, NextPos));
+						break;
 					}
-					Level = Level - 1;
-				}
-				if(Level > 0) {
-					if(NextChar == '*' && PrevChar == '/') {
-						Level = Level + 1;
+					if(NextChar == '\n' || NextChar == '*') {
+						break;  // stop
 					}
+					NextChar += 3;
 				}
-				PrevChar = NextChar;
-				NextPos = NextPos + 1;
 			}
+		}
+		while(NextPos < SourceText.length()) {
+			NextChar = LibGreenTea.CharAt(SourceText, NextPos);
+			if(NextChar == '\n' && Level == 0) {
+				return GreenTeaGrammar.IndentToken(TokenContext, SourceText, NextPos);
+			}
+			if(NextChar == '/' && PrevChar == '*') {
+				if(Level == 1) {
+					return NextPos + 1;
+				}
+				Level = Level - 1;
+			}
+			if(Level > 0) {
+				if(NextChar == '*' && PrevChar == '/') {
+					Level = Level + 1;
+				}
+			}
+			PrevChar = NextChar;
+			NextPos = NextPos + 1;
 		}
 		return NoMatch;
 	}
@@ -3816,13 +3842,18 @@ final class GtContext extends GtStatic {
 	}
 
 	public final long GetFileLine(String FileName, int Line) {
-		/*local*/Integer Id = (/*cast*/Integer)this.SourceMap.get(FileName);
+		/*local*/Integer Id = /* (FileName == null) ? 0 :*/ (/*cast*/Integer)this.SourceMap.get(FileName);
 		if(Id == null) {
 			this.SourceList.add(FileName);
 			Id = this.SourceList.size();
 			this.SourceMap.put(FileName, Id);
 		}
 		return LibGreenTea.JoinIntId(Id, Line);
+	}
+
+	public final String GetSourceFileName(long FileLine) {
+		/*local*/int FileId = LibGreenTea.UpperId(FileLine);
+		return (FileId == 0) ? null : this.SourceList.get(FileId - 1);
 	}
 
 	private final String GetSourcePosition(long FileLine) {
