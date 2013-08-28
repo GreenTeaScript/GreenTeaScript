@@ -305,8 +305,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.typeDescriptorMap.put(Context.VoidType.ShortClassName, Type.VOID_TYPE);
 		this.typeDescriptorMap.put(Context.BooleanType.ShortClassName, Type.BOOLEAN_TYPE);
 		this.typeDescriptorMap.put(Context.IntType.ShortClassName, Type.INT_TYPE);
-		//this.typeDescriptorMap.put(Context.ObjectType.ShortClassName, Type.getType(Object.class).getDescriptor());
-		this.typeDescriptorMap.put("Object", Type.getType(Object.class));
+		this.typeDescriptorMap.put(Context.AnyType.ShortClassName, Type.getType(Object.class));
 		this.typeDescriptorMap.put(Context.StringType.ShortClassName, Type.getType(String.class));
 		this.methodMap = StaticMethods.getAllStaticMethods();
 	}

@@ -40,6 +40,7 @@ boolean ==(String x, String y);
 boolean !=(String x, String y);
 
 // function
-void println(String s);
+void print(any s);
+void println(any s);
 void assert(boolean b);
 

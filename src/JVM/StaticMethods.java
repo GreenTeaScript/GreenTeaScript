@@ -5,7 +5,11 @@ import java.util.HashMap;
 
 public class StaticMethods {
 
-	public static void println(String o) {
+	public static void print(Object o) {
+		System.out.print(o);
+	}
+
+	public static void println(Object o) {
 		System.out.println(o);
 	}
 
@@ -160,7 +164,8 @@ public class StaticMethods {
 			map.put("binary_==_LL", self.getMethod("binary_eq", String.class, String.class));
 			map.put("binary_!=_LL", self.getMethod("binary_ne", String.class, String.class));
 			map.put("assert",  self.getMethod("assert_", boolean.class));
-			map.put("println", self.getMethod("println", String.class));
+			map.put("print" ,  self.getMethod("print", Object.class));
+			map.put("println", self.getMethod("println", Object.class));
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
