@@ -2188,6 +2188,9 @@ final class GreenTeaGrammar extends GtGrammar {
 		if(ParsedTree.HasNodeAt(VarDeclValue)) {
 			InitValueNode = ParsedTree.TypeCheckNodeAt(VarDeclValue, Gamma, DeclType, DefaultTypeCheckPolicy);
 		}
+		if(GtStatic.UseLangStat) {
+			Gamma.Context.Stat.VarDecl += 1;
+		}/*EndOfStat*/
 		if(DeclType.IsVarType()) {
 			if(InitValueNode == null) {
 				DeclType = Gamma.AnyType;
@@ -2196,7 +2199,18 @@ final class GreenTeaGrammar extends GtGrammar {
 				DeclType = InitValueNode.Type;
 			}
 			Gamma.ReportTypeInference(ParsedTree.KeyToken, VariableName, DeclType);
+			if(GtStatic.UseLangStat) {
+				Gamma.Context.Stat.VarDeclInfer += 1;
+				if(DeclType.IsAnyType()) {
+					Gamma.Context.Stat.VarDeclInferAny += 1;
+				}
+			}/*EndOfStat*/
 		}
+		if(GtStatic.UseLangStat) {
+			if(DeclType.IsAnyType()) {
+				Gamma.Context.Stat.VarDeclAny += 1;
+			}
+		}/*EndOfStat*/
 		if(InitValueNode == null) {
 			InitValueNode = Gamma.CreateDefaultValue(ParsedTree, DeclType);
 		}
@@ -3638,10 +3652,20 @@ final class GreenTeaGrammar extends GtGrammar {
 }
 
 final class GtStat {
+	/*field*/public int VarDeclAny;
+	/*field*/public int VarDeclInferAny;
+	/*field*/public int VarDeclInfer;
+	/*field*/public int VarDecl;
+	
 	/*field*/public long MatchCount;
 	/*field*/public long BacktrackCount;  // To count how many times backtracks happen.
 
 	GtStat/*constructor*/() {
+		this.VarDecl = 0;
+		this.VarDeclInfer = 0;
+		this.VarDeclAny = 0;
+		this.VarDeclInferAny = 0;
+		
 		this.MatchCount     = 0;
 		this.BacktrackCount = 0;
 	}

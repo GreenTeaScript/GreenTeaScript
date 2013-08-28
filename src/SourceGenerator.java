@@ -832,6 +832,10 @@ class GtType extends GtStatic {
 		return (this == this.Context.VarType);
 	}
 
+	public boolean IsAnyType() {
+		return (this == this.Context.AnyType);
+	}
+
 }
 
 class GtFunc extends GtStatic {
