@@ -18,6 +18,6 @@ source="${source} PythonSourceGenerator"
 out=""
 
 for s in ${source}; do
-    perl src/TypeScript/ToTypeScript.pl < ${SourceDir}${s}.java > ${build}${s}.green
+    perl src/GreenTeaScript/ToGreenTeaScript.pl < ${SourceDir}${s}.java > ${build}${s}.green
     out="${out} ${build}${s}.green"
 done
