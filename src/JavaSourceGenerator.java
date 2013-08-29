@@ -70,7 +70,7 @@ public class JavaSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitVarNode(VarNode Node) {
 		/*local*/String Type = Node.DeclType.ShortClassName;
-		/*local*/String VarName = Node.VariableName;
+		/*local*/String VarName = Node.NativeName;
 		/*local*/String Code = Type + " " + VarName;
 		if(Node.InitNode != null) {
 			Code += " = " + this.VisitNode(Node.InitNode);

@@ -71,7 +71,7 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitVarNode(VarNode Node) {
-		/*local*/String VarName = Node.VariableName;
+		/*local*/String VarName = Node.NativeName;
 		/*local*/String Source = (this.UseLetKeyword ? "let " : "var ") + " " + VarName;
 		if(Node.InitNode != null) {
 			Node.InitNode.Evaluate(this);
@@ -115,7 +115,7 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 		/*local*/String Code = "try ";
 		Code += this.VisitBlockJSWithIndent(Node.TryBlock);
 		/*local*/VarNode Val = (/*cast*/VarNode) Node.CatchExpr;
-		Code += " catch (" + Val.Type.toString() + " " + Val.VariableName + ") ";
+		Code += " catch (" + Val.Type.toString() + " " + Val.NativeName + ") ";
 		Code += this.VisitBlockJSWithIndent(Node.CatchBlock);
 		if(Node.FinallyBlock != null) {
 			Code += " finally " + this.VisitBlockJSWithIndent(Node.FinallyBlock);

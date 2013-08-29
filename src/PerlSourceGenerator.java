@@ -89,7 +89,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitVarNode(VarNode Node) {
-		/*local*/String VarName = Node.VariableName;
+		/*local*/String VarName = Node.NativeName;
 		/*local*/String Code = "my $" + VarName;
 		if(Node.InitNode != null) {
 			Code += " = " + this.VisitNode(Node.InitNode);

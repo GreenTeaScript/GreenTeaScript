@@ -1402,7 +1402,7 @@ final class GtTypeEnv extends GtStatic {
 		this.LocalStackList.get(this.StackTopIndex-1).NativeName = ThisName;
 	}
 
-	public void AppendDeclaredVariable(int VarFlag, GtType Type, String Name, GtToken NameToken, Object InitValue) {
+	public GtVariableInfo AppendDeclaredVariable(int VarFlag, GtType Type, String Name, GtToken NameToken, Object InitValue) {
 		/*local*/GtVariableInfo VarInfo = new GtVariableInfo(VarFlag, Type, Name, this.StackTopIndex, NameToken, InitValue);
 		if(this.StackTopIndex < this.LocalStackList.size()) {
 			this.LocalStackList.set(this.StackTopIndex, VarInfo);
@@ -1411,6 +1411,7 @@ final class GtTypeEnv extends GtStatic {
 			this.LocalStackList.add(VarInfo);
 		}
 		this.StackTopIndex += 1;
+		return VarInfo;
 	}
 
 	public GtVariableInfo LookupDeclaredVariable(String Symbol) {
@@ -2237,10 +2238,10 @@ final class GreenTeaGrammar extends GtGrammar {
 		if(InitValueNode == null) {
 			InitValueNode = Gamma.CreateDefaultValue(ParsedTree, DeclType);
 		}
-		Gamma.AppendDeclaredVariable(VarFlag, DeclType, VariableName, ParsedTree.GetSyntaxTreeAt(VarDeclName).KeyToken, InitValueNode.ToConstValue(false));
+		GtVariableInfo VarInfo = Gamma.AppendDeclaredVariable(VarFlag, DeclType, VariableName, ParsedTree.GetSyntaxTreeAt(VarDeclName).KeyToken, InitValueNode.ToConstValue(false));
 		/*local*/GtNode BlockNode = GtStatic.TypeBlock(Gamma, ParsedTree.NextTree, Gamma.VoidType);
 		ParsedTree.NextTree = null;
-		return Gamma.Generator.CreateVarNode(DeclType, ParsedTree, DeclType, VariableName, InitValueNode, BlockNode);
+		return Gamma.Generator.CreateVarNode(DeclType, ParsedTree, DeclType, VarInfo.NativeName, InitValueNode, BlockNode);
 	}
 
 	// Parse And Type

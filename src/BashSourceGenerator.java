@@ -278,7 +278,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitVarNode(VarNode Node) {
-		/*local*/String VarName = Node.VariableName;
+		/*local*/String VarName = Node.NativeName;
 		/*local*/String Declare = "declare ";
 		/*local*/String Option = "";
 		if(this.inFunc) {

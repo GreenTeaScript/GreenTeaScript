@@ -667,7 +667,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	}
 
 	@Override public void VisitVarNode(VarNode Node) {
-		JVMLocal local = this.Builder.AddLocal(Node.Type, Node.VariableName);
+		JVMLocal local = this.Builder.AddLocal(Node.Type, Node.NativeName);
 		Node.InitNode.Evaluate(this);
 		this.Builder.StoreLocal(local);
 		this.VisitBlock(Node.BlockNode);

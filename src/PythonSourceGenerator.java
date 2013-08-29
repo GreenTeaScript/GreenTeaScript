@@ -126,7 +126,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitVarNode(VarNode Node) {
-		/*local*/String Code = Node.VariableName;
+		/*local*/String Code = Node.NativeName;
 		/*local*/String InitValue = this.NullLiteral;
 		if(Node.InitNode != null) {
 			InitValue = this.VisitNode(Node.InitNode);
@@ -161,7 +161,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		/*local*/String Code = "try:" + this.LineFeed;
 		Code += this.VisitBlockWithIndent(Node.TryBlock, true);
 		/*local*/VarNode Val = (/*cast*/VarNode) Node.CatchExpr;
-		Code += "except " + Val.Type.toString() + ", " + Val.VariableName + ":" + this.LineFeed;
+		Code += "except " + Val.Type.toString() + ", " + Val.NativeName + ":" + this.LineFeed;
 		Code += this.VisitBlockWithIndent(Node.CatchBlock, true);
 		if(Node.FinallyBlock != null) {
 			/*local*/String Finally = this.VisitBlockWithIndent(Node.FinallyBlock, true);

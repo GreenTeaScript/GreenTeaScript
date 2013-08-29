@@ -45,6 +45,9 @@ public class CSourceGenerator extends SourceGenerator {
 
 	private String GetLocalType(GtType Type, boolean IsPointer) {
 		if(Type.IsDynamic() || Type.IsNative()) {
+			if(Type == Type.PackageNameSpace.Context.BooleanType) {
+				return "int";
+			}
 			return Type.ShortClassName;
 		}
 		/*local*/String TypeName = "struct " + Type.ShortClassName;
@@ -137,7 +140,7 @@ public class CSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitVarNode(VarNode Node) {
 		/*local*/String Type = this.LocalTypeName(Node.DeclType);
-		/*local*/String VarName = Node.VariableName;
+		/*local*/String VarName = Node.NativeName;
 		/*local*/String Code = Type + " " + VarName;
 		/*local*/boolean CreateNewScope = true;
 		if(Node.InitNode != null) {
@@ -195,7 +198,7 @@ public class CSourceGenerator extends SourceGenerator {
 		this.VisitBlockEachStatementWithIndent(Node.TryBlock, true);
 		Code += this.PopSourceCode();
 		/*local*/VarNode Val = (/*cast*/VarNode) Node.CatchExpr;
-		Code += " catch (" + Val.Type.toString() + " " + Val.VariableName + ") ";
+		Code += " catch (" + Val.Type.toString() + " " + Val.NativeName + ") ";
 		this.VisitBlockEachStatementWithIndent(Node.CatchBlock, true);
 		Code += this.PopSourceCode();
 		if(Node.FinallyBlock != null) {
