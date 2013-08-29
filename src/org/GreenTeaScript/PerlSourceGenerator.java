@@ -1,3 +1,4 @@
+package org.GreenTeaScript;
 // ***************************************************************************
 // Copyright (c) 2013, JST/CREST DEOS project authors. All rights reserved.
 // Redistribution and use in source and binary forms, with or without
@@ -89,7 +90,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitVarNode(VarNode Node) {
-		/*local*/String VarName = Node.VariableName;
+		/*local*/String VarName = Node.NativeName;
 		/*local*/String Code = "my $" + VarName;
 		if(Node.InitNode != null) {
 			Code += " = " + this.VisitNode(Node.InitNode);

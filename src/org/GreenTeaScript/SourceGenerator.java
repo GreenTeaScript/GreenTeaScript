@@ -1,3 +1,4 @@
+package org.GreenTeaScript;
 // ***************************************************************************
 // Copyright (c) 2013, JST/CREST DEOS project authors. All rights reserved.
 // Redistribution and use in source and binary forms, with or without
@@ -440,13 +441,13 @@ class SliceNode extends GtNode {
 class VarNode extends GtNode {
 	/*field*/public GtType	DeclType;
 //	/*field*/public GtNode	VarNode;
-	/*field*/public String  VariableName;
+	/*field*/public String  NativeName;
 	/*field*/public GtNode	InitNode;
 	/*field*/public GtNode	BlockNode;
 	/* let VarNode in Block end */
 	VarNode/*constructor*/(GtType Type, GtToken Token, GtType DeclType, String VariableName, GtNode InitNode, GtNode Block) {
 		super(Type, Token);
-		this.VariableName = VariableName;
+		this.NativeName = VariableName;
 		this.DeclType  = DeclType;
 		this.InitNode  = InitNode;
 		this.BlockNode = Block;
