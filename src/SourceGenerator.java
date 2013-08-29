@@ -310,11 +310,9 @@ class AndNode extends GtNode {
 	}
 	@Override public Object ToConstValue(boolean EnforceConst)  {
 		/*local*/Object LeftValue = this.LeftNode.ToConstValue(EnforceConst) ;
-//ifdef JAVA
-		if(LeftValue instanceof Boolean && ((/*cast*/Boolean)LeftValue).booleanValue()) {
+		if(LeftValue instanceof Boolean && LibGreenTea.booleanValue(LeftValue)) {
 			return this.RightNode.ToConstValue(EnforceConst) ;
 		}
-//endif VAJA
 		return null;
 	}
 }
@@ -333,22 +331,20 @@ class OrNode extends GtNode {
 	}
 	@Override public Object ToConstValue(boolean EnforceConst)  {
 		/*local*/Object LeftValue = this.LeftNode.ToConstValue(EnforceConst) ;
-//ifdef JAVA
 		if(LeftValue instanceof Boolean) {
-			if(((/*cast*/Boolean)LeftValue).booleanValue()) {
+			if(LibGreenTea.booleanValue(LeftValue)) {
 				return LeftValue;
 			}
 			else {
 				return this.RightNode.ToConstValue(EnforceConst) ;
 			}
 		}
-//endif VAJA
 		return null;
 	}
 }
 
 //E.g., $CondExpr "?" $ThenExpr ":" $ElseExpr
-class TrinaryNode extends GtNode {
+final class TrinaryNode extends GtNode {
 	/*field*/public GtFunc    Func;
 	/*field*/public GtNode	CondExpr;
 	/*field*/public GtNode	ThenExpr;
@@ -364,16 +360,14 @@ class TrinaryNode extends GtNode {
 	}
 	@Override public Object ToConstValue(boolean EnforceConst)  {
 		/*local*/Object CondValue = this.CondExpr.ToConstValue(EnforceConst) ;
-//ifdef JAVA
 		if(CondValue instanceof Boolean) {
-			if(((/*cast*/Boolean)CondValue).booleanValue()) {
+			if(LibGreenTea.booleanValue(CondValue)) {
 				return this.ThenExpr.ToConstValue(EnforceConst) ;
 			}
 			else {
 				return this.ElseExpr.ToConstValue(EnforceConst) ;
 			}
 		}
-//endif VAJA
 		return null;
 	}
 }
@@ -400,15 +394,26 @@ class GetterNode extends GtNode {
 	}
 }
 
-//E.g., $Expr "[" $Indexer "]"
-class IndexerNode extends GtNode {
-	/*field*/public GtFunc  Func;
+//E.g., $Expr "[" $Node, $Node "]"
+final class IndexerNode extends GtNode {
+	/*field*/public GtFunc Func;
 	/*field*/public GtNode Expr;
+	/*field*/public ArrayList<GtNode>  NodeList; /* [arg1, arg2, ...] */
 	IndexerNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func, GtNode Expr) {
 		super(Type, Token);
 		this.Func = Func;
 		this.Expr = Expr;
+		this.NodeList = new ArrayList<GtNode>();
 	}
+
+	@Override public void Append(GtNode Expr) {
+		this.NodeList.add(Expr);
+	}
+	
+	public GtNode GetAt(int Index) {
+		return this.NodeList.get(Index);
+	}
+	
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitIndexerNode(this);
 	}
@@ -454,14 +459,14 @@ class VarNode extends GtNode {
 // E.g., $Param[0] "(" $Param[1], $Param[2], ... ")"
 class ApplyNode extends GtNode {
 	/*field*/public GtFunc	Func;
-	/*field*/public ArrayList<GtNode>  Params; /* [arg1, arg2, ...] */
+	/*field*/public ArrayList<GtNode>  NodeList; /* [arg1, arg2, ...] */
 	ApplyNode/*constructor*/(GtType Type, GtToken KeyToken, GtFunc Func) {
 		super(Type, KeyToken);
 		this.Func = Func;
-		this.Params = new ArrayList<GtNode>();
+		this.NodeList = new ArrayList<GtNode>();
 	}
 	@Override public void Append(GtNode Expr) {
-		this.Params.add(Expr);
+		this.NodeList.add(Expr);
 	}
 
 	@Override public void Evaluate(GtGenerator Visitor) {
@@ -1654,17 +1659,17 @@ class GtGenerator extends GtStatic {
 			int StartIndex = 1;
 			Object[] Arguments;
 			if(Node.Func.Is(NativeFunc)) {
-				RecvObject = Node.Params.get(1).ToConstValue(EnforceConst);
+				RecvObject = Node.NodeList.get(1).ToConstValue(EnforceConst);
 				if(RecvObject == null) return null;
-				Arguments = new Object[Node.Params.size() - 2];
+				Arguments = new Object[Node.NodeList.size() - 2];
 				StartIndex = 2;
 			}
 			else {
-				Arguments = new Object[Node.Params.size() - 1];
+				Arguments = new Object[Node.NodeList.size() - 1];
 			}
 			for(int i = 0; i < Arguments.length; i++) {
-				Arguments[i] = Node.Params.get(StartIndex+i).ToConstValue(EnforceConst);
-				if(Arguments[i] == null && !(Node.Params.get(StartIndex+i) instanceof NullNode)) {
+				Arguments[i] = Node.NodeList.get(StartIndex+i).ToConstValue(EnforceConst);
+				if(Arguments[i] == null && !(Node.NodeList.get(StartIndex+i) instanceof NullNode)) {
 					return null;
 				}
 			}
@@ -1955,9 +1960,9 @@ class SourceGenerator extends GtGenerator {
 	}
 
 	public final String GenerateApplyFunc(ApplyNode Node) {
-		/*local*/int ParamSize = GtStatic.ListSize(Node.Params);
+		/*local*/int ParamSize = GtStatic.ListSize(Node.NodeList);
 		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
-		return this.ApplyMacro(Template, Node.Params);
+		return this.ApplyMacro(Template, Node.NodeList);
 	}
 
 	// Visitor API
@@ -1987,7 +1992,7 @@ class SourceGenerator extends GtGenerator {
 	}
 
 	@Override public void VisitIndexerNode(IndexerNode Node) {
-		//this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + this.VisitNode(Node.IndexAt) + "]");
+		this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + this.VisitNode(Node.GetAt(0)) + "]"); // FIXME: Multi
 	}
 
 	@Override public final void VisitNewNode(NewNode Node) {

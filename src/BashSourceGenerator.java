@@ -181,12 +181,12 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	private String CreateAssertFunc(ApplyNode Node) {
-		/*local*/GtNode ParamNode = Node.Params.get(1);
+		/*local*/GtNode ParamNode = Node.NodeList.get(1);
 		return "assert " + this.Quote(this.ResolveCondition(ParamNode));
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
-		/*local*/String[] ParamCode = this.MakeParamCode(Node.Params);
+		/*local*/String[] ParamCode = this.MakeParamCode(Node.NodeList);
 		if(Node.Func == null) {
 			this.PushSourceCode(this.JoinCode(ParamCode[0] + " ", 0, ParamCode, "", " "));
 		}
@@ -262,7 +262,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitIndexerNode(IndexerNode Node) {
-		this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + this.ResolveValueType(Node.IndexAt, false) + "]");
+		this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + this.ResolveValueType(Node.GetAt(0), false) + "]");
 	}
 
 	@Override public void VisitAndNode(AndNode Node) {

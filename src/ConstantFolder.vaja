@@ -199,7 +199,7 @@ public class ConstantFolder extends GtGenerator {
 		return Node;
 	}
 	private GtNode FoldApply(ApplyNode Node) {
-		this.FoldList(Node.Params);
+		this.FoldList(Node.NodeList);
 		return Node;
 	}
 

@@ -517,8 +517,8 @@ public class JavaByteCodeGenerator extends GtGenerator {
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
 		GtFunc Func = Node.Func;
-		for(int i = 1; i < Node.Params.size(); i++) {
-			GtNode ParamNode = Node.Params.get(i);
+		for(int i = 1; i < Node.NodeList.size(); i++) {
+			GtNode ParamNode = Node.NodeList.get(i);
 			ParamNode.Evaluate(this);
 			Type requireType = this.GetAsmType(Func.GetFuncParamType(i - 1));
 			Type foundType = this.Builder.typeStack.peek();

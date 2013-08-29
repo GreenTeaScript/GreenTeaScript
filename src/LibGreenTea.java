@@ -645,6 +645,10 @@ public abstract class LibGreenTea {
 		return (int)FileLine;
 	}
 
+	public final static boolean booleanValue(Object BooleanValue) {
+		return ((/*cast*/Boolean)BooleanValue).booleanValue();
+	}
+
 	public final static Object Eval(String SourceCode) {
 		LibGreenTea.VerboseLog(GtStatic.VerboseEval, "eval as native code: " + SourceCode);
 		//eval(SourceCode);
@@ -850,5 +854,6 @@ public abstract class LibGreenTea {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
 
 }
