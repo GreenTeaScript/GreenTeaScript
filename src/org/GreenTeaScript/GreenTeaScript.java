@@ -2045,8 +2045,8 @@ final class GreenTeaGrammar extends GtGrammar {
 			/*local*/char ch = LibGreenTea.CharAt(SourceText, NextPos);
 			if(ch == '$') {
 				/*local*/int end = NextPos + 1;
-				ch = LibGreenTea.CharAt(SourceText, end);
-				if(ch == '{') {
+				/*local*/char nextch = LibGreenTea.CharAt(SourceText, end);
+				if(nextch == '{') {
 					while(end < SourceText.length()) {
 						ch = LibGreenTea.CharAt(SourceText, end);
 						if(ch == '}') {
