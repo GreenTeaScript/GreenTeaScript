@@ -1,4 +1,4 @@
-package JVM;
+package org.GreenTeaScript.JVM;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -68,15 +68,21 @@ public class GtSubProc {
 				
 				if(isExpr) {
 					subProcs[i].waitResult();
-					stdout = subProcs[i].getStdout();
-				}				else {
+				}
+				else {
 					subProcs[i].console();
-					ret = (subProcs[i].getRet() == 0);
 				}
 			}
 		}
 		if(enableMonitor) {
 			monitor.throwException();
+		}
+		int lastIndex = size - 1;
+		if(isExpr) {
+			stdout = subProcs[lastIndex].getStdout();
+		}
+		else {
+			ret = (subProcs[lastIndex].getRet() == 0);
 		}
 		return new RetPair(stdout, ret);
 	}

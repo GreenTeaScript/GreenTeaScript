@@ -1,0 +1,15 @@
+// written by kimio kuramitsu
+
+int f() {
+	return 1;
+}
+
+int f() {
+	return 0;
+}
+
+@Export
+int main() {
+	assert(f() == 0);
+	return 0;
+}

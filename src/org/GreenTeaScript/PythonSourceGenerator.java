@@ -1,3 +1,4 @@
+package org.GreenTeaScript;
 // ***************************************************************************
 // Copyright (c) 2013, JST/CREST DEOS project authors. All rights reserved.
 // Redistribution and use in source and binary forms, with or without
@@ -38,6 +39,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.TrueLiteral  = "True";
 		this.FalseLiteral = "False";
 		this.NullLiteral = "None";
+		this.LineComment = "##";
 	}
 
 	@Override protected String GetNewOperator(GtType Type) {
@@ -125,13 +127,20 @@ public class PythonSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitVarNode(VarNode Node) {
-		/*local*/String Code = Node.VariableName;
+		/*local*/String Code = Node.NativeName;
 		/*local*/String InitValue = this.NullLiteral;
 		if(Node.InitNode != null) {
 			InitValue = this.VisitNode(Node.InitNode);
 		}
 		Code += " = " + InitValue + this.LineFeed;
 		this.PushSourceCode(Code + this.VisitBlockWithIndent(Node.BlockNode, false));
+	}
+	
+	@Override public void VisitTrinaryNode(TrinaryNode Node) {
+		/*local*/String CondExpr = this.VisitNode(Node.CondExpr);
+		/*local*/String Then = this.VisitNode(Node.ThenExpr);
+		/*local*/String Else = this.VisitNode(Node.ElseExpr);
+		this.PushSourceCode(Then + " if " + CondExpr + " else " + Else);
 	}
 
 	@Override public void VisitIfNode(IfNode Node) {
@@ -153,7 +162,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		/*local*/String Code = "try:" + this.LineFeed;
 		Code += this.VisitBlockWithIndent(Node.TryBlock, true);
 		/*local*/VarNode Val = (/*cast*/VarNode) Node.CatchExpr;
-		Code += "except " + Val.Type.toString() + ", " + Val.VariableName + ":" + this.LineFeed;
+		Code += "except " + Val.Type.toString() + ", " + Val.NativeName + ":" + this.LineFeed;
 		Code += this.VisitBlockWithIndent(Node.CatchBlock, true);
 		if(Node.FinallyBlock != null) {
 			/*local*/String Finally = this.VisitBlockWithIndent(Node.FinallyBlock, true);
@@ -207,6 +216,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
+		this.FlushErrorReport();
 		/*local*/String Function = "def ";
 		Function += Func.GetNativeFuncName() + "(";
 		/*local*/int i = 0;
@@ -224,6 +234,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void GenerateClassField(GtType Type, GtClassField ClassField) {
+		this.FlushErrorReport();
 		/*local*/String Program = this.GetIndentString() + "class " + Type.ShortClassName;
 //		if(Type.SuperType != null) {
 //			Program += "(" + Type.SuperType.ShortClassName + ")";

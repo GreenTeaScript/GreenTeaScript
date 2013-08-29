@@ -1,3 +1,4 @@
+package org.GreenTeaScript;
 // ***************************************************************************
 // Copyright (c) 2013, JST/CREST DEOS project authors. All rights reserved.
 // Redistribution and use in source and binary forms, with or without
@@ -37,8 +38,9 @@ public class BashSourceGenerator extends SourceGenerator {
 		super(TargetCode, OutputFile, GeneratorFlag);
 		this.TrueLiteral  = "0";
 		this.FalseLiteral = "1";
-		this.NullLiteral = "NULL";
+		this.NullLiteral = this.Quote("__NULL__");
 		this.MemberAccessOperator = "__MEMBER__";
+		this.LineComment = "##";
 	}
 
 	@Override public void InitContext(GtContext Context) {
@@ -208,7 +210,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	@Override public void VisitUnaryNode(UnaryNode Node) {
 		/*local*/String FuncName = Node.Token.ParsedText;
 		/*local*/GtFunc Func = Node.Func;
-		/*local*/String Expr = this.VisitNode(Node.Expr);
+		/*local*/String Expr = this.ResolveValueType(Node.Expr, false);	//TODO: support ++ --
 		/*local*/String Macro = null;
 		if(Func != null) {
 			FuncName = Func.GetNativeFuncName();
@@ -277,7 +279,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitVarNode(VarNode Node) {
-		/*local*/String VarName = Node.VariableName;
+		/*local*/String VarName = Node.NativeName;
 		/*local*/String Declare = "declare ";
 		/*local*/String Option = "";
 		if(this.inFunc) {
@@ -473,15 +475,14 @@ public class BashSourceGenerator extends SourceGenerator {
 		else if(TargetNode instanceof IndexerNode || TargetNode instanceof GetterNode) {
 			ResolvedValue = "${" + Value + "}";
 		}
-		else if(TargetNode instanceof ApplyNode || 
-				TargetNode instanceof CommandNode || TargetNode instanceof NewNode) {
+		else if(TargetNode instanceof ApplyNode || TargetNode instanceof CommandNode || TargetNode instanceof NewNode) {
 			ResolvedValue = "$(" + Value + ")";
 		}
 		else if(TargetNode instanceof LocalNode && !this.IsNativeType(Type)) {
 			/*local*/LocalNode Local = (/*cast*/LocalNode) TargetNode;
 			/*local*/String Name = Local.NativeName;
 			ResolvedValue = "${" + Value + "[@]}";
-			if(Name.length() == 1 && LibGreenTea.IsDigit(LibGreenTea.CharAt(Name, 0))) {
+			if(Name.length() == 1 && LibGreenTea.IsDigit(Name, 0)) {
 				ResolvedValue = "$" + Value;
 			}
 		}
@@ -507,6 +508,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
+		this.FlushErrorReport();
 		/*local*/String Function = "";
 		/*local*/String FuncName = Func.GetNativeFuncName();
 		this.inFunc = true;

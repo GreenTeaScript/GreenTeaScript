@@ -1,3 +1,4 @@
+package org.GreenTeaScript;
 // ***************************************************************************
 // Copyright (c) 2013, JST/CREST DEOS project authors. All rights reserved.
 // Redistribution and use in source and binary forms, with or without
@@ -104,21 +105,33 @@ public abstract class LibGreenTea {
 		}
 	}
 
-	public final static boolean IsWhitespace(char ch) {
+	public final static char CharAt(String Text, int Pos) {
+		if(Pos < Text.length()) {
+			return Text.charAt(Pos);
+		}
+		return 0;
+	}
+
+	public final static boolean IsWhitespace(String Text, int Pos) {
+		char ch = LibGreenTea.CharAt(Text, Pos);
 		return Character.isWhitespace(ch);
 	}
 
-	public final static boolean IsLetter(char ch) {
+	public final static boolean IsLetter(String Text, int Pos) {
+		char ch = LibGreenTea.CharAt(Text, Pos);
 		return Character.isLetter(ch);
 	}
 
-	public final static boolean IsDigit(char ch) {
+	public final static boolean IsDigit(String Text, int Pos) {
+		char ch = LibGreenTea.CharAt(Text, Pos);
 		return Character.isDigit(ch);
 	}
 
-	public final static char CharAt(String Text, int Pos) {
-		return Text.charAt(Pos);
+	public final static boolean IsVariableName(String Text, int Pos) {
+		char ch = LibGreenTea.CharAt(Text, Pos);
+		return Character.isLetter(ch) || ch == '_' || ch > 255;
 	}
+
 
 	public final static String CharToString(char code) {
 		return Character.toString(code);
@@ -201,7 +214,13 @@ public abstract class LibGreenTea {
 	}
 
 	public final static long ParseInt(String Text) {
-		return Long.parseLong(Text);
+		try {
+			return Long.parseLong(Text);
+		}
+		catch(NumberFormatException e) {
+			LibGreenTea.VerboseException(e);
+		}
+		return 0L;
 	}
 
 	public final static boolean IsUnixCommand(String cmd) {
@@ -232,11 +251,53 @@ public abstract class LibGreenTea {
 		return Value.getClass().getName();
 	}
 
-	public final static GtFunc ConvertNativeMethodToFunc(GtContext Context, Method JavaMethod) {
+	public final static boolean MatchNativeMethod(GtType FuncType, Method JavaMethod) {
+		/*local*/GtContext Context = FuncType.Context;
+		/*local*/GtType ReturnType = FuncType.TypeParams[0];
+		if(ReturnType != Context.VarType || ReturnType != Context.VoidType) {
+			if(ReturnType != LibGreenTea.GetNativeType(Context, JavaMethod.getReturnType())) {
+				return false;
+			}
+		}
+		/*local*/int StartIndex = 2;
+		if(Modifier.isStatic(JavaMethod.getModifiers())) {
+			StartIndex = 1;			
+		}
+		else {
+			GtType RecvType = LibGreenTea.GetNativeType(Context, JavaMethod.getDeclaringClass());
+			if(FuncType.TypeParams.length == 1 || RecvType != FuncType.TypeParams[1]) {
+				return false;
+			}
+			StartIndex = 2;
+		}
+		/*local*/int ParamSize = FuncType.TypeParams.length - 2;
+		/*local*/Class<?>[] ParamTypes = JavaMethod.getParameterTypes();
+		if(ParamTypes != null) {
+			if(ParamTypes.length != ParamSize) return false;
+			for(int j = 0; j < ParamTypes.length; j++) {
+				if(ParamTypes[j] == Object.class) continue; // OK
+				GtType JType = LibGreenTea.GetNativeType(Context, ParamTypes[j]);
+				if(JType != FuncType.TypeParams[StartIndex+j]) {
+					return false;
+				}
+			}
+			return true;
+		}
+		else {
+			return ParamSize == 0;
+		}
+	}
+	
+	public final static GtFunc SetNativeMethod(GtFunc NativeFunc, Method JavaMethod) {
 		/*local*/int FuncFlag = GtStatic.NativeFunc;
 		if(Modifier.isStatic(JavaMethod.getModifiers())) {
 			FuncFlag |= GtStatic.NativeStaticFunc;
 		}
+		NativeFunc.SetNativeMethod(FuncFlag, JavaMethod);	
+		return NativeFunc;
+	}
+	
+	public final static GtFunc ConvertNativeMethodToFunc(GtContext Context, Method JavaMethod) {
 		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
 		TypeList.add(LibGreenTea.GetNativeType(Context, JavaMethod.getReturnType()));
 		if(!Modifier.isStatic(JavaMethod.getModifiers())) {
@@ -248,12 +309,10 @@ public abstract class LibGreenTea {
 				TypeList.add(LibGreenTea.GetNativeType(Context, ParamTypes[j]));
 			}
 		}
-		/*local*/GtFunc NativeFunc = new GtFunc(FuncFlag, JavaMethod.getName(), 0, TypeList);
-		NativeFunc.SetNativeMethod(FuncFlag, JavaMethod);
-		return NativeFunc;
+		return SetNativeMethod(new GtFunc(0, JavaMethod.getName(), 0, TypeList), JavaMethod);
 	}
-
-	public final static Method ImportNativeMethod(String FullName, boolean StaticMethodOnly) {
+	
+	public final static Method LoadNativeMethod(GtType ContextType, String FullName, boolean StaticMethodOnly) {
 		/*local*/Method FoundMethod = null;
 		int Index = FullName.lastIndexOf(".");
 		if(Index != -1) {
@@ -270,6 +329,9 @@ public abstract class LibGreenTea {
 							if(StaticMethodOnly && !Modifier.isStatic(Methods[i].getModifiers())) {
 								continue;
 							}
+							if(ContextType.IsFuncType() && !LibGreenTea.MatchNativeMethod(ContextType, Methods[i])) {
+								continue;
+							}
 							if(FoundMethod != null) {
 								LibGreenTea.VerboseLog(GtStatic.VerboseUndefined, "overloaded method: " + FullName);
 								return FoundMethod; // return the first one
@@ -283,10 +345,22 @@ public abstract class LibGreenTea {
 			}
 		}
 		if(FoundMethod == null) {
-			LibGreenTea.VerboseLog(GtStatic.VerboseUndefined, "undefined method: " + FullName);
+			LibGreenTea.VerboseLog(GtStatic.VerboseUndefined, "undefined method: " + FullName + " of " + ContextType);
 		}
 		return FoundMethod;
 	}
+	
+	public final static boolean ImportNativeMethod(GtFunc NativeFunc, String FullName) {
+		Method JavaMethod = LibGreenTea.LoadNativeMethod(NativeFunc.GetFuncType(), FullName, false);
+		if(JavaMethod != null) {
+			LibGreenTea.SetNativeMethod(NativeFunc, JavaMethod);
+			if(NativeFunc.GetReturnType().IsVarType()) {
+				NativeFunc.SetReturnType(LibGreenTea.GetNativeType(NativeFunc.GetContext(), JavaMethod.getReturnType()));
+			}
+		}
+		return false;
+	}
+
 
 	public final static Method LookupNativeMethod(Object Callee, String FuncName) {
 		if(FuncName != null) {
@@ -324,13 +398,13 @@ public abstract class LibGreenTea {
 			return n.intValue();
 		}
 		catch (InvocationTargetException e) {
-			e.printStackTrace();
+			LibGreenTea.VerboseException(e);
 		}
 		catch (IllegalArgumentException e) {
-			e.printStackTrace();
+			LibGreenTea.VerboseException(e);
 		}
 		catch (IllegalAccessException e) {
-			e.printStackTrace();
+			LibGreenTea.VerboseException(e);
 		}
 		Exit(1, "Failed ApplyTokenFunc");
 		return -1;
@@ -341,13 +415,13 @@ public abstract class LibGreenTea {
 			return (GtSyntaxTree)Delegate.Func.invoke(Delegate.Self, NameSpace, TokenContext, LeftTree, Pattern);
 		}
 		catch (InvocationTargetException e) {
-			e.printStackTrace();
+			LibGreenTea.VerboseException(e);
 		}
 		catch (IllegalArgumentException e) {
-			e.printStackTrace();
+			LibGreenTea.VerboseException(e);
 		}
 		catch (IllegalAccessException e) {
-			e.printStackTrace();
+			LibGreenTea.VerboseException(e);
 		}
 		Exit(1, "Failed ApplyMatchFunc");
 		return null;
@@ -358,13 +432,13 @@ public abstract class LibGreenTea {
 			return (GtNode)Delegate.Func.invoke(Delegate.Self, Gamma, ParsedTree, TypeInfo);
 		}
 		catch (InvocationTargetException e) {
-			e.printStackTrace();
+			LibGreenTea.VerboseException(e);
 		}
 		catch (IllegalArgumentException e) {
-			e.printStackTrace();
+			LibGreenTea.VerboseException(e);
 		}
 		catch (IllegalAccessException e) {
-			e.printStackTrace();
+			LibGreenTea.VerboseException(e);
 		}
 		Exit(1, "Failed ApplyTypeFunc");
 		return null;
@@ -537,12 +611,16 @@ public abstract class LibGreenTea {
 			}
 		}
 		BufferedReader reader = new BufferedReader(new InputStreamReader(Stream));
-		String line = "";
 		String buffer = "";
 		try {
-			while((line = reader.readLine()) != null) {
-				buffer += line + "\n";
+			int buflen = 4096;
+			int readed = 0;
+			char[] buf = new char[buflen];
+			StringBuilder builder = new StringBuilder();
+			while((readed = reader.read(buf, 0, buflen)) >= 0) {
+				builder.append(buf, 0, readed);
 			}
+			buffer = builder.toString();
 		} catch (IOException e) {
 			return null;
 		}
@@ -612,6 +690,9 @@ public abstract class LibGreenTea {
 			}
 			if(Operator.equals("+")) {
 				return EvalCast(Type, +((Number)Value).longValue());
+			}
+			if(Operator.equals("~")) {
+				return EvalCast(Type, ~((Number)Value).longValue());
 			}
 			return null;
 		}

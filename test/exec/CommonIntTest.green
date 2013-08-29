@@ -12,9 +12,36 @@ void TestIntConcat() {
 	assert(n + n2 == 369);
 }
 
+boolean TestIntOperator() {
+	int a = 4;
+	int b = 2;
+	assert(a + b == 6);
+	assert(a - b == 2);
+	assert(a * b == 8);
+	assert(a / b == 2);
+	assert(a % b == 0);
+	assert(a > b);
+	assert(!(a < b));
+	assert(a >= b);
+	assert(!(a <= b));
+	assert(a != b);
+	assert(!(a == b));
+	return true;
+}
+
+boolean TestIntBitwiseOperator() {
+	int a = 4;
+	int b = 2;
+	// TODO
+	return true;
+}
+
 @Export
 int main() {
 	TestIntEquals();
 	TestIntConcat();
+	assert(TestIntOperator());
+	assert(TestIntBitwiseOperator());
 	return 0;
 }
+

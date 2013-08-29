@@ -1,0 +1,12 @@
+// written by kimio kuramitsu
+
+int TestFunc() {
+	return -1;
+}
+
+@Export
+int main() {
+	assert(TestFunc() ==-1);
+	return 0;
+}
+

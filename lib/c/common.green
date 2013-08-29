@@ -2,7 +2,6 @@
 
 // unary operator
 // any
-boolean not(int boolean) as "not $1"
 int +(int x) as "$1";
 int -(int x) as "-$1";
 int ~(int x) as "~$1";
@@ -11,6 +10,7 @@ int ~(int x) as "~$1";
 // any
 boolean ==(any x, any y) as "$1  == $2";
 boolean !=(any x, any y) as "$1  != $2";
+boolean !(boolean x) as "not $1"
 
 // boolean
 boolean ==(boolean x, boolean y) as "$1  == $2";

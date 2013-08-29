@@ -1,3 +1,4 @@
+package org.GreenTeaScript;
 // ***************************************************************************
 // Copyright (c) 2013, JST/CREST DEOS project authors. All rights reserved.
 // Redistribution and use in source and binary forms, with or without
@@ -445,14 +446,15 @@ class SliceNode extends GtNode {
 
 class VarNode extends GtNode {
 	/*field*/public GtType	DeclType;
-	/*field*/public String	VariableName;
+//	/*field*/public GtNode	VarNode;
+	/*field*/public String  NativeName;
 	/*field*/public GtNode	InitNode;
 	/*field*/public GtNode	BlockNode;
 	/* let VarNode in Block end */
-	VarNode/*constructor*/(GtType Type, GtToken Token, GtType DeclType, String VarName, GtNode InitNode, GtNode Block) {
+	VarNode/*constructor*/(GtType Type, GtToken Token, GtType DeclType, String VariableName, GtNode InitNode, GtNode Block) {
 		super(Type, Token);
-		this.VariableName = VarName;
-		this.DeclType = DeclType;
+		this.NativeName = VariableName;
+		this.DeclType  = DeclType;
 		this.InitNode  = InitNode;
 		this.BlockNode = Block;
 	}
@@ -823,6 +825,18 @@ class GtType extends GtStatic {
 		this.NativeSpec = ClassField;
 	}
 
+	public final boolean IsFuncType() {
+		return (this.BaseType == this.Context.FuncType);
+	}
+
+	public final boolean IsVarType() {
+		return (this == this.Context.VarType);
+	}
+
+	public boolean IsAnyType() {
+		return (this == this.Context.AnyType);
+	}
+
 }
 
 class GtFunc extends GtStatic {
@@ -888,6 +902,11 @@ class GtFunc extends GtStatic {
 
 	public final GtType GetReturnType() {
 		return this.Types[0];
+	}
+
+	public final void SetReturnType(GtType ReturnType) {
+		LibGreenTea.Assert(this.GetReturnType().IsVarType());
+		this.Types[0] = ReturnType;
 	}
 
 	public final GtType GetRecvType() {
@@ -961,6 +980,7 @@ class GtFunc extends GtStatic {
 		this.FuncFlag |= NativeFunc | OptionalFuncFlag;
 		this.NativeRef = Method;
 	}
+
 }
 
 class GtPolyFunc extends GtStatic {
@@ -1245,8 +1265,8 @@ class GtGenerator extends GtStatic {
 		return new SelfAssignNode(Type, ParsedTree.KeyToken, Left, Right);
 	}
 
-	public GtNode CreateVarNode(GtType Type, GtSyntaxTree ParsedTree, GtType DeclType, String VarName, GtNode InitNode, GtNode Block) {
-		return new VarNode(Type, ParsedTree.KeyToken, DeclType, VarName, InitNode, Block);
+	public GtNode CreateVarNode(GtType Type, GtSyntaxTree ParsedTree, GtType DeclType, String VariableName, GtNode InitNode, GtNode Block) {
+		return new VarNode(Type, ParsedTree.KeyToken, DeclType, VariableName, InitNode, Block);
 	}
 
 	public GtNode CreateTrinaryNode(GtType Type, GtSyntaxTree ParsedTree, GtNode CondNode, GtNode ThenNode, GtNode ElseNode) {
@@ -1323,16 +1343,16 @@ class GtGenerator extends GtStatic {
 
 	/* language constructor */
 
-	public final Object ImportNativeObject(String PackageName) {
+	public final Object ImportNativeObject(GtType ContextType, String PackageName) {
+		LibGreenTea.VerboseLog(VerboseNative, "importing " + PackageName);
 //ifdef JAVA
 		try {
-			LibGreenTea.VerboseLog(VerboseNative, "importing " + PackageName);
 			/*local*/Class<?> NativeClass = Class.forName(PackageName);
 			return LibGreenTea.GetNativeType(this.Context, NativeClass);
 		} catch (ClassNotFoundException e) {
 			LibGreenTea.VerboseLog(VerboseException, e.toString());
 		}
-		Method NativeMethod = LibGreenTea.ImportNativeMethod(PackageName, true/*static only*/);
+		Method NativeMethod = LibGreenTea.LoadNativeMethod(ContextType, PackageName, true/*static only*/);
 		if(NativeMethod != null) {
 			return LibGreenTea.ConvertNativeMethodToFunc(this.Context, NativeMethod);
 		}
@@ -1401,32 +1421,55 @@ class GtGenerator extends GtStatic {
 		return false;
 	}
 
-	public int ParseClassFlag(int ClassFlag, GtMap Annotation) {
-		return ClassFlag;
-	}
-
-	public int ParseFuncFlag(int FuncFlag, GtMap Annotation) {
+	public int ParseClassFlag(int Flag, GtMap Annotation) {
 		if(Annotation != null) {
 			if(this.HasAnnotation(Annotation, "Export")) {
-				FuncFlag = FuncFlag | ExportFunc;
+				Flag = Flag | ExportFunc;
 			}
 			if(this.HasAnnotation(Annotation, "Public")) {
-				FuncFlag = FuncFlag | PublicFunc;
+				Flag = Flag | PublicFunc;
 			}
-			if(this.HasAnnotation(Annotation, "Const")) {
-				FuncFlag = FuncFlag | ConstFunc;
+			if(this.HasAnnotation(Annotation, "Virtual")) {
+				Flag = Flag | VirtualFunc;
+			}
+			if(this.HasAnnotation(Annotation, "Deprecated")) {
+				Flag = Flag | DeprecatedFunc;
 			}
 		}
-		return FuncFlag;
+		return Flag;
 	}
 
-	public int ParseVarFlag(int VarFlag, GtMap Annotation) {
+	public int ParseFuncFlag(int Flag, GtMap Annotation) {
 		if(Annotation != null) {
-			if(this.HasAnnotation(Annotation, "ReadOnly")) {
-				VarFlag = VarFlag | ReadOnlyVar;
+			if(this.HasAnnotation(Annotation, "Export")) {
+				Flag = Flag | ExportFunc;
+			}
+			if(this.HasAnnotation(Annotation, "Public")) {
+				Flag = Flag | PublicFunc;
+			}
+			if(this.HasAnnotation(Annotation, "Const")) {
+				Flag = Flag | ConstFunc;
+			}
+			if(this.HasAnnotation(Annotation, "Operator")) {
+				Flag = Flag | OperatorFunc;
+			}
+			if(this.HasAnnotation(Annotation, "Coercion")) {
+				Flag = Flag | CoercionFunc;
+			}
+			if(this.HasAnnotation(Annotation, "Deprecated")) {
+				Flag = Flag | DeprecatedFunc;
 			}
 		}
-		return VarFlag;
+		return Flag;
+	}
+
+	public int ParseVarFlag(int Flag, GtMap Annotation) {
+		if(Annotation != null) {
+			if(this.HasAnnotation(Annotation, "ReadOnly")) {
+				Flag = Flag | ReadOnlyVar;
+			}
+		}
+		return Flag;
 	}
 
 	public GtFunc CreateFunc(int FuncFlag, String FuncName, int BaseIndex, ArrayList<GtType> TypeList) {
@@ -1699,21 +1742,22 @@ class GtGenerator extends GtStatic {
 }
 
 class SourceGenerator extends GtGenerator {
-	/*field*/public String    HeaderSource;
-	/*field*/public String    BodySource;
+	/*field*/protected String    HeaderSource;
+	/*field*/protected String    BodySource;
 
-	/*field*/public String    Tab;
-	/*field*/public String    LineFeed;
-	/*field*/public int       IndentLevel;
-	/*field*/public String    CurrentLevelIndentString;
+	/*field*/protected String    Tab;
+	/*field*/protected String    LineFeed;
+	/*field*/protected int       IndentLevel;
+	/*field*/protected String    CurrentLevelIndentString;
 
-	/*field*/public boolean   HasLabelSupport = false;
-	/*field*/public String    LogicalOrOperator  = "||";
-	/*field*/public String    LogicalAndOperator = "&&";
-	/*field*/public String    MemberAccessOperator = ".";
-	/*field*/public String    TrueLiteral  = "true";
-	/*field*/public String    FalseLiteral = "false";
-	/*field*/public String    NullLiteral = "null";
+	/*field*/protected boolean   HasLabelSupport;
+	/*field*/protected String    LogicalOrOperator;
+	/*field*/protected String    LogicalAndOperator;
+	/*field*/protected String    MemberAccessOperator;
+	/*field*/protected String    TrueLiteral;
+	/*field*/protected String    FalseLiteral;
+	/*field*/protected String    NullLiteral;
+	/*field*/protected String    LineComment;
 
 	SourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
@@ -1723,6 +1767,14 @@ class SourceGenerator extends GtGenerator {
 		this.CurrentLevelIndentString = null;
 		this.HeaderSource = "";
 		this.BodySource = "";
+		this.HasLabelSupport = false;
+		this.LogicalOrOperator  = "||";
+		this.LogicalAndOperator = "&&";
+		this.MemberAccessOperator = ".";
+		this.TrueLiteral  = "true";
+		this.FalseLiteral = "false";
+		this.NullLiteral  = "null";
+		this.LineComment  = "//";
 	}
 
 	@Override public void InitContext(GtContext Context) {
@@ -1745,6 +1797,21 @@ class SourceGenerator extends GtGenerator {
 
 	public final void WriteLineCode(String Text) {
 		this.BodySource += Text + this.LineFeed;
+	}
+
+	public final void WriteLineComment(String Text) {
+		this.BodySource += this.LineComment + " " + Text + this.LineFeed;
+	}
+
+	public final void FlushErrorReport() {
+		this.WriteLineCode("");
+		/*local*/String[] Reports = this.Context.GetReportedErrors();
+		/*local*/int i = 0;
+		while(i < Reports.length) {
+			this.WriteLineComment(Reports[i]);
+			i = i + 1;
+		}
+		this.WriteLineCode("");		
 	}
 
 	@Override public void FlushBuffer() {

@@ -1,0 +1,19 @@
+// written by kimio kuramitsu
+
+boolean TestFunc() {
+	int a = 2;
+	int b = 3;
+	int c = 4;
+	assert(a+b*c == 14);
+	assert(a*b+c == 10);
+	assert((a+b)*c == 20);
+	assert(a*(b+c)==14);
+	return true;
+}
+
+@Export
+int main() {
+	assert(TestFunc());
+	return 0;
+}
+

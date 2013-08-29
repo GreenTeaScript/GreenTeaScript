@@ -1,0 +1,11 @@
+// written by kimio kuramitsu
+
+let a = 1;
+
+@Export
+int main() {
+	assert(defined(a));
+	assert(!defined(b));
+	return 0;
+}
+

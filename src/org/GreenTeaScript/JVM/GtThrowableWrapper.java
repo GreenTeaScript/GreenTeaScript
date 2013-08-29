@@ -1,4 +1,4 @@
-package JVM;
+package org.GreenTeaScript.JVM;
 
 public class GtThrowableWrapper extends Throwable {
 	public final Object object;

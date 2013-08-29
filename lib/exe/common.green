@@ -30,7 +30,17 @@ boolean >=(int x, int y);
 boolean ==(int x, int y);
 boolean !=(int x, int y);
 
+// String
+String +(String x, String y);
+String +(String x, int y);
+String +(String x, boolean y);
+String +(int x, String y);
+String +(boolean x, String y);
+boolean ==(String x, String y);
+boolean !=(String x, String y);
+
 // function
-void println(String s);
+void print(any s);
+void println(any s);
 void assert(boolean b);
 

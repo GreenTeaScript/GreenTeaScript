@@ -1,0 +1,10 @@
+//written by kimio kuramitsu
+
+let t = Array<Array<int>>;
+
+@Export
+int main() {
+	assert(defined(t));
+	return 0;
+}
+
