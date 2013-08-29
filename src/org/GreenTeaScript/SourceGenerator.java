@@ -712,6 +712,9 @@ class ErrorNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitErrorNode(this);
 	}
+	@Override public Object ToConstValue(boolean EnforceConst)  {
+		return null;
+	}
 }
 
 // E.g., "ls" "-a"..
@@ -730,6 +733,12 @@ class CommandNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitCommandNode(this);
 	}
+
+	@Override public Object ToConstValue(boolean EnforceConst)  {
+		LibGreenTea.println("TODO");
+		return null;
+	}
+
 }
 
 

@@ -2276,11 +2276,8 @@ final class GreenTeaGrammar extends GtGrammar {
 	
 	public static GtNode TypeTypeRef(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/String TypeRef = ParsedTree.KeyToken.ParsedText;
-		return Gamma.CreateSyntaxErrorNode(ParsedTree, "illegal usage of type reference: " + TypeRef);
+		return Gamma.CreateSyntaxErrorNode(ParsedTree, "illegal use of type reference: " + TypeRef);
 	}
-
-	
-	
 	
 	public static GtSyntaxTree ParseExpression(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		return GtStatic.ParseExpression(NameSpace, TokenContext);
