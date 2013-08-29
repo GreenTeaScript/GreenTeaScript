@@ -5,7 +5,11 @@ import java.util.HashMap;
 
 public class StaticMethods {
 
-	public static void println(String o) {
+	public static void print(Object o) {
+		System.out.print(o);
+	}
+
+	public static void println(Object o) {
 		System.out.println(o);
 	}
 
@@ -129,38 +133,61 @@ public class StaticMethods {
 
 	//-----------------------------------------------------
 
+	public static Object getter(Object o, String name) throws Exception {
+		return o.getClass().getField(name).get(o);
+	}
+
+	public static void setter(Object o, String name, Object n) throws Exception {
+		o.getClass().getField(name).set(o, n);
+	}
+
+	public static void error_node(String msg) throws Exception {
+		System.err.println(msg);
+		throw new RuntimeException("error node found");
+	}
+
+	//-----------------------------------------------------
+
 	public static HashMap<String, Method> getAllStaticMethods() {
 		HashMap<String, Method> map = new HashMap<String, Method>();
 		try {
 			Class<?> self = StaticMethods.class;
-			map.put("unary_+_I", self.getMethod("unary_plus", int.class));
-			map.put("unary_-_I", self.getMethod("unary_minus", int.class));
-			map.put("unary_~_I", self.getMethod("unary_not", int.class));
-			map.put("unary_!_Z", self.getMethod("unary_not", boolean.class));
-			map.put("binary_==_ZZ", self.getMethod("binary_eq", boolean.class, boolean.class));
-			map.put("binary_!=_ZZ", self.getMethod("binary_ne", boolean.class, boolean.class));
-			map.put("binary_+_II", self.getMethod("binary_add", int.class, int.class));
-			map.put("binary_-_II", self.getMethod("binary_sub", int.class, int.class));
-			map.put("binary_*_II", self.getMethod("binary_mul", int.class, int.class));
-			map.put("binary_/_II", self.getMethod("binary_div", int.class, int.class));
-			map.put("binary_%_II", self.getMethod("binary_mod", int.class, int.class));
-			map.put("binary_<<_II", self.getMethod("binary_shl", int.class, int.class));
-			map.put("binary_>>_II", self.getMethod("binary_shr", int.class, int.class));
-			map.put("binary_<_II", self.getMethod("binary_lt", int.class, int.class));
-			map.put("binary_<=_II", self.getMethod("binary_le", int.class, int.class));
-			map.put("binary_>_II", self.getMethod("binary_gt", int.class, int.class));
-			map.put("binary_>=_II", self.getMethod("binary_ge", int.class, int.class));
-			map.put("binary_==_II", self.getMethod("binary_eq", int.class, int.class));
-			map.put("binary_!=_II", self.getMethod("binary_ne", int.class, int.class));
-			map.put("binary_+_LL", self.getMethod("binary_add", String.class, String.class));
-			map.put("binary_+_LI", self.getMethod("binary_add", String.class, int.class));
-			map.put("binary_+_IL", self.getMethod("binary_add", int.class, String.class));
-			map.put("binary_+_LZ", self.getMethod("binary_add", String.class, boolean.class));
-			map.put("binary_+_ZL", self.getMethod("binary_add", boolean.class, String.class));
-			map.put("binary_==_LL", self.getMethod("binary_eq", String.class, String.class));
-			map.put("binary_!=_LL", self.getMethod("binary_ne", String.class, String.class));
+			// unary operator
+			map.put("+_I", self.getMethod("unary_plus", int.class));
+			map.put("-_I", self.getMethod("unary_minus", int.class));
+			map.put("~_I", self.getMethod("unary_not", int.class));
+			map.put("!_Z", self.getMethod("unary_not", boolean.class));
+			// binary operator
+			map.put("==_ZZ", self.getMethod("binary_eq", boolean.class, boolean.class));
+			map.put("!=_ZZ", self.getMethod("binary_ne", boolean.class, boolean.class));
+			map.put("+_II", self.getMethod("binary_add", int.class, int.class));
+			map.put("-_II", self.getMethod("binary_sub", int.class, int.class));
+			map.put("*_II", self.getMethod("binary_mul", int.class, int.class));
+			map.put("/_II", self.getMethod("binary_div", int.class, int.class));
+			map.put("%_II", self.getMethod("binary_mod", int.class, int.class));
+			map.put("<<_II", self.getMethod("binary_shl", int.class, int.class));
+			map.put(">>_II", self.getMethod("binary_shr", int.class, int.class));
+			map.put("<_II", self.getMethod("binary_lt", int.class, int.class));
+			map.put("<=_II", self.getMethod("binary_le", int.class, int.class));
+			map.put(">_II", self.getMethod("binary_gt", int.class, int.class));
+			map.put(">=_II", self.getMethod("binary_ge", int.class, int.class));
+			map.put("==_II", self.getMethod("binary_eq", int.class, int.class));
+			map.put("!=_II", self.getMethod("binary_ne", int.class, int.class));
+			map.put("+_LL", self.getMethod("binary_add", String.class, String.class));
+			map.put("+_LI", self.getMethod("binary_add", String.class, int.class));
+			map.put("+_IL", self.getMethod("binary_add", int.class, String.class));
+			map.put("+_LZ", self.getMethod("binary_add", String.class, boolean.class));
+			map.put("+_ZL", self.getMethod("binary_add", boolean.class, String.class));
+			map.put("==_LL", self.getMethod("binary_eq", String.class, String.class));
+			map.put("!=_LL", self.getMethod("binary_ne", String.class, String.class));
+			// system
+			map.put("$getter", self.getMethod("getter", Object.class, String.class));
+			map.put("$setter", self.getMethod("setter", Object.class, String.class, Object.class));
+			map.put("$error_node", self.getMethod("error_node", String.class));
+			// functions
 			map.put("assert",  self.getMethod("assert_", boolean.class));
-			map.put("println", self.getMethod("println", String.class));
+			map.put("print" ,  self.getMethod("print", Object.class));
+			map.put("println", self.getMethod("println", Object.class));
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
