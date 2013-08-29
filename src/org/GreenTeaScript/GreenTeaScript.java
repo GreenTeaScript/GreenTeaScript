@@ -874,6 +874,21 @@ final class GtTokenContext extends GtStatic {
 		return false;
 	}
 
+	public final boolean StartsWithToken(String TokenText) {
+		/*local*/GtToken Token = this.GetToken();
+		if(Token.EqualsText(TokenText)) {
+			this.CurrentPosition += 1;
+			return true;
+		}
+		if(Token.ParsedText.startsWith(TokenText)) {
+			Token = new GtToken(Token.ParsedText.substring(TokenText.length()), Token.FileLine);
+			this.CurrentPosition += 1;
+			this.SourceList.add(CurrentPosition, Token);
+			return true;
+		}
+		return false;
+	}
+
 	public GtToken GetMatchedToken(String TokenText) {
 		/*local*/GtToken Token = this.GetToken();
 		while(Token != GtTokenContext.NullToken) {
@@ -2090,48 +2105,54 @@ final class GreenTeaGrammar extends GtGrammar {
 			}
 			else {
 				TypeOfTree.ToConstTree(ObjectNode.Type);
+				GtSyntaxTree TypeTree = TokenContext.ParsePatternAfter(NameSpace, TypeOfTree, "$TypeSuffix$", Optional);
+				return (TypeTree == null) ? TypeOfTree : TypeTree;
 			}
 		}
 		return TypeOfTree;
 	}
+
+	public static GtSyntaxTree ParseTypeSuffix(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree TypeTree, GtSyntaxPattern Pattern) {
+		/*local*/GtType ParsedType = TypeTree.GetParsedType();
+		if(ParsedType.IsGenericType()) {
+			if(TokenContext.MatchToken("<")) {  // Generics
+				/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
+				while(!TokenContext.StartsWithToken(">")) {
+					if(TypeList.size() > 0 && !TokenContext.MatchToken(",")) {
+						return null;
+					}
+					/*local*/GtSyntaxTree ParamTypeTree = TokenContext.ParsePattern(NameSpace, "$Type$", Optional);
+					if(ParamTypeTree == null) {
+						return ParamTypeTree;
+					}
+					TypeList.add(ParamTypeTree.GetParsedType());
+				}
+				ParsedType = NameSpace.Context.GetGenericType(ParsedType, 0, TypeList, true);
+			}
+		}
+		while(TokenContext.MatchToken("[")) {  // Array
+			if(!TokenContext.MatchToken("]")) {
+				return null;
+			}
+			ParsedType = NameSpace.Context.GetGenericType1(NameSpace.Context.ArrayType, ParsedType, true);
+		}
+		TypeTree.ToConstTree(ParsedType);
+		return TypeTree;
+	}
 	
 	// parser and type checker
 	public static GtSyntaxTree ParseType(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		
+		if(TokenContext.MatchToken("typeof")) {
+			return ParseTypeOf(NameSpace, TokenContext, LeftTree, Pattern);
+		}
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/Object ConstValue = NameSpace.GetSymbol(Token.ParsedText);
 		if(!(ConstValue instanceof GtType)) {
 			return null;  // Not matched
 		}
-		/*local*/GtType ParsedType = (/*cast*/GtType)ConstValue;
-		/*local*/int BacktrackPosition = TokenContext.CurrentPosition;
-		if(ParsedType.IsGenericType()) {
-			if(TokenContext.MatchToken("<")) {  // Generics
-				/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
-				while(!TokenContext.MatchToken(">")) {
-					/*local*/GtSyntaxTree ParamTree = TokenContext.ParsePattern(NameSpace, "$Type$", Optional);
-					if(ParamTree == null) {
-						TokenContext.CurrentPosition = BacktrackPosition;
-						return new GtSyntaxTree(Pattern, NameSpace, Token, ParsedType);
-					}
-					TypeList.add(ParamTree.GetParsedType());
-					if(TokenContext.MatchToken(",")) {
-						continue;
-					}
-				}
-				ParsedType = NameSpace.Context.GetGenericType(ParsedType, 0, TypeList, true);
-				BacktrackPosition = TokenContext.CurrentPosition;
-			}
-		}
-		while(TokenContext.MatchToken("[")) {  // Array
-			if(!TokenContext.MatchToken("]")) {
-				TokenContext.CurrentPosition = BacktrackPosition;
-				return new GtSyntaxTree(Pattern, NameSpace, Token, ParsedType);
-			}
-			ParsedType = NameSpace.Context.GetGenericType1(NameSpace.Context.ArrayType, ParsedType, true);
-			BacktrackPosition = TokenContext.CurrentPosition;
-		}
-		return new GtSyntaxTree(Pattern, NameSpace, Token, ParsedType);
+		/*local*/GtSyntaxTree TypeTree = new GtSyntaxTree(Pattern, NameSpace, Token, ConstValue);
+		/*local*/GtSyntaxTree TypeSuffixTree = TokenContext.ParsePatternAfter(NameSpace, TypeTree, "$TypeSuffix$", Optional);
+		return (TypeSuffixTree == null) ? TypeTree : TypeSuffixTree;
 	}
 
 	public static GtSyntaxTree ParseConst(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
@@ -3831,6 +3852,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		NameSpace.AppendSyntax("$Empty$", FunctionB(this, "ParseEmpty"), FunctionC(this, "TypeEmpty"));
 		NameSpace.AppendSyntax("$Symbol$", FunctionB(this, "ParseSymbol"), null);
 		NameSpace.AppendSyntax("$Type$", FunctionB(this, "ParseType"), TypeConst);
+		NameSpace.AppendSyntax("$TypeSuffix$", FunctionB(this, "ParseTypeSuffix"), null);
 		NameSpace.AppendSyntax("$Variable$", FunctionB(this, "ParseVariable"), FunctionC(this, "TypeVariable"));
 		NameSpace.AppendSyntax("$Const$", FunctionB(this, "ParseConst"), TypeConst);
 		NameSpace.AppendSyntax("$StringLiteral$", FunctionB(this, "ParseStringLiteral"), TypeConst);
