@@ -46,7 +46,7 @@ int TestFunc10() {
 	int a = 1, b, c = 9;
 	assert(a == 1);
 	assert(b == 0);
-	assert(c == 7);
+	assert(c == 9);
 	return a + c;
 }
 
