@@ -1,9 +1,7 @@
-package JVM;
-
 import java.lang.reflect.Method;
 import java.util.HashMap;
-
-public class StaticMethods {
+//JAVA
+public class GreenTeaRuntime {
 
 	public static void print(Object o) {
 		System.out.print(o);
@@ -151,7 +149,7 @@ public class StaticMethods {
 	public static HashMap<String, Method> getAllStaticMethods() {
 		HashMap<String, Method> map = new HashMap<String, Method>();
 		try {
-			Class<?> self = StaticMethods.class;
+			Class<?> self = GreenTeaRuntime.class;
 			// unary operator
 			map.put("+_I", self.getMethod("unary_plus", int.class));
 			map.put("-_I", self.getMethod("unary_minus", int.class));
@@ -194,3 +192,4 @@ public class StaticMethods {
 		return map;
 	}
 }
+//VAJA

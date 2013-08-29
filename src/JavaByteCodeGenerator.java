@@ -45,7 +45,6 @@ import static org.objectweb.asm.Opcodes.*;
 import JVM.GtSubProc;
 import JVM.GtThrowableWrapper;
 import JVM.JVMConstPool;
-import JVM.StaticMethods;
 
 // GreenTea Generator should be written in each language.
 
@@ -299,7 +298,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.typeDescriptorMap.put(Context.IntType.ShortClassName, Type.INT_TYPE);
 		this.typeDescriptorMap.put(Context.AnyType.ShortClassName, Type.getType(Object.class));
 		this.typeDescriptorMap.put(Context.StringType.ShortClassName, Type.getType(String.class));
-		this.methodMap = StaticMethods.getAllStaticMethods();
+		this.methodMap = GreenTeaRuntime.getAllStaticMethods();
 	}
 
 	//-----------------------------------------------------
