@@ -1,4 +1,3 @@
-package org.GreenTeaScript;
 // ***************************************************************************
 // Copyright (c) 2013, JST/CREST DEOS project authors. All rights reserved.
 // Redistribution and use in source and binary forms, with or without
@@ -25,6 +24,7 @@ package org.GreenTeaScript;
 
 // LangBase is a language-dependent code used in GreenTea.java
 
+package org.GreenTeaScript;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;

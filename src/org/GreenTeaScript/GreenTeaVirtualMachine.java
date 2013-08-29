@@ -1,4 +1,3 @@
-package org.GreenTeaScript;
 // ***************************************************************************
 // Copyright (c) 2013, JST/CREST DEOS project authors. All rights reserved.
 // Redistribution and use in source and binary forms, with or without
@@ -22,6 +21,8 @@ package org.GreenTeaScript;
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
+
+package org.GreenTeaScript;
 
 final class GtStack {
 	/*field*/public final Object[] Stack;

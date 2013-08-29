@@ -1,4 +1,3 @@
-package org.GreenTeaScript;
 // ***************************************************************************
 // Copyright (c) 2013, JST/CREST DEOS project authors. All rights reserved.
 // Redistribution and use in source and binary forms, with or without
@@ -24,6 +23,7 @@ package org.GreenTeaScript;
 // **************************************************************************
 
 //ifdef  JAVA
+package org.GreenTeaScript;
 import java.util.ArrayList;
 //endif VAJA
 

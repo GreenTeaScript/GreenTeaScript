@@ -1,4 +1,3 @@
-package org.GreenTeaScript;
 // ***************************************************************************
 // Copyright (c) 2013, JST/CREST DEOS project authors. All rights reserved.
 // Redistribution and use in source and binary forms, with or without
@@ -24,6 +23,7 @@ package org.GreenTeaScript;
 // **************************************************************************
 
 //ifdef JAVA
+package org.GreenTeaScript;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -2487,34 +2487,34 @@ final class GreenTeaGrammar extends GtGrammar {
 		return Gamma.Generator.CreateConstNode(Gamma.BooleanType, ParsedTree, (ObjectNode instanceof ConstNode));
 	}
 
-	public static GtSyntaxTree ParseIndexer(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		/*local*/int ParseFlag = TokenContext.ParseFlag;
-		TokenContext.ParseFlag |= SkipIndentParseFlag;
-		/*local*/GtSyntaxTree IndexerTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("["), null);
-		IndexerTree.AppendParsedTree(LeftTree);
-		IndexerTree.SetMatchedPatternAt(CallParameterOffset, NameSpace, TokenContext, "$Expression$", Required);
-		IndexerTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "]", Required);
-		TokenContext.ParseFlag = ParseFlag;
-		return IndexerTree;
-	}
-
-	public static GtNode TypeIndexer(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
-		/*local*/GtNode ExprNode = ParsedTree.TypeCheckNodeAt(CallExpressionOffset, Gamma, Gamma.ArrayType, DefaultTypeCheckPolicy);
-		if(ExprNode.IsError()) {
-			return ExprNode;
-		}
-		/*local*/GtNode Index = ParsedTree.TypeCheckNodeAt(CallParameterOffset, Gamma, Gamma.IntType, DefaultTypeCheckPolicy);
-		/*local*/GtFunc Func = null;
-		/*local*/GtPolyFunc PolyFunc = Gamma.NameSpace.GetMethod(ExprNode.Type, "get", true);
-		if(PolyFunc != null) {
-			/*local*/ArrayList<GtNode> NodeList = new ArrayList<GtNode>();
-			Func = PolyFunc.ResolveFunc(Gamma, ParsedTree, CallExpressionOffset, NodeList);
-			if(Func != null) {
-				Type = Func.GetReturnType();
-			}
-		}
-		return Gamma.Generator.CreateIndexerNode(Type, ParsedTree, Func, ExprNode, Index);
-	}
+//	public static GtSyntaxTree ParseIndexer(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+//		/*local*/int ParseFlag = TokenContext.ParseFlag;
+//		TokenContext.ParseFlag |= SkipIndentParseFlag;
+//		/*local*/GtSyntaxTree IndexerTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("["), null);
+//		IndexerTree.AppendParsedTree(LeftTree);
+//		IndexerTree.SetMatchedPatternAt(CallParameterOffset, NameSpace, TokenContext, "$Expression$", Required);
+//		IndexerTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "]", Required);
+//		TokenContext.ParseFlag = ParseFlag;
+//		return IndexerTree;
+//	}
+//
+//	public static GtNode TypeIndexer(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
+//		/*local*/GtNode ExprNode = ParsedTree.TypeCheckNodeAt(CallExpressionOffset, Gamma, Gamma.ArrayType, DefaultTypeCheckPolicy);
+//		if(ExprNode.IsError()) {
+//			return ExprNode;
+//		}
+//		/*local*/GtNode Index = ParsedTree.TypeCheckNodeAt(CallParameterOffset, Gamma, Gamma.IntType, DefaultTypeCheckPolicy);
+//		/*local*/GtFunc Func = null;
+//		/*local*/GtPolyFunc PolyFunc = Gamma.NameSpace.GetMethod(ExprNode.Type, "get", true);
+//		if(PolyFunc != null) {
+//			/*local*/ArrayList<GtNode> NodeList = new ArrayList<GtNode>();
+//			Func = PolyFunc.ResolveFunc(Gamma, ParsedTree, CallExpressionOffset, NodeList);
+//			if(Func != null) {
+//				Type = Func.GetReturnType();
+//			}
+//		}
+//		return Gamma.Generator.CreateIndexerNode(Type, ParsedTree, Func, ExprNode, Index);
+//	}
 
 	public static GtSyntaxTree ParseSizeOf(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/int ParseFlag = TokenContext.ParseFlag;
