@@ -828,8 +828,12 @@ class GtType extends GtStatic {
 		return (this == this.Context.VarType);
 	}
 
-	public boolean IsAnyType() {
+	public final boolean IsAnyType() {
 		return (this == this.Context.AnyType);
+	}
+
+	public final boolean IsArrayType() {
+		return (this == this.Context.ArrayType);
 	}
 
 }
@@ -1365,9 +1369,9 @@ class GtGenerator extends GtStatic {
 		} catch (NoSuchFieldException e) {
 			e.printStackTrace();
 		}
+//endif VAJA
 		NativeBaseType.Context.RootNameSpace.SetUndefinedSymbol(ClassSymbol(NativeBaseType, FieldName));
 		NativeBaseType.Context.RootNameSpace.SetUndefinedSymbol(ClassSymbol(NativeBaseType, FieldName)+"="); // for setter
-//endif VAJA
 		return false;
 	}
 

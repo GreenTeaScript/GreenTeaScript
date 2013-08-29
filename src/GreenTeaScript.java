@@ -892,16 +892,31 @@ final class GtTokenContext extends GtStatic {
 	}
 
 	public final int SetBackTrack(boolean Allowed) {
-		/*local*/int ParseFlag = this.ParseFlag;
+		/*local*/int OldFlag = this.ParseFlag;
 		if(Allowed) {
 			this.ParseFlag = this.ParseFlag | BackTrackParseFlag;
 		}
 		else {
 			this.ParseFlag = (~(BackTrackParseFlag) & this.ParseFlag);
 		}
-		return ParseFlag;
+		return OldFlag;
 	}
 
+	public final int SetSkipIndent(boolean Allowed) {
+		/*local*/int OldFlag = this.ParseFlag;
+		if(Allowed) {
+			this.ParseFlag = this.ParseFlag | SkipIndentParseFlag;
+		}
+		else {
+			this.ParseFlag = (~(SkipIndentParseFlag) & this.ParseFlag);
+		}
+		return OldFlag;
+	}
+	
+	public final void SetRememberFlag(int OldFlag) {
+		this.ParseFlag = OldFlag;
+	}
+	
 	public final GtSyntaxTree ParsePatternAfter(GtNameSpace NameSpace, GtSyntaxTree LeftTree, String PatternName, boolean IsOptional) {
 		/*local*/int Pos = this.CurrentPosition;
 		/*local*/int ParseFlag = this.ParseFlag;
@@ -2485,10 +2500,6 @@ final class GreenTeaGrammar extends GtGrammar {
 		FuncTree.AppendParsedTree(LeftTree);
 		if(!TokenContext.MatchToken(")")) {
 			while(!FuncTree.IsEmptyOrError()) {
-//	            IMIFU ?
-//				if(TokenContext.CurrentPosition > 150) {
-//					LibGreenTea.DebugP("");
-//				}
 				/*local*/GtSyntaxTree Tree = TokenContext.ParsePattern(NameSpace, "$Expression$", Required);
 				FuncTree.AppendParsedTree(Tree);
 				if(TokenContext.MatchToken(")")) {
@@ -3255,6 +3266,98 @@ final class GreenTeaGrammar extends GtGrammar {
 		return DefinedFunc;
 	}
 
+	public static GtSyntaxTree ParseArray(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/int OldFlag = TokenContext.SetSkipIndent(true);
+		/*local*/GtSyntaxTree ArrayTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("["), null);
+		//FuncTree.AppendParsedTree(LeftTree);
+		while(TokenContext.HasNext() && !ArrayTree.IsEmptyOrError()) {
+			if(TokenContext.MatchToken("]")) {
+				break;
+			}
+			if(TokenContext.MatchToken(",")) {
+				continue;
+			}
+			/*local*/GtSyntaxTree Tree = TokenContext.ParsePattern(NameSpace, "$Expression$", Required);
+			ArrayTree.AppendParsedTree(Tree);
+		}
+		TokenContext.SetRememberFlag(OldFlag);
+		return ArrayTree;
+	}
+
+	public static GtNode TypeArray(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+		/*local*/GtNode ArrayNode = Gamma.Generator.CreateArrayNode(Gamma.ArrayType, ParsedTree);
+		/*local*/GtType ElemType = Gamma.VarType;
+		if(ContextType.IsArrayType()) {
+			ElemType = ContextType.TypeParams[0];
+			ArrayNode.Type = ContextType;
+		}
+		/*local*/int i = 0;
+		while(i < ListSize(ParsedTree.TreeList)) {
+			GtNode Node = ParsedTree.TypeCheckNodeAt(i, Gamma, ElemType, DefaultTypeCheckPolicy);
+			if(Node.IsError()) {
+				return Node;
+			}
+			if(ElemType.IsVarType()) {
+				ElemType = Node.Type;
+				ArrayNode.Type = Gamma.Context.GetGenericType1(Gamma.ArrayType, ElemType, true);
+			}
+		}
+		return ArrayNode;
+	}
+	
+	public static GtSyntaxTree ParseIndexer(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtSyntaxTree ArrayTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("["), null);
+		ArrayTree.AppendParsedTree(LeftTree);
+		/*local*/int OldFlag = TokenContext.SetSkipIndent(true);
+		do {
+			/*local*/GtSyntaxTree Tree = TokenContext.ParsePattern(NameSpace, "$Expression$", Required);
+			ArrayTree.AppendParsedTree(Tree);
+		}
+		while(!ArrayTree.IsEmptyOrError() && TokenContext.MatchToken(","));
+		ArrayTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "]", Required);
+		TokenContext.SetRememberFlag(OldFlag);
+		return ArrayTree;
+	}
+
+	public static GtNode TypeIndexer(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+		return null;
+	}
+
+	public static GtSyntaxTree ParseSize(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtSyntaxTree ArrayTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("|"), null);
+		ArrayTree.SetMatchedPatternAt(UnaryTerm, NameSpace, TokenContext, "$Expression$", Required);
+		ArrayTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "|", Required);
+		return ArrayTree;
+	}
+
+	public static GtNode TypeSize(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+		return null;
+	}
+	
+	public static GtSyntaxTree ParseSlice(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtSyntaxTree ArrayTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("["), null);
+		ArrayTree.AppendParsedTree(LeftTree);
+		/*local*/GtSyntaxTree Tree = TokenContext.ParsePattern(NameSpace, "$Expression$", Optional);
+		if(Tree == null) {
+			ArrayTree.AppendParsedTree(ParseEmpty(NameSpace, TokenContext, LeftTree, Pattern));
+		}
+		else {
+			ArrayTree.AppendParsedTree(Tree);
+		}
+		ArrayTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ":", Required);
+		Tree = TokenContext.ParsePattern(NameSpace, "$Expression$", Optional);
+		if(Tree != null) {
+			ArrayTree.AppendParsedTree(Tree);
+		}
+		ArrayTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "]", Required);
+		return ArrayTree;
+	}
+
+	public static GtNode TypeSlice(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+		return null;
+	}
+
+	
 	// ClassDecl
 	public static GtSyntaxTree ParseClassDecl(GtNameSpace NameSpace0, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree ClassDeclTree = new GtSyntaxTree(Pattern, NameSpace0, TokenContext.GetMatchedToken("class"), null);
