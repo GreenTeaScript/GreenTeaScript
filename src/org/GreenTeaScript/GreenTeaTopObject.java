@@ -163,7 +163,6 @@ class GtType extends GtStatic {
 		}
 		return this;
 	}
-
 }
 
 class GtFunc extends GtStatic {
@@ -173,7 +172,8 @@ class GtFunc extends GtStatic {
 	/*field*/public GtType[]		Types;
 	/*field*/private GtType         FuncType;
 	/*field*/public int FuncId      ;
-	/*field*/public Object          NativeRef;  // Abstract function if null 
+	/*field*/public Object          NativeRef;  // Abstract function if null
+	/*field*/public String[]        GenericParam;
 
 	GtFunc/*constructor*/(int FuncFlag, String FuncName, int BaseIndex, ArrayList<GtType> ParamList) {
 		this.FuncFlag = FuncFlag;
