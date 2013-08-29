@@ -131,6 +131,38 @@ class GtType extends GtStatic {
 	public final boolean IsArrayType() {
 		return (this == this.Context.ArrayType);
 	}
+	
+	public final boolean IsTypeRef() {
+		return IsFlag(this.ClassFlag, TypeRef);
+	}
+	
+	public GtType RealType(GtTypeEnv Gamma, ArrayList<GtType> TypeList) {
+		if(this.IsTypeRef()) {
+			GtToken Token = ((/*cast*/GtToken)this.NativeSpec);
+			int Index = Token.ParsedText.indexOf('_'); // T$1_0
+			int ParamIndex = 1;
+			int TypeParamIndex = -1;
+			if(Index != -1) {
+				ParamIndex = (int)LibGreenTea.ParseInt(Token.ParsedText.substring(2, Index)) - 1;
+				TypeParamIndex = (int)LibGreenTea.ParseInt(Token.ParsedText.substring(Index+1));
+			}
+			else {
+				ParamIndex = (int)LibGreenTea.ParseInt(Token.ParsedText.substring(2)) - 1;
+			}
+			if(ParamIndex >= 0 && ParamIndex < TypeList.size()) {
+				GtType RealType = TypeList.get(ParamIndex);
+				if(TypeParamIndex < 0) {
+					return RealType;
+				}
+				if(RealType.IsGenericType() && TypeParamIndex < RealType.TypeParams.length) {
+					return RealType.TypeParams[TypeParamIndex];
+				}
+			}
+			Gamma.Context.ReportError(ErrorLevel, Token, "illegal type reference: " + Token.ParsedText);
+			return null;
+		}
+		return this;
+	}
 
 }
 

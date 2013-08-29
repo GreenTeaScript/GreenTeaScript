@@ -52,6 +52,7 @@ interface GtConst {
 	
 	public final static int		DynamicClass	    = 1 << 6;  // @Dynamic
 	public final static int     OpenClass           = 1 << 7;  // @Open for the future
+	public final static int     TypeRef        = 1 << 15; 
 
 	// FuncFlag
 	public final static int		ExportFunc		    = 1 << 0;  // @Export
@@ -509,9 +510,6 @@ class GtStatic implements GtConst {
 		while(ParsedTree != null) {
 			/*local*/GtNode Node = GtStatic.ApplyTypeFunc(ParsedTree.Pattern.TypeFunc, Gamma, ParsedTree, Gamma.VoidType);
 			/*local*/Node = Gamma.TypeCheckSingleNode(ParsedTree, Node, Gamma.VoidType, DefaultTypeCheckPolicy);
-//			if(Node instanceof ConstNode) { IMIFU
-//				continue;
-//			}
 			/*local*/LastNode = GtStatic.LinkNode(LastNode, Node);
 			if(Node.IsError()) {
 				break;
@@ -1895,13 +1893,18 @@ final class GreenTeaGrammar extends GtGrammar {
 
 	public static int SymbolToken(GtTokenContext TokenContext, String SourceText, int pos) {
 		/*local*/int start = pos;
+		/*local*/String PresetPattern = null;
+		if(LibGreenTea.CharAt(SourceText, pos + 1) == '$' && LibGreenTea.CharAt(SourceText, pos) == 'T') {
+			PresetPattern = "$TypeRef$";  // T$1_0
+			pos += 2;
+		}
 		while(pos < SourceText.length()) {
 			if(!LibGreenTea.IsVariableName(SourceText, pos) && !LibGreenTea.IsDigit(SourceText, pos)) {
 				break;
 			}
 			pos += 1;
 		}
-		TokenContext.AddNewToken(SourceText.substring(start, pos), NameSymbolTokenFlag, null);
+		TokenContext.AddNewToken(SourceText.substring(start, pos), NameSymbolTokenFlag, PresetPattern);
 		return pos;
 	}
 
@@ -2265,6 +2268,20 @@ final class GreenTeaGrammar extends GtGrammar {
 		return NewTree;
 	}
 
+	public static GtSyntaxTree ParseTypeRef(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtToken Token = TokenContext.Next();
+		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, NameSpace, Token, Token.ParsedText);
+		return NewTree;
+	}
+	
+	public static GtNode TypeTypeRef(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+		/*local*/String TypeRef = ParsedTree.KeyToken.ParsedText;
+		return Gamma.CreateSyntaxErrorNode(ParsedTree, "illegal usage of type reference: " + TypeRef);
+	}
+
+	
+	
+	
 	public static GtSyntaxTree ParseExpression(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		return GtStatic.ParseExpression(NameSpace, TokenContext);
 	}
@@ -3797,6 +3814,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		NameSpace.AppendSyntax("$Const$", FunctionB(this, "ParseConst"), TypeConst);
 		NameSpace.AppendSyntax("$StringLiteral$", FunctionB(this, "ParseStringLiteral"), TypeConst);
 		NameSpace.AppendSyntax("$IntegerLiteral$", FunctionB(this, "ParseIntegerLiteral"), TypeConst);
+		NameSpace.AppendSyntax("$TypeRef$", FunctionB(this, "ParseTypeRef"), FunctionC(this, "TypeTypeRef"));
 
 		NameSpace.AppendSyntax("$ShellExpression$", FunctionB(this, "ParseShell"), FunctionC(this, "TypeShell"));
 
