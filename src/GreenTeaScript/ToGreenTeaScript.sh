@@ -1,11 +1,23 @@
-perl ToGreenTeaScript.pl < ../GreenTeaScript.java > GreenTeaScript.green
-perl ToGreenTeaScript.pl < ../GreenTeaTopObject.java > GreenTeaTopObject.green
-perl ToGreenTeaScript.pl < ../SourceGenerator.java > SourceGenerator.green
-perl ToGreenTeaScript.pl < ../JavaScriptSourceGenerator.java > JavaScriptSourceGenerator.green
-perl ToGreenTeaScript.pl < ../PerlSourceGenerator.java > PerlSourceGenerator.green
-perl ToGreenTeaScript.pl < ../JavaSourceGenerator.java > JavaSourceGenerator.green
-perl ToGreenTeaScript.pl < ../CSourceGenerator.java > CSourceGenerator.green
-perl ToGreenTeaScript.pl < ../BashSourceGenerator.java > BashSourceGenerator.green
-perl ToGreenTeaScript.pl < ../PythonSourceGenerator.java > PythonSourceGenerator.green
-perl ToGreenTeaScript.pl < ../GreenTeaScriptTest.java > GreenTeaScriptTest.green
-perl ToGreenTeaScript.pl < ../ConstantFolder.java > ConstantFolder.green
+#!/bin/sh
+
+SourceDir=src/org/GreenTeaScript/
+build=src/GreenTeaScript/
+
+source=
+source="${source} GreenTeaScript"
+source="${source} GreenTeaTopObject"
+source="${source} GreenTeaScriptTest"
+source="${source} SourceGenerator"
+source="${source} BashSourceGenerator"
+source="${source} JavaScriptSourceGenerator"
+source="${source} CSourceGenerator"
+source="${source} JavaSourceGenerator"
+source="${source} PerlSourceGenerator"
+source="${source} PythonSourceGenerator"
+
+out=""
+
+for s in ${source}; do
+    perl src/TypeScript/ToTypeScript.pl < ${SourceDir}${s}.java > ${build}${s}.green
+    out="${out} ${build}${s}.green"
+done
