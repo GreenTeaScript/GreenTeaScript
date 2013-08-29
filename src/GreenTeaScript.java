@@ -1017,7 +1017,7 @@ final class GtTokenContext extends GtStatic {
 		/*local*/int Index = SourceMap.lastIndexOf(':');
 		if(Index != -1) {
 			/*local*/String FileName = SourceMap.substring(0, Index);
-			/*local*/int Line = (int)LibGreenTea.ParseInt(SourceMap.substring(Index+1));
+			/*local*/int Line = (/*cast*/int)LibGreenTea.ParseInt(SourceMap.substring(Index+1));
 			this.ParsingLine = this.TopLevelNameSpace.Context.GetFileLine(FileName, Line);
 		}
 	}
@@ -1927,7 +1927,7 @@ final class GreenTeaGrammar extends GtGrammar {
 			Level = 1;
 			// SourceMap ${file:line}
 			if(LibGreenTea.CharAt(SourceText, NextPos+1) == '$' && LibGreenTea.CharAt(SourceText, NextPos+2) == '{') { 
-				int StartPos = NextPos + 3;
+				/*local*/int StartPos = NextPos + 3;
 				NextPos += 3;
 				while(NextChar != 0) {
 					NextChar = LibGreenTea.CharAt(SourceText, NextPos);
