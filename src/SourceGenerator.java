@@ -496,7 +496,7 @@ class NewNode extends GtNode {
 	}
 }
 
-//E.g., "new" $Type "(" $Param[0], $Param[1], ... ")"
+//E.g., $Expr "[" $Node, $Node "]"
 class ArrayNode extends GtNode {
 	/*field*/public ArrayList<GtNode>	NodeList;
 	/*field*/GtFunc Func;
@@ -509,6 +509,12 @@ class ArrayNode extends GtNode {
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitArrayNode(this);
+	}
+	@Override public Object ToConstValue(boolean EnforceConst)  {
+		if(EnforceConst) {
+			return this.Type.Context.Generator.EvalArrayNode(this, EnforceConst);
+		}
+		return null;
 	}
 }
 
@@ -1354,7 +1360,6 @@ class GtGenerator extends GtStatic {
 		Class<?> NativeClassInfo = (Class<?>)NativeBaseType.NativeSpec;
 		try {
 			Field NativeField = NativeClassInfo.getField(FieldName);
-			
 		} catch (SecurityException e) {
 			e.printStackTrace();
 		} catch (NoSuchFieldException e) {
@@ -1650,7 +1655,7 @@ class GtGenerator extends GtStatic {
 		return null;
 	}
 
-	// EnforceConst : i
+	// EnforceConst : 
 	public Object EvalApplyNode(ApplyNode Node, boolean EnforceConst) {
 //ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
 		if(Node.Func != null && (EnforceConst || Node.Func.Is(ConstFunc)) && Node.Func.NativeRef instanceof Method) {
@@ -1686,6 +1691,21 @@ class GtGenerator extends GtStatic {
 		}
 //endif VAJA
 		return null;  // if unsupported
+	}
+
+	public Object EvalArrayNode(ArrayNode Node, boolean EnforceConst) {
+		/*local*/ArrayList<Object> NewList = null;
+//ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
+		NewList = new ArrayList<Object>(ListSize(Node.NodeList)); 
+		for(int i = 0; i < ListSize(Node.NodeList); i++) {
+			Object Value = Node.NodeList.get(i).ToConstValue(EnforceConst);
+			if(Value == null) {
+				return Value;
+			}
+			NewList.add(Value);
+		}
+//endif VAJA
+		return NewList;  // if unsupported
 	}
 
 	public void FlushBuffer() {
