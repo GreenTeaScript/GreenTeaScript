@@ -1,4 +1,4 @@
-package JVM;
+package org.GreenTeaScript.JVM;
 import java.util.ArrayList;
 
 public class JVMConstPool {

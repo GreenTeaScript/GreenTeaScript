@@ -1,4 +1,4 @@
-package JVM;
+package org.GreenTeaScript.JVM;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

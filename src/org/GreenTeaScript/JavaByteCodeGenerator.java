@@ -1,3 +1,4 @@
+package org.GreenTeaScript;
 // ***************************************************************************
 // Copyright (c) 2013, JST/CREST DEOS project authors. All rights reserved.
 // Redistribution and use in source and binary forms, with or without
@@ -32,6 +33,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
+import org.GreenTeaScript.JVM.GtSubProc;
+import org.GreenTeaScript.JVM.GtThrowableWrapper;
+import org.GreenTeaScript.JVM.JVMConstPool;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
@@ -42,9 +46,6 @@ import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 import static org.objectweb.asm.Opcodes.*;
 
-import JVM.GtSubProc;
-import JVM.GtThrowableWrapper;
-import JVM.JVMConstPool;
 
 // GreenTea Generator should be written in each language.
 

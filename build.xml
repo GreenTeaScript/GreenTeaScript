@@ -24,15 +24,7 @@
 			<fileset dir="." includes="lib/**/*.green" />
 			<exclude name="**/*Test.class" />
 			<manifest>
-				<attribute name="Main-Class" value="GreenTeaScript" />
-			</manifest>
-			<zipfileset src="ext/asm-all-4.0.jar" />
-		</jar>
-
-		<jar jarfile="${BinaryName}-TestRunner.jar">
-			<fileset dir="bin" includes="**/*.class" />
-			<manifest>
-				<attribute name="Main-Class" value="GreenTeaScriptTest" />
+				<attribute name="Main-Class" value="org.GreenTeaScript.GreenTeaScript" />
 			</manifest>
 			<zipfileset src="ext/asm-all-4.0.jar" />
 		</jar>
@@ -46,7 +38,6 @@
 			<fileset dir="bin" includes="*.class"/>
 		</delete>
 		<delete file="${BinaryName}.jar" />
-		<delete file="${BinaryName}-TestRunner.jar" />
 	</target>
 	<!-- ================================== -->
 	<!--               TEST                 -->
