@@ -59,7 +59,7 @@ def test():
             answer = case + "." + ext(t)
             print("testing taget=" + t + " case=" + case)
             ret = subprocess.call(
-                    ["java", "-jar", "./GreenTeaScript-TestRunner.jar", t, case, answer],
+                    ["java", "-cp", "./GreenTeaScript.jar", "org.GreenTeaScript.GreenTeaScriptTest", t, case, answer],
                    )
             result = result + '<testcase classname="GeenTeaScriptTest.' + t + '" name="' + answer + '" time="0">\n'
             tests = tests + 1
