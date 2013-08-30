@@ -598,20 +598,29 @@ public abstract class LibGreenTea {
 	}
 
 	public final static String GetLibPath(String TargetCode, String LibName) {
-		return "/lib/" + TargetCode + "/" + LibName + ".green";
+		return "lib/" + TargetCode + "/" + LibName + ".green";
+	}
+	
+	private final static String FormatFilePath(String FileName) {
+		String Path = FileName;
+		if(HasFile(Path)) {
+			return Path;
+		}
+		String Home = System.getProperty("GREENTEA_HOME");
+		if(Home != null) {
+			Path = Home + FileName;
+		}
+		if(HasFile(Path)) {
+			return Path;
+		}
+		return FileName;
 	}
 
 	public final static String LoadFile2(String FileName) {
 		LibGreenTea.VerboseLog(GtStatic.VerboseFile, "loading " + FileName);
-		InputStream Stream = LibGreenTea.class.getResourceAsStream(FileName);
+		InputStream Stream = LibGreenTea.class.getResourceAsStream("/" + FileName);
 		if(Stream == null) {
-			File f = new File(FileName);
-			if(!f.exists()) {
-				String env = System.getProperty("GREENTEA_HOME");
-				if(env != null) {
-					f = new File(env + FileName);
-				}
-			}
+			File f = new File(FormatFilePath(FileName));
 			try {
 				Stream = new FileInputStream(f);
 			} catch (FileNotFoundException e) {
