@@ -4,6 +4,7 @@ interface Array {
 	get(index: number): any;
 	set(index: number, value: any): void;
 	add(obj: any): void;
+	add(index: number, obj : any): void;
 	size(): number;
 	clear(): void;
 	remove(index: number): any;
@@ -13,8 +14,13 @@ Array.prototype.size = function(){
 	return this.length;
 }
 
-Array.prototype.add = function(v){
-	this.push(v);
+Array.prototype.add = function(arg1){
+	if(arguments.length == 1) {
+		this.push(arg1);
+	} else {
+		var arg2 = arguments[1];
+		this.splice(arg1, 0, arg2);
+	}
 }
 
 Array.prototype.get = function(i){
@@ -52,7 +58,9 @@ Object.prototype["equals"] = function(other): boolean{
 interface String {
 	startsWith(key: string): boolean;
 	endsWith(key: string): boolean;
-	replaceAll(key: string, rep: string);
+	lastIndexOf(ch: number) : number;
+	indexOf(ch: number) : number;
+	substring(BeginIdx : number, EndIdx : number) : string;
 }
 
 String.prototype["startsWith"] = function(key): boolean{
@@ -63,8 +71,21 @@ String.prototype["endsWith"] = function(key): boolean{
 	return this.lastIndexOf(key, 0) == 0;
 }
 
-String.prototype["replaceAll"] = function(key, rep): string{
-	return this.replace(key, rep);
+String.prototype["indexOf"] = function(ch): number {
+	return this.indexOf(String.fromCharCode(ch), 0);
+}
+
+String.prototype["lastIndexOf"] = function(ch): number {
+	return this.lastIndexOf(String.fromCharCode(ch), 0);
+}
+String.prototype["substring"] = function(BeginIdx): string {
+	var EndIdx : number = 0;
+	if(arguments.length == 1) {
+		EndIdx = this.length - 1;
+	} else {
+		EndIdx = arguments[1];
+	}
+	return this.substring(BeginIdx, EndIdx);
 }
 
 String.prototype["equals"] = function(other): boolean{
@@ -144,18 +165,26 @@ class LibGreenTea {
 		}
 	}
 
-	static IsWhitespace(ch: number): boolean {
+	static IsWhitespace(Text : string, Pos: number): boolean {
+		var ch :number = LibGreenTea.CharAt(Text, Pos);
 		return ch == 32/*SP*/ || ch == 9/*TAB*/;
 	}
 
-	static IsLetter(ch: number): boolean {
+	static IsVariableName(Text: string, Pos: number) : boolean {
+		var ch :number = LibGreenTea.CharAt(Text, Pos);
+		return LibGreenTea.IsLetter(Text, Pos) || ch == '_'.charCodeAt(0) || ch > 255;
+	}
+
+	static IsLetter(Text: string, Pos: number): boolean {
+		var ch :number = LibGreenTea.CharAt(Text, Pos);
 		if(ch > 90){
 			ch -= 0x20;
 		}
 		return 65/*A*/ <= ch && ch <= 90/*Z*/;
 	}
 
-	static IsDigit(ch: number): boolean {
+	static IsDigit(Text: string, Pos: number): boolean {
+		var ch :number = LibGreenTea.CharAt(Text, Pos);
 		return 48/*0*/ <= ch && ch <= 57/*9*/;
 	}
 
@@ -378,6 +407,10 @@ class LibGreenTea {
 		return Fileline | Fileline;
 	}
 
+	static booleanValue(Value : Object) : boolean {
+		return <boolean>(Value);
+	}
+
 	static Eval(SourceCode: string): void {
 		return eval(SourceCode);
 	}
@@ -405,4 +438,8 @@ class LibGreenTea {
 	public static EvalGetter(Type: GtType, Value: any, FieldName: string): any {
 		return null;
 	}
+	static ImportNativeMethod(NativeFunc: GtFunc, FullName: string) : boolean {
+		return false;
+	}
+
 }

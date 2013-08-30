@@ -8,7 +8,7 @@ INSTALL_PREFIX="$(HOME)/bin"
 
 all: build test
 
-build: buildj buildts buildpy
+build: buildj buildts
 
 dist: distj distts
 

@@ -138,19 +138,19 @@ class GtType extends GtStatic {
 	
 	public GtType RealType(GtTypeEnv Gamma, ArrayList<GtType> TypeList) {
 		if(this.IsTypeRef()) {
-			GtToken Token = ((/*cast*/GtToken)this.NativeSpec);
-			int Index = Token.ParsedText.indexOf('_'); // T$1_0
-			int ParamIndex = 1;
-			int TypeParamIndex = -1;
+			/*local*/GtToken Token = ((/*cast*/GtToken)this.NativeSpec);
+			/*local*/int Index = Token.ParsedText.indexOf('_'); // T$1_0
+			/*local*/int ParamIndex = 1;
+			/*local*/int TypeParamIndex = -1;
 			if(Index != -1) {
-				ParamIndex = (int)LibGreenTea.ParseInt(Token.ParsedText.substring(2, Index)) - 1;
-				TypeParamIndex = (int)LibGreenTea.ParseInt(Token.ParsedText.substring(Index+1));
+				ParamIndex = (/*cast*/int)LibGreenTea.ParseInt(Token.ParsedText.substring(2, Index)) - 1;
+				TypeParamIndex = (/*cast*/int)LibGreenTea.ParseInt(Token.ParsedText.substring(Index+1));
 			}
 			else {
-				ParamIndex = (int)LibGreenTea.ParseInt(Token.ParsedText.substring(2)) - 1;
+				ParamIndex = (/*cast*/int)LibGreenTea.ParseInt(Token.ParsedText.substring(2)) - 1;
 			}
 			if(ParamIndex >= 0 && ParamIndex < TypeList.size()) {
-				GtType RealType = TypeList.get(ParamIndex);
+				/*local*/GtType RealType = TypeList.get(ParamIndex);
 				if(TypeParamIndex < 0) {
 					return RealType;
 				}
