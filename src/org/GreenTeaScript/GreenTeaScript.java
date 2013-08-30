@@ -3239,6 +3239,8 @@ final class GreenTeaGrammar extends GtGrammar {
 		return Gamma.Generator.CreateEmptyNode(ContextType);
 	}
 
+	
+
 	// FuncDecl
 	public static GtSyntaxTree ParseFuncName(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.Next();
@@ -3251,17 +3253,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		return null;
 	}
 
-	public static GtSyntaxTree ParseFuncDecl(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		/*local*/GtSyntaxTree FuncDeclTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetToken(), null);
-		if(LeftTree == null) {
-			FuncDeclTree.SetMatchedPatternAt(FuncDeclReturnType, NameSpace, TokenContext, "$Type$", Required);
-		}
-		else {
-			FuncDeclTree.SetSyntaxTreeAt(FuncDeclReturnType, LeftTree);
-		}
-		FuncDeclTree.SetMatchedPatternAt(FuncDeclName, NameSpace, TokenContext, "$FuncName$", Required);
-		FuncDeclTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "(", Required);
-		/*local*/int ParseFlag = TokenContext.SetBackTrack(false);  // disabled
+	private static void ParseFuncParam(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree FuncDeclTree) {
 		/*local*/int ParamBase = FuncDeclParam;
 		while(!FuncDeclTree.IsEmptyOrError() && !TokenContext.MatchToken(")")) {
 			TokenContext.SkipIndent();
@@ -3271,11 +3263,14 @@ final class GreenTeaGrammar extends GtGrammar {
 			}
 			FuncDeclTree.SetMatchedPatternAt(ParamBase + VarDeclType, NameSpace, TokenContext, "$Type$", Required);
 			FuncDeclTree.SetMatchedPatternAt(ParamBase + VarDeclName, NameSpace, TokenContext, "$Variable$", Required);
-//			if(TokenContext.MatchToken("=")) {
-//				FuncDeclTree.SetMatchedPatternAt(ParamBase + VarDeclValue, NameSpace, TokenContext, "$Expression$", Required);
-//			}
+			if(TokenContext.MatchToken("=")) {
+				FuncDeclTree.SetMatchedPatternAt(ParamBase + VarDeclValue, NameSpace, TokenContext, "$Expression$", Required);
+			}
 			ParamBase += 3;
 		}
+	}
+
+	private static void ParseFuncBody(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree FuncDeclTree) {
 		TokenContext.SkipIndent();
 		if(TokenContext.MatchToken("as")) {
 			/*local*/GtToken Token = TokenContext.Next();
@@ -3291,6 +3286,36 @@ final class GreenTeaGrammar extends GtGrammar {
 				GtStatic.LinkTree(GtStatic.TreeTail(FuncDeclTree.GetSyntaxTreeAt(FuncDeclBlock)), ReturnTree);
 			}
 		}
+	}
+
+	public static GtSyntaxTree ParseFunction(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtSyntaxTree FuncDeclTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetToken(), null);
+		FuncDeclTree.SetMatchedPatternAt(FuncDeclName, NameSpace, TokenContext, "$FuncName$", Optional);
+		if(FuncDeclTree.HasNodeAt(FuncDeclName)) {
+			//NameSpace = ParseFuncGenericParam(NameSpace, TokenContext, FuncDeclTree);
+		}
+		FuncDeclTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "(", Required);
+		ParseFuncParam(NameSpace, TokenContext, FuncDeclTree);
+		if(!FuncDeclTree.IsEmptyOrError() && TokenContext.MatchToken(":")) {
+			FuncDeclTree.SetMatchedPatternAt(FuncDeclReturnType, NameSpace, TokenContext, "$Type$", Required);
+		}
+		ParseFuncBody(NameSpace, TokenContext, FuncDeclTree);
+		return FuncDeclTree;
+	}
+
+	public static GtSyntaxTree ParseFuncDecl(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtSyntaxTree FuncDeclTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetToken(), null);
+		if(LeftTree == null) {
+			FuncDeclTree.SetMatchedPatternAt(FuncDeclReturnType, NameSpace, TokenContext, "$Type$", Required);
+		}
+		else {
+			FuncDeclTree.SetSyntaxTreeAt(FuncDeclReturnType, LeftTree);
+		}
+		FuncDeclTree.SetMatchedPatternAt(FuncDeclName, NameSpace, TokenContext, "$FuncName$", Required);
+		FuncDeclTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "(", Required);
+		/*local*/int ParseFlag = TokenContext.SetBackTrack(false);  // disabled
+		ParseFuncParam(NameSpace, TokenContext, FuncDeclTree);
+		ParseFuncBody(NameSpace, TokenContext, FuncDeclTree);
 		TokenContext.SetRememberFlag(ParseFlag);
 		return FuncDeclTree;
 	}
