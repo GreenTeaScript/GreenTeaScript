@@ -1,6 +1,6 @@
 #!/bin/sh
 
-SourceDir=src/
+SourceDir=./src/org/GreenTeaScript/
 build=src/TypeScript/
 
 source=
@@ -14,7 +14,6 @@ source="${source} CSourceGenerator"
 source="${source} JavaSourceGenerator"
 source="${source} PerlSourceGenerator"
 source="${source} PythonSourceGenerator"
-source="${source} ConstantFolder"
 
 ts=""
 
