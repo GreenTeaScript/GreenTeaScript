@@ -1,0 +1,5 @@
+void myprint(int x) import org.GreenTeaScript.GreenTeaRuntime.println;
+
+@Export int main() {
+    myprint("a");
+}
