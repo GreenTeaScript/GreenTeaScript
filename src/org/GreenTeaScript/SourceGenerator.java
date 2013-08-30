@@ -1442,6 +1442,9 @@ class SourceGenerator extends GtGenerator {
 		if(ConstValue instanceof String) {
 			return LibGreenTea.QuoteString((/*cast*/String)ConstValue);
 		}
+		if(ConstValue instanceof GreenTeaEnum) {
+			return "" + ((/*cast*/GreenTeaEnum) ConstValue).EnumValue;
+		}
 		return ConstValue.toString();
 	}
 

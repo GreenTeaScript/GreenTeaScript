@@ -2534,6 +2534,15 @@ final class GreenTeaGrammar extends GtGrammar {
 			if(ConstValue != null) {
 				return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(ConstValue), ParsedTree, ConstValue);
 			}
+			// EnumType.EnumValue
+			if(ObjectType.IsEnumType()) {
+				assert(ObjectType.NativeSpec instanceof GtMap);
+				/*local*/GtMap NativeSpec = (/*cast*/GtMap)ObjectType.NativeSpec;
+				GreenTeaEnum EnumValue = (/*cast*/GreenTeaEnum) NativeSpec.get(Name);
+				if(EnumValue != null) {
+					return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(EnumValue), ParsedTree, EnumValue);
+				}
+			}
 		}
 		/*local*/GtFunc GetterFunc = ParsedTree.NameSpace.GetGetterFunc(ObjectNode.Type, Name, true);
 		/*local*/GtType ReturnType = (GetterFunc != null) ? GetterFunc.GetReturnType() : Gamma.AnyType;

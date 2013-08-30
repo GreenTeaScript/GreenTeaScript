@@ -136,6 +136,11 @@ class GtType extends GtStatic {
 		return IsFlag(this.ClassFlag, TypeRef);
 	}
 	
+	public final boolean IsEnumType() {
+		return IsFlag(this.ClassFlag, EnumClass);
+	}
+
+
 	public GtType RealType(GtTypeEnv Gamma, ArrayList<GtType> TypeList) {
 		if(this.IsTypeRef()) {
 			/*local*/GtToken Token = ((/*cast*/GtToken)this.NativeSpec);
