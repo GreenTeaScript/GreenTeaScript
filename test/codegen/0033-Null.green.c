@@ -1,10 +1,13 @@
 #include "GreenTeaPlus.h"
-static int f__AFAF(int left__AA, int right__AB){
-   return left__AA;
+
+
+static int f__45(int left__0, int right__1){
+   return left__0;
 }
+
 
 void main(){
-   assert((f__AFAF(10, NULL) == 10));
+   assert((f__45(10, 0) == 10));
+   return;
 }
-
 

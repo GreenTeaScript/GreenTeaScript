@@ -1,14 +1,13 @@
 #include "GreenTeaPlus.h"
-static int f__AF(int a__AA){
-   int b__AB = (a__AA + 10);
+
+
+static int f__45(int a__0){
+   int b__1 = (a__0 + 10);
    {
-      int c__AC = (b__AB + 20);
+      int c__2 = (b__1 + 20);
       {
-         return c__AC;
+         return c__2;
       };
    };
 }
-
-f__AF(10);
-
 

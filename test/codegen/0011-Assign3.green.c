@@ -1,24 +1,26 @@
 #include "GreenTeaPlus.h"
-static int f__AD(){
-   int a__AA = 1;
+
+
+static int f__45(){
+   int a__0 = 1;
    {
-      int b__AB = 10;
+      int b__1 = 10;
       {
-         int c__AC = 100;
+         int c__2 = 100;
          {
-            int d__AD = 1000;
+            int d__3 = 1000;
             {
-               int e__AE = 10000;
+               int e__4 = 10000;
                {
-                  int f__AF = 100000;
+                  int f__5 = 100000;
                   {
-                     int g__AG = 1000000;
+                     int g__6 = 1000000;
                      {
-                        int h__AH = 10000000;
+                        int h__7 = 10000000;
                         {
-                           int i__AI = 100000000;
+                           int i__8 = 100000000;
                            {
-                              return (a__AA + (b__AB + (c__AC + (d__AD + (e__AE + (f__AF + (g__AG + (h__AH + i__AI))))))));
+                              return ((((((((a__0 + b__1) + c__2) + d__3) + e__4) + f__5) + g__6) + h__7) + i__8);
                            };
                         };
                      };
@@ -29,7 +31,4 @@ static int f__AD(){
       };
    };
 }
-
-f__AD();
-
 

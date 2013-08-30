@@ -1,9 +1,11 @@
 #include "GreenTeaPlus.h"
-static void f__AD(){
-   String BackupServer__AA = "192.168.11.102";
+
+
+static void f__45(){
+   String BackupServer__0 = "192.168.11.102";
    {
-      ("http://" + (BackupServer__AA + "/db"));
+      (greentea_strcat((greentea_strcat("http://", BackupServer__0)), "/db"));
+      return;
    };
 }
-
 

@@ -1,5 +1,7 @@
 #include "GreenTeaPlus.h"
-static void f0__AD(){
+
+
+static void f0__45(){
    30;
    -10;
    200;
@@ -11,63 +13,71 @@ static void f0__AD(){
    1;
    0;
    0;
+   return;
 }
 
-static void f1__AD(){
-   int n__AA = 10;
+
+static void f1__46(){
+   int n__0 = 10;
    {
-      (n__AA + 20);
-      (n__AA - 20);
-      (n__AA * 20);
-      (n__AA / 20);
-      (n__AA % 20);
-      (n__AA == 20);
-      (n__AA != 20);
-      (n__AA < 20);
-      (n__AA <= 20);
-      (n__AA > 20);
-      (n__AA >= 20);
+      (n__0 + 20);
+      (n__0 - 20);
+      (n__0 * 20);
+      (n__0 / 20);
+      (n__0 % 20);
+      (n__0 == 20);
+      (n__0 != 20);
+      (n__0 < 20);
+      (n__0 <= 20);
+      (n__0 > 20);
+      (n__0 >= 20);
+      return;
    };
 }
 
-static void f2__AD(){
-   int m__AA = 20;
+
+static void f2__47(){
+   int m__0 = 20;
    {
-      (10 + m__AA);
-      (10 - m__AA);
-      (10 * m__AA);
-      (10 / m__AA);
-      (10 % m__AA);
-      (10 == m__AA);
-      (10 != m__AA);
-      (10 < m__AA);
-      (10 <= m__AA);
-      (10 > m__AA);
-      (10 >= m__AA);
+      (10 + m__0);
+      (10 - m__0);
+      (10 * m__0);
+      (10 / m__0);
+      (10 % m__0);
+      (10 == m__0);
+      (10 != m__0);
+      (10 < m__0);
+      (10 <= m__0);
+      (10 > m__0);
+      (10 >= m__0);
+      return;
    };
 }
 
-static void f3__AD(){
-   int n__AA = 10;
+
+static void f3__48(){
+   int n__0 = 10;
    {
-      int m__AB = 20;
+      int m__1 = 20;
       {
-         (n__AA + m__AB);
-         (n__AA - m__AB);
-         (n__AA * m__AB);
-         (n__AA / m__AB);
-         (n__AA % m__AB);
-         (n__AA == m__AB);
-         (n__AA != m__AB);
-         (n__AA < m__AB);
-         (n__AA <= m__AB);
-         (n__AA > m__AB);
-         (n__AA >= m__AB);
+         (n__0 + m__1);
+         (n__0 - m__1);
+         (n__0 * m__1);
+         (n__0 / m__1);
+         (n__0 % m__1);
+         (n__0 == m__1);
+         (n__0 != m__1);
+         (n__0 < m__1);
+         (n__0 <= m__1);
+         (n__0 > m__1);
+         (n__0 >= m__1);
+         return;
       };
    };
 }
 
-static void g1__AD(){
+
+static void g1__49(){
    ;
    30;
    -10;
@@ -80,9 +90,11 @@ static void g1__AD(){
    1;
    0;
    0;
+   return;
 }
 
-static void g2__AD(){
+
+static void g2__50(){
    ;
    30;
    -10;
@@ -95,9 +107,11 @@ static void g2__AD(){
    1;
    0;
    0;
+   return;
 }
 
-static void g3__AD(){
+
+static void g3__51(){
    ;
    ;
    30;
@@ -111,6 +125,6 @@ static void g3__AD(){
    1;
    0;
    0;
+   return;
 }
-
 

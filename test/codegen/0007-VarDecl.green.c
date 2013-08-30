@@ -1,11 +1,10 @@
 #include "GreenTeaPlus.h"
-static int f__AF(int a__AA){
-   int b__AB = (a__AA + 10);
+
+
+static int f__45(int a__0){
+   int b__1 = (a__0 + 10);
    {
-      return b__AB;
+      return b__1;
    };
 }
-
-f__AF(10);
-
 

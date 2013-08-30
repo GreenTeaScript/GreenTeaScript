@@ -1,6 +1,7 @@
 #include "GreenTeaPlus.h"
-static int f__AFAF(int a__AA, int b__AB){
+
+
+static int f__45(int a__0, int b__1){
    return 10;
 }
-
 

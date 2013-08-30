@@ -1,12 +1,12 @@
 #include "GreenTeaPlus.h"
-static int f__AFAF(int a__AA, int b__AB){
-   return (a__AA + b__AB);
+
+
+static int f__45(int a__0, int b__1){
+   return (a__0 + b__1);
 }
 
-static int g__AFAFAF(int a__AA, int b__AB, int c__AC){
-   return (a__AA + f__AFAF(b__AB, c__AC));
+
+static int g__46(int a__0, int b__1, int c__2){
+   return (a__0 + f__45(b__1, c__2));
 }
-
-g__AFAFAF(10, 20, 30);
-
 

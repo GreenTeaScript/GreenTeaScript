@@ -79,8 +79,8 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 			Source += " = " + this.PopSourceCode();
 		}
 		Source +=  ";";
-		this.VisitBlockJSWithIndent(Node.BlockNode);
-		this.PushSourceCode(Source + this.PopSourceCode());
+		Source += this.VisitBlockJSWithIndent(Node.BlockNode);
+		this.PushSourceCode(Source);
 	}
 
 	@Override public void VisitIfNode(IfNode Node) {

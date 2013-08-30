@@ -8,7 +8,6 @@ struct X* NEW_X() {
    self->a = 0;
    return self;
 };
-
 struct Y {
    // struct X* __base;
    int a;
@@ -23,20 +22,27 @@ struct Y* NEW_Y() {
    return self;
 };
 
-static int f__AM(struct X* x__AA){
-   return x__AA->a;
+// (error) (/Users/masa/src/GreenTeaScript/test/codegen/0035-Getter.green:9) type error: requested = int, given = void
+
+static int f__51(struct X* x__0){
+   return x__0->a;
 }
 
-static int g0__AN(struct Y* y__AA){
-   return GT_GetField(struct X*, y__AA, a);
+// (error) (/Users/masa/src/GreenTeaScript/test/codegen/0035-Getter.green:12) type error: requested = int, given = void
+
+static int g0__52(struct Y* y__0){
+   return GT_GetField(struct X*, y__0, a);
 }
 
-static int g1__AN(struct Y* y__AA){
-   return y__AA->b;
+// (error) (/Users/masa/src/GreenTeaScript/test/codegen/0035-Getter.green:15) type error: requested = int, given = void
+
+static int g1__53(struct Y* y__0){
+   return y__0->b;
 }
 
-static int g2__AN(struct Y* y__AA){
-   return y__AA->c;
-}
+// (error) (/Users/masa/src/GreenTeaScript/test/codegen/0035-Getter.green:18) type error: requested = int, given = void
 
+static int g2__54(struct Y* y__0){
+   return y__0->c;
+}
 
