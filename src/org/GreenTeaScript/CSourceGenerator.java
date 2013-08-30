@@ -114,15 +114,16 @@ public class CSourceGenerator extends SourceGenerator {
 	@Override public void VisitDoWhileNode(DoWhileNode Node) {
 		/*local*/String Program = "do";
 		this.VisitBlockEachStatementWithIndent(Node.LoopBody, true);
-		Program += " while(" + this.VisitNode(Node.CondExpr) + ")";
+		Program += this.PopSourceCode() + " while(" + this.VisitNode(Node.CondExpr) + ")";
 		this.PushSourceCode(Program);
 	}
 
 	@Override public void VisitForNode(ForNode Node) {
 		/*local*/String Cond = this.VisitNode(Node.CondExpr);
 		/*local*/String Iter = this.VisitNode(Node.IterExpr);
-		/*local*/String Program = "for(; " + Cond  + "; " + Iter + ")";
-		Program += this.VisitNode(Node.LoopBody);
+		/*local*/String Program = "for(; " + Cond  + "; " + Iter + ") ";
+		this.VisitBlockEachStatementWithIndent(Node.LoopBody, true);
+		Program += this.PopSourceCode();
 		this.PushSourceCode(Program);
 	}
 

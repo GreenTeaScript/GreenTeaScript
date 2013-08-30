@@ -135,7 +135,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		Code += " = " + InitValue + this.LineFeed;
 		this.PushSourceCode(Code + this.VisitBlockWithIndent(Node.BlockNode, false));
 	}
-	
+
 	@Override public void VisitTrinaryNode(TrinaryNode Node) {
 		/*local*/String CondExpr = this.VisitNode(Node.CondExpr);
 		/*local*/String Then = this.VisitNode(Node.ThenExpr);

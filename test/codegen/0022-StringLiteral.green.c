@@ -2,6 +2,8 @@
 
 
 static String f__45(){
-   return "db";
+   "$Error$";
+   "db";
+   return "";
 }
 

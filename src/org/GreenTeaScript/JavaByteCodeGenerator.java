@@ -46,7 +46,6 @@ import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 import static org.objectweb.asm.Opcodes.*;
 
-
 // GreenTea Generator should be written in each language.
 
 class MethodHolderClass implements Opcodes {
@@ -364,7 +363,8 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		// boxing and return
 		if(this.Builder.typeStack.empty()) {
 			this.Builder.AsmMethodVisitor.visitInsn(ACONST_NULL);
-		} else {
+		}
+		else {
 			this.Builder.box();
 		}
 		this.Builder.AsmMethodVisitor.visitInsn(ARETURN);
@@ -534,7 +534,8 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			String owner = Type.getInternalName(m.getDeclaringClass());
 			this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, owner, m.getName(), Type.getMethodDescriptor(m));
 			this.Builder.typeStack.push(Type.getReturnType(m));
-		} else {
+		}
+		else {
 //			int opcode = Node.Func.Is(NativeStaticFunc) ? INVOKESTATIC : INVOKEVIRTUAL;
 			int opcode = INVOKESTATIC;
 			String owner = defaultClassName;//FIXME
@@ -560,7 +561,8 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		Method m = this.methodMap.get(OperatorFuncName);
 		if(m != null) {
 			this.Builder.Call(m);
-		} else {
+		}
+		else {
 			throw new RuntimeException("unsupport binary operator: " + FuncName);
 		}
 	}
@@ -573,7 +575,8 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		Method m = this.methodMap.get(OperatorFuncName);
 		if(m != null) {
 			this.Builder.Call(m);
-		} else {
+		}
+		else {
 			throw new RuntimeException("unsupport unary operator: " + FuncName);
 		}
 	}

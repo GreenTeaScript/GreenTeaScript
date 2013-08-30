@@ -131,15 +131,14 @@ class GtType extends GtStatic {
 	public final boolean IsArrayType() {
 		return (this == this.Context.ArrayType);
 	}
-	
+
 	public final boolean IsTypeRef() {
 		return IsFlag(this.ClassFlag, TypeRef);
 	}
-	
+
 	public final boolean IsEnumType() {
 		return IsFlag(this.ClassFlag, EnumClass);
 	}
-
 
 	public GtType RealType(GtTypeEnv Gamma, ArrayList<GtType> TypeList) {
 		if(this.IsTypeRef()) {

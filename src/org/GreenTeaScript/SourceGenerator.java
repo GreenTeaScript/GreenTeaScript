@@ -409,11 +409,11 @@ final class IndexerNode extends GtNode {
 	@Override public void Append(GtNode Expr) {
 		this.NodeList.add(Expr);
 	}
-	
+
 	public GtNode GetAt(int Index) {
 		return this.NodeList.get(Index);
 	}
-	
+
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitIndexerNode(this);
 	}
@@ -741,7 +741,6 @@ class CommandNode extends GtNode {
 
 }
 
-
 class GtGenerator extends GtStatic {
 	/*field*/public final String      TargetCode;
 	/*field*/public GtContext    Context;
@@ -776,7 +775,7 @@ class GtGenerator extends GtStatic {
 	public GtNode CreateNullNode(GtType Type, GtSyntaxTree ParsedTree) {
 		return new NullNode(Type, ParsedTree.KeyToken);
 	}
-	
+
 	public GtNode CreateArrayNode(GtType ArrayType, GtSyntaxTree ParsedTree) {
 		return new ArrayNode(ArrayType, ParsedTree.KeyToken);
 	}
@@ -858,7 +857,7 @@ class GtGenerator extends GtStatic {
 	}
 
 	public GtNode CreateForNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Cond, GtNode IterNode, GtNode Block) {
-		return new ForNode(Type, ParsedTree.KeyToken, Cond, Block, IterNode);
+		return new ForNode(Type, ParsedTree.KeyToken, Cond, IterNode, Block);
 	}
 
 	public GtNode CreateForEachNode(GtType Type, GtSyntaxTree ParsedTree, GtNode VarNode, GtNode IterNode, GtNode Block) {
@@ -1273,7 +1272,7 @@ class GtGenerator extends GtStatic {
 	public Object EvalArrayNode(ArrayNode Node, boolean EnforceConst) {
 		/*local*/ArrayList<Object> NewList = null;
 //ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
-		NewList = new ArrayList<Object>(ListSize(Node.NodeList)); 
+		NewList = new ArrayList<Object>(ListSize(Node.NodeList));
 		for(int i = 0; i < ListSize(Node.NodeList); i++) {
 			Object Value = Node.NodeList.get(i).ToConstValue(EnforceConst);
 			if(Value == null) {
@@ -1342,7 +1341,6 @@ class SourceGenerator extends GtGenerator {
 	/*field*/protected String    LineComment;
 	/*field*/protected String    BreakKeyword;
 	/*field*/protected String    ContinueKeyword;
-
 
 	SourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);

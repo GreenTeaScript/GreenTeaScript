@@ -132,7 +132,6 @@ public abstract class LibGreenTea {
 		return Character.isLetter(ch) || ch == '_' || ch > 255;
 	}
 
-
 	public final static String CharToString(char code) {
 		return Character.toString(code);
 	}
@@ -287,16 +286,16 @@ public abstract class LibGreenTea {
 			return ParamSize == 0;
 		}
 	}
-	
+
 	public final static GtFunc SetNativeMethod(GtFunc NativeFunc, Method JavaMethod) {
 		/*local*/int FuncFlag = GtStatic.NativeFunc;
 		if(Modifier.isStatic(JavaMethod.getModifiers())) {
 			FuncFlag |= GtStatic.NativeStaticFunc;
 		}
-		NativeFunc.SetNativeMethod(FuncFlag, JavaMethod);	
+		NativeFunc.SetNativeMethod(FuncFlag, JavaMethod);
 		return NativeFunc;
 	}
-	
+
 	public final static GtFunc ConvertNativeMethodToFunc(GtContext Context, Method JavaMethod) {
 		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
 		TypeList.add(LibGreenTea.GetNativeType(Context, JavaMethod.getReturnType()));
@@ -311,7 +310,7 @@ public abstract class LibGreenTea {
 		}
 		return SetNativeMethod(new GtFunc(0, JavaMethod.getName(), 0, TypeList), JavaMethod);
 	}
-	
+
 	public final static Method LoadNativeMethod(GtType ContextType, String FullName, boolean StaticMethodOnly) {
 		/*local*/Method FoundMethod = null;
 		int Index = FullName.lastIndexOf(".");
@@ -349,7 +348,7 @@ public abstract class LibGreenTea {
 		}
 		return FoundMethod;
 	}
-	
+
 	public final static boolean ImportNativeMethod(GtFunc NativeFunc, String FullName) {
 		Method JavaMethod = LibGreenTea.LoadNativeMethod(NativeFunc.GetFuncType(), FullName, false);
 		if(JavaMethod != null) {
@@ -360,7 +359,6 @@ public abstract class LibGreenTea {
 		}
 		return false;
 	}
-
 
 	public final static Method LookupNativeMethod(Object Callee, String FuncName) {
 		if(FuncName != null) {
@@ -855,6 +853,5 @@ public abstract class LibGreenTea {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
 
 }
