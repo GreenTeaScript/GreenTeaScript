@@ -2542,9 +2542,9 @@ final class GreenTeaGrammar extends GtGrammar {
 			}
 			// EnumType.EnumValue
 			if(ObjectType.IsEnumType()) {
-				assert(ObjectType.NativeSpec instanceof GtMap);
+				LibGreenTea.Assert(ObjectType.NativeSpec instanceof GtMap);
 				/*local*/GtMap NativeSpec = (/*cast*/GtMap)ObjectType.NativeSpec;
-				GreenTeaEnum EnumValue = (/*cast*/GreenTeaEnum) NativeSpec.get(Name);
+				/*local*/GreenTeaEnum EnumValue = (/*cast*/GreenTeaEnum) NativeSpec.get(Name);
 				if(EnumValue != null) {
 					return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(EnumValue), ParsedTree, EnumValue);
 				}
@@ -2981,7 +2981,7 @@ final class GreenTeaGrammar extends GtGrammar {
 			if(InitNode instanceof VarNode) {
 				((/*cast*/VarNode)InitNode).BlockNode = ForNode;
 			}			else {
-				InitNode = GtNode.LinkNode(InitNode, ForNode);
+				InitNode = GtStatic.LinkNode(InitNode, ForNode);
 			}
 			return InitNode;
 		}
@@ -3380,11 +3380,11 @@ final class GreenTeaGrammar extends GtGrammar {
 			//NameSpace = ParseFuncGenericParam(NameSpace, TokenContext, FuncDeclTree);
 		}
 		FuncDeclTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "(", Required);
-		ParseFuncParam(NameSpace, TokenContext, FuncDeclTree);
+		GreenTeaGrammar.ParseFuncParam(NameSpace, TokenContext, FuncDeclTree);
 		if(!FuncDeclTree.IsEmptyOrError() && TokenContext.MatchToken(":")) {
 			FuncDeclTree.SetMatchedPatternAt(FuncDeclReturnType, NameSpace, TokenContext, "$Type$", Required);
 		}
-		ParseFuncBody(NameSpace, TokenContext, FuncDeclTree);
+		GreenTeaGrammar.ParseFuncBody(NameSpace, TokenContext, FuncDeclTree);
 		return FuncDeclTree;
 	}
 
@@ -3399,8 +3399,8 @@ final class GreenTeaGrammar extends GtGrammar {
 		FuncDeclTree.SetMatchedPatternAt(FuncDeclName, NameSpace, TokenContext, "$FuncName$", Required);
 		FuncDeclTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "(", Required);
 		/*local*/int ParseFlag = TokenContext.SetBackTrack(false);  // disabled
-		ParseFuncParam(NameSpace, TokenContext, FuncDeclTree);
-		ParseFuncBody(NameSpace, TokenContext, FuncDeclTree);
+		GreenTeaGrammar.ParseFuncParam(NameSpace, TokenContext, FuncDeclTree);
+		GreenTeaGrammar.ParseFuncBody(NameSpace, TokenContext, FuncDeclTree);
 		TokenContext.SetRememberFlag(ParseFlag);
 		return FuncDeclTree;
 	}
