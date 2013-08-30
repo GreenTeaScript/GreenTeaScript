@@ -2410,12 +2410,19 @@ final class GreenTeaGrammar extends GtGrammar {
 		/*local*/GtFunc ResolvedFunc = null;
 		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(BaseType, OperatorSymbol, true);
 		if(PolyFunc != null) {
-			/*local*/GtNode[] BinaryNodes = new GtNode[2];
-			BinaryNodes[0] = LeftNode;
-			BinaryNodes[1] = RightNode;
-			ResolvedFunc = PolyFunc.ResolveBinaryFunc(Gamma, BinaryNodes);
-			LeftNode = BinaryNodes[0];
-			RightNode = BinaryNodes[1];
+			/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
+			ParamList.add(LeftNode);
+			ResolvedFunc = PolyFunc.ResolveFunc(Gamma, ParsedTree, 1, ParamList);
+			if(ResolvedFunc != null) {
+				LeftNode = ParamList.get(0);
+				RightNode = ParamList.get(1);
+			}
+//			/*local*/GtNode[] BinaryNodes = new GtNode[2];
+//			BinaryNodes[0] = LeftNode;
+//			BinaryNodes[1] = RightNode;
+//			ResolvedFunc = PolyFunc.ResolveBinaryFunc(Gamma, BinaryNodes);
+//			LeftNode = BinaryNodes[0];
+//			RightNode = BinaryNodes[1];
 		}
 		if(ResolvedFunc == null) {
 			Gamma.Context.ReportError(TypeErrorLevel, ParsedTree.KeyToken, "mismatched operators: " + PolyFunc);
@@ -2925,7 +2932,11 @@ final class GreenTeaGrammar extends GtGrammar {
 	// Return Statement
 	public static GtSyntaxTree ParseReturn(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree ReturnTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("return"), null);
-		ReturnTree.SetMatchedPatternAt(ReturnExpr, NameSpace, TokenContext, "$Expression$", Optional);
+		if(TokenContext.MatchToken(";")) {
+			TokenContext.CurrentPosition -= 1;
+		} else {
+			ReturnTree.SetMatchedPatternAt(ReturnExpr, NameSpace, TokenContext, "$Expression$", Optional);
+		}
 		return ReturnTree;
 	}
 
