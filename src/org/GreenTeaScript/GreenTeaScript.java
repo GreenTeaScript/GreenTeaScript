@@ -2381,6 +2381,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		if(GtStatic.IsEmptyOrError(RightTree)) {
 			return RightTree;
 		}
+		//System.err.println("left=" + Pattern.SyntaxFlag + ", right=" + RightTree.Pattern.SyntaxFlag + ", binary?" +  RightTree.Pattern.IsBinaryOperator() + RightTree.Pattern);
 		if(RightTree.Pattern.IsBinaryOperator() && Pattern.IsRightJoin(RightTree.Pattern)) {
 			return GreenTeaGrammar.RightJoin(NameSpace, LeftTree, Pattern, OperatorToken, RightTree);
 		}
