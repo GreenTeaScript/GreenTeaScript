@@ -184,7 +184,7 @@ var CLASS = (function (_super) {
 			if(!FieldInfo.Type.IsNative()) {
 				InitValue = this.NullLiteral;
 			}
-			Program += this.GetIndentString() + this.GetRecvName() + "." + FieldInfo.NativeName + " = " + InitValue + ";" + this.LineFeed;
+			Program += this.GetIndentString() + "this" + "." + FieldInfo.NativeName + " = " + InitValue + ";" + this.LineFeed;
 			i = i + 1;
 		}
 		this.UnIndent();
@@ -211,5 +211,8 @@ var CLASS = (function (_super) {
 
 	@Override public void InvokeMainFunc(String MainFuncName) {
 		this.WriteLineCode(MainFuncName + "();");
+	}
+	@Override public String GetRecvName() {
+		return "$__this";
 	}
 }
