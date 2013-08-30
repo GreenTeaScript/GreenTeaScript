@@ -475,13 +475,12 @@ class GtStatic implements GtConst {
 		return TokenContext.ReportExpectedPattern(Pattern);
 	}
 
-	public final static GtSyntaxTree ParseExpression(GtNameSpace NameSpace, GtTokenContext TokenContext) {
+	public final static GtSyntaxTree ParseExpression(GtNameSpace NameSpace, GtTokenContext TokenContext, boolean SuffixOnly) {
 		/*local*/GtSyntaxPattern Pattern = TokenContext.GetFirstPattern();
 		/*local*/GtSyntaxTree LeftTree = GtStatic.ApplySyntaxPattern(NameSpace, TokenContext, null, Pattern);
-		while(!GtStatic.IsEmptyOrError(LeftTree)) {  // IMIFU
+		while(!GtStatic.IsEmptyOrError(LeftTree)) {
 			/*local*/GtSyntaxPattern ExtendedPattern = TokenContext.GetExtendedPattern();
-			if(ExtendedPattern == null) {
-				//LibGreenTea.DebugP("In $Expression$ ending: " + TokenContext.GetToken());
+			if(ExtendedPattern == null || (SuffixOnly && ExtendedPattern.IsBinaryOperator()) ) {
 				break;
 			}
 			LeftTree = GtStatic.ApplySyntaxPattern(NameSpace, TokenContext, LeftTree, ExtendedPattern);
@@ -1834,7 +1833,7 @@ final class GtNameSpace extends GtStatic {
 		TokenContext.SkipEmptyStatement();
 		while(TokenContext.HasNext()) {
 			/*local*/GtMap Annotation = TokenContext.SkipAndGetAnnotation(true);
-			/*local*/GtSyntaxTree TopLevelTree = GtStatic.ParseExpression(this, TokenContext);
+			/*local*/GtSyntaxTree TopLevelTree = GtStatic.ParseExpression(this, TokenContext, false/*SuffixOnly*/);
 			TopLevelTree.SetAnnotation(Annotation);
 			/*local*/GtTypeEnv Gamma = new GtTypeEnv(this);
 			/*local*/GtNode Node = TopLevelTree.TypeCheck(Gamma, Gamma.VoidType, DefaultTypeCheckPolicy);
@@ -2332,13 +2331,14 @@ final class GreenTeaGrammar extends GtGrammar {
 	}
 	
 	public static GtSyntaxTree ParseExpression(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		return GtStatic.ParseExpression(NameSpace, TokenContext);
+		return GtStatic.ParseExpression(NameSpace, TokenContext, false/*SuffixOnly*/);
 	}
 
 	public static GtSyntaxTree ParseUnary(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/GtSyntaxTree Tree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
-		Tree.SetMatchedPatternAt(UnaryTerm, NameSpace, TokenContext, "$Expression$", Required);
+		/*local*/GtSyntaxTree SubTree = GtStatic.ParseExpression(NameSpace, TokenContext, true/*SuffixOnly*/);
+		Tree.SetSyntaxTreeAt(UnaryTerm, SubTree);
 		return Tree;
 	}
 
@@ -2384,7 +2384,7 @@ final class GreenTeaGrammar extends GtGrammar {
 	
 	public static GtSyntaxTree ParseBinary(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken OperatorToken = TokenContext.Next();
-		/*local*/GtSyntaxTree RightTree = GtStatic.ParseExpression(NameSpace, TokenContext);
+		/*local*/GtSyntaxTree RightTree = GtStatic.ParseExpression(NameSpace, TokenContext, false/*SuffixOnly*/);
 		if(GtStatic.IsEmptyOrError(RightTree)) {
 			return RightTree;
 		}
@@ -2843,7 +2843,7 @@ final class GreenTeaGrammar extends GtGrammar {
 					break;
 				}
 				/*local*/GtMap Annotation = TokenContext.SkipAndGetAnnotation(true);
-				/*local*/GtSyntaxTree ParsedTree = GtStatic.ParseExpression(NameSpace, TokenContext);
+				/*local*/GtSyntaxTree ParsedTree = GtStatic.ParseExpression(NameSpace, TokenContext, false/*SuffixOnly*/);
 				if(GtStatic.IsEmptyOrError(ParsedTree)) {
 					return ParsedTree;
 				}
@@ -2866,7 +2866,7 @@ final class GreenTeaGrammar extends GtGrammar {
 	public static GtSyntaxTree ParseStatement(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree StmtTree = TokenContext.ParsePattern(NameSpace, "$Block$", Optional);
 		if(StmtTree == null) {
-			StmtTree = GtStatic.ParseExpression(NameSpace, TokenContext);
+			StmtTree = GtStatic.ParseExpression(NameSpace, TokenContext, false/*SuffixOnly*/);
 		}
 		if(StmtTree == null) {
 			StmtTree = TokenContext.ParsePattern(NameSpace, "$Empty$", Required);
@@ -3149,7 +3149,7 @@ final class GreenTeaGrammar extends GtGrammar {
 				break;
 			}
 			/*local*/GtMap Annotation = TokenContext.SkipAndGetAnnotation(true);
-			/*local*/GtSyntaxTree CurrentTree = GtStatic.ParseExpression(NameSpace, TokenContext);
+			/*local*/GtSyntaxTree CurrentTree = GtStatic.ParseExpression(NameSpace, TokenContext, false/*SuffixOnly*/);
 			if(GtStatic.IsEmptyOrError(CurrentTree)) {
 				return CurrentTree;
 			}
