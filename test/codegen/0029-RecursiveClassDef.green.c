@@ -9,4 +9,3 @@ struct X* NEW_X() {
    return self;
 };
 
-

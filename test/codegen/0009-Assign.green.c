@@ -1,9 +1,8 @@
 #include "GreenTeaPlus.h"
-static int f__AF(int a__AA){
-   a__AA = (a__AA + 20);
-   return a__AA;
+
+
+static int f__45(int a__0){
+   a__0 = (a__0 + 20);
+   return a__0;
 }
-
-f__AF(10);
-
 

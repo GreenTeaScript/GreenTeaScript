@@ -1,0 +1,5 @@
+@Export int main() {
+    int x, y, z;
+    return x;
+}
+

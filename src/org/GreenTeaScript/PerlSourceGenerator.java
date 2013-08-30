@@ -34,9 +34,11 @@ public class PerlSourceGenerator extends SourceGenerator {
 		super("perl", OutputFile, GeneratorFlag);
 		this.TrueLiteral  = "1";
 		this.FalseLiteral = "0";
-		this.NullLiteral = "NULL";
+		this.NullLiteral = "undef";
 		this.LineComment = "##";
 		this.MemberAccessOperator = "->";
+		this.BreakKeyword = "last";
+		this.ContinueKeyword = "next";
 	}
 
 	public void VisitBlockEachStatementWithIndent(GtNode Node) {

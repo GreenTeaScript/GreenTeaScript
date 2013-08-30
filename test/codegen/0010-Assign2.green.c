@@ -1,12 +1,11 @@
 #include "GreenTeaPlus.h"
-static boolean g__AF(int a__AA){
-   boolean a__AB = 0;
+
+
+static int g__45(int a__0){
+   int a__1 = 0;
    {
-      a__AB = 1;
-      return a__AB;
+      a__1 = 1;
+      return a__1;
    };
 }
-
-g__AF(100);
-
 

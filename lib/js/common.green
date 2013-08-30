@@ -1,16 +1,33 @@
-int +(int x) as "$1";
+// common api for c
+
+// unary operator
+// any
+int +(int x) as "($1 | 0)";
 int -(int x) as "-$1";
-// int ~(int x) as "~$1";
+int ~(int x) as "~$1";
+
+// binary operator
+// any
+boolean ==(any x, any y) as "$1  == $2";
+boolean !=(any x, any y) as "$1  != $2";
+boolean !(boolean x) as "! $1"
+
+// boolean
+boolean ==(boolean x, boolean y) as "$1  == $2";
+boolean !=(boolean x, boolean y) as "$1  != $2";
+String convert(boolean x) as "green_toString($1)";
+
+// int 
 int +(int x, int y)      as "$1 + $2";
 int -(int x, int y)      as "$1 - $2";
 int *(int x, int y)      as "$1 * $2";
 int /(int x, int y)      as "$1 / $2";
 int %(int x, int y)      as "$1 % $2";
-// int <<(int x, int y)     as "$1 << $2";
-// int >>(int x, int y)     as "$1 >> $2";
-// int ^(int x, int y)      as "$1 ^ $2";
-// int |(int x, int y)      as "$1 | $2";
-// int &(int x, int y)      as "$1 & $2";
+int <<(int x, int y)     as "$1 << $2";
+int >>(int x, int y)     as "$1 >> $2";
+int ^(int x, int y)      as "$1 ^ $2";
+int |(int x, int y)      as "$1 | $2";
+int &(int x, int y)      as "$1 & $2";
 boolean <(int x,  int y) as "$1 < $2";
 boolean <=(int x, int y) as "$1 <= $2";
 boolean >(int x,  int y) as "$1 > $2";
@@ -18,11 +35,26 @@ boolean >=(int x, int y) as "$1 >= $2";
 boolean ==(int x, int y) as "$1 == $2";
 boolean !=(int x, int y) as "$1 != $2";
 
+// String
 String +(String x, String y)      as "$1 + $2";
+boolean ==(String x, String y)    as "$1 == $2";
+boolean !=(String x, String y)    as "$1 != $2";
+boolean <(String x,  String y)    as "$1 <= $2";
+boolean <=(String x, String y)    as "$1 <  $2";
+boolean >(String x,  String y)    as "$1 >  $2";
+boolean >=(String x, String y)    as "$1 >= $2";
 
-boolean ==(any x, any y) as "$1 == $2";
-boolean !=(any x, any y) as "$1 != $2";
+boolean startsWith(String x, String y) as " $1.indexOf($2, 0) == 0";
+boolean endsWith(String x, String y) as "$1.lastIndexOf($2, 0) == 0";
+int indexOf(String x, String sub) as "$1.indexOf($2)";
+int lastIndexOf(String x, String sub) as "$1.lastIndexOf($2)";
+String substring(String x, int s) as "$1.substring($2)"
+String substring(String x, int s, int e) as "$1.substring($2, $3)"; 
+String toLower(String x) as "$1.lower()";
+String toUpper(String x) as "$1.upper()";
+String replace(String x, String old, String new) as "$1.replace($2, $3)";
 
+// function
 void print(String x) as "console.log($1)";
 void println(String x) as "console.log($1)";
 void assert(boolean x) as "assert($1)";

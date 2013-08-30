@@ -1,3 +1,5 @@
 String f() {
-    return "db"
+    "$Error$"
+    "db"
+    return "";
 }

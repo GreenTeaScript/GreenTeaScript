@@ -1,6 +1,7 @@
 #include "GreenTeaPlus.h"
-static boolean Goal__AD(){
+
+
+static int Goal__45(){
    return (0 && 1);
 }
-
 

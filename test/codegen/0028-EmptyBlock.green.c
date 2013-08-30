@@ -1,5 +1,8 @@
 #include "GreenTeaPlus.h"
-static void f__AD(){
-}
 
+
+static void f__45(){
+   ;
+   return;
+}
 

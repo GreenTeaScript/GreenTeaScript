@@ -1,15 +1,14 @@
 #include "GreenTeaPlus.h"
-static int f__AF(int a__AA){
-   int i__AB = 0;
+
+
+static int f__45(int a__0){
+   int i__1 = 0;
    {
-      while((i__AB < a__AA)){
-         i__AB = (i__AB + 1);
+      while((i__1 < a__0)){
+         i__1 = (i__1 + 1);
          continue;
       };
-      return i__AB;
+      return i__1;
    };
 }
-
-f__AF(10);
-
 

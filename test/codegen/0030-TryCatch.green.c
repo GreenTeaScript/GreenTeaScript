@@ -1,10 +1,13 @@
 #include "GreenTeaPlus.h"
-static void f__AF(int a__AA){
+
+// (warning) (/Users/masa/src/GreenTeaScript/test/codegen/0030-TryCatch.green:7) unused variable: e
+
+static void f__45(int a__0){
    10;
    try {
       20;
-      throw a__AA;
-   } catch (int e__AB) {
+      throw a__0;
+   } catch (int e__1) {
       40;
       50;
    } finally {
@@ -12,6 +15,6 @@ static void f__AF(int a__AA){
       70;
    };
    80;
+   return;
 }
-
 

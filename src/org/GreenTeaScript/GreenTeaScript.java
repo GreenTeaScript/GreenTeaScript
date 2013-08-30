@@ -853,9 +853,16 @@ final class GtTokenContext extends GtStatic {
 	}
 
 	public final boolean MatchToken(String TokenText) {
+		if(this.PeekToken(TokenText)) {
+			this.CurrentPosition += 1;
+			return true;
+		}
+		return false;
+	}
+
+	public final boolean PeekToken(String TokenText) {
 		/*local*/GtToken Token = this.GetToken();
 		if(Token.EqualsText(TokenText)) {
-			this.CurrentPosition += 1;
 			return true;
 		}
 		return false;
@@ -2411,12 +2418,19 @@ final class GreenTeaGrammar extends GtGrammar {
 		/*local*/GtFunc ResolvedFunc = null;
 		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(BaseType, OperatorSymbol, true);
 		if(PolyFunc != null) {
-			/*local*/GtNode[] BinaryNodes = new GtNode[2];
-			BinaryNodes[0] = LeftNode;
-			BinaryNodes[1] = RightNode;
-			ResolvedFunc = PolyFunc.ResolveBinaryFunc(Gamma, BinaryNodes);
-			LeftNode = BinaryNodes[0];
-			RightNode = BinaryNodes[1];
+			/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
+			ParamList.add(LeftNode);
+			ResolvedFunc = PolyFunc.ResolveFunc(Gamma, ParsedTree, 1, ParamList);
+			if(ResolvedFunc != null) {
+				LeftNode = ParamList.get(0);
+				RightNode = ParamList.get(1);
+			}
+//			/*local*/GtNode[] BinaryNodes = new GtNode[2];
+//			BinaryNodes[0] = LeftNode;
+//			BinaryNodes[1] = RightNode;
+//			ResolvedFunc = PolyFunc.ResolveBinaryFunc(Gamma, BinaryNodes);
+//			LeftNode = BinaryNodes[0];
+//			RightNode = BinaryNodes[1];
 		}
 		if(ResolvedFunc == null) {
 			Gamma.Context.ReportError(TypeErrorLevel, ParsedTree.KeyToken, "mismatched operators: " + PolyFunc);
@@ -2926,7 +2940,9 @@ final class GreenTeaGrammar extends GtGrammar {
 	// Return Statement
 	public static GtSyntaxTree ParseReturn(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree ReturnTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("return"), null);
-		ReturnTree.SetMatchedPatternAt(ReturnExpr, NameSpace, TokenContext, "$Expression$", Optional);
+		if(!TokenContext.PeekToken(";")) {
+			ReturnTree.SetMatchedPatternAt(ReturnExpr, NameSpace, TokenContext, "$Expression$", Optional);
+		}
 		return ReturnTree;
 	}
 
@@ -3277,7 +3293,7 @@ final class GreenTeaGrammar extends GtGrammar {
 			/*local*/GtToken Token = TokenContext.Next();
 			FuncDeclTree.ConstValue = LibGreenTea.UnquoteString(Token.ParsedText);
 		}
-		else if(TokenContext.MatchToken("import")) {
+		else if(TokenContext.PeekToken("import")) {
 			FuncDeclTree.SetMatchedPatternAt(FuncDeclBlock, NameSpace, TokenContext, "import", Required);
 		}
 		else {

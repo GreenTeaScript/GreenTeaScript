@@ -1340,6 +1340,9 @@ class SourceGenerator extends GtGenerator {
 	/*field*/protected String    FalseLiteral;
 	/*field*/protected String    NullLiteral;
 	/*field*/protected String    LineComment;
+	/*field*/protected String    BreakKeyword;
+	/*field*/protected String    ContinueKeyword;
+
 
 	SourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
@@ -1356,6 +1359,8 @@ class SourceGenerator extends GtGenerator {
 		this.TrueLiteral  = "true";
 		this.FalseLiteral = "false";
 		this.NullLiteral  = "null";
+		this.BreakKeyword = "break";
+		this.ContinueKeyword = "continue";
 		this.LineComment  = "//";
 	}
 
@@ -1651,7 +1656,7 @@ class SourceGenerator extends GtGenerator {
 	}
 
 	@Override public void VisitBreakNode(BreakNode Node) {
-		/*local*/String Code = "break";
+		/*local*/String Code = this.BreakKeyword;
 		if(this.HasLabelSupport) {
 			/*local*/String Label = Node.Label;
 			if(Label != null) {
@@ -1663,7 +1668,7 @@ class SourceGenerator extends GtGenerator {
 	}
 
 	@Override public void VisitContinueNode(ContinueNode Node) {
-		/*local*/String Code = "continue";
+		/*local*/String Code = this.ContinueKeyword;
 		if(this.HasLabelSupport) {
 			/*local*/String Label = Node.Label;
 			if(Label != null) {
