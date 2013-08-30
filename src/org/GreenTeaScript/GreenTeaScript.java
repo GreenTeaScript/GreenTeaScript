@@ -853,9 +853,16 @@ final class GtTokenContext extends GtStatic {
 	}
 
 	public final boolean MatchToken(String TokenText) {
+		if(this.PeekToken(TokenText)) {
+			this.CurrentPosition += 1;
+			return true;
+		}
+		return false;
+	}
+
+	public final boolean PeekToken(String TokenText) {
 		/*local*/GtToken Token = this.GetToken();
 		if(Token.EqualsText(TokenText)) {
-			this.CurrentPosition += 1;
 			return true;
 		}
 		return false;
@@ -2932,9 +2939,7 @@ final class GreenTeaGrammar extends GtGrammar {
 	// Return Statement
 	public static GtSyntaxTree ParseReturn(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree ReturnTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("return"), null);
-		if(TokenContext.MatchToken(";")) {
-			TokenContext.CurrentPosition -= 1;
-		} else {
+		if(!TokenContext.PeekToken(";")) {
 			ReturnTree.SetMatchedPatternAt(ReturnExpr, NameSpace, TokenContext, "$Expression$", Optional);
 		}
 		return ReturnTree;
@@ -3292,7 +3297,7 @@ final class GreenTeaGrammar extends GtGrammar {
 			/*local*/GtToken Token = TokenContext.Next();
 			FuncDeclTree.ConstValue = LibGreenTea.UnquoteString(Token.ParsedText);
 		}
-		else if(TokenContext.MatchToken("import")) {
+		else if(TokenContext.PeekToken("import")) {
 			FuncDeclTree.SetMatchedPatternAt(FuncDeclBlock, NameSpace, TokenContext, "import", Required);
 		}
 		else {
