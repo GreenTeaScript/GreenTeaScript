@@ -594,7 +594,11 @@ public abstract class LibGreenTea {
 	}
 
 	public final static boolean IsSupportedTarget(String TargetCode) {
-		return HasFile("lib/" + TargetCode + "/common.green");
+		return HasFile(GetLibPath(TargetCode, "common"));
+	}
+
+	public final static String GetLibPath(String TargetCode, String LibName) {
+		return "/lib/" + TargetCode + "/" + LibName + ".green";
 	}
 
 	public final static String LoadFile2(String FileName) {
@@ -602,6 +606,12 @@ public abstract class LibGreenTea {
 		InputStream Stream = LibGreenTea.class.getResourceAsStream(FileName);
 		if(Stream == null) {
 			File f = new File(FileName);
+			if(!f.exists()) {
+				String env = System.getProperty("GREENTEA_HOME");
+				if(env != null) {
+					f = new File(env + FileName);
+				}
+			}
 			try {
 				Stream = new FileInputStream(f);
 			} catch (FileNotFoundException e) {
@@ -623,11 +633,6 @@ public abstract class LibGreenTea {
 			return null;
 		}
 		return buffer;
-	}
-
-	public final static String GetLibPath(String TargetCode, String LibName) {
-		/*local*/String Path = "lib/" + TargetCode + "/" + LibName + ".green";
-		return Path;
 	}
 
 	public static long JoinIntId(int UpperId, int LowerId) {
