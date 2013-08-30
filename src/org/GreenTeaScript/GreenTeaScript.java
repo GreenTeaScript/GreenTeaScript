@@ -2211,8 +2211,9 @@ final class GreenTeaGrammar extends GtGrammar {
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/GtSyntaxTree VarTree = new GtSyntaxTree(NameSpace.GetPattern("$Variable$"), NameSpace, Token, null);
 		if(!LibGreenTea.IsVariableName(Token.ParsedText, 0)) {
-			NameSpace.Context.ReportError(ErrorLevel, Token, "illegal variable name: '" + Token.ParsedText + "'");
-			VarTree.ToError(Token);
+//			NameSpace.Context.ReportError(ErrorLevel, Token, "illegal variable name: '" + Token.ParsedText + "'");
+//			VarTree.ToError(Token);
+			return null;
 		}
 		return VarTree;
 	}
@@ -2533,6 +2534,15 @@ final class GreenTeaGrammar extends GtGrammar {
 			/*local*/Object ConstValue = ParsedTree.NameSpace.GetClassSymbol(ObjectType, Name, true);
 			if(ConstValue != null) {
 				return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(ConstValue), ParsedTree, ConstValue);
+			}
+			// EnumType.EnumValue
+			if(ObjectType.IsEnumType()) {
+				assert(ObjectType.NativeSpec instanceof GtMap);
+				/*local*/GtMap NativeSpec = (/*cast*/GtMap)ObjectType.NativeSpec;
+				GreenTeaEnum EnumValue = (/*cast*/GreenTeaEnum) NativeSpec.get(Name);
+				if(EnumValue != null) {
+					return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(EnumValue), ParsedTree, EnumValue);
+				}
 			}
 		}
 		/*local*/GtFunc GetterFunc = ParsedTree.NameSpace.GetGetterFunc(ObjectNode.Type, Name, true);
@@ -2940,9 +2950,7 @@ final class GreenTeaGrammar extends GtGrammar {
 	// Return Statement
 	public static GtSyntaxTree ParseReturn(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree ReturnTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("return"), null);
-		if(!TokenContext.PeekToken(";")) {
-			ReturnTree.SetMatchedPatternAt(ReturnExpr, NameSpace, TokenContext, "$Expression$", Optional);
-		}
+		ReturnTree.SetMatchedPatternAt(ReturnExpr, NameSpace, TokenContext, "$Expression$", Optional);
 		return ReturnTree;
 	}
 
