@@ -112,6 +112,10 @@ class GtType extends GtStatic {
 		return this.Context.CheckSubType(Type, this);
 	}
 
+	public final boolean AcceptValue(Object Value) {
+		return (Value != null) ? this.Accept(this.Context.GuessType(Value)) : true;
+	}
+
 	public void SetClassField(GtClassField ClassField) {
 		this.NativeSpec = ClassField;
 	}
@@ -311,6 +315,7 @@ class GtFunc extends GtStatic {
 		this.FuncFlag |= NativeFunc | OptionalFuncFlag;
 		this.NativeRef = Method;
 	}
+
 
 }
 

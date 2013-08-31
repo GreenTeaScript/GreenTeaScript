@@ -390,6 +390,23 @@ public abstract class LibGreenTea {
 		return new TokenFunc(f, prev);
 	}
 
+	public final static Object Apply2(Object NativeMethod, Object Self, Object Param1, Object Param2) {
+		try {
+			return ((Method)NativeMethod).invoke(Self, Param1, Param2);
+		}
+		catch (InvocationTargetException e) {
+			LibGreenTea.VerboseException(e);
+		}
+		catch (IllegalArgumentException e) {
+			LibGreenTea.VerboseException(e);
+		}
+		catch (IllegalAccessException e) {
+			LibGreenTea.VerboseException(e);
+		}
+		return null;
+	}
+
+	
 	public final static int ApplyTokenFunc(GtDelegateToken Delegate, Object TokenContext, String Text, int pos) {
 		try {
 			Integer n = (Integer)Delegate.Func.invoke(Delegate.Self, TokenContext, Text, pos);

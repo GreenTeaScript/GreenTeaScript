@@ -1,0 +1,47 @@
+// unary operator
+
+boolean not(boolean x);
+boolean !(boolean x);
+int +(int x);
+int -(int x);
+int ~(int x);
+
+// binary operator
+
+// boolean
+boolean ==(boolean x, boolean y);
+boolean !=(boolean x, boolean y);
+String convert(boolean x) import org.GreenTeaScript.GreenTeaRuntime.BooleanToString;
+
+// int
+int +(int x, int y);
+int -(int x, int y);
+int *(int x, int y);
+int /(int x, int y);
+int %(int x, int y);
+int <<(int x, int y);
+int >>(int x, int y);
+int ^(int x, int y);
+int |(int x, int y);
+int &(int x, int y);
+boolean <(int x,  int y);
+boolean <=(int x, int y);
+boolean >(int x,  int y);
+boolean >=(int x, int y);
+boolean ==(int x, int y);
+boolean !=(int x, int y);
+
+// String
+String +(String x, String y);
+String +(String x, int y);
+String +(String x, boolean y);
+String +(int x, String y);
+String +(boolean x, String y);
+boolean ==(String x, String y);
+boolean !=(String x, String y);
+
+// function
+void print(any s);
+void println(any s);
+void assert(boolean b);
+

@@ -69,8 +69,9 @@ interface GtConst {
 	public final static int     GetterFunc          = 1 << 10;
 	public final static int     SetterFunc          = 1 << 11;
 	public final static int     OperatorFunc        = 1 << 12;  //@Operator
-	public final static int     CoercionFunc        = 1 << 13;  //@Coercion
-	public final static int		LazyFunc		    = 1 << 14;  //@Deprecated
+	public final static int     ConverterFunc       = 1 << 13;
+	public final static int     CoercionFunc        = 1 << 14;  //@Coercion
+	public final static int		LazyFunc		    = 1 << 15;  //@Deprecated
 
 	// VarFlag
 	public final static int  ReadOnlyVar = 1;              // @ReadOnly x = 1; disallow x = 2
@@ -3418,6 +3419,11 @@ final class GreenTeaGrammar extends GtGrammar {
 			TypeList.add(RecvType);
 			Gamma.AppendRecv(RecvType);
 			ParamNameList.add(Gamma.Generator.GetRecvName());
+		}
+		if(FuncName.equals("converter")) {
+			FuncFlag |= ConverterFunc;
+			TypeList.add(Gamma.Context.TypeType);
+			ParamNameList.add("type");
 		}
 		/*local*/int TreeIndex = FuncDeclParam;
 		while(TreeIndex < ParsedTree.TreeList.size()) {

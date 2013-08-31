@@ -24,11 +24,15 @@
 
 //ifdef JAVA
 package org.GreenTeaScript;
+import java.util.ArrayList;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 
-public class GreenTeaRuntime {
+import javax.naming.Context;
 
+public class GreenTeaRuntime {
+	// comon api
+	
 	public static void print(Object o) {
 		System.out.print(o);
 	}
@@ -39,6 +43,104 @@ public class GreenTeaRuntime {
 
 	public static void assert_(boolean b) {
 		assert b;
+	}
+
+	
+	// converter 
+	
+	public final static Object DynamicCast(GtType ToType, Object Value) {
+		if(Value != null) {
+			GtType FromType = ToType.Context.GuessType(Value);
+			if(ToType.Accept(FromType)) {
+				return Value;
+			}
+		}
+		return null;
+	}
+	
+	public final static Object DynamicConvertTo(GtType ToType, Object Value) {
+		if(Value != null) {
+			GtType FromType = ToType.Context.GuessType(Value);
+			GtFunc Func = ToType.Context.RootNameSpace.GetCoercionFunc(FromType, ToType, true);
+			if(Func != null) {
+				return LibGreenTea.Apply2(Func.NativeRef, null, ToType, Value);
+			}
+		}
+		return null;
+	}
+	
+	// Boolean
+	public final static String BooleanToString(GtType Type, boolean value) {
+		return value ? "true" : "false";
+	}
+	
+	public final static Object BooleanToAny(GtType Type, boolean value) {
+		return new Boolean(value);
+	}
+
+	public final static boolean AnyToBoolean(GtType Type, Object value) {
+		if(value instanceof Boolean) {
+			return ((Boolean) value).booleanValue();
+		}
+		return (value == null) ? true : false;
+	}
+	
+	// String
+	public final static Object StringToAny(GtType Type, String value) {
+		return (Object)value;
+	}
+	
+	public final static Object AnyToString(GtType Type, Object value) {
+		if(value != null) {
+			return value.toString();
+		}
+		return value;
+	}
+
+	// int
+	public final static String IntToString(GtType Type, long value) {
+		return ""+value;
+	}
+
+	public final static long StringToInt(GtType Type, String value) {
+		if(value != null) {
+			try {
+				return Long.parseLong(value);
+			}
+			catch(NumberFormatException e) {
+			}
+		}
+		return 0;
+	}
+
+	public final static Object IntToAny(GtType Type, long value) {
+		return new Long(value);
+	}
+
+	public final static long AnyToInt(GtType Type, Object value) {
+		if(value instanceof Number) {
+			return ((Number) value).longValue();
+		}
+		return 0;
+	}
+
+	// Array
+	public final static Object ArrayToAny(GtType Type, ArrayList<Object> value) {
+		return (Object)value;
+	}
+	
+	public final static ArrayList<Object> AnyToArray(GtType Type, Object value) {
+		if(value instanceof ArrayList<?>) {
+			ArrayList<Object> List = (ArrayList<Object>)value;
+			GtType ElementType = Type.TypeParams[0];
+			for(int i = 0; i < List.size(); i++) {
+				Type.Accept(ElementType);
+				if(!Type.AcceptValue(List.get(i))) {
+					break;
+				}
+			}
+		}
+		return null;
 	}
 
 	//-----------------------------------------------------
