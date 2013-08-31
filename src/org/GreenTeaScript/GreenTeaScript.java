@@ -2664,7 +2664,6 @@ final class GreenTeaGrammar extends GtGrammar {
 			/*local*/String FuncName = FuncNode.Token.ParsedText;
 			NodeList.add(BaseNode);
 			/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(BaseNode.Type, FuncName, true);
-			System.err.println(LibGreenTea.LowerId(BaseNode.Token.FileLine));
 			LibGreenTea.Assert(PolyFunc != null);
 			ResolvedFunc = PolyFunc.ResolveFunc(Gamma, ParsedTree, TreeIndex, NodeList);
 		}

@@ -101,6 +101,7 @@ $src =~ s/\bArrays.asList\b//g;
 $src =~ s/\.toArray\(\)//g;
 $src =~ s/\b(\d+)L\b/$1/g;
 
+$src =~ s/'(\\.)'/ord($1) . '\/*' . $1 . '*\/'/eg;
 $src =~ s/'(.)'/ord($1) . '\/*' . $1 . '*\/'/eg;
 $src =~ s/('..')/($1.charCodeAt(0))/g;
 
