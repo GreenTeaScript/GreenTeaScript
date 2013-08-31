@@ -6,7 +6,7 @@ class Person1 {
 }
 
 boolean TestFunc1() {
-	Person1 p = Person1();
+	Person1 p = new Person1();
 	assert(p.name == null);
 	assert(p.age == 0);
 	return true;
@@ -22,7 +22,7 @@ class Person2 {
 }
 
 boolean TestFunc2() {
-	Person2 p = Person2("naruto", 17);
+	Person2 p = new Person2("naruto", 17);
 	assert(p.name == "naruto");
 	assert(p.age == 17);
 	return true;

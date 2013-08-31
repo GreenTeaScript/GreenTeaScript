@@ -1,0 +1,25 @@
+// written by kimio
+
+class Point {
+	int x, y;
+	constructor(int x, int y) {
+		this.x = x;
+		this.y = y;
+	}
+	int area() {
+		return this.x * this.y;
+	}
+}
+
+int area2(Point p) {
+	return p.x * p.y;
+}
+
+@Export
+int main() {
+	Point p = new Point(2, 3);
+	assert(p.area() == 6);
+	assert(area2(p) == 6);
+	assert(p.area2() == 6);
+	return 0;
+}
