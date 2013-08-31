@@ -304,6 +304,13 @@ class LibGreenTea {
 		LibGreenTea.Exit(1, "Failed ApplyTypeFunc");
 		return null;
 	}
+    
+    static ListSize(List: any[]) : number {
+        if(List == null) {
+            return 0;
+        }
+        return List.length;
+    }
 
 	static CompactTypeList(BaseIndex: number, List: GtType[]): GtType[] {
 		var Tuple: GtType[] = new Array<GtType>(List.length - BaseIndex);

@@ -54,6 +54,7 @@ String substring(String x, int s) as "$1[$2:]"
 String substring(String x, int s, int e) as "$1[$2:$3]"; 
 String toLower(String x) as "$1.lower()";
 String toUpper(String x) as "$1.upper()";
+int charAt(String x, int pos) as "$1[$2]";
 String replace(String x, String old, String new) as "$1.replace($2, $3)";
 
 // function

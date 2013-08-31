@@ -477,9 +477,9 @@ class GtPolyFunc extends GtStatic {
 	}
 
 	public GtFunc ResolveFunc(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, int TreeIndex, ArrayList<GtNode> NodeList) {
-		/*local*/int FuncParamSize = ListSize(ParsedTree.TreeList) - TreeIndex + NodeList.size();
+		/*local*/int FuncParamSize = LibGreenTea.ListSize(ParsedTree.TreeList) - TreeIndex + NodeList.size();
 		/*local*/GtFunc ResolvedFunc = this.IncrementalMatch(FuncParamSize, NodeList);
-		while(ResolvedFunc == null && TreeIndex < ListSize(ParsedTree.TreeList)) {
+		while(ResolvedFunc == null && TreeIndex < LibGreenTea.ListSize(ParsedTree.TreeList)) {
 			/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(TreeIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
 			NodeList.add(Node);
 			if(Node.IsError()) {
@@ -491,7 +491,7 @@ class GtPolyFunc extends GtStatic {
 		if(ResolvedFunc == null) {
 			return this.MatchAcceptableFunc(Gamma, FuncParamSize, NodeList);
 		}
-		while(TreeIndex < ListSize(ParsedTree.TreeList)) {
+		while(TreeIndex < LibGreenTea.ListSize(ParsedTree.TreeList)) {
 			/*local*/GtType ContextType = ResolvedFunc.Types[NodeList.size()];
 			/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(TreeIndex, Gamma, ContextType, DefaultTypeCheckPolicy);
 			NodeList.add(Node);

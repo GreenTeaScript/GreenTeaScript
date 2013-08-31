@@ -226,7 +226,7 @@ public class CSourceGenerator extends SourceGenerator {
 		/*local*/String Code = "system(";
 		/*local*/int i = 0;
 		/*local*/String Command = "String __Command = ";
-		while(i < GtStatic.ListSize(Node.Params)) {
+		while(i < LibGreenTea.ListSize(Node.Params)) {
 			/*local*/GtNode Param = Node.Params.get(i);
 			if(i != 0) {
 				Command += " + ";

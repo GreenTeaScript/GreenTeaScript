@@ -442,6 +442,13 @@ public abstract class LibGreenTea {
 		return null;
 	}
 
+	public final static int ListSize(ArrayList<?> List) {
+		if(List == null) {
+			return 0;
+		}
+		return List.size();
+	}
+
 	public final static GtType[] CompactTypeList(int BaseIndex, ArrayList<GtType> List) {
 		GtType[] Tuple = new GtType[List.size() - BaseIndex];
 		for(int i = BaseIndex; i < List.size(); i++) {

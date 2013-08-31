@@ -171,7 +171,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	private String[] MakeParamCode(ArrayList<GtNode> ParamList) {
-		/*local*/int Size = GtStatic.ListSize(ParamList);
+		/*local*/int Size = LibGreenTea.ListSize(ParamList);
 		/*local*/String[] ParamCode = new String[Size - 1];
 		/*local*/int i = 1;
 		while(i < Size) {
