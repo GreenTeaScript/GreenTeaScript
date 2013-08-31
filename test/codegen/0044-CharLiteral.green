@@ -1,0 +1,5 @@
+@Export int main() {
+    assert('A' == 65);
+    '\''
+    return 0;
+}

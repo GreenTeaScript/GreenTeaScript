@@ -442,6 +442,13 @@ public abstract class LibGreenTea {
 		return null;
 	}
 
+	public final static int ListSize(ArrayList<?> List) {
+		if(List == null) {
+			return 0;
+		}
+		return List.size();
+	}
+
 	public final static GtType[] CompactTypeList(int BaseIndex, ArrayList<GtType> List) {
 		GtType[] Tuple = new GtType[List.size() - BaseIndex];
 		for(int i = BaseIndex; i < List.size(); i++) {
@@ -594,14 +601,33 @@ public abstract class LibGreenTea {
 	}
 
 	public final static boolean IsSupportedTarget(String TargetCode) {
-		return HasFile("lib/" + TargetCode + "/common.green");
+		return HasFile(GetLibPath(TargetCode, "common"));
+	}
+
+	public final static String GetLibPath(String TargetCode, String LibName) {
+		return "lib/" + TargetCode + "/" + LibName + ".green";
+	}
+	
+	private final static String FormatFilePath(String FileName) {
+		String Path = FileName;
+		if(HasFile(Path)) {
+			return Path;
+		}
+		String Home = System.getProperty("GREENTEA_HOME");
+		if(Home != null) {
+			Path = Home + FileName;
+		}
+		if(HasFile(Path)) {
+			return Path;
+		}
+		return FileName;
 	}
 
 	public final static String LoadFile2(String FileName) {
 		LibGreenTea.VerboseLog(GtStatic.VerboseFile, "loading " + FileName);
-		InputStream Stream = LibGreenTea.class.getResourceAsStream(FileName);
+		InputStream Stream = LibGreenTea.class.getResourceAsStream("/" + FileName);
 		if(Stream == null) {
-			File f = new File(FileName);
+			File f = new File(FormatFilePath(FileName));
 			try {
 				Stream = new FileInputStream(f);
 			} catch (FileNotFoundException e) {
@@ -623,11 +649,6 @@ public abstract class LibGreenTea {
 			return null;
 		}
 		return buffer;
-	}
-
-	public final static String GetLibPath(String TargetCode, String LibName) {
-		/*local*/String Path = "lib/" + TargetCode + "/" + LibName + ".green";
-		return Path;
 	}
 
 	public static long JoinIntId(int UpperId, int LowerId) {

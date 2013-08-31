@@ -5,7 +5,7 @@
 //
 // *  Redistributions of source code must retain the above copyright notice,
 //    this list of conditions and the following disclaimer.
-// *  Redistributions in binary form must reproduce the above copyrightS
+// *  Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
 //
@@ -22,256 +22,210 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-// LangBase is a language-dependent code used in GreenTea.java
+// LibGreenTea is a language-dependent code used in GreenTea.java
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Writer;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Iterator;
+@Public abstract class LibGreenTea {
 
-public abstract class LibGreenTea {
-
-	public final static String GetPlatform() {
-		return "Java JVM-" + System.getProperty("java.version");
+	@Export @Public @Static String GetPlatform() {
+		return "GreenTeaScript-" + MajorVersion + "." + MinerVersion + "." + PatchLevel;
 	}
 
-	public final static void println(String msg) {
-		System.out.println(msg);
+	@Export @Public @Static void println(String msg) {
+		println(msg);
 	}
 
-	public static boolean DebugMode = false;
+	@Public @Static boolean DebugMode = false;
 
-	private final static String GetStackInfo(int depth) {
-		String LineNumber = " ";
-		Exception e =  new Exception();
-		StackTraceElement[] Elements = e.getStackTrace();
-		if(depth < Elements.length) {
-			StackTraceElement elem = Elements[depth];
-			LineNumber += elem;
-		}
-		return LineNumber;
+	@Public @Static int VerboseMask = VerboseUndefined;
+
+	@Export @Private @Static String GetStackInfo(int depth) {
+		return 0;
 	}
 
-	public final static void TODO(String msg) {
-		LibGreenTea.println("TODO" + LibGreenTea.GetStackInfo(2) + ": " + msg);
+	@Export @Public @Static void TODO(String msg) {
+		println("TODO" + LibGreenTea.GetStackInfo(2) + ": " + msg);
 	}
 
-	public final static void DebugP(String msg) {
+	@Export @Public @Static void DebugP(String msg) {
 		if(LibGreenTea.DebugMode) {
-			LibGreenTea.println("DEBUG" + LibGreenTea.GetStackInfo(2) + ": " + msg);
+			println("DEBUG" + LibGreenTea.GetStackInfo(2) + ": " + msg);
 		}
 	}
 
-	public static int VerboseMask = GtStatic.VerboseUndefined;
-
-	public final static void VerboseLog(int VerboseFlag, String Message) {
+	@Export @Public @Static void VerboseLog(int VerboseFlag, String Message) {
 		if((LibGreenTea.VerboseMask & VerboseFlag) == VerboseFlag) {
-			LibGreenTea.println("GreenTea: " + Message);
+			println("GreenTea: " + Message);
 		}
 	}
 
-	public final static void VerboseException(Throwable e) {
-		if(e instanceof InvocationTargetException) {
-			Throwable cause = e.getCause();
-			if(cause instanceof RuntimeException) {
-				throw (RuntimeException)cause;
-			}
-			if(cause instanceof Error) {
-				throw (Error)cause;
-			}
+	@Export @Public @Static void VerboseException(Exception e) {
+		LibGreenTea.VerboseLog(VerboseException, e.toString());
+	}
+
+	@Export @Public @Static void Exit(int status, String Message) {
+		println(Message);
+		exit(1);
+	}
+
+	@Export @Public @Static void Assert(boolean TestResult) {
+		assert(TestResult);
+	}
+
+	@Export @Public @Static int CharAt(String Text, int Pos) {
+		if(Pos < length(Text)) {
+			return charAt(Text, Pos);
 		}
-		LibGreenTea.VerboseLog(GtStatic.VerboseException, e.toString());
+		return 0;
 	}
 
-	public final static void Exit(int status, String Message) {
-		System.err.println(Message);
-		System.exit(1);
-	}
-
-	public final static void Assert(boolean TestResult) {
-		if(!TestResult) {
-			Exit(1, "Assertion Failed");
-		}
-	}
-
-	public final static boolean IsWhitespace(char ch) {
+	@Export @Public @Static boolean IsWhitespace(String Text, int Pos) {
+		int ch = LibGreenTea.CharAt(Text, Pos);
 		return Character.isWhitespace(ch);
 	}
 
-	public final static boolean IsLetter(char ch) {
+	@Export @Public @Static boolean IsLetter(String Text, int Pos) {
+		int ch = LibGreenTea.CharAt(Text, Pos);
 		return Character.isLetter(ch);
 	}
 
-	public final static boolean IsDigit(char ch) {
+	@Export @Public @Static boolean IsDigit(String Text, int Pos) {
+		int ch = LibGreenTea.CharAt(Text, Pos);
 		return Character.isDigit(ch);
 	}
 
-	public final static char CharAt(String Text, int Pos) {
-		return Text.charAt(Pos);
+	@Export @Public @Static boolean IsVariableName(String Text, int Pos) {
+		int ch = LibGreenTea.CharAt(Text, Pos);
+		return Character.isLetter(ch) || ch == 95/*_*/ || ch > 255;
 	}
 
-	public final static String CharToString(char code) {
-		return Character.toString(code);
+	@Export @Public @Static String CharToString(int code) {
+		return code.toString();
 	}
 
-	public static final String UnquoteString(String Text) {
-		StringBuilder sb = new StringBuilder();
-		/*local*/char quote = LibGreenTea.CharAt(Text, 0);
-		/*local*/int i = 0;
-		/*local*/int Length = Text.length();
-		if(quote == '"' || quote == '\'') {
-			i = 1;
-			Length -= 1;
-		}
-		else {
-			quote = '\0';
-		}
-		while(i < Length) {
-			/*local*/char ch = LibGreenTea.CharAt(Text, i);
-			if(ch == '\\') {
-				i = i + 1;
-				char next = LibGreenTea.CharAt(Text, i);
-				switch (next) {
-				case 't':
-					ch = '\t';
-					break;
-				case 'n':
-					ch = '\n';
-					break;
-				case '"':
-					ch = '"';
-					break;
-				case '\'':
-					ch = '\'';
-					break;
-				case '\\':
-					ch = '\\';
-					break;
-				default:
-					ch = next;
-					break;
-				}
-				i = i + 1;
-			}
-			sb.append(ch);
-			i = i + 1;
-		}
-		return sb.toString();
+	@Export @Public @Static  String UnquoteString(String Text) {
+		return Text
+			.replace("\\t",  "\t")
+			.replace("\\n",  "\n")
+			.replace("\\r",  "\r")
+			.replace("\\\"",  "\"")
+			.replace("\\'",  "'")
+			.replace("\\\\", "\\");
 	}
 
-	public static final String QuoteString(String Text) {
-		StringBuilder sb = new StringBuilder();
-		sb.append('"');
-		/*local*/int i = 0;
-		while(i < Text.length()) {
-			/*local*/char ch = LibGreenTea.CharAt(Text, i);
-			if(ch == '\n') {
-				sb.append("\\n");
-			}
-			else if(ch == '\t') {
-				sb.append("\\t");
-			}
-			else if(ch == '"') {
-				sb.append("\\\"");
-			}
-			else if(ch == '\\') {
-				sb.append("\\\\");
-			}
-			else {
-				sb.append(ch);
-			}
-			i = i + 1;
-		}
-		sb.append('"');
-		return sb.toString();
+	@Export @Public @Static  String QuoteString(String Text) {
+		return Text
+			.replace("\t", "\\t")
+			.replace("\n", "\\n")
+			.replace("\r", "\\r")
+			.replace("\"", "\\\"")
+			.replace("'",  "\\'")
+			.replace("\\", "\\\\");
 	}
 
-	public final static boolean EqualsString(String s, String s2) {
-		return s.equals(s2);
+	@Export @Public @Static boolean EqualsString(String s, String s2) {
+		return s == s2;
 	}
 
-	public final static long ParseInt(String Text) {
-		return Long.parseLong(Text);
+	@Export @Public @Static int ParseInt(String Text) {
+		return (to int) Text;
 	}
 
-	public final static boolean IsUnixCommand(String cmd) {
-		String[] path = System.getenv("PATH").split(":");
-		int i = 0;
-		while(i < path.length) {
-			if(LibGreenTea.HasFile(path[i] + "/" + cmd)) {
-				return true;
-			}
-			i = i + 1;
-		}
+	@Export @Public @Static boolean IsUnixCommand(String cmd) {
 		return false;
 	}
 
-	public final static GtType GetNativeType(GtContext Context, Object Value) {
+	@Export @Public @Static GtType GetNativeType(GtContext Context, Object Value) {
 		GtType NativeType = null;
-		Class<?> NativeClassInfo = Value instanceof Class<?> ? (Class<?>)Value : Value.getClass();
-		NativeType = (GtType) Context.ClassNameMap.get(NativeClassInfo.getName());
-		if(NativeType == null) {
-			NativeType = new GtType(Context, GtStatic.NativeClass, NativeClassInfo.getSimpleName(), null, NativeClassInfo);
-			Context.SetGlobalTypeName(NativeClassInfo.getName(), NativeType);
-			LibGreenTea.VerboseLog(GtStatic.VerboseNative, "binding native class: " + NativeClassInfo.getName());
-		}
 		return NativeType;
 	}
 
-	public final static String GetClassName(Object Value) {
+	@Export @Public @Static String GetClassName(Object Value) {
 		return Value.getClass().getName();
 	}
 
-	public final static GtFunc ConvertNativeMethodToFunc(GtContext Context, Method JavaMethod) {
-		/*local*/int FuncFlag = GtStatic.NativeFunc;
-		if(Modifier.isStatic(JavaMethod.getModifiers())) {
-			FuncFlag |= GtStatic.NativeStaticFunc;
+	@Export @Public @Static boolean MatchNativeMethod(GtType FuncType, Method JavaMethod) {
+		GtContext Context = FuncType.Context;
+		GtType ReturnType = FuncType.TypeParams[0];
+		if(ReturnType != Context.VarType || ReturnType != Context.VoidType) {
+			if(ReturnType != LibGreenTea.GetNativeType(Context, JavaMethod.getReturnType())) {
+				return false;
+			}
 		}
-		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
+		int StartIndex = 2;
+		if(Modifier.is@Static(JavaMethod.getModifiers())) {
+			StartIndex = 1;
+		}
+		else {
+			GtType RecvType = LibGreenTea.GetNativeType(Context, JavaMethod.getDeclaringClass());
+			if(FuncType.TypeParams.length == 1 || RecvType != FuncType.TypeParams[1]) {
+				return false;
+			}
+			StartIndex = 2;
+		}
+		int ParamSize = FuncType.TypeParams.length - 2;
+		Class<?>[] ParamTypes = JavaMethod.getParameterTypes();
+		if(ParamTypes != null) {
+			if(ParamTypes.length != ParamSize) return false;
+			for(int j = 0; j < ParamTypes.length; j++) {
+				if(ParamTypes[j] == Object) continue; // OK
+				GtType JType = LibGreenTea.GetNativeType(Context, ParamTypes[j]);
+				if(JType != FuncType.TypeParams[StartIndex+j]) {
+					return false;
+				}
+			}
+			return true;
+		}
+		else {
+			return ParamSize == 0;
+		}
+	}
+
+	@Export @Public @Static GtFunc SetNativeMethod(GtFunc NativeFunc, Method JavaMethod) {
+		int FuncFlag = NativeFunc;
+		if(Modifier.is@Static(JavaMethod.getModifiers())) {
+			FuncFlag |= Native@StaticFunc;
+		}
+		NativeFunc.SetNativeMethod(FuncFlag, JavaMethod);
+		return NativeFunc;
+	}
+
+	@Export @Public @Static GtFunc ConvertNativeMethodToFunc(GtContext Context, Method JavaMethod) {
+		Array<GtType> TypeList = new Array<GtType>();
 		TypeList.add(LibGreenTea.GetNativeType(Context, JavaMethod.getReturnType()));
-		if(!Modifier.isStatic(JavaMethod.getModifiers())) {
+		if(!Modifier.is@Static(JavaMethod.getModifiers())) {
 			TypeList.add(LibGreenTea.GetNativeType(Context, JavaMethod.getDeclaringClass()));
 		}
-		/*local*/Class<?>[] ParamTypes = JavaMethod.getParameterTypes();
+		Class<?>[] ParamTypes = JavaMethod.getParameterTypes();
 		if(ParamTypes != null) {
 			for(int j = 0; j < ParamTypes.length; j++) {
 				TypeList.add(LibGreenTea.GetNativeType(Context, ParamTypes[j]));
 			}
 		}
-		/*local*/GtFunc NativeFunc = new GtFunc(FuncFlag, JavaMethod.getName(), 0, TypeList);
-		NativeFunc.SetNativeMethod(FuncFlag, JavaMethod);
-		return NativeFunc;
+		return SetNativeMethod(new GtFunc(0, JavaMethod.getName(), 0, TypeList), JavaMethod);
 	}
 
-	public final static Method ImportNativeMethod(String FullName, boolean StaticMethodOnly) {
-		/*local*/Method FoundMethod = null;
+	@Export @Public @Static Method LoadNativeMethod(GtType ContextType, String FullName, boolean @StaticMethodOnly) {
+		Method FoundMethod = null;
 		int Index = FullName.lastIndexOf(".");
 		if(Index != -1) {
-			/*local*/String FuncName = FullName.substring(Index+1);
+			String FuncName = FullName.substring(Index+1);
 			try {
-				/*local*/Class<?> NativeClass = Class.forName(FullName.substring(0, Index));
+				Class<?> NativeClass = Class.forName(FullName.substring(0, Index));
 				Method[] Methods = NativeClass.getDeclaredMethods();
 				if(Methods != null) {
 					for(int i = 0; i < Methods.length; i++) {
 						if(LibGreenTea.EqualsString(FuncName, Methods[i].getName())) {
-							if(!Modifier.isPublic(Methods[i].getModifiers())) {
+							if(!Modifier.is@Public(Methods[i].getModifiers())) {
 								continue;
 							}
-							if(StaticMethodOnly && !Modifier.isStatic(Methods[i].getModifiers())) {
+							if(@StaticMethodOnly && !Modifier.is@Static(Methods[i].getModifiers())) {
+								continue;
+							}
+							if(ContextType.IsFuncType() && !LibGreenTea.MatchNativeMethod(ContextType, Methods[i])) {
 								continue;
 							}
 							if(FoundMethod != null) {
-								LibGreenTea.VerboseLog(GtStatic.VerboseUndefined, "overloaded method: " + FullName);
+								LibGreenTea.VerboseLog(VerboseUndefined, "overloaded method: " + FullName);
 								return FoundMethod; // return the first one
 							}
 							FoundMethod = Methods[i];
@@ -279,16 +233,27 @@ public abstract class LibGreenTea {
 					}
 				}
 			} catch (ClassNotFoundException e) {
-				LibGreenTea.VerboseLog(GtStatic.VerboseException, e.toString());			
+				LibGreenTea.VerboseLog(VerboseException, e.toString());			
 			}
 		}
 		if(FoundMethod == null) {
-			LibGreenTea.VerboseLog(GtStatic.VerboseUndefined, "undefined method: " + FullName);
+			LibGreenTea.VerboseLog(VerboseUndefined, "undefined method: " + FullName + " of " + ContextType);
 		}
 		return FoundMethod;
 	}
 
-	public final static Method LookupNativeMethod(Object Callee, String FuncName) {
+	@Export @Public @Static boolean ImportNativeMethod(GtFunc NativeFunc, String FullName) {
+		Method JavaMethod = LibGreenTea.LoadNativeMethod(NativeFunc.GetFuncType(), FullName, false);
+		if(JavaMethod != null) {
+			LibGreenTea.SetNativeMethod(NativeFunc, JavaMethod);
+			if(NativeFunc.GetReturnType().IsVarType()) {
+				NativeFunc.SetReturnType(LibGreenTea.GetNativeType(NativeFunc.GetContext(), JavaMethod.getReturnType()));
+			}
+		}
+		return false;
+	}
+
+	@Export @Public @Static Method LookupNativeMethod(Object Callee, String FuncName) {
 		if(FuncName != null) {
 			// LibGreenTea.DebugP("looking up method : " + Callee.getClass().getSimpleName() + "." + FuncName);
 			Method[] methods = Callee.getClass().getMethods();
@@ -297,12 +262,12 @@ public abstract class LibGreenTea {
 					return methods[i];
 				}
 			}
-			LibGreenTea.VerboseLog(GtStatic.VerboseUndefined, "undefined method: " + Callee.getClass().getSimpleName() + "." + FuncName);
+			LibGreenTea.VerboseLog(VerboseUndefined, "undefined method: " + Callee.getClass().getSimpleName() + "." + FuncName);
 		}
 		return null;
 	}
 
-	public final static boolean EqualsFunc(Method m1, Method m2) {
+	@Export @Public @Static boolean EqualsFunc(Method m1, Method m2) {
 		if(m1 == null) {
 			return (m2 == null) ? true : false;
 		}
@@ -311,66 +276,73 @@ public abstract class LibGreenTea {
 		}
 	}
 
-	public final static TokenFunc CreateOrReuseTokenFunc(GtDelegateToken f, TokenFunc prev) {
+	@Export @Public @Static TokenFunc CreateOrReuseTokenFunc(any f, TokenFunc prev) {
 		if(prev != null && EqualsFunc(prev.Func.Func, f.Func)) {
 			return prev;
 		}
 		return new TokenFunc(f, prev);
 	}
 
-	public final static int ApplyTokenFunc(GtDelegateToken Delegate, Object TokenContext, String Text, int pos) {
+	@Export @Public @Static int ApplyTokenFunc(any Delegate, Object TokenContext, String Text, int pos) {
 		try {
-			Integer n = (Integer)Delegate.Func.invoke(Delegate.Self, TokenContext, Text, pos);
-			return n.intValue();
+			int n = (int)Delegate.Func.invoke(Delegate.Self, TokenContext, Text, pos);
+			return n;
 		}
 		catch (InvocationTargetException e) {
-			e.printStackTrace();
+			LibGreenTea.VerboseException(e);
 		}
 		catch (IllegalArgumentException e) {
-			e.printStackTrace();
+			LibGreenTea.VerboseException(e);
 		}
 		catch (IllegalAccessException e) {
-			e.printStackTrace();
+			LibGreenTea.VerboseException(e);
 		}
 		Exit(1, "Failed ApplyTokenFunc");
 		return -1;
 	}
 
-	public final static GtSyntaxTree ApplyMatchFunc(GtDelegateMatch Delegate, Object NameSpace, Object TokenContext, Object LeftTree, Object Pattern) {
+	@Export @Public @Static GtSyntaxTree ApplyMatchFunc(any Delegate, Object NameSpace, Object TokenContext, Object LeftTree, Object Pattern) {
 		try {
 			return (GtSyntaxTree)Delegate.Func.invoke(Delegate.Self, NameSpace, TokenContext, LeftTree, Pattern);
 		}
 		catch (InvocationTargetException e) {
-			e.printStackTrace();
+			LibGreenTea.VerboseException(e);
 		}
 		catch (IllegalArgumentException e) {
-			e.printStackTrace();
+			LibGreenTea.VerboseException(e);
 		}
 		catch (IllegalAccessException e) {
-			e.printStackTrace();
+			LibGreenTea.VerboseException(e);
 		}
 		Exit(1, "Failed ApplyMatchFunc");
 		return null;
 	}
 
-	public final static GtNode ApplyTypeFunc(GtDelegateType Delegate, Object Gamma, Object ParsedTree, Object TypeInfo) {
+	@Export @Public @Static GtNode ApplyTypeFunc(any Delegate, Object Gamma, Object ParsedTree, Object TypeInfo) {
 		try {
 			return (GtNode)Delegate.Func.invoke(Delegate.Self, Gamma, ParsedTree, TypeInfo);
 		}
 		catch (InvocationTargetException e) {
-			e.printStackTrace();
+			LibGreenTea.VerboseException(e);
 		}
 		catch (IllegalArgumentException e) {
-			e.printStackTrace();
+			LibGreenTea.VerboseException(e);
 		}
 		catch (IllegalAccessException e) {
-			e.printStackTrace();
+			LibGreenTea.VerboseException(e);
 		}
 		Exit(1, "Failed ApplyTypeFunc");
 		return null;
 	}
 
-	public final static GtType[] CompactTypeList(int BaseIndex, ArrayList<GtType> List) {
+	@Export @Public @Static int ListSize(any List) {
+		if(List == null) {
+			return 0;
+		}
+		return List.size();
+	}
+
+	@Export @Public @Static GtType[] CompactTypeList(int BaseIndex, Array<GtType> List) {
 		GtType[] Tuple = new GtType[List.size() - BaseIndex];
 		for(int i = BaseIndex; i < List.size(); i++) {
 			Tuple[i] = List.get(i);
@@ -378,7 +350,7 @@ public abstract class LibGreenTea {
 		return Tuple;
 	}
 
-	public final static String[] CompactStringList(ArrayList<String> List) {
+	@Export @Public @Static String[] CompactStringList(Array<String> List) {
 		if(List == null) {
 			return null;
 		}
@@ -389,10 +361,10 @@ public abstract class LibGreenTea {
 		return Tuple;
 	}
 
-	public static String[] MapGetKeys(GtMap Map) {
-		/*local*/Iterator<String> itr = Map.Map.keySet().iterator();
-		/*local*/ArrayList<String> List = new ArrayList<String>(Map.Map.size());
-		/*local*/int i = 0;
+	@Export @Public @Static String[] MapGetKeys(GtMap Map) {
+		Iterator<String> itr = Map.Map.keySet().iterator();
+		Array<String> List = new Array<String>(Map.Map.size());
+		int i = 0;
 		while(itr.hasNext()) {
 			List.add(itr.next());
 			i = i + 1;
@@ -400,33 +372,33 @@ public abstract class LibGreenTea {
 		return List.toArray(new String[List.size()]);
 	}
 
-	public final static void Usage(String Message) {
-		System.out.println("greentea usage :");
-		System.out.println("  --lang|-l LANG        Set Target Language");
-		System.out.println("      bash                Bash");
-		System.out.println("      C C99               C99");
-		System.out.println("      CSharp              CSharp");
-		System.out.println("      java java7 java8    Java");
-		System.out.println("      javascript js       JavaScript");
-		System.out.println("      lua                 Lua");
-		System.out.println("      haxe                Haxe");
-		System.out.println("      ocaml               OCaml");
-		System.out.println("      perl                Perl");
-		System.out.println("      python              Python");
-		System.out.println("      R                   R");
-		System.out.println("      ruby                Ruby");
-		System.out.println("      typescript ts       TypeScript");
-		System.out.println("");
-		System.out.println("  --out|-o  FILE        Output filename");
-		System.out.println("  --eval|-e EXPR        Program passed in as string");
-		System.out.println("  --verbose             Printing Debug infomation");
-		System.out.println("     --verbose:symbol     adding symbol info");
-		System.out.println("     --verbose:token      adding token info");
-		System.out.println("     --verbose:no         no log");
+	@Export @Public @Static void Usage(String Message) {
+		console.log("greentea usage :");
+		console.log("  --lang|-l LANG        Set Target Language");
+		console.log("      bash                Bash");
+		console.log("      C C99               C99");
+		console.log("      CSharp              CSharp");
+		console.log("      java java7 java8    Java");
+		console.log("      javascript js       JavaScript");
+		console.log("      lua                 Lua");
+		console.log("      haxe                Haxe");
+		console.log("      ocaml               OCaml");
+		console.log("      perl                Perl");
+		console.log("      python              Python");
+		console.log("      R                   R");
+		console.log("      ruby                Ruby");
+		console.log("      typescript ts       TypeScript");
+		console.log("");
+		console.log("  --out|-o  FILE        Output filename");
+		console.log("  --eval|-e EXPR        Program passed in as string");
+		console.log("  --verbose             Printing Debug infomation");
+		console.log("     --verbose:symbol     adding symbol info");
+		console.log("     --verbose:token      adding token info");
+		console.log("     --verbose:no         no log");
 		LibGreenTea.Exit(0, Message);
 	}
 
-	public final static String DetectTargetCode(String Extension, String TargetCode) {
+	@Export @Public @Static String DetectTargetCode(String Extension, String TargetCode) {
 		if(Extension.endsWith(".js")) {
 			return "js";
 		}
@@ -451,7 +423,7 @@ public abstract class LibGreenTea {
 		return TargetCode;
 	}
 
-	public final static GtGenerator CodeGenerator(String TargetCode, String OutputFile, int GeneratorFlag) {
+	@Export @Public @Static GtGenerator CodeGenerator(String TargetCode, String OutputFile, int GeneratorFlag) {
 		String Extension = (OutputFile == null) ? "-" : OutputFile;
 		TargetCode = DetectTargetCode(Extension, TargetCode);
 		TargetCode = TargetCode.toLowerCase();
@@ -479,12 +451,12 @@ public abstract class LibGreenTea {
 		return null;
 	}
 
-	public final static void WriteCode(String OutputFile, String SourceCode) {
+	@Export @Public @Static void WriteCode(String OutputFile, String SourceCode) {
 		if(OutputFile == null) {
 			LibGreenTea.Eval(SourceCode);
 		}
 		if(OutputFile.equals("-")) {
-			System.out.println(SourceCode);
+			console.log(SourceCode);
 			System.out.flush();
 		}
 		else {
@@ -501,9 +473,9 @@ public abstract class LibGreenTea {
 		}
 	}
 
-	private static java.io.Console Console = null;
+	@Private @Static java.io.Console Console = null;
 
-	public final static String ReadLine(String Prompt) {
+	@Export @Public @Static String ReadLine(String Prompt) {
 		if(Console == null) {
 			Console = System.console();
 		}
@@ -514,22 +486,41 @@ public abstract class LibGreenTea {
 		return Line;
 	}
 
-	public final static boolean HasFile(String Path) {
+	@Export @Public @Static boolean HasFile(String Path) {
 		if(LibGreenTea.class.getResource(Path) != null) {
 			return true;
 		}
 		return new File(Path).exists();
 	}
 
-	public final static boolean IsSupportedTarget(String TargetCode) {
-		return HasFile("lib/" + TargetCode + "/common.green");
+	@Export @Public @Static boolean IsSupportedTarget(String TargetCode) {
+		return HasFile(GetLibPath(TargetCode, "common"));
 	}
 
-	public final static String LoadFile2(String FileName) {
-		LibGreenTea.VerboseLog(GtStatic.VerboseFile, "loading " + FileName);
-		InputStream Stream = LibGreenTea.class.getResourceAsStream(FileName);
+	@Export @Public @Static String GetLibPath(String TargetCode, String LibName) {
+		return "lib/" + TargetCode + "/" + LibName + ".green";
+	}
+	
+	@Export @Private  @Static String FormatFilePath(String FileName) {
+		String Path = FileName;
+		if(HasFile(Path)) {
+			return Path;
+		}
+		String Home = System.getProperty("GREENTEA_HOME");
+		if(Home != null) {
+			Path = Home + FileName;
+		}
+		if(HasFile(Path)) {
+			return Path;
+		}
+		return FileName;
+	}
+
+	@Export @Public @Static String LoadFile2(String FileName) {
+		LibGreenTea.VerboseLog(VerboseFile, "loading " + FileName);
+		InputStream Stream = LibGreenTea.class.getResourceAsStream("/" + FileName);
 		if(Stream == null) {
-			File f = new File(FileName);
+			File f = new File(FormatFilePath(FileName));
 			try {
 				Stream = new FileInputStream(f);
 			} catch (FileNotFoundException e) {
@@ -537,45 +528,48 @@ public abstract class LibGreenTea {
 			}
 		}
 		BufferedReader reader = new BufferedReader(new InputStreamReader(Stream));
-		String line = "";
 		String buffer = "";
 		try {
-			while((line = reader.readLine()) != null) {
-				buffer += line + "\n";
+			int buflen = 4096;
+			int readed = 0;
+			int[] buf = new int[buflen];
+			StringBuilder builder = new StringBuilder();
+			while((readed = reader.read(buf, 0, buflen)) >= 0) {
+				builder.append(buf, 0, readed);
 			}
+			buffer = builder.toString();
 		} catch (IOException e) {
 			return null;
 		}
 		return buffer;
 	}
 
-	public final static String GetLibPath(String TargetCode, String LibName) {
-		/*local*/String Path = "lib/" + TargetCode + "/" + LibName + ".green";
-		return Path;
-	}
-
-	public static long JoinIntId(int UpperId, int LowerId) {
-		long id = UpperId;
+	@Export @Public @Static int JoinIntId(int UpperId, int LowerId) {
+		int id = UpperId;
 		id = (id << 32) + LowerId;
 		return id;
 	}
 
-	public static int UpperId(long FileLine) {
+	@Export @Public @Static int UpperId(int FileLine) {
 		return (int)(FileLine >> 32);
 	}
 
-	public static int LowerId(long FileLine) {
+	@Export @Public @Static int LowerId(int FileLine) {
 		return (int)FileLine;
 	}
 
-	public final static Object Eval(String SourceCode) {
-		LibGreenTea.VerboseLog(GtStatic.VerboseEval, "eval as native code: " + SourceCode);
+	@Export @Public @Static boolean booleanValue(Object BooleanValue) {
+		return ((/*cast*/Boolean)BooleanValue).booleanValue();
+	}
+
+	@Export @Public @Static Object Eval(String SourceCode) {
+		LibGreenTea.VerboseLog(VerboseEval, "eval as native code: " + SourceCode);
 		//eval(SourceCode);
 		//System.out.println("Eval: " + SourceCode);  // In Java, no eval
 		return null;
 	}
 
-	public static Object EvalCast(GtType CastType, Object Value) {
+	@Export @Public @Static Object EvalCast(GtType CastType, Object Value) {
 		if(Value != null) {
 			GtType ValueType = CastType.Context.GuessType(Value);
 			if(ValueType == CastType || CastType.Accept(ValueType)) {
@@ -589,7 +583,7 @@ public abstract class LibGreenTea {
 		return null;
 	}
 
-	public static Object EvalInstanceOf(Object Value, GtType Type) {
+	@Export @Public @Static Object EvalInstanceOf(Object Value, GtType Type) {
 		if(Value != null) {
 			GtType ValueType = Type.Context.GuessType(Value);
 			if(ValueType == Type || Type.Accept(ValueType)) {
@@ -599,30 +593,33 @@ public abstract class LibGreenTea {
 		return false;
 	}
 
-	public static Object EvalUnary(GtType Type, String Operator, Object Value) {
+	@Export @Public @Static Object EvalUnary(GtType Type, String Operator, Object Value) {
 		if(Value instanceof Boolean) {
 			if(Operator.equals("!") || Operator.equals("not")) {
 				return EvalCast(Type, !((Boolean)Value).booleanValue());
 			}
 			return null;
 		}
-		if(Value instanceof Long || Value instanceof Integer  || Value instanceof Short) {
+		if(Value instanceof int || Value instanceof int  || Value instanceof Short) {
 			if(Operator.equals("-")) {
-				return EvalCast(Type, -((Number)Value).longValue());
+				return EvalCast(Type, -((Number)Value));
 			}
 			if(Operator.equals("+")) {
-				return EvalCast(Type, +((Number)Value).longValue());
+				return EvalCast(Type, +((Number)Value));
+			}
+			if(Operator.equals("~")) {
+				return EvalCast(Type, ~((Number)Value));
 			}
 			return null;
 		}
 		return null;
 	}
 
-	public static Object EvalSuffix(GtType Type, Object Value, String Operator) {
+	@Export @Public @Static Object EvalSuffix(GtType Type, Object Value, String Operator) {
 		return null;
 	}
 
-	public static Object EvalBinary(GtType Type, Object LeftValue, String Operator, Object RightValue) {
+	@Export @Public @Static Object EvalBinary(GtType Type, Object LeftValue, String Operator, Object RightValue) {
 		if(LeftValue == null || RightValue == null) {
 			return null;
 		}
@@ -656,10 +653,10 @@ public abstract class LibGreenTea {
 			}
 			return null;
 		}
-		if(LeftValue instanceof Double || LeftValue instanceof Float || RightValue instanceof Double || RightValue instanceof Float) {
+		if(LeftValue instanceof float || LeftValue instanceof float || RightValue instanceof float || RightValue instanceof float) {
 			try {
-				double left = ((Number)LeftValue).doubleValue();
-				double right = ((Number)RightValue).doubleValue();
+				float left = ((Number)LeftValue);
+				float right = ((Number)RightValue);
 				if(Operator.equals("+")) {
 					return EvalCast(Type, left + right);
 				}
@@ -710,8 +707,8 @@ public abstract class LibGreenTea {
 			return null;
 		}
 		try {
-			long left = ((Number)LeftValue).longValue();
-			long right = ((Number)RightValue).longValue();
+			int left = ((Number)LeftValue);
+			int right = ((Number)RightValue);
 			if(Operator.equals("+")) {
 				return EvalCast(Type, left + right);
 			}
@@ -766,7 +763,7 @@ public abstract class LibGreenTea {
 		return null;
 	}
 
-	public static Object EvalGetter(GtType Type, Object Value, String FieldName) {
+	@Export @Public @Static Object EvalGetter(GtType Type, Object Value, String FieldName) {
 		// TODO Auto-generated method stub
 		return null;
 	}

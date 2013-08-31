@@ -32,7 +32,6 @@ import java.util.ArrayList;
 public class BashSourceGenerator extends SourceGenerator {
 	/*field*/boolean inFunc = false;
 	/*field*/boolean inMainFunc = false;
-	/*field*/int cmdCounter = 0;
 
 	BashSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
@@ -171,7 +170,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	private String[] MakeParamCode(ArrayList<GtNode> ParamList) {
-		/*local*/int Size = GtStatic.ListSize(ParamList);
+		/*local*/int Size = LibGreenTea.ListSize(ParamList);
 		/*local*/String[] ParamCode = new String[Size - 1];
 		/*local*/int i = 1;
 		while(i < Size) {
@@ -240,11 +239,6 @@ public class BashSourceGenerator extends SourceGenerator {
 			Macro = "(($1 " + FuncName + " $2))";
 		}
 		this.PushSourceCode(Macro.replace("$1", Left).replace("$2", Right));
-		
-//		if(Node.Type.equals(Node.Type.Context.Float)) {	// support float value
-//			this.PushSourceCode("(echo \"scale=10; " + Left + " " + FuncName + " " + Right + "\" | bc)");
-//			return;
-//		}
 	}
 
 	private String GetMemberIndex(GtType ClassType, String MemberName) {
@@ -376,12 +370,20 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitCommandNode(CommandNode Node) {
 		/*local*/String Code = "";
+		/*local*/GtType Type = Node.Type;
 		/*local*/CommandNode CurrentNode = Node;
 		while(CurrentNode != null) {
 			Code += this.AppendCommand(CurrentNode);
 			CurrentNode = (/*cast*/CommandNode) CurrentNode.PipedNextNode;
 		}
-		this.PushSourceCode(this.CreateCommandFunc(Code, Node.Type));
+		
+		if(Type.equals(Type.Context.StringType)) {
+			Code = "execCommadString " + this.Quote(Code);
+		}
+		else if(Type.equals(Type.Context.BooleanType)) {
+			Code = "execCommadBool " + this.Quote(Code);
+		}
+		this.PushSourceCode(Code);
 	}
 
 	private String AppendCommand(CommandNode CurrentNode) {
@@ -393,28 +395,6 @@ public class BashSourceGenerator extends SourceGenerator {
 			i = i + 1;
 		}
 		return Code;
-	}
-
-	private String CreateCommandFunc(String cmd, GtType Type) {
-		/*local*/String FuncName = "execCmd";
-		/*local*/String RunnableCmd = cmd;
-		if(Type.equals(Type.Context.StringType)) {
-			RunnableCmd = FuncName + this.cmdCounter + "() {" + this.LineFeed;
-			RunnableCmd += this.GetIndentString() + "echo $(" + cmd + ")" + this.LineFeed;
-			RunnableCmd += this.GetIndentString() + "return 0" + this.LineFeed + "}" + this.LineFeed;
-			this.WriteLineCode(RunnableCmd);
-			RunnableCmd = FuncName + this.cmdCounter;
-			this.cmdCounter++;
-		}
-		else if(Type.equals(Type.Context.BooleanType)) {
-			RunnableCmd = FuncName + this.cmdCounter + "() {" + this.LineFeed;
-			RunnableCmd += this.GetIndentString() + cmd + " >&2" + this.LineFeed;
-			RunnableCmd += this.GetIndentString() + "return $?" + this.LineFeed + "}" + this.LineFeed;
-			this.WriteLineCode(RunnableCmd);
-			RunnableCmd = FuncName + this.cmdCounter;
-			this.cmdCounter++;
-		}
-		return RunnableCmd;
 	}
 
 	private GtNode ResolveParamName(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {

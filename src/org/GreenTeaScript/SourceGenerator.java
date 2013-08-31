@@ -72,7 +72,7 @@ class GtNode extends GtStatic {
 
 	public final void AppendNodeList(ArrayList<GtNode> NodeList) {
 		/*local*/int i = 0;
-		while(i < ListSize(NodeList)) {
+		while(i < LibGreenTea.ListSize(NodeList)) {
 			this.Append(NodeList.get(i));
 			i = i + 1;
 		}
@@ -1272,8 +1272,8 @@ class GtGenerator extends GtStatic {
 	public Object EvalArrayNode(ArrayNode Node, boolean EnforceConst) {
 		/*local*/ArrayList<Object> NewList = null;
 //ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
-		NewList = new ArrayList<Object>(ListSize(Node.NodeList));
-		for(int i = 0; i < ListSize(Node.NodeList); i++) {
+		NewList = new ArrayList<Object>(LibGreenTea.ListSize(Node.NodeList));
+		for(int i = 0; i < LibGreenTea.ListSize(Node.NodeList); i++) {
 			Object Value = Node.NodeList.get(i).ToConstValue(EnforceConst);
 			if(Value == null) {
 				return Value;
@@ -1552,7 +1552,7 @@ class SourceGenerator extends GtGenerator {
 	}
 
 	public final String ApplyMacro(String Template, ArrayList<GtNode> NodeList) {
-		/*local*/int ParamSize = GtStatic.ListSize(NodeList);
+		/*local*/int ParamSize = LibGreenTea.ListSize(NodeList);
 		/*local*/int ParamIndex = ParamSize - 1;
 		while(ParamIndex >= 1) {
 			/*local*/String Param = this.VisitNode(NodeList.get(ParamIndex));
@@ -1563,7 +1563,7 @@ class SourceGenerator extends GtGenerator {
 	}
 
 	public final String GenerateApplyFunc(ApplyNode Node) {
-		/*local*/int ParamSize = GtStatic.ListSize(Node.NodeList);
+		/*local*/int ParamSize = LibGreenTea.ListSize(Node.NodeList);
 		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
 		return this.ApplyMacro(Template, Node.NodeList);
 	}
@@ -1599,7 +1599,7 @@ class SourceGenerator extends GtGenerator {
 	}
 
 	@Override public final void VisitNewNode(NewNode Node) {
-		/*local*/int ParamSize = GtStatic.ListSize(Node.Params);
+		/*local*/int ParamSize = LibGreenTea.ListSize(Node.Params);
 		/*local*/String NewOperator = this.GetNewOperator(Node.Type);
 		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
 		Template = Template.replace("$1", NewOperator);
