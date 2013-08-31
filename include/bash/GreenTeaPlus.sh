@@ -76,3 +76,16 @@ neAny() {
     fi
 }
 
+execCommandBool() {
+	eval $1 >&2
+	return $?
+}
+
+execCommandString() {
+	echo -e "$(eval $1)"
+	return 0
+}
+
+print() {
+	echo -e "$1" >&2
+}
