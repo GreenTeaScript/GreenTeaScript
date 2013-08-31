@@ -68,16 +68,16 @@ class JavaScriptSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Source);
 	}
 
-	public VisitLetNode(Node: LetNode): void {
-		var VarName: string = Node.VariableName;
+	public VisitVarNode(Node: VarNode): void {
+		var VarName: string = Node.NativeName;
 		var Source: string = (this.UseLetKeyword ? "let " : "var ") + " " + VarName;
 		if(Node.InitNode != null) {
 			Node.InitNode.Evaluate(this);
 			Source += " = " + this.PopSourceCode();
 		}
 		Source +=  ";";
-		this.VisitBlockJSWithIndent(Node.BlockNode);
-		this.PushSourceCode(Source + this.PopSourceCode());
+		Source += this.VisitBlockJSWithIndent(Node.BlockNode);
+		this.PushSourceCode(Source);
 	}
 
 	public VisitIfNode(Node: IfNode): void {
@@ -112,8 +112,8 @@ class JavaScriptSourceGenerator extends SourceGenerator {
 	public VisitTryNode(Node: TryNode): void {
 		var Code: string = "try ";
 		Code += this.VisitBlockJSWithIndent(Node.TryBlock);
-		var Val: LetNode = <LetNode> Node.CatchExpr;
-		Code += " catch (" + Val.Type.toString() + " " + Val.VariableName + ") ";
+		var Val: VarNode = <VarNode> Node.CatchExpr;
+		Code += " catch (" + Val.Type.toString() + " " + Val.NativeName + ") ";
 		Code += this.VisitBlockJSWithIndent(Node.CatchBlock);
 		if(Node.FinallyBlock != null) {
 			Code += " finally " + this.VisitBlockJSWithIndent(Node.FinallyBlock);
@@ -132,6 +132,7 @@ class JavaScriptSourceGenerator extends SourceGenerator {
 	}
 
 	public GenerateFunc(Func: GtFunc, NameList: Array<string>, Body: GtNode): void {
+		this.FlushErrorReport();
 		var ArgCount: number = Func.Types.length - 1;
 		var Code: string = "var " + Func.GetNativeFuncName() + " = (function(";
 		var i: number = 0;
@@ -180,7 +181,7 @@ var CLASS = (function (_super) {
 			if(!FieldInfo.Type.IsNative()) {
 				InitValue = this.NullLiteral;
 			}
-			Program += this.GetIndentString() + this.GetRecvName() + "." + FieldInfo.NativeName + " = " + InitValue + ";" + this.LineFeed;
+			Program += this.GetIndentString() + "this" + "." + FieldInfo.NativeName + " = " + InitValue + ";" + this.LineFeed;
 			i = i + 1;
 		}
 		this.UnIndent();
@@ -207,5 +208,8 @@ var CLASS = (function (_super) {
 
 	public InvokeMainFunc(MainFuncName: string): void {
 		this.WriteLineCode(MainFuncName + "();");
+	}
+	public GetRecvName(): string {
+		return "$__this";
 	}
 }

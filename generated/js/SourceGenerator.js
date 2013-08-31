@@ -1,9 +1,34 @@
+// ***************************************************************************
+// Copyright (c) 2013, JST/CREST DEOS project authors. All rights reserved.
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// *  Redistributions of source code must retain the above copyright notice,
+//    this list of conditions and the following disclaimer.
+// *  Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+// TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// **************************************************************************
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     __.prototype = b.prototype;
     d.prototype = new __();
 };
+/* language */
+// GreenTea Generator should be written in each language.
 var GtNode = (function () {
     function GtNode(Type, Token) {
         this.Type = Type;
@@ -29,35 +54,31 @@ var GtNode = (function () {
     };
 
     GtNode.prototype.Append = function (Node) {
+        /*extension*/
     };
 
     GtNode.prototype.AppendNodeList = function (NodeList) {
         var i = 0;
-        while (i < ListSize(NodeList)) {
+        while (i < LibGreenTea.ListSize(NodeList)) {
             this.Append(NodeList.get(i));
             i = i + 1;
         }
     };
 
     GtNode.prototype.Evaluate = function (Visitor) {
+        /* must override */
     };
 
     GtNode.prototype.IsError = function () {
         return (this instanceof ErrorNode);
     };
 
-    GtNode.prototype.ToConstValue = function () {
-        return null;
-    };
-
-    GtNode.prototype.CountForrowingNode = function () {
-        var n = 0;
-        var node = this;
-        while (node != null) {
-            n++;
-            node = node.NextNode;
+    GtNode.prototype.ToConstValue = function (EnforceConst) {
+        if (EnforceConst) {
+            LibGreenTea.DebugP("node type=" + LibGreenTea.GetClassName(this));
+            this.Type.Context.ReportError(ErrorLevel, this.Token, "not const value");
         }
-        return n;
+        return null;
     };
     return GtNode;
 })();
@@ -67,6 +88,9 @@ var EmptyNode = (function (_super) {
     function EmptyNode(Type, Token) {
         _super.call(this, Type, Token);
     }
+    EmptyNode.prototype.ToConstValue = function (EnforceConst) {
+        return null;
+    };
     return EmptyNode;
 })(GtNode);
 
@@ -79,7 +103,7 @@ var ConstNode = (function (_super) {
     ConstNode.prototype.Evaluate = function (Visitor) {
         Visitor.VisitConstNode(this);
     };
-    ConstNode.prototype.ToConstValue = function () {
+    ConstNode.prototype.ToConstValue = function (EnforceConst) {
         return this.ConstValue;
     };
     return ConstNode;
@@ -105,9 +129,13 @@ var NullNode = (function (_super) {
     NullNode.prototype.Evaluate = function (Visitor) {
         Visitor.VisitNullNode(this);
     };
+    NullNode.prototype.ToConstValue = function (EnforceConst) {
+        return null;
+    };
     return NullNode;
 })(GtNode);
 
+//E.g., (T) $Expr
 var CastNode = (function (_super) {
     __extends(CastNode, _super);
     function CastNode(Type, Token, CastType, Expr) {
@@ -118,8 +146,8 @@ var CastNode = (function (_super) {
     CastNode.prototype.Evaluate = function (Visitor) {
         Visitor.VisitCastNode(this);
     };
-    CastNode.prototype.ToConstValue = function () {
-        var Value = this.Expr.ToConstValue();
+    CastNode.prototype.ToConstValue = function (EnforceConst) {
+        var Value = this.Expr.ToConstValue(EnforceConst);
         if (Value != null) {
             return LibGreenTea.EvalCast(this.CastType, Value);
         }
@@ -128,6 +156,7 @@ var CastNode = (function (_super) {
     return CastNode;
 })(GtNode);
 
+// E.g., "~" $Expr
 var UnaryNode = (function (_super) {
     __extends(UnaryNode, _super);
     function UnaryNode(Type, Token, Func, Expr) {
@@ -138,8 +167,8 @@ var UnaryNode = (function (_super) {
     UnaryNode.prototype.Evaluate = function (Visitor) {
         Visitor.VisitUnaryNode(this);
     };
-    UnaryNode.prototype.ToConstValue = function () {
-        var Value = this.Expr.ToConstValue();
+    UnaryNode.prototype.ToConstValue = function (EnforceConst) {
+        var Value = this.Expr.ToConstValue(EnforceConst);
         if (Value != null) {
             return LibGreenTea.EvalUnary(this.Type, this.Token.ParsedText, Value);
         }
@@ -148,6 +177,7 @@ var UnaryNode = (function (_super) {
     return UnaryNode;
 })(GtNode);
 
+// E.g.,  $Expr "++"
 var SuffixNode = (function (_super) {
     __extends(SuffixNode, _super);
     function SuffixNode(Type, Token, Func, Expr) {
@@ -158,8 +188,8 @@ var SuffixNode = (function (_super) {
     SuffixNode.prototype.Evaluate = function (Visitor) {
         Visitor.VisitSuffixNode(this);
     };
-    SuffixNode.prototype.ToConstValue = function () {
-        var Value = this.Expr.ToConstValue();
+    SuffixNode.prototype.ToConstValue = function (EnforceConst) {
+        var Value = this.Expr.ToConstValue(EnforceConst);
         if (Value != null) {
             return LibGreenTea.EvalSuffix(this.Type, Value, this.Token.ParsedText);
         }
@@ -168,6 +198,7 @@ var SuffixNode = (function (_super) {
     return SuffixNode;
 })(GtNode);
 
+//E.g., "exists" $Expr
 var ExistsNode = (function (_super) {
     __extends(ExistsNode, _super);
     function ExistsNode(Type, Token, Func, Expr) {
@@ -181,6 +212,7 @@ var ExistsNode = (function (_super) {
     return ExistsNode;
 })(GtNode);
 
+//E.g., $LeftNode = $RightNode
 var AssignNode = (function (_super) {
     __extends(AssignNode, _super);
     function AssignNode(Type, Token, Left, Right) {
@@ -194,6 +226,7 @@ var AssignNode = (function (_super) {
     return AssignNode;
 })(GtNode);
 
+//E.g., $LeftNode += $RightNode
 var SelfAssignNode = (function (_super) {
     __extends(SelfAssignNode, _super);
     function SelfAssignNode(Type, Token, Left, Right) {
@@ -207,6 +240,7 @@ var SelfAssignNode = (function (_super) {
     return SelfAssignNode;
 })(GtNode);
 
+//E.g., $LeftNode || $RightNode
 var InstanceOfNode = (function (_super) {
     __extends(InstanceOfNode, _super);
     function InstanceOfNode(Type, Token, ExprNode, TypeInfo) {
@@ -217,8 +251,8 @@ var InstanceOfNode = (function (_super) {
     InstanceOfNode.prototype.Evaluate = function (Visitor) {
         Visitor.VisitInstanceOfNode(this);
     };
-    InstanceOfNode.prototype.ToConstValue = function () {
-        var Value = this.ExprNode.ToConstValue();
+    InstanceOfNode.prototype.ToConstValue = function (EnforceConst) {
+        var Value = this.ExprNode.ToConstValue(EnforceConst);
         if (Value != null) {
             return LibGreenTea.EvalInstanceOf(Value, this.TypeInfo);
         }
@@ -227,6 +261,7 @@ var InstanceOfNode = (function (_super) {
     return InstanceOfNode;
 })(GtNode);
 
+// E.g., $LeftNode "+" $RightNode
 var BinaryNode = (function (_super) {
     __extends(BinaryNode, _super);
     function BinaryNode(Type, Token, Func, Left, Right) {
@@ -238,10 +273,10 @@ var BinaryNode = (function (_super) {
     BinaryNode.prototype.Evaluate = function (Visitor) {
         Visitor.VisitBinaryNode(this);
     };
-    BinaryNode.prototype.ToConstValue = function () {
-        var LeftValue = this.LeftNode.ToConstValue();
+    BinaryNode.prototype.ToConstValue = function (EnforceConst) {
+        var LeftValue = this.LeftNode.ToConstValue(EnforceConst);
         if (LeftValue != null) {
-            var RightValue = this.RightNode.ToConstValue();
+            var RightValue = this.RightNode.ToConstValue(EnforceConst);
             if (RightValue != null) {
                 return LibGreenTea.EvalBinary(this.Type, LeftValue, this.Token.ParsedText, RightValue);
             }
@@ -251,6 +286,7 @@ var BinaryNode = (function (_super) {
     return BinaryNode;
 })(GtNode);
 
+//E.g., $LeftNode && $RightNode
 var AndNode = (function (_super) {
     __extends(AndNode, _super);
     function AndNode(Type, Token, Left, Right) {
@@ -261,14 +297,17 @@ var AndNode = (function (_super) {
     AndNode.prototype.Evaluate = function (Visitor) {
         Visitor.VisitAndNode(this);
     };
-    AndNode.prototype.ToConstValue = function () {
-        var LeftValue = this.LeftNode.ToConstValue();
-
+    AndNode.prototype.ToConstValue = function (EnforceConst) {
+        var LeftValue = this.LeftNode.ToConstValue(EnforceConst);
+        if (LeftValue instanceof Boolean && LibGreenTea.booleanValue(LeftValue)) {
+            return this.RightNode.ToConstValue(EnforceConst);
+        }
         return null;
     };
     return AndNode;
 })(GtNode);
 
+//E.g., $LeftNode || $RightNode
 var OrNode = (function (_super) {
     __extends(OrNode, _super);
     function OrNode(Type, Token, Left, Right) {
@@ -279,14 +318,21 @@ var OrNode = (function (_super) {
     OrNode.prototype.Evaluate = function (Visitor) {
         Visitor.VisitOrNode(this);
     };
-    OrNode.prototype.ToConstValue = function () {
-        var LeftValue = this.LeftNode.ToConstValue();
-
+    OrNode.prototype.ToConstValue = function (EnforceConst) {
+        var LeftValue = this.LeftNode.ToConstValue(EnforceConst);
+        if (LeftValue instanceof Boolean) {
+            if (LibGreenTea.booleanValue(LeftValue)) {
+                return LeftValue;
+            } else {
+                return this.RightNode.ToConstValue(EnforceConst);
+            }
+        }
         return null;
     };
     return OrNode;
 })(GtNode);
 
+//E.g., $CondExpr "?" $ThenExpr ":" $ElseExpr
 var TrinaryNode = (function (_super) {
     __extends(TrinaryNode, _super);
     function TrinaryNode(Type, Token, CondExpr, ThenExpr, ElseExpr) {
@@ -298,14 +344,21 @@ var TrinaryNode = (function (_super) {
     TrinaryNode.prototype.Evaluate = function (Visitor) {
         Visitor.VisitTrinaryNode(this);
     };
-    TrinaryNode.prototype.ToConstValue = function () {
-        var CondValue = this.CondExpr.ToConstValue();
-
+    TrinaryNode.prototype.ToConstValue = function (EnforceConst) {
+        var CondValue = this.CondExpr.ToConstValue(EnforceConst);
+        if (CondValue instanceof Boolean) {
+            if (LibGreenTea.booleanValue(CondValue)) {
+                return this.ThenExpr.ToConstValue(EnforceConst);
+            } else {
+                return this.ElseExpr.ToConstValue(EnforceConst);
+            }
+        }
         return null;
     };
     return TrinaryNode;
 })(GtNode);
 
+//E.g., $Expr . Token.ParsedText
 var GetterNode = (function (_super) {
     __extends(GetterNode, _super);
     function GetterNode(Type, Token, Func, Expr) {
@@ -317,8 +370,8 @@ var GetterNode = (function (_super) {
         Visitor.VisitGetterNode(this);
     };
 
-    GetterNode.prototype.ToConstValue = function () {
-        var Value = this.Expr.ToConstValue();
+    GetterNode.prototype.ToConstValue = function (EnforceConst) {
+        var Value = this.Expr.ToConstValue(EnforceConst);
         if (Value != null) {
             return LibGreenTea.EvalGetter(this.Type, Value, this.Token.ParsedText);
         }
@@ -327,20 +380,30 @@ var GetterNode = (function (_super) {
     return GetterNode;
 })(GtNode);
 
+//E.g., $Expr "[" $Node, $Node "]"
 var IndexerNode = (function (_super) {
     __extends(IndexerNode, _super);
-    function IndexerNode(Type, Token, Func, Expr, IndexAt) {
+    function IndexerNode(Type, Token, Func, Expr) {
         _super.call(this, Type, Token);
         this.Func = Func;
         this.Expr = Expr;
-        this.IndexAt = IndexAt;
+        this.NodeList = new Array();
     }
+    IndexerNode.prototype.Append = function (Expr) {
+        this.NodeList.add(Expr);
+    };
+
+    IndexerNode.prototype.GetAt = function (Index) {
+        return this.NodeList.get(Index);
+    };
+
     IndexerNode.prototype.Evaluate = function (Visitor) {
         Visitor.VisitIndexerNode(this);
     };
     return IndexerNode;
 })(GtNode);
 
+//E.g., $Expr "[" $Index ":" $Index2 "]"
 var SliceNode = (function (_super) {
     __extends(SliceNode, _super);
     function SliceNode(Type, Token, Func, Expr, Index1, Index2) {
@@ -356,56 +419,45 @@ var SliceNode = (function (_super) {
     return SliceNode;
 })(GtNode);
 
-var LetNode = (function (_super) {
-    __extends(LetNode, _super);
-    function LetNode(Type, Token, DeclType, VarName, InitNode, Block) {
+var VarNode = (function (_super) {
+    __extends(VarNode, _super);
+    /* let VarNode in Block end */
+    function VarNode(Type, Token, DeclType, VariableName, InitNode, Block) {
         _super.call(this, Type, Token);
-        this.VariableName = VarName;
+        this.NativeName = VariableName;
         this.DeclType = DeclType;
         this.InitNode = InitNode;
         this.BlockNode = Block;
     }
-    LetNode.prototype.Evaluate = function (Visitor) {
-        Visitor.VisitLetNode(this);
+    VarNode.prototype.Evaluate = function (Visitor) {
+        Visitor.VisitVarNode(this);
     };
-    return LetNode;
+    return VarNode;
 })(GtNode);
 
+// E.g., $Param[0] "(" $Param[1], $Param[2], ... ")"
 var ApplyNode = (function (_super) {
     __extends(ApplyNode, _super);
     function ApplyNode(Type, KeyToken, Func) {
         _super.call(this, Type, KeyToken);
         this.Func = Func;
-        this.Params = new Array();
+        this.NodeList = new Array();
     }
     ApplyNode.prototype.Append = function (Expr) {
-        this.Params.add(Expr);
+        this.NodeList.add(Expr);
     };
 
     ApplyNode.prototype.Evaluate = function (Visitor) {
         Visitor.VisitApplyNode(this);
     };
+
+    ApplyNode.prototype.ToConstValue = function (EnforceConst) {
+        return this.Type.Context.Generator.EvalApplyNode(this, EnforceConst);
+    };
     return ApplyNode;
 })(GtNode);
 
-var MessageNode = (function (_super) {
-    __extends(MessageNode, _super);
-    function MessageNode(Type, KeyToken, Func, RecvNode) {
-        _super.call(this, Type, KeyToken);
-        this.Func = Func;
-        this.RecvNode = RecvNode;
-        this.Params = new Array();
-    }
-    MessageNode.prototype.Append = function (Expr) {
-        this.Params.add(Expr);
-    };
-
-    MessageNode.prototype.Evaluate = function (Visitor) {
-        Visitor.VisitMessageNode(this);
-    };
-    return MessageNode;
-})(GtNode);
-
+//E.g., "new" $Type "(" $Param[0], $Param[1], ... ")"
 var NewNode = (function (_super) {
     __extends(NewNode, _super);
     function NewNode(Type, Token, Func) {
@@ -423,8 +475,32 @@ var NewNode = (function (_super) {
     return NewNode;
 })(GtNode);
 
+//E.g., $Expr "[" $Node, $Node "]"
+var ArrayNode = (function (_super) {
+    __extends(ArrayNode, _super);
+    function ArrayNode(Type, Token) {
+        _super.call(this, Type, Token);
+        this.NodeList = new Array();
+    }
+    ArrayNode.prototype.Append = function (Expr) {
+        this.NodeList.add(Expr);
+    };
+    ArrayNode.prototype.Evaluate = function (Visitor) {
+        Visitor.VisitArrayNode(this);
+    };
+    ArrayNode.prototype.ToConstValue = function (EnforceConst) {
+        if (EnforceConst) {
+            return this.Type.Context.Generator.EvalArrayNode(this, EnforceConst);
+        }
+        return null;
+    };
+    return ArrayNode;
+})(GtNode);
+
+//E.g., "if" "(" $Cond ")" $ThenNode "else" $ElseNode
 var IfNode = (function (_super) {
     __extends(IfNode, _super);
+    /* If CondExpr then ThenBlock else ElseBlock */
     function IfNode(Type, Token, CondExpr, ThenBlock, ElseNode) {
         _super.call(this, Type, Token);
         this.CondExpr = CondExpr;
@@ -437,6 +513,7 @@ var IfNode = (function (_super) {
     return IfNode;
 })(GtNode);
 
+//E.g., "while" "(" $CondExpr ")" $LoopBody
 var WhileNode = (function (_super) {
     __extends(WhileNode, _super);
     function WhileNode(Type, Token, CondExpr, LoopBody) {
@@ -463,6 +540,7 @@ var DoWhileNode = (function (_super) {
     return DoWhileNode;
 })(GtNode);
 
+//E.g., "for" "(" ";" $CondExpr ";" $IterExpr ")" $LoopNode
 var ForNode = (function (_super) {
     __extends(ForNode, _super);
     function ForNode(Type, Token, CondExpr, IterExpr, LoopBody) {
@@ -477,6 +555,7 @@ var ForNode = (function (_super) {
     return ForNode;
 })(GtNode);
 
+//E.g., "for" "(" $Variable ":" $IterExpr ")" $LoopNode
 var ForEachNode = (function (_super) {
     __extends(ForEachNode, _super);
     function ForEachNode(Type, Token, Variable, IterExpr, LoopBody) {
@@ -580,14 +659,17 @@ var TryNode = (function (_super) {
 
 var SwitchNode = (function (_super) {
     __extends(SwitchNode, _super);
-    function SwitchNode(Type, Token) {
+    function SwitchNode(Type, Token, MatchNode, DefaultBlock) {
         _super.call(this, Type, Token);
+        this.MatchNode = MatchNode;
+        this.DefaultBlock = DefaultBlock;
+        this.CaseList = new Array();
     }
     SwitchNode.prototype.Evaluate = function (Visitor) {
         Visitor.VisitSwitchNode(this);
     };
-    SwitchNode.prototype.ToConstValue = function () {
-        return "(Switch:" + this.Type + ")";
+    SwitchNode.prototype.Append = function (Expr) {
+        this.CaseList.add(Expr);
     };
     return SwitchNode;
 })(GtNode);
@@ -611,9 +693,13 @@ var ErrorNode = (function (_super) {
     ErrorNode.prototype.Evaluate = function (Visitor) {
         Visitor.VisitErrorNode(this);
     };
+    ErrorNode.prototype.ToConstValue = function (EnforceConst) {
+        return null;
+    };
     return ErrorNode;
 })(GtNode);
 
+// E.g., "ls" "-a"..
 var CommandNode = (function (_super) {
     __extends(CommandNode, _super);
     function CommandNode(Type, KeyToken, PipedNextNode) {
@@ -628,397 +714,13 @@ var CommandNode = (function (_super) {
     CommandNode.prototype.Evaluate = function (Visitor) {
         Visitor.VisitCommandNode(this);
     };
+
+    CommandNode.prototype.ToConstValue = function (EnforceConst) {
+        LibGreenTea.println("TODO");
+        return null;
+    };
     return CommandNode;
 })(GtNode);
-
-var GtType = (function () {
-    function GtType(Context, ClassFlag, ClassName, DefaultNullValue, NativeSpec) {
-        this.Context = Context;
-        this.ClassFlag = ClassFlag;
-        this.ShortClassName = ClassName;
-        this.SuperType = null;
-        this.BaseType = this;
-        this.SearchSuperFuncClass = null;
-        this.DefaultNullValue = DefaultNullValue;
-        this.NativeSpec = NativeSpec;
-
-        this.ClassId = Context.ClassCount;
-        Context.ClassCount += 1;
-        this.TypeParams = null;
-    }
-    GtType.prototype.CreateSubType = function (ClassFlag, ClassName, DefaultNullValue, NativeSpec) {
-        var SubType = new GtType(this.Context, ClassFlag, ClassName, DefaultNullValue, NativeSpec);
-        SubType.SuperType = this;
-        SubType.SearchSuperFuncClass = this;
-        return SubType;
-    };
-
-    GtType.prototype.CreateGenericType = function (BaseIndex, TypeList, ShortName) {
-        var GenericType = new GtType(this.Context, this.ClassFlag, ShortName, null, null);
-        GenericType.BaseType = this.BaseType;
-        GenericType.SearchSuperFuncClass = this.BaseType;
-        GenericType.SuperType = this.SuperType;
-        GenericType.TypeParams = LibGreenTea.CompactTypeList(BaseIndex, TypeList);
-        LibGreenTea.DebugP("new class: " + GenericType.ShortClassName + ", ClassId=" + GenericType.ClassId);
-        return GenericType;
-    };
-
-    GtType.prototype.IsNative = function () {
-        return IsFlag(this.ClassFlag, NativeClass);
-    };
-
-    GtType.prototype.IsDynamic = function () {
-        return IsFlag(this.ClassFlag, DynamicClass);
-    };
-
-    GtType.prototype.IsGenericType = function () {
-        return (this.TypeParams != null);
-    };
-
-    GtType.prototype.toString = function () {
-        return this.ShortClassName;
-    };
-
-    GtType.prototype.GetUniqueName = function () {
-        if (LibGreenTea.DebugMode) {
-            return this.BaseType.ShortClassName + NativeNameSuffix + NumberToAscii(this.ClassId);
-        } else {
-            return NativeNameSuffix + NumberToAscii(this.ClassId);
-        }
-    };
-
-    GtType.prototype.Accept = function (Type) {
-        if (this == Type || this == this.Context.AnyType) {
-            return true;
-        }
-        var SuperClass = this.SuperType;
-        while (SuperClass != null) {
-            if (SuperClass == Type) {
-                return true;
-            }
-            SuperClass = SuperClass.SuperType;
-        }
-        return this.Context.CheckSubType(Type, this);
-    };
-
-    GtType.prototype.SetClassField = function (ClassField) {
-        this.NativeSpec = ClassField;
-    };
-    return GtType;
-})();
-
-var GtFunc = (function () {
-    function GtFunc(FuncFlag, FuncName, BaseIndex, ParamList) {
-        this.FuncFlag = FuncFlag;
-        this.FuncName = FuncName;
-
-        this.Types = LibGreenTea.CompactTypeList(BaseIndex, ParamList);
-        LibGreenTea.Assert(this.Types.length > 0);
-        this.ListedFuncs = null;
-        this.FuncType = null;
-        this.NativeRef = null;
-        this.MangledName = MangleFuncName(this.GetRecvType(), this.FuncName, BaseIndex + 2, ParamList);
-    }
-    GtFunc.prototype.GetNativeFuncName = function () {
-        if (this.Is(ExportFunc)) {
-            return this.FuncName;
-        } else {
-            return this.MangledName;
-        }
-    };
-
-    GtFunc.prototype.GetFuncType = function () {
-        if (this.FuncType == null) {
-            var Context = this.GetRecvType().Context;
-            this.FuncType = Context.GetGenericType(Context.FuncType, 0, this.Types, true);
-        }
-        return this.FuncType;
-    };
-
-    GtFunc.prototype.toString = function () {
-        var s = this.FuncName + "(";
-        var i = 0;
-        while (i < this.GetFuncParamSize()) {
-            var ParamType = this.GetFuncParamType(i);
-            if (i > 0) {
-                s += ", ";
-            }
-            s += ParamType;
-            i += 1;
-        }
-        return s + ") : " + this.GetReturnType();
-    };
-
-    GtFunc.prototype.Is = function (Flag) {
-        return IsFlag(this.FuncFlag, Flag);
-    };
-
-    GtFunc.prototype.GetReturnType = function () {
-        return this.Types[0];
-    };
-
-    GtFunc.prototype.GetRecvType = function () {
-        if (this.Types.length == 1) {
-            return this.Types[0].Context.VoidType;
-        }
-        return this.Types[1];
-    };
-
-    GtFunc.prototype.GetFuncParamSize = function () {
-        return this.Types.length - 1;
-    };
-
-    GtFunc.prototype.GetFuncParamType = function (ParamIdx) {
-        return this.Types[ParamIdx + 1];
-    };
-
-    GtFunc.prototype.GetMethodParamSize = function () {
-        return this.Types.length - 2;
-    };
-
-    GtFunc.prototype.EqualsParamTypes = function (BaseIndex, ParamTypes) {
-        if (this.Types.length == ParamTypes.length) {
-            var i = BaseIndex;
-            while (i < this.Types.length) {
-                if (this.Types[i] != ParamTypes[i]) {
-                    return false;
-                }
-                i = i + 1;
-            }
-            return true;
-        }
-        return false;
-    };
-
-    GtFunc.prototype.EqualsType = function (AFunc) {
-        return this.EqualsParamTypes(0, this.Types);
-    };
-
-    GtFunc.prototype.IsAbstract = function () {
-        return this.NativeRef == null;
-    };
-
-    GtFunc.prototype.SetNativeMacro = function (NativeMacro) {
-        LibGreenTea.Assert(this.NativeRef == null);
-        this.FuncFlag |= NativeMacroFunc;
-        this.NativeRef = NativeMacro;
-    };
-
-    GtFunc.prototype.GetNativeMacro = function () {
-        var NativeMacro = this.NativeRef;
-        NativeMacro = NativeMacro.substring(1, NativeMacro.length - 1);
-
-        return NativeMacro;
-    };
-
-    GtFunc.prototype.ApplyNativeMacro = function (BaseIndex, ParamCode) {
-        var NativeMacro = "$1 " + this.FuncName + " $2";
-        if (IsFlag(this.FuncFlag, NativeMacroFunc)) {
-            NativeMacro = this.GetNativeMacro();
-        }
-        var Code = NativeMacro.replace("$1", ParamCode[BaseIndex]);
-        if (ParamCode.length == BaseIndex + 1) {
-            Code = Code.replace("$2", "");
-        } else {
-            Code = Code.replace("$2", ParamCode[BaseIndex + 1]);
-        }
-        return Code;
-    };
-
-    GtFunc.prototype.SetNativeMethod = function (OptionalFuncFlag, Method) {
-        LibGreenTea.Assert(this.NativeRef == null);
-        this.FuncFlag |= NativeFunc | OptionalFuncFlag;
-        this.NativeRef = Method;
-    };
-    return GtFunc;
-})();
-
-var GtPolyFunc = (function () {
-    function GtPolyFunc(NameSpace, Func1) {
-        this.NameSpace = NameSpace;
-        this.FuncList = new Array();
-        this.FuncList.add(Func1);
-    }
-    GtPolyFunc.prototype.toString = function () {
-        var s = "";
-        var i = 0;
-        while (i < this.FuncList.size()) {
-            if (i > 0) {
-                s = s + " ";
-            }
-            s = s + this.FuncList.get(i);
-            i = i + 1;
-        }
-        return s;
-    };
-
-    GtPolyFunc.prototype.Dup = function (NameSpace) {
-        if (this.NameSpace != NameSpace) {
-            var PolyFunc = new GtPolyFunc(NameSpace, this.FuncList.get(0));
-            var i = 1;
-            while (i < this.FuncList.size()) {
-                PolyFunc.FuncList.add(this.FuncList.get(i));
-                i = i + 1;
-            }
-            return PolyFunc;
-        }
-        return this;
-    };
-
-    GtPolyFunc.prototype.Append = function (Func) {
-        var i = 0;
-        while (i < this.FuncList.size()) {
-            var ListedFunc = this.FuncList.get(i);
-            if (ListedFunc == Func) {
-                return null;
-            }
-            if (Func.EqualsType(ListedFunc)) {
-                this.FuncList.add(Func);
-                return ListedFunc;
-            }
-            i = i + 1;
-        }
-        this.FuncList.add(Func);
-        return null;
-    };
-
-    GtPolyFunc.prototype.ResolveUnaryFunc = function (Gamma, ParsedTree, ExprNode) {
-        var i = this.FuncList.size() - 1;
-        while (i >= 0) {
-            var Func = this.FuncList.get(i);
-            if (Func.GetFuncParamSize() == 1 && Func.Types[1].Accept(ExprNode.Type)) {
-                return Func;
-            }
-            i = i - 1;
-        }
-        return null;
-    };
-
-    GtPolyFunc.prototype.ResolveBinaryFunc = function (Gamma, BinaryNodes) {
-        var i = this.FuncList.size() - 1;
-        while (i >= 0) {
-            var Func = this.FuncList.get(i);
-            if (Func.GetFuncParamSize() == 2 && Func.Types[1].Accept(BinaryNodes[0].Type) && Func.Types[2].Accept(BinaryNodes[1].Type)) {
-                return Func;
-            }
-            i = i - 1;
-        }
-        i = this.FuncList.size() - 1;
-        while (i >= 0) {
-            var Func = this.FuncList.get(i);
-            if (Func.GetFuncParamSize() == 2 && Func.Types[1].Accept(BinaryNodes[0].Type)) {
-                var TypeCoercion = Gamma.NameSpace.GetCoercionFunc(BinaryNodes[1].Type, Func.Types[2], true);
-                if (TypeCoercion != null) {
-                    BinaryNodes[1] = Gamma.CreateCoercionNode(Func.Types[2], TypeCoercion, BinaryNodes[1]);
-                    return Func;
-                }
-            }
-            i = i - 1;
-        }
-        return null;
-    };
-
-    GtPolyFunc.prototype.IncrementalMatch = function (FuncParamSize, NodeList) {
-        var i = this.FuncList.size() - 1;
-        var ResolvedFunc = null;
-        while (i >= 0) {
-            var Func = this.FuncList.get(i);
-            if (Func.GetFuncParamSize() == FuncParamSize) {
-                var p = 0;
-                while (p < NodeList.size()) {
-                    var Node = NodeList.get(p);
-                    if (!Func.Types[p + 1].Accept(Node.Type)) {
-                        Func = null;
-                        break;
-                    }
-                    p = p + 1;
-                }
-                if (Func != null) {
-                    if (ResolvedFunc != null) {
-                        return null;
-                    }
-                    ResolvedFunc = Func;
-                }
-            }
-            i = i - 1;
-        }
-        return ResolvedFunc;
-    };
-
-    GtPolyFunc.prototype.MatchAcceptableFunc = function (Gamma, FuncParamSize, NodeList) {
-        var i = this.FuncList.size() - 1;
-        while (i >= 0) {
-            var Func = this.FuncList.get(i);
-            if (Func.GetFuncParamSize() == FuncParamSize) {
-                var p = 0;
-                var Coercions = null;
-                while (p < NodeList.size()) {
-                    var ParamType = Func.Types[p + 1];
-                    var Node = NodeList.get(p);
-                    if (ParamType.Accept(Node.Type)) {
-                        p = p + 1;
-                        continue;
-                    }
-                    var TypeCoercion = Gamma.NameSpace.GetCoercionFunc(Node.Type, ParamType, true);
-                    if (TypeCoercion != null) {
-                        if (Coercions == null) {
-                            Coercions = new Array(NodeList.size());
-                        }
-                        Coercions[p] = Gamma.CreateCoercionNode(ParamType, TypeCoercion, Node);
-                        p = p + 1;
-                        continue;
-                    }
-                    Func = null;
-                    Coercions = null;
-                    break;
-                }
-                if (Func != null) {
-                    if (Coercions != null) {
-                        i = 1;
-                        while (i < Coercions.length) {
-                            if (Coercions[i] != null) {
-                                NodeList.set(i, Coercions[i]);
-                            }
-                            i = i + 1;
-                        }
-                        Coercions = null;
-                    }
-                    return Func;
-                }
-            }
-            i = i - 1;
-        }
-        return null;
-    };
-
-    GtPolyFunc.prototype.ResolveFunc = function (Gamma, ParsedTree, TreeIndex, NodeList) {
-        var FuncParamSize = ListSize(ParsedTree.TreeList) - TreeIndex + NodeList.size();
-        var ResolvedFunc = this.IncrementalMatch(FuncParamSize, NodeList);
-        while (ResolvedFunc == null && TreeIndex < ListSize(ParsedTree.TreeList)) {
-            var Node = ParsedTree.TypeCheckNodeAt(TreeIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-            NodeList.add(Node);
-            if (Node.IsError()) {
-                return null;
-            }
-            TreeIndex = TreeIndex + 1;
-            ResolvedFunc = this.IncrementalMatch(FuncParamSize, NodeList);
-        }
-        if (ResolvedFunc == null) {
-            return this.MatchAcceptableFunc(Gamma, FuncParamSize, NodeList);
-        }
-        while (TreeIndex < ListSize(ParsedTree.TreeList)) {
-            var ContextType = ResolvedFunc.Types[NodeList.size()];
-            var Node = ParsedTree.TypeCheckNodeAt(TreeIndex, Gamma, ContextType, DefaultTypeCheckPolicy);
-            NodeList.add(Node);
-            if (Node.IsError()) {
-                return null;
-            }
-            TreeIndex = TreeIndex + 1;
-        }
-        return ResolvedFunc;
-    };
-    return GtPolyFunc;
-})();
 
 var GtGenerator = (function () {
     function GtGenerator(TargetCode, OutputFile, GeneratorFlag) {
@@ -1031,10 +733,10 @@ var GtGenerator = (function () {
     GtGenerator.prototype.InitContext = function (Context) {
         this.Context = Context;
         this.GeneratedCodeStack = new Array();
-        Context.LoadFile(LibGreenTea.GetLibPath(this.TargetCode, "common"));
+        Context.RootNameSpace.LoadRequiredLib("common");
     };
 
-    GtGenerator.prototype.UnsupportedNode = function (Type, ParsedTree) {
+    GtGenerator.prototype.CreateUnsupportedNode = function (Type, ParsedTree) {
         var Token = ParsedTree.KeyToken;
         Type.Context.ReportError(ErrorLevel, Token, this.TargetCode + " has no language support for " + Token.ParsedText);
         return new ErrorNode(Type.Context.VoidType, ParsedTree.KeyToken);
@@ -1048,6 +750,10 @@ var GtGenerator = (function () {
         return new NullNode(Type, ParsedTree.KeyToken);
     };
 
+    GtGenerator.prototype.CreateArrayNode = function (ArrayType, ParsedTree) {
+        return new ArrayNode(ArrayType, ParsedTree.KeyToken);
+    };
+
     GtGenerator.prototype.CreateLocalNode = function (Type, ParsedTree, LocalName) {
         return new LocalNode(Type, ParsedTree.KeyToken, LocalName);
     };
@@ -1056,16 +762,12 @@ var GtGenerator = (function () {
         return new GetterNode(Type, ParsedTree.KeyToken, Func, Expr);
     };
 
-    GtGenerator.prototype.CreateIndexerNode = function (Type, ParsedTree, Func, Expr, Index) {
-        return new IndexerNode(Type, ParsedTree.KeyToken, Func, Expr, Index);
+    GtGenerator.prototype.CreateIndexerNode = function (Type, ParsedTree, Func, Expr) {
+        return new IndexerNode(Type, ParsedTree.KeyToken, Func, Expr);
     };
 
     GtGenerator.prototype.CreateApplyNode = function (Type, ParsedTree, Func) {
         return new ApplyNode(Type, ParsedTree == null ? GtTokenContext.NullToken : ParsedTree.KeyToken, Func);
-    };
-
-    GtGenerator.prototype.CreateMessageNode = function (Type, ParsedTree, RecvNode, Func) {
-        return new MessageNode(Type, ParsedTree.KeyToken, Func, RecvNode);
     };
 
     GtGenerator.prototype.CreateNewNode = function (Type, ParsedTree, Func) {
@@ -1092,20 +794,32 @@ var GtGenerator = (function () {
         return new OrNode(Type, ParsedTree.KeyToken, Left, Right);
     };
 
+    GtGenerator.prototype.CreateInstanceOfNode = function (Type, ParsedTree, LeftNode, GivenType) {
+        return new InstanceOfNode(Type, ParsedTree.KeyToken, LeftNode, GivenType);
+    };
+
     GtGenerator.prototype.CreateAssignNode = function (Type, ParsedTree, Left, Right) {
         return new AssignNode(Type, ParsedTree.KeyToken, Left, Right);
     };
 
-    GtGenerator.prototype.CreateLetNode = function (Type, ParsedTree, DeclType, VarName, InitNode, Block) {
-        return new LetNode(Type, ParsedTree.KeyToken, DeclType, VarName, InitNode, Block);
+    GtGenerator.prototype.CreateSelfAssignNode = function (Type, ParsedTree, Left, Right) {
+        return new SelfAssignNode(Type, ParsedTree.KeyToken, Left, Right);
+    };
+
+    GtGenerator.prototype.CreateVarNode = function (Type, ParsedTree, DeclType, VariableName, InitNode, Block) {
+        return new VarNode(Type, ParsedTree.KeyToken, DeclType, VariableName, InitNode, Block);
+    };
+
+    GtGenerator.prototype.CreateTrinaryNode = function (Type, ParsedTree, CondNode, ThenNode, ElseNode) {
+        return new TrinaryNode(Type, ParsedTree.KeyToken, CondNode, ThenNode, ElseNode);
     };
 
     GtGenerator.prototype.CreateIfNode = function (Type, ParsedTree, Cond, Then, Else) {
         return new IfNode(Type, ParsedTree.KeyToken, Cond, Then, Else);
     };
 
-    GtGenerator.prototype.CreateSwitchNode = function (Type, ParsedTree, Match) {
-        return null;
+    GtGenerator.prototype.CreateSwitchNode = function (Type, ParsedTree, Match, DefaultBlock) {
+        return new SwitchNode(Type, ParsedTree.KeyToken, Match, DefaultBlock);
     };
 
     GtGenerator.prototype.CreateWhileNode = function (Type, ParsedTree, Cond, Block) {
@@ -1117,7 +831,7 @@ var GtGenerator = (function () {
     };
 
     GtGenerator.prototype.CreateForNode = function (Type, ParsedTree, Cond, IterNode, Block) {
-        return new ForNode(Type, ParsedTree.KeyToken, Cond, Block, IterNode);
+        return new ForNode(Type, ParsedTree.KeyToken, Cond, IterNode, Block);
     };
 
     GtGenerator.prototype.CreateForEachNode = function (Type, ParsedTree, VarNode, IterNode, Block) {
@@ -1168,22 +882,30 @@ var GtGenerator = (function () {
         return new CommandNode(Type, ParsedTree.KeyToken, PipedNextNode);
     };
 
-    GtGenerator.prototype.GetNativeType = function (Value) {
-        var NativeType = null;
-        NativeType = LibGreenTea.GetNativeType(this.Context, Value);
-        if (NativeType == null) {
-            NativeType = this.Context.AnyType;
-        }
-        return NativeType;
+    /* language constructor */
+    GtGenerator.prototype.ImportNativeObject = function (ContextType, PackageName) {
+        LibGreenTea.VerboseLog(VerboseNative, "importing " + PackageName);
+
+        return null;
     };
 
-    GtGenerator.prototype.TransformNativeFuncs = function (NativeBaseType, FuncName) {
-        var TransformedResult = false;
+    GtGenerator.prototype.GetNativeType = function (Value) {
+        return LibGreenTea.GetNativeType(this.Context, Value);
+    };
 
-        return TransformedResult;
+    GtGenerator.prototype.LoadNativeField = function (NativeBaseType, FieldName) {
+        NativeBaseType.Context.RootNameSpace.SetUndefinedSymbol(ClassSymbol(NativeBaseType, FieldName));
+        NativeBaseType.Context.RootNameSpace.SetUndefinedSymbol(ClassSymbol(NativeBaseType, FieldName) + "=");
+        return false;
+    };
+
+    GtGenerator.prototype.LoadNativeMethods = function (NativeBaseType, FuncName) {
+        NativeBaseType.Context.RootNameSpace.SetUndefinedSymbol(ClassSymbol(NativeBaseType, FuncName));
+        return false;
     };
 
     GtGenerator.prototype.GenerateClassField = function (Type, ClassField) {
+        /*extension*/
     };
 
     GtGenerator.prototype.HasAnnotation = function (Annotation, Key) {
@@ -1197,29 +919,55 @@ var GtGenerator = (function () {
         return false;
     };
 
-    GtGenerator.prototype.ParseClassFlag = function (ClassFlag, Annotation) {
-        return ClassFlag;
-    };
-
-    GtGenerator.prototype.ParseFuncFlag = function (FuncFlag, Annotation) {
+    GtGenerator.prototype.ParseClassFlag = function (Flag, Annotation) {
         if (Annotation != null) {
             if (this.HasAnnotation(Annotation, "Export")) {
-                FuncFlag = FuncFlag | ExportFunc;
+                Flag = Flag | ExportFunc;
             }
             if (this.HasAnnotation(Annotation, "Public")) {
-                FuncFlag = FuncFlag | PublicFunc;
+                Flag = Flag | PublicFunc;
+            }
+            if (this.HasAnnotation(Annotation, "Virtual")) {
+                Flag = Flag | VirtualFunc;
+            }
+            if (this.HasAnnotation(Annotation, "Deprecated")) {
+                Flag = Flag | DeprecatedFunc;
             }
         }
-        return FuncFlag;
+        return Flag;
     };
 
-    GtGenerator.prototype.ParseVarFlag = function (VarFlag, Annotation) {
+    GtGenerator.prototype.ParseFuncFlag = function (Flag, Annotation) {
         if (Annotation != null) {
-            if (this.HasAnnotation(Annotation, "ReadOnly")) {
-                VarFlag = VarFlag | ReadOnlyVar;
+            if (this.HasAnnotation(Annotation, "Export")) {
+                Flag = Flag | ExportFunc;
+            }
+            if (this.HasAnnotation(Annotation, "Public")) {
+                Flag = Flag | PublicFunc;
+            }
+            if (this.HasAnnotation(Annotation, "Const")) {
+                Flag = Flag | ConstFunc;
+            }
+            if (this.HasAnnotation(Annotation, "Operator")) {
+                Flag = Flag | OperatorFunc;
+            }
+            if (this.HasAnnotation(Annotation, "Coercion")) {
+                Flag = Flag | CoercionFunc;
+            }
+            if (this.HasAnnotation(Annotation, "Deprecated")) {
+                Flag = Flag | DeprecatedFunc;
             }
         }
-        return VarFlag;
+        return Flag;
+    };
+
+    GtGenerator.prototype.ParseVarFlag = function (Flag, Annotation) {
+        if (Annotation != null) {
+            if (this.HasAnnotation(Annotation, "ReadOnly")) {
+                Flag = Flag | ReadOnlyVar;
+            }
+        }
+        return Flag;
     };
 
     GtGenerator.prototype.CreateFunc = function (FuncFlag, FuncName, BaseIndex, TypeList) {
@@ -1227,128 +975,172 @@ var GtGenerator = (function () {
     };
 
     GtGenerator.prototype.GenerateFunc = function (Func, ParamNameList, Body) {
+        /*extenstion*/
     };
 
     GtGenerator.prototype.SyncCodeGeneration = function () {
+        /*extension*/
     };
 
     GtGenerator.prototype.StopVisitor = function (Node) {
         Node.NextNode = null;
     };
 
+    GtGenerator.prototype.IsEmptyBlock = function (Node) {
+        return Node == null || (Node instanceof EmptyNode) && Node.NextNode == null;
+    };
+
+    //------------------------------------------------------------------------
     GtGenerator.prototype.VisitEmptyNode = function (EmptyNode) {
         LibGreenTea.DebugP("empty node: " + EmptyNode.Token.ParsedText);
     };
 
     GtGenerator.prototype.VisitInstanceOfNode = function (Node) {
+        /*extention*/
     };
 
     GtGenerator.prototype.VisitSelfAssignNode = function (Node) {
+        /*extention*/
     };
 
     GtGenerator.prototype.VisitTrinaryNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitExistsNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitCastNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitSliceNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitSuffixNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitUnaryNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitIndexerNode = function (Node) {
+        /*extension*/
     };
 
-    GtGenerator.prototype.VisitMessageNode = function (Node) {
+    GtGenerator.prototype.VisitArrayNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitWhileNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitDoWhileNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitForNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitForEachNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitConstNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitNewNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitNullNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitLocalNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitGetterNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitApplyNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitBinaryNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitAndNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitOrNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitAssignNode = function (Node) {
+        /*extension*/
     };
 
-    GtGenerator.prototype.VisitLetNode = function (Node) {
+    GtGenerator.prototype.VisitVarNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitIfNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitSwitchNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitReturnNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitLabelNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitJumpNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitBreakNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitContinueNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitTryNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitThrowNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitFunctionNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitErrorNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitCommandNode = function (Node) {
+        /*extension*/
     };
 
     GtGenerator.prototype.VisitBlock = function (Node) {
@@ -1359,6 +1151,7 @@ var GtGenerator = (function () {
         }
     };
 
+    // This must be extended in each language
     GtGenerator.prototype.IsStrictMode = function () {
         return false;
     };
@@ -1368,7 +1161,19 @@ var GtGenerator = (function () {
         return null;
     };
 
+    // EnforceConst :
+    GtGenerator.prototype.EvalApplyNode = function (Node, EnforceConst) {
+        return null;
+    };
+
+    GtGenerator.prototype.EvalArrayNode = function (Node, EnforceConst) {
+        var NewList = null;
+
+        return NewList;
+    };
+
     GtGenerator.prototype.FlushBuffer = function () {
+        /*extension*/
     };
 
     GtGenerator.prototype.BlockComment = function (Comment) {
@@ -1376,9 +1181,11 @@ var GtGenerator = (function () {
     };
 
     GtGenerator.prototype.StartCompilationUnit = function () {
+        /*extension*/
     };
 
     GtGenerator.prototype.FinishCompilationUnit = function () {
+        /*extension*/
     };
 
     GtGenerator.prototype.PushCode = function (Code) {
@@ -1398,6 +1205,7 @@ var GtGenerator = (function () {
     };
 
     GtGenerator.prototype.InvokeMainFunc = function (MainFuncName) {
+        /*extension*/
     };
     return GtGenerator;
 })();
@@ -1406,6 +1214,12 @@ var SourceGenerator = (function (_super) {
     __extends(SourceGenerator, _super);
     function SourceGenerator(TargetCode, OutputFile, GeneratorFlag) {
         _super.call(this, TargetCode, OutputFile, GeneratorFlag);
+        this.LineFeed = "\n";
+        this.IndentLevel = 0;
+        this.Tab = "   ";
+        this.CurrentLevelIndentString = null;
+        this.HeaderSource = "";
+        this.BodySource = "";
         this.HasLabelSupport = false;
         this.LogicalOrOperator = "||";
         this.LogicalAndOperator = "&&";
@@ -1413,12 +1227,9 @@ var SourceGenerator = (function (_super) {
         this.TrueLiteral = "true";
         this.FalseLiteral = "false";
         this.NullLiteral = "null";
-        this.LineFeed = "\n";
-        this.IndentLevel = 0;
-        this.Tab = "   ";
-        this.CurrentLevelIndentString = null;
-        this.HeaderSource = "";
-        this.BodySource = "";
+        this.BreakKeyword = "break";
+        this.ContinueKeyword = "continue";
+        this.LineComment = "//";
     }
     SourceGenerator.prototype.InitContext = function (Context) {
         _super.prototype.InitContext.call(this, Context);
@@ -1442,12 +1253,28 @@ var SourceGenerator = (function (_super) {
         this.BodySource += Text + this.LineFeed;
     };
 
+    SourceGenerator.prototype.WriteLineComment = function (Text) {
+        this.BodySource += this.LineComment + " " + Text + this.LineFeed;
+    };
+
+    SourceGenerator.prototype.FlushErrorReport = function () {
+        this.WriteLineCode("");
+        var Reports = this.Context.GetReportedErrors();
+        var i = 0;
+        while (i < Reports.length) {
+            this.WriteLineComment(Reports[i]);
+            i = i + 1;
+        }
+        this.WriteLineCode("");
+    };
+
     SourceGenerator.prototype.FlushBuffer = function () {
         LibGreenTea.WriteCode(this.OutputFile, this.HeaderSource + this.BodySource);
         this.HeaderSource = "";
         this.BodySource = "";
     };
 
+    /* GeneratorUtils */
     SourceGenerator.prototype.Indent = function () {
         this.IndentLevel += 1;
         this.CurrentLevelIndentString = null;
@@ -1478,18 +1305,10 @@ var SourceGenerator = (function (_super) {
             }
         }
         if ((typeof ConstValue == 'string' || ConstValue instanceof String)) {
-            var i = 0;
-            var Value = ConstValue.toString();
-            var List = Value.split("\n");
-            Value = "";
-            while (i < List.length) {
-                Value += List[i];
-                if (i > 0) {
-                    Value += "\n";
-                }
-                i = i + 1;
-            }
-            return Value;
+            return LibGreenTea.QuoteString(ConstValue);
+        }
+        if (ConstValue instanceof GreenTeaEnum) {
+            return "" + (ConstValue).EnumValue;
         }
         return ConstValue.toString();
     };
@@ -1507,8 +1326,15 @@ var SourceGenerator = (function (_super) {
     };
 
     SourceGenerator.prototype.VisitNode = function (Node) {
+        // meaning less ??
+        //		/*local*/Object ConstValue = Node.ToConstValue(false);
+        //		if(ConstValue != null) {
+        //			return this.StringifyConstValue(ConstValue);
+        //		}
+        //		else {
         Node.Evaluate(this);
         return this.PopSourceCode();
+        //		}
     };
 
     SourceGenerator.prototype.JoinCode = function (BeginCode, BeginIdx, ParamCode, EndCode, Delim) {
@@ -1535,9 +1361,9 @@ var SourceGenerator = (function (_super) {
         }
         if (Macro == null) {
             if (IsSuffixOp) {
-                Macro = FuncName + " $1";
-            } else {
                 Macro = "$1 " + FuncName;
+            } else {
+                Macro = FuncName + " $1";
             }
         }
         return Macro.replace("$1", Arg1);
@@ -1559,7 +1385,6 @@ var SourceGenerator = (function (_super) {
 
     SourceGenerator.prototype.GenerateFuncTemplate = function (ParamSize, Func) {
         var BeginIdx = 1;
-        var i = BeginIdx;
         var Template = "";
         var IsNative = false;
         if (Func == null) {
@@ -1574,6 +1399,7 @@ var SourceGenerator = (function (_super) {
         } else {
             Template = Func.GetNativeFuncName();
         }
+        var i = BeginIdx;
         if (IsNative == false) {
             Template += "(";
             while (i < ParamSize) {
@@ -1589,7 +1415,7 @@ var SourceGenerator = (function (_super) {
     };
 
     SourceGenerator.prototype.ApplyMacro = function (Template, NodeList) {
-        var ParamSize = ListSize(NodeList);
+        var ParamSize = LibGreenTea.ListSize(NodeList);
         var ParamIndex = ParamSize - 1;
         while (ParamIndex >= 1) {
             var Param = this.VisitNode(NodeList.get(ParamIndex));
@@ -1600,11 +1426,12 @@ var SourceGenerator = (function (_super) {
     };
 
     SourceGenerator.prototype.GenerateApplyFunc = function (Node) {
-        var ParamSize = ListSize(Node.Params);
+        var ParamSize = LibGreenTea.ListSize(Node.NodeList);
         var Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
-        return this.ApplyMacro(Template, Node.Params);
+        return this.ApplyMacro(Template, Node.NodeList);
     };
 
+    // Visitor API
     SourceGenerator.prototype.VisitEmptyNode = function (Node) {
         this.PushSourceCode("");
     };
@@ -1631,11 +1458,11 @@ var SourceGenerator = (function (_super) {
     };
 
     SourceGenerator.prototype.VisitIndexerNode = function (Node) {
-        this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + this.VisitNode(Node.IndexAt) + "]");
+        this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + this.VisitNode(Node.GetAt(0)) + "]");
     };
 
     SourceGenerator.prototype.VisitNewNode = function (Node) {
-        var ParamSize = ListSize(Node.Params);
+        var ParamSize = LibGreenTea.ListSize(Node.Params);
         var NewOperator = this.GetNewOperator(Node.Type);
         var Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
         Template = Template.replace("$1", NewOperator);
@@ -1691,7 +1518,7 @@ var SourceGenerator = (function (_super) {
     };
 
     SourceGenerator.prototype.VisitBreakNode = function (Node) {
-        var Code = "break";
+        var Code = this.BreakKeyword;
         if (this.HasLabelSupport) {
             var Label = Node.Label;
             if (Label != null) {
@@ -1703,7 +1530,7 @@ var SourceGenerator = (function (_super) {
     };
 
     SourceGenerator.prototype.VisitContinueNode = function (Node) {
-        var Code = "continue";
+        var Code = this.ContinueKeyword;
         if (this.HasLabelSupport) {
             var Label = Node.Label;
             if (Label != null) {
@@ -1715,9 +1542,14 @@ var SourceGenerator = (function (_super) {
     };
 
     SourceGenerator.prototype.VisitLabelNode = function (Node) {
+        //		/*local*/String Label = Node.Label;
+        //		this.PushSourceCode(Label + ":");
     };
 
     SourceGenerator.prototype.VisitJumpNode = function (Node) {
+        //		/*local*/String Label = Node.Label;
+        //		this.PushSourceCode("goto " + Label);
+        //		this.StopVisitor(Node);
     };
     return SourceGenerator;
 })(GtGenerator);

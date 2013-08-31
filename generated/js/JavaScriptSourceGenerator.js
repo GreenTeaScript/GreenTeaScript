@@ -1,3 +1,26 @@
+// ***************************************************************************
+// Copyright (c) 2013, JST/CREST DEOS project authors. All rights reserved.
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// *  Redistributions of source code must retain the above copyright notice,
+//    this list of conditions and the following disclaimer.
+// *  Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+// TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// **************************************************************************
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -45,16 +68,16 @@ var JavaScriptSourceGenerator = (function (_super) {
         this.PushSourceCode(Source);
     };
 
-    JavaScriptSourceGenerator.prototype.VisitLetNode = function (Node) {
-        var VarName = Node.VariableName;
+    JavaScriptSourceGenerator.prototype.VisitVarNode = function (Node) {
+        var VarName = Node.NativeName;
         var Source = (this.UseLetKeyword ? "let " : "var ") + " " + VarName;
         if (Node.InitNode != null) {
             Node.InitNode.Evaluate(this);
             Source += " = " + this.PopSourceCode();
         }
         Source += ";";
-        this.VisitBlockJSWithIndent(Node.BlockNode);
-        this.PushSourceCode(Source + this.PopSourceCode());
+        Source += this.VisitBlockJSWithIndent(Node.BlockNode);
+        this.PushSourceCode(Source);
     };
 
     JavaScriptSourceGenerator.prototype.VisitIfNode = function (Node) {
@@ -90,7 +113,7 @@ var JavaScriptSourceGenerator = (function (_super) {
         var Code = "try ";
         Code += this.VisitBlockJSWithIndent(Node.TryBlock);
         var Val = Node.CatchExpr;
-        Code += " catch (" + Val.Type.toString() + " " + Val.VariableName + ") ";
+        Code += " catch (" + Val.Type.toString() + " " + Val.NativeName + ") ";
         Code += this.VisitBlockJSWithIndent(Node.CatchBlock);
         if (Node.FinallyBlock != null) {
             Code += " finally " + this.VisitBlockJSWithIndent(Node.FinallyBlock);
@@ -109,6 +132,7 @@ var JavaScriptSourceGenerator = (function (_super) {
     };
 
     JavaScriptSourceGenerator.prototype.GenerateFunc = function (Func, NameList, Body) {
+        this.FlushErrorReport();
         var ArgCount = Func.Types.length - 1;
         var Code = "var " + Func.GetNativeFuncName() + " = (function(";
         var i = 0;
@@ -123,10 +147,31 @@ var JavaScriptSourceGenerator = (function (_super) {
         this.WriteLineCode(Code);
     };
 
+    /**
+    JavaScript code to be generated:
+    
+    var CLASS = (function (_super) {
+    __extends(CLASS, _super);                                #COMMENT23#
+    function CLASS(param) {                                   #COMMENT24#
+    _super.call(this, param);
+    this.FIELD = param;                                      #COMMENT25#
+    }
+    CLASS.STATIC_FIELD = "value";                      #COMMENT26#
+    
+    CLASS.prototype.METHOD = function () {    #COMMENT27#
+    }
+    CLASS.STATIC_METHOD = function () {         #COMMENT28#
+    }
+    return CLASS;
+    })(SUPERCLASS);
+    */
     JavaScriptSourceGenerator.prototype.GenerateClassField = function (Type, ClassField) {
         var TypeName = Type.ShortClassName;
         var Program = this.GetIndentString() + "var " + TypeName + " = (function() {" + this.LineFeed;
 
+        //		if(Type.SuperType != null) {
+        //			Program += "(" + Type.SuperType.ShortClassName + ")";
+        //		}
         this.Indent();
         Program += this.GetIndentString() + "function " + TypeName + "() {" + this.LineFeed;
         this.Indent();
@@ -137,7 +182,7 @@ var JavaScriptSourceGenerator = (function (_super) {
             if (!FieldInfo.Type.IsNative()) {
                 InitValue = this.NullLiteral;
             }
-            Program += this.GetIndentString() + this.GetRecvName() + "." + FieldInfo.NativeName + " = " + InitValue + ";" + this.LineFeed;
+            Program += this.GetIndentString() + "this" + "." + FieldInfo.NativeName + " = " + InitValue + ";" + this.LineFeed;
             i = i + 1;
         }
         this.UnIndent();
@@ -163,6 +208,9 @@ var JavaScriptSourceGenerator = (function (_super) {
 
     JavaScriptSourceGenerator.prototype.InvokeMainFunc = function (MainFuncName) {
         this.WriteLineCode(MainFuncName + "();");
+    };
+    JavaScriptSourceGenerator.prototype.GetRecvName = function () {
+        return "$__this";
     };
     return JavaScriptSourceGenerator;
 })(SourceGenerator);

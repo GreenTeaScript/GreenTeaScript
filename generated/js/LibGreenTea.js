@@ -1,9 +1,16 @@
+/// <reference path="SourceGenerator.ts" />
+/// <reference path="GreenTeaScript.ts" />
 Array.prototype.size = function () {
     return this.length;
 };
 
-Array.prototype.add = function (v) {
-    this.push(v);
+Array.prototype.add = function (arg1) {
+    if (arguments.length == 1) {
+        this.push(arg1);
+    } else {
+        var arg2 = arguments[1];
+        this.splice(arg1, 0, arg2);
+    }
 };
 
 Array.prototype.get = function (i) {
@@ -40,10 +47,6 @@ String.prototype["startsWith"] = function (key) {
 
 String.prototype["endsWith"] = function (key) {
     return this.lastIndexOf(key, 0) == 0;
-};
-
-String.prototype["replaceAll"] = function (key, rep) {
-    return this.replace(key, rep);
 };
 
 String.prototype["equals"] = function (other) {
@@ -85,6 +88,7 @@ var LibGreenTea = (function () {
     };
 
     LibGreenTea.GetStackInfo = function (depth) {
+        // TODO
         return " ";
     };
 
@@ -108,18 +112,26 @@ var LibGreenTea = (function () {
         }
     };
 
-    LibGreenTea.IsWhitespace = function (ch) {
+    LibGreenTea.IsWhitespace = function (Text, Pos) {
+        var ch = LibGreenTea.CharAt(Text, Pos);
         return ch == 32 || ch == 9;
     };
 
-    LibGreenTea.IsLetter = function (ch) {
+    LibGreenTea.IsVariableName = function (Text, Pos) {
+        var ch = LibGreenTea.CharAt(Text, Pos);
+        return LibGreenTea.IsLetter(Text, Pos) || ch == '_'.charCodeAt(0) || ch > 255;
+    };
+
+    LibGreenTea.IsLetter = function (Text, Pos) {
+        var ch = LibGreenTea.CharAt(Text, Pos);
         if (ch > 90) {
             ch -= 0x20;
         }
         return 65 <= ch && ch <= 90;
     };
 
-    LibGreenTea.IsDigit = function (ch) {
+    LibGreenTea.IsDigit = function (Text, Pos) {
+        var ch = LibGreenTea.CharAt(Text, Pos);
         return 48 <= ch && ch <= 57;
     };
 
@@ -131,12 +143,16 @@ var LibGreenTea = (function () {
         return String.fromCharCode(code);
     };
 
-    LibGreenTea.UnescapeString = function (Text) {
-        return Text;
+    LibGreenTea.UnquoteString = function (Text) {
+        var start = Text[0];
+        if (start == "\"" || start == "'") {
+            Text = Text.substring(1, Text.length - 1);
+        }
+        return Text.replace(/\\t/, "\t").replace(/\\n/, "\n").replace(/\\r/, "\r").replace(/\\"/, "\"").replace(/\\'/, "'").replace(/\\\\/, "\\");
     };
 
-    LibGreenTea.EscapeString = function (Text) {
-        return Text;
+    LibGreenTea.QuoteString = function (Text) {
+        return "\"" + Text.replace(/\t/, "\\t").replace(/\n/, "\\n").replace(/\r/, "\\r").replace(/"/, "\\\"").replace(/'/, "\\'").replace(/\\/, "\\") + "\"";
     };
 
     LibGreenTea.EqualsString = function (s1, s2) {
@@ -144,7 +160,13 @@ var LibGreenTea = (function () {
     };
 
     LibGreenTea.ParseInt = function (Text) {
+        //return number.parseInt(Text);
         return Text - 0;
+    };
+
+    LibGreenTea.IsUnixCommand = function (cmd) {
+        //FIXME
+        return false;
     };
 
     LibGreenTea.GetNativeType = function (Context, Value) {
@@ -154,6 +176,7 @@ var LibGreenTea = (function () {
             if ((Value | 0) == Value) {
                 return Context.IntType;
             }
+            //return Context.FloatType;
         }
         if (typeof Value == 'string' || Value instanceof String) {
             return Context.StringType;
@@ -166,12 +189,16 @@ var LibGreenTea = (function () {
         return NativeType;
     };
 
+    LibGreenTea.GetClassName = function (Value) {
+        return typeof (Value);
+    };
+
     LibGreenTea.StartsWith = function (self, key) {
         return self.indexOf(key, 0) == 0;
     };
 
     LibGreenTea.EndsWith = function (self, key) {
-        return self.lastIndexOf(key, 0) == 0;
+        return self.lastIndexOf(key, 0) == (self.length - key.length);
     };
 
     LibGreenTea.LookupNativeMethod = function (Callee, MethodName) {
@@ -219,6 +246,13 @@ var LibGreenTea = (function () {
         return null;
     };
 
+    LibGreenTea.ListSize = function (List) {
+        if (List == null) {
+            return 0;
+        }
+        return List.length;
+    };
+
     LibGreenTea.CompactTypeList = function (BaseIndex, List) {
         var Tuple = new Array(List.length - BaseIndex);
         for (var i = BaseIndex; i < List.length; i++) {
@@ -235,7 +269,7 @@ var LibGreenTea = (function () {
         return Map.keys();
     };
 
-    LibGreenTea.Usage = function () {
+    LibGreenTea.Usage = function (message) {
     };
 
     LibGreenTea.CodeGenerator = function (TargetCode, OutputFile, GeneratorFlag) {
@@ -278,15 +312,17 @@ var LibGreenTea = (function () {
             return fs.existsSync(FileName).toString();
         } else {
             return !!GreenTeaLibraries[FileName];
+            //throw new Error("LibGreenTea.HasFile is not implemented for this environment");
         }
         return false;
     };
 
-    LibGreenTea.LoadFile = function (FileName) {
+    LibGreenTea.LoadFile2 = function (FileName) {
         if (LibGreenTea.hasFileSystem) {
             return fs.readFileSync(FileName);
         } else {
             return GreenTeaLibraries[FileName];
+            //throw new Error("LibGreenTea.LoadFile is not implemented for this environment");
         }
         return "";
     };
@@ -296,7 +332,7 @@ var LibGreenTea = (function () {
     };
 
     LibGreenTea.GetLibFile = function (TargetCode, FileName) {
-        return LibGreenTea.LoadFile(LibGreenTea.GetLibPath(TargetCode, FileName));
+        return LibGreenTea.LoadFile2(LibGreenTea.GetLibPath(TargetCode, FileName));
     };
 
     LibGreenTea.GetLibPath = function (TargetCode, FileName) {
@@ -313,6 +349,10 @@ var LibGreenTea = (function () {
 
     LibGreenTea.LowerId = function (Fileline) {
         return Fileline | Fileline;
+    };
+
+    LibGreenTea.booleanValue = function (Value) {
+        return (Value);
     };
 
     LibGreenTea.Eval = function (SourceCode) {
@@ -342,10 +382,15 @@ var LibGreenTea = (function () {
     LibGreenTea.EvalGetter = function (Type, Value, FieldName) {
         return null;
     };
+    LibGreenTea.ImportNativeMethod = function (NativeFunc, FullName) {
+        return false;
+    };
     LibGreenTea.isNodeJS = typeof (process) != "undefined";
     LibGreenTea.hasFileSystem = typeof (fs) != "undefined";
 
     LibGreenTea.DebugMode = true;
+
+    LibGreenTea.VerboseMask = 0;
 
     LibGreenTea.Int32Max = Math.pow(2, 32);
     return LibGreenTea;

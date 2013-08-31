@@ -1,9 +1,11 @@
 /// <reference path="SourceGenerator.ts" />
+/// <reference path="GreenTeaScript.ts" />
 
 interface Array {
 	get(index: number): any;
 	set(index: number, value: any): void;
 	add(obj: any): void;
+	add(index: number, obj : any): void;
 	size(): number;
 	clear(): void;
 	remove(index: number): any;
@@ -13,8 +15,13 @@ Array.prototype.size = function(){
 	return this.length;
 }
 
-Array.prototype.add = function(v){
-	this.push(v);
+Array.prototype.add = function(arg1){
+	if(arguments.length == 1) {
+		this.push(arg1);
+	} else {
+		var arg2 = arguments[1];
+		this.splice(arg1, 0, arg2);
+	}
 }
 
 Array.prototype.get = function(i){
@@ -52,7 +59,9 @@ Object.prototype["equals"] = function(other): boolean{
 interface String {
 	startsWith(key: string): boolean;
 	endsWith(key: string): boolean;
-	replaceAll(key: string, rep: string);
+	lastIndexOf(ch: number) : number;
+	indexOf(ch: number) : number;
+	substring(BeginIdx : number, EndIdx : number) : string;
 }
 
 String.prototype["startsWith"] = function(key): boolean{
@@ -61,10 +70,6 @@ String.prototype["startsWith"] = function(key): boolean{
 
 String.prototype["endsWith"] = function(key): boolean{
 	return this.lastIndexOf(key, 0) == 0;
-}
-
-String.prototype["replaceAll"] = function(key, rep): string{
-	return this.replace(key, rep);
 }
 
 String.prototype["equals"] = function(other): boolean{
@@ -128,6 +133,8 @@ class LibGreenTea {
 		}
 	}
 
+	static VerboseMask: number = 0/*FIXME VerboseUndefined*/;
+
 	static VerboseLog(VerboseFlag: number, msg: string): void {
 		LibGreenTea.println(msg);
 	}
@@ -142,18 +149,26 @@ class LibGreenTea {
 		}
 	}
 
-	static IsWhitespace(ch: number): boolean {
+	static IsWhitespace(Text : string, Pos: number): boolean {
+		var ch :number = LibGreenTea.CharAt(Text, Pos);
 		return ch == 32/*SP*/ || ch == 9/*TAB*/;
 	}
 
-	static IsLetter(ch: number): boolean {
+	static IsVariableName(Text: string, Pos: number) : boolean {
+		var ch :number = LibGreenTea.CharAt(Text, Pos);
+		return LibGreenTea.IsLetter(Text, Pos) || ch == '_'.charCodeAt(0) || ch > 255;
+	}
+
+	static IsLetter(Text: string, Pos: number): boolean {
+		var ch :number = LibGreenTea.CharAt(Text, Pos);
 		if(ch > 90){
 			ch -= 0x20;
 		}
 		return 65/*A*/ <= ch && ch <= 90/*Z*/;
 	}
 
-	static IsDigit(ch: number): boolean {
+	static IsDigit(Text: string, Pos: number): boolean {
+		var ch :number = LibGreenTea.CharAt(Text, Pos);
 		return 48/*0*/ <= ch && ch <= 57/*9*/;
 	}
 
@@ -165,14 +180,28 @@ class LibGreenTea {
 		return String.fromCharCode(code);
 	}
 
-	static UnescapeString(Text: string): string {
-		//FIXME
-		return Text;
+	static UnquoteString(Text: string): string {
+		var start : string = Text[0];
+		if(start == "\"" || start == "'") {
+			Text = Text.substring(1, Text.length - 1);
+		}
+		return Text
+			.replace(/\\t/, "\t")
+			.replace(/\\n/, "\n")
+			.replace(/\\r/, "\r")
+			.replace(/\\"/, "\"")
+			.replace(/\\'/, "'")
+			.replace(/\\\\/, "\\");
 	}
 
-	static EscapeString(Text: string): string {
-		//FIXME
-		return Text;
+	static QuoteString(Text: string): string {
+		return "\"" + Text
+			.replace(/\t/, "\\t")
+			.replace(/\n/, "\\n")
+			.replace(/\r/, "\\r")
+			.replace(/"/, "\\\"")
+			.replace(/'/, "\\'")
+			.replace(/\\/, "\\") + "\"";
 	}
 
 	static EqualsString(s1: string, s2: string): boolean {
@@ -184,35 +213,42 @@ class LibGreenTea {
 		return <any>Text - 0;
 	}
 
-    static GetNativeType(Context: GtClassContext, Value: any): GtType {
-        var NativeType: GtType = null;
-        var NativeClassInfo: any = Value.constructor;
-        if(typeof Value == 'number' || Value instanceof Number) {
-            if((<any>Value | 0) == <any>Value) {
-                return Context.IntType;
-            }
-            //FIXME support Float
-        }
-        if(typeof Value == 'string' || Value instanceof String) {
-            return Context.StringType;
-        }
-        NativeType = <GtType> Context.ClassNameMap.get(NativeClassInfo.name);
-        if(NativeType == null) {
-            NativeType = new GtType(Context, NativeClass, NativeClassInfo.getSimpleName(), null, NativeClassInfo);
-            Context.ClassNameMap.put(NativeClassInfo.getName(), NativeType);
-        }
-        return NativeType;
-    }
-    
+	static IsUnixCommand(cmd: string): boolean {
+		//FIXME
+		return false;
+	}
+
+	static GetNativeType(Context: GtContext, Value: any): GtType {
+		var NativeType: GtType = null;
+		var NativeClassInfo: any = Value.constructor;
+		if(typeof Value == 'number' || Value instanceof Number) {
+			if((<any>Value | 0) == <any>Value) {
+				return Context.IntType;
+			}
+			//return Context.FloatType;
+		}
+		if(typeof Value == 'string' || Value instanceof String) {
+			return Context.StringType;
+		}
+		NativeType = <GtType> Context.ClassNameMap.get(NativeClassInfo.name);
+		if(NativeType == null) {
+			NativeType = new GtType(Context, NativeClass, NativeClassInfo.getSimpleName(), null, NativeClassInfo);
+			Context.ClassNameMap.put(NativeClassInfo.getName(), NativeType);
+		}
+		return NativeType;
+	}
+
+	static GetClassName(Value: any): string {
+		return typeof(Value);
+	}
 
 	static StartsWith(self: string, key: string): boolean {
 		return self.indexOf(key, 0) == 0;
 	}
 
 	static EndsWith(self: string, key: string): boolean {
-		return self.lastIndexOf(key, 0) == 0;
+		return self.lastIndexOf(key, 0) == (self.length - key.length);
 	}
-
 
 	static LookupNativeMethod(Callee: Object, MethodName: string): any {
 		return Callee[MethodName];
@@ -262,6 +298,13 @@ class LibGreenTea {
 		return null;
 	}
 
+	static ListSize(List: any[]) : number {
+		if(List == null) {
+			return 0;
+		}
+		return List.length;
+	}
+
 	static CompactTypeList(BaseIndex: number, List: GtType[]): GtType[] {
 		var Tuple: GtType[] = new Array<GtType>(List.length - BaseIndex);
 		for(var i = BaseIndex; i < List.length; i++) {
@@ -278,26 +321,26 @@ class LibGreenTea {
 		return Map.keys();
 	}
 
-	static Usage(): void {
+	static Usage(message: string): void {
 	}
 
 	static CodeGenerator(TargetCode: string, OutputFile: string, GeneratorFlag: number): GtGenerator{
 		var Extension: string = (OutputFile == null ? "-" : OutputFile)
-		if(LibGreenTea.EndsWith(Extension, ".js") || LibGreenTea.StartsWith(TargetCode, "js") || LibGreenTea.StartsWith(TargetCode, "javascript")){
-			return new JavaScriptSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
-		}else if(LibGreenTea.EndsWith(Extension, ".pl") || LibGreenTea.StartsWith(TargetCode, "perl")){
-			return new PerlSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
-		}else if(LibGreenTea.EndsWith(Extension, ".py") || LibGreenTea.StartsWith(TargetCode, "python")){
-			return new PythonSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
-		}else if(LibGreenTea.EndsWith(Extension, ".sh") || LibGreenTea.StartsWith(TargetCode, "bash")){
-			return new BashSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
-		}else if(LibGreenTea.EndsWith(Extension, ".java") || LibGreenTea.StartsWith(TargetCode, "java")){
-			return new JavaSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
-		}else if(LibGreenTea.EndsWith(Extension, ".c") || LibGreenTea.StartsWith(TargetCode, "c")){
-			return new CSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
-		}else if(LibGreenTea.EndsWith(Extension, "X") || LibGreenTea.StartsWith(TargetCode, "exe")){
-			throw new Error("JavaByteCodeGenerator is not implemented for this environment");
-		}
+			if(LibGreenTea.EndsWith(Extension, ".js") || LibGreenTea.StartsWith(TargetCode, "js") || LibGreenTea.StartsWith(TargetCode, "javascript")){
+				return new JavaScriptSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+			}else if(LibGreenTea.EndsWith(Extension, ".pl") || LibGreenTea.StartsWith(TargetCode, "perl")){
+				return new PerlSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+			}else if(LibGreenTea.EndsWith(Extension, ".py") || LibGreenTea.StartsWith(TargetCode, "python")){
+				return new PythonSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+			}else if(LibGreenTea.EndsWith(Extension, ".sh") || LibGreenTea.StartsWith(TargetCode, "bash")){
+				return new BashSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+			}else if(LibGreenTea.EndsWith(Extension, ".java") || LibGreenTea.StartsWith(TargetCode, "java")){
+				return new JavaSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+			}else if(LibGreenTea.EndsWith(Extension, ".c") || LibGreenTea.StartsWith(TargetCode, "c")){
+				return new CSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+			}else if(LibGreenTea.EndsWith(Extension, "X") || LibGreenTea.StartsWith(TargetCode, "exe")){
+				throw new Error("JavaByteCodeGenerator is not implemented for this environment");
+			}
 		return null;
 	}
 
@@ -328,7 +371,7 @@ class LibGreenTea {
 		return false;
 	}
 
-	static LoadFile(FileName: string): string{
+	static LoadFile2(FileName: string): string{
 		if(LibGreenTea.hasFileSystem){
 			return fs.readFileSync(FileName);
 		}else{
@@ -343,7 +386,7 @@ class LibGreenTea {
 	}
 
 	static GetLibFile(TargetCode: string, FileName: string): string {
-		return LibGreenTea.LoadFile(LibGreenTea.GetLibPath(TargetCode, FileName));
+		return LibGreenTea.LoadFile2(LibGreenTea.GetLibPath(TargetCode, FileName));
 	}
 
 	static GetLibPath(TargetCode: string, FileName: string): string {
@@ -362,6 +405,10 @@ class LibGreenTea {
 
 	static LowerId(Fileline: number): number {
 		return Fileline | Fileline;
+	}
+
+	static booleanValue(Value : Object) : boolean {
+		return <boolean>(Value);
 	}
 
 	static Eval(SourceCode: string): void {
@@ -391,4 +438,8 @@ class LibGreenTea {
 	public static EvalGetter(Type: GtType, Value: any, FieldName: string): any {
 		return null;
 	}
+	static ImportNativeMethod(NativeFunc: GtFunc, FullName: string) : boolean {
+		return false;
+	}
+
 }

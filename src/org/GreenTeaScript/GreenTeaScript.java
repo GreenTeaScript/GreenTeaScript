@@ -1048,7 +1048,7 @@ final class GtTokenContext extends GtStatic {
 	}
 
 	public final void SetSourceMap(String SourceMap) {
-		/*local*/int Index = SourceMap.lastIndexOf(':');
+		/*local*/int Index = SourceMap.lastIndexOf(":");
 		if(Index != -1) {
 			/*local*/String FileName = SourceMap.substring(0, Index);
 			/*local*/int Line = (/*cast*/int)LibGreenTea.ParseInt(SourceMap.substring(Index+1));

@@ -66,9 +66,9 @@ class JavaSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Program);
 	}
 
-	public VisitLetNode(Node: LetNode): void {
+	public VisitVarNode(Node: VarNode): void {
 		var Type: string = Node.DeclType.ShortClassName;
-		var VarName: string = Node.VariableName;
+		var VarName: string = Node.NativeName;
 		var Code: string = Type + " " + VarName;
 		if(Node.InitNode != null) {
 			Code += " = " + this.VisitNode(Node.InitNode);
@@ -113,6 +113,7 @@ class JavaSourceGenerator extends SourceGenerator {
 	}
 
 	public GenerateFunc(Func: GtFunc, ParamNameList: Array<string>, Body: GtNode): void {
+		this.FlushErrorReport();
 		//FIXME
 		var Program: string = "";
 		var RetTy: string = Func.GetReturnType().ShortClassName;

@@ -27,22 +27,25 @@
 //GreenTea Generator should be written in each language.
 
 class CSourceGenerator extends SourceGenerator {
-	Opt: ConstantFolder;
+	///*field*/ConstantFolder Opt;
 	 constructor(TargetCode: string, OutputFile: string, GeneratorFlag: number) {
 		super(TargetCode, OutputFile, GeneratorFlag);
-		this.Opt = new ConstantFolder(TargetCode, OutputFile, GeneratorFlag);
+		//this.Opt = new ConstantFolder(TargetCode, OutputFile, GeneratorFlag);
 		this.TrueLiteral  = "1";
 		this.FalseLiteral = "0";
 		this.NullLiteral = "NULL";
 		this.MemberAccessOperator = "->";
 	}
-	public InitContext(Context: GtClassContext): void {
+	public InitContext(Context: GtContext): void {
 		super.InitContext(Context);
-		this.Opt.InitContext(Context);
+		//this.Opt.InitContext(Context);
 	}
 
 	private GetLocalType(Type: GtType, IsPointer: boolean): string {
 		if(Type.IsDynamic() || Type.IsNative()) {
+			if(Type == Type.PackageNameSpace.Context.BooleanType) {
+				return "int";
+			}
 			return Type.ShortClassName;
 		}
 		var TypeName: string = "struct " + Type.ShortClassName;
@@ -77,7 +80,18 @@ class CSourceGenerator extends SourceGenerator {
 		}
 		var CurrentNode: GtNode = Node;
 		while(CurrentNode != null) {
-			Code += this.GetIndentString() + this.VisitNode(CurrentNode) + ";" + this.LineFeed;
+			if(!this.IsEmptyBlock(CurrentNode)) {
+				var Stmt: string = this.VisitNode(CurrentNode);
+				var SemiColon: string = "";
+				var LineFeed: string = "";
+				if(!Stmt.endsWith(";")) {
+					SemiColon = ";";
+				}
+				if(!Stmt.endsWith(this.LineFeed)) {
+					LineFeed = this.LineFeed;
+				}
+				Code += this.GetIndentString() + Stmt + SemiColon + LineFeed;
+			}
 			CurrentNode = CurrentNode.NextNode;
 		}
 		if(NeedBlock) {
@@ -97,15 +111,16 @@ class CSourceGenerator extends SourceGenerator {
 	public VisitDoWhileNode(Node: DoWhileNode): void {
 		var Program: string = "do";
 		this.VisitBlockEachStatementWithIndent(Node.LoopBody, true);
-		Program += " while(" + this.VisitNode(Node.CondExpr) + ")";
+		Program += this.PopSourceCode() + " while(" + this.VisitNode(Node.CondExpr) + ")";
 		this.PushSourceCode(Program);
 	}
 
 	public VisitForNode(Node: ForNode): void {
 		var Cond: string = this.VisitNode(Node.CondExpr);
 		var Iter: string = this.VisitNode(Node.IterExpr);
-		var Program: string = "for(; " + Cond  + "; " + Iter + ")";
-		Program += this.VisitNode(Node.LoopBody);
+		var Program: string = "for(; " + Cond  + "; " + Iter + ") ";
+		this.VisitBlockEachStatementWithIndent(Node.LoopBody, true);
+		Program += this.PopSourceCode();
 		this.PushSourceCode(Program);
 	}
 
@@ -122,15 +137,15 @@ class CSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Program);
 	}
 
-	public VisitLetNode(Node: LetNode): void {
+	public VisitVarNode(Node: VarNode): void {
 		var Type: string = this.LocalTypeName(Node.DeclType);
-		var VarName: string = Node.VariableName;
+		var VarName: string = Node.NativeName;
 		var Code: string = Type + " " + VarName;
 		var CreateNewScope: boolean = true;
 		if(Node.InitNode != null) {
 			Code += " = " + this.VisitNode(Node.InitNode);
 		}
-		Code +=  ";" + this.LineFeed;
+		Code += ";" + this.LineFeed;
 		if(CreateNewScope) {
 			Code += this.GetIndentString();
 		}
@@ -150,12 +165,39 @@ class CSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
+	public VisitSwitchNode(Node: SwitchNode): void {
+		var Code: string = "switch (" + this.VisitNode(Node.MatchNode) + ") {" + this.LineFeed;
+		var i: number = 0;
+		while(i < Node.CaseList.size()) {
+			var Case: GtNode  = Node.CaseList.get(i);
+			var Block: GtNode = Node.CaseList.get(i+1);
+			Code += this.GetIndentString() + "case " + this.VisitNode(Case) + ":";
+			if(this.IsEmptyBlock(Block)) {
+				this.Indent();
+				Code += this.LineFeed + this.GetIndentString() + "/* fall-through */" + this.LineFeed;
+				this.UnIndent();
+			}
+			else {
+				this.VisitBlockEachStatementWithIndent(Block, true);
+				Code += this.PopSourceCode() + this.LineFeed;
+			}
+			i = i + 2;
+		}
+		if(Node.DefaultBlock != null) {
+			Code += this.GetIndentString() + "default:" + this.LineFeed;
+			this.VisitBlockEachStatementWithIndent(Node.DefaultBlock, true);
+			Code += this.PopSourceCode();
+		}
+		Code += this.GetIndentString() + "}";
+		this.PushSourceCode(Code);
+	}
+
 	public VisitTryNode(Node: TryNode): void {
 		var Code: string = "try ";
 		this.VisitBlockEachStatementWithIndent(Node.TryBlock, true);
 		Code += this.PopSourceCode();
-		var Val: LetNode = <LetNode> Node.CatchExpr;
-		Code += " catch (" + Val.Type.toString() + " " + Val.VariableName + ") ";
+		var Val: VarNode = <VarNode> Node.CatchExpr;
+		Code += " catch (" + Val.Type.toString() + " " + Val.NativeName + ") ";
 		this.VisitBlockEachStatementWithIndent(Node.CatchBlock, true);
 		Code += this.PopSourceCode();
 		if(Node.FinallyBlock != null) {
@@ -181,7 +223,7 @@ class CSourceGenerator extends SourceGenerator {
 		var Code: string = "system(";
 		var i: number = 0;
 		var Command: string = "String __Command = ";
-		while(i < ListSize(Node.Params)) {
+		while(i < LibGreenTea.ListSize(Node.Params)) {
 			var Param: GtNode = Node.Params.get(i);
 			if(i != 0) {
 				Command += " + ";
@@ -195,11 +237,12 @@ class CSourceGenerator extends SourceGenerator {
 	}
 
 	public GenerateFunc(Func: GtFunc, ParamNameList: Array<string>, Body: GtNode): void {
+		this.FlushErrorReport();
 		var Code: string = "";
 		if(!Func.Is(ExportFunc)) {
 			Code = "static ";
 		}
-		Body = this.Opt.Fold(Body);
+		//Body = this.Opt.Fold(Body);
 		var RetTy: string = this.LocalTypeName(Func.GetReturnType());
 		Code += RetTy + " " + Func.GetNativeFuncName() + "(";
 		var i: number = 0;
@@ -218,7 +261,7 @@ class CSourceGenerator extends SourceGenerator {
 	}
 
 	public Eval(Node: GtNode): Object {
-		Node = this.Opt.Fold(Node);
+		//Node = this.Opt.Fold(Node);
 		this.VisitBlockEachStatementWithIndent(Node, false);
 		var Code: string = this.PopSourceCode();
 		if(LibGreenTea.EqualsString(Code, ";" + this.LineFeed)) {

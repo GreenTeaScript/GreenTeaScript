@@ -1,9 +1,32 @@
+// ***************************************************************************
+// Copyright (c) 2013, JST/CREST DEOS project authors. All rights reserved.
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// *  Redistributions of source code must retain the above copyright notice,
+//    this list of conditions and the following disclaimer.
+// *  Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+// TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// **************************************************************************
 var GtScriptRunner = (function () {
     function GtScriptRunner() {
     }
     GtScriptRunner.LoadFile = function (Path) {
         if (LibGreenTea.HasFile(Path)) {
-            return LibGreenTea.LoadFile(Path);
+            return LibGreenTea.LoadFile2(Path);
         }
         return null;
     };
@@ -11,10 +34,12 @@ var GtScriptRunner = (function () {
         var cmd = ["java", "-jar", "GreenTeaScript.jar", "-l", Target, Path];
         var Result = "";
 
+        //FIXME
         return Result;
     };
 
     GtScriptRunner.Test = function (Target, ScriptPath, ResultPath) {
+        //LangDeps.println("Testing " + ScriptPath + " (Target:" + Target + ") ... ");
         var Expected = GtScriptRunner.LoadFile(ResultPath);
         var Actual = GtScriptRunner.ExecuteScript(ScriptPath, Target);
         if (!Expected.equals(Actual)) {
@@ -24,6 +49,7 @@ var GtScriptRunner = (function () {
             console.log(Actual);
         }
         LibGreenTea.Assert(Expected.equals(Actual));
+        //LangDeps.println("Testing " + ScriptPath + " (Target:" + Target + ") ... OK");
     };
     return GtScriptRunner;
 })();
@@ -45,7 +71,7 @@ var GreenTeaScriptTest = (function () {
     GreenTeaScriptTest.CreateContext = function () {
         var CodeGeneratorName = "java";
         var Generator = LibGreenTea.CodeGenerator(CodeGeneratorName, "-", 0);
-        return new GtClassContext(new DScriptGrammar(), Generator);
+        return new GtContext(new GreenTeaGrammar(), Generator);
     };
 
     GreenTeaScriptTest.TokenizeOperator0 = function () {
