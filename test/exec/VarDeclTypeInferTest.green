@@ -1,0 +1,17 @@
+// written by kimio kuramitsu
+
+boolean TestFunc() {
+        var a = 1;
+	var b = true;
+	var s = "ABC";
+        assert(a==1);
+	assert(s == "ABC");
+	return b;
+}
+
+@Export 
+int main() {
+	assert(TestFunc());
+	return 0;
+}
+

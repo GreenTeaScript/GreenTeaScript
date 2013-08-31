@@ -1,0 +1,14 @@
+// written by kimio
+
+let a = [];
+let a0 = [1, 2, 3];
+
+@Export
+int main() {
+	assert(defined(a0));
+	assert(|a0| == 3);
+	assert(defined(a));
+	assert(|a| == 0);
+	return 0;
+}
+

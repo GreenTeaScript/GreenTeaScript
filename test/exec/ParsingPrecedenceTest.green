@@ -8,10 +8,11 @@ boolean TestFunc() {
 	assert(a*b+c == 10);
 	assert((a+b)*c == 20);
 	assert(a*(b+c)==14);
+	assert((3/-b*c)==-4);
 	return true;
 }
 
-@Export
+@Export 
 int main() {
 	assert(TestFunc());
 	return 0;

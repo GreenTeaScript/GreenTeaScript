@@ -1,0 +1,28 @@
+// written by kimio kuramitsu
+
+
+int TestFunc(int n) {
+	switch(n) {
+	case 0: 
+		n = 1; 
+		break;
+	case 1: 
+		n = 2;
+	case 2: 
+		n = 3; break;
+	default: 
+		n = 0;
+	}
+	return n;
+}
+
+@Export
+int main() {
+	assert(TestFunc(0) == 1);
+	assert(TestFunc(1) == 3); // break is skiped
+	assert(TestFunc(2) == 3);
+	assert(TestFunc(-1) == 0);
+	return 0;
+}
+
+

@@ -1,0 +1,39 @@
+// written by kimio kuramitsu
+
+class Person1 {
+	String name;
+	int age;
+}
+
+boolean TestFunc1() {
+	Person1 p = Person1();
+	assert(p.name == null);
+	assert(p.age == 0);
+	return true;
+}
+
+class Person2 {
+	String name;
+	int age;
+	constructor(String name, int age) {
+		this.name = name;
+		this.age = age;
+	}
+}
+
+boolean TestFunc2() {
+	Person2 p = Person2("naruto", 17);
+	assert(p.name == "naruto");
+	assert(p.age == 17);
+	return true;
+}
+
+@Export
+int main() {
+	assert(TestFunc1());
+	assert(TestFunc2());
+	return 0;
+}
+
+
+

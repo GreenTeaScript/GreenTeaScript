@@ -1,0 +1,20 @@
+// written by kimio kuramitsu
+
+boolean TestIntFunc() {
+	int a = 3;
+	a++;
+	assert(a == 4);
+	++a;
+	assert(a == 5);
+	a--;
+	assert(a == 4);
+	--a;
+	assert(a == 3);
+	return true;
+}
+
+@Export
+int main() {
+	assert(TestIntFunc());
+	return 0;
+}

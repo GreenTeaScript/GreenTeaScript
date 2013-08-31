@@ -1,0 +1,17 @@
+// written by kimio kuramitsu
+
+boolean TestFunc() {
+	int n = 100;
+	String s = n;   // explicit convert to String
+	assert(s == "100");
+	int m = (int)s;  // implicit convert to int
+	assert(m == 100);
+	return true;
+}
+
+@Export
+int main() {
+	assert(TestFunc());
+	return 0;
+}
+

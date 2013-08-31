@@ -1,0 +1,33 @@
+// written by kimio
+
+System.p("hello,\\nworld");
+// written by kimio
+
+System.p("hello,\bworld");
+// written by kimio
+
+System.p("hello,\aworld");
+// written by kimio
+
+System.p("hello,\"world");
+// written by kimio
+
+System.p("hello,\x20world");
+// written by kimio
+
+System.p("hello,\nworld");
+// written by kimio
+
+System.p("hello,\fworld");
+// written by kimio
+
+System.p("hello,\'world");
+// written by kimio
+
+System.p("hello,\\\n\"world");
+// written by kimio
+
+System.p("hello,\tworld");
+// written by kimio
+
+System.p("hello,\u0020world");

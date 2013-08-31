@@ -1,0 +1,14 @@
+// written by kimio kuramitsu
+
+@Export
+int main() {
+	//assert(0b10 == 2);
+	//assert(1_000_000 == 1000000);
+	//assert(0xdeadbeef == 3735928559);
+	//assert(0xDEADBEEF == 3735928559);
+	//assert(1000000L == 1000000);
+	//assert(0777 == 511);
+	//assert(1234km == 1234);  // ignored
+	return 0;
+}
+
