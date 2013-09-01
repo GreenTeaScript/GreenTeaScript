@@ -57,8 +57,8 @@ interface GtConst {
 	// FuncFlag
 	public final static int		ExportFunc		    = 1 << 0;  // @Export
 	public final static int     PublicFunc          = 1 << 1;  // @Public
-	public final static int		NativeFunc		    = 1 << 2;  
-	public final static int		VirtualFunc		    = 1 << 3;  
+	public final static int		NativeFunc		    = 1 << 2;
+	public final static int		VirtualFunc		    = 1 << 3;
 	public final static int		ConstFunc			= 1 << 4;  // @Const
 	public final static int     DeprecatedFunc      = 1 << 5;  // @Deprecated
 
@@ -1475,7 +1475,7 @@ final class GtTypeEnv extends GtStatic {
 
 	public final GtNode CreateCoercionNode(GtType Type, GtFunc Func, GtNode Node) {
 		/*local*/GtNode ApplyNode = this.Generator.CreateApplyNode(Type, null, Func);
-		GtNode TypeNode = this.Generator.CreateConstNode(Type.Context.TypeType, null, Type);
+		/*local*/GtNode TypeNode = this.Generator.CreateConstNode(Type.Context.TypeType, null, Type);
 		ApplyNode.Append(TypeNode);
 		ApplyNode.Append(TypeNode);
 		ApplyNode.Append(Node);
@@ -1970,7 +1970,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		if(NextChar == '*') {
 			Level = 1;
 			// SourceMap ${file:line}
-			if(LibGreenTea.CharAt(SourceText, NextPos+1) == '$' && LibGreenTea.CharAt(SourceText, NextPos+2) == '{') { 
+			if(LibGreenTea.CharAt(SourceText, NextPos+1) == '$' && LibGreenTea.CharAt(SourceText, NextPos+2) == '{') {
 				/*local*/int StartPos = NextPos + 3;
 				NextPos += 3;
 				while(NextChar != 0) {
@@ -2453,7 +2453,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, NameSpace, OperatorToken, null);
 		NewTree.SetSyntaxTreeAt(LeftHandTerm, LeftTree);
 		NewTree.SetSyntaxTreeAt(RightHandTerm, RightTree);
-		if(RightTree.NextTree != null) {  // necesarry; don't remove 
+		if(RightTree.NextTree != null) {  // necesarry; don't remove
 			GtStatic.LinkTree(NewTree, RightTree.NextTree);
 			RightTree.NextTree = null;
 		}
@@ -2755,7 +2755,7 @@ final class GreenTeaGrammar extends GtGrammar {
 
 	public static GtNode TypeAssign(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtNode LeftNode = ParsedTree.TypeCheckNodeAt(LeftHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-		
+
 		if(LeftNode instanceof LocalNode || LeftNode instanceof GetterNode || LeftNode instanceof IndexerNode) {
 			/*local*/GtNode RightNode = ParsedTree.TypeCheckNodeAt(RightHandTerm, Gamma, LeftNode.Type, DefaultTypeCheckPolicy);
 			return Gamma.Generator.CreateAssignNode(LeftNode.Type, ParsedTree, LeftNode, RightNode);
@@ -4064,7 +4064,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		NameSpace.AppendSyntax("enum", FunctionB(this, "ParseEnum"), FunctionC(this, "TypeEnum"));
 		NameSpace.AppendSyntax("switch", FunctionB(this, "ParseSwitch"), FunctionC(this, "TypeSwitch"));
 		NameSpace.AppendSyntax("$CaseBlock$", FunctionB(this, "ParseCaseBlock"), null);
-		
+
 //		NameSpace.DefineTokenFunc("Aa-/1.<>|", FunctionA(this, "SymbolShellToken")); // overloading
 //		NameSpace.AppendSyntax("$ShellExpression$", FunctionB(this, "ParseShell"), FunctionC(this, "TypeShell"));
 
@@ -4085,7 +4085,7 @@ final class GtStat {
 		this.VarDeclInfer = 0;
 		this.VarDeclAny = 0;
 		this.VarDeclInferAny = 0;
-		
+
 		this.MatchCount     = 0;
 		this.BacktrackCount = 0;
 	}
