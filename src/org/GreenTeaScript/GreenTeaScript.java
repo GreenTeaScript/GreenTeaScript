@@ -1546,7 +1546,7 @@ final class GtTypeEnv extends GtStatic {
 		/*local*/GtFunc Func = ParsedTree.NameSpace.GetConverterFunc(Node.Type, Type, true);
 		if(Func != null && (Func.Is(CoercionFunc) || IsFlag(TypeCheckPolicy, CastPolicy))) {
 			/*local*/GtNode ApplyNode = this.Generator.CreateApplyNode(Type, ParsedTree, Func);
-			GtNode TypeNode = this.Generator.CreateConstNode(Type.Context.TypeType, ParsedTree, Type);
+			/*local*/GtNode TypeNode = this.Generator.CreateConstNode(Type.Context.TypeType, ParsedTree, Type);
 			ApplyNode.Append(TypeNode);
 			ApplyNode.Append(TypeNode);
 			ApplyNode.Append(Node);

@@ -60,7 +60,6 @@ distts: buildts
 	mkdir -p generated/js/
 	cp src/TypeScript/*.ts generated/js/
 	cp src/TypeScript/*.js generated/js/
-#	cp src/TypeScript/*.js.map generated/js/
 
 clean:
 	-rm -rf bin/*.class *.jar GTAGS GPATH GRTAGS
