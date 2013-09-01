@@ -50,8 +50,10 @@ class GtType extends GtStatic {
 		this.SearchSuperFuncClass = null;
 		this.DefaultNullValue = DefaultNullValue;
 		this.NativeSpec = NativeSpec;
-		this.ClassId = Context.ClassCount;
-		Context.ClassCount += 1;
+		if(!IsFlag(ClassFlag, TypeParameter)) {
+			this.ClassId = Context.ClassCount;
+			Context.ClassCount += 1;
+		}
 		this.TypeParams = null;
 	}
 
@@ -90,11 +92,16 @@ class GtType extends GtStatic {
 	}
 
 	public final String GetUniqueName() {
-		if(LibGreenTea.DebugMode) {
-			return this.BaseType.ShortClassName + NativeNameSuffix + this.ClassId;
+		if(IsFlag(this.ClassFlag, TypeParameter)) {
+			return this.ShortClassName;
 		}
 		else {
-			return NativeNameSuffix + this.ClassId;
+			if(LibGreenTea.DebugMode) {
+				return this.BaseType.ShortClassName + NativeNameSuffix + this.ClassId;
+			}
+			else {
+				return NativeNameSuffix + this.ClassId;
+			}
 		}
 	}
 
@@ -136,37 +143,16 @@ class GtType extends GtStatic {
 		return (this == this.Context.ArrayType);
 	}
 
-	public final boolean IsTypeParam() {
-		return IsFlag(this.ClassFlag, TypeParameter);
-	}
-
 	public final boolean IsEnumType() {
 		return IsFlag(this.ClassFlag, EnumClass);
 	}
 
-	public GtType RealType(GtTypeEnv Gamma, ArrayList<GtType> TypeList) {
+	public final boolean IsTypeParam() {
+		return IsFlag(this.ClassFlag, TypeParameter);
+	}
+
+	public GtType RealType(GtTypeEnv Gamma) {
 		if(this.IsTypeParam()) {
-			/*local*/GtToken Token = ((/*cast*/GtToken)this.NativeSpec);
-			/*local*/int Index = Token.ParsedText.indexOf('_'); // T$1_0
-			/*local*/int ParamIndex = 1;
-			/*local*/int TypeParamIndex = -1;
-			if(Index != -1) {
-				ParamIndex = (/*cast*/int)LibGreenTea.ParseInt(Token.ParsedText.substring(2, Index)) - 1;
-				TypeParamIndex = (/*cast*/int)LibGreenTea.ParseInt(Token.ParsedText.substring(Index+1));
-			}
-			else {
-				ParamIndex = (/*cast*/int)LibGreenTea.ParseInt(Token.ParsedText.substring(2)) - 1;
-			}
-			if(ParamIndex >= 0 && ParamIndex < TypeList.size()) {
-				/*local*/GtType RealType = TypeList.get(ParamIndex);
-				if(TypeParamIndex < 0) {
-					return RealType;
-				}
-				if(RealType.IsGenericType() && TypeParamIndex < RealType.TypeParams.length) {
-					return RealType.TypeParams[TypeParamIndex];
-				}
-			}
-			Gamma.Context.ReportError(ErrorLevel, Token, "illegal type reference: " + Token.ParsedText);
 			return null;
 		}
 		return this;
@@ -392,7 +378,7 @@ class GtPolyFunc extends GtStatic {
 		return null;
 	}
 
-	public GtFunc IncrementalMatch(int FuncParamSize, ArrayList<GtNode> NodeList) {
+	public final GtFunc IncrementalMatch(int FuncParamSize, ArrayList<GtNode> NodeList) {
 		/*local*/int i = this.FuncList.size() - 1;
 		/*local*/GtFunc ResolvedFunc = null;
 		while(i >= 0) {
@@ -470,10 +456,7 @@ class GtPolyFunc extends GtStatic {
 		/*local*/GtFunc ResolvedFunc = this.IncrementalMatch(FuncParamSize, NodeList);
 		while(ResolvedFunc == null && TreeIndex < LibGreenTea.ListSize(ParsedTree.TreeList)) {
 			/*local*/GtNode Node = ParsedTree.TypeCheckAt(TreeIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-			NodeList.add(Node);
-			if(Node.IsError()) {
-				return null;
-			}
+			GtStatic.AppendTypedNode(NodeList, Node);
 			TreeIndex = TreeIndex + 1;
 			ResolvedFunc = this.IncrementalMatch(FuncParamSize, NodeList);
 		}
@@ -483,10 +466,7 @@ class GtPolyFunc extends GtStatic {
 		while(TreeIndex < LibGreenTea.ListSize(ParsedTree.TreeList)) {
 			/*local*/GtType ContextType = ResolvedFunc.Types[NodeList.size()];
 			/*local*/GtNode Node = ParsedTree.TypeCheckAt(TreeIndex, Gamma, ContextType, DefaultTypeCheckPolicy);
-			NodeList.add(Node);
-			if(Node.IsError()) {
-				return null;
-			}
+			GtStatic.AppendTypedNode(NodeList, Node);
 			TreeIndex = TreeIndex + 1;
 		}
 		return ResolvedFunc;

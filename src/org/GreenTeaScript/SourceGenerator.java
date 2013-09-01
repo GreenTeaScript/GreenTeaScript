@@ -798,8 +798,12 @@ class GtGenerator extends GtStatic {
 		return new ApplyNode(Type, ParsedTree == null ? GtTokenContext.NullToken : ParsedTree.KeyToken, Func);
 	}
 
-	public GtNode CreateNewNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func) {
-		return new NewNode(Type, ParsedTree.KeyToken, Func);
+	public GtNode CreateNewNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, ArrayList<GtNode> NodeList) {
+		NewNode Node = new NewNode(Type, ParsedTree.KeyToken, Func);
+		if(NodeList != null) {
+			Node.AppendNodeList(NodeList);
+		}
+		return Node;
 	}
 
 	public GtNode CreateUnaryNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, GtNode Expr) {
