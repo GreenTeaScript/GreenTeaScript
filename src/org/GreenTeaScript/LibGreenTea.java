@@ -236,12 +236,12 @@ public abstract class LibGreenTea {
 
 	public final static GtType GetNativeType(GtContext Context, Object Value) {
 		GtType NativeType = null;
-		Class<?> NativeClassInfo = Value instanceof Class<?> ? (Class<?>)Value : Value.getClass();
-		NativeType = (GtType) Context.ClassNameMap.get(NativeClassInfo.getName());
+		Class<?> NativeClass = Value instanceof Class<?> ? (Class<?>)Value : Value.getClass();
+		NativeType = (/*cast*/GtType) Context.ClassNameMap.get(NativeClass.getCanonicalName());
 		if(NativeType == null) {
-			NativeType = new GtType(Context, GtStatic.NativeClass, NativeClassInfo.getSimpleName(), null, NativeClassInfo);
-			Context.SetGlobalTypeName(NativeClassInfo.getName(), NativeType);
-			LibGreenTea.VerboseLog(GtStatic.VerboseNative, "binding native class: " + NativeClassInfo.getName());
+			NativeType = new GtType(Context, GtStatic.NativeClass, NativeClass.getCanonicalName(), null, NativeClass);
+			Context.SetNativeTypeName(NativeClass.getCanonicalName(), NativeType);
+			LibGreenTea.VerboseLog(GtStatic.VerboseNative, "binding native class: " + NativeClass.getCanonicalName());
 		}
 		return NativeType;
 	}
@@ -253,6 +253,7 @@ public abstract class LibGreenTea {
 	public final static boolean MatchNativeMethod(GtType FuncType, Method JavaMethod) {
 		/*local*/GtContext Context = FuncType.Context;
 		/*local*/GtType ReturnType = FuncType.TypeParams[0];
+		//System.err.println("return: " + ReturnType + ", " + LibGreenTea.GetNativeType(Context, JavaMethod.getReturnType()));
 		if(ReturnType != Context.VarType || ReturnType != Context.VoidType) {
 			if(ReturnType != LibGreenTea.GetNativeType(Context, JavaMethod.getReturnType())) {
 				return false;
@@ -263,27 +264,30 @@ public abstract class LibGreenTea {
 			StartIndex = 1;			
 		}
 		else {
-			GtType RecvType = LibGreenTea.GetNativeType(Context, JavaMethod.getDeclaringClass());
-			if(FuncType.TypeParams.length == 1 || RecvType != FuncType.TypeParams[1]) {
+			GtType JavaRecvType = LibGreenTea.GetNativeType(Context, JavaMethod.getDeclaringClass());
+			//System.err.println("recv: " + FuncType.TypeParams[1] + ", " + JavaRecvType);
+			if(FuncType.TypeParams.length == 1 || JavaRecvType != FuncType.TypeParams[1]) {
 				return false;
 			}
 			StartIndex = 2;
 		}
-		/*local*/int ParamSize = FuncType.TypeParams.length - 2;
+		/*local*/int ParamSize = FuncType.TypeParams.length - StartIndex;
 		/*local*/Class<?>[] ParamTypes = JavaMethod.getParameterTypes();
 		if(ParamTypes != null) {
+			//System.err.println("params: " + ParamSize + ", " + ParamTypes.length);
 			if(ParamTypes.length != ParamSize) return false;
 			for(int j = 0; j < ParamTypes.length; j++) {
 				if(ParamTypes[j] == Object.class) continue; // OK
-				GtType JType = LibGreenTea.GetNativeType(Context, ParamTypes[j]);
-				if(JType != FuncType.TypeParams[StartIndex+j]) {
+				GtType JavaParamType = LibGreenTea.GetNativeType(Context, ParamTypes[j]);
+				//System.err.println("param: " + FuncType.TypeParams[StartIndex+j] + ", " + JavaParamType);
+				if(JavaParamType != FuncType.TypeParams[StartIndex+j]) {
 					return false;
 				}
 			}
 			return true;
 		}
 		else {
-			return ParamSize == 0;
+			return (ParamSize == 0);
 		}
 	}
 

@@ -1674,7 +1674,7 @@ final class GtNameSpace extends GtStatic {
 		if(ClassInfo.PackageNameSpace == null) {
 			ClassInfo.PackageNameSpace = this;
 			if(this.PackageName != null) {
-				this.Context.SetGlobalTypeName(this.PackageName + "." + ClassInfo.ShortClassName, ClassInfo);
+				this.Context.SetNativeTypeName(this.PackageName + "." + ClassInfo.ShortClassName, ClassInfo);
 			}
 		}
 		if(ClassInfo.BaseType == ClassInfo) {
@@ -4124,7 +4124,7 @@ final class GtContext extends GtStatic {
 		this.VoidType    = this.RootNameSpace.AppendTypeName(new GtType(this, NativeClass, "void", null, Void.class));
 		this.BooleanType = this.RootNameSpace.AppendTypeName(new GtType(this, NativeClass, "boolean", false, Boolean.class));
 		this.IntType     = this.RootNameSpace.AppendTypeName(new GtType(this, NativeClass, "int", 0L, Long.class));
-		this.StringType  = this.RootNameSpace.AppendTypeName(new GtType(this, NativeClass, "String", "", String.class));
+		this.StringType  = this.RootNameSpace.AppendTypeName(new GtType(this, NativeClass, "String", null, String.class));
 		this.VarType     = this.RootNameSpace.AppendTypeName(new GtType(this, 0, "var", null, null));
 		this.AnyType     = this.RootNameSpace.AppendTypeName(new GtType(this, DynamicClass, "any", null, null));
 		this.TypeType    = this.RootNameSpace.AppendTypeName(this.TopType.CreateSubType(0, "Type", null, null));
@@ -4137,12 +4137,14 @@ final class GtContext extends GtStatic {
 		this.FuncType.TypeParams[0] = this.VarType;  // for PolyFunc
 
 //ifdef JAVA
-		this.SetGlobalTypeName("java.lang.Void",    this.VoidType);
-		this.SetGlobalTypeName("java.lang.Boolean", this.BooleanType);
-//		this.SetGlobalTypeName("java.lang.Integer", this.IntType);
-		this.SetGlobalTypeName("java.lang.Long",    this.IntType);
-//		this.SetGlobalTypeName("java.lang.Short",   this.IntType);
-		this.SetGlobalTypeName("java.lang.String",  this.StringType);
+		this.SetNativeTypeName("void",    this.VoidType);
+		this.SetNativeTypeName("java.lang.Object",  this.AnyType);
+		this.SetNativeTypeName("boolean", this.BooleanType);
+		this.SetNativeTypeName("int",     this.IntType);
+		this.SetNativeTypeName("short",   this.IntType);
+		this.SetNativeTypeName("long",    this.IntType);
+		this.SetNativeTypeName("java.lang.String",  this.StringType);
+		this.SetNativeTypeName("org.GreenTeaScript.GtType", this.TypeType);
 //endif VAJA
 		Grammar.LoadTo(this.RootNameSpace);
 		this.TopLevelNameSpace = new GtNameSpace(this, this.RootNameSpace);
@@ -4180,7 +4182,7 @@ final class GtContext extends GtStatic {
 		return false;
 	}
 
-	public void SetGlobalTypeName(String Name, GtType Type) {
+	public void SetNativeTypeName(String Name, GtType Type) {
 		this.ClassNameMap.put(Name, Type);
 		LibGreenTea.VerboseLog(VerboseSymbol, "global type name: " + Name + ", " + Type);
 	}
@@ -4203,7 +4205,7 @@ final class GtContext extends GtStatic {
 				}
 			}
 			GenericType = BaseType.CreateGenericType(BaseIdx, TypeList, s);
-			this.SetGlobalTypeName(MangleName, GenericType);
+			this.SetNativeTypeName(MangleName, GenericType);
 		}
 		return GenericType;
 	}
