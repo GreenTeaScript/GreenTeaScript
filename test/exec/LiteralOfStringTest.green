@@ -1,33 +1,16 @@
 // written by kimio
 
-System.p("hello,\\nworld");
-// written by kimio
-
-System.p("hello,\bworld");
-// written by kimio
-
-System.p("hello,\aworld");
-// written by kimio
-
-System.p("hello,\"world");
-// written by kimio
-
-System.p("hello,\x20world");
-// written by kimio
-
-System.p("hello,\nworld");
-// written by kimio
-
-System.p("hello,\fworld");
-// written by kimio
-
-System.p("hello,\'world");
-// written by kimio
-
-System.p("hello,\\\n\"world");
-// written by kimio
-
-System.p("hello,\tworld");
-// written by kimio
-
-System.p("hello,\u0020world");
+@Export int main() {
+    print("hello,\\nworld");
+    print("hello,\bworld");
+    print("hello,\aworld");
+    print("hello,\"world");
+    print("hello,\x20world");
+    print("hello,\nworld");
+    print("hello,\fworld");
+    print("hello,\'world");
+    print("hello,\\\n\"world");
+    print("hello,\tworld");
+    print("hello,\u0020world");
+    return 0;
+}

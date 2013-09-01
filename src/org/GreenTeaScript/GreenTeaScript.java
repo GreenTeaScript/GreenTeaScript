@@ -2751,8 +2751,8 @@ final class GreenTeaGrammar extends GtGrammar {
 	public static GtNode TypeInstanceOf(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtNode LeftNode = ParsedTree.TypeCheckNodeAt(LeftHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
 		/*local*/GtType GivenType = ParsedTree.GetSyntaxTreeAt(RightHandTerm).GetParsedType();
-		if(GivenType != null) {
-			return Gamma.CreateSyntaxErrorNode(ParsedTree,  "type is expected in" + ParsedTree.KeyToken);
+		if(GivenType == null) {
+			return Gamma.CreateSyntaxErrorNode(ParsedTree,  "type is expected in " + ParsedTree.KeyToken);
 		}
 		return Gamma.Generator.CreateInstanceOfNode(Gamma.BooleanType, ParsedTree, LeftNode, GivenType);
 	}
@@ -2769,11 +2769,24 @@ final class GreenTeaGrammar extends GtGrammar {
 
 	public static GtNode TypeSelfAssign(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtNode LeftNode = ParsedTree.TypeCheckNodeAt(LeftHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-		if(LeftNode instanceof LocalNode || LeftNode instanceof GetterNode || LeftNode instanceof IndexerNode) {
-			/*local*/GtNode RightNode = ParsedTree.TypeCheckNodeAt(RightHandTerm, Gamma, LeftNode.Type, DefaultTypeCheckPolicy);
-			return Gamma.Generator.CreateSelfAssignNode(LeftNode.Type, ParsedTree, LeftNode, RightNode);
+		if(!(LeftNode instanceof LocalNode || LeftNode instanceof GetterNode || LeftNode instanceof IndexerNode)) {
+			return Gamma.CreateSyntaxErrorNode(ParsedTree, "not assigned to a left hand value");
 		}
-		return Gamma.CreateSyntaxErrorNode(ParsedTree, "not assigned to a left hand value");
+		/*local*/GtNode RightNode = ParsedTree.TypeCheckNodeAt(RightHandTerm, Gamma, LeftNode.Type, DefaultTypeCheckPolicy);
+		/*local*/String OperatorSymbol = ParsedTree.KeyToken.ParsedText;
+		OperatorSymbol = OperatorSymbol.substring(0, OperatorSymbol.length() - 1);
+		/*local*/GtFunc Func = null;
+		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(LeftNode.Type, OperatorSymbol, true);
+		if(PolyFunc != null) {
+			/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
+			ParamList.add(LeftNode);
+			Func = PolyFunc.ResolveFunc(Gamma, ParsedTree, 1, ParamList);
+			if(Func != null) {
+				LeftNode = ParamList.get(0);
+				RightNode = ParamList.get(1);
+			}
+		}
+		return Gamma.Generator.CreateSelfAssignNode(LeftNode.Type, ParsedTree, Func, LeftNode, RightNode);
 	}
 
 	public static GtSyntaxTree ParseIncl(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
@@ -2796,7 +2809,7 @@ final class GreenTeaGrammar extends GtGrammar {
 			}
 			if(LeftNode instanceof LocalNode || LeftNode instanceof GetterNode || LeftNode instanceof IndexerNode) {
 				/*local*/GtNode ConstNode = Gamma.Generator.CreateConstNode(LeftNode.Type, ParsedTree, 1);
-				return Gamma.Generator.CreateSelfAssignNode(LeftNode.Type, ParsedTree, LeftNode, ConstNode);
+				return Gamma.Generator.CreateSelfAssignNode(LeftNode.Type, ParsedTree, null, LeftNode, ConstNode);
 			}
 			return Gamma.CreateSyntaxErrorNode(ParsedTree, "neither incremental nor decrimental");
 		}

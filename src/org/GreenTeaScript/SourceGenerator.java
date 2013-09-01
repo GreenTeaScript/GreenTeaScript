@@ -236,10 +236,12 @@ class AssignNode extends GtNode {
 
 //E.g., $LeftNode += $RightNode
 class SelfAssignNode extends GtNode {
-	/*field*/public GtNode   LeftNode;
-	/*field*/public GtNode	 RightNode;
-	SelfAssignNode/*constructor*/(GtType Type, GtToken Token, GtNode Left, GtNode Right) {
+	/*field*/public GtFunc Func;
+	/*field*/public GtNode LeftNode;
+	/*field*/public GtNode RightNode;
+	SelfAssignNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func, GtNode Left, GtNode Right) {
 		super(Type, Token);
+		this.Func  = Func;
 		this.LeftNode  = Left;
 		this.RightNode = Right;
 	}
@@ -828,8 +830,8 @@ class GtGenerator extends GtStatic {
 		return new AssignNode(Type, ParsedTree.KeyToken, Left, Right);
 	}
 
-	public GtNode CreateSelfAssignNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Left, GtNode Right) {
-		return new SelfAssignNode(Type, ParsedTree.KeyToken, Left, Right);
+	public GtNode CreateSelfAssignNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, GtNode Left, GtNode Right) {
+		return new SelfAssignNode(Type, ParsedTree.KeyToken, Func, Left, Right);
 	}
 
 	public GtNode CreateVarNode(GtType Type, GtSyntaxTree ParsedTree, GtType DeclType, String VariableName, GtNode InitNode, GtNode Block) {
@@ -1421,6 +1423,35 @@ class SourceGenerator extends GtGenerator {
 		return this.CurrentLevelIndentString;
 	}
 
+	public void VisitBlockEachStatementWithIndent(GtNode Node, boolean NeedBlock) {
+		/*local*/String Code = "";
+		if(NeedBlock) {
+			Code += "{" + this.LineFeed;
+			this.Indent();
+		}
+		/*local*/GtNode CurrentNode = Node;
+		while(CurrentNode != null) {
+			if(!this.IsEmptyBlock(CurrentNode)) {
+				/*local*/String Stmt = this.VisitNode(CurrentNode);
+				/*local*/String SemiColon = "";
+				/*local*/String LineFeed = "";
+				if(!Stmt.endsWith(";")) {
+					SemiColon = ";";
+				}
+				if(!Stmt.endsWith(this.LineFeed)) {
+					LineFeed = this.LineFeed;
+				}
+				Code += this.GetIndentString() + Stmt + SemiColon + LineFeed;
+			}
+			CurrentNode = CurrentNode.NextNode;
+		}
+		if(NeedBlock) {
+			this.UnIndent();
+			Code += this.GetIndentString() + "}";
+		}
+		this.PushSourceCode(Code);
+	}
+
 	protected String StringifyConstValue(Object ConstValue) {
 		if(ConstValue == null) {
 			return this.NullLiteral;
@@ -1455,15 +1486,8 @@ class SourceGenerator extends GtGenerator {
 	}
 
 	public final String VisitNode(GtNode Node) {
-		// meaning less ??
-//		/*local*/Object ConstValue = Node.ToConstValue(false);
-//		if(ConstValue != null) {
-//			return this.StringifyConstValue(ConstValue);
-//		}
-//		else {
 		Node.Evaluate(this);
 		return this.PopSourceCode();
-//		}
 	}
 
 	public final String JoinCode(String BeginCode, int BeginIdx, String[] ParamCode, String EndCode, String Delim) {
@@ -1569,6 +1593,10 @@ class SourceGenerator extends GtGenerator {
 		this.PushSourceCode("");
 	}
 
+	@Override public void VisitInstanceOfNode(InstanceOfNode Node) {
+		this.PushSourceCode(this.VisitNode(Node.ExprNode) + " instanceof " + Node.TypeInfo);
+	}
+
 	@Override public final void VisitConstNode(ConstNode Node) {
 		this.PushSourceCode(this.StringifyConstValue(Node.ConstValue));
 	}
@@ -1618,6 +1646,13 @@ class SourceGenerator extends GtGenerator {
 			LibGreenTea.DebugP(FuncName + " is not supported suffix operator!!");
 		}
 		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc1(Node.Func, FuncName, true, Expr) + ")");
+	}
+
+	@Override public void VisitSelfAssignNode(SelfAssignNode Node) {
+		/*local*/String FuncName = Node.Token.ParsedText;
+		/*local*/String Left = this.VisitNode(Node.LeftNode);
+		/*local*/String Right = this.VisitNode(Node.RightNode);
+		this.PushSourceCode("(" + Left + " = " + SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right) + ")");
 	}
 
 	@Override public void VisitUnaryNode(UnaryNode Node) {
@@ -1674,6 +1709,33 @@ class SourceGenerator extends GtGenerator {
 		}
 		this.PushSourceCode(Code);
 		this.StopVisitor(Node);
+	}
+
+	@Override public void VisitSwitchNode(SwitchNode Node) {
+		/*local*/String Code = "switch (" + this.VisitNode(Node.MatchNode) + ") {" + this.LineFeed;
+		/*local*/int i = 0;
+		while(i < Node.CaseList.size()) {
+			/*local*/GtNode Case  = Node.CaseList.get(i);
+			/*local*/GtNode Block = Node.CaseList.get(i+1);
+			Code += this.GetIndentString() + "case " + this.VisitNode(Case) + ":";
+			if(this.IsEmptyBlock(Block)) {
+				this.Indent();
+				Code += this.LineFeed + this.GetIndentString() + "/* fall-through */" + this.LineFeed;
+				this.UnIndent();
+			}
+			else {
+				this.VisitBlockEachStatementWithIndent(Block, true);
+				Code += this.PopSourceCode() + this.LineFeed;
+			}
+			i = i + 2;
+		}
+		if(Node.DefaultBlock != null) {
+			Code += this.GetIndentString() + "default: ";
+			this.VisitBlockEachStatementWithIndent(Node.DefaultBlock, true);
+			Code += this.PopSourceCode() + this.LineFeed;
+		}
+		Code += this.GetIndentString() + "}";
+		this.PushSourceCode(Code);
 	}
 
 	@Override public void VisitLabelNode(LabelNode Node) {
