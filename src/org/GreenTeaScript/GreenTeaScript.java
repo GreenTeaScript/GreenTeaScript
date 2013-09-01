@@ -3654,7 +3654,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		/*local*/int ClassFlag = 0; //Gamma.Generator.ParseClassFlag(0, ParsedTree);
 		/*local*/GtType NewType = SuperType.CreateSubType(ClassFlag, ClassName, null, null);
 		// FIXME: Obviously strange
-		/*local*/GreenTeaTopObject DefaultObject = new GreenTeaTopObject(NewType);
+		/*local*/GreenTeaObject DefaultObject = new GreenTeaTopObject(NewType);
 		NewType.DefaultNullValue = DefaultObject;
 		ClassNameSpace.AppendTypeName(NewType);  // temporary
 		ClassDeclTree.ConstValue = NewType;
@@ -4159,11 +4159,7 @@ final class GtContext extends GtStatic {
 		this.SetNativeTypeName("java.lang.Object",  this.AnyType);
 		this.SetNativeTypeName("boolean", this.BooleanType);
 		this.SetNativeTypeName("java.lang.Boolean", this.BooleanType);
-//		this.SetNativeTypeName("int",     this.IntType);
-//		this.SetNativeTypeName("short",   this.IntType);
 		this.SetNativeTypeName("long",    this.IntType);
-//		this.SetNativeTypeName("java.lang.Integer",     this.IntType);
-//		this.SetNativeTypeName("java.lang.Short",   this.IntType);
 		this.SetNativeTypeName("java.lang.Long",    this.IntType);
 		this.SetNativeTypeName("java.lang.String",  this.StringType);
 		this.SetNativeTypeName("org.GreenTeaScript.GtType", this.TypeType);
@@ -4185,11 +4181,8 @@ final class GtContext extends GtStatic {
 		else if(Value instanceof GtPolyFunc) {
 			return this.FuncType;
 		}
-		else if(Value instanceof GreenTeaTopObject) {
-			return ((/*cast*/GreenTeaTopObject)Value).GreenType;
-		}
-		else if(Value instanceof GtType) {
-			return this.TypeType;
+		else if(Value instanceof GreenTeaObject) {
+			return ((/*cast*/GreenTeaObject)Value).GetGreenType();
 		}
 		else {
 			return this.Generator.GetNativeType(Value);

@@ -296,27 +296,11 @@ class GtFunc extends GtStatic {
 		return (/*cast*/String)this.NativeRef;
 	}
 
-	@Deprecated public final String ApplyNativeMacro(int BaseIndex, String[] ParamCode) {
-		/*local*/String NativeMacro = "$1 " + this.FuncName + " $2";
-		if(IsFlag(this.FuncFlag, NativeMacroFunc)) {
-			NativeMacro = this.GetNativeMacro();
-		}
-		/*local*/String Code = NativeMacro.replace("$1", ParamCode[BaseIndex]);
-		if(ParamCode.length == BaseIndex + 1) {
-			Code = Code.replace("$2", "");
-		}
-		else {
-			Code = Code.replace("$2", ParamCode[BaseIndex + 1]);
-		}
-		return Code;
-	}
-
 	public final void SetNativeMethod(int OptionalFuncFlag, Object Method) {
 		LibGreenTea.Assert(this.NativeRef == null);
 		this.FuncFlag |= NativeFunc | OptionalFuncFlag;
 		this.NativeRef = Method;
 	}
-
 }
 
 class GtPolyFunc extends GtStatic {
@@ -510,10 +494,17 @@ class GtPolyFunc extends GtStatic {
 
 }
 
-public class GreenTeaTopObject {
+public interface GreenTeaObject {
+	public GtType GetGreenType();
+}
+
+class GreenTeaTopObject implements GreenTeaObject {
 	/*field*/public GtType GreenType;
 	GreenTeaTopObject/*constructor*/(GtType GreenType) {
 		this.GreenType = GreenType;
+	}
+	public final GtType GetGreenType() {
+		return this.GreenType;
 	}
 }
 
