@@ -253,8 +253,8 @@ public abstract class LibGreenTea {
 	public final static boolean MatchNativeMethod(GtType FuncType, Method JavaMethod) {
 		/*local*/GtContext Context = FuncType.Context;
 		/*local*/GtType ReturnType = FuncType.TypeParams[0];
-		//System.err.println("return: " + ReturnType + ", " + LibGreenTea.GetNativeType(Context, JavaMethod.getReturnType()));
-		if(ReturnType != Context.VarType || ReturnType != Context.VoidType) {
+		System.err.println("return: " + ReturnType + ", " + LibGreenTea.GetNativeType(Context, JavaMethod.getReturnType()));
+		if(!ReturnType.IsVarType()) {
 			if(ReturnType != LibGreenTea.GetNativeType(Context, JavaMethod.getReturnType())) {
 				return false;
 			}
@@ -265,7 +265,7 @@ public abstract class LibGreenTea {
 		}
 		else {
 			GtType JavaRecvType = LibGreenTea.GetNativeType(Context, JavaMethod.getDeclaringClass());
-			//System.err.println("recv: " + FuncType.TypeParams[1] + ", " + JavaRecvType);
+			System.err.println("recv: " + FuncType.TypeParams[1] + ", " + JavaRecvType);
 			if(FuncType.TypeParams.length == 1 || JavaRecvType != FuncType.TypeParams[1]) {
 				return false;
 			}
@@ -274,12 +274,12 @@ public abstract class LibGreenTea {
 		/*local*/int ParamSize = FuncType.TypeParams.length - StartIndex;
 		/*local*/Class<?>[] ParamTypes = JavaMethod.getParameterTypes();
 		if(ParamTypes != null) {
-			//System.err.println("params: " + ParamSize + ", " + ParamTypes.length);
+			System.err.println("params: " + ParamSize + ", " + ParamTypes.length);
 			if(ParamTypes.length != ParamSize) return false;
 			for(int j = 0; j < ParamTypes.length; j++) {
-				if(ParamTypes[j] == Object.class) continue; // OK
 				GtType JavaParamType = LibGreenTea.GetNativeType(Context, ParamTypes[j]);
-				//System.err.println("param: " + FuncType.TypeParams[StartIndex+j] + ", " + JavaParamType);
+				System.err.println("param: " + FuncType.TypeParams[StartIndex+j] + ", " + JavaParamType);
+				if(FuncType.TypeParams[StartIndex+j].IsVarType()) continue; // OK
 				if(JavaParamType != FuncType.TypeParams[StartIndex+j]) {
 					return false;
 				}
@@ -359,6 +359,14 @@ public abstract class LibGreenTea {
 			LibGreenTea.SetNativeMethod(NativeFunc, JavaMethod);
 			if(NativeFunc.GetReturnType().IsVarType()) {
 				NativeFunc.SetReturnType(LibGreenTea.GetNativeType(NativeFunc.GetContext(), JavaMethod.getReturnType()));
+			}
+			int StartIdx = NativeFunc.Is(GtStatic.NativeStaticFunc) ? 1 : 2;
+			Class<?>[] p = JavaMethod.getParameterTypes();
+			for(int i = 0; i < p.length; i++) {
+				if(NativeFunc.Types[StartIdx + i].IsVarType()) {
+					NativeFunc.Types[StartIdx + i] = LibGreenTea.GetNativeType(NativeFunc.GetContext(), p[i]);
+					NativeFunc.FuncType = null; // reset
+				}
 			}
 			return true;
 		}

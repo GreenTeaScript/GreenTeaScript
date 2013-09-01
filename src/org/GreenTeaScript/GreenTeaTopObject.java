@@ -178,7 +178,7 @@ class GtFunc extends GtStatic {
 	/*field*/public String			FuncName;
 	/*field*/public String          MangledName;
 	/*field*/public GtType[]		Types;
-	/*field*/private GtType         FuncType;
+	/*field*/public GtType         FuncType;
 	/*field*/public int FuncId      ;
 	/*field*/public Object          NativeRef;  // Abstract function if null
 	/*field*/public String[]        GenericParam;
@@ -242,6 +242,7 @@ class GtFunc extends GtStatic {
 	public final void SetReturnType(GtType ReturnType) {
 		LibGreenTea.Assert(this.GetReturnType().IsVarType());
 		this.Types[0] = ReturnType;
+		this.FuncType = null; // reset
 	}
 
 	public final GtType GetRecvType() {

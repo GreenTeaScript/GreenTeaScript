@@ -3431,7 +3431,6 @@ final class GreenTeaGrammar extends GtGrammar {
 		/*local*/ArrayList<String> ParamNameList = new ArrayList<String>();
 		/*local*/GtType RecvType = null;
 		if(ParsedTree.HasNodeAt(FuncDeclClass)) {
-			FuncFlag |= VirtualFunc;
 			RecvType = ParsedTree.GetSyntaxTreeAt(FuncDeclClass).GetParsedType();
 			TypeList.add(RecvType);
 			Gamma.AppendRecv(RecvType);
@@ -3452,11 +3451,30 @@ final class GreenTeaGrammar extends GtGrammar {
 			TreeIndex += 3;
 		}
 		/*local*/GtFunc DefinedFunc = null;
-		if(FuncName.equals("converter")) {
-			DefinedFunc = GreenTeaGrammar.CreateCoercionFunc(Gamma, ParsedTree, FuncFlag, 0, TypeList);
+		/*local*/boolean DefinedPrototype = false;
+		if(IsFlag(FuncFlag, ConverterFunc)) {
+			if(TypeList.size() != 3) {
+				return Gamma.CreateSyntaxErrorNode(ParsedTree, "converter takes one parameter");
+			}
+			/*local*/GtType ToType = TypeList.get(0);
+//			/*local*/GtType FromType = TypeList.get(2);
+			DefinedFunc = Gamma.Generator.CreateFunc(FuncFlag, "To" + ToType.ShortClassName, 0, TypeList);
+//			DefinedFunc = GreenTeaGrammar.CreateCoercionFunc(Gamma, ParsedTree, FuncFlag, 0, TypeList);
 		}
 		else {
-			DefinedFunc = GreenTeaGrammar.CreateFunc(Gamma, ParsedTree, FuncFlag, FuncName, 0, TypeList);
+			DefinedFunc = ParsedTree.NameSpace.GetFuncParam(FuncName, 0, LibGreenTea.CompactTypeList(0, TypeList));
+			if(DefinedFunc != null) {
+				if(DefinedFunc.IsAbstract()) {
+					DefinedPrototype = true;
+				}
+				else {
+					DefinedFunc = null;
+				}
+			}
+			if(DefinedFunc == null) {
+				DefinedFunc = Gamma.Generator.CreateFunc(FuncFlag, FuncName, 0, TypeList);
+			}
+			//DefinedFunc = GreenTeaGrammar.CreateFunc(Gamma, ParsedTree, FuncFlag, FuncName, 0, TypeList);
 		}
 		if(ParsedTree.ConstValue instanceof String) {
 			DefinedFunc.SetNativeMacro((/*cast*/String)ParsedTree.ConstValue);
@@ -3477,44 +3495,26 @@ final class GreenTeaGrammar extends GtGrammar {
 				Gamma.Generator.InvokeMainFunc(DefinedFunc.GetNativeFuncName());
 			}
 		}
+		if(!DefinedPrototype) {
+			if(IsFlag(FuncFlag, ConverterFunc)) {
+				ParsedTree.NameSpace.SetConverterFunc(DefinedFunc.GetFuncParamType(1), DefinedFunc.GetReturnType(), DefinedFunc);
+			}
+			else if(FuncName.equals("constructor")) {
+				ParsedTree.NameSpace.AppendConstructor(DefinedFunc.GetRecvType(), DefinedFunc);
+			}
+			else {
+				if(LibGreenTea.IsLetter(DefinedFunc.FuncName, 0)) {
+					ParsedTree.NameSpace.AppendFunc(DefinedFunc);
+				}
+				if(DefinedFunc.GetRecvType() != Gamma.VoidType) {
+					ParsedTree.NameSpace.AppendMethod(DefinedFunc.GetRecvType(), DefinedFunc);
+				}
+			}
+		}
 		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
 	}
 
-	private static GtFunc CreateCoercionFunc(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, int FuncFlag, int BaseIndex, ArrayList<GtType> TypeList) {
-		/*local*/GtType ToType = TypeList.get(0);
-		/*local*/GtType FromType = TypeList.get(2);
-		/*local*/GtFunc DefinedFunc = ParsedTree.NameSpace.GetConverterFunc(FromType, ToType, false);
-		if(DefinedFunc != null) {
-			Gamma.Context.ReportError(WarningLevel, ParsedTree.KeyToken, "already defined: " + FromType + " to " + ToType);
-		}
-		DefinedFunc = Gamma.Generator.CreateFunc(FuncFlag, "to" + ToType.ShortClassName, BaseIndex, TypeList);
-		ParsedTree.NameSpace.SetConverterFunc(FromType, ToType, DefinedFunc);
-		return DefinedFunc;
-	}
-
-	private static GtFunc CreateFunc(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, int FuncFlag, String FuncName, int BaseIndex, ArrayList<GtType> TypeList) {
-		/*local*/GtType RecvType = (TypeList.size() > 1) ? TypeList.get(1) : Gamma.VoidType;
-		/*local*/GtFunc DefinedFunc = ParsedTree.NameSpace.GetFuncParam(FuncName, 0, LibGreenTea.CompactTypeList(BaseIndex, TypeList));
-		if(DefinedFunc != null && DefinedFunc.IsAbstract()) {
-			return DefinedFunc;
-		}
-		if(DefinedFunc == null) {
-			DefinedFunc = Gamma.Generator.CreateFunc(FuncFlag, FuncName, BaseIndex, TypeList);
-		}
-		if(FuncName.equals("constructor")) {
-			ParsedTree.NameSpace.AppendConstructor(RecvType, DefinedFunc);
-		}
-		else {
-			if(LibGreenTea.IsLetter(DefinedFunc.FuncName, 0)) {
-				ParsedTree.NameSpace.AppendFunc(DefinedFunc);
-			}
-			if(RecvType != Gamma.VoidType) {
-				ParsedTree.NameSpace.AppendMethod(RecvType, DefinedFunc);
-			}
-		}
-		return DefinedFunc;
-	}
-
+	// Array
 	public static GtSyntaxTree ParseArray(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/int OldFlag = TokenContext.SetSkipIndent(true);
 		/*local*/GtSyntaxTree ArrayTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("["), null);

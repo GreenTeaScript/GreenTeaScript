@@ -38,6 +38,9 @@ boolean !=(int x, int y);
 @Coercion @Const int converter(any x) import org.GreenTeaScript.GreenTeaRuntime.AnyToInt;
 @Coercion @Const String converter(int x) import org.GreenTeaScript.GreenTeaRuntime.IntToString;
 @Const int converter(String x) import org.GreenTeaScript.GreenTeaRuntime.StringToInt;
+@Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.l2i;
+@Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.ja2l;
+@Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.l2ja;
 
 // String
 String +(String x, String y);
@@ -53,4 +56,3 @@ void print(any s);
 void println(any s);
 void assert(boolean b) import org.GreenTeaScript.GreenTeaRuntime.assert_;
 
-void test2(String[] s, ArrayList<String> b) import org.GreenTeaScript.GreenTeaRuntime.test2;
