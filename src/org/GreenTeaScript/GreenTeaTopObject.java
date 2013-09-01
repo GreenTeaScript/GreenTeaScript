@@ -397,8 +397,8 @@ class GtPolyFunc extends GtStatic {
 		while(i >= 0) {
 			/*local*/GtFunc Func = this.FuncList.get(i);
 			if(Func.GetFuncParamSize() == 2 && Func.Types[1].Accept(BinaryNodes[0].Type)) {
-				/*local*/GtFunc TypeCoercion = Gamma.NameSpace.GetCoercionFunc(BinaryNodes[1].Type, Func.Types[2], true);
-				if(TypeCoercion != null) {
+				/*local*/GtFunc TypeCoercion = Gamma.NameSpace.GetConverterFunc(BinaryNodes[1].Type, Func.Types[2], true);
+				if(TypeCoercion != null && TypeCoercion.Is(CoercionFunc)) {
 					BinaryNodes[1] = Gamma.CreateCoercionNode(Func.Types[2], TypeCoercion, BinaryNodes[1]);
 					return Func;
 				}
@@ -449,8 +449,8 @@ class GtPolyFunc extends GtStatic {
 						p = p + 1;
 						continue;
 					}
-					/*local*/GtFunc TypeCoercion = Gamma.NameSpace.GetCoercionFunc(Node.Type, ParamType, true);
-					if(TypeCoercion != null) {
+					/*local*/GtFunc TypeCoercion = Gamma.NameSpace.GetConverterFunc(Node.Type, ParamType, true);
+					if(TypeCoercion != null && TypeCoercion.Is(CoercionFunc)) {
 						if(Coercions == null) {
 							Coercions = new GtNode[NodeList.size()];
 						}

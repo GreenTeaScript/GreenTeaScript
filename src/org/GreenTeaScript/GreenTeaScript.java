@@ -1543,8 +1543,8 @@ final class GtTypeEnv extends GtStatic {
 		if(Node.Type == Type || Type == this.VarType || Type.Accept(Node.Type)) {
 			return Node;
 		}
-		/*local*/GtFunc Func = ParsedTree.NameSpace.GetCoercionFunc(Node.Type, Type, true);
-		if(Func != null && IsFlag(TypeCheckPolicy, CastPolicy)) {
+		/*local*/GtFunc Func = ParsedTree.NameSpace.GetConverterFunc(Node.Type, Type, true);
+		if(Func != null && (Func.Is(CoercionFunc) || IsFlag(TypeCheckPolicy, CastPolicy))) {
 			/*local*/GtNode ApplyNode = this.Generator.CreateApplyNode(Type, ParsedTree, Func);
 			ApplyNode.Append(Node);
 			return ApplyNode;
@@ -1714,7 +1714,7 @@ final class GtNameSpace extends GtStatic {
 		return null;
 	}
 
-	public final GtFunc GetCoercionFunc(GtType FromType, GtType ToType, boolean RecursiveSearch) {
+	public final GtFunc GetConverterFunc(GtType FromType, GtType ToType, boolean RecursiveSearch) {
 		/*local*/Object Func = this.Context.RootNameSpace.GetClassSymbol(FromType, ToType.GetUniqueName(), RecursiveSearch);
 		if(Func instanceof GtFunc) {
 			return (/*cast*/GtFunc)Func;
@@ -3466,7 +3466,7 @@ final class GreenTeaGrammar extends GtGrammar {
 	private static GtFunc CreateCoercionFunc(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, int FuncFlag, int BaseIndex, ArrayList<GtType> TypeList) {
 		/*local*/GtType ToType = TypeList.get(0);
 		/*local*/GtType FromType = TypeList.get(1);
-		/*local*/GtFunc DefinedFunc = ParsedTree.NameSpace.GetCoercionFunc(FromType, ToType, false);
+		/*local*/GtFunc DefinedFunc = ParsedTree.NameSpace.GetConverterFunc(FromType, ToType, false);
 		if(DefinedFunc != null) {
 			Gamma.Context.ReportError(WarningLevel, ParsedTree.KeyToken, "already defined: " + FromType + " to " + ToType);
 		}

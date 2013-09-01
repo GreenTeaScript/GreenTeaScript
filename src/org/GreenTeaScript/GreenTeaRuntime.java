@@ -61,7 +61,7 @@ public class GreenTeaRuntime {
 	public final static Object DynamicConvertTo(GtType ToType, Object Value) {
 		if(Value != null) {
 			GtType FromType = ToType.Context.GuessType(Value);
-			GtFunc Func = ToType.Context.RootNameSpace.GetCoercionFunc(FromType, ToType, true);
+			GtFunc Func = ToType.Context.RootNameSpace.GetConverterFunc(FromType, ToType, true);
 			if(Func != null) {
 				return LibGreenTea.Apply2(Func.NativeRef, null, ToType, Value);
 			}
