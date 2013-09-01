@@ -1331,6 +1331,10 @@ class GtSyntaxTree extends GtStatic {
 		this.ConstValue = ConstValue;
 	}
 
+	public GtSyntaxTree CreateConstTree(Object ConstValue) {
+		return new GtSyntaxTree(this.NameSpace.GetPattern("$Const$"), this.NameSpace, this.KeyToken, ConstValue);
+	}
+
 
 }
 
@@ -2723,6 +2727,13 @@ final class GreenTeaGrammar extends GtGrammar {
 			/*local*/Object Func = ((/*cast*/ConstNode)FuncNode).ConstValue;
 			if(Func instanceof GtType) {  // constructor;
 				/*local*/GtType ClassType = (/*cast*/GtType)Func;
+				if(ClassType.IsVarType()) {
+					ClassType = ContextType;
+					if(ClassType.IsVarType()) {
+						return Gamma.CreateSyntaxErrorNode(ParsedTree, "ambigious constructor: " + FuncNode.Token);
+					}
+					Gamma.ReportTypeInference(FuncNode.Token, "constructor", ClassType);
+				}
 				/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetConstructorFunc(/*GtFunc*/ClassType);
 				if(PolyFunc == null) {
 					return Gamma.CreateSyntaxErrorNode(ParsedTree, "no constructor: " + ClassType);
@@ -3195,7 +3206,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("new"), null);
 		NewTree.SetMatchedPatternAt(0, NameSpace, TokenContext, "$Type$", Optional);
 		if(!NewTree.HasNodeAt(0)) {
-			NewTree.SetSyntaxTreeAt(0, null); // TODO
+			NewTree.SetSyntaxTreeAt(0, NewTree.CreateConstTree(NameSpace.Context.VarType)); // TODO
 		}
 		/*local*/int ParseFlag = TokenContext.SetSkipIndent(true);
 		NewTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "(", Required);
