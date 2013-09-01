@@ -4364,6 +4364,7 @@ public class GreenTeaScript extends GtStatic {
 		if(ShellMode) {
 			LibGreenTea.println(GtStatic.ProgName + GtStatic.Version + " (" + GtStatic.CodeName + ") on " + LibGreenTea.GetPlatform());
 			LibGreenTea.println(GtStatic.Copyright);
+			Context.ShowReportedErrors();
 			/*local*/int linenum = 1;
 			/*local*/String Line = null;
 			while((Line = LibGreenTea.ReadLine(">>> ")) != null) {
