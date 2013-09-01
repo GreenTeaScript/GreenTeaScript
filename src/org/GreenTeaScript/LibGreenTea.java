@@ -241,7 +241,7 @@ public abstract class LibGreenTea {
 		if(NativeType == null) {
 			NativeType = new GtType(Context, GtStatic.NativeClass, NativeClass.getCanonicalName(), null, NativeClass);
 			Context.SetNativeTypeName(NativeClass.getCanonicalName(), NativeType);
-			LibGreenTea.VerboseLog(GtStatic.VerboseNative, "binding native class: " + NativeClass.getCanonicalName());
+			LibGreenTea.VerboseLog(GtStatic.VerboseNative, "native class: " + NativeClass.getCanonicalName());
 		}
 		return NativeType;
 	}
@@ -360,6 +360,7 @@ public abstract class LibGreenTea {
 			if(NativeFunc.GetReturnType().IsVarType()) {
 				NativeFunc.SetReturnType(LibGreenTea.GetNativeType(NativeFunc.GetContext(), JavaMethod.getReturnType()));
 			}
+			return true;
 		}
 		return false;
 	}

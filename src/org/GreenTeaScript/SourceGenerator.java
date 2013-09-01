@@ -1238,16 +1238,12 @@ class GtGenerator extends GtStatic {
 			Method JavaMethod = (/*cast*/Method)Node.Func.NativeRef;
 			Object RecvObject = null;
 			int StartIndex = 1;
-			Object[] Arguments;
-			if(Node.Func.Is(NativeFunc)) {
+			if(!Node.Func.Is(NativeStaticFunc)) {
 				RecvObject = Node.NodeList.get(1).ToConstValue(EnforceConst);
 				if(RecvObject == null) return null;
-				Arguments = new Object[Node.NodeList.size() - 2];
 				StartIndex = 2;
 			}
-			else {
-				Arguments = new Object[Node.NodeList.size() - 1];
-			}
+			Object[] Arguments = new Object[Node.NodeList.size() - StartIndex];
 			for(int i = 0; i < Arguments.length; i++) {
 				Arguments[i] = Node.NodeList.get(StartIndex+i).ToConstValue(EnforceConst);
 				if(Arguments[i] == null && !(Node.NodeList.get(StartIndex+i) instanceof NullNode)) {

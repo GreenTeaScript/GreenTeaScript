@@ -1546,6 +1546,9 @@ final class GtTypeEnv extends GtStatic {
 		/*local*/GtFunc Func = ParsedTree.NameSpace.GetConverterFunc(Node.Type, Type, true);
 		if(Func != null && (Func.Is(CoercionFunc) || IsFlag(TypeCheckPolicy, CastPolicy))) {
 			/*local*/GtNode ApplyNode = this.Generator.CreateApplyNode(Type, ParsedTree, Func);
+			GtNode TypeNode = this.Generator.CreateConstNode(Type.Context.TypeType, ParsedTree, Type);
+			ApplyNode.Append(TypeNode);
+			ApplyNode.Append(TypeNode);
 			ApplyNode.Append(Node);
 			return ApplyNode;
 		}
@@ -1809,8 +1812,8 @@ final class GtNameSpace extends GtStatic {
 		this.Context.RootNameSpace.SetSymbol(Key, Func);  // @Public
 	}
 
-	public final void SetCoercionFunc(GtType ClassType, GtType ToType, GtFunc Func) {
-		/*local*/String Key = ClassSymbol(ClassType, "to" + ToType);
+	public final void SetConverterFunc(GtType ClassType, GtType ToType, GtFunc Func) {
+		/*local*/String Key = ClassSymbol(ClassType, ToType.GetUniqueName());
 		this.PublicNameSpace(Func.Is(PublicFunc)).SetSymbol(Key, Func);
 	}
 
@@ -3465,13 +3468,13 @@ final class GreenTeaGrammar extends GtGrammar {
 
 	private static GtFunc CreateCoercionFunc(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, int FuncFlag, int BaseIndex, ArrayList<GtType> TypeList) {
 		/*local*/GtType ToType = TypeList.get(0);
-		/*local*/GtType FromType = TypeList.get(1);
+		/*local*/GtType FromType = TypeList.get(2);
 		/*local*/GtFunc DefinedFunc = ParsedTree.NameSpace.GetConverterFunc(FromType, ToType, false);
 		if(DefinedFunc != null) {
 			Gamma.Context.ReportError(WarningLevel, ParsedTree.KeyToken, "already defined: " + FromType + " to " + ToType);
 		}
 		DefinedFunc = Gamma.Generator.CreateFunc(FuncFlag, "to" + ToType.ShortClassName, BaseIndex, TypeList);
-		ParsedTree.NameSpace.SetCoercionFunc(FromType, ToType, DefinedFunc);
+		ParsedTree.NameSpace.SetConverterFunc(FromType, ToType, DefinedFunc);
 		return DefinedFunc;
 	}
 
@@ -4140,9 +4143,13 @@ final class GtContext extends GtStatic {
 		this.SetNativeTypeName("void",    this.VoidType);
 		this.SetNativeTypeName("java.lang.Object",  this.AnyType);
 		this.SetNativeTypeName("boolean", this.BooleanType);
+		this.SetNativeTypeName("java.lang.Boolean", this.BooleanType);
 		this.SetNativeTypeName("int",     this.IntType);
 		this.SetNativeTypeName("short",   this.IntType);
 		this.SetNativeTypeName("long",    this.IntType);
+		this.SetNativeTypeName("java.lang.Integer",     this.IntType);
+		this.SetNativeTypeName("java.lang.Short",   this.IntType);
+		this.SetNativeTypeName("java.lang.Long",    this.IntType);
 		this.SetNativeTypeName("java.lang.String",  this.StringType);
 		this.SetNativeTypeName("org.GreenTeaScript.GtType", this.TypeType);
 //endif VAJA
