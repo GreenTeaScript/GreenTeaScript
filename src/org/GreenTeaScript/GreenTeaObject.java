@@ -136,8 +136,8 @@ class GtType extends GtStatic {
 		return (this == this.Context.ArrayType);
 	}
 
-	public final boolean IsTypeRef() {
-		return IsFlag(this.ClassFlag, TypeRef);
+	public final boolean IsTypeParam() {
+		return IsFlag(this.ClassFlag, TypeParameter);
 	}
 
 	public final boolean IsEnumType() {
@@ -145,7 +145,7 @@ class GtType extends GtStatic {
 	}
 
 	public GtType RealType(GtTypeEnv Gamma, ArrayList<GtType> TypeList) {
-		if(this.IsTypeRef()) {
+		if(this.IsTypeParam()) {
 			/*local*/GtToken Token = ((/*cast*/GtToken)this.NativeSpec);
 			/*local*/int Index = Token.ParsedText.indexOf('_'); // T$1_0
 			/*local*/int ParamIndex = 1;
@@ -469,7 +469,7 @@ class GtPolyFunc extends GtStatic {
 		/*local*/int FuncParamSize = LibGreenTea.ListSize(ParsedTree.TreeList) - TreeIndex + NodeList.size();
 		/*local*/GtFunc ResolvedFunc = this.IncrementalMatch(FuncParamSize, NodeList);
 		while(ResolvedFunc == null && TreeIndex < LibGreenTea.ListSize(ParsedTree.TreeList)) {
-			/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(TreeIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+			/*local*/GtNode Node = ParsedTree.TypeCheckAt(TreeIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
 			NodeList.add(Node);
 			if(Node.IsError()) {
 				return null;
@@ -482,7 +482,7 @@ class GtPolyFunc extends GtStatic {
 		}
 		while(TreeIndex < LibGreenTea.ListSize(ParsedTree.TreeList)) {
 			/*local*/GtType ContextType = ResolvedFunc.Types[NodeList.size()];
-			/*local*/GtNode Node = ParsedTree.TypeCheckNodeAt(TreeIndex, Gamma, ContextType, DefaultTypeCheckPolicy);
+			/*local*/GtNode Node = ParsedTree.TypeCheckAt(TreeIndex, Gamma, ContextType, DefaultTypeCheckPolicy);
 			NodeList.add(Node);
 			if(Node.IsError()) {
 				return null;
