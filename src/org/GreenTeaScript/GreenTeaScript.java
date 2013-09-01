@@ -3439,7 +3439,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		if(FuncName.equals("converter")) {
 			FuncFlag |= ConverterFunc;
 			TypeList.add(Gamma.Context.TypeType);
-			ParamNameList.add("type");
+			ParamNameList.add("__type");
 		}
 		/*local*/int TreeIndex = FuncDeclParam;
 		while(TreeIndex < ParsedTree.TreeList.size()) {
@@ -3457,9 +3457,7 @@ final class GreenTeaGrammar extends GtGrammar {
 				return Gamma.CreateSyntaxErrorNode(ParsedTree, "converter takes one parameter");
 			}
 			/*local*/GtType ToType = TypeList.get(0);
-//			/*local*/GtType FromType = TypeList.get(2);
 			DefinedFunc = Gamma.Generator.CreateFunc(FuncFlag, "To" + ToType.ShortClassName, 0, TypeList);
-//			DefinedFunc = GreenTeaGrammar.CreateCoercionFunc(Gamma, ParsedTree, FuncFlag, 0, TypeList);
 		}
 		else {
 			DefinedFunc = ParsedTree.NameSpace.GetFuncParam(FuncName, 0, LibGreenTea.CompactTypeList(0, TypeList));
@@ -3474,7 +3472,6 @@ final class GreenTeaGrammar extends GtGrammar {
 			if(DefinedFunc == null) {
 				DefinedFunc = Gamma.Generator.CreateFunc(FuncFlag, FuncName, 0, TypeList);
 			}
-			//DefinedFunc = GreenTeaGrammar.CreateFunc(Gamma, ParsedTree, FuncFlag, FuncName, 0, TypeList);
 		}
 		if(ParsedTree.ConstValue instanceof String) {
 			DefinedFunc.SetNativeMacro((/*cast*/String)ParsedTree.ConstValue);
@@ -4162,14 +4159,15 @@ final class GtContext extends GtStatic {
 		this.SetNativeTypeName("java.lang.Object",  this.AnyType);
 		this.SetNativeTypeName("boolean", this.BooleanType);
 		this.SetNativeTypeName("java.lang.Boolean", this.BooleanType);
-		this.SetNativeTypeName("int",     this.IntType);
-		this.SetNativeTypeName("short",   this.IntType);
+//		this.SetNativeTypeName("int",     this.IntType);
+//		this.SetNativeTypeName("short",   this.IntType);
 		this.SetNativeTypeName("long",    this.IntType);
-		this.SetNativeTypeName("java.lang.Integer",     this.IntType);
-		this.SetNativeTypeName("java.lang.Short",   this.IntType);
+//		this.SetNativeTypeName("java.lang.Integer",     this.IntType);
+//		this.SetNativeTypeName("java.lang.Short",   this.IntType);
 		this.SetNativeTypeName("java.lang.Long",    this.IntType);
 		this.SetNativeTypeName("java.lang.String",  this.StringType);
 		this.SetNativeTypeName("org.GreenTeaScript.GtType", this.TypeType);
+		this.SetNativeTypeName("java.util.Array", this.ArrayType);
 //endif VAJA
 		Grammar.LoadTo(this.RootNameSpace);
 		this.TopLevelNameSpace = new GtNameSpace(this, this.RootNameSpace);

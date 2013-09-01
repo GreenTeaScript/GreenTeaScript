@@ -38,7 +38,12 @@ boolean !=(int x, int y);
 @Coercion @Const int converter(any x) import org.GreenTeaScript.GreenTeaRuntime.AnyToInt;
 @Coercion @Const String converter(int x) import org.GreenTeaScript.GreenTeaRuntime.IntToString;
 @Const int converter(String x) import org.GreenTeaScript.GreenTeaRuntime.StringToInt;
+
 @Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.l2i;
+@Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.i2l;
+@Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.l2s;
+@Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.s2l;
+
 @Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.ja2l;
 @Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.l2ja;
 
