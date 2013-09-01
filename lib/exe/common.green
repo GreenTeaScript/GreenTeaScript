@@ -12,9 +12,9 @@ int ~(int x);
 // boolean
 boolean ==(boolean x, boolean y);
 boolean !=(boolean x, boolean y);
-@Coercion String converter(boolean x) import org.GreenTeaScript.GreenTeaRuntime.BooleanToString;
-@Coercion any converter(boolean x) import org.GreenTeaScript.GreenTeaRuntime.BooleanToAny;
-@Coercion boolean converter(any x) import org.GreenTeaScript.GreenTeaRuntime.AnyToBoolean;
+@Coercion @Const String converter(boolean x) import org.GreenTeaScript.GreenTeaRuntime.BooleanToString;
+@Coercion @Const any converter(boolean x) import org.GreenTeaScript.GreenTeaRuntime.BooleanToAny;
+@Coercion @Const boolean converter(any x) import org.GreenTeaScript.GreenTeaRuntime.AnyToBoolean;
 
 // int
 int +(int x, int y);
@@ -34,10 +34,10 @@ boolean >=(int x, int y);
 boolean ==(int x, int y);
 boolean !=(int x, int y);
 
-@Coercion any converter(int x) import org.GreenTeaScript.GreenTeaRuntime.IntToAny;
-@Coercion int converter(any x) import org.GreenTeaScript.GreenTeaRuntime.AnyToInt;
-@Coercion String converter(int x) import org.GreenTeaScript.GreenTeaRuntime.IntToString;
-int converter(String x) import org.GreenTeaScript.GreenTeaRuntime.StringToInt;
+@Coercion @Const any converter(int x) import org.GreenTeaScript.GreenTeaRuntime.IntToAny;
+@Coercion @Const int converter(any x) import org.GreenTeaScript.GreenTeaRuntime.AnyToInt;
+@Coercion @Const String converter(int x) import org.GreenTeaScript.GreenTeaRuntime.IntToString;
+@Const int converter(String x) import org.GreenTeaScript.GreenTeaRuntime.StringToInt;
 
 // String
 String +(String x, String y);

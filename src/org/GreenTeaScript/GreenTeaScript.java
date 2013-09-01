@@ -1475,8 +1475,11 @@ final class GtTypeEnv extends GtStatic {
 		this.StackTopIndex = PushBackIndex;
 	}
 
-	public final GtNode CreateCoercionNode(GtType ParamType, GtFunc TypeCoercion, GtNode Node) {
-		/*local*/GtNode ApplyNode = this.Generator.CreateApplyNode(ParamType, null, TypeCoercion);
+	public final GtNode CreateCoercionNode(GtType Type, GtFunc Func, GtNode Node) {
+		/*local*/GtNode ApplyNode = this.Generator.CreateApplyNode(Type, null, Func);
+		GtNode TypeNode = this.Generator.CreateConstNode(Type.Context.TypeType, null, Type);
+		ApplyNode.Append(TypeNode);
+		ApplyNode.Append(TypeNode);
 		ApplyNode.Append(Node);
 		return ApplyNode;
 	}
@@ -1545,12 +1548,7 @@ final class GtTypeEnv extends GtStatic {
 		}
 		/*local*/GtFunc Func = ParsedTree.NameSpace.GetConverterFunc(Node.Type, Type, true);
 		if(Func != null && (Func.Is(CoercionFunc) || IsFlag(TypeCheckPolicy, CastPolicy))) {
-			/*local*/GtNode ApplyNode = this.Generator.CreateApplyNode(Type, ParsedTree, Func);
-			GtNode TypeNode = this.Generator.CreateConstNode(Type.Context.TypeType, ParsedTree, Type);
-			ApplyNode.Append(TypeNode);
-			ApplyNode.Append(TypeNode);
-			ApplyNode.Append(Node);
-			return ApplyNode;
+			return this.CreateCoercionNode(Type, Func, Node);
 		}
 		return this.ReportTypeResult(ParsedTree, Node, TypeErrorLevel, "type error: requested = " + Type + ", given = " + Node.Type);
 	}
