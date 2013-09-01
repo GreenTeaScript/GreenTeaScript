@@ -749,13 +749,11 @@ final class GtTokenContext extends GtStatic {
 
 	public void Vacume() {
 		if(this.CurrentPosition > 0) {
-			/*local*/ArrayList<GtToken> NewList = new ArrayList<GtToken>();
 			/*local*/int i = this.CurrentPosition;
-			while(i < LibGreenTea.ListSize(this.SourceList)) {
-				NewList.add(this.SourceList.get(i));
-				i = i + 1;
+			while(i > 0) {
+				this.SourceList.remove(0);
+				i = i - 1;
 			}
-			this.SourceList = NewList;
 			this.CurrentPosition = 0;
 		}
 	}
