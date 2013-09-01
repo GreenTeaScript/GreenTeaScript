@@ -32,7 +32,7 @@ import javax.naming.Context;
 
 public class GreenTeaRuntime {
 	// comon api
-	
+
 	public static void print(Object o) {
 		System.out.print(o);
 	}
@@ -45,9 +45,8 @@ public class GreenTeaRuntime {
 		assert b;
 	}
 
-	
 	// converter 
-	
+
 	public final static Object DynamicCast(GtType ToType, Object Value) {
 		if(Value != null) {
 			GtType FromType = ToType.Context.GuessType(Value);
@@ -57,7 +56,7 @@ public class GreenTeaRuntime {
 		}
 		return null;
 	}
-	
+
 	public final static Object DynamicConvertTo(GtType ToType, Object Value) {
 		if(Value != null) {
 			GtType FromType = ToType.Context.GuessType(Value);
@@ -68,12 +67,12 @@ public class GreenTeaRuntime {
 		}
 		return null;
 	}
-	
+
 	// Boolean
 	public final static String BooleanToString(GtType Type, boolean value) {
 		return value ? "true" : "false";
 	}
-	
+
 	public final static Object BooleanToAny(GtType Type, boolean value) {
 		return new Boolean(value);
 	}
@@ -84,12 +83,12 @@ public class GreenTeaRuntime {
 		}
 		return (value == null) ? true : false;
 	}
-	
+
 	// String
 	public final static Object StringToAny(GtType Type, String value) {
 		return (Object)value;
 	}
-	
+
 	public final static Object AnyToString(GtType Type, Object value) {
 		if(value != null) {
 			return value.toString();
@@ -128,7 +127,7 @@ public class GreenTeaRuntime {
 	public final static Object ArrayToAny(GtType Type, ArrayList<Object> value) {
 		return (Object)value;
 	}
-	
+
 	public final static ArrayList<Object> AnyToArray(GtType Type, Object value) {
 		if(value instanceof ArrayList<?>) {
 			ArrayList<Object> List = (ArrayList<Object>)value;
@@ -144,7 +143,7 @@ public class GreenTeaRuntime {
 	}
 
 	//-----------------------------------------------------------------------
-	
+
 	public final static int l2i(GtType Type, long n) {
 		return (int)n;
 	}
@@ -160,7 +159,7 @@ public class GreenTeaRuntime {
 	public final static long s2l(GtType Type, short n) {
 		return (long)n;
 	}
-	
+
 	public final static float d2f(GtType Type, double n) {
 		return (float)n;
 	}

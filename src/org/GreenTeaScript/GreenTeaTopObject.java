@@ -317,7 +317,6 @@ class GtFunc extends GtStatic {
 		this.NativeRef = Method;
 	}
 
-
 }
 
 class GtPolyFunc extends GtStatic {

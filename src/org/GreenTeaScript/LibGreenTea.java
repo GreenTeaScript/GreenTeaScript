@@ -419,7 +419,6 @@ public abstract class LibGreenTea {
 		return null;
 	}
 
-	
 	public final static int ApplyTokenFunc(GtDelegateToken Delegate, Object TokenContext, String Text, int pos) {
 		try {
 			Integer n = (Integer)Delegate.Func.invoke(Delegate.Self, TokenContext, Text, pos);
@@ -637,7 +636,7 @@ public abstract class LibGreenTea {
 	public final static String GetLibPath(String TargetCode, String LibName) {
 		return "lib/" + TargetCode + "/" + LibName + ".green";
 	}
-	
+
 	private final static String FormatFilePath(String FileName) {
 		String Path = FileName;
 		if(HasFile(Path)) {
