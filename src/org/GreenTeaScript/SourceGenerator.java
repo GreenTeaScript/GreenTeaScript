@@ -769,7 +769,7 @@ class GtGenerator extends GtStatic {
 	}
 
 	public GtNode CreateConstNode(GtType Type, GtSyntaxTree ParsedTree, Object Value) {
-		return new ConstNode(Type, ParsedTree.KeyToken, Value);
+		return new ConstNode(Type, ParsedTree != null ? ParsedTree.KeyToken : GtTokenContext.NullToken, Value);
 	}
 
 	public GtNode CreateNullNode(GtType Type, GtSyntaxTree ParsedTree) {

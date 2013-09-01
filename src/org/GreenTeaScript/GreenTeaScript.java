@@ -4376,6 +4376,9 @@ public class GreenTeaScript extends GtStatic {
 				/*local*/Object EvaledValue = Context.TopLevelNameSpace.Eval(Line, linenum);
 				Context.ShowReportedErrors();
 				if(EvaledValue != null) {
+					if(EvaledValue instanceof String) {
+						EvaledValue = LibGreenTea.QuoteString((/*cast*/String)EvaledValue);
+					}
 					LibGreenTea.println(" (" + Context.GuessType(EvaledValue) + ":" + LibGreenTea.GetClassName(EvaledValue) + ") " + EvaledValue);
 				}
 				linenum += 1;
