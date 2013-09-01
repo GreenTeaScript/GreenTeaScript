@@ -36,6 +36,7 @@ class PythonSourceGenerator extends SourceGenerator {
 		this.TrueLiteral  = "True";
 		this.FalseLiteral = "False";
 		this.NullLiteral = "None";
+		this.LineComment = "##";
 	}
 
 	GetNewOperator(Type: GtType): string {
@@ -80,10 +81,6 @@ class PythonSourceGenerator extends SourceGenerator {
 		return this.CreateWhileNode(Type, ParsedTree, TrueNode, Block);
 	}
 
-	IsEmptyBlock(Node: GtNode): boolean {
-		return (Node instanceof EmptyNode) && Node.NextNode == null;
-	}
-
 	// Visitor API
 	public VisitWhileNode(Node: WhileNode): void {
 		var Program: string = "while " + this.VisitNode(Node.CondExpr) + ":" + this.LineFeed;
@@ -126,14 +123,21 @@ class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc1(null, FuncName, true, Expr) + ")");
 	}
 
-	public VisitLetNode(Node: LetNode): void {
-		var Code: string = Node.VariableName;
+	public VisitVarNode(Node: VarNode): void {
+		var Code: string = Node.NativeName;
 		var InitValue: string = this.NullLiteral;
 		if(Node.InitNode != null) {
 			InitValue = this.VisitNode(Node.InitNode);
 		}
 		Code += " = " + InitValue + this.LineFeed;
 		this.PushSourceCode(Code + this.VisitBlockWithIndent(Node.BlockNode, false));
+	}
+
+	public VisitTrinaryNode(Node: TrinaryNode): void {
+		var CondExpr: string = this.VisitNode(Node.CondExpr);
+		var Then: string = this.VisitNode(Node.ThenExpr);
+		var Else: string = this.VisitNode(Node.ElseExpr);
+		this.PushSourceCode(Then + " if " + CondExpr + " else " + Else);
 	}
 
 	public VisitIfNode(Node: IfNode): void {
@@ -144,7 +148,7 @@ class PythonSourceGenerator extends SourceGenerator {
 			Code += this.GetIndentString() + "pass" + this.LineFeed + this.GetIndentString();
 		}
 
-		if(Node.ElseNode != null && !this.IsEmptyBlock(Node.ElseNode)) {
+		if(!this.IsEmptyBlock(Node.ElseNode)) {
 			var ElseBlock: string = this.VisitBlockWithIndent(Node.ElseNode, true);
 			Code += "else:" + this.LineFeed + ElseBlock;
 		}
@@ -154,8 +158,8 @@ class PythonSourceGenerator extends SourceGenerator {
 	public VisitTryNode(Node: TryNode): void {
 		var Code: string = "try:" + this.LineFeed;
 		Code += this.VisitBlockWithIndent(Node.TryBlock, true);
-		var Val: LetNode = <LetNode> Node.CatchExpr;
-		Code += "except " + Val.Type.toString() + ", " + Val.VariableName + ":" + this.LineFeed;
+		var Val: VarNode = <VarNode> Node.CatchExpr;
+		Code += "except " + Val.Type.toString() + ", " + Val.NativeName + ":" + this.LineFeed;
 		Code += this.VisitBlockWithIndent(Node.CatchBlock, true);
 		if(Node.FinallyBlock != null) {
 			var Finally: string = this.VisitBlockWithIndent(Node.FinallyBlock, true);
@@ -179,14 +183,9 @@ class PythonSourceGenerator extends SourceGenerator {
 
 	public VisitCommandNode(Node: CommandNode): void {
 		var Code: string = "";
-		var count: number = 0;
 		var CurrentNode: CommandNode = Node;
 		while(CurrentNode != null) {
-			if(count > 0) {
-				Code += " | ";
-			}
 			Code += this.AppendCommand(CurrentNode);
-			count += 1;
 			CurrentNode = <CommandNode> CurrentNode.PipedNextNode;
 		}
 
@@ -214,6 +213,7 @@ class PythonSourceGenerator extends SourceGenerator {
 	}
 
 	public GenerateFunc(Func: GtFunc, ParamNameList: Array<string>, Body: GtNode): void {
+		this.FlushErrorReport();
 		var Function: string = "def ";
 		Function += Func.GetNativeFuncName() + "(";
 		var i: number = 0;
@@ -231,6 +231,7 @@ class PythonSourceGenerator extends SourceGenerator {
 	}
 
 	public GenerateClassField(Type: GtType, ClassField: GtClassField): void {
+		this.FlushErrorReport();
 		var Program: string = this.GetIndentString() + "class " + Type.ShortClassName;
 //		if(Type.SuperType != null) {
 //			Program += "(" + Type.SuperType.ShortClassName + ")";
@@ -251,7 +252,6 @@ class PythonSourceGenerator extends SourceGenerator {
 			i = i + 1;
 		}
 		this.UnIndent();
-
 		this.UnIndent();
 		this.WriteLineCode(Program);
 	}
@@ -261,7 +261,7 @@ class PythonSourceGenerator extends SourceGenerator {
 		if(!LibGreenTea.EqualsString(Code, "")) {
 			this.WriteLineCode(Code);
 		}
-		return Code;
+		return null;
 	}
 
 	public GetRecvName(): string {

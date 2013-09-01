@@ -143,6 +143,56 @@ public class GreenTeaRuntime {
 		return null;
 	}
 
+	//-----------------------------------------------------------------------
+	
+	public final static int l2i(GtType Type, long n) {
+		return (int)n;
+	}
+
+	public final static long i2l(GtType Type, int n) {
+		return (long)n;
+	}
+
+	public final static short l2s(GtType Type, long n) {
+		return (short)n;
+	}
+
+	public final static long s2l(GtType Type, short n) {
+		return (long)n;
+	}
+	
+	public final static float d2f(GtType Type, double n) {
+		return (float)n;
+	}
+
+	public final static double f2d(GtType Type, float n) {
+		return (double)n;
+	}
+
+	public final static String c2s(GtType Type, char ch) {
+		return ""+ch;
+	}
+
+	public final static char f2d(GtType Type, String s) {
+		return s == null ? (char)0 : s.charAt(0);
+	}
+
+	public final static ArrayList<Object> ja2l(GtType Type, String[] Value) {
+		int i, size = Value == null ? 0 : Value.length;
+		ArrayList<Object> l = new ArrayList<Object>(size);
+		for(i = 0; i < size; i++) {
+			l.add(Value[i]);
+		}
+		return l;
+	}
+
+	public final static String[] l2ja(GtType Type, ArrayList<Object> List) {
+		int i, size = List == null ? 0 : List.size();
+		String[] a = new String[size];
+		//List.toArray(a);
+		return a;
+	}
+
 	//-----------------------------------------------------
 
 	public static int unary_plus(int n) {

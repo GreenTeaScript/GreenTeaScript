@@ -1,9 +1,33 @@
+// ***************************************************************************
+// Copyright (c) 2013, JST/CREST DEOS project authors. All rights reserved.
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// *  Redistributions of source code must retain the above copyright notice,
+//    this list of conditions and the following disclaimer.
+// *  Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+// TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// **************************************************************************
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     __.prototype = b.prototype;
     d.prototype = new __();
 };
+//GreenTea Generator should be written in each language.
 var PythonSourceGenerator = (function (_super) {
     __extends(PythonSourceGenerator, _super);
     function PythonSourceGenerator(TargetCode, OutputFile, GeneratorFlag) {
@@ -14,6 +38,7 @@ var PythonSourceGenerator = (function (_super) {
         this.TrueLiteral = "True";
         this.FalseLiteral = "False";
         this.NullLiteral = "None";
+        this.LineComment = "##";
     }
     PythonSourceGenerator.prototype.GetNewOperator = function (Type) {
         var TypeName = Type.ShortClassName;
@@ -45,6 +70,10 @@ var PythonSourceGenerator = (function (_super) {
     };
 
     PythonSourceGenerator.prototype.CreateDoWhileNode = function (Type, ParsedTree, Cond, Block) {
+        /*
+        * do { Block } while(Cond)
+        * => while(True) { Block; if(Cond) { break; } }
+        */
         var Break = this.CreateBreakNode(Type, ParsedTree, null);
         var IfBlock = this.CreateIfNode(Type, ParsedTree, Cond, Break, null);
         LinkNode(IfBlock, Block);
@@ -52,10 +81,7 @@ var PythonSourceGenerator = (function (_super) {
         return this.CreateWhileNode(Type, ParsedTree, TrueNode, Block);
     };
 
-    PythonSourceGenerator.prototype.IsEmptyBlock = function (Node) {
-        return (Node instanceof EmptyNode) && Node.NextNode == null;
-    };
-
+    // Visitor API
     PythonSourceGenerator.prototype.VisitWhileNode = function (Node) {
         var Program = "while " + this.VisitNode(Node.CondExpr) + ":" + this.LineFeed;
         if (this.IsEmptyBlock(Node.LoopBody)) {
@@ -94,14 +120,21 @@ var PythonSourceGenerator = (function (_super) {
         this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc1(null, FuncName, true, Expr) + ")");
     };
 
-    PythonSourceGenerator.prototype.VisitLetNode = function (Node) {
-        var Code = Node.VariableName;
+    PythonSourceGenerator.prototype.VisitVarNode = function (Node) {
+        var Code = Node.NativeName;
         var InitValue = this.NullLiteral;
         if (Node.InitNode != null) {
             InitValue = this.VisitNode(Node.InitNode);
         }
         Code += " = " + InitValue + this.LineFeed;
         this.PushSourceCode(Code + this.VisitBlockWithIndent(Node.BlockNode, false));
+    };
+
+    PythonSourceGenerator.prototype.VisitTrinaryNode = function (Node) {
+        var CondExpr = this.VisitNode(Node.CondExpr);
+        var Then = this.VisitNode(Node.ThenExpr);
+        var Else = this.VisitNode(Node.ElseExpr);
+        this.PushSourceCode(Then + " if " + CondExpr + " else " + Else);
     };
 
     PythonSourceGenerator.prototype.VisitIfNode = function (Node) {
@@ -112,7 +145,7 @@ var PythonSourceGenerator = (function (_super) {
             Code += this.GetIndentString() + "pass" + this.LineFeed + this.GetIndentString();
         }
 
-        if (Node.ElseNode != null && !this.IsEmptyBlock(Node.ElseNode)) {
+        if (!this.IsEmptyBlock(Node.ElseNode)) {
             var ElseBlock = this.VisitBlockWithIndent(Node.ElseNode, true);
             Code += "else:" + this.LineFeed + ElseBlock;
         }
@@ -123,7 +156,7 @@ var PythonSourceGenerator = (function (_super) {
         var Code = "try:" + this.LineFeed;
         Code += this.VisitBlockWithIndent(Node.TryBlock, true);
         var Val = Node.CatchExpr;
-        Code += "except " + Val.Type.toString() + ", " + Val.VariableName + ":" + this.LineFeed;
+        Code += "except " + Val.Type.toString() + ", " + Val.NativeName + ":" + this.LineFeed;
         Code += this.VisitBlockWithIndent(Node.CatchBlock, true);
         if (Node.FinallyBlock != null) {
             var Finally = this.VisitBlockWithIndent(Node.FinallyBlock, true);
@@ -147,14 +180,9 @@ var PythonSourceGenerator = (function (_super) {
 
     PythonSourceGenerator.prototype.VisitCommandNode = function (Node) {
         var Code = "";
-        var count = 0;
         var CurrentNode = Node;
         while (CurrentNode != null) {
-            if (count > 0) {
-                Code += " | ";
-            }
             Code += this.AppendCommand(CurrentNode);
-            count += 1;
             CurrentNode = CurrentNode.PipedNextNode;
         }
 
@@ -180,6 +208,7 @@ var PythonSourceGenerator = (function (_super) {
     };
 
     PythonSourceGenerator.prototype.GenerateFunc = function (Func, ParamNameList, Body) {
+        this.FlushErrorReport();
         var Function = "def ";
         Function += Func.GetNativeFuncName() + "(";
         var i = 0;
@@ -197,8 +226,12 @@ var PythonSourceGenerator = (function (_super) {
     };
 
     PythonSourceGenerator.prototype.GenerateClassField = function (Type, ClassField) {
+        this.FlushErrorReport();
         var Program = this.GetIndentString() + "class " + Type.ShortClassName;
 
+        //		if(Type.SuperType != null) {
+        //			Program += "(" + Type.SuperType.ShortClassName + ")";
+        //		}
         Program += ":" + this.LineFeed;
         this.Indent();
 
@@ -215,7 +248,6 @@ var PythonSourceGenerator = (function (_super) {
             i = i + 1;
         }
         this.UnIndent();
-
         this.UnIndent();
         this.WriteLineCode(Program);
     };
@@ -225,7 +257,7 @@ var PythonSourceGenerator = (function (_super) {
         if (!LibGreenTea.EqualsString(Code, "")) {
             this.WriteLineCode(Code);
         }
-        return Code;
+        return null;
     };
 
     PythonSourceGenerator.prototype.GetRecvName = function () {

@@ -68,10 +68,11 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitDoWhileNode(DoWhileNode Node) {
-		/*local*/String Program = "do";
+		/*local*/String Program = "do {";
 		this.VisitBlockEachStatementWithIndent(Node.LoopBody);
+		Program += this.PopSourceCode();
 		Node.CondExpr.Evaluate(this);
-		Program += " while(" + this.PopSourceCode() + ")";
+		Program += "} while(" + this.PopSourceCode() + ")";
 		this.PushSourceCode(Program);
 	}
 
@@ -82,7 +83,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		/*local*/String Iter = this.PopSourceCode();
 
 		/*local*/String Program = "for(; " + Cond  + "; " + Iter + ")";
-		Node.LoopBody.Evaluate(this);
+		this.VisitBlockEachStatementWithIndent(Node.LoopBody);
 		Program += this.PopSourceCode();
 		this.PushSourceCode(Program);
 	}

@@ -749,13 +749,11 @@ final class GtTokenContext extends GtStatic {
 
 	public void Vacume() {
 		if(this.CurrentPosition > 0) {
-			/*local*/ArrayList<GtToken> NewList = new ArrayList<GtToken>();
 			/*local*/int i = this.CurrentPosition;
-			while(i < LibGreenTea.ListSize(this.SourceList)) {
-				NewList.add(this.SourceList.get(i));
-				i = i + 1;
+			while(i > 0) {
+				this.SourceList.remove(0);
+				i = i - 1;
 			}
-			this.SourceList = NewList;
 			this.CurrentPosition = 0;
 		}
 	}
@@ -1048,7 +1046,7 @@ final class GtTokenContext extends GtStatic {
 	}
 
 	public final void SetSourceMap(String SourceMap) {
-		/*local*/int Index = SourceMap.lastIndexOf(':');
+		/*local*/int Index = SourceMap.lastIndexOf(":");
 		if(Index != -1) {
 			/*local*/String FileName = SourceMap.substring(0, Index);
 			/*local*/int Line = (/*cast*/int)LibGreenTea.ParseInt(SourceMap.substring(Index+1));
@@ -2560,6 +2558,9 @@ final class GreenTeaGrammar extends GtGrammar {
 		CastTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ")", Required);
 		TokenContext.ParseFlag = ParseFlag;
 		/*local*/GtSyntaxTree ExprTree = GtStatic.ParseExpression(NameSpace, TokenContext, true/*SuffixOnly*/);
+		if(ExprTree == null) {
+			return null;
+		}
 		CastTree.SetSyntaxTreeAt(RightHandTerm, ExprTree);
 		return CastTree;
 	}
@@ -2662,7 +2663,9 @@ final class GreenTeaGrammar extends GtGrammar {
 			/*local*/String FuncName = FuncNode.Token.ParsedText;
 			NodeList.add(BaseNode);
 			/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(BaseNode.Type, FuncName, true);
-			System.err.println(LibGreenTea.LowerId(BaseNode.Token.FileLine));
+			if(PolyFunc == null) {
+				return Gamma.CreateSyntaxErrorNode(ParsedTree, "undefined method : " + BaseNode.Type + "." + FuncName);
+			}
 			LibGreenTea.Assert(PolyFunc != null);
 			ResolvedFunc = PolyFunc.ResolveFunc(Gamma, ParsedTree, TreeIndex, NodeList);
 		}
@@ -2744,8 +2747,8 @@ final class GreenTeaGrammar extends GtGrammar {
 	public static GtNode TypeInstanceOf(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtNode LeftNode = ParsedTree.TypeCheckNodeAt(LeftHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
 		/*local*/GtType GivenType = ParsedTree.GetSyntaxTreeAt(RightHandTerm).GetParsedType();
-		if(GivenType != null) {
-			return Gamma.CreateSyntaxErrorNode(ParsedTree,  "type is expected in" + ParsedTree.KeyToken);
+		if(GivenType == null) {
+			return Gamma.CreateSyntaxErrorNode(ParsedTree,  "type is expected in " + ParsedTree.KeyToken);
 		}
 		return Gamma.Generator.CreateInstanceOfNode(Gamma.BooleanType, ParsedTree, LeftNode, GivenType);
 	}
@@ -2762,11 +2765,24 @@ final class GreenTeaGrammar extends GtGrammar {
 
 	public static GtNode TypeSelfAssign(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtNode LeftNode = ParsedTree.TypeCheckNodeAt(LeftHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-		if(LeftNode instanceof LocalNode || LeftNode instanceof GetterNode || LeftNode instanceof IndexerNode) {
-			/*local*/GtNode RightNode = ParsedTree.TypeCheckNodeAt(RightHandTerm, Gamma, LeftNode.Type, DefaultTypeCheckPolicy);
-			return Gamma.Generator.CreateSelfAssignNode(LeftNode.Type, ParsedTree, LeftNode, RightNode);
+		if(!(LeftNode instanceof LocalNode || LeftNode instanceof GetterNode || LeftNode instanceof IndexerNode)) {
+			return Gamma.CreateSyntaxErrorNode(ParsedTree, "not assigned to a left hand value");
 		}
-		return Gamma.CreateSyntaxErrorNode(ParsedTree, "not assigned to a left hand value");
+		/*local*/GtNode RightNode = ParsedTree.TypeCheckNodeAt(RightHandTerm, Gamma, LeftNode.Type, DefaultTypeCheckPolicy);
+		/*local*/String OperatorSymbol = ParsedTree.KeyToken.ParsedText;
+		OperatorSymbol = OperatorSymbol.substring(0, OperatorSymbol.length() - 1);
+		/*local*/GtFunc Func = null;
+		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(LeftNode.Type, OperatorSymbol, true);
+		if(PolyFunc != null) {
+			/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
+			ParamList.add(LeftNode);
+			Func = PolyFunc.ResolveFunc(Gamma, ParsedTree, 1, ParamList);
+			if(Func != null) {
+				LeftNode = ParamList.get(0);
+				RightNode = ParamList.get(1);
+			}
+		}
+		return Gamma.Generator.CreateSelfAssignNode(LeftNode.Type, ParsedTree, Func, LeftNode, RightNode);
 	}
 
 	public static GtSyntaxTree ParseIncl(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
@@ -2789,7 +2805,7 @@ final class GreenTeaGrammar extends GtGrammar {
 			}
 			if(LeftNode instanceof LocalNode || LeftNode instanceof GetterNode || LeftNode instanceof IndexerNode) {
 				/*local*/GtNode ConstNode = Gamma.Generator.CreateConstNode(LeftNode.Type, ParsedTree, 1);
-				return Gamma.Generator.CreateSelfAssignNode(LeftNode.Type, ParsedTree, LeftNode, ConstNode);
+				return Gamma.Generator.CreateSelfAssignNode(LeftNode.Type, ParsedTree, null, LeftNode, ConstNode);
 			}
 			return Gamma.CreateSyntaxErrorNode(ParsedTree, "neither incremental nor decrimental");
 		}
@@ -3663,7 +3679,7 @@ final class GreenTeaGrammar extends GtGrammar {
 						continue;
 					}
 				}
-				/*local*/GtSyntaxTree TypeDecl = TokenContext.ParsePattern(ClassNameSpace, "$Type$", Required);
+				/*local*/GtSyntaxTree TypeDecl = TokenContext.ParsePattern(ClassNameSpace, "$Type$", Optional);
 				if(TypeDecl != null && !TypeDecl.IsEmptyOrError()) {
 					/*local*/GtSyntaxTree FuncDecl = TokenContext.ParsePatternAfter(ClassNameSpace, TypeDecl, "$FuncDecl$", Optional);
 					if(FuncDecl != null) {
@@ -3672,7 +3688,7 @@ final class GreenTeaGrammar extends GtGrammar {
 						ClassDeclTree.AppendParsedTree(FuncDecl);
 						continue;
 					}
-					/*local*/GtSyntaxTree VarDecl = TokenContext.ParsePatternAfter(ClassNameSpace, TypeDecl, "$VarDecl$", Required);
+					/*local*/GtSyntaxTree VarDecl = TokenContext.ParsePatternAfter(ClassNameSpace, TypeDecl, "$VarDecl$", Optional);
 					if(VarDecl != null) {
 						VarDecl = GtStatic.TreeHead(VarDecl);
 						while(VarDecl != null) {
@@ -3687,6 +3703,9 @@ final class GreenTeaGrammar extends GtGrammar {
 			}
 			TokenContext.ParseFlag = ParseFlag;
 		}
+		if(ClassDeclTree.IsEmptyOrError()) {
+			return ClassDeclTree;
+		}
 		/*local*/int TreeIndex = ClassDeclFieldStartIndex;
 		/*local*/ArrayList<GtSyntaxTree> VarDeclList = new ArrayList<GtSyntaxTree>();
 		/*local*/ArrayList<GtSyntaxTree> ConstructorList = new ArrayList<GtSyntaxTree>();
@@ -3699,10 +3718,10 @@ final class GreenTeaGrammar extends GtGrammar {
 				VarDeclList.add(FieldTree);
 			}
 			else if(FieldTree.Pattern.EqualsName("$FuncDecl$")) {
-				ConstructorList.add(FieldTree);
+				MethodList.add(FieldTree);
 			}
 			else if(FieldTree.Pattern.EqualsName("$Constructor$")) {
-				MethodList.add(FieldTree);
+				ConstructorList.add(FieldTree);
 			}
 			TreeIndex = TreeIndex + 1;
 		}
@@ -3712,6 +3731,7 @@ final class GreenTeaGrammar extends GtGrammar {
 			ClassDeclTree.AppendParsedTree(ConstructorList.get(TreeIndex));
 			TreeIndex = TreeIndex + 1;
 		}
+		TreeIndex = 0;
 		while(TreeIndex < MethodList.size()) {
 			ClassDeclTree.AppendParsedTree(MethodList.get(TreeIndex));
 			TreeIndex = TreeIndex + 1;
@@ -3724,7 +3744,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		/*local*/GtType DefinedType = ParsedTree.GetParsedType();
 		/*local*/int TreeIndex = ClassDeclFieldStartIndex;
 		/*local*/GtClassField ClassField = new GtClassField(DefinedType.SuperType);
-		while(TreeIndex < ParsedTree.TreeList.size()) {
+		while(TreeIndex < LibGreenTea.ListSize(ParsedTree.TreeList)) {
 			/*local*/GtSyntaxTree FieldTree = ParsedTree.GetSyntaxTreeAt(TreeIndex);
 			if(!FieldTree.Pattern.EqualsName("$VarDecl$")) {
 				break;
@@ -3754,20 +3774,20 @@ final class GreenTeaGrammar extends GtGrammar {
 		}
 		DefinedType.SetClassField(ClassField);
 		Gamma.Generator.GenerateClassField(DefinedType, ClassField);
-		while(TreeIndex < ParsedTree.TreeList.size()) {
-			/*local*/GtSyntaxTree FieldTree = ParsedTree.GetSyntaxTreeAt(TreeIndex);
-			if(!FieldTree.Pattern.EqualsName("$FuncDecl$")) {
-				break;
-			}
-			ParsedTree.TypeCheckNodeAt(TreeIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-			TreeIndex += 1;
-		}
-		while(TreeIndex < ParsedTree.TreeList.size()) {
+		while(TreeIndex < LibGreenTea.ListSize(ParsedTree.TreeList)) {
 			/*local*/GtSyntaxTree FieldTree = ParsedTree.GetSyntaxTreeAt(TreeIndex);
 			if(!FieldTree.Pattern.EqualsName("$Constructor$")) {
 				break;
 			}
 			ParsedTree.TypeCheckNodeAt(TreeIndex, Gamma,  Gamma.VarType, DefaultTypeCheckPolicy);
+			TreeIndex += 1;
+		}
+		while(TreeIndex < LibGreenTea.ListSize(ParsedTree.TreeList)) {
+			/*local*/GtSyntaxTree FieldTree = ParsedTree.GetSyntaxTreeAt(TreeIndex);
+			if(!FieldTree.Pattern.EqualsName("$FuncDecl$")) {
+				break;
+			}
+			ParsedTree.TypeCheckNodeAt(TreeIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
 			TreeIndex += 1;
 		}
 		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);

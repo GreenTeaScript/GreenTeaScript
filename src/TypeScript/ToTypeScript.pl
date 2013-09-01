@@ -27,6 +27,26 @@ sub ProtectComment{
 	return "#COMMENT$n#"
 }
 
+sub fixup {
+	# "\\n" => "\n"
+	my $text = $_[0];
+	if(length($text) == 2) {
+		my @list = split(//, $text);
+		if($list[0] eq "\\") {
+			if($list[1] eq "t") {
+				return "\t";
+			}
+			if($list[1] eq "n") {
+				return "\n";
+			}
+			if($list[1] eq "\\") {
+				return "\\";
+			}
+		}
+	}
+	return $text;
+}
+
 # Delegates.
 $src =~ s/Function(?:A|B|C)\(this, "(.+?)"\)/$Grammar\["$1"\]/g;
 
@@ -53,6 +73,10 @@ sub Params{
 	my $text = $_[0];
 	$text =~ s/($Type)\s+($Sym)/$2: $1/g;
 	return $text;
+}
+
+sub UnQuote {
+	my $text = $_[0];
 }
 
 $src =~ s/interface GtConst {(.*?)^}/GtConstSection($1)/ems;
@@ -101,6 +125,7 @@ $src =~ s/\bArrays.asList\b//g;
 $src =~ s/\.toArray\(\)//g;
 $src =~ s/\b(\d+)L\b/$1/g;
 
+$src =~ s/'(\\.)'/ord(fixup($1)) . '\/*' . $1 . '*\/'/eg;
 $src =~ s/'(.)'/ord($1) . '\/*' . $1 . '*\/'/eg;
 $src =~ s/('..')/($1.charCodeAt(0))/g;
 

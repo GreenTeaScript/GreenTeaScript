@@ -31,8 +31,11 @@ class PerlSourceGenerator extends SourceGenerator {
 		super("perl", OutputFile, GeneratorFlag);
 		this.TrueLiteral  = "1";
 		this.FalseLiteral = "0";
-		this.NullLiteral = "NULL";
+		this.NullLiteral = "undef";
+		this.LineComment = "##";
 		this.MemberAccessOperator = "->";
+		this.BreakKeyword = "last";
+		this.ContinueKeyword = "next";
 	}
 
 	public VisitBlockEachStatementWithIndent(Node: GtNode): void {
@@ -47,6 +50,10 @@ class PerlSourceGenerator extends SourceGenerator {
 		this.UnIndent();
 		Code += this.GetIndentString() + "}";
 		this.PushSourceCode(Code);
+	}
+
+	GetNewOperator(Type: GtType): string {
+		return Type.ShortClassName + "->new";
 	}
 
 	public VisitWhileNode(Node: WhileNode): void {
@@ -81,8 +88,8 @@ class PerlSourceGenerator extends SourceGenerator {
 		this.PushSourceCode("$" + Node.NativeName);
 	}
 
-	public VisitLetNode(Node: LetNode): void {
-		var VarName: string = Node.VariableName;
+	public VisitVarNode(Node: VarNode): void {
+		var VarName: string = Node.NativeName;
 		var Code: string = "my $" + VarName;
 		if(Node.InitNode != null) {
 			Code += " = " + this.VisitNode(Node.InitNode);
@@ -92,6 +99,10 @@ class PerlSourceGenerator extends SourceGenerator {
 		this.VisitBlockEachStatementWithIndent(Node.BlockNode);
 		this.PushSourceCode(Code + this.PopSourceCode());
 
+	}
+
+	public VisitGetterNode(Node: GetterNode): void {
+		this.PushSourceCode(this.VisitNode(Node.Expr) + this.MemberAccessOperator + "{'" + Node.Func.FuncName + "'}");
 	}
 
 	public VisitIfNode(Node: IfNode): void {
@@ -147,6 +158,7 @@ class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	public GenerateFunc(Func: GtFunc, ParamNameList: Array<string>, Body: GtNode): void {
+		this.FlushErrorReport();
 		var Program: string = "";
 		var RetTy: string = Func.GetReturnType().ShortClassName;
 		var FuncName: string = Func.GetNativeFuncName();
@@ -162,13 +174,40 @@ class PerlSourceGenerator extends SourceGenerator {
 			i = i + 1;
 		}
 		this.UnIndent();
-		Program += Signature + ");" + this.LineFeed + this.GetIndentString() + "sub " + FuncName + "{" + this.LineFeed;
+		Program += Signature + ");" + this.LineFeed + this.GetIndentString() + "sub " + FuncName + " {" + this.LineFeed;
 		this.Indent();
 		Program += Arguments + this.GetIndentString();
 		this.VisitBlockEachStatementWithIndent(Body);
 		Program += this.PopSourceCode();
 		this.UnIndent();
 		Program += this.LineFeed + this.GetIndentString() + "}";
+		this.WriteLineCode(Program);
+	}
+
+	public GenerateClassField(Type: GtType, ClassField: GtClassField): void {
+		var TypeName: string = Type.ShortClassName;
+		var Program: string = this.GetIndentString() + "package " + TypeName + ";" + this.LineFeed;
+		if(Type.SuperType != null) {
+			Program += this.GetIndentString() + "# our @ISA = ('" + Type.SuperType.ShortClassName + "');" + this.LineFeed;
+		}
+		Program += this.GetIndentString() + "sub new {" + this.LineFeed;
+		this.Indent();
+		var i: number = 0;
+		Program += this.GetIndentString() + "my $class = shift;" + this.LineFeed;
+		Program += this.GetIndentString() + "my $" + this.GetRecvName() + " = {};" + this.LineFeed;
+		while(i < ClassField.FieldList.size()) {
+			var FieldInfo: GtFieldInfo = ClassField.FieldList.get(i);
+			var InitValue: string = this.StringifyConstValue(FieldInfo.InitValue);
+			if(!FieldInfo.Type.IsNative()) {
+				InitValue = this.NullLiteral;
+			}
+			Program += this.GetIndentString() + "$" + this.GetRecvName() + "->{'" + FieldInfo.NativeName + "'} = " + InitValue + ";" + this.LineFeed;
+			i = i + 1;
+		}
+		Program += this.GetIndentString() + "return bless $" + this.GetRecvName() + ", $class" + this.LineFeed;
+		this.UnIndent();
+		Program += this.GetIndentString() + "}" + this.LineFeed;
+		Program += this.GetIndentString() + "package main;" + this.LineFeed;
 		this.WriteLineCode(Program);
 	}
 
@@ -180,6 +219,10 @@ class PerlSourceGenerator extends SourceGenerator {
 	public StartCompilationUnit(): void {
 		this.WriteLineCode("use strict;");
 		this.WriteLineCode("use warnings;");
+	}
+
+	public GetRecvName(): string {
+		return "self";
 	}
 
 	public InvokeMainFunc(MainFuncName: string): void {

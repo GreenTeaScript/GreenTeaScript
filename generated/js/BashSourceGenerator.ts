@@ -29,37 +29,77 @@
 class BashSourceGenerator extends SourceGenerator {
 	inFunc: boolean = false;
 	inMainFunc: boolean = false;
-	cmdCounter: number = 0;
 
 	 constructor(TargetCode: string, OutputFile: string, GeneratorFlag: number) {
 		super(TargetCode, OutputFile, GeneratorFlag);
 		this.TrueLiteral  = "0";
 		this.FalseLiteral = "1";
-		this.NullLiteral = "NULL";
+		this.NullLiteral = this.Quote("__NULL__");
+		this.MemberAccessOperator = "__MEMBER__";
+		this.LineComment = "##";
 	}
 
-	public InitContext(Context: GtClassContext): void {
+	public InitContext(Context: GtContext): void {
 		super.InitContext(Context);
 		this.WriteLineHeader("#!/bin/bash");
 		this.WriteLineCode(this.LineFeed + "source $GREENTEA_HOME/include/bash/GreenTeaPlus.sh" + this.LineFeed);
-		//this.WriteLineCode(this.LineFeed + "source ./GreenTeaPlus.sh" + this.LineFeed);
 	}
 
-	private IsEmptyNode(Node: GtNode): boolean {
-		return (Node == null || Node instanceof EmptyNode);
+	public GenerateFuncTemplate(ParamSize: number, Func: GtFunc): string {
+		var BeginIdx: number = 1;
+		var Template: string = "";
+		var IsNative: boolean = false;
+		if(Func == null) {
+			Template = "$1";
+			BeginIdx = 2;
+		}
+		else if(Func.Is(NativeFunc)) {
+			Template = "$1" + this.MemberAccessOperator + Func.FuncName;
+			BeginIdx = 2;
+		}
+		else if(Func.Is(NativeMacroFunc)) {
+			Template = Func.GetNativeMacro();
+			IsNative = true;
+		}
+		else {
+			Template = Func.GetNativeFuncName();
+		}
+		var i: number = BeginIdx;
+		if(IsNative == false) {
+			while(i < ParamSize) {
+				Template += " $" + i;
+				i = i + 1;
+			}
+		}
+		return Template;
 	}
 
-	public VisitBlockWithIndent(Node: GtNode, inBlock: boolean, allowDummyBlock: boolean): string {
+	private VisitBlockWithIndent(Node: GtNode, allowDummyBlock: boolean): string {
+		return this.VisitBlockWithOption(Node, true, allowDummyBlock, false);
+	}
+
+	private VisitBlockWithSkipJump(Node: GtNode, allowDummyBlock: boolean): string {
+		return this.VisitBlockWithOption(Node, true, allowDummyBlock, true);
+	}
+
+	private VisitBlockWithoutIndent(Node: GtNode, allowDummyBlock: boolean): string {
+		return this.VisitBlockWithOption(Node, false, allowDummyBlock, false);
+	}
+
+	private VisitBlockWithOption(Node: GtNode, inBlock: boolean, allowDummyBlock: boolean, skipJump: boolean): string {
 		var Code: string = "";
 		if(inBlock) {
 			this.Indent();
 		}
 		var CurrentNode: GtNode = Node;
-		if(this.IsEmptyNode(Node) && allowDummyBlock) {
+		if(this.IsEmptyBlock(Node) && allowDummyBlock) {
 			Code += this.GetIndentString() + "echo \"dummy block!!\" &> /dev/zero" + this.LineFeed;
 		}
-		while(!this.IsEmptyNode(CurrentNode)) {
+		while(!this.IsEmptyBlock(CurrentNode)) {
 			var poppedCode: string = this.VisitNode(CurrentNode);
+			if(skipJump && (CurrentNode instanceof BreakNode || CurrentNode instanceof ContinueNode)) {
+				poppedCode = "echo \"skipcode: jump\" $> /dev/zero";
+			}
 			if(!LibGreenTea.EqualsString(poppedCode, "")) {
 				Code += this.GetIndentString() + poppedCode + this.LineFeed;
 			}
@@ -77,6 +117,10 @@ class BashSourceGenerator extends SourceGenerator {
 		return Code;
 	}
 
+	private Quote(Value: string): string {
+		return "\"" + Value  + "\"";
+	}
+
 	public CreateDoWhileNode(Type: GtType, ParsedTree: GtSyntaxTree, Cond: GtNode, Block: GtNode): GtNode {
 		/*
 		 * do { Block } while(Cond)
@@ -90,24 +134,19 @@ class BashSourceGenerator extends SourceGenerator {
 	}
 
 	private ResolveCondition(Node: GtNode): string {
-		if(!Node.Type.equals(Node.Type.Context.BooleanType)) {
-			LibGreenTea.DebugP("invalid condition type");
-			return null;
+		var Cond: string = this.VisitNode(Node);
+		if(LibGreenTea.EqualsString(Cond, "0")) {
+			Cond = "((1 == 1))";
 		}
-		
-		if(Node instanceof ConstNode) {
-			var Const: ConstNode = <ConstNode> Node;
-			if(Const.ConstValue.equals(true)) {
-				return "true";
-			}
-			return "false";
+		else if(LibGreenTea.EqualsString(Cond, "1")) {
+			Cond = "((1 != 1))";
 		}
-		return this.VisitNode(Node);
+		return Cond;
 	}
 
 	public VisitWhileNode(Node: WhileNode): void {
 		var Program: string = "while " + this.ResolveCondition(Node.CondExpr) + " ;do" + this.LineFeed;
-		Program += this.VisitBlockWithIndent(Node.LoopBody, true, true) + "done";
+		Program += this.VisitBlockWithIndent(Node.LoopBody, true) + "done";
 		this.PushSourceCode(Program);
 	}
 
@@ -115,7 +154,7 @@ class BashSourceGenerator extends SourceGenerator {
 		var Cond: string = this.ResolveCondition(Node.CondExpr);
 		var Iter: string = this.VisitNode(Node.IterExpr);
 		var Program: string = "for((; " + Cond  + "; " + Iter + " )) ;do" + this.LineFeed;
-		Program += this.VisitBlockWithIndent(Node.LoopBody, true, true) + "done";
+		Program += this.VisitBlockWithIndent(Node.LoopBody, true) + "done";
 		this.PushSourceCode(Program);
 	}
 
@@ -123,48 +162,28 @@ class BashSourceGenerator extends SourceGenerator {
 		var Variable: string = this.VisitNode(Node.Variable);
 		var Iter: string = this.VisitNode(Node.IterExpr);
 		var Program: string = "for " + Variable + " in " + "${" + Iter + "[@]} ;do" + this.LineFeed;
-		Program += this.VisitBlockWithIndent(Node.LoopBody, true, true) + "done";
+		Program += this.VisitBlockWithIndent(Node.LoopBody, true) + "done";
 		this.PushSourceCode(Program);
 	}
 
 	private MakeParamCode(ParamList: Array<GtNode>): string[] {
-		var Size: number = ListSize(ParamList);
+		var Size: number = LibGreenTea.ListSize(ParamList);
 		var ParamCode: string[] = new Array<string>(Size - 1);
 		var i: number = 1;
 		while(i < Size) {
-			var Node: GtNode = ParamList.get(i);
-			ParamCode[i - 1] = this.ResolveValueType(Node);
+			ParamCode[i - 1] = this.ResolveValueType(ParamList.get(i), false);
 			i = i + 1;
 		}
 		return ParamCode;
 	}
 
 	private CreateAssertFunc(Node: ApplyNode): string {
-		var ParamList: Array<GtNode> = Node.Params;
-		var Size: number = ListSize(ParamList);
-		var ParamCode: string[] = new Array<string>(Size - 1);
-		var i: number = 1;
-		while(i < Size) {
-			var Param: string = this.VisitNode(ParamList.get(i));
-			if(ParamList.get(i) instanceof ConstNode) {
-				var Const: ConstNode = <ConstNode>ParamList.get(i);
-				if(Const.Type.equals(Const.Type.Context.BooleanType)) {
-					if(Const.ConstValue.equals(true)) {
-						Param = "true";
-					}
-					else {
-						Param = "false";
-					}
-				}
-			}
-			ParamCode[i - 1] = "\"" + Param + "\"";
-			i = i + 1;
-		}
-		return this.JoinCode("assert ", 0, ParamCode, "", " ");
+		var ParamNode: GtNode = Node.NodeList.get(1);
+		return "assert " + this.Quote(this.ResolveCondition(ParamNode));
 	}
 
 	public VisitApplyNode(Node: ApplyNode): void {
-		var ParamCode: string[] = this.MakeParamCode(Node.Params);
+		var ParamCode: string[] = this.MakeParamCode(Node.NodeList);
 		if(Node.Func == null) {
 			this.PushSourceCode(this.JoinCode(ParamCode[0] + " ", 0, ParamCode, "", " "));
 		}
@@ -184,16 +203,58 @@ class BashSourceGenerator extends SourceGenerator {
 		}
 	}
 
+	public VisitUnaryNode(Node: UnaryNode): void {
+		var FuncName: string = Node.Token.ParsedText;
+		var Func: GtFunc = Node.Func;
+		var Expr: string = this.ResolveValueType(Node.Expr, false);	//TODO: support ++ --
+		var Macro: string = null;
+		if(Func != null) {
+			FuncName = Func.GetNativeFuncName();
+			if(IsFlag(Func.FuncFlag, NativeMacroFunc)) {
+				Macro = Func.GetNativeMacro();
+			}
+		}
+		if(Macro == null) {
+			Macro = "((" + FuncName + " $1))";
+		}
+		this.PushSourceCode(Macro.replace("$1", Expr));
+	}
+
 	public VisitBinaryNode(Node: BinaryNode): void {
 		var FuncName: string = Node.Token.ParsedText;
-		var Left: string = this.ResolveValueType(Node.LeftNode);
-		var Right: string = this.ResolveValueType(Node.RightNode);
-		this.PushSourceCode(SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right));
-		
-//		if(Node.Type.equals(Node.Type.Context.Float)) {	// support float value
-//			this.PushSourceCode("(echo \"scale=10; " + Left + " " + FuncName + " " + Right + "\" | bc)");
-//			return;
-//		}
+		var Func: GtFunc = Node.Func;
+		var Left: string = this.ResolveValueType(Node.LeftNode, false);
+		var Right: string = this.ResolveValueType(Node.RightNode, false);
+		var Macro: string = null;
+		if(Func != null) {
+			FuncName = Func.GetNativeFuncName();
+			if(IsFlag(Func.FuncFlag, NativeMacroFunc)) {
+				Macro = Func.GetNativeMacro();
+			}
+		}
+		if(Macro == null) {
+			Macro = "(($1 " + FuncName + " $2))";
+		}
+		this.PushSourceCode(Macro.replace("$1", Left).replace("$2", Right));
+	}
+
+	private GetMemberIndex(ClassType: GtType, MemberName: string): string {
+		return "$" + ClassType.ShortClassName + this.MemberAccessOperator + MemberName;
+	}
+
+	private IsNativeType(Type: GtType): boolean {
+		if(Type != null && Type.IsNative()) {
+			return true;
+		}
+		return false;
+	}
+
+	public VisitGetterNode(Node: GetterNode): void {
+		this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + this.GetMemberIndex(Node.Expr.Type, Node.Func.FuncName) + "]");
+	}
+
+	public VisitIndexerNode(Node: IndexerNode): void {
+		this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + this.ResolveValueType(Node.GetAt(0), false) + "]");
 	}
 
 	public VisitAndNode(Node: AndNode): void {
@@ -205,43 +266,62 @@ class BashSourceGenerator extends SourceGenerator {
 	}
 
 	public VisitAssignNode(Node: AssignNode): void {
-		var Left: string = this.VisitNode(Node.LeftNode);
-		var Right: string = this.ResolveValueType(Node.RightNode);
-		var Head: string = "";
-		if(Node.LeftNode instanceof GetterNode) {
-			Head = "eval ";
-		}
-		this.PushSourceCode(Head + Left + "=" + Right);
+		this.PushSourceCode(this.VisitNode(Node.LeftNode) + "=" + this.ResolveValueType(Node.RightNode, true));
 	}
 
-	public VisitLetNode(Node: LetNode): void {
-		var VarName: string = Node.VariableName;
-		var Code: string = "";
-		var Head: string = "";
+	public VisitVarNode(Node: VarNode): void {
+		var VarName: string = Node.NativeName;
+		var Declare: string = "declare ";
+		var Option: string = "";
 		if(this.inFunc) {
-			Code += "local " + VarName + this.LineFeed + this.GetIndentString();
+			Declare = "local ";
+		}
+		if(this.IsNativeType(Node.DeclType)) {
+			Option = "-a ";
 		}
 		
-		if(Node.InitNode != null && Node.InitNode instanceof GetterNode) {
-			Head = "eval ";
-		}
-		Code += Head + VarName;
+		var Code: string = Declare + Option + VarName + this.LineFeed;
+		Code += this.GetIndentString() + VarName;
 		if(Node.InitNode != null) {
-			Code += "=" + this.ResolveValueType(Node.InitNode);
+			Code += "=" + this.ResolveValueType(Node.InitNode, true);
 		} 
 		Code +=  this.LineFeed;
-		this.PushSourceCode(Code + this.VisitBlockWithIndent(Node.BlockNode, false, false));
+		this.PushSourceCode(Code + this.VisitBlockWithoutIndent(Node.BlockNode, false));
+	}
+
+	public VisitTrinaryNode(Node: TrinaryNode): void {
+		var CondExpr: string = this.ResolveCondition(Node.CondExpr);
+		var Then: string = this.ResolveValueType(Node.ThenExpr, false);
+		var Else: string = this.ResolveValueType(Node.ElseExpr, false);
+		this.PushSourceCode("((" + CondExpr + " ? " + Then + " : " + Else + "))");
 	}
 
 	public VisitIfNode(Node: IfNode): void {
 		var CondExpr: string = this.ResolveCondition(Node.CondExpr);
-		var ThenBlock: string = this.VisitBlockWithIndent(Node.ThenNode, true, true);
-		var ElseBlock: string = this.VisitBlockWithIndent(Node.ElseNode, true, false);
+		var ThenBlock: string = this.VisitBlockWithIndent(Node.ThenNode, true);
 		var Code: string = "if " + CondExpr + " ;then" + this.LineFeed + ThenBlock;
-		if(!this.IsEmptyNode(Node.ElseNode)) {
-			Code += "else" + this.LineFeed + ElseBlock;
+		if(!this.IsEmptyBlock(Node.ElseNode)) {
+			Code += "else" + this.LineFeed + this.VisitBlockWithIndent(Node.ElseNode, false);
 		}
 		Code += "fi";
+		this.PushSourceCode(Code);
+	}
+
+	public VisitSwitchNode(Node: SwitchNode): void {
+		var Code: string = "case " + this.ResolveValueType(Node.MatchNode, false) + " in";
+		var i: number = 0;
+		while(i < Node.CaseList.size()) {
+			var Case: GtNode  = Node.CaseList.get(i);
+			var Block: GtNode = Node.CaseList.get(i+1);
+			Code += this.LineFeed + this.GetIndentString() + this.VisitNode(Case) + ")" + this.LineFeed;
+			Code += this.VisitBlockWithSkipJump(Block, true) + ";;";
+			i = i + 2;
+		}
+		if(Node.DefaultBlock != null) {
+			Code += this.LineFeed + this.GetIndentString() + "*)" + this.LineFeed;
+			Code += this.VisitBlockWithSkipJump(Node.DefaultBlock, false) + ";;";
+		}
+		Code += this.LineFeed + this.GetIndentString() + "esac";
 		this.PushSourceCode(Code);
 	}
 
@@ -251,10 +331,10 @@ class BashSourceGenerator extends SourceGenerator {
 		}
 		
 		if(Node.Expr != null) {
-			var Ret: string = this.ResolveValueType(Node.Expr);
+			var Ret: string = this.ResolveValueType(Node.Expr, false);
 			if(Node.Type.equals(Node.Type.Context.BooleanType) || 
 					(Node.Type.equals(Node.Type.Context.IntType) && this.inMainFunc)) {
-				this.PushSourceCode("return " + Ret + this.LineFeed);
+				this.PushSourceCode("return " + Ret);
 				return;
 			}
 			this.PushSourceCode("echo " + Ret + this.LineFeed + this.GetIndentString() + "return 0");
@@ -268,7 +348,7 @@ class BashSourceGenerator extends SourceGenerator {
 		var Code: string = "trap ";
 		var Try: string = this.VisitNode(new IfNode(null, null, TrueNode, Node.TryBlock, null));
 		var Catch: string = this.VisitNode(new IfNode(null, null, TrueNode, Node.CatchBlock, null));
-		Code += "\"" + Catch + "\" ERR" + this.LineFeed;
+		Code += this.Quote(Catch) + " ERR" + this.LineFeed;
 		Code += this.GetIndentString() + Try + this.LineFeed + this.GetIndentString() + "trap ERR";
 		if(Node.FinallyBlock != null) {
 			var Finally: string = this.VisitNode(new IfNode(null, null, TrueNode, Node.FinallyBlock, null));
@@ -282,23 +362,25 @@ class BashSourceGenerator extends SourceGenerator {
 	}
 
 	public VisitErrorNode(Node: ErrorNode): void {
-//		/*local*/String Code = "throw Error(\"" + Node.Token.ParsedText + "\")";
-//		this.PushSourceCode(Code);
+		this.PushSourceCode("echo " + this.Quote(Node.Token.ParsedText) + " >&2");
 	}
 
 	public VisitCommandNode(Node: CommandNode): void {
 		var Code: string = "";
-		var count: number = 0;
+		var Type: GtType = Node.Type;
 		var CurrentNode: CommandNode = Node;
 		while(CurrentNode != null) {
-			if(count > 0) {
-				Code += " | ";
-			}
 			Code += this.AppendCommand(CurrentNode);
-			count += 1;
 			CurrentNode = <CommandNode> CurrentNode.PipedNextNode;
 		}
-		this.PushSourceCode(this.CreateCommandFunc(Code, Node.Type));
+		
+		if(Type.equals(Type.Context.StringType)) {
+			Code = "execCommadString " + this.Quote(Code);
+		}
+		else if(Type.equals(Type.Context.BooleanType)) {
+			Code = "execCommadBool " + this.Quote(Code);
+		}
+		this.PushSourceCode(Code);
 	}
 
 	private AppendCommand(CurrentNode: CommandNode): string {
@@ -306,59 +388,61 @@ class BashSourceGenerator extends SourceGenerator {
 		var size: number = CurrentNode.Params.size();
 		var i: number = 0;
 		while(i < size) {
-			Code += this.ResolveValueType(CurrentNode.Params.get(i)) + " ";
+			Code += this.ResolveValueType(CurrentNode.Params.get(i), false) + " ";
 			i = i + 1;
 		}
 		return Code;
 	}
 
-	private CreateCommandFunc(cmd: string, Type: GtType): string {
-		var FuncName: string = "execCmd";
-		var RunnableCmd: string = cmd;
-		if(Type.equals(Type.Context.StringType)) {
-			RunnableCmd = FuncName + this.cmdCounter + "() {" + this.LineFeed;
-			RunnableCmd += this.GetIndentString() + "echo $(" + cmd + ")" + this.LineFeed;
-			RunnableCmd += this.GetIndentString() + "return 0" + this.LineFeed + "}" + this.LineFeed;
-			this.WriteLineCode(RunnableCmd);
-			RunnableCmd = FuncName + this.cmdCounter;
-			this.cmdCounter++;
-		}
-		else if(Type.equals(Type.Context.BooleanType)) {
-			RunnableCmd = FuncName + this.cmdCounter + "() {" + this.LineFeed;
-			RunnableCmd += this.GetIndentString() + cmd + " >&2" + this.LineFeed;
-			RunnableCmd += this.GetIndentString() + "return $?" + this.LineFeed + "}" + this.LineFeed;
-			this.WriteLineCode(RunnableCmd);
-			RunnableCmd = FuncName + this.cmdCounter;
-			this.cmdCounter++;
-		}
-		return RunnableCmd;
+	private ResolveParamName(Func: GtFunc, ParamNameList: Array<string>, Body: GtNode): GtNode {
+		return this.ConvertParamName(Func, ParamNameList, Body, 0);
 	}
 
-	private ResolveParamName(ParamNameList: Array<string>, Body: GtNode): GtNode {
-		return this.ConvertParamName(ParamNameList, Body, 0);
-	}
-
-	private ConvertParamName(ParamNameList: Array<string>, Body: GtNode, index: number): GtNode {
+	private ConvertParamName(Func: GtFunc, ParamNameList: Array<string>, Body: GtNode, index: number): GtNode {
 		if(ParamNameList == null || index == ParamNameList.size()) {
 			return Body;
 		}
-
-		var oldVarNode: GtNode = new LocalNode(null, null, "" + (index + 1));
-		var Let: GtNode = new LetNode(null, null, null, ParamNameList.get(index), oldVarNode, null);
-		Let.NextNode = this.ConvertParamName(ParamNameList, Body, index + 1);
+		
+		var ParamType: GtType = Func.GetFuncParamType(index);
+		var oldVarNode: GtNode = new LocalNode(ParamType, null, "" + (index + 1));
+		var Let: GtNode = new VarNode(null, null, ParamType, ParamNameList.get(index), oldVarNode, null);
+		index += 1;
+		Let.NextNode = this.ConvertParamName(Func, ParamNameList, Body, index);
 		return Let;
 	}
 
-	private ResolveValueType(TargetNode: GtNode): string {
+	private CheckConstFolding(TargetNode: GtNode): boolean {
+		if(TargetNode instanceof ConstNode) {
+			return true;
+		}
+		else if(TargetNode instanceof UnaryNode) {
+			var Unary: UnaryNode = <UnaryNode> TargetNode;
+			return this.CheckConstFolding(Unary.Expr);
+		}
+		else if(TargetNode instanceof BinaryNode) {
+			var Binary: BinaryNode = <BinaryNode> TargetNode;
+			if(this.CheckConstFolding(Binary.LeftNode) && this.CheckConstFolding(Binary.RightNode)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private ResolveValueType(TargetNode: GtNode, isAssign: boolean): string {
 		var ResolvedValue: string;
 		var Value: string = this.VisitNode(TargetNode);
-		var Head: string = "";
-		var Tail: string = "";
+		var Type: GtType = TargetNode.Type;
 		
-		if(TargetNode.Type != null && TargetNode.Type.equals(TargetNode.Type.Context.BooleanType)) {
+		// resolve constant folding
+		if(this.CheckConstFolding(TargetNode)) {
+			return Value;
+		}
+		
+		// resolve boolean function
+		if(Type != null && Type.equals(Type.Context.BooleanType)) {
 			if(TargetNode instanceof ApplyNode || TargetNode instanceof UnaryNode || 
 					TargetNode instanceof CommandNode || TargetNode instanceof BinaryNode) {
-				return "$(retBool \"" + Value + "\")";
+				return "$(valueOfBool " + this.Quote(Value) + ")";
 			}
 		}
 		
@@ -368,22 +452,40 @@ class BashSourceGenerator extends SourceGenerator {
 		else if(TargetNode instanceof IndexerNode || TargetNode instanceof GetterNode) {
 			ResolvedValue = "${" + Value + "}";
 		}
-		else if(TargetNode instanceof ApplyNode || TargetNode instanceof CommandNode) {
+		else if(TargetNode instanceof ApplyNode || TargetNode instanceof CommandNode || TargetNode instanceof NewNode) {
 			ResolvedValue = "$(" + Value + ")";
+		}
+		else if(TargetNode instanceof LocalNode && !this.IsNativeType(Type)) {
+			var Local: LocalNode = <LocalNode> TargetNode;
+			var Name: string = Local.NativeName;
+			ResolvedValue = "${" + Value + "[@]}";
+			if(Name.length == 1 && LibGreenTea.IsDigit(Name, 0)) {
+				ResolvedValue = "$" + Value;
+			}
 		}
 		else {
 			ResolvedValue = "$" + Value;
 		}
-		if(TargetNode.Type != null) {
-			if(TargetNode.Type.equals(TargetNode.Type.Context.StringType)) {
-				Head = "\"";
-				Tail = "\"";
+		
+		// resolve assigned object
+		if(isAssign) {
+			if(!this.IsNativeType(Type)) {
+				ResolvedValue = "(" + ResolvedValue + ")";
+				return ResolvedValue;
 			}
 		}
-		return Head + ResolvedValue + Tail;
+		
+		// resolve string and object value
+		if(Type != null) {
+			if(Type.equals(Type.Context.StringType) || !this.IsNativeType(Type)) {
+				ResolvedValue = this.Quote(ResolvedValue);
+			}
+		}
+		return ResolvedValue;
 	}
 
 	public GenerateFunc(Func: GtFunc, ParamNameList: Array<string>, Body: GtNode): void {
+		this.FlushErrorReport();
 		var Function: string = "";
 		var FuncName: string = Func.GetNativeFuncName();
 		this.inFunc = true;
@@ -391,15 +493,46 @@ class BashSourceGenerator extends SourceGenerator {
 			this.inMainFunc = true;
 		}
 		Function += FuncName + "() {" + this.LineFeed;
-		var Block: string = this.VisitBlockWithIndent(this.ResolveParamName(ParamNameList, Body), true, true);
+		var Block: string = this.VisitBlockWithIndent(this.ResolveParamName(Func, ParamNameList, Body), true);
 		Function += Block + "}" + this.LineFeed;
 		this.WriteLineCode(Function);
 		this.inFunc = false;
 		this.inMainFunc = false;
 	}
 
+	GetNewOperator(Type: GtType): string {
+		return this.Quote("$(__NEW__" + Type.ShortClassName + ")");
+	}
+
+	public GenerateClassField(Type: GtType, ClassField: GtClassField): void {	//TODO: support super
+		var Program: string = "__NEW__" + Type.ShortClassName + "() {" + this.LineFeed;
+		this.WriteLineCode("#### define class " + Type.ShortClassName + " ####");
+		this.Indent();
+		Program += this.GetIndentString() + "local -a " + this.GetRecvName() + this.LineFeed;
+
+		var i: number = 0;
+		while(i < ClassField.FieldList.size()) {
+			var FieldInfo: GtFieldInfo = ClassField.FieldList.get(i);
+			var InitValue: string = this.StringifyConstValue(FieldInfo.InitValue);
+			if(!FieldInfo.Type.IsNative()) {
+				InitValue = "NULL";
+			}
+			this.WriteLineCode(Type.ShortClassName + this.MemberAccessOperator + FieldInfo.NativeName + "=" + i);
+			
+			Program += this.GetIndentString() + this.GetRecvName();
+			Program += "[" + this.GetMemberIndex(Type, FieldInfo.NativeName) + "]=" + InitValue + this.LineFeed;
+			i = i + 1;
+		}
+		Program += this.GetIndentString() + "echo ";
+		Program += this.Quote("${" + this.GetRecvName() + "[@]}") + this.LineFeed;
+		this.UnIndent();
+		Program += "}";
+		
+		this.WriteLineCode("\n" + Program);
+	}
+
 	public Eval(Node: GtNode): Object {
-		var Code: string = this.VisitBlockWithIndent(Node, false, false);
+		var Code: string = this.VisitBlockWithoutIndent(Node, false);
 		if(!LibGreenTea.EqualsString(Code, "")) {
 			this.WriteLineCode(Code);
 		}

@@ -21,16 +21,16 @@ $(function () {
 				this.Program = this.Program + SourceCode;
 			};
 			var Generator = LibGreenTea.CodeGenerator(PlayGround_CodeGenTarget, "-", 0);
-			var Context = new GtClassContext(new DScriptGrammar(), Generator);
+			var Context = new GtContext(new GreenTeaGrammar(), Generator);
 			DebugPrintOption = true;
-			Context.Eval(src);
+			Context.TopLevelNameSpace.Eval(src);
 			Generator.FlushBuffer();
 			var generatedCode = LibGreenTea.Program;
 			editor_js.setValue(generatedCode);
 			var error = Context.GetReportedErrors().join("<br>");
 			$("#editor-error").html(error.length == 0 ? "No Error" : error);
 		}catch(e){
-			var error = e.toString();
+			var error = e.toString() + ", " + e.stack + ":" + e.lineNumber;
 			if(Context){
 				error = "JavaScript Error:<br>"+ error + "<br>----<br>" + Context.GetReportedErrors().join("<br>");
 			}

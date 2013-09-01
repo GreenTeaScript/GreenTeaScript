@@ -2,7 +2,7 @@
 
 boolean TestFunc() {
 	int n;
-	String s == "ABC";
+	String s = "ABC";
 	assert(n instanceof int);  // by constant folding
 	assert(s instanceof String); // by constant folding
 	return true;

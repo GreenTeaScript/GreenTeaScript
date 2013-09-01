@@ -1,4 +1,5 @@
 /// <reference path="SourceGenerator.ts" />
+/// <reference path="GreenTeaScript.ts" />
 
 interface Array {
 	get(index: number): any;
@@ -71,23 +72,6 @@ String.prototype["endsWith"] = function(key): boolean{
 	return this.lastIndexOf(key, 0) == 0;
 }
 
-String.prototype["indexOf"] = function(ch): number {
-	return this.indexOf(String.fromCharCode(ch), 0);
-}
-
-String.prototype["lastIndexOf"] = function(ch): number {
-	return this.lastIndexOf(String.fromCharCode(ch), 0);
-}
-String.prototype["substring"] = function(BeginIdx): string {
-	var EndIdx : number = 0;
-	if(arguments.length == 1) {
-		EndIdx = this.length - 1;
-	} else {
-		EndIdx = arguments[1];
-	}
-	return this.substring(BeginIdx, EndIdx);
-}
-
 String.prototype["equals"] = function(other): boolean{
 	return (this == other);
 }
@@ -149,7 +133,7 @@ class LibGreenTea {
 		}
 	}
 
-	static VerboseMask: number = VerboseUndefined;
+	static VerboseMask: number = 0/*FIXME VerboseUndefined*/;
 
 	static VerboseLog(VerboseFlag: number, msg: string): void {
 		LibGreenTea.println(msg);
@@ -197,18 +181,27 @@ class LibGreenTea {
 	}
 
 	static UnquoteString(Text: string): string {
+		var start : string = Text[0];
+		if(start == "\"" || start == "'") {
+			Text = Text.substring(1, Text.length - 1);
+		}
 		return Text
 			.replace(/\\t/, "\t")
 			.replace(/\\n/, "\n")
 			.replace(/\\r/, "\r")
-			.replace(/\\"/, "\n")
-			.replace(/\\'/, "\n")
-			.replace(/\\\\/, "\n");
+			.replace(/\\"/, "\"")
+			.replace(/\\'/, "'")
+			.replace(/\\\\/, "\\");
 	}
 
 	static QuoteString(Text: string): string {
-		//FIXME
-		return Text;
+		return "\"" + Text
+			.replace(/\t/, "\\t")
+			.replace(/\n/, "\\n")
+			.replace(/\r/, "\\r")
+			.replace(/"/, "\\\"")
+			.replace(/'/, "\\'")
+			.replace(/\\/, "\\") + "\"";
 	}
 
 	static EqualsString(s1: string, s2: string): boolean {
@@ -304,13 +297,13 @@ class LibGreenTea {
 		LibGreenTea.Exit(1, "Failed ApplyTypeFunc");
 		return null;
 	}
-    
-    static ListSize(List: any[]) : number {
-        if(List == null) {
-            return 0;
-        }
-        return List.length;
-    }
+
+	static ListSize(List: any[]) : number {
+		if(List == null) {
+			return 0;
+		}
+		return List.length;
+	}
 
 	static CompactTypeList(BaseIndex: number, List: GtType[]): GtType[] {
 		var Tuple: GtType[] = new Array<GtType>(List.length - BaseIndex);

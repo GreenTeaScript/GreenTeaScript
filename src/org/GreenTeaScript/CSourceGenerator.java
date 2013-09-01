@@ -36,6 +36,7 @@ public class CSourceGenerator extends SourceGenerator {
 		//this.Opt = new ConstantFolder(TargetCode, OutputFile, GeneratorFlag);
 		this.TrueLiteral  = "1";
 		this.FalseLiteral = "0";
+		this.Tab = "\t";
 		this.NullLiteral = "NULL";
 		this.MemberAccessOperator = "->";
 	}
@@ -73,35 +74,6 @@ public class CSourceGenerator extends SourceGenerator {
 	@Override protected String GetNewOperator(GtType Type) {
 		/*local*/String TypeName = this.GreenTeaTypeName(Type);
 		return "NEW_" + TypeName + "()";
-	}
-
-	public void VisitBlockEachStatementWithIndent(GtNode Node, boolean NeedBlock) {
-		/*local*/String Code = "";
-		if(NeedBlock) {
-			Code += "{" + this.LineFeed;
-			this.Indent();
-		}
-		/*local*/GtNode CurrentNode = Node;
-		while(CurrentNode != null) {
-			if(!this.IsEmptyBlock(CurrentNode)) {
-				/*local*/String Stmt = this.VisitNode(CurrentNode);
-				/*local*/String SemiColon = "";
-				/*local*/String LineFeed = "";
-				if(!Stmt.endsWith(";")) {
-					SemiColon = ";";
-				}
-				if(!Stmt.endsWith(this.LineFeed)) {
-					LineFeed = this.LineFeed;
-				}
-				Code += this.GetIndentString() + Stmt + SemiColon + LineFeed;
-			}
-			CurrentNode = CurrentNode.NextNode;
-		}
-		if(NeedBlock) {
-			this.UnIndent();
-			Code += this.GetIndentString() + "}";
-		}
-		this.PushSourceCode(Code);
 	}
 
 	@Override public void VisitWhileNode(WhileNode Node) {
@@ -165,33 +137,6 @@ public class CSourceGenerator extends SourceGenerator {
 			this.VisitBlockEachStatementWithIndent(Node.ElseNode, true);
 			Code += " else " + this.PopSourceCode();
 		}
-		this.PushSourceCode(Code);
-	}
-
-	@Override public void VisitSwitchNode(SwitchNode Node) {
-		/*local*/String Code = "switch (" + this.VisitNode(Node.MatchNode) + ") {" + this.LineFeed;
-		/*local*/int i = 0;
-		while(i < Node.CaseList.size()) {
-			/*local*/GtNode Case  = Node.CaseList.get(i);
-			/*local*/GtNode Block = Node.CaseList.get(i+1);
-			Code += this.GetIndentString() + "case " + this.VisitNode(Case) + ":";
-			if(this.IsEmptyBlock(Block)) {
-				this.Indent();
-				Code += this.LineFeed + this.GetIndentString() + "/* fall-through */" + this.LineFeed;
-				this.UnIndent();
-			}
-			else {
-				this.VisitBlockEachStatementWithIndent(Block, true);
-				Code += this.PopSourceCode() + this.LineFeed;
-			}
-			i = i + 2;
-		}
-		if(Node.DefaultBlock != null) {
-			Code += this.GetIndentString() + "default:" + this.LineFeed;
-			this.VisitBlockEachStatementWithIndent(Node.DefaultBlock, true);
-			Code += this.PopSourceCode();
-		}
-		Code += this.GetIndentString() + "}";
 		this.PushSourceCode(Code);
 	}
 

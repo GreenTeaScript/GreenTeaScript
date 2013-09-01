@@ -53,4 +53,4 @@ void print(any s);
 void println(any s);
 void assert(boolean b) import org.GreenTeaScript.GreenTeaRuntime.assert_;
 
-
+void test2(String[] s, ArrayList<String> b) import org.GreenTeaScript.GreenTeaRuntime.test2;
