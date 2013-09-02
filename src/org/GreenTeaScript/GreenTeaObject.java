@@ -164,8 +164,8 @@ class GtFunc extends GtStatic {
 	/*field*/public String			FuncName;
 	/*field*/public String          MangledName;
 	/*field*/public GtType[]		Types;
-	/*field*/public GtType         FuncType;
-	/*field*/public int FuncId      ;
+	/*field*/public GtType          FuncType;
+	/*field*/public                 int FuncId;
 	/*field*/public Object          NativeRef;  // Abstract function if null
 	/*field*/public String[]        GenericParam;
 

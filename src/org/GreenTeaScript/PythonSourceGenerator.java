@@ -78,7 +78,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		 * => while(True) { Block; if(!Cond) { break; } }
 		 */
 		/*local*/GtNode Break = this.CreateBreakNode(Type, ParsedTree, null);
-		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(Cond.Type, "!", true);
+		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetGreenMethod(Cond.Type, "!", true);
 		/*local*/GtTypeEnv Gamma = new GtTypeEnv(ParsedTree.NameSpace);
 		/*local*/GtFunc Func = null;
 		if(PolyFunc != null) {

@@ -937,46 +937,6 @@ class GtGenerator extends GtStatic {
 		return LibGreenTea.GetNativeType(this.Context, Value);
 	}
 
-	public boolean LoadNativeField(GtType NativeBaseType, String FieldName) {
-//ifdef JAVA
-		Class<?> NativeClassInfo = (Class<?>)NativeBaseType.NativeSpec;
-		try {
-			Field NativeField = NativeClassInfo.getField(FieldName);
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		} catch (NoSuchFieldException e) {
-			e.printStackTrace();
-		}
-//endif VAJA
-		NativeBaseType.Context.RootNameSpace.SetUndefinedSymbol(ClassSymbol(NativeBaseType, FieldName));
-		NativeBaseType.Context.RootNameSpace.SetUndefinedSymbol(ClassSymbol(NativeBaseType, FieldName)+"="); // for setter
-		return false;
-	}
-
-	public boolean LoadNativeMethods(GtType NativeBaseType, String FuncName) {
-//ifdef JAVA
-		Class<?> NativeClassInfo = (Class<?>)NativeBaseType.NativeSpec;
-		Method[] Methods = NativeClassInfo.getDeclaredMethods();
-		if(Methods != null) {
-			/*local*/boolean TransformedResult = false;
-			for(int i = 0; i < Methods.length; i++) {
-				if(LibGreenTea.EqualsString(FuncName, Methods[i].getName())) {
-					if(!Modifier.isPublic(Methods[i].getModifiers())) {
-						continue;
-					}
-					GtFunc NativeFunc = LibGreenTea.ConvertNativeMethodToFunc(this.Context, Methods[i]);
-					NativeBaseType.Context.RootNameSpace.AppendMethod(NativeBaseType, NativeFunc);
-					TransformedResult = true;
-				}
-			}
-			if(TransformedResult) {
-				return true;
-			}
-		}
-//endif VAJA
-		NativeBaseType.Context.RootNameSpace.SetUndefinedSymbol(ClassSymbol(NativeBaseType, FuncName));
-		return false;
-	}
 
 	public void GenerateClassField(GtType Type, GtClassField ClassField) {
 		/*extension*/

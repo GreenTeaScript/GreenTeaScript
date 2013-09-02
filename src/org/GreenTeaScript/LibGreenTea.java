@@ -34,13 +34,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Writer;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public abstract class LibGreenTea {
+public abstract class LibGreenTea implements GtConst {
 
 	public final static String GetPlatform() {
 		return "Java JVM-" + System.getProperty("java.version");
@@ -374,6 +376,93 @@ public abstract class LibGreenTea {
 		return false;
 	}
 
+	public static boolean LoadNativeConstructors(GtType ClassType) {
+		/*local*/boolean TransformedResult = false;
+		Class<?> NativeClass = (Class<?>)ClassType.NativeSpec;
+		GtContext Context = ClassType.Context;
+		Constructor<?>[] Constructors = NativeClass.getDeclaredConstructors();
+		if(Constructors != null) {
+			for(int i = 0; i < Constructors.length; i++) {
+				if(!Modifier.isPublic(Constructors[i].getModifiers())) {
+					continue;
+				}
+				/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
+				TypeList.add(ClassType);
+				/*local*/Class<?>[] ParamTypes = Constructors[i].getParameterTypes();
+				if(ParamTypes != null) {
+					for(int j = 0; j < ParamTypes.length; j++) {
+						TypeList.add(LibGreenTea.GetNativeType(Context, ParamTypes[j]));
+					}
+				}
+				GtFunc Func = new GtFunc(ConstructorFunc, ClassType.ShortClassName, 0, TypeList);
+				Func.SetNativeMethod(0, Constructors[i]);
+				TransformedResult = true;
+				Context.RootNameSpace.AppendConstructor(ClassType, Func);
+			}
+			if(TransformedResult) {
+				return true;
+			}
+		}
+		Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, ""));
+		return false;
+	}
+
+	public boolean LoadNativeField(GtType ClassType, String FieldName) {
+		GtContext Context = ClassType.Context;
+		try {
+			Class<?> NativeClass = (Class<?>)ClassType.NativeSpec;
+			Field NativeField = NativeClass.getField(FieldName);
+			if(Modifier.isPublic(NativeField.getModifiers())) {
+				ArrayList<GtType> TypeList = new ArrayList<GtType>();
+				TypeList.add(LibGreenTea.GetNativeType(Context, NativeField.getType()));
+				TypeList.add(ClassType);
+				GtFunc Func = new GtFunc(GetterFunc, FieldName, 0, TypeList);
+				Func.SetNativeMethod(0, NativeField);
+				Context.RootNameSpace.SetGetterFunc(ClassType, FieldName, Func);
+				TypeList.clear();
+				TypeList.add(Context.VoidType);
+				TypeList.add(ClassType);
+				TypeList.add(LibGreenTea.GetNativeType(Context, NativeField.getType()));
+				Func = new GtFunc(SetterFunc, FieldName, 0, TypeList);
+				Func.SetNativeMethod(0, NativeField);
+				Context.RootNameSpace.SetGetterFunc(ClassType, FieldName, Func);
+				return true;
+			}
+		} catch (SecurityException e) {
+			LibGreenTea.VerboseException(e);
+			e.printStackTrace();
+		} catch (NoSuchFieldException e) {
+			LibGreenTea.VerboseException(e);
+		}
+		Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, FieldName));
+		Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, FieldName)+"="); // for setter
+		return false;
+	}
+
+	public boolean LoadNativeMethods(GtType ClassType, String FuncName) {
+		GtContext Context = ClassType.Context;
+		Class<?> NativeClass = (Class<?>)ClassType.NativeSpec;
+		Method[] Methods = NativeClass.getDeclaredMethods();
+		if(Methods != null) {
+			/*local*/boolean TransformedResult = false;
+			for(int i = 0; i < Methods.length; i++) {
+				if(LibGreenTea.EqualsString(FuncName, Methods[i].getName())) {
+					if(!Modifier.isPublic(Methods[i].getModifiers())) {
+						continue;
+					}
+					GtFunc NativeFunc = LibGreenTea.ConvertNativeMethodToFunc(Context, Methods[i]);
+					Context.RootNameSpace.AppendMethod(ClassType, NativeFunc);
+					TransformedResult = true;
+				}
+			}
+			if(TransformedResult) {
+				return true;
+			}
+		}
+		Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, FuncName));
+		return false;
+	}
+	
 	public final static Method LookupNativeMethod(Object Callee, String FuncName) {
 		if(FuncName != null) {
 			// LibGreenTea.DebugP("looking up method : " + Callee.getClass().getSimpleName() + "." + FuncName);
@@ -904,5 +993,6 @@ public abstract class LibGreenTea {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
 
 }
