@@ -48,6 +48,21 @@ class GtNode extends GtStatic {
 		this.NextNode = null;
 	}
 
+	public final void SetParent(GtNode Node) {
+		if(Node != null) {
+			Node.ParentNode = this;
+		}
+	}
+
+	public final void SetParent2(GtNode Node, GtNode Node2) {
+		if(Node != null) {
+			Node.ParentNode = this;
+		}
+		if(Node2 != null) {
+			Node2.ParentNode = this;
+		}
+	}
+	
 	public final GtNode MoveHeadNode() {
 		/*local*/GtNode Node = this;
 		while(Node.PrevNode != null) {
@@ -142,13 +157,14 @@ class NullNode extends GtNode {
 
 //E.g., (T) $Expr
 final class CastNode extends GtNode {
-	/*field*/public GtFunc    Func;
+	/*field*/public GtFunc  Func;
 	/*field*/public GtType	CastType;
 	/*field*/public GtNode	Expr;
 	CastNode/*constructor*/(GtType Type, GtToken Token, GtType CastType, GtNode Expr) {
 		super(Type, Token);
 		this.CastType = CastType;
 		this.Expr = Expr;
+		this.SetParent(Expr);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitCastNode(this);
@@ -164,12 +180,13 @@ final class CastNode extends GtNode {
 
 // E.g., "~" $Expr
 final class UnaryNode extends GtNode {
-	/*field*/public GtFunc    Func;
+	/*field*/public GtFunc  Func;
 	/*field*/public GtNode	Expr;
 	UnaryNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func, GtNode Expr) {
 		super(Type, Token);
 		this.Func = Func;
 		this.Expr = Expr;
+		this.SetParent(Expr);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitUnaryNode(this);
@@ -191,6 +208,7 @@ class SuffixNode extends GtNode {
 		super(Type, Token);
 		this.Func = Func;
 		this.Expr = Expr;
+		this.SetParent(Expr);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitSuffixNode(this);
@@ -212,6 +230,7 @@ class ExistsNode extends GtNode {
 		super(Type, Token);
 		this.Func = Func;
 		this.Expr = Expr;
+		this.SetParent(Expr);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitExistsNode(this);
@@ -226,6 +245,7 @@ class AssignNode extends GtNode {
 		super(Type, Token);
 		this.LeftNode  = Left;
 		this.RightNode = Right;
+		this.SetParent2(Left, Right);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitAssignNode(this);
@@ -242,13 +262,14 @@ class SelfAssignNode extends GtNode {
 		this.Func  = Func;
 		this.LeftNode  = Left;
 		this.RightNode = Right;
+		this.SetParent2(Left, Right);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitSelfAssignNode(this);
 	}
 }
 
-//E.g., $LeftNode || $RightNode
+//E.g., $ExprNode instanceof TypeInfo
 class InstanceOfNode extends GtNode {
 	/*field*/public GtNode   ExprNode;
 	/*field*/public GtType	 TypeInfo;
@@ -256,6 +277,7 @@ class InstanceOfNode extends GtNode {
 		super(Type, Token);
 		this.ExprNode = ExprNode;
 		this.TypeInfo = TypeInfo;
+		this.SetParent(ExprNode);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitInstanceOfNode(this);
@@ -279,6 +301,7 @@ class BinaryNode extends GtNode {
 		this.Func = Func;
 		this.LeftNode  = Left;
 		this.RightNode = Right;
+		this.SetParent2(Left, Right);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitBinaryNode(this);
@@ -304,6 +327,7 @@ class AndNode extends GtNode {
 		super(Type, Token);
 		this.LeftNode  = Left;
 		this.RightNode = Right;
+		this.SetParent2(Left, Right);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitAndNode(this);
@@ -325,6 +349,7 @@ class OrNode extends GtNode {
 		super(Type, Token);
 		this.LeftNode  = Left;
 		this.RightNode = Right;
+		this.SetParent2(Left, Right);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitOrNode(this);
@@ -354,6 +379,8 @@ final class TrinaryNode extends GtNode {
 		this.CondExpr = CondExpr;
 		this.ThenExpr = ThenExpr;
 		this.ElseExpr = ElseExpr;
+		this.SetParent(CondExpr);
+		this.SetParent2(ThenExpr, ElseExpr);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitTrinaryNode(this);
@@ -380,6 +407,7 @@ class GetterNode extends GtNode {
 		super(Type, Token);
 		this.Func = Func;
 		this.Expr = Expr;
+		this.SetParent(Expr);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitGetterNode(this);
@@ -404,10 +432,12 @@ final class IndexerNode extends GtNode {
 		this.Func = Func;
 		this.Expr = Expr;
 		this.NodeList = new ArrayList<GtNode>();
+		this.SetParent(Expr);
 	}
 
 	@Override public void Append(GtNode Expr) {
 		this.NodeList.add(Expr);
+		this.SetParent(Expr);
 	}
 
 	public GtNode GetAt(int Index) {
@@ -431,6 +461,8 @@ class SliceNode extends GtNode {
 		this.Expr = Expr;
 		this.Index1 = Index1;
 		this.Index2 = Index2;
+		this.SetParent(Expr);
+		this.SetParent2(Index1, Index2);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitSliceNode(this);
@@ -450,6 +482,7 @@ class VarNode extends GtNode {
 		this.DeclType  = DeclType;
 		this.InitNode  = InitNode;
 		this.BlockNode = Block;
+		this.SetParent2(InitNode, BlockNode);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitVarNode(this);
@@ -467,6 +500,7 @@ class ApplyNode extends GtNode {
 	}
 	@Override public void Append(GtNode Expr) {
 		this.NodeList.add(Expr);
+		this.SetParent(Expr);
 	}
 
 	@Override public void Evaluate(GtGenerator Visitor) {
@@ -490,13 +524,14 @@ class NewNode extends GtNode {
 	}
 	@Override public void Append(GtNode Expr) {
 		this.Params.add(Expr);
+		this.SetParent(Expr);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitNewNode(this);
 	}
 }
 
-//E.g., $Expr "[" $Node, $Node "]"
+//E.g., "[" $Node, $Node "]"
 class ArrayNode extends GtNode {
 	/*field*/public ArrayList<GtNode>	NodeList;
 	/*field*/GtFunc Func;
@@ -506,6 +541,7 @@ class ArrayNode extends GtNode {
 	}
 	@Override public void Append(GtNode Expr) {
 		this.NodeList.add(Expr);
+		this.SetParent(Expr);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitArrayNode(this);
@@ -529,6 +565,8 @@ class IfNode extends GtNode {
 		this.CondExpr = CondExpr;
 		this.ThenNode = ThenBlock;
 		this.ElseNode = ElseNode;
+		this.SetParent(CondExpr);
+		this.SetParent2(ThenBlock, ElseNode);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitIfNode(this);
@@ -543,6 +581,7 @@ class WhileNode extends GtNode {
 		super(Type, Token);
 		this.CondExpr = CondExpr;
 		this.LoopBody = LoopBody;
+		this.SetParent2(CondExpr, LoopBody);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitWhileNode(this);
@@ -556,6 +595,7 @@ class DoWhileNode extends GtNode {
 		super(Type, Token);
 		this.CondExpr = CondExpr;
 		this.LoopBody = LoopBody;
+		this.SetParent2(CondExpr, LoopBody);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitDoWhileNode(this);
@@ -572,6 +612,8 @@ class ForNode extends GtNode {
 		this.CondExpr = CondExpr;
 		this.LoopBody = LoopBody;
 		this.IterExpr = IterExpr;
+		this.SetParent2(CondExpr, LoopBody);
+		this.SetParent(IterExpr);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitForNode(this);
@@ -588,6 +630,8 @@ class ForEachNode extends GtNode {
 		this.Variable = Variable;
 		this.IterExpr = IterExpr;
 		this.LoopBody = LoopBody;
+		this.SetParent2(Variable, LoopBody);
+		this.SetParent(IterExpr);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitForEachNode(this);
@@ -643,6 +687,7 @@ class ReturnNode extends GtNode {
 	ReturnNode/*constructor*/(GtType Type, GtToken Token, GtNode Expr) {
 		super(Type, Token);
 		this.Expr = Expr;
+		this.SetParent(Expr);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitReturnNode(this);
@@ -671,6 +716,8 @@ class TryNode extends GtNode {
 		this.CatchExpr = CatchExpr;
 		this.CatchBlock = CatchBlock;
 		this.FinallyBlock = FinallyBlock;
+		this.SetParent2(TryBlock, FinallyBlock);
+		this.SetParent2(CatchBlock, CatchExpr);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitTryNode(this);
@@ -687,12 +734,14 @@ class SwitchNode extends GtNode {
 		this.MatchNode = MatchNode;
 		this.DefaultBlock = DefaultBlock;
 		this.CaseList = new ArrayList<GtNode>();
+		this.SetParent(DefaultBlock);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitSwitchNode(this);
 	}
 	@Override public void Append(GtNode Expr) {
 		this.CaseList.add(Expr);
+		this.SetParent(Expr);		
 	}
 }
 
@@ -728,6 +777,7 @@ class CommandNode extends GtNode {
 	}
 	@Override public void Append(GtNode Expr) {
 		this.Params.add(Expr);
+		this.SetParent(Expr);
 	}
 
 	@Override public void Evaluate(GtGenerator Visitor) {
