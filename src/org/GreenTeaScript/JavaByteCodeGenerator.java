@@ -262,7 +262,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	private Map<String, Method> methodMap;
 
 	public JavaByteCodeGenerator(String TargetCode, String OutputFile, int GeneratorFlag) {
-		super(TargetCode, OutputFile, GeneratorFlag);
+		super("java", OutputFile, GeneratorFlag);
 	}
 
 	@Override public void InitContext(GtParserContext Context) {
