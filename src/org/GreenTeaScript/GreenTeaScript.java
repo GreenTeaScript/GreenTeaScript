@@ -1791,7 +1791,7 @@ final class GtNameSpace extends GtStatic {
 	public final GtPolyFunc GetConstructorFunc(GtType ClassType) {
 		/*local*/GtPolyFunc PolyFunc = this.Context.RootNameSpace.GetGreenMethod(ClassType, "", false);
 		if(PolyFunc == null && ClassType.IsNative()) {
-			Object Value = this.GetSymbol(GtStatic.ClassSymbol(ClassType, ""));
+			/*local*/Object Value = this.GetSymbol(GtStatic.ClassSymbol(ClassType, ""));
 			if(Value != UndefinedSymbol) {
 				if(LibGreenTea.LoadNativeConstructors(ClassType)) {
 					PolyFunc = this.GetConstructorFunc(ClassType);

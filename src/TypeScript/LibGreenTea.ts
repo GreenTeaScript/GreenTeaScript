@@ -254,6 +254,20 @@ class LibGreenTea {
 		return Callee[MethodName];
 	}
 
+    static LoadNativeMethod(ContextType: GtType, FullName: string, StaticMethodOnly: boolean) : any {
+        throw new Error("NotSupportedAPI");
+        return null;
+    }
+
+    static ImportNativeMethod(NativeFunc : GtFunc, FullName: string) : boolean {
+        throw new Error("NotSupportedAPI");
+        return false;
+    }
+    static LoadNativeConstructors(ClassType: GtType): boolean {
+        throw new Error("NotSupportedAPI");
+        return false;
+    }
+
 	static EqualsFunc(m1: any, m2: any): boolean {
 		return m1 === m2;
 	}
@@ -438,8 +452,4 @@ class LibGreenTea {
 	public static EvalGetter(Type: GtType, Value: any, FieldName: string): any {
 		return null;
 	}
-	static ImportNativeMethod(NativeFunc: GtFunc, FullName: string) : boolean {
-		return false;
-	}
-
 }
