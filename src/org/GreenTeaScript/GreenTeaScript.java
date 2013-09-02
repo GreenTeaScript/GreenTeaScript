@@ -2398,7 +2398,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		}
 		Tree.SetMatchedPatternAt(VarDeclName, NameSpace, TokenContext, "$Variable$", Required);
 		if(Tree.IsEmptyOrError()) {
-			return null;
+			return Tree;  // stopping to funcdecl operator
 		}
 		if(TokenContext.MatchToken("=")) {
 			Tree.SetMatchedPatternAt(VarDeclValue, NameSpace, TokenContext, "$Expression$", Required);
@@ -2500,17 +2500,6 @@ final class GreenTeaGrammar extends GtGrammar {
 			}
 		}
 		return GreenTeaGrammar.TypeConst(Gamma, ParsedTree, ContextType);
-	}
-
-	public static GtSyntaxTree ParseTypeRef(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		/*local*/GtToken Token = TokenContext.Next();
-		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, NameSpace, Token, Token.ParsedText);
-		return NewTree;
-	}
-
-	public static GtNode TypeTypeRef(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		/*local*/String TypeRef = ParsedTree.KeyToken.ParsedText;
-		return Gamma.CreateSyntaxErrorNode(ParsedTree, "illegal use of type reference: " + TypeRef);
 	}
 
 	public static GtSyntaxTree ParseExpression(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
