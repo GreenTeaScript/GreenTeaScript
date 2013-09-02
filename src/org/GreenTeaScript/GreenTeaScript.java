@@ -405,12 +405,13 @@ class GtStatic implements GtConst {
 //ifdef JAVA
 	public final static GtFunc LoadTokenFunc(GtParserContext ParserContext, Object Grammar, String FuncName) {
 		try {
-			Method JavaMethod = Grammar.getClass().getMethod(FuncName, GtTokenContext.class, String.class, int.class);
+			Method JavaMethod = Grammar.getClass().getMethod(FuncName, GtTokenContext.class, String.class, long.class);
 			return LibGreenTea.ConvertNativeMethodToFunc(ParserContext, JavaMethod);
 			//return new GtTokenFunc(JavaMethod); //LibGreenTea.LookupNativeMethod(Grammar, FuncName));
 		}
 		catch(NoSuchMethodException e) {
 			LibGreenTea.VerboseException(e);
+			LibGreenTea.Exit(1, e.toString());
 		}
 		return null;
 	}
@@ -426,7 +427,7 @@ class GtStatic implements GtConst {
 
 	public final static int ApplyTokenFunc(GtTokenFunc TokenFunc, GtTokenContext TokenContext, String ScriptSource, int Pos) {
 		while(TokenFunc != null) {
-			/*local*/int NextIdx = LibGreenTea.ApplyTokenFunc(TokenFunc.Func, TokenContext, ScriptSource, Pos);
+			/*local*/int NextIdx = (int)LibGreenTea.ApplyTokenFunc(TokenFunc.Func, TokenContext, ScriptSource, Pos);
 			if(NextIdx > Pos) return NextIdx;
 			TokenFunc = TokenFunc.ParentFunc;
 		}
@@ -2080,7 +2081,7 @@ final class GreenTeaGrammar extends GtGrammar {
 	}
 
 	// Token
-	public static int WhiteSpaceToken(GtTokenContext TokenContext, String SourceText, int pos) {
+	public static long WhiteSpaceToken(GtTokenContext TokenContext, String SourceText, long pos) {
 		TokenContext.FoundWhiteSpace();
 		while(pos < SourceText.length()) {
 			/*local*/char ch = LibGreenTea.CharAt(SourceText, pos);
@@ -2092,8 +2093,8 @@ final class GreenTeaGrammar extends GtGrammar {
 		return pos;
 	}
 
-	public static int IndentToken(GtTokenContext TokenContext, String SourceText, int pos) {
-		/*local*/int LineStart = pos + 1;
+	public static long IndentToken(GtTokenContext TokenContext, String SourceText, long pos) {
+		/*local*/long LineStart = pos + 1;
 		TokenContext.FoundLineFeed(1);
 		pos = pos + 1;
 		while(pos < SourceText.length()) {
@@ -2104,7 +2105,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		}
 		/*local*/String Text = "";
 		if(LineStart < pos) {
-			Text = SourceText.substring(LineStart, pos);
+			Text = LibGreenTea.SubString(SourceText, LineStart, pos);
 		}
 		TokenContext.AddNewToken(Text, IndentTokenFlag, null);
 		return pos;
@@ -2112,13 +2113,13 @@ final class GreenTeaGrammar extends GtGrammar {
 		//return SourceText.length();
 	}
 
-	public static int SemiColonToken(GtTokenContext TokenContext, String SourceText, int pos) {
-		TokenContext.AddNewToken(SourceText.substring(pos, pos+1), DelimTokenFlag, null);
+	public static long SemiColonToken(GtTokenContext TokenContext, String SourceText, long pos) {
+		TokenContext.AddNewToken(LibGreenTea.SubString(SourceText, pos, (pos+1)), DelimTokenFlag, null);
 		return pos+1;
 	}
 
-	public static int SymbolToken(GtTokenContext TokenContext, String SourceText, int pos) {
-		/*local*/int start = pos;
+	public static long SymbolToken(GtTokenContext TokenContext, String SourceText, long pos) {
+		/*local*/long start = pos;
 		/*local*/String PresetPattern = null;
 		while(pos < SourceText.length()) {
 			if(!LibGreenTea.IsVariableName(SourceText, pos) && !LibGreenTea.IsDigit(SourceText, pos)) {
@@ -2126,12 +2127,12 @@ final class GreenTeaGrammar extends GtGrammar {
 			}
 			pos += 1;
 		}
-		TokenContext.AddNewToken(SourceText.substring(start, pos), NameSymbolTokenFlag, PresetPattern);
+		TokenContext.AddNewToken(LibGreenTea.SubString(SourceText, start, pos), NameSymbolTokenFlag, PresetPattern);
 		return pos;
 	}
 
-	public static int OperatorToken(GtTokenContext TokenContext, String SourceText, int pos) {
-		/*local*/int NextPos = pos + 1;
+	public static long OperatorToken(GtTokenContext TokenContext, String SourceText, long pos) {
+		/*local*/long NextPos = pos + 1;
 		while(NextPos < SourceText.length()) {
 			if(LibGreenTea.IsWhitespace(SourceText, NextPos) || LibGreenTea.IsLetter(SourceText, NextPos) || LibGreenTea.IsDigit(SourceText, NextPos)) {
 				break;
@@ -2140,7 +2141,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		}
 		/*local*/boolean Matched = false;
 		while(NextPos > pos) {
-			/*local*/String Sub = SourceText.substring(pos, NextPos);
+			/*local*/String Sub = LibGreenTea.SubString(SourceText, pos, NextPos);
 			/*local*/GtSyntaxPattern Pattern = TokenContext.TopLevelNameSpace.GetExtendedSyntaxPattern(Sub);
 			if(Pattern != null) {
 				Matched = true;
@@ -2152,12 +2153,12 @@ final class GreenTeaGrammar extends GtGrammar {
 		if(Matched == false) {
 			NextPos = pos + 1;
 		}
-		TokenContext.AddNewToken(SourceText.substring(pos, NextPos), 0, null);
+		TokenContext.AddNewToken(LibGreenTea.SubString(SourceText, pos, NextPos), 0, null);
 		return NextPos;
 	}
 
-	public static int CommentToken(GtTokenContext TokenContext, String SourceText, int pos) {
-		/*local*/int NextPos = pos + 1;
+	public static long CommentToken(GtTokenContext TokenContext, String SourceText, long pos) {
+		/*local*/long NextPos = pos + 1;
 		/*local*/char NextChar = LibGreenTea.CharAt(SourceText, NextPos);
 		if(NextChar != '/' && NextChar != '*') {
 			return NoMatch;
@@ -2168,12 +2169,12 @@ final class GreenTeaGrammar extends GtGrammar {
 			Level = 1;
 			// SourceMap ${file:line}
 			if(LibGreenTea.CharAt(SourceText, NextPos+1) == '$' && LibGreenTea.CharAt(SourceText, NextPos+2) == '{') {
-				/*local*/int StartPos = NextPos + 3;
+				/*local*/long StartPos = NextPos + 3;
 				NextPos += 3;
 				while(NextChar != 0) {
 					NextChar = LibGreenTea.CharAt(SourceText, NextPos);
 					if(NextChar == '}') {
-						TokenContext.SetSourceMap(SourceText.substring(StartPos, NextPos));
+						TokenContext.SetSourceMap(LibGreenTea.SubString(SourceText, StartPos, NextPos));
 						break;
 					}
 					if(NextChar == '\n' || NextChar == '*') {
@@ -2205,8 +2206,8 @@ final class GreenTeaGrammar extends GtGrammar {
 		return NoMatch;
 	}
 
-	public static int NumberLiteralToken(GtTokenContext TokenContext, String SourceText, int pos) {
-		/*local*/int start = pos;
+	public static long NumberLiteralToken(GtTokenContext TokenContext, String SourceText, long pos) {
+		/*local*/long start = pos;
 		/*local*/boolean IsFloatLiteral = false;
 		while(pos < SourceText.length()) {
 			if(!LibGreenTea.IsDigit(SourceText, pos)) {
@@ -2216,7 +2217,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		}
 		/*local*/char ch = LibGreenTea.CharAt(SourceText, pos);
 		if(ch != '.' && ch != 'e' && ch != 'E') {
-			TokenContext.AddNewToken(SourceText.substring(start, pos), 0, "$IntegerLiteral$");
+			TokenContext.AddNewToken(LibGreenTea.SubString(SourceText, start, pos), 0, "$IntegerLiteral$");
 			return pos;
 		}
 	    if(ch == '.') {
@@ -2228,7 +2229,6 @@ final class GreenTeaGrammar extends GtGrammar {
 				pos += 1;
 			}
 	    }
-
 	    ch = LibGreenTea.CharAt(SourceText, pos);
 	    if(ch == 'e' || ch == 'E') {
 	    	pos += 1;
@@ -2244,62 +2244,62 @@ final class GreenTeaGrammar extends GtGrammar {
 				pos += 1;
 			}
 	    }
-		TokenContext.AddNewToken(SourceText.substring(start, pos), 0, "$FloatLiteral$");
+		TokenContext.AddNewToken(LibGreenTea.SubString(SourceText, start, pos), 0, "$FloatLiteral$");
 		return pos;
 	}
 
-	public static int CharLiteralToken(GtTokenContext TokenContext, String SourceText, int pos) {
-		/*local*/int start = pos;
+	public static long CharLiteralToken(GtTokenContext TokenContext, String SourceText, long pos) {
+		/*local*/long start = pos;
 		/*local*/char prev = '\'';
 		pos = pos + 1; // eat "\'"
 		while(pos < SourceText.length()) {
 			/*local*/char ch = LibGreenTea.CharAt(SourceText, pos);
 			if(ch == '\'' && prev != '\\') {
-				TokenContext.AddNewToken(SourceText.substring(start, pos + 1), QuotedTokenFlag, "$CharLiteral$");
+				TokenContext.AddNewToken(LibGreenTea.SubString(SourceText, start, (pos + 1)), QuotedTokenFlag, "$CharLiteral$");
 				return pos + 1;
 			}
 			if(ch == '\n') {
-				TokenContext.ReportTokenError(ErrorLevel, "expected ' to close the charctor literal", SourceText.substring(start, pos));
+				TokenContext.ReportTokenError(ErrorLevel, "expected ' to close the charctor literal", LibGreenTea.SubString(SourceText, start, pos));
 				TokenContext.FoundLineFeed(1);
 				return pos;
 			}
 			pos = pos + 1;
 			prev = ch;
 		}
-		TokenContext.ReportTokenError(ErrorLevel, "expected ' to close the charctor literal", SourceText.substring(start, pos));
+		TokenContext.ReportTokenError(ErrorLevel, "expected ' to close the charctor literal", LibGreenTea.SubString(SourceText, start, pos));
 		return pos;
 	}
 
-	public static int StringLiteralToken(GtTokenContext TokenContext, String SourceText, int pos) {
-		/*local*/int start = pos;
+	public static long StringLiteralToken(GtTokenContext TokenContext, String SourceText, long pos) {
+		/*local*/long start = pos;
 		/*local*/char prev = '"';
 		pos = pos + 1; // eat "\""
 		while(pos < SourceText.length()) {
 			/*local*/char ch = LibGreenTea.CharAt(SourceText, pos);
 			if(ch == '"' && prev != '\\') {
-				TokenContext.AddNewToken(SourceText.substring(start, pos + 1), QuotedTokenFlag, "$StringLiteral$");
+				TokenContext.AddNewToken(LibGreenTea.SubString(SourceText, start, (pos + 1)), QuotedTokenFlag, "$StringLiteral$");
 				return pos + 1;
 			}
 			if(ch == '\n') {
-				TokenContext.ReportTokenError(ErrorLevel, "expected \" to close the string literal", SourceText.substring(start, pos));
+				TokenContext.ReportTokenError(ErrorLevel, "expected \" to close the string literal", LibGreenTea.SubString(SourceText, start, pos));
 				TokenContext.FoundLineFeed(1);
 				return pos;
 			}
 			pos = pos + 1;
 			prev = ch;
 		}
-		TokenContext.ReportTokenError(ErrorLevel, "expected \" to close the string literal", SourceText.substring(start, pos));
+		TokenContext.ReportTokenError(ErrorLevel, "expected \" to close the string literal", LibGreenTea.SubString(SourceText, start, pos));
 		return pos;
 	}
 
-	public static int StringLiteralToken_StringInterpolation(GtTokenContext TokenContext, String SourceText, int pos) {
-		/*local*/int start = pos + 1;
-		/*local*/int NextPos = start;
+	public static long StringLiteralToken_StringInterpolation(GtTokenContext TokenContext, String SourceText, long pos) {
+		/*local*/long start = pos + 1;
+		/*local*/long NextPos = start;
 		/*local*/char prev = '"';
 		while(NextPos < SourceText.length()) {
 			/*local*/char ch = LibGreenTea.CharAt(SourceText, NextPos);
 			if(ch == '$') {
-				/*local*/int end = NextPos + 1;
+				/*local*/long end = NextPos + 1;
 				/*local*/char nextch = LibGreenTea.CharAt(SourceText, end);
 				if(nextch == '{') {
 					while(end < SourceText.length()) {
@@ -2309,11 +2309,11 @@ final class GreenTeaGrammar extends GtGrammar {
 						}
 						end = end + 1;
 					}
-					/*local*/String Expr = SourceText.substring(NextPos + 2, end);
+					/*local*/String Expr = LibGreenTea.SubString(SourceText, (NextPos + 2), end);
 					/*local*/GtTokenContext LocalContext = new GtTokenContext(TokenContext.TopLevelNameSpace, Expr, TokenContext.ParsingLine);
 					LocalContext.SkipEmptyStatement();
 
-					TokenContext.AddNewToken("\"" + SourceText.substring(start, NextPos) + "\"", 0, "$StringLiteral$");
+					TokenContext.AddNewToken("\"" + LibGreenTea.SubString(SourceText, start, NextPos) + "\"", 0, "$StringLiteral$");
 					TokenContext.AddNewToken("+", 0, null);
 					while(LocalContext.HasNext()) {
 						/*local*/GtToken NewToken = LocalContext.Next();
@@ -2325,25 +2325,25 @@ final class GreenTeaGrammar extends GtGrammar {
 					NextPos = end;
 					prev = ch;
 					if(ch == '"') {
-						TokenContext.AddNewToken("\"" + SourceText.substring(start, NextPos) + "\"", 0, "$StringLiteral$");
+						TokenContext.AddNewToken("\"" + LibGreenTea.SubString(SourceText, start, NextPos) + "\"", 0, "$StringLiteral$");
 						return NextPos + 1;
 					}
 					continue;
 				}
 			}
 			if(ch == '"' && prev != '\\') {
-				TokenContext.AddNewToken("\"" + SourceText.substring(start, NextPos) + "\"", 0, "$StringLiteral$");
+				TokenContext.AddNewToken("\"" + LibGreenTea.SubString(SourceText, start, NextPos) + "\"", 0, "$StringLiteral$");
 				return NextPos + 1;
 			}
 			if(ch == '\n') {
-				TokenContext.ReportTokenError(ErrorLevel, "expected \" to close the string literal", SourceText.substring(start, NextPos));
+				TokenContext.ReportTokenError(ErrorLevel, "expected \" to close the string literal", LibGreenTea.SubString(SourceText, start, NextPos));
 				TokenContext.FoundLineFeed(1);
 				return NextPos;
 			}
 			NextPos = NextPos + 1;
 			prev = ch;
 		}
-		TokenContext.ReportTokenError(ErrorLevel, "expected \" to close the string literal", SourceText.substring(start, NextPos));
+		TokenContext.ReportTokenError(ErrorLevel, "expected \" to close the string literal", LibGreenTea.SubString(SourceText, start, NextPos));
 		return NextPos;
 	}
 

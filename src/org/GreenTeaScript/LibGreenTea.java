@@ -112,29 +112,33 @@ public abstract class LibGreenTea implements GtConst {
 		}
 	}
 
-	public final static char CharAt(String Text, int Pos) {
+	public final static char CharAt(String Text, long Pos) {
 		if(Pos < Text.length()) {
-			return Text.charAt(Pos);
+			return Text.charAt((int)Pos);
 		}
 		return 0;
 	}
 
-	public final static boolean IsWhitespace(String Text, int Pos) {
+	public final static String SubString(String Text, long StartIdx, long EndIdx) {
+		return Text.substring((int)StartIdx, (int)EndIdx);
+	}
+
+	public final static boolean IsWhitespace(String Text, long Pos) {
 		char ch = LibGreenTea.CharAt(Text, Pos);
 		return Character.isWhitespace(ch);
 	}
 
-	public final static boolean IsLetter(String Text, int Pos) {
+	public final static boolean IsLetter(String Text, long Pos) {
 		char ch = LibGreenTea.CharAt(Text, Pos);
 		return Character.isLetter(ch);
 	}
 
-	public final static boolean IsDigit(String Text, int Pos) {
+	public final static boolean IsDigit(String Text, long Pos) {
 		char ch = LibGreenTea.CharAt(Text, Pos);
 		return Character.isDigit(ch);
 	}
 
-	public final static boolean IsVariableName(String Text, int Pos) {
+	public final static boolean IsVariableName(String Text, long Pos) {
 		char ch = LibGreenTea.CharAt(Text, Pos);
 		return Character.isLetter(ch) || ch == '_' || ch > 255;
 	}
@@ -527,8 +531,8 @@ public abstract class LibGreenTea implements GtConst {
 		return null;
 	}
 
-	public final static int ApplyTokenFunc(GtFunc Delegate, Object TokenContext, String Text, int pos) {
-		return (Integer)LibGreenTea.ApplyFunc3(Delegate, null, TokenContext, Text, pos);
+	public final static long ApplyTokenFunc(GtFunc Delegate, Object TokenContext, String Text, long pos) {
+		return (Long)LibGreenTea.ApplyFunc3(Delegate, null, TokenContext, Text, pos);
 //		try {
 //			Integer n = (Integer)Delegate.Func.invoke(null, TokenContext, Text, pos);
 //			return n.intValue();
