@@ -2,44 +2,44 @@
 
 // unary operator
 // any
-int +(int x) as "$1";
-int -(int x) as "-$1";
-int ~(int x) as "~$1";
+@Const @Operator int +(int x) as "$1";
+@Const @Operator int -(int x) as "-$1";
+@Const @Operator int ~(int x) as "~$1";
 
 // binary operator
 // any
-boolean ==(any x, any y) as "$1  == $2";
-boolean !=(any x, any y) as "$1  != $2";
-boolean !(boolean x) as "! $1"
+@Const @Operator boolean ==(any x, any y) as "$1  == $2";
+@Const @Operator boolean !=(any x, any y) as "$1  != $2";
+@Const @Operator boolean !(boolean x) as "! $1"
 
 // boolean
-boolean ==(boolean x, boolean y) as "$1  == $2";
-boolean !=(boolean x, boolean y) as "$1  != $2";
-String convert(boolean x) as "green_toString($1)";
+@Const @Operator boolean ==(boolean x, boolean y) as "$1  == $2";
+@Const @Operator boolean !=(boolean x, boolean y) as "$1  != $2";
+@Const @Operator String converter(boolean x) as "green_toString($1)";
 
 // int 
-int +(int x, int y)      as "$1 + $2";
-int -(int x, int y)      as "$1 - $2";
-int *(int x, int y)      as "$1 * $2";
-int /(int x, int y)      as "$1 / $2";
-int %(int x, int y)      as "$1 % $2";
-int <<(int x, int y)     as "$1 << $2";
-int >>(int x, int y)     as "$1 >> $2";
-int ^(int x, int y)      as "$1 ^ $2";
-int |(int x, int y)      as "$1 | $2";
-int &(int x, int y)      as "$1 & $2";
-boolean <(int x,  int y) as "$1 < $2";
-boolean <=(int x, int y) as "$1 <= $2";
-boolean >(int x,  int y) as "$1 > $2";
-boolean >=(int x, int y) as "$1 >= $2";
-boolean ==(int x, int y) as "$1 == $2";
-boolean !=(int x, int y) as "$1 != $2";
+@Const @Operator int +(int x, int y)      as "$1 + $2";
+@Const @Operator int -(int x, int y)      as "$1 - $2";
+@Const @Operator int *(int x, int y)      as "$1 * $2";
+@Const @Operator int /(int x, int y)      as "$1 / $2";
+@Const @Operator int %(int x, int y)      as "$1 % $2";
+@Const @Operator int <<(int x, int y)     as "$1 << $2";
+@Const @Operator int >>(int x, int y)     as "$1 >> $2";
+@Const @Operator int ^(int x, int y)      as "$1 ^ $2";
+@Const @Operator int |(int x, int y)      as "$1 | $2";
+@Const @Operator int &(int x, int y)      as "$1 & $2";
+@Const @Operator boolean <(int x,  int y) as "$1 < $2";
+@Const @Operator boolean <=(int x, int y) as "$1 <= $2";
+@Const @Operator boolean >(int x,  int y) as "$1 > $2";
+@Const @Operator boolean >=(int x, int y) as "$1 >= $2";
+@Const @Operator boolean ==(int x, int y) as "$1 == $2";
+@Const @Operator boolean !=(int x, int y) as "$1 != $2";
 
 String convert(int x) as "ToStr($1)";
 
 // String
-String +(String x, String y)      as "greentea_strcat($1, $2)";
-boolean ==(String x, String y)    as "strcmp($1, $2) == 0";
+@Const @Operator String +(String x, String y)      as "greentea_strcat($1, $2)";
+@Const @Operator boolean ==(String x, String y)    as "strcmp($1, $2) == 0";
 boolean !=(String x, String y)    as "strcmp($1, $2) != 0";
 boolean <(String x,  String y)    as "strcmp($1, $2) <= 0";
 boolean <=(String x, String y)    as "strcmp($1, $2) <  0";
