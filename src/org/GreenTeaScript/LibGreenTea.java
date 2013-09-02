@@ -486,21 +486,14 @@ public abstract class LibGreenTea implements GtConst {
 		return null;
 	}
 
-	public final static boolean EqualsFunc(Method m1, Method m2) {
-		if(m1 == null) {
-			return (m2 == null) ? true : false;
-		}
-		else {
-			return (m2 == null) ? false : m1.equals(m2);
-		}
-	}
-
-	public final static TokenFunc CreateOrReuseTokenFunc(GtDelegateToken f, TokenFunc prev) {
-		if(prev != null && EqualsFunc(prev.Func.Func, f.Func)) {
-			return prev;
-		}
-		return new TokenFunc(f, prev);
-	}
+//	public final static boolean EqualsFunc(Method m1, Method m2) {
+//		if(m1 == null) {
+//			return (m2 == null) ? true : false;
+//		}
+//		else {
+//			return (m2 == null) ? false : m1.equals(m2);
+//		}
+//	}
 
 	public final static Object Apply2(Object NativeMethod, Object Self, Object Param1, Object Param2) {
 		try {
@@ -518,10 +511,9 @@ public abstract class LibGreenTea implements GtConst {
 		return null;
 	}
 
-	public final static int ApplyTokenFunc(GtDelegateToken Delegate, Object TokenContext, String Text, int pos) {
+	public final static Object ApplyFunc3(GtFunc Func, Object Self, Object Param1, Object Param2, Object Param3) {
 		try {
-			Integer n = (Integer)Delegate.Func.invoke(Delegate.Self, TokenContext, Text, pos);
-			return n.intValue();
+			return ((Method)Func.NativeRef).invoke(Self, Param1, Param2, Param3);
 		}
 		catch (InvocationTargetException e) {
 			LibGreenTea.VerboseException(e);
@@ -532,13 +524,31 @@ public abstract class LibGreenTea implements GtConst {
 		catch (IllegalAccessException e) {
 			LibGreenTea.VerboseException(e);
 		}
-		Exit(1, "Failed ApplyTokenFunc");
-		return -1;
+		return null;
 	}
 
-	public final static GtSyntaxTree ApplyMatchFunc(GtDelegateMatch Delegate, Object NameSpace, Object TokenContext, Object LeftTree, Object Pattern) {
+	public final static int ApplyTokenFunc(GtFunc Delegate, Object TokenContext, String Text, int pos) {
+		return (Integer)LibGreenTea.ApplyFunc3(Delegate, null, TokenContext, Text, pos);
+//		try {
+//			Integer n = (Integer)Delegate.Func.invoke(null, TokenContext, Text, pos);
+//			return n.intValue();
+//		}
+//		catch (InvocationTargetException e) {
+//			LibGreenTea.VerboseException(e);
+//		}
+//		catch (IllegalArgumentException e) {
+//			LibGreenTea.VerboseException(e);
+//		}
+//		catch (IllegalAccessException e) {
+//			LibGreenTea.VerboseException(e);
+//		}
+//		Exit(1, "Failed ApplyTokenFunc");
+//		return -1;
+	}
+
+	public final static GtSyntaxTree ApplyMatchFunc(GtParseFunc Delegate, Object NameSpace, Object TokenContext, Object LeftTree, Object Pattern) {
 		try {
-			return (GtSyntaxTree)Delegate.Func.invoke(Delegate.Self, NameSpace, TokenContext, LeftTree, Pattern);
+			return (GtSyntaxTree)Delegate.Func.invoke(null, NameSpace, TokenContext, LeftTree, Pattern);
 		}
 		catch (InvocationTargetException e) {
 			LibGreenTea.VerboseException(e);
@@ -553,9 +563,9 @@ public abstract class LibGreenTea implements GtConst {
 		return null;
 	}
 
-	public final static GtNode ApplyTypeFunc(GtDelegateType Delegate, Object Gamma, Object ParsedTree, Object TypeInfo) {
+	public final static GtNode ApplyTypeFunc(GtTypeFunc Delegate, Object Gamma, Object ParsedTree, Object TypeInfo) {
 		try {
-			return (GtNode)Delegate.Func.invoke(Delegate.Self, Gamma, ParsedTree, TypeInfo);
+			return (GtNode)Delegate.Func.invoke(null, Gamma, ParsedTree, TypeInfo);
 		}
 		catch (InvocationTargetException e) {
 			LibGreenTea.VerboseException(e);

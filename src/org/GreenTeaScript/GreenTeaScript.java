@@ -403,23 +403,30 @@ class GtStatic implements GtConst {
 	}
 
 //ifdef JAVA
-	public final static GtDelegateToken FunctionA(Object Callee, String FuncName) {
-		return new GtDelegateToken(Callee, LibGreenTea.LookupNativeMethod(Callee, FuncName));
+	public final static GtFunc LoadTokenFunc(GtParserContext ParserContext, Object Grammar, String FuncName) {
+		try {
+			Method JavaMethod = Grammar.getClass().getMethod(FuncName, GtTokenContext.class, String.class, int.class);
+			return LibGreenTea.ConvertNativeMethodToFunc(ParserContext, JavaMethod);
+			//return new GtTokenFunc(JavaMethod); //LibGreenTea.LookupNativeMethod(Grammar, FuncName));
+		}
+		catch(NoSuchMethodException e) {
+			LibGreenTea.VerboseException(e);
+		}
+		return null;
 	}
 
-	public final static GtDelegateMatch FunctionB(Object Callee, String FuncName) {
-		return new GtDelegateMatch(Callee, LibGreenTea.LookupNativeMethod(Callee, FuncName));
+	public final static GtParseFunc FunctionB(Object Grammar, String FuncName) {
+		return new GtParseFunc(LibGreenTea.LookupNativeMethod(Grammar, FuncName));
 	}
 
-	public final static GtDelegateType FunctionC(Object Callee, String FuncName) {
-		return new GtDelegateType(Callee, LibGreenTea.LookupNativeMethod(Callee, FuncName));
+	public final static GtTypeFunc FunctionC(Object Grammar, String FuncName) {
+		return new GtTypeFunc(LibGreenTea.LookupNativeMethod(Grammar, FuncName));
 	}
 //endif VAJA
 
-	public final static int ApplyTokenFunc(TokenFunc TokenFunc, GtTokenContext TokenContext, String ScriptSource, int Pos) {
+	public final static int ApplyTokenFunc(GtTokenFunc TokenFunc, GtTokenContext TokenContext, String ScriptSource, int Pos) {
 		while(TokenFunc != null) {
-			/*local*/GtDelegateToken delegate = TokenFunc.Func;
-			/*local*/int NextIdx = LibGreenTea.ApplyTokenFunc(delegate, TokenContext, ScriptSource, Pos);
+			/*local*/int NextIdx = LibGreenTea.ApplyTokenFunc(TokenFunc.Func, TokenContext, ScriptSource, Pos);
 			if(NextIdx > Pos) return NextIdx;
 			TokenFunc = TokenFunc.ParentFunc;
 		}
@@ -468,7 +475,7 @@ class GtStatic implements GtConst {
 		/*local*/int ParseFlag = TokenContext.ParseFlag;
 		/*local*/GtSyntaxPattern CurrentPattern = Pattern;
 		while(CurrentPattern != null) {
-			/*local*/GtDelegateMatch delegate = CurrentPattern.MatchFunc;
+			/*local*/GtParseFunc delegate = CurrentPattern.MatchFunc;
 			TokenContext.CurrentPosition = Pos;
 			if(CurrentPattern.ParentPattern != null) {   // This means it has next patterns
 				TokenContext.ParseFlag = ParseFlag | BackTrackParseFlag;
@@ -510,7 +517,7 @@ class GtStatic implements GtConst {
 	}
 
 	// typing
-	public final static GtNode ApplyTypeFunc(GtDelegateType delegate, GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
+	public final static GtNode ApplyTypeFunc(GtTypeFunc delegate, GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
 		LibGreenTea.Assert(delegate != null);
 		Gamma.NameSpace = ParsedTree.NameSpace;
 		return (/*cast*/GtNode)LibGreenTea.ApplyTypeFunc(delegate, Gamma, ParsedTree, Type);
@@ -580,10 +587,8 @@ final class GtMap {
 }
 
 class GtDelegateCommon {
-	/*field*/public Object	Self;
 	/*field*/public Method	Func;
-	GtDelegateCommon(Object Self, Method method) {
-		this.Self = Self;
+	GtDelegateCommon(Method method) {
 		this.Func = method;
 	}
 	@Override public final String toString() {
@@ -594,21 +599,21 @@ class GtDelegateCommon {
 	}
 }
 
-final class GtDelegateToken extends GtDelegateCommon {
-	GtDelegateToken/*constructor*/(Object Self, Method method) {
-		super(Self, method);
+//final class GtTokenFunc extends GtDelegateCommon {
+//	GtTokenFunc/*constructor*/(Method method) {
+//		super(method);
+//	}
+//}
+
+final class GtParseFunc extends GtDelegateCommon {
+	GtParseFunc/*constructor*/(Method method)  {
+		super(method);
 	}
 }
 
-final class GtDelegateMatch extends GtDelegateCommon {
-	GtDelegateMatch/*constructor*/(Object Self, Method method) {
-		super(Self, method);
-	}
-}
-
-final class GtDelegateType extends GtDelegateCommon {
-	GtDelegateType/*constructor*/(Object Self, Method method) {
-		super(Self, method);
+final class GtTypeFunc extends GtDelegateCommon {
+	GtTypeFunc/*constructor*/(Method method) {
+		super(method);
 	}
 }
 
@@ -687,17 +692,17 @@ final class GtToken extends GtStatic {
 	
 }
 
-final class TokenFunc {
-	/*field*/public GtDelegateToken       Func;
-	/*field*/public TokenFunc	ParentFunc;
+final class GtTokenFunc {
+	/*field*/public GtFunc      Func;
+	/*field*/public GtTokenFunc	ParentFunc;
 
-	TokenFunc/*constructor*/(GtDelegateToken Func, TokenFunc Parent) {
+	GtTokenFunc/*constructor*/(GtFunc Func, GtTokenFunc Parent) {
 		this.Func = Func;
 		this.ParentFunc = Parent;
 	}
 
 	@Override public String toString() {
-		return this.Func.Func.toString();
+		return this.Func.toString();
 	}
 }
 
@@ -802,7 +807,7 @@ final class GtTokenContext extends GtStatic {
 	}
 
 	private int DispatchFunc(String ScriptSource, int GtChar, int pos) {
-		/*local*/TokenFunc TokenFunc = this.TopLevelNameSpace.GetTokenFunc(GtChar);
+		/*local*/GtTokenFunc TokenFunc = this.TopLevelNameSpace.GetTokenFunc(GtChar);
 		/*local*/int NextIdx = GtStatic.ApplyTokenFunc(TokenFunc, this, ScriptSource, pos);
 		if(NextIdx == NoMatch) {
 			LibGreenTea.VerboseLog(VerboseUndefined, "undefined tokenizer: " + ScriptSource.substring(pos, pos+1));
@@ -1107,11 +1112,11 @@ final class GtSyntaxPattern extends GtStatic {
 	/*field*/public GtNameSpace	          PackageNameSpace;
 	/*field*/public String		          PatternName;
 	/*field*/int				          SyntaxFlag;
-	/*field*/public GtDelegateMatch       MatchFunc;
-	/*field*/public GtDelegateType        TypeFunc;
+	/*field*/public GtParseFunc       MatchFunc;
+	/*field*/public GtTypeFunc        TypeFunc;
 	/*field*/public GtSyntaxPattern	      ParentPattern;
 
-	GtSyntaxPattern/*constructor*/(GtNameSpace NameSpace, String PatternName, GtDelegateMatch MatchFunc, GtDelegateType TypeFunc) {
+	GtSyntaxPattern/*constructor*/(GtNameSpace NameSpace, String PatternName, GtParseFunc MatchFunc, GtTypeFunc TypeFunc) {
 		this.PackageNameSpace = NameSpace;
 		this.PatternName = PatternName;
 		this.SyntaxFlag = 0;
@@ -1627,7 +1632,7 @@ final class GtNameSpace extends GtStatic {
 	/*field*/public final GtNameSpace		    ParentNameSpace;
 	/*field*/public String                      PackageName;
 
-	/*field*/TokenFunc[] TokenMatrix;
+	/*field*/GtTokenFunc[] TokenMatrix;
 	/*field*/GtMap	 SymbolPatternTable;
 
 	GtNameSpace/*constructor*/(GtParserContext Context, GtNameSpace ParentNameSpace) {
@@ -1648,17 +1653,24 @@ final class GtNameSpace extends GtStatic {
 		return this;
 	}
 
-	public final TokenFunc GetTokenFunc(int GtChar2) {
+	public final GtTokenFunc GetTokenFunc(int GtChar2) {
 		if(this.TokenMatrix == null) {
 			return this.ParentNameSpace.GetTokenFunc(GtChar2);
 		}
 		return this.TokenMatrix[GtChar2];
 	}
 
-	public final void AppendTokenFunc(String keys, GtDelegateToken f) {
+	private final GtTokenFunc JoinParentFunc(GtFunc Func, GtTokenFunc Parent) {
+		if(Parent != null && Parent.Func == Func) {
+			return Parent;
+		}
+		return new GtTokenFunc(Func, Parent);
+	}
+
+	public final void AppendTokenFunc(String keys, GtFunc TokenFunc) {
 		/*local*/int i = 0;
 		if(this.TokenMatrix == null) {
-			this.TokenMatrix = new TokenFunc[MaxSizeOfChars];
+			this.TokenMatrix = new GtTokenFunc[MaxSizeOfChars];
 			if(this.ParentNameSpace != null) {
 				while(i < MaxSizeOfChars) {
 					this.TokenMatrix[i] = this.ParentNameSpace.GetTokenFunc(i);
@@ -1668,7 +1680,7 @@ final class GtNameSpace extends GtStatic {
 		i = 0;
 		while(i < keys.length()) {
 			/*local*/int kchar = GtStatic.AsciiToTokenMatrixIndex(LibGreenTea.CharAt(keys, i));
-			this.TokenMatrix[kchar] = LibGreenTea.CreateOrReuseTokenFunc(f, this.TokenMatrix[kchar]);
+			this.TokenMatrix[kchar] = this.JoinParentFunc(TokenFunc, this.TokenMatrix[kchar]);
 			i += 1;
 		}
 	}
@@ -1741,7 +1753,7 @@ final class GtNameSpace extends GtStatic {
 		this.SetSymbol(PatternName, NewPattern, SourceToken);
 	}
 
-	public void AppendSyntax(String PatternName, GtDelegateMatch MatchFunc, GtDelegateType TypeFunc) {
+	public void AppendSyntax(String PatternName, GtParseFunc MatchFunc, GtTypeFunc TypeFunc) {
 		/*local*/int Alias = PatternName.indexOf(" ");
 		/*local*/String Name = (Alias == -1) ? PatternName : PatternName.substring(0, Alias);
 		/*local*/GtSyntaxPattern Pattern = new GtSyntaxPattern(this, Name, MatchFunc, TypeFunc);
@@ -1751,7 +1763,7 @@ final class GtNameSpace extends GtStatic {
 		}
 	}
 
-	public void AppendExtendedSyntax(String PatternName, int SyntaxFlag, GtDelegateMatch MatchFunc, GtDelegateType TypeFunc) {
+	public void AppendExtendedSyntax(String PatternName, int SyntaxFlag, GtParseFunc MatchFunc, GtTypeFunc TypeFunc) {
 		/*local*/int Alias = PatternName.indexOf(" ");
 		/*local*/String Name = (Alias == -1) ? PatternName : PatternName.substring(0, Alias);
 		/*local*/GtSyntaxPattern Pattern = new GtSyntaxPattern(this, Name, MatchFunc, TypeFunc);
@@ -4206,23 +4218,23 @@ final class GreenTeaGrammar extends GtGrammar {
 		NameSpace.SetSymbol("true", true, null);
 		NameSpace.SetSymbol("false", false, null);
 
-		NameSpace.AppendTokenFunc(" \t", FunctionA(this, "WhiteSpaceToken"));
-		NameSpace.AppendTokenFunc("\n",  FunctionA(this, "IndentToken"));
-		NameSpace.AppendTokenFunc(";", FunctionA(this, "SemiColonToken"));
-		NameSpace.AppendTokenFunc("{}()[]<>.,?:+-*/%=&|!@~^", FunctionA(this, "OperatorToken"));
-		NameSpace.AppendTokenFunc("/", FunctionA(this, "CommentToken"));  // overloading
-		NameSpace.AppendTokenFunc("Aa", FunctionA(this, "SymbolToken"));
+		NameSpace.AppendTokenFunc(" \t", LoadTokenFunc(NameSpace.Context, this, "WhiteSpaceToken"));
+		NameSpace.AppendTokenFunc("\n",  LoadTokenFunc(NameSpace.Context, this, "IndentToken"));
+		NameSpace.AppendTokenFunc(";", LoadTokenFunc(NameSpace.Context, this, "SemiColonToken"));
+		NameSpace.AppendTokenFunc("{}()[]<>.,?:+-*/%=&|!@~^", LoadTokenFunc(NameSpace.Context, this, "OperatorToken"));
+		NameSpace.AppendTokenFunc("/", LoadTokenFunc(NameSpace.Context, this, "CommentToken"));  // overloading
+		NameSpace.AppendTokenFunc("Aa", LoadTokenFunc(NameSpace.Context, this, "SymbolToken"));
 
-		NameSpace.AppendTokenFunc("\"", FunctionA(this, "StringLiteralToken"));
-		NameSpace.AppendTokenFunc("\"", FunctionA(this, "StringLiteralToken_StringInterpolation"));
-		NameSpace.AppendTokenFunc("'", FunctionA(this, "CharLiteralToken"));
-		NameSpace.AppendTokenFunc("1",  FunctionA(this, "NumberLiteralToken"));
+		NameSpace.AppendTokenFunc("\"", LoadTokenFunc(NameSpace.Context, this, "StringLiteralToken"));
+		NameSpace.AppendTokenFunc("\"", LoadTokenFunc(NameSpace.Context, this, "StringLiteralToken_StringInterpolation"));
+		NameSpace.AppendTokenFunc("'", LoadTokenFunc(NameSpace.Context, this, "CharLiteralToken"));
+		NameSpace.AppendTokenFunc("1",  LoadTokenFunc(NameSpace.Context, this, "NumberLiteralToken"));
 //#ifdef JAVA
-		GtDelegateMatch ParseUnary     = FunctionB(this, "ParseUnary");
-		GtDelegateType  TypeUnary      = FunctionC(this, "TypeUnary");
-		GtDelegateMatch ParseBinary    = FunctionB(this, "ParseBinary");
-		GtDelegateType  TypeBinary     = FunctionC(this, "TypeBinary");
-		GtDelegateType  TypeConst      = FunctionC(this, "TypeConst");
+		GtParseFunc ParseUnary     = FunctionB(this, "ParseUnary");
+		GtTypeFunc  TypeUnary      = FunctionC(this, "TypeUnary");
+		GtParseFunc ParseBinary    = FunctionB(this, "ParseBinary");
+		GtTypeFunc  TypeBinary     = FunctionC(this, "TypeBinary");
+		GtTypeFunc  TypeConst      = FunctionC(this, "TypeConst");
 //endif VAJA
 		NameSpace.AppendSyntax("+", ParseUnary, TypeUnary);
 		NameSpace.AppendSyntax("-", ParseUnary, TypeUnary);
