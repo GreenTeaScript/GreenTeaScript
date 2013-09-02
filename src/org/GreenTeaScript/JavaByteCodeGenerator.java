@@ -373,25 +373,23 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		Type ReturnType = this.ToAsmType(Func.GetReturnType());
 
 		ArrayList<Type> argTypes = new ArrayList<Type>();
-		ArrayList<JVMLocal> locals  = new ArrayList<JVMLocal>();
 		for(int i=0; i<NameList.size(); i++) {
 			GtType type = Func.GetFuncParamType(i);
-			String name = NameList.get(i);
 			argTypes.add(this.ToAsmType(type));
-			locals.add(new JVMLocal(i, this.ToAsmType(type), name));
 		}
-
 		String MethodName = Func.GetNativeFuncName();
 		String MethodDesc = Type.getMethodDescriptor(ReturnType, argTypes.toArray(new Type[0]));
 
 		MethodNode AsmMethodNode = new MethodNode(acc, MethodName, MethodDesc, null, null);
-
 		MethodHolderClass c = DefaultHolderClass;
 		c.addMethodNode(AsmMethodNode);
 		this.classMap.put(c.name, c);
 
 		this.Builder = new JVMBuilder(AsmMethodNode);
-		this.Builder.LocalVals.addAll(locals);
+		for(int i=0; i<NameList.size(); i++) {
+			String Name = NameList.get(i);
+			this.Builder.AddLocal(argTypes.get(i), Name);
+		}
 		this.VisitBlock(Body);
 
 		// JVM always needs return;
@@ -585,7 +583,6 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	}
 
 	@Override public void VisitAssignNode(AssignNode Node) {
-		Node.RightNode.Evaluate(this);
 		if(Node.LeftNode instanceof GetterNode) {
 			GetterNode left = (GetterNode) Node.LeftNode;
 			String name = left.Func.FuncName;
@@ -602,12 +599,25 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		else {
 			assert (Node.LeftNode instanceof LocalNode);
 			LocalNode Left = (LocalNode) Node.LeftNode;
-			String Name = Left.NativeName;
-			JVMLocal local = this.Builder.FindLocalVariable(Name);
-			if(local == null) {
-				throw new RuntimeException("local variable " + Name + " is not found in this context");
-			}
+			JVMLocal local = this.Builder.FindLocalVariable(Left.NativeName);
+			Node.RightNode.Evaluate(this);
 			this.Builder.StoreLocal(local);
+		}
+	}
+
+	public void VisitSelfAssignNode(SelfAssignNode Node) {
+		if(Node.LeftNode instanceof LocalNode) {
+			LocalNode Left = (LocalNode)Node.LeftNode;
+			JVMLocal local = this.Builder.FindLocalVariable(Left.NativeName);
+			Node.LeftNode.Evaluate(this);
+			this.Builder.typeStack.pop();
+			Node.RightNode.Evaluate(this);
+			this.Builder.typeStack.pop();
+			this.Builder.Call((Method)Node.Func.NativeRef);
+			this.Builder.StoreLocal(local);
+		}
+		else {
+			LibGreenTea.TODO("selfAssign");
 		}
 	}
 
