@@ -567,21 +567,23 @@ public abstract class LibGreenTea implements GtConst {
 		return null;
 	}
 
-	public final static GtNode ApplyTypeFunc(GtTypeFunc Delegate, Object Gamma, Object ParsedTree, Object TypeInfo) {
-		try {
-			return (GtNode)Delegate.Func.invoke(null, Gamma, ParsedTree, TypeInfo);
-		}
-		catch (InvocationTargetException e) {
-			LibGreenTea.VerboseException(e);
-		}
-		catch (IllegalArgumentException e) {
-			LibGreenTea.VerboseException(e);
-		}
-		catch (IllegalAccessException e) {
-			LibGreenTea.VerboseException(e);
-		}
-		Exit(1, "Failed ApplyTypeFunc");
-		return null;
+	public final static GtNode ApplyTypeFunc(GtFunc TypeFunc, GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+		return (GtNode)LibGreenTea.ApplyFunc3(TypeFunc, null, Gamma, ParsedTree, ContextType);
+//
+//		try {
+//			return (GtNode)Delegate.Func.invoke(null, Gamma, ParsedTree, TypeInfo);
+//		}
+//		catch (InvocationTargetException e) {
+//			LibGreenTea.VerboseException(e);
+//		}
+//		catch (IllegalArgumentException e) {
+//			LibGreenTea.VerboseException(e);
+//		}
+//		catch (IllegalAccessException e) {
+//			LibGreenTea.VerboseException(e);
+//		}
+//		Exit(1, "Failed ApplyTypeFunc");
+//		return null;
 	}
 
 	public final static int ListSize(ArrayList<?> List) {
