@@ -2239,7 +2239,7 @@ final class GreenTeaGrammar extends GtGrammar {
 	}
 
 	public static GtNode TypeTypeParam(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		GtType ParamBaseType = ParsedTree.GetSyntaxTreeAt(UnaryTerm).GetParsedType();
+		/*local*/GtType ParamBaseType = ParsedTree.GetSyntaxTreeAt(UnaryTerm).GetParsedType();
 		return Gamma.Generator.CreateConstNode(Gamma.Context.TypeType, ParsedTree, new GtType(Gamma.Context, TypeParameter, "", ParamBaseType, null));
 	}
 
@@ -4251,7 +4251,8 @@ final class GtContext extends GtStatic {
 		else if(Value instanceof GtPolyFunc) {
 			return this.FuncType;
 		}
-		else if(Value instanceof GreenTeaObject) {
+		else if(Value instanceof GreenTeaTopObject) {
+			// FIXME In typescript, we cannot use GreenTeaObject
 			return ((/*cast*/GreenTeaObject)Value).GetGreenType();
 		}
 		else {

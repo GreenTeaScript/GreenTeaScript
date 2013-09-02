@@ -799,7 +799,7 @@ class GtGenerator extends GtStatic {
 	}
 
 	public GtNode CreateNewNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, ArrayList<GtNode> NodeList) {
-		NewNode Node = new NewNode(Type, ParsedTree.KeyToken, Func);
+		/*local*/NewNode Node = new NewNode(Type, ParsedTree.KeyToken, Func);
 		if(NodeList != null) {
 			Node.AppendNodeList(NodeList);
 		}
@@ -1540,6 +1540,16 @@ class SourceGenerator extends GtGenerator {
 		/*local*/int ParamIndex = ParamSize - 1;
 		while(ParamIndex >= 1) {
 			/*local*/String Param = this.VisitNode(NodeList.get(ParamIndex));
+			Template = Template.replace("$" + ParamIndex, Param);
+			ParamIndex = ParamIndex - 1;
+		}
+		return Template;
+	}
+	public final String ApplyMacro2(String Template, String[] ParamList) {
+		/*local*/int ParamSize = ParamList.length;
+		/*local*/int ParamIndex = ParamSize - 1;
+		while(ParamIndex >= 1) {
+			/*local*/String Param = ParamList[ParamIndex];
 			Template = Template.replace("$" + ParamIndex, Param);
 			ParamIndex = ParamIndex - 1;
 		}

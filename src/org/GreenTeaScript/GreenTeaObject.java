@@ -249,7 +249,7 @@ class GtFunc extends GtStatic {
 	public final int GetMethodParamSize() {
 		return this.Types.length - 2;
 	}
-		
+
 	public final boolean EqualsParamTypes(int BaseIndex, GtType[] ParamTypes) {
 		if(this.Types.length == ParamTypes.length) {
 			/*local*/int i = BaseIndex;
@@ -475,7 +475,7 @@ class GtPolyFunc extends GtStatic {
 }
 
 public interface GreenTeaObject {
-	public GtType GetGreenType();
+	GtType GetGreenType();
 }
 
 class GreenTeaTopObject implements GreenTeaObject {

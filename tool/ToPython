@@ -5,7 +5,7 @@ build=src/Python/
 
 source=
 source="${source} GreenTeaScript"
-source="${source} GreenTeaTopObject"
+source="${source} GreenTeaObject"
 source="${source} GreenTeaScriptTest"
 source="${source} SourceGenerator"
 source="${source} BashSourceGenerator"
