@@ -229,6 +229,10 @@ public abstract class LibGreenTea implements GtConst {
 		return 0L;
 	}
 
+	public final static double ParseFloat(String Text) {
+		return Double.parseDouble(Text);
+	}
+
 	public final static boolean IsUnixCommand(String cmd) {
 		String[] path = System.getenv("PATH").split(":");
 		int i = 0;

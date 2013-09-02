@@ -2186,13 +2186,44 @@ final class GreenTeaGrammar extends GtGrammar {
 
 	public static int NumberLiteralToken(GtTokenContext TokenContext, String SourceText, int pos) {
 		/*local*/int start = pos;
+		/*local*/boolean IsFloatLiteral = false;
 		while(pos < SourceText.length()) {
 			if(!LibGreenTea.IsDigit(SourceText, pos)) {
 				break;
 			}
 			pos += 1;
 		}
-		TokenContext.AddNewToken(SourceText.substring(start, pos), 0, "$IntegerLiteral$");
+		/*local*/char ch = LibGreenTea.CharAt(SourceText, pos);
+		if(ch != '.' && ch != 'e' && ch != 'E') {
+			TokenContext.AddNewToken(SourceText.substring(start, pos), 0, "$IntegerLiteral$");
+			return pos;
+		}
+	    if(ch == '.') {
+        	pos += 1;
+			while(pos < SourceText.length()) {
+				if(!LibGreenTea.IsDigit(SourceText, pos)) {
+					break;
+				}
+				pos += 1;
+			}
+	    }
+
+	    ch = LibGreenTea.CharAt(SourceText, pos);
+	    if(ch == 'e' || ch == 'E') {
+	    	pos += 1;
+		    ch = LibGreenTea.CharAt(SourceText, pos);
+	        if(ch == '+' || ch == '-') {
+	        	pos += 1;
+			    ch = LibGreenTea.CharAt(SourceText, pos);
+	        }
+			while(pos < SourceText.length()) {
+				if(!LibGreenTea.IsDigit(SourceText, pos)) {
+					break;
+				}
+				pos += 1;
+			}
+	    }
+		TokenContext.AddNewToken(SourceText.substring(start, pos), 0, "$FloatLiteral$");
 		return pos;
 	}
 
@@ -2522,6 +2553,10 @@ final class GreenTeaGrammar extends GtGrammar {
 	public static GtSyntaxTree ParseIntegerLiteral(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.Next();
 		return new GtSyntaxTree(Pattern, NameSpace, Token, LibGreenTea.ParseInt(Token.ParsedText));
+	}
+	public static GtSyntaxTree ParseFloatLiteral(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtToken Token = TokenContext.Next();
+		return new GtSyntaxTree(Pattern, NameSpace, Token, LibGreenTea.ParseFloat(Token.ParsedText));
 	}
 
 	public static GtSyntaxTree ParseStringLiteral(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
@@ -4211,7 +4246,8 @@ final class GreenTeaGrammar extends GtGrammar {
 		NameSpace.AppendSyntax("$CharLiteral$", FunctionB(this, "ParseCharLiteral"), FunctionC(this, "TypeCharLiteral"));
 		NameSpace.AppendSyntax("$StringLiteral$", FunctionB(this, "ParseStringLiteral"), TypeConst);
 		NameSpace.AppendSyntax("$IntegerLiteral$", FunctionB(this, "ParseIntegerLiteral"), TypeConst);
-		NameSpace.AppendSyntax("$TypeRef$", FunctionB(this, "ParseTypeRef"), FunctionC(this, "TypeTypeRef"));
+		NameSpace.AppendSyntax("$FloatLiteral$", FunctionB(this, "ParseFloatLiteral"), TypeConst);
+		//NameSpace.AppendSyntax("$TypeRef$", FunctionB(this, "ParseTypeRef"), FunctionC(this, "TypeTypeRef"));
 
 		NameSpace.AppendExtendedSyntax(".", 0, FunctionB(this, "ParseGetter"), FunctionC(this, "TypeGetter"));
 		NameSpace.AppendSyntax("(", FunctionB(this, "ParseGroup"), FunctionC(this, "TypeGroup"));
