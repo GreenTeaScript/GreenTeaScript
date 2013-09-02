@@ -40,7 +40,7 @@ public class CSourceGenerator extends SourceGenerator {
 		this.NullLiteral = "NULL";
 		this.MemberAccessOperator = "->";
 	}
-	@Override public void InitContext(GtContext Context) {
+	@Override public void InitContext(GtParserContext Context) {
 		super.InitContext(Context);
 		//this.Opt.InitContext(Context);
 	}

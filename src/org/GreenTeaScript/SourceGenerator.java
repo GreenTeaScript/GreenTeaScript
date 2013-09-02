@@ -743,7 +743,7 @@ class CommandNode extends GtNode {
 
 class GtGenerator extends GtStatic {
 	/*field*/public final String      TargetCode;
-	/*field*/public GtContext    Context;
+	/*field*/public GtParserContext    Context;
 	/*field*/public ArrayList<Object> GeneratedCodeStack;
 	/*field*/public String OutputFile;
 	/*field*/public int GeneratorFlag;
@@ -756,7 +756,7 @@ class GtGenerator extends GtStatic {
 		this.GeneratedCodeStack = null;
 	}
 
-	public void InitContext(GtContext Context) {
+	public void InitContext(GtParserContext Context) {
 		this.Context = Context;
 		this.GeneratedCodeStack = new ArrayList<Object>();
 		Context.RootNameSpace.LoadRequiredLib("common");
@@ -1259,7 +1259,7 @@ class SourceGenerator extends GtGenerator {
 		this.LineComment  = "//";
 	}
 
-	@Override public void InitContext(GtContext Context) {
+	@Override public void InitContext(GtParserContext Context) {
 		super.InitContext(Context);
 		this.HeaderSource = "";
 		this.BodySource = "";

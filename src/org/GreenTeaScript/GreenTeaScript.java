@@ -1457,7 +1457,7 @@ class GtVariableInfo extends GtStatic {
 }
 
 final class GtTypeEnv extends GtStatic {
-	/*field*/public final GtContext    Context;
+	/*field*/public final GtParserContext    Context;
 	/*field*/public final GtGenerator       Generator;
 	/*field*/public GtNameSpace	    NameSpace;
 
@@ -1623,14 +1623,14 @@ final class GtTypeEnv extends GtStatic {
 // NameSpace
 
 final class GtNameSpace extends GtStatic {
-	/*field*/public final GtContext		Context;
+	/*field*/public final GtParserContext		Context;
 	/*field*/public final GtNameSpace		    ParentNameSpace;
 	/*field*/public String                      PackageName;
 
 	/*field*/TokenFunc[] TokenMatrix;
 	/*field*/GtMap	 SymbolPatternTable;
 
-	GtNameSpace/*constructor*/(GtContext Context, GtNameSpace ParentNameSpace) {
+	GtNameSpace/*constructor*/(GtParserContext Context, GtNameSpace ParentNameSpace) {
 		this.Context = Context;
 		this.ParentNameSpace = ParentNameSpace;
 		this.PackageName = (ParentNameSpace != null) ? ParentNameSpace.PackageName : null;
@@ -4334,7 +4334,7 @@ final class GtStat {
 	}
 }
 
-final class GtContext extends GtStatic {
+final class GtParserContext extends GtStatic {
 	/*field*/public final  GtGenerator   Generator;
 	/*field*/public final  GtNameSpace		   RootNameSpace;
 	/*field*/public GtNameSpace		           TopLevelNameSpace;
@@ -4365,7 +4365,7 @@ final class GtContext extends GtStatic {
 	/*field*/public ArrayList<String>    ReportedErrorList;
 	/*filed*/private boolean NoErrorReport;
 
-	GtContext/*constructor*/(GtGrammar Grammar, GtGenerator Generator) {
+	GtParserContext/*constructor*/(GtGrammar Grammar, GtGenerator Generator) {
 		this.Generator    = Generator;
 		this.Generator.Context = this;
 		this.SourceMap     = new GtMap();
@@ -4605,7 +4605,7 @@ public class GreenTeaScript extends GtStatic {
 		if(Generator == null) {
 			LibGreenTea.Usage("no target: " + TargetCode);
 		}
-		/*local*/GtContext Context = new GtContext(new GreenTeaGrammar(), Generator);
+		/*local*/GtParserContext Context = new GtParserContext(new GreenTeaGrammar(), Generator);
 		/*local*/boolean ShellMode = true;
 		if(OneLiner != null) {
 			Context.TopLevelNameSpace.Eval(OneLiner, 1);

@@ -29,7 +29,7 @@ import java.util.Arrays;
 //endif VAJA
 
 class GtType extends GtStatic {
-	/*field*/public final GtContext	Context;
+	/*field*/public final GtParserContext	Context;
 	/*field*/public GtNameSpace     PackageNameSpace;
 	/*field*/int					ClassFlag;
 	/*field*/int                    ClassId;
@@ -41,7 +41,7 @@ class GtType extends GtStatic {
 	/*field*/GtType[]				TypeParams;
 	/*field*/public Object          NativeSpec;
 
-	GtType/*constructor*/(GtContext Context, int ClassFlag, String ClassName, Object DefaultNullValue, Object NativeSpec) {
+	GtType/*constructor*/(GtParserContext Context, int ClassFlag, String ClassName, Object DefaultNullValue, Object NativeSpec) {
 		this.Context = Context;
 		this.ClassFlag = ClassFlag;
 		this.ShortClassName = ClassName;
@@ -180,13 +180,13 @@ class GtFunc extends GtStatic {
 		LibGreenTea.Assert(this.Types.length > 0);
 		this.FuncType = null;
 		this.NativeRef = null;
-		/*local*/GtContext Context = this.GetContext();
+		/*local*/GtParserContext Context = this.GetContext();
 		this.FuncId = Context.FuncCount;
 		Context.FuncCount += 1;
 		this.MangledName = FuncName + NativeNameSuffix + this.FuncId;
 	}
 
-	public final GtContext GetContext() {
+	public final GtParserContext GetContext() {
 		return this.GetReturnType().Context;
 	}
 
@@ -201,7 +201,7 @@ class GtFunc extends GtStatic {
 
 	public final GtType GetFuncType() {
 		if(this.FuncType == null) {
-			/*local*/GtContext Context = this.GetRecvType().Context;
+			/*local*/GtParserContext Context = this.GetRecvType().Context;
 			this.FuncType = Context.GetGenericType(Context.FuncType, 0, new ArrayList<GtType>(Arrays.asList(this.Types)), true);
 		}
 		return this.FuncType;

@@ -265,7 +265,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		super(TargetCode, OutputFile, GeneratorFlag);
 	}
 
-	@Override public void InitContext(GtContext Context) {
+	@Override public void InitContext(GtParserContext Context) {
 		super.InitContext(Context);
 		this.typeDescriptorMap.put(Context.VoidType.ShortClassName, Type.VOID_TYPE);
 		this.typeDescriptorMap.put(Context.BooleanType.ShortClassName, Type.BOOLEAN_TYPE);

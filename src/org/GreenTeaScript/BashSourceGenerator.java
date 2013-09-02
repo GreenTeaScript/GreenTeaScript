@@ -42,7 +42,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.LineComment = "##";
 	}
 
-	@Override public void InitContext(GtContext Context) {
+	@Override public void InitContext(GtParserContext Context) {
 		super.InitContext(Context);
 		this.WriteLineHeader("#!/bin/bash");
 		this.WriteLineCode(this.LineFeed + "source $GREENTEA_HOME/include/bash/GreenTeaPlus.sh" + this.LineFeed);

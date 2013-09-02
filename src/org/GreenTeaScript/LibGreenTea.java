@@ -245,7 +245,7 @@ public abstract class LibGreenTea implements GtConst {
 		return false;
 	}
 
-	public final static GtType GetNativeType(GtContext Context, Object Value) {
+	public final static GtType GetNativeType(GtParserContext Context, Object Value) {
 		GtType NativeType = null;
 		Class<?> NativeClass = Value instanceof Class<?> ? (Class<?>)Value : Value.getClass();
 		NativeType = (/*cast*/GtType) Context.ClassNameMap.get(NativeClass.getCanonicalName());
@@ -262,7 +262,7 @@ public abstract class LibGreenTea implements GtConst {
 	}
 
 	public final static boolean MatchNativeMethod(GtType FuncType, Method JavaMethod) {
-		/*local*/GtContext Context = FuncType.Context;
+		/*local*/GtParserContext Context = FuncType.Context;
 		/*local*/GtType ReturnType = FuncType.TypeParams[0];
 //		System.err.println("method: " + JavaMethod);
 //		System.err.println("return: " + ReturnType + ", " + LibGreenTea.GetNativeType(Context, JavaMethod.getReturnType()));
@@ -312,7 +312,7 @@ public abstract class LibGreenTea implements GtConst {
 		return NativeFunc;
 	}
 
-	public final static GtFunc ConvertNativeMethodToFunc(GtContext Context, Method JavaMethod) {
+	public final static GtFunc ConvertNativeMethodToFunc(GtParserContext Context, Method JavaMethod) {
 		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
 		TypeList.add(LibGreenTea.GetNativeType(Context, JavaMethod.getReturnType()));
 		if(!Modifier.isStatic(JavaMethod.getModifiers())) {
@@ -388,7 +388,7 @@ public abstract class LibGreenTea implements GtConst {
 	public final static boolean LoadNativeConstructors(GtType ClassType) {
 		/*local*/boolean TransformedResult = false;
 		Class<?> NativeClass = (Class<?>)ClassType.NativeSpec;
-		GtContext Context = ClassType.Context;
+		GtParserContext Context = ClassType.Context;
 		Constructor<?>[] Constructors = NativeClass.getDeclaredConstructors();
 		if(Constructors != null) {
 			for(int i = 0; i < Constructors.length; i++) {
@@ -417,7 +417,7 @@ public abstract class LibGreenTea implements GtConst {
 	}
 
 	public final static boolean LoadNativeField(GtType ClassType, String FieldName) {
-		GtContext Context = ClassType.Context;
+		GtParserContext Context = ClassType.Context;
 		try {
 			Class<?> NativeClass = (Class<?>)ClassType.NativeSpec;
 			Field NativeField = NativeClass.getField(FieldName);
@@ -449,7 +449,7 @@ public abstract class LibGreenTea implements GtConst {
 	}
 
 	public final static boolean LoadNativeMethods(GtType ClassType, String FuncName) {
-		GtContext Context = ClassType.Context;
+		GtParserContext Context = ClassType.Context;
 		Class<?> NativeClass = (Class<?>)ClassType.NativeSpec;
 		Method[] Methods = NativeClass.getDeclaredMethods();
 		if(Methods != null) {
