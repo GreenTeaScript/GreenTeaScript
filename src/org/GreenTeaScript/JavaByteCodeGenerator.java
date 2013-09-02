@@ -98,41 +98,6 @@ class GtClassLoader extends ClassLoader {
 	}
 }
 
-class LabelStack {
-	ArrayList<String>	LabelNames;
-	ArrayList<Label>	Labels;
-
-	LabelStack() {
-		this.LabelNames = new ArrayList<String>();
-		this.Labels = new ArrayList<Label>();
-	}
-
-	void AddLabel(String Name, Label Label) {
-		this.LabelNames.add(Name);
-		this.Labels.add(Label);
-	}
-
-	Label FindLabel(String Name) {
-		for(int i = this.LabelNames.size() - 1; i >= 0; i--) {
-			String LName = this.LabelNames.get(i);
-			if(LName.equals(Name)) {
-				return this.Labels.get(i);
-			}
-		}
-		return null;
-	}
-
-	void RemoveLabel(String Name) {
-		for(int i = this.LabelNames.size() - 1; i >= 0; i--) {
-			String LName = this.LabelNames.get(i);
-			if(LName.equals(Name)) {
-				this.LabelNames.remove(i);
-				this.Labels.remove(i);
-			}
-		}
-	}
-}
-
 final class JVMLocal {
 	public String Name;
 	public Type   TypeInfo;
@@ -148,22 +113,26 @@ final class JVMLocal {
 class JVMBuilder {
 	MethodVisitor                 AsmMethodVisitor;
 	ArrayList<JVMLocal>           LocalVals;
+	int                           LocalSize;
 	Stack<Type>                   typeStack;
-	LabelStack                    LabelStack;
+	Stack<Label>                  BreakLabelStack;
+	Stack<Label>                  ContinueLabelStack;
 
 	public JVMBuilder(MethodVisitor AsmMethodVisitor) {
 		this.AsmMethodVisitor = AsmMethodVisitor;
 		this.LocalVals = new ArrayList<JVMLocal>();
+		this.LocalSize = 0;
 		this.typeStack = new Stack<Type>();
-		this.LabelStack = new LabelStack();
+		this.BreakLabelStack = new Stack<Label>();
+		this.ContinueLabelStack = new Stack<Label>();
 	}
 
 	void LoadConst(Object o) {
 		Type type;
 		boolean unsupportType = false;
 		// JVM supports only boolean, int, long, String, float, double, java.lang.Class
-		if(o instanceof Integer) {
-			type = Type.INT_TYPE;
+		if(o instanceof Long) {
+			type = Type.LONG_TYPE;
 		}
 		else if(o instanceof Boolean) {
 			type = Type.BOOLEAN_TYPE;
@@ -212,9 +181,10 @@ class JVMBuilder {
 		return null;
 	}
 
-	public JVMLocal AddLocal(Type Type, String Name) {
-		JVMLocal local = new JVMLocal(this.LocalVals.size(), Type, Name);
+	public JVMLocal AddLocal(Type LocalType, String Name) {
+		JVMLocal local = new JVMLocal(this.LocalSize, LocalType, Name);
 		this.LocalVals.add(local);
+		this.LocalSize += LocalType.getSize();
 		return local;
 	}
 
@@ -227,6 +197,10 @@ class JVMBuilder {
 		if(type.equals(Type.INT_TYPE)) {
 			this.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Integer", "valueOf", "(I)Ljava/lang/Integer;");
 			this.typeStack.push(Type.getType(Integer.class));
+		}
+		else if(type.equals(Type.LONG_TYPE)) {
+			this.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Long", "valueOf", "(J)Ljava/lang/Long;");
+			this.typeStack.push(Type.getType(Long.class));
 		}
 		else if(type.equals(Type.DOUBLE_TYPE)) {
 			this.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Double", "valueOf", "(D)Ljava/lang/Double;");
@@ -295,7 +269,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		super.InitContext(Context);
 		this.typeDescriptorMap.put(Context.VoidType.ShortClassName, Type.VOID_TYPE);
 		this.typeDescriptorMap.put(Context.BooleanType.ShortClassName, Type.BOOLEAN_TYPE);
-		this.typeDescriptorMap.put(Context.IntType.ShortClassName, Type.INT_TYPE);
+		this.typeDescriptorMap.put(Context.IntType.ShortClassName, Type.LONG_TYPE);
 		this.typeDescriptorMap.put(Context.AnyType.ShortClassName, Type.getType(Object.class));
 		this.typeDescriptorMap.put(Context.StringType.ShortClassName, Type.getType(String.class));
 		this.methodMap = GreenTeaRuntime.getAllStaticMethods();
@@ -468,13 +442,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 
 	@Override public void VisitConstNode(ConstNode Node) {
 		Object constValue = Node.ConstValue;
-		//FIXME
-		if(constValue instanceof Long) {
-			this.Builder.LoadConst(((Long)constValue).intValue());
-		}
-		else {
-			this.Builder.LoadConst(constValue);
-		}
+		this.Builder.LoadConst(constValue);
 	}
 
 	@Override public void VisitNewNode(NewNode Node) {
@@ -546,38 +514,29 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		}
 	}
 
-	private char GetOpDesc(Type type) {
-		// int->I, boolean->Z, Object->L
-		return type.getDescriptor().charAt(0);
-	}
-
 	@Override public void VisitBinaryNode(BinaryNode Node) {
 		Node.LeftNode.Evaluate(this);
-		Type leftType = this.Builder.typeStack.pop();
+		this.Builder.typeStack.pop();
 		Node.RightNode.Evaluate(this);
-		Type rightType = this.Builder.typeStack.pop();
-		String FuncName = Node.Func.FuncName;
-		String OperatorFuncName = FuncName + "_" + GetOpDesc(leftType) + GetOpDesc(rightType);
-		Method m = this.methodMap.get(OperatorFuncName);
+		this.Builder.typeStack.pop();
+		Method m = (Method)Node.Func.NativeRef;
 		if(m != null) {
 			this.Builder.Call(m);
 		}
 		else {
-			throw new RuntimeException("unsupport binary operator: " + FuncName);
+			throw new RuntimeException("unsupport binary operator: " + Node.Func.FuncName);
 		}
 	}
 
 	@Override public void VisitUnaryNode(UnaryNode Node) {
 		Node.Expr.Evaluate(this);
-		Type type = this.Builder.typeStack.pop();
-		String FuncName = Node.Func.FuncName;
-		String OperatorFuncName = FuncName + "_" + GetOpDesc(type);
-		Method m = this.methodMap.get(OperatorFuncName);
+		this.Builder.typeStack.pop();
+		Method m = (Method)Node.Func.NativeRef;
 		if(m != null) {
 			this.Builder.Call(m);
 		}
 		else {
-			throw new RuntimeException("unsupport unary operator: " + FuncName);
+			throw new RuntimeException("unsupport unary operator: " + Node.Func.FuncName);
 		}
 	}
 
@@ -678,30 +637,93 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.Builder.AsmMethodVisitor.visitLabel(EndLabel);
 	}
 
-	@Override public void VisitSwitchNode(SwitchNode Node) { //FIXME
-//		Node.CondExpr.Evaluate(this);
-//		for(int i = 0; i < Node.Blocks.size(); i++) {
-//			TypedNode Block = (TypedNode) Node.Blocks.get(i);
-//			this.VisitBlock(Block);
-//		}
+	@Override public void VisitSwitchNode(SwitchNode Node) {
+		int cases = Node.CaseList.size() / 2;
+		int[] keys = new int[cases];
+		Label[] caseLabels = new Label[cases];
+		Label defaultLabel = new Label();
+		Label breakLabel = new Label();
+		for(int i=0; i<cases; i++) {
+			keys[i] = ((Number)((ConstNode)Node.CaseList.get(i*2)).ConstValue).intValue();
+			caseLabels[i] = new Label();
+		}
+		Node.MatchNode.Evaluate(this);
+		this.Builder.AsmMethodVisitor.visitInsn(L2I);
+		this.Builder.typeStack.pop();
+		this.Builder.AsmMethodVisitor.visitLookupSwitchInsn(defaultLabel, keys, caseLabels);
+		for(int i=0; i<cases; i++) {
+			this.Builder.BreakLabelStack.push(breakLabel);
+			this.Builder.AsmMethodVisitor.visitLabel(caseLabels[i]);
+			this.VisitBlock(Node.CaseList.get(i*2+1));
+			this.Builder.BreakLabelStack.pop();
+		}
+		this.Builder.AsmMethodVisitor.visitLabel(defaultLabel);
+		this.VisitBlock(Node.DefaultBlock);
+		this.Builder.AsmMethodVisitor.visitLabel(breakLabel);
 	}
 
 	@Override public void VisitWhileNode(WhileNode Node) {
-		MethodVisitor mv = this.Builder.AsmMethodVisitor;
-		Label HEAD = new Label();
-		Label END = new Label();
-		this.Builder.LabelStack.AddLabel("break", END);
-		this.Builder.LabelStack.AddLabel("continue", HEAD);
-		mv.visitLabel(HEAD);
+		Label continueLabel = new Label();
+		Label breakLabel = new Label();
+		this.Builder.BreakLabelStack.push(breakLabel);
+		this.Builder.ContinueLabelStack.push(continueLabel);
+
+		this.Builder.AsmMethodVisitor.visitLabel(continueLabel);
 		Node.CondExpr.Evaluate(this);
 		this.Builder.typeStack.pop();
-		mv.visitJumpInsn(IFEQ, END); // condition
+		this.Builder.AsmMethodVisitor.visitJumpInsn(IFEQ, breakLabel); // condition
 		this.VisitBlock(Node.LoopBody);
+		this.Builder.AsmMethodVisitor.visitJumpInsn(GOTO, continueLabel);
+		this.Builder.AsmMethodVisitor.visitLabel(breakLabel);
 
-		mv.visitJumpInsn(GOTO, HEAD);
-		mv.visitLabel(END);
-		this.Builder.LabelStack.RemoveLabel("break");
-		this.Builder.LabelStack.RemoveLabel("continue");
+		this.Builder.BreakLabelStack.pop();
+		this.Builder.ContinueLabelStack.pop();
+	}
+
+	public void VisitDoWhileNode(DoWhileNode Node) {
+		Label headLabel = new Label();
+		Label continueLabel = new Label();
+		Label breakLabel = new Label();
+		this.Builder.BreakLabelStack.push(breakLabel);
+		this.Builder.ContinueLabelStack.push(continueLabel);
+
+		this.Builder.AsmMethodVisitor.visitLabel(headLabel);
+		this.VisitBlock(Node.LoopBody);
+		this.Builder.AsmMethodVisitor.visitLabel(continueLabel);
+		Node.CondExpr.Evaluate(this);
+		this.Builder.typeStack.pop();
+		this.Builder.AsmMethodVisitor.visitJumpInsn(IFEQ, breakLabel); // condition
+		this.Builder.AsmMethodVisitor.visitJumpInsn(GOTO, headLabel);
+		this.Builder.AsmMethodVisitor.visitLabel(breakLabel);
+
+		this.Builder.BreakLabelStack.pop();
+		this.Builder.ContinueLabelStack.pop();
+	}
+
+	public void VisitForNode(ForNode Node) {
+		Label headLabel = new Label();
+		Label continueLabel = new Label();
+		Label breakLabel = new Label();
+		this.Builder.BreakLabelStack.push(breakLabel);
+		this.Builder.ContinueLabelStack.push(continueLabel);
+
+		this.Builder.AsmMethodVisitor.visitLabel(headLabel);
+		Node.CondExpr.Evaluate(this);
+		this.Builder.typeStack.pop();
+		this.Builder.AsmMethodVisitor.visitJumpInsn(IFEQ, breakLabel); // condition
+		this.VisitBlock(Node.LoopBody);
+		this.Builder.AsmMethodVisitor.visitLabel(continueLabel);
+		Node.IterExpr.Evaluate(this);
+		//this.Builder.typeStack.pop();
+		this.Builder.AsmMethodVisitor.visitJumpInsn(GOTO, headLabel);
+		this.Builder.AsmMethodVisitor.visitLabel(breakLabel);
+
+		this.Builder.BreakLabelStack.pop();
+		this.Builder.ContinueLabelStack.pop();
+	}
+
+	public void VisitForEachNode(ForEachNode Node) {
+		/*extension*/
 	}
 
 	@Override public void VisitReturnNode(ReturnNode Node) {
@@ -715,28 +737,13 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		}
 	}
 
-	@Override public void VisitLabelNode(LabelNode Node) {
-		String LabelName = Node.Label;
-		Label Label = new Label();
-		this.Builder.LabelStack.AddLabel(LabelName, Label);
-	}
-
-	@Override public void VisitJumpNode(JumpNode Node) {
-		String LabelName = Node.Label;
-		Label label = this.Builder.LabelStack.FindLabel(LabelName);
-		if(label == null) {
-			throw new RuntimeException("Cannot find " + LabelName + " label.");
-		}
-		this.Builder.AsmMethodVisitor.visitJumpInsn(GOTO, label);
-	}
-
 	@Override public void VisitBreakNode(BreakNode Node) {
-		Label l = this.Builder.LabelStack.FindLabel(Node.Label);
+		Label l = this.Builder.BreakLabelStack.peek();
 		this.Builder.AsmMethodVisitor.visitJumpInsn(GOTO, l);
 	}
 
 	@Override public void VisitContinueNode(ContinueNode Node) {
-		Label l = this.Builder.LabelStack.FindLabel(Node.Label);
+		Label l = this.Builder.ContinueLabelStack.peek();
 		this.Builder.AsmMethodVisitor.visitJumpInsn(GOTO, l);
 	}
 
@@ -785,6 +792,15 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.Builder.typeStack.pop();
 		this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESPECIAL, name, "<init>", "(Ljava/lang/Object;)V");
 		this.Builder.AsmMethodVisitor.visitInsn(ATHROW);
+	}
+
+	@Override public void VisitInstanceOfNode(InstanceOfNode Node) {
+		//FIXME: cannot use INSTANCEOF in case of primitive type
+		Type type = this.ToAsmType(Node.TypeInfo);
+		Node.ExprNode.Evaluate(this);
+		this.Builder.typeStack.pop();
+		this.Builder.AsmMethodVisitor.visitTypeInsn(INSTANCEOF, type.getInternalName());
+		this.Builder.typeStack.push(Type.BOOLEAN_TYPE);
 	}
 
 	@Override public void VisitFunctionNode(FunctionNode Node) {

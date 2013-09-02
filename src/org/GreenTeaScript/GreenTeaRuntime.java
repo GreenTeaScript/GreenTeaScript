@@ -250,6 +250,18 @@ public class GreenTeaRuntime {
 		return x >> y;
 	}
 
+	public static long binary_and(long x, long y) {
+		return x & y;
+	}
+
+	public static long binary_or(long x, long y) {
+		return x | y;
+	}
+
+	public static long binary_xor(long x, long y) {
+		return x ^ y;
+	}
+
 	public static boolean binary_lt(long x, long y) {
 		return x < y;
 	}
@@ -327,34 +339,6 @@ public class GreenTeaRuntime {
 		HashMap<String, Method> map = new HashMap<String, Method>();
 		try {
 			Class<?> self = GreenTeaRuntime.class;
-			// unary operator
-			map.put("+_I", self.getMethod("unary_plus", long.class));
-			map.put("-_I", self.getMethod("unary_minus", long.class));
-			map.put("~_I", self.getMethod("unary_not", long.class));
-			map.put("!_Z", self.getMethod("unary_not", boolean.class));
-			// binary operator
-			map.put("==_ZZ", self.getMethod("binary_eq", boolean.class, boolean.class));
-			map.put("!=_ZZ", self.getMethod("binary_ne", boolean.class, boolean.class));
-			map.put("+_II", self.getMethod("binary_add", long.class, long.class));
-			map.put("-_II", self.getMethod("binary_sub", long.class, long.class));
-			map.put("*_II", self.getMethod("binary_mul", long.class, long.class));
-			map.put("/_II", self.getMethod("binary_div", long.class, long.class));
-			map.put("%_II", self.getMethod("binary_mod", long.class, long.class));
-			map.put("<<_II", self.getMethod("binary_shl", long.class, long.class));
-			map.put(">>_II", self.getMethod("binary_shr", long.class, long.class));
-			map.put("<_II", self.getMethod("binary_lt", long.class, long.class));
-			map.put("<=_II", self.getMethod("binary_le", long.class, long.class));
-			map.put(">_II", self.getMethod("binary_gt", long.class, long.class));
-			map.put(">=_II", self.getMethod("binary_ge", long.class, long.class));
-			map.put("==_II", self.getMethod("binary_eq", long.class, long.class));
-			map.put("!=_II", self.getMethod("binary_ne", long.class, long.class));
-			map.put("+_LL", self.getMethod("binary_add", String.class, String.class));
-			map.put("+_LI", self.getMethod("binary_add", String.class, long.class));
-			map.put("+_IL", self.getMethod("binary_add", long.class, String.class));
-			map.put("+_LZ", self.getMethod("binary_add", String.class, boolean.class));
-			map.put("+_ZL", self.getMethod("binary_add", boolean.class, String.class));
-			map.put("==_LL", self.getMethod("binary_eq", String.class, String.class));
-			map.put("!=_LL", self.getMethod("binary_ne", String.class, String.class));
 			// system
 			map.put("$getter", self.getMethod("getter", Object.class, String.class));
 			map.put("$setter", self.getMethod("setter", Object.class, String.class, Object.class));
