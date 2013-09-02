@@ -113,6 +113,7 @@ final class JVMLocal {
 class JVMBuilder {
 	MethodVisitor                 AsmMethodVisitor;
 	ArrayList<JVMLocal>           LocalVals;
+	int                           LocalSize;
 	Stack<Type>                   typeStack;
 	Stack<Label>                  BreakLabelStack;
 	Stack<Label>                  ContinueLabelStack;
@@ -120,6 +121,7 @@ class JVMBuilder {
 	public JVMBuilder(MethodVisitor AsmMethodVisitor) {
 		this.AsmMethodVisitor = AsmMethodVisitor;
 		this.LocalVals = new ArrayList<JVMLocal>();
+		this.LocalSize = 0;
 		this.typeStack = new Stack<Type>();
 		this.BreakLabelStack = new Stack<Label>();
 		this.ContinueLabelStack = new Stack<Label>();
@@ -129,8 +131,8 @@ class JVMBuilder {
 		Type type;
 		boolean unsupportType = false;
 		// JVM supports only boolean, int, long, String, float, double, java.lang.Class
-		if(o instanceof Integer) {
-			type = Type.INT_TYPE;
+		if(o instanceof Long) {
+			type = Type.LONG_TYPE;
 		}
 		else if(o instanceof Boolean) {
 			type = Type.BOOLEAN_TYPE;
@@ -179,9 +181,10 @@ class JVMBuilder {
 		return null;
 	}
 
-	public JVMLocal AddLocal(Type Type, String Name) {
-		JVMLocal local = new JVMLocal(this.LocalVals.size(), Type, Name);
+	public JVMLocal AddLocal(Type LocalType, String Name) {
+		JVMLocal local = new JVMLocal(this.LocalSize, LocalType, Name);
 		this.LocalVals.add(local);
+		this.LocalSize += LocalType.getSize();
 		return local;
 	}
 
@@ -194,6 +197,10 @@ class JVMBuilder {
 		if(type.equals(Type.INT_TYPE)) {
 			this.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Integer", "valueOf", "(I)Ljava/lang/Integer;");
 			this.typeStack.push(Type.getType(Integer.class));
+		}
+		else if(type.equals(Type.LONG_TYPE)) {
+			this.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Long", "valueOf", "(J)Ljava/lang/Long;");
+			this.typeStack.push(Type.getType(Long.class));
 		}
 		else if(type.equals(Type.DOUBLE_TYPE)) {
 			this.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Double", "valueOf", "(D)Ljava/lang/Double;");
@@ -262,7 +269,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		super.InitContext(Context);
 		this.typeDescriptorMap.put(Context.VoidType.ShortClassName, Type.VOID_TYPE);
 		this.typeDescriptorMap.put(Context.BooleanType.ShortClassName, Type.BOOLEAN_TYPE);
-		this.typeDescriptorMap.put(Context.IntType.ShortClassName, Type.INT_TYPE);
+		this.typeDescriptorMap.put(Context.IntType.ShortClassName, Type.LONG_TYPE);
 		this.typeDescriptorMap.put(Context.AnyType.ShortClassName, Type.getType(Object.class));
 		this.typeDescriptorMap.put(Context.StringType.ShortClassName, Type.getType(String.class));
 		this.methodMap = GreenTeaRuntime.getAllStaticMethods();
@@ -435,13 +442,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 
 	@Override public void VisitConstNode(ConstNode Node) {
 		Object constValue = Node.ConstValue;
-		//FIXME
-		if(constValue instanceof Long) {
-			this.Builder.LoadConst(((Long)constValue).intValue());
-		}
-		else {
-			this.Builder.LoadConst(constValue);
-		}
+		this.Builder.LoadConst(constValue);
 	}
 
 	@Override public void VisitNewNode(NewNode Node) {
@@ -513,38 +514,29 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		}
 	}
 
-	private char GetOpDesc(Type type) {
-		// int->I, boolean->Z, Object->L
-		return type.getDescriptor().charAt(0);
-	}
-
 	@Override public void VisitBinaryNode(BinaryNode Node) {
 		Node.LeftNode.Evaluate(this);
-		Type leftType = this.Builder.typeStack.pop();
+		this.Builder.typeStack.pop();
 		Node.RightNode.Evaluate(this);
-		Type rightType = this.Builder.typeStack.pop();
-		String FuncName = Node.Func.FuncName;
-		String OperatorFuncName = FuncName + "_" + GetOpDesc(leftType) + GetOpDesc(rightType);
-		Method m = this.methodMap.get(OperatorFuncName);
+		this.Builder.typeStack.pop();
+		Method m = (Method)Node.Func.NativeRef;
 		if(m != null) {
 			this.Builder.Call(m);
 		}
 		else {
-			throw new RuntimeException("unsupport binary operator: " + FuncName);
+			throw new RuntimeException("unsupport binary operator: " + Node.Func.FuncName);
 		}
 	}
 
 	@Override public void VisitUnaryNode(UnaryNode Node) {
 		Node.Expr.Evaluate(this);
-		Type type = this.Builder.typeStack.pop();
-		String FuncName = Node.Func.FuncName;
-		String OperatorFuncName = FuncName + "_" + GetOpDesc(type);
-		Method m = this.methodMap.get(OperatorFuncName);
+		this.Builder.typeStack.pop();
+		Method m = (Method)Node.Func.NativeRef;
 		if(m != null) {
 			this.Builder.Call(m);
 		}
 		else {
-			throw new RuntimeException("unsupport unary operator: " + FuncName);
+			throw new RuntimeException("unsupport unary operator: " + Node.Func.FuncName);
 		}
 	}
 
@@ -656,6 +648,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			caseLabels[i] = new Label();
 		}
 		Node.MatchNode.Evaluate(this);
+		this.Builder.AsmMethodVisitor.visitInsn(L2I);
 		this.Builder.typeStack.pop();
 		this.Builder.AsmMethodVisitor.visitLookupSwitchInsn(defaultLabel, keys, caseLabels);
 		for(int i=0; i<cases; i++) {
