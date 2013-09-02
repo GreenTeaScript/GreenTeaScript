@@ -531,28 +531,9 @@ public abstract class LibGreenTea implements GtConst {
 		return null;
 	}
 
-	public final static long ApplyTokenFunc(GtFunc Delegate, Object TokenContext, String Text, long pos) {
-		return (Long)LibGreenTea.ApplyFunc3(Delegate, null, TokenContext, Text, pos);
-//		try {
-//			Integer n = (Integer)Delegate.Func.invoke(null, TokenContext, Text, pos);
-//			return n.intValue();
-//		}
-//		catch (InvocationTargetException e) {
-//			LibGreenTea.VerboseException(e);
-//		}
-//		catch (IllegalArgumentException e) {
-//			LibGreenTea.VerboseException(e);
-//		}
-//		catch (IllegalAccessException e) {
-//			LibGreenTea.VerboseException(e);
-//		}
-//		Exit(1, "Failed ApplyTokenFunc");
-//		return -1;
-	}
-
-	public final static GtSyntaxTree ApplyMatchFunc(GtParseFunc Delegate, Object NameSpace, Object TokenContext, Object LeftTree, Object Pattern) {
+	public final static Object ApplyFunc4(GtFunc Func, Object Self, Object Param1, Object Param2, Object Param3, Object Param4) {
 		try {
-			return (GtSyntaxTree)Delegate.Func.invoke(null, NameSpace, TokenContext, LeftTree, Pattern);
+			return ((Method)Func.NativeRef).invoke(Self, Param1, Param2, Param3, Param4);
 		}
 		catch (InvocationTargetException e) {
 			LibGreenTea.VerboseException(e);
@@ -563,27 +544,19 @@ public abstract class LibGreenTea implements GtConst {
 		catch (IllegalAccessException e) {
 			LibGreenTea.VerboseException(e);
 		}
-		Exit(1, "Failed ApplyMatchFunc");
 		return null;
+	}
+
+	public final static long ApplyTokenFunc(GtFunc TokenFunc, Object TokenContext, String Text, long pos) {
+		return (Long)LibGreenTea.ApplyFunc3(TokenFunc, null, TokenContext, Text, pos);
+	}
+
+	public final static GtSyntaxTree ApplyMatchFunc(GtFunc ParseFunc, GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		return (GtSyntaxTree)LibGreenTea.ApplyFunc4(ParseFunc, null, NameSpace, TokenContext, LeftTree, Pattern);
 	}
 
 	public final static GtNode ApplyTypeFunc(GtFunc TypeFunc, GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		return (GtNode)LibGreenTea.ApplyFunc3(TypeFunc, null, Gamma, ParsedTree, ContextType);
-//
-//		try {
-//			return (GtNode)Delegate.Func.invoke(null, Gamma, ParsedTree, TypeInfo);
-//		}
-//		catch (InvocationTargetException e) {
-//			LibGreenTea.VerboseException(e);
-//		}
-//		catch (IllegalArgumentException e) {
-//			LibGreenTea.VerboseException(e);
-//		}
-//		catch (IllegalAccessException e) {
-//			LibGreenTea.VerboseException(e);
-//		}
-//		Exit(1, "Failed ApplyTypeFunc");
-//		return null;
 	}
 
 	public final static int ListSize(ArrayList<?> List) {
