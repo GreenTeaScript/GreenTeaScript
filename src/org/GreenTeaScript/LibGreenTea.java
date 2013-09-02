@@ -47,7 +47,7 @@ public abstract class LibGreenTea implements GtConst {
 	public final static void print(String msg) {
 		System.out.print(msg);
 	}
-	
+
 	public final static void println(String msg) {
 		System.out.println(msg);
 	}
@@ -227,6 +227,10 @@ public abstract class LibGreenTea implements GtConst {
 			LibGreenTea.VerboseException(e);
 		}
 		return 0L;
+	}
+
+	public final static double ParseFloat(String Text) {
+		return Double.parseDouble(Text);
 	}
 
 	public final static boolean IsUnixCommand(String cmd) {
@@ -467,7 +471,7 @@ public abstract class LibGreenTea implements GtConst {
 		Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, FuncName), null);
 		return false;
 	}
-	
+
 	public final static Method LookupNativeMethod(Object Callee, String FuncName) {
 		if(FuncName != null) {
 			// LibGreenTea.DebugP("looking up method : " + Callee.getClass().getSimpleName() + "." + FuncName);
@@ -998,6 +1002,5 @@ public abstract class LibGreenTea implements GtConst {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
 
 }
