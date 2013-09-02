@@ -799,7 +799,7 @@ class GtGenerator extends GtStatic {
 	}
 
 	public GtNode CreateNewNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, ArrayList<GtNode> NodeList) {
-		NewNode Node = new NewNode(Type, ParsedTree.KeyToken, Func);
+		/*local*/NewNode Node = new NewNode(Type, ParsedTree.KeyToken, Func);
 		if(NodeList != null) {
 			Node.AppendNodeList(NodeList);
 		}
