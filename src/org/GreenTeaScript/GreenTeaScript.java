@@ -1937,11 +1937,14 @@ final class GtNameSpace extends GtStatic {
 		TokenContext.SkipEmptyStatement();
 		while(TokenContext.HasNext()) {
 			/*local*/GtMap Annotation = TokenContext.SkipAndGetAnnotation(true);
+			TokenContext.ParseFlag = 0; // init
 			/*local*/GtSyntaxTree TopLevelTree = GtStatic.ParseExpression(this, TokenContext, false/*SuffixOnly*/);
-			TopLevelTree.SetAnnotation(Annotation);
-			/*local*/GtTypeEnv Gamma = new GtTypeEnv(this);
-			/*local*/GtNode Node = TopLevelTree.TypeCheck(Gamma, Gamma.VoidType, DefaultTypeCheckPolicy);
-			ResultValue = Node.ToConstValue(true/*EnforceConst*/);
+			if(!TopLevelTree.IsEmptyOrError()) {
+				TopLevelTree.SetAnnotation(Annotation);
+				/*local*/GtTypeEnv Gamma = new GtTypeEnv(this);
+				/*local*/GtNode Node = TopLevelTree.TypeCheck(Gamma, Gamma.VoidType, DefaultTypeCheckPolicy);
+				ResultValue = Node.ToConstValue(true/*EnforceConst*/);
+			}
 			TokenContext.SkipIncompleteStatement();
 			TokenContext.Vacume();
 		}
@@ -4247,7 +4250,6 @@ final class GreenTeaGrammar extends GtGrammar {
 		NameSpace.AppendSyntax("$StringLiteral$", FunctionB(this, "ParseStringLiteral"), TypeConst);
 		NameSpace.AppendSyntax("$IntegerLiteral$", FunctionB(this, "ParseIntegerLiteral"), TypeConst);
 		NameSpace.AppendSyntax("$FloatLiteral$", FunctionB(this, "ParseFloatLiteral"), TypeConst);
-		//NameSpace.AppendSyntax("$TypeRef$", FunctionB(this, "ParseTypeRef"), FunctionC(this, "TypeTypeRef"));
 
 		NameSpace.AppendExtendedSyntax(".", 0, FunctionB(this, "ParseGetter"), FunctionC(this, "TypeGetter"));
 		NameSpace.AppendSyntax("(", FunctionB(this, "ParseGroup"), FunctionC(this, "TypeGroup"));
