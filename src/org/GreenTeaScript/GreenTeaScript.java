@@ -2036,10 +2036,6 @@ final class GreenTeaGrammar extends GtGrammar {
 	public static int SymbolToken(GtTokenContext TokenContext, String SourceText, int pos) {
 		/*local*/int start = pos;
 		/*local*/String PresetPattern = null;
-		if(LibGreenTea.CharAt(SourceText, pos + 1) == '$' && LibGreenTea.CharAt(SourceText, pos) == 'T') {
-			PresetPattern = "$TypeRef$";  // T$1_0
-			pos += 2;
-		}
 		while(pos < SourceText.length()) {
 			if(!LibGreenTea.IsVariableName(SourceText, pos) && !LibGreenTea.IsDigit(SourceText, pos)) {
 				break;

@@ -328,29 +328,29 @@ public class GreenTeaRuntime {
 		try {
 			Class<?> self = GreenTeaRuntime.class;
 			// unary operator
-			map.put("+_I", self.getMethod("unary_plus", int.class));
-			map.put("-_I", self.getMethod("unary_minus", int.class));
-			map.put("~_I", self.getMethod("unary_not", int.class));
+			map.put("+_I", self.getMethod("unary_plus", long.class));
+			map.put("-_I", self.getMethod("unary_minus", long.class));
+			map.put("~_I", self.getMethod("unary_not", long.class));
 			map.put("!_Z", self.getMethod("unary_not", boolean.class));
 			// binary operator
 			map.put("==_ZZ", self.getMethod("binary_eq", boolean.class, boolean.class));
 			map.put("!=_ZZ", self.getMethod("binary_ne", boolean.class, boolean.class));
-			map.put("+_II", self.getMethod("binary_add", int.class, int.class));
-			map.put("-_II", self.getMethod("binary_sub", int.class, int.class));
-			map.put("*_II", self.getMethod("binary_mul", int.class, int.class));
-			map.put("/_II", self.getMethod("binary_div", int.class, int.class));
-			map.put("%_II", self.getMethod("binary_mod", int.class, int.class));
-			map.put("<<_II", self.getMethod("binary_shl", int.class, int.class));
-			map.put(">>_II", self.getMethod("binary_shr", int.class, int.class));
-			map.put("<_II", self.getMethod("binary_lt", int.class, int.class));
-			map.put("<=_II", self.getMethod("binary_le", int.class, int.class));
-			map.put(">_II", self.getMethod("binary_gt", int.class, int.class));
-			map.put(">=_II", self.getMethod("binary_ge", int.class, int.class));
-			map.put("==_II", self.getMethod("binary_eq", int.class, int.class));
-			map.put("!=_II", self.getMethod("binary_ne", int.class, int.class));
+			map.put("+_II", self.getMethod("binary_add", long.class, long.class));
+			map.put("-_II", self.getMethod("binary_sub", long.class, long.class));
+			map.put("*_II", self.getMethod("binary_mul", long.class, long.class));
+			map.put("/_II", self.getMethod("binary_div", long.class, long.class));
+			map.put("%_II", self.getMethod("binary_mod", long.class, long.class));
+			map.put("<<_II", self.getMethod("binary_shl", long.class, long.class));
+			map.put(">>_II", self.getMethod("binary_shr", long.class, long.class));
+			map.put("<_II", self.getMethod("binary_lt", long.class, long.class));
+			map.put("<=_II", self.getMethod("binary_le", long.class, long.class));
+			map.put(">_II", self.getMethod("binary_gt", long.class, long.class));
+			map.put(">=_II", self.getMethod("binary_ge", long.class, long.class));
+			map.put("==_II", self.getMethod("binary_eq", long.class, long.class));
+			map.put("!=_II", self.getMethod("binary_ne", long.class, long.class));
 			map.put("+_LL", self.getMethod("binary_add", String.class, String.class));
-			map.put("+_LI", self.getMethod("binary_add", String.class, int.class));
-			map.put("+_IL", self.getMethod("binary_add", int.class, String.class));
+			map.put("+_LI", self.getMethod("binary_add", String.class, long.class));
+			map.put("+_IL", self.getMethod("binary_add", long.class, String.class));
 			map.put("+_LZ", self.getMethod("binary_add", String.class, boolean.class));
 			map.put("+_ZL", self.getMethod("binary_add", boolean.class, String.class));
 			map.put("==_LL", self.getMethod("binary_eq", String.class, String.class));
