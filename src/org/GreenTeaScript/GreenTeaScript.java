@@ -3736,19 +3736,20 @@ final class GreenTeaGrammar extends GtGrammar {
 		}
 		if(!DefinedPrototype) {
 			GtToken SourceToken = ParsedTree.GetSyntaxTreeAt(FuncDeclName).KeyToken;
+			GtNameSpace StoreNameSpace = ParsedTree.NameSpace.GetNameSpace(GreenTeaGrammar.ParseNameSpaceFlag(0, ParsedTree.Annotation));
 			if(IsFlag(FuncFlag, ConverterFunc)) {
 				SourceToken.ParsedText = DefinedFunc.toString();
-				ParsedTree.NameSpace.SetConverterFunc(DefinedFunc.GetFuncParamType(1), DefinedFunc.GetReturnType(), DefinedFunc, SourceToken);
+				StoreNameSpace.SetConverterFunc(DefinedFunc.GetFuncParamType(1), DefinedFunc.GetReturnType(), DefinedFunc, SourceToken);
 			}
 			else if(FuncName.equals("constructor")) {
-				ParsedTree.NameSpace.AppendConstructor(DefinedFunc.GetRecvType(), DefinedFunc, SourceToken.AddTypeInfo(DefinedFunc.GetRecvType()));
+				StoreNameSpace.AppendConstructor(DefinedFunc.GetRecvType(), DefinedFunc, SourceToken.AddTypeInfo(DefinedFunc.GetRecvType()));
 			}
 			else {
 				if(!DefinedFunc.Is(OperatorFunc)) {
-					ParsedTree.NameSpace.AppendFunc(DefinedFunc, SourceToken);
+					StoreNameSpace.AppendFunc(DefinedFunc, SourceToken);
 				}
 				if(DefinedFunc.GetRecvType() != Gamma.VoidType) {
-					ParsedTree.NameSpace.AppendMethod(DefinedFunc.GetRecvType(), DefinedFunc, SourceToken.AddTypeInfo(DefinedFunc.GetRecvType()));
+					StoreNameSpace.AppendMethod(DefinedFunc.GetRecvType(), DefinedFunc, SourceToken.AddTypeInfo(DefinedFunc.GetRecvType()));
 				}
 			}
 		}
