@@ -44,12 +44,16 @@ import java.util.Iterator;
 
 public abstract class LibGreenTea implements GtConst {
 
-	public final static String GetPlatform() {
-		return "Java JVM-" + System.getProperty("java.version");
+	public final static void print(String msg) {
+		System.out.print(msg);
 	}
-
+	
 	public final static void println(String msg) {
 		System.out.println(msg);
+	}
+
+	public final static String GetPlatform() {
+		return "Java JVM-" + System.getProperty("java.version");
 	}
 
 	public static boolean DebugMode = false;
@@ -103,6 +107,7 @@ public abstract class LibGreenTea implements GtConst {
 
 	public final static void Assert(boolean TestResult) {
 		if(!TestResult) {
+			assert TestResult;
 			Exit(1, "Assertion Failed");
 		}
 	}
@@ -241,9 +246,9 @@ public abstract class LibGreenTea implements GtConst {
 		Class<?> NativeClass = Value instanceof Class<?> ? (Class<?>)Value : Value.getClass();
 		NativeType = (/*cast*/GtType) Context.ClassNameMap.get(NativeClass.getCanonicalName());
 		if(NativeType == null) {
-			NativeType = new GtType(Context, GtStatic.NativeClass, NativeClass.getCanonicalName(), null, NativeClass);
+			NativeType = new GtType(Context, GtStatic.NativeClass, NativeClass.getSimpleName(), null, NativeClass);
 			Context.SetNativeTypeName(NativeClass.getCanonicalName(), NativeType);
-			LibGreenTea.VerboseLog(GtStatic.VerboseNative, "native class: " + NativeClass.getCanonicalName());
+			LibGreenTea.VerboseLog(GtStatic.VerboseNative, "native class: " + NativeClass.getSimpleName() + ", " + NativeClass.getCanonicalName());
 		}
 		return NativeType;
 	}
@@ -376,7 +381,7 @@ public abstract class LibGreenTea implements GtConst {
 		return false;
 	}
 
-	public static boolean LoadNativeConstructors(GtType ClassType) {
+	public final static boolean LoadNativeConstructors(GtType ClassType) {
 		/*local*/boolean TransformedResult = false;
 		Class<?> NativeClass = (Class<?>)ClassType.NativeSpec;
 		GtContext Context = ClassType.Context;
@@ -403,11 +408,11 @@ public abstract class LibGreenTea implements GtConst {
 				return true;
 			}
 		}
-		Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, ""));
+		Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, GtStatic.ConstructorSymbol()));
 		return false;
 	}
 
-	public boolean LoadNativeField(GtType ClassType, String FieldName) {
+	public final static boolean LoadNativeField(GtType ClassType, String FieldName) {
 		GtContext Context = ClassType.Context;
 		try {
 			Class<?> NativeClass = (Class<?>)ClassType.NativeSpec;
@@ -434,12 +439,12 @@ public abstract class LibGreenTea implements GtConst {
 		} catch (NoSuchFieldException e) {
 			LibGreenTea.VerboseException(e);
 		}
-		Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, FieldName));
-		Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, FieldName)+"="); // for setter
+		Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, GtStatic.GetterSymbol(FieldName)));
+		Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, GtStatic.SetterSymbol(FieldName))); // for setter
 		return false;
 	}
 
-	public boolean LoadNativeMethods(GtType ClassType, String FuncName) {
+	public final static boolean LoadNativeMethods(GtType ClassType, String FuncName) {
 		GtContext Context = ClassType.Context;
 		Class<?> NativeClass = (Class<?>)ClassType.NativeSpec;
 		Method[] Methods = NativeClass.getDeclaredMethods();

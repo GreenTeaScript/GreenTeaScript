@@ -157,6 +157,10 @@ class GtType extends GtStatic {
 		}
 		return this;
 	}
+
+	public boolean IsDynamicNaitiveLoading() {
+		return this.IsNative() && !IsFlag(this.ClassFlag, CommonClass);
+	}
 }
 
 class GtFunc extends GtStatic {

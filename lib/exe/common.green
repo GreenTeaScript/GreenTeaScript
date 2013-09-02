@@ -1,38 +1,39 @@
 
 
 // unary operator
-boolean not(boolean x);
-boolean !(boolean x);
-int +(int x);
-int -(int x);
-int ~(int x);
+@Const @Operator boolean not(boolean x);
+@Const @Operator boolean !(boolean x);
+@Const @Operator int +(int x);
+@Const @Operator int -(int x);
+@Const @Operator int ~(int x) import org.GreenTeaScript.GreenTeaRuntime.unary_not;
 
 // binary operator
 
 // boolean
-boolean ==(boolean x, boolean y);
-boolean !=(boolean x, boolean y);
-@Coercion @Const String converter(boolean x) import org.GreenTeaScript.GreenTeaRuntime.BooleanToString;
-@Coercion @Const any converter(boolean x) import org.GreenTeaScript.GreenTeaRuntime.BooleanToAny;
-@Coercion @Const boolean converter(any x) import org.GreenTeaScript.GreenTeaRuntime.AnyToBoolean;
+@Const @Operator boolean ==(boolean x, boolean y);
+@Const @Operator boolean !=(boolean x, boolean y);
+
+@Const @Coercion String converter(boolean x) import org.GreenTeaScript.GreenTeaRuntime.BooleanToString;
+@Const @Coercion any converter(boolean x) import org.GreenTeaScript.GreenTeaRuntime.BooleanToAny;
+@Const @Coercion boolean converter(any x) import org.GreenTeaScript.GreenTeaRuntime.AnyToBoolean;
 
 // int
-int +(int x, int y);
-int -(int x, int y);
-int *(int x, int y);
-int /(int x, int y);
-int %(int x, int y);
-int <<(int x, int y);
-int >>(int x, int y);
-int ^(int x, int y);
-int |(int x, int y);
-int &(int x, int y);
-boolean <(int x,  int y);
-boolean <=(int x, int y);
-boolean >(int x,  int y);
-boolean >=(int x, int y);
-boolean ==(int x, int y);
-boolean !=(int x, int y);
+@Const @Operator int +(int x, int y);
+@Const @Operator int -(int x, int y);
+@Const @Operator int *(int x, int y);
+@Const @Operator int /(int x, int y);
+@Const @Operator int %(int x, int y);
+@Const @Operator int <<(int x, int y);
+@Const @Operator int >>(int x, int y);
+@Const @Operator int ^(int x, int y);
+@Const @Operator int |(int x, int y);
+@Const @Operator int &(int x, int y);
+@Const @Operator boolean <(int x,  int y);
+@Const @Operator boolean <=(int x, int y);
+@Const @Operator boolean >(int x,  int y);
+@Const @Operator boolean >=(int x, int y);
+@Const @Operator boolean ==(int x, int y);
+@Const @Operator boolean !=(int x, int y);
 
 @Coercion @Const any converter(int x) import org.GreenTeaScript.GreenTeaRuntime.IntToAny;
 @Coercion @Const int converter(any x) import org.GreenTeaScript.GreenTeaRuntime.AnyToInt;
@@ -48,16 +49,16 @@ boolean !=(int x, int y);
 @Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.l2ja;
 
 // String
-String +(String x, String y);
-String +(String x, int y);
-String +(String x, boolean y);
-String +(int x, String y);
-String +(boolean x, String y);
-boolean ==(String x, String y);
-boolean !=(String x, String y);
+@Const @Operator String +(String x, String y);
+//String +(String x, int y);
+//String +(String x, boolean y);
+@Const @Operator String +(int x, String y);
+@Const @Operator String +(boolean x, String y);
 
-// function
-void print(any s);
-void println(any s);
-void assert(boolean b) import org.GreenTeaScript.GreenTeaRuntime.assert_;
+@Const @Operator boolean ==(String x, String y);
+@Const @Operator boolean !=(String x, String y);
+
+void print(String s)   import org.GreenTeaScript.LibGreenTea.print;
+void println(String s) import org.GreenTeaScript.LibGreenTea.println;
+void assert(boolean b) import org.GreenTeaScript.LibGreenTea.Assert;
 

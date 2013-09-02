@@ -194,15 +194,15 @@ public class GreenTeaRuntime {
 
 	//-----------------------------------------------------
 
-	public static int unary_plus(int n) {
+	public static long unary_plus(long n) {
 		return +n;
 	}
 
-	public static int unary_minus(int n) {
+	public static long unary_minus(long n) {
 		return -n;
 	}
 
-	public static int unary_not(int n) {
+	public static long unary_not(long n) {
 		return ~n;
 	}
 
@@ -222,55 +222,55 @@ public class GreenTeaRuntime {
 
 	//-----------------------------------------------------
 
-	public static int binary_add(int x, int y) {
+	public static long binary_add(long x, long y) {
 		return x + y;
 	}
 
-	public static int binary_sub(int x, int y) {
+	public static long binary_sub(long x, long y) {
 		return x - y;
 	}
 
-	public static int binary_mul(int x, int y) {
+	public static long binary_mul(long x, long y) {
 		return x * y;
 	}
 
-	public static int binary_div(int x, int y) {
+	public static long binary_div(long x, long y) {
 		return x / y;
 	}
 
-	public static int binary_mod(int x, int y) {
+	public static long binary_mod(long x, long y) {
 		return x % y;
 	}
 
-	public static int binary_shl(int x, int y) {
+	public static long binary_shl(long x, long y) {
 		return x << y;
 	}
 
-	public static int binary_shr(int x, int y) {
+	public static long binary_shr(long x, long y) {
 		return x >> y;
 	}
 
-	public static boolean binary_lt(int x, int y) {
+	public static boolean binary_lt(long x, long y) {
 		return x < y;
 	}
 
-	public static boolean binary_le(int x, int y) {
+	public static boolean binary_le(long x, long y) {
 		return x <= y;
 	}
 
-	public static boolean binary_gt(int x, int y) {
+	public static boolean binary_gt(long x, long y) {
 		return x > y;
 	}
 
-	public static boolean binary_ge(int x, int y) {
+	public static boolean binary_ge(long x, long y) {
 		return x >= y;
 	}
 
-	public static boolean binary_eq(int x, int y) {
+	public static boolean binary_eq(long x, long y) {
 		return x == y;
 	}
 
-	public static boolean binary_ne(int x, int y) {
+	public static boolean binary_ne(long x, long y) {
 		return x != y;
 	}
 
@@ -290,7 +290,7 @@ public class GreenTeaRuntime {
 		return x + y;
 	}
 
-	public static String binary_add(String x, int y) {
+	public static String binary_add(String x, long y) {
 		return x + y;
 	}
 
@@ -298,7 +298,7 @@ public class GreenTeaRuntime {
 		return x + y;
 	}
 
-	public static String binary_add(int x, String y) {
+	public static String binary_add(long x, String y) {
 		return x + y;
 	}
 
