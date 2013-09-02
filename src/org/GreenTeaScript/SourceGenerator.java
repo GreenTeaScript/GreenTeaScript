@@ -1585,6 +1585,16 @@ class SourceGenerator extends GtGenerator {
 		}
 		return Template;
 	}
+	public final String ApplyMacro2(String Template, String[] ParamList) {
+		/*local*/int ParamSize = ParamList.length;
+		/*local*/int ParamIndex = ParamSize - 1;
+		while(ParamIndex >= 1) {
+			/*local*/String Param = ParamList[ParamIndex];
+			Template = Template.replace("$" + ParamIndex, Param);
+			ParamIndex = ParamIndex - 1;
+		}
+		return Template;
+	}
 
 	public final String GenerateApplyFunc(ApplyNode Node) {
 		/*local*/int ParamSize = LibGreenTea.ListSize(Node.NodeList);

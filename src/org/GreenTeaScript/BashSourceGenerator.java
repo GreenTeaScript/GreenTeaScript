@@ -199,7 +199,7 @@ public class BashSourceGenerator extends SourceGenerator {
 				this.PushSourceCode(this.CreateAssertFunc(Node));
 				return;
 			}
-			this.PushSourceCode(Node.Func.ApplyNativeMacro(0, ParamCode));
+			this.PushSourceCode(this.ApplyMacro2(NativeMacro, ParamCode));
 		}
 		else {
 			this.PushSourceCode(this.JoinCode(Node.Func.GetNativeFuncName() + " ", 0, ParamCode, "", " "));

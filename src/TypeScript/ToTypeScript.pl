@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-my $Keyword = "(?:ifdef|endif|return|new|throw|class|interface|extends|impliments|public|private|protected|static|final|function|instanceof|else|var)";
+my $Keyword = "(?:ifdef|endif|return|new|throw|class|interface|extends|implements|public|private|protected|static|final|function|instanceof|else|var)";
 my $Sym  = "(?:(?!$Keyword\\b)\\b(?!\\d)\\w+\\b)";
 my $Type = "(?:$Sym(?:<.*?>)?(?:\\[\\s*\\d*\\s*\\])*)";
 my $Attr = "(?:\\b(?:public|private|protected|static|final)\\b\\s*)";
@@ -134,6 +134,7 @@ $src =~ s/\bprotected\b//g;
 $src =~ s/\@Override\s*//g;
 $src =~ s/\@Deprecated\s*//g;
 $src =~ s/\bextends GtStatic\s*//g;
+$src =~ s/\bpublic interface\s*/interface /g;
 $src =~ s/\bGtStatic\.//g;
 $src =~ s/\binstanceof\s+string\b/instanceof String/g;
 $src =~ s/\binstanceof\s+number\b/instanceof Number/g;
