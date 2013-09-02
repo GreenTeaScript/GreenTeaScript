@@ -402,13 +402,13 @@ public abstract class LibGreenTea implements GtConst {
 				GtFunc Func = new GtFunc(ConstructorFunc, ClassType.ShortClassName, 0, TypeList);
 				Func.SetNativeMethod(0, Constructors[i]);
 				TransformedResult = true;
-				Context.RootNameSpace.AppendConstructor(ClassType, Func);
+				Context.RootNameSpace.AppendConstructor(ClassType, Func, null);
 			}
 			if(TransformedResult) {
 				return true;
 			}
 		}
-		Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, GtStatic.ConstructorSymbol()));
+		Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, GtStatic.ConstructorSymbol()), null);
 		return false;
 	}
 
@@ -423,14 +423,14 @@ public abstract class LibGreenTea implements GtConst {
 				TypeList.add(ClassType);
 				GtFunc Func = new GtFunc(GetterFunc, FieldName, 0, TypeList);
 				Func.SetNativeMethod(0, NativeField);
-				Context.RootNameSpace.SetGetterFunc(ClassType, FieldName, Func);
+				Context.RootNameSpace.SetGetterFunc(ClassType, FieldName, Func, null);
 				TypeList.clear();
 				TypeList.add(Context.VoidType);
 				TypeList.add(ClassType);
 				TypeList.add(LibGreenTea.GetNativeType(Context, NativeField.getType()));
 				Func = new GtFunc(SetterFunc, FieldName, 0, TypeList);
 				Func.SetNativeMethod(0, NativeField);
-				Context.RootNameSpace.SetGetterFunc(ClassType, FieldName, Func);
+				Context.RootNameSpace.SetGetterFunc(ClassType, FieldName, Func, null);
 				return true;
 			}
 		} catch (SecurityException e) {
@@ -439,8 +439,8 @@ public abstract class LibGreenTea implements GtConst {
 		} catch (NoSuchFieldException e) {
 			LibGreenTea.VerboseException(e);
 		}
-		Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, GtStatic.GetterSymbol(FieldName)));
-		Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, GtStatic.SetterSymbol(FieldName))); // for setter
+		Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, GtStatic.GetterSymbol(FieldName)), null);
+		Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, GtStatic.SetterSymbol(FieldName)), null); // for setter
 		return false;
 	}
 
@@ -456,7 +456,7 @@ public abstract class LibGreenTea implements GtConst {
 						continue;
 					}
 					GtFunc NativeFunc = LibGreenTea.ConvertNativeMethodToFunc(Context, Methods[i]);
-					Context.RootNameSpace.AppendMethod(ClassType, NativeFunc);
+					Context.RootNameSpace.AppendMethod(ClassType, NativeFunc, null);
 					TransformedResult = true;
 				}
 			}
@@ -464,7 +464,7 @@ public abstract class LibGreenTea implements GtConst {
 				return true;
 			}
 		}
-		Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, FuncName));
+		Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, FuncName), null);
 		return false;
 	}
 	

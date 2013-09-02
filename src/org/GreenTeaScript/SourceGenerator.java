@@ -24,10 +24,8 @@
 
 //ifdef JAVA
 package org.GreenTeaScript;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 //endif VAJA
 
@@ -942,79 +940,6 @@ class GtGenerator extends GtStatic {
 		/*extension*/
 	}
 
-	private final boolean HasAnnotation(GtMap Annotation, String Key) {
-		if(Annotation != null) {
-			/*local*/Object Value = Annotation.get(Key);
-			if(Value instanceof Boolean) {
-				Annotation.put(Key, false);  // consumed;
-			}
-			return (Value != null);
-		}
-		return false;
-	}
-
-	int ParseNameSpaceFlag(int Flag, GtMap Annotation) {
-		if(Annotation != null) {
-			if(this.HasAnnotation(Annotation, "RootNameSpace")) {
-				Flag = Flag | RootNameSpace;
-			}
-			if(this.HasAnnotation(Annotation, "Public")) {
-				Flag = Flag | PublicNameSpace;
-			}
-		}
-		return Flag;
-	}
-
-	int ParseClassFlag(int Flag, GtMap Annotation) {
-		if(Annotation != null) {
-			if(this.HasAnnotation(Annotation, "Export")) {
-				Flag = Flag | ExportFunc;
-			}
-			if(this.HasAnnotation(Annotation, "Public")) {
-				Flag = Flag | PublicFunc;
-			}
-			if(this.HasAnnotation(Annotation, "Virtual")) {
-				Flag = Flag | VirtualFunc;
-			}
-			if(this.HasAnnotation(Annotation, "Deprecated")) {
-				Flag = Flag | DeprecatedFunc;
-			}
-		}
-		return Flag;
-	}
-
-	int ParseFuncFlag(int Flag, GtMap Annotation) {
-		if(Annotation != null) {
-			if(this.HasAnnotation(Annotation, "Export")) {
-				Flag = Flag | ExportFunc;
-			}
-			if(this.HasAnnotation(Annotation, "Public")) {
-				Flag = Flag | PublicFunc;
-			}
-			if(this.HasAnnotation(Annotation, "Const")) {
-				Flag = Flag | ConstFunc;
-			}
-			if(this.HasAnnotation(Annotation, "Operator")) {
-				Flag = Flag | OperatorFunc;
-			}
-			if(this.HasAnnotation(Annotation, "Coercion")) {
-				Flag = Flag | CoercionFunc;
-			}
-			if(this.HasAnnotation(Annotation, "Deprecated")) {
-				Flag = Flag | DeprecatedFunc;
-			}
-		}
-		return Flag;
-	}
-
-	int ParseVarFlag(int Flag, GtMap Annotation) {
-		if(Annotation != null) {
-			if(this.HasAnnotation(Annotation, "ReadOnly")) {
-				Flag = Flag | ReadOnlyVar;
-			}
-		}
-		return Flag;
-	}
 
 	public GtFunc CreateFunc(int FuncFlag, String FuncName, int BaseIndex, ArrayList<GtType> TypeList) {
 		return new GtFunc(FuncFlag, FuncName, BaseIndex, TypeList);
