@@ -30,6 +30,7 @@ import java.util.ArrayList;
 //GreenTea Generator should be written in each language.
 
 public class PythonSourceGenerator extends SourceGenerator {
+	/*field*/String ForIterExpr = null;
 
 	PythonSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
@@ -104,10 +105,16 @@ public class PythonSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitForNode(ForNode Node) {
-		Node.LoopBody.MoveTailNode().NextNode = Node.IterExpr;
-		/*local*/GtNode NewLoopBody = Node.LoopBody;
-		/*local*/WhileNode NewNode = new WhileNode(Node.Type, Node.Token, Node.CondExpr, NewLoopBody);
-		this.VisitWhileNode(NewNode);
+		/*local*/GtNode LoopBody = Node.LoopBody;
+		if(LoopBody instanceof EmptyNode) {
+			LoopBody = Node.IterExpr;
+		}
+		else {
+			LoopBody.MoveTailNode().NextNode = Node.IterExpr;
+		}
+		this.ForIterExpr = this.VisitNode(Node.IterExpr);
+		this.VisitWhileNode(new WhileNode(Node.Type, Node.Token, Node.CondExpr, LoopBody));
+		this.ForIterExpr = null;
 	}
 
 	@Override public void VisitForEachNode(ForEachNode Node) {
@@ -116,6 +123,21 @@ public class PythonSourceGenerator extends SourceGenerator {
 		/*local*/String Program = "for " + Variable + " in " + Iter + ":" + this.LineFeed;
 		Program += this.VisitBlockWithIndent(Node.LoopBody, true);
 		this.PushSourceCode(Program);
+	}
+	
+	@Override public void VisitContinueNode(ContinueNode Node) {
+		/*local*/String Code = this.ContinueKeyword;
+		if(this.HasLabelSupport) {
+			/*local*/String Label = Node.Label;
+			if(Label != null) {
+				Code += " " + Label;
+			}
+		}
+		if(ForIterExpr != null) {
+			Code = this.ForIterExpr + this.LineFeed + this.GetIndentString() + Code;
+		}
+		this.PushSourceCode(Code);
+		this.StopVisitor(Node);
 	}
 
 	@Override public void VisitSuffixNode(SuffixNode Node) {
