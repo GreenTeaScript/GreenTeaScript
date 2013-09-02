@@ -4216,7 +4216,6 @@ final class GreenTeaGrammar extends GtGrammar {
 		NameSpace.AppendSyntax("$CharLiteral$", FunctionB(this, "ParseCharLiteral"), FunctionC(this, "TypeCharLiteral"));
 		NameSpace.AppendSyntax("$StringLiteral$", FunctionB(this, "ParseStringLiteral"), TypeConst);
 		NameSpace.AppendSyntax("$IntegerLiteral$", FunctionB(this, "ParseIntegerLiteral"), TypeConst);
-		NameSpace.AppendSyntax("$TypeRef$", FunctionB(this, "ParseTypeRef"), FunctionC(this, "TypeTypeRef"));
 
 		NameSpace.AppendExtendedSyntax(".", 0, FunctionB(this, "ParseGetter"), FunctionC(this, "TypeGetter"));
 		NameSpace.AppendSyntax("(", FunctionB(this, "ParseGroup"), FunctionC(this, "TypeGroup"));
