@@ -1876,10 +1876,6 @@ final class GtNameSpace extends GtStatic {
 		return null;
 	}
 
-//	private final GtNameSpace PublicNameSpace(boolean IsPublic) {
-//		return IsPublic ? this.Context.RootNameSpace : this;
-//	}
-
 	public final Object AppendFuncName(String Key, GtFunc Func) {
 		/*local*/Object OldValue = this.GetSymbol(Key);
 		if(OldValue instanceof GtFunc) {
@@ -1908,7 +1904,7 @@ final class GtNameSpace extends GtStatic {
 	}
 
 	public final void AppendConstructor(GtType ClassType, GtFunc Func) {
-		/*local*/String Key = ClassSymbol(ClassType, "");
+		/*local*/String Key = ClassSymbol(ClassType, ConstructorSymbol());
 		LibGreenTea.Assert(Func.Is(ConstructorFunc));
 		this.Context.RootNameSpace.AppendFuncName(Key, Func);  // @Public
 	}

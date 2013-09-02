@@ -942,7 +942,7 @@ class GtGenerator extends GtStatic {
 		/*extension*/
 	}
 
-	public final boolean HasAnnotation(GtMap Annotation, String Key) {
+	private final boolean HasAnnotation(GtMap Annotation, String Key) {
 		if(Annotation != null) {
 			/*local*/Object Value = Annotation.get(Key);
 			if(Value instanceof Boolean) {
@@ -953,7 +953,19 @@ class GtGenerator extends GtStatic {
 		return false;
 	}
 
-	public int ParseClassFlag(int Flag, GtMap Annotation) {
+	int ParseNameSpaceFlag(int Flag, GtMap Annotation) {
+		if(Annotation != null) {
+			if(this.HasAnnotation(Annotation, "RootNameSpace")) {
+				Flag = Flag | RootNameSpace;
+			}
+			if(this.HasAnnotation(Annotation, "Public")) {
+				Flag = Flag | PublicNameSpace;
+			}
+		}
+		return Flag;
+	}
+
+	int ParseClassFlag(int Flag, GtMap Annotation) {
 		if(Annotation != null) {
 			if(this.HasAnnotation(Annotation, "Export")) {
 				Flag = Flag | ExportFunc;
@@ -971,7 +983,7 @@ class GtGenerator extends GtStatic {
 		return Flag;
 	}
 
-	public int ParseFuncFlag(int Flag, GtMap Annotation) {
+	int ParseFuncFlag(int Flag, GtMap Annotation) {
 		if(Annotation != null) {
 			if(this.HasAnnotation(Annotation, "Export")) {
 				Flag = Flag | ExportFunc;
@@ -995,7 +1007,7 @@ class GtGenerator extends GtStatic {
 		return Flag;
 	}
 
-	public int ParseVarFlag(int Flag, GtMap Annotation) {
+	int ParseVarFlag(int Flag, GtMap Annotation) {
 		if(Annotation != null) {
 			if(this.HasAnnotation(Annotation, "ReadOnly")) {
 				Flag = Flag | ReadOnlyVar;
