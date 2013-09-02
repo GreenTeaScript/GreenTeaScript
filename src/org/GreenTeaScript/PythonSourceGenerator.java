@@ -124,7 +124,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		Program += this.VisitBlockWithIndent(Node.LoopBody, true);
 		this.PushSourceCode(Program);
 	}
-	
+
 	@Override public void VisitContinueNode(ContinueNode Node) {
 		/*local*/String Code = this.ContinueKeyword;
 		if(this.HasLabelSupport) {
