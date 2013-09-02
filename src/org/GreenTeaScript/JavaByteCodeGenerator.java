@@ -801,6 +801,15 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.Builder.AsmMethodVisitor.visitInsn(ATHROW);
 	}
 
+	@Override public void VisitInstanceOfNode(InstanceOfNode Node) {
+		//FIXME: cannot use INSTANCEOF in case of primitive type
+		Type type = this.ToAsmType(Node.TypeInfo);
+		Node.ExprNode.Evaluate(this);
+		this.Builder.typeStack.pop();
+		this.Builder.AsmMethodVisitor.visitTypeInsn(INSTANCEOF, type.getInternalName());
+		this.Builder.typeStack.push(Type.BOOLEAN_TYPE);
+	}
+
 	@Override public void VisitFunctionNode(FunctionNode Node) {
 	}
 
