@@ -4407,6 +4407,7 @@ final class GtParserContext extends GtStatic {
 		this.SetNativeTypeName("java.lang.Long",    this.IntType);
 		this.SetNativeTypeName("java.lang.String",  this.StringType);
 		this.SetNativeTypeName("org.GreenTeaScript.GtType", this.TypeType);
+		this.SetNativeTypeName("org.GreenTeaScript.GreenTeaEnum", this.EnumType);
 		this.SetNativeTypeName("java.util.Array", this.ArrayType);
 //endif VAJA
 		Grammar.LoadTo(this.RootNameSpace);

@@ -507,9 +507,9 @@ class GreenTeaArray extends GreenTeaTopObject {
 }
 
 class GreenTeaEnum extends GreenTeaTopObject {
-	/*field*/public final int EnumValue;
+	/*field*/public final long EnumValue;
 	/*field*/public final String EnumSymbol;
-	GreenTeaEnum/*constructor*/(GtType GreenType, int EnumValue, String EnumSymbol) {
+	GreenTeaEnum/*constructor*/(GtType GreenType, long EnumValue, String EnumSymbol) {
 		super(GreenType);
 		this.EnumValue = EnumValue;
 		this.EnumSymbol = EnumSymbol;

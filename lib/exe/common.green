@@ -39,6 +39,10 @@
 @Coercion @Const String converter(int x) import org.GreenTeaScript.GreenTeaRuntime.IntToString;
 @Const int converter(String x) import org.GreenTeaScript.GreenTeaRuntime.StringToInt;
 
+// enum
+@Coercion @Const int converter(var x) import org.GreenTeaScript.GreenTeaRuntime.EnumToInt;
+@Coercion @Const String converter(var x) import org.GreenTeaScript.GreenTeaRuntime.EnumToString;
+ 
 @Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.l2i;
 @Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.i2l;
 @Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.l2s;

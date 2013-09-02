@@ -46,7 +46,6 @@ public class GreenTeaRuntime {
 	}
 
 	// converter 
-
 	public final static Object DynamicCast(GtType ToType, Object Value) {
 		if(Value != null) {
 			GtType FromType = ToType.Context.GuessType(Value);
@@ -122,6 +121,22 @@ public class GreenTeaRuntime {
 		}
 		return 0;
 	}
+	
+	// Enum
+	public final static String EnumToString(GtType Type, GreenTeaEnum Value) {
+		if(Value != null) {
+			return Value.EnumSymbol;
+		}
+		return null;
+	}
+
+	public final static long EnumToInt(GtType Type, GreenTeaEnum Value) {
+		if(Value != null) {
+			return Value.EnumValue;
+		}
+		return -1;
+	}
+
 
 	// Array
 	public final static Object ArrayToAny(GtType Type, ArrayList<Object> value) {

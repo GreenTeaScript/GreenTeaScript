@@ -1,0 +1,29 @@
+// written by kimio kuramitsu
+
+enum Month {
+	JANUARY,
+	FEBRUARY,
+	MARCH,
+	APRIL,
+	MAY,
+	JUNE,
+	JULY,
+	AUGUST,
+	OCTOBER,
+	SEPTEMBER,
+	NOVEMBER,
+	DECEMBER,
+}
+
+boolean TestFunc() {
+	println(Month.JANUARY);
+	return true;
+}
+
+@Export
+int main() {
+	assert(TestFunc());
+	return 0;
+}
+
+
