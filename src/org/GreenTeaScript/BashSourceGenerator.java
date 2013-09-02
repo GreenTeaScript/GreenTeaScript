@@ -96,12 +96,12 @@ public class BashSourceGenerator extends SourceGenerator {
 		}
 		/*local*/GtNode CurrentNode = Node;
 		if(this.IsEmptyBlock(Node) && allowDummyBlock) {
-			Code += this.GetIndentString() + "echo \"dummy block!!\" &> /dev/zero" + this.LineFeed;
+			Code += this.GetIndentString() + "echo dummy block!! &> /dev/zero" + this.LineFeed;
 		}
 		while(!this.IsEmptyBlock(CurrentNode)) {
 			/*local*/String poppedCode = this.VisitNode(CurrentNode);
 			if(skipJump && (CurrentNode instanceof BreakNode || CurrentNode instanceof ContinueNode)) {
-				poppedCode = "echo \"skip jump code\" $> /dev/zero";
+				poppedCode = "echo skip jump code $> /dev/zero";
 			}
 			if(!LibGreenTea.EqualsString(poppedCode, "")) {
 				Code += this.GetIndentString() + poppedCode + this.LineFeed;
@@ -127,11 +127,18 @@ public class BashSourceGenerator extends SourceGenerator {
 	public GtNode CreateDoWhileNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Cond, GtNode Block) {
 		/*
 		 * do { Block } while(Cond)
-		 * => while(True) { Block; if(Cond) { break; } }
+		 * => while(True) { Block; if(!Cond) { break; } }
 		 */
 		/*local*/GtNode Break = this.CreateBreakNode(Type, ParsedTree, null);
+		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(Cond.Type, "!", true);
+		/*local*/GtTypeEnv Gamma = new GtTypeEnv(ParsedTree.NameSpace);
+		/*local*/GtFunc Func = null;
+		if(PolyFunc != null) {
+			Func = PolyFunc.ResolveUnaryFunc(Gamma, ParsedTree, Cond);
+		}
+		Cond = this.CreateUnaryNode(Type, ParsedTree, Func, Cond);
 		/*local*/GtNode IfBlock = this.CreateIfNode(Type, ParsedTree, Cond, Break, null);
-		GtStatic.LinkNode(IfBlock, Block);
+		GtStatic.LinkNode(Block.MoveTailNode(), IfBlock);
 		/*local*/GtNode TrueNode = this.CreateConstNode(ParsedTree.NameSpace.Context.BooleanType, ParsedTree, true);
 		return this.CreateWhileNode(Type, ParsedTree, TrueNode, Block);
 	}
