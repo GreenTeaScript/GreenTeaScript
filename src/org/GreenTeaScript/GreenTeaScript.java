@@ -1205,11 +1205,11 @@ class GtSyntaxTree extends GtStatic {
 	}
 
 	public boolean IsEmpty() {
-		return (this.KeyToken == GtTokenContext.NullToken && this.Pattern == null);
+		return (this.Pattern == null);
 	}
 
 	public void ToEmpty() {
-		this.KeyToken = GtTokenContext.NullToken;
+		//this.KeyToken = GtTokenContext.NullToken;
 		this.SubTreeList = null;
 		this.Pattern = null; // Empty tree must backtrack
 	}
@@ -3543,9 +3543,11 @@ final class GreenTeaGrammar extends GtGrammar {
 		SymbolDeclTree.SetMatchedPatternAt(SymbolDeclValueIndex, NameSpace, TokenContext, "$Expression$", Required);
 		
 		if(!SymbolDeclTree.IsEmptyOrError()) {
-			/*local*/String ConstName = SymbolDeclTree.GetSyntaxTreeAt(SymbolDeclNameIndex).KeyToken.ParsedText;
+			/*local*/GtToken SourceToken = SymbolDeclTree.GetSyntaxTreeAt(SymbolDeclNameIndex).KeyToken;
+			/*local*/String ConstName = SourceToken.ParsedText;
 			if(ConstClass != null) {
 				ConstName = ClassSymbol(ConstClass, ConstName);
+				SourceToken.AddTypeInfo(ConstClass);
 			}
 			/*local*/Object ConstValue = null;
 			if(SymbolDeclTree.GetSyntaxTreeAt(SymbolDeclValueIndex).Pattern.EqualsName("$Const$")) {
@@ -3560,10 +3562,11 @@ final class GreenTeaGrammar extends GtGrammar {
 				}
 				ConstValue = Node.ToConstValue(true);
 			}
-			if(ConstValue instanceof GtType && ((/*cast*/GtType)ConstValue).IsTypeParam()) {
+			if(ConstValue instanceof GtType && ((/*cast*/GtType)ConstValue).IsTypeParam()) {  // let T = <var>;
 				((/*cast*/GtType)ConstValue).ShortClassName = ConstName;
 			}
-			NameSpace.SetSymbol(ConstName, ConstValue, SymbolDeclTree.GetSyntaxTreeAt(SymbolDeclNameIndex).KeyToken);
+			GtNameSpace StoreNameSpace = NameSpace.GetNameSpace(GreenTeaGrammar.ParseNameSpaceFlag(0, TokenContext.ParsingAnnotation));
+			StoreNameSpace.SetSymbol(ConstName, ConstValue, SourceToken);
 		}
 		return SymbolDeclTree;
 	}
