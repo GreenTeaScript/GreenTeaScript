@@ -519,4 +519,8 @@ class GreenTeaEnum extends GreenTeaTopObject {
 		this.EnumValue = EnumValue;
 		this.EnumSymbol = EnumSymbol;
 	}
+
+	@Override public String toString() {
+		return ""+this.EnumValue;
+	}
 }

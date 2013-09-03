@@ -403,48 +403,6 @@ class GtStatic implements GtConst {
 		return PolyFunc;
 	}
 
-//ifdef JAVA
-	public final static GtFunc LoadTokenFunc(GtParserContext ParserContext, Object Grammar, String FuncName) {
-		try {
-			Method JavaMethod = Grammar.getClass().getMethod(FuncName, GtTokenContext.class, String.class, long.class);
-			return LibGreenTea.ConvertNativeMethodToFunc(ParserContext, JavaMethod);
-			//return new GtTokenFunc(JavaMethod); //LibGreenTea.LookupNativeMethod(Grammar, FuncName));
-		}
-		catch(NoSuchMethodException e) {
-			LibGreenTea.VerboseException(e);
-			LibGreenTea.Exit(1, e.toString());
-		}
-		return null;
-	}
-
-	public final static GtFunc LoadParseFunc(GtParserContext ParserContext, Object Grammar, String FuncName) {
-		try {
-			Method JavaMethod = Grammar.getClass().getMethod(FuncName, GtNameSpace.class, GtTokenContext.class, GtSyntaxTree.class, GtSyntaxPattern.class);
-			return LibGreenTea.ConvertNativeMethodToFunc(ParserContext, JavaMethod);
-		}
-		catch(NoSuchMethodException e) {
-			LibGreenTea.VerboseException(e);
-			LibGreenTea.Exit(1, e.toString());
-		}
-		return null;
-	}
-
-//	public static GtSyntaxTree ParseTypeParam(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-//	public static GtNode TypeTypeParam(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-
-	public final static GtFunc LoadTypeFunc(GtParserContext ParserContext, Object Grammar, String FuncName) {
-		try {
-			Method JavaMethod = Grammar.getClass().getMethod(FuncName, GtTypeEnv.class, GtSyntaxTree.class, GtType.class);
-			return LibGreenTea.ConvertNativeMethodToFunc(ParserContext, JavaMethod);
-		}
-		catch(NoSuchMethodException e) {
-			LibGreenTea.VerboseException(e);
-			LibGreenTea.Exit(1, e.toString());
-		}
-		return null;
-	}
-//endif VAJA
-
 	public final static int ApplyTokenFunc(GtTokenFunc TokenFunc, GtTokenContext TokenContext, String ScriptSource, int Pos) {
 		while(TokenFunc != null) {
 			/*local*/int NextIdx = (/*cast*/int)LibGreenTea.ApplyTokenFunc(TokenFunc.Func, TokenContext, ScriptSource, Pos);
@@ -1999,6 +1957,44 @@ final class GtNameSpace extends GtStatic {
 }
 
 class GtGrammar extends GtStatic {
+//ifdef JAVA
+	public final static GtFunc LoadTokenFunc(GtParserContext ParserContext, Object Grammar, String FuncName) {
+		try {
+			Method JavaMethod = Grammar.getClass().getMethod(FuncName, GtTokenContext.class, String.class, long.class);
+			return LibGreenTea.ConvertNativeMethodToFunc(ParserContext, JavaMethod);
+		}
+		catch(NoSuchMethodException e) {
+			LibGreenTea.VerboseException(e);
+			LibGreenTea.Exit(1, e.toString());
+		}
+		return null;
+	}
+
+	public final static GtFunc LoadParseFunc(GtParserContext ParserContext, Object Grammar, String FuncName) {
+		try {
+			Method JavaMethod = Grammar.getClass().getMethod(FuncName, GtNameSpace.class, GtTokenContext.class, GtSyntaxTree.class, GtSyntaxPattern.class);
+			return LibGreenTea.ConvertNativeMethodToFunc(ParserContext, JavaMethod);
+		}
+		catch(NoSuchMethodException e) {
+			LibGreenTea.VerboseException(e);
+			LibGreenTea.Exit(1, e.toString());
+		}
+		return null;
+	}
+
+	public final static GtFunc LoadTypeFunc(GtParserContext ParserContext, Object Grammar, String FuncName) {
+		try {
+			Method JavaMethod = Grammar.getClass().getMethod(FuncName, GtTypeEnv.class, GtSyntaxTree.class, GtType.class);
+			return LibGreenTea.ConvertNativeMethodToFunc(ParserContext, JavaMethod);
+		}
+		catch(NoSuchMethodException e) {
+			LibGreenTea.VerboseException(e);
+			LibGreenTea.Exit(1, e.toString());
+		}
+		return null;
+	}
+//endif VAJA
+
 	public void LoadTo(GtNameSpace NameSpace) {
 		/*extension*/
 	}
