@@ -2784,45 +2784,28 @@ final class GreenTeaGrammar extends GtGrammar {
 	}
 
 	public static GtNode TypeBinary(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		/*local*/String OperatorSymbol = ParsedTree.KeyToken.ParsedText;
 		/*local*/GtNode LeftNode  = ParsedTree.TypeCheckAt(LeftHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-		/*local*/GtNode RightNode = ParsedTree.TypeCheckAt(RightHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-		if(LeftNode.IsError()) {
-			return LeftNode;
-		}
-		if(RightNode.IsError()) {
-			return RightNode;
-		}
-		/*local*/GtType BaseType = LeftNode.Type;
-		/*local*/GtType ReturnType = Gamma.AnyType;
-		/*local*/GtFunc ResolvedFunc = null;
-		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetGreenMethod(BaseType, OperatorSymbol, true);
-		if(PolyFunc != null) {
+		if(!LeftNode.IsError()) {
+			/*local*/GtType BaseType = LeftNode.Type;
+			/*local*/GtType ReturnType = Gamma.AnyType;
+			/*local*/String OperatorSymbol = ParsedTree.KeyToken.ParsedText;
+			/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(BaseType, SafeFuncName(OperatorSymbol), true);
 			/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
 			ParamList.add(LeftNode);
-			ResolvedFunc = PolyFunc.ResolveFunc(Gamma, ParsedTree, 1, ParamList);
-			if(ResolvedFunc != null) {
-				LeftNode = ParamList.get(0);
-				RightNode = ParamList.get(1);
+			/*local*/GtFunc ResolvedFunc = PolyFunc.ResolveFunc(Gamma, ParsedTree, 1, ParamList);
+			if(ResolvedFunc == null) {
+				Gamma.Context.ReportError(TypeErrorLevel, ParsedTree.KeyToken, "mismatched operators: " + PolyFunc);
 			}
-//			/*local*/GtNode[] BinaryNodes = new GtNode[2];
-//			BinaryNodes[0] = LeftNode;
-//			BinaryNodes[1] = RightNode;
-//			ResolvedFunc = PolyFunc.ResolveBinaryFunc(Gamma, BinaryNodes);
-//			LeftNode = BinaryNodes[0];
-//			RightNode = BinaryNodes[1];
+			else {
+				ReturnType = ResolvedFunc.GetReturnType();
+			}
+			/*local*/GtNode BinaryNode =  Gamma.Generator.CreateBinaryNode(ReturnType, ParsedTree, ResolvedFunc, LeftNode, ParamList.get(1));
+			if(ResolvedFunc == null && !BaseType.IsDynamic()) {
+				return Gamma.ReportTypeResult(ParsedTree, BinaryNode, TypeErrorLevel, "undefined operator: "+ OperatorSymbol + " of " + LeftNode.Type);
+			}
+			return BinaryNode;
 		}
-		if(ResolvedFunc == null) {
-			Gamma.Context.ReportError(TypeErrorLevel, ParsedTree.KeyToken, "mismatched operators: " + PolyFunc);
-		}
-		else {
-			ReturnType = ResolvedFunc.GetReturnType();
-		}
-		/*local*/GtNode BinaryNode =  Gamma.Generator.CreateBinaryNode(ReturnType, ParsedTree, ResolvedFunc, LeftNode, RightNode);
-		if(ResolvedFunc == null && !BaseType.IsDynamic()) {
-			return Gamma.ReportTypeResult(ParsedTree, BinaryNode, TypeErrorLevel, "undefined operator: "+ OperatorSymbol + " of " + LeftNode.Type);
-		}
-		return BinaryNode;
+		return LeftNode;
 	}
 
 	public static GtSyntaxTree ParseTrinary(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
