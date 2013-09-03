@@ -62,7 +62,7 @@ class GtNode extends GtStatic {
 			Node2.ParentNode = this;
 		}
 	}
-	
+
 	public final GtNode MoveHeadNode() {
 		/*local*/GtNode Node = this;
 		while(Node.PrevNode != null) {

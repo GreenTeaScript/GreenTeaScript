@@ -121,7 +121,7 @@ public class GreenTeaRuntime {
 		}
 		return 0;
 	}
-	
+
 	// Enum
 	public final static String EnumToString(GtType Type, GreenTeaEnum Value) {
 		if(Value != null) {
@@ -136,7 +136,6 @@ public class GreenTeaRuntime {
 		}
 		return -1;
 	}
-
 
 	// Array
 	public final static Object ArrayToAny(GtType Type, ArrayList<Object> value) {

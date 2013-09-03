@@ -36,7 +36,7 @@ class GtScriptRunner {
 		return null;
 	}
 	public static String ExecuteScript(String Path, String Target) {
-		/*local*/String[] cmd = {"java", "-jar", "GreenTeaScript.jar", "-l", Target, Path};
+		/*local*/String[] cmd = {"java", "-ea", "-jar", "GreenTeaScript.jar", "-l", Target, Path};
 		/*local*/String Result = "";
 		//FIXME
 //ifdef JAVA
