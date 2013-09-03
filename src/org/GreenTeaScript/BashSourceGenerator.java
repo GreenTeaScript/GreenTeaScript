@@ -49,11 +49,11 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.WriteLineCode(this.LineFeed + "source $GREENTEA_HOME/include/bash/GreenTeaPlus.sh" + this.LineFeed);
 	}
 
-	@Override public String VisitBlockWithIndent(GtNode Node, boolean allowDummyBlock) {
-		return this.VisitBlockWithOption(Node, true, allowDummyBlock, false);
+	@Override public String VisitBlockWithIndent(GtNode Node, boolean NeedBlock) {
+		return this.VisitBlockWithOption(Node, true, NeedBlock, false);	//actually NeedBlock -> allowDummyBlock
 	}
 
-	private String VisitBlockWithSkipJump(GtNode Node, boolean allowDummyBlock) {
+	private String VisitBlockWithReplaceBreak(GtNode Node, boolean allowDummyBlock) {
 		return this.VisitBlockWithOption(Node, true, allowDummyBlock, true);
 	}
 
@@ -61,8 +61,9 @@ public class BashSourceGenerator extends SourceGenerator {
 		return this.VisitBlockWithOption(Node, false, allowDummyBlock, false);
 	}
 
-	private String VisitBlockWithOption(GtNode Node, boolean inBlock, boolean allowDummyBlock, boolean skipJump) {
+	private String VisitBlockWithOption(GtNode Node, boolean inBlock, boolean allowDummyBlock, boolean replaceBreak) {
 		/*local*/String Code = "";
+		/*local*/boolean isBreakReplaced = false;
 		if(inBlock) {
 			this.Indent();
 		}
@@ -72,13 +73,17 @@ public class BashSourceGenerator extends SourceGenerator {
 		}
 		while(!this.IsEmptyBlock(CurrentNode)) {
 			/*local*/String poppedCode = this.VisitNode(CurrentNode);
-			if(skipJump && (CurrentNode instanceof BreakNode || CurrentNode instanceof ContinueNode)) {
-				poppedCode = "echo skip jump code $> /dev/zero";
+			if(replaceBreak && CurrentNode instanceof BreakNode) {
+				isBreakReplaced = true;
+				poppedCode = ";;";
 			}
 			if(!LibGreenTea.EqualsString(poppedCode, "")) {
 				Code += this.GetIndentString() + poppedCode + this.LineFeed;
 			}
 			CurrentNode = CurrentNode.GetNextNode();
+		}
+		if(replaceBreak && !isBreakReplaced) {
+			Code += this.GetIndentString() + ";&" + this.LineFeed;
 		}
 		if(inBlock) {
 			this.UnIndent();
@@ -118,10 +123,10 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	private String ResolveCondition(GtNode Node) {
 		/*local*/String Cond = this.VisitNode(Node);
-		if(LibGreenTea.EqualsString(Cond, this.FalseLiteral)) {
+		if(LibGreenTea.EqualsString(Cond, this.TrueLiteral)) {
 			Cond = "((1 == 1))";
 		}
-		else if(LibGreenTea.EqualsString(Cond, this.TrueLiteral)) {
+		else if(LibGreenTea.EqualsString(Cond, this.FalseLiteral)) {
 			Cond = "((1 != 1))";
 		}
 		return Cond;
@@ -260,7 +265,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		if(this.inFunc) {
 			Declare = "local ";
 		}
-		if(this.IsNativeType(Node.DeclType)) {
+		if(!this.IsNativeType(Node.DeclType)) {
 			Option = "-a ";
 		}
 		
@@ -292,20 +297,21 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitSwitchNode(SwitchNode Node) {
-		/*local*/String Code = "case " + this.ResolveValueType(Node.MatchNode, false) + " in";
+		/*local*/String Match = this.ResolveValueType(Node.MatchNode, false);
+		/*local*/String Code = "case " + Match + " in" + this.LineFeed + this.GetIndentString();
 		/*local*/int i = 0;
 		while(i < LibGreenTea.ListSize(Node.CaseList)) {
 			/*local*/GtNode Case  = Node.CaseList.get(i);
 			/*local*/GtNode Block = Node.CaseList.get(i+1);
-			Code += this.LineFeed + this.GetIndentString() + this.VisitNode(Case) + ")" + this.LineFeed;
-			Code += this.VisitBlockWithSkipJump(Block, true) + ";;";
+			Code += this.VisitNode(Case) + ")" + this.LineFeed;
+			Code += this.VisitBlockWithReplaceBreak(Block, true);
 			i = i + 2;
 		}
 		if(Node.DefaultBlock != null) {
-			Code += this.LineFeed + this.GetIndentString() + "*)" + this.LineFeed;
-			Code += this.VisitBlockWithSkipJump(Node.DefaultBlock, false) + ";;";
+			Code += "*)" + this.LineFeed;
+			Code += this.VisitBlockWithReplaceBreak(Node.DefaultBlock, false);
 		}
-		Code += this.LineFeed + this.GetIndentString() + "esac";
+		Code += "esac";
 		this.PushSourceCode(Code);
 	}
 
@@ -467,7 +473,7 @@ public class BashSourceGenerator extends SourceGenerator {
 			/*local*/GtType ParamType = Func.GetFuncParamType(i);
 			// "local -a x"
 			Function += this.GetIndentString() + "local ";
-			if(this.IsNativeType(ParamType)) {
+			if(!this.IsNativeType(ParamType)) {
 				Function += "-a ";
 			}
 			Function += ParamNameList.get(i) + ";" + this.LineFeed + this.GetIndentString();
