@@ -49,8 +49,8 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.WriteLineCode(this.LineFeed + "source $GREENTEA_HOME/include/bash/GreenTeaPlus.sh" + this.LineFeed);
 	}
 
-	@Override public String VisitBlockWithIndent(GtNode Node, boolean NeedBlock) {
-		return this.VisitBlockWithOption(Node, true, NeedBlock, false);
+	@Override public String VisitBlockWithIndent(GtNode Node, boolean allowDummyBlock) {
+		return this.VisitBlockWithOption(Node, true, allowDummyBlock, false);
 	}
 
 	private String VisitBlockWithSkipJump(GtNode Node, boolean allowDummyBlock) {
@@ -86,13 +86,13 @@ public class BashSourceGenerator extends SourceGenerator {
 		}
 		else {
 			if(Code.length() > 0) {
-				Code = Code.substring(0, Code.length() - 1);
+				Code = LibGreenTea.SubString(Code, 0, Code.length() - 1);
 			}
 		}
 		return Code;
 	}
 
-	public GtNode CreateDoWhileNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Cond, GtNode Block) {
+	@Override public GtNode CreateDoWhileNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Cond, GtNode Block) {
 		/*
 		 * do { Block } while(Cond)
 		 * => while(True) { Block; if(!Cond) { break; } }
@@ -109,6 +109,11 @@ public class BashSourceGenerator extends SourceGenerator {
 		GtStatic.LinkNode(Block.MoveTailNode(), IfBlock);
 		/*local*/GtNode TrueNode = this.CreateConstNode(ParsedTree.NameSpace.Context.BooleanType, ParsedTree, true);
 		return this.CreateWhileNode(Type, ParsedTree, TrueNode, Block);
+	}
+	
+	@Override public GtNode CreateSelfAssignNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, GtNode Left, GtNode Right) {
+		/*local*/GtNode NewBinary = this.CreateBinaryNode(Type, ParsedTree, Func, Left, Right);
+		return this.CreateAssignNode(Type, ParsedTree, Left, NewBinary);
 	}
 
 	private String ResolveCondition(GtNode Node) {
@@ -164,7 +169,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	private boolean FindAssert(GtFunc Func) {
 		/*local*/boolean isAssert = false;
 		if(Func != null && Func.Is(NativeMacroFunc)) {
-			if(LibGreenTea.EqualsString(Func.GetNativeMacro(), "assert $1")) {
+			if(LibGreenTea.EqualsString(Func.FuncName, "assert")) {
 				isAssert = true;
 			}
 		}
@@ -174,12 +179,12 @@ public class BashSourceGenerator extends SourceGenerator {
 	@Override public void VisitApplyNode(ApplyNode Node) {
 		/*local*/int ParamSize = LibGreenTea.ListSize(Node.NodeList);
 		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
-		/*local*/String[] ParamCode = this.MakeParamCode(Node.NodeList, this.FindAssert(Node.Func));
+		/*local*/boolean isAssert = this.FindAssert(Node.Func);
+		if(isAssert) {
+			Template = "assert " + LibGreenTea.QuoteString("$1");
+		}
+		/*local*/String[] ParamCode = this.MakeParamCode(Node.NodeList, isAssert);
 		this.PushSourceCode(this.ApplyMacro2(Template, ParamCode));
-	}
-
-	@Override public void VisitSelfAssignNode(SelfAssignNode Node) {
-		
 	}
 
 	@Override public void VisitUnaryNode(UnaryNode Node) {
@@ -471,7 +476,7 @@ public class BashSourceGenerator extends SourceGenerator {
 			i = i + 1;
 		}
 		;
-		Function += this.VisitBlockWithIndent(Body, false) + this.LineFeed;
+		Function += this.VisitBlockWithoutIndent(Body, true) + this.LineFeed;
 		this.UnIndent();
 		Function += this.GetIndentString() + "}" + this.LineFeed;
 		this.WriteLineCode(Function);

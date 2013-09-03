@@ -32,6 +32,6 @@ boolean !=(any x, any y) as "(neAny $1 $2)";
 
 void print(String x) as "print $1";
 void println(String x) as "println $1";
-void assert(boolean x) as "assert \"$1\"";
+void assert(boolean x) as "assert $1";
 
 void rec(int n) as "rec $1";
