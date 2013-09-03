@@ -143,6 +143,14 @@ class GtType extends GtStatic {
 		return (this == this.Context.AnyType);
 	}
 
+	public final boolean IsTypeType() {
+		return (this == this.Context.TypeType);
+	}
+
+	public final boolean IsStringType() {
+		return (this == this.Context.StringType);
+	}
+
 	public final boolean IsArrayType() {
 		return (this == this.Context.ArrayType);
 	}
@@ -150,6 +158,7 @@ class GtType extends GtStatic {
 	public final boolean IsEnumType() {
 		return IsFlag(this.ClassFlag, EnumClass);
 	}
+
 
 	public final boolean IsTypeParam() {
 		return IsFlag(this.ClassFlag, TypeParameter);

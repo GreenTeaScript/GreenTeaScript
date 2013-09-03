@@ -585,15 +585,17 @@ public abstract class LibGreenTea implements GtConst {
 		return Tuple;
 	}
 
-	public static String[] MapGetKeys(GtMap Map) {
+	public static void RetrieveMapKeys(GtMap Map, String Prefix, ArrayList<String> List) {
 		/*local*/Iterator<String> itr = Map.Map.keySet().iterator();
-		/*local*/ArrayList<String> List = new ArrayList<String>(Map.Map.size());
 		/*local*/int i = 0;
 		while(itr.hasNext()) {
-			List.add(itr.next());
+			String Key = itr.next();
+			if(Prefix != null && !Key.startsWith(Prefix)) {
+				continue;
+			}
+			List.add(Key);
 			i = i + 1;
 		}
-		return List.toArray(new String[List.size()]);
 	}
 
 	public final static void Usage(String Message) {

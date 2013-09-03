@@ -350,6 +350,10 @@ class GtStatic implements GtConst {
 		return ClassType.GetUniqueName() + "." + Symbol;
 	}
 
+	final static String ClassStaticName(String Symbol) {
+		return "@" + Symbol;
+	}
+
 	final static String ConverterSymbol(GtType ClassType) {
 		return ClassType.GetUniqueName();
 	}
@@ -359,7 +363,7 @@ class GtStatic implements GtConst {
 	}
 
 	final static String GetterSymbol(String Symbol) {
-		return Symbol + "@";
+		return Symbol + "+";
 	}
 
 	final static String SetterSymbol(String Symbol) {
@@ -557,10 +561,6 @@ final class GtMap {
 
 	public final Object get(String Key) {
 		return this.Map.get(Key);
-	}
-
-	public final String[] keys() {
-		return LibGreenTea.MapGetKeys(this);
 	}
 }
 
@@ -1761,6 +1761,29 @@ final class GtNameSpace extends GtStatic {
 		return null;
 	}
 
+	public final void ImportClassSymbol(GtNameSpace NameSpace, String Prefix, GtType ClassType, GtToken SourceToken) {
+		/*local*/String ClassPrefix = ClassSymbol(ClassType, ClassStaticName(""));
+		/*local*/ArrayList<String> KeyList = new ArrayList<String>();
+		/*local*/GtNameSpace ns = NameSpace;
+		while(ns != null) {
+			if(ns.SymbolPatternTable != null) {
+				LibGreenTea.RetrieveMapKeys(ns.SymbolPatternTable, ClassPrefix, KeyList);
+			}
+			ns = ns.ParentNameSpace;
+		}
+		/*local*/int i = 0;
+		while(i < KeyList.size()) {
+			/*local*/String Key = KeyList.get(i);
+			/*local*/Object Value = NameSpace.GetSymbol(Key);
+			Key = Key.replace(ClassPrefix, Prefix);
+			if(SourceToken != null) {
+				SourceToken.ParsedText = Key;
+			}
+			this.SetSymbol(Key, Value, SourceToken);
+			i = i + 1;
+		}
+	}
+	
 	public final GtFunc GetGetterFunc(GtType ClassType, String Symbol, boolean RecursiveSearch) {
 		/*local*/Object Func = this.Context.RootNameSpace.GetClassSymbol(ClassType, GetterSymbol(Symbol), RecursiveSearch);
 		if(Func instanceof GtFunc) {
@@ -2809,20 +2832,19 @@ final class GreenTeaGrammar extends GtGrammar {
 			return ObjectNode;
 		}
 		// To start, check class const such as Math.Pi if base is a type value
-		if(ObjectNode instanceof ConstNode && ObjectNode.Type == Gamma.Context.TypeType) {
+		if(ObjectNode instanceof ConstNode && ObjectNode.Type.IsTypeType()) {
 			/*local*/GtType ObjectType = (/*cast*/GtType)((/*cast*/ConstNode)ObjectNode).ConstValue;
-			/*local*/Object ConstValue = ParsedTree.NameSpace.GetClassSymbol(ObjectType, Name, true);
+			/*local*/Object ConstValue = ParsedTree.NameSpace.GetClassSymbol(ObjectType, ClassStaticName(Name), true);
+			if(ConstValue instanceof GreenTeaEnum) {
+				if(ContextType.IsStringType()) {
+					ConstValue = ((/*cast*/GreenTeaEnum)ConstValue).EnumSymbol;
+				}
+				else {
+					ConstValue = ((/*cast*/GreenTeaEnum)ConstValue).EnumValue;
+				}
+			}
 			if(ConstValue != null) {
 				return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(ConstValue), ParsedTree, ConstValue);
-			}
-			// EnumType.EnumValue
-			if(ObjectType.IsEnumType()) {
-				LibGreenTea.Assert(ObjectType.NativeSpec instanceof GtMap);
-				/*local*/GtMap NativeSpec = (/*cast*/GtMap)ObjectType.NativeSpec;
-				/*local*/GreenTeaEnum EnumValue = (/*cast*/GreenTeaEnum) NativeSpec.get(Name);
-				if(EnumValue != null) {
-					return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(EnumValue), ParsedTree, EnumValue);
-				}
 			}
 		}
 		/*local*/GtFunc GetterFunc = ParsedTree.NameSpace.GetGetterFunc(ObjectNode.Type, Name, true);
@@ -3405,9 +3427,6 @@ final class GreenTeaGrammar extends GtGrammar {
 		EnumTree.SetMatchedPatternAt(EnumNameTreeIndex, NameSpace, TokenContext, "$FuncName$", Required);  // $ClassName$ is better
 		if(!EnumTree.IsEmptyOrError()) {
 			EnumTypeName = EnumTree.GetSyntaxTreeAt(EnumNameTreeIndex).KeyToken.ParsedText;
-//			if(NameSpace.GetSymbol(EnumTypeName) != null) {
-//				NameSpace.Context.ReportError(WarningLevel, EnumTree.KeyToken, "already defined name: " + EnumTypeName);
-//			}
 			NewEnumType = NameSpace.Context.EnumType.CreateSubType(EnumClass, EnumTypeName, null, EnumMap);
 		}
 		EnumTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "{", Required);
@@ -3424,7 +3443,7 @@ final class GreenTeaGrammar extends GtGrammar {
 			/*local*/GtToken Token = TokenContext.Next();
 			if(LibGreenTea.IsVariableName(Token.ParsedText, 0)) {
 				if(EnumMap.get(Token.ParsedText) != null) {
-					NameSpace.Context.ReportError(WarningLevel, Token, "already defined name: " + Token.ParsedText);
+					NameSpace.Context.ReportError(ErrorLevel, Token, "duplicated name: " + Token.ParsedText);
 					continue;
 				}
 				NameList.add(Token);
@@ -3439,7 +3458,7 @@ final class GreenTeaGrammar extends GtGrammar {
 			/*local*/int i = 0;
 			while(i < LibGreenTea.ListSize(NameList)) {
 				/*local*/String Key = NameList.get(i).ParsedText;
-				StoreNameSpace.SetSymbol(ClassSymbol(NewEnumType, Key), EnumMap.get(Key), NameList.get(i));
+				StoreNameSpace.SetSymbol(ClassSymbol(NewEnumType, ClassStaticName(Key)), EnumMap.get(Key), NameList.get(i));
 				i = i + 1;
 			}
 			EnumTree.ConstValue = NewEnumType;
@@ -3554,7 +3573,7 @@ final class GreenTeaGrammar extends GtGrammar {
 			/*local*/GtToken SourceToken = SymbolDeclTree.GetSyntaxTreeAt(SymbolDeclNameIndex).KeyToken;
 			/*local*/String ConstName = SourceToken.ParsedText;
 			if(ConstClass != null) {
-				ConstName = ClassSymbol(ConstClass, ConstName);
+				ConstName = ClassSymbol(ConstClass, ClassStaticName(ConstName));
 				SourceToken.AddTypeInfo(ConstClass);
 			}
 			/*local*/Object ConstValue = null;
@@ -3573,8 +3592,15 @@ final class GreenTeaGrammar extends GtGrammar {
 			if(ConstValue instanceof GtType && ((/*cast*/GtType)ConstValue).IsTypeParam()) {  // let T = <var>;
 				((/*cast*/GtType)ConstValue).ShortClassName = ConstName;
 			}
-			/*local*/GtNameSpace StoreNameSpace = NameSpace.GetNameSpace(GreenTeaGrammar.ParseNameSpaceFlag(0, TokenContext.ParsingAnnotation));
+			/*local*/int NameSpaceFlag = GreenTeaGrammar.ParseNameSpaceFlag(0, TokenContext.ParsingAnnotation);
+			/*local*/GtNameSpace StoreNameSpace = NameSpace.GetNameSpace(NameSpaceFlag);
 			StoreNameSpace.SetSymbol(ConstName, ConstValue, SourceToken);
+			if(ConstClass == null) {
+				ConstClass = NameSpace.GetType("This");
+				if(ConstClass != null) {
+					StoreNameSpace.SetSymbol(ClassSymbol(ConstClass, ClassStaticName(ConstName)), ConstValue, SourceToken.AddTypeInfo(ConstClass));
+				}
+			}
 		}
 		return SymbolDeclTree;
 	}
