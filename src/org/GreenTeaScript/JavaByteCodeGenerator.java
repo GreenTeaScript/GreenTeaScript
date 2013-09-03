@@ -147,8 +147,8 @@ class JVMBuilder {
 		this.typeStack.push(type);
 		if(unsupportType) {
 			int id = JVMConstPool.add(o);
-			String owner = Type.getInternalName(this.getClass());
-			String methodName = "getConstValue";
+			String owner = Type.getInternalName(JVMConstPool.class);
+			String methodName = "get";
 			String methodDesc = "(I)Ljava/lang/Object;";
 			this.AsmMethodVisitor.visitLdcInsn(id);
 			this.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, owner, methodName, methodDesc);
@@ -282,7 +282,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		if(type != null) {
 			return type;
 		}
-		return Type.getType(GivenType.ShortClassName);
+		return Type.getType("L" + GivenType.ShortClassName + ";");
 	}
 
 	Type ToAsmMethodType(GtFunc method) {
@@ -495,7 +495,13 @@ public class JavaByteCodeGenerator extends GtGenerator {
 //			this.Builder.typeStack.push(type);
 //		}
 //		else {
-		Method m = this.methodMap.get(Func.FuncName);
+		Method m = null;
+		if(Func.NativeRef != null) {
+			m = (Method)Func.NativeRef;
+		}
+		else {
+			m = this.methodMap.get(Func.FuncName);
+		}
 		if(m != null) {
 			String owner = Type.getInternalName(m.getDeclaringClass());
 			this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, owner, m.getName(), Type.getMethodDescriptor(m));
