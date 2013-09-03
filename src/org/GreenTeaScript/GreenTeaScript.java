@@ -622,8 +622,10 @@ final class GtToken extends GtStatic {
 	}
 
 	public String ToErrorToken(String Message) {
-		this.TokenFlag = ErrorTokenFlag;
-		this.ParsedText = Message;
+		if(this.ParsedText.length() > 0) {  // skip null token
+			this.TokenFlag = ErrorTokenFlag;
+			this.ParsedText = Message;
+		}
 		return Message;
 	}
 
@@ -722,7 +724,16 @@ final class GtTokenContext extends GtStatic {
 		return null;
 	}
 
-	public GtSyntaxTree ReportExpectedToken(String TokenText) {
+	public GtSyntaxTree ReportExpectedMessage(GtToken Token, String Message, boolean SkipToken) {
+		if(this.IsAllowedBackTrack()) {
+			return null;
+		}
+		else {
+			return this.NewErrorSyntaxTree(Token, "expected: " + Message + "; given = " + Token.ParsedText);
+		}
+	}
+
+	public GtSyntaxTree ReportExpectedToken2(String TokenText) {
 		if(!this.IsAllowedBackTrack()) {
 			/*local*/GtToken Token = this.GetBeforeToken();
 			if(Token != null) {
@@ -736,10 +747,10 @@ final class GtTokenContext extends GtStatic {
 	}
 
 	public GtSyntaxTree ReportExpectedPattern(GtSyntaxPattern Pattern) {
-		if(Pattern == null) {
-			return this.ReportExpectedToken("null");
-		}
-		return this.ReportExpectedToken(Pattern.PatternName);
+//		if(Pattern == null) {
+//			return this.ReportExpectedToken("null/*if you find this message, it will be bugs*/");  // really ?
+//		}
+		return this.ReportExpectedToken2(Pattern.PatternName);
 	}
 
 	public void Vacume() {
@@ -795,8 +806,10 @@ final class GtTokenContext extends GtStatic {
 				this.CurrentPosition = this.CurrentPosition + 1;
 				continue;
 			}
+			this.ParsingLine = Token.FileLine;
 			return Token;
 		}
+		GtTokenContext.NullToken.FileLine = this.ParsingLine;
 		return GtTokenContext.NullToken;
 	}
 
@@ -1229,12 +1242,14 @@ class GtSyntaxTree extends GtStatic {
 			/*local*/int Pos = TokenContext.CurrentPosition;
 			/*local*/GtToken Token = TokenContext.Next();
 			if(Token.ParsedText.equals(TokenText)) {
-				this.SetSyntaxTreeAt(Index, new GtSyntaxTree(null, NameSpace, Token, null));
+				if(Index != NoWhere) {
+					this.SetSyntaxTreeAt(Index, new GtSyntaxTree(null, NameSpace, Token, null));
+				}
 			}
 			else {
 				TokenContext.CurrentPosition = Pos;
 				if(!IsOptional) {
-					this.ToEmptyOrError(TokenContext.ReportExpectedToken(TokenText));
+					this.ToEmptyOrError(TokenContext.ReportExpectedToken2(TokenText));
 				}
 			}
 		}
@@ -2822,7 +2837,7 @@ final class GreenTeaGrammar extends GtGrammar {
 			NewTree.AppendParsedTree2(LeftTree);
 			return NewTree;
 		}
-		return TokenContext.ReportExpectedToken("field name");
+		return TokenContext.ReportExpectedMessage(Token, "field name", true);
 	}
 
 	public static GtNode TypeGetter(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
@@ -3611,12 +3626,16 @@ final class GreenTeaGrammar extends GtGrammar {
 
 	// FuncDecl
 	public static GtSyntaxTree ParseFuncName(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		/*local*/GtToken Token = TokenContext.Next();
-		if(Token != GtTokenContext.NullToken) {
-			/*local*/char ch = LibGreenTea.CharAt(Token.ParsedText, 0);
-			if(ch != '.') {
-				return new GtSyntaxTree(Pattern, NameSpace, Token, Token.ParsedText);
+		if(TokenContext.HasNext()) {
+			/*local*/GtToken Token = TokenContext.Next();
+			/*local*/String Name = Token.ParsedText;
+			if(LibGreenTea.CharAt(Name, 0) != '(' && LibGreenTea.CharAt(Name, 0) != '.') {
+				if(Token.IsQuoted()) {
+					Name = LibGreenTea.UnquoteString(Name);
+				}
+				return new GtSyntaxTree(Pattern, NameSpace, Token, Name);
 			}
+			return TokenContext.ReportExpectedMessage(Token, "name", true);
 		}
 		return null;
 	}
