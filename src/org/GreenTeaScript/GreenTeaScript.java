@@ -4796,7 +4796,8 @@ public class GreenTeaScript extends GtStatic {
 		}
 	}
 
-	public final static void main(String[] Args) {
+	public final static void main(String[] Args)  {
+		//Class.forName("[Ljava.lang.String;"); // ClassLoader test
 		GreenTeaScript.ParseCommandOption(Args);
 	}
 }
