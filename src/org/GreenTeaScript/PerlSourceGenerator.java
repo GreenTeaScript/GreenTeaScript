@@ -48,7 +48,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		while(CurrentNode != null) {
 			CurrentNode.Evaluate(this);
 			Code += this.GetIndentString() + this.PopSourceCode() + ";" + this.LineFeed;
-			CurrentNode = CurrentNode.NextNode;
+			CurrentNode = CurrentNode.GetNextNode();
 		}
 		this.UnIndent();
 		Code += this.GetIndentString() + "}";

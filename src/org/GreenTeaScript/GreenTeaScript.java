@@ -544,9 +544,12 @@ class GtStatic implements GtConst {
 	}
 
 	public final static GtNode LinkNode(GtNode LastNode, GtNode Node) {
-		Node.PrevNode = LastNode;
+		Node.SetPrevNode(LastNode);
 		if(LastNode != null) {
-			LastNode.NextNode = Node;
+			LastNode.SetNextNode(Node);
+			if(Node.GetParentNode() != null) {
+				Node.GetParentNode().SetParent(LastNode);
+			}
 		}
 		return Node;
 	}

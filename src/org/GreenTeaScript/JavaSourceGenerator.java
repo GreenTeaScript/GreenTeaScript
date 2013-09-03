@@ -40,7 +40,7 @@ public class JavaSourceGenerator extends SourceGenerator {
 		/*local*/GtNode CurrentNode = Node;
 		while(CurrentNode != null) {
 			Code += this.GetIndentString() + this.VisitNode(CurrentNode) + ";" + this.LineFeed;
-			CurrentNode = CurrentNode.NextNode;
+			CurrentNode = CurrentNode.GetNextNode();
 		}
 		this.UnIndent();
 		Code += this.GetIndentString() + "}";

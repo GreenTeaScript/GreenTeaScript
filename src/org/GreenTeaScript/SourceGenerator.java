@@ -47,6 +47,10 @@ class GtNode extends GtStatic {
 		this.PrevNode = null;
 		this.NextNode = null;
 	}
+	
+	public final GtNode GetParentNode() {
+		return this.ParentNode;
+	}
 
 	public final void SetParent(GtNode Node) {
 		if(Node != null) {
@@ -55,12 +59,24 @@ class GtNode extends GtStatic {
 	}
 
 	public final void SetParent2(GtNode Node, GtNode Node2) {
-		if(Node != null) {
-			Node.ParentNode = this;
-		}
-		if(Node2 != null) {
-			Node2.ParentNode = this;
-		}
+		this.SetParent(Node);
+		this.SetParent(Node2);
+	}
+
+	public final GtNode GetNextNode() {
+		return this.NextNode;
+	}
+
+	public final void SetNextNode(GtNode Node) {
+		this.NextNode = Node;
+	}
+
+	public final GtNode GetPrevNode() {
+		return this.PrevNode;
+	}
+
+	public final void SetPrevNode(GtNode Node) {
+		this.PrevNode = Node;
 	}
 
 	public final GtNode MoveHeadNode() {
@@ -81,6 +97,7 @@ class GtNode extends GtStatic {
 
 	public void Append(GtNode Node) {
 		/*extension*/
+		this.SetParent(Node);
 	}
 
 	public final void AppendNodeList(ArrayList<GtNode> NodeList) {
@@ -1002,11 +1019,11 @@ class GtGenerator extends GtStatic {
 	}
 
 	public final void StopVisitor(GtNode Node) {
-		Node.NextNode = null;
+		Node.SetNextNode(null);
 	}
 
 	public final boolean IsEmptyBlock(GtNode Node) {
-		return Node == null || (Node instanceof EmptyNode) && Node.NextNode == null;
+		return Node == null || (Node instanceof EmptyNode) && Node.GetNextNode() == null;
 	}
 
 	//------------------------------------------------------------------------
@@ -1167,7 +1184,7 @@ class GtGenerator extends GtStatic {
 		/*local*/GtNode CurrentNode = Node;
 		while(CurrentNode != null) {
 			CurrentNode.Evaluate(this);
-			CurrentNode = CurrentNode.NextNode;
+			CurrentNode = CurrentNode.GetNextNode();
 		}
 	}
 
@@ -1397,7 +1414,7 @@ class SourceGenerator extends GtGenerator {
 				}
 				Code += this.GetIndentString() + Stmt + SemiColon + LineFeed;
 			}
-			CurrentNode = CurrentNode.NextNode;
+			CurrentNode = CurrentNode.GetNextNode();
 		}
 		if(NeedBlock) {
 			this.UnIndent();

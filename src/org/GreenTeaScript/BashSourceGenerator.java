@@ -106,7 +106,7 @@ public class BashSourceGenerator extends SourceGenerator {
 			if(!LibGreenTea.EqualsString(poppedCode, "")) {
 				Code += this.GetIndentString() + poppedCode + this.LineFeed;
 			}
-			CurrentNode = CurrentNode.NextNode;
+			CurrentNode = CurrentNode.GetNextNode();
 		}
 		if(inBlock) {
 			this.UnIndent();
@@ -417,7 +417,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/GtNode oldVarNode = new LocalNode(ParamType, null, "" + (index + 1));
 		/*local*/GtNode Let = new VarNode(null, null, ParamType, ParamNameList.get(index), oldVarNode, null);
 		index += 1;
-		Let.NextNode = this.ConvertParamName(Func, ParamNameList, Body, index);
+		Let.SetNextNode(this.ConvertParamName(Func, ParamNameList, Body, index));
 		return Let;
 	}
 
