@@ -6,7 +6,7 @@ GreenTea: undefined method: org.GreenTeaScript.GreenTeaRuntime.println of Func<v
 // (warning) (eval:0) returning default value of int
 
 int main(){
-   myprint__45("a");
-   return 0;
+	myprint__152("a");
+	return 0;
 }
 

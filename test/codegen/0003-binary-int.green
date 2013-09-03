@@ -1,3 +1,8 @@
-void f() {
-    100 + 11;
+int f(int x) {
+    return x + 11;
+}
+
+@Export int main() {
+    f(100);
+    return 0;
 }
