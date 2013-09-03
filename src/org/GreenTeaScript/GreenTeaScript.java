@@ -1891,7 +1891,7 @@ final class GtNameSpace extends GtStatic {
 		return PolyFunc;
 	}
 
-	public final void RetrieveFuncList(String FuncName, ArrayList<GtFunc> FuncList) {
+	public final Object RetrieveFuncList(String FuncName, ArrayList<GtFunc> FuncList) {
 		/*local*/Object FuncValue = this.GetLocalSymbol(FuncName);
 		if(FuncValue instanceof GtFunc) {
 			/*local*/GtFunc Func = (/*cast*/GtFunc)FuncValue;
@@ -1899,15 +1899,16 @@ final class GtNameSpace extends GtStatic {
 		}
 		else if(FuncValue instanceof GtPolyFunc) {
 			/*local*/GtPolyFunc PolyFunc = (/*cast*/GtPolyFunc)FuncValue;
-			/*local*/int i = PolyFunc.FuncList.size()-1;
+			/*local*/int i = PolyFunc.FuncList.size() - 1;
 			while(i >= 0) {
 				FuncList.add(PolyFunc.FuncList.get(i));
 				i = i - 1;
 			}
 		}
 		if(this.ParentNameSpace != null) {
-			this.ParentNameSpace.RetrieveFuncList(FuncName, FuncList);
+			return this.ParentNameSpace.RetrieveFuncList(FuncName, FuncList);
 		}
+		return FuncValue;
 	}
 	
 	public final GtFunc GetFunc(String FuncName, int BaseIndex, ArrayList<GtType> TypeList) {
@@ -2723,18 +2724,15 @@ final class GreenTeaGrammar extends GtGrammar {
 	}
 
 	public static GtNode TypeUnary(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		/*local*/String OperatorSymbol = ParsedTree.KeyToken.ParsedText;
 		/*local*/GtNode ExprNode  = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
 		if(ExprNode.IsError()) {
 			return ExprNode;
 		}
 		/*local*/GtType BaseType = ExprNode.Type;
 		/*local*/GtType ReturnType = Gamma.AnyType;
-		/*local*/GtFunc ResolvedFunc = null;
-		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetGreenMethod(BaseType, OperatorSymbol, true);
-		if(PolyFunc != null) {
-			ResolvedFunc = PolyFunc.ResolveUnaryFunc(Gamma, ParsedTree, ExprNode);
-		}
+		/*local*/String OperatorSymbol = ParsedTree.KeyToken.ParsedText;
+		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(BaseType, SafeFuncName(OperatorSymbol), true);
+		/*local*/GtFunc ResolvedFunc = PolyFunc.ResolveUnaryFunc(Gamma, ParsedTree, ExprNode);
 		if(ResolvedFunc == null) {
 			Gamma.Context.ReportError(TypeErrorLevel, ParsedTree.KeyToken, "mismatched operators: " + PolyFunc);
 		}
