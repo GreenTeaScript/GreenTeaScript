@@ -1884,7 +1884,7 @@ final class GtNameSpace extends GtStatic {
 		}
 		else if(FuncValue instanceof GtPolyFunc) {
 			/*local*/GtPolyFunc PolyFunc = (/*cast*/GtPolyFunc)FuncValue;
-			/*local*/int i = PolyFunc.FuncList.size();
+			/*local*/int i = PolyFunc.FuncList.size()-1;
 			while(i >= 0) {
 				FuncList.add(PolyFunc.FuncList.get(i));
 				i = i - 1;
