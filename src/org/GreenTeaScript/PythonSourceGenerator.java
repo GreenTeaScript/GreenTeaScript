@@ -211,6 +211,32 @@ public class PythonSourceGenerator extends SourceGenerator {
 		}
 		this.PushSourceCode(Code);
 	}
+	@Override public void VisitSwitchNode(SwitchNode Node) {
+		/*local*/String Code = "Match" + this.SwitchCaseCount + " = " + this.VisitNode(Node.MatchNode) + this.LineFeed;
+		this.SwitchCaseCount += 1;
+		/*local*/int i = 0;
+		while(i < Node.CaseList.size()) {
+			/*local*/GtNode Case  = Node.CaseList.get(i);
+			/*local*/GtNode Block = Node.CaseList.get(i+1);
+			Code += this.GetIndentString();
+			if(i == 0) {
+				Code += "if";
+			} else {
+				Code += "elif";
+			}
+			Code += this.VisitNode(Case) + ":";
+			this.VisitBlockEachStatementWithIndent(Block, true);
+			Code += this.PopSourceCode() + this.LineFeed;
+			i = i + 2;
+		}
+		if(Node.DefaultBlock != null) {
+			Code += this.GetIndentString() + "else: ";
+			this.VisitBlockEachStatementWithIndent(Node.DefaultBlock, true);
+			Code += this.PopSourceCode() + this.LineFeed;
+		}
+		Code += this.GetIndentString() + "}";
+		this.PushSourceCode(Code);
+	}
 
 	@Override public void VisitTryNode(TryNode Node) {
 		/*local*/String Code = "try:" + this.LineFeed;
