@@ -135,6 +135,10 @@ class GtType extends GtStatic {
 		return (this.BaseType == this.Context.FuncType);
 	}
 
+	public final boolean IsVoidType() {
+		return (this == this.Context.VoidType);
+	}
+
 	public final boolean IsVarType() {
 		return (this == this.Context.VarType);
 	}
@@ -175,6 +179,48 @@ class GtType extends GtStatic {
 		return this.IsNative() && !IsFlag(this.ClassFlag, CommonClass);
 	}
 
+
+}
+
+class GtFuncBlock extends GtStatic {
+	/*field*/public GtNameSpace       NameSpace;
+	/*field*/public ArrayList<String> NameList;
+	/*field*/public GtSyntaxTree FuncBlock;
+	/*field*/public boolean IsVarArgument;
+	/*field*/public ArrayList<GtType> TypeList;
+	/*field*/public GtFunc DefinedFunc;
+	
+	GtFuncBlock/*constructor*/(GtNameSpace NameSpace, ArrayList<GtType> TypeList) {
+		this.NameSpace = NameSpace;
+		this.TypeList = TypeList;
+		this.NameList = new ArrayList<String>();
+		this.FuncBlock = null;
+		this.IsVarArgument = false;
+		this.DefinedFunc = null;
+	}
+	
+	void SetThisIfInClass(GtType Type) {
+		if(Type != null) {
+			this.TypeList.add(Type);
+			this.NameList.add(this.NameSpace.Context.Generator.GetRecvName());
+		}
+	}
+
+	void SetConverterType() {
+		this.TypeList.add(this.NameSpace.Context.TypeType);
+		this.NameList.add("type");
+	}
+	
+	void AddParameter(GtType Type, String Name) {
+		this.TypeList.add(Type);
+		if(Type.IsVarType()) {
+			this.IsVarArgument = true;
+		}
+		this.NameList.add(GtStatic.NativeVariableName(Name, NameList.size()));
+	}
+
+	
+	
 }
 
 class GtFunc extends GtStatic {
@@ -305,6 +351,46 @@ class GtFunc extends GtStatic {
 		this.FuncFlag |= NativeFunc | OptionalFuncFlag;
 		this.NativeRef = Method;
 	}
+
+	private boolean HasStaticBlock() {
+		if(this.NativeRef instanceof GtFuncBlock) {
+			GtFuncBlock FuncBlock = (/*cast*/GtFuncBlock)this.NativeRef;
+			return !FuncBlock.IsVarArgument;
+		}
+		return false;
+	}
+
+	public void GenerateNativeFunc() {
+		if(this.HasStaticBlock()) {
+			GtFuncBlock FuncBlock = (/*cast*/GtFuncBlock)this.NativeRef;
+			GtTypeEnv Gamma = new GtTypeEnv(FuncBlock.NameSpace);
+			/*local*/int i = 0;
+			while(i <  FuncBlock.NameList.size()) {
+				Gamma.AppendDeclaredVariable(0, FuncBlock.DefinedFunc.Types[i+1], FuncBlock.NameList.get(i), null, null);
+				i = i + 1;
+			}
+			Gamma.Func = FuncBlock.DefinedFunc;
+			/*local*/GtNode BodyNode = GtStatic.TypeBlock(Gamma, FuncBlock.FuncBlock, Gamma.VoidType);
+			/*local*/String FuncName = FuncBlock.DefinedFunc.GetNativeFuncName();
+			Gamma.Generator.GenerateFunc(FuncBlock.DefinedFunc, FuncBlock.NameList, BodyNode);
+			if(FuncName.equals("main")) {
+				Gamma.Generator.InvokeMainFunc(FuncName);
+			}
+		}
+	}
+
+	public boolean HasLazyBlock() {
+		if(this.NativeRef instanceof GtFuncBlock) {
+			GtFuncBlock FuncBlock = (/*cast*/GtFuncBlock)this.NativeRef;
+			return FuncBlock.IsVarArgument;
+		}
+		return false;
+	}
+	
+	public GtFunc GenerateLazyFunc(ArrayList<GtNode> NodeList) {
+		return null; // TODO
+	}
+
 }
 
 class GtPolyFunc extends GtStatic {
