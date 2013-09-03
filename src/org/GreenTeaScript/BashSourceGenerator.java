@@ -144,41 +144,42 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Program);
 	}
 
-	private String[] MakeParamCode(ArrayList<GtNode> ParamList) {
+	private String[] MakeParamCode(ArrayList<GtNode> ParamList, boolean isAssert) {
 		/*local*/int Size = LibGreenTea.ListSize(ParamList);
-		/*local*/String[] ParamCode = new String[Size - 1];
-		/*local*/int i = 1;
+		/*local*/String[] ParamCode = new String[Size];
+		/*local*/int i = 0;
 		while(i < Size) {
-			ParamCode[i - 1] = this.ResolveValueType(ParamList.get(i), false);
+			/*local*/GtNode ParamNode = ParamList.get(i);
+			if(isAssert) {
+				ParamCode[i] = this.ResolveCondition(ParamNode);
+			}
+			else {
+				ParamCode[i] = this.ResolveValueType(ParamNode, false);
+			}
 			i = i + 1;
 		}
 		return ParamCode;
 	}
 
-	private String CreateAssertFunc(ApplyNode Node) {
-		/*local*/GtNode ParamNode = Node.NodeList.get(1);
-		return "assert " + LibGreenTea.QuoteString(this.ResolveCondition(ParamNode));
+	private boolean FindAssert(GtFunc Func) {
+		/*local*/boolean isAssert = false;
+		if(Func != null && Func.Is(NativeMacroFunc)) {
+			if(LibGreenTea.EqualsString(Func.GetNativeMacro(), "assert $1")) {
+				isAssert = true;
+			}
+		}
+		return isAssert;
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
-		/*local*/String[] ParamCode = this.MakeParamCode(Node.NodeList);
-		if(Node.Func == null) {
-			this.PushSourceCode(this.JoinCode(ParamCode[0] + " ", 0, ParamCode, "", " "));
-		}
-//		else if(Node.Func.Is(NativeFunc)) {
-//			this.PushSourceCode(this.JoinCode(ParamCode[0] + "." + Node.Func.FuncName + " ", 0, ParamCode, ""));
-//		}
-		else if(Node.Func.Is(NativeMacroFunc)) {
-			/*local*/String NativeMacro = Node.Func.GetNativeMacro();
-			if(LibGreenTea.EqualsString(NativeMacro, "assert $1")) {
-				this.PushSourceCode(this.CreateAssertFunc(Node));
-				return;
-			}
-			this.PushSourceCode(this.ApplyMacro2(NativeMacro, ParamCode));
-		}
-		else {
-			this.PushSourceCode(this.JoinCode(Node.Func.GetNativeFuncName() + " ", 0, ParamCode, "", " "));
-		}
+		/*local*/int ParamSize = LibGreenTea.ListSize(Node.NodeList);
+		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
+		/*local*/String[] ParamCode = this.MakeParamCode(Node.NodeList, this.FindAssert(Node.Func));
+		this.PushSourceCode(this.ApplyMacro2(Template, ParamCode));
+	}
+
+	@Override public void VisitSelfAssignNode(SelfAssignNode Node) {
+		
 	}
 
 	@Override public void VisitUnaryNode(UnaryNode Node) {
