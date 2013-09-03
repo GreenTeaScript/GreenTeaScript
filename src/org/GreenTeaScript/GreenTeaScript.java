@@ -4690,12 +4690,13 @@ final class GtParserContext extends GtStatic {
 }
 
 public class GreenTeaScript extends GtStatic {
-	public final static void ParseCommandOption(String[] Args) {
+	public final static void ExecCommand(String[] Args) {
 		/*local*/String TargetCode = "exe";  // self executable
 		/*local*/int GeneratorFlag = 0;
 		/*local*/String OneLiner = null;
 		/*local*/String OutputFile = "-";  // stdout
 		/*local*/int    Index = 0;
+		/*local*/boolean ShellMode = false;
 		while(Index < Args.length) {
 			/*local*/String Argu = Args[Index];
 			if(!Argu.startsWith("-")) {
@@ -4720,6 +4721,10 @@ public class GreenTeaScript extends GtStatic {
 					Index += 1;
 					continue;
 				}
+			}
+			if(Argu.equals("-i")) {
+				ShellMode = true;
+				continue;
 			}
 			if(LibGreenTea.EqualsString(Argu, "--verbose")) {
 				LibGreenTea.DebugMode = true;
@@ -4746,6 +4751,10 @@ public class GreenTeaScript extends GtStatic {
 				LibGreenTea.VerboseMask |= GtStatic.VerboseFunc;
 				continue;
 			}
+			if(LibGreenTea.EqualsString(Argu, "--verbose:all")) {
+				LibGreenTea.VerboseMask = -1;
+				continue;
+			}
 			if(LibGreenTea.EqualsString(Argu, "--verbose:no")) {
 				LibGreenTea.VerboseMask = 0;
 				continue;
@@ -4757,10 +4766,11 @@ public class GreenTeaScript extends GtStatic {
 			LibGreenTea.Usage("no target: " + TargetCode);
 		}
 		/*local*/GtParserContext Context = new GtParserContext(new GreenTeaGrammar(), Generator);
-		/*local*/boolean ShellMode = true;
 		if(OneLiner != null) {
 			Context.TopLevelNameSpace.Eval(OneLiner, 1);
-			ShellMode = false;
+		}
+		if(!(Index < Args.length)) {
+			ShellMode = true;
 		}
 		while(Index < Args.length) {
 			/*local*/String ScriptText = LibGreenTea.LoadFile2(Args[Index]);
@@ -4769,7 +4779,6 @@ public class GreenTeaScript extends GtStatic {
 			}
 			/*local*/long FileLine = Context.GetFileLine(Args[Index], 1);
 			Context.TopLevelNameSpace.Eval(ScriptText, FileLine);
-			ShellMode = false;
 			Index += 1;
 		}
 		if(ShellMode) {
@@ -4798,6 +4807,6 @@ public class GreenTeaScript extends GtStatic {
 
 	public final static void main(String[] Args)  {
 		//Class.forName("[Ljava.lang.String;"); // ClassLoader test
-		GreenTeaScript.ParseCommandOption(Args);
+		GreenTeaScript.ExecCommand(Args);
 	}
 }
