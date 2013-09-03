@@ -3678,7 +3678,7 @@ final class GreenTeaGrammar extends GtGrammar {
 	public static GtSyntaxTree ParseFuncName(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/String Name = Token.ParsedText;
-		if(LibGreenTea.CharAt(Name, 0) != '(' && LibGreenTea.CharAt(Name, 0) != '.') {
+		if(Name.length() > 0 && LibGreenTea.CharAt(Name, 0) != '(' && LibGreenTea.CharAt(Name, 0) != '.') {
 			if(Token.IsQuoted()) {
 				Name = LibGreenTea.UnquoteString(Name);
 			}
@@ -4505,6 +4505,7 @@ final class GtParserContext extends GtStatic {
 	/*field*/public final GtType		VoidType;
 	/*field*/public final GtType		BooleanType;
 	/*field*/public final GtType		IntType;
+	/*field*/public final GtType        FloatType;
 	/*field*/public final GtType		StringType;
 	/*field*/public final GtType		AnyType;
 	/*field*/public final GtType		ArrayType;
@@ -4547,6 +4548,7 @@ final class GtParserContext extends GtStatic {
 		this.VoidType    = this.RootNameSpace.AppendTypeName(new GtType(this, NativeClass, "void", null, Void.class), null);
 		this.BooleanType = this.RootNameSpace.AppendTypeName(new GtType(this, NativeClass, "boolean", false, Boolean.class), null);
 		this.IntType     = this.RootNameSpace.AppendTypeName(new GtType(this, NativeClass, "int", 0L, Long.class), null);
+		this.FloatType     = this.RootNameSpace.AppendTypeName(new GtType(this, NativeClass, "double", 0.0, Double.class), null);
 		this.StringType  = this.RootNameSpace.AppendTypeName(new GtType(this, NativeClass, "String", null, String.class), null);
 		this.VarType     = this.RootNameSpace.AppendTypeName(new GtType(this, 0, "var", null, null), null);
 		this.AnyType     = this.RootNameSpace.AppendTypeName(new GtType(this, DynamicClass, "any", null, null), null);
@@ -4570,6 +4572,8 @@ final class GtParserContext extends GtStatic {
 		this.SetNativeTypeName("org.GreenTeaScript.GtType", this.TypeType);
 		this.SetNativeTypeName("org.GreenTeaScript.GreenTeaEnum", this.EnumType);
 		this.SetNativeTypeName("java.util.Array", this.ArrayType);
+		this.SetNativeTypeName("double",    this.FloatType);
+		this.SetNativeTypeName("java.lang.Double",  this.FloatType);
 //endif VAJA
 		Grammar.LoadTo(this.RootNameSpace);
 		this.TopLevelNameSpace = new GtNameSpace(this, this.RootNameSpace);
