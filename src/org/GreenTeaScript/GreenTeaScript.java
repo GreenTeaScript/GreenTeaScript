@@ -1196,6 +1196,10 @@ class GtSyntaxTree extends GtStatic {
 		return this.IsEmpty() || this.KeyToken.IsError();
 	}
 
+	public final boolean IsValidSyntax() {
+		return !(this.IsEmptyOrError());
+	}
+
 	public void ToEmptyOrError(GtSyntaxTree ErrorTree) {
 		if(ErrorTree == null) {
 			this.ToEmpty();
@@ -3793,6 +3797,37 @@ final class GreenTeaGrammar extends GtGrammar {
 		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
 	}
 
+	public static GtSyntaxTree ParseConstructor2(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtSyntaxTree FuncDeclTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetToken(), null);
+		/*local*/GtType ThisType = NameSpace.GetType("This");
+		if(ThisType == null) {
+			NameSpace.Context.ReportError(ErrorLevel, FuncDeclTree.KeyToken, "constructor is used inside class");
+			FuncDeclTree.ToError(FuncDeclTree.KeyToken);
+			return FuncDeclTree;
+		}
+		/*local*/int FuncFlag = GreenTeaGrammar.ParseFuncFlag(ConstructorFunc, TokenContext.ParsingAnnotation);
+		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
+		LibGreenTea.Assert(LeftTree != null);
+		TypeList.add(ThisType);
+		FuncDeclTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "(", Required);
+		if(FuncDeclTree.IsValidSyntax()) {
+			/*local*/GtFuncBlock FuncBlock = new GtFuncBlock(NameSpace, TypeList);
+			/*local*/GtToken SourceToken = FuncDeclTree.KeyToken;
+			/*local*/int ParseFlag = TokenContext.SetBackTrack(false);  // disabled
+			/*local*/GtNameSpace StoreNameSpace = NameSpace.GetNameSpace(GreenTeaGrammar.ParseNameSpaceFlag(0, TokenContext.ParsingAnnotation));
+			FuncBlock.SetThisIfInClass(ThisType);
+			GreenTeaGrammar.ParseFuncParam(NameSpace, TokenContext, FuncDeclTree, FuncBlock);
+			if(FuncDeclTree.IsValidSyntax()) {
+				FuncBlock.DefinedFunc = NameSpace.Context.Generator.CreateFunc(FuncFlag, ThisType.ShortClassName, 0, FuncBlock.TypeList);
+				GreenTeaGrammar.ParseFuncBody(NameSpace, TokenContext, FuncDeclTree, FuncBlock);
+				StoreNameSpace.AppendConstructor(ThisType, FuncBlock.DefinedFunc, SourceToken.AddTypeInfo(ThisType));
+				FuncDeclTree.ConstValue = FuncBlock.DefinedFunc;
+				TokenContext.SetRememberFlag(ParseFlag);
+			}
+		}
+		return FuncDeclTree;
+	}
+
 	// Array
 	public static GtSyntaxTree ParseArray(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/int OldFlag = TokenContext.SetSkipIndent(true);
@@ -3913,19 +3948,6 @@ final class GreenTeaGrammar extends GtGrammar {
 	// ClassDecl2
 
 	// constructor
-	public static GtSyntaxTree ParseConstructor2(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		/*local*/GtType ThisType = NameSpace.GetType("This");
-		/*local*/GtSyntaxTree ConstructorTreeDecl = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("constructor"), "constructor");
-		ConstructorTreeDecl.SetSyntaxTreeAt(FuncDeclName, ConstructorTreeDecl);
-		ConstructorTreeDecl.SetSyntaxTreeAt(FuncDeclReturnType, LeftTree);
-		ConstructorTreeDecl.SetSyntaxTreeAt(FuncDeclClass, LeftTree);
-		ConstructorTreeDecl.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "(", Required);
-		/*local*/int ParseFlag = TokenContext.SetBackTrack(false);  // disabled
-		
-		ConstructorTreeDecl.SetMatchedPatternAt(FuncDeclBlock, NameSpace, TokenContext, "$Block$", Required);
-		TokenContext.ParseFlag = ParseFlag;
-		return ConstructorTreeDecl;
-	}
 
 	public static GtSyntaxTree ParseClassDecl2(GtNameSpace NameSpace0, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree ClassDeclTree = new GtSyntaxTree(Pattern, NameSpace0, TokenContext.GetMatchedToken("class"), null);
@@ -3990,7 +4012,7 @@ final class GreenTeaGrammar extends GtGrammar {
 			}
 			ClassDeclTree.ConstValue = ClassField;
 		}
-		if(!ClassDeclTree.IsEmptyOrError()) {
+		if(ClassDeclTree.IsValidSyntax()) {
 			NameSpace0.AppendTypeName(DefinedType, NameToken);
 		}
 		return ClassDeclTree;
