@@ -1905,11 +1905,14 @@ final class GtNameSpace extends GtStatic {
 				/*local*/int j = 0;
 				while(j < Func.Types.length) {
 					if(TypeList.get(BaseIndex + j) != Func.Types[j]) {
-						continue;
+						Func = null;
+						break;
 					}
 					j = j + 1;
 				}
-				return Func;
+				if(Func != null) {
+					return Func;
+				}
 			}
 			i = i + 1;
 		}
