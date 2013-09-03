@@ -122,6 +122,32 @@ public class GreenTeaRuntime {
 		return 0;
 	}
 
+	// double
+	public final static String DoubleToString(GtType Type, double value) {
+		return ""+value;
+	}
+
+	public final static double StringToDouble(GtType Type, String value) {
+		if(value != null) {
+			try {
+				return Double.parseDouble(value);
+			}
+			catch(NumberFormatException e) {
+			}
+		}
+		return 0;
+	}
+
+	public final static Object DoubleToAny(GtType Type, double value) {
+		return new Double(value);
+	}
+
+	public final static double AnyToDouble(GtType Type, Object value) {
+		if(value instanceof Number) {
+			return ((Number) value).doubleValue();
+		}
+		return 0;
+	}
 	// Enum
 	public final static String EnumToString(GtType Type, GreenTeaEnum Value) {
 		if(Value != null) {
@@ -182,11 +208,23 @@ public class GreenTeaRuntime {
 		return (double)n;
 	}
 
+	public final static long d2l(GtType Type, double n) {
+		return (long)n;
+	}
+
+	public final static String d2s(GtType Type, double n) {
+		return "" + n;
+	}
+
+	public final static double l2d(GtType Type, long n) {
+		return (double)n;
+	}
+
 	public final static String c2s(GtType Type, char ch) {
 		return ""+ch;
 	}
 
-	public final static char f2d(GtType Type, String s) {
+	public final static char s2c(GtType Type, String s) {
 		return s == null ? (char)0 : s.charAt(0);
 	}
 
@@ -200,7 +238,7 @@ public class GreenTeaRuntime {
 	}
 
 	public final static String[] l2ja(GtType Type, ArrayList<Object> List) {
-		int i, size = List == null ? 0 : List.size();
+		int size = List == null ? 0 : List.size();
 		String[] a = new String[size];
 		//List.toArray(a);
 		return a;
@@ -332,6 +370,46 @@ public class GreenTeaRuntime {
 		return x + y;
 	}
 
+	//-----------------------------------------------------
+	public static double binary_add(double x, double y) {
+		return x + y;
+	}
+
+	public static double binary_sub(double x, double y) {
+		return x - y;
+	}
+
+	public static double binary_mul(double x, double y) {
+		return x * y;
+	}
+
+	public static double binary_div(double x, double y) {
+		return x / y;
+	}
+
+	public static boolean binary_lt(double x, double y) {
+		return x < y;
+	}
+
+	public static boolean binary_le(double x, double y) {
+		return x <= y;
+	}
+
+	public static boolean binary_gt(double x, double y) {
+		return x > y;
+	}
+
+	public static boolean binary_ge(double x, double y) {
+		return x >= y;
+	}
+
+	public static boolean binary_eq(double x, double y) {
+		return x == y;
+	}
+
+	public static boolean binary_ne(double x, double y) {
+		return x != y;
+	}
 	//-----------------------------------------------------
 
 	public static Object getter(Object o, String name) throws Exception {

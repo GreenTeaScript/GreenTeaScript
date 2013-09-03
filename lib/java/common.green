@@ -48,6 +48,11 @@
 @Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.l2s;
 @Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.s2l;
 
+@Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.l2d;
+@Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.f2d;
+@Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.d2l;
+@Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.d2s;
+
 @Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.ja2l;
 @Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.l2ja;
 
@@ -58,6 +63,25 @@
 
 @Const @Operator boolean ==(String x, String y) import org.GreenTeaScript.GreenTeaRuntime.binary_eq;
 @Const @Operator boolean !=(String x, String y) import org.GreenTeaScript.GreenTeaRuntime.binary_ne;
+
+// double
+@Const @Operator double +(double x, double y) import org.GreenTeaScript.GreenTeaRuntime.binary_add;
+@Const @Operator double -(double x, double y) import org.GreenTeaScript.GreenTeaRuntime.binary_sub;
+@Const @Operator double *(double x, double y) import org.GreenTeaScript.GreenTeaRuntime.binary_mul;
+@Const @Operator double /(double x, double y) import org.GreenTeaScript.GreenTeaRuntime.binary_div;
+@Const @Operator boolean <(double x,  double y) import org.GreenTeaScript.GreenTeaRuntime.binary_lt;
+@Const @Operator boolean <=(double x, double y) import org.GreenTeaScript.GreenTeaRuntime.binary_le;
+@Const @Operator boolean >(double x,  double y) import org.GreenTeaScript.GreenTeaRuntime.binary_gt;
+@Const @Operator boolean >=(double x, double y) import org.GreenTeaScript.GreenTeaRuntime.binary_ge;
+@Const @Operator boolean ==(double x, double y) import org.GreenTeaScript.GreenTeaRuntime.binary_eq;
+@Const @Operator boolean !=(double x, double y) import org.GreenTeaScript.GreenTeaRuntime.binary_ne;
+
+@Coercion @Const any converter(double x) import org.GreenTeaScript.GreenTeaRuntime.DoubleToAny;
+@Coercion @Const double converter(any x) import org.GreenTeaScript.GreenTeaRuntime.AnyToDouble;
+@Coercion @Const String converter(double x) import org.GreenTeaScript.GreenTeaRuntime.DoubleToString;
+@Const double converter(String x) import org.GreenTeaScript.GreenTeaRuntime.StringToDouble;
+
+
 
 void print(String s)   import org.GreenTeaScript.LibGreenTea.print;
 void println(String s) import org.GreenTeaScript.LibGreenTea.println;
