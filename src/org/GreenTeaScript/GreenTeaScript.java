@@ -1684,8 +1684,9 @@ final class GtNameSpace extends GtStatic {
 			this.SymbolPatternTable = new GtMap();
 		}
 		if(SourceToken != null) {
-			if(this.SymbolPatternTable.get(Key) != null) {
-				this.Context.ReportError(WarningLevel, SourceToken, "duplicated symbol: " + SourceToken);
+			/*local*/Object OldValue = this.SymbolPatternTable.get(Key);
+			if(OldValue != null) {
+				this.Context.ReportError(WarningLevel, SourceToken, "duplicated symbol: " + SourceToken + "oldnew=" + OldValue + ", " + Value);
 			}
 		}
 		this.SymbolPatternTable.put(Key, Value);
@@ -1881,7 +1882,7 @@ final class GtNameSpace extends GtStatic {
 		else if(FuncValue instanceof GtPolyFunc) {
 			/*local*/GtPolyFunc PolyFunc = (/*cast*/GtPolyFunc)FuncValue;
 			/*local*/int i = PolyFunc.FuncList.size();
-			while(i >= 1) {
+			while(i >= 0) {
 				FuncList.add(PolyFunc.FuncList.get(i));
 				i = i - 1;
 			}
@@ -1914,6 +1915,9 @@ final class GtNameSpace extends GtStatic {
 
 	public final Object AppendFuncName(String Key, GtFunc Func, GtToken SourceToken) {
 		/*local*/Object OldValue = this.GetLocalSymbol(Key);
+		if(OldValue instanceof GtSyntaxPattern) {
+			return OldValue;
+		}
 		if(OldValue instanceof GtFunc) {
 			/*local*/GtFunc OldFunc = (/*cast*/GtFunc)OldValue;
 			if(!OldFunc.EqualsType(Func)) {

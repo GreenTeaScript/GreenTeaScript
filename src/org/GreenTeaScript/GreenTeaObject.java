@@ -283,7 +283,7 @@ class GtFunc extends GtStatic {
 	}
 
 	public final boolean EqualsType(GtFunc AFunc) {
-		return this.EqualsParamTypes(0, this.Types);
+		return this.EqualsParamTypes(0, AFunc.Types);
 	}
 
 	public final boolean IsAbstract() {
@@ -336,7 +336,7 @@ class GtPolyFunc extends GtStatic {
 					return; /* same function */
 				}
 				if(Func.EqualsType(ListedFunc)) {
-					Func.GetContext().ReportError(WarningLevel, SourceToken, "duplicated symbol" + SourceToken.ParsedText);
+					Func.GetContext().ReportError(WarningLevel, SourceToken, "duplicated symbol" + SourceToken.ParsedText + "oldnew =" + ListedFunc + ", " + Func);
 					break;
 				}
 				i = i + 1;
