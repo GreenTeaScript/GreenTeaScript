@@ -7,6 +7,7 @@ assert() {
         local src=${BASH_SOURCE[1]}
         echo "Assertion Error at $src line $line" >&2
         echo " --> Caused by: $1" >&2
+        exit
     fi
 }
 
@@ -87,5 +88,9 @@ execCommandString() {
 }
 
 print() {
+	echo -n -e "$1" >&2
+}
+
+println() {
 	echo -e "$1" >&2
 }

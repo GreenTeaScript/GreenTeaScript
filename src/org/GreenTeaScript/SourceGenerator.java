@@ -48,6 +48,10 @@ class GtNode extends GtStatic {
 		this.NextNode = null;
 	}
 
+	public final GtNode GetParentNode() {
+		return this.ParentNode;
+	}
+
 	public final void SetParent(GtNode Node) {
 		if(Node != null) {
 			Node.ParentNode = this;
@@ -55,12 +59,24 @@ class GtNode extends GtStatic {
 	}
 
 	public final void SetParent2(GtNode Node, GtNode Node2) {
-		if(Node != null) {
-			Node.ParentNode = this;
-		}
-		if(Node2 != null) {
-			Node2.ParentNode = this;
-		}
+		this.SetParent(Node);
+		this.SetParent(Node2);
+	}
+
+	public final GtNode GetNextNode() {
+		return this.NextNode;
+	}
+
+	public final void SetNextNode(GtNode Node) {
+		this.NextNode = Node;
+	}
+
+	public final GtNode GetPrevNode() {
+		return this.PrevNode;
+	}
+
+	public final void SetPrevNode(GtNode Node) {
+		this.PrevNode = Node;
 	}
 
 	public final GtNode MoveHeadNode() {
@@ -81,6 +97,7 @@ class GtNode extends GtStatic {
 
 	public void Append(GtNode Node) {
 		/*extension*/
+		this.SetParent(Node);
 	}
 
 	public final void AppendNodeList(ArrayList<GtNode> NodeList) {
@@ -1002,11 +1019,11 @@ class GtGenerator extends GtStatic {
 	}
 
 	public final void StopVisitor(GtNode Node) {
-		Node.NextNode = null;
+		Node.SetNextNode(null);
 	}
 
 	public final boolean IsEmptyBlock(GtNode Node) {
-		return Node == null || (Node instanceof EmptyNode) && Node.NextNode == null;
+		return Node == null || (Node instanceof EmptyNode) && Node.GetNextNode() == null;
 	}
 
 	//------------------------------------------------------------------------
@@ -1167,7 +1184,7 @@ class GtGenerator extends GtStatic {
 		/*local*/GtNode CurrentNode = Node;
 		while(CurrentNode != null) {
 			CurrentNode.Evaluate(this);
-			CurrentNode = CurrentNode.NextNode;
+			CurrentNode = CurrentNode.GetNextNode();
 		}
 	}
 
@@ -1293,6 +1310,10 @@ class SourceGenerator extends GtGenerator {
 	/*field*/protected String    LineComment;
 	/*field*/protected String    BreakKeyword;
 	/*field*/protected String    ContinueKeyword;
+	/*field*/protected String    ParameterDelimiter;
+	/*field*/protected String    SemiColon;
+	/*field*/protected String    BlockBegin;
+	/*field*/protected String    BlockEnd;
 
 	SourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
@@ -1312,6 +1333,10 @@ class SourceGenerator extends GtGenerator {
 		this.BreakKeyword = "break";
 		this.ContinueKeyword = "continue";
 		this.LineComment  = "//";
+		this.ParameterDelimiter = ",";
+		this.SemiColon = ";";
+		this.BlockBegin = "{";
+		this.BlockEnd = "}";
 	}
 
 	@Override public void InitContext(GtParserContext Context) {
@@ -1377,33 +1402,30 @@ class SourceGenerator extends GtGenerator {
 		return this.CurrentLevelIndentString;
 	}
 
-	public void VisitBlockEachStatementWithIndent(GtNode Node, boolean NeedBlock) {
+	public String VisitBlockWithIndent(GtNode Node, boolean NeedBlock) {
 		/*local*/String Code = "";
 		if(NeedBlock) {
-			Code += "{" + this.LineFeed;
+			Code += this.BlockBegin + this.LineFeed;
 			this.Indent();
 		}
 		/*local*/GtNode CurrentNode = Node;
 		while(CurrentNode != null) {
 			if(!this.IsEmptyBlock(CurrentNode)) {
 				/*local*/String Stmt = this.VisitNode(CurrentNode);
-				/*local*/String SemiColon = "";
-				/*local*/String LineFeed = "";
-				if(!Stmt.endsWith(";")) {
-					SemiColon = ";";
+				if(!LibGreenTea.EqualsString(Stmt, "")) {
+					Code += this.GetIndentString() + Stmt + this.SemiColon + this.LineFeed;
 				}
-				if(!Stmt.endsWith(this.LineFeed)) {
-					LineFeed = this.LineFeed;
-				}
-				Code += this.GetIndentString() + Stmt + SemiColon + LineFeed;
 			}
-			CurrentNode = CurrentNode.NextNode;
+			CurrentNode = CurrentNode.GetNextNode();
 		}
 		if(NeedBlock) {
 			this.UnIndent();
-			Code += this.GetIndentString() + "}";
+			Code += this.GetIndentString() + this.BlockEnd;
 		}
-		this.PushSourceCode(Code);
+//		else if(Code.length() > 0) {
+//			Code = Code.substring(0, Code.length() - 1);
+//		}
+		return Code;
 	}
 
 	protected String StringifyConstValue(Object ConstValue) {
@@ -1515,7 +1537,7 @@ class SourceGenerator extends GtGenerator {
 			Template += "(";
 			while(i < ParamSize) {
 				if(i != BeginIdx) {
-					Template += ", ";
+					Template += this.ParameterDelimiter + " ";
 				}
 				Template += "$" + i;
 				i = i + 1;
@@ -1688,15 +1710,13 @@ class SourceGenerator extends GtGenerator {
 				this.UnIndent();
 			}
 			else {
-				this.VisitBlockEachStatementWithIndent(Block, true);
-				Code += this.PopSourceCode() + this.LineFeed;
+				Code += this.VisitBlockWithIndent(Block, true) + this.LineFeed;
 			}
 			i = i + 2;
 		}
 		if(Node.DefaultBlock != null) {
 			Code += this.GetIndentString() + "default: ";
-			this.VisitBlockEachStatementWithIndent(Node.DefaultBlock, true);
-			Code += this.PopSourceCode() + this.LineFeed;
+			Code += this.VisitBlockWithIndent(Node.DefaultBlock, true) + this.LineFeed;
 		}
 		Code += this.GetIndentString() + "}";
 		this.PushSourceCode(Code);

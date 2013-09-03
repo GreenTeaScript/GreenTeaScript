@@ -1,9 +1,9 @@
 #include "GreenTeaPlus.h"
 
 
-static String f__45(){
-   "$Error$";
-   "db";
-   return "";
+static String f__152(){
+	"$Error$";
+	"db";
+	return "";
 }
 

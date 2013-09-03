@@ -506,9 +506,12 @@ class GtStatic implements GtConst {
 	}
 
 	public final static GtNode LinkNode(GtNode LastNode, GtNode Node) {
-		Node.PrevNode = LastNode;
+		Node.SetPrevNode(LastNode);
 		if(LastNode != null) {
-			LastNode.NextNode = Node;
+			LastNode.SetNextNode(Node);
+			if(Node.GetParentNode() != null) {
+				Node.GetParentNode().SetParent(LastNode);
+			}
 		}
 		return Node;
 	}
@@ -1742,7 +1745,7 @@ final class GtNameSpace extends GtStatic {
 	}
 
 	public final GtType GetType(String TypeName) {
-		Object TypeInfo = this.GetSymbol(TypeName);
+		/*local*/Object TypeInfo = this.GetSymbol(TypeName);
 		if(TypeInfo instanceof GtType) {
 			return (/*cast*/GtType)TypeInfo;
 		}
@@ -3986,7 +3989,7 @@ final class GreenTeaGrammar extends GtGrammar {
 	}
 
 	// ClassDecl2
-	
+
 	// constructor
 	public static GtSyntaxTree ParseConstructor2(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtType ThisType = NameSpace.GetType("This");
@@ -4070,7 +4073,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		}
 		return ClassDeclTree;
 	}
-	
+
 	public static GtNode TypeClassDecl2(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtClassField ClassField = (/*cast*/GtClassField)ParsedTree.ConstValue;
 		/*local*/GtType DefinedType = ClassField.DefinedType;
@@ -4087,7 +4090,6 @@ final class GreenTeaGrammar extends GtGrammar {
 		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
 	}
 
-	
 	// ClassDecl
 	public static GtSyntaxTree ParseClassDecl(GtNameSpace NameSpace0, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree ClassDeclTree = new GtSyntaxTree(Pattern, NameSpace0, TokenContext.GetMatchedToken("class"), null);

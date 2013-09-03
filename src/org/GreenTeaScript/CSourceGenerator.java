@@ -30,10 +30,8 @@ import java.util.ArrayList;
 //GreenTea Generator should be written in each language.
 
 public class CSourceGenerator extends SourceGenerator {
-	///*field*/ConstantFolder Opt;
 	CSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
-		//this.Opt = new ConstantFolder(TargetCode, OutputFile, GeneratorFlag);
 		this.TrueLiteral  = "1";
 		this.FalseLiteral = "0";
 		this.Tab = "\t";
@@ -42,7 +40,6 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 	@Override public void InitContext(GtParserContext Context) {
 		super.InitContext(Context);
-		//this.Opt.InitContext(Context);
 	}
 
 	private String GetLocalType(GtType Type, boolean IsPointer) {
@@ -78,15 +75,13 @@ public class CSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitWhileNode(WhileNode Node) {
 		/*local*/String Program = "while(" + this.VisitNode(Node.CondExpr) + ")";
-		this.VisitBlockEachStatementWithIndent(Node.LoopBody, true);
-		Program += this.PopSourceCode();
+		Program += this.VisitBlockWithIndent(Node.LoopBody, true);
 		this.PushSourceCode(Program);
 	}
 
 	@Override public void VisitDoWhileNode(DoWhileNode Node) {
-		/*local*/String Program = "do";
-		this.VisitBlockEachStatementWithIndent(Node.LoopBody, true);
-		Program += this.PopSourceCode() + " while(" + this.VisitNode(Node.CondExpr) + ")";
+		/*local*/String Program = "do" + this.VisitBlockWithIndent(Node.LoopBody, true);
+		Program += " while(" + this.VisitNode(Node.CondExpr) + ")";
 		this.PushSourceCode(Program);
 	}
 
@@ -94,8 +89,7 @@ public class CSourceGenerator extends SourceGenerator {
 		/*local*/String Cond = this.VisitNode(Node.CondExpr);
 		/*local*/String Iter = this.VisitNode(Node.IterExpr);
 		/*local*/String Program = "for(; " + Cond  + "; " + Iter + ") ";
-		this.VisitBlockEachStatementWithIndent(Node.LoopBody, true);
-		Program += this.PopSourceCode();
+		Program += this.VisitBlockWithIndent(Node.LoopBody, true);
 		this.PushSourceCode(Program);
 	}
 
@@ -124,33 +118,28 @@ public class CSourceGenerator extends SourceGenerator {
 		if(CreateNewScope) {
 			Code += this.GetIndentString();
 		}
-		this.VisitBlockEachStatementWithIndent(Node.BlockNode, CreateNewScope);
+		Code += this.VisitBlockWithIndent(Node.BlockNode, CreateNewScope);
 		this.PushSourceCode(Code + this.PopSourceCode());
 	}
 
 	@Override public void VisitIfNode(IfNode Node) {
 		/*local*/String CondExpr = this.VisitNode(Node.CondExpr);
-		this.VisitBlockEachStatementWithIndent(Node.ThenNode, true);
-		/*local*/String ThenBlock = this.PopSourceCode();
+		/*local*/String ThenBlock = this.VisitBlockWithIndent(Node.ThenNode, true);
 		/*local*/String Code = "if(" + CondExpr + ") " + ThenBlock;
 		if(Node.ElseNode != null) {
-			this.VisitBlockEachStatementWithIndent(Node.ElseNode, true);
-			Code += " else " + this.PopSourceCode();
+			Code += " else " + this.VisitBlockWithIndent(Node.ElseNode, true);
 		}
 		this.PushSourceCode(Code);
 	}
 
 	@Override public void VisitTryNode(TryNode Node) {
 		/*local*/String Code = "try ";
-		this.VisitBlockEachStatementWithIndent(Node.TryBlock, true);
-		Code += this.PopSourceCode();
+		Code += this.VisitBlockWithIndent(Node.TryBlock, true);
 		/*local*/VarNode Val = (/*cast*/VarNode) Node.CatchExpr;
 		Code += " catch (" + Val.Type.toString() + " " + Val.NativeName + ") ";
-		this.VisitBlockEachStatementWithIndent(Node.CatchBlock, true);
-		Code += this.PopSourceCode();
+		Code += this.VisitBlockWithIndent(Node.CatchBlock, true);
 		if(Node.FinallyBlock != null) {
-			this.VisitBlockEachStatementWithIndent(Node.FinallyBlock, true);
-			Code += " finally " + this.PopSourceCode();
+			Code += " finally " + this.VisitBlockWithIndent(Node.FinallyBlock, true);
 		}
 		this.PushSourceCode(Code);
 	}
@@ -203,15 +192,12 @@ public class CSourceGenerator extends SourceGenerator {
 			i = i + 1;
 		}
 		Code += ")";
-		this.VisitBlockEachStatementWithIndent(Body, true);
-		Code += this.PopSourceCode();
+		Code += this.VisitBlockWithIndent(Body, true);
 		this.WriteLineCode(Code);
 	}
 
 	@Override public Object Eval(GtNode Node) {
-		//Node = this.Opt.Fold(Node);
-		this.VisitBlockEachStatementWithIndent(Node, false);
-		/*local*/String Code = this.PopSourceCode();
+		/*local*/String Code = this.VisitBlockWithIndent(Node, false);
 		if(LibGreenTea.EqualsString(Code, ";" + this.LineFeed)) {
 			return "";
 		}

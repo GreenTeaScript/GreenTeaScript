@@ -30,7 +30,7 @@ import java.util.ArrayList;
 //GreenTea Generator should be written in each language.
 
 public class PythonSourceGenerator extends SourceGenerator {
-	/*field*/String ForIterExpr = null;
+	/*field*/private int SwitchCaseCount;
 
 	PythonSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
@@ -41,6 +41,10 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.FalseLiteral = "False";
 		this.NullLiteral = "None";
 		this.LineComment = "##";
+		this.SwitchCaseCount = 0;
+		this.BlockBegin = "";
+		this.BlockEnd = "";
+		this.SemiColon = "";
 	}
 
 	@Override protected String GetNewOperator(GtType Type) {
@@ -48,35 +52,10 @@ public class PythonSourceGenerator extends SourceGenerator {
 		return TypeName + "()";
 	}
 
-	public String VisitBlockWithIndent(GtNode Node, boolean inBlock) {
-		/*local*/String Code = "";
-		if(inBlock) {
-			this.Indent();
-		}
-		/*local*/GtNode CurrentNode = Node;
-		while(CurrentNode != null) {
-			/*local*/String poppedCode = this.VisitNode(CurrentNode);
-			if(!LibGreenTea.EqualsString(poppedCode, "")) {
-				Code += this.GetIndentString() + poppedCode + this.LineFeed;
-			}
-			CurrentNode = CurrentNode.NextNode;
-		}
-		if(inBlock) {
-			this.UnIndent();
-			Code += this.GetIndentString();
-		}
-		else {
-			if(Code.length() > 0) {
-				Code = Code.substring(0, Code.length() - 1);
-			}
-		}
-		return Code;
-	}
-
 	public GtNode CreateDoWhileNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Cond, GtNode Block) {
 		/*
 		 * do { Block } while(Cond)
-		 * => while(True) { Block; if(!Cond) { break; } }
+		 * => for(; True; if(!Cond) { break; } ) { Block;  }
 		 */
 		/*local*/GtNode Break = this.CreateBreakNode(Type, ParsedTree, null);
 		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetGreenMethod(Cond.Type, "!", true);
@@ -87,9 +66,8 @@ public class PythonSourceGenerator extends SourceGenerator {
 		}
 		Cond = this.CreateUnaryNode(Type, ParsedTree, Func, Cond);
 		/*local*/GtNode IfBlock = this.CreateIfNode(Type, ParsedTree, Cond, Break, null);
-		GtStatic.LinkNode(Block.MoveTailNode(), IfBlock);
 		/*local*/GtNode TrueNode = this.CreateConstNode(ParsedTree.NameSpace.Context.BooleanType, ParsedTree, true);
-		return this.CreateWhileNode(Type, ParsedTree, TrueNode, Block);
+		return this.CreateForNode(Type, ParsedTree, TrueNode, IfBlock, Block);
 	}
 
 	// Visitor API
@@ -105,16 +83,22 @@ public class PythonSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitForNode(ForNode Node) {
-		/*local*/GtNode LoopBody = Node.LoopBody;
-		if(LoopBody instanceof EmptyNode) {
-			LoopBody = Node.IterExpr;
+		/* for(; COND; ITER) BLOCK1; continue; BLOCK2;
+		 * => while COND:
+		 * 		BLOCK1;
+		 * 		ITER;continue;
+		 * 		BLOCK2;
+		 * 		ITER
+		 */
+		/*local*/String Program = "while " + this.VisitNode(Node.CondExpr) + ":" + this.LineFeed;
+		if(this.IsEmptyBlock(Node.LoopBody)) {
+			Program += this.GetIndentString() + "pass";
 		}
 		else {
-			LoopBody.MoveTailNode().NextNode = Node.IterExpr;
+			Program += this.VisitBlockWithIndent(Node.LoopBody, true);
 		}
-		this.ForIterExpr = this.VisitNode(Node.IterExpr);
-		this.VisitWhileNode(new WhileNode(Node.Type, Node.Token, Node.CondExpr, LoopBody));
-		this.ForIterExpr = null;
+		Program += this.VisitNode(Node.IterExpr);
+		this.PushSourceCode(Program);
 	}
 
 	@Override public void VisitForEachNode(ForEachNode Node) {
@@ -125,16 +109,35 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Program);
 	}
 
+	private ForNode FindParentForNode(GtNode Node) {
+		/*local*/GtNode Parent = Node.GetParentNode();
+		while(Parent != null) {
+			if(Parent instanceof ForNode) {
+				return (/*cast*/ForNode)Parent;
+			}
+			if(Parent.GetParentNode() == null) {
+				Parent = Parent.MoveHeadNode();
+			}
+			Parent = Parent.GetParentNode();
+		}
+		return null;
+	}
+
 	@Override public void VisitContinueNode(ContinueNode Node) {
-		/*local*/String Code = this.ContinueKeyword;
+		/*local*/String Code = "";
+		/*local*/ForNode Parent = this.FindParentForNode(Node);
+		if(Parent != null) {
+			/*local*/GtNode IterNode = Parent.IterExpr;
+			if(IterNode != null) {
+				Code += this.VisitNode(IterNode) + this.LineFeed + this.GetIndentString();
+			}
+		}
+		Code += this.ContinueKeyword;
 		if(this.HasLabelSupport) {
 			/*local*/String Label = Node.Label;
 			if(Label != null) {
 				Code += " " + Label;
 			}
-		}
-		if(ForIterExpr != null) {
-			Code = this.ForIterExpr + this.LineFeed + this.GetIndentString() + Code;
 		}
 		this.PushSourceCode(Code);
 		this.StopVisitor(Node);
@@ -184,6 +187,31 @@ public class PythonSourceGenerator extends SourceGenerator {
 			/*local*/String ElseBlock = this.VisitBlockWithIndent(Node.ElseNode, true);
 			Code += "else:" + this.LineFeed + ElseBlock;
 		}
+		this.PushSourceCode(Code);
+	}
+	@Override public void VisitSwitchNode(SwitchNode Node) {
+		/*local*/String Code = "Match" + this.SwitchCaseCount + " = " + this.VisitNode(Node.MatchNode) + this.LineFeed;
+		this.SwitchCaseCount += 1;
+		/*local*/int i = 0;
+		while(i < Node.CaseList.size()) {
+			/*local*/GtNode Case  = Node.CaseList.get(i);
+			/*local*/GtNode Block = Node.CaseList.get(i+1);
+			Code += this.GetIndentString();
+			if(i == 0) {
+				Code += "if";
+			}
+			else {
+				Code += "elif";
+			}
+			Code += this.VisitNode(Case) + ":";
+			Code += this.VisitBlockWithIndent(Block, true) + this.LineFeed;
+			i = i + 2;
+		}
+		if(Node.DefaultBlock != null) {
+			Code += this.GetIndentString() + "else: ";
+			Code += this.VisitBlockWithIndent(Node.DefaultBlock, true) + this.LineFeed;
+		}
+		Code += this.GetIndentString() + "}";
 		this.PushSourceCode(Code);
 	}
 
