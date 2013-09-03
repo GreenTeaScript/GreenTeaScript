@@ -37,9 +37,10 @@ public class BashSourceGenerator extends SourceGenerator {
 		super(TargetCode, OutputFile, GeneratorFlag);
 		this.TrueLiteral  = "0";
 		this.FalseLiteral = "1";
-		this.NullLiteral = this.Quote("__NULL__");
+		this.NullLiteral = LibGreenTea.QuoteString("__NULL__");
 		this.MemberAccessOperator = "__MEMBER__";
 		this.LineComment = "##";
+		this.ParameterDelimiter = "";
 	}
 
 	@Override public void InitContext(GtParserContext Context) {
@@ -48,37 +49,8 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.WriteLineCode(this.LineFeed + "source $GREENTEA_HOME/include/bash/GreenTeaPlus.sh" + this.LineFeed);
 	}
 
-	@Override public String GenerateFuncTemplate(int ParamSize, GtFunc Func) {
-		/*local*/int BeginIdx = 1;
-		/*local*/String Template = "";
-		/*local*/boolean IsNative = false;
-		if(Func == null) {
-			Template = "$1";
-			BeginIdx = 2;
-		}
-		else if(Func.Is(NativeFunc)) {
-			Template = "$1" + this.MemberAccessOperator + Func.FuncName;
-			BeginIdx = 2;
-		}
-		else if(Func.Is(NativeMacroFunc)) {
-			Template = Func.GetNativeMacro();
-			IsNative = true;
-		}
-		else {
-			Template = Func.GetNativeFuncName();
-		}
-		/*local*/int i = BeginIdx;
-		if(IsNative == false) {
-			while(i < ParamSize) {
-				Template += " $" + i;
-				i = i + 1;
-			}
-		}
-		return Template;
-	}
-
-	private String VisitBlockWithIndent(GtNode Node, boolean allowDummyBlock) {
-		return this.VisitBlockWithOption(Node, true, allowDummyBlock, false);
+	@Override public String VisitBlockWithIndent(GtNode Node, boolean NeedBlock) {
+		return this.VisitBlockWithOption(Node, true, NeedBlock, false);
 	}
 
 	private String VisitBlockWithSkipJump(GtNode Node, boolean allowDummyBlock) {
@@ -120,10 +92,6 @@ public class BashSourceGenerator extends SourceGenerator {
 		return Code;
 	}
 
-	private String Quote(String Value) {
-		return "\"" + Value  + "\"";
-	}
-
 	public GtNode CreateDoWhileNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Cond, GtNode Block) {
 		/*
 		 * do { Block } while(Cond)
@@ -145,10 +113,10 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	private String ResolveCondition(GtNode Node) {
 		/*local*/String Cond = this.VisitNode(Node);
-		if(LibGreenTea.EqualsString(Cond, "0")) {
+		if(LibGreenTea.EqualsString(Cond, this.FalseLiteral)) {
 			Cond = "((1 == 1))";
 		}
-		else if(LibGreenTea.EqualsString(Cond, "1")) {
+		else if(LibGreenTea.EqualsString(Cond, this.TrueLiteral)) {
 			Cond = "((1 != 1))";
 		}
 		return Cond;
@@ -189,7 +157,7 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	private String CreateAssertFunc(ApplyNode Node) {
 		/*local*/GtNode ParamNode = Node.NodeList.get(1);
-		return "assert " + this.Quote(this.ResolveCondition(ParamNode));
+		return "assert " + LibGreenTea.QuoteString(this.ResolveCondition(ParamNode));
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {
@@ -320,7 +288,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	@Override public void VisitSwitchNode(SwitchNode Node) {
 		/*local*/String Code = "case " + this.ResolveValueType(Node.MatchNode, false) + " in";
 		/*local*/int i = 0;
-		while(i < Node.CaseList.size()) {
+		while(i < LibGreenTea.ListSize(Node.CaseList)) {
 			/*local*/GtNode Case  = Node.CaseList.get(i);
 			/*local*/GtNode Block = Node.CaseList.get(i+1);
 			Code += this.LineFeed + this.GetIndentString() + this.VisitNode(Case) + ")" + this.LineFeed;
@@ -358,7 +326,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/String Code = "trap ";
 		/*local*/String Try = this.VisitNode(new IfNode(null, null, TrueNode, Node.TryBlock, null));
 		/*local*/String Catch = this.VisitNode(new IfNode(null, null, TrueNode, Node.CatchBlock, null));
-		Code += this.Quote(Catch) + " ERR" + this.LineFeed;
+		Code += LibGreenTea.QuoteString(Catch) + " ERR" + this.LineFeed;
 		Code += this.GetIndentString() + Try + this.LineFeed + this.GetIndentString() + "trap ERR";
 		if(Node.FinallyBlock != null) {
 			/*local*/String Finally = this.VisitNode(new IfNode(null, null, TrueNode, Node.FinallyBlock, null));
@@ -372,7 +340,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitErrorNode(ErrorNode Node) {
-		this.PushSourceCode("echo " + this.Quote(Node.Token.ParsedText) + " >&2");
+		this.PushSourceCode("echo " + LibGreenTea.QuoteString(Node.Token.ParsedText) + " >&2");
 	}
 
 	@Override public void VisitCommandNode(CommandNode Node) {
@@ -385,40 +353,23 @@ public class BashSourceGenerator extends SourceGenerator {
 		}
 		
 		if(Type.equals(Type.Context.StringType)) {
-			Code = "execCommadString " + this.Quote(Code);
+			Code = "execCommadString " + LibGreenTea.QuoteString(Code);
 		}
 		else if(Type.equals(Type.Context.BooleanType)) {
-			Code = "execCommadBool " + this.Quote(Code);
+			Code = "execCommadBool " + LibGreenTea.QuoteString(Code);
 		}
 		this.PushSourceCode(Code);
 	}
 
 	private String AppendCommand(CommandNode CurrentNode) {
 		/*local*/String Code = "";
-		/*local*/int size = CurrentNode.Params.size();
+		/*local*/int size = LibGreenTea.ListSize(CurrentNode.Params);
 		/*local*/int i = 0;
 		while(i < size) {
 			Code += this.ResolveValueType(CurrentNode.Params.get(i), false) + " ";
 			i = i + 1;
 		}
 		return Code;
-	}
-
-	private GtNode ResolveParamName(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
-		return this.ConvertParamName(Func, ParamNameList, Body, 0);
-	}
-
-	private GtNode ConvertParamName(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body, int index) {
-		if(ParamNameList == null || index == ParamNameList.size()) {
-			return Body;
-		}
-		
-		/*local*/GtType ParamType = Func.GetFuncParamType(index);
-		/*local*/GtNode oldVarNode = new LocalNode(ParamType, null, "" + (index + 1));
-		/*local*/GtNode Let = new VarNode(null, null, ParamType, ParamNameList.get(index), oldVarNode, null);
-		index += 1;
-		Let.SetNextNode(this.ConvertParamName(Func, ParamNameList, Body, index));
-		return Let;
 	}
 
 	private boolean CheckConstFolding(GtNode TargetNode) {
@@ -452,7 +403,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		if(Type != null && Type.equals(Type.Context.BooleanType)) {
 			if(TargetNode instanceof ApplyNode || TargetNode instanceof UnaryNode || 
 					TargetNode instanceof CommandNode || TargetNode instanceof BinaryNode) {
-				return "$(valueOfBool " + this.Quote(Value) + ")";
+				return "$(valueOfBool " + LibGreenTea.QuoteString(Value) + ")";
 			}
 		}
 		
@@ -488,7 +439,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		// resolve string and object value
 		if(Type != null) {
 			if(Type.equals(Type.Context.StringType) || !this.IsNativeType(Type)) {
-				ResolvedValue = this.Quote(ResolvedValue);
+				ResolvedValue = LibGreenTea.QuoteString(ResolvedValue);
 			}
 		}
 		return ResolvedValue;
@@ -503,15 +454,32 @@ public class BashSourceGenerator extends SourceGenerator {
 			this.inMainFunc = true;
 		}
 		Function += FuncName + "() {" + this.LineFeed;
-		/*local*/String Block = this.VisitBlockWithIndent(this.ResolveParamName(Func, ParamNameList, Body), true);
-		Function += Block + "}" + this.LineFeed;
+		this.Indent();
+
+		/*local*/int i = 0;
+		while(i < ParamNameList.size()) {
+			/*local*/GtType ParamType = Func.GetFuncParamType(i);
+			// "local -a x"
+			Function += this.GetIndentString() + "local ";
+			if(this.IsNativeType(ParamType)) {
+				Function += "-a ";
+			}
+			Function += ParamNameList.get(i) + ";" + this.LineFeed + this.GetIndentString();
+			// "x = $1"
+			Function += ParamNameList.get(i) + "=$" + (i + 1) + ";" + this.LineFeed;
+			i = i + 1;
+		}
+		;
+		Function += this.VisitBlockWithIndent(Body, false) + this.LineFeed;
+		this.UnIndent();
+		Function += this.GetIndentString() + "}" + this.LineFeed;
 		this.WriteLineCode(Function);
 		this.inFunc = false;
 		this.inMainFunc = false;
 	}
 
 	@Override protected String GetNewOperator(GtType Type) {
-		return this.Quote("$(__NEW__" + Type.ShortClassName + ")");
+		return LibGreenTea.QuoteString("$(__NEW__" + Type.ShortClassName + ")");
 	}
 
 	@Override public void OpenClassField(GtType Type, GtClassField ClassField) {	//TODO: support super
@@ -521,7 +489,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		Program += this.GetIndentString() + "local -a " + this.GetRecvName() + this.LineFeed;
 
 		/*local*/int i = 0;
-		while(i < ClassField.FieldList.size()) {
+		while(i < LibGreenTea.ListSize(ClassField.FieldList)) {
 			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
 			/*local*/String InitValue = this.StringifyConstValue(FieldInfo.InitValue);
 			if(!FieldInfo.Type.IsNative()) {
@@ -534,11 +502,11 @@ public class BashSourceGenerator extends SourceGenerator {
 			i = i + 1;
 		}
 		Program += this.GetIndentString() + "echo ";
-		Program += this.Quote("${" + this.GetRecvName() + "[@]}") + this.LineFeed;
+		Program += LibGreenTea.QuoteString("${" + this.GetRecvName() + "[@]}") + this.LineFeed;
 		this.UnIndent();
 		Program += "}";
 		
-		this.WriteLineCode("\n" + Program);
+		this.WriteLineCode(this.LineFeed + Program);
 	}
 
 	@Override public Object Eval(GtNode Node) {

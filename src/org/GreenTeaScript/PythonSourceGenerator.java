@@ -43,36 +43,13 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.NullLiteral = "None";
 		this.LineComment = "##";
 		this.SwitchCaseCount = 0;
+		this.BlockBegin = "";
+		this.BlockEnd = "";
 	}
 
 	@Override protected String GetNewOperator(GtType Type) {
 		/*local*/String TypeName = Type.ShortClassName;
 		return TypeName + "()";
-	}
-
-	public String VisitBlockWithIndent(GtNode Node, boolean inBlock) {
-		/*local*/String Code = "";
-		if(inBlock) {
-			this.Indent();
-		}
-		/*local*/GtNode CurrentNode = Node;
-		while(CurrentNode != null) {
-			/*local*/String poppedCode = this.VisitNode(CurrentNode);
-			if(!LibGreenTea.EqualsString(poppedCode, "")) {
-				Code += this.GetIndentString() + poppedCode + this.LineFeed;
-			}
-			CurrentNode = CurrentNode.GetNextNode();
-		}
-		if(inBlock) {
-			this.UnIndent();
-			Code += this.GetIndentString();
-		}
-		else {
-			if(Code.length() > 0) {
-				Code = Code.substring(0, Code.length() - 1);
-			}
-		}
-		return Code;
 	}
 
 	public GtNode CreateDoWhileNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Cond, GtNode Block) {
@@ -144,7 +121,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		}
 		return null;
 	}
-	
+
 	@Override public void VisitContinueNode(ContinueNode Node) {
 		/*local*/String Code = "";
 		/*local*/ForNode Parent = this.FindParentForNode(Node);
@@ -221,18 +198,17 @@ public class PythonSourceGenerator extends SourceGenerator {
 			Code += this.GetIndentString();
 			if(i == 0) {
 				Code += "if";
-			} else {
+			}
+			else {
 				Code += "elif";
 			}
 			Code += this.VisitNode(Case) + ":";
-			this.VisitBlockEachStatementWithIndent(Block, true);
-			Code += this.PopSourceCode() + this.LineFeed;
+			Code += this.VisitBlockWithIndent(Block, true) + this.LineFeed;
 			i = i + 2;
 		}
 		if(Node.DefaultBlock != null) {
 			Code += this.GetIndentString() + "else: ";
-			this.VisitBlockEachStatementWithIndent(Node.DefaultBlock, true);
-			Code += this.PopSourceCode() + this.LineFeed;
+			Code += this.VisitBlockWithIndent(Node.DefaultBlock, true) + this.LineFeed;
 		}
 		Code += this.GetIndentString() + "}";
 		this.PushSourceCode(Code);

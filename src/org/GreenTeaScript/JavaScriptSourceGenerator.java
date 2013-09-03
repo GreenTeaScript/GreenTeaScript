@@ -36,7 +36,7 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 		this.IsNodeJS = LibGreenTea.EqualsString(TargetCode, "nodejs");
 	}
 
-	public  String VisitBlockJS(GtNode Node) {
+	public String VisitBlockJS(GtNode Node) {
 		/*local*/String Code = "";
 		/*local*/GtNode CurrentNode = Node;
 		while(CurrentNode != null) {
@@ -49,7 +49,7 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 		return Code;
 	}
 
-	public  String VisitBlockJSWithIndent(GtNode Node) {
+	public String VisitBlockJSWithIndent(GtNode Node) {
 		/*local*/String Code = "";
 		Code += "{" + this.LineFeed;
 		this.Indent();
@@ -109,7 +109,7 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 	@Override public void VisitDoWhileNode(DoWhileNode Node) {
 		/*local*/String LoopBody = this.VisitBlockJSWithIndent(Node.LoopBody);
 		/*local*/String CondExpr = this.VisitNode(Node.CondExpr);
-		this.PushSourceCode("do {" + LoopBody + "}while(" + CondExpr + ");");
+		this.PushSourceCode("do {" + LoopBody + "} while(" + CondExpr + ");");
 	}
 
 	@Override public void VisitTryNode(TryNode Node) {
