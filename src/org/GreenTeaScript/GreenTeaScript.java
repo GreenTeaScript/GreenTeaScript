@@ -277,6 +277,7 @@ interface GtConst {
 	public final static int AllowVoidPolicy                 = (1 << 4);
 	public final static int AllowCoercionPolicy             = (1 << 5);
 	public final static int OnlyConstPolicy                 = (1 << 6);
+	public final static int NullablePolicy                  = (1 << 8);
 	public final static int BlockPolicy                     = (1 << 7);
 
 	public final static Object UndefinedSymbol = new Object();   // any class
@@ -1570,12 +1571,17 @@ final class GtTypeEnv extends GtStatic {
 		if(Node.IsError() || IsFlag(TypeCheckPolicy, NoCheckPolicy)) {
 			return Node;
 		}
+//		System.err.println("**** " + Node.getClass());
 		/*local*/Object ConstValue = Node.ToConstValue(IsFlag(TypeCheckPolicy, OnlyConstPolicy));
-		if(ConstValue != null /*&& !(Node instanceof ConstNode)*/) {  // IMIFU
+		if(ConstValue != null && !(Node instanceof ConstNode)) {  // recreated
 			Node = this.Generator.CreateConstNode(Node.Type, ParsedTree, ConstValue);
 		}
 		if(IsFlag(TypeCheckPolicy, OnlyConstPolicy) && ConstValue == null) {
-			return this.CreateSyntaxErrorNode(ParsedTree, "value must be const");
+			if(IsFlag(TypeCheckPolicy, NullablePolicy) && Node instanceof NullNode) { // OK
+			}
+			else {
+				return this.CreateSyntaxErrorNode(ParsedTree, "value must be const");
+			}
 		}
 		if(IsFlag(TypeCheckPolicy, AllowVoidPolicy) || Type == this.VoidType) {
 			return Node;

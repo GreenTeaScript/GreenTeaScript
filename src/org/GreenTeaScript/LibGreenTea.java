@@ -79,7 +79,7 @@ public abstract class LibGreenTea implements GtConst {
 		}
 	}
 
-	public static int VerboseMask = GtStatic.VerboseUndefined;
+	public static int VerboseMask = GtStatic.VerboseUndefined | GtStatic.VerboseException;
 
 	public final static void VerboseLog(int VerboseFlag, String Message) {
 		if((LibGreenTea.VerboseMask & VerboseFlag) == VerboseFlag) {
@@ -502,6 +502,22 @@ public abstract class LibGreenTea implements GtConst {
 	public final static Object Apply2(Object NativeMethod, Object Self, Object Param1, Object Param2) {
 		try {
 			return ((Method)NativeMethod).invoke(Self, Param1, Param2);
+		}
+		catch (InvocationTargetException e) {
+			LibGreenTea.VerboseException(e);
+		}
+		catch (IllegalArgumentException e) {
+			LibGreenTea.VerboseException(e);
+		}
+		catch (IllegalAccessException e) {
+			LibGreenTea.VerboseException(e);
+		}
+		return null;
+	}
+
+	public final static Object ApplyFunc(GtFunc Func, Object Self, Object[] Params) {
+		try {
+			return ((Method)Func.NativeRef).invoke(Self, Params);
 		}
 		catch (InvocationTargetException e) {
 			LibGreenTea.VerboseException(e);

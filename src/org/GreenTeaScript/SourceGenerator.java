@@ -118,8 +118,7 @@ class GtNode extends GtStatic {
 
 	public Object ToConstValue(boolean EnforceConst)  {
 		if(EnforceConst) {
-			LibGreenTea.DebugP("node type=" + LibGreenTea.GetClassName(this));
-			this.Type.Context.ReportError(ErrorLevel, this.Token, "not const value");
+			this.Type.Context.ReportError(ErrorLevel, this.Token, "value must be const");
 		}
 		return null;
 	}
@@ -1202,32 +1201,27 @@ class GtGenerator extends GtStatic {
 	// EnforceConst : 
 	public Object EvalApplyNode(ApplyNode Node, boolean EnforceConst) {
 //ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
+		//System.err.println("@@@@ " + (Node.Func.NativeRef.getClass()));
 		if(Node.Func != null && (EnforceConst || Node.Func.Is(ConstFunc)) && Node.Func.NativeRef instanceof Method) {
-			Method JavaMethod = (/*cast*/Method)Node.Func.NativeRef;
 			Object RecvObject = null;
 			int StartIndex = 1;
 			if(!Node.Func.Is(NativeStaticFunc)) {
 				RecvObject = Node.NodeList.get(1).ToConstValue(EnforceConst);
-				if(RecvObject == null) return null;
+				if(RecvObject == null) {
+					return null;
+				}
 				StartIndex = 2;
 			}
 			Object[] Arguments = new Object[Node.NodeList.size() - StartIndex];
 			for(int i = 0; i < Arguments.length; i++) {
-				Arguments[i] = Node.NodeList.get(StartIndex+i).ToConstValue(EnforceConst);
-				if(Arguments[i] == null && !(Node.NodeList.get(StartIndex+i) instanceof NullNode)) {
+				GtNode ArgNode = Node.NodeList.get(StartIndex+i);
+				Arguments[i] = ArgNode.ToConstValue(EnforceConst);
+				//System.err.println("@@@@ " + i + ", " + Arguments[i] + ", " + ArgNode.getClass());
+				if(Arguments[i] == null && !(ArgNode instanceof NullNode)) {
 					return null;
 				}
 			}
-			try {
-				return JavaMethod.invoke(RecvObject, Arguments);
-			} catch (IllegalArgumentException e) {
-				LibGreenTea.VerboseException(e);
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				LibGreenTea.VerboseException(e);
-			} catch (InvocationTargetException e) {
-				LibGreenTea.VerboseException(e);
-			}
+			return LibGreenTea.ApplyFunc(Node.Func, RecvObject, Arguments);
 		}
 //endif VAJA
 		return null;  // if unsupported
