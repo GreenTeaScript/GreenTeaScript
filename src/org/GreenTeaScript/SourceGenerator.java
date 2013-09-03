@@ -1405,7 +1405,7 @@ class SourceGenerator extends GtGenerator {
 	public String VisitBlockWithIndent(GtNode Node, boolean NeedBlock) {
 		/*local*/String Code = "";
 		if(NeedBlock) {
-			Code += "{" + this.LineFeed;
+			Code += this.BlockBegin + this.LineFeed;
 			this.Indent();
 		}
 		/*local*/GtNode CurrentNode = Node;
@@ -1420,7 +1420,7 @@ class SourceGenerator extends GtGenerator {
 		}
 		if(NeedBlock) {
 			this.UnIndent();
-			Code += this.GetIndentString() + "}";
+			Code += this.GetIndentString() + this.BlockEnd;
 		}
 //		else if(Code.length() > 0) {
 //			Code = Code.substring(0, Code.length() - 1);

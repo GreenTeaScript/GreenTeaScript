@@ -44,6 +44,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.SwitchCaseCount = 0;
 		this.BlockBegin = "";
 		this.BlockEnd = "";
+		this.SemiColon = "";
 	}
 
 	@Override protected String GetNewOperator(GtType Type) {
@@ -96,6 +97,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		else {
 			Program += this.VisitBlockWithIndent(Node.LoopBody, true);
 		}
+		Program += this.VisitNode(Node.IterExpr);
 		this.PushSourceCode(Program);
 	}
 
