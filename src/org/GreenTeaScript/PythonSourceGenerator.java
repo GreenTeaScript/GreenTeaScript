@@ -30,7 +30,6 @@ import java.util.ArrayList;
 //GreenTea Generator should be written in each language.
 
 public class PythonSourceGenerator extends SourceGenerator {
-	/*field*/String ForIterExpr = null;
 	/*field*/private int SwitchCaseCount;
 
 	PythonSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
