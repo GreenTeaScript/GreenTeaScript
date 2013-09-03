@@ -308,13 +308,10 @@ class GtFunc extends GtStatic {
 }
 
 class GtPolyFunc extends GtStatic {
-	/*field*/public GtNameSpace NameSpace;
 	/*field*/public ArrayList<GtFunc> FuncList;
 
-	GtPolyFunc/*constructor*/(GtNameSpace NameSpace, GtFunc Func1) {
-		this.NameSpace = NameSpace;
-		this.FuncList = new ArrayList<GtFunc>();
-		this.FuncList.add(Func1);
+	GtPolyFunc/*constructor*/(ArrayList<GtFunc> FuncList) {
+		this.FuncList = FuncList == null ? new ArrayList<GtFunc>() : FuncList;
 	}
 
 	@Override public String toString() { // this is used in an error message
@@ -330,34 +327,22 @@ class GtPolyFunc extends GtStatic {
 		return s;
 	}
 
-	public final GtPolyFunc Dup(GtNameSpace NameSpace) {
-		if(this.NameSpace != NameSpace) {
-			/*local*/GtPolyFunc PolyFunc = new GtPolyFunc(NameSpace, this.FuncList.get(0));
-			/*local*/int i = 1;
+	public final void Append(GtFunc Func, GtToken SourceToken) {
+		if(SourceToken != null) {
+			/*local*/int i = 0;
 			while(i < this.FuncList.size()) {
-				PolyFunc.FuncList.add(this.FuncList.get(i));
+				/*local*/GtFunc ListedFunc = this.FuncList.get(i);
+				if(ListedFunc == Func) {
+					return; /* same function */
+				}
+				if(Func.EqualsType(ListedFunc)) {
+					Func.GetContext().ReportError(WarningLevel, SourceToken, "duplicated symbol" + SourceToken.ParsedText);
+					break;
+				}
 				i = i + 1;
 			}
-			return PolyFunc;
-		}
-		return this;
-	}
-
-	public final GtFunc Append(GtFunc Func) {
-		/*local*/int i = 0;
-		while(i < this.FuncList.size()) {
-			/*local*/GtFunc ListedFunc = this.FuncList.get(i);
-			if(ListedFunc == Func) {
-				return null; /* same function */
-			}
-			if(Func.EqualsType(ListedFunc)) {
-				this.FuncList.add(Func);
-				return ListedFunc;
-			}
-			i = i + 1;
 		}
 		this.FuncList.add(Func);
-		return null;
 	}
 
 	public GtFunc ResolveUnaryFunc(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtNode ExprNode) {

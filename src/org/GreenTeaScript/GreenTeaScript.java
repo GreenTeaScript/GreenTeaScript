@@ -380,32 +380,32 @@ class GtStatic implements GtConst {
 		return s;
 	}
 
-	private final static GtPolyFunc JoinPolyFuncFunc(GtType ClassType, GtPolyFunc PolyFunc, GtFunc Func) {
-		if(ClassType == null || Func.GetRecvType() == ClassType) {
-			if(PolyFunc == null) {
-				PolyFunc = new GtPolyFunc(null, Func);
-			}
-			else {
-				PolyFunc.FuncList.add(Func);
-			}
-		}
-		return PolyFunc;
-	}
-
-	public final static GtPolyFunc JoinPolyFunc(GtType ClassType, GtPolyFunc PolyFunc, Object FuncValue) {
-		if(FuncValue instanceof GtFunc) {
-			return JoinPolyFuncFunc(ClassType, PolyFunc, (/*cast*/GtFunc)FuncValue);
-		}
-		if(FuncValue instanceof GtPolyFunc) {
-			/*local*/GtPolyFunc Poly = (/*cast*/GtPolyFunc)FuncValue;
-			/*local*/int i = 0;
-			while(i < Poly.FuncList.size()) {
-				PolyFunc = JoinPolyFuncFunc(ClassType, PolyFunc, Poly.FuncList.get(i));
-				i += 1;
-			}
-		}
-		return PolyFunc;
-	}
+//	private final static GtPolyFunc JoinPolyFuncFunc(GtType ClassType, GtPolyFunc PolyFunc, GtFunc Func) {
+//		if(ClassType == null || Func.GetRecvType() == ClassType) {
+//			if(PolyFunc == null) {
+//				PolyFunc = new GtPolyFunc(null, Func);
+//			}
+//			else {
+//				PolyFunc.FuncList.add(Func);
+//			}
+//		}
+//		return PolyFunc;
+//	}
+//
+//	public final static GtPolyFunc JoinPolyFunc(GtType ClassType, GtPolyFunc PolyFunc, Object FuncValue) {
+//		if(FuncValue instanceof GtFunc) {
+//			return JoinPolyFuncFunc(ClassType, PolyFunc, (/*cast*/GtFunc)FuncValue);
+//		}
+//		if(FuncValue instanceof GtPolyFunc) {
+//			/*local*/GtPolyFunc Poly = (/*cast*/GtPolyFunc)FuncValue;
+//			/*local*/int i = 0;
+//			while(i < Poly.FuncList.size()) {
+//				PolyFunc = JoinPolyFuncFunc(ClassType, PolyFunc, Poly.FuncList.get(i));
+//				i += 1;
+//			}
+//		}
+//		return PolyFunc;
+//	}
 
 	public final static int ApplyTokenFunc(GtTokenFunc TokenFunc, GtTokenContext TokenContext, String ScriptSource, int Pos) {
 		while(TokenFunc != null) {
@@ -1685,7 +1685,7 @@ final class GtNameSpace extends GtStatic {
 		}
 		if(SourceToken != null) {
 			if(this.SymbolPatternTable.get(Key) != null) {
-				this.Context.ReportError(InfoLevel, SourceToken, "duplicated symbol: " + SourceToken);
+				this.Context.ReportError(WarningLevel, SourceToken, "duplicated symbol: " + SourceToken);
 			}
 		}
 		this.SymbolPatternTable.put(Key, Value);
@@ -1834,16 +1834,16 @@ final class GtNameSpace extends GtStatic {
 	}
 
 	public final GtPolyFunc GetGreenMethod(GtType ClassType, String Symbol, boolean RecursiveSearch) {
-		/*local*/GtPolyFunc PolyFunc = null;
+		/*local*/ArrayList<GtFunc> FuncList = new ArrayList<GtFunc>();
 		while(ClassType != null) {
 			/*local*/String Key = ClassSymbol(ClassType, Symbol);
-			PolyFunc = GtStatic.JoinPolyFunc(ClassType, PolyFunc, this.GetSymbol(Key));
+			this.RetrieveFuncList(Key, FuncList);
 			if(!RecursiveSearch) {
 				break;
 			}
 			ClassType = ClassType.SuperType;
 		}
-		return PolyFunc;
+		return new GtPolyFunc(FuncList);
 	}
 
 	public final GtPolyFunc GetMethod(GtType ClassType, String Symbol, boolean RecursiveSearch) {
@@ -1872,42 +1872,65 @@ final class GtNameSpace extends GtStatic {
 		return PolyFunc;
 	}
 
-	public final GtFunc GetFuncParam(String FuncName, int BaseIndex, GtType[] ParamTypes) {
-		/*local*/Object FuncValue = this.GetSymbol(FuncName);
+	public final void RetrieveFuncList(String FuncName, ArrayList<GtFunc> FuncList) {
+		/*local*/Object FuncValue = this.GetLocalSymbol(FuncName);
 		if(FuncValue instanceof GtFunc) {
 			/*local*/GtFunc Func = (/*cast*/GtFunc)FuncValue;
-			if(Func.EqualsParamTypes(BaseIndex, ParamTypes)) {
-				return Func;
-			}
+			FuncList.add(Func);
 		}
 		else if(FuncValue instanceof GtPolyFunc) {
 			/*local*/GtPolyFunc PolyFunc = (/*cast*/GtPolyFunc)FuncValue;
 			/*local*/int i = PolyFunc.FuncList.size();
 			while(i >= 1) {
-				if(PolyFunc.FuncList.get(i-1).EqualsParamTypes(BaseIndex, ParamTypes)) {
-					return PolyFunc.FuncList.get(i);
-				}
+				FuncList.add(PolyFunc.FuncList.get(i));
 				i = i - 1;
 			}
+		}
+		if(this.ParentNameSpace != null) {
+			this.ParentNameSpace.RetrieveFuncList(FuncName, FuncList);
+		}
+	}
+	
+	public final GtFunc GetFunc(String FuncName, int BaseIndex, ArrayList<GtType> TypeList) {
+		/*local*/ArrayList<GtFunc> FuncList = new ArrayList<GtFunc>();
+		this.RetrieveFuncList(FuncName, FuncList);
+		/*local*/int i = 0;
+		while(i < FuncList.size()) {
+			/*local*/GtFunc Func = FuncList.get(i);
+			if(Func.Types.length == TypeList.size() - BaseIndex) {
+				/*local*/int j = 0;
+				while(j < Func.Types.length) {
+					if(TypeList.get(BaseIndex + j) != Func.Types[j]) {
+						continue;
+					}
+					j = j + 1;
+				}
+				return Func;
+			}
+			i = i + 1;
 		}
 		return null;
 	}
 
 	public final Object AppendFuncName(String Key, GtFunc Func, GtToken SourceToken) {
-		/*local*/Object OldValue = this.GetSymbol(Key);
+		/*local*/Object OldValue = this.GetLocalSymbol(Key);
 		if(OldValue instanceof GtFunc) {
-			/*local*/GtPolyFunc PolyFunc = new GtPolyFunc(this, (/*cast*/GtFunc)OldValue);
-			this.SetSymbol(Key, PolyFunc, null);
-			return PolyFunc.Append(Func);
+			/*local*/GtFunc OldFunc = (/*cast*/GtFunc)OldValue;
+			if(!OldFunc.EqualsType(Func)) {
+				/*local*/GtPolyFunc PolyFunc = new GtPolyFunc(null);
+				PolyFunc.Append(OldFunc, SourceToken);
+				PolyFunc.Append(Func, SourceToken);
+				this.SetSymbol(Key, PolyFunc, null);
+				return PolyFunc;
+			}
+			// error
 		}
 		else if(OldValue instanceof GtPolyFunc) {
-			/*local*/GtPolyFunc PolyFunc = ((/*cast*/GtPolyFunc)OldValue).Dup(this);
-			this.SetSymbol(Key, PolyFunc, null);
-			return PolyFunc.Append(Func);
+			/*local*/GtPolyFunc PolyFunc = (/*cast*/GtPolyFunc)OldValue;
+			PolyFunc.Append(Func, SourceToken);
+			return PolyFunc;
 		}
-		else {
-			this.SetSymbol(Key, Func, SourceToken);
-		}
+		this.SetSymbol(Key, Func, SourceToken);
 		return OldValue;
 	}
 
@@ -3626,18 +3649,15 @@ final class GreenTeaGrammar extends GtGrammar {
 
 	// FuncDecl
 	public static GtSyntaxTree ParseFuncName(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		if(TokenContext.HasNext()) {
-			/*local*/GtToken Token = TokenContext.Next();
-			/*local*/String Name = Token.ParsedText;
-			if(LibGreenTea.CharAt(Name, 0) != '(' && LibGreenTea.CharAt(Name, 0) != '.') {
-				if(Token.IsQuoted()) {
-					Name = LibGreenTea.UnquoteString(Name);
-				}
-				return new GtSyntaxTree(Pattern, NameSpace, Token, Name);
+		/*local*/GtToken Token = TokenContext.Next();
+		/*local*/String Name = Token.ParsedText;
+		if(LibGreenTea.CharAt(Name, 0) != '(' && LibGreenTea.CharAt(Name, 0) != '.') {
+			if(Token.IsQuoted()) {
+				Name = LibGreenTea.UnquoteString(Name);
 			}
-			return TokenContext.ReportExpectedMessage(Token, "name", true);
+			return new GtSyntaxTree(Pattern, NameSpace, Token, Name);
 		}
-		return null;
+		return TokenContext.ReportExpectedMessage(Token, "name", true);
 	}
 
 	private static void ParseFuncParam(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree FuncDeclTree, ArrayList<GtType> TypeList) {
@@ -3714,6 +3734,7 @@ final class GreenTeaGrammar extends GtGrammar {
 				TypeList.add(ThisType);
 			}
 			GreenTeaGrammar.ParseFuncParam(NameSpace, TokenContext, FuncDeclTree, TypeList);
+
 //			GtFunc DefinedFunc = Gamma.Generator.CreateFunc(FuncFlag, FuncName, 0, TypeList);
 			GreenTeaGrammar.ParseFuncBody(NameSpace, TokenContext, FuncDeclTree);
 			TokenContext.SetRememberFlag(ParseFlag);
@@ -3788,7 +3809,7 @@ final class GreenTeaGrammar extends GtGrammar {
 			DefinedFunc = Gamma.Generator.CreateFunc(FuncFlag, "To" + ToType.ShortClassName, 0, TypeList);
 		}
 		else {
-			DefinedFunc = ParsedTree.NameSpace.GetFuncParam(FuncName, 0, LibGreenTea.CompactTypeList(0, TypeList));
+			DefinedFunc = ParsedTree.NameSpace.GetFunc(FuncName, 0, TypeList);
 			if(DefinedFunc != null) {
 				if(DefinedFunc.IsAbstract()) {
 					DefinedPrototype = true;
