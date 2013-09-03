@@ -870,14 +870,14 @@ final class GtTokenContext extends GtStatic {
 	}
 
 	public final boolean MatchToken(String TokenText) {
-		if(this.PeekToken(TokenText)) {
+		if(this.IsToken(TokenText)) {
 			this.CurrentPosition += 1;
 			return true;
 		}
 		return false;
 	}
 
-	public final boolean PeekToken(String TokenText) {
+	public final boolean IsToken(String TokenText) {
 		/*local*/GtToken Token = this.GetToken();
 		if(Token.EqualsText(TokenText)) {
 			return true;
@@ -3718,23 +3718,21 @@ final class GreenTeaGrammar extends GtGrammar {
 			/*local*/GtToken Token = TokenContext.Next();
 			FuncBlock.DefinedFunc.SetNativeMacro(LibGreenTea.UnquoteString(Token.ParsedText));
 		}
-		else {
-			if(TokenContext.PeekToken("import")) {
-				/*local*/GtSyntaxTree ImportTree = TokenContext.ParsePattern(NameSpace, "import", Optional);
-				if(GtStatic.IsValidSyntax(ImportTree)) {
-					if(!LibGreenTea.ImportNativeMethod(FuncBlock.DefinedFunc, (/*cast*/String)ImportTree.ConstValue)) {
-						NameSpace.Context.ReportError(WarningLevel, ImportTree.KeyToken, "cannot import: " + ImportTree.ConstValue);
-					}
+		else if(TokenContext.IsToken("import")) {
+			/*local*/GtSyntaxTree ImportTree = TokenContext.ParsePattern(NameSpace, "import", Optional);
+			if(GtStatic.IsValidSyntax(ImportTree)) {
+				if(!LibGreenTea.ImportNativeMethod(FuncBlock.DefinedFunc, (/*cast*/String)ImportTree.ConstValue)) {
+					NameSpace.Context.ReportError(WarningLevel, ImportTree.KeyToken, "cannot import: " + ImportTree.ConstValue);
 				}
 			}
-			else {
-				/*local*/GtSyntaxTree BlockTree = TokenContext.ParsePattern(NameSpace, "$Block$", Optional);
-				if(BlockTree != null) {
-					FuncBlock.FuncBlock = BlockTree;
-					/*local*/GtSyntaxTree ReturnTree = new GtSyntaxTree(NameSpace.GetSyntaxPattern("return"), NameSpace, GtTokenContext.NullToken, null);
-					GtStatic.LinkTree(GtStatic.TreeTail(BlockTree), ReturnTree);
-					FuncBlock.DefinedFunc.NativeRef = FuncBlock;
-				}
+		}
+		else {
+			/*local*/GtSyntaxTree BlockTree = TokenContext.ParsePattern(NameSpace, "$Block$", Optional);
+			if(BlockTree != null) {
+				FuncBlock.FuncBlock = BlockTree;
+				/*local*/GtSyntaxTree ReturnTree = new GtSyntaxTree(NameSpace.GetSyntaxPattern("return"), NameSpace, GtTokenContext.NullToken, null);
+				GtStatic.LinkTree(GtStatic.TreeTail(BlockTree), ReturnTree);
+				FuncBlock.DefinedFunc.NativeRef = FuncBlock;
 			}
 		}
 	}
