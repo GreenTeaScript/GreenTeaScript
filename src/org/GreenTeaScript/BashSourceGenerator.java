@@ -514,7 +514,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		return this.Quote("$(__NEW__" + Type.ShortClassName + ")");
 	}
 
-	@Override public void GenerateClassField(GtType Type, GtClassField ClassField) {	//TODO: support super
+	@Override public void OpenClassField(GtType Type, GtClassField ClassField) {	//TODO: support super
 		/*local*/String Program = "__NEW__" + Type.ShortClassName + "() {" + this.LineFeed;
 		this.WriteLineCode("#### define class " + Type.ShortClassName + " ####");
 		this.Indent();

@@ -75,6 +75,10 @@ class GtType extends GtStatic {
 		return GenericType;
 	}
 
+	public final boolean IsAbstract() {
+		return this.NativeSpec == null && this.SuperType == this.Context.StructType/*default*/;
+	}
+
 	public final boolean IsNative() {
 		return IsFlag(this.ClassFlag, NativeClass);
 	}
@@ -161,6 +165,7 @@ class GtType extends GtStatic {
 	public boolean IsDynamicNaitiveLoading() {
 		return this.IsNative() && !IsFlag(this.ClassFlag, CommonClass);
 	}
+
 }
 
 class GtFunc extends GtStatic {

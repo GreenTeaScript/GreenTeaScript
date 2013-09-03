@@ -168,7 +168,7 @@ var CLASS = (function (_super) {
     return CLASS;
 })(SUPERCLASS);
  */
-	@Override public void GenerateClassField(GtType Type, GtClassField ClassField) {
+	@Override public void OpenClassField(GtType Type, GtClassField ClassField) {
 		/*local*/String TypeName = Type.ShortClassName;
 		/*local*/String Program = this.GetIndentString() + "var " + TypeName + " = (function() {" + this.LineFeed;
 //		if(Type.SuperType != null) {

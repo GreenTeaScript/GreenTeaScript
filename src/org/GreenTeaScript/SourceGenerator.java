@@ -985,7 +985,7 @@ class GtGenerator extends GtStatic {
 		return LibGreenTea.GetNativeType(this.Context, Value);
 	}
 
-	public void GenerateClassField(GtType Type, GtClassField ClassField) {
+	public void OpenClassField(GtType Type, GtClassField ClassField) {
 		/*extension*/
 	}
 
@@ -1265,6 +1265,11 @@ class GtGenerator extends GtStatic {
 
 	public void InvokeMainFunc(String MainFuncName) {
 		/*extension*/
+	}
+
+	public void CloseClassField(GtType definedType, GtClassField classField) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

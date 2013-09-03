@@ -407,7 +407,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		}
 	}
 
-	@Override public void GenerateClassField(GtType Type, GtClassField ClassField) {
+	@Override public void OpenClassField(GtType Type, GtClassField ClassField) {
 		String className = Type.ShortClassName;
 		MethodHolderClass superClassNode = this.classMap.get(Type.SuperType.ShortClassName);
 		String superClassName = superClassNode != null ? superClassNode.name : "java/lang/Object";

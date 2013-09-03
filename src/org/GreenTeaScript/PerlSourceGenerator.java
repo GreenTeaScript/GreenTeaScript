@@ -188,7 +188,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		this.WriteLineCode(Program);
 	}
 
-	@Override public void GenerateClassField(GtType Type, GtClassField ClassField) {
+	@Override public void OpenClassField(GtType Type, GtClassField ClassField) {
 		/*local*/String TypeName = Type.ShortClassName;
 		/*local*/String Program = this.GetIndentString() + "package " + TypeName + ";" + this.LineFeed;
 		if(Type.SuperType != null) {
