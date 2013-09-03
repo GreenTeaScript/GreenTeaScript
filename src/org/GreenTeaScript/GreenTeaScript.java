@@ -1422,7 +1422,7 @@ class GtVariableInfo extends GtStatic {
 		this.Type = Type;
 		this.NameToken = NameToken;
 		this.Name = Name;
-		this.NativeName = GtStatic.NativeVariableName(Name, Index);
+		this.NativeName = (NameToken == null) ? Name : GtStatic.NativeVariableName(Name, Index);
 		this.InitValue = null;
 		this.UsedCount = 0;
 		this.DefCount  = 1;
@@ -3678,8 +3678,8 @@ final class GreenTeaGrammar extends GtGrammar {
 			}
 			FuncDeclTree.SetMatchedPatternAt(ParamBase + VarDeclType, NameSpace, TokenContext, "$Type$", Required);
 			FuncDeclTree.SetMatchedPatternAt(ParamBase + VarDeclName, NameSpace, TokenContext, "$Variable$", Required);
-			if(!FuncDeclTree.IsEmptyOrError()) {
-				FuncBlock.AddParameter(FuncDeclTree.GetSyntaxTreeAt(ParamBase + VarDeclType).GetParsedType(), FuncDeclTree.GetSyntaxTreeAt(ParamBase + VarDeclType).KeyToken.ParsedText);
+			if(FuncDeclTree.IsValidSyntax()) {
+				FuncBlock.AddParameter(FuncDeclTree.GetSyntaxTreeAt(ParamBase + VarDeclType).GetParsedType(), FuncDeclTree.GetSyntaxTreeAt(ParamBase + VarDeclName).KeyToken.ParsedText);
 			}
 			if(TokenContext.MatchToken("=")) {
 				FuncDeclTree.SetMatchedPatternAt(ParamBase + VarDeclValue, NameSpace, TokenContext, "$Expression$", Required);

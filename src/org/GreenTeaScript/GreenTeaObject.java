@@ -216,7 +216,8 @@ class GtFuncBlock extends GtStatic {
 		if(Type.IsVarType()) {
 			this.IsVarArgument = true;
 		}
-		this.NameList.add(GtStatic.NativeVariableName(Name, NameList.size()));
+//		this.NameList.add(GtStatic.NativeVariableName(Name, NameList.size()));
+		this.NameList.add(Name);
 	}
 
 	
