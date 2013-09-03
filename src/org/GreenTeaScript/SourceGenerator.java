@@ -482,7 +482,7 @@ class VarNode extends GtNode {
 		this.DeclType  = DeclType;
 		this.InitNode  = InitNode;
 		this.BlockNode = Block;
-		this.SetParent2(InitNode, BlockNode);
+		this.SetParent2(InitNode, this.BlockNode);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitVarNode(this);

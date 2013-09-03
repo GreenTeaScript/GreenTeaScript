@@ -268,6 +268,11 @@ class LibGreenTea {
         return false;
     }
 
+    static LoadNativeField(ClassType: GtType, FieldName: string) : boolean {
+        throw new Error("NotSupportedAPI");
+        return false;
+    }
+
 	static EqualsFunc(m1: any, m2: any): boolean {
 		return m1 === m2;
 	}

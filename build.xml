@@ -1,15 +1,15 @@
 <project name="GreenTeaScript" default="jar">
 	<!-- directory / file definition -->
 	<property name="BinaryName" value="GreenTeaScript" />
-	<property name="source" value="src" />
-	<property name="build" value="bin" />
+	<property name="source_dir" value="src" />
+	<property name="build_dir"  value="bin" />
 
 	<!-- ================================== -->
 	<!--                BUILD               -->
 	<!-- ================================== -->
 	<target name="build">
-		<mkdir dir="bin" />
-		<javac srcdir="src" destdir="bin" debug="on" target="1.6" source="1.6" includeantruntime="false">
+		<mkdir dir="${build_dir}" />
+		<javac srcdir="${source_dir}" destdir="${build_dir}" debug="on" target="1.6" source="1.6" includeantruntime="false">
 			<classpath path="ext/asm-all-4.0.jar" />
 			<include name="**/*.java" />
 		</javac>
@@ -20,7 +20,7 @@
 	<!-- ================================== -->
 	<target name="jar" depends="build">
 		<jar jarfile="${BinaryName}.jar">
-			<fileset dir="bin" includes="**/*.class" />
+			<fileset dir="${build_dir}" includes="**/*.class" />
 			<fileset dir="." includes="lib/**/*.green" />
 			<exclude name="**/*Test.class" />
 			<manifest>
@@ -35,7 +35,7 @@
 	<!-- ================================== -->
 	<target name="clean">
 		<delete>
-			<fileset dir="bin" includes="*.class"/>
+			<fileset dir="${build_dir}" includes="**/*.class"/>
 		</delete>
 		<delete file="${BinaryName}.jar" />
 	</target>

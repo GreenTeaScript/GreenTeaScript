@@ -447,7 +447,7 @@ class GtStatic implements GtConst {
 
 	public final static int ApplyTokenFunc(GtTokenFunc TokenFunc, GtTokenContext TokenContext, String ScriptSource, int Pos) {
 		while(TokenFunc != null) {
-			/*local*/int NextIdx = (int)LibGreenTea.ApplyTokenFunc(TokenFunc.Func, TokenContext, ScriptSource, Pos);
+			/*local*/int NextIdx = (/*cast*/int)LibGreenTea.ApplyTokenFunc(TokenFunc.Func, TokenContext, ScriptSource, Pos);
 			if(NextIdx > Pos) return NextIdx;
 			TokenFunc = TokenFunc.ParentFunc;
 		}
@@ -1853,7 +1853,7 @@ final class GtNameSpace extends GtStatic {
 	public final GtPolyFunc GetMethod(GtType ClassType, String Symbol, boolean RecursiveSearch) {
 		/*local*/GtPolyFunc PolyFunc = this.GetGreenMethod(ClassType, Symbol, RecursiveSearch);
 		if(PolyFunc == null && ClassType.IsDynamicNaitiveLoading()) {
-			Object Value = this.GetSymbol(ClassSymbol(ClassType, Symbol));
+			/*local*/Object Value = this.GetSymbol(ClassSymbol(ClassType, Symbol));
 			if(Value != UndefinedSymbol) {
 				if(LibGreenTea.LoadNativeMethods(ClassType, Symbol)) {
 					return this.GetGreenMethod(ClassType, Symbol, RecursiveSearch);
@@ -3577,7 +3577,7 @@ final class GreenTeaGrammar extends GtGrammar {
 			if(ConstValue instanceof GtType && ((/*cast*/GtType)ConstValue).IsTypeParam()) {  // let T = <var>;
 				((/*cast*/GtType)ConstValue).ShortClassName = ConstName;
 			}
-			GtNameSpace StoreNameSpace = NameSpace.GetNameSpace(GreenTeaGrammar.ParseNameSpaceFlag(0, TokenContext.ParsingAnnotation));
+			/*local*/GtNameSpace StoreNameSpace = NameSpace.GetNameSpace(GreenTeaGrammar.ParseNameSpaceFlag(0, TokenContext.ParsingAnnotation));
 			StoreNameSpace.SetSymbol(ConstName, ConstValue, SourceToken);
 		}
 		return SymbolDeclTree;
@@ -3761,8 +3761,8 @@ final class GreenTeaGrammar extends GtGrammar {
 			}
 		}
 		if(!DefinedPrototype) {
-			GtToken SourceToken = ParsedTree.GetSyntaxTreeAt(FuncDeclName).KeyToken;
-			GtNameSpace StoreNameSpace = ParsedTree.NameSpace.GetNameSpace(GreenTeaGrammar.ParseNameSpaceFlag(0, ParsedTree.Annotation));
+			/*local*/GtToken SourceToken = ParsedTree.GetSyntaxTreeAt(FuncDeclName).KeyToken;
+			/*local*/GtNameSpace StoreNameSpace = ParsedTree.NameSpace.GetNameSpace(GreenTeaGrammar.ParseNameSpaceFlag(0, ParsedTree.Annotation));
 			if(IsFlag(FuncFlag, ConverterFunc)) {
 				SourceToken.ParsedText = DefinedFunc.toString();
 				StoreNameSpace.SetConverterFunc(DefinedFunc.GetFuncParamType(1), DefinedFunc.GetReturnType(), DefinedFunc, SourceToken);
@@ -4352,7 +4352,7 @@ final class GreenTeaGrammar extends GtGrammar {
 
 	@Override public void LoadTo(GtNameSpace NameSpace) {
 		// Define Constants
-		GtParserContext ParserContext = NameSpace.Context;
+		/*local*/GtParserContext ParserContext = NameSpace.Context;
 		NameSpace.SetSymbol("true", true, null);
 		NameSpace.SetSymbol("false", false, null);
 
