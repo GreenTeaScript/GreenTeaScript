@@ -30,7 +30,7 @@ $(function () {
 			var error = Context.GetReportedErrors().join("<br>");
 			$("#editor-error").html(error.length == 0 ? "No Error" : error);
 		}catch(e){
-			var error = e.toString() + ", " + e.stack + ":" + e.lineNumber;
+			var error = e.toString();
 			if(Context){
 				error = "JavaScript Error:<br>"+ error + "<br>----<br>" + Context.GetReportedErrors().join("<br>");
 			}

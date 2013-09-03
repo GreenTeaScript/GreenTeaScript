@@ -427,10 +427,9 @@ class GtStatic implements GtConst {
 		}
 		return null;
 	}
-	
+
 //	public static GtSyntaxTree ParseTypeParam(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 //	public static GtNode TypeTypeParam(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-
 
 	public final static GtFunc LoadTypeFunc(GtParserContext ParserContext, Object Grammar, String FuncName) {
 		try {
@@ -673,12 +672,12 @@ final class GtToken extends GtStatic {
 		LibGreenTea.Assert(this.IsError());
 		return this.ParsedText;
 	}
-	
+
 	public final GtToken AddTypeInfo(GtType ClassType) {
 		this.ParsedText += " of " + ClassType;
 		return this;
 	}
-	
+
 }
 
 final class GtTokenFunc {
@@ -3680,6 +3679,9 @@ final class GreenTeaGrammar extends GtGrammar {
 		if(!LibGreenTea.IsVariableName(FuncName, 0)) {
 			FuncFlag |= OperatorFunc;
 		}
+		if(FuncName.equals("constructor")) {
+			FuncFlag |= ConstructorFunc;
+		}
 		/*local*/int TreeIndex = FuncDeclParam;
 		while(TreeIndex < ParsedTree.SubTreeList.size()) {
 			/*local*/GtType ParamType = ParsedTree.GetSyntaxTreeAt(TreeIndex).GetParsedType();
@@ -3998,14 +4000,14 @@ final class GreenTeaGrammar extends GtGrammar {
 				/*local*/ArrayList<GtType> ParamList = new ArrayList<GtType>();
 				ParamList.add(FieldInfo.Type);
 				ParamList.add(DefinedType);
-				FieldInfo.GetterFunc = new GtFunc(0, FieldInfo.Name, 0, ParamList);
+				FieldInfo.GetterFunc = new GtFunc(GetterFunc, FieldInfo.Name, 0, ParamList);
 				Gamma.NameSpace.SetGetterFunc(DefinedType, FieldInfo.Name, FieldInfo.GetterFunc, SourceToken);
 				ParamList.clear();
 				ParamList.add(Gamma.VoidType);
 				ParamList.add(DefinedType);
 				ParamList.add(FieldInfo.Type);
-				FieldInfo.SetterFunc = new GtFunc(0, FieldInfo.Name, 0, ParamList);
-				Gamma.NameSpace.SetGetterFunc(DefinedType, FieldInfo.Name, FieldInfo.SetterFunc, SourceToken);
+				FieldInfo.SetterFunc = new GtFunc(SetterFunc, FieldInfo.Name, 0, ParamList);
+				Gamma.NameSpace.SetSetterFunc(DefinedType, FieldInfo.Name, FieldInfo.SetterFunc, SourceToken);
 				FieldInfo.InitValue = ((/*cast*/ConstNode)((/*cast*/VarNode)FieldNode).InitNode).ConstValue;
 			}
 			TreeIndex += 1;
