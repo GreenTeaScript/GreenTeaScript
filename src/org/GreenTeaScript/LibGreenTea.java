@@ -389,7 +389,7 @@ public abstract class LibGreenTea implements GtConst {
 		return false;
 	}
 
-	public final static boolean LoadNativeConstructors(GtType ClassType) {
+	public final static void LoadNativeConstructors(GtType ClassType, ArrayList<GtFunc> FuncList) {
 		/*local*/boolean TransformedResult = false;
 		Class<?> NativeClass = (Class<?>)ClassType.NativeSpec;
 		GtParserContext Context = ClassType.Context;
@@ -409,18 +409,17 @@ public abstract class LibGreenTea implements GtConst {
 				}
 				GtFunc Func = new GtFunc(ConstructorFunc, ClassType.ShortClassName, 0, TypeList);
 				Func.SetNativeMethod(0, Constructors[i]);
-				TransformedResult = true;
 				Context.RootNameSpace.AppendConstructor(ClassType, Func, null);
-			}
-			if(TransformedResult) {
-				return true;
+				FuncList.add(Func);
+				TransformedResult = true;
 			}
 		}
-		Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, GtStatic.ConstructorSymbol()), null);
-		return false;
+		if(!TransformedResult) {
+			Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, GtStatic.ConstructorSymbol()), null);
+		}
 	}
 
-	public final static boolean LoadNativeField(GtType ClassType, String FieldName) {
+	public final static GtFunc LoadNativeField(GtType ClassType, String FieldName, boolean GetSetter) {
 		GtParserContext Context = ClassType.Context;
 		try {
 			Class<?> NativeClass = (Class<?>)ClassType.NativeSpec;
@@ -429,17 +428,17 @@ public abstract class LibGreenTea implements GtConst {
 				ArrayList<GtType> TypeList = new ArrayList<GtType>();
 				TypeList.add(LibGreenTea.GetNativeType(Context, NativeField.getType()));
 				TypeList.add(ClassType);
-				GtFunc Func = new GtFunc(GetterFunc, FieldName, 0, TypeList);
-				Func.SetNativeMethod(0, NativeField);
-				Context.RootNameSpace.SetGetterFunc(ClassType, FieldName, Func, null);
+				GtFunc GetterNativeFunc = new GtFunc(GetterFunc, FieldName, 0, TypeList);
+				GetterNativeFunc.SetNativeMethod(0, NativeField);
+				Context.RootNameSpace.SetGetterFunc(ClassType, FieldName, GetterNativeFunc, null);
 				TypeList.clear();
 				TypeList.add(Context.VoidType);
 				TypeList.add(ClassType);
 				TypeList.add(LibGreenTea.GetNativeType(Context, NativeField.getType()));
-				Func = new GtFunc(SetterFunc, FieldName, 0, TypeList);
-				Func.SetNativeMethod(0, NativeField);
-				Context.RootNameSpace.SetGetterFunc(ClassType, FieldName, Func, null);
-				return true;
+				GtFunc SetterNativeFunc = new GtFunc(SetterFunc, FieldName, 0, TypeList);
+				SetterNativeFunc.SetNativeMethod(0, NativeField);
+				Context.RootNameSpace.SetGetterFunc(ClassType, FieldName, SetterNativeFunc, null);
+				return GetSetter ? SetterNativeFunc : GetterNativeFunc;
 			}
 		} catch (SecurityException e) {
 			LibGreenTea.VerboseException(e);
@@ -449,31 +448,30 @@ public abstract class LibGreenTea implements GtConst {
 		}
 		Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, GtStatic.GetterSymbol(FieldName)), null);
 		Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, GtStatic.SetterSymbol(FieldName)), null); // for setter
-		return false;
+		return null;
 	}
 
-	public final static boolean LoadNativeMethods(GtType ClassType, String FuncName) {
+	public final static void LoadNativeMethods(GtType ClassType, String FuncName, ArrayList<GtFunc> FuncList) {
 		GtParserContext Context = ClassType.Context;
 		Class<?> NativeClass = (Class<?>)ClassType.NativeSpec;
 		Method[] Methods = NativeClass.getDeclaredMethods();
+		/*local*/boolean TransformedResult = false;
 		if(Methods != null) {
-			/*local*/boolean TransformedResult = false;
 			for(int i = 0; i < Methods.length; i++) {
 				if(LibGreenTea.EqualsString(FuncName, Methods[i].getName())) {
 					if(!Modifier.isPublic(Methods[i].getModifiers())) {
 						continue;
 					}
 					GtFunc NativeFunc = LibGreenTea.ConvertNativeMethodToFunc(Context, Methods[i]);
-					Context.RootNameSpace.AppendMethod(ClassType, NativeFunc, null);
+					Context.RootNameSpace.AppendMethod(NativeFunc, null);
+					FuncList.add(NativeFunc);
 					TransformedResult = true;
 				}
 			}
-			if(TransformedResult) {
-				return true;
-			}
 		}
-		Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, FuncName), null);
-		return false;
+		if(!TransformedResult) {
+			Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, FuncName), null);
+		}
 	}
 
 	public final static Method LookupNativeMethod(Object Callee, String FuncName) {

@@ -1669,6 +1669,13 @@ final class GtNameSpace extends GtStatic {
 		}
 	}
 
+	public final Object GetLocalUndefinedSymbol(String Key) {
+		if(this.SymbolPatternTable != null) {
+			return this.SymbolPatternTable.get(Key);
+		}
+		return null;
+	}
+
 	public final Object GetLocalSymbol(String Key) {
 		if(this.SymbolPatternTable != null) {
 			/*local*/Object Value = this.SymbolPatternTable.get(Key);
@@ -1823,10 +1830,9 @@ final class GtNameSpace extends GtStatic {
 		if(Func instanceof GtFunc) {
 			return (/*cast*/GtFunc)Func;
 		}
-		if(ClassType.IsDynamicNaitiveLoading() && Func != UndefinedSymbol) {
-			if(LibGreenTea.LoadNativeField(ClassType, Symbol)) {
-				return this.GetGetterFunc(ClassType, Symbol, RecursiveSearch);
-			}
+		Func = this.Context.RootNameSpace.GetLocalUndefinedSymbol(ClassSymbol(ClassType, GetterSymbol(Symbol)));
+		if(ClassType.IsDynamicNaitiveLoading() && Func == null) {
+			return LibGreenTea.LoadNativeField(ClassType, Symbol, false);
 		}
 		return null;
 	}
@@ -1836,10 +1842,9 @@ final class GtNameSpace extends GtStatic {
 		if(Func instanceof GtFunc) {
 			return (/*cast*/GtFunc)Func;
 		}
-		if(ClassType.IsDynamicNaitiveLoading() && Func != UndefinedSymbol) {
-			if(LibGreenTea.LoadNativeField(ClassType, Symbol)) {
-				return this.GetSetterFunc(ClassType, Symbol, RecursiveSearch);
-			}
+		Func = this.Context.RootNameSpace.GetLocalUndefinedSymbol(ClassSymbol(ClassType, SetterSymbol(Symbol)));
+		if(ClassType.IsDynamicNaitiveLoading() && Func == null) {
+			return LibGreenTea.LoadNativeField(ClassType, Symbol, true);
 		}
 		return null;
 	}
@@ -1852,11 +1857,19 @@ final class GtNameSpace extends GtStatic {
 		return null;
 	}
 
-	public final GtPolyFunc GetGreenMethod(GtType ClassType, String Symbol, boolean RecursiveSearch) {
+	public final GtPolyFunc GetMethod(GtType ClassType, String Symbol, boolean RecursiveSearch) {
 		/*local*/ArrayList<GtFunc> FuncList = new ArrayList<GtFunc>();
 		while(ClassType != null) {
 			/*local*/String Key = ClassSymbol(ClassType, Symbol);
-			this.RetrieveFuncList(Key, FuncList);
+			/*local*/Object RootValue = this.RetrieveFuncList(Key, FuncList);
+			if(RootValue == null && ClassType.IsDynamicNaitiveLoading()) {
+				if(LibGreenTea.EqualsString(Symbol, ConstructorSymbol())) {
+					LibGreenTea.LoadNativeConstructors(ClassType, FuncList);
+				}
+				else {
+					LibGreenTea.LoadNativeMethods(ClassType, Symbol, FuncList);
+				}
+			}
 			if(!RecursiveSearch) {
 				break;
 			}
@@ -1865,30 +1878,8 @@ final class GtNameSpace extends GtStatic {
 		return new GtPolyFunc(FuncList);
 	}
 
-	public final GtPolyFunc GetMethod(GtType ClassType, String Symbol, boolean RecursiveSearch) {
-		/*local*/GtPolyFunc PolyFunc = this.GetGreenMethod(ClassType, Symbol, RecursiveSearch);
-		if(PolyFunc == null && ClassType.IsDynamicNaitiveLoading()) {
-			/*local*/Object Value = this.GetSymbol(ClassSymbol(ClassType, Symbol));
-			if(Value != UndefinedSymbol) {
-				if(LibGreenTea.LoadNativeMethods(ClassType, Symbol)) {
-					return this.GetGreenMethod(ClassType, Symbol, RecursiveSearch);
-				}
-			}
-		}
-		return PolyFunc;
-	}
-
 	public final GtPolyFunc GetConstructorFunc(GtType ClassType) {
-		/*local*/GtPolyFunc PolyFunc = this.Context.RootNameSpace.GetGreenMethod(ClassType, ConstructorSymbol(), false);
-		if(PolyFunc == null && ClassType.IsDynamicNaitiveLoading()) {
-			/*local*/Object Value = this.GetSymbol(GtStatic.ClassSymbol(ClassType, ConstructorSymbol()));
-			if(Value != UndefinedSymbol) {
-				if(LibGreenTea.LoadNativeConstructors(ClassType)) {
-					PolyFunc = this.GetConstructorFunc(ClassType);
-				}
-			}
-		}
-		return PolyFunc;
+		return this.Context.RootNameSpace.GetMethod(ClassType, ConstructorSymbol(), false);
 	}
 
 	public final Object RetrieveFuncList(String FuncName, ArrayList<GtFunc> FuncList) {
@@ -2950,7 +2941,7 @@ final class GreenTeaGrammar extends GtGrammar {
 			/*local*/String FuncName = FuncNode.Token.ParsedText;
 			/*local*/GtNode BaseNode = ((/*cast*/GetterNode)FuncNode).Expr;
 			GtStatic.AppendTypedNode(NodeList, BaseNode);
-			/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetGreenMethod(BaseNode.Type, FuncName, true);
+			/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(BaseNode.Type, FuncName, true);
 			if(PolyFunc != null) {
 				ResolvedFunc = PolyFunc.ResolveFunc(Gamma, ParsedTree, TreeIndex, NodeList);
 			}
@@ -3067,7 +3058,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		/*local*/String OperatorSymbol = ParsedTree.KeyToken.ParsedText;
 		OperatorSymbol = OperatorSymbol.substring(0, OperatorSymbol.length() - 1);
 		/*local*/GtFunc Func = null;
-		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetGreenMethod(LeftNode.Type, OperatorSymbol, true);
+		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(LeftNode.Type, OperatorSymbol, true);
 		if(PolyFunc != null) {
 			/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
 			ParamList.add(LeftNode);
@@ -3861,7 +3852,7 @@ final class GreenTeaGrammar extends GtGrammar {
 			return ExprNode;
 		}
 		/*local*/GtFunc ResolvedFunc = null;
-		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetGreenMethod(ExprNode.Type, "get", true);
+		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(ExprNode.Type, "get", true);
 		/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
 		ParamList.add(ExprNode);
 		if(PolyFunc != null) {
@@ -3891,7 +3882,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		if(!(ExprNode.Type.Accept(Gamma.ArrayType) || ExprNode.Type.Accept(Gamma.StringType))) {
 			return Gamma.CreateSyntaxErrorNode(ParsedTree, ExprNode.Type + " has no sizeof operator");
 		}
-		/*local*/GtPolyFunc PolyFunc = Gamma.NameSpace.GetGreenMethod(ExprNode.Type, "length", true);
+		/*local*/GtPolyFunc PolyFunc = Gamma.NameSpace.GetMethod(ExprNode.Type, "length", true);
 		/*local*/ArrayList<GtNode> NodeList = new ArrayList<GtNode>();
 		/*local*/GtFunc Func = PolyFunc.ResolveFunc(Gamma, ParsedTree, 1, NodeList);
 		/*local*/GtNode Node = Gamma.Generator.CreateApplyNode(Type, ParsedTree, Func);
