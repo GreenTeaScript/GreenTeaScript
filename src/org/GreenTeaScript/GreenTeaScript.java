@@ -4505,6 +4505,7 @@ final class GtParserContext extends GtStatic {
 	/*field*/public final GtType		VoidType;
 	/*field*/public final GtType		BooleanType;
 	/*field*/public final GtType		IntType;
+	/*field*/public final GtType		FloatType;
 	/*field*/public final GtType		StringType;
 	/*field*/public final GtType		AnyType;
 	/*field*/public final GtType		ArrayType;
@@ -4548,6 +4549,7 @@ final class GtParserContext extends GtStatic {
 		this.BooleanType = this.RootNameSpace.AppendTypeName(new GtType(this, NativeClass, "boolean", false, Boolean.class), null);
 		this.IntType     = this.RootNameSpace.AppendTypeName(new GtType(this, NativeClass, "int", 0L, Long.class), null);
 		this.StringType  = this.RootNameSpace.AppendTypeName(new GtType(this, NativeClass, "String", null, String.class), null);
+		this.FloatType   = this.RootNameSpace.AppendTypeName(new GtType(this, NativeClass, "double", null, double.class), null);
 		this.VarType     = this.RootNameSpace.AppendTypeName(new GtType(this, 0, "var", null, null), null);
 		this.AnyType     = this.RootNameSpace.AppendTypeName(new GtType(this, DynamicClass, "any", null, null), null);
 		this.TypeType    = this.RootNameSpace.AppendTypeName(this.TopType.CreateSubType(0, "Type", null, null), null);
@@ -4558,7 +4560,6 @@ final class GtParserContext extends GtStatic {
 		this.ArrayType.TypeParams[0] = this.AnyType;
 		this.FuncType.TypeParams = new GtType[1];
 		this.FuncType.TypeParams[0] = this.VarType;  // for PolyFunc
-
 //ifdef JAVA
 		this.SetNativeTypeName("void",    this.VoidType);
 		this.SetNativeTypeName("java.lang.Object",  this.AnyType);
@@ -4566,6 +4567,8 @@ final class GtParserContext extends GtStatic {
 		this.SetNativeTypeName("java.lang.Boolean", this.BooleanType);
 		this.SetNativeTypeName("long",    this.IntType);
 		this.SetNativeTypeName("java.lang.Long",    this.IntType);
+		this.SetNativeTypeName("double",    this.FloatType);
+		this.SetNativeTypeName("java.lang.Double",  this.FloatType);
 		this.SetNativeTypeName("java.lang.String",  this.StringType);
 		this.SetNativeTypeName("org.GreenTeaScript.GtType", this.TypeType);
 		this.SetNativeTypeName("org.GreenTeaScript.GreenTeaEnum", this.EnumType);

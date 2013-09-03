@@ -1,0 +1,73 @@
+let Math = import java.lang.Math;
+
+//// Returns the absolute value of a double value.
+//let Math.abs = import java.lang.Math.abs;
+//
+//// Returns the absolute value of a long value.
+//let Math.abs = import java.lang.Math.abs;
+
+// Returns the arc cosine of a value; the returned angle is in the range 0.0 through pi.
+let Math.acos = import java.lang.Math.acos;
+
+// Returns the arc sine of a value; the returned angle is in the range -pi/2 through pi/2.
+let Math.asin = import java.lang.Math.asin;
+
+// Returns the arc tangent of a value; the returned angle is in the range -pi/2 through pi/2.
+let Math.atan = import java.lang.Math.atan;
+
+// Returns the angle theta from the conversion of rectangular coordinates (x, y) to polar coordinates (r, theta).
+let Math.atan2 = import java.lang.Math.atan2;
+
+// Returns the smallest (closest to negative infinity) double value that is greater than or equal to the argument and is equal to a mathematical integer.
+let Math.ceil = import java.lang.Math.ceil;
+
+// Returns the trigonometric cosine of an angle.
+let Math.cos = import java.lang.Math.cos;
+
+// Returns the hyperbolic cosine of a double value.
+let Math.cosh = import java.lang.Math.cosh;
+
+// Returns Euler's number e raised to the power of a double value.
+let Math.exp = import java.lang.Math.exp;
+
+// Returns the largest (closest to positive infinity) double value that is less than or equal to the argument and is equal to a mathematical integer.
+let Math.floor = import java.lang.Math.floor;
+
+// Returns the natural logarithm (base e) of a double value.
+let Math.log = import java.lang.Math.log;
+
+// Returns the base 10 logarithm of a double value.
+let Math.log10 = import java.lang.Math.log10;
+
+//// Returns the greater of two double values.
+//let Math.max = import java.lang.Math.max;
+//
+//// Returns the greater of two long values.
+//let Math.max = import java.lang.Math.max;
+
+//// Returns the smaller of two double values.
+//let Math.min = import java.lang.Math.min;
+//
+//// Returns the smaller of two long values.
+//let Math.min = import java.lang.Math.min;
+
+// Returns the value of the first argument raised to the power of the second argument.
+let Math.pow = import java.lang.Math.pow;
+
+// Returns a double value with a positive sign, greater than or equal to 0.0 and less than 1.0.
+let Math.random import java.lang.Math.random;
+
+// Returns the trigonometric sine of an angle.
+let Math.sin = import java.lang.Math.sin;
+
+// Returns the hyperbolic sine of a double value.
+//let Math.sinh = import java.lang.Math.sinh;
+//
+// Returns the correctly rounded positive square root of a double value.
+let Math.sqrt = import java.lang.Math.sqrt;
+
+// Returns the trigonometric tangent of an angle.
+let Math.tan = import java.lang.Math.tan;
+
+// Returns the hyperbolic tangent of a double value.
+let Math.tanh = import java.lang.Math.tanh;

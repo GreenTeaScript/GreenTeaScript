@@ -1,5 +1,24 @@
+// common api for perl
+
+// unary operator
+// any
+boolean not(boolean x) as "! $1"
+boolean !(boolean x) as "! $1"
 int +(int x) as "$1";
 int -(int x) as "-$1";
+int ~(int x) as "~$1";
+
+// binary operator
+// any
+boolean ==(any x, any y) as "$1 == $2";
+boolean !=(any x, any y) as "$1 != $2";
+
+// boolean
+boolean ==(boolean x, boolean y) as "$1 == $2";
+boolean !=(boolean x, boolean y) as "$1 != $2";
+String convert(boolean x) as "\"\" . $1"; /*FIXME*/
+
+// int
 int +(int x, int y)      as "$1 + $2";
 int -(int x, int y)      as "$1 - $2";
 int *(int x, int y)      as "$1 * $2";
@@ -17,20 +36,19 @@ boolean >=(int x, int y) as "$1 >= $2";
 boolean ==(int x, int y) as "$1 == $2";
 boolean !=(int x, int y) as "$1 != $2";
 
-//typeof[1] +=(any x, typeof(x) y) as "$1 = $1 + $2";
+String convert(int x) as "\"\" . $1";
 
+// String
 String +(String x, String y) as "$1 . $2";
-boolean ==(String x, String y) as "$1 eq $2";
-boolean !=(String x, String y) as "$1 ne $2";
 int length(String x) as "length($1)";
-String concat(String x, String y) as "$1 . $2";
+boolean ==(String x, String y)    as "$1 eq $2";
+boolean !=(String x, String y)    as "$1 ne $2";
+boolean <(String x,  String y)    as "$1 lt $2";
+boolean <=(String x, String y)    as "$1 le $2";
+boolean >(String x,  String y)    as "$1 gt$2";
+boolean >=(String x, String y)    as "$1 ge $2";
 
-void print(String x) as "print ($1)";
+// function
+void print(String x) as "print $1,";
+void println(String x) as "print $1";
 void assert(boolean x) as "($1 == 1) or die \"Assertion faild\"";
-
-//typeof(a)[0] add(Array<any> a, typeof(a)[0] v); 
-//typeof(a)[0] get(Array<var> a, int index);
-//
-//void f(var duck) {
-//	print $duck.name;
-//}

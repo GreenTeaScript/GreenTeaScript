@@ -44,6 +44,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
+
 import static org.objectweb.asm.Opcodes.*;
 
 // GreenTea Generator should be written in each language.
@@ -133,6 +134,9 @@ class JVMBuilder {
 		// JVM supports only boolean, int, long, String, float, double, java.lang.Class
 		if(o instanceof Long) {
 			type = Type.LONG_TYPE;
+		}
+		else if(o instanceof Double) {
+			type = Type.DOUBLE_TYPE;
 		}
 		else if(o instanceof Boolean) {
 			type = Type.BOOLEAN_TYPE;
@@ -270,6 +274,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.typeDescriptorMap.put(Context.VoidType.ShortClassName, Type.VOID_TYPE);
 		this.typeDescriptorMap.put(Context.BooleanType.ShortClassName, Type.BOOLEAN_TYPE);
 		this.typeDescriptorMap.put(Context.IntType.ShortClassName, Type.LONG_TYPE);
+		this.typeDescriptorMap.put(Context.FloatType.ShortClassName, Type.DOUBLE_TYPE);
 		this.typeDescriptorMap.put(Context.AnyType.ShortClassName, Type.getType(Object.class));
 		this.typeDescriptorMap.put(Context.StringType.ShortClassName, Type.getType(String.class));
 		this.methodMap = GreenTeaRuntime.getAllStaticMethods();
