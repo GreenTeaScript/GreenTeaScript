@@ -1571,7 +1571,7 @@ final class GtTypeEnv extends GtStatic {
 			return Node;
 		}
 		/*local*/Object ConstValue = Node.ToConstValue(IsFlag(TypeCheckPolicy, OnlyConstPolicy));
-		if(ConstValue != null && !(Node instanceof ConstNode)) {
+		if(ConstValue != null /*&& !(Node instanceof ConstNode)*/) {  // IMIFU
 			Node = this.Generator.CreateConstNode(Node.Type, ParsedTree, ConstValue);
 		}
 		if(IsFlag(TypeCheckPolicy, OnlyConstPolicy) && ConstValue == null) {
