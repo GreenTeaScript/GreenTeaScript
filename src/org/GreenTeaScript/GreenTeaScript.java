@@ -3717,25 +3717,6 @@ final class GreenTeaGrammar extends GtGrammar {
 				DefinedFunc = Gamma.Generator.CreateFunc(FuncFlag, FuncName, 0, TypeList);
 			}
 		}
-		if(ParsedTree.ConstValue instanceof String) {
-			DefinedFunc.SetNativeMacro((/*cast*/String)ParsedTree.ConstValue);
-		}
-		else if(ParsedTree.HasNodeAt(FuncDeclBlock)) {
-			/*local*/GtSyntaxTree ImportTree = ParsedTree.GetSyntaxTreeAt(FuncDeclBlock);
-			if(ImportTree.Pattern.EqualsName("import")) {
-				if(!LibGreenTea.ImportNativeMethod(DefinedFunc, (/*cast*/String)ImportTree.ConstValue)) {
-					Gamma.Context.ReportError(WarningLevel, ImportTree.KeyToken, "cannot import: " + ImportTree.ConstValue);
-				}
-			}
-			else {
-				Gamma.Func = DefinedFunc;
-				/*local*/GtNode BodyNode = ParsedTree.TypeCheckAt(FuncDeclBlock, Gamma, Gamma.VoidType/*ReturnType*/, BlockPolicy);
-				Gamma.Generator.GenerateFunc(DefinedFunc, ParamNameList, BodyNode);
-			}
-			if(FuncName.equals("main")) {
-				Gamma.Generator.InvokeMainFunc(DefinedFunc.GetNativeFuncName());
-			}
-		}
 		if(!DefinedPrototype) {
 			GtToken SourceToken = ParsedTree.GetSyntaxTreeAt(FuncDeclName).KeyToken;
 			GtNameSpace StoreNameSpace = ParsedTree.NameSpace.GetNameSpace(GreenTeaGrammar.ParseNameSpaceFlag(0, ParsedTree.Annotation));
@@ -3753,6 +3734,26 @@ final class GreenTeaGrammar extends GtGrammar {
 				if(DefinedFunc.GetRecvType() != Gamma.VoidType) {
 					StoreNameSpace.AppendMethod(DefinedFunc.GetRecvType(), DefinedFunc, SourceToken.AddTypeInfo(DefinedFunc.GetRecvType()));
 				}
+			}
+		}
+
+		if(ParsedTree.ConstValue instanceof String) {
+			DefinedFunc.SetNativeMacro((/*cast*/String)ParsedTree.ConstValue);
+		}
+		else if(ParsedTree.HasNodeAt(FuncDeclBlock)) {
+			/*local*/GtSyntaxTree ImportTree = ParsedTree.GetSyntaxTreeAt(FuncDeclBlock);
+			if(ImportTree.Pattern.EqualsName("import")) {
+				if(!LibGreenTea.ImportNativeMethod(DefinedFunc, (/*cast*/String)ImportTree.ConstValue)) {
+					Gamma.Context.ReportError(WarningLevel, ImportTree.KeyToken, "cannot import: " + ImportTree.ConstValue);
+				}
+			}
+			else {
+				Gamma.Func = DefinedFunc;
+				/*local*/GtNode BodyNode = ParsedTree.TypeCheckAt(FuncDeclBlock, Gamma, Gamma.VoidType/*ReturnType*/, BlockPolicy);
+				Gamma.Generator.GenerateFunc(DefinedFunc, ParamNameList, BodyNode);
+			}
+			if(FuncName.equals("main")) {
+				Gamma.Generator.InvokeMainFunc(DefinedFunc.GetNativeFuncName());
 			}
 		}
 		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
