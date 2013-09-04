@@ -2990,7 +2990,7 @@ final class GreenTeaGrammar extends GtGrammar {
 					Gamma.ReportTypeInference(FuncNode.Token, "constructor", ClassType);
 				}
 				/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetConstructorFunc(/*GtFunc*/ClassType);
-				if(PolyFunc == null) {
+				if(PolyFunc.FuncList.size() == 0) {
 					return Gamma.CreateSyntaxErrorNode(ParsedTree, "no constructor: " + ClassType);
 				}
 				NodeList.set(0, Gamma.Generator.CreateNullNode(ClassType, ParsedTree));
@@ -3816,7 +3816,7 @@ final class GreenTeaGrammar extends GtGrammar {
 	}
 
 	public static GtSyntaxTree ParseConstructor2(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		/*local*/GtSyntaxTree FuncDeclTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetToken(), null);
+		/*local*/GtSyntaxTree FuncDeclTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("constructor"), null);
 		/*local*/GtType ThisType = NameSpace.GetType("This");
 		if(ThisType == null) {
 			NameSpace.Context.ReportError(ErrorLevel, FuncDeclTree.KeyToken, "constructor is used inside class");
@@ -3825,7 +3825,6 @@ final class GreenTeaGrammar extends GtGrammar {
 		}
 		/*local*/int FuncFlag = GreenTeaGrammar.ParseFuncFlag(ConstructorFunc, TokenContext.ParsingAnnotation);
 		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
-		LibGreenTea.Assert(LeftTree != null);
 		TypeList.add(ThisType);
 		FuncDeclTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "(", Required);
 		if(FuncDeclTree.IsValidSyntax()) {
@@ -4002,7 +4001,16 @@ final class GreenTeaGrammar extends GtGrammar {
 			/*local*/GtClassField ClassField = new GtClassField(DefinedType.SuperType);
 			/*local*/GtTypeEnv Gamma = new GtTypeEnv(ClassNameSpace);
 			/*local*/GtSyntaxTree SubTree = ClassDeclTree.GetSyntaxTreeAt(ClassDeclBlock);
+			/*local*/ArrayList<GtSyntaxTree> FieldTreeList = new ArrayList<GtSyntaxTree>();
 			while(SubTree != null) {
+				if(SubTree.Pattern.EqualsName("$VarDecl$")) {
+					FieldTreeList.add(SubTree);
+				}
+				SubTree = SubTree.NextTree;
+			}
+			/*local*/int i = 0;
+			while(i < LibGreenTea.ListSize(FieldTreeList)) {
+				SubTree = FieldTreeList.get(i);
 				if(SubTree.Pattern.EqualsName("$VarDecl$")) {
 					/*local*/GtNode FieldNode = SubTree.TypeCheck(Gamma, Gamma.VoidType, DefaultTypeCheckPolicy);
 					if(!FieldNode.IsError()) {
@@ -4026,7 +4034,7 @@ final class GreenTeaGrammar extends GtGrammar {
 						}
 					}
 				}
-				SubTree = SubTree.NextTree;
+				i += 1;
 			}
 			ClassDeclTree.ConstValue = ClassField;
 		}
@@ -4051,6 +4059,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		Gamma.Generator.CloseClassField(DefinedType, ClassField);
 		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
 	}
+	
 
 	// ClassDecl
 	public static GtSyntaxTree ParseClassDecl(GtNameSpace NameSpace0, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
@@ -4261,7 +4270,6 @@ final class GreenTeaGrammar extends GtGrammar {
 		return ConstructorTreeDecl;
 	}
 
-
 	@Override public void LoadTo(GtNameSpace NameSpace) {
 		// Define Constants
 		/*local*/GtParserContext ParserContext = NameSpace.Context;
@@ -4361,7 +4369,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		NameSpace.AppendSyntax("throw", LoadParseFunc(ParserContext, this, "ParseThrow"), LoadTypeFunc(ParserContext, this, "TypeThrow"));
 
 		NameSpace.AppendSyntax("class", LoadParseFunc(ParserContext, this, "ParseClassDecl2"), LoadTypeFunc(ParserContext, this, "TypeClassDecl2"));
-		NameSpace.AppendSyntax("$Constructor$", LoadParseFunc(ParserContext, this, "ParseConstructor"), LoadTypeFunc(ParserContext, this, "TypeConstructor"));
+		NameSpace.AppendSyntax("constructor", LoadParseFunc(ParserContext, this, "ParseConstructor2"), null);
 		NameSpace.AppendSyntax("super", LoadParseFunc(ParserContext, this, "ParseSuper"), null);
 		NameSpace.AppendSyntax("this", LoadParseFunc(ParserContext, this, "ParseThis"), LoadTypeFunc(ParserContext, this, "TypeThis"));
 		NameSpace.AppendSyntax("new", LoadParseFunc(ParserContext, this, "ParseNew"), LoadTypeFunc(ParserContext, this, "TypeApply"));
