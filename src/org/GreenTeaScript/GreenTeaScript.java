@@ -3208,6 +3208,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		/*local*/GtSyntaxTree StmtTree = TokenContext.ParsePattern(NameSpace, "$Block$", Optional);
 		if(StmtTree == null) {
 			StmtTree = GtStatic.ParseExpression(NameSpace, TokenContext, false/*SuffixOnly*/);
+			TokenContext.SkipIncompleteStatement(); //FIXME (ide)
 		}
 		if(StmtTree == null) {
 			StmtTree = TokenContext.ParsePattern(NameSpace, "$Empty$", Required);
