@@ -336,12 +336,59 @@ public class DShellGrammar extends GtGrammar {
 		return Node;
 	}
 	
+	private final static String FileOperators = "-f -x -d";
+	private final static String StopTokens = ";,)]}&&||";
+	
+	private static String ParseFilePath(GtTokenContext TokenContext) {
+		String Path = "";
+		while(TokenContext.HasNext()) {
+			GtToken Token = TokenContext.GetToken();
+			if(Token.IsIndent() || StopTokens.indexOf(Token.ParsedText) != -1) {
+				break;
+			}
+			TokenContext.Next();
+			Path += Token.ParsedText;
+			if(Token.IsNextWhiteSpace()) {
+				break;
+			}
+		}
+		return Path;
+	}
+	
+	public static GtSyntaxTree ParseOpFile(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtToken Token = TokenContext.Next();
+		/*local*/GtToken Token2 = TokenContext.Next();
+		if(!Token.IsNextWhiteSpace()) {
+			if(FileOperators.indexOf(Token2.ParsedText) != -1) {
+				String Path = ParseFilePath(TokenContext);
+				if(Path.length() > 0) {
+					Token.ParsedText += Token2.ParsedText;
+					/*local*/GtSyntaxTree Tree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
+					Tree.ConstValue = Path;
+//					/*local*/GtSyntaxTree SubTree = new GtSyntaxTree(Pattern, NameSpace, Token2, null);
+//					Tree.SetSyntaxTreeAt(UnaryTerm, SubTree);
+					return Tree;
+				}
+			}
+		}
+		return null;
+	}
+
+	public static GtNode TypeOpFile(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+		/*local*/String FileOperator = ParsedTree.KeyToken.ParsedText;
+		/*local*/String FilePath = (/*cast*/String)ParsedTree.ConstValue;
+		/*local*/GtNode OpNode  = Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, FileOperator + " " + FilePath);
+		return OpNode;
+	}
+
+	
 	public static String[] ExpandPath(String Path) {
 		return new String[0]; //if not found
 	}
 
 	@Override public void LoadTo(GtNameSpace NameSpace) {
 		/*local*/GtParserContext ParserContext = NameSpace.Context;
+		NameSpace.AppendSyntax("-", LoadParseFunc(ParserContext, this, "ParseOpFile"), LoadTypeFunc(ParserContext, this, "TypeOpFile"));
 		NameSpace.AppendSyntax("letenv", LoadParseFunc(ParserContext, this, "ParseEnv"), null);
 		NameSpace.AppendSyntax("command", LoadParseFunc(ParserContext, this, "ParseCommand"), null);
 		NameSpace.AppendSyntax("$DShell$", LoadParseFunc(ParserContext, this, "ParseDShell"), LoadTypeFunc(ParserContext, this, "TypeDShell"));
