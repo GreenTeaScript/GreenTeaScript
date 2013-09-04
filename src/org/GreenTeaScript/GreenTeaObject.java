@@ -219,9 +219,6 @@ class GtFuncBlock extends GtStatic {
 //		this.NameList.add(GtStatic.NativeVariableName(Name, NameList.size()));
 		this.NameList.add(Name);
 	}
-
-	
-	
 }
 
 class GtFunc extends GtStatic {
@@ -363,17 +360,19 @@ class GtFunc extends GtStatic {
 
 	public void GenerateNativeFunc() {
 		if(this.HasStaticBlock()) {
-			GtFuncBlock FuncBlock = (/*cast*/GtFuncBlock)this.NativeRef;
-			GtTypeEnv Gamma = new GtTypeEnv(FuncBlock.NameSpace);
+			/*local*/GtFuncBlock FuncBlock = (/*cast*/GtFuncBlock)this.NativeRef;
+			/*local*/GtTypeEnv Gamma = new GtTypeEnv(FuncBlock.NameSpace);
 			/*local*/int i = 0;
+			/*local*/ArrayList<String> NameList = new ArrayList<String>();
 			while(i <  FuncBlock.NameList.size()) {
-				Gamma.AppendDeclaredVariable(0, FuncBlock.DefinedFunc.Types[i+1], FuncBlock.NameList.get(i), null, null);
+				/*local*/GtVariableInfo VarInfo = Gamma.AppendDeclaredVariable(0, FuncBlock.DefinedFunc.Types[i+1], FuncBlock.NameList.get(i), null, null);
+				NameList.add(VarInfo.NativeName);
 				i = i + 1;
 			}
 			Gamma.Func = FuncBlock.DefinedFunc;
 			/*local*/GtNode BodyNode = GtStatic.TypeBlock(Gamma, FuncBlock.FuncBlock, Gamma.VoidType);
 			/*local*/String FuncName = FuncBlock.DefinedFunc.GetNativeFuncName();
-			Gamma.Generator.GenerateFunc(FuncBlock.DefinedFunc, FuncBlock.NameList, BodyNode);
+			Gamma.Generator.GenerateFunc(FuncBlock.DefinedFunc, NameList, BodyNode);
 			if(FuncName.equals("main")) {
 				Gamma.Generator.InvokeMainFunc(FuncName);
 			}

@@ -770,6 +770,7 @@ final class GtTokenContext extends GtStatic {
 		if(this.CurrentPosition > 0) {
 			/*local*/int i = this.CurrentPosition;
 			while(i > 0) {
+				LibGreenTea.Assert(this.SourceList.size() > 0);
 				this.SourceList.remove(0);
 				i = i - 1;
 			}
@@ -1441,6 +1442,10 @@ class GtVariableInfo extends GtStatic {
 		if(this.UsedCount == 0 && this.NameToken != null) {
 			this.Type.Context.ReportError(WarningLevel, this.NameToken, "unused variable: " + this.Name);
 		}
+	}
+	// for debug
+	@Override public String toString() {
+		return "(" + this.Type + " " + this.Name + ", " + this.NativeName + ")";
 	}
 }
 

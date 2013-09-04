@@ -40,6 +40,8 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.NullLiteral = LibGreenTea.QuoteString("__NULL__");
 		this.MemberAccessOperator = "__MEMBER__";
 		this.LineComment = "##";
+		this.ParameterBegin = "";
+		this.ParameterEnd = "";
 		this.ParameterDelimiter = "";
 	}
 
@@ -103,7 +105,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		 * => while(True) { Block; if(!Cond) { break; } }
 		 */
 		/*local*/GtNode Break = this.CreateBreakNode(Type, ParsedTree, null);
-		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetGreenMethod(Cond.Type, "!", true);
+		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(Cond.Type, "!", true);
 		/*local*/GtTypeEnv Gamma = new GtTypeEnv(ParsedTree.NameSpace);
 		/*local*/GtFunc Func = null;
 		if(PolyFunc != null) {
