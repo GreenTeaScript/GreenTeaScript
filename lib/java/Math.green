@@ -55,7 +55,7 @@ let Math.log10 = import java.lang.Math.log10;
 let Math.pow = import java.lang.Math.pow;
 
 // Returns a double value with a positive sign, greater than or equal to 0.0 and less than 1.0.
-let Math.random import java.lang.Math.random;
+let Math.random = import java.lang.Math.random;
 
 // Returns the trigonometric sine of an angle.
 let Math.sin = import java.lang.Math.sin;
