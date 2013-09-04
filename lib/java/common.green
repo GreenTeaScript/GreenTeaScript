@@ -78,10 +78,7 @@
 
 @Coercion @Const any converter(double x) import org.GreenTeaScript.GreenTeaRuntime.DoubleToAny;
 @Coercion @Const double converter(any x) import org.GreenTeaScript.GreenTeaRuntime.AnyToDouble;
-@Coercion @Const String converter(double x) import org.GreenTeaScript.GreenTeaRuntime.DoubleToString;
 @Const double converter(String x) import org.GreenTeaScript.GreenTeaRuntime.StringToDouble;
-
-
 
 void print(String s)   import org.GreenTeaScript.LibGreenTea.print;
 void println(String s) import org.GreenTeaScript.LibGreenTea.println;
