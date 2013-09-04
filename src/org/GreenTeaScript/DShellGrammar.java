@@ -207,7 +207,7 @@ public class DShellGrammar extends GtGrammar {
 		if(EnvVar.length() > 0) {
 			String Env = System.getenv(EnvVar);
 			if(Env == null) {
-				NameSpace.Context.ReportError(WarningLevel, SourceToken, "undefined environment variable: " + EnvVar);
+				NameSpace.Context.ReportError(ErrorLevel, SourceToken, "undefined environment variable: " + EnvVar);
 			}
 			NameSpace.SetSymbol(EnvVar, Env, SourceToken);
 		}

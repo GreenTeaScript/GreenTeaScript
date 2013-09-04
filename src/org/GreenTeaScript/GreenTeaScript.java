@@ -474,13 +474,13 @@ class GtStatic implements GtConst {
 			}
 			//LibGreenTea.DebugP("B :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + ", next=" + CurrentPattern.ParentPattern);
 			TokenContext.IndentLevel += 1;
-			/*local*/GtSyntaxTree ParsedTree = (/*cast*/GtSyntaxTree)LibGreenTea.ApplyMatchFunc(delegate, NameSpace, TokenContext, LeftTree, CurrentPattern);
+			/*local*/GtSyntaxTree ParsedTree = (/*cast*/GtSyntaxTree)LibGreenTea.ApplyParseFunc(delegate, NameSpace, TokenContext, LeftTree, CurrentPattern);
 			TokenContext.IndentLevel -= 1;
+			TokenContext.ParseFlag = ParseFlag;
 			if(ParsedTree != null && ParsedTree.IsEmpty()) {
 				ParsedTree = null;
 			}
 			//LibGreenTea.DebugP("E :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + " => " + ParsedTree);
-			TokenContext.ParseFlag = ParseFlag;
 			if(ParsedTree != null) {
 				return ParsedTree;
 			}
@@ -636,10 +636,11 @@ final class GtToken extends GtStatic {
 		return TokenText + this.ParsedText;
 	}
 
-	public String ToErrorToken(String Message) {
+	public String SetErrorMessage(String Message, GtSyntaxPattern ErrorPattern) {
 		if(this.ParsedText.length() > 0) {  // skip null token
 			this.TokenFlag = ErrorTokenFlag;
 			this.ParsedText = Message;
+			this.PresetPattern = ErrorPattern;
 		}
 		return Message;
 	}
@@ -739,13 +740,27 @@ final class GtTokenContext extends GtStatic {
 		return null;
 	}
 
-	public GtSyntaxTree ReportExpectedMessage(GtToken Token, String Message, boolean SkipToken) {
+	public GtSyntaxTree ReportTokenError(GtToken Token, String Message, boolean SkipToken) {
 		if(this.IsAllowedBackTrack()) {
 			return null;
 		}
 		else {
-			return this.NewErrorSyntaxTree(Token, "expected: " + Message + "; given = " + Token.ParsedText);
+			if(SkipToken) {
+				while(this.HasNext()) {
+					GtToken T = this.GetToken();
+					if(T.IsDelim() || T.EqualsText("}")) {
+						break;
+					}
+					this.TopLevelNameSpace.Context.ReportError(InfoLevel, Token, "skipping: " + T.ParsedText);
+					this.Next();
+				}
+			}
+			return this.NewErrorSyntaxTree(Token, Message);
 		}
+	}
+
+	public GtSyntaxTree ReportExpectedMessage(GtToken Token, String Message, boolean SkipToken) {
+		return this.ReportTokenError(Token, "expected: " + Message + "; given = " + Token.ParsedText, SkipToken);
 	}
 
 	public GtSyntaxTree ReportExpectedToken2(String TokenText) {
@@ -1183,7 +1198,8 @@ class GtSyntaxTree extends GtStatic {
 		LibGreenTea.Assert(Token.IsError());
 		this.KeyToken = Token;
 		this.SubTreeList = null;
-		//this.Pattern = this.NameSpace.GetSyntaxPattern("$Error$");
+		LibGreenTea.Assert(Token.PresetPattern != null);
+		this.Pattern = Token.PresetPattern;		
 	}
 
 	public boolean IsEmpty() {
@@ -1191,7 +1207,6 @@ class GtSyntaxTree extends GtStatic {
 	}
 
 	public void ToEmpty() {
-		//this.KeyToken = GtTokenContext.NullToken;
 		this.SubTreeList = null;
 		this.Pattern = null; // Empty tree must backtrack
 	}
@@ -3127,6 +3142,14 @@ final class GreenTeaGrammar extends GtGrammar {
 		return LeftNode.IsError() ? LeftNode : GreenTeaGrammar.TypeUnary(Gamma, ParsedTree, Type);
 	}
 
+	public static GtSyntaxTree ParseError(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		return new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetToken(), null);
+	}
+
+	public static GtNode TypeError(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
+		return Gamma.Generator.CreateErrorNode(Gamma.VoidType, ParsedTree);
+	}
+
 	public static GtSyntaxTree ParseEmpty(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		return new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetBeforeToken(), null);
 	}
@@ -3140,8 +3163,7 @@ final class GreenTeaGrammar extends GtGrammar {
 			return null;
 		}
 		else {
-			NameSpace.Context.ReportError(ErrorLevel, TokenContext.Next(), "unexpected ;");
-			return null; // FIXME
+			return TokenContext.ReportTokenError(TokenContext.GetToken(), "unexpected ;", false);
 		}
 	}
 
@@ -4322,6 +4344,7 @@ final class GreenTeaGrammar extends GtGrammar {
 
 		NameSpace.AppendExtendedSyntax("?", 0, LoadParseFunc(ParserContext, this, "ParseTrinary"), LoadTypeFunc(ParserContext, this, "TypeTrinary"));
 
+		NameSpace.AppendSyntax("$Error$", LoadParseFunc(ParserContext, this, "ParseError"), LoadTypeFunc(ParserContext, this, "TypeError"));
 		NameSpace.AppendSyntax("$Empty$", LoadParseFunc(ParserContext, this, "ParseEmpty"), LoadTypeFunc(ParserContext, this, "TypeEmpty"));
 		NameSpace.AppendSyntax(";", LoadParseFunc(ParserContext, this, "ParseSemiColon"), null);
 		NameSpace.AppendSyntax("$Symbol$", LoadParseFunc(ParserContext, this, "ParseSymbol"), null);
@@ -4582,7 +4605,7 @@ final class GtParserContext extends GtStatic {
 		if(!Token.IsError() || !this.NoErrorReport) {
 			if(Level == ErrorLevel) {
 				Message = "(error) " + this.GetSourcePosition(Token.FileLine) + " " + Message;
-				Token.ToErrorToken(Message);
+				Token.SetErrorMessage(Message, this.RootNameSpace.GetSyntaxPattern("$Error$"));
 			}
 			else if(Level == TypeErrorLevel) {
 				Message = "(error) " + this.GetSourcePosition(Token.FileLine) + " " + Message;
