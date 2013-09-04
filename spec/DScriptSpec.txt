@@ -13,15 +13,110 @@ ImportDScript:: LibName
 AdminName:: ide
 
 * E1
-Action:: CallAdmin()
+Action:: CallAdmin()   // to Bash, or D-Shell
 
 ----
 
 boolean E1() {
+	let DCaseUrl ... default
 	let AdminName = "ide";
 	boolean CallAdmin() {
 		print AdminName;
 	}
-	return InvokeAction("E1", CallAdmin);
+	//return InvokeAction("E1", CallAdmin) || InvokeAction("E1", E1.Reaction);
+	return CallAdmin() || E1.Reaction();
 } 
+
+MonitorNode::
+
+* G2
+CPU is checked
+
+* C2
+Location:: WebServer
+
+* E2
+Monitor:: {CPU < 80}   // to JS 
+
+---->>
+
+class WebServerMinitor {
+	int CPU;
+}
+
+let WebServer = new WebServerMonitor();
+
+boolean E2() {
+	let Location = WebServer;
+	// assert(defined(WebServer.CPU));  optional
+	return Location.InvokeMonitor("E1", /*AST*/CPU < 80) || E2.Reaction();   // Lazy
+}
+
+======
+FailureCase
+
+* G3
+CPU is checked
+
+* C3 @OnlyIf
+Reaction:: E1
+
+* E3
+Action:: CallSuperVisor();
+
+----
+
+boolean E3() {
+	return CallSuperVisor() || E3.Reaction ;
+}
+
+null if ok
+Fault if failed
+ 
+Fault G3() {
+	return E3();
+}
+
+let E1.Reaction = G3;
+
+========
+
+Fault
+
+* G4
+diagnisis dekiru
+
+* Strategy
+
+
+* C4
+FaultSet:: FaultA, FaultB, FaultC
+
+
+========
+SwitchCase
+
+* G4
+* S4
+FaultSet:: FaultA, FaultB, FaultC
+SwitchFaultCase:: Diganosis()
+ 
+
+* G4_1.Context
+FaultCase:: FaultA
+
+* G4_2.Context
+FaultCase:: FaultB
+
+boolean S4() {
+	switch(Dianosis()) {
+	case FaultA: return G4_1();
+	case FaultB: return G4_2();
+	}
+}
+
+
+
+
+
 
