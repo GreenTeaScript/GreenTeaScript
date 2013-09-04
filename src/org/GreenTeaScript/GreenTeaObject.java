@@ -422,7 +422,12 @@ class GtPolyFunc extends GtStatic {
 					return; /* same function */
 				}
 				if(Func.EqualsType(ListedFunc)) {
-					Func.GetContext().ReportError(WarningLevel, SourceToken, "duplicated symbol" + SourceToken.ParsedText + "oldnew =" + ListedFunc + ", " + Func);
+					if(LibGreenTea.DebugMode) {
+						Func.GetContext().ReportError(WarningLevel, SourceToken, "duplicated symbol" + SourceToken.ParsedText + " oldnew =" + ListedFunc + ", " + Func);
+					}
+					else {
+						Func.GetContext().ReportError(WarningLevel, SourceToken, "duplicated symbol" + SourceToken.ParsedText);
+					}
 					break;
 				}
 				i = i + 1;

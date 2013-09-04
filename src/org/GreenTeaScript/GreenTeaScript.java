@@ -1720,8 +1720,12 @@ final class GtNameSpace extends GtStatic {
 		if(SourceToken != null) {
 			/*local*/Object OldValue = this.SymbolPatternTable.get(Key);
 			if(OldValue != null) {
-				this.Context.ReportError(WarningLevel, SourceToken, "duplicated symbol: " + SourceToken + "oldnew=" + OldValue + ", " + Value);
-			}
+				if(LibGreenTea.DebugMode) {
+					this.Context.ReportError(WarningLevel, SourceToken, "duplicated symbol: " + SourceToken + " oldnew=" + OldValue + ", " + Value);
+				}
+				else {
+					this.Context.ReportError(WarningLevel, SourceToken, "duplicated symbol: " + SourceToken);
+				}
 		}
 		this.SymbolPatternTable.put(Key, Value);
 		LibGreenTea.VerboseLog(VerboseSymbol, "symbol: " + Key + ", " + Value);
