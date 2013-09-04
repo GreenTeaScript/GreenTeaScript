@@ -97,7 +97,7 @@ public class DShellGrammar extends GtGrammar {
 		return GtStatic.NoMatch;
 	}
 
-	public final static GtSyntaxTree ParseShell(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+	public final static GtSyntaxTree ParseIdeShell(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
 		/*local*/int ParseFlag = TokenContext.ParseFlag;
@@ -123,7 +123,7 @@ public class DShellGrammar extends GtGrammar {
 		return NewTree;
 	}
 
-	public static GtNode TypeShell(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+	public static GtNode TypeIdeShell(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/CommandNode Node = (/*cast*/CommandNode) Gamma.Generator.CreateCommandNode(ContextType, ParsedTree, null);
 		/*local*/GtNode HeadNode = Node;
 		/*local*/int i = 0;
@@ -150,29 +150,113 @@ public class DShellGrammar extends GtGrammar {
 		return HeadNode;
 	}
 
+	private static String CommandSymbol(String Symbol) {
+		return "__$" + Symbol;
+	}
+	
+	private static void AppendCommand(GtNameSpace NameSpace, String CommandPath, GtToken SourceToken) {
+		if(CommandPath.length() > 0) {
+			int loc = CommandPath.lastIndexOf('/');
+			String Command = CommandPath;
+			if(loc != -1) {
+				Command = CommandPath.substring(loc+1);
+			}
+			if(LibGreenTea.EqualsString(Command, "*")) {
+				//TODO
+			}
+			else {
+				NameSpace.SetSymbol(Command, NameSpace.GetSyntaxPattern("$Shell$"), SourceToken);
+				NameSpace.SetSymbol(CommandSymbol(Command), CommandPath, null);
+			}
+		}
+	}
 	
 	public static GtSyntaxTree ParseCommand(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		/*local*/GtSyntaxTree ImportTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("command"), null);
-		/*local*/GtToken Token = TokenContext.Next();
-		/*local*/String PackageName = LibGreenTea.UnquoteString(Token.ParsedText);
+		/*local*/GtSyntaxTree CommandTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("command"), null);
+		/*local*/String Command = "";
+		/*local*/GtToken SourceToken = null;
 		while(TokenContext.HasNext()) {
-			Token = TokenContext.Next();
-			if(Token.IsNameSymbol() || LibGreenTea.EqualsString(Token.ParsedText, ".")) {
-				PackageName += Token.ParsedText;
+			/*local*/GtToken Token = TokenContext.Next();
+			if(Token.EqualsText(",")) {
 				continue;
 			}
-			break;
+			if(Token.IsDelim() || Token.IsIndent()) {
+				break;
+			}
+			SourceToken = Token;
+			Command += Token.ParsedText;
+			if(Token.IsNextWhiteSpace()) {
+				AppendCommand(NameSpace, Command, SourceToken);
+				Command = "";
+			}
 		}
-		ImportTree.ConstValue = PackageName;
-		return ImportTree;
+		if(Command.length() > 0) {
+			AppendCommand(NameSpace, Command, SourceToken);
+		}
+		return CommandTree;
 	}
 
-	public static GtNode TypeCommand(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
-		/*local*/Object Value = Gamma.Generator.ImportNativeObject(Type, (/*cast*/String)ParsedTree.ConstValue);
-		if(Value == null) {
-			return Gamma.CreateSyntaxErrorNode(ParsedTree, "cannot import: " + ParsedTree.ConstValue);
+	public static GtSyntaxTree ParseShell(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtToken CommandToken = TokenContext.Next();
+		/*local*/GtSyntaxTree CommandTree = new GtSyntaxTree(Pattern, NameSpace, CommandToken, null);
+		/*local*/String Command = (/*cast*/String)NameSpace.GetSymbol(CommandSymbol(CommandToken.ParsedText));
+		if(Command == null) {
+			//TODO()
 		}
-		return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(Value), ParsedTree, Value);
+		/*local*/ArrayList<Object> CommandLine = new ArrayList<Object>();
+		/*local*/String Argument = "";
+		while(TokenContext.HasNext()) {
+			/*local*/GtToken Token = TokenContext.Next();
+			if(Token.IsDelim() || Token.IsIndent()) {
+				break;
+			}
+			if(Token.IsNextWhiteSpace()) {
+				if(Argument.length() > 0) {
+					CommandLine.add(Argument + Token.ParsedText);
+					Argument = "";
+				}
+				else {
+					CommandLine.add(Token);
+				}
+			}
+			else {
+				Argument += Token.ParsedText;
+			}
+		}
+		if(Argument.length() > 0) {
+			CommandLine.add(Argument);
+		}
+		CommandTree.ConstValue = CommandLine;
+		return CommandTree;
+	}
+
+	public static GtNode TypeShell(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+		/*local*/ArrayList<Object> CommandLine = (ArrayList<Object>)ParsedTree.ConstValue;
+		/*local*/CommandNode Node = (/*cast*/CommandNode) Gamma.Generator.CreateCommandNode(ContextType, ParsedTree, null);
+		/*local*/GtNode HeadNode = Node;
+		/*local*/int i = 0;
+
+		/*local*/String Command = ParsedTree.KeyToken.ParsedText;
+		/*local*/GtNode ThisNode = Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, Command);
+		Node.Append(ThisNode);
+		while(i < LibGreenTea.ListSize(ParsedTree.SubTreeList)) {
+			/*local*/GtNode ExprNode = ParsedTree.TypeCheckAt(i, Gamma, Gamma.StringType, DefaultTypeCheckPolicy);
+			if(ExprNode instanceof ConstNode) {
+				/*local*/ConstNode CNode = (/*cast*/ConstNode) ExprNode;
+				if(CNode.ConstValue instanceof String) {
+					/*local*/String Val = (/*cast*/String) CNode.ConstValue;
+					if(Val.equals("|")) {
+						LibGreenTea.DebugP("PIPE");
+						/*local*/CommandNode PrevNode = Node;
+						Node = (/*cast*/CommandNode) Gamma.Generator.CreateCommandNode(ContextType, ParsedTree, null);
+						PrevNode.PipedNextNode = Node;
+					}
+				}
+			}
+			Node.Append(ExprNode);
+			i = i + 1;
+		}
+		return HeadNode;
 	}
 
 	@Override public void LoadTo(GtNameSpace NameSpace) {
