@@ -76,6 +76,11 @@
 @Const @Operator boolean ==(double x, double y) import org.GreenTeaScript.GreenTeaRuntime.binary_eq;
 @Const @Operator boolean !=(double x, double y) import org.GreenTeaScript.GreenTeaRuntime.binary_ne;
 
+@Const @Operator double +(int x, double y) import org.GreenTeaScript.GreenTeaRuntime.binary_add;
+@Const @Operator double -(int x, double y) import org.GreenTeaScript.GreenTeaRuntime.binary_sub;
+@Const @Operator double *(int x, double y) import org.GreenTeaScript.GreenTeaRuntime.binary_mul;
+@Const @Operator double /(int x, double y) import org.GreenTeaScript.GreenTeaRuntime.binary_div;
+
 @Coercion @Const any converter(double x) import org.GreenTeaScript.GreenTeaRuntime.DoubleToAny;
 @Coercion @Const double converter(any x) import org.GreenTeaScript.GreenTeaRuntime.AnyToDouble;
 @Const double converter(String x) import org.GreenTeaScript.GreenTeaRuntime.StringToDouble;

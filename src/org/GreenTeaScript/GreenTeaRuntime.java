@@ -410,6 +410,23 @@ public class GreenTeaRuntime {
 	public static boolean binary_ne(double x, double y) {
 		return x != y;
 	}
+
+	public static double binary_add(long x, double y) {
+		return x + y;
+	}
+
+	public static double binary_sub(long x, double y) {
+		return x - y;
+	}
+
+	public static double binary_mul(long x, double y) {
+		return x * y;
+	}
+
+	public static double binary_div(long x, double y) {
+		return x / y;
+	}
+
 	//-----------------------------------------------------
 
 	public static Object getter(Object o, String name) throws Exception {
