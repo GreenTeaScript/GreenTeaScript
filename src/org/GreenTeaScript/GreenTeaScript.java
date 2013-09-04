@@ -2303,13 +2303,14 @@ final class GreenTeaGrammar extends GtGrammar {
 
 	public static long NumberLiteralToken(GtTokenContext TokenContext, String SourceText, long pos) {
 		/*local*/long start = pos;
-		/*local*/boolean IsFloatLiteral = false;
+		/*local*/long LastMatchedPos = pos;
 		while(pos < SourceText.length()) {
 			if(!LibGreenTea.IsDigit(SourceText, pos)) {
 				break;
 			}
 			pos += 1;
 		}
+		LastMatchedPos = pos;
 		/*local*/char ch = LibGreenTea.CharAt(SourceText, pos);
 		if(ch != '.' && ch != 'e' && ch != 'E') {
 			TokenContext.AddNewToken(LibGreenTea.SubString(SourceText, start, pos), 0, "$IntegerLiteral$");
@@ -2332,11 +2333,15 @@ final class GreenTeaGrammar extends GtGrammar {
 	        	pos += 1;
 			    ch = LibGreenTea.CharAt(SourceText, pos);
 	        }
+		    /*local*/long saved = pos;
 			while(pos < SourceText.length()) {
 				if(!LibGreenTea.IsDigit(SourceText, pos)) {
 					break;
 				}
 				pos += 1;
+			}
+			if(saved == pos) {
+				pos = LastMatchedPos;
 			}
 	    }
 		TokenContext.AddNewToken(LibGreenTea.SubString(SourceText, start, pos), 0, "$FloatLiteral$");

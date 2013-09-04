@@ -40,7 +40,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.NullLiteral = LibGreenTea.QuoteString("__NULL__");
 		this.MemberAccessOperator = "__MEMBER__";
 		this.LineComment = "##";
-		this.ParameterBegin = "";
+		this.ParameterBegin = " ";
 		this.ParameterEnd = "";
 		this.ParameterDelimiter = "";
 	}
@@ -116,11 +116,6 @@ public class BashSourceGenerator extends SourceGenerator {
 		GtStatic.LinkNode(Block.MoveTailNode(), IfBlock);
 		/*local*/GtNode TrueNode = this.CreateConstNode(ParsedTree.NameSpace.Context.BooleanType, ParsedTree, true);
 		return this.CreateWhileNode(Type, ParsedTree, TrueNode, Block);
-	}
-	
-	@Override public GtNode CreateSelfAssignNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, GtNode Left, GtNode Right) {
-		/*local*/GtNode NewBinary = this.CreateBinaryNode(Type, ParsedTree, Func, Left, Right);
-		return this.CreateAssignNode(Type, ParsedTree, Left, NewBinary);
 	}
 
 	private String ResolveCondition(GtNode Node) {
@@ -258,6 +253,24 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitAssignNode(AssignNode Node) {
 		this.PushSourceCode(this.VisitNode(Node.LeftNode) + "=" + this.ResolveValueType(Node.RightNode, true));
+	}
+
+	@Override public void VisitSelfAssignNode(SelfAssignNode Node) {
+		/*local*/String FuncName = Node.Token.ParsedText;
+		/*local*/GtFunc Func = Node.Func;
+		/*local*/String Left = this.VisitNode(Node.LeftNode);
+		/*local*/String Right = this.ResolveValueType(Node.RightNode, false);
+		/*local*/String Macro = null;
+		if(Func != null) {
+			FuncName = Func.GetNativeFuncName();
+			if(IsFlag(Func.FuncFlag, NativeMacroFunc)) {
+				Macro = Func.GetNativeMacro();
+			}
+		}
+		if(Macro == null) {
+			Macro = "(($1 " + FuncName + " $2))";
+		}
+		this.PushSourceCode(Macro.replace("$1", Left).replace("$2", Right));
 	}
 
 	@Override public void VisitVarNode(VarNode Node) {

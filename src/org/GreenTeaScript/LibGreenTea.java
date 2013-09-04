@@ -234,7 +234,13 @@ public abstract class LibGreenTea implements GtConst {
 	}
 
 	public final static double ParseFloat(String Text) {
-		return Double.parseDouble(Text);
+		try {
+			return Double.parseDouble(Text);
+		}
+		catch(NumberFormatException e) {
+			LibGreenTea.VerboseException(e);
+		}
+		return 0.0;
 	}
 
 	public final static boolean IsUnixCommand(String cmd) {
