@@ -523,8 +523,8 @@ class GtPolyFunc extends GtStatic {
 
 	public GtFunc ResolveFunc(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, int TreeIndex, ArrayList<GtNode> NodeList) {
 		/*local*/int FuncParamSize = LibGreenTea.ListSize(ParsedTree.SubTreeList) - TreeIndex + NodeList.size();
-		System.err.println("*** FuncParamSize=" + FuncParamSize + "resolved_size=" + NodeList.size());
-		System.err.println("*** FuncList=" + this);
+		//System.err.println("*** FuncParamSize=" + FuncParamSize + "resolved_size=" + NodeList.size());
+		//System.err.println("*** FuncList=" + this);
 		
 		/*local*/GtFunc ResolvedFunc = this.IncrementalMatch(FuncParamSize, NodeList);
 		while(ResolvedFunc == null && TreeIndex < LibGreenTea.ListSize(ParsedTree.SubTreeList)) {

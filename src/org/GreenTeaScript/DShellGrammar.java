@@ -215,24 +215,31 @@ public class DShellGrammar extends GtGrammar {
 
 	public static GtSyntaxTree ParseEnv(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree CommandTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("letenv"), null);
-		/*local*/String EnvVar = "";
-		/*local*/GtToken SourceToken = null;
-		while(TokenContext.HasNext()) {
-			/*local*/GtToken Token = TokenContext.Next();
-			if(Token.EqualsText(",")) {
-				Token.ParsedText = "";   // continue cause forgotten whitespace
+		GtToken Token = TokenContext.Next();
+		if(!LibGreenTea.IsVariableName(Token.ParsedText, 0)) {
+			return TokenContext.ReportExpectedMessage(Token, "name", true);
+		}
+		String Name = Token.ParsedText;
+		String Env = System.getenv(Name);
+		if(TokenContext.MatchToken("=")) {
+			GtSyntaxTree ConstTree = GtStatic.ParseExpression(NameSpace, TokenContext, false);
+			if(GtStatic.IsEmptyOrError(ConstTree)) {
+				return ConstTree;
 			}
-			if(Token.IsDelim() || Token.IsIndent()) {
-				break;
-			}
-			SourceToken = Token;
-			EnvVar += Token.ParsedText;
-			if(Token.IsNextWhiteSpace()) {
-				AppendEnv(NameSpace, EnvVar, SourceToken);
-				EnvVar = "";
+			if(Env == null) {
+				GtTypeEnv Gamma = new GtTypeEnv(NameSpace);
+				GtNode ConstNode = ConstTree.TypeCheck(Gamma, Gamma.StringType, DefaultTypeCheckPolicy);
+				Env = (/*cast*/String)ConstNode.ToConstValue(true);
 			}
 		}
-		AppendEnv(NameSpace, EnvVar, SourceToken);
+		if(Env == null) {
+			NameSpace.Context.ReportError(ErrorLevel, Token, "undefined environment variable: " + Name);
+			CommandTree.ToError(Token);
+		}
+		else {
+			NameSpace.SetSymbol(Name, Env, Token);
+			CommandTree.ToConstTree(Env);
+		}
 		return CommandTree;
 	}
 
@@ -339,16 +346,37 @@ public class DShellGrammar extends GtGrammar {
 	private final static String FileOperators = "-f -x -d";
 	private final static String StopTokens = ";,)]}&&||";
 	
-	private static String ParseFilePath(GtTokenContext TokenContext) {
+	private static String ParseFilePath(GtNameSpace NameSpace, GtTokenContext TokenContext) {
 		String Path = "";
+		boolean FoundOpen = false;
 		while(TokenContext.HasNext()) {
 			GtToken Token = TokenContext.GetToken();
-			if(Token.IsIndent() || StopTokens.indexOf(Token.ParsedText) != -1) {
+			if(Token.IsIndent() || (!FoundOpen && StopTokens.indexOf(Token.ParsedText) != -1)) {
 				break;
 			}
 			TokenContext.Next();
+			if(Token.EqualsText("$")) {   // $HOME/hoge
+				GtToken Token2 = TokenContext.GetToken();
+				if(LibGreenTea.IsVariableName(Token2.ParsedText, 0)) {
+					Object Env = NameSpace.GetSymbol(Token2.ParsedText);
+					if(Env instanceof String) {
+						Path += Env.toString();	
+					}
+					else {
+						Path += "${" + Token2.ParsedText + "}";
+					}
+					TokenContext.Next();
+					continue;
+				}
+			}
+			if(Token.EqualsText("{")) {
+				FoundOpen = true;
+			}
+			if(Token.EqualsText("}")) {
+				FoundOpen = false;
+			}
 			Path += Token.ParsedText;
-			if(Token.IsNextWhiteSpace()) {
+			if(!FoundOpen && Token.IsNextWhiteSpace()) {
 				break;
 			}
 		}
@@ -360,7 +388,7 @@ public class DShellGrammar extends GtGrammar {
 		/*local*/GtToken Token2 = TokenContext.Next();
 		if(!Token.IsNextWhiteSpace()) {
 			if(FileOperators.indexOf(Token2.ParsedText) != -1) {
-				String Path = ParseFilePath(TokenContext);
+				String Path = ParseFilePath(NameSpace, TokenContext);
 				if(Path.length() > 0) {
 					Token.ParsedText += Token2.ParsedText;
 					/*local*/GtSyntaxTree Tree = new GtSyntaxTree(Pattern, NameSpace, Token, null);

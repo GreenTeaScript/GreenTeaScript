@@ -1198,7 +1198,6 @@ class GtSyntaxTree extends GtStatic {
 		LibGreenTea.Assert(Token.IsError());
 		this.KeyToken = Token;
 		this.SubTreeList = null;
-		LibGreenTea.Assert(Token.PresetPattern != null);
 		this.Pattern = Token.PresetPattern;		
 	}
 
@@ -2039,14 +2038,24 @@ final class GtNameSpace extends GtStatic {
 		while(TokenContext.HasNext()) {
 			/*local*/GtMap Annotation = TokenContext.SkipAndGetAnnotation(true);
 			TokenContext.ParseFlag = 0; // init
+			//System.err.println("** TokenContext.Position=" + TokenContext.CurrentPosition + ", " + TokenContext.IsAllowedBackTrack());
 			/*local*/GtSyntaxTree TopLevelTree = GtStatic.ParseExpression(this, TokenContext, false/*SuffixOnly*/);
-			if(!TopLevelTree.IsEmptyOrError()) {
+			TokenContext.SkipEmptyStatement();			
+			if(TopLevelTree.IsError() && TokenContext.HasNext()) {
+				GtToken Token = TokenContext.GetToken();
+				this.Context.ReportError(InfoLevel, TokenContext.GetToken(), "stopping script eval at " + Token.ParsedText);
+				ResultValue = TopLevelTree.KeyToken;  // in case of error, return error token
+				break;
+			}
+			if(TopLevelTree.IsValidSyntax()) {
 				TopLevelTree.SetAnnotation(Annotation);
 				/*local*/GtTypeEnv Gamma = new GtTypeEnv(this);
 				/*local*/GtNode Node = TopLevelTree.TypeCheck(Gamma, Gamma.VoidType, DefaultTypeCheckPolicy);
 				ResultValue = Node.ToConstValue(true/*EnforceConst*/);
+				if(ResultValue == null) {
+					System.err.println(Node.getClass());
+				}
 			}
-			TokenContext.SkipIncompleteStatement();
 			TokenContext.Vacume();
 		}
 		this.Context.Generator.FinishCompilationUnit();
@@ -2057,7 +2066,10 @@ final class GtNameSpace extends GtStatic {
 		/*local*/String ScriptText = LibGreenTea.LoadFile2(FileName);
 		if(ScriptText != null) {
 			/*local*/long FileLine = this.Context.GetFileLine(FileName, 1);
-			this.Eval(ScriptText, FileLine);
+			/*local*/Object Token = this.Eval(ScriptText, FileLine);
+			if(Token instanceof GtToken && ((/*cast*/GtToken)Token).IsError()) {
+				return false;
+			}
 			return true;
 		}
 		return false;
@@ -3085,18 +3097,17 @@ final class GreenTeaGrammar extends GtGrammar {
 
 	public static GtNode TypeAssign(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtNode LeftNode = ParsedTree.TypeCheckAt(LeftHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-
 		if(LeftNode instanceof LocalNode || LeftNode instanceof GetterNode || LeftNode instanceof IndexerNode) {
 			/*local*/GtNode RightNode = ParsedTree.TypeCheckAt(RightHandTerm, Gamma, LeftNode.Type, DefaultTypeCheckPolicy);
 			return Gamma.Generator.CreateAssignNode(LeftNode.Type, ParsedTree, LeftNode, RightNode);
 		}
-		return Gamma.CreateSyntaxErrorNode(ParsedTree, "not assigned to a left hand value");
+		return Gamma.CreateSyntaxErrorNode(ParsedTree, "the left-hand side of an assignment must be variable");
 	}
 
 	public static GtNode TypeSelfAssign(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtNode LeftNode = ParsedTree.TypeCheckAt(LeftHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
 		if(!(LeftNode instanceof LocalNode || LeftNode instanceof GetterNode || LeftNode instanceof IndexerNode)) {
-			return Gamma.CreateSyntaxErrorNode(ParsedTree, "not assigned to a left hand value");
+			return Gamma.CreateSyntaxErrorNode(ParsedTree, "the left-hand side of an assignment must be variable");
 		}
 		/*local*/GtNode RightNode = ParsedTree.TypeCheckAt(RightHandTerm, Gamma, LeftNode.Type, DefaultTypeCheckPolicy);
 		/*local*/String OperatorSymbol = ParsedTree.KeyToken.ParsedText;
@@ -4616,7 +4627,8 @@ final class GtParserContext extends GtStatic {
 			else if(Level == InfoLevel) {
 				Message = "(info) " + this.GetSourcePosition(Token.FileLine) + " " + Message;
 			}
-			LibGreenTea.DebugP(Message);
+			//LibGreenTea.DebugP(Message);
+			System.err.println("**" + Message + "    if dislike this, comment out In ReportError");
 			this.ReportedErrorList.add(Message);
 		}
 	}
