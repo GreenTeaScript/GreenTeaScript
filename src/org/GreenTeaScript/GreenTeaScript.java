@@ -704,7 +704,7 @@ final class GtTokenContext extends GtStatic {
 	}
 
 	public void FoundWhiteSpace() {
-		/*local*/GtToken Token = this.GetToken();
+		/*local*/GtToken Token = this.SourceList.get(this.SourceList.size() - 1);
 		Token.TokenFlag |= WhiteSpaceTokenFlag;
 	}
 
@@ -1183,6 +1183,7 @@ class GtSyntaxTree extends GtStatic {
 		LibGreenTea.Assert(Token.IsError());
 		this.KeyToken = Token;
 		this.SubTreeList = null;
+		//this.Pattern = this.NameSpace.GetSyntaxPattern("$Error$");
 	}
 
 	public boolean IsEmpty() {
@@ -4690,6 +4691,7 @@ public class GreenTeaScript extends GtStatic {
 			LibGreenTea.Usage("no target: " + TargetCode);
 		}
 		/*local*/GtParserContext Context = new GtParserContext(new GreenTeaGrammar(), Generator);
+		Context.LoadGrammar(new DShellGrammar());
 		if(OneLiner != null) {
 			Context.TopLevelNameSpace.Eval(OneLiner, 1);
 		}

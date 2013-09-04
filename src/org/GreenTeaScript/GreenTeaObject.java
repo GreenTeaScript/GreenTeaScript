@@ -151,6 +151,10 @@ class GtType extends GtStatic {
 		return (this == this.Context.TypeType);
 	}
 
+	public final boolean IsBooleanType() {
+		return (this == this.Context.BooleanType);
+	}
+
 	public final boolean IsStringType() {
 		return (this == this.Context.StringType);
 	}
@@ -178,6 +182,7 @@ class GtType extends GtStatic {
 	public boolean IsDynamicNaitiveLoading() {
 		return this.IsNative() && !IsFlag(this.ClassFlag, CommonClass);
 	}
+
 
 
 }
@@ -422,12 +427,7 @@ class GtPolyFunc extends GtStatic {
 					return; /* same function */
 				}
 				if(Func.EqualsType(ListedFunc)) {
-					if(LibGreenTea.DebugMode) {
-						Func.GetContext().ReportError(WarningLevel, SourceToken, "duplicated symbol" + SourceToken.ParsedText + " oldnew =" + ListedFunc + ", " + Func);
-					}
-					else {
-						Func.GetContext().ReportError(WarningLevel, SourceToken, "duplicated symbol" + SourceToken.ParsedText);
-					}
+					Func.GetContext().ReportError(WarningLevel, SourceToken, "duplicated symbol" + SourceToken.ParsedText);
 					break;
 				}
 				i = i + 1;
@@ -448,33 +448,9 @@ class GtPolyFunc extends GtStatic {
 		return null;
 	}
 
-	public final GtFunc ResolveBinaryFunc(GtTypeEnv Gamma, GtNode[] BinaryNodes) {
-		/*local*/int i = this.FuncList.size() - 1;
-		while(i >= 0) {
-			/*local*/GtFunc Func = this.FuncList.get(i);
-			if(Func.GetFuncParamSize() == 2 && Func.Types[1].Accept(BinaryNodes[0].Type) && Func.Types[2].Accept(BinaryNodes[1].Type)) {
-				return Func;
-			}
-			i = i - 1;
-		}
-		i = this.FuncList.size() - 1;
-		while(i >= 0) {
-			/*local*/GtFunc Func = this.FuncList.get(i);
-			if(Func.GetFuncParamSize() == 2 && Func.Types[1].Accept(BinaryNodes[0].Type)) {
-				/*local*/GtFunc TypeCoercion = Gamma.NameSpace.GetConverterFunc(BinaryNodes[1].Type, Func.Types[2], true);
-				if(TypeCoercion != null && TypeCoercion.Is(CoercionFunc)) {
-					BinaryNodes[1] = Gamma.CreateCoercionNode(Func.Types[2], TypeCoercion, BinaryNodes[1]);
-					return Func;
-				}
-			}
-			i = i - 1;
-		}
-		return null;
-	}
-
 	public final GtFunc IncrementalMatch(int FuncParamSize, ArrayList<GtNode> NodeList) {
-		/*local*/int i = 0;
 		/*local*/GtFunc ResolvedFunc = null;
+		/*local*/int i = 0;
 		while(i < this.FuncList.size()) {
 			/*local*/GtFunc Func = this.FuncList.get(i);
 			if(Func.GetFuncParamSize() == FuncParamSize) {
@@ -547,7 +523,9 @@ class GtPolyFunc extends GtStatic {
 
 	public GtFunc ResolveFunc(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, int TreeIndex, ArrayList<GtNode> NodeList) {
 		/*local*/int FuncParamSize = LibGreenTea.ListSize(ParsedTree.SubTreeList) - TreeIndex + NodeList.size();
-		//System.err.println("*** FuncParamSize=" + FuncParamSize + "resolved_size=" + NodeList.size());
+		System.err.println("*** FuncParamSize=" + FuncParamSize + "resolved_size=" + NodeList.size());
+		System.err.println("*** FuncList=" + this);
+		
 		/*local*/GtFunc ResolvedFunc = this.IncrementalMatch(FuncParamSize, NodeList);
 		while(ResolvedFunc == null && TreeIndex < LibGreenTea.ListSize(ParsedTree.SubTreeList)) {
 			/*local*/GtNode Node = ParsedTree.TypeCheckAt(TreeIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);

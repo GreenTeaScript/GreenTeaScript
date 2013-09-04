@@ -894,6 +894,7 @@ public abstract class LibGreenTea implements GtConst {
 	}
 
 	public static Object EvalBinary(GtType Type, Object LeftValue, String Operator, Object RightValue) {
+		System.err.println("***" + LeftValue.getClass() + ", " + RightValue.getClass());
 		if(LeftValue == null || RightValue == null) {
 			return null;
 		}
