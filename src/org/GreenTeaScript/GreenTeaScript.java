@@ -4014,14 +4014,14 @@ final class GreenTeaGrammar extends GtGrammar {
 							/*local*/ArrayList<GtType> ParamList = new ArrayList<GtType>();
 							ParamList.add(FieldInfo.Type);
 							ParamList.add(DefinedType);
-							FieldInfo.GetterFunc = new GtFunc(0, FieldInfo.Name, 0, ParamList);
+							FieldInfo.GetterFunc = new GtFunc(GetterFunc, FieldInfo.Name, 0, ParamList);
 							NameSpace0.SetGetterFunc(DefinedType, FieldInfo.Name, FieldInfo.GetterFunc, SourceToken);
 							ParamList.clear();
 							ParamList.add(Gamma.VoidType);
 							ParamList.add(DefinedType);
 							ParamList.add(FieldInfo.Type);
-							FieldInfo.SetterFunc = new GtFunc(0, FieldInfo.Name, 0, ParamList);
-							NameSpace0.SetGetterFunc(DefinedType, FieldInfo.Name, FieldInfo.SetterFunc, SourceToken);
+							FieldInfo.SetterFunc = new GtFunc(SetterFunc, FieldInfo.Name, 0, ParamList);
+							NameSpace0.SetSetterFunc(DefinedType, FieldInfo.Name, FieldInfo.SetterFunc, SourceToken);
 							FieldInfo.InitValue = ((/*cast*/ConstNode)((/*cast*/VarNode)FieldNode).InitNode).ConstValue;
 						}
 					}
@@ -4360,7 +4360,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		NameSpace.AppendSyntax("try", LoadParseFunc(ParserContext, this, "ParseTry"), LoadTypeFunc(ParserContext, this, "TypeTry"));
 		NameSpace.AppendSyntax("throw", LoadParseFunc(ParserContext, this, "ParseThrow"), LoadTypeFunc(ParserContext, this, "TypeThrow"));
 
-		NameSpace.AppendSyntax("class", LoadParseFunc(ParserContext, this, "ParseClassDecl"), LoadTypeFunc(ParserContext, this, "TypeClassDecl"));
+		NameSpace.AppendSyntax("class", LoadParseFunc(ParserContext, this, "ParseClassDecl2"), LoadTypeFunc(ParserContext, this, "TypeClassDecl2"));
 		NameSpace.AppendSyntax("$Constructor$", LoadParseFunc(ParserContext, this, "ParseConstructor"), LoadTypeFunc(ParserContext, this, "TypeConstructor"));
 		NameSpace.AppendSyntax("super", LoadParseFunc(ParserContext, this, "ParseSuper"), null);
 		NameSpace.AppendSyntax("this", LoadParseFunc(ParserContext, this, "ParseThis"), LoadTypeFunc(ParserContext, this, "TypeThis"));
