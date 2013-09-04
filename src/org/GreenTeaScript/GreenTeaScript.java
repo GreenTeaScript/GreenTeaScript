@@ -770,6 +770,7 @@ final class GtTokenContext extends GtStatic {
 		if(this.CurrentPosition > 0) {
 			/*local*/int i = this.CurrentPosition;
 			while(i > 0) {
+				LibGreenTea.Assert(this.SourceList.size() > 0);
 				this.SourceList.remove(0);
 				i = i - 1;
 			}

@@ -1304,6 +1304,8 @@ class SourceGenerator extends GtGenerator {
 	/*field*/protected String    LineComment;
 	/*field*/protected String    BreakKeyword;
 	/*field*/protected String    ContinueKeyword;
+	/*field*/protected String    ParameterBegin;
+	/*field*/protected String    ParameterEnd;
 	/*field*/protected String    ParameterDelimiter;
 	/*field*/protected String    SemiColon;
 	/*field*/protected String    BlockBegin;
@@ -1327,6 +1329,8 @@ class SourceGenerator extends GtGenerator {
 		this.BreakKeyword = "break";
 		this.ContinueKeyword = "continue";
 		this.LineComment  = "//";
+		this.ParameterBegin = "(";
+		this.ParameterEnd = ")";
 		this.ParameterDelimiter = ",";
 		this.SemiColon = ";";
 		this.BlockBegin = "{";
@@ -1528,7 +1532,7 @@ class SourceGenerator extends GtGenerator {
 		}
 		/*local*/int i = BeginIdx;
 		if(IsNative == false) {
-			Template += "(";
+			Template += this.ParameterBegin;
 			while(i < ParamSize) {
 				if(i != BeginIdx) {
 					Template += this.ParameterDelimiter + " ";
@@ -1536,7 +1540,7 @@ class SourceGenerator extends GtGenerator {
 				Template += "$" + i;
 				i = i + 1;
 			}
-			Template += ")";
+			Template += this.ParameterEnd;
 		}
 		return Template;
 	}

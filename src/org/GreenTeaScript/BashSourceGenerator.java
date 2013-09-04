@@ -40,6 +40,8 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.NullLiteral = LibGreenTea.QuoteString("__NULL__");
 		this.MemberAccessOperator = "__MEMBER__";
 		this.LineComment = "##";
+		this.ParameterBegin = "";
+		this.ParameterEnd = "";
 		this.ParameterDelimiter = "";
 	}
 
