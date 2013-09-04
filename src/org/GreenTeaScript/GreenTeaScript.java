@@ -1438,6 +1438,10 @@ class GtVariableInfo extends GtStatic {
 			this.Type.Context.ReportError(WarningLevel, this.NameToken, "unused variable: " + this.Name);
 		}
 	}
+	// for debug
+	@Override public String toString() {
+		return "(" + this.Type + " " + this.Name + ", " + this.NativeName + ")";
+	}
 }
 
 final class GtTypeEnv extends GtStatic {
@@ -3675,7 +3679,7 @@ final class GreenTeaGrammar extends GtGrammar {
 			FuncDeclTree.SetMatchedPatternAt(ParamBase + VarDeclType, NameSpace, TokenContext, "$Type$", Required);
 			FuncDeclTree.SetMatchedPatternAt(ParamBase + VarDeclName, NameSpace, TokenContext, "$Variable$", Required);
 			if(!FuncDeclTree.IsEmptyOrError()) {
-				FuncBlock.AddParameter(FuncDeclTree.GetSyntaxTreeAt(ParamBase + VarDeclType).GetParsedType(), FuncDeclTree.GetSyntaxTreeAt(ParamBase + VarDeclType).KeyToken.ParsedText);
+				FuncBlock.AddParameter(FuncDeclTree.GetSyntaxTreeAt(ParamBase + VarDeclType).GetParsedType(), FuncDeclTree.GetSyntaxTreeAt(ParamBase + VarDeclName).KeyToken.ParsedText);
 			}
 			if(TokenContext.MatchToken("=")) {
 				FuncDeclTree.SetMatchedPatternAt(ParamBase + VarDeclValue, NameSpace, TokenContext, "$Expression$", Required);
