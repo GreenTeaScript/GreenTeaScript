@@ -501,8 +501,8 @@ public class JavaByteCodeGenerator extends GtGenerator {
 //		}
 //		else {
 		Method m = null;
-		if(Func.NativeRef != null) {
-			m = (Method)Func.NativeRef;
+		if(Func.NativeRef instanceof Method) {
+			m = (Method) Func.NativeRef;
 		}
 		else {
 			m = this.methodMap.get(Func.FuncName);
