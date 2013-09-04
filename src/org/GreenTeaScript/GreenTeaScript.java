@@ -2052,9 +2052,9 @@ final class GtNameSpace extends GtStatic {
 				/*local*/GtTypeEnv Gamma = new GtTypeEnv(this);
 				/*local*/GtNode Node = TopLevelTree.TypeCheck(Gamma, Gamma.VoidType, DefaultTypeCheckPolicy);
 				ResultValue = Node.ToConstValue(true/*EnforceConst*/);
-				if(ResultValue == null) {
-					System.err.println(Node.getClass());
-				}
+//				if(ResultValue == null) {
+//					System.err.println(Node.getClass());
+//				}
 			}
 			TokenContext.Vacume();
 		}

@@ -118,7 +118,7 @@ class GtNode extends GtStatic {
 
 	public Object ToConstValue(boolean EnforceConst)  {
 		if(EnforceConst) {
-			this.Type.Context.ReportError(ErrorLevel, this.Token, "value must be const");
+			this.Type.Context.ReportError(ErrorLevel, this.Token, "value must be constant in this context");
 		}
 		return null;
 	}
