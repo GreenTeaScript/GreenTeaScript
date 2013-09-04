@@ -509,9 +509,12 @@ class GtStatic implements GtConst {
 	}
 
 	// typing
-	public final static GtNode ApplyTypeFunc(GtFunc delegate, GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
-		Gamma.NameSpace = ParsedTree.NameSpace;
-		return (/*cast*/GtNode)LibGreenTea.ApplyTypeFunc(delegate, Gamma, ParsedTree, Type);
+	public final static GtNode ApplyTypeFunc(GtFunc TypeFunc, GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
+		if(TypeFunc != null) {
+			Gamma.NameSpace = ParsedTree.NameSpace;
+			return (/*cast*/GtNode)LibGreenTea.ApplyTypeFunc(TypeFunc, Gamma, ParsedTree, Type);
+		}
+		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType); 
 	}
 
 	public final static GtNode LinkNode(GtNode LastNode, GtNode Node) {

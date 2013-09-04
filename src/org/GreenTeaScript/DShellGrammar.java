@@ -150,11 +150,37 @@ public class DShellGrammar extends GtGrammar {
 		return HeadNode;
 	}
 
+	
+	public static GtSyntaxTree ParseCommand(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtSyntaxTree ImportTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("command"), null);
+		/*local*/GtToken Token = TokenContext.Next();
+		/*local*/String PackageName = LibGreenTea.UnquoteString(Token.ParsedText);
+		while(TokenContext.HasNext()) {
+			Token = TokenContext.Next();
+			if(Token.IsNameSymbol() || LibGreenTea.EqualsString(Token.ParsedText, ".")) {
+				PackageName += Token.ParsedText;
+				continue;
+			}
+			break;
+		}
+		ImportTree.ConstValue = PackageName;
+		return ImportTree;
+	}
+
+	public static GtNode TypeCommand(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
+		/*local*/Object Value = Gamma.Generator.ImportNativeObject(Type, (/*cast*/String)ParsedTree.ConstValue);
+		if(Value == null) {
+			return Gamma.CreateSyntaxErrorNode(ParsedTree, "cannot import: " + ParsedTree.ConstValue);
+		}
+		return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(Value), ParsedTree, Value);
+	}
+
 	@Override public void LoadTo(GtNameSpace NameSpace) {
 		/*local*/GtParserContext ParserContext = NameSpace.Context;
-		NameSpace.AppendTokenFunc("Aa-/1.<>|", LoadTokenFunc(ParserContext, this, "SymbolShellToken")); // overloading
-		//NameSpace.AppendSyntax("$ShellExpression$", FunctionB(this, "ParseShell"), FunctionC(this, "TypeShell"));
-		NameSpace.AppendSyntax("$ShellExpression$", LoadParseFunc(ParserContext, this, "ParseShell"), LoadTypeFunc(ParserContext, this, "TypeShell"));
+		NameSpace.AppendSyntax("command", LoadParseFunc(ParserContext, this, "ParseCommand"), LoadTypeFunc(ParserContext, this, "TypeCommand"));
+//		
+//		NameSpace.AppendTokenFunc("Aa-/1.<>|", LoadTokenFunc(ParserContext, this, "SymbolShellToken")); // overloading
+//		NameSpace.AppendSyntax("$ShellExpression$", LoadParseFunc(ParserContext, this, "ParseShell"), LoadTypeFunc(ParserContext, this, "TypeShell"));
 	}
 
 }
