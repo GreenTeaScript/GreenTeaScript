@@ -58,7 +58,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		 * => for(; True; if(!Cond) { break; } ) { Block;  }
 		 */
 		/*local*/GtNode Break = this.CreateBreakNode(Type, ParsedTree, null);
-		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(Cond.Type, "!", true);
+		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(Cond.Type, "not", true);
 		/*local*/GtTypeEnv Gamma = new GtTypeEnv(ParsedTree.NameSpace);
 		/*local*/GtFunc Func = null;
 		if(PolyFunc != null) {
@@ -97,7 +97,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		else {
 			Program += this.VisitBlockWithIndent(Node.LoopBody, true);
 		}
-		Program += this.VisitNode(Node.IterExpr);
+		Program += this.VisitBlockWithIndent(Node.IterExpr, true);
 		this.PushSourceCode(Program);
 	}
 
@@ -178,7 +178,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 	@Override public void VisitIfNode(IfNode Node) {
 		/*local*/String CondExpr = this.VisitNode(Node.CondExpr);
 		/*local*/String ThenBlock = this.VisitBlockWithIndent(Node.ThenNode, true);
-		/*local*/String Code = "if " + CondExpr + ":" + this.LineFeed + ThenBlock;
+		/*local*/String Code = "if " + CondExpr + ":" + this.LineFeed + this.GetIndentString() + ThenBlock;
 		if(this.IsEmptyBlock(Node.ThenNode)) {
 			Code += this.GetIndentString() + "pass" + this.LineFeed + this.GetIndentString();
 		}
