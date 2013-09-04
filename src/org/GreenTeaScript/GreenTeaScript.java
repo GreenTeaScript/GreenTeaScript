@@ -1726,6 +1726,7 @@ final class GtNameSpace extends GtStatic {
 				else {
 					this.Context.ReportError(WarningLevel, SourceToken, "duplicated symbol: " + SourceToken);
 				}
+			}
 		}
 		this.SymbolPatternTable.put(Key, Value);
 		LibGreenTea.VerboseLog(VerboseSymbol, "symbol: " + Key + ", " + Value);
