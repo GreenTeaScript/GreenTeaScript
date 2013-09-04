@@ -457,6 +457,34 @@ public abstract class LibGreenTea implements GtConst {
 		return null;
 	}
 
+	public static Object LoadNativeStaticFieldValue(GtType ClassType, String Symbol) {
+		GtParserContext Context = ClassType.Context;
+		try {
+			Class<?> NativeClass = (Class<?>)ClassType.NativeSpec;
+			Field NativeField = NativeClass.getField(Symbol);
+			if(Modifier.isStatic(NativeField.getModifiers())) {
+				Class<?> NativeType = NativeField.getType();
+				if(NativeType == double.class) {
+					return NativeField.getDouble(null);
+				}
+				return NativeField.get(null);
+			}
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			LibGreenTea.VerboseException(e);
+			e.printStackTrace();
+		} catch (NoSuchFieldException e) {
+			LibGreenTea.VerboseException(e);
+		}
+		Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, GtStatic.ClassStaticName(Symbol)), null);
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	
 	public final static void LoadNativeMethods(GtType ClassType, String FuncName, ArrayList<GtFunc> FuncList) {
 		GtParserContext Context = ClassType.Context;
 		Class<?> NativeClass = (Class<?>)ClassType.NativeSpec;

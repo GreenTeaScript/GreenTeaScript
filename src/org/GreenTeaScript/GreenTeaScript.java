@@ -1810,6 +1810,13 @@ final class GtNameSpace extends GtStatic {
 			if(Value != null) {
 				return Value;
 			}
+			if(ClassType.IsDynamicNaitiveLoading() & this.Context.RootNameSpace.GetLocalUndefinedSymbol(Key) == null) {
+				Value = LibGreenTea.LoadNativeStaticFieldValue(ClassType, Symbol);
+				if(Value != null) {
+					return Value;
+				}
+				//LibGreenTea.LoadNativeMethods(ClassType, Symbol, FuncList);
+			}
 			if(!RecursiveSearch) {
 				break;
 			}
