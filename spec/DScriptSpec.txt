@@ -1,0 +1,27 @@
+ActionNode
+==========
+
+boolean CallAdmin() {
+	print AdminName;
+}
+
+* G1
+Human operator is waited.
+
+* C1
+ImportDScript:: LibName
+AdminName:: ide
+
+* E1
+Action:: CallAdmin()
+
+----
+
+boolean E1() {
+	let AdminName = "ide";
+	boolean CallAdmin() {
+		print AdminName;
+	}
+	return InvokeAction("E1", CallAdmin);
+} 
+
