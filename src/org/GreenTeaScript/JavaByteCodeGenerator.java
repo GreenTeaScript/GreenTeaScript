@@ -658,6 +658,23 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.Builder.AsmMethodVisitor.visitLabel(EndLabel);
 	}
 
+	public void VisitTrinaryNode(TrinaryNode Node) {
+		Label ElseLabel = new Label();
+		Label EndLabel = new Label();
+		Node.CondExpr.Evaluate(this);
+		this.Builder.typeStack.pop();
+		this.Builder.AsmMethodVisitor.visitJumpInsn(IFEQ, ElseLabel);
+		// Then
+		this.VisitBlock(Node.ThenExpr);
+		this.Builder.AsmMethodVisitor.visitJumpInsn(GOTO, EndLabel);
+		// Else
+		this.Builder.AsmMethodVisitor.visitLabel(ElseLabel);
+		this.VisitBlock(Node.ElseExpr);
+		this.Builder.AsmMethodVisitor.visitJumpInsn(GOTO, EndLabel);
+		// End
+		this.Builder.AsmMethodVisitor.visitLabel(EndLabel);
+	}
+
 	@Override public void VisitSwitchNode(SwitchNode Node) {
 		int cases = Node.CaseList.size() / 2;
 		int[] keys = new int[cases];

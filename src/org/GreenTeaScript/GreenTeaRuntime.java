@@ -262,6 +262,14 @@ public class GreenTeaRuntime {
 		return !b;
 	}
 
+	public static double unary_plus(double n) {
+		return +n;
+	}
+
+	public static double unary_minus(double n) {
+		return -n;
+	}
+
 	//-----------------------------------------------------
 
 	public static boolean binary_eq(boolean x, boolean y) {

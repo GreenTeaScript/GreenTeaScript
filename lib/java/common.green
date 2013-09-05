@@ -5,6 +5,8 @@
 @Const @Operator int +(int x) import org.GreenTeaScript.GreenTeaRuntime.unary_plus;
 @Const @Operator int -(int x) import org.GreenTeaScript.GreenTeaRuntime.unary_minus;
 @Const @Operator int ~(int x) import org.GreenTeaScript.GreenTeaRuntime.unary_not;
+@Const @Operator double +(double x) import org.GreenTeaScript.GreenTeaRuntime.unary_plus;
+@Const @Operator double -(double x) import org.GreenTeaScript.GreenTeaRuntime.unary_minus;
 
 // binary operator
 
