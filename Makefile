@@ -5,6 +5,10 @@
 .SILENT:
 JavaBin="./GreenTeaScript.jar"
 INSTALL_PREFIX="$(HOME)/bin"
+TEST_BASEDIR="test/exec"
+TEST_OUTDIR="$(TEST_BASEDIR)/test-result"
+
+TEST_FILES:=$(wildcard test/exec/*.green)
 
 all: build test
 
@@ -12,7 +16,7 @@ build: buildj buildts
 
 dist: distj distts
 
-test: testj testpy
+#test: testj testpy
 	#sh tool/ReleaseCheck.sh
 
 buildj: $(JavaBin)
@@ -73,5 +77,14 @@ installj: distj
 	install -m 755 tool/greentea $(INSTALL_PREFIX)/greentea
 	install -d $(INSTALL_PREFIX)/../include
 	cp -f include/c/*.h $(INSTALL_PREFIX)/../include/
+
+test: $(notdir $(TEST_FILES))
+	cat $(TEST_OUTDIR)/*.green.csv >> $(TEST_OUTDIR)/TestResult.csv
+
+test_prepare:
+	sh tool/ReleaseCheck2.sh --reset $(TEST_OUTDIR)/TestResult.csv
+
+$(notdir $(TEST_FILES)): test_prepare
+	sh tool/ReleaseCheck2.sh $(TEST_BASEDIR)/$@ $(TEST_OUTDIR)/$@.csv
 
 .PHONY: all build buildj buildts test testp testj clean dist buildj buildts installj
