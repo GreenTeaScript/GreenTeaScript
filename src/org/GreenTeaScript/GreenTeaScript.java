@@ -4024,7 +4024,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		ClassNameSpace.SetSymbol("This", DefinedType, NameToken);
 		ClassDeclTree.SetMatchedPatternAt(ClassDeclBlock, ClassNameSpace, TokenContext, "$Block$", Optional);
 		if(ClassDeclTree.HasNodeAt(ClassDeclBlock)) {
-			/*local*/GtClassField ClassField = new GtClassField(DefinedType.SuperType);
+			/*local*/GtClassField ClassField = new GtClassField(DefinedType);
 			/*local*/GtTypeEnv Gamma = new GtTypeEnv(ClassNameSpace);
 			/*local*/GtSyntaxTree SubTree = ClassDeclTree.GetSyntaxTreeAt(ClassDeclBlock);
 			/*local*/ArrayList<GtSyntaxTree> FieldTreeList = new ArrayList<GtSyntaxTree>();
