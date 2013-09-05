@@ -3841,6 +3841,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
 	}
 
+	// constructor
 	public static GtSyntaxTree ParseConstructor2(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree FuncDeclTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("constructor"), null);
 		/*local*/GtType ThisType = NameSpace.GetType("This");
@@ -3988,10 +3989,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		return null;
 	}
 
-	// ClassDecl2
-
-	// constructor
-
+	// ClassDecl
 	public static GtSyntaxTree ParseClassDecl2(GtNameSpace NameSpace0, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree ClassDeclTree = new GtSyntaxTree(Pattern, NameSpace0, TokenContext.GetMatchedToken("class"), null);
 		ClassDeclTree.SetMatchedPatternAt(ClassDeclName, NameSpace0, TokenContext, "$FuncName$", Required); //$ClassName$ is better
@@ -4088,216 +4086,6 @@ final class GreenTeaGrammar extends GtGrammar {
 		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
 	}
 	
-
-	// ClassDecl
-	public static GtSyntaxTree ParseClassDecl(GtNameSpace NameSpace0, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		/*local*/GtSyntaxTree ClassDeclTree = new GtSyntaxTree(Pattern, NameSpace0, TokenContext.GetMatchedToken("class"), null);
-		ClassDeclTree.SetMatchedPatternAt(ClassDeclName, NameSpace0, TokenContext, "$FuncName$", Required); //$ClassName$ is better
-		if(TokenContext.MatchToken("extends")) {
-			ClassDeclTree.SetMatchedPatternAt(ClassDeclSuperType, NameSpace0, TokenContext, "$Type$", Required);
-		}
-		if(ClassDeclTree.IsEmptyOrError()) {
-			return ClassDeclTree;
-		}
-		// define new class
-		/*local*/GtNameSpace ClassNameSpace = new GtNameSpace(NameSpace0.Context, NameSpace0);
-		/*local*/GtSyntaxTree ClassNameTree = ClassDeclTree.GetSyntaxTreeAt(ClassDeclName);
-		/*local*/String ClassName = ClassNameTree.KeyToken.ParsedText;
-		/*local*/GtType SuperType = NameSpace0.Context.StructType;
-		if(ClassDeclTree.HasNodeAt(ClassDeclSuperType)) {
-			SuperType = ClassDeclTree.GetSyntaxTreeAt(ClassDeclSuperType).GetParsedType();
-		}
-		/*local*/int ClassFlag = 0;
-		/*local*/GtType NewType = SuperType.CreateSubType(ClassFlag, ClassName, null, null);
-		// FIXME: Obviously strange
-		/*local*/GreenTeaObject DefaultObject = new GreenTeaTopObject(NewType);
-		NewType.DefaultNullValue = DefaultObject;
-		ClassNameSpace.AppendTypeName(NewType, ClassNameTree.KeyToken);  // temporary
-		ClassDeclTree.ConstValue = NewType;
-		ClassNameTree.ConstValue = NewType;
-
-		if(TokenContext.MatchToken("{")) {
-			/*local*/int ParseFlag = TokenContext.SetBackTrack(false);
-			while(!ClassDeclTree.IsEmptyOrError() && !TokenContext.MatchToken("}")) {
-				/*local*/GtMap Annotation = TokenContext.SkipAndGetAnnotation(true);
-				if(TokenContext.MatchToken("}")) {
-					break;
-				}
-				if(TokenContext.MatchToken("constructor")) {
-					/*local*/GtSyntaxTree FuncDecl = TokenContext.ParsePatternAfter(ClassNameSpace, ClassNameTree, "$Constructor$", Required);
-					if(!FuncDecl.IsEmptyOrError()) {
-						FuncDecl.SetAnnotation(Annotation);
-						FuncDecl.SetSyntaxTreeAt(FuncDeclClass, ClassNameTree);
-						ClassDeclTree.AppendParsedTree2(FuncDecl);
-						continue;
-					}
-				}
-				/*local*/GtSyntaxTree TypeDecl = TokenContext.ParsePattern(ClassNameSpace, "$Type$", Optional);
-				if(TypeDecl != null && !TypeDecl.IsEmptyOrError()) {
-					/*local*/GtSyntaxTree FuncDecl = TokenContext.ParsePatternAfter(ClassNameSpace, TypeDecl, "$FuncDecl$", Optional);
-					if(FuncDecl != null) {
-						FuncDecl.SetAnnotation(Annotation);
-						FuncDecl.SetSyntaxTreeAt(FuncDeclClass, ClassNameTree);
-						ClassDeclTree.AppendParsedTree2(FuncDecl);
-						continue;
-					}
-					/*local*/GtSyntaxTree VarDecl = TokenContext.ParsePatternAfter(ClassNameSpace, TypeDecl, "$VarDecl$", Optional);
-					if(VarDecl != null) {
-						VarDecl = GtStatic.TreeHead(VarDecl);
-						while(VarDecl != null) {
-							/*local*/GtSyntaxTree NextTree = VarDecl.NextTree;
-							VarDecl.NextTree = null;
-							VarDecl.SetAnnotation(Annotation);
-							ClassDeclTree.AppendParsedTree2(VarDecl);
-							VarDecl = NextTree;
-						}
-					}
-				}
-			}
-			TokenContext.ParseFlag = ParseFlag;
-		}
-		if(ClassDeclTree.IsEmptyOrError()) {
-			return ClassDeclTree;
-		}
-		/*local*/int TreeIndex = ClassDeclFieldStartIndex;
-		/*local*/ArrayList<GtSyntaxTree> VarDeclList = new ArrayList<GtSyntaxTree>();
-		/*local*/ArrayList<GtSyntaxTree> ConstructorList = new ArrayList<GtSyntaxTree>();
-		/*local*/ArrayList<GtSyntaxTree> MethodList = new ArrayList<GtSyntaxTree>();
-		VarDeclList.add(ClassDeclTree.GetSyntaxTreeAt(ClassDeclSuperType));
-		VarDeclList.add(ClassDeclTree.GetSyntaxTreeAt(ClassDeclName));
-		while(TreeIndex < ClassDeclTree.SubTreeList.size()) {
-			/*local*/GtSyntaxTree FieldTree = ClassDeclTree.GetSyntaxTreeAt(TreeIndex);
-			if(FieldTree.Pattern.EqualsName("$VarDecl$")) {
-				VarDeclList.add(FieldTree);
-			}
-			else if(FieldTree.Pattern.EqualsName("$FuncDecl$")) {
-				MethodList.add(FieldTree);
-			}
-			else if(FieldTree.Pattern.EqualsName("$Constructor$")) {
-				ConstructorList.add(FieldTree);
-			}
-			TreeIndex = TreeIndex + 1;
-		}
-		ClassDeclTree.SubTreeList = VarDeclList;
-		TreeIndex = 0;
-		while(TreeIndex < ConstructorList.size()) {
-			ClassDeclTree.AppendParsedTree2(ConstructorList.get(TreeIndex));
-			TreeIndex = TreeIndex + 1;
-		}
-		TreeIndex = 0;
-		while(TreeIndex < MethodList.size()) {
-			ClassDeclTree.AppendParsedTree2(MethodList.get(TreeIndex));
-			TreeIndex = TreeIndex + 1;
-		}
-		NameSpace0.AppendTypeName(NewType, null/*fixme*/);
-		return ClassDeclTree;
-	}
-
-	public static GtNode TypeClassDecl(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		/*local*/GtType DefinedType = ParsedTree.GetParsedType();
-		/*local*/int TreeIndex = ClassDeclFieldStartIndex;
-		/*local*/GtClassField ClassField = new GtClassField(DefinedType.SuperType);
-		while(TreeIndex < LibGreenTea.ListSize(ParsedTree.SubTreeList)) {
-			/*local*/GtSyntaxTree FieldTree = ParsedTree.GetSyntaxTreeAt(TreeIndex);
-			if(!FieldTree.Pattern.EqualsName("$VarDecl$")) {
-				break;
-			}
-			/*local*/GtNode FieldNode = ParsedTree.TypeCheckAt(TreeIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-			if(FieldNode.IsError()) {
-				return FieldNode;
-			}
-			/*local*/GtToken SourceToken = FieldTree.GetSyntaxTreeAt(VarDeclName).KeyToken;
-			/*local*/String FieldName = SourceToken.ParsedText;
-			/*local*/int FieldFlag = 0;
-			/*local*/GtFieldInfo FieldInfo = ClassField.CreateField(FieldFlag, FieldNode.Type, FieldName, SourceToken);
-			if(FieldInfo != null) {
-				/*local*/ArrayList<GtType> ParamList = new ArrayList<GtType>();
-				ParamList.add(FieldInfo.Type);
-				ParamList.add(DefinedType);
-				FieldInfo.GetterFunc = new GtFunc(GetterFunc, FieldInfo.Name, 0, ParamList);
-				Gamma.NameSpace.SetGetterFunc(DefinedType, FieldInfo.Name, FieldInfo.GetterFunc, SourceToken);
-				ParamList.clear();
-				ParamList.add(Gamma.VoidType);
-				ParamList.add(DefinedType);
-				ParamList.add(FieldInfo.Type);
-				FieldInfo.SetterFunc = new GtFunc(SetterFunc, FieldInfo.Name, 0, ParamList);
-				Gamma.NameSpace.SetSetterFunc(DefinedType, FieldInfo.Name, FieldInfo.SetterFunc, SourceToken);
-				FieldInfo.InitValue = ((/*cast*/ConstNode)((/*cast*/VarNode)FieldNode).InitNode).ConstValue;
-			}
-			TreeIndex += 1;
-		}
-		DefinedType.SetClassField(ClassField);
-		Gamma.Generator.OpenClassField(DefinedType, ClassField);
-		while(TreeIndex < LibGreenTea.ListSize(ParsedTree.SubTreeList)) {
-			/*local*/GtSyntaxTree FieldTree = ParsedTree.GetSyntaxTreeAt(TreeIndex);
-			if(!FieldTree.Pattern.EqualsName("$Constructor$")) {
-				break;
-			}
-			ParsedTree.TypeCheckAt(TreeIndex, Gamma,  Gamma.VarType, DefaultTypeCheckPolicy);
-			TreeIndex += 1;
-		}
-		while(TreeIndex < LibGreenTea.ListSize(ParsedTree.SubTreeList)) {
-			/*local*/GtSyntaxTree FieldTree = ParsedTree.GetSyntaxTreeAt(TreeIndex);
-			if(!FieldTree.Pattern.EqualsName("$FuncDecl$")) {
-				break;
-			}
-			ParsedTree.TypeCheckAt(TreeIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-			TreeIndex += 1;
-		}
-		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
-	}
-
-	public static GtNode TypeConstructor(GtTypeEnv Gamma, GtSyntaxTree ConstructorTree, GtType ContextType) {
-		/*local*/GtNameSpace NameSpace = Gamma.NameSpace;
-		/*local*/GtType DefinedType = ConstructorTree.GetSyntaxTreeAt(FuncDeclReturnType).GetParsedType();
-		/*local*/GtSyntaxTree BlockTree = ConstructorTree.GetSyntaxTreeAt(FuncDeclBlock);
-		/*local*/GtSyntaxTree TailTree = BlockTree;
-		while(TailTree.NextTree != null) {
-			TailTree = TailTree.NextTree;
-		}
-		/*local*/GtSyntaxTree ThisTree = new GtSyntaxTree(NameSpace.GetSyntaxPattern("$Variable$"), NameSpace, new GtToken(Gamma.Generator.GetRecvName(), 0), null);
-		/*local*/GtSyntaxTree ReturnTree = new GtSyntaxTree(NameSpace.GetSyntaxPattern("return"), NameSpace, new GtToken("return", 0), null);
-		ReturnTree.SetSyntaxTreeAt(ReturnExpr, ThisTree);
-		if(BlockTree.IsEmpty()) {
-			ConstructorTree.SetSyntaxTreeAt(FuncDeclBlock, ReturnTree);
-		}
-		else {
-			GtStatic.LinkTree(TailTree, ReturnTree);
-		}
-		if(ConstructorTree.HasNodeAt(FuncDeclBlock)) {
-			/*local*/GtPolyFunc Func = Gamma.NameSpace.GetConstructorFunc(DefinedType.SuperType);
-			ConstructorTree.GetSyntaxTreeAt(FuncDeclBlock).NameSpace.SetSymbol("super", Func, null);
-		}
-		return GreenTeaGrammar.TypeFuncDecl(Gamma, ConstructorTree, ContextType);
-	}
-
-	// constructor
-	public static GtSyntaxTree ParseConstructor(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		LibGreenTea.Assert(LeftTree != null);
-		/*local*/GtSyntaxTree ConstructorTreeDecl = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetBeforeToken(), null);
-		ConstructorTreeDecl.SetSyntaxTreeAt(FuncDeclName, new GtSyntaxTree(null, NameSpace, ConstructorTreeDecl.KeyToken, "constructor"));
-		ConstructorTreeDecl.SetSyntaxTreeAt(FuncDeclReturnType, LeftTree);
-		ConstructorTreeDecl.SetSyntaxTreeAt(FuncDeclClass, LeftTree);
-		ConstructorTreeDecl.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "(", Required);
-
-		/*local*/int ParseFlag = TokenContext.SetBackTrack(false);  // disabled
-		/*local*/int ParamBase = FuncDeclParam;
-		while(!ConstructorTreeDecl.IsEmptyOrError() && !TokenContext.MatchToken(")")) {
-			if(ParamBase > FuncDeclParam) {
-				ConstructorTreeDecl.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ",", Required);
-			}
-			ConstructorTreeDecl.SetMatchedPatternAt(ParamBase + VarDeclType, NameSpace, TokenContext, "$Type$", Required);
-			ConstructorTreeDecl.SetMatchedPatternAt(ParamBase + VarDeclName, NameSpace, TokenContext, "$Variable$", Required);
-			if(TokenContext.MatchToken("=")) {
-				ConstructorTreeDecl.SetMatchedPatternAt(ParamBase + VarDeclValue, NameSpace, TokenContext, "$Expression$", Required);
-			}
-			ParamBase += 3;
-		}
-		ConstructorTreeDecl.SetMatchedPatternAt(FuncDeclBlock, NameSpace, TokenContext, "$Block$", Required);
-		TokenContext.ParseFlag = ParseFlag;
-		return ConstructorTreeDecl;
-	}
-
 	@Override public void LoadTo(GtNameSpace NameSpace) {
 		// Define Constants
 		/*local*/GtParserContext ParserContext = NameSpace.Context;
@@ -4408,11 +4196,6 @@ final class GreenTeaGrammar extends GtGrammar {
 		NameSpace.AppendSyntax("$CaseBlock$", LoadParseFunc(ParserContext, this, "ParseCaseBlock"), null);
 
 		NameSpace.AppendSyntax("__line__", LoadParseFunc(ParserContext, this, "ParseLine"), LoadTypeFunc(ParserContext, this, "TypeLine"));
-
-		
-//		NameSpace.DefineTokenFunc("Aa-/1.<>|", FunctionA(this, "SymbolShellToken")); // overloading
-//		NameSpace.AppendSyntax("$ShellExpression$", FunctionB(this, "ParseShell"), FunctionC(this, "TypeShell"));
-
 	}
 }
 
@@ -4488,7 +4271,7 @@ final class GtParserContext extends GtStatic {
 		this.VoidType    = this.RootNameSpace.AppendTypeName(new GtType(this, NativeClass, "void", null, Void.class), null);
 		this.BooleanType = this.RootNameSpace.AppendTypeName(new GtType(this, NativeClass, "boolean", false, Boolean.class), null);
 		this.IntType     = this.RootNameSpace.AppendTypeName(new GtType(this, NativeClass, "int", 0L, Long.class), null);
-		this.FloatType     = this.RootNameSpace.AppendTypeName(new GtType(this, NativeClass, "double", 0.0, Double.class), null);
+		this.FloatType   = this.RootNameSpace.AppendTypeName(new GtType(this, NativeClass, "double", 0.0, Double.class), null);
 		this.StringType  = this.RootNameSpace.AppendTypeName(new GtType(this, NativeClass, "String", null, String.class), null);
 		this.VarType     = this.RootNameSpace.AppendTypeName(new GtType(this, 0, "var", null, null), null);
 		this.AnyType     = this.RootNameSpace.AppendTypeName(new GtType(this, DynamicClass, "any", null, null), null);
@@ -4764,7 +4547,6 @@ public class GreenTeaScript extends GtStatic {
 	}
 
 	public final static void main(String[] Args)  {
-		//Class.forName("[Ljava.lang.String;"); // ClassLoader test
 		GreenTeaScript.ExecCommand(Args);
 	}
 }

@@ -182,9 +182,6 @@ class GtType extends GtStatic {
 	public boolean IsDynamicNaitiveLoading() {
 		return this.IsNative() && !IsFlag(this.ClassFlag, CommonClass);
 	}
-
-
-
 }
 
 class GtFuncBlock extends GtStatic {
@@ -221,7 +218,6 @@ class GtFuncBlock extends GtStatic {
 		if(Type.IsVarType()) {
 			this.IsVarArgument = true;
 		}
-//		this.NameList.add(GtStatic.NativeVariableName(Name, NameList.size()));
 		this.NameList.add(Name);
 	}
 }
