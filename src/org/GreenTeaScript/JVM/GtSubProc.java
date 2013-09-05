@@ -30,25 +30,24 @@ public class GtSubProc {
 	
 	
 	// called by VisitCommandNode at JavaByteCodeGenerator 
-	public static String ExecCommandString(String[] cmds) throws Exception {
+	public static String ExecCommandString(String[]... cmds) throws Exception {
 		boolean[] option = {true, true, false, false};
 		return createSubProc(cmds, option).str;
 	}
 
-	public static boolean ExecCommandBool(String[] cmds) throws Exception {
+	public static boolean ExecCommandBool(String[]... cmds) throws Exception {
 		boolean[] option = {true, false, false, false};
 		return createSubProc(cmds, option).bool;
 	}
 
-	public static void ExecCommandVoid(String[] cmds) throws Exception {
+	public static void ExecCommandVoid(String[]... cmds) throws Exception {
 		boolean[] option = {false, true, false, false};
 		createSubProc(cmds, option);
 	}
 	//---------------------------------------------
 
-	private static RetPair createSubProc(String[] cmds, boolean[] option) throws Exception {
-		CommandBuilder builder = new CommandBuilder(cmds);
-		int size = builder.cmdsList.size();
+	private static RetPair createSubProc(String[][] cmds, boolean[] option) throws Exception {
+		int size = cmds.length;
 		String stdout = "";
 		boolean ret = false;
 		
@@ -56,26 +55,21 @@ public class GtSubProc {
 		SubProc[] subProcs = new SubProc[size];
 		for(int i = 0; i < size; i++) {
 			subProcs[i] = new SubProc(option[enableTrace]);
-			subProcs[i].setArgument(builder.cmdsList.get(i));
+			subProcs[i].setArgument(cmds[i]);
 			monitor.setProcess(subProcs[i]);
 		}
 		
 		for(int i = 0; i < size; i++) { 
 			subProcs[i].start();
 			if(i == 0) {
-				if(builder.inputFilePath != null) {
-					subProcs[i].readFromFile(builder.inputFilePath);
-				}
+				// TODO: input redirect
 			}
 			else {
 				subProcs[i - i].pipe(subProcs[i]);
 			}
 			
 			if(i == size - 1) {
-				if(builder.outputFilePath != null) {
-					subProcs[i].writeToFile(builder.outputFilePath);
-				}
-				
+				// TODO: output redirect
 				if(option[isExpr]) {
 					subProcs[i].waitResult();
 				}
@@ -103,62 +97,6 @@ class RetPair {
 	public RetPair(String str, boolean bool) {
 		this.str = str;
 		this.bool = bool;
-	}
-}
-
-class CommandBuilder {
-	public String inputFilePath;
-	public String outputFilePath;
-	public ArrayList<String[]> cmdsList;
-
-	public CommandBuilder(String[] targetCmds) {
-		this.inputFilePath = null;
-		this.outputFilePath = null;
-		this.cmdsList = new ArrayList<String[]>();
-		
-		int size = targetCmds.length;
-		ArrayList<String> cmdBuffer = new ArrayList<String>();
-		boolean inInputRedirect = false;
-		boolean inOutputRedirect = false;
-		for(int i = 0; i < size; i++) {
-			if(targetCmds[i].equals("<") && i + 1 < size) {
-				inInputRedirect = true;
-			}
-			else if(targetCmds[i].equals(">") && i + 1 < size) {
-				inOutputRedirect = true;
-			}
-			else if(targetCmds[i].equals("|") && i + 1 < size) {
-				this.cmdsList.add(convert(cmdBuffer));
-				cmdBuffer = new ArrayList<String>();
-			}
-			else {
-				if(inInputRedirect || inOutputRedirect) {
-					if(inInputRedirect) {
-						this.inputFilePath = targetCmds[i];
-						inInputRedirect = false;
-					}
-					if(inOutputRedirect) {
-						this.outputFilePath = targetCmds[i];
-						inOutputRedirect = false;
-					}
-				}
-				else {
-					cmdBuffer.add(targetCmds[i]);
-				}
-			}
-		}
-		if(!cmdBuffer.isEmpty()) {
-			this.cmdsList.add(convert(cmdBuffer));
-		}
-	}
-
-	private static String[] convert(ArrayList<String> list) {
-		int size = list.size();
-		String[] array = new String[size];
-		for(int i = 0; i < size; i++) {
-			array[i] = list.get(i);
-		}
-		return array;
 	}
 }
 

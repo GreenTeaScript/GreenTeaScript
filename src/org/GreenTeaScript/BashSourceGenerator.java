@@ -372,11 +372,16 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitCommandNode(CommandNode Node) {
 		/*local*/String Code = "";
+		/*local*/int count = 0;
 		/*local*/GtType Type = Node.Type;
 		/*local*/CommandNode CurrentNode = Node;
 		while(CurrentNode != null) {
+			if(count > 0) {
+				Code += " | ";
+			}
 			Code += this.AppendCommand(CurrentNode);
 			CurrentNode = (/*cast*/CommandNode) CurrentNode.PipedNextNode;
+			count += 1;
 		}
 		
 		if(Type.equals(Type.Context.StringType)) {
