@@ -105,7 +105,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		 * => while(True) { Block; if(!Cond) { break; } }
 		 */
 		/*local*/GtNode Break = this.CreateBreakNode(Type, ParsedTree, null);
-		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(Cond.Type, "!", true);
+		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(Cond.Type, "not", true);
 		/*local*/GtTypeEnv Gamma = new GtTypeEnv(ParsedTree.NameSpace);
 		/*local*/GtFunc Func = null;
 		if(PolyFunc != null) {
@@ -496,7 +496,7 @@ public class BashSourceGenerator extends SourceGenerator {
 			Function += ParamNameList.get(i) + "=$" + (i + 1) + ";" + this.LineFeed;
 			i = i + 1;
 		}
-		;
+		
 		Function += this.VisitBlockWithoutIndent(Body, true) + this.LineFeed;
 		this.UnIndent();
 		Function += this.GetIndentString() + "}" + this.LineFeed;

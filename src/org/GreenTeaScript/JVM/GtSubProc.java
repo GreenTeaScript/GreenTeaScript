@@ -20,37 +20,47 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GtSubProc {
-	public static boolean enableMonitor = true;
-
+	// option index
+	private static final int isExpr = 0;
+	private static final int isThrowable = 1;
+	private static final int isBackGround = 2;
+	private static final int enableTrace = 3;
+	
+	private static final int optionSize = 4;
+	
+	
 	// called by VisitCommandNode at JavaByteCodeGenerator 
 	public static String ExecCommandString(String[] cmds) throws Exception {
-		return createSubProc(cmds, true).str;
+		boolean[] option = {true, true, false, false};
+		return createSubProc(cmds, option).str;
 	}
 
 	public static boolean ExecCommandBool(String[] cmds) throws Exception {
-		return createSubProc(cmds, false).bool;
+		boolean[] option = {true, false, false, false};
+		return createSubProc(cmds, option).bool;
 	}
 
 	public static void ExecCommandVoid(String[] cmds) throws Exception {
-		createSubProc(cmds, false);
+		boolean[] option = {false, true, false, false};
+		createSubProc(cmds, option);
 	}
 	//---------------------------------------------
 
-	private static RetPair createSubProc(String[] cmds, boolean isExpr) throws Exception {
+	private static RetPair createSubProc(String[] cmds, boolean[] option) throws Exception {
 		CommandBuilder builder = new CommandBuilder(cmds);
 		int size = builder.cmdsList.size();
 		String stdout = "";
 		boolean ret = false;
 		
-		ProcessMonitor monitor = new ProcessMonitor();
+		ProcessMonitor monitor = new ProcessMonitor(option[isThrowable]);
 		SubProc[] subProcs = new SubProc[size];
 		for(int i = 0; i < size; i++) {
-			subProcs[i] = new SubProc();
+			subProcs[i] = new SubProc(option[enableTrace]);
 			subProcs[i].setArgument(builder.cmdsList.get(i));
 			monitor.setProcess(subProcs[i]);
 		}
 		
-		for(int i = 0; i < size; i++) {
+		for(int i = 0; i < size; i++) { 
 			subProcs[i].start();
 			if(i == 0) {
 				if(builder.inputFilePath != null) {
@@ -66,7 +76,7 @@ public class GtSubProc {
 					subProcs[i].writeToFile(builder.outputFilePath);
 				}
 				
-				if(isExpr) {
+				if(option[isExpr]) {
 					subProcs[i].waitResult();
 				}
 				else {
@@ -74,11 +84,9 @@ public class GtSubProc {
 				}
 			}
 		}
-		if(enableMonitor) {
-			monitor.throwException();
-		}
+		monitor.throwException();
 		int lastIndex = size - 1;
-		if(isExpr) {
+		if(option[isExpr]) {
 			stdout = subProcs[lastIndex].getStdout();
 		}
 		else {
@@ -133,7 +141,8 @@ class CommandBuilder {
 						this.outputFilePath = targetCmds[i];
 						inOutputRedirect = false;
 					}
-				}				else {
+				}
+				else {
 					cmdBuffer.add(targetCmds[i]);
 				}
 			}
@@ -440,8 +449,10 @@ class PipeStreamHandler extends Thread {
 
 class ProcessMonitor {
 	private ArrayList<SubProc> procList;
-
-	public ProcessMonitor() {
+	private boolean enableException;
+	
+	public ProcessMonitor(boolean enableException) {
+		this.enableException = enableException;
 		this.procList = new ArrayList<SubProc>();
 	}
 
@@ -455,6 +466,9 @@ class ProcessMonitor {
 			SubProc targetProc = procList.get(i);
 			targetProc.waitFor();
 			
+			if(!this.enableException) {
+				return;
+			}
 			String message = targetProc.getCmdName();
 			String logFilePath = targetProc.getLogFilePath();
 			if(logFilePath != null) {
