@@ -993,6 +993,7 @@ class GtGenerator extends GtStatic {
 		if(NativeMethod != null) {
 			return LibGreenTea.ConvertNativeMethodToFunc(this.Context, NativeMethod);
 		}
+		//Object StaticFieldValue = LibGreenTea.LoadNativeStaticFieldValue(ClassType, Symbol);
 //endif VAJA
 		return null;
 	}

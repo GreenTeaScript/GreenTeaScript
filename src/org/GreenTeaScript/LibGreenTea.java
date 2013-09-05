@@ -464,6 +464,15 @@ public abstract class LibGreenTea implements GtConst {
 			Field NativeField = NativeClass.getField(Symbol);
 			if(Modifier.isStatic(NativeField.getModifiers())) {
 				Class<?> NativeType = NativeField.getType();
+				if(NativeType == int.class) {
+					return NativeField.getInt(null);
+				}
+				if(NativeType == long.class) {
+					return NativeField.getLong(null);
+				}
+				if(NativeType == float.class) {
+					return NativeField.getFloat(null);
+				}
 				if(NativeType == double.class) {
 					return NativeField.getDouble(null);
 				}
