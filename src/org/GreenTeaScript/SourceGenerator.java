@@ -1672,6 +1672,13 @@ class SourceGenerator extends GtGenerator {
 		this.PushSourceCode("(" + Left + " " + this.LogicalOrOperator +" " + Right + ")");
 	}
 
+	@Override public void VisitTrinaryNode(TrinaryNode Node) {
+		/*local*/String CondExpr = this.VisitNode(Node.CondExpr);
+		/*local*/String ThenExpr = this.VisitNode(Node.ThenExpr);
+		/*local*/String ElseExpr = this.VisitNode(Node.ElseExpr);
+		this.PushSourceCode("((" + CondExpr + ")? " + ThenExpr + " : " + ElseExpr + ")");
+	}
+
 	@Override public void VisitBreakNode(BreakNode Node) {
 		/*local*/String Code = this.BreakKeyword;
 		if(this.HasLabelSupport) {

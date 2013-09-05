@@ -3430,8 +3430,12 @@ final class GreenTeaGrammar extends GtGrammar {
 
 	public static GtNode TypeTry(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtNode TryNode = ParsedTree.TypeCheckAt(TryBody, Gamma, Gamma.VoidType, DefaultTypeCheckPolicy);
-		/*local*/GtNode CatchExpr = ParsedTree.TypeCheckAt(CatchVariable, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-		/*local*/GtNode CatchNode = ParsedTree.TypeCheckAt(CatchBody, Gamma, Gamma.VoidType, DefaultTypeCheckPolicy);
+		/*local*/GtNode CatchExpr = null;
+		/*local*/GtNode CatchNode = null;
+		if(ParsedTree.HasNodeAt(CatchVariable)) {
+			CatchExpr = ParsedTree.TypeCheckAt(CatchVariable, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+			CatchNode = ParsedTree.TypeCheckAt(CatchBody, Gamma, Gamma.VoidType, DefaultTypeCheckPolicy);
+		}
 		/*local*/GtNode FinallyNode = ParsedTree.TypeCheckAt(FinallyBody, Gamma, Gamma.VoidType, DefaultTypeCheckPolicy);
 		return Gamma.Generator.CreateTryNode(TryNode.Type, ParsedTree, TryNode, CatchExpr, CatchNode, FinallyNode);
 	}

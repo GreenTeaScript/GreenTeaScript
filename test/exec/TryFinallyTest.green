@@ -1,16 +1,18 @@
 // written by kimio kuramitsu
 
 boolean TestFunc(int n) {
-	try {
-		n = 1 / n;   // this cause exception
-		return false;
-	}
-	finally{
-		return true;
-	}
+    try {
+        n = 1 / n;   // this cause exception
+        return false;
+    }
+    finally{
+        return true;
+    }
+    return false;
 }
 
 @Export
 int main() {
-	assert(TestFunc(0));
+    assert(TestFunc(0));
+    return 0;
 }

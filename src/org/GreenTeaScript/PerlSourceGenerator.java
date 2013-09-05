@@ -122,14 +122,18 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitTryNode(TryNode Node) {
-		/*local*/String Code = "try";
-		//this.VisitEach(Node.CatchBlock);
-		this.VisitBlockEachStatementWithIndent(Node.TryBlock);
-
-		Code += this.PopSourceCode();
+		/*local*/String Code = "try ";
+		Code += this.VisitBlockWithIndent(Node.TryBlock, true);
+		if(Node.CatchExpr != null) {
+		/*local*/VarNode Val = (/*cast*/VarNode) Node.CatchExpr;
+			Code += " catch " + Val.Type.toString() + " with {" + this.LineFeed;
+			this.Indent();
+			Code += this.GetIndentString() + "my $" + Val.NativeName + " = shift;" + this.LineFeed;
+			Code += this.GetIndentString() + this.VisitBlockWithIndent(Node.CatchBlock, false);
+			Code += "}";
+		}
 		if(Node.FinallyBlock != null) {
-			this.VisitBlockEachStatementWithIndent(Node.FinallyBlock);
-			Code += " finally " + this.PopSourceCode();
+			Code += " finally " + this.VisitBlockWithIndent(Node.FinallyBlock, true);
 		}
 		this.PushSourceCode(Code);
 	}
@@ -223,6 +227,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 	@Override public void StartCompilationUnit() {
 		this.WriteLineCode("use strict;");
 		this.WriteLineCode("use warnings;");
+		this.WriteLineCode("use Error qw(:try);");
 	}
 
 	@Override public String GetRecvName() {
