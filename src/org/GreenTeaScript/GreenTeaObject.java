@@ -535,7 +535,7 @@ class GtPolyFunc extends GtStatic {
 		}
 		if(ResolvedFunc != null) {
 			while(TreeIndex < LibGreenTea.ListSize(ParsedTree.SubTreeList)) {
-				/*local*/GtType ContextType = ResolvedFunc.Types[NodeList.size()/*ResolvedSize*/];
+				/*local*/GtType ContextType = ResolvedFunc.GetFuncParamType(NodeList.size()/*ResolvedSize*/);
 				/*local*/GtNode Node = ParsedTree.TypeCheckAt(TreeIndex, Gamma, ContextType, DefaultTypeCheckPolicy);
 				GtStatic.AppendTypedNode(NodeList, Node);
 				TreeIndex = TreeIndex + 1;

@@ -4072,17 +4072,19 @@ final class GreenTeaGrammar extends GtGrammar {
 
 	public static GtNode TypeClassDecl2(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtClassField ClassField = (/*cast*/GtClassField)ParsedTree.ConstValue;
-		/*local*/GtType DefinedType = ClassField.DefinedType;
-		DefinedType.SetClassField(ClassField);
-		Gamma.Generator.OpenClassField(DefinedType, ClassField);
-		/*local*/GtSyntaxTree SubTree = ParsedTree.GetSyntaxTreeAt(ClassDeclBlock);
-		while(SubTree != null) {
-			if(!SubTree.Pattern.EqualsName("$VarDecl$")) {
-				SubTree.TypeCheck(Gamma, Gamma.VoidType, DefaultTypeCheckPolicy);
+		if(ClassField != null) {
+			/*local*/GtType DefinedType = ClassField.DefinedType;
+			DefinedType.SetClassField(ClassField);
+			Gamma.Generator.OpenClassField(DefinedType, ClassField);
+			/*local*/GtSyntaxTree SubTree = ParsedTree.GetSyntaxTreeAt(ClassDeclBlock);
+			while(SubTree != null) {
+				if(!SubTree.Pattern.EqualsName("$VarDecl$")) {
+					SubTree.TypeCheck(Gamma, Gamma.VoidType, DefaultTypeCheckPolicy);
+				}
+				SubTree = SubTree.NextTree;
 			}
-			SubTree = SubTree.NextTree;
+			Gamma.Generator.CloseClassField(DefinedType, ClassField);
 		}
-		Gamma.Generator.CloseClassField(DefinedType, ClassField);
 		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
 	}
 	
