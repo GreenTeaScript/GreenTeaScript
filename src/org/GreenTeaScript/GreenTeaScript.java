@@ -3866,8 +3866,8 @@ final class GreenTeaGrammar extends GtGrammar {
 				GreenTeaGrammar.ParseFuncBody(NameSpace, TokenContext, FuncDeclTree, FuncBlock);
 				StoreNameSpace.AppendConstructor(ThisType, FuncBlock.DefinedFunc, SourceToken.AddTypeInfo(ThisType));
 				FuncDeclTree.ConstValue = FuncBlock.DefinedFunc;
-				TokenContext.SetRememberFlag(ParseFlag);
 			}
+			TokenContext.SetRememberFlag(ParseFlag);
 		}
 		return FuncDeclTree;
 	}
@@ -4036,6 +4036,7 @@ final class GreenTeaGrammar extends GtGrammar {
 			while(i < LibGreenTea.ListSize(FieldTreeList)) {
 				SubTree = FieldTreeList.get(i);
 				if(SubTree.Pattern.EqualsName("$VarDecl$")) {
+					SubTree.NextTree = null; // stop
 					/*local*/GtNode FieldNode = SubTree.TypeCheck(Gamma, Gamma.VoidType, DefaultTypeCheckPolicy);
 					if(!FieldNode.IsError()) {
 						/*local*/GtToken SourceToken = SubTree.GetSyntaxTreeAt(VarDeclName).KeyToken;
@@ -4186,7 +4187,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		NameSpace.AppendSyntax("throw", LoadParseFunc(ParserContext, this, "ParseThrow"), LoadTypeFunc(ParserContext, this, "TypeThrow"));
 
 		NameSpace.AppendSyntax("class", LoadParseFunc(ParserContext, this, "ParseClassDecl2"), LoadTypeFunc(ParserContext, this, "TypeClassDecl2"));
-		NameSpace.AppendSyntax("constructor", LoadParseFunc(ParserContext, this, "ParseConstructor2"), null);
+		NameSpace.AppendSyntax("constructor", LoadParseFunc(ParserContext, this, "ParseConstructor2"), LoadTypeFunc(ParserContext, this, "TypeFuncDecl"));
 		NameSpace.AppendSyntax("super", LoadParseFunc(ParserContext, this, "ParseSuper"), null);
 		NameSpace.AppendSyntax("this", LoadParseFunc(ParserContext, this, "ParseThis"), LoadTypeFunc(ParserContext, this, "TypeThis"));
 		NameSpace.AppendSyntax("new", LoadParseFunc(ParserContext, this, "ParseNew"), LoadTypeFunc(ParserContext, this, "TypeApply"));
