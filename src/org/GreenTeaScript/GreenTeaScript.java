@@ -3277,6 +3277,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		TokenContext.ParseFlag = ParseFlag;
 		TokenContext.SkipIndent();
 		NewTree.SetMatchedPatternAt(IfThen, NameSpace, TokenContext, "$Statement$", Required);
+		TokenContext.SkipEmptyStatement();
 		if(TokenContext.MatchIndentToken("else")) {
 			TokenContext.SkipIndent();
 			NewTree.SetMatchedPatternAt(IfElse, NameSpace, TokenContext, "$Statement$", Required);
