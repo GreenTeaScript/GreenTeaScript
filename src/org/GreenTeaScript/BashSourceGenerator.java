@@ -102,20 +102,21 @@ public class BashSourceGenerator extends SourceGenerator {
 	@Override public GtNode CreateDoWhileNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Cond, GtNode Block) {
 		/*
 		 * do { Block } while(Cond)
-		 * => while(True) { Block; if(!Cond) { break; } }
+		 * => boolean firstCond = true; while(firstCond || Cond) {firstCond = false; Block; }
+		 *
 		 */
-		/*local*/GtNode Break = this.CreateBreakNode(Type, ParsedTree, null);
-		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(Cond.Type, "not", true);
-		/*local*/GtTypeEnv Gamma = new GtTypeEnv(ParsedTree.NameSpace);
-		/*local*/GtFunc Func = null;
-		if(PolyFunc != null) {
-			Func = PolyFunc.ResolveUnaryFunc(Gamma, ParsedTree, Cond);
-		}
-		Cond = this.CreateUnaryNode(Type, ParsedTree, Func, Cond);
-		/*local*/GtNode IfBlock = this.CreateIfNode(Type, ParsedTree, Cond, Break, null);
-		GtStatic.LinkNode(Block.MoveTailNode(), IfBlock);
-		/*local*/GtNode TrueNode = this.CreateConstNode(ParsedTree.NameSpace.Context.BooleanType, ParsedTree, true);
-		return this.CreateWhileNode(Type, ParsedTree, TrueNode, Block);
+		/*local*/GtType BoolType = Type.Context.BooleanType;
+		/*local*/String VarName = "FirstCond";
+		/*local*/GtNode TrueNode = this.CreateConstNode(BoolType, ParsedTree, true);
+		/*local*/GtNode FalseNode = this.CreateConstNode(BoolType, ParsedTree, false);
+		
+		/*local*/GtNode FirstCond = this.CreateLocalNode(BoolType, ParsedTree, VarName);
+		/*local*/GtNode NewCond = this.CreateOrNode(BoolType, ParsedTree, FirstCond, Cond);
+		/*local*/GtNode LoopBody = this.CreateAssignNode(BoolType, ParsedTree, FirstCond, FalseNode);
+		
+		GtStatic.LinkNode(LoopBody.MoveTailNode(), Block);
+		/*local*/GtNode NewWhileNode = this.CreateWhileNode(Type, ParsedTree, NewCond, LoopBody);
+		return this.CreateVarNode(BoolType, ParsedTree, BoolType, VarName, TrueNode, NewWhileNode);
 	}
 
 	private String ResolveCondition(GtNode Node) {
@@ -125,6 +126,11 @@ public class BashSourceGenerator extends SourceGenerator {
 		}
 		else if(LibGreenTea.EqualsString(Cond, this.FalseLiteral)) {
 			Cond = "((1 != 1))";
+		}
+		else {
+			if(Node instanceof LocalNode) {
+				Cond = "((0 == " + this.ResolveValueType(Node, false) + "))";
+			}
 		}
 		return Cond;
 	}
