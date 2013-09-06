@@ -477,10 +477,10 @@ class GtStatic implements GtConst {
 	}
 
 	public final static GtSyntaxTree ParseExpression(GtNameSpace NameSpace, GtTokenContext TokenContext, boolean SuffixOnly) {
-		/*local*/GtSyntaxPattern Pattern = TokenContext.GetFirstPattern();
+		/*local*/GtSyntaxPattern Pattern = TokenContext.GetFirstPattern(NameSpace);
 		/*local*/GtSyntaxTree LeftTree = GtStatic.ApplySyntaxPattern(NameSpace, TokenContext, null, Pattern);
 		while(!GtStatic.IsMismatchedOrError(LeftTree)) {
-			/*local*/GtSyntaxPattern ExtendedPattern = TokenContext.GetExtendedPattern();
+			/*local*/GtSyntaxPattern ExtendedPattern = TokenContext.GetExtendedPattern(NameSpace);
 			if(ExtendedPattern == null || (SuffixOnly && ExtendedPattern.IsBinaryOperator()) ) {
 				break;
 			}
@@ -870,22 +870,22 @@ final class GtTokenContext extends GtStatic {
 		return this.TopLevelNameSpace.GetSyntaxPattern(PatternName);
 	}
 
-	public GtSyntaxPattern GetFirstPattern() {
+	public GtSyntaxPattern GetFirstPattern(GtNameSpace NameSpace) {
 		/*local*/GtToken Token = this.GetToken();
 		if(Token.PresetPattern != null) {
 			return Token.PresetPattern;
 		}
-		/*local*/GtSyntaxPattern Pattern = this.TopLevelNameSpace.GetSyntaxPattern(Token.ParsedText);
+		/*local*/GtSyntaxPattern Pattern = NameSpace.GetSyntaxPattern(Token.ParsedText);
 		if(Pattern == null) {
-			return this.TopLevelNameSpace.GetSyntaxPattern("$Symbol$");
+			return NameSpace.GetSyntaxPattern("$Symbol$");
 		}
 		return Pattern;
 	}
 
-	public GtSyntaxPattern GetExtendedPattern() {
+	public GtSyntaxPattern GetExtendedPattern(GtNameSpace NameSpace) {
 		/*local*/GtToken Token = this.GetToken();
 		if(Token != GtTokenContext.NullToken) {
-			/*local*/GtSyntaxPattern Pattern = this.TopLevelNameSpace.GetExtendedSyntaxPattern(Token.ParsedText);
+			/*local*/GtSyntaxPattern Pattern = NameSpace.GetExtendedSyntaxPattern(Token.ParsedText);
 			return Pattern;
 		}
 		return null;
