@@ -257,7 +257,6 @@ class JVMBuilder {
 }
 
 public class JavaByteCodeGenerator extends GtGenerator {
-	private boolean debug_mode = false;
 	private JVMBuilder Builder;
 	private final String defaultClassName = "Global";
 	private final Map<String, MethodHolderClass> classMap = new HashMap<String, MethodHolderClass>();
@@ -348,7 +347,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		}
 		this.Builder.AsmMethodVisitor.visitInsn(ARETURN);
 
-		if(debug_mode) {
+		if(LibGreenTea.DebugMode) {
 			try {
 				this.OutputClassFile(defaultClassName, ".");
 			} catch(IOException e) {
@@ -403,7 +402,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		}
 
 		// for debug purpose
-		if(debug_mode) {
+		if(LibGreenTea.DebugMode) {
 			try {
 				this.OutputClassFile(defaultClassName, ".");
 			} catch(IOException e) {
@@ -432,13 +431,17 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		constructor.visitMethodInsn(INVOKESPECIAL, superClassName, "<init>", "()V");
 		constructor.visitInsn(RETURN);
 		classNode.addMethodNode(constructor);
-		if(debug_mode) {
+		if(LibGreenTea.DebugMode) {
 			try {
 				this.OutputClassFile(className, ".");
 			} catch(IOException e) {
 				LibGreenTea.VerboseException(e);
 			}
 		}
+	}
+
+	public void CloseClassField(GtType definedType, GtClassField classField) {
+		
 	}
 
 	//-----------------------------------------------------
@@ -469,7 +472,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 
 	@Override public void VisitGetterNode(GetterNode Node) {
 		String name = Node.Func.FuncName;
-		Type ty = this.ToAsmType(Node.Func.Types[2]);//FIXME
+		Type ty = this.ToAsmType(Node.Type);
 		Node.Expr.Evaluate(this);
 		this.Builder.AsmMethodVisitor.visitLdcInsn(name);
 		this.Builder.Call(this.methodMap.get("$getter"));
@@ -910,9 +913,5 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		} catch(NoSuchMethodException e) {
 			LibGreenTea.VerboseException(e);
 		}
-	}
-
-	public void VisitEnd() {
-		this.Builder.AsmMethodVisitor.visitEnd();
 	}
 }
