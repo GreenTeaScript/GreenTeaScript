@@ -28,23 +28,7 @@ import java.util.ArrayList;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 
-import javax.naming.Context;
-
 public class GreenTeaRuntime {
-	// comon api
-
-	public static void print(Object o) {
-		System.out.print(o);
-	}
-
-	public static void println(Object o) {
-		System.out.println(o);
-	}
-
-	public static void assert_(boolean b) {
-		assert b;
-	}
-
 	// converter 
 	public final static Object DynamicCast(GtType ToType, Object Value) {
 		if(Value != null) {
@@ -460,10 +444,6 @@ public class GreenTeaRuntime {
 			map.put("$getter", self.getMethod("getter", Object.class, String.class));
 			map.put("$setter", self.getMethod("setter", Object.class, String.class, Object.class));
 			map.put("$error_node", self.getMethod("error_node", String.class));
-			// functions
-			map.put("assert",  self.getMethod("assert_", boolean.class));
-			map.put("print" ,  self.getMethod("print", Object.class));
-			map.put("println", self.getMethod("println", Object.class));
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
