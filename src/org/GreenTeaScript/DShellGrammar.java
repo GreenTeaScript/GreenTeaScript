@@ -203,16 +203,6 @@ public class DShellGrammar extends GtGrammar {
 		return CommandTree;
 	}
 
-	private static void AppendEnv(GtNameSpace NameSpace, String EnvVar, GtToken SourceToken) {
-		if(EnvVar.length() > 0) {
-			String Env = System.getenv(EnvVar);
-			if(Env == null) {
-				NameSpace.Context.ReportError(ErrorLevel, SourceToken, "undefined environment variable: " + EnvVar);
-			}
-			NameSpace.SetSymbol(EnvVar, Env, SourceToken);
-		}
-	}
-
 	public static GtSyntaxTree ParseEnv(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree CommandTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("letenv"), null);
 		GtToken Token = TokenContext.Next();

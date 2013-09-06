@@ -887,14 +887,6 @@ final class GtTokenContext extends GtStatic {
 		return null;
 	}
 
-	public final boolean MatchToken(String TokenText) {
-		if(this.IsToken(TokenText)) {
-			this.CurrentPosition += 1;
-			return true;
-		}
-		return false;
-	}
-
 	public final boolean IsToken(String TokenText) {
 		/*local*/GtToken Token = this.GetToken();
 		if(Token.EqualsText(TokenText)) {
@@ -903,16 +895,21 @@ final class GtTokenContext extends GtStatic {
 		return false;
 	}
 
-	public final boolean MatchIndentToken(String TokenText) {
-		/*local*/int RollbackPosition = this.CurrentPosition;
-		/*local*/GtToken Token = this.Next();
-		while(Token.IsIndent()) {
-			Token = this.Next();
+	public final boolean MatchToken(String TokenText) {
+		if(this.IsToken(TokenText)) {
+			this.CurrentPosition += 1;
+			return true;
 		}
+		return false;
+	}
+
+	public final boolean MatchToken2(String TokenText, int MatchFlag) {
+		/*local*/int Pos = this.GetPosition(MatchFlag);
+		/*local*/GtToken Token = this.Next();
 		if(Token.EqualsText(TokenText)) {
 			return true;
 		}
-		this.CurrentPosition = RollbackPosition;
+		this.RollbackPosition(Pos, MatchFlag);
 		return false;
 	}
 
@@ -3257,7 +3254,7 @@ final class GreenTeaGrammar extends GtGrammar {
 	public static GtSyntaxTree ParseStatement(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree StmtTree = TokenContext.ParsePattern(NameSpace, "$Block$", Optional);
 		if(StmtTree == null) {
-			StmtTree = GtStatic.ParseExpression(NameSpace, TokenContext, false/*SuffixOnly*/);
+			StmtTree = TokenContext.ParsePattern(NameSpace, "$Expression$", Optional);
 		}
 		if(StmtTree == null) {
 			StmtTree = TokenContext.ParsePattern(NameSpace, "$Empty$", Required);
@@ -3267,19 +3264,15 @@ final class GreenTeaGrammar extends GtGrammar {
 
 	// If Statement
 	public static GtSyntaxTree ParseIf(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		/*local*/GtToken Token = TokenContext.GetMatchedToken("if");
-		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
+		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetMatchedToken("if"), null);
 		NewTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "(", Required);
-		/*local*/int ParseFlag = TokenContext.ParseFlag;
-		TokenContext.ParseFlag |= SkipIndentParseFlag;
+		/*local*/int ParseFlag = TokenContext.SetSkipIndent(true);
 		NewTree.SetMatchedPatternAt(IfCond, NameSpace, TokenContext, "$Expression$", Required);
 		NewTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ")", Required);
-		TokenContext.ParseFlag = ParseFlag;
-		TokenContext.SkipIndent();
-		NewTree.SetMatchedPatternAt(IfThen, NameSpace, TokenContext, "$Statement$", Required);
-		if(TokenContext.MatchIndentToken("else")) {
-			TokenContext.SkipIndent();
-			NewTree.SetMatchedPatternAt(IfElse, NameSpace, TokenContext, "$Statement$", Required);
+		TokenContext.SetRememberFlag(ParseFlag);
+		NewTree.SetMatchedPatternAt(IfThen, NameSpace, TokenContext, "$Statement$", AllowLineFeed | Required);
+		if(TokenContext.MatchToken2("else", AllowLineFeed)) {
+			NewTree.SetMatchedPatternAt(IfElse, NameSpace, TokenContext, "$Statement$", AllowLineFeed | Required);
 		}
 		return NewTree;
 	}
