@@ -4433,7 +4433,7 @@ final class GtParserContext extends GtStatic {
 				Message = "(info) " + this.GetSourcePosition(Token.FileLine) + " " + Message;
 			}
 			//LibGreenTea.DebugP(Message);
-			System.err.println("**" + Message + "    if dislike this, comment out In ReportError");
+			//System.err.println("**" + Message + "    if dislike this, comment out In ReportError");
 			this.ReportedErrorList.add(Message);
 		}
 	}
