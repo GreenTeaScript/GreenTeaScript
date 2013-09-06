@@ -3282,6 +3282,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		NewTree.SetMatchedPatternAt(IfCond, NameSpace, TokenContext, "$Expression$", Required);
 		NewTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ")", Required | CloseSkipIndent);
 		NewTree.SetMatchedPatternAt(IfThen, NameSpace, TokenContext, "$Statement$", AllowLineFeed | Required);
+		TokenContext.SkipEmptyStatement();
 		if(TokenContext.MatchToken2("else", AllowLineFeed)) {
 			NewTree.SetMatchedPatternAt(IfElse, NameSpace, TokenContext, "$Statement$", AllowLineFeed | Required);
 		}

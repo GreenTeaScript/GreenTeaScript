@@ -246,7 +246,7 @@ public class DShellGrammar extends GtGrammar {
 		while(TokenContext.HasNext()) {
 			GtToken Token = TokenContext.GetToken();
 			if(Token.EqualsText("||") || Token.EqualsText("&&")) {
-				/*local*/GtSyntaxPattern ExtendedPattern = TokenContext.GetExtendedPattern();
+				/*local*/GtSyntaxPattern ExtendedPattern = TokenContext.GetExtendedPattern(NameSpace);
 				return GtStatic.ApplySyntaxPattern(NameSpace, TokenContext, CommandTree, ExtendedPattern);
 			}
 			if(Token.IsDelim() || Token.IsIndent()) {
