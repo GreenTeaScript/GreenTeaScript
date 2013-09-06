@@ -850,25 +850,47 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	}
 
 	@Override public void VisitCommandNode(CommandNode Node) {
-		ArrayList<GtNode> Args = new ArrayList<GtNode>();
+		ArrayList<ArrayList<GtNode>> Args = new ArrayList<ArrayList<GtNode>>();
 		CommandNode node = Node;
 		while(node != null) {
-			Args.addAll(node.Params);
+			Args.add(node.Params);
 			node = (CommandNode) node.PipedNextNode;
 		}
+		// new String[][n]
 		this.Builder.AsmMethodVisitor.visitLdcInsn(Args.size());
-		this.Builder.AsmMethodVisitor.visitTypeInsn(ANEWARRAY, Type.getInternalName(String.class));
+		this.Builder.AsmMethodVisitor.visitTypeInsn(ANEWARRAY, Type.getInternalName(String[].class));
 		for(int i=0; i<Args.size(); i++) {
-			GtNode Arg = Args.get(i);
+			// new String[m];
+			ArrayList<GtNode> Arg = Args.get(i);
+			this.Builder.AsmMethodVisitor.visitLdcInsn(Args.size());
+			this.Builder.AsmMethodVisitor.visitTypeInsn(ANEWARRAY, Type.getInternalName(String.class));
 			this.Builder.AsmMethodVisitor.visitInsn(DUP);
 			this.Builder.AsmMethodVisitor.visitLdcInsn(i);
-			Arg.Evaluate(this);
-			this.Builder.typeStack.pop();
 			this.Builder.AsmMethodVisitor.visitInsn(AASTORE);
+			for(int j=0; j<Arg.size(); j++) {
+				this.Builder.AsmMethodVisitor.visitInsn(DUP);
+				this.Builder.AsmMethodVisitor.visitLdcInsn(j);
+				Arg.get(j).Evaluate(this);
+				this.Builder.typeStack.pop();
+				this.Builder.AsmMethodVisitor.visitInsn(AASTORE);
+			}
 		}
-		this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, Type.getInternalName(GtSubProc.class),
-				"ExecCommandBool", "([Ljava/lang/String;)Z");
-		this.Builder.AsmMethodVisitor.visitInsn(POP);
+		Type requireType = this.ToAsmType(Node.Type);
+		String name, desc;
+		if(requireType.equals(Type.BOOLEAN_TYPE)) {
+			name = "ExecCommandBool";
+			desc = "[[Ljava/lang/String;)Z";
+		}
+		else if(requireType.equals(Type.getType(String.class))) {
+			name = "ExecCommandString";
+			desc = "[[Ljava/lang/String;)Ljava/lang/String;";
+		}
+		else {
+			name = "ExecCommandVoid";
+			desc = "[[Ljava/lang/String;)V";
+		}
+		this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC,
+				Type.getInternalName(GtSubProc.class), name, desc);
 	}
 
 	@Override public void InvokeMainFunc(String MainFuncName) {
