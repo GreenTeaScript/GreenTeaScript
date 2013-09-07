@@ -865,11 +865,10 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		for(int i=0; i<Args.size(); i++) {
 			// new String[m];
 			ArrayList<GtNode> Arg = Args.get(i);
-			this.Builder.AsmMethodVisitor.visitLdcInsn(Args.size());
-			this.Builder.AsmMethodVisitor.visitTypeInsn(ANEWARRAY, Type.getInternalName(String.class));
 			this.Builder.AsmMethodVisitor.visitInsn(DUP);
 			this.Builder.AsmMethodVisitor.visitLdcInsn(i);
-			this.Builder.AsmMethodVisitor.visitInsn(AASTORE);
+			this.Builder.AsmMethodVisitor.visitLdcInsn(Arg.size());
+			this.Builder.AsmMethodVisitor.visitTypeInsn(ANEWARRAY, Type.getInternalName(String.class));
 			for(int j=0; j<Arg.size(); j++) {
 				this.Builder.AsmMethodVisitor.visitInsn(DUP);
 				this.Builder.AsmMethodVisitor.visitLdcInsn(j);
@@ -877,20 +876,21 @@ public class JavaByteCodeGenerator extends GtGenerator {
 				this.Builder.typeStack.pop();
 				this.Builder.AsmMethodVisitor.visitInsn(AASTORE);
 			}
+			this.Builder.AsmMethodVisitor.visitInsn(AASTORE);
 		}
 		Type requireType = this.ToAsmType(Node.Type);
 		String name, desc;
 		if(requireType.equals(Type.BOOLEAN_TYPE)) {
 			name = "ExecCommandBool";
-			desc = "[[Ljava/lang/String;)Z";
+			desc = "([[Ljava/lang/String;)Z";
 		}
 		else if(requireType.equals(Type.getType(String.class))) {
 			name = "ExecCommandString";
-			desc = "[[Ljava/lang/String;)Ljava/lang/String;";
+			desc = "([[Ljava/lang/String;)Ljava/lang/String;";
 		}
 		else {
 			name = "ExecCommandVoid";
-			desc = "[[Ljava/lang/String;)V";
+			desc = "([[Ljava/lang/String;)V";
 		}
 		this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC,
 				Type.getInternalName(GtSubProc.class), name, desc);
