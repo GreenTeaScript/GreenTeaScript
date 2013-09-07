@@ -883,10 +883,12 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		if(requireType.equals(Type.BOOLEAN_TYPE)) {
 			name = "ExecCommandBool";
 			desc = "([[Ljava/lang/String;)Z";
+			this.Builder.typeStack.push(Type.BOOLEAN_TYPE);
 		}
 		else if(requireType.equals(Type.getType(String.class))) {
 			name = "ExecCommandString";
 			desc = "([[Ljava/lang/String;)Ljava/lang/String;";
+			this.Builder.typeStack.push(Type.getType(String.class));
 		}
 		else {
 			name = "ExecCommandVoid";
