@@ -179,6 +179,9 @@ public class DShellGrammar extends GtGrammar {
 
 	private static GtNode GenerateCommandNode(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType, String Command, int StartIndex, String[] CommandLine) {
 		/*local*/CommandNode Node = (/*cast*/CommandNode) Gamma.Generator.CreateCommandNode(Gamma.VoidType, ParsedTree, null);
+		if(ContextType.IsStringType() || ContextType.IsBooleanType()) {
+			Node.Type = ContextType;
+		}
 		Node.Append(Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, Command));
 		int i = StartIndex;
 		while(i < CommandLine.length) {
@@ -190,7 +193,7 @@ public class DShellGrammar extends GtGrammar {
 				String[] ExpandedArguments = DShellGrammar.ExpandPath(Argument);
 				int j = 0;
 				while(j < ExpandedArguments.length) {
-					Node.Append(Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, ExpandedArguments[j]));					
+					Node.Append(Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, ExpandedArguments[j]));
 					j = j + 1;
 				}
 				if(ExpandedArguments.length == 0) {
@@ -205,9 +208,6 @@ public class DShellGrammar extends GtGrammar {
 				Node.Append(Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, CommandLine[i]));
 			}
 			i += 1;
-		}
-		if(ContextType.IsStringType() || ContextType.IsBooleanType()) {
-			Node.Type = ContextType;
 		}
 		return Node;
 	}

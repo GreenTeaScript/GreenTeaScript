@@ -82,8 +82,6 @@ public class GtSubProc {
 		int lastIndex = size - 1;
 		if(option[isExpr]) {
 			stdout = subProcs[lastIndex].getStdout();
-		}
-		else {
 			ret = (subProcs[lastIndex].getRet() == 0);
 		}
 		return new RetPair(stdout, ret);
@@ -113,6 +111,7 @@ class SubProc {
 	public boolean isKilled = false;
 	private final String logdirPath = "/tmp/strace-log";
 	public String logFilePath = null;
+	private int retValue = -1;
 
 	private boolean stdoutIsRedireted = false;
 	private boolean stderrIsRedireted = false;
@@ -282,7 +281,7 @@ class SubProc {
 
 	public void waitFor() {
 		try {
-			this.proc.waitFor();
+			this.retValue = this.proc.waitFor();
 		}
 		catch (InterruptedException e) {
 			e.printStackTrace();
@@ -307,7 +306,7 @@ class SubProc {
 	}
 
 	public int getRet() {
-		return this.proc.exitValue();
+		return this.retValue;
 	}
 
 	public void kill() {
@@ -405,7 +404,7 @@ class ProcessMonitor {
 			targetProc.waitFor();
 			
 			if(!this.enableException) {
-				return;
+				continue;
 			}
 			String message = targetProc.getCmdName();
 			String logFilePath = targetProc.getLogFilePath();
