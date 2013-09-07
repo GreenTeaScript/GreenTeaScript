@@ -143,6 +143,20 @@ public abstract class LibGreenTea implements GtConst {
 		return Character.isLetter(ch) || ch == '_' || ch > 255;
 	}
 
+	public final static int CheckBraceLevel(String Text) {
+		int level = 0;
+		for(int i = 0; i < Text.length(); i++) {
+			char ch = Text.charAt(i);
+			if(ch == '{' || ch == '[') {
+				level++;
+			}
+			if(ch == '}' || ch == ']') {
+				level--;
+			}
+		}
+		return level;
+	}
+	
 	public final static String CharToString(char code) {
 		return Character.toString(code);
 	}
@@ -758,13 +772,24 @@ public abstract class LibGreenTea implements GtConst {
 
 	private static java.io.Console Console = null;
 
-	public final static String ReadLine(String Prompt) {
+	public final static String ReadLine(String Prompt, String Prompt2) {
 		if(Console == null) {
 			Console = System.console();
 		}
 		String Line = Console.readLine(Prompt);
 		if(Line == null) {
 			System.exit(0);
+		}
+		if(Prompt2 != null) {
+			int level = 0;
+			while((level = LibGreenTea.CheckBraceLevel(Line)) > 0) {
+				String Line2 = Console.readLine(Prompt2 + GreenTeaUtils.JoinStrings("  ", level));
+				Line += "\n" + Line2; 
+			}
+			if(level < 0) {
+				Line = "";
+				LibGreenTea.println(" .. canceled");
+			}
 		}
 		return Line;
 	}

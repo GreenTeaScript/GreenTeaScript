@@ -308,6 +308,10 @@ interface GtConst {
 class GreenTeaUtils implements GtConst {
 //endif VAJA
 
+	public final static boolean IsFlag(int flag, int flag2) {
+		return ((flag & flag2) == flag2);
+	}
+
 	public final static String JoinStrings(String Unit, int Times) {
 		/*local*/String s = "";
 		/*local*/int i = 0;
@@ -317,11 +321,7 @@ class GreenTeaUtils implements GtConst {
 		}
 		return s;
 	}
-
-	public final static boolean IsFlag(int flag, int flag2) {
-		return ((flag & flag2) == flag2);
-	}
-
+	
 	public final static int AsciiToTokenMatrixIndex(char c) {
 		if(c < 128) {
 			return CharMatrix[c];
@@ -4552,7 +4552,7 @@ public class GreenTeaScript extends GreenTeaUtils {
 			Context.ShowReportedErrors();
 			/*local*/int linenum = 1;
 			/*local*/String Line = null;
-			while((Line = LibGreenTea.ReadLine(">>> ")) != null) {
+			while((Line = LibGreenTea.ReadLine(">>> ", "    ")) != null) {
 				/*local*/Object EvaledValue = Context.TopLevelNameSpace.Eval(Line, linenum);
 				Context.ShowReportedErrors();
 				if(EvaledValue != null) {
