@@ -31,6 +31,7 @@ import java.util.ArrayList;
 
 public class PythonSourceGenerator extends SourceGenerator {
 	/*field*/private int SwitchCaseCount;
+	/*field*/private boolean importSubProc = false;
 
 	PythonSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
@@ -244,21 +245,31 @@ public class PythonSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitCommandNode(CommandNode Node) {
+		if(!this.importSubProc) {
+			this.importSubProc = true;
+			/*local*/String Header = "import sys, os" + this.LineFeed;
+			Header += "sys.path.append(os.getenv(" + LibGreenTea.QuoteString("GREENTEA_HOME") + ") + ";
+			Header += LibGreenTea.QuoteString("/include/python") + ")" + this.LineFeed;
+			Header += "import GtSubProc";
+			this.WriteHeader(Header);
+		}
+		
 		/*local*/String Code = "";
 		/*local*/CommandNode CurrentNode = Node;
 		while(CurrentNode != null) {
 			Code += this.AppendCommand(CurrentNode);
 			CurrentNode = (/*cast*/CommandNode) CurrentNode.PipedNextNode;
+			break;	//TODO :support pipe
 		}
-
+		
 		if(Node.Type.equals(Node.Type.Context.StringType)) {
-			Code = "subprocess.check_output(\"" + Code + "\", shell=True)";
+			Code = "GtSubProc.execCommandString([" + Code + "])";
 		}
 		else if(Node.Type.equals(Node.Type.Context.BooleanType)) {
-			Code = "(subprocess.call(\"" + Code + "\", shell=True) == 0)";
+			Code = "GtSubProc.execCommandBool([" + Code + "])";
 		}
 		else {
-			Code = "subprocess.call(\"" + Code + "\", shell=True)";
+			Code = "GtSubProc.execCommandVoid([" + Code + "])";
 		}
 		this.PushSourceCode(Code);
 	}
@@ -268,7 +279,10 @@ public class PythonSourceGenerator extends SourceGenerator {
 		/*local*/int size = CurrentNode.Params.size();
 		/*local*/int i = 0;
 		while(i < size) {
-			Code += this.VisitNode(CurrentNode.Params.get(i)) + " ";
+			if(i > 0) {
+				Code += ", ";
+			}
+			Code += this.VisitNode(CurrentNode.Params.get(i));
 			i = i + 1;
 		}
 		return Code;
