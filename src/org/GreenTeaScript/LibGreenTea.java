@@ -79,7 +79,7 @@ public abstract class LibGreenTea implements GtConst {
 		}
 	}
 
-	public static int VerboseMask = GtStatic.VerboseUndefined | GtStatic.VerboseException;
+	public static int VerboseMask = GreenTeaUtils.VerboseUndefined | GreenTeaUtils.VerboseException;
 
 	public final static void VerboseLog(int VerboseFlag, String Message) {
 		if((LibGreenTea.VerboseMask & VerboseFlag) == VerboseFlag) {
@@ -97,7 +97,7 @@ public abstract class LibGreenTea implements GtConst {
 				throw (Error)cause;
 			}
 		}
-		LibGreenTea.VerboseLog(GtStatic.VerboseException, e.toString());
+		LibGreenTea.VerboseLog(GreenTeaUtils.VerboseException, e.toString());
 	}
 
 	public final static void Exit(int status, String Message) {
@@ -260,9 +260,9 @@ public abstract class LibGreenTea implements GtConst {
 		Class<?> NativeClass = Value instanceof Class<?> ? (Class<?>)Value : Value.getClass();
 		NativeType = (/*cast*/GtType) Context.ClassNameMap.get(NativeClass.getCanonicalName());
 		if(NativeType == null) {
-			NativeType = new GtType(Context, GtStatic.NativeClass, NativeClass.getSimpleName(), null, NativeClass);
+			NativeType = new GtType(Context, GreenTeaUtils.NativeClass, NativeClass.getSimpleName(), null, NativeClass);
 			Context.SetNativeTypeName(NativeClass.getCanonicalName(), NativeType);
-			LibGreenTea.VerboseLog(GtStatic.VerboseNative, "native class: " + NativeClass.getSimpleName() + ", " + NativeClass.getCanonicalName());
+			LibGreenTea.VerboseLog(GreenTeaUtils.VerboseNative, "native class: " + NativeClass.getSimpleName() + ", " + NativeClass.getCanonicalName());
 		}
 		return NativeType;
 	}
@@ -314,9 +314,9 @@ public abstract class LibGreenTea implements GtConst {
 	}
 
 	public final static GtFunc SetNativeMethod(GtFunc NativeFunc, Method JavaMethod) {
-		/*local*/int FuncFlag = GtStatic.NativeFunc;
+		/*local*/int FuncFlag = GreenTeaUtils.NativeFunc;
 		if(Modifier.isStatic(JavaMethod.getModifiers())) {
-			FuncFlag |= GtStatic.NativeStaticFunc;
+			FuncFlag |= GreenTeaUtils.NativeStaticFunc;
 		}
 		NativeFunc.SetNativeMethod(FuncFlag, JavaMethod);
 		return NativeFunc;
@@ -358,7 +358,7 @@ public abstract class LibGreenTea implements GtConst {
 								continue;
 							}
 							if(FoundMethod != null) {
-								LibGreenTea.VerboseLog(GtStatic.VerboseUndefined, "overloaded method: " + FullName);
+								LibGreenTea.VerboseLog(GreenTeaUtils.VerboseUndefined, "overloaded method: " + FullName);
 								return FoundMethod; // return the first one
 							}
 							FoundMethod = Methods[i];
@@ -366,11 +366,11 @@ public abstract class LibGreenTea implements GtConst {
 					}
 				}
 			} catch (ClassNotFoundException e) {
-				LibGreenTea.VerboseLog(GtStatic.VerboseException, e.toString());			
+				LibGreenTea.VerboseLog(GreenTeaUtils.VerboseException, e.toString());			
 			}
 		}
 		if(FoundMethod == null) {
-			LibGreenTea.VerboseLog(GtStatic.VerboseUndefined, "undefined method: " + FullName + " of " + ContextType);
+			LibGreenTea.VerboseLog(GreenTeaUtils.VerboseUndefined, "undefined method: " + FullName + " of " + ContextType);
 		}
 		return FoundMethod;
 	}
@@ -382,7 +382,7 @@ public abstract class LibGreenTea implements GtConst {
 			if(NativeFunc.GetReturnType().IsVarType()) {
 				NativeFunc.SetReturnType(LibGreenTea.GetNativeType(NativeFunc.GetContext(), JavaMethod.getReturnType()));
 			}
-			int StartIdx = NativeFunc.Is(GtStatic.NativeStaticFunc) ? 1 : 2;
+			int StartIdx = NativeFunc.Is(GreenTeaUtils.NativeStaticFunc) ? 1 : 2;
 			Class<?>[] p = JavaMethod.getParameterTypes();
 			for(int i = 0; i < p.length; i++) {
 				if(NativeFunc.Types[StartIdx + i].IsVarType()) {
@@ -421,7 +421,7 @@ public abstract class LibGreenTea implements GtConst {
 			}
 		}
 		if(!TransformedResult) {
-			Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, GtStatic.ConstructorSymbol()), null);
+			Context.RootNameSpace.SetUndefinedSymbol(GreenTeaUtils.ClassSymbol(ClassType, GreenTeaUtils.ConstructorSymbol()), null);
 		}
 	}
 
@@ -452,8 +452,8 @@ public abstract class LibGreenTea implements GtConst {
 		} catch (NoSuchFieldException e) {
 			LibGreenTea.VerboseException(e);
 		}
-		Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, GtStatic.GetterSymbol(FieldName)), null);
-		Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, GtStatic.SetterSymbol(FieldName)), null); // for setter
+		Context.RootNameSpace.SetUndefinedSymbol(GreenTeaUtils.ClassSymbol(ClassType, GreenTeaUtils.GetterSymbol(FieldName)), null);
+		Context.RootNameSpace.SetUndefinedSymbol(GreenTeaUtils.ClassSymbol(ClassType, GreenTeaUtils.SetterSymbol(FieldName)), null); // for setter
 		return null;
 	}
 
@@ -488,7 +488,7 @@ public abstract class LibGreenTea implements GtConst {
 		} catch (NoSuchFieldException e) {
 			LibGreenTea.VerboseException(e);
 		}
-		Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, GtStatic.ClassStaticName(Symbol)), null);
+		Context.RootNameSpace.SetUndefinedSymbol(GreenTeaUtils.ClassSymbol(ClassType, GreenTeaUtils.ClassStaticName(Symbol)), null);
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -513,7 +513,7 @@ public abstract class LibGreenTea implements GtConst {
 			}
 		}
 		if(!TransformedResult) {
-			Context.RootNameSpace.SetUndefinedSymbol(GtStatic.ClassSymbol(ClassType, FuncName), null);
+			Context.RootNameSpace.SetUndefinedSymbol(GreenTeaUtils.ClassSymbol(ClassType, FuncName), null);
 		}
 	}
 
@@ -526,7 +526,7 @@ public abstract class LibGreenTea implements GtConst {
 					return methods[i];
 				}
 			}
-			LibGreenTea.VerboseLog(GtStatic.VerboseUndefined, "undefined method: " + Callee.getClass().getSimpleName() + "." + FuncName);
+			LibGreenTea.VerboseLog(GreenTeaUtils.VerboseUndefined, "undefined method: " + Callee.getClass().getSimpleName() + "." + FuncName);
 		}
 		return null;
 	}
@@ -800,7 +800,7 @@ public abstract class LibGreenTea implements GtConst {
 	}
 
 	public final static String LoadFile2(String FileName) {
-		LibGreenTea.VerboseLog(GtStatic.VerboseFile, "loading " + FileName);
+		LibGreenTea.VerboseLog(GreenTeaUtils.VerboseFile, "loading " + FileName);
 		InputStream Stream = LibGreenTea.class.getResourceAsStream("/" + FileName);
 		if(Stream == null) {
 			File f = new File(FormatFilePath(FileName));
@@ -846,7 +846,7 @@ public abstract class LibGreenTea implements GtConst {
 	}
 
 	public final static Object Eval(String SourceCode) {
-		LibGreenTea.VerboseLog(GtStatic.VerboseEval, "eval as native code: " + SourceCode);
+		LibGreenTea.VerboseLog(GreenTeaUtils.VerboseEval, "eval as native code: " + SourceCode);
 		//eval(SourceCode);
 		//System.out.println("Eval: " + SourceCode);  // In Java, no eval
 		return null;

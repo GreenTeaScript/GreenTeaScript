@@ -114,7 +114,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		/*local*/GtNode NewCond = this.CreateOrNode(BoolType, ParsedTree, FirstCond, Cond);
 		/*local*/GtNode LoopBody = this.CreateAssignNode(BoolType, ParsedTree, FirstCond, FalseNode);
 		
-		GtStatic.LinkNode(LoopBody.MoveTailNode(), Block);
+		GreenTeaUtils.LinkNode(LoopBody.MoveTailNode(), Block);
 		/*local*/GtNode NewWhileNode = this.CreateWhileNode(Type, ParsedTree, NewCond, LoopBody);
 		return this.CreateVarNode(BoolType, ParsedTree, BoolType, VarName, TrueNode, NewWhileNode);
 	}

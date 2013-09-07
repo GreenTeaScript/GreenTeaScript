@@ -32,7 +32,7 @@ import java.util.ArrayList;
 /* language */
 // GreenTea Generator should be written in each language.
 
-class GtNode extends GtStatic {
+class GtNode extends GreenTeaUtils {
 	/*field*/public GtNode	ParentNode;
 	/*field*/public GtNode	PrevNode;
 	/*field*/public GtNode	NextNode;
@@ -807,7 +807,7 @@ class CommandNode extends GtNode {
 
 }
 
-class GtGenerator extends GtStatic {
+class GtGenerator extends GreenTeaUtils {
 	/*field*/public final String      TargetCode;
 	/*field*/public GtParserContext    Context;
 	/*field*/public ArrayList<Object> GeneratedCodeStack;

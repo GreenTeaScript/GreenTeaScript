@@ -91,8 +91,8 @@ public class DShellGrammar extends GtGrammar {
 		String Name = Token.ParsedText;
 		String Env = System.getenv(Name);
 		if(TokenContext.MatchToken("=")) {
-			GtSyntaxTree ConstTree = GtStatic.ParseExpression(NameSpace, TokenContext, false);
-			if(GtStatic.IsMismatchedOrError(ConstTree)) {
+			GtSyntaxTree ConstTree = GreenTeaUtils.ParseExpression(NameSpace, TokenContext, false);
+			if(GreenTeaUtils.IsMismatchedOrError(ConstTree)) {
 				return ConstTree;
 			}
 			if(Env == null) {
@@ -126,7 +126,7 @@ public class DShellGrammar extends GtGrammar {
 			GtToken Token = TokenContext.GetToken();
 			if(Token.EqualsText("||") || Token.EqualsText("&&")) {
 				/*local*/GtSyntaxPattern ExtendedPattern = TokenContext.GetExtendedPattern(NameSpace);
-				return GtStatic.ApplySyntaxPattern(NameSpace, TokenContext, CommandTree, ExtendedPattern);
+				return GreenTeaUtils.ApplySyntaxPattern(NameSpace, TokenContext, CommandTree, ExtendedPattern);
 			}
 			if(Token.IsDelim() || Token.IsIndent()) {
 				break;
