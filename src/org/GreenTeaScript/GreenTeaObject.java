@@ -346,7 +346,7 @@ class GtFunc extends GreenTeaUtils {
 	}
 
 	public final void SetNativeMethod(int OptionalFuncFlag, Object Method) {
-		LibGreenTea.Assert(this.NativeRef == null);
+//		LibGreenTea.Assert(this.NativeRef == null);
 		this.FuncFlag |= NativeFunc | OptionalFuncFlag;
 		this.NativeRef = Method;
 	}

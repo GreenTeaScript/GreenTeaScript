@@ -299,6 +299,21 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		return Type.getMethodType(returnType, argTypes);
 	}
 
+	public Class<?> ToClass(Type type) throws ClassNotFoundException {
+		if(type.equals(Type.BOOLEAN)) {
+			return boolean.class;
+		}
+		else if(type.equals(Type.LONG_TYPE)) {
+			return long.class;
+		}
+		else if(type.equals(Type.DOUBLE_TYPE)) {
+			return double.class;
+		}
+		else {
+			return Class.forName(type.getClassName());
+		}
+	}
+
 	//-----------------------------------------------------
 
 	void OutputClassFile(String className, String dir) throws IOException {
@@ -408,6 +423,17 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			} catch(IOException e) {
 				LibGreenTea.VerboseException(e);
 			}
+		}
+		try {
+			ClassLoader loader = new GtClassLoader(this);
+			Class<?>[] args = new Class<?>[argTypes.size()];
+			for(int i=0; i<args.length; i++) {
+				args[i] = ToClass(argTypes.get(i));
+			}
+			Method m = loader.loadClass(c.name).getMethod(MethodName, args);
+			Func.SetNativeMethod(0, m);
+		} catch(Exception e) {
+			LibGreenTea.VerboseException(e);
 		}
 	}
 
