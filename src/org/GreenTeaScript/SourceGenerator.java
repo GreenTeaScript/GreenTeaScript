@@ -1259,9 +1259,9 @@ class GtGenerator extends GreenTeaUtils {
 		/*local*/GtType Type = Node.Type;
 		/*local*/CommandNode CurrentNode = Node;
 		while(CurrentNode != null) {
-			/*local*/int paramSize = LibGreenTea.ListSize(Node.Params);
-			/*local*/String[] Buffer = new String[paramSize];
-			for(int i =0; i < paramSize; i++) {
+			/*local*/int ParamSize = LibGreenTea.ListSize(CurrentNode.Params);
+			/*local*/String[] Buffer = new String[ParamSize];
+			for(int i =0; i < ParamSize; i++) {
 				/*local*/Object Value = CurrentNode.Params.get(i).ToConstValue(EnforceConst);
 				if(!(Value instanceof String)) {
 					return null;
@@ -1272,13 +1272,13 @@ class GtGenerator extends GreenTeaUtils {
 			CurrentNode = (/*cast*/CommandNode) CurrentNode.PipedNextNode;
 		}
 		
-		/*local*/int nodeSize = LibGreenTea.ListSize(ArgsBuffer);
-		/*local*/String[][] Args = new String[nodeSize][];
-		for(int i = 0; i < nodeSize; i++) {
+		/*local*/int NodeSize = LibGreenTea.ListSize(ArgsBuffer);
+		/*local*/String[][] Args = new String[NodeSize][];
+		for(int i = 0; i < NodeSize; i++) {
 			/*local*/String[] Buffer = ArgsBuffer.get(i);
-			/*local*/int commandSize = Buffer.length;
-			Args[i] = new String[commandSize];
-			for(int j = 0; j < commandSize; j++) {
+			/*local*/int CommandSize = Buffer.length;
+			Args[i] = new String[CommandSize];
+			for(int j = 0; j < CommandSize; j++) {
 				Args[i][j] = Buffer[j];
 			}
 		}

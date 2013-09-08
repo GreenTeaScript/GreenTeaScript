@@ -89,7 +89,7 @@ public class DShellGrammar extends GtGrammar {
 			return TokenContext.ReportExpectedMessage(Token, "name", true);
 		}
 		String Name = Token.ParsedText;
-		String Env = System.getenv(Name);
+		String Env = LibGreenTea.GetEnv(Name);
 		if(TokenContext.MatchToken("=")) {
 			GtSyntaxTree ConstTree = GreenTeaUtils.ParseExpression(NameSpace, TokenContext, false);
 			if(GreenTeaUtils.IsMismatchedOrError(ConstTree)) {
