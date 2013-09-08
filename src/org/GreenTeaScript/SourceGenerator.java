@@ -27,6 +27,8 @@ package org.GreenTeaScript;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+
+import org.GreenTeaScript.JVM.GtSubProc;
 //endif VAJA
 
 /* language */
@@ -800,9 +802,14 @@ class CommandNode extends GtNode {
 		Visitor.VisitCommandNode(this);
 	}
 
-	@Override public Object ToConstValue(boolean EnforceConst)  {
-		LibGreenTea.println("TODO");
-		return null;
+	@Override public Object ToConstValue(boolean EnforceConst) {	//FIXME: Exception
+		try {
+			return this.Type.Context.Generator.EvalCommandNode(this, EnforceConst);
+		} 
+		catch (Exception e) {
+			LibGreenTea.VerboseException(e);
+			return null;
+		}
 	}
 
 }
@@ -1241,6 +1248,52 @@ class GtGenerator extends GreenTeaUtils {
 		}
 //endif VAJA
 		return NewList;  // if unsupported
+	}
+	
+	public Object EvalCommandNode(CommandNode Node, boolean EnforceConst) throws Exception {
+//ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
+		if(!EnforceConst) {
+			return null;
+		}
+		/*local*/ArrayList<String[]> ArgsBuffer = new ArrayList<String[]>();
+		/*local*/GtType Type = Node.Type;
+		/*local*/CommandNode CurrentNode = Node;
+		while(CurrentNode != null) {
+			/*local*/int paramSize = LibGreenTea.ListSize(Node.Params);
+			/*local*/String[] Buffer = new String[paramSize];
+			for(int i =0; i < paramSize; i++) {
+				/*local*/Object Value = Node.Params.get(i).ToConstValue(EnforceConst);
+				if(!(Value instanceof String)) {
+					return null;
+				}
+				Buffer[i] = (/*cast*/String)Value;
+			}
+			ArgsBuffer.add(Buffer);
+			CurrentNode = (/*cast*/CommandNode) CurrentNode.PipedNextNode;
+		}
+		
+		/*local*/int nodeSize = LibGreenTea.ListSize(ArgsBuffer);
+		/*local*/String[][] Args = new String[nodeSize][];
+		for(int i = 0; i < nodeSize; i++) {
+			/*local*/String[] Buffer = ArgsBuffer.get(i);
+			/*local*/int commandSize = Buffer.length;
+			Args[i] = new String[commandSize];
+			for(int j = 0; j < commandSize; j++) {
+				Args[i][j] = Buffer[j];
+			}
+		}
+		
+		if(Type.equals(Type.Context.StringType)) {
+			return GtSubProc.ExecCommandString(Args);
+		}
+		else if(Type.equals(Type.Context.BooleanType)) {
+			return GtSubProc.ExecCommandBool(Args);
+		}
+		else {
+			GtSubProc.ExecCommandVoid(Args);
+		}
+//endif VAJA
+		return null;  // if unsupported
 	}
 
 	public void FlushBuffer() {
