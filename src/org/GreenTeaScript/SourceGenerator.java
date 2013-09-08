@@ -1262,7 +1262,7 @@ class GtGenerator extends GreenTeaUtils {
 			/*local*/int paramSize = LibGreenTea.ListSize(Node.Params);
 			/*local*/String[] Buffer = new String[paramSize];
 			for(int i =0; i < paramSize; i++) {
-				/*local*/Object Value = Node.Params.get(i).ToConstValue(EnforceConst);
+				/*local*/Object Value = CurrentNode.Params.get(i).ToConstValue(EnforceConst);
 				if(!(Value instanceof String)) {
 					return null;
 				}
