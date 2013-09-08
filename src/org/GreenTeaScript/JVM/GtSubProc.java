@@ -31,7 +31,7 @@ public class GtSubProc {
 	
 	// called by VisitCommandNode at JavaByteCodeGenerator 
 	public static String ExecCommandString(String[]... cmds) throws Exception {
-		boolean[] option = {true, true, false, true};
+		boolean[] option = {true, true, false, false};
 		return createSubProc(cmds, option).str;
 	}
 
@@ -41,7 +41,7 @@ public class GtSubProc {
 	}
 
 	public static void ExecCommandVoid(String[]... cmds) throws Exception {
-		boolean[] option = {false, true, false, true};
+		boolean[] option = {false, true, false, false};
 		createSubProc(cmds, option);
 	}
 	//---------------------------------------------
