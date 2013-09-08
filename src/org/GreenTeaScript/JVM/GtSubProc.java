@@ -31,7 +31,7 @@ public class GtSubProc {
 	
 	// called by VisitCommandNode at JavaByteCodeGenerator 
 	public static String ExecCommandString(String[]... cmds) throws Exception {
-		boolean[] option = {true, true, false, false};
+		boolean[] option = {true, true, false, true};
 		return createSubProc(cmds, option).str;
 	}
 
@@ -41,7 +41,7 @@ public class GtSubProc {
 	}
 
 	public static void ExecCommandVoid(String[]... cmds) throws Exception {
-		boolean[] option = {false, true, false, false};
+		boolean[] option = {false, true, false, true};
 		createSubProc(cmds, option);
 	}
 	//---------------------------------------------
@@ -99,6 +99,7 @@ class RetPair {
 }
 
 class SubProc {
+	private static int logId = 0;
 	private Process proc;
 
 	private OutputStream stdin = null;
@@ -171,6 +172,7 @@ class SubProc {
 		logNameHeader.append(cal.get((Calendar.HOUR) + 1) + ":");
 		logNameHeader.append(cal.get(Calendar.MINUTE) + "-");
 		logNameHeader.append(cal.get(Calendar.MILLISECOND));
+		logNameHeader.append("-" + logId++);
 
 		return logNameHeader.toString();
 	}
@@ -349,6 +351,10 @@ class SubProc {
 	public String getCmdName() {
 		return this.cmdNameBuilder.toString();
 	}
+	
+	public boolean isTraced() {
+		return this.enableSyscallTrace;
+	}
 }
 
 // copied from http://blog.art-of-coding.eu/piping-between-processes/
@@ -406,9 +412,11 @@ class ProcessMonitor {
 			if(!this.enableException) {
 				continue;
 			}
+			
+			// throw exception
 			String message = targetProc.getCmdName();
-			String logFilePath = targetProc.getLogFilePath();
-			if(logFilePath != null) {
+			if(targetProc.isTraced()) {	// infer systemcall error
+				String logFilePath = targetProc.getLogFilePath();
 				if(targetProc.getRet() != 0) {
 					Stack<String[]> syscallStack = parseTraceLog(logFilePath);
 					deleteLogFile(logFilePath);
@@ -421,7 +429,6 @@ class ProcessMonitor {
 					throw new Exception(message);
 				}
 			}
-			
 		}
 	}
 
