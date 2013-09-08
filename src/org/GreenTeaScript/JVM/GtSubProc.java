@@ -19,6 +19,8 @@ import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.GreenTeaScript.LibGreenTea;
+
 public class GtSubProc {
 	// option index
 	private static final int isExpr = 0;
@@ -31,7 +33,7 @@ public class GtSubProc {
 	
 	// called by VisitCommandNode at JavaByteCodeGenerator 
 	public static String ExecCommandString(String[]... cmds) throws Exception {
-		boolean[] option = {true, true, false, false};
+		boolean[] option = {true, true, false, true};
 		return createSubProc(cmds, option).str;
 	}
 
@@ -41,15 +43,26 @@ public class GtSubProc {
 	}
 
 	public static void ExecCommandVoid(String[]... cmds) throws Exception {
-		boolean[] option = {false, true, false, false};
+		boolean[] option = {false, true, false, true};
 		createSubProc(cmds, option);
 	}
 	//---------------------------------------------
 
+	private static boolean checkTraceRequirements() {
+		if(System.getProperty("os.name").equals("Linux")) {
+			return LibGreenTea.IsUnixCommand("strace");
+		}
+		return false;
+	}
+	
 	private static RetPair createSubProc(String[][] cmds, boolean[] option) throws Exception {
 		int size = cmds.length;
 		String stdout = "";
 		boolean ret = false;
+		
+		if(option[enableTrace]) {
+			option[enableTrace] = checkTraceRequirements();
+		}
 		
 		ProcessMonitor monitor = new ProcessMonitor(option[isThrowable]);
 		SubProc[] subProcs = new SubProc[size];
