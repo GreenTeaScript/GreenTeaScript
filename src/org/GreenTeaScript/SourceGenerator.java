@@ -803,15 +803,8 @@ class CommandNode extends GtNode {
 	}
 
 	@Override public Object ToConstValue(boolean EnforceConst) {	//FIXME: Exception
-		try {
-			return this.Type.Context.Generator.EvalCommandNode(this, EnforceConst);
-		} 
-		catch (Exception e) {
-			LibGreenTea.VerboseException(e);
-			return null;
-		}
+		return this.Type.Context.Generator.EvalCommandNode(this, EnforceConst);
 	}
-
 }
 
 class GtGenerator extends GreenTeaUtils {
@@ -1250,7 +1243,7 @@ class GtGenerator extends GreenTeaUtils {
 		return NewList;  // if unsupported
 	}
 	
-	public Object EvalCommandNode(CommandNode Node, boolean EnforceConst) throws Exception {
+	public Object EvalCommandNode(CommandNode Node, boolean EnforceConst) {
 //ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
 		if(!EnforceConst) {
 			return null;
@@ -1283,14 +1276,19 @@ class GtGenerator extends GreenTeaUtils {
 			}
 		}
 		
-		if(Type.equals(Type.Context.StringType)) {
-			return GtSubProc.ExecCommandString(Args);
-		}
-		else if(Type.equals(Type.Context.BooleanType)) {
-			return GtSubProc.ExecCommandBool(Args);
-		}
-		else {
-			GtSubProc.ExecCommandVoid(Args);
+		try {
+			if(Type.equals(Type.Context.StringType)) {
+				return GtSubProc.ExecCommandString(Args);
+			}
+			else if(Type.equals(Type.Context.BooleanType)) {
+				return GtSubProc.ExecCommandBool(Args);
+			}
+			else {
+				GtSubProc.ExecCommandVoid(Args);
+			}
+		} 
+		catch(Exception e) {
+			e.printStackTrace();
 		}
 //endif VAJA
 		return null;  // if unsupported

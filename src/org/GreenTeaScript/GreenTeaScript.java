@@ -4555,15 +4555,20 @@ public class GreenTeaScript extends GreenTeaUtils {
 			/*local*/int linenum = 1;
 			/*local*/String Line = null;
 			while((Line = LibGreenTea.ReadLine(">>> ", "    ")) != null) {
-				/*local*/Object EvaledValue = Context.TopLevelNameSpace.Eval(Line, linenum);
-				Context.ShowReportedErrors();
-				if(EvaledValue != null) {
-					if(EvaledValue instanceof String) {
-						EvaledValue = LibGreenTea.QuoteString((/*cast*/String)EvaledValue);
+				try {
+					/*local*/Object EvaledValue = Context.TopLevelNameSpace.Eval(Line, linenum);
+					Context.ShowReportedErrors();
+					if(EvaledValue != null) {
+						if(EvaledValue instanceof String) {
+							EvaledValue = LibGreenTea.QuoteString((/*cast*/String)EvaledValue);
+						}
+						LibGreenTea.println(" (" + Context.GuessType(EvaledValue) + ":" + LibGreenTea.GetClassName(EvaledValue) + ") " + EvaledValue);
 					}
-					LibGreenTea.println(" (" + Context.GuessType(EvaledValue) + ":" + LibGreenTea.GetClassName(EvaledValue) + ") " + EvaledValue);
+					linenum += 1;
 				}
-				linenum += 1;
+				catch(Exception e) {
+					e.printStackTrace();
+				}
 			}
 			LibGreenTea.println("");
 		}

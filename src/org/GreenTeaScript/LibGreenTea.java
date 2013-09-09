@@ -580,7 +580,8 @@ public abstract class LibGreenTea implements GtConst {
 			return ((Method)Func.NativeRef).invoke(Self, Params);
 		}
 		catch (InvocationTargetException e) {
-			LibGreenTea.VerboseException(e);
+			//LibGreenTea.VerboseException(e);
+			e.getCause().printStackTrace();
 		}
 		catch (IllegalArgumentException e) {
 			LibGreenTea.VerboseException(e);
