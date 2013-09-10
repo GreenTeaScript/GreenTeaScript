@@ -78,7 +78,7 @@ public class GtSubProc {
 				// TODO: input redirect
 			}
 			else {
-				subProcs[i - i].pipe(subProcs[i]);
+				subProcs[i - 1].pipe(subProcs[i]);
 			}
 			
 			if(i == size - 1) {
