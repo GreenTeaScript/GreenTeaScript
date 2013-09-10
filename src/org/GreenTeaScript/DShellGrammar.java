@@ -44,9 +44,11 @@ public class DShellGrammar extends GtGrammar {
 				//TODO
 			}
 			else {
-				NameSpace.SetSymbol(Command, NameSpace.GetSyntaxPattern("$DShell$"), SourceToken);
-				NameSpace.SetSymbol(CommandSymbol(Command), CommandPath, null);
-				if(!LibGreenTea.IsUnixCommand(CommandPath)) {
+				if(LibGreenTea.IsUnixCommand(CommandPath)) {
+					NameSpace.SetSymbol(Command, NameSpace.GetSyntaxPattern("$DShell$"), SourceToken);
+					NameSpace.SetSymbol(CommandSymbol(Command), CommandPath, null);
+				} 
+				else {
 					NameSpace.Context.ReportError(ErrorLevel, SourceToken, "unknown command: " + CommandPath);
 				}
 			}
