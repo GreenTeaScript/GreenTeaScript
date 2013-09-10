@@ -115,9 +115,11 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 	@Override public void VisitTryNode(TryNode Node) {
 		/*local*/String Code = "try ";
 		Code += this.VisitBlockJSWithIndent(Node.TryBlock);
-		/*local*/VarNode Val = (/*cast*/VarNode) Node.CatchExpr;
-		Code += " catch (" + Val.Type.toString() + " " + Val.NativeName + ") ";
-		Code += this.VisitBlockJSWithIndent(Node.CatchBlock);
+		if(Node.CatchExpr != null) {
+			/*local*/VarNode Val = (/*cast*/VarNode) Node.CatchExpr;
+			Code += " catch (" + Val.Type.toString() + " " + Val.NativeName + ") ";
+			Code += this.VisitBlockJSWithIndent(Node.CatchBlock);
+		}
 		if(Node.FinallyBlock != null) {
 			Code += " finally " + this.VisitBlockJSWithIndent(Node.FinallyBlock);
 		}

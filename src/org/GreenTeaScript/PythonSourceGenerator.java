@@ -75,7 +75,9 @@ public class PythonSourceGenerator extends SourceGenerator {
 	@Override public void VisitWhileNode(WhileNode Node) {
 		/*local*/String Program = "while " + this.VisitNode(Node.CondExpr) + ":" + this.LineFeed;
 		if(this.IsEmptyBlock(Node.LoopBody)) {
+			this.Indent();
 			Program += this.GetIndentString() + "pass";
+			this.UnIndent();
 		}
 		else {
 			Program += this.VisitBlockWithIndent(Node.LoopBody, true);
@@ -93,7 +95,9 @@ public class PythonSourceGenerator extends SourceGenerator {
 		 */
 		/*local*/String Program = "while " + this.VisitNode(Node.CondExpr) + ":" + this.LineFeed;
 		if(this.IsEmptyBlock(Node.LoopBody)) {
+			this.Indent();
 			Program += this.GetIndentString() + "pass";
+			this.UnIndent();
 		}
 		else {
 			Program += this.VisitBlockWithIndent(Node.LoopBody, true);
