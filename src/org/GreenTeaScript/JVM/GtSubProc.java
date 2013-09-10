@@ -621,6 +621,38 @@ class ReadOnlyException extends Exception {
 	}
 }
 
+class NoFreeMemoryException extends Exception {
+	private static final long serialVersionUID = 1L;
+
+	public NoFreeMemoryException(String message) {
+		super(message);
+	}
+}
+
+class IllegalSeekException extends Exception {
+	private static final long serialVersionUID = 1L;
+
+	public IllegalSeekException(String message) {
+		super(message);
+	}
+}
+
+class NotPermittedOprateException extends Exception {
+	private static final long serialVersionUID = 1L;
+
+	public NotPermittedOprateException(String message) {
+		super(message);
+	}
+}
+
+class NotDirectoryException extends Exception {
+	private static final long serialVersionUID = 1L;
+
+	public NotDirectoryException(String message) {
+		super(message);
+	}
+}
+
 enum Syscall {
 	open, openat, connect,
 }
@@ -727,7 +759,11 @@ enum ErrNo {
 	ENOLCK, 
 	ENOLINK, 
 	ENOMEDIUM, 
-	ENOMEM, 
+	ENOMEM {
+		public Exception toException(String message, String syscallName, String param) {
+			return new NoFreeMemoryException(message);
+		}
+	},
 	ENOMSG, 
 	ENONET, 
 	ENOPKG, 
@@ -742,7 +778,11 @@ enum ErrNo {
 	ENOSYS, 
 	ENOTBLK, 
 	ENOTCONN, 
-	ENOTDIR, 
+	ENOTDIR{
+		public Exception toException(String message, String syscallName, String param) {
+			return new NotDirectoryException(message);
+		}
+	}, 
 	ENOTEMPTY, 
 	ENOTSOCK, 
 	ENOTSUP, 
@@ -751,7 +791,11 @@ enum ErrNo {
 	ENXIO, 
 	EOPNOTSUPP, 
 	EOVERFLOW, 
-	EPERM, 
+	EPERM{
+		public Exception toException(String message, String syscallName, String param) {
+			return new NotPermittedOprateException(message);
+		}
+	}, 
 	EPFNOSUPPORT, 
 	EPIPE, 
 	EPROTO, 
@@ -768,7 +812,11 @@ enum ErrNo {
 		}
 	}, 
 	ESHUTDOWN, 
-	ESPIPE, 
+	ESPIPE {
+		public Exception toException(String message, String syscallName, String param) {
+			return new IllegalSeekException(message);
+		}
+	}, 
 	ESOCKTNOSUPPORT, 
 	ESRCH, 
 	ESTALE, 
