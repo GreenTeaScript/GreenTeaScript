@@ -120,6 +120,7 @@ class GtNode extends GreenTeaUtils {
 
 	public Object ToConstValue(boolean EnforceConst)  {
 		if(EnforceConst) {
+			LibGreenTea.DebugP("Node="+this.getClass());
 			this.Type.Context.ReportError(ErrorLevel, this.Token, "value must be constant in this context");
 		}
 		return null;
