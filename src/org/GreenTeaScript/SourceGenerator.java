@@ -1191,7 +1191,7 @@ class GtGenerator extends GreenTeaUtils {
 	// This must be extended in each language
 
 	public boolean IsStrictMode() {
-		return false; /* override this */
+		return true; /* override this in dynamic languages */
 	}
 
 	@Deprecated public Object Eval(GtNode Node) {
