@@ -1592,12 +1592,8 @@ final class GtTypeEnv extends GreenTeaUtils {
 		return this.Generator.CreateErrorNode(this.VoidType, ParsedTree);
 	}
 
-	public final GtNode SupportedOnlyTopLevelError(GtSyntaxTree ParsedTree) {
-		return this.CreateSyntaxErrorNode(ParsedTree, "supported only at top level " + ParsedTree.Pattern);
-	}
-
 	public final GtNode UnsupportedTopLevelError(GtSyntaxTree ParsedTree) {
-		return this.CreateSyntaxErrorNode(ParsedTree, "unsupported at top level " + ParsedTree.Pattern);
+		return this.CreateSyntaxErrorNode(ParsedTree, "unsupported " + ParsedTree.Pattern.PatternName + " at the top level");
 	}
 
 	public final GtNode CreateLocalNode(GtSyntaxTree ParsedTree, String Name) {
