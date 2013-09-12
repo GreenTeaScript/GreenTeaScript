@@ -170,12 +170,12 @@ public class DShellGrammar extends GtGrammar {
 		if(Argument.length() > 0) {
 			CommandLine.add(Argument);
 		}
-		CommandTree.ConstValue = CommandLine.toArray(new String[CommandLine.size()]);
+		CommandTree.ParsedValue = CommandLine.toArray(new String[CommandLine.size()]);
 		return CommandTree;
 	}
 
 	public static GtNode TypeDShell(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		/*local*/String[] CommandLine = (/*cast*/String[])ParsedTree.ConstValue;
+		/*local*/String[] CommandLine = (/*cast*/String[])ParsedTree.ParsedValue;
 		return DShellGrammar.GenerateCommandNode(Gamma, ParsedTree, ContextType, ParsedTree.KeyToken.ParsedText, 0, CommandLine);
 	}
 
@@ -263,7 +263,7 @@ public class DShellGrammar extends GtGrammar {
 				if(Path.length() > 0) {
 					Token.ParsedText += Token2.ParsedText;
 					/*local*/GtSyntaxTree Tree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
-					Tree.ConstValue = Path;
+					Tree.ParsedValue = Path;
 //					/*local*/GtSyntaxTree SubTree = new GtSyntaxTree(Pattern, NameSpace, Token2, null);
 //					Tree.SetSyntaxTreeAt(UnaryTerm, SubTree);
 					return Tree;
@@ -275,7 +275,7 @@ public class DShellGrammar extends GtGrammar {
 
 	public static GtNode TypeOpFile(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/String FileOperator = ParsedTree.KeyToken.ParsedText;
-		/*local*/String FilePath = (/*cast*/String)ParsedTree.ConstValue;
+		/*local*/String FilePath = (/*cast*/String)ParsedTree.ParsedValue;
 		/*local*/GtNode OpNode  = Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, FileOperator + " " + FilePath);
 		return OpNode;
 	}

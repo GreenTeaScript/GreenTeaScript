@@ -1331,9 +1331,8 @@ class GtGenerator extends GreenTeaUtils {
 		/*extension*/
 	}
 
-	public void CloseClassField(GtType definedType, GtClassField classField) {
+	public void CloseClassField(GtType definedType, ArrayList<GtFunc> MemberList) {
 		// TODO Auto-generated method stub
-		
 	}
 
 }
