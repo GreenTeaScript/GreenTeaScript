@@ -2698,6 +2698,9 @@ final class GreenTeaGrammar extends GtGrammar {
 		/*local*/GtNode InitValueNode = null;
 		if(ParsedTree.HasNodeAt(VarDeclValue)) {
 			InitValueNode = ParsedTree.TypeCheckAt(VarDeclValue, Gamma, DeclType, DefaultTypeCheckPolicy);
+			if(InitValueNode.IsError()) {
+				return InitValueNode;
+			}
 		}
 		if(GreenTeaUtils.UseLangStat) {
 			Gamma.Context.Stat.VarDecl += 1;
