@@ -297,6 +297,12 @@ public abstract class LibGreenTea implements GtConst {
 	public final static boolean IsExecutable(String Path) {
 		return new File(Path).canExecute();
 	}
+	
+	public final static String[] GetFileList(String Path) {
+		/*local*/int Index = Path.indexOf("*");
+		/*local*/String NewPath = LibGreenTea.SubString(Path, 0, Index);
+		return new File(NewPath).list();
+	}
 
 	public final static GtType GetNativeType(GtParserContext Context, Object Value) {
 		GtType NativeType = null;

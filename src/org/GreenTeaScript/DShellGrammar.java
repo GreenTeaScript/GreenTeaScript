@@ -303,7 +303,11 @@ public class DShellGrammar extends GtGrammar {
 
 	
 	public static String[] ExpandPath(String Path) {
-		return new String[0]; //if not found
+		/*local*/String[] ExpanddedPaths = LibGreenTea.GetFileList(Path);
+		if(ExpanddedPaths != null) {
+			return ExpanddedPaths;
+		}
+		return new String[0];
 	}
 
 	@Override public void LoadTo(GtNameSpace NameSpace) {
