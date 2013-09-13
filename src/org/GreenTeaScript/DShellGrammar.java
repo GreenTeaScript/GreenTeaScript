@@ -296,9 +296,7 @@ public class DShellGrammar extends GtGrammar {
 	}
 
 	public static GtNode TypeOpFile(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		/*local*/boolean Value = (/*cast*/boolean)ParsedTree.ParsedValue;
-		/*local*/GtNode OpNode  = Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, Value);
-		return OpNode;
+		return Gamma.Generator.CreateConstNode(Gamma.BooleanType, ParsedTree, ParsedTree.ParsedValue);
 	}
 
 	
