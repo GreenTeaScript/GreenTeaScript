@@ -3648,10 +3648,9 @@ final class GreenTeaGrammar extends GtGrammar {
 		SwitchTree.SetMatchedPatternAt(SwitchCaseCondExpr, NameSpace, TokenContext, "$Expression$", Required);
 		SwitchTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ")", Required | CloseSkipIndent);
 		SwitchTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "{", Required);
-//		/*local*/int ParseFlag = TokenContext.ParseFlag;
-//		TokenContext.ParseFlag |= SkipIndentParseFlag;
 
 		/*local*/int CaseIndex = SwitchCaseCaseIndex;
+		/*local*/int ParseFlag = TokenContext.SetSkipIndent(true);
 		while(!SwitchTree.IsMismatchedOrError() && !TokenContext.MatchToken("}")) {
 			if(TokenContext.MatchToken("case")) {
 				SwitchTree.SetMatchedPatternAt(CaseIndex, NameSpace, TokenContext, "$Expression$", Required);
@@ -3665,7 +3664,7 @@ final class GreenTeaGrammar extends GtGrammar {
 				SwitchTree.SetMatchedPatternAt(SwitchCaseDefaultBlock, NameSpace, TokenContext, "$CaseBlock$", Required);
 			}
 		}
-//		TokenContext.ParseFlag = ParseFlag;
+		TokenContext.SetRememberFlag(ParseFlag);
 		return SwitchTree;
 	}
 
