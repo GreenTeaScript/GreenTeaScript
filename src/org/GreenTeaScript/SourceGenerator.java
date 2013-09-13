@@ -531,22 +531,31 @@ class ApplyNode extends GtNode {
 	}
 }
 
-//E.g., "new" $Type "(" $Param[0], $Param[1], ... ")"
+// NewNode is object creation in GreenTea defined
 class NewNode extends GtNode {
-	/*field*/public ArrayList<GtNode>	Params;
-	/*field*/GtFunc Func;
-	NewNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func) {
+	NewNode/*constructor*/(GtType Type, GtToken Token) {
 		super(Type, Token);
-		this.Params = new ArrayList<GtNode>();
-		this.Func = Func;
-		this.Params.add(new ConstNode(Func.GetFuncType(), Token, Func));
-	}
-	@Override public void Append(GtNode Expr) {
-		this.Params.add(Expr);
-		this.SetParent(Expr);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitNewNode(this);
+	}
+}
+
+//E.g., ConstructorNode is for object creation in Native Langauage defined
+class ConstructorNode extends GtNode {
+	/*field*/public ArrayList<GtNode>	ParamList;
+	/*field*/GtFunc Func;
+	ConstructorNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func) {
+		super(Type, Token);
+		this.ParamList = new ArrayList<GtNode>();
+		this.Func = Func;
+	}
+	@Override public void Append(GtNode Expr) {
+		this.ParamList.add(Expr);
+		this.SetParent(Expr);
+	}
+	@Override public void Evaluate(GtGenerator Visitor) {
+		Visitor.VisitConstructorNode(this);
 	}
 }
 
@@ -863,8 +872,12 @@ class GtGenerator extends GreenTeaUtils {
 		return new ApplyNode(Type, ParsedTree == null ? GtTokenContext.NullToken : ParsedTree.KeyToken, Func);
 	}
 
-	public GtNode CreateNewNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, ArrayList<GtNode> NodeList) {
-		/*local*/NewNode Node = new NewNode(Type, ParsedTree.KeyToken, Func);
+	public GtNode CreateNewNode(GtType Type, GtSyntaxTree ParsedTree) {
+		return new NewNode(Type, ParsedTree.KeyToken);
+	}
+
+	public GtNode CreateConstructorNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, ArrayList<GtNode> NodeList) {
+		/*local*/ConstructorNode Node = new ConstructorNode(Type, ParsedTree.KeyToken, Func);
 		if(NodeList != null) {
 			Node.AppendNodeList(NodeList);
 		}
@@ -1094,6 +1107,10 @@ class GtGenerator extends GreenTeaUtils {
 	}
 
 	public void VisitNewNode(NewNode Node) {
+		/*extension*/
+	}
+
+	public void VisitConstructorNode(ConstructorNode Node) {
 		/*extension*/
 	}
 
@@ -1658,12 +1675,12 @@ class SourceGenerator extends GtGenerator {
 		this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + this.VisitNode(Node.GetAt(0)) + "]"); // FIXME: Multi
 	}
 
-	@Override public final void VisitNewNode(NewNode Node) {
-		/*local*/int ParamSize = LibGreenTea.ListSize(Node.Params);
+	@Override public final void VisitConstructorNode(ConstructorNode Node) {
+		/*local*/int ParamSize = LibGreenTea.ListSize(Node.ParamList);
 		/*local*/String NewOperator = this.GetNewOperator(Node.Type);
 		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
 		Template = Template.replace("$1", NewOperator);
-		this.PushSourceCode(this.ApplyMacro(Template, Node.Params));
+		this.PushSourceCode(this.ApplyMacro(Template, Node.ParamList));
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {

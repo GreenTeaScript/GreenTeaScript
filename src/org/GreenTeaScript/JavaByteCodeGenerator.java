@@ -477,7 +477,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.Builder.LoadConst(constValue);
 	}
 
-	@Override public void VisitNewNode(NewNode Node) {
+	@Override public void VisitConstructorNode(ConstructorNode Node) {
 		Type type = Type.getType(Node.Func.Types[0].ShortClassName);
 		String owner = type.getInternalName();
 		this.Builder.AsmMethodVisitor.visitTypeInsn(NEW, owner);

@@ -91,12 +91,12 @@ public abstract class LibGreenTea implements GtConst {
 		if(e instanceof InvocationTargetException) {
 			Throwable cause = e.getCause();
 			e = cause;
-//			if(cause instanceof RuntimeException) {
-//				throw (RuntimeException)cause;
-//			}
-//			if(cause instanceof Error) {
-//				throw (Error)cause;
-//			}
+			if(cause instanceof RuntimeException) {
+				throw (RuntimeException)cause;
+			}
+			if(cause instanceof Error) {
+				throw (Error)cause;
+			}
 		}
 		LibGreenTea.VerboseLog(GreenTeaUtils.VerboseException, e.toString());
 	}

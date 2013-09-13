@@ -1365,12 +1365,12 @@ class GtSyntaxTree extends GreenTeaUtils {
 		}
 	}
 
-	public void ToConstTree(Object ConstValue) {
+	public final void ToConstTree(Object ConstValue) {
 		this.Pattern = this.NameSpace.GetSyntaxPattern("$Const$");
 		this.ParsedValue = ConstValue;
 	}
 
-	public GtSyntaxTree CreateConstTree(Object ConstValue) {
+	public final GtSyntaxTree CreateConstTree(Object ConstValue) {
 		return new GtSyntaxTree(this.NameSpace.GetSyntaxPattern("$Const$"), this.NameSpace, this.KeyToken, ConstValue);
 	}
 
@@ -2634,9 +2634,7 @@ final class GreenTeaGrammar extends GtGrammar {
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/GtSyntaxTree VarTree = new GtSyntaxTree(NameSpace.GetSyntaxPattern("$Variable$"), NameSpace, Token, null);
 		if(!LibGreenTea.IsVariableName(Token.ParsedText, 0)) {
-//			NameSpace.Context.ReportError(ErrorLevel, Token, "illegal variable name: '" + Token.ParsedText + "'");
-//			VarTree.ToError(Token);
-			return null;
+			return TokenContext.ReportExpectedMessage(Token, "name", true);
 		}
 		return VarTree;
 	}
@@ -3039,23 +3037,34 @@ final class GreenTeaGrammar extends GtGrammar {
 			/*local*/Object Func = ((/*cast*/ConstNode)FuncNode).ConstValue;
 			if(Func instanceof GtType) {  // constructor;
 				/*local*/GtType ClassType = (/*cast*/GtType)Func;
-				if(ClassType.IsVarType()) {
+				if(ClassType.IsVarType()) {  /* constructor */
 					ClassType = ContextType;
 					if(ClassType.IsVarType()) {
 						return Gamma.CreateSyntaxErrorNode(ParsedTree, "ambigious constructor: " + FuncNode.Token);
 					}
 					Gamma.ReportTypeInference(FuncNode.Token, "constructor", ClassType);
 				}
-				/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetConstructorFunc(/*GtFunc*/ClassType);
-				if(PolyFunc.FuncList.size() == 0) {
-					return Gamma.CreateSyntaxErrorNode(ParsedTree, "no constructor: " + ClassType);
+				if(ClassType.IsAbstract()) {
+					return Gamma.CreateSyntaxErrorNode(ParsedTree, "type is abstract");
 				}
-				NodeList.set(0, Gamma.Generator.CreateNullNode(ClassType, ParsedTree));
-				ResolvedFunc = PolyFunc.ResolveFunc(Gamma, ParsedTree, 1, NodeList);
+				//System.err.println("tree size = " + ParsedTree.SubTreeList.size());
+				/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetConstructorFunc(/*GtFunc*/ClassType);
+				//NodeList.set(0, Gamma.Generator.CreateNullNode(ClassType, ParsedTree));
+				ResolvedFunc = PolyFunc.ResolveConstructor(Gamma, ParsedTree, 1, NodeList);
 				if(ResolvedFunc == null) {
+					if(!ClassType.IsNative() && ParsedTree.SubTreeList.size() == 1) {
+						return Gamma.Generator.CreateNewNode(ClassType, ParsedTree);
+					}
 					Gamma.Context.ReportError(TypeErrorLevel, ParsedTree.KeyToken, "mismatched : constructor" + PolyFunc);
 				}
-				return Gamma.Generator.CreateNewNode(ClassType, ParsedTree, ResolvedFunc, NodeList);
+				else {
+					if(ResolvedFunc.Is(NativeFunc)) {
+						return Gamma.Generator.CreateConstructorNode(ClassType, ParsedTree, ResolvedFunc, NodeList);
+					}
+					NodeList.add(1, Gamma.Generator.CreateNewNode(ClassType, ParsedTree)); //JAVAONLY?
+				}
+				// TODO;
+//				return Gamma.Generator.CreateConstructorNode(ClassType, ParsedTree, ResolvedFunc, NodeList);
 			}
 			else if(Func instanceof GtFunc) {
 				ResolvedFunc = (/*cast*/GtFunc)Func;
