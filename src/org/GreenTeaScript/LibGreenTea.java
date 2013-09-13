@@ -273,6 +273,30 @@ public abstract class LibGreenTea implements GtConst {
 		}
 		return false;
 	}
+	
+	public final static boolean IsDirectory(String Path) {
+		return new File(Path).isDirectory();
+	}
+	
+	public final static boolean IsExist(String Path) {
+		return new File(Path).exists();
+	}
+	
+	public final static boolean IsFile(String Path) {
+		return new File(Path).isFile();
+	}
+	
+	public final static boolean IsReadable(String Path) {
+		return new File(Path).canRead();
+	}
+	
+	public final static boolean IsWritable(String Path) {
+		return new File(Path).canWrite();
+	}
+	
+	public final static boolean IsExecutable(String Path) {
+		return new File(Path).canExecute();
+	}
 
 	public final static GtType GetNativeType(GtParserContext Context, Object Value) {
 		GtType NativeType = null;

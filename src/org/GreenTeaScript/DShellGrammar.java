@@ -214,7 +214,7 @@ public class DShellGrammar extends GtGrammar {
 		return Node;
 	}
 	
-	private final static String FileOperators = "-f -x -d";
+	private final static String FileOperators = "-d -e -f -r -w -x";
 	private final static String StopTokens = ";,)]}&&||";
 	
 	private static String ParseFilePath(GtNameSpace NameSpace, GtTokenContext TokenContext) {
@@ -254,6 +254,28 @@ public class DShellGrammar extends GtGrammar {
 		return Path;
 	}
 	
+	private static boolean EvalFileOp(String FileOp, String Path) {
+		if(LibGreenTea.EqualsString(FileOp, "-d")) {
+			return LibGreenTea.IsDirectory(Path);
+		}
+		else if(LibGreenTea.EqualsString(FileOp, "-e")) {
+			return LibGreenTea.IsExist(Path);
+		}
+		else if(LibGreenTea.EqualsString(FileOp, "-f")) {
+			return LibGreenTea.IsFile(Path);
+		}
+		else if(LibGreenTea.EqualsString(FileOp, "-r")) {
+			return LibGreenTea.IsReadable(Path);
+		}
+		else if(LibGreenTea.EqualsString(FileOp, "-w")) {
+			return LibGreenTea.IsWritable(Path);
+		}
+		else if(LibGreenTea.EqualsString(FileOp, "-x")) {
+			return LibGreenTea.IsExecutable(Path);
+		}
+		return false;
+	}
+	
 	public static GtSyntaxTree ParseOpFile(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/GtToken Token2 = TokenContext.Next();
@@ -263,7 +285,7 @@ public class DShellGrammar extends GtGrammar {
 				if(Path.length() > 0) {
 					Token.ParsedText += Token2.ParsedText;
 					/*local*/GtSyntaxTree Tree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
-					Tree.ParsedValue = Path;
+					Tree.ParsedValue = EvalFileOp(Token.ParsedText, Path);
 //					/*local*/GtSyntaxTree SubTree = new GtSyntaxTree(Pattern, NameSpace, Token2, null);
 //					Tree.SetSyntaxTreeAt(UnaryTerm, SubTree);
 					return Tree;
@@ -274,9 +296,8 @@ public class DShellGrammar extends GtGrammar {
 	}
 
 	public static GtNode TypeOpFile(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		/*local*/String FileOperator = ParsedTree.KeyToken.ParsedText;
-		/*local*/String FilePath = (/*cast*/String)ParsedTree.ParsedValue;
-		/*local*/GtNode OpNode  = Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, FileOperator + " " + FilePath);
+		/*local*/boolean Value = (/*cast*/boolean)ParsedTree.ParsedValue;
+		/*local*/GtNode OpNode  = Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, Value);
 		return OpNode;
 	}
 

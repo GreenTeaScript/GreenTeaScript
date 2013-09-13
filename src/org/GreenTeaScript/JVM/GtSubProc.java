@@ -190,6 +190,21 @@ class SubProc {
 		return logNameHeader.toString();
 	}
 
+	private void addCommand(String arg) {
+		if(LibGreenTea.EqualsString(arg, "sudo")) {
+			int size = this.commandList.size();
+			ArrayList<String> newCommandList = new ArrayList<String>();
+			newCommandList.add(arg);
+			for(int i = 0; i < size; i++) {
+				newCommandList.add(this.commandList.get(i));
+			}
+			this.commandList = newCommandList;
+		}
+		else {
+			this.commandList.add(arg);
+		}
+	}
+
 	public void setArgument(String Arg) {
 		this.cmdNameBuilder.append(Arg + " ");
 		this.commandList.add(Arg);
