@@ -36,12 +36,12 @@ class GtType extends GreenTeaUtils {
 	/*field*/public String			ShortClassName;
 	/*field*/GtType					SuperType;
 	/*field*/public GtType			SearchSuperFuncClass;
-	/*field*/public Object			DefaultNullValue;
 	/*field*/GtType					BaseType;
 	/*field*/GtType[]				TypeParams;
-	/*field*/public Object          NativeSpec;
+	/*field*/public Object          TypeBody;
+	/*field*/public Object			DefaultNullValue;
 
-	GtType/*constructor*/(GtParserContext Context, int ClassFlag, String ClassName, Object DefaultNullValue, Object NativeSpec) {
+	GtType/*constructor*/(GtParserContext Context, int ClassFlag, String ClassName, Object DefaultNullValue, Object TypeBody) {
 		this.Context = Context;
 		this.ClassFlag = ClassFlag;
 		this.ShortClassName = ClassName;
@@ -49,7 +49,7 @@ class GtType extends GreenTeaUtils {
 		this.BaseType = this;
 		this.SearchSuperFuncClass = null;
 		this.DefaultNullValue = DefaultNullValue;
-		this.NativeSpec = NativeSpec;
+		this.TypeBody = TypeBody;
 		if(!IsFlag(ClassFlag, TypeParameter)) {
 			this.ClassId = Context.ClassCount;
 			Context.ClassCount += 1;
@@ -71,20 +71,20 @@ class GtType extends GreenTeaUtils {
 		GenericType.SearchSuperFuncClass = this.BaseType;
 		GenericType.SuperType = this.SuperType;
 		GenericType.TypeParams = LibGreenTea.CompactTypeList(BaseIndex, TypeList);
-		LibGreenTea.DebugP("new class: " + GenericType.ShortClassName + ", ClassId=" + GenericType.ClassId);
+		LibGreenTea.VerboseLog(VerboseType, "new class: " + GenericType.ShortClassName + ", ClassId=" + GenericType.ClassId);
 		return GenericType;
 	}
 
 	public final boolean IsAbstract() {
-		return this.NativeSpec == null && this.SuperType == this.Context.StructType/*default*/;
+		return (this.TypeBody == null && this.SuperType == this.Context.StructType/*default*/);
 	}
 
 	public final boolean IsNative() {
-		return IsFlag(this.ClassFlag, NativeClass);
+		return IsFlag(this.ClassFlag, NativeType);
 	}
 
 	public final boolean IsDynamic() {
-		return IsFlag(this.ClassFlag, DynamicClass);
+		return IsFlag(this.ClassFlag, DynamicType);
 	}
 
 	public final boolean IsGenericType() {
@@ -95,6 +95,15 @@ class GtType extends GreenTeaUtils {
 		return this.ShortClassName;
 	}
 
+	public final String GetNativeName() {
+		if(IsFlag(this.ClassFlag, ExportType)) {
+			return this.ShortClassName;
+		}
+		else {
+			return this.BaseType.ShortClassName + NativeNameSuffix + this.ClassId;
+		}
+	}
+	
 	public final String GetUniqueName() {
 		if(IsFlag(this.ClassFlag, TypeParameter)) {
 			return this.ShortClassName;
@@ -128,7 +137,7 @@ class GtType extends GreenTeaUtils {
 	}
 
 	public void SetClassField(GtClassField ClassField) {
-		this.NativeSpec = ClassField;
+		this.TypeBody = ClassField;
 	}
 
 	public final boolean IsFuncType() {
@@ -164,9 +173,8 @@ class GtType extends GreenTeaUtils {
 	}
 
 	public final boolean IsEnumType() {
-		return IsFlag(this.ClassFlag, EnumClass);
+		return IsFlag(this.ClassFlag, EnumType);
 	}
-
 
 	public final boolean IsTypeParam() {
 		return IsFlag(this.ClassFlag, TypeParameter);
@@ -180,7 +188,7 @@ class GtType extends GreenTeaUtils {
 	}
 
 	public boolean IsDynamicNaitiveLoading() {
-		return this.IsNative() && !IsFlag(this.ClassFlag, CommonClass);
+		return this.IsNative() && !IsFlag(this.ClassFlag, CommonType);
 	}
 }
 

@@ -1251,8 +1251,8 @@ class GtGenerator extends GreenTeaUtils {
 
 	public Object EvalNewNode(NewNode Node, boolean EnforceConst) {
 //ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
-		if(EnforceConst && Node.Type.NativeSpec instanceof Class<?>) {
-			Class<?> NativeClass = (/*cast*/Class<?>)Node.Type.NativeSpec;
+		if(EnforceConst && Node.Type.TypeBody instanceof Class<?>) {
+			Class<?> NativeClass = (/*cast*/Class<?>)Node.Type.TypeBody;
 			try {
 				Constructor NativeConstructor = NativeClass.getConstructor(GtType.class);
 				return NativeConstructor.newInstance(Node.Type);
