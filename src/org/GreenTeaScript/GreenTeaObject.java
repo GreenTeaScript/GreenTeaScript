@@ -553,7 +553,7 @@ class GtPolyFunc extends GreenTeaUtils {
 		return null;
 	}
 
-	public final GtFunc GetIncMatchedFunc(GtNameSpace NameSpace, int FuncParamSize, ArrayList<GtNode> ParamList) {
+	public final GtFunc GetIncrementalMatchedFunc(GtNameSpace NameSpace, int FuncParamSize, ArrayList<GtNode> ParamList) {
 		/*local*/GtFunc ResolvedFunc = null;
 		/*local*/int i = 0;
 		while(i < this.FuncList.size()) {
@@ -748,12 +748,12 @@ class GtPolyFunc extends GreenTeaUtils {
 		//System.err.println("*** FuncParamSize=" + FuncParamSize + "resolved_size=" + NodeList.size());
 		//System.err.println("*** FuncList=" + this);
 		
-		/*local*/GtFunc ResolvedFunc = this.GetIncMatchedFunc(Gamma.NameSpace, FuncParamSize, NodeList);
+		/*local*/GtFunc ResolvedFunc = this.GetIncrementalMatchedFunc(Gamma.NameSpace, FuncParamSize, NodeList);
 		while(ResolvedFunc == null && TreeIndex < LibGreenTea.ListSize(ParsedTree.SubTreeList)) {
 			/*local*/GtNode Node = ParsedTree.TypeCheckAt(TreeIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
 			GreenTeaUtils.AppendTypedNode(NodeList, Node);
 			TreeIndex = TreeIndex + 1;
-			ResolvedFunc = this.GetIncMatchedFunc(Gamma.NameSpace, FuncParamSize, NodeList);
+			ResolvedFunc = this.GetIncrementalMatchedFunc(Gamma.NameSpace, FuncParamSize, NodeList);
 		}
 		if(ResolvedFunc != null) {
 			while(TreeIndex < LibGreenTea.ListSize(ParsedTree.SubTreeList)) {

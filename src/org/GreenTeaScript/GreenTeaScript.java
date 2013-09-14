@@ -77,8 +77,8 @@ interface GreenTeaConsts {
 	public final static int     OperatorFunc        = 1 << 12;  //@Operator
 	public final static int     ConverterFunc       = 1 << 13;
 	public final static int     CoercionFunc        = 1 << 14;  //@Coercion
-	public final static int		LazyFunc		    = 1 << 15;
-	public final static int     GenericFunc         = 1 << 16;
+	public final static int     GenericFunc         = 1 << 15;
+	public final static int		LazyFunc		    = 1 << 16;
 
 	// VarFlag
 	public final static int  ReadOnlyVar = 1;              // @ReadOnly x = 1; disallow x = 2
@@ -2061,10 +2061,10 @@ final class GtNameSpace extends GreenTeaUtils {
 		this.Context.RootNameSpace.SetSymbol(Key, Func, SourceToken);
 	}
 
-	public final Object Eval(String ScriptSource, long FileLine) {
+	final Object EvalWithErrorInfo(String ScriptText, long FileLine) {
 		/*local*/Object ResultValue = null;
-		LibGreenTea.VerboseLog(VerboseEval, "eval: " + ScriptSource);
-		/*local*/GtTokenContext TokenContext = new GtTokenContext(this, ScriptSource, FileLine);
+		LibGreenTea.VerboseLog(VerboseEval, "eval: " + ScriptText);
+		/*local*/GtTokenContext TokenContext = new GtTokenContext(this, ScriptText, FileLine);
 		this.Context.Generator.StartCompilationUnit();
 		TokenContext.SkipEmptyStatement();
 		while(TokenContext.HasNext()) {
@@ -2084,9 +2084,6 @@ final class GtNameSpace extends GreenTeaUtils {
 				/*local*/GtTypeEnv Gamma = new GtTypeEnv(this);
 				/*local*/GtNode Node = TopLevelTree.TypeCheck(Gamma, Gamma.VoidType, DefaultTypeCheckPolicy);
 				ResultValue = Node.ToConstValue(true/*EnforceConst*/);
-//				if(ResultValue == null) {
-//					System.err.println(Node.getClass());
-//				}
 			}
 			TokenContext.Vacume();
 		}
@@ -2094,8 +2091,16 @@ final class GtNameSpace extends GreenTeaUtils {
 		return ResultValue;
 	}
 
+	public final Object Eval(String ScriptText, long FileLine) {
+		/*local*/Object ResultValue = this.EvalWithErrorInfo(ScriptText, FileLine);
+		if(ResultValue instanceof GtToken && ((/*cast*/GtToken)ResultValue).IsError()) {
+			return null;
+		}
+		return ResultValue;
+	}
+
 	public final boolean Load(String ScriptText, long FileLine) {
-		/*local*/Object Token = this.Eval(ScriptText, FileLine);
+		/*local*/Object Token = this.EvalWithErrorInfo(ScriptText, FileLine);
 		if(Token instanceof GtToken && ((/*cast*/GtToken)Token).IsError()) {
 			return false;
 		}
@@ -4616,7 +4621,11 @@ public class GreenTeaScript extends GreenTeaUtils {
 				LibGreenTea.Exit(1, "file not found: " + Args[Index]);
 			}
 			/*local*/long FileLine = Context.GetFileLine(Args[Index], 1);
-			Context.TopLevelNameSpace.Eval(ScriptText, FileLine);
+			/*local*/boolean Success = Context.TopLevelNameSpace.Load(ScriptText, FileLine);
+			Context.ShowReportedErrors();
+			if(!Success) {
+				LibGreenTea.Exit(1, "abort loading: " + Args[Index]);
+			}
 			Index += 1;
 		}
 		if(ShellMode) {
