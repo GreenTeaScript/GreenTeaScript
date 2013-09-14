@@ -583,7 +583,7 @@ class GtPolyFunc extends GreenTeaUtils {
 
 	public GtFunc CheckParamWithCoercion(GtNameSpace GenericNameSpace, GtFunc Func, ArrayList<GtNode> ParamList) {
 		/*local*/int p = 0;
-		/*local*/GtNode Coercions[] = null;
+		/*local*/GtNode[] ConvertedNodes = null;
 		while(p < ParamList.size()) {
 			/*local*/GtType ParamType = Func.Types[p + 1];
 			/*local*/GtNode Node = ParamList.get(p);
@@ -591,10 +591,10 @@ class GtPolyFunc extends GreenTeaUtils {
 			if(!ParamType.Accept(RealType)) {
 				/*local*/GtFunc TypeCoercion = GenericNameSpace.GetConverterFunc(RealType, ParamType, true);
 				if(TypeCoercion != null && TypeCoercion.Is(CoercionFunc)) {
-					if(Coercions == null) {
-						Coercions = new GtNode[ParamList.size()];
+					if(ConvertedNodes == null) {
+						ConvertedNodes = new GtNode[ParamList.size()];
 					}
-					Coercions[p] = GenericNameSpace.Context.Generator.CreateCoercionNode(ParamType, TypeCoercion, Node);
+					ConvertedNodes[p] = GenericNameSpace.Context.Generator.CreateCoercionNode(ParamType, TypeCoercion, Node);
 				}
 				else {
 					return null;
@@ -602,19 +602,21 @@ class GtPolyFunc extends GreenTeaUtils {
 			}
 			p = p + 1;
 		}
-		p = 1;
-		while(p < Coercions.length) {
-			if(Coercions[p] != null) {
-				ParamList.set(p, Coercions[p]);
+		if(ConvertedNodes != null) {
+			p = 1;
+			while(p < ConvertedNodes.length) {
+				if(ConvertedNodes[p] != null) {
+					ParamList.set(p, ConvertedNodes[p]);
+				}
+				p = p + 1;
 			}
-			p = p + 1;
 		}
 		return Func;
 	}
 
 	public GtFunc CheckParamAsVarArg(GtNameSpace GenericNameSpace, GtFunc Func, GtType VargType, ArrayList<GtNode> ParamList) {
 		/*local*/int p = 0;
-		/*local*/GtNode Coercions[] = null;
+		/*local*/GtNode ConvertedNodes[] = null;
 		while(p < ParamList.size()) {
 			/*local*/GtType ParamType = (p + 1 < Func.Types.length - 1) ? Func.Types[p + 1] : VargType;
 			/*local*/GtNode Node = ParamList.get(p);
@@ -625,27 +627,26 @@ class GtPolyFunc extends GreenTeaUtils {
 			if(!ParamType.Accept(RealType)) {
 				/*local*/GtFunc TypeCoercion = GenericNameSpace.GetConverterFunc(RealType, ParamType, true);
 				if(TypeCoercion != null && TypeCoercion.Is(CoercionFunc)) {
-					if(Coercions == null) {
-						Coercions = new GtNode[ParamList.size()];
+					if(ConvertedNodes == null) {
+						ConvertedNodes = new GtNode[ParamList.size()];
 					}
-					Coercions[p] = GenericNameSpace.Context.Generator.CreateCoercionNode(ParamType, TypeCoercion, Node);
+					ConvertedNodes[p] = GenericNameSpace.Context.Generator.CreateCoercionNode(ParamType, TypeCoercion, Node);
 				}
 				else {
-					Coercions = null;
 					return null;
 				}
 			}
 			p = p + 1;
 		}
-		if(Coercions != null) {
+		if(ConvertedNodes != null) {
 			p = 1;
-			while(p < Coercions.length) {
-				if(Coercions[p] != null) {
-					ParamList.set(p, Coercions[p]);
+			while(p < ConvertedNodes.length) {
+				if(ConvertedNodes[p] != null) {
+					ParamList.set(p, ConvertedNodes[p]);
 				}
 				p = p + 1;
 			}
-			Coercions = null;
+			ConvertedNodes = null;
 		}
 		if(!Func.Is(NativeVariadicFunc)) {
 			GtType ArrayType = Func.Types[Func.Types.length - 1];
