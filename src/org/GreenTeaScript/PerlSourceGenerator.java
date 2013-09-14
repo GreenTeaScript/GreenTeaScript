@@ -56,7 +56,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	@Override protected final String GetNewOperator(GtType Type) {
-		return Type.ShortClassName + "->new";
+		return Type.ShortName + "->new";
 	}
 
 	@Override public void VisitWhileNode(WhileNode Node) {
@@ -168,7 +168,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
 		this.FlushErrorReport();
 		/*local*/String Program = "";
-		/*local*/String RetTy = Func.GetReturnType().ShortClassName;
+		/*local*/String RetTy = Func.GetReturnType().ShortName;
 		/*local*/String FuncName = Func.GetNativeFuncName();
 		/*local*/String Signature = "# ";
 		/*local*/String Arguments = "";
@@ -176,7 +176,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		this.Indent();
 		/*local*/int i = 0;
 		while(i < ParamNameList.size()) {
-			/*local*/String ParamTy = Func.GetFuncParamType(i).ShortClassName;
+			/*local*/String ParamTy = Func.GetFuncParamType(i).ShortName;
 			Signature += " ," + ParamTy + " " + ParamNameList.get(i);
 			Arguments += this.GetIndentString() + "my $" + ParamNameList.get(i) + " = $_[" + i + "];" + this.LineFeed;
 			i = i + 1;
@@ -193,10 +193,10 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void OpenClassField(GtType Type, GtClassField ClassField) {
-		/*local*/String TypeName = Type.ShortClassName;
+		/*local*/String TypeName = Type.ShortName;
 		/*local*/String Program = this.GetIndentString() + "package " + TypeName + ";" + this.LineFeed;
 		if(Type.SuperType != null) {
-			Program += this.GetIndentString() + "# our @ISA = ('" + Type.SuperType.ShortClassName + "');" + this.LineFeed;
+			Program += this.GetIndentString() + "# our @ISA = ('" + Type.SuperType.ShortName + "');" + this.LineFeed;
 		}
 		Program += this.GetIndentString() + "sub new {" + this.LineFeed;
 		this.Indent();

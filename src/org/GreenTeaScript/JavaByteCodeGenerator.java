@@ -270,23 +270,23 @@ public class JavaByteCodeGenerator extends GtGenerator {
 
 	@Override public void InitContext(GtParserContext Context) {
 		super.InitContext(Context);
-		this.typeDescriptorMap.put(Context.VoidType.ShortClassName, Type.VOID_TYPE);
-		this.typeDescriptorMap.put(Context.BooleanType.ShortClassName, Type.BOOLEAN_TYPE);
-		this.typeDescriptorMap.put(Context.IntType.ShortClassName, Type.LONG_TYPE);
-		this.typeDescriptorMap.put(Context.FloatType.ShortClassName, Type.DOUBLE_TYPE);
-		this.typeDescriptorMap.put(Context.AnyType.ShortClassName, Type.getType(Object.class));
-		this.typeDescriptorMap.put(Context.StringType.ShortClassName, Type.getType(String.class));
+		this.typeDescriptorMap.put(Context.VoidType.ShortName, Type.VOID_TYPE);
+		this.typeDescriptorMap.put(Context.BooleanType.ShortName, Type.BOOLEAN_TYPE);
+		this.typeDescriptorMap.put(Context.IntType.ShortName, Type.LONG_TYPE);
+		this.typeDescriptorMap.put(Context.FloatType.ShortName, Type.DOUBLE_TYPE);
+		this.typeDescriptorMap.put(Context.AnyType.ShortName, Type.getType(Object.class));
+		this.typeDescriptorMap.put(Context.StringType.ShortName, Type.getType(String.class));
 		this.methodMap = GreenTeaRuntime.getAllStaticMethods();
 	}
 
 	//-----------------------------------------------------
 
 	Type ToAsmType(GtType GivenType) {
-		Type type = this.typeDescriptorMap.get(GivenType.ShortClassName);
+		Type type = this.typeDescriptorMap.get(GivenType.ShortName);
 		if(type != null) {
 			return type;
 		}
-		return Type.getType("L" + GivenType.ShortClassName + ";");
+		return Type.getType("L" + GivenType.ShortName + ";");
 	}
 
 	Type ToAsmMethodType(GtFunc method) {
@@ -438,8 +438,8 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	}
 
 	@Override public void OpenClassField(GtType Type, GtClassField ClassField) {
-		String className = Type.ShortClassName;
-		MethodHolderClass superClassNode = this.classMap.get(Type.SuperType.ShortClassName);
+		String className = Type.ShortName;
+		MethodHolderClass superClassNode = this.classMap.get(Type.SuperType.ShortName);
 		String superClassName = superClassNode != null ? superClassNode.name : "java/lang/Object";
 		MethodHolderClass classNode = new MethodHolderClass(className, superClassName);
 		this.classMap.put(classNode.name, classNode);
@@ -478,7 +478,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	}
 
 	@Override public void VisitConstructorNode(ConstructorNode Node) {
-		Type type = Type.getType(Node.Func.Types[0].ShortClassName);
+		Type type = Type.getType(Node.Func.Types[0].ShortName);
 		String owner = type.getInternalName();
 		this.Builder.AsmMethodVisitor.visitTypeInsn(NEW, owner);
 		this.Builder.AsmMethodVisitor.visitInsn(DUP);

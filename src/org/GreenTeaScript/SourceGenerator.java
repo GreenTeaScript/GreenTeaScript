@@ -25,7 +25,6 @@
 //ifdef JAVA
 package org.GreenTeaScript;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
@@ -1019,7 +1018,11 @@ class GtGenerator extends GreenTeaUtils {
 		return LibGreenTea.GetNativeType(this.Context, Value);
 	}
 
-	public void OpenClassField(GtType Type, GtClassField ClassField) {
+	public void OpenClassField(GtType DefinedType, GtClassField ClassField) {
+		/*extension*/
+	}
+
+	public void CloseClassField(GtType DefinedType, ArrayList<GtFunc> MemberList) {
 		/*extension*/
 	}
 
@@ -1366,9 +1369,6 @@ class GtGenerator extends GreenTeaUtils {
 		/*extension*/
 	}
 
-	public void CloseClassField(GtType definedType, ArrayList<GtFunc> MemberList) {
-		// TODO Auto-generated method stub
-	}
 
 }
 
@@ -1535,7 +1535,7 @@ class SourceGenerator extends GtGenerator {
 	}
 
 	protected String GetNewOperator(GtType Type) {
-		return "new " + Type.ShortClassName + "()";
+		return "new " + Type.ShortName + "()";
 	}
 
 	protected final void PushSourceCode(String Code) {

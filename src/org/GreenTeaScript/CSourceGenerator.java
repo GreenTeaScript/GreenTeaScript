@@ -47,9 +47,9 @@ public class CSourceGenerator extends SourceGenerator {
 			if(Type == Type.PackageNameSpace.Context.BooleanType) {
 				return "int";
 			}
-			return Type.ShortClassName;
+			return Type.ShortName;
 		}
-		/*local*/String TypeName = "struct " + Type.ShortClassName;
+		/*local*/String TypeName = "struct " + Type.ShortName;
 		if(IsPointer) {
 			TypeName += "*";
 		}
@@ -65,7 +65,7 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	public String GreenTeaTypeName(GtType Type) {
-		return Type.ShortClassName;
+		return Type.ShortName;
 	}
 
 	@Override protected String GetNewOperator(GtType Type) {
@@ -208,7 +208,7 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void OpenClassField(GtType Type, GtClassField ClassField) {
-		/*local*/String TypeName = Type.ShortClassName;
+		/*local*/String TypeName = Type.ShortName;
 		/*local*/String LocalType = this.LocalTypeName(Type);
 		/*local*/String Program = this.GetIndentString() + "struct " + TypeName + " {" + this.LineFeed;
 		this.Indent();

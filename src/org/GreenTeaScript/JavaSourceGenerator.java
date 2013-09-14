@@ -70,7 +70,7 @@ public class JavaSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitVarNode(VarNode Node) {
-		/*local*/String Type = Node.DeclType.ShortClassName;
+		/*local*/String Type = Node.DeclType.ShortName;
 		/*local*/String VarName = Node.NativeName;
 		/*local*/String Code = Type + " " + VarName;
 		if(Node.InitNode != null) {
@@ -119,12 +119,12 @@ public class JavaSourceGenerator extends SourceGenerator {
 		this.FlushErrorReport();
 		//FIXME
 		/*local*/String Program = "";
-		/*local*/String RetTy = Func.GetReturnType().ShortClassName;
-		/*local*/String ThisTy = Func.GetRecvType().ShortClassName;
+		/*local*/String RetTy = Func.GetReturnType().ShortName;
+		/*local*/String ThisTy = Func.GetRecvType().ShortName;
 		Program += RetTy + " " + ThisTy + "_" + Func.GetNativeFuncName() + "(";
 		Program += ThisTy + " " + "this";
 		for(/*local*/int i = 0; i < ParamNameList.size(); i++) {
-			/*local*/String ParamTy = Func.GetFuncParamType(i).ShortClassName;
+			/*local*/String ParamTy = Func.GetFuncParamType(i).ShortName;
 			Program += " ," + ParamTy + " " + ParamNameList.get(i);
 		}
 

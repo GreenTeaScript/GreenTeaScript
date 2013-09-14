@@ -462,7 +462,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 						TypeList.add(LibGreenTea.GetNativeType(Context, ParamTypes[j]));
 					}
 				}
-				GtFunc Func = new GtFunc(ConstructorFunc, ClassType.ShortClassName, 0, TypeList);
+				GtFunc Func = new GtFunc(ConstructorFunc, ClassType.ShortName, 0, TypeList);
 				Func.SetNativeMethod(0, Constructors[i]);
 				Context.RootNameSpace.AppendConstructor(ClassType, Func, null);
 				FuncList.add(Func);

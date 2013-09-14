@@ -49,7 +49,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 	}
 
 	@Override protected String GetNewOperator(GtType Type) {
-		/*local*/String TypeName = Type.ShortClassName;
+		/*local*/String TypeName = Type.ShortName;
 		return TypeName + "()";
 	}
 
@@ -312,7 +312,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 
 	@Override public void OpenClassField(GtType Type, GtClassField ClassField) {
 		this.FlushErrorReport();
-		/*local*/String Program = this.GetIndentString() + "class " + Type.ShortClassName;
+		/*local*/String Program = this.GetIndentString() + "class " + Type.ShortName;
 //		if(Type.SuperType != null) {
 //			Program += "(" + Type.SuperType.ShortClassName + ")";
 //		}
