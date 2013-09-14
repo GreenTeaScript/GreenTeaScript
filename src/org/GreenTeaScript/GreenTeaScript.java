@@ -4096,13 +4096,14 @@ final class GreenTeaGrammar extends GtGrammar {
 		if(DefinedType != null && DefinedType.IsAbstract()) {
 			DefinedType.ClassFlag = ClassFlag;
 			DefinedType.SuperType = SuperType;
+			NameToken = null; // preventing duplicated symbol message at (A)
 		}
 		else {
 			DefinedType = SuperType.CreateSubType(ClassFlag, ClassName, null, null);
 			ClassNameSpace.AppendTypeName(DefinedType, NameToken);  // temporary
 		}
-		System.err.println("class = " + ClassName + ", isAbstract = " + DefinedType.IsAbstract());
 		ClassNameSpace.SetSymbol("This", DefinedType, NameToken);
+//		System.err.println("class = " + ClassName + ", isAbstract = " + DefinedType.IsAbstract());
 		ClassDeclTree.SetMatchedPatternAt(ClassDeclBlock, ClassNameSpace, TokenContext, "$Block$", Optional);
 		if(ClassDeclTree.HasNodeAt(ClassDeclBlock)) {
 			/*local*/GtClassField ClassField = new GtClassField(DefinedType, NameSpace);
@@ -4117,7 +4118,7 @@ final class GreenTeaGrammar extends GtGrammar {
 			ClassDeclTree.ParsedValue = ClassField;
 		}
 		if(ClassDeclTree.IsValidSyntax()) {
-			NameSpace.AppendTypeName(DefinedType, NameToken);
+			NameSpace.AppendTypeName(DefinedType, NameToken);   /* (A) */
 		}
 		return ClassDeclTree;
 	}
