@@ -1,0 +1,17 @@
+// written by kimio
+
+class Point {
+	int x = 1;
+	int y;
+}
+
+@Export
+int main() {
+	Point p = Point();
+	assert(p.x == 1);
+	assert(p.y == 0);
+	p.y = 100;
+	assert(p.y == 100);
+	return 0;
+}
+
