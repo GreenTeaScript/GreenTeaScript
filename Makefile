@@ -78,7 +78,7 @@ installj: distj
 	install -d $(INSTALL_PREFIX)/../include
 	cp -f include/c/*.h $(INSTALL_PREFIX)/../include/
 
-test: $(notdir $(TEST_FILES))
+test: buildj $(notdir $(TEST_FILES))
 	cat $(TEST_OUTDIR)/*.green.csv >> $(TEST_OUTDIR)/TestResult.csv
 
 test_prepare:
