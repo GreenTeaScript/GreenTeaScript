@@ -3186,7 +3186,14 @@ final class GreenTeaGrammar extends GtGrammar {
 			}
 			if(LeftNode instanceof LocalNode || LeftNode instanceof GetterNode || LeftNode instanceof IndexerNode) {
 				/*local*/GtNode ConstNode = Gamma.Generator.CreateConstNode(LeftNode.Type, ParsedTree, 1);
-				return Gamma.Generator.CreateSelfAssignNode(LeftNode.Type, ParsedTree, null, LeftNode, ConstNode);
+				// ++ => +
+				/*local*/String OperatorSymbol = LibGreenTea.SubString(ParsedTree.KeyToken.ParsedText, 0, 1);
+				/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(LeftNode.Type, SafeFuncName(OperatorSymbol), true);
+				/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
+				ParamList.add(LeftNode);
+				ParamList.add(ConstNode);
+				/*local*/GtFunc ResolvedFunc = PolyFunc.ResolveFunc(Gamma, ParsedTree, 1, ParamList);
+				return Gamma.Generator.CreateSelfAssignNode(LeftNode.Type, ParsedTree, ResolvedFunc, LeftNode, ConstNode);
 			}
 			return Gamma.CreateSyntaxErrorNode(ParsedTree, "neither incremental nor decrimental");
 		}
