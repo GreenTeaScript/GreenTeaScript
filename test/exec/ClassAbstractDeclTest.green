@@ -1,0 +1,17 @@
+// written by kimio
+
+class P;
+class Q;
+class Q;
+class S;
+class S {   // not empty
+};
+
+@Export
+int main()
+{
+	assert(defined(P));
+	assert(defined(Q));
+	assert(defined(S));
+	return 0;
+}
