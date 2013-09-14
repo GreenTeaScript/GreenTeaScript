@@ -543,7 +543,7 @@ class GtPolyFunc extends GreenTeaUtils {
 
 	public GtFunc ResolveConstructor(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, int TreeIndex, ArrayList<GtNode> NodeList) {
 		/*local*/int FuncParamSize = LibGreenTea.ListSize(ParsedTree.SubTreeList) - TreeIndex + NodeList.size();
-		System.err.println("*** FuncParamSize=" + FuncParamSize + "resolved_size=" + NodeList.size());
+//		System.err.println("*** FuncParamSize=" + FuncParamSize + " resolved_size=" + NodeList.size());
 //		System.err.println("*** FuncList=" + this);
 		GtFunc ResolvedFunc = this.ResolveFunc(Gamma, ParsedTree, TreeIndex, NodeList);
 		if(ResolvedFunc == null  && FuncParamSize == 1) {

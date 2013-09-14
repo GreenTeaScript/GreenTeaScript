@@ -24,6 +24,8 @@
 
 //ifdef JAVA
 package org.GreenTeaScript;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
@@ -524,7 +526,6 @@ class ApplyNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitApplyNode(this);
 	}
-
 	@Override public Object ToConstValue(boolean EnforceConst)  {
 		return this.Type.Context.Generator.EvalApplyNode(this, EnforceConst);
 	}
@@ -538,6 +539,9 @@ class NewNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitNewNode(this);
 	}
+	@Override public Object ToConstValue(boolean EnforceConst)  {
+		return this.Type.Context.Generator.EvalNewNode(this, EnforceConst);
+	}	
 }
 
 //E.g., ConstructorNode is for object creation in Native Langauage defined
@@ -1240,6 +1244,21 @@ class GtGenerator extends GreenTeaUtils {
 				}
 			}
 			return LibGreenTea.ApplyFunc(Node.Func, RecvObject, Arguments);
+		}
+//endif VAJA
+		return null;  // if unsupported
+	}
+
+	public Object EvalNewNode(NewNode Node, boolean EnforceConst) {
+//ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
+		if(EnforceConst && Node.Type.NativeSpec instanceof Class<?>) {
+			Class<?> NativeClass = (/*cast*/Class<?>)Node.Type.NativeSpec;
+			try {
+				Constructor NativeConstructor = NativeClass.getConstructor(GtType.class);
+				return NativeConstructor.newInstance(Node.Type);
+			} catch (Exception e) {
+				LibGreenTea.VerboseException(e);
+			}
 		}
 //endif VAJA
 		return null;  // if unsupported
