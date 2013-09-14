@@ -30,7 +30,7 @@ import java.util.HashMap;
 //endif VAJA
 
 //ifdef JAVA
-interface GtConst {
+interface GreenTeaConsts {
 //endif VAJA
 	// Version
 	public final static String  ProgName  = "GreenTeaScript";
@@ -39,7 +39,7 @@ interface GtConst {
 	public final static int     MinerVersion = 1;
 	public final static int     PatchLevel   = 0;
 	public final static String  Version = "0.1";
-	public final static String  Copyright = "Copyright (c) 2013, JST/CREST DEOS project authors";
+	public final static String  Copyright = "Copyright (c) 2013, JST/CREST DEOS and Konoha project authors";
 	public final static String  License = "BSD-Style Open Source";
 
 	// NameSpaceFlag
@@ -84,10 +84,10 @@ interface GtConst {
 	//public final static int  MutableFieldVar  = (1 << 1);  // @Mutable x; x.y = 1 is allowed
 
 	public final static int		MismatchedPosition		= -1;
-	public final static int     Required         = (1 << 0);
-	public final static int     Optional         = (1 << 1);
-	public final static int     AllowLineFeed    = (1 << 2);
-	public final static int     AllowAnnotation  = (1 << 3);
+	public final static int     Required          = (1 << 0);
+	public final static int     Optional          = (1 << 1);
+	public final static int     AllowLineFeed     = (1 << 2);
+	public final static int     AllowAnnotation   = (1 << 3);
 	public final static int     OpenSkipIndent    = (1 << 4);
 	public final static int     CloseSkipIndent   = (1 << 5);
 	
@@ -182,7 +182,7 @@ interface GtConst {
 	public final static int	WhiteSpaceTokenFlag	= (1 << 3);
 	public final static int DelimTokenFlag	    = (1 << 4);
 	public final static int QuotedTokenFlag	    = (1 << 5);
-	public final static int NameSymbolTokenFlag	    = (1 << 6);
+	public final static int NameSymbolTokenFlag	  = (1 << 6);
 
 	// ParseFlag
 	public final static int	BackTrackParseFlag	= 1;
@@ -305,7 +305,7 @@ interface GtConst {
 //ifdef JAVA
 }
 
-class GreenTeaUtils implements GtConst {
+class GreenTeaUtils implements GreenTeaConsts {
 //endif VAJA
 
 	public final static boolean IsFlag(int flag, int flag2) {
@@ -631,8 +631,8 @@ final class GtToken extends GreenTeaUtils {
 		return this.ParsedText;
 	}
 
-	public final GtToken AddTypeInfo(GtType ClassType) {
-		this.ParsedText += " of " + ClassType;
+	public final GtToken AddTypeInfoToErrorMessage(GtType ClassType) {
+		this.ParsedText += " of " + ClassType.ShortClassName;
 		return this;
 	}
 
@@ -2956,6 +2956,7 @@ final class GreenTeaGrammar extends GtGrammar {
 			return ObjectNode;
 		}
 		// To start, check class const such as Math.Pi if base is a type value
+		/*local*/String TypeName = ObjectNode.Type.ShortClassName;
 		if(ObjectNode instanceof ConstNode && ObjectNode.Type.IsTypeType()) {
 			/*local*/GtType ObjectType = (/*cast*/GtType)((/*cast*/ConstNode)ObjectNode).ConstValue;
 			/*local*/Object ConstValue = ParsedTree.NameSpace.GetClassSymbol(ObjectType, ClassStaticName(Name), true);
@@ -2970,13 +2971,14 @@ final class GreenTeaGrammar extends GtGrammar {
 			if(ConstValue != null) {
 				return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(ConstValue), ParsedTree, ConstValue);
 			}
+			TypeName = ObjectType.ShortClassName;
 		}
 		/*local*/GtFunc GetterFunc = ParsedTree.NameSpace.GetGetterFunc(ObjectNode.Type, Name, true);
 		/*local*/GtType ReturnType = (GetterFunc != null) ? GetterFunc.GetReturnType() : Gamma.AnyType;
 		/*local*/GtNode Node = Gamma.Generator.CreateGetterNode(ReturnType, ParsedTree, GetterFunc, ObjectNode);
 		if(GetterFunc == null) {
 			if(!ObjectNode.Type.IsDynamic() && ContextType != Gamma.FuncType) {
-				return Gamma.ReportTypeResult(ParsedTree, Node, TypeErrorLevel, "undefined name " + Name + " of " + ObjectNode.Type);
+				return Gamma.ReportTypeResult(ParsedTree, Node, TypeErrorLevel, "undefined name: " + Name + " of " + TypeName);
 			}
 		}
 		return Node;
@@ -3710,7 +3712,7 @@ final class GreenTeaGrammar extends GtGrammar {
 			/*local*/String ConstName = SourceToken.ParsedText;
 			if(ConstClass != null) {
 				ConstName = ClassSymbol(ConstClass, ClassStaticName(ConstName));
-				SourceToken.AddTypeInfo(ConstClass);
+				SourceToken.AddTypeInfoToErrorMessage(ConstClass);
 			}
 			/*local*/Object ConstValue = null;
 			if(SymbolDeclTree.GetSyntaxTreeAt(SymbolDeclValueIndex).Pattern.EqualsName("$Const$")) {
@@ -3860,7 +3862,7 @@ final class GreenTeaGrammar extends GtGrammar {
 					StoreNameSpace.AppendFunc(FuncBlock.DefinedFunc, SourceToken);
 					GtType RecvType = FuncBlock.DefinedFunc.GetRecvType();
 					if(!RecvType.IsVoidType()) {
-						StoreNameSpace.AppendMethod(FuncBlock.DefinedFunc, SourceToken.AddTypeInfo(RecvType));
+						StoreNameSpace.AppendMethod(FuncBlock.DefinedFunc, SourceToken.AddTypeInfoToErrorMessage(RecvType));
 					}
 				}
 			}
@@ -3899,7 +3901,7 @@ final class GreenTeaGrammar extends GtGrammar {
 			if(FuncDeclTree.IsValidSyntax()) {
 				FuncBlock.DefinedFunc = NameSpace.Context.Generator.CreateFunc(FuncFlag, ThisType.ShortClassName, 0, FuncBlock.TypeList);
 				GreenTeaGrammar.ParseFuncBody(NameSpace, TokenContext, FuncDeclTree, FuncBlock);
-				StoreNameSpace.AppendConstructor(ThisType, FuncBlock.DefinedFunc, SourceToken.AddTypeInfo(ThisType));
+				StoreNameSpace.AppendConstructor(ThisType, FuncBlock.DefinedFunc, SourceToken.AddTypeInfoToErrorMessage(ThisType));
 				FuncDeclTree.ParsedValue = FuncBlock.DefinedFunc;
 			}
 			TokenContext.SetRememberFlag(ParseFlag);

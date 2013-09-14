@@ -42,7 +42,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public abstract class LibGreenTea implements GtConst {
+public abstract class LibGreenTea implements GreenTeaConsts {
 
 	public final static void print(String msg) {
 		System.out.print(msg);
