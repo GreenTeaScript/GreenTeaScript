@@ -57,6 +57,27 @@ String toLower(String x) as "$1.lower()";
 String toUpper(String x) as "$1.upper()";
 String replace(String x, String old, String new) as "$1.replace($2, $3)";
 
+// double
+@Const @Operator double +(double x, double y)   as "$1 + $2";
+@Const @Operator double -(double x, double y)   as "$1 - $2";
+@Const @Operator double *(double x, double y)   as "$1 * $2";
+@Const @Operator double /(double x, double y)   as "$1 / $2";
+@Const @Operator boolean <(double x,  double y) as "$1 < $2";
+@Const @Operator boolean <=(double x, double y) as "$1 <= $2"
+@Const @Operator boolean >(double x,  double y) as "$1 > $2";
+@Const @Operator boolean >=(double x, double y) as "$1 >= $2"
+@Const @Operator boolean ==(double x, double y) as "$1 == $2"
+@Const @Operator boolean !=(double x, double y) as "$1 != $2"
+
+@Const @Operator double +(int x, double y) as "$1 + $2";
+@Const @Operator double -(int x, double y) as "$1 - $2";
+@Const @Operator double *(int x, double y) as "$1 * $2";
+@Const @Operator double /(int x, double y) as "$1 / $2";
+
+@Coercion @Const any converter(double x) as "$1";
+@Coercion @Const double converter(any x) as "float($1)";
+@Const double converter(String x)        as "float($1)";
+
 // function
 void print(String x) as "print $1,";
 void println(String x) as "print $1";

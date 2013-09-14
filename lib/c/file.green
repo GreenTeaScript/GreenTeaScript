@@ -1,0 +1,21 @@
+class FilePtr {};
+
+FilePtr fopen(String path, String option) as "fopen($1, $2)";
+
+class File {
+    FilePtr file;
+    constructor(String path) {
+        this.file = fopen(path, "r");
+    }
+    boolean Exist();
+}
+
+boolean File.Exist() {
+    return this.file != null;
+}
+
+@Export int main() {
+    File file = new File("./file.green");
+    file.read();
+    return 0;
+}

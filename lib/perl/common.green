@@ -48,6 +48,28 @@ boolean <=(String x, String y)    as "$1 le $2";
 boolean >(String x,  String y)    as "$1 gt$2";
 boolean >=(String x, String y)    as "$1 ge $2";
 
+// double
+@Const @Operator double +(double x, double y)   as "$1 + $2";
+@Const @Operator double -(double x, double y)   as "$1 - $2";
+@Const @Operator double *(double x, double y)   as "$1 * $2";
+@Const @Operator double /(double x, double y)   as "$1 / $2";
+@Const @Operator boolean <(double x,  double y) as "$1 < $2";
+@Const @Operator boolean <=(double x, double y) as "$1 <= $2"
+@Const @Operator boolean >(double x,  double y) as "$1 > $2";
+@Const @Operator boolean >=(double x, double y) as "$1 >= $2"
+@Const @Operator boolean ==(double x, double y) as "$1 == $2"
+@Const @Operator boolean !=(double x, double y) as "$1 != $2"
+
+@Const @Operator double +(int x, double y) as "$1 + $2";
+@Const @Operator double -(int x, double y) as "$1 - $2";
+@Const @Operator double *(int x, double y) as "$1 * $2";
+@Const @Operator double /(int x, double y) as "$1 / $2";
+
+@Coercion @Const any converter(double x) as "$1";
+@Coercion @Const double converter(any x) as "$1 + 0.0";
+@Const double converter(String x)        as "$1 + 0.0";
+
+
 // function
 void print(String x) as "print $1,";
 void println(String x) as "print $1";
