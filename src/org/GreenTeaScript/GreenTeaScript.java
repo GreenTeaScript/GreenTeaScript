@@ -3406,7 +3406,7 @@ final class GreenTeaGrammar extends GtGrammar {
 	}
 
 	public static GtSyntaxTree ParseContinue(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		return TokenContext.CreateMatchedSyntaxTree(NameSpace, Pattern, "break");
+		return TokenContext.CreateMatchedSyntaxTree(NameSpace, Pattern, "continue");
 	}
 
 	public static GtNode TypeContinue(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
