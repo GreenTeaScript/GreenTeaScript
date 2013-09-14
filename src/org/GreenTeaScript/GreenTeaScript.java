@@ -1586,15 +1586,6 @@ final class GtTypeEnv extends GreenTeaUtils {
 		this.StackTopIndex = PushBackIndex;
 	}
 
-	public final GtNode CreateCoercionNode(GtType Type, GtFunc Func, GtNode Node) {
-		/*local*/GtNode ApplyNode = this.Generator.CreateApplyNode(Type, null, Func);
-		/*local*/GtNode TypeNode = this.Generator.CreateConstNode(Type.Context.TypeType, null, Type);
-		ApplyNode.Append(TypeNode);
-		ApplyNode.Append(TypeNode);
-		ApplyNode.Append(Node);
-		return ApplyNode;
-	}
-
 	public final GtNode ReportTypeResult(GtSyntaxTree ParsedTree, GtNode Node, int Level, String Message) {
 		if(Level == ErrorLevel || (this.IsStrictMode() && Level == TypeErrorLevel)) {
 			LibGreenTea.Assert(Node.Token == ParsedTree.KeyToken);
@@ -1660,7 +1651,7 @@ final class GtTypeEnv extends GreenTeaUtils {
 		}
 		/*local*/GtFunc Func = ParsedTree.NameSpace.GetConverterFunc(Node.Type, Type, true);
 		if(Func != null && (Func.Is(CoercionFunc) || IsFlag(TypeCheckPolicy, CastPolicy))) {
-			return this.CreateCoercionNode(Type, Func, Node);
+			return this.Generator.CreateCoercionNode(Type, Func, Node);
 		}
 		return this.ReportTypeResult(ParsedTree, Node, TypeErrorLevel, "type error: requested = " + Type + ", given = " + Node.Type);
 	}
@@ -1692,6 +1683,10 @@ final class GtNameSpace extends GreenTeaUtils {
 			return this.ParentNameSpace;
 		}
 		return this;
+	}
+
+	public GtNameSpace CreateSubNameSpace() {
+		return new GtNameSpace(this.Context, this);
 	}
 
 	public final GtTokenFunc GetTokenFunc(int GtChar2) {

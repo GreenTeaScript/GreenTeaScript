@@ -69,14 +69,13 @@ class GtType extends GreenTeaUtils {
 		/*local*/int i = BaseIndex;
 		/*local*/int TypeVariableFlag = 0;
 		while(i < TypeList.size()) {
-			GtType Type = TypeList.get(i);
-			if(IsFlag(Type.TypeFlag, TypeVariable) || IsFlag(Type.TypeFlag, GenericVariable)) {
+			if(TypeList.get(i).HasTypeVariable()) {
 				TypeVariableFlag = GenericVariable;
 				break;
 			}
 			i = i + 1;
 		}
-		/*local*/GtType GenericType = new GtType(this.Context, this.TypeFlag | GenericVariable, ShortName, null, null);
+		/*local*/GtType GenericType = new GtType(this.Context, this.TypeFlag, ShortName, null, null);
 		GenericType.BaseType = this.BaseType;
 		GenericType.ParentMethodSearch = this.BaseType;
 		GenericType.SuperType = this.SuperType;
@@ -194,9 +193,9 @@ class GtType extends GreenTeaUtils {
 		return IsFlag(this.TypeFlag, TypeVariable);
 	}
 
-//	public final boolean IsTypeVariable() {   // T
-//		return IsFlag(this.ClassFlag, GenericVariable);
-//	}
+	public final boolean HasTypeVariable() {
+		return IsFlag(this.TypeFlag, TypeVariable) || IsFlag(this.TypeFlag, GenericVariable);
+	}
 
 	public int AppendTypeVariable(GtNameSpace GenericNameSpace, int Count) {
 		if(IsFlag(this.TypeFlag, TypeVariable)) {
@@ -217,26 +216,28 @@ class GtType extends GreenTeaUtils {
 		return Count;
 	}
 	
-	public GtType RealType(GtNameSpace GenericNameSpace) {
+	public GtType RealType(GtNameSpace GenericNameSpace, GtType GivenType) {
 		if(IsFlag(this.TypeFlag, TypeVariable)) {
 			GtType TypeVar = GenericNameSpace.GetType(this.ShortName);
-			if(!TypeVar.IsTypeVariable()) {
+			if(TypeVar != null && !TypeVar.IsTypeVariable()) {
+				GenericNameSpace.SetSymbol(this.ShortName, GivenType, null);
+				return GivenType;
+			}
+			else {
 				return TypeVar;
 			}
-			return null;
 		}
 		if(IsFlag(this.TypeFlag, GenericVariable)) {
-			/*local*/int i = 0;
-			ArrayList<GtType> TypeList = new ArrayList<GtType>();
-			while(i < this.TypeParams.length) {
-				GtType RealParamType = this.TypeParams[i].RealType(GenericNameSpace);
-				if(RealParamType == null) {
-					return null;
+			if(GivenType.BaseType == this.BaseType && GivenType.TypeParams.length == this.TypeParams.length) {
+				/*local*/int i = 0;
+				ArrayList<GtType> TypeList = new ArrayList<GtType>();
+				while(i < this.TypeParams.length) {
+					GtType RealParamType = this.TypeParams[i].RealType(GenericNameSpace, GivenType.TypeParams[i]);
+					TypeList.add(RealParamType);
+					i += 1;
 				}
-				TypeList.add(RealParamType);
-				i += 1;
+				return this.Context.GetGenericType(this.BaseType, 0, TypeList, true);
 			}
-			return this.Context.GetGenericType(this.BaseType, 0, TypeList, true);
 		}
 		return this;
 	}
@@ -397,6 +398,16 @@ class GtFunc extends GreenTeaUtils {
 		return this.Types.length - 2;
 	}
 
+	public final GtType GetVargType() {
+		if(this.Types.length > 0) {
+			GtType VargType = this.Types[this.Types.length - 1];
+			if(VargType.IsArrayType()) {
+				return VargType.TypeParams[0];
+			}
+		}
+		return null;
+	}
+	
 	public final boolean EqualsParamTypes(int BaseIndex, GtType[] ParamTypes) {
 		if(this.Types.length == ParamTypes.length) {
 			/*local*/int i = BaseIndex;
@@ -476,6 +487,20 @@ class GtFunc extends GreenTeaUtils {
 		return null; // TODO
 	}
 
+	public final GtNameSpace GetGenericNameSpace(GtNameSpace NameSpace) {
+		if(this.Is(GenericFunc)) {
+			/*local*/GtNameSpace GenericNameSpace = NameSpace.CreateSubNameSpace();
+			/*local*/int i = 0;
+			while(i < this.Types.length) {
+				this.Types[i].AppendTypeVariable(GenericNameSpace, 0);
+				i = i + 1;
+			}
+			return GenericNameSpace;
+		}
+		return NameSpace;
+	}
+
+
 }
 
 class GtPolyFunc extends GreenTeaUtils {
@@ -528,16 +553,17 @@ class GtPolyFunc extends GreenTeaUtils {
 		return null;
 	}
 
-	public final GtFunc IncrementalMatch(int FuncParamSize, ArrayList<GtNode> NodeList) {
+	public final GtFunc GetIncMatchedFunc(GtNameSpace NameSpace, int FuncParamSize, ArrayList<GtNode> ParamList) {
 		/*local*/GtFunc ResolvedFunc = null;
 		/*local*/int i = 0;
 		while(i < this.FuncList.size()) {
 			/*local*/GtFunc Func = this.FuncList.get(i);
 			if(Func.GetFuncParamSize() == FuncParamSize) {
+				/*local*/GtNameSpace GenericNameSpace = Func.GetGenericNameSpace(NameSpace);
 				/*local*/int p = 0;
-				while(p < NodeList.size()) {
-					/*local*/GtNode Node = NodeList.get(p);
-					if(!Func.Types[p + 1].Accept(Node.Type)) {
+				while(p < ParamList.size()) {
+					/*local*/GtNode Node = ParamList.get(p);
+					if(!Func.Types[p + 1].Match(GenericNameSpace, Node.Type)) {
 						Func = null;
 						break;
 					}
@@ -555,44 +581,108 @@ class GtPolyFunc extends GreenTeaUtils {
 		return ResolvedFunc;
 	}
 
-	public GtFunc MatchAcceptableFunc(GtTypeEnv Gamma, int FuncParamSize, ArrayList<GtNode> NodeList) {
+	public GtFunc CheckParamWithCoercion(GtNameSpace GenericNameSpace, GtFunc Func, ArrayList<GtNode> ParamList) {
+		/*local*/int p = 0;
+		/*local*/GtNode Coercions[] = null;
+		while(p < ParamList.size()) {
+			/*local*/GtType ParamType = Func.Types[p + 1];
+			/*local*/GtNode Node = ParamList.get(p);
+			/*local*/GtType RealType = ParamType.RealType(GenericNameSpace, Node.Type);
+			if(!ParamType.Accept(RealType)) {
+				/*local*/GtFunc TypeCoercion = GenericNameSpace.GetConverterFunc(RealType, ParamType, true);
+				if(TypeCoercion != null && TypeCoercion.Is(CoercionFunc)) {
+					if(Coercions == null) {
+						Coercions = new GtNode[ParamList.size()];
+					}
+					Coercions[p] = GenericNameSpace.Context.Generator.CreateCoercionNode(ParamType, TypeCoercion, Node);
+				}
+				else {
+					return null;
+				}
+			}
+			p = p + 1;
+		}
+		p = 1;
+		while(p < Coercions.length) {
+			if(Coercions[p] != null) {
+				ParamList.set(p, Coercions[p]);
+			}
+			p = p + 1;
+		}
+		return Func;
+	}
+
+	public GtFunc CheckParamAsVarArg(GtNameSpace GenericNameSpace, GtFunc Func, GtType VargType, ArrayList<GtNode> ParamList) {
+		/*local*/int p = 0;
+		/*local*/GtNode Coercions[] = null;
+		while(p < ParamList.size()) {
+			/*local*/GtType ParamType = (p + 1 < Func.Types.length - 1) ? Func.Types[p + 1] : VargType;
+			/*local*/GtNode Node = ParamList.get(p);
+			/*local*/GtType RealType = ParamType.RealType(GenericNameSpace, Node.Type);
+			if(RealType == null) {
+				return null;
+			}
+			if(!ParamType.Accept(RealType)) {
+				/*local*/GtFunc TypeCoercion = GenericNameSpace.GetConverterFunc(RealType, ParamType, true);
+				if(TypeCoercion != null && TypeCoercion.Is(CoercionFunc)) {
+					if(Coercions == null) {
+						Coercions = new GtNode[ParamList.size()];
+					}
+					Coercions[p] = GenericNameSpace.Context.Generator.CreateCoercionNode(ParamType, TypeCoercion, Node);
+				}
+				else {
+					Coercions = null;
+					return null;
+				}
+			}
+			p = p + 1;
+		}
+		if(Coercions != null) {
+			p = 1;
+			while(p < Coercions.length) {
+				if(Coercions[p] != null) {
+					ParamList.set(p, Coercions[p]);
+				}
+				p = p + 1;
+			}
+			Coercions = null;
+		}
+		if(!Func.Is(NativeVariadicFunc)) {
+			GtType ArrayType = Func.Types[Func.Types.length - 1];
+			GtNode ArrayNode = GenericNameSpace.Context.Generator.CreateArrayNode(ArrayType, null);
+			p = Func.Types.length - 1;
+			while(p < ParamList.size()) {
+				ArrayNode.Append(ParamList.get(p));
+			}
+			while(Func.Types.length - 1 < ParamList.size()) {
+				ParamList.remove(ParamList.size() - 1);
+			}
+			ParamList.add(ArrayNode);
+		}
+		return Func;
+	}
+
+	public GtFunc GetAcceptableFunc(GtTypeEnv Gamma, int FuncParamSize, ArrayList<GtNode> ParamList) {
 		/*local*/int i = 0;
 		while(i < this.FuncList.size()) {
 			/*local*/GtFunc Func = this.FuncList.get(i);
 			if(Func.GetFuncParamSize() == FuncParamSize) {
-				/*local*/int p = 0;
-				/*local*/GtNode Coercions[] = null;
-				while(p < NodeList.size()) {
-					/*local*/GtType ParamType = Func.Types[p + 1];
-					/*local*/GtNode Node = NodeList.get(p);
-					if(ParamType.Accept(Node.Type)) {
-						p = p + 1;
-						continue;
-					}
-					/*local*/GtFunc TypeCoercion = Gamma.NameSpace.GetConverterFunc(Node.Type, ParamType, true);
-					if(TypeCoercion != null && TypeCoercion.Is(CoercionFunc)) {
-						if(Coercions == null) {
-							Coercions = new GtNode[NodeList.size()];
-						}
-						Coercions[p] = Gamma.CreateCoercionNode(ParamType, TypeCoercion, Node);
-						p = p + 1;
-						continue;
-					}
-					Func = null;
-					Coercions = null;
-					break;
-				}
+				/*local*/GtNameSpace GenericNameSpace = Func.GetGenericNameSpace(Gamma.NameSpace);
+				Func = CheckParamWithCoercion(GenericNameSpace, Func, ParamList);
 				if(Func != null) {
-					if(Coercions != null) {
-						i = 1;
-						while(i < Coercions.length) {
-							if(Coercions[i] != null) {
-								NodeList.set(i, Coercions[i]);
-							}
-							i = i + 1;
-						}
-						Coercions = null;
-					}
+					return Func;
+				}
+			}
+			i = i + 1;
+		}
+		i = 0;
+		while(i < this.FuncList.size()) {
+			/*local*/GtFunc Func = this.FuncList.get(i);
+			/*local*/GtType VargType = Func.GetVargType();
+			if(VargType != null && Func.GetFuncParamSize() <= FuncParamSize) {
+				/*local*/GtNameSpace GenericNameSpace = Func.GetGenericNameSpace(Gamma.NameSpace);
+				Func = CheckParamAsVarArg(GenericNameSpace, Func, VargType, ParamList);
+				if(Func != null) {
 					return Func;
 				}
 			}
@@ -601,17 +691,68 @@ class GtPolyFunc extends GreenTeaUtils {
 		return null;
 	}
 
+//	public GtFunc GetAcceptableFunc(GtTypeEnv Gamma, int FuncParamSize, ArrayList<GtNode> ParamList) {
+//		/*local*/int i = 0;
+//		while(i < this.FuncList.size()) {
+//			/*local*/GtFunc Func = this.FuncList.get(i);
+//			if(Func.GetFuncParamSize() == FuncParamSize) {
+//				/*local*/int p = 0;
+//				/*local*/GtNode Coercions[] = null;
+//				/*local*/GtNameSpace GenericNameSpace = Func.GetGenericNameSpace(Gamma.NameSpace);
+//				while(p < ParamList.size()) {
+//					/*local*/GtType ParamType = Func.Types[p + 1];
+//					/*local*/GtNode Node = ParamList.get(p);
+//					/*local*/GtType RealType = Node.Type.RealType(GenericNameSpace);
+//					if(RealType == null) {
+//						return null;
+//					}
+//					if(ParamType.Accept(RealType)) {
+//						p = p + 1;
+//						continue;
+//					}
+//					/*local*/GtFunc TypeCoercion = Gamma.NameSpace.GetConverterFunc(RealType, ParamType, true);
+//					if(TypeCoercion != null && TypeCoercion.Is(CoercionFunc)) {
+//						if(Coercions == null) {
+//							Coercions = new GtNode[ParamList.size()];
+//						}
+//						Coercions[p] = Gamma.CreateCoercionNode(ParamType, TypeCoercion, Node);
+//						p = p + 1;
+//						continue;
+//					}
+//					Func = null;
+//					Coercions = null;
+//					break;
+//				}
+//				if(Func != null) {
+//					if(Coercions != null) {
+//						i = 1;
+//						while(i < Coercions.length) {
+//							if(Coercions[i] != null) {
+//								ParamList.set(i, Coercions[i]);
+//							}
+//							i = i + 1;
+//						}
+//						Coercions = null;
+//					}
+//					return Func;
+//				}
+//			}
+//			i = i + 1;
+//		}
+//		return null;
+//	}
+
 	public GtFunc ResolveFunc(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, int TreeIndex, ArrayList<GtNode> NodeList) {
 		/*local*/int FuncParamSize = LibGreenTea.ListSize(ParsedTree.SubTreeList) - TreeIndex + NodeList.size();
 		//System.err.println("*** FuncParamSize=" + FuncParamSize + "resolved_size=" + NodeList.size());
 		//System.err.println("*** FuncList=" + this);
 		
-		/*local*/GtFunc ResolvedFunc = this.IncrementalMatch(FuncParamSize, NodeList);
+		/*local*/GtFunc ResolvedFunc = this.GetIncMatchedFunc(Gamma.NameSpace, FuncParamSize, NodeList);
 		while(ResolvedFunc == null && TreeIndex < LibGreenTea.ListSize(ParsedTree.SubTreeList)) {
 			/*local*/GtNode Node = ParsedTree.TypeCheckAt(TreeIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
 			GreenTeaUtils.AppendTypedNode(NodeList, Node);
 			TreeIndex = TreeIndex + 1;
-			ResolvedFunc = this.IncrementalMatch(FuncParamSize, NodeList);
+			ResolvedFunc = this.GetIncMatchedFunc(Gamma.NameSpace, FuncParamSize, NodeList);
 		}
 		if(ResolvedFunc != null) {
 			while(TreeIndex < LibGreenTea.ListSize(ParsedTree.SubTreeList)) {
@@ -622,7 +763,7 @@ class GtPolyFunc extends GreenTeaUtils {
 			}
 			return ResolvedFunc;			
 		}
-		return this.MatchAcceptableFunc(Gamma, FuncParamSize, NodeList);
+		return this.GetAcceptableFunc(Gamma, FuncParamSize, NodeList);
 	}
 
 	public GtFunc ResolveConstructor(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, int TreeIndex, ArrayList<GtNode> NodeList) {

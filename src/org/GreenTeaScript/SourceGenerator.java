@@ -874,6 +874,15 @@ class GtGenerator extends GreenTeaUtils {
 		return new ApplyNode(Type, ParsedTree == null ? GtTokenContext.NullToken : ParsedTree.KeyToken, Func);
 	}
 
+	public final GtNode CreateCoercionNode(GtType Type, GtFunc Func, GtNode Node) {
+		/*local*/GtNode ApplyNode = this.CreateApplyNode(Type, null, Func);
+		/*local*/GtNode TypeNode = this.CreateConstNode(Type.Context.TypeType, null, Type);
+		ApplyNode.Append(TypeNode);
+		ApplyNode.Append(TypeNode);
+		ApplyNode.Append(Node);
+		return ApplyNode;
+	}
+
 	public GtNode CreateNewNode(GtType Type, GtSyntaxTree ParsedTree) {
 		return new NewNode(Type, ParsedTree.KeyToken);
 	}
