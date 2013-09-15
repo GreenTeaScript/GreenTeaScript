@@ -495,6 +495,34 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.Builder.typeStack.push(type);
 	}
 
+	public void VisitConstructorNode(ConstructorNode Node) {
+		Type type = this.ToAsmType(Node.Type);
+		for(int i=1; i<Node.ParamList.size(); i++) {
+			Node.ParamList.get(i).Evaluate(this);
+			this.Builder.typeStack.pop();
+		}
+		GtFunc Func = Node.Func;
+		Method m = null;
+		if(Func.NativeRef instanceof Method) {
+			m = (Method) Func.NativeRef;
+		}
+		else {
+			m = this.methodMap.get(Func.FuncName);
+		}
+		if(m != null) {
+			String owner = Type.getDescriptor(m.getDeclaringClass());
+			this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, owner, m.getName(), Type.getMethodDescriptor(m));
+		}
+		else {
+			int opcode = INVOKESTATIC;
+			String owner = this.defaultClassName;
+			String methodName = Func.GetNativeFuncName();
+			String methodDescriptor = this.ToAsmMethodType(Func).getDescriptor();
+			this.Builder.AsmMethodVisitor.visitMethodInsn(opcode, owner, methodName, methodDescriptor);
+		}
+		this.Builder.typeStack.push(type);
+	}
+
 	@Override public void VisitNullNode(NullNode Node) {
 		this.Builder.typeStack.push(this.ToAsmType(Node.Type));
 		this.Builder.AsmMethodVisitor.visitInsn(ACONST_NULL);
@@ -529,15 +557,6 @@ public class JavaByteCodeGenerator extends GtGenerator {
 				this.Builder.typeStack.pop();
 			}
 		}
-//		if(Func.FuncName.equals("New")) {
-//			Type type = this.TypeResolver.GetAsmType(Func.GetReturnType());
-//			String owner = type.getInternalName();
-//			String methodName = "<init>";
-//			String methodDesc = TypeResolver.GetJavaFuncDescriptor(Func);//"()V";//Node.Params;
-//			this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESPECIAL, owner, methodName, methodDesc);
-//			this.Builder.typeStack.push(type);
-//		}
-//		else {
 		Method m = null;
 		if(Func.NativeRef instanceof Method) {
 			m = (Method) Func.NativeRef;
