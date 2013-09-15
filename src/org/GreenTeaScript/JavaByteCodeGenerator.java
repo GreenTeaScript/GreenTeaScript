@@ -445,18 +445,20 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.classMap.put(classNode.name, classNode);
 		// generate field
 		for(GtFieldInfo field : ClassField.FieldList) {
-			int access = ACC_PUBLIC;
-			String fieldName = field.NativeName;
-			Type fieldType = this.ToAsmType(field.Type);
-			FieldNode node = new FieldNode(access, fieldName, fieldType.getDescriptor(), null, null);
-			classNode.fields.put(fieldName, node);
+			if(field.FieldIndex >= ClassField.ThisClassIndex) {
+				int access = ACC_PUBLIC;
+				String fieldName = field.NativeName;
+				Type fieldType = this.ToAsmType(field.Type);
+				FieldNode node = new FieldNode(access, fieldName, fieldType.getDescriptor(), null, null);
+				classNode.fields.put(fieldName, node);
+			}
 		}
 		// generate default constructor (for jvm)
 		MethodNode constructor = new MethodNode(ACC_PUBLIC, "<init>", "()V", null, null);
 		constructor.visitVarInsn(ALOAD, 0);
 		constructor.visitMethodInsn(INVOKESPECIAL, superClassName, "<init>", "()V");
 		for(GtFieldInfo field : ClassField.FieldList) {
-			if(field.InitValue != null) {
+			if(field.FieldIndex >= ClassField.ThisClassIndex && field.InitValue != null) {
 				String name = field.NativeName;
 				String desc = this.ToAsmType(field.Type).getDescriptor();
 				constructor.visitVarInsn(ALOAD, 0);
