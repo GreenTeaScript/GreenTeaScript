@@ -3051,7 +3051,7 @@ final class GreenTeaGrammar extends GtGrammar {
 				}
 				//System.err.println("tree size = " + ParsedTree.SubTreeList.size());
 				/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetConstructorFunc(/*GtFunc*/ClassType);
-				//NodeList.set(0, Gamma.Generator.CreateNullNode(ClassType, ParsedTree));
+				NodeList.set(0, Gamma.Generator.CreateNewNode(ClassType, ParsedTree));
 				ResolvedFunc = PolyFunc.ResolveConstructor(Gamma, ParsedTree, 1, NodeList);
 				if(ResolvedFunc == null) {
 					if(!ClassType.IsNative() && ParsedTree.SubTreeList.size() == 1) {
@@ -3066,7 +3066,7 @@ final class GreenTeaGrammar extends GtGrammar {
 					NodeList.add(1, Gamma.Generator.CreateNewNode(ClassType, ParsedTree)); //JAVAONLY?
 				}
 				// TODO;
-//				return Gamma.Generator.CreateConstructorNode(ClassType, ParsedTree, ResolvedFunc, NodeList);
+				return Gamma.Generator.CreateConstructorNode(ClassType, ParsedTree, ResolvedFunc, NodeList);
 			}
 			else if(Func instanceof GtFunc) {
 				ResolvedFunc = (/*cast*/GtFunc)Func;
