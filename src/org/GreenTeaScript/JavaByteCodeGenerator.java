@@ -455,6 +455,15 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		MethodNode constructor = new MethodNode(ACC_PUBLIC, "<init>", "()V", null, null);
 		constructor.visitVarInsn(ALOAD, 0);
 		constructor.visitMethodInsn(INVOKESPECIAL, superClassName, "<init>", "()V");
+		for(GtFieldInfo field : ClassField.FieldList) {
+			if(field.InitValue != null) {
+				String name = field.NativeName;
+				String desc = this.ToAsmType(field.Type).getDescriptor();
+				constructor.visitVarInsn(ALOAD, 0);
+				constructor.visitLdcInsn(field.InitValue);
+				constructor.visitFieldInsn(PUTFIELD, className, name, desc);
+			}
+		}
 		constructor.visitInsn(RETURN);
 		classNode.addMethodNode(constructor);
 		if(LibGreenTea.DebugMode) {
@@ -477,8 +486,8 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.Builder.LoadConst(constValue);
 	}
 
-	@Override public void VisitConstructorNode(ConstructorNode Node) {
-		Type type = Type.getType(Node.Func.Types[0].ShortClassName);
+	@Override public void VisitNewNode(NewNode Node) {
+		Type type = this.ToAsmType(Node.Type);
 		String owner = type.getInternalName();
 		this.Builder.AsmMethodVisitor.visitTypeInsn(NEW, owner);
 		this.Builder.AsmMethodVisitor.visitInsn(DUP);
