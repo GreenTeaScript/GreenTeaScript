@@ -313,9 +313,6 @@ public class PythonSourceGenerator extends SourceGenerator {
 	@Override public void OpenClassField(GtType Type, GtClassField ClassField) {
 		this.FlushErrorReport();
 		/*local*/String Program = this.GetIndentString() + "class " + Type.ShortClassName;
-//		if(Type.SuperType != null) {
-//			Program += "(" + Type.SuperType.ShortClassName + ")";
-//		}
 		Program += ":" + this.LineFeed;
 		this.Indent();
 

@@ -4003,12 +4003,18 @@ final class GreenTeaGrammar extends GtGrammar {
 		if(ExprNode.IsError()) {
 			return ExprNode;
 		}
-		if(!(ExprNode.Type.Accept(Gamma.ArrayType) || ExprNode.Type.Accept(Gamma.StringType))) {
-			return Gamma.CreateSyntaxErrorNode(ParsedTree, ExprNode.Type + " has no sizeof operator");
-		}
 		/*local*/GtPolyFunc PolyFunc = Gamma.NameSpace.GetMethod(ExprNode.Type, "length", true);
+		if(LibGreenTea.ListSize(PolyFunc.FuncList) == 0) {
+			PolyFunc = Gamma.NameSpace.GetMethod(ExprNode.Type, "size", true);
+		}
 		/*local*/ArrayList<GtNode> NodeList = new ArrayList<GtNode>();
+		NodeList.add(ExprNode);
 		/*local*/GtFunc Func = PolyFunc.ResolveFunc(Gamma, ParsedTree, 1, NodeList);
+		if(Func == null) {
+			return Gamma.CreateSyntaxErrorNode(ParsedTree, ExprNode.Type + " has no sizeof operator");	
+		} else {
+			Type = Func.GetReturnType();
+		}
 		/*local*/GtNode Node = Gamma.Generator.CreateApplyNode(Type, ParsedTree, Func);
 		Node.Append(ExprNode);
 		return Node;
