@@ -181,6 +181,7 @@ public class DShellGrammar extends GtGrammar {
 
 	private static GtNode GenerateCommandNode(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType, String Command, int StartIndex, String[] CommandLine) {
 		/*local*/CommandNode Node = (/*cast*/CommandNode) Gamma.Generator.CreateCommandNode(Gamma.VoidType, ParsedTree, null);
+		/*local*/CommandNode InRedirectNode = null;
 		if(ContextType.IsStringType() || ContextType.IsBooleanType()) {
 			Node.Type = ContextType;
 		}
@@ -203,13 +204,28 @@ public class DShellGrammar extends GtGrammar {
 				}
 			}
 			else if(LibGreenTea.EqualsString(Argument, "|")) {
-				Node.PipedNextNode = DShellGrammar.GenerateCommandNode(Gamma, ParsedTree, ContextType, CommandLine[i+1], i+2, CommandLine);
-				return Node;
+				Node.PipedNextNode = DShellGrammar.GenerateCommandNode(Gamma, ParsedTree, ContextType, CommandLine[i + 1], i + 2, CommandLine);
+				break;
+			}
+			else if(LibGreenTea.EqualsString(Argument, "<")) {
+				InRedirectNode = (/*cast*/CommandNode) Gamma.Generator.CreateCommandNode(Gamma.VoidType, ParsedTree, null);
+				InRedirectNode.Append(Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, CommandLine[i]));
+				InRedirectNode.Append(Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, CommandLine[i + 1]));
+				i += 1;
+			}
+			else if(LibGreenTea.EqualsString(Argument, ">")) {
+				Node.PipedNextNode = DShellGrammar.GenerateCommandNode(Gamma, ParsedTree, ContextType, CommandLine[i], i + 1, CommandLine);
+				break;
 			}
 			else {
 				Node.Append(Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, CommandLine[i]));
 			}
 			i += 1;
+		}
+		
+		if(InRedirectNode != null) {
+			InRedirectNode.PipedNextNode = Node;
+			return InRedirectNode;
 		}
 		return Node;
 	}

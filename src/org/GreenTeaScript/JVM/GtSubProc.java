@@ -34,17 +34,17 @@ public class GtSubProc {
 	// called by VisitCommandNode at JavaByteCodeGenerator 
 	public static String ExecCommandString(String[]... cmds) throws Exception {
 		boolean[] option = {true, true, false, true};
-		return createSubProc(cmds, option).str;
+		return runCommands(cmds, option).str;
 	}
 
 	public static boolean ExecCommandBool(String[]... cmds) throws Exception {
 		boolean[] option = {true, false, false, false};
-		return createSubProc(cmds, option).bool;
+		return runCommands(cmds, option).bool;
 	}
 
 	public static void ExecCommandVoid(String[]... cmds) throws Exception {
 		boolean[] option = {false, true, false, true};
-		createSubProc(cmds, option);
+		runCommands(cmds, option);
 	}
 	//---------------------------------------------
 
@@ -55,48 +55,54 @@ public class GtSubProc {
 		return false;
 	}
 	
-	private static RetPair createSubProc(String[][] cmds, boolean[] option) throws Exception {
+	private static PseudoProcess createProc(String[] cmds, boolean enableSyscallTrace) {
+		PseudoProcess proc = null;
+		String cmdSymbol = cmds[0];
+		if(LibGreenTea.EqualsString(cmdSymbol, "<")) {
+			proc = new InRedirectProc();
+			proc.setArgument(cmds);
+		}
+		else if(LibGreenTea.EqualsString(cmdSymbol, ">")) {
+			proc = new OutRedirectProc();
+			proc.setArgument(cmds);
+		}
+		else {
+			proc = new SubProc(enableSyscallTrace);
+			proc.setArgument(cmds);
+		}
+		return proc;
+	}
+	
+	private static RetPair runCommands(String[][] cmds, boolean[] option) throws Exception {
 		int size = cmds.length;
-		String stdout = "";
-		boolean ret = false;
 		
 		if(option[enableTrace]) {
 			option[enableTrace] = checkTraceRequirements();
 		}
 		
-		ProcessMonitor monitor = new ProcessMonitor(option[isThrowable]);
-		SubProc[] subProcs = new SubProc[size];
+		// init process
+		ShellExceptionRaiser exceptionRaiser = new ShellExceptionRaiser(option[isThrowable]);
+		PseudoProcess[] subProcs = new PseudoProcess[size];
 		for(int i = 0; i < size; i++) {
-			subProcs[i] = new SubProc(option[enableTrace]);
-			subProcs[i].setArgument(cmds[i]);
-			monitor.setProcess(subProcs[i]);
+			subProcs[i] = createProc(cmds[i], option[enableTrace]);
+			exceptionRaiser.setProcess(subProcs[i]);
 		}
 		
-		for(int i = 0; i < size; i++) { 
-			subProcs[i].start();
-			if(i == 0) {
-				// TODO: input redirect
-			}
-			else {
-				subProcs[i - 1].pipe(subProcs[i]);
-			}
-			
-			if(i == size - 1) {
-				// TODO: output redirect
-				if(option[isExpr]) {
-					subProcs[i].waitResult();
-				}
-				else {
-					subProcs[i].console();
-				}
-			}
-		}
-		monitor.throwException();
+		// start process
 		int lastIndex = size - 1;
-		if(option[isExpr]) {
-			stdout = subProcs[lastIndex].getStdout();
-			ret = (subProcs[lastIndex].getRet() == 0);
+		subProcs[0].start();
+		for(int i = 1; i < size; i++) { 
+			subProcs[i].start();
+			subProcs[i - 1].pipe(subProcs[i]);
 		}
+		subProcs[lastIndex].waitResult(option[isExpr]);
+		
+		// raise exception
+		exceptionRaiser.raiseException();
+		
+		// get result value
+		String stdout = subProcs[lastIndex].getStdout();
+		boolean ret = (subProcs[lastIndex].getRet() == 0);
 		return new RetPair(stdout, ret);
 	}
 }
@@ -111,58 +117,93 @@ class RetPair {
 	}
 }
 
-class SubProc {
+class PseudoProcess {
+	protected PseudoProcess pipedPrevProc;
+	
+	protected OutputStream stdin = null;
+	protected InputStream stdout = null;
+	protected InputStream stderr = null;
+
+	protected StringBuilder cmdNameBuilder;
+	protected ArrayList<String> commandList;
+
+	protected boolean stdoutIsRedireted = false;
+	protected boolean stderrIsRedireted = false;
+	protected boolean streamIsLocked = false;
+
+	protected int retValue = 0;
+
+	public PseudoProcess() {
+		this.cmdNameBuilder = new StringBuilder();
+		this.commandList = new ArrayList<String>();
+	}
+
+	public void setArgument(String Arg) {
+		this.cmdNameBuilder.append(Arg + " ");
+		this.commandList.add(Arg);
+	}
+
+	public void setArgument(String[] Args) {
+		for(int i = 0; i < Args.length; i++) {
+			this.setArgument(Args[i]);
+		}
+	}
+
+	public void start() {
+	}
+
+	public void pipe(PseudoProcess destProc) {
+		destProc.pipedPrevProc = this;
+		new PipeStreamHandler(this.stdout, destProc.stdin, true).start();
+	}
+	
+	public void kill() {
+	}
+
+	public void waitFor() {
+	}
+
+	public void waitFor(long timeout) {
+	}
+
+	public void waitResult(boolean isExpr) {
+	}
+	
+	public String getStdout() {
+		return "";
+	}
+
+	public String getStderr() {
+		return "";
+	}
+	
+	public int getRet() {
+		return this.retValue;
+	}
+
+	public String getCmdName() {
+		return this.cmdNameBuilder.toString();
+	}
+	
+	public boolean isTraced() {
+		return false;
+	}
+}
+
+class SubProc extends PseudoProcess {
+	private final static String logdirPath = "/tmp/strace-log";
 	private static int logId = 0;
 	private Process proc;
-
-	private OutputStream stdin = null;
-	private InputStream stdout = null;
-	private InputStream stderr = null;
-
-	private StringBuilder cmdNameBuilder;
-	private ArrayList<String> commandList;
+	
 	private boolean enableSyscallTrace = false;
 	public boolean isKilled = false;
-	private final String logdirPath = "/tmp/strace-log";
-	public String logFilePath = null;
-	private int retValue = -1;
 
-	private boolean stdoutIsRedireted = false;
-	private boolean stderrIsRedireted = false;
-	private boolean streamIsLocked = false;
+	public String logFilePath = null;
 
 	private ByteArrayOutputStream outBuf;
 	private ByteArrayOutputStream errBuf;
 
-	public SubProc() {
-		this.cmdNameBuilder = new StringBuilder();
-		this.commandList = new ArrayList<String>();
-		
-		initTrace();
-	}
-
-	public SubProc(boolean enableSyscallTrace) {
-		this.cmdNameBuilder = new StringBuilder();
-		this.commandList = new ArrayList<String>();
-		this.enableSyscallTrace = enableSyscallTrace;
-		
-		initTrace();
-	}
-
-	private void initTrace() {
-		if(this.enableSyscallTrace) {
-			String currentLogdirPath = createLogDirectory();
-			String logNameHeader = createLogNameHeader();
-			logFilePath = new String(currentLogdirPath + "/" + logNameHeader + ".log");
-			
-			String[] straceCmd = {"strace", "-t", "-f", "-F", "-o", logFilePath};
-			for(int i = 0; i < straceCmd.length; i++) {
-				this.commandList.add(straceCmd[i]);
-			}
-		}
-	}
-
-	private String createLogDirectory() {
+	private static String createLogDirectory() {
 		Calendar cal = Calendar.getInstance();
 		StringBuilder pathBuilder = new StringBuilder();
 		
@@ -178,7 +219,7 @@ class SubProc {
 		return subdirPath;
 	}
 
-	private String createLogNameHeader() {
+	private static String createLogNameHeader() {
 		Calendar cal = Calendar.getInstance();
 		StringBuilder logNameHeader = new StringBuilder();
 		
@@ -189,7 +230,26 @@ class SubProc {
 
 		return logNameHeader.toString();
 	}
+	
+	public SubProc(boolean enableSyscallTrace) {
+		super();
+		this.enableSyscallTrace = enableSyscallTrace;
+		initTrace();
+	}
 
+	private void initTrace() {
+		if(this.enableSyscallTrace) {
+			String currentLogdirPath = createLogDirectory();
+			String logNameHeader = createLogNameHeader();
+			logFilePath = new String(currentLogdirPath + "/" + logNameHeader + ".log");
+			
+			String[] straceCmd = {"strace", "-t", "-f", "-F", "-o", logFilePath};
+			for(int i = 0; i < straceCmd.length; i++) {
+				this.commandList.add(straceCmd[i]);
+			}
+		}
+	}
+	
 	private void addCommand(String arg) {
 		if(LibGreenTea.EqualsString(arg, "sudo")) {
 			int size = this.commandList.size();
@@ -204,19 +264,13 @@ class SubProc {
 			this.commandList.add(arg);
 		}
 	}
-
-	public void setArgument(String Arg) {
+	
+	@Override public void setArgument(String Arg) {
 		this.cmdNameBuilder.append(Arg + " ");
-		this.commandList.add(Arg);
+		this.addCommand(Arg);
 	}
 
-	public void setArgument(String[] Args) {
-		for(int i = 0; i < Args.length; i++) {
-			this.setArgument(Args[i]);
-		}
-	}
-
-	public void start() {
+	@Override public void start() {
 		int size = this.commandList.size();
 		String[] cmd = new String[size];
 		for(int i = 0; i < size; i++) {
@@ -231,31 +285,6 @@ class SubProc {
 		}
 		catch (IOException e) {
 			throw new RuntimeException(e);
-		}
-	}
-
-	public void pipe(SubProc destProc) {
-		new PipeStreamHandler(this.stdout, destProc.stdin, true).start();
-	}
-
-	public void readFromFile(String fileName) {
-		try {
-			BufferedInputStream bis = new BufferedInputStream(new FileInputStream(fileName));
-			new PipeStreamHandler(bis, this.stdin, true).start();
-		}
-		catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-	}
-
-	public void writeToFile(String fileName) {
-		try {
-			this.stdoutIsRedireted = true;
-			BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(fileName));
-			new PipeStreamHandler(this.stdout, bos, true).start();
-		} 
-		catch (FileNotFoundException e) {
-			e.printStackTrace();
 		}
 	}
 
@@ -290,26 +319,26 @@ class SubProc {
 		}
 	}
 
-	public void waitResult() {
-		outBuf = new ByteArrayOutputStream();
-		errBuf = new ByteArrayOutputStream();
-		
-		handleOutputStream(outBuf, errBuf, true);
+	@Override public void waitResult(boolean isExpr) {
+		if(isExpr) {
+			outBuf = new ByteArrayOutputStream();
+			errBuf = new ByteArrayOutputStream();
+			handleOutputStream(outBuf, errBuf, true);
+		}
+		else {
+			handleOutputStream(System.out, System.err, false);
+		}
 	}
 
-	public String getStdout() {
-		return this.stdoutIsRedireted ? "" : this.outBuf.toString();
+	@Override public String getStdout() {
+		return this.outBuf == null ? "" : this.outBuf.toString();
 	}
 
-	public String getStderr() {
-		return this.stderrIsRedireted ? "" : this.errBuf.toString();
+	@Override public String getStderr() {
+		return this.errBuf == null ? "" : this.errBuf.toString();
 	}
 
-	public void console() {
-		handleOutputStream(System.out, System.err, false);
-	}
-
-	public void waitFor() {
+	@Override public void waitFor() {
 		try {
 			this.retValue = this.proc.waitFor();
 		}
@@ -318,7 +347,7 @@ class SubProc {
 		}
 	}
 
-	public void waitFor(long timeout) {
+	@Override public void waitFor(long timeout) {
 		try {
 			this.proc.exitValue();
 		}
@@ -335,11 +364,7 @@ class SubProc {
 		}
 	}
 
-	public int getRet() {
-		return this.retValue;
-	}
-
-	public void kill() {
+	@Override public void kill() {
 		try {
 			// get target pid
 			Field pidField = this.proc.getClass().getDeclaredField("pid");
@@ -375,13 +400,37 @@ class SubProc {
 	public String getLogFilePath() {
 		return this.logFilePath;
 	}
+	
+	@Override public boolean isTraced() {
+		return this.enableSyscallTrace;
+	}
+}
 
-	public String getCmdName() {
-		return this.cmdNameBuilder.toString();
+class InRedirectProc extends PseudoProcess {
+	@Override public void start() {
+		String fileName = this.commandList.get(1);
+		try {
+			this.stdout = new BufferedInputStream(new FileInputStream(fileName));
+		} 
+		catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+	}
+}
+
+class OutRedirectProc extends PseudoProcess {
+	@Override public void start() {
+		String fileName = this.commandList.get(1);	
+		try {
+			this.stdin = new BufferedOutputStream(new FileOutputStream(fileName));
+		} 
+		catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
 	}
 	
-	public boolean isTraced() {
-		return this.enableSyscallTrace;
+	@Override public int getRet() {
+		return this.pipedPrevProc.getRet();
 	}
 }
 
@@ -418,23 +467,23 @@ class PipeStreamHandler extends Thread {
 	}
 }
 
-class ProcessMonitor {
-	private ArrayList<SubProc> procList;
+class ShellExceptionRaiser {
+	private ArrayList<PseudoProcess> procList;
 	private boolean enableException;
 	
-	public ProcessMonitor(boolean enableException) {
+	public ShellExceptionRaiser(boolean enableException) {
 		this.enableException = enableException;
-		this.procList = new ArrayList<SubProc>();
+		this.procList = new ArrayList<PseudoProcess>();
 	}
 
-	public void setProcess(SubProc kproc) {
+	public void setProcess(PseudoProcess kproc) {
 		this.procList.add(kproc);
 	}
 
-	public void throwException() throws Exception {
+	public void raiseException() throws Exception {
 		int size = procList.size();
 		for(int i = 0; i < size; i++) {
-			SubProc targetProc = procList.get(i);
+			PseudoProcess targetProc = procList.get(i);
 			targetProc.waitFor();
 			
 			if(!this.enableException) {
@@ -443,8 +492,9 @@ class ProcessMonitor {
 			
 			// throw exception
 			String message = targetProc.getCmdName();
-			if(targetProc.isTraced()) {	// infer systemcall error
-				String logFilePath = targetProc.getLogFilePath();
+			if(targetProc.isTraced() && targetProc instanceof SubProc) {	// infer systemcall error
+				SubProc castedProc = (SubProc)targetProc;
+				String logFilePath = castedProc.getLogFilePath();
 				if(targetProc.getRet() != 0) {
 					Stack<String[]> syscallStack = parseTraceLog(logFilePath);
 					deleteLogFile(logFilePath);
