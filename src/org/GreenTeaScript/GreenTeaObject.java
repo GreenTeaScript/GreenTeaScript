@@ -784,16 +784,6 @@ public interface GreenTeaObject {
 	GtType GetGreenType();
 }
 
-class GreenTeaTopObject implements GreenTeaObject {
-	/*field*/public GtType GreenType;
-	GreenTeaTopObject/*constructor*/(GtType GreenType) {
-		this.GreenType = GreenType;
-	}
-	public final GtType GetGreenType() {
-		return this.GreenType;
-	}
-}
-
 final class GreenTeaAnyObject extends GreenTeaTopObject {
 	/*field*/public final Object NativeValue;
 	GreenTeaAnyObject/*constructor*/(GtType GreenType, Object NativeValue) {
