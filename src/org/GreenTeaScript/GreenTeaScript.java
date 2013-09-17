@@ -3121,6 +3121,9 @@ final class KonohaGrammar extends GtGrammar {
 			}
 			ReturnType = FuncType.TypeParams[0];
 		}
+		else if (FuncNode.IsError()) {
+			return FuncNode;
+		}
 		else {
 			return Gamma.CreateSyntaxErrorNode(ParsedTree, FuncNode.Type + " is not applicapable");
 		}
