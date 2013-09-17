@@ -478,10 +478,12 @@ public class JavaByteCodeGenerator extends GtGenerator {
 				LibGreenTea.VerboseException(e);
 			}
 		}
-	}
-
-	public void CloseClassField(GtType definedType, GtClassField classField) {
-		
+		try {
+			ClassLoader loader = new GtClassLoader(this);
+			ClassType.TypeBody = loader.loadClass(className);
+		} catch(Exception e) {
+			LibGreenTea.VerboseException(e);
+		}
 	}
 
 	//-----------------------------------------------------
