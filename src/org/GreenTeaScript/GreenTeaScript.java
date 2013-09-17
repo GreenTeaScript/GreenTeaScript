@@ -4440,7 +4440,7 @@ final class GtParserContext extends GreenTeaUtils {
 		else if(Value instanceof GtPolyFunc) {
 			return this.FuncType;
 		}
-		else if(Value instanceof GreenTeaTopObject) {
+		else if(Value instanceof GreenTeaObject) {
 			// FIXME In typescript, we cannot use GreenTeaObject
 			return ((/*cast*/GreenTeaObject)Value).GetGreenType();
 		}
