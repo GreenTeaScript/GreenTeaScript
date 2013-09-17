@@ -321,15 +321,19 @@ public class PythonSourceGenerator extends SourceGenerator {
 
 		Program += this.GetIndentString() + "def __init__(" + this.GetRecvName() + ")" + ":" + this.LineFeed;
 		this.Indent();
-		/*local*/int i = 0;
-		while(i < ClassField.FieldList.size()) {
-			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
-			/*local*/String InitValue = this.StringifyConstValue(FieldInfo.InitValue);
-			if(!FieldInfo.Type.IsNative()) {
-				InitValue = "None";
+		/*local*/int i = 0, length = LibGreenTea.ListSize(ClassField.FieldList);
+		if(length == 0) {
+			Program += this.GetIndentString() + "pass;" + this.LineFeed;
+		} else {
+			while(i < length) {
+				/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
+				/*local*/String InitValue = this.StringifyConstValue(FieldInfo.InitValue);
+				if(!FieldInfo.Type.IsNative()) {
+					InitValue = "None";
+				}
+				Program += this.GetIndentString() + this.GetRecvName() + "." + FieldInfo.NativeName + " = " + InitValue + this.LineFeed;
+				i = i + 1;
 			}
-			Program += this.GetIndentString() + this.GetRecvName() + "." + FieldInfo.NativeName + " = " + InitValue + this.LineFeed;
-			i = i + 1;
 		}
 		this.UnIndent();
 		this.UnIndent();

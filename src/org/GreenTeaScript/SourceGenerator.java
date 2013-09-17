@@ -1704,10 +1704,12 @@ class SourceGenerator extends GtGenerator {
 
 	@Override public final void VisitConstructorNode(ConstructorNode Node) {
 		/*local*/int ParamSize = LibGreenTea.ListSize(Node.ParamList);
-		/*local*/String NewOperator = this.GetNewOperator(Node.Type);
 		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
-		Template = Template.replace("$1", NewOperator);
 		this.PushSourceCode(this.ApplyMacro(Template, Node.ParamList));
+	}
+
+	@Override public void VisitNewNode(NewNode Node) {
+		this.PushSourceCode(this.GetNewOperator(Node.Type));
 	}
 
 	@Override public void VisitApplyNode(ApplyNode Node) {

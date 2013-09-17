@@ -445,16 +445,27 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.classMap.put(classNode.name, classNode);
 		// generate field
 		for(GtFieldInfo field : ClassField.FieldList) {
-			int access = ACC_PUBLIC;
-			String fieldName = field.NativeName;
-			Type fieldType = this.ToAsmType(field.Type);
-			FieldNode node = new FieldNode(access, fieldName, fieldType.getDescriptor(), null, null);
-			classNode.fields.put(fieldName, node);
+			if(field.FieldIndex >= ClassField.ThisClassIndex) {
+				int access = ACC_PUBLIC;
+				String fieldName = field.NativeName;
+				Type fieldType = this.ToAsmType(field.Type);
+				FieldNode node = new FieldNode(access, fieldName, fieldType.getDescriptor(), null, null);
+				classNode.fields.put(fieldName, node);
+			}
 		}
 		// generate default constructor (for jvm)
 		MethodNode constructor = new MethodNode(ACC_PUBLIC, "<init>", "()V", null, null);
 		constructor.visitVarInsn(ALOAD, 0);
 		constructor.visitMethodInsn(INVOKESPECIAL, superClassName, "<init>", "()V");
+		for(GtFieldInfo field : ClassField.FieldList) {
+			if(field.FieldIndex >= ClassField.ThisClassIndex && field.InitValue != null) {
+				String name = field.NativeName;
+				String desc = this.ToAsmType(field.Type).getDescriptor();
+				constructor.visitVarInsn(ALOAD, 0);
+				constructor.visitLdcInsn(field.InitValue);
+				constructor.visitFieldInsn(PUTFIELD, className, name, desc);
+			}
+		}
 		constructor.visitInsn(RETURN);
 		classNode.addMethodNode(constructor);
 		if(LibGreenTea.DebugMode) {
@@ -477,12 +488,45 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.Builder.LoadConst(constValue);
 	}
 
-	@Override public void VisitConstructorNode(ConstructorNode Node) {
-		Type type = Type.getType(Node.Func.Types[0].ShortName);
+//<<<<<<< HEAD
+//	@Override public void VisitConstructorNode(ConstructorNode Node) {
+//		Type type = Type.getType(Node.Func.Types[0].ShortName);
+//=======
+	@Override public void VisitNewNode(NewNode Node) {
+		Type type = this.ToAsmType(Node.Type);
+//>>>>>>> 0e9495a028e3a554fa121884d4c53b0476562517
 		String owner = type.getInternalName();
 		this.Builder.AsmMethodVisitor.visitTypeInsn(NEW, owner);
 		this.Builder.AsmMethodVisitor.visitInsn(DUP);
 		this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESPECIAL, owner, "<init>", "()V");
+		this.Builder.typeStack.push(type);
+	}
+
+	public void VisitConstructorNode(ConstructorNode Node) {
+		Type type = this.ToAsmType(Node.Type);
+		for(int i=1; i<Node.ParamList.size(); i++) {
+			Node.ParamList.get(i).Evaluate(this);
+			this.Builder.typeStack.pop();
+		}
+		GtFunc Func = Node.Func;
+		Method m = null;
+		if(Func.NativeRef instanceof Method) {
+			m = (Method) Func.NativeRef;
+		}
+		else {
+			m = this.methodMap.get(Func.FuncName);
+		}
+		if(m != null) {
+			String owner = Type.getDescriptor(m.getDeclaringClass());
+			this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, owner, m.getName(), Type.getMethodDescriptor(m));
+		}
+		else {
+			int opcode = INVOKESTATIC;
+			String owner = this.defaultClassName;
+			String methodName = Func.GetNativeFuncName();
+			String methodDescriptor = this.ToAsmMethodType(Func).getDescriptor();
+			this.Builder.AsmMethodVisitor.visitMethodInsn(opcode, owner, methodName, methodDescriptor);
+		}
 		this.Builder.typeStack.push(type);
 	}
 
@@ -520,15 +564,6 @@ public class JavaByteCodeGenerator extends GtGenerator {
 				this.Builder.typeStack.pop();
 			}
 		}
-//		if(Func.FuncName.equals("New")) {
-//			Type type = this.TypeResolver.GetAsmType(Func.GetReturnType());
-//			String owner = type.getInternalName();
-//			String methodName = "<init>";
-//			String methodDesc = TypeResolver.GetJavaFuncDescriptor(Func);//"()V";//Node.Params;
-//			this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESPECIAL, owner, methodName, methodDesc);
-//			this.Builder.typeStack.push(type);
-//		}
-//		else {
 		Method m = null;
 		if(Func.NativeRef instanceof Method) {
 			m = (Method) Func.NativeRef;
