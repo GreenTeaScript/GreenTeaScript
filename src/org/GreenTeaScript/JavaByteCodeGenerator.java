@@ -895,11 +895,14 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	}
 
 	@Override public void VisitInstanceOfNode(InstanceOfNode Node) {
-		//FIXME: cannot use INSTANCEOF in case of primitive type
 		Type type = this.ToAsmType(Node.TypeInfo);
 		Node.ExprNode.Evaluate(this);
-		this.Builder.typeStack.pop();
-		this.Builder.AsmMethodVisitor.visitTypeInsn(INSTANCEOF, type.getInternalName());
+		Type foundType = this.Builder.typeStack.pop();
+		if(type.equals(foundType)) {
+			this.Builder.AsmMethodVisitor.visitLdcInsn(true);//FIXME: primitive type
+		} else {
+			this.Builder.AsmMethodVisitor.visitTypeInsn(INSTANCEOF, type.getInternalName());
+		}
 		this.Builder.typeStack.push(Type.BOOLEAN_TYPE);
 	}
 
