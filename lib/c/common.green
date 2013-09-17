@@ -37,10 +37,10 @@
 @Const @Operator boolean ==(int x, int y) as "$1 == $2";
 @Const @Operator boolean !=(int x, int y) as "$1 != $2";
 
-@Coercion @Const any converter(int x)    as "greentea_boxi($1)";
-@Coercion @Const int converter(any x)    as "greentea_unboxi($1)";
-@Coercion @Const String converter(int x) as "greentea_tostr($1)";
-@Const int converter(String x)           as "strtol($1, NULL, 10)";
+@Coercion @Const any converter(int x)    as "greentea_boxi($2)";
+@Coercion @Const int converter(any x)    as "greentea_unboxi($2)";
+@Coercion @Const String converter(int x) as "greentea_tostr($2)";
+@Const int converter(String x)           as "strtol($2, NULL, 10)";
 
 
 // String
@@ -80,9 +80,11 @@ String replace(String x, String old, String new) as "greentea_replace($1, $2, $3
 @Const @Operator double *(int x, double y) as "$1 * $2";
 @Const @Operator double /(int x, double y) as "$1 / $2";
 
-@Coercion @Const any converter(double x) as "greentea_boxf($1)";
-@Coercion @Const double converter(any x) as "greentea_unboxf($1)";
-@Const double converter(String x)        as "strtod($1, NULL)";
+//FIXME ApplyNode for converter func has 3 arguments:
+//      converter(FromType, ToType, x)
+@Coercion @Const any converter(double x) as "greentea_boxf($2)";
+@Coercion @Const double converter(any x) as "greentea_unboxf($2)";
+@Const double converter(String x)        as "strtod($2, NULL)";
 
 // function
 void print(String x) as "puts($1)";
