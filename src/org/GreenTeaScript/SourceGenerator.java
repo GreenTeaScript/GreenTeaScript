@@ -1739,7 +1739,7 @@ class SourceGenerator extends GtGenerator {
 		/*local*/String FuncName = Node.Token.ParsedText;
 		/*local*/String Left = this.VisitNode(Node.LeftNode);
 		/*local*/String Right = this.VisitNode(Node.RightNode);
-		this.PushSourceCode("(" + Left + " = " + SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right) + ")");
+		this.PushSourceCode(Left + " = " + SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right));
 	}
 
 	@Override public void VisitUnaryNode(UnaryNode Node) {
