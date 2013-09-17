@@ -23,27 +23,25 @@ import org.GreenTeaScript.LibGreenTea;
 
 public class GtSubProc {
 	// option index
-	private static final int isExpr = 0;
-	private static final int isThrowable = 1;
-	private static final int isBackGround = 2;
-	private static final int enableTrace = 3;
-	
-	private static final int optionSize = 4;
+	private static final int returnable = 1 << 0;
+	private static final int throwable = 1 << 1;
+	private static final int background = 1 << 2;
+	private static final int enableTrace = 1 << 3;
 	
 	
 	// called by VisitCommandNode at JavaByteCodeGenerator 
 	public static String ExecCommandString(String[]... cmds) throws Exception {
-		boolean[] option = {true, true, false, true};
+		int option = returnable | throwable | enableTrace;
 		return runCommands(cmds, option).str;
 	}
 
 	public static boolean ExecCommandBool(String[]... cmds) throws Exception {
-		boolean[] option = {true, false, false, false};
+		int option = returnable;
 		return runCommands(cmds, option).bool;
 	}
 
 	public static void ExecCommandVoid(String[]... cmds) throws Exception {
-		boolean[] option = {false, true, false, true};
+		int option = throwable | enableTrace;
 		runCommands(cmds, option);
 	}
 	//---------------------------------------------
@@ -53,6 +51,21 @@ public class GtSubProc {
 			return LibGreenTea.IsUnixCommand("strace");
 		}
 		return false;
+	}
+	
+	private static boolean is(int option, int flag) {
+		option &= flag;
+		return option == flag;
+	}
+	
+	private static int setFlag(int option, int flag, boolean set) {
+		if(set && !is(option, flag)) {
+			return option | flag;
+		}
+		else if(!set && is(option, flag)) {
+			return option ^ flag;
+		}
+		return option;
 	}
 	
 	private static PseudoProcess createProc(String[] cmds, boolean enableSyscallTrace) {
@@ -73,18 +86,16 @@ public class GtSubProc {
 		return proc;
 	}
 	
-	private static RetPair runCommands(String[][] cmds, boolean[] option) throws Exception {
+	private static RetPair runCommands(String[][] cmds, int option) throws Exception {
 		int size = cmds.length;
 		
-		if(option[enableTrace]) {
-			option[enableTrace] = checkTraceRequirements();
-		}
+		option = setFlag(option, enableTrace, checkTraceRequirements());
 		
 		// init process
-		ShellExceptionRaiser exceptionRaiser = new ShellExceptionRaiser(option[isThrowable]);
+		ShellExceptionRaiser exceptionRaiser = new ShellExceptionRaiser(is(option, throwable));
 		PseudoProcess[] subProcs = new PseudoProcess[size];
 		for(int i = 0; i < size; i++) {
-			subProcs[i] = createProc(cmds[i], option[enableTrace]);
+			subProcs[i] = createProc(cmds[i], is(option, enableTrace));
 			exceptionRaiser.setProcess(subProcs[i]);
 		}
 		
@@ -95,7 +106,7 @@ public class GtSubProc {
 			subProcs[i].start();
 			subProcs[i - 1].pipe(subProcs[i]);
 		}
-		subProcs[lastIndex].waitResult(option[isExpr]);
+		subProcs[lastIndex].waitResult(is(option, returnable));
 		
 		// raise exception
 		exceptionRaiser.raiseException();
