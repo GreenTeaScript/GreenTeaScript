@@ -1,4 +1,4 @@
 // DEOS D-Script Implementation
 
-import DShellGrammar;
+import org.GreenTeaScript.DShellGrammar;
 

@@ -1011,8 +1011,8 @@ class GtGenerator extends GreenTeaUtils {
 		try {
 			/*local*/Class<?> NativeClass = Class.forName(PackageName);
 			try {
-				Method LoaderMethod = NativeClass.getMethod("LoadTo", GtNameSpace.class);
-				LoaderMethod.invoke(null, NameSpace);
+				Method LoaderMethod = NativeClass.getMethod("ImportGrammar", GtNameSpace.class, Class.class);
+				LoaderMethod.invoke(null, NameSpace, NativeClass);
 			} catch (Exception e) {  // naming
 			}
 			return LibGreenTea.GetNativeType(this.Context, NativeClass);

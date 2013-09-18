@@ -2203,6 +2203,41 @@ class GtGrammar extends GreenTeaUtils {
 		}
 		return null;
 	}
+	public final static GtFunc LoadTokenFunc2(GtParserContext ParserContext, Class<?> GrammarClass, String FuncName) {
+		try {
+			Method JavaMethod = GrammarClass.getMethod(FuncName, GtTokenContext.class, String.class, long.class);
+			return LibGreenTea.ConvertNativeMethodToFunc(ParserContext, JavaMethod);
+		}
+		catch(NoSuchMethodException e) {
+			LibGreenTea.VerboseException(e);
+			LibGreenTea.Exit(1, e.toString());
+		}
+		return null;
+	}
+
+	public final static GtFunc LoadParseFunc2(GtParserContext ParserContext, Class<?> GrammarClass, String FuncName) {
+		try {
+			Method JavaMethod = GrammarClass.getMethod(FuncName, GtNameSpace.class, GtTokenContext.class, GtSyntaxTree.class, GtSyntaxPattern.class);
+			return LibGreenTea.ConvertNativeMethodToFunc(ParserContext, JavaMethod);
+		}
+		catch(NoSuchMethodException e) {
+			LibGreenTea.VerboseException(e);
+			LibGreenTea.Exit(1, e.toString());
+		}
+		return null;
+	}
+
+	public final static GtFunc LoadTypeFunc2(GtParserContext ParserContext, Class<?> GrammarClass, String FuncName) {
+		try {
+			Method JavaMethod = GrammarClass.getMethod(FuncName, GtTypeEnv.class, GtSyntaxTree.class, GtType.class);
+			return LibGreenTea.ConvertNativeMethodToFunc(ParserContext, JavaMethod);
+		}
+		catch(NoSuchMethodException e) {
+			LibGreenTea.VerboseException(e);
+			LibGreenTea.Exit(1, e.toString());
+		}
+		return null;
+	}
 //endif VAJA
 
 	public void LoadTo(GtNameSpace NameSpace) {
@@ -4673,7 +4708,8 @@ public class GreenTeaScript extends GreenTeaUtils {
 			LibGreenTea.Usage("no target: " + TargetCode);
 		}
 		/*local*/GtParserContext Context = new GtParserContext(new KonohaGrammar(), Generator);
-		Context.LoadGrammar(new DShellGrammar());
+		// USE require dshell;
+		// Context.LoadGrammar(new DShellGrammar());
 		if(OneLiner != null) {
 			Context.TopLevelNameSpace.Eval(OneLiner, 1);
 		}

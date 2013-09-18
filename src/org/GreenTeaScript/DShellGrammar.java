@@ -336,4 +336,13 @@ public class DShellGrammar extends GtGrammar {
 		NameSpace.AppendSyntax("$DShell$", LoadParseFunc(ParserContext, this, "ParseDShell"), LoadTypeFunc(ParserContext, this, "TypeDShell"));
 	}
 
+//ifdef JAVA
+	public static void ImportGrammar(GtNameSpace NameSpace, Class<?> GrammarClass) {
+		/*local*/GtParserContext ParserContext = NameSpace.Context;
+		NameSpace.AppendSyntax("-", LoadParseFunc2(ParserContext, GrammarClass, "ParseOpFile"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeOpFile"));
+		NameSpace.AppendSyntax("letenv", LoadParseFunc2(ParserContext, GrammarClass, "ParseEnv"), null);
+		NameSpace.AppendSyntax("command", LoadParseFunc2(ParserContext, GrammarClass, "ParseCommand"), null);
+		NameSpace.AppendSyntax("$DShell$", LoadParseFunc2(ParserContext, GrammarClass, "ParseDShell"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeDShell"));
+	}
+//endif VAJA
 }
