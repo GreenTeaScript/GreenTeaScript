@@ -190,7 +190,11 @@ public class DShellGrammar extends GtGrammar {
 		while(i < CommandLine.length) {
 			String Argument = CommandLine[i];
 			if(Argument.indexOf("${") != -1) {
-				// TODO string interpolation
+				/*local*/String Text = "\"" + Argument + "\"";
+				/*local*/GtTokenContext TokenContext = new GtTokenContext(Gamma.NameSpace, Text, Node.Token.FileLine);
+				/*local*/GtSyntaxTree TopLevelTree = GreenTeaUtils.ParseExpression(Gamma.NameSpace, TokenContext, false/*SuffixOnly*/);
+				/*local*/GtNode ExprNode = TopLevelTree.TypeCheck(Gamma, Gamma.StringType, DefaultTypeCheckPolicy);
+				Node.Append(ExprNode);
 			}
 			else if(Argument.indexOf("*") != -1) {
 				String[] ExpandedArguments = DShellGrammar.ExpandPath(Argument);
