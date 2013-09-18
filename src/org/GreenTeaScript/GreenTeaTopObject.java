@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 //endif VAJA
 
-class GtType extends GreenTeaUtils {
+class GtType extends GreenTeaUtils implements GreenTeaType {
 	/*field*/public final GtParserContext	Context;
 	/*field*/public GtNameSpace     PackageNameSpace;
 	/*field*/int					TypeFlag;
@@ -730,25 +730,25 @@ class GtPolyFunc extends GreenTeaUtils {
 }
 
 public class GreenTeaTopObject implements GreenTeaObject {
-	/*field*/public GtType GreenType;
-	GreenTeaTopObject/*constructor*/(GtType GreenType) {
+	/*field*/public GreenTeaType GreenType;
+	GreenTeaTopObject/*constructor*/(GreenTeaType GreenType) {
 		this.GreenType = GreenType;
 	}
-	public final GtType GetGreenType() {
+	public final GreenTeaType GetGreenType() {
 		return this.GreenType;
 	}
 }
 
 final class GreenTeaAnyObject extends GreenTeaTopObject {
 	/*field*/public final Object NativeValue;
-	GreenTeaAnyObject/*constructor*/(GtType GreenType, Object NativeValue) {
+	GreenTeaAnyObject/*constructor*/(GreenTeaType GreenType, Object NativeValue) {
 		super(GreenType);
 		this.NativeValue = NativeValue;
 	}
 }
 
 class GreenTeaArray extends GreenTeaTopObject {
-	GreenTeaArray/*constructor*/(GtType GreenType) {
+	GreenTeaArray/*constructor*/(GreenTeaType GreenType) {
 		super(GreenType);
 	}
 }
@@ -756,7 +756,7 @@ class GreenTeaArray extends GreenTeaTopObject {
 class GreenTeaEnum extends GreenTeaTopObject {
 	/*field*/public final long EnumValue;
 	/*field*/public final String EnumSymbol;
-	GreenTeaEnum/*constructor*/(GtType GreenType, long EnumValue, String EnumSymbol) {
+	GreenTeaEnum/*constructor*/(GreenTeaType GreenType, long EnumValue, String EnumSymbol) {
 		super(GreenType);
 		this.EnumValue = EnumValue;
 		this.EnumSymbol = EnumSymbol;

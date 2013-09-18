@@ -24,6 +24,6 @@
 
 package org.GreenTeaScript;
 
-public interface GreenTeaObject {
-	GreenTeaType GetGreenType();
+public interface GreenTeaType {
+
 }
