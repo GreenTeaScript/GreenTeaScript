@@ -33,14 +33,14 @@ $(JavaBin): check_java_env
 buildpy:
 	echo Building Python implementation
 	python --version  > /dev/null
-	sh ./tool/ToPython
+	bash ./tool/ToPython
 
 buildts:
 	echo Building TypeScript implementation
 	ruby -v > /dev/null
 	node -v > /dev/null
 	tsc -v  > /dev/null
-	sh ./tool/ToTypeScript
+	bash ./tool/ToTypeScript
 
 testj:
 	echo Testing Java implementation
@@ -82,9 +82,9 @@ test: buildj $(notdir $(TEST_FILES))
 	cat $(TEST_OUTDIR)/*.green.csv >> $(TEST_OUTDIR)/TestResult.csv
 
 test_prepare:
-	sh tool/ReleaseCheck2.sh --reset $(TEST_OUTDIR)/TestResult.csv
+	bash tool/ReleaseCheck2.sh --reset $(TEST_OUTDIR)/TestResult.csv
 
 $(notdir $(TEST_FILES)): test_prepare
-	sh tool/ReleaseCheck2.sh $(TEST_BASEDIR)/$@ $(TEST_OUTDIR)/$@.csv
+	bash tool/ReleaseCheck2.sh $(TEST_BASEDIR)/$@ $(TEST_OUTDIR)/$@.csv
 
 .PHONY: all build buildj buildts test testp testj clean dist buildj buildts installj

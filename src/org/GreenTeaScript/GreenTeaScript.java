@@ -3193,7 +3193,7 @@ final class KonohaGrammar extends GtGrammar {
 		/*local*/String OperatorSymbol = ParsedTree.KeyToken.ParsedText;
 		OperatorSymbol = OperatorSymbol.substring(0, OperatorSymbol.length() - 1);
 		/*local*/GtFunc Func = null;
-		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(LeftNode.Type, OperatorSymbol, true);
+		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(LeftNode.Type, SafeFuncName(OperatorSymbol), true);
 		if(PolyFunc != null) {
 			/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
 			ParamList.add(LeftNode);

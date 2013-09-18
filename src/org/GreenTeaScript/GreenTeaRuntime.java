@@ -333,11 +333,16 @@ public class GreenTeaRuntime {
 	//-----------------------------------------------------
 
 	public static boolean binary_eq(String x, String y) {
-		return x.equals(y);
+		if(x == null) {
+			return x == y;
+		}
+		else {
+			return x.equals(y);
+		}
 	}
 
 	public static boolean binary_ne(String x, String y) {
-		return !x.equals(y);
+		return !binary_eq(x, y);
 	}
 
 	//-----------------------------------------------------

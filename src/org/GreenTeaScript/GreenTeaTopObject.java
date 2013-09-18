@@ -692,57 +692,6 @@ class GtPolyFunc extends GreenTeaUtils {
 		return null;
 	}
 
-//	public GtFunc GetAcceptableFunc(GtTypeEnv Gamma, int FuncParamSize, ArrayList<GtNode> ParamList) {
-//		/*local*/int i = 0;
-//		while(i < this.FuncList.size()) {
-//			/*local*/GtFunc Func = this.FuncList.get(i);
-//			if(Func.GetFuncParamSize() == FuncParamSize) {
-//				/*local*/int p = 0;
-//				/*local*/GtNode Coercions[] = null;
-//				/*local*/GtNameSpace GenericNameSpace = Func.GetGenericNameSpace(Gamma.NameSpace);
-//				while(p < ParamList.size()) {
-//					/*local*/GtType ParamType = Func.Types[p + 1];
-//					/*local*/GtNode Node = ParamList.get(p);
-//					/*local*/GtType RealType = Node.Type.RealType(GenericNameSpace);
-//					if(RealType == null) {
-//						return null;
-//					}
-//					if(ParamType.Accept(RealType)) {
-//						p = p + 1;
-//						continue;
-//					}
-//					/*local*/GtFunc TypeCoercion = Gamma.NameSpace.GetConverterFunc(RealType, ParamType, true);
-//					if(TypeCoercion != null && TypeCoercion.Is(CoercionFunc)) {
-//						if(Coercions == null) {
-//							Coercions = new GtNode[ParamList.size()];
-//						}
-//						Coercions[p] = Gamma.CreateCoercionNode(ParamType, TypeCoercion, Node);
-//						p = p + 1;
-//						continue;
-//					}
-//					Func = null;
-//					Coercions = null;
-//					break;
-//				}
-//				if(Func != null) {
-//					if(Coercions != null) {
-//						i = 1;
-//						while(i < Coercions.length) {
-//							if(Coercions[i] != null) {
-//								ParamList.set(i, Coercions[i]);
-//							}
-//							i = i + 1;
-//						}
-//						Coercions = null;
-//					}
-//					return Func;
-//				}
-//			}
-//			i = i + 1;
-//		}
-//		return null;
-//	}
-
 	public GtFunc ResolveFunc(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, int TreeIndex, ArrayList<GtNode> NodeList) {
 		/*local*/int FuncParamSize = LibGreenTea.ListSize(ParsedTree.SubTreeList) - TreeIndex + NodeList.size();
 		//System.err.println("*** FuncParamSize=" + FuncParamSize + "resolved_size=" + NodeList.size());

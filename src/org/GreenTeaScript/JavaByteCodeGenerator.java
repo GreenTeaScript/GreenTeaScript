@@ -245,6 +245,7 @@ class JVMBuilder {
 			this.typeStack.push(Type.BOOLEAN_TYPE);
 		}
 		else {
+			this.AsmMethodVisitor.visitTypeInsn(CHECKCAST, type.getInternalName());
 			this.typeStack.push(type);
 		}
 	}
@@ -437,10 +438,11 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		}
 	}
 
-	@Override public void OpenClassField(GtType Type, GtClassField ClassField) {
-		String className = Type.ShortName;
-		MethodHolderClass superClassNode = this.classMap.get(Type.SuperType.ShortName);
-		String superClassName = superClassNode != null ? superClassNode.name : "java/lang/Object";
+	@Override public void OpenClassField(GtType ClassType, GtClassField ClassField) {
+		String className = ClassType.ShortName;
+		MethodHolderClass superClassNode = this.classMap.get(ClassType.SuperType.ShortName);
+		String superClassName = superClassNode != null ?
+				superClassNode.name : Type.getInternalName(GreenTeaTopObject.class);
 		MethodHolderClass classNode = new MethodHolderClass(className, superClassName);
 		this.classMap.put(classNode.name, classNode);
 		// generate field
@@ -456,7 +458,8 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		// generate default constructor (for jvm)
 		MethodNode constructor = new MethodNode(ACC_PUBLIC, "<init>", "()V", null, null);
 		constructor.visitVarInsn(ALOAD, 0);
-		constructor.visitMethodInsn(INVOKESPECIAL, superClassName, "<init>", "()V");
+		constructor.visitInsn(ACONST_NULL);//FIXME: push type
+		constructor.visitMethodInsn(INVOKESPECIAL, superClassName, "<init>", "(Lorg/GreenTeaScript/GtType;)V");
 		for(GtFieldInfo field : ClassField.FieldList) {
 			if(field.FieldIndex >= ClassField.ThisClassIndex && field.InitValue != null) {
 				String name = field.NativeName;
@@ -475,10 +478,12 @@ public class JavaByteCodeGenerator extends GtGenerator {
 				LibGreenTea.VerboseException(e);
 			}
 		}
-	}
-
-	public void CloseClassField(GtType definedType, GtClassField classField) {
-		
+		try {
+			ClassLoader loader = new GtClassLoader(this);
+			ClassType.TypeBody = loader.loadClass(className);
+		} catch(Exception e) {
+			LibGreenTea.VerboseException(e);
+		}
 	}
 
 	//-----------------------------------------------------
@@ -488,13 +493,8 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.Builder.LoadConst(constValue);
 	}
 
-//<<<<<<< HEAD
-//	@Override public void VisitConstructorNode(ConstructorNode Node) {
-//		Type type = Type.getType(Node.Func.Types[0].ShortName);
-//=======
 	@Override public void VisitNewNode(NewNode Node) {
 		Type type = this.ToAsmType(Node.Type);
-//>>>>>>> 0e9495a028e3a554fa121884d4c53b0476562517
 		String owner = type.getInternalName();
 		this.Builder.AsmMethodVisitor.visitTypeInsn(NEW, owner);
 		this.Builder.AsmMethodVisitor.visitInsn(DUP);
@@ -897,11 +897,14 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	}
 
 	@Override public void VisitInstanceOfNode(InstanceOfNode Node) {
-		//FIXME: cannot use INSTANCEOF in case of primitive type
 		Type type = this.ToAsmType(Node.TypeInfo);
 		Node.ExprNode.Evaluate(this);
-		this.Builder.typeStack.pop();
-		this.Builder.AsmMethodVisitor.visitTypeInsn(INSTANCEOF, type.getInternalName());
+		Type foundType = this.Builder.typeStack.pop();
+		if(type.equals(foundType)) {
+			this.Builder.AsmMethodVisitor.visitLdcInsn(true);//FIXME: primitive type
+		} else {
+			this.Builder.AsmMethodVisitor.visitTypeInsn(INSTANCEOF, type.getInternalName());
+		}
 		this.Builder.typeStack.push(Type.BOOLEAN_TYPE);
 	}
 
