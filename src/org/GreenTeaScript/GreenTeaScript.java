@@ -3284,8 +3284,7 @@ final class KonohaGrammar extends GtGrammar {
 		return KonohaGrammar.ParseEmpty(NameSpace, TokenContext, LeftTree, Pattern);
 	}
 
-	public static GtSyntaxTree ParseImport(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		/*local*/GtSyntaxTree ImportTree = TokenContext.CreateMatchedSyntaxTree(NameSpace, Pattern, "import");
+	private static String ParseJoinedName(GtTokenContext TokenContext) {
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/String PackageName = LibGreenTea.UnquoteString(Token.ParsedText);
 		while(TokenContext.HasNext()) {
@@ -3296,12 +3295,18 @@ final class KonohaGrammar extends GtGrammar {
 			}
 			break;
 		}
+		return PackageName;
+	}
+	
+	public static GtSyntaxTree ParseImport(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtSyntaxTree ImportTree = TokenContext.CreateMatchedSyntaxTree(NameSpace, Pattern, "import");
+		/*local*/String PackageName = ParseJoinedName(TokenContext); 
 		ImportTree.ParsedValue = PackageName;
 		return ImportTree;
 	}
 
 	public static GtNode TypeImport(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
-		/*local*/Object Value = Gamma.Generator.ImportNativeObject(Type, (/*cast*/String)ParsedTree.ParsedValue);
+		/*local*/Object Value = Gamma.Generator.ImportNativeObject(Type, Gamma.NameSpace, (/*cast*/String)ParsedTree.ParsedValue);
 		if(Value == null) {
 			return Gamma.CreateSyntaxErrorNode(ParsedTree, "cannot import: " + ParsedTree.ParsedValue);
 		}
@@ -4466,7 +4471,8 @@ final class GtParserContext extends GreenTeaUtils {
 		}
 		else if(Value instanceof GreenTeaObject) {
 			// FIXME In typescript, we cannot use GreenTeaObject
-			return ((/*cast*/GreenTeaObject)Value).GetGreenType();
+			// TODO fix downcast
+			return (/*cast*/GtType)((/*cast*/GreenTeaObject)Value).GetGreenType();
 		}
 		else {
 			return this.Generator.GetNativeType(Value);

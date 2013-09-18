@@ -1005,15 +1005,21 @@ class GtGenerator extends GreenTeaUtils {
 
 	/* language constructor */
 
-	public final Object ImportNativeObject(GtType ContextType, String PackageName) {
+	public final Object ImportNativeObject(GtType ContextType, GtNameSpace NameSpace, String PackageName) {
 		LibGreenTea.VerboseLog(VerboseNative, "importing " + PackageName);
 //ifdef JAVA
 		try {
 			/*local*/Class<?> NativeClass = Class.forName(PackageName);
+			try {
+				Method LoaderMethod = NativeClass.getMethod("LoadTo", GtNameSpace.class);
+				LoaderMethod.invoke(null, NameSpace);
+			} catch (Exception e) {  // naming
+			}
 			return LibGreenTea.GetNativeType(this.Context, NativeClass);
 		} catch (ClassNotFoundException e) {
-			LibGreenTea.VerboseLog(VerboseException, e.toString());
+			//LibGreenTea.VerboseLog(VerboseException, e.toString());
 		}
+		
 		Method NativeMethod = LibGreenTea.LoadNativeMethod(ContextType, PackageName, true/*static only*/);
 		if(NativeMethod != null) {
 			return LibGreenTea.ConvertNativeMethodToFunc(this.Context, NativeMethod);
