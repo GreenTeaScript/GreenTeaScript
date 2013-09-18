@@ -1853,7 +1853,8 @@ final class GtNameSpace extends GreenTeaUtils {
 		return Type;
 	}
 
-	public final GtType AppendTypeVariable(String Name, GtType ParamBaseType, GtToken SourceToken) {
+	public final GtType AppendTypeVariable(String Name, GtType ParamBaseType, GtToken SourceToken, ArrayList<Object> RevertList) {
+		this.UpdateRevertList(Name, RevertList);
 		GtType TypeVar = new GtType(this.Context, TypeVariable, Name, ParamBaseType, null);
 		this.SetSymbol(Name, TypeVar, SourceToken);
 		return TypeVar;
@@ -2140,6 +2141,27 @@ final class GtNameSpace extends GreenTeaUtils {
 			return false;
 		}
 		return true;
+	}
+
+	private void UpdateRevertList(String Key, ArrayList<Object> RevertList) {
+		Object Value = this.GetLocalSymbol(Key);
+		RevertList.add(Key);
+		if(Value != null) {
+			RevertList.add(Value);
+		}
+		else {
+			RevertList.add(UndefinedSymbol);
+		}
+	}
+
+	public void Revert(ArrayList<Object> RevertList) {
+		/*local*/int i = 0;
+		while(i < RevertList.size()) {
+			String Key = (/*cast*/String)RevertList.get(i);
+			Object Value = RevertList.get(i+1);
+			this.SetSymbol(Key, Value, null);
+			i += 2;
+		}
 	}
 
 }
@@ -3905,7 +3927,8 @@ final class KonohaGrammar extends GtGrammar {
 
 	public static GtSyntaxTree ParseGenericFuncDecl(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree FuncTree = TokenContext.CreateSyntaxTree(NameSpace, Pattern, null);
-		GtNameSpace GenericNameSpace = NameSpace.CreateSubNameSpace();
+//		GtNameSpace GenericNameSpace = NameSpace.CreateSubNameSpace();
+		ArrayList<Object> RevertList = new ArrayList<Object>();
 		FuncTree.SetMatchedTokenAt(KeyTokenIndex, NameSpace, TokenContext, "<", Required);
 		int StartIndex = GenericParam;
 		while(FuncTree.IsValidSyntax()) {
@@ -3919,7 +3942,7 @@ final class KonohaGrammar extends GtGrammar {
 			}
 			if(FuncTree.IsValidSyntax()) {
 				GtToken SourceToken = FuncTree.GetSyntaxTreeAt(StartIndex).KeyToken;
-				GenericNameSpace.AppendTypeVariable(SourceToken.ParsedText, ParamBaseType, SourceToken);
+				NameSpace.AppendTypeVariable(SourceToken.ParsedText, ParamBaseType, SourceToken, RevertList);
 				
 			}
 			if(TokenContext.MatchToken(">")) {
@@ -3928,14 +3951,15 @@ final class KonohaGrammar extends GtGrammar {
 			FuncTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ",", Required);
 			StartIndex += 2;
 		}
-		FuncTree.SetMatchedPatternAt(GenericReturnType, GenericNameSpace, TokenContext, "$Type$", Required);
+		FuncTree.SetMatchedPatternAt(GenericReturnType, NameSpace, TokenContext, "$Type$", Required);
 		if(FuncTree.IsValidSyntax()) {
-			FuncTree = KonohaGrammar.ParseFuncDecl(GenericNameSpace, TokenContext, FuncTree.GetSyntaxTreeAt(GenericReturnType), NameSpace.GetSyntaxPattern("$FuncDecl$"));
+			FuncTree = KonohaGrammar.ParseFuncDecl(NameSpace, TokenContext, FuncTree.GetSyntaxTreeAt(GenericReturnType), NameSpace.GetSyntaxPattern("$FuncDecl$"));
 			if(FuncTree.IsValidSyntax()) {
 				GtFunc DefinedFunc = (/*cast*/GtFunc)FuncTree.ParsedValue;
 				DefinedFunc.FuncFlag |= GenericFunc;
 			}
 		}
+		NameSpace.Revert(RevertList);
 		return FuncTree;
 	}
 	
