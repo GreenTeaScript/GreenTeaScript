@@ -4466,7 +4466,7 @@ final class GtParserContext extends GreenTeaUtils {
 		}
 		else if(Value instanceof GreenTeaObject) {
 			// FIXME In typescript, we cannot use GreenTeaObject
-			return ((/*cast*/GreenTeaObject)Value).GetGreenType();
+			return (GtType)((/*cast*/GreenTeaObject)Value).GetGreenType();
 		}
 		else {
 			return this.Generator.GetNativeType(Value);

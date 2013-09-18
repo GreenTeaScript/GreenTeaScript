@@ -731,7 +731,7 @@ class GtPolyFunc extends GreenTeaUtils {
 
 public class GreenTeaTopObject implements GreenTeaObject {
 	/*field*/public GreenTeaType GreenType;
-	GreenTeaTopObject/*constructor*/(GreenTeaType GreenType) {
+	protected GreenTeaTopObject/*constructor*/(GreenTeaType GreenType) {
 		this.GreenType = GreenType;
 	}
 	public final GreenTeaType GetGreenType() {
