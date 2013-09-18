@@ -27,7 +27,7 @@ package org.GreenTeaScript;
 import java.util.ArrayList;
 //endif VAJA
 
-public class DShellGrammar extends GtGrammar {
+public class DShellGrammar extends GreenTeaUtils {
 	
 	private static String CommandSymbol(String Symbol) {
 		return "__$" + Symbol;
@@ -328,15 +328,16 @@ public class DShellGrammar extends GtGrammar {
 		return new String[0];
 	}
 
-	@Override public void LoadTo(GtNameSpace NameSpace) {
-		/*local*/GtParserContext ParserContext = NameSpace.Context;
-		NameSpace.AppendSyntax("-", LoadParseFunc(ParserContext, this, "ParseOpFile"), LoadTypeFunc(ParserContext, this, "TypeOpFile"));
-		NameSpace.AppendSyntax("letenv", LoadParseFunc(ParserContext, this, "ParseEnv"), null);
-		NameSpace.AppendSyntax("command", LoadParseFunc(ParserContext, this, "ParseCommand"), null);
-		NameSpace.AppendSyntax("$DShell$", LoadParseFunc(ParserContext, this, "ParseDShell"), LoadTypeFunc(ParserContext, this, "TypeDShell"));
-	}
+//	@Override public void LoadTo(GtNameSpace NameSpace) {
+//		/*local*/GtParserContext ParserContext = NameSpace.Context;
+//		NameSpace.AppendSyntax("-", LoadParseFunc(ParserContext, this, "ParseOpFile"), LoadTypeFunc(ParserContext, this, "TypeOpFile"));
+//		NameSpace.AppendSyntax("letenv", LoadParseFunc(ParserContext, this, "ParseEnv"), null);
+//		NameSpace.AppendSyntax("command", LoadParseFunc(ParserContext, this, "ParseCommand"), null);
+//		NameSpace.AppendSyntax("$DShell$", LoadParseFunc(ParserContext, this, "ParseDShell"), LoadTypeFunc(ParserContext, this, "TypeDShell"));
+//	}
 
 //ifdef JAVA
+	// this is a new interface used in ImportNativeObject
 	public static void ImportGrammar(GtNameSpace NameSpace, Class<?> GrammarClass) {
 		/*local*/GtParserContext ParserContext = NameSpace.Context;
 		NameSpace.AppendSyntax("-", LoadParseFunc2(ParserContext, GrammarClass, "ParseOpFile"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeOpFile"));

@@ -553,6 +553,39 @@ class GreenTeaUtils implements GreenTeaConsts {
 	}
 
 //ifdef JAVA
+	public final static GtFunc LoadTokenFunc2(GtParserContext ParserContext, Class<?> GrammarClass, String FuncName) {
+		try {
+			Method JavaMethod = GrammarClass.getMethod(FuncName, GtTokenContext.class, String.class, long.class);
+			return LibGreenTea.ConvertNativeMethodToFunc(ParserContext, JavaMethod);
+		}
+		catch(NoSuchMethodException e) {
+			LibGreenTea.VerboseException(e);
+			LibGreenTea.Exit(1, e.toString());
+		}
+		return null;
+	}
+	public final static GtFunc LoadParseFunc2(GtParserContext ParserContext, Class<?> GrammarClass, String FuncName) {
+		try {
+			Method JavaMethod = GrammarClass.getMethod(FuncName, GtNameSpace.class, GtTokenContext.class, GtSyntaxTree.class, GtSyntaxPattern.class);
+			return LibGreenTea.ConvertNativeMethodToFunc(ParserContext, JavaMethod);
+		}
+		catch(NoSuchMethodException e) {
+			LibGreenTea.VerboseException(e);
+			LibGreenTea.Exit(1, e.toString());
+		}
+		return null;
+	}
+	public final static GtFunc LoadTypeFunc2(GtParserContext ParserContext, Class<?> GrammarClass, String FuncName) {
+		try {
+			Method JavaMethod = GrammarClass.getMethod(FuncName, GtTypeEnv.class, GtSyntaxTree.class, GtType.class);
+			return LibGreenTea.ConvertNativeMethodToFunc(ParserContext, JavaMethod);
+		}
+		catch(NoSuchMethodException e) {
+			LibGreenTea.VerboseException(e);
+			LibGreenTea.Exit(1, e.toString());
+		}
+		return null;
+	}
 }
 
 final class GtMap {
@@ -2179,7 +2212,6 @@ class GtGrammar extends GreenTeaUtils {
 		}
 		return null;
 	}
-
 	public final static GtFunc LoadParseFunc(GtParserContext ParserContext, Object Grammar, String FuncName) {
 		try {
 			Method JavaMethod = Grammar.getClass().getMethod(FuncName, GtNameSpace.class, GtTokenContext.class, GtSyntaxTree.class, GtSyntaxPattern.class);
@@ -2191,45 +2223,9 @@ class GtGrammar extends GreenTeaUtils {
 		}
 		return null;
 	}
-
 	public final static GtFunc LoadTypeFunc(GtParserContext ParserContext, Object Grammar, String FuncName) {
 		try {
 			Method JavaMethod = Grammar.getClass().getMethod(FuncName, GtTypeEnv.class, GtSyntaxTree.class, GtType.class);
-			return LibGreenTea.ConvertNativeMethodToFunc(ParserContext, JavaMethod);
-		}
-		catch(NoSuchMethodException e) {
-			LibGreenTea.VerboseException(e);
-			LibGreenTea.Exit(1, e.toString());
-		}
-		return null;
-	}
-	public final static GtFunc LoadTokenFunc2(GtParserContext ParserContext, Class<?> GrammarClass, String FuncName) {
-		try {
-			Method JavaMethod = GrammarClass.getMethod(FuncName, GtTokenContext.class, String.class, long.class);
-			return LibGreenTea.ConvertNativeMethodToFunc(ParserContext, JavaMethod);
-		}
-		catch(NoSuchMethodException e) {
-			LibGreenTea.VerboseException(e);
-			LibGreenTea.Exit(1, e.toString());
-		}
-		return null;
-	}
-
-	public final static GtFunc LoadParseFunc2(GtParserContext ParserContext, Class<?> GrammarClass, String FuncName) {
-		try {
-			Method JavaMethod = GrammarClass.getMethod(FuncName, GtNameSpace.class, GtTokenContext.class, GtSyntaxTree.class, GtSyntaxPattern.class);
-			return LibGreenTea.ConvertNativeMethodToFunc(ParserContext, JavaMethod);
-		}
-		catch(NoSuchMethodException e) {
-			LibGreenTea.VerboseException(e);
-			LibGreenTea.Exit(1, e.toString());
-		}
-		return null;
-	}
-
-	public final static GtFunc LoadTypeFunc2(GtParserContext ParserContext, Class<?> GrammarClass, String FuncName) {
-		try {
-			Method JavaMethod = GrammarClass.getMethod(FuncName, GtTypeEnv.class, GtSyntaxTree.class, GtType.class);
 			return LibGreenTea.ConvertNativeMethodToFunc(ParserContext, JavaMethod);
 		}
 		catch(NoSuchMethodException e) {
