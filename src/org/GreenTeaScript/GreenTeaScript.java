@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 //endif VAJA
 
+/*GreenTeaConst Begin*/
 //ifdef JAVA
 interface GreenTeaConsts {
 //endif VAJA
@@ -302,12 +303,13 @@ interface GreenTeaConsts {
 	public final static int VerboseFile      = (1 << 7);
 	public final static int VerboseException = (1 << 8);
 
+/*GreenTeaConst End*/
 //ifdef JAVA
 }
 
 class GreenTeaUtils implements GreenTeaConsts {
 //endif VAJA
-
+/*GreenTeaUtils Begin*/
 	public final static boolean IsFlag(int flag, int flag2) {
 		return ((flag & flag2) == flag2);
 	}
@@ -541,6 +543,7 @@ class GreenTeaUtils implements GreenTeaConsts {
 		return (NodeList.size() > 0 && NodeList.get(0).IsError());
 	}
 
+/*GreenTeaUtils End*/
 //ifdef JAVA
 }
 

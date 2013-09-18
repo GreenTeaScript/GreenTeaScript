@@ -50,6 +50,8 @@ sub fixup {
 # Delegates.
 $src =~ s/Function(?:A|B|C)\(this, "(.+?)"\)/$Grammar\["$1"\]/g;
 
+$src =~ s/delegate/delegates/g;
+
 # Protect String literal
 $src =~ s/(".*?")/&ProtectString($1)/ge;
 
@@ -57,6 +59,7 @@ $src =~ s/};/}/g;
 
 sub GtConstSection{
 	my $text = $_[0];
+	$text =~ s/final/readonly cosnt/g;
 	return $text;
 }
 
@@ -65,20 +68,25 @@ sub GtStaticSection{
 	return $text;
 }
 
-
 sub UnQuote {
 	my $text = $_[0];
 }
 
-#$src =~ s/interface GtConst {(.*?)^}/GtConstSection($1)/ems;
-#$src =~ s/class GtStatic(.*?)^}/GtStaticSection($1)/ems;
+$src =~ s/interface GtConst {(.*?)^}/GtConstSection($1)/ems;
+$src =~ s/class GtStatic(.*?)^}/GtStaticSection($1)/ems;
 
 # Comments
 $src =~ s/^\/\/[#\s]*ifdef\s+JAVA.*?VAJA//gms;
+
+$src =~ s|/\*GreenTeaConst Begin\*/|public class GreenTeaConst {|g;
+$src =~ s|/\*GreenTeaConst End\*/|}|g;
+$src =~ s|/\*GreenTeaUtils Begin\*/|public class GreenTeaUtils: GreenTeaConst {|g;
+$src =~ s|/\*GreenTeaUtils End\*/|}|g;
+
 $src =~ s/(\/\/.*?)$/&ProtectComment($1)/gems;
 # Array literals.
-# $src =~ s/\/\*BeginArray\*\/{/\[/g;
-# $src =~ s/\/\*EndArray\*\/}/\]/g;
+$src =~ s/\/\*BeginArray\*\/{/{/g;
+$src =~ s/\/\*EndArray\*\/}/};/g;
 # Protect Comments
 $src =~ s/(\/\*.*?\*\/)/&ProtectComment($1)/gmse;
 
@@ -103,7 +111,7 @@ $src =~ s/\b(\d+)L\b/$1/g;
 
 $src =~ s/\bfinal\b/\/*final*\//g;
 # $src =~ s/\bprotected\b//g;
-$src =~ s/\@Override\s*/override/g;
+$src =~ s/\@Override\s*/override /g;
 # $src =~ s/\@Deprecated\s*//g;
 # $src =~ s/\bextends GtStatic\s*//g;
 # $src =~ s/\bpublic interface\s*/interface /g;
@@ -124,6 +132,8 @@ $src =~ s/\binstanceof\b/is/g;
 #$src =~ s/\bsize\(\)/length/g
 $src =~ s/\blength\(\)/length/g;
 $src =~ s/\bSystem\.out\.println/Console.WriteLine/g;
+
+$src =~ s/ extends/:/g;
 
 # Delegates.
 # $src =~ s/(?!\.)\b((?:Parse|Type)(?:Unary|Binary|Const|Block))\b(?!\()/$Grammar\["$1"\]/g;
