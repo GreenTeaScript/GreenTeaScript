@@ -1655,7 +1655,7 @@ final class GtTypeEnv extends GreenTeaUtils {
 		if(Node.Type == this.VarType) {
 			return this.ReportTypeResult(ParsedTree, Node, TypeErrorLevel, "unspecified type: " + Node.Token.ParsedText);
 		}
-		if(Node.Type == Type || Type == this.VarType || Type.Accept(Node.Type)) {
+		if(Node.Type == Type || Type == this.VarType || Node.Type.Accept(Type)) {
 			return Node;
 		}
 		/*local*/GtFunc Func = ParsedTree.NameSpace.GetConverterFunc(Node.Type, Type, true);
@@ -2991,7 +2991,7 @@ final class KonohaGrammar extends GtGrammar {
 		if(ObjectNode.IsError()) {
 			return ObjectNode;
 		}
-		// To start, check class const such as Math.Pi if base is a type value
+		// 1. To start, check class const such as Math.Pi if base is a type value
 		/*local*/String TypeName = ObjectNode.Type.ShortName;
 		if(ObjectNode instanceof ConstNode && ObjectNode.Type.IsTypeType()) {
 			/*local*/GtType ObjectType = (/*cast*/GtType)((/*cast*/ConstNode)ObjectNode).ConstValue;
@@ -3009,6 +3009,14 @@ final class KonohaGrammar extends GtGrammar {
 			}
 			TypeName = ObjectType.ShortName;
 		}
+		// 2. find Class method
+		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(ObjectNode.Type, Name, true);
+		if(PolyFunc.FuncList.size() > 0 && ContextType == Gamma.FuncType) {
+			/*local*/GtFunc FirstFunc = PolyFunc.FuncList.get(0);
+			return Gamma.Generator.CreateGetterNode(ContextType, ParsedTree, FirstFunc, ObjectNode);
+		}
+
+		// 3. find Class field
 		/*local*/GtFunc GetterFunc = ParsedTree.NameSpace.GetGetterFunc(ObjectNode.Type, Name, true);
 		/*local*/GtType ReturnType = (GetterFunc != null) ? GetterFunc.GetReturnType() : Gamma.AnyType;
 		/*local*/GtNode Node = Gamma.Generator.CreateGetterNode(ReturnType, ParsedTree, GetterFunc, ObjectNode);
@@ -3065,7 +3073,10 @@ final class KonohaGrammar extends GtGrammar {
 			GreenTeaUtils.AppendTypedNode(NodeList, BaseNode);
 			/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(BaseNode.Type, FuncName, true);
 			if(PolyFunc != null) {
-				ResolvedFunc = PolyFunc.ResolveFunc(Gamma, ParsedTree, TreeIndex, NodeList);
+				/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
+				GreenTeaUtils.AppendTypedNode(ParamList, BaseNode);
+				ResolvedFunc = PolyFunc.ResolveFunc(Gamma, ParsedTree, TreeIndex, ParamList);
+				FuncNode.Type = ResolvedFunc.GetFuncType();
 			}
 			else {
 				ParsedTree.TypeCheckParam(Gamma, TreeIndex, NodeList);
@@ -3132,7 +3143,8 @@ final class KonohaGrammar extends GtGrammar {
 		}
 		else if(FuncNode.Type.BaseType == Gamma.FuncType) {
 			/*local*/GtType FuncType = FuncNode.Type;
-			LibGreenTea.Assert(LibGreenTea.ListSize(ParsedTree.SubTreeList) == FuncType.TypeParams.length); // FIXME: add check paramerter size
+			LibGreenTea.Assert(LibGreenTea.ListSize(NodeList) + LibGreenTea.ListSize(ParsedTree.SubTreeList) - TreeIndex == FuncType.TypeParams.length);
+
 			while(TreeIndex < LibGreenTea.ListSize(ParsedTree.SubTreeList)) {
 				/*local*/GtNode Node = ParsedTree.TypeCheckAt(TreeIndex, Gamma, FuncType.TypeParams[TreeIndex], DefaultTypeCheckPolicy);
 				if(Node.IsError()) {
@@ -4173,7 +4185,6 @@ final class KonohaGrammar extends GtGrammar {
 			return ClassDeclTree;
 		}
 		// define new class
-//		/*local*/int ParseFlag = TokenContext.SetBackTrack(false);
 		/*local*/GtNameSpace ClassNameSpace = new GtNameSpace(NameSpace.Context, NameSpace);
 		/*local*/GtToken NameToken = ClassDeclTree.GetSyntaxTreeAt(ClassDeclName).KeyToken;
 		/*local*/GtType SuperType = NameSpace.Context.StructType;
@@ -4193,7 +4204,7 @@ final class KonohaGrammar extends GtGrammar {
 			ClassNameSpace.AppendTypeName(DefinedType, NameToken);  // temporary
 		}
 		ClassNameSpace.SetSymbol("This", DefinedType, NameToken);
-//		System.err.println("class = " + ClassName + ", isAbstract = " + DefinedType.IsAbstract());
+
 		ClassDeclTree.SetMatchedPatternAt(ClassDeclBlock, ClassNameSpace, TokenContext, "$Block$", Optional);
 		if(ClassDeclTree.HasNodeAt(ClassDeclBlock)) {
 			/*local*/GtClassField ClassField = new GtClassField(DefinedType, NameSpace);
@@ -4466,7 +4477,7 @@ final class GtParserContext extends GreenTeaUtils {
 		}
 		else if(Value instanceof GreenTeaObject) {
 			// FIXME In typescript, we cannot use GreenTeaObject
-			return (GtType)((/*cast*/GreenTeaObject)Value).GetGreenType();
+			return (/*cast*/GtType)((/*cast*/GreenTeaObject)Value).GetGreenType();
 		}
 		else {
 			return this.Generator.GetNativeType(Value);

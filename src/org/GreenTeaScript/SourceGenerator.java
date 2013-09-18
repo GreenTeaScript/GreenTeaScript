@@ -1626,6 +1626,11 @@ class SourceGenerator extends GtGenerator {
 		else {
 			Template = Func.GetNativeFuncName();
 		}
+
+		if(Func.Is(ConverterFunc)) {
+			// T1 converter(FromType, ToType, Value);
+			BeginIdx += 1;
+		}
 		/*local*/int i = BeginIdx;
 		if(IsNative == false) {
 			Template += this.ParameterBegin;
@@ -1734,7 +1739,7 @@ class SourceGenerator extends GtGenerator {
 		/*local*/String FuncName = Node.Token.ParsedText;
 		/*local*/String Left = this.VisitNode(Node.LeftNode);
 		/*local*/String Right = this.VisitNode(Node.RightNode);
-		this.PushSourceCode("(" + Left + " = " + SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right) + ")");
+		this.PushSourceCode(Left + " = " + SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right));
 	}
 
 	@Override public void VisitUnaryNode(UnaryNode Node) {
