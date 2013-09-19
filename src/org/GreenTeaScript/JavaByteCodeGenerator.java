@@ -456,9 +456,9 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			}
 		}
 		// generate default constructor (for jvm)
-		MethodNode constructor = new MethodNode(ACC_PUBLIC, "<init>", "()V", null, null);
+		MethodNode constructor = new MethodNode(ACC_PUBLIC, "<init>", "(Lorg/GreenTeaScript/GtType;)V", null, null);
 		constructor.visitVarInsn(ALOAD, 0);
-		constructor.visitInsn(ACONST_NULL);//FIXME: push type
+		constructor.visitVarInsn(ALOAD, 1);
 		constructor.visitMethodInsn(INVOKESPECIAL, superClassName, "<init>", "(Lorg/GreenTeaScript/GreenTeaType;)V");
 		for(GtFieldInfo field : ClassField.FieldList) {
 			if(field.FieldIndex >= ClassField.ThisClassIndex && field.InitValue != null) {
@@ -498,7 +498,8 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		String owner = type.getInternalName();
 		this.Builder.AsmMethodVisitor.visitTypeInsn(NEW, owner);
 		this.Builder.AsmMethodVisitor.visitInsn(DUP);
-		this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESPECIAL, owner, "<init>", "()V");
+		this.Builder.AsmMethodVisitor.visitInsn(ACONST_NULL);//FIXME: push type
+		this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESPECIAL, owner, "<init>", "(Lorg/GreenTeaScript/GtType;)V");
 		this.Builder.typeStack.push(type);
 	}
 
