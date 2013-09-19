@@ -599,7 +599,7 @@ final class GtMap {
 		this.Map.put(Key, Value);
 	}
 
-	public final Object get(String Key) {
+	public final Object GetOrNull(String Key) {
 		return this.Map.get(Key);
 	}
 }
@@ -1765,14 +1765,14 @@ final class GtNameSpace extends GreenTeaUtils {
 
 	public final Object GetLocalUndefinedSymbol(String Key) {
 		if(this.SymbolPatternTable != null) {
-			return this.SymbolPatternTable.get(Key);
+			return this.SymbolPatternTable.GetOrNull(Key);
 		}
 		return null;
 	}
 
 	public final Object GetLocalSymbol(String Key) {
 		if(this.SymbolPatternTable != null) {
-			/*local*/Object Value = this.SymbolPatternTable.get(Key);
+			/*local*/Object Value = this.SymbolPatternTable.GetOrNull(Key);
 			if(Value != null) {
 				return Value == UndefinedSymbol ? null : Value;
 			}
@@ -1784,7 +1784,7 @@ final class GtNameSpace extends GreenTeaUtils {
 		/*local*/GtNameSpace NameSpace = this;
 		while(NameSpace != null) {
 			if(NameSpace.SymbolPatternTable != null) {
-				/*local*/Object Value = NameSpace.SymbolPatternTable.get(Key);
+				/*local*/Object Value = NameSpace.SymbolPatternTable.GetOrNull(Key);
 				if(Value != null) {
 					return Value == UndefinedSymbol ? null : Value;
 				}
@@ -1803,7 +1803,7 @@ final class GtNameSpace extends GreenTeaUtils {
 			this.SymbolPatternTable = new GtMap();
 		}
 		if(SourceToken != null) {
-			/*local*/Object OldValue = this.SymbolPatternTable.get(Key);
+			/*local*/Object OldValue = this.SymbolPatternTable.GetOrNull(Key);
 			if(OldValue != null) {
 				if(LibGreenTea.DebugMode) {
 					this.Context.ReportError(WarningLevel, SourceToken, "duplicated symbol: " + SourceToken + " oldnew=" + OldValue + ", " + Value);
@@ -2245,7 +2245,7 @@ final class KonohaGrammar extends GtGrammar {
 
 	private static final boolean HasAnnotation(GtMap Annotation, String Key) {
 		if(Annotation != null) {
-			/*local*/Object Value = Annotation.get(Key);
+			/*local*/Object Value = Annotation.GetOrNull(Key);
 			if(Value instanceof Boolean) {
 				Annotation.put(Key, false);  // consumed;
 			}
@@ -3679,7 +3679,7 @@ final class KonohaGrammar extends GtGrammar {
 			}
 			/*local*/GtToken Token = TokenContext.Next();
 			if(LibGreenTea.IsVariableName(Token.ParsedText, 0)) {
-				if(EnumMap.get(Token.ParsedText) != null) {
+				if(EnumMap.GetOrNull(Token.ParsedText) != null) {
 					NameSpace.Context.ReportError(ErrorLevel, Token, "duplicated name: " + Token.ParsedText);
 					continue;
 				}
@@ -3695,7 +3695,7 @@ final class KonohaGrammar extends GtGrammar {
 			/*local*/int i = 0;
 			while(i < LibGreenTea.ListSize(NameList)) {
 				/*local*/String Key = NameList.get(i).ParsedText;
-				StoreNameSpace.SetSymbol(ClassSymbol(NewEnumType, ClassStaticName(Key)), EnumMap.get(Key), NameList.get(i));
+				StoreNameSpace.SetSymbol(ClassSymbol(NewEnumType, ClassStaticName(Key)), EnumMap.GetOrNull(Key), NameList.get(i));
 				i = i + 1;
 			}
 			EnumTree.ParsedValue = NewEnumType;
@@ -4538,7 +4538,7 @@ final class GtParserContext extends GreenTeaUtils {
 	public GtType GetGenericType(GtType BaseType, int BaseIdx, ArrayList<GtType> TypeList, boolean IsCreation) {
 		LibGreenTea.Assert(BaseType.IsGenericType());
 		/*local*/String MangleName = GreenTeaUtils.MangleGenericType(BaseType, BaseIdx, TypeList);
-		/*local*/GtType GenericType = (/*cast*/GtType)this.ClassNameMap.get(MangleName);
+		/*local*/GtType GenericType = (/*cast*/GtType)this.ClassNameMap.GetOrNull(MangleName);
 		if(GenericType == null && IsCreation) {
 			/*local*/int i = BaseIdx;
 			/*local*/String s = BaseType.ShortName + "<";
@@ -4565,7 +4565,7 @@ final class GtParserContext extends GreenTeaUtils {
 	}
 
 	public final long GetFileLine(String FileName, int Line) {
-		/*local*/Integer Id = /* (FileName == null) ? 0 :*/ (/*cast*/Integer)this.SourceMap.get(FileName);
+		/*local*/Integer Id = /* (FileName == null) ? 0 :*/ (/*cast*/Integer)this.SourceMap.GetOrNull(FileName);
 		if(Id == null) {
 			this.SourceList.add(FileName);
 			Id = this.SourceList.size();

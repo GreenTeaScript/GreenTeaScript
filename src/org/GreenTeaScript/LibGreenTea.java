@@ -307,7 +307,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 	public final static GtType GetNativeType(GtParserContext Context, Object Value) {
 		GtType NativeType = null;
 		Class<?> NativeClass = Value instanceof Class<?> ? (Class<?>)Value : Value.getClass();
-		NativeType = (/*cast*/GtType) Context.ClassNameMap.get(NativeClass.getCanonicalName());
+		NativeType = (/*cast*/GtType) Context.ClassNameMap.GetOrNull(NativeClass.getCanonicalName());
 		if(NativeType == null) {
 			NativeType = new GtType(Context, GreenTeaUtils.NativeType, NativeClass.getSimpleName(), null, NativeClass);
 			Context.SetNativeTypeName(NativeClass.getCanonicalName(), NativeType);
