@@ -1,23 +1,4 @@
-GreenTeaScript.cs(1407,38): error CS0136: A local variable named `FieldInfo' cannot be declared in this scope because it would give a different meaning to `FieldInfo', which is already used in a `child' scope to denote something else
-GreenTeaScript.cs(3049,33): error CS0136: A local variable named `Node' cannot be declared in this scope because it would give a different meaning to `Node', which is already used in a `child' scope to denote something else
-GreenTeaScript.cs(4275,117): error CS1526: Unexpected symbol `class', expecting `identifier'
-GreenTeaScript.cs(4275,123): error CS1001: Unexpected symbol `,', expecting identifier
-GreenTeaScript.cs(4275,126): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
-GreenTeaScript.cs(4275,129): error CS1001: Unexpected symbol `)', expecting identifier
-GreenTeaScript.cs(4276,124): error CS1526: Unexpected symbol `class', expecting `identifier'
-GreenTeaScript.cs(4276,130): error CS1001: Unexpected symbol `,', expecting identifier
-GreenTeaScript.cs(4276,133): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
-GreenTeaScript.cs(4276,136): error CS1001: Unexpected symbol `)', expecting identifier
-GreenTeaScript.cs(4277,113): error CS1526: Unexpected symbol `class', expecting `identifier'
-GreenTeaScript.cs(4277,119): error CS1001: Unexpected symbol `,', expecting identifier
-GreenTeaScript.cs(4277,122): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
-GreenTeaScript.cs(4277,125): error CS1001: Unexpected symbol `)', expecting identifier
-GreenTeaScript.cs(4278,120): error CS1526: Unexpected symbol `class', expecting `identifier'
-GreenTeaScript.cs(4278,126): error CS1001: Unexpected symbol `,', expecting identifier
-GreenTeaScript.cs(4278,129): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
-GreenTeaScript.cs(4278,132): error CS1001: Unexpected symbol `)', expecting identifier
-GreenTeaScript.cs(4279,121): error CS1526: Unexpected symbol `class', expecting `identifier'
-GreenTeaScript.cs(4279,127): error CS1001: Unexpected symbol `,', expecting identifier
-GreenTeaScript.cs(4279,130): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
-GreenTeaScript.cs(4279,133): error CS1001: Unexpected symbol `)', expecting identifier
-Compilation failed: 22 error(s), 0 warnings
+GreenTeaObject.cs(565,24): error CS1525: Unexpected symbol `implements', expecting `(', `,', `:', `;', `{', `=', `OP_GENERICS_LT_DECL', or `where'
+GreenTeaObject.cs(566,24): error CS1525: Unexpected symbol `GtType', expecting `(', `,', `:', `;', `{', `=', `OP_GENERICS_LT_DECL', or `where'
+GreenTeaObject.cs(570,25): error CS1525: Unexpected symbol `GtType', expecting `(', `,', `:', `;', `{', `=', `OP_GENERICS_LT_DECL', or `where'
+Compilation failed: 3 error(s), 0 warnings

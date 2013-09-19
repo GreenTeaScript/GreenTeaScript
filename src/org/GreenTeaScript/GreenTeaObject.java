@@ -485,7 +485,7 @@ class GtPolyFunc extends GreenTeaUtils {
 			/*local*/GtFunc Func = this.FuncList.get(i);
 			if(Func.GetFuncParamSize() == FuncParamSize) {
 				/*local*/int p = 0;
-				/*local*/GtNode Coercions[] = null;
+				/*local*/GtNode[] Coercions = null;
 				while(p < NodeList.size()) {
 					/*local*/GtType ParamType = Func.Types[p + 1];
 					/*local*/GtNode Node = NodeList.get(p);

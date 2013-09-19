@@ -436,14 +436,14 @@ public class GreenTeaUtils: GreenTeaConst {
 		/*local*/int ParseFlag = TokenContext.ParseFlag;
 		/*local*/GtSyntaxPattern CurrentPattern = Pattern;
 		while(CurrentPattern != null) {
-			/*local*/GtFunc delegates = CurrentPattern.MatchFunc;
+			/*local*/GtFunc @delegate = CurrentPattern.MatchFunc;
 			TokenContext.RollbackPosition(Pos, 0);
 			if(CurrentPattern.ParentPattern != null) {   // This means it has next patterns
 				TokenContext.ParseFlag = ParseFlag | BackTrackParseFlag;
 			}
 			//LibGreenTea.DebugP("B :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + ", next=" + CurrentPattern.ParentPattern);
 			TokenContext.IndentLevel += 1;
-			/*local*/GtSyntaxTree ParsedTree = (/*cast*/GtSyntaxTree)LibGreenTea.ApplyParseFunc(delegates, NameSpace, TokenContext, LeftTree, CurrentPattern);
+			/*local*/GtSyntaxTree ParsedTree = (/*cast*/GtSyntaxTree)LibGreenTea.ApplyParseFunc(@delegate, NameSpace, TokenContext, LeftTree, CurrentPattern);
 			TokenContext.IndentLevel -= 1;
 			TokenContext.ParseFlag = ParseFlag;
 			if(ParsedTree != null && ParsedTree.IsMismatched()) {

@@ -50,7 +50,7 @@ sub fixup {
 # Delegates.
 $src =~ s/Function(?:A|B|C)\(this, "(.+?)"\)/$Grammar\["$1"\]/g;
 
-$src =~ s/delegate/delegates/g;
+$src =~ s/delegate/\@delegate/g;
 
 # Protect String literal
 $src =~ s/(".*?")/&ProtectString($1)/ge;
