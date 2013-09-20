@@ -2,3 +2,18 @@
 
 import org.GreenTeaScript.DShellGrammar;
 
+let ConnectRefusedException = import org.GreenTeaScript.JVM.ConnectRefusedException;
+let IllegalSeekException = import org.GreenTeaScript.JVM.IllegalSeekException;
+let InterruptedBySignalException = import org.GreenTeaScript.JVM.InterruptedBySignalException;
+let NetworkTimeoutException = import org.GreenTeaScript.JVM.NetworkTimeoutException;
+let NoFreeMemoryException = import org.GreenTeaScript.JVM.NoFreeMemoryException;
+let NoFreeSpaceException = import org.GreenTeaScript.JVM.NoFreeSpaceException;
+let NotDirectoryException = import org.GreenTeaScript.JVM.NotDirectoryException;
+let NotFoundException = import org.GreenTeaScript.JVM.NotFoundException;
+let NotPermittedException = import org.GreenTeaScript.JVM.NotPermittedException;
+let NotPermittedOperateException = import org.GreenTeaScript.JVM.NotPermittedOperateException;
+let ReadOnlyException = import org.GreenTeaScript.JVM.ReadOnlyException;
+let TooLongNameException = import org.GreenTeaScript.JVM.TooLongNameException;
+let TooManyLinkException = import org.GreenTeaScript.JVM.TooManyLinkException;
+let UnreachableException = import org.GreenTeaScript.JVM.UnreachableException;
+
