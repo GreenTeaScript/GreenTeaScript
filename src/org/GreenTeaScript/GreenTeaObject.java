@@ -321,7 +321,7 @@ class GtFunc extends GreenTeaUtils {
 		return this.Types.length - 2;
 	}
 
-	public final boolean EqualsParamTypes(int BaseIndex, GtType[] ParamTypes) {
+	public final boolean EqualsParamTypes(int BaseIndex, GtType ParamTypes[]) {
 		if(this.Types.length == ParamTypes.length) {
 			/*local*/int i = BaseIndex;
 			while(i < this.Types.length) {
