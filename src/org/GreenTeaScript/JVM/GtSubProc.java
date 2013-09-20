@@ -16,6 +16,9 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Stack;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -63,7 +66,7 @@ public class GtSubProc {
 			return option | flag;
 		}
 		else if(!set && is(option, flag)) {
-			return option ^ flag;
+			return option & ~flag;
 		}
 		return option;
 	}
@@ -95,6 +98,7 @@ public class GtSubProc {
 	private static RetPair runCommands(String[][] cmds, int option) throws Exception {
 		// prepare shell option
 		int size = 0;
+		long timeout = -1;
 		for(int i = 0; i < cmds.length; i++) {
 			if(LibGreenTea.EqualsString(cmds[i][0], "set")) {
 				if(cmds[i].length < 2) {
@@ -109,6 +113,13 @@ public class GtSubProc {
 				}
 				else if(LibGreenTea.EqualsString(subOption, "background")) {
 					option = setFlag(option, background, true);
+				}
+				else if(subOption.startsWith("timeout=")) {
+					String num = LibGreenTea.SubString(subOption, "timeout=".length() - 1, subOption.length());
+					long parsedNum = LibGreenTea.ParseInt(num);
+					if(parsedNum >= 0) {
+						timeout = parsedNum;
+					}
 				}
 				continue;
 			}
@@ -472,6 +483,32 @@ class OutRedirectProc extends PseudoProcess {
 	}
 }
 
+class ProcessTimer {
+	public ProcessTimer(PseudoProcess[] targetProcs, long timeout) {
+		ProcessKiller procKiller = new ProcessKiller(targetProcs);
+		Timer timer = new Timer();
+		timer.schedule(procKiller, TimeUnit.SECONDS.toMillis(timeout));
+	}
+}
+
+class ProcessKiller extends TimerTask {
+	private PseudoProcess[] procs;
+	
+	public ProcessKiller(PseudoProcess[] targetProcs) {
+		this.procs = targetProcs;
+	}
+	
+	public void killProcs() {
+		for(int i = 0; i < this.procs.length; i++) {
+			this.procs[i].kill();
+		}
+	}
+	
+	@Override public void run() {
+		this.killProcs();
+	}
+}
+
 // copied from http://blog.art-of-coding.eu/piping-between-processes/
 class PipeStreamHandler extends Thread {
 	private InputStream input;
@@ -623,13 +660,7 @@ class ShellExceptionRaiser {
 		parsedSyscall[0] = parsedSyscallTemp[0];
 		parsedSyscall[1] = parsedSyscallTemp[1];
 		parsedSyscall[2] = splitStrings[2];
-		
-		// print 
-//		System.out.print(syscallLine + ": ");
-//		for(int i = 0; i < parsedSyscall.length; i++) {
-//			System.out.print(parsedSyscall[i] + " ");
-//		}
-//		System.out.println();
+
 		return parsedSyscall;
 	}
 

@@ -24,6 +24,7 @@
 
 //ifdef JAVA
 package org.GreenTeaScript;
+import java.io.File;
 import java.util.ArrayList;
 //endif VAJA
 
@@ -276,22 +277,22 @@ public class DShellGrammar extends GreenTeaUtils {
 	
 	private static boolean EvalFileOp(String FileOp, String Path) {
 		if(LibGreenTea.EqualsString(FileOp, "-d")) {
-			return LibGreenTea.IsDirectory(Path);
+			return new File(Path).isDirectory();
 		}
 		else if(LibGreenTea.EqualsString(FileOp, "-e")) {
-			return LibGreenTea.IsExist(Path);
+			return new File(Path).exists();
 		}
 		else if(LibGreenTea.EqualsString(FileOp, "-f")) {
-			return LibGreenTea.IsFile(Path);
+			return new File(Path).isFile();
 		}
 		else if(LibGreenTea.EqualsString(FileOp, "-r")) {
-			return LibGreenTea.IsReadable(Path);
+			return new File(Path).canRead();
 		}
 		else if(LibGreenTea.EqualsString(FileOp, "-w")) {
-			return LibGreenTea.IsWritable(Path);
+			return new File(Path).canWrite();
 		}
 		else if(LibGreenTea.EqualsString(FileOp, "-x")) {
-			return LibGreenTea.IsExecutable(Path);
+			return new File(Path).canExecute();
 		}
 		return false;
 	}
@@ -319,9 +320,10 @@ public class DShellGrammar extends GreenTeaUtils {
 		return Gamma.Generator.CreateConstNode(Gamma.BooleanType, ParsedTree, ParsedTree.ParsedValue);
 	}
 
-	
 	public static String[] ExpandPath(String Path) {
-		/*local*/String[] ExpanddedPaths = LibGreenTea.GetFileList(Path);
+		/*local*/int Index = Path.indexOf("*");
+		/*local*/String NewPath = LibGreenTea.SubString(Path, 0, Index);
+		/*local*/String[] ExpanddedPaths = new File(NewPath).list();
 		if(ExpanddedPaths != null) {
 			return ExpanddedPaths;
 		}
