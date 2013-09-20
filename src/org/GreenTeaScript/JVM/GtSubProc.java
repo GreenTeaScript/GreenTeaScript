@@ -605,119 +605,6 @@ class ShellExceptionRaiser {
 	}
 }
 
-// shell Exception definition
-class NotPermittedException extends Exception {
-	private static final long serialVersionUID = 1L;
-
-	public NotPermittedException(String message) {
-		super(message);
-	}
-}
-
-class TooManyLinkException extends Exception {
-	private static final long serialVersionUID = 1L;
-
-	public TooManyLinkException(String message) {
-		super(message);
-	}
-}
-
-class TooLongNameException extends Exception {
-	private static final long serialVersionUID = 1L;
-
-	public TooLongNameException(String message) {
-		super(message);
-	}
-}
-
-class NotFoundException extends Exception {
-	private static final long serialVersionUID = 1L;
-
-	public NotFoundException(String message) {
-		super(message);
-	}
-}
-
-class NetworkTimeoutException extends Exception {
-	private static final long serialVersionUID = 1L;
-
-	public NetworkTimeoutException(String message) {
-		super(message);
-	}
-}
-
-class InterruptedBySignalException extends Exception {
-	private static final long serialVersionUID = 1L;
-
-	public InterruptedBySignalException(String message) {
-		super(message);
-	}
-}
-
-class UnreachableException extends Exception {
-	private static final long serialVersionUID = 1L;
-
-	public UnreachableException(String message) {
-		super(message);
-	}
-}
-
-class ConnectRefusedException extends Exception {
-	private static final long serialVersionUID = 1L;
-
-	public ConnectRefusedException(String message) {
-		super(message);
-	}
-}
-
-class NoFreeSpaceException	extends Exception {
-	private static final long serialVersionUID = 1L;
-
-	public NoFreeSpaceException(String message) {
-		super(message);
-	}
-}
-
-class ReadOnlyException extends Exception {
-	private static final long serialVersionUID = 1L;
-
-	public ReadOnlyException(String message) {
-		super(message);
-	}
-}
-
-class NoFreeMemoryException extends Exception {
-	private static final long serialVersionUID = 1L;
-
-	public NoFreeMemoryException(String message) {
-		super(message);
-	}
-}
-
-class IllegalSeekException extends Exception {
-	private static final long serialVersionUID = 1L;
-
-	public IllegalSeekException(String message) {
-		super(message);
-	}
-}
-
-class NotPermittedOprateException extends Exception {
-	private static final long serialVersionUID = 1L;
-
-	public NotPermittedOprateException(String message) {
-		super(message);
-	}
-}
-
-class NotDirectoryException extends Exception {
-	private static final long serialVersionUID = 1L;
-
-	public NotDirectoryException(String message) {
-		super(message);
-	}
-}
-
 enum Syscall {
 	open, openat, connect,
 }
@@ -858,7 +745,7 @@ enum ErrNo {
 	EOVERFLOW, 
 	EPERM{
 		public Exception toException(String message, String syscallName, String param) {
-			return new NotPermittedOprateException(message);
+			return new NotPermittedOperateException(message);
 		}
 	}, 
 	EPFNOSUPPORT, 

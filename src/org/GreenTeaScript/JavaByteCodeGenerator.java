@@ -287,6 +287,9 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		if(type != null) {
 			return type;
 		}
+		if(GivenType.TypeBody != null && GivenType.TypeBody instanceof Class<?>) {
+			return Type.getType((Class<?>) GivenType.TypeBody);
+		}
 		return Type.getType("L" + GivenType.ShortName + ";");
 	}
 
@@ -857,19 +860,19 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		Label endTryLabel = new Label();
 		Label finallyLabel = new Label();
 		Label catchLabel[] = new Label[catchSize];
-		String throwType = Type.getInternalName(Throwable.class);
-
-		// prepare
-		for(int i = 0; i < catchSize; i++) { //TODO: add exception class name
-			catchLabel[i] = new Label();
-			mv.visitTryCatchBlock(beginTryLabel, endTryLabel, catchLabel[i], throwType);
-		}
+		String throwType = this.ToAsmType(Node.CatchExpr.Type).getInternalName();
 
 		// try block
 		mv.visitLabel(beginTryLabel);
 		this.VisitBlock(Node.TryBlock);
 		mv.visitLabel(endTryLabel);
 		mv.visitJumpInsn(GOTO, finallyLabel);
+
+		// prepare
+		for(int i = 0; i < catchSize; i++) { //TODO: add exception class name
+			catchLabel[i] = new Label();
+			mv.visitTryCatchBlock(beginTryLabel, endTryLabel, catchLabel[i], throwType);
+		}
 
 		// catch block
 		{ //for(int i = 0; i < catchSize; i++) { //TODO: add exception class name
