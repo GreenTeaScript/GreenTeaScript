@@ -79,6 +79,12 @@ public class GtSubProc {
 			proc = new OutRedirectProc();
 			proc.setArgument(cmds);
 		}
+		else if(LibGreenTea.EqualsString(cmdSymbol, "checkpoint")) {
+			
+		}
+		else if(LibGreenTea.EqualsString(cmdSymbol, "rollback")) {
+			
+		}
 		else {
 			proc = new SubProc(enableSyscallTrace);
 			proc.setArgument(cmds);
@@ -87,9 +93,30 @@ public class GtSubProc {
 	}
 	
 	private static RetPair runCommands(String[][] cmds, int option) throws Exception {
-		int size = cmds.length;
-		
-		option = setFlag(option, enableTrace, checkTraceRequirements());
+		// prepare shell option
+		int size = 0;
+		for(int i = 0; i < cmds.length; i++) {
+			if(LibGreenTea.EqualsString(cmds[i][0], "set")) {
+				if(cmds[i].length < 2) {
+					continue;
+				}
+				String subOption = cmds[i][1];
+				if(LibGreenTea.EqualsString(subOption, "trace=on")) {
+					option = setFlag(option, enableTrace, true);
+				}
+				else if(LibGreenTea.EqualsString(subOption, "trace=off")) {
+					option = setFlag(option, enableTrace, false);
+				}
+				else if(LibGreenTea.EqualsString(subOption, "background")) {
+					option = setFlag(option, background, true);
+				}
+				continue;
+			}
+			size++;
+		}
+		if(is(option, enableTrace)) {
+			option = setFlag(option, enableTrace, checkTraceRequirements());
+		}
 		
 		// init process
 		ShellExceptionRaiser exceptionRaiser = new ShellExceptionRaiser(is(option, throwable));
