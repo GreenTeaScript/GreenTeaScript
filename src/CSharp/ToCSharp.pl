@@ -75,7 +75,7 @@ sub UnQuote {
 $src =~ s/interface GtConst {(.*?)^}/GtConstSection($1)/ems;
 $src =~ s/class GtStatic(.*?)^}/GtStaticSection($1)/ems;
 
-$src =~ s/interface/public class/g;
+$src =~ s/interface/class/g;
 
 # Comments
 $src =~ s/^\s*\/\/[#\s]*ifdef\s+JAVA.*?VAJA//gms;
@@ -136,8 +136,11 @@ $src =~ s/\binstanceof\b/is/g;
 $src =~ s/\blength\(\)/length/g;
 $src =~ s/\bSystem\.out\.println/Console.WriteLine/g;
 
-$src =~ s/\b extends\b/:/g;
-$src =~ s/\b implements\b/:/g;
+$src =~ s/\b extends\b|\b implements\b/:/g;
+
+# argument
+
+$src =~ s/\((.*)\s([a-zA-Z]*)\[\](.*)\)/($1\[\] $2$3)/g;
 
 # Delegates.
 # $src =~ s/(?!\.)\b((?:Parse|Type)(?:Unary|Binary|Const|Block))\b(?!\()/$Grammar\["$1"\]/g;
