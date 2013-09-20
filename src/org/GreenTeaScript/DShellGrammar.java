@@ -155,17 +155,21 @@ public class DShellGrammar extends GreenTeaUtils {
 					continue;
 				}
 			}
+			/*local*/String ParsedText = Token.ParsedText;
+			if(Token.PresetPattern != null && Token.PresetPattern.EqualsName("$StringLiteral$")) {
+				ParsedText = LibGreenTea.UnquoteString(ParsedText);
+			}
 			if(!FoundOpen && Token.IsNextWhiteSpace() ) {
 				if(Argument.length() > 0) {
-					CommandLine.add((Argument + Token.ParsedText));
+					CommandLine.add((Argument + ParsedText));
 				}
 				else {
-					CommandLine.add(Token.ParsedText);
+					CommandLine.add(ParsedText);
 				}
 				Argument = "";
 			}
 			else {
-				Argument += Token.ParsedText;
+				Argument += ParsedText;
 			}
 		}
 		if(Argument.length() > 0) {
