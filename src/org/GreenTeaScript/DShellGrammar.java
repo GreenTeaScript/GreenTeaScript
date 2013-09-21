@@ -29,7 +29,24 @@ import java.util.ArrayList;
 //endif VAJA
 
 public class DShellGrammar extends GreenTeaUtils {
+	// LibDShell
+	public final static String GetEnv(String Key) {
+		return System.getenv(Key);
+	}
+
+	public final static boolean IsUnixCommand(String cmd) {
+		String[] path = GetEnv("PATH").split(":");
+		int i = 0;
+		while(i < path.length) {
+			if(LibGreenTea.HasFile(path[i] + "/" + cmd)) {
+				return true;
+			}
+			i = i + 1;
+		}
+		return false;
+	}
 	
+	// Grammar 
 	private static String CommandSymbol(String Symbol) {
 		return "__$" + Symbol;
 	}
@@ -45,7 +62,7 @@ public class DShellGrammar extends GreenTeaUtils {
 				//TODO
 			}
 			else {
-				if(LibGreenTea.IsUnixCommand(CommandPath)) {
+				if(IsUnixCommand(CommandPath)) {
 					NameSpace.SetSymbol(Command, NameSpace.GetSyntaxPattern("$DShell$"), SourceToken);
 					NameSpace.SetSymbol(CommandSymbol(Command), CommandPath, null);
 				} 
@@ -92,7 +109,7 @@ public class DShellGrammar extends GreenTeaUtils {
 			return TokenContext.ReportExpectedMessage(Token, "name", true);
 		}
 		String Name = Token.ParsedText;
-		String Env = LibGreenTea.GetEnv(Name);
+		String Env  = GetEnv(Name);
 		if(TokenContext.MatchToken("=")) {
 			GtSyntaxTree ConstTree = GreenTeaUtils.ParseExpression(NameSpace, TokenContext, false);
 			if(GreenTeaUtils.IsMismatchedOrError(ConstTree)) {

@@ -256,23 +256,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 			LibGreenTea.VerboseException(e);
 		}
 		return 0.0;
-	}
-
-	public final static String GetEnv(String Key) {
-		return System.getenv(Key);
-	}
-	
-	public final static boolean IsUnixCommand(String cmd) {
-		String[] path = LibGreenTea.GetEnv("PATH").split(":");
-		int i = 0;
-		while(i < path.length) {
-			if(LibGreenTea.HasFile(path[i] + "/" + cmd)) {
-				return true;
-			}
-			i = i + 1;
-		}
-		return false;
-	}
+	}	
 
 	public final static GtType GetNativeType(GtParserContext Context, Object Value) {
 		GtType NativeType = null;
