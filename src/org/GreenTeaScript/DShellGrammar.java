@@ -46,6 +46,30 @@ public class DShellGrammar extends GreenTeaUtils {
 		return false;
 	}
 	
+	public final static boolean IsFile(String Path) {
+		return new File(Path).isFile();
+	}
+	
+	public final static boolean IsDirectory(String Path) {
+		return new File(Path).isDirectory();
+	}
+	
+	public final static boolean IsFileExists(String Path) {
+		return new File(Path).exists();
+	}
+	
+	public final static boolean IsFileReadable(String Path) {
+		return new File(Path).canRead();
+	}
+
+	public final static boolean IsFileWritable(String Path) {
+		return new File(Path).canWrite();
+	}
+
+	public final static boolean IsFileExecutable(String Path) {
+		return new File(Path).canExecute();
+	}
+	
 	// Grammar 
 	private static String CommandSymbol(String Symbol) {
 		return "__$" + Symbol;
@@ -111,7 +135,7 @@ public class DShellGrammar extends GreenTeaUtils {
 		String Name = Token.ParsedText;
 		String Env  = GetEnv(Name);
 		if(TokenContext.MatchToken("=")) {
-			GtSyntaxTree ConstTree = GreenTeaUtils.ParseExpression(NameSpace, TokenContext, false);
+			GtSyntaxTree ConstTree = TokenContext.ParsePattern(NameSpace, "$Expression$", Required);
 			if(GreenTeaUtils.IsMismatchedOrError(ConstTree)) {
 				return ConstTree;
 			}
@@ -214,7 +238,7 @@ public class DShellGrammar extends GreenTeaUtils {
 			if(Argument.indexOf("${") != -1) {
 				/*local*/String Text = "\"" + Argument + "\"";
 				/*local*/GtTokenContext TokenContext = new GtTokenContext(Gamma.NameSpace, Text, Node.Token.FileLine);
-				/*local*/GtSyntaxTree TopLevelTree = GreenTeaUtils.ParseExpression(Gamma.NameSpace, TokenContext, false/*SuffixOnly*/);
+				/*local*/GtSyntaxTree TopLevelTree = TokenContext.ParsePattern(Gamma.NameSpace, "$Expression$", Required);
 				/*local*/GtNode ExprNode = TopLevelTree.TypeCheck(Gamma, Gamma.StringType, DefaultTypeCheckPolicy);
 				Node.Append(ExprNode);
 			}
@@ -248,7 +272,6 @@ public class DShellGrammar extends GreenTeaUtils {
 			}
 			i += 1;
 		}
-		
 		if(InRedirectNode != null) {
 			InRedirectNode.PipedNextNode = Node;
 			return InRedirectNode;
@@ -296,27 +319,27 @@ public class DShellGrammar extends GreenTeaUtils {
 		return Path;
 	}
 	
-	private static boolean EvalFileOp(String FileOp, String Path) {
-		if(LibGreenTea.EqualsString(FileOp, "-d")) {
-			return new File(Path).isDirectory();
-		}
-		else if(LibGreenTea.EqualsString(FileOp, "-e")) {
-			return new File(Path).exists();
-		}
-		else if(LibGreenTea.EqualsString(FileOp, "-f")) {
-			return new File(Path).isFile();
-		}
-		else if(LibGreenTea.EqualsString(FileOp, "-r")) {
-			return new File(Path).canRead();
-		}
-		else if(LibGreenTea.EqualsString(FileOp, "-w")) {
-			return new File(Path).canWrite();
-		}
-		else if(LibGreenTea.EqualsString(FileOp, "-x")) {
-			return new File(Path).canExecute();
-		}
-		return false;
-	}
+//	private static boolean EvalFileOp(String FileOp, String Path) {
+//		if(LibGreenTea.EqualsString(FileOp, "-d")) {
+//			return new File(Path).isDirectory();
+//		}
+//		else if(LibGreenTea.EqualsString(FileOp, "-e")) {
+//			return new File(Path).exists();
+//		}
+//		else if(LibGreenTea.EqualsString(FileOp, "-f")) {
+//			return new File(Path).isFile();
+//		}
+//		else if(LibGreenTea.EqualsString(FileOp, "-r")) {
+//			return new File(Path).canRead();
+//		}
+//		else if(LibGreenTea.EqualsString(FileOp, "-w")) {
+//			return new File(Path).canWrite();
+//		}
+//		else if(LibGreenTea.EqualsString(FileOp, "-x")) {
+//			return new File(Path).canExecute();
+//		}
+//		return false;
+//	}
 	
 	public static GtSyntaxTree ParseOpFile(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.Next();
@@ -327,9 +350,10 @@ public class DShellGrammar extends GreenTeaUtils {
 				if(Path.length() > 0) {
 					Token.ParsedText += Token2.ParsedText;
 					/*local*/GtSyntaxTree Tree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
-					Tree.ParsedValue = EvalFileOp(Token.ParsedText, Path);
-//					/*local*/GtSyntaxTree SubTree = new GtSyntaxTree(Pattern, NameSpace, Token2, null);
-//					Tree.SetSyntaxTreeAt(UnaryTerm, SubTree);
+//					Tree.ParsedValue = EvalFileOp(Token.ParsedText, Path);
+
+					/*local*/GtSyntaxTree SubTree = new GtSyntaxTree(Pattern, NameSpace, Token2, null);
+					Tree.SetSyntaxTreeAt(UnaryTerm, SubTree);
 					return Tree;
 				}
 			}

@@ -2,6 +2,8 @@
 
 import org.GreenTeaScript.DShellGrammar;
 
+@Operator boolean "-f"(String Path) import org.GreenTeaScript.DShellGrammar.IsFile;
+
 let ConnectRefusedException = import org.GreenTeaScript.JVM.ConnectRefusedException;
 let IllegalSeekException = import org.GreenTeaScript.JVM.IllegalSeekException;
 let InterruptedBySignalException = import org.GreenTeaScript.JVM.InterruptedBySignalException;
