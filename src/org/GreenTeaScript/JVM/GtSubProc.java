@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.GreenTeaScript.DShellGrammar;
 import org.GreenTeaScript.LibGreenTea;
 
 public class GtSubProc {
@@ -51,7 +52,7 @@ public class GtSubProc {
 
 	private static boolean checkTraceRequirements() {
 		if(System.getProperty("os.name").equals("Linux")) {
-			return LibGreenTea.IsUnixCommand("strace");
+			return DShellGrammar.IsUnixCommand("strace");
 		}
 		return false;
 	}
