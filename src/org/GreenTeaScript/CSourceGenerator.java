@@ -64,12 +64,12 @@ public class CSourceGenerator extends SourceGenerator {
 		return this.GetLocalType(Type, true);
 	}
 
-	public String GreenTeaTypeName(GtType Type) {
+	public String GtTypeName(GtType Type) {
 		return Type.ShortName;
 	}
 
 	@Override protected String GetNewOperator(GtType Type) {
-		/*local*/String TypeName = this.GreenTeaTypeName(Type);
+		/*local*/String TypeName = this.GtTypeName(Type);
 		return "NEW_" + TypeName + "()";
 	}
 

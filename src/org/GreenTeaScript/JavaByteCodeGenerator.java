@@ -462,7 +462,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		MethodNode constructor = new MethodNode(ACC_PUBLIC, "<init>", "(Lorg/GreenTeaScript/GtType;)V", null, null);
 		constructor.visitVarInsn(ALOAD, 0);
 		constructor.visitVarInsn(ALOAD, 1);
-		constructor.visitMethodInsn(INVOKESPECIAL, superClassName, "<init>", "(Lorg/GreenTeaScript/GreenTeaType;)V");
+		constructor.visitMethodInsn(INVOKESPECIAL, superClassName, "<init>", "(Lorg/GreenTeaScript/GtType;)V");
 		for(GtFieldInfo field : ClassField.FieldList) {
 			if(field.FieldIndex >= ClassField.ThisClassIndex && field.InitValue != null) {
 				String name = field.NativeName;

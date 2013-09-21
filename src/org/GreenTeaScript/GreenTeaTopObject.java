@@ -489,25 +489,25 @@ class GtPolyFunc extends GreenTeaUtils {
 }
 
 public class GreenTeaTopObject implements GreenTeaObject {
-	/*field*/public GreenTeaType GreenType;
-	protected GreenTeaTopObject/*constructor*/(GreenTeaType GreenType) {
+	/*field*/public GtType GreenType;
+	protected GreenTeaTopObject/*constructor*/(GtType GreenType) {
 		this.GreenType = GreenType;
 	}
-	public final GreenTeaType GetGreenType() {
+	public final GtType GetGreenType() {
 		return this.GreenType;
 	}
 }
 
 final class GreenTeaAnyObject extends GreenTeaTopObject {
 	/*field*/public final Object NativeValue;
-	GreenTeaAnyObject/*constructor*/(GreenTeaType GreenType, Object NativeValue) {
+	GreenTeaAnyObject/*constructor*/(GtType GreenType, Object NativeValue) {
 		super(GreenType);
 		this.NativeValue = NativeValue;
 	}
 }
 
 class GreenTeaArray extends GreenTeaTopObject {
-	GreenTeaArray/*constructor*/(GreenTeaType GreenType) {
+	GreenTeaArray/*constructor*/(GtType GreenType) {
 		super(GreenType);
 	}
 }
@@ -515,7 +515,7 @@ class GreenTeaArray extends GreenTeaTopObject {
 class GreenTeaEnum extends GreenTeaTopObject {
 	/*field*/public final long EnumValue;
 	/*field*/public final String EnumSymbol;
-	GreenTeaEnum/*constructor*/(GreenTeaType GreenType, long EnumValue, String EnumSymbol) {
+	GreenTeaEnum/*constructor*/(GtType GreenType, long EnumValue, String EnumSymbol) {
 		super(GreenType);
 		this.EnumValue = EnumValue;
 		this.EnumSymbol = EnumSymbol;

@@ -25,5 +25,5 @@
 package org.GreenTeaScript;
 
 public interface GreenTeaObject {
-	GreenTeaType GetGreenType();
+	GtType GetGreenType();
 }
