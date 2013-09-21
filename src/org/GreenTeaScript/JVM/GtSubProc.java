@@ -113,7 +113,7 @@ public class GtSubProc {
 					option = setFlag(option, enableTrace, false);
 				}
 				else if(LibGreenTea.EqualsString(subOption, "background")) {
-					option = setFlag(option, background, true);
+					option = setFlag(option, background, !is(option, returnable));
 				}
 				else if(subOption.startsWith("timeout=")) {
 					String num = LibGreenTea.SubString(subOption, "timeout=".length() - 1, subOption.length());
@@ -144,6 +144,13 @@ public class GtSubProc {
 		for(int i = 1; i < size; i++) { 
 			subProcs[i].start();
 			subProcs[i - 1].pipe(subProcs[i]);
+		}
+		
+		if(is(option, background)) {
+			if(timeout > 0) {
+				new ProcessTimer(subProcs, timeout);
+			}
+			return null;
 		}
 		subProcs[lastIndex].waitResult(is(option, returnable));
 		

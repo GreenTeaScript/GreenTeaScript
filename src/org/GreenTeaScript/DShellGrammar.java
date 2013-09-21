@@ -216,7 +216,7 @@ public class DShellGrammar extends GreenTeaUtils {
 				continue;
 			}
 			if(!FoundOpen && Token.PresetPattern == null && 
-					(Token.EqualsText("|") || Token.EqualsText(">"))) {
+					(Token.EqualsText("|") || Token.EqualsText(">") || Token.EqualsText("&"))) {
 				if(Argument.length() > 0) {
 					if(InputRedirect) {
 						AppendInRedirectTree(CommandTree, Argument);
@@ -232,7 +232,15 @@ public class DShellGrammar extends GreenTeaUtils {
 				CommandLine = new ArrayList<String>();
 				SubTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetToken(), null);
 				if(Token.EqualsText(">")) {
+					SubTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
 					CommandLine.add(Token.ParsedText);
+				}
+				if(Token.EqualsText("&")) {
+					SubTree.KeyToken = Token;
+					/*local*/String[] BackGround = {"set", "background"};
+					SubTree.ParsedValue = BackGround ;
+					CommandTree.AppendParsedTree2(SubTree);
+					SubTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetToken(), null);
 				}
 				continue;
 			}
@@ -267,8 +275,10 @@ public class DShellGrammar extends GreenTeaUtils {
 				CommandLine.add(Argument);
 			}
 		}
-		SubTree.ParsedValue = CommandLine.toArray(new String[CommandLine.size()]);
-		CommandTree.AppendParsedTree2(SubTree);
+		if(CommandLine.size() > 0) {
+			SubTree.ParsedValue = CommandLine.toArray(new String[CommandLine.size()]);
+			CommandTree.AppendParsedTree2(SubTree);
+		}
 		return CommandTree;
 	}
 
@@ -291,7 +301,7 @@ public class DShellGrammar extends GreenTeaUtils {
 				if(Argument.indexOf("${") != -1) {
 					/*local*/String Text = "\"" + Argument + "\"";
 					/*local*/GtTokenContext TokenContext = new GtTokenContext(Gamma.NameSpace, Text, CurrentNode.Token.FileLine);
-		/*local*/GtSyntaxTree TopLevelTree = TokenContext.ParsePattern(Gamma.NameSpace, "$Expression$", Required);
+					/*local*/GtSyntaxTree TopLevelTree = TokenContext.ParsePattern(Gamma.NameSpace, "$Expression$", Required);
 					/*local*/GtNode ExprNode = TopLevelTree.TypeCheck(Gamma, Gamma.StringType, DefaultTypeCheckPolicy);
 					CurrentNode.Append(ExprNode);
 				}
