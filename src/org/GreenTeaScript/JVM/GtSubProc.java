@@ -27,9 +27,12 @@ import org.GreenTeaScript.LibGreenTea;
 
 public class GtSubProc {
 	private static final int returnable = 1 << 0;
-	private static final int throwable = 1 << 1;
-	private static final int background = 1 << 2;
-	private static final int enableTrace = 1 << 3;
+	private static final int printable = 1 << 1;
+	private static final int throwable = 1 << 2;
+	private static final int background = 1 << 3;
+	private static final int enableTrace = 1 << 4;
+	
+	private static SubProc prevSubProc = null;
 	
 	// called by VisitCommandNode at JavaByteCodeGenerator 
 	public static String ExecCommandString(String[]... cmds) throws Exception {
@@ -38,12 +41,12 @@ public class GtSubProc {
 	}
 
 	public static boolean ExecCommandBool(String[]... cmds) throws Exception {
-		int option = returnable;
+		int option = returnable | printable;
 		return runCommands(cmds, option).bool;
 	}
 
 	public static void ExecCommandVoid(String[]... cmds) throws Exception {
-		int option = throwable | enableTrace;
+		int option = printable | throwable | enableTrace;
 		runCommands(cmds, option);
 	}
 	//---------------------------------------------
@@ -101,11 +104,13 @@ public class GtSubProc {
 		else {
 			proc = new SubProc(enableSyscallTrace);
 			proc.setArgument(cmds);
+			prevSubProc = (SubProc) proc;
 		}
 		return proc;
 	}
 	
 	private static RetPair runCommands(String[][] cmds, int option) throws Exception {
+		prevSubProc = null;
 		// prepare shell option
 		int size = 0;
 		long timeout = -1;
@@ -161,7 +166,7 @@ public class GtSubProc {
 			}
 			return null;
 		}
-		subProcs[lastIndex].waitResult(is(option, returnable));
+		subProcs[lastIndex].waitResult(is(option, printable));
 		
 		// raise exception
 		exceptionRaiser.raiseException();
@@ -254,9 +259,13 @@ class PseudoProcess {
 }
 
 class SubProc extends PseudoProcess {
+	private final static int mergeErrorToOut = 0;
+	private final static int mergeOutToError = 1;
+	
 	public final static int traceBackend_strace = 0;
 	public final static int traceBackend_strace_plus = 1;
 	public static int traceBackendType = traceBackend_strace;
+	
 	private final static String logdirPath = "/tmp/strace-log";
 	private static int logId = 0;
 	
@@ -264,6 +273,7 @@ class SubProc extends PseudoProcess {
 	private boolean enableSyscallTrace = false;
 	public boolean isKilled = false;
 	public String logFilePath = null;
+	private int mergeType = -1;
 
 	private ByteArrayOutputStream outBuf;
 	private ByteArrayOutputStream errBuf;
@@ -330,8 +340,10 @@ class SubProc extends PseudoProcess {
 			}
 		}
 	}
-	
-	private void addCommand(String arg) {
+
+	@Override public void setArgument(String[] Args) {
+		String arg = Args[0];
+		this.cmdNameBuilder.append(arg + " ");
 		if(LibGreenTea.EqualsString(arg, "sudo")) {
 			int size = this.commandList.size();
 			ArrayList<String> newCommandList = new ArrayList<String>();
@@ -344,11 +356,14 @@ class SubProc extends PseudoProcess {
 		else {
 			this.commandList.add(arg);
 		}
+		
+		for(int i = 1; i < Args.length; i++) {
+			this.setArgument(Args[i]);
+		}
 	}
-	
-	@Override public void setArgument(String Arg) {
-		this.cmdNameBuilder.append(Arg + " ");
-		this.addCommand(Arg);
+
+	public void setMergeType(int mergeType) {
+		this.mergeType = mergeType;
 	}
 
 	@Override public void start() {
@@ -359,10 +374,20 @@ class SubProc extends PseudoProcess {
 		}
 
 		try {
-			this.proc = new ProcessBuilder(cmd).start();
+			ProcessBuilder procBuilder = new ProcessBuilder(cmd);
+			if(this.mergeType == mergeErrorToOut || this.mergeType == mergeOutToError) {
+				procBuilder.redirectErrorStream(true);
+			}
+			this.proc = procBuilder.start();
 			this.stdin = this.proc.getOutputStream();
-			this.stdout = this.proc.getInputStream();
-			this.stderr = this.proc.getErrorStream();
+			if(this.mergeType == mergeOutToError) {
+				this.stdout = this.proc.getErrorStream();
+				this.stderr = this.proc.getInputStream();
+			}
+			else {
+				this.stdout = this.proc.getInputStream();
+				this.stderr = this.proc.getErrorStream();
+			}
 		}
 		catch (IOException e) {
 			throw new RuntimeException(e);
@@ -400,14 +425,14 @@ class SubProc extends PseudoProcess {
 		}
 	}
 
-	@Override public void waitResult(boolean isExpr) {
-		if(isExpr) {
+	@Override public void waitResult(boolean isPrintable) {
+		if(isPrintable) {
+			handleOutputStream(System.out, System.err, false);
+		}
+		else {
 			outBuf = new ByteArrayOutputStream();
 			errBuf = new ByteArrayOutputStream();
 			handleOutputStream(outBuf, errBuf, true);
-		}
-		else {
-			handleOutputStream(System.out, System.err, false);
 		}
 	}
 

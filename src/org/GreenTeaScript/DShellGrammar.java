@@ -179,6 +179,19 @@ public class DShellGrammar extends GreenTeaUtils {
 		while(TokenContext.HasNext()) {
 			GtToken Token = TokenContext.GetToken();
 			if(Token.EqualsText("||") || Token.EqualsText("&&")) {
+				if(Argument.length() > 0) {
+					if(InputRedirect) {
+						AppendInRedirectTree(CommandTree, Argument);
+						InputRedirect = false;
+					}
+					else {
+						CommandLine.add(Argument);
+					}
+				}
+				if(CommandLine.size() > 0) {
+					SubTree.ParsedValue = CommandLine.toArray(new String[CommandLine.size()]);
+					CommandTree.AppendParsedTree2(SubTree);
+				}
 				/*local*/GtSyntaxPattern ExtendedPattern = TokenContext.GetExtendedPattern(NameSpace);
 				return GreenTeaUtils.ApplySyntaxPattern(NameSpace, TokenContext, CommandTree, ExtendedPattern);
 			}
