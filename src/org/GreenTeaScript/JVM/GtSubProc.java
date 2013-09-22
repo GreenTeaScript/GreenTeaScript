@@ -19,19 +19,17 @@ import java.util.Stack;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.GreenTeaScript.DShellGrammar;
 import org.GreenTeaScript.LibGreenTea;
 
+
 public class GtSubProc {
-	// option index
 	private static final int returnable = 1 << 0;
 	private static final int throwable = 1 << 1;
 	private static final int background = 1 << 2;
 	private static final int enableTrace = 1 << 3;
-	
 	
 	// called by VisitCommandNode at JavaByteCodeGenerator 
 	public static String ExecCommandString(String[]... cmds) throws Exception {
@@ -52,6 +50,17 @@ public class GtSubProc {
 
 	private static boolean checkTraceRequirements() {
 		if(System.getProperty("os.name").equals("Linux")) {
+//			boolean flag = DShellGrammar.IsUnixCommand("strace+") && 
+//					DShellGrammar.IsUnixCommand("pretty_print_strace_out.py");
+//			if(flag) {
+//				SubProc.traceBackendType = SubProc.traceBackend_strace_plus;
+//				return true;
+//			}
+//			else {
+//				SubProc.traceBackendType = SubProc.traceBackend_strace;
+//				return DShellGrammar.IsUnixCommand("strace");
+//			}
+			
 			return DShellGrammar.IsUnixCommand("strace");
 		}
 		return false;
@@ -220,9 +229,6 @@ class PseudoProcess {
 	public void waitFor() {
 	}
 
-	public void waitFor(long timeout) {
-	}
-
 	public void waitResult(boolean isExpr) {
 	}
 	
@@ -248,13 +254,15 @@ class PseudoProcess {
 }
 
 class SubProc extends PseudoProcess {
+	public final static int traceBackend_strace = 0;
+	public final static int traceBackend_strace_plus = 1;
+	public static int traceBackendType = traceBackend_strace;
 	private final static String logdirPath = "/tmp/strace-log";
 	private static int logId = 0;
-	private Process proc;
 	
+	private Process proc;
 	private boolean enableSyscallTrace = false;
 	public boolean isKilled = false;
-
 	public String logFilePath = null;
 
 	private ByteArrayOutputStream outBuf;
@@ -288,6 +296,10 @@ class SubProc extends PseudoProcess {
 		return logNameHeader.toString();
 	}
 	
+	public static void deleteLogFile(String logFilePath) {
+		new File(logFilePath).delete();
+	}
+	
 	public SubProc(boolean enableSyscallTrace) {
 		super();
 		this.enableSyscallTrace = enableSyscallTrace;
@@ -299,10 +311,22 @@ class SubProc extends PseudoProcess {
 			String currentLogdirPath = createLogDirectory();
 			String logNameHeader = createLogNameHeader();
 			logFilePath = new String(currentLogdirPath + "/" + logNameHeader + ".log");
+
+			String[] traceCmd;
+			if(traceBackendType == traceBackend_strace) {
+				String[] backend_strace = {"strace", "-t", "-f", "-F", "-o", logFilePath};
+				traceCmd = backend_strace;
+			}
+			else if(traceBackendType == traceBackend_strace_plus) {
+				String[] backend_strace_plus = {"strace+", "-k", "-t", "-f", "-F", "-o", logFilePath};
+				traceCmd = backend_strace_plus;
+			}
+			else {
+				throw new RuntimeException("invalid trace backend type");
+			}
 			
-			String[] straceCmd = {"strace", "-t", "-f", "-F", "-o", logFilePath};
-			for(int i = 0; i < straceCmd.length; i++) {
-				this.commandList.add(straceCmd[i]);
+			for(int i = 0; i < traceCmd.length; i++) {
+				this.commandList.add(traceCmd[i]);
 			}
 		}
 	}
@@ -401,23 +425,6 @@ class SubProc extends PseudoProcess {
 		}
 		catch (InterruptedException e) {
 			e.printStackTrace();
-		}
-	}
-
-	@Override public void waitFor(long timeout) {
-		try {
-			this.proc.exitValue();
-		}
-		catch (IllegalThreadStateException e) {
-			try {
-				Thread.sleep(timeout);
-			}
-			catch (InterruptedException e1) {
-				e1.printStackTrace();
-			} 
-			finally {
-				this.kill();
-			}
 		}
 	}
 
@@ -550,80 +557,32 @@ class PipeStreamHandler extends Thread {
 	}
 }
 
-class ShellExceptionRaiser {
-	private ArrayList<PseudoProcess> procList;
-	private boolean enableException;
+class ErrorInferencer {
+	private static final Pattern failedSyscallFilter = Pattern.compile("^[1-9][0-9]* .+(.+) *= *-[1-9].+");
+	private static final Pattern gettextFilter = Pattern.compile("^.+(.+/locale.+).+");
+	private static final Pattern gconvFilter = Pattern.compile("^.+(.+/usr/lib64/gconv.+).+");
+	private int traceBackendType;
 	
-	public ShellExceptionRaiser(boolean enableException) {
-		this.enableException = enableException;
-		this.procList = new ArrayList<PseudoProcess>();
+	public ErrorInferencer(int traceBackendType) {
+		this.traceBackendType = traceBackendType;
 	}
-
-	public void setProcess(PseudoProcess kproc) {
-		this.procList.add(kproc);
+	
+	private boolean applyFilter(Pattern filter, String line) {
+		return filter.matcher(line).find();
 	}
-
-	public void raiseException() throws Exception {
-		int size = procList.size();
-		for(int i = 0; i < size; i++) {
-			PseudoProcess targetProc = procList.get(i);
-			targetProc.waitFor();
-			
-			if(!this.enableException) {
-				continue;
-			}
-			
-			// throw exception
-			String message = targetProc.getCmdName();
-			if(targetProc.isTraced() && targetProc instanceof SubProc) {	// infer systemcall error
-				SubProc castedProc = (SubProc)targetProc;
-				String logFilePath = castedProc.getLogFilePath();
-				if(targetProc.getRet() != 0) {
-					Stack<String[]> syscallStack = parseTraceLog(logFilePath);
-					deleteLogFile(logFilePath);
-					throw createException(message, syscallStack.peek());
-				}
-				deleteLogFile(logFilePath);
-			}
-			else {
-				if(targetProc.getRet() != 0) {
-					throw new Exception(message);
-				}
-			}
-		}
-	}
-
-	private void deleteLogFile(String logFilePath) {
-		new File(logFilePath).delete();
-	}
-
-	private Stack<String[]> parseTraceLog(String logFilePath) {
+	
+	private Stack<String[]> parseStraceLog(String logFilePath) {
 		try {
 			Stack<String[]> syscallStack = new Stack<String[]>();
 			BufferedReader br = new BufferedReader(new FileReader(logFilePath));
-			
-			String regex1 = "^[1-9][0-9]* .+(.+) *= *-[1-9].+";
-			Pattern p1 = Pattern.compile(regex1);
-			
-			String regex2 = "^.+(.+/locale.+).+";
-			Pattern p2 = Pattern.compile(regex2);
-			
-			String regex3 = "(^[1-9][0-9]*)( *)([0-9][0-9]:[0-9][0-9]:[0-9][0-9])( *)(.+)";
-			Pattern p3 = Pattern.compile(regex3);
-			
-			Matcher m1, m2, m3;
-			
 			String line;
 			while((line = br.readLine()) != null) {
-				m1 = p1.matcher(line);
-				m2 = p2.matcher(line);
-				if(m1.find() && !m2.find()) {
-					m3 = p3.matcher(line);
-					syscallStack.push(parseLine(m3.replaceAll("$5")));
+				if(applyFilter(failedSyscallFilter, line) && 
+						!applyFilter(gettextFilter, line) && !applyFilter(gconvFilter, line)) {
+					syscallStack.push(parseLine(line));
 				}
 			}
 			br.close();
-			
 			return syscallStack;
 		} 
 		catch (FileNotFoundException e) {
@@ -633,9 +592,83 @@ class ShellExceptionRaiser {
 			throw new RuntimeException(e);
 		}
 	}
+	
+	private String getFullExcutablePath(String executableFile) {
+		String[] path = System.getenv("PATH").split(":");
+		int i = 0;
+		while(i < path.length) {
+			String fullPath = path[i] + "/" + executableFile;
+			if(new File(fullPath).exists()) {
+				return fullPath;
+			}
+			i = i + 1;
+		}
+		return null;
+	}
+	
+	private String createShapedLog(String logPath) {
+		StringBuilder cmdBuilder = new StringBuilder();
+		String shapedLogPath = logPath + "-shaped.log";
+		String scriptPath = getFullExcutablePath("pretty_print_strace_out.py");
+		
+		cmdBuilder.append("\"");
+		cmdBuilder.append("python");
+		cmdBuilder.append(" " + scriptPath + " " + logPath + " --trace > ");
+		cmdBuilder.append(shapedLogPath);
+		cmdBuilder.append("\"");
+		String[] cmds = {"bash", "-c", cmdBuilder.toString()};
+		try {
+			Process launcher = new ProcessBuilder(cmds).start();
+			launcher.waitFor();
+		} 
+		catch (IOException e) {
+			throw new RuntimeException(e);
+		} 
+		catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+		return shapedLogPath;
+	}
+	
+	private Stack<String[]> parseStracePlusLog(String logFilePath) {
+		try {
+			String newLogFilePath = createShapedLog(logFilePath);
+			Stack<String[]> syscallStack = new Stack<String[]>();
+			BufferedReader br = new BufferedReader(new FileReader(newLogFilePath));
+			String line;
+			while((line = br.readLine()) != null) {
+				if(applyFilter(failedSyscallFilter, line) && 
+						!applyFilter(gettextFilter, line) && !applyFilter(gconvFilter, line)) {
+					syscallStack.push(parseLine(line));
+				}
+			}
+			br.close();
+			SubProc.deleteLogFile(newLogFilePath);
+			return syscallStack;
+		} 
+		catch (FileNotFoundException e) {
+			throw new RuntimeException(e);
+		} 
+		catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	private Stack<String[]> parseTraceLog(String logFilePath) {
+		if(traceBackendType == SubProc.traceBackend_strace) {
+			return parseStraceLog(logFilePath);
+		}
+		else if(traceBackendType == SubProc.traceBackend_strace_plus) {
+			return parseStracePlusLog(logFilePath);
+		}
+		else {
+			throw new RuntimeException("invalid trace backend type");
+		}
+	}
 
 	private String[] parseLine(String syscallLine) {
 		int p = 0;
+		int headCount = 0;
 		int openBracketCount = 0;
 		int closeBracketCount = 0;
 		String[] parsedSyscall = new String[3];
@@ -659,7 +692,14 @@ class ShellExceptionRaiser {
 				}
 				break;
 			default:
-				sBuilder.append(token);
+				if(headCount < 2 && token == ' ') {
+					if(i + 1 < syscallLine.length() && syscallLine.charAt(i + 1) != ' ') {
+						headCount++;
+					}
+				} 
+				else {
+					sBuilder.append(token);
+				}
 				break;
 			}
 		}
@@ -670,6 +710,54 @@ class ShellExceptionRaiser {
 		parsedSyscall[2] = splitStrings[2];
 
 		return parsedSyscall;
+	}
+	
+	public String[] doInference(String traceLogPath) {
+		Stack<String[]> syscallStack = this.parseTraceLog(traceLogPath);
+		return syscallStack.peek();
+	}
+}
+
+class ShellExceptionRaiser {
+	private ArrayList<PseudoProcess> procList;
+	private boolean enableException;
+	
+	public ShellExceptionRaiser(boolean enableException) {
+		this.enableException = enableException;
+		this.procList = new ArrayList<PseudoProcess>();
+	}
+
+	public void setProcess(PseudoProcess kproc) {
+		this.procList.add(kproc);
+	}
+
+	public void raiseException() throws Exception {
+		int size = procList.size();
+		for(int i = 0; i < size; i++) {
+			PseudoProcess targetProc = procList.get(i);
+			targetProc.waitFor();
+			
+			if(!this.enableException) {
+				continue;
+			}
+			String message = targetProc.getCmdName();
+			if(targetProc.isTraced() && targetProc instanceof SubProc) {
+				SubProc castProc = (SubProc)targetProc;
+				String logFilePath = castProc.getLogFilePath();
+				if(targetProc.getRet() != 0) {
+					ErrorInferencer inferencer = new ErrorInferencer(SubProc.traceBackendType);
+					String[] inferedSyscall = inferencer.doInference(logFilePath);
+					SubProc.deleteLogFile(logFilePath);
+					throw createException(message, inferedSyscall);
+				}
+				SubProc.deleteLogFile(logFilePath);
+			}
+			else {
+				if(targetProc.getRet() != 0) {
+					throw new Exception(message);
+				}
+			}
+		}
 	}
 
 	private Exception createException(String message, String[] syscall) throws Exception {
