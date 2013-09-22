@@ -166,16 +166,26 @@ public class DShellGrammar extends GreenTeaUtils {
 		return CommandTree;
 	}
 
+	private static void AppendInRedirectTree(GtSyntaxTree CommandTree, String TargetName) {
+		/*local*/GtToken Token = new GtToken("<", CommandTree.KeyToken.FileLine);
+		/*local*/GtSyntaxTree SubTree = new GtSyntaxTree(CommandTree.Pattern, CommandTree.NameSpace, Token, null);
+		String[] Value = {"<", TargetName};
+		SubTree.ParsedValue = Value;
+		CommandTree.AppendParsedTree2(SubTree);
+	}
+
 	public static GtSyntaxTree ParseDShell(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		/*local*/GtToken CommandToken = TokenContext.Next();
+		/*local*/GtToken CommandToken = TokenContext.GetToken();
 		/*local*/GtSyntaxTree CommandTree = new GtSyntaxTree(Pattern, NameSpace, CommandToken, null);
 		/*local*/String Command = (/*cast*/String)NameSpace.GetSymbol(CommandSymbol(CommandToken.ParsedText));
 		if(Command == null) {
 			//TODO()
 		}
+		/*local*/GtSyntaxTree SubTree = new GtSyntaxTree(Pattern, NameSpace, CommandToken, null);
 		/*local*/ArrayList<String> CommandLine = new ArrayList<String>();
 		/*local*/String Argument = "";
 		/*local*/boolean FoundOpen = false;
+		/*local*/boolean InputRedirect = false;
 		while(TokenContext.HasNext()) {
 			GtToken Token = TokenContext.GetToken();
 			if(Token.EqualsText("||") || Token.EqualsText("&&")) {
@@ -206,13 +216,56 @@ public class DShellGrammar extends GreenTeaUtils {
 					continue;
 				}
 			}
+			
+			if(!FoundOpen && Token.PresetPattern == null && Token.EqualsText("<")) {
+				if(Argument.length() > 0) {
+					CommandLine.add(Argument);
+					Argument = "";
+				}
+				InputRedirect = true;
+				continue;
+			}
+			if(!FoundOpen && Token.PresetPattern == null && 
+					(Token.EqualsText("|") || Token.EqualsText(">") || Token.EqualsText("&"))) {
+				if(Argument.length() > 0) {
+					if(InputRedirect) {
+						AppendInRedirectTree(CommandTree, Argument);
+						InputRedirect = false;
+					}
+					else {
+						CommandLine.add(Argument);
+					}
+					Argument = "";
+				}
+				SubTree.ParsedValue = CommandLine.toArray(new String[CommandLine.size()]);
+				CommandTree.AppendParsedTree2(SubTree);
+				CommandLine = new ArrayList<String>();
+				SubTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetToken(), null);
+				if(Token.EqualsText(">")) {
+					SubTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
+					CommandLine.add(Token.ParsedText);
+				}
+				if(Token.EqualsText("&")) {
+					SubTree.KeyToken = Token;
+					/*local*/String[] BackGround = {"set", "background"};
+					SubTree.ParsedValue = BackGround ;
+					CommandTree.AppendParsedTree2(SubTree);
+					SubTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetToken(), null);
+				}
+				continue;
+			}
+			
 			/*local*/String ParsedText = Token.ParsedText;
 			if(Token.PresetPattern != null && Token.PresetPattern.EqualsName("$StringLiteral$")) {
 				ParsedText = LibGreenTea.UnquoteString(ParsedText);
 			}
 			if(!FoundOpen && Token.IsNextWhiteSpace() ) {
 				if(Argument.length() > 0) {
-					CommandLine.add((Argument + ParsedText));
+					ParsedText = Argument + ParsedText;
+				}
+				if(InputRedirect) {
+					AppendInRedirectTree(CommandTree, ParsedText);
+					InputRedirect = false;
 				}
 				else {
 					CommandLine.add(ParsedText);
@@ -224,67 +277,70 @@ public class DShellGrammar extends GreenTeaUtils {
 			}
 		}
 		if(Argument.length() > 0) {
-			CommandLine.add(Argument);
+			if(InputRedirect) {
+				AppendInRedirectTree(CommandTree, Argument);
+				InputRedirect = false;
+			}
+			else {
+				CommandLine.add(Argument);
+			}
 		}
-		CommandTree.ParsedValue = CommandLine.toArray(new String[CommandLine.size()]);
+		if(CommandLine.size() > 0) {
+			SubTree.ParsedValue = CommandLine.toArray(new String[CommandLine.size()]);
+			CommandTree.AppendParsedTree2(SubTree);
+		}
 		return CommandTree;
 	}
 
 	public static GtNode TypeDShell(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		/*local*/String[] CommandLine = (/*cast*/String[])ParsedTree.ParsedValue;
-		return DShellGrammar.GenerateCommandNode(Gamma, ParsedTree, ContextType, ParsedTree.KeyToken.ParsedText, 0, CommandLine);
-	}
-
-	private static GtNode GenerateCommandNode(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType, String Command, int StartIndex, String[] CommandLine) {
-		/*local*/CommandNode Node = (/*cast*/CommandNode) Gamma.Generator.CreateCommandNode(Gamma.VoidType, ParsedTree, null);
-		/*local*/CommandNode InRedirectNode = null;
+		/*local*/GtType Type = Gamma.VoidType;
 		if(ContextType.IsStringType() || ContextType.IsBooleanType()) {
-			Node.Type = ContextType;
+			Type = ContextType;
 		}
-		Node.Append(Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, Command));
-		int i = StartIndex;
-		while(i < CommandLine.length) {
-			String Argument = CommandLine[i];
-			if(Argument.indexOf("${") != -1) {
-				/*local*/String Text = "\"" + Argument + "\"";
-				/*local*/GtTokenContext TokenContext = new GtTokenContext(Gamma.NameSpace, Text, Node.Token.FileLine);
-				/*local*/GtSyntaxTree TopLevelTree = TokenContext.ParsePattern(Gamma.NameSpace, "$Expression$", Required);
-				/*local*/GtNode ExprNode = TopLevelTree.TypeCheck(Gamma, Gamma.StringType, DefaultTypeCheckPolicy);
-				Node.Append(ExprNode);
-			}
-			else if(Argument.indexOf("*") != -1) {
-				String[] ExpandedArguments = DShellGrammar.ExpandPath(Argument);
-				int j = 0;
-				while(j < ExpandedArguments.length) {
-					Node.Append(Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, ExpandedArguments[j]));
-					j = j + 1;
+		/*local*/CommandNode Node = null;
+		/*local*/CommandNode PrevNode = null;
+		/*local*/int Index = 0;
+		/*local*/int SubTreeSize = LibGreenTea.ListSize(ParsedTree.SubTreeList);
+		while(Index < SubTreeSize) {
+			/*local*/GtSyntaxTree SubTree = ParsedTree.SubTreeList.get(Index);
+			/*local*/CommandNode CurrentNode = (/*cast*/CommandNode) Gamma.Generator.CreateCommandNode(Type, SubTree, null);
+			String[] CommandLine = (/*cast*/String[]) SubTree.ParsedValue;
+			int i = 0;
+			while(i < CommandLine.length) {
+				String Argument = CommandLine[i];
+				if(Argument.indexOf("${") != -1) {
+					/*local*/String Text = "\"" + Argument + "\"";
+					/*local*/GtTokenContext TokenContext = new GtTokenContext(Gamma.NameSpace, Text, CurrentNode.Token.FileLine);
+					/*local*/GtSyntaxTree TopLevelTree = TokenContext.ParsePattern(Gamma.NameSpace, "$Expression$", Required);
+					/*local*/GtNode ExprNode = TopLevelTree.TypeCheck(Gamma, Gamma.StringType, DefaultTypeCheckPolicy);
+					CurrentNode.Append(ExprNode);
 				}
-				if(ExpandedArguments.length == 0) {
-					Gamma.Context.ReportError(InfoLevel, ParsedTree.KeyToken, "no file: " + Argument);
+				else if(Argument.indexOf("*") != -1) {
+					String[] ExpandedArguments = DShellGrammar.ExpandPath(Argument);
+					int j = 0;
+					while(j < ExpandedArguments.length) {
+						CurrentNode.Append(Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, ExpandedArguments[j]));
+						j = j + 1;
+					}
+					if(ExpandedArguments.length == 0) {
+						Gamma.Context.ReportError(InfoLevel, ParsedTree.KeyToken, "no file: " + Argument);
+					}
 				}
-			}
-			else if(LibGreenTea.EqualsString(Argument, "|")) {
-				Node.PipedNextNode = DShellGrammar.GenerateCommandNode(Gamma, ParsedTree, ContextType, CommandLine[i + 1], i + 2, CommandLine);
-				break;
-			}
-			else if(LibGreenTea.EqualsString(Argument, "<")) {
-				InRedirectNode = (/*cast*/CommandNode) Gamma.Generator.CreateCommandNode(Gamma.VoidType, ParsedTree, null);
-				InRedirectNode.Append(Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, CommandLine[i]));
-				InRedirectNode.Append(Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, CommandLine[i + 1]));
+				else {
+					CurrentNode.Append(Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, CommandLine[i]));
+				}
 				i += 1;
 			}
-			else if(LibGreenTea.EqualsString(Argument, ">")) {
-				Node.PipedNextNode = DShellGrammar.GenerateCommandNode(Gamma, ParsedTree, ContextType, CommandLine[i], i + 1, CommandLine);
-				break;
+			
+			if(Node == null) {
+				Node = CurrentNode;
+				PrevNode = CurrentNode;
 			}
 			else {
-				Node.Append(Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, CommandLine[i]));
+				PrevNode.PipedNextNode = CurrentNode;
+				PrevNode = CurrentNode;
 			}
-			i += 1;
-		}
-		if(InRedirectNode != null) {
-			InRedirectNode.PipedNextNode = Node;
-			return InRedirectNode;
+			Index += 1;
 		}
 		return Node;
 	}
