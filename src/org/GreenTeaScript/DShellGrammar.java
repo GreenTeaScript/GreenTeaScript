@@ -70,6 +70,16 @@ public class DShellGrammar extends GreenTeaUtils {
 		return new File(Path).canExecute();
 	}
 	
+	public final static String[] ExpandPath(String Path) {
+		/*local*/int Index = Path.indexOf("*");
+		/*local*/String NewPath = LibGreenTea.SubString(Path, 0, Index);
+		/*local*/String[] ExpanddedPaths = new File(NewPath).list();
+		if(ExpanddedPaths != null) {
+			return ExpanddedPaths;
+		}
+		return new String[0];
+	}
+	
 	// Grammar 
 	private static String CommandSymbol(String Symbol) {
 		return "__$" + Symbol;
@@ -350,6 +360,7 @@ public class DShellGrammar extends GreenTeaUtils {
 				if(Path.length() > 0) {
 					Token.ParsedText += Token2.ParsedText;
 					/*local*/GtSyntaxTree Tree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
+					
 //					Tree.ParsedValue = EvalFileOp(Token.ParsedText, Path);
 
 					/*local*/GtSyntaxTree SubTree = new GtSyntaxTree(Pattern, NameSpace, Token2, null);
@@ -365,32 +376,112 @@ public class DShellGrammar extends GreenTeaUtils {
 		return Gamma.Generator.CreateConstNode(Gamma.BooleanType, ParsedTree, ParsedTree.ParsedValue);
 	}
 
-	public static String[] ExpandPath(String Path) {
-		/*local*/int Index = Path.indexOf("*");
-		/*local*/String NewPath = LibGreenTea.SubString(Path, 0, Index);
-		/*local*/String[] ExpanddedPaths = new File(NewPath).list();
-		if(ExpanddedPaths != null) {
-			return ExpanddedPaths;
+	public static GtSyntaxTree ParseFilePath(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtToken Token = TokenContext.Next();
+		boolean HasStringExpr = false;
+		String Path = null;
+		if(Token.IsIndent() || StopTokens.indexOf(Token.ParsedText) != -1) {
+			return null;
 		}
-		return new String[0];
+		else if(Token.IsQuoted()) {
+			Path = LibGreenTea.UnquoteString(Token.ParsedText);
+			if(Path.indexOf("${") != -1) {
+				HasStringExpr = true;
+			}
+		}
+		else if(Token.IsNextWhiteSpace()) {
+			Path = Token.ParsedText;
+		}
+		if(Path == null) {
+			boolean FoundOpen = false;
+			Path = Token.ParsedText;
+			while(TokenContext.HasNext()) {
+				Token = TokenContext.GetToken();
+				if(Token.IsIndent() || (!FoundOpen && StopTokens.indexOf(Token.ParsedText) != -1)) {
+					break;
+				}
+				TokenContext.Next();
+				if(Token.EqualsText("$")) {   // $HOME/hoge
+					GtToken Token2 = TokenContext.GetToken();
+					if(LibGreenTea.IsVariableName(Token2.ParsedText, 0)) {
+						Object Env = NameSpace.GetSymbol(Token2.ParsedText);
+						if(Env instanceof String) {
+							Path += Env.toString();	
+						}
+						else {
+							Path += "${" + Token2.ParsedText + "}";
+							HasStringExpr = true;
+						}
+						TokenContext.Next();
+						continue;
+					}
+				}
+				if(Token.EqualsText("{")) {
+					HasStringExpr = true;
+					FoundOpen = true;
+				}
+				if(Token.EqualsText("}")) {
+					FoundOpen = false;
+				}
+				Path += Token.ParsedText;
+				if(!FoundOpen && Token.IsNextWhiteSpace()) {
+					break;
+				}
+			}
+		}
+		if(!HasStringExpr) {
+			GtSyntaxTree PathTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
+			PathTree.ToConstTree(Path);
+			return PathTree;
+		}
+		else {
+			Path = "\"" + Path + "\"";
+			Path = Path.replaceAll("\\$\\{", "\" + (");
+			Path = Path.replaceAll("\\}", ") + \"");
+			System.err.println("debug: " + Path);
+			/*local*/GtTokenContext LocalContext = new GtTokenContext(NameSpace, Path, Token.FileLine);
+			return LocalContext.ParsePattern(NameSpace, "$Expression$", Required);
+		}
+	}
+		
+	public static GtSyntaxTree ParseFileOperator(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtToken Token = TokenContext.Next();   // "-"
+		/*local*/GtToken Token2 = TokenContext.Next();  // "f"
+		if(!Token.IsNextWhiteSpace()) {
+			if(FileOperators.indexOf(Token2.ParsedText) != -1) {
+				Token.ParsedText += Token2.ParsedText;  // join to "-f";
+				/*local*/GtSyntaxTree Tree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
+				Tree.SetMatchedPatternAt(UnaryTerm, NameSpace, TokenContext, "$FilePath$", Required);
+				return Tree;
+			}
+		}
+		return null;
 	}
 
-//	@Override public void LoadTo(GtNameSpace NameSpace) {
-//		/*local*/GtParserContext ParserContext = NameSpace.Context;
-//		NameSpace.AppendSyntax("-", LoadParseFunc(ParserContext, this, "ParseOpFile"), LoadTypeFunc(ParserContext, this, "TypeOpFile"));
-//		NameSpace.AppendSyntax("letenv", LoadParseFunc(ParserContext, this, "ParseEnv"), null);
-//		NameSpace.AppendSyntax("command", LoadParseFunc(ParserContext, this, "ParseCommand"), null);
-//		NameSpace.AppendSyntax("$DShell$", LoadParseFunc(ParserContext, this, "ParseDShell"), LoadTypeFunc(ParserContext, this, "TypeDShell"));
-//	}
+	public static GtNode TypeFileOperator(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+		/*local*/GtNode ExprNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, Gamma.StringType, DefaultTypeCheckPolicy);
+		if(!ExprNode.IsError()) {
+			/*local*/String OperatorSymbol = ParsedTree.KeyToken.ParsedText;
+			/*local*/GtPolyFunc PolyFunc = Gamma.NameSpace.GetMethod(Gamma.StringType, SafeFuncName(OperatorSymbol), true);
+			/*local*/GtFunc ResolvedFunc = PolyFunc.ResolveUnaryFunc(Gamma, ParsedTree, ExprNode);
+			LibGreenTea.Assert(ResolvedFunc != null);
+			/*local*/GtNode ApplyNode =  Gamma.Generator.CreateApplyNode(ResolvedFunc.GetReturnType(), ParsedTree, ResolvedFunc);
+			ApplyNode.Append(ExprNode);  // dummpy
+			ApplyNode.Append(ExprNode);
+			return ApplyNode;
+		}
+		return ExprNode;
+	}
 
 //ifdef JAVA
 	// this is a new interface used in ImportNativeObject
 	public static void ImportGrammar(GtNameSpace NameSpace, Class<?> GrammarClass) {
 		/*local*/GtParserContext ParserContext = NameSpace.Context;
-		NameSpace.AppendSyntax("-", LoadParseFunc2(ParserContext, GrammarClass, "ParseOpFile"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeOpFile"));
 		NameSpace.AppendSyntax("letenv", LoadParseFunc2(ParserContext, GrammarClass, "ParseEnv"), null);
 		NameSpace.AppendSyntax("command", LoadParseFunc2(ParserContext, GrammarClass, "ParseCommand"), null);
+		NameSpace.AppendSyntax("-", LoadParseFunc2(ParserContext, GrammarClass, "ParseFileOperator"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeFileOperator"));
 		NameSpace.AppendSyntax("$DShell$", LoadParseFunc2(ParserContext, GrammarClass, "ParseDShell"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeDShell"));
+		NameSpace.AppendSyntax("$FilePath$", LoadParseFunc2(ParserContext, GrammarClass, "ParseFilePath"), null);
 	}
 //endif VAJA
 }
