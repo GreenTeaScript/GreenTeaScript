@@ -26,28 +26,34 @@ import org.GreenTeaScript.LibGreenTea;
 
 
 public class GtSubProc {
+	// option flag
 	private static final int returnable = 1 << 0;
 	private static final int printable = 1 << 1;
 	private static final int throwable = 1 << 2;
 	private static final int background = 1 << 3;
 	private static final int enableTrace = 1 << 4;
 	
+	// return type
+	private static final int VoidType = 0;
+	private static final int BooleanType = 1;
+	private static final int StringType = 2;
+	
 	private static SubProc prevSubProc = null;
 	
-	// called by VisitCommandNode at JavaByteCodeGenerator 
+	// called by JavaByteCodeGenerator.VisitCommandNode 
 	public static String ExecCommandString(String[]... cmds) throws Exception {
 		int option = returnable | throwable | enableTrace;
-		return runCommands(cmds, option).str;
+		return (String) runCommands(cmds, option, StringType);
 	}
 
 	public static boolean ExecCommandBool(String[]... cmds) throws Exception {
 		int option = returnable | printable;
-		return runCommands(cmds, option).bool;
+		return ((Boolean) runCommands(cmds, option, BooleanType)).booleanValue();
 	}
 
 	public static void ExecCommandVoid(String[]... cmds) throws Exception {
 		int option = printable | throwable | enableTrace;
-		runCommands(cmds, option);
+		runCommands(cmds, option, VoidType);
 	}
 	//---------------------------------------------
 
@@ -109,7 +115,7 @@ public class GtSubProc {
 		return proc;
 	}
 	
-	private static RetPair runCommands(String[][] cmds, int option) throws Exception {
+	private static Object runCommands(String[][] cmds, int option, int retType) throws Exception {
 		prevSubProc = null;
 		// prepare shell option
 		int size = 0;
@@ -172,19 +178,15 @@ public class GtSubProc {
 		exceptionRaiser.raiseException();
 		
 		// get result value
-		String stdout = subProcs[lastIndex].getStdout();
-		boolean ret = (subProcs[lastIndex].getRet() == 0);
-		return new RetPair(stdout, ret);
-	}
-}
-
-class RetPair {
-	public String str;
-	public boolean bool;
-
-	public RetPair(String str, boolean bool) {
-		this.str = str;
-		this.bool = bool;
+		if(is(option, returnable)) {
+			if(retType == StringType) {
+				return subProcs[lastIndex].getStdout();
+			}
+			else if(retType == BooleanType) {
+				return new Boolean(subProcs[lastIndex].getRet() == 0);
+			}
+		}
+		return null;
 	}
 }
 
@@ -692,8 +694,8 @@ class ErrorInferencer {
 	}
 
 	private String[] parseLine(String syscallLine) {
-		int p = 0;
-		int headCount = 0;
+		int index = 0;
+		int whiteSpaceCount = 0;
 		int openBracketCount = 0;
 		int closeBracketCount = 0;
 		String[] parsedSyscall = new String[3];
@@ -705,21 +707,21 @@ class ErrorInferencer {
 			switch(token) {
 			case '(':
 				if(openBracketCount++ == 0) {
-					parsedSyscallTemp[p++] = new String(sBuilder.toString());
+					parsedSyscallTemp[index++] = new String(sBuilder.toString());
 					sBuilder = new StringBuilder();
 				}
 				break;
 			case ')':
 				if(openBracketCount == ++closeBracketCount) {
-					parsedSyscallTemp[p++] = new String(sBuilder.toString());
+					parsedSyscallTemp[index++] = new String(sBuilder.toString());
 					sBuilder = new StringBuilder();
 					openBracketCount = closeBracketCount = 0;
 				}
 				break;
 			default:
-				if(headCount < 2 && token == ' ') {
+				if(whiteSpaceCount < 2 && token == ' ') {
 					if(i + 1 < syscallLine.length() && syscallLine.charAt(i + 1) != ' ') {
-						headCount++;
+						whiteSpaceCount++;
 					}
 				} 
 				else {
