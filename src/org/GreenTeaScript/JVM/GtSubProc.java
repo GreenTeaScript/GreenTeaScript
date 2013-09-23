@@ -19,39 +19,57 @@ import java.util.Stack;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.GreenTeaScript.DShellGrammar;
 import org.GreenTeaScript.LibGreenTea;
 
+
 public class GtSubProc {
-	// option index
+	// option flag
 	private static final int returnable = 1 << 0;
-	private static final int throwable = 1 << 1;
-	private static final int background = 1 << 2;
-	private static final int enableTrace = 1 << 3;
+	private static final int printable = 1 << 1;
+	private static final int throwable = 1 << 2;
+	private static final int background = 1 << 3;
+	private static final int enableTrace = 1 << 4;
 	
+	// return type
+	private static final int VoidType = 0;
+	private static final int BooleanType = 1;
+	private static final int StringType = 2;
 	
-	// called by VisitCommandNode at JavaByteCodeGenerator 
+	private static SubProc prevSubProc = null;
+	
+	// called by JavaByteCodeGenerator.VisitCommandNode 
 	public static String ExecCommandString(String[]... cmds) throws Exception {
 		int option = returnable | throwable | enableTrace;
-		return runCommands(cmds, option).str;
+		return (String) runCommands(cmds, option, StringType);
 	}
 
 	public static boolean ExecCommandBool(String[]... cmds) throws Exception {
-		int option = returnable;
-		return runCommands(cmds, option).bool;
+		int option = returnable | printable;
+		return ((Boolean) runCommands(cmds, option, BooleanType)).booleanValue();
 	}
 
 	public static void ExecCommandVoid(String[]... cmds) throws Exception {
-		int option = throwable | enableTrace;
-		runCommands(cmds, option);
+		int option = printable | throwable | enableTrace;
+		runCommands(cmds, option, VoidType);
 	}
 	//---------------------------------------------
 
 	private static boolean checkTraceRequirements() {
 		if(System.getProperty("os.name").equals("Linux")) {
+//			boolean flag = DShellGrammar.IsUnixCommand("strace+") && 
+//					DShellGrammar.IsUnixCommand("pretty_print_strace_out.py");
+//			if(flag) {
+//				SubProc.traceBackendType = SubProc.traceBackend_strace_plus;
+//				return true;
+//			}
+//			else {
+//				SubProc.traceBackendType = SubProc.traceBackend_strace;
+//				return DShellGrammar.IsUnixCommand("strace");
+//			}
+			
 			return DShellGrammar.IsUnixCommand("strace");
 		}
 		return false;
@@ -92,11 +110,13 @@ public class GtSubProc {
 		else {
 			proc = new SubProc(enableSyscallTrace);
 			proc.setArgument(cmds);
+			prevSubProc = (SubProc) proc;
 		}
 		return proc;
 	}
 	
-	private static RetPair runCommands(String[][] cmds, int option) throws Exception {
+	private static Object runCommands(String[][] cmds, int option, int retType) throws Exception {
+		prevSubProc = null;
 		// prepare shell option
 		int size = 0;
 		long timeout = -1;
@@ -152,25 +172,21 @@ public class GtSubProc {
 			}
 			return null;
 		}
-		subProcs[lastIndex].waitResult(is(option, returnable));
+		subProcs[lastIndex].waitResult(is(option, printable));
 		
 		// raise exception
 		exceptionRaiser.raiseException();
 		
 		// get result value
-		String stdout = subProcs[lastIndex].getStdout();
-		boolean ret = (subProcs[lastIndex].getRet() == 0);
-		return new RetPair(stdout, ret);
-	}
-}
-
-class RetPair {
-	public String str;
-	public boolean bool;
-
-	public RetPair(String str, boolean bool) {
-		this.str = str;
-		this.bool = bool;
+		if(is(option, returnable)) {
+			if(retType == StringType) {
+				return subProcs[lastIndex].getStdout();
+			}
+			else if(retType == BooleanType) {
+				return new Boolean(subProcs[lastIndex].getRet() == 0);
+			}
+		}
+		return null;
 	}
 }
 
@@ -220,9 +236,6 @@ class PseudoProcess {
 	public void waitFor() {
 	}
 
-	public void waitFor(long timeout) {
-	}
-
 	public void waitResult(boolean isExpr) {
 	}
 	
@@ -248,14 +261,21 @@ class PseudoProcess {
 }
 
 class SubProc extends PseudoProcess {
+	private final static int mergeErrorToOut = 0;
+	private final static int mergeOutToError = 1;
+	
+	public final static int traceBackend_strace = 0;
+	public final static int traceBackend_strace_plus = 1;
+	public static int traceBackendType = traceBackend_strace;
+	
 	private final static String logdirPath = "/tmp/strace-log";
 	private static int logId = 0;
-	private Process proc;
 	
+	private Process proc;
 	private boolean enableSyscallTrace = false;
 	public boolean isKilled = false;
-
 	public String logFilePath = null;
+	private int mergeType = -1;
 
 	private ByteArrayOutputStream outBuf;
 	private ByteArrayOutputStream errBuf;
@@ -288,6 +308,10 @@ class SubProc extends PseudoProcess {
 		return logNameHeader.toString();
 	}
 	
+	public static void deleteLogFile(String logFilePath) {
+		new File(logFilePath).delete();
+	}
+	
 	public SubProc(boolean enableSyscallTrace) {
 		super();
 		this.enableSyscallTrace = enableSyscallTrace;
@@ -299,15 +323,29 @@ class SubProc extends PseudoProcess {
 			String currentLogdirPath = createLogDirectory();
 			String logNameHeader = createLogNameHeader();
 			logFilePath = new String(currentLogdirPath + "/" + logNameHeader + ".log");
+
+			String[] traceCmd;
+			if(traceBackendType == traceBackend_strace) {
+				String[] backend_strace = {"strace", "-t", "-f", "-F", "-o", logFilePath};
+				traceCmd = backend_strace;
+			}
+			else if(traceBackendType == traceBackend_strace_plus) {
+				String[] backend_strace_plus = {"strace+", "-k", "-t", "-f", "-F", "-o", logFilePath};
+				traceCmd = backend_strace_plus;
+			}
+			else {
+				throw new RuntimeException("invalid trace backend type");
+			}
 			
-			String[] straceCmd = {"strace", "-t", "-f", "-F", "-o", logFilePath};
-			for(int i = 0; i < straceCmd.length; i++) {
-				this.commandList.add(straceCmd[i]);
+			for(int i = 0; i < traceCmd.length; i++) {
+				this.commandList.add(traceCmd[i]);
 			}
 		}
 	}
-	
-	private void addCommand(String arg) {
+
+	@Override public void setArgument(String[] Args) {
+		String arg = Args[0];
+		this.cmdNameBuilder.append(arg + " ");
 		if(LibGreenTea.EqualsString(arg, "sudo")) {
 			int size = this.commandList.size();
 			ArrayList<String> newCommandList = new ArrayList<String>();
@@ -320,11 +358,14 @@ class SubProc extends PseudoProcess {
 		else {
 			this.commandList.add(arg);
 		}
+		
+		for(int i = 1; i < Args.length; i++) {
+			this.setArgument(Args[i]);
+		}
 	}
-	
-	@Override public void setArgument(String Arg) {
-		this.cmdNameBuilder.append(Arg + " ");
-		this.addCommand(Arg);
+
+	public void setMergeType(int mergeType) {
+		this.mergeType = mergeType;
 	}
 
 	@Override public void start() {
@@ -335,10 +376,20 @@ class SubProc extends PseudoProcess {
 		}
 
 		try {
-			this.proc = new ProcessBuilder(cmd).start();
+			ProcessBuilder procBuilder = new ProcessBuilder(cmd);
+			if(this.mergeType == mergeErrorToOut || this.mergeType == mergeOutToError) {
+				procBuilder.redirectErrorStream(true);
+			}
+			this.proc = procBuilder.start();
 			this.stdin = this.proc.getOutputStream();
-			this.stdout = this.proc.getInputStream();
-			this.stderr = this.proc.getErrorStream();
+			if(this.mergeType == mergeOutToError) {
+				this.stdout = this.proc.getErrorStream();
+				this.stderr = this.proc.getInputStream();
+			}
+			else {
+				this.stdout = this.proc.getInputStream();
+				this.stderr = this.proc.getErrorStream();
+			}
 		}
 		catch (IOException e) {
 			throw new RuntimeException(e);
@@ -376,14 +427,14 @@ class SubProc extends PseudoProcess {
 		}
 	}
 
-	@Override public void waitResult(boolean isExpr) {
-		if(isExpr) {
+	@Override public void waitResult(boolean isPrintable) {
+		if(isPrintable) {
+			handleOutputStream(System.out, System.err, false);
+		}
+		else {
 			outBuf = new ByteArrayOutputStream();
 			errBuf = new ByteArrayOutputStream();
 			handleOutputStream(outBuf, errBuf, true);
-		}
-		else {
-			handleOutputStream(System.out, System.err, false);
 		}
 	}
 
@@ -401,23 +452,6 @@ class SubProc extends PseudoProcess {
 		}
 		catch (InterruptedException e) {
 			e.printStackTrace();
-		}
-	}
-
-	@Override public void waitFor(long timeout) {
-		try {
-			this.proc.exitValue();
-		}
-		catch (IllegalThreadStateException e) {
-			try {
-				Thread.sleep(timeout);
-			}
-			catch (InterruptedException e1) {
-				e1.printStackTrace();
-			} 
-			finally {
-				this.kill();
-			}
 		}
 	}
 
@@ -550,6 +584,167 @@ class PipeStreamHandler extends Thread {
 	}
 }
 
+class ErrorInferencer {
+	private static final Pattern failedSyscallFilter = Pattern.compile("^[1-9][0-9]* .+(.+) *= *-[1-9].+");
+	private static final Pattern gettextFilter = Pattern.compile("^.+(.+/locale.+).+");
+	private static final Pattern gconvFilter = Pattern.compile("^.+(.+/usr/lib64/gconv.+).+");
+	private int traceBackendType;
+	
+	public ErrorInferencer(int traceBackendType) {
+		this.traceBackendType = traceBackendType;
+	}
+	
+	private boolean applyFilter(Pattern filter, String line) {
+		return filter.matcher(line).find();
+	}
+	
+	private Stack<String[]> parseStraceLog(String logFilePath) {
+		try {
+			Stack<String[]> syscallStack = new Stack<String[]>();
+			BufferedReader br = new BufferedReader(new FileReader(logFilePath));
+			String line;
+			while((line = br.readLine()) != null) {
+				if(applyFilter(failedSyscallFilter, line) && 
+						!applyFilter(gettextFilter, line) && !applyFilter(gconvFilter, line)) {
+					syscallStack.push(parseLine(line));
+				}
+			}
+			br.close();
+			return syscallStack;
+		} 
+		catch (FileNotFoundException e) {
+			throw new RuntimeException(e);
+		} 
+		catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	private String getFullExcutablePath(String executableFile) {
+		String[] path = System.getenv("PATH").split(":");
+		int i = 0;
+		while(i < path.length) {
+			String fullPath = path[i] + "/" + executableFile;
+			if(new File(fullPath).exists()) {
+				return fullPath;
+			}
+			i = i + 1;
+		}
+		return null;
+	}
+	
+	private String createShapedLog(String logPath) {
+		StringBuilder cmdBuilder = new StringBuilder();
+		String shapedLogPath = logPath + "-shaped.log";
+		String scriptPath = getFullExcutablePath("pretty_print_strace_out.py");
+		
+		cmdBuilder.append("\"");
+		cmdBuilder.append("python");
+		cmdBuilder.append(" " + scriptPath + " " + logPath + " --trace > ");
+		cmdBuilder.append(shapedLogPath);
+		cmdBuilder.append("\"");
+		String[] cmds = {"bash", "-c", cmdBuilder.toString()};
+		try {
+			Process launcher = new ProcessBuilder(cmds).start();
+			launcher.waitFor();
+		} 
+		catch (IOException e) {
+			throw new RuntimeException(e);
+		} 
+		catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+		return shapedLogPath;
+	}
+	
+	private Stack<String[]> parseStracePlusLog(String logFilePath) {
+		try {
+			String newLogFilePath = createShapedLog(logFilePath);
+			Stack<String[]> syscallStack = new Stack<String[]>();
+			BufferedReader br = new BufferedReader(new FileReader(newLogFilePath));
+			String line;
+			while((line = br.readLine()) != null) {
+				if(applyFilter(failedSyscallFilter, line) && 
+						!applyFilter(gettextFilter, line) && !applyFilter(gconvFilter, line)) {
+					syscallStack.push(parseLine(line));
+				}
+			}
+			br.close();
+			SubProc.deleteLogFile(newLogFilePath);
+			return syscallStack;
+		} 
+		catch (FileNotFoundException e) {
+			throw new RuntimeException(e);
+		} 
+		catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	private Stack<String[]> parseTraceLog(String logFilePath) {
+		if(traceBackendType == SubProc.traceBackend_strace) {
+			return parseStraceLog(logFilePath);
+		}
+		else if(traceBackendType == SubProc.traceBackend_strace_plus) {
+			return parseStracePlusLog(logFilePath);
+		}
+		else {
+			throw new RuntimeException("invalid trace backend type");
+		}
+	}
+
+	private String[] parseLine(String syscallLine) {
+		int index = 0;
+		int whiteSpaceCount = 0;
+		int openBracketCount = 0;
+		int closeBracketCount = 0;
+		String[] parsedSyscall = new String[3];
+		String[] parsedSyscallTemp = new String[4];
+		StringBuilder sBuilder= new StringBuilder();
+
+		for(int i = 0; i < syscallLine.length(); i++) {
+			char token = syscallLine.charAt(i);
+			switch(token) {
+			case '(':
+				if(openBracketCount++ == 0) {
+					parsedSyscallTemp[index++] = new String(sBuilder.toString());
+					sBuilder = new StringBuilder();
+				}
+				break;
+			case ')':
+				if(openBracketCount == ++closeBracketCount) {
+					parsedSyscallTemp[index++] = new String(sBuilder.toString());
+					sBuilder = new StringBuilder();
+					openBracketCount = closeBracketCount = 0;
+				}
+				break;
+			default:
+				if(whiteSpaceCount < 2 && token == ' ') {
+					if(i + 1 < syscallLine.length() && syscallLine.charAt(i + 1) != ' ') {
+						whiteSpaceCount++;
+					}
+				} 
+				else {
+					sBuilder.append(token);
+				}
+				break;
+			}
+		}
+		String[] splitStrings = parsedSyscallTemp[2].trim().split(" ");
+		
+		parsedSyscall[0] = parsedSyscallTemp[0];
+		parsedSyscall[1] = parsedSyscallTemp[1];
+		parsedSyscall[2] = splitStrings[2];
+
+		return parsedSyscall;
+	}
+	
+	public String[] doInference(String traceLogPath) {
+		Stack<String[]> syscallStack = this.parseTraceLog(traceLogPath);
+		return syscallStack.peek();
+	}
+}
+
 class ShellExceptionRaiser {
 	private ArrayList<PseudoProcess> procList;
 	private boolean enableException;
@@ -572,18 +767,17 @@ class ShellExceptionRaiser {
 			if(!this.enableException) {
 				continue;
 			}
-			
-			// throw exception
 			String message = targetProc.getCmdName();
-			if(targetProc.isTraced() && targetProc instanceof SubProc) {	// infer systemcall error
-				SubProc castedProc = (SubProc)targetProc;
-				String logFilePath = castedProc.getLogFilePath();
+			if(targetProc.isTraced() && targetProc instanceof SubProc) {
+				SubProc castProc = (SubProc)targetProc;
+				String logFilePath = castProc.getLogFilePath();
 				if(targetProc.getRet() != 0) {
-					Stack<String[]> syscallStack = parseTraceLog(logFilePath);
-					deleteLogFile(logFilePath);
-					throw createException(message, syscallStack.peek());
+					ErrorInferencer inferencer = new ErrorInferencer(SubProc.traceBackendType);
+					String[] inferedSyscall = inferencer.doInference(logFilePath);
+					SubProc.deleteLogFile(logFilePath);
+					throw createException(message, inferedSyscall);
 				}
-				deleteLogFile(logFilePath);
+				SubProc.deleteLogFile(logFilePath);
 			}
 			else {
 				if(targetProc.getRet() != 0) {
@@ -591,85 +785,6 @@ class ShellExceptionRaiser {
 				}
 			}
 		}
-	}
-
-	private void deleteLogFile(String logFilePath) {
-		new File(logFilePath).delete();
-	}
-
-	private Stack<String[]> parseTraceLog(String logFilePath) {
-		try {
-			Stack<String[]> syscallStack = new Stack<String[]>();
-			BufferedReader br = new BufferedReader(new FileReader(logFilePath));
-			
-			String regex1 = "^[1-9][0-9]* .+(.+) *= *-[1-9].+";
-			Pattern p1 = Pattern.compile(regex1);
-			
-			String regex2 = "^.+(.+/locale.+).+";
-			Pattern p2 = Pattern.compile(regex2);
-			
-			String regex3 = "(^[1-9][0-9]*)( *)([0-9][0-9]:[0-9][0-9]:[0-9][0-9])( *)(.+)";
-			Pattern p3 = Pattern.compile(regex3);
-			
-			Matcher m1, m2, m3;
-			
-			String line;
-			while((line = br.readLine()) != null) {
-				m1 = p1.matcher(line);
-				m2 = p2.matcher(line);
-				if(m1.find() && !m2.find()) {
-					m3 = p3.matcher(line);
-					syscallStack.push(parseLine(m3.replaceAll("$5")));
-				}
-			}
-			br.close();
-			
-			return syscallStack;
-		} 
-		catch (FileNotFoundException e) {
-			throw new RuntimeException(e);
-		} 
-		catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	private String[] parseLine(String syscallLine) {
-		int p = 0;
-		int openBracketCount = 0;
-		int closeBracketCount = 0;
-		String[] parsedSyscall = new String[3];
-		String[] parsedSyscallTemp = new String[4];
-		StringBuilder sBuilder= new StringBuilder();
-
-		for(int i = 0; i < syscallLine.length(); i++) {
-			char token = syscallLine.charAt(i);
-			switch(token) {
-			case '(':
-				if(openBracketCount++ == 0) {
-					parsedSyscallTemp[p++] = new String(sBuilder.toString());
-					sBuilder = new StringBuilder();
-				}
-				break;
-			case ')':
-				if(openBracketCount == ++closeBracketCount) {
-					parsedSyscallTemp[p++] = new String(sBuilder.toString());
-					sBuilder = new StringBuilder();
-					openBracketCount = closeBracketCount = 0;
-				}
-				break;
-			default:
-				sBuilder.append(token);
-				break;
-			}
-		}
-		String[] splitStrings = parsedSyscallTemp[2].trim().split(" ");
-		
-		parsedSyscall[0] = parsedSyscallTemp[0];
-		parsedSyscall[1] = parsedSyscallTemp[1];
-		parsedSyscall[2] = splitStrings[2];
-
-		return parsedSyscall;
 	}
 
 	private Exception createException(String message, String[] syscall) throws Exception {
