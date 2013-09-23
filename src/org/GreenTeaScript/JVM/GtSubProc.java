@@ -59,18 +59,16 @@ public class GtSubProc {
 
 	private static boolean checkTraceRequirements() {
 		if(System.getProperty("os.name").equals("Linux")) {
-//			boolean flag = DShellGrammar.IsUnixCommand("strace+") && 
-//					DShellGrammar.IsUnixCommand("pretty_print_strace_out.py");
-//			if(flag) {
-//				SubProc.traceBackendType = SubProc.traceBackend_strace_plus;
-//				return true;
-//			}
-//			else {
-//				SubProc.traceBackendType = SubProc.traceBackend_strace;
-//				return DShellGrammar.IsUnixCommand("strace");
-//			}
-			
-			return DShellGrammar.IsUnixCommand("strace");
+			boolean flag = DShellGrammar.IsUnixCommand("strace+") && 
+					DShellGrammar.IsUnixCommand("pretty_print_strace_out.py");
+			if(flag) {
+				SubProc.traceBackendType = SubProc.traceBackend_strace_plus;
+				return true;
+			}
+			else {
+				SubProc.traceBackendType = SubProc.traceBackend_strace;
+				return DShellGrammar.IsUnixCommand("strace");
+			}
 		}
 		return false;
 	}
@@ -588,6 +586,8 @@ class ErrorInferencer {
 	private static final Pattern failedSyscallFilter = Pattern.compile("^[1-9][0-9]* .+(.+) *= *-[1-9].+");
 	private static final Pattern gettextFilter = Pattern.compile("^.+(.+/locale.+).+");
 	private static final Pattern gconvFilter = Pattern.compile("^.+(.+/usr/lib64/gconv.+).+");
+	private static final Pattern functionFilter = Pattern.compile("^  > .+");
+	private static final Pattern exitFilter = Pattern.compile("^  > .+exit.*().+");
 	private int traceBackendType;
 	
 	public ErrorInferencer(int traceBackendType) {
@@ -600,17 +600,17 @@ class ErrorInferencer {
 	
 	private Stack<String[]> parseStraceLog(String logFilePath) {
 		try {
-			Stack<String[]> syscallStack = new Stack<String[]>();
+			Stack<String[]> parsedSyscallStack = new Stack<String[]>();
 			BufferedReader br = new BufferedReader(new FileReader(logFilePath));
 			String line;
 			while((line = br.readLine()) != null) {
 				if(applyFilter(failedSyscallFilter, line) && 
 						!applyFilter(gettextFilter, line) && !applyFilter(gconvFilter, line)) {
-					syscallStack.push(parseLine(line));
+					parsedSyscallStack.push(parseLine(line));
 				}
 			}
 			br.close();
-			return syscallStack;
+			return parsedSyscallStack;
 		} 
 		catch (FileNotFoundException e) {
 			throw new RuntimeException(e);
@@ -638,11 +638,9 @@ class ErrorInferencer {
 		String shapedLogPath = logPath + "-shaped.log";
 		String scriptPath = getFullExcutablePath("pretty_print_strace_out.py");
 		
-		cmdBuilder.append("\"");
 		cmdBuilder.append("python");
 		cmdBuilder.append(" " + scriptPath + " " + logPath + " --trace > ");
 		cmdBuilder.append(shapedLogPath);
-		cmdBuilder.append("\"");
 		String[] cmds = {"bash", "-c", cmdBuilder.toString()};
 		try {
 			Process launcher = new ProcessBuilder(cmds).start();
@@ -659,19 +657,33 @@ class ErrorInferencer {
 	
 	private Stack<String[]> parseStracePlusLog(String logFilePath) {
 		try {
+			String foundSyscall = null;
 			String newLogFilePath = createShapedLog(logFilePath);
-			Stack<String[]> syscallStack = new Stack<String[]>();
+			Stack<String[]> parsedSyscallStack = new Stack<String[]>();
 			BufferedReader br = new BufferedReader(new FileReader(newLogFilePath));
 			String line;
 			while((line = br.readLine()) != null) {
-				if(applyFilter(failedSyscallFilter, line) && 
-						!applyFilter(gettextFilter, line) && !applyFilter(gconvFilter, line)) {
-					syscallStack.push(parseLine(line));
+				if(foundSyscall == null) {
+					if(applyFilter(failedSyscallFilter, line) && 
+							!applyFilter(gettextFilter, line) && !applyFilter(gconvFilter, line)) {
+						foundSyscall = line;
+					}
+				}
+				else {
+					if(applyFilter(functionFilter, line)) {
+						if(applyFilter(exitFilter, line)) {
+							foundSyscall = null;
+						}
+					}
+					else {
+						parsedSyscallStack.push(parseLine(foundSyscall));
+						foundSyscall = null;
+					}
 				}
 			}
 			br.close();
 			SubProc.deleteLogFile(newLogFilePath);
-			return syscallStack;
+			return parsedSyscallStack;
 		} 
 		catch (FileNotFoundException e) {
 			throw new RuntimeException(e);
