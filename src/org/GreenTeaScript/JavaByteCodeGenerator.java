@@ -129,7 +129,7 @@ class JVMBuilder {
 	}
 
 	void LoadConst(Object o) {
-		Type type;
+		Type type = null;
 		boolean unsupportType = false;
 		// JVM supports only boolean, int, long, String, float, double, java.lang.Class
 		if(o instanceof Long) {
@@ -493,7 +493,12 @@ public class JavaByteCodeGenerator extends GtGenerator {
 
 	@Override public void VisitConstNode(ConstNode Node) {
 		Object constValue = Node.ConstValue;
-		this.Builder.LoadConst(constValue);
+		if(constValue == null) { // FIXME(ide)
+			this.Builder.typeStack.push(this.ToAsmType(Node.Type));
+			this.Builder.AsmMethodVisitor.visitInsn(ACONST_NULL);
+		} else {
+			this.Builder.LoadConst(constValue);
+		}
 	}
 
 	@Override public void VisitNewNode(NewNode Node) {

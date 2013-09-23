@@ -526,6 +526,65 @@ public class DShellGrammar extends GreenTeaUtils {
 		}
 		return null;
 	}
+	// D-exec Expression
+	// dexec FunctionName
+	public static GtSyntaxTree ParseDexec(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtSyntaxTree Tree = TokenContext.CreateMatchedSyntaxTree(NameSpace, Pattern, "dexec");
+		Tree.SetMatchedPatternAt(UnaryTerm, NameSpace, TokenContext, "$FuncName$", Required);
+		return Tree;
+	}
+
+	// dexec FunctionName
+	// => (let RetValue = FunctionName() in
+	//		if(RetValue != null) {
+	//			UpdateFaultInfomation(RetValue, "FunctionName", CurrentFuncName, DCaseRevision); 
+	//		}
+	//	  )
+	public static GtNode TypeDexec(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+		/*local*/Object ConstValue = ParsedTree.NameSpace.GetSymbol("DCaseRevision");
+		if(ConstValue == null) {
+			return Gamma.CreateSyntaxErrorNode(ParsedTree, "constant variable DCaseRevision is not defined in this context");
+		}
+		GtNode Revision = Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(ConstValue), ParsedTree, ConstValue);
+
+		/*local*/GtToken SourceToken = ParsedTree.GetSyntaxTreeAt(UnaryTerm).KeyToken;
+		/*local*/String FunctionName = SourceToken.ParsedText;
+		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(Gamma.VoidType, SafeFuncName(FunctionName), true);
+		/*local*/ArrayList<GtNode> NodeList = new ArrayList<GtNode>();
+		/*local*/GtFunc ResolvedFunc = PolyFunc.ResolveFunc(Gamma, ParsedTree, 0, NodeList);
+		return Revision;
+
+//		/*local*/GtType ReturnType = Gamma.Func.GetReturnType();
+//		/*local*/GtNode Expr = ParsedTree.TypeCheckAt(ReturnExpr, Gamma, ReturnType, DefaultTypeCheckPolicy);
+//		if(ReturnType == Gamma.VarType && !Expr.IsError()) {
+//			Gamma.Func.Types[0] = Expr.Type;
+//			Gamma.ReportTypeInference(ParsedTree.KeyToken, "return value of " + Gamma.Func.FuncName, Expr.Type);
+//		}
+//		if(ReturnType == Gamma.VoidType) {
+//			Gamma.Context.ReportError(WarningLevel, ParsedTree.KeyToken, "ignored return value");
+//			return Gamma.Generator.CreateReturnNode(ReturnType, ParsedTree, null);
+//		}
+//		return Gamma.Generator.CreateReturnNode(Expr.Type, ParsedTree, Expr);
+	}
+
+	// Raise Expression
+	public static GtSyntaxTree ParseRaise(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtSyntaxTree ReturnTree = TokenContext.CreateMatchedSyntaxTree(NameSpace, Pattern, "raise");
+		ReturnTree.SetMatchedPatternAt(UnaryTerm, NameSpace, TokenContext, "$Type$", Required);
+		return ReturnTree;
+	}
+
+	public static GtNode TypeRaise(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+		if(Gamma.IsTopLevel() || Gamma.Func == null) {
+			return Gamma.UnsupportedTopLevelError(ParsedTree);
+		}
+		/*local*/GtNode Expr = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, Gamma.NameSpace.Context.TypeType, DefaultTypeCheckPolicy);
+		if(Expr instanceof ConstNode && Expr.Type.IsTypeType()) {
+			/*local*/GtType ObjectType = (/*cast*/GtType)((/*cast*/ConstNode)Expr).ConstValue;
+			Expr = Gamma.Generator.CreateNewNode(ObjectType, ParsedTree);
+		}
+		return Gamma.Generator.CreateReturnNode(Expr.Type, ParsedTree, Expr);
+	}
 
 	public static GtNode TypeFileOperator(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtNode ExprNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, Gamma.StringType, DefaultTypeCheckPolicy);
@@ -550,7 +609,12 @@ public class DShellGrammar extends GreenTeaUtils {
 		NameSpace.AppendSyntax("command", LoadParseFunc2(ParserContext, GrammarClass, "ParseCommand"), null);
 		NameSpace.AppendSyntax("-", LoadParseFunc2(ParserContext, GrammarClass, "ParseFileOperator"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeFileOperator"));
 		NameSpace.AppendSyntax("$DShell$", LoadParseFunc2(ParserContext, GrammarClass, "ParseDShell"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeDShell"));
+
 		NameSpace.AppendSyntax("$FilePath$", LoadParseFunc2(ParserContext, GrammarClass, "ParseFilePath"), null);
+
+		NameSpace.AppendSyntax("raise", LoadParseFunc2(ParserContext, GrammarClass, "ParseRaise"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeRaise"));
+		NameSpace.AppendSyntax("dexec", LoadParseFunc2(ParserContext, GrammarClass, "ParseDexec"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeDexec"));
+
 	}
 //endif VAJA
 }
