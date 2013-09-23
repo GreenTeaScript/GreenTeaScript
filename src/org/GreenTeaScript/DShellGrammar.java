@@ -45,19 +45,19 @@ public class DShellGrammar extends GreenTeaUtils {
 		}
 		return false;
 	}
-	
+
 	public final static boolean IsFile(String Path) {
 		return new File(Path).isFile();
 	}
-	
+
 	public final static boolean IsDirectory(String Path) {
 		return new File(Path).isDirectory();
 	}
-	
+
 	public final static boolean IsFileExists(String Path) {
 		return new File(Path).exists();
 	}
-	
+
 	public final static boolean IsFileReadable(String Path) {
 		return new File(Path).canRead();
 	}
@@ -69,12 +69,12 @@ public class DShellGrammar extends GreenTeaUtils {
 	public final static boolean IsFileExecutable(String Path) {
 		return new File(Path).canExecute();
 	}
-	
+
 	// Grammar 
 	private static String CommandSymbol(String Symbol) {
 		return "__$" + Symbol;
 	}
-	
+
 	private static void AppendCommand(GtNameSpace NameSpace, String CommandPath, GtToken SourceToken) {
 		if(CommandPath.length() > 0) {
 			int loc = CommandPath.lastIndexOf('/');
@@ -96,7 +96,7 @@ public class DShellGrammar extends GreenTeaUtils {
 			}
 		}
 	}
-	
+
 	public static GtSyntaxTree ParseCommand(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree CommandTree = TokenContext.CreateMatchedSyntaxTree(NameSpace, Pattern, "command");
 		/*local*/String Command = "";
@@ -210,7 +210,7 @@ public class DShellGrammar extends GreenTeaUtils {
 				if(LibGreenTea.IsVariableName(Token2.ParsedText, 0)) {
 					Object Env = NameSpace.GetSymbol(Token2.ParsedText);
 					if(Env instanceof String) {
-						Argument += Env.toString();	
+						Argument += Env.toString();
 					}
 					else {
 						Argument += "${" + Token2.ParsedText + "}";
@@ -347,10 +347,10 @@ public class DShellGrammar extends GreenTeaUtils {
 		}
 		return Node;
 	}
-	
+
 	private final static String FileOperators = "-d -e -f -r -w -x";
 	private final static String StopTokens = ";,)]}&&||";
-	
+
 	private static String ParseFilePath(GtNameSpace NameSpace, GtTokenContext TokenContext) {
 		String Path = "";
 		boolean FoundOpen = false;
@@ -365,7 +365,7 @@ public class DShellGrammar extends GreenTeaUtils {
 				if(LibGreenTea.IsVariableName(Token2.ParsedText, 0)) {
 					Object Env = NameSpace.GetSymbol(Token2.ParsedText);
 					if(Env instanceof String) {
-						Path += Env.toString();	
+						Path += Env.toString();
 					}
 					else {
 						Path += "${" + Token2.ParsedText + "}";
@@ -387,7 +387,7 @@ public class DShellGrammar extends GreenTeaUtils {
 		}
 		return Path;
 	}
-	
+
 //	private static boolean EvalFileOp(String FileOp, String Path) {
 //		if(LibGreenTea.EqualsString(FileOp, "-d")) {
 //			return new File(Path).isDirectory();
@@ -409,7 +409,7 @@ public class DShellGrammar extends GreenTeaUtils {
 //		}
 //		return false;
 //	}
-	
+
 	public static GtSyntaxTree ParseOpFile(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/GtToken Token2 = TokenContext.Next();

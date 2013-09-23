@@ -906,7 +906,8 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		Type foundType = this.Builder.typeStack.pop();
 		if(type.equals(foundType)) {
 			this.Builder.AsmMethodVisitor.visitLdcInsn(true);//FIXME: primitive type
-		} else {
+		}
+		else {
 			this.Builder.AsmMethodVisitor.visitTypeInsn(INSTANCEOF, type.getInternalName());
 		}
 		this.Builder.typeStack.push(Type.BOOLEAN_TYPE);

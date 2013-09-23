@@ -257,7 +257,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 			Header += "import GtSubProc";
 			this.WriteHeader(Header);
 		}
-		
+
 		/*local*/String Code = "";
 		/*local*/CommandNode CurrentNode = Node;
 		while(CurrentNode != null) {
@@ -265,7 +265,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 			CurrentNode = (/*cast*/CommandNode) CurrentNode.PipedNextNode;
 			break;	//TODO :support pipe
 		}
-		
+
 		if(Node.Type.equals(Node.Type.Context.StringType)) {
 			Code = "GtSubProc.execCommandString([" + Code + "])";
 		}
@@ -324,7 +324,8 @@ public class PythonSourceGenerator extends SourceGenerator {
 		/*local*/int i = 0, length = LibGreenTea.ListSize(ClassField.FieldList);
 		if(length == 0) {
 			Program += this.GetIndentString() + "pass;" + this.LineFeed;
-		} else {
+		}
+		else {
 			while(i < length) {
 				/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
 				/*local*/String InitValue = this.StringifyConstValue(FieldInfo.InitValue);

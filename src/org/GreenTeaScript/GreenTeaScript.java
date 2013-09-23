@@ -91,7 +91,7 @@ interface GreenTeaConsts {
 	public final static int     AllowAnnotation   = (1 << 3);
 	public final static int     OpenSkipIndent    = (1 << 4);
 	public final static int     CloseSkipIndent   = (1 << 5);
-	
+
 		
 	public final static int		ErrorLevel						= 0;
 	public final static int     TypeErrorLevel                  = 1;
@@ -241,7 +241,7 @@ interface GreenTeaConsts {
 
 	public final static int GenericReturnType   = 0;
 	public final static int GenericParam        = 1;
-	
+
 	// Class Decl;
 	public final static int	ClassDeclName		= 0;
 	public final static int	ClassDeclSuperType	= 1;
@@ -326,7 +326,7 @@ class GreenTeaUtils implements GreenTeaConsts {
 		}
 		return s;
 	}
-	
+
 	public final static int AsciiToTokenMatrixIndex(char c) {
 		if(c < 128) {
 			return CharMatrix[c];
@@ -506,7 +506,7 @@ class GreenTeaUtils implements GreenTeaConsts {
 			Gamma.NameSpace = ParsedTree.NameSpace;
 			return (/*cast*/GtNode)LibGreenTea.ApplyTypeFunc(TypeFunc, Gamma, ParsedTree, Type);
 		}
-		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType); 
+		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
 	}
 
 	public final static GtNode LinkNode(GtNode LastNode, GtNode Node) {
@@ -779,7 +779,7 @@ final class GtTokenContext extends GreenTeaUtils {
 		}
 		this.LatestToken = LeastRecentToken;
 	}
-	
+
 	public GtSyntaxTree ReportTokenError(GtToken Token, String Message, boolean SkipToken) {
 		if(this.IsAllowedBackTrack()) {
 			return null;
@@ -815,7 +815,6 @@ final class GtTokenContext extends GreenTeaUtils {
 	public GtSyntaxTree ReportExpectedMessage(GtToken Token, String Message, boolean SkipToken) {
 		return this.ReportTokenError(Token, "expected: " + Message + "; given = " + Token.ParsedText, SkipToken);
 	}
-
 
 	public void Vacume() {
 //		if(this.CurrentPosition > 0) {
@@ -1153,7 +1152,6 @@ final class GtTokenContext extends GreenTeaUtils {
 			this.ParsingLine = this.TopLevelNameSpace.Context.GetFileLine(FileName, Line);
 		}
 	}
-
 
 }
 
@@ -1895,7 +1893,7 @@ final class GtNameSpace extends GreenTeaUtils {
 		this.SetSymbol(Name, TypeVar, SourceToken);
 		return TypeVar;
 	}
-	
+
 	public final Object GetClassSymbol(GtType ClassType, String Symbol, boolean RecursiveSearch) {
 		while(ClassType != null) {
 			/*local*/String Key = ClassSymbol(ClassType, Symbol);
@@ -1940,7 +1938,7 @@ final class GtNameSpace extends GreenTeaUtils {
 			i = i + 1;
 		}
 	}
-	
+
 	public final GtFunc GetGetterFunc(GtType ClassType, String Symbol, boolean RecursiveSearch) {
 		/*local*/Object Func = this.Context.RootNameSpace.GetClassSymbol(ClassType, GetterSymbol(Symbol), RecursiveSearch);
 		if(Func instanceof GtFunc) {
@@ -2017,7 +2015,7 @@ final class GtNameSpace extends GreenTeaUtils {
 		}
 		return FuncValue;
 	}
-	
+
 	public final GtFunc GetFunc(String FuncName, int BaseIndex, ArrayList<GtType> TypeList) {
 		/*local*/ArrayList<GtFunc> FuncList = new ArrayList<GtFunc>();
 		this.RetrieveFuncList(FuncName, FuncList);
@@ -2640,7 +2638,6 @@ final class KonohaGrammar extends GtGrammar {
 		return TypeTree;
 	}
 
-
 	// parser and type checker
 	public static GtSyntaxTree ParseType(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		if(TokenContext.MatchToken("typeof")) {
@@ -2879,7 +2876,7 @@ final class KonohaGrammar extends GtGrammar {
 		}
 		return LeftTree;
 	}
-	
+
 	public static GtSyntaxTree ParseUnary(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/GtSyntaxTree Tree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
@@ -3094,7 +3091,7 @@ final class KonohaGrammar extends GtGrammar {
 		Gamma.Context.SetNoErrorReport(false);
 		return Gamma.Generator.CreateConstNode(Gamma.BooleanType, ParsedTree, (ObjectNode instanceof ConstNode));
 	}
-	
+
 	public static GtSyntaxTree ParseApply(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/int ParseFlag = TokenContext.SetSkipIndent(true);
 		/*local*/GtSyntaxTree FuncTree = TokenContext.CreateSyntaxTree(NameSpace, Pattern, null);
@@ -3207,7 +3204,7 @@ final class KonohaGrammar extends GtGrammar {
 			}
 			ReturnType = FuncType.TypeParams[0];
 		}
-		else if (FuncNode.IsError()) {
+		else if(FuncNode.IsError()) {
 			return FuncNode;
 		}
 		else {
@@ -3361,10 +3358,10 @@ final class KonohaGrammar extends GtGrammar {
 		}
 		return PackageName;
 	}
-	
+
 	public static GtSyntaxTree ParseImport(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree ImportTree = TokenContext.CreateMatchedSyntaxTree(NameSpace, Pattern, "import");
-		/*local*/String PackageName = ParseJoinedName(TokenContext); 
+		/*local*/String PackageName = ParseJoinedName(TokenContext);
 		ImportTree.ParsedValue = PackageName;
 		return ImportTree;
 	}
@@ -3629,7 +3626,7 @@ final class KonohaGrammar extends GtGrammar {
 	public static GtNode TypeLine(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		return Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, Gamma.Context.GetSourcePosition(ParsedTree.KeyToken.FileLine));
 	}
-	
+
 	public static GtSyntaxTree ParseSuper(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree Tree = TokenContext.CreateMatchedSyntaxTree(NameSpace, Pattern, "super");
 //		/*local*/int ParseFlag = TokenContext.SetSkipIndent(true);
@@ -4031,7 +4028,7 @@ final class KonohaGrammar extends GtGrammar {
 		NameSpace.Revert(RevertList);
 		return FuncTree;
 	}
-	
+
 	// constructor
 	public static GtSyntaxTree ParseConstructor2(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree FuncDeclTree = TokenContext.CreateMatchedSyntaxTree(NameSpace, Pattern, "constructor");
@@ -4156,8 +4153,8 @@ final class KonohaGrammar extends GtGrammar {
 		NodeList.add(ExprNode);
 		/*local*/GtFunc Func = PolyFunc.ResolveFunc(Gamma, ParsedTree, 1, NodeList);
 		if(Func == null) {
-			return Gamma.CreateSyntaxErrorNode(ParsedTree, ExprNode.Type + " has no sizeof operator");	
-		} else {
+			return Gamma.CreateSyntaxErrorNode(ParsedTree, ExprNode.Type + " has no sizeof operator");
+		}		else {
 			Type = Func.GetReturnType();
 		}
 		/*local*/GtNode Node = Gamma.Generator.CreateApplyNode(Type, ParsedTree, Func);
@@ -4230,7 +4227,6 @@ final class KonohaGrammar extends GtGrammar {
 		return true;
 	}
 
-	
 	public static GtSyntaxTree ParseClassDecl2(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree ClassDeclTree = TokenContext.CreateMatchedSyntaxTree(NameSpace, Pattern, "class");
 		ClassDeclTree.SetMatchedPatternAt(ClassDeclName, NameSpace, TokenContext, "$FuncName$", Required); //$ClassName$ is better
@@ -4301,7 +4297,7 @@ final class KonohaGrammar extends GtGrammar {
 		}
 		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
 	}
-	
+
 	@Override public void LoadTo(GtNameSpace NameSpace) {
 		// Define Constants
 		/*local*/GtParserContext ParserContext = NameSpace.Context;

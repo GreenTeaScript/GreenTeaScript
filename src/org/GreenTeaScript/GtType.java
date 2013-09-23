@@ -184,7 +184,6 @@ public class GtType extends GreenTeaUtils {
 		this.TypeBody = ClassField;
 	}
 
-
 	public boolean IsDynamicNaitiveLoading() {
 		return this.IsNative() && !IsFlag(this.TypeFlag, CommonType);
 	}

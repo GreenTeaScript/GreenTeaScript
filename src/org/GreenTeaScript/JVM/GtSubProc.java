@@ -24,7 +24,6 @@ import java.util.regex.Pattern;
 import org.GreenTeaScript.DShellGrammar;
 import org.GreenTeaScript.LibGreenTea;
 
-
 public class GtSubProc {
 	// option flag
 	private static final int returnable = 1 << 0;
@@ -32,14 +31,14 @@ public class GtSubProc {
 	private static final int throwable = 1 << 2;
 	private static final int background = 1 << 3;
 	private static final int enableTrace = 1 << 4;
-	
+
 	// return type
 	private static final int VoidType = 0;
 	private static final int BooleanType = 1;
 	private static final int StringType = 2;
-	
+
 	private static SubProc prevSubProc = null;
-	
+
 	// called by JavaByteCodeGenerator.VisitCommandNode 
 	public static String ExecCommandString(String[]... cmds) throws Exception {
 		int option = returnable | throwable | enableTrace;
@@ -72,12 +71,12 @@ public class GtSubProc {
 		}
 		return false;
 	}
-	
+
 	private static boolean is(int option, int flag) {
 		option &= flag;
 		return option == flag;
 	}
-	
+
 	private static int setFlag(int option, int flag, boolean set) {
 		if(set && !is(option, flag)) {
 			return option | flag;
@@ -87,7 +86,7 @@ public class GtSubProc {
 		}
 		return option;
 	}
-	
+
 	private static PseudoProcess createProc(String[] cmds, boolean enableSyscallTrace) {
 		PseudoProcess proc = null;
 		String cmdSymbol = cmds[0];
@@ -112,7 +111,7 @@ public class GtSubProc {
 		}
 		return proc;
 	}
-	
+
 	private static Object runCommands(String[][] cmds, int option, int retType) throws Exception {
 		prevSubProc = null;
 		// prepare shell option
@@ -190,7 +189,7 @@ public class GtSubProc {
 
 class PseudoProcess {
 	protected PseudoProcess pipedPrevProc;
-	
+
 	protected OutputStream stdin = null;
 	protected InputStream stdout = null;
 	protected InputStream stderr = null;
@@ -227,7 +226,7 @@ class PseudoProcess {
 		destProc.pipedPrevProc = this;
 		new PipeStreamHandler(this.stdout, destProc.stdin, true).start();
 	}
-	
+
 	public void kill() {
 	}
 
@@ -236,7 +235,7 @@ class PseudoProcess {
 
 	public void waitResult(boolean isExpr) {
 	}
-	
+
 	public String getStdout() {
 		return "";
 	}
@@ -244,7 +243,7 @@ class PseudoProcess {
 	public String getStderr() {
 		return "";
 	}
-	
+
 	public int getRet() {
 		return this.retValue;
 	}
@@ -252,7 +251,7 @@ class PseudoProcess {
 	public String getCmdName() {
 		return this.cmdNameBuilder.toString();
 	}
-	
+
 	public boolean isTraced() {
 		return false;
 	}
@@ -261,14 +260,14 @@ class PseudoProcess {
 class SubProc extends PseudoProcess {
 	private final static int mergeErrorToOut = 0;
 	private final static int mergeOutToError = 1;
-	
+
 	public final static int traceBackend_strace = 0;
 	public final static int traceBackend_strace_plus = 1;
 	public static int traceBackendType = traceBackend_strace;
-	
+
 	private final static String logdirPath = "/tmp/strace-log";
 	private static int logId = 0;
-	
+
 	private Process proc;
 	private boolean enableSyscallTrace = false;
 	public boolean isKilled = false;
@@ -305,11 +304,11 @@ class SubProc extends PseudoProcess {
 
 		return logNameHeader.toString();
 	}
-	
+
 	public static void deleteLogFile(String logFilePath) {
 		new File(logFilePath).delete();
 	}
-	
+
 	public SubProc(boolean enableSyscallTrace) {
 		super();
 		this.enableSyscallTrace = enableSyscallTrace;
@@ -489,7 +488,7 @@ class SubProc extends PseudoProcess {
 	public String getLogFilePath() {
 		return this.logFilePath;
 	}
-	
+
 	@Override public boolean isTraced() {
 		return this.enableSyscallTrace;
 	}
@@ -509,7 +508,7 @@ class InRedirectProc extends PseudoProcess {
 
 class OutRedirectProc extends PseudoProcess {
 	@Override public void start() {
-		String fileName = this.commandList.get(1);	
+		String fileName = this.commandList.get(1);
 		try {
 			this.stdin = new BufferedOutputStream(new FileOutputStream(fileName));
 		} 
@@ -517,7 +516,7 @@ class OutRedirectProc extends PseudoProcess {
 			e.printStackTrace();
 		}
 	}
-	
+
 	@Override public int getRet() {
 		return this.pipedPrevProc.getRet();
 	}
@@ -533,17 +532,17 @@ class ProcessTimer {
 
 class ProcessKiller extends TimerTask {
 	private PseudoProcess[] procs;
-	
+
 	public ProcessKiller(PseudoProcess[] targetProcs) {
 		this.procs = targetProcs;
 	}
-	
+
 	public void killProcs() {
 		for(int i = 0; i < this.procs.length; i++) {
 			this.procs[i].kill();
 		}
 	}
-	
+
 	@Override public void run() {
 		this.killProcs();
 	}
@@ -589,15 +588,15 @@ class ErrorInferencer {
 	private static final Pattern functionFilter = Pattern.compile("^  > .+");
 	private static final Pattern exitFilter = Pattern.compile("^  > .+exit.*().+");
 	private int traceBackendType;
-	
+
 	public ErrorInferencer(int traceBackendType) {
 		this.traceBackendType = traceBackendType;
 	}
-	
+
 	private boolean applyFilter(Pattern filter, String line) {
 		return filter.matcher(line).find();
 	}
-	
+
 	private Stack<String[]> parseStraceLog(String logFilePath) {
 		try {
 			Stack<String[]> parsedSyscallStack = new Stack<String[]>();
@@ -619,7 +618,7 @@ class ErrorInferencer {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
 	private String getFullExcutablePath(String executableFile) {
 		String[] path = System.getenv("PATH").split(":");
 		int i = 0;
@@ -632,7 +631,7 @@ class ErrorInferencer {
 		}
 		return null;
 	}
-	
+
 	private String createShapedLog(String logPath) {
 		StringBuilder cmdBuilder = new StringBuilder();
 		String shapedLogPath = logPath + "-shaped.log";
@@ -654,7 +653,7 @@ class ErrorInferencer {
 		}
 		return shapedLogPath;
 	}
-	
+
 	private Stack<String[]> parseStracePlusLog(String logFilePath) {
 		try {
 			String foundSyscall = null;
@@ -691,7 +690,7 @@ class ErrorInferencer {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
 	private Stack<String[]> parseTraceLog(String logFilePath) {
 		if(traceBackendType == SubProc.traceBackend_strace) {
 			return parseStraceLog(logFilePath);
@@ -749,7 +748,7 @@ class ErrorInferencer {
 
 		return parsedSyscall;
 	}
-	
+
 	public String[] doInference(String traceLogPath) {
 		Stack<String[]> syscallStack = this.parseTraceLog(traceLogPath);
 		return syscallStack.peek();
@@ -759,7 +758,7 @@ class ErrorInferencer {
 class ShellExceptionRaiser {
 	private ArrayList<PseudoProcess> procList;
 	private boolean enableException;
-	
+
 	public ShellExceptionRaiser(boolean enableException) {
 		this.enableException = enableException;
 		this.procList = new ArrayList<PseudoProcess>();

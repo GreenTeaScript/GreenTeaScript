@@ -1296,7 +1296,7 @@ class GtGenerator extends GreenTeaUtils {
 //endif VAJA
 		return NewList;  // if unsupported
 	}
-	
+
 	public Object EvalCommandNode(CommandNode Node, boolean EnforceConst) {
 //ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
 		if(!EnforceConst) {
@@ -1383,7 +1383,6 @@ class GtGenerator extends GreenTeaUtils {
 	public void InvokeMainFunc(String MainFuncName) {
 		/*extension*/
 	}
-
 
 }
 
