@@ -663,22 +663,21 @@ class ErrorInferencer {
 			BufferedReader br = new BufferedReader(new FileReader(newLogFilePath));
 			String line;
 			while((line = br.readLine()) != null) {
-				if(foundSyscall == null) {
-					if(applyFilter(failedSyscallFilter, line) && 
-							!applyFilter(gettextFilter, line) && !applyFilter(gconvFilter, line)) {
-						foundSyscall = line;
-					}
-				}
-				else {
+				if(foundSyscall != null) {
 					if(applyFilter(functionFilter, line)) {
 						if(applyFilter(exitFilter, line)) {
 							foundSyscall = null;
 						}
+						continue;
 					}
 					else {
 						parsedSyscallStack.push(parseLine(foundSyscall));
 						foundSyscall = null;
 					}
+				}
+				if(applyFilter(failedSyscallFilter, line) && 
+						!applyFilter(gettextFilter, line) && !applyFilter(gconvFilter, line)) {
+					foundSyscall = line;
 				}
 			}
 			br.close();
