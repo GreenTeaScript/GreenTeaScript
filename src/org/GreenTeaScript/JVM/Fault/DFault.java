@@ -13,4 +13,10 @@ public class DFault extends Exception {
 		this.CallerNodeName  = CallerNodeName;
 		this.DCaseRevision   = DCaseRevision;
 	}
+	public static boolean binary_eq(DFault x, DFault y) {
+		if(x == null || y == null) {
+			return x == y;
+		}
+		return x.equals(y);
+	}
 }
