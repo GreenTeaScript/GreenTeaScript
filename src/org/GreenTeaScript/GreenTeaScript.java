@@ -2537,60 +2537,60 @@ final class KonohaGrammar extends GtGrammar {
 		return pos;
 	}
 
-	public static long StringLiteralToken_StringInterpolation(GtTokenContext TokenContext, String SourceText, long pos) {
-		/*local*/long start = pos + 1;
-		/*local*/long NextPos = start;
-		/*local*/char prev = '"';
-		while(NextPos < SourceText.length()) {
-			/*local*/char ch = LibGreenTea.CharAt(SourceText, NextPos);
-			if(ch == '$') {
-				/*local*/long end = NextPos + 1;
-				/*local*/char nextch = LibGreenTea.CharAt(SourceText, end);
-				if(nextch == '{') {
-					while(end < SourceText.length()) {
-						ch = LibGreenTea.CharAt(SourceText, end);
-						if(ch == '}') {
-							break;
-						}
-						end = end + 1;
-					}
-					/*local*/String Expr = LibGreenTea.SubString(SourceText, (NextPos + 2), end);
-					/*local*/GtTokenContext LocalContext = new GtTokenContext(TokenContext.TopLevelNameSpace, Expr, TokenContext.ParsingLine);
-					LocalContext.SkipEmptyStatement();
-
-					TokenContext.AddNewToken("\"" + LibGreenTea.SubString(SourceText, start, NextPos) + "\"", 0, "$StringLiteral$");
-					TokenContext.AddNewToken("+", 0, null);
-					while(LocalContext.HasNext()) {
-						/*local*/GtToken NewToken = LocalContext.Next();
-						TokenContext.AddNewToken(NewToken.ParsedText, 0, null);
-					}
-					TokenContext.AddNewToken("+", 0, null);
-					end = end + 1;
-					start = end;
-					NextPos = end;
-					prev = ch;
-					if(ch == '"') {
-						TokenContext.AddNewToken("\"" + LibGreenTea.SubString(SourceText, start, NextPos) + "\"", 0, "$StringLiteral$");
-						return NextPos + 1;
-					}
-					continue;
-				}
-			}
-			if(ch == '"' && prev != '\\') {
-				TokenContext.AddNewToken("\"" + LibGreenTea.SubString(SourceText, start, NextPos) + "\"", 0, "$StringLiteral$");
-				return NextPos + 1;
-			}
-			if(ch == '\n') {
-				TokenContext.ReportTokenError(ErrorLevel, "expected \" to close the string literal", LibGreenTea.SubString(SourceText, start, NextPos));
-				TokenContext.FoundLineFeed(1);
-				return NextPos;
-			}
-			NextPos = NextPos + 1;
-			prev = ch;
-		}
-		TokenContext.ReportTokenError(ErrorLevel, "expected \" to close the string literal", LibGreenTea.SubString(SourceText, start, NextPos));
-		return NextPos;
-	}
+//	public static long StringLiteralToken_StringInterpolation(GtTokenContext TokenContext, String SourceText, long pos) {
+//		/*local*/long start = pos + 1;
+//		/*local*/long NextPos = start;
+//		/*local*/char prev = '"';
+//		while(NextPos < SourceText.length()) {
+//			/*local*/char ch = LibGreenTea.CharAt(SourceText, NextPos);
+//			if(ch == '$') {
+//				/*local*/long end = NextPos + 1;
+//				/*local*/char nextch = LibGreenTea.CharAt(SourceText, end);
+//				if(nextch == '{') {
+//					while(end < SourceText.length()) {
+//						ch = LibGreenTea.CharAt(SourceText, end);
+//						if(ch == '}') {
+//							break;
+//						}
+//						end = end + 1;
+//					}
+//					/*local*/String Expr = LibGreenTea.SubString(SourceText, (NextPos + 2), end);
+//					/*local*/GtTokenContext LocalContext = new GtTokenContext(TokenContext.TopLevelNameSpace, Expr, TokenContext.ParsingLine);
+//					LocalContext.SkipEmptyStatement();
+//
+//					TokenContext.AddNewToken("\"" + LibGreenTea.SubString(SourceText, start, NextPos) + "\"", 0, "$StringLiteral$");
+//					TokenContext.AddNewToken("+", 0, null);
+//					while(LocalContext.HasNext()) {
+//						/*local*/GtToken NewToken = LocalContext.Next();
+//						TokenContext.AddNewToken(NewToken.ParsedText, 0, null);
+//					}
+//					TokenContext.AddNewToken("+", 0, null);
+//					end = end + 1;
+//					start = end;
+//					NextPos = end;
+//					prev = ch;
+//					if(ch == '"') {
+//						TokenContext.AddNewToken("\"" + LibGreenTea.SubString(SourceText, start, NextPos) + "\"", 0, "$StringLiteral$");
+//						return NextPos + 1;
+//					}
+//					continue;
+//				}
+//			}
+//			if(ch == '"' && prev != '\\') {
+//				TokenContext.AddNewToken("\"" + LibGreenTea.SubString(SourceText, start, NextPos) + "\"", 0, "$StringLiteral$");
+//				return NextPos + 1;
+//			}
+//			if(ch == '\n') {
+//				TokenContext.ReportTokenError(ErrorLevel, "expected \" to close the string literal", LibGreenTea.SubString(SourceText, start, NextPos));
+//				TokenContext.FoundLineFeed(1);
+//				return NextPos;
+//			}
+//			NextPos = NextPos + 1;
+//			prev = ch;
+//		}
+//		TokenContext.ReportTokenError(ErrorLevel, "expected \" to close the string literal", LibGreenTea.SubString(SourceText, start, NextPos));
+//		return NextPos;
+//	}
 
 	public static GtSyntaxTree ParseTypeOf(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree TypeOfTree = TokenContext.CreateMatchedSyntaxTree(NameSpace, Pattern, "typeof");
@@ -3860,10 +3860,12 @@ final class KonohaGrammar extends GtGrammar {
 	public static GtSyntaxTree ParseFuncName(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/String Name = Token.ParsedText;
+		if(Token.IsQuoted()) {
+			Name = LibGreenTea.UnquoteString(Name);
+			Token.ParsedText = Name;
+		}
+		System.err.println("debug: " + Name + ", " + Token.IsQuoted());
 		if(Name.length() > 0 && LibGreenTea.CharAt(Name, 0) != '(' && LibGreenTea.CharAt(Name, 0) != '.') {
-			if(Token.IsQuoted()) {
-				Name = LibGreenTea.UnquoteString(Name);
-			}
 			return new GtSyntaxTree(Pattern, NameSpace, Token, Name);
 		}
 		return TokenContext.ReportExpectedMessage(Token, "name", true);
@@ -4315,7 +4317,7 @@ final class KonohaGrammar extends GtGrammar {
 		NameSpace.AppendTokenFunc("Aa_", LoadTokenFunc(ParserContext, this, "SymbolToken"));
 
 		NameSpace.AppendTokenFunc("\"", LoadTokenFunc(ParserContext, this, "StringLiteralToken"));
-		NameSpace.AppendTokenFunc("\"", LoadTokenFunc(ParserContext, this, "StringLiteralToken_StringInterpolation"));
+		//NameSpace.AppendTokenFunc("\"", LoadTokenFunc(ParserContext, this, "StringLiteralToken_StringInterpolation"));
 		NameSpace.AppendTokenFunc("'", LoadTokenFunc(ParserContext, this, "CharLiteralToken"));
 		NameSpace.AppendTokenFunc("1",  LoadTokenFunc(ParserContext, this, "NumberLiteralToken"));
 //#ifdef JAVA
