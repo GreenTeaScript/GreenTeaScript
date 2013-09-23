@@ -4,7 +4,7 @@
 # testj:  test javascript implementation
 .SILENT:
 JavaBin="./GreenTeaScript.jar"
-INSTALL_PREFIX="$(HOME)/bin"
+INSTALL_PREFIX?="$(HOME)"
 TEST_BASEDIR="test/exec"
 TEST_OUTDIR="$(TEST_BASEDIR)/test-result"
 
@@ -12,7 +12,8 @@ TEST_FILES:=$(wildcard test/exec/*.green)
 
 all: build test
 
-build: buildj buildts
+#build: buildj buildts
+build: buildj
 
 dist: distj distts
 
@@ -72,11 +73,11 @@ install: installj
 
 installj: distj
 	echo Installing Java implementation
-	install -d $(INSTALL_PREFIX)
-	cp -f generated/jar/GreenTeaScript.jar $(INSTALL_PREFIX)/
-	install -m 755 tool/greentea $(INSTALL_PREFIX)/greentea
-	install -d $(INSTALL_PREFIX)/../include
-	cp -f include/c/*.h $(INSTALL_PREFIX)/../include/
+	install -d $(INSTALL_PREFIX)/bin
+	install -d $(INSTALL_PREFIX)/include
+	cp -f generated/jar/GreenTeaScript.jar $(INSTALL_PREFIX)/bin/
+	install -m 755 tool/greentea $(INSTALL_PREFIX)/bin/greentea
+	cp -f include/c/*.h $(INSTALL_PREFIX)/include/
 
 test: buildj $(notdir $(TEST_FILES))
 	cat $(TEST_OUTDIR)/*.green.csv >> $(TEST_OUTDIR)/TestResult.csv
