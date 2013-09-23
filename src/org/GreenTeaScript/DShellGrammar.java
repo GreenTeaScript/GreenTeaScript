@@ -26,6 +26,8 @@
 package org.GreenTeaScript;
 import java.io.File;
 import java.util.ArrayList;
+
+import org.GreenTeaScript.JVM.Fault.DFault;
 //endif VAJA
 
 public class DShellGrammar extends GreenTeaUtils {
@@ -475,7 +477,7 @@ public class DShellGrammar extends GreenTeaUtils {
 					if(LibGreenTea.IsVariableName(Token2.ParsedText, 0)) {
 						Object Env = NameSpace.GetSymbol(Token2.ParsedText);
 						if(Env instanceof String) {
-							Path += Env.toString();	
+							Path += Env.toString();
 						}
 						else {
 							Path += "${" + Token2.ParsedText + "}";
@@ -526,45 +528,56 @@ public class DShellGrammar extends GreenTeaUtils {
 		}
 		return null;
 	}
+
+	static private final GtNode CreateConstNode(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, Object ConstValue) {
+		return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(ConstValue), ParsedTree, ConstValue);
+	}
+
 	// D-exec Expression
 	// dexec FunctionName
 	public static GtSyntaxTree ParseDexec(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree Tree = TokenContext.CreateMatchedSyntaxTree(NameSpace, Pattern, "dexec");
-		Tree.SetMatchedPatternAt(UnaryTerm, NameSpace, TokenContext, "$FuncName$", Required);
+		Tree.SetMatchedPatternAt(UnaryTerm, NameSpace, TokenContext, "$Variable$", Required);
 		return Tree;
 	}
 
 	// dexec FunctionName
-	// => (let RetValue = FunctionName() in
-	//		if(RetValue != null) {
-	//			UpdateFaultInfomation(RetValue, "FunctionName", CurrentFuncName, DCaseRevision); 
-	//		}
-	//	  )
+	// => UpdateFaultInfomation(FunctionName(), "FunctionName", CurrentFuncName, DCaseRevision)
 	public static GtNode TypeDexec(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/Object ConstValue = ParsedTree.NameSpace.GetSymbol("DCaseRevision");
 		if(ConstValue == null) {
 			return Gamma.CreateSyntaxErrorNode(ParsedTree, "constant variable DCaseRevision is not defined in this context");
 		}
-		GtNode Revision = Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(ConstValue), ParsedTree, ConstValue);
+		/*local*/GtType DFaultType = (/*cast*/GtType) ParsedTree.NameSpace.GetSymbol("DFault");
+		if(DFaultType == null) {
+			return Gamma.CreateSyntaxErrorNode(ParsedTree, "DFault type is not defined in this context");
+		}
 
-		/*local*/GtToken SourceToken = ParsedTree.GetSyntaxTreeAt(UnaryTerm).KeyToken;
-		/*local*/String FunctionName = SourceToken.ParsedText;
-		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(Gamma.VoidType, SafeFuncName(FunctionName), true);
-		/*local*/ArrayList<GtNode> NodeList = new ArrayList<GtNode>();
-		/*local*/GtFunc ResolvedFunc = PolyFunc.ResolveFunc(Gamma, ParsedTree, 0, NodeList);
-		return Revision;
+		GtNode ApplyNode = KonohaGrammar.TypeApply(Gamma, ParsedTree, DFaultType);
+		if(ApplyNode.IsError()) {
+			return ApplyNode;
+		}
 
-//		/*local*/GtType ReturnType = Gamma.Func.GetReturnType();
-//		/*local*/GtNode Expr = ParsedTree.TypeCheckAt(ReturnExpr, Gamma, ReturnType, DefaultTypeCheckPolicy);
-//		if(ReturnType == Gamma.VarType && !Expr.IsError()) {
-//			Gamma.Func.Types[0] = Expr.Type;
-//			Gamma.ReportTypeInference(ParsedTree.KeyToken, "return value of " + Gamma.Func.FuncName, Expr.Type);
-//		}
-//		if(ReturnType == Gamma.VoidType) {
-//			Gamma.Context.ReportError(WarningLevel, ParsedTree.KeyToken, "ignored return value");
-//			return Gamma.Generator.CreateReturnNode(ReturnType, ParsedTree, null);
-//		}
-//		return Gamma.Generator.CreateReturnNode(Expr.Type, ParsedTree, Expr);
+		// create UpdateFaultInfomation(FunctionName(), "FunctionName", CurrentFuncName, DCaseRevision);
+		/*local*/GtNode Revision = DShellGrammar.CreateConstNode(Gamma, ParsedTree, ConstValue);
+		/*local*/String FunctionName = (/*cast*/String) ParsedTree.GetSyntaxTreeAt(UnaryTerm).KeyToken.ParsedText;
+		/*local*/String CurrentFuncName = Gamma.Func.GetNativeFuncName();
+
+		/*local*/GtNode FuncNameNode = DShellGrammar.CreateConstNode(Gamma, ParsedTree, FunctionName);
+		/*local*/GtNode CurFuncNameNode = DShellGrammar.CreateConstNode(Gamma, ParsedTree, CurrentFuncName);
+		
+		ConstValue = ParsedTree.NameSpace.GetSymbol("UpdateFaultInfomation");
+		if(!(ConstValue instanceof GtFunc)) {
+			return Gamma.CreateSyntaxErrorNode(ParsedTree, "UpdateFaultInfomation is not defined in this context");
+		}
+		/*local*/GtFunc Func = (/*cast*/GtFunc) ConstValue;
+		/*local*/GtNode ApplyNode2 = Gamma.Generator.CreateApplyNode(Func.GetReturnType(), ParsedTree, Func);
+		ApplyNode2.Append(DShellGrammar.CreateConstNode(Gamma, ParsedTree, Func));
+		ApplyNode2.Append(ApplyNode);
+		ApplyNode2.Append(FuncNameNode);
+		ApplyNode2.Append(CurFuncNameNode);
+		ApplyNode2.Append(Revision);
+		return ApplyNode2;
 	}
 
 	// Raise Expression
@@ -599,6 +612,14 @@ public class DShellGrammar extends GreenTeaUtils {
 			return ApplyNode;
 		}
 		return ExprNode;
+	}
+
+	public static DFault UpdateFaultInfomation(DFault Fault, String CalledFuncName, String CurrentFuncName, long DCaseRevision) {
+		if(Fault == null) {
+			return null;
+		}
+		Fault.UpdateFaultInfomation(CalledFuncName, CurrentFuncName, DCaseRevision);
+		return Fault;
 	}
 
 //ifdef JAVA

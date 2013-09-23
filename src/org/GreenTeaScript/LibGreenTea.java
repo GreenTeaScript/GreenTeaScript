@@ -56,7 +56,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return "Java JVM-" + System.getProperty("java.version");
 	}
 
-	public static boolean DebugMode = !false;
+	public static boolean DebugMode = false;
 
 	private final static String GetStackInfo(int depth) {
 		String LineNumber = " ";
