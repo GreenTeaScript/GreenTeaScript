@@ -542,6 +542,21 @@ public class DShellGrammar extends GreenTeaUtils {
 		return null;
 	}
 
+	public static GtNode TypeFileOperator(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+		/*local*/GtNode PathNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, Gamma.StringType, DefaultTypeCheckPolicy);
+		if(!PathNode.IsError()) {
+			/*local*/String OperatorSymbol = ParsedTree.KeyToken.ParsedText;
+			/*local*/GtPolyFunc PolyFunc = Gamma.NameSpace.GetMethod(Gamma.StringType, SafeFuncName(OperatorSymbol), true);
+			/*local*/GtFunc ResolvedFunc = PolyFunc.ResolveUnaryFunc(Gamma, ParsedTree, PathNode);
+			LibGreenTea.Assert(ResolvedFunc != null);
+			/*local*/GtNode ApplyNode =  Gamma.Generator.CreateApplyNode(ResolvedFunc.GetReturnType(), ParsedTree, ResolvedFunc);
+			ApplyNode.Append(Gamma.Generator.CreateConstNode(ResolvedFunc.GetFuncType(), ParsedTree, ResolvedFunc));
+			ApplyNode.Append(PathNode);
+			return ApplyNode;
+		}
+		return PathNode;
+	}
+
 	static private final GtNode CreateConstNode(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, Object ConstValue) {
 		return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(ConstValue), ParsedTree, ConstValue);
 	}
@@ -623,21 +638,6 @@ public class DShellGrammar extends GreenTeaUtils {
 			//Expr = KonohaGrammar.TypeApply(Gamma, ParsedTree, ObjectType);
 		}
 		return Gamma.Generator.CreateReturnNode(Expr.Type, ParsedTree, Expr);
-	}
-
-	public static GtNode TypeFileOperator(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		/*local*/GtNode ExprNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, Gamma.StringType, DefaultTypeCheckPolicy);
-		if(!ExprNode.IsError()) {
-			/*local*/String OperatorSymbol = ParsedTree.KeyToken.ParsedText;
-			/*local*/GtPolyFunc PolyFunc = Gamma.NameSpace.GetMethod(Gamma.StringType, SafeFuncName(OperatorSymbol), true);
-			/*local*/GtFunc ResolvedFunc = PolyFunc.ResolveUnaryFunc(Gamma, ParsedTree, ExprNode);
-			LibGreenTea.Assert(ResolvedFunc != null);
-			/*local*/GtNode ApplyNode =  Gamma.Generator.CreateApplyNode(ResolvedFunc.GetReturnType(), ParsedTree, ResolvedFunc);
-			ApplyNode.Append(ExprNode);  // dummpy
-			ApplyNode.Append(ExprNode);
-			return ApplyNode;
-		}
-		return ExprNode;
 	}
 
 	public static DFault UpdateFaultInfomation(DFault Fault, String CalledFuncName, String CurrentFuncName, long DCaseRevision, String Location, String RecServer) {
