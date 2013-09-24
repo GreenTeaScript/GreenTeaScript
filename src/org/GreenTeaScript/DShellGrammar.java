@@ -211,7 +211,10 @@ public class DShellGrammar extends GreenTeaUtils {
 				break;
 			}
 			if(!FoundOpen && StopTokens.indexOf(Token.ParsedText) != -1) {
-				break;
+				if(!LibGreenTea.EqualsString(Token.ParsedText, "&") && 
+						!LibGreenTea.EqualsString(Token.ParsedText, "|")) {
+					break;
+				}
 			}
 			Token = TokenContext.Next();
 			if(Token.EqualsText("{")) {
