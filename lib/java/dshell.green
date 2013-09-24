@@ -2,7 +2,12 @@
 
 import org.GreenTeaScript.DShellGrammar;
 
-@Const @Operator boolean "-f"(String Path) import org.GreenTeaScript.DShellGrammar.IsFile;
+@Const @Operator boolean "-f"(String Path) import DShellGrammar.IsFile;
+@Const @Operator boolean "-d"(String Path) import DShellGrammar.IsDirectory;
+@Const @Operator boolean "-e"(String Path) import DShellGrammar.IsFileExists;
+@Const @Operator boolean "-r"(String Path) import DShellGrammar.IsFileReadable;
+@Const @Operator boolean "-w"(String Path) import DShellGrammar.IsFileWritable;
+@Const @Operator boolean "-x"(String Path) import DShellGrammar.IsFileExecutable;
 
 
 let ConnectRefusedException = import org.GreenTeaScript.JVM.ConnectRefusedException;
