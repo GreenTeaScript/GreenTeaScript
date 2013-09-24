@@ -957,17 +957,20 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			}
 			this.Builder.AsmMethodVisitor.visitInsn(AASTORE);
 		}
-		Type requireType = this.ToAsmType(Node.Type);
 		String name, desc;
-		if(requireType.equals(Type.BOOLEAN_TYPE)) {
+		if(Node.Type.IsBooleanType()) {
 			name = "ExecCommandBool";
 			desc = "([[Ljava/lang/String;)Z";
 			this.Builder.typeStack.push(Type.BOOLEAN_TYPE);
 		}
-		else if(requireType.equals(Type.getType(String.class))) {
+		else if(Node.Type.IsStringType()) {
 			name = "ExecCommandString";
 			desc = "([[Ljava/lang/String;)Ljava/lang/String;";
 			this.Builder.typeStack.push(Type.getType(String.class));
+		}
+		else if(Node.Type.IsVoidType()) {
+			name = "ExecCommandVoid";
+			desc = "([[Ljava/lang/String;)V";
 		}
 		else {
 			name = "ExecCommand";

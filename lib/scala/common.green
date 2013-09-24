@@ -1,0 +1,86 @@
+// unary operator
+@Const @Operator boolean !(boolean x) as "! $1"
+@Const @Operator boolean not(boolean x) as "! $1"
+@Const @Operator int +(int x) as "$1";
+@Const @Operator int -(int x) as "-$1";
+@Const @Operator int ~(int x) as "~$1";
+@Const @Operator double +(double x) as "$1";
+@Const @Operator double -(double x) as "-$1";
+
+// binary operator
+// any
+@Const @Operator boolean ==(any x, any y) as "$1 == $2";
+@Const @Operator boolean !=(any x, any y) as "$1 != $2";
+
+// boolean
+@Const @Operator boolean ==(boolean x, boolean y) as "$1 == $2";
+@Const @Operator boolean !=(boolean x, boolean y) as "$1 != $2";
+@Const @Operator boolean converter(String x) as "($1).toBoolean";
+@Const @Operator String converter(boolean x) as "($1).toString";
+
+// int 
+@Const @Operator int +(int x, int y)      as "$1 + $2";
+@Const @Operator int -(int x, int y)      as "$1 - $2";
+@Const @Operator int *(int x, int y)      as "$1 * $2";
+@Const @Operator int /(int x, int y)      as "$1 / $2";
+@Const @Operator int %(int x, int y)      as "$1 % $2";
+@Const @Operator int <<(int x, int y)     as "$1 << $2";
+@Const @Operator int >>(int x, int y)     as "$1 >> $2";
+@Const @Operator int ^(int x, int y)      as "$1 ^ $2";
+@Const @Operator int |(int x, int y)      as "$1 | $2";
+@Const @Operator int &(int x, int y)      as "$1 & $2";
+@Const @Operator boolean <(int x,  int y) as "$1 < $2";
+@Const @Operator boolean <=(int x, int y) as "$1 <= $2";
+@Const @Operator boolean >(int x,  int y) as "$1 > $2";
+@Const @Operator boolean >=(int x, int y) as "$1 >= $2";
+@Const @Operator boolean ==(int x, int y) as "$1 == $2";
+@Const @Operator boolean !=(int x, int y) as "$1 != $2";
+
+@Coercion @Const String converter(int x) as "($2).toString";
+@Const int converter(String x)           as "($2).toInt";
+
+// String
+@Const @Operator String +(String x, String y)  as "$1 + $2";
+@Const @Operator String +(int x, String y)     as "$1 + $2";
+@Const @Operator String +(boolean x, String y) as "$1 + $2";
+
+@Const @Operator boolean ==(String x, String y)    as "$1 == $2";
+@Const @Operator boolean !=(String x, String y)    as "$1 != $2";
+
+boolean startsWith(String x, String y)   as "($1).startsWith($2)";
+boolean endsWith(String x, String y)     as "($1).endsWith($2)";
+int indexOf(String x, String sub)        as "($1).indexOf($2)";
+int lastIndexOf(String x, String sub)    as "($1).lastIndexOf($2)";
+String substring(String x, int s)        as "($1).substring($2)"
+String substring(String x, int s, int e) as "($1).substring($2, $3)"; 
+String toLower(String x)                 as "($1).toLower()";
+String toUpper(String x)                 as "($1).toUpper()";
+int charAt(String x, int pos)            as "$1[$2]";
+String replace(String x, String old, String new) as "($1).replace($2, $3)";
+
+// double
+@Const @Operator double +(double x, double y)   as "$1 + $2";
+@Const @Operator double -(double x, double y)   as "$1 - $2";
+@Const @Operator double *(double x, double y)   as "$1 * $2";
+@Const @Operator double /(double x, double y)   as "$1 / $2";
+@Const @Operator boolean <(double x,  double y) as "$1 < $2";
+@Const @Operator boolean <=(double x, double y) as "$1 <= $2"
+@Const @Operator boolean >(double x,  double y) as "$1 > $2";
+@Const @Operator boolean >=(double x, double y) as "$1 >= $2"
+@Const @Operator boolean ==(double x, double y) as "$1 == $2"
+@Const @Operator boolean !=(double x, double y) as "$1 != $2"
+
+@Const @Operator double +(int x, double y) as "$1 + $2";
+@Const @Operator double -(int x, double y) as "$1 - $2";
+@Const @Operator double *(int x, double y) as "$1 * $2";
+@Const @Operator double /(int x, double y) as "$1 / $2";
+
+//FIXME ApplyNode for converter func has 3 arguments:
+//      converter(FromType, ToType, x)
+@Const double converter(String x)        as "($2).toDouble";
+@Coercion @Const String converter(double x) as "($2).toString";
+
+// function
+void print(String x) as "print($1)";
+void println(String x) as "println($1);";
+void assert(boolean x) as "assert($1)";

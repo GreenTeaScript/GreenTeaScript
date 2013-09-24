@@ -315,7 +315,7 @@ public class DShellGrammar extends GreenTeaUtils {
 
 	public static GtNode TypeDShell(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtType Type = null;
-		if(ContextType.IsStringType() || ContextType.IsBooleanType()) {
+		if(ContextType.IsStringType() || ContextType.IsBooleanType() || ContextType.IsVoidType()) {
 			Type = ContextType;
 		}
 		else {

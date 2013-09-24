@@ -111,6 +111,10 @@ public class GtSubProc {
 	}
 
 	// called by JavaByteCodeGenerator.VisitCommandNode 
+	public static void ExecCommandVoid(String[]... cmds) throws Exception {
+		int option = returnable | throwable | enableTrace;
+		runCommands(cmds, option, VoidType);
+	}
 	public static String ExecCommandString(String[]... cmds) throws Exception {
 		int option = returnable | throwable | enableTrace;
 		return (String) runCommands(cmds, option, StringType);
