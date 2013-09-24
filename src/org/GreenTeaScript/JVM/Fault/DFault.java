@@ -7,6 +7,10 @@ public class DFault extends Exception {
 	public long DCaseRevision = 0;
 	public String Location;
 
+	public DFault() {
+
+	}
+
 	public DFault(String location) {
 		this.Location = location;
 	}
