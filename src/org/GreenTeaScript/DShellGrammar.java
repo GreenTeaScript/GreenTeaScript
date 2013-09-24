@@ -380,7 +380,7 @@ public class DShellGrammar extends GreenTeaUtils {
 	private final static String StopTokens = ";,)]}&&||";
 
 	public static GtSyntaxTree ParseFilePath(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		/*local*/GtToken Token = TokenContext.Next();
+		/*local*/GtToken Token = TokenContext.GetToken();
 		boolean HasStringExpr = false;
 		String Path = null;
 		if(Token.IsIndent() || StopTokens.indexOf(Token.ParsedText) != -1) {
@@ -391,13 +391,11 @@ public class DShellGrammar extends GreenTeaUtils {
 			if(Path.indexOf("${") != -1) {
 				HasStringExpr = true;
 			}
-		}
-		else if(Token.IsNextWhiteSpace()) {
-			Path = Token.ParsedText;
+			TokenContext.Next();
 		}
 		if(Path == null) {
 			boolean FoundOpen = false;
-			Path = Token.ParsedText;
+			Path = "";
 			while(TokenContext.HasNext()) {
 				Token = TokenContext.GetToken();
 				if(Token.IsIndent() || (!FoundOpen && StopTokens.indexOf(Token.ParsedText) != -1)) {
@@ -407,14 +405,8 @@ public class DShellGrammar extends GreenTeaUtils {
 				if(Token.EqualsText("$")) {   // $HOME/hoge
 					GtToken Token2 = TokenContext.GetToken();
 					if(LibGreenTea.IsVariableName(Token2.ParsedText, 0)) {
-						Object Env = NameSpace.GetSymbol(Token2.ParsedText);
-						if(Env instanceof String) {
-							Path += Env.toString();
-						}
-						else {
-							Path += "${" + Token2.ParsedText + "}";
-							HasStringExpr = true;
-						}
+						Path += "${" + Token2.ParsedText + "}";
+						HasStringExpr = true;
 						TokenContext.Next();
 						continue;
 					}
@@ -435,13 +427,15 @@ public class DShellGrammar extends GreenTeaUtils {
 		if(!HasStringExpr) {
 			GtSyntaxTree PathTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
 			PathTree.ToConstTree(Path);
+//			System.err.println("debug: " + Path + " ...");
 			return PathTree;
 		}
 		else {
+//			System.err.println("debug: " + Path);			
 			Path = "\"" + Path + "\"";
 			Path = Path.replaceAll("\\$\\{", "\" + (");
 			Path = Path.replaceAll("\\}", ") + \"");
-			System.err.println("debug: " + Path);
+//			System.err.println("debug: " + Path);
 			/*local*/GtTokenContext LocalContext = new GtTokenContext(NameSpace, Path, Token.FileLine);
 			return LocalContext.ParsePattern(NameSpace, "$Expression$", Required);
 		}
