@@ -506,12 +506,6 @@ final class GreenTeaAnyObject extends GreenTeaTopObject {
 	}
 }
 
-class GreenTeaArray extends GreenTeaTopObject {
-	GreenTeaArray/*constructor*/(GtType GreenType) {
-		super(GreenType);
-	}
-}
-
 class GreenTeaEnum extends GreenTeaTopObject {
 	/*field*/public final long EnumValue;
 	/*field*/public final String EnumSymbol;

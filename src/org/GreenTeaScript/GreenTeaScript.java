@@ -1807,7 +1807,7 @@ final class GtNameSpace extends GreenTeaUtils {
 		}
 		if(SourceToken != null) {
 			/*local*/Object OldValue = this.SymbolPatternTable.GetOrNull(Key);
-			if(OldValue != null) {
+			if(OldValue != null && OldValue != UndefinedSymbol) {
 				if(LibGreenTea.DebugMode) {
 					this.Context.ReportError(WarningLevel, SourceToken, "duplicated symbol: " + SourceToken + " oldnew=" + OldValue + ", " + Value);
 				}
@@ -3863,8 +3863,8 @@ final class KonohaGrammar extends GtGrammar {
 		if(Token.IsQuoted()) {
 			Name = LibGreenTea.UnquoteString(Name);
 			Token.ParsedText = Name;
+			return new GtSyntaxTree(Pattern, NameSpace, Token, Name);
 		}
-		System.err.println("debug: " + Name + ", " + Token.IsQuoted());
 		if(Name.length() > 0 && LibGreenTea.CharAt(Name, 0) != '(' && LibGreenTea.CharAt(Name, 0) != '.') {
 			return new GtSyntaxTree(Pattern, NameSpace, Token, Name);
 		}
@@ -3901,8 +3901,8 @@ final class KonohaGrammar extends GtGrammar {
 		else if(TokenContext.IsToken("import")) {
 			/*local*/GtSyntaxTree ImportTree = TokenContext.ParsePattern(NameSpace, "import", Optional);
 			if(GreenTeaUtils.IsValidSyntax(ImportTree)) {
-				if(!LibGreenTea.ImportNativeMethod(FuncBlock.DefinedFunc, (/*cast*/String)ImportTree.ParsedValue)) {
-					NameSpace.Context.ReportError(WarningLevel, ImportTree.KeyToken, "cannot import: " + ImportTree.ParsedValue);
+				if(!LibGreenTea.ImportNativeMethod(NameSpace, FuncBlock.DefinedFunc, (/*cast*/String)ImportTree.ParsedValue)) {
+					NameSpace.Context.ReportError(WarningLevel, ImportTree.KeyToken, "unable to import: " + ImportTree.ParsedValue);
 				}
 			}
 		}
@@ -4513,7 +4513,7 @@ final class GtParserContext extends GreenTeaUtils {
 		this.SetNativeTypeName("java.lang.String",  this.StringType);
 		this.SetNativeTypeName("org.GreenTeaScript.GtType", this.TypeType);
 		this.SetNativeTypeName("org.GreenTeaScript.GreenTeaEnum", this.TenumType);
-		this.SetNativeTypeName("java.util.Array", this.ArrayType);
+		this.SetNativeTypeName("org.GreenTeaScript.GreenTeaArray", this.ArrayType);
 		this.SetNativeTypeName("double",    this.FloatType);
 		this.SetNativeTypeName("java.lang.Double",  this.FloatType);
 //endif VAJA

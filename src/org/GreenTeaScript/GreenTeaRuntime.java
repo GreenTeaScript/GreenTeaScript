@@ -147,25 +147,6 @@ public class GreenTeaRuntime {
 		return -1;
 	}
 
-	// Array
-	public final static Object ArrayToAny(GtType Type, ArrayList<Object> value) {
-		return (Object)value;
-	}
-
-	public final static ArrayList<Object> AnyToArray(GtType Type, Object value) {
-		if(value instanceof ArrayList<?>) {
-			ArrayList<Object> List = (ArrayList<Object>)value;
-			GtType ElementType = Type.TypeParams[0];
-			for(int i = 0; i < List.size(); i++) {
-				Type.Accept(ElementType);
-				if(!Type.AcceptValue(List.get(i))) {
-					break;
-				}
-			}
-		}
-		return null;
-	}
-
 	//-----------------------------------------------------------------------
 
 	public final static int l2i(GtType Type, long n) {

@@ -2,7 +2,8 @@
 
 import org.GreenTeaScript.DShellGrammar;
 
-@Operator boolean "-f"(String Path) import org.GreenTeaScript.DShellGrammar.IsFile;
+@Const @Operator boolean "-f"(String Path) import org.GreenTeaScript.DShellGrammar.IsFile;
+
 
 let ConnectRefusedException = import org.GreenTeaScript.JVM.ConnectRefusedException;
 let IllegalSeekException = import org.GreenTeaScript.JVM.IllegalSeekException;
