@@ -15,6 +15,7 @@ import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.EmptyStackException;
 import java.util.Stack;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -169,7 +170,9 @@ public class GtSubProc {
 			proc.setArgument(cmds);
 		}
 		else if(LibGreenTea.EqualsString(cmdSymbol, "checkpoint")) {
-			
+			String[] newCmds = {"sudo", "lvcreate", "-s", "-n", cmds[1], cmds[2]};
+			proc = new SubProc(false);
+			proc.setArgument(newCmds);
 		}
 		else if(LibGreenTea.EqualsString(cmdSymbol, "rollback")) {
 			
@@ -203,7 +206,7 @@ public class GtSubProc {
 					option = setFlag(option, background, !is(option, returnable));
 				}
 				else if(subOption.startsWith("timeout=")) {
-					String num = LibGreenTea.SubString(subOption, "timeout=".length() - 1, subOption.length());
+					String num = LibGreenTea.SubString(subOption, "timeout=".length(), subOption.length());
 					long parsedNum = LibGreenTea.ParseInt(num);
 					if(parsedNum >= 0) {
 						timeout = parsedNum;
@@ -502,6 +505,7 @@ class SubProc extends PseudoProcess {
 			Process procKiller = new ProcessBuilder(cmds).start();
 			procKiller.waitFor();
 			this.isKilled = true;
+			LibGreenTea.print("[killed]: " + this.getCmdName());
 		} 
 		catch (NoSuchFieldException e) {
 			e.printStackTrace();
@@ -576,6 +580,7 @@ class ProcessKiller extends TimerTask {
 	}
 
 	public void killProcs() {
+		LibGreenTea.println("processes are time out!!");
 		for(int i = 0; i < this.procs.length; i++) {
 			this.procs[i].kill();
 		}
@@ -625,6 +630,7 @@ class ErrorInferencer {
 	private static final Pattern gconvFilter = Pattern.compile("^.+(.+/usr/lib64/gconv.+).+");
 	private static final Pattern functionFilter = Pattern.compile("^  > .+");
 	private static final Pattern exitFilter = Pattern.compile("^  > .+exit.*().+");
+	private static final Pattern libcStartMainFilter = Pattern.compile("^  > __libc_start_main().+");
 	private int traceBackendType;
 
 	public ErrorInferencer(int traceBackendType) {
@@ -694,6 +700,7 @@ class ErrorInferencer {
 
 	private Stack<String[]> parseStracePlusLog(String logFilePath) {
 		try {
+			boolean found_libcStartMain = false;
 			String foundSyscall = null;
 			String newLogFilePath = createShapedLog(logFilePath);
 			Stack<String[]> parsedSyscallStack = new Stack<String[]>();
@@ -702,13 +709,19 @@ class ErrorInferencer {
 			while((line = br.readLine()) != null) {
 				if(foundSyscall != null) {
 					if(applyFilter(functionFilter, line)) {
+						if(applyFilter(libcStartMainFilter, line)) {
+							found_libcStartMain = true;
+						}
 						if(applyFilter(exitFilter, line)) {
 							foundSyscall = null;
 						}
 						continue;
 					}
 					else {
-						parsedSyscallStack.push(parseLine(foundSyscall));
+						if(found_libcStartMain) {
+							parsedSyscallStack.push(parseLine(foundSyscall));
+							found_libcStartMain = false;
+						}
 						foundSyscall = null;
 					}
 				}
@@ -789,7 +802,12 @@ class ErrorInferencer {
 
 	public String[] doInference(String traceLogPath) {
 		Stack<String[]> syscallStack = this.parseTraceLog(traceLogPath);
-		return syscallStack.peek();
+		try {
+			return syscallStack.peek();
+		}
+		catch(EmptyStackException e) {
+			return null;
+		}
 	}
 }
 
@@ -829,7 +847,7 @@ class ShellExceptionRaiser {
 			}
 			else {
 				if(targetProc.getRet() != 0) {
-					throw new Exception(message);
+					throw new DShellException(message);
 				}
 			}
 		}
@@ -837,6 +855,9 @@ class ShellExceptionRaiser {
 
 	private Exception createException(String message, String[] syscall) throws Exception {
 		try {
+			if(syscall == null) {
+				return new NoRelatedSyscallException(message);
+			}
 			return ErrNo.valueOf(syscall[2]).toException(message, syscall[0], syscall[1]);
 		}
 		catch (IllegalArgumentException e) {
