@@ -22,7 +22,7 @@ boolean TestFunc03() {
 
 @Export int main() {
     assert(TestFunc01() == false);
-    assert(TestFunc02() == false);
-    assert(TestFunc03() == true);
+    assert(TestFunc02() == true);
+    assert(TestFunc03() == false);
     return 0;
 }
