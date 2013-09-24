@@ -1,6 +1,6 @@
 package org.GreenTeaScript.JVM;
 
-public class NetworkTimeoutException extends Exception {
+public class NetworkTimeoutException extends DShellException {
 	private static final long serialVersionUID = 1L;
 
 	public NetworkTimeoutException(String message) {

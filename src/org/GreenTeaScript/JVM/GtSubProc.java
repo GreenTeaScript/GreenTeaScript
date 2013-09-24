@@ -875,7 +875,11 @@ enum Syscall {
 }
 
 enum ErrNo {
-	E2BIG, 
+	E2BIG {
+		public Exception toException(String message, String syscallName, String param) {
+			return new TooManyArgsException(message);
+		}
+	}, 
 	EACCES {
 		public Exception toException(String message, String syscallName, String param) {
 			return new NotPermittedException(message);
@@ -895,7 +899,11 @@ enum ErrNo {
 	EBADSLT, 
 	EBUSY, 
 	ECANCELED, 
-	ECHILD, 
+	ECHILD {
+		public Exception toException(String message, String syscallName, String param) {
+			return new NoChildException(message);
+		}
+	}, 
 	ECHRNG, 
 	ECOMM, 
 	ECONNABORTED,
@@ -995,7 +1003,7 @@ enum ErrNo {
 	ENOSYS, 
 	ENOTBLK, 
 	ENOTCONN, 
-	ENOTDIR{
+	ENOTDIR {
 		public Exception toException(String message, String syscallName, String param) {
 			return new NotDirectoryException(message);
 		}
@@ -1003,7 +1011,11 @@ enum ErrNo {
 	ENOTEMPTY, 
 	ENOTSOCK, 
 	ENOTSUP, 
-	ENOTTY, 
+	ENOTTY {
+		public Exception toException(String message, String syscallName, String param) {
+			return new IllegalIOOperateException(message);
+		}
+	}, 
 	ENOTUNIQ, 
 	ENXIO, 
 	EOPNOTSUPP, 

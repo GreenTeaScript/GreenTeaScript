@@ -1,9 +1,9 @@
 package org.GreenTeaScript.JVM;
 
-public class NotFoundException extends DShellException {
+public class NoChildException extends DShellException {
 	private static final long serialVersionUID = 1L;
 
-	public NotFoundException(String message) {
+	public NoChildException(String message) {
 		super(message);
 	}
 }

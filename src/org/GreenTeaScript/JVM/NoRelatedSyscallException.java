@@ -1,6 +1,6 @@
 package org.GreenTeaScript.JVM;
 
-public class NoRelatedSyscallException extends Exception {
+public class NoRelatedSyscallException extends DShellException {
 	private static final long serialVersionUID = 1L;
 
 	public NoRelatedSyscallException(String message) {
