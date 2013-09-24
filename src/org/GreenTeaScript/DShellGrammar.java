@@ -481,14 +481,8 @@ public class DShellGrammar extends GreenTeaUtils {
 		if(!CommandToken.EqualsText(">")) {
 			/*local*/String Command = (/*cast*/String)NameSpace.GetSymbol(CommandSymbol(CommandToken.ParsedText));
 			if(Command == null) {
-				Command = (/*cast*/String)NameSpace.GetSymbol(CommandSymbol("*"));
-				if(Command != null) {
-					if(IsUnixCommand(CommandToken.ParsedText)) {
-						NameSpace.SetSymbol(CommandSymbol(CommandToken.ParsedText), CommandToken.ParsedText, CommandToken);
-					}
-					else {
-						return TokenContext.ReportExpectedToken("command");
-					}
+				if(IsUnixCommand(CommandToken.ParsedText)) {
+					NameSpace.SetSymbol(CommandSymbol(CommandToken.ParsedText), CommandToken.ParsedText, CommandToken);
 				}
 				else {
 					return TokenContext.ReportExpectedToken("command");
@@ -507,7 +501,7 @@ public class DShellGrammar extends GreenTeaUtils {
 //			}
 			if(Token.EqualsText("|")) {
 				TokenContext.Next();
-				/*local*/GtSyntaxTree PipedTree = TokenContext.ParsePattern(NameSpace, "$DShell", Required);
+				/*local*/GtSyntaxTree PipedTree = TokenContext.ParsePattern(NameSpace, "$DShell$", Required);
 				if(PipedTree.IsError()) {
 					return PipedTree;
 				}
@@ -515,7 +509,7 @@ public class DShellGrammar extends GreenTeaUtils {
 				return CommandTree;
 			}
 			if(Token.EqualsText(">")) {
-				/*local*/GtSyntaxTree RedirectTree = TokenContext.ParsePattern(NameSpace, "$DShell", Required);
+				/*local*/GtSyntaxTree RedirectTree = TokenContext.ParsePattern(NameSpace, "$DShell$", Required);
 				if(RedirectTree.IsError()) {
 					return RedirectTree;
 				}
@@ -540,7 +534,7 @@ public class DShellGrammar extends GreenTeaUtils {
 		/*local*/int ArgumentSize = LibGreenTea.ListSize(ParsedTree.SubTreeList);
 		while(Index < ArgumentSize) {
 			/*local*/GtSyntaxTree SubTree = ParsedTree.SubTreeList.get(Index);
-			if(SubTree.Pattern.EqualsName("$DShell2")) {
+			if(SubTree.Pattern.EqualsName("$DShell2$")) {
 				PipedNode = TypeDShell2(Gamma, SubTree, ContextType);
 				ArgumentSize = Index;
 //				Type = Gamma.VoidType;
@@ -561,7 +555,10 @@ public class DShellGrammar extends GreenTeaUtils {
 		return Node;
 	}
 
-	
+	public static GtSyntaxTree ParseShell(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		TokenContext.Next();
+		return TokenContext.ParsePattern(NameSpace, "$DShell2$", Required);
+	}
 	
 	static private final GtNode CreateConstNode(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, Object ConstValue) {
 		return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(ConstValue), ParsedTree, ConstValue);
@@ -662,6 +659,8 @@ public class DShellGrammar extends GreenTeaUtils {
 		NameSpace.AppendSyntax("command", LoadParseFunc2(ParserContext, GrammarClass, "ParseCommand"), null);
 		NameSpace.AppendSyntax("-", LoadParseFunc2(ParserContext, GrammarClass, "ParseFileOperator"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeFileOperator"));
 		NameSpace.AppendSyntax("$DShell$", LoadParseFunc2(ParserContext, GrammarClass, "ParseDShell"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeDShell"));
+		NameSpace.AppendSyntax("$DShell2$", LoadParseFunc2(ParserContext, GrammarClass, "ParseDShell2"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeDShell2"));
+		NameSpace.AppendSyntax("shell", LoadParseFunc2(ParserContext, GrammarClass, "ParseShell"), null);
 
 		
 		NameSpace.AppendSyntax("$FilePath$", LoadParseFunc2(ParserContext, GrammarClass, "ParseFilePath"), null);
