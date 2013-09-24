@@ -1338,7 +1338,7 @@ class GtGenerator extends GreenTeaUtils {
 				return GtSubProc.ExecCommandBool(Args);
 			}
 			else {
-				GtSubProc.ExecCommandVoid(Args);
+				return GtSubProc.ExecCommand(Args);
 			}
 		} 
 		catch(Exception e) {

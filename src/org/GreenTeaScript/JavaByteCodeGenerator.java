@@ -496,7 +496,8 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		if(constValue == null) { // FIXME(ide)
 			this.Builder.typeStack.push(this.ToAsmType(Node.Type));
 			this.Builder.AsmMethodVisitor.visitInsn(ACONST_NULL);
-		} else {
+		}
+		else {
 			this.Builder.LoadConst(constValue);
 		}
 	}
@@ -506,8 +507,12 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		String owner = type.getInternalName();
 		this.Builder.AsmMethodVisitor.visitTypeInsn(NEW, owner);
 		this.Builder.AsmMethodVisitor.visitInsn(DUP);
-		this.Builder.AsmMethodVisitor.visitInsn(ACONST_NULL);//FIXME: push type
-		this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESPECIAL, owner, "<init>", "(Lorg/GreenTeaScript/GtType;)V");
+		if(!Node.Type.IsNative()) {
+			this.Builder.AsmMethodVisitor.visitInsn(ACONST_NULL);//FIXME: push type
+			this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESPECIAL, owner, "<init>", "(Lorg/GreenTeaScript/GtType;)V");
+		} else {
+			this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESPECIAL, owner, "<init>", "()V");
+		}
 		this.Builder.typeStack.push(type);
 	}
 
@@ -965,11 +970,11 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			this.Builder.typeStack.push(Type.getType(String.class));
 		}
 		else {
-			name = "ExecCommandVoid";
-			desc = "([[Ljava/lang/String;)V";
+			name = "ExecCommand";
+			desc = "([[Ljava/lang/String;)" + Type.getType(GtSubProc.class).getDescriptor();
+			this.Builder.typeStack.push(Type.getType(GtSubProc.class));
 		}
-		this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC,
-				Type.getInternalName(GtSubProc.class), name, desc);
+		this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, Type.getInternalName(GtSubProc.class), name, desc);
 	}
 
 	@Override public void InvokeMainFunc(String MainFuncName) {

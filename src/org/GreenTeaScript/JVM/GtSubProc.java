@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import org.GreenTeaScript.DShellGrammar;
+import org.GreenTeaScript.GtType;
 import org.GreenTeaScript.LibGreenTea;
 
 public class GtSubProc {
@@ -36,8 +37,77 @@ public class GtSubProc {
 	private static final int VoidType = 0;
 	private static final int BooleanType = 1;
 	private static final int StringType = 2;
+	private static final int ProcessType = 3;
 
 	private static SubProc prevSubProc = null;
+
+	private String Result = "";
+	private long ReturnValue = -1;
+	private final int CommandFlag;
+	private final PseudoProcess LastProcess;
+	private final PseudoProcess[] Processes;
+	private long timeout;
+	private ShellExceptionRaiser ExceptionManager = null;
+	public GtSubProc(int option, String[][] cmds, int ProcessSize, long timeout) {
+		// init process
+		this.ExceptionManager = new ShellExceptionRaiser(is(option, throwable));
+		this.Processes = new PseudoProcess[ProcessSize];
+		for(int i = 0; i < ProcessSize; i++) {
+			this.Processes[i] = GtSubProc.createProc(cmds[i], is(option, enableTrace));
+			this.ExceptionManager.setProcess(this.Processes[i]);
+		}
+
+		// start process
+		int lastIndex = ProcessSize - 1;
+		this.Processes[0].start();
+		for(int i = 1; i < ProcessSize; i++) {
+			this.Processes[i].start();
+			this.Processes[i - 1].pipe(this.Processes[i]);
+		}
+		this.CommandFlag = option;
+		this.LastProcess = this.Processes[lastIndex];
+		this.timeout = timeout;
+	}
+	private boolean IsBackGroundProcess() {
+		return is(this.CommandFlag, background);
+	}
+	private GtSubProc Detach() {
+		if(timeout > 0) {
+			new ProcessTimer(this.Processes, timeout);
+		}
+		return this;
+	}
+	private Object GetResult(int ReturnType) throws Exception {
+		this.waitResult();
+		// raise exception
+		this.ExceptionManager.raiseException();
+		this.Result = LastProcess.getStdout();
+		this.ReturnValue = LastProcess.getRet();
+		// get result value
+		if(is(this.CommandFlag, returnable)) {
+			if(ReturnType == StringType) {
+				return this.Result;
+			}
+			else if(ReturnType == BooleanType) {
+				return new Boolean(this.ReturnValue == 0);
+			}
+		}
+		return this;
+	}
+	private void waitResult() {
+		this.LastProcess.waitResult(is(this.CommandFlag, printable));
+	}
+
+	// GreenTeaScript API
+	public final static boolean unary_not(GtSubProc Value) {
+		return !(Value.ReturnValue == 0);
+	}
+	public final static String ConvertToString(GtType Type, GtSubProc Value) {
+		return Value.Result;
+	}
+	public final static boolean ConvertToBoolean(GtType ToType, GtSubProc Value) {
+		return Value.ReturnValue == 0;
+	}
 
 	// called by JavaByteCodeGenerator.VisitCommandNode 
 	public static String ExecCommandString(String[]... cmds) throws Exception {
@@ -50,9 +120,9 @@ public class GtSubProc {
 		return ((Boolean) runCommands(cmds, option, BooleanType)).booleanValue();
 	}
 
-	public static void ExecCommandVoid(String[]... cmds) throws Exception {
+	public static GtSubProc ExecCommand(String[]... cmds) throws Exception {
 		int option = printable | throwable | enableTrace;
-		runCommands(cmds, option, VoidType);
+		return (GtSubProc) runCommands(cmds, option, ProcessType);
 	}
 	//---------------------------------------------
 
@@ -147,43 +217,11 @@ public class GtSubProc {
 			option = setFlag(option, enableTrace, checkTraceRequirements());
 		}
 		
-		// init process
-		ShellExceptionRaiser exceptionRaiser = new ShellExceptionRaiser(is(option, throwable));
-		PseudoProcess[] subProcs = new PseudoProcess[size];
-		for(int i = 0; i < size; i++) {
-			subProcs[i] = createProc(cmds[i], is(option, enableTrace));
-			exceptionRaiser.setProcess(subProcs[i]);
+		GtSubProc Process = new GtSubProc(option, cmds, size, timeout);
+		if(Process.IsBackGroundProcess()) {
+			return Process.Detach();
 		}
-		
-		// start process
-		int lastIndex = size - 1;
-		subProcs[0].start();
-		for(int i = 1; i < size; i++) { 
-			subProcs[i].start();
-			subProcs[i - 1].pipe(subProcs[i]);
-		}
-		
-		if(is(option, background)) {
-			if(timeout > 0) {
-				new ProcessTimer(subProcs, timeout);
-			}
-			return null;
-		}
-		subProcs[lastIndex].waitResult(is(option, printable));
-		
-		// raise exception
-		exceptionRaiser.raiseException();
-		
-		// get result value
-		if(is(option, returnable)) {
-			if(retType == StringType) {
-				return subProcs[lastIndex].getStdout();
-			}
-			else if(retType == BooleanType) {
-				return new Boolean(subProcs[lastIndex].getRet() == 0);
-			}
-		}
-		return null;
+		return Process.GetResult(retType);
 	}
 }
 

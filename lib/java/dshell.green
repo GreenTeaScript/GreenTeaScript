@@ -19,3 +19,16 @@ let TooLongNameException = import org.GreenTeaScript.JVM.TooLongNameException;
 let TooManyLinkException = import org.GreenTeaScript.JVM.TooManyLinkException;
 let UnreachableException = import org.GreenTeaScript.JVM.UnreachableException;
 
+// FaultTypes
+let DFault       = import org.GreenTeaScript.JVM.Fault.DFault;
+let UnknownFault = import org.GreenTeaScript.JVM.Fault.UnknownFault;
+let ReportAction = import org.GreenTeaScript.DShellGrammar.UpdateFaultInfomation;
+
+@Const @Operator boolean ==(DFault x, DFault y) import org.GreenTeaScript.JVM.Fault.DFault.binary_eq;
+
+
+// Process
+let Process = import org.GreenTeaScript.JVM.GtSubProc;
+@Coercion var !(var x) import org.GreenTeaScript.JVM.GtSubProc.unary_not;
+@Coercion var converter(var x) import org.GreenTeaScript.JVM.GtSubProc.ConvertToString;
+@Coercion var converter(var x) import org.GreenTeaScript.JVM.GtSubProc.ConvertToBoolean;

@@ -3153,7 +3153,10 @@ final class KonohaGrammar extends GtGrammar {
 					if(!ClassType.IsNative() && ParsedTree.SubTreeList.size() == 1) {
 						return Gamma.Generator.CreateNewNode(ClassType, ParsedTree);
 					}
-					Gamma.Context.ReportError(TypeErrorLevel, ParsedTree.KeyToken, "mismatched : constructor" + PolyFunc);
+					Gamma.Context.ReportError(TypeErrorLevel, ParsedTree.KeyToken, "mismatched : constructor " + PolyFunc);
+					if(Gamma.Generator.IsStrictMode()) {
+						return Gamma.CreateSyntaxErrorNode(ParsedTree,  "mismatched : constructor " + PolyFunc);
+					}
 				}
 				else {
 					if(ResolvedFunc.Is(NativeFunc)) {
@@ -3161,7 +3164,6 @@ final class KonohaGrammar extends GtGrammar {
 					}
 					NodeList.add(1, Gamma.Generator.CreateNewNode(ClassType, ParsedTree)); //JAVAONLY?
 				}
-				// TODO;
 				return Gamma.Generator.CreateConstructorNode(ClassType, ParsedTree, ResolvedFunc, NodeList);
 			}
 			else if(Func instanceof GtFunc) {
