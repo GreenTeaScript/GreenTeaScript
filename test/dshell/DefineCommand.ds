@@ -1,0 +1,7 @@
+require dshell;
+
+@Export int main() {
+    command ls;
+    ls -la
+    return 0;
+}

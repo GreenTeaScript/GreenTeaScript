@@ -129,7 +129,7 @@ class JVMBuilder {
 	}
 
 	void LoadConst(Object o) {
-		Type type;
+		Type type = null;
 		boolean unsupportType = false;
 		// JVM supports only boolean, int, long, String, float, double, java.lang.Class
 		if(o instanceof Long) {
@@ -493,7 +493,13 @@ public class JavaByteCodeGenerator extends GtGenerator {
 
 	@Override public void VisitConstNode(ConstNode Node) {
 		Object constValue = Node.ConstValue;
-		this.Builder.LoadConst(constValue);
+		if(constValue == null) { // FIXME(ide)
+			this.Builder.typeStack.push(this.ToAsmType(Node.Type));
+			this.Builder.AsmMethodVisitor.visitInsn(ACONST_NULL);
+		}
+		else {
+			this.Builder.LoadConst(constValue);
+		}
 	}
 
 	@Override public void VisitNewNode(NewNode Node) {
@@ -501,8 +507,12 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		String owner = type.getInternalName();
 		this.Builder.AsmMethodVisitor.visitTypeInsn(NEW, owner);
 		this.Builder.AsmMethodVisitor.visitInsn(DUP);
-		this.Builder.AsmMethodVisitor.visitInsn(ACONST_NULL);//FIXME: push type
-		this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESPECIAL, owner, "<init>", "(Lorg/GreenTeaScript/GtType;)V");
+		if(!Node.Type.IsNative()) {
+			this.Builder.AsmMethodVisitor.visitInsn(ACONST_NULL);//FIXME: push type
+			this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESPECIAL, owner, "<init>", "(Lorg/GreenTeaScript/GtType;)V");
+		} else {
+			this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESPECIAL, owner, "<init>", "()V");
+		}
 		this.Builder.typeStack.push(type);
 	}
 
@@ -906,7 +916,8 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		Type foundType = this.Builder.typeStack.pop();
 		if(type.equals(foundType)) {
 			this.Builder.AsmMethodVisitor.visitLdcInsn(true);//FIXME: primitive type
-		} else {
+		}
+		else {
 			this.Builder.AsmMethodVisitor.visitTypeInsn(INSTANCEOF, type.getInternalName());
 		}
 		this.Builder.typeStack.push(Type.BOOLEAN_TYPE);
@@ -959,11 +970,11 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			this.Builder.typeStack.push(Type.getType(String.class));
 		}
 		else {
-			name = "ExecCommandVoid";
-			desc = "([[Ljava/lang/String;)V";
+			name = "ExecCommand";
+			desc = "([[Ljava/lang/String;)" + Type.getType(GtSubProc.class).getDescriptor();
+			this.Builder.typeStack.push(Type.getType(GtSubProc.class));
 		}
-		this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC,
-				Type.getInternalName(GtSubProc.class), name, desc);
+		this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, Type.getInternalName(GtSubProc.class), name, desc);
 	}
 
 	@Override public void InvokeMainFunc(String MainFuncName) {

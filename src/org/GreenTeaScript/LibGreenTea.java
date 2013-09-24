@@ -157,7 +157,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		}
 		return level;
 	}
-	
+
 	public final static String CharToString(char code) {
 		return Character.toString(code);
 	}
@@ -518,7 +518,6 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return null;
 	}
 
-	
 	public final static void LoadNativeMethods(GtType ClassType, String FuncName, ArrayList<GtFunc> FuncList) {
 		GtParserContext Context = ClassType.Context;
 		Class<?> NativeClass = (Class<?>)ClassType.TypeBody;
@@ -796,7 +795,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 			int level = 0;
 			while((level = LibGreenTea.CheckBraceLevel(Line)) > 0) {
 				String Line2 = Console.readLine(Prompt2 + GreenTeaUtils.JoinStrings("  ", level));
-				Line += "\n" + Line2; 
+				Line += "\n" + Line2;
 			}
 			if(level < 0) {
 				Line = "";

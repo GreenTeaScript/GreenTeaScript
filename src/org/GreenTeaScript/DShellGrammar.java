@@ -26,6 +26,8 @@
 package org.GreenTeaScript;
 import java.io.File;
 import java.util.ArrayList;
+
+import org.GreenTeaScript.JVM.Fault.DFault;
 //endif VAJA
 
 public class DShellGrammar extends GreenTeaUtils {
@@ -45,19 +47,19 @@ public class DShellGrammar extends GreenTeaUtils {
 		}
 		return false;
 	}
-	
+
 	public final static boolean IsFile(String Path) {
 		return new File(Path).isFile();
 	}
-	
+
 	public final static boolean IsDirectory(String Path) {
 		return new File(Path).isDirectory();
 	}
-	
+
 	public final static boolean IsFileExists(String Path) {
 		return new File(Path).exists();
 	}
-	
+
 	public final static boolean IsFileReadable(String Path) {
 		return new File(Path).canRead();
 	}
@@ -69,7 +71,7 @@ public class DShellGrammar extends GreenTeaUtils {
 	public final static boolean IsFileExecutable(String Path) {
 		return new File(Path).canExecute();
 	}
-	
+
 	public final static String[] ExpandPath(String Path) {
 		/*local*/int Index = Path.indexOf("*");
 		/*local*/String NewPath = LibGreenTea.SubString(Path, 0, Index);
@@ -79,12 +81,12 @@ public class DShellGrammar extends GreenTeaUtils {
 		}
 		return new String[0];
 	}
-	
+
 	// Grammar 
 	private static String CommandSymbol(String Symbol) {
 		return "__$" + Symbol;
 	}
-	
+
 	private static void AppendCommand(GtNameSpace NameSpace, String CommandPath, GtToken SourceToken) {
 		if(CommandPath.length() > 0) {
 			int loc = CommandPath.lastIndexOf('/');
@@ -106,7 +108,7 @@ public class DShellGrammar extends GreenTeaUtils {
 			}
 		}
 	}
-	
+
 	public static GtSyntaxTree ParseCommand(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree CommandTree = TokenContext.CreateMatchedSyntaxTree(NameSpace, Pattern, "command");
 		/*local*/String Command = "";
@@ -208,6 +210,12 @@ public class DShellGrammar extends GreenTeaUtils {
 			if(Token.IsDelim() || Token.IsIndent()) {
 				break;
 			}
+			if(!FoundOpen && StopTokens.indexOf(Token.ParsedText) != -1) {
+				if(!LibGreenTea.EqualsString(Token.ParsedText, "&") && 
+						!LibGreenTea.EqualsString(Token.ParsedText, "|")) {
+					break;
+				}
+			}
 			Token = TokenContext.Next();
 			if(Token.EqualsText("{")) {
 				FoundOpen = true;
@@ -220,7 +228,7 @@ public class DShellGrammar extends GreenTeaUtils {
 				if(LibGreenTea.IsVariableName(Token2.ParsedText, 0)) {
 					Object Env = NameSpace.GetSymbol(Token2.ParsedText);
 					if(Env instanceof String) {
-						Argument += Env.toString();	
+						Argument += Env.toString();
 					}
 					else {
 						Argument += "${" + Token2.ParsedText + "}";
@@ -306,9 +314,16 @@ public class DShellGrammar extends GreenTeaUtils {
 	}
 
 	public static GtNode TypeDShell(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		/*local*/GtType Type = Gamma.VoidType;
+		/*local*/GtType Type = null;
 		if(ContextType.IsStringType() || ContextType.IsBooleanType()) {
 			Type = ContextType;
+		}
+		else {
+			/*local*/Object ConstValue = Gamma.NameSpace.GetSymbol("Process");
+			if(!(ConstValue instanceof GtType)) {
+				return Gamma.CreateSyntaxErrorNode(ParsedTree, "Process type is not defined in this context");
+			}
+			Type = (/*cast*/GtType) ConstValue;
 		}
 		/*local*/CommandNode Node = null;
 		/*local*/CommandNode PrevNode = null;
@@ -322,7 +337,7 @@ public class DShellGrammar extends GreenTeaUtils {
 			while(i < CommandLine.length) {
 				String Argument = CommandLine[i];
 				if(Argument.indexOf("${") != -1) {
-					/*local*/String Text = "\"" + Argument + "\"";
+					/*local*/String Text = LibGreenTea.QuoteString(Argument);
 					/*local*/GtTokenContext TokenContext = new GtTokenContext(Gamma.NameSpace, Text, CurrentNode.Token.FileLine);
 					/*local*/GtSyntaxTree TopLevelTree = TokenContext.ParsePattern(Gamma.NameSpace, "$Expression$", Required);
 					/*local*/GtNode ExprNode = TopLevelTree.TypeCheck(Gamma, Gamma.StringType, DefaultTypeCheckPolicy);
@@ -357,10 +372,10 @@ public class DShellGrammar extends GreenTeaUtils {
 		}
 		return Node;
 	}
-	
+
 	private final static String FileOperators = "-d -e -f -r -w -x";
 	private final static String StopTokens = ";,)]}&&||";
-	
+
 	private static String ParseFilePath(GtNameSpace NameSpace, GtTokenContext TokenContext) {
 		String Path = "";
 		boolean FoundOpen = false;
@@ -375,7 +390,7 @@ public class DShellGrammar extends GreenTeaUtils {
 				if(LibGreenTea.IsVariableName(Token2.ParsedText, 0)) {
 					Object Env = NameSpace.GetSymbol(Token2.ParsedText);
 					if(Env instanceof String) {
-						Path += Env.toString();	
+						Path += Env.toString();
 					}
 					else {
 						Path += "${" + Token2.ParsedText + "}";
@@ -397,7 +412,7 @@ public class DShellGrammar extends GreenTeaUtils {
 		}
 		return Path;
 	}
-	
+
 //	private static boolean EvalFileOp(String FileOp, String Path) {
 //		if(LibGreenTea.EqualsString(FileOp, "-d")) {
 //			return new File(Path).isDirectory();
@@ -419,7 +434,7 @@ public class DShellGrammar extends GreenTeaUtils {
 //		}
 //		return false;
 //	}
-	
+
 	public static GtSyntaxTree ParseOpFile(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtToken Token = TokenContext.Next();
 		/*local*/GtToken Token2 = TokenContext.Next();
@@ -475,7 +490,7 @@ public class DShellGrammar extends GreenTeaUtils {
 					if(LibGreenTea.IsVariableName(Token2.ParsedText, 0)) {
 						Object Env = NameSpace.GetSymbol(Token2.ParsedText);
 						if(Env instanceof String) {
-							Path += Env.toString();	
+							Path += Env.toString();
 						}
 						else {
 							Path += "${" + Token2.ParsedText + "}";
@@ -527,6 +542,89 @@ public class DShellGrammar extends GreenTeaUtils {
 		return null;
 	}
 
+	static private final GtNode CreateConstNode(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, Object ConstValue) {
+		return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(ConstValue), ParsedTree, ConstValue);
+	}
+
+	// D-exec Expression
+	// dexec FunctionName
+	public static GtSyntaxTree ParseDexec(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtSyntaxTree Tree = TokenContext.CreateMatchedSyntaxTree(NameSpace, Pattern, "dexec");
+		Tree.SetMatchedPatternAt(UnaryTerm, NameSpace, TokenContext, "$Variable$", Required);
+		return Tree;
+	}
+
+	// dexec FunctionName
+	// => ReportAction(FunctionName(), "FunctionName", CurrentFuncName, DCaseRevision)
+	public static GtNode TypeDexec(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+		/*local*/Object ConstValue = ParsedTree.NameSpace.GetSymbol("DCaseRevision");
+		if(ConstValue == null) {
+			return Gamma.CreateSyntaxErrorNode(ParsedTree, "constant variable DCaseRevision is not defined in this context");
+		}
+		/*local*/GtType DFaultType = (/*cast*/GtType) ParsedTree.NameSpace.GetSymbol("DFault");
+		if(DFaultType == null) {
+			return Gamma.CreateSyntaxErrorNode(ParsedTree, "DFault type is not defined in this context");
+		}
+
+		GtNode ApplyNode = KonohaGrammar.TypeApply(Gamma, ParsedTree, DFaultType);
+		if(ApplyNode.IsError()) {
+			return ApplyNode;
+		}
+
+		// create UpdateFaultInfomation(FunctionName(), "FunctionName", CurrentFuncName, DCaseRevision);
+		/*local*/GtNode Revision = DShellGrammar.CreateConstNode(Gamma, ParsedTree, ConstValue);
+		/*local*/String FunctionName = (/*cast*/String) ParsedTree.GetSyntaxTreeAt(UnaryTerm).KeyToken.ParsedText;
+		/*local*/String CurrentFuncName = Gamma.Func.GetNativeFuncName();
+
+		/*local*/GtNode FuncNameNode = DShellGrammar.CreateConstNode(Gamma, ParsedTree, FunctionName);
+		/*local*/GtNode CurFuncNameNode = DShellGrammar.CreateConstNode(Gamma, ParsedTree, CurrentFuncName);
+		
+		ConstValue = ParsedTree.NameSpace.GetSymbol("Location");
+		if(ConstValue == null || !(ConstValue instanceof String)) {
+			return Gamma.CreateSyntaxErrorNode(ParsedTree, "Location is not defined in this context");
+		}
+		/*local*/GtNode LocationNode = DShellGrammar.CreateConstNode(Gamma, ParsedTree, ConstValue);
+		ConstValue = ParsedTree.NameSpace.GetSymbol("RecServer");
+		if(ConstValue == null || !(ConstValue instanceof String)) {
+			return Gamma.CreateSyntaxErrorNode(ParsedTree, "RecServer is not defined in this context");
+		}
+		/*local*/GtNode RecServerNode = DShellGrammar.CreateConstNode(Gamma, ParsedTree, ConstValue);
+		ConstValue = ParsedTree.NameSpace.GetSymbol("ReportAction");
+		if(!(ConstValue instanceof GtFunc)) {
+			return Gamma.CreateSyntaxErrorNode(ParsedTree, "ReportAction is not defined in this context");
+		}
+		/*local*/GtFunc Func = (/*cast*/GtFunc) ConstValue;
+		/*local*/GtNode ApplyNode2 = Gamma.Generator.CreateApplyNode(Func.GetReturnType(), ParsedTree, Func);
+		ApplyNode2.Append(DShellGrammar.CreateConstNode(Gamma, ParsedTree, Func));
+		ApplyNode2.Append(ApplyNode);
+		ApplyNode2.Append(FuncNameNode);
+		ApplyNode2.Append(CurFuncNameNode);
+		ApplyNode2.Append(Revision);
+		ApplyNode2.Append(LocationNode);
+		ApplyNode2.Append(RecServerNode);
+		return ApplyNode2;
+	}
+
+	// Raise Expression
+	public static GtSyntaxTree ParseRaise(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtSyntaxTree ReturnTree = TokenContext.CreateMatchedSyntaxTree(NameSpace, Pattern, "raise");
+		ReturnTree.SetMatchedPatternAt(UnaryTerm, NameSpace, TokenContext, "$Type$", Required);
+		return ReturnTree;
+	}
+
+	public static GtNode TypeRaise(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+		if(Gamma.IsTopLevel() || Gamma.Func == null) {
+			return Gamma.UnsupportedTopLevelError(ParsedTree);
+		}
+		/*local*/GtNode Expr = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, Gamma.NameSpace.Context.TypeType, DefaultTypeCheckPolicy);
+		if(Expr instanceof ConstNode && Expr.Type.IsTypeType()) {
+			/*local*/GtType ObjectType = (/*cast*/GtType)((/*cast*/ConstNode)Expr).ConstValue;
+			Expr = Gamma.Generator.CreateNewNode(ObjectType, ParsedTree);
+			//Expr = KonohaGrammar.TypeApply(Gamma, ParsedTree, ObjectType);
+		}
+		return Gamma.Generator.CreateReturnNode(Expr.Type, ParsedTree, Expr);
+	}
+
 	public static GtNode TypeFileOperator(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtNode ExprNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, Gamma.StringType, DefaultTypeCheckPolicy);
 		if(!ExprNode.IsError()) {
@@ -542,6 +640,14 @@ public class DShellGrammar extends GreenTeaUtils {
 		return ExprNode;
 	}
 
+	public static DFault UpdateFaultInfomation(DFault Fault, String CalledFuncName, String CurrentFuncName, long DCaseRevision, String Location, String RecServer) {
+		if(Fault == null) {
+			return null;
+		}
+		Fault.UpdateFaultInfomation(CalledFuncName, CurrentFuncName, DCaseRevision);
+		return Fault;
+	}
+
 //ifdef JAVA
 	// this is a new interface used in ImportNativeObject
 	public static void ImportGrammar(GtNameSpace NameSpace, Class<?> GrammarClass) {
@@ -550,7 +656,12 @@ public class DShellGrammar extends GreenTeaUtils {
 		NameSpace.AppendSyntax("command", LoadParseFunc2(ParserContext, GrammarClass, "ParseCommand"), null);
 		NameSpace.AppendSyntax("-", LoadParseFunc2(ParserContext, GrammarClass, "ParseFileOperator"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeFileOperator"));
 		NameSpace.AppendSyntax("$DShell$", LoadParseFunc2(ParserContext, GrammarClass, "ParseDShell"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeDShell"));
+
 		NameSpace.AppendSyntax("$FilePath$", LoadParseFunc2(ParserContext, GrammarClass, "ParseFilePath"), null);
+
+		NameSpace.AppendSyntax("raise", LoadParseFunc2(ParserContext, GrammarClass, "ParseRaise"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeRaise"));
+		NameSpace.AppendSyntax("dexec", LoadParseFunc2(ParserContext, GrammarClass, "ParseDexec"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeDexec"));
+
 	}
 //endif VAJA
 }

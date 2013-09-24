@@ -35,7 +35,7 @@ class GtFuncBlock extends GreenTeaUtils {
 	/*field*/public boolean IsVarArgument;
 	/*field*/public ArrayList<GtType> TypeList;
 	/*field*/public GtFunc DefinedFunc;
-	
+
 	GtFuncBlock/*constructor*/(GtNameSpace NameSpace, ArrayList<GtType> TypeList) {
 		this.NameSpace = NameSpace;
 		this.TypeList = TypeList;
@@ -44,7 +44,7 @@ class GtFuncBlock extends GreenTeaUtils {
 		this.IsVarArgument = false;
 		this.DefinedFunc = null;
 	}
-	
+
 	void SetThisIfInClass(GtType Type) {
 		if(Type != null) {
 			this.TypeList.add(Type);
@@ -56,7 +56,7 @@ class GtFuncBlock extends GreenTeaUtils {
 		this.TypeList.add(this.NameSpace.Context.TypeType);
 		this.NameList.add("type");
 	}
-	
+
 	void AddParameter(GtType Type, String Name) {
 		this.TypeList.add(Type);
 		if(Type.IsVarType()) {
@@ -166,7 +166,7 @@ class GtFunc extends GreenTeaUtils {
 		}
 		return null;
 	}
-	
+
 	public final boolean EqualsParamTypes(int BaseIndex, GtType[] ParamTypes) {
 		if(this.Types.length == ParamTypes.length) {
 			/*local*/int i = BaseIndex;
@@ -241,7 +241,7 @@ class GtFunc extends GreenTeaUtils {
 		}
 		return false;
 	}
-	
+
 	public GtFunc GenerateLazyFunc(ArrayList<GtNode> NodeList) {
 		return null; // TODO
 	}
@@ -258,7 +258,6 @@ class GtFunc extends GreenTeaUtils {
 		}
 		return NameSpace;
 	}
-
 
 }
 
