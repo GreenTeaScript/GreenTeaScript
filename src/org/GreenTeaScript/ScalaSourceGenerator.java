@@ -29,81 +29,157 @@ import java.util.ArrayList;
 
 //GreenTea Generator should be written in each language.
 
-public class JavaSourceGenerator extends SourceGenerator {
-	JavaSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
+public class ScalaSourceGenerator extends SourceGenerator {
+	/*field*/String OutFileName;
+	ScalaSourceGenerator(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
-	}
-
-	public void VisitBlockEachStatementWithIndent(GtNode Node) {
-		/*local*/String Code = "{" + this.LineFeed;
-		this.Indent();
-		/*local*/GtNode CurrentNode = Node;
-		while(CurrentNode != null) {
-			Code += this.GetIndentString() + this.VisitNode(CurrentNode) + ";" + this.LineFeed;
-			CurrentNode = CurrentNode.GetNextNode();
+		this.OutFileName = OutputFile;
+		if(LibGreenTea.EqualsString(this.OutFileName, "-")) {
+			this.OutFileName = "GreenTea";
+		} else {
+			this.OutFileName = this.OutFileName.replace("/", "_").replace(".", "_");
 		}
-		this.UnIndent();
-		Code += this.GetIndentString() + "}";
-		this.PushSourceCode(Code);
 	}
 
+	private String LocalTypeName(GtType Type) {
+		if(Type.IsDynamic() || Type.IsNative()) {
+			if(Type == Type.PackageNameSpace.Context.VoidType) {
+				return "Unit";
+			}
+			if(Type == Type.PackageNameSpace.Context.IntType) {
+				return "Int";
+			}
+			if(Type == Type.PackageNameSpace.Context.FloatType) {
+				return "Double";
+			}
+			if(Type == Type.PackageNameSpace.Context.BooleanType) {
+				return "Boolean";
+			}
+		}
+		return Type.ShortName;
+	}
+
+	// copied from PythonSourceGenerator
+	@Override public void VisitForNode(ForNode Node) {
+		/* for(; COND; ITER) BLOCK1; continue; BLOCK2;
+		 * => while COND:
+		 * 		BLOCK1;
+		 * 		ITER;continue;
+		 * 		BLOCK2;
+		 * 		ITER
+		 */
+		/*local*/String Program = "while " + this.VisitNode(Node.CondExpr) + ":" + this.LineFeed;
+		if(this.IsEmptyBlock(Node.LoopBody)) {
+			this.Indent();
+			Program += this.GetIndentString() + "pass";
+			this.UnIndent();
+		}
+		else {
+			Program += this.VisitBlockWithIndent(Node.LoopBody, true);
+		}
+		Program += this.VisitBlockWithIndent(Node.IterExpr, true);
+		this.PushSourceCode(Program);
+	}
+
+	private ForNode FindParentForNode(GtNode Node) {
+		/*local*/GtNode Parent = Node.GetParentNode();
+		while(Parent != null) {
+			if(Parent instanceof ForNode) {
+				return (/*cast*/ForNode)Parent;
+			}
+			if(Parent.GetParentNode() == null) {
+				Parent = Parent.MoveHeadNode();
+			}
+			Parent = Parent.GetParentNode();
+		}
+		return null;
+	}
+
+	@Override public void VisitContinueNode(ContinueNode Node) {
+		/*local*/String Code = "";
+		/*local*/ForNode Parent = this.FindParentForNode(Node);
+		if(Parent != null) {
+			/*local*/GtNode IterNode = Parent.IterExpr;
+			if(IterNode != null) {
+				Code += this.VisitNode(IterNode) + this.LineFeed + this.GetIndentString();
+			}
+		}
+		Code += this.ContinueKeyword;
+		if(this.HasLabelSupport) {
+			/*local*/String Label = Node.Label;
+			if(Label != null) {
+				Code += " " + Label;
+			}
+		}
+		this.PushSourceCode(Code);
+		this.StopVisitor(Node);
+	}
+	
 	@Override public void VisitWhileNode(WhileNode Node) {
 		/*local*/String Program = "while(" + this.VisitNode(Node.CondExpr) + ")";
-		this.VisitBlockEachStatementWithIndent(Node.LoopBody);
-		Program += this.PopSourceCode();
+		Program += this.VisitBlockWithIndent(Node.LoopBody, true);
 		this.PushSourceCode(Program);
 	}
 
 	@Override public void VisitDoWhileNode(DoWhileNode Node) {
-		/*local*/String Program = "do";
-		this.VisitBlockEachStatementWithIndent(Node.LoopBody);
+		/*local*/String Program = "do" + this.VisitBlockWithIndent(Node.LoopBody, true);
 		Program += " while(" + this.VisitNode(Node.CondExpr) + ")";
 		this.PushSourceCode(Program);
 	}
 
-	@Override public void VisitForNode(ForNode Node) {
-		/*local*/String Cond = this.VisitNode(Node.CondExpr);
-		/*local*/String Iter = this.VisitNode(Node.IterExpr);
-		/*local*/String Program = "for(; " + Cond  + "; " + Iter + ")";
-		Program += this.VisitNode(Node.LoopBody);
+	@Override public void VisitGetterNode(GetterNode Node) {
+		/*local*/String Program = this.VisitNode(Node.Expr);
+		/*local*/String FieldName = Node.Func.FuncName;
+		/*local*/GtType RecvType = Node.Func.GetRecvType();
+		if(Node.Expr.Type == RecvType) {
+			Program = Program + "->" + FieldName;
+		}
+		else {
+			Program = "GT_GetField(" + this.LocalTypeName(RecvType) + ", " + Program + ", " + FieldName + ")";
+		}
 		this.PushSourceCode(Program);
 	}
 
 	@Override public void VisitVarNode(VarNode Node) {
-		/*local*/String Type = Node.DeclType.ShortName;
+		/*local*/String Type = this.LocalTypeName(Node.DeclType);
 		/*local*/String VarName = Node.NativeName;
 		/*local*/String Code = Type + " " + VarName;
+		/*local*/boolean CreateNewScope = true;
 		if(Node.InitNode != null) {
 			Code += " = " + this.VisitNode(Node.InitNode);
 		}
-		Code +=  ";" + this.LineFeed;
-		this.VisitBlockEachStatementWithIndent(Node.BlockNode);
+		Code += ";" + this.LineFeed;
+		if(CreateNewScope) {
+			Code += this.GetIndentString();
+		}
+		Code += this.VisitBlockWithIndent(Node.BlockNode, CreateNewScope);
 		this.PushSourceCode(Code + this.PopSourceCode());
 	}
 
 	@Override public void VisitIfNode(IfNode Node) {
 		/*local*/String CondExpr = this.VisitNode(Node.CondExpr);
-		this.VisitBlockEachStatementWithIndent(Node.ThenNode);
-		/*local*/String ThenBlock = this.PopSourceCode();
+		/*local*/String ThenBlock = this.VisitBlockWithIndent(Node.ThenNode, true);
 		/*local*/String Code = "if(" + CondExpr + ") " + ThenBlock;
 		if(Node.ElseNode != null) {
-			this.VisitBlockEachStatementWithIndent(Node.ElseNode);
-			Code += " else " + this.PopSourceCode();
+			Code += " else " + this.VisitBlockWithIndent(Node.ElseNode, true);
 		}
 		this.PushSourceCode(Code);
 	}
 
 	@Override public void VisitTryNode(TryNode Node) {
-		/*local*/String Code = "try";
-		//this.VisitEach(Node.CatchBlock);
-		this.VisitBlockEachStatementWithIndent(Node.TryBlock);
-		Code += this.PopSourceCode();
+		/*local*/String Code = "try ";
+		Code += this.VisitBlockWithIndent(Node.TryBlock, true);
+		if(Node.CatchExpr != null) {
+		/*local*/VarNode Val = (/*cast*/VarNode) Node.CatchExpr;
+			Code += " catch (" + Val.Type.toString() + " " + Val.NativeName + ") ";
+			Code += this.VisitBlockWithIndent(Node.CatchBlock, true);
+		}
 		if(Node.FinallyBlock != null) {
-			this.VisitBlockEachStatementWithIndent(Node.FinallyBlock);
-			Code += " finally " + this.PopSourceCode();
+			Code += " finally " + this.VisitBlockWithIndent(Node.FinallyBlock, true);
 		}
 		this.PushSourceCode(Code);
 	}
+
 
 	@Override public void VisitThrowNode(ThrowNode Node) {
 		/*local*/String Code = "throw " + this.VisitNode(Node.Expr);
@@ -115,27 +191,88 @@ public class JavaSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
+	@Override public Object Eval(GtNode Node) {
+		/*local*/String Code = this.VisitBlockWithIndent(Node, false);
+		if(LibGreenTea.EqualsString(Code, ";" + this.LineFeed)) {
+			return "";
+		}
+		this.WriteLineCode(Code);
+		return Code;
+	}
+
 	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
 		this.FlushErrorReport();
-		//FIXME
-		/*local*/String Program = "";
-		/*local*/String RetTy = Func.GetReturnType().ShortName;
-		/*local*/String ThisTy = Func.GetRecvType().ShortName;
-		Program += RetTy + " " + ThisTy + "_" + Func.GetNativeFuncName() + "(";
-		Program += ThisTy + " " + "this";
-		for(/*local*/int i = 0; i < ParamNameList.size(); i++) {
-			/*local*/String ParamTy = Func.GetFuncParamType(i).ShortName;
-			Program += " ," + ParamTy + " " + ParamNameList.get(i);
+		/*local*/String Function = "def ";
+		Function += Func.GetNativeFuncName() + "(";
+		/*local*/int i = 0;
+		/*local*/int size = ParamNameList.size();
+		while(i < size) {
+			if(i > 0) {
+				Function += ", ";
+			}
+			/*local*/String ParamTy = this.LocalTypeName(Func.GetFuncParamType(i));
+			Function += ParamNameList.get(i) + " : " + ParamTy;
+			i = i + 1;
 		}
+		/*local*/String Block = this.VisitBlockWithIndent(Body, true);
+		Function += ") : " + this.LocalTypeName(Func.GetReturnType()) + " = " + this.LineFeed + Block + this.LineFeed;
+		this.WriteLineCode(Function);
+	}
 
-		Program += this.Eval(Body);
+	@Override public void OpenClassField(GtType Type, GtClassField ClassField) {
+		/*local*/String TypeName = this.LocalTypeName(Type);
+		/*local*/String Program = this.GetIndentString() + "class " + TypeName;
+		if(Type.SuperType != null) {
+			Program += " " + Type.SuperType;
+		}
+		Program += " {" + this.LineFeed;
+		this.Indent();
+		/*local*/int i = ClassField.ThisClassIndex;
+		while(i < ClassField.FieldList.size()) {
+			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
+			/*local*/GtType VarType = FieldInfo.Type;
+			/*local*/String VarName = FieldInfo.NativeName;
+			Program += this.GetIndentString() + this.LocalTypeName(VarType) + " " + VarName + ";" + this.LineFeed;
+			i = i + 1;
+		}
+		this.UnIndent();
+		Program += this.GetIndentString() + "};" + this.LineFeed;
+		Program += this.GetIndentString() + this.LocalTypeName(Type) + " constructor(" + TypeName + " self) {" + this.LineFeed;
+		this.Indent();
+		i = 0;
+		Program += this.GetIndentString() + this.LocalTypeName(Type) + " " + this.GetRecvName();
+		Program += " = new " + this.LocalTypeName(Type) + "();" + this.LineFeed;
+		while(i < ClassField.FieldList.size()) {
+			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
+			/*local*/String VarName = FieldInfo.NativeName;
+			/*local*/String InitValue = this.StringifyConstValue(FieldInfo.InitValue);
+			if(!FieldInfo.Type.IsNative()) {
+				InitValue = this.NullLiteral;
+			}
+			Program += this.GetIndentString() + this.GetRecvName() + "." + VarName + " = " + InitValue + ";" + this.LineFeed;
+			i = i + 1;
+		}
+		Program += this.GetIndentString() + "return " + this.GetRecvName() + ";" + this.LineFeed;
+		this.UnIndent();
+		Program += this.GetIndentString() + "};";
+		
 		this.WriteLineCode(Program);
 	}
 
-	@Override public Object Eval(GtNode Node) {
-		//FIXME
-		this.VisitBlockEachStatementWithIndent(Node);
-		return this.PopSourceCode();
+	@Override public void StartCompilationUnit() {
+		this.WriteLineCode("object " + this.OutFileName + " {");
 	}
 
+	@Override public void FinishCompilationUnit() {
+		this.WriteLineCode("}");
+	}
+	@Override public void InvokeMainFunc(String MainFuncName) {
+		this.WriteLineCode("def main(args: Array[String]) {");
+		this.WriteLineCode(this.Tab + MainFuncName + "()");
+		this.WriteLineCode("}");
+	}
+
+	@Override public String GetRecvName() {
+		return "self";
+	}
 }

@@ -1,7 +1,7 @@
 // common api for c
 
 // unary operator
-// any
+@Const @Operator boolean !(boolean x) as "! $1"
 @Const @Operator int +(int x) as "$1";
 @Const @Operator int -(int x) as "-$1";
 @Const @Operator int ~(int x) as "~$1";
@@ -12,7 +12,6 @@
 // any
 @Const @Operator boolean ==(any x, any y) as "$1  == $2";
 @Const @Operator boolean !=(any x, any y) as "$1  != $2";
-@Const @Operator boolean !(boolean x) as "! $1"
 
 // boolean
 @Const @Operator boolean ==(boolean x, boolean y) as "$1  == $2";

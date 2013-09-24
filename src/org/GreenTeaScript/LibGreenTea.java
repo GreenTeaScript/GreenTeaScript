@@ -56,7 +56,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return "Java JVM-" + System.getProperty("java.version");
 	}
 
-	public static boolean DebugMode = false;
+	public static boolean DebugMode = !false;
 
 	private final static String GetStackInfo(int depth) {
 		String LineNumber = " ";
@@ -290,7 +290,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 	
 	public final static boolean MatchNativeMethod(GtType FuncType, Method JavaMethod) {
 		/*local*/GtParserContext Context = FuncType.Context;
-		System.err.println("method: " + JavaMethod);
+//		System.err.println("method: " + JavaMethod);
 //		/*local*/GtType ReturnType = FuncType.TypeParams[0];
 //		System.err.println("return: " + ReturnType + ", " + JavaMethod.getReturnType());
 		if(!AcceptJavaType(FuncType.TypeParams[0], JavaMethod.getReturnType())) {
@@ -719,8 +719,8 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		else if(Extension.endsWith(".sh")) {
 			return "bash";
 		}
-		else if(Extension.endsWith(".java")) {
-			return "java";
+		else if(Extension.endsWith(".scala")) {
+			return "scala";
 		}
 		else if(Extension.endsWith(".c")) {
 			return "c";
@@ -747,8 +747,8 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		else if(TargetCode.startsWith("bash")) {
 			return new BashSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
-		else if(TargetCode.startsWith("java")) {
-			return new JavaSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+		else if(TargetCode.startsWith("scala")) {
+			return new ScalaSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
 		else if(TargetCode.startsWith("c")) {
 			return new CSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
