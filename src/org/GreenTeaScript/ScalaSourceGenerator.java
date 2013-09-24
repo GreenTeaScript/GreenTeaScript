@@ -37,7 +37,7 @@ public class ScalaSourceGenerator extends SourceGenerator {
 		if(LibGreenTea.EqualsString(this.OutFileName, "-")) {
 			this.OutFileName = "GreenTea";
 		} else {
-			this.OutFileName = this.OutFileName.replace("/", "_").replace(".", "_");
+			this.OutFileName = this.OutFileName.replace("/", "_").replace(".", "_").replace("-", "_");
 		}
 	}
 
@@ -68,16 +68,13 @@ public class ScalaSourceGenerator extends SourceGenerator {
 		 * 		BLOCK2;
 		 * 		ITER
 		 */
-		/*local*/String Program = "while " + this.VisitNode(Node.CondExpr) + ":" + this.LineFeed;
-		if(this.IsEmptyBlock(Node.LoopBody)) {
-			this.Indent();
-			Program += this.GetIndentString() + "pass";
-			this.UnIndent();
-		}
-		else {
-			Program += this.VisitBlockWithIndent(Node.LoopBody, true);
-		}
-		Program += this.VisitBlockWithIndent(Node.IterExpr, true);
+		/*local*/String Program = "while(" + this.VisitNode(Node.CondExpr) + ")" + this.LineFeed;
+		Program += this.GetIndentString() + "{";
+		this.Indent();
+		Program += this.VisitBlockWithIndent(Node.LoopBody, false);
+		Program += this.VisitBlockWithIndent(Node.IterExpr, false);
+		Program += this.GetIndentString() + "}";
+		this.UnIndent();
 		this.PushSourceCode(Program);
 	}
 
@@ -130,20 +127,14 @@ public class ScalaSourceGenerator extends SourceGenerator {
 	@Override public void VisitGetterNode(GetterNode Node) {
 		/*local*/String Program = this.VisitNode(Node.Expr);
 		/*local*/String FieldName = Node.Func.FuncName;
-		/*local*/GtType RecvType = Node.Func.GetRecvType();
-		if(Node.Expr.Type == RecvType) {
-			Program = Program + "->" + FieldName;
-		}
-		else {
-			Program = "GT_GetField(" + this.LocalTypeName(RecvType) + ", " + Program + ", " + FieldName + ")";
-		}
+		Program = Program + "." + FieldName;
 		this.PushSourceCode(Program);
 	}
 
 	@Override public void VisitVarNode(VarNode Node) {
 		/*local*/String Type = this.LocalTypeName(Node.DeclType);
 		/*local*/String VarName = Node.NativeName;
-		/*local*/String Code = Type + " " + VarName;
+		/*local*/String Code = "var " + VarName + " : " + Type + " ";
 		/*local*/boolean CreateNewScope = true;
 		if(Node.InitNode != null) {
 			Code += " = " + this.VisitNode(Node.InitNode);
@@ -222,9 +213,9 @@ public class ScalaSourceGenerator extends SourceGenerator {
 	@Override public void OpenClassField(GtType Type, GtClassField ClassField) {
 		/*local*/String TypeName = this.LocalTypeName(Type);
 		/*local*/String Program = this.GetIndentString() + "class " + TypeName;
-		if(Type.SuperType != null) {
-			Program += " " + Type.SuperType;
-		}
+//		if(Type.SuperType != null) {
+//			Program += " extends " + Type.SuperType;
+//		}
 		Program += " {" + this.LineFeed;
 		this.Indent();
 		/*local*/int i = ClassField.ThisClassIndex;
@@ -232,16 +223,18 @@ public class ScalaSourceGenerator extends SourceGenerator {
 			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
 			/*local*/GtType VarType = FieldInfo.Type;
 			/*local*/String VarName = FieldInfo.NativeName;
-			Program += this.GetIndentString() + this.LocalTypeName(VarType) + " " + VarName + ";" + this.LineFeed;
+			Program += this.GetIndentString() + "var " + VarName + " : ";
+			Program += this.LocalTypeName(VarType) + " = _/*default value*/;" + this.LineFeed;
 			i = i + 1;
 		}
 		this.UnIndent();
 		Program += this.GetIndentString() + "};" + this.LineFeed;
-		Program += this.GetIndentString() + this.LocalTypeName(Type) + " constructor(" + TypeName + " self) {" + this.LineFeed;
+		Program += this.GetIndentString() + "def constructor(self : " + TypeName + ") : " + this.LocalTypeName(Type);
+		Program += " = {" + this.LineFeed;
 		this.Indent();
 		i = 0;
-		Program += this.GetIndentString() + this.LocalTypeName(Type) + " " + this.GetRecvName();
-		Program += " = new " + this.LocalTypeName(Type) + "();" + this.LineFeed;
+//		Program += this.GetIndentString() + "var " + this.GetRecvName() + " : " + this.LocalTypeName(Type);
+//		Program += " = new " + this.LocalTypeName(Type) + "();" + this.LineFeed;
 		while(i < ClassField.FieldList.size()) {
 			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
 			/*local*/String VarName = FieldInfo.NativeName;
