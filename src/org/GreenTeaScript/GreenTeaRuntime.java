@@ -31,26 +31,6 @@ import java.util.HashMap;
 
 public class GreenTeaRuntime {
 	// converter 
-	public final static Object DynamicCast(GtType ToType, Object Value) {
-		if(Value != null) {
-			GtType FromType = ToType.Context.GuessType(Value);
-			if(ToType.Accept(FromType)) {
-				return Value;
-			}
-		}
-		return null;
-	}
-
-	public final static Object DynamicConvertTo(GtType ToType, Object Value) {
-		if(Value != null) {
-			GtType FromType = ToType.Context.GuessType(Value);
-			GtFunc Func = ToType.Context.RootNameSpace.GetConverterFunc(FromType, ToType, true);
-			if(Func != null) {
-				return LibGreenTea.ApplyFunc2(Func, null, ToType, Value);
-			}
-		}
-		return null;
-	}
 
 	// Boolean
 	public final static String BooleanToString(GtType Type, boolean value) {

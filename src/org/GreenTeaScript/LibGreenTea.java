@@ -774,7 +774,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 
 	public final static void WriteCode(String OutputFile, String SourceCode) {
 		if(OutputFile == null) {
-			LibGreenTea.Eval(SourceCode);
+			//LibGreenTea.Eval(SourceCode);
 		}
 		if(OutputFile.equals("-")) {
 			System.out.println(SourceCode);
@@ -890,26 +890,24 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return (int)FileLine;
 	}
 
-	public final static boolean booleanValue(Object BooleanValue) {
-		return ((/*cast*/Boolean)BooleanValue).booleanValue();
-	}
-
-	public final static Object Eval(String SourceCode) {
-		LibGreenTea.VerboseLog(GreenTeaUtils.VerboseEval, "eval as native code: " + SourceCode);
-		//eval(SourceCode);
-		//System.out.println("Eval: " + SourceCode);  // In Java, no eval
-		return null;
-	}
+//	public final static boolean booleanValue(Object BooleanValue) {
+//		return ((/*cast*/Boolean)BooleanValue).booleanValue();
+//	}
+//
+//	// dynamic cast
+//	
+//	public final static Object Eval(String SourceCode) {
+//		LibGreenTea.VerboseLog(GreenTeaUtils.VerboseEval, "eval as native code: " + SourceCode);
+//		//eval(SourceCode);
+//		//System.out.println("Eval: " + SourceCode);  // In Java, no eval
+//		return null;
+//	}
 
 	public static Object EvalCast(GtType CastType, Object Value) {
 		if(Value != null) {
-			GtType ValueType = CastType.Context.GuessType(Value);
-			if(ValueType == CastType || CastType.Accept(ValueType)) {
+			GtType FromType = CastType.Context.GuessType(Value);
+			if(CastType == FromType || CastType.Accept(FromType)) {
 				return Value;
-			}
-			TODO("Add Invoke Coercion.. from " + ValueType + " to " + CastType);
-			if(CastType == CastType.Context.StringType) {
-				return Value.toString();
 			}
 		}
 		return null;
@@ -925,6 +923,21 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return false;
 	}
 
+	public final static Object DynamicConvertTo(GtType CastType, Object Value) {
+		if(Value != null) {
+			GtType ValueType = CastType.Context.GuessType(Value);
+			if(ValueType == CastType || CastType.Accept(ValueType)) {
+				return Value;
+			}
+			GtFunc Func = CastType.Context.RootNameSpace.GetConverterFunc(ValueType, CastType, true);
+			if(Func != null) {
+				return LibGreenTea.ApplyFunc2(Func, null, CastType, Value);
+			}
+		}
+		return null;
+	}
+	
+	
 	public static Object EvalUnary(GtType Type, String Operator, Object Value) {
 		if(Value instanceof Boolean) {
 			if(Operator.equals("!") || Operator.equals("not")) {
