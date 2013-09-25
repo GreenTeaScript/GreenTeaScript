@@ -596,14 +596,14 @@ public class DShellGrammar extends GreenTeaUtils {
 	}
 	
 	// dlog $Expr 
-	public static GtSyntaxTree ParseDLogger(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+	public static GtSyntaxTree ParseDLog(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree Tree = TokenContext.CreateMatchedSyntaxTree(NameSpace, Pattern, "dlog");
 		Tree.SetMatchedPatternAt(UnaryTerm, NameSpace, TokenContext, "$Expression$", Required);
 		return Tree;
 	}
 
 	// dlog FunctionName => ExecAction(NameSpace, ContextualFuncName, Action);
-	public static GtNode TypeDLogger(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+	public static GtNode TypeDLog(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		ContextType = LibGreenTea.GetNativeType(Gamma.Context, DFault.class);
 		GtNode ActionNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, ContextType, DefaultTypeCheckPolicy);
 		if(ActionNode.IsError()) {
@@ -733,6 +733,7 @@ public class DShellGrammar extends GreenTeaUtils {
 		NameSpace.AppendSyntax("$DShell2$", LoadParseFunc2(ParserContext, GrammarClass, "ParseDShell2"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeDShell2"));
 		NameSpace.AppendSyntax("shell", LoadParseFunc2(ParserContext, GrammarClass, "ParseShell"), null);
 
+		NameSpace.SetSymbol("$CreateFaultFunc", LibGreenTea.LoadNativeMethod(ParserContext.VoidType, "DShellGrammar.CreateFault", true), null);
 		NameSpace.SetSymbol("$ReportBuiltInFunc", LibGreenTea.LoadNativeMethod(ParserContext.VoidType, "DShellGrammar.ExecAction", true), null);
 		NameSpace.AppendSyntax("dlog", LoadParseFunc2(ParserContext, GrammarClass, "ParseDLog"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeDLog"));
 		
