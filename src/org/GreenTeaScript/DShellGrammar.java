@@ -508,8 +508,8 @@ public class DShellGrammar extends GreenTeaUtils {
 	public static GtSyntaxTree ParseDShell2(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree CommandTree = TokenContext.CreateSyntaxTree(NameSpace, Pattern, null);
 		/*local*/GtToken CommandToken = TokenContext.GetToken();
-		if(CommandToken.EqualsText(">")) {
-			CommandTree.AppendParsedTree2(CommandTree.CreateConstTree(">"));
+		if(CommandToken.EqualsText(">") || CommandToken.EqualsText(">>")) {
+			CommandTree.AppendParsedTree2(CommandTree.CreateConstTree(CommandToken.ParsedText));
 			TokenContext.Next();
 		}
 		else {
@@ -543,13 +543,32 @@ public class DShellGrammar extends GreenTeaUtils {
 				CommandTree.AppendParsedTree2(PipedTree);
 				return CommandTree;
 			}
-			if(Token.EqualsText(">")) {
+			if(Token.EqualsText(">") || Token.EqualsText(">>")) {
 				/*local*/GtSyntaxTree RedirectTree = TokenContext.ParsePattern(NameSpace, "$DShell2$", Required);
 				if(RedirectTree.IsError()) {
 					return RedirectTree;
 				}
 				CommandTree.AppendParsedTree2(RedirectTree);
 				return CommandTree;
+			}
+			if(Token.EqualsText("1") || Token.EqualsText("2")) {	// 1>, 2>, 1>>, 2>>
+				/*local*/int CurrentPos = TokenContext.GetPosition(0);
+				TokenContext.Next();
+				/*local*/GtToken NextToken = TokenContext.GetToken();
+				TokenContext.RollbackPosition(CurrentPos, 0);
+				if(!Token.IsNextWhiteSpace() && (NextToken.EqualsText(">") || NextToken.EqualsText(">>"))) {
+					TokenContext.Next();
+					/*local*/GtSyntaxTree RedirectTree = TokenContext.ParsePattern(NameSpace, "$DShell2$", Required);
+					// append file descriptor number to redirect symbol
+					RedirectTree.KeyToken.ParsedText = Token.ParsedText + RedirectTree.KeyToken.ParsedText;
+					RedirectTree.SubTreeList.get(0).ParsedValue = RedirectTree.KeyToken.ParsedText;
+					
+					if(RedirectTree.IsError()) {
+						return RedirectTree;
+					}
+					CommandTree.AppendParsedTree2(RedirectTree);
+					return CommandTree;
+				}
 			}
 			CommandTree.AppendMatchedPattern(NameSpace, TokenContext, "$FilePath$", Required);
 		}

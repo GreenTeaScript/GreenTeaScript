@@ -63,7 +63,7 @@ public class GtSubProc {
 		this.Processes[0].start();
 		for(int i = 1; i < ProcessSize; i++) {
 			this.Processes[i].start();
-			this.Processes[i - 1].pipe(this.Processes[i]);
+			this.Processes[i].pipe(this.Processes[i - 1]);
 		}
 		this.CommandFlag = option;
 		this.LastProcess = this.Processes[lastIndex];
@@ -73,6 +73,7 @@ public class GtSubProc {
 		return is(this.CommandFlag, background);
 	}
 	private GtSubProc Detach() {
+		this.LastProcess.showResult();
 		if(timeout > 0) {
 			new ProcessTimer(this.Processes, timeout);
 		}
@@ -112,7 +113,7 @@ public class GtSubProc {
 
 	// called by JavaByteCodeGenerator.VisitCommandNode 
 	public static void ExecCommandVoid(String[]... cmds) throws Exception {
-		int option = returnable | throwable | enableTrace;
+		int option = printable | throwable | enableTrace;
 		runCommands(cmds, option, VoidType);
 	}
 	public static String ExecCommandString(String[]... cmds) throws Exception {
@@ -169,9 +170,23 @@ public class GtSubProc {
 			proc = new InRedirectProc();
 			proc.setArgument(cmds);
 		}
-		else if(LibGreenTea.EqualsString(cmdSymbol, ">")) {
+		else if(LibGreenTea.EqualsString(cmdSymbol, "1>") || LibGreenTea.EqualsString(cmdSymbol, ">")) {
 			proc = new OutRedirectProc();
 			proc.setArgument(cmds);
+		}
+		else if(LibGreenTea.EqualsString(cmdSymbol, "1>>") || LibGreenTea.EqualsString(cmdSymbol, ">>")) {
+			proc = new OutRedirectProc();
+			proc.setArgument(cmds);
+			((OutRedirectProc) proc).enablePostscriptMode();
+		}
+		else if(LibGreenTea.EqualsString(cmdSymbol, "2>")) {
+			proc = new ErrorRedirectProc();
+			proc.setArgument(cmds);
+		}
+		else if(LibGreenTea.EqualsString(cmdSymbol, "2>>")) {
+			proc = new ErrorRedirectProc();
+			proc.setArgument(cmds);
+			((ErrorRedirectProc) proc).enablePostscriptMode();
 		}
 		else if(LibGreenTea.EqualsString(cmdSymbol, "checkpoint")) {
 			String[] newCmds = {"sudo", "lvcreate", "-s", "-n", cmds[1], cmds[2]};
@@ -267,9 +282,9 @@ class PseudoProcess {
 	public void start() {
 	}
 
-	public void pipe(PseudoProcess destProc) {
-		destProc.pipedPrevProc = this;
-		new PipeStreamHandler(this.stdout, destProc.stdin, true).start();
+	public void pipe(PseudoProcess srcProc) {
+		this.pipedPrevProc = srcProc;
+		new PipeStreamHandler(srcProc.stdout, this.stdin, true).start();
 	}
 
 	public void kill() {
@@ -279,6 +294,9 @@ class PseudoProcess {
 	}
 
 	public void waitResult(boolean isExpr) {
+	}
+	
+	public void showResult() {
 	}
 
 	public String getStdout() {
@@ -438,7 +456,7 @@ class SubProc extends PseudoProcess {
 		}
 	}
 
-	private void handleOutputStream(OutputStream out, OutputStream err, boolean closeStream) {
+	private void handleOutputStream(OutputStream out, OutputStream err, boolean closeStream, boolean wait) {
 		if(streamIsLocked) {
 			return;
 		}
@@ -456,28 +474,34 @@ class SubProc extends PseudoProcess {
 			stderrHandler.start();
 		}
 
-		try {
-			if(stdoutHandler != null) {
-				stdoutHandler.join();
+		if(wait) {
+			try {
+				if(stdoutHandler != null) {
+					stdoutHandler.join();
+				}
+				if(stderrHandler != null) {
+					stderrHandler.join();
+				}
 			}
-			if(stderrHandler != null) {
-				stderrHandler.join();
+			catch (InterruptedException e) {
+				throw new RuntimeException(e);
 			}
-		}
-		catch (InterruptedException e) {
-			throw new RuntimeException(e);
 		}
 	}
 
 	@Override public void waitResult(boolean isPrintable) {
 		if(isPrintable) {
-			handleOutputStream(System.out, System.err, false);
+			handleOutputStream(System.out, System.err, false, true);
 		}
 		else {
 			outBuf = new ByteArrayOutputStream();
 			errBuf = new ByteArrayOutputStream();
-			handleOutputStream(outBuf, errBuf, true);
+			handleOutputStream(outBuf, errBuf, true, true);
 		}
+	}
+	
+	@Override public void showResult() {
+		handleOutputStream(System.out, System.err, false, false);
 	}
 
 	@Override public String getStdout() {
@@ -553,18 +577,62 @@ class InRedirectProc extends PseudoProcess {
 }
 
 class OutRedirectProc extends PseudoProcess {
+	private boolean postscriptMode = false;
 	@Override public void start() {
 		String fileName = this.commandList.get(1);
 		try {
-			this.stdin = new BufferedOutputStream(new FileOutputStream(fileName));
+			this.stdin = new BufferedOutputStream(new FileOutputStream(fileName, this.postscriptMode));
 		} 
 		catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
 	}
 
+	@Override public void pipe(PseudoProcess srcProc) {
+		InputStream srcStdout = srcProc.stdout;
+		this.pipedPrevProc = srcProc;
+		if(srcProc instanceof ErrorRedirectProc) {
+			srcStdout = srcProc.pipedPrevProc.stdout;
+		}
+		new PipeStreamHandler(srcStdout, this.stdin, true).start();
+	}
+	
 	@Override public int getRet() {
 		return this.pipedPrevProc.getRet();
+	}
+	
+	public void enablePostscriptMode() {
+		this.postscriptMode = true;
+	}
+}
+
+class ErrorRedirectProc extends PseudoProcess {
+	private boolean postscriptMode = false;
+	@Override public void start() {
+		String fileName = this.commandList.get(1);
+		try {
+			this.stdin = new BufferedOutputStream(new FileOutputStream(fileName, this.postscriptMode));
+		} 
+		catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override public void pipe(PseudoProcess srcProc) {
+		InputStream srcStderr = srcProc.stderr;
+		this.pipedPrevProc = srcProc;
+		if(srcProc instanceof OutRedirectProc) {
+			srcStderr = srcProc.pipedPrevProc.stderr;
+		}
+		new PipeStreamHandler(srcStderr, this.stdin, true).start();
+	}
+
+	@Override public int getRet() {
+		return this.pipedPrevProc.getRet();
+	}
+	
+	public void enablePostscriptMode() {
+		this.postscriptMode = true;
 	}
 }
 
@@ -608,6 +676,9 @@ class PipeStreamHandler extends Thread {
 	}
 
 	@Override public void run() {
+		if(this.input == null || this.output == null) {
+			return;
+		}
 		try {
 			byte[] buffer = new byte[512];
 			int read = 0;
