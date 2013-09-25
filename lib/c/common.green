@@ -1,40 +1,40 @@
 // common api for c
 
 // unary operator
-@Const @Operator boolean !(boolean x) as "! $1"
-@Const @Operator int +(int x) as "$1";
-@Const @Operator int -(int x) as "-$1";
-@Const @Operator int ~(int x) as "~$1";
-@Const @Operator double +(double x) as "$1";
-@Const @Operator double -(double x) as "-$1";
+@Const @Operator boolean "!"(boolean x) as "! $1"
+@Const @Operator int "+"(int x) as "$1";
+@Const @Operator int "-"(int x) as "-$1";
+@Const @Operator int "~"(int x) as "~$1";
+@Const @Operator double "+"(double x) as "$1";
+@Const @Operator double "-"(double x) as "-$1";
 
 // binary operator
 // any
-@Const @Operator boolean ==(any x, any y) as "$1  == $2";
-@Const @Operator boolean !=(any x, any y) as "$1  != $2";
+@Const @Operator boolean "=="(any x, any y) as "$1  == $2";
+@Const @Operator boolean "!="(any x, any y) as "$1  != $2";
 
 // boolean
-@Const @Operator boolean ==(boolean x, boolean y) as "$1  == $2";
-@Const @Operator boolean !=(boolean x, boolean y) as "$1  != $2";
+@Const @Operator boolean "=="(boolean x, boolean y) as "$1  == $2";
+@Const @Operator boolean "!="(boolean x, boolean y) as "$1  != $2";
 @Const @Operator String converter(boolean x) as "greentea_tostrb($1)";
 
 // int 
-@Const @Operator int +(int x, int y)      as "$1 + $2";
-@Const @Operator int -(int x, int y)      as "$1 - $2";
-@Const @Operator int *(int x, int y)      as "$1 * $2";
-@Const @Operator int /(int x, int y)      as "$1 / $2";
-@Const @Operator int %(int x, int y)      as "$1 % $2";
-@Const @Operator int <<(int x, int y)     as "$1 << $2";
-@Const @Operator int >>(int x, int y)     as "$1 >> $2";
-@Const @Operator int ^(int x, int y)      as "$1 ^ $2";
-@Const @Operator int |(int x, int y)      as "$1 | $2";
-@Const @Operator int &(int x, int y)      as "$1 & $2";
-@Const @Operator boolean <(int x,  int y) as "$1 < $2";
-@Const @Operator boolean <=(int x, int y) as "$1 <= $2";
-@Const @Operator boolean >(int x,  int y) as "$1 > $2";
-@Const @Operator boolean >=(int x, int y) as "$1 >= $2";
-@Const @Operator boolean ==(int x, int y) as "$1 == $2";
-@Const @Operator boolean !=(int x, int y) as "$1 != $2";
+@Const @Operator int     "+"(int x, int y)      as "$1 + $2";
+@Const @Operator int     "-"(int x, int y)      as "$1 - $2";
+@Const @Operator int     "*"(int x, int y)      as "$1 * $2";
+@Const @Operator int     "/"(int x, int y)      as "$1 / $2";
+@Const @Operator int     "%"(int x, int y)      as "$1 % $2";
+@Const @Operator int     "<<"(int x, int y)     as "$1 << $2";
+@Const @Operator int     ">>"(int x, int y)     as "$1 >> $2";
+@Const @Operator int     "^"(int x, int y)      as "$1 ^ $2";
+@Const @Operator int     "|"(int x, int y)      as "$1 | $2";
+@Const @Operator int     "&"(int x, int y)      as "$1 & $2";
+@Const @Operator boolean "<"(int x,  int y) as "$1 < $2";
+@Const @Operator boolean ">"(int x,  int y) as "$1 > $2";
+@Const @Operator boolean "<="(int x, int y) as "$1 <= $2";
+@Const @Operator boolean ">="(int x, int y) as "$1 >= $2";
+@Const @Operator boolean "=="(int x, int y) as "$1 == $2";
+@Const @Operator boolean "!="(int x, int y) as "$1 != $2";
 
 @Coercion @Const any converter(int x)    as "greentea_boxi($2)";
 @Coercion @Const int converter(any x)    as "greentea_unboxi($2)";
@@ -43,13 +43,13 @@
 
 
 // String
-@Const @Operator String +(String x, String y)      as "greentea_strcat($1, $2)";
-@Const @Operator boolean ==(String x, String y)    as "strcmp($1, $2) == 0";
-boolean !=(String x, String y)    as "strcmp($1, $2) != 0";
-boolean <(String x,  String y)    as "strcmp($1, $2) <= 0";
-boolean <=(String x, String y)    as "strcmp($1, $2) <  0";
-boolean >(String x,  String y)    as "strcmp($1, $2) >  0";
-boolean >=(String x, String y)    as "strcmp($1, $2) >= 0";
+@Const @Operator String  "+"(String x, String y)      as "greentea_strcat($1, $2)";
+@Const @Operator boolean "=="(String x, String y)    as "strcmp($1, $2) == 0";
+@Const @Operator boolean "!="(String x, String y)    as "strcmp($1, $2) != 0";
+@Const @Operator boolean "<"(String x,  String y)    as "strcmp($1, $2) <  0";
+@Const @Operator boolean ">"(String x,  String y)    as "strcmp($1, $2) >  0";
+@Const @Operator boolean "<="(String x, String y)    as "strcmp($1, $2) <= 0";
+@Const @Operator boolean ">="(String x, String y)    as "strcmp($1, $2) >= 0";
 
 boolean startsWith(String x, String y)   as "greentea_startswith($1, $2)";
 boolean endsWith(String x, String y)     as "greentea_endswith($1, $2)";
@@ -63,21 +63,21 @@ int charAt(String x, int pos)            as "$1[$2]";
 String replace(String x, String old, String new) as "greentea_replace($1, $2, $3)";
 
 // double
-@Const @Operator double +(double x, double y)   as "$1 + $2";
-@Const @Operator double -(double x, double y)   as "$1 - $2";
-@Const @Operator double *(double x, double y)   as "$1 * $2";
-@Const @Operator double /(double x, double y)   as "$1 / $2";
-@Const @Operator boolean <(double x,  double y) as "$1 < $2";
-@Const @Operator boolean <=(double x, double y) as "$1 <= $2"
-@Const @Operator boolean >(double x,  double y) as "$1 > $2";
-@Const @Operator boolean >=(double x, double y) as "$1 >= $2"
-@Const @Operator boolean ==(double x, double y) as "$1 == $2"
-@Const @Operator boolean !=(double x, double y) as "$1 != $2"
+@Const @Operator double  "+"(double x, double y)   as "$1 + $2";
+@Const @Operator double  "-"(double x, double y)   as "$1 - $2";
+@Const @Operator double  "*"(double x, double y)   as "$1 * $2";
+@Const @Operator double  "/"(double x, double y)   as "$1 / $2";
+@Const @Operator boolean "<"(double x,  double y) as "$1 < $2";
+@Const @Operator boolean ">"(double x,  double y) as "$1 > $2";
+@Const @Operator boolean "<="(double x, double y) as "$1 <= $2"
+@Const @Operator boolean ">="(double x, double y) as "$1 >= $2"
+@Const @Operator boolean "=="(double x, double y) as "$1 == $2"
+@Const @Operator boolean "!="(double x, double y) as "$1 != $2"
 
-@Const @Operator double +(int x, double y) as "$1 + $2";
-@Const @Operator double -(int x, double y) as "$1 - $2";
-@Const @Operator double *(int x, double y) as "$1 * $2";
-@Const @Operator double /(int x, double y) as "$1 / $2";
+@Const @Operator double "+"(int x, double y) as "$1 + $2";
+@Const @Operator double "-"(int x, double y) as "$1 - $2";
+@Const @Operator double "*"(int x, double y) as "$1 * $2";
+@Const @Operator double "/"(int x, double y) as "$1 / $2";
 
 //FIXME ApplyNode for converter func has 3 arguments:
 //      converter(FromType, ToType, x)
