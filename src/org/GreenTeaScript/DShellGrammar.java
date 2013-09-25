@@ -624,10 +624,7 @@ public class DShellGrammar extends GreenTeaUtils {
 		return TokenContext.ParsePattern(NameSpace, "$DShell2$", Required);
 	}
 	
-	
-	
 	// dlog $Expr 
-	
 	private static GtNode CreateDCaseNode(GtTypeEnv Gamma, GtSyntaxTree ParsedTree) {
 		String ContextualFuncName = "Admin";
 		if(Gamma.Func != null) {
@@ -649,7 +646,7 @@ public class DShellGrammar extends GreenTeaUtils {
 		if(ActionNode.IsError()) {
 			return ActionNode;
 		}
-		if(!(ActionNode instanceof ApplyNode)) {
+		if(ActionNode instanceof ApplyNode) {
 			GtFunc ActionFunc = ((ApplyNode)ActionNode).Func;
 			if(ActionFunc.GetFuncParamSize() == 0) {
 				GtFunc ReportFunc = (GtFunc)Gamma.NameSpace.GetSymbol("$ReportBuiltInFunc");
@@ -712,7 +709,6 @@ public class DShellGrammar extends GreenTeaUtils {
 		return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(ConstValue), ParsedTree, ConstValue);
 	}
 
-	
 	// dexec CallAdmin() 
 	// D-exec Expression
 	// dexec FunctionName
