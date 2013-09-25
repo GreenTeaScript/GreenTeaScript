@@ -7,14 +7,23 @@ let AssumedFault = UnknownFault;
 
 DFault CallAdmin() {
     command ls;
-    if(!(ls /NotSuchPath)) {
+    if(!(ls /)) {
         println("ERROR");
         raise AssumedFault;
     }
     return null;
 }
 
+DFault RaiseFault() {
+    raise AssumedFault;
+    return null;
+}
+
+
 @Export int main() {
+    DFault ret0 = dexec RaiseFault;
+    assert(ret0 != null);
+
     if(dexec CallAdmin == null) {
         println("HI");
     }

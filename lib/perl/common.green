@@ -3,67 +3,67 @@
 // unary operator
 // any
 boolean not(boolean x) as "! $1"
-boolean !(boolean x) as "! $1"
-int +(int x) as "$1";
-int -(int x) as "-$1";
-int ~(int x) as "~$1";
+boolean "!"(boolean x) as "! $1"
+int "+"(int x) as "$1";
+int "-"(int x) as "-$1";
+int "~"(int x) as "~$1";
 
 // binary operator
 // any
-boolean ==(any x, any y) as "$1 == $2";
-boolean !=(any x, any y) as "$1 != $2";
+boolean "=="(any x, any y) as "$1 == $2";
+boolean "!="(any x, any y) as "$1 != $2";
 
 // boolean
-boolean ==(boolean x, boolean y) as "$1 == $2";
-boolean !=(boolean x, boolean y) as "$1 != $2";
+boolean "=="(boolean x, boolean y) as "$1 == $2";
+boolean "!="(boolean x, boolean y) as "$1 != $2";
 String convert(boolean x) as "\"\" . $1"; /*FIXME*/
 
 // int
-int +(int x, int y)      as "$1 + $2";
-int -(int x, int y)      as "$1 - $2";
-int *(int x, int y)      as "$1 * $2";
-int /(int x, int y)      as "$1 / $2";
-int %(int x, int y)      as "$1 % $2";
-int <<(int x, int y)     as "$1 << $2";
-int >>(int x, int y)     as "$1 >> $2";
-int ^(int x, int y)      as "$1 ^ $2";
-int |(int x, int y)      as "$1 | $2";
-int &(int x, int y)      as "$1 & $2";
-boolean <(int x,  int y) as "$1 < $2";
-boolean <=(int x, int y) as "$1 <= $2";
-boolean >(int x,  int y) as "$1 > $2";
-boolean >=(int x, int y) as "$1 >= $2";
-boolean ==(int x, int y) as "$1 == $2";
-boolean !=(int x, int y) as "$1 != $2";
+@Const @Operator int     "+"(int x, int y)  as "$1 + $2";
+@Const @Operator int     "-"(int x, int y)  as "$1 - $2";
+@Const @Operator int     "*"(int x, int y)  as "$1 * $2";
+@Const @Operator int     "/"(int x, int y)  as "$1 / $2";
+@Const @Operator int     "%"(int x, int y)  as "$1 % $2";
+@Const @Operator int     "<<"(int x, int y) as "$1 << $2";
+@Const @Operator int     ">>"(int x, int y) as "$1 >> $2";
+@Const @Operator int     "^"(int x, int y)  as "$1 ^ $2";
+@Const @Operator int     "|"(int x, int y)  as "$1 | $2";
+@Const @Operator int     "&"(int x, int y)  as "$1 & $2";
+@Const @Operator boolean "<"(int x,  int y) as "$1 < $2";
+@Const @Operator boolean ">"(int x,  int y) as "$1 > $2";
+@Const @Operator boolean "<="(int x, int y) as "$1 <= $2";
+@Const @Operator boolean ">="(int x, int y) as "$1 >= $2";
+@Const @Operator boolean "=="(int x, int y) as "$1 == $2";
+@Const @Operator boolean "!="(int x, int y) as "$1 != $2";
 
 String convert(int x) as "\"\" . $1";
 
 // String
-String +(String x, String y) as "$1 . $2";
+String  "+"(String x, String y) as "$1 . $2";
+boolean "=="(String x, String y)    as "$1 eq $2";
+boolean "!="(String x, String y)    as "$1 ne $2";
+boolean "<"(String x,  String y)    as "$1 lt $2";
+boolean ">"(String x,  String y)    as "$1 gt$2";
+boolean "<="(String x, String y)    as "$1 le $2";
+boolean ">="(String x, String y)    as "$1 ge $2";
 int length(String x) as "length($1)";
-boolean ==(String x, String y)    as "$1 eq $2";
-boolean !=(String x, String y)    as "$1 ne $2";
-boolean <(String x,  String y)    as "$1 lt $2";
-boolean <=(String x, String y)    as "$1 le $2";
-boolean >(String x,  String y)    as "$1 gt$2";
-boolean >=(String x, String y)    as "$1 ge $2";
 
 // double
-@Const @Operator double +(double x, double y)   as "$1 + $2";
-@Const @Operator double -(double x, double y)   as "$1 - $2";
-@Const @Operator double *(double x, double y)   as "$1 * $2";
-@Const @Operator double /(double x, double y)   as "$1 / $2";
-@Const @Operator boolean <(double x,  double y) as "$1 < $2";
-@Const @Operator boolean <=(double x, double y) as "$1 <= $2"
-@Const @Operator boolean >(double x,  double y) as "$1 > $2";
-@Const @Operator boolean >=(double x, double y) as "$1 >= $2"
-@Const @Operator boolean ==(double x, double y) as "$1 == $2"
-@Const @Operator boolean !=(double x, double y) as "$1 != $2"
+@Const @Operator double  "+"(double x, double y)   as "$1 + $2";
+@Const @Operator double  "-"(double x, double y)   as "$1 - $2";
+@Const @Operator double  "*"(double x, double y)   as "$1 * $2";
+@Const @Operator double  "/"(double x, double y)   as "$1 / $2";
+@Const @Operator boolean "<"(double x,  double y) as "$1 < $2";
+@Const @Operator boolean ">"(double x,  double y) as "$1 > $2";
+@Const @Operator boolean "<="(double x, double y) as "$1 <= $2"
+@Const @Operator boolean ">="(double x, double y) as "$1 >= $2"
+@Const @Operator boolean "=="(double x, double y) as "$1 == $2"
+@Const @Operator boolean "!="(double x, double y) as "$1 != $2"
 
-@Const @Operator double +(int x, double y) as "$1 + $2";
-@Const @Operator double -(int x, double y) as "$1 - $2";
-@Const @Operator double *(int x, double y) as "$1 * $2";
-@Const @Operator double /(int x, double y) as "$1 / $2";
+@Const @Operator double "+"(int x, double y) as "$1 + $2";
+@Const @Operator double "-"(int x, double y) as "$1 - $2";
+@Const @Operator double "*"(int x, double y) as "$1 * $2";
+@Const @Operator double "/"(int x, double y) as "$1 / $2";
 
 @Coercion @Const any converter(double x) as "$1";
 @Coercion @Const double converter(any x) as "$1 + 0.0";
