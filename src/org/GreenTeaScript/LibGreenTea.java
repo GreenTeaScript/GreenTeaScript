@@ -807,19 +807,38 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 	}
 
 	private static java.io.Console Console = null;
+	private static java.io.BufferedReader Reader = null;
+	private static boolean ConsoleInitialized = false;
+	
+	static private String ReadLine(String format, Object... args) {
+		if(!ConsoleInitialized){
+			Console = System.console();
+			if (Console == null) {
+				Reader = new BufferedReader(new InputStreamReader(System.in));
+			}
+			ConsoleInitialized = true;
+		}
+	    if (Console != null) {
+	        return System.console().readLine(format, args);
+	    }
+	    System.out.print(String.format(format, args));
+	    try {
+			return Reader.readLine();
+		} catch (IOException e) {
+			e.printStackTrace();
+			return "";
+		}
+	}
 
 	public final static String ReadLine(String Prompt, String Prompt2) {
-		if(Console == null) {
-			Console = System.console();
-		}
-		String Line = Console.readLine(Prompt);
+		String Line = LibGreenTea.ReadLine(Prompt);
 		if(Line == null) {
 			System.exit(0);
 		}
 		if(Prompt2 != null) {
 			int level = 0;
 			while((level = LibGreenTea.CheckBraceLevel(Line)) > 0) {
-				String Line2 = Console.readLine(Prompt2 + GreenTeaUtils.JoinStrings("  ", level));
+				String Line2 = LibGreenTea.ReadLine(Prompt2 + GreenTeaUtils.JoinStrings("  ", level));
 				Line += "\n" + Line2; 
 			}
 			if(level < 0) {
