@@ -1,6 +1,19 @@
 // written by kimio
+class Point0d {
+	int x;
+	constructor() {
+		this.x = -1;
+	}
+}
 
-class Point {
+class Point1d {
+	int x;
+	constructor(int x) {
+		this.x = x;
+	}
+}
+
+class Point2d {
 	int x, y;
 	constructor(int x, int y) {
 		this.x = x;
@@ -8,17 +21,56 @@ class Point {
 	}
 }
 
-boolean TestFunc(Point p) {
+class Point3d {
+	int x, y, z;
+	constructor(int x, int y, int z) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
+	}
+}
+
+boolean TestFunc0(Point0d p) {
+	assert(p.x == -1);
+	println("0d");
+	return true;
+}
+
+boolean TestFunc1(Point1d p) {
 	assert(p.x == 1);
-	assert(p.y == 2);
+	println("1d");
+	return true;
+}
+
+boolean TestFunc2(Point2d p) {
+	assert(p.x == 10);
+	assert(p.y == 20);
+	println("2d");
+	return true;
+}
+
+boolean TestFunc3(Point3d p) {
+	assert(p.x == 100);
+	assert(p.y == 200);
+	assert(p.z == 300);
+	println("3d");
 	return true;
 }
 
 @Export
 int main() {
-	Point p = new Point(1, 2);
-	assert(TestFunc(p));
+	Point1d p = new Point2d(1, 2);
+	assert(TestFunc2(p));
 	p = new (1, 2);  // type inference
-	assert(TestFunc(p));
+	assert(TestFunc2(p));
+
+	Point0d p0 = new Point0d();
+	Point1d p1 = new Point1d(1);
+	Point2d p2 = new Point2d(10,  20);
+	Point3d p3 = new Point3d(100, 200, 300);
+	TestFunc0(p0);
+	TestFunc1(p1);
+	TestFunc2(p2);
+	TestFunc3(p3);
 	return 0;
 }

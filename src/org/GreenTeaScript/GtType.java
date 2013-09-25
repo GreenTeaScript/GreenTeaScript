@@ -1,8 +1,33 @@
+// ***************************************************************************
+// Copyright (c) 2013, JST/CREST DEOS project authors. All rights reserved.
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// *  Redistributions of source code must retain the above copyright notice,
+//    this list of conditions and the following disclaimer.
+// *  Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+// TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// **************************************************************************
+
+//ifdef JAVA
 package org.GreenTeaScript;
-
 import java.util.ArrayList;
+//endif VAJA
 
-public class GtType extends GreenTeaUtils implements GreenTeaType {
+public class GtType extends GreenTeaUtils {
 	/*field*/public final GtParserContext	Context;
 	/*field*/public GtNameSpace     PackageNameSpace;
 	/*field*/int					TypeFlag;
@@ -49,12 +74,12 @@ public class GtType extends GreenTeaUtils implements GreenTeaType {
 			}
 			i = i + 1;
 		}
-		/*local*/GtType GenericType = new GtType(this.Context, this.TypeFlag, ShortName, null, null);
+		/*local*/GtType GenericType = new GtType(this.Context, this.TypeFlag | TypeVariableFlag, ShortName, null, null);
 		GenericType.BaseType = this.BaseType;
 		GenericType.ParentMethodSearch = this.BaseType;
 		GenericType.SuperType = this.SuperType;
 		GenericType.TypeParams = LibGreenTea.CompactTypeList(BaseIndex, TypeList);
-		LibGreenTea.VerboseLog(VerboseType, "new class: " + GenericType.ShortName + ", ClassId=" + GenericType.TypeId);
+		LibGreenTea.VerboseLog(VerboseType, "new generic type: " + GenericType.ShortName + ", ClassId=" + GenericType.TypeId);
 		return GenericType;
 	}
 
@@ -72,6 +97,42 @@ public class GtType extends GreenTeaUtils implements GreenTeaType {
 
 	public final boolean IsGenericType() {
 		return (this.TypeParams != null);
+	}
+
+	public final boolean IsFuncType() {
+		return (this.BaseType == this.Context.FuncType);
+	}
+
+	public final boolean IsVoidType() {
+		return (this == this.Context.VoidType);
+	}
+
+	public final boolean IsVarType() {
+		return (this == this.Context.VarType);
+	}
+
+	public final boolean IsAnyType() {
+		return (this == this.Context.AnyType);
+	}
+
+	public final boolean IsTypeType() {
+		return (this == this.Context.TypeType);
+	}
+
+	public final boolean IsBooleanType() {
+		return (this == this.Context.BooleanType);
+	}
+
+	public final boolean IsStringType() {
+		return (this == this.Context.StringType);
+	}
+
+	public final boolean IsArrayType() {
+		return (this == this.Context.ArrayType);
+	}
+
+	public final boolean IsEnumType() {
+		return IsFlag(this.TypeFlag, EnumType);
 	}
 
 	@Override public String toString() {
@@ -121,42 +182,6 @@ public class GtType extends GreenTeaUtils implements GreenTeaType {
 
 	public void SetClassField(GtClassField ClassField) {
 		this.TypeBody = ClassField;
-	}
-
-	public final boolean IsFuncType() {
-		return (this.BaseType == this.Context.FuncType);
-	}
-
-	public final boolean IsVoidType() {
-		return (this == this.Context.VoidType);
-	}
-
-	public final boolean IsVarType() {
-		return (this == this.Context.VarType);
-	}
-
-	public final boolean IsAnyType() {
-		return (this == this.Context.AnyType);
-	}
-
-	public final boolean IsTypeType() {
-		return (this == this.Context.TypeType);
-	}
-
-	public final boolean IsBooleanType() {
-		return (this == this.Context.BooleanType);
-	}
-
-	public final boolean IsStringType() {
-		return (this == this.Context.StringType);
-	}
-
-	public final boolean IsArrayType() {
-		return (this == this.Context.ArrayType);
-	}
-
-	public final boolean IsEnumType() {
-		return IsFlag(this.TypeFlag, EnumType);
 	}
 
 	public boolean IsDynamicNaitiveLoading() {

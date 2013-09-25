@@ -35,7 +35,7 @@ class GtFuncBlock extends GreenTeaUtils {
 	/*field*/public boolean IsVarArgument;
 	/*field*/public ArrayList<GtType> TypeList;
 	/*field*/public GtFunc DefinedFunc;
-	
+
 	GtFuncBlock/*constructor*/(GtNameSpace NameSpace, ArrayList<GtType> TypeList) {
 		this.NameSpace = NameSpace;
 		this.TypeList = TypeList;
@@ -44,7 +44,7 @@ class GtFuncBlock extends GreenTeaUtils {
 		this.IsVarArgument = false;
 		this.DefinedFunc = null;
 	}
-	
+
 	void SetThisIfInClass(GtType Type) {
 		if(Type != null) {
 			this.TypeList.add(Type);
@@ -56,7 +56,7 @@ class GtFuncBlock extends GreenTeaUtils {
 		this.TypeList.add(this.NameSpace.Context.TypeType);
 		this.NameList.add("type");
 	}
-	
+
 	void AddParameter(GtType Type, String Name) {
 		this.TypeList.add(Type);
 		if(Type.IsVarType()) {
@@ -166,7 +166,7 @@ class GtFunc extends GreenTeaUtils {
 		}
 		return null;
 	}
-	
+
 	public final boolean EqualsParamTypes(int BaseIndex, GtType[] ParamTypes) {
 		if(this.Types.length == ParamTypes.length) {
 			/*local*/int i = BaseIndex;
@@ -241,7 +241,7 @@ class GtFunc extends GreenTeaUtils {
 		}
 		return false;
 	}
-	
+
 	public GtFunc GenerateLazyFunc(ArrayList<GtNode> NodeList) {
 		return null; // TODO
 	}
@@ -258,7 +258,6 @@ class GtFunc extends GreenTeaUtils {
 		}
 		return NameSpace;
 	}
-
 
 }
 
@@ -489,33 +488,27 @@ class GtPolyFunc extends GreenTeaUtils {
 }
 
 public class GreenTeaTopObject implements GreenTeaObject {
-	/*field*/public GreenTeaType GreenType;
-	protected GreenTeaTopObject/*constructor*/(GreenTeaType GreenType) {
+	/*field*/public GtType GreenType;
+	protected GreenTeaTopObject/*constructor*/(GtType GreenType) {
 		this.GreenType = GreenType;
 	}
-	public final GreenTeaType GetGreenType() {
+	public final GtType GetGreenType() {
 		return this.GreenType;
 	}
 }
 
 final class GreenTeaAnyObject extends GreenTeaTopObject {
 	/*field*/public final Object NativeValue;
-	GreenTeaAnyObject/*constructor*/(GreenTeaType GreenType, Object NativeValue) {
+	GreenTeaAnyObject/*constructor*/(GtType GreenType, Object NativeValue) {
 		super(GreenType);
 		this.NativeValue = NativeValue;
-	}
-}
-
-class GreenTeaArray extends GreenTeaTopObject {
-	GreenTeaArray/*constructor*/(GreenTeaType GreenType) {
-		super(GreenType);
 	}
 }
 
 class GreenTeaEnum extends GreenTeaTopObject {
 	/*field*/public final long EnumValue;
 	/*field*/public final String EnumSymbol;
-	GreenTeaEnum/*constructor*/(GreenTeaType GreenType, long EnumValue, String EnumSymbol) {
+	GreenTeaEnum/*constructor*/(GtType GreenType, long EnumValue, String EnumSymbol) {
 		super(GreenType);
 		this.EnumValue = EnumValue;
 		this.EnumSymbol = EnumSymbol;

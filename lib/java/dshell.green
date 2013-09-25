@@ -2,3 +2,42 @@
 
 import org.GreenTeaScript.DShellGrammar;
 
+@Const @Operator boolean "-f"(String Path) import DShellGrammar.IsFile;
+@Const @Operator boolean "-d"(String Path) import DShellGrammar.IsDirectory;
+@Const @Operator boolean "-e"(String Path) import DShellGrammar.IsFileExists;
+@Const @Operator boolean "-r"(String Path) import DShellGrammar.IsFileReadable;
+@Const @Operator boolean "-w"(String Path) import DShellGrammar.IsFileWritable;
+@Const @Operator boolean "-x"(String Path) import DShellGrammar.IsFileExecutable;
+
+
+let ConnectRefusedException = import org.GreenTeaScript.JVM.ConnectRefusedException;
+let IllegalSeekException = import org.GreenTeaScript.JVM.IllegalSeekException;
+let InterruptedBySignalException = import org.GreenTeaScript.JVM.InterruptedBySignalException;
+let NetworkTimeoutException = import org.GreenTeaScript.JVM.NetworkTimeoutException;
+let NoFreeMemoryException = import org.GreenTeaScript.JVM.NoFreeMemoryException;
+let NoFreeSpaceException = import org.GreenTeaScript.JVM.NoFreeSpaceException;
+let NotDirectoryException = import org.GreenTeaScript.JVM.NotDirectoryException;
+let NotFoundException = import org.GreenTeaScript.JVM.NotFoundException;
+let NotPermittedException = import org.GreenTeaScript.JVM.NotPermittedException;
+let NotPermittedOperateException = import org.GreenTeaScript.JVM.NotPermittedOperateException;
+let ReadOnlyException = import org.GreenTeaScript.JVM.ReadOnlyException;
+let TooLongNameException = import org.GreenTeaScript.JVM.TooLongNameException;
+let TooManyLinkException = import org.GreenTeaScript.JVM.TooManyLinkException;
+let UnreachableException = import org.GreenTeaScript.JVM.UnreachableException;
+
+// FaultTypes
+let DFault       = import org.GreenTeaScript.JVM.Fault.DFault;
+let DFault._new  = import org.GreenTeaScript.JVM.Fault.DFault._new;
+let DFault.getLocation = import org.GreenTeaScript.JVM.Fault.DFault.getLocation;
+let DFault.setLocation = import org.GreenTeaScript.JVM.Fault.DFault.setLocation;
+let UnknownFault = import org.GreenTeaScript.JVM.Fault.UnknownFault;
+let ReportAction = import org.GreenTeaScript.DShellGrammar.UpdateFaultInfomation;
+
+@Const @Operator boolean ==(DFault x, DFault y) import org.GreenTeaScript.JVM.Fault.DFault.binary_eq;
+@Const @Operator boolean !=(DFault x, DFault y) import org.GreenTeaScript.JVM.Fault.DFault.binary_ne;
+
+// Process
+let Process = import org.GreenTeaScript.JVM.GtSubProc;
+@Coercion var !(var x) import org.GreenTeaScript.JVM.GtSubProc.unary_not;
+@Coercion var converter(var x) import org.GreenTeaScript.JVM.GtSubProc.ConvertToString;
+@Coercion var converter(var x) import org.GreenTeaScript.JVM.GtSubProc.ConvertToBoolean;

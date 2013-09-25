@@ -1,0 +1,22 @@
+require dshell;
+
+let DCaseRevision = 2;
+let Location="WebServer";
+let RecServer="https://192.168.0.100:8080/rec/";
+let AssumedFault = UnknownFault;
+
+DFault CallAdmin() {
+    command ls;
+    if(!(ls /NotSuchPath)) {
+        println("ERROR");
+        raise AssumedFault;
+    }
+    return null;
+}
+
+@Export int main() {
+    if(dexec CallAdmin == null) {
+        println("HI");
+    }
+    return 0;
+}

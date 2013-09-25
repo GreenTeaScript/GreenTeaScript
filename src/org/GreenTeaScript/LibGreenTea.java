@@ -56,7 +56,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return "Java JVM-" + System.getProperty("java.version");
 	}
 
-	public static boolean DebugMode = false;
+	public static boolean DebugMode = !false;
 
 	private final static String GetStackInfo(int depth) {
 		String LineNumber = " ";
@@ -157,7 +157,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		}
 		return level;
 	}
-	
+
 	public final static String CharToString(char code) {
 		return Character.toString(code);
 	}
@@ -256,53 +256,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 			LibGreenTea.VerboseException(e);
 		}
 		return 0.0;
-	}
-
-	public final static String GetEnv(String Key) {
-		return System.getenv(Key);
-	}
-	
-	public final static boolean IsUnixCommand(String cmd) {
-		String[] path = LibGreenTea.GetEnv("PATH").split(":");
-		int i = 0;
-		while(i < path.length) {
-			if(LibGreenTea.HasFile(path[i] + "/" + cmd)) {
-				return true;
-			}
-			i = i + 1;
-		}
-		return false;
-	}
-	
-	public final static boolean IsDirectory(String Path) {
-		return new File(Path).isDirectory();
-	}
-	
-	public final static boolean IsExist(String Path) {
-		return new File(Path).exists();
-	}
-	
-	public final static boolean IsFile(String Path) {
-		return new File(Path).isFile();
-	}
-	
-	public final static boolean IsReadable(String Path) {
-		return new File(Path).canRead();
-	}
-	
-	public final static boolean IsWritable(String Path) {
-		return new File(Path).canWrite();
-	}
-	
-	public final static boolean IsExecutable(String Path) {
-		return new File(Path).canExecute();
-	}
-	
-	public final static String[] GetFileList(String Path) {
-		/*local*/int Index = Path.indexOf("*");
-		/*local*/String NewPath = LibGreenTea.SubString(Path, 0, Index);
-		return new File(NewPath).list();
-	}
+	}	
 
 	public final static GtType GetNativeType(GtParserContext Context, Object Value) {
 		GtType NativeType = null;
@@ -320,24 +274,36 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return Value.getClass().getName();
 	}
 
+	private static boolean AcceptJavaType(GtType GreenType, Class<?> Type) {
+		if(GreenType.IsVarType() || GreenType.IsTypeVariable()) {
+			return true;
+		}
+		GtType JavaType = LibGreenTea.GetNativeType(GreenType.Context, Type);
+		if(GreenType != JavaType) {
+			if(GreenType.IsGenericType() && GreenType.HasTypeVariable()) {
+				return GreenType.BaseType == JavaType.BaseType;
+			}
+			return false;
+		}
+		return true;
+	}
+	
 	public final static boolean MatchNativeMethod(GtType FuncType, Method JavaMethod) {
 		/*local*/GtParserContext Context = FuncType.Context;
-		/*local*/GtType ReturnType = FuncType.TypeParams[0];
 //		System.err.println("method: " + JavaMethod);
-//		System.err.println("return: " + ReturnType + ", " + LibGreenTea.GetNativeType(Context, JavaMethod.getReturnType()));
-		if(!ReturnType.IsVarType()) {
-			if(ReturnType != LibGreenTea.GetNativeType(Context, JavaMethod.getReturnType())) {
-				return false;
-			}
+//		/*local*/GtType ReturnType = FuncType.TypeParams[0];
+//		System.err.println("return: " + ReturnType + ", " + JavaMethod.getReturnType());
+		if(!AcceptJavaType(FuncType.TypeParams[0], JavaMethod.getReturnType())) {
+			return false;
 		}
 		/*local*/int StartIndex = 2;
 		if(Modifier.isStatic(JavaMethod.getModifiers())) {
 			StartIndex = 1;			
 		}
 		else {
-			GtType JavaRecvType = LibGreenTea.GetNativeType(Context, JavaMethod.getDeclaringClass());
+//			GtType JavaRecvType = LibGreenTea.GetNativeType(Context, JavaMethod.getDeclaringClass());
 //			System.err.println("recv: " + FuncType.TypeParams[1] + ", " + JavaRecvType);
-			if(FuncType.TypeParams.length == 1 || JavaRecvType != FuncType.TypeParams[1]) {
+			if(FuncType.TypeParams.length == 1 || !AcceptJavaType(FuncType.TypeParams[1], JavaMethod.getDeclaringClass())) {
 				return false;
 			}
 			StartIndex = 2;
@@ -348,10 +314,10 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 //			System.err.println("params: " + ParamSize + ", " + ParamTypes.length);
 			if(ParamTypes.length != ParamSize) return false;
 			for(int j = 0; j < ParamTypes.length; j++) {
-				if(FuncType.TypeParams[StartIndex+j].IsVarType()) continue;
-				GtType JavaParamType = LibGreenTea.GetNativeType(Context, ParamTypes[j]);
+//				if(FuncType.TypeParams[StartIndex+j].IsVarType()) continue;
+//				GtType JavaParamType = LibGreenTea.GetNativeType(Context, ParamTypes[j]);
 //				System.err.println("param: " + FuncType.TypeParams[StartIndex+j] + ", " + JavaParamType);
-				if(JavaParamType != FuncType.TypeParams[StartIndex+j]) {
+				if(!AcceptJavaType(FuncType.TypeParams[StartIndex+j], ParamTypes[j])) {
 					return false;
 				}
 			}
@@ -386,45 +352,55 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return SetNativeMethod(new GtFunc(0, JavaMethod.getName(), 0, TypeList), JavaMethod);
 	}
 
+	private static Class<?> LoadNativeClass(String ClassName) throws ClassNotFoundException {
+		try {
+			return Class.forName("org.GreenTeaScript." + ClassName);
+		}
+		catch(ClassNotFoundException e) {
+		}
+		return Class.forName(ClassName);
+	}
+	
 	public final static Method LoadNativeMethod(GtType ContextType, String FullName, boolean StaticMethodOnly) {
 		/*local*/Method FoundMethod = null;
 		int Index = FullName.lastIndexOf(".");
-		if(Index != -1) {
+		if(Index == -1) {
+			return null;
+		}
+		try {
 			/*local*/String FuncName = FullName.substring(Index+1);
-			try {
-				/*local*/Class<?> NativeClass = Class.forName(FullName.substring(0, Index));
-				Method[] Methods = NativeClass.getDeclaredMethods();
-				if(Methods != null) {
-					for(int i = 0; i < Methods.length; i++) {
-						if(LibGreenTea.EqualsString(FuncName, Methods[i].getName())) {
-							if(!Modifier.isPublic(Methods[i].getModifiers())) {
-								continue;
-							}
-							if(StaticMethodOnly && !Modifier.isStatic(Methods[i].getModifiers())) {
-								continue;
-							}
-							if(ContextType.IsFuncType() && !LibGreenTea.MatchNativeMethod(ContextType, Methods[i])) {
-								continue;
-							}
-							if(FoundMethod != null) {
-								LibGreenTea.VerboseLog(GreenTeaUtils.VerboseUndefined, "overloaded method: " + FullName);
-								return FoundMethod; // return the first one
-							}
-							FoundMethod = Methods[i];
+			/*local*/Class<?> NativeClass = LoadNativeClass(FullName.substring(0, Index));
+			Method[] Methods = NativeClass.getDeclaredMethods();
+			if(Methods != null) {
+				for(int i = 0; i < Methods.length; i++) {
+					if(LibGreenTea.EqualsString(FuncName, Methods[i].getName())) {
+						if(!Modifier.isPublic(Methods[i].getModifiers())) {
+							continue;
 						}
+						if(StaticMethodOnly && !Modifier.isStatic(Methods[i].getModifiers())) {
+							continue;
+						}
+						if(ContextType.IsFuncType() && !LibGreenTea.MatchNativeMethod(ContextType, Methods[i])) {
+							continue;
+						}
+						if(FoundMethod != null) {
+							LibGreenTea.VerboseLog(GreenTeaUtils.VerboseUndefined, "overloaded method: " + FullName);
+							return FoundMethod; // return the first one
+						}
+						FoundMethod = Methods[i];
 					}
 				}
-			} catch (ClassNotFoundException e) {
-				LibGreenTea.VerboseLog(GreenTeaUtils.VerboseException, e.toString());			
 			}
-		}
-		if(FoundMethod == null) {
-			LibGreenTea.VerboseLog(GreenTeaUtils.VerboseUndefined, "undefined method: " + FullName + " of " + ContextType);
+			if(FoundMethod == null) {
+				LibGreenTea.VerboseLog(GreenTeaUtils.VerboseUndefined, "undefined method: " + FullName + " for " + ContextType);
+			}
+		} catch (ClassNotFoundException e) {
+				LibGreenTea.VerboseLog(GreenTeaUtils.VerboseException, e.toString());			
 		}
 		return FoundMethod;
 	}
 
-	public final static boolean ImportNativeMethod(GtFunc NativeFunc, String FullName) {
+	public final static boolean ImportNativeMethod(GtNameSpace NameSpace, GtFunc NativeFunc, String FullName) {
 		Method JavaMethod = LibGreenTea.LoadNativeMethod(NativeFunc.GetFuncType(), FullName, false);
 		if(JavaMethod != null) {
 			LibGreenTea.SetNativeMethod(NativeFunc, JavaMethod);
@@ -443,7 +419,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		}
 		return false;
 	}
-
+	
 	public final static void LoadNativeConstructors(GtType ClassType, ArrayList<GtFunc> FuncList) {
 		/*local*/boolean TransformedResult = false;
 		Class<?> NativeClass = (Class<?>)ClassType.TypeBody;
@@ -542,7 +518,6 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return null;
 	}
 
-	
 	public final static void LoadNativeMethods(GtType ClassType, String FuncName, ArrayList<GtFunc> FuncList) {
 		GtParserContext Context = ClassType.Context;
 		Class<?> NativeClass = (Class<?>)ClassType.TypeBody;
@@ -744,8 +719,8 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		else if(Extension.endsWith(".sh")) {
 			return "bash";
 		}
-		else if(Extension.endsWith(".java")) {
-			return "java";
+		else if(Extension.endsWith(".scala")) {
+			return "scala";
 		}
 		else if(Extension.endsWith(".c")) {
 			return "c";
@@ -772,8 +747,8 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		else if(TargetCode.startsWith("bash")) {
 			return new BashSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
-		else if(TargetCode.startsWith("java")) {
-			return new JavaSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+		else if(TargetCode.startsWith("scala")) {
+			return new ScalaSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
 		else if(TargetCode.startsWith("c")) {
 			return new CSourceGenerator(TargetCode, OutputFile, GeneratorFlag);

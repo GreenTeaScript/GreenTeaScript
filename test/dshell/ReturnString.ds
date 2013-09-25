@@ -1,0 +1,26 @@
+require dshell;
+
+command ls;
+
+String TestFunc01() {
+    return ls -la;
+}
+
+String TestFunc02() {
+    String res = ls -la;
+    return res;
+}
+
+boolean TestFunc03() {
+    if("" != ls -la) {
+        return true;
+    }
+    return false;
+}
+
+@Export int main() {
+    assert(TestFunc01() != "");
+    assert(TestFunc02() != "");
+    assert(TestFunc03() == true);
+    return 0;
+}
