@@ -1753,6 +1753,7 @@ final class GtNameSpace extends GreenTeaUtils {
 			if(this.ParentNameSpace != null) {
 				while(i < MaxSizeOfChars) {
 					this.TokenMatrix[i] = this.ParentNameSpace.GetTokenFunc(i);
+					i = i + 1;
 				}
 			}
 		}
