@@ -57,17 +57,18 @@ public class DFault /*extends Exception*/ {
 		this.DCaseNode = null;
 	}
 
-	public DFault UpdateDCaseReference(String DCaseURL, long DCaseRevision, String DCaseNode) {
-		this.DCaseURL = DCaseURL;
-		this.DCaseRevision = DCaseRevision;
-		this.DCaseNode = DCaseNode;
-		return this;
-	}
+//	public DFault UpdateDCaseReference(String DCaseURL, long DCaseRevision, String DCaseNode) {
+//		this.DCaseURL = DCaseURL;
+//		this.DCaseRevision = DCaseRevision;
+//		this.DCaseNode = DCaseNode;
+//		return this;
+//	}
 	
 	public final static boolean MatchFault(DFault Fault, String Location, String FaultInfo) {
 		return(Fault.Location.equalsIgnoreCase(Location) && Fault.FaultInfo.equalsIgnoreCase(FaultInfo));
 	}
 
+	
 //	public DFault(String location) {
 //		this.Location = location;
 //	}

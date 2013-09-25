@@ -645,7 +645,7 @@ public class DShellGrammar extends GreenTeaUtils {
 		if(Fault == null) {
 			return null;
 		}
-		Fault.UpdateFaultInfomation(CalledFuncName, CurrentFuncName, DCaseRevision);
+//		Fault.UpdateFaultInfomation(CalledFuncName, CurrentFuncName, DCaseRevision);
 		return Fault;
 	}
 
