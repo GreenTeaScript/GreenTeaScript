@@ -491,15 +491,17 @@ public class DShellGrammar extends GreenTeaUtils {
 		while(TokenContext.HasNext() && CommandTree.IsValidSyntax()) {
 			GtToken Token = TokenContext.GetToken();
 			if(Token.IsIndent() || StopTokens.indexOf(Token.ParsedText) != -1) {
-				break;
+				if(!Token.EqualsText("|") && !Token.EqualsText("&")) {
+					break;
+				}
 			}
-//			if(Token.EqualsText("||") || Token.EqualsText("&&")) {
-//				/*local*/GtSyntaxPattern ExtendedPattern = TokenContext.GetExtendedPattern(NameSpace);
-//				return GreenTeaUtils.ApplySyntaxPattern(NameSpace, TokenContext, CommandTree, ExtendedPattern);
-//			}
+			if(Token.EqualsText("||") || Token.EqualsText("&&")) {
+				/*local*/GtSyntaxPattern ExtendedPattern = TokenContext.GetExtendedPattern(NameSpace);
+				return GreenTeaUtils.ApplySyntaxPattern(NameSpace, TokenContext, CommandTree, ExtendedPattern);
+			}
 			if(Token.EqualsText("|")) {
 				TokenContext.Next();
-				/*local*/GtSyntaxTree PipedTree = TokenContext.ParsePattern(NameSpace, "$DShell$", Required);
+				/*local*/GtSyntaxTree PipedTree = TokenContext.ParsePattern(NameSpace, "$DShell2$", Required);
 				if(PipedTree.IsError()) {
 					return PipedTree;
 				}
@@ -507,7 +509,7 @@ public class DShellGrammar extends GreenTeaUtils {
 				return CommandTree;
 			}
 			if(Token.EqualsText(">")) {
-				/*local*/GtSyntaxTree RedirectTree = TokenContext.ParsePattern(NameSpace, "$DShell$", Required);
+				/*local*/GtSyntaxTree RedirectTree = TokenContext.ParsePattern(NameSpace, "$DShell2$", Required);
 				if(RedirectTree.IsError()) {
 					return RedirectTree;
 				}
