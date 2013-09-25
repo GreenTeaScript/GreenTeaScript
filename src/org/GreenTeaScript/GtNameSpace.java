@@ -147,6 +147,14 @@ public final class GtNameSpace extends GreenTeaUtils {
 		this.SetSymbol(Symbol, UndefinedSymbol, SourceToken);
 	}
 
+	public final String GetSymbolText(String Key) {
+		/*local*/Object Body = this.GetSymbol(Key);
+		if(Body instanceof String) {
+			return (/*cast*/String)Body;
+		}
+		return null;
+	}
+
 	public GtSyntaxPattern GetSyntaxPattern(String PatternName) {
 		/*local*/Object Body = this.GetSymbol(PatternName);
 		if(Body instanceof GtSyntaxPattern) {

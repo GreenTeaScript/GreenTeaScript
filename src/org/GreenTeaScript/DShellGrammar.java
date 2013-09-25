@@ -25,7 +25,10 @@
 //ifdef JAVA
 package org.GreenTeaScript;
 import java.io.File;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+
+import javax.xml.stream.events.Namespace;
 
 import org.GreenTeaScript.DShell.DFault;
 
@@ -81,6 +84,38 @@ public class DShellGrammar extends GreenTeaUtils {
 		return new String[0];
 	}
 
+	public final static DFault CreateFault(GtNameSpace NameSpace, String DCaseNode, String FaultInfo, String ErrorInfo) {
+		if(FaultInfo == null) {
+			FaultInfo = NameSpace.GetSymbolText("AssumedFault");
+		}
+		DFault Fault = new DFault(NameSpace.GetSymbolText("Location"), FaultInfo, ErrorInfo);
+		return Fault.UpdateDCaseReference(NameSpace.GetSymbolText("DCaseURL"), DCaseNode);
+	}
+
+	public final static DFault CreateExceptionFault(GtNameSpace NameSpace, String DCaseNode, Exception e) {
+		// TODO: Dispatch Fault by type of Exception e
+		// default fault is set to UnexpectedFault
+		return CreateFault(NameSpace, DCaseNode, "UnexpectedFault", e.toString());
+	}
+
+	public final static DFault ExecAction(GtNameSpace NameSpace, String DCaseNode, GtFunc Action) {
+		DFault Fault = null;
+		try {
+			Fault = (DFault)((Method)Action.NativeRef).invoke(null);
+		}
+		catch (Exception e) {
+			Fault = CreateExceptionFault(NameSpace, DCaseNode, e);
+		}
+		if(Fault == null) {
+			// report in success case
+		}
+		else {
+			// report failed case
+		}
+		return Fault;
+	}
+
+	
 	// Grammar 
 	private static String CommandSymbol(String Symbol) {
 		return "__$" + Symbol;
@@ -560,6 +595,39 @@ public class DShellGrammar extends GreenTeaUtils {
 		return TokenContext.ParsePattern(NameSpace, "$DShell2$", Required);
 	}
 	
+	// dlog $Expr 
+	public static GtSyntaxTree ParseDLogger(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtSyntaxTree Tree = TokenContext.CreateMatchedSyntaxTree(NameSpace, Pattern, "dlog");
+		Tree.SetMatchedPatternAt(UnaryTerm, NameSpace, TokenContext, "$Expression$", Required);
+		return Tree;
+	}
+
+	// dlog FunctionName => ExecAction(NameSpace, ContextualFuncName, Action);
+	public static GtNode TypeDLogger(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+		ContextType = LibGreenTea.GetNativeType(Gamma.Context, DFault.class);
+		GtNode ActionNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, ContextType, DefaultTypeCheckPolicy);
+		if(ActionNode.IsError()) {
+			return ActionNode;
+		}
+		if(!(ActionNode instanceof ApplyNode)) {
+			GtFunc ActionFunc = ((ApplyNode)ActionNode).Func;
+			if(ActionFunc.GetFuncParamSize() == 0) {
+				GtFunc ReportFunc = (GtFunc)Gamma.NameSpace.GetSymbol("$ReportBuiltInFunc");
+				GtNode ApplyNode = Gamma.Generator.CreateApplyNode(ContextType, ParsedTree, ReportFunc);
+				ApplyNode.Append(Gamma.Generator.CreateConstNode(Gamma.VarType, ParsedTree, ReportFunc));
+				ApplyNode.Append(Gamma.Generator.CreateConstNode(Gamma.VarType, ParsedTree, Gamma.NameSpace));
+				String ContextualFuncName = "Admin";
+				if(Gamma.Func != null) {
+					ContextualFuncName = Gamma.Func.FuncName;
+				}
+				ApplyNode.Append(Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, ContextualFuncName));
+				ApplyNode.Append(Gamma.Generator.CreateConstNode(Gamma.VarType, ParsedTree, ActionFunc));
+				return ApplyNode;
+			}
+		}
+		return Gamma.CreateSyntaxErrorNode(ParsedTree, "action must be Func<DFault, void>");
+	}
+	
 	static private final GtNode CreateConstNode(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, Object ConstValue) {
 		return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(ConstValue), ParsedTree, ConstValue);
 	}
@@ -665,6 +733,9 @@ public class DShellGrammar extends GreenTeaUtils {
 		NameSpace.AppendSyntax("$DShell2$", LoadParseFunc2(ParserContext, GrammarClass, "ParseDShell2"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeDShell2"));
 		NameSpace.AppendSyntax("shell", LoadParseFunc2(ParserContext, GrammarClass, "ParseShell"), null);
 
+		NameSpace.SetSymbol("$ReportBuiltInFunc", LibGreenTea.LoadNativeMethod(ParserContext.VoidType, "DShellGrammar.ExecAction", true), null);
+		NameSpace.AppendSyntax("dlog", LoadParseFunc2(ParserContext, GrammarClass, "ParseDLog"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeDLog"));
+		
 		NameSpace.AppendSyntax("raise", LoadParseFunc2(ParserContext, GrammarClass, "ParseRaise"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeRaise"));
 		NameSpace.AppendSyntax("dexec", LoadParseFunc2(ParserContext, GrammarClass, "ParseDexec"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeDexec"));
 

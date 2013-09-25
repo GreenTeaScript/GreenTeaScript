@@ -847,6 +847,9 @@ class GtGenerator extends GreenTeaUtils {
 	}
 
 	public GtNode CreateConstNode(GtType Type, GtSyntaxTree ParsedTree, Object Value) {
+		if(Type.IsVarType()) {
+			Type = LibGreenTea.GetNativeType(Type.Context, Value);
+		}
 		return new ConstNode(Type, ParsedTree != null ? ParsedTree.KeyToken : GtTokenContext.NullToken, Value);
 	}
 

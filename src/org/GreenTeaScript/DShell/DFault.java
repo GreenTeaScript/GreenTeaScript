@@ -57,37 +57,19 @@ public class DFault /*extends Exception*/ {
 		this.FaultInfo = FaultInfo == null ? "UnexpectedFault" : FaultInfo;
 		this.ErrorInfo = ErrorInfo; // nonnull
 		this.DCaseURL = null;
-		this.DCaseRevision = 0;
 		this.DCaseNode = null;
 	}
 
-//	public DFault UpdateDCaseReference(String DCaseURL, long DCaseRevision, String DCaseNode) {
-//		this.DCaseURL = DCaseURL;
-//		this.DCaseRevision = DCaseRevision;
-//		this.DCaseNode = DCaseNode;
-//		return this;
-//	}
+	public DFault UpdateDCaseReference(String DCaseURL, String DCaseNode) {
+		this.DCaseURL  = DCaseURL;
+		this.DCaseNode = DCaseNode;
+		return this;
+	}
 	
 	public final static boolean MatchFault(DFault Fault, String Location, String FaultInfo) {
 		return(Fault.Location.equalsIgnoreCase(Location) && Fault.FaultInfo.equalsIgnoreCase(FaultInfo));
 	}
 
-	public final static DFault ExecAction(GtNameSpace NameSpace, long FileLine, GtFunc Action) {
-		DFault Fault = null;
-		try {
-			Fault = (DFault)((Method)Action.NativeRef).invoke(null);
-		}
-		catch (Exception e) {
-			Fault = DFault.CreateFault(NameSpace, FileLine, e);
-		}
-		if(Fault == null) {
-			// success case
-		}
-		else {
-			// failed case
-		}
-		return Fault;
-	}
 	
 	
 //	public DFault(String location) {
