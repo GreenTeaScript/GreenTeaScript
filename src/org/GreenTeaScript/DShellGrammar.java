@@ -564,6 +564,8 @@ public class DShellGrammar extends GreenTeaUtils {
 		return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(ConstValue), ParsedTree, ConstValue);
 	}
 
+	
+	// dexec CallAdmin() 
 	// D-exec Expression
 	// dexec FunctionName
 	public static GtSyntaxTree ParseDexec(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {

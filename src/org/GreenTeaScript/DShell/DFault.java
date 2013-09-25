@@ -23,8 +23,12 @@
 // **************************************************************************
 
 package org.GreenTeaScript.DShell;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import org.GreenTeaScript.GtNameSpace;
+import org.GreenTeaScript.GtFunc;
 
 import org.GreenTeaScript.LibGreenTea;
 
@@ -68,6 +72,23 @@ public class DFault /*extends Exception*/ {
 		return(Fault.Location.equalsIgnoreCase(Location) && Fault.FaultInfo.equalsIgnoreCase(FaultInfo));
 	}
 
+	public final static DFault ExecAction(GtNameSpace NameSpace, long FileLine, GtFunc Action) {
+		DFault Fault = null;
+		try {
+			Fault = (DFault)((Method)Action.NativeRef).invoke(null);
+		}
+		catch (Exception e) {
+			Fault = DFault.CreateFault(NameSpace, FileLine, e);
+		}
+		if(Fault == null) {
+			// success case
+		}
+		else {
+			// failed case
+		}
+		return Fault;
+	}
+	
 	
 //	public DFault(String location) {
 //		this.Location = location;
