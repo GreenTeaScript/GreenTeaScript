@@ -280,13 +280,13 @@ public class PythonSourceGenerator extends SourceGenerator {
 
 	private String AppendCommand(CommandNode CurrentNode) {
 		/*local*/String Code = "";
-		/*local*/int size = CurrentNode.Params.size();
+		/*local*/int size = CurrentNode.ArgumentList.size();
 		/*local*/int i = 0;
 		while(i < size) {
 			if(i > 0) {
 				Code += ", ";
 			}
-			Code += this.VisitNode(CurrentNode.Params.get(i));
+			Code += this.VisitNode(CurrentNode.ArgumentList.get(i));
 			i = i + 1;
 		}
 		return Code;

@@ -471,17 +471,23 @@ public class DShellGrammar extends GreenTeaUtils {
 	}
 	
 	public static GtSyntaxTree ParseDShell2(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtSyntaxTree CommandTree = TokenContext.CreateSyntaxTree(NameSpace, Pattern, null);
 		/*local*/GtToken CommandToken = TokenContext.GetToken();
-		if(!CommandToken.EqualsText(">")) {
+		if(CommandToken.EqualsText(">")) {
+			CommandTree.AppendParsedTree2(CommandTree.CreateConstTree(">"));
+			TokenContext.Next();
+		}
+		else {
 			/*local*/String Command = (/*cast*/String)NameSpace.GetSymbol(CommandSymbol(CommandToken.ParsedText));
-			if(Command == null) {
-				if(!IsUnixCommand(CommandToken.ParsedText)) {
-					return TokenContext.ReportExpectedToken("command");
-				}
+			if(Command != null) {
+				CommandTree.AppendParsedTree2(CommandTree.CreateConstTree(Command));
+				TokenContext.Next();
+			}
+			else {
+				CommandTree.AppendMatchedPattern(NameSpace, TokenContext, "$FilePath$", Required);
 			}
 		}
-		/*local*/GtSyntaxTree CommandTree = new GtSyntaxTree(Pattern, NameSpace, CommandToken, null);
-		
+		TokenContext.SetBackTrack(false);
 		while(TokenContext.HasNext() && CommandTree.IsValidSyntax()) {
 			GtToken Token = TokenContext.GetToken();
 			if(Token.IsIndent() || StopTokens.indexOf(Token.ParsedText) != -1) {

@@ -401,10 +401,10 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	private String AppendCommand(CommandNode CurrentNode) {
 		/*local*/String Code = "";
-		/*local*/int size = LibGreenTea.ListSize(CurrentNode.Params);
+		/*local*/int size = LibGreenTea.ListSize(CurrentNode.ArgumentList);
 		/*local*/int i = 0;
 		while(i < size) {
-			Code += this.ResolveValueType(CurrentNode.Params.get(i), false) + " ";
+			Code += this.ResolveValueType(CurrentNode.ArgumentList.get(i), false) + " ";
 			i = i + 1;
 		}
 		return Code;

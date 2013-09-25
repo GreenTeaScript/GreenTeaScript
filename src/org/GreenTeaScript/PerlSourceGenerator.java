@@ -152,8 +152,8 @@ public class PerlSourceGenerator extends SourceGenerator {
 	@Override public void VisitCommandNode(CommandNode Node) {
 		/*local*/String Code = "system(\"";
 		/*local*/int i = 0;
-		while(i < Node.Params.size()) {
-			/*local*/GtNode Param = Node.Params.get(i);
+		while(i < Node.ArgumentList.size()) {
+			/*local*/GtNode Param = Node.ArgumentList.get(i);
 			if(i != 0) {
 				Code += " ";
 			}
