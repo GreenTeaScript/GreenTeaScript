@@ -129,7 +129,7 @@ class JVMBuilder {
 	}
 
 	void LoadConst(Object o) {
-		Type type;
+		Type type = null;
 		boolean unsupportType = false;
 		// JVM supports only boolean, int, long, String, float, double, java.lang.Class
 		if(o instanceof Long) {
@@ -245,6 +245,7 @@ class JVMBuilder {
 			this.typeStack.push(Type.BOOLEAN_TYPE);
 		}
 		else {
+			this.AsmMethodVisitor.visitTypeInsn(CHECKCAST, type.getInternalName());
 			this.typeStack.push(type);
 		}
 	}
@@ -270,23 +271,26 @@ public class JavaByteCodeGenerator extends GtGenerator {
 
 	@Override public void InitContext(GtParserContext Context) {
 		super.InitContext(Context);
-		this.typeDescriptorMap.put(Context.VoidType.ShortClassName, Type.VOID_TYPE);
-		this.typeDescriptorMap.put(Context.BooleanType.ShortClassName, Type.BOOLEAN_TYPE);
-		this.typeDescriptorMap.put(Context.IntType.ShortClassName, Type.LONG_TYPE);
-		this.typeDescriptorMap.put(Context.FloatType.ShortClassName, Type.DOUBLE_TYPE);
-		this.typeDescriptorMap.put(Context.AnyType.ShortClassName, Type.getType(Object.class));
-		this.typeDescriptorMap.put(Context.StringType.ShortClassName, Type.getType(String.class));
+		this.typeDescriptorMap.put(Context.VoidType.ShortName, Type.VOID_TYPE);
+		this.typeDescriptorMap.put(Context.BooleanType.ShortName, Type.BOOLEAN_TYPE);
+		this.typeDescriptorMap.put(Context.IntType.ShortName, Type.LONG_TYPE);
+		this.typeDescriptorMap.put(Context.FloatType.ShortName, Type.DOUBLE_TYPE);
+		this.typeDescriptorMap.put(Context.AnyType.ShortName, Type.getType(Object.class));
+		this.typeDescriptorMap.put(Context.StringType.ShortName, Type.getType(String.class));
 		this.methodMap = GreenTeaRuntime.getAllStaticMethods();
 	}
 
 	//-----------------------------------------------------
 
 	Type ToAsmType(GtType GivenType) {
-		Type type = this.typeDescriptorMap.get(GivenType.ShortClassName);
+		Type type = this.typeDescriptorMap.get(GivenType.ShortName);
 		if(type != null) {
 			return type;
 		}
-		return Type.getType("L" + GivenType.ShortClassName + ";");
+		if(GivenType.TypeBody != null && GivenType.TypeBody instanceof Class<?>) {
+			return Type.getType((Class<?>) GivenType.TypeBody);
+		}
+		return Type.getType("L" + GivenType.ShortName + ";");
 	}
 
 	Type ToAsmMethodType(GtFunc method) {
@@ -437,10 +441,11 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		}
 	}
 
-	@Override public void OpenClassField(GtType Type, GtClassField ClassField) {
-		String className = Type.ShortClassName;
-		MethodHolderClass superClassNode = this.classMap.get(Type.SuperType.ShortClassName);
-		String superClassName = superClassNode != null ? superClassNode.name : "java/lang/Object";
+	@Override public void OpenClassField(GtType ClassType, GtClassField ClassField) {
+		String className = ClassType.ShortName;
+		MethodHolderClass superClassNode = this.classMap.get(ClassType.SuperType.ShortName);
+		String superClassName = superClassNode != null ?
+				superClassNode.name : Type.getInternalName(GreenTeaTopObject.class);
 		MethodHolderClass classNode = new MethodHolderClass(className, superClassName);
 		this.classMap.put(classNode.name, classNode);
 		// generate field
@@ -454,9 +459,10 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			}
 		}
 		// generate default constructor (for jvm)
-		MethodNode constructor = new MethodNode(ACC_PUBLIC, "<init>", "()V", null, null);
+		MethodNode constructor = new MethodNode(ACC_PUBLIC, "<init>", "(Lorg/GreenTeaScript/GtType;)V", null, null);
 		constructor.visitVarInsn(ALOAD, 0);
-		constructor.visitMethodInsn(INVOKESPECIAL, superClassName, "<init>", "()V");
+		constructor.visitVarInsn(ALOAD, 1);
+		constructor.visitMethodInsn(INVOKESPECIAL, superClassName, "<init>", "(Lorg/GreenTeaScript/GtType;)V");
 		for(GtFieldInfo field : ClassField.FieldList) {
 			if(field.FieldIndex >= ClassField.ThisClassIndex && field.InitValue != null) {
 				String name = field.NativeName;
@@ -475,17 +481,25 @@ public class JavaByteCodeGenerator extends GtGenerator {
 				LibGreenTea.VerboseException(e);
 			}
 		}
-	}
-
-	public void CloseClassField(GtType definedType, GtClassField classField) {
-		
+		try {
+			ClassLoader loader = new GtClassLoader(this);
+			ClassType.TypeBody = loader.loadClass(className);
+		} catch(Exception e) {
+			LibGreenTea.VerboseException(e);
+		}
 	}
 
 	//-----------------------------------------------------
 
 	@Override public void VisitConstNode(ConstNode Node) {
 		Object constValue = Node.ConstValue;
-		this.Builder.LoadConst(constValue);
+		if(constValue == null) { // FIXME(ide)
+			this.Builder.typeStack.push(this.ToAsmType(Node.Type));
+			this.Builder.AsmMethodVisitor.visitInsn(ACONST_NULL);
+		}
+		else {
+			this.Builder.LoadConst(constValue);
+		}
 	}
 
 	@Override public void VisitNewNode(NewNode Node) {
@@ -493,7 +507,12 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		String owner = type.getInternalName();
 		this.Builder.AsmMethodVisitor.visitTypeInsn(NEW, owner);
 		this.Builder.AsmMethodVisitor.visitInsn(DUP);
-		this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESPECIAL, owner, "<init>", "()V");
+		if(!Node.Type.IsNative()) {
+			this.Builder.AsmMethodVisitor.visitInsn(ACONST_NULL);//FIXME: push type
+			this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESPECIAL, owner, "<init>", "(Lorg/GreenTeaScript/GtType;)V");
+		} else {
+			this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESPECIAL, owner, "<init>", "()V");
+		}
 		this.Builder.typeStack.push(type);
 	}
 
@@ -851,19 +870,19 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		Label endTryLabel = new Label();
 		Label finallyLabel = new Label();
 		Label catchLabel[] = new Label[catchSize];
-		String throwType = Type.getInternalName(Throwable.class);
-
-		// prepare
-		for(int i = 0; i < catchSize; i++) { //TODO: add exception class name
-			catchLabel[i] = new Label();
-			mv.visitTryCatchBlock(beginTryLabel, endTryLabel, catchLabel[i], throwType);
-		}
+		String throwType = this.ToAsmType(Node.CatchExpr.Type).getInternalName();
 
 		// try block
 		mv.visitLabel(beginTryLabel);
 		this.VisitBlock(Node.TryBlock);
 		mv.visitLabel(endTryLabel);
 		mv.visitJumpInsn(GOTO, finallyLabel);
+
+		// prepare
+		for(int i = 0; i < catchSize; i++) { //TODO: add exception class name
+			catchLabel[i] = new Label();
+			mv.visitTryCatchBlock(beginTryLabel, endTryLabel, catchLabel[i], throwType);
+		}
 
 		// catch block
 		{ //for(int i = 0; i < catchSize; i++) { //TODO: add exception class name
@@ -892,11 +911,15 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	}
 
 	@Override public void VisitInstanceOfNode(InstanceOfNode Node) {
-		//FIXME: cannot use INSTANCEOF in case of primitive type
 		Type type = this.ToAsmType(Node.TypeInfo);
 		Node.ExprNode.Evaluate(this);
-		this.Builder.typeStack.pop();
-		this.Builder.AsmMethodVisitor.visitTypeInsn(INSTANCEOF, type.getInternalName());
+		Type foundType = this.Builder.typeStack.pop();
+		if(type.equals(foundType)) {
+			this.Builder.AsmMethodVisitor.visitLdcInsn(true);//FIXME: primitive type
+		}
+		else {
+			this.Builder.AsmMethodVisitor.visitTypeInsn(INSTANCEOF, type.getInternalName());
+		}
 		this.Builder.typeStack.push(Type.BOOLEAN_TYPE);
 	}
 
@@ -912,7 +935,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		ArrayList<ArrayList<GtNode>> Args = new ArrayList<ArrayList<GtNode>>();
 		CommandNode node = Node;
 		while(node != null) {
-			Args.add(node.Params);
+			Args.add(node.ArgumentList);
 			node = (CommandNode) node.PipedNextNode;
 		}
 		// new String[][n]
@@ -934,24 +957,27 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			}
 			this.Builder.AsmMethodVisitor.visitInsn(AASTORE);
 		}
-		Type requireType = this.ToAsmType(Node.Type);
 		String name, desc;
-		if(requireType.equals(Type.BOOLEAN_TYPE)) {
+		if(Node.Type.IsBooleanType()) {
 			name = "ExecCommandBool";
 			desc = "([[Ljava/lang/String;)Z";
 			this.Builder.typeStack.push(Type.BOOLEAN_TYPE);
 		}
-		else if(requireType.equals(Type.getType(String.class))) {
+		else if(Node.Type.IsStringType()) {
 			name = "ExecCommandString";
 			desc = "([[Ljava/lang/String;)Ljava/lang/String;";
 			this.Builder.typeStack.push(Type.getType(String.class));
 		}
-		else {
+		else if(Node.Type.IsVoidType()) {
 			name = "ExecCommandVoid";
 			desc = "([[Ljava/lang/String;)V";
 		}
-		this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC,
-				Type.getInternalName(GtSubProc.class), name, desc);
+		else {
+			name = "ExecCommand";
+			desc = "([[Ljava/lang/String;)" + Type.getType(GtSubProc.class).getDescriptor();
+			this.Builder.typeStack.push(Type.getType(GtSubProc.class));
+		}
+		this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, Type.getInternalName(GtSubProc.class), name, desc);
 	}
 
 	@Override public void InvokeMainFunc(String MainFuncName) {

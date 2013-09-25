@@ -111,7 +111,7 @@ public class GreenTeaScriptTest {
 	public static GtParserContext CreateContext() {
 		/*local*/String CodeGeneratorName = "java";
 		/*local*/GtGenerator Generator = LibGreenTea.CodeGenerator(CodeGeneratorName, "-", 0);
-		return new GtParserContext(new GreenTeaGrammar(), Generator);
+		return new GtParserContext(new KonohaGrammar(), Generator);
 	}
 
 	public static void TokenizeOperator0() {

@@ -147,25 +147,6 @@ public class GreenTeaRuntime {
 		return -1;
 	}
 
-	// Array
-	public final static Object ArrayToAny(GtType Type, ArrayList<Object> value) {
-		return (Object)value;
-	}
-
-	public final static ArrayList<Object> AnyToArray(GtType Type, Object value) {
-		if(value instanceof ArrayList<?>) {
-			ArrayList<Object> List = (ArrayList<Object>)value;
-			GtType ElementType = Type.TypeParams[0];
-			for(int i = 0; i < List.size(); i++) {
-				Type.Accept(ElementType);
-				if(!Type.AcceptValue(List.get(i))) {
-					break;
-				}
-			}
-		}
-		return null;
-	}
-
 	//-----------------------------------------------------------------------
 
 	public final static int l2i(GtType Type, long n) {
@@ -333,11 +314,16 @@ public class GreenTeaRuntime {
 	//-----------------------------------------------------
 
 	public static boolean binary_eq(String x, String y) {
-		return x.equals(y);
+		if(x == null) {
+			return x == y;
+		}
+		else {
+			return x.equals(y);
+		}
 	}
 
 	public static boolean binary_ne(String x, String y) {
-		return !x.equals(y);
+		return !binary_eq(x, y);
 	}
 
 	//-----------------------------------------------------

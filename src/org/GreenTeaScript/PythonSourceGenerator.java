@@ -49,7 +49,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 	}
 
 	@Override protected String GetNewOperator(GtType Type) {
-		/*local*/String TypeName = Type.ShortClassName;
+		/*local*/String TypeName = Type.ShortName;
 		return TypeName + "()";
 	}
 
@@ -257,7 +257,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 			Header += "import GtSubProc";
 			this.WriteHeader(Header);
 		}
-		
+
 		/*local*/String Code = "";
 		/*local*/CommandNode CurrentNode = Node;
 		while(CurrentNode != null) {
@@ -265,7 +265,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 			CurrentNode = (/*cast*/CommandNode) CurrentNode.PipedNextNode;
 			break;	//TODO :support pipe
 		}
-		
+
 		if(Node.Type.equals(Node.Type.Context.StringType)) {
 			Code = "GtSubProc.execCommandString([" + Code + "])";
 		}
@@ -280,13 +280,13 @@ public class PythonSourceGenerator extends SourceGenerator {
 
 	private String AppendCommand(CommandNode CurrentNode) {
 		/*local*/String Code = "";
-		/*local*/int size = CurrentNode.Params.size();
+		/*local*/int size = CurrentNode.ArgumentList.size();
 		/*local*/int i = 0;
 		while(i < size) {
 			if(i > 0) {
 				Code += ", ";
 			}
-			Code += this.VisitNode(CurrentNode.Params.get(i));
+			Code += this.VisitNode(CurrentNode.ArgumentList.get(i));
 			i = i + 1;
 		}
 		return Code;
@@ -312,7 +312,10 @@ public class PythonSourceGenerator extends SourceGenerator {
 
 	@Override public void OpenClassField(GtType Type, GtClassField ClassField) {
 		this.FlushErrorReport();
-		/*local*/String Program = this.GetIndentString() + "class " + Type.ShortClassName;
+		/*local*/String Program = this.GetIndentString() + "class " + Type.ShortName;
+//		if(Type.SuperType != null) {
+//			Program += "(" + Type.SuperType.ShortClassName + ")";
+//		}
 		Program += ":" + this.LineFeed;
 		this.Indent();
 
@@ -321,7 +324,8 @@ public class PythonSourceGenerator extends SourceGenerator {
 		/*local*/int i = 0, length = LibGreenTea.ListSize(ClassField.FieldList);
 		if(length == 0) {
 			Program += this.GetIndentString() + "pass;" + this.LineFeed;
-		} else {
+		}
+		else {
 			while(i < length) {
 				/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
 				/*local*/String InitValue = this.StringifyConstValue(FieldInfo.InitValue);

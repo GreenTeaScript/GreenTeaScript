@@ -25,7 +25,6 @@
 //ifdef JAVA
 package org.GreenTeaScript;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
@@ -799,15 +798,15 @@ class ErrorNode extends GtNode {
 
 // E.g., "ls" "-a"..
 class CommandNode extends GtNode {
-	/*field*/public ArrayList<GtNode>  Params; /* ["ls", "-la", "/", ...] */
+	/*field*/public ArrayList<GtNode>  ArgumentList; /* ["/bin/ls" , "-la", "/", ...] */
 	/*field*/public GtNode PipedNextNode;
 	CommandNode/*constructor*/(GtType Type, GtToken KeyToken, GtNode PipedNextNode) {
 		super(Type, KeyToken);
 		this.PipedNextNode = PipedNextNode;
-		this.Params = new ArrayList<GtNode>();
+		this.ArgumentList = new ArrayList<GtNode>();
 	}
 	@Override public void Append(GtNode Expr) {
-		this.Params.add(Expr);
+		this.ArgumentList.add(Expr);
 		this.SetParent(Expr);
 	}
 
@@ -873,6 +872,15 @@ class GtGenerator extends GreenTeaUtils {
 
 	public GtNode CreateApplyNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func) {
 		return new ApplyNode(Type, ParsedTree == null ? GtTokenContext.NullToken : ParsedTree.KeyToken, Func);
+	}
+
+	public final GtNode CreateCoercionNode(GtType Type, GtFunc Func, GtNode Node) {
+		/*local*/GtNode ApplyNode = this.CreateApplyNode(Type, null, Func);
+		/*local*/GtNode TypeNode = this.CreateConstNode(Type.Context.TypeType, null, Type);
+		ApplyNode.Append(TypeNode);
+		ApplyNode.Append(TypeNode);
+		ApplyNode.Append(Node);
+		return ApplyNode;
 	}
 
 	public GtNode CreateNewNode(GtType Type, GtSyntaxTree ParsedTree) {
@@ -991,21 +999,27 @@ class GtGenerator extends GreenTeaUtils {
 		return new ErrorNode(ParsedTree.NameSpace.Context.VoidType, ParsedTree.KeyToken);
 	}
 
-	public GtNode CreateCommandNode(GtType Type, GtSyntaxTree ParsedTree, GtNode PipedNextNode) {
+	public GtNode CreateCommandNode(GtType Type, GtSyntaxTree ParsedTree,GtNode PipedNextNode) {
 		return new CommandNode(Type, ParsedTree.KeyToken, PipedNextNode);
 	}
 
 	/* language constructor */
 
-	public final Object ImportNativeObject(GtType ContextType, String PackageName) {
+	public final Object ImportNativeObject(GtType ContextType, GtNameSpace NameSpace, String PackageName) {
 		LibGreenTea.VerboseLog(VerboseNative, "importing " + PackageName);
 //ifdef JAVA
 		try {
 			/*local*/Class<?> NativeClass = Class.forName(PackageName);
+			try {
+				Method LoaderMethod = NativeClass.getMethod("ImportGrammar", GtNameSpace.class, Class.class);
+				LoaderMethod.invoke(null, NameSpace, NativeClass);
+			} catch (Exception e) {  // naming
+			}
 			return LibGreenTea.GetNativeType(this.Context, NativeClass);
 		} catch (ClassNotFoundException e) {
-			LibGreenTea.VerboseLog(VerboseException, e.toString());
+			//LibGreenTea.VerboseLog(VerboseException, e.toString());
 		}
+		
 		Method NativeMethod = LibGreenTea.LoadNativeMethod(ContextType, PackageName, true/*static only*/);
 		if(NativeMethod != null) {
 			return LibGreenTea.ConvertNativeMethodToFunc(this.Context, NativeMethod);
@@ -1019,7 +1033,11 @@ class GtGenerator extends GreenTeaUtils {
 		return LibGreenTea.GetNativeType(this.Context, Value);
 	}
 
-	public void OpenClassField(GtType Type, GtClassField ClassField) {
+	public void OpenClassField(GtType DefinedType, GtClassField ClassField) {
+		/*extension*/
+	}
+
+	public void CloseClassField(GtType DefinedType, ArrayList<GtFunc> MemberList) {
 		/*extension*/
 	}
 
@@ -1278,7 +1296,7 @@ class GtGenerator extends GreenTeaUtils {
 //endif VAJA
 		return NewList;  // if unsupported
 	}
-	
+
 	public Object EvalCommandNode(CommandNode Node, boolean EnforceConst) {
 //ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
 		if(!EnforceConst) {
@@ -1288,10 +1306,10 @@ class GtGenerator extends GreenTeaUtils {
 		/*local*/GtType Type = Node.Type;
 		/*local*/CommandNode CurrentNode = Node;
 		while(CurrentNode != null) {
-			/*local*/int ParamSize = LibGreenTea.ListSize(CurrentNode.Params);
+			/*local*/int ParamSize = LibGreenTea.ListSize(CurrentNode.ArgumentList);
 			/*local*/String[] Buffer = new String[ParamSize];
 			for(int i =0; i < ParamSize; i++) {
-				/*local*/Object Value = CurrentNode.Params.get(i).ToConstValue(EnforceConst);
+				/*local*/Object Value = CurrentNode.ArgumentList.get(i).ToConstValue(EnforceConst);
 				if(!(Value instanceof String)) {
 					return null;
 				}
@@ -1320,7 +1338,7 @@ class GtGenerator extends GreenTeaUtils {
 				return GtSubProc.ExecCommandBool(Args);
 			}
 			else {
-				GtSubProc.ExecCommandVoid(Args);
+				return GtSubProc.ExecCommand(Args);
 			}
 		} 
 		catch(Exception e) {
@@ -1364,10 +1382,6 @@ class GtGenerator extends GreenTeaUtils {
 
 	public void InvokeMainFunc(String MainFuncName) {
 		/*extension*/
-	}
-
-	public void CloseClassField(GtType definedType, ArrayList<GtFunc> MemberList) {
-		// TODO Auto-generated method stub
 	}
 
 }
@@ -1535,7 +1549,7 @@ class SourceGenerator extends GtGenerator {
 	}
 
 	protected String GetNewOperator(GtType Type) {
-		return "new " + Type.ShortClassName + "()";
+		return "new " + Type.ShortName + "()";
 	}
 
 	protected final void PushSourceCode(String Code) {
@@ -1616,6 +1630,11 @@ class SourceGenerator extends GtGenerator {
 		}
 		else {
 			Template = Func.GetNativeFuncName();
+		}
+
+		if(Func.Is(ConverterFunc)) {
+			// T1 converter(FromType, ToType, Value);
+			BeginIdx += 1;
 		}
 		/*local*/int i = BeginIdx;
 		if(IsNative == false) {
@@ -1725,7 +1744,7 @@ class SourceGenerator extends GtGenerator {
 		/*local*/String FuncName = Node.Token.ParsedText;
 		/*local*/String Left = this.VisitNode(Node.LeftNode);
 		/*local*/String Right = this.VisitNode(Node.RightNode);
-		this.PushSourceCode("(" + Left + " = " + SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right) + ")");
+		this.PushSourceCode(Left + " = " + SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right));
 	}
 
 	@Override public void VisitUnaryNode(UnaryNode Node) {

@@ -1,0 +1,28 @@
+require dshell;
+
+command ls;
+
+boolean TestFunc01() {
+    return ls -la /NotSuchPath;
+}
+
+boolean TestFunc02() {
+    if(ls -la /NotSuchPath) {
+        return false;
+    }
+    return true;
+}
+
+boolean TestFunc03() {
+    if(!(ls -la /NotSuchPath)) {
+        return false;
+    }
+    return true;
+}
+
+@Export int main() {
+    assert(TestFunc01() == false);
+    assert(TestFunc02() == true);
+    assert(TestFunc03() == false);
+    return 0;
+}

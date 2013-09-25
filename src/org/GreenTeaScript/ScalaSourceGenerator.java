@@ -29,50 +29,89 @@ import java.util.ArrayList;
 
 //GreenTea Generator should be written in each language.
 
-public class CSourceGenerator extends SourceGenerator {
-	CSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
+public class ScalaSourceGenerator extends SourceGenerator {
+	/*field*/String OutFileName;
+	ScalaSourceGenerator(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
-		this.TrueLiteral  = "1";
-		this.FalseLiteral = "0";
-		this.Tab = "\t";
-		this.NullLiteral = "NULL";
-		this.MemberAccessOperator = "->";
-	}
-	@Override public void InitContext(GtParserContext Context) {
-		super.InitContext(Context);
+		this.OutFileName = OutputFile;
+		if(LibGreenTea.EqualsString(this.OutFileName, "-")) {
+			this.OutFileName = "GreenTea";
+		} else {
+			this.OutFileName = this.OutFileName.replace("/", "_").replace(".", "_").replace("-", "_");
+		}
 	}
 
-	private String GetLocalType(GtType Type, boolean IsPointer) {
+	private String LocalTypeName(GtType Type) {
 		if(Type.IsDynamic() || Type.IsNative()) {
-			if(Type == Type.PackageNameSpace.Context.BooleanType) {
-				return "int";
+			if(Type == Type.PackageNameSpace.Context.VoidType) {
+				return "Unit";
 			}
-			return Type.ShortName;
+			if(Type == Type.PackageNameSpace.Context.IntType) {
+				return "Int";
+			}
+			if(Type == Type.PackageNameSpace.Context.FloatType) {
+				return "Double";
+			}
+			if(Type == Type.PackageNameSpace.Context.BooleanType) {
+				return "Boolean";
+			}
 		}
-		/*local*/String TypeName = "struct " + Type.ShortName;
-		if(IsPointer) {
-			TypeName += "*";
-		}
-		return TypeName;
-
-	}
-	public String NativeTypeName(GtType Type) {
-		return this.GetLocalType(Type, false);
-	}
-
-	public String LocalTypeName(GtType Type) {
-		return this.GetLocalType(Type, true);
-	}
-
-	public String GtTypeName(GtType Type) {
 		return Type.ShortName;
 	}
 
-	@Override protected String GetNewOperator(GtType Type) {
-		/*local*/String TypeName = this.GtTypeName(Type);
-		return "NEW_" + TypeName + "()";
+	// copied from PythonSourceGenerator
+	@Override public void VisitForNode(ForNode Node) {
+		/* for(; COND; ITER) BLOCK1; continue; BLOCK2;
+		 * => while COND:
+		 * 		BLOCK1;
+		 * 		ITER;continue;
+		 * 		BLOCK2;
+		 * 		ITER
+		 */
+		/*local*/String Program = "while(" + this.VisitNode(Node.CondExpr) + ")" + this.LineFeed;
+		Program += this.GetIndentString() + "{";
+		this.Indent();
+		Program += this.VisitBlockWithIndent(Node.LoopBody, false);
+		Program += this.VisitBlockWithIndent(Node.IterExpr, false);
+		Program += this.GetIndentString() + "}";
+		this.UnIndent();
+		this.PushSourceCode(Program);
 	}
 
+	private ForNode FindParentForNode(GtNode Node) {
+		/*local*/GtNode Parent = Node.GetParentNode();
+		while(Parent != null) {
+			if(Parent instanceof ForNode) {
+				return (/*cast*/ForNode)Parent;
+			}
+			if(Parent.GetParentNode() == null) {
+				Parent = Parent.MoveHeadNode();
+			}
+			Parent = Parent.GetParentNode();
+		}
+		return null;
+	}
+
+	@Override public void VisitContinueNode(ContinueNode Node) {
+		/*local*/String Code = "";
+		/*local*/ForNode Parent = this.FindParentForNode(Node);
+		if(Parent != null) {
+			/*local*/GtNode IterNode = Parent.IterExpr;
+			if(IterNode != null) {
+				Code += this.VisitNode(IterNode) + this.LineFeed + this.GetIndentString();
+			}
+		}
+		Code += this.ContinueKeyword;
+		if(this.HasLabelSupport) {
+			/*local*/String Label = Node.Label;
+			if(Label != null) {
+				Code += " " + Label;
+			}
+		}
+		this.PushSourceCode(Code);
+		this.StopVisitor(Node);
+	}
+	
 	@Override public void VisitWhileNode(WhileNode Node) {
 		/*local*/String Program = "while(" + this.VisitNode(Node.CondExpr) + ")";
 		Program += this.VisitBlockWithIndent(Node.LoopBody, true);
@@ -85,31 +124,17 @@ public class CSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Program);
 	}
 
-	@Override public void VisitForNode(ForNode Node) {
-		/*local*/String Cond = this.VisitNode(Node.CondExpr);
-		/*local*/String Iter = this.VisitNode(Node.IterExpr);
-		/*local*/String Program = "for(; " + Cond  + "; " + Iter + ") ";
-		Program += this.VisitBlockWithIndent(Node.LoopBody, true);
-		this.PushSourceCode(Program);
-	}
-
 	@Override public void VisitGetterNode(GetterNode Node) {
 		/*local*/String Program = this.VisitNode(Node.Expr);
 		/*local*/String FieldName = Node.Func.FuncName;
-		/*local*/GtType RecvType = Node.Func.GetRecvType();
-		if(Node.Expr.Type == RecvType) {
-			Program = Program + "->" + FieldName;
-		}
-		else {
-			Program = "GT_GetField(" + this.LocalTypeName(RecvType) + ", " + Program + ", " + FieldName + ")";
-		}
+		Program = Program + "." + FieldName;
 		this.PushSourceCode(Program);
 	}
 
 	@Override public void VisitVarNode(VarNode Node) {
 		/*local*/String Type = this.LocalTypeName(Node.DeclType);
 		/*local*/String VarName = Node.NativeName;
-		/*local*/String Code = Type + " " + VarName;
+		/*local*/String Code = "var " + VarName + " : " + Type + " ";
 		/*local*/boolean CreateNewScope = true;
 		if(Node.InitNode != null) {
 			Code += " = " + this.VisitNode(Node.InitNode);
@@ -146,56 +171,15 @@ public class CSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
+
 	@Override public void VisitThrowNode(ThrowNode Node) {
 		/*local*/String Code = "throw " + this.VisitNode(Node.Expr);
 		this.PushSourceCode(Code);
-		this.StopVisitor(Node);
 	}
 
 	@Override public void VisitErrorNode(ErrorNode Node) {
-		/*local*/String Code = "throw Error(\"" + Node.Token.ParsedText + "\")";
+		/*local*/String Code = "throw RuntimeError(\"" + Node.Token.ParsedText + "\")";
 		this.PushSourceCode(Code);
-		this.StopVisitor(Node);
-	}
-
-	@Override public void VisitCommandNode(CommandNode Node) {
-		/*local*/String Code = "system(";
-		/*local*/int i = 0;
-		/*local*/String Command = "String __Command = ";
-		while(i < LibGreenTea.ListSize(Node.ArgumentList)) {
-			/*local*/GtNode Param = Node.ArgumentList.get(i);
-			if(i != 0) {
-				Command += " + ";
-			}
-			Param.Evaluate(this);
-			Command += "(" + this.PopSourceCode() + ")";
-			i = i + 1;
-		}
-		Code = Command + ";" + this.LineFeed + this.GetIndentString() + Code + "__Command)";
-		this.PushSourceCode(Code);
-	}
-
-	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
-		this.FlushErrorReport();
-		/*local*/String Code = "";
-		if(!Func.Is(ExportFunc)) {
-			Code = "static ";
-		}
-		//Body = this.Opt.Fold(Body);
-		/*local*/String RetTy = this.LocalTypeName(Func.GetReturnType());
-		Code += RetTy + " " + Func.GetNativeFuncName() + "(";
-		/*local*/int i = 0;
-		while(i < ParamNameList.size()) {
-			/*local*/String ParamTy = this.LocalTypeName(Func.GetFuncParamType(i));
-			if(i > 0) {
-				Code += ", ";
-			}
-			Code += ParamTy + " " + ParamNameList.get(i);
-			i = i + 1;
-		}
-		Code += ")";
-		Code += this.VisitBlockWithIndent(Body, true);
-		this.WriteLineCode(Code);
 	}
 
 	@Override public Object Eval(GtNode Node) {
@@ -207,28 +191,50 @@ public class CSourceGenerator extends SourceGenerator {
 		return Code;
 	}
 
-	@Override public void OpenClassField(GtType Type, GtClassField ClassField) {
-		/*local*/String TypeName = Type.ShortName;
-		/*local*/String LocalType = this.LocalTypeName(Type);
-		/*local*/String Program = this.GetIndentString() + "struct " + TypeName + " {" + this.LineFeed;
-		this.Indent();
-		if(Type.SuperType != null) {
-			Program += this.GetIndentString() + "// " + this.LocalTypeName(Type.SuperType) + " __base;" + this.LineFeed;
-		}
+	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
+		this.FlushErrorReport();
+		/*local*/String Function = "def ";
+		Function += Func.GetNativeFuncName() + "(";
 		/*local*/int i = 0;
+		/*local*/int size = ParamNameList.size();
+		while(i < size) {
+			if(i > 0) {
+				Function += ", ";
+			}
+			/*local*/String ParamTy = this.LocalTypeName(Func.GetFuncParamType(i));
+			Function += ParamNameList.get(i) + " : " + ParamTy;
+			i = i + 1;
+		}
+		/*local*/String Block = this.VisitBlockWithIndent(Body, true);
+		Function += ") : " + this.LocalTypeName(Func.GetReturnType()) + " = " + this.LineFeed + Block + this.LineFeed;
+		this.WriteLineCode(Function);
+	}
+
+	@Override public void OpenClassField(GtType Type, GtClassField ClassField) {
+		/*local*/String TypeName = this.LocalTypeName(Type);
+		/*local*/String Program = this.GetIndentString() + "class " + TypeName;
+//		if(Type.SuperType != null) {
+//			Program += " extends " + Type.SuperType;
+//		}
+		Program += " {" + this.LineFeed;
+		this.Indent();
+		/*local*/int i = ClassField.ThisClassIndex;
 		while(i < ClassField.FieldList.size()) {
 			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
 			/*local*/GtType VarType = FieldInfo.Type;
 			/*local*/String VarName = FieldInfo.NativeName;
-			Program += this.GetIndentString() + this.LocalTypeName(VarType) + " " + VarName + ";" + this.LineFeed;
+			Program += this.GetIndentString() + "var " + VarName + " : ";
+			Program += this.LocalTypeName(VarType) + " = _/*default value*/;" + this.LineFeed;
 			i = i + 1;
 		}
 		this.UnIndent();
 		Program += this.GetIndentString() + "};" + this.LineFeed;
-		Program += this.GetIndentString() + LocalType + " NEW_" + TypeName + "() {" + this.LineFeed;
+		Program += this.GetIndentString() + "def constructor(self : " + TypeName + ") : " + this.LocalTypeName(Type);
+		Program += " = {" + this.LineFeed;
 		this.Indent();
 		i = 0;
-		Program +=  this.GetIndentString() + LocalType + " " + this.GetRecvName() + " = " + "GT_New("+LocalType+");" + this.LineFeed;
+//		Program += this.GetIndentString() + "var " + this.GetRecvName() + " : " + this.LocalTypeName(Type);
+//		Program += " = new " + this.LocalTypeName(Type) + "();" + this.LineFeed;
 		while(i < ClassField.FieldList.size()) {
 			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
 			/*local*/String VarName = FieldInfo.NativeName;
@@ -236,7 +242,7 @@ public class CSourceGenerator extends SourceGenerator {
 			if(!FieldInfo.Type.IsNative()) {
 				InitValue = this.NullLiteral;
 			}
-			Program += this.GetIndentString() + this.GetRecvName() + "->" + VarName + " = " + InitValue + ";" + this.LineFeed;
+			Program += this.GetIndentString() + this.GetRecvName() + "." + VarName + " = " + InitValue + ";" + this.LineFeed;
 			i = i + 1;
 		}
 		Program += this.GetIndentString() + "return " + this.GetRecvName() + ";" + this.LineFeed;
@@ -247,7 +253,16 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void StartCompilationUnit() {
-		this.WriteLineCode("#include \"GreenTeaPlus.h\"");
+		this.WriteLineCode("object " + this.OutFileName + " {");
+	}
+
+	@Override public void FinishCompilationUnit() {
+		this.WriteLineCode("}");
+	}
+	@Override public void InvokeMainFunc(String MainFuncName) {
+		this.WriteLineCode("def main(args: Array[String]) {");
+		this.WriteLineCode(this.Tab + MainFuncName + "()");
+		this.WriteLineCode("}");
 	}
 
 	@Override public String GetRecvName() {

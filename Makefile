@@ -4,7 +4,7 @@
 # testj:  test javascript implementation
 .SILENT:
 JavaBin="./GreenTeaScript.jar"
-INSTALL_PREFIX="$(HOME)/bin"
+INSTALL_PREFIX?="$(HOME)"
 TEST_BASEDIR="test/exec"
 TEST_OUTDIR="$(TEST_BASEDIR)/test-result"
 
@@ -12,7 +12,8 @@ TEST_FILES:=$(wildcard test/exec/*.green)
 
 all: build test
 
-build: buildj buildts
+#build: buildj buildts
+build: buildj
 
 dist: distj distts
 
@@ -33,14 +34,14 @@ $(JavaBin): check_java_env
 buildpy:
 	echo Building Python implementation
 	python --version  > /dev/null
-	sh ./tool/ToPython
+	bash ./tool/ToPython
 
 buildts:
 	echo Building TypeScript implementation
 	ruby -v > /dev/null
 	node -v > /dev/null
 	tsc -v  > /dev/null
-	sh ./tool/ToTypeScript
+	bash ./tool/ToTypeScript
 
 testj:
 	echo Testing Java implementation
@@ -72,19 +73,19 @@ install: installj
 
 installj: distj
 	echo Installing Java implementation
-	install -d $(INSTALL_PREFIX)
-	cp -f generated/jar/GreenTeaScript.jar $(INSTALL_PREFIX)/
-	install -m 755 tool/greentea $(INSTALL_PREFIX)/greentea
-	install -d $(INSTALL_PREFIX)/../include
-	cp -f include/c/*.h $(INSTALL_PREFIX)/../include/
+	install -d $(INSTALL_PREFIX)/bin
+	install -d $(INSTALL_PREFIX)/include
+	cp -f generated/jar/GreenTeaScript.jar $(INSTALL_PREFIX)/bin/
+	install -m 755 tool/greentea $(INSTALL_PREFIX)/bin/greentea
+	cp -f include/c/*.h $(INSTALL_PREFIX)/include/
 
 test: buildj $(notdir $(TEST_FILES))
 	cat $(TEST_OUTDIR)/*.green.csv >> $(TEST_OUTDIR)/TestResult.csv
 
 test_prepare:
-	sh tool/ReleaseCheck2.sh --reset $(TEST_OUTDIR)/TestResult.csv
+	bash tool/ReleaseCheck2.sh --reset $(TEST_OUTDIR)/TestResult.csv
 
 $(notdir $(TEST_FILES)): test_prepare
-	sh tool/ReleaseCheck2.sh $(TEST_BASEDIR)/$@ $(TEST_OUTDIR)/$@.csv
+	bash tool/ReleaseCheck2.sh $(TEST_BASEDIR)/$@ $(TEST_OUTDIR)/$@.csv
 
 .PHONY: all build buildj buildts test testp testj clean dist buildj buildts installj

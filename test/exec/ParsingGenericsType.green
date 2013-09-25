@@ -2,9 +2,13 @@
 
 let t = Array<Array<int>>;
 
+<T> T add(T a, T b);
+
+
 @Export
 int main() {
 	assert(defined(t));
+	assert(defined(add));
 	return 0;
 }
 

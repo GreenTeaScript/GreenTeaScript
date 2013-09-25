@@ -231,7 +231,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	private String GetMemberIndex(GtType ClassType, String MemberName) {
-		return "$" + ClassType.ShortClassName + this.MemberAccessOperator + MemberName;
+		return "$" + ClassType.ShortName + this.MemberAccessOperator + MemberName;
 	}
 
 	private boolean IsNativeType(GtType Type) {
@@ -401,10 +401,10 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	private String AppendCommand(CommandNode CurrentNode) {
 		/*local*/String Code = "";
-		/*local*/int size = LibGreenTea.ListSize(CurrentNode.Params);
+		/*local*/int size = LibGreenTea.ListSize(CurrentNode.ArgumentList);
 		/*local*/int i = 0;
 		while(i < size) {
-			Code += this.ResolveValueType(CurrentNode.Params.get(i), false) + " ";
+			Code += this.ResolveValueType(CurrentNode.ArgumentList.get(i), false) + " ";
 			i = i + 1;
 		}
 		return Code;
@@ -517,12 +517,12 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override protected String GetNewOperator(GtType Type) {
-		return LibGreenTea.QuoteString("$(__NEW__" + Type.ShortClassName + ")");
+		return LibGreenTea.QuoteString("$(__NEW__" + Type.ShortName + ")");
 	}
 
 	@Override public void OpenClassField(GtType Type, GtClassField ClassField) {	//TODO: support super
-		/*local*/String Program = "__NEW__" + Type.ShortClassName + "() {" + this.LineFeed;
-		this.WriteLineCode("#### define class " + Type.ShortClassName + " ####");
+		/*local*/String Program = "__NEW__" + Type.ShortName + "() {" + this.LineFeed;
+		this.WriteLineCode("#### define class " + Type.ShortName + " ####");
 		this.Indent();
 		Program += this.GetIndentString() + "local -a " + this.GetRecvName() + this.LineFeed;
 
@@ -533,7 +533,7 @@ public class BashSourceGenerator extends SourceGenerator {
 			if(!FieldInfo.Type.IsNative()) {
 				InitValue = "NULL";
 			}
-			this.WriteLineCode(Type.ShortClassName + this.MemberAccessOperator + FieldInfo.NativeName + "=" + i);
+			this.WriteLineCode(Type.ShortName + this.MemberAccessOperator + FieldInfo.NativeName + "=" + i);
 			
 			Program += this.GetIndentString() + this.GetRecvName();
 			Program += "[" + this.GetMemberIndex(Type, FieldInfo.NativeName) + "]=" + InitValue + this.LineFeed;

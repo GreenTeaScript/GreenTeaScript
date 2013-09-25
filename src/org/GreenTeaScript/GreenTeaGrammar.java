@@ -24,6 +24,6 @@
 
 package org.GreenTeaScript;
 
-public interface GreenTeaObject {
-	GtType GetGreenType();
+public interface GreenTeaGrammar {
+	public void LoadTo(GtNameSpace NameSpace);
 }
