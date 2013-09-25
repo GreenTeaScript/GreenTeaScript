@@ -26,8 +26,8 @@
 package org.GreenTeaScript;
 import java.io.File;
 import java.util.ArrayList;
-import org.GreenTeaScript.JVM.Fault.DFault;
-//endif VAJA
+
+import org.GreenTeaScript.DShell.DFault;
 
 public class DShellGrammar extends GreenTeaUtils {
 	// LibDShell
