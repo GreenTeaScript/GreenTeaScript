@@ -475,15 +475,13 @@ public class DShellGrammar extends GreenTeaUtils {
 		if(!CommandToken.EqualsText(">")) {
 			/*local*/String Command = (/*cast*/String)NameSpace.GetSymbol(CommandSymbol(CommandToken.ParsedText));
 			if(Command == null) {
-				if(IsUnixCommand(CommandToken.ParsedText)) {
-					NameSpace.SetSymbol(CommandSymbol(CommandToken.ParsedText), CommandToken.ParsedText, CommandToken);
-				}
-				else {
+				if(!IsUnixCommand(CommandToken.ParsedText)) {
 					return TokenContext.ReportExpectedToken("command");
 				}
 			}
 		}
 		/*local*/GtSyntaxTree CommandTree = new GtSyntaxTree(Pattern, NameSpace, CommandToken, null);
+		
 		while(TokenContext.HasNext() && CommandTree.IsValidSyntax()) {
 			GtToken Token = TokenContext.GetToken();
 			if(Token.IsIndent() || StopTokens.indexOf(Token.ParsedText) != -1) {
