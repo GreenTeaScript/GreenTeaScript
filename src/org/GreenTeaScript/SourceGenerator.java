@@ -798,15 +798,15 @@ class ErrorNode extends GtNode {
 
 // E.g., "ls" "-a"..
 class CommandNode extends GtNode {
-	/*field*/public ArrayList<GtNode>  Params; /* ["ls", "-la", "/", ...] */
+	/*field*/public ArrayList<GtNode>  ArgumentList; /* ["/bin/ls" , "-la", "/", ...] */
 	/*field*/public GtNode PipedNextNode;
 	CommandNode/*constructor*/(GtType Type, GtToken KeyToken, GtNode PipedNextNode) {
 		super(Type, KeyToken);
 		this.PipedNextNode = PipedNextNode;
-		this.Params = new ArrayList<GtNode>();
+		this.ArgumentList = new ArrayList<GtNode>();
 	}
 	@Override public void Append(GtNode Expr) {
-		this.Params.add(Expr);
+		this.ArgumentList.add(Expr);
 		this.SetParent(Expr);
 	}
 
@@ -847,6 +847,9 @@ class GtGenerator extends GreenTeaUtils {
 	}
 
 	public GtNode CreateConstNode(GtType Type, GtSyntaxTree ParsedTree, Object Value) {
+		if(Type.IsVarType()) {
+			Type = LibGreenTea.GetNativeType(Type.Context, Value);
+		}
 		return new ConstNode(Type, ParsedTree != null ? ParsedTree.KeyToken : GtTokenContext.NullToken, Value);
 	}
 
@@ -999,7 +1002,7 @@ class GtGenerator extends GreenTeaUtils {
 		return new ErrorNode(ParsedTree.NameSpace.Context.VoidType, ParsedTree.KeyToken);
 	}
 
-	public GtNode CreateCommandNode(GtType Type, GtSyntaxTree ParsedTree, GtNode PipedNextNode) {
+	public GtNode CreateCommandNode(GtType Type, GtSyntaxTree ParsedTree,GtNode PipedNextNode) {
 		return new CommandNode(Type, ParsedTree.KeyToken, PipedNextNode);
 	}
 
@@ -1306,10 +1309,10 @@ class GtGenerator extends GreenTeaUtils {
 		/*local*/GtType Type = Node.Type;
 		/*local*/CommandNode CurrentNode = Node;
 		while(CurrentNode != null) {
-			/*local*/int ParamSize = LibGreenTea.ListSize(CurrentNode.Params);
+			/*local*/int ParamSize = LibGreenTea.ListSize(CurrentNode.ArgumentList);
 			/*local*/String[] Buffer = new String[ParamSize];
 			for(int i =0; i < ParamSize; i++) {
-				/*local*/Object Value = CurrentNode.Params.get(i).ToConstValue(EnforceConst);
+				/*local*/Object Value = CurrentNode.ArgumentList.get(i).ToConstValue(EnforceConst);
 				if(!(Value instanceof String)) {
 					return null;
 				}

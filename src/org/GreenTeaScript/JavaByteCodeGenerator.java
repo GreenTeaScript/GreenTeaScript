@@ -935,7 +935,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		ArrayList<ArrayList<GtNode>> Args = new ArrayList<ArrayList<GtNode>>();
 		CommandNode node = Node;
 		while(node != null) {
-			Args.add(node.Params);
+			Args.add(node.ArgumentList);
 			node = (CommandNode) node.PipedNextNode;
 		}
 		// new String[][n]

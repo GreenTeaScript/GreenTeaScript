@@ -9,7 +9,6 @@ import org.GreenTeaScript.DShellGrammar;
 @Const @Operator boolean "-w"(String Path) import DShellGrammar.IsFileWritable;
 @Const @Operator boolean "-x"(String Path) import DShellGrammar.IsFileExecutable;
 
-
 let ConnectRefusedException = import org.GreenTeaScript.JVM.ConnectRefusedException;
 let IllegalSeekException = import org.GreenTeaScript.JVM.IllegalSeekException;
 let InterruptedBySignalException = import org.GreenTeaScript.JVM.InterruptedBySignalException;
@@ -26,15 +25,16 @@ let TooManyLinkException = import org.GreenTeaScript.JVM.TooManyLinkException;
 let UnreachableException = import org.GreenTeaScript.JVM.UnreachableException;
 
 // FaultTypes
-let DFault       = import org.GreenTeaScript.JVM.Fault.DFault;
-let DFault._new  = import org.GreenTeaScript.JVM.Fault.DFault._new;
-let DFault.getLocation = import org.GreenTeaScript.JVM.Fault.DFault.getLocation;
-let DFault.setLocation = import org.GreenTeaScript.JVM.Fault.DFault.setLocation;
-let UnknownFault = import org.GreenTeaScript.JVM.Fault.UnknownFault;
-let ReportAction = import org.GreenTeaScript.DShellGrammar.UpdateFaultInfomation;
+let DFault       = import org.GreenTeaScript.DShell.DFault;
+boolean MatchFault(DFault fault, String Location, String FaultInfo) import org.GreenTeaScript.DShell.DFault.MatchFault;
 
-@Const @Operator boolean "=="(DFault x, DFault y) import org.GreenTeaScript.JVM.Fault.DFault.binary_eq;
-@Const @Operator boolean "!="(DFault x, DFault y) import org.GreenTeaScript.JVM.Fault.DFault.binary_ne;
+//let DFault._new  = import org.GreenTeaScript.JVM.Fault.DFault._new;
+//let DFault.getLocation = import org.GreenTeaScript.JVM.Fault.DFault.getLocation;
+//let DFault.setLocation = import org.GreenTeaScript.JVM.Fault.DFault.setLocation;
+//let UnknownFault = import org.GreenTeaScript.JVM.Fault.UnknownFault;
+//let ReportAction = import org.GreenTeaScript.DShellGrammar.UpdateFaultInfomation;
+//@Const @Operator boolean "=="(DFault x, DFault y) import DShell.DFault.binary_eq;
+//@Const @Operator boolean "!="(DFault x, DFault y) import DShell.DFault.binary_ne;
 
 // Process
 let Process = import org.GreenTeaScript.JVM.GtSubProc;
