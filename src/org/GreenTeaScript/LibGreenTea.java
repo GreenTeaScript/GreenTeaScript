@@ -352,7 +352,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return SetNativeMethod(new GtFunc(0, JavaMethod.getName(), 0, TypeList), JavaMethod);
 	}
 
-	private static Class<?> LoadNativeClass(String ClassName) throws ClassNotFoundException {
+	public final static Class<?> LoadNativeClass(String ClassName) throws ClassNotFoundException {
 		try {
 			return Class.forName("org.GreenTeaScript." + ClassName);
 		}
@@ -419,6 +419,28 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		}
 		return false;
 	}
+	
+	public final static Object ImportNativeObject(GtNameSpace NameSpace, String PackageName) {
+		LibGreenTea.VerboseLog(VerboseNative, "importing " + PackageName);
+//ifdef JAVA
+		try {
+			/*local*/Class<?> NativeClass = LibGreenTea.LoadNativeClass(PackageName);
+			try {
+				Method LoaderMethod = NativeClass.getMethod("ImportGrammar", GtNameSpace.class, Class.class);
+				LoaderMethod.invoke(null, NameSpace, NativeClass);
+			} catch (Exception e) {  // naming
+			}
+			return LibGreenTea.GetNativeType(NameSpace.Context, NativeClass);
+		} catch (ClassNotFoundException e) {
+		}
+		Method NativeMethod = LibGreenTea.LoadNativeMethod(NameSpace.Context.VarType, PackageName, true/*static only*/);
+		if(NativeMethod != null) {
+			return LibGreenTea.ConvertNativeMethodToFunc(NameSpace.Context, NativeMethod);
+		}
+//endif VAJA
+		return null;
+	}
+
 	
 	public final static void LoadNativeConstructors(GtType ClassType, ArrayList<GtFunc> FuncList) {
 		/*local*/boolean TransformedResult = false;
@@ -555,21 +577,13 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return null;
 	}
 
-//	public final static boolean EqualsFunc(Method m1, Method m2) {
-//		if(m1 == null) {
-//			return (m2 == null) ? true : false;
-//		}
-//		else {
-//			return (m2 == null) ? false : m1.equals(m2);
-//		}
-//	}
-
-	public final static Object Apply2(Object NativeMethod, Object Self, Object Param1, Object Param2) {
+	public final static Object ApplyFunc(GtFunc Func, Object Self, Object[] Params) {
 		try {
-			return ((Method)NativeMethod).invoke(Self, Param1, Param2);
+			return ((Method)Func.NativeRef).invoke(Self, Params);
 		}
 		catch (InvocationTargetException e) {
-			LibGreenTea.VerboseException(e);
+			//LibGreenTea.VerboseException(e);
+			e.getCause().printStackTrace();
 		}
 		catch (IllegalArgumentException e) {
 			LibGreenTea.VerboseException(e);
@@ -580,13 +594,12 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return null;
 	}
 
-	public final static Object ApplyFunc(GtFunc Func, Object Self, Object[] Params) {
+	public final static Object ApplyFunc2(GtFunc Func, Object Self, Object Param1, Object Param2) {
 		try {
-			return ((Method)Func.NativeRef).invoke(Self, Params);
+			return ((Method)Func.NativeRef).invoke(Self, Param1, Param2);
 		}
 		catch (InvocationTargetException e) {
-			//LibGreenTea.VerboseException(e);
-			e.getCause().printStackTrace();
+			LibGreenTea.VerboseException(e);
 		}
 		catch (IllegalArgumentException e) {
 			LibGreenTea.VerboseException(e);

@@ -23,6 +23,7 @@
 // **************************************************************************
 
 //ifdef JAVA
+
 package org.GreenTeaScript;
 import java.util.ArrayList;
 import java.lang.reflect.Method;
@@ -45,7 +46,7 @@ public class GreenTeaRuntime {
 			GtType FromType = ToType.Context.GuessType(Value);
 			GtFunc Func = ToType.Context.RootNameSpace.GetConverterFunc(FromType, ToType, true);
 			if(Func != null) {
-				return LibGreenTea.Apply2(Func.NativeRef, null, ToType, Value);
+				return LibGreenTea.ApplyFunc2(Func, null, ToType, Value);
 			}
 		}
 		return null;
