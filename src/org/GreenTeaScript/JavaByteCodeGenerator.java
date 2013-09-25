@@ -304,7 +304,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	}
 
 	public Class<?> ToClass(Type type) throws ClassNotFoundException {
-		if(type.equals(Type.BOOLEAN)) {
+		if(type.equals(Type.BOOLEAN_TYPE)) {
 			return boolean.class;
 		}
 		else if(type.equals(Type.LONG_TYPE)) {
