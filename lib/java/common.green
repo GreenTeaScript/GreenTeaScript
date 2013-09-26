@@ -99,3 +99,15 @@ void print(String s)   import org.GreenTeaScript.LibGreenTea.print;
 void println(String s) import org.GreenTeaScript.LibGreenTea.println;
 void assert(boolean b) import org.GreenTeaScript.LibGreenTea.Assert;
 
+// array 
+
+<T> int "||"(Array<T> this) import GreenTeaArray.GetSize;
+<T> T "[]"(Array<T> this, int index) import GreenTeaArray.Get;
+<T> void "[]="(Array<T> this, int index, T value) import GreenTeaArray.Set;
+<T> Array<T> add(Array<T> this, T value) import GreenTeaArray.Add;
+
+@Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaArray.GreenArrayToStringArray;
+@Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaArray.StringArrayToGreenArray;
+
+
+

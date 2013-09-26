@@ -3005,7 +3005,8 @@ final class KonohaGrammar extends GtGrammar {
 		if(InitNode != null) {
 			if(InitNode instanceof VarNode) {
 				((/*cast*/VarNode)InitNode).BlockNode = ForNode;
-			}			else {
+			}
+			else {
 				InitNode = GreenTeaUtils.LinkNode(InitNode, ForNode);
 			}
 			return InitNode;
@@ -3620,6 +3621,7 @@ final class KonohaGrammar extends GtGrammar {
 			return ExprNode;
 		}
 		/*local*/GtPolyFunc PolyFunc = Gamma.NameSpace.GetMethod(ExprNode.Type, FuncSymbol("||"), true);
+		System.err.println("polyfunc: " + PolyFunc);
 		/*local*/GtFunc Func = PolyFunc.ResolveUnaryFunc(Gamma, ExprNode.Type);
 		LibGreenTea.Assert(Func != null);  // any has ||
 		/*local*/GtNode Node = Gamma.Generator.CreateApplyNode(Func.GetReturnType(), ParsedTree, Func);
@@ -3647,14 +3649,16 @@ final class KonohaGrammar extends GtGrammar {
 			return ExprNode;
 		}
 		/*local*/GtFunc ResolvedFunc = null;
-		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(ExprNode.Type, "get", true);
+		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(ExprNode.Type, FuncSymbol("[]"), true);
+		System.err.println("polyfunc: " + PolyFunc);
 		/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
 		ParamList.add(ExprNode);
-		if(PolyFunc != null) {
-			ResolvedFunc = PolyFunc.ResolveFunc(Gamma, ParsedTree, 1, ParamList);
-			if(ResolvedFunc != null) {
-				Type = ResolvedFunc.GetReturnType();
-			}
+		ResolvedFunc = PolyFunc.ResolveFunc(Gamma, ParsedTree, 1, ParamList);
+		if(ResolvedFunc != null) {
+			Type = ResolvedFunc.GetReturnType();
+		}
+		else {
+			System.err.println("undefined: " + "[]");
 		}
 		/*local*/GtNode Node = Gamma.Generator.CreateIndexerNode(Type, ParsedTree, ResolvedFunc, ExprNode);
 		Node.AppendNodeList(ParamList);
@@ -3908,6 +3912,10 @@ final class KonohaGrammar extends GtGrammar {
 
 		// expermental
 		NameSpace.AppendSyntax("__line__", LoadParseFunc(ParserContext, this, "ParseLine"), LoadTypeFunc(ParserContext, this, "TypeLine"));
+	
+		// for debug
+		GreenTeaArray<?> a = GreenTeaArray.NewArray(ParserContext.IntType, 2);
+		NameSpace.SetSymbol("a", a, null);
 	}
 }
 

@@ -320,7 +320,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 			if(!RecursiveSearch) {
 				break;
 			}
-			//System.err.println("** " + ClassType + ", " + ClassType.ParentMethodSearch);
+			System.err.println("** " + ClassType + ", " + ClassType.ParentMethodSearch);
 			ClassType = ClassType.ParentMethodSearch;
 		}
 		return new GtPolyFunc(FuncList);
