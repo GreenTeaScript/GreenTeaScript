@@ -236,12 +236,12 @@ class JVMBuilder {
 		}
 		else if(type.equals(Type.DOUBLE_TYPE)) {
 			this.AsmMethodVisitor.visitTypeInsn(CHECKCAST, "java/lang/Double");
-			this.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Double", "doubleValue", "()D");
+			this.AsmMethodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Double", "doubleValue", "()D");
 			this.typeStack.push(Type.DOUBLE_TYPE);
 		}
 		else if(type.equals(Type.BOOLEAN_TYPE)) {
 			this.AsmMethodVisitor.visitTypeInsn(CHECKCAST, "java/lang/Boolean");
-			this.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Boolean", "booleanValue", "()Z");
+			this.AsmMethodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Boolean", "booleanValue", "()Z");
 			this.typeStack.push(Type.BOOLEAN_TYPE);
 		}
 		else {
@@ -915,16 +915,21 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	}
 
 	@Override public void VisitInstanceOfNode(InstanceOfNode Node) {
-		Type type = this.ToAsmType(Node.TypeInfo);
 		Node.ExprNode.Evaluate(this);
-		Type foundType = this.Builder.typeStack.pop();
-		if(type.equals(foundType)) {
-			this.Builder.AsmMethodVisitor.visitLdcInsn(true);//FIXME: primitive type
-		}
-		else {
-			this.Builder.AsmMethodVisitor.visitTypeInsn(INSTANCEOF, type.getInternalName());
-		}
+		this.Builder.box();
+		this.Builder.LoadConst(Node.TypeInfo);
+		this.Builder.Call(methodMap.get("instanceof"));
+		this.Builder.unbox(Type.BOOLEAN_TYPE);
 		this.Builder.typeStack.push(Type.BOOLEAN_TYPE);
+	}
+
+	@Override public void VisitCastNode(CastNode Node) {
+		this.Builder.LoadConst(Node.CastType);
+		Node.Expr.Evaluate(this);
+		this.Builder.Call(methodMap.get("cast"));
+		this.Builder.unbox(this.ToAsmType(Node.CastType));
+		this.Builder.typeStack.pop();
+		this.Builder.typeStack.push(this.ToAsmType(Node.CastType));
 	}
 
 	@Override public void VisitFunctionNode(FunctionNode Node) {

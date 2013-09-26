@@ -411,6 +411,9 @@ public class GreenTeaRuntime {
 			map.put("$getter", self.getMethod("getter", Object.class, String.class));
 			map.put("$setter", self.getMethod("setter", Object.class, String.class, Object.class));
 			map.put("$error_node", self.getMethod("error_node", String.class));
+			Class<?> lib = LibGreenTea.class;
+			map.put("cast", lib.getMethod("DynamicCast", GtType.class, Object.class));
+			map.put("instanceof", lib.getMethod("DynamicInstanceOf", Object.class, GtType.class));
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
