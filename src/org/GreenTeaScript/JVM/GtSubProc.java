@@ -180,13 +180,15 @@ public class GtSubProc {
 			((OutRedirectProc) proc).enablePostscriptMode();
 		}
 		else if(LibGreenTea.EqualsString(cmdSymbol, "2>")) {
-			proc = new ErrorRedirectProc();
+			proc = new OutRedirectProc();
 			proc.setArgument(cmds);
+			((OutRedirectProc) proc).enableErrorRedirectMode();
 		}
 		else if(LibGreenTea.EqualsString(cmdSymbol, "2>>")) {
-			proc = new ErrorRedirectProc();
+			proc = new OutRedirectProc();
 			proc.setArgument(cmds);
-			((ErrorRedirectProc) proc).enablePostscriptMode();
+			((OutRedirectProc) proc).enableErrorRedirectMode();
+			((OutRedirectProc) proc).enablePostscriptMode();
 		}
 		else if(LibGreenTea.EqualsString(cmdSymbol, "&>") || LibGreenTea.EqualsString(cmdSymbol, ">&")) {
 			proc = new OutRedirectProc();
@@ -608,6 +610,7 @@ class InRedirectProc extends PseudoProcess {
 
 class OutRedirectProc extends PseudoProcess {
 	private boolean postscriptMode = false;
+	public boolean errorRedirectMode = false;
 	@Override public void start() {
 		String fileName = this.commandList.get(1);
 		try {
@@ -619,12 +622,21 @@ class OutRedirectProc extends PseudoProcess {
 	}
 
 	@Override public void pipe(PseudoProcess srcProc) {
-		InputStream srcStdout = srcProc.stdout;
+		InputStream srcStream;
 		this.pipedPrevProc = srcProc;
-		if(srcProc instanceof ErrorRedirectProc) {
-			srcStdout = srcProc.pipedPrevProc.stdout;
+		if(errorRedirectMode) {
+			srcStream = srcProc.stderr;
+			if(srcProc instanceof OutRedirectProc && !((OutRedirectProc) srcProc).errorRedirectMode) {
+				srcStream = srcProc.pipedPrevProc.stderr;
+			}
 		}
-		new PipeStreamHandler(srcStdout, this.stdin, true).start();
+		else {
+			srcStream = srcProc.stdout;
+			if(srcProc instanceof OutRedirectProc && ((OutRedirectProc) srcProc).errorRedirectMode) {
+				srcStream = srcProc.pipedPrevProc.stdout;
+			}
+		}
+		new PipeStreamHandler(srcStream, this.stdin, true).start();
 	}
 	
 	@Override public int getRet() {
@@ -634,35 +646,9 @@ class OutRedirectProc extends PseudoProcess {
 	public void enablePostscriptMode() {
 		this.postscriptMode = true;
 	}
-}
-
-class ErrorRedirectProc extends PseudoProcess {
-	private boolean postscriptMode = false;
-	@Override public void start() {
-		String fileName = this.commandList.get(1);
-		try {
-			this.stdin = new BufferedOutputStream(new FileOutputStream(fileName, this.postscriptMode));
-		} 
-		catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-	}
-
-	@Override public void pipe(PseudoProcess srcProc) {
-		InputStream srcStderr = srcProc.stderr;
-		this.pipedPrevProc = srcProc;
-		if(srcProc instanceof OutRedirectProc) {
-			srcStderr = srcProc.pipedPrevProc.stderr;
-		}
-		new PipeStreamHandler(srcStderr, this.stdin, true).start();
-	}
-
-	@Override public int getRet() {
-		return this.pipedPrevProc.getRet();
-	}
 	
-	public void enablePostscriptMode() {
-		this.postscriptMode = true;
+	public void enableErrorRedirectMode() {
+		this.errorRedirectMode = true;
 	}
 }
 

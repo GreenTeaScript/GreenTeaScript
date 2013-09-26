@@ -524,20 +524,28 @@ public class DShellGrammar extends GreenTeaUtils {
 	// >, >>, >&, 1>, 2>, 1>>, 2>>, &>, &>>, 1>&1, 1>&2, 2>&1, 2>&2, >&1, >&2
 	private static String FindRedirectSymbol(GtTokenContext TokenContext, boolean allowIncrement) {
 		/*local*/GtToken Token = TokenContext.GetToken();
+		/*local*/int CurrentPos = TokenContext.GetPosition(0);
+		/*local*/int NextLen = 0;
+		/*local*/String RedirectSymbol = Token.ParsedText;
 		if(Token.EqualsText(">>")) {
 			IncreasePos(TokenContext, 1, allowIncrement);
-			return Token.ParsedText;
+			return RedirectSymbol;
 		}
 		else if(Token.EqualsText(">")) {
-			/*local*/int CurrentPos = TokenContext.GetPosition(0);
-			/*local*/int NextLen = 2;
-			/*local*/String RedirectSymbol = Token.ParsedText;;
-			/*local*/GtToken[] NextTokens = new GtToken[NextLen];
-			for(int i = 0; i < NextLen; i++) {
-				TokenContext.Next();
-				NextTokens[i] = TokenContext.GetToken();
-			}
-			TokenContext.RollbackPosition(CurrentPos, 0);
+			NextLen = 2;
+		}
+		else if(Token.EqualsText("1") || Token.EqualsText("2") || Token.EqualsText("&")) {
+			NextLen = 3;
+		}
+		
+		/*local*/GtToken[] NextTokens = new GtToken[NextLen];
+		for(int i = 0; i < NextLen; i++) {
+			TokenContext.Next();
+			NextTokens[i] = TokenContext.GetToken();
+		}
+		TokenContext.RollbackPosition(CurrentPos, 0);
+		
+		if(NextLen == 2) {
 			if(!Token.IsNextWhiteSpace() && NextTokens[0].EqualsText("&")) {
 				RedirectSymbol += NextTokens[0].ParsedText;
 				if(!NextTokens[0].IsNextWhiteSpace()) {
@@ -553,16 +561,7 @@ public class DShellGrammar extends GreenTeaUtils {
 			IncreasePos(TokenContext, 1, allowIncrement);
 			return RedirectSymbol;
 		}
-		else if(Token.EqualsText("1") || Token.EqualsText("2") || Token.EqualsText("&")) {
-			/*local*/int CurrentPos = TokenContext.GetPosition(0);
-			/*local*/int NextLen = 3;
-			/*local*/String RedirectSymbol = Token.ParsedText;;
-			/*local*/GtToken[] NextTokens = new GtToken[NextLen];
-			for(int i = 0; i < NextLen; i++) {
-				TokenContext.Next();
-				NextTokens[i] = TokenContext.GetToken();
-			}
-			TokenContext.RollbackPosition(CurrentPos, 0);
+		else if(NextLen == 3) {
 			if(!Token.IsNextWhiteSpace() && (NextTokens[0].EqualsText(">") || NextTokens[0].EqualsText(">>"))) {
 				RedirectSymbol += NextTokens[0].ParsedText;
 				if(!NextTokens[0].IsNextWhiteSpace() && 
