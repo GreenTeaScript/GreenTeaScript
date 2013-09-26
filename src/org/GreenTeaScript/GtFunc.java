@@ -299,12 +299,15 @@ class GtPolyFunc extends GreenTeaUtils {
 		this.FuncList.add(Func);
 	}
 
-	public GtFunc ResolveUnaryFunc(GtTypeEnv Gamma, GtType Type) {
+	public GtFunc ResolveUnaryMethod(GtTypeEnv Gamma, GtType Type) {
 		/*local*/int i = 0;
 		while(i < this.FuncList.size()) {
 			/*local*/GtFunc Func = this.FuncList.get(i);
-			if(Func.GetFuncParamSize() == 1 && Func.Types[1].Accept(Type)) {
+			if(Func.GetFuncParamSize() == 1) {
+//				/*local*/GtFunc ObjectType = Func.Types[1];
+//				if(ObjectType.Accept(Type) || ) {
 				return Func;
+//				}
 			}
 			i = i + 1;
 		}

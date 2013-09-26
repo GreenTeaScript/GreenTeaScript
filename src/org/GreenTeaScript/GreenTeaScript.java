@@ -2395,7 +2395,7 @@ final class KonohaGrammar extends GtGrammar {
 		/*local*/GtType ReturnType = Gamma.AnyType;
 		/*local*/String OperatorSymbol = ParsedTree.KeyToken.ParsedText;
 		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(BaseType, FuncSymbol(OperatorSymbol), true);
-		/*local*/GtFunc ResolvedFunc = PolyFunc.ResolveUnaryFunc(Gamma, BaseType);
+		/*local*/GtFunc ResolvedFunc = PolyFunc.ResolveUnaryMethod(Gamma, BaseType);
 		if(ResolvedFunc == null) {
 			Gamma.Context.ReportError(TypeErrorLevel, ParsedTree.KeyToken, "mismatched operators: " + PolyFunc);
 		}
@@ -3607,7 +3607,6 @@ final class KonohaGrammar extends GtGrammar {
 		return ArrayNode;
 	}
 
-
 	public static GtSyntaxTree ParseSize(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree ArrayTree = TokenContext.CreateMatchedSyntaxTree(NameSpace, Pattern, "|");
 		ArrayTree.SetMatchedPatternAt(UnaryTerm, NameSpace, TokenContext, "$SuffixExpression$", Required);
@@ -3622,7 +3621,7 @@ final class KonohaGrammar extends GtGrammar {
 		}
 		/*local*/GtPolyFunc PolyFunc = Gamma.NameSpace.GetMethod(ExprNode.Type, FuncSymbol("||"), true);
 		System.err.println("polyfunc: " + PolyFunc);
-		/*local*/GtFunc Func = PolyFunc.ResolveUnaryFunc(Gamma, ExprNode.Type);
+		/*local*/GtFunc Func = PolyFunc.ResolveUnaryMethod(Gamma, ExprNode.Type);
 		LibGreenTea.Assert(Func != null);  // any has ||
 		/*local*/GtNode Node = Gamma.Generator.CreateApplyNode(Func.GetReturnType(), ParsedTree, Func);
 		Node.Append(Gamma.Generator.CreateConstNode(Gamma.VarType, ParsedTree, Func));
