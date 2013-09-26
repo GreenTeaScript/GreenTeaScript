@@ -32,6 +32,8 @@ import javax.xml.stream.events.Namespace;
 
 import org.GreenTeaScript.DShell.DFault;
 
+import com.sun.org.apache.bcel.internal.generic.IFGE;
+
 public class DShellGrammar extends GreenTeaUtils {
 	// LibDShell
 	public final static String GetEnv(String Key) {
@@ -514,13 +516,82 @@ public class DShellGrammar extends GreenTeaUtils {
 		}
 		return PathNode;
 	}
+
+	private static void IncreasePos(GtTokenContext TokenContext, int time, boolean allowIncrement) {
+		if(allowIncrement) {
+			for(int i = 0; i < time; i++) {
+				TokenContext.Next();
+			}
+		}
+	}
+
+	// >, >>, >&, 1>, 2>, 1>>, 2>>, &>, &>>, 1>&1, 1>&2, 2>&1, 2>&2, >&1, >&2
+	private static String FindRedirectSymbol(GtTokenContext TokenContext, boolean allowIncrement) {
+		/*local*/GtToken Token = TokenContext.GetToken();
+		if(Token.EqualsText(">>")) {
+			IncreasePos(TokenContext, 1, allowIncrement);
+			return Token.ParsedText;
+		}
+		else if(Token.EqualsText(">")) {
+			/*local*/int CurrentPos = TokenContext.GetPosition(0);
+			/*local*/int NextLen = 2;
+			/*local*/String RedirectSymbol = Token.ParsedText;;
+			/*local*/GtToken[] NextTokens = new GtToken[NextLen];
+			for(int i = 0; i < NextLen; i++) {
+				TokenContext.Next();
+				NextTokens[i] = TokenContext.GetToken();
+			}
+			TokenContext.RollbackPosition(CurrentPos, 0);
+			if(!Token.IsNextWhiteSpace() && NextTokens[0].EqualsText("&")) {
+				RedirectSymbol += NextTokens[0].ParsedText;
+				if(!NextTokens[0].IsNextWhiteSpace()) {
+					if(NextTokens[1].EqualsText("1") || NextTokens[1].EqualsText("2")) {
+						RedirectSymbol += NextTokens[1].ParsedText;
+						IncreasePos(TokenContext, 3, allowIncrement);
+						return RedirectSymbol;
+					}
+				}
+				IncreasePos(TokenContext, 2, allowIncrement);
+				return RedirectSymbol;
+			}
+			IncreasePos(TokenContext, 1, allowIncrement);
+			return RedirectSymbol;
+		}
+		else if(Token.EqualsText("1") || Token.EqualsText("2") || Token.EqualsText("&")) {
+			/*local*/int CurrentPos = TokenContext.GetPosition(0);
+			/*local*/int NextLen = 3;
+			/*local*/String RedirectSymbol = Token.ParsedText;;
+			/*local*/GtToken[] NextTokens = new GtToken[NextLen];
+			for(int i = 0; i < NextLen; i++) {
+				TokenContext.Next();
+				NextTokens[i] = TokenContext.GetToken();
+			}
+			TokenContext.RollbackPosition(CurrentPos, 0);
+			if(!Token.IsNextWhiteSpace() && (NextTokens[0].EqualsText(">") || NextTokens[0].EqualsText(">>"))) {
+				RedirectSymbol += NextTokens[0].ParsedText;
+				if(!NextTokens[0].IsNextWhiteSpace() && 
+						(LibGreenTea.EqualsString(RedirectSymbol, "1>") || LibGreenTea.EqualsString(RedirectSymbol, "2>"))) {
+					if(NextTokens[1].EqualsText("&") && !NextTokens[1].IsNextWhiteSpace()) {
+						if(NextTokens[2].EqualsText("1") || NextTokens[2].EqualsText("2")) {
+							RedirectSymbol += NextTokens[1].ParsedText + NextTokens[2].ParsedText;
+							IncreasePos(TokenContext, 4, allowIncrement);
+							return RedirectSymbol;
+						}
+					}
+				}
+				IncreasePos(TokenContext, 2, allowIncrement);
+				return RedirectSymbol;
+			}
+		}
+		return null;
+	}
 	
 	public static GtSyntaxTree ParseDShell2(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree CommandTree = TokenContext.CreateSyntaxTree(NameSpace, Pattern, null);
 		/*local*/GtToken CommandToken = TokenContext.GetToken();
-		if(CommandToken.EqualsText(">") || CommandToken.EqualsText(">>")) {
-			CommandTree.AppendParsedTree2(CommandTree.CreateConstTree(CommandToken.ParsedText));
-			TokenContext.Next();
+		/*local*/String RedirectSymbol = FindRedirectSymbol(TokenContext, true);
+		if(RedirectSymbol != null) {
+			CommandTree.AppendParsedTree2(CommandTree.CreateConstTree(RedirectSymbol));
 		}
 		else {
 			/*local*/String Command = (/*cast*/String)NameSpace.GetSymbol(CommandSymbol(CommandToken.ParsedText));
@@ -553,32 +624,13 @@ public class DShellGrammar extends GreenTeaUtils {
 				CommandTree.AppendParsedTree2(PipedTree);
 				return CommandTree;
 			}
-			if(Token.EqualsText(">") || Token.EqualsText(">>")) {
+			if(FindRedirectSymbol(TokenContext, false) != null) {
 				/*local*/GtSyntaxTree RedirectTree = TokenContext.ParsePattern(NameSpace, "$DShell2$", Required);
 				if(RedirectTree.IsError()) {
 					return RedirectTree;
 				}
 				CommandTree.AppendParsedTree2(RedirectTree);
 				return CommandTree;
-			}
-			if(Token.EqualsText("1") || Token.EqualsText("2")) {	// 1>, 2>, 1>>, 2>>
-				/*local*/int CurrentPos = TokenContext.GetPosition(0);
-				TokenContext.Next();
-				/*local*/GtToken NextToken = TokenContext.GetToken();
-				TokenContext.RollbackPosition(CurrentPos, 0);
-				if(!Token.IsNextWhiteSpace() && (NextToken.EqualsText(">") || NextToken.EqualsText(">>"))) {
-					TokenContext.Next();
-					/*local*/GtSyntaxTree RedirectTree = TokenContext.ParsePattern(NameSpace, "$DShell2$", Required);
-					// append file descriptor number to redirect symbol
-					RedirectTree.KeyToken.ParsedText = Token.ParsedText + RedirectTree.KeyToken.ParsedText;
-					RedirectTree.SubTreeList.get(0).ParsedValue = RedirectTree.KeyToken.ParsedText;
-					
-					if(RedirectTree.IsError()) {
-						return RedirectTree;
-					}
-					CommandTree.AppendParsedTree2(RedirectTree);
-					return CommandTree;
-				}
 			}
 			CommandTree.AppendMatchedPattern(NameSpace, TokenContext, "$FilePath$", Required);
 		}

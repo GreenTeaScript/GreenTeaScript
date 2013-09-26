@@ -188,6 +188,36 @@ public class GtSubProc {
 			proc.setArgument(cmds);
 			((ErrorRedirectProc) proc).enablePostscriptMode();
 		}
+		else if(LibGreenTea.EqualsString(cmdSymbol, "&>") || LibGreenTea.EqualsString(cmdSymbol, ">&")) {
+			proc = new OutRedirectProc();
+			proc.setArgument(cmds);
+			prevSubProc.setMergeType(SubProc.mergeErrorToOut);
+			prevSubProc = null;
+		}
+		else if(LibGreenTea.EqualsString(cmdSymbol, "&>>")) {
+			proc = new OutRedirectProc();
+			proc.setArgument(cmds);
+			((OutRedirectProc) proc).enablePostscriptMode();
+			prevSubProc.setMergeType(SubProc.mergeErrorToOut);
+			prevSubProc = null;
+		}
+		else if(LibGreenTea.EqualsString(cmdSymbol, ">&1") || 
+				LibGreenTea.EqualsString(cmdSymbol, "1>&1") || LibGreenTea.EqualsString(cmdSymbol, "2>&2")) {
+			proc = new EmptyProc();
+			proc.setArgument(cmds);
+		}
+		else if(LibGreenTea.EqualsString(cmdSymbol, "1>&2")) {
+			proc = new EmptyProc();
+			proc.setArgument(cmds);
+			prevSubProc.setMergeType(SubProc.mergeOutToError);
+			prevSubProc = null;
+		}
+		else if(LibGreenTea.EqualsString(cmdSymbol, "2>&1")) {
+			proc = new EmptyProc();
+			proc.setArgument(cmds);
+			prevSubProc.setMergeType(SubProc.mergeErrorToOut);
+			prevSubProc = null;
+		}
 		else if(LibGreenTea.EqualsString(cmdSymbol, "checkpoint")) {
 			String[] newCmds = {"sudo", "lvcreate", "-s", "-n", cmds[1], cmds[2]};
 			proc = new SubProc(false);
@@ -321,8 +351,8 @@ class PseudoProcess {
 }
 
 class SubProc extends PseudoProcess {
-	private final static int mergeErrorToOut = 0;
-	private final static int mergeOutToError = 1;
+	public final static int mergeErrorToOut = 0;
+	public final static int mergeOutToError = 1;
 
 	public final static int traceBackend_strace = 0;
 	public final static int traceBackend_strace_plus = 1;
@@ -633,6 +663,34 @@ class ErrorRedirectProc extends PseudoProcess {
 	
 	public void enablePostscriptMode() {
 		this.postscriptMode = true;
+	}
+}
+
+class EmptyProc extends PseudoProcess {
+	@Override public void pipe(PseudoProcess srcProc) {
+		this.pipedPrevProc = srcProc;
+		this.stdout = srcProc.stdout;
+		this.stderr = srcProc.stderr;
+	}
+
+	@Override public void waitResult(boolean isExpr) {
+		this.pipedPrevProc.waitResult(isExpr);
+	}
+	
+	@Override public void showResult() {
+		this.pipedPrevProc.showResult();
+	}
+
+	@Override public String getStdout() {
+		return this.pipedPrevProc.getStdout();
+	}
+
+	@Override public String getStderr() {
+		return this.pipedPrevProc.getStderr();
+	}
+
+	@Override public int getRet() {
+		return this.pipedPrevProc.getRet();
 	}
 }
 
