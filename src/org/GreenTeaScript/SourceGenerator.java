@@ -462,10 +462,23 @@ final class IndexerNode extends GtNode {
 	public GtNode GetAt(int Index) {
 		return this.NodeList.get(Index);
 	}
-
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitIndexerNode(this);
 	}
+	
+	public ApplyNode ToApplyNode() {
+		/*local*/ApplyNode Node = new ApplyNode(this.Type, this.Token, this.Func);
+		Node.Append(new ConstNode(this.Func.GetFuncType(), this.Token, this.Func));
+		Node.Append(this.Expr);
+		Node.AppendNodeList(this.NodeList);
+		return Node;
+	}
+	
+	@Override public Object ToConstValue(boolean EnforceConst)  {
+		/*local*/ApplyNode Node = this.ToApplyNode();
+		return Node.ToConstValue(EnforceConst);
+	}
+	
 }
 
 //E.g., $Expr "[" $Index ":" $Index2 "]"
