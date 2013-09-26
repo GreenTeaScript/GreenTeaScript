@@ -3911,10 +3911,6 @@ final class KonohaGrammar extends GtGrammar {
 
 		// expermental
 		NameSpace.AppendSyntax("__line__", LoadParseFunc(ParserContext, this, "ParseLine"), LoadTypeFunc(ParserContext, this, "TypeLine"));
-	
-		// for debug
-		GreenTeaArray<?> a = GreenTeaArray.NewArray(ParserContext.IntType, 2);
-		NameSpace.SetSymbol("a", a, null);
 	}
 }
 

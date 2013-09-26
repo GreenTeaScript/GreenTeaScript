@@ -63,7 +63,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		/*local*/GtTypeEnv Gamma = new GtTypeEnv(ParsedTree.NameSpace);
 		/*local*/GtFunc Func = null;
 		if(PolyFunc != null) {
-			Func = PolyFunc.ResolveUnaryFunc(Gamma, ParsedTree, Cond);
+			Func = PolyFunc.ResolveUnaryMethod(Gamma, Cond.Type);
 		}
 		Cond = this.CreateUnaryNode(Type, ParsedTree, Func, Cond);
 		/*local*/GtNode IfBlock = this.CreateIfNode(Type, ParsedTree, Cond, Break, null);

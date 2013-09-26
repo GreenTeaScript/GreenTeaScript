@@ -1262,18 +1262,18 @@ class GtGenerator extends GreenTeaUtils {
 	}
 
 	public Object EvalArrayNode(ArrayNode Node, boolean EnforceConst) {
-		/*local*/ArrayList<Object> NewList = null;
+		/*local*/GreenTeaArray ArrayObject = null;
 //ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
-		NewList = new ArrayList<Object>(LibGreenTea.ListSize(Node.NodeList));
+		ArrayObject = new GreenTeaArray(Node.Type);
 		for(int i = 0; i < LibGreenTea.ListSize(Node.NodeList); i++) {
 			Object Value = Node.NodeList.get(i).ToConstValue(EnforceConst);
 			if(Value == null) {
 				return Value;
 			}
-			NewList.add(Value);
+			ArrayObject.ArrayBody.add(Value);
 		}
 //endif VAJA
-		return NewList;  // if unsupported
+		return ArrayObject;  // if unsupported
 	}
 
 	public Object EvalCommandNode(CommandNode Node, boolean EnforceConst) {
