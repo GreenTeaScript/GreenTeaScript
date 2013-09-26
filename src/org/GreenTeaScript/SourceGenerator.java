@@ -353,9 +353,9 @@ class AndNode extends GtNode {
 	}
 	@Override public Object ToConstValue(boolean EnforceConst)  {
 		/*local*/Object LeftValue = this.LeftNode.ToConstValue(EnforceConst) ;
-		if(LeftValue instanceof Boolean && LibGreenTea.booleanValue(LeftValue)) {
-			return this.RightNode.ToConstValue(EnforceConst) ;
-		}
+//		if(LeftValue instanceof Boolean && LibGreenTea.booleanValue(LeftValue)) {
+//			return this.RightNode.ToConstValue(EnforceConst) ;
+//		}
 		return null;
 	}
 }
@@ -376,12 +376,12 @@ class OrNode extends GtNode {
 	@Override public Object ToConstValue(boolean EnforceConst)  {
 		/*local*/Object LeftValue = this.LeftNode.ToConstValue(EnforceConst) ;
 		if(LeftValue instanceof Boolean) {
-			if(LibGreenTea.booleanValue(LeftValue)) {
-				return LeftValue;
-			}
-			else {
-				return this.RightNode.ToConstValue(EnforceConst) ;
-			}
+//			if(LibGreenTea.booleanValue(LeftValue)) {
+//				return LeftValue;
+//			}
+//			else {
+//				return this.RightNode.ToConstValue(EnforceConst) ;
+//			}
 		}
 		return null;
 	}
@@ -407,12 +407,12 @@ final class TrinaryNode extends GtNode {
 	@Override public Object ToConstValue(boolean EnforceConst)  {
 		/*local*/Object CondValue = this.CondExpr.ToConstValue(EnforceConst) ;
 		if(CondValue instanceof Boolean) {
-			if(LibGreenTea.booleanValue(CondValue)) {
-				return this.ThenExpr.ToConstValue(EnforceConst) ;
-			}
-			else {
-				return this.ElseExpr.ToConstValue(EnforceConst) ;
-			}
+//			if(LibGreenTea.booleanValue(CondValue)) {
+//				return this.ThenExpr.ToConstValue(EnforceConst) ;
+//			}
+//			else {
+//				return this.ElseExpr.ToConstValue(EnforceConst) ;
+//			}
 		}
 		return null;
 	}
