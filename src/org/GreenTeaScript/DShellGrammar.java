@@ -26,13 +26,9 @@
 package org.GreenTeaScript;
 import java.io.File;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-
-import javax.xml.stream.events.Namespace;
 
 import org.GreenTeaScript.DShell.DFault;
 
-import com.sun.org.apache.bcel.internal.generic.IFGE;
 
 public class DShellGrammar extends GreenTeaUtils {
 	// LibDShell
