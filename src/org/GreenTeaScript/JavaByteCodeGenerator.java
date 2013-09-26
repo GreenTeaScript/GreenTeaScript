@@ -277,7 +277,28 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.typeDescriptorMap.put(Context.FloatType.ShortName, Type.DOUBLE_TYPE);
 		this.typeDescriptorMap.put(Context.AnyType.ShortName, Type.getType(Object.class));
 		this.typeDescriptorMap.put(Context.StringType.ShortName, Type.getType(String.class));
-		this.methodMap = GreenTeaRuntime.getAllStaticMethods();
+		this.methodMap = InitSystemMethods();
+	}
+
+	public static HashMap<String, Method> InitSystemMethods() {
+		HashMap<String, Method> map = new HashMap<String, Method>();
+		try {
+			Class<?> runtime = GreenTeaRuntime.class;
+			map.put("getter", runtime.getMethod("getter", Object.class, String.class));
+			map.put("setter", runtime.getMethod("setter", Object.class, String.class, Object.class));
+			map.put("error_node", runtime.getMethod("error_node", String.class));
+			Class<?> lib = LibGreenTea.class;
+			map.put("cast", lib.getMethod("DynamicCast", GtType.class, Object.class));
+			map.put("instanceof", lib.getMethod("DynamicInstanceOf", Object.class, GtType.class));
+			Class<?> proc = GtSubProc.class;
+			map.put("ExecCommand", proc.getMethod("ExecCommand", String[][].class));
+			map.put("ExecCommandVoid", proc.getMethod("ExecCommandVoid", String[][].class));
+			map.put("ExecCommandBool", proc.getMethod("ExecCommandBool", String[][].class));
+			map.put("ExecCommandString", proc.getMethod("ExecCommandString", String[][].class));
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		return map;
 	}
 
 	//-----------------------------------------------------
@@ -563,7 +584,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		Type ty = this.ToAsmType(Node.Type);
 		Node.Expr.Evaluate(this);
 		this.Builder.AsmMethodVisitor.visitLdcInsn(name);
-		this.Builder.Call(this.methodMap.get("$getter"));
+		this.Builder.Call(this.methodMap.get("getter"));
 		this.Builder.unbox(ty);
 	}
 
@@ -685,7 +706,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			this.Builder.AsmMethodVisitor.visitLdcInsn(name);
 			Node.RightNode.Evaluate(this);
 			this.Builder.box();
-			this.Builder.Call(this.methodMap.get("$setter"));
+			this.Builder.Call(this.methodMap.get("setter"));
 			this.Builder.typeStack.pop();
 			this.Builder.typeStack.push(ty);
 		}
@@ -843,7 +864,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	}
 
 	public void VisitForEachNode(ForEachNode Node) {
-		/*extension*/
+		LibGreenTea.TODO("ForEach");
 	}
 
 	@Override public void VisitReturnNode(ReturnNode Node) {
@@ -933,11 +954,12 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	}
 
 	@Override public void VisitFunctionNode(FunctionNode Node) {
+		LibGreenTea.TODO("FunctionNode");
 	}
 
 	@Override public void VisitErrorNode(ErrorNode Node) {
 		this.Builder.AsmMethodVisitor.visitLdcInsn("(ErrorNode)");
-		this.Builder.Call(this.methodMap.get("$error_node"));
+		this.Builder.Call(this.methodMap.get("error_node"));
 	}
 
 	@Override public void VisitCommandNode(CommandNode Node) {
@@ -966,27 +988,18 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			}
 			this.Builder.AsmMethodVisitor.visitInsn(AASTORE);
 		}
-		String name, desc;
 		if(Node.Type.IsBooleanType()) {
-			name = "ExecCommandBool";
-			desc = "([[Ljava/lang/String;)Z";
-			this.Builder.typeStack.push(Type.BOOLEAN_TYPE);
+			this.Builder.Call(methodMap.get("ExecCommandBool"));
 		}
 		else if(Node.Type.IsStringType()) {
-			name = "ExecCommandString";
-			desc = "([[Ljava/lang/String;)Ljava/lang/String;";
-			this.Builder.typeStack.push(Type.getType(String.class));
+			this.Builder.Call(methodMap.get("ExecCommandString"));
 		}
 		else if(Node.Type.IsVoidType()) {
-			name = "ExecCommandVoid";
-			desc = "([[Ljava/lang/String;)V";
+			this.Builder.Call(methodMap.get("ExecCommandVoid"));
 		}
 		else {
-			name = "ExecCommand";
-			desc = "([[Ljava/lang/String;)" + Type.getType(GtSubProc.class).getDescriptor();
-			this.Builder.typeStack.push(Type.getType(GtSubProc.class));
+			this.Builder.Call(methodMap.get("ExecCommand"));
 		}
-		this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, Type.getInternalName(GtSubProc.class), name, desc);
 	}
 
 	@Override public void InvokeMainFunc(String MainFuncName) {

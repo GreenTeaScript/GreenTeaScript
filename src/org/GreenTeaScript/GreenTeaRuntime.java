@@ -400,24 +400,5 @@ public class GreenTeaRuntime {
 		System.err.println(msg);
 		throw new RuntimeException("error node found");
 	}
-
-	//-----------------------------------------------------
-
-	public static HashMap<String, Method> getAllStaticMethods() {
-		HashMap<String, Method> map = new HashMap<String, Method>();
-		try {
-			Class<?> self = GreenTeaRuntime.class;
-			// system
-			map.put("$getter", self.getMethod("getter", Object.class, String.class));
-			map.put("$setter", self.getMethod("setter", Object.class, String.class, Object.class));
-			map.put("$error_node", self.getMethod("error_node", String.class));
-			Class<?> lib = LibGreenTea.class;
-			map.put("cast", lib.getMethod("DynamicCast", GtType.class, Object.class));
-			map.put("instanceof", lib.getMethod("DynamicInstanceOf", Object.class, GtType.class));
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
-		return map;
-	}
 }
 //endif VAJA
