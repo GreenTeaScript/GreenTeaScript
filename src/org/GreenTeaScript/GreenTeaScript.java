@@ -3571,7 +3571,6 @@ final class KonohaGrammar extends GtGrammar {
 	public static GtSyntaxTree ParseArray(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/int OldFlag = TokenContext.SetSkipIndent(true);
 		/*local*/GtSyntaxTree ArrayTree = TokenContext.CreateMatchedSyntaxTree(NameSpace, Pattern, "[");
-		//FuncTree.AppendParsedTree(LeftTree);
 		while(TokenContext.HasNext() && ArrayTree.IsValidSyntax()) {
 			if(TokenContext.MatchToken("]")) {
 				break;
@@ -3602,6 +3601,7 @@ final class KonohaGrammar extends GtGrammar {
 				ElemType = Node.Type;
 				ArrayNode.Type = Gamma.Context.GetGenericType1(Gamma.ArrayType, ElemType, true);
 			}
+			ArrayNode.Append(Node);
 			i = i + 1;
 		}
 		return ArrayNode;
