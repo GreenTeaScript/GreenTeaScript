@@ -241,7 +241,7 @@ public class GtType extends GreenTeaUtils {
 		return this;
 	}
 
-	public boolean Match(GtNameSpace GenericNameSpace, GtType GivenType) {
+	public boolean Match_(GtNameSpace GenericNameSpace, GtType GivenType) {
 		if(IsFlag(this.TypeFlag, TypeVariable)) {
 			GtType TypeVar = GenericNameSpace.GetType(this.ShortName);
 			if(TypeVar.IsTypeVariable()) {
@@ -264,6 +264,12 @@ public class GtType extends GreenTeaUtils {
 			return false;
 		}
 		return this.Accept(GivenType);
+	}
+
+	public boolean Match(GtNameSpace GenericNameSpace, GtType GivenType) {
+		boolean b = this.Match_(GenericNameSpace, GivenType);
+		System.err.println("matching.. " + this + ", given = " + GivenType + "results=" + b);
+		return b;
 	}
 
 }

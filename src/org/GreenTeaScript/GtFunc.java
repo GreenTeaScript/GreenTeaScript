@@ -320,6 +320,7 @@ class GtPolyFunc extends GreenTeaUtils {
 		while(i < this.FuncList.size()) {
 			/*local*/GtFunc Func = this.FuncList.get(i);
 			if(Func.GetFuncParamSize() == FuncParamSize) {
+				System.err.println("IsGeneric: " + Func.Is(GenericFunc));
 				/*local*/GtNameSpace GenericNameSpace = Func.GetGenericNameSpace(NameSpace);
 				/*local*/int p = 0;
 				while(p < ParamList.size()) {

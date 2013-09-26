@@ -1251,7 +1251,7 @@ class GtGenerator extends GreenTeaUtils {
 		if(EnforceConst && Node.Type.TypeBody instanceof Class<?>) {
 			Class<?> NativeClass = (/*cast*/Class<?>)Node.Type.TypeBody;
 			try {
-				Constructor NativeConstructor = NativeClass.getConstructor(GtType.class);
+				Constructor<?> NativeConstructor = NativeClass.getConstructor(GtType.class);
 				return NativeConstructor.newInstance(Node.Type);
 			} catch (Exception e) {
 				LibGreenTea.VerboseException(e);

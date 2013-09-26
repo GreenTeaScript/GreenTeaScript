@@ -3639,16 +3639,19 @@ final class KonohaGrammar extends GtGrammar {
 		while(!ArrayTree.IsMismatchedOrError() && TokenContext.MatchToken(","));
 		ArrayTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "]", Required);
 		TokenContext.SetRememberFlag(OldFlag);
+		if(ArrayTree.IsValidSyntax()) {
+			ArrayTree.KeyToken.ParsedText = "[]";
+		}
 		return ArrayTree;
 	}
 
 	public static GtNode TypeIndexer(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
-		/*local*/GtNode ExprNode = ParsedTree.TypeCheckAt(LeftHandTerm, Gamma, Gamma.ArrayType, DefaultTypeCheckPolicy);
+		/*local*/GtNode ExprNode = ParsedTree.TypeCheckAt(LeftHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
 		if(ExprNode.IsError()) {
 			return ExprNode;
 		}
 		/*local*/GtFunc ResolvedFunc = null;
-		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(ExprNode.Type, FuncSymbol("[]"), true);
+		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(ExprNode.Type, FuncSymbol(ParsedTree.KeyToken.ParsedText), true);
 		System.err.println("polyfunc: " + PolyFunc);
 		/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
 		ParamList.add(ExprNode);
