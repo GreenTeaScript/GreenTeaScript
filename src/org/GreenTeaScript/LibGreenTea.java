@@ -889,19 +889,6 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return (int)FileLine;
 	}
 
-//	public final static boolean booleanValue(Object BooleanValue) {
-//		return ((/*cast*/Boolean)BooleanValue).booleanValue();
-//	}
-//
-//	// dynamic cast
-//	
-//	public final static Object Eval(String SourceCode) {
-//		LibGreenTea.VerboseLog(GreenTeaUtils.VerboseEval, "eval as native code: " + SourceCode);
-//		//eval(SourceCode);
-//		//System.out.println("Eval: " + SourceCode);  // In Java, no eval
-//		return null;
-//	}
-
 	public static Object DynamicCast(GtType CastType, Object Value) {
 		if(Value != null) {
 			GtType FromType = CastType.Context.GuessType(Value);
