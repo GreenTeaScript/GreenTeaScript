@@ -26,12 +26,13 @@
 
 package org.GreenTeaScript;
 import java.util.ArrayList;
-import java.lang.reflect.Method;
-import java.util.HashMap;
+//import java.lang.reflect.Method;
+//import java.util.HashMap;
 
 public class GreenTeaRuntime {
 	// converter 
-
+	
+	
 	// Boolean
 	public final static String BooleanToString(GtType Type, boolean value) {
 		return value ? "true" : "false";
@@ -191,6 +192,18 @@ public class GreenTeaRuntime {
 	}
 
 	//-----------------------------------------------------
+
+	public final static long unary_size(Object x) {
+		return x == null ? 0 : 1;
+	}
+
+	public final static boolean binary_eq(Object x, Object y) {
+		return x == y;
+	}
+
+	public final static boolean binary_ne(Object x, Object y) {
+		return x != y;
+	}
 
 	public static long unary_plus(long n) {
 		return +n;

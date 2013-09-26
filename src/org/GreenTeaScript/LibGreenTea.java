@@ -283,6 +283,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 			if(GreenType.IsGenericType() && GreenType.HasTypeVariable()) {
 				return GreenType.BaseType == JavaType.BaseType;
 			}
+			//System.err.println("*** " + JavaType + ", " + GreenType);
 			return false;
 		}
 		return true;

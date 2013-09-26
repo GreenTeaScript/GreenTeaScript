@@ -46,7 +46,7 @@ public class GtType extends GreenTeaUtils {
 		this.ShortName = ShortName;
 		this.SuperType = null;
 		this.BaseType = this;
-		this.ParentMethodSearch = null;
+		this.ParentMethodSearch = Context.AnyType;
 		this.DefaultNullValue = DefaultNullValue;
 		this.TypeBody = TypeBody;
 		if(!IsFlag(TypeFlag, TypeVariable)) {
@@ -163,7 +163,7 @@ public class GtType extends GreenTeaUtils {
 	}
 
 	public final boolean Accept(GtType Type) {
-		if(this == Type/* || this == this.Context.AnyType*/) {
+		if(this == Type || this == this.Context.AnyType) {
 			return true;
 		}
 		/*local*/GtType SuperClass = this.SuperType;

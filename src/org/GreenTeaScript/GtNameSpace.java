@@ -320,7 +320,8 @@ public final class GtNameSpace extends GreenTeaUtils {
 			if(!RecursiveSearch) {
 				break;
 			}
-			ClassType = ClassType.SuperType;
+			//System.err.println("** " + ClassType + ", " + ClassType.ParentMethodSearch);
+			ClassType = ClassType.ParentMethodSearch;
 		}
 		return new GtPolyFunc(FuncList);
 	}
@@ -404,6 +405,9 @@ public final class GtNameSpace extends GreenTeaUtils {
 
 	public final Object AppendMethod(GtFunc Func, GtToken SourceToken) {
 		GtType ClassType = Func.GetRecvType();
+		if(ClassType.IsGenericType() && ClassType.HasTypeVariable()) {
+			ClassType = ClassType.BaseType;
+		}
 		/*local*/String Key = ClassSymbol(ClassType, Func.FuncName);
 		return this.AppendFuncName(Key, Func, SourceToken);
 	}
@@ -438,6 +442,8 @@ public final class GtNameSpace extends GreenTeaUtils {
 		this.Context.RootNameSpace.SetSymbol(Key, Func, SourceToken);
 	}
 
+	
+	
 	final Object EvalWithErrorInfo(String ScriptText, long FileLine) {
 		/*local*/Object ResultValue = null;
 		LibGreenTea.VerboseLog(VerboseEval, "eval: " + ScriptText);

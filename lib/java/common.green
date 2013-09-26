@@ -1,3 +1,11 @@
+
+// any type
+
+@Const @Operator int "||"(any x) import GreenTeaRuntime.unary_size;
+@Const @Operator boolean "=="(any x, any y) import GreenTeaRuntime.binary_eq;
+@Const @Operator boolean "!="(any x, any y) import GreenTeaRuntime.binary_ne;
+
+
 // unary operator
 
 @Const @Operator boolean not(boolean x) import org.GreenTeaScript.GreenTeaRuntime.unary_not;

@@ -502,11 +502,11 @@ public class DShellGrammar extends GreenTeaUtils {
 		/*local*/GtNode PathNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, Gamma.StringType, DefaultTypeCheckPolicy);
 		if(!PathNode.IsError()) {
 			/*local*/String OperatorSymbol = ParsedTree.KeyToken.ParsedText;
-			/*local*/GtPolyFunc PolyFunc = Gamma.NameSpace.GetMethod(Gamma.StringType, SafeFuncName(OperatorSymbol), true);
-			/*local*/GtFunc ResolvedFunc = PolyFunc.ResolveUnaryFunc(Gamma, ParsedTree, PathNode);
+			/*local*/GtPolyFunc PolyFunc = Gamma.NameSpace.GetMethod(Gamma.StringType, FuncSymbol(OperatorSymbol), true);
+			/*local*/GtFunc ResolvedFunc = PolyFunc.ResolveUnaryFunc(Gamma, PathNode.Type);
 			LibGreenTea.Assert(ResolvedFunc != null);
 			/*local*/GtNode ApplyNode =  Gamma.Generator.CreateApplyNode(ResolvedFunc.GetReturnType(), ParsedTree, ResolvedFunc);
-			ApplyNode.Append(Gamma.Generator.CreateConstNode(ResolvedFunc.GetFuncType(), ParsedTree, ResolvedFunc));
+			ApplyNode.Append(Gamma.Generator.CreateConstNode(Gamma.VarType, ParsedTree, ResolvedFunc));
 			ApplyNode.Append(PathNode);
 			return ApplyNode;
 		}
