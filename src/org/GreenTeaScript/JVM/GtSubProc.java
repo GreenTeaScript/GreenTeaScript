@@ -57,6 +57,7 @@ public class GtSubProc {
 			this.Processes[i] = GtSubProc.createProc(cmds[i], is(option, enableTrace));
 			this.ExceptionManager.setProcess(this.Processes[i]);
 		}
+		ErrorStreamHandler Handler = new ErrorStreamHandler(this.Processes);
 
 		// start process
 		int lastIndex = ProcessSize - 1;
@@ -65,6 +66,7 @@ public class GtSubProc {
 			this.Processes[i].start();
 			this.Processes[i].pipe(this.Processes[i - 1]);
 		}
+		Handler.showErrorMessage();
 		this.CommandFlag = option;
 		this.LastProcess = this.Processes[lastIndex];
 		this.timeout = timeout;
@@ -289,9 +291,8 @@ class PseudoProcess {
 	protected StringBuilder cmdNameBuilder;
 	protected ArrayList<String> commandList;
 
-	protected boolean stdoutIsRedireted = false;
-	protected boolean stderrIsRedireted = false;
-	protected boolean streamIsLocked = false;
+	protected boolean stdoutIsDirty = false;
+	protected boolean stderrIsDirty = false;
 
 	protected int retValue = 0;
 
@@ -316,7 +317,7 @@ class PseudoProcess {
 
 	public void pipe(PseudoProcess srcProc) {
 		this.pipedPrevProc = srcProc;
-		new PipeStreamHandler(srcProc.stdout, this.stdin, true).start();
+		new PipeStreamHandler(srcProc.accessOutStream(), this.stdin, true).start();
 	}
 
 	public void kill() {
@@ -337,6 +338,22 @@ class PseudoProcess {
 
 	public String getStderr() {
 		return "";
+	}
+
+	public InputStream accessOutStream() {
+		if(!this.stdoutIsDirty) {
+			this.stdoutIsDirty = true;
+			return this.stdout;
+		}
+		return null;
+	}
+
+	public InputStream accessErrorStream() {
+		if(!this.stderrIsDirty) {
+			this.stderrIsDirty = true;
+			return this.stderr;
+		}
+		return null;
 	}
 
 	public int getRet() {
@@ -370,7 +387,6 @@ class SubProc extends PseudoProcess {
 	private int mergeType = -1;
 
 	private ByteArrayOutputStream outBuf;
-	private ByteArrayOutputStream errBuf;
 
 	private static String createLogDirectory() {
 		Calendar cal = Calendar.getInstance();
@@ -488,60 +504,36 @@ class SubProc extends PseudoProcess {
 		}
 	}
 
-	private void handleOutputStream(OutputStream out, OutputStream err, boolean closeStream, boolean wait) {
-		if(streamIsLocked) {
-			return;
-		}
-		streamIsLocked = true;
-		
-		PipeStreamHandler stdoutHandler = null;
-		PipeStreamHandler stderrHandler = null;
-		if(!stdoutIsRedireted) {
-			stdoutHandler = new PipeStreamHandler(stdout, out, closeStream);
-			stdoutHandler.start();
-		}
-		
-		if(!stderrIsRedireted) {
-			stderrHandler = new PipeStreamHandler(stderr, err, closeStream);
-			stderrHandler.start();
-		}
-
-		if(wait) {
-			try {
-				if(stdoutHandler != null) {
-					stdoutHandler.join();
-				}
-				if(stderrHandler != null) {
-					stderrHandler.join();
-				}
-			}
-			catch (InterruptedException e) {
-				throw new RuntimeException(e);
-			}
-		}
-	}
-
 	@Override public void waitResult(boolean isPrintable) {
+		InputStream inStream = this.accessOutStream();
+		OutputStream outStream;
+		boolean closeStream;
 		if(isPrintable) {
-			handleOutputStream(System.out, System.err, false, true);
+			outStream = System.out;
+			closeStream = false;
 		}
 		else {
 			outBuf = new ByteArrayOutputStream();
-			errBuf = new ByteArrayOutputStream();
-			handleOutputStream(outBuf, errBuf, true, true);
+			outStream = outBuf;
+			closeStream = true;
+		}
+		
+		PipeStreamHandler stdoutHandler = new PipeStreamHandler(inStream, outStream, closeStream);
+		stdoutHandler.start();
+		try {
+			stdoutHandler.join();
+		}
+		catch (InterruptedException e) {
+			throw new RuntimeException(e);
 		}
 	}
 	
 	@Override public void showResult() {
-		handleOutputStream(System.out, System.err, false, false);
+		new PipeStreamHandler(this.accessOutStream(), System.out, false).start();
 	}
 
 	@Override public String getStdout() {
 		return this.outBuf == null ? "" : this.outBuf.toString();
-	}
-
-	@Override public String getStderr() {
-		return this.errBuf == null ? "" : this.errBuf.toString();
 	}
 
 	@Override public void waitFor() {
@@ -625,28 +617,28 @@ class OutRedirectProc extends PseudoProcess {
 		InputStream srcStream;
 		this.pipedPrevProc = srcProc;
 		if(errorRedirectMode) {
-			srcStream = srcProc.stderr;
+			srcStream = srcProc.accessErrorStream();
 			if(srcProc instanceof OutRedirectProc && !((OutRedirectProc) srcProc).errorRedirectMode) {
-				srcStream = srcProc.pipedPrevProc.stderr;
+				srcStream = srcProc.pipedPrevProc.accessErrorStream();
 			}
 		}
 		else {
-			srcStream = srcProc.stdout;
+			srcStream = srcProc.accessOutStream();
 			if(srcProc instanceof OutRedirectProc && ((OutRedirectProc) srcProc).errorRedirectMode) {
-				srcStream = srcProc.pipedPrevProc.stdout;
+				srcStream = srcProc.pipedPrevProc.accessOutStream();
 			}
 		}
 		new PipeStreamHandler(srcStream, this.stdin, true).start();
 	}
-	
+
 	@Override public int getRet() {
 		return this.pipedPrevProc.getRet();
 	}
-	
+
 	public void enablePostscriptMode() {
 		this.postscriptMode = true;
 	}
-	
+
 	public void enableErrorRedirectMode() {
 		this.errorRedirectMode = true;
 	}
@@ -662,7 +654,7 @@ class EmptyProc extends PseudoProcess {
 	@Override public void waitResult(boolean isExpr) {
 		this.pipedPrevProc.waitResult(isExpr);
 	}
-	
+
 	@Override public void showResult() {
 		this.pipedPrevProc.showResult();
 	}
@@ -704,6 +696,20 @@ class ProcessKiller extends TimerTask {
 
 	@Override public void run() {
 		this.killProcs();
+	}
+}
+
+class ErrorStreamHandler {
+	private PseudoProcess[] targetProcs;
+	
+	public ErrorStreamHandler(PseudoProcess[] targetProcs) {
+		this.targetProcs = targetProcs;
+	}
+	
+	public void showErrorMessage() {
+		for(int i = 0; i < targetProcs.length; i++) {
+			new PipeStreamHandler(this.targetProcs[i].accessErrorStream(), System.err, false).start();
+		}
 	}
 }
 
@@ -954,8 +960,7 @@ class ShellExceptionRaiser {
 			}
 			String message = targetProc.getCmdName();
 			if(targetProc.isTraced() && targetProc instanceof SubProc) {
-				SubProc castProc = (SubProc)targetProc;
-				String logFilePath = castProc.getLogFilePath();
+				String logFilePath = ((SubProc)targetProc).getLogFilePath();
 				if(targetProc.getRet() != 0) {
 					ErrorInferencer inferencer = new ErrorInferencer(SubProc.traceBackendType);
 					String[] inferedSyscall = inferencer.doInference(logFilePath);
