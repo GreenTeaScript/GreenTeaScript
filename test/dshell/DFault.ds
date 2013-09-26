@@ -1,0 +1,7 @@
+require dshell;
+
+@Export int main() {
+    DFault ret = null;
+    assert(ret == null);
+    return 0;
+}

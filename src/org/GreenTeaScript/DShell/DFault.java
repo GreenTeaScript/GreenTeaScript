@@ -85,17 +85,17 @@ public class DFault /*extends Exception*/ {
 //		this.CallerNodeName  = CallerNodeName;
 //		this.DCaseRevision   = DCaseRevision;
 //	}
-//	
-//	public static boolean binary_eq(DFault x, DFault y) {
-//		if(x == null || y == null) {
-//			return x == y;
-//		}
-//		return x.equals(y);
-//	}
-//
-//	public static boolean binary_ne(DFault x, DFault y) {
-//		return !binary_eq(x, y);
-//	}
+
+	public static boolean binary_eq(DFault x, DFault y) {
+		if(x == null || y == null) {
+			return x == y;
+		}
+		return x.equals(y);
+	}
+
+	public static boolean binary_ne(DFault x, DFault y) {
+		return !binary_eq(x, y);
+	}
 //
 //	public static void setLocation(DFault self, String location) {
 //		self.Location = location;
