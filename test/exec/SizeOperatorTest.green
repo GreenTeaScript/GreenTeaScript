@@ -1,0 +1,15 @@
+// written by kimio kuramitsu
+
+boolean TestFunc() {
+	assert(|1| == 1);
+	assert(|"s"| == 1);
+	assert(|null| == 0);
+	return true;
+}
+
+@Export 
+int main() {
+	TestFunc();
+	return 0;
+}
+
