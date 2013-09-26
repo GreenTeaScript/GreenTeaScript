@@ -191,7 +191,7 @@ final class CastNode extends GtNode {
 	@Override public Object ToConstValue(boolean EnforceConst)  {
 		/*local*/Object Value = this.Expr.ToConstValue(EnforceConst) ;
 		if(Value != null) {
-			return LibGreenTea.EvalCast(this.CastType, Value);
+			return LibGreenTea.DynamicCast(this.CastType, Value);
 		}
 		return Value;
 	}
@@ -304,7 +304,7 @@ class InstanceOfNode extends GtNode {
 	@Override public Object ToConstValue(boolean EnforceConst)  {
 		/*local*/Object Value = this.ExprNode.ToConstValue(EnforceConst) ;
 		if(Value != null) {
-			return LibGreenTea.EvalInstanceOf(Value, this.TypeInfo);
+			return LibGreenTea.DynamicInstanceOf(Value, this.TypeInfo);
 		}
 		return Value;
 	}

@@ -289,7 +289,6 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 	}
 	
 	public final static boolean MatchNativeMethod(GtType FuncType, Method JavaMethod) {
-		/*local*/GtParserContext Context = FuncType.Context;
 //		System.err.println("method: " + JavaMethod);
 //		/*local*/GtType ReturnType = FuncType.TypeParams[0];
 //		System.err.println("return: " + ReturnType + ", " + JavaMethod.getReturnType());
@@ -903,7 +902,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 //		return null;
 //	}
 
-	public static Object EvalCast(GtType CastType, Object Value) {
+	public static Object DynamicCast(GtType CastType, Object Value) {
 		if(Value != null) {
 			GtType FromType = CastType.Context.GuessType(Value);
 			if(CastType == FromType || CastType.Accept(FromType)) {
@@ -913,7 +912,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return null;
 	}
 
-	public static Object EvalInstanceOf(Object Value, GtType Type) {
+	public static Object DynamicInstanceOf(Object Value, GtType Type) {
 		if(Value != null) {
 			GtType ValueType = Type.Context.GuessType(Value);
 			if(ValueType == Type || Type.Accept(ValueType)) {
@@ -941,19 +940,19 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 	public static Object EvalUnary(GtType Type, String Operator, Object Value) {
 		if(Value instanceof Boolean) {
 			if(Operator.equals("!") || Operator.equals("not")) {
-				return EvalCast(Type, !((Boolean)Value).booleanValue());
+				return DynamicCast(Type, !((Boolean)Value).booleanValue());
 			}
 			return null;
 		}
 		if(Value instanceof Long || Value instanceof Integer  || Value instanceof Short) {
 			if(Operator.equals("-")) {
-				return EvalCast(Type, -((Number)Value).longValue());
+				return DynamicCast(Type, -((Number)Value).longValue());
 			}
 			if(Operator.equals("+")) {
-				return EvalCast(Type, +((Number)Value).longValue());
+				return DynamicCast(Type, +((Number)Value).longValue());
 			}
 			if(Operator.equals("~")) {
-				return EvalCast(Type, ~((Number)Value).longValue());
+				return DynamicCast(Type, ~((Number)Value).longValue());
 			}
 			return null;
 		}
@@ -970,32 +969,32 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 			return null;
 		}
 		if(LeftValue instanceof String || RightValue instanceof String) {
-			String left = EvalCast(Type.Context.StringType, LeftValue).toString();
-			String right = EvalCast(Type.Context.StringType, RightValue).toString();
+			String left = DynamicCast(Type.Context.StringType, LeftValue).toString();
+			String right = DynamicCast(Type.Context.StringType, RightValue).toString();
 			if(Operator.equals("+")) {
-				return  EvalCast(Type, left + right);
+				return  DynamicCast(Type, left + right);
 			}
 		}
 		if(LeftValue instanceof String && RightValue instanceof String) {
-			String left = EvalCast(Type.Context.StringType, LeftValue).toString();
-			String right = EvalCast(Type.Context.StringType, RightValue).toString();
+			String left = DynamicCast(Type.Context.StringType, LeftValue).toString();
+			String right = DynamicCast(Type.Context.StringType, RightValue).toString();
 			if(Operator.equals("==")) {
-				return  EvalCast(Type, left.equals(right));
+				return  DynamicCast(Type, left.equals(right));
 			}
 			if(Operator.equals("!=")) {
-				return EvalCast(Type, !left.equals(right));
+				return DynamicCast(Type, !left.equals(right));
 			}
 			if(Operator.equals("<")) {
-				return EvalCast(Type, left.compareTo(right) < 0);
+				return DynamicCast(Type, left.compareTo(right) < 0);
 			}
 			if(Operator.equals("<=")) {
-				return EvalCast(Type, left.compareTo(right) <= 0);
+				return DynamicCast(Type, left.compareTo(right) <= 0);
 			}
 			if(Operator.equals(">")) {
-				return EvalCast(Type, left.compareTo(right) > 0);
+				return DynamicCast(Type, left.compareTo(right) > 0);
 			}
 			if(Operator.equals(">=")) {
-				return EvalCast(Type, left.compareTo(right) >= 0);
+				return DynamicCast(Type, left.compareTo(right) >= 0);
 			}
 			return null;
 		}
@@ -1004,37 +1003,37 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 				double left = ((Number)LeftValue).doubleValue();
 				double right = ((Number)RightValue).doubleValue();
 				if(Operator.equals("+")) {
-					return EvalCast(Type, left + right);
+					return DynamicCast(Type, left + right);
 				}
 				if(Operator.equals("-")) {
-					return EvalCast(Type, left - right);
+					return DynamicCast(Type, left - right);
 				}
 				if(Operator.equals("*")) {
-					return EvalCast(Type, left * right);
+					return DynamicCast(Type, left * right);
 				}
 				if(Operator.equals("/")) {
-					return EvalCast(Type, left / right);
+					return DynamicCast(Type, left / right);
 				}
 				if(Operator.equals("%") || Operator.equals("mod")) {
-					return EvalCast(Type, left % right);
+					return DynamicCast(Type, left % right);
 				}
 				if(Operator.equals("==")) {
-					return EvalCast(Type, left == right);
+					return DynamicCast(Type, left == right);
 				}
 				if(Operator.equals("!=")) {
-					return EvalCast(Type, left != right);
+					return DynamicCast(Type, left != right);
 				}
 				if(Operator.equals("<")) {
-					return EvalCast(Type, left < right);
+					return DynamicCast(Type, left < right);
 				}
 				if(Operator.equals("<=")) {
-					return EvalCast(Type, left <= right);
+					return DynamicCast(Type, left <= right);
 				}
 				if(Operator.equals(">")) {
-					return EvalCast(Type, left > right);
+					return DynamicCast(Type, left > right);
 				}
 				if(Operator.equals(">=")) {
-					return EvalCast(Type, left >= right);
+					return DynamicCast(Type, left >= right);
 				}
 			}
 			catch(ClassCastException e) {
@@ -1045,10 +1044,10 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 			boolean left = (Boolean)LeftValue;
 			boolean right = (Boolean)RightValue;
 			if(Operator.equals("==")) {
-				return EvalCast(Type, left == right);
+				return DynamicCast(Type, left == right);
 			}
 			if(Operator.equals("!=")) {
-				return EvalCast(Type, left != right);
+				return DynamicCast(Type, left != right);
 			}
 			return null;
 		}
@@ -1056,52 +1055,52 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 			long left = ((Number)LeftValue).longValue();
 			long right = ((Number)RightValue).longValue();
 			if(Operator.equals("+")) {
-				return EvalCast(Type, left + right);
+				return DynamicCast(Type, left + right);
 			}
 			if(Operator.equals("-")) {
-				return EvalCast(Type, left - right);
+				return DynamicCast(Type, left - right);
 			}
 			if(Operator.equals("*")) {
-				return EvalCast(Type, left * right);
+				return DynamicCast(Type, left * right);
 			}
 			if(Operator.equals("/")) {
-				return EvalCast(Type, left / right);
+				return DynamicCast(Type, left / right);
 			}
 			if(Operator.equals("%") || Operator.equals("mod")) {
-				return EvalCast(Type, left % right);
+				return DynamicCast(Type, left % right);
 			}
 			if(Operator.equals("==")) {
-				return EvalCast(Type, left == right);
+				return DynamicCast(Type, left == right);
 			}
 			if(Operator.equals("!=")) {
-				return EvalCast(Type, left != right);
+				return DynamicCast(Type, left != right);
 			}
 			if(Operator.equals("<")) {
-				return EvalCast(Type, left < right);
+				return DynamicCast(Type, left < right);
 			}
 			if(Operator.equals("<=")) {
-				return EvalCast(Type, left <= right);
+				return DynamicCast(Type, left <= right);
 			}
 			if(Operator.equals(">")) {
-				return EvalCast(Type, left > right);
+				return DynamicCast(Type, left > right);
 			}
 			if(Operator.equals(">=")) {
-				return EvalCast(Type, left >= right);
+				return DynamicCast(Type, left >= right);
 			}
 			if(Operator.equals("|")) {
-				return EvalCast(Type, left | right);
+				return DynamicCast(Type, left | right);
 			}
 			if(Operator.equals("&")) {
-				return EvalCast(Type, left & right);
+				return DynamicCast(Type, left & right);
 			}
 			if(Operator.equals("<<")) {
-				return EvalCast(Type, left << right);
+				return DynamicCast(Type, left << right);
 			}
 			if(Operator.equals(">>")) {
-				return EvalCast(Type, left >> right);
+				return DynamicCast(Type, left >> right);
 			}
 			if(Operator.equals("^")) {
-				return EvalCast(Type, left ^ right);
+				return DynamicCast(Type, left ^ right);
 			}
 		}
 		catch(ClassCastException e) {
