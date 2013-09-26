@@ -102,8 +102,8 @@ class GtNode extends GreenTeaUtils {
 		this.SetParent(Node);
 	}
 
-	public final void AppendNodeList(ArrayList<GtNode> NodeList) {
-		/*local*/int i = 0;
+	public final void AppendNodeList(int StartIndex, ArrayList<GtNode> NodeList) {
+		/*local*/int i = StartIndex;
 		while(i < LibGreenTea.ListSize(NodeList)) {
 			this.Append(NodeList.get(i));
 			i = i + 1;
@@ -458,19 +458,17 @@ final class IndexerNode extends GtNode {
 		this.NodeList.add(Expr);
 		this.SetParent(Expr);
 	}
-
 	public GtNode GetAt(int Index) {
 		return this.NodeList.get(Index);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitIndexerNode(this);
 	}
-	
 	public ApplyNode ToApplyNode() {
 		/*local*/ApplyNode Node = new ApplyNode(this.Type, this.Token, this.Func);
 		Node.Append(new ConstNode(this.Func.GetFuncType(), this.Token, this.Func));
 		Node.Append(this.Expr);
-		Node.AppendNodeList(this.NodeList);
+		Node.AppendNodeList(0, this.NodeList);
 		return Node;
 	}
 	
@@ -906,7 +904,7 @@ class GtGenerator extends GreenTeaUtils {
 	public GtNode CreateConstructorNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, ArrayList<GtNode> NodeList) {
 		/*local*/ConstructorNode Node = new ConstructorNode(Type, ParsedTree.KeyToken, Func);
 		if(NodeList != null) {
-			Node.AppendNodeList(NodeList);
+			Node.AppendNodeList(0, NodeList);
 		}
 		return Node;
 	}

@@ -268,7 +268,7 @@ public class GtType extends GreenTeaUtils {
 
 	public boolean Match(GtNameSpace GenericNameSpace, GtType GivenType) {
 		boolean b = this.Match_(GenericNameSpace, GivenType);
-		System.err.println("matching.. " + this + ", given = " + GivenType + "results=" + b);
+		System.err.println("matching.. " + this + ", given = " + GivenType + ", results=" + b);
 		return b;
 	}
 

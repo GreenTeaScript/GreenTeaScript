@@ -2715,7 +2715,7 @@ final class KonohaGrammar extends GtGrammar {
 			return Gamma.CreateSyntaxErrorNode(ParsedTree, FuncNode.Type + " is not applicapable");
 		}
 		/*local*/GtNode Node = Gamma.Generator.CreateApplyNode(ReturnType, ParsedTree, ResolvedFunc);
-		Node.AppendNodeList(NodeList);
+		Node.AppendNodeList(0, NodeList);
 		return Node;
 	}
 
@@ -3620,7 +3620,7 @@ final class KonohaGrammar extends GtGrammar {
 			return ExprNode;
 		}
 		/*local*/GtPolyFunc PolyFunc = Gamma.NameSpace.GetMethod(ExprNode.Type, FuncSymbol("||"), true);
-		System.err.println("polyfunc: " + PolyFunc);
+		//System.err.println("polyfunc: " + PolyFunc);
 		/*local*/GtFunc Func = PolyFunc.ResolveUnaryMethod(Gamma, ExprNode.Type);
 		LibGreenTea.Assert(Func != null);  // any has ||
 		/*local*/GtNode Node = Gamma.Generator.CreateApplyNode(Func.GetReturnType(), ParsedTree, Func);
@@ -3639,8 +3639,13 @@ final class KonohaGrammar extends GtGrammar {
 		while(!ArrayTree.IsMismatchedOrError() && TokenContext.MatchToken(","));
 		ArrayTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "]", Required);
 		TokenContext.SetRememberFlag(OldFlag);
+		/*local*/String OperatorSymbol = "[]";
+		if(TokenContext.MatchToken("=")) {
+			ArrayTree.AppendMatchedPattern(NameSpace, TokenContext, "$Expression$", Required);
+			OperatorSymbol = "[]=";
+		}
 		if(ArrayTree.IsValidSyntax()) {
-			ArrayTree.KeyToken.ParsedText = "[]";
+			ArrayTree.KeyToken.ParsedText = OperatorSymbol;
 		}
 		return ArrayTree;
 	}
@@ -3652,7 +3657,7 @@ final class KonohaGrammar extends GtGrammar {
 		}
 		/*local*/GtFunc ResolvedFunc = null;
 		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(ExprNode.Type, FuncSymbol(ParsedTree.KeyToken.ParsedText), true);
-		System.err.println("polyfunc: " + PolyFunc);
+		//System.err.println("polyfunc: " + PolyFunc);
 		/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
 		ParamList.add(ExprNode);
 		ResolvedFunc = PolyFunc.ResolveFunc(Gamma, ParsedTree, 1, ParamList);
@@ -3660,10 +3665,10 @@ final class KonohaGrammar extends GtGrammar {
 			Type = ResolvedFunc.GetReturnType();
 		}
 		else {
-			System.err.println("undefined: " + "[]");
+			return Gamma.CreateSyntaxErrorNode(ParsedTree, "undefined " + ParsedTree.KeyToken.ParsedText + " of " + ExprNode);
 		}
 		/*local*/GtNode Node = Gamma.Generator.CreateIndexerNode(Type, ParsedTree, ResolvedFunc, ExprNode);
-		Node.AppendNodeList(ParamList);
+		Node.AppendNodeList(1, ParamList);
 		return Node;
 	}
 
@@ -3684,6 +3689,7 @@ final class KonohaGrammar extends GtGrammar {
 	}
 
 	public static GtNode TypeSlice(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+		
 		return null;
 	}
 
