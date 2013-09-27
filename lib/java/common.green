@@ -103,7 +103,6 @@ void assert(boolean b) import LibGreenTea.Assert;
 @Coercion @Const var converter(var x) import Konoha.DoubleApi.d2i;
 @Coercion @Const var converter(var x) import Konoha.DoubleApi.i2d;
 
-
 //@Const @Coercion boolean converter(any x) import org.GreenTeaScript.GreenTeaRuntime.AnyToBoolean;
 //@Coercion @Const int converter(any x) import org.GreenTeaScript.GreenTeaRuntime.AnyToInt;
 // double
@@ -113,13 +112,14 @@ void assert(boolean b) import LibGreenTea.Assert;
 
 
 // ArrayApi
-<T> int "||"(Array<T> this) import GreenTeaArray.GetSize;
-<T> T "[]"(Array<T> this, int index) import GreenTeaArray.Get;
-<T> void "[]="(Array<T> this, int index, T value) import GreenTeaArray.Set;
-<T> Array<T> add(Array<T> this, T value) import GreenTeaArray.Add;
+<T> int "||"(Array<T> this) import Konoha.ArrayApi.GetSize;
+<T> T "[]"(Array<T> this, int index) import Konoha.ArrayApi.Get;
+<T> void "[]="(Array<T> this, int index, T value) import Konoha.ArrayApi.Set;
+<T> Array<T> add(Array<T> this, T value) import Konoha.ArrayApi.Add;
 
-@Coercion @Const var converter(var x) import GreenTeaArray.GreenArrayToStringArray;
-@Coercion @Const var converter(var x) import GreenTeaArray.StringArrayToGreenArray;
+// experimental
+@Coercion @Const var converter(var x) import Konoha.ArrayApi.GreenArrayToStringArray;
+@Coercion @Const var converter(var x) import Konoha.ArrayApi.StringArrayToGreenArray;
 
 
 

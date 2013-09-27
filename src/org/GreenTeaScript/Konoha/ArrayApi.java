@@ -24,18 +24,72 @@
 
 package org.GreenTeaScript.Konoha;
 
+import org.GreenTeaScript.GreenTeaArray;
+import org.GreenTeaScript.GtType;
+
 public class ArrayApi {
-
-	public final static long Size(Object x) {
-		return x == null ? 0 : 1;
+	public final static GreenTeaArray NewArray(GtType Type, int InitSize) {
+		GtType ArrayType = Type.Context.GetGenericType1(Type.Context.ArrayType, Type, true); 
+		GreenTeaArray ArrayObject =  new GreenTeaArray(ArrayType);
+		for(int i = 0; i < InitSize; i++) {
+			ArrayObject.ArrayBody.add(Type.DefaultNullValue);
+		}
+		return ArrayObject;
+	}
+	public final static GreenTeaArray ArrayLiteral(GtType ArrayType, Object[] Values) {
+		GreenTeaArray ArrayObject =  new GreenTeaArray(ArrayType);
+		for(int i = 0; i < Values.length; i++) {
+			ArrayObject.ArrayBody.add(Values[i]);
+		}
+		return ArrayObject;
+	}
+	public final static long GetSize(GreenTeaArray self) {
+		return self.ArrayBody.size();
+	}
+	public final static Object Get(GreenTeaArray self, long Index) {
+		return self.ArrayBody.get((int)Index);
+	}
+	public final static void Set(GreenTeaArray self, long Index, Object Value) {
+		self.ArrayBody.set((int)Index, Value);
+	}
+	public final static GreenTeaArray Add(GreenTeaArray self, Object Value) {
+		self.ArrayBody.add(Value);
+		return self;
 	}
 
-	public final static boolean Equals(Object x, Object y) {
-		return x == y;
-	}
+//	// Converter
+//	public final static GreenTeaArray<?> AnyToGreenArray(GtType Type, Object Value) {
+//		if(Value.getClass().isArray()) {
+//			Class<?> ComponentClass = Value.getClass().getComponentType();
+//			LibGreenTea.GetNativeType(Type.Context, ComponentClass);
+//		}
+//		//return ArrayObject;
+//	}
 
-	public final static boolean NotEquals(Object x, Object y) {
-		return x != y;
-	}
+//	public final static String[] GreenArrayToAny(GtType Type, GreenTeaArray<String> ArrayObject) {
+//		String[] Values = new String[ArrayObject.ArrayBody.size()];
+//		for(int i = 0; i < Values.length; i++) {
+//			Object Value = ArrayObject.ArrayBody.get(i);
+//			Values[i] = (String)Value;
+//		}
+//		return Values;
+//	}
 	
+	public final static GreenTeaArray StringArrayToGreenArray(GtType Type, String[] Values) {
+		GtType ArrayType = Type.Context.GetGenericType1(Type.Context.ArrayType, Type.Context.StringType, true);
+		GreenTeaArray ArrayObject = new GreenTeaArray(ArrayType);
+		for(int i = 0; i < Values.length; i++) {
+			ArrayObject.ArrayBody.add(Values[i]);
+		}
+		return ArrayObject;
+	}
+
+	public final static String[] GreenArrayToStringArray(GtType Type, GreenTeaArray ArrayObject) {
+		String[] Values = new String[ArrayObject.ArrayBody.size()];
+		for(int i = 0; i < Values.length; i++) {
+			Object Value = ArrayObject.ArrayBody.get(i);
+			Values[i] = (String)Value;
+		}
+		return Values;
+	}
 }

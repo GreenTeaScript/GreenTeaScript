@@ -27,7 +27,7 @@ package org.GreenTeaScript;
 import java.util.ArrayList;
 //endif VAJA
 
-final class GtParserContext extends GreenTeaUtils {
+public final class GtParserContext extends GreenTeaUtils {
 	/*field*/public final  GtGenerator   Generator;
 	/*field*/public final  GtNameSpace		   RootNameSpace;
 	/*field*/public GtNameSpace		           TopLevelNameSpace;
