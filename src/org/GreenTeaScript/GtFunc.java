@@ -25,8 +25,8 @@
 //ifdef JAVA
 package org.GreenTeaScript;
 import java.util.ArrayList;
-//endif VAJA
 import java.util.Arrays;
+//endif VAJA
 
 class GtFuncBlock extends GreenTeaUtils {
 	/*field*/public GtNameSpace       NameSpace;
