@@ -43,7 +43,7 @@ final class GtParserContext extends GreenTeaUtils {
 	/*field*/public final GtType		FuncType;
 
 	/*field*/public final GtType		TopType;
-	/*field*/public final GtType		TenumType;
+	/*field*/public final GtType		EnumBaseType;
 	/*field*/public final GtType		StructType;
 	/*field*/public final GtType		VarType;
 
@@ -72,10 +72,9 @@ final class GtParserContext extends GreenTeaUtils {
 		this.NoErrorReport = false;
 		this.ReportedErrorList = new ArrayList<String>();
 
-		this.AnyType     = this.RootNameSpace.AppendTypeName(new GtType(this, DynamicType, "any", null, null), null);
-		this.TopType     = new GtType(this, 0, "top", null, null);                    //  unregistered
-		this.StructType  = this.TopType.CreateSubType(0, "record", null, null);       //  unregistered
-		this.TenumType   = this.TopType.CreateSubType(EnumType, "enum", null, null);  //  unregistered
+		this.TopType       = this.RootNameSpace.AppendTypeName(new GtType(this, 0, "Top", null, null), null);
+		this.StructType    = this.TopType.CreateSubType(0, "record", null, null);       //  unregistered
+		this.EnumBaseType  = this.TopType.CreateSubType(EnumType, "enum", null, null);  //  unregistered
 
 		this.VoidType    = this.RootNameSpace.AppendTypeName(new GtType(this, NativeType, "void", null, Void.class), null);
 		this.BooleanType = this.RootNameSpace.AppendTypeName(new GtType(this, NativeType, "boolean", false, Boolean.class), null);
@@ -83,16 +82,18 @@ final class GtParserContext extends GreenTeaUtils {
 		this.FloatType   = this.RootNameSpace.AppendTypeName(new GtType(this, NativeType, "double", 0.0, Double.class), null);
 		this.StringType  = this.RootNameSpace.AppendTypeName(new GtType(this, NativeType, "String", null, String.class), null);
 		this.VarType     = this.RootNameSpace.AppendTypeName(new GtType(this, 0, "var", null, null), null);
+		this.AnyType     = this.RootNameSpace.AppendTypeName(new GtType(this, DynamicType, "any", null, null), null);
 		this.TypeType    = this.RootNameSpace.AppendTypeName(this.TopType.CreateSubType(0, "Type", null, null), null);
 		this.ArrayType   = this.RootNameSpace.AppendTypeName(this.TopType.CreateSubType(0, "Array", null, null), null);
 		this.FuncType    = this.RootNameSpace.AppendTypeName(this.TopType.CreateSubType(0, "Func", null, null), null);
 
 		this.ArrayType.TypeParams = new GtType[1];
-		this.ArrayType.TypeParams[0] = this.AnyType;
+		this.ArrayType.TypeParams[0] = this.VarType;
 		this.FuncType.TypeParams = new GtType[1];
 		this.FuncType.TypeParams[0] = this.VarType;  // for PolyFunc
 
 //ifdef JAVA
+		this.SetNativeTypeName("org.GreenTeaScript.GreenTeaTopObject", this.TopType);
 		this.SetNativeTypeName("void",    this.VoidType);
 		this.SetNativeTypeName("java.lang.Object",  this.AnyType);
 		this.SetNativeTypeName("boolean", this.BooleanType);
@@ -101,7 +102,7 @@ final class GtParserContext extends GreenTeaUtils {
 		this.SetNativeTypeName("java.lang.Long",    this.IntType);
 		this.SetNativeTypeName("java.lang.String",  this.StringType);
 		this.SetNativeTypeName("org.GreenTeaScript.GtType", this.TypeType);
-		this.SetNativeTypeName("org.GreenTeaScript.GreenTeaEnum", this.TenumType);
+		this.SetNativeTypeName("org.GreenTeaScript.GreenTeaEnum", this.EnumBaseType);
 		this.SetNativeTypeName("org.GreenTeaScript.GreenTeaArray", this.ArrayType);
 		this.SetNativeTypeName("double",    this.FloatType);
 		this.SetNativeTypeName("java.lang.Double",  this.FloatType);

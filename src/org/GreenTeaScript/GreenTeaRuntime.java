@@ -32,7 +32,6 @@ import java.util.ArrayList;
 public class GreenTeaRuntime {
 	// converter 
 	
-	
 	// Boolean
 	public final static String BooleanToString(GtType Type, boolean value) {
 		return value ? "true" : "false";
@@ -192,19 +191,8 @@ public class GreenTeaRuntime {
 	}
 
 	//-----------------------------------------------------
-	// any
+	// top
 	
-	public final static long unary_size(Object x) {
-		return x == null ? 0 : 1;
-	}
-
-	public final static boolean binary_eq(Object x, Object y) {
-		return x == y;
-	}
-
-	public final static boolean binary_ne(Object x, Object y) {
-		return x != y;
-	}
 
 	//-----------------------------------------------------
 	// String

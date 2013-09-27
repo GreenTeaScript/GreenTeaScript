@@ -1,9 +1,9 @@
 
-// any type
+// top type
 
-@Const @Operator int "||"(any x) import GreenTeaRuntime.unary_size;
-@Const @Operator boolean "=="(any x, any y) import GreenTeaRuntime.binary_eq;
-@Const @Operator boolean "!="(any x, any y) import GreenTeaRuntime.binary_ne;
+@Const @Operator int "||"(Top x) import Konoha.TopApi.Size;
+@Const @Operator boolean "=="(Top x, Top y) import Konoha.TopApi.Equals;
+@Const @Operator boolean "!="(Top x, Top y) import Konoha.TopApi.NotEquals;
 
 // String type
 

@@ -46,7 +46,7 @@ public class GtType extends GreenTeaUtils {
 		this.ShortName = ShortName;
 		this.SuperType = null;
 		this.BaseType = this;
-		this.ParentMethodSearch = Context.AnyType;
+		this.ParentMethodSearch = Context.TopType;
 		this.DefaultNullValue = DefaultNullValue;
 		this.TypeBody = TypeBody;
 		if(!IsFlag(TypeFlag, TypeVariable)) {
@@ -101,6 +101,10 @@ public class GtType extends GreenTeaUtils {
 
 	public final boolean IsFuncType() {
 		return (this.BaseType == this.Context.FuncType);
+	}
+
+	public final boolean IsTopType() {
+		return (this == this.Context.TopType);
 	}
 
 	public final boolean IsVoidType() {

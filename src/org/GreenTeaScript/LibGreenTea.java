@@ -279,6 +279,9 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		if(GreenType.IsVarType() || GreenType.IsTypeVariable()) {
 			return true;
 		}
+		if(GreenType.IsTopType()) {
+			return (Type == Object.class);
+		}
 		GtType JavaType = LibGreenTea.GetNativeType(GreenType.Context, Type);
 		if(GreenType != JavaType) {
 			if(GreenType.IsGenericType() && GreenType.HasTypeVariable()) {
