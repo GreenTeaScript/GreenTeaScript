@@ -28,8 +28,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
-import org.GreenTeaScript.JVM.GtSubProc;
-//endif VAJA
+import org.GreenTeaScript.DShell.DShellProcess;
 
 /* language */
 // GreenTea Generator should be written in each language.
@@ -1322,13 +1321,13 @@ class GtGenerator extends GreenTeaUtils {
 		
 		try {
 			if(Type.equals(Type.Context.StringType)) {
-				return GtSubProc.ExecCommandString(Args);
+				return DShellProcess.ExecCommandString(Args);
 			}
 			else if(Type.equals(Type.Context.BooleanType)) {
-				return GtSubProc.ExecCommandBool(Args);
+				return DShellProcess.ExecCommandBool(Args);
 			}
 			else {
-				return GtSubProc.ExecCommand(Args);
+				return DShellProcess.ExecCommand(Args);
 			}
 		} 
 		catch(Exception e) {

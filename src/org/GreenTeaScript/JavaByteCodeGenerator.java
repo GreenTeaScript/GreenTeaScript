@@ -33,7 +33,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
-import org.GreenTeaScript.JVM.GtSubProc;
+import org.GreenTeaScript.DShell.DShellProcess;
 import org.GreenTeaScript.JVM.GtThrowableWrapper;
 import org.GreenTeaScript.JVM.JVMConstPool;
 import org.objectweb.asm.ClassVisitor;
@@ -290,7 +290,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			Class<?> lib = LibGreenTea.class;
 			map.put("cast", lib.getMethod("DynamicCast", GtType.class, Object.class));
 			map.put("instanceof", lib.getMethod("DynamicInstanceOf", Object.class, GtType.class));
-			Class<?> proc = GtSubProc.class;
+			Class<?> proc = DShellProcess.class;
 			map.put("ExecCommand", proc.getMethod("ExecCommand", String[][].class));
 			map.put("ExecCommandVoid", proc.getMethod("ExecCommandVoid", String[][].class));
 			map.put("ExecCommandBool", proc.getMethod("ExecCommandBool", String[][].class));

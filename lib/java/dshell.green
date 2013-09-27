@@ -9,20 +9,20 @@ import org.GreenTeaScript.DShellGrammar;
 @Const @Operator boolean "-w"(String Path) import DShellGrammar.IsFileWritable;
 @Const @Operator boolean "-x"(String Path) import DShellGrammar.IsFileExecutable;
 
-let ConnectRefusedException = import org.GreenTeaScript.JVM.ConnectRefusedException;
-let IllegalSeekException = import org.GreenTeaScript.JVM.IllegalSeekException;
-let InterruptedBySignalException = import org.GreenTeaScript.JVM.InterruptedBySignalException;
-let NetworkTimeoutException = import org.GreenTeaScript.JVM.NetworkTimeoutException;
-let NoFreeMemoryException = import org.GreenTeaScript.JVM.NoFreeMemoryException;
-let NoFreeSpaceException = import org.GreenTeaScript.JVM.NoFreeSpaceException;
-let NotDirectoryException = import org.GreenTeaScript.JVM.NotDirectoryException;
-let NotFoundException = import org.GreenTeaScript.JVM.NotFoundException;
-let NotPermittedException = import org.GreenTeaScript.JVM.NotPermittedException;
-let NotPermittedOperateException = import org.GreenTeaScript.JVM.NotPermittedOperateException;
-let ReadOnlyException = import org.GreenTeaScript.JVM.ReadOnlyException;
-let TooLongNameException = import org.GreenTeaScript.JVM.TooLongNameException;
-let TooManyLinkException = import org.GreenTeaScript.JVM.TooManyLinkException;
-let UnreachableException = import org.GreenTeaScript.JVM.UnreachableException;
+let ConnectRefusedException = import org.GreenTeaScript.DShell.ConnectRefusedException;
+let IllegalSeekException = import org.GreenTeaScript.DShell.IllegalSeekException;
+let InterruptedBySignalException = import org.GreenTeaScript.DShell.InterruptedBySignalException;
+let NetworkTimeoutException = import org.GreenTeaScript.DShell.NetworkTimeoutException;
+let NoFreeMemoryException = import org.GreenTeaScript.DShell.NoFreeMemoryException;
+let NoFreeSpaceException = import org.GreenTeaScript.DShell.NoFreeSpaceException;
+let NotDirectoryException = import org.GreenTeaScript.DShell.NotDirectoryException;
+let NotFoundException = import org.GreenTeaScript.DShell.NotFoundException;
+let NotPermittedException = import org.GreenTeaScript.DShell.NotPermittedException;
+let NotPermittedOperateException = import org.GreenTeaScript.DShell.NotPermittedOperateException;
+let ReadOnlyException = import org.GreenTeaScript.DShell.ReadOnlyException;
+let TooLongNameException = import org.GreenTeaScript.DShell.TooLongNameException;
+let TooManyLinkException = import org.GreenTeaScript.DShell.TooManyLinkException;
+let UnreachableException = import org.GreenTeaScript.DShell.UnreachableException;
 
 // FaultTypes
 let DFault       = import org.GreenTeaScript.DShell.DFault;
@@ -37,7 +37,7 @@ boolean MatchFault(DFault fault, String Location, String FaultInfo) import org.G
 @Const @Operator boolean "!="(DFault x, DFault y) import org.GreenTeaScript.DShell.DFault.binary_ne;
 
 // Process
-let Process = import org.GreenTeaScript.JVM.GtSubProc;
-@Coercion var "!"(var x) import org.GreenTeaScript.JVM.GtSubProc.unary_not;
-@Coercion var converter(var x) import org.GreenTeaScript.JVM.GtSubProc.ConvertToString;
-@Coercion var converter(var x) import org.GreenTeaScript.JVM.GtSubProc.ConvertToBoolean;
+let Process = import org.GreenTeaScript.DShell.DShellProcess;
+@Coercion var "!"(var x) import org.GreenTeaScript.DShell.DShellProcess.unary_not;
+@Coercion var converter(var x) import org.GreenTeaScript.DShell.DShellProcess.ConvertToString;
+@Coercion var converter(var x) import org.GreenTeaScript.DShell.DShellProcess.ConvertToBoolean;

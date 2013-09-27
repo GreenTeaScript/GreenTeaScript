@@ -1,4 +1,4 @@
-package org.GreenTeaScript.JVM;
+package org.GreenTeaScript.DShell;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -26,7 +26,7 @@ import org.GreenTeaScript.DShellGrammar;
 import org.GreenTeaScript.GtType;
 import org.GreenTeaScript.LibGreenTea;
 
-public class GtSubProc {
+public class DShellProcess {
 	// option flag
 	private static final int returnable = 1 << 0;
 	private static final int printable = 1 << 1;
@@ -49,12 +49,12 @@ public class GtSubProc {
 	private final PseudoProcess[] Processes;
 	private long timeout;
 	private ShellExceptionRaiser ExceptionManager = null;
-	public GtSubProc(int option, String[][] cmds, int ProcessSize, long timeout) {
+	public DShellProcess(int option, String[][] cmds, int ProcessSize, long timeout) {
 		// init process
 		this.ExceptionManager = new ShellExceptionRaiser(is(option, throwable));
 		this.Processes = new PseudoProcess[ProcessSize];
 		for(int i = 0; i < ProcessSize; i++) {
-			this.Processes[i] = GtSubProc.createProc(cmds[i], is(option, enableTrace));
+			this.Processes[i] = DShellProcess.createProc(cmds[i], is(option, enableTrace));
 			this.ExceptionManager.setProcess(this.Processes[i]);
 		}
 		ErrorStreamHandler Handler = new ErrorStreamHandler(this.Processes);
@@ -74,7 +74,7 @@ public class GtSubProc {
 	private boolean IsBackGroundProcess() {
 		return is(this.CommandFlag, background);
 	}
-	private GtSubProc Detach() {
+	private DShellProcess Detach() {
 		this.LastProcess.showResult();
 		if(timeout > 0) {
 			new ProcessTimer(this.Processes, timeout);
@@ -103,13 +103,13 @@ public class GtSubProc {
 	}
 
 	// GreenTeaScript API
-	public final static boolean unary_not(GtSubProc Value) {
+	public final static boolean unary_not(DShellProcess Value) {
 		return !(Value.ReturnValue == 0);
 	}
-	public final static String ConvertToString(GtType Type, GtSubProc Value) {
+	public final static String ConvertToString(GtType Type, DShellProcess Value) {
 		return Value.Result;
 	}
-	public final static boolean ConvertToBoolean(GtType ToType, GtSubProc Value) {
+	public final static boolean ConvertToBoolean(GtType ToType, DShellProcess Value) {
 		return Value.ReturnValue == 0;
 	}
 
@@ -128,9 +128,9 @@ public class GtSubProc {
 		return ((Boolean) runCommands(cmds, option, BooleanType)).booleanValue();
 	}
 
-	public static GtSubProc ExecCommand(String[]... cmds) throws Exception {
+	public static DShellProcess ExecCommand(String[]... cmds) throws Exception {
 		int option = printable | throwable | enableTrace;
-		return (GtSubProc) runCommands(cmds, option, ProcessType);
+		return (DShellProcess) runCommands(cmds, option, ProcessType);
 	}
 	//---------------------------------------------
 
@@ -273,7 +273,7 @@ public class GtSubProc {
 			option = setFlag(option, enableTrace, checkTraceRequirements());
 		}
 		
-		GtSubProc Process = new GtSubProc(option, cmds, size, timeout);
+		DShellProcess Process = new DShellProcess(option, cmds, size, timeout);
 		if(Process.IsBackGroundProcess()) {
 			return Process.Detach();
 		}

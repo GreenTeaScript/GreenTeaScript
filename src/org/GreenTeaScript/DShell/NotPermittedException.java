@@ -1,4 +1,5 @@
-package org.GreenTeaScript.JVM;
+package org.GreenTeaScript.DShell;
+
 
 // shell Exception definition
 public class NotPermittedException extends DShellException {
