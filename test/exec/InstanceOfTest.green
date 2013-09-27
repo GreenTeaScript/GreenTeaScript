@@ -8,10 +8,29 @@ boolean TestFunc() {
 	return true;
 }
 
+boolean TestAnyFunc() {
+	any o = null;
+	any n = 1;
+	any s = "ABC";
+	assert(!(o instanceof int));
+	assert(!(o instanceof String));
+	assert(!(o instanceof boolean));
+
+        assert(n instanceof int);
+        assert(!(n instanceof String));
+        assert(!(n instanceof boolean));
+
+        assert(!(s instanceof int));
+        assert(s instanceof String);
+        assert(!(s instanceof boolean));
+	return true;
+}
+
 @Export
 int main()
 {
 	assert(TestFunc());
+	assert(TestAnyFunc());
 	return 0;
 }
 

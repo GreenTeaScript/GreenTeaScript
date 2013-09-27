@@ -3663,7 +3663,7 @@ final class KonohaGrammar extends GtGrammar {
 			ParamList.add(RecvNode);
 			ResolvedFunc = PolyFunc.ResolveFunc(Gamma, ParsedTree, 1, ParamList);
 			if(ResolvedFunc.Func == null) {
-				return Gamma.CreateSyntaxErrorNode(ParsedTree, "undefined: " + MethodName + " of " + RecvNode);
+				return Gamma.CreateSyntaxErrorNode(ParsedTree, "undefined: " + MethodName + " of " + RecvNode.Type);
 			}
 			/*local*/GtNode Node = Gamma.Generator.CreateIndexerNode(ResolvedFunc.ReturnType, ParsedTree, ResolvedFunc.Func, RecvNode);
 			Node.AppendNodeList(1, ParamList);

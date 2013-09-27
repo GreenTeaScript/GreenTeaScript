@@ -5,6 +5,19 @@
 @Const @Operator boolean "=="(any x, any y) import GreenTeaRuntime.binary_eq;
 @Const @Operator boolean "!="(any x, any y) import GreenTeaRuntime.binary_ne;
 
+// String type
+
+@Const @Operator String "+"(String x, String y) import GreenTeaRuntime.binary_add;
+@Const @Operator String "+"(int x, String y) import GreenTeaRuntime.binary_add;
+@Const @Operator String "+"(boolean x, String y) import GreenTeaRuntime.binary_add;
+
+@Const @Operator boolean "=="(String x, String y) import GreenTeaRuntime.binary_eq;
+@Const @Operator boolean "!="(String x, String y) import GreenTeaRuntime.binary_ne;
+
+@Const @Operator int "||"(String x) import GreenTeaRuntime.GetSize;
+@Const @Operator String "[]"(String x, int index) import GreenTeaRuntime.Get;
+@Const @Operator String "[:]"(String x, int beginIndex) import GreenTeaRuntime.Slice;
+@Const @Operator String "[:]"(String x, int beginIndex, int endIndex) import GreenTeaRuntime.Slice;
 
 // unary operator
 
@@ -65,14 +78,6 @@
 
 @Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.ja2l;
 @Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.l2ja;
-
-// String
-@Const @Operator String "+"(String x, String y) import org.GreenTeaScript.GreenTeaRuntime.binary_add;
-@Const @Operator String "+"(int x, String y) import org.GreenTeaScript.GreenTeaRuntime.binary_add;
-@Const @Operator String "+"(boolean x, String y) import org.GreenTeaScript.GreenTeaRuntime.binary_add;
-
-@Const @Operator boolean "=="(String x, String y) import org.GreenTeaScript.GreenTeaRuntime.binary_eq;
-@Const @Operator boolean "!="(String x, String y) import org.GreenTeaScript.GreenTeaRuntime.binary_ne;
 
 // double
 @Const @Operator double "+"(double x, double y) import org.GreenTeaScript.GreenTeaRuntime.binary_add;

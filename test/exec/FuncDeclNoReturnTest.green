@@ -1,0 +1,19 @@
+// written by kimio kuramitsu
+
+boolean ReturnBoolean() {
+}
+
+int ReturnInt() {
+}
+
+void ReturnVoid() {
+}
+
+@Export
+int main() {
+	assert(!ReturnBoolean());
+	assert(ReturnInt() == 0);
+	ReturnVoid();
+	return 0;
+}
+

@@ -192,7 +192,8 @@ public class GreenTeaRuntime {
 	}
 
 	//-----------------------------------------------------
-
+	// any
+	
 	public final static long unary_size(Object x) {
 		return x == null ? 0 : 1;
 	}
@@ -204,6 +205,28 @@ public class GreenTeaRuntime {
 	public final static boolean binary_ne(Object x, Object y) {
 		return x != y;
 	}
+
+	//-----------------------------------------------------
+	// String
+	
+	public final static long GetSize(String self) {
+		return self.length();
+	}
+	public final static String Get(String self, long Index) {
+		return "" + self.charAt((int)Index);  // not good
+	}
+	public final static String Slice(String self, long BIndex) {
+		int bindex = (BIndex < 0) ? self.length() - (int)BIndex : (int)BIndex;
+		return self.substring(bindex);
+	}
+	public final static String Slice(String self, long BIndex, long EIndex) {
+		int bindex = (BIndex < 0) ? self.length() - (int)BIndex : (int)BIndex;
+		int eindex = (EIndex < 0) ? self.length() - (int)EIndex : (int)EIndex;
+		return self.substring(bindex, eindex);
+	}
+
+	//-----------------------------------------------------
+	// String
 
 	public static long unary_plus(long n) {
 		return +n;
@@ -399,6 +422,7 @@ public class GreenTeaRuntime {
 		return x / y;
 	}
 
+	
 	//-----------------------------------------------------
 
 	public static Object getter(Object o, String name) throws Exception {

@@ -1,0 +1,21 @@
+// written by kimio kuramitsu
+
+boolean TestFunc(boolean b) {
+	return b;
+}
+
+boolean TestFunc(int n) {
+	return (n == 1);
+}
+
+boolean TestFunc(String s) {
+	return false;
+}
+
+@Export
+int main() {
+	assert(TestFunc(true));
+	assert(TestFunc(1));
+	assert(!TestFunc("hi"));
+	return 0;
+}
