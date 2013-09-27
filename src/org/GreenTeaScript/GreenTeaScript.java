@@ -3673,24 +3673,24 @@ final class KonohaGrammar extends GtGrammar {
 	}
 
 	public static GtSyntaxTree ParseSlice(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		/*local*/GtSyntaxTree ArrayTree = TokenContext.CreateMatchedSyntaxTree(NameSpace, Pattern, "[");
-		ArrayTree.AppendParsedTree2(LeftTree);
-		/*local*/GtSyntaxTree Tree = TokenContext.ParsePattern(NameSpace, "$Expression$", Optional);
-		if(Tree == null) {
-			ArrayTree.AppendParsedTree2(KonohaGrammar.ParseEmpty(NameSpace, TokenContext, LeftTree, Pattern));
+		/*local*/GtSyntaxTree SliceTree = TokenContext.CreateMatchedSyntaxTree(NameSpace, Pattern, "[");
+		SliceTree.AppendParsedTree2(LeftTree);
+		SliceTree.SetMatchedPatternAt(1, NameSpace, TokenContext, "$Expression$", Optional);
+		if(!SliceTree.HasNodeAt(1)) {
+			SliceTree.SetSyntaxTreeAt(1, SliceTree.CreateConstTree(0)); // s[:x]
 		}
-		else {
-			ArrayTree.AppendParsedTree2(Tree);
-		}
-		ArrayTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ":", Required);
-		ArrayTree.AppendMatchedPattern(NameSpace, TokenContext, "$Expression$", Optional);
-		ArrayTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "]", Required);
-		return ArrayTree;
+		SliceTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ":", Required);
+		SliceTree.AppendMatchedPattern(NameSpace, TokenContext, "$Expression$", Optional);
+		SliceTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "]", Required);
+		return SliceTree;
 	}
 
 	public static GtNode TypeSlice(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		
-		return null;
+		/*local*/GtNode RecvNode = ParsedTree.TypeCheckAt(LeftHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+		if(!RecvNode.IsError()) {
+			return TypeMethodCall(Gamma, ParsedTree, RecvNode, "[:]");
+		}
+		return RecvNode;
 	}
 
 	// ClassDecl
@@ -3879,6 +3879,7 @@ final class KonohaGrammar extends GtGrammar {
 		NameSpace.AppendExtendedSyntax("(", 0, LoadParseFunc(ParserContext, this, "ParseApply"), LoadTypeFunc(ParserContext, this, "TypeApply"));
 		NameSpace.AppendSyntax("[", LoadParseFunc(ParserContext, this, "ParseArray"), LoadTypeFunc(ParserContext, this, "TypeArray"));
 		NameSpace.AppendExtendedSyntax("[", 0, LoadParseFunc(ParserContext, this, "ParseIndexer"), LoadTypeFunc(ParserContext, this, "TypeIndexer"));
+		NameSpace.AppendExtendedSyntax("[", 0, LoadParseFunc(ParserContext, this, "ParseSlice"), LoadTypeFunc(ParserContext, this, "TypeSlice"));
 		NameSpace.AppendSyntax("|", LoadParseFunc(ParserContext, this, "ParseSize"), LoadTypeFunc(ParserContext, this, "TypeSize"));
 
 		NameSpace.AppendSyntax("$Block$", LoadParseFunc(ParserContext, this, "ParseBlock"), null);
