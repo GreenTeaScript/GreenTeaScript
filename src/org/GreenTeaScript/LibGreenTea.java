@@ -99,6 +99,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 			}
 		}
 		LibGreenTea.VerboseLog(GreenTeaUtils.VerboseException, e.toString());
+		e.printStackTrace();
 	}
 
 	public final static void Exit(int status, String Message) {

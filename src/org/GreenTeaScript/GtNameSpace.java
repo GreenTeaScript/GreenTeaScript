@@ -234,17 +234,17 @@ public final class GtNameSpace extends GreenTeaUtils {
 			if(Value != null) {
 				return Value;
 			}
-			if(ClassType.IsDynamicNaitiveLoading() & this.Context.RootNameSpace.GetLocalUndefinedSymbol(Key) == null) {
-				Value = LibGreenTea.LoadNativeStaticFieldValue(ClassType, Symbol.substring(1));
-				if(Value != null) {
-					return Value;
-				}
-				//LibGreenTea.LoadNativeMethods(ClassType, Symbol, FuncList);
-			}
+//			if(ClassType.IsDynamicNaitiveLoading() & this.Context.RootNameSpace.GetLocalUndefinedSymbol(Key) == null) {
+//				Value = LibGreenTea.LoadNativeStaticFieldValue(ClassType, Symbol.substring(1));
+//				if(Value != null) {
+//					return Value;
+//				}
+//				//LibGreenTea.LoadNativeMethods(ClassType, Symbol, FuncList);
+//			}
 			if(!RecursiveSearch) {
 				break;
 			}
-			ClassType = ClassType.SuperType;
+			ClassType = ClassType.ParentMethodSearch;
 		}
 		return null;
 	}
