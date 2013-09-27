@@ -27,6 +27,20 @@ package org.GreenTeaScript;
 import java.util.ArrayList;
 //endif VAJA
 
+final class GtTokenFunc {
+	/*field*/public GtFunc      Func;
+	/*field*/public GtTokenFunc	ParentFunc;
+
+	GtTokenFunc/*constructor*/(GtFunc Func, GtTokenFunc Parent) {
+		this.Func = Func;
+		this.ParentFunc = Parent;
+	}
+
+	@Override public String toString() {
+		return this.Func.toString();
+	}
+}
+
 public final class GtNameSpace extends GreenTeaUtils {
 	/*field*/public final GtParserContext		Context;
 	/*field*/public final GtNameSpace		    ParentNameSpace;
