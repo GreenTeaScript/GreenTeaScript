@@ -56,6 +56,15 @@ public class ArrayApi {
 		self.ArrayBody.add(Value);
 		return self;
 	}
+	public final static GreenTeaArray Slice(GreenTeaArray self, long BIndex) {
+		int bindex = (BIndex < 0) ? self.ArrayBody.size() - (int)BIndex : (int)BIndex;
+		return self.SubArray(bindex, self.ArrayBody.size());
+	}
+	public final static GreenTeaArray Slice(GreenTeaArray self, long BIndex, long EIndex) {
+		int bindex = (BIndex < 0) ? self.ArrayBody.size() - (int)BIndex : (int)BIndex;
+		int eindex = (EIndex < 0) ? self.ArrayBody.size() - (int)EIndex : (int)EIndex;
+		return self.SubArray(bindex, eindex);
+	}
 
 //	// Converter
 //	public final static GreenTeaArray<?> AnyToGreenArray(GtType Type, Object Value) {

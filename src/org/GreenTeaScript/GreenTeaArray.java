@@ -34,6 +34,14 @@ public class GreenTeaArray extends GreenTeaTopObject {
 		super(GreenType);
 		this.ArrayBody = new ArrayList<Object>();
 	}
+	public GreenTeaArray SubArray(int bindex, int eindex) {
+		GreenTeaArray ArrayObject = new GreenTeaArray(this.GreenType);
+		for(int i = bindex; i < eindex; i++) {
+			Object Value = this.ArrayBody.get(i);
+			this.ArrayBody.add(Value);
+		}
+		return ArrayObject;
+	}
 	@Override public String toString() {
 		String s = "[";
 		for(int i = 0; i < this.ArrayBody.size(); i++) {

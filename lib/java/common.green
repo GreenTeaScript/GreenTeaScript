@@ -98,10 +98,10 @@ void assert(boolean b) import LibGreenTea.Assert;
 @Coercion @Const String converter(double x) import Konoha.DoubleApi.ToString;
 @Coercion @Const int converter(double x) import Konoha.DoubleApi.ToInt;
 
-@Coercion @Const var converter(var x) import Konoha.DoubleApi.d2f;
-@Coercion @Const var converter(var x) import Konoha.DoubleApi.f2d;
-@Coercion @Const var converter(var x) import Konoha.DoubleApi.d2i;
-@Coercion @Const var converter(var x) import Konoha.DoubleApi.i2d;
+@Hidden @Coercion @Const var converter(var x) import Konoha.DoubleApi.d2f;
+@Hidden @Coercion @Const var converter(var x) import Konoha.DoubleApi.f2d;
+@Hidden @Coercion @Const var converter(var x) import Konoha.DoubleApi.d2i;
+@Hidden @Coercion @Const var converter(var x) import Konoha.DoubleApi.i2d;
 
 //@Const @Coercion boolean converter(any x) import org.GreenTeaScript.GreenTeaRuntime.AnyToBoolean;
 //@Coercion @Const int converter(any x) import org.GreenTeaScript.GreenTeaRuntime.AnyToInt;
@@ -110,16 +110,17 @@ void assert(boolean b) import LibGreenTea.Assert;
 //@Coercion @Const double converter(any x) import org.GreenTeaScript.GreenTeaRuntime.AnyToDouble;
 //@Const double converter(String x) import org.GreenTeaScript.GreenTeaRuntime.StringToDouble;
 
-
 // ArrayApi
-<T> int "||"(Array<T> this) import Konoha.ArrayApi.GetSize;
-<T> T "[]"(Array<T> this, int index) import Konoha.ArrayApi.Get;
-<T> void "[]="(Array<T> this, int index, T value) import Konoha.ArrayApi.Set;
+@Const @Operator <T> int "||"(Array<T> this) import Konoha.ArrayApi.GetSize;
+@Const @Operator <T> T "[]"(Array<T> this, int index) import Konoha.ArrayApi.Get;
+@Const @Operator <T> void "[]="(Array<T> this, int index, T value) import Konoha.ArrayApi.Set;
 <T> Array<T> add(Array<T> this, T value) import Konoha.ArrayApi.Add;
+@Const @Operator <T> Array<T> "[:]"(Array<T> x, int beginIndex) import Konoha.ArrayApi.Slice;
+@Const @Operator <T> Array<T> "[:]"(Array<T> x, int beginIndex, int endIndex) import Konoha.ArrayApi.Slice;
 
 // experimental
-@Coercion @Const var converter(var x) import Konoha.ArrayApi.GreenArrayToStringArray;
-@Coercion @Const var converter(var x) import Konoha.ArrayApi.StringArrayToGreenArray;
+@Hidden @Coercion @Const var converter(var x) import Konoha.ArrayApi.GreenArrayToStringArray;
+@Hidden @Coercion @Const var converter(var x) import Konoha.ArrayApi.StringArrayToGreenArray;
 
 
 

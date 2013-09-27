@@ -2695,7 +2695,7 @@ final class KonohaGrammar extends GtGrammar {
 		SliceTree.AppendParsedTree2(LeftTree);
 		SliceTree.SetMatchedPatternAt(1, NameSpace, TokenContext, "$Expression$", Optional);
 		if(!SliceTree.HasNodeAt(1)) {
-			SliceTree.SetSyntaxTreeAt(1, SliceTree.CreateConstTree(0)); // s[:x]
+			SliceTree.SetSyntaxTreeAt(1, SliceTree.CreateConstTree(0L)); // s[:x]
 		}
 		SliceTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ":", Required);
 		SliceTree.AppendMatchedPattern(NameSpace, TokenContext, "$Expression$", Optional);
