@@ -23,30 +23,69 @@
 // **************************************************************************
 
 package org.GreenTeaScript.Konoha;
-import org.GreenTeaScript.GreenTeaEnum;
 import org.GreenTeaScript.GtType;
 
-public class TopApi {
-	public final static long Size(Object x) {
-		return x == null ? 0 : 1;
+public final class DoubleApi {
+	public static double Plus(double n) {
+		return +n;
 	}
-	public final static boolean Equals(Object x, Object y) {
+	public static double Minus(double n) {
+		return -n;
+	}
+	public static double Add(double x, double y) {
+		return x + y;
+	}
+	public static double Sub(double x, double y) {
+		return x - y;
+	}
+	public static double Mul(double x, double y) {
+		return x * y;
+	}
+	public static double Div(double x, double y) {
+		return x / y;
+	}
+	public static double Mod(double x, double y) {
+		return x % y;
+	}
+	public static boolean LessThan(double x, double y) {
+		return x < y;
+	}
+	public static boolean LessThanEquals(double x, double y) {
+		return x <= y;
+	}
+	public static boolean GreaterThan(double x, double y) {
+		return x > y;
+	}
+	public static boolean GreaterThanEquals(double x, double y) {
+		return x >= y;
+	}
+	public static boolean Equals(double x, double y) {
 		return x == y;
 	}
-	public final static boolean NotEquals(Object x, Object y) {
+	public static boolean NotEquals(double x, double y) {
 		return x != y;
 	}
-	// Enum
-	public final static String EnumToString(GtType Type, GreenTeaEnum Value) {
-		if(Value != null) {
-			return Value.EnumSymbol;
-		}
-		return null;
+	// converter
+	public final static String ToString(GtType Type, double value) {
+		return "" + value;
 	}
-	public final static long EnumToInt(GtType Type, GreenTeaEnum Value) {
-		if(Value != null) {
-			return Value.EnumValue;
-		}
-		return -1;
+	public final static Object ToAny(GtType Type, double value) {
+		return new Double(value);
+	}
+	public final static long ToInt(GtType Type, double value) {
+		return (long)value;
+	}
+	// JavaType
+	public final static float d2f(GtType Type, double n) {
+		return (float)n;
+	}
+	public final static double f2d(GtType Type, float n) {
+		return (double)n;
+	}
+	public final static int d2i(GtType Type, double n) {
+		return (int)n;
+	}
+	public final static double i2d(GtType Type, int n) {
+		return (double)n;
 	}
 }

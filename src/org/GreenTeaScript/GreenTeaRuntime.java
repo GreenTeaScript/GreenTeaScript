@@ -33,13 +33,6 @@ public class GreenTeaRuntime {
 	// converter 
 	
 	// Boolean
-	public final static String BooleanToString(GtType Type, boolean value) {
-		return value ? "true" : "false";
-	}
-
-	public final static Object BooleanToAny(GtType Type, boolean value) {
-		return new Boolean(value);
-	}
 
 	public final static boolean AnyToBoolean(GtType Type, Object value) {
 		if(value instanceof Boolean) {
@@ -61,24 +54,7 @@ public class GreenTeaRuntime {
 	}
 
 	// int
-	public final static String IntToString(GtType Type, long value) {
-		return ""+value;
-	}
 
-	public final static long StringToInt(GtType Type, String value) {
-		if(value != null) {
-			try {
-				return Long.parseLong(value);
-			}
-			catch(NumberFormatException e) {
-			}
-		}
-		return 0;
-	}
-
-	public final static Object IntToAny(GtType Type, long value) {
-		return new Long(value);
-	}
 
 	public final static long AnyToInt(GtType Type, Object value) {
 		if(value instanceof Number) {
@@ -92,16 +68,6 @@ public class GreenTeaRuntime {
 		return ""+value;
 	}
 
-	public final static double StringToDouble(GtType Type, String value) {
-		if(value != null) {
-			try {
-				return Double.parseDouble(value);
-			}
-			catch(NumberFormatException e) {
-			}
-		}
-		return 0;
-	}
 
 	public final static Object DoubleToAny(GtType Type, double value) {
 		return new Double(value);
@@ -113,46 +79,9 @@ public class GreenTeaRuntime {
 		}
 		return 0;
 	}
-	// Enum
-	public final static String EnumToString(GtType Type, GreenTeaEnum Value) {
-		if(Value != null) {
-			return Value.EnumSymbol;
-		}
-		return null;
-	}
-
-	public final static long EnumToInt(GtType Type, GreenTeaEnum Value) {
-		if(Value != null) {
-			return Value.EnumValue;
-		}
-		return -1;
-	}
 
 	//-----------------------------------------------------------------------
 
-	public final static int l2i(GtType Type, long n) {
-		return (int)n;
-	}
-
-	public final static long i2l(GtType Type, int n) {
-		return (long)n;
-	}
-
-	public final static short l2s(GtType Type, long n) {
-		return (short)n;
-	}
-
-	public final static long s2l(GtType Type, short n) {
-		return (long)n;
-	}
-
-	public final static float d2f(GtType Type, double n) {
-		return (float)n;
-	}
-
-	public final static double f2d(GtType Type, float n) {
-		return (double)n;
-	}
 
 	public final static long d2l(GtType Type, double n) {
 		return (long)n;
@@ -166,252 +95,6 @@ public class GreenTeaRuntime {
 		return (double)n;
 	}
 
-	public final static String c2s(GtType Type, char ch) {
-		return ""+ch;
-	}
-
-	public final static char s2c(GtType Type, String s) {
-		return s == null ? (char)0 : s.charAt(0);
-	}
-
-	public final static ArrayList<Object> ja2l(GtType Type, String[] Value) {
-		int i, size = Value == null ? 0 : Value.length;
-		ArrayList<Object> l = new ArrayList<Object>(size);
-		for(i = 0; i < size; i++) {
-			l.add(Value[i]);
-		}
-		return l;
-	}
-
-	public final static String[] l2ja(GtType Type, ArrayList<Object> List) {
-		int size = List == null ? 0 : List.size();
-		String[] a = new String[size];
-		//List.toArray(a);
-		return a;
-	}
-
-	//-----------------------------------------------------
-	// top
-	
-
-	//-----------------------------------------------------
-	// String
-	
-	public final static long GetSize(String self) {
-		return self.length();
-	}
-	public final static String Get(String self, long Index) {
-		return "" + self.charAt((int)Index);  // not good
-	}
-	public final static String Slice(String self, long BIndex) {
-		int bindex = (BIndex < 0) ? self.length() - (int)BIndex : (int)BIndex;
-		return self.substring(bindex);
-	}
-	public final static String Slice(String self, long BIndex, long EIndex) {
-		int bindex = (BIndex < 0) ? self.length() - (int)BIndex : (int)BIndex;
-		int eindex = (EIndex < 0) ? self.length() - (int)EIndex : (int)EIndex;
-		return self.substring(bindex, eindex);
-	}
-
-	//-----------------------------------------------------
-	// String
-
-	public static long unary_plus(long n) {
-		return +n;
-	}
-
-	public static long unary_minus(long n) {
-		return -n;
-	}
-
-	public static long unary_not(long n) {
-		return ~n;
-	}
-
-	public static boolean unary_not(boolean b) {
-		return !b;
-	}
-
-	public static double unary_plus(double n) {
-		return +n;
-	}
-
-	public static double unary_minus(double n) {
-		return -n;
-	}
-
-	//-----------------------------------------------------
-
-	public static boolean binary_eq(boolean x, boolean y) {
-		return x == y;
-	}
-
-	public static boolean binary_ne(boolean x, boolean y) {
-		return x != y;
-	}
-
-	//-----------------------------------------------------
-
-	public static long binary_add(long x, long y) {
-		return x + y;
-	}
-
-	public static long binary_sub(long x, long y) {
-		return x - y;
-	}
-
-	public static long binary_mul(long x, long y) {
-		return x * y;
-	}
-
-	public static long binary_div(long x, long y) {
-		return x / y;
-	}
-
-	public static long binary_mod(long x, long y) {
-		return x % y;
-	}
-
-	public static long binary_shl(long x, long y) {
-		return x << y;
-	}
-
-	public static long binary_shr(long x, long y) {
-		return x >> y;
-	}
-
-	public static long binary_and(long x, long y) {
-		return x & y;
-	}
-
-	public static long binary_or(long x, long y) {
-		return x | y;
-	}
-
-	public static long binary_xor(long x, long y) {
-		return x ^ y;
-	}
-
-	public static boolean binary_lt(long x, long y) {
-		return x < y;
-	}
-
-	public static boolean binary_le(long x, long y) {
-		return x <= y;
-	}
-
-	public static boolean binary_gt(long x, long y) {
-		return x > y;
-	}
-
-	public static boolean binary_ge(long x, long y) {
-		return x >= y;
-	}
-
-	public static boolean binary_eq(long x, long y) {
-		return x == y;
-	}
-
-	public static boolean binary_ne(long x, long y) {
-		return x != y;
-	}
-
-	//-----------------------------------------------------
-
-	public static boolean binary_eq(String x, String y) {
-		if(x == null) {
-			return x == y;
-		}
-		else {
-			return x.equals(y);
-		}
-	}
-
-	public static boolean binary_ne(String x, String y) {
-		return !binary_eq(x, y);
-	}
-
-	//-----------------------------------------------------
-
-	public static String binary_add(String x, String y) {
-		return x + y;
-	}
-
-	public static String binary_add(String x, long y) {
-		return x + y;
-	}
-
-	public static String binary_add(String x, boolean y) {
-		return x + y;
-	}
-
-	public static String binary_add(long x, String y) {
-		return x + y;
-	}
-
-	public static String binary_add(boolean x, String y) {
-		return x + y;
-	}
-
-	//-----------------------------------------------------
-	public static double binary_add(double x, double y) {
-		return x + y;
-	}
-
-	public static double binary_sub(double x, double y) {
-		return x - y;
-	}
-
-	public static double binary_mul(double x, double y) {
-		return x * y;
-	}
-
-	public static double binary_div(double x, double y) {
-		return x / y;
-	}
-
-	public static boolean binary_lt(double x, double y) {
-		return x < y;
-	}
-
-	public static boolean binary_le(double x, double y) {
-		return x <= y;
-	}
-
-	public static boolean binary_gt(double x, double y) {
-		return x > y;
-	}
-
-	public static boolean binary_ge(double x, double y) {
-		return x >= y;
-	}
-
-	public static boolean binary_eq(double x, double y) {
-		return x == y;
-	}
-
-	public static boolean binary_ne(double x, double y) {
-		return x != y;
-	}
-
-	public static double binary_add(long x, double y) {
-		return x + y;
-	}
-
-	public static double binary_sub(long x, double y) {
-		return x - y;
-	}
-
-	public static double binary_mul(long x, double y) {
-		return x * y;
-	}
-
-	public static double binary_div(long x, double y) {
-		return x / y;
-	}
-
-	
-	//-----------------------------------------------------
 
 	public static Object getter(Object o, String name) throws Exception {
 		return o.getClass().getField(name).get(o);

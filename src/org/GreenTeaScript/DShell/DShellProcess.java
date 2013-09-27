@@ -103,7 +103,7 @@ public class DShellProcess {
 	}
 
 	// GreenTeaScript API
-	public final static boolean unary_not(DShellProcess Value) {
+	public final static boolean Not(DShellProcess Value) {
 		return !(Value.ReturnValue == 0);
 	}
 	public final static String ConvertToString(GtType Type, DShellProcess Value) {

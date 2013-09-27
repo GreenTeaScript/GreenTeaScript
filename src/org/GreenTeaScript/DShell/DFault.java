@@ -70,15 +70,15 @@ public class DFault /*extends Exception*/ {
 		return(Fault.Location.equalsIgnoreCase(Location) && Fault.FaultInfo.equalsIgnoreCase(FaultInfo));
 	}
 
-	public static boolean binary_eq(DFault x, DFault y) {
+	public static boolean Equals(DFault x, DFault y) {
 		if(x == null || y == null) {
 			return x == y;
 		}
 		return x.equals(y);
 	}
 
-	public static boolean binary_ne(DFault x, DFault y) {
-		return !binary_eq(x, y);
+	public static boolean NotEquals(DFault x, DFault y) {
+		return !Equals(x, y);
 	}
 	
 }

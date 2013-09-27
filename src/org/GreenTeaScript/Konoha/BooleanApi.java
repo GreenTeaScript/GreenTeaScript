@@ -22,25 +22,24 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-//ifdef JAVA
-package org.GreenTeaScript;
-//endif VAJA
+package org.GreenTeaScript.Konoha;
+import org.GreenTeaScript.GtType;
 
-public class GreenTeaTopObject implements GreenTeaObject {
-	/*field*/public GtType GreenType;
-	protected GreenTeaTopObject/*constructor*/(GtType GreenType) {
-		this.GreenType = GreenType;
+public class BooleanApi {
+	public static boolean Not(boolean b) {
+		return !b;
 	}
-	public final GtType GetGreenType() {
-		return this.GreenType;
+	public static boolean Equals(boolean x, boolean y) {
+		return x == y;
+	}
+	public static boolean NotEquals(boolean x, boolean y) {
+		return x != y;
+	}
+	// converter
+	public final static String ToString(GtType Type, boolean value) {
+		return value ? "true" : "false";
+	}
+	public final static Object ToAny(GtType Type, boolean value) {
+		return new Boolean(value);
 	}
 }
-
-final class GreenTeaAnyObject extends GreenTeaTopObject {
-	/*field*/public final Object NativeValue;
-	GreenTeaAnyObject/*constructor*/(GtType GreenType, Object NativeValue) {
-		super(GreenType);
-		this.NativeValue = NativeValue;
-	}
-}
-

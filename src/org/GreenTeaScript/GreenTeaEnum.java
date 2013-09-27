@@ -26,21 +26,15 @@
 package org.GreenTeaScript;
 //endif VAJA
 
-public class GreenTeaTopObject implements GreenTeaObject {
-	/*field*/public GtType GreenType;
-	protected GreenTeaTopObject/*constructor*/(GtType GreenType) {
-		this.GreenType = GreenType;
-	}
-	public final GtType GetGreenType() {
-		return this.GreenType;
-	}
-}
-
-final class GreenTeaAnyObject extends GreenTeaTopObject {
-	/*field*/public final Object NativeValue;
-	GreenTeaAnyObject/*constructor*/(GtType GreenType, Object NativeValue) {
+public class GreenTeaEnum extends GreenTeaTopObject {
+	/*field*/public final long EnumValue;
+	/*field*/public final String EnumSymbol;
+	GreenTeaEnum/*constructor*/(GtType GreenType, long EnumValue, String EnumSymbol) {
 		super(GreenType);
-		this.NativeValue = NativeValue;
+		this.EnumValue = EnumValue;
+		this.EnumSymbol = EnumSymbol;
+	}
+	@Override public String toString() {
+		return ""+this.EnumValue;
 	}
 }
-
