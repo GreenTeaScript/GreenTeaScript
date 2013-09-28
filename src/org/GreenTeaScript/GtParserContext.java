@@ -28,9 +28,10 @@ import java.util.ArrayList;
 //endif VAJA
 
 public final class GtParserContext extends GreenTeaUtils {
+	/*field*/public final  int ParserId;
 	/*field*/public final  GtGenerator   Generator;
-	/*field*/public final  GtNameSpace		   RootNameSpace;
-	/*field*/public GtNameSpace		           TopLevelNameSpace;
+	/*field*/public final  GtNameSpace   RootNameSpace;
+	/*field*/public GtNameSpace		     TopLevelNameSpace;
 
 	// basic class
 	/*field*/public final GtType		VoidType;
@@ -53,21 +54,23 @@ public final class GtParserContext extends GreenTeaUtils {
 	/*field*/public final  ArrayList<String>   SourceList;
 	/*field*/public final  GtMap			   ClassNameMap;
 
-	/*field*/public int TypeCount;
-	/*field*/public int FuncCount;
 	/*field*/public final GtStat Stat;
 	/*field*/public ArrayList<String>    ReportedErrorList;
 	/*filed*/private boolean NoErrorReport;
-
+	
+	/*field*/public final ArrayList<GtType>    TypePools;
+	/*field*/public final ArrayList<GtFunc>    FuncPools;
+	
 	GtParserContext/*constructor*/(GtGrammar Grammar, GtGenerator Generator) {
+		this.ParserId     = LibGreenTea.NewParserId();
 		this.Generator    = Generator;
 		this.Generator.Context = this;
 		this.SourceMap     = new GtMap();
 		this.SourceList    = new ArrayList<String>();
 		this.ClassNameMap  = new GtMap();
 		this.RootNameSpace = new GtNameSpace(this, null);
-		this.TypeCount = 0;
-		this.FuncCount = 0;
+		this.TypePools     = new ArrayList<GtType>();
+		this.FuncPools     = new ArrayList<GtFunc>();
 		this.Stat = new GtStat();
 		this.NoErrorReport = false;
 		this.ReportedErrorList = new ArrayList<String>();
@@ -236,5 +239,13 @@ public final class GtParserContext extends GreenTeaUtils {
 			LibGreenTea.println(Messages[i]);
 			i = i + 1;
 		}
+	}
+	
+	public final GtType GetTypeById(int TypeId) {
+		return this.TypePools.get(TypeId);
+	}
+
+	public final GtFunc GetFuncById(int FuncId) {
+		return this.FuncPools.get(FuncId);
 	}
 }

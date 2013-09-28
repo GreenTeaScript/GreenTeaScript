@@ -84,8 +84,8 @@ public final class GtFunc extends GreenTeaUtils {
 		this.FuncType = null;
 		this.NativeRef = null;
 		/*local*/GtParserContext Context = this.GetContext();
-		this.FuncId = Context.FuncCount;
-		Context.FuncCount += 1;
+		this.FuncId = Context.FuncPools.size();
+		Context.FuncPools.add(this);
 		this.MangledName = FuncName + NativeNameSuffix + this.FuncId;
 	}
 

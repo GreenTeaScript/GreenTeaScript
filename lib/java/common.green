@@ -29,6 +29,12 @@ void assert(boolean b) import LibGreenTea.Assert;
 @Const @Operator String "[:]"(String x, int beginIndex) import Konoha.StringApi.Slice;
 @Const @Operator String "[:]"(String x, int beginIndex, int endIndex) import Konoha.StringApi.Slice;
 
+@Const boolean startsWith(String x, String y) import Konoha.StringApi.StartsWith;
+@Const boolean endsWith(String x, String y) import Konoha.StringApi.EndsWith;
+@Const int indexOf(String x, String y) import Konoha.StringApi.IndexOf;
+@Const int lastIndexOf(String x, String y) import Konoha.StringApi.LastIndexOf;
+
+@Const String[] split(String x, String y) import Konoha.StringApi.Split;
 
 @Const int converter(String x) import Konoha.StringApi.ToInt;
 @Const double converter(String x) import Konoha.StringApi.ToDouble;

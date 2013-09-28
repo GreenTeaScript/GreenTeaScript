@@ -47,6 +47,21 @@ public final class StringApi {
 //	public static String Add(boolean x, String y) {
 //		return x + y;
 //	}
+	public final static boolean StartsWith(String x, String y) {
+		return x.startsWith(y);
+	}
+	public final static boolean EndsWith(String x, String y) {
+		return x.endsWith(y);
+	}
+	public final static long IndexOf(String x, String y) {
+		return x.indexOf(y);
+	}
+	public final static long LastIndexOf(String x, String y) {
+		return x.lastIndexOf(y);
+	}
+	public final static String[] Split(String x, String regex) {
+		return x.split(regex);
+	}
 	public final static long GetSize(String self) {
 		return self.length();
 	}

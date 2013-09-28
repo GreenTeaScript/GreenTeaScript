@@ -44,6 +44,7 @@ import java.util.Iterator;
 
 public abstract class LibGreenTea implements GreenTeaConsts {
 
+
 	public final static void print(String msg) {
 		System.out.print(msg);
 	}
@@ -112,6 +113,13 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 			assert TestResult;
 			Exit(1, "Assertion Failed");
 		}
+	}
+
+	private static int ParserCount = -1;
+
+	public static int NewParserId() {
+		ParserCount++;
+		return ParserCount;
 	}
 
 	public final static char CharAt(String Text, long Pos) {
@@ -1104,5 +1112,6 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
 
 }

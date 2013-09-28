@@ -50,8 +50,8 @@ public class GtType extends GreenTeaUtils {
 		this.DefaultNullValue = DefaultNullValue;
 		this.TypeBody = TypeBody;
 		if(!IsFlag(TypeFlag, TypeVariable)) {
-			this.TypeId = Context.TypeCount;
-			Context.TypeCount += 1;
+			this.TypeId = Context.TypePools.size();
+			Context.TypePools.add(this);
 		}
 		this.TypeParams = null;
 	}
