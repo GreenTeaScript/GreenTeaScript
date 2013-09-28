@@ -834,7 +834,7 @@ final class KonohaGrammar extends GtGrammar {
 			if(KonohaGrammar.HasAnnotation(Annotation, "Coercion")) {
 				Flag = Flag | CoercionFunc;
 			}
-			if(KonohaGrammar.HasAnnotation(Annotation, "StringCoercion")) {
+			if(KonohaGrammar.HasAnnotation(Annotation, "StrongCoercion")) {
 				Flag = Flag | CoercionFunc | StrongCoercionFunc ;
 			}
 			if(KonohaGrammar.HasAnnotation(Annotation, "Deprecated")) {
@@ -2507,14 +2507,13 @@ final class KonohaGrammar extends GtGrammar {
 				FuncBlock.DefinedFunc = NameSpace.Context.Generator.CreateFunc(FuncFlag, FuncName, 0, FuncBlock.TypeList);
 				KonohaGrammar.ParseFuncBody(NameSpace, TokenContext, FuncDeclTree, FuncBlock);
 				if(IsFlag(FuncFlag, StrongCoercionFunc)) {  // this part is for weak type treatment
-					GtType FromType = TypeList.get(2);
-					FromType.SetWeakType(FuncBlock.DefinedFunc);
-					System.err.println("set weaktype = " + FromType);
+					GtType FromType = FuncBlock.DefinedFunc.GetFuncParamType(1);
+					GtType ToType = FuncBlock.DefinedFunc.GetReturnType();
+					FromType.SetWeakType(ToType);
+					StoreNameSpace = ToType.Context.RootNameSpace;
 				}
-				else {
-					SourceToken.ParsedText = FuncName;
-					StoreNameSpace.SetConverterFunc(null, null, FuncBlock.DefinedFunc, SourceToken);
-				}
+				SourceToken.ParsedText = FuncName;
+				StoreNameSpace.SetConverterFunc(null, null, FuncBlock.DefinedFunc, SourceToken);
 			}
 			else {
 				FuncBlock.SetThisIfInClass(NameSpace.GetType("This"));

@@ -138,13 +138,13 @@ public class GtType extends GreenTeaUtils {
 	public final boolean IsEnumType() {
 		return IsFlag(this.TypeFlag, EnumType);
 	}
-	public final void SetWeakType(GtFunc Func) {
-		this.TypeBody = Func;
+	public final void SetWeakType(GtType StrongType) {
+		this.BaseType = StrongType;
+		this.TypeFlag |= WeakType;
 	}
 	public final boolean IsWeakType() {
-		return (this.TypeBody instanceof GtFunc);
+		return IsFlag(this.TypeFlag, WeakType);
 	}
-
 	@Override public String toString() {
 		return this.ShortName;
 	}
