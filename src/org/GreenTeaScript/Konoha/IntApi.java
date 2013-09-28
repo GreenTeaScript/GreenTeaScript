@@ -122,5 +122,11 @@ public final class IntApi {
 	public final static long s2l(GtType Type, short n) {
 		return (long)n;
 	}
+	public final static byte l2b(GtType Type, long n) {
+		return (byte)n;
+	}
+	public final static long b2l(GtType Type, byte n) {
+		return (long)n;
+	}
 	
 }
