@@ -1551,8 +1551,8 @@ final class KonohaGrammar extends GtGrammar {
 		}
 		// 1. To start, check class const such as Math.Pi if base is a type value
 		/*local*/String TypeName = ObjectNode.Type.ShortName;
-		if(ObjectNode instanceof ConstNode && ObjectNode.Type.IsTypeType()) {
-			/*local*/GtType ObjectType = (/*cast*/GtType)((/*cast*/ConstNode)ObjectNode).ConstValue;
+		if(ObjectNode instanceof GtConstNode && ObjectNode.Type.IsTypeType()) {
+			/*local*/GtType ObjectType = (/*cast*/GtType)((/*cast*/GtConstNode)ObjectNode).ConstValue;
 			/*local*/Object ConstValue = ParsedTree.NameSpace.GetClassSymbol(ObjectType, ClassStaticName(Name), true);
 			if(ConstValue instanceof GreenTeaEnum) {
 				if(ContextType.IsStringType()) {
@@ -1598,7 +1598,7 @@ final class KonohaGrammar extends GtGrammar {
 		Gamma.Context.SetNoErrorReport(true);
 		/*local*/GtNode ObjectNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
 		Gamma.Context.SetNoErrorReport(false);
-		return Gamma.Generator.CreateConstNode(Gamma.BooleanType, ParsedTree, (ObjectNode instanceof ConstNode));
+		return Gamma.Generator.CreateConstNode(Gamma.BooleanType, ParsedTree, (ObjectNode instanceof GtConstNode));
 	}
 
 	public static GtSyntaxTree ParseApply(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
@@ -1678,7 +1678,7 @@ final class KonohaGrammar extends GtGrammar {
 		return RecvNode;
 	}
 
-	public static GtNode TypePolyFunc(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, ConstNode FuncNode, GtPolyFunc PolyFunc) {
+	public static GtNode TypePolyFunc(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtConstNode FuncNode, GtPolyFunc PolyFunc) {
 		/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
 		/*local*/GtResolvedFunc ResolvedFunc = PolyFunc.ResolveFunc(Gamma, ParsedTree, 1, ParamList);
 		if(ResolvedFunc.ErrorNode != null) {
@@ -1700,21 +1700,21 @@ final class KonohaGrammar extends GtGrammar {
 		if(FuncNode.IsError()) {
 			return FuncNode;
 		}
-		if(FuncNode instanceof GetterNode) { /* Func style .. o.f x, y, .. */
+		if(FuncNode instanceof GtGetterNode) { /* Func style .. o.f x, y, .. */
 			/*local*/String FuncName = FuncNode.Token.ParsedText;
-			/*local*/GtNode BaseNode = ((/*cast*/GetterNode)FuncNode).Expr;
+			/*local*/GtNode BaseNode = ((/*cast*/GtGetterNode)FuncNode).Expr;
 			return TypeMethodCall(Gamma, ParsedTree, BaseNode, FuncName);
 		}
-		if(FuncNode instanceof ConstNode) { /* static */
-			/*local*/Object Func = ((/*cast*/ConstNode)FuncNode).ConstValue;
+		if(FuncNode instanceof GtConstNode) { /* static */
+			/*local*/Object Func = ((/*cast*/GtConstNode)FuncNode).ConstValue;
 			if(Func instanceof GtType) {  // constructor;
 				return TypeNewNode(Gamma, ParsedTree, FuncNode.Token, (/*cast*/GtType)Func, ContextType);
 			}
 			else if(Func instanceof GtFunc) {
-				return TypePolyFunc(Gamma, ParsedTree, ((/*cast*/ConstNode)FuncNode), new GtPolyFunc(null).Append((/*cast*/GtFunc)Func, null));
+				return TypePolyFunc(Gamma, ParsedTree, ((/*cast*/GtConstNode)FuncNode), new GtPolyFunc(null).Append((/*cast*/GtFunc)Func, null));
 			}
 			else if(Func instanceof GtPolyFunc) {
-				return TypePolyFunc(Gamma, ParsedTree, ((/*cast*/ConstNode)FuncNode), (/*cast*/GtPolyFunc)Func);
+				return TypePolyFunc(Gamma, ParsedTree, ((/*cast*/GtConstNode)FuncNode), (/*cast*/GtPolyFunc)Func);
 			}
 		}
 //		/*local*/GtType ReturnType = Gamma.AnyType;
@@ -1769,7 +1769,7 @@ final class KonohaGrammar extends GtGrammar {
 
 	public static GtNode TypeAssign(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtNode LeftNode = ParsedTree.TypeCheckAt(LeftHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-		if(LeftNode instanceof LocalNode || LeftNode instanceof GetterNode || LeftNode instanceof IndexerNode) {
+		if(LeftNode instanceof GtLocalNode || LeftNode instanceof GtGetterNode || LeftNode instanceof GtIndexerNode) {
 			/*local*/GtNode RightNode = ParsedTree.TypeCheckAt(RightHandTerm, Gamma, LeftNode.Type, DefaultTypeCheckPolicy);
 			return Gamma.Generator.CreateAssignNode(LeftNode.Type, ParsedTree, LeftNode, RightNode);
 		}
@@ -1778,7 +1778,7 @@ final class KonohaGrammar extends GtGrammar {
 
 	public static GtNode TypeSelfAssign(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtNode LeftNode = ParsedTree.TypeCheckAt(LeftHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-		if(!(LeftNode instanceof LocalNode || LeftNode instanceof GetterNode || LeftNode instanceof IndexerNode)) {
+		if(!(LeftNode instanceof GtLocalNode || LeftNode instanceof GtGetterNode || LeftNode instanceof GtIndexerNode)) {
 			return Gamma.CreateSyntaxErrorNode(ParsedTree, "the left-hand side of an assignment must be variable");
 		}
 		/*local*/GtNode RightNode = ParsedTree.TypeCheckAt(RightHandTerm, Gamma, LeftNode.Type, DefaultTypeCheckPolicy);
@@ -1814,7 +1814,7 @@ final class KonohaGrammar extends GtGrammar {
 			if(Type != Gamma.VoidType) {
 				Gamma.Context.ReportError(WarningLevel, ParsedTree.KeyToken, "only available as statement: " + ParsedTree.KeyToken);
 			}
-			if(LeftNode instanceof LocalNode || LeftNode instanceof GetterNode || LeftNode instanceof IndexerNode) {
+			if(LeftNode instanceof GtLocalNode || LeftNode instanceof GtGetterNode || LeftNode instanceof GtIndexerNode) {
 				/*local*/GtNode ConstNode = Gamma.Generator.CreateConstNode(LeftNode.Type, ParsedTree, 1L);
 				// ++ => +
 				/*local*/String OperatorSymbol = LibGreenTea.SubString(ParsedTree.KeyToken.ParsedText, 0, 1);
@@ -2028,8 +2028,8 @@ final class KonohaGrammar extends GtGrammar {
 		/*local*/GtNode BodyNode =  ParsedTree.TypeCheckAt(ForBody, Gamma, Gamma.VoidType, DefaultTypeCheckPolicy);
 		/*local*/GtNode ForNode = Gamma.Generator.CreateForNode(BodyNode.Type, ParsedTree, CondNode, IterNode, BodyNode);
 		if(InitNode != null) {
-			if(InitNode instanceof VarNode) {
-				((/*cast*/VarNode)InitNode).BlockNode = ForNode;
+			if(InitNode instanceof GtVarNode) {
+				((/*cast*/GtVarNode)InitNode).BlockNode = ForNode;
 			}
 			else {
 				InitNode = GreenTeaUtils.LinkNode(InitNode, ForNode);

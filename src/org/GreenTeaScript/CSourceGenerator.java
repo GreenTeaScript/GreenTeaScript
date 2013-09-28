@@ -73,19 +73,19 @@ public class CSourceGenerator extends SourceGenerator {
 		return "NEW_" + TypeName + "()";
 	}
 
-	@Override public void VisitWhileNode(WhileNode Node) {
+	@Override public void VisitWhileNode(GtWhileNode Node) {
 		/*local*/String Program = "while(" + this.VisitNode(Node.CondExpr) + ")";
 		Program += this.VisitBlockWithIndent(Node.LoopBody, true);
 		this.PushSourceCode(Program);
 	}
 
-	@Override public void VisitDoWhileNode(DoWhileNode Node) {
+	@Override public void VisitDoWhileNode(GtDoWhileNode Node) {
 		/*local*/String Program = "do" + this.VisitBlockWithIndent(Node.LoopBody, true);
 		Program += " while(" + this.VisitNode(Node.CondExpr) + ")";
 		this.PushSourceCode(Program);
 	}
 
-	@Override public void VisitForNode(ForNode Node) {
+	@Override public void VisitForNode(GtForNode Node) {
 		/*local*/String Cond = this.VisitNode(Node.CondExpr);
 		/*local*/String Iter = this.VisitNode(Node.IterExpr);
 		/*local*/String Program = "for(; " + Cond  + "; " + Iter + ") ";
@@ -93,7 +93,7 @@ public class CSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Program);
 	}
 
-	@Override public void VisitGetterNode(GetterNode Node) {
+	@Override public void VisitGetterNode(GtGetterNode Node) {
 		/*local*/String Program = this.VisitNode(Node.Expr);
 		/*local*/String FieldName = Node.Func.FuncName;
 		/*local*/GtType RecvType = Node.Func.GetRecvType();
@@ -106,7 +106,7 @@ public class CSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Program);
 	}
 
-	@Override public void VisitVarNode(VarNode Node) {
+	@Override public void VisitVarNode(GtVarNode Node) {
 		/*local*/String Type = this.LocalTypeName(Node.DeclType);
 		/*local*/String VarName = Node.NativeName;
 		/*local*/String Code = Type + " " + VarName;
@@ -122,7 +122,7 @@ public class CSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code + this.PopSourceCode());
 	}
 
-	@Override public void VisitIfNode(IfNode Node) {
+	@Override public void VisitIfNode(GtIfNode Node) {
 		/*local*/String CondExpr = this.VisitNode(Node.CondExpr);
 		/*local*/String ThenBlock = this.VisitBlockWithIndent(Node.ThenNode, true);
 		/*local*/String Code = "if(" + CondExpr + ") " + ThenBlock;
@@ -132,11 +132,11 @@ public class CSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void VisitTryNode(TryNode Node) {
+	@Override public void VisitTryNode(GtTryNode Node) {
 		/*local*/String Code = "try ";
 		Code += this.VisitBlockWithIndent(Node.TryBlock, true);
 		if(Node.CatchExpr != null) {
-		/*local*/VarNode Val = (/*cast*/VarNode) Node.CatchExpr;
+		/*local*/GtVarNode Val = (/*cast*/GtVarNode) Node.CatchExpr;
 			Code += " catch (" + Val.Type.toString() + " " + Val.NativeName + ") ";
 			Code += this.VisitBlockWithIndent(Node.CatchBlock, true);
 		}
@@ -146,19 +146,19 @@ public class CSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void VisitThrowNode(ThrowNode Node) {
+	@Override public void VisitThrowNode(GtThrowNode Node) {
 		/*local*/String Code = "throw " + this.VisitNode(Node.Expr);
 		this.PushSourceCode(Code);
 		this.StopVisitor(Node);
 	}
 
-	@Override public void VisitErrorNode(ErrorNode Node) {
+	@Override public void VisitErrorNode(GtErrorNode Node) {
 		/*local*/String Code = "throw Error(\"" + Node.Token.ParsedText + "\")";
 		this.PushSourceCode(Code);
 		this.StopVisitor(Node);
 	}
 
-	@Override public void VisitCommandNode(CommandNode Node) {
+	@Override public void VisitCommandNode(GtCommandNode Node) {
 		/*local*/String Code = "system(";
 		/*local*/int i = 0;
 		/*local*/String Command = "String __Command = ";

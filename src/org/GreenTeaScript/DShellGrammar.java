@@ -693,8 +693,8 @@ public class DShellGrammar extends GreenTeaUtils {
 		if(ActionNode.IsError()) {
 			return ActionNode;
 		}
-		if(ActionNode instanceof ApplyNode) {
-			GtFunc ActionFunc = ((ApplyNode)ActionNode).Func;
+		if(ActionNode instanceof GtApplyNode) {
+			GtFunc ActionFunc = ((GtApplyNode)ActionNode).Func;
 			if(ActionFunc.GetFuncParamSize() == 0) {
 				GtFunc ReportFunc = (GtFunc)Gamma.NameSpace.GetSymbol("$ReportBuiltInFunc");
 				GtNode ApplyNode = Gamma.Generator.CreateApplyNode(ContextType, ParsedTree, ReportFunc);
@@ -828,8 +828,8 @@ public class DShellGrammar extends GreenTeaUtils {
 			return Gamma.UnsupportedTopLevelError(ParsedTree);
 		}
 		/*local*/GtNode Expr = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, Gamma.NameSpace.Context.TypeType, DefaultTypeCheckPolicy);
-		if(Expr instanceof ConstNode && Expr.Type.IsTypeType()) {
-			/*local*/GtType ObjectType = (/*cast*/GtType)((/*cast*/ConstNode)Expr).ConstValue;
+		if(Expr instanceof GtConstNode && Expr.Type.IsTypeType()) {
+			/*local*/GtType ObjectType = (/*cast*/GtType)((/*cast*/GtConstNode)Expr).ConstValue;
 			Expr = Gamma.Generator.CreateNewNode(ObjectType, ParsedTree);
 			//Expr = KonohaGrammar.TypeApply(Gamma, ParsedTree, ObjectType);
 		}

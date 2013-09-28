@@ -60,7 +60,7 @@ public class ScalaSourceGenerator extends SourceGenerator {
 	}
 
 	// copied from PythonSourceGenerator
-	@Override public void VisitForNode(ForNode Node) {
+	@Override public void VisitForNode(GtForNode Node) {
 		/* for(; COND; ITER) BLOCK1; continue; BLOCK2;
 		 * => while COND:
 		 * 		BLOCK1;
@@ -78,11 +78,11 @@ public class ScalaSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Program);
 	}
 
-	private ForNode FindParentForNode(GtNode Node) {
+	private GtForNode FindParentForNode(GtNode Node) {
 		/*local*/GtNode Parent = Node.GetParentNode();
 		while(Parent != null) {
-			if(Parent instanceof ForNode) {
-				return (/*cast*/ForNode)Parent;
+			if(Parent instanceof GtForNode) {
+				return (/*cast*/GtForNode)Parent;
 			}
 			if(Parent.GetParentNode() == null) {
 				Parent = Parent.MoveHeadNode();
@@ -92,9 +92,9 @@ public class ScalaSourceGenerator extends SourceGenerator {
 		return null;
 	}
 
-	@Override public void VisitContinueNode(ContinueNode Node) {
+	@Override public void VisitContinueNode(GtContinueNode Node) {
 		/*local*/String Code = "";
-		/*local*/ForNode Parent = this.FindParentForNode(Node);
+		/*local*/GtForNode Parent = this.FindParentForNode(Node);
 		if(Parent != null) {
 			/*local*/GtNode IterNode = Parent.IterExpr;
 			if(IterNode != null) {
@@ -112,26 +112,26 @@ public class ScalaSourceGenerator extends SourceGenerator {
 		this.StopVisitor(Node);
 	}
 	
-	@Override public void VisitWhileNode(WhileNode Node) {
+	@Override public void VisitWhileNode(GtWhileNode Node) {
 		/*local*/String Program = "while(" + this.VisitNode(Node.CondExpr) + ")";
 		Program += this.VisitBlockWithIndent(Node.LoopBody, true);
 		this.PushSourceCode(Program);
 	}
 
-	@Override public void VisitDoWhileNode(DoWhileNode Node) {
+	@Override public void VisitDoWhileNode(GtDoWhileNode Node) {
 		/*local*/String Program = "do" + this.VisitBlockWithIndent(Node.LoopBody, true);
 		Program += " while(" + this.VisitNode(Node.CondExpr) + ")";
 		this.PushSourceCode(Program);
 	}
 
-	@Override public void VisitGetterNode(GetterNode Node) {
+	@Override public void VisitGetterNode(GtGetterNode Node) {
 		/*local*/String Program = this.VisitNode(Node.Expr);
 		/*local*/String FieldName = Node.Func.FuncName;
 		Program = Program + "." + FieldName;
 		this.PushSourceCode(Program);
 	}
 
-	@Override public void VisitVarNode(VarNode Node) {
+	@Override public void VisitVarNode(GtVarNode Node) {
 		/*local*/String Type = this.LocalTypeName(Node.DeclType);
 		/*local*/String VarName = Node.NativeName;
 		/*local*/String Code = "var " + VarName + " : " + Type + " ";
@@ -147,7 +147,7 @@ public class ScalaSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code + this.PopSourceCode());
 	}
 
-	@Override public void VisitIfNode(IfNode Node) {
+	@Override public void VisitIfNode(GtIfNode Node) {
 		/*local*/String CondExpr = this.VisitNode(Node.CondExpr);
 		/*local*/String ThenBlock = this.VisitBlockWithIndent(Node.ThenNode, true);
 		/*local*/String Code = "if(" + CondExpr + ") " + ThenBlock;
@@ -157,11 +157,11 @@ public class ScalaSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void VisitTryNode(TryNode Node) {
+	@Override public void VisitTryNode(GtTryNode Node) {
 		/*local*/String Code = "try ";
 		Code += this.VisitBlockWithIndent(Node.TryBlock, true);
 		if(Node.CatchExpr != null) {
-		/*local*/VarNode Val = (/*cast*/VarNode) Node.CatchExpr;
+		/*local*/GtVarNode Val = (/*cast*/GtVarNode) Node.CatchExpr;
 			Code += " catch (" + Val.Type.toString() + " " + Val.NativeName + ") ";
 			Code += this.VisitBlockWithIndent(Node.CatchBlock, true);
 		}
@@ -172,12 +172,12 @@ public class ScalaSourceGenerator extends SourceGenerator {
 	}
 
 
-	@Override public void VisitThrowNode(ThrowNode Node) {
+	@Override public void VisitThrowNode(GtThrowNode Node) {
 		/*local*/String Code = "throw " + this.VisitNode(Node.Expr);
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void VisitErrorNode(ErrorNode Node) {
+	@Override public void VisitErrorNode(GtErrorNode Node) {
 		/*local*/String Code = "throw RuntimeError(\"" + Node.Token.ParsedText + "\")";
 		this.PushSourceCode(Code);
 	}
