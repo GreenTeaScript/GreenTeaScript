@@ -49,14 +49,19 @@ interface GreenTeaConsts {
 	// ClassFlag
 	public final static int     ExportType         = 1 << 0;  // @Export
 	public final static int     PublicType         = 1 << 1;  // @Public
-	public final static int		NativeType	     = 1 << 2;
+	public final static int		NativeType	       = 1 << 2;
 	public final static int		VirtualType		   = 1 << 3;  // @Virtual
 	public final static int     EnumType           = 1 << 4;
 	public final static int     DeprecatedType     = 1 << 5;  // @Deprecated
+	public final static int     HiddenType         = 1 << 6;
+	// WeakType is a type that must be hidden for users
+	// WeatType must be converted to non-WeakType by StrongCoersion
+	// WeakType is set only if StrongCoersion is defined
+	public final static int     WeakType           = HiddenType;
+	public final static int     CommonType         = 1 << 7;  // @Common
 
-	public final static int		DynamicType	    = 1 << 6;  // @Dynamic
-	public final static int     OpenType           = 1 << 7;  // @Open for the future
-	public final static int     CommonType         = 1 << 8;  // @Common
+	public final static int		DynamicType	       = 1 << 8;  // @Dynamic
+	public final static int     OpenType           = 1 << 9;  // @Open for the future
 	public final static int     TypeVariable       = 1 << 14;
 	public final static int     GenericVariable    = 1 << 15;
 
@@ -67,19 +72,23 @@ interface GreenTeaConsts {
 	public final static int		VirtualFunc		    = 1 << 3;
 	public final static int		ConstFunc			= 1 << 4;  // @Const
 	public final static int     DeprecatedFunc      = 1 << 5;  // @Deprecated
+	public final static int     HiddenFunc          = 1 << 6;  // @Hidden
+	public final static int     CommonFunc          = 1 << 7;  // @Common
 
-	public final static int		NativeStaticFunc	= 1 << 6;
-	public final static int		NativeMacroFunc	    = 1 << 7;
-	public final static int		NativeVariadicFunc	= 1 << 8;
-	public final static int     ConstructorFunc     = 1 << 9;
-	public final static int     GetterFunc          = 1 << 10;
-	public final static int     SetterFunc          = 1 << 11;
-	public final static int     OperatorFunc        = 1 << 12;  //@Operator
-	public final static int     ConverterFunc       = 1 << 13;
-	public final static int     CoercionFunc        = 1 << 14;  //@Coercion
+	public final static int		NativeStaticFunc	= 1 << 8;
+	public final static int		NativeMacroFunc	    = 1 << 9;
+	public final static int		NativeVariadicFunc	= 1 << 10;
+	public final static int     ConstructorFunc     = 1 << 11;
+	public final static int     MethodFunc          = 1 << 12;  
+	public final static int     GetterFunc          = 1 << 13;
+	public final static int     SetterFunc          = 1 << 14;
+	public final static int     OperatorFunc        = 1 << 15;  //@Operator
+	public final static int     ConverterFunc       = 1 << 16;
+	public final static int     CoercionFunc        = 1 << 17;  //@Coercion
+	public final static int     StrongCoercionFunc  = 1 << 18;  //@StrongCoercion
 	public final static int     GenericFunc         = 1 << 15;
 	public final static int		LazyFunc		    = 1 << 16;
-
+	
 	// VarFlag
 	public final static int  ReadOnlyVar = 1;              // @ReadOnly x = 1; disallow x = 2
 	//public final static int  MutableFieldVar  = (1 << 1);  // @Mutable x; x.y = 1 is allowed
@@ -807,14 +816,26 @@ final class KonohaGrammar extends GtGrammar {
 			if(KonohaGrammar.HasAnnotation(Annotation, "Public")) {
 				Flag = Flag | PublicFunc;
 			}
+			if(KonohaGrammar.HasAnnotation(Annotation, "Hidden")) {
+				Flag = Flag | HiddenFunc;
+			}
 			if(KonohaGrammar.HasAnnotation(Annotation, "Const")) {
 				Flag = Flag | ConstFunc;
+			}
+			if(KonohaGrammar.HasAnnotation(Annotation, "Common")) {
+				Flag = Flag | CommonFunc;
 			}
 			if(KonohaGrammar.HasAnnotation(Annotation, "Operator")) {
 				Flag = Flag | OperatorFunc;
 			}
+			if(KonohaGrammar.HasAnnotation(Annotation, "Method")) {
+				Flag = Flag | MethodFunc;
+			}
 			if(KonohaGrammar.HasAnnotation(Annotation, "Coercion")) {
 				Flag = Flag | CoercionFunc;
+			}
+			if(KonohaGrammar.HasAnnotation(Annotation, "StringCoercion")) {
+				Flag = Flag | CoercionFunc | StrongCoercionFunc ;
 			}
 			if(KonohaGrammar.HasAnnotation(Annotation, "Deprecated")) {
 				Flag = Flag | DeprecatedFunc;
@@ -2482,11 +2503,18 @@ final class KonohaGrammar extends GtGrammar {
 					FuncDeclTree.ToError(SourceToken);
 					return FuncDeclTree;
 				}
-				FuncName = "to" + TypeList.get(2);
+				FuncName = "to" + TypeList.get(0);
 				FuncBlock.DefinedFunc = NameSpace.Context.Generator.CreateFunc(FuncFlag, FuncName, 0, FuncBlock.TypeList);
 				KonohaGrammar.ParseFuncBody(NameSpace, TokenContext, FuncDeclTree, FuncBlock);
-				SourceToken.ParsedText = FuncName;
-				StoreNameSpace.SetConverterFunc(null, null, FuncBlock.DefinedFunc, SourceToken);
+				if(IsFlag(FuncFlag, StrongCoercionFunc)) {  // this part is for weak type treatment
+					GtType FromType = TypeList.get(2);
+					FromType.SetWeakType(FuncBlock.DefinedFunc);
+					System.err.println("set weaktype = " + FromType);
+				}
+				else {
+					SourceToken.ParsedText = FuncName;
+					StoreNameSpace.SetConverterFunc(null, null, FuncBlock.DefinedFunc, SourceToken);
+				}
 			}
 			else {
 				FuncBlock.SetThisIfInClass(NameSpace.GetType("This"));

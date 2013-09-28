@@ -43,16 +43,24 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 public abstract class LibGreenTea implements GreenTeaConsts {
-
-
-	public final static void print(String msg) {
+	// LibGreenTea KonohaApi
+	public final static void print(Object msg) {
 		System.out.print(msg);
 	}
 
-	public final static void println(String msg) {
+	public final static void println(Object msg) {
 		System.out.println(msg);
 	}
+	
+	public final static void Assert(boolean TestResult) {
+		if(!TestResult) {
+			assert TestResult;
+			Exit(1, "Assertion Failed");
+		}
+	}
 
+
+	
 	public final static String GetPlatform() {
 		return "Java JVM-" + System.getProperty("java.version");
 	}
@@ -108,15 +116,8 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		System.exit(1);
 	}
 
-	public final static void Assert(boolean TestResult) {
-		if(!TestResult) {
-			assert TestResult;
-			Exit(1, "Assertion Failed");
-		}
-	}
-
 	private static int ParserCount = -1;
-
+	
 	public static int NewParserId() {
 		ParserCount++;
 		return ParserCount;
@@ -274,7 +275,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		if(NativeType == null) {
 			NativeType = new GtType(Context, GreenTeaUtils.NativeType, NativeClass.getSimpleName(), null, NativeClass);
 			Context.SetNativeTypeName(NativeClass.getCanonicalName(), NativeType);
-			LibGreenTea.VerboseLog(GreenTeaUtils.VerboseNative, "native class: " + NativeClass.getSimpleName() + ", " + NativeClass.getCanonicalName());
+			LibGreenTea.VerboseLog(GreenTeaUtils.VerboseNative, "creating native class: " + NativeClass.getSimpleName() + ", " + NativeClass.getCanonicalName());
 		}
 		return NativeType;
 	}

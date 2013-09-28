@@ -138,6 +138,12 @@ public class GtType extends GreenTeaUtils {
 	public final boolean IsEnumType() {
 		return IsFlag(this.TypeFlag, EnumType);
 	}
+	public final void SetWeakType(GtFunc Func) {
+		this.TypeBody = Func;
+	}
+	public final boolean IsWeakType() {
+		return (this.TypeBody instanceof GtFunc);
+	}
 
 	@Override public String toString() {
 		return this.ShortName;
@@ -276,6 +282,7 @@ public class GtType extends GreenTeaUtils {
 		}
 		return this.Accept(GivenType);
 	}
+
 
 //	public boolean Match(GtNameSpace GenericNameSpace, GtType GivenType) {
 //		boolean b = this.Match_(GenericNameSpace, GivenType);

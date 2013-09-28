@@ -1,8 +1,8 @@
 
 // libgreentea
-void print(String s)   import LibGreenTea.print;
-void println(String s) import LibGreenTea.println;
-void assert(boolean b) import LibGreenTea.Assert;
+void print(any x)   import LibGreenTea.print;
+void println(any x) import LibGreenTea.println;
+void assert(boolean x) import LibGreenTea.Assert;
 
 // top type
 @Const @Operator int "||"(Top x) import Konoha.TopApi.Size;
@@ -34,7 +34,7 @@ void assert(boolean b) import LibGreenTea.Assert;
 @Const int indexOf(String x, String y) import Konoha.StringApi.IndexOf;
 @Const int lastIndexOf(String x, String y) import Konoha.StringApi.LastIndexOf;
 
-@Const String[] split(String x, String y) import Konoha.StringApi.Split;
+@Const var split(String x, String y) import Konoha.StringApi.Split;
 
 @Const int converter(String x) import Konoha.StringApi.ToInt;
 @Const double converter(String x) import Konoha.StringApi.ToDouble;
@@ -126,7 +126,7 @@ void assert(boolean b) import LibGreenTea.Assert;
 
 // experimental
 @Hidden @Coercion @Const var converter(var x) import Konoha.ArrayApi.GreenArrayToStringArray;
-@Hidden @Coercion @Const var converter(var x) import Konoha.ArrayApi.StringArrayToGreenArray;
+@Hidden @StrongCoercion @Const var converter(var x) import Konoha.ArrayApi.StringArrayToGreenArray;
 
 
 

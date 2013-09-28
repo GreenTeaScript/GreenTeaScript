@@ -154,6 +154,11 @@ public final class GtTypeEnv extends GreenTeaUtils {
 		if(Node.IsError() || IsFlag(TypeCheckPolicy, NoCheckPolicy)) {
 			return Node;
 		}
+		if(Node.Type.IsWeakType()) {
+			/*local*/GtFunc Func = (/*cast*/GtFunc)Node.Type.TypeBody;
+			System.err.println("found weaktype = " + Node.Type);
+			Node = this.Generator.CreateCoercionNode(Func.GetReturnType(), Func, Node);
+		}
 		//System.err.println("**** " + Node.getClass());
 		/*local*/Object ConstValue = Node.ToConstValue(IsFlag(TypeCheckPolicy, OnlyConstPolicy));
 		if(ConstValue != null && !(Node instanceof GtConstNode)) {  // recreated

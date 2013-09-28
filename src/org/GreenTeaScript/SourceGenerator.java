@@ -910,10 +910,6 @@ class GtGenerator extends GreenTeaUtils {
 		return null;
 	}
 
-	public GtNode CreateJumpNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Node, String Label) {
-		return new JumpNode(Type, ParsedTree.KeyToken, Label);
-	}
-
 	public GtNode CreateBreakNode(GtType Type, GtSyntaxTree ParsedTree, String Label) {
 		return new GtBreakNode(Type, ParsedTree.KeyToken, Label);
 	}
@@ -1099,14 +1095,6 @@ class GtGenerator extends GreenTeaUtils {
 	}
 
 	public void VisitReturnNode(GtReturnNode Node) {
-		/*extension*/
-	}
-
-	public void VisitLabelNode(LabelNode Node) {
-		/*extension*/
-	}
-
-	public void VisitJumpNode(JumpNode Node) {
 		/*extension*/
 	}
 
@@ -1754,14 +1742,4 @@ class SourceGenerator extends GtGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void VisitLabelNode(LabelNode Node) {
-//		/*local*/String Label = Node.Label;
-//		this.PushSourceCode(Label + ":");
-	}
-
-	@Override public void VisitJumpNode(JumpNode Node) {
-//		/*local*/String Label = Node.Label;
-//		this.PushSourceCode("goto " + Label);
-//		this.StopVisitor(Node);
-	}
 }
