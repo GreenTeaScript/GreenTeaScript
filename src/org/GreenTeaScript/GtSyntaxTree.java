@@ -254,9 +254,10 @@ public final class GtSyntaxTree extends GreenTeaUtils {
 		}
 	}
 
-	public final void ToConstTree(Object ConstValue) {
+	public final GtSyntaxTree ToConstTree(Object ConstValue) {
 		this.Pattern = this.NameSpace.GetSyntaxPattern("$Const$");
 		this.ParsedValue = ConstValue;
+		return this;
 	}
 
 	public final GtSyntaxTree CreateConstTree(Object ConstValue) {
