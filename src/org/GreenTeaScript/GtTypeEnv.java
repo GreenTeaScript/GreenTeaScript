@@ -166,7 +166,7 @@ public final class GtTypeEnv extends GreenTeaUtils {
 		if(Node.IsError() || IsFlag(TypeCheckPolicy, NoCheckPolicy)) {
 			return Node;
 		}
-		if(Node.Type.IsWeakType()) {
+		if(Node.Type.IsUnrevealedType()) {
 			/*local*/GtFunc Func = ParsedTree.NameSpace.GetConverterFunc(Node.Type, Node.Type.BaseType, true);
 			//System.err.println("found weaktype = " + Node.Type);
 			Node = this.Generator.CreateCoercionNode(Func.GetReturnType(), Func, Node);

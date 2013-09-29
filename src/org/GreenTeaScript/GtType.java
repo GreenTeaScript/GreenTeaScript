@@ -142,12 +142,12 @@ public class GtType extends GreenTeaUtils {
 	public final boolean IsEnumType() {
 		return IsFlag(this.TypeFlag, EnumType);
 	}
-	public final void SetWeakType(GtType StrongType) {
+	public final void SetUnrevealedType(GtType StrongType) {
 		this.BaseType = StrongType;
-		this.TypeFlag |= WeakType;
+		this.TypeFlag |= UnrevealedType;
 	}
-	public final boolean IsWeakType() {
-		return IsFlag(this.TypeFlag, WeakType);
+	public final boolean IsUnrevealedType() {
+		return IsFlag(this.TypeFlag, UnrevealedType);
 	}
 	@Override public String toString() {
 		return this.ShortName;

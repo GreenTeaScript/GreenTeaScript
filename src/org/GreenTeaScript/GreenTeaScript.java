@@ -54,10 +54,10 @@ interface GreenTeaConsts {
 	public final static int     EnumType           = 1 << 4;
 	public final static int     DeprecatedType     = 1 << 5;  // @Deprecated
 	public final static int     HiddenType         = 1 << 6;
-	// WeakType is a type that must be hidden for users
-	// WeatType must be converted to non-WeakType by StrongCoersion
-	// WeakType is set only if StrongCoersion is defined
-	public final static int     WeakType           = HiddenType;
+	// UnrevealedType is a type that must be hidden for users
+	// WeatType must be converted to non-UnrevealedType by StrongCoersion
+	// UnrevealedType is set only if StrongCoersion is defined
+	public final static int     UnrevealedType           = HiddenType;
 	public final static int     CommonType         = 1 << 7;  // @Common
 
 	public final static int		DynamicType	       = 1 << 8;  // @Dynamic
@@ -1250,7 +1250,7 @@ final class KonohaGrammar extends GtGrammar {
 		if(LibGreenTea.IsVariableName(Token.ParsedText, 0)) {
 			return new GtSyntaxTree(Pattern, NameSpace, Token, null);
 		}
-		return null;
+		return TokenContext.ReportExpectedMessage(Token, "name", true);
 	}
 
 	public static GtNode TypeVariable(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
@@ -2368,16 +2368,16 @@ final class KonohaGrammar extends GtGrammar {
 	// const decl
 	public static GtSyntaxTree ParseSymbolDecl(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/GtSyntaxTree SymbolDeclTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.Next() /*const, let */, null);
-		/*local*/GtSyntaxTree ClassNameTree = TokenContext.ParsePattern(NameSpace, "$Type$", Optional);
 		/*local*/GtType ConstClass = null;
-		if(ClassNameTree != null) {
-			SymbolDeclTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, ".", Required);
-			if(!SymbolDeclTree.IsMismatchedOrError()) {
-				SymbolDeclTree.SetSyntaxTreeAt(SymbolDeclClassIndex, ClassNameTree);
-				ConstClass = ClassNameTree.GetParsedType();
-			}
-		}
 		SymbolDeclTree.SetMatchedPatternAt(SymbolDeclNameIndex, NameSpace, TokenContext, "$Variable$", Required);
+		if(TokenContext.MatchToken(".")) {
+			/*local*/String ClassName = SymbolDeclTree.GetSyntaxTreeAt(SymbolDeclNameIndex).KeyToken.ParsedText;
+			ConstClass = NameSpace.GetType(ClassName);
+			if(ConstClass == null) {
+				return TokenContext.ReportExpectedMessage(SymbolDeclTree.GetSyntaxTreeAt(SymbolDeclNameIndex).KeyToken, "type name", true);
+			}
+			SymbolDeclTree.SetMatchedPatternAt(SymbolDeclNameIndex, NameSpace, TokenContext, "$Variable$", Required);			
+		}
 		SymbolDeclTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "=", Required);
 		SymbolDeclTree.SetMatchedPatternAt(SymbolDeclValueIndex, NameSpace, TokenContext, "$Expression$", Required);
 		
@@ -2519,7 +2519,7 @@ final class KonohaGrammar extends GtGrammar {
 				if(IsFlag(FuncFlag, StrongCoercionFunc)) {  // this part is for weak type treatment
 					GtType FromType = FuncBlock.DefinedFunc.GetFuncParamType(1);
 					GtType ToType = FuncBlock.DefinedFunc.GetReturnType();
-					FromType.SetWeakType(ToType);
+					FromType.SetUnrevealedType(ToType);
 					StoreNameSpace = ToType.Context.RootNameSpace;
 				}
 				SourceToken.ParsedText = FuncName;
