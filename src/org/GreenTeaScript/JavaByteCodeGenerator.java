@@ -549,8 +549,8 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		}
 		GtFunc Func = Node.Func;
 		Method m = null;
-		if(Func.NativeRef instanceof Method) {
-			m = (Method) Func.NativeRef;
+		if(Func.FuncBody instanceof Method) {
+			m = (Method) Func.FuncBody;
 		}
 		else {
 			m = this.methodMap.get(Func.FuncName);
@@ -604,8 +604,8 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			}
 		}
 		Method m = null;
-		if(Func.NativeRef instanceof Method) {
-			m = (Method) Func.NativeRef;
+		if(Func.FuncBody instanceof Method) {
+			m = (Method) Func.FuncBody;
 		}
 		else {
 			m = this.methodMap.get(Func.FuncName);
@@ -631,7 +631,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.Builder.typeStack.pop();
 		Node.RightNode.Evaluate(this);
 		this.Builder.typeStack.pop();
-		Method m = (Method)Node.Func.NativeRef;
+		Method m = (Method)Node.Func.FuncBody;
 		if(m != null) {
 			this.Builder.Call(m);
 		}
@@ -643,7 +643,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	@Override public void VisitUnaryNode(GtUnaryNode Node) {
 		Node.Expr.Evaluate(this);
 		this.Builder.typeStack.pop();
-		Method m = (Method)Node.Func.NativeRef;
+		Method m = (Method)Node.Func.FuncBody;
 		if(m != null) {
 			this.Builder.Call(m);
 		}
@@ -727,7 +727,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			this.Builder.typeStack.pop();
 			Node.RightNode.Evaluate(this);
 			this.Builder.typeStack.pop();
-			this.Builder.Call((Method)Node.Func.NativeRef);
+			this.Builder.Call((Method)Node.Func.FuncBody);
 			this.Builder.StoreLocal(local);
 		}
 		else {

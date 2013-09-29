@@ -32,10 +32,11 @@ public final class GtTypeEnv extends GreenTeaUtils {
 	/*field*/public final GtGenerator       Generator;
 	/*field*/public GtNameSpace	    NameSpace;
 
-	/*field*/public GtFunc	Func;
 	/*field*/public ArrayList<GtVariableInfo> LocalStackList;
 	/*field*/public int StackTopIndex;
-
+	/*field*/public GtFunc	Func;
+	/*field*/boolean FoundUncommonFunc;
+	
 	/* for convinient short cut */
 	/*field*/public final GtType	VoidType;
 	/*field*/public final GtType	BooleanType;
@@ -51,6 +52,7 @@ public final class GtTypeEnv extends GreenTeaUtils {
 		this.Context   = NameSpace.Context;
 		this.Generator = NameSpace.Context.Generator;
 		this.Func = null;
+		this.FoundUncommonFunc = false;
 		this.LocalStackList = new ArrayList<GtVariableInfo>();
 		this.StackTopIndex = 0;
 
@@ -62,6 +64,7 @@ public final class GtTypeEnv extends GreenTeaUtils {
 		this.AnyType     = NameSpace.Context.AnyType;
 		this.ArrayType   = NameSpace.Context.ArrayType;
 		this.FuncType    = NameSpace.Context.FuncType;
+
 	}
 
 	public final boolean IsStrictMode() {
@@ -110,6 +113,15 @@ public final class GtTypeEnv extends GreenTeaUtils {
 			i = i - 1;
 		}
 		this.StackTopIndex = PushBackIndex;
+	}
+	
+	public void CheckFunc(String FuncType, GtFunc Func, GtToken SourceToken) {
+		if(!this.FoundUncommonFunc && (!Func.Is(CommonFunc))) {
+			this.FoundUncommonFunc = true;
+			if(this.Func != null && this.Func.Is(CommonFunc)) {
+				this.NameSpace.Context.ReportError(WarningLevel, SourceToken, "using uncommon " + FuncType + ": " + Func.FuncName);
+			}
+		}
 	}
 
 	public final GtNode ReportTypeResult(GtSyntaxTree ParsedTree, GtNode Node, int Level, String Message) {

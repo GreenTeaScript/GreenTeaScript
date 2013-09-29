@@ -73,7 +73,7 @@ public final class GtFunc extends GreenTeaUtils {
 	/*field*/public GtType[]		Types;
 	/*field*/public GtType          FuncType;
 	/*field*/public                 int FuncId;
-	/*field*/public Object          NativeRef;  // Abstract function if null
+	/*field*/public Object          FuncBody;  // Abstract function if null
 	/*field*/public String[]        GenericParam;
 
 	GtFunc/*constructor*/(int FuncFlag, String FuncName, int BaseIndex, ArrayList<GtType> ParamList) {
@@ -82,7 +82,7 @@ public final class GtFunc extends GreenTeaUtils {
 		this.Types = LibGreenTea.CompactTypeList(BaseIndex, ParamList);
 		LibGreenTea.Assert(this.Types.length > 0);
 		this.FuncType = null;
-		this.NativeRef = null;
+		this.FuncBody = null;
 		/*local*/GtParserContext Context = this.GetContext();
 		this.FuncId = Context.FuncPools.size();
 		Context.FuncPools.add(this);
@@ -186,28 +186,28 @@ public final class GtFunc extends GreenTeaUtils {
 	}
 
 	public final boolean IsAbstract() {
-		return this.NativeRef == null;
+		return this.FuncBody == null;
 	}
 
 	public final void SetNativeMacro(String NativeMacro) {
-		LibGreenTea.Assert(this.NativeRef == null);
+		LibGreenTea.Assert(this.FuncBody == null);
 		this.FuncFlag |= NativeMacroFunc;
-		this.NativeRef = NativeMacro;
+		this.FuncBody = NativeMacro;
 	}
 
 	public final String GetNativeMacro() {
-		return (/*cast*/String)this.NativeRef;
+		return (/*cast*/String)this.FuncBody;
 	}
 
 	public final void SetNativeMethod(int OptionalFuncFlag, Object Method) {
 //		LibGreenTea.Assert(this.NativeRef == null);
 		this.FuncFlag |= NativeFunc | OptionalFuncFlag;
-		this.NativeRef = Method;
+		this.FuncBody = Method;
 	}
 
 	private boolean HasStaticBlock() {
-		if(this.NativeRef instanceof GtFuncBlock) {
-			GtFuncBlock FuncBlock = (/*cast*/GtFuncBlock)this.NativeRef;
+		if(this.FuncBody instanceof GtFuncBlock) {
+			GtFuncBlock FuncBlock = (/*cast*/GtFuncBlock)this.FuncBody;
 			return !FuncBlock.IsVarArgument;
 		}
 		return false;
@@ -215,7 +215,7 @@ public final class GtFunc extends GreenTeaUtils {
 
 	public void GenerateNativeFunc() {
 		if(this.HasStaticBlock()) {
-			/*local*/GtFuncBlock FuncBlock = (/*cast*/GtFuncBlock)this.NativeRef;
+			/*local*/GtFuncBlock FuncBlock = (/*cast*/GtFuncBlock)this.FuncBody;
 			/*local*/GtTypeEnv Gamma = new GtTypeEnv(FuncBlock.NameSpace);
 			/*local*/int i = 0;
 			/*local*/ArrayList<String> NameList = new ArrayList<String>();
@@ -226,6 +226,9 @@ public final class GtFunc extends GreenTeaUtils {
 			}
 			Gamma.Func = FuncBlock.DefinedFunc;
 			/*local*/GtNode BodyNode = GreenTeaUtils.TypeBlock(Gamma, FuncBlock.FuncBlock, Gamma.VoidType);
+			if(Gamma.FoundUncommonFunc) {
+				Gamma.Func.FuncFlag = UnsetFlag(Gamma.Func.FuncFlag, CommonFunc);
+			}
 			/*local*/String FuncName = FuncBlock.DefinedFunc.GetNativeFuncName();
 			Gamma.Generator.GenerateFunc(FuncBlock.DefinedFunc, NameList, BodyNode);
 			if(FuncName.equals("main")) {
@@ -235,8 +238,8 @@ public final class GtFunc extends GreenTeaUtils {
 	}
 
 	public boolean HasLazyBlock() {
-		if(this.NativeRef instanceof GtFuncBlock) {
-			GtFuncBlock FuncBlock = (/*cast*/GtFuncBlock)this.NativeRef;
+		if(this.FuncBody instanceof GtFuncBlock) {
+			GtFuncBlock FuncBlock = (/*cast*/GtFuncBlock)this.FuncBody;
 			return FuncBlock.IsVarArgument;
 		}
 		return false;
@@ -525,6 +528,15 @@ class GtPolyFunc extends GreenTeaUtils {
 			
 		}
 		return ResolvedFunc;
+	}
+
+	public GtNode ReportTypeError(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ClassType, String MethodName) {
+		if(this.FuncList.size() == 0) {
+			return Gamma.CreateSyntaxErrorNode(ParsedTree, "undefined method: " + MethodName + " of " + ClassType);
+		}
+		else {
+			return Gamma.CreateSyntaxErrorNode(ParsedTree, "mismatched methods: " + this);
+		}
 	}
 
 }

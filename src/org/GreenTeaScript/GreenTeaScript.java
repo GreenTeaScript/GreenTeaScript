@@ -326,6 +326,10 @@ class GreenTeaUtils implements GreenTeaConsts {
 		return ((flag & flag2) == flag2);
 	}
 
+	public final static int UnsetFlag(int flag, int flag2) {
+		return (flag & (~flag2));
+	}
+
 	public final static String JoinStrings(String Unit, int Times) {
 		/*local*/String s = "";
 		/*local*/int i = 0;
@@ -1432,6 +1436,7 @@ final class KonohaGrammar extends GtGrammar {
 			Gamma.Context.ReportError(TypeErrorLevel, ParsedTree.KeyToken, "mismatched operators: " + PolyFunc);
 		}
 		else {
+			Gamma.CheckFunc("operator", ResolvedFunc, ParsedTree.KeyToken);
 			ReturnType = ResolvedFunc.GetReturnType();
 		}
 		/*local*/GtNode UnaryNode =  Gamma.Generator.CreateUnaryNode(ReturnType, ParsedTree, ResolvedFunc, ExprNode);
@@ -1487,6 +1492,9 @@ final class KonohaGrammar extends GtGrammar {
 			/*local*/GtResolvedFunc ResolvedFunc = PolyFunc.ResolveFunc(Gamma, ParsedTree, 1, ParamList);
 			if(ResolvedFunc.Func == null) {
 				Gamma.Context.ReportError(TypeErrorLevel, ParsedTree.KeyToken, "mismatched operators: " + PolyFunc);
+			}
+			else {
+				Gamma.CheckFunc("operator", ResolvedFunc.Func, ParsedTree.KeyToken);
 			}
 			/*local*/GtNode BinaryNode =  Gamma.Generator.CreateBinaryNode(ResolvedFunc.ReturnType, ParsedTree, ResolvedFunc.Func, LeftNode, ParamList.get(1));
 			if(ResolvedFunc.Func == null && !BaseType.IsDynamic()) {
@@ -1688,9 +1696,10 @@ final class KonohaGrammar extends GtGrammar {
 					return Gamma.CreateSyntaxErrorNode(ParsedTree, RecvNode.Type + " is not applicapable");
 				}
 				else {
-					return Gamma.CreateSyntaxErrorNode(ParsedTree, "undefined method: " + MethodName + " of " + RecvNode);
+					return PolyFunc.ReportTypeError(Gamma, ParsedTree, RecvNode.Type, MethodName);
 				}
 			}
+			Gamma.CheckFunc("method", ResolvedFunc.Func, ParsedTree.KeyToken);
 			/*local*/GtNode Node = Gamma.Generator.CreateApplyNode(ResolvedFunc.ReturnType, ParsedTree, ResolvedFunc.Func);
 			Node.Append(Gamma.Generator.CreateConstNode(Gamma.VarType, ParsedTree, ResolvedFunc.Func));
 			Node.AppendNodeList(0, ParamList);
@@ -1710,6 +1719,7 @@ final class KonohaGrammar extends GtGrammar {
 			FuncNode.ConstValue = ResolvedFunc.Func;
 			FuncNode.Type = ResolvedFunc.Func.GetFuncType();
 		}
+		Gamma.CheckFunc("function", ResolvedFunc.Func, ParsedTree.KeyToken);
 		/*local*/GtNode Node = Gamma.Generator.CreateApplyNode(ResolvedFunc.ReturnType, ParsedTree, ResolvedFunc.Func);
 		Node.Append(FuncNode);
 		Node.AppendNodeList(0, ParamList);
@@ -2458,7 +2468,7 @@ final class KonohaGrammar extends GtGrammar {
 				FuncBlock.FuncBlock = BlockTree;
 				/*local*/GtSyntaxTree ReturnTree = new GtSyntaxTree(NameSpace.GetSyntaxPattern("return"), NameSpace, BlockTree.KeyToken, null);
 				GreenTeaUtils.LinkTree(GreenTeaUtils.TreeTail(BlockTree), ReturnTree);
-				FuncBlock.DefinedFunc.NativeRef = FuncBlock;
+				FuncBlock.DefinedFunc.FuncBody = FuncBlock;
 			}
 		}
 	}
@@ -2671,6 +2681,7 @@ final class KonohaGrammar extends GtGrammar {
 		//System.err.println("polyfunc: " + PolyFunc);
 		/*local*/GtFunc Func = PolyFunc.ResolveUnaryMethod(Gamma, ExprNode.Type);
 		LibGreenTea.Assert(Func != null);  // any has ||
+		Gamma.CheckFunc("operator", Func, ParsedTree.KeyToken);
 		/*local*/GtNode Node = Gamma.Generator.CreateApplyNode(Func.GetReturnType(), ParsedTree, Func);
 		Node.Append(Gamma.Generator.CreateConstNode(Gamma.VarType, ParsedTree, Func));
 		Node.Append(ExprNode);

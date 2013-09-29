@@ -1149,7 +1149,7 @@ class GtGenerator extends GreenTeaUtils {
 	public Object EvalApplyNode(GtApplyNode Node, boolean EnforceConst) {
 //ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
 		//System.err.println("@@@@ " + (Node.Func.NativeRef.getClass()));
-		if(Node.Func != null && (EnforceConst || Node.Func.Is(ConstFunc)) && Node.Func.NativeRef instanceof Method) {
+		if(Node.Func != null && (EnforceConst || Node.Func.Is(ConstFunc)) && Node.Func.FuncBody instanceof Method) {
 			Object RecvObject = null;
 			int StartIndex = 1;
 			if(!Node.Func.Is(NativeStaticFunc)) {

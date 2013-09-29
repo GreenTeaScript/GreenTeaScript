@@ -592,7 +592,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 
 	public final static Object ApplyFunc(GtFunc Func, Object Self, Object[] Params) {
 		try {
-			return ((Method)Func.NativeRef).invoke(Self, Params);
+			return ((Method)Func.FuncBody).invoke(Self, Params);
 		}
 		catch (InvocationTargetException e) {
 			//LibGreenTea.VerboseException(e);
@@ -609,7 +609,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 
 	public final static Object ApplyFunc2(GtFunc Func, Object Self, Object Param1, Object Param2) {
 		try {
-			return ((Method)Func.NativeRef).invoke(Self, Param1, Param2);
+			return ((Method)Func.FuncBody).invoke(Self, Param1, Param2);
 		}
 		catch (InvocationTargetException e) {
 			LibGreenTea.VerboseException(e);
@@ -625,7 +625,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 
 	public final static Object ApplyFunc3(GtFunc Func, Object Self, Object Param1, Object Param2, Object Param3) {
 		try {
-			return ((Method)Func.NativeRef).invoke(Self, Param1, Param2, Param3);
+			return ((Method)Func.FuncBody).invoke(Self, Param1, Param2, Param3);
 		}
 		catch (InvocationTargetException e) {
 			LibGreenTea.VerboseException(e);
@@ -641,7 +641,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 
 	public final static Object ApplyFunc4(GtFunc Func, Object Self, Object Param1, Object Param2, Object Param3, Object Param4) {
 		try {
-			return ((Method)Func.NativeRef).invoke(Self, Param1, Param2, Param3, Param4);
+			return ((Method)Func.FuncBody).invoke(Self, Param1, Param2, Param3, Param4);
 		}
 		catch (InvocationTargetException e) {
 			LibGreenTea.VerboseException(e);

@@ -109,7 +109,7 @@ public class DShellGrammar extends GreenTeaUtils {
 	public final static DFault ExecAction(GtNameSpace NameSpace, String DCaseNode, GtFunc Action) {
 		DFault Fault = null;
 		try {
-			Fault = (DFault)((Method)Action.NativeRef).invoke(null);
+			Fault = (DFault)((Method)Action.FuncBody).invoke(null);
 		}
 		catch (Exception e) {
 			Fault = CreateExceptionFault(NameSpace, DCaseNode, e);
