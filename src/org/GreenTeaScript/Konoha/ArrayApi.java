@@ -68,12 +68,18 @@ public class ArrayApi {
 		return self.ArrayBody.get((int)Index);
 	}
 	public final static long GetI(GreenTeaIntArray self, long Index) {
+		if(!((int)Index < self.Size)) {
+			throw new ArrayIndexOutOfBoundsException(""+Index);
+		}
 		return self.ArrayBody[(int)Index];
 	}
 	public final static void Set(GreenTeaArray self, long Index, Object Value) {
 		self.ArrayBody.set((int)Index, Value);
 	}
 	public final static void SetI(GreenTeaIntArray self, long Index, long Value) {
+		if(!((int)Index < self.Size)) {
+			throw new ArrayIndexOutOfBoundsException(""+Index);
+		}
 		self.ArrayBody[(int)Index] = Value;
 	}
 	public final static GreenTeaArray Add(GreenTeaArray self, Object Value) {
