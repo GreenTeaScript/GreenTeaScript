@@ -144,7 +144,7 @@ public final class GtTokenContext extends GreenTeaUtils {
 	}
 
 	public GtSyntaxTree ReportExpectedMessage(GtToken Token, String Message, boolean SkipToken) {
-		return this.ReportTokenError(Token, "expected: " + Message + "; given = " + Token.ParsedText, SkipToken);
+		return this.ReportTokenError(Token, "expected " + Message + "; given = " + Token.ParsedText, SkipToken);
 	}
 
 	public void Vacume() {

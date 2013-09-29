@@ -374,12 +374,12 @@ class GreenTeaUtils implements GreenTeaConsts {
 		return ClassType.GetUniqueName() + "." + Symbol;
 	}
 
-	final static String FuncSymbol(String Symbol) {
-		return LibGreenTea.IsLetter(Symbol, 0) ? Symbol : "__" + Symbol;
+	final static String ClassStaticSymbol(GtType ClassType, String Symbol) {
+		return ClassType.GetUniqueName() + ".@" + Symbol;
 	}
 
-	final static String ClassStaticName(String Symbol) {
-		return "@" + Symbol;
+	final static String FuncSymbol(String Symbol) {
+		return LibGreenTea.IsLetter(Symbol, 0) ? Symbol : "__" + Symbol;
 	}
 
 	final static String ConverterSymbol(GtType ClassType) {
@@ -1582,15 +1582,15 @@ final class KonohaGrammar extends GtGrammar {
 		/*local*/String TypeName = ObjectNode.Type.ShortName;
 		if(ObjectNode instanceof GtConstNode && ObjectNode.Type.IsTypeType()) {
 			/*local*/GtType ObjectType = (/*cast*/GtType)((/*cast*/GtConstNode)ObjectNode).ConstValue;
-			/*local*/Object ConstValue = ParsedTree.NameSpace.GetClassSymbol(ObjectType, ClassStaticName(Name), true);
-			if(ConstValue instanceof GreenTeaEnum) {
-				if(ContextType.IsStringType()) {
-					ConstValue = ((/*cast*/GreenTeaEnum)ConstValue).EnumSymbol;
-				}
-				else {
-					ConstValue = ((/*cast*/GreenTeaEnum)ConstValue).EnumValue;
-				}
-			}
+			/*local*/Object ConstValue = ParsedTree.NameSpace.GetClassStaticSymbol(ObjectType, Name, true);
+//			if(ConstValue instanceof GreenTeaEnum) {
+//				if(ContextType.IsStringType()) {
+//					ConstValue = ((/*cast*/GreenTeaEnum)ConstValue).EnumSymbol;
+//				}
+//				else {
+//					ConstValue = ((/*cast*/GreenTeaEnum)ConstValue).EnumValue;
+//				}
+//			}
 			if(ConstValue != null) {
 				return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(ConstValue), ParsedTree, ConstValue);
 			}
@@ -1602,8 +1602,7 @@ final class KonohaGrammar extends GtGrammar {
 			/*local*/GtFunc FirstFunc = PolyFunc.FuncList.get(0);
 			return Gamma.Generator.CreateGetterNode(ContextType, ParsedTree, FirstFunc, ObjectNode);
 		}
-
-		// 3. find Class field
+		// 3. find object field
 		/*local*/GtFunc GetterFunc = ParsedTree.NameSpace.GetGetterFunc(ObjectNode.Type, Name, true);
 		/*local*/GtType ReturnType = (GetterFunc != null) ? GetterFunc.GetReturnType() : Gamma.AnyType;
 		/*local*/GtNode Node = Gamma.Generator.CreateGetterNode(ReturnType, ParsedTree, GetterFunc, ObjectNode);
@@ -2274,7 +2273,7 @@ final class KonohaGrammar extends GtGrammar {
 			/*local*/int i = 0;
 			while(i < LibGreenTea.ListSize(NameList)) {
 				/*local*/String Key = NameList.get(i).ParsedText;
-				StoreNameSpace.SetSymbol(ClassSymbol(NewEnumType, ClassStaticName(Key)), EnumMap.GetOrNull(Key), NameList.get(i));
+				StoreNameSpace.SetSymbol(ClassStaticSymbol(NewEnumType, Key), EnumMap.GetOrNull(Key), NameList.get(i));
 				i = i + 1;
 			}
 			EnumTree.ParsedValue = NewEnumType;
@@ -2385,7 +2384,7 @@ final class KonohaGrammar extends GtGrammar {
 			/*local*/GtToken SourceToken = SymbolDeclTree.GetSyntaxTreeAt(SymbolDeclNameIndex).KeyToken;
 			/*local*/String ConstName = SourceToken.ParsedText;
 			if(ConstClass != null) {
-				ConstName = ClassSymbol(ConstClass, ClassStaticName(ConstName));
+				ConstName = ClassStaticSymbol(ConstClass, ConstName);
 				SourceToken.AddTypeInfoToErrorMessage(ConstClass);
 			}
 			/*local*/Object ConstValue = null;

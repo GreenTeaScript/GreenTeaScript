@@ -111,7 +111,7 @@ public final class GtFunc extends GreenTeaUtils {
 	}
 
 	@Override public String toString() {
-		/*local*/String s = this.FuncName + "(";
+		/*local*/String s = this.GetReturnType() + " " + this.FuncName + "(";
 		/*local*/int i = 0;
 		while(i < this.GetFuncParamSize()) {
 			/*local*/GtType ParamType = this.GetFuncParamType(i);
@@ -121,7 +121,7 @@ public final class GtFunc extends GreenTeaUtils {
 			s += ParamType;
 			i += 1;
 		}
-		return s + ") : " + this.GetReturnType();
+		return s + ")";
 	}
 
 	public boolean Is(int Flag) {
@@ -301,7 +301,7 @@ class GtPolyFunc extends GreenTeaUtils {
 		/*local*/int i = 0;
 		while(i < this.FuncList.size()) {
 			if(i > 0) {
-				s = s + " ";
+				s = s + ", ";
 			}
 			s = s + this.FuncList.get(i);
 			i = i + 1;

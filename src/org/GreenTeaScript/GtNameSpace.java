@@ -263,28 +263,56 @@ public final class GtNameSpace extends GreenTeaUtils {
 		return null;
 	}
 
-	public final void ImportClassSymbol(GtNameSpace NameSpace, String Prefix, GtType ClassType, GtToken SourceToken) {
-		/*local*/String ClassPrefix = ClassSymbol(ClassType, ClassStaticName(""));
-		/*local*/ArrayList<String> KeyList = new ArrayList<String>();
-		/*local*/GtNameSpace ns = NameSpace;
-		while(ns != null) {
-			if(ns.SymbolPatternTable != null) {
-				LibGreenTea.RetrieveMapKeys(ns.SymbolPatternTable, ClassPrefix, KeyList);
+	public final Object GetClassStaticSymbol(GtType StaticClassType, String Symbol, boolean RecursiveSearch) {
+		/*local*/String Key = null;
+		/*local*/GtType ClassType = StaticClassType;
+		while(ClassType != null) {
+			Key = ClassStaticSymbol(ClassType, Symbol);
+			/*local*/Object Value = this.GetSymbol(Key);
+			if(Value != null) {
+				return Value;
 			}
-			ns = ns.ParentNameSpace;
-		}
-		/*local*/int i = 0;
-		while(i < KeyList.size()) {
-			/*local*/String Key = KeyList.get(i);
-			/*local*/Object Value = NameSpace.GetSymbol(Key);
-			Key = Key.replace(ClassPrefix, Prefix);
-			if(SourceToken != null) {
-				SourceToken.ParsedText = Key;
+			if(!RecursiveSearch) {
+				break;
 			}
-			this.SetSymbol(Key, Value, SourceToken);
-			i = i + 1;
+			ClassType = ClassType.SuperType;
 		}
+		Key = ClassStaticSymbol(StaticClassType, Symbol);
+		if(StaticClassType.IsDynamicNaitiveLoading() & this.Context.RootNameSpace.GetLocalUndefinedSymbol(Key) == null) {
+			/*local*/Object Value = LibGreenTea.LoadNativeStaticFieldValue(StaticClassType, Symbol);
+			if(Value == null) {
+				this.Context.RootNameSpace.SetUndefinedSymbol(Key, null);
+			}
+			else {
+				this.Context.RootNameSpace.SetSymbol(Key, Value, null);
+			}
+			return Value;
+		}
+		return null;
 	}
+	
+//	public final void ImportClassSymbol(GtNameSpace NameSpace, String Prefix, GtType ClassType, GtToken SourceToken) {
+//		/*local*/String ClassPrefix = ClassSymbol(ClassType, ClassStaticName(""));
+//		/*local*/ArrayList<String> KeyList = new ArrayList<String>();
+//		/*local*/GtNameSpace ns = NameSpace;
+//		while(ns != null) {
+//			if(ns.SymbolPatternTable != null) {
+//				LibGreenTea.RetrieveMapKeys(ns.SymbolPatternTable, ClassPrefix, KeyList);
+//			}
+//			ns = ns.ParentNameSpace;
+//		}
+//		/*local*/int i = 0;
+//		while(i < KeyList.size()) {
+//			/*local*/String Key = KeyList.get(i);
+//			/*local*/Object Value = NameSpace.GetSymbol(Key);
+//			Key = Key.replace(ClassPrefix, Prefix);
+//			if(SourceToken != null) {
+//				SourceToken.ParsedText = Key;
+//			}
+//			this.SetSymbol(Key, Value, SourceToken);
+//			i = i + 1;
+//		}
+//	}
 
 	public final GtFunc GetGetterFunc(GtType ClassType, String Symbol, boolean RecursiveSearch) {
 		/*local*/Object Func = this.Context.RootNameSpace.GetClassSymbol(ClassType, GetterSymbol(Symbol), RecursiveSearch);

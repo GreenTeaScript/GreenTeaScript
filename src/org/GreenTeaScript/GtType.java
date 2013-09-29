@@ -145,6 +145,7 @@ public class GtType extends GreenTeaUtils {
 	public final void SetUnrevealedType(GtType StrongType) {
 		this.BaseType = StrongType;
 		this.TypeFlag |= UnrevealedType;
+		this.ShortName = "_" + this.ShortName + "_";
 	}
 	public final boolean IsUnrevealedType() {
 		return IsFlag(this.TypeFlag, UnrevealedType);
@@ -199,7 +200,7 @@ public class GtType extends GreenTeaUtils {
 	}
 
 	public boolean IsDynamicNaitiveLoading() {
-		return this.IsNative() && !IsFlag(this.TypeFlag, CommonType);
+		return this.IsNative() /*&& !IsFlag(this.TypeFlag, CommonType)*/;
 	}
 
 	public final boolean IsTypeVariable() {   // T

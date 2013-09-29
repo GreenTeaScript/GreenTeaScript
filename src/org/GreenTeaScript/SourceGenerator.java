@@ -1153,11 +1153,11 @@ class GtGenerator extends GreenTeaUtils {
 			Object RecvObject = null;
 			int StartIndex = 1;
 			if(!Node.Func.Is(NativeStaticFunc)) {
-				RecvObject = Node.NodeList.get(0).ToConstValue(EnforceConst);
+				RecvObject = Node.NodeList.get(1).ToConstValue(EnforceConst);
 				if(RecvObject == null) {
 					return null;
 				}
-				StartIndex = 1;
+				StartIndex = 2;
 			}
 			Object[] Arguments = new Object[Node.NodeList.size() - StartIndex];
 			for(int i = 0; i < Arguments.length; i++) {

@@ -455,9 +455,14 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 			return LibGreenTea.GetNativeType(NameSpace.Context, NativeClass);
 		} catch (ClassNotFoundException e) {
 		}
-		Method NativeMethod = LibGreenTea.LoadNativeMethod(NameSpace.Context.VarType, PackageName, true/*static only*/);
-		if(NativeMethod != null) {
-			return LibGreenTea.ConvertNativeMethodToFunc(NameSpace.Context, NativeMethod);
+		int Index = PackageName.lastIndexOf(".");
+		if(Index == -1) {
+			return null;
+		}
+		try {
+			/*local*/Class<?> NativeClass = LoadNativeClass(PackageName.substring(0, Index));
+			return ImportStaticObject(NameSpace.Context, NativeClass, PackageName.substring(Index+1));
+		} catch (ClassNotFoundException e) {
 		}
 //endif VAJA
 		return null;
@@ -526,42 +531,46 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return null;
 	}
 
-	public static Object LoadNativeStaticFieldValue(GtType ClassType, String Symbol) {
-		GtParserContext Context = ClassType.Context;
+	public static Object ImportStaticObject(GtParserContext Context, Class<?> NativeClass, String Symbol) {
 		try {
-			Class<?> NativeClass = (Class<?>)ClassType.TypeBody;
 			Field NativeField = NativeClass.getField(Symbol);
 			if(Modifier.isStatic(NativeField.getModifiers())) {
 				Class<?> NativeType = NativeField.getType();
-				if(NativeType == int.class) {
-					return NativeField.getInt(null);
-				}
-				if(NativeType == long.class) {
+				if(NativeType == long.class || NativeType == int.class) {
 					return NativeField.getLong(null);
 				}
-				if(NativeType == float.class) {
-					return NativeField.getFloat(null);
-				}
-				if(NativeType == double.class) {
+				if(NativeType == double.class || NativeType == float.class) {
 					return NativeField.getDouble(null);
 				}
 				return NativeField.get(null);
 			}
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
 		} catch (IllegalAccessException e) {
-			e.printStackTrace();
+//			LibGreenTea.VerboseException(e);
 		} catch (SecurityException e) {
-			LibGreenTea.VerboseException(e);
-			e.printStackTrace();
+//			LibGreenTea.VerboseException(e);
 		} catch (NoSuchFieldException e) {
-			LibGreenTea.VerboseException(e);
+//			LibGreenTea.VerboseException(e);
 		}
-		Context.RootNameSpace.SetUndefinedSymbol(GreenTeaUtils.ClassSymbol(ClassType, GreenTeaUtils.ClassStaticName(Symbol)), null);
-		// TODO Auto-generated method stub
+		GtPolyFunc PolyFunc = new GtPolyFunc(null);
+		Method[] Methods = NativeClass.getMethods();
+		for(int i = 0; i < Methods.length; i++) {
+			if(Methods[i].getName().equals(Symbol) && Modifier.isStatic(Methods[i].getModifiers())) {
+				PolyFunc.Append(LibGreenTea.ConvertNativeMethodToFunc(Context, Methods[i]), null);
+			}
+		}
+		if(PolyFunc.FuncList.size() == 1) {
+			return PolyFunc.FuncList.get(0);
+		}
+		else if(PolyFunc.FuncList.size() != 0) {
+			return PolyFunc;
+		}
 		return null;
 	}
 
+	public static Object LoadNativeStaticFieldValue(GtType ClassType, String Symbol) {
+		return ImportStaticObject(ClassType.Context, (Class<?>)ClassType.TypeBody, Symbol);
+	}
+	
 	public final static void LoadNativeMethods(GtType ClassType, String FuncName, ArrayList<GtFunc> FuncList) {
 		GtParserContext Context = ClassType.Context;
 		Class<?> NativeClass = (Class<?>)ClassType.TypeBody;
