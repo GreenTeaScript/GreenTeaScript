@@ -1190,16 +1190,17 @@ class GtGenerator extends GreenTeaUtils {
 	}
 
 	public Object EvalArrayNode(GtArrayNode Node, boolean EnforceConst) {
-		/*local*/GreenTeaArray ArrayObject = null;
+		/*local*/Object ArrayObject = null;
 //ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
-		ArrayObject = new GreenTeaArray(Node.Type);
+		Object Values[] = new Object[LibGreenTea.ListSize(Node.NodeList)];
 		for(int i = 0; i < LibGreenTea.ListSize(Node.NodeList); i++) {
 			Object Value = Node.NodeList.get(i).ToConstValue(EnforceConst);
 			if(Value == null) {
 				return Value;
 			}
-			ArrayObject.ArrayBody.add(Value);
+			Values[i] = Value;
 		}
+		ArrayObject = LibGreenTea.NewArrayLiteral(Node.Type, Values);
 //endif VAJA
 		return ArrayObject;  // if unsupported
 	}

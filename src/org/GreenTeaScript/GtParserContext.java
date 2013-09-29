@@ -107,6 +107,7 @@ public final class GtParserContext extends GreenTeaUtils {
 		this.SetNativeTypeName("org.GreenTeaScript.GtType", this.TypeType);
 		this.SetNativeTypeName("org.GreenTeaScript.GreenTeaEnum", this.EnumBaseType);
 		this.SetNativeTypeName("org.GreenTeaScript.GreenTeaArray", this.ArrayType);
+		this.SetNativeTypeName("org.GreenTeaScript.Konoha.GreenTeaIntArray", this.GetGenericType1(this.ArrayType, this.IntType, true));
 		this.SetNativeTypeName("double",    this.FloatType);
 		this.SetNativeTypeName("java.lang.Double",  this.FloatType);
 //endif VAJA

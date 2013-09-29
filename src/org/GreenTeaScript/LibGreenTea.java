@@ -42,6 +42,8 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import org.GreenTeaScript.Konoha.ArrayApi;
+
 public abstract class LibGreenTea implements GreenTeaConsts {
 	// LibGreenTea KonohaApi
 	public final static void print(Object msg) {
@@ -59,6 +61,13 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		}
 	}
 
+	public final static Object NewArray(GtType Type, int InitSize) {
+		return ArrayApi.NewArray(Type, InitSize);
+	}
+
+	public final static Object NewArrayLiteral(GtType ArrayType, Object[] Values) {
+		return ArrayApi.NewArrayLiteral(ArrayType, Values);		
+	}
 
 	
 	public final static String GetPlatform() {

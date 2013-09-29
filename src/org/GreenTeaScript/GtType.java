@@ -30,13 +30,13 @@ import java.util.ArrayList;
 public class GtType extends GreenTeaUtils {
 	/*field*/public final GtParserContext	Context;
 	/*field*/public GtNameSpace     PackageNameSpace;
-	/*field*/int					TypeFlag;
-	/*field*/int                    TypeId;
+	/*field*/public int					TypeFlag;
+	/*field*/public int                    TypeId;
 	/*field*/public String			ShortName;
-	/*field*/GtType					SuperType;
+	/*field*/public GtType					SuperType;
 	/*field*/public GtType			ParentMethodSearch;
-	/*field*/GtType					BaseType;
-	/*field*/GtType[]				TypeParams;
+	/*field*/public GtType					BaseType;
+	/*field*/public GtType[]				TypeParams;
 	/*field*/public Object          TypeBody;
 	/*field*/public Object			DefaultNullValue;
 
@@ -125,6 +125,10 @@ public class GtType extends GreenTeaUtils {
 
 	public final boolean IsBooleanType() {
 		return (this == this.Context.BooleanType);
+	}
+
+	public final boolean IsIntType() {
+		return (this == this.Context.IntType);
 	}
 
 	public final boolean IsStringType() {

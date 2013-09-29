@@ -23,37 +23,65 @@
 // **************************************************************************
 
 package org.GreenTeaScript.Konoha;
-
+import java.util.ArrayList;
 import org.GreenTeaScript.GreenTeaArray;
+import org.GreenTeaScript.GreenTeaTopObject;
 import org.GreenTeaScript.GtType;
 
 public class ArrayApi {
-	public final static GreenTeaArray NewArray(GtType Type, int InitSize) {
+	public final static Object NewArray(GtType Type, int InitSize) {
 		GtType ArrayType = Type.Context.GetGenericType1(Type.Context.ArrayType, Type, true); 
-		GreenTeaArray ArrayObject =  new GreenTeaArray(ArrayType);
-		for(int i = 0; i < InitSize; i++) {
-			ArrayObject.ArrayBody.add(Type.DefaultNullValue);
+		if(Type.BaseType.IsIntType()) {
+			return new GreenTeaIntArray(ArrayType, InitSize);
 		}
-		return ArrayObject;
+		else {
+			GreenTeaArray ArrayObject =  new GreenTeaArray(ArrayType);
+			for(int i = 0; i < InitSize; i++) {
+				ArrayObject.ArrayBody.add(Type.DefaultNullValue);
+			}
+			return ArrayObject;
+		}
 	}
-	public final static GreenTeaArray ArrayLiteral(GtType ArrayType, Object[] Values) {
-		GreenTeaArray ArrayObject =  new GreenTeaArray(ArrayType);
-		for(int i = 0; i < Values.length; i++) {
-			ArrayObject.ArrayBody.add(Values[i]);
+	public final static Object NewArrayLiteral(GtType ArrayType, Object[] Values) {
+		if(ArrayType.TypeParams[0].BaseType.IsIntType()) {
+			GreenTeaIntArray ArrayObject =  new GreenTeaIntArray(ArrayType, Values.length);
+			for(int i = 0; i < Values.length; i++) {
+				ArrayObject.Add(Values[i] == null ? 0 : ((Number)Values[i]).longValue());
+			}
+			return ArrayObject;
 		}
-		return ArrayObject;
+		else {
+			GreenTeaArray ArrayObject =  new GreenTeaArray(ArrayType);
+			for(int i = 0; i < Values.length; i++) {
+				ArrayObject.ArrayBody.add(Values[i]);
+			}
+			return ArrayObject;
+		}
 	}
 	public final static long GetSize(GreenTeaArray self) {
 		return self.ArrayBody.size();
 	}
+	public final static long GetSizeI(GreenTeaIntArray self) {
+		return self.Size;
+	}
 	public final static Object Get(GreenTeaArray self, long Index) {
 		return self.ArrayBody.get((int)Index);
+	}
+	public final static long GetI(GreenTeaIntArray self, long Index) {
+		return self.ArrayBody[(int)Index];
 	}
 	public final static void Set(GreenTeaArray self, long Index, Object Value) {
 		self.ArrayBody.set((int)Index, Value);
 	}
+	public final static void SetI(GreenTeaIntArray self, long Index, long Value) {
+		self.ArrayBody[(int)Index] = Value;
+	}
 	public final static GreenTeaArray Add(GreenTeaArray self, Object Value) {
 		self.ArrayBody.add(Value);
+		return self;
+	}
+	public final static GreenTeaIntArray AddI(GreenTeaIntArray self, long Value) {
+		self.Add(Value);
 		return self;
 	}
 	public final static GreenTeaArray Slice(GreenTeaArray self, long BIndex) {
@@ -63,6 +91,15 @@ public class ArrayApi {
 	public final static GreenTeaArray Slice(GreenTeaArray self, long BIndex, long EIndex) {
 		int bindex = (BIndex < 0) ? self.ArrayBody.size() - (int)BIndex : (int)BIndex;
 		int eindex = (EIndex < 0) ? self.ArrayBody.size() - (int)EIndex : (int)EIndex;
+		return self.SubArray(bindex, eindex);
+	}
+	public final static GreenTeaIntArray SliceI(GreenTeaIntArray self, long BIndex) {
+		int bindex = (BIndex < 0) ? self.Size - (int)BIndex : (int)BIndex;
+		return self.SubArray(bindex, self.Size);
+	}
+	public final static GreenTeaIntArray SliceI(GreenTeaIntArray self, long BIndex, long EIndex) {
+		int bindex = (BIndex < 0) ? self.Size - (int)BIndex : (int)BIndex;
+		int eindex = (EIndex < 0) ? self.Size - (int)EIndex : (int)EIndex;
 		return self.SubArray(bindex, eindex);
 	}
 
@@ -100,5 +137,45 @@ public class ArrayApi {
 			Values[i] = (String)Value;
 		}
 		return Values;
+	}
+}
+
+class GreenTeaIntArray extends GreenTeaTopObject {
+	public long[] ArrayBody;
+	public int Size;
+	public GreenTeaIntArray/*constructor*/(GtType GreenType, int InitCapacity) {
+		super(GreenType);
+		this.ArrayBody = new long[InitCapacity < 8 ? 8 : InitCapacity];
+		this.Size = 0;
+	}
+	public void Add(long Value) {
+		if(!(this.Size < this.ArrayBody.length)) {
+			long[] NewArray = new long[this.ArrayBody.length * 2];
+			System.arraycopy(this.ArrayBody, 0, NewArray, 0, this.Size);
+			this.ArrayBody = NewArray;
+		}
+		this.ArrayBody[this.Size] = Value;
+		this.Size += 1;
+	}
+	
+	public GreenTeaIntArray SubArray(int bindex, int eindex) {
+		GreenTeaIntArray ArrayObject = new GreenTeaIntArray(this.GreenType, eindex-bindex);
+		for(int i = bindex; i < eindex; i++) {
+			this.Add(this.ArrayBody[i]);
+		}
+		return ArrayObject;
+	}
+	@Override public String toString() {
+		String s = "[";
+		for(int i = 0; i < this.Size; i++) {
+			Object Value = this.ArrayBody[i];
+			if(i > 0) {
+				s += ", " + Value;
+			}
+			else {
+				s += Value;
+			}
+		}
+		return s + "]";
 	}
 }
