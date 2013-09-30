@@ -102,6 +102,7 @@ $src =~ s/(?!")\bString\b/string/g;
 $src =~ s/(?!")\bboolean\b/bool/g;
 $src =~ s/(?!")\bObject\b/object/g;
 $src =~ s/\bArrayList\b/List/g;
+# $src =~ s/\bGtMap\b/List/g;
 # $src =~ s/\bnew\s+Array<.*?>\s*\(Arrays.asList\((.*?)\)\)/$1/g;
 # $src =~ s/\bArrays.asList\b//g;
 # $src =~ s/\.toArray\(\)//g;
@@ -132,11 +133,20 @@ $src =~ s/\binstanceof\b/is/g;
 
 # $src =~ s/\bpublic class\b/class/g;
 
-#$src =~ s/\bsize\(\)/length/g
-$src =~ s/\blength\(\)/length/g;
+$src =~ s/\bsize\(\)/Count()/g;
+$src =~ s/\blength(\(\))?\b/Length/g;
 $src =~ s/\bSystem\.out\.println/Console.WriteLine/g;
+$src =~ s/\badd\(/Add(/g;
+$src =~ s/\.get\((.*?)\)/[$1]/g;
+
+$src =~ s/\bmain\b/Main/g;
+$src =~ s/\bequals\b/Equals/g;
+$src =~ s/\btoString\b/ToString/g;
+$src =~ s/\bstartsWith\b/StartsWith/g;
 
 $src =~ s/\b extends\b|\b implements\b/:/g;
+
+
 
 # argument
 
@@ -166,4 +176,11 @@ while($i < $n){
 	$i = $i + 1;
 }
 
+print <<'EOS';
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+EOS
 print $src;
