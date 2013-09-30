@@ -50,10 +50,10 @@ import static org.objectweb.asm.Opcodes.*;
 // GreenTea Generator should be written in each language.
 
 class MethodHolderClass implements Opcodes {
-	final String					name;
-	final String					superClass;
-	final ArrayList<MethodNode>	methods	= new ArrayList<MethodNode>();
-	final Map<String, FieldNode>	fields	= new HashMap<String, FieldNode>();
+	final String name;
+	final String superClass;
+	final ArrayList<MethodNode> methods = new ArrayList<MethodNode>();
+	final Map<String, FieldNode> fields = new HashMap<String, FieldNode>();
 
 	public MethodHolderClass(String name, String superClass) {
 		this.name = name;
@@ -542,7 +542,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.Builder.typeStack.push(type);
 	}
 
-	public void VisitConstructorNode(GtConstructorNode Node) {
+	@Override public void VisitConstructorNode(GtConstructorNode Node) {
 		Type type = this.ToAsmType(Node.Type);
 		for(int i=1; i<Node.ParamList.size(); i++) {
 			Node.ParamList.get(i).Evaluate(this);
@@ -653,15 +653,16 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		}
 	}
 
-	public void VisitIndexerNode(GtIndexerNode Node) {
+	@Override public void VisitIndexerNode(GtIndexerNode Node) {
+		ArrayList<GtNode> NodeList = Node.NodeList;
 		Node.Expr.Evaluate(this);
-		for(int i=0; i<Node.NodeList.size(); i++) {
-			Node.NodeList.get(i).Evaluate(this);
+		for(int i=0; i<NodeList.size(); i++) {
+			NodeList.get(i).Evaluate(this);
 		}
 		this.Builder.Call((Method) Node.Func.FuncBody);
 	}
 
-	public void VisitArrayNode(GtArrayNode Node) {
+	@Override public void VisitArrayNode(GtArrayNode Node) {
 		ArrayList<GtNode> NodeList = Node.NodeList;
 		this.Builder.LoadConst(Node.Type);
 		this.Builder.AsmMethodVisitor.visitLdcInsn(NodeList.size());
@@ -744,7 +745,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		}
 	}
 
-	public void VisitSelfAssignNode(GtSelfAssignNode Node) {
+	@Override public void VisitSelfAssignNode(GtSelfAssignNode Node) {
 		if(Node.LeftNode instanceof GtLocalNode) {
 			GtLocalNode Left = (GtLocalNode)Node.LeftNode;
 			JVMLocal local = this.Builder.FindLocalVariable(Left.NativeName);
@@ -786,7 +787,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.Builder.AsmMethodVisitor.visitLabel(EndLabel);
 	}
 
-	public void VisitTrinaryNode(GtTrinaryNode Node) {
+	@Override public void VisitTrinaryNode(GtTrinaryNode Node) {
 		Label ElseLabel = new Label();
 		Label EndLabel = new Label();
 		Node.CondExpr.Evaluate(this);
@@ -846,7 +847,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.Builder.ContinueLabelStack.pop();
 	}
 
-	public void VisitDoWhileNode(GtDoWhileNode Node) {
+	@Override public void VisitDoWhileNode(GtDoWhileNode Node) {
 		Label headLabel = new Label();
 		Label continueLabel = new Label();
 		Label breakLabel = new Label();
@@ -866,7 +867,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.Builder.ContinueLabelStack.pop();
 	}
 
-	public void VisitForNode(GtForNode Node) {
+	@Override public void VisitForNode(GtForNode Node) {
 		Label headLabel = new Label();
 		Label continueLabel = new Label();
 		Label breakLabel = new Label();
@@ -888,7 +889,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.Builder.ContinueLabelStack.pop();
 	}
 
-	public void VisitForEachNode(GtForEachNode Node) {
+	@Override public void VisitForEachNode(GtForEachNode Node) {
 		LibGreenTea.TODO("ForEach");
 	}
 
