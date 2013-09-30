@@ -28,6 +28,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -128,41 +129,6 @@ class JVMBuilder {
 		this.ContinueLabelStack = new Stack<Label>();
 	}
 
-	void LoadConst(Object o) {
-		Type type = null;
-		boolean unsupportType = false;
-		// JVM supports only boolean, int, long, String, float, double, java.lang.Class
-		if(o instanceof Long) {
-			type = Type.LONG_TYPE;
-		}
-		else if(o instanceof Double) {
-			type = Type.DOUBLE_TYPE;
-		}
-		else if(o instanceof Boolean) {
-			type = Type.BOOLEAN_TYPE;
-		}
-		else if(o instanceof String) {
-			type = Type.getType(o.getClass());
-		}
-		else {
-			unsupportType = true;
-			type = Type.getType(o.getClass());
-		}
-		this.typeStack.push(type);
-		if(unsupportType) {
-			int id = JVMConstPool.add(o);
-			String owner = Type.getInternalName(JVMConstPool.class);
-			String methodName = "get";
-			String methodDesc = "(I)Ljava/lang/Object;";
-			this.AsmMethodVisitor.visitLdcInsn(id);
-			this.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, owner, methodName, methodDesc);
-			this.AsmMethodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(o.getClass()));
-		}
-		else {
-			this.AsmMethodVisitor.visitLdcInsn(o);
-		}
-	}
-
 	void LoadLocal(JVMLocal local) {
 		Type type = local.TypeInfo;
 		this.typeStack.push(type);
@@ -252,17 +218,21 @@ class JVMBuilder {
 
 	void Call(Method method) {
 		String owner = Type.getInternalName(method.getDeclaringClass());
-		this.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, owner, method.getName(), Type.getMethodDescriptor(method));
+		int inst = INVOKEVIRTUAL;
+		if(Modifier.isStatic(method.getModifiers())) {
+			inst = INVOKESTATIC;
+		}
+		this.AsmMethodVisitor.visitMethodInsn(inst, owner, method.getName(), Type.getMethodDescriptor(method));
 		this.typeStack.push(Type.getReturnType(method));
 	}
 }
 
 public class JavaByteCodeGenerator extends GtGenerator {
 	private JVMBuilder Builder;
-	private final String defaultClassName = "Global";
+	private String defaultClassName;
 	private final Map<String, MethodHolderClass> classMap = new HashMap<String, MethodHolderClass>();
 	private final Map<String, Type> typeDescriptorMap = new HashMap<String, Type>();
-	private MethodHolderClass DefaultHolderClass = new MethodHolderClass(defaultClassName, "java/lang/Object");
+	private MethodHolderClass DefaultHolderClass;
 	private Map<String, Method> methodMap;
 
 	public JavaByteCodeGenerator(String TargetCode, String OutputFile, int GeneratorFlag) {
@@ -278,6 +248,21 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.typeDescriptorMap.put(Context.AnyType.ShortName, Type.getType(Object.class));
 		this.typeDescriptorMap.put(Context.StringType.ShortName, Type.getType(String.class));
 		this.methodMap = InitSystemMethods();
+		this.defaultClassName = "Global$" + Context.ParserId;
+		this.DefaultHolderClass = new MethodHolderClass(defaultClassName, "java/lang/Object");
+
+		// Global.ParserContext
+		FieldNode fn = new FieldNode(ACC_STATIC, "ParserContext", Type.getDescriptor(GtParserContext.class), null, null);
+		this.DefaultHolderClass.fields.put(fn.name, fn);
+
+		// <static_init>
+		int acc = ACC_PUBLIC | ACC_STATIC;
+		MethodNode mn = new MethodNode(acc, "<clinit>", "()V", null, null);
+		this.Builder = new JVMBuilder(mn);
+		this.LoadConst(Context);
+		this.Builder.AsmMethodVisitor.visitFieldInsn(PUTSTATIC, this.DefaultHolderClass.name, fn.name, fn.desc);
+		this.Builder.AsmMethodVisitor.visitInsn(RETURN);
+		this.DefaultHolderClass.addMethodNode(mn);
 	}
 
 	public static HashMap<String, Method> InitSystemMethods() {
@@ -296,10 +281,63 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			map.put("ExecCommandVoid", proc.getMethod("ExecCommandVoid", String[][].class));
 			map.put("ExecCommandBool", proc.getMethod("ExecCommandBool", String[][].class));
 			map.put("ExecCommandString", proc.getMethod("ExecCommandString", String[][].class));
+			// pool
+			map.put("get_const", JVMConstPool.class.getMethod("getById", int.class));
+			map.put("get_type", GtParserContext.class.getMethod("GetTypeById", int.class));
+			map.put("get_func", GtParserContext.class.getMethod("GetFuncById", int.class));
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
 		return map;
+	}
+
+	//-----------------------------------------------------
+
+	void LoadConst(Object o) {
+		Type type = null;
+		boolean unsupportType = false;
+		if(o instanceof Long) {
+			type = Type.LONG_TYPE;
+		}
+		else if(o instanceof Double) {
+			type = Type.DOUBLE_TYPE;
+		}
+		else if(o instanceof Boolean) {
+			type = Type.BOOLEAN_TYPE;
+		}
+		else if(o instanceof String) {
+			type = Type.getType(o.getClass());
+		}
+		else if(o instanceof GtType) {
+			int id = ((GtType)o).TypeId;
+			FieldNode fn = this.DefaultHolderClass.getFieldNode("ParserContext");
+			this.Builder.AsmMethodVisitor.visitFieldInsn(GETSTATIC, this.DefaultHolderClass.name, fn.name, fn.desc);
+			this.Builder.AsmMethodVisitor.visitLdcInsn(id);
+			this.Builder.Call(methodMap.get("get_type"));
+			return;
+		}
+		else if(o instanceof GtFunc) {
+			int id = ((GtFunc)o).FuncId;
+			FieldNode fn = this.DefaultHolderClass.getFieldNode("ParserContext");
+			this.Builder.AsmMethodVisitor.visitFieldInsn(GETSTATIC, this.DefaultHolderClass.name, fn.name, fn.desc);
+			this.Builder.AsmMethodVisitor.visitLdcInsn(id);
+			this.Builder.Call(methodMap.get("get_func"));
+			return;
+		}
+		else {
+			unsupportType = true;
+			type = Type.getType(o.getClass());
+		}
+		if(unsupportType) {
+			int id = JVMConstPool.add(o);
+			this.Builder.AsmMethodVisitor.visitLdcInsn(id);
+			this.Builder.Call(methodMap.get("get_const"));
+			this.Builder.AsmMethodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(o.getClass()));
+		}
+		else {
+			this.Builder.AsmMethodVisitor.visitLdcInsn(o);
+			this.Builder.typeStack.push(type);
+		}
 	}
 
 	//-----------------------------------------------------
@@ -524,7 +562,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			this.Builder.AsmMethodVisitor.visitInsn(ACONST_NULL);
 		}
 		else {
-			this.Builder.LoadConst(constValue);
+			this.LoadConst(constValue);
 		}
 	}
 
@@ -664,7 +702,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 
 	@Override public void VisitArrayNode(GtArrayNode Node) {
 		ArrayList<GtNode> NodeList = Node.NodeList;
-		this.Builder.LoadConst(Node.Type);
+		this.LoadConst(Node.Type);
 		this.Builder.AsmMethodVisitor.visitLdcInsn(NodeList.size());
 		this.Builder.AsmMethodVisitor.visitTypeInsn(ANEWARRAY, Type.getInternalName(Object.class));
 		for(int i=0; i<NodeList.size(); i++) {
@@ -964,14 +1002,14 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	@Override public void VisitInstanceOfNode(GtInstanceOfNode Node) {
 		Node.ExprNode.Evaluate(this);
 		this.Builder.box();
-		this.Builder.LoadConst(Node.TypeInfo);
+		this.LoadConst(Node.TypeInfo);
 		this.Builder.Call(methodMap.get("instanceof"));
 		this.Builder.unbox(Type.BOOLEAN_TYPE);
 		this.Builder.typeStack.push(Type.BOOLEAN_TYPE);
 	}
 
 	@Override public void VisitCastNode(GtCastNode Node) {
-		this.Builder.LoadConst(Node.CastType);
+		this.LoadConst(Node.CastType);
 		Node.Expr.Evaluate(this);
 		this.Builder.Call(methodMap.get("cast"));
 		this.Builder.unbox(this.ToAsmType(Node.CastType));
