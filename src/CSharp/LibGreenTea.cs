@@ -918,16 +918,16 @@ public abstract class LibGreenTea: GreenTeaConst {
 				return EvalCast(Type, !left.Equals(right));
 			}
 			if(Operator.Equals("<")) {
-				return EvalCast(Type, left.compareTo(right) < 0);
+				return EvalCast(Type, left.CompareTo(right) < 0);
 			}
 			if(Operator.Equals("<=")) {
-				return EvalCast(Type, left.compareTo(right) <= 0);
+				return EvalCast(Type, left.CompareTo(right) <= 0);
 			}
 			if(Operator.Equals(">")) {
-				return EvalCast(Type, left.compareTo(right) > 0);
+				return EvalCast(Type, left.CompareTo(right) > 0);
 			}
 			if(Operator.Equals(">=")) {
-				return EvalCast(Type, left.compareTo(right) >= 0);
+				return EvalCast(Type, left.CompareTo(right) >= 0);
 			}
 			return null;
 		}
