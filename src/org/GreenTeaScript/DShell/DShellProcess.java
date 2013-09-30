@@ -49,6 +49,7 @@ public class DShellProcess {
 	private final PseudoProcess[] Processes;
 	private long timeout;
 	private ShellExceptionRaiser ExceptionManager = null;
+	
 	public DShellProcess(int option, String[][] cmds, int ProcessSize, long timeout) {
 		// init process
 		this.ExceptionManager = new ShellExceptionRaiser(is(option, throwable));
@@ -132,6 +133,60 @@ public class DShellProcess {
 		int option = printable | throwable | enableTrace;
 		return (DShellProcess) runCommands(cmds, option, ProcessType);
 	}
+	
+	// file system roll back function
+	// TargetLV: vg_name/lv_name
+	public static boolean CreateSnapshot(String SnapshotLabel, String TargetLV) throws Exception {
+		if(System.getProperty("os.name").equals("Linux") && new File("/sbin/lvm").canExecute()) {
+			String[] cmds = {"sudo", "lvcreate", "-s", "-n", SnapshotLabel, TargetLV};
+			return ExecCommandBool(cmds);
+		}
+		return false;
+	}
+	
+	public static boolean RevertSnapshot(String SnapshotLabel, String TargetLV) throws Exception {
+		if(System.getProperty("os.name").equals("Linux") && new File("/sbin/lvm").canExecute()) {
+			String[] volNames = TargetLV.split("/");
+			String VG_Name = volNames[0];
+			String LV_Name = volNames[1];
+			String mountableId = VG_Name + "-" + LV_Name;
+			
+			// get target LV mount point
+			int option = returnable | throwable;
+			String[][] mountPoint_cmds = {{"mount"}, {"grep", mountableId}};
+			String mountPoint;
+			try {
+				String[] results = ((String) runCommands(mountPoint_cmds, option, StringType)).split(" ");
+				mountPoint = results[2];
+			} catch (Exception e) {
+				return false;
+			}
+			
+			// umount target LV
+			String[] umount_cmds = {"sudo", "umount", mountPoint};
+			if(!ExecCommandBool(umount_cmds)) {
+				return false;
+			}
+			
+			// remove current LV
+			String[] lvremove_cmds = {"sudo", "lvremove", TargetLV};
+			if(!ExecCommandBool(lvremove_cmds)) {
+				return false;
+			}
+			
+			// rename snapshot
+			String[] lvrename_cmds = {"sudo", "lvrename", VG_Name + "/" + SnapshotLabel, LV_Name};
+			if(!ExecCommandBool(lvrename_cmds)) {
+				return false;
+			}
+			
+			// mount LV
+			String[] mount_cmds = {"sudo", "mount", "/dev/" + TargetLV, mountPoint};
+			return ExecCommandBool(mount_cmds);
+		}
+		return false;
+	}
+	
 	//---------------------------------------------
 
 	private static boolean checkTraceRequirements() {
@@ -222,14 +277,14 @@ public class DShellProcess {
 			prevSubProc.setMergeType(SubProc.mergeErrorToOut);
 			prevSubProc = null;
 		}
-		else if(LibGreenTea.EqualsString(cmdSymbol, "checkpoint")) {
-			String[] newCmds = {"sudo", "lvcreate", "-s", "-n", cmds[1], cmds[2]};
-			proc = new SubProc(false);
-			proc.setArgument(newCmds);
-		}
-		else if(LibGreenTea.EqualsString(cmdSymbol, "rollback")) {
-			
-		}
+//		else if(LibGreenTea.EqualsString(cmdSymbol, "checkpoint")) {
+//			String[] newCmds = {"sudo", "lvcreate", "-s", "-n", cmds[1], cmds[2]};
+//			proc = new SubProc(false);
+//			proc.setArgument(newCmds);
+//		}
+//		else if(LibGreenTea.EqualsString(cmdSymbol, "rollback")) {
+//			
+//		}
 		else {
 			proc = new SubProc(enableSyscallTrace);
 			proc.setArgument(cmds);
