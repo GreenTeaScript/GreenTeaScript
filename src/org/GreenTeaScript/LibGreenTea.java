@@ -253,6 +253,16 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return sb.toString();
 	}
 
+	public final static String Stringfy(Object Value) {
+		if(Value == null) {
+			return "null";
+		}
+		else if(Value instanceof String) {
+			return LibGreenTea.QuoteString(Value.toString());
+		}
+		return Value.toString();
+	}
+
 	public final static boolean EqualsString(String s, String s2) {
 		return s.equals(s2);
 	}
@@ -1131,6 +1141,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
 
 
 }

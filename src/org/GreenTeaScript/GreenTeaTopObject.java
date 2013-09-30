@@ -55,7 +55,7 @@ public class GreenTeaTopObject implements GreenTeaObject {
 						s += Fields[i].getDouble(this);
 					}
 					else {
-						s += Fields[i].get(this);
+						s += LibGreenTea.Stringfy(Fields[i].get(this));
 					}
 				} catch (IllegalArgumentException e) {
 					// TODO Auto-generated catch block
