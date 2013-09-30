@@ -158,70 +158,18 @@ class JVMBuilder {
 		return local;
 	}
 
-	boolean isPrimitiveType(Type type) {
-		return !type.getDescriptor().startsWith("L");
-	}
-
-	void box() {
-		Type type = this.typeStack.pop();
-		if(type.equals(Type.INT_TYPE)) {
-			this.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Integer", "valueOf", "(I)Ljava/lang/Integer;");
-			this.typeStack.push(Type.getType(Integer.class));
-		}
-		else if(type.equals(Type.LONG_TYPE)) {
-			this.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Long", "valueOf", "(J)Ljava/lang/Long;");
-			this.typeStack.push(Type.getType(Long.class));
-		}
-		else if(type.equals(Type.DOUBLE_TYPE)) {
-			this.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Double", "valueOf", "(D)Ljava/lang/Double;");
-			this.typeStack.push(Type.getType(Double.class));
-		}
-		else if(type.equals(Type.BOOLEAN_TYPE)) {
-			this.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Boolean", "valueOf", "(Z)Ljava/lang/Boolean;");
-			this.typeStack.push(Type.getType(Boolean.class));
-		}
-		else if(type.equals(Type.VOID_TYPE)) {
-			this.AsmMethodVisitor.visitInsn(ACONST_NULL);//FIXME: return void
-			this.typeStack.push(Type.getType(Void.class));
-		}
-		else {
-			this.typeStack.push(type);
-		}
-	}
-
-	void unbox(Type type) {
-		if(type.equals(Type.INT_TYPE)) {
-			this.AsmMethodVisitor.visitTypeInsn(CHECKCAST, "java/lang/Integer");
-			this.AsmMethodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Integer", "intValue", "()I");
-			this.typeStack.push(Type.INT_TYPE);
-		}
-		else if(type.equals(Type.LONG_TYPE)) {
-			this.AsmMethodVisitor.visitTypeInsn(CHECKCAST, "java/lang/Long");
-			this.AsmMethodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Long", "longValue", "()J");
-			this.typeStack.push(Type.LONG_TYPE);
-		}
-		else if(type.equals(Type.DOUBLE_TYPE)) {
-			this.AsmMethodVisitor.visitTypeInsn(CHECKCAST, "java/lang/Double");
-			this.AsmMethodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Double", "doubleValue", "()D");
-			this.typeStack.push(Type.DOUBLE_TYPE);
-		}
-		else if(type.equals(Type.BOOLEAN_TYPE)) {
-			this.AsmMethodVisitor.visitTypeInsn(CHECKCAST, "java/lang/Boolean");
-			this.AsmMethodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Boolean", "booleanValue", "()Z");
-			this.typeStack.push(Type.BOOLEAN_TYPE);
-		}
-		else {
-			this.AsmMethodVisitor.visitTypeInsn(CHECKCAST, type.getInternalName());
-			this.typeStack.push(type);
-		}
-	}
-
 	void Call(Method method) {
-		String owner = Type.getInternalName(method.getDeclaringClass());
-		int inst = INVOKEVIRTUAL;
+		int inst;
 		if(Modifier.isStatic(method.getModifiers())) {
 			inst = INVOKESTATIC;
 		}
+		else if(Modifier.isInterface(method.getModifiers())) {
+			inst = INVOKEINTERFACE;
+		}
+		else {
+			inst = INVOKEVIRTUAL;
+		}
+		String owner = Type.getInternalName(method.getDeclaringClass());
 		this.AsmMethodVisitor.visitMethodInsn(inst, owner, method.getName(), Type.getMethodDescriptor(method));
 		this.typeStack.push(Type.getReturnType(method));
 	}
@@ -255,7 +203,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		FieldNode fn = new FieldNode(ACC_STATIC, "ParserContext", Type.getDescriptor(GtParserContext.class), null, null);
 		this.DefaultHolderClass.fields.put(fn.name, fn);
 
-		// <static_init>
+		// static init
 		int acc = ACC_PUBLIC | ACC_STATIC;
 		MethodNode mn = new MethodNode(acc, "<clinit>", "()V", null, null);
 		this.Builder = new JVMBuilder(mn);
@@ -285,6 +233,16 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			map.put("get_const", JVMConstPool.class.getMethod("getById", int.class));
 			map.put("get_type", GtParserContext.class.getMethod("GetTypeById", int.class));
 			map.put("get_func", GtParserContext.class.getMethod("GetFuncById", int.class));
+			// boxing
+			map.put("boxI", Integer.class.getMethod("valueOf", int.class));
+			map.put("boxJ", Long.class.getMethod("valueOf", long.class));
+			map.put("boxD", Double.class.getMethod("valueOf", double.class));
+			map.put("boxZ", Boolean.class.getMethod("valueOf", boolean.class));
+			// unboxing
+			map.put("unboxI", Integer.class.getMethod("intValue"));
+			map.put("unboxJ", Long.class.getMethod("longValue"));
+			map.put("unboxD", Double.class.getMethod("doubleValue"));
+			map.put("unboxZ", Boolean.class.getMethod("booleanValue"));
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -336,6 +294,26 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		}
 		else {
 			this.Builder.AsmMethodVisitor.visitLdcInsn(o);
+			this.Builder.typeStack.push(type);
+		}
+	}
+
+	void box() {
+		Type type = this.Builder.typeStack.peek();
+		Method m = this.methodMap.get("box" + type.getDescriptor().charAt(0));
+		if(m != null) {
+			this.Builder.typeStack.pop();
+			this.Builder.Call(m);
+		}
+	}
+
+	void unbox(Type type) {
+		Method m = this.methodMap.get("unbox" + type.getDescriptor().charAt(0));
+		if(m != null) {
+			this.Builder.AsmMethodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(m.getDeclaringClass()));
+			this.Builder.Call(m);
+		} else {
+			this.Builder.AsmMethodVisitor.visitTypeInsn(CHECKCAST, type.getInternalName());
 			this.Builder.typeStack.push(type);
 		}
 	}
@@ -426,7 +404,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			this.Builder.AsmMethodVisitor.visitInsn(ACONST_NULL);
 		}
 		else {
-			this.Builder.box();
+			this.box();
 		}
 		this.Builder.AsmMethodVisitor.visitInsn(ARETURN);
 
@@ -624,7 +602,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		Node.Expr.Evaluate(this);
 		this.Builder.AsmMethodVisitor.visitLdcInsn(name);
 		this.Builder.Call(this.methodMap.get("getter"));
-		this.Builder.unbox(ty);
+		this.unbox(ty);
 	}
 
 	@Override public void VisitApplyNode(GtApplyNode Node) {
@@ -633,14 +611,10 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			GtNode ParamNode = Node.NodeList.get(i);
 			ParamNode.Evaluate(this);
 			Type requireType = this.ToAsmType(Func.GetFuncParamType(i - 1));
-			Type foundType = this.Builder.typeStack.peek();
-			if(requireType.equals(Type.getType(Object.class)) && this.Builder.isPrimitiveType(foundType)) {
-				// boxing
-				this.Builder.box();
+			if(requireType.equals(Type.getType(Object.class))) {
+				this.box();
 			}
-			else {
-				this.Builder.typeStack.pop();
-			}
+			this.Builder.typeStack.pop();
 		}
 		Method m = null;
 		if(Func.FuncBody instanceof Method) {
@@ -709,7 +683,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			this.Builder.AsmMethodVisitor.visitInsn(DUP);
 			this.Builder.AsmMethodVisitor.visitLdcInsn(i);
 			NodeList.get(i).Evaluate(this);
-			this.Builder.box();
+			this.box();
 			this.Builder.typeStack.pop();
 			this.Builder.AsmMethodVisitor.visitInsn(AASTORE);
 		}
@@ -769,7 +743,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			left.Expr.Evaluate(this);
 			this.Builder.AsmMethodVisitor.visitLdcInsn(name);
 			Node.RightNode.Evaluate(this);
-			this.Builder.box();
+			this.box();
 			this.Builder.Call(this.methodMap.get("setter"));
 			this.Builder.typeStack.pop();
 			this.Builder.typeStack.push(ty);
@@ -993,7 +967,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.Builder.AsmMethodVisitor.visitTypeInsn(NEW, name);
 		this.Builder.AsmMethodVisitor.visitInsn(DUP);
 		Node.Expr.Evaluate(this);
-		this.Builder.box();
+		this.box();
 		this.Builder.typeStack.pop();
 		this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESPECIAL, name, "<init>", "(Ljava/lang/Object;)V");
 		this.Builder.AsmMethodVisitor.visitInsn(ATHROW);
@@ -1001,10 +975,10 @@ public class JavaByteCodeGenerator extends GtGenerator {
 
 	@Override public void VisitInstanceOfNode(GtInstanceOfNode Node) {
 		Node.ExprNode.Evaluate(this);
-		this.Builder.box();
+		this.box();
 		this.LoadConst(Node.TypeInfo);
 		this.Builder.Call(methodMap.get("instanceof"));
-		this.Builder.unbox(Type.BOOLEAN_TYPE);
+		this.unbox(Type.BOOLEAN_TYPE);
 		this.Builder.typeStack.push(Type.BOOLEAN_TYPE);
 	}
 
@@ -1012,7 +986,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.LoadConst(Node.CastType);
 		Node.Expr.Evaluate(this);
 		this.Builder.Call(methodMap.get("cast"));
-		this.Builder.unbox(this.ToAsmType(Node.CastType));
+		this.unbox(this.ToAsmType(Node.CastType));
 		this.Builder.typeStack.pop();
 		this.Builder.typeStack.push(this.ToAsmType(Node.CastType));
 	}
