@@ -290,6 +290,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			Class<?> lib = LibGreenTea.class;
 			map.put("cast", lib.getMethod("DynamicCast", GtType.class, Object.class));
 			map.put("instanceof", lib.getMethod("DynamicInstanceOf", Object.class, GtType.class));
+			map.put("NewArrayLiteral", lib.getMethod("NewArrayLiteral", GtType.class, Object[].class));
 			Class<?> proc = DShellProcess.class;
 			map.put("ExecCommand", proc.getMethod("ExecCommand", String[][].class));
 			map.put("ExecCommandVoid", proc.getMethod("ExecCommandVoid", String[][].class));
@@ -650,6 +651,30 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		else {
 			throw new RuntimeException("unsupport unary operator: " + Node.Func.FuncName);
 		}
+	}
+
+	public void VisitIndexerNode(GtIndexerNode Node) {
+		Node.Expr.Evaluate(this);
+		for(int i=0; i<Node.NodeList.size(); i++) {
+			Node.NodeList.get(i).Evaluate(this);
+		}
+		this.Builder.Call((Method) Node.Func.FuncBody);
+	}
+
+	public void VisitArrayNode(GtArrayNode Node) {
+		ArrayList<GtNode> NodeList = Node.NodeList;
+		this.Builder.LoadConst(Node.Type);
+		this.Builder.AsmMethodVisitor.visitLdcInsn(NodeList.size());
+		this.Builder.AsmMethodVisitor.visitTypeInsn(ANEWARRAY, Type.getInternalName(Object.class));
+		for(int i=0; i<NodeList.size(); i++) {
+			this.Builder.AsmMethodVisitor.visitInsn(DUP);
+			this.Builder.AsmMethodVisitor.visitLdcInsn(i);
+			NodeList.get(i).Evaluate(this);
+			this.Builder.box();
+			this.Builder.typeStack.pop();
+			this.Builder.AsmMethodVisitor.visitInsn(AASTORE);
+		}
+		this.Builder.Call(methodMap.get("NewArrayLiteral"));
 	}
 
 	@Override public void VisitAndNode(GtAndNode Node) {
