@@ -24,7 +24,9 @@
 
 //ifdef JAVA
 package org.GreenTeaScript;
+import java.lang.reflect.Field;
 //endif VAJA
+import java.lang.reflect.Modifier;
 
 public class GreenTeaTopObject implements GreenTeaObject {
 	/*field*/public GtType GreenType;
@@ -33,6 +35,39 @@ public class GreenTeaTopObject implements GreenTeaObject {
 	}
 	public final GtType GetGreenType() {
 		return this.GreenType;
+	}
+	
+	@Override public String toString() {
+		String s = "{";
+//ifdef JAVA
+		Field[] Fields = this.getClass().getFields();
+		for(int i = 0; i < Fields.length; i++) {
+			if(Modifier.isPublic(Fields[i].getModifiers())) {
+				if(i > 0) {
+					s += ", ";
+				}
+				try {
+					s += Fields[i].getName() + ": ";
+					if(Fields[i].getType() == long.class) {
+							s += Fields[i].getLong(this);
+					}
+					else if(Fields[i].getType() == double.class) {
+						s += Fields[i].getDouble(this);
+					}
+					else {
+						s += Fields[i].get(this);
+					}
+				} catch (IllegalArgumentException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+//endif VAJA
+		return s + "}";
 	}
 }
 
