@@ -1152,7 +1152,7 @@ class GtGenerator extends GreenTeaUtils {
 		if(Node.Func != null && (EnforceConst || Node.Func.Is(ConstFunc)) && Node.Func.FuncBody instanceof Method) {
 			Object RecvObject = null;
 			int StartIndex = 1;
-			if(!Node.Func.Is(NativeStaticFunc)) {
+			if(!Node.Func.Is(NativeStaticFunc)  && Node.NodeList.size() > 1) {
 				RecvObject = Node.NodeList.get(1).ToConstValue(EnforceConst);
 				if(RecvObject == null) {
 					return null;
@@ -1163,10 +1163,10 @@ class GtGenerator extends GreenTeaUtils {
 			for(int i = 0; i < Arguments.length; i++) {
 				GtNode ArgNode = Node.NodeList.get(StartIndex+i);
 				Arguments[i] = ArgNode.ToConstValue(EnforceConst);
-				//System.err.println("@@@@ " + i + ", " + Arguments[i] + ", " + ArgNode.getClass());
 				if(Arguments[i] == null && !(ArgNode instanceof GtNullNode)) {
 					return null;
 				}
+				//System.err.println("@@@@ " + i + ", " + Arguments[i] + ", " + Arguments[i].getClass());
 			}
 			return LibGreenTea.ApplyFunc(Node.Func, RecvObject, Arguments);
 		}

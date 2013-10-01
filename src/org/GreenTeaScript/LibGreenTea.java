@@ -620,11 +620,16 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 
 	public final static Object ApplyFunc(GtFunc Func, Object Self, Object[] Params) {
 		try {
+//			System.err.println("** debug: " + Func.FuncBody);
+//			System.err.println("** debug: " + Self + ", Params.length=" + Params.length);
+//			if(Params.length == 1) {
+//				return ((Method)Func.FuncBody).invoke(Self, Params[0]);
+//			}
 			return ((Method)Func.FuncBody).invoke(Self, Params);
 		}
 		catch (InvocationTargetException e) {
-			//LibGreenTea.VerboseException(e);
-			e.getCause().printStackTrace();
+			LibGreenTea.VerboseException(e);
+			//e.getCause().printStackTrace();
 		}
 		catch (IllegalArgumentException e) {
 			LibGreenTea.VerboseException(e);

@@ -23,7 +23,6 @@
 // **************************************************************************
 
 package org.GreenTeaScript.Konoha;
-import java.util.ArrayList;
 import org.GreenTeaScript.GreenTeaArray;
 import org.GreenTeaScript.GreenTeaTopObject;
 import org.GreenTeaScript.GtType;
