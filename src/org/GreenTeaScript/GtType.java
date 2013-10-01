@@ -191,6 +191,13 @@ public class GtType extends GreenTeaUtils {
 		return this.Context.CheckSubType(Type, this);
 	}
 
+//	public final boolean Accept(GtType Type) {
+//		boolean b = this.Accept_(Type);
+//		System.err.println("" + this + " accepts " + Type + " ? " + b);
+//		return b;
+//	}
+
+	
 	public final boolean AcceptValue(Object Value) {
 		return (Value != null) ? this.Accept(this.Context.GuessType(Value)) : true;
 	}
@@ -263,6 +270,7 @@ public class GtType extends GreenTeaUtils {
 	}
 
 	public boolean Match(GtNameSpace GenericNameSpace, GtType GivenType) {
+		
 		if(IsFlag(this.TypeFlag, TypeVariable)) {
 			GtType TypeVar = GenericNameSpace.GetType(this.ShortName);
 			if(TypeVar.IsTypeVariable()) {

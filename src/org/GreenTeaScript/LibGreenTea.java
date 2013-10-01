@@ -585,7 +585,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		GtParserContext Context = ClassType.Context;
 		Class<?> NativeClass = (Class<?>)ClassType.TypeBody;
 		Method[] Methods = NativeClass.getDeclaredMethods();
-		/*local*/boolean TransformedResult = false;
+		/*local*/boolean FoundMethod = false;
 		if(Methods != null) {
 			for(int i = 0; i < Methods.length; i++) {
 				if(LibGreenTea.EqualsString(FuncName, Methods[i].getName())) {
@@ -595,11 +595,11 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 					GtFunc NativeFunc = LibGreenTea.ConvertNativeMethodToFunc(Context, Methods[i]);
 					Context.RootNameSpace.AppendMethod(NativeFunc, null);
 					FuncList.add(NativeFunc);
-					TransformedResult = true;
+					FoundMethod = true;
 				}
 			}
 		}
-		if(!TransformedResult) {
+		if(!FoundMethod) {
 			Context.RootNameSpace.SetUndefinedSymbol(GreenTeaUtils.ClassSymbol(ClassType, FuncName), null);
 		}
 	}
