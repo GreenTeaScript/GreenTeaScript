@@ -213,7 +213,7 @@ public class GtType extends GreenTeaUtils {
 
 	public int AppendTypeVariable(GtNameSpace GenericNameSpace, int Count) {
 		if(IsFlag(this.TypeFlag, TypeVariable)) {
-			GtType TypeVar = GenericNameSpace.GetType(this.ShortName);
+			/*local*/GtType TypeVar = GenericNameSpace.GetType(this.ShortName);
 			if(TypeVar != null && TypeVar.IsTypeVariable()) {
 				return Count;
 			}

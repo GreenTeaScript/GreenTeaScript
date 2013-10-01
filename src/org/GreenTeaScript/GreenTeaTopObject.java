@@ -25,8 +25,8 @@
 //ifdef JAVA
 package org.GreenTeaScript;
 import java.lang.reflect.Field;
-//endif VAJA
 import java.lang.reflect.Modifier;
+//endif VAJA
 
 public class GreenTeaTopObject implements GreenTeaObject {
 	/*field*/public GtType GreenType;
@@ -38,7 +38,7 @@ public class GreenTeaTopObject implements GreenTeaObject {
 	}
 	
 	@Override public String toString() {
-		String s = "{";
+		/*local*/String s = "{";
 //ifdef JAVA
 		Field[] Fields = this.getClass().getFields();
 		for(int i = 0; i < Fields.length; i++) {

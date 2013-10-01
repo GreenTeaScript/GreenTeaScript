@@ -29,7 +29,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 import org.GreenTeaScript.DShell.DShellProcess;
-
+//endif VAJA
 /* language */
 // GreenTea Generator should be written in each language.
 

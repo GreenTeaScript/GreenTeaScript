@@ -236,7 +236,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 
 	public final GtType AppendTypeVariable(String Name, GtType ParamBaseType, GtToken SourceToken, ArrayList<Object> RevertList) {
 		this.UpdateRevertList(Name, RevertList);
-		GtType TypeVar = new GtType(this.Context, TypeVariable, Name, ParamBaseType, null);
+		/*local*/GtType TypeVar = new GtType(this.Context, TypeVariable, Name, ParamBaseType, null);
 		this.SetSymbol(Name, TypeVar, SourceToken);
 		return TypeVar;
 	}
@@ -446,7 +446,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 	}
 
 	public final Object AppendMethod(GtFunc Func, GtToken SourceToken) {
-		GtType ClassType = Func.GetRecvType();
+		/*local*/GtType ClassType = Func.GetRecvType();
 		if(ClassType.IsGenericType() && ClassType.HasTypeVariable()) {
 			ClassType = ClassType.BaseType;
 		}
@@ -499,7 +499,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 			/*local*/GtSyntaxTree TopLevelTree = TokenContext.ParsePattern(this, "$Expression$", Required);
 			TokenContext.SkipEmptyStatement();			
 			if(TopLevelTree.IsError() && TokenContext.HasNext()) {
-				GtToken Token = TokenContext.GetToken();
+				/*local*/GtToken Token = TokenContext.GetToken();
 				this.Context.ReportError(InfoLevel, TokenContext.GetToken(), "stopping script eval at " + Token.ParsedText);
 				ResultValue = TopLevelTree.KeyToken;  // in case of error, return error token
 				break;
@@ -559,7 +559,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 	}
 
 	private void UpdateRevertList(String Key, ArrayList<Object> RevertList) {
-		Object Value = this.GetLocalSymbol(Key);
+		/*local*/Object Value = this.GetLocalSymbol(Key);
 		RevertList.add(Key);
 		if(Value != null) {
 			RevertList.add(Value);
@@ -572,8 +572,8 @@ public final class GtNameSpace extends GreenTeaUtils {
 	public void Revert(ArrayList<Object> RevertList) {
 		/*local*/int i = 0;
 		while(i < RevertList.size()) {
-			String Key = (/*cast*/String)RevertList.get(i);
-			Object Value = RevertList.get(i+1);
+			/*local*/String Key = (/*cast*/String)RevertList.get(i);
+			/*local*/Object Value = RevertList.get(i+1);
 			this.SetSymbol(Key, Value, null);
 			i += 2;
 		}

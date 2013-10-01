@@ -99,9 +99,9 @@ public final class GtTokenContext extends GreenTeaUtils {
 	}
 
 	public void SkipErrorStatement() {
-		GtToken LeastRecentToken = this.LatestToken;
+		/*local*/GtToken LeastRecentToken = this.LatestToken;
 		while(this.HasNext()) {
-			GtToken T = this.GetToken();
+			/*local*/GtToken T = this.GetToken();
 			if(T.IsDelim() || T.EqualsText("}")) {
 				break;
 			}
@@ -116,7 +116,7 @@ public final class GtTokenContext extends GreenTeaUtils {
 			return null;
 		}
 		else {
-			GtSyntaxTree ErrorTree = this.NewErrorSyntaxTree(Token, Message);
+			/*local*/GtSyntaxTree ErrorTree = this.NewErrorSyntaxTree(Token, Message);
 			if(SkipToken) {
 				this.SkipErrorStatement();
 			}
@@ -129,7 +129,6 @@ public final class GtTokenContext extends GreenTeaUtils {
 			/*local*/GtToken Token = this.GetBeforeToken();
 			if(Token != null) {
 				return this.NewErrorSyntaxTree(Token, TokenText + " is expected at " + Token.ParsedText);
-			
 			}
 			else {
 				Token = this.LatestToken;
@@ -189,7 +188,7 @@ public final class GtTokenContext extends GreenTeaUtils {
 	}
 
 	public final int GetPosition(int MatchFlag) {
-		int Pos = this.CurrentPosition;
+		/*local*/int Pos = this.CurrentPosition;
 		if(IsFlag(MatchFlag, AllowLineFeed)) {
 			this.SkipIndent();
 		}
@@ -326,7 +325,7 @@ public final class GtTokenContext extends GreenTeaUtils {
 	}
 
 	public GtSyntaxTree CreateMatchedSyntaxTree(GtNameSpace NameSpace, GtSyntaxPattern Pattern, String TokenText) {
-		GtSyntaxTree SyntaxTree = this.CreateSyntaxTree(NameSpace, Pattern, null);
+		/*local*/GtSyntaxTree SyntaxTree = this.CreateSyntaxTree(NameSpace, Pattern, null);
 		SyntaxTree.SetMatchedTokenAt(KeyTokenIndex, NameSpace, this, TokenText, Required);
 		return SyntaxTree;
 	}

@@ -159,7 +159,7 @@ public final class GtFunc extends GreenTeaUtils {
 
 	public final GtType GetVargType() {
 		if(this.Types.length > 0) {
-			GtType VargType = this.Types[this.Types.length - 1];
+			/*local*/GtType VargType = this.Types[this.Types.length - 1];
 			if(VargType.IsArrayType()) {
 				return VargType.TypeParams[0];
 			}
@@ -207,7 +207,7 @@ public final class GtFunc extends GreenTeaUtils {
 
 	private boolean HasStaticBlock() {
 		if(this.FuncBody instanceof GtFuncBlock) {
-			GtFuncBlock FuncBlock = (/*cast*/GtFuncBlock)this.FuncBody;
+			/*local*/GtFuncBlock FuncBlock = (/*cast*/GtFuncBlock)this.FuncBody;
 			return !FuncBlock.IsVarArgument;
 		}
 		return false;
@@ -239,7 +239,7 @@ public final class GtFunc extends GreenTeaUtils {
 
 	public boolean HasLazyBlock() {
 		if(this.FuncBody instanceof GtFuncBlock) {
-			GtFuncBlock FuncBlock = (/*cast*/GtFuncBlock)this.FuncBody;
+			/*local*/GtFuncBlock FuncBlock = (/*cast*/GtFuncBlock)this.FuncBody;
 			return FuncBlock.IsVarArgument;
 		}
 		return false;
@@ -440,8 +440,8 @@ class GtPolyFunc extends GreenTeaUtils {
 			ConvertedNodes = null;
 		}
 		if(!Func.Is(NativeVariadicFunc)) {
-			GtType ArrayType = Func.Types[Func.Types.length - 1];
-			GtNode ArrayNode = GenericNameSpace.Context.Generator.CreateArrayNode(ArrayType, null);
+			/*local*/GtType ArrayType = Func.Types[Func.Types.length - 1];
+			/*local*/GtNode ArrayNode = GenericNameSpace.Context.Generator.CreateArrayNode(ArrayType, null);
 			p = Func.Types.length - 1;
 			while(p < ParamList.size()) {
 				ArrayNode.Append(ParamList.get(p));
@@ -498,7 +498,7 @@ class GtPolyFunc extends GreenTeaUtils {
 			TreeIndex = TreeIndex + 1;
 		}
 		if(ResolvedFunc.Func != null) {
-			GtNameSpace GenericNameSpace = ResolvedFunc.GenericNameSpace;
+			/*local*/GtNameSpace GenericNameSpace = ResolvedFunc.GenericNameSpace;
 			while(TreeIndex < LibGreenTea.ListSize(ParsedTree.SubTreeList)) {
 				/*local*/GtType ContextType = ResolvedFunc.Func.GetFuncParamType(ParamList.size()/*ResolvedSize*/);
 				ContextType = ContextType.RealType(GenericNameSpace, Gamma.VarType);
@@ -523,7 +523,7 @@ class GtPolyFunc extends GreenTeaUtils {
 		/*local*/int FuncParamSize = LibGreenTea.ListSize(ParsedTree.SubTreeList) - TreeIndex + NodeList.size();
 //		System.err.println("*** FuncParamSize=" + FuncParamSize + " resolved_size=" + NodeList.size());
 //		System.err.println("*** FuncList=" + this);
-		GtResolvedFunc ResolvedFunc = this.ResolveFunc(Gamma, ParsedTree, TreeIndex, NodeList);
+		/*local*/GtResolvedFunc ResolvedFunc = this.ResolveFunc(Gamma, ParsedTree, TreeIndex, NodeList);
 		if(ResolvedFunc.Func == null  && FuncParamSize == 1) {
 			
 		}
