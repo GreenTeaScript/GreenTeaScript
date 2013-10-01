@@ -585,7 +585,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		GtParserContext Context = ClassType.Context;
 		Class<?> NativeClass = (Class<?>)ClassType.TypeBody;
 		Method[] Methods = NativeClass.getDeclaredMethods();
-		/*local*/boolean TransformedResult = false;
+		/*local*/boolean FoundMethod = false;
 		if(Methods != null) {
 			for(int i = 0; i < Methods.length; i++) {
 				if(LibGreenTea.EqualsString(FuncName, Methods[i].getName())) {
@@ -595,11 +595,11 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 					GtFunc NativeFunc = LibGreenTea.ConvertNativeMethodToFunc(Context, Methods[i]);
 					Context.RootNameSpace.AppendMethod(NativeFunc, null);
 					FuncList.add(NativeFunc);
-					TransformedResult = true;
+					FoundMethod = true;
 				}
 			}
 		}
-		if(!TransformedResult) {
+		if(!FoundMethod) {
 			Context.RootNameSpace.SetUndefinedSymbol(GreenTeaUtils.ClassSymbol(ClassType, FuncName), null);
 		}
 	}
@@ -620,11 +620,16 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 
 	public final static Object ApplyFunc(GtFunc Func, Object Self, Object[] Params) {
 		try {
+//			System.err.println("** debug: " + Func.FuncBody);
+//			System.err.println("** debug: " + Self + ", Params.length=" + Params.length);
+//			if(Params.length == 1) {
+//				return ((Method)Func.FuncBody).invoke(Self, Params[0]);
+//			}
 			return ((Method)Func.FuncBody).invoke(Self, Params);
 		}
 		catch (InvocationTargetException e) {
-			//LibGreenTea.VerboseException(e);
-			e.getCause().printStackTrace();
+			LibGreenTea.VerboseException(e);
+			//e.getCause().printStackTrace();
 		}
 		catch (IllegalArgumentException e) {
 			LibGreenTea.VerboseException(e);
@@ -869,6 +874,44 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 			while((level = LibGreenTea.CheckBraceLevel(Line)) > 0) {
 				String Line2 = LibGreenTea.ReadLine(Prompt2 + GreenTeaUtils.JoinStrings("  ", level));
 				Line += "\n" + Line2; 
+			}
+			if(level < 0) {
+				Line = "";
+				LibGreenTea.println(" .. canceled");
+			}
+		}
+		return Line;
+	}
+
+	private static jline.console.ConsoleReader ConsoleReader = null;
+
+	public final static String ReadLine2(String Prompt, String Prompt2) {
+		if(ConsoleReader == null) {
+			try {
+				ConsoleReader = new jline.console.ConsoleReader();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		String Line;
+		try {
+			Line = ConsoleReader.readLine(Prompt);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		if(Line == null) {
+			System.exit(0);
+		}
+		if(Prompt2 != null) {
+			int level = 0;
+			while((level = LibGreenTea.CheckBraceLevel(Line)) > 0) {
+				String Line2;
+				try {
+					Line2 = ConsoleReader.readLine(Prompt2 + GreenTeaUtils.JoinStrings("  ", level));
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+				Line += "\n" + Line2;
 			}
 			if(level < 0) {
 				Line = "";

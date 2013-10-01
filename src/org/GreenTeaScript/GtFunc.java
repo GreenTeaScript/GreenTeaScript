@@ -378,9 +378,9 @@ class GtPolyFunc extends GreenTeaUtils {
 		while(p < ParamList.size()) {
 			/*local*/GtType ParamType = Func.Types[p + 1];
 			/*local*/GtNode Node = ParamList.get(p);
-			/*local*/GtType RealType = ParamType.RealType(GenericNameSpace, Node.Type);
-			if(!ParamType.Accept(RealType)) {
-				/*local*/GtFunc TypeCoercion = GenericNameSpace.GetConverterFunc(RealType, ParamType, true);
+			ParamType = ParamType.RealType(GenericNameSpace, Node.Type);
+			if(!ParamType.Accept(Node.Type)) {
+				/*local*/GtFunc TypeCoercion = GenericNameSpace.GetConverterFunc(Node.Type, ParamType, true);
 				if(TypeCoercion != null && TypeCoercion.Is(CoercionFunc)) {
 					if(ConvertedNodes == null) {
 						ConvertedNodes = new GtNode[ParamList.size()];

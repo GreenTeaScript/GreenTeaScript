@@ -441,6 +441,7 @@ public class DShellGrammar extends GreenTeaUtils {
 			Path = "";
 			while(TokenContext.HasNext()) {
 				Token = TokenContext.GetToken();
+				/*local*/String ParsedText = Token.ParsedText;
 				if(Token.IsIndent() || (!FoundOpen && StopTokens.indexOf(Token.ParsedText) != -1)) {
 					break;
 				}
@@ -461,7 +462,10 @@ public class DShellGrammar extends GreenTeaUtils {
 				if(Token.EqualsText("}")) {
 					FoundOpen = false;
 				}
-				Path += Token.ParsedText;
+				if(Token.EqualsText("~")) {
+					ParsedText = System.getenv("HOME");
+				}
+				Path += ParsedText;
 				if(!FoundOpen && Token.IsNextWhiteSpace()) {
 					break;
 				}

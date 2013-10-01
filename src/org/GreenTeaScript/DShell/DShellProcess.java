@@ -337,6 +337,9 @@ public class DShellProcess {
 }
 
 class PseudoProcess {
+	public final static int mergeErrorToOut = 0;
+	public final static int mergeOutToError = 1;
+	
 	protected PseudoProcess pipedPrevProc;
 
 	protected OutputStream stdin = null;
@@ -349,6 +352,7 @@ class PseudoProcess {
 	protected boolean stdoutIsDirty = false;
 	protected boolean stderrIsDirty = false;
 
+	protected int mergeType = -1;
 	protected int retValue = 0;
 
 	public PseudoProcess() {
@@ -367,6 +371,10 @@ class PseudoProcess {
 		}
 	}
 
+	public void setMergeType(int mergeType) {
+		this.mergeType = mergeType;
+	}
+
 	public void start() {
 	}
 
@@ -381,7 +389,7 @@ class PseudoProcess {
 	public void waitFor() {
 	}
 
-	public void waitResult(boolean isExpr) {
+	public void waitResult(boolean isPrintable) {
 	}
 	
 	public void showResult() {
@@ -425,9 +433,6 @@ class PseudoProcess {
 }
 
 class SubProc extends PseudoProcess {
-	public final static int mergeErrorToOut = 0;
-	public final static int mergeOutToError = 1;
-
 	public final static int traceBackend_strace = 0;
 	public final static int traceBackend_strace_plus = 1;
 	public static int traceBackendType = traceBackend_strace;
@@ -439,7 +444,6 @@ class SubProc extends PseudoProcess {
 	private boolean enableSyscallTrace = false;
 	public boolean isKilled = false;
 	public String logFilePath = null;
-	private int mergeType = -1;
 
 	private ByteArrayOutputStream outBuf;
 
@@ -525,10 +529,6 @@ class SubProc extends PseudoProcess {
 		for(int i = 1; i < Args.length; i++) {
 			this.setArgument(Args[i]);
 		}
-	}
-
-	public void setMergeType(int mergeType) {
-		this.mergeType = mergeType;
 	}
 
 	@Override public void start() {
@@ -1109,7 +1109,11 @@ enum ErrNo {
 	EINVAL, 
 	EIO, 
 	EISCONN, 
-	EISDIR, 
+	EISDIR {
+		public Exception toException(String message, String syscallName, String param) {
+			return new IsDirectoryException(message);
+		}
+	}, 
 	EISNAM, 
 	EKEYEXPIRED,
 	EKEYREJECTED, 
