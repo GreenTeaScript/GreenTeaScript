@@ -878,6 +878,44 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return Line;
 	}
 
+	private static jline.console.ConsoleReader ConsoleReader = null;
+
+	public final static String ReadLine2(String Prompt, String Prompt2) {
+		if(ConsoleReader == null) {
+			try {
+				ConsoleReader = new jline.console.ConsoleReader();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		String Line;
+		try {
+			Line = ConsoleReader.readLine(Prompt);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		if(Line == null) {
+			System.exit(0);
+		}
+		if(Prompt2 != null) {
+			int level = 0;
+			while((level = LibGreenTea.CheckBraceLevel(Line)) > 0) {
+				String Line2;
+				try {
+					Line2 = ConsoleReader.readLine(Prompt2 + GreenTeaUtils.JoinStrings("  ", level));
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+				Line += "\n" + Line2;
+			}
+			if(level < 0) {
+				Line = "";
+				LibGreenTea.println(" .. canceled");
+			}
+		}
+		return Line;
+	}
+
 	public final static boolean HasFile(String Path) {
 		if(LibGreenTea.class.getResource(Path) != null) {
 			return true;
