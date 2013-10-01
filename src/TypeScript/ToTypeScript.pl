@@ -181,4 +181,5 @@ while($i < $n){
 	$i = $i + 1;
 }
 
+print '/// <reference path="GreenTeaScript.ts" />';
 print $src;
