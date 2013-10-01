@@ -35,17 +35,17 @@ public class GreenTeaArray extends GreenTeaTopObject {
 		this.ArrayBody = new ArrayList<Object>();
 	}
 	public GreenTeaArray SubArray(int bindex, int eindex) {
-		GreenTeaArray ArrayObject = new GreenTeaArray(this.GreenType);
-		for(int i = bindex; i < eindex; i++) {
-			Object Value = this.ArrayBody.get(i);
+		/*local*/GreenTeaArray ArrayObject = new GreenTeaArray(this.GreenType);
+		for(/*local*/int i = bindex; i < eindex; i++) {
+			/*local*/Object Value = this.ArrayBody.get(i);
 			this.ArrayBody.add(Value);
 		}
 		return ArrayObject;
 	}
 	@Override public String toString() {
-		String s = "[";
-		for(int i = 0; i < this.ArrayBody.size(); i++) {
-			Object Value = this.ArrayBody.get(i);
+		/*local*/String s = "[";
+		for(/*local*/int i = 0; i < this.ArrayBody.size(); i++) {
+			/*local*/Object Value = this.ArrayBody.get(i);
 			if(i > 0) {
 				s += ", " + Value;
 			}
