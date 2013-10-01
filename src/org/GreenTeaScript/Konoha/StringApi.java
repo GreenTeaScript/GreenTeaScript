@@ -97,6 +97,9 @@ public final class StringApi {
 		}
 		return 0;
 	}
+	public final static Object ToAny(GtType Type, String value) {
+		return value;
+	}
 	// java original converter between char and String
 	public final static String c2s(GtType Type, char ch) {
 		return String.valueOf(ch);

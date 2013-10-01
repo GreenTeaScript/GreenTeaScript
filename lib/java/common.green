@@ -36,6 +36,7 @@
 
 @Const var split(String x, String y) import Konoha.StringApi.Split;
 
+@Common @Const @Coercion any converter(String x) import Konoha.StringApi.ToAny;
 @Common @Const int converter(String x) import Konoha.StringApi.ToInt;
 @Common @Const double converter(String x) import Konoha.StringApi.ToDouble;
 

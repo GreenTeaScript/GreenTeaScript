@@ -9,20 +9,23 @@ import org.GreenTeaScript.DShellGrammar;
 @Const @Operator boolean "-w"(String Path) import DShellGrammar.IsFileWritable;
 @Const @Operator boolean "-x"(String Path) import DShellGrammar.IsFileExecutable;
 
+let TooManyArgsException = import org.GreenTeaScript.DShell.TooManyArgsException;
+let NotPermittedException = import org.GreenTeaScript.DShell.NotPermittedException;
+let NoChildException = import org.GreenTeaScript.DShell.NoChildException;
 let ConnectRefusedException = import org.GreenTeaScript.DShell.ConnectRefusedException;
-let IllegalSeekException = import org.GreenTeaScript.DShell.IllegalSeekException;
 let InterruptedBySignalException = import org.GreenTeaScript.DShell.InterruptedBySignalException;
-let NetworkTimeoutException = import org.GreenTeaScript.DShell.NetworkTimeoutException;
+let TooManyLinkException = import org.GreenTeaScript.DShell.TooManyLinkException;
+let TooLongNameException = import org.GreenTeaScript.DShell.TooLongNameException;
+let UnreachableException = import org.GreenTeaScript.DShell.UnreachableException;
+let NotFoundException = import org.GreenTeaScript.DShell.NotFoundException;
 let NoFreeMemoryException = import org.GreenTeaScript.DShell.NoFreeMemoryException;
 let NoFreeSpaceException = import org.GreenTeaScript.DShell.NoFreeSpaceException;
 let NotDirectoryException = import org.GreenTeaScript.DShell.NotDirectoryException;
-let NotFoundException = import org.GreenTeaScript.DShell.NotFoundException;
-let NotPermittedException = import org.GreenTeaScript.DShell.NotPermittedException;
+let IllegalIOOperateException = import org.GreenTeaScript.DShell.IllegalIOOperateException;
 let NotPermittedOperateException = import org.GreenTeaScript.DShell.NotPermittedOperateException;
 let ReadOnlyException = import org.GreenTeaScript.DShell.ReadOnlyException;
-let TooLongNameException = import org.GreenTeaScript.DShell.TooLongNameException;
-let TooManyLinkException = import org.GreenTeaScript.DShell.TooManyLinkException;
-let UnreachableException = import org.GreenTeaScript.DShell.UnreachableException;
+let IllegalSeekException = import org.GreenTeaScript.DShell.IllegalSeekException;
+let NetworkTimeoutException = import org.GreenTeaScript.DShell.NetworkTimeoutException;
 
 // FaultTypes
 let DFault       = import org.GreenTeaScript.DShell.DFault;
