@@ -59,7 +59,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		return Type.ShortName + "->new";
 	}
 
-	@Override public void VisitWhileNode(WhileNode Node) {
+	@Override public void VisitWhileNode(GtWhileNode Node) {
 		Node.CondExpr.Evaluate(this);
 		/*local*/String Program = "while(" + this.PopSourceCode() + ")";
 		this.VisitBlockEachStatementWithIndent(Node.LoopBody);
@@ -67,7 +67,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Program);
 	}
 
-	@Override public void VisitDoWhileNode(DoWhileNode Node) {
+	@Override public void VisitDoWhileNode(GtDoWhileNode Node) {
 		/*local*/String Program = "do {";
 		this.VisitBlockEachStatementWithIndent(Node.LoopBody);
 		Program += this.PopSourceCode();
@@ -76,7 +76,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Program);
 	}
 
-	@Override public void VisitForNode(ForNode Node) {
+	@Override public void VisitForNode(GtForNode Node) {
 		Node.IterExpr.Evaluate(this);
 		Node.CondExpr.Evaluate(this);
 		/*local*/String Cond = this.PopSourceCode();
@@ -88,11 +88,11 @@ public class PerlSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Program);
 	}
 
-	@Override public void VisitLocalNode(LocalNode Node) {
+	@Override public void VisitLocalNode(GtLocalNode Node) {
 		this.PushSourceCode("$" + Node.NativeName);
 	}
 
-	@Override public void VisitVarNode(VarNode Node) {
+	@Override public void VisitVarNode(GtVarNode Node) {
 		/*local*/String VarName = Node.NativeName;
 		/*local*/String Code = "my $" + VarName;
 		if(Node.InitNode != null) {
@@ -105,11 +105,11 @@ public class PerlSourceGenerator extends SourceGenerator {
 
 	}
 
-	@Override public void VisitGetterNode(GetterNode Node) {
+	@Override public void VisitGetterNode(GtGetterNode Node) {
 		this.PushSourceCode(this.VisitNode(Node.Expr) + this.MemberAccessOperator + "{'" + Node.Func.FuncName + "'}");
 	}
 
-	@Override public void VisitIfNode(IfNode Node) {
+	@Override public void VisitIfNode(GtIfNode Node) {
 		/*local*/String CondExpr = this.VisitNode(Node.CondExpr);
 		this.VisitBlockEachStatementWithIndent(Node.ThenNode);
 		/*local*/String ThenBlock = this.PopSourceCode();
@@ -121,11 +121,11 @@ public class PerlSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void VisitTryNode(TryNode Node) {
+	@Override public void VisitTryNode(GtTryNode Node) {
 		/*local*/String Code = "try ";
 		Code += this.VisitBlockWithIndent(Node.TryBlock, true);
 		if(Node.CatchExpr != null) {
-		/*local*/VarNode Val = (/*cast*/VarNode) Node.CatchExpr;
+		/*local*/GtVarNode Val = (/*cast*/GtVarNode) Node.CatchExpr;
 			Code += " catch " + Val.Type.toString() + " with {" + this.LineFeed;
 			this.Indent();
 			Code += this.GetIndentString() + "my $" + Val.NativeName + " = shift;" + this.LineFeed;
@@ -138,22 +138,22 @@ public class PerlSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void VisitThrowNode(ThrowNode Node) {
+	@Override public void VisitThrowNode(GtThrowNode Node) {
 		Node.Expr.Evaluate(this);
 		/*local*/String Code = "throw " + this.PopSourceCode();
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void VisitErrorNode(ErrorNode Node) {
+	@Override public void VisitErrorNode(GtErrorNode Node) {
 		/*local*/String Code = "throw Error(\"" + Node.Token.ParsedText + "\")";
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void VisitCommandNode(CommandNode Node) {
+	@Override public void VisitCommandNode(GtCommandNode Node) {
 		/*local*/String Code = "system(\"";
 		/*local*/int i = 0;
-		while(i < Node.Params.size()) {
-			/*local*/GtNode Param = Node.Params.get(i);
+		while(i < Node.ArgumentList.size()) {
+			/*local*/GtNode Param = Node.ArgumentList.get(i);
 			if(i != 0) {
 				Code += " ";
 			}

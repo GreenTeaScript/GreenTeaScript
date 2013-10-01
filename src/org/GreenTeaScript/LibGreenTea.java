@@ -42,21 +42,39 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public abstract class LibGreenTea implements GreenTeaConsts {
+import org.GreenTeaScript.Konoha.ArrayApi;
 
-	public final static void print(String msg) {
+public abstract class LibGreenTea implements GreenTeaConsts {
+	// LibGreenTea KonohaApi
+	public final static void print(Object msg) {
 		System.out.print(msg);
 	}
 
-	public final static void println(String msg) {
+	public final static void println(Object msg) {
 		System.out.println(msg);
 	}
+	
+	public final static void Assert(boolean TestResult) {
+		if(!TestResult) {
+			assert TestResult;
+			Exit(1, "Assertion Failed");
+		}
+	}
 
+	public final static Object NewArray(GtType Type, int InitSize) {
+		return ArrayApi.NewArray(Type, InitSize);
+	}
+
+	public final static Object NewArrayLiteral(GtType ArrayType, Object[] Values) {
+		return ArrayApi.NewArrayLiteral(ArrayType, Values);		
+	}
+
+	
 	public final static String GetPlatform() {
 		return "Java JVM-" + System.getProperty("java.version");
 	}
 
-	public static boolean DebugMode = !false;
+	public static boolean DebugMode = false;
 
 	private final static String GetStackInfo(int depth) {
 		String LineNumber = " ";
@@ -99,6 +117,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 			}
 		}
 		LibGreenTea.VerboseLog(GreenTeaUtils.VerboseException, e.toString());
+		e.printStackTrace();
 	}
 
 	public final static void Exit(int status, String Message) {
@@ -106,11 +125,11 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		System.exit(1);
 	}
 
-	public final static void Assert(boolean TestResult) {
-		if(!TestResult) {
-			assert TestResult;
-			Exit(1, "Assertion Failed");
-		}
+	private static int ParserCount = -1;
+	
+	public static int NewParserId() {
+		ParserCount++;
+		return ParserCount;
 	}
 
 	public final static char CharAt(String Text, long Pos) {
@@ -234,6 +253,16 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return sb.toString();
 	}
 
+	public final static String Stringfy(Object Value) {
+		if(Value == null) {
+			return "null";
+		}
+		else if(Value instanceof String) {
+			return LibGreenTea.QuoteString(Value.toString());
+		}
+		return Value.toString();
+	}
+
 	public final static boolean EqualsString(String s, String s2) {
 		return s.equals(s2);
 	}
@@ -265,7 +294,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		if(NativeType == null) {
 			NativeType = new GtType(Context, GreenTeaUtils.NativeType, NativeClass.getSimpleName(), null, NativeClass);
 			Context.SetNativeTypeName(NativeClass.getCanonicalName(), NativeType);
-			LibGreenTea.VerboseLog(GreenTeaUtils.VerboseNative, "native class: " + NativeClass.getSimpleName() + ", " + NativeClass.getCanonicalName());
+			LibGreenTea.VerboseLog(GreenTeaUtils.VerboseNative, "creating native class: " + NativeClass.getSimpleName() + ", " + NativeClass.getCanonicalName());
 		}
 		return NativeType;
 	}
@@ -278,18 +307,21 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		if(GreenType.IsVarType() || GreenType.IsTypeVariable()) {
 			return true;
 		}
+		if(GreenType.IsTopType()) {
+			return (Type == Object.class);
+		}
 		GtType JavaType = LibGreenTea.GetNativeType(GreenType.Context, Type);
 		if(GreenType != JavaType) {
 			if(GreenType.IsGenericType() && GreenType.HasTypeVariable()) {
 				return GreenType.BaseType == JavaType.BaseType;
 			}
+			//System.err.println("*** " + JavaType + ", " + GreenType);
 			return false;
 		}
 		return true;
 	}
 	
 	public final static boolean MatchNativeMethod(GtType FuncType, Method JavaMethod) {
-		/*local*/GtParserContext Context = FuncType.Context;
 //		System.err.println("method: " + JavaMethod);
 //		/*local*/GtType ReturnType = FuncType.TypeParams[0];
 //		System.err.println("return: " + ReturnType + ", " + JavaMethod.getReturnType());
@@ -352,7 +384,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return SetNativeMethod(new GtFunc(0, JavaMethod.getName(), 0, TypeList), JavaMethod);
 	}
 
-	private static Class<?> LoadNativeClass(String ClassName) throws ClassNotFoundException {
+	public final static Class<?> LoadNativeClass(String ClassName) throws ClassNotFoundException {
 		try {
 			return Class.forName("org.GreenTeaScript." + ClassName);
 		}
@@ -420,6 +452,33 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return false;
 	}
 	
+	public final static Object ImportNativeObject(GtNameSpace NameSpace, String PackageName) {
+		LibGreenTea.VerboseLog(VerboseNative, "importing " + PackageName);
+//ifdef JAVA
+		try {
+			/*local*/Class<?> NativeClass = LibGreenTea.LoadNativeClass(PackageName);
+			try {
+				Method LoaderMethod = NativeClass.getMethod("ImportGrammar", GtNameSpace.class, Class.class);
+				LoaderMethod.invoke(null, NameSpace, NativeClass);
+			} catch (Exception e) {  // naming
+			}
+			return LibGreenTea.GetNativeType(NameSpace.Context, NativeClass);
+		} catch (ClassNotFoundException e) {
+		}
+		int Index = PackageName.lastIndexOf(".");
+		if(Index == -1) {
+			return null;
+		}
+		try {
+			/*local*/Class<?> NativeClass = LoadNativeClass(PackageName.substring(0, Index));
+			return ImportStaticObject(NameSpace.Context, NativeClass, PackageName.substring(Index+1));
+		} catch (ClassNotFoundException e) {
+		}
+//endif VAJA
+		return null;
+	}
+
+	
 	public final static void LoadNativeConstructors(GtType ClassType, ArrayList<GtFunc> FuncList) {
 		/*local*/boolean TransformedResult = false;
 		Class<?> NativeClass = (Class<?>)ClassType.TypeBody;
@@ -482,42 +541,46 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return null;
 	}
 
-	public static Object LoadNativeStaticFieldValue(GtType ClassType, String Symbol) {
-		GtParserContext Context = ClassType.Context;
+	public static Object ImportStaticObject(GtParserContext Context, Class<?> NativeClass, String Symbol) {
 		try {
-			Class<?> NativeClass = (Class<?>)ClassType.TypeBody;
 			Field NativeField = NativeClass.getField(Symbol);
 			if(Modifier.isStatic(NativeField.getModifiers())) {
 				Class<?> NativeType = NativeField.getType();
-				if(NativeType == int.class) {
-					return NativeField.getInt(null);
-				}
-				if(NativeType == long.class) {
+				if(NativeType == long.class || NativeType == int.class) {
 					return NativeField.getLong(null);
 				}
-				if(NativeType == float.class) {
-					return NativeField.getFloat(null);
-				}
-				if(NativeType == double.class) {
+				if(NativeType == double.class || NativeType == float.class) {
 					return NativeField.getDouble(null);
 				}
 				return NativeField.get(null);
 			}
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
 		} catch (IllegalAccessException e) {
-			e.printStackTrace();
+//			LibGreenTea.VerboseException(e);
 		} catch (SecurityException e) {
-			LibGreenTea.VerboseException(e);
-			e.printStackTrace();
+//			LibGreenTea.VerboseException(e);
 		} catch (NoSuchFieldException e) {
-			LibGreenTea.VerboseException(e);
+//			LibGreenTea.VerboseException(e);
 		}
-		Context.RootNameSpace.SetUndefinedSymbol(GreenTeaUtils.ClassSymbol(ClassType, GreenTeaUtils.ClassStaticName(Symbol)), null);
-		// TODO Auto-generated method stub
+		GtPolyFunc PolyFunc = new GtPolyFunc(null);
+		Method[] Methods = NativeClass.getMethods();
+		for(int i = 0; i < Methods.length; i++) {
+			if(Methods[i].getName().equals(Symbol) && Modifier.isStatic(Methods[i].getModifiers())) {
+				PolyFunc.Append(LibGreenTea.ConvertNativeMethodToFunc(Context, Methods[i]), null);
+			}
+		}
+		if(PolyFunc.FuncList.size() == 1) {
+			return PolyFunc.FuncList.get(0);
+		}
+		else if(PolyFunc.FuncList.size() != 0) {
+			return PolyFunc;
+		}
 		return null;
 	}
 
+	public static Object LoadNativeStaticFieldValue(GtType ClassType, String Symbol) {
+		return ImportStaticObject(ClassType.Context, (Class<?>)ClassType.TypeBody, Symbol);
+	}
+	
 	public final static void LoadNativeMethods(GtType ClassType, String FuncName, ArrayList<GtFunc> FuncList) {
 		GtParserContext Context = ClassType.Context;
 		Class<?> NativeClass = (Class<?>)ClassType.TypeBody;
@@ -555,34 +618,9 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return null;
 	}
 
-//	public final static boolean EqualsFunc(Method m1, Method m2) {
-//		if(m1 == null) {
-//			return (m2 == null) ? true : false;
-//		}
-//		else {
-//			return (m2 == null) ? false : m1.equals(m2);
-//		}
-//	}
-
-	public final static Object Apply2(Object NativeMethod, Object Self, Object Param1, Object Param2) {
-		try {
-			return ((Method)NativeMethod).invoke(Self, Param1, Param2);
-		}
-		catch (InvocationTargetException e) {
-			LibGreenTea.VerboseException(e);
-		}
-		catch (IllegalArgumentException e) {
-			LibGreenTea.VerboseException(e);
-		}
-		catch (IllegalAccessException e) {
-			LibGreenTea.VerboseException(e);
-		}
-		return null;
-	}
-
 	public final static Object ApplyFunc(GtFunc Func, Object Self, Object[] Params) {
 		try {
-			return ((Method)Func.NativeRef).invoke(Self, Params);
+			return ((Method)Func.FuncBody).invoke(Self, Params);
 		}
 		catch (InvocationTargetException e) {
 			//LibGreenTea.VerboseException(e);
@@ -597,9 +635,25 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return null;
 	}
 
+	public final static Object ApplyFunc2(GtFunc Func, Object Self, Object Param1, Object Param2) {
+		try {
+			return ((Method)Func.FuncBody).invoke(Self, Param1, Param2);
+		}
+		catch (InvocationTargetException e) {
+			LibGreenTea.VerboseException(e);
+		}
+		catch (IllegalArgumentException e) {
+			LibGreenTea.VerboseException(e);
+		}
+		catch (IllegalAccessException e) {
+			LibGreenTea.VerboseException(e);
+		}
+		return null;
+	}
+
 	public final static Object ApplyFunc3(GtFunc Func, Object Self, Object Param1, Object Param2, Object Param3) {
 		try {
-			return ((Method)Func.NativeRef).invoke(Self, Param1, Param2, Param3);
+			return ((Method)Func.FuncBody).invoke(Self, Param1, Param2, Param3);
 		}
 		catch (InvocationTargetException e) {
 			LibGreenTea.VerboseException(e);
@@ -615,7 +669,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 
 	public final static Object ApplyFunc4(GtFunc Func, Object Self, Object Param1, Object Param2, Object Param3, Object Param4) {
 		try {
-			return ((Method)Func.NativeRef).invoke(Self, Param1, Param2, Param3, Param4);
+			return ((Method)Func.FuncBody).invoke(Self, Param1, Param2, Param3, Param4);
 		}
 		catch (InvocationTargetException e) {
 			LibGreenTea.VerboseException(e);
@@ -761,7 +815,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 
 	public final static void WriteCode(String OutputFile, String SourceCode) {
 		if(OutputFile == null) {
-			LibGreenTea.Eval(SourceCode);
+			//LibGreenTea.Eval(SourceCode);
 		}
 		if(OutputFile.equals("-")) {
 			System.out.println(SourceCode);
@@ -896,32 +950,17 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return (int)FileLine;
 	}
 
-	public final static boolean booleanValue(Object BooleanValue) {
-		return ((/*cast*/Boolean)BooleanValue).booleanValue();
-	}
-
-	public final static Object Eval(String SourceCode) {
-		LibGreenTea.VerboseLog(GreenTeaUtils.VerboseEval, "eval as native code: " + SourceCode);
-		//eval(SourceCode);
-		//System.out.println("Eval: " + SourceCode);  // In Java, no eval
-		return null;
-	}
-
-	public static Object EvalCast(GtType CastType, Object Value) {
+	public static Object DynamicCast(GtType CastType, Object Value) {
 		if(Value != null) {
-			GtType ValueType = CastType.Context.GuessType(Value);
-			if(ValueType == CastType || CastType.Accept(ValueType)) {
+			GtType FromType = CastType.Context.GuessType(Value);
+			if(CastType == FromType || CastType.Accept(FromType)) {
 				return Value;
-			}
-			TODO("Add Invoke Coercion.. from " + ValueType + " to " + CastType);
-			if(CastType == CastType.Context.StringType) {
-				return Value.toString();
 			}
 		}
 		return null;
 	}
 
-	public static Object EvalInstanceOf(Object Value, GtType Type) {
+	public static Object DynamicInstanceOf(Object Value, GtType Type) {
 		if(Value != null) {
 			GtType ValueType = Type.Context.GuessType(Value);
 			if(ValueType == Type || Type.Accept(ValueType)) {
@@ -931,22 +970,37 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return false;
 	}
 
+	public final static Object DynamicConvertTo(GtType CastType, Object Value) {
+		if(Value != null) {
+			GtType ValueType = CastType.Context.GuessType(Value);
+			if(ValueType == CastType || CastType.Accept(ValueType)) {
+				return Value;
+			}
+			GtFunc Func = CastType.Context.RootNameSpace.GetConverterFunc(ValueType, CastType, true);
+			if(Func != null) {
+				return LibGreenTea.ApplyFunc2(Func, null, CastType, Value);
+			}
+		}
+		return null;
+	}
+	
+	
 	public static Object EvalUnary(GtType Type, String Operator, Object Value) {
 		if(Value instanceof Boolean) {
 			if(Operator.equals("!") || Operator.equals("not")) {
-				return EvalCast(Type, !((Boolean)Value).booleanValue());
+				return DynamicCast(Type, !((Boolean)Value).booleanValue());
 			}
 			return null;
 		}
 		if(Value instanceof Long || Value instanceof Integer  || Value instanceof Short) {
 			if(Operator.equals("-")) {
-				return EvalCast(Type, -((Number)Value).longValue());
+				return DynamicCast(Type, -((Number)Value).longValue());
 			}
 			if(Operator.equals("+")) {
-				return EvalCast(Type, +((Number)Value).longValue());
+				return DynamicCast(Type, +((Number)Value).longValue());
 			}
 			if(Operator.equals("~")) {
-				return EvalCast(Type, ~((Number)Value).longValue());
+				return DynamicCast(Type, ~((Number)Value).longValue());
 			}
 			return null;
 		}
@@ -963,32 +1017,32 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 			return null;
 		}
 		if(LeftValue instanceof String || RightValue instanceof String) {
-			String left = EvalCast(Type.Context.StringType, LeftValue).toString();
-			String right = EvalCast(Type.Context.StringType, RightValue).toString();
+			String left = DynamicCast(Type.Context.StringType, LeftValue).toString();
+			String right = DynamicCast(Type.Context.StringType, RightValue).toString();
 			if(Operator.equals("+")) {
-				return  EvalCast(Type, left + right);
+				return  DynamicCast(Type, left + right);
 			}
 		}
 		if(LeftValue instanceof String && RightValue instanceof String) {
-			String left = EvalCast(Type.Context.StringType, LeftValue).toString();
-			String right = EvalCast(Type.Context.StringType, RightValue).toString();
+			String left = DynamicCast(Type.Context.StringType, LeftValue).toString();
+			String right = DynamicCast(Type.Context.StringType, RightValue).toString();
 			if(Operator.equals("==")) {
-				return  EvalCast(Type, left.equals(right));
+				return  DynamicCast(Type, left.equals(right));
 			}
 			if(Operator.equals("!=")) {
-				return EvalCast(Type, !left.equals(right));
+				return DynamicCast(Type, !left.equals(right));
 			}
 			if(Operator.equals("<")) {
-				return EvalCast(Type, left.compareTo(right) < 0);
+				return DynamicCast(Type, left.compareTo(right) < 0);
 			}
 			if(Operator.equals("<=")) {
-				return EvalCast(Type, left.compareTo(right) <= 0);
+				return DynamicCast(Type, left.compareTo(right) <= 0);
 			}
 			if(Operator.equals(">")) {
-				return EvalCast(Type, left.compareTo(right) > 0);
+				return DynamicCast(Type, left.compareTo(right) > 0);
 			}
 			if(Operator.equals(">=")) {
-				return EvalCast(Type, left.compareTo(right) >= 0);
+				return DynamicCast(Type, left.compareTo(right) >= 0);
 			}
 			return null;
 		}
@@ -997,37 +1051,37 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 				double left = ((Number)LeftValue).doubleValue();
 				double right = ((Number)RightValue).doubleValue();
 				if(Operator.equals("+")) {
-					return EvalCast(Type, left + right);
+					return DynamicCast(Type, left + right);
 				}
 				if(Operator.equals("-")) {
-					return EvalCast(Type, left - right);
+					return DynamicCast(Type, left - right);
 				}
 				if(Operator.equals("*")) {
-					return EvalCast(Type, left * right);
+					return DynamicCast(Type, left * right);
 				}
 				if(Operator.equals("/")) {
-					return EvalCast(Type, left / right);
+					return DynamicCast(Type, left / right);
 				}
 				if(Operator.equals("%") || Operator.equals("mod")) {
-					return EvalCast(Type, left % right);
+					return DynamicCast(Type, left % right);
 				}
 				if(Operator.equals("==")) {
-					return EvalCast(Type, left == right);
+					return DynamicCast(Type, left == right);
 				}
 				if(Operator.equals("!=")) {
-					return EvalCast(Type, left != right);
+					return DynamicCast(Type, left != right);
 				}
 				if(Operator.equals("<")) {
-					return EvalCast(Type, left < right);
+					return DynamicCast(Type, left < right);
 				}
 				if(Operator.equals("<=")) {
-					return EvalCast(Type, left <= right);
+					return DynamicCast(Type, left <= right);
 				}
 				if(Operator.equals(">")) {
-					return EvalCast(Type, left > right);
+					return DynamicCast(Type, left > right);
 				}
 				if(Operator.equals(">=")) {
-					return EvalCast(Type, left >= right);
+					return DynamicCast(Type, left >= right);
 				}
 			}
 			catch(ClassCastException e) {
@@ -1038,10 +1092,10 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 			boolean left = (Boolean)LeftValue;
 			boolean right = (Boolean)RightValue;
 			if(Operator.equals("==")) {
-				return EvalCast(Type, left == right);
+				return DynamicCast(Type, left == right);
 			}
 			if(Operator.equals("!=")) {
-				return EvalCast(Type, left != right);
+				return DynamicCast(Type, left != right);
 			}
 			return null;
 		}
@@ -1049,52 +1103,52 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 			long left = ((Number)LeftValue).longValue();
 			long right = ((Number)RightValue).longValue();
 			if(Operator.equals("+")) {
-				return EvalCast(Type, left + right);
+				return DynamicCast(Type, left + right);
 			}
 			if(Operator.equals("-")) {
-				return EvalCast(Type, left - right);
+				return DynamicCast(Type, left - right);
 			}
 			if(Operator.equals("*")) {
-				return EvalCast(Type, left * right);
+				return DynamicCast(Type, left * right);
 			}
 			if(Operator.equals("/")) {
-				return EvalCast(Type, left / right);
+				return DynamicCast(Type, left / right);
 			}
 			if(Operator.equals("%") || Operator.equals("mod")) {
-				return EvalCast(Type, left % right);
+				return DynamicCast(Type, left % right);
 			}
 			if(Operator.equals("==")) {
-				return EvalCast(Type, left == right);
+				return DynamicCast(Type, left == right);
 			}
 			if(Operator.equals("!=")) {
-				return EvalCast(Type, left != right);
+				return DynamicCast(Type, left != right);
 			}
 			if(Operator.equals("<")) {
-				return EvalCast(Type, left < right);
+				return DynamicCast(Type, left < right);
 			}
 			if(Operator.equals("<=")) {
-				return EvalCast(Type, left <= right);
+				return DynamicCast(Type, left <= right);
 			}
 			if(Operator.equals(">")) {
-				return EvalCast(Type, left > right);
+				return DynamicCast(Type, left > right);
 			}
 			if(Operator.equals(">=")) {
-				return EvalCast(Type, left >= right);
+				return DynamicCast(Type, left >= right);
 			}
 			if(Operator.equals("|")) {
-				return EvalCast(Type, left | right);
+				return DynamicCast(Type, left | right);
 			}
 			if(Operator.equals("&")) {
-				return EvalCast(Type, left & right);
+				return DynamicCast(Type, left & right);
 			}
 			if(Operator.equals("<<")) {
-				return EvalCast(Type, left << right);
+				return DynamicCast(Type, left << right);
 			}
 			if(Operator.equals(">>")) {
-				return EvalCast(Type, left >> right);
+				return DynamicCast(Type, left >> right);
 			}
 			if(Operator.equals("^")) {
-				return EvalCast(Type, left ^ right);
+				return DynamicCast(Type, left ^ right);
 			}
 		}
 		catch(ClassCastException e) {
@@ -1106,5 +1160,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+
 
 }

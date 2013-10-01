@@ -15,7 +15,7 @@ public class JVMConstPool {
 		}
 	}
 
-	public static Object get(int id) {
+	public static Object getById(int id) {
 		return constValues.get(id);
 	}
 }

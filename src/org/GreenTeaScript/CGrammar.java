@@ -62,22 +62,22 @@ public class CGrammar extends GreenTeaUtils {
 		}
 		// 1. To start, check class const such as Math.Pi if base is a type value
 		/*local*/String TypeName = ObjectNode.Type.ShortName;
-		if(ObjectNode instanceof ConstNode && ObjectNode.Type.IsTypeType()) {
-			/*local*/GtType ObjectType = (/*cast*/GtType)((/*cast*/ConstNode)ObjectNode).ConstValue;
-			/*local*/Object ConstValue = ParsedTree.NameSpace.GetClassSymbol(ObjectType, ClassStaticName(Name), true);
-			if(ConstValue instanceof GreenTeaEnum) {
-				if(ContextType.IsStringType()) {
-					ConstValue = ((/*cast*/GreenTeaEnum)ConstValue).EnumSymbol;
-				}
-				else {
-					ConstValue = ((/*cast*/GreenTeaEnum)ConstValue).EnumValue;
-				}
-			}
-			if(ConstValue != null) {
-				return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(ConstValue), ParsedTree, ConstValue);
-			}
-			TypeName = ObjectType.ShortName;
-		}
+//		if(ObjectNode instanceof ConstNode && ObjectNode.Type.IsTypeType()) {
+//			/*local*/GtType ObjectType = (/*cast*/GtType)((/*cast*/ConstNode)ObjectNode).ConstValue;
+//			/*local*/Object ConstValue = ParsedTree.NameSpace.GetClassSymbol(ObjectType, ClassStaticName(Name), true);
+//			if(ConstValue instanceof GreenTeaEnum) {
+//				if(ContextType.IsStringType()) {
+//					ConstValue = ((/*cast*/GreenTeaEnum)ConstValue).EnumSymbol;
+//				}
+//				else {
+//					ConstValue = ((/*cast*/GreenTeaEnum)ConstValue).EnumValue;
+//				}
+//			}
+//			if(ConstValue != null) {
+//				return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(ConstValue), ParsedTree, ConstValue);
+//			}
+//			TypeName = ObjectType.ShortName;
+//		}
 		// 2. find Class method
 		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(ObjectNode.Type, Name, true);
 		if(PolyFunc.FuncList.size() > 0 && ContextType == Gamma.FuncType) {

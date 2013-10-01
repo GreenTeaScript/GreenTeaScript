@@ -30,13 +30,13 @@ import java.util.ArrayList;
 public class GtType extends GreenTeaUtils {
 	/*field*/public final GtParserContext	Context;
 	/*field*/public GtNameSpace     PackageNameSpace;
-	/*field*/int					TypeFlag;
-	/*field*/int                    TypeId;
+	/*field*/public int					TypeFlag;
+	/*field*/public int                    TypeId;
 	/*field*/public String			ShortName;
-	/*field*/GtType					SuperType;
+	/*field*/public GtType					SuperType;
 	/*field*/public GtType			ParentMethodSearch;
-	/*field*/GtType					BaseType;
-	/*field*/GtType[]				TypeParams;
+	/*field*/public GtType					BaseType;
+	/*field*/public GtType[]				TypeParams;
 	/*field*/public Object          TypeBody;
 	/*field*/public Object			DefaultNullValue;
 
@@ -46,12 +46,12 @@ public class GtType extends GreenTeaUtils {
 		this.ShortName = ShortName;
 		this.SuperType = null;
 		this.BaseType = this;
-		this.ParentMethodSearch = null;
+		this.ParentMethodSearch = Context.TopType;
 		this.DefaultNullValue = DefaultNullValue;
 		this.TypeBody = TypeBody;
 		if(!IsFlag(TypeFlag, TypeVariable)) {
-			this.TypeId = Context.TypeCount;
-			Context.TypeCount += 1;
+			this.TypeId = Context.TypePools.size();
+			Context.TypePools.add(this);
 		}
 		this.TypeParams = null;
 	}
@@ -103,6 +103,10 @@ public class GtType extends GreenTeaUtils {
 		return (this.BaseType == this.Context.FuncType);
 	}
 
+	public final boolean IsTopType() {
+		return (this == this.Context.TopType);
+	}
+
 	public final boolean IsVoidType() {
 		return (this == this.Context.VoidType);
 	}
@@ -123,6 +127,10 @@ public class GtType extends GreenTeaUtils {
 		return (this == this.Context.BooleanType);
 	}
 
+	public final boolean IsIntType() {
+		return (this == this.Context.IntType);
+	}
+
 	public final boolean IsStringType() {
 		return (this == this.Context.StringType);
 	}
@@ -134,7 +142,14 @@ public class GtType extends GreenTeaUtils {
 	public final boolean IsEnumType() {
 		return IsFlag(this.TypeFlag, EnumType);
 	}
-
+	public final void SetUnrevealedType(GtType StrongType) {
+		this.BaseType = StrongType;
+		this.TypeFlag |= UnrevealedType;
+		this.ShortName = "_" + this.ShortName + "_";
+	}
+	public final boolean IsUnrevealedType() {
+		return IsFlag(this.TypeFlag, UnrevealedType);
+	}
 	@Override public String toString() {
 		return this.ShortName;
 	}
@@ -163,7 +178,7 @@ public class GtType extends GreenTeaUtils {
 	}
 
 	public final boolean Accept(GtType Type) {
-		if(this == Type/* || this == this.Context.AnyType*/) {
+		if(this == Type || this == this.Context.AnyType) {
 			return true;
 		}
 		/*local*/GtType SuperClass = this.SuperType;
@@ -185,7 +200,7 @@ public class GtType extends GreenTeaUtils {
 	}
 
 	public boolean IsDynamicNaitiveLoading() {
-		return this.IsNative() && !IsFlag(this.TypeFlag, CommonType);
+		return this.IsNative() /*&& !IsFlag(this.TypeFlag, CommonType)*/;
 	}
 
 	public final boolean IsTypeVariable() {   // T
@@ -198,7 +213,7 @@ public class GtType extends GreenTeaUtils {
 
 	public int AppendTypeVariable(GtNameSpace GenericNameSpace, int Count) {
 		if(IsFlag(this.TypeFlag, TypeVariable)) {
-			GtType TypeVar = GenericNameSpace.GetType(this.ShortName);
+			/*local*/GtType TypeVar = GenericNameSpace.GetType(this.ShortName);
 			if(TypeVar != null && TypeVar.IsTypeVariable()) {
 				return Count;
 			}
@@ -215,10 +230,18 @@ public class GtType extends GreenTeaUtils {
 		return Count;
 	}
 
+	private GtType GivenParamType(GtType GivenType, int ParamIndex) {
+		if(GivenType.BaseType == this.BaseType && GivenType.TypeParams.length == this.TypeParams.length) {
+			return GivenType.TypeParams[ParamIndex];
+		}
+		return GivenType;
+	}
+	
 	public GtType RealType(GtNameSpace GenericNameSpace, GtType GivenType) {
 		if(IsFlag(this.TypeFlag, TypeVariable)) {
 			GtType TypeVar = GenericNameSpace.GetType(this.ShortName);
-			if(TypeVar != null && !TypeVar.IsTypeVariable()) {
+			//System.err.println("TypeVar="+this.ShortName + ", " + TypeVar);
+			if(TypeVar != null && TypeVar.IsTypeVariable()) {
 				GenericNameSpace.SetSymbol(this.ShortName, GivenType, null);
 				return GivenType;
 			}
@@ -227,16 +250,14 @@ public class GtType extends GreenTeaUtils {
 			}
 		}
 		if(IsFlag(this.TypeFlag, GenericVariable)) {
-			if(GivenType.BaseType == this.BaseType && GivenType.TypeParams.length == this.TypeParams.length) {
-				/*local*/int i = 0;
-				ArrayList<GtType> TypeList = new ArrayList<GtType>();
-				while(i < this.TypeParams.length) {
-					GtType RealParamType = this.TypeParams[i].RealType(GenericNameSpace, GivenType.TypeParams[i]);
-					TypeList.add(RealParamType);
-					i += 1;
-				}
-				return this.Context.GetGenericType(this.BaseType, 0, TypeList, true);
+			/*local*/int i = 0;
+			/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
+			while(i < this.TypeParams.length) {
+				GtType RealParamType = this.TypeParams[i].RealType(GenericNameSpace, GivenParamType(GivenType, i));
+				TypeList.add(RealParamType);
+				i += 1;
 			}
+			return this.Context.GetGenericType(this.BaseType, 0, TypeList, true);
 		}
 		return this;
 	}
@@ -245,6 +266,7 @@ public class GtType extends GreenTeaUtils {
 		if(IsFlag(this.TypeFlag, TypeVariable)) {
 			GtType TypeVar = GenericNameSpace.GetType(this.ShortName);
 			if(TypeVar.IsTypeVariable()) {
+				//System.err.println("updating "+ this.ShortName + " " + GivenType);
 				GenericNameSpace.SetSymbol(this.ShortName, GivenType, null);
 				return true;
 			}
@@ -265,5 +287,12 @@ public class GtType extends GreenTeaUtils {
 		}
 		return this.Accept(GivenType);
 	}
+
+
+//	public boolean Match(GtNameSpace GenericNameSpace, GtType GivenType) {
+//		boolean b = this.Match_(GenericNameSpace, GivenType);
+//		System.err.println("matching.. " + this + ", given = " + GivenType + ", results=" + b);
+//		return b;
+//	}
 
 }

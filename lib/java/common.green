@@ -1,93 +1,145 @@
-// unary operator
 
-@Const @Operator boolean not(boolean x) import org.GreenTeaScript.GreenTeaRuntime.unary_not;
-@Const @Operator boolean "!"(boolean x) import org.GreenTeaScript.GreenTeaRuntime.unary_not;
-@Const @Operator int "+"(int x) import org.GreenTeaScript.GreenTeaRuntime.unary_plus;
-@Const @Operator int "-"(int x) import org.GreenTeaScript.GreenTeaRuntime.unary_minus;
-@Const @Operator int "~"(int x) import org.GreenTeaScript.GreenTeaRuntime.unary_not;
-@Const @Operator double "+"(double x) import org.GreenTeaScript.GreenTeaRuntime.unary_plus;
-@Const @Operator double "-"(double x) import org.GreenTeaScript.GreenTeaRuntime.unary_minus;
+// libgreentea
+@Common void print(any x)   import LibGreenTea.print;
+@Common void println(any x) import LibGreenTea.println;
+@Common void assert(boolean x) import LibGreenTea.Assert;
 
-// binary operator
-
-// boolean
-@Const @Operator boolean "=="(boolean x, boolean y) import org.GreenTeaScript.GreenTeaRuntime.binary_eq;
-@Const @Operator boolean "!="(boolean x, boolean y) import org.GreenTeaScript.GreenTeaRuntime.binary_ne;
-
-@Const @Coercion String converter(boolean x) import org.GreenTeaScript.GreenTeaRuntime.BooleanToString;
-@Const @Coercion any converter(boolean x) import org.GreenTeaScript.GreenTeaRuntime.BooleanToAny;
-@Const @Coercion boolean converter(any x) import org.GreenTeaScript.GreenTeaRuntime.AnyToBoolean;
-
-// int
-@Const @Operator int "+"(int x, int y) import org.GreenTeaScript.GreenTeaRuntime.binary_add;
-@Const @Operator int "-"(int x, int y) import org.GreenTeaScript.GreenTeaRuntime.binary_sub;
-@Const @Operator int "*"(int x, int y) import org.GreenTeaScript.GreenTeaRuntime.binary_mul;
-@Const @Operator int "/"(int x, int y) import org.GreenTeaScript.GreenTeaRuntime.binary_div;
-@Const @Operator int "%"(int x, int y) import org.GreenTeaScript.GreenTeaRuntime.binary_mod;
-@Const @Operator int "<<"(int x, int y) import org.GreenTeaScript.GreenTeaRuntime.binary_shl;
-@Const @Operator int ">>"(int x, int y) import org.GreenTeaScript.GreenTeaRuntime.binary_shr;
-@Const @Operator int "^"(int x, int y) import org.GreenTeaScript.GreenTeaRuntime.binary_and;
-@Const @Operator int "|"(int x, int y) import org.GreenTeaScript.GreenTeaRuntime.binary_or;
-@Const @Operator int "&"(int x, int y) import org.GreenTeaScript.GreenTeaRuntime.binary_xor;
-@Const @Operator boolean "<"(int x,  int y) import org.GreenTeaScript.GreenTeaRuntime.binary_lt;
-@Const @Operator boolean "<="(int x, int y) import org.GreenTeaScript.GreenTeaRuntime.binary_le;
-@Const @Operator boolean ">"(int x,  int y) import org.GreenTeaScript.GreenTeaRuntime.binary_gt;
-@Const @Operator boolean ">="(int x, int y) import org.GreenTeaScript.GreenTeaRuntime.binary_ge;
-@Const @Operator boolean "=="(int x, int y) import org.GreenTeaScript.GreenTeaRuntime.binary_eq;
-@Const @Operator boolean "!="(int x, int y) import org.GreenTeaScript.GreenTeaRuntime.binary_ne;
-
-@Coercion @Const any converter(int x) import org.GreenTeaScript.GreenTeaRuntime.IntToAny;
-@Coercion @Const int converter(any x) import org.GreenTeaScript.GreenTeaRuntime.AnyToInt;
-@Coercion @Const String converter(int x) import org.GreenTeaScript.GreenTeaRuntime.IntToString;
-@Const int converter(String x) import org.GreenTeaScript.GreenTeaRuntime.StringToInt;
+// top type
+@Common @Const @Operator int "||"(Top x) import Konoha.TopApi.Size;
+@Common @Const @Operator boolean "=="(Top x, Top y) import Konoha.TopApi.Equals;
+@Common @Const @Operator boolean "!="(Top x, Top y) import Konoha.TopApi.NotEquals;
 
 // enum
-@Coercion @Const int converter(var x) import org.GreenTeaScript.GreenTeaRuntime.EnumToInt;
-@Coercion @Const String converter(var x) import org.GreenTeaScript.GreenTeaRuntime.EnumToString;
- 
-@Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.l2i;
-@Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.i2l;
-@Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.l2s;
-@Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.s2l;
+@Common @Coercion @Const int converter(var x) import Konoha.TopApi.EnumToInt;
+@Common @Coercion @Const String converter(var x) import Konoha.TopApi.EnumToString;
 
-@Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.l2d;
-@Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.f2d;
-@Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.d2l;
-@Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.d2s;
+// AnyApi
 
-@Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.ja2l;
-@Coercion @Const var converter(var x) import org.GreenTeaScript.GreenTeaRuntime.l2ja;
 
-// String
-@Const @Operator String "+"(String x, String y) import org.GreenTeaScript.GreenTeaRuntime.binary_add;
-@Const @Operator String "+"(int x, String y) import org.GreenTeaScript.GreenTeaRuntime.binary_add;
-@Const @Operator String "+"(boolean x, String y) import org.GreenTeaScript.GreenTeaRuntime.binary_add;
+// StringApi
+@Common @Const @Operator String "+"(String x, any y) import Konoha.StringApi.Add;
+//@Const @Operator String "+"(int x, String y) import GreenTeaRuntime.Add;
+//@Const @Operator String "+"(boolean x, String y) import GreenTeaRuntime.Add;
 
-@Const @Operator boolean "=="(String x, String y) import org.GreenTeaScript.GreenTeaRuntime.binary_eq;
-@Const @Operator boolean "!="(String x, String y) import org.GreenTeaScript.GreenTeaRuntime.binary_ne;
+@Common @Const @Operator boolean "=="(String x, String y) import Konoha.StringApi.Equals;
+@Common @Const @Operator boolean "!="(String x, String y) import Konoha.StringApi.NotEquals;
 
+@Common @Const @Operator int "||"(String x) import Konoha.StringApi.GetSize;
+@Common @Const @Operator String "[]"(String x, int index) import Konoha.StringApi.Get;
+@Common @Const @Operator String "[:]"(String x, int beginIndex) import Konoha.StringApi.Slice;
+@Common @Const @Operator String "[:]"(String x, int beginIndex, int endIndex) import Konoha.StringApi.Slice;
+
+@Common @Const boolean startsWith(String x, String y) import Konoha.StringApi.StartsWith;
+@Common @Const boolean endsWith(String x, String y) import Konoha.StringApi.EndsWith;
+@Common @Const int indexOf(String x, String y) import Konoha.StringApi.IndexOf;
+@Common @Const int lastIndexOf(String x, String y) import Konoha.StringApi.LastIndexOf;
+
+@Const var split(String x, String y) import Konoha.StringApi.Split;
+
+@Common @Const @Coercion any converter(String x) import Konoha.StringApi.ToAny;
+@Common @Const int converter(String x) import Konoha.StringApi.ToInt;
+@Common @Const double converter(String x) import Konoha.StringApi.ToDouble;
+
+@Hidden @Coercion @Const var converter(var x) import Konoha.StringApi.s2c;
+@Hidden @StrongCoercion @Const var converter(var x) import Konoha.StringApi.c2s;
+
+// BooleanApi
+@Common @Const @Operator boolean not(boolean x) import Konoha.BooleanApi.Not;
+@Common @Const @Operator boolean "!"(boolean x) import Konoha.BooleanApi.Not;
+@Common @Const @Operator boolean "=="(boolean x, boolean y) import Konoha.BooleanApi.Equals;
+@Common @Const @Operator boolean "!="(boolean x, boolean y) import Konoha.BooleanApi.NotEquals;
+
+@Common @Const @Coercion String converter(boolean x) import Konoha.BooleanApi.ToString;
+@Common @Const @Coercion any converter(boolean x) import Konoha.BooleanApi.ToAny;
+
+// IntApi
+@Common @Const @Operator int "+"(int x) import Konoha.IntApi.Plus;
+@Common @Const @Operator int "-"(int x) import Konoha.IntApi.Minus;
+@Common @Const @Operator int "~"(int x) import Konoha.IntApi.BitwiseNot;
+
+@Common @Const @Operator int "+"(int x, int y) import Konoha.IntApi.Add;
+@Common @Const @Operator int "-"(int x, int y) import Konoha.IntApi.Sub;
+@Common @Const @Operator int "*"(int x, int y) import Konoha.IntApi.Mul;
+@Common @Const @Operator int "/"(int x, int y) import Konoha.IntApi.Div;
+@Common @Const @Operator int "%"(int x, int y) import Konoha.IntApi.Mod;
+@Common @Const @Operator int "<<"(int x, int y) import Konoha.IntApi.LeftShift;
+@Common @Const @Operator int ">>"(int x, int y) import Konoha.IntApi.RightShift;
+@Common @Const @Operator int "^"(int x, int y) import Konoha.IntApi.BitwiseAnd;
+@Common @Const @Operator int "|"(int x, int y) import Konoha.IntApi.BitwiseOr;
+@Common @Const @Operator int "&"(int x, int y) import Konoha.IntApi.BitwiseXor;
+@Common @Const @Operator boolean "<"(int x,  int y) import Konoha.IntApi.LessThan;
+@Common @Const @Operator boolean "<="(int x, int y) import Konoha.IntApi.LessThanEquals;
+@Common @Const @Operator boolean ">"(int x,  int y) import Konoha.IntApi.GreaterThan;
+@Common @Const @Operator boolean ">="(int x, int y) import Konoha.IntApi.GreaterThanEquals;
+@Common @Const @Operator boolean "=="(int x, int y) import Konoha.IntApi.Equals;
+@Common @Const @Operator boolean "!="(int x, int y) import Konoha.IntApi.NotEquals;
+
+@Common @Const @Operator double "+"(int x, double y) import Konoha.IntApi.Add;
+@Common @Const @Operator double "-"(int x, double y) import Konoha.IntApi.Sub;
+@Common @Const @Operator double "*"(int x, double y) import Konoha.IntApi.Mul;
+@Common @Const @Operator double "/"(int x, double y) import Konoha.IntApi.Div;
+@Common @Const @Operator double "%"(int x, double y) import Konoha.IntApi.Mod;
+
+@Coercion @Const any converter(int x) import Konoha.IntApi.ToAny;
+@Common @Coercion @Const String converter(int x) import Konoha.IntApi.ToString;
+@Common @Coercion @Const double converter(int x) import Konoha.IntApi.ToDouble;
+
+@Hidden @Coercion @Const var converter(var x) import Konoha.IntApi.l2i;
+@Hidden @StrongCoercion @Const var converter(var x) import Konoha.IntApi.i2l;
+@Hidden @Coercion @Const var converter(var x) import Konoha.IntApi.l2s;
+@Hidden @StrongCoercion @Const var converter(var x) import Konoha.IntApi.s2l;
+@Hidden @Coercion @Const var converter(var x) import Konoha.IntApi.l2b;
+@Hidden @StrongCoercion @Const var converter(var x) import Konoha.IntApi.b2l;
+
+// DoubleApi
+@Common @Const @Operator double "+"(double x) import Konoha.DoubleApi.Plus;
+@Common @Const @Operator double "-"(double x) import Konoha.DoubleApi.Minus;
+
+@Common @Const @Operator double "+"(double x, double y) import Konoha.DoubleApi.Add;
+@Common @Const @Operator double "-"(double x, double y) import Konoha.DoubleApi.Sub;
+@Common @Const @Operator double "*"(double x, double y) import Konoha.DoubleApi.Mul;
+@Common @Const @Operator double "/"(double x, double y) import Konoha.DoubleApi.Div;
+@Common @Const @Operator boolean "<"(double x,  double y) import Konoha.DoubleApi.LessThan;
+@Common @Const @Operator boolean "<="(double x, double y) import Konoha.DoubleApi.LessThanEquals;
+@Common @Const @Operator boolean ">"(double x,  double y) import Konoha.DoubleApi.GreaterThan;
+@Common @Const @Operator boolean ">="(double x, double y) import Konoha.DoubleApi.GreaterThanEquals;
+@Common @Const @Operator boolean "=="(double x, double y) import Konoha.DoubleApi.Equals;
+@Common @Const @Operator boolean "!="(double x, double y) import Konoha.DoubleApi.NotEquals;
+
+@Coercion @Const any converter(double x) import Konoha.DoubleApi.ToAny;
+@Common @Coercion @Const String converter(double x) import Konoha.DoubleApi.ToString;
+@Common @Coercion @Const int converter(double x) import Konoha.DoubleApi.ToInt;
+
+@Hidden @Coercion @Const var converter(var x) import Konoha.DoubleApi.d2f;
+@Hidden @StrongCoercion @Const var converter(var x) import Konoha.DoubleApi.f2d;
+//@Hidden @Coercion @Const var converter(var x) import Konoha.DoubleApi.d2i;
+//@Hidden @Coercion @Const var converter(var x) import Konoha.DoubleApi.i2d;
+
+//@Const @Coercion boolean converter(any x) import org.GreenTeaScript.GreenTeaRuntime.AnyToBoolean;
+//@Coercion @Const int converter(any x) import org.GreenTeaScript.GreenTeaRuntime.AnyToInt;
 // double
-@Const @Operator double "+"(double x, double y) import org.GreenTeaScript.GreenTeaRuntime.binary_add;
-@Const @Operator double "-"(double x, double y) import org.GreenTeaScript.GreenTeaRuntime.binary_sub;
-@Const @Operator double "*"(double x, double y) import org.GreenTeaScript.GreenTeaRuntime.binary_mul;
-@Const @Operator double "/"(double x, double y) import org.GreenTeaScript.GreenTeaRuntime.binary_div;
-@Const @Operator boolean "<"(double x,  double y) import org.GreenTeaScript.GreenTeaRuntime.binary_lt;
-@Const @Operator boolean "<="(double x, double y) import org.GreenTeaScript.GreenTeaRuntime.binary_le;
-@Const @Operator boolean ">"(double x,  double y) import org.GreenTeaScript.GreenTeaRuntime.binary_gt;
-@Const @Operator boolean ">="(double x, double y) import org.GreenTeaScript.GreenTeaRuntime.binary_ge;
-@Const @Operator boolean "=="(double x, double y) import org.GreenTeaScript.GreenTeaRuntime.binary_eq;
-@Const @Operator boolean "!="(double x, double y) import org.GreenTeaScript.GreenTeaRuntime.binary_ne;
+//@Coercion @Const any converter(double x) import org.GreenTeaScript.GreenTeaRuntime.DoubleToAny;
+//@Coercion @Const double converter(any x) import org.GreenTeaScript.GreenTeaRuntime.AnyToDouble;
+//@Const double converter(String x) import org.GreenTeaScript.GreenTeaRuntime.StringToDouble;
 
-@Const @Operator double "+"(int x, double y) import org.GreenTeaScript.GreenTeaRuntime.binary_add;
-@Const @Operator double "-"(int x, double y) import org.GreenTeaScript.GreenTeaRuntime.binary_sub;
-@Const @Operator double "*"(int x, double y) import org.GreenTeaScript.GreenTeaRuntime.binary_mul;
-@Const @Operator double "/"(int x, double y) import org.GreenTeaScript.GreenTeaRuntime.binary_div;
+// ArrayApi
+@Common @Const @Operator <T> int "||"(Array<T> this) import Konoha.ArrayApi.GetSize;
+@Common @Const @Operator <T> T "[]"(Array<T> this, int index) import Konoha.ArrayApi.Get;
+@Common @Operator <T> void "[]="(Array<T> this, int index, T value) import Konoha.ArrayApi.Set;
+@Common <T> Array<T> add(Array<T> this, T value) import Konoha.ArrayApi.Add;
+@Common @Const @Operator <T> Array<T> "[:]"(Array<T> x, int beginIndex) import Konoha.ArrayApi.Slice;
+@Common @Const @Operator <T> Array<T> "[:]"(Array<T> x, int beginIndex, int endIndex) import Konoha.ArrayApi.Slice;
 
-@Coercion @Const any converter(double x) import org.GreenTeaScript.GreenTeaRuntime.DoubleToAny;
-@Coercion @Const double converter(any x) import org.GreenTeaScript.GreenTeaRuntime.AnyToDouble;
-@Const double converter(String x) import org.GreenTeaScript.GreenTeaRuntime.StringToDouble;
+@Common @Const @Operator int "||"(Array<int> this) import Konoha.ArrayApi.GetSizeI;
+@Common @Const @Operator int "[]"(Array<int> this, int index) import Konoha.ArrayApi.GetI;
+@Common @Operator void "[]="(Array<int> this, int index, int value) import Konoha.ArrayApi.SetI;
+@Common Array<int> add(Array<int> this, int value) import Konoha.ArrayApi.AddI;
+@Common @Const @Operator Array<int> "[:]"(Array<int> x, int beginIndex) import Konoha.ArrayApi.SliceI;
+@Common @Const @Operator Array<int> "[:]"(Array<int> x, int beginIndex, int endIndex) import Konoha.ArrayApi.SliceI;
 
-void print(String s)   import org.GreenTeaScript.LibGreenTea.print;
-void println(String s) import org.GreenTeaScript.LibGreenTea.println;
-void assert(boolean b) import org.GreenTeaScript.LibGreenTea.Assert;
+// experimental
+@Hidden @Coercion @Const var converter(var x) import Konoha.ArrayApi.GreenArrayToStringArray;
+@Hidden @StrongCoercion @Const var converter(var x) import Konoha.ArrayApi.StringArrayToGreenArray;
+
+
 

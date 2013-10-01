@@ -5,15 +5,34 @@ build=src/TypeScript/
 
 source=
 source="${source} GreenTeaScript"
-source="${source} GreenTeaObject"
+source="${source} GreenTeaTopObject"
 source="${source} GreenTeaScriptTest"
+#source="${source} ConstantFolder"
+source="${source} CSourceGenerator"
+#source="${source} DShellGrammar"
+source="${source} GreenTeaArray"
+source="${source} GreenTeaEnum"
+source="${source} GreenTeaGrammar"
+source="${source} GreenTeaObject"
+source="${source} GreenTeaRuntime"
+#source="${source} GreenTeaVirtualMachine"
+source="${source} GtFunc"
+source="${source} GtNameSpace"
+source="${source} GtParserContext"
+source="${source} GtSyntaxPattern"
+source="${source} GtSyntaxTree"
+source="${source} GtToken"
+source="${source} GtTokenContext"
+source="${source} GtType"
+source="${source} GtTypeEnv"
+#source="${source} JavaByteCodeGenerator"
 source="${source} SourceGenerator"
 source="${source} BashSourceGenerator"
 source="${source} JavaScriptSourceGenerator"
-source="${source} CSourceGenerator"
-source="${source} JavaSourceGenerator"
+#source="${source} LibGreenTea"
 source="${source} PerlSourceGenerator"
 source="${source} PythonSourceGenerator"
+source="${source} ScalaSourceGenerator"
 
 ts=""
 
@@ -26,3 +45,4 @@ perl src/TypeScript/PackLibraries.pl lib > ${build}GreenTeaLibraries.ts
 ts="${ts} ${build}GreenTeaLibraries.ts"
 
 tsc ${build}/LibGreenTea.ts ${ts}
+

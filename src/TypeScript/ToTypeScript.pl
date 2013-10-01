@@ -50,7 +50,7 @@ sub fixup {
 # Delegates.
 $src =~ s/Function(?:A|B|C)\(this, "(.+?)"\)/$Grammar\["$1"\]/g;
 
-# Pritect String literal
+# Protect String literals
 $src =~ s/(".*?")/&ProtectString($1)/ge;
 
 $src =~ s/};/}/g;
@@ -79,8 +79,8 @@ sub UnQuote {
 	my $text = $_[0];
 }
 
-$src =~ s/interface GtConst {(.*?)^}/GtConstSection($1)/ems;
-$src =~ s/class GtStatic(.*?)^}/GtStaticSection($1)/ems;
+$src =~ s/interface GreenTeaConsts {(.*?)^}/GtConstSection($1)/ems;
+$src =~ s/class GreenTeaUtils(.*?)^}/GtStaticSection($1)/ems;
 
 # Comments
 $src =~ s/^\/\/[#\s]*ifdef\s+JAVA.*?VAJA//gms;
@@ -113,6 +113,7 @@ $src =~ s/=\s*{(.*?)}/= \[$1\]/g;
 #$src =~ s/($Type)\s+($Sym)\s+=/var $2: $1 =/g;
 # Unrestricted Fields.
 #$src =~ s/($Attr*)($Type)\s+($Sym)/$1$3: $2/g;
+$src =~ s/catch\(\s*($Type)\s+($Sym)\s*\)/catch($2)/g;
 
 # Types
 $src =~ s/(?!")\b(?:char|int|long|float|double|Charactor|Integer|Long|Float|Double)\b(?!")/number/g;
@@ -151,6 +152,10 @@ $src =~ s/\bpublic class\b/class/g;
 #$src =~ s/\bsize\(\)/length/g
 $src =~ s/\blength\(\)/length/g;
 $src =~ s/\bSystem\.out\.println/console.log/g;
+
+$src =~ s/\binterface\b/declare class/g;
+
+$src =~ s/\bpublic\s*class\b/export class/g;
 
 # Delegates.
 $src =~ s/(?!\.)\b((?:Parse|Type)(?:Unary|Binary|Const|Block))\b(?!\()/$Grammar\["$1"\]/g;
