@@ -260,7 +260,44 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		else if(Value instanceof String) {
 			return LibGreenTea.QuoteString(Value.toString());
 		}
-		return Value.toString();
+		else {
+			return Value.toString();
+		}
+		//			/*local*/String s = "";
+		//			Field[] Fields = Value.getClass().getFields();
+		//			for(int i = 0; i < Fields.length; i++) {
+		//				if(Modifier.isPublic(Fields[i].getModifiers())) {
+		//					if(i > 0) {
+		//						s += ", ";
+		//					}
+		//					try {
+		//						s += Fields[i].getName() + ": ";
+		//						s += LibGreenTea.Stringfy(Fields[i].get(Value));
+		//					} catch (IllegalArgumentException e) {
+		//					} catch (IllegalAccessException e) {
+		//					}
+		//				}
+		//			}
+		//			return "" + s + "}";
+	}
+
+	public final static String StringfyField(Object Value) {
+		/*local*/String s = "{";
+		Field[] Fields = Value.getClass().getFields();
+		for(int i = 0; i < Fields.length; i++) {
+			if(Modifier.isPublic(Fields[i].getModifiers())) {
+				if(i > 0) {
+					s += ", ";
+				}
+				try {
+					s += Fields[i].getName() + ": ";
+					s += LibGreenTea.Stringfy(Fields[i].get(Value));
+				} catch (IllegalArgumentException e) {
+				} catch (IllegalAccessException e) {
+				}
+			}
+		}
+		return s + "}";
 	}
 
 	public final static boolean EqualsString(String s, String s2) {
@@ -526,14 +563,12 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 				TypeList.add(LibGreenTea.GetNativeType(Context, NativeField.getType()));
 				GtFunc SetterNativeFunc = new GtFunc(SetterFunc, FieldName, 0, TypeList);
 				SetterNativeFunc.SetNativeMethod(0, NativeField);
-				Context.RootNameSpace.SetGetterFunc(ClassType, FieldName, SetterNativeFunc, null);
+				Context.RootNameSpace.SetSetterFunc(ClassType, FieldName, SetterNativeFunc, null);
 				return GetSetter ? SetterNativeFunc : GetterNativeFunc;
 			}
 		} catch (SecurityException e) {
 			LibGreenTea.VerboseException(e);
-			e.printStackTrace();
 		} catch (NoSuchFieldException e) {
-			LibGreenTea.VerboseException(e);
 		}
 		Context.RootNameSpace.SetUndefinedSymbol(GreenTeaUtils.ClassSymbol(ClassType, GreenTeaUtils.GetterSymbol(FieldName)), null);
 		Context.RootNameSpace.SetUndefinedSymbol(GreenTeaUtils.ClassSymbol(ClassType, GreenTeaUtils.SetterSymbol(FieldName)), null); // for setter

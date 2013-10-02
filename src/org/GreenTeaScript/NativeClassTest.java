@@ -24,7 +24,6 @@
 
 //ifdef JAVA
 package org.GreenTeaScript;
-import java.util.ArrayList;
 //endif VAJA
 
 public class NativeClassTest {
@@ -39,6 +38,9 @@ public class NativeClassTest {
 		this.isNinja = isNinja;
 		this.bage = (byte)age;
 		this.initial = name.charAt(0);
+	}
+	@Override public String toString() {
+		return LibGreenTea.StringfyField(this);
 	}
 }
 
