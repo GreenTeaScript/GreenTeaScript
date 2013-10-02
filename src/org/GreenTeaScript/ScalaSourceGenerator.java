@@ -31,7 +31,7 @@ import java.util.ArrayList;
 
 public class ScalaSourceGenerator extends SourceGenerator {
 	/*field*/String OutFileName;
-	ScalaSourceGenerator(String TargetCode, String OutputFile, int GeneratorFlag) {
+	ScalaSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
 		this.OutFileName = OutputFile;
 		if(LibGreenTea.EqualsString(this.OutFileName, "-")) {

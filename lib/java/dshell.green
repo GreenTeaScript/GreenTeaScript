@@ -14,6 +14,7 @@ let NotPermittedException = import org.GreenTeaScript.DShell.NotPermittedExcepti
 let NoChildException = import org.GreenTeaScript.DShell.NoChildException;
 let ConnectRefusedException = import org.GreenTeaScript.DShell.ConnectRefusedException;
 let InterruptedBySignalException = import org.GreenTeaScript.DShell.InterruptedBySignalException;
+let IsDirectoryException = import org.GreenTeaScript.DShell.IsDirectoryException;
 let TooManyLinkException = import org.GreenTeaScript.DShell.TooManyLinkException;
 let TooLongNameException = import org.GreenTeaScript.DShell.TooLongNameException;
 let UnreachableException = import org.GreenTeaScript.DShell.UnreachableException;

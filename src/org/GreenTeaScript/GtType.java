@@ -245,7 +245,7 @@ public class GtType extends GreenTeaUtils {
 	
 	public GtType RealType(GtNameSpace GenericNameSpace, GtType GivenType) {
 		if(IsFlag(this.TypeFlag, TypeVariable)) {
-			GtType TypeVar = GenericNameSpace.GetType(this.ShortName);
+			/*local*/GtType TypeVar = GenericNameSpace.GetType(this.ShortName);
 			//System.err.println("TypeVar="+this.ShortName + ", " + TypeVar);
 			if(TypeVar != null && TypeVar.IsTypeVariable()) {
 				GenericNameSpace.SetSymbol(this.ShortName, GivenType, null);
@@ -259,7 +259,7 @@ public class GtType extends GreenTeaUtils {
 			/*local*/int i = 0;
 			/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
 			while(i < this.TypeParams.length) {
-				GtType RealParamType = this.TypeParams[i].RealType(GenericNameSpace, GivenParamType(GivenType, i));
+				/*local*/GtType RealParamType = this.TypeParams[i].RealType(GenericNameSpace, GivenParamType(GivenType, i));
 				TypeList.add(RealParamType);
 				i += 1;
 			}
@@ -271,7 +271,7 @@ public class GtType extends GreenTeaUtils {
 	public boolean Match(GtNameSpace GenericNameSpace, GtType GivenType) {
 		
 		if(IsFlag(this.TypeFlag, TypeVariable)) {
-			GtType TypeVar = GenericNameSpace.GetType(this.ShortName);
+			/*local*/GtType TypeVar = GenericNameSpace.GetType(this.ShortName);
 			if(TypeVar.IsTypeVariable()) {
 				//System.err.println("updating "+ this.ShortName + " " + GivenType);
 				GenericNameSpace.SetSymbol(this.ShortName, GivenType, null);

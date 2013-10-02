@@ -550,7 +550,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.Builder.AsmMethodVisitor.visitTypeInsn(NEW, owner);
 		this.Builder.AsmMethodVisitor.visitInsn(DUP);
 		if(!Node.Type.IsNative()) {
-			this.Builder.AsmMethodVisitor.visitInsn(ACONST_NULL);//FIXME: push type
+			this.LoadConst(Node.Type);
 			this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESPECIAL, owner, "<init>", "(Lorg/GreenTeaScript/GtType;)V");
 		} else {
 			this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESPECIAL, owner, "<init>", "()V");
@@ -560,7 +560,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 
 	@Override public void VisitConstructorNode(GtConstructorNode Node) {
 		Type type = this.ToAsmType(Node.Type);
-		for(int i=1; i<Node.ParamList.size(); i++) {
+		for(int i=0; i<Node.ParamList.size(); i++) {
 			Node.ParamList.get(i).Evaluate(this);
 			this.Builder.typeStack.pop();
 		}
@@ -573,8 +573,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			m = this.methodMap.get(Func.FuncName);
 		}
 		if(m != null) {
-			String owner = Type.getDescriptor(m.getDeclaringClass());
-			this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, owner, m.getName(), Type.getMethodDescriptor(m));
+			this.Builder.Call(m);
 		}
 		else {
 			int opcode = INVOKESTATIC;
@@ -927,13 +926,12 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	}
 
 	@Override public void VisitTryNode(GtTryNode Node) { //FIXME
-		int catchSize = 1;
+		int catchSize = Node.CatchBlock != null ? 1 : 0;
 		MethodVisitor mv = this.Builder.AsmMethodVisitor;
 		Label beginTryLabel = new Label();
 		Label endTryLabel = new Label();
 		Label finallyLabel = new Label();
 		Label catchLabel[] = new Label[catchSize];
-		String throwType = this.ToAsmType(Node.CatchExpr.Type).getInternalName();
 
 		// try block
 		mv.visitLabel(beginTryLabel);
@@ -944,12 +942,12 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		// prepare
 		for(int i = 0; i < catchSize; i++) { //TODO: add exception class name
 			catchLabel[i] = new Label();
+			String throwType = this.ToAsmType(Node.CatchExpr.Type).getInternalName();
 			mv.visitTryCatchBlock(beginTryLabel, endTryLabel, catchLabel[i], throwType);
 		}
 
 		// catch block
-		{ //for(int i = 0; i < catchSize; i++) { //TODO: add exception class name
-			int i = 0;
+		for(int i = 0; i < catchSize; i++) { //TODO: add exception class name
 			GtNode block = Node.CatchBlock;
 			mv.visitLabel(catchLabel[i]);
 			this.VisitBlock(block);
