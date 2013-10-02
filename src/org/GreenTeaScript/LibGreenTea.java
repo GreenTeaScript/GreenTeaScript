@@ -541,23 +541,36 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return null;
 	}
 
+	public static Object NativeFieldValue(Object ObjectValue, Field NativeField) {
+		try {
+			Class<?> NativeType = NativeField.getType();
+			if(NativeType == long.class || NativeType == int.class || NativeType == short.class || NativeType == byte.class) {
+				return NativeField.getLong(ObjectValue);
+			}
+			if(NativeType == double.class || NativeType == float.class) {
+				return NativeField.getDouble(ObjectValue);
+			}
+			if(NativeType == boolean.class) {
+				return NativeField.getBoolean(ObjectValue);
+			}
+			if(NativeType == char.class) {
+				return String.valueOf(NativeField.getChar(ObjectValue));
+			}
+			return NativeField.get(ObjectValue);
+		} catch (IllegalAccessException e) {
+			LibGreenTea.VerboseException(e);
+		} catch (SecurityException e) {
+			LibGreenTea.VerboseException(e);
+		}
+		return null;
+	}
+	
 	public static Object ImportStaticObject(GtParserContext Context, Class<?> NativeClass, String Symbol) {
 		try {
 			Field NativeField = NativeClass.getField(Symbol);
 			if(Modifier.isStatic(NativeField.getModifiers())) {
-				Class<?> NativeType = NativeField.getType();
-				if(NativeType == long.class || NativeType == int.class) {
-					return NativeField.getLong(null);
-				}
-				if(NativeType == double.class || NativeType == float.class) {
-					return NativeField.getDouble(null);
-				}
-				return NativeField.get(null);
+				return NativeFieldValue(null, NativeField);
 			}
-		} catch (IllegalAccessException e) {
-//			LibGreenTea.VerboseException(e);
-		} catch (SecurityException e) {
-//			LibGreenTea.VerboseException(e);
 		} catch (NoSuchFieldException e) {
 //			LibGreenTea.VerboseException(e);
 		}
