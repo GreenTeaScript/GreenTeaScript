@@ -359,7 +359,7 @@ class GreenTeaUtils implements GreenTeaConsts {
 		return Name + NativeNameSuffix + Index;
 	}
 
-	final static String ClassSymbol(GtType ClassType, String Symbol) {
+	public final static String ClassSymbol(GtType ClassType, String Symbol) {
 		return ClassType.GetUniqueName() + "." + Symbol;
 	}
 
@@ -371,19 +371,19 @@ class GreenTeaUtils implements GreenTeaConsts {
 		return "@" + Symbol;
 	}
 
-	final static String ConverterSymbol(GtType ClassType) {
+	public final static String ConverterSymbol(GtType ClassType) {
 		return ClassType.GetUniqueName();
 	}
 
-	final static String ConstructorSymbol() {
+	public final static String ConstructorSymbol() {
 		return "";
 	}
 
-	final static String GetterSymbol(String Symbol) {
+	public final static String GetterSymbol(String Symbol) {
 		return Symbol + "+";
 	}
 
-	final static String SetterSymbol(String Symbol) {
+	public final static String SetterSymbol(String Symbol) {
 		return Symbol + "=";
 	}
 
@@ -735,7 +735,8 @@ final class GtTokenContext extends GreenTeaUtils {
 	}
 
 	public void FoundWhiteSpace() {
-		/*local*/GtToken Token = this.SourceList.get(this.SourceList.size() - 1);
+		/*local*/int index = this.SourceList.size() - 1;
+		/*local*/GtToken Token = this.SourceList.get(index);
 		Token.TokenFlag |= WhiteSpaceTokenFlag;
 	}
 
@@ -1566,7 +1567,7 @@ final class GtTypeEnv extends GreenTeaUtils {
 	/*field*/public final GtType    ArrayType;
 	/*field*/public final GtType    FuncType;
 
-	GtTypeEnv/*constructor*/(GtNameSpace NameSpace) {
+	public GtTypeEnv/*constructor*/(GtNameSpace NameSpace) {
 		this.NameSpace = NameSpace;
 		this.Context   = NameSpace.Context;
 		this.Generator = NameSpace.Context.Generator;
