@@ -5,11 +5,17 @@ class Point {
 	int y;
 }
 
+void TestFunc(Point p) {
+	assert(p.x == 1);
+	assert(p.y == 0);
+}
+
 @Export
 int main() {
 	Point p = Point();
 	assert(p.x == 1);
 	assert(p.y == 0);
+	TestFunc(p);
 	p.y = 100;
 	assert(p.y == 100);
 	return 0;

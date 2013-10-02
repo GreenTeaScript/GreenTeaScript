@@ -1,0 +1,22 @@
+// written by kimio
+
+int Succ(int n) {
+	return n + 1;
+}
+
+boolean TestFunc() {
+	Func<int, int> f = Succ;
+	return f(1) == 2;
+}
+
+boolean TestVarFunc() {
+	var f = Succ;
+	return f(1) == 2;
+}
+
+@Export int main() {
+	assert(TestFunc());
+	assert(TestVarFunc());
+	return 0;
+}
+

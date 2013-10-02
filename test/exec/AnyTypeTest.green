@@ -1,0 +1,19 @@
+// written by kimio
+
+boolean TestString() {
+	any s = "abc";
+	return s == "abc";
+}
+
+boolean TestInt() {
+	any n = 1;
+	return n == 1;
+}
+
+@Export
+int main() {
+	assert(TestString());
+	assert(TestInt());
+	return 0;
+}
+

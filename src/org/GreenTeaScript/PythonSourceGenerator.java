@@ -63,7 +63,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		/*local*/GtTypeEnv Gamma = new GtTypeEnv(ParsedTree.NameSpace);
 		/*local*/GtFunc Func = null;
 		if(PolyFunc != null) {
-			Func = PolyFunc.ResolveUnaryFunc(Gamma, ParsedTree, Cond);
+			Func = PolyFunc.ResolveUnaryMethod(Gamma, Cond.Type);
 		}
 		Cond = this.CreateUnaryNode(Type, ParsedTree, Func, Cond);
 		/*local*/GtNode IfBlock = this.CreateIfNode(Type, ParsedTree, Cond, Break, null);
@@ -72,7 +72,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 	}
 
 	// Visitor API
-	@Override public void VisitWhileNode(WhileNode Node) {
+	@Override public void VisitWhileNode(GtWhileNode Node) {
 		/*local*/String Program = "while " + this.VisitNode(Node.CondExpr) + ":" + this.LineFeed;
 		if(this.IsEmptyBlock(Node.LoopBody)) {
 			this.Indent();
@@ -85,7 +85,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Program);
 	}
 
-	@Override public void VisitForNode(ForNode Node) {
+	@Override public void VisitForNode(GtForNode Node) {
 		/* for(; COND; ITER) BLOCK1; continue; BLOCK2;
 		 * => while COND:
 		 * 		BLOCK1;
@@ -106,7 +106,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Program);
 	}
 
-	@Override public void VisitForEachNode(ForEachNode Node) {
+	@Override public void VisitForEachNode(GtForEachNode Node) {
 		/*local*/String Iter = this.VisitNode(Node.IterExpr);
 		/*local*/String Variable = this.VisitNode(Node.Variable);
 		/*local*/String Program = "for " + Variable + " in " + Iter + ":" + this.LineFeed;
@@ -114,11 +114,11 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Program);
 	}
 
-	private ForNode FindParentForNode(GtNode Node) {
+	private GtForNode FindParentForNode(GtNode Node) {
 		/*local*/GtNode Parent = Node.GetParentNode();
 		while(Parent != null) {
-			if(Parent instanceof ForNode) {
-				return (/*cast*/ForNode)Parent;
+			if(Parent instanceof GtForNode) {
+				return (/*cast*/GtForNode)Parent;
 			}
 			if(Parent.GetParentNode() == null) {
 				Parent = Parent.MoveHeadNode();
@@ -128,9 +128,9 @@ public class PythonSourceGenerator extends SourceGenerator {
 		return null;
 	}
 
-	@Override public void VisitContinueNode(ContinueNode Node) {
+	@Override public void VisitContinueNode(GtContinueNode Node) {
 		/*local*/String Code = "";
-		/*local*/ForNode Parent = this.FindParentForNode(Node);
+		/*local*/GtForNode Parent = this.FindParentForNode(Node);
 		if(Parent != null) {
 			/*local*/GtNode IterNode = Parent.IterExpr;
 			if(IterNode != null) {
@@ -148,7 +148,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.StopVisitor(Node);
 	}
 
-	@Override public void VisitSuffixNode(SuffixNode Node) {
+	@Override public void VisitSuffixNode(GtSuffixNode Node) {
 		/*local*/String FuncName = Node.Token.ParsedText;
 		/*local*/String Expr = this.VisitNode(Node.Expr);
 		if(LibGreenTea.EqualsString(FuncName, "++")) {
@@ -163,7 +163,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc1(null, FuncName, true, Expr) + ")");
 	}
 
-	@Override public void VisitVarNode(VarNode Node) {
+	@Override public void VisitVarNode(GtVarNode Node) {
 		/*local*/String Code = Node.NativeName;
 		/*local*/String InitValue = this.NullLiteral;
 		if(Node.InitNode != null) {
@@ -173,14 +173,14 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code + this.VisitBlockWithIndent(Node.BlockNode, false));
 	}
 
-	@Override public void VisitTrinaryNode(TrinaryNode Node) {
+	@Override public void VisitTrinaryNode(GtTrinaryNode Node) {
 		/*local*/String CondExpr = this.VisitNode(Node.CondExpr);
 		/*local*/String Then = this.VisitNode(Node.ThenExpr);
 		/*local*/String Else = this.VisitNode(Node.ElseExpr);
 		this.PushSourceCode(Then + " if " + CondExpr + " else " + Else);
 	}
 
-	@Override public void VisitIfNode(IfNode Node) {
+	@Override public void VisitIfNode(GtIfNode Node) {
 		/*local*/String CondExpr = this.VisitNode(Node.CondExpr);
 		/*local*/String ThenBlock = this.VisitBlockWithIndent(Node.ThenNode, true);
 		/*local*/String Code = "if " + CondExpr + ":" + this.LineFeed + this.GetIndentString() + ThenBlock;
@@ -194,7 +194,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		}
 		this.PushSourceCode(Code);
 	}
-	@Override public void VisitSwitchNode(SwitchNode Node) {
+	@Override public void VisitSwitchNode(GtSwitchNode Node) {
 		/*local*/String Code = "Match" + this.SwitchCaseCount + " = " + this.VisitNode(Node.MatchNode) + this.LineFeed;
 		this.SwitchCaseCount += 1;
 		/*local*/int i = 0;
@@ -220,11 +220,11 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void VisitTryNode(TryNode Node) {
+	@Override public void VisitTryNode(GtTryNode Node) {
 		/*local*/String Code = "try:" + this.LineFeed;
 		Code += this.VisitBlockWithIndent(Node.TryBlock, true);
 		if(Node.CatchExpr != null) {
-			/*local*/VarNode Val = (/*cast*/VarNode) Node.CatchExpr;
+			/*local*/GtVarNode Val = (/*cast*/GtVarNode) Node.CatchExpr;
 			Code += "except " + Val.Type.toString() + ", " + Val.NativeName + ":" + this.LineFeed;
 			Code += this.VisitBlockWithIndent(Node.CatchBlock, true);
 		}
@@ -235,7 +235,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void VisitThrowNode(ThrowNode Node) {
+	@Override public void VisitThrowNode(GtThrowNode Node) {
 		/*local*/String expr = "";
 		if(Node.Expr != null) {
 			expr = this.VisitNode(Node.Expr);
@@ -243,12 +243,12 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode("raise " + expr);
 	}
 
-	@Override public void VisitErrorNode(ErrorNode Node) {
+	@Override public void VisitErrorNode(GtErrorNode Node) {
 		/*local*/String Code = "raise SoftwareFault(\"" + Node.Token.ParsedText + "\")";
 		this.PushSourceCode(Code);
 	}
 
-	@Override public void VisitCommandNode(CommandNode Node) {
+	@Override public void VisitCommandNode(GtCommandNode Node) {
 		if(!this.importSubProc) {
 			this.importSubProc = true;
 			/*local*/String Header = "import sys, os" + this.LineFeed;
@@ -259,10 +259,10 @@ public class PythonSourceGenerator extends SourceGenerator {
 		}
 
 		/*local*/String Code = "";
-		/*local*/CommandNode CurrentNode = Node;
+		/*local*/GtCommandNode CurrentNode = Node;
 		while(CurrentNode != null) {
 			Code += this.AppendCommand(CurrentNode);
-			CurrentNode = (/*cast*/CommandNode) CurrentNode.PipedNextNode;
+			CurrentNode = (/*cast*/GtCommandNode) CurrentNode.PipedNextNode;
 			break;	//TODO :support pipe
 		}
 
@@ -278,7 +278,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	private String AppendCommand(CommandNode CurrentNode) {
+	private String AppendCommand(GtCommandNode CurrentNode) {
 		/*local*/String Code = "";
 		/*local*/int size = CurrentNode.ArgumentList.size();
 		/*local*/int i = 0;
