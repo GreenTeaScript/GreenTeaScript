@@ -821,7 +821,7 @@ class ErrorInferencer {
 		return filter.matcher(line).find();
 	}
 
-	private Stack<String[]> parseStraceLog(String logFilePath) {
+	private Stack<String[]> filterStraceLog(String logFilePath) {
 		try {
 			Stack<String[]> parsedSyscallStack = new Stack<String[]>();
 			BufferedReader br = new BufferedReader(new FileReader(logFilePath));
@@ -856,7 +856,7 @@ class ErrorInferencer {
 		return null;
 	}
 
-	private String createShapedLog(String logPath) {
+	private String applyPostProcess(String logPath) {
 		StringBuilder cmdBuilder = new StringBuilder();
 		String shapedLogPath = logPath + "-shaped.log";
 		String scriptPath = getFullExcutablePath("pretty_print_strace_out.py");
@@ -878,11 +878,11 @@ class ErrorInferencer {
 		return shapedLogPath;
 	}
 
-	private Stack<String[]> parseStracePlusLog(String logFilePath) {
+	private Stack<String[]> filterStracePlusLog(String logFilePath) {
 		try {
 			boolean found_libcStartMain = false;
 			String foundSyscall = null;
-			String newLogFilePath = createShapedLog(logFilePath);
+			String newLogFilePath = applyPostProcess(logFilePath);
 			Stack<String[]> parsedSyscallStack = new Stack<String[]>();
 			BufferedReader br = new BufferedReader(new FileReader(newLogFilePath));
 			String line;
@@ -922,12 +922,12 @@ class ErrorInferencer {
 		}
 	}
 
-	private Stack<String[]> parseTraceLog(String logFilePath) {
+	private Stack<String[]> filterTraceLog(String logFilePath) {
 		if(traceBackendType == SubProc.traceBackend_strace) {
-			return parseStraceLog(logFilePath);
+			return filterStraceLog(logFilePath);
 		}
 		else if(traceBackendType == SubProc.traceBackend_strace_plus) {
-			return parseStracePlusLog(logFilePath);
+			return filterStracePlusLog(logFilePath);
 		}
 		else {
 			throw new RuntimeException("invalid trace backend type");
@@ -981,7 +981,7 @@ class ErrorInferencer {
 	}
 
 	public String[] doInference(String traceLogPath) {
-		Stack<String[]> syscallStack = this.parseTraceLog(traceLogPath);
+		Stack<String[]> syscallStack = this.filterTraceLog(traceLogPath);
 		try {
 			return syscallStack.peek();
 		}
@@ -1037,7 +1037,7 @@ class ShellExceptionRaiser {
 			if(syscall == null) {
 				return new NoRelatedSyscallException(message);
 			}
-			return ErrNo.valueOf(syscall[2]).toException(message, syscall[0], syscall[1]);
+			return ErrorToException.valueOf(syscall[2]).toException(message, syscall[0], syscall[1]);
 		}
 		catch (IllegalArgumentException e) {
 			return new Exception((syscall[2] + " is not syscall!!"));
@@ -1049,7 +1049,7 @@ enum Syscall {
 	open, openat, connect,
 }
 
-enum ErrNo {
+enum ErrorToException {
 	E2BIG {
 		public Exception toException(String message, String syscallName, String param) {
 			return new TooManyArgsException(message);
