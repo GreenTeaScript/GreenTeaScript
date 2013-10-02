@@ -25,6 +25,7 @@
 //ifdef JAVA
 package org.GreenTeaScript;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import org.GreenTeaScript.DShell.DShellProcess;
@@ -390,34 +391,7 @@ public class GtGenerator extends GreenTeaUtils {
 	}
 
 	// EnforceConst : 
-	public Object EvalApplyNode(GtApplyNode Node, boolean EnforceConst) {
-//ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
-		//System.err.println("@@@@ " + (Node.Func.NativeRef.getClass()));
-		if(Node.Func != null && (EnforceConst || Node.Func.Is(ConstFunc)) && Node.Func.FuncBody instanceof Method) {
-			Object RecvObject = null;
-			int StartIndex = 1;
-			if(!Node.Func.Is(NativeStaticFunc)  && Node.NodeList.size() > 1) {
-				RecvObject = Node.NodeList.get(1).ToConstValue(EnforceConst);
-				if(RecvObject == null) {
-					return null;
-				}
-				StartIndex = 2;
-			}
-			Object[] Arguments = new Object[Node.NodeList.size() - StartIndex];
-			for(int i = 0; i < Arguments.length; i++) {
-				GtNode ArgNode = Node.NodeList.get(StartIndex+i);
-				Arguments[i] = ArgNode.ToConstValue(EnforceConst);
-				if(Arguments[i] == null && !ArgNode.IsNullNode()) {
-					return null;
-				}
-				//System.err.println("@@@@ " + i + ", " + Arguments[i] + ", " + Arguments[i].getClass());
-			}
-			return LibGreenTea.ApplyFunc(Node.Func, RecvObject, Arguments);
-		}
-//endif VAJA
-		return Node.ToNullValue(EnforceConst);  // if unsupported
-	}
-
+	
 	public Object EvalNewNode(GtNewNode Node, boolean EnforceConst) {
 //ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
 		if(EnforceConst && Node.Type.TypeBody instanceof Class<?>) {
@@ -456,6 +430,35 @@ public class GtGenerator extends GreenTeaUtils {
 		return Node.ToNullValue(EnforceConst);  // if unsupported
 	}
 
+	public Object EvalApplyNode(GtApplyNode Node, boolean EnforceConst) {
+//ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
+		//System.err.println("@@@@ " + (Node.Func.NativeRef.getClass()));
+		if(Node.Func != null && (EnforceConst || Node.Func.Is(ConstFunc)) && Node.Func.FuncBody instanceof Method) {
+			Object RecvObject = null;
+			int StartIndex = 1;
+			if(!Node.Func.Is(NativeStaticFunc)  && Node.NodeList.size() > 1) {
+				RecvObject = Node.NodeList.get(1).ToConstValue(EnforceConst);
+				if(RecvObject == null) {
+					return null;
+				}
+				StartIndex = 2;
+			}
+			Object[] Arguments = new Object[Node.NodeList.size() - StartIndex];
+			for(int i = 0; i < Arguments.length; i++) {
+				GtNode ArgNode = Node.NodeList.get(StartIndex+i);
+				Arguments[i] = ArgNode.ToConstValue(EnforceConst);
+				if(Arguments[i] == null && !ArgNode.IsNullNode()) {
+					return null;
+				}
+				//System.err.println("@@@@ " + i + ", " + Arguments[i] + ", " + Arguments[i].getClass());
+			}
+			return LibGreenTea.ApplyFunc(Node.Func, RecvObject, Arguments);
+		}
+//endif VAJA
+		return Node.ToNullValue(EnforceConst);  // if unsupported
+	}
+
+
 	public Object EvalArrayNode(GtArrayNode Node, boolean EnforceConst) {
 		/*local*/Object ArrayObject = null;
 //ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
@@ -472,6 +475,48 @@ public class GtGenerator extends GreenTeaUtils {
 		return ArrayObject;  // if unsupported
 	}
 
+	public Object EvalGetterNode(GtGetterNode Node, boolean EnforceConst) {
+//ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
+		if(Node.Func != null) {
+			Object Value = Node.ExprNode.ToConstValue(EnforceConst);
+			if(Value == null) {
+				return Value;
+			}
+			if(Node.Func.FuncBody instanceof Field) {
+				return LibGreenTea.NativeFieldGetter(Value, (/*cast*/Field)Node.Func.FuncBody);
+			}
+			if(Node.Func.FuncBody instanceof Method) {
+				return LibGreenTea.ApplyFunc1(Node.Func, null, Value);
+			}
+		}
+//endif VAJA
+		return Node.ToNullValue(EnforceConst); // if unsupported
+	}
+
+	public Object EvalSetterNode(GtSetterNode Node, boolean EnforceConst) {
+//ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
+		if(Node.Func != null && EnforceConst) {
+			Object LeftValue = Node.LeftNode.ToConstValue(EnforceConst);
+			if(LeftValue == null) {
+				return LeftValue;
+			}
+			Object RightValue = Node.RightNode.ToConstValue(EnforceConst);
+			if(RightValue == null && !Node.RightNode.IsNullNode()) {
+				return RightValue;
+			}
+			if(Node.Func.FuncBody instanceof Field) {
+				return LibGreenTea.NativeFieldSetter(LeftValue, (/*cast*/Field)Node.Func.FuncBody, RightValue);
+			}
+			if(Node.Func.FuncBody instanceof Method) {
+				return LibGreenTea.ApplyFunc2(Node.Func, null, LeftValue, RightValue);
+			}
+		}
+//endif VAJA
+		return Node.ToNullValue(EnforceConst); // if unsupported
+	}
+
+	
+	
 	public Object EvalCommandNode(GtCommandNode Node, boolean EnforceConst) {
 //ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
 		if(!EnforceConst) {
