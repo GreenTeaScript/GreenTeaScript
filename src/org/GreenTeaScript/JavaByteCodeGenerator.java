@@ -626,9 +626,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			m = this.methodMap.get(Func.FuncName);
 		}
 		if(m != null) {
-			String owner = Type.getInternalName(m.getDeclaringClass());
-			this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, owner, m.getName(), Type.getMethodDescriptor(m));
-			this.Builder.typeStack.push(Type.getReturnType(m));
+			this.Builder.Call(m);
 		}
 		else {
 //			int opcode = Node.Func.Is(NativeStaticFunc) ? INVOKESTATIC : INVOKEVIRTUAL;
