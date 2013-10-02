@@ -76,7 +76,7 @@ class GtFunc extends GreenTeaUtils {
 	/*field*/public Object          NativeRef;  // Abstract function if null
 	/*field*/public String[]        GenericParam;
 
-	GtFunc/*constructor*/(int FuncFlag, String FuncName, int BaseIndex, ArrayList<GtType> ParamList) {
+	public GtFunc/*constructor*/(int FuncFlag, String FuncName, int BaseIndex, ArrayList<GtType> ParamList) {
 		this.FuncFlag = FuncFlag;
 		this.FuncName = FuncName;
 		this.Types = LibGreenTea.CompactTypeList(BaseIndex, ParamList);
