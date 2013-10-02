@@ -622,9 +622,6 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		try {
 //			System.err.println("** debug: " + Func.FuncBody);
 //			System.err.println("** debug: " + Self + ", Params.length=" + Params.length);
-//			if(Params.length == 1) {
-//				return ((Method)Func.FuncBody).invoke(Self, Params[0]);
-//			}
 			return ((Method)Func.FuncBody).invoke(Self, Params);
 		}
 		catch (InvocationTargetException e) {

@@ -101,12 +101,16 @@ class GtNode extends GreenTeaUtils {
 	public void Evaluate(GtGenerator Visitor) {
 		/* must override */
 	}
-	public Object ToConstValue(boolean EnforceConst)  {
+
+	protected final Object ToNullValue(boolean EnforceConst) {
 		if(EnforceConst) {
-			LibGreenTea.DebugP("Node="+this.getClass());
 			this.Type.Context.ReportError(ErrorLevel, this.Token, "value must be constant in this context");
 		}
 		return null;
+	}
+	
+	public Object ToConstValue(boolean EnforceConst)  {
+		return this.ToNullValue(EnforceConst);
 	}
 }
 
@@ -1177,7 +1181,7 @@ class GtGenerator extends GreenTeaUtils {
 			return LibGreenTea.ApplyFunc(Node.Func, RecvObject, Arguments);
 		}
 //endif VAJA
-		return null;  // if unsupported
+		return Node.ToNullValue(EnforceConst);  // if unsupported
 	}
 
 	public Object EvalNewNode(GtNewNode Node, boolean EnforceConst) {
@@ -1192,7 +1196,7 @@ class GtGenerator extends GreenTeaUtils {
 			}
 		}
 //endif VAJA
-		return null;  // if unsupported
+		return Node.ToNullValue(EnforceConst);  // if unsupported
 	}
 
 	public Object EvalConstructorNode(GtConstructorNode Node, boolean EnforceConst) {
@@ -1215,7 +1219,7 @@ class GtGenerator extends GreenTeaUtils {
 			}
 		}
 		//endif VAJA
-		return null;  // if unsupported
+		return Node.ToNullValue(EnforceConst);  // if unsupported
 	}
 
 	public Object EvalArrayNode(GtArrayNode Node, boolean EnforceConst) {
@@ -1282,7 +1286,7 @@ class GtGenerator extends GreenTeaUtils {
 			e.printStackTrace();
 		}
 //endif VAJA
-		return null;  // if unsupported
+		return Node.ToNullValue(EnforceConst);  // if unsupported
 	}
 
 	public void FlushBuffer() {

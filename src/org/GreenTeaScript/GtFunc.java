@@ -358,6 +358,11 @@ class GtPolyFunc extends GreenTeaUtils {
 					p = p + 1;
 				}
 				if(Func != null) {
+					if(ParamList.size() == FuncParamSize) {
+						// when paramsize matched, unnecessary to check others
+						ResolvedFunc.Func = Func;    
+						return true;
+					}
 					if(FoundFunc != null) {
 						ResolvedFunc.Func = null;
 						return false; // two more func
