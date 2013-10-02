@@ -328,6 +328,9 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		if(GivenType.TypeBody != null && GivenType.TypeBody instanceof Class<?>) {
 			return Type.getType((Class<?>) GivenType.TypeBody);
 		}
+		if(GivenType.IsTypeVariable()) {
+			return Type.getType(Object.class);
+		}
 		return Type.getType("L" + GivenType.ShortName + ";");
 	}
 
@@ -671,6 +674,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			NodeList.get(i).Evaluate(this);
 		}
 		this.Builder.Call((Method) Node.Func.FuncBody);
+		this.unbox(this.ToAsmType(Node.Type));
 	}
 
 	@Override public void VisitArrayNode(GtArrayNode Node) {
@@ -687,6 +691,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			this.Builder.AsmMethodVisitor.visitInsn(AASTORE);
 		}
 		this.Builder.Call(methodMap.get("NewArrayLiteral"));
+		this.Builder.AsmMethodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(GreenTeaArray.class));
 	}
 
 	@Override public void VisitAndNode(GtAndNode Node) {
