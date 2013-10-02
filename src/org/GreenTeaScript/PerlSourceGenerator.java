@@ -106,7 +106,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitGetterNode(GtGetterNode Node) {
-		this.PushSourceCode(this.VisitNode(Node.Expr) + this.MemberAccessOperator + "{'" + Node.Func.FuncName + "'}");
+		this.PushSourceCode(this.VisitNode(Node.ExprNode) + this.MemberAccessOperator + "{'" + Node.Func.FuncName + "'}");
 	}
 
 	@Override public void VisitIfNode(GtIfNode Node) {

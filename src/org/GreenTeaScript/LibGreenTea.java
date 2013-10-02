@@ -990,6 +990,10 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return (int)FileLine;
 	}
 
+	public static boolean booleanValue(Object Value) {
+		return ((Boolean)Value).booleanValue();
+	}
+	
 	public static Object DynamicCast(GtType CastType, Object Value) {
 		if(Value != null) {
 			GtType FromType = CastType.Context.GuessType(Value);

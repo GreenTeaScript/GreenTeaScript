@@ -79,11 +79,15 @@ public class GtGenerator extends GreenTeaUtils {
 	public GtNode CreateGetterNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, GtNode Expr) {
 		return new GtGetterNode(Type, ParsedTree.KeyToken, Func, Expr);
 	}
-
+	
+	public GtNode CreateSetterNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, GtNode Left, GtNode Right) {
+		return new GtSetterNode(Type, ParsedTree.KeyToken, Func, Left, Right);
+	}
+	
 	public GtNode CreateIndexerNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, GtNode Expr) {
 		return new GtIndexerNode(Type, ParsedTree.KeyToken, Func, Expr);
 	}
-
+	
 	public GtNode CreateApplyNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func) {
 		return new GtApplyNode(Type, ParsedTree == null ? GtTokenContext.NullToken : ParsedTree.KeyToken, Func);
 	}
@@ -346,67 +350,57 @@ public class GtGenerator extends GreenTeaUtils {
 	public void VisitGetterNode(GtGetterNode Node) {
 		/*extension*/
 	}
-
+	public void VisitSetterNode(GtSetterNode gtSetterNode) {
+		/*extension*/
+	}
 	public void VisitApplyNode(GtApplyNode Node) {
 		/*extension*/
 	}
-
 	public void VisitBinaryNode(GtBinaryNode Node) {
 		/*extension*/
 	}
-
+	public void VisitNotNode(GtNotNode Node) {
+		/*extension*/
+	}
 	public void VisitAndNode(GtAndNode Node) {
 		/*extension*/
 	}
-
 	public void VisitOrNode(GtOrNode Node) {
 		/*extension*/
 	}
-
 	public void VisitAssignNode(GtAssignNode Node) {
 		/*extension*/
 	}
-
 	public void VisitVarNode(GtVarNode Node) {
 		/*extension*/
 	}
-
 	public void VisitIfNode(GtIfNode Node) {
 		/*extension*/
 	}
-
 	public void VisitSwitchNode(GtSwitchNode Node) {
 		/*extension*/
 	}
-
 	public void VisitReturnNode(GtReturnNode Node) {
 		/*extension*/
 	}
-
 	public void VisitBreakNode(GtBreakNode Node) {
 		/*extension*/
 	}
-
 	public void VisitContinueNode(GtContinueNode Node) {
 		/*extension*/
 	}
-
 	public void VisitTryNode(GtTryNode Node) {
 		/*extension*/
 	}
-
 	public void VisitThrowNode(GtThrowNode Node) {
 		/*extension*/
 	}
-
 	public void VisitFunctionNode(GtFunctionNode Node) {
 		/*extension*/
 	}
-
 	public void VisitErrorNode(GtErrorNode Node) {
 		/*extension*/
 	}
-
 	public void VisitCommandNode(GtCommandNode Node) {
 		/*extension*/
 	}
@@ -448,7 +442,7 @@ public class GtGenerator extends GreenTeaUtils {
 			for(int i = 0; i < Arguments.length; i++) {
 				GtNode ArgNode = Node.NodeList.get(StartIndex+i);
 				Arguments[i] = ArgNode.ToConstValue(EnforceConst);
-				if(Arguments[i] == null && !(ArgNode instanceof GtNullNode)) {
+				if(Arguments[i] == null && !ArgNode.IsNullNode()) {
 					return null;
 				}
 				//System.err.println("@@@@ " + i + ", " + Arguments[i] + ", " + Arguments[i].getClass());
@@ -483,7 +477,7 @@ public class GtGenerator extends GreenTeaUtils {
 				for(int i = 0; i < Arguments.length; i++) {
 					GtNode ArgNode = Node.ParamList.get(i);
 					Arguments[i] = ArgNode.ToConstValue(EnforceConst);
-					if(Arguments[i] == null && !(ArgNode instanceof GtNullNode)) {
+					if(Arguments[i] == null && !ArgNode.IsNullNode()) {
 						return null;
 					}
 					//System.err.println("@@@@ " + i + ", " + Arguments[i] + ", " + Arguments[i].getClass());
@@ -599,5 +593,6 @@ public class GtGenerator extends GreenTeaUtils {
 	public void InvokeMainFunc(String MainFuncName) {
 		/*extension*/
 	}
+
 
 }

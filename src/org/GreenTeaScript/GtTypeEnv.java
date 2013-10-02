@@ -177,7 +177,7 @@ public final class GtTypeEnv extends GreenTeaUtils {
 			Node = this.Generator.CreateConstNode(Node.Type, ParsedTree, ConstValue);
 		}
 		if(IsFlag(TypeCheckPolicy, OnlyConstPolicy) && ConstValue == null) {
-			if(IsFlag(TypeCheckPolicy, NullablePolicy) && Node instanceof GtNullNode) { // OK
+			if(IsFlag(TypeCheckPolicy, NullablePolicy) && Node.IsNullNode()) { // OK
 			}
 			else {
 				return this.CreateSyntaxErrorNode(ParsedTree, "value must be const");

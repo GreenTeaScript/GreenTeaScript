@@ -94,10 +94,10 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitGetterNode(GtGetterNode Node) {
-		/*local*/String Program = this.VisitNode(Node.Expr);
+		/*local*/String Program = this.VisitNode(Node.ExprNode);
 		/*local*/String FieldName = Node.Func.FuncName;
 		/*local*/GtType RecvType = Node.Func.GetRecvType();
-		if(Node.Expr.Type == RecvType) {
+		if(Node.ExprNode.Type == RecvType) {
 			Program = Program + "->" + FieldName;
 		}
 		else {

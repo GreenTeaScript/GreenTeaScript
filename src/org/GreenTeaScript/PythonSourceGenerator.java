@@ -160,9 +160,9 @@ public class PythonSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitTrinaryNode(GtTrinaryNode Node) {
-		/*local*/String CondExpr = this.VisitNode(Node.CondExpr);
-		/*local*/String Then = this.VisitNode(Node.ThenExpr);
-		/*local*/String Else = this.VisitNode(Node.ElseExpr);
+		/*local*/String CondExpr = this.VisitNode(Node.ConditionNode);
+		/*local*/String Then = this.VisitNode(Node.ThenNode);
+		/*local*/String Else = this.VisitNode(Node.ElseNode);
 		this.PushSourceCode(Then + " if " + CondExpr + " else " + Else);
 	}
 
