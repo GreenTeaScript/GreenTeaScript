@@ -495,7 +495,7 @@ class GtPolyFunc extends GreenTeaUtils {
 		/*local*/GtResolvedFunc ResolvedFunc = new GtResolvedFunc(Gamma.NameSpace);
 		while(!this.CheckIncrementalTyping(Gamma.NameSpace, FuncParamSize, ParamList, ResolvedFunc) && TreeIndex < LibGreenTea.ListSize(ParsedTree.SubTreeList)) {
 			/*local*/GtNode Node = ParsedTree.TypeCheckAt(TreeIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-			if(Node.IsError()) {
+			if(Node.IsErrorNode()) {
 				ResolvedFunc.ErrorNode = Node;
 				return ResolvedFunc;
 			}
@@ -509,7 +509,7 @@ class GtPolyFunc extends GreenTeaUtils {
 				ContextType = ContextType.RealType(GenericNameSpace, Gamma.VarType);
 				//System.err.println("TreeIndex="+ TreeIndex+" NodeSize="+ParamList.size()+" ContextType="+ContextType);
 				/*local*/GtNode Node = ParsedTree.TypeCheckAt(TreeIndex, Gamma, ContextType, DefaultTypeCheckPolicy);
-				if(Node.IsError()) {
+				if(Node.IsErrorNode()) {
 					ResolvedFunc.ErrorNode = Node;
 					return ResolvedFunc;
 				}				

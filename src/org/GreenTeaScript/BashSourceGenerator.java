@@ -82,7 +82,7 @@ public class BashSourceGenerator extends SourceGenerator {
 			if(!LibGreenTea.EqualsString(poppedCode, "")) {
 				Code += this.GetIndentString() + poppedCode + this.LineFeed;
 			}
-			CurrentNode = CurrentNode.GetNextNode();
+			CurrentNode = CurrentNode.NextNode;
 		}
 		if(replaceBreak && !isBreakReplaced) {
 			Code += this.GetIndentString() + ";&" + this.LineFeed;

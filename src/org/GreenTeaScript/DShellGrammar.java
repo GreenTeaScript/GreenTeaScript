@@ -504,7 +504,7 @@ public class DShellGrammar extends GreenTeaUtils {
 
 	public static GtNode TypeFileOperator(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtNode PathNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, Gamma.StringType, DefaultTypeCheckPolicy);
-		if(!PathNode.IsError()) {
+		if(!PathNode.IsErrorNode()) {
 			/*local*/String OperatorSymbol = ParsedTree.KeyToken.ParsedText;
 			/*local*/GtPolyFunc PolyFunc = Gamma.NameSpace.GetMethod(Gamma.StringType, FuncSymbol(OperatorSymbol), true);
 			/*local*/GtFunc ResolvedFunc = PolyFunc.ResolveUnaryMethod(Gamma, PathNode.Type);
@@ -661,7 +661,7 @@ public class DShellGrammar extends GreenTeaUtils {
 		Index = 0;
 		while(Index < ArgumentSize) {
 			/*local*/GtNode ArgumentNode = ParsedTree.TypeCheckAt(Index, Gamma, Gamma.StringType, DefaultTypeCheckPolicy);
-			if(ArgumentNode.IsError()) {
+			if(ArgumentNode.IsErrorNode()) {
 				return ArgumentNode;
 			}
 			Node.Append(ArgumentNode);
@@ -694,7 +694,7 @@ public class DShellGrammar extends GreenTeaUtils {
 	public static GtNode TypeDLog(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		ContextType = LibGreenTea.GetNativeType(Gamma.Context, DFault.class);
 		GtNode ActionNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, ContextType, DefaultTypeCheckPolicy);
-		if(ActionNode.IsError()) {
+		if(ActionNode.IsErrorNode()) {
 			return ActionNode;
 		}
 		if(ActionNode instanceof GtApplyNode) {
@@ -782,7 +782,7 @@ public class DShellGrammar extends GreenTeaUtils {
 		}
 
 		GtNode ApplyNode = KonohaGrammar.TypeApply(Gamma, ParsedTree, DFaultType);
-		if(ApplyNode.IsError()) {
+		if(ApplyNode.IsErrorNode()) {
 			return ApplyNode;
 		}
 

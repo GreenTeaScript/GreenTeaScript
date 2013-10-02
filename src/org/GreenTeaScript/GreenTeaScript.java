@@ -523,12 +523,13 @@ class GreenTeaUtils implements GreenTeaConsts {
 	}
 
 	public final static GtNode LinkNode(GtNode LastNode, GtNode Node) {
-		Node.SetPrevNode(LastNode);
+		Node.PrevNode = LastNode;
 		if(LastNode != null) {
-			LastNode.SetNextNode(Node);
-			if(Node.GetParentNode() != null) {
-				Node.GetParentNode().SetParent(LastNode);
-			}
+			LastNode.NextNode = Node;
+// IMIFU
+//			if(Node.ParentNode != null) {
+//				Node.ParentNode.SetParent(LastNode);
+//			}
 		}
 		return Node;
 	}
@@ -540,7 +541,7 @@ class GreenTeaUtils implements GreenTeaConsts {
 			/*local*/GtNode Node = GreenTeaUtils.ApplyTypeFunc(ParsedTree.Pattern.TypeFunc, Gamma, ParsedTree, Gamma.VoidType);
 			/*local*/Node = Gamma.TypeCheckSingleNode(ParsedTree, Node, Gamma.VoidType, DefaultTypeCheckPolicy);
 			/*local*/LastNode = GreenTeaUtils.LinkNode(LastNode, Node);
-			if(Node.IsError()) {
+			if(Node.IsErrorNode()) {
 				break;
 			}
 			ParsedTree = ParsedTree.NextTree;
@@ -1137,7 +1138,7 @@ final class KonohaGrammar extends GtGrammar {
 		if(!TypeOfTree.IsMismatchedOrError()) {
 			/*local*/GtTypeEnv Gamma = new GtTypeEnv(NameSpace);
 			/*local*/GtNode ObjectNode = TypeOfTree.TypeCheckAt(UnaryTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-			if(ObjectNode.IsError()) {
+			if(ObjectNode.IsErrorNode()) {
 				TypeOfTree.ToError(ObjectNode.Token);
 			}
 			else {
@@ -1302,7 +1303,7 @@ final class KonohaGrammar extends GtGrammar {
 		/*local*/GtNode InitValueNode = null;
 		if(ParsedTree.HasNodeAt(VarDeclValue)) {
 			InitValueNode = ParsedTree.TypeCheckAt(VarDeclValue, Gamma, DeclType, DefaultTypeCheckPolicy);
-			if(InitValueNode.IsError()) {
+			if(InitValueNode.IsErrorNode()) {
 				return InitValueNode;
 			}
 		}
@@ -1424,7 +1425,7 @@ final class KonohaGrammar extends GtGrammar {
 
 	public static GtNode TypeUnary(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtNode ExprNode  = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-		if(ExprNode.IsError()) {
+		if(ExprNode.IsErrorNode()) {
 			return ExprNode;
 		}
 		/*local*/GtType BaseType = ExprNode.Type;
@@ -1483,7 +1484,7 @@ final class KonohaGrammar extends GtGrammar {
 
 	public static GtNode TypeBinary(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtNode LeftNode  = ParsedTree.TypeCheckAt(LeftHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-		if(!LeftNode.IsError()) {
+		if(!LeftNode.IsErrorNode()) {
 			/*local*/GtType BaseType = LeftNode.Type;
 			/*local*/String OperatorSymbol = ParsedTree.KeyToken.ParsedText;
 			/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(BaseType, FuncSymbol(OperatorSymbol), true);
@@ -1517,7 +1518,7 @@ final class KonohaGrammar extends GtGrammar {
 	public static GtNode TypeTrinary(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtNode CondNode = ParsedTree.TypeCheckAt(IfCond, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
 		/*local*/GtNode ThenNode = ParsedTree.TypeCheckAt(IfThen, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-		if(ThenNode.IsError()) {
+		if(ThenNode.IsErrorNode()) {
 			return ThenNode;
 		}
 		/*local*/GtNode ElseNode = ParsedTree.TypeCheckAt(IfElse, Gamma, ThenNode.Type, DefaultTypeCheckPolicy);
@@ -1575,7 +1576,7 @@ final class KonohaGrammar extends GtGrammar {
 	public static GtNode TypeGetter(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/String Name = ParsedTree.KeyToken.ParsedText;
 		/*local*/GtNode ObjectNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-		if(ObjectNode.IsError()) {
+		if(ObjectNode.IsErrorNode()) {
 			return ObjectNode;
 		}
 		// 1. To start, check class const such as Math.Pi if base is a type value
@@ -1694,7 +1695,7 @@ final class KonohaGrammar extends GtGrammar {
 	}
 	
 	public static GtNode TypeMethodCall(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtNode RecvNode, String MethodName) {
-		if(!RecvNode.IsError()) {
+		if(!RecvNode.IsErrorNode()) {
 			/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(RecvNode.Type, FuncSymbol(MethodName), true);
 			//System.err.println("polyfunc: " + PolyFunc);
 			/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
@@ -1740,7 +1741,7 @@ final class KonohaGrammar extends GtGrammar {
 	
 	public static GtNode TypeApply(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtNode FuncNode = ParsedTree.TypeCheckAt(0, Gamma, Gamma.FuncType, NoCheckPolicy);
-		if(FuncNode.IsError()) {
+		if(FuncNode.IsErrorNode()) {
 			return FuncNode;
 		}
 		if(FuncNode instanceof GtGetterNode) { /* Func style .. o.f x, y, .. */
@@ -1870,7 +1871,7 @@ final class KonohaGrammar extends GtGrammar {
 			}
 			return Gamma.CreateSyntaxErrorNode(ParsedTree, "neither incremental nor decrimental");
 		}
-		return LeftNode.IsError() ? LeftNode : KonohaGrammar.TypeUnary(Gamma, ParsedTree, Type);
+		return LeftNode.IsErrorNode() ? LeftNode : KonohaGrammar.TypeUnary(Gamma, ParsedTree, Type);
 	}
 
 	public static GtSyntaxTree ParseError(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
@@ -2114,7 +2115,7 @@ final class KonohaGrammar extends GtGrammar {
 		/*local*/GtType ReturnType = Gamma.Func.GetReturnType();
 		if(ParsedTree.HasNodeAt(ReturnExpr)) {
 			/*local*/GtNode Expr = ParsedTree.TypeCheckAt(ReturnExpr, Gamma, ReturnType, DefaultTypeCheckPolicy);
-			if(ReturnType == Gamma.VarType && !Expr.IsError()) {
+			if(ReturnType == Gamma.VarType && !Expr.IsErrorNode()) {
 				Gamma.Func.Types[0] = Expr.Type;
 				Gamma.ReportTypeInference(ParsedTree.KeyToken, "return value of " + Gamma.Func.FuncName, Expr.Type);
 			}
@@ -2411,7 +2412,7 @@ final class KonohaGrammar extends GtGrammar {
 			if(ConstValue == null) {
 				/*local*/GtTypeEnv Gamma = new GtTypeEnv(NameSpace);
 				/*local*/GtNode Node = SymbolDeclTree.TypeCheckAt(SymbolDeclValueIndex, Gamma, Gamma.VarType, OnlyConstPolicy);
-				if(Node.IsError()) {
+				if(Node.IsErrorNode()) {
 					SymbolDeclTree.ToError(Node.Token);
 					return SymbolDeclTree;
 				}
@@ -2668,7 +2669,7 @@ final class KonohaGrammar extends GtGrammar {
 		/*local*/int i = 0;
 		while(i < LibGreenTea.ListSize(ParsedTree.SubTreeList)) {
 			/*local*/GtNode Node = ParsedTree.TypeCheckAt(i, Gamma, ElemType, DefaultTypeCheckPolicy);
-			if(Node.IsError()) {
+			if(Node.IsErrorNode()) {
 				return Node;
 			}
 			if(ElemType.IsVarType()) {
@@ -2690,7 +2691,7 @@ final class KonohaGrammar extends GtGrammar {
 
 	public static GtNode TypeSize(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtNode ExprNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-		if(ExprNode.IsError()) {
+		if(ExprNode.IsErrorNode()) {
 			return ExprNode;
 		}
 		/*local*/GtPolyFunc PolyFunc = Gamma.NameSpace.GetMethod(ExprNode.Type, FuncSymbol("||"), true);
@@ -2727,7 +2728,7 @@ final class KonohaGrammar extends GtGrammar {
 	
 	public static GtNode TypeIndexer(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
 		/*local*/GtNode RecvNode = ParsedTree.TypeCheckAt(LeftHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-		if(!RecvNode.IsError()) {
+		if(!RecvNode.IsErrorNode()) {
 			/*local*/String MethodName = ParsedTree.KeyToken.ParsedText;
 			/*local*/GtResolvedFunc ResolvedFunc = null;
 			/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(RecvNode.Type, FuncSymbol(MethodName), true);
@@ -2760,7 +2761,7 @@ final class KonohaGrammar extends GtGrammar {
 
 	public static GtNode TypeSlice(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtNode RecvNode = ParsedTree.TypeCheckAt(LeftHandTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-		if(!RecvNode.IsError()) {
+		if(!RecvNode.IsErrorNode()) {
 			return TypeMethodCall(Gamma, ParsedTree, RecvNode, "[:]");
 		}
 		return RecvNode;
@@ -2776,7 +2777,7 @@ final class KonohaGrammar extends GtGrammar {
 		/*local*/Object InitValue = null;
 		if(ParsedTree.HasNodeAt(VarDeclValue)) {
 			InitValueNode = ParsedTree.TypeCheckAt(VarDeclValue, Gamma, DeclType, OnlyConstPolicy | NullablePolicy);
-			if(InitValueNode.IsError()) {
+			if(InitValueNode.IsErrorNode()) {
 				return false;
 			}
 			InitValue = InitValueNode.ToConstValue(true);

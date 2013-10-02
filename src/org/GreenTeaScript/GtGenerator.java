@@ -240,11 +240,25 @@ public class GtGenerator extends GreenTeaUtils {
 	}
 
 	public final void StopVisitor(GtNode Node) {
-		Node.SetNextNode(null);
+		Node.NextNode = null;
 	}
 
 	public final boolean IsEmptyBlock(GtNode Node) {
-		return Node == null || (Node instanceof GtEmptyNode) && Node.GetNextNode() == null;
+		return Node == null || (Node instanceof GtEmptyNode) && Node.NextNode == null;
+	}
+
+	public final GtForNode FindParentForNode(GtNode Node) {
+		/*local*/GtNode Parent = Node.ParentNode;
+		while(Parent != null) {
+			if(Parent instanceof GtForNode) {
+				return (/*cast*/GtForNode)Parent;
+			}
+			if(Parent.ParentNode == null) {
+				Parent = Parent.MoveHeadNode();
+			}
+			Parent = Parent.ParentNode;
+		}
+		return null;
 	}
 
 	//------------------------------------------------------------------------
@@ -401,7 +415,7 @@ public class GtGenerator extends GreenTeaUtils {
 		/*local*/GtNode CurrentNode = Node;
 		while(CurrentNode != null) {
 			CurrentNode.Evaluate(this);
-			CurrentNode = CurrentNode.GetNextNode();
+			CurrentNode = CurrentNode.NextNode;
 		}
 	}
 

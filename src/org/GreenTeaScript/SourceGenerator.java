@@ -24,14 +24,8 @@
 
 //ifdef JAVA
 package org.GreenTeaScript;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-
-import org.GreenTeaScript.DShell.DShellProcess;
 //endif VAJA
-/* language */
-// GreenTea Generator should be written in each language.
 
 class GtNode extends GreenTeaUtils {
 	/*field*/public GtNode	ParentNode;
@@ -46,30 +40,30 @@ class GtNode extends GreenTeaUtils {
 		this.PrevNode = null;
 		this.NextNode = null;
 	}
-	public final GtNode GetParentNode() {
-		return this.ParentNode;
-	}
-	public final void SetParent(GtNode Node) {
+//	public final GtNode GetParentNode() {
+//		return this.ParentNode;
+//	}
+	public final void SetChild(GtNode Node) {
 		if(Node != null) {
 			Node.ParentNode = this;
 		}
 	}
-	public final void SetParent2(GtNode Node, GtNode Node2) {
-		this.SetParent(Node);
-		this.SetParent(Node2);
+	public final void SetChild2(GtNode Node, GtNode Node2) {
+		this.SetChild(Node);
+		this.SetChild(Node2);
 	}
-	public final GtNode GetNextNode() {
-		return this.NextNode;
-	}
-	public final void SetNextNode(GtNode Node) {
-		this.NextNode = Node;
-	}
-	public final GtNode GetPrevNode() {
-		return this.PrevNode;
-	}
-	public final void SetPrevNode(GtNode Node) {
-		this.PrevNode = Node;
-	}
+//	public final GtNode GetNextNode() {
+//		return this.NextNode;
+//	}
+//	public final void SetNextNode(GtNode Node) {
+//		this.NextNode = Node;
+//	}
+//	public final GtNode GetPrevNode() {
+//		return this.PrevNode;
+//	}
+//	public final void SetPrevNode(GtNode Node) {
+//		this.PrevNode = Node;
+//	}
 	public final GtNode MoveHeadNode() {
 		/*local*/GtNode Node = this;
 		while(Node.PrevNode != null) {
@@ -84,22 +78,39 @@ class GtNode extends GreenTeaUtils {
 		}
 		return Node;
 	}
-	public void Append(GtNode Node) {
-		/*extension*/
-		this.SetParent(Node);
+	
+	public ArrayList<GtNode> GetList() {
+		return null;
+	}
+	public final GtNode GetAt(int Index) {
+		return this.GetList().get(Index);
+	}
+	public final void Append(GtNode Node) {
+		this.GetList().add(Node);
+		this.SetChild(Node);
 	}
 	public final void AppendNodeList(int StartIndex, ArrayList<GtNode> NodeList) {
 		/*local*/int i = StartIndex;
+		/*local*/ArrayList<GtNode> List = this.GetList();
 		while(i < LibGreenTea.ListSize(NodeList)) {
-			this.Append(NodeList.get(i));
+			/*local*/GtNode Node = NodeList.get(i);
+			List.add(Node);
+			this.SetChild(Node);
 			i = i + 1;
 		}
 	}
-	public final boolean IsError() {
-		return (this instanceof GtErrorNode);
-	}
+
 	public void Evaluate(GtGenerator Visitor) {
 		/* must override */
+	}
+
+
+	public final boolean IsErrorNode() {
+		return (this instanceof GtErrorNode);
+	}
+	
+	public final boolean IsNullNode() {
+		return (this instanceof GtNullNode);
 	}
 
 	protected final Object ToNullValue(boolean EnforceConst) {
@@ -108,10 +119,10 @@ class GtNode extends GreenTeaUtils {
 		}
 		return null;
 	}
-	
 	public Object ToConstValue(boolean EnforceConst)  {
 		return this.ToNullValue(EnforceConst);
 	}
+
 }
 
 final class GtEmptyNode extends GtNode {
@@ -123,6 +134,29 @@ final class GtEmptyNode extends GtNode {
 	}
 }
 
+final class GtNullNode extends GtNode {
+	GtNullNode/*constructor*/(GtType Type, GtToken Token) {
+		super(Type, Token);
+	}
+	@Override public void Evaluate(GtGenerator Visitor) {
+		Visitor.VisitNullNode(this);
+	}
+	public Object ToConstValue(boolean EnforceConst)  {
+		return null;
+	}
+}
+//NewNode is object creation in GreenTea defined
+final class GtNewNode extends GtNode {
+	GtNewNode/*constructor*/(GtType Type, GtToken Token) {
+		super(Type, Token);
+	}
+	@Override public void Evaluate(GtGenerator Visitor) {
+		Visitor.VisitNewNode(this);
+	}
+	@Override public Object ToConstValue(boolean EnforceConst)  {
+		return this.Type.Context.Generator.EvalNewNode(this, EnforceConst);
+	}	
+}
 final class GtConstNode extends GtNode {
 	/*field*/public Object	ConstValue;
 	GtConstNode/*constructor*/(GtType Type, GtToken Token, Object ConstValue) {
@@ -136,6 +170,26 @@ final class GtConstNode extends GtNode {
 		return this.ConstValue;
 	}
 }
+//E.g., "[" $Node, $Node "]"
+final class GtArrayNode extends GtNode {
+	/*field*/public ArrayList<GtNode>	NodeList;
+	GtArrayNode/*constructor*/(GtType Type, GtToken Token) {
+		super(Type, Token);
+		this.NodeList = new ArrayList<GtNode>();
+	}
+	@Override public ArrayList<GtNode> GetList() {
+		return this.NodeList;
+	}
+	@Override public void Evaluate(GtGenerator Visitor) {
+		Visitor.VisitArrayNode(this);
+	}
+	@Override public Object ToConstValue(boolean EnforceConst)  {
+		if(EnforceConst) {
+			return this.Type.Context.Generator.EvalArrayNode(this, EnforceConst);
+		}
+		return null;
+	}
+}
 final class GtLocalNode extends GtNode {
 	/*field*/public String NativeName;
 	GtLocalNode/*constructor*/(GtType Type, GtToken Token, String NativeName) {
@@ -146,17 +200,110 @@ final class GtLocalNode extends GtNode {
 		Visitor.VisitLocalNode(this);
 	}
 }
-final class GtNullNode extends GtNode {
-	GtNullNode/*constructor*/(GtType Type, GtToken Token) {
+//E.g., $LeftNode = $RightNode
+final class GtAssignNode extends GtNode {
+	/*field*/public GtNode   LeftNode;
+	/*field*/public GtNode	 RightNode;
+	GtAssignNode/*constructor*/(GtType Type, GtToken Token, GtNode Left, GtNode Right) {
 		super(Type, Token);
+		this.LeftNode  = Left;
+		this.RightNode = Right;
+		this.SetChild2(Left, Right);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
-		Visitor.VisitNullNode(this);
+		Visitor.VisitAssignNode(this);
 	}
-	public Object ToConstValue(boolean EnforceConst)  {
+}
+//E.g., $ExprNode instanceof TypeInfo
+final class GtInstanceOfNode extends GtNode {
+	/*field*/public GtNode   ExprNode;
+	/*field*/public GtType	 TypeInfo;
+	GtInstanceOfNode/*constructor*/(GtType Type, GtToken Token, GtNode ExprNode, GtType TypeInfo) {
+		super(Type, Token);
+		this.ExprNode = ExprNode;
+		this.TypeInfo = TypeInfo;
+		this.SetChild(ExprNode);
+	}
+	@Override public void Evaluate(GtGenerator Visitor) {
+		Visitor.VisitInstanceOfNode(this);
+	}
+	@Override public Object ToConstValue(boolean EnforceConst)  {
+		/*local*/Object Value = this.ExprNode.ToConstValue(EnforceConst) ;
+		if(Value != null) {
+			return LibGreenTea.DynamicInstanceOf(Value, this.TypeInfo);
+		}
+		return Value;
+	}
+}
+
+//E.g., $LeftNode && $RightNode
+final class GtAndNode extends GtNode {
+	/*field*/public GtNode   LeftNode;
+	/*field*/public GtNode	 RightNode;
+	GtAndNode/*constructor*/(GtType Type, GtToken Token, GtNode Left, GtNode Right) {
+		super(Type, Token);
+		this.LeftNode  = Left;
+		this.RightNode = Right;
+		this.SetChild2(Left, Right);
+	}
+	@Override public void Evaluate(GtGenerator Visitor) {
+		Visitor.VisitAndNode(this);
+	}
+	@Override public Object ToConstValue(boolean EnforceConst)  {
+		/*local*/Object LeftValue = this.LeftNode.ToConstValue(EnforceConst) ;
+//		if(LeftValue instanceof Boolean && LibGreenTea.booleanValue(LeftValue)) {
+//			return this.RightNode.ToConstValue(EnforceConst) ;
+//		}
 		return null;
 	}
 }
+//E.g., $LeftNode || $RightNode
+final class GtOrNode extends GtNode {
+	/*field*/public GtNode   LeftNode;
+	/*field*/public GtNode	 RightNode;
+	GtOrNode/*constructor*/(GtType Type, GtToken Token, GtNode Left, GtNode Right) {
+		super(Type, Token);
+		this.LeftNode  = Left;
+		this.RightNode = Right;
+		this.SetChild2(Left, Right);
+	}
+	@Override public void Evaluate(GtGenerator Visitor) {
+		Visitor.VisitOrNode(this);
+	}
+	@Override public Object ToConstValue(boolean EnforceConst)  {
+		/*local*/Object LeftValue = this.LeftNode.ToConstValue(EnforceConst) ;
+		if(LeftValue instanceof Boolean) {
+//			if(LibGreenTea.booleanValue(LeftValue)) {
+//				return LeftValue;
+//			}
+//			else {
+//				return this.RightNode.ToConstValue(EnforceConst) ;
+//			}
+		}
+		return null;
+	}
+}
+
+final class GtVarNode extends GtNode {
+	/*field*/public GtType	DeclType;
+//	/*field*/public GtNode	VarNode;
+	/*field*/public String  NativeName;
+	/*field*/public GtNode	InitNode;
+	/*field*/public GtNode	BlockNode;
+	/* let VarNode in Block end */
+	GtVarNode/*constructor*/(GtType Type, GtToken Token, GtType DeclType, String VariableName, GtNode InitNode, GtNode Block) {
+		super(Type, Token);
+		this.NativeName = VariableName;
+		this.DeclType  = DeclType;
+		this.InitNode  = InitNode;
+		this.BlockNode = Block;
+		this.SetChild2(InitNode, this.BlockNode);
+	}
+	@Override public void Evaluate(GtGenerator Visitor) {
+		Visitor.VisitVarNode(this);
+	}
+}
+
 //E.g., (T) $Expr
 final class GtCastNode extends GtNode {
 	/*field*/public GtFunc  Func;
@@ -166,7 +313,7 @@ final class GtCastNode extends GtNode {
 		super(Type, Token);
 		this.CastType = CastType;
 		this.Expr = Expr;
-		this.SetParent(Expr);
+		this.SetChild(Expr);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitCastNode(this);
@@ -187,7 +334,7 @@ final class GtUnaryNode extends GtNode {
 		super(Type, Token);
 		this.Func = Func;
 		this.Expr = Expr;
-		this.SetParent(Expr);
+		this.SetChild(Expr);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitUnaryNode(this);
@@ -202,13 +349,13 @@ final class GtUnaryNode extends GtNode {
 }
 // E.g.,  $Expr "++"
 final class GtSuffixNode extends GtNode {
-	/*field*/public GtFunc    Func;
+	/*field*/public GtFunc  Func;
 	/*field*/public GtNode	Expr;
 	GtSuffixNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func, GtNode Expr) {
 		super(Type, Token);
 		this.Func = Func;
 		this.Expr = Expr;
-		this.SetParent(Expr);
+		this.SetChild(Expr);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitSuffixNode(this);
@@ -223,30 +370,16 @@ final class GtSuffixNode extends GtNode {
 }
 //E.g., "exists" $Expr
 final class GtExistsNode extends GtNode {
-	/*field*/public GtFunc    Func;
+	/*field*/public GtFunc  Func;
 	/*field*/public GtNode	Expr;
 	GtExistsNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func, GtNode Expr) {
 		super(Type, Token);
 		this.Func = Func;
 		this.Expr = Expr;
-		this.SetParent(Expr);
+		this.SetChild(Expr);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitExistsNode(this);
-	}
-}
-//E.g., $LeftNode = $RightNode
-final class GtAssignNode extends GtNode {
-	/*field*/public GtNode   LeftNode;
-	/*field*/public GtNode	 RightNode;
-	GtAssignNode/*constructor*/(GtType Type, GtToken Token, GtNode Left, GtNode Right) {
-		super(Type, Token);
-		this.LeftNode  = Left;
-		this.RightNode = Right;
-		this.SetParent2(Left, Right);
-	}
-	@Override public void Evaluate(GtGenerator Visitor) {
-		Visitor.VisitAssignNode(this);
 	}
 }
 //E.g., $LeftNode += $RightNode
@@ -259,31 +392,10 @@ final class GtSelfAssignNode extends GtNode {
 		this.Func  = Func;
 		this.LeftNode  = Left;
 		this.RightNode = Right;
-		this.SetParent2(Left, Right);
+		this.SetChild2(Left, Right);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitSelfAssignNode(this);
-	}
-}
-//E.g., $ExprNode instanceof TypeInfo
-final class GtInstanceOfNode extends GtNode {
-	/*field*/public GtNode   ExprNode;
-	/*field*/public GtType	 TypeInfo;
-	GtInstanceOfNode/*constructor*/(GtType Type, GtToken Token, GtNode ExprNode, GtType TypeInfo) {
-		super(Type, Token);
-		this.ExprNode = ExprNode;
-		this.TypeInfo = TypeInfo;
-		this.SetParent(ExprNode);
-	}
-	@Override public void Evaluate(GtGenerator Visitor) {
-		Visitor.VisitInstanceOfNode(this);
-	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
-		/*local*/Object Value = this.ExprNode.ToConstValue(EnforceConst) ;
-		if(Value != null) {
-			return LibGreenTea.DynamicInstanceOf(Value, this.TypeInfo);
-		}
-		return Value;
 	}
 }
 // E.g., $LeftNode "+" $RightNode
@@ -296,7 +408,7 @@ final class GtBinaryNode extends GtNode {
 		this.Func = Func;
 		this.LeftNode  = Left;
 		this.RightNode = Right;
-		this.SetParent2(Left, Right);
+		this.SetChild2(Left, Right);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitBinaryNode(this);
@@ -312,57 +424,11 @@ final class GtBinaryNode extends GtNode {
 		return null;
 	}
 }
-//E.g., $LeftNode && $RightNode
-final class GtAndNode extends GtNode {
-	/*field*/public GtNode   LeftNode;
-	/*field*/public GtNode	 RightNode;
-	GtAndNode/*constructor*/(GtType Type, GtToken Token, GtNode Left, GtNode Right) {
-		super(Type, Token);
-		this.LeftNode  = Left;
-		this.RightNode = Right;
-		this.SetParent2(Left, Right);
-	}
-	@Override public void Evaluate(GtGenerator Visitor) {
-		Visitor.VisitAndNode(this);
-	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
-		/*local*/Object LeftValue = this.LeftNode.ToConstValue(EnforceConst) ;
-//		if(LeftValue instanceof Boolean && LibGreenTea.booleanValue(LeftValue)) {
-//			return this.RightNode.ToConstValue(EnforceConst) ;
-//		}
-		return null;
-	}
-}
-//E.g., $LeftNode || $RightNode
-final class GtOrNode extends GtNode {
-	/*field*/public GtNode   LeftNode;
-	/*field*/public GtNode	RightNode;
-	GtOrNode/*constructor*/(GtType Type, GtToken Token, GtNode Left, GtNode Right) {
-		super(Type, Token);
-		this.LeftNode  = Left;
-		this.RightNode = Right;
-		this.SetParent2(Left, Right);
-	}
-	@Override public void Evaluate(GtGenerator Visitor) {
-		Visitor.VisitOrNode(this);
-	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
-		/*local*/Object LeftValue = this.LeftNode.ToConstValue(EnforceConst) ;
-		if(LeftValue instanceof Boolean) {
-//			if(LibGreenTea.booleanValue(LeftValue)) {
-//				return LeftValue;
-//			}
-//			else {
-//				return this.RightNode.ToConstValue(EnforceConst) ;
-//			}
-		}
-		return null;
-	}
-}
+
 
 //E.g., $CondExpr "?" $ThenExpr ":" $ElseExpr
 final class GtTrinaryNode extends GtNode {
-	/*field*/public GtFunc    Func;
+	/*field*/public GtFunc  Func;
 	/*field*/public GtNode	CondExpr;
 	/*field*/public GtNode	ThenExpr;
 	/*field*/public GtNode	ElseExpr;
@@ -371,8 +437,8 @@ final class GtTrinaryNode extends GtNode {
 		this.CondExpr = CondExpr;
 		this.ThenExpr = ThenExpr;
 		this.ElseExpr = ElseExpr;
-		this.SetParent(CondExpr);
-		this.SetParent2(ThenExpr, ElseExpr);
+		this.SetChild(CondExpr);
+		this.SetChild2(ThenExpr, ElseExpr);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitTrinaryNode(this);
@@ -398,7 +464,7 @@ final class GtGetterNode extends GtNode {
 		super(Type, Token);
 		this.Func = Func;
 		this.Expr = Expr;
-		this.SetParent(Expr);
+		this.SetChild(Expr);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitGetterNode(this);
@@ -422,14 +488,10 @@ final class GtIndexerNode extends GtNode {
 		this.Func = Func;
 		this.Expr = Expr;
 		this.NodeList = new ArrayList<GtNode>();
-		this.SetParent(Expr);
+		this.SetChild(Expr);
 	}
-	@Override public void Append(GtNode Expr) {
-		this.NodeList.add(Expr);
-		this.SetParent(Expr);
-	}
-	public GtNode GetAt(int Index) {
-		return this.NodeList.get(Index);
+	public ArrayList<GtNode> GetList() {
+		return this.NodeList;
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitIndexerNode(this);
@@ -459,33 +521,14 @@ final class GtSliceNode extends GtNode {
 		this.Expr = Expr;
 		this.Index1 = Index1;
 		this.Index2 = Index2;
-		this.SetParent(Expr);
-		this.SetParent2(Index1, Index2);
+		this.SetChild(Expr);
+		this.SetChild2(Index1, Index2);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitSliceNode(this);
 	}
 }
 
-final class GtVarNode extends GtNode {
-	/*field*/public GtType	DeclType;
-//	/*field*/public GtNode	VarNode;
-	/*field*/public String  NativeName;
-	/*field*/public GtNode	InitNode;
-	/*field*/public GtNode	BlockNode;
-	/* let VarNode in Block end */
-	GtVarNode/*constructor*/(GtType Type, GtToken Token, GtType DeclType, String VariableName, GtNode InitNode, GtNode Block) {
-		super(Type, Token);
-		this.NativeName = VariableName;
-		this.DeclType  = DeclType;
-		this.InitNode  = InitNode;
-		this.BlockNode = Block;
-		this.SetParent2(InitNode, this.BlockNode);
-	}
-	@Override public void Evaluate(GtGenerator Visitor) {
-		Visitor.VisitVarNode(this);
-	}
-}
 // E.g., $Param[0] "(" $Param[1], $Param[2], ... ")"
 final class GtApplyNode extends GtNode {
 	/*field*/public GtFunc	Func;
@@ -495,9 +538,8 @@ final class GtApplyNode extends GtNode {
 		this.Func = Func;
 		this.NodeList = new ArrayList<GtNode>();
 	}
-	@Override public void Append(GtNode Expr) {
-		this.NodeList.add(Expr);
-		this.SetParent(Expr);
+	public final ArrayList<GtNode> GetList() {
+		return this.NodeList;
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitApplyNode(this);
@@ -505,19 +547,6 @@ final class GtApplyNode extends GtNode {
 	@Override public Object ToConstValue(boolean EnforceConst)  {
 		return this.Type.Context.Generator.EvalApplyNode(this, EnforceConst);
 	}
-}
-
-// NewNode is object creation in GreenTea defined
-final class GtNewNode extends GtNode {
-	GtNewNode/*constructor*/(GtType Type, GtToken Token) {
-		super(Type, Token);
-	}
-	@Override public void Evaluate(GtGenerator Visitor) {
-		Visitor.VisitNewNode(this);
-	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
-		return this.Type.Context.Generator.EvalNewNode(this, EnforceConst);
-	}	
 }
 
 //E.g., ConstructorNode is for object creation in Native Langauage defined
@@ -529,9 +558,8 @@ final class GtConstructorNode extends GtNode {
 		this.ParamList = new ArrayList<GtNode>();
 		this.Func = Func;
 	}
-	@Override public void Append(GtNode Expr) {
-		this.ParamList.add(Expr);
-		this.SetParent(Expr);
+	public final ArrayList<GtNode> GetList() {
+		return this.ParamList;
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitConstructorNode(this);
@@ -544,28 +572,6 @@ final class GtConstructorNode extends GtNode {
 	}	
 }
 
-//E.g., "[" $Node, $Node "]"
-final class GtArrayNode extends GtNode {
-	/*field*/public ArrayList<GtNode>	NodeList;
-	/*field*/GtFunc Func;
-	GtArrayNode/*constructor*/(GtType Type, GtToken Token) {
-		super(Type, Token);
-		this.NodeList = new ArrayList<GtNode>();
-	}
-	@Override public void Append(GtNode Expr) {
-		this.NodeList.add(Expr);
-		this.SetParent(Expr);
-	}
-	@Override public void Evaluate(GtGenerator Visitor) {
-		Visitor.VisitArrayNode(this);
-	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
-		if(EnforceConst) {
-			return this.Type.Context.Generator.EvalArrayNode(this, EnforceConst);
-		}
-		return null;
-	}
-}
 //E.g., "if" "(" $Cond ")" $ThenNode "else" $ElseNode
 final class GtIfNode extends GtNode {
 	/*field*/public GtNode	CondExpr;
@@ -577,8 +583,8 @@ final class GtIfNode extends GtNode {
 		this.CondExpr = CondExpr;
 		this.ThenNode = ThenBlock;
 		this.ElseNode = ElseNode;
-		this.SetParent(CondExpr);
-		this.SetParent2(ThenBlock, ElseNode);
+		this.SetChild(CondExpr);
+		this.SetChild2(ThenBlock, ElseNode);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitIfNode(this);
@@ -592,7 +598,7 @@ final class GtWhileNode extends GtNode {
 		super(Type, Token);
 		this.CondExpr = CondExpr;
 		this.LoopBody = LoopBody;
-		this.SetParent2(CondExpr, LoopBody);
+		this.SetChild2(CondExpr, LoopBody);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitWhileNode(this);
@@ -605,7 +611,7 @@ final class GtDoWhileNode extends GtNode {
 		super(Type, Token);
 		this.CondExpr = CondExpr;
 		this.LoopBody = LoopBody;
-		this.SetParent2(CondExpr, LoopBody);
+		this.SetChild2(CondExpr, LoopBody);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitDoWhileNode(this);
@@ -622,8 +628,8 @@ final class GtForNode extends GtNode {
 		this.CondExpr = CondExpr;
 		this.LoopBody = LoopBody;
 		this.IterExpr = IterExpr;
-		this.SetParent2(CondExpr, LoopBody);
-		this.SetParent(IterExpr);
+		this.SetChild2(CondExpr, LoopBody);
+		this.SetChild(IterExpr);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitForNode(this);
@@ -640,8 +646,8 @@ final class GtForEachNode extends GtNode {
 		this.Variable = Variable;
 		this.IterExpr = IterExpr;
 		this.LoopBody = LoopBody;
-		this.SetParent2(Variable, LoopBody);
-		this.SetParent(IterExpr);
+		this.SetChild2(Variable, LoopBody);
+		this.SetChild(IterExpr);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitForEachNode(this);
@@ -672,7 +678,7 @@ final class GtReturnNode extends GtNode {
 	GtReturnNode/*constructor*/(GtType Type, GtToken Token, GtNode Expr) {
 		super(Type, Token);
 		this.Expr = Expr;
-		this.SetParent(Expr);
+		this.SetChild(Expr);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitReturnNode(this);
@@ -699,8 +705,8 @@ final class GtTryNode extends GtNode {
 		this.CatchExpr = CatchExpr;
 		this.CatchBlock = CatchBlock;
 		this.FinallyBlock = FinallyBlock;
-		this.SetParent2(TryBlock, FinallyBlock);
-		this.SetParent2(CatchBlock, CatchExpr);
+		this.SetChild2(TryBlock, FinallyBlock);
+		this.SetChild2(CatchBlock, CatchExpr);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitTryNode(this);
@@ -716,14 +722,13 @@ final class GtSwitchNode extends GtNode {
 		this.MatchNode = MatchNode;
 		this.DefaultBlock = DefaultBlock;
 		this.CaseList = new ArrayList<GtNode>();
-		this.SetParent(DefaultBlock);
+		this.SetChild(DefaultBlock);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitSwitchNode(this);
 	}
-	@Override public void Append(GtNode Expr) {
-		this.CaseList.add(Expr);
-		this.SetParent(Expr);		
+	@Override public final ArrayList<GtNode> GetList() {
+		return this.CaseList;
 	}
 }
 final class GtFunctionNode extends GtNode {
@@ -755,9 +760,8 @@ final class GtCommandNode extends GtNode {
 		this.PipedNextNode = PipedNextNode;
 		this.ArgumentList = new ArrayList<GtNode>();
 	}
-	@Override public void Append(GtNode Expr) {
-		this.ArgumentList.add(Expr);
-		this.SetParent(Expr);
+	@Override public final ArrayList<GtNode> GetList() {
+		return this.ArgumentList;
 	}
 
 	@Override public void Evaluate(GtGenerator Visitor) {
@@ -767,6 +771,7 @@ final class GtCommandNode extends GtNode {
 	@Override public Object ToConstValue(boolean EnforceConst) {	//FIXME: Exception
 		return this.Type.Context.Generator.EvalCommandNode(this, EnforceConst);
 	}
+
 }
 
 
@@ -899,7 +904,7 @@ class SourceGenerator extends GtGenerator {
 					Code += this.GetIndentString() + Stmt + this.SemiColon + this.LineFeed;
 				}
 			}
-			CurrentNode = CurrentNode.GetNextNode();
+			CurrentNode = CurrentNode.NextNode;
 		}
 		if(NeedBlock) {
 			this.UnIndent();

@@ -163,7 +163,7 @@ public final class GtTypeEnv extends GreenTeaUtils {
 
 	public final GtNode TypeCheckSingleNode(GtSyntaxTree ParsedTree, GtNode Node, GtType Type, int TypeCheckPolicy) {
 		LibGreenTea.Assert(Node != null);
-		if(Node.IsError() || IsFlag(TypeCheckPolicy, NoCheckPolicy)) {
+		if(Node.IsErrorNode() || IsFlag(TypeCheckPolicy, NoCheckPolicy)) {
 			return Node;
 		}
 		if(Node.Type.IsUnrevealedType()) {

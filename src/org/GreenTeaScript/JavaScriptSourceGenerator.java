@@ -44,7 +44,7 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 			if(Statement.trim().length() >0) {
 				Code += this.GetIndentString() + Statement + ";" + this.LineFeed;
 			}
-			CurrentNode = CurrentNode.GetNextNode();
+			CurrentNode = CurrentNode.NextNode;
 		}
 		return Code;
 	}

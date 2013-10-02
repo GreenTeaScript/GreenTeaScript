@@ -78,20 +78,6 @@ public class ScalaSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Program);
 	}
 
-	private GtForNode FindParentForNode(GtNode Node) {
-		/*local*/GtNode Parent = Node.GetParentNode();
-		while(Parent != null) {
-			if(Parent instanceof GtForNode) {
-				return (/*cast*/GtForNode)Parent;
-			}
-			if(Parent.GetParentNode() == null) {
-				Parent = Parent.MoveHeadNode();
-			}
-			Parent = Parent.GetParentNode();
-		}
-		return null;
-	}
-
 	@Override public void VisitContinueNode(GtContinueNode Node) {
 		/*local*/String Code = "";
 		/*local*/GtForNode Parent = this.FindParentForNode(Node);
