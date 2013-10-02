@@ -227,25 +227,6 @@ final class GtInstanceOfNode extends GtNode {
 }
 
 //E.g., $LeftNode && $RightNode
-final class GtNotNode extends GtNode {
-	/*field*/public GtNode   ExprNode;
-	GtNotNode/*constructor*/(GtType Type, GtToken Token, GtNode Expr) {
-		super(Type, Token);
-		this.ExprNode  = Expr;
-		this.SetChild(Expr);
-	}
-	@Override public void Evaluate(GtGenerator Visitor) {
-		Visitor.VisitNotNode(this);
-	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
-		/*local*/Object LeftValue = this.ExprNode.ToConstValue(EnforceConst);
-		if(LeftValue instanceof Boolean) {
-			return !(LibGreenTea.booleanValue(LeftValue));
-		}
-		return null;
-	}
-}
-//E.g., $LeftNode && $RightNode
 final class GtAndNode extends GtNode {
 	/*field*/public GtNode   LeftNode;
 	/*field*/public GtNode	 RightNode;

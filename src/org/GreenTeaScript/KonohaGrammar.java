@@ -1047,6 +1047,24 @@ public class KonohaGrammar extends GtGrammar {
 //		}
 	}
 
+	public static GtSyntaxTree ParseNot(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtSyntaxTree Tree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.Next(), null);
+		Tree.SetMatchedPatternAt(UnaryTerm, NameSpace, TokenContext, "$SuffixExpression$", Required);
+		return Tree;
+	}
+
+	public static GtNode TypeNot(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+		/*local*/GtNode ExprNode  = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
+		if(ExprNode.IsErrorNode()) {
+			return ExprNode;
+		}
+		/*local*/String OperatorSymbol = ParsedTree.KeyToken.ParsedText;
+		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(ExprNode.Type, FuncSymbol(OperatorSymbol), true);
+		/*local*/GtFunc ResolvedFunc = PolyFunc.ResolveUnaryMethod(Gamma, Gamma.BooleanType);
+		LibGreenTea.Assert(ResolvedFunc != null);
+		return Gamma.Generator.CreateUnaryNode(Gamma.BooleanType, ParsedTree, ResolvedFunc, ExprNode);
+	}
+
 	public static GtNode TypeAnd(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtNode LeftNode = ParsedTree.TypeCheckAt(LeftHandTerm, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
 		/*local*/GtNode RightNode = ParsedTree.TypeCheckAt(RightHandTerm, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
@@ -1073,7 +1091,7 @@ public class KonohaGrammar extends GtGrammar {
 		if(LeftNode.IsErrorNode()) {
 			return LeftNode;
 		}
-		if(LeftNode instanceof GtLocalNode /*|| LeftNode instanceof GtGetterNode || LeftNode instanceof GtIndexerNode*/) {
+		if(LeftNode instanceof GtLocalNode) {
 			/*local*/GtNode RightNode = ParsedTree.TypeCheckAt(RightHandTerm, Gamma, LeftNode.Type, DefaultTypeCheckPolicy);
 			return Gamma.Generator.CreateAssignNode(LeftNode.Type, ParsedTree, LeftNode, RightNode);
 		}
@@ -2147,33 +2165,33 @@ public class KonohaGrammar extends GtGrammar {
 
 	@Override public void LoadTo(GtNameSpace NameSpace) {
 		// Define Constants
-		/*local*/GtParserContext ParserContext = NameSpace.Context;
+		/*local*/GtParserContext Context = NameSpace.Context;
 		NameSpace.SetSymbol("true", true, null);
 		NameSpace.SetSymbol("false", false, null);
 
-		NameSpace.AppendTokenFunc(" \t", LoadTokenFunc(ParserContext, this, "WhiteSpaceToken"));
-		NameSpace.AppendTokenFunc("\n",  LoadTokenFunc(ParserContext, this, "IndentToken"));
-		NameSpace.AppendTokenFunc(";", LoadTokenFunc(ParserContext, this, "SemiColonToken"));
-		NameSpace.AppendTokenFunc("{}()[]<>.,?:+-*/%=&|!@~^$", LoadTokenFunc(ParserContext, this, "OperatorToken"));
-		NameSpace.AppendTokenFunc("/", LoadTokenFunc(ParserContext, this, "CommentToken"));  // overloading
-		NameSpace.AppendTokenFunc("Aa_", LoadTokenFunc(ParserContext, this, "SymbolToken"));
+		NameSpace.AppendTokenFunc(" \t", LoadTokenFunc(Context, this, "WhiteSpaceToken"));
+		NameSpace.AppendTokenFunc("\n",  LoadTokenFunc(Context, this, "IndentToken"));
+		NameSpace.AppendTokenFunc(";", LoadTokenFunc(Context, this, "SemiColonToken"));
+		NameSpace.AppendTokenFunc("{}()[]<>.,?:+-*/%=&|!@~^$", LoadTokenFunc(Context, this, "OperatorToken"));
+		NameSpace.AppendTokenFunc("/", LoadTokenFunc(Context, this, "CommentToken"));  // overloading
+		NameSpace.AppendTokenFunc("Aa_", LoadTokenFunc(Context, this, "SymbolToken"));
 
-		NameSpace.AppendTokenFunc("\"", LoadTokenFunc(ParserContext, this, "StringLiteralToken"));
+		NameSpace.AppendTokenFunc("\"", LoadTokenFunc(Context, this, "StringLiteralToken"));
 		//NameSpace.AppendTokenFunc("\"", LoadTokenFunc(ParserContext, this, "StringLiteralToken_StringInterpolation"));
-		NameSpace.AppendTokenFunc("'", LoadTokenFunc(ParserContext, this, "CharLiteralToken"));
-		NameSpace.AppendTokenFunc("1",  LoadTokenFunc(ParserContext, this, "NumberLiteralToken"));
+		NameSpace.AppendTokenFunc("'", LoadTokenFunc(Context, this, "CharLiteralToken"));
+		NameSpace.AppendTokenFunc("1",  LoadTokenFunc(Context, this, "NumberLiteralToken"));
 //#ifdef JAVA
-		GtFunc ParseUnary     = LoadParseFunc(ParserContext, this, "ParseUnary");
-		GtFunc  TypeUnary      = LoadTypeFunc(ParserContext, this, "TypeUnary");
-		GtFunc ParseBinary    = LoadParseFunc(ParserContext, this, "ParseBinary");
-		GtFunc  TypeBinary     = LoadTypeFunc(ParserContext, this, "TypeBinary");
-		GtFunc  TypeConst      = LoadTypeFunc(ParserContext, this, "TypeConst");
+		GtFunc ParseUnary     = LoadParseFunc(Context, this, "ParseUnary");
+		GtFunc  TypeUnary      = LoadTypeFunc(Context, this, "TypeUnary");
+		GtFunc ParseBinary    = LoadParseFunc(Context, this, "ParseBinary");
+		GtFunc  TypeBinary     = LoadTypeFunc(Context, this, "TypeBinary");
+		GtFunc  TypeConst      = LoadTypeFunc(Context, this, "TypeConst");
 //endif VAJA
 		NameSpace.AppendSyntax("+", ParseUnary, TypeUnary);
 		NameSpace.AppendSyntax("-", ParseUnary, TypeUnary);
 		NameSpace.AppendSyntax("~", ParseUnary, TypeUnary);
-		NameSpace.AppendSyntax("! not", ParseUnary, TypeUnary);
-		NameSpace.AppendSyntax("++ --", LoadParseFunc(ParserContext, this, "ParseIncl"), LoadTypeFunc(ParserContext, this, "TypeIncl"));
+		NameSpace.AppendSyntax("! not", LoadParseFunc(Context, this, "ParseNot"), LoadTypeFunc(Context, this, "TypeNot"));
+		NameSpace.AppendSyntax("++ --", LoadParseFunc(Context, this, "ParseIncl"), LoadTypeFunc(Context, this, "TypeIncl"));
 
 		NameSpace.AppendExtendedSyntax("* / % mod", PrecedenceCStyleMUL, ParseBinary, TypeBinary);
 		NameSpace.AppendExtendedSyntax("+ -", PrecedenceCStyleADD, ParseBinary, TypeBinary);
@@ -2186,78 +2204,78 @@ public class KonohaGrammar extends GtGrammar {
 		NameSpace.AppendExtendedSyntax("|", PrecedenceCStyleBITOR, ParseBinary, TypeBinary);
 		NameSpace.AppendExtendedSyntax("^", PrecedenceCStyleBITXOR, ParseBinary, TypeBinary);
 
-		NameSpace.AppendExtendedSyntax("=", PrecedenceCStyleAssign | LeftJoin, ParseBinary, LoadTypeFunc(ParserContext, this, "TypeAssign"));
-		NameSpace.AppendExtendedSyntax("+= -= *= /= %= <<= >>= & | ^=", PrecedenceCStyleAssign, ParseBinary, LoadTypeFunc(ParserContext, this, "TypeSelfAssign"));
-		NameSpace.AppendExtendedSyntax("++ --", 0, LoadParseFunc(ParserContext, this, "ParseIncl"), LoadTypeFunc(ParserContext, this, "TypeIncl"));
+		NameSpace.AppendExtendedSyntax("=", PrecedenceCStyleAssign | LeftJoin, ParseBinary, LoadTypeFunc(Context, this, "TypeAssign"));
+		NameSpace.AppendExtendedSyntax("+= -= *= /= %= <<= >>= & | ^=", PrecedenceCStyleAssign, ParseBinary, LoadTypeFunc(Context, this, "TypeSelfAssign"));
+		NameSpace.AppendExtendedSyntax("++ --", 0, LoadParseFunc(Context, this, "ParseIncl"), LoadTypeFunc(Context, this, "TypeIncl"));
 
-		NameSpace.AppendExtendedSyntax("&& and", PrecedenceCStyleAND, ParseBinary, LoadTypeFunc(ParserContext, this, "TypeAnd"));
-		NameSpace.AppendExtendedSyntax("|| or", PrecedenceCStyleOR, ParseBinary, LoadTypeFunc(ParserContext, this, "TypeOr"));
-		NameSpace.AppendExtendedSyntax("<: instanceof", PrecedenceInstanceof, ParseBinary, LoadTypeFunc(ParserContext, this, "TypeInstanceOf"));
+		NameSpace.AppendExtendedSyntax("&& and", PrecedenceCStyleAND, ParseBinary, LoadTypeFunc(Context, this, "TypeAnd"));
+		NameSpace.AppendExtendedSyntax("|| or", PrecedenceCStyleOR, ParseBinary, LoadTypeFunc(Context, this, "TypeOr"));
+		NameSpace.AppendExtendedSyntax("<: instanceof", PrecedenceInstanceof, ParseBinary, LoadTypeFunc(Context, this, "TypeInstanceOf"));
 
-		NameSpace.AppendExtendedSyntax("?", 0, LoadParseFunc(ParserContext, this, "ParseTrinary"), LoadTypeFunc(ParserContext, this, "TypeTrinary"));
+		NameSpace.AppendExtendedSyntax("?", 0, LoadParseFunc(Context, this, "ParseTrinary"), LoadTypeFunc(Context, this, "TypeTrinary"));
 
-		NameSpace.AppendSyntax("$Error$", LoadParseFunc(ParserContext, this, "ParseError"), LoadTypeFunc(ParserContext, this, "TypeError"));
-		NameSpace.AppendSyntax("$Empty$", LoadParseFunc(ParserContext, this, "ParseEmpty"), LoadTypeFunc(ParserContext, this, "TypeEmpty"));
-		NameSpace.AppendSyntax(";", LoadParseFunc(ParserContext, this, "ParseSemiColon"), null);
-		NameSpace.AppendSyntax("$Symbol$", LoadParseFunc(ParserContext, this, "ParseSymbol"), null);
-		NameSpace.AppendSyntax("$Type$", LoadParseFunc(ParserContext, this, "ParseType"), TypeConst);
-		NameSpace.AppendSyntax("$TypeSuffix$", LoadParseFunc(ParserContext, this, "ParseTypeSuffix"), null);
-		NameSpace.AppendSyntax("<", LoadParseFunc(ParserContext, this, "ParseGenericFuncDecl"), null);
-		NameSpace.AppendSyntax("$Variable$", LoadParseFunc(ParserContext, this, "ParseVariable"), LoadTypeFunc(ParserContext, this, "TypeVariable"));
-		NameSpace.AppendSyntax("$Const$", LoadParseFunc(ParserContext, this, "ParseConst"), TypeConst);
-		NameSpace.AppendSyntax("$CharLiteral$", LoadParseFunc(ParserContext, this, "ParseCharLiteral"), LoadTypeFunc(ParserContext, this, "TypeCharLiteral"));
-		NameSpace.AppendSyntax("$StringLiteral$", LoadParseFunc(ParserContext, this, "ParseStringLiteral"), TypeConst);
-		NameSpace.AppendSyntax("$IntegerLiteral$", LoadParseFunc(ParserContext, this, "ParseIntegerLiteral"), TypeConst);
-		NameSpace.AppendSyntax("$FloatLiteral$", LoadParseFunc(ParserContext, this, "ParseFloatLiteral"), TypeConst);
+		NameSpace.AppendSyntax("$Error$", LoadParseFunc(Context, this, "ParseError"), LoadTypeFunc(Context, this, "TypeError"));
+		NameSpace.AppendSyntax("$Empty$", LoadParseFunc(Context, this, "ParseEmpty"), LoadTypeFunc(Context, this, "TypeEmpty"));
+		NameSpace.AppendSyntax(";", LoadParseFunc(Context, this, "ParseSemiColon"), null);
+		NameSpace.AppendSyntax("$Symbol$", LoadParseFunc(Context, this, "ParseSymbol"), null);
+		NameSpace.AppendSyntax("$Type$", LoadParseFunc(Context, this, "ParseType"), TypeConst);
+		NameSpace.AppendSyntax("$TypeSuffix$", LoadParseFunc(Context, this, "ParseTypeSuffix"), null);
+		NameSpace.AppendSyntax("<", LoadParseFunc(Context, this, "ParseGenericFuncDecl"), null);
+		NameSpace.AppendSyntax("$Variable$", LoadParseFunc(Context, this, "ParseVariable"), LoadTypeFunc(Context, this, "TypeVariable"));
+		NameSpace.AppendSyntax("$Const$", LoadParseFunc(Context, this, "ParseConst"), TypeConst);
+		NameSpace.AppendSyntax("$CharLiteral$", LoadParseFunc(Context, this, "ParseCharLiteral"), LoadTypeFunc(Context, this, "TypeCharLiteral"));
+		NameSpace.AppendSyntax("$StringLiteral$", LoadParseFunc(Context, this, "ParseStringLiteral"), TypeConst);
+		NameSpace.AppendSyntax("$IntegerLiteral$", LoadParseFunc(Context, this, "ParseIntegerLiteral"), TypeConst);
+		NameSpace.AppendSyntax("$FloatLiteral$", LoadParseFunc(Context, this, "ParseFloatLiteral"), TypeConst);
 
-		NameSpace.AppendExtendedSyntax(".", 0, LoadParseFunc(ParserContext, this, "ParseGetter"), LoadTypeFunc(ParserContext, this, "TypeGetter"));
-		NameSpace.AppendSyntax("(", LoadParseFunc(ParserContext, this, "ParseGroup"), LoadTypeFunc(ParserContext, this, "TypeGroup"));
-		NameSpace.AppendSyntax("(", LoadParseFunc(ParserContext, this, "ParseCast"), LoadTypeFunc(ParserContext, this, "TypeCast"));
-		NameSpace.AppendExtendedSyntax("(", 0, LoadParseFunc(ParserContext, this, "ParseApply"), LoadTypeFunc(ParserContext, this, "TypeApply"));
-		NameSpace.AppendSyntax("[", LoadParseFunc(ParserContext, this, "ParseArray"), LoadTypeFunc(ParserContext, this, "TypeArray"));
-		NameSpace.AppendExtendedSyntax("[", 0, LoadParseFunc(ParserContext, this, "ParseIndexer"), LoadTypeFunc(ParserContext, this, "TypeIndexer"));
-		NameSpace.AppendExtendedSyntax("[", 0, LoadParseFunc(ParserContext, this, "ParseSlice"), LoadTypeFunc(ParserContext, this, "TypeSlice"));
-		NameSpace.AppendSyntax("|", LoadParseFunc(ParserContext, this, "ParseSize"), LoadTypeFunc(ParserContext, this, "TypeSize"));
+		NameSpace.AppendExtendedSyntax(".", 0, LoadParseFunc(Context, this, "ParseGetter"), LoadTypeFunc(Context, this, "TypeGetter"));
+		NameSpace.AppendSyntax("(", LoadParseFunc(Context, this, "ParseGroup"), LoadTypeFunc(Context, this, "TypeGroup"));
+		NameSpace.AppendSyntax("(", LoadParseFunc(Context, this, "ParseCast"), LoadTypeFunc(Context, this, "TypeCast"));
+		NameSpace.AppendExtendedSyntax("(", 0, LoadParseFunc(Context, this, "ParseApply"), LoadTypeFunc(Context, this, "TypeApply"));
+		NameSpace.AppendSyntax("[", LoadParseFunc(Context, this, "ParseArray"), LoadTypeFunc(Context, this, "TypeArray"));
+		NameSpace.AppendExtendedSyntax("[", 0, LoadParseFunc(Context, this, "ParseIndexer"), LoadTypeFunc(Context, this, "TypeIndexer"));
+		NameSpace.AppendExtendedSyntax("[", 0, LoadParseFunc(Context, this, "ParseSlice"), LoadTypeFunc(Context, this, "TypeSlice"));
+		NameSpace.AppendSyntax("|", LoadParseFunc(Context, this, "ParseSize"), LoadTypeFunc(Context, this, "TypeSize"));
 
-		NameSpace.AppendSyntax("$Block$", LoadParseFunc(ParserContext, this, "ParseBlock"), null);
-		NameSpace.AppendSyntax("$Statement$", LoadParseFunc(ParserContext, this, "ParseStatement"), null);
-		NameSpace.AppendSyntax("$Expression$", LoadParseFunc(ParserContext, this, "ParseExpression"), null);
-		NameSpace.AppendSyntax("$SuffixExpression$", LoadParseFunc(ParserContext, this, "ParseSuffixExpression"), null);
+		NameSpace.AppendSyntax("$Block$", LoadParseFunc(Context, this, "ParseBlock"), null);
+		NameSpace.AppendSyntax("$Statement$", LoadParseFunc(Context, this, "ParseStatement"), null);
+		NameSpace.AppendSyntax("$Expression$", LoadParseFunc(Context, this, "ParseExpression"), null);
+		NameSpace.AppendSyntax("$SuffixExpression$", LoadParseFunc(Context, this, "ParseSuffixExpression"), null);
 
-		NameSpace.AppendSyntax("$FuncName$", LoadParseFunc(ParserContext, this, "ParseFuncName"), TypeConst);
-		NameSpace.AppendSyntax("$FuncDecl$", LoadParseFunc(ParserContext, this, "ParseFuncDecl"), LoadTypeFunc(ParserContext, this, "TypeFuncDecl"));
-		NameSpace.AppendSyntax("$VarDecl$",  LoadParseFunc(ParserContext, this, "ParseVarDecl"), LoadTypeFunc(ParserContext, this, "TypeVarDecl"));
+		NameSpace.AppendSyntax("$FuncName$", LoadParseFunc(Context, this, "ParseFuncName"), TypeConst);
+		NameSpace.AppendSyntax("$FuncDecl$", LoadParseFunc(Context, this, "ParseFuncDecl"), LoadTypeFunc(Context, this, "TypeFuncDecl"));
+		NameSpace.AppendSyntax("$VarDecl$",  LoadParseFunc(Context, this, "ParseVarDecl"), LoadTypeFunc(Context, this, "TypeVarDecl"));
 
-		NameSpace.AppendSyntax("null", LoadParseFunc(ParserContext, this, "ParseNull"), LoadTypeFunc(ParserContext, this, "TypeNull"));
-		NameSpace.AppendSyntax("defined", LoadParseFunc(ParserContext, this, "ParseDefined"), LoadTypeFunc(ParserContext, this, "TypeDefined"));
-		NameSpace.AppendSyntax("typeof", LoadParseFunc(ParserContext, this, "ParseTypeOf"), TypeConst);
-		NameSpace.AppendSyntax("require", LoadParseFunc(ParserContext, this, "ParseRequire"), null);
-		NameSpace.AppendSyntax("import", LoadParseFunc(ParserContext, this, "ParseImport"), LoadTypeFunc(ParserContext, this, "TypeImport"));
+		NameSpace.AppendSyntax("null", LoadParseFunc(Context, this, "ParseNull"), LoadTypeFunc(Context, this, "TypeNull"));
+		NameSpace.AppendSyntax("defined", LoadParseFunc(Context, this, "ParseDefined"), LoadTypeFunc(Context, this, "TypeDefined"));
+		NameSpace.AppendSyntax("typeof", LoadParseFunc(Context, this, "ParseTypeOf"), TypeConst);
+		NameSpace.AppendSyntax("require", LoadParseFunc(Context, this, "ParseRequire"), null);
+		NameSpace.AppendSyntax("import", LoadParseFunc(Context, this, "ParseImport"), LoadTypeFunc(Context, this, "TypeImport"));
 
-		NameSpace.AppendSyntax("if", LoadParseFunc(ParserContext, this, "ParseIf"), LoadTypeFunc(ParserContext, this, "TypeIf"));
-		NameSpace.AppendSyntax("while", LoadParseFunc(ParserContext, this, "ParseWhile"), LoadTypeFunc(ParserContext, this, "TypeWhile"));
-		NameSpace.AppendSyntax("do", LoadParseFunc(ParserContext, this, "ParseDoWhile"), LoadTypeFunc(ParserContext, this, "TypeDoWhile"));
-		NameSpace.AppendSyntax("for", LoadParseFunc(ParserContext, this, "ParseFor"), LoadTypeFunc(ParserContext, this, "TypeFor"));
-		NameSpace.AppendSyntax("continue", LoadParseFunc(ParserContext, this, "ParseContinue"), LoadTypeFunc(ParserContext, this, "TypeContinue"));
-		NameSpace.AppendSyntax("break", LoadParseFunc(ParserContext, this, "ParseBreak"), LoadTypeFunc(ParserContext, this, "TypeBreak"));
-		NameSpace.AppendSyntax("return", LoadParseFunc(ParserContext, this, "ParseReturn"), LoadTypeFunc(ParserContext, this, "TypeReturn"));
-		NameSpace.AppendSyntax("let const", LoadParseFunc(ParserContext, this, "ParseSymbolDecl"), null/*LoadTypeFunc(ParserContext, this, "TypeSymbolDecl")*/);
+		NameSpace.AppendSyntax("if", LoadParseFunc(Context, this, "ParseIf"), LoadTypeFunc(Context, this, "TypeIf"));
+		NameSpace.AppendSyntax("while", LoadParseFunc(Context, this, "ParseWhile"), LoadTypeFunc(Context, this, "TypeWhile"));
+		NameSpace.AppendSyntax("do", LoadParseFunc(Context, this, "ParseDoWhile"), LoadTypeFunc(Context, this, "TypeDoWhile"));
+		NameSpace.AppendSyntax("for", LoadParseFunc(Context, this, "ParseFor"), LoadTypeFunc(Context, this, "TypeFor"));
+		NameSpace.AppendSyntax("continue", LoadParseFunc(Context, this, "ParseContinue"), LoadTypeFunc(Context, this, "TypeContinue"));
+		NameSpace.AppendSyntax("break", LoadParseFunc(Context, this, "ParseBreak"), LoadTypeFunc(Context, this, "TypeBreak"));
+		NameSpace.AppendSyntax("return", LoadParseFunc(Context, this, "ParseReturn"), LoadTypeFunc(Context, this, "TypeReturn"));
+		NameSpace.AppendSyntax("let const", LoadParseFunc(Context, this, "ParseSymbolDecl"), null/*LoadTypeFunc(ParserContext, this, "TypeSymbolDecl")*/);
 
-		NameSpace.AppendSyntax("try", LoadParseFunc(ParserContext, this, "ParseTry"), LoadTypeFunc(ParserContext, this, "TypeTry"));
-		NameSpace.AppendSyntax("throw", LoadParseFunc(ParserContext, this, "ParseThrow"), LoadTypeFunc(ParserContext, this, "TypeThrow"));
+		NameSpace.AppendSyntax("try", LoadParseFunc(Context, this, "ParseTry"), LoadTypeFunc(Context, this, "TypeTry"));
+		NameSpace.AppendSyntax("throw", LoadParseFunc(Context, this, "ParseThrow"), LoadTypeFunc(Context, this, "TypeThrow"));
 
-		NameSpace.AppendSyntax("class", LoadParseFunc(ParserContext, this, "ParseClassDecl2"), LoadTypeFunc(ParserContext, this, "TypeClassDecl2"));
-		NameSpace.AppendSyntax("constructor", LoadParseFunc(ParserContext, this, "ParseConstructor2"), LoadTypeFunc(ParserContext, this, "TypeFuncDecl"));
-		NameSpace.AppendSyntax("super", LoadParseFunc(ParserContext, this, "ParseSuper"), null);
-		NameSpace.AppendSyntax("this", LoadParseFunc(ParserContext, this, "ParseThis"), LoadTypeFunc(ParserContext, this, "TypeThis"));
-		NameSpace.AppendSyntax("new", LoadParseFunc(ParserContext, this, "ParseNew"), LoadTypeFunc(ParserContext, this, "TypeApply"));
+		NameSpace.AppendSyntax("class", LoadParseFunc(Context, this, "ParseClassDecl2"), LoadTypeFunc(Context, this, "TypeClassDecl2"));
+		NameSpace.AppendSyntax("constructor", LoadParseFunc(Context, this, "ParseConstructor2"), LoadTypeFunc(Context, this, "TypeFuncDecl"));
+		NameSpace.AppendSyntax("super", LoadParseFunc(Context, this, "ParseSuper"), null);
+		NameSpace.AppendSyntax("this", LoadParseFunc(Context, this, "ParseThis"), LoadTypeFunc(Context, this, "TypeThis"));
+		NameSpace.AppendSyntax("new", LoadParseFunc(Context, this, "ParseNew"), LoadTypeFunc(Context, this, "TypeApply"));
 
-		NameSpace.AppendSyntax("enum", LoadParseFunc(ParserContext, this, "ParseEnum"), LoadTypeFunc(ParserContext, this, "TypeEnum"));
-		NameSpace.AppendSyntax("switch", LoadParseFunc(ParserContext, this, "ParseSwitch"), LoadTypeFunc(ParserContext, this, "TypeSwitch"));
-		NameSpace.AppendSyntax("$CaseBlock$", LoadParseFunc(ParserContext, this, "ParseCaseBlock"), null);
+		NameSpace.AppendSyntax("enum", LoadParseFunc(Context, this, "ParseEnum"), LoadTypeFunc(Context, this, "TypeEnum"));
+		NameSpace.AppendSyntax("switch", LoadParseFunc(Context, this, "ParseSwitch"), LoadTypeFunc(Context, this, "TypeSwitch"));
+		NameSpace.AppendSyntax("$CaseBlock$", LoadParseFunc(Context, this, "ParseCaseBlock"), null);
 
 		// expermental
-		NameSpace.AppendSyntax("__line__", LoadParseFunc(ParserContext, this, "ParseLine"), LoadTypeFunc(ParserContext, this, "TypeLine"));
-		NameSpace.AppendSyntax("__", LoadParseFunc(ParserContext, this, "ParseSymbols"), null);
+		NameSpace.AppendSyntax("__line__", LoadParseFunc(Context, this, "ParseLine"), LoadTypeFunc(Context, this, "TypeLine"));
+		NameSpace.AppendSyntax("__", LoadParseFunc(Context, this, "ParseSymbols"), null);
 	}
 }

@@ -325,9 +325,6 @@ public class GtGenerator extends GreenTeaUtils {
 	public void VisitBinaryNode(GtBinaryNode Node) {
 		/*extension*/
 	}
-	public void VisitNotNode(GtNotNode Node) {
-		/*extension*/
-	}
 	public void VisitAndNode(GtAndNode Node) {
 		/*extension*/
 	}
