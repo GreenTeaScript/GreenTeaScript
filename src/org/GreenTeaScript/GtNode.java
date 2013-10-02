@@ -483,7 +483,7 @@ final class GtGetterNode extends GtNode {
 		return this.Type.Context.Generator.EvalGetterNode(this, EnforceConst);
 	}
 }
-//E.g., $Expr . Token.ParsedText
+//E.g., $Left . Token.ParsedText = $Right
 final class GtSetterNode extends GtNode {
 	/*field*/public GtFunc  Func;
 	/*field*/public GtNode  LeftNode;
@@ -498,7 +498,6 @@ final class GtSetterNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitSetterNode(this);
 	}
-
 	@Override public Object ToConstValue(boolean EnforceConst)  {
 		return this.Type.Context.Generator.EvalSetterNode(this, EnforceConst);
 	}

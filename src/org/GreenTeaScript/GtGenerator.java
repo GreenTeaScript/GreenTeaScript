@@ -477,6 +477,7 @@ public class GtGenerator extends GreenTeaUtils {
 
 	public Object EvalGetterNode(GtGetterNode Node, boolean EnforceConst) {
 //ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
+		System.err.println("** Node.Func = " + Node.Func);
 		if(Node.Func != null) {
 			Object Value = Node.ExprNode.ToConstValue(EnforceConst);
 			if(Value == null) {
