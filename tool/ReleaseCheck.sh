@@ -12,6 +12,7 @@ BASEDIR="test/exec"
 #fi
 
 OUTDIR="$BASEDIR/test-result"
+OUTFILE="$OUTDIR/TestResult.csv"
 
 INCLUDEDIR="include"
 CFLAGS="-I$INCLUDEDIR/c/ -g -Wall"
@@ -24,7 +25,6 @@ BASH=`which bash`
 PERL=`which perl`
 RUBY=`which ruby`
 TS=`which tsc`
-SCALA=`which scala`
 
 VERBOSE=""
 Verbose() {
@@ -128,15 +128,7 @@ ReportRuntime() {
 	else
 		CC="#gcc"
 	fi
-	if [ -x $SCALA ]
-	then
-		echo "scala: $SCALA"
-		echo "============"
-		$scala -version
-		echo
-	else
-		SCALA="#scala"
-	fi
+
 }
 
 TestEach() { #$1: command $2 file $3 stage
@@ -267,27 +259,6 @@ TestEach() { #$1: command $2 file $3 stage
 		fi
 		return 0
 	fi
-	if [ $1 = $SCALA ]
-	then
-		if [ $3 -eq 1 ]
-		then
-			$GREENTEA -o $2.scala $2
-			ReportFile "$2.scala"
-		elif [ $3 -eq 2 ]
-		then
-			if [ -x $1 -a -f "$2.scala" ]
-			then
-				Verbose `basename $2.scala`
-				$1 $2.scala
-				Report $?
-			else
-				echo -n ", N/A" >> $OUTFILE
-			fi
-		else
-			echo -n ", $2" >> $OUTFILE
-		fi
-		return 0
-	fi
 	if [ $1 = "VM" ]
 	then
 		if [ $3 -eq 2 ]
@@ -304,13 +275,12 @@ MakeHead() {
 	TestEach $PERL ".pl" 0
 	TestEach $BASH ".sh" 0
 	TestEach $CC ".c"  0
-	TestEach $SCALA ".scala"  0
 	TestEach "VM" "green-jvm" 0
 	TestEach $PYTHON `basename $PYTHON` 0
 	TestEach $NODE `basename $NODE` 0
 	TestEach $PERL `basename $PERL` 0
 	#TestEach $BASH `basename $BASH` 0
-	TestEach $SCALA `basename $SCALA` 0
+	#TestEach $JAVA `basename $JAVA` 0
 	TestEach $CC `basename $CC` 0
 }
 
@@ -328,14 +298,14 @@ TestAll() {
 	TestEach $NODE $1 1
 	TestEach $PERL $1 1
 	TestEach $BASH $1 1
-	TestEach $SCALA $1 1
+	TestEach $JAVA $1 1
 	TestEach $CC $1 1
 	# 2 means execution test
 	TestEach "VM" $1 2
 	TestEach $PYTHON $1 2
 	TestEach $NODE $1 2
 	TestEach $PERL $1 2
-	TestEach $SCALA $1 2
+	#TestEach $JAVA $1 2
 	TestEach $CC $1 2
 }
 
@@ -351,26 +321,30 @@ Prepare() {
 	echo -n "Test" >> $OUTFILE
 	MakeHead
 	echo >> $OUTFILE
+
 }
+
+TFILE=""
 
 Source() {
-	TFILE=`basename $TPATH`
-	echo -n ${TFILE%.*} >> $OUTFILE
-	Verbose "Testing ${TFILE%.*}"
-	TFILE="$OUTDIR/$TFILE"
-	cp $TPATH $TFILE
-	STIME=`date +%s`
-	TestAll $TFILE 1> $TFILE.log1 2> $TFILE.log2
-	ETIME=`date +%s`
-	SS=`expr ${ETIME} - ${STIME}`
-	VerboseLine "(elapsed-time: $SS sec)"
-	echo >> $OUTFILE
+	for TPATH in $BASEDIR/*.green
+	do
+		TFILE=`basename $TPATH`
+		echo -n ${TFILE%.*} >> $OUTFILE
+		Verbose "Testing ${TFILE%.*}"
+		TFILE="$OUTDIR/$TFILE"
+		cp $TPATH $TFILE
+		STIME=`date +%s`
+		TestAll $TFILE 1> $TFILE.log1 2> $TFILE.log2
+		ETIME=`date +%s`
+		SS=`expr ${ETIME} - ${STIME}`
+		VerboseLine "(elapsed-time: $SS sec)"
+		echo >> $OUTFILE
+	done
 }
 
-TPATH=$1
-OUTFILE=$2
-if [ $1 = "--reset" ]; then
-    Prepare
-else
-    Source
-fi
+Prepare
+Source
+echo
+cat $OUTFILE
+
