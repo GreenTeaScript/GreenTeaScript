@@ -1658,26 +1658,39 @@ final class KonohaGrammar extends GtGrammar {
 		if(ClassType.IsAbstract()) {
 			return Gamma.CreateSyntaxErrorNode(ParsedTree, "type is abstract");
 		}
-		/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
 		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetConstructorFunc(/*GtFunc*/ClassType);
-		ParamList.add(Gamma.Generator.CreateNewNode(ClassType, ParsedTree));
-		/*local*/GtResolvedFunc ResolvedFunc = PolyFunc.ResolveConstructor(Gamma, ParsedTree, 1, ParamList);
-		if(ResolvedFunc.Func == null) {
-			if(!ClassType.IsNative() && ParsedTree.SubTreeList.size() == 1) {
-				return Gamma.Generator.CreateNewNode(ClassType, ParsedTree);
+		/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
+		if(ClassType.IsNative()) {
+			/*local*/GtResolvedFunc ResolvedFunc = PolyFunc.ResolveFunc(Gamma, ParsedTree, 1, ParamList);
+			if(ResolvedFunc.ErrorNode != null) {
+				return ResolvedFunc.ErrorNode;
 			}
-			Gamma.Context.ReportError(TypeErrorLevel, ParsedTree.KeyToken, "mismatched : constructor " + PolyFunc);
-			if(Gamma.Generator.IsStrictMode()) {
-				return Gamma.CreateSyntaxErrorNode(ParsedTree,  "mismatched : constructor " + PolyFunc);
+			if(ResolvedFunc.Func != null && ResolvedFunc.Func.Is(NativeFunc)) {
+				Gamma.CheckFunc("constructor", ResolvedFunc.Func, ParsedTree.KeyToken);
+				return Gamma.Generator.CreateConstructorNode(ClassType, ParsedTree, ResolvedFunc.Func, ParamList);
 			}
 		}
 		else {
-			if(ResolvedFunc.Func.Is(NativeFunc)) {
-				return Gamma.Generator.CreateConstructorNode(ClassType, ParsedTree, ResolvedFunc.Func, ParamList);
+			/*local*/GtNode NewNode = Gamma.Generator.CreateNewNode(ClassType, ParsedTree);
+			ParamList.add(NewNode);
+			/*local*/GtResolvedFunc ResolvedFunc = PolyFunc.ResolveFunc(Gamma, ParsedTree, 1, ParamList);
+			if(ResolvedFunc.ErrorNode != null) {
+				return ResolvedFunc.ErrorNode;
 			}
-			ParamList.add(1, Gamma.Generator.CreateNewNode(ClassType, ParsedTree)); //JAVAONLY?
+			if(ResolvedFunc.Func == null) {
+				if(ParsedTree.SubTreeList.size() == 1) {
+					return NewNode;
+				}
+			}
+			else {
+				Gamma.CheckFunc("constructor", ResolvedFunc.Func, ParsedTree.KeyToken);
+				/*local*/GtNode Node = Gamma.Generator.CreateApplyNode(ResolvedFunc.ReturnType, ParsedTree, ResolvedFunc.Func);
+				Node.Append(Gamma.Generator.CreateConstNode(Gamma.VarType, ParsedTree, ResolvedFunc.Func));
+				Node.AppendNodeList(0, ParamList);
+				return Node;
+			}
 		}
-		return Gamma.Generator.CreateConstructorNode(ClassType, ParsedTree, ResolvedFunc.Func, ParamList);
+		return PolyFunc.ReportTypeError(Gamma, ParsedTree, ClassType, "constructor");
 	}
 	
 	public static GtNode TypeMethodCall(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtNode RecvNode, String MethodName) {

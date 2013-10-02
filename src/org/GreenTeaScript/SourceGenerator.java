@@ -532,6 +532,12 @@ final class GtConstructorNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitConstructorNode(this);
 	}
+	@Override public Object ToConstValue(boolean EnforceConst)  {
+		if(EnforceConst) {
+			return this.Type.Context.Generator.EvalConstructorNode(this, EnforceConst);
+		}
+		return null;
+	}	
 }
 
 //E.g., "[" $Node, $Node "]"
@@ -1186,6 +1192,29 @@ class GtGenerator extends GreenTeaUtils {
 			}
 		}
 //endif VAJA
+		return null;  // if unsupported
+	}
+
+	public Object EvalConstructorNode(GtConstructorNode Node, boolean EnforceConst) {
+//ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
+		if(EnforceConst && Node.Type.TypeBody instanceof Class<?>) {
+			try {
+				Constructor<?> NativeConstructor = (Constructor<?>)Node.Func.FuncBody;
+				Object[] Arguments = new Object[Node.ParamList.size()];
+				for(int i = 0; i < Arguments.length; i++) {
+					GtNode ArgNode = Node.ParamList.get(i);
+					Arguments[i] = ArgNode.ToConstValue(EnforceConst);
+					if(Arguments[i] == null && !(ArgNode instanceof GtNullNode)) {
+						return null;
+					}
+					//System.err.println("@@@@ " + i + ", " + Arguments[i] + ", " + Arguments[i].getClass());
+				}
+				return NativeConstructor.newInstance(Arguments);
+			} catch (Exception e) {
+				LibGreenTea.VerboseException(e);
+			}
+		}
+		//endif VAJA
 		return null;  // if unsupported
 	}
 

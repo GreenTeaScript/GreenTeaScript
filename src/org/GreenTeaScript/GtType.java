@@ -196,7 +196,6 @@ public class GtType extends GreenTeaUtils {
 //		System.err.println("" + this + " accepts " + Type + " ? " + b);
 //		return b;
 //	}
-
 	
 	public final boolean AcceptValue(Object Value) {
 		return (Value != null) ? this.Accept(this.Context.GuessType(Value)) : true;
