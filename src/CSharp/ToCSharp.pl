@@ -116,7 +116,7 @@ $src =~ s/([a-zA-Z]*?)\.class/typeof($1)/g;
 $src =~ s/\bfinal\b/\/*final*\//g;
 # $src =~ s/\bprotected\b//g;
 $src =~ s/\@Override\s*/override /g;
-# $src =~ s/\@Deprecated\s*//g;
+$src =~ s/\@Deprecated\s*//g;
 # $src =~ s/\bextends GtStatic\s*//g;
 # $src =~ s/\bpublic interface\s*/interface /g;
 # $src =~ s/\bGtStatic\.//g;
@@ -146,11 +146,12 @@ $src =~ s/\bstartsWith\b/StartsWith/g;
 
 $src =~ s/\b extends\b|\b implements\b/:/g;
 
+$src =~ s/\b(public\s)?class\b/public class/g;
 
-
+$src =~ s/{\n\s*super\((.*?)\);/:base($1){/g;
 # argument
 
-$src =~ s/\((.*)\s([a-zA-Z]*)\[\](.*)\)/($1\[\] $2$3)/g;
+$src =~ s/\(($Type)\s($Sym)\[\]\)/($1\[\] $2)/g;
 
 # Delegates.
 # $src =~ s/(?!\.)\b((?:Parse|Type)(?:Unary|Binary|Const|Block))\b(?!\()/$Grammar\["$1"\]/g;
