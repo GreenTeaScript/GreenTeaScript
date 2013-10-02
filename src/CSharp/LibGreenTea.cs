@@ -795,30 +795,10 @@ public abstract class LibGreenTea: GreenTeaConst {
 
 	public /*final*/ static string LoadFile2(string FileName) {
 		LibGreenTea.VerboseLog(GreenTeaUtils.VerboseFile, "loading " + FileName);
-		Stream Stream = typeof(LibGreenTea).getResourceAsStream("/" + FileName);
-		if(Stream == null) {
-			File f = new File(FormatFilePath(FileName));
-			try {
-				Stream = new FileInputStream(f);
-			} catch (FileNotFoundException e) {
-				return null;
-			}
-		}
-		BufferedReader reader = new BufferedReader(new InputStreamReader(Stream));
-		string buffer = "";
-		try {
-			int buflen = 4096;
-			int readed = 0;
-			char[] buf = new char[buflen];
-			StringBuilder builder = new StringBuilder();
-			while((readed = reader.read(buf, 0, buflen)) >= 0) {
-				builder.append(buf, 0, readed);
-			}
-			buffer = builder.ToString();
-		} catch (IOException e) {
-			return null;
-		}
-		return buffer;
+        string FormattedName = FormatFilePath(FileName);
+        using (StreamReader r = new StreamReader(FormattedName)) {
+            return r.ReadToEnd();
+        }
 	}
 
 	public static long JoinIntId(int UpperId, int LowerId) {
@@ -836,7 +816,7 @@ public abstract class LibGreenTea: GreenTeaConst {
 	}
 
 	public /*final*/ static bool booleanValue(object BooleanValue) {
-		return ((/*cast*/Boolean)BooleanValue).booleanValue();
+        return (bool)BooleanValue;
 	}
 
 	public /*final*/ static object Eval(string SourceCode) {
@@ -873,19 +853,19 @@ public abstract class LibGreenTea: GreenTeaConst {
 	public static object EvalUnary(GtType Type, string Operator, object Value) {
 		if(Value is Boolean) {
 			if(Operator.Equals("!") || Operator.Equals("not")) {
-				return EvalCast(Type, !((Boolean)Value).booleanValue());
+				return EvalCast(Type, !(bool)Value);
 			}
 			return null;
 		}
 		if(Value is long || Value is int || Value is short) {
 			if(Operator.Equals("-")) {
-				return EvalCast(Type, -((Number)Value).longValue());
+				return EvalCast(Type, -(long)Value);
 			}
 			if(Operator.Equals("+")) {
-				return EvalCast(Type, +((Number)Value).longValue());
+                return EvalCast(Type, +(long)Value);
 			}
 			if(Operator.Equals("~")) {
-				return EvalCast(Type, ~((Number)Value).longValue());
+                return EvalCast(Type, ~(long)Value);
 			}
 			return null;
 		}
@@ -931,10 +911,10 @@ public abstract class LibGreenTea: GreenTeaConst {
 			}
 			return null;
 		}
-		if(LeftValue is Double || LeftValue is Float || RightValue is Double || RightValue is Float) {
+		if(LeftValue is Double || LeftValue is float || RightValue is Double || RightValue is float) {
 			try {
-				double left = ((Number)LeftValue).doubleValue();
-				double right = ((Number)RightValue).doubleValue();
+                double left = (double)LeftValue;
+                double right = (double)LeftValue;
 				if(Operator.Equals("+")) {
 					return EvalCast(Type, left + right);
 				}
@@ -969,7 +949,7 @@ public abstract class LibGreenTea: GreenTeaConst {
 					return EvalCast(Type, left >= right);
 				}
 			}
-			catch(ClassCastException e) {
+			catch(InvalidCastException e) {
 			}
 			return null;
 		}
@@ -985,8 +965,8 @@ public abstract class LibGreenTea: GreenTeaConst {
 			return null;
 		}
 		try {
-			long left = ((Number)LeftValue).longValue();
-			long right = ((Number)RightValue).longValue();
+			long left = (long)LeftValue;
+            long right = (long)LeftValue;
 			if(Operator.Equals("+")) {
 				return EvalCast(Type, left + right);
 			}
@@ -1027,16 +1007,18 @@ public abstract class LibGreenTea: GreenTeaConst {
 				return EvalCast(Type, left & right);
 			}
 			if(Operator.Equals("<<")) {
-				return EvalCast(Type, left << right);
+//				return EvalCast(Type, left << right);
+                return EvalCast(Type, left << (int)right);
 			}
 			if(Operator.Equals(">>")) {
-				return EvalCast(Type, left >> right);
+//				return EvalCast(Type, left >> right);
+                return EvalCast(Type, left >> (int)right);
 			}
 			if(Operator.Equals("^")) {
 				return EvalCast(Type, left ^ right);
 			}
 		}
-		catch(ClassCastException e) {
+		catch(InvalidCastException e) {
 		}
 		return null;
 	}
