@@ -806,6 +806,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		System.out.println("");
 		System.out.println("  --out|-o  FILE        Output filename");
 		System.out.println("  --eval|-e EXPR        Program passed in as string");
+		System.out.println("  --require|-r LIBRARY     Load the library");
 		System.out.println("  --verbose             Printing Debug infomation");
 		System.out.println("     --verbose:symbol     adding symbol info");
 		System.out.println("     --verbose:token      adding token info");
@@ -1251,9 +1252,9 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return null;
 	}
 
-	public static Object EvalGetter(GtType Type, Object Value, String FieldName) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+//	public static Object EvalGetter(GtType Type, Object Value, String FieldName) {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
 
 }

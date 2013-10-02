@@ -3026,6 +3026,7 @@ public class GreenTeaScript extends GreenTeaUtils {
 		/*local*/String TargetCode = "exe";  // self executable
 		/*local*/int GeneratorFlag = 0;
 		/*local*/String OneLiner = null;
+		/*local*/String RequiredLibName= null;
 		/*local*/String OutputFile = "-";  // stdout
 		/*local*/int    Index = 0;
 		/*local*/boolean ShellMode = false;
@@ -3053,6 +3054,11 @@ public class GreenTeaScript extends GreenTeaUtils {
 					Index += 1;
 					continue;
 				}
+			}
+			if((Argu.equals("-r") || Argu.equals("--require")) && Index < Args.length) {
+				RequiredLibName = Args[Index];
+				Index += 1;
+				continue;
 			}
 			if(Argu.equals("-i")) {
 				ShellMode = true;
@@ -3100,6 +3106,11 @@ public class GreenTeaScript extends GreenTeaUtils {
 		/*local*/GtParserContext Context = new GtParserContext(new KonohaGrammar(), Generator);
 		// USE require dshell;
 		// Context.LoadGrammar(new DShellGrammar());
+		if(RequiredLibName != null) {
+			if(!Context.TopLevelNameSpace.LoadRequiredLib(RequiredLibName)) {
+				LibGreenTea.Exit(1, "failed to load required library: " + RequiredLibName);
+			}
+		}
 		if(OneLiner != null) {
 			Context.TopLevelNameSpace.Eval(OneLiner, 1);
 		}

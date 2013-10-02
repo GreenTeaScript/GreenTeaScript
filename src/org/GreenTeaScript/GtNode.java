@@ -480,11 +480,7 @@ final class GtGetterNode extends GtNode {
 	}
 
 	@Override public Object ToConstValue(boolean EnforceConst)  {
-		/*local*/Object Value = this.ExprNode.ToConstValue(EnforceConst) ;
-		if(Value != null) {
-			return LibGreenTea.EvalGetter(this.Type, Value, this.Token.ParsedText);
-		}
-		return Value;
+		return this.Type.Context.Generator.EvalGetterNode(this, EnforceConst);
 	}
 }
 //E.g., $Expr . Token.ParsedText
@@ -504,11 +500,7 @@ final class GtSetterNode extends GtNode {
 	}
 
 	@Override public Object ToConstValue(boolean EnforceConst)  {
-		/*local*/Object Value = this.LeftNode.ToConstValue(EnforceConst) ;
-		if(Value != null) {
-			return LibGreenTea.EvalGetter(this.Type, Value, this.Token.ParsedText);
-		}
-		return Value;
+		return this.Type.Context.Generator.EvalSetterNode(this, EnforceConst);
 	}
 }
 //E.g., $Expr "[" $Node, $Node "]"
