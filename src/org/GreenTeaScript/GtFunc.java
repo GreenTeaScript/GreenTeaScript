@@ -111,10 +111,10 @@ public final class GtFunc extends GreenTeaUtils {
 	}
 
 	@Override public String toString() {
-		/*local*/String s = this.GetReturnType() + " " + this.FuncName + "(";
+		/*local*/String s = this.GetReturnType().GetRevealedType() + " " + this.FuncName + "(";
 		/*local*/int i = 0;
 		while(i < this.GetFuncParamSize()) {
-			/*local*/GtType ParamType = this.GetFuncParamType(i);
+			/*local*/GtType ParamType = this.GetFuncParamType(i).GetRevealedType();
 			if(i > 0) {
 				s += ", ";
 			}
