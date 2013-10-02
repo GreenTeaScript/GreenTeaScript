@@ -822,12 +822,16 @@ public class KonohaGrammar extends GtGrammar {
 	public static GtSyntaxTree ParseGetter(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		TokenContext.MatchToken(".");
 		/*local*/GtToken Token = TokenContext.Next();
-		if(Token.IsNameSymbol()) {
-			/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
-			NewTree.AppendParsedTree2(LeftTree);
-			return NewTree;
+		if(!Token.IsNameSymbol()) {
+			return TokenContext.ReportExpectedMessage(Token, "field name", true);		
 		}
-		return TokenContext.ReportExpectedMessage(Token, "field name", true);
+		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
+		NewTree.AppendParsedTree2(LeftTree);
+		if(TokenContext.MatchToken("=")) {
+			NewTree.Pattern = NameSpace.GetSyntaxPattern("$Setter$");
+			NewTree.SetMatchedPatternAt(RightHandTerm, NameSpace, TokenContext, "$Expression$", Required);
+		}
+		return NewTree;
 	}
 
 	public static GtNode TypeGetter(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
@@ -870,6 +874,27 @@ public class KonohaGrammar extends GtGrammar {
 			}
 		}
 		return Node;
+	}
+
+	public static GtNode TypeSetter(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+		/*local*/String Name = ParsedTree.KeyToken.ParsedText;
+		/*local*/GtNode ObjectNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+		if(ObjectNode.IsErrorNode()) {
+			return ObjectNode;
+		}
+		/*local*/GtFunc SetterFunc = ParsedTree.NameSpace.GetSetterFunc(ObjectNode.Type, Name, true);
+		if(SetterFunc != null) {
+			/*local*/GtType ValueType = SetterFunc.GetFuncParamType(2);
+			/*local*/GtNode ValueNode = ParsedTree.TypeCheckAt(RightHandTerm, Gamma, ValueType, DefaultTypeCheckPolicy);
+			return Gamma.Generator.CreateSetterNode(Gamma.VoidType, ParsedTree, SetterFunc, ObjectNode, ValueNode);
+		}
+		else if(ObjectNode.Type.IsDynamic()) {
+			/*local*/GtNode ValueNode = ParsedTree.TypeCheckAt(RightHandTerm, Gamma, Gamma.VoidType, DefaultTypeCheckPolicy);
+			return Gamma.Generator.CreateSetterNode(Gamma.VoidType, ParsedTree, SetterFunc, ObjectNode, ValueNode);			
+		}
+		else {
+			return Gamma.CreateSyntaxErrorNode(ParsedTree, "undefined name: " + Name + " of " + ObjectNode.Type);
+		}
 	}
 
 	public static GtSyntaxTree ParseDefined(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
@@ -2229,6 +2254,8 @@ public class KonohaGrammar extends GtGrammar {
 		NameSpace.AppendSyntax("$FloatLiteral$", LoadParseFunc(Context, this, "ParseFloatLiteral"), TypeConst);
 
 		NameSpace.AppendExtendedSyntax(".", 0, LoadParseFunc(Context, this, "ParseGetter"), LoadTypeFunc(Context, this, "TypeGetter"));
+		NameSpace.AppendSyntax("$Setter$", null, LoadTypeFunc(Context, this, "TypeSetter"));
+		
 		NameSpace.AppendSyntax("(", LoadParseFunc(Context, this, "ParseGroup"), LoadTypeFunc(Context, this, "TypeGroup"));
 		NameSpace.AppendSyntax("(", LoadParseFunc(Context, this, "ParseCast"), LoadTypeFunc(Context, this, "TypeCast"));
 		NameSpace.AppendExtendedSyntax("(", 0, LoadParseFunc(Context, this, "ParseApply"), LoadTypeFunc(Context, this, "TypeApply"));
