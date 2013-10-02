@@ -47,11 +47,9 @@ public class GreenTeaArray extends GreenTeaTopObject {
 		for(/*local*/int i = 0; i < this.ArrayBody.size(); i++) {
 			/*local*/Object Value = this.ArrayBody.get(i);
 			if(i > 0) {
-				s += ", " + Value;
+				s += ", ";
 			}
-			else {
-				s += Value;
-			}
+			s += LibGreenTea.Stringfy(Value);
 		}
 		return s + "]";
 	}
