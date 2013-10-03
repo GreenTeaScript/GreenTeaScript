@@ -23,7 +23,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import org.GreenTeaScript.DShellGrammar;
-import org.GreenTeaScript.GtType;
 import org.GreenTeaScript.LibGreenTea;
 
 public class DShellProcess {
@@ -38,7 +37,6 @@ public class DShellProcess {
 	private static final int VoidType = 0;
 	private static final int BooleanType = 1;
 	private static final int StringType = 2;
-	private static final int ProcessType = 3;
 
 	private static SubProc prevSubProc = null;
 
@@ -97,21 +95,10 @@ public class DShellProcess {
 				return new Boolean(this.ReturnValue == 0);
 			}
 		}
-		return this;
+		return null;
 	}
 	private void waitResult() {
 		this.LastProcess.waitResult(is(this.CommandFlag, printable));
-	}
-
-	// GreenTeaScript API
-	public final static boolean Not(DShellProcess Value) {
-		return !(Value.ReturnValue == 0);
-	}
-	public final static String ConvertToString(GtType Type, DShellProcess Value) {
-		return Value.Result;
-	}
-	public final static boolean ConvertToBoolean(GtType ToType, DShellProcess Value) {
-		return Value.ReturnValue == 0;
 	}
 
 	// called by JavaByteCodeGenerator.VisitCommandNode 
@@ -123,17 +110,11 @@ public class DShellProcess {
 		int option = returnable | throwable | enableTrace;
 		return (String) runCommands(cmds, option, StringType);
 	}
-
 	public static boolean ExecCommandBool(String[]... cmds) throws Exception {
 		int option = returnable | printable;
 		return ((Boolean) runCommands(cmds, option, BooleanType)).booleanValue();
 	}
 
-	public static DShellProcess ExecCommand(String[]... cmds) throws Exception {
-		int option = printable | throwable | enableTrace;
-		return (DShellProcess) runCommands(cmds, option, ProcessType);
-	}
-	
 	// file system roll back function
 	// TargetLV: vg_name/lv_name
 	public static boolean CreateSnapshot(String SnapshotLabel, String TargetLV) throws Exception {
@@ -143,7 +124,7 @@ public class DShellProcess {
 		}
 		return false;
 	}
-	
+
 	public static boolean RevertSnapshot(String SnapshotLabel, String TargetLV) throws Exception {
 		if(System.getProperty("os.name").equals("Linux") && new File("/sbin/lvm").canExecute()) {
 			String[] volNames = TargetLV.split("/");
@@ -186,7 +167,7 @@ public class DShellProcess {
 		}
 		return false;
 	}
-	
+
 	//---------------------------------------------
 
 	private static boolean checkTraceRequirements() {
@@ -331,7 +312,7 @@ public class DShellProcess {
 class PseudoProcess {
 	public final static int mergeErrorToOut = 0;
 	public final static int mergeOutToError = 1;
-	
+
 	protected PseudoProcess pipedPrevProc;
 
 	protected OutputStream stdin = null;

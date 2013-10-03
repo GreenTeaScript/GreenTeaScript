@@ -638,11 +638,11 @@ public class DShellGrammar extends GreenTeaUtils {
 
 	public static GtNode TypeDShell2(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtType Type = null;
-		if(ContextType.IsStringType() || ContextType.IsBooleanType() || ContextType.IsVoidType()) {
+		if(ContextType.IsStringType() || ContextType.IsBooleanType()) {
 			Type = ContextType;
 		}
 		else {
-			Type = Gamma.BooleanType;
+			Type = Gamma.VoidType;
 		}
 		/*local*/GtNode PipedNode = null;
 		/*local*/int Index = 0;

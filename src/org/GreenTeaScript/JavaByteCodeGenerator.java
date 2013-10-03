@@ -225,7 +225,6 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			map.put("instanceof", lib.getMethod("DynamicInstanceOf", Object.class, GtType.class));
 			map.put("NewArrayLiteral", lib.getMethod("NewArrayLiteral", GtType.class, Object[].class));
 			Class<?> proc = DShellProcess.class;
-			map.put("ExecCommand", proc.getMethod("ExecCommand", String[][].class));
 			map.put("ExecCommandVoid", proc.getMethod("ExecCommandVoid", String[][].class));
 			map.put("ExecCommandBool", proc.getMethod("ExecCommandBool", String[][].class));
 			map.put("ExecCommandString", proc.getMethod("ExecCommandString", String[][].class));
@@ -1033,11 +1032,8 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		else if(Node.Type.IsStringType()) {
 			this.Builder.Call(methodMap.get("ExecCommandString"));
 		}
-		else if(Node.Type.IsVoidType()) {
-			this.Builder.Call(methodMap.get("ExecCommandVoid"));
-		}
 		else {
-			this.Builder.Call(methodMap.get("ExecCommand"));
+			this.Builder.Call(methodMap.get("ExecCommandVoid"));
 		}
 	}
 

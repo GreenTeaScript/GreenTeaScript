@@ -562,7 +562,7 @@ public class GtGenerator extends GreenTeaUtils {
 				return DShellProcess.ExecCommandBool(Args);
 			}
 			else {
-				return DShellProcess.ExecCommand(Args);
+				DShellProcess.ExecCommandVoid(Args);
 			}
 		} 
 		catch(Exception e) {
