@@ -38,7 +38,7 @@ public class GreenTeaArray extends GreenTeaTopObject {
 		/*local*/GreenTeaArray ArrayObject = new GreenTeaArray(this.GreenType);
 		for(/*local*/int i = bindex; i < eindex; i++) {
 			/*local*/Object Value = this.ArrayBody.get(i);
-			this.ArrayBody.add(Value);
+			ArrayObject.ArrayBody.add(Value);
 		}
 		return ArrayObject;
 	}
