@@ -277,14 +277,6 @@ public class DShellProcess {
 			prevSubProc.setMergeType(SubProc.mergeErrorToOut);
 			prevSubProc = null;
 		}
-//		else if(LibGreenTea.EqualsString(cmdSymbol, "checkpoint")) {
-//			String[] newCmds = {"sudo", "lvcreate", "-s", "-n", cmds[1], cmds[2]};
-//			proc = new SubProc(false);
-//			proc.setArgument(newCmds);
-//		}
-//		else if(LibGreenTea.EqualsString(cmdSymbol, "rollback")) {
-//			
-//		}
 		else {
 			proc = new SubProc(enableSyscallTrace);
 			proc.setArgument(cmds);
@@ -804,21 +796,37 @@ class PipeStreamHandler extends Thread {
 	}
 }
 
-class ErrorInferencer {
+class CauseInferencer {
+	// syscall filter
+	private static final Pattern syscallFilter = Pattern.compile("^[1-9][0-9]* .+(.+) *= *.+");
 	private static final Pattern failedSyscallFilter = Pattern.compile("^[1-9][0-9]* .+(.+) *= *-[1-9].+");
 	private static final Pattern gettextFilter = Pattern.compile("^.+(.+/locale.+).+");
 	private static final Pattern gconvFilter = Pattern.compile("^.+(.+/usr/lib64/gconv.+).+");
+	
+	// function filter
 	private static final Pattern functionFilter = Pattern.compile("^  > .+");
+	private static final Pattern dcigettextFilter = Pattern.compile("^  > __dcigettext().+");
 	private static final Pattern exitFilter = Pattern.compile("^  > .+exit.*().+");
 	private static final Pattern libcStartMainFilter = Pattern.compile("^  > __libc_start_main().+");
+	
 	private int traceBackendType;
 
-	public ErrorInferencer(int traceBackendType) {
+	public CauseInferencer(int traceBackendType) {
 		this.traceBackendType = traceBackendType;
 	}
 
 	private boolean applyFilter(Pattern filter, String line) {
 		return filter.matcher(line).find();
+	}
+	
+	private boolean applyFilterToGroup(Pattern filter, int startIndex, ArrayList<String> group) {
+		int size = group.size();
+		for(int i = startIndex; i < size; i++) {
+			if(applyFilter(filter, group.get(i))) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private Stack<String[]> filterStraceLog(String logFilePath) {
@@ -880,38 +888,53 @@ class ErrorInferencer {
 
 	private Stack<String[]> filterStracePlusLog(String logFilePath) {
 		try {
-			boolean found_libcStartMain = false;
-			String foundSyscall = null;
 			String newLogFilePath = applyPostProcess(logFilePath);
 			Stack<String[]> parsedSyscallStack = new Stack<String[]>();
+			ArrayList<String> syscallGroup = null;
+			ArrayList<ArrayList<String>> syscallGroupList = new ArrayList<ArrayList<String>>();
 			BufferedReader br = new BufferedReader(new FileReader(newLogFilePath));
 			String line;
 			while((line = br.readLine()) != null) {
-				if(foundSyscall != null) {
-					if(applyFilter(functionFilter, line)) {
-						if(applyFilter(libcStartMainFilter, line)) {
-							found_libcStartMain = true;
-						}
-						if(applyFilter(exitFilter, line)) {
-							foundSyscall = null;
-						}
-						continue;
+				if(applyFilter(syscallFilter, line)) {
+					if(syscallGroup != null) {
+						syscallGroupList.add(syscallGroup);
+						syscallGroup = null;
 					}
-					else {
-						if(found_libcStartMain) {
-							parsedSyscallStack.push(parseLine(foundSyscall));
-							found_libcStartMain = false;
-						}
-						foundSyscall = null;
-					}
+					syscallGroup = new ArrayList<String>();
+					syscallGroup.add(line);
 				}
-				if(applyFilter(failedSyscallFilter, line) && 
-						!applyFilter(gettextFilter, line) && !applyFilter(gconvFilter, line)) {
-					foundSyscall = line;
+				else if(applyFilter(functionFilter, line)) {
+					syscallGroup.add(line);
 				}
+			}
+			if(syscallGroup != null) {
+				syscallGroupList.add(syscallGroup);
+				syscallGroup = null;
 			}
 			br.close();
 			SubProc.deleteLogFile(newLogFilePath);
+			
+			int size = syscallGroupList.size();
+			for(int i = 0; i < size; i++) {
+				ArrayList<String> group = syscallGroupList.get(i);
+				String syscall = group.get(0);
+				if(!applyFilter(failedSyscallFilter, syscall)) {
+					continue;
+				}
+				if(applyFilter(gconvFilter, syscall)) {
+					continue;
+				}
+				if(!applyFilterToGroup(libcStartMainFilter, 1, group)) {
+					continue;
+				}
+				if(applyFilterToGroup(exitFilter, 1, group)) {
+					continue;
+				}
+				if(applyFilterToGroup(dcigettextFilter, 1, group)) {
+					continue;
+				}
+				parsedSyscallStack.push(parseLine(syscall));
+			}
 			return parsedSyscallStack;
 		} 
 		catch (FileNotFoundException e) {
@@ -1017,7 +1040,7 @@ class ShellExceptionRaiser {
 			if(targetProc.isTraced() && targetProc instanceof SubProc) {
 				String logFilePath = ((SubProc)targetProc).getLogFilePath();
 				if(targetProc.getRet() != 0) {
-					ErrorInferencer inferencer = new ErrorInferencer(SubProc.traceBackendType);
+					CauseInferencer inferencer = new CauseInferencer(SubProc.traceBackendType);
 					String[] inferedSyscall = inferencer.doInference(logFilePath);
 					SubProc.deleteLogFile(logFilePath);
 					throw createException(message, inferedSyscall);
