@@ -201,6 +201,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.typeDescriptorMap.put(Context.FloatType.ShortName, Type.DOUBLE_TYPE);
 		this.typeDescriptorMap.put(Context.AnyType.ShortName, Type.getType(Object.class));
 		this.typeDescriptorMap.put(Context.StringType.ShortName, Type.getType(String.class));
+		this.typeDescriptorMap.put(Context.ArrayType.ShortName, Type.getType(GreenTeaArray.class));
 		this.methodMap = InitSystemMethods();
 		this.defaultClassName = "Global$" + Context.ParserId;
 		this.DefaultHolderClass = new MethodHolderClass(defaultClassName, "java/lang/Object");
@@ -335,6 +336,9 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		}
 		if(GivenType.IsTypeVariable()) {
 			return Type.getType(Object.class);
+		}
+		if(GivenType.IsGenericType()) {
+			return this.ToAsmType(GivenType.BaseType);
 		}
 		return Type.getType("L" + GivenType.ShortName + ";");
 	}
