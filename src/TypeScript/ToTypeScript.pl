@@ -1,6 +1,8 @@
 use strict;
 use warnings;
 
+open(DATAFILE, "< $ARGV[0]") or die("error :$!");
+
 my $Keyword = "(?:ifdef|endif|return|new|throw|class|interface|extends|implements|public|private|protected|static|final|function|instanceof|else|var)";
 my $Sym  = "(?:(?!$Keyword\\b)\\b(?!\\d)\\w+\\b)";
 my $Type = "(?:$Sym(?:<.*?>)?(?:\\[\\s*\\d*\\s*\\])*)";
@@ -8,7 +10,7 @@ my $Attr = "(?:\\b(?:public|private|protected|static|final)\\b\\s*)";
 
 my $Grammar = "GreenTeaGrammar";
 
-my $src = join '', <STDIN>;
+my $src = join '', <DATAFILE>;
 
 my @StringLiterals;
 my @Comments;
@@ -55,14 +57,14 @@ $src =~ s/(".*?")/&ProtectString($1)/ge;
 
 $src =~ s/};/}/g;
 
-sub GtConstSection{
+sub GreenTeaConstsSection{
 	my $text = $_[0];
 	$text =~ s/(?:$Attr*)($Type)\s+($Sym)((?:\[\s*\d*\s*\])?)/var $2: $1$3/g;
 	$text =~ s/$Attr//g;
 	return $text;
 }
 
-sub GtStaticSection{
+sub GreenTeaUtilsSection{
 	my $text = $_[0];
 	$text =~ s/$Attr*//g;
 	$text =~ s/($Attr*)($Type)\s+($Sym)\s*\((.*?)\)/function $1$3(#params#$4): $2/g;
@@ -79,18 +81,19 @@ sub UnQuote {
 	my $text = $_[0];
 }
 
-$src =~ s/interface GreenTeaConsts {(.*?)^}/GtConstSection($1)/ems;
-$src =~ s/class GreenTeaUtils(.*?)^}/GtStaticSection($1)/ems;
+$src =~ s/interface GreenTeaConsts {(.*?)^}/GreenTeaConstsSection($1)/ems;
+$src =~ s/class GreenTeaUtils(.*?)^}/GreenTeaUtilsSection($1)/ems;
 
 # Comments
 $src =~ s/^\/\/[#\s]*ifdef\s+JAVA.*?VAJA//gms;
+#$src =~ s/^\/\/require (.*?).java/\/\/\/ <reference path="$1.ts" \/>/gms;
 $src =~ s/(\/\/.*?)$/&ProtectComment($1)/gems;
 # Fields. public static int n = 0; => public static n: int = 0;
 $src =~ s/\/\*field\*\/($Attr*)($Type)\s+($Sym)/$1$3: $2/gm;
 # Local variables.  int n = 0; => var n: int = 0;
 $src =~ s/\/\*local\*\/($Type)\s+($Sym)/var $2: $1/g;
 # Constractors.
-$src =~ s/($Attr*)($Sym)\/\*constructor\*\/\((.*?)\)/$1 constructor(#params#$3)/g;
+$src =~ s/($Attr*)($Sym)\/\*constructor\*\/\((.*?)\)/constructor(#params#$3)/g;
 $src =~ s/new\s+($Type)\[(.+)\]/new Array<$1>($2)/g;
 # Casts
 #$src =~ s/\((string|number)\)/<$1>/g;
@@ -134,9 +137,9 @@ $src =~ s/\bfinal\b//g;
 $src =~ s/\bprotected\b//g;
 $src =~ s/\@Override\s*//g;
 $src =~ s/\@Deprecated\s*//g;
-$src =~ s/\bextends GtStatic\s*//g;
+$src =~ s/\bextends GreenTeaUtils\s*//g;
 $src =~ s/\bpublic interface\s*/interface /g;
-$src =~ s/\bGtStatic\.//g;
+$src =~ s/\bGreenTeaUtils\.//g;
 $src =~ s/\binstanceof\s+string\b/instanceof String/g;
 $src =~ s/\binstanceof\s+number\b/instanceof Number/g;
 $src =~ s/\b([a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*) instanceof String/(typeof $1 == 'string' || $1 instanceof String)/g;
@@ -147,7 +150,7 @@ $src =~ s/Boolean.class/Boolean/g;
 $src =~ s/Object.class/Object/g;
 $src =~ s/Void.class/null/g;
 
-$src =~ s/\bpublic class\b/class/g;
+$src =~ s/\bnew Object(\(\))?/<any>{}/g;
 
 #$src =~ s/\bsize\(\)/length/g
 $src =~ s/\blength\(\)/length/g;
@@ -155,7 +158,7 @@ $src =~ s/\bSystem\.out\.println/console.log/g;
 
 $src =~ s/\binterface\b/declare class/g;
 
-$src =~ s/\bpublic\s*class\b/export class/g;
+$src =~ s/\bpublic\s*class\b/class/g;
 
 # Delegates.
 $src =~ s/(?!\.)\b((?:Parse|Type)(?:Unary|Binary|Const|Block))\b(?!\()/$Grammar\["$1"\]/g;
@@ -174,6 +177,7 @@ while($i < $n){
 	$i = $i + 1;
 }
 
+
 $n = @StringLiterals;
 $i = 0;
 while($i < $n){
@@ -181,5 +185,41 @@ while($i < $n){
 	$i = $i + 1;
 }
 
-print '/// <reference path="GreenTeaScript.ts" />';
+my $filename = $ARGV[0];
+$filename =~ s@[/|\\]([^/]+)\..*@$1@;
+#
+#my @files = (
+#	"GreenTeaScript",
+#	"GreenTeaTopObject",
+#	"GreenTeaScriptTest",
+#	"CSourceGenerator",
+#	"GreenTeaArray",
+#	"GreenTeaEnum",
+#	"GreenTeaGrammar",
+#	"GreenTeaObject",
+#	"GreenTeaRuntime",
+#	"GtFunc",
+#	"GtNameSpace",
+#	"GtParserContext",
+#	"GtSyntaxPattern",
+#	"GtSyntaxTree",
+#	"GtToken",
+#	"GtTokenContext",
+#	"GtType",
+#	"GtTypeEnv",
+#	"SourceGenerator",
+##	"BashSourceGenerator",
+#	"JavaScriptSourceGenerator",
+##	"PerlSourceGenerator",
+##	"PythonSourceGenerator",
+#	"ScalaSourceGenerator",
+#);
+
+#my $f;
+#foreach $f (@files) {
+#	if($filename !~ $f){
+#		print "/// <reference path=\"$f.ts\" />\n";
+#	}
+#}
+
 print $src;

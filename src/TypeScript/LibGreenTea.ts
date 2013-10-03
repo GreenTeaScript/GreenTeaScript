@@ -1,5 +1,4 @@
-/// <reference path="SourceGenerator.ts" />
-/// <reference path="GreenTeaScript.ts" />
+
 
 interface Array {
 	get(index: number): any;
@@ -11,11 +10,11 @@ interface Array {
 	remove(index: number): any;
 }
 
-Array.prototype.size = function(){
+Array.prototype["size"] = function(){
 	return this.length;
 }
 
-Array.prototype.add = function(arg1){
+Array.prototype["add"] = function(arg1){
 	if(arguments.length == 1) {
 		this.push(arg1);
 	} else {
@@ -24,18 +23,18 @@ Array.prototype.add = function(arg1){
 	}
 }
 
-Array.prototype.get = function(i){
+Array.prototype["get"] = function(i){
 	if(i >= this.length){
 		throw new RangeError("invalid array index");
 	}
 	return this[i];
 }
 
-Array.prototype.set = function(i, v): void{
+Array.prototype["set"] = function(i, v): void{
 	this[i] = v;
 }
 
-Array.prototype.remove = function(i){
+Array.prototype["remove"] = function(i){
 	if(i >= this.length){
 		throw new RangeError("invalid array index");
 	}
@@ -44,7 +43,7 @@ Array.prototype.remove = function(i){
 	return v;
 }
 
-Array.prototype.clear = function(){
+Array.prototype["clear"] = function(){
 	this.length = 0;
 }
 
@@ -81,7 +80,7 @@ class GtMap {
 	private length: number;
 	private key: string[]
 	constructor(){
-		this.map = new Object;
+		this.map = <any>{};
 		this.key = [];
 		this.length = 0;
 	}

@@ -4,45 +4,47 @@ SourceDir=./src/org/GreenTeaScript/
 build=src/TypeScript/
 
 source=
-source="${source} GreenTeaScript"
 source="${source} GreenTeaTopObject"
-source="${source} GreenTeaScriptTest"
-#source="${source} ConstantFolder"
-source="${source} CSourceGenerator"
-#source="${source} DShellGrammar"
+#source="${source} GreenTeaScriptTest"
+##source="${source} DShellGrammar"
 source="${source} GreenTeaArray"
 source="${source} GreenTeaEnum"
 source="${source} GreenTeaGrammar"
 source="${source} GreenTeaObject"
 source="${source} GreenTeaRuntime"
-#source="${source} GreenTeaVirtualMachine"
-source="${source} GtFunc"
-source="${source} GtNameSpace"
+##source="${source} GreenTeaVirtualMachine"
+source="${source} SourceGenerator"
 source="${source} GtParserContext"
+source="${source} GtNameSpace"
+source="${source} GtFunc"
 source="${source} GtSyntaxPattern"
 source="${source} GtSyntaxTree"
 source="${source} GtToken"
 source="${source} GtTokenContext"
 source="${source} GtType"
 source="${source} GtTypeEnv"
-#source="${source} JavaByteCodeGenerator"
-source="${source} SourceGenerator"
-source="${source} BashSourceGenerator"
+##source="${source} JavaByteCodeGenerator"
+##source="${source} BashSourceGenerator"
 source="${source} JavaScriptSourceGenerator"
-#source="${source} LibGreenTea"
-source="${source} PerlSourceGenerator"
-source="${source} PythonSourceGenerator"
-source="${source} ScalaSourceGenerator"
-
+##source="${source} CSourceGenerator"
+##source="${source} PerlSourceGenerator"
+##source="${source} PythonSourceGenerator"
+##source="${source} ScalaSourceGenerator"
+source="${source} GreenTeaScript"
+#
 ts=""
 
 for s in ${source}; do
-    perl src/TypeScript/ToTypeScript.pl < ${SourceDir}${s}.java > ${build}${s}.ts
+    perl src/TypeScript/ToTypeScript.pl ${SourceDir}${s}.java > ${build}${s}.ts
     ts="${ts} ${build}${s}.ts"
 done
 
 perl src/TypeScript/PackLibraries.pl lib > ${build}GreenTeaLibraries.ts
 ts="${ts} ${build}GreenTeaLibraries.ts"
+ts="${ts} ${build}LibGreenTea.ts"
 
-tsc ${build}/LibGreenTea.ts ${ts}
+cat ${ts} > ${build}GreenTea.ts
+
+tsc ${build}GreenTea.ts
+#tsc ${build}/LibGreenTea.ts ${ts}
 
