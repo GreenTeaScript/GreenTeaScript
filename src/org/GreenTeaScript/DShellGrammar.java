@@ -452,6 +452,9 @@ public class DShellGrammar extends GreenTeaUtils {
 						Path += "${" + Token2.ParsedText + "}";
 						HasStringExpr = true;
 						TokenContext.Next();
+						if(Token2.IsNextWhiteSpace()) {
+							break;
+						}
 						continue;
 					}
 				}
