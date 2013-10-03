@@ -198,10 +198,7 @@ public class KonohaGrammar extends GtGrammar {
 		if(NextChar != '/' && NextChar != '*') {
 			return MismatchedPosition;
 		}
-		/*local*/int Level = 0;
-		/*local*/char PrevChar = 0;
-		if(NextChar == '*') {
-			Level = 1;
+		if(NextChar == '*') { // MultiLineComment
 			// SourceMap ${file:line}
 			if(LibGreenTea.CharAt(SourceText, NextPos+1) == '$' && LibGreenTea.CharAt(SourceText, NextPos+2) == '{') {
 				/*local*/long StartPos = NextPos + 3;
@@ -218,25 +215,33 @@ public class KonohaGrammar extends GtGrammar {
 					NextPos += 1;
 				}
 			}
+			/*local*/int Level = 1;
+			/*local*/char PrevChar = 0;
+			while(NextPos < SourceText.length()) {
+				NextChar = LibGreenTea.CharAt(SourceText, NextPos);
+				if(NextChar == '/' && PrevChar == '*') {
+					if(Level == 1) {
+						return NextPos + 1;
+					}
+					Level = Level - 1;
+				}
+				if(Level > 0) {
+					if(NextChar == '*' && PrevChar == '/') {
+						Level = Level + 1;
+					}
+				}
+				PrevChar = NextChar;
+				NextPos = NextPos + 1;
+			}
 		}
-		while(NextPos < SourceText.length()) {
-			NextChar = LibGreenTea.CharAt(SourceText, NextPos);
-			if(NextChar == '\n' && Level == 0) {
-				return KonohaGrammar.IndentToken(TokenContext, SourceText, NextPos);
-			}
-			if(NextChar == '/' && PrevChar == '*') {
-				if(Level == 1) {
-					return NextPos + 1;
+		else if(NextChar == '/') { // SingleLineComment
+			while(NextPos < SourceText.length()) {
+				NextChar = LibGreenTea.CharAt(SourceText, NextPos);
+				if(NextChar == '\n') {
+					return KonohaGrammar.IndentToken(TokenContext, SourceText, NextPos);
 				}
-				Level = Level - 1;
+				NextPos = NextPos + 1;
 			}
-			if(Level > 0) {
-				if(NextChar == '*' && PrevChar == '/') {
-					Level = Level + 1;
-				}
-			}
-			PrevChar = NextChar;
-			NextPos = NextPos + 1;
 		}
 		return MismatchedPosition;
 	}
