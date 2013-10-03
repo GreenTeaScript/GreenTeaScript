@@ -1,0 +1,16 @@
+// written by kimio
+
+let Person = import org.GreenTeaScript.NativeClassTest;
+
+boolean TestFunc() {
+	Person p = new Person("naruto", 17, true);
+	assert(p.name == "naruto");
+	assert(p.age == 17);
+	assert(p.isNinja);
+	return true;
+}
+
+@Export int main() {
+	assert(TestFunc());
+	return 0;
+}

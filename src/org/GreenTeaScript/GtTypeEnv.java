@@ -163,7 +163,7 @@ public final class GtTypeEnv extends GreenTeaUtils {
 
 	public final GtNode TypeCheckSingleNode(GtSyntaxTree ParsedTree, GtNode Node, GtType Type, int TypeCheckPolicy) {
 		LibGreenTea.Assert(Node != null);
-		if(Node.IsError() || IsFlag(TypeCheckPolicy, NoCheckPolicy)) {
+		if(Node.IsErrorNode() || IsFlag(TypeCheckPolicy, NoCheckPolicy)) {
 			return Node;
 		}
 		if(Node.Type.IsUnrevealedType()) {
@@ -177,7 +177,7 @@ public final class GtTypeEnv extends GreenTeaUtils {
 			Node = this.Generator.CreateConstNode(Node.Type, ParsedTree, ConstValue);
 		}
 		if(IsFlag(TypeCheckPolicy, OnlyConstPolicy) && ConstValue == null) {
-			if(IsFlag(TypeCheckPolicy, NullablePolicy) && Node instanceof GtNullNode) { // OK
+			if(IsFlag(TypeCheckPolicy, NullablePolicy) && Node.IsNullNode()) { // OK
 			}
 			else {
 				return this.CreateSyntaxErrorNode(ParsedTree, "value must be const");
@@ -198,5 +198,47 @@ public final class GtTypeEnv extends GreenTeaUtils {
 		}
 		System.err.println("node="+Node.getClass()+ "type error: requested = " + Type + ", given = " + Node.Type);
 		return this.ReportTypeResult(ParsedTree, Node, TypeErrorLevel, "type error: requested = " + Type + ", given = " + Node.Type);
+	}
+}
+
+
+class GtVariableInfo extends GreenTeaUtils {
+	/*field*/public int     VariableFlag;
+	/*field*/public GtType	Type;
+	/*field*/public String	Name;
+	/*field*/public String	NativeName;
+	/*field*/public GtToken NameToken;
+	/*field*/public Object  InitValue;
+	/*field*/public int     DefCount;
+	/*field*/public int     UsedCount;
+
+	GtVariableInfo/*constructor*/(int VarFlag, GtType Type, String Name, int Index, GtToken NameToken, Object InitValue) {
+		this.VariableFlag = VarFlag;
+		this.Type = Type;
+		this.NameToken = NameToken;
+		this.Name = Name;
+		this.NativeName = (NameToken == null) ? Name : GreenTeaUtils.NativeVariableName(Name, Index);
+		this.InitValue = null;
+		this.UsedCount = 0;
+		this.DefCount  = 1;
+	}
+
+	public final void Defined() {
+		this.DefCount += 1;
+		this.InitValue = null;
+	}
+
+	public final void Used() {
+		this.UsedCount += 1;
+	}
+
+	public void Check() {
+		if(this.UsedCount == 0 && this.NameToken != null) {
+			this.Type.Context.ReportError(WarningLevel, this.NameToken, "unused variable: " + this.Name);
+		}
+	}
+	// for debug
+	@Override public String toString() {
+		return "(" + this.Type + " " + this.Name + ", " + this.NativeName + ")";
 	}
 }

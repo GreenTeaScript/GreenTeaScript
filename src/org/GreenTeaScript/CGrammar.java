@@ -57,7 +57,7 @@ public class CGrammar extends GreenTeaUtils {
 	public static GtNode TypeGetterP(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/String Name = ParsedTree.KeyToken.ParsedText;
 		/*local*/GtNode ObjectNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-		if(ObjectNode.IsError()) {
+		if(ObjectNode.IsErrorNode()) {
 			return ObjectNode;
 		}
 		// 1. To start, check class const such as Math.Pi if base is a type value
@@ -176,7 +176,7 @@ public class CGrammar extends GreenTeaUtils {
 		/*local*/Object InitValue = null;
 		if(ParsedTree.HasNodeAt(VarDeclValue)) {
 			InitValueNode = ParsedTree.TypeCheckAt(VarDeclValue, Gamma, DeclType, OnlyConstPolicy | NullablePolicy);
-			if(InitValueNode.IsError()) {
+			if(InitValueNode.IsErrorNode()) {
 				return false;
 			}
 			InitValue = InitValueNode.ToConstValue(true);

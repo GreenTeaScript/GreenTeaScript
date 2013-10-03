@@ -82,7 +82,7 @@ public class BashSourceGenerator extends SourceGenerator {
 			if(!LibGreenTea.EqualsString(poppedCode, "")) {
 				Code += this.GetIndentString() + poppedCode + this.LineFeed;
 			}
-			CurrentNode = CurrentNode.GetNextNode();
+			CurrentNode = CurrentNode.NextNode;
 		}
 		if(replaceBreak && !isBreakReplaced) {
 			Code += this.GetIndentString() + ";&" + this.LineFeed;
@@ -242,7 +242,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitGetterNode(GtGetterNode Node) {
-		this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + this.GetMemberIndex(Node.Expr.Type, Node.Func.FuncName) + "]");
+		this.PushSourceCode(this.VisitNode(Node.ExprNode) + "[" + this.GetMemberIndex(Node.ExprNode.Type, Node.Func.FuncName) + "]");
 	}
 
 	@Override public void VisitIndexerNode(GtIndexerNode Node) {
@@ -300,9 +300,9 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitTrinaryNode(GtTrinaryNode Node) {
-		/*local*/String CondExpr = this.ResolveCondition(Node.CondExpr);
-		/*local*/String Then = this.ResolveValueType(Node.ThenExpr, false);
-		/*local*/String Else = this.ResolveValueType(Node.ElseExpr, false);
+		/*local*/String CondExpr = this.ResolveCondition(Node.ConditionNode);
+		/*local*/String Then = this.ResolveValueType(Node.ThenNode, false);
+		/*local*/String Else = this.ResolveValueType(Node.ElseNode, false);
 		this.PushSourceCode("((" + CondExpr + " ? " + Then + " : " + Else + "))");
 	}
 

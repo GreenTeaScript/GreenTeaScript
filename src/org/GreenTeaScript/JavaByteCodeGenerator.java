@@ -601,7 +601,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	@Override public void VisitGetterNode(GtGetterNode Node) {
 		String name = Node.Func.FuncName;
 		Type ty = this.ToAsmType(Node.Type);
-		Node.Expr.Evaluate(this);
+		Node.ExprNode.Evaluate(this);
 		this.Builder.AsmMethodVisitor.visitLdcInsn(name);
 		this.Builder.Call(this.methodMap.get("getter"));
 		this.unbox(ty);
@@ -626,9 +626,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			m = this.methodMap.get(Func.FuncName);
 		}
 		if(m != null) {
-			String owner = Type.getInternalName(m.getDeclaringClass());
-			this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESTATIC, owner, m.getName(), Type.getMethodDescriptor(m));
-			this.Builder.typeStack.push(Type.getReturnType(m));
+			this.Builder.Call(m);
 		}
 		else {
 //			int opcode = Node.Func.Is(NativeStaticFunc) ? INVOKESTATIC : INVOKEVIRTUAL;
@@ -744,7 +742,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			String name = left.Func.FuncName;
 			Type ty = this.ToAsmType(left.Func.Types[0]);//FIXME
 
-			left.Expr.Evaluate(this);
+			left.ExprNode.Evaluate(this);
 			this.Builder.AsmMethodVisitor.visitLdcInsn(name);
 			Node.RightNode.Evaluate(this);
 			this.box();
@@ -806,15 +804,15 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	@Override public void VisitTrinaryNode(GtTrinaryNode Node) {
 		Label ElseLabel = new Label();
 		Label EndLabel = new Label();
-		Node.CondExpr.Evaluate(this);
+		Node.ConditionNode.Evaluate(this);
 		this.Builder.typeStack.pop();
 		this.Builder.AsmMethodVisitor.visitJumpInsn(IFEQ, ElseLabel);
 		// Then
-		this.VisitBlock(Node.ThenExpr);
+		this.VisitBlock(Node.ThenNode);
 		this.Builder.AsmMethodVisitor.visitJumpInsn(GOTO, EndLabel);
 		// Else
 		this.Builder.AsmMethodVisitor.visitLabel(ElseLabel);
-		this.VisitBlock(Node.ElseExpr);
+		this.VisitBlock(Node.ElseNode);
 		this.Builder.AsmMethodVisitor.visitJumpInsn(GOTO, EndLabel);
 		// End
 		this.Builder.AsmMethodVisitor.visitLabel(EndLabel);

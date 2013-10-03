@@ -260,7 +260,44 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		else if(Value instanceof String) {
 			return LibGreenTea.QuoteString(Value.toString());
 		}
-		return Value.toString();
+		else {
+			return Value.toString();
+		}
+		//			/*local*/String s = "";
+		//			Field[] Fields = Value.getClass().getFields();
+		//			for(int i = 0; i < Fields.length; i++) {
+		//				if(Modifier.isPublic(Fields[i].getModifiers())) {
+		//					if(i > 0) {
+		//						s += ", ";
+		//					}
+		//					try {
+		//						s += Fields[i].getName() + ": ";
+		//						s += LibGreenTea.Stringfy(Fields[i].get(Value));
+		//					} catch (IllegalArgumentException e) {
+		//					} catch (IllegalAccessException e) {
+		//					}
+		//				}
+		//			}
+		//			return "" + s + "}";
+	}
+
+	public final static String StringfyField(Object Value) {
+		/*local*/String s = "{";
+		Field[] Fields = Value.getClass().getFields();
+		for(int i = 0; i < Fields.length; i++) {
+			if(Modifier.isPublic(Fields[i].getModifiers())) {
+				if(i > 0) {
+					s += ", ";
+				}
+				try {
+					s += Fields[i].getName() + ": ";
+					s += LibGreenTea.Stringfy(Fields[i].get(Value));
+				} catch (IllegalArgumentException e) {
+				} catch (IllegalAccessException e) {
+				}
+			}
+		}
+		return s + "}";
 	}
 
 	public final static boolean EqualsString(String s, String s2) {
@@ -478,7 +515,6 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return null;
 	}
 
-	
 	public final static void LoadNativeConstructors(GtType ClassType, ArrayList<GtFunc> FuncList) {
 		/*local*/boolean TransformedResult = false;
 		Class<?> NativeClass = (Class<?>)ClassType.TypeBody;
@@ -527,37 +563,96 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 				TypeList.add(LibGreenTea.GetNativeType(Context, NativeField.getType()));
 				GtFunc SetterNativeFunc = new GtFunc(SetterFunc, FieldName, 0, TypeList);
 				SetterNativeFunc.SetNativeMethod(0, NativeField);
-				Context.RootNameSpace.SetGetterFunc(ClassType, FieldName, SetterNativeFunc, null);
+				Context.RootNameSpace.SetSetterFunc(ClassType, FieldName, SetterNativeFunc, null);
 				return GetSetter ? SetterNativeFunc : GetterNativeFunc;
 			}
 		} catch (SecurityException e) {
 			LibGreenTea.VerboseException(e);
-			e.printStackTrace();
 		} catch (NoSuchFieldException e) {
-			LibGreenTea.VerboseException(e);
 		}
 		Context.RootNameSpace.SetUndefinedSymbol(GreenTeaUtils.ClassSymbol(ClassType, GreenTeaUtils.GetterSymbol(FieldName)), null);
 		Context.RootNameSpace.SetUndefinedSymbol(GreenTeaUtils.ClassSymbol(ClassType, GreenTeaUtils.SetterSymbol(FieldName)), null); // for setter
 		return null;
 	}
 
+	public static Object NativeFieldValue(Object ObjectValue, Field NativeField) {
+		try {
+			Class<?> NativeType = NativeField.getType();
+			if(NativeType == long.class || NativeType == int.class || NativeType == short.class || NativeType == byte.class) {
+				return NativeField.getLong(ObjectValue);
+			}
+			if(NativeType == double.class || NativeType == float.class) {
+				return NativeField.getDouble(ObjectValue);
+			}
+			if(NativeType == boolean.class) {
+				return NativeField.getBoolean(ObjectValue);
+			}
+			if(NativeType == char.class) {
+				return String.valueOf(NativeField.getChar(ObjectValue));
+			}
+			return NativeField.get(ObjectValue);
+		} catch (IllegalAccessException e) {
+			LibGreenTea.VerboseException(e);
+		} catch (SecurityException e) {
+			LibGreenTea.VerboseException(e);
+		}
+		return null;
+	}
+
+	public static Object NativeFieldGetter(Object ObjectValue, Field NativeField) {
+		try {
+			Class<?> NativeType = NativeField.getType();
+//			if(NativeType == long.class || NativeType == int.class || NativeType == short.class || NativeType == byte.class) {
+//				return NativeField.getLong(ObjectValue);
+//			}
+//			if(NativeType == double.class || NativeType == float.class) {
+//				return NativeField.getDouble(ObjectValue);
+//			}
+//			if(NativeType == boolean.class) {
+//				return NativeField.getBoolean(ObjectValue);
+//			}
+//			if(NativeType == char.class) {
+//				return String.valueOf(NativeField.getChar(ObjectValue));
+//			}
+			return NativeField.get(ObjectValue);
+		} catch (IllegalAccessException e) {
+			LibGreenTea.VerboseException(e);
+		} catch (SecurityException e) {
+			LibGreenTea.VerboseException(e);
+		}
+		return null;
+	}
+
+	public static Object NativeFieldSetter(Object ObjectValue, Field NativeField, Object Value) {
+		try {
+//			Class<?> NativeType = NativeField.getType();
+//			if(NativeType == long.class || NativeType == int.class || NativeType == short.class || NativeType == byte.class) {
+//				return NativeField.getLong(ObjectValue);
+//			}
+//			if(NativeType == double.class || NativeType == float.class) {
+//				return NativeField.getDouble(ObjectValue);
+//			}
+//			if(NativeType == boolean.class) {
+//				return NativeField.getBoolean(ObjectValue);
+//			}
+//			if(NativeType == char.class) {
+//				return String.valueOf(NativeField.getChar(ObjectValue));
+//			}
+			NativeField.set(ObjectValue, Value);
+		} catch (IllegalAccessException e) {
+			LibGreenTea.VerboseException(e);
+		} catch (SecurityException e) {
+			LibGreenTea.VerboseException(e);
+		}
+		return Value;
+	}
+
 	public static Object ImportStaticObject(GtParserContext Context, Class<?> NativeClass, String Symbol) {
 		try {
 			Field NativeField = NativeClass.getField(Symbol);
 			if(Modifier.isStatic(NativeField.getModifiers())) {
-				Class<?> NativeType = NativeField.getType();
-				if(NativeType == long.class || NativeType == int.class) {
-					return NativeField.getLong(null);
-				}
-				if(NativeType == double.class || NativeType == float.class) {
-					return NativeField.getDouble(null);
-				}
-				return NativeField.get(null);
+				return NativeFieldValue(null, NativeField);
 			}
-		} catch (IllegalAccessException e) {
-//			LibGreenTea.VerboseException(e);
-		} catch (SecurityException e) {
-//			LibGreenTea.VerboseException(e);
 		} catch (NoSuchFieldException e) {
 //			LibGreenTea.VerboseException(e);
 		}
@@ -626,7 +721,22 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		}
 		catch (InvocationTargetException e) {
 			LibGreenTea.VerboseException(e);
-			//e.getCause().printStackTrace();
+		}
+		catch (IllegalArgumentException e) {
+			LibGreenTea.VerboseException(e);
+		}
+		catch (IllegalAccessException e) {
+			LibGreenTea.VerboseException(e);
+		}
+		return null;
+	}
+
+	public final static Object ApplyFunc1(GtFunc Func, Object Self, Object Param) {
+		try {
+			return ((Method)Func.FuncBody).invoke(Self, Param);
+		}
+		catch (InvocationTargetException e) {
+			LibGreenTea.VerboseException(e);
 		}
 		catch (IllegalArgumentException e) {
 			LibGreenTea.VerboseException(e);
@@ -755,6 +865,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		System.out.println("");
 		System.out.println("  --out|-o  FILE        Output filename");
 		System.out.println("  --eval|-e EXPR        Program passed in as string");
+		System.out.println("  --require|-r LIBRARY     Load the library");
 		System.out.println("  --verbose             Printing Debug infomation");
 		System.out.println("     --verbose:symbol     adding symbol info");
 		System.out.println("     --verbose:token      adding token info");
@@ -990,6 +1101,11 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return (int)FileLine;
 	}
 
+	
+	public static boolean booleanValue(Object Value) {
+		return ((Boolean)Value).booleanValue();
+	}
+	
 	public static Object DynamicCast(GtType CastType, Object Value) {
 		if(Value != null) {
 			GtType FromType = CastType.Context.GuessType(Value);
@@ -1023,7 +1139,6 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		}
 		return null;
 	}
-	
 	
 	public static Object EvalUnary(GtType Type, String Operator, Object Value) {
 		if(Value instanceof Boolean) {
@@ -1196,11 +1311,9 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return null;
 	}
 
-	public static Object EvalGetter(GtType Type, Object Value, String FieldName) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-
+//	public static Object EvalGetter(GtType Type, Object Value, String FieldName) {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
 
 }
