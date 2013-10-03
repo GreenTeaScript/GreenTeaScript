@@ -554,7 +554,7 @@ class GreenTeaUtils implements GreenTeaConsts {
 		return LastNode.MoveHeadNode();
 	}
 
-<<<<<<< HEAD
+
 	public final static boolean AppendTypedNode(ArrayList<GtNode> NodeList, GtNode Node) {
 		NodeList.add(Node);
 		if(Node.IsError()) {
@@ -569,8 +569,8 @@ class GreenTeaUtils implements GreenTeaConsts {
 	}
 
 /*GreenTeaUtils End*/
-=======
->>>>>>> master
+
+
 //ifdef JAVA
 	public final static GtFunc LoadTokenFunc2(GtParserContext ParserContext, Class<?> GrammarClass, String FuncName) {
 		try {
@@ -651,7 +651,7 @@ class GtFieldInfo extends GreenTeaUtils {
 	}
 }
 
-<<<<<<< HEAD
+
 final class GtTokenContext extends GreenTeaUtils {
 	/*field*/public final static GtToken NullToken = new GtToken("", 0);
 
@@ -1070,13 +1070,13 @@ final class GtTokenContext extends GreenTeaUtils {
 			this.SkipEmptyStatement();
 //		}
 	}
-=======
+
 final class GtClassField extends GreenTeaUtils {
 	/*field*/ public GtType DefinedType;
 	/*field*/ private GtNameSpace NameSpace;
 	/*field*/ public ArrayList<GtFieldInfo> FieldList;
 	/*field*/ public int ThisClassIndex;
->>>>>>> master
+
 
 	GtClassField/*constructor*/(GtType DefinedType, GtNameSpace NameSpace) {
 		this.DefinedType = DefinedType;
@@ -1118,7 +1118,7 @@ final class GtClassField extends GreenTeaUtils {
 		this.NameSpace.SetSetterFunc(this.DefinedType, FieldInfo.Name, FieldInfo.SetterFunc, SourceToken);
 		this.FieldList.add(FieldInfo);
 		return FieldInfo;
-<<<<<<< HEAD
+
 	}
 
 }
@@ -1753,8 +1753,8 @@ final class GtNameSpace extends GreenTeaUtils {
 		}
 		this.Context.Generator.FinishCompilationUnit();
 		return ResultValue;
-=======
->>>>>>> master
+
+
 	}
 
 }

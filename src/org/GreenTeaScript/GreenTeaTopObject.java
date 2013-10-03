@@ -28,7 +28,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 //endif VAJA
 
-<<<<<<< HEAD
 class GtFuncBlock extends GreenTeaUtils {
 	/*field*/public GtNameSpace       NameSpace;
 	/*field*/public ArrayList<String> NameList;
@@ -101,12 +100,10 @@ class GtFunc extends GreenTeaUtils {
 		else {
 			return this.MangledName;
 		}
-=======
 public class GreenTeaTopObject implements GreenTeaObject {
 	/*field*/public GtType GreenType;
 	protected GreenTeaTopObject/*constructor*/(GtType GreenType) {
 		this.GreenType = GreenType;
->>>>>>> master
 	}
 	public final GtType GetGreenType() {
 		return this.GreenType;

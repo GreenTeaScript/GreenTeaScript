@@ -144,7 +144,8 @@ $src =~ s/\bequals\b/Equals/g;
 $src =~ s/\btoString\b/ToString/g;
 $src =~ s/\bstartsWith\b/StartsWith/g;
 
-$src =~ s/\b extends\b|\b implements\b/:/g;
+$src =~ s/\b\sextends\b|\b implements\b/:/g;
+$src =~ s/\boperator\b/\b\@operator\b/g;
 
 $src =~ s/\b(public\s)?class\b/public class/g;
 
