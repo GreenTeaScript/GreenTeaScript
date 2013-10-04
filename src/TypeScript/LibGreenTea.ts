@@ -75,6 +75,20 @@ String.prototype["equals"] = function(other): boolean{
 	return (this == other);
 }
 
+class LibLoadFunc{
+	static LoadTokenFunc(ParserContext: GtParserContext, Grammar: Object, FuncName: string): GtFunc{
+		return null;
+	}
+
+	static LoadParseFunc(ParserContext: GtParserContext, Grammar: Object, FuncName: string): GtFunc{
+		return null;
+	}
+
+	static LoadTypeFunc(ParserContext: GtParserContext, Grammar: Object, FuncName: string): GtFunc{
+		return null;
+	}
+}
+
 class GtMap {
 	private map: Object;
 	private length: number;
