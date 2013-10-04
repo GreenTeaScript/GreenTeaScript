@@ -12,6 +12,7 @@
 		<javac srcdir="${source_dir}" destdir="${build_dir}" debug="on" target="1.6" source="1.6" includeantruntime="false">
 			<classpath path="ext/asm-all-4.0.jar" />
 			<classpath path="ext/jline-2.12-SNAPSHOT.jar" />
+			<classpath path="ext/jna-4.0.0.jar" />
 			<include name="**/*.java" />
 		</javac>
 	</target>
@@ -29,6 +30,7 @@
 			</manifest>
 			<zipfileset src="ext/asm-all-4.0.jar" />
 			<zipfileset src="ext/jline-2.12-SNAPSHOT.jar" />
+			<zipfileset src="ext/jna-4.0.0.jar" />
 		</jar>
 	</target>
 

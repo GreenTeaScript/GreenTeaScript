@@ -162,6 +162,14 @@ public class DShellProcess {
 		}
 		return false;
 	}
+	
+	// change directory
+	public static boolean ChangeDirectory(String path) {
+		if(LibGreenTea.EqualsString(path, "")) {
+			return CLibraryWrapper.INSTANCE.chdir(System.getenv("HOME")) == 0;
+		}
+		return CLibraryWrapper.INSTANCE.chdir(path) == 0;
+	}
 
 	//---------------------------------------------
 
@@ -766,6 +774,12 @@ class ErrorStreamHandler {
 			new PipeStreamHandler(this.targetProcs[i].accessErrorStream(), System.err, false).start();
 		}
 	}
+}
+
+interface CLibraryWrapper extends com.sun.jna.Library {
+	CLibraryWrapper INSTANCE = (CLibraryWrapper) com.sun.jna.Native.loadLibrary("c", CLibraryWrapper.class);
+	
+	int chdir(String path);
 }
 
 // copied from http://blog.art-of-coding.eu/piping-between-processes/
