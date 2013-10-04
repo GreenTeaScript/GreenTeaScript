@@ -16,17 +16,17 @@ TestScript() {
 }
 
 TestDir() {
-	for TPATH in $1/*.green
+	for TPATH in $1/*.$2
 	do
 		TestScript $TPATH
 	done
 }
 
 Main() {
-	TestDir "test/common"
-	TestDir "test/java"
-	TestDir "test/dshell"
-	TestDir "test/stress"
+	TestDir "test/common" green
+	TestDir "test/java" green
+	TestDir "test/dshell" ds
+	TestDir "test/stress" green
 }
 
 Main
