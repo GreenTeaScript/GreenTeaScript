@@ -71,7 +71,7 @@ public final class GtTokenContext extends GreenTeaUtils {
 		this.ParsingLine += line;
 	}
 
-	public void ReportTokenError(int Level, String Message, String TokenText) {
+	public void ReportTokenError1(int Level, String Message, String TokenText) {
 		/*local*/GtToken Token = this.AddNewToken(TokenText, 0, "$Error$");
 		this.TopLevelNameSpace.Context.ReportError(Level, Token, Message);
 	}
@@ -111,7 +111,7 @@ public final class GtTokenContext extends GreenTeaUtils {
 		this.LatestToken = LeastRecentToken;
 	}
 
-	public GtSyntaxTree ReportTokenError(GtToken Token, String Message, boolean SkipToken) {
+	public GtSyntaxTree ReportTokenError2(GtToken Token, String Message, boolean SkipToken) {
 		if(this.IsAllowedBackTrack()) {
 			return null;
 		}
@@ -143,7 +143,7 @@ public final class GtTokenContext extends GreenTeaUtils {
 	}
 
 	public GtSyntaxTree ReportExpectedMessage(GtToken Token, String Message, boolean SkipToken) {
-		return this.ReportTokenError(Token, "expected " + Message + "; given = " + Token.ParsedText, SkipToken);
+		return this.ReportTokenError2(Token, "expected " + Message + "; given = " + Token.ParsedText, SkipToken);
 	}
 
 	public void Vacume() {
