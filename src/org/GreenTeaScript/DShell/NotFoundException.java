@@ -1,10 +1,10 @@
 package org.GreenTeaScript.DShell;
 
 
-public class NotFoundException extends DShellException {
+public class NotFoundException extends RelatedSyscallException {
 	private static final long serialVersionUID = 1L;
 
-	public NotFoundException(String message) {
-		super(message);
+	public NotFoundException(String message, String commandName, String[] syscalls) {
+		super(message, commandName, syscalls);
 	}
 }

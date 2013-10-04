@@ -1,10 +1,10 @@
 package org.GreenTeaScript.DShell;
 
 
-public class ConnectRefusedException extends DShellException {
+public class ConnectRefusedException extends RelatedSyscallException {
 	private static final long serialVersionUID = 1L;
 
-	public ConnectRefusedException(String message) {
-		super(message);
+	public ConnectRefusedException(String message, String commandName, String[] syscalls) {
+		super(message, commandName, syscalls);
 	}
 }
