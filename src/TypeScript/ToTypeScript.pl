@@ -52,8 +52,24 @@ sub fixup {
 # Delegates.
 $src =~ s/Function(?:A|B|C)\(this, "(.+?)"\)/$Grammar\["$1"\]/g;
 
+# Restricted Java Comments
+$src =~ s/\/\*constructor\*\//#Constructor#/g;
+$src =~ s/\/\*local\*\//#Local#/g;
+$src =~ s/\/\*field\*\//#Field#/g;
+$src =~ s/\/\*cast\*\//#Cast#/g;
+$src =~ s/\/\*BeginArray\*\//#BeginArray#/g;
+$src =~ s/\/\*EndArray\*\//#EndArray#/g;
+
+# Char Literals
+$src =~ s/'(\\.)'/ord(fixup($1))/eg;
+$src =~ s/'(.)'/ord($1)/eg;
+$src =~ s/('..')/($1.charCodeAt(0))/g;
+
+# Protect Comments
+$src =~ s/(\/\*.*?\*\/)/&ProtectComment($1)/gmse;
+
 # Protect String literals
-$src =~ s/(".*?")/&ProtectString($1)/ge;
+$src =~ s/("(?:[^\\"]|\\.)*?")/&ProtectString($1)/ge;
 
 $src =~ s/};/}/g;
 
@@ -86,23 +102,19 @@ $src =~ s/class GreenTeaUtils(.*?)^}/GreenTeaUtilsSection($1)/ems;
 
 # Comments
 $src =~ s/^\/\/[#\s]*ifdef\s+JAVA.*?VAJA//gms;
-#$src =~ s/^\/\/require (.*?).java/\/\/\/ <reference path="$1.ts" \/>/gms;
 $src =~ s/(\/\/.*?)$/&ProtectComment($1)/gems;
 # Fields. public static int n = 0; => public static n: int = 0;
-$src =~ s/\/\*field\*\/($Attr*)($Type)\s+($Sym)/$1$3: $2/gm;
+$src =~ s/#Field#($Attr*)($Type)\s+($Sym)/$1$3: $2/gm;
 # Local variables.  int n = 0; => var n: int = 0;
-$src =~ s/\/\*local\*\/($Type)\s+($Sym)/var $2: $1/g;
+$src =~ s/#Local#($Type)\s+($Sym)/var $2: $1/g;
 # Constractors.
-$src =~ s/($Attr*)($Sym)\/\*constructor\*\/\((.*?)\)/constructor(#params#$3)/g;
+$src =~ s/($Attr*)($Sym)#Constructor#\((.*?)\)/constructor(#params#$3)/g;
 $src =~ s/new\s+($Type)\[(.+)\]/new Array<$1>($2)/g;
 # Casts
-#$src =~ s/\((string|number)\)/<$1>/g;
-$src =~ s/\(\/\*cast\*\/($Type)\)/<$1>/g;
+$src =~ s/\(#Cast#($Type)\)/<$1>/g;
 # Array literals.
-$src =~ s/\/\*BeginArray\*\/{/\[/g;
-$src =~ s/\/\*EndArray\*\/}/\]/g;
-# Protect Comments
-$src =~ s/(\/\*.*?\*\/)/&ProtectComment($1)/gmse;
+$src =~ s/#BeginArray#{/\[/g;
+$src =~ s/#EndArray#}/\]/g;
 
 # Methods. public int f(float n){...} => public f(#params#float n): int{...}
 $src =~ s/($Attr*)($Type)\s+($Sym)\s*\((.*?)\)/$1$3(#params#$4): $2/g;
@@ -112,10 +124,7 @@ $src =~ s/\(#params#(.*?)\)/"(" . Params($1) . ")"/eg;
 $src =~ s/(?:$Attr*) ($Type)\s+($Sym)((?:\[\s*\d*\s*\])?)/$2: $1$3/g;
 # Array literals.
 $src =~ s/=\s*{(.*?)}/= \[$1\]/g;
-# Unrestricted Local Variables
-#$src =~ s/($Type)\s+($Sym)\s+=/var $2: $1 =/g;
-# Unrestricted Fields.
-#$src =~ s/($Attr*)($Type)\s+($Sym)/$1$3: $2/g;
+
 $src =~ s/catch\(\s*($Type)\s+($Sym)\s*\)/catch($2)/g;
 
 # Types
@@ -128,10 +137,6 @@ $src =~ s/\bnew\s+Array<.*?>\s*\(Arrays.asList\((.*?)\)\)/$1/g;
 $src =~ s/\bArrays.asList\b//g;
 $src =~ s/\.toArray\(\)//g;
 $src =~ s/\b(\d+)L\b/$1/g;
-
-$src =~ s/'(\\.)'/ord(fixup($1)) . '\/*' . $1 . '*\/'/eg;
-$src =~ s/'(.)'/ord($1) . '\/*' . $1 . '*\/'/eg;
-$src =~ s/('..')/($1.charCodeAt(0))/g;
 
 $src =~ s/\bfinal\b//g;
 $src =~ s/\bprotected\b//g;
@@ -152,7 +157,6 @@ $src =~ s/Void.class/null/g;
 
 $src =~ s/\bnew Object(\(\))?/<any>{}/g;
 
-#$src =~ s/\bsize\(\)/length/g
 $src =~ s/\blength\(\)/length/g;
 $src =~ s/\bSystem\.out\.println/console.log/g;
 $src =~ s/\bSystem\.err\.println/console.log/g;
@@ -166,12 +170,19 @@ $src =~ s/(?!\.)\b((?:Parse|Type)(?:Unary|Binary|Const|Block))\b(?!\()/$Grammar\
 $src =~ s/\bGtDelegate(?:Common|Token|Match|Type)\b/any/g;
 $src =~ s/$Grammar\.$Grammar/$Grammar/g;
 
-
+$src =~ s/\bGtGrammar\.Load(Token|Parse|Type)Func\b/LibLoadFunc.Load$1Func/g;
 
 # For debug
 #$src =~ s/(LibGreenTea\.)?DebugP\(/console.log("DEBUG: " + /g;
 #$src =~ s/LibGreenTea\.println\(/console.log(/g;
 #src =~ s/function console.log\("DEBUG: " \+ /function DebugP(/g;
+
+$src =~ s/#Constructor#//g;
+$src =~ s/#Local#//g;
+$src =~ s/#Field#//g;
+$src =~ s/#Cast#//g;
+$src =~ s/#BeginArray#//g;
+$src =~ s/#EndArray#//g;
 
 my $n = @Comments;
 my $i = 0;
@@ -190,39 +201,5 @@ while($i < $n){
 
 my $filename = $ARGV[0];
 $filename =~ s@[/|\\]([^/]+)\..*@$1@;
-#
-#my @files = (
-#	"GreenTeaScript",
-#	"GreenTeaTopObject",
-#	"GreenTeaScriptTest",
-#	"CSourceGenerator",
-#	"GreenTeaArray",
-#	"GreenTeaEnum",
-#	"GreenTeaGrammar",
-#	"GreenTeaObject",
-#	"GreenTeaRuntime",
-#	"GtFunc",
-#	"GtNameSpace",
-#	"GtParserContext",
-#	"GtSyntaxPattern",
-#	"GtSyntaxTree",
-#	"GtToken",
-#	"GtTokenContext",
-#	"GtType",
-#	"GtTypeEnv",
-#	"SourceGenerator",
-##	"BashSourceGenerator",
-#	"JavaScriptSourceGenerator",
-##	"PerlSourceGenerator",
-##	"PythonSourceGenerator",
-#	"ScalaSourceGenerator",
-#);
-
-#my $f;
-#foreach $f (@files) {
-#	if($filename !~ $f){
-#		print "/// <reference path=\"$f.ts\" />\n";
-#	}
-#}
 
 print $src;

@@ -75,6 +75,20 @@ String.prototype["equals"] = function(other): boolean{
 	return (this == other);
 }
 
+class LibLoadFunc{
+	static LoadTokenFunc(ParserContext: GtParserContext, Grammar: Object, FuncName: string): GtFunc{
+		return null;
+	}
+
+	static LoadParseFunc(ParserContext: GtParserContext, Grammar: Object, FuncName: string): GtFunc{
+		return null;
+	}
+
+	static LoadTypeFunc(ParserContext: GtParserContext, Grammar: Object, FuncName: string): GtFunc{
+		return null;
+	}
+}
+
 class GtMap {
 	private map: Object;
 	private length: number;
@@ -86,6 +100,12 @@ class GtMap {
 	}
 	get(index: any): any{
 		return this.map[index];
+	}
+	GetOrNull(index: any): any{
+		if(this.map[index] != undefined){
+			return this.map[index];
+		}
+		return null;
 	}
 	put(key: any, obj: any): void{
 		this.length++;
@@ -276,7 +296,7 @@ class LibGreenTea {
 	}
 
 	static GetNativeType(Context: GtParserContext, Value: any): GtType {
-		var NativeType: GtType = null;
+		var NativeGtType: GtType = null;
 		var NativeClassInfo: any = Value.constructor;
 		if(typeof Value == 'number' || Value instanceof Number) {
 			if((<any>Value | 0) == <any>Value) {
@@ -287,16 +307,16 @@ class LibGreenTea {
 		if(typeof Value == 'string' || Value instanceof String) {
 			return Context.StringType;
 		}
-		NativeType = <GtType> Context.ClassNameMap.get(NativeClassInfo.name);
-		if(NativeType == null) {
-			NativeType = new GtType(Context, NativeClass, NativeClassInfo.getSimpleName(), null, NativeClassInfo);
+		NativeGtType = <GtType> Context.ClassNameMap.get(NativeClassInfo.name);
+		if(NativeGtType == null) {
+			NativeGtType = new GtType(Context, NativeType, NativeClassInfo.getSimpleName(), null, NativeClassInfo);
 			Context.ClassNameMap.put(NativeClassInfo.getName(), NativeType);
 		}
-		return NativeType;
+		return NativeGtType;
 	}
 
 	static GetClassName(Value: any): string {
-		return typeof(Value);
+		return (<any>Value).constructor.name;
 	}
 
 	static MatchNativeMethod(FuncType: GtType, JavaMethod: any): boolean {
@@ -337,14 +357,14 @@ class LibGreenTea {
 		return false;
 	}
 
-	static LoadNativeConstructors(ClassType: GtType) : boolean {
+	static LoadNativeConstructors(ClassType: GtType, FuncList: GtFunc[]) : boolean {
 		throw new Error("NotSupportedAPI");
 		return false;
 	}
 
-	static LoadNativeField(ClassType: GtType, FieldName: string) : boolean {
+	static LoadNativeField(ClassType: GtType, FieldName: string, GetSetter: boolean) : GtFunc {
 		throw new Error("NotSupportedAPI");
-		return false;
+		return null;
 	}
 
 	static NativeFieldValue (ObjectValue: any, NativeField: any/*Field*/) :  any {
@@ -488,8 +508,8 @@ class LibGreenTea {
 				return new PythonSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 			}else if(LibGreenTea.EndsWith(Extension, ".sh") || LibGreenTea.StartsWith(TargetCode, "bash")){
 				return new BashSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
-			}else if(LibGreenTea.EndsWith(Extension, ".java") || LibGreenTea.StartsWith(TargetCode, "java")){
-				return new JavaSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+			}else if(LibGreenTea.EndsWith(Extension, ".scala") || LibGreenTea.StartsWith(TargetCode, "scala")){
+				return new ScalaSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 			}else if(LibGreenTea.EndsWith(Extension, ".c") || LibGreenTea.StartsWith(TargetCode, "c")){
 				return new CSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 			}else if(LibGreenTea.EndsWith(Extension, "X") || LibGreenTea.StartsWith(TargetCode, "exe")){
