@@ -1,6 +1,15 @@
 // written by kimio
 
-let Person = import org.GreenTeaScript.NativeClassTest;
+class Person {
+	String name;
+	int age;
+	boolean isNinja;
+	constructor(String name, int age, boolean isNinja) {
+		this.name = name;
+		this.age = age;
+		this.isNinja = isNinja;
+	}
+}
 
 boolean TestFunc() {
 	Person p = new Person("naruto", 17, true);
