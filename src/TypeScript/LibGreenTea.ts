@@ -337,7 +337,7 @@ class LibGreenTea {
 		return false;
 	}
 
-	static LoadNativeConstructors(ClassType: GtType, FuncList: GtGunc[]) : boolean {
+	static LoadNativeConstructors(ClassType: GtType, FuncList: GtFunc[]) : boolean {
 		throw new Error("NotSupportedAPI");
 		return false;
 	}
