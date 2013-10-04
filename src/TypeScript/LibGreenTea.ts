@@ -276,11 +276,11 @@ class LibGreenTea {
 		return m1 === m2;
 	}
 
-	static CreateOrReuseTokenFunc(f: any, prev: TokenFunc): TokenFunc {
+	static CreateOrReuseTokenFunc(f: any, prev: GtTokenFunc): GtTokenFunc {
 		if(prev != null && LibGreenTea.EqualsFunc(prev.Func, f)) {
 			return prev;
 		}
-		return new TokenFunc(f, prev);
+		return new GtTokenFunc(f, prev);
 	}
 
 	static ApplyTokenFunc(Delegate: any, TokenContext: Object, Text: string, pos: number): number {
