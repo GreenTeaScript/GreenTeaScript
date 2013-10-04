@@ -299,14 +299,14 @@ public class KonohaGrammar extends GtGrammar {
 				return pos + 1;
 			}
 			if(ch == '\n') {
-				TokenContext.ReportTokenError(ErrorLevel, "expected ' to close the charctor literal", LibGreenTea.SubString(SourceText, start, pos));
+				TokenContext.ReportTokenError1(ErrorLevel, "expected ' to close the charctor literal", LibGreenTea.SubString(SourceText, start, pos));
 				TokenContext.FoundLineFeed(1);
 				return pos;
 			}
 			pos = pos + 1;
 			prev = ch;
 		}
-		TokenContext.ReportTokenError(ErrorLevel, "expected ' to close the charctor literal", LibGreenTea.SubString(SourceText, start, pos));
+		TokenContext.ReportTokenError1(ErrorLevel, "expected ' to close the charctor literal", LibGreenTea.SubString(SourceText, start, pos));
 		return pos;
 	}
 
@@ -321,14 +321,14 @@ public class KonohaGrammar extends GtGrammar {
 				return pos + 1;
 			}
 			if(ch == '\n') {
-				TokenContext.ReportTokenError(ErrorLevel, "expected \" to close the string literal", LibGreenTea.SubString(SourceText, start, pos));
+				TokenContext.ReportTokenError1(ErrorLevel, "expected \" to close the string literal", LibGreenTea.SubString(SourceText, start, pos));
 				TokenContext.FoundLineFeed(1);
 				return pos;
 			}
 			pos = pos + 1;
 			prev = ch;
 		}
-		TokenContext.ReportTokenError(ErrorLevel, "expected \" to close the string literal", LibGreenTea.SubString(SourceText, start, pos));
+		TokenContext.ReportTokenError1(ErrorLevel, "expected \" to close the string literal", LibGreenTea.SubString(SourceText, start, pos));
 		return pos;
 	}
 
@@ -1201,7 +1201,7 @@ public class KonohaGrammar extends GtGrammar {
 			return null;
 		}
 		else {
-			return TokenContext.ReportTokenError(TokenContext.GetToken(), "unexpected ;", false);
+			return TokenContext.ReportTokenError2(TokenContext.GetToken(), "unexpected ;", false);
 		}
 	}
 
