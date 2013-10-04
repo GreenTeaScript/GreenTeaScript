@@ -304,13 +304,17 @@ MakeHead() {
 	TestEach $PERL ".pl" 0
 	TestEach $BASH ".sh" 0
 	TestEach $CC ".c"  0
-	TestEach $SCALA ".scala"  0
+	if [ "$SCALA" != "" ]; then
+		TestEach $SCALA ".scala"  0
+	fi
 	TestEach "VM" "green-jvm" 0
 	TestEach $PYTHON `basename $PYTHON` 0
 	TestEach $NODE `basename $NODE` 0
 	TestEach $PERL `basename $PERL` 0
 	#TestEach $BASH `basename $BASH` 0
-	TestEach $SCALA `basename $SCALA` 0
+	if [ "$SCALA" != "" ]; then
+		TestEach $SCALA `basename $SCALA` 0
+	fi
 	TestEach $CC `basename $CC` 0
 }
 
@@ -328,15 +332,19 @@ TestAll() {
 	TestEach $NODE $1 1
 	TestEach $PERL $1 1
 	TestEach $BASH $1 1
-	TestEach $SCALA $1 1
 	TestEach $CC $1 1
+	if [ "$SCALA" != "" ]; then
+		TestEach $SCALA $1 1
+	fi
 	# 2 means execution test
 	TestEach "VM" $1 2
 	TestEach $PYTHON $1 2
 	TestEach $NODE $1 2
 	TestEach $PERL $1 2
-	TestEach $SCALA $1 2
 	TestEach $CC $1 2
+	if [ "$SCALA" != "" ]; then
+		TestEach $SCALA $1 2
+	fi
 }
 
 ## test script

@@ -1,0 +1,11 @@
+
+boolean TestFunc() {
+	var a = ["a"];
+	String s = a[0];
+	return s == "a";
+}
+
+@Export int main() {
+	assert(TestFunc());
+	return 0;
+}

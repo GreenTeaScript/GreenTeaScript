@@ -114,20 +114,6 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Program);
 	}
 
-	private GtForNode FindParentForNode(GtNode Node) {
-		/*local*/GtNode Parent = Node.GetParentNode();
-		while(Parent != null) {
-			if(Parent instanceof GtForNode) {
-				return (/*cast*/GtForNode)Parent;
-			}
-			if(Parent.GetParentNode() == null) {
-				Parent = Parent.MoveHeadNode();
-			}
-			Parent = Parent.GetParentNode();
-		}
-		return null;
-	}
-
 	@Override public void VisitContinueNode(GtContinueNode Node) {
 		/*local*/String Code = "";
 		/*local*/GtForNode Parent = this.FindParentForNode(Node);
@@ -174,9 +160,9 @@ public class PythonSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitTrinaryNode(GtTrinaryNode Node) {
-		/*local*/String CondExpr = this.VisitNode(Node.CondExpr);
-		/*local*/String Then = this.VisitNode(Node.ThenExpr);
-		/*local*/String Else = this.VisitNode(Node.ElseExpr);
+		/*local*/String CondExpr = this.VisitNode(Node.ConditionNode);
+		/*local*/String Then = this.VisitNode(Node.ThenNode);
+		/*local*/String Else = this.VisitNode(Node.ElseNode);
 		this.PushSourceCode(Then + " if " + CondExpr + " else " + Else);
 	}
 

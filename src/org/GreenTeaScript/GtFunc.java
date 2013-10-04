@@ -111,10 +111,10 @@ public final class GtFunc extends GreenTeaUtils {
 	}
 
 	@Override public String toString() {
-		/*local*/String s = this.GetReturnType() + " " + this.FuncName + "(";
+		/*local*/String s = this.GetReturnType().GetRevealedType() + " " + this.FuncName + "(";
 		/*local*/int i = 0;
 		while(i < this.GetFuncParamSize()) {
-			/*local*/GtType ParamType = this.GetFuncParamType(i);
+			/*local*/GtType ParamType = this.GetFuncParamType(i).GetRevealedType();
 			if(i > 0) {
 				s += ", ";
 			}
@@ -200,7 +200,6 @@ public final class GtFunc extends GreenTeaUtils {
 	}
 
 	public final void SetNativeMethod(int OptionalFuncFlag, Object Method) {
-//		LibGreenTea.Assert(this.NativeRef == null);
 		this.FuncFlag |= NativeFunc | OptionalFuncFlag;
 		this.FuncBody = Method;
 	}
@@ -358,6 +357,11 @@ class GtPolyFunc extends GreenTeaUtils {
 					p = p + 1;
 				}
 				if(Func != null) {
+					if(ParamList.size() == FuncParamSize) {
+						// when paramsize matched, unnecessary to check others
+						ResolvedFunc.Func = Func;    
+						return true;
+					}
 					if(FoundFunc != null) {
 						ResolvedFunc.Func = null;
 						return false; // two more func
@@ -490,7 +494,7 @@ class GtPolyFunc extends GreenTeaUtils {
 		/*local*/GtResolvedFunc ResolvedFunc = new GtResolvedFunc(Gamma.NameSpace);
 		while(!this.CheckIncrementalTyping(Gamma.NameSpace, FuncParamSize, ParamList, ResolvedFunc) && TreeIndex < LibGreenTea.ListSize(ParsedTree.SubTreeList)) {
 			/*local*/GtNode Node = ParsedTree.TypeCheckAt(TreeIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
-			if(Node.IsError()) {
+			if(Node.IsErrorNode()) {
 				ResolvedFunc.ErrorNode = Node;
 				return ResolvedFunc;
 			}
@@ -504,7 +508,7 @@ class GtPolyFunc extends GreenTeaUtils {
 				ContextType = ContextType.RealType(GenericNameSpace, Gamma.VarType);
 				//System.err.println("TreeIndex="+ TreeIndex+" NodeSize="+ParamList.size()+" ContextType="+ContextType);
 				/*local*/GtNode Node = ParsedTree.TypeCheckAt(TreeIndex, Gamma, ContextType, DefaultTypeCheckPolicy);
-				if(Node.IsError()) {
+				if(Node.IsErrorNode()) {
 					ResolvedFunc.ErrorNode = Node;
 					return ResolvedFunc;
 				}				

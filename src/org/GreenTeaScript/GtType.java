@@ -150,6 +150,13 @@ public class GtType extends GreenTeaUtils {
 	public final boolean IsUnrevealedType() {
 		return IsFlag(this.TypeFlag, UnrevealedType);
 	}
+	public final GtType GetRevealedType() {
+		if(this.IsUnrevealedType()) {
+			return this.BaseType;
+		}
+		return this;
+	}
+
 	@Override public String toString() {
 		return this.ShortName;
 	}
@@ -196,7 +203,6 @@ public class GtType extends GreenTeaUtils {
 //		System.err.println("" + this + " accepts " + Type + " ? " + b);
 //		return b;
 //	}
-
 	
 	public final boolean AcceptValue(Object Value) {
 		return (Value != null) ? this.Accept(this.Context.GuessType(Value)) : true;
@@ -295,6 +301,7 @@ public class GtType extends GreenTeaUtils {
 		}
 		return this.Accept(GivenType);
 	}
+
 
 
 //	public boolean Match(GtNameSpace GenericNameSpace, GtType GivenType) {

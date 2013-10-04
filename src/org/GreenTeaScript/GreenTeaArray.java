@@ -38,7 +38,7 @@ public class GreenTeaArray extends GreenTeaTopObject {
 		/*local*/GreenTeaArray ArrayObject = new GreenTeaArray(this.GreenType);
 		for(/*local*/int i = bindex; i < eindex; i++) {
 			/*local*/Object Value = this.ArrayBody.get(i);
-			this.ArrayBody.add(Value);
+			ArrayObject.ArrayBody.add(Value);
 		}
 		return ArrayObject;
 	}
@@ -47,13 +47,46 @@ public class GreenTeaArray extends GreenTeaTopObject {
 		for(/*local*/int i = 0; i < this.ArrayBody.size(); i++) {
 			/*local*/Object Value = this.ArrayBody.get(i);
 			if(i > 0) {
-				s += ", " + Value;
+				s += ", ";
 			}
-			else {
-				s += Value;
-			}
+			s += LibGreenTea.Stringfy(Value);
 		}
 		return s + "]";
+	}
+	public final static GreenTeaArray NewArray1(GtType Type, int InitSize) {
+		GtType ArrayType = Type.Context.GetGenericType1(Type.Context.ArrayType, Type, true); 
+		GreenTeaArray ArrayObject =  new GreenTeaArray(ArrayType);
+		for(int i = 0; i < InitSize; i++) {
+			ArrayObject.ArrayBody.add(Type.DefaultNullValue);
+		}
+		return ArrayObject;
+	}
+	// new int[2][3]
+	public final static GreenTeaArray NewArray2(GtType Type, int InitSize, int InitSize2) {
+		GtType ArrayType = Type.Context.GetGenericType1(Type.Context.ArrayType, Type, true); 
+		ArrayType = Type.Context.GetGenericType1(Type.Context.ArrayType, ArrayType, true); 
+		GreenTeaArray ArrayObject =  new GreenTeaArray(ArrayType);
+		for(int i = 0; i < InitSize2; i++) {
+			ArrayObject.ArrayBody.add(NewArray1(Type, InitSize));
+		}
+		return ArrayObject;
+	}
+	public final static GreenTeaArray NewArray3(GtType Type, int InitSize, int InitSize2, int InitSize3) {
+		GtType ArrayType = Type.Context.GetGenericType1(Type.Context.ArrayType, Type, true); 
+		ArrayType = Type.Context.GetGenericType1(Type.Context.ArrayType, ArrayType, true); 
+		ArrayType = Type.Context.GetGenericType1(Type.Context.ArrayType, ArrayType, true); 
+		GreenTeaArray ArrayObject =  new GreenTeaArray(ArrayType);
+		for(int i = 0; i < InitSize2; i++) {
+			ArrayObject.ArrayBody.add(NewArray2(Type, InitSize, InitSize2));
+		}
+		return ArrayObject;
+	}
+	public final static GreenTeaArray NewArrayLiteral(GtType ArrayType, Object[] Values) {
+		GreenTeaArray ArrayObject =  new GreenTeaArray(ArrayType);
+		for(int i = 0; i < Values.length; i++) {
+			ArrayObject.ArrayBody.add(Values[i]);
+		}
+		return ArrayObject;
 	}
 }
 

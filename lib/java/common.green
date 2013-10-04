@@ -15,7 +15,6 @@
 
 // AnyApi
 
-
 // StringApi
 @Common @Const @Operator String "+"(String x, any y) import Konoha.StringApi.Add;
 //@Const @Operator String "+"(int x, String y) import GreenTeaRuntime.Add;
@@ -130,12 +129,12 @@
 @Common @Const @Operator <T> Array<T> "[:]"(Array<T> x, int beginIndex) import Konoha.ArrayApi.Slice;
 @Common @Const @Operator <T> Array<T> "[:]"(Array<T> x, int beginIndex, int endIndex) import Konoha.ArrayApi.Slice;
 
-@Common @Const @Operator int "||"(Array<int> this) import Konoha.ArrayApi.GetSizeI;
-@Common @Const @Operator int "[]"(Array<int> this, int index) import Konoha.ArrayApi.GetI;
-@Common @Operator void "[]="(Array<int> this, int index, int value) import Konoha.ArrayApi.SetI;
-@Common Array<int> add(Array<int> this, int value) import Konoha.ArrayApi.AddI;
-@Common @Const @Operator Array<int> "[:]"(Array<int> x, int beginIndex) import Konoha.ArrayApi.SliceI;
-@Common @Const @Operator Array<int> "[:]"(Array<int> x, int beginIndex, int endIndex) import Konoha.ArrayApi.SliceI;
+//@Common @Const @Operator int "||"(Array<int> this) import Konoha.ArrayApi.GetSizeI;
+//@Common @Const @Operator int "[]"(Array<int> this, int index) import Konoha.ArrayApi.GetI;
+//@Common @Operator void "[]="(Array<int> this, int index, int value) import Konoha.ArrayApi.SetI;
+//@Common Array<int> add(Array<int> this, int value) import Konoha.ArrayApi.AddI;
+//@Common @Const @Operator Array<int> "[:]"(Array<int> x, int beginIndex) import Konoha.ArrayApi.SliceI;
+//@Common @Const @Operator Array<int> "[:]"(Array<int> x, int beginIndex, int endIndex) import Konoha.ArrayApi.SliceI;
 
 // experimental
 @Hidden @Coercion @Const var converter(var x) import Konoha.ArrayApi.GreenArrayToStringArray;

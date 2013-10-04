@@ -23,7 +23,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import org.GreenTeaScript.DShellGrammar;
-import org.GreenTeaScript.GtType;
 import org.GreenTeaScript.LibGreenTea;
 
 public class DShellProcess {
@@ -38,7 +37,6 @@ public class DShellProcess {
 	private static final int VoidType = 0;
 	private static final int BooleanType = 1;
 	private static final int StringType = 2;
-	private static final int ProcessType = 3;
 
 	private static SubProc prevSubProc = null;
 
@@ -97,21 +95,10 @@ public class DShellProcess {
 				return new Boolean(this.ReturnValue == 0);
 			}
 		}
-		return this;
+		return null;
 	}
 	private void waitResult() {
 		this.LastProcess.waitResult(is(this.CommandFlag, printable));
-	}
-
-	// GreenTeaScript API
-	public final static boolean Not(DShellProcess Value) {
-		return !(Value.ReturnValue == 0);
-	}
-	public final static String ConvertToString(GtType Type, DShellProcess Value) {
-		return Value.Result;
-	}
-	public final static boolean ConvertToBoolean(GtType ToType, DShellProcess Value) {
-		return Value.ReturnValue == 0;
 	}
 
 	// called by JavaByteCodeGenerator.VisitCommandNode 
@@ -123,17 +110,11 @@ public class DShellProcess {
 		int option = returnable | throwable | enableTrace;
 		return (String) runCommands(cmds, option, StringType);
 	}
-
 	public static boolean ExecCommandBool(String[]... cmds) throws Exception {
 		int option = returnable | printable;
 		return ((Boolean) runCommands(cmds, option, BooleanType)).booleanValue();
 	}
 
-	public static DShellProcess ExecCommand(String[]... cmds) throws Exception {
-		int option = printable | throwable | enableTrace;
-		return (DShellProcess) runCommands(cmds, option, ProcessType);
-	}
-	
 	// file system roll back function
 	// TargetLV: vg_name/lv_name
 	public static boolean CreateSnapshot(String SnapshotLabel, String TargetLV) throws Exception {
@@ -143,7 +124,7 @@ public class DShellProcess {
 		}
 		return false;
 	}
-	
+
 	public static boolean RevertSnapshot(String SnapshotLabel, String TargetLV) throws Exception {
 		if(System.getProperty("os.name").equals("Linux") && new File("/sbin/lvm").canExecute()) {
 			String[] volNames = TargetLV.split("/");
@@ -186,7 +167,7 @@ public class DShellProcess {
 		}
 		return false;
 	}
-	
+
 	//---------------------------------------------
 
 	private static boolean checkTraceRequirements() {
@@ -277,14 +258,6 @@ public class DShellProcess {
 			prevSubProc.setMergeType(SubProc.mergeErrorToOut);
 			prevSubProc = null;
 		}
-//		else if(LibGreenTea.EqualsString(cmdSymbol, "checkpoint")) {
-//			String[] newCmds = {"sudo", "lvcreate", "-s", "-n", cmds[1], cmds[2]};
-//			proc = new SubProc(false);
-//			proc.setArgument(newCmds);
-//		}
-//		else if(LibGreenTea.EqualsString(cmdSymbol, "rollback")) {
-//			
-//		}
 		else {
 			proc = new SubProc(enableSyscallTrace);
 			proc.setArgument(cmds);
@@ -339,7 +312,7 @@ public class DShellProcess {
 class PseudoProcess {
 	public final static int mergeErrorToOut = 0;
 	public final static int mergeOutToError = 1;
-	
+
 	protected PseudoProcess pipedPrevProc;
 
 	protected OutputStream stdin = null;
@@ -804,24 +777,40 @@ class PipeStreamHandler extends Thread {
 	}
 }
 
-class ErrorInferencer {
+class CauseInferencer {
+	// syscall filter
+	private static final Pattern syscallFilter = Pattern.compile("^[1-9][0-9]* .+(.+) *= *.+");
 	private static final Pattern failedSyscallFilter = Pattern.compile("^[1-9][0-9]* .+(.+) *= *-[1-9].+");
 	private static final Pattern gettextFilter = Pattern.compile("^.+(.+/locale.+).+");
 	private static final Pattern gconvFilter = Pattern.compile("^.+(.+/usr/lib64/gconv.+).+");
+	
+	// function filter
 	private static final Pattern functionFilter = Pattern.compile("^  > .+");
+	private static final Pattern dcigettextFilter = Pattern.compile("^  > __dcigettext().+");
 	private static final Pattern exitFilter = Pattern.compile("^  > .+exit.*().+");
 	private static final Pattern libcStartMainFilter = Pattern.compile("^  > __libc_start_main().+");
+	
 	private int traceBackendType;
 
-	public ErrorInferencer(int traceBackendType) {
+	public CauseInferencer(int traceBackendType) {
 		this.traceBackendType = traceBackendType;
 	}
 
 	private boolean applyFilter(Pattern filter, String line) {
 		return filter.matcher(line).find();
 	}
+	
+	private boolean applyFilterToGroup(Pattern filter, int startIndex, ArrayList<String> group) {
+		int size = group.size();
+		for(int i = startIndex; i < size; i++) {
+			if(applyFilter(filter, group.get(i))) {
+				return true;
+			}
+		}
+		return false;
+	}
 
-	private Stack<String[]> parseStraceLog(String logFilePath) {
+	private Stack<String[]> filterStraceLog(String logFilePath) {
 		try {
 			Stack<String[]> parsedSyscallStack = new Stack<String[]>();
 			BufferedReader br = new BufferedReader(new FileReader(logFilePath));
@@ -856,7 +845,7 @@ class ErrorInferencer {
 		return null;
 	}
 
-	private String createShapedLog(String logPath) {
+	private String applyPostProcess(String logPath) {
 		StringBuilder cmdBuilder = new StringBuilder();
 		String shapedLogPath = logPath + "-shaped.log";
 		String scriptPath = getFullExcutablePath("pretty_print_strace_out.py");
@@ -878,40 +867,55 @@ class ErrorInferencer {
 		return shapedLogPath;
 	}
 
-	private Stack<String[]> parseStracePlusLog(String logFilePath) {
+	private Stack<String[]> filterStracePlusLog(String logFilePath) {
 		try {
-			boolean found_libcStartMain = false;
-			String foundSyscall = null;
-			String newLogFilePath = createShapedLog(logFilePath);
+			String newLogFilePath = applyPostProcess(logFilePath);
 			Stack<String[]> parsedSyscallStack = new Stack<String[]>();
+			ArrayList<String> syscallGroup = null;
+			ArrayList<ArrayList<String>> syscallGroupList = new ArrayList<ArrayList<String>>();
 			BufferedReader br = new BufferedReader(new FileReader(newLogFilePath));
 			String line;
 			while((line = br.readLine()) != null) {
-				if(foundSyscall != null) {
-					if(applyFilter(functionFilter, line)) {
-						if(applyFilter(libcStartMainFilter, line)) {
-							found_libcStartMain = true;
-						}
-						if(applyFilter(exitFilter, line)) {
-							foundSyscall = null;
-						}
-						continue;
+				if(applyFilter(syscallFilter, line)) {
+					if(syscallGroup != null) {
+						syscallGroupList.add(syscallGroup);
+						syscallGroup = null;
 					}
-					else {
-						if(found_libcStartMain) {
-							parsedSyscallStack.push(parseLine(foundSyscall));
-							found_libcStartMain = false;
-						}
-						foundSyscall = null;
-					}
+					syscallGroup = new ArrayList<String>();
+					syscallGroup.add(line);
 				}
-				if(applyFilter(failedSyscallFilter, line) && 
-						!applyFilter(gettextFilter, line) && !applyFilter(gconvFilter, line)) {
-					foundSyscall = line;
+				else if(applyFilter(functionFilter, line)) {
+					syscallGroup.add(line);
 				}
+			}
+			if(syscallGroup != null) {
+				syscallGroupList.add(syscallGroup);
+				syscallGroup = null;
 			}
 			br.close();
 			SubProc.deleteLogFile(newLogFilePath);
+			
+			int size = syscallGroupList.size();
+			for(int i = 0; i < size; i++) {
+				ArrayList<String> group = syscallGroupList.get(i);
+				String syscall = group.get(0);
+				if(!applyFilter(failedSyscallFilter, syscall)) {
+					continue;
+				}
+				if(applyFilter(gconvFilter, syscall)) {
+					continue;
+				}
+				if(!applyFilterToGroup(libcStartMainFilter, 1, group)) {
+					continue;
+				}
+				if(applyFilterToGroup(exitFilter, 1, group)) {
+					continue;
+				}
+				if(applyFilterToGroup(dcigettextFilter, 1, group)) {
+					continue;
+				}
+				parsedSyscallStack.push(parseLine(syscall));
+			}
 			return parsedSyscallStack;
 		} 
 		catch (FileNotFoundException e) {
@@ -922,12 +926,12 @@ class ErrorInferencer {
 		}
 	}
 
-	private Stack<String[]> parseTraceLog(String logFilePath) {
+	private Stack<String[]> filterTraceLog(String logFilePath) {
 		if(traceBackendType == SubProc.traceBackend_strace) {
-			return parseStraceLog(logFilePath);
+			return filterStraceLog(logFilePath);
 		}
 		else if(traceBackendType == SubProc.traceBackend_strace_plus) {
-			return parseStracePlusLog(logFilePath);
+			return filterStracePlusLog(logFilePath);
 		}
 		else {
 			throw new RuntimeException("invalid trace backend type");
@@ -981,7 +985,7 @@ class ErrorInferencer {
 	}
 
 	public String[] doInference(String traceLogPath) {
-		Stack<String[]> syscallStack = this.parseTraceLog(traceLogPath);
+		Stack<String[]> syscallStack = this.filterTraceLog(traceLogPath);
 		try {
 			return syscallStack.peek();
 		}
@@ -1017,7 +1021,7 @@ class ShellExceptionRaiser {
 			if(targetProc.isTraced() && targetProc instanceof SubProc) {
 				String logFilePath = ((SubProc)targetProc).getLogFilePath();
 				if(targetProc.getRet() != 0) {
-					ErrorInferencer inferencer = new ErrorInferencer(SubProc.traceBackendType);
+					CauseInferencer inferencer = new CauseInferencer(SubProc.traceBackendType);
 					String[] inferedSyscall = inferencer.doInference(logFilePath);
 					SubProc.deleteLogFile(logFilePath);
 					throw createException(message, inferedSyscall);
@@ -1037,7 +1041,7 @@ class ShellExceptionRaiser {
 			if(syscall == null) {
 				return new NoRelatedSyscallException(message);
 			}
-			return ErrNo.valueOf(syscall[2]).toException(message, syscall[0], syscall[1]);
+			return ErrorToException.valueOf(syscall[2]).toException(message, syscall[0], syscall[1]);
 		}
 		catch (IllegalArgumentException e) {
 			return new Exception((syscall[2] + " is not syscall!!"));
@@ -1049,7 +1053,7 @@ enum Syscall {
 	open, openat, connect,
 }
 
-enum ErrNo {
+enum ErrorToException {
 	E2BIG {
 		public Exception toException(String message, String syscallName, String param) {
 			return new TooManyArgsException(message);

@@ -1,0 +1,11 @@
+
+boolean TestFunc() {
+	var a = [1, 2];
+	int n = a[1];
+	return n == 2;
+}
+
+@Export int main() {
+	assert(TestFunc());
+	return 0;
+}
