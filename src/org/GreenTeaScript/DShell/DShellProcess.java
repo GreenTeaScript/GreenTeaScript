@@ -1084,9 +1084,21 @@ enum ErrorToException {
 	EAGAIN, 
 	EALREADY, 
 	EBADE, 
-	EBADF, 
-	EBADFD, 
-	EBADMSG, 
+	EBADF {
+		public Class<?> toException() {
+			return BadFileDescriptorException.class;
+		}
+	}, 
+	EBADFD {
+		public Class<?> toException() {
+			return BadStateFileDescriptorException.class;
+		}
+	}, 
+	EBADMSG {
+		public Class<?> toException() {
+			return BadMessageException.class;
+		}
+	}, 
 	EBADR, 
 	EBADRQC, 
 	EBADSLT, 
@@ -1111,9 +1123,17 @@ enum ErrorToException {
 	EDESTADDRREQ, 
 	EDOM,
 	EDQUOT, 
-	EEXIST, 
+	EEXIST {
+		public Class<?> toException() {
+			return FileExistException.class;
+		}
+	}, 
 	EFAULT, 
-	EFBIG, 
+	EFBIG {
+		public Class<?> toException() {
+			return TooLargeFileException.class;
+		}
+	}, 
 	EHOSTDOWN, 
 	EHOSTUNREACH, 
 	EIDRM, 
@@ -1129,7 +1149,11 @@ enum ErrorToException {
 			return InvalidArgumentException.class;
 		}
 	}, 
-	EIO, 
+	EIO {
+		public Class<?> toException() {
+			return org.GreenTeaScript.DShell.IOException.class;
+		}
+	}, 
 	EISCONN, 
 	EISDIR {
 		public Class<?> toException() {
@@ -1155,9 +1179,17 @@ enum ErrorToException {
 		}
 	}, 
 	EMEDIUMTYPE, 
-	EMFILE, 
+	EMFILE {
+		public Class<?> toException() {
+			return TooManyFileOpenException.class;
+		}
+	}, 
 	EMLINK, 
-	EMSGSIZE, 
+	EMSGSIZE {
+		public Class<?> toException() {
+			return TooLongMessageException.class;
+		}
+	}, 
 	EMULTIHOP, 
 	ENAMETOOLONG {
 		public Class<?> toException() {
@@ -1171,8 +1203,16 @@ enum ErrorToException {
 			return UnreachableException.class;
 		}
 	}, 
-	ENFILE,
-	ENOBUFS, 
+	ENFILE {
+		public Class<?> toException() {
+			return FileTableOverflowException.class;
+		}
+	},
+	ENOBUFS {
+		public Class<?> toException() {
+			return NoBufferSpaceException.class;
+		}
+	}, 
 	ENODATA, 
 	ENODEV, 
 	ENOENT {
@@ -1209,8 +1249,16 @@ enum ErrorToException {
 			return NotDirectoryException.class;
 		}
 	}, 
-	ENOTEMPTY, 
-	ENOTSOCK, 
+	ENOTEMPTY {
+		public Class<?> toException() {
+			return NotEmptyDirectoryException.class;
+		}
+	}, 
+	ENOTSOCK {
+		public Class<?> toException() {
+			return NotSocketException.class;
+		}
+	}, 
 	ENOTSUP, 
 	ENOTTY {
 		public Class<?> toException() {
@@ -1227,14 +1275,22 @@ enum ErrorToException {
 		}
 	}, 
 	EPFNOSUPPORT, 
-	EPIPE, 
+	EPIPE {
+		public Class<?> toException() {
+			return BrokenPipeException.class;
+		}
+	}, 
 	EPROTO, 
 	EPROTONOSUPPORT, 
 	EPROTOTYPE, 
 	ERANGE, 
 	EREMCHG, 
 	EREMOTE, 
-	EREMOTEIO,
+	EREMOTEIO {
+		public Class<?> toException() {
+			return RemoteIOException.class;
+		}
+	},
 	ERESTART, 
 	EROFS {
 		public Class<?> toException() {
@@ -1260,7 +1316,11 @@ enum ErrorToException {
 	ETXTBSY, 
 	EUCLEAN, 
 	EUNATCH, 
-	EUSERS, 
+	EUSERS {
+		public Class<?> toException() {
+			return TooManyUsersException.class;
+		}
+	}, 
 	EWOULDBLOCK, 
 	EXDEV, 
 	EXFULL;
