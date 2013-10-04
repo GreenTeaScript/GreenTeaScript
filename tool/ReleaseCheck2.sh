@@ -5,7 +5,7 @@ then
 	GREENTEA='java -ea -jar GreenTeaScript.jar'
 fi
 
-BASEDIR="test/exec"
+BASEDIR="test/konoha"
 #if [ -z $1 -a -d $1 ]
 #then
 #	#BASEDIR=$1
