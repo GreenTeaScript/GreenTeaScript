@@ -134,10 +134,11 @@ $src =~ s/\binstanceof\b/is/g;
 # $src =~ s/\bpublic class\b/class/g;
 
 $src =~ s/\bsize\(\)/Count()/g;
-$src =~ s/\blength(\(\))?\b/Length/g;
+$src =~ s/length(\(\))?/Length/g;
 $src =~ s/\bSystem\.out\.println/Console.WriteLine/g;
 $src =~ s/\badd\(/Add(/g;
 $src =~ s/\.get\((.*?)\)/[$1]/g;
+$src =~ s/trim/Trim/g;
 
 $src =~ s/\bmain\b/Main/g;
 $src =~ s/\bequals\b/Equals/g;
@@ -150,6 +151,7 @@ $src =~ s/\boperator\b/\@operator/g;
 $src =~ s/\b(public\s)?class\b/public class/g;
 
 $src =~ s/{\n\s*super\((.*?)\);/:base($1){/g;
+$src =~ s/super/base/g;
 # argument
 
 $src =~ s/\(($Type)\s($Sym)\[\]\)/($1\[\] $2)/g;
