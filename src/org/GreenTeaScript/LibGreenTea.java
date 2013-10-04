@@ -63,13 +63,13 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 
 	public final static Object NewArray(GtType Type, Object[] InitSizes) {
 		if(InitSizes.length == 1) {
-			return GreenTeaArray.NewArray1(Type, ((Number)InitSizes[0]).intValue());
+			return GreenTeaArray.NewArray1(Type.TypeParams[0], ((Number)InitSizes[0]).intValue());
 		}
 		else if(InitSizes.length == 2) {
-			return GreenTeaArray.NewArray2(Type, ((Number)InitSizes[0]).intValue(), ((Number)InitSizes[1]).intValue());
+			return GreenTeaArray.NewArray2(Type.TypeParams[0].TypeParams[0], ((Number)InitSizes[0]).intValue(), ((Number)InitSizes[1]).intValue());
 		}
 		else {
-			return GreenTeaArray.NewArray3(Type, ((Number)InitSizes[0]).intValue(), ((Number)InitSizes[1]).intValue(), ((Number)InitSizes[2]).intValue());
+			return GreenTeaArray.NewArray3(Type.TypeParams[0].TypeParams[0].TypeParams[0], ((Number)InitSizes[0]).intValue(), ((Number)InitSizes[1]).intValue(), ((Number)InitSizes[2]).intValue());
 		}
 		
 	}
