@@ -455,7 +455,7 @@ public class GtGenerator extends GreenTeaUtils {
 //endif VAJA
 		return ArrayObject;  // if unsupported
 	}
-	public Object EvalNewArrayNode(GtArrayNode Node, boolean EnforceConst) {
+	public Object EvalNewArrayNode(GtNewArrayNode Node, boolean EnforceConst) {
 		/*local*/Object ArrayObject = null;
 //ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
 		Object Values[] = new Object[LibGreenTea.ListSize(Node.NodeList)];
