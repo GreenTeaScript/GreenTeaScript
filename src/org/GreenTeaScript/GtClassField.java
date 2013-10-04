@@ -76,24 +76,3 @@ public final class GtClassField extends GreenTeaUtils {
 	}
 }
 
-class GtFieldInfo extends GreenTeaUtils {
-	/*field*/public int     FieldFlag;
-	/*field*/public int     FieldIndex;
-	/*field*/public GtType	Type;
-	/*field*/public String	Name;
-	/*field*/public String	NativeName;
-	/*field*/public Object  InitValue;
-	/*field*/public GtFunc	GetterFunc;
-	/*field*/public GtFunc	SetterFunc;
-
-	GtFieldInfo/*constructor*/(int FieldFlag, GtType Type, String Name, int FieldIndex, Object InitValue) {
-		this.FieldFlag = FieldFlag;
-		this.Type = Type;
-		this.Name = Name;
-		this.NativeName = Name; // use this in a generator
-		this.FieldIndex = FieldIndex;
-		this.InitValue = InitValue;
-		this.GetterFunc = null;
-		this.SetterFunc = null;
-	}
-}
