@@ -884,7 +884,7 @@ public class KonohaGrammar extends GtGrammar {
 		}
 		/*local*/GtFunc SetterFunc = ParsedTree.NameSpace.GetSetterFunc(ObjectNode.Type, Name, true);
 		if(SetterFunc != null) {
-			/*local*/GtType ValueType = SetterFunc.GetFuncParamType(2);
+			/*local*/GtType ValueType = SetterFunc.GetFuncParamType(1);
 			/*local*/GtNode ValueNode = ParsedTree.TypeCheckAt(RightHandTerm, Gamma, ValueType, DefaultTypeCheckPolicy);
 			return Gamma.Generator.CreateSetterNode(Gamma.VoidType, ParsedTree, SetterFunc, ObjectNode, ValueNode);
 		}
