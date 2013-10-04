@@ -545,7 +545,7 @@ public class GreenTeaUtils: GreenTeaConst {
 	/*field*/public long MatchCount;
 	/*field*/public long BacktrackCount;  // To count how many times backtracks happen.
 
-	GtStat/*constructor*/() {
+	public GtStat/*constructor*/() {
 		this.VarDecl = 0;
 		this.VarDeclInfer = 0;
 		this.VarDeclAny = 0;

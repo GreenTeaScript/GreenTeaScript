@@ -36,7 +36,6 @@ public class GtType extends GreenTeaUtils {
 	/*field*/public GtType					SuperType;
 	/*field*/public GtType			ParentMethodSearch;
 	/*field*/public GtType			BaseType;
-	/*field*/public GtType					BaseType;
 	/*field*/public GtType[]				TypeParams;
 	/*field*/public Object          TypeBody;
 	/*field*/public Object			DefaultNullValue;
@@ -254,7 +253,6 @@ public class GtType extends GreenTeaUtils {
 	public GtType RealType(GtNameSpace GenericNameSpace, GtType GivenType) {
 		if(IsFlag(this.TypeFlag, TypeVariable)) {
 			/*local*/GtType TypeVar = GenericNameSpace.GetType(this.ShortName);
-			if(TypeVar != null && !TypeVar.IsTypeVariable()) {
 			//System.err.println("TypeVar="+this.ShortName + ", " + TypeVar);
 			if(TypeVar != null && TypeVar.IsTypeVariable()) {
 				GenericNameSpace.SetSymbol(this.ShortName, GivenType, null);
@@ -265,19 +263,10 @@ public class GtType extends GreenTeaUtils {
 			}
 		}
 		if(IsFlag(this.TypeFlag, GenericVariable)) {
-			if(GivenType.BaseType == this.BaseType && GivenType.TypeParams.length == this.TypeParams.length) {
-				/*local*/int i = 0;
-				ArrayList<GtType> TypeList = new ArrayList<GtType>();
-				while(i < this.TypeParams.length) {
-					/*local*/GtType RealParamType = this.TypeParams[i].RealType(GenericNameSpace, GivenType.TypeParams[i]);
-					TypeList.add(RealParamType);
-					i += 1;
-				}
-				return this.Context.GetGenericType(this.BaseType, 0, TypeList, true);
 			/*local*/int i = 0;
 			/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
 			while(i < this.TypeParams.length) {
-				/*local*/GtType RealParamType = this.TypeParams[i].RealType(GenericNameSpace, GivenParamType(GivenType, i));
+				/*local*/GtType RealParamType = this.TypeParams[i].RealType(GenericNameSpace, this.GivenParamType(GivenType, i));
 				TypeList.add(RealParamType);
 				i += 1;
 			}

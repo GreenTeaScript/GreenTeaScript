@@ -145,7 +145,7 @@ $src =~ s/\btoString\b/ToString/g;
 $src =~ s/\bstartsWith\b/StartsWith/g;
 
 $src =~ s/\b\sextends\b|\b implements\b/:/g;
-$src =~ s/\boperator\b/\b\@operator\b/g;
+$src =~ s/\boperator\b/\@operator/g;
 
 $src =~ s/\b(public\s)?class\b/public class/g;
 
@@ -177,6 +177,8 @@ while($i < $n){
 	$src =~ s/#STR$i#/$StringLiterals[$i]/;
 	$i = $i + 1;
 }
+
+$src =~ s/(public\s)?(\b[a-zA-Z]*\/\*constructor\*\/)/public $2/g;
 
 print <<'EOS';
 using System;
