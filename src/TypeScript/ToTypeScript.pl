@@ -155,6 +155,7 @@ $src =~ s/\bnew Object(\(\))?/<any>{}/g;
 #$src =~ s/\bsize\(\)/length/g
 $src =~ s/\blength\(\)/length/g;
 $src =~ s/\bSystem\.out\.println/console.log/g;
+$src =~ s/\bSystem\.err\.println/console.log/g;
 
 $src =~ s/\binterface\b/declare class/g;
 
@@ -164,6 +165,8 @@ $src =~ s/\bpublic\s*class\b/class/g;
 $src =~ s/(?!\.)\b((?:Parse|Type)(?:Unary|Binary|Const|Block))\b(?!\()/$Grammar\["$1"\]/g;
 $src =~ s/\bGtDelegate(?:Common|Token|Match|Type)\b/any/g;
 $src =~ s/$Grammar\.$Grammar/$Grammar/g;
+
+
 
 # For debug
 #$src =~ s/(LibGreenTea\.)?DebugP\(/console.log("DEBUG: " + /g;

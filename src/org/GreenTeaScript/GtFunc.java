@@ -464,7 +464,7 @@ class GtPolyFunc extends GreenTeaUtils {
 			/*local*/GtFunc Func = this.FuncList.get(i);
 			if(Func.GetFuncParamSize() == FuncParamSize) {
 				/*local*/GtNameSpace GenericNameSpace = Func.GetGenericNameSpace(Gamma.NameSpace, ParamList, 0);
-				Func = CheckParamWithCoercion(GenericNameSpace, Func, ParamList);
+				Func = this.CheckParamWithCoercion(GenericNameSpace, Func, ParamList);
 				if(Func != null) {
 					return ResolvedFunc.UpdateFunc(Func, GenericNameSpace);
 				}
@@ -477,7 +477,7 @@ class GtPolyFunc extends GreenTeaUtils {
 			/*local*/GtType VargType = Func.GetVargType();
 			if(VargType != null && Func.GetFuncParamSize() <= FuncParamSize) {
 				/*local*/GtNameSpace GenericNameSpace = Func.GetGenericNameSpace(Gamma.NameSpace, ParamList, 0);
-				Func = CheckParamAsVarArg(GenericNameSpace, Func, VargType, ParamList);
+				Func = this.CheckParamAsVarArg(GenericNameSpace, Func, VargType, ParamList);
 				if(Func != null) {
 					return ResolvedFunc.UpdateFunc(Func, GenericNameSpace);
 				}
