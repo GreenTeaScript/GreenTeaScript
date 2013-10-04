@@ -337,14 +337,14 @@ class LibGreenTea {
 		return false;
 	}
 
-	static LoadNativeConstructors(ClassType: GtType) : boolean {
+	static LoadNativeConstructors(ClassType: GtType, FuncList: GtGunc[]) : boolean {
 		throw new Error("NotSupportedAPI");
 		return false;
 	}
 
-	static LoadNativeField(ClassType: GtType, FieldName: string) : boolean {
+	static LoadNativeField(ClassType: GtType, FieldName: string, GetSetter: boolean) : GtFunc {
 		throw new Error("NotSupportedAPI");
-		return false;
+		return null;
 	}
 
 	static NativeFieldValue (ObjectValue: any, NativeField: any/*Field*/) :  any {
