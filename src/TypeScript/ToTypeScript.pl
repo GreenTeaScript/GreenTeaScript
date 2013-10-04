@@ -59,6 +59,12 @@ $src =~ s/\/\*field\*\//#Field#/g;
 $src =~ s/\/\*cast\*\//#Cast#/g;
 $src =~ s/\/\*BeginArray\*\//#BeginArray#/g;
 $src =~ s/\/\*EndArray\*\//#EndArray#/g;
+
+# Char Literals
+$src =~ s/'(\\.)'/ord(fixup($1))/eg;
+$src =~ s/'(.)'/ord($1)/eg;
+$src =~ s/('..')/($1.charCodeAt(0))/g;
+
 # Protect Comments
 $src =~ s/(\/\*.*?\*\/)/&ProtectComment($1)/gmse;
 
@@ -131,10 +137,6 @@ $src =~ s/\bnew\s+Array<.*?>\s*\(Arrays.asList\((.*?)\)\)/$1/g;
 $src =~ s/\bArrays.asList\b//g;
 $src =~ s/\.toArray\(\)//g;
 $src =~ s/\b(\d+)L\b/$1/g;
-
-$src =~ s/'(\\.)'/ord(fixup($1)) . '\/*' . $1 . '*\/'/eg;
-$src =~ s/'(.)'/ord($1) . '\/*' . $1 . '*\/'/eg;
-$src =~ s/('..')/($1.charCodeAt(0))/g;
 
 $src =~ s/\bfinal\b//g;
 $src =~ s/\bprotected\b//g;

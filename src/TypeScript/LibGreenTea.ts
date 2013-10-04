@@ -101,6 +101,12 @@ class GtMap {
 	get(index: any): any{
 		return this.map[index];
 	}
+	GetOrNull(index: any): any{
+		if(this.map[index] != undefined){
+			return this.map[index];
+		}
+		return null;
+	}
 	put(key: any, obj: any): void{
 		this.length++;
 		this.map[key] = obj;

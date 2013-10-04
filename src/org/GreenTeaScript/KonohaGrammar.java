@@ -2265,7 +2265,7 @@ public class KonohaGrammar extends GtGrammar {
 
 		NameSpace.AppendExtendedSyntax("=", PrecedenceCStyleAssign | LeftJoin, ParseBinary, GtGrammar.LoadTypeFunc(Context, this, "TypeAssign"));
 		NameSpace.AppendExtendedSyntax("+= -= *= /= %= <<= >>= & | ^=", PrecedenceCStyleAssign, ParseBinary, GtGrammar.LoadTypeFunc(Context, this, "TypeSelfAssign"));
-		NameSpace.AppendExtendedSyntax("++ --", 0, LoadParseFunc(Context, this, "ParseIncl"), GtGrammar.LoadTypeFunc(Context, this, "TypeIncl"));
+		NameSpace.AppendExtendedSyntax("++ --", 0, GtGrammar.LoadParseFunc(Context, this, "ParseIncl"), GtGrammar.LoadTypeFunc(Context, this, "TypeIncl"));
 
 		NameSpace.AppendExtendedSyntax("&& and", PrecedenceCStyleAND, ParseBinary, GtGrammar.LoadTypeFunc(Context, this, "TypeAnd"));
 		NameSpace.AppendExtendedSyntax("|| or", PrecedenceCStyleOR, ParseBinary, GtGrammar.LoadTypeFunc(Context, this, "TypeOr"));
@@ -2280,14 +2280,14 @@ public class KonohaGrammar extends GtGrammar {
 		NameSpace.AppendSyntax("$Type$",GtGrammar.LoadParseFunc(Context, this, "ParseType"), TypeConst);
 		NameSpace.AppendSyntax("$TypeSuffix$", GtGrammar.LoadParseFunc(Context, this, "ParseTypeSuffix"), null);
 		NameSpace.AppendSyntax("<", GtGrammar.LoadParseFunc(Context, this, "ParseGenericFuncDecl"), null);
-		NameSpace.AppendSyntax("$Variable$", GtGrammar.LoadParseFunc(Context, this, "ParseVariable"), LoadTypeFunc(Context, this, "TypeVariable"));
+		NameSpace.AppendSyntax("$Variable$", GtGrammar.LoadParseFunc(Context, this, "ParseVariable"), GtGrammar.LoadTypeFunc(Context, this, "TypeVariable"));
 		NameSpace.AppendSyntax("$Const$", GtGrammar.LoadParseFunc(Context, this, "ParseConst"), TypeConst);
-		NameSpace.AppendSyntax("$CharLiteral$", GtGrammar.LoadParseFunc(Context, this, "ParseCharLiteral"), LoadTypeFunc(Context, this, "TypeCharLiteral"));
+		NameSpace.AppendSyntax("$CharLiteral$", GtGrammar.LoadParseFunc(Context, this, "ParseCharLiteral"), GtGrammar.LoadTypeFunc(Context, this, "TypeCharLiteral"));
 		NameSpace.AppendSyntax("$StringLiteral$", GtGrammar.LoadParseFunc(Context, this, "ParseStringLiteral"), TypeConst);
 		NameSpace.AppendSyntax("$IntegerLiteral$", GtGrammar.LoadParseFunc(Context, this, "ParseIntegerLiteral"), TypeConst);
 		NameSpace.AppendSyntax("$FloatLiteral$", GtGrammar.LoadParseFunc(Context, this, "ParseFloatLiteral"), TypeConst);
 
-		NameSpace.AppendExtendedSyntax(".", 0, GtGrammar.LoadParseFunc(Context, this, "ParseGetter"), LoadTypeFunc(Context, this, "TypeGetter"));
+		NameSpace.AppendExtendedSyntax(".", 0, GtGrammar.LoadParseFunc(Context, this, "ParseGetter"), GtGrammar.LoadTypeFunc(Context, this, "TypeGetter"));
 		NameSpace.AppendSyntax("$Setter$", null, GtGrammar.LoadTypeFunc(Context, this, "TypeSetter"));
 		
 		NameSpace.AppendSyntax("(", GtGrammar.LoadParseFunc(Context, this, "ParseGroup"), GtGrammar.LoadTypeFunc(Context, this, "TypeGroup"));
