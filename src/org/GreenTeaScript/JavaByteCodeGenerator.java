@@ -26,6 +26,7 @@ package org.GreenTeaScript;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -158,6 +159,11 @@ class JVMBuilder {
 		return local;
 	}
 
+	void Call(Constructor<?> method) {
+		String owner = Type.getInternalName(method.getDeclaringClass());
+		this.AsmMethodVisitor.visitMethodInsn(INVOKESPECIAL, owner, "<init>", Type.getConstructorDescriptor(method));
+	}
+
 	void Call(Method method) {
 		int inst;
 		if(Modifier.isStatic(method.getModifiers())) {
@@ -195,6 +201,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.typeDescriptorMap.put(Context.FloatType.ShortName, Type.DOUBLE_TYPE);
 		this.typeDescriptorMap.put(Context.AnyType.ShortName, Type.getType(Object.class));
 		this.typeDescriptorMap.put(Context.StringType.ShortName, Type.getType(String.class));
+		this.typeDescriptorMap.put(Context.ArrayType.ShortName, Type.getType(GreenTeaArray.class));
 		this.methodMap = InitSystemMethods();
 		this.defaultClassName = "Global$" + Context.ParserId;
 		this.DefaultHolderClass = new MethodHolderClass(defaultClassName, "java/lang/Object");
@@ -225,7 +232,6 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			map.put("instanceof", lib.getMethod("DynamicInstanceOf", Object.class, GtType.class));
 			map.put("NewArrayLiteral", lib.getMethod("NewArrayLiteral", GtType.class, Object[].class));
 			Class<?> proc = DShellProcess.class;
-			map.put("ExecCommand", proc.getMethod("ExecCommand", String[][].class));
 			map.put("ExecCommandVoid", proc.getMethod("ExecCommandVoid", String[][].class));
 			map.put("ExecCommandBool", proc.getMethod("ExecCommandBool", String[][].class));
 			map.put("ExecCommandString", proc.getMethod("ExecCommandString", String[][].class));
@@ -330,6 +336,9 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		}
 		if(GivenType.IsTypeVariable()) {
 			return Type.getType(Object.class);
+		}
+		if(GivenType.IsGenericType()) {
+			return this.ToAsmType(GivenType.BaseType);
 		}
 		return Type.getType("L" + GivenType.ShortName + ";");
 	}
@@ -562,30 +571,27 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	}
 
 	@Override public void VisitConstructorNode(GtConstructorNode Node) {
-		Type type = this.ToAsmType(Node.Type);
-		for(int i=0; i<Node.ParamList.size(); i++) {
-			Node.ParamList.get(i).Evaluate(this);
-			this.Builder.typeStack.pop();
+		if(Node.Type.TypeBody instanceof Class<?>) {
+			// native class
+			Class<?> klass = (Class<?>) Node.Type.TypeBody;
+			Type type = Type.getType(klass);
+			this.Builder.AsmMethodVisitor.visitTypeInsn(NEW, Type.getInternalName(klass));
+			this.Builder.AsmMethodVisitor.visitInsn(DUP);
+			for(int i=0; i<Node.ParamList.size(); i++) {
+				Node.ParamList.get(i).Evaluate(this);
+				this.Builder.typeStack.pop();
+			}
+			this.Builder.Call((Constructor<?>) Node.Func.FuncBody);
+			this.Builder.typeStack.push(type);
+		} else {
+//			int opcode = INVOKESTATIC;
+//			String owner = this.defaultClassName;
+//			String methodName = Func.GetNativeFuncName();
+//			String methodDescriptor = this.ToAsmMethodType(Func).getDescriptor();
+//			this.Builder.AsmMethodVisitor.visitMethodInsn(opcode, owner, methodName, methodDescriptor);
+//			this.Builder.typeStack.push(type);
+			LibGreenTea.TODO("TypeBody is not Class<?>");
 		}
-		GtFunc Func = Node.Func;
-		Method m = null;
-		if(Func.FuncBody instanceof Method) {
-			m = (Method) Func.FuncBody;
-		}
-		else {
-			m = this.methodMap.get(Func.FuncName);
-		}
-		if(m != null) {
-			this.Builder.Call(m);
-		}
-		else {
-			int opcode = INVOKESTATIC;
-			String owner = this.defaultClassName;
-			String methodName = Func.GetNativeFuncName();
-			String methodDescriptor = this.ToAsmMethodType(Func).getDescriptor();
-			this.Builder.AsmMethodVisitor.visitMethodInsn(opcode, owner, methodName, methodDescriptor);
-		}
-		this.Builder.typeStack.push(type);
 	}
 
 	@Override public void VisitNullNode(GtNullNode Node) {
@@ -1033,11 +1039,8 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		else if(Node.Type.IsStringType()) {
 			this.Builder.Call(methodMap.get("ExecCommandString"));
 		}
-		else if(Node.Type.IsVoidType()) {
-			this.Builder.Call(methodMap.get("ExecCommandVoid"));
-		}
 		else {
-			this.Builder.Call(methodMap.get("ExecCommand"));
+			this.Builder.Call(methodMap.get("ExecCommandVoid"));
 		}
 	}
 

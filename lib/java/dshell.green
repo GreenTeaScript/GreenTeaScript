@@ -39,9 +39,3 @@ boolean MatchFault(DFault fault, String Location, String FaultInfo) import org.G
 //let ReportAction = import org.GreenTeaScript.DShellGrammar.UpdateFaultInfomation;
 @Const @Operator boolean "=="(DFault x, DFault y) import org.GreenTeaScript.DShell.DFault.Equals;
 @Const @Operator boolean "!="(DFault x, DFault y) import org.GreenTeaScript.DShell.DFault.NotEquals;
-
-// Process
-let Process = import org.GreenTeaScript.DShell.DShellProcess;
-@Coercion var "!"(var x) import org.GreenTeaScript.DShell.DShellProcess.Not;
-@Coercion var converter(var x) import org.GreenTeaScript.DShell.DShellProcess.ConvertToString;
-@Coercion var converter(var x) import org.GreenTeaScript.DShell.DShellProcess.ConvertToBoolean;

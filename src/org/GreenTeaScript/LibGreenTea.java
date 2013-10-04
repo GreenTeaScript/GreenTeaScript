@@ -997,6 +997,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		if(ConsoleReader == null) {
 			try {
 				ConsoleReader = new jline.console.ConsoleReader();
+				ConsoleReader.setExpandEvents(false);
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
