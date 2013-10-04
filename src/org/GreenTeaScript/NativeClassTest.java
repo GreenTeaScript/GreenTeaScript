@@ -40,7 +40,7 @@ public class NativeClassTest {
 		this.initial = name.charAt(0);
 	}
 	@Override public String toString() {
-		return LibGreenTea.StringfyField(this);
+		return LibGreenTea.StringifyField(this);
 	}
 }
 

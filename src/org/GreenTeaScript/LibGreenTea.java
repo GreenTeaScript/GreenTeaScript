@@ -262,7 +262,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return sb.toString();
 	}
 
-	public final static String Stringfy(Object Value) {
+	public final static String Stringify(Object Value) {
 		if(Value == null) {
 			return "null";
 		}
@@ -290,7 +290,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		//			return "" + s + "}";
 	}
 
-	public final static String StringfyField(Object Value) {
+	public final static String StringifyField(Object Value) {
 		/*local*/String s = "{";
 		Field[] Fields = Value.getClass().getFields();
 		for(int i = 0; i < Fields.length; i++) {
@@ -300,7 +300,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 				}
 				try {
 					s += Fields[i].getName() + ": ";
-					s += LibGreenTea.Stringfy(Fields[i].get(Value));
+					s += LibGreenTea.Stringify(Fields[i].get(Value));
 				} catch (IllegalArgumentException e) {
 				} catch (IllegalAccessException e) {
 				}

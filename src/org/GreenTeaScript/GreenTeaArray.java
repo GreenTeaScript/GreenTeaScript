@@ -49,7 +49,7 @@ public class GreenTeaArray extends GreenTeaTopObject {
 			if(i > 0) {
 				s += ", ";
 			}
-			s += LibGreenTea.Stringfy(Value);
+			s += LibGreenTea.Stringify(Value);
 		}
 		return s + "]";
 	}
