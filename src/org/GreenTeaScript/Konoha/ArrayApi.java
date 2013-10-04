@@ -28,31 +28,6 @@ import org.GreenTeaScript.GreenTeaArray;
 import org.GreenTeaScript.GtType;
 
 public class ArrayApi {
-	public final static GreenTeaArray NewArray1(GtType Type, int InitSize) {
-		GtType ArrayType = Type.Context.GetGenericType1(Type.Context.ArrayType, Type, true); 
-		GreenTeaArray ArrayObject =  new GreenTeaArray(ArrayType);
-		for(int i = 0; i < InitSize; i++) {
-			ArrayObject.ArrayBody.add(Type.DefaultNullValue);
-		}
-		return ArrayObject;
-	}
-	// new int[2][3]
-	public final static GreenTeaArray NewArray2(GtType Type, int InitSize, int InitSize2) {
-		GtType ArrayType = Type.Context.GetGenericType1(Type.Context.ArrayType, Type, true); 
-		ArrayType = Type.Context.GetGenericType1(Type.Context.ArrayType, ArrayType, true); 
-		GreenTeaArray ArrayObject =  new GreenTeaArray(ArrayType);
-		for(int i = 0; i < InitSize2; i++) {
-			ArrayObject.ArrayBody.add(NewArray1(Type, InitSize));
-		}
-		return ArrayObject;
-	}
-	public final static GreenTeaArray NewArrayLiteral(GtType ArrayType, Object[] Values) {
-		GreenTeaArray ArrayObject =  new GreenTeaArray(ArrayType);
-		for(int i = 0; i < Values.length; i++) {
-			ArrayObject.ArrayBody.add(Values[i]);
-		}
-		return ArrayObject;
-	}
 	public final static long GetSize(GreenTeaArray self) {
 		return self.ArrayBody.size();
 	}
