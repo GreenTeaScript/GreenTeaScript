@@ -71,6 +71,9 @@ public class GtGenerator extends GreenTeaUtils {
 	public GtNode CreateArrayNode(GtType ArrayType, GtSyntaxTree ParsedTree) {
 		return new GtArrayNode(ArrayType, ParsedTree.KeyToken);
 	}
+	public GtNode CreateNewArrayNode(GtType ArrayType, GtSyntaxTree ParsedTree) {
+		return new GtNewArrayNode(ArrayType, ParsedTree.KeyToken);
+	}
 	public GtNode CreateLocalNode(GtType Type, GtSyntaxTree ParsedTree, String LocalName) {
 		return new GtLocalNode(Type, ParsedTree.KeyToken, LocalName);
 	}
@@ -236,83 +239,66 @@ public class GtGenerator extends GreenTeaUtils {
 	public void VisitEmptyNode(GtEmptyNode EmptyNode) {
 		LibGreenTea.DebugP("empty node: " + EmptyNode.Token.ParsedText);
 	}
-
 	public void VisitInstanceOfNode(GtInstanceOfNode Node) {
 		/*extention*/
 	}
-
 	public void VisitSelfAssignNode(GtSelfAssignNode Node) {
 		/*extention*/
 	}
-
 	public void VisitTrinaryNode(GtTrinaryNode Node) {
 		/*extension*/
 	}
-
 	public void VisitExistsNode(GtExistsNode Node) {
 		/*extension*/
 	}
-
 	public void VisitCastNode(GtCastNode Node) {
 		/*extension*/
 	}
-
 	public void VisitSliceNode(GtSliceNode Node) {
 		/*extension*/
 	}
-
 	public void VisitSuffixNode(GtSuffixNode Node) {
 		/*extension*/
 	}
-
 	public void VisitUnaryNode(GtUnaryNode Node) {
 		/*extension*/
 	}
-
 	public void VisitIndexerNode(GtIndexerNode Node) {
 		/*extension*/
 	}
-
 	public void VisitArrayNode(GtArrayNode Node) {
 		/*extension*/
 	}
-
+	public void VisitNewArrayNode(GtNewArrayNode Node) {
+		/*extension*/
+	}
 	public void VisitWhileNode(GtWhileNode Node) {
 		/*extension*/
 	}
-
 	public void VisitDoWhileNode(GtDoWhileNode Node) {
 		/*extension*/
 	}
-
 	public void VisitForNode(GtForNode Node) {
 		/*extension*/
 	}
-
 	public void VisitForEachNode(GtForEachNode Node) {
 		/*extension*/
 	}
-
 	public void VisitConstNode(GtConstNode Node) {
 		/*extension*/
 	}
-
 	public void VisitNewNode(GtNewNode Node) {
 		/*extension*/
 	}
-
 	public void VisitConstructorNode(GtConstructorNode Node) {
 		/*extension*/
 	}
-
 	public void VisitNullNode(GtNullNode Node) {
 		/*extension*/
 	}
-
 	public void VisitLocalNode(GtLocalNode Node) {
 		/*extension*/
 	}
-
 	public void VisitGetterNode(GtGetterNode Node) {
 		/*extension*/
 	}
@@ -454,8 +440,6 @@ public class GtGenerator extends GreenTeaUtils {
 //endif VAJA
 		return Node.ToNullValue(EnforceConst);  // if unsupported
 	}
-
-
 	public Object EvalArrayNode(GtArrayNode Node, boolean EnforceConst) {
 		/*local*/Object ArrayObject = null;
 //ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
@@ -468,6 +452,21 @@ public class GtGenerator extends GreenTeaUtils {
 			Values[i] = Value;
 		}
 		ArrayObject = LibGreenTea.NewArrayLiteral(Node.Type, Values);
+//endif VAJA
+		return ArrayObject;  // if unsupported
+	}
+	public Object EvalNewArrayNode(GtArrayNode Node, boolean EnforceConst) {
+		/*local*/Object ArrayObject = null;
+//ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
+		Object Values[] = new Object[LibGreenTea.ListSize(Node.NodeList)];
+		for(int i = 0; i < LibGreenTea.ListSize(Node.NodeList); i++) {
+			Object Value = Node.NodeList.get(i).ToConstValue(EnforceConst);
+			if(Value == null) {
+				return Value;
+			}
+			Values[i] = Value;
+		}
+		ArrayObject = LibGreenTea.NewArray(Node.Type, Values);
 //endif VAJA
 		return ArrayObject;  // if unsupported
 	}

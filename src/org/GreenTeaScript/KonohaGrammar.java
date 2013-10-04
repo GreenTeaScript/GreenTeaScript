@@ -1949,6 +1949,37 @@ public class KonohaGrammar extends GtGrammar {
 	}
 
 	// Array
+	public static GtSyntaxTree ParseNewArray(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtSyntaxTree ArrayTree = TokenContext.CreateMatchedSyntaxTree(NameSpace, Pattern, "new");
+		ArrayTree.AppendMatchedPattern(NameSpace, TokenContext, "$Type$", Required);
+		while(TokenContext.HasNext() && ArrayTree.IsValidSyntax()) {
+			ArrayTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "[", Required);
+			ArrayTree.AppendMatchedPattern(NameSpace, TokenContext, "$Expression$", Required);
+			ArrayTree.SetMatchedTokenAt(NoWhere, NameSpace, TokenContext, "]", Required);
+			if(!TokenContext.IsToken("[")) {
+				break;
+			}
+		}
+		return ArrayTree;
+	}
+
+	public static GtNode TypeNewArray(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+		/*local*/GtNode ArrayNode = Gamma.Generator.CreateNewArrayNode(Gamma.ArrayType, ParsedTree);
+		/*local*/GtType ArrayType = ParsedTree.GetSyntaxTreeAt(0).GetParsedType();
+		/*local*/int i = 1;
+		while(i < LibGreenTea.ListSize(ParsedTree.SubTreeList)) {
+			/*local*/GtNode Node = ParsedTree.TypeCheckAt(i, Gamma, Gamma.IntType, DefaultTypeCheckPolicy);
+			if(Node.IsErrorNode()) {
+				return Node;
+			}
+			ArrayType = Gamma.Context.GetGenericType1(Gamma.ArrayType, ArrayType, true);
+			ArrayNode.Append(Node);
+			i = i + 1;
+		}
+		ArrayNode.Type = ArrayType;
+		return ArrayNode;
+	}
+
 	public static GtSyntaxTree ParseArray(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/int OldFlag = TokenContext.SetSkipIndent(true);
 		/*local*/GtSyntaxTree ArrayTree = TokenContext.CreateMatchedSyntaxTree(NameSpace, Pattern, "[");
@@ -1984,6 +2015,9 @@ public class KonohaGrammar extends GtGrammar {
 			}
 			ArrayNode.Append(Node);
 			i = i + 1;
+		}
+		if(ElemType.IsVarType()) {
+			ArrayNode.Type = Gamma.Context.GetGenericType1(Gamma.ArrayType, Gamma.AnyType, true);
 		}
 		return ArrayNode;
 	}

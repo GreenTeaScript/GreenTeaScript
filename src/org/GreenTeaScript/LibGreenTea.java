@@ -61,8 +61,8 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		}
 	}
 
-	public final static Object NewArray(GtType Type, int InitSize) {
-		return ArrayApi.NewArray(Type, InitSize);
+	public final static Object NewArray(GtType Type, Object[] InitSizes) {
+		return ArrayApi.NewArray1(Type, ((Number)InitSizes[0]).intValue());
 	}
 
 	public final static Object NewArrayLiteral(GtType ArrayType, Object[] Values) {
