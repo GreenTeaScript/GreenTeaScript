@@ -2239,13 +2239,13 @@ public class KonohaGrammar extends GtGrammar {
 		//NameSpace.AppendTokenFunc("\"", GtGrammar.LoadTokenFunc(ParserContext, this, "StringLiteralToken_StringInterpolation"));
 		NameSpace.AppendTokenFunc("'", GtGrammar.LoadTokenFunc(Context, this, "CharLiteralToken"));
 		NameSpace.AppendTokenFunc("1",  GtGrammar.LoadTokenFunc(Context, this, "NumberLiteralToken"));
-//#ifdef JAVA
-		GtFunc ParseUnary     = GtGrammar.LoadParseFunc(Context, this, "ParseUnary");
-		GtFunc  TypeUnary      = GtGrammar.LoadTypeFunc(Context, this, "TypeUnary");
-		GtFunc ParseBinary    = GtGrammar.LoadParseFunc(Context, this, "ParseBinary");
-		GtFunc  TypeBinary     = GtGrammar.LoadTypeFunc(Context, this, "TypeBinary");
-		GtFunc  TypeConst      = GtGrammar.LoadTypeFunc(Context, this, "TypeConst");
-//endif VAJA
+
+		/*local*/GtFunc ParseUnary     = GtGrammar.LoadParseFunc(Context, this, "ParseUnary");
+		/*local*/GtFunc  TypeUnary      = GtGrammar.LoadTypeFunc(Context, this, "TypeUnary");
+		/*local*/GtFunc ParseBinary    = GtGrammar.LoadParseFunc(Context, this, "ParseBinary");
+		/*local*/GtFunc  TypeBinary     = GtGrammar.LoadTypeFunc(Context, this, "TypeBinary");
+		/*local*/GtFunc  TypeConst      = GtGrammar.LoadTypeFunc(Context, this, "TypeConst");
+
 		NameSpace.AppendSyntax("+", ParseUnary, TypeUnary);
 		NameSpace.AppendSyntax("-", ParseUnary, TypeUnary);
 		NameSpace.AppendSyntax("~", ParseUnary, TypeUnary);

@@ -166,7 +166,7 @@ $src =~ s/\binterface\b/declare class/g;
 $src =~ s/\bpublic\s*class\b/class/g;
 
 # Delegates.
-$src =~ s/(?!\.)\b((?:Parse|Type)(?:Unary|Binary|Const|Block))\b(?!\()/$Grammar\["$1"\]/g;
+#$src =~ s/(?!\.)\b(Parse|Type)(?:Unary|Binary|Const|Block)\b(?!\()/LibLoadFunc.Load$1Func(Context, this, "$2")/g;
 $src =~ s/\bGtDelegate(?:Common|Token|Match|Type)\b/any/g;
 $src =~ s/$Grammar\.$Grammar/$Grammar/g;
 
