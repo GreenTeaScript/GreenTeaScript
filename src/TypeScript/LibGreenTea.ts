@@ -316,7 +316,7 @@ class LibGreenTea {
 	}
 
 	static GetClassName(Value: any): string {
-		return typeof(Value);
+		return (<any>Value).constructor.name;
 	}
 
 	static MatchNativeMethod(FuncType: GtType, JavaMethod: any): boolean {
