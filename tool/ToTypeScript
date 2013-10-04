@@ -3,6 +3,8 @@
 SourceDir=./src/org/GreenTeaScript/
 build=src/TypeScript/
 
+# These order of files is VERY IMPORTANT. 
+# DO NOT CHANGE THE ORDER WITHOUT NECESSITY.
 source=
 source="${source} GreenTeaTopObject"
 source="${source} GreenTeaArray"
@@ -15,6 +17,7 @@ source="${source} GtFieldInfo"
 source="${source} GtClassField"
 source="${source} GtGenerator"
 source="${source} SourceGenerator"
+source="${source} GtGrammar"
 source="${source} GtParserContext"
 source="${source} GtNameSpace"
 source="${source} GtFunc"
@@ -30,6 +33,7 @@ source="${source} CSourceGenerator"
 source="${source} PerlSourceGenerator"
 source="${source} PythonSourceGenerator"
 source="${source} ScalaSourceGenerator"
+source="${source} KonohaGrammar"
 source="${source} GreenTeaScript"
 #
 ts=""
