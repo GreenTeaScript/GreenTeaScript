@@ -67,7 +67,7 @@ public class GreenTeaArray extends GreenTeaTopObject {
 		ArrayType = Type.Context.GetGenericType1(Type.Context.ArrayType, ArrayType, true); 
 		/*local*/GreenTeaArray ArrayObject =  new GreenTeaArray(ArrayType);
 		for(/*local*/int i = 0; i < InitSize2; i++) {
-			ArrayObject.ArrayBody.add(NewArray1(Type, InitSize));
+			ArrayObject.ArrayBody.add(GreenTeaArray.NewArray1(Type, InitSize));
 		}
 		return ArrayObject;
 	}
@@ -77,7 +77,7 @@ public class GreenTeaArray extends GreenTeaTopObject {
 		ArrayType = Type.Context.GetGenericType1(Type.Context.ArrayType, ArrayType, true); 
 		/*local*/GreenTeaArray ArrayObject =  new GreenTeaArray(ArrayType);
 		for(/*local*/int i = 0; i < InitSize2; i++) {
-			ArrayObject.ArrayBody.add(NewArray2(Type, InitSize, InitSize2));
+			ArrayObject.ArrayBody.add(GreenTeaArray.NewArray2(Type, InitSize, InitSize2));
 		}
 		return ArrayObject;
 	}
