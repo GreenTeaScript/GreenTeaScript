@@ -1964,8 +1964,8 @@ public class KonohaGrammar extends GtGrammar {
 	}
 
 	public static GtNode TypeNewArray(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		/*local*/GtNode ArrayNode = Gamma.Generator.CreateNewArrayNode(Gamma.ArrayType, ParsedTree);
 		/*local*/GtType ArrayType = ParsedTree.GetSyntaxTreeAt(0).GetParsedType();
+		/*local*/GtNode ArrayNode = Gamma.Generator.CreateNewArrayNode(Gamma.ArrayType, ParsedTree);
 		/*local*/int i = 1;
 		while(i < LibGreenTea.ListSize(ParsedTree.SubTreeList)) {
 			/*local*/GtNode Node = ParsedTree.TypeCheckAt(i, Gamma, Gamma.IntType, DefaultTypeCheckPolicy);
@@ -2330,6 +2330,7 @@ public class KonohaGrammar extends GtGrammar {
 		NameSpace.AppendSyntax("super", GtGrammar.LoadParseFunc(Context, this, "ParseSuper"), null);
 		NameSpace.AppendSyntax("this", GtGrammar.LoadParseFunc(Context, this, "ParseThis"), GtGrammar.LoadTypeFunc(Context, this, "TypeThis"));
 		NameSpace.AppendSyntax("new", GtGrammar.LoadParseFunc(Context, this, "ParseNew"), GtGrammar.LoadTypeFunc(Context, this, "TypeApply"));
+		NameSpace.AppendSyntax("new", GtGrammar.LoadParseFunc(Context, this, "ParseNewArray"), GtGrammar.LoadTypeFunc(Context, this, "TypeNewArray"));
 
 		NameSpace.AppendSyntax("enum", GtGrammar.LoadParseFunc(Context, this, "ParseEnum"), GtGrammar.LoadTypeFunc(Context, this, "TypeEnum"));
 		NameSpace.AppendSyntax("switch", GtGrammar.LoadParseFunc(Context, this, "ParseSwitch"), GtGrammar.LoadTypeFunc(Context, this, "TypeSwitch"));

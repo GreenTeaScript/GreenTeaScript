@@ -1,0 +1,22 @@
+// written by kimio kuramitsu
+
+
+boolean TestIntArray() {
+	int[] a = [1, 2];
+	assert(a[0] == 1);
+	assert(a[1] == 2);
+	a[1] = 3;
+	assert(a[1] == 3);
+	assert(|a| == 2);
+	a.add(9);
+	assert(|a| == 3);
+	assert(a[2] == 9);
+	return true;
+}
+
+@Export
+int main() {
+	assert(TestIntArray());
+	return 0;
+}
+

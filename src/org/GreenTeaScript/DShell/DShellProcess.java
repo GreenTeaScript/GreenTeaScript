@@ -12,6 +12,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -1040,11 +1041,21 @@ class ShellExceptionRaiser {
 	}
 
 	private Exception createException(String message, String[] syscall) throws Exception {
+		// syscall: syscallName: 0, param: 1, errno: 2
+		Class<?>[] types = {String.class, String.class, String[].class};
+		Object[] args = {message, message, syscall};
 		try {
 			if(syscall == null) {
 				return new NoRelatedSyscallException(message);
 			}
-			return ErrorToException.valueOf(syscall[2]).toException(message, syscall[0], syscall[1]);
+			Class<?> exceptionClass = ErrorToException.valueOf(syscall[2]).toException();
+			if(exceptionClass == null) {
+				return new DShellException(syscall[2] + " has not implemented yet!!");
+			}
+			else {
+				Constructor<?> constructor = exceptionClass.getConstructor(types);
+				return (RelatedSyscallException) constructor.newInstance(args);
+			}
 		}
 		catch (IllegalArgumentException e) {
 			return new Exception((syscall[2] + " is not syscall!!"));
@@ -1058,13 +1069,13 @@ enum Syscall {
 
 enum ErrorToException {
 	E2BIG {
-		public Exception toException(String message, String syscallName, String param) {
-			return new TooManyArgsException(message);
+		public Class<?> toException() {
+			return TooManyArgsException.class;
 		}
 	}, 
 	EACCES {
-		public Exception toException(String message, String syscallName, String param) {
-			return new NotPermittedException(message);
+		public Class<?> toException() {
+			return NotPermittedException.class;
 		}
 	}, 
 	EADDRINUSE, 
@@ -1082,16 +1093,16 @@ enum ErrorToException {
 	EBUSY, 
 	ECANCELED, 
 	ECHILD {
-		public Exception toException(String message, String syscallName, String param) {
-			return new NoChildException(message);
+		public Class<?> toException() {
+			return NoChildException.class;
 		}
 	}, 
 	ECHRNG, 
 	ECOMM, 
 	ECONNABORTED,
 	ECONNREFUSED {
-		public Exception toException(String message, String syscallName, String param) {
-			return new ConnectRefusedException(message);
+		public Class<?> toException() {
+			return ConnectRefusedException.class;
 		}
 	}, 
 	ECONNRESET, 
@@ -1109,16 +1120,20 @@ enum ErrorToException {
 	EILSEQ,
 	EINPROGRESS, 
 	EINTR {
-		public Exception toException(String message, String syscallName, String param) {
-			return new InterruptedBySignalException(message);
+		public Class<?> toException() {
+			return InterruptedBySignalException.class;
 		}
 	}, 
-	EINVAL, 
+	EINVAL {
+		public Class<?> toException() {
+			return InvalidArgumentException.class;
+		}
+	}, 
 	EIO, 
 	EISCONN, 
 	EISDIR {
-		public Exception toException(String message, String syscallName, String param) {
-			return new IsDirectoryException(message);
+		public Class<?> toException() {
+			return IsDirectoryException.class;
 		}
 	}, 
 	EISNAM, 
@@ -1135,8 +1150,8 @@ enum ErrorToException {
 	ELIBSCN, 
 	ELIBEXEC, 
 	ELOOP {
-		public Exception toException(String message, String syscallName, String param) {
-			return new TooManyLinkException(message);
+		public Class<?> toException() {
+			return TooManyLinkException.class;
 		}
 	}, 
 	EMEDIUMTYPE, 
@@ -1145,15 +1160,15 @@ enum ErrorToException {
 	EMSGSIZE, 
 	EMULTIHOP, 
 	ENAMETOOLONG {
-		public Exception toException(String message, String syscallName, String param) {
-			return new TooLongNameException(message);
+		public Class<?> toException() {
+			return TooLongNameException.class;
 		}
 	}, 
 	ENETDOWN, 
 	ENETRESET, 
 	ENETUNREACH {
-		public Exception toException(String message, String syscallName, String param) {
-			return new UnreachableException(message);
+		public Class<?> toException() {
+			return UnreachableException.class;
 		}
 	}, 
 	ENFILE,
@@ -1161,8 +1176,8 @@ enum ErrorToException {
 	ENODATA, 
 	ENODEV, 
 	ENOENT {
-		public Exception toException(String message, String syscallName, String param) {
-			return new NotFoundException(message);
+		public Class<?> toException() {
+			return NotFoundException.class;
 		}
 	}, 
 	ENOEXEC, 
@@ -1171,8 +1186,8 @@ enum ErrorToException {
 	ENOLINK, 
 	ENOMEDIUM, 
 	ENOMEM {
-		public Exception toException(String message, String syscallName, String param) {
-			return new NoFreeMemoryException(message);
+		public Class<?> toException() {
+			return NoFreeMemoryException.class;
 		}
 	},
 	ENOMSG, 
@@ -1180,8 +1195,8 @@ enum ErrorToException {
 	ENOPKG, 
 	ENOPROTOOPT, 
 	ENOSPC {
-		public Exception toException(String message, String syscallName, String param) {
-			return new NoFreeSpaceException(message);
+		public Class<?> toException() {
+			return NoFreeSpaceException.class;
 		}
 	}, 
 	ENOSR, 
@@ -1190,16 +1205,16 @@ enum ErrorToException {
 	ENOTBLK, 
 	ENOTCONN, 
 	ENOTDIR {
-		public Exception toException(String message, String syscallName, String param) {
-			return new NotDirectoryException(message);
+		public Class<?> toException() {
+			return NotDirectoryException.class;
 		}
 	}, 
 	ENOTEMPTY, 
 	ENOTSOCK, 
 	ENOTSUP, 
 	ENOTTY {
-		public Exception toException(String message, String syscallName, String param) {
-			return new IllegalIOOperateException(message);
+		public Class<?> toException() {
+			return InappropriateOperateException.class;
 		}
 	}, 
 	ENOTUNIQ, 
@@ -1207,8 +1222,8 @@ enum ErrorToException {
 	EOPNOTSUPP, 
 	EOVERFLOW, 
 	EPERM{
-		public Exception toException(String message, String syscallName, String param) {
-			return new NotPermittedOperateException(message);
+		public Class<?> toException() {
+			return NotPermittedOperateException.class;
 		}
 	}, 
 	EPFNOSUPPORT, 
@@ -1222,14 +1237,14 @@ enum ErrorToException {
 	EREMOTEIO,
 	ERESTART, 
 	EROFS {
-		public Exception toException(String message, String syscallName, String param) {
-			return new ReadOnlyException(message);
+		public Class<?> toException() {
+			return ReadOnlyException.class;
 		}
 	}, 
 	ESHUTDOWN, 
 	ESPIPE {
-		public Exception toException(String message, String syscallName, String param) {
-			return new IllegalSeekException(message);
+		public Class<?> toException() {
+			return IllegalSeekException.class;
 		}
 	}, 
 	ESOCKTNOSUPPORT, 
@@ -1238,8 +1253,8 @@ enum ErrorToException {
 	ESTRPIPE, 
 	ETIME, 
 	ETIMEDOUT {
-		public Exception toException(String message, String syscallName, String param) {
-			return new NetworkTimeoutException(message);
+		public Class<?> toException() {
+			return NetworkTimeoutException.class;
 		}
 	}, 
 	ETXTBSY, 
@@ -1250,7 +1265,7 @@ enum ErrorToException {
 	EXDEV, 
 	EXFULL;
 
-	public Exception toException(String message, String syscallName, String param) {
-		return new Exception(this.toString() + " is not yet implemented!!");
+	public Class<?> toException() {
+		return null;
 	}
 }
