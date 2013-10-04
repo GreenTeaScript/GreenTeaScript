@@ -781,7 +781,7 @@ class CauseInferencer {
 	// syscall filter
 	private static final Pattern syscallFilter = Pattern.compile("^[1-9][0-9]* .+(.+) *= *.+");
 	private static final Pattern failedSyscallFilter = Pattern.compile("^[1-9][0-9]* .+(.+) *= *-[1-9].+");
-	private static final Pattern gettextFilter = Pattern.compile("^.+(.+/locale.+).+");
+	private static final Pattern localeFilter = Pattern.compile("^.+(.+/locale.+).+");
 	private static final Pattern gconvFilter = Pattern.compile("^.+(.+/usr/lib64/gconv.+).+");
 	
 	// function filter
@@ -817,7 +817,7 @@ class CauseInferencer {
 			String line;
 			while((line = br.readLine()) != null) {
 				if(applyFilter(failedSyscallFilter, line) && 
-						!applyFilter(gettextFilter, line) && !applyFilter(gconvFilter, line)) {
+						!applyFilter(localeFilter, line) && !applyFilter(gconvFilter, line)) {
 					parsedSyscallStack.push(parseLine(line));
 				}
 			}
@@ -903,6 +903,9 @@ class CauseInferencer {
 					continue;
 				}
 				if(applyFilter(gconvFilter, syscall)) {
+					continue;
+				}
+				if(applyFilter(localeFilter, syscall)) {
 					continue;
 				}
 				if(!applyFilterToGroup(libcStartMainFilter, 1, group)) {

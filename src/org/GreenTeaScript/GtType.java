@@ -266,7 +266,7 @@ public class GtType extends GreenTeaUtils {
 			/*local*/int i = 0;
 			/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
 			while(i < this.TypeParams.length) {
-				/*local*/GtType RealParamType = this.TypeParams[i].RealType(GenericNameSpace, GivenParamType(GivenType, i));
+				/*local*/GtType RealParamType = this.TypeParams[i].RealType(GenericNameSpace, this.GivenParamType(GivenType, i));
 				TypeList.add(RealParamType);
 				i += 1;
 			}

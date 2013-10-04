@@ -180,6 +180,26 @@ final class GtArrayNode extends GtNode {
 		return null;
 	}
 }
+//E.g., "[" $Node, $Node "]"
+final class GtNewArrayNode extends GtNode {
+	/*field*/public ArrayList<GtNode>	NodeList;
+	GtNewArrayNode/*constructor*/(GtType Type, GtToken Token) {
+		super(Type, Token);
+		this.NodeList = new ArrayList<GtNode>();
+	}
+	@Override public ArrayList<GtNode> GetList() {
+		return this.NodeList;
+	}
+	@Override public void Evaluate(GtGenerator Visitor) {
+		Visitor.VisitNewArrayNode(this);
+	}
+	@Override public Object ToConstValue(boolean EnforceConst)  {
+		if(EnforceConst) {
+			return this.Type.Context.Generator.EvalNewArrayNode(this, EnforceConst);
+		}
+		return null;
+	}
+}
 final class GtLocalNode extends GtNode {
 	/*field*/public String NativeName;
 	GtLocalNode/*constructor*/(GtType Type, GtToken Token, String NativeName) {
@@ -226,25 +246,6 @@ final class GtInstanceOfNode extends GtNode {
 	}
 }
 
-//E.g., $LeftNode && $RightNode
-final class GtNotNode extends GtNode {
-	/*field*/public GtNode   ExprNode;
-	GtNotNode/*constructor*/(GtType Type, GtToken Token, GtNode Expr) {
-		super(Type, Token);
-		this.ExprNode  = Expr;
-		this.SetChild(Expr);
-	}
-	@Override public void Evaluate(GtGenerator Visitor) {
-		Visitor.VisitNotNode(this);
-	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
-		/*local*/Object LeftValue = this.ExprNode.ToConstValue(EnforceConst);
-		if(LeftValue instanceof Boolean) {
-			return !(LibGreenTea.booleanValue(LeftValue));
-		}
-		return null;
-	}
-}
 //E.g., $LeftNode && $RightNode
 final class GtAndNode extends GtNode {
 	/*field*/public GtNode   LeftNode;

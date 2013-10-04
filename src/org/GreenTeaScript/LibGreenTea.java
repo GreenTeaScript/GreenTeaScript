@@ -61,12 +61,21 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		}
 	}
 
-	public final static Object NewArray(GtType Type, int InitSize) {
-		return ArrayApi.NewArray(Type, InitSize);
+	public final static Object NewArray(GtType Type, Object[] InitSizes) {
+		if(InitSizes.length == 1) {
+			return GreenTeaArray.NewArray1(Type, ((Number)InitSizes[0]).intValue());
+		}
+		else if(InitSizes.length == 2) {
+			return GreenTeaArray.NewArray2(Type, ((Number)InitSizes[0]).intValue(), ((Number)InitSizes[1]).intValue());
+		}
+		else {
+			return GreenTeaArray.NewArray3(Type, ((Number)InitSizes[0]).intValue(), ((Number)InitSizes[1]).intValue(), ((Number)InitSizes[2]).intValue());
+		}
+		
 	}
 
 	public final static Object NewArrayLiteral(GtType ArrayType, Object[] Values) {
-		return ArrayApi.NewArrayLiteral(ArrayType, Values);		
+		return GreenTeaArray.NewArrayLiteral(ArrayType, Values);		
 	}
 
 	
@@ -253,7 +262,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return sb.toString();
 	}
 
-	public final static String Stringfy(Object Value) {
+	public final static String Stringify(Object Value) {
 		if(Value == null) {
 			return "null";
 		}
@@ -281,7 +290,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		//			return "" + s + "}";
 	}
 
-	public final static String StringfyField(Object Value) {
+	public final static String StringifyField(Object Value) {
 		/*local*/String s = "{";
 		Field[] Fields = Value.getClass().getFields();
 		for(int i = 0; i < Fields.length; i++) {
@@ -291,7 +300,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 				}
 				try {
 					s += Fields[i].getName() + ": ";
-					s += LibGreenTea.Stringfy(Fields[i].get(Value));
+					s += LibGreenTea.Stringify(Fields[i].get(Value));
 				} catch (IllegalArgumentException e) {
 				} catch (IllegalAccessException e) {
 				}

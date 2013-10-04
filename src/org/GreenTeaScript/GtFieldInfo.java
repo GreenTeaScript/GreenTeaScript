@@ -26,21 +26,24 @@
 package org.GreenTeaScript;
 //endif VAJA
 
-public class NativeClassTest {
-	public String name;
-	public long age;
-	public boolean isNinja;
-	public byte bage;
-	public char initial;
-	public NativeClassTest(String name, long age, boolean isNinja) {
-		this.name = name;
-		this.age = age;
-		this.isNinja = isNinja;
-		this.bage = (byte)age;
-		this.initial = name.charAt(0);
-	}
-	@Override public String toString() {
-		return LibGreenTea.StringifyField(this);
+public class GtFieldInfo extends GreenTeaUtils {
+	/*field*/public int     FieldFlag;
+	/*field*/public int     FieldIndex;
+	/*field*/public GtType	Type;
+	/*field*/public String	Name;
+	/*field*/public String	NativeName;
+	/*field*/public Object  InitValue;
+	/*field*/public GtFunc	GetterFunc;
+	/*field*/public GtFunc	SetterFunc;
+
+	GtFieldInfo/*constructor*/(int FieldFlag, GtType Type, String Name, int FieldIndex, Object InitValue) {
+		this.FieldFlag = FieldFlag;
+		this.Type = Type;
+		this.Name = Name;
+		this.NativeName = Name; // use this in a generator
+		this.FieldIndex = FieldIndex;
+		this.InitValue = InitValue;
+		this.GetterFunc = null;
+		this.SetterFunc = null;
 	}
 }
-
