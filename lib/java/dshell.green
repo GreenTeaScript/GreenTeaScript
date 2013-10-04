@@ -13,6 +13,7 @@ let TooManyArgsException = import org.GreenTeaScript.DShell.TooManyArgsException
 let NotPermittedException = import org.GreenTeaScript.DShell.NotPermittedException;
 let BadFileDescriptorException = import org.GreenTeaScript.DShell.BadFileDescriptorException;
 let BadStateFileDescriptorException = import org.GreenTeaScript.DShell.BadStateFileDescriptorException;
+let BadMessageException = import org.GreenTeaScript.DShell.BadMessageException;
 let NoChildException = import org.GreenTeaScript.DShell.NoChildException;
 let ConnectRefusedException = import org.GreenTeaScript.DShell.ConnectRefusedException;
 let FileExistException = import org.GreenTeaScript.DShell.FileExistException;
@@ -33,11 +34,15 @@ let NoFreeMemoryException = import org.GreenTeaScript.DShell.NoFreeMemoryExcepti
 let NoFreeSpaceException = import org.GreenTeaScript.DShell.NoFreeSpaceException;
 let NotDirectoryException = import org.GreenTeaScript.DShell.NotDirectoryException;
 let NotEmptyDirectoryException = import org.GreenTeaScript.DShell.NotEmptyDirectoryException;
+let NotSocketException = import org.GreenTeaScript.DShell.NotSocketException;
 let InappropriateOperateException = import org.GreenTeaScript.DShell.InappropriateOperateException;
 let NotPermittedOperateException = import org.GreenTeaScript.DShell.NotPermittedOperateException;
+let BrokenPipeException = import org.GreenTeaScript.DShell.BrokenPipeException;
+let RemoteIOException = import org.GreenTeaScript.DShell.RemoteIOOperateException;
 let ReadOnlyException = import org.GreenTeaScript.DShell.ReadOnlyException;
 let IllegalSeekException = import org.GreenTeaScript.DShell.IllegalSeekException;
 let NetworkTimeoutException = import org.GreenTeaScript.DShell.NetworkTimeoutException;
+let TooManyUsersException = import org.GreenTeaScript.DShell.TooManyUsersException;
 
 // FaultTypes
 let DFault       = import org.GreenTeaScript.DShell.DFault;

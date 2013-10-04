@@ -1094,7 +1094,11 @@ enum ErrorToException {
 			return BadStateFileDescriptorException.class;
 		}
 	}, 
-	EBADMSG, 
+	EBADMSG {
+		public Class<?> toException() {
+			return BadMessageException.class;
+		}
+	}, 
 	EBADR, 
 	EBADRQC, 
 	EBADSLT, 
@@ -1250,7 +1254,11 @@ enum ErrorToException {
 			return NotEmptyDirectoryException.class;
 		}
 	}, 
-	ENOTSOCK, 
+	ENOTSOCK {
+		public Class<?> toException() {
+			return NotSocketException.class;
+		}
+	}, 
 	ENOTSUP, 
 	ENOTTY {
 		public Class<?> toException() {
@@ -1267,14 +1275,22 @@ enum ErrorToException {
 		}
 	}, 
 	EPFNOSUPPORT, 
-	EPIPE, 
+	EPIPE {
+		public Class<?> toException() {
+			return BrokenPipeException.class;
+		}
+	}, 
 	EPROTO, 
 	EPROTONOSUPPORT, 
 	EPROTOTYPE, 
 	ERANGE, 
 	EREMCHG, 
 	EREMOTE, 
-	EREMOTEIO,
+	EREMOTEIO {
+		public Class<?> toException() {
+			return RemoteIOException.class;
+		}
+	},
 	ERESTART, 
 	EROFS {
 		public Class<?> toException() {
@@ -1300,7 +1316,11 @@ enum ErrorToException {
 	ETXTBSY, 
 	EUCLEAN, 
 	EUNATCH, 
-	EUSERS, 
+	EUSERS {
+		public Class<?> toException() {
+			return TooManyUsersException.class;
+		}
+	}, 
 	EWOULDBLOCK, 
 	EXDEV, 
 	EXFULL;
