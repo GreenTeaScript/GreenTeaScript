@@ -202,6 +202,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.typeDescriptorMap.put(Context.AnyType.ShortName, Type.getType(Object.class));
 		this.typeDescriptorMap.put(Context.StringType.ShortName, Type.getType(String.class));
 		this.typeDescriptorMap.put(Context.ArrayType.ShortName, Type.getType(GreenTeaArray.class));
+		this.typeDescriptorMap.put(Context.FuncType.ShortName, Type.getType(Object.class));//FIXME
 		this.methodMap = InitSystemMethods();
 		this.defaultClassName = "Global$" + Context.ParserId;
 		this.DefaultHolderClass = new MethodHolderClass(defaultClassName, "java/lang/Object");
