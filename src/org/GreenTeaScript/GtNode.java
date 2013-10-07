@@ -115,6 +115,12 @@ public class GtNode extends GreenTeaUtils {
 
 }
 
+class GtBasicNode extends GtNode {
+	GtBasicNode/*constructor*/(GtType Type, GtToken Token) {
+		super(Type, Token);
+	}
+}
+
 final class GtEmptyNode extends GtNode {
 	GtEmptyNode/*constructor*/(GtType Type, GtToken Token) {
 		super(Type, Token);
@@ -521,7 +527,7 @@ final class GtIndexerNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitIndexerNode(this);
 	}
-	public GtApplyNode ToApplyNode() {
+	public GtApplyNode ToBasicNode() {
 		/*local*/GtApplyNode Node = new GtApplyNode(this.Type, this.Token, this.Func);
 		Node.Append(new GtConstNode(this.Func.GetFuncType(), this.Token, this.Func));
 		Node.Append(this.Expr);
@@ -529,7 +535,7 @@ final class GtIndexerNode extends GtNode {
 		return Node;
 	}
 	@Override public Object ToConstValue(boolean EnforceConst)  {
-		/*local*/GtApplyNode Node = this.ToApplyNode();
+		/*local*/GtApplyNode Node = this.ToBasicNode();
 		return Node.ToConstValue(EnforceConst);
 	}
 }
