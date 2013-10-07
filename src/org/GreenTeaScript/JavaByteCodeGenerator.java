@@ -231,6 +231,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			map.put("cast", lib.getMethod("DynamicCast", GtType.class, Object.class));
 			map.put("instanceof", lib.getMethod("DynamicInstanceOf", Object.class, GtType.class));
 			map.put("NewArrayLiteral", lib.getMethod("NewArrayLiteral", GtType.class, Object[].class));
+			map.put("NewArray", lib.getMethod("NewArray", GtType.class, Object[].class));
 			Class<?> proc = DShellProcess.class;
 			map.put("ExecCommandVoid", proc.getMethod("ExecCommandVoid", String[][].class));
 			map.put("ExecCommandBool", proc.getMethod("ExecCommandBool", String[][].class));
@@ -613,6 +614,15 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.unbox(ty);
 	}
 
+	public void VisitSetterNode(GtSetterNode Node) {
+		String name = Node.Func.FuncName;
+		Node.LeftNode.Evaluate(this);
+		this.Builder.AsmMethodVisitor.visitLdcInsn(name);
+		Node.RightNode.Evaluate(this);
+		this.box();
+		this.Builder.Call(this.methodMap.get("setter"));
+	}
+
 	@Override public void VisitApplyNode(GtApplyNode Node) {
 		GtFunc Func = Node.Func;
 		for(int i = 1; i < Node.NodeList.size(); i++) {
@@ -696,6 +706,22 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		}
 		this.Builder.Call(methodMap.get("NewArrayLiteral"));
 		this.Builder.AsmMethodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(GreenTeaArray.class));
+	}
+
+	public void VisitNewArrayNode(GtNewArrayNode Node) {
+		this.LoadConst(Node.Type);
+		this.Builder.AsmMethodVisitor.visitLdcInsn(Node.NodeList.size());
+		this.Builder.AsmMethodVisitor.visitTypeInsn(ANEWARRAY, Type.getInternalName(Object.class));
+		for(int i=0; i<Node.NodeList.size(); i++) {
+			this.Builder.AsmMethodVisitor.visitInsn(DUP);
+			this.Builder.AsmMethodVisitor.visitLdcInsn(i);
+			Node.NodeList.get(i).Evaluate(this);
+			this.box();
+			this.Builder.AsmMethodVisitor.visitInsn(AASTORE);
+			this.Builder.typeStack.pop();
+		}
+		this.Builder.Call(methodMap.get("NewArray"));
+		this.Builder.typeStack.push(this.ToAsmType(Node.Type));
 	}
 
 	@Override public void VisitAndNode(GtAndNode Node) {
