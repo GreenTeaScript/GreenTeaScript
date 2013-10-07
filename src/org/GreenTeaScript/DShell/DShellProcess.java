@@ -1081,7 +1081,11 @@ enum ErrorToException {
 	EADDRINUSE, 
 	EADDRNOTAVAIL, 
 	EAFNOSUPPORT,
-	EAGAIN, 
+	EAGAIN {
+		public Class<?> toException() {
+			return TemporaryUnavailableException.class;
+		}
+	}, 
 	EALREADY, 
 	EBADE, 
 	EBADF {
@@ -1114,7 +1118,7 @@ enum ErrorToException {
 	ECONNABORTED,
 	ECONNREFUSED {
 		public Class<?> toException() {
-			return ConnectRefusedException.class;
+			return ConnectionRefusedException.class;
 		}
 	}, 
 	ECONNRESET, 
@@ -1135,7 +1139,11 @@ enum ErrorToException {
 		}
 	}, 
 	EHOSTDOWN, 
-	EHOSTUNREACH, 
+	EHOSTUNREACH {
+		public Class<?> toException() {
+			return UnreachableHostException.class;
+		}
+	}, 
 	EIDRM, 
 	EILSEQ,
 	EINPROGRESS, 
@@ -1200,7 +1208,7 @@ enum ErrorToException {
 	ENETRESET, 
 	ENETUNREACH {
 		public Class<?> toException() {
-			return UnreachableException.class;
+			return UnreachableNetworkException.class;
 		}
 	}, 
 	ENFILE {
@@ -1214,10 +1222,14 @@ enum ErrorToException {
 		}
 	}, 
 	ENODATA, 
-	ENODEV, 
+	ENODEV {
+		public Class<?> toException() {
+			return DeviceNotFoundException.class;
+		}
+	}, 
 	ENOENT {
 		public Class<?> toException() {
-			return NotFoundException.class;
+			return org.GreenTeaScript.DShell.FileNotFoundException.class;
 		}
 	}, 
 	ENOEXEC, 
@@ -1310,7 +1322,7 @@ enum ErrorToException {
 	ETIME, 
 	ETIMEDOUT {
 		public Class<?> toException() {
-			return NetworkTimeoutException.class;
+			return ConnectionTimeoutException.class;
 		}
 	}, 
 	ETXTBSY, 
@@ -1321,7 +1333,11 @@ enum ErrorToException {
 			return TooManyUsersException.class;
 		}
 	}, 
-	EWOULDBLOCK, 
+	EWOULDBLOCK {
+		public Class<?> toException() {
+			return EAGAIN.toException();
+		}
+	}, 
 	EXDEV, 
 	EXFULL;
 
