@@ -721,6 +721,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			this.Builder.typeStack.pop();
 		}
 		this.Builder.Call(methodMap.get("NewArray"));
+		this.Builder.AsmMethodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(GreenTeaArray.class));
 		this.Builder.typeStack.push(this.ToAsmType(Node.Type));
 	}
 
