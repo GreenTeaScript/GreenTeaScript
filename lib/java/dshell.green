@@ -11,13 +11,15 @@ import org.GreenTeaScript.DShellGrammar;
 
 let TooManyArgsException = import org.GreenTeaScript.DShell.TooManyArgsException;
 let NotPermittedException = import org.GreenTeaScript.DShell.NotPermittedException;
+let TemporaryUnavailableException = import org.GreenTeaScript.DShell.TemporaryUnavailableException;
 let BadFileDescriptorException = import org.GreenTeaScript.DShell.BadFileDescriptorException;
 let BadStateFileDescriptorException = import org.GreenTeaScript.DShell.BadStateFileDescriptorException;
 let BadMessageException = import org.GreenTeaScript.DShell.BadMessageException;
 let NoChildException = import org.GreenTeaScript.DShell.NoChildException;
-let ConnectRefusedException = import org.GreenTeaScript.DShell.ConnectRefusedException;
+let ConnectionRefusedException = import org.GreenTeaScript.DShell.ConnectionRefusedException;
 let FileExistException = import org.GreenTeaScript.DShell.FileExistException;
 let TooLargeFileException = import org.GreenTeaScript.DShell.TooLargeFileException;
+let UnreachableHostException = import org.GreenTeaScript.DShell.UnreachableHostException;
 let InterruptedBySignalException = import org.GreenTeaScript.DShell.InterruptedBySignalException;
 let InvalidArgumentException = import org.GreenTeaScript.DShell.InvalidArgumentException;
 let IOException = import org.GreenTeaScript.DShell.IOException;
@@ -26,10 +28,11 @@ let TooManyLinkException = import org.GreenTeaScript.DShell.TooManyLinkException
 let TooManyFileOpenException = import org.GreenTeaScript.DShell.TooManyFileOpenException;
 let TooLongMessageException = import org.GreenTeaScript.DShell.TooLongMessageException;
 let TooLongNameException = import org.GreenTeaScript.DShell.TooLongNameException;
-let UnreachableException = import org.GreenTeaScript.DShell.UnreachableException;
+let UnreachableNetworkException = import org.GreenTeaScript.DShell.UnreachableNetworkException;
 let FileTableOverflowException = import org.GreenTeaScript.DShell.FileTableOverflowException;
 let NoBufferSpaceException = import org.GreenTeaScript.DShell.NoBufferSpaceException;
-let NotFoundException = import org.GreenTeaScript.DShell.NotFoundException;
+let DeviceNotFoundException = import org.GreenTeaScript.DShell.DeviceNotFoundException;
+let FileNotFoundException = import org.GreenTeaScript.DShell.FileNotFoundException;
 let NoFreeMemoryException = import org.GreenTeaScript.DShell.NoFreeMemoryException;
 let NoFreeSpaceException = import org.GreenTeaScript.DShell.NoFreeSpaceException;
 let NotDirectoryException = import org.GreenTeaScript.DShell.NotDirectoryException;
@@ -41,7 +44,7 @@ let BrokenPipeException = import org.GreenTeaScript.DShell.BrokenPipeException;
 let RemoteIOException = import org.GreenTeaScript.DShell.RemoteIOException;
 let ReadOnlyException = import org.GreenTeaScript.DShell.ReadOnlyException;
 let IllegalSeekException = import org.GreenTeaScript.DShell.IllegalSeekException;
-let NetworkTimeoutException = import org.GreenTeaScript.DShell.NetworkTimeoutException;
+let ConnectionTimeoutException = import org.GreenTeaScript.DShell.ConnectionTimeoutException;
 let TooManyUsersException = import org.GreenTeaScript.DShell.TooManyUsersException;
 
 // FaultTypes

@@ -188,9 +188,9 @@ public class GtType extends GreenTeaUtils {
 		if(this == Type || this == this.Context.AnyType) {
 			return true;
 		}
-		/*local*/GtType SuperClass = this.SuperType;
+		/*local*/GtType SuperClass = Type.SuperType;
 		while(SuperClass != null) {
-			if(SuperClass == Type) {
+			if(SuperClass == this) {
 				return true;
 			}
 			SuperClass = SuperClass.SuperType;
