@@ -580,6 +580,133 @@ final class GtApplyNode extends GtNode {
 	}
 }
 
+//E.g., Func "(" $Param[0], $Param[1], ... ")"
+final class GtStaticApplyNode extends GtNode {
+	/*field*/public GtFunc	Func;
+	/*field*/public ArrayList<GtNode>  ParamList; /* [arg1, arg2, ...] */
+	GtStaticApplyNode/*constructor*/(GtType Type, GtToken KeyToken, GtFunc Func) {
+		super(Type, KeyToken);
+		this.Func = Func;
+		this.ParamList = new ArrayList<GtNode>();
+	}
+	public final ArrayList<GtNode> GetList() {
+		return this.ParamList;
+	}
+	@Override public void Evaluate(GtGenerator Visitor) {
+		Visitor.VisitStaticApplyNode(this);
+	}
+	@Override public Object ToConstValue(boolean EnforceConst)  {
+		return this.Type.Context.Generator.EvalStaticApplyNode(this, EnforceConst);
+	}
+}
+//E.g., $RecvNode . Func "(" $Param[1], $Param[2], ... ")"
+final class GtApplyStaticMethodNode extends GtNode {
+	/*field*/public GtNode RecvNode;
+	/*field*/public GtFunc Func;
+	/*field*/public ArrayList<GtNode>  ParamList; /* [arg1, arg2, ...] */
+	GtApplyStaticMethodNode/*constructor*/(GtType Type, GtToken KeyToken, GtNode RecvNode, GtFunc Func) {
+		super(Type, KeyToken);
+		this.Func = Func;
+		this.ParamList = new ArrayList<GtNode>();
+	}
+	public final ArrayList<GtNode> GetList() {
+		return this.ParamList;
+	}
+	@Override public void Evaluate(GtGenerator Visitor) {
+		Visitor.VisitApplyStaticMethodNode(this);
+	}
+	@Override public Object ToConstValue(boolean EnforceConst)  {
+		return this.Type.Context.Generator.EvalApplyStaticMethodNode(this, EnforceConst);
+	}
+}
+//E.g., $RecvNode . Func "(" $Param[1], $Param[2], ... ")"
+final class GtApplyOverridedMethodNode extends GtNode {
+	/*field*/public GtNode RecvNode;
+	/*field*/public GtNameSpace NameSpace;
+	/*field*/public GtFunc Func;
+	/*field*/public ArrayList<GtNode>  ParamList; /* [arg1, arg2, ...] */
+	GtApplyOverridedMethodNode/*constructor*/(GtType Type, GtToken KeyToken, GtNode RecvNode, GtNameSpace NameSpace, GtFunc Func) {
+		super(Type, KeyToken);
+		this.NameSpace = NameSpace;
+		this.Func = Func;
+		this.ParamList = new ArrayList<GtNode>();
+	}
+	public final ArrayList<GtNode> GetList() {
+		return this.ParamList;
+	}
+	@Override public void Evaluate(GtGenerator Visitor) {
+		Visitor.VisitApplyOverridedMethodNode(this);
+	}
+	@Override public Object ToConstValue(boolean EnforceConst)  {
+		return this.Type.Context.Generator.EvalApplyOverridedMethodNode(this, EnforceConst);
+	}
+}
+
+//E.g., FuncNode "(" $Param[0], $Param[1], ... ")"
+final class GtApplyFuncNode extends GtNode {
+	/*field*/public GtNode	FuncNode;
+	/*field*/public ArrayList<GtNode>  ParamList; /* [arg0, arg1, ...] */
+	GtApplyFuncNode/*constructor*/(GtType Type, GtToken KeyToken, GtNode FuncNode) {
+		super(Type, KeyToken);
+		this.FuncNode = FuncNode;
+		this.ParamList = new ArrayList<GtNode>();
+	}
+	public final ArrayList<GtNode> GetList() {
+		return this.ParamList;
+	}
+	@Override public void Evaluate(GtGenerator Visitor) {
+		Visitor.VisitApplyFuncNode(this);
+	}
+	@Override public Object ToConstValue(boolean EnforceConst)  {
+		return this.Type.Context.Generator.EvalApplyFuncNode(this, EnforceConst);
+	}
+}
+
+//E.g., "FuncName" "(" $Param[0], $Param[1], ... ")"
+final class GtApplyDynamicFuncNode extends GtNode {
+	/*field*/public GtNameSpace NameSpace;
+	/*field*/public String	FuncName;
+	/*field*/public ArrayList<GtNode>  ParamList; /* [arg0, arg1, ...] */
+	GtApplyDynamicFuncNode/*constructor*/(GtType Type, GtToken KeyToken, GtNameSpace NameSpace, String FuncName) {
+		super(Type, KeyToken);
+		this.NameSpace = NameSpace;
+		this.FuncName = FuncName;
+		this.ParamList = new ArrayList<GtNode>();
+	}
+	public final ArrayList<GtNode> GetList() {
+		return this.ParamList;
+	}
+	@Override public void Evaluate(GtGenerator Visitor) {
+		Visitor.VisitApplyDynamicFuncNode(this);
+	}
+	@Override public Object ToConstValue(boolean EnforceConst)  {
+		return this.Type.Context.Generator.EvalApplyDynamicFuncNode(this, EnforceConst);
+	}
+}
+
+//E.g., $RecvNode . FuncName "(" $Param[1], $Param[2], ... ")"
+final class GtApplyDynamicMethodNode extends GtNode {
+	/*field*/public GtNode RecvNode;
+	/*field*/public GtNameSpace NameSpace;
+	/*field*/public String FuncName;
+	/*field*/public ArrayList<GtNode>  ParamList; /* [arg1, arg2, ...] */
+	GtApplyDynamicMethodNode/*constructor*/(GtType Type, GtToken KeyToken, GtNode RecvNode, GtNameSpace NameSpace, String FuncName) {
+		super(Type, KeyToken);
+		this.NameSpace = NameSpace;
+		this.FuncName = FuncName;
+		this.ParamList = new ArrayList<GtNode>();
+	}
+	public final ArrayList<GtNode> GetList() {
+		return this.ParamList;
+	}
+	@Override public void Evaluate(GtGenerator Visitor) {
+		Visitor.VisitApplyDynamicMethodNode(this);
+	}
+	@Override public Object ToConstValue(boolean EnforceConst)  {
+		return this.Type.Context.Generator.EvalApplyDynamicMethodNode(this, EnforceConst);
+	}
+}
+
 //E.g., ConstructorNode is for object creation in Native Langauage defined
 final class GtConstructorNode extends GtNode {
 	/*field*/public ArrayList<GtNode>	ParamList;

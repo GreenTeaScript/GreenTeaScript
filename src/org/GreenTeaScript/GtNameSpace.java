@@ -372,6 +372,30 @@ public final class GtNameSpace extends GreenTeaUtils {
 		return this.Context.RootNameSpace.GetMethod(ClassType, ConstructorSymbol(), false);
 	}
 
+	public final GtFunc GetOverridedMethod(GtType ClassType, GtFunc GivenFunc) {
+		/*local*/String Symbol = FuncSymbol(GivenFunc.FuncName);
+		GtType GivenClassType = GivenFunc.GetRecvType();
+		if(ClassType != GivenClassType) {
+			/*local*/ArrayList<GtFunc> FuncList = new ArrayList<GtFunc>();
+			while(ClassType != null) {
+				/*local*/String Key = ClassSymbol(ClassType, Symbol);
+				this.RetrieveFuncList(Key, FuncList);
+				/*local*/int i = 0;
+				while(i < FuncList.size()) {
+					GtFunc Func = FuncList.get(i); 
+					i += 1;
+					if(Func.EqualsOverridedMethod(GivenFunc)) {
+						return Func;
+					}
+				}
+				FuncList.clear();
+				ClassType = ClassType.ParentMethodSearch;
+			}
+		}
+		return GivenFunc;
+	}
+
+	
 	public final Object RetrieveFuncList(String FuncName, ArrayList<GtFunc> FuncList) {
 		/*local*/Object FuncValue = this.GetLocalSymbol(FuncName);
 		if(FuncValue instanceof GtFunc) {
@@ -390,6 +414,12 @@ public final class GtNameSpace extends GreenTeaUtils {
 			return this.ParentNameSpace.RetrieveFuncList(FuncName, FuncList);
 		}
 		return FuncValue;
+	}
+
+	public final GtPolyFunc GetPolyFunc(String FuncName) {
+		/*local*/ArrayList<GtFunc> FuncList = new ArrayList<GtFunc>();
+		this.RetrieveFuncList(FuncName, FuncList);
+		return new GtPolyFunc(FuncList);
 	}
 
 	public final GtFunc GetFunc(String FuncName, int BaseIndex, ArrayList<GtType> TypeList) {
