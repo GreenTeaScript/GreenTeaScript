@@ -1,0 +1,16 @@
+// written by kimio
+
+boolean TestNewArray() {
+	int[] a = new int[100];
+	assert(|a| == 100);
+	assert(a[0] == 0);
+	assert(a[99] == 0);
+	return true;
+}
+
+@Export
+int main() {
+	assert(TestNewArray());
+	return 0;
+}
+

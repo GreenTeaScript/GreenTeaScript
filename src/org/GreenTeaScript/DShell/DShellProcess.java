@@ -12,6 +12,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -1040,11 +1041,21 @@ class ShellExceptionRaiser {
 	}
 
 	private Exception createException(String message, String[] syscall) throws Exception {
+		// syscall: syscallName: 0, param: 1, errno: 2
+		Class<?>[] types = {String.class, String.class, String[].class};
+		Object[] args = {message, message, syscall};
 		try {
 			if(syscall == null) {
 				return new NoRelatedSyscallException(message);
 			}
-			return ErrorToException.valueOf(syscall[2]).toException(message, syscall[0], syscall[1]);
+			Class<?> exceptionClass = ErrorToException.valueOf(syscall[2]).toException();
+			if(exceptionClass == null) {
+				return new DShellException(syscall[2] + " has not implemented yet!!");
+			}
+			else {
+				Constructor<?> constructor = exceptionClass.getConstructor(types);
+				return (RelatedSyscallException) constructor.newInstance(args);
+			}
 		}
 		catch (IllegalArgumentException e) {
 			return new Exception((syscall[2] + " is not syscall!!"));
@@ -1058,40 +1069,56 @@ enum Syscall {
 
 enum ErrorToException {
 	E2BIG {
-		public Exception toException(String message, String syscallName, String param) {
-			return new TooManyArgsException(message);
+		public Class<?> toException() {
+			return TooManyArgsException.class;
 		}
 	}, 
 	EACCES {
-		public Exception toException(String message, String syscallName, String param) {
-			return new NotPermittedException(message);
+		public Class<?> toException() {
+			return NotPermittedException.class;
 		}
 	}, 
 	EADDRINUSE, 
 	EADDRNOTAVAIL, 
 	EAFNOSUPPORT,
-	EAGAIN, 
+	EAGAIN {
+		public Class<?> toException() {
+			return TemporaryUnavailableException.class;
+		}
+	}, 
 	EALREADY, 
 	EBADE, 
-	EBADF, 
-	EBADFD, 
-	EBADMSG, 
+	EBADF {
+		public Class<?> toException() {
+			return BadFileDescriptorException.class;
+		}
+	}, 
+	EBADFD {
+		public Class<?> toException() {
+			return BadStateFileDescriptorException.class;
+		}
+	}, 
+	EBADMSG {
+		public Class<?> toException() {
+			return BadMessageException.class;
+		}
+	}, 
 	EBADR, 
 	EBADRQC, 
 	EBADSLT, 
 	EBUSY, 
 	ECANCELED, 
 	ECHILD {
-		public Exception toException(String message, String syscallName, String param) {
-			return new NoChildException(message);
+		public Class<?> toException() {
+			return NoChildException.class;
 		}
 	}, 
 	ECHRNG, 
 	ECOMM, 
 	ECONNABORTED,
 	ECONNREFUSED {
-		public Exception toException(String message, String syscallName, String param) {
-			return new ConnectRefusedException(message);
+		public Class<?> toException() {
+			return ConnectionRefusedException.class;
 		}
 	}, 
 	ECONNRESET, 
@@ -1100,25 +1127,45 @@ enum ErrorToException {
 	EDESTADDRREQ, 
 	EDOM,
 	EDQUOT, 
-	EEXIST, 
+	EEXIST {
+		public Class<?> toException() {
+			return FileExistException.class;
+		}
+	}, 
 	EFAULT, 
-	EFBIG, 
+	EFBIG {
+		public Class<?> toException() {
+			return TooLargeFileException.class;
+		}
+	}, 
 	EHOSTDOWN, 
-	EHOSTUNREACH, 
+	EHOSTUNREACH {
+		public Class<?> toException() {
+			return UnreachableHostException.class;
+		}
+	}, 
 	EIDRM, 
 	EILSEQ,
 	EINPROGRESS, 
 	EINTR {
-		public Exception toException(String message, String syscallName, String param) {
-			return new InterruptedBySignalException(message);
+		public Class<?> toException() {
+			return InterruptedBySignalException.class;
 		}
 	}, 
-	EINVAL, 
-	EIO, 
+	EINVAL {
+		public Class<?> toException() {
+			return InvalidArgumentException.class;
+		}
+	}, 
+	EIO {
+		public Class<?> toException() {
+			return org.GreenTeaScript.DShell.IOException.class;
+		}
+	}, 
 	EISCONN, 
 	EISDIR {
-		public Exception toException(String message, String syscallName, String param) {
-			return new IsDirectoryException(message);
+		public Class<?> toException() {
+			return IsDirectoryException.class;
 		}
 	}, 
 	EISNAM, 
@@ -1135,34 +1182,54 @@ enum ErrorToException {
 	ELIBSCN, 
 	ELIBEXEC, 
 	ELOOP {
-		public Exception toException(String message, String syscallName, String param) {
-			return new TooManyLinkException(message);
+		public Class<?> toException() {
+			return TooManyLinkException.class;
 		}
 	}, 
 	EMEDIUMTYPE, 
-	EMFILE, 
+	EMFILE {
+		public Class<?> toException() {
+			return TooManyFileOpenException.class;
+		}
+	}, 
 	EMLINK, 
-	EMSGSIZE, 
+	EMSGSIZE {
+		public Class<?> toException() {
+			return TooLongMessageException.class;
+		}
+	}, 
 	EMULTIHOP, 
 	ENAMETOOLONG {
-		public Exception toException(String message, String syscallName, String param) {
-			return new TooLongNameException(message);
+		public Class<?> toException() {
+			return TooLongNameException.class;
 		}
 	}, 
 	ENETDOWN, 
 	ENETRESET, 
 	ENETUNREACH {
-		public Exception toException(String message, String syscallName, String param) {
-			return new UnreachableException(message);
+		public Class<?> toException() {
+			return UnreachableNetworkException.class;
 		}
 	}, 
-	ENFILE,
-	ENOBUFS, 
+	ENFILE {
+		public Class<?> toException() {
+			return FileTableOverflowException.class;
+		}
+	},
+	ENOBUFS {
+		public Class<?> toException() {
+			return NoBufferSpaceException.class;
+		}
+	}, 
 	ENODATA, 
-	ENODEV, 
+	ENODEV {
+		public Class<?> toException() {
+			return DeviceNotFoundException.class;
+		}
+	}, 
 	ENOENT {
-		public Exception toException(String message, String syscallName, String param) {
-			return new NotFoundException(message);
+		public Class<?> toException() {
+			return org.GreenTeaScript.DShell.FileNotFoundException.class;
 		}
 	}, 
 	ENOEXEC, 
@@ -1171,8 +1238,8 @@ enum ErrorToException {
 	ENOLINK, 
 	ENOMEDIUM, 
 	ENOMEM {
-		public Exception toException(String message, String syscallName, String param) {
-			return new NoFreeMemoryException(message);
+		public Class<?> toException() {
+			return NoFreeMemoryException.class;
 		}
 	},
 	ENOMSG, 
@@ -1180,8 +1247,8 @@ enum ErrorToException {
 	ENOPKG, 
 	ENOPROTOOPT, 
 	ENOSPC {
-		public Exception toException(String message, String syscallName, String param) {
-			return new NoFreeSpaceException(message);
+		public Class<?> toException() {
+			return NoFreeSpaceException.class;
 		}
 	}, 
 	ENOSR, 
@@ -1190,16 +1257,24 @@ enum ErrorToException {
 	ENOTBLK, 
 	ENOTCONN, 
 	ENOTDIR {
-		public Exception toException(String message, String syscallName, String param) {
-			return new NotDirectoryException(message);
+		public Class<?> toException() {
+			return NotDirectoryException.class;
 		}
 	}, 
-	ENOTEMPTY, 
-	ENOTSOCK, 
+	ENOTEMPTY {
+		public Class<?> toException() {
+			return NotEmptyDirectoryException.class;
+		}
+	}, 
+	ENOTSOCK {
+		public Class<?> toException() {
+			return NotSocketException.class;
+		}
+	}, 
 	ENOTSUP, 
 	ENOTTY {
-		public Exception toException(String message, String syscallName, String param) {
-			return new IllegalIOOperateException(message);
+		public Class<?> toException() {
+			return InappropriateOperateException.class;
 		}
 	}, 
 	ENOTUNIQ, 
@@ -1207,29 +1282,37 @@ enum ErrorToException {
 	EOPNOTSUPP, 
 	EOVERFLOW, 
 	EPERM{
-		public Exception toException(String message, String syscallName, String param) {
-			return new NotPermittedOperateException(message);
+		public Class<?> toException() {
+			return NotPermittedOperateException.class;
 		}
 	}, 
 	EPFNOSUPPORT, 
-	EPIPE, 
+	EPIPE {
+		public Class<?> toException() {
+			return BrokenPipeException.class;
+		}
+	}, 
 	EPROTO, 
 	EPROTONOSUPPORT, 
 	EPROTOTYPE, 
 	ERANGE, 
 	EREMCHG, 
 	EREMOTE, 
-	EREMOTEIO,
+	EREMOTEIO {
+		public Class<?> toException() {
+			return RemoteIOException.class;
+		}
+	},
 	ERESTART, 
 	EROFS {
-		public Exception toException(String message, String syscallName, String param) {
-			return new ReadOnlyException(message);
+		public Class<?> toException() {
+			return ReadOnlyException.class;
 		}
 	}, 
 	ESHUTDOWN, 
 	ESPIPE {
-		public Exception toException(String message, String syscallName, String param) {
-			return new IllegalSeekException(message);
+		public Class<?> toException() {
+			return IllegalSeekException.class;
 		}
 	}, 
 	ESOCKTNOSUPPORT, 
@@ -1238,19 +1321,27 @@ enum ErrorToException {
 	ESTRPIPE, 
 	ETIME, 
 	ETIMEDOUT {
-		public Exception toException(String message, String syscallName, String param) {
-			return new NetworkTimeoutException(message);
+		public Class<?> toException() {
+			return ConnectionTimeoutException.class;
 		}
 	}, 
 	ETXTBSY, 
 	EUCLEAN, 
 	EUNATCH, 
-	EUSERS, 
-	EWOULDBLOCK, 
+	EUSERS {
+		public Class<?> toException() {
+			return TooManyUsersException.class;
+		}
+	}, 
+	EWOULDBLOCK {
+		public Class<?> toException() {
+			return EAGAIN.toException();
+		}
+	}, 
 	EXDEV, 
 	EXFULL;
 
-	public Exception toException(String message, String syscallName, String param) {
-		return new Exception(this.toString() + " is not yet implemented!!");
+	public Class<?> toException() {
+		return null;
 	}
 }
