@@ -724,7 +724,7 @@ public abstract class LibGreenTea: GreenTeaConst {
 
 	public /*final*/ static void WriteCode(string OutputFile, string SourceCode) {
 		if(OutputFile == null) {
-			LibGreenTea.Eval(SourceCode);
+			//LibGreenTea.Eval(SourceCode);
 		}
 		if(OutputFile.Equals("-")) {
 			Console.WriteLine(SourceCode);
