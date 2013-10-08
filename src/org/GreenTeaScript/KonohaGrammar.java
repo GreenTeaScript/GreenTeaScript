@@ -310,13 +310,34 @@ public class KonohaGrammar extends GtGrammar {
 		return pos;
 	}
 
-	public static long StringLiteralToken(GtTokenContext TokenContext, String SourceText, long pos) {
-		/*local*/long start = pos;
-		/*local*/char prev = '"';
-		pos = pos + 1; // eat "\""
+	private static long SkipBackSlashOrNewLineOrDoubleQuote( String SourceText, long pos) {
 		while(pos < SourceText.length()) {
 			/*local*/char ch = LibGreenTea.CharAt(SourceText, pos);
-			if(ch == '"' && prev != '\\') {
+			if(ch == '\\' || ch == '\n' || ch == '"') {
+				return pos;
+			}
+			pos = pos + 1;
+		}
+		return pos;
+	}
+
+	public static long StringLiteralToken(GtTokenContext TokenContext, String SourceText, long pos) {
+		/*local*/long start = pos;
+		pos = pos + 1; // eat "\""
+		while(pos < SourceText.length()) {
+			pos = SkipBackSlashOrNewLineOrDoubleQuote(SourceText, pos);
+			/*local*/char ch = LibGreenTea.CharAt(SourceText, pos);
+			if(ch == '\\') {
+				if(pos + 1 < SourceText.length()) {
+					/*local*/char NextChar = LibGreenTea.CharAt(SourceText, pos + 1);
+					if(NextChar == 'u') {
+						TokenContext.ReportTokenError1(ErrorLevel, "Unicode character escape sequences is not supported", LibGreenTea.SubString(SourceText, start, pos));
+						return pos;
+					}
+				}
+				pos = pos + 1;
+			}
+			if(ch == '"') {
 				TokenContext.AddNewToken(LibGreenTea.SubString(SourceText, start, (pos + 1)), QuotedTokenFlag, "$StringLiteral$");
 				return pos + 1;
 			}
@@ -326,7 +347,6 @@ public class KonohaGrammar extends GtGrammar {
 				return pos;
 			}
 			pos = pos + 1;
-			prev = ch;
 		}
 		TokenContext.ReportTokenError1(ErrorLevel, "expected \" to close the string literal", LibGreenTea.SubString(SourceText, start, pos));
 		return pos;
