@@ -1312,6 +1312,9 @@ public class KonohaGrammar extends GtGrammar {
 		/*local*/GtNode CondNode = ParsedTree.TypeCheckAt(IfCond, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
 		/*local*/GtNode ThenNode = ParsedTree.TypeCheckAt(IfThen, Gamma, Gamma.VoidType, DefaultTypeCheckPolicy);
 		/*local*/GtNode ElseNode = ParsedTree.TypeCheckAt(IfElse, Gamma, Gamma.VoidType, DefaultTypeCheckPolicy);
+		if(ThenNode.HasReturnNode() && ElseNode != null && ElseNode.HasReturnNode()) {
+			ParsedTree.NextTree = null;
+		}
 		return Gamma.Generator.CreateIfNode(ThenNode.Type, ParsedTree, CondNode, ThenNode, ElseNode);
 	}
 
@@ -1415,7 +1418,7 @@ public class KonohaGrammar extends GtGrammar {
 
 	public static GtNode TypeReturn(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		ParsedTree.NextTree = null; // stop typing of next trees
-		if(Gamma.IsTopLevel() || Gamma.Func == null) {
+		if(Gamma.IsTopLevel()) {
 			return Gamma.UnsupportedTopLevelError(ParsedTree);
 		}
 		/*local*/GtType ReturnType = Gamma.Func.GetReturnType();

@@ -56,6 +56,11 @@ public class GtNode extends GreenTeaUtils {
 		return Node;
 	}
 
+	public final boolean HasReturnNode() {
+		GtNode LastNode = this.MoveTailNode();
+		return (LastNode instanceof GtReturnNode || LastNode instanceof GtThrowNode);
+	}
+
 	public final void SetChild(GtNode Node) {
 		if(Node != null) {
 			Node.ParentNode = this;
@@ -112,6 +117,7 @@ public class GtNode extends GreenTeaUtils {
 	public Object ToConstValue(boolean EnforceConst)  {
 		return this.ToNullValue(EnforceConst);
 	}
+
 
 }
 
