@@ -196,7 +196,7 @@ public final class GtTypeEnv extends GreenTeaUtils {
 		if(Func != null && (Func.Is(CoercionFunc) || IsFlag(TypeCheckPolicy, CastPolicy))) {
 			return this.Generator.CreateCoercionNode(Type, Func, Node);
 		}
-		System.err.println("node="+Node.getClass()+ "type error: requested = " + Type + ", given = " + Node.Type);
+		System.err.println("node="+ LibGreenTea.GetClassName(Node) + "type error: requested = " + Type + ", given = " + Node.Type);
 		return this.ReportTypeResult(ParsedTree, Node, TypeErrorLevel, "type error: requested = " + Type + ", given = " + Node.Type);
 	}
 }

@@ -316,6 +316,8 @@ interface GreenTeaConsts {
 	public final static int VerboseFile      = (1 << 7);
 	public final static int VerboseException = (1 << 8);
 
+	public final static int VerboseRuntime   = (1 << 9);
+
 //ifdef JAVA
 }
 

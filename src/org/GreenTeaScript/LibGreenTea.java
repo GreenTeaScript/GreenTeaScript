@@ -63,13 +63,13 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 
 	public final static Object NewArray(GtType Type, Object[] InitSizes) {
 		if(InitSizes.length == 1) {
-			return GreenTeaArray.NewArray1(Type, ((Number)InitSizes[0]).intValue());
+			return GreenTeaArray.NewArray1(Type.TypeParams[0], ((Number)InitSizes[0]).intValue());
 		}
 		else if(InitSizes.length == 2) {
-			return GreenTeaArray.NewArray2(Type, ((Number)InitSizes[0]).intValue(), ((Number)InitSizes[1]).intValue());
+			return GreenTeaArray.NewArray2(Type.TypeParams[0].TypeParams[0], ((Number)InitSizes[0]).intValue(), ((Number)InitSizes[1]).intValue());
 		}
 		else {
-			return GreenTeaArray.NewArray3(Type, ((Number)InitSizes[0]).intValue(), ((Number)InitSizes[1]).intValue(), ((Number)InitSizes[2]).intValue());
+			return GreenTeaArray.NewArray3(Type.TypeParams[0].TypeParams[0].TypeParams[0], ((Number)InitSizes[0]).intValue(), ((Number)InitSizes[1]).intValue(), ((Number)InitSizes[2]).intValue());
 		}
 		
 	}
@@ -78,6 +78,38 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return GreenTeaArray.NewArrayLiteral(ArrayType, Values);		
 	}
 
+	public static Object ApplyOverridedMethod(long FileLine, GtNameSpace NameSpace, GtFunc Func, Object[] Arguments) {
+		/*local*/GtType ClassType = NameSpace.Context.GuessType(Arguments[0]);
+		Func = NameSpace.GetOverridedMethod(ClassType, Func);
+		return Func.Apply(Arguments);
+	}
+
+	public static Object InvokeDynamicFunc(long FileLine, GtType ContextType, GtNameSpace NameSpace, String FuncName, Object[] Arguments) {
+		/*local*/GtPolyFunc PolyFunc = NameSpace.GetPolyFunc(FuncName);
+		/*local*/GtFunc Func = PolyFunc.GetMatchedFunc(NameSpace, Arguments);
+		/*local*/Object Value = ContextType.DefaultNullValue;
+		if(Func != null) {
+			Value = Func.Apply(Arguments);
+			return LibGreenTea.DynamicCast(ContextType, Value);
+		}
+		LibGreenTea.VerboseLog(VerboseRuntime, PolyFunc.MessageTypeError(null, FuncName));
+		return Value;
+	}
+
+	public static Object InvokeDynamicMethod(long FileLine, GtType ContextType, GtNameSpace NameSpace, String FuncName, Object[] Arguments) {
+		/*local*/GtType ClassType = ContextType.Context.GuessType(Arguments[0]);
+		/*local*/GtPolyFunc PolyFunc = NameSpace.GetMethod(ClassType, FuncName, true);
+		/*local*/GtFunc Func = PolyFunc.GetMatchedFunc(NameSpace, Arguments);
+		/*local*/Object Value = ContextType.DefaultNullValue;
+		if(Func != null) {
+			Value = Func.Apply(Arguments);
+			return LibGreenTea.DynamicCast(ContextType, Value);
+		}
+		LibGreenTea.VerboseLog(VerboseRuntime, PolyFunc.MessageTypeError(ClassType, FuncName));
+		return Value;
+	}
+
+	
 	
 	public final static String GetPlatform() {
 		return "Java JVM-" + System.getProperty("java.version");
@@ -1320,6 +1352,8 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		}
 		return null;
 	}
+
+
 
 //	public static Object EvalGetter(GtType Type, Object Value, String FieldName) {
 //		// TODO Auto-generated method stub
