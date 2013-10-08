@@ -30,30 +30,39 @@ import java.util.ArrayList;
 public class GtType extends GreenTeaUtils {
 	/*field*/public final GtParserContext	Context;
 	/*field*/public GtNameSpace     PackageNameSpace;
-	/*field*/public int					TypeFlag;
-	/*field*/public int                    TypeId;
+	/*field*/public int				TypeFlag;
+	/*field*/public int             TypeId;
 	/*field*/public String			ShortName;
-	/*field*/public GtType					SuperType;
+	/*field*/public GtType			SuperType;
 	/*field*/public GtType			ParentMethodSearch;
 	/*field*/public GtType			BaseType;
-	/*field*/public GtType[]				TypeParams;
+	/*field*/public GtType[]		TypeParams;
 	/*field*/public Object          TypeBody;
 	/*field*/public Object			DefaultNullValue;
 
 	public GtType/*constructor*/(GtParserContext Context, int TypeFlag, String ShortName, Object DefaultNullValue, Object TypeBody) {
 		this.Context = Context;
-		this.TypeFlag = TypeFlag;
 		this.ShortName = ShortName;
+		this.TypeFlag = TypeFlag;
+		this.DefaultNullValue = DefaultNullValue;
+		this.TypeBody = TypeBody;
 		this.SuperType = null;
 		this.BaseType = this;
 		this.ParentMethodSearch = Context.TopType;
-		this.DefaultNullValue = DefaultNullValue;
-		this.TypeBody = TypeBody;
 		if(!IsFlag(TypeFlag, TypeVariable)) {
 			this.TypeId = Context.TypePools.size();
 			Context.TypePools.add(this);
 		}
 		this.TypeParams = null;
+//ifdef JAVA
+		if(IsFlag(NativeType, TypeFlag) && TypeBody instanceof Class<?>) {
+			Class<?> SuperClass = ((/*cast*/Class<?>)TypeBody).getSuperclass();
+			if(SuperClass != null && SuperClass != Object.class) {
+				this.SuperType = LibGreenTea.GetNativeType(Context, SuperClass);
+				this.ParentMethodSearch = this.SuperType;
+			}
+		}
+//endif VAJA
 	}
 
 	public GtType CreateSubType(int ClassFlag, String ClassName, Object DefaultNullValue, Object NativeSpec) {
