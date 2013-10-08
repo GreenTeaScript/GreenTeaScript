@@ -108,8 +108,27 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		LibGreenTea.VerboseLog(VerboseRuntime, PolyFunc.MessageTypeError(ClassType, FuncName));
 		return Value;
 	}
-
 	
+	public static Object DynamicGetter(GtType ContextType, Object RecvObject, String FieldName) {
+		try {
+			Field JavaField = RecvObject.getClass().getField(FieldName);
+			Object Value = JavaField.get(RecvObject);
+			return DynamicCast(ContextType, Value);
+		} catch (Exception e) {
+		}
+		return ContextType.DefaultNullValue;
+	}
+
+	public static Object DynamicSetter(GtType ContextType, Object RecvObject, String FieldName, Object Value) {
+		try {
+			Field JavaField = RecvObject.getClass().getField(FieldName);
+			JavaField.set(RecvObject, Value);
+			Value = JavaField.get(RecvObject);
+			return DynamicCast(ContextType, Value);
+		} catch (Exception e) {
+		}
+		return ContextType.DefaultNullValue;
+	}
 	
 	public final static String GetPlatform() {
 		return "Java JVM-" + System.getProperty("java.version");
@@ -1350,15 +1369,6 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		}
 		catch(ClassCastException e) {
 		}
-		return null;
-	}
-
-	public static Object DynamicGetter(GtType ContextType, Object RecvObject, String FieldName) {
-		return null;
-	}
-
-	public static Object DynamicSetter(GtType ContextType, Object RecvObject, String FieldName, Object Value) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
