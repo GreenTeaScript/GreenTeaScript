@@ -35,12 +35,12 @@ public class GtType extends GreenTeaUtils {
 	/*field*/public String			ShortName;
 	/*field*/public GtType					SuperType;
 	/*field*/public GtType			ParentMethodSearch;
-	/*field*/public GtType					BaseType;
+	/*field*/public GtType			BaseType;
 	/*field*/public GtType[]				TypeParams;
 	/*field*/public Object          TypeBody;
 	/*field*/public Object			DefaultNullValue;
 
-	GtType/*constructor*/(GtParserContext Context, int TypeFlag, String ShortName, Object DefaultNullValue, Object TypeBody) {
+	public GtType/*constructor*/(GtParserContext Context, int TypeFlag, String ShortName, Object DefaultNullValue, Object TypeBody) {
 		this.Context = Context;
 		this.TypeFlag = TypeFlag;
 		this.ShortName = ShortName;

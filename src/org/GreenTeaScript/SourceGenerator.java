@@ -55,7 +55,7 @@ class SourceGenerator extends GtGenerator {
 	/*field*/protected String    BlockBegin;
 	/*field*/protected String    BlockEnd;
 
-	SourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
+	public SourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
 		this.LineFeed = "\n";
 		this.IndentLevel = 0;
