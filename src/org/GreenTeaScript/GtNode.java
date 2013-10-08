@@ -577,7 +577,7 @@ final class GtApplyNode extends GtNode {
 //E.g., ConstructorNode is for object creation in Native Langauage defined
 final class GtConstructorNode extends GtNode {
 	/*field*/public ArrayList<GtNode>	ParamList;
-	/*field*/GtFunc Func;
+	/*field*/public GtFunc Func;
 	GtConstructorNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func) {
 		super(Type, Token);
 		this.ParamList = new ArrayList<GtNode>();
