@@ -99,6 +99,7 @@ public abstract class LibGreenTea: GreenTeaConst {
 	}
 
 	public /*final*/ static void VerboseException(Exception e) {
+       
         //if(e is InvocationTargetException) {
         //    Throwable cause = e.getCause();
         //    e = cause;
