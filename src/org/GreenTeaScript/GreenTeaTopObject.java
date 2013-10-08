@@ -22,11 +22,13 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
+
 //ifdef JAVA
 package org.GreenTeaScript;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 //endif VAJA
+
 
 public class GreenTeaTopObject implements GreenTeaObject {
 	/*field*/public GtType GreenType;
@@ -36,7 +38,8 @@ public class GreenTeaTopObject implements GreenTeaObject {
 	public final GtType GetGreenType() {
 		return this.GreenType;
 	}
-	
+
+
 	@Override public String toString() {
 		/*local*/String s = "{";
 //ifdef JAVA
@@ -71,6 +74,7 @@ public class GreenTeaTopObject implements GreenTeaObject {
 	}
 }
 
+
 final class GreenTeaAnyObject extends GreenTeaTopObject {
 	/*field*/public final Object NativeValue;
 	GreenTeaAnyObject/*constructor*/(GtType GreenType, Object NativeValue) {
@@ -78,4 +82,3 @@ final class GreenTeaAnyObject extends GreenTeaTopObject {
 		this.NativeValue = NativeValue;
 	}
 }
-

@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 //endif VAJA
 
+/*GreenTeaConst Begin*/
 //ifdef JAVA
 interface GreenTeaConsts {
 //endif VAJA
@@ -318,12 +319,13 @@ interface GreenTeaConsts {
 
 	public final static int VerboseRuntime   = (1 << 9);
 
+/*GreenTeaConst End*/
 //ifdef JAVA
 }
 
 class GreenTeaUtils implements GreenTeaConsts {
 //endif VAJA
-
+/*GreenTeaUtils Begin*/
 	public final static boolean IsFlag(int flag, int flag2) {
 		return ((flag & flag2) == flag2);
 	}
@@ -372,7 +374,7 @@ class GreenTeaUtils implements GreenTeaConsts {
 		return Name + NativeNameSuffix + Index;
 	}
 
-	final static String ClassSymbol(GtType ClassType, String Symbol) {
+	public final static String ClassSymbol(GtType ClassType, String Symbol) {
 		return ClassType.GetUniqueName() + "." + Symbol;
 	}
 
@@ -384,19 +386,19 @@ class GreenTeaUtils implements GreenTeaConsts {
 		return LibGreenTea.IsLetter(Symbol, 0) ? Symbol : "__" + Symbol;
 	}
 
-	final static String ConverterSymbol(GtType ClassType) {
+	public final static String ConverterSymbol(GtType ClassType) {
 		return ClassType.GetUniqueName();
 	}
 
-	final static String ConstructorSymbol() {
+	public final static String ConstructorSymbol() {
 		return "";
 	}
 
-	final static String GetterSymbol(String Symbol) {
+	public final static String GetterSymbol(String Symbol) {
 		return Symbol + "+";
 	}
 
-	final static String SetterSymbol(String Symbol) {
+	public final static String SetterSymbol(String Symbol) {
 		return Symbol + "=";
 	}
 
