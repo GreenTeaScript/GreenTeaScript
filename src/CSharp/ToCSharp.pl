@@ -139,6 +139,7 @@ $src =~ s/\bSystem\.out\.println/Console.WriteLine/g;
 $src =~ s/\badd\(/Add(/g;
 $src =~ s/\.get\((.*?)\)/[$1]/g;
 $src =~ s/trim/Trim/g;
+$src =~ s/replace/Replace/g;
 
 $src =~ s/\bmain\b/Main/g;
 $src =~ s/\bequals\b/Equals/g;
@@ -180,7 +181,9 @@ while($i < $n){
 	$i = $i + 1;
 }
 
-$src =~ s/(public\s)?(\b[a-zA-Z]*\/\*constructor\*\/)/public $2/g;
+$src =~ s/(public\s)?(\b$Sym\/\*constructor\*\/)/public $2/g;
+$src =~ s/protected\spublic/protected/g;
+#$src =~ s/(public\s)?(\b$Type\s$Sym\b)/public $2/g;
 
 print <<'EOS';
 using System;
