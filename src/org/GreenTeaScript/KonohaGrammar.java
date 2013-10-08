@@ -1489,6 +1489,7 @@ public class KonohaGrammar extends GtGrammar {
 	}
 
 	public static GtNode TypeThrow(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+		ParsedTree.NextTree = null;
 		/*local*/GtType FaultType = ContextType; // FIXME Gamma.FaultType;
 		/*local*/GtNode ExprNode = ParsedTree.TypeCheckAt(ReturnExpr, Gamma, FaultType, DefaultTypeCheckPolicy);
 		return Gamma.Generator.CreateThrowNode(ExprNode.Type, ParsedTree, ExprNode);
