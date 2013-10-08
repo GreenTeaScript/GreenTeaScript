@@ -1,0 +1,15 @@
+let ArrayList = import java.util.ArrayList
+let System = import java.lang.System
+
+boolean testFunc() {
+	var list = new ArrayList();
+	list.add(1);
+	list.add(2);
+	list.add(3);
+	return list.toString() == "[1, 2, 3]";
+}
+
+@Export int main() {
+	assert(testFunc());
+	return 0;
+}

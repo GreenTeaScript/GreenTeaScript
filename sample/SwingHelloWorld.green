@@ -1,0 +1,14 @@
+let JFrame     = import javax.swing.JFrame
+let JLabel     = import javax.swing.JLabel
+let Dimension  = import java.awt.Dimension
+
+@Export int main() {
+	var frame = new JFrame("Hello World!");
+	JLabel label  = new JLabel("Hello World!");
+	frame.getContentPane().add(label);
+	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	frame.setVisible(true);
+	frame.setSize(new Dimension(640, 480));
+	return 0;
+}
+
