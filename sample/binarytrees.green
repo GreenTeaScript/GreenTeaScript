@@ -3,7 +3,7 @@
 // contributed by Kimio Kuramitsu, imasahiro, Wakamatsu
 
 let MINDEPTH = 4;
-let N=14;
+let N=20;
 
 class TreeNode {
 	TreeNode left;

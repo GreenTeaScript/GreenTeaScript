@@ -1353,6 +1353,15 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return null;
 	}
 
+	public static Object DynamicGetter(GtType ContextType, Object RecvObject, String FieldName) {
+		return null;
+	}
+
+	public static Object DynamicSetter(GtType ContextType, Object RecvObject, String FieldName, Object Value) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 
 //	public static Object EvalGetter(GtType Type, Object Value, String FieldName) {

@@ -509,6 +509,49 @@ final class GtSetterNode extends GtNode {
 		return this.Type.Context.Generator.EvalSetterNode(this, EnforceConst);
 	}
 }
+//E.g., $Expr . Token.ParsedText
+final class GtDyGetterNode extends GtNode {
+	/*field*/public GtNode  ExprNode;
+	/*field*/public GtNameSpace NameSpace;
+	/*field*/public String FieldName;
+	GtDyGetterNode/*constructor*/(GtType Type, GtToken Token, GtNode Expr, GtNameSpace NameSpace, String FieldName) {
+		super(Type, Token);
+		this.ExprNode = Expr;
+		this.NameSpace = NameSpace;
+		this.FieldName = FieldName;
+		this.SetChild(Expr);
+	}
+	@Override public void Evaluate(GtGenerator Visitor) {
+		Visitor.VisitDyGetterNode(this);
+	}
+
+	@Override public Object ToConstValue(boolean EnforceConst)  {
+		return this.Type.Context.Generator.EvalDyGetterNode(this, EnforceConst);
+	}
+}
+//E.g., $Left . Token.ParsedText = $Right
+final class GtDySetterNode extends GtNode {
+	/*field*/public GtNode  LeftNode;
+	/*field*/public GtNameSpace NameSpace;
+	/*field*/public String FieldName;
+	/*field*/public GtNode  RightNode;
+	GtDySetterNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func, GtNode LeftNode, GtNameSpace NameSpace, String FieldName, GtNode RightNode) {
+		super(Type, Token);
+		this.LeftNode  = LeftNode;
+		this.NameSpace = NameSpace;
+		this.FieldName = FieldName;
+		this.RightNode = RightNode;
+		this.SetChild2(LeftNode, RightNode);
+	}
+	@Override public void Evaluate(GtGenerator Visitor) {
+		Visitor.VisitDySetterNode(this);
+	}
+	@Override public Object ToConstValue(boolean EnforceConst)  {
+		return this.Type.Context.Generator.EvalDySetterNode(this, EnforceConst);
+	}
+}
+
+
 //E.g., $Expr "[" $Node, $Node "]"
 final class GtIndexerNode extends GtNode {
 	/*field*/public GtFunc Func;

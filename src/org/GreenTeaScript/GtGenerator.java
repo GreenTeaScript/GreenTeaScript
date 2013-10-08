@@ -302,7 +302,13 @@ public class GtGenerator extends GreenTeaUtils {
 	public void VisitGetterNode(GtGetterNode Node) {
 		/*extension*/
 	}
-	public void VisitSetterNode(GtSetterNode gtSetterNode) {
+	public void VisitSetterNode(GtSetterNode Node) {
+		/*extension*/
+	}
+	public void VisitDyGetterNode(GtDyGetterNode Node) {
+		/*extension*/
+	}
+	public void VisitDySetterNode(GtDySetterNode Node) {
 		/*extension*/
 	}
 	public void VisitApplyNode(GtApplyNode Node) {
@@ -718,6 +724,25 @@ public class GtGenerator extends GreenTeaUtils {
 			Object[] Arguments = MakeArguments(RecvObject, ApplyNode.ParamList, EnforceConst);
 			if(Arguments != null) {
 				return LibGreenTea.InvokeDynamicMethod(0, ApplyNode.Type, ApplyNode.NameSpace, ApplyNode.FuncName, Arguments);
+			}
+		}
+		return null;
+	}
+
+	public Object EvalDyGetterNode(GtDyGetterNode GetterNode, boolean EnforceConst) {
+		Object RecvObject = GetterNode.ExprNode.ToConstValue(EnforceConst);
+		if(RecvObject != null) {
+			return LibGreenTea.DynamicGetter(GetterNode.Type, RecvObject, GetterNode.FieldName);
+		}
+		return null;
+	}
+
+	public Object EvalDySetterNode(GtDySetterNode SetterNode, boolean EnforceConst) {
+		Object RecvObject = SetterNode.LeftNode.ToConstValue(EnforceConst);
+		if(RecvObject != null) {
+			Object Value = SetterNode.RightNode.ToConstValue(EnforceConst);
+			if(Value != null || SetterNode.RightNode.IsNullNode()) {
+				return LibGreenTea.DynamicSetter(SetterNode.Type, RecvObject, SetterNode.FieldName, Value);
 			}
 		}
 		return null;
