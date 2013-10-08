@@ -104,6 +104,10 @@ public class GtType extends GreenTeaUtils {
 		return IsFlag(this.TypeFlag, DynamicType);
 	}
 
+	public final boolean IsUnboxType() {
+		return IsFlag(this.BaseType.TypeFlag, UnboxType);
+	}
+
 	public final boolean IsGenericType() {
 		return (this.TypeParams != null);
 	}
@@ -310,6 +314,7 @@ public class GtType extends GreenTeaUtils {
 		}
 		return this.Accept(GivenType);
 	}
+
 
 
 

@@ -63,6 +63,7 @@ interface GreenTeaConsts {
 
 	public final static int		DynamicType	       = 1 << 8;  // @Dynamic
 	public final static int     OpenType           = 1 << 9;  // @Open for the future
+	public final static int     UnboxType          = 1 << 10; 
 	public final static int     TypeVariable       = 1 << 14;
 	public final static int     GenericVariable    = 1 << 15;
 

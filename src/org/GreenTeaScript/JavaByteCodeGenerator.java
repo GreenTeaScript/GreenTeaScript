@@ -164,7 +164,7 @@ class JVMBuilder {
 		this.AsmMethodVisitor.visitMethodInsn(INVOKESPECIAL, owner, "<init>", Type.getConstructorDescriptor(method));
 	}
 
-	void Call(Method method) {
+	public void Call(Method method) {
 		int inst;
 		if(Modifier.isStatic(method.getModifiers())) {
 			inst = INVOKESTATIC;
@@ -666,6 +666,46 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		}
 	}
 
+	@Override public void VisitStaticApplyNode(GtStaticApplyNode ApplyNode) {
+		GtFunc Func = ApplyNode.Func;
+		for(int i = 0; i < ApplyNode.ParamList.size(); i++) {
+			GtNode ParamNode = ApplyNode.ParamList.get(i);
+			ParamNode.Evaluate(this);
+			if(ParamNode.Type.IsUnboxType() && ParamNode.Type != Func.GetFuncParamType(i)) {
+				this.box();
+			}
+			// MATSU OLD CODE
+//			Type RequiredType = this.ToAsmType(Func.GetFuncParamType(i));
+//			if(RequiredType.equals(Type.getType(Object.class))) {
+//				this.box();
+//			}
+			this.Builder.typeStack.pop();
+		}
+		LibGreenTea.Assert(Func.FuncBody instanceof Method);
+		this.Builder.Call((Method) Func.FuncBody);
+		// MATSU OLD CODE
+//		Method m = null;
+//		if(Func.FuncBody instanceof Method) {
+//			m = (Method) Func.FuncBody;
+//		}
+//		else {
+//			m = this.methodMap.get(Func.FuncName);
+//		}
+//		if(m != null) {
+//			this.Builder.Call(m);
+//		}
+//		else {
+////			int opcode = Node.Func.Is(NativeStaticFunc) ? INVOKESTATIC : INVOKEVIRTUAL;
+//			int opcode = INVOKESTATIC;
+//			String owner = defaultClassName;//FIXME
+//			String methodName = Func.GetNativeFuncName();  // IMSORRY
+//			String methodDescriptor = this.ToAsmMethodType(Func).getDescriptor();
+//			this.Builder.AsmMethodVisitor.visitMethodInsn(opcode, owner, methodName, methodDescriptor);
+//			this.Builder.typeStack.push(this.ToAsmType(Func.GetReturnType()));
+//		}
+	}
+
+	
 	@Override public void VisitBinaryNode(GtBinaryNode Node) {
 		Node.LeftNode.Evaluate(this);
 		this.Builder.typeStack.pop();

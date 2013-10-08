@@ -27,9 +27,7 @@ package org.GreenTeaScript;
 import java.util.ArrayList;
 //endif VAJA
 
-
-
-class SourceGenerator extends GtGenerator {
+public class SourceGenerator extends GtGenerator {
 	/*field*/protected String    HeaderSource;
 	/*field*/protected String    BodySource;
 
