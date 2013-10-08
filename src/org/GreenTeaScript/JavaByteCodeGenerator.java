@@ -181,6 +181,28 @@ class JVMBuilder {
 	}
 }
 
+class Lib {
+	static Method GetTypeById;
+	static Method GetFuncById;
+	static Method GetNameSpaceById;
+	static Method DynamicGetter;
+	static Method DynamicSetter;
+	
+	static {
+		try {
+			GetTypeById = GtParserContext.class.getMethod("GetTypeById", int.class);
+			GetFuncById = GtParserContext.class.getMethod("GetFuncById", int.class);
+			DynamicGetter = LibGreenTea.class.getMethod("DynamicGetter", GtType.class, Object.class, String.class);
+			DynamicSetter = LibGreenTea.class.getMethod("DynamicSetter", GtType.class, Object.class, String.class, Object.class);
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			LibGreenTea.Exit(1, "load error");
+		}
+	}
+
+}
+
 public class JavaByteCodeGenerator extends GtGenerator {
 	private JVMBuilder Builder;
 	private String defaultClassName;
@@ -221,6 +243,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.DefaultHolderClass.addMethodNode(mn);
 	}
 
+	
 	public static HashMap<String, Method> InitSystemMethods() {
 		HashMap<String, Method> map = new HashMap<String, Method>();
 		try {
@@ -256,52 +279,52 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		}
 		return map;
 	}
-
+	
 	//-----------------------------------------------------
 
-	void LoadConst(Object o) {
+	void LoadConst(Object Value) {
 		Type type = null;
 		boolean unsupportType = false;
-		if(o instanceof Long) {
+		if(Value instanceof Long) {
 			type = Type.LONG_TYPE;
 		}
-		else if(o instanceof Double) {
+		else if(Value instanceof Double) {
 			type = Type.DOUBLE_TYPE;
 		}
-		else if(o instanceof Boolean) {
+		else if(Value instanceof Boolean) {
 			type = Type.BOOLEAN_TYPE;
 		}
-		else if(o instanceof String) {
-			type = Type.getType(o.getClass());
+		else if(Value instanceof String) {
+			type = Type.getType(Value.getClass());
 		}
-		else if(o instanceof GtType) {
-			int id = ((GtType)o).TypeId;
+		else if(Value instanceof GtType) {
+			int id = ((GtType)Value).TypeId;
 			FieldNode fn = this.DefaultHolderClass.getFieldNode("ParserContext");
 			this.Builder.AsmMethodVisitor.visitFieldInsn(GETSTATIC, this.DefaultHolderClass.name, fn.name, fn.desc);
 			this.Builder.AsmMethodVisitor.visitLdcInsn(id);
-			this.Builder.Call(methodMap.get("get_type"));
+			this.Builder.Call(Lib.GetTypeById);
 			return;
 		}
-		else if(o instanceof GtFunc) {
-			int id = ((GtFunc)o).FuncId;
+		else if(Value instanceof GtFunc) {
+			int id = ((GtFunc)Value).FuncId;
 			FieldNode fn = this.DefaultHolderClass.getFieldNode("ParserContext");
 			this.Builder.AsmMethodVisitor.visitFieldInsn(GETSTATIC, this.DefaultHolderClass.name, fn.name, fn.desc);
 			this.Builder.AsmMethodVisitor.visitLdcInsn(id);
-			this.Builder.Call(methodMap.get("get_func"));
+			this.Builder.Call(Lib.GetFuncById);
 			return;
 		}
 		else {
 			unsupportType = true;
-			type = Type.getType(o.getClass());
+			type = Type.getType(Value.getClass());
 		}
 		if(unsupportType) {
-			int id = JVMConstPool.add(o);
+			int id = JVMConstPool.add(Value);
 			this.Builder.AsmMethodVisitor.visitLdcInsn(id);
 			this.Builder.Call(methodMap.get("get_const"));
-			this.Builder.AsmMethodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(o.getClass()));
+			this.Builder.AsmMethodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(Value.getClass()));
 		}
 		else {
-			this.Builder.AsmMethodVisitor.visitLdcInsn(o);
+			this.Builder.AsmMethodVisitor.visitLdcInsn(Value);
 			this.Builder.typeStack.push(type);
 		}
 	}
@@ -549,13 +572,14 @@ public class JavaByteCodeGenerator extends GtGenerator {
 
 	@Override public void VisitConstNode(GtConstNode Node) {
 		Object constValue = Node.ConstValue;
-		if(constValue == null) { // FIXME(ide)
-			this.Builder.typeStack.push(this.ToAsmType(Node.Type));
-			this.Builder.AsmMethodVisitor.visitInsn(ACONST_NULL);
-		}
-		else {
-			this.LoadConst(constValue);
-		}
+		LibGreenTea.Assert(Node.ConstValue != null);  // Added by kimio
+//		if(constValue == null) { // FIXME(ide)
+//			this.Builder.typeStack.push(this.ToAsmType(Node.Type));
+//			this.Builder.AsmMethodVisitor.visitInsn(ACONST_NULL);
+//		}
+//		else {
+		this.LoadConst(constValue);
+//		}
 	}
 
 	@Override public void VisitNewNode(GtNewNode Node) {
@@ -614,12 +638,12 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.Builder.AsmMethodVisitor.visitFieldInsn(GETFIELD, ownerType.getInternalName(), name, fieldType.getDescriptor());
 		this.Builder.typeStack.pop();
 		this.Builder.typeStack.push(fieldType);
-//		Type ty = this.ToAsmType(Node.Type);
-//		this.Builder.AsmMethodVisitor.visitLdcInsn(name);
-//		this.Builder.Call(this.methodMap.get("getter"));
-//		this.unbox(ty);
+		//             Type ty = this.ToAsmType(Node.Type);
+		//             this.Builder.AsmMethodVisitor.visitLdcInsn(name);
+		//             this.Builder.Call(this.methodMap.get("getter"));
+		//             this.unbox(ty);
 	}
-
+	
 	public void VisitSetterNode(GtSetterNode Node) {
 		String name = Node.Func.FuncName;
 		Type fieldType = this.ToAsmType(Node.Func.GetFuncParamType(1));
@@ -632,6 +656,17 @@ public class JavaByteCodeGenerator extends GtGenerator {
 //		Node.RightNode.Evaluate(this);
 //		this.box();
 //		this.Builder.Call(this.methodMap.get("setter"));
+	}
+
+	public void VisitDySetterNode(GtDySetterNode SetterNode) {
+		this.LoadConst(SetterNode.Type);
+		SetterNode.LeftNode.Evaluate(this);
+		this.Builder.AsmMethodVisitor.visitLdcInsn(SetterNode.FieldName);
+		SetterNode.RightNode.Evaluate(this);
+		if(SetterNode.RightNode.Type.IsUnboxType()) {
+			this.box();
+		}
+		this.Builder.Call(Lib.DynamicSetter);
 	}
 
 	@Override public void VisitApplyNode(GtApplyNode Node) {
@@ -705,7 +740,6 @@ public class JavaByteCodeGenerator extends GtGenerator {
 //		}
 	}
 
-	
 	@Override public void VisitBinaryNode(GtBinaryNode Node) {
 		Node.LeftNode.Evaluate(this);
 		this.Builder.typeStack.pop();
