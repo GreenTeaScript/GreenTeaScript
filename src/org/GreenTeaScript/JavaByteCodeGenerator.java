@@ -608,20 +608,30 @@ public class JavaByteCodeGenerator extends GtGenerator {
 
 	@Override public void VisitGetterNode(GtGetterNode Node) {
 		String name = Node.Func.FuncName;
-		Type ty = this.ToAsmType(Node.Type);
+		Type fieldType = this.ToAsmType(Node.Func.GetReturnType());
+		Type ownerType = this.ToAsmType(Node.Func.GetFuncParamType(0));
 		Node.ExprNode.Evaluate(this);
-		this.Builder.AsmMethodVisitor.visitLdcInsn(name);
-		this.Builder.Call(this.methodMap.get("getter"));
-		this.unbox(ty);
+		this.Builder.AsmMethodVisitor.visitFieldInsn(GETFIELD, ownerType.getInternalName(), name, fieldType.getDescriptor());
+		this.Builder.typeStack.pop();
+		this.Builder.typeStack.push(fieldType);
+//		Type ty = this.ToAsmType(Node.Type);
+//		this.Builder.AsmMethodVisitor.visitLdcInsn(name);
+//		this.Builder.Call(this.methodMap.get("getter"));
+//		this.unbox(ty);
 	}
 
 	public void VisitSetterNode(GtSetterNode Node) {
 		String name = Node.Func.FuncName;
+		Type fieldType = this.ToAsmType(Node.Func.GetFuncParamType(1));
+		Type ownerType = this.ToAsmType(Node.Func.GetFuncParamType(0));
 		Node.LeftNode.Evaluate(this);
-		this.Builder.AsmMethodVisitor.visitLdcInsn(name);
 		Node.RightNode.Evaluate(this);
-		this.box();
-		this.Builder.Call(this.methodMap.get("setter"));
+		this.Builder.AsmMethodVisitor.visitFieldInsn(PUTFIELD, ownerType.getInternalName(), name, fieldType.getDescriptor());
+//		Node.LeftNode.Evaluate(this);
+//		this.Builder.AsmMethodVisitor.visitLdcInsn(name);
+//		Node.RightNode.Evaluate(this);
+//		this.box();
+//		this.Builder.Call(this.methodMap.get("setter"));
 	}
 
 	@Override public void VisitApplyNode(GtApplyNode Node) {
