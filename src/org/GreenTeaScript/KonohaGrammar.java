@@ -2207,7 +2207,7 @@ public class KonohaGrammar extends GtGrammar {
 		// define new class
 		/*local*/GtNameSpace ClassNameSpace = new GtNameSpace(NameSpace.Context, NameSpace);
 		/*local*/GtToken NameToken = ClassDeclTree.GetSyntaxTreeAt(ClassDeclName).KeyToken;
-		/*local*/GtType SuperType = NameSpace.Context.StructType;
+		/*local*/GtType SuperType = NameSpace.Context.TopType;
 		if(ClassDeclTree.HasNodeAt(ClassDeclSuperType)) {
 			SuperType = ClassDeclTree.GetSyntaxTreeAt(ClassDeclSuperType).GetParsedType();
 		}

@@ -75,9 +75,9 @@ public final class GtParserContext extends GreenTeaUtils {
 		this.NoErrorReport = false;
 		this.ReportedErrorList = new ArrayList<String>();
 
-		this.TopType       = this.RootNameSpace.AppendTypeName(new GtType(this, 0, "Top", null, null), null);
+		this.TopType       = this.RootNameSpace.AppendTypeName(new GtType(this, 0, "Top", null, GreenTeaTopObject.class), null);
 		this.StructType    = this.TopType.CreateSubType(0, "record", null, null);       //  unregistered
-		this.EnumBaseType  = this.TopType.CreateSubType(EnumType, "enum", null, null);  //  unregistered
+		this.EnumBaseType  = this.TopType.CreateSubType(EnumType, "enum", null, GreenTeaEnum.class);  //  unregistered
 
 		this.VoidType    = this.RootNameSpace.AppendTypeName(new GtType(this, NativeType, "void", null, Void.class), null);
 		this.BooleanType = this.RootNameSpace.AppendTypeName(new GtType(this, NativeType|UnboxType, "boolean", false, Boolean.class), null);

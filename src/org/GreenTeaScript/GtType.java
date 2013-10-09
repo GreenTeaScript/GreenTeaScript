@@ -163,6 +163,12 @@ public class GtType extends GreenTeaUtils {
 	}
 
 	public final String GetNativeName() {
+//ifdef JAVA
+		if(this.TypeBody instanceof Class<?>) {
+			// java.lang.Integer => java/lang/Integer
+			return ((/*cast*/Class<?>)this.TypeBody).getName().replaceAll("\\.", "/");
+		}
+//endif VAJA
 		if(IsFlag(this.TypeFlag, ExportType)) {
 			return this.ShortName;
 		}
