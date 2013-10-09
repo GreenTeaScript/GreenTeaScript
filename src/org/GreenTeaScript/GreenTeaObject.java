@@ -25,5 +25,5 @@
 package org.GreenTeaScript;
 //endif VAJA
 public interface GreenTeaObject {
-	GtType GetGreenType();
+	public GtType GetGreenType();
 }

@@ -35,7 +35,7 @@ public final class GtTypeEnv extends GreenTeaUtils {
 	/*field*/public ArrayList<GtVariableInfo> LocalStackList;
 	/*field*/public int StackTopIndex;
 	/*field*/public GtFunc	Func;
-	/*field*/boolean FoundUncommonFunc;
+	/*field*/public boolean FoundUncommonFunc;
 	
 	/* for convinient short cut */
 	/*field*/public final GtType	VoidType;
