@@ -5,20 +5,16 @@
 .SILENT:
 JavaBin="./GreenTeaScript.jar"
 INSTALL_PREFIX?="$(HOME)"
-TEST_BASEDIR="test/exec"
+TEST_BASEDIR="test/common"
 TEST_OUTDIR="$(TEST_BASEDIR)/test-result"
 
-TEST_FILES:=$(wildcard test/exec/*.green)
+TEST_FILES:=$(wildcard test/common/*.green)
 
 all: build test
 
-#build: buildj buildts
 build: buildj
 
 dist: distj distts
-
-#test: testj testpy
-	#sh tool/ReleaseCheck.sh
 
 buildj: $(JavaBin)
 	echo Build GreenTeaScript;
@@ -54,6 +50,11 @@ testpy:
 testts: buildts
 	echo Testing JavaScript implementation...
 	python ./tool/TestAll.py --target=js
+
+test-easy: buildj
+	echo Testing
+	java -ea -jar $(JavaBin) $(TEST_BASEDIR)/FibonacciTest.green
+	java -ea -jar $(JavaBin) $(TEST_BASEDIR)/ClassTest.green
 
 distj: buildj
 	echo Distribution for Java implementation

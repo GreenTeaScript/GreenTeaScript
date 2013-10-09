@@ -71,7 +71,7 @@ src/TypeScript/*.js.map
 src/TypeScript/*.js
 src/TypeScript/*.ts
 src/Python/*.py
-test/exec/test-result
+test/common/test-result
 /bin
 *.exe
 
