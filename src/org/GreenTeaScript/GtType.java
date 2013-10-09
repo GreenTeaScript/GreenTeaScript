@@ -95,63 +95,51 @@ public class GtType extends GreenTeaUtils {
 	public final boolean IsAbstract() {
 		return (this.TypeBody == null && this.SuperType == this.Context.StructType/*default*/);
 	}
-
 	public final boolean IsNative() {
 		return IsFlag(this.TypeFlag, NativeType);
 	}
-
 	public final boolean IsDynamic() {
 		return IsFlag(this.TypeFlag, DynamicType);
 	}
-
 	public final boolean IsUnboxType() {
 		return IsFlag(this.BaseType.TypeFlag, UnboxType);
 	}
-
 	public final boolean IsGenericType() {
 		return (this.TypeParams != null);
 	}
-
 	public final boolean IsFuncType() {
 		return (this.BaseType == this.Context.FuncType);
 	}
-
 	public final boolean IsTopType() {
 		return (this == this.Context.TopType);
 	}
-
 	public final boolean IsVoidType() {
 		return (this == this.Context.VoidType);
 	}
-
 	public final boolean IsVarType() {
 		return (this == this.Context.VarType);
 	}
-
 	public final boolean IsAnyType() {
 		return (this == this.Context.AnyType);
 	}
-
 	public final boolean IsTypeType() {
 		return (this == this.Context.TypeType);
 	}
-
 	public final boolean IsBooleanType() {
 		return (this == this.Context.BooleanType);
 	}
-
 	public final boolean IsIntType() {
 		return (this == this.Context.IntType);
 	}
-
+	public final boolean IsFloatType() {
+		return (this == this.Context.FloatType);
+	}
 	public final boolean IsStringType() {
 		return (this == this.Context.StringType);
 	}
-
 	public final boolean IsArrayType() {
 		return (this == this.Context.ArrayType);
 	}
-
 	public final boolean IsEnumType() {
 		return IsFlag(this.TypeFlag, EnumType);
 	}
