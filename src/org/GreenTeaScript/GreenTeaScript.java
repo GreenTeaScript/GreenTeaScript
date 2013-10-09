@@ -543,7 +543,7 @@ class GreenTeaUtils implements GreenTeaConsts {
 		}
 		return LastNode.MoveHeadNode();
 	}
-
+/*GreenTeaUtils End*/
 //ifdef JAVA
 	
 	public final static GtFunc LoadTokenFunc2(GtParserContext ParserContext, Class<?> GrammarClass, String FuncName) {
@@ -579,7 +579,6 @@ class GreenTeaUtils implements GreenTeaConsts {
 		}
 		return null;
 	}
-
 }
 
 final class GtMap {
