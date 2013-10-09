@@ -1115,8 +1115,9 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	}
 
 	@Override public void VisitErrorNode(GtErrorNode Node) {
-		this.Builder.AsmMethodVisitor.visitLdcInsn("(ErrorNode)");
-		this.Builder.Call(this.methodMap.get("error_node"));
+//		this.Builder.AsmMethodVisitor.visitLdcInsn("(ErrorNode)");
+//		this.Builder.Call(this.methodMap.get("error_node"));
+		LibGreenTea.Exit(1, "ErrorNode found in JavaByteCodeGenerator");
 	}
 
 	@Override public void VisitCommandNode(GtCommandNode Node) {
