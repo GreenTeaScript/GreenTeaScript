@@ -477,6 +477,11 @@ public final class GtNameSpace extends GreenTeaUtils {
 		return this.AppendFuncName(Func.FuncName, Func, SourceToken);
 	}
 
+	public final Object AppendStaticFunc(GtType StaticType, GtFunc Func, GtToken SourceToken) {
+		int loc = Func.FuncName.lastIndexOf(".");
+		return this.AppendFuncName(ClassStaticSymbol(StaticType, Func.FuncName.substring(loc+1)), Func, SourceToken);
+	}
+
 	public final Object AppendMethod(GtFunc Func, GtToken SourceToken) {
 		/*local*/GtType ClassType = Func.GetRecvType();
 		if(ClassType.IsGenericType() && ClassType.HasTypeVariable()) {

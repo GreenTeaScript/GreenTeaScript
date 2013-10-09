@@ -102,6 +102,14 @@ public final class GtFunc extends GreenTeaUtils {
 		}
 	}
 
+	public final GtType GetStaticType(GtNameSpace NameSpace) {
+		int loc = this.FuncName.lastIndexOf(".");
+		if(loc != -1) {
+			return NameSpace.GetType(this.FuncName.substring(0, loc));
+		}
+		return null;
+	}
+
 	public final GtType GetFuncType() {
 		if(this.FuncType == null) {
 			/*local*/GtParserContext Context = this.GetRecvType().Context;
@@ -300,6 +308,7 @@ public final class GtFunc extends GreenTeaUtils {
 		}
 		return LibGreenTea.ApplyFunc(this, null, Arguments);
 	}
+
 
 
 }

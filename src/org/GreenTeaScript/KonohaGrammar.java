@@ -1892,15 +1892,22 @@ public class KonohaGrammar extends GtGrammar {
 					FuncBlock.DefinedFunc.FuncFlag = FuncFlag;
 				}
 				KonohaGrammar.ParseFuncBody(NameSpace, TokenContext, FuncDeclTree, FuncBlock);
-				if(!FuncBlock.DefinedFunc.IsAbstract() || !FoundAbstractFunc) {
-					if(!FuncBlock.DefinedFunc.Is(MethodFunc) || !FuncBlock.DefinedFunc.Is(OperatorFunc)) {
-						StoreNameSpace.AppendFunc(FuncBlock.DefinedFunc, SourceToken);
-					}
-					/*local*/GtType RecvType = FuncBlock.DefinedFunc.GetRecvType();
-					if(RecvType.IsVoidType() || LibGreenTea.EqualsString(FuncBlock.DefinedFunc.FuncName, "_")) {
+				/*local*/GtFunc DefinedFunc = FuncBlock.DefinedFunc;
+				if(!DefinedFunc.IsAbstract() || !FoundAbstractFunc) {
+					/*local*/GtType StaticType = DefinedFunc.GetStaticType(NameSpace);
+					if(StaticType != null) {
+						StoreNameSpace.AppendStaticFunc(StaticType, DefinedFunc, SourceToken);						
 					}
 					else {
-						StoreNameSpace.AppendMethod(FuncBlock.DefinedFunc, SourceToken.AddTypeInfoToErrorMessage(RecvType));
+						if(!DefinedFunc.Is(MethodFunc) || !DefinedFunc.Is(OperatorFunc)) {
+							StoreNameSpace.AppendFunc(DefinedFunc, SourceToken);
+						}
+						/*local*/GtType RecvType = DefinedFunc.GetRecvType();
+						if(RecvType.IsVoidType() || LibGreenTea.EqualsString(DefinedFunc.FuncName, "_")) {
+						}
+						else {
+							StoreNameSpace.AppendMethod(DefinedFunc, SourceToken.AddTypeInfoToErrorMessage(RecvType));
+						}
 					}
 				}
 			}
