@@ -70,12 +70,12 @@ class JClassBuilder /*implements Opcodes */{
 	final ArrayList<MethodNode> MethodList = new ArrayList<MethodNode>();
 	final Map<String, FieldNode> FieldMap = new HashMap<String, FieldNode>();
 
-	public JClassBuilder(String name, String superClass) {
+	JClassBuilder(String name, String superClass) {
 		this.ClassName = name;
 		this.SuperClassName = superClass;
 	}
 	
-	public void addMethodNode(MethodNode m) {
+	void AddMethodNode(MethodNode m) {
 		for(int i=0; i<MethodList.size(); i++) {
 			MethodNode node = this.MethodList.get(i);
 			if(node.name.equals(m.name) && node.desc.equals(m.desc)) {
@@ -86,20 +86,6 @@ class JClassBuilder /*implements Opcodes */{
 		this.MethodList.add(m);
 	}
 	
-	@Deprecated public FieldNode getFieldNode(String name) {
-		return this.FieldMap.get(name);
-	}
-
-//	public void accept(ClassVisitor cv) {
-//		cv.visit(V1_6, ACC_PUBLIC, this.ClassName, null, this.SuperClassName, null);
-//		for(FieldNode f : this.FieldMap.values()) {
-//			f.accept(cv);
-//		}
-//		for(MethodNode m : this.MethodList) {
-//			m.accept(cv);
-//		}
-//	}
-
 	byte[] GenerateBytecode() {
 		ClassWriter cv = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		cv.visit(V1_6, ACC_PUBLIC, this.ClassName, null, this.SuperClassName, null);
@@ -152,7 +138,7 @@ class GreenTeaClassLoader extends ClassLoader {
 		MethodBuilder.LoadConst(Context);
 		MethodBuilder.MethodVisitor.visitFieldInsn(PUTSTATIC, this.GlobalStaticClassName, this.ContextFieldName, this.GontextDescripter);
 		MethodBuilder.MethodVisitor.visitInsn(RETURN);
-		GlobalClass.addMethodNode(mn);
+		GlobalClass.AddMethodNode(mn);
 		byte[] b = GlobalClass.GenerateBytecode();
 		this.defineClass(this.GlobalStaticClassName, b, 0, b.length);
 	}
@@ -170,7 +156,7 @@ class GreenTeaClassLoader extends ClassLoader {
 	JClassBuilder GenerateMethodHolderClass(String FuncName, MethodNode AsmMethodNode) {
 		JClassBuilder HolderClass = new JClassBuilder(JLib.GetHolderClassName(Context, FuncName), "java/lang/Object");
 		this.AddClassBuilder(HolderClass);
-		HolderClass.addMethodNode(AsmMethodNode);
+		HolderClass.AddMethodNode(AsmMethodNode);
 		return HolderClass;
 	}
 	
@@ -181,6 +167,7 @@ class GreenTeaClassLoader extends ClassLoader {
 			this.ByteCodeMap.remove(name);
 			return this.defineClass(name, b, 0, b.length);
 		}
+		System.err.println("findClass.. " + name);
 		return null;
 	}
 
@@ -677,8 +664,15 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		try {
 			Class<?> DefinedClass = this.ClassGenerator.loadClass(ClassHolder.ClassName);
 			Method[] DefinedMethods = DefinedClass.getMethods();
-			LibGreenTea.Assert(DefinedMethods.length == 1);
-			Func.SetNativeMethod(0, DefinedMethods[0]);
+			for(Method m : DefinedMethods) {
+				if(m.getName().equals(Func.GetNativeFuncName())) {
+					Func.SetNativeMethod(0, m);
+					break;
+				}
+			}
+//			System.err.println("*** " + DefinedMethods.length);
+//			LibGreenTea.Assert(DefinedMethods.length == 1);
+//			Func.SetNativeMethod(0, DefinedMethods[0]);
 		} catch(Exception e) {
 			LibGreenTea.VerboseException(e);
 		}
@@ -713,7 +707,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			}
 		}
 		constructor.visitInsn(RETURN);
-		ClassBuilder.addMethodNode(constructor);
+		ClassBuilder.AddMethodNode(constructor);
 		try {
 			ClassType.TypeBody = this.ClassGenerator.loadClass(ClassName);
 		}
@@ -871,7 +865,9 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			this.VisitingBuilder.typeStack.pop();
 			this.VisitingBuilder.InvokeMethodCall(Node.Type, (Method)Node.Func.FuncBody);
 		}
-		throw new RuntimeException("unsupport binary operator: " + Node.Func.FuncName);
+		else {
+			throw new RuntimeException("unsupport binary operator: " + Node.Func.FuncName);
+		}
 	}
 
 	@Override public void VisitUnaryNode(GtUnaryNode Node) {
@@ -880,7 +876,9 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			this.VisitingBuilder.typeStack.pop();
 			this.VisitingBuilder.InvokeMethodCall(Node.Type, (Method)Node.Func.FuncBody);
 		}
-		throw new RuntimeException("unsupport unary operator: " + Node.Func.FuncName);
+		else {
+			throw new RuntimeException("unsupport unary operator: " + Node.Func.FuncName);
+		}
 	}
 
 	@Override public void VisitIndexerNode(GtIndexerNode Node) {
@@ -1260,7 +1258,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 
 	@Override public void InvokeMainFunc(String MainFuncName) {
 		try {
-			Class<?> MainClass = Class.forName(JLib.GetHolderClassName(this.Context, MainFuncName));
+			Class<?> MainClass = Class.forName(JLib.GetHolderClassName(this.Context, MainFuncName), false, this.ClassGenerator);
 			Method m = MainClass.getMethod(MainFuncName);
 			if(m != null) {
 				m.invoke(null);
