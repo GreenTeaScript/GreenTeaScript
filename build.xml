@@ -2,7 +2,7 @@
 	<!-- directory / file definition -->
 	<property name="BinaryName" value="GreenTeaScript" />
 	<property name="source_dir" value="src" />
-	<property name="build_dir"  value="bin" />
+	<property name="build_dir"  value="build" />
 
 	<!-- ================================== -->
 	<!--                BUILD               -->
@@ -12,7 +12,8 @@
 		<javac srcdir="${source_dir}" destdir="${build_dir}" debug="on" target="1.6" source="1.6" includeantruntime="false">
 			<classpath path="ext/asm-all-4.0.jar" />
 			<classpath path="ext/jline-2.12-SNAPSHOT.jar" />
-			<include name="**/*.java" />
+			<include name="org/GreenTeaScript/*.java" />
+			<include name="org/GreenTeaScript/**/*.java" />
 		</javac>
 	</target>
 
@@ -23,7 +24,6 @@
 		<jar jarfile="${BinaryName}.jar">
 			<fileset dir="${build_dir}" includes="**/*.class" />
 			<fileset dir="." includes="lib/**/*.green" />
-			<exclude name="**/*Test.class" />
 			<manifest>
 				<attribute name="Main-Class" value="org.GreenTeaScript.GreenTeaScript" />
 			</manifest>

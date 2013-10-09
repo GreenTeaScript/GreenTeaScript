@@ -20,7 +20,7 @@ before_install:
 before_script:
     - "make"
 
-script: "make test || echo"
+script: "make test-easy || echo"
 
 notifications:
     email:
