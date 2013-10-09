@@ -1892,10 +1892,14 @@ public class KonohaGrammar extends GtGrammar {
 					FuncBlock.DefinedFunc.FuncFlag = FuncFlag;
 				}
 				KonohaGrammar.ParseFuncBody(NameSpace, TokenContext, FuncDeclTree, FuncBlock);
-				if(!FuncBlock.DefinedFunc.IsAbstract() || !FoundAbstractFunc) { 
-					StoreNameSpace.AppendFunc(FuncBlock.DefinedFunc, SourceToken);
+				if(!FuncBlock.DefinedFunc.IsAbstract() || !FoundAbstractFunc) {
+					if(!FuncBlock.DefinedFunc.Is(MethodFunc) || !FuncBlock.DefinedFunc.Is(OperatorFunc)) {
+						StoreNameSpace.AppendFunc(FuncBlock.DefinedFunc, SourceToken);
+					}
 					/*local*/GtType RecvType = FuncBlock.DefinedFunc.GetRecvType();
-					if(!RecvType.IsVoidType()) {
+					if(RecvType.IsVoidType() || LibGreenTea.EqualsString(FuncBlock.DefinedFunc.FuncName, "_")) {
+					}
+					else {
 						StoreNameSpace.AppendMethod(FuncBlock.DefinedFunc, SourceToken.AddTypeInfoToErrorMessage(RecvType));
 					}
 				}
