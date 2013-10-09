@@ -103,6 +103,7 @@ $src =~ s/(?!")\bString\b/string/g;
 $src =~ s/(?!")\bboolean\b/bool/g;
 $src =~ s/(?!")\bObject\b/object/g;
 $src =~ s/\bArrayList\b/List/g;
+$src =~ s/\bType\b/@Type/g;
 
 
 # $src =~ s/\bGtMap\b/List/g;
