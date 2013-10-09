@@ -82,7 +82,7 @@ public final class GtParserContext extends GreenTeaUtils {
 		this.VoidType    = this.RootNameSpace.AppendTypeName(new GtType(this, NativeType, "void", null, Void.class), null);
 		this.BooleanType = this.RootNameSpace.AppendTypeName(new GtType(this, NativeType|UnboxType, "boolean", false, Boolean.class), null);
 		this.IntType     = this.RootNameSpace.AppendTypeName(new GtType(this, NativeType|UnboxType, "int", 0L, Long.class), null);
-		this.FloatType   = this.RootNameSpace.AppendTypeName(new GtType(this, NativeType|UnboxType, "double", 0.0, Double.class), null);
+		this.FloatType   = this.RootNameSpace.AppendTypeName(new GtType(this, NativeType|UnboxType, "float", 0.0, Double.class), null);
 		this.StringType  = this.RootNameSpace.AppendTypeName(new GtType(this, NativeType, "String", null, String.class), null);
 		this.VarType     = this.RootNameSpace.AppendTypeName(new GtType(this, 0, "var", null, null), null);
 		this.AnyType     = this.RootNameSpace.AppendTypeName(new GtType(this, DynamicType, "any", null, null), null);

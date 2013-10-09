@@ -37,7 +37,7 @@
 
 @Common @Const @Coercion any converter(String x) import Konoha.StringApi.ToAny;
 @Common @Const int converter(String x) import Konoha.StringApi.ToInt;
-@Common @Const double converter(String x) import Konoha.StringApi.ToDouble;
+@Common @Const float converter(String x) import Konoha.StringApi.ToDouble;
 
 @Hidden @Coercion @Const var converter(var x) import Konoha.StringApi.s2c;
 @Hidden @StrongCoercion @Const var converter(var x) import Konoha.StringApi.c2s;
@@ -73,15 +73,15 @@
 @Common @Const @Operator boolean "=="(int x, int y) import Konoha.IntApi.Equals;
 @Common @Const @Operator boolean "!="(int x, int y) import Konoha.IntApi.NotEquals;
 
-@Common @Const @Operator double "+"(int x, double y) import Konoha.IntApi.Add;
-@Common @Const @Operator double "-"(int x, double y) import Konoha.IntApi.Sub;
-@Common @Const @Operator double "*"(int x, double y) import Konoha.IntApi.Mul;
-@Common @Const @Operator double "/"(int x, double y) import Konoha.IntApi.Div;
-@Common @Const @Operator double "%"(int x, double y) import Konoha.IntApi.Mod;
+@Common @Const @Operator float "+"(int x, float y) import Konoha.IntApi.Add;
+@Common @Const @Operator float "-"(int x, float y) import Konoha.IntApi.Sub;
+@Common @Const @Operator float "*"(int x, float y) import Konoha.IntApi.Mul;
+@Common @Const @Operator float "/"(int x, float y) import Konoha.IntApi.Div;
+@Common @Const @Operator float "%"(int x, float y) import Konoha.IntApi.Mod;
 
 @Coercion @Const any converter(int x) import Konoha.IntApi.ToAny;
 @Common @Coercion @Const String converter(int x) import Konoha.IntApi.ToString;
-@Common @Coercion @Const double converter(int x) import Konoha.IntApi.ToDouble;
+@Common @Coercion @Const float converter(int x) import Konoha.IntApi.ToDouble;
 
 @Hidden @Coercion @Const var converter(var x) import Konoha.IntApi.l2i;
 @Hidden @StrongCoercion @Const var converter(var x) import Konoha.IntApi.i2l;
@@ -91,23 +91,23 @@
 @Hidden @StrongCoercion @Const var converter(var x) import Konoha.IntApi.b2l;
 
 // DoubleApi
-@Common @Const @Operator double "+"(double x) import Konoha.DoubleApi.Plus;
-@Common @Const @Operator double "-"(double x) import Konoha.DoubleApi.Minus;
+@Common @Const @Operator float "+"(float x) import Konoha.DoubleApi.Plus;
+@Common @Const @Operator float "-"(float x) import Konoha.DoubleApi.Minus;
 
-@Common @Const @Operator double "+"(double x, double y) import Konoha.DoubleApi.Add;
-@Common @Const @Operator double "-"(double x, double y) import Konoha.DoubleApi.Sub;
-@Common @Const @Operator double "*"(double x, double y) import Konoha.DoubleApi.Mul;
-@Common @Const @Operator double "/"(double x, double y) import Konoha.DoubleApi.Div;
-@Common @Const @Operator boolean "<"(double x,  double y) import Konoha.DoubleApi.LessThan;
-@Common @Const @Operator boolean "<="(double x, double y) import Konoha.DoubleApi.LessThanEquals;
-@Common @Const @Operator boolean ">"(double x,  double y) import Konoha.DoubleApi.GreaterThan;
-@Common @Const @Operator boolean ">="(double x, double y) import Konoha.DoubleApi.GreaterThanEquals;
-@Common @Const @Operator boolean "=="(double x, double y) import Konoha.DoubleApi.Equals;
-@Common @Const @Operator boolean "!="(double x, double y) import Konoha.DoubleApi.NotEquals;
+@Common @Const @Operator float "+"(float x, float y) import Konoha.DoubleApi.Add;
+@Common @Const @Operator float "-"(float x, float y) import Konoha.DoubleApi.Sub;
+@Common @Const @Operator float "*"(float x, float y) import Konoha.DoubleApi.Mul;
+@Common @Const @Operator float "/"(float x, float y) import Konoha.DoubleApi.Div;
+@Common @Const @Operator boolean "<"(float x,  float y) import Konoha.DoubleApi.LessThan;
+@Common @Const @Operator boolean "<="(float x, float y) import Konoha.DoubleApi.LessThanEquals;
+@Common @Const @Operator boolean ">"(float x,  float y) import Konoha.DoubleApi.GreaterThan;
+@Common @Const @Operator boolean ">="(float x, float y) import Konoha.DoubleApi.GreaterThanEquals;
+@Common @Const @Operator boolean "=="(float x, float y) import Konoha.DoubleApi.Equals;
+@Common @Const @Operator boolean "!="(float x, float y) import Konoha.DoubleApi.NotEquals;
 
-@Coercion @Const any converter(double x) import Konoha.DoubleApi.ToAny;
-@Common @Coercion @Const String converter(double x) import Konoha.DoubleApi.ToString;
-@Common @Coercion @Const int converter(double x) import Konoha.DoubleApi.ToInt;
+@Coercion @Const any converter(float x) import Konoha.DoubleApi.ToAny;
+@Common @Coercion @Const String converter(float x) import Konoha.DoubleApi.ToString;
+@Common @Coercion @Const int converter(float x) import Konoha.DoubleApi.ToInt;
 
 @Hidden @Coercion @Const var converter(var x) import Konoha.DoubleApi.d2f;
 @Hidden @StrongCoercion @Const var converter(var x) import Konoha.DoubleApi.f2d;
@@ -116,10 +116,10 @@
 
 //@Const @Coercion boolean converter(any x) import org.GreenTeaScript.GreenTeaRuntime.AnyToBoolean;
 //@Coercion @Const int converter(any x) import org.GreenTeaScript.GreenTeaRuntime.AnyToInt;
-// double
-//@Coercion @Const any converter(double x) import org.GreenTeaScript.GreenTeaRuntime.DoubleToAny;
-//@Coercion @Const double converter(any x) import org.GreenTeaScript.GreenTeaRuntime.AnyToDouble;
-//@Const double converter(String x) import org.GreenTeaScript.GreenTeaRuntime.StringToDouble;
+// float
+//@Coercion @Const any converter(float x) import org.GreenTeaScript.GreenTeaRuntime.DoubleToAny;
+//@Coercion @Const float converter(any x) import org.GreenTeaScript.GreenTeaRuntime.AnyToDouble;
+//@Const float converter(String x) import org.GreenTeaScript.GreenTeaRuntime.StringToDouble;
 
 // ArrayApi
 @Common @Const @Operator <T> int "||"(Array<T> this) import Konoha.ArrayApi.GetSize;
