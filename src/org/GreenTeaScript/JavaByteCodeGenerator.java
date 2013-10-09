@@ -51,43 +51,6 @@ import static org.objectweb.asm.Opcodes.*;
 
 // GreenTea Generator should be written in each language.
 
-class MethodHolderClass implements Opcodes {
-	final String name;
-	final String superClass;
-	final ArrayList<MethodNode> methods = new ArrayList<MethodNode>();
-	final Map<String, FieldNode> fields = new HashMap<String, FieldNode>();
-
-	public MethodHolderClass(String name, String superClass) {
-		this.name = name;
-		this.superClass = superClass;
-	}
-
-	public void accept(ClassVisitor cv) {
-		cv.visit(V1_6, ACC_PUBLIC, this.name, null, this.superClass, null);
-		for(FieldNode f : this.fields.values()) {
-			f.accept(cv);
-		}
-		for(MethodNode m : this.methods) {
-			m.accept(cv);
-		}
-	}
-
-	public void addMethodNode(MethodNode m) {
-		for(int i=0; i<methods.size(); i++) {
-			MethodNode node = this.methods.get(i);
-			if(node.name.equals(m.name) && node.desc.equals(m.desc)) {
-				this.methods.set(i, m);
-				return;
-			}
-		}
-		this.methods.add(m);
-	}
-
-	public FieldNode getFieldNode(String name) {
-		return this.fields.get(name);
-	}
-}
-
 class GtClassLoader extends ClassLoader {
 	JavaByteCodeGenerator Gen;
 
@@ -99,6 +62,70 @@ class GtClassLoader extends ClassLoader {
 		byte[] b = this.Gen.GenerateBytecode(name);
 		return this.defineClass(name, b, 0, b.length);
 	}
+}
+
+class JClassBuilder /*implements Opcodes */{
+	final String ClassName;
+	final String SuperClassName;
+	final ArrayList<MethodNode> MethodList = new ArrayList<MethodNode>();
+	final Map<String, FieldNode> FieldMap = new HashMap<String, FieldNode>();
+
+	public JClassBuilder(String name, String superClass) {
+		this.ClassName = name;
+		this.SuperClassName = superClass;
+	}
+	
+	public void addMethodNode(MethodNode m) {
+		for(int i=0; i<MethodList.size(); i++) {
+			MethodNode node = this.MethodList.get(i);
+			if(node.name.equals(m.name) && node.desc.equals(m.desc)) {
+				this.MethodList.set(i, m);
+				return;
+			}
+		}
+		this.MethodList.add(m);
+	}
+
+	public FieldNode getFieldNode(String name) {
+		return this.FieldMap.get(name);
+	}
+
+	public void accept(ClassVisitor cv) {
+		cv.visit(V1_6, ACC_PUBLIC, this.ClassName, null, this.SuperClassName, null);
+		for(FieldNode f : this.FieldMap.values()) {
+			f.accept(cv);
+		}
+		for(MethodNode m : this.MethodList) {
+			m.accept(cv);
+		}
+	}
+
+	byte[] GenerateBytecode() {
+		ClassWriter cv = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+		cv.visit(V1_6, ACC_PUBLIC, this.ClassName, null, this.SuperClassName, null);
+		for(FieldNode f : this.FieldMap.values()) {
+			f.accept(cv);
+		}
+		for(MethodNode m : this.MethodList) {
+			m.accept(cv);
+		}
+		cv.visitEnd();
+		return cv.toByteArray();
+	}
+
+	void OutputClassFile(String className, String dir) {
+		byte[] ba = this.GenerateBytecode();
+		File file = new File(dir, this.ClassName + ".class");
+		try {
+			FileOutputStream fos = new FileOutputStream(file);
+			fos.write(ba);
+			fos.close();
+		}
+		catch(IOException e) {
+			LibGreenTea.VerboseException(e);
+		} 
+	}
+
 }
 
 final class JVMLocal {
@@ -206,13 +233,14 @@ class Lib {
 public class JavaByteCodeGenerator extends GtGenerator {
 	private JVMBuilder Builder;
 	private String defaultClassName;
-	private final Map<String, MethodHolderClass> classMap = new HashMap<String, MethodHolderClass>();
+	private final Map<String, JClassBuilder> classMap = new HashMap<String, JClassBuilder>();
 	private final Map<String, Type> typeDescriptorMap = new HashMap<String, Type>();
-	private MethodHolderClass DefaultHolderClass;
+	private JClassBuilder DefaultHolderClass;
 	private Map<String, Method> methodMap;
 
 	public JavaByteCodeGenerator(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super("java", OutputFile, GeneratorFlag);
+		
 	}
 
 	@Override public void InitContext(GtParserContext Context) {
@@ -227,23 +255,22 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.typeDescriptorMap.put(Context.FuncType.ShortName, Type.getType(Object.class));//FIXME
 		this.methodMap = InitSystemMethods();
 		this.defaultClassName = "Global$" + Context.ParserId;
-		this.DefaultHolderClass = new MethodHolderClass(defaultClassName, "java/lang/Object");
+		this.DefaultHolderClass = new JClassBuilder(defaultClassName, "java/lang/Object");
 
 		// Global.ParserContext
 		FieldNode fn = new FieldNode(ACC_STATIC, "ParserContext", Type.getDescriptor(GtParserContext.class), null, null);
-		this.DefaultHolderClass.fields.put(fn.name, fn);
+		this.DefaultHolderClass.FieldMap.put(fn.name, fn);
 
 		// static init
 		int acc = ACC_PUBLIC | ACC_STATIC;
 		MethodNode mn = new MethodNode(acc, "<clinit>", "()V", null, null);
 		this.Builder = new JVMBuilder(mn);
 		this.LoadConst(Context);
-		this.Builder.AsmMethodVisitor.visitFieldInsn(PUTSTATIC, this.DefaultHolderClass.name, fn.name, fn.desc);
+		this.Builder.AsmMethodVisitor.visitFieldInsn(PUTSTATIC, this.DefaultHolderClass.ClassName, fn.name, fn.desc);
 		this.Builder.AsmMethodVisitor.visitInsn(RETURN);
 		this.DefaultHolderClass.addMethodNode(mn);
 	}
 
-	
 	public static HashMap<String, Method> InitSystemMethods() {
 		HashMap<String, Method> map = new HashMap<String, Method>();
 		try {
@@ -300,7 +327,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		else if(Value instanceof GtType) {
 			int id = ((GtType)Value).TypeId;
 			FieldNode fn = this.DefaultHolderClass.getFieldNode("ParserContext");
-			this.Builder.AsmMethodVisitor.visitFieldInsn(GETSTATIC, this.DefaultHolderClass.name, fn.name, fn.desc);
+			this.Builder.AsmMethodVisitor.visitFieldInsn(GETSTATIC, this.DefaultHolderClass.ClassName, fn.name, fn.desc);
 			this.Builder.AsmMethodVisitor.visitLdcInsn(id);
 			this.Builder.Call(Lib.GetTypeById);
 			return;
@@ -308,7 +335,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		else if(Value instanceof GtFunc) {
 			int id = ((GtFunc)Value).FuncId;
 			FieldNode fn = this.DefaultHolderClass.getFieldNode("ParserContext");
-			this.Builder.AsmMethodVisitor.visitFieldInsn(GETSTATIC, this.DefaultHolderClass.name, fn.name, fn.desc);
+			this.Builder.AsmMethodVisitor.visitFieldInsn(GETSTATIC, this.DefaultHolderClass.ClassName, fn.name, fn.desc);
 			this.Builder.AsmMethodVisitor.visitLdcInsn(id);
 			this.Builder.Call(Lib.GetFuncById);
 			return;
@@ -415,7 +442,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 
 	byte[] GenerateBytecode(String className) {
 		ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-		MethodHolderClass CNode = this.classMap.get(className);
+		JClassBuilder CNode = this.classMap.get(className);
 		assert CNode != null;
 		CNode.accept(classWriter);
 		classWriter.visitEnd();
@@ -429,9 +456,9 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		String methodName = "__eval";
 		String methodDesc = "()Ljava/lang/Object;";
 		MethodNode mn = new MethodNode(acc, methodName, methodDesc, null, null);
-		MethodHolderClass c = DefaultHolderClass;
+		JClassBuilder c = DefaultHolderClass;
 		c.addMethodNode(mn);
-		this.classMap.put(c.name, c);
+		this.classMap.put(c.ClassName, c);
 
 		this.Builder = new JVMBuilder(mn);
 		this.VisitBlock(Node);
@@ -483,9 +510,9 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		String MethodDesc = Type.getMethodDescriptor(ReturnType, argTypes.toArray(new Type[0]));
 
 		MethodNode AsmMethodNode = new MethodNode(acc, MethodName, MethodDesc, null, null);
-		MethodHolderClass c = DefaultHolderClass;
+		JClassBuilder c = this.DefaultHolderClass;
 		c.addMethodNode(AsmMethodNode);
-		this.classMap.put(c.name, c);
+		this.classMap.put(c.ClassName, c);
 
 		this.Builder = new JVMBuilder(AsmMethodNode);
 		for(int i=0; i<NameList.size(); i++) {
@@ -493,12 +520,10 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			this.Builder.AddLocal(argTypes.get(i), Name);
 		}
 		this.VisitBlock(Body);
-
 		// JVM always needs return;
 		if(ReturnType.equals(Type.VOID_TYPE)) {
 			this.Builder.AsmMethodVisitor.visitInsn(RETURN);//FIXME
 		}
-
 		// for debug purpose
 		if(LibGreenTea.DebugMode) {
 			try {
@@ -513,7 +538,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			for(int i=0; i<args.length; i++) {
 				args[i] = ToClass(loader, argTypes.get(i));
 			}
-			Method m = loader.loadClass(c.name).getMethod(MethodName, args);
+			Method m = loader.loadClass(c.ClassName).getMethod(MethodName, args);
 			Func.SetNativeMethod(0, m);
 		} catch(Exception e) {
 			LibGreenTea.VerboseException(e);
@@ -522,11 +547,10 @@ public class JavaByteCodeGenerator extends GtGenerator {
 
 	@Override public void OpenClassField(GtType ClassType, GtClassField ClassField) {
 		String className = ClassType.ShortName;
-		MethodHolderClass superClassNode = this.classMap.get(ClassType.SuperType.ShortName);
-		String superClassName = superClassNode != null ?
-				superClassNode.name : Type.getInternalName(GreenTeaTopObject.class);
-		MethodHolderClass classNode = new MethodHolderClass(className, superClassName);
-		this.classMap.put(classNode.name, classNode);
+		JClassBuilder superClassNode = this.classMap.get(ClassType.SuperType.ShortName);
+		String superClassName = superClassNode != null ? superClassNode.ClassName : Type.getInternalName(GreenTeaTopObject.class);
+		JClassBuilder classNode = new JClassBuilder(className, superClassName);
+		this.classMap.put(classNode.ClassName, classNode);
 		// generate field
 		for(GtFieldInfo field : ClassField.FieldList) {
 			if(field.FieldIndex >= ClassField.ThisClassIndex) {
@@ -534,7 +558,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 				String fieldName = field.NativeName;
 				Type fieldType = this.ToAsmType(field.Type);
 				FieldNode node = new FieldNode(access, fieldName, fieldType.getDescriptor(), null, null);
-				classNode.fields.put(fieldName, node);
+				classNode.FieldMap.put(fieldName, node);
 			}
 		}
 		// generate default constructor (for jvm)
@@ -573,13 +597,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	@Override public void VisitConstNode(GtConstNode Node) {
 		Object constValue = Node.ConstValue;
 		LibGreenTea.Assert(Node.ConstValue != null);  // Added by kimio
-//		if(constValue == null) { // FIXME(ide)
-//			this.Builder.typeStack.push(this.ToAsmType(Node.Type));
-//			this.Builder.AsmMethodVisitor.visitInsn(ACONST_NULL);
-//		}
-//		else {
 		this.LoadConst(constValue);
-//		}
 	}
 
 	@Override public void VisitNewNode(GtNewNode Node) {
