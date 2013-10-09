@@ -57,13 +57,12 @@ $src =~ s/(".*?")/&ProtectString($1)/ge;
 
 # $src =~ s/};/}/g;
 
-sub GtConstSection{
+sub GreenTeaConstsSection{
 	my $text = $_[0];
-	$text =~ s/final/readonly cosnt/g;
 	return $text;
 }
 
-sub GtStaticSection{
+sub GreenTeaUtilsSection{
 	my $text = $_[0];
 	return $text;
 }
@@ -72,8 +71,9 @@ sub UnQuote {
 	my $text = $_[0];
 }
 
-$src =~ s/interface GtConst {(.*?)^}/GtConstSection($1)/ems;
-$src =~ s/class GtStatic(.*?)^}/GtStaticSection($1)/ems;
+
+#$src =~ s/interface GreenTeaConsts {(.*?)^}/GreenTeaConstsSection($1)/ems;
+#$src =~ s/class GreenTeaUtils(.*?)^}/GreenTeaUtilsSection($1)/ems;
 
 $src =~ s/interface/class/g;
 
@@ -98,16 +98,21 @@ $src =~ s/(\/\*.*?\*\/)/&ProtectComment($1)/gmse;
 # Types
 # $src =~ s/(?!")\b(?:char|int|long|float|double|Charactor|Integer|Long|Float|Double)\b(?!")/number/g;
 # $src =~ s/\.(?:int|long|float|double|)Value\(\)//g;
+$src =~ s/(?!")\bInteger\b/int/g;
 $src =~ s/(?!")\bString\b/string/g;
 $src =~ s/(?!")\bboolean\b/bool/g;
 $src =~ s/(?!")\bObject\b/object/g;
 $src =~ s/\bArrayList\b/List/g;
+
+
 # $src =~ s/\bGtMap\b/List/g;
 # $src =~ s/\bnew\s+Array<.*?>\s*\(Arrays.asList\((.*?)\)\)/$1/g;
 # $src =~ s/\bArrays.asList\b//g;
 # $src =~ s/\.toArray\(\)//g;
 $src =~ s/\b(\d+)L\b/$1/g;
 $src =~ s/([a-zA-Z]*?)\.class/typeof($1)/g;
+$src =~ s/typeof\(Void\)/typeof(void)/g;
+$src =~ s/typeof\(Long\)/typeof(long)/g;
 
 # $src =~ s/'(\\.)'/ord(fixup($1)) . '\/*' . $1 . '*\/'/eg;
 # $src =~ s/'(.)'/ord($1) . '\/*' . $1 . '*\/'/eg;
@@ -117,9 +122,9 @@ $src =~ s/\bfinal\b/\/*final*\//g;
 # $src =~ s/\bprotected\b//g;
 $src =~ s/\@Override\s*/override /g;
 $src =~ s/\@Deprecated\s*//g;
-# $src =~ s/\bextends GtStatic\s*//g;
+# $src =~ s/\bextends GreenTeaUtils\s*//g;
 # $src =~ s/\bpublic interface\s*/interface /g;
-# $src =~ s/\bGtStatic\.//g;
+# $src =~ s/\bGreenTeaUtils\.//g;
 $src =~ s/\binstanceof\b/is/g;
 # $src =~ s/\binstanceof\s+string\b/instanceof String/g;
 # $src =~ s/\binstanceof\s+number\b/instanceof Number/g;
@@ -138,24 +143,29 @@ $src =~ s/length(\(\))?/Length/g;
 $src =~ s/\bSystem\.out\.println/Console.WriteLine/g;
 $src =~ s/\badd\(/Add(/g;
 $src =~ s/\.get\((.*?)\)/[$1]/g;
-$src =~ s/trim/Trim/g;
-$src =~ s/replace/Replace/g;
 
 $src =~ s/\bmain\b/Main/g;
 $src =~ s/\bequals\b/Equals/g;
 $src =~ s/\btoString\b/ToString/g;
 $src =~ s/\bstartsWith\b/StartsWith/g;
 
-$src =~ s/\b\sextends\b|\b implements\b/:/g;
+$src =~ s/\b\sextends\b|\b\simplements\b/:/g;
 $src =~ s/\boperator\b/\@operator/g;
 
-$src =~ s/\b(public\s)?class\b/public class/g;
+$src =~ s/\b(public\s)?(\/\*.+\*\/\s)?class\b/public class/g;
 
 $src =~ s/{\n\s*super\((.*?)\);/:base($1){/g;
 $src =~ s/super/base/g;
+
 # argument
 
-$src =~ s/\(($Type)\s($Sym)\[\]\)/($1\[\] $2)/g;
+$src =~ s/($Type)\s([a-zA-Z]+)\[\]/$1\[\] $2/g;
+
+#method
+$src =~ s/\.trim/.Trim/g;
+$src =~ s/\.replace/.Replace/g;
+$src =~ s/\.clear/.Clear/g;
+$src =~ s/\(Arrays.asList\((this.Types)\)\)/($1)/g;
 
 # Delegates.
 # $src =~ s/(?!\.)\b((?:Parse|Type)(?:Unary|Binary|Const|Block))\b(?!\()/$Grammar\["$1"\]/g;
