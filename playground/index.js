@@ -21,7 +21,7 @@ $(function () {
 				this.Program = this.Program + SourceCode;
 			};
 			var Generator = LibGreenTea.CodeGenerator(PlayGround_CodeGenTarget, "-", 0);
-			var Context = new GtContext(new GreenTeaGrammar(), Generator);
+			var Context = new GtParserContext(new KonohaGrammar(), Generator);
 			DebugPrintOption = true;
 			Context.TopLevelNameSpace.Eval(src);
 			Generator.FlushBuffer();

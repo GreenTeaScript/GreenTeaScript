@@ -158,6 +158,60 @@ class LibGreenTea {
 		return GreenTeaArray.NewArrayLiteral(ArrayType, Values);
 	}
 
+	static ArrayCopy(src: any, srcPos: number, dest: any, destPos: number, length: number): void {
+		for(var i = 0; i < length; ++i){
+			dest[destPos + i] = src[srcPos + i];
+		}
+	}
+
+	static ApplyOverridedMethod(FileLine: number, NameSpace: GtNameSpace, Func: GtFunc, Arguments: Object[]): Object {
+		var ClassType: GtType = NameSpace.Context.GuessType(Arguments[0]);
+		Func = NameSpace.GetOverridedMethod(ClassType, Func);
+		return Func.Apply(Arguments);
+	}
+
+	static InvokeDynamicFunc(FileLine: number, ContextType: GtType, NameSpace: GtNameSpace, FuncName: string, Arguments: Object[]): Object {
+		var PolyFunc: GtPolyFunc = NameSpace.GetPolyFunc(FuncName);
+		var Func: GtFunc = PolyFunc.GetMatchedFunc(NameSpace, Arguments);
+		var Value: Object = ContextType.DefaultNullValue;
+		if(Func != null) {
+			Value = Func.Apply(Arguments);
+			return LibGreenTea.DynamicCast(ContextType, Value);
+		}
+		LibGreenTea.VerboseLog(VerboseRuntime, PolyFunc.MessageTypeError(null, FuncName));
+		return Value;
+	}
+
+	static InvokeDynamicMethod(FileLine: number, ContextType: GtType, NameSpace: GtNameSpace, FuncName: string, Arguments: Object[]): Object {
+		var ClassType: GtType = ContextType.Context.GuessType(Arguments[0]);
+		var PolyFunc :GtPolyFunc = NameSpace.GetMethod(ClassType, FuncName, true);
+		var Func: GtFunc = PolyFunc.GetMatchedFunc(NameSpace, Arguments);
+		var Value :Object = ContextType.DefaultNullValue;
+		if(Func != null) {
+			Value = Func.Apply(Arguments);
+			return LibGreenTea.DynamicCast(ContextType, Value);
+		}
+		LibGreenTea.VerboseLog(VerboseRuntime, PolyFunc.MessageTypeError(ClassType, FuncName));
+		return Value;
+	}
+	
+	static DynamicGetter(ContextType: GtType, RecvObject: Object, FieldName: string): Object {
+		try {
+			return LibGreenTea.DynamicCast(ContextType, RecvObject[FieldName]);
+		} catch (e) {
+		}
+		return ContextType.DefaultNullValue;
+	}
+
+	static DynamicSetter(ContextType: GtType, RecvObject: Object, FieldName: string, Value: Object): Object {
+		try {
+			RecvObject[FieldName] = Value;
+			return LibGreenTea.DynamicCast(ContextType, RecvObject[FieldName]);
+		} catch (e) {
+		}
+		return ContextType.DefaultNullValue;
+	}
+
 	static GetPlatform(): string {
 		return "TypeScript 0.9.0.1, " + (LibGreenTea.isNodeJS ?
 			"Node.js " + process.version + " " + process.platform:

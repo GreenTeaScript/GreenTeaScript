@@ -376,7 +376,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 
 	public final GtFunc GetOverridedMethod(GtType ClassType, GtFunc GivenFunc) {
 		/*local*/String Symbol = FuncSymbol(GivenFunc.FuncName);
-		GtType GivenClassType = GivenFunc.GetRecvType();
+		/*local*/GtType GivenClassType = GivenFunc.GetRecvType();
 		if(ClassType != GivenClassType) {
 			/*local*/ArrayList<GtFunc> FuncList = new ArrayList<GtFunc>();
 			while(ClassType != null) {
@@ -384,7 +384,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 				this.RetrieveFuncList(Key, FuncList);
 				/*local*/int i = 0;
 				while(i < FuncList.size()) {
-					GtFunc Func = FuncList.get(i); 
+					/*local*/GtFunc Func = FuncList.get(i); 
 					i += 1;
 					if(Func.EqualsOverridedMethod(GivenFunc)) {
 						return Func;
