@@ -146,10 +146,12 @@ public final class GtNameSpace extends GreenTeaUtils {
 			/*local*/Object OldValue = this.SymbolPatternTable.GetOrNull(Key);
 			if(OldValue != null && OldValue != UndefinedSymbol) {
 				if(LibGreenTea.DebugMode) {
-					this.Context.ReportError(WarningLevel, SourceToken, "duplicated symbol: " + SourceToken + " oldnew=" + OldValue + ", " + Value);
+					this.Context.ReportError(WarningLevel, SourceToken, "duplicated symbol: " + SourceToken + " old, new =" + OldValue + ", " + Value);
 				}
 				else {
-					this.Context.ReportError(WarningLevel, SourceToken, "duplicated symbol: " + SourceToken);
+					if(!LibGreenTea.EqualsString(Key, "_")) {
+						this.Context.ReportError(WarningLevel, SourceToken, "duplicated symbol: " + SourceToken);
+					}
 				}
 			}
 		}
