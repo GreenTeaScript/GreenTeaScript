@@ -49,10 +49,15 @@ Array.prototype["clear"] = function(){
 
 interface Object {
 	equals(other: any): boolean;
+	InstanceOf(klass: any): boolean;
 }
 
 Object.prototype["equals"] = function(other): boolean{
 	return (this === other);
+}
+
+Object.prototype["InstanceOf"] = function(klass): boolean{
+	return (<any>this).constructor == klass;
 }
 
 interface String {
@@ -76,16 +81,27 @@ String.prototype["equals"] = function(other): boolean{
 }
 
 class LibLoadFunc{
+	static __LoadFunc(ParserContext: GtParserContext, Grammar: any, FuncName: string): GtFunc{
+		if(!Grammar){
+			throw new Error("Grammar is " + Grammar);
+		}
+		var Func = Grammar[FuncName] || Grammar.constructor[FuncName];
+		if(!Func){
+			throw new Error(Grammar.constructor.name + "." + FuncName + " is " + Func)
+		}
+		return LibGreenTea.ConvertNativeMethodToFunc(ParserContext, Func)
+	}
+
 	static LoadTokenFunc(ParserContext: GtParserContext, Grammar: Object, FuncName: string): GtFunc{
-		return null;
+		return LibLoadFunc.__LoadFunc(ParserContext, Grammar, FuncName);
 	}
 
 	static LoadParseFunc(ParserContext: GtParserContext, Grammar: Object, FuncName: string): GtFunc{
-		return null;
+		return LibLoadFunc.__LoadFunc(ParserContext, Grammar, FuncName);
 	}
 
 	static LoadTypeFunc(ParserContext: GtParserContext, Grammar: Object, FuncName: string): GtFunc{
-		return null;
+		return LibLoadFunc.__LoadFunc(ParserContext, Grammar, FuncName);
 	}
 }
 
@@ -375,7 +391,10 @@ class LibGreenTea {
 		NativeGtType = <GtType> Context.ClassNameMap.get(NativeClassInfo.name);
 		if(NativeGtType == null) {
 			NativeGtType = new GtType(Context, NativeType, NativeClassInfo.name, null, NativeClassInfo);
-			Context.ClassNameMap.put(NativeClassInfo.name, NativeType);
+			Context.ClassNameMap.put(NativeClassInfo.name, NativeGtType);
+		}
+		if(!NativeGtType.InstanceOf(GtType)){
+			throw new Error("Invalid NativeGtType for " + Value.constructor.name);
 		}
 		return NativeGtType;
 	}
@@ -442,16 +461,11 @@ class LibGreenTea {
 
 	static ConvertNativeMethodToFunc(Context: GtParserContext, JavaScriptFunction: any): GtFunc {
 		var TypeList: GtType[] = [];
-		TypeList.add(LibGreenTea.GetNativeType(Context, Object.prototype));
-		TypeList.add(LibGreenTea.GetNativeType(Context, Object.prototype));
+		TypeList.add(LibGreenTea.GetNativeType(Context, Object.prototype)); // For reciever
+		TypeList.add(LibGreenTea.GetNativeType(Context, Object.prototype)); // For return
 		var ParamTypes = [];
 		for(var i = 0; i < JavaScriptFunction.length; i++){
-			ParamTypes[i] = Object.prototype;
-		}
-		if(ParamTypes.length > 0) {
-			for(var j = 0; j < ParamTypes.length; j++) {
-				TypeList.add(LibGreenTea.GetNativeType(Context, ParamTypes[j]));
-			}
+			TypeList.add(LibGreenTea.GetNativeType(Context, Object.prototype));
 		}
 		return LibGreenTea.SetNativeMethod(new GtFunc(0, JavaScriptFunction.name, 0, TypeList), JavaScriptFunction);
 	}
@@ -520,62 +534,35 @@ class LibGreenTea {
 	}
 
 	static ApplyFunc(Func: GtFunc, Self: any, Params: any[]): any {
-		throw new Error("NotImplementedAPI");
-		return null;
+		return (<any>Func.FuncBody).apply(Self, Params);
 	}
 
-	static ApplyFunc1(Func: GtFunc, Self: any, Param: any): any {
-		throw new Error("NotImplementedAPI");
-		return null;
+	static ApplyFunc1(Func: GtFunc, Self: any, Param1: any): any {
+		return (<any>Func.FuncBody).call(Self, Param1);
 	}
 
 	static ApplyFunc2(Func: GtFunc, Self: any, Param1: any, Param2: any): any {
-		throw new Error("NotImplementedAPI");
-		return null;
+		return (<any>Func.FuncBody).call(Self, Param1, Param2);
 	}
 
 	static ApplyFunc3(Func: GtFunc, Self: any, Param1: any, Param2: any, Param3: any): any {
-		throw new Error("NotImplementedAPI");
-		return null;
+		return (<any>Func.FuncBody).call(Self, Param1, Param2, Param3);
 	}
 
 	static ApplyFunc4(Func: GtFunc, Self: any, Param1: any, Param2: any, Param3: any, Param4: any): any {
-		throw new Error("NotImplementedAPI");
-		return null;
+		return (<any>Func.FuncBody).call(Self, Param1, Param2, Param3, Param4);
 	}
 
-	static ApplyTokenFunc(Delegate: any, TokenContext: Object, Text: string, pos: number): number {
-		try {
-			return <number>Delegate(TokenContext, Text, pos);
-		}
-		catch (e) {
-			console.log(e);
-		}
-		LibGreenTea.Exit(1, "Failed ApplyTokenFunc");
-		return -1;
+	static ApplyTokenFunc(TokenFunc: GtFunc, TokenContext: GtTokenContext, Text: string, pos: number): number {
+		return <number>LibGreenTea.ApplyFunc3(TokenFunc, null, TokenContext, Text, pos);
 	}
 
-	static ApplyParseFunc(ParseFunc: GtFunc, NameSpace: GtNameSpace, TokenContext: any, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
-		throw new Error("NotImplementedAPI");
-		//try {
-		//	return <GtSyntaxTree>Delegate(NameSpace, TokenContext, LeftTree, Pattern);
-		//}
-		//catch (e) {
-		//	console.log(e);
-		//}
-		//LibGreenTea.Exit(1, "Failed ApplyMatchFunc");
-		return null;
+	static ApplyParseFunc(ParseFunc: GtFunc, NameSpace: GtNameSpace, TokenContext: GtTokenContext, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
+		return <GtSyntaxTree>LibGreenTea.ApplyFunc4(ParseFunc, null, NameSpace, TokenContext, LeftTree, Pattern);
 	}
 
-	static ApplyTypeFunc(Delegate: any, Gamma: Object, ParsedTree: Object, TypeInfo: Object): GtNode {
-		try {
-			return <GtNode>Delegate(Gamma, ParsedTree, TypeInfo);
-		}
-		catch (e) {
-			console.log(e);
-		}
-		LibGreenTea.Exit(1, "Failed ApplyTypeFunc");
-		return null;
+	static ApplyTypeFunc(TypeFunc: GtFunc, Gamma: GtTypeEnv, ParsedTree: GtSyntaxTree, ContextType: GtType): GtNode {
+		return <GtNode>LibGreenTea.ApplyFunc3(TypeFunc, null, Gamma, ParsedTree, ContextType);
 	}
 
 	static ListSize(List: any[]) : number {
@@ -598,7 +585,9 @@ class LibGreenTea {
 	}
 
 	static RetrieveMapKeys(Map: GtMap, Prefix: string, List: string[]): void {
-		throw new Error("NotImplementedAPI");
+		for(var i = 0; i < Map.keys.length; i++){
+			List.push(Map.keys[i]);
+		}
 	}
 
 	static Usage(message: string): void {
