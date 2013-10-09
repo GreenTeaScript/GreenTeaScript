@@ -28,6 +28,7 @@ import java.io.File;
 import java.lang.reflect.Method;
 
 import org.GreenTeaScript.DShell.DFault;
+import org.GreenTeaScript.DShell.RecAPI;
 
 
 public class DShellGrammar extends GreenTeaUtils {
@@ -108,18 +109,25 @@ public class DShellGrammar extends GreenTeaUtils {
 
 	public final static DFault ExecAction(GtNameSpace NameSpace, String DCaseNode, GtFunc Action) {
 		DFault Fault = null;
+
 		try {
 			Fault = (DFault)((Method)Action.FuncBody).invoke(null);
 		}
 		catch (Exception e) {
 			Fault = CreateExceptionFault(NameSpace, DCaseNode, e);
 		}
-		if(Fault == null) {
-			// report in success case
+		
+		String RECServerURL = NameSpace.GetSymbolText("RECServerURL");
+		String Location = NameSpace.GetSymbolText("Location");
+		String Context = Action.FuncName;   // FIXME: change context format to json
+		String AuthId = NameSpace.GetSymbolText("AuthId");
+		
+		if(AuthId == null) {
+			// TODO: output warning
 		}
-		else {
-			// report failed case
-		}
+		
+		RecAPI.PushRawData(RECServerURL, DCaseNode, Location, Fault, AuthId, Context);
+		
 		return Fault;
 	}
 
@@ -521,6 +529,13 @@ public class DShellGrammar extends GreenTeaUtils {
 			return ActionNode;
 		}
 		if(ActionNode instanceof GtStaticApplyNode) {
+			if(Gamma.NameSpace.GetSymbol("RECServerURL") == null) {
+				return Gamma.CreateSyntaxErrorNode(ParsedTree, "constant variable 'RECServerURL' is not defined");
+			}
+			if(Gamma.NameSpace.GetSymbol("Location") == null) {
+				return Gamma.CreateSyntaxErrorNode(ParsedTree, "constant variable 'Location' is not defined");
+			}
+			
 			GtFunc ActionFunc = ((GtStaticApplyNode)ActionNode).Func;
 			if(ActionFunc.GetFuncParamSize() == 0) {
 				GtFunc ReportFunc = (GtFunc)Gamma.NameSpace.GetSymbol("$ReportBuiltInFunc");
