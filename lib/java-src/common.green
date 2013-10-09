@@ -1,0 +1,95 @@
+// unary operator
+@Const @Operator boolean "!"(boolean x) as "! $1"
+@Const @Operator boolean not(boolean x) as "! $1"
+@Const @Operator int "+"(int x) as "$1";
+@Const @Operator int "-"(int x) as "-$1";
+@Const @Operator int "~"(int x) as "~$1";
+@Const @Operator double "+"(double x) as "$1";
+@Const @Operator double "-"(double x) as "-$1";
+
+// binary operator
+// any
+@Const @Operator boolean "=="(any x, any y) as "$1 == $2";
+@Const @Operator boolean "!="(any x, any y) as "$1 != $2";
+
+// top
+@Const @Operator boolean "=="(Top x, Top y) as "$1 == $2";
+@Const @Operator boolean "!="(Top x, Top y) as "$1 != $2";
+
+// boolean
+@Const @Operator boolean "=="(boolean x, boolean y) as "$1 == $2";
+@Const @Operator boolean "!="(boolean x, boolean y) as "$1 != $2";
+@Const @Operator boolean converter(String x)  as "Boolean.valueOf($1)";
+@Const @Operator String  converter(boolean x) as "Boolean.toString($1)";
+
+// int 
+@Const @Operator int "+"(int x, int y)      as "$1 + $2";
+@Const @Operator int "-"(int x, int y)      as "$1 - $2";
+@Const @Operator int "*"(int x, int y)      as "$1 * $2";
+@Const @Operator int "/"(int x, int y)      as "$1 / $2";
+@Const @Operator int "%"(int x, int y)      as "$1 % $2";
+@Const @Operator int "<<"(int x, int y)     as "$1 << $2";
+@Const @Operator int ">>"(int x, int y)     as "$1 >> $2";
+@Const @Operator int "^"(int x, int y)      as "$1 ^ $2";
+@Const @Operator int "|"(int x, int y)      as "$1 | $2";
+@Const @Operator int "&"(int x, int y)      as "$1 & $2";
+@Const @Operator boolean "<"(int x,  int y) as "$1 < $2";
+@Const @Operator boolean "<="(int x, int y) as "$1 <= $2";
+@Const @Operator boolean ">"(int x,  int y) as "$1 > $2";
+@Const @Operator boolean ">="(int x, int y) as "$1 >= $2";
+@Const @Operator boolean "=="(int x, int y) as "$1 == $2";
+@Const @Operator boolean "!="(int x, int y) as "$1 != $2";
+
+@Coercion @Const String converter(int x) as "Long.valueOf($2)";
+@Const int converter(String x)           as "Long.toString($2)";
+
+// String
+@Const @Operator String "+"(String x, String y)  as "$1 + $2";
+@Const @Operator String "+"(int x, String y)     as "$1 + $2";
+@Const @Operator String "+"(boolean x, String y) as "$1 + $2";
+
+@Const @Operator boolean "=="(String x, String y)    as "$1 == $2";
+@Const @Operator boolean "!="(String x, String y)    as "$1 != $2";
+@Const @Operator int "||"(String x)                  as "$1.length()";
+
+boolean startsWith(String x, String y)   as "($1).startsWith($2)";
+boolean endsWith(String x, String y)     as "($1).endsWith($2)";
+int indexOf(String x, String sub)        as "($1).indexOf($2)";
+int lastIndexOf(String x, String sub)    as "($1).lastIndexOf($2)";
+String substring(String x, int s)        as "($1).substring($2)"
+String substring(String x, int s, int e) as "($1).substring($2, $3)"; 
+String toLower(String x)                 as "($1).toLower()";
+String toUpper(String x)                 as "($1).toUpper()";
+int charAt(String x, int pos)            as "$1[$2]";
+String replace(String x, String old, String new) as "($1).replace($2, $3)";
+
+// double
+@Const @Operator double  "+"(double x, double y)   as "$1 + $2";
+@Const @Operator double  "-"(double x, double y)   as "$1 - $2";
+@Const @Operator double  "*"(double x, double y)   as "$1 * $2";
+@Const @Operator double  "/"(double x, double y)   as "$1 / $2";
+@Const @Operator boolean "<"(double x,  double y) as "$1 < $2";
+@Const @Operator boolean "<="(double x, double y) as "$1 <= $2"
+@Const @Operator boolean ">"(double x,  double y) as "$1 > $2";
+@Const @Operator boolean ">="(double x, double y) as "$1 >= $2"
+@Const @Operator boolean "=="(double x, double y) as "$1 == $2"
+@Const @Operator boolean "!="(double x, double y) as "$1 != $2"
+
+@Const @Operator double "+"(int x, double y) as "$1 + $2";
+@Const @Operator double "-"(int x, double y) as "$1 - $2";
+@Const @Operator double "*"(int x, double y) as "$1 * $2";
+@Const @Operator double "/"(int x, double y) as "$1 / $2";
+
+@Const double converter(String x)        as "Double.vallueOf($2)";
+@Coercion @Const String converter(double x) as "Double.toString($2)";
+
+// function
+void print(String x)   as "LibGreenTea.print($1)";
+void println(String x) as "LibGreenTea.println($1);";
+void assert(boolean x) as "LibGreenTea.Assert($1)";
+
+// ArrayApi
+@Common @Const @Operator <T> int "||"(Array<T> this) as "($1).length()";
+@Common @Const @Operator <T> T "[]"(Array<T> this, int index)  as "$1[$2]";
+@Common <T> Array<T> add(Array<T> this, T value)  as "$1.add($2)";
+

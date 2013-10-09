@@ -756,9 +756,7 @@ public class GreenTeaScript extends GreenTeaUtils {
 			}
 			LibGreenTea.println("");
 		}
-		else {
-			Generator.FlushBuffer();
-		}
+		Context.Finalize();
 	}
 
 	public final static void main(String[] Args)  {
