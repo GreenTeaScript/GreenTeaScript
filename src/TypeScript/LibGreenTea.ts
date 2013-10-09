@@ -389,13 +389,13 @@ class LibGreenTea {
 	static GetNativeType(Context: GtParserContext, Value: any): GtType {
 		var NativeGtType: GtType = null;
 		var NativeClassInfo: any = Value.constructor;
-		if(typeof Value == 'number' || Value instanceof Number || Value == Number.prototype) {
+		if(Value.InstanceOf(Number) || Value == Number.prototype) {
 			if((<any>Value | 0) == <any>Value) {
 				return Context.IntType;
 			}
 			//return Context.FloatType;
 		}
-		if(typeof Value == 'string' || Value instanceof String || Value == String.prototype) {
+		if(Value.InstanceOf(String) || Value == String.prototype) {
 			return Context.StringType;
 		}
 		NativeGtType = <GtType> Context.ClassNameMap.get(NativeClassInfo.name);
@@ -418,7 +418,7 @@ class LibGreenTea {
 			return true;
 		}
 		if(GreenType.IsTopType()) {
-			return (Type == Object.prototype);
+			return (Type == Object);
 		}
 		var JavascriptType: GtType = LibGreenTea.GetNativeType(GreenType.Context, Type);
 		if(GreenType != JavascriptType) {
@@ -431,7 +431,7 @@ class LibGreenTea {
 	}
 
 	static MatchNativeMethod(FuncType: GtType, JavaScriptFunction: any): boolean {
-		if(!LibGreenTea.AcceptJavascriptType(FuncType.TypeParams[0], Object.prototype)) {
+		if(!LibGreenTea.AcceptJavascriptType(FuncType.TypeParams[0], Object)) {
 			return false;
 		}
 		var StartIndex: number = 2;
@@ -445,22 +445,13 @@ class LibGreenTea {
 		//	StartIndex = 2;
 		//}
 		var ParamSize: number = FuncType.TypeParams.length - StartIndex;
-		var ParamTypes = [];
-		for(var i = 0; i < JavaScriptFunction.length; i++){
-			ParamTypes[i] = Object.prototype;
-		}
-		if(ParamTypes.length > 0) {
-			if(ParamTypes.length != ParamSize) return false;
-			for(var j = 0; j < ParamTypes.length; j++) {
-				if(!LibGreenTea.AcceptJavascriptType(FuncType.TypeParams[StartIndex+j], ParamTypes[j])) {
-					return false;
-				}
+		if(JavaScriptFunction.length != ParamSize) return false;
+		for(var i = 0; i < JavaScriptFunction.length; i++) {
+			if(!LibGreenTea.AcceptJavascriptType(FuncType.TypeParams[StartIndex+i], Object)) {
+				return false;
 			}
-			return true;
 		}
-		else {
-			return (ParamSize == 0);
-		}
+		return true;
 	}
 
 	static SetNativeMethod(NativeMethod: GtFunc, JavaScriptFunction: any): GtFunc {
@@ -471,33 +462,73 @@ class LibGreenTea {
 
 	static ConvertNativeMethodToFunc(Context: GtParserContext, JavaScriptFunction: any): GtFunc {
 		var TypeList: GtType[] = [];
-		TypeList.add(LibGreenTea.GetNativeType(Context, Object.prototype)); // For reciever
-		TypeList.add(LibGreenTea.GetNativeType(Context, Object.prototype)); // For return
+		TypeList.add(LibGreenTea.GetNativeType(Context, Object)); // For reciever
+		TypeList.add(LibGreenTea.GetNativeType(Context, Object)); // For return
 		var ParamTypes = [];
 		for(var i = 0; i < JavaScriptFunction.length; i++){
-			TypeList.add(LibGreenTea.GetNativeType(Context, Object.prototype));
+			TypeList.add(LibGreenTea.GetNativeType(Context, Object));
 		}
 		return LibGreenTea.SetNativeMethod(new GtFunc(0, JavaScriptFunction.name, 0, TypeList), JavaScriptFunction);
 	}
 
 	static LoadNativeClass(ClassName: string) : any {
-		throw new Error("NotSupportedAPI");
-		return null;
+		return eval(ClassName);
 	}
 
 	static LoadNativeMethod(ContextType: GtType, FullName: string, StaticMethodOnly: boolean) : any {
-		throw new Error("NotSupportedAPI");
+		var NameSplitted: string[] = FullName.split(".");
+		var FuncName: string = NameSplitted.pop();
+		var ClassName: string = NameSplitted.join(".");
+		var Class = LibGreenTea.LoadNativeClass(ClassName);
+		for(var key in Class){
+			var StaticMethod = Class[key];
+			if(key == FuncName && StaticMethod && StaticMethod instanceof Function){
+				return StaticMethod;
+			}
+		}
+		for(var key in Class.prototype){
+			var InstacnceMethod = Class.prototype[key];
+			if(key == FuncName && InstacnceMethod && InstacnceMethod instanceof Function){
+				return InstacnceMethod;
+			}
+		}
+		LibGreenTea.VerboseLog(VerboseUndefined, "undefined method: " + FullName + " for " + ContextType);
 		return null;
 	}
 
 	static ImportNativeMethod(NameSpace: GtNameSpace, NativeFunc : GtFunc, FullName: string) : boolean {
-		throw new Error("NotSupportedAPI");
+		var JavaScriptMethod = LibGreenTea.LoadNativeMethod(NativeFunc.GetFuncType(), FullName, false);
+		if(JavaScriptMethod){
+			LibGreenTea.SetNativeMethod(NativeFunc, JavaScriptMethod);
+			if(NativeFunc.GetReturnType().IsVarType()) {
+				NativeFunc.SetReturnType(LibGreenTea.GetNativeType(NativeFunc.GetContext(), Object));
+			}
+			var StartIdx: number = NativeFunc.Is(NativeStaticFunc) ? 1 : 2;
+			for(var i = 0; i < JavaScriptMethod.length; i++) {
+				if(NativeFunc.Types[StartIdx + i].IsVarType()) {
+					NativeFunc.Types[StartIdx + i] = LibGreenTea.GetNativeType(NativeFunc.GetContext(), Object);
+					NativeFunc.FuncType = null; // reset
+				}
+			}
+			return true;
+		}
 		return false;
 	}
 
-	static ImportNativeObject(NameSpace : GtNameSpace, FullName: string) : boolean {
-		throw new Error("NotSupportedAPI");
-		return false;
+	static ImportNativeObject(NameSpace : GtNameSpace, PackageName: string): Object {
+		LibGreenTea.VerboseLog(VerboseNative, "importing " + PackageName);
+		var NativeClass = LibGreenTea.LoadNativeClass(PackageName);
+		if(NativeClass && NativeClass.prototype && NativeClass.prototype.ImportGrammar instanceof Function){
+			var LoaderMethod = NativeClass.prototype.ImportGrammar;
+			LoaderMethod(NameSpace, NativeClass);
+			return LibGreenTea.GetNativeType(NameSpace.Context, NativeClass);
+		}
+		var Index = PackageName.lastIndexOf(".");
+		if(Index == -1) {
+			return null;
+		}
+		var NativeClass = LibGreenTea.LoadNativeClass(PackageName.substring(0, Index));
+		return LibGreenTea.ImportStaticObject(NameSpace.Context, NativeClass, PackageName.substring(Index+1));
 	}
 
 	static LoadNativeConstructors(ClassType: GtType, FuncList: GtFunc[]) : boolean {
@@ -663,7 +694,6 @@ class LibGreenTea {
 			return fs.existsSync(FileName).toString()
 		}else{
 			return !!GreenTeaLibraries[FileName];
-			//throw new Error("LibGreenTea.HasFile is not implemented for this environment");
 		}
 		return false;
 	}
@@ -681,7 +711,6 @@ class LibGreenTea {
 			return fs.readFileSync(FileName);
 		}else{
 			return GreenTeaLibraries[FileName];
-			//throw new Error("LibGreenTea.LoadFile is not implemented for this environment");
 		}
 		return "";
 	}
