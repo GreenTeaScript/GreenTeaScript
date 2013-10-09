@@ -116,6 +116,11 @@ public final class GtParserContext extends GreenTeaUtils {
 		this.Generator.InitContext(this);
 	}
 
+	public void Finalize() {
+		this.Generator.FinalizeContext(this);
+		this.Generator.FlushBuffer();
+	}
+
 	public void LoadGrammar(GtGrammar Grammar) {
 		Grammar.LoadTo(this.TopLevelNameSpace);
 	}

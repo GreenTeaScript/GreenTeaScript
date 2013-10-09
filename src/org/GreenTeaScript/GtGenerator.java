@@ -28,6 +28,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+
 import org.GreenTeaScript.DShell.DShellProcess;
 //endif VAJA
 
@@ -51,6 +52,8 @@ public class GtGenerator extends GreenTeaUtils {
 		this.GeneratedCodeStack = new ArrayList<Object>();
 		Context.RootNameSpace.LoadRequiredLib("common");
 	}
+    public void FinalizeContext(GtParserContext Context) {
+    }
 
 	public final GtNode CreateUnsupportedNode(GtType Type, GtSyntaxTree ParsedTree) {
 		/*local*/GtToken Token = ParsedTree.KeyToken;
