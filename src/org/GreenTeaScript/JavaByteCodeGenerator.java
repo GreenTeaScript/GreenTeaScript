@@ -140,7 +140,7 @@ final class JVMLocal {
 	}
 }
 
-class JVMBuilder {
+class JMethodBuilder {
 	MethodVisitor                 AsmMethodVisitor;
 	ArrayList<JVMLocal>           LocalVals;
 	int                           LocalSize;
@@ -148,13 +148,15 @@ class JVMBuilder {
 	Stack<Label>                  BreakLabelStack;
 	Stack<Label>                  ContinueLabelStack;
 
-	public JVMBuilder(MethodVisitor AsmMethodVisitor) {
+	public JMethodBuilder(MethodVisitor AsmMethodVisitor) {
 		this.AsmMethodVisitor = AsmMethodVisitor;
 		this.LocalVals = new ArrayList<JVMLocal>();
 		this.LocalSize = 0;
 		this.typeStack = new Stack<Type>();
 		this.BreakLabelStack = new Stack<Label>();
 		this.ContinueLabelStack = new Stack<Label>();
+		
+		
 	}
 
 	void LoadLocal(JVMLocal local) {
@@ -231,7 +233,7 @@ class Lib {
 }
 
 public class JavaByteCodeGenerator extends GtGenerator {
-	private JVMBuilder Builder;
+	private JMethodBuilder Builder;
 	private String defaultClassName;
 	private final Map<String, JClassBuilder> classMap = new HashMap<String, JClassBuilder>();
 	private final Map<String, Type> typeDescriptorMap = new HashMap<String, Type>();
@@ -264,7 +266,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		// static init
 		int acc = ACC_PUBLIC | ACC_STATIC;
 		MethodNode mn = new MethodNode(acc, "<clinit>", "()V", null, null);
-		this.Builder = new JVMBuilder(mn);
+		this.Builder = new JMethodBuilder(mn);
 		this.LoadConst(Context);
 		this.Builder.AsmMethodVisitor.visitFieldInsn(PUTSTATIC, this.DefaultHolderClass.ClassName, fn.name, fn.desc);
 		this.Builder.AsmMethodVisitor.visitInsn(RETURN);
@@ -460,7 +462,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		c.addMethodNode(mn);
 		this.classMap.put(c.ClassName, c);
 
-		this.Builder = new JVMBuilder(mn);
+		this.Builder = new JMethodBuilder(mn);
 		this.VisitBlock(Node);
 
 		// boxing and return
@@ -514,8 +516,8 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		c.addMethodNode(AsmMethodNode);
 		this.classMap.put(c.ClassName, c);
 
-		this.Builder = new JVMBuilder(AsmMethodNode);
-		for(int i=0; i<NameList.size(); i++) {
+		this.Builder = new JMethodBuilder(AsmMethodNode);
+		for(int i = 0; i < NameList.size(); i++) {
 			String Name = NameList.get(i);
 			this.Builder.AddLocal(argTypes.get(i), Name);
 		}
