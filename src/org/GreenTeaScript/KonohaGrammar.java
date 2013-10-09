@@ -136,6 +136,9 @@ public class KonohaGrammar extends GtGrammar {
 			if(!LibGreenTea.IsWhitespace(SourceText, pos)) {
 				break;
 			}
+			if(LibGreenTea.CharAt(SourceText, pos) == '\n') {
+				TokenContext.FoundLineFeed(1);
+			}
 			pos += 1;
 		}
 		/*local*/String Text = "";
