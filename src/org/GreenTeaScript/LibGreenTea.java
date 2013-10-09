@@ -77,6 +77,10 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 	public final static Object NewArrayLiteral(GtType ArrayType, Object[] Values) {
 		return GreenTeaArray.NewArrayLiteral(ArrayType, Values);		
 	}
+	
+	public final static void ArrayCopy(Object src, int srcPos, Object dest, int destPos, int length) {
+		System.arraycopy(src, srcPos, dest, destPos, length);
+	}
 
 	public static Object ApplyOverridedMethod(long FileLine, GtNameSpace NameSpace, GtFunc Func, Object[] Arguments) {
 		/*local*/GtType ClassType = NameSpace.Context.GuessType(Arguments[0]);

@@ -57,7 +57,7 @@ public class GtNode extends GreenTeaUtils {
 	}
 
 	public final boolean HasReturnNode() {
-		GtNode LastNode = this.MoveTailNode();
+		/*local*/GtNode LastNode = this.MoveTailNode();
 		return (LastNode instanceof GtReturnNode || LastNode instanceof GtThrowNode);
 	}
 

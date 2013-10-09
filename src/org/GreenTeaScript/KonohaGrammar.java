@@ -333,7 +333,7 @@ public class KonohaGrammar extends GtGrammar {
 		/*local*/long start = pos;
 		pos = pos + 1; // eat "\""
 		while(pos < SourceText.length()) {
-			pos = SkipBackSlashOrNewLineOrDoubleQuote(SourceText, pos);
+			pos = KonohaGrammar.SkipBackSlashOrNewLineOrDoubleQuote(SourceText, pos);
 			/*local*/char ch = LibGreenTea.CharAt(SourceText, pos);
 			if(ch == '\\') {
 				if(pos + 1 < SourceText.length()) {

@@ -302,8 +302,8 @@ public final class GtFunc extends GreenTeaUtils {
 			return this.GetReturnType().DefaultNullValue;
 		}
 		else if(!this.Is(NativeStaticFunc)) {
-			Object[] MethodArguments = new Object[Arguments.length-1];
-			System.arraycopy(Arguments, 1, MethodArguments, 0, MethodArguments.length);
+			/*local*/Object[] MethodArguments = new Object[Arguments.length-1];
+			LibGreenTea.ArrayCopy(Arguments, 1, MethodArguments, 0, MethodArguments.length);
 			return LibGreenTea.ApplyFunc(this, Arguments[0], MethodArguments);
 		}
 		return LibGreenTea.ApplyFunc(this, null, Arguments);
@@ -592,7 +592,7 @@ class GtPolyFunc extends GreenTeaUtils {
 
 	public GtFunc GetMatchedFunc(GtNameSpace NameSpace, Object[] Arguments) {
 		/*local*/Object[] OriginalArguments = new Object[Arguments.length];
-		System.arraycopy(Arguments, 0, OriginalArguments, 0, Arguments.length);
+		LibGreenTea.ArrayCopy(Arguments, 0, OriginalArguments, 0, Arguments.length);
 		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
 		/*local*/int i = 0;
 		while(i < Arguments.length) {
@@ -652,7 +652,7 @@ class GtPolyFunc extends GreenTeaUtils {
 	}
 
 	public GtNode ReportTypeError(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ClassType, String MethodName) {
-		return Gamma.CreateSyntaxErrorNode(ParsedTree, MessageTypeError(ClassType, MethodName));
+		return Gamma.CreateSyntaxErrorNode(ParsedTree, this.MessageTypeError(ClassType, MethodName));
 	}
 
 
