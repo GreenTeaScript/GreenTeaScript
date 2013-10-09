@@ -242,7 +242,7 @@ class LibGreenTea {
 	}
 
 	static VerboseException(e: any): void {
-		//TODO stub
+		throw new Error("NotImplementedAPI");
 	}
 
 	static Exit(status: number, message: string): void {
@@ -472,7 +472,6 @@ class LibGreenTea {
 	}
 
 	static ImportNativeObject(NameSpace : GtNameSpace, FullName: string) : boolean {
-		//TODO stub
 		throw new Error("NotSupportedAPI");
 		return false;
 	}
@@ -488,32 +487,32 @@ class LibGreenTea {
 	}
 
 	static NativeFieldValue (ObjectValue: any, NativeField: any/*Field*/) :  any {
-		//TODO stub
+		throw new Error("NotImplementedAPI");
 		return null;
 	}
 
 	static NativeFieldGetter(ObjectValue: any, NativeField: any/*Field*/) : any{
-		//TODO stub
+		throw new Error("NotImplementedAPI");
 		return null;
 	}
 
 	static NativeFieldSetter(ObjectValue: any, NativeField: any/*Field*/, Value: any) : any {
-		//TODO stub
+		throw new Error("NotImplementedAPI");
 		return null;
 	}
 
 	static ImportStaticObject(Context: GtParserContext, NativeClass: any, Symbol: string) : any {
-		//TODO stub
+		throw new Error("NotImplementedAPI");
 		return null;
 	}
 
 	static LoadNativeStaticFieldValue(ClassType: GtType, Symbol: String): any {
-		//TODO stub
+		throw new Error("NotImplementedAPI");
 		return null;
 	}
 
 	static LoadNativeMethods(ClassType: GtType, FuncName: string, FuncList: GtFunc[]): void {
-		//TODO stub
+		throw new Error("NotImplementedAPI");
 	}
 
 	static LookupNativeMethod(Callee: Object, MethodName: string): any {
@@ -521,27 +520,27 @@ class LibGreenTea {
 	}
 
 	static ApplyFunc(Func: GtFunc, Self: any, Params: any[]): any {
-		//TODO stub
+		throw new Error("NotImplementedAPI");
 		return null;
 	}
 
 	static ApplyFunc1(Func: GtFunc, Self: any, Param: any): any {
-		//TODO stub
+		throw new Error("NotImplementedAPI");
 		return null;
 	}
 
 	static ApplyFunc2(Func: GtFunc, Self: any, Param1: any, Param2: any): any {
-		//TODO stub
+		throw new Error("NotImplementedAPI");
 		return null;
 	}
 
 	static ApplyFunc3(Func: GtFunc, Self: any, Param1: any, Param2: any, Param3: any): any {
-		//TODO stub
+		throw new Error("NotImplementedAPI");
 		return null;
 	}
 
 	static ApplyFunc4(Func: GtFunc, Self: any, Param1: any, Param2: any, Param3: any, Param4: any): any {
-		//TODO stub
+		throw new Error("NotImplementedAPI");
 		return null;
 	}
 
@@ -557,7 +556,7 @@ class LibGreenTea {
 	}
 
 	static ApplyParseFunc(ParseFunc: GtFunc, NameSpace: GtNameSpace, TokenContext: any, LeftTree: GtSyntaxTree, Pattern: GtSyntaxPattern): GtSyntaxTree {
-		//TODO stub
+		throw new Error("NotImplementedAPI");
 		//try {
 		//	return <GtSyntaxTree>Delegate(NameSpace, TokenContext, LeftTree, Pattern);
 		//}
@@ -599,14 +598,14 @@ class LibGreenTea {
 	}
 
 	static RetrieveMapKeys(Map: GtMap, Prefix: string, List: string[]): void {
-		//TODO stub
+		throw new Error("NotImplementedAPI");
 	}
 
 	static Usage(message: string): void {
 	}
 
 	static DetectTargetCode(Extension: string, TargetCode: string): string {
-		//TODO stub
+		throw new Error("NotImplementedAPI");
 		return null;
 	}
 
@@ -719,7 +718,7 @@ class LibGreenTea {
 	}
 
 	public static DynamicConvertTo(CastType: GtType, Value: any): any {
-		//TODO stub
+		throw new Error("NotImplementedAPI");
 		return false;
 	}
 
