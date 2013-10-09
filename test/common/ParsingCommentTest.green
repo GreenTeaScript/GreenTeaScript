@@ -33,6 +33,18 @@ void TestFunc7(int n) {
     assert(n == 0);
 }
 
+void TestFunc8(int n) {
+    /*
+       // assert(n == 1)
+     */
+    assert(n == 0);
+}
+
+void TestFunc9(int n) {
+    // /*assert(n == 1)*/
+    assert(n == 0);
+}
+
 @Export
 int main() {
     TestFunc(0);
@@ -42,6 +54,8 @@ int main() {
     TestFunc5(0);
     TestFunc6(0);
     TestFunc7(0);
+    TestFunc8(0);
+    TestFunc9(0);
     return 0;
 }
 
