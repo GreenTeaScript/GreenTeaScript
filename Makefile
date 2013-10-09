@@ -8,7 +8,7 @@ INSTALL_PREFIX?="$(HOME)"
 TEST_BASEDIR="test/common"
 TEST_OUTDIR="$(TEST_BASEDIR)/test-result"
 
-TEST_FILES:=$(wildcard test/exec/*.green)
+TEST_FILES:=$(wildcard test/common/*.green)
 
 all: build test
 
