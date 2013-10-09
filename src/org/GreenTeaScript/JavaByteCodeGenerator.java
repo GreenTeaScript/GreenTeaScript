@@ -64,6 +64,24 @@ class GtClassLoader extends ClassLoader {
 	}
 }
 
+class GreenTeaClassLoader extends ClassLoader {
+	HashMap<String,byte[]> ByteCodeMap;
+
+	public GreenTeaClassLoader(JavaByteCodeGenerator Gen) {
+		this.ByteCodeMap = new HashMap<String,byte[]>();
+	}
+
+	void AddByteCode(JClassBuilder ClassBuilder) {
+		this.ByteCodeMap.put(ClassBuilder.ClassName, ClassBuilder.GenerateBytecode());
+	}
+	
+	@Override protected Class<?> findClass(String name) {
+		byte[] b = this.ByteCodeMap.get(name);
+		return this.defineClass(name, b, 0, b.length);
+	}
+}
+
+
 class JClassBuilder /*implements Opcodes */{
 	final String ClassName;
 	final String SuperClassName;
@@ -75,7 +93,7 @@ class JClassBuilder /*implements Opcodes */{
 		this.SuperClassName = superClass;
 	}
 	
-	public void addMethodNode(MethodNode m) {
+	@Deprecated public void addMethodNode(MethodNode m) {
 		for(int i=0; i<MethodList.size(); i++) {
 			MethodNode node = this.MethodList.get(i);
 			if(node.name.equals(m.name) && node.desc.equals(m.desc)) {
@@ -86,7 +104,8 @@ class JClassBuilder /*implements Opcodes */{
 		this.MethodList.add(m);
 	}
 
-	public FieldNode getFieldNode(String name) {
+	
+	@Deprecated public FieldNode getFieldNode(String name) {
 		return this.FieldMap.get(name);
 	}
 
@@ -548,10 +567,10 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	}
 
 	@Override public void OpenClassField(GtType ClassType, GtClassField ClassField) {
-		String className = ClassType.ShortName;
-		JClassBuilder superClassNode = this.classMap.get(ClassType.SuperType.ShortName);
-		String superClassName = superClassNode != null ? superClassNode.ClassName : Type.getInternalName(GreenTeaTopObject.class);
-		JClassBuilder classNode = new JClassBuilder(className, superClassName);
+		String ClassName = ClassType.ShortName;
+		JClassBuilder SuperClassNode = this.classMap.get(ClassType.SuperType.ShortName);
+		String superClassName = SuperClassNode != null ? SuperClassNode.ClassName : Type.getInternalName(GreenTeaTopObject.class);
+		JClassBuilder classNode = new JClassBuilder(ClassName, superClassName);
 		this.classMap.put(classNode.ClassName, classNode);
 		// generate field
 		for(GtFieldInfo field : ClassField.FieldList) {
@@ -574,21 +593,21 @@ public class JavaByteCodeGenerator extends GtGenerator {
 				String desc = this.ToAsmType(field.Type).getDescriptor();
 				constructor.visitVarInsn(ALOAD, 0);
 				constructor.visitLdcInsn(field.InitValue);
-				constructor.visitFieldInsn(PUTFIELD, className, name, desc);
+				constructor.visitFieldInsn(PUTFIELD, ClassName, name, desc);
 			}
 		}
 		constructor.visitInsn(RETURN);
 		classNode.addMethodNode(constructor);
 		if(LibGreenTea.DebugMode) {
 			try {
-				this.OutputClassFile(className, ".");
+				this.OutputClassFile(ClassName, ".");
 			} catch(IOException e) {
 				LibGreenTea.VerboseException(e);
 			}
 		}
 		try {
 			ClassLoader loader = new GtClassLoader(this);
-			ClassType.TypeBody = loader.loadClass(className);
+			ClassType.TypeBody = loader.loadClass(ClassName);
 		} catch(Exception e) {
 			LibGreenTea.VerboseException(e);
 		}
