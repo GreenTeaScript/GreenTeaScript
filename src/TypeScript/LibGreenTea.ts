@@ -1,4 +1,5 @@
 
+var JavaScriptGlobal: any = Function("return this")();
 
 interface Array {
 	get(index: number): any;
@@ -79,6 +80,15 @@ String.prototype["endsWith"] = function(key): boolean{
 String.prototype["equals"] = function(other): boolean{
 	return (this == other);
 }
+
+JavaScriptGlobal["GreenTeaObject"] = (function () {
+    function GreenTeaObject() {
+    }
+    GreenTeaObject.prototype.GetGreenType = function () {
+        throw new Error("Abstruct method is called.");
+    };
+    return GreenTeaObject;
+})();
 
 class LibLoadFunc{
 	static __LoadFunc(ParserContext: GtParserContext, Grammar: any, FuncName: string): GtFunc{
