@@ -1,3 +1,0 @@
-boolean !(boolean x);
-boolean ==(boolean x, boolean y);
-boolean !=(boolean x, boolean y);

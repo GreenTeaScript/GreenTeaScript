@@ -4,18 +4,19 @@
  *
  */
 
-const N=2500000;
+let N = 2500000;
+let Math = import java.lang.Math;
 
 void partial(int n) {
-	float twothirds = 2.0/3.0;
+	double twothirds = 2.0/3.0;
 
-	float a1 = 0.0, a2 = 0.0, a3 = 0.0, a4 = 0.0, a5 = 0.0;
-	float a6 = 0.0, a7 = 0.0, a8 = 0.0, a9 = 0.0, alt = -1.0;
+	double a1 = 0.0, a2 = 0.0, a3 = 0.0, a4 = 0.0, a5 = 0.0;
+	double a6 = 0.0, a7 = 0.0, a8 = 0.0, a9 = 0.0, alt = -1.0;
 
 	int k = 1;
 	while(k <= n) {
-		float k2 = k * k, k3 = k2 * k;
-		float sk = Math.sin(k), ck = Math.cos(k);
+		double k2 = k * k, k3 = k2 * k;
+		double sk = Math.sin(k), ck = Math.cos(k);
 		alt = -alt;
 
 		a1 = a1 + Math.pow(twothirds,k-1);
@@ -30,15 +31,19 @@ void partial(int n) {
 		k = k + 1;
 	}
 
-	print(""+a1/*.format("%0.9f")*/ + "\t(2/3)^k");
-	print(""+a2/*.format("%0.9f")*/ + "\tk^-0.5");
-	print(""+a3/*.format("%0.9f")*/ + "\t1/k(k+1)");
-	print(""+a4/*.format("%0.9f")*/ + "\tFlint Hills");
-	print(""+a5/*.format("%0.9f")*/ + "\tCookson Hills");
-	print(""+a6/*.format("%0.9f")*/ + "\tHarmonic");
-	print(""+a7/*.format("%0.9f")*/ + "\tRiemann Zeta");
-	print(""+a8/*.format("%0.9f")*/ + "\tAlternating Harmonic");
-	print(""+a9/*.format("%0.9f")*/ + "\tGregory");
+	println(""+a1/*.format("%0.9f")*/ + "\t(2/3)^k");
+	println(""+a2/*.format("%0.9f")*/ + "\tk^-0.5");
+	println(""+a3/*.format("%0.9f")*/ + "\t1/k(k+1)");
+	println(""+a4/*.format("%0.9f")*/ + "\tFlint Hills");
+	println(""+a5/*.format("%0.9f")*/ + "\tCookson Hills");
+	println(""+a6/*.format("%0.9f")*/ + "\tHarmonic");
+	println(""+a7/*.format("%0.9f")*/ + "\tRiemann Zeta");
+	println(""+a8/*.format("%0.9f")*/ + "\tAlternating Harmonic");
+	println(""+a9/*.format("%0.9f")*/ + "\tGregory");
 }
 
-partial(N);
+@Export int main() {
+	partial(N);
+	return 0;
+}
+

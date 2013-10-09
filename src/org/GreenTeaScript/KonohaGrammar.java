@@ -136,6 +136,9 @@ public class KonohaGrammar extends GtGrammar {
 			if(!LibGreenTea.IsWhitespace(SourceText, pos)) {
 				break;
 			}
+			if(LibGreenTea.CharAt(SourceText, pos) == '\n') {
+				TokenContext.FoundLineFeed(1);
+			}
 			pos += 1;
 		}
 		/*local*/String Text = "";
@@ -198,10 +201,7 @@ public class KonohaGrammar extends GtGrammar {
 		if(NextChar != '/' && NextChar != '*') {
 			return MismatchedPosition;
 		}
-		/*local*/int Level = 0;
-		/*local*/char PrevChar = 0;
-		if(NextChar == '*') {
-			Level = 1;
+		if(NextChar == '*') { // MultiLineComment
 			// SourceMap ${file:line}
 			if(LibGreenTea.CharAt(SourceText, NextPos+1) == '$' && LibGreenTea.CharAt(SourceText, NextPos+2) == '{') {
 				/*local*/long StartPos = NextPos + 3;
@@ -218,25 +218,33 @@ public class KonohaGrammar extends GtGrammar {
 					NextPos += 1;
 				}
 			}
+			/*local*/int Level = 1;
+			/*local*/char PrevChar = 0;
+			while(NextPos < SourceText.length()) {
+				NextChar = LibGreenTea.CharAt(SourceText, NextPos);
+				if(NextChar == '/' && PrevChar == '*') {
+					if(Level == 1) {
+						return NextPos + 1;
+					}
+					Level = Level - 1;
+				}
+				if(Level > 0) {
+					if(NextChar == '*' && PrevChar == '/') {
+						Level = Level + 1;
+					}
+				}
+				PrevChar = NextChar;
+				NextPos = NextPos + 1;
+			}
 		}
-		while(NextPos < SourceText.length()) {
-			NextChar = LibGreenTea.CharAt(SourceText, NextPos);
-			if(NextChar == '\n' && Level == 0) {
-				return KonohaGrammar.IndentToken(TokenContext, SourceText, NextPos);
-			}
-			if(NextChar == '/' && PrevChar == '*') {
-				if(Level == 1) {
-					return NextPos + 1;
+		else if(NextChar == '/') { // SingleLineComment
+			while(NextPos < SourceText.length()) {
+				NextChar = LibGreenTea.CharAt(SourceText, NextPos);
+				if(NextChar == '\n') {
+					return KonohaGrammar.IndentToken(TokenContext, SourceText, NextPos);
 				}
-				Level = Level - 1;
+				NextPos = NextPos + 1;
 			}
-			if(Level > 0) {
-				if(NextChar == '*' && PrevChar == '/') {
-					Level = Level + 1;
-				}
-			}
-			PrevChar = NextChar;
-			NextPos = NextPos + 1;
 		}
 		return MismatchedPosition;
 	}
@@ -310,13 +318,34 @@ public class KonohaGrammar extends GtGrammar {
 		return pos;
 	}
 
-	public static long StringLiteralToken(GtTokenContext TokenContext, String SourceText, long pos) {
-		/*local*/long start = pos;
-		/*local*/char prev = '"';
-		pos = pos + 1; // eat "\""
+	private static long SkipBackSlashOrNewLineOrDoubleQuote( String SourceText, long pos) {
 		while(pos < SourceText.length()) {
 			/*local*/char ch = LibGreenTea.CharAt(SourceText, pos);
-			if(ch == '"' && prev != '\\') {
+			if(ch == '\\' || ch == '\n' || ch == '"') {
+				return pos;
+			}
+			pos = pos + 1;
+		}
+		return pos;
+	}
+
+	public static long StringLiteralToken(GtTokenContext TokenContext, String SourceText, long pos) {
+		/*local*/long start = pos;
+		pos = pos + 1; // eat "\""
+		while(pos < SourceText.length()) {
+			pos = KonohaGrammar.SkipBackSlashOrNewLineOrDoubleQuote(SourceText, pos);
+			/*local*/char ch = LibGreenTea.CharAt(SourceText, pos);
+			if(ch == '\\') {
+				if(pos + 1 < SourceText.length()) {
+					/*local*/char NextChar = LibGreenTea.CharAt(SourceText, pos + 1);
+					if(NextChar == 'u') {
+						TokenContext.ReportTokenError1(ErrorLevel, "Unicode character escape sequences is not supported", LibGreenTea.SubString(SourceText, start, pos));
+						return pos;
+					}
+				}
+				pos = pos + 1;
+			}
+			if(ch == '"') {
 				TokenContext.AddNewToken(LibGreenTea.SubString(SourceText, start, (pos + 1)), QuotedTokenFlag, "$StringLiteral$");
 				return pos + 1;
 			}
@@ -326,7 +355,6 @@ public class KonohaGrammar extends GtGrammar {
 				return pos;
 			}
 			pos = pos + 1;
-			prev = ch;
 		}
 		TokenContext.ReportTokenError1(ErrorLevel, "expected \" to close the string literal", LibGreenTea.SubString(SourceText, start, pos));
 		return pos;
@@ -1312,6 +1340,9 @@ public class KonohaGrammar extends GtGrammar {
 		/*local*/GtNode CondNode = ParsedTree.TypeCheckAt(IfCond, Gamma, Gamma.BooleanType, DefaultTypeCheckPolicy);
 		/*local*/GtNode ThenNode = ParsedTree.TypeCheckAt(IfThen, Gamma, Gamma.VoidType, DefaultTypeCheckPolicy);
 		/*local*/GtNode ElseNode = ParsedTree.TypeCheckAt(IfElse, Gamma, Gamma.VoidType, DefaultTypeCheckPolicy);
+		if(ThenNode.HasReturnNode() && ElseNode != null && ElseNode.HasReturnNode()) {
+			ParsedTree.NextTree = null;
+		}
 		return Gamma.Generator.CreateIfNode(ThenNode.Type, ParsedTree, CondNode, ThenNode, ElseNode);
 	}
 
@@ -1415,7 +1446,7 @@ public class KonohaGrammar extends GtGrammar {
 
 	public static GtNode TypeReturn(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		ParsedTree.NextTree = null; // stop typing of next trees
-		if(Gamma.IsTopLevel() || Gamma.Func == null) {
+		if(Gamma.IsTopLevel()) {
 			return Gamma.UnsupportedTopLevelError(ParsedTree);
 		}
 		/*local*/GtType ReturnType = Gamma.Func.GetReturnType();
@@ -1486,6 +1517,7 @@ public class KonohaGrammar extends GtGrammar {
 	}
 
 	public static GtNode TypeThrow(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+		ParsedTree.NextTree = null;
 		/*local*/GtType FaultType = ContextType; // FIXME Gamma.FaultType;
 		/*local*/GtNode ExprNode = ParsedTree.TypeCheckAt(ReturnExpr, Gamma, FaultType, DefaultTypeCheckPolicy);
 		return Gamma.Generator.CreateThrowNode(ExprNode.Type, ParsedTree, ExprNode);
@@ -1860,10 +1892,14 @@ public class KonohaGrammar extends GtGrammar {
 					FuncBlock.DefinedFunc.FuncFlag = FuncFlag;
 				}
 				KonohaGrammar.ParseFuncBody(NameSpace, TokenContext, FuncDeclTree, FuncBlock);
-				if(!FuncBlock.DefinedFunc.IsAbstract() || !FoundAbstractFunc) { 
-					StoreNameSpace.AppendFunc(FuncBlock.DefinedFunc, SourceToken);
+				if(!FuncBlock.DefinedFunc.IsAbstract() || !FoundAbstractFunc) {
+					if(!FuncBlock.DefinedFunc.Is(MethodFunc) || !FuncBlock.DefinedFunc.Is(OperatorFunc)) {
+						StoreNameSpace.AppendFunc(FuncBlock.DefinedFunc, SourceToken);
+					}
 					/*local*/GtType RecvType = FuncBlock.DefinedFunc.GetRecvType();
-					if(!RecvType.IsVoidType()) {
+					if(RecvType.IsVoidType() || LibGreenTea.EqualsString(FuncBlock.DefinedFunc.FuncName, "_")) {
+					}
+					else {
 						StoreNameSpace.AppendMethod(FuncBlock.DefinedFunc, SourceToken.AddTypeInfoToErrorMessage(RecvType));
 					}
 				}

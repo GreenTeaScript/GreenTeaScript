@@ -29,6 +29,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 //endif VAJA
 
+class GtUndefinedSymbol {
+	@Override public String toString() {
+		return "UndefinedSymbol";
+	}
+}
+
 /*GreenTeaConst Begin*/
 //ifdef JAVA
 interface GreenTeaConsts {
@@ -63,6 +69,7 @@ interface GreenTeaConsts {
 
 	public final static int		DynamicType	       = 1 << 8;  // @Dynamic
 	public final static int     OpenType           = 1 << 9;  // @Open for the future
+	public final static int     UnboxType          = 1 << 10; 
 	public final static int     TypeVariable       = 1 << 14;
 	public final static int     GenericVariable    = 1 << 15;
 
@@ -301,7 +308,7 @@ interface GreenTeaConsts {
 	public final static int NullablePolicy                  = (1 << 8);
 	public final static int BlockPolicy                     = (1 << 7);
 
-	public final static Object UndefinedSymbol = new Object();   // any class
+	public final static Object UndefinedSymbol = new GtUndefinedSymbol();
 	public final static String NativeNameSuffix = "__";
 
 	public final static boolean UseLangStat = true;
@@ -378,12 +385,12 @@ class GreenTeaUtils implements GreenTeaConsts {
 		return ClassType.GetUniqueName() + "." + Symbol;
 	}
 
-	final static String ClassStaticSymbol(GtType ClassType, String Symbol) {
+	public final static String ClassStaticSymbol(GtType ClassType, String Symbol) {
 		return ClassType.GetUniqueName() + ".@" + Symbol;
 	}
 
-	final static String FuncSymbol(String Symbol) {
-		return LibGreenTea.IsLetter(Symbol, 0) ? Symbol : "__" + Symbol;
+	public final static String FuncSymbol(String Symbol) {
+		return LibGreenTea.IsVariableName(Symbol, 0) ? Symbol : "__" + Symbol;
 	}
 
 	public final static String ConverterSymbol(GtType ClassType) {

@@ -77,6 +77,10 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 	public final static Object NewArrayLiteral(GtType ArrayType, Object[] Values) {
 		return GreenTeaArray.NewArrayLiteral(ArrayType, Values);		
 	}
+	
+	public final static void ArrayCopy(Object src, int srcPos, Object dest, int destPos, int length) {
+		System.arraycopy(src, srcPos, dest, destPos, length);
+	}
 
 	public static Object ApplyOverridedMethod(long FileLine, GtNameSpace NameSpace, GtFunc Func, Object[] Arguments) {
 		/*local*/GtType ClassType = NameSpace.Context.GuessType(Arguments[0]);
@@ -108,8 +112,27 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		LibGreenTea.VerboseLog(VerboseRuntime, PolyFunc.MessageTypeError(ClassType, FuncName));
 		return Value;
 	}
-
 	
+	public static Object DynamicGetter(GtType ContextType, Object RecvObject, String FieldName) {
+		try {
+			Field JavaField = RecvObject.getClass().getField(FieldName);
+			Object Value = JavaField.get(RecvObject);
+			return DynamicCast(ContextType, Value);
+		} catch (Exception e) {
+		}
+		return ContextType.DefaultNullValue;
+	}
+
+	public static Object DynamicSetter(GtType ContextType, Object RecvObject, String FieldName, Object Value) {
+		try {
+			Field JavaField = RecvObject.getClass().getField(FieldName);
+			JavaField.set(RecvObject, Value);
+			Value = JavaField.get(RecvObject);
+			return DynamicCast(ContextType, Value);
+		} catch (Exception e) {
+		}
+		return ContextType.DefaultNullValue;
+	}
 	
 	public final static String GetPlatform() {
 		return "Java JVM-" + System.getProperty("java.version");
@@ -364,12 +387,12 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		}
 		return 0.0;
 	}	
-
+	
 	public final static GtType GetNativeType(GtParserContext Context, Object Value) {
 		GtType NativeType = null;
 		Class<?> NativeClass = Value instanceof Class<?> ? (Class<?>)Value : Value.getClass();
 		NativeType = (/*cast*/GtType) Context.ClassNameMap.GetOrNull(NativeClass.getCanonicalName());
-		if(NativeType == null) {
+		if(NativeType == null) {  /* create native type */
 			NativeType = new GtType(Context, GreenTeaUtils.NativeType, NativeClass.getSimpleName(), null, NativeClass);
 			Context.SetNativeTypeName(NativeClass.getCanonicalName(), NativeType);
 			LibGreenTea.VerboseLog(GreenTeaUtils.VerboseNative, "creating native class: " + NativeClass.getSimpleName() + ", " + NativeClass.getCanonicalName());

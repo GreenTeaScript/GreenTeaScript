@@ -1,0 +1,9 @@
+// written by imasahiro
+@Export int main() {
+
+
+
+
+    assert(__line__ == 7);
+    return 0;
+}
