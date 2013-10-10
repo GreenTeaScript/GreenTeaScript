@@ -338,9 +338,13 @@ public class KonohaGrammar extends GtGrammar {
 			if(ch == '\\') {
 				if(pos + 1 < SourceText.length()) {
 					/*local*/char NextChar = LibGreenTea.CharAt(SourceText, pos + 1);
-					if(NextChar == 'u') {
-						TokenContext.ReportTokenError1(ErrorLevel, "Unicode character escape sequences is not supported", LibGreenTea.SubString(SourceText, start, pos));
-						return pos;
+					if(NextChar == 'u') { // \u12345
+						while(pos < SourceText.length()) {
+							if(!LibGreenTea.IsDigit(SourceText, pos)) {
+								break;
+							}
+							pos += 1;
+						}
 					}
 				}
 				pos = pos + 1;
