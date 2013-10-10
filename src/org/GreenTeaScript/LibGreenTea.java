@@ -33,6 +33,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.io.Writer;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -83,7 +84,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 	}
 
 	public static Object ApplyOverridedMethod(long FileLine, GtNameSpace NameSpace, GtFunc Func, Object[] Arguments) {
-		/*local*/GtType ClassType = NameSpace.Context.GuessType(Arguments[0]);
+		/*local*/GtType ClassType = GtStaticTable.GuessType(Arguments[0]);
 		Func = NameSpace.GetOverridedMethod(ClassType, Func);
 		return Func.Apply(Arguments);
 	}
@@ -101,7 +102,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 	}
 
 	public static Object InvokeDynamicMethod(long FileLine, GtType ContextType, GtNameSpace NameSpace, String FuncName, Object[] Arguments) {
-		/*local*/GtType ClassType = ContextType.Context.GuessType(Arguments[0]);
+		/*local*/GtType ClassType = GtStaticTable.GuessType(Arguments[0]);
 		/*local*/GtPolyFunc PolyFunc = NameSpace.GetMethod(ClassType, FuncName, true);
 		/*local*/GtFunc Func = PolyFunc.GetMatchedFunc(NameSpace, Arguments);
 		/*local*/Object Value = ContextType.DefaultNullValue;
@@ -388,16 +389,8 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return 0.0;
 	}	
 	
-	public final static GtType GetNativeType(GtParserContext Context, Object Value) {
-		GtType NativeType = null;
-		Class<?> NativeClass = Value instanceof Class<?> ? (Class<?>)Value : Value.getClass();
-		NativeType = (/*cast*/GtType) Context.ClassNameMap.GetOrNull(NativeClass.getCanonicalName());
-		if(NativeType == null) {  /* create native type */
-			NativeType = new GtType(Context, GreenTeaUtils.NativeType, NativeClass.getSimpleName(), null, NativeClass);
-			Context.SetNativeTypeName(NativeClass.getCanonicalName(), NativeType);
-			LibGreenTea.VerboseLog(GreenTeaUtils.VerboseNative, "creating native class: " + NativeClass.getSimpleName() + ", " + NativeClass.getCanonicalName());
-		}
-		return NativeType;
+	public final static GtType GetNativeType(Object Value) {
+		return GtStaticTable.GetNativeType(Value);
 	}
 
 	public final static String GetClassName(Object Value) {
@@ -411,7 +404,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		if(GreenType.IsTopType()) {
 			return (Type == Object.class);
 		}
-		GtType JavaType = LibGreenTea.GetNativeType(GreenType.Context, Type);
+		GtType JavaType = LibGreenTea.GetNativeType(Type);
 		if(GreenType != JavaType) {
 			if(GreenType.IsGenericType() && GreenType.HasTypeVariable()) {
 				return GreenType.BaseType == JavaType.BaseType;
@@ -472,14 +465,14 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 
 	public final static GtFunc ConvertNativeMethodToFunc(GtParserContext Context, Method JavaMethod) {
 		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
-		TypeList.add(LibGreenTea.GetNativeType(Context, JavaMethod.getReturnType()));
+		TypeList.add(LibGreenTea.GetNativeType(JavaMethod.getReturnType()));
 		if(!Modifier.isStatic(JavaMethod.getModifiers())) {
-			TypeList.add(LibGreenTea.GetNativeType(Context, JavaMethod.getDeclaringClass()));
+			TypeList.add(LibGreenTea.GetNativeType(JavaMethod.getDeclaringClass()));
 		}
 		/*local*/Class<?>[] ParamTypes = JavaMethod.getParameterTypes();
 		if(ParamTypes != null) {
 			for(int j = 0; j < ParamTypes.length; j++) {
-				TypeList.add(LibGreenTea.GetNativeType(Context, ParamTypes[j]));
+				TypeList.add(LibGreenTea.GetNativeType(ParamTypes[j]));
 			}
 		}
 		return SetNativeMethod(new GtFunc(0, JavaMethod.getName(), 0, TypeList), JavaMethod);
@@ -538,13 +531,13 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		if(JavaMethod != null) {
 			LibGreenTea.SetNativeMethod(NativeFunc, JavaMethod);
 			if(NativeFunc.GetReturnType().IsVarType()) {
-				NativeFunc.SetReturnType(LibGreenTea.GetNativeType(NativeFunc.GetContext(), JavaMethod.getReturnType()));
+				NativeFunc.SetReturnType(LibGreenTea.GetNativeType(JavaMethod.getReturnType()));
 			}
 			int StartIdx = NativeFunc.Is(GreenTeaUtils.NativeStaticFunc) ? 1 : 2;
 			Class<?>[] p = JavaMethod.getParameterTypes();
 			for(int i = 0; i < p.length; i++) {
 				if(NativeFunc.Types[StartIdx + i].IsVarType()) {
-					NativeFunc.Types[StartIdx + i] = LibGreenTea.GetNativeType(NativeFunc.GetContext(), p[i]);
+					NativeFunc.Types[StartIdx + i] = LibGreenTea.GetNativeType(p[i]);
 					NativeFunc.FuncType = null; // reset
 				}
 			}
@@ -563,7 +556,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 				LoaderMethod.invoke(null, NameSpace, NativeClass);
 			} catch (Exception e) {  // naming
 			}
-			return LibGreenTea.GetNativeType(NameSpace.Context, NativeClass);
+			return LibGreenTea.GetNativeType(NativeClass);
 		} catch (ClassNotFoundException e) {
 		}
 		int Index = PackageName.lastIndexOf(".");
@@ -579,10 +572,10 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return null;
 	}
 
-	public final static void LoadNativeConstructors(GtType ClassType, ArrayList<GtFunc> FuncList) {
+	public final static void LoadNativeConstructors(GtParserContext Context, GtType ClassType, ArrayList<GtFunc> FuncList) {
 		/*local*/boolean TransformedResult = false;
 		Class<?> NativeClass = (Class<?>)ClassType.TypeBody;
-		GtParserContext Context = ClassType.Context;
+//		GtParserContext Context = ClassType.Context;
 		Constructor<?>[] Constructors = NativeClass.getDeclaredConstructors();
 		if(Constructors != null) {
 			for(int i = 0; i < Constructors.length; i++) {
@@ -594,7 +587,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 				/*local*/Class<?>[] ParamTypes = Constructors[i].getParameterTypes();
 				if(ParamTypes != null) {
 					for(int j = 0; j < ParamTypes.length; j++) {
-						TypeList.add(LibGreenTea.GetNativeType(Context, ParamTypes[j]));
+						TypeList.add(LibGreenTea.GetNativeType(ParamTypes[j]));
 					}
 				}
 				GtFunc Func = new GtFunc(ConstructorFunc, ClassType.ShortName, 0, TypeList);
@@ -609,22 +602,21 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		}
 	}
 
-	public final static GtFunc LoadNativeField(GtType ClassType, String FieldName, boolean GetSetter) {
-		GtParserContext Context = ClassType.Context;
+	public final static GtFunc LoadNativeField(GtParserContext Context, GtType ClassType, String FieldName, boolean GetSetter) {
 		try {
 			Class<?> NativeClass = (Class<?>)ClassType.TypeBody;
 			Field NativeField = NativeClass.getField(FieldName);
 			if(Modifier.isPublic(NativeField.getModifiers())) {
 				ArrayList<GtType> TypeList = new ArrayList<GtType>();
-				TypeList.add(LibGreenTea.GetNativeType(Context, NativeField.getType()));
+				TypeList.add(LibGreenTea.GetNativeType(NativeField.getType()));
 				TypeList.add(ClassType);
 				GtFunc GetterNativeFunc = new GtFunc(GetterFunc, FieldName, 0, TypeList);
 				GetterNativeFunc.SetNativeMethod(0, NativeField);
 				Context.RootNameSpace.SetGetterFunc(ClassType, FieldName, GetterNativeFunc, null);
 				TypeList.clear();
-				TypeList.add(Context.VoidType);
+				TypeList.add(GtStaticTable.VoidType);
 				TypeList.add(ClassType);
-				TypeList.add(LibGreenTea.GetNativeType(Context, NativeField.getType()));
+				TypeList.add(LibGreenTea.GetNativeType(NativeField.getType()));
 				GtFunc SetterNativeFunc = new GtFunc(SetterFunc, FieldName, 0, TypeList);
 				SetterNativeFunc.SetNativeMethod(0, NativeField);
 				Context.RootNameSpace.SetSetterFunc(ClassType, FieldName, SetterNativeFunc, null);
@@ -724,7 +716,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		Method[] Methods = NativeClass.getMethods();
 		for(int i = 0; i < Methods.length; i++) {
 			if(Methods[i].getName().equals(Symbol) && Modifier.isStatic(Methods[i].getModifiers())) {
-				PolyFunc.Append(LibGreenTea.ConvertNativeMethodToFunc(Context, Methods[i]), null);
+				PolyFunc.Append(Context, LibGreenTea.ConvertNativeMethodToFunc(Context, Methods[i]), null);
 			}
 		}
 		if(PolyFunc.FuncList.size() == 1) {
@@ -736,12 +728,11 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return null;
 	}
 
-	public static Object LoadNativeStaticFieldValue(GtType ClassType, String Symbol) {
-		return ImportStaticObject(ClassType.Context, (Class<?>)ClassType.TypeBody, Symbol);
+	public static Object LoadNativeStaticFieldValue(GtParserContext Context, GtType ClassType, String Symbol) {
+		return ImportStaticObject(Context, (Class<?>)ClassType.TypeBody, Symbol);
 	}
 	
-	public final static void LoadNativeMethods(GtType ClassType, String FuncName, ArrayList<GtFunc> FuncList) {
-		GtParserContext Context = ClassType.Context;
+	public final static void LoadNativeMethods(GtParserContext Context, GtType ClassType, String FuncName, ArrayList<GtFunc> FuncList) {
 		Class<?> NativeClass = (Class<?>)ClassType.TypeBody;
 		Method[] Methods = NativeClass.getDeclaredMethods();
 		/*local*/boolean FoundMethod = false;
@@ -990,7 +981,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return null;
 	}
 
-	public final static void WriteCode(String OutputFile, String SourceCode) {
+	@Deprecated public final static void WriteCode(String OutputFile, String SourceCode) {
 		if(OutputFile == null) {
 			//LibGreenTea.Eval(SourceCode);
 		}
@@ -1009,6 +1000,32 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 				System.err.println("Cannot write: " + OutputFile);
 				System.exit(1);
 			}
+		}
+	}
+
+	public final static void WriteSource(String OutputFile, ArrayList<GtSourceBuilder> SourceList) {
+		try {
+			PrintStream Stream = null;
+			if(OutputFile.equals("-")) {
+				Stream = System.out;
+				Stream.flush();				
+			}
+			else {
+				Stream = new PrintStream(OutputFile);
+			}
+			for(GtSourceBuilder Builder : SourceList) {
+				for(String Source : Builder.SourceList) {
+					Stream.print(Source);
+				}
+				Stream.println();
+			}
+			Stream.flush();
+			if(Stream != System.out) {
+				Stream.close();
+			}
+		} catch (IOException e) {
+			System.err.println("Cannot write: " + OutputFile);
+			System.exit(1);
 		}
 	}
 
@@ -1173,7 +1190,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 	
 	public static Object DynamicCast(GtType CastType, Object Value) {
 		if(Value != null) {
-			GtType FromType = CastType.Context.GuessType(Value);
+			GtType FromType = GtStaticTable.GuessType(Value);
 			if(CastType == FromType || CastType.Accept(FromType)) {
 				return Value;
 			}
@@ -1183,7 +1200,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 
 	public static Object DynamicInstanceOf(Object Value, GtType Type) {
 		if(Value != null) {
-			GtType ValueType = Type.Context.GuessType(Value);
+			GtType ValueType = GtStaticTable.GuessType(Value);
 			if(ValueType == Type || Type.Accept(ValueType)) {
 				return true;
 			}
@@ -1193,11 +1210,11 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 
 	public final static Object DynamicConvertTo(GtType CastType, Object Value) {
 		if(Value != null) {
-			GtType ValueType = CastType.Context.GuessType(Value);
+			GtType ValueType = GtStaticTable.GuessType(Value);
 			if(ValueType == CastType || CastType.Accept(ValueType)) {
 				return Value;
 			}
-			GtFunc Func = CastType.Context.RootNameSpace.GetConverterFunc(ValueType, CastType, true);
+			GtFunc Func = GtStaticTable.GetConverterFunc(ValueType, CastType, true);
 			if(Func != null) {
 				return LibGreenTea.ApplyFunc2(Func, null, CastType, Value);
 			}
@@ -1237,15 +1254,15 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 			return null;
 		}
 		if(LeftValue instanceof String || RightValue instanceof String) {
-			String left = DynamicCast(Type.Context.StringType, LeftValue).toString();
-			String right = DynamicCast(Type.Context.StringType, RightValue).toString();
+			String left = DynamicCast(GtStaticTable.StringType, LeftValue).toString();
+			String right = DynamicCast(GtStaticTable.StringType, RightValue).toString();
 			if(Operator.equals("+")) {
 				return  DynamicCast(Type, left + right);
 			}
 		}
 		if(LeftValue instanceof String && RightValue instanceof String) {
-			String left = DynamicCast(Type.Context.StringType, LeftValue).toString();
-			String right = DynamicCast(Type.Context.StringType, RightValue).toString();
+			String left = DynamicCast(GtStaticTable.StringType, LeftValue).toString();
+			String right = DynamicCast(GtStaticTable.StringType, RightValue).toString();
 			if(Operator.equals("==")) {
 				return  DynamicCast(Type, left.equals(right));
 			}

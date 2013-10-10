@@ -199,8 +199,8 @@ public class DShellGrammar extends GreenTeaUtils {
 			}
 			if(Env == null) {
 				GtTypeEnv Gamma = new GtTypeEnv(NameSpace);
-				GtNode ConstNode = ConstTree.TypeCheck(Gamma, Gamma.StringType, DefaultTypeCheckPolicy);
-				Env = (/*cast*/String)ConstNode.ToConstValue(true);
+				GtNode ConstNode = ConstTree.TypeCheck(Gamma, GtStaticTable.StringType, DefaultTypeCheckPolicy);
+				Env = (/*cast*/String)ConstNode.ToConstValue(Gamma.Context, true);
 			}
 		}
 		if(Env == null) {
@@ -506,14 +506,14 @@ public class DShellGrammar extends GreenTeaUtils {
 	}
 
 	public static GtNode TypeFileOperator(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		/*local*/GtNode PathNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, Gamma.StringType, DefaultTypeCheckPolicy);
+		/*local*/GtNode PathNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, GtStaticTable.StringType, DefaultTypeCheckPolicy);
 		if(!PathNode.IsErrorNode()) {
 			/*local*/String OperatorSymbol = ParsedTree.KeyToken.ParsedText;
-			/*local*/GtPolyFunc PolyFunc = Gamma.NameSpace.GetMethod(Gamma.StringType, FuncSymbol(OperatorSymbol), true);
+			/*local*/GtPolyFunc PolyFunc = Gamma.NameSpace.GetMethod(GtStaticTable.StringType, FuncSymbol(OperatorSymbol), true);
 			/*local*/GtFunc ResolvedFunc = PolyFunc.ResolveUnaryMethod(Gamma, PathNode.Type);
 			LibGreenTea.Assert(ResolvedFunc != null);
 			/*local*/GtNode ApplyNode =  Gamma.Generator.CreateApplyNode(ResolvedFunc.GetReturnType(), ParsedTree, ResolvedFunc);
-			ApplyNode.Append(Gamma.Generator.CreateConstNode(Gamma.VarType, ParsedTree, ResolvedFunc));
+			ApplyNode.Append(Gamma.Generator.CreateConstNode(GtStaticTable.VarType, ParsedTree, ResolvedFunc));
 			ApplyNode.Append(PathNode);
 			return ApplyNode;
 		}
@@ -645,7 +645,7 @@ public class DShellGrammar extends GreenTeaUtils {
 			Type = ContextType;
 		}
 		else {
-			Type = Gamma.VoidType;
+			Type = GtStaticTable.VoidType;
 		}
 		/*local*/GtNode PipedNode = null;
 		/*local*/int Index = 0;
@@ -663,7 +663,7 @@ public class DShellGrammar extends GreenTeaUtils {
 		/*local*/GtNode Node = Gamma.Generator.CreateCommandNode(Type, ParsedTree, PipedNode);
 		Index = 0;
 		while(Index < ArgumentSize) {
-			/*local*/GtNode ArgumentNode = ParsedTree.TypeCheckAt(Index, Gamma, Gamma.StringType, DefaultTypeCheckPolicy);
+			/*local*/GtNode ArgumentNode = ParsedTree.TypeCheckAt(Index, Gamma, GtStaticTable.StringType, DefaultTypeCheckPolicy);
 			if(ArgumentNode.IsErrorNode()) {
 				return ArgumentNode;
 			}
@@ -684,7 +684,7 @@ public class DShellGrammar extends GreenTeaUtils {
 		if(Gamma.Func != null) {
 			ContextualFuncName = Gamma.Func.FuncName;
 		}
-		return Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, ContextualFuncName);		
+		return Gamma.Generator.CreateConstNode(GtStaticTable.StringType, ParsedTree, ContextualFuncName);		
 	}
 	
 	public static GtSyntaxTree ParseDLog(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
@@ -695,7 +695,7 @@ public class DShellGrammar extends GreenTeaUtils {
 
 	// dlog FunctionName => ExecAction(NameSpace, ContextualFuncName, Action);
 	public static GtNode TypeDLog(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		ContextType = LibGreenTea.GetNativeType(Gamma.Context, DFault.class);
+		ContextType = LibGreenTea.GetNativeType(DFault.class);
 		GtNode ActionNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, ContextType, DefaultTypeCheckPolicy);
 		if(ActionNode.IsErrorNode()) {
 			return ActionNode;
@@ -705,10 +705,10 @@ public class DShellGrammar extends GreenTeaUtils {
 			if(ActionFunc.GetFuncParamSize() == 0) {
 				GtFunc ReportFunc = (GtFunc)Gamma.NameSpace.GetSymbol("$ReportBuiltInFunc");
 				GtNode ApplyNode = Gamma.Generator.CreateApplyNode(ContextType, ParsedTree, ReportFunc);
-				ApplyNode.Append(Gamma.Generator.CreateConstNode(Gamma.VarType, ParsedTree, ReportFunc));
-				ApplyNode.Append(Gamma.Generator.CreateConstNode(Gamma.VarType, ParsedTree, Gamma.NameSpace));
+				ApplyNode.Append(Gamma.Generator.CreateConstNode(GtStaticTable.VarType, ParsedTree, ReportFunc));
+				ApplyNode.Append(Gamma.Generator.CreateConstNode(GtStaticTable.VarType, ParsedTree, Gamma.NameSpace));
 				ApplyNode.Append(CreateDCaseNode(Gamma, ParsedTree));
-				ApplyNode.Append(Gamma.Generator.CreateConstNode(Gamma.VarType, ParsedTree, ActionFunc));
+				ApplyNode.Append(Gamma.Generator.CreateConstNode(GtStaticTable.VarType, ParsedTree, ActionFunc));
 				return ApplyNode;
 			}
 		}
@@ -734,8 +734,8 @@ public class DShellGrammar extends GreenTeaUtils {
 	public static GtNode TypeFault(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		GtFunc CreateFunc = (GtFunc)Gamma.NameSpace.GetSymbol("$CreateFaultBuiltInFunc");
 		GtNode ApplyNode = Gamma.Generator.CreateApplyNode(ContextType, ParsedTree, CreateFunc);
-		ApplyNode.Append(Gamma.Generator.CreateConstNode(Gamma.VarType, ParsedTree, CreateFunc));
-		ApplyNode.Append(Gamma.Generator.CreateConstNode(Gamma.VarType, ParsedTree, Gamma.NameSpace));
+		ApplyNode.Append(Gamma.Generator.CreateConstNode(GtStaticTable.VarType, ParsedTree, CreateFunc));
+		ApplyNode.Append(Gamma.Generator.CreateConstNode(GtStaticTable.VarType, ParsedTree, Gamma.NameSpace));
 		ApplyNode.Append(CreateDCaseNode(Gamma, ParsedTree));
 		String FaultInfo;
 		if(ParsedTree.HasNodeAt(FaultTerm)) {
@@ -747,20 +747,20 @@ public class DShellGrammar extends GreenTeaUtils {
 				FaultInfo = "UnexpectedFault";
 			}
 		}
-		ApplyNode.Append(Gamma.Generator.CreateConstNode(Gamma.VarType, ParsedTree, FaultInfo));
+		ApplyNode.Append(Gamma.Generator.CreateConstNode(GtStaticTable.VarType, ParsedTree, FaultInfo));
 		/*local*/GtNode ErrorInfoNode = null;
 		if(ParsedTree.HasNodeAt(ErrorTerm)) {
-			ErrorInfoNode = ParsedTree.TypeCheckAt(ErrorTerm, Gamma, Gamma.StringType, DefaultTypeCheckPolicy);
+			ErrorInfoNode = ParsedTree.TypeCheckAt(ErrorTerm, Gamma, GtStaticTable.StringType, DefaultTypeCheckPolicy);
 		}
 		else {
-			ErrorInfoNode = Gamma.Generator.CreateConstNode(Gamma.VarType, ParsedTree, DShellGrammar.GetErrorMessage());
+			ErrorInfoNode = Gamma.Generator.CreateConstNode(GtStaticTable.VarType, ParsedTree, DShellGrammar.GetErrorMessage());
 		}
 		ApplyNode.Append(ErrorInfoNode);
 		return ApplyNode;
 	}
 
 	static private final GtNode CreateConstNode(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, Object ConstValue) {
-		return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(ConstValue), ParsedTree, ConstValue);
+		return Gamma.Generator.CreateConstNode(GtStaticTable.GuessType(ConstValue), ParsedTree, ConstValue);
 	}
 
 	// dexec CallAdmin() 
@@ -834,7 +834,7 @@ public class DShellGrammar extends GreenTeaUtils {
 		if(Gamma.IsTopLevel() || Gamma.Func == null) {
 			return Gamma.UnsupportedTopLevelError(ParsedTree);
 		}
-		/*local*/GtNode Expr = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, Gamma.NameSpace.Context.TypeType, DefaultTypeCheckPolicy);
+		/*local*/GtNode Expr = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, GtStaticTable.TypeType, DefaultTypeCheckPolicy);
 		if(Expr instanceof GtConstNode && Expr.Type.IsTypeType()) {
 			/*local*/GtType ObjectType = (/*cast*/GtType)((/*cast*/GtConstNode)Expr).ConstValue;
 			Expr = Gamma.Generator.CreateNewNode(ObjectType, ParsedTree);

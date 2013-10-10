@@ -53,7 +53,7 @@ class GtFuncBlock extends GreenTeaUtils {
 	}
 
 	void SetConverterType() {
-		this.TypeList.add(this.NameSpace.Context.TypeType);
+		this.TypeList.add(GtStaticTable.TypeType);
 		this.NameList.add("type");
 	}
 
@@ -83,14 +83,9 @@ public final class GtFunc extends GreenTeaUtils {
 		LibGreenTea.Assert(this.Types.length > 0);
 		this.FuncType = null;
 		this.FuncBody = null;
-		/*local*/GtParserContext Context = this.GetContext();
-		this.FuncId = Context.FuncPools.size();
-		Context.FuncPools.add(this);
+		this.FuncId = GtStaticTable.FuncPools.size();
+		GtStaticTable.FuncPools.add(this);
 		this.MangledName = FuncName + NativeNameSuffix + this.FuncId;
-	}
-
-	public final GtParserContext GetContext() {
-		return this.GetReturnType().Context;
 	}
 
 	public final String GetNativeFuncName() {
@@ -112,8 +107,7 @@ public final class GtFunc extends GreenTeaUtils {
 
 	public final GtType GetFuncType() {
 		if(this.FuncType == null) {
-			/*local*/GtParserContext Context = this.GetRecvType().Context;
-			this.FuncType = Context.GetGenericType(Context.FuncType, 0, new ArrayList<GtType>(Arrays.asList(this.Types)), true);
+			this.FuncType = GtStaticTable.GetGenericType(GtStaticTable.FuncType, 0, new ArrayList<GtType>(Arrays.asList(this.Types)), true);
 		}
 		return this.FuncType;
 	}
@@ -148,7 +142,7 @@ public final class GtFunc extends GreenTeaUtils {
 
 	public final GtType GetRecvType() {
 		if(this.Types.length == 1) {
-			return this.Types[0].Context.VoidType;
+			return GtStaticTable.VoidType;
 		}
 		return this.Types[1];
 	}
@@ -236,7 +230,7 @@ public final class GtFunc extends GreenTeaUtils {
 				i = i + 1;
 			}
 			Gamma.Func = FuncBlock.DefinedFunc;
-			/*local*/GtNode BodyNode = GreenTeaUtils.TypeBlock(Gamma, FuncBlock.FuncBlock, Gamma.VoidType);
+			/*local*/GtNode BodyNode = GreenTeaUtils.TypeBlock(Gamma, FuncBlock.FuncBlock, GtStaticTable.VoidType);
 			if(Gamma.FoundUncommonFunc) {
 				Gamma.Func.FuncFlag = UnsetFlag(Gamma.Func.FuncFlag, CommonFunc);
 			}
@@ -321,13 +315,13 @@ class GtResolvedFunc {
 	GtResolvedFunc/*constructor*/(GtNameSpace NameSpace) {
 		this.GenericNameSpace = NameSpace;
 		this.Func = null;
-		this.ReturnType = NameSpace.Context.AnyType;
+		this.ReturnType = GtStaticTable.AnyType;
 		this.ErrorNode = null;
 	}	
 	GtResolvedFunc UpdateFunc(GtFunc Func, GtNameSpace GenericNameSpace) {		
 		this.Func = Func;
 		if(Func != null) {
-			this.ReturnType = Func.GetReturnType().RealType(GenericNameSpace, GenericNameSpace.Context.AnyType);
+			this.ReturnType = Func.GetReturnType().RealType(GenericNameSpace, GtStaticTable.AnyType);
 		}
 		return this;
 	}
@@ -353,7 +347,7 @@ class GtPolyFunc extends GreenTeaUtils {
 		return s;
 	}
 
-	public final GtPolyFunc Append(GtFunc Func, GtToken SourceToken) {
+	public final GtPolyFunc Append(GtParserContext Context, GtFunc Func, GtToken SourceToken) {
 		if(SourceToken != null) {
 			/*local*/int i = 0;
 			while(i < this.FuncList.size()) {
@@ -362,7 +356,7 @@ class GtPolyFunc extends GreenTeaUtils {
 					return this; /* same function */
 				}
 				if(Func.EqualsType(ListedFunc)) {
-					Func.GetContext().ReportError(WarningLevel, SourceToken, "duplicated symbol" + SourceToken.ParsedText);
+					Context.ReportError(WarningLevel, SourceToken, "duplicated symbol: " + SourceToken.ParsedText);
 					break;
 				}
 				i = i + 1;
@@ -538,7 +532,7 @@ class GtPolyFunc extends GreenTeaUtils {
 		//System.err.println("*** FuncList=" + this);
 		/*local*/GtResolvedFunc ResolvedFunc = new GtResolvedFunc(Gamma.NameSpace);
 		while(!this.CheckIncrementalTyping(Gamma.NameSpace, FuncParamSize, ParamList, ResolvedFunc) && TreeIndex < LibGreenTea.ListSize(ParsedTree.SubTreeList)) {
-			/*local*/GtNode Node = ParsedTree.TypeCheckAt(TreeIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+			/*local*/GtNode Node = ParsedTree.TypeCheckAt(TreeIndex, Gamma, GtStaticTable.VarType, DefaultTypeCheckPolicy);
 			if(Node.IsErrorNode()) {
 				ResolvedFunc.ErrorNode = Node;
 				return ResolvedFunc;
@@ -550,7 +544,7 @@ class GtPolyFunc extends GreenTeaUtils {
 			/*local*/GtNameSpace GenericNameSpace = ResolvedFunc.GenericNameSpace;
 			while(TreeIndex < LibGreenTea.ListSize(ParsedTree.SubTreeList)) {
 				/*local*/GtType ContextType = ResolvedFunc.Func.GetFuncParamType(ParamList.size()/*ResolvedSize*/);
-				ContextType = ContextType.RealType(GenericNameSpace, Gamma.VarType);
+				ContextType = ContextType.RealType(GenericNameSpace, GtStaticTable.VarType);
 				//System.err.println("TreeIndex="+ TreeIndex+" NodeSize="+ParamList.size()+" ContextType="+ContextType);
 				/*local*/GtNode Node = ParsedTree.TypeCheckAt(TreeIndex, Gamma, ContextType, DefaultTypeCheckPolicy);
 				if(Node.IsErrorNode()) {
@@ -596,7 +590,7 @@ class GtPolyFunc extends GreenTeaUtils {
 		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
 		/*local*/int i = 0;
 		while(i < Arguments.length) {
-			TypeList.add(NameSpace.Context.GuessType(Arguments[i]));
+			TypeList.add(GtStaticTable.GuessType(Arguments[i]));
 			i = i + 1;
 		}
 		i = 0;

@@ -24,7 +24,7 @@
 
 package org.GreenTeaScript.Konoha;
 import org.GreenTeaScript.GreenTeaArray;
-//import org.GreenTeaScript.GreenTeaTopObject;
+import org.GreenTeaScript.GtStaticTable;
 import org.GreenTeaScript.GtType;
 
 public class ArrayApi {
@@ -52,7 +52,7 @@ public class ArrayApi {
 	}
 	
 	public final static GreenTeaArray StringArrayToGreenArray(GtType Type, String[] Values) {
-		GtType ArrayType = Type.Context.GetGenericType1(Type.Context.ArrayType, Type.Context.StringType, true);
+		GtType ArrayType = GtStaticTable.GetGenericType1(GtStaticTable.ArrayType, GtStaticTable.StringType, true);
 		GreenTeaArray ArrayObject = new GreenTeaArray(ArrayType);
 		for(int i = 0; i < Values.length; i++) {
 			ArrayObject.ArrayBody.add(Values[i]);

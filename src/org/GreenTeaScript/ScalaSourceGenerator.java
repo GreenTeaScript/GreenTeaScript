@@ -43,16 +43,16 @@ public class ScalaSourceGenerator extends SourceGenerator {
 
 	private String LocalTypeName(GtType Type) {
 		if(Type.IsDynamic() || Type.IsNative()) {
-			if(Type == Type.PackageNameSpace.Context.VoidType) {
+			if(Type.IsVoidType()) {
 				return "Unit";
 			}
-			if(Type == Type.PackageNameSpace.Context.IntType) {
+			if(Type.IsIntType()) {
 				return "Int";
 			}
-			if(Type == Type.PackageNameSpace.Context.FloatType) {
+			if(Type.IsFloatType()) {
 				return "Double";
 			}
-			if(Type == Type.PackageNameSpace.Context.BooleanType) {
+			if(Type.IsBooleanType()) {
 				return "Boolean";
 			}
 		}

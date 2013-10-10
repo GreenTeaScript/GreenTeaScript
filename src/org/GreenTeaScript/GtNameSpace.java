@@ -224,12 +224,6 @@ public final class GtNameSpace extends GreenTeaUtils {
 	}
 
 	public final GtType AppendTypeName(GtType Type, GtToken SourceToken) {
-		if(Type.PackageNameSpace == null) {
-			Type.PackageNameSpace = this;
-			if(this.PackageName != null) {
-				this.Context.SetNativeTypeName(this.PackageName + "." + Type.ShortName, Type);
-			}
-		}
 		if(Type.BaseType == Type) {
 			this.SetSymbol(Type.ShortName, Type, SourceToken);
 		}
@@ -238,7 +232,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 
 	public final GtType AppendTypeVariable(String Name, GtType ParamBaseType, GtToken SourceToken, ArrayList<Object> RevertList) {
 		this.UpdateRevertList(Name, RevertList);
-		/*local*/GtType TypeVar = new GtType(this.Context, TypeVariable, Name, ParamBaseType, null);
+		/*local*/GtType TypeVar = new GtType(TypeVariable, Name, ParamBaseType, null);
 		this.SetSymbol(Name, TypeVar, SourceToken);
 		return TypeVar;
 	}
@@ -281,7 +275,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 		}
 		Key = ClassStaticSymbol(StaticClassType, Symbol);
 		if(StaticClassType.IsDynamicNaitiveLoading() && this.Context.RootNameSpace.GetLocalUndefinedSymbol(Key) == null) {
-			/*local*/Object Value = LibGreenTea.LoadNativeStaticFieldValue(StaticClassType, Symbol);
+			/*local*/Object Value = LibGreenTea.LoadNativeStaticFieldValue(this.Context, StaticClassType, Symbol);
 			if(Value == null) {
 				this.Context.RootNameSpace.SetUndefinedSymbol(Key, null);
 			}
@@ -323,7 +317,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 		}
 		Func = this.Context.RootNameSpace.GetLocalUndefinedSymbol(ClassSymbol(ClassType, GetterSymbol(Symbol)));
 		if(ClassType.IsDynamicNaitiveLoading() && Func == null) {
-			return LibGreenTea.LoadNativeField(ClassType, Symbol, false);
+			return LibGreenTea.LoadNativeField(this.Context, ClassType, Symbol, false);
 		}
 		return null;
 	}
@@ -335,7 +329,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 		}
 		Func = this.Context.RootNameSpace.GetLocalUndefinedSymbol(ClassSymbol(ClassType, SetterSymbol(Symbol)));
 		if(ClassType.IsDynamicNaitiveLoading() && Func == null) {
-			return LibGreenTea.LoadNativeField(ClassType, Symbol, true);
+			return LibGreenTea.LoadNativeField(this.Context, ClassType, Symbol, true);
 		}
 		return null;
 	}
@@ -355,10 +349,10 @@ public final class GtNameSpace extends GreenTeaUtils {
 			/*local*/Object RootValue = this.RetrieveFuncList(Key, FuncList);
 			if(RootValue == null && ClassType.IsDynamicNaitiveLoading()) {
 				if(LibGreenTea.EqualsString(Symbol, ConstructorSymbol())) {
-					LibGreenTea.LoadNativeConstructors(ClassType, FuncList);
+					LibGreenTea.LoadNativeConstructors(this.Context, ClassType, FuncList);
 				}
 				else {
-					LibGreenTea.LoadNativeMethods(ClassType, Symbol, FuncList);
+					LibGreenTea.LoadNativeMethods(this.Context, ClassType, Symbol, FuncList);
 				}
 			}
 			if(!RecursiveSearch) {
@@ -457,8 +451,8 @@ public final class GtNameSpace extends GreenTeaUtils {
 			/*local*/GtFunc OldFunc = (/*cast*/GtFunc)OldValue;
 			if(!OldFunc.EqualsType(Func)) {
 				/*local*/GtPolyFunc PolyFunc = new GtPolyFunc(null);
-				PolyFunc.Append(OldFunc, SourceToken);
-				PolyFunc.Append(Func, SourceToken);
+				PolyFunc.Append(this.Context, OldFunc, SourceToken);
+				PolyFunc.Append(this.Context, Func, SourceToken);
 				this.SetSymbol(Key, PolyFunc, null);
 				return PolyFunc;
 			}
@@ -466,7 +460,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 		}
 		else if(OldValue instanceof GtPolyFunc) {
 			/*local*/GtPolyFunc PolyFunc = (/*cast*/GtPolyFunc)OldValue;
-			PolyFunc.Append(Func, SourceToken);
+			PolyFunc.Append(this.Context, Func, SourceToken);
 			return PolyFunc;
 		}
 		this.SetSymbol(Key, Func, SourceToken);
@@ -544,8 +538,8 @@ public final class GtNameSpace extends GreenTeaUtils {
 			if(TopLevelTree.IsValidSyntax()) {
 				TopLevelTree.SetAnnotation(Annotation);
 				/*local*/GtTypeEnv Gamma = new GtTypeEnv(this);
-				/*local*/GtNode Node = TopLevelTree.TypeCheck(Gamma, Gamma.VoidType, DefaultTypeCheckPolicy);
-				ResultValue = Node.ToConstValue(true/*EnforceConst*/);
+				/*local*/GtNode Node = TopLevelTree.TypeCheck(Gamma, GtStaticTable.VoidType, DefaultTypeCheckPolicy);
+				ResultValue = Node.ToConstValue(this.Context, true/*EnforceConst*/);
 			}
 			TokenContext.Vacume();
 		}

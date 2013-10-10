@@ -54,7 +54,7 @@ public class GreenTeaArray extends GreenTeaTopObject {
 		return s + "]";
 	}
 	public final static GreenTeaArray NewArray1(GtType Type, int InitSize) {
-		/*local*/GtType ArrayType = Type.Context.GetGenericType1(Type.Context.ArrayType, Type, true); 
+		/*local*/GtType ArrayType = GtStaticTable.GetGenericType1(GtStaticTable.ArrayType, Type, true); 
 		/*local*/GreenTeaArray ArrayObject =  new GreenTeaArray(ArrayType);
 		for(/*local*/int i = 0; i < InitSize; i++) {
 			ArrayObject.ArrayBody.add(Type.DefaultNullValue);
@@ -63,8 +63,8 @@ public class GreenTeaArray extends GreenTeaTopObject {
 	}
 	// new int[2][3]
 	public final static GreenTeaArray NewArray2(GtType Type, int InitSize, int InitSize2) {
-		/*local*/GtType ArrayType = Type.Context.GetGenericType1(Type.Context.ArrayType, Type, true); 
-		ArrayType = Type.Context.GetGenericType1(Type.Context.ArrayType, ArrayType, true); 
+		/*local*/GtType ArrayType = GtStaticTable.GetGenericType1(GtStaticTable.ArrayType, Type, true); 
+		ArrayType = GtStaticTable.GetGenericType1(GtStaticTable.ArrayType, ArrayType, true); 
 		/*local*/GreenTeaArray ArrayObject =  new GreenTeaArray(ArrayType);
 		for(/*local*/int i = 0; i < InitSize2; i++) {
 			ArrayObject.ArrayBody.add(GreenTeaArray.NewArray1(Type, InitSize));
@@ -72,9 +72,9 @@ public class GreenTeaArray extends GreenTeaTopObject {
 		return ArrayObject;
 	}
 	public final static GreenTeaArray NewArray3(GtType Type, int InitSize, int InitSize2, int InitSize3) {
-		/*local*/GtType ArrayType = Type.Context.GetGenericType1(Type.Context.ArrayType, Type, true); 
-		ArrayType = Type.Context.GetGenericType1(Type.Context.ArrayType, ArrayType, true); 
-		ArrayType = Type.Context.GetGenericType1(Type.Context.ArrayType, ArrayType, true); 
+		/*local*/GtType ArrayType = GtStaticTable.GetGenericType1(GtStaticTable.ArrayType, Type, true); 
+		ArrayType = GtStaticTable.GetGenericType1(GtStaticTable.ArrayType, ArrayType, true); 
+		ArrayType = GtStaticTable.GetGenericType1(GtStaticTable.ArrayType, ArrayType, true); 
 		/*local*/GreenTeaArray ArrayObject =  new GreenTeaArray(ArrayType);
 		for(/*local*/int i = 0; i < InitSize2; i++) {
 			ArrayObject.ArrayBody.add(GreenTeaArray.NewArray2(Type, InitSize, InitSize2));

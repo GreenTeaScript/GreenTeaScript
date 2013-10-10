@@ -67,7 +67,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 		}
 		Cond = this.CreateUnaryNode(Type, ParsedTree, Func, Cond);
 		/*local*/GtNode IfBlock = this.CreateIfNode(Type, ParsedTree, Cond, Break, null);
-		/*local*/GtNode TrueNode = this.CreateConstNode(ParsedTree.NameSpace.Context.BooleanType, ParsedTree, true);
+		/*local*/GtNode TrueNode = this.CreateConstNode(GtStaticTable.BooleanType, ParsedTree, true);
 		return this.CreateForNode(Type, ParsedTree, TrueNode, IfBlock, Block);
 	}
 
@@ -252,10 +252,10 @@ public class PythonSourceGenerator extends SourceGenerator {
 			break;	//TODO :support pipe
 		}
 
-		if(Node.Type.equals(Node.Type.Context.StringType)) {
+		if(Node.Type.IsStringType()) {
 			Code = "GtSubProc.execCommandString([" + Code + "])";
 		}
-		else if(Node.Type.equals(Node.Type.Context.BooleanType)) {
+		else if(Node.Type.IsBooleanType()) {
 			Code = "GtSubProc.execCommandBool([" + Code + "])";
 		}
 		else {

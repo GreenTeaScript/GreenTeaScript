@@ -28,8 +28,6 @@ import java.util.ArrayList;
 //endif VAJA
 
 public class GtType extends GreenTeaUtils {
-	/*field*/public final GtParserContext	Context;
-	/*field*/public GtNameSpace     PackageNameSpace;
 	/*field*/public int				TypeFlag;
 	/*field*/public int             TypeId;
 	/*field*/public String			ShortName;
@@ -40,25 +38,23 @@ public class GtType extends GreenTeaUtils {
 	/*field*/public Object          TypeBody;
 	/*field*/public Object			DefaultNullValue;
 
-	public GtType/*constructor*/(GtParserContext Context, int TypeFlag, String ShortName, Object DefaultNullValue, Object TypeBody) {
-		this.Context = Context;
+	public GtType/*constructor*/(int TypeFlag, String ShortName, Object DefaultNullValue, Object TypeBody) {
 		this.ShortName = ShortName;
 		this.TypeFlag = TypeFlag;
 		this.DefaultNullValue = DefaultNullValue;
 		this.TypeBody = TypeBody;
 		this.SuperType = null;
 		this.BaseType = this;
-		this.ParentMethodSearch = Context.TopType;
+		this.ParentMethodSearch = GtStaticTable.TopType;
 		if(!IsFlag(TypeFlag, TypeVariable)) {
-			this.TypeId = Context.TypePools.size();
-			Context.TypePools.add(this);
+			this.TypeId = GtStaticTable.IssueTypeId(this);
 		}
 		this.TypeParams = null;
 //ifdef JAVA
 		if(IsFlag(NativeType, TypeFlag) && TypeBody instanceof Class<?>) {
 			Class<?> SuperClass = ((/*cast*/Class<?>)TypeBody).getSuperclass();
 			if(SuperClass != null && SuperClass != Object.class) {
-				this.SuperType = LibGreenTea.GetNativeType(Context, SuperClass);
+				this.SuperType = GtStaticTable.GetNativeType(SuperClass);
 				this.ParentMethodSearch = this.SuperType;
 			}
 		}
@@ -66,7 +62,7 @@ public class GtType extends GreenTeaUtils {
 	}
 
 	public GtType CreateSubType(int ClassFlag, String ClassName, Object DefaultNullValue, Object NativeSpec) {
-		/*local*/GtType SubType = new GtType(this.Context, ClassFlag, ClassName, DefaultNullValue, NativeSpec);
+		/*local*/GtType SubType = new GtType(ClassFlag, ClassName, DefaultNullValue, NativeSpec);
 		SubType.SuperType = this;
 		SubType.ParentMethodSearch = this;
 		return SubType;
@@ -83,7 +79,7 @@ public class GtType extends GreenTeaUtils {
 			}
 			i = i + 1;
 		}
-		/*local*/GtType GenericType = new GtType(this.Context, this.TypeFlag | TypeVariableFlag, ShortName, null, null);
+		/*local*/GtType GenericType = new GtType(this.TypeFlag | TypeVariableFlag, ShortName, null, null);
 		GenericType.BaseType = this.BaseType;
 		GenericType.ParentMethodSearch = this.BaseType;
 		GenericType.SuperType = this.SuperType;
@@ -93,7 +89,7 @@ public class GtType extends GreenTeaUtils {
 	}
 
 	public final boolean IsAbstract() {
-		return (this.TypeBody == null && this.SuperType == this.Context.StructType/*default*/);
+		return (this.TypeBody == null && this.SuperType == GtStaticTable.TopType/*default*/);
 	}
 	public final boolean IsNative() {
 		return IsFlag(this.TypeFlag, NativeType);
@@ -108,37 +104,37 @@ public class GtType extends GreenTeaUtils {
 		return (this.TypeParams != null);
 	}
 	public final boolean IsFuncType() {
-		return (this.BaseType == this.Context.FuncType);
+		return (this.BaseType == GtStaticTable.FuncType);
 	}
 	public final boolean IsTopType() {
-		return (this == this.Context.TopType);
+		return (this == GtStaticTable.TopType);
 	}
 	public final boolean IsVoidType() {
-		return (this == this.Context.VoidType);
+		return (this == GtStaticTable.VoidType);
 	}
 	public final boolean IsVarType() {
-		return (this == this.Context.VarType);
+		return (this == GtStaticTable.VarType);
 	}
 	public final boolean IsAnyType() {
-		return (this == this.Context.AnyType);
+		return (this == GtStaticTable.AnyType);
 	}
 	public final boolean IsTypeType() {
-		return (this == this.Context.TypeType);
+		return (this == GtStaticTable.TypeType);
 	}
 	public final boolean IsBooleanType() {
-		return (this == this.Context.BooleanType);
+		return (this == GtStaticTable.BooleanType);
 	}
 	public final boolean IsIntType() {
-		return (this == this.Context.IntType);
+		return (this == GtStaticTable.IntType);
 	}
 	public final boolean IsFloatType() {
-		return (this == this.Context.FloatType);
+		return (this == GtStaticTable.FloatType);
 	}
 	public final boolean IsStringType() {
-		return (this == this.Context.StringType);
+		return (this == GtStaticTable.StringType);
 	}
 	public final boolean IsArrayType() {
-		return (this == this.Context.ArrayType);
+		return (this == GtStaticTable.ArrayType);
 	}
 	public final boolean IsEnumType() {
 		return IsFlag(this.TypeFlag, EnumType);
@@ -192,7 +188,7 @@ public class GtType extends GreenTeaUtils {
 	}
 
 	public final boolean Accept(GtType Type) {
-		if(this == Type || this == this.Context.AnyType) {
+		if(this == Type || this == GtStaticTable.AnyType) {
 			return true;
 		}
 		/*local*/GtType SuperClass = Type.SuperType;
@@ -202,7 +198,7 @@ public class GtType extends GreenTeaUtils {
 			}
 			SuperClass = SuperClass.SuperType;
 		}
-		return this.Context.CheckSubType(Type, this);
+		return GtStaticTable.CheckSubType(Type, this);
 	}
 
 //	public final boolean Accept(GtType Type) {
@@ -212,7 +208,7 @@ public class GtType extends GreenTeaUtils {
 //	}
 	
 	public final boolean AcceptValue(Object Value) {
-		return (Value != null) ? this.Accept(this.Context.GuessType(Value)) : true;
+		return (Value != null) ? this.Accept(GtStaticTable.GuessType(Value)) : true;
 	}
 
 	public void SetClassField(GtClassField ClassField) {
@@ -277,7 +273,7 @@ public class GtType extends GreenTeaUtils {
 				TypeList.add(RealParamType);
 				i += 1;
 			}
-			return this.Context.GetGenericType(this.BaseType, 0, TypeList, true);
+			return GtStaticTable.GetGenericType(this.BaseType, 0, TypeList, true);
 		}
 		return this;
 	}

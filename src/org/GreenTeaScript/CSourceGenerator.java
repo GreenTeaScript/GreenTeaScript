@@ -44,7 +44,7 @@ public class CSourceGenerator extends SourceGenerator {
 
 	private String GetLocalType(GtType Type, boolean IsPointer) {
 		if(Type.IsDynamic() || Type.IsNative()) {
-			if(Type == Type.PackageNameSpace.Context.BooleanType) {
+			if(Type.IsBooleanType()) {
 				return "int";
 			}
 			return Type.ShortName;

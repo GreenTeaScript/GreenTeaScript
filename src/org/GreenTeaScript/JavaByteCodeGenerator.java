@@ -208,8 +208,8 @@ class JLib {
 
 		try {
 			GetConstPool = JVMConstPool.class.getMethod("getById", int.class);
-			GetTypeById = GtParserContext.class.getMethod("GetTypeById", int.class);
-			GetFuncById = GtParserContext.class.getMethod("GetFuncById", int.class);
+			GetTypeById = GtStaticTable.class.getMethod("GetTypeById", int.class);
+			GetFuncById = GtStaticTable.class.getMethod("GetFuncById", int.class);
 			DynamicGetter = LibGreenTea.class.getMethod("DynamicGetter", GtType.class, Object.class, String.class);
 			DynamicSetter = LibGreenTea.class.getMethod("DynamicSetter", GtType.class, Object.class, String.class, Object.class);
 			BoxBooleanValue = Boolean.class.getMethod("valueOf", boolean.class);
@@ -412,7 +412,7 @@ class JMethodBuilder {
 		String owner = Type.getInternalName(method.getDeclaringClass());
 		this.MethodVisitor.visitMethodInsn(inst, owner, method.getName(), Type.getMethodDescriptor(method));
 		if(RequiredType != null) {
-			GtType GivenType = LibGreenTea.GetNativeType(RequiredType.Context, method.getReturnType());
+			GtType GivenType = LibGreenTea.GetNativeType(method.getReturnType());
 			this.UnboxIfUnboxed(GivenType, RequiredType);
 		}
 	}
@@ -585,7 +585,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		}
 		else {
 			String MethodName = Func.GetNativeFuncName(); 
-			String Owner = JLib.GetHolderClassName(Node.Type.Context, MethodName);
+			String Owner = JLib.GetHolderClassName(this.Context, MethodName);
 			String MethodDescriptor = JLib.GetMethodDescriptor(Func);
 			this.VisitingBuilder.MethodVisitor.visitMethodInsn(INVOKESTATIC, Owner, MethodName, MethodDescriptor);
 			this.VisitingBuilder.UnboxIfUnboxed(Func.GetReturnType(), Node.Type);
@@ -604,7 +604,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		}
 		else {
 			String MethodName = Func.GetNativeFuncName(); 
-			String Owner = JLib.GetHolderClassName(ApplyNode.Type.Context, MethodName);
+			String Owner = JLib.GetHolderClassName(this.Context, MethodName);
 			String MethodDescriptor = JLib.GetMethodDescriptor(Func);
 			this.VisitingBuilder.MethodVisitor.visitMethodInsn(INVOKESTATIC, Owner, MethodName, MethodDescriptor);
 			this.VisitingBuilder.UnboxIfUnboxed(Func.GetReturnType(), ApplyNode.Type);
@@ -664,7 +664,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			this.VisitingBuilder.MethodVisitor.visitInsn(DUP);
 			this.VisitingBuilder.MethodVisitor.visitLdcInsn(i);
 			Node.NodeList.get(i).Evaluate(this);
-			this.VisitingBuilder.BoxIfUnboxed(Node.NodeList.get(i).Type, this.Context.AnyType);
+			this.VisitingBuilder.BoxIfUnboxed(Node.NodeList.get(i).Type, GtStaticTable.AnyType);
 			this.VisitingBuilder.MethodVisitor.visitInsn(AASTORE);
 		}
 		this.VisitingBuilder.InvokeMethodCall(Node.Type, JLib.NewArray);
@@ -924,7 +924,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 
 	@Override public void VisitInstanceOfNode(GtInstanceOfNode Node) {
 		Node.ExprNode.Evaluate(this);
-		this.VisitingBuilder.BoxIfUnboxed(Node.ExprNode.Type, this.Context.AnyType);
+		this.VisitingBuilder.BoxIfUnboxed(Node.ExprNode.Type, GtStaticTable.AnyType);
 		this.VisitingBuilder.LoadConst(Node.TypeInfo);
 		this.VisitingBuilder.InvokeMethodCall(JLib.GreenInstanceOfOperator);
 	}
@@ -932,7 +932,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	@Override public void VisitCastNode(GtCastNode Node) {
 		this.VisitingBuilder.LoadConst(Node.CastType);
 		Node.Expr.Evaluate(this);
-		this.VisitingBuilder.BoxIfUnboxed(Node.Expr.Type, this.Context.AnyType);
+		this.VisitingBuilder.BoxIfUnboxed(Node.Expr.Type, GtStaticTable.AnyType);
 		this.VisitingBuilder.InvokeMethodCall(Node.CastType, JLib.GreenCastOperator);
 	}
 

@@ -34,6 +34,7 @@ public class GtNode extends GreenTeaUtils {
 	/*field*/public GtType	Type;
 	/*field*/public GtToken	Token;
 	GtNode/*constructor*/(GtType Type, GtToken Token) {
+//		this.Context = Context;
 		this.Type = Type;
 		this.Token = Token;
 		this.ParentNode = null;
@@ -108,17 +109,15 @@ public class GtNode extends GreenTeaUtils {
 		return (this instanceof GtNullNode);
 	}
 
-	protected final Object ToNullValue(boolean EnforceConst) {
+	protected final Object ToNullValue(GtParserContext Context, boolean EnforceConst) {
 		if(EnforceConst) {
-			this.Type.Context.ReportError(ErrorLevel, this.Token, "value must be constant in this context");
+			Context.ReportError(ErrorLevel, this.Token, "value must be constant in this context");
 		}
 		return null;
 	}
-	public Object ToConstValue(boolean EnforceConst)  {
-		return this.ToNullValue(EnforceConst);
+	public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+		return this.ToNullValue(Context, EnforceConst);
 	}
-
-
 }
 
 class GtBasicNode extends GtNode {
@@ -131,7 +130,7 @@ final class GtEmptyNode extends GtNode {
 	GtEmptyNode/*constructor*/(GtType Type, GtToken Token) {
 		super(Type, Token);
 	}
-	public Object ToConstValue(boolean EnforceConst)  {
+	public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 		return null;
 	}
 }
@@ -143,7 +142,7 @@ final class GtNullNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitNullNode(this);
 	}
-	public Object ToConstValue(boolean EnforceConst)  {
+	public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 		return null;
 	}
 }
@@ -155,8 +154,8 @@ final class GtNewNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitNewNode(this);
 	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
-		return this.Type.Context.Generator.EvalNewNode(this, EnforceConst);
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+		return Context.Generator.EvalNewNode(this, EnforceConst);
 	}	
 }
 final class GtConstNode extends GtNode {
@@ -168,7 +167,7 @@ final class GtConstNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitConstNode(this);
 	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 		return this.ConstValue;
 	}
 }
@@ -185,9 +184,9 @@ final class GtArrayNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitArrayNode(this);
 	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 		if(EnforceConst) {
-			return this.Type.Context.Generator.EvalArrayNode(this, EnforceConst);
+			return Context.Generator.EvalArrayNode(this, EnforceConst);
 		}
 		return null;
 	}
@@ -205,9 +204,9 @@ final class GtNewArrayNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitNewArrayNode(this);
 	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 		if(EnforceConst) {
-			return this.Type.Context.Generator.EvalNewArrayNode(this, EnforceConst);
+			return Context.Generator.EvalNewArrayNode(this, EnforceConst);
 		}
 		return null;
 	}
@@ -249,8 +248,8 @@ final class GtInstanceOfNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitInstanceOfNode(this);
 	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
-		/*local*/Object Value = this.ExprNode.ToConstValue(EnforceConst) ;
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+		/*local*/Object Value = this.ExprNode.ToConstValue(Context, EnforceConst) ;
 		if(Value != null) {
 			return LibGreenTea.DynamicInstanceOf(Value, this.TypeInfo);
 		}
@@ -271,10 +270,10 @@ final class GtAndNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitAndNode(this);
 	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
-		/*local*/Object LeftValue = this.LeftNode.ToConstValue(EnforceConst) ;
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+		/*local*/Object LeftValue = this.LeftNode.ToConstValue(Context, EnforceConst) ;
 		if(LeftValue instanceof Boolean && LibGreenTea.booleanValue(LeftValue)) {
-			return this.RightNode.ToConstValue(EnforceConst) ;
+			return this.RightNode.ToConstValue(Context, EnforceConst) ;
 		}
 		return null;
 	}
@@ -292,14 +291,14 @@ final class GtOrNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitOrNode(this);
 	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
-		/*local*/Object LeftValue = this.LeftNode.ToConstValue(EnforceConst) ;
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+		/*local*/Object LeftValue = this.LeftNode.ToConstValue(Context, EnforceConst) ;
 		if(LeftValue instanceof Boolean) {
 			if(LibGreenTea.booleanValue(LeftValue)) {
 				return LeftValue;
 			}
 			else {
-				return this.RightNode.ToConstValue(EnforceConst) ;
+				return this.RightNode.ToConstValue(Context, EnforceConst) ;
 			}
 		}
 		return null;
@@ -340,8 +339,8 @@ final class GtCastNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitCastNode(this);
 	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
-		/*local*/Object Value = this.Expr.ToConstValue(EnforceConst) ;
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+		/*local*/Object Value = this.Expr.ToConstValue(Context, EnforceConst) ;
 		if(Value != null) {
 			return LibGreenTea.DynamicCast(this.CastType, Value);
 		}
@@ -361,8 +360,8 @@ final class GtUnaryNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitUnaryNode(this);
 	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
-		/*local*/Object Value = this.Expr.ToConstValue(EnforceConst) ;
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+		/*local*/Object Value = this.Expr.ToConstValue(Context, EnforceConst) ;
 		if(Value != null) {
 			return LibGreenTea.EvalUnary(this.Type, this.Token.ParsedText, Value);
 		}
@@ -382,8 +381,8 @@ final class GtSuffixNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitSuffixNode(this);
 	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
-		/*local*/Object Value = this.Expr.ToConstValue(EnforceConst) ;
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+		/*local*/Object Value = this.Expr.ToConstValue(Context, EnforceConst) ;
 		if(Value != null) {
 			return LibGreenTea.EvalSuffix(this.Type, Value, this.Token.ParsedText);
 		}
@@ -435,10 +434,10 @@ final class GtBinaryNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitBinaryNode(this);
 	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
-		/*local*/Object LeftValue = this.LeftNode.ToConstValue(EnforceConst) ;
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+		/*local*/Object LeftValue = this.LeftNode.ToConstValue(Context, EnforceConst) ;
 		if(LeftValue != null) {
-			/*local*/Object RightValue = this.RightNode.ToConstValue(EnforceConst) ;
+			/*local*/Object RightValue = this.RightNode.ToConstValue(Context, EnforceConst) ;
 			if(RightValue != null) {
 				return LibGreenTea.EvalBinary(this.Type, LeftValue, this.Token.ParsedText, RightValue);
 			}
@@ -465,14 +464,14 @@ final class GtTrinaryNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitTrinaryNode(this);
 	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
-		/*local*/Object CondValue = this.ConditionNode.ToConstValue(EnforceConst) ;
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+		/*local*/Object CondValue = this.ConditionNode.ToConstValue(Context, EnforceConst) ;
 		if(CondValue instanceof Boolean) {
 			if(LibGreenTea.booleanValue(CondValue)) {
-				return this.ThenNode.ToConstValue(EnforceConst) ;
+				return this.ThenNode.ToConstValue(Context, EnforceConst);
 			}
 			else {
-				return this.ElseNode.ToConstValue(EnforceConst) ;
+				return this.ElseNode.ToConstValue(Context, EnforceConst);
 			}
 		}
 		return null;
@@ -492,8 +491,8 @@ final class GtGetterNode extends GtNode {
 		Visitor.VisitGetterNode(this);
 	}
 
-	@Override public Object ToConstValue(boolean EnforceConst)  {
-		return this.Type.Context.Generator.EvalGetterNode(this, EnforceConst);
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+		return Context.Generator.EvalGetterNode(this, EnforceConst);
 	}
 }
 //E.g., $Left . Token.ParsedText = $Right
@@ -511,8 +510,8 @@ final class GtSetterNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitSetterNode(this);
 	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
-		return this.Type.Context.Generator.EvalSetterNode(this, EnforceConst);
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+		return Context.Generator.EvalSetterNode(this, EnforceConst);
 	}
 }
 //E.g., $Expr . Token.ParsedText
@@ -531,8 +530,8 @@ final class GtDyGetterNode extends GtNode {
 		Visitor.VisitDyGetterNode(this);
 	}
 
-	@Override public Object ToConstValue(boolean EnforceConst)  {
-		return this.Type.Context.Generator.EvalDyGetterNode(this, EnforceConst);
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+		return Context.Generator.EvalDyGetterNode(this, EnforceConst);
 	}
 }
 //E.g., $Left . Token.ParsedText = $Right
@@ -552,8 +551,8 @@ final class GtDySetterNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitDySetterNode(this);
 	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
-		return this.Type.Context.Generator.EvalDySetterNode(this, EnforceConst);
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+		return Context.Generator.EvalDySetterNode(this, EnforceConst);
 	}
 }
 
@@ -583,9 +582,9 @@ final class GtIndexerNode extends GtNode {
 		Node.AppendNodeList(0, this.NodeList);
 		return Node;
 	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 		/*local*/GtApplyNode Node = this.ToBasicNode();
-		return Node.ToConstValue(EnforceConst);
+		return Node.ToConstValue(Context, EnforceConst);
 	}
 }
 
@@ -613,8 +612,8 @@ final class GtSliceNode extends GtNode {
 final class GtApplyNode extends GtNode {
 	/*field*/public GtFunc	Func;
 	/*field*/public ArrayList<GtNode>  NodeList; /* [arg1, arg2, ...] */
-	GtApplyNode/*constructor*/(GtType Type, GtToken KeyToken, GtFunc Func) {
-		super(Type, KeyToken);
+	GtApplyNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func) {
+		super(Type, Token);
 		this.Func = Func;
 		this.NodeList = new ArrayList<GtNode>();
 	}
@@ -624,8 +623,8 @@ final class GtApplyNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitApplyNode(this);
 	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
-		return this.Type.Context.Generator.EvalApplyNode(this, EnforceConst);
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+		return Context.Generator.EvalApplyNode(this, EnforceConst);
 	}
 }
 
@@ -633,8 +632,8 @@ final class GtApplyNode extends GtNode {
 final class GtStaticApplyNode extends GtNode {
 	/*field*/public GtFunc	Func;
 	/*field*/public ArrayList<GtNode>  ParamList; /* [arg1, arg2, ...] */
-	GtStaticApplyNode/*constructor*/(GtType Type, GtToken KeyToken, GtFunc Func) {
-		super(Type, KeyToken);
+	GtStaticApplyNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func) {
+		super(Type, Token);
 		this.Func = Func;
 		this.ParamList = new ArrayList<GtNode>();
 	}
@@ -644,8 +643,8 @@ final class GtStaticApplyNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitStaticApplyNode(this);
 	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
-		return this.Type.Context.Generator.EvalStaticApplyNode(this, EnforceConst);
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+		return Context.Generator.EvalStaticApplyNode(this, EnforceConst);
 	}
 }
 //E.g., $RecvNode . Func "(" $Param[1], $Param[2], ... ")"
@@ -653,8 +652,8 @@ final class GtApplyStaticMethodNode extends GtNode {
 	/*field*/public GtNode RecvNode;
 	/*field*/public GtFunc Func;
 	/*field*/public ArrayList<GtNode>  ParamList; /* [arg1, arg2, ...] */
-	GtApplyStaticMethodNode/*constructor*/(GtType Type, GtToken KeyToken, GtNode RecvNode, GtFunc Func) {
-		super(Type, KeyToken);
+	GtApplyStaticMethodNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, GtFunc Func) {
+		super(Type, Token);
 		this.Func = Func;
 		this.ParamList = new ArrayList<GtNode>();
 	}
@@ -664,8 +663,8 @@ final class GtApplyStaticMethodNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitApplyStaticMethodNode(this);
 	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
-		return this.Type.Context.Generator.EvalApplyStaticMethodNode(this, EnforceConst);
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+		return Context.Generator.EvalApplyStaticMethodNode(this, EnforceConst);
 	}
 }
 //E.g., $RecvNode . Func "(" $Param[1], $Param[2], ... ")"
@@ -674,8 +673,8 @@ final class GtApplyOverridedMethodNode extends GtNode {
 	/*field*/public GtNameSpace NameSpace;
 	/*field*/public GtFunc Func;
 	/*field*/public ArrayList<GtNode>  ParamList; /* [arg1, arg2, ...] */
-	GtApplyOverridedMethodNode/*constructor*/(GtType Type, GtToken KeyToken, GtNode RecvNode, GtNameSpace NameSpace, GtFunc Func) {
-		super(Type, KeyToken);
+	GtApplyOverridedMethodNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, GtNameSpace NameSpace, GtFunc Func) {
+		super(Type, Token);
 		this.NameSpace = NameSpace;
 		this.Func = Func;
 		this.ParamList = new ArrayList<GtNode>();
@@ -686,8 +685,8 @@ final class GtApplyOverridedMethodNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitApplyOverridedMethodNode(this);
 	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
-		return this.Type.Context.Generator.EvalApplyOverridedMethodNode(this, EnforceConst);
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+		return Context.Generator.EvalApplyOverridedMethodNode(this, EnforceConst);
 	}
 }
 
@@ -695,8 +694,8 @@ final class GtApplyOverridedMethodNode extends GtNode {
 final class GtApplyFuncNode extends GtNode {
 	/*field*/public GtNode	FuncNode;
 	/*field*/public ArrayList<GtNode>  ParamList; /* [arg0, arg1, ...] */
-	GtApplyFuncNode/*constructor*/(GtType Type, GtToken KeyToken, GtNode FuncNode) {
-		super(Type, KeyToken);
+	GtApplyFuncNode/*constructor*/(GtType Type, GtToken Token, GtNode FuncNode) {
+		super(Type, Token);
 		this.FuncNode = FuncNode;
 		this.ParamList = new ArrayList<GtNode>();
 	}
@@ -706,8 +705,8 @@ final class GtApplyFuncNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitApplyFuncNode(this);
 	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
-		return this.Type.Context.Generator.EvalApplyFuncNode(this, EnforceConst);
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+		return Context.Generator.EvalApplyFuncNode(this, EnforceConst);
 	}
 }
 
@@ -716,8 +715,8 @@ final class GtApplyDynamicFuncNode extends GtNode {
 	/*field*/public GtNameSpace NameSpace;
 	/*field*/public String	FuncName;
 	/*field*/public ArrayList<GtNode>  ParamList; /* [arg0, arg1, ...] */
-	GtApplyDynamicFuncNode/*constructor*/(GtType Type, GtToken KeyToken, GtNameSpace NameSpace, String FuncName) {
-		super(Type, KeyToken);
+	GtApplyDynamicFuncNode/*constructor*/(GtType Type, GtToken Token, GtNameSpace NameSpace, String FuncName) {
+		super(Type, Token);
 		this.NameSpace = NameSpace;
 		this.FuncName = FuncName;
 		this.ParamList = new ArrayList<GtNode>();
@@ -728,8 +727,8 @@ final class GtApplyDynamicFuncNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitApplyDynamicFuncNode(this);
 	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
-		return this.Type.Context.Generator.EvalApplyDynamicFuncNode(this, EnforceConst);
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+		return Context.Generator.EvalApplyDynamicFuncNode(this, EnforceConst);
 	}
 }
 
@@ -739,8 +738,8 @@ final class GtApplyDynamicMethodNode extends GtNode {
 	/*field*/public GtNameSpace NameSpace;
 	/*field*/public String FuncName;
 	/*field*/public ArrayList<GtNode>  ParamList; /* [arg1, arg2, ...] */
-	GtApplyDynamicMethodNode/*constructor*/(GtType Type, GtToken KeyToken, GtNode RecvNode, GtNameSpace NameSpace, String FuncName) {
-		super(Type, KeyToken);
+	GtApplyDynamicMethodNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, GtNameSpace NameSpace, String FuncName) {
+		super(Type, Token);
 		this.NameSpace = NameSpace;
 		this.FuncName = FuncName;
 		this.ParamList = new ArrayList<GtNode>();
@@ -751,8 +750,8 @@ final class GtApplyDynamicMethodNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitApplyDynamicMethodNode(this);
 	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
-		return this.Type.Context.Generator.EvalApplyDynamicMethodNode(this, EnforceConst);
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+		return Context.Generator.EvalApplyDynamicMethodNode(this, EnforceConst);
 	}
 }
 
@@ -771,9 +770,9 @@ final class GtConstructorNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitConstructorNode(this);
 	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 		if(EnforceConst) {
-			return this.Type.Context.Generator.EvalConstructorNode(this, EnforceConst);
+			return Context.Generator.EvalConstructorNode(this, EnforceConst);
 		}
 		return null;
 	}	
@@ -951,8 +950,8 @@ final class GtFunctionNode extends GtNode {
 final class GtCommandNode extends GtNode {
 	/*field*/public ArrayList<GtNode>  ArgumentList; /* ["/bin/ls" , "-la", "/", ...] */
 	/*field*/public GtNode PipedNextNode;
-	GtCommandNode/*constructor*/(GtType Type, GtToken KeyToken, GtNode PipedNextNode) {
-		super(Type, KeyToken);
+	GtCommandNode/*constructor*/(GtType Type, GtToken Token, GtNode PipedNextNode) {
+		super(Type, Token);
 		this.PipedNextNode = PipedNextNode;
 		this.ArgumentList = new ArrayList<GtNode>();
 	}
@@ -964,8 +963,8 @@ final class GtCommandNode extends GtNode {
 		Visitor.VisitCommandNode(this);
 	}
 
-	@Override public Object ToConstValue(boolean EnforceConst) {	//FIXME: Exception
-		return this.Type.Context.Generator.EvalCommandNode(this, EnforceConst);
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst) {	//FIXME: Exception
+		return Context.Generator.EvalCommandNode(this, EnforceConst);
 	}
 }
 
@@ -976,7 +975,7 @@ final class GtErrorNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitErrorNode(this);
 	}
-	@Override public Object ToConstValue(boolean EnforceConst)  {
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 		return null;
 	}
 }

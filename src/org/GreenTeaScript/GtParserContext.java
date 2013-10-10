@@ -33,84 +33,24 @@ public final class GtParserContext extends GreenTeaUtils {
 	/*field*/public final  GtNameSpace   RootNameSpace;
 	/*field*/public GtNameSpace		     TopLevelNameSpace;
 
-	// basic class
-	/*field*/public final GtType		VoidType;
-	/*field*/public final GtType		BooleanType;
-	/*field*/public final GtType		IntType;
-	/*field*/public final GtType        FloatType;
-	/*field*/public final GtType		StringType;
-	/*field*/public final GtType		AnyType;
-	/*field*/public final GtType		ArrayType;
-	/*field*/public final GtType		FuncType;
-
-	/*field*/public final GtType		TopType;
-	/*field*/public final GtType		EnumBaseType;
-	/*field*/public final GtType		StructType;
-	/*field*/public final GtType		VarType;
-
-	/*field*/public final GtType		TypeType;
-
 	/*field*/public final  GtMap               SourceMap;
 	/*field*/public final  ArrayList<String>   SourceList;
-	/*field*/public final  GtMap			   ClassNameMap;
 
 	/*field*/public final GtStat Stat;
 	/*field*/public ArrayList<String>    ReportedErrorList;
 	/*filed*/private boolean NoErrorReport;
-	
-	/*field*/public final ArrayList<GtType>    TypePools;
-	/*field*/public final ArrayList<GtFunc>    FuncPools;
-	
+		
 	GtParserContext/*constructor*/(GtGrammar Grammar, GtGenerator Generator) {
 		this.ParserId     = LibGreenTea.NewParserId();
 		this.Generator    = Generator;
 		this.Generator.Context = this;
 		this.SourceMap     = new GtMap();
 		this.SourceList    = new ArrayList<String>();
-		this.ClassNameMap  = new GtMap();
 		this.RootNameSpace = new GtNameSpace(this, null);
-		this.TypePools     = new ArrayList<GtType>();
-		this.FuncPools     = new ArrayList<GtFunc>();
 		this.Stat = new GtStat();
 		this.NoErrorReport = false;
 		this.ReportedErrorList = new ArrayList<String>();
-
-		this.TopType       = this.RootNameSpace.AppendTypeName(new GtType(this, 0, "Top", null, GreenTeaTopObject.class), null);
-		this.StructType    = this.TopType.CreateSubType(0, "record", null, null);       //  unregistered
-		this.EnumBaseType  = this.TopType.CreateSubType(EnumType, "enum", null, GreenTeaEnum.class);  //  unregistered
-
-		this.VoidType    = this.RootNameSpace.AppendTypeName(new GtType(this, NativeType, "void", null, Void.class), null);
-		this.BooleanType = this.RootNameSpace.AppendTypeName(new GtType(this, NativeType|UnboxType, "boolean", false, Boolean.class), null);
-		this.IntType     = this.RootNameSpace.AppendTypeName(new GtType(this, NativeType|UnboxType, "int", 0L, Long.class), null);
-		this.FloatType   = this.RootNameSpace.AppendTypeName(new GtType(this, NativeType|UnboxType, "float", 0.0, Double.class), null);
-		this.StringType  = this.RootNameSpace.AppendTypeName(new GtType(this, NativeType, "String", null, String.class), null);
-		this.VarType     = this.RootNameSpace.AppendTypeName(new GtType(this, 0, "var", null, null), null);
-		this.AnyType     = this.RootNameSpace.AppendTypeName(new GtType(this, DynamicType, "any", null, null), null);
-		this.TypeType    = this.RootNameSpace.AppendTypeName(this.TopType.CreateSubType(0, "Type", null, null), null);
-		this.ArrayType   = this.RootNameSpace.AppendTypeName(this.TopType.CreateSubType(0, "Array", null, null), null);
-		this.FuncType    = this.RootNameSpace.AppendTypeName(this.TopType.CreateSubType(0, "Func", null, null), null);
-
-		this.ArrayType.TypeParams = new GtType[1];
-		this.ArrayType.TypeParams[0] = this.VarType;
-		this.FuncType.TypeParams = new GtType[1];
-		this.FuncType.TypeParams[0] = this.VarType;  // for PolyFunc
-
-//ifdef JAVA
-		this.SetNativeTypeName("org.GreenTeaScript.GreenTeaTopObject", this.TopType);
-		this.SetNativeTypeName("void",    this.VoidType);
-		this.SetNativeTypeName("java.lang.Object",  this.AnyType);
-		this.SetNativeTypeName("boolean", this.BooleanType);
-		this.SetNativeTypeName("java.lang.Boolean", this.BooleanType);
-		this.SetNativeTypeName("long",    this.IntType);
-		this.SetNativeTypeName("java.lang.Long",    this.IntType);
-		this.SetNativeTypeName("java.lang.String",  this.StringType);
-		this.SetNativeTypeName("org.GreenTeaScript.GtType", this.TypeType);
-		this.SetNativeTypeName("org.GreenTeaScript.GreenTeaEnum", this.EnumBaseType);
-		this.SetNativeTypeName("org.GreenTeaScript.GreenTeaArray", this.ArrayType);
-		this.SetNativeTypeName("org.GreenTeaScript.Konoha.GreenTeaIntArray", this.GetGenericType1(this.ArrayType, this.IntType, true));
-		this.SetNativeTypeName("double",    this.FloatType);
-		this.SetNativeTypeName("java.lang.Double",  this.FloatType);
-//endif VAJA
+		GtStaticTable.InitParserContext(this);
 		Grammar.LoadTo(this.RootNameSpace);
 		this.TopLevelNameSpace = new GtNameSpace(this, this.RootNameSpace);
 		this.Generator.InitContext(this);
@@ -118,66 +58,6 @@ public final class GtParserContext extends GreenTeaUtils {
 
 	public void LoadGrammar(GtGrammar Grammar) {
 		Grammar.LoadTo(this.TopLevelNameSpace);
-	}
-
-	public final GtType GuessType (Object Value) {
-		if(Value instanceof GtFunc) {
-			return ((/*cast*/GtFunc)Value).GetFuncType();
-		}
-		else if(Value instanceof GtPolyFunc) {
-			return this.FuncType;
-		}
-		else if(Value instanceof GreenTeaObject) {
-			// FIXME In typescript, we cannot use GreenTeaObject
-			// TODO fix downcast
-			return (/*cast*/GtType)((/*cast*/GreenTeaObject)Value).GetGreenType();
-		}
-		else {
-			return this.Generator.GetNativeType(Value);
-		}
-	}
-
-	private final String SubtypeKey(GtType FromType, GtType ToType) {
-		return FromType.GetUniqueName() + "<" + ToType.GetUniqueName();
-	}
-
-	public final boolean CheckSubType(GtType SubType, GtType SuperType) {
-		// TODO: Structual Typing database
-		return false;
-	}
-
-	public void SetNativeTypeName(String Name, GtType Type) {
-		this.ClassNameMap.put(Name, Type);
-		LibGreenTea.VerboseLog(VerboseSymbol, "global type name: " + Name + ", " + Type);
-	}
-
-	public GtType GetGenericType(GtType BaseType, int BaseIdx, ArrayList<GtType> TypeList, boolean IsCreation) {
-		LibGreenTea.Assert(BaseType.IsGenericType());
-		/*local*/String MangleName = GreenTeaUtils.MangleGenericType(BaseType, BaseIdx, TypeList);
-		/*local*/GtType GenericType = (/*cast*/GtType)this.ClassNameMap.GetOrNull(MangleName);
-		if(GenericType == null && IsCreation) {
-			/*local*/int i = BaseIdx;
-			/*local*/String s = BaseType.ShortName + "<";
-			while(i < LibGreenTea.ListSize(TypeList)) {
-				s = s + TypeList.get(i).ShortName;
-				i += 1;
-				if(i == LibGreenTea.ListSize(TypeList)) {
-					s = s + ">";
-				}
-				else {
-					s = s + ",";
-				}
-			}
-			GenericType = BaseType.CreateGenericType(BaseIdx, TypeList, s);
-			this.SetNativeTypeName(MangleName, GenericType);
-		}
-		return GenericType;
-	}
-
-	public GtType GetGenericType1(GtType BaseType, GtType ParamType, boolean IsCreation) {
-		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
-		TypeList.add(ParamType);
-		return this.GetGenericType(BaseType, 0, TypeList, IsCreation);
 	}
 
 	public final long GetFileLine(String FileName, int Line) {
@@ -240,13 +120,5 @@ public final class GtParserContext extends GreenTeaUtils {
 			LibGreenTea.println(Messages[i]);
 			i = i + 1;
 		}
-	}
-	
-	public final GtType GetTypeById(int TypeId) {
-		return this.TypePools.get(TypeId);
-	}
-
-	public final GtFunc GetFuncById(int FuncId) {
-		return this.FuncPools.get(FuncId);
 	}
 }

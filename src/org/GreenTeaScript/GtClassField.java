@@ -54,7 +54,7 @@ public final class GtClassField extends GreenTeaUtils {
 		while(i < this.FieldList.size()) {
 			/*local*/GtFieldInfo FieldInfo = this.FieldList.get(i);
 			if(FieldInfo.Name.equals(Name)) {
-				Type.Context.ReportError(WarningLevel, SourceToken, "duplicated field: " + Name);
+				NameSpace.Context.ReportError(WarningLevel, SourceToken, "duplicated field: " + Name);
 				return null;
 			}
 			i = i + 1;
@@ -66,7 +66,7 @@ public final class GtClassField extends GreenTeaUtils {
 		FieldInfo.GetterFunc = new GtFunc(GetterFunc, FieldInfo.Name, 0, ParamList);
 		this.NameSpace.SetGetterFunc(this.DefinedType, FieldInfo.Name, FieldInfo.GetterFunc, SourceToken);
 		ParamList.clear();
-		ParamList.add(Type.Context.VoidType);
+		ParamList.add(GtStaticTable.VoidType);
 		ParamList.add(this.DefinedType);
 		ParamList.add(FieldInfo.Type);
 		FieldInfo.SetterFunc = new GtFunc(SetterFunc, FieldInfo.Name, 0, ParamList);

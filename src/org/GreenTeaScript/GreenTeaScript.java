@@ -517,7 +517,7 @@ class GreenTeaUtils implements GreenTeaConsts {
 			Gamma.NameSpace = ParsedTree.NameSpace;
 			return (/*cast*/GtNode)LibGreenTea.ApplyTypeFunc(TypeFunc, Gamma, ParsedTree, Type);
 		}
-		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
+		return Gamma.Generator.CreateEmptyNode(GtStaticTable.VoidType);
 	}
 
 	public final static GtNode LinkNode(GtNode LastNode, GtNode Node) {
@@ -536,8 +536,8 @@ class GreenTeaUtils implements GreenTeaConsts {
 		/*local*/int StackTopIndex = Gamma.StackTopIndex;
 		/*local*/GtNode LastNode = null;
 		while(ParsedTree != null) {
-			/*local*/GtNode Node = GreenTeaUtils.ApplyTypeFunc(ParsedTree.Pattern.TypeFunc, Gamma, ParsedTree, Gamma.VoidType);
-			/*local*/Node = Gamma.TypeCheckSingleNode(ParsedTree, Node, Gamma.VoidType, DefaultTypeCheckPolicy);
+			/*local*/GtNode Node = GreenTeaUtils.ApplyTypeFunc(ParsedTree.Pattern.TypeFunc, Gamma, ParsedTree, GtStaticTable.VoidType);
+			/*local*/Node = Gamma.TypeCheckSingleNode(ParsedTree, Node, GtStaticTable.VoidType, DefaultTypeCheckPolicy);
 			/*local*/LastNode = GreenTeaUtils.LinkNode(LastNode, Node);
 			if(Node.IsErrorNode()) {
 				break;
@@ -546,7 +546,7 @@ class GreenTeaUtils implements GreenTeaConsts {
 		}
 		Gamma.PushBackStackIndex(StackTopIndex);
 		if(LastNode == null) {
-			return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
+			return Gamma.Generator.CreateEmptyNode(GtStaticTable.VoidType);
 		}
 		return LastNode.MoveHeadNode();
 	}
@@ -746,7 +746,7 @@ public class GreenTeaScript extends GreenTeaUtils {
 					/*local*/Object EvaledValue = Context.TopLevelNameSpace.Eval(Line, linenum);
 					Context.ShowReportedErrors();
 					if(EvaledValue != null) {
-						LibGreenTea.println(" (" + Context.GuessType(EvaledValue) + ":" + LibGreenTea.GetClassName(EvaledValue) + ") " + LibGreenTea.Stringify(EvaledValue));
+						LibGreenTea.println(" (" + GtStaticTable.GuessType(EvaledValue) + ":" + LibGreenTea.GetClassName(EvaledValue) + ") " + LibGreenTea.Stringify(EvaledValue));
 					}
 					linenum += 1;
 				}
