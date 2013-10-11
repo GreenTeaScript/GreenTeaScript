@@ -489,6 +489,9 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			LocalBuilder.MethodVisitor.visitInsn(RETURN);
 		}
 		try {
+			if(LibGreenTea.DebugMode) {
+				ClassHolder.OutputClassFile(ClassHolder.ClassName, ".");
+			}
 			Class<?> DefinedClass = this.ClassGenerator.loadClass(ClassHolder.ClassName);
 			Method[] DefinedMethods = DefinedClass.getMethods();
 			for(Method m : DefinedMethods) {
