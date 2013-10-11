@@ -34,8 +34,25 @@ public class JavaScriptSourceGenerator extends SourceGenerator {
 	JavaScriptSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
 		this.IsNodeJS = LibGreenTea.EqualsString(TargetCode, "nodejs");
+		this.HasLabelSupport= false;
+		this.LogicalAndOperator = "&&";
+		this.LogicalOrOperator = "||";
+		this.MemberAccessOperator = ".";
+		this.TrueLiteral = "true";
+		this.FalseLiteral = "false";
+		this.NullLiteral = "null";
+		this.LineComment = "//";
+		this.BreakKeyword = "break";
+		this.ContinueKeyword = "continue";
+		this.ParameterBegin = "(";
+		this.ParameterEnd = ")";
+		this.ParameterDelimiter = ",";
+		this.SemiColon = ";";
+		this.BlockBegin = "{";
+		this.BlockEnd = "}";
 	}
 
+	
 	public String VisitBlockJS(GtNode Node) {
 		/*local*/String Code = "";
 		/*local*/GtNode CurrentNode = Node;
