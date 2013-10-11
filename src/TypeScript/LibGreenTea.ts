@@ -541,17 +541,17 @@ class LibGreenTea {
 		return null;
 	}
 
-	static NativeFieldValue (ObjectValue: any, NativeField: any/*Field*/) :  any {
+	static NativeFieldValue (ObjectValue: any, NativeField: any) :  any {
 		throw new Error("NotImplementedAPI");
 		return null;
 	}
 
-	static NativeFieldGetter(ObjectValue: any, NativeField: any/*Field*/) : any{
+	static NativeFieldGetter(ObjectValue: any, NativeField: any) : any{
 		throw new Error("NotImplementedAPI");
 		return null;
 	}
 
-	static NativeFieldSetter(ObjectValue: any, NativeField: any/*Field*/, Value: any) : any {
+	static NativeFieldSetter(ObjectValue: any, NativeField: any, Value: any) : any {
 		throw new Error("NotImplementedAPI");
 		return null;
 	}
