@@ -330,14 +330,14 @@ class JMethodBuilder {
 			int id = ((GtType)Value).TypeId;
 			this.MethodVisitor.visitFieldInsn(GETSTATIC, this.LocalClassLoader.GlobalStaticClassName, this.LocalClassLoader.ContextFieldName, this.LocalClassLoader.GontextDescripter);
 			this.MethodVisitor.visitLdcInsn(id);
-			this.InvokeMethodCall(JLib.GetTypeById);
+			this.InvokeMethodCall(GtType.class, JLib.GetTypeById);
 			return;
 		}
 		else if(Value instanceof GtFunc) {
 			int id = ((GtFunc)Value).FuncId;
 			this.MethodVisitor.visitFieldInsn(GETSTATIC, this.LocalClassLoader.GlobalStaticClassName, this.LocalClassLoader.ContextFieldName, this.LocalClassLoader.GontextDescripter);
 			this.MethodVisitor.visitLdcInsn(id);
-			this.InvokeMethodCall(JLib.GetFuncById);
+			this.InvokeMethodCall(GtFunc.class, JLib.GetFuncById);
 			return;
 		}
 		else {
@@ -347,46 +347,76 @@ class JMethodBuilder {
 		if(unsupportType) {
 			int id = JVMConstPool.add(Value);
 			this.MethodVisitor.visitLdcInsn(id);
-			this.InvokeMethodCall(JLib.GetConstPool);
-			this.MethodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(Value.getClass()));
+			this.InvokeMethodCall(Value.getClass(), JLib.GetConstPool);
 		}
 		else {
 			this.MethodVisitor.visitLdcInsn(Value);
 		}
 	}
 
-	void BoxIfUnboxed(GtType GivenType, GtType RequiredType) {
-		if(GivenType.IsUnboxType() && GivenType != RequiredType) {
-			if(GivenType.IsBooleanType()) {
-				this.InvokeMethodCall(JLib.BoxBooleanValue);
-			}
-			else if(GivenType.IsIntType()) {
-				this.InvokeMethodCall(JLib.BoxIntValue);
-			}
-			else if(GivenType.IsFloatType()) {
-				this.InvokeMethodCall(JLib.BoxFloatValue);
+	void CheckCast(Class<?> RequiredType, Class<?> GivenType) {
+		//System.err.println("giventype = " + GivenType + ", requested = " + RequiredType);
+		if(RequiredType == void.class || RequiredType == GivenType ) {
+			return;
+		}
+		if(RequiredType == long.class) {
+			if(GivenType == Object.class) {
+				this.MethodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(Long.class));
+				this.InvokeMethodCall(long.class, JLib.UnboxIntValue);
+				return;
 			}
 		}
+		if(RequiredType == double.class) {
+			if(GivenType == Object.class) {
+				this.MethodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(Double.class));
+				this.InvokeMethodCall(double.class, JLib.UnboxFloatValue);
+				return;
+			}
+		}
+		if(RequiredType == boolean.class) {
+			if(GivenType == Object.class) {
+				this.MethodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(Long.class));
+				this.InvokeMethodCall(boolean.class, JLib.UnboxBooleanValue);
+				return;
+			}
+		}
+		if(GivenType == long.class) {
+			if(RequiredType == Object.class) {
+				this.InvokeMethodCall(Long.class, JLib.BoxIntValue);
+				return;
+			}
+		}
+		if(GivenType == double.class) {
+			if(RequiredType == Object.class) {
+				this.InvokeMethodCall(Double.class, JLib.BoxFloatValue);
+				return;
+			}
+		}
+		if(GivenType == long.class) {
+			if(RequiredType == Object.class) {
+				this.InvokeMethodCall(Boolean.class, JLib.BoxBooleanValue);
+				return;
+			}
+		}
+		this.MethodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(RequiredType));
 	}
 
-	void UnboxIfUnboxed(GtType GivenType, GtType RequiredType) {
-		if(RequiredType.IsUnboxType() && GivenType != RequiredType) {
-			if(RequiredType.IsBooleanType()) {
-				this.MethodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(Boolean.class));
-				this.InvokeMethodCall(JLib.UnboxBooleanValue);
-			}
-			else if(RequiredType.IsIntType()) {
-				this.MethodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(Long.class));
-				this.InvokeMethodCall(JLib.UnboxIntValue);
-			}
-			else if(RequiredType.IsFloatType()) {
-				this.MethodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(Double.class));
-				this.InvokeMethodCall(JLib.UnboxFloatValue);
-			}
+	void CheckCast(Class<?> RequiredType, GtType GivenType) {
+		if(GivenType != null && GivenType.BaseType.TypeBody instanceof Class<?>) {
+			CheckCast(RequiredType, (Class<?>)GivenType.BaseType.TypeBody);
 		}
-		else {
-//			this.MethodVisitor.visitTypeInsn(CHECKCAST, type.getInternalName());
+//		else {
+//			System.err.println("cannot check cast given = " + GivenType + " RequiredType="+RequiredType);
+//		}
+	}
+
+	void CheckCast(GtType RequiredType, GtType GivenType) {
+		if(RequiredType.BaseType.TypeBody instanceof Class<?>) {
+			CheckCast((Class<?>)RequiredType.BaseType.TypeBody, GivenType);
 		}
+//		else {
+//			System.err.println("cannot check cast given = " + GivenType + " RequiredType=" + RequiredType);
+//		}
 	}
 
 	void Call(Constructor<?> method) {
@@ -395,10 +425,21 @@ class JMethodBuilder {
 	}
 
 	void InvokeMethodCall(Method method) {
-		this.InvokeMethodCall(null, method);
+//		System.err.println("giventype = " + method);
+		InvokeMethodCall(void.class, method);
 	}
-	
+
 	void InvokeMethodCall(GtType RequiredType, Method method) {
+		if(RequiredType != null && RequiredType.BaseType.TypeBody instanceof Class<?>) {
+			InvokeMethodCall((Class<?>)RequiredType.BaseType.TypeBody, method);
+		}
+		else {
+//			System.err.println("given = " + method + " RequiredType="+RequiredType);
+			InvokeMethodCall(void.class, method);
+		}
+	}
+
+	void InvokeMethodCall(Class<?> RequiredType, Method method) {
 		int inst;
 		if(Modifier.isStatic(method.getModifiers())) {
 			inst = INVOKESTATIC;
@@ -411,15 +452,9 @@ class JMethodBuilder {
 		}
 		String owner = Type.getInternalName(method.getDeclaringClass());
 		this.MethodVisitor.visitMethodInsn(inst, owner, method.getName(), Type.getMethodDescriptor(method));
-		if(RequiredType != null) {
-			GtType GivenType = LibGreenTea.GetNativeType(method.getReturnType());
-			this.UnboxIfUnboxed(GivenType, RequiredType);
-		}
+		this.CheckCast(RequiredType, method.getReturnType());
 	}
-	
-	
 }
-
 
 public class JavaByteCodeGenerator extends GtGenerator {
 	GreenTeaClassLoader ClassGenerator;
@@ -544,7 +579,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			for(int i = 0; i<Node.ParamList.size(); i++) {
 				GtNode ParamNode = Node.ParamList.get(i);
 				ParamNode.Evaluate(this);
-				this.VisitingBuilder.BoxIfUnboxed(ParamNode.Type, Node.Func.GetFuncParamType(i));
+				this.VisitingBuilder.CheckCast(Node.Func.GetFuncParamType(i), ParamNode.Type);
 			}
 			this.VisitingBuilder.Call((Constructor<?>) Node.Func.FuncBody);
 		} else {
@@ -574,7 +609,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		for(int i = 1; i < Node.NodeList.size(); i++) {
 			GtNode ParamNode = Node.NodeList.get(i);
 			ParamNode.Evaluate(this);
-			this.VisitingBuilder.BoxIfUnboxed(ParamNode.Type, Func.GetFuncParamType(i - 1));
+			this.VisitingBuilder.CheckCast(Func.GetFuncParamType(i - 1), ParamNode.Type);
 		}
 		Method m = null;
 		if(Func.FuncBody instanceof Method) {
@@ -588,28 +623,28 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			String Owner = JLib.GetHolderClassName(this.Context, MethodName);
 			String MethodDescriptor = JLib.GetMethodDescriptor(Func);
 			this.VisitingBuilder.MethodVisitor.visitMethodInsn(INVOKESTATIC, Owner, MethodName, MethodDescriptor);
-			this.VisitingBuilder.UnboxIfUnboxed(Func.GetReturnType(), Node.Type);
+			//this.VisitingBuilder.UnboxIfUnboxed(Func.GetReturnType(), Node.Type);
 		}
 	}
 
-	@Override public void VisitStaticApplyNode(GtStaticApplyNode ApplyNode) {
-		GtFunc Func = ApplyNode.Func;
-		for(int i = 0; i < ApplyNode.ParamList.size(); i++) {
-			GtNode ParamNode = ApplyNode.ParamList.get(i);
-			ParamNode.Evaluate(this);
-			this.VisitingBuilder.BoxIfUnboxed(ParamNode.Type, Func.GetFuncParamType(i));
-		}
-		if(Func.FuncBody instanceof Method) {
-			this.VisitingBuilder.InvokeMethodCall(ApplyNode.Type, (Method) Func.FuncBody);
-		}
-		else {
-			String MethodName = Func.GetNativeFuncName(); 
-			String Owner = JLib.GetHolderClassName(this.Context, MethodName);
-			String MethodDescriptor = JLib.GetMethodDescriptor(Func);
-			this.VisitingBuilder.MethodVisitor.visitMethodInsn(INVOKESTATIC, Owner, MethodName, MethodDescriptor);
-			this.VisitingBuilder.UnboxIfUnboxed(Func.GetReturnType(), ApplyNode.Type);
-		}
-	}
+//	@Override public void VisitStaticApplyNode(GtStaticApplyNode ApplyNode) {
+//		GtFunc Func = ApplyNode.Func;
+//		for(int i = 0; i < ApplyNode.ParamList.size(); i++) {
+//			GtNode ParamNode = ApplyNode.ParamList.get(i);
+//			ParamNode.Evaluate(this);
+//			this.VisitingBuilder.BoxIfUnboxed(ParamNode.Type, Func.GetFuncParamType(i));
+//		}
+//		if(Func.FuncBody instanceof Method) {
+//			this.VisitingBuilder.InvokeMethodCall(ApplyNode.Type, (Method) Func.FuncBody);
+//		}
+//		else {
+//			String MethodName = Func.GetNativeFuncName(); 
+//			String Owner = JLib.GetHolderClassName(this.Context, MethodName);
+//			String MethodDescriptor = JLib.GetMethodDescriptor(Func);
+//			this.VisitingBuilder.MethodVisitor.visitMethodInsn(INVOKESTATIC, Owner, MethodName, MethodDescriptor);
+//			this.VisitingBuilder.UnboxIfUnboxed(Func.GetReturnType(), ApplyNode.Type);
+//		}
+//	}
 
 	@Override public void VisitBinaryNode(GtBinaryNode Node) {
 		if(Node.Func.FuncBody instanceof Method) {
@@ -650,7 +685,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			this.VisitingBuilder.MethodVisitor.visitInsn(DUP);
 			this.VisitingBuilder.MethodVisitor.visitLdcInsn(i);
 			NodeList.get(i).Evaluate(this);
-			this.VisitingBuilder.BoxIfUnboxed(NodeList.get(i).Type, Node.Type.TypeParams[0]);
+			this.VisitingBuilder.CheckCast(Object.class, Node.NodeList.get(i).Type);
 			this.VisitingBuilder.MethodVisitor.visitInsn(AASTORE);
 		}
 		this.VisitingBuilder.InvokeMethodCall(Node.Type, JLib.NewArrayLiteral);
@@ -664,7 +699,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			this.VisitingBuilder.MethodVisitor.visitInsn(DUP);
 			this.VisitingBuilder.MethodVisitor.visitLdcInsn(i);
 			Node.NodeList.get(i).Evaluate(this);
-			this.VisitingBuilder.BoxIfUnboxed(Node.NodeList.get(i).Type, GtStaticTable.AnyType);
+			this.VisitingBuilder.CheckCast(Object.class, Node.NodeList.get(i).Type);
 			this.VisitingBuilder.MethodVisitor.visitInsn(AASTORE);
 		}
 		this.VisitingBuilder.InvokeMethodCall(Node.Type, JLib.NewArray);
@@ -924,7 +959,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 
 	@Override public void VisitInstanceOfNode(GtInstanceOfNode Node) {
 		Node.ExprNode.Evaluate(this);
-		this.VisitingBuilder.BoxIfUnboxed(Node.ExprNode.Type, GtStaticTable.AnyType);
+		this.VisitingBuilder.CheckCast(Object.class, Node.ExprNode.Type);
 		this.VisitingBuilder.LoadConst(Node.TypeInfo);
 		this.VisitingBuilder.InvokeMethodCall(JLib.GreenInstanceOfOperator);
 	}
@@ -932,7 +967,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	@Override public void VisitCastNode(GtCastNode Node) {
 		this.VisitingBuilder.LoadConst(Node.CastType);
 		Node.Expr.Evaluate(this);
-		this.VisitingBuilder.BoxIfUnboxed(Node.Expr.Type, GtStaticTable.AnyType);
+		this.VisitingBuilder.CheckCast(Object.class, Node.Expr.Type);
 		this.VisitingBuilder.InvokeMethodCall(Node.CastType, JLib.GreenCastOperator);
 	}
 

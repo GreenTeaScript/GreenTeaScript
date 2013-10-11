@@ -34,19 +34,19 @@ public class GtStaticTable implements GreenTeaConsts {
 	/*field*/public final static ArrayList<GtFunc>  FuncPools = new ArrayList<GtFunc>();
 
 	/*field*/public final static GtType		TopType = new GtType(0, "Top", null, GreenTeaTopObject.class);
-	/*field*/public final static GtType		VoidType = new GtType(NativeType, "void", null, Void.class);
-	/*field*/public final static GtType		BooleanType = new GtType(NativeType|UnboxType, "boolean", false, Boolean.class);
-	/*field*/public final static GtType		IntType = new GtType(NativeType|UnboxType, "int", 0L, Long.class);
-	/*field*/public final static GtType     FloatType = new GtType(NativeType|UnboxType, "float", 0.0, Double.class);
+	/*field*/public final static GtType		VoidType = new GtType(NativeType, "void", null, void.class);
+	/*field*/public final static GtType		BooleanType = new GtType(NativeType|UnboxType, "boolean", false, boolean.class);
+	/*field*/public final static GtType		IntType = new GtType(NativeType|UnboxType, "int", 0L, long.class);
+	/*field*/public final static GtType     FloatType = new GtType(NativeType|UnboxType, "float", 0.0, double.class);
 	/*field*/public final static GtType		StringType = new GtType(NativeType, "String", null, String.class);
-	/*field*/public final static GtType		AnyType = new GtType(DynamicType, "any", null, null);
-	/*field*/public final static GtType		ArrayType = TopType.CreateSubType(0, "Array", null, null);
-	/*field*/public final static GtType		FuncType  = TopType.CreateSubType(0, "Func", null, null);
+	/*field*/public final static GtType		AnyType = new GtType(DynamicType, "any", null, Object.class);
+	/*field*/public final static GtType		ArrayType = TopType.CreateSubType(0, "Array", null, GreenTeaArray.class);
+	/*field*/public final static GtType		FuncType  = TopType.CreateSubType(0, "Func", null, GtFunc.class);
 
 	/*field*/public final static GtType		EnumBaseType = TopType.CreateSubType(EnumType, "enum", null, GreenTeaEnum.class);
 //	/*field*/public final static GtType		StructType;
 	/*field*/public final static GtType		VarType = new GtType(0, "var", null, null);
-	/*field*/public final static GtType		TypeType = TopType.CreateSubType(0, "Type", null, null);
+	/*field*/public final static GtType		TypeType = TopType.CreateSubType(0, "Type", null, GtType.class);
 
 //	this.TopType       = this.RootNameSpace.AppendTypeName(new GtType(this, 0, "Top", null, GreenTeaTopObject.class), null);
 //	this.StructType    = this.TopType.CreateSubType(0, "record", null, null);       //  unregistered
