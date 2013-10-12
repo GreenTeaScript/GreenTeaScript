@@ -32,12 +32,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Stack;
 
 import org.GreenTeaScript.DShell.DShellProcess;
-import org.GreenTeaScript.JVM.GtThrowableWrapper;
-import org.GreenTeaScript.JVM.JVMConstPool;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -207,7 +204,7 @@ class JLib {
 		TypeMap.put("Func", Type.getType(GtFunc.class));
 
 		try {
-			GetConstPool = JVMConstPool.class.getMethod("getById", int.class);
+			GetConstPool = GtStaticTable.class.getMethod("GetConsrPool", int.class);
 			GetTypeById = GtStaticTable.class.getMethod("GetTypeById", int.class);
 			GetFuncById = GtStaticTable.class.getMethod("GetFuncById", int.class);
 			DynamicGetter = LibGreenTea.class.getMethod("DynamicGetter", GtType.class, Object.class, String.class);
@@ -326,16 +323,18 @@ class JMethodBuilder {
 		else if(Value instanceof String) {
 			type = Type.getType(Value.getClass());
 		}
+		else if(Value instanceof GtParserContext) {
+			this.MethodVisitor.visitFieldInsn(GETSTATIC, this.LocalClassLoader.GlobalStaticClassName, this.LocalClassLoader.ContextFieldName, this.LocalClassLoader.GontextDescripter);
+			return;
+		}
 		else if(Value instanceof GtType) {
 			int id = ((GtType)Value).TypeId;
-//			this.MethodVisitor.visitFieldInsn(GETSTATIC, this.LocalClassLoader.GlobalStaticClassName, this.LocalClassLoader.ContextFieldName, this.LocalClassLoader.GontextDescripter);
 			this.MethodVisitor.visitLdcInsn(id);
 			this.InvokeMethodCall(GtType.class, JLib.GetTypeById);
 			return;
 		}
 		else if(Value instanceof GtFunc) {
 			int id = ((GtFunc)Value).FuncId;
-//			this.MethodVisitor.visitFieldInsn(GETSTATIC, this.LocalClassLoader.GlobalStaticClassName, this.LocalClassLoader.ContextFieldName, this.LocalClassLoader.GontextDescripter);
 			this.MethodVisitor.visitLdcInsn(id);
 			this.InvokeMethodCall(GtFunc.class, JLib.GetFuncById);
 			return;
@@ -345,7 +344,7 @@ class JMethodBuilder {
 			type = Type.getType(Value.getClass());
 		}
 		if(unsupportType) {
-			int id = JVMConstPool.add(Value);
+			int id = GtStaticTable.AddConstPool(Value);
 			this.MethodVisitor.visitLdcInsn(id);
 			this.InvokeMethodCall(Value.getClass(), JLib.GetConstPool);
 		}

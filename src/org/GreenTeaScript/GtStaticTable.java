@@ -186,5 +186,24 @@ public class GtStaticTable implements GreenTeaConsts {
 		return null;
 	}
 
+	
+	// ConstPool
+	private static final ArrayList<Object> ConstPoolList = new ArrayList<Object>();
+
+	public static int AddConstPool(Object o) {
+		int PooledId = ConstPoolList.indexOf(o);
+		if(PooledId != -1) {
+			return PooledId;
+		}
+		else {
+			ConstPoolList.add(o);
+			return ConstPoolList.size() - 1;
+		}
+	}
+
+	public static Object GetConstPool(int PooledId) {
+		return ConstPoolList.get(PooledId);
+	}
+
 
 }

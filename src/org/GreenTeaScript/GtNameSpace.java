@@ -594,7 +594,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 			RevertList.add(Value);
 		}
 		else {
-			RevertList.add(UndefinedSymbol);
+			RevertList.AddConstPool(UndefinedSymbol);
 		}
 	}
 
