@@ -328,14 +328,14 @@ class JMethodBuilder {
 		}
 		else if(Value instanceof GtType) {
 			int id = ((GtType)Value).TypeId;
-			this.MethodVisitor.visitFieldInsn(GETSTATIC, this.LocalClassLoader.GlobalStaticClassName, this.LocalClassLoader.ContextFieldName, this.LocalClassLoader.GontextDescripter);
+//			this.MethodVisitor.visitFieldInsn(GETSTATIC, this.LocalClassLoader.GlobalStaticClassName, this.LocalClassLoader.ContextFieldName, this.LocalClassLoader.GontextDescripter);
 			this.MethodVisitor.visitLdcInsn(id);
 			this.InvokeMethodCall(GtType.class, JLib.GetTypeById);
 			return;
 		}
 		else if(Value instanceof GtFunc) {
 			int id = ((GtFunc)Value).FuncId;
-			this.MethodVisitor.visitFieldInsn(GETSTATIC, this.LocalClassLoader.GlobalStaticClassName, this.LocalClassLoader.ContextFieldName, this.LocalClassLoader.GontextDescripter);
+//			this.MethodVisitor.visitFieldInsn(GETSTATIC, this.LocalClassLoader.GlobalStaticClassName, this.LocalClassLoader.ContextFieldName, this.LocalClassLoader.GontextDescripter);
 			this.MethodVisitor.visitLdcInsn(id);
 			this.InvokeMethodCall(GtFunc.class, JLib.GetFuncById);
 			return;
@@ -489,6 +489,9 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			LocalBuilder.MethodVisitor.visitInsn(RETURN);
 		}
 		try {
+			if(LibGreenTea.DebugMode) {
+				ClassHolder.OutputClassFile(ClassHolder.ClassName, ".");
+			}
 			Class<?> DefinedClass = this.ClassGenerator.loadClass(ClassHolder.ClassName);
 			Method[] DefinedMethods = DefinedClass.getMethods();
 			for(Method m : DefinedMethods) {
