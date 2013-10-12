@@ -23,7 +23,6 @@
 // **************************************************************************
 
 package org.GreenTeaScript.Konoha;
-import org.GreenTeaScript.GtType;
 
 public final class StringApi {
 	public static boolean Equals(String x, String y) {

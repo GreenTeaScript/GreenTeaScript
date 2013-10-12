@@ -23,9 +23,12 @@
 // **************************************************************************
 
 package org.GreenTeaScript.Konoha;
+import java.lang.reflect.Array;
+
 import org.GreenTeaScript.GreenTeaArray;
 import org.GreenTeaScript.GtStaticTable;
 import org.GreenTeaScript.GtType;
+import org.GreenTeaScript.LibGreenTea;
 
 public class ArrayApi {
 	public final static long GetSize(GreenTeaArray self) {
@@ -49,6 +52,71 @@ public class ArrayApi {
 		int bindex = (BIndex < 0) ? self.ArrayBody.size() - (int)BIndex : (int)BIndex;
 		int eindex = (EIndex < 0) ? self.ArrayBody.size() - (int)EIndex : (int)EIndex;
 		return self.SubArray(bindex, eindex);
+	}
+	
+	public final static GreenTeaArray ObjectArrayToGreenArray(Object ObjectArray) {
+		LibGreenTea.Assert(ObjectArray.getClass().isArray());
+		Class<?> ComponentType = ObjectArray.getClass().getComponentType();
+//		GtType ElementType = GtStaticTable.StringType;
+		if(ComponentType.isPrimitive()) {
+			if(ComponentType == int.class) {
+				GtType ArrayType = GtStaticTable.GetGenericType1(GtStaticTable.ArrayType, GtStaticTable.IntType, true);
+				GreenTeaArray ArrayObject = new GreenTeaArray(ArrayType);
+				for(int i = 0; i < Array.getLength(ObjectArray); i++) {
+					ArrayObject.ArrayBody.add(new Long(Array.getInt(ObjectArray, i)));
+				}
+				return ArrayObject;
+			}
+			if(ComponentType == long.class) {
+				GtType ArrayType = GtStaticTable.GetGenericType1(GtStaticTable.ArrayType, GtStaticTable.IntType, true);
+				GreenTeaArray ArrayObject = new GreenTeaArray(ArrayType);
+				for(int i = 0; i < Array.getLength(ObjectArray); i++) {
+					ArrayObject.ArrayBody.add(new Long(Array.getLong(ObjectArray, i)));
+				}
+				return ArrayObject;
+			}
+		}
+		GtType ElementType = GtStaticTable.GetNativeType(ComponentType);
+		GtType ArrayType = GtStaticTable.GetGenericType1(GtStaticTable.ArrayType, ElementType, true);
+		GreenTeaArray ArrayObject = new GreenTeaArray(ArrayType);
+		for(int i = 0; i < Array.getLength(ObjectArray); i++) {
+			ArrayObject.ArrayBody.add(Array.get(ObjectArray, i));
+		}
+		return ArrayObject;
+	}
+
+	public final static Object GreenArrayToObjectArray(GreenTeaArray ArrayObject) {
+		GtType ElementType = ArrayObject.GetGreenType();
+		int Size = ArrayObject.ArrayBody.size();
+		if(ElementType.IsIntType()) {
+			long[] Values = new long[Size];
+			for(int i = 0; i < Size; i++) {
+				Object Value = ArrayObject.ArrayBody.get(i);
+				Values[i] = (Long)Value;
+			}
+			return Values;
+		}
+		if(ElementType.IsFloatType()) {
+			double[] Values = new double[Size];
+			for(int i = 0; i < Size; i++) {
+				Object Value = ArrayObject.ArrayBody.get(i);
+				Values[i] = (Long)Value;
+			}
+			return Values;
+		}
+		if(ElementType.IsBooleanType()) {
+			boolean[] Values = new boolean[Size];
+			for(int i = 0; i < Size; i++) {
+				Object Value = ArrayObject.ArrayBody.get(i);
+				Values[i] = (Boolean)Value;
+			}
+			return Values;
+		}
+		Object ObjectArray = Array.newInstance(ElementType.GetNativeType(), Size);
+		for(int i = 0; i < Size; i++) {
+			Array.set(ObjectArray, i, ArrayObject.ArrayBody.get(i));
+		}
+		return ObjectArray;
 	}
 	
 	public final static GreenTeaArray StringArrayToGreenArray(String[] Values) {
@@ -132,7 +200,7 @@ public class ArrayApi {
 //public final static GreenTeaArray<?> AnyToGreenArray(GtType Type, Object Value) {
 //	if(Value.getClass().isArray()) {
 //		Class<?> ComponentClass = Value.getClass().getComponentType();
-//		LibGreenTea.GetNativeType(Type.Context, ComponentClass);
+//		GtStaticTable.GetNativeType(Type.Context, ComponentClass);
 //	}
 //	//return ArrayObject;
 //}

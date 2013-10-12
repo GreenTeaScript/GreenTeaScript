@@ -108,9 +108,8 @@ public class GtStaticTable implements GreenTeaConsts {
 		LibGreenTea.VerboseLog(VerboseSymbol, "global type name: " + Name + ", " + Type);
 	}
 
-	public final static GtType GetNativeType(Object Value) {
+	public final static GtType GetNativeType(Class<?> NativeClass) {
 		GtType NativeType = null;
-		Class<?> NativeClass = Value instanceof Class<?> ? (Class<?>)Value : Value.getClass();
 		NativeType = (/*cast*/GtType) GtStaticTable.ClassNameMap.GetOrNull(NativeClass.getCanonicalName());
 		if(NativeType == null) {  /* create native type */
 			NativeType = new GtType(GreenTeaUtils.NativeType, NativeClass.getSimpleName(), null, NativeClass);
@@ -118,6 +117,10 @@ public class GtStaticTable implements GreenTeaConsts {
 			LibGreenTea.VerboseLog(GreenTeaUtils.VerboseNative, "creating native class: " + NativeClass.getSimpleName() + ", " + NativeClass.getCanonicalName());
 		}
 		return NativeType;
+	}
+
+	public final static GtType GetNativeTypeOfValue(Object Value) {
+		return GtStaticTable.GetNativeType(Value.getClass());
 	}
 	
 	public final static GtType GuessType (Object Value) {
@@ -132,10 +135,9 @@ public class GtStaticTable implements GreenTeaConsts {
 			return ((/*cast*/GreenTeaObject)Value).GetGreenType();
 		}
 		else {
-			return GtStaticTable.GetNativeType(Value);
+			return GtStaticTable.GetNativeTypeOfValue(Value);
 		}
 	}
-
 
 	public final static GtType GetGenericType(GtType BaseType, int BaseIdx, ArrayList<GtType> TypeList, boolean IsCreation) {
 		LibGreenTea.Assert(BaseType.IsGenericType());

@@ -24,7 +24,6 @@
 
 package org.GreenTeaScript.Konoha;
 import org.GreenTeaScript.GreenTeaEnum;
-import org.GreenTeaScript.GtType;
 
 public class TopApi {
 	public final static long Size(Object x) {

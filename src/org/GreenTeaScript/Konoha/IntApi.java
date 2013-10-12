@@ -23,7 +23,6 @@
 // **************************************************************************
 
 package org.GreenTeaScript.Konoha;
-import org.GreenTeaScript.GtType;
 
 public final class IntApi {
 	public static long Plus(long n) {
