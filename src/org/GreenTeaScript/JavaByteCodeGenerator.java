@@ -505,6 +505,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	@Override public void OpenClassField(GtType ClassType, GtClassField ClassField) {
 		String ClassName = ClassType.GetNativeName();
 		String superClassName = ClassType.SuperType.GetNativeName();
+		//System.err.println("class name = " + ClassName + " extends " + superClassName);
 		JClassBuilder ClassBuilder = this.ClassGenerator.NewBuilder(ClassName, superClassName);
 		// generate field
 		for(GtFieldInfo field : ClassField.FieldList) {
@@ -533,6 +534,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		ClassBuilder.AddMethod(constructor);
 		try {
 			ClassType.TypeBody = this.ClassGenerator.loadClass(ClassName);
+			LibGreenTea.Assert(ClassType.TypeBody != null);
 		}
 		catch (Exception e) {
 			LibGreenTea.VerboseException(e);
