@@ -51,12 +51,7 @@ class GtFuncBlock extends GreenTeaUtils {
 			this.NameList.add(this.NameSpace.Context.Generator.GetRecvName());
 		}
 	}
-
-//	void SetConverterType() {
-//		this.TypeList.add(GtStaticTable.TypeType);
-//		this.NameList.add("type");
-//	}
-
+	
 	void AddParameter(GtType Type, String Name) {
 		this.TypeList.add(Type);
 		if(Type.IsVarType()) {
@@ -69,7 +64,7 @@ class GtFuncBlock extends GreenTeaUtils {
 public final class GtFunc extends GreenTeaUtils {
 	/*field*/public int				FuncFlag;
 	/*field*/public String			FuncName;
-	/*field*/public String          MangledName;
+//	/*field*/public String          MangledName;
 	/*field*/public GtType[]		Types;
 	/*field*/public GtType          FuncType;
 	/*field*/public                 int FuncId;
@@ -85,7 +80,7 @@ public final class GtFunc extends GreenTeaUtils {
 		this.FuncBody = null;
 		this.FuncId = GtStaticTable.FuncPools.size();
 		GtStaticTable.FuncPools.add(this);
-		this.MangledName = FuncName + NativeNameSuffix + this.FuncId;
+//		this.MangledName = FuncName + NativeNameSuffix + this.FuncId;
 	}
 
 	public final String GetNativeFuncName() {
@@ -93,7 +88,7 @@ public final class GtFunc extends GreenTeaUtils {
 			return this.FuncName;
 		}
 		else {
-			return this.MangledName;
+			return this.FuncName + NativeNameSuffix + this.FuncId;
 		}
 	}
 
@@ -428,7 +423,7 @@ class GtPolyFunc extends GreenTeaUtils {
 					if(ConvertedNodes == null) {
 						ConvertedNodes = new GtNode[ParamList.size()];
 					}
-					ConvertedNodes[p] = GenericNameSpace.Context.Generator.CreateCoercionNode(ParamType, TypeCoercion, Node);
+					ConvertedNodes[p] = GenericNameSpace.Context.Generator.CreateCoercionNode(ParamType, GenericNameSpace, TypeCoercion, Node);
 				}
 				else {
 					return null;
@@ -464,7 +459,7 @@ class GtPolyFunc extends GreenTeaUtils {
 					if(ConvertedNodes == null) {
 						ConvertedNodes = new GtNode[ParamList.size()];
 					}
-					ConvertedNodes[p] = GenericNameSpace.Context.Generator.CreateCoercionNode(ParamType, TypeCoercion, Node);
+					ConvertedNodes[p] = GenericNameSpace.Context.Generator.CreateCoercionNode(ParamType, GenericNameSpace, TypeCoercion, Node);
 				}
 				else {
 					return null;
