@@ -89,12 +89,15 @@ public class GtGenerator extends GreenTeaUtils {
 	public GtNode CreateApplyNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func) {
 		return new GtApplyNode(Type, ParsedTree == null ? GtTokenContext.NullToken : ParsedTree.KeyToken, Func);
 	}
-	public final GtNode CreateCoercionNode(GtType Type, GtFunc Func, GtNode Node) {
-		/*local*/GtNode ApplyNode = this.CreateApplyNode(Type, null, Func);
-		/*local*/GtNode TypeNode = this.CreateConstNode(GtStaticTable.TypeType, null, Type);
-		ApplyNode.Append(TypeNode);
-		ApplyNode.Append(TypeNode);
+	public GtNode CreateStaticApplyNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func) {
+		return new GtStaticApplyNode(Type, ParsedTree == null ? GtTokenContext.NullToken : ParsedTree.KeyToken, Func);
+	}
+	public final GtNode CreateCoercionNode(GtType Type, GtNameSpace NameSpace, GtFunc Func, GtNode Node) {
+		/*local*/GtNode ApplyNode = this.CreateStaticApplyNode(Type, null, Func);
 		ApplyNode.Append(Node);
+//		if(Func.GetFuncParamSize() > 1) {
+//			ApplyNode.AutoParam(Func.GetFuncParamType(1), NameSpace);
+//		}
 		return ApplyNode;
 	}
 	public GtNode CreateNewNode(GtType Type, GtSyntaxTree ParsedTree) {

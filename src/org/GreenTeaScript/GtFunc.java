@@ -52,10 +52,10 @@ class GtFuncBlock extends GreenTeaUtils {
 		}
 	}
 
-	void SetConverterType() {
-		this.TypeList.add(GtStaticTable.TypeType);
-		this.NameList.add("type");
-	}
+//	void SetConverterType() {
+//		this.TypeList.add(GtStaticTable.TypeType);
+//		this.NameList.add("type");
+//	}
 
 	void AddParameter(GtType Type, String Name) {
 		this.TypeList.add(Type);

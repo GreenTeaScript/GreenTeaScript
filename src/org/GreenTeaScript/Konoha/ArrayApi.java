@@ -51,7 +51,7 @@ public class ArrayApi {
 		return self.SubArray(bindex, eindex);
 	}
 	
-	public final static GreenTeaArray StringArrayToGreenArray(GtType Type, String[] Values) {
+	public final static GreenTeaArray StringArrayToGreenArray(String[] Values) {
 		GtType ArrayType = GtStaticTable.GetGenericType1(GtStaticTable.ArrayType, GtStaticTable.StringType, true);
 		GreenTeaArray ArrayObject = new GreenTeaArray(ArrayType);
 		for(int i = 0; i < Values.length; i++) {
@@ -60,7 +60,7 @@ public class ArrayApi {
 		return ArrayObject;
 	}
 
-	public final static String[] GreenArrayToStringArray(GtType Type, GreenTeaArray ArrayObject) {
+	public final static String[] GreenArrayToStringArray(GreenTeaArray ArrayObject) {
 		String[] Values = new String[ArrayObject.ArrayBody.size()];
 		for(int i = 0; i < Values.length; i++) {
 			Object Value = ArrayObject.ArrayBody.get(i);

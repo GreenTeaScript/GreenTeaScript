@@ -183,6 +183,10 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		}
 		LibGreenTea.VerboseLog(GreenTeaUtils.VerboseException, e.toString());
 		e.printStackTrace();
+		if(e instanceof IllegalArgumentException) {
+			LibGreenTea.Exit(1, e.toString());
+		}
+		
 	}
 
 	public final static void Exit(int status, String Message) {
@@ -770,8 +774,8 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 
 	public final static Object ApplyFunc(GtFunc Func, Object Self, Object[] Params) {
 		try {
-//			System.err.println("** debug: " + Func.FuncBody);
-//			System.err.println("** debug: " + Self + ", Params.length=" + Params.length);
+			System.err.println("** debug: " + Func.FuncBody);
+			System.err.println("** debug: " + Self + ", Params.length=" + Params.length);
 			return ((Method)Func.FuncBody).invoke(Self, Params);
 		}
 		catch (InvocationTargetException e) {

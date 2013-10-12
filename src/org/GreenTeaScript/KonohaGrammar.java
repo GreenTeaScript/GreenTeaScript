@@ -1865,9 +1865,9 @@ public class KonohaGrammar extends GtGrammar {
 			/*local*/GtNameSpace StoreNameSpace = NameSpace.GetNameSpace(KonohaGrammar.ParseNameSpaceFlag(0, TokenContext.ParsingAnnotation));
 			if(LibGreenTea.EqualsString(FuncName, "converter")) {
 				FuncFlag |= ConverterFunc;
-				FuncBlock.SetConverterType();
+//				FuncBlock.SetConverterType();
 				KonohaGrammar.ParseFuncParam(NameSpace, TokenContext, FuncDeclTree, FuncBlock);
-				if(TypeList.size() != 3) {
+				if(TypeList.size() != 2) {
 					NameSpace.Context.ReportError(ErrorLevel, SourceToken, "converter takes one parameter");
 					FuncDeclTree.ToError(SourceToken);
 					return FuncDeclTree;
@@ -1876,7 +1876,7 @@ public class KonohaGrammar extends GtGrammar {
 				FuncBlock.DefinedFunc = NameSpace.Context.Generator.CreateFunc(FuncFlag, FuncName, 0, FuncBlock.TypeList);
 				KonohaGrammar.ParseFuncBody(NameSpace, TokenContext, FuncDeclTree, FuncBlock);
 				if(GreenTeaUtils.IsFlag(FuncFlag, StrongCoercionFunc)) {  // this part is for weak type treatment
-					/*local*/GtType FromType = FuncBlock.DefinedFunc.GetFuncParamType(1);
+					/*local*/GtType FromType = FuncBlock.DefinedFunc.GetFuncParamType(0);
 					/*local*/GtType ToType = FuncBlock.DefinedFunc.GetReturnType();
 					FromType.SetUnrevealedType(ToType);
 					StoreNameSpace = NameSpace.Context.RootNameSpace;

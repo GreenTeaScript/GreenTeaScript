@@ -335,7 +335,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 	}
 
 	public final GtFunc GetConverterFunc(GtType FromType, GtType ToType, boolean RecursiveSearch) {
-		/*local*/Object Func = this.Context.RootNameSpace.GetClassSymbol(FromType, ConverterSymbol(ToType), RecursiveSearch);
+		/*local*/Object Func = this.GetClassSymbol(FromType, ConverterSymbol(ToType), RecursiveSearch);
 		if(Func instanceof GtFunc) {
 			return (/*cast*/GtFunc)Func;
 		}
@@ -505,17 +505,15 @@ public final class GtNameSpace extends GreenTeaUtils {
 
 	public final void SetConverterFunc(GtType ClassType, GtType ToType, GtFunc Func, GtToken SourceToken) {
 		if(ClassType == null) {
-			ClassType = Func.GetFuncParamType(1);
+			ClassType = Func.GetFuncParamType(0);
 		}
 		if(ToType == null) {
 			ToType = Func.GetReturnType();
 		}
 		/*local*/String Key = ClassSymbol(ClassType, ConverterSymbol(ToType));
 		LibGreenTea.Assert(Func.Is(ConverterFunc));		
-		this.Context.RootNameSpace.SetSymbol(Key, Func, SourceToken);
+		this.SetSymbol(Key, Func, SourceToken);
 	}
-
-	
 	
 	final Object EvalWithErrorInfo(String ScriptText, long FileLine) {
 		/*local*/Object ResultValue = null;

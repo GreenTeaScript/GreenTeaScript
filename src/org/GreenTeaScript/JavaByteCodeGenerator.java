@@ -632,24 +632,23 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		}
 	}
 
-//	@Override public void VisitStaticApplyNode(GtStaticApplyNode ApplyNode) {
-//		GtFunc Func = ApplyNode.Func;
-//		for(int i = 0; i < ApplyNode.ParamList.size(); i++) {
-//			GtNode ParamNode = ApplyNode.ParamList.get(i);
-//			ParamNode.Evaluate(this);
-//			this.VisitingBuilder.BoxIfUnboxed(ParamNode.Type, Func.GetFuncParamType(i));
-//		}
-//		if(Func.FuncBody instanceof Method) {
-//			this.VisitingBuilder.InvokeMethodCall(ApplyNode.Type, (Method) Func.FuncBody);
-//		}
-//		else {
-//			String MethodName = Func.GetNativeFuncName(); 
-//			String Owner = JLib.GetHolderClassName(this.Context, MethodName);
-//			String MethodDescriptor = JLib.GetMethodDescriptor(Func);
-//			this.VisitingBuilder.MethodVisitor.visitMethodInsn(INVOKESTATIC, Owner, MethodName, MethodDescriptor);
-//			this.VisitingBuilder.UnboxIfUnboxed(Func.GetReturnType(), ApplyNode.Type);
-//		}
-//	}
+	@Override public void VisitStaticApplyNode(GtStaticApplyNode ApplyNode) {
+		GtFunc Func = ApplyNode.Func;
+		for(int i = 0; i < ApplyNode.ParamList.size(); i++) {
+			GtNode ParamNode = ApplyNode.ParamList.get(i);
+			ParamNode.Evaluate(this);
+			this.VisitingBuilder.CheckCast(Func.GetFuncParamType(i), ParamNode.Type);
+		}
+		if(Func.FuncBody instanceof Method) {
+			this.VisitingBuilder.InvokeMethodCall(ApplyNode.Type, (Method) Func.FuncBody);
+		}
+		else {
+			String MethodName = Func.GetNativeFuncName(); 
+			String Owner = JLib.GetHolderClassName(this.Context, MethodName);
+			String MethodDescriptor = JLib.GetMethodDescriptor(Func);
+			this.VisitingBuilder.MethodVisitor.visitMethodInsn(INVOKESTATIC, Owner, MethodName, MethodDescriptor);
+		}
+	}
 
 	@Override public void VisitBinaryNode(GtBinaryNode Node) {
 		if(Node.Func.FuncBody instanceof Method) {
