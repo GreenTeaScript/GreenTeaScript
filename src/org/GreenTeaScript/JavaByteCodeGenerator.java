@@ -946,15 +946,15 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	}
 
 	@Override public void VisitThrowNode(GtThrowNode Node) {
-		// use wrapper
-		String name = Type.getInternalName(GtThrowableWrapper.class);
-		this.VisitingBuilder.MethodVisitor.visitTypeInsn(NEW, name);
-		this.VisitingBuilder.MethodVisitor.visitInsn(DUP);
-		Node.Expr.Evaluate(this);
-		//this.box();
-//		this.VisitingBuilder.typeStack.pop();
-		this.VisitingBuilder.MethodVisitor.visitMethodInsn(INVOKESPECIAL, name, "<init>", "(Ljava/lang/Object;)V");
-		this.VisitingBuilder.MethodVisitor.visitInsn(ATHROW);
+//		// use wrapper
+//		String name = Type.getInternalName(GtThrowableWrapper.class);
+//		this.VisitingBuilder.MethodVisitor.visitTypeInsn(NEW, name);
+//		this.VisitingBuilder.MethodVisitor.visitInsn(DUP);
+//		Node.Expr.Evaluate(this);
+//		//this.box();
+////		this.VisitingBuilder.typeStack.pop();
+//		this.VisitingBuilder.MethodVisitor.visitMethodInsn(INVOKESPECIAL, name, "<init>", "(Ljava/lang/Object;)V");
+//		this.VisitingBuilder.MethodVisitor.visitInsn(ATHROW);
 	}
 
 	@Override public void VisitInstanceOfNode(GtInstanceOfNode Node) {
