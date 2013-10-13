@@ -111,7 +111,7 @@ public class ScalaSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitGetterNode(GtGetterNode Node) {
-		/*local*/String Program = this.VisitNode(Node.ExprNode);
+		/*local*/String Program = this.VisitNode(Node.RecvNode);
 		/*local*/String FieldName = Node.Func.FuncName;
 		Program = Program + "." + FieldName;
 		this.PushSourceCode(Program);

@@ -114,25 +114,25 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return Value;
 	}
 	
-	public static Object DynamicGetter(GtType ContextType, Object RecvObject, String FieldName) {
+	public static Object DynamicGetter(Object RecvObject, String FieldName) {
 		try {
 			Field JavaField = RecvObject.getClass().getField(FieldName);
-			Object Value = JavaField.get(RecvObject);
-			return DynamicCast(ContextType, Value);
+			return JavaField.get(RecvObject);
 		} catch (Exception e) {
+			LibGreenTea.VerboseException(e);
 		}
-		return ContextType.DefaultNullValue;
+		return null;
 	}
 
-	public static Object DynamicSetter(GtType ContextType, Object RecvObject, String FieldName, Object Value) {
+	public static Object DynamicSetter(Object RecvObject, String FieldName, Object Value) {
 		try {
 			Field JavaField = RecvObject.getClass().getField(FieldName);
 			JavaField.set(RecvObject, Value);
-			Value = JavaField.get(RecvObject);
-			return DynamicCast(ContextType, Value);
+			return JavaField.get(RecvObject);
 		} catch (Exception e) {
+			LibGreenTea.VerboseException(e);
 		}
-		return ContextType.DefaultNullValue;
+		return null;
 	}
 	
 	public final static String GetPlatform() {

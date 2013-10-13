@@ -1060,7 +1060,7 @@ public class KonohaGrammar extends GtGrammar {
 		}
 		if(FuncNode instanceof GtGetterNode) { /* Func style .. o.f x, y, .. */
 			/*local*/String FuncName = FuncNode.Token.ParsedText;
-			/*local*/GtNode BaseNode = ((/*cast*/GtGetterNode)FuncNode).ExprNode;
+			/*local*/GtNode BaseNode = ((/*cast*/GtGetterNode)FuncNode).RecvNode;
 			return KonohaGrammar.TypeMethodCall(Gamma, ParsedTree, BaseNode, FuncName);
 		}
 		if(FuncNode instanceof GtConstNode) { /* static */

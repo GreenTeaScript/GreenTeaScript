@@ -498,7 +498,7 @@ public class GtGenerator extends GreenTeaUtils {
 //ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
 		//System.err.println("** Node.Func = " + Node.Func);
 		if(Node.Func != null) {
-			Object Value = Node.ExprNode.ToConstValue(this.Context, EnforceConst);
+			Object Value = Node.RecvNode.ToConstValue(this.Context, EnforceConst);
 			if(Value == null) {
 				return Value;
 			}
@@ -519,12 +519,12 @@ public class GtGenerator extends GreenTeaUtils {
 	public Object EvalSetterNode(GtSetterNode Node, boolean EnforceConst) {
 //ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
 		if(Node.Func != null && EnforceConst) {
-			Object LeftValue = Node.LeftNode.ToConstValue(this.Context, EnforceConst);
+			Object LeftValue = Node.RecvNode.ToConstValue(this.Context, EnforceConst);
 			if(LeftValue == null) {
 				return LeftValue;
 			}
-			Object RightValue = Node.RightNode.ToConstValue(this.Context, EnforceConst);
-			if(RightValue == null && !Node.RightNode.IsNullNode()) {
+			Object RightValue = Node.ValueNode.ToConstValue(this.Context, EnforceConst);
+			if(RightValue == null && !Node.ValueNode.IsNullNode()) {
 				return RightValue;
 			}
 			if(Node.Func.FuncBody instanceof Field) {
@@ -729,7 +729,7 @@ public class GtGenerator extends GreenTeaUtils {
 	}
 
 	public Object EvalDyGetterNode(GtDyGetterNode GetterNode, boolean EnforceConst) {
-		/*local*/Object RecvObject = GetterNode.ExprNode.ToConstValue(this.Context, EnforceConst);
+		/*local*/Object RecvObject = GetterNode.RecvNode.ToConstValue(this.Context, EnforceConst);
 		if(RecvObject != null) {
 			return LibGreenTea.DynamicGetter(GetterNode.Type, RecvObject, GetterNode.FieldName);
 		}
@@ -737,10 +737,10 @@ public class GtGenerator extends GreenTeaUtils {
 	}
 
 	public Object EvalDySetterNode(GtDySetterNode SetterNode, boolean EnforceConst) {
-		/*local*/Object RecvObject = SetterNode.LeftNode.ToConstValue(this.Context, EnforceConst);
+		/*local*/Object RecvObject = SetterNode.RecvNode.ToConstValue(this.Context, EnforceConst);
 		if(RecvObject != null) {
-			/*local*/Object Value = SetterNode.RightNode.ToConstValue(this.Context, EnforceConst);
-			if(Value != null || SetterNode.RightNode.IsNullNode()) {
+			/*local*/Object Value = SetterNode.ValueNode.ToConstValue(this.Context, EnforceConst);
+			if(Value != null || SetterNode.ValueNode.IsNullNode()) {
 				return LibGreenTea.DynamicSetter(SetterNode.Type, RecvObject, SetterNode.FieldName, Value);
 			}
 		}

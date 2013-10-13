@@ -207,8 +207,8 @@ class JLib {
 			GetConstPool = GtStaticTable.class.getMethod("GetConstPool", int.class);
 			GetTypeById = GtStaticTable.class.getMethod("GetTypeById", int.class);
 			GetFuncById = GtStaticTable.class.getMethod("GetFuncById", int.class);
-			DynamicGetter = LibGreenTea.class.getMethod("DynamicGetter", GtType.class, Object.class, String.class);
-			DynamicSetter = LibGreenTea.class.getMethod("DynamicSetter", GtType.class, Object.class, String.class, Object.class);
+			DynamicGetter = LibGreenTea.class.getMethod("DynamicGetter", Object.class, String.class);
+			DynamicSetter = LibGreenTea.class.getMethod("DynamicSetter", Object.class, String.class, Object.class);
 			BoxBooleanValue = Boolean.class.getMethod("valueOf", boolean.class);
 			BoxIntValue = Long.class.getMethod("valueOf", long.class);
 			BoxFloatValue = Double.class.getMethod("valueOf", double.class);
@@ -410,13 +410,11 @@ class JMethodBuilder {
 	}
 
 	void InvokeMethodCall(GtType RequiredType, Method method) {
-		if(RequiredType != null && RequiredType.BaseType.TypeBody instanceof Class<?>) {
-			InvokeMethodCall((Class<?>)RequiredType.BaseType.TypeBody, method);
+		Class<?> RequiredNativeType = Object.class;
+		if(RequiredType != null) {
+			RequiredNativeType = RequiredType.GetNativeType();
 		}
-		else {
-//			System.err.println("given = " + method + " RequiredType="+RequiredType);
-			InvokeMethodCall(void.class, method);
-		}
+		InvokeMethodCall(RequiredNativeType, method);
 	}
 
 	void InvokeMethodCall(Class<?> RequiredType, Method method) {
@@ -576,19 +574,32 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		String name = Node.Func.FuncName;
 		Type fieldType = JLib.GetAsmType(Node.Func.GetReturnType());
 		Type ownerType = JLib.GetAsmType(Node.Func.GetFuncParamType(0));
-		Node.ExprNode.Evaluate(this);
+		Node.RecvNode.Evaluate(this);
 		this.VisitingBuilder.MethodVisitor.visitFieldInsn(GETFIELD, ownerType.getInternalName(), name, fieldType.getDescriptor());
+	}
+
+	@Override public void VisitDyGetterNode(GtDyGetterNode Node) {
+		Node.RecvNode.Evaluate(this);
+		this.VisitingBuilder.LoadConst(Node.FieldName);
+		this.VisitingBuilder.InvokeMethodCall(Node.Type, JLib.DynamicGetter);
 	}
 	
 	@Override public void VisitSetterNode(GtSetterNode Node) {
 		String name = Node.Func.FuncName;
 		Type fieldType = JLib.GetAsmType(Node.Func.GetFuncParamType(1));
 		Type ownerType = JLib.GetAsmType(Node.Func.GetFuncParamType(0));
-		Node.LeftNode.Evaluate(this);
-		Node.RightNode.Evaluate(this);
+		Node.RecvNode.Evaluate(this);
+		Node.ValueNode.Evaluate(this);
 		this.VisitingBuilder.MethodVisitor.visitFieldInsn(PUTFIELD, ownerType.getInternalName(), name, fieldType.getDescriptor());
 	}
 
+	@Override public void VisitDySetterNode(GtDySetterNode Node) {
+		Node.RecvNode.Evaluate(this);
+		this.VisitingBuilder.LoadConst(Node.FieldName);
+		Node.ValueNode.Evaluate(this);
+		this.VisitingBuilder.InvokeMethodCall(Node.Type, JLib.DynamicSetter);						
+	}
+	
 	@Override public void VisitApplyNode(GtApplyNode Node) {
 		GtFunc Func = Node.Func;
 		for(int i = 1; i < Node.NodeList.size(); i++) {

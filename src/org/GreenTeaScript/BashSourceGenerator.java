@@ -242,7 +242,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitGetterNode(GtGetterNode Node) {
-		this.PushSourceCode(this.VisitNode(Node.ExprNode) + "[" + this.GetMemberIndex(Node.ExprNode.Type, Node.Func.FuncName) + "]");
+		this.PushSourceCode(this.VisitNode(Node.RecvNode) + "[" + this.GetMemberIndex(Node.RecvNode.Type, Node.Func.FuncName) + "]");
 	}
 
 	@Override public void VisitIndexerNode(GtIndexerNode Node) {

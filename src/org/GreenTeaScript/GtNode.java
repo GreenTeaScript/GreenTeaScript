@@ -480,17 +480,16 @@ final class GtTrinaryNode extends GtNode {
 //E.g., $Expr . Token.ParsedText
 final class GtGetterNode extends GtNode {
 	/*field*/public GtFunc  Func;
-	/*field*/public GtNode  ExprNode;
+	/*field*/public GtNode  RecvNode;
 	GtGetterNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func, GtNode Expr) {
 		super(Type, Token);
 		this.Func = Func;
-		this.ExprNode = Expr;
+		this.RecvNode = Expr;
 		this.SetChild(Expr);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitGetterNode(this);
 	}
-
 	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 		return Context.Generator.EvalGetterNode(this, EnforceConst);
 	}
@@ -498,13 +497,13 @@ final class GtGetterNode extends GtNode {
 //E.g., $Left . Token.ParsedText = $Right
 final class GtSetterNode extends GtNode {
 	/*field*/public GtFunc  Func;
-	/*field*/public GtNode  LeftNode;
-	/*field*/public GtNode  RightNode;
+	/*field*/public GtNode  RecvNode;
+	/*field*/public GtNode  ValueNode;
 	GtSetterNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func, GtNode LeftNode, GtNode RightNode) {
 		super(Type, Token);
 		this.Func = Func;
-		this.LeftNode  = LeftNode;
-		this.RightNode = RightNode;
+		this.RecvNode  = LeftNode;
+		this.ValueNode = RightNode;
 		this.SetChild2(LeftNode, RightNode);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
@@ -516,12 +515,12 @@ final class GtSetterNode extends GtNode {
 }
 //E.g., $Expr . Token.ParsedText
 final class GtDyGetterNode extends GtNode {
-	/*field*/public GtNode  ExprNode;
+	/*field*/public GtNode  RecvNode;
 	/*field*/public GtNameSpace NameSpace;
 	/*field*/public String FieldName;
 	GtDyGetterNode/*constructor*/(GtType Type, GtToken Token, GtNode Expr, GtNameSpace NameSpace, String FieldName) {
 		super(Type, Token);
-		this.ExprNode = Expr;
+		this.RecvNode = Expr;
 		this.NameSpace = NameSpace;
 		this.FieldName = FieldName;
 		this.SetChild(Expr);
@@ -536,16 +535,16 @@ final class GtDyGetterNode extends GtNode {
 }
 //E.g., $Left . Token.ParsedText = $Right
 final class GtDySetterNode extends GtNode {
-	/*field*/public GtNode  LeftNode;
+	/*field*/public GtNode  RecvNode;
 	/*field*/public GtNameSpace NameSpace;
 	/*field*/public String FieldName;
-	/*field*/public GtNode  RightNode;
+	/*field*/public GtNode  ValueNode;
 	GtDySetterNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func, GtNode LeftNode, GtNameSpace NameSpace, String FieldName, GtNode RightNode) {
 		super(Type, Token);
-		this.LeftNode  = LeftNode;
+		this.RecvNode  = LeftNode;
 		this.NameSpace = NameSpace;
 		this.FieldName = FieldName;
-		this.RightNode = RightNode;
+		this.ValueNode = RightNode;
 		this.SetChild2(LeftNode, RightNode);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {

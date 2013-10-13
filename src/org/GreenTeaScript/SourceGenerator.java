@@ -402,7 +402,7 @@ public class SourceGenerator extends GtGenerator {
 	}
 
 	@Override public void VisitGetterNode(GtGetterNode Node) {
-		this.PushSourceCode(this.VisitNode(Node.ExprNode) + this.MemberAccessOperator + Node.Func.FuncName);
+		this.PushSourceCode(this.VisitNode(Node.RecvNode) + this.MemberAccessOperator + Node.Func.FuncName);
 	}
 	@Override public void VisitAssignNode(GtAssignNode Node) {
 		this.PushSourceCode(this.VisitNode(Node.LeftNode) + " = " + this.VisitNode(Node.RightNode));
