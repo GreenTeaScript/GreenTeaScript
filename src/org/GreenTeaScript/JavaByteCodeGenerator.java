@@ -309,42 +309,29 @@ class JMethodBuilder {
 	}
 	
 	void LoadConst(Object Value) {
-//		Type type = null;
-//		boolean unsupportType = false;
-//		if(Value instanceof Long) {
-//			type = Type.LONG_TYPE;
-//		}
-//		else if(Value instanceof Double) {
-//			type = Type.DOUBLE_TYPE;
-//		}
-//		else if(Value instanceof Boolean) {
-//			type = Type.BOOLEAN_TYPE;
-//		}
-//		else if(Value instanceof String) {
-//			type = Type.getType(Value.getClass());
-//		}
-//		else 
+		if(Value instanceof Boolean || Value instanceof Long || Value instanceof Double || Value instanceof String) {
+			this.MethodVisitor.visitLdcInsn(Value);
+			return;
+		}
 		if(Value instanceof GtParserContext) {
 			this.MethodVisitor.visitFieldInsn(GETSTATIC, this.LocalClassLoader.GlobalStaticClassName, this.LocalClassLoader.ContextFieldName, this.LocalClassLoader.GontextDescripter);
+			return;
 		}
-		else if(Value instanceof GtType) {
+		if(Value instanceof GtType) {
 			int id = ((GtType)Value).TypeId;
 			this.MethodVisitor.visitLdcInsn(id);
 			this.InvokeMethodCall(GtType.class, JLib.GetTypeById);
+			return;
 		}
 		else if(Value instanceof GtFunc) {
 			int id = ((GtFunc)Value).FuncId;
 			this.MethodVisitor.visitLdcInsn(id);
 			this.InvokeMethodCall(GtFunc.class, JLib.GetFuncById);
+			return;
 		}
-		else if(!(Value instanceof String)) {
-			int id = GtStaticTable.AddConstPool(Value);
-			this.MethodVisitor.visitLdcInsn(id);
-			this.InvokeMethodCall(Value.getClass(), JLib.GetConstPool);
-		}
-		else {
-			this.MethodVisitor.visitLdcInsn(Value);		
-		}
+		int id = GtStaticTable.AddConstPool(Value);
+		this.MethodVisitor.visitLdcInsn(id);
+		this.InvokeMethodCall(Value.getClass(), JLib.GetConstPool);
 	}
 
 	void CheckCast(Class<?> RequiredType, Class<?> GivenType) {
@@ -943,15 +930,15 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	}
 
 	@Override public void VisitThrowNode(GtThrowNode Node) {
-//		// use wrapper
-//		String name = Type.getInternalName(GtThrowableWrapper.class);
-//		this.VisitingBuilder.MethodVisitor.visitTypeInsn(NEW, name);
-//		this.VisitingBuilder.MethodVisitor.visitInsn(DUP);
-//		Node.Expr.Evaluate(this);
-//		//this.box();
-////		this.VisitingBuilder.typeStack.pop();
-//		this.VisitingBuilder.MethodVisitor.visitMethodInsn(INVOKESPECIAL, name, "<init>", "(Ljava/lang/Object;)V");
-//		this.VisitingBuilder.MethodVisitor.visitInsn(ATHROW);
+		// use wrapper
+		//String name = Type.getInternalName(GtThrowableWrapper.class);
+		//this.VisitingBuilder.MethodVisitor.visitTypeInsn(NEW, name);
+		//this.VisitingBuilder.MethodVisitor.visitInsn(DUP);
+		//Node.Expr.Evaluate(this);
+		//this.box();
+//		//this.VisitingBuilder.typeStack.pop();
+		//this.VisitingBuilder.MethodVisitor.visitMethodInsn(INVOKESPECIAL, name, "<init>", "(Ljava/lang/Object;)V");
+		//this.VisitingBuilder.MethodVisitor.visitInsn(ATHROW);
 	}
 
 	@Override public void VisitInstanceOfNode(GtInstanceOfNode Node) {
