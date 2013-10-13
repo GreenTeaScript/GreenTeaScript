@@ -204,7 +204,7 @@ class JLib {
 		TypeMap.put("Func", Type.getType(GtFunc.class));
 
 		try {
-			GetConstPool = GtStaticTable.class.getMethod("GetConsrPool", int.class);
+			GetConstPool = GtStaticTable.class.getMethod("GetConstPool", int.class);
 			GetTypeById = GtStaticTable.class.getMethod("GetTypeById", int.class);
 			GetFuncById = GtStaticTable.class.getMethod("GetFuncById", int.class);
 			DynamicGetter = LibGreenTea.class.getMethod("DynamicGetter", GtType.class, Object.class, String.class);
@@ -326,19 +326,16 @@ class JMethodBuilder {
 //		else 
 		if(Value instanceof GtParserContext) {
 			this.MethodVisitor.visitFieldInsn(GETSTATIC, this.LocalClassLoader.GlobalStaticClassName, this.LocalClassLoader.ContextFieldName, this.LocalClassLoader.GontextDescripter);
-			return;
 		}
 		else if(Value instanceof GtType) {
 			int id = ((GtType)Value).TypeId;
 			this.MethodVisitor.visitLdcInsn(id);
 			this.InvokeMethodCall(GtType.class, JLib.GetTypeById);
-			return;
 		}
 		else if(Value instanceof GtFunc) {
 			int id = ((GtFunc)Value).FuncId;
 			this.MethodVisitor.visitLdcInsn(id);
 			this.InvokeMethodCall(GtFunc.class, JLib.GetFuncById);
-			return;
 		}
 		else if(!(Value instanceof String)) {
 			int id = GtStaticTable.AddConstPool(Value);
