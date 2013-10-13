@@ -204,7 +204,7 @@ class JLib {
 		TypeMap.put("Func", Type.getType(GtFunc.class));
 
 		try {
-			GetConstPool = GtStaticTable.class.getMethod("GetConsrPool", int.class);
+			GetConstPool = GtStaticTable.class.getMethod("GetConstPool", int.class);
 			GetTypeById = GtStaticTable.class.getMethod("GetTypeById", int.class);
 			GetFuncById = GtStaticTable.class.getMethod("GetFuncById", int.class);
 			DynamicGetter = LibGreenTea.class.getMethod("DynamicGetter", GtType.class, Object.class, String.class);
@@ -950,14 +950,14 @@ public class JavaByteCodeGenerator extends GtGenerator {
 
 	@Override public void VisitThrowNode(GtThrowNode Node) {
 		// use wrapper
-		String name = Type.getInternalName(GtThrowableWrapper.class);
-		this.VisitingBuilder.MethodVisitor.visitTypeInsn(NEW, name);
-		this.VisitingBuilder.MethodVisitor.visitInsn(DUP);
-		Node.Expr.Evaluate(this);
+		//String name = Type.getInternalName(GtThrowableWrapper.class);
+		//this.VisitingBuilder.MethodVisitor.visitTypeInsn(NEW, name);
+		//this.VisitingBuilder.MethodVisitor.visitInsn(DUP);
+		//Node.Expr.Evaluate(this);
 		//this.box();
-//		this.VisitingBuilder.typeStack.pop();
-		this.VisitingBuilder.MethodVisitor.visitMethodInsn(INVOKESPECIAL, name, "<init>", "(Ljava/lang/Object;)V");
-		this.VisitingBuilder.MethodVisitor.visitInsn(ATHROW);
+//		//this.VisitingBuilder.typeStack.pop();
+		//this.VisitingBuilder.MethodVisitor.visitMethodInsn(INVOKESPECIAL, name, "<init>", "(Ljava/lang/Object;)V");
+		//this.VisitingBuilder.MethodVisitor.visitInsn(ATHROW);
 	}
 
 	@Override public void VisitInstanceOfNode(GtInstanceOfNode Node) {
