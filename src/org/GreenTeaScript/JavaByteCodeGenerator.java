@@ -309,21 +309,22 @@ class JMethodBuilder {
 	}
 	
 	void LoadConst(Object Value) {
-		Type type = null;
-		boolean unsupportType = false;
-		if(Value instanceof Long) {
-			type = Type.LONG_TYPE;
-		}
-		else if(Value instanceof Double) {
-			type = Type.DOUBLE_TYPE;
-		}
-		else if(Value instanceof Boolean) {
-			type = Type.BOOLEAN_TYPE;
-		}
-		else if(Value instanceof String) {
-			type = Type.getType(Value.getClass());
-		}
-		else if(Value instanceof GtParserContext) {
+//		Type type = null;
+//		boolean unsupportType = false;
+//		if(Value instanceof Long) {
+//			type = Type.LONG_TYPE;
+//		}
+//		else if(Value instanceof Double) {
+//			type = Type.DOUBLE_TYPE;
+//		}
+//		else if(Value instanceof Boolean) {
+//			type = Type.BOOLEAN_TYPE;
+//		}
+//		else if(Value instanceof String) {
+//			type = Type.getType(Value.getClass());
+//		}
+//		else 
+		if(Value instanceof GtParserContext) {
 			this.MethodVisitor.visitFieldInsn(GETSTATIC, this.LocalClassLoader.GlobalStaticClassName, this.LocalClassLoader.ContextFieldName, this.LocalClassLoader.GontextDescripter);
 			return;
 		}
@@ -339,17 +340,13 @@ class JMethodBuilder {
 			this.InvokeMethodCall(GtFunc.class, JLib.GetFuncById);
 			return;
 		}
-		else {
-			unsupportType = true;
-			type = Type.getType(Value.getClass());
-		}
-		if(unsupportType) {
+		else if(!(Value instanceof String)) {
 			int id = GtStaticTable.AddConstPool(Value);
 			this.MethodVisitor.visitLdcInsn(id);
 			this.InvokeMethodCall(Value.getClass(), JLib.GetConstPool);
 		}
 		else {
-			this.MethodVisitor.visitLdcInsn(Value);
+			this.MethodVisitor.visitLdcInsn(Value);		
 		}
 	}
 
