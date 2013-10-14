@@ -674,7 +674,7 @@ final class GtApplyOverridedMethodNode extends GtNode {
 	/*field*/public ArrayList<GtNode>  ParamList; /* [arg1, arg2, ...] */
 	GtApplyOverridedMethodNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, GtNameSpace NameSpace, GtFunc Func) {
 		super(Type, Token);
-		this.NameSpace = NameSpace;
+		this.NameSpace = NameSpace.Minimum();
 		this.Func = Func;
 		this.ParamList = new ArrayList<GtNode>();
 	}
@@ -716,7 +716,7 @@ final class GtApplyDynamicFuncNode extends GtNode {
 	/*field*/public ArrayList<GtNode>  ParamList; /* [arg0, arg1, ...] */
 	GtApplyDynamicFuncNode/*constructor*/(GtType Type, GtToken Token, GtNameSpace NameSpace, String FuncName) {
 		super(Type, Token);
-		this.NameSpace = NameSpace;
+		this.NameSpace = NameSpace.Minimum();
 		this.FuncName = FuncName;
 		this.ParamList = new ArrayList<GtNode>();
 	}
@@ -739,7 +739,7 @@ final class GtApplyDynamicMethodNode extends GtNode {
 	/*field*/public ArrayList<GtNode>  ParamList; /* [arg1, arg2, ...] */
 	GtApplyDynamicMethodNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, GtNameSpace NameSpace, String FuncName) {
 		super(Type, Token);
-		this.NameSpace = NameSpace;
+		this.NameSpace = NameSpace.Minimum();
 		this.FuncName = FuncName;
 		this.ParamList = new ArrayList<GtNode>();
 	}

@@ -698,7 +698,7 @@ public class GtGenerator extends GreenTeaUtils {
 			if(RecvObject != null) {
 				/*local*/Object[] Arguments = this.MakeArguments(RecvObject, ApplyNode.ParamList, EnforceConst);
 				if(Arguments != null) {
-					return LibGreenTea.ApplyOverridedMethod(0, ApplyNode.NameSpace, ApplyNode.Func, Arguments);
+					return LibGreenTea.InvokeOverridedMethod(0, ApplyNode.NameSpace, ApplyNode.Func, Arguments);
 				}
 			}
 		}

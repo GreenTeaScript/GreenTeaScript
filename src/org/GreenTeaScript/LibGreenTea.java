@@ -79,7 +79,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return GreenTeaArray.NewArrayLiteral(ArrayType, Values);		
 	}
 	
-	public final static Object ApplyFunc(GtFunc Func, Object[] Params) {
+	public final static Object InvokeFunc(GtFunc Func, Object[] Params) {
 		if(Func == null || Func.IsAbstract()) {
 			LibGreenTea.VerboseLog(VerboseRuntime, "applying abstract function: " + Func);
 			return Func.GetReturnType().DefaultNullValue;
@@ -92,10 +92,10 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return LibGreenTea.ApplyMethod(Func, null, Params);
 	}
 
-	public static Object ApplyOverridedMethod(long FileLine, GtNameSpace NameSpace, GtFunc Func, Object[] Arguments) {
+	public static Object InvokeOverridedMethod(long FileLine, GtNameSpace NameSpace, GtFunc Func, Object[] Arguments) {
 		/*local*/GtType ClassType = GtStaticTable.GuessType(Arguments[0]);
 		Func = NameSpace.GetOverridedMethod(ClassType, Func);
-		return Func.Apply(Arguments);
+		return LibGreenTea.InvokeFunc(Func, Arguments);
 	}
 
 	public static Object InvokeDynamicFunc(long FileLine, GtType ContextType, GtNameSpace NameSpace, String FuncName, Object[] Arguments) {
@@ -103,7 +103,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		/*local*/GtFunc Func = PolyFunc.GetMatchedFunc(NameSpace, Arguments);
 		/*local*/Object Value = ContextType.DefaultNullValue;
 		if(Func != null) {
-			Value = Func.Apply(Arguments);
+			Value = LibGreenTea.InvokeFunc(Func, Arguments);
 			return LibGreenTea.DynamicCast(ContextType, Value);
 		}
 		LibGreenTea.VerboseLog(VerboseRuntime, PolyFunc.MessageTypeError(null, FuncName));
@@ -116,7 +116,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		/*local*/GtFunc Func = PolyFunc.GetMatchedFunc(NameSpace, Arguments);
 		/*local*/Object Value = ContextType.DefaultNullValue;
 		if(Func != null) {
-			Value = Func.Apply(Arguments);
+			Value = LibGreenTea.InvokeFunc(Func, Arguments);
 			return LibGreenTea.DynamicCast(ContextType, Value);
 		}
 		LibGreenTea.VerboseLog(VerboseRuntime, PolyFunc.MessageTypeError(ClassType, FuncName));

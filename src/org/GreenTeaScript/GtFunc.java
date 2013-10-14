@@ -286,7 +286,7 @@ public final class GtFunc extends GreenTeaUtils {
 	}
 
 	public Object Apply(Object[] Arguments) {
-		return LibGreenTea.ApplyFunc(this, Arguments);
+		return LibGreenTea.InvokeFunc(this, Arguments);
 	}
 }
 

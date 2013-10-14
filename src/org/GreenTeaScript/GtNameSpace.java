@@ -103,6 +103,14 @@ public final class GtNameSpace extends GreenTeaUtils {
 		}
 	}
 
+	public final GtNameSpace Minimum() {
+		GtNameSpace NameSpace = this;
+		while(this.SymbolPatternTable == null) {
+			NameSpace = NameSpace.ParentNameSpace;
+		}
+		return NameSpace;
+	}
+
 	public final Object GetLocalUndefinedSymbol(String Key) {
 		if(this.SymbolPatternTable != null) {
 			return this.SymbolPatternTable.GetOrNull(Key);
@@ -607,5 +615,6 @@ public final class GtNameSpace extends GreenTeaUtils {
 			i += 2;
 		}
 	}
+
 
 }

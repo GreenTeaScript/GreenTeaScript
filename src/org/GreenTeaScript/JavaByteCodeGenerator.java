@@ -189,7 +189,11 @@ class JLib {
 	static Method GreenInstanceOfOperator;
 	static Method NewArrayLiteral;
 	static Method NewArray;
-	static Method ApplyFunc;
+	static Method InvokeFunc;
+	static Method InvokeOverridedFunc;
+	static Method InvokeDynamicFunc;
+	static Method InvokeDynamicMethod;
+	
 	static Method ExecCommandVoid;
 	static Method ExecCommandBool;
 	static Method ExecCommandString;
@@ -210,7 +214,11 @@ class JLib {
 			GetFuncById = GtStaticTable.class.getMethod("GetFuncById", int.class);
 			DynamicGetter = LibGreenTea.class.getMethod("DynamicGetter", Object.class, String.class);
 			DynamicSetter = LibGreenTea.class.getMethod("DynamicSetter", Object.class, String.class, Object.class);
-			ApplyFunc = LibGreenTea.class.getMethod("ApplyFunc", GtFunc.class, Object[].class);
+			InvokeFunc = LibGreenTea.class.getMethod("InvokeFunc", GtFunc.class, Object[].class);
+			InvokeOverridedFunc = LibGreenTea.class.getMethod("InvokeOverridedMethod", long.class, GtNameSpace.class, GtFunc.class, Object[].class);
+			InvokeDynamicFunc = LibGreenTea.class.getMethod("InvokeDynamicFunc", long.class, GtType.class, GtNameSpace.class, String.class, Object[].class);
+			InvokeDynamicMethod = LibGreenTea.class.getMethod("InvokeDynamicMethod", long.class, GtType.class, GtNameSpace.class, String.class, Object[].class);
+			
 			BoxBooleanValue = Boolean.class.getMethod("valueOf", boolean.class);
 			BoxIntValue = Long.class.getMethod("valueOf", long.class);
 			BoxFloatValue = Double.class.getMethod("valueOf", double.class);
@@ -396,8 +404,8 @@ class JMethodBuilder {
 	}
 
 	void CheckCast(Class<?> RequiredType, GtType GivenType) {
-		if(GivenType != null && GivenType.BaseType.TypeBody instanceof Class<?>) {
-			CheckCast(RequiredType, (Class<?>)GivenType.BaseType.TypeBody);
+		if(GivenType != null) {
+			CheckCast(RequiredType, GivenType.GetNativeType());
 		}
 //		else {
 //			System.err.println("cannot check cast given = " + GivenType + " RequiredType="+RequiredType);
@@ -405,12 +413,7 @@ class JMethodBuilder {
 	}
 
 	void CheckCast(GtType RequiredType, GtType GivenType) {
-		if(RequiredType.BaseType.TypeBody instanceof Class<?>) {
-			CheckCast((Class<?>)RequiredType.BaseType.TypeBody, GivenType);
-		}
-//		else {
-//			System.err.println("cannot check cast given = " + GivenType + " RequiredType=" + RequiredType);
-//		}
+		CheckCast(RequiredType.GetNativeType(), GivenType);
 	}
 
 	void Call(Constructor<?> method) {
@@ -654,36 +657,37 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		}
 	}
 
-	@Override public void VisitApplyOverridedMethodNode(GtApplyOverridedMethodNode ApplyNode) {
-		GtFunc Func = ApplyNode.Func;
-		for(int i = 0; i < ApplyNode.ParamList.size(); i++) {
-			GtNode ParamNode = ApplyNode.ParamList.get(i);
-			ParamNode.Evaluate(this);
-			this.VisitingBuilder.CheckCast(Func.GetFuncParamType(i), ParamNode.Type);
-		}
-		if(Func.FuncBody instanceof Method) {
-			this.VisitingBuilder.InvokeMethodCall(ApplyNode.Type, (Method) Func.FuncBody);
-		}
-		else {
-			String MethodName = Func.GetNativeFuncName(); 
-			String Owner = JLib.GetHolderClassName(this.Context, MethodName);
-			String MethodDescriptor = JLib.GetMethodDescriptor(Func);
-			this.VisitingBuilder.MethodVisitor.visitMethodInsn(INVOKESTATIC, Owner, MethodName, MethodDescriptor);
-		}
-	}
-	
 	@Override public void VisitApplyFuncNode(GtApplyFuncNode ApplyNode) {
 		ApplyNode.Evaluate(this);
 		this.VisitingBuilder.LoadNewArray(this, 0, ApplyNode.ParamList);
-		this.VisitingBuilder.InvokeMethodCall(ApplyNode.Type, JLib.NewArrayLiteral);		
+		this.VisitingBuilder.InvokeMethodCall(ApplyNode.Type, JLib.InvokeFunc);		
+	}
+
+	@Override public void VisitApplyOverridedMethodNode(GtApplyOverridedMethodNode ApplyNode) {
+		this.VisitingBuilder.MethodVisitor.visitLdcInsn((long)ApplyNode.Token.FileLine);
+		this.VisitingBuilder.LoadConst(ApplyNode.NameSpace);
+		this.VisitingBuilder.LoadConst(ApplyNode.Func);
+		this.VisitingBuilder.LoadNewArray(this, 0, ApplyNode.ParamList);
+		this.VisitingBuilder.InvokeMethodCall(ApplyNode.Type, JLib.InvokeOverridedFunc);		
 	}
 	
 	@Override public void VisitApplyDynamicFuncNode(GtApplyDynamicFuncNode ApplyNode) {
-		
+		this.VisitingBuilder.MethodVisitor.visitLdcInsn((long)ApplyNode.Token.FileLine);
+		this.VisitingBuilder.LoadConst(ApplyNode.Type);
+		this.VisitingBuilder.LoadConst(ApplyNode.NameSpace);
+		this.VisitingBuilder.LoadConst(ApplyNode.FuncName);		
+		this.VisitingBuilder.LoadNewArray(this, 0, ApplyNode.ParamList);
+		this.VisitingBuilder.InvokeMethodCall(ApplyNode.Type, JLib.InvokeDynamicFunc);				
 	}
 
 	@Override public void VisitApplyDynamicMethodNode(GtApplyDynamicMethodNode ApplyNode) {
-		
+		this.VisitingBuilder.MethodVisitor.visitLdcInsn((long)ApplyNode.Token.FileLine);
+		this.VisitingBuilder.LoadConst(ApplyNode.Type);
+		this.VisitingBuilder.LoadConst(ApplyNode.NameSpace);
+		this.VisitingBuilder.LoadConst(ApplyNode.FuncName);		
+		ApplyNode.ParamList.add(0, ApplyNode.RecvNode);
+		this.VisitingBuilder.LoadNewArray(this, 0, ApplyNode.ParamList);
+		this.VisitingBuilder.InvokeMethodCall(ApplyNode.Type, JLib.InvokeDynamicMethod);				
 	}
 
 	
