@@ -1,17 +1,14 @@
 require dshell;
 
-let DCaseRevision = 2;
-let Location="WebServer";
-let RecServer="https://192.168.0.100:8080/rec/";
-let AssumedFault = UnknownFault;
+let AssumedFault = "AssumedFault";
 
 DFault CallAdmin() {
-    raise AssumedFault;
-    return null;
+    return fault("ErrorInfo");
 }
 
 @Export int main() {
-    DFault fault = CallAdmin();
-    assert(fault != null);
+    DFault Fault = CallAdmin();
+    assert(Fault.FaultInfo == "AssumedFault");
+    assert(Fault.ErrorInfo == "ErrorInfo");
     return 0;
 }
