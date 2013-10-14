@@ -539,7 +539,7 @@ final class GtDySetterNode extends GtNode {
 	/*field*/public GtNameSpace NameSpace;
 	/*field*/public String FieldName;
 	/*field*/public GtNode  ValueNode;
-	GtDySetterNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func, GtNode LeftNode, GtNameSpace NameSpace, String FieldName, GtNode RightNode) {
+	GtDySetterNode/*constructor*/(GtType Type, GtToken Token, GtNode LeftNode, GtNameSpace NameSpace, String FieldName, GtNode RightNode) {
 		super(Type, Token);
 		this.RecvNode  = LeftNode;
 		this.NameSpace = NameSpace;

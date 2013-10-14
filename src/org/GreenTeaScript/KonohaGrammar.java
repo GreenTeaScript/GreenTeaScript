@@ -868,64 +868,60 @@ public class KonohaGrammar extends GtGrammar {
 
 	public static GtNode TypeGetter(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/String Name = ParsedTree.KeyToken.ParsedText;
-		/*local*/GtNode ObjectNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, GtStaticTable.VarType, DefaultTypeCheckPolicy);
-		if(ObjectNode.IsErrorNode()) {
-			return ObjectNode;
+		/*local*/GtNode RecvNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, GtStaticTable.VarType, DefaultTypeCheckPolicy);
+		if(RecvNode.IsErrorNode()) {
+			return RecvNode;
 		}
 		// 1. To start, check class const such as Math.Pi if base is a type value
-		/*local*/String TypeName = ObjectNode.Type.ShortName;
-		if(ObjectNode instanceof GtConstNode && ObjectNode.Type.IsTypeType()) {
-			/*local*/GtType ObjectType = (/*cast*/GtType)((/*cast*/GtConstNode)ObjectNode).ConstValue;
+		/*local*/String TypeName = RecvNode.Type.ShortName;
+		if(RecvNode instanceof GtConstNode && RecvNode.Type.IsTypeType()) {
+			/*local*/GtType ObjectType = (/*cast*/GtType)((/*cast*/GtConstNode)RecvNode).ConstValue;
 			/*local*/Object ConstValue = ParsedTree.NameSpace.GetClassStaticSymbol(ObjectType, Name, true);
-//			if(ConstValue instanceof GreenTeaEnum) {
-//				if(ContextType.IsStringType()) {
-//					ConstValue = ((/*cast*/GreenTeaEnum)ConstValue).EnumSymbol;
-//				}
-//				else {
-//					ConstValue = ((/*cast*/GreenTeaEnum)ConstValue).EnumValue;
-//				}
-//			}
 			if(ConstValue != null) {
-				return Gamma.Generator.CreateConstNode(GtStaticTable.GuessType(ConstValue), ParsedTree, ConstValue);
+				return Gamma.Generator.CreateConstNode(GtStaticTable.VarType, ParsedTree, ConstValue);
 			}
 			TypeName = ObjectType.ShortName;
 		}
 		// 2. find Class method
-		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(ObjectNode.Type, Name, true);
+		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(RecvNode.Type, Name, true);
 		if(PolyFunc.FuncList.size() > 0 && ContextType == GtStaticTable.FuncType) {
 			/*local*/GtFunc FirstFunc = PolyFunc.FuncList.get(0);
-			return Gamma.Generator.CreateGetterNode(ContextType, ParsedTree, FirstFunc, ObjectNode);
+			return Gamma.Generator.CreateGetterNode(ContextType, ParsedTree, FirstFunc, RecvNode);
 		}
 		// 3. find object field
-		/*local*/GtFunc GetterFunc = ParsedTree.NameSpace.GetGetterFunc(ObjectNode.Type, Name, true);
-		/*local*/GtType ReturnType = (GetterFunc != null) ? GetterFunc.GetReturnType() : GtStaticTable.AnyType;
-		/*local*/GtNode Node = Gamma.Generator.CreateGetterNode(ReturnType, ParsedTree, GetterFunc, ObjectNode);
-		if(GetterFunc == null) {
-			if(!ObjectNode.Type.IsDynamic() && ContextType != GtStaticTable.FuncType) {
-				return Gamma.ReportTypeResult(ParsedTree, Node, TypeErrorLevel, "undefined name: " + Name + " of " + TypeName);
-			}
+		/*local*/GtFunc GetterFunc = ParsedTree.NameSpace.GetGetterFunc(RecvNode.Type, Name, true);
+		if(GetterFunc != null) {
+			return Gamma.Generator.CreateGetterNode(GetterFunc.GetReturnType(), ParsedTree, GetterFunc, RecvNode);			
 		}
-		return Node;
+		else if(RecvNode.Type.IsDynamic()) {
+			return Gamma.Generator.CreateDyGetterNode(ContextType, ParsedTree, RecvNode, Name);
+		}
+		else {
+			if(ContextType != GtStaticTable.FuncType) {
+				return Gamma.CreateSyntaxErrorNode(ParsedTree, "undefined name: " + Name + " of " + TypeName);
+			}
+			return Gamma.Generator.CreateGetterNode(GtStaticTable.AnyType, ParsedTree, GetterFunc, RecvNode);			
+		}
 	}
 
 	public static GtNode TypeSetter(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/String Name = ParsedTree.KeyToken.ParsedText;
-		/*local*/GtNode ObjectNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, GtStaticTable.VarType, DefaultTypeCheckPolicy);
-		if(ObjectNode.IsErrorNode()) {
-			return ObjectNode;
+		/*local*/GtNode RecvNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, GtStaticTable.VarType, DefaultTypeCheckPolicy);
+		if(RecvNode.IsErrorNode()) {
+			return RecvNode;
 		}
-		/*local*/GtFunc SetterFunc = ParsedTree.NameSpace.GetSetterFunc(ObjectNode.Type, Name, true);
+		/*local*/GtFunc SetterFunc = ParsedTree.NameSpace.GetSetterFunc(RecvNode.Type, Name, true);
 		if(SetterFunc != null) {
 			/*local*/GtType ValueType = SetterFunc.GetFuncParamType(1);
 			/*local*/GtNode ValueNode = ParsedTree.TypeCheckAt(RightHandTerm, Gamma, ValueType, DefaultTypeCheckPolicy);
-			return Gamma.Generator.CreateSetterNode(GtStaticTable.VoidType, ParsedTree, SetterFunc, ObjectNode, ValueNode);
+			return Gamma.Generator.CreateSetterNode(GtStaticTable.VoidType, ParsedTree, SetterFunc, RecvNode, ValueNode);
 		}
-		else if(ObjectNode.Type.IsDynamic()) {
-			/*local*/GtNode ValueNode = ParsedTree.TypeCheckAt(RightHandTerm, Gamma, GtStaticTable.VoidType, DefaultTypeCheckPolicy);
-			return Gamma.Generator.CreateSetterNode(GtStaticTable.VoidType, ParsedTree, SetterFunc, ObjectNode, ValueNode);			
+		else if(RecvNode.Type.IsDynamic()) {
+			/*local*/GtNode ValueNode = ParsedTree.TypeCheckAt(RightHandTerm, Gamma, GtStaticTable.VarType, DefaultTypeCheckPolicy);
+			return Gamma.Generator.CreateDySetterNode(GtStaticTable.VoidType, ParsedTree, RecvNode, Name, ValueNode);			
 		}
 		else {
-			return Gamma.CreateSyntaxErrorNode(ParsedTree, "undefined name: " + Name + " of " + ObjectNode.Type);
+			return Gamma.CreateSyntaxErrorNode(ParsedTree, "undefined name: " + Name + " of " + RecvNode.Type);
 		}
 	}
 

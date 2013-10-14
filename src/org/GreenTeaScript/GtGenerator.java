@@ -80,8 +80,17 @@ public class GtGenerator extends GreenTeaUtils {
 	public GtNode CreateGetterNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, GtNode Expr) {
 		return new GtGetterNode(Type, ParsedTree.KeyToken, Func, Expr);
 	}
+	public GtNode CreateDyGetterNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Expr, String FieldName) {
+		if(Type.IsVarType()) {
+			Type = GtStaticTable.AnyType;
+		}
+		return new GtDyGetterNode(Type, ParsedTree.KeyToken, Expr, ParsedTree.NameSpace, FieldName);
+	}
 	public GtNode CreateSetterNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, GtNode Left, GtNode Right) {
 		return new GtSetterNode(Type, ParsedTree.KeyToken, Func, Left, Right);
+	}
+	public GtNode CreateDySetterNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Left, String Name, GtNode Right) {
+		return new GtDySetterNode(Type, ParsedTree.KeyToken, Left, ParsedTree.NameSpace, Name, Right);
 	}
 	public GtNode CreateIndexerNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, GtNode Expr) {
 		return new GtIndexerNode(Type, ParsedTree.KeyToken, Func, Expr);
@@ -504,8 +513,7 @@ public class GtGenerator extends GreenTeaUtils {
 			}
 			//System.err.println("** Node.Func = " + Node.Func.FuncBody.getClass());
 			if(Node.Func.FuncBody instanceof Field) {
-				Value = LibGreenTea.NativeFieldGetter(Value, (/*cast*/Field)Node.Func.FuncBody);
-				//System.err.println("field: " + Value);
+				Value = LibGreenTea.NativeFieldValue(Value, (/*cast*/Field)Node.Func.FuncBody);
 				return Value;
 			}
 			if(Node.Func.FuncBody instanceof Method) {
@@ -731,7 +739,8 @@ public class GtGenerator extends GreenTeaUtils {
 	public Object EvalDyGetterNode(GtDyGetterNode GetterNode, boolean EnforceConst) {
 		/*local*/Object RecvObject = GetterNode.RecvNode.ToConstValue(this.Context, EnforceConst);
 		if(RecvObject != null) {
-			return LibGreenTea.DynamicGetter(GetterNode.Type, RecvObject, GetterNode.FieldName);
+			Object Value = LibGreenTea.DynamicGetter(RecvObject, GetterNode.FieldName);
+			return LibGreenTea.DynamicCast(GetterNode.Type, Value);
 		}
 		return null;
 	}
@@ -741,7 +750,7 @@ public class GtGenerator extends GreenTeaUtils {
 		if(RecvObject != null) {
 			/*local*/Object Value = SetterNode.ValueNode.ToConstValue(this.Context, EnforceConst);
 			if(Value != null || SetterNode.ValueNode.IsNullNode()) {
-				return LibGreenTea.DynamicSetter(SetterNode.Type, RecvObject, SetterNode.FieldName, Value);
+				return LibGreenTea.DynamicSetter(RecvObject, SetterNode.FieldName, Value);
 			}
 		}
 		return null;
