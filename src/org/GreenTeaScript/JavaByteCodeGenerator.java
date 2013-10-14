@@ -189,6 +189,7 @@ class JLib {
 	static Method GreenInstanceOfOperator;
 	static Method NewArrayLiteral;
 	static Method NewArray;
+	static Method ApplyFunc;
 	static Method ExecCommandVoid;
 	static Method ExecCommandBool;
 	static Method ExecCommandString;
@@ -209,6 +210,7 @@ class JLib {
 			GetFuncById = GtStaticTable.class.getMethod("GetFuncById", int.class);
 			DynamicGetter = LibGreenTea.class.getMethod("DynamicGetter", Object.class, String.class);
 			DynamicSetter = LibGreenTea.class.getMethod("DynamicSetter", Object.class, String.class, Object.class);
+			ApplyFunc = LibGreenTea.class.getMethod("ApplyFunc", GtFunc.class, Object[].class);
 			BoxBooleanValue = Boolean.class.getMethod("valueOf", boolean.class);
 			BoxIntValue = Long.class.getMethod("valueOf", long.class);
 			BoxFloatValue = Double.class.getMethod("valueOf", double.class);
@@ -671,7 +673,9 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	}
 	
 	@Override public void VisitApplyFuncNode(GtApplyFuncNode ApplyNode) {
-		
+		ApplyNode.Evaluate(this);
+		this.VisitingBuilder.LoadNewArray(this, 0, ApplyNode.ParamList);
+		this.VisitingBuilder.InvokeMethodCall(ApplyNode.Type, JLib.NewArrayLiteral);		
 	}
 	
 	@Override public void VisitApplyDynamicFuncNode(GtApplyDynamicFuncNode ApplyNode) {

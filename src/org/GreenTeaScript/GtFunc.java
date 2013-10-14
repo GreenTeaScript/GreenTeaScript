@@ -286,20 +286,8 @@ public final class GtFunc extends GreenTeaUtils {
 	}
 
 	public Object Apply(Object[] Arguments) {
-		if(this.IsAbstract()) {
-			LibGreenTea.VerboseLog(VerboseRuntime, "applying abstract function: " + this);
-			return this.GetReturnType().DefaultNullValue;
-		}
-		else if(!this.Is(NativeStaticFunc)) {
-			/*local*/Object[] MethodArguments = new Object[Arguments.length-1];
-			LibGreenTea.ArrayCopy(Arguments, 1, MethodArguments, 0, MethodArguments.length);
-			return LibGreenTea.ApplyFunc(this, Arguments[0], MethodArguments);
-		}
-		return LibGreenTea.ApplyFunc(this, null, Arguments);
+		return LibGreenTea.ApplyFunc(this, Arguments);
 	}
-
-
-
 }
 
 class GtResolvedFunc {
