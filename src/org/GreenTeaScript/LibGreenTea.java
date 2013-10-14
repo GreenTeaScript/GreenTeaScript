@@ -143,7 +143,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		}
 		return null;
 	}
-	
+		
 	public final static String GetPlatform() {
 		return "Java JVM-" + System.getProperty("java.version");
 	}
