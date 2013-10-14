@@ -609,27 +609,29 @@ class GtPolyFunc extends GreenTeaUtils {
 //		return ResolvedFunc;
 //	}
 
-	public String MessageTypeError(GtType ClassType, String MethodName) {
-		if(ClassType == null) {
-			if(this.FuncList.size() == 0) {
-				return "undefined function: " + MethodName;
+	public boolean IsEmpty() {
+		return this.FuncList.size() == 0;
+	}
+	
+	public String FormatTypeErrorMessage(String FuncType, GtType ClassType, String MethodName) {
+		if(ClassType != null) {
+			if(LibGreenTea.EqualsString(MethodName, "")) {
+				MethodName = ClassType.toString();
 			}
 			else {
-				return "mismatched functions: " + this;
+				MethodName = MethodName + " of " + ClassType;
 			}
 		}
+		if(this.FuncList.size() == 0) {
+			return "undefined " + FuncType + ": " + MethodName;
+		}
 		else {
-			if(this.FuncList.size() == 0) {
-				return "undefined method: " + MethodName + " of " + ClassType;
-			}
-			else {
-				return "mismatched methods: " + this;
-			}
+			return "mismatched " + FuncType + "s: " + this;
 		}
 	}
 
-	public GtNode ReportTypeError(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ClassType, String MethodName) {
-		return Gamma.CreateSyntaxErrorNode(ParsedTree, this.MessageTypeError(ClassType, MethodName));
+	public GtNode CreateTypeErrorNode(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, String FuncType, GtType ClassType, String MethodName) {
+		return Gamma.CreateSyntaxErrorNode(ParsedTree, this.FormatTypeErrorMessage(FuncType, ClassType, MethodName));
 	}
 
 

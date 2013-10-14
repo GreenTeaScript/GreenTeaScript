@@ -685,31 +685,21 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.VisitingBuilder.LoadConst(ApplyNode.Type);
 		this.VisitingBuilder.LoadConst(ApplyNode.NameSpace);
 		this.VisitingBuilder.LoadConst(ApplyNode.FuncName);		
-		ApplyNode.ParamList.add(0, ApplyNode.RecvNode);
 		this.VisitingBuilder.LoadNewArray(this, 0, ApplyNode.ParamList);
 		this.VisitingBuilder.InvokeMethodCall(ApplyNode.Type, JLib.InvokeDynamicMethod);				
 	}
-
 	
 	@Override public void VisitUnaryNode(GtUnaryNode Node) {
-		if(Node.Func.FuncBody instanceof Method) {
-			Node.Expr.Evaluate(this);
-			this.VisitingBuilder.InvokeMethodCall(Node.Type, (Method)Node.Func.FuncBody);
-		}
-		else {
-			throw new RuntimeException("unsupport unary operator: " + Node.Func.FuncName);
-		}
+		LibGreenTea.Assert(Node.Func.FuncBody instanceof Method);
+		Node.Expr.Evaluate(this);
+		this.VisitingBuilder.InvokeMethodCall(Node.Type, (Method)Node.Func.FuncBody);
 	}
 
 	@Override public void VisitBinaryNode(GtBinaryNode Node) {
-		if(Node.Func.FuncBody instanceof Method) {
-			Node.LeftNode.Evaluate(this);
-			Node.RightNode.Evaluate(this);
-			this.VisitingBuilder.InvokeMethodCall(Node.Type, (Method)Node.Func.FuncBody);
-		}
-		else {
-			throw new RuntimeException("unsupport binary operator: " + Node.Func.FuncName);
-		}
+		LibGreenTea.Assert(Node.Func.FuncBody instanceof Method);
+		Node.LeftNode.Evaluate(this);
+		Node.RightNode.Evaluate(this);
+		this.VisitingBuilder.InvokeMethodCall(Node.Type, (Method)Node.Func.FuncBody);
 	}
 
 	@Override public void VisitIndexerNode(GtIndexerNode Node) {

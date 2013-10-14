@@ -715,11 +715,11 @@ final class GtApplyDynamicFuncNode extends GtNode {
 
 //E.g., $RecvNode . FuncName "(" $Param[1], $Param[2], ... ")"
 final class GtApplyDynamicMethodNode extends GtNode {
-	/*field*/public GtNode RecvNode;
+//	/*field*/public GtNode RecvNode;
 	/*field*/public GtNameSpace NameSpace;
 	/*field*/public String FuncName;
 	/*field*/public ArrayList<GtNode>  ParamList; /* [arg1, arg2, ...] */
-	GtApplyDynamicMethodNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, GtNameSpace NameSpace, String FuncName) {
+	GtApplyDynamicMethodNode/*constructor*/(GtType Type, GtToken Token, GtNameSpace NameSpace, String FuncName) {
 		super(Type, Token);
 		this.NameSpace = NameSpace.Minimum();
 		this.FuncName = FuncName;

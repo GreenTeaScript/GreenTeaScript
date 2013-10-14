@@ -106,7 +106,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 			Value = LibGreenTea.InvokeFunc(Func, Arguments);
 			return LibGreenTea.DynamicCast(ContextType, Value);
 		}
-		LibGreenTea.VerboseLog(VerboseRuntime, PolyFunc.MessageTypeError(null, FuncName));
+		LibGreenTea.VerboseLog(VerboseRuntime, PolyFunc.FormatTypeErrorMessage("function", null, FuncName));
 		return Value;
 	}
 
@@ -119,7 +119,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 			Value = LibGreenTea.InvokeFunc(Func, Arguments);
 			return LibGreenTea.DynamicCast(ContextType, Value);
 		}
-		LibGreenTea.VerboseLog(VerboseRuntime, PolyFunc.MessageTypeError(ClassType, FuncName));
+		LibGreenTea.VerboseLog(VerboseRuntime, PolyFunc.FormatTypeErrorMessage("method", ClassType, FuncName));
 		return Value;
 	}
 	
