@@ -105,7 +105,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 
 	public final GtNameSpace Minimum() {
 		GtNameSpace NameSpace = this;
-		while(this.SymbolPatternTable == null) {
+		while(NameSpace.SymbolPatternTable == null) {
 			NameSpace = NameSpace.ParentNameSpace;
 		}
 		return NameSpace;
