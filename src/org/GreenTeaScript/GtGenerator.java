@@ -699,7 +699,7 @@ public class GtGenerator extends GreenTeaUtils {
 	}
 
 	public Object EvalApplyFuncNode(GtApplyFuncNode ApplyNode, boolean EnforceConst) {
-		/*local*/GtFunc Func = (/*cast*/GtFunc)ApplyNode.ToConstValue(this.Context, EnforceConst);
+		/*local*/GtFunc Func = (/*cast*/GtFunc)ApplyNode.FuncNode.ToConstValue(this.Context, EnforceConst);
 		if(Func != null) {
 			/*local*/Object[] Arguments = this.MakeArguments(null, ApplyNode.ParamList, EnforceConst);
 			if(Arguments != null) {

@@ -1034,6 +1034,7 @@ public class KonohaGrammar extends GtGrammar {
 			if(FuncType.TypeParams[i].IsVarType() || FuncType.TypeParams[i].IsTypeVariable()) {
 				return Gamma.CreateSyntaxErrorNode(ParsedTree, "ambigious function: " + FuncType);
 			}
+			i += 1;
 		}
 		if(LibGreenTea.ListSize(ParsedTree.SubTreeList) == FuncParamSize) {
 			/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
@@ -1043,6 +1044,8 @@ public class KonohaGrammar extends GtGrammar {
 				if(Node.IsErrorNode()) {
 					return Node;
 				}
+				ParamList.add(Node);
+				i += 1;
 			}
 			return Gamma.Generator.CreateApplyFuncNode(FuncType.TypeParams[0], ParsedTree, FuncNode).AppendNodeList(0, ParamList);
 		}
@@ -1062,8 +1065,8 @@ public class KonohaGrammar extends GtGrammar {
 				return KonohaGrammar.TypePolyFuncCall(Gamma, ParsedTree, (/*cast*/GtPolyFunc)Func);
 			}
 		}
-		if(FuncNode.Type.IsTypeType()) {
-			KonohaGrammar.TypeFuncObject(Gamma, ParsedTree, FuncNode);
+		if(FuncNode.Type.IsFuncType()) {
+			return KonohaGrammar.TypeFuncObject(Gamma, ParsedTree, FuncNode);
 		}
 		return KonohaGrammar.TypeMethodNameCall(Gamma, ParsedTree, FuncNode, "()", ContextType);
 	}

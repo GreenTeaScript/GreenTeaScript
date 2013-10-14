@@ -346,6 +346,7 @@ class JMethodBuilder {
 	void LoadNewArray(GtGenerator Visitor, int StartIdx, ArrayList<GtNode> NodeList) {
 		this.MethodVisitor.visitLdcInsn(NodeList.size() - StartIdx);
 		this.MethodVisitor.visitTypeInsn(ANEWARRAY, Type.getInternalName(Object.class));
+		//System.err.println("** arraysize = " + (NodeList.size() - StartIdx));
 		for(int i = StartIdx; i < NodeList.size(); i++) {
 			this.MethodVisitor.visitInsn(DUP);
 			this.MethodVisitor.visitLdcInsn(i);
@@ -657,7 +658,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	}
 
 	@Override public void VisitApplyFuncNode(GtApplyFuncNode ApplyNode) {
-		ApplyNode.Evaluate(this);
+		ApplyNode.FuncNode.Evaluate(this);
 		this.VisitingBuilder.LoadNewArray(this, 0, ApplyNode.ParamList);
 		this.VisitingBuilder.InvokeMethodCall(ApplyNode.Type, JLib.InvokeFunc);		
 	}
