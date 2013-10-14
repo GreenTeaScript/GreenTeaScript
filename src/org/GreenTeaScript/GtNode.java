@@ -646,26 +646,26 @@ final class GtStaticApplyNode extends GtNode {
 		return Context.Generator.EvalStaticApplyNode(this, EnforceConst);
 	}
 }
-//E.g., $RecvNode . Func "(" $Param[1], $Param[2], ... ")"
-final class GtApplyStaticMethodNode extends GtNode {
-	/*field*/public GtNode RecvNode;
-	/*field*/public GtFunc Func;
-	/*field*/public ArrayList<GtNode>  ParamList; /* [arg1, arg2, ...] */
-	GtApplyStaticMethodNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, GtFunc Func) {
-		super(Type, Token);
-		this.Func = Func;
-		this.ParamList = new ArrayList<GtNode>();
-	}
-	public final ArrayList<GtNode> GetList() {
-		return this.ParamList;
-	}
-	@Override public void Evaluate(GtGenerator Visitor) {
-		Visitor.VisitApplyStaticMethodNode(this);
-	}
-	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
-		return Context.Generator.EvalApplyStaticMethodNode(this, EnforceConst);
-	}
-}
+////E.g., $RecvNode . Func "(" $Param[1], $Param[2], ... ")"
+//final class GtApplyStaticMethodNode extends GtNode {
+//	/*field*/public GtNode RecvNode;
+//	/*field*/public GtFunc Func;
+//	/*field*/public ArrayList<GtNode>  ParamList; /* [arg1, arg2, ...] */
+//	GtApplyStaticMethodNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, GtFunc Func) {
+//		super(Type, Token);
+//		this.Func = Func;
+//		this.ParamList = new ArrayList<GtNode>();
+//	}
+//	public final ArrayList<GtNode> GetList() {
+//		return this.ParamList;
+//	}
+//	@Override public void Evaluate(GtGenerator Visitor) {
+//		Visitor.VisitApplyStaticMethodNode(this);
+//	}
+//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+//		return Context.Generator.EvalApplyStaticMethodNode(this, EnforceConst);
+//	}
+//}
 //E.g., $RecvNode . Func "(" $Param[1], $Param[2], ... ")"
 final class GtApplyOverridedMethodNode extends GtNode {
 	/*field*/public GtNode RecvNode;

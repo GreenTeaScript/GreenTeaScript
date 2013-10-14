@@ -325,9 +325,9 @@ public class GtGenerator extends GreenTeaUtils {
 	public void VisitStaticApplyNode(GtStaticApplyNode Node) {
 		/*extension*/
 	}
-	public void VisitApplyStaticMethodNode(GtApplyStaticMethodNode Node) {
-		/*extension*/
-	}
+//	public void VisitApplyStaticMethodNode(GtApplyStaticMethodNode Node) {
+//		/*extension*/
+//	}
 	public void VisitApplyOverridedMethodNode(GtApplyOverridedMethodNode Node) {
 		/*extension*/		
 	}
@@ -755,4 +755,5 @@ public class GtGenerator extends GreenTeaUtils {
 		}
 		return null;
 	}
+
 }
