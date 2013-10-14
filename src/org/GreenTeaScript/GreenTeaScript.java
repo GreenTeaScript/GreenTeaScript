@@ -766,6 +766,11 @@ public class GreenTeaScript extends GreenTeaUtils {
 	}
 
 	public final static void main(String[] Args)  {
-		GreenTeaScript.ExecCommand(Args);
+		try {
+			GreenTeaScript.ExecCommand(Args);
+		}
+		catch(SoftwareFaultException e) {
+			System.err.println(e.GetStackTrace());
+		}
 	}
 }
