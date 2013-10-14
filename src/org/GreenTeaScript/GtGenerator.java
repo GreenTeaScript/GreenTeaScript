@@ -95,7 +95,7 @@ public class GtGenerator extends GreenTeaUtils {
 	public GtNode CreateIndexerNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, GtNode Expr) {
 		return new GtIndexerNode(Type, ParsedTree.KeyToken, Func, Expr);
 	}
-	public GtNode CreateApplyNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func) {
+	@Deprecated public GtNode CreateApplyNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func) {
 		return new GtApplyNode(Type, ParsedTree == null ? GtTokenContext.NullToken : ParsedTree.KeyToken, Func);
 	}
 	public GtNode CreateStaticApplyNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func) {

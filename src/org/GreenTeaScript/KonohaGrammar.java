@@ -888,8 +888,7 @@ public class KonohaGrammar extends GtGrammar {
 			}
 			else {
 				Gamma.CheckFunc("constructor", ResolvedFunc.Func, ParsedTree.KeyToken);
-				/*local*/GtNode Node = Gamma.Generator.CreateApplyNode(ResolvedFunc.ReturnType, ParsedTree, ResolvedFunc.Func);
-				Node.Append(Gamma.Generator.CreateConstNode(GtStaticTable.VarType, ParsedTree, ResolvedFunc.Func));
+				/*local*/GtNode Node = Gamma.Generator.CreateStaticApplyNode(ResolvedFunc.ReturnType, ParsedTree, ResolvedFunc.Func);
 				Node.AppendNodeList(0, ParamList);
 				return Node;
 			}

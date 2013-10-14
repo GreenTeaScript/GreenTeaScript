@@ -611,7 +611,7 @@ final class GtSliceNode extends GtNode {
 }
 
 // E.g., $Param[0] "(" $Param[1], $Param[2], ... ")"
-final class GtApplyNode extends GtNode {
+@Deprecated final class GtApplyNode extends GtNode {
 	/*field*/public GtFunc	Func;
 	/*field*/public ArrayList<GtNode>  NodeList; /* [arg1, arg2, ...] */
 	GtApplyNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func) {
