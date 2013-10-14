@@ -261,7 +261,6 @@ class JLib {
 		return Type.getType("L" + GreenType.GetNativeName() + ";");
 	}
 
-
 	static String GetMethodDescriptor(GtFunc Func) {
 		Type ReturnType = GetAsmType(Func.GetReturnType());
 		Type[] argTypes = new Type[Func.GetFuncParamSize()];

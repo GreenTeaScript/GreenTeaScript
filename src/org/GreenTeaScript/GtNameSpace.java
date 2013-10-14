@@ -188,7 +188,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 	}
 
 	public GtSyntaxPattern GetExtendedSyntaxPattern(String PatternName) {
-		/*local*/Object Body = this.GetSymbol("\t" + PatternName);
+		/*local*/Object Body = this.GetSymbol(ExtendedPatternSymbol(PatternName));
 		if(Body instanceof GtSyntaxPattern) {
 			return (/*cast*/GtSyntaxPattern)Body;
 		}
@@ -217,7 +217,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 		/*local*/String Name = (Alias == -1) ? PatternName : PatternName.substring(0, Alias);
 		/*local*/GtSyntaxPattern Pattern = new GtSyntaxPattern(this, Name, MatchFunc, TypeFunc);
 		Pattern.SyntaxFlag = SyntaxFlag;
-		this.AppendSyntaxPattern("\t" + Name, Pattern, null);
+		this.AppendSyntaxPattern(ExtendedPatternSymbol(Name), Pattern, null);
 		if(Alias != -1) {
 			this.AppendExtendedSyntax(PatternName.substring(Alias+1), SyntaxFlag, MatchFunc, TypeFunc);
 		}

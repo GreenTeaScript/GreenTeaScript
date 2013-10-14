@@ -381,6 +381,10 @@ class GreenTeaUtils implements GreenTeaConsts {
 		return Name + NativeNameSuffix + Index;
 	}
 
+	public final static String ExtendedPatternSymbol(String PatternName) {
+		return "\t" + PatternName;
+	}
+	
 	public final static String ClassSymbol(GtType ClassType, String Symbol) {
 		return ClassType.GetUniqueName() + "." + Symbol;
 	}

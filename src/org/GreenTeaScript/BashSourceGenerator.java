@@ -410,7 +410,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	private boolean CheckConstFolding(GtNode TargetNode) {
-		if(TargetNode instanceof GtConstNode) {
+		if(TargetNode.IsConstNode()) {
 			return true;
 		}
 		else if(TargetNode instanceof GtUnaryNode) {
@@ -444,7 +444,7 @@ public class BashSourceGenerator extends SourceGenerator {
 			}
 		}
 		
-		if(TargetNode instanceof GtConstNode || TargetNode instanceof GtNullNode) {
+		if(TargetNode.IsConstNode() || TargetNode instanceof GtNullNode) {
 			return Value;
 		}
 		else if(TargetNode instanceof GtIndexerNode || TargetNode instanceof GtGetterNode) {

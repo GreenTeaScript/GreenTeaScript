@@ -109,6 +109,23 @@ public class GtGenerator extends GreenTeaUtils {
 //		}
 		return ApplyNode;
 	}
+	public GtNode CreateApplyFuncNode(GtType Type, GtSyntaxTree ParsedTree, GtNode FuncNode) {
+		return new GtApplyFuncNode(Type, ParsedTree.KeyToken, FuncNode);
+	}
+	public GtNode CreateApplyMethodNode(GtType Type, GtSyntaxTree ParsedTree, GtNode RecvNode, GtFunc Func) {
+		if(Func.Is(VirtualFunc)) {
+			return new GtApplyOverridedMethodNode(Type, ParsedTree.KeyToken, ParsedTree.NameSpace.Minimum(), Func);
+		}
+		else {
+			return new GtStaticApplyNode(Type, ParsedTree.KeyToken, Func);
+		}
+	}
+	public GtNode CreateApplyDynamicMethodNode(GtType Type, GtSyntaxTree ParsedTree, GtNode RecvNode, String Name) {
+		if(Type.IsVarType()) {
+			Type = GtStaticTable.AnyType;
+		}
+		return new GtApplyDynamicMethodNode(Type, ParsedTree.KeyToken, RecvNode, ParsedTree.NameSpace.Minimum(), Name);
+	}
 	public GtNode CreateNewNode(GtType Type, GtSyntaxTree ParsedTree) {
 		return new GtNewNode(Type, ParsedTree.KeyToken);
 	}
@@ -663,43 +680,19 @@ public class GtGenerator extends GreenTeaUtils {
 
 	public Object EvalStaticApplyNode(GtStaticApplyNode ApplyNode, boolean EnforceConst) {
 		if((EnforceConst || ApplyNode.Func.Is(ConstFunc)) /*&& ApplyNode.Func.FuncBody instanceof Method */) {
-//			/*local*/Object RecvObject = null;
-//			if(!Node.Func.Is(NativeStaticFunc)  && Node.NodeList.size() > 1) {
-//				RecvObject = Node.NodeList.get(1).ToConstValue(this.Context, EnforceConst);
-//				if(RecvObject == null) {
-//					return null;
-//				}
-//				StartIndex = 2;
-//			}
 			/*local*/Object[] Arguments = this.MakeArguments(null, ApplyNode.ParamList, EnforceConst);
 			if(Arguments != null) {
-				return LibGreenTea.ApplyMethod(ApplyNode.Func, null, Arguments);
+				return LibGreenTea.InvokeFunc(ApplyNode.Func, Arguments);
 			}
 		}
 		return null;
 	}
 
-//	public Object EvalApplyStaticMethodNode(GtApplyStaticMethodNode ApplyNode, boolean EnforceConst) {
-//		if((EnforceConst || ApplyNode.Func.Is(ConstFunc)) /*&& ApplyNode.Func.FuncBody instanceof Method */) {
-//			/*local*/Object RecvObject = ApplyNode.RecvNode.ToConstValue(this.Context, EnforceConst);
-//			if(RecvObject != null) {
-//				/*local*/Object[] Arguments = this.MakeArguments(null, ApplyNode.ParamList, EnforceConst);
-//				if(Arguments != null) {
-//					return LibGreenTea.ApplyMethod(ApplyNode.Func, RecvObject, Arguments);
-//				}
-//			}
-//		}
-//		return null;
-//	}
-
 	public Object EvalApplyOverridedMethodNode(GtApplyOverridedMethodNode ApplyNode, boolean EnforceConst) {
-		if((EnforceConst || ApplyNode.Func.Is(ConstFunc)) /*&& ApplyNode.Func.FuncBody instanceof Method */) {
-			/*local*/Object RecvObject = ApplyNode.RecvNode.ToConstValue(this.Context, EnforceConst);
-			if(RecvObject != null) {
-				/*local*/Object[] Arguments = this.MakeArguments(RecvObject, ApplyNode.ParamList, EnforceConst);
-				if(Arguments != null) {
-					return LibGreenTea.InvokeOverridedMethod(0, ApplyNode.NameSpace, ApplyNode.Func, Arguments);
-				}
+		if((EnforceConst || ApplyNode.Func.Is(ConstFunc))) {
+			/*local*/Object[] Arguments = this.MakeArguments(null, ApplyNode.ParamList, EnforceConst);
+			if(Arguments != null) {
+				return LibGreenTea.InvokeOverridedMethod(0, ApplyNode.NameSpace, ApplyNode.Func, Arguments);
 			}
 		}
 		return null;
@@ -710,7 +703,7 @@ public class GtGenerator extends GreenTeaUtils {
 		if(Func != null) {
 			/*local*/Object[] Arguments = this.MakeArguments(null, ApplyNode.ParamList, EnforceConst);
 			if(Arguments != null) {
-				return Func.Apply(Arguments);
+				return LibGreenTea.InvokeFunc(Func, Arguments);
 			}
 		}
 		return null;
@@ -723,7 +716,6 @@ public class GtGenerator extends GreenTeaUtils {
 		}
 		return null;
 	}
-
 
 	public Object EvalApplyDynamicMethodNode(GtApplyDynamicMethodNode ApplyNode, boolean EnforceConst) {
 		/*local*/Object RecvObject = ApplyNode.RecvNode.ToConstValue(this.Context, EnforceConst);
