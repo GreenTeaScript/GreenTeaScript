@@ -904,7 +904,6 @@ public class KonohaGrammar extends GtGrammar {
 		}
 		if(TokenContext.IsToken("(")) {  // method call
 			GtSyntaxTree ApplyTree = TokenContext.ParsePatternAfter(NameSpace, LeftTree, "$MethodCall$", Required);
-//			GtSyntaxTree ApplyTree = KonohaGrammar.ParseApply(NameSpace, TokenContext, LeftTree, NameSpace.GetSyntaxPattern("$MethodCall$"));
 			if(GreenTeaUtils.IsValidSyntax(ApplyTree)) {
 				ApplyTree.KeyToken = Token;
 			}
@@ -936,11 +935,6 @@ public class KonohaGrammar extends GtGrammar {
 			TypeName = ObjectType.ShortName;
 		}
 //		// 2. find Class method
-//		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(RecvNode.Type, Name, true);
-//		if(PolyFunc.FuncList.size() > 0 && ContextType == GtStaticTable.FuncType) {
-//			/*local*/GtFunc FirstFunc = PolyFunc.FuncList.get(0);
-//			return Gamma.Generator.CreateGetterNode(ContextType, ParsedTree, FirstFunc, RecvNode);
-//		}
 		// 3. find object field
 		/*local*/GtFunc GetterFunc = ParsedTree.NameSpace.GetGetterFunc(RecvNode.Type, Name, true);
 		if(GetterFunc != null) {
@@ -948,6 +942,10 @@ public class KonohaGrammar extends GtGrammar {
 		}
 		if(RecvNode.Type.IsDynamic()) {
 			return Gamma.Generator.CreateDyGetterNode(ContextType, ParsedTree, RecvNode, Name);
+		}
+		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(RecvNode.Type, Name, true);
+		if(PolyFunc.FuncList.size() > 0) {
+			return Gamma.CreateSyntaxErrorNode(ParsedTree, Name + " of " + TypeName + " is method(s): " + PolyFunc);
 		}
 		return Gamma.CreateSyntaxErrorNode(ParsedTree, "undefined name: " + Name + " of " + TypeName);
 	}
