@@ -495,8 +495,8 @@ public class DShellGrammar extends GreenTeaUtils {
 		if(ActionNode.IsErrorNode()) {
 			return ActionNode;
 		}
-		if(ActionNode instanceof GtApplyNode) {
-			GtFunc ActionFunc = ((GtApplyNode)ActionNode).Func;
+		if(ActionNode instanceof GtStaticApplyNode) {
+			GtFunc ActionFunc = ((GtStaticApplyNode)ActionNode).Func;
 			if(ActionFunc.GetFuncParamSize() == 0) {
 				GtFunc ReportFunc = (GtFunc)Gamma.NameSpace.GetSymbol("$ReportBuiltInFunc");
 				GtNode ApplyNode = Gamma.Generator.CreateApplyNode(ContextType, ParsedTree, ReportFunc);
