@@ -83,7 +83,7 @@ interface GreenTeaConsts {
 	public final static int     HiddenFunc          = 1 << 6;  // @Hidden
 	public final static int     CommonFunc          = 1 << 7;  // @Common
 
-	public final static int		NativeStaticFunc	= 1 << 8;
+	public final static int		NativeMethodFunc	= 1 << 8;
 	public final static int		NativeMacroFunc	    = 1 << 9;
 	public final static int		NativeVariadicFunc	= 1 << 10;
 	public final static int     ConstructorFunc     = 1 << 11;
@@ -381,6 +381,10 @@ class GreenTeaUtils implements GreenTeaConsts {
 		return Name + NativeNameSuffix + Index;
 	}
 
+	public final static String ExtendedPatternSymbol(String PatternName) {
+		return "\t" + PatternName;
+	}
+	
 	public final static String ClassSymbol(GtType ClassType, String Symbol) {
 		return ClassType.GetUniqueName() + "." + Symbol;
 	}
@@ -762,6 +766,11 @@ public class GreenTeaScript extends GreenTeaUtils {
 	}
 
 	public final static void main(String[] Args)  {
-		GreenTeaScript.ExecCommand(Args);
+		try {
+			GreenTeaScript.ExecCommand(Args);
+		}
+		catch(SoftwareFaultException e) {
+			System.err.println(e.GetStackTrace());
+		}
 	}
 }

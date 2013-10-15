@@ -51,12 +51,7 @@ class GtFuncBlock extends GreenTeaUtils {
 			this.NameList.add(this.NameSpace.Context.Generator.GetRecvName());
 		}
 	}
-
-	void SetConverterType() {
-		this.TypeList.add(GtStaticTable.TypeType);
-		this.NameList.add("type");
-	}
-
+	
 	void AddParameter(GtType Type, String Name) {
 		this.TypeList.add(Type);
 		if(Type.IsVarType()) {
@@ -69,7 +64,7 @@ class GtFuncBlock extends GreenTeaUtils {
 public final class GtFunc extends GreenTeaUtils {
 	/*field*/public int				FuncFlag;
 	/*field*/public String			FuncName;
-	/*field*/public String          MangledName;
+//	/*field*/public String          MangledName;
 	/*field*/public GtType[]		Types;
 	/*field*/public GtType          FuncType;
 	/*field*/public                 int FuncId;
@@ -85,7 +80,7 @@ public final class GtFunc extends GreenTeaUtils {
 		this.FuncBody = null;
 		this.FuncId = GtStaticTable.FuncPools.size();
 		GtStaticTable.FuncPools.add(this);
-		this.MangledName = FuncName + NativeNameSuffix + this.FuncId;
+//		this.MangledName = FuncName + NativeNameSuffix + this.FuncId;
 	}
 
 	public final String GetNativeFuncName() {
@@ -93,7 +88,7 @@ public final class GtFunc extends GreenTeaUtils {
 			return this.FuncName;
 		}
 		else {
-			return this.MangledName;
+			return this.FuncName + NativeNameSuffix + this.FuncId;
 		}
 	}
 
@@ -291,20 +286,8 @@ public final class GtFunc extends GreenTeaUtils {
 	}
 
 	public Object Apply(Object[] Arguments) {
-		if(this.IsAbstract()) {
-			LibGreenTea.VerboseLog(VerboseRuntime, "applying abstract function: " + this);
-			return this.GetReturnType().DefaultNullValue;
-		}
-		else if(!this.Is(NativeStaticFunc)) {
-			/*local*/Object[] MethodArguments = new Object[Arguments.length-1];
-			LibGreenTea.ArrayCopy(Arguments, 1, MethodArguments, 0, MethodArguments.length);
-			return LibGreenTea.ApplyFunc(this, Arguments[0], MethodArguments);
-		}
-		return LibGreenTea.ApplyFunc(this, null, Arguments);
+		return LibGreenTea.InvokeFunc(this, Arguments);
 	}
-
-
-
 }
 
 class GtResolvedFunc {
@@ -428,7 +411,7 @@ class GtPolyFunc extends GreenTeaUtils {
 					if(ConvertedNodes == null) {
 						ConvertedNodes = new GtNode[ParamList.size()];
 					}
-					ConvertedNodes[p] = GenericNameSpace.Context.Generator.CreateCoercionNode(ParamType, TypeCoercion, Node);
+					ConvertedNodes[p] = GenericNameSpace.Context.Generator.CreateCoercionNode(ParamType, GenericNameSpace, TypeCoercion, Node);
 				}
 				else {
 					return null;
@@ -464,7 +447,7 @@ class GtPolyFunc extends GreenTeaUtils {
 					if(ConvertedNodes == null) {
 						ConvertedNodes = new GtNode[ParamList.size()];
 					}
-					ConvertedNodes[p] = GenericNameSpace.Context.Generator.CreateCoercionNode(ParamType, TypeCoercion, Node);
+					ConvertedNodes[p] = GenericNameSpace.Context.Generator.CreateCoercionNode(ParamType, GenericNameSpace, TypeCoercion, Node);
 				}
 				else {
 					return null;
@@ -626,27 +609,29 @@ class GtPolyFunc extends GreenTeaUtils {
 //		return ResolvedFunc;
 //	}
 
-	public String MessageTypeError(GtType ClassType, String MethodName) {
-		if(ClassType == null) {
-			if(this.FuncList.size() == 0) {
-				return "undefined function: " + MethodName;
+	public boolean IsEmpty() {
+		return this.FuncList.size() == 0;
+	}
+	
+	public String FormatTypeErrorMessage(String FuncType, GtType ClassType, String MethodName) {
+		if(ClassType != null) {
+			if(LibGreenTea.EqualsString(MethodName, "")) {
+				MethodName = ClassType.toString();
 			}
 			else {
-				return "mismatched functions: " + this;
+				MethodName = MethodName + " of " + ClassType;
 			}
 		}
+		if(this.FuncList.size() == 0) {
+			return "undefined " + FuncType + ": " + MethodName;
+		}
 		else {
-			if(this.FuncList.size() == 0) {
-				return "undefined method: " + MethodName + " of " + ClassType;
-			}
-			else {
-				return "mismatched methods: " + this;
-			}
+			return "mismatched " + FuncType + "s: " + this;
 		}
 	}
 
-	public GtNode ReportTypeError(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ClassType, String MethodName) {
-		return Gamma.CreateSyntaxErrorNode(ParsedTree, this.MessageTypeError(ClassType, MethodName));
+	public GtNode CreateTypeErrorNode(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, String FuncType, GtType ClassType, String MethodName) {
+		return Gamma.CreateSyntaxErrorNode(ParsedTree, this.FormatTypeErrorMessage(FuncType, ClassType, MethodName));
 	}
 
 

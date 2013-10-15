@@ -83,11 +83,12 @@ public class GtNode extends GreenTeaUtils {
 	public final GtNode GetAt(int Index) {
 		return this.GetList().get(Index);
 	}
-	public final void Append(GtNode Node) {
+	public final GtNode Append(GtNode Node) {
 		this.GetList().add(Node);
 		this.SetChild(Node);
+		return this;
 	}
-	public final void AppendNodeList(int StartIndex, ArrayList<GtNode> NodeList) {
+	public final GtNode AppendNodeList(int StartIndex, ArrayList<GtNode> NodeList) {
 		/*local*/int i = StartIndex;
 		/*local*/ArrayList<GtNode> List = this.GetList();
 		while(i < LibGreenTea.ListSize(NodeList)) {
@@ -96,6 +97,7 @@ public class GtNode extends GreenTeaUtils {
 			this.SetChild(Node);
 			i = i + 1;
 		}
+		return this;
 	}
 
 	public void Evaluate(GtGenerator Visitor) {
@@ -104,16 +106,17 @@ public class GtNode extends GreenTeaUtils {
 	public final boolean IsErrorNode() {
 		return (this instanceof GtErrorNode);
 	}
-	
 	public final boolean IsNullNode() {
 		return (this instanceof GtNullNode);
 	}
-
 	protected final Object ToNullValue(GtParserContext Context, boolean EnforceConst) {
 		if(EnforceConst) {
 			Context.ReportError(ErrorLevel, this.Token, "value must be constant in this context");
 		}
 		return null;
+	}
+	public final boolean IsConstNode() {
+		return (this instanceof GtConstNode);
 	}
 	public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 		return this.ToNullValue(Context, EnforceConst);
@@ -480,17 +483,16 @@ final class GtTrinaryNode extends GtNode {
 //E.g., $Expr . Token.ParsedText
 final class GtGetterNode extends GtNode {
 	/*field*/public GtFunc  Func;
-	/*field*/public GtNode  ExprNode;
+	/*field*/public GtNode  RecvNode;
 	GtGetterNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func, GtNode Expr) {
 		super(Type, Token);
 		this.Func = Func;
-		this.ExprNode = Expr;
+		this.RecvNode = Expr;
 		this.SetChild(Expr);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitGetterNode(this);
 	}
-
 	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 		return Context.Generator.EvalGetterNode(this, EnforceConst);
 	}
@@ -498,13 +500,13 @@ final class GtGetterNode extends GtNode {
 //E.g., $Left . Token.ParsedText = $Right
 final class GtSetterNode extends GtNode {
 	/*field*/public GtFunc  Func;
-	/*field*/public GtNode  LeftNode;
-	/*field*/public GtNode  RightNode;
+	/*field*/public GtNode  RecvNode;
+	/*field*/public GtNode  ValueNode;
 	GtSetterNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func, GtNode LeftNode, GtNode RightNode) {
 		super(Type, Token);
 		this.Func = Func;
-		this.LeftNode  = LeftNode;
-		this.RightNode = RightNode;
+		this.RecvNode  = LeftNode;
+		this.ValueNode = RightNode;
 		this.SetChild2(LeftNode, RightNode);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
@@ -516,12 +518,12 @@ final class GtSetterNode extends GtNode {
 }
 //E.g., $Expr . Token.ParsedText
 final class GtDyGetterNode extends GtNode {
-	/*field*/public GtNode  ExprNode;
+	/*field*/public GtNode  RecvNode;
 	/*field*/public GtNameSpace NameSpace;
 	/*field*/public String FieldName;
 	GtDyGetterNode/*constructor*/(GtType Type, GtToken Token, GtNode Expr, GtNameSpace NameSpace, String FieldName) {
 		super(Type, Token);
-		this.ExprNode = Expr;
+		this.RecvNode = Expr;
 		this.NameSpace = NameSpace;
 		this.FieldName = FieldName;
 		this.SetChild(Expr);
@@ -536,16 +538,16 @@ final class GtDyGetterNode extends GtNode {
 }
 //E.g., $Left . Token.ParsedText = $Right
 final class GtDySetterNode extends GtNode {
-	/*field*/public GtNode  LeftNode;
+	/*field*/public GtNode  RecvNode;
 	/*field*/public GtNameSpace NameSpace;
 	/*field*/public String FieldName;
-	/*field*/public GtNode  RightNode;
-	GtDySetterNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func, GtNode LeftNode, GtNameSpace NameSpace, String FieldName, GtNode RightNode) {
+	/*field*/public GtNode  ValueNode;
+	GtDySetterNode/*constructor*/(GtType Type, GtToken Token, GtNode LeftNode, GtNameSpace NameSpace, String FieldName, GtNode RightNode) {
 		super(Type, Token);
-		this.LeftNode  = LeftNode;
+		this.RecvNode  = LeftNode;
 		this.NameSpace = NameSpace;
 		this.FieldName = FieldName;
-		this.RightNode = RightNode;
+		this.ValueNode = RightNode;
 		this.SetChild2(LeftNode, RightNode);
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
@@ -609,7 +611,7 @@ final class GtSliceNode extends GtNode {
 }
 
 // E.g., $Param[0] "(" $Param[1], $Param[2], ... ")"
-final class GtApplyNode extends GtNode {
+@Deprecated final class GtApplyNode extends GtNode {
 	/*field*/public GtFunc	Func;
 	/*field*/public ArrayList<GtNode>  NodeList; /* [arg1, arg2, ...] */
 	GtApplyNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func) {
@@ -647,35 +649,14 @@ final class GtStaticApplyNode extends GtNode {
 		return Context.Generator.EvalStaticApplyNode(this, EnforceConst);
 	}
 }
-//E.g., $RecvNode . Func "(" $Param[1], $Param[2], ... ")"
-final class GtApplyStaticMethodNode extends GtNode {
-	/*field*/public GtNode RecvNode;
-	/*field*/public GtFunc Func;
-	/*field*/public ArrayList<GtNode>  ParamList; /* [arg1, arg2, ...] */
-	GtApplyStaticMethodNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, GtFunc Func) {
-		super(Type, Token);
-		this.Func = Func;
-		this.ParamList = new ArrayList<GtNode>();
-	}
-	public final ArrayList<GtNode> GetList() {
-		return this.ParamList;
-	}
-	@Override public void Evaluate(GtGenerator Visitor) {
-		Visitor.VisitApplyStaticMethodNode(this);
-	}
-	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
-		return Context.Generator.EvalApplyStaticMethodNode(this, EnforceConst);
-	}
-}
-//E.g., $RecvNode . Func "(" $Param[1], $Param[2], ... ")"
 final class GtApplyOverridedMethodNode extends GtNode {
-	/*field*/public GtNode RecvNode;
+//	/*field*/public GtNode RecvNode;
 	/*field*/public GtNameSpace NameSpace;
 	/*field*/public GtFunc Func;
 	/*field*/public ArrayList<GtNode>  ParamList; /* [arg1, arg2, ...] */
-	GtApplyOverridedMethodNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, GtNameSpace NameSpace, GtFunc Func) {
+	GtApplyOverridedMethodNode/*constructor*/(GtType Type, GtToken Token, GtNameSpace NameSpace, GtFunc Func) {
 		super(Type, Token);
-		this.NameSpace = NameSpace;
+		this.NameSpace = NameSpace.Minimum();
 		this.Func = Func;
 		this.ParamList = new ArrayList<GtNode>();
 	}
@@ -717,7 +698,7 @@ final class GtApplyDynamicFuncNode extends GtNode {
 	/*field*/public ArrayList<GtNode>  ParamList; /* [arg0, arg1, ...] */
 	GtApplyDynamicFuncNode/*constructor*/(GtType Type, GtToken Token, GtNameSpace NameSpace, String FuncName) {
 		super(Type, Token);
-		this.NameSpace = NameSpace;
+		this.NameSpace = NameSpace.Minimum();
 		this.FuncName = FuncName;
 		this.ParamList = new ArrayList<GtNode>();
 	}
@@ -734,13 +715,13 @@ final class GtApplyDynamicFuncNode extends GtNode {
 
 //E.g., $RecvNode . FuncName "(" $Param[1], $Param[2], ... ")"
 final class GtApplyDynamicMethodNode extends GtNode {
-	/*field*/public GtNode RecvNode;
+//	/*field*/public GtNode RecvNode;
 	/*field*/public GtNameSpace NameSpace;
 	/*field*/public String FuncName;
 	/*field*/public ArrayList<GtNode>  ParamList; /* [arg1, arg2, ...] */
-	GtApplyDynamicMethodNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, GtNameSpace NameSpace, String FuncName) {
+	GtApplyDynamicMethodNode/*constructor*/(GtType Type, GtToken Token, GtNameSpace NameSpace, String FuncName) {
 		super(Type, Token);
-		this.NameSpace = NameSpace;
+		this.NameSpace = NameSpace.Minimum();
 		this.FuncName = FuncName;
 		this.ParamList = new ArrayList<GtNode>();
 	}

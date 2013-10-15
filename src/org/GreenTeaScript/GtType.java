@@ -61,6 +61,15 @@ public class GtType extends GreenTeaUtils {
 //endif VAJA
 	}
 
+//ifdef JAVA
+	public Class<?> GetNativeType() {
+		if(this.BaseType.TypeBody instanceof Class<?>) {
+			return (Class<?>) this.BaseType.TypeBody;
+		}
+		return Object.class;
+	}
+//endif VAJA
+	
 	public GtType CreateSubType(int ClassFlag, String ClassName, Object DefaultNullValue, Object NativeSpec) {
 		/*local*/GtType SubType = new GtType(ClassFlag, ClassName, DefaultNullValue, NativeSpec);
 		SubType.SuperType = this;

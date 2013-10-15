@@ -24,7 +24,6 @@
 
 package org.GreenTeaScript.Konoha;
 import org.GreenTeaScript.GreenTeaEnum;
-import org.GreenTeaScript.GtType;
 
 public class TopApi {
 	public final static long Size(Object x) {
@@ -37,13 +36,13 @@ public class TopApi {
 		return x != y;
 	}
 	// Enum
-	public final static String EnumToString(GtType Type, GreenTeaEnum Value) {
+	public final static String EnumToString(GreenTeaEnum Value) {
 		if(Value != null) {
 			return Value.EnumSymbol;
 		}
 		return null;
 	}
-	public final static long EnumToInt(GtType Type, GreenTeaEnum Value) {
+	public final static long EnumToInt(GreenTeaEnum Value) {
 		if(Value != null) {
 			return Value.EnumValue;
 		}

@@ -490,7 +490,7 @@ public class DShellGrammar extends GreenTeaUtils {
 
 	// dlog FunctionName => ExecAction(NameSpace, ContextualFuncName, Action);
 	public static GtNode TypeDLog(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		ContextType = LibGreenTea.GetNativeType(DFault.class);
+		ContextType = GtStaticTable.GetNativeType(DFault.class);
 		GtNode ActionNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, ContextType, DefaultTypeCheckPolicy);
 		if(ActionNode.IsErrorNode()) {
 			return ActionNode;
@@ -630,7 +630,7 @@ public class DShellGrammar extends GreenTeaUtils {
 			return Gamma.UnsupportedTopLevelError(ParsedTree);
 		}
 		/*local*/GtNode Expr = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, GtStaticTable.TypeType, DefaultTypeCheckPolicy);
-		if(Expr instanceof GtConstNode && Expr.Type.IsTypeType()) {
+		if(Expr.IsConstNode() && Expr.Type.IsTypeType()) {
 			/*local*/GtType ObjectType = (/*cast*/GtType)((/*cast*/GtConstNode)Expr).ConstValue;
 			Expr = Gamma.Generator.CreateNewNode(ObjectType, ParsedTree);
 			//Expr = KonohaGrammar.TypeApply(Gamma, ParsedTree, ObjectType);

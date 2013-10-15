@@ -23,7 +23,6 @@
 // **************************************************************************
 
 package org.GreenTeaScript.Konoha;
-import org.GreenTeaScript.GtType;
 
 public class BooleanApi {
 	public static boolean Not(boolean b) {
@@ -36,10 +35,10 @@ public class BooleanApi {
 		return x != y;
 	}
 	// converter
-	public final static String ToString(GtType Type, boolean value) {
+	public final static String ToString(boolean value) {
 		return value ? "true" : "false";
 	}
-	public final static Object ToAny(GtType Type, boolean value) {
+	public final static Object ToAny(boolean value) {
 		return new Boolean(value);
 	}
 }

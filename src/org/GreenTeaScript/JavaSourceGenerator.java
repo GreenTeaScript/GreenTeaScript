@@ -144,17 +144,17 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 	}
 
 	@Override public void VisitGetterNode(GtGetterNode Node) {
-		Node.ExprNode.Evaluate(this);
+		Node.RecvNode.Evaluate(this);
 		this.VisitingBuilder.Append(".");
 		this.VisitingBuilder.Append(Node.Func.FuncName);
 	}
 	
 	@Override public void VisitSetterNode(GtSetterNode Node) {
-		Node.LeftNode.Evaluate(this);
+		Node.RecvNode.Evaluate(this);
 		this.VisitingBuilder.Append(".");
 		this.VisitingBuilder.Append(Node.Func.FuncName);
 		this.VisitingBuilder.Append("=");
-		Node.RightNode.Evaluate(this);
+		Node.ValueNode.Evaluate(this);
 	}
 
 	@Override public void VisitApplyNode(GtApplyNode Node) {

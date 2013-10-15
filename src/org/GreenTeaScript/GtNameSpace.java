@@ -103,6 +103,14 @@ public final class GtNameSpace extends GreenTeaUtils {
 		}
 	}
 
+	public final GtNameSpace Minimum() {
+		GtNameSpace NameSpace = this;
+		while(NameSpace.SymbolPatternTable == null) {
+			NameSpace = NameSpace.ParentNameSpace;
+		}
+		return NameSpace;
+	}
+
 	public final Object GetLocalUndefinedSymbol(String Key) {
 		if(this.SymbolPatternTable != null) {
 			return this.SymbolPatternTable.GetOrNull(Key);
@@ -180,7 +188,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 	}
 
 	public GtSyntaxPattern GetExtendedSyntaxPattern(String PatternName) {
-		/*local*/Object Body = this.GetSymbol("\t" + PatternName);
+		/*local*/Object Body = this.GetSymbol(ExtendedPatternSymbol(PatternName));
 		if(Body instanceof GtSyntaxPattern) {
 			return (/*cast*/GtSyntaxPattern)Body;
 		}
@@ -209,7 +217,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 		/*local*/String Name = (Alias == -1) ? PatternName : PatternName.substring(0, Alias);
 		/*local*/GtSyntaxPattern Pattern = new GtSyntaxPattern(this, Name, MatchFunc, TypeFunc);
 		Pattern.SyntaxFlag = SyntaxFlag;
-		this.AppendSyntaxPattern("\t" + Name, Pattern, null);
+		this.AppendSyntaxPattern(ExtendedPatternSymbol(Name), Pattern, null);
 		if(Alias != -1) {
 			this.AppendExtendedSyntax(PatternName.substring(Alias+1), SyntaxFlag, MatchFunc, TypeFunc);
 		}
@@ -335,7 +343,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 	}
 
 	public final GtFunc GetConverterFunc(GtType FromType, GtType ToType, boolean RecursiveSearch) {
-		/*local*/Object Func = this.Context.RootNameSpace.GetClassSymbol(FromType, ConverterSymbol(ToType), RecursiveSearch);
+		/*local*/Object Func = this.GetClassSymbol(FromType, ConverterSymbol(ToType), RecursiveSearch);
 		if(Func instanceof GtFunc) {
 			return (/*cast*/GtFunc)Func;
 		}
@@ -505,17 +513,15 @@ public final class GtNameSpace extends GreenTeaUtils {
 
 	public final void SetConverterFunc(GtType ClassType, GtType ToType, GtFunc Func, GtToken SourceToken) {
 		if(ClassType == null) {
-			ClassType = Func.GetFuncParamType(1);
+			ClassType = Func.GetFuncParamType(0);
 		}
 		if(ToType == null) {
 			ToType = Func.GetReturnType();
 		}
 		/*local*/String Key = ClassSymbol(ClassType, ConverterSymbol(ToType));
 		LibGreenTea.Assert(Func.Is(ConverterFunc));		
-		this.Context.RootNameSpace.SetSymbol(Key, Func, SourceToken);
+		this.SetSymbol(Key, Func, SourceToken);
 	}
-
-	
 	
 	final Object EvalWithErrorInfo(String ScriptText, long FileLine) {
 		/*local*/Object ResultValue = null;
@@ -609,5 +615,6 @@ public final class GtNameSpace extends GreenTeaUtils {
 			i += 2;
 		}
 	}
+
 
 }

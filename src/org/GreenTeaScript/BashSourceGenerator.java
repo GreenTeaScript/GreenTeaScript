@@ -242,7 +242,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitGetterNode(GtGetterNode Node) {
-		this.PushSourceCode(this.VisitNode(Node.ExprNode) + "[" + this.GetMemberIndex(Node.ExprNode.Type, Node.Func.FuncName) + "]");
+		this.PushSourceCode(this.VisitNode(Node.RecvNode) + "[" + this.GetMemberIndex(Node.RecvNode.Type, Node.Func.FuncName) + "]");
 	}
 
 	@Override public void VisitIndexerNode(GtIndexerNode Node) {
@@ -410,7 +410,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	private boolean CheckConstFolding(GtNode TargetNode) {
-		if(TargetNode instanceof GtConstNode) {
+		if(TargetNode.IsConstNode()) {
 			return true;
 		}
 		else if(TargetNode instanceof GtUnaryNode) {
@@ -444,7 +444,7 @@ public class BashSourceGenerator extends SourceGenerator {
 			}
 		}
 		
-		if(TargetNode instanceof GtConstNode || TargetNode instanceof GtNullNode) {
+		if(TargetNode.IsConstNode() || TargetNode instanceof GtNullNode) {
 			return Value;
 		}
 		else if(TargetNode instanceof GtIndexerNode || TargetNode instanceof GtGetterNode) {

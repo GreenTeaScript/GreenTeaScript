@@ -23,7 +23,6 @@
 // **************************************************************************
 
 package org.GreenTeaScript.Konoha;
-import org.GreenTeaScript.GtType;
 
 public final class StringApi {
 	public static boolean Equals(String x, String y) {
@@ -77,7 +76,8 @@ public final class StringApi {
 		int eindex = (EIndex < 0) ? self.length() - (int)EIndex : (int)EIndex;
 		return self.substring(bindex, eindex);
 	}
-	public final static long ToInt(GtType Type, String value) {
+	// converter
+	public final static long ToInt(String value) {
 		if(value != null) {
 			try {
 				return Long.parseLong(value);
@@ -87,7 +87,7 @@ public final class StringApi {
 		}
 		return 0;
 	}
-	public final static double ToDouble(GtType Type, String value) {
+	public final static double ToDouble(String value) {
 		if(value != null) {
 			try {
 				return Double.parseDouble(value);
@@ -97,14 +97,14 @@ public final class StringApi {
 		}
 		return 0;
 	}
-	public final static Object ToAny(GtType Type, String value) {
+	public final static Object ToAny(String value) {
 		return value;
 	}
 	// java original converter between char and String
-	public final static String c2s(GtType Type, char ch) {
+	public final static String c2s(char ch) {
 		return String.valueOf(ch);
 	}
-	public final static char s2c(GtType Type, String s) {
+	public final static char s2c(String s) {
 		return s == null ? (char)0 : s.charAt(0);
 	}
 }

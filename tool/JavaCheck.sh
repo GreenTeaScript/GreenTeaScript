@@ -27,10 +27,12 @@ TestDir() {
 }
 
 Main() {
+	ant clean
 	if [ -f "$LOGFILE" ]
 	then
 		rm -f $LOGFILE
 	fi
+	ant
 	TestDir "test/common" green
 	TestDir "test/java" green
 	TestDir "test/dshell" ds
