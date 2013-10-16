@@ -29,7 +29,7 @@ import java.util.ArrayList;
 
 public final class GtTypeEnv extends GreenTeaUtils {
 	/*field*/public final GtParserContext    Context;
-	/*field*/public final GtGenerator       Generator;
+	/*field*/public final GtGenerator        Generator;
 	/*field*/public GtNameSpace	    NameSpace;
 
 	/*field*/public ArrayList<GtVariableInfo> LocalStackList;
@@ -37,16 +37,6 @@ public final class GtTypeEnv extends GreenTeaUtils {
 	/*field*/public GtFunc	Func;
 	/*field*/public boolean FoundUncommonFunc;
 	
-	/* for convinient short cut */
-	/*field*/public final GtType	VoidType;
-	/*field*/public final GtType	BooleanType;
-	/*field*/public final GtType	IntType;
-	/*field*/public final GtType	StringType;
-	/*field*/public final GtType	VarType;
-	/*field*/public final GtType	AnyType;
-	/*field*/public final GtType    ArrayType;
-	/*field*/public final GtType    FuncType;
-
 	GtTypeEnv/*constructor*/(GtNameSpace NameSpace) {
 		this.NameSpace = NameSpace;
 		this.Context   = NameSpace.Context;
@@ -55,16 +45,6 @@ public final class GtTypeEnv extends GreenTeaUtils {
 		this.FoundUncommonFunc = false;
 		this.LocalStackList = new ArrayList<GtVariableInfo>();
 		this.StackTopIndex = 0;
-
-		this.VoidType    = NameSpace.Context.VoidType;
-		this.BooleanType = NameSpace.Context.BooleanType;
-		this.IntType     = NameSpace.Context.IntType;
-		this.StringType  = NameSpace.Context.StringType;
-		this.VarType     = NameSpace.Context.VarType;
-		this.AnyType     = NameSpace.Context.AnyType;
-		this.ArrayType   = NameSpace.Context.ArrayType;
-		this.FuncType    = NameSpace.Context.FuncType;
-
 	}
 
 	public final boolean IsStrictMode() {
@@ -109,7 +89,7 @@ public final class GtTypeEnv extends GreenTeaUtils {
 		/*local*/int i = this.StackTopIndex - 1;
 		while(i >= PushBackIndex) {
 			/*local*/GtVariableInfo VarInfo = this.LocalStackList.get(i);
-			VarInfo.Check();
+			VarInfo.Check(this.Context);
 			i = i - 1;
 		}
 		this.StackTopIndex = PushBackIndex;
@@ -128,7 +108,7 @@ public final class GtTypeEnv extends GreenTeaUtils {
 		if(Level == ErrorLevel || (this.IsStrictMode() && Level == TypeErrorLevel)) {
 			LibGreenTea.Assert(Node.Token == ParsedTree.KeyToken);
 			this.NameSpace.Context.ReportError(ErrorLevel, Node.Token, Message);
-			return this.Generator.CreateErrorNode(this.VoidType, ParsedTree);
+			return this.Generator.CreateErrorNode(GtStaticTable.VoidType, ParsedTree);
 		}
 		else {
 			this.NameSpace.Context.ReportError(Level, Node.Token, Message);
@@ -142,7 +122,7 @@ public final class GtTypeEnv extends GreenTeaUtils {
 
 	public final GtNode CreateSyntaxErrorNode(GtSyntaxTree ParsedTree, String Message) {
 		this.NameSpace.Context.ReportError(ErrorLevel, ParsedTree.KeyToken, Message);
-		return this.Generator.CreateErrorNode(this.VoidType, ParsedTree);
+		return this.Generator.CreateErrorNode(GtStaticTable.VoidType, ParsedTree);
 	}
 
 	public final GtNode UnsupportedTopLevelError(GtSyntaxTree ParsedTree) {
@@ -168,12 +148,11 @@ public final class GtTypeEnv extends GreenTeaUtils {
 		}
 		if(Node.Type.IsUnrevealedType()) {
 			/*local*/GtFunc Func = ParsedTree.NameSpace.GetConverterFunc(Node.Type, Node.Type.BaseType, true);
-			//System.err.println("found weaktype = " + Node.Type);
-			Node = this.Generator.CreateCoercionNode(Func.GetReturnType(), Func, Node);
+			Node = this.Generator.CreateCoercionNode(Func.GetReturnType(), ParsedTree.NameSpace, Func, Node);
 		}
 		//System.err.println("**** " + Node.getClass());
-		/*local*/Object ConstValue = Node.ToConstValue(IsFlag(TypeCheckPolicy, OnlyConstPolicy));
-		if(ConstValue != null && !(Node instanceof GtConstNode)) {  // recreated
+		/*local*/Object ConstValue = Node.ToConstValue(this.Context, IsFlag(TypeCheckPolicy, OnlyConstPolicy));
+		if(ConstValue != null && !(Node.IsConstNode())) {  // recreated
 			Node = this.Generator.CreateConstNode(Node.Type, ParsedTree, ConstValue);
 		}
 		if(IsFlag(TypeCheckPolicy, OnlyConstPolicy) && ConstValue == null) {
@@ -183,20 +162,20 @@ public final class GtTypeEnv extends GreenTeaUtils {
 				return this.CreateSyntaxErrorNode(ParsedTree, "value must be const");
 			}
 		}
-		if(IsFlag(TypeCheckPolicy, AllowVoidPolicy) || Type == this.VoidType) {
+		if(IsFlag(TypeCheckPolicy, AllowVoidPolicy) || Type.IsVoidType()) {
 			return Node;
 		}
-		if(Node.Type == this.VarType) {
+		if(Node.Type.IsVarType()) {
 			return this.ReportTypeResult(ParsedTree, Node, TypeErrorLevel, "unspecified type: " + Node.Token.ParsedText);
 		}
-		if(Node.Type == Type || Type == this.VarType || Node.Type.Accept(Type)) {
+		if(Node.Type == Type || Type.IsVarType() || Node.Type.Accept(Type)) {
 			return Node;
 		}
 		/*local*/GtFunc Func = ParsedTree.NameSpace.GetConverterFunc(Node.Type, Type, true);
 		if(Func != null && (Func.Is(CoercionFunc) || IsFlag(TypeCheckPolicy, CastPolicy))) {
-			return this.Generator.CreateCoercionNode(Type, Func, Node);
+			return this.Generator.CreateCoercionNode(Type, ParsedTree.NameSpace, Func, Node);
 		}
-		System.err.println("node="+ LibGreenTea.GetClassName(Node) + "type error: requested = " + Type + ", given = " + Node.Type);
+		//System.err.println("node="+ LibGreenTea.GetClassName(Node) + "type error: requested = " + Type + ", given = " + Node.Type);
 		return this.ReportTypeResult(ParsedTree, Node, TypeErrorLevel, "type error: requested = " + Type + ", given = " + Node.Type);
 	}
 }
@@ -232,9 +211,9 @@ class GtVariableInfo extends GreenTeaUtils {
 		this.UsedCount += 1;
 	}
 
-	public void Check() {
+	public void Check(GtParserContext Context) {
 		if(this.UsedCount == 0 && this.NameToken != null) {
-			this.Type.Context.ReportError(WarningLevel, this.NameToken, "unused variable: " + this.Name);
+			Context.ReportError(WarningLevel, this.NameToken, "unused variable: " + this.Name);
 		}
 	}
 	// for debug

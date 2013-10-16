@@ -83,7 +83,7 @@ interface GreenTeaConsts {
 	public final static int     HiddenFunc          = 1 << 6;  // @Hidden
 	public final static int     CommonFunc          = 1 << 7;  // @Common
 
-	public final static int		NativeStaticFunc	= 1 << 8;
+	public final static int		NativeMethodFunc	= 1 << 8;
 	public final static int		NativeMacroFunc	    = 1 << 9;
 	public final static int		NativeVariadicFunc	= 1 << 10;
 	public final static int     ConstructorFunc     = 1 << 11;
@@ -381,6 +381,10 @@ class GreenTeaUtils implements GreenTeaConsts {
 		return Name + NativeNameSuffix + Index;
 	}
 
+	public final static String ExtendedPatternSymbol(String PatternName) {
+		return "\t" + PatternName;
+	}
+	
 	public final static String ClassSymbol(GtType ClassType, String Symbol) {
 		return ClassType.GetUniqueName() + "." + Symbol;
 	}
@@ -517,7 +521,7 @@ class GreenTeaUtils implements GreenTeaConsts {
 			Gamma.NameSpace = ParsedTree.NameSpace;
 			return (/*cast*/GtNode)LibGreenTea.ApplyTypeFunc(TypeFunc, Gamma, ParsedTree, Type);
 		}
-		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
+		return Gamma.Generator.CreateEmptyNode(GtStaticTable.VoidType);
 	}
 
 	public final static GtNode LinkNode(GtNode LastNode, GtNode Node) {
@@ -536,8 +540,8 @@ class GreenTeaUtils implements GreenTeaConsts {
 		/*local*/int StackTopIndex = Gamma.StackTopIndex;
 		/*local*/GtNode LastNode = null;
 		while(ParsedTree != null) {
-			/*local*/GtNode Node = GreenTeaUtils.ApplyTypeFunc(ParsedTree.Pattern.TypeFunc, Gamma, ParsedTree, Gamma.VoidType);
-			/*local*/Node = Gamma.TypeCheckSingleNode(ParsedTree, Node, Gamma.VoidType, DefaultTypeCheckPolicy);
+			/*local*/GtNode Node = GreenTeaUtils.ApplyTypeFunc(ParsedTree.Pattern.TypeFunc, Gamma, ParsedTree, GtStaticTable.VoidType);
+			/*local*/Node = Gamma.TypeCheckSingleNode(ParsedTree, Node, GtStaticTable.VoidType, DefaultTypeCheckPolicy);
 			/*local*/LastNode = GreenTeaUtils.LinkNode(LastNode, Node);
 			if(Node.IsErrorNode()) {
 				break;
@@ -546,7 +550,7 @@ class GreenTeaUtils implements GreenTeaConsts {
 		}
 		Gamma.PushBackStackIndex(StackTopIndex);
 		if(LastNode == null) {
-			return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
+			return Gamma.Generator.CreateEmptyNode(GtStaticTable.VoidType);
 		}
 		return LastNode.MoveHeadNode();
 	}
@@ -745,7 +749,7 @@ public class GreenTeaScript extends GreenTeaUtils {
 					/*local*/Object EvaledValue = Context.TopLevelNameSpace.Eval(Line, linenum);
 					Context.ShowReportedErrors();
 					if(EvaledValue != null) {
-						LibGreenTea.println(" (" + Context.GuessType(EvaledValue) + ":" + LibGreenTea.GetClassName(EvaledValue) + ") " + LibGreenTea.Stringify(EvaledValue));
+						LibGreenTea.println(" (" + GtStaticTable.GuessType(EvaledValue) + ":" + LibGreenTea.GetClassName(EvaledValue) + ") " + LibGreenTea.Stringify(EvaledValue));
 					}
 					linenum += 1;
 				}
@@ -761,6 +765,11 @@ public class GreenTeaScript extends GreenTeaUtils {
 	}
 
 	public final static void main(String[] Args)  {
-		GreenTeaScript.ExecCommand(Args);
+		try {
+			GreenTeaScript.ExecCommand(Args);
+		}
+		catch(SoftwareFaultException e) {
+			System.err.println(e.GetStackTrace());
+		}
 	}
 }

@@ -103,6 +103,14 @@ public final class GtNameSpace extends GreenTeaUtils {
 		}
 	}
 
+	public final GtNameSpace Minimum() {
+		GtNameSpace NameSpace = this;
+		while(NameSpace.SymbolPatternTable == null) {
+			NameSpace = NameSpace.ParentNameSpace;
+		}
+		return NameSpace;
+	}
+
 	public final Object GetLocalUndefinedSymbol(String Key) {
 		if(this.SymbolPatternTable != null) {
 			return this.SymbolPatternTable.GetOrNull(Key);
@@ -180,7 +188,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 	}
 
 	public GtSyntaxPattern GetExtendedSyntaxPattern(String PatternName) {
-		/*local*/Object Body = this.GetSymbol("\t" + PatternName);
+		/*local*/Object Body = this.GetSymbol(ExtendedPatternSymbol(PatternName));
 		if(Body instanceof GtSyntaxPattern) {
 			return (/*cast*/GtSyntaxPattern)Body;
 		}
@@ -209,7 +217,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 		/*local*/String Name = (Alias == -1) ? PatternName : PatternName.substring(0, Alias);
 		/*local*/GtSyntaxPattern Pattern = new GtSyntaxPattern(this, Name, MatchFunc, TypeFunc);
 		Pattern.SyntaxFlag = SyntaxFlag;
-		this.AppendSyntaxPattern("\t" + Name, Pattern, null);
+		this.AppendSyntaxPattern(ExtendedPatternSymbol(Name), Pattern, null);
 		if(Alias != -1) {
 			this.AppendExtendedSyntax(PatternName.substring(Alias+1), SyntaxFlag, MatchFunc, TypeFunc);
 		}
@@ -224,12 +232,6 @@ public final class GtNameSpace extends GreenTeaUtils {
 	}
 
 	public final GtType AppendTypeName(GtType Type, GtToken SourceToken) {
-		if(Type.PackageNameSpace == null) {
-			Type.PackageNameSpace = this;
-			if(this.PackageName != null) {
-				this.Context.SetNativeTypeName(this.PackageName + "." + Type.ShortName, Type);
-			}
-		}
 		if(Type.BaseType == Type) {
 			this.SetSymbol(Type.ShortName, Type, SourceToken);
 		}
@@ -238,7 +240,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 
 	public final GtType AppendTypeVariable(String Name, GtType ParamBaseType, GtToken SourceToken, ArrayList<Object> RevertList) {
 		this.UpdateRevertList(Name, RevertList);
-		/*local*/GtType TypeVar = new GtType(this.Context, TypeVariable, Name, ParamBaseType, null);
+		/*local*/GtType TypeVar = new GtType(TypeVariable, Name, ParamBaseType, null);
 		this.SetSymbol(Name, TypeVar, SourceToken);
 		return TypeVar;
 	}
@@ -281,7 +283,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 		}
 		Key = ClassStaticSymbol(StaticClassType, Symbol);
 		if(StaticClassType.IsDynamicNaitiveLoading() && this.Context.RootNameSpace.GetLocalUndefinedSymbol(Key) == null) {
-			/*local*/Object Value = LibGreenTea.LoadNativeStaticFieldValue(StaticClassType, Symbol);
+			/*local*/Object Value = LibGreenTea.LoadNativeStaticFieldValue(this.Context, StaticClassType, Symbol);
 			if(Value == null) {
 				this.Context.RootNameSpace.SetUndefinedSymbol(Key, null);
 			}
@@ -323,7 +325,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 		}
 		Func = this.Context.RootNameSpace.GetLocalUndefinedSymbol(ClassSymbol(ClassType, GetterSymbol(Symbol)));
 		if(ClassType.IsDynamicNaitiveLoading() && Func == null) {
-			return LibGreenTea.LoadNativeField(ClassType, Symbol, false);
+			return LibGreenTea.LoadNativeField(this.Context, ClassType, Symbol, false);
 		}
 		return null;
 	}
@@ -335,13 +337,13 @@ public final class GtNameSpace extends GreenTeaUtils {
 		}
 		Func = this.Context.RootNameSpace.GetLocalUndefinedSymbol(ClassSymbol(ClassType, SetterSymbol(Symbol)));
 		if(ClassType.IsDynamicNaitiveLoading() && Func == null) {
-			return LibGreenTea.LoadNativeField(ClassType, Symbol, true);
+			return LibGreenTea.LoadNativeField(this.Context, ClassType, Symbol, true);
 		}
 		return null;
 	}
 
 	public final GtFunc GetConverterFunc(GtType FromType, GtType ToType, boolean RecursiveSearch) {
-		/*local*/Object Func = this.Context.RootNameSpace.GetClassSymbol(FromType, ConverterSymbol(ToType), RecursiveSearch);
+		/*local*/Object Func = this.GetClassSymbol(FromType, ConverterSymbol(ToType), RecursiveSearch);
 		if(Func instanceof GtFunc) {
 			return (/*cast*/GtFunc)Func;
 		}
@@ -355,10 +357,10 @@ public final class GtNameSpace extends GreenTeaUtils {
 			/*local*/Object RootValue = this.RetrieveFuncList(Key, FuncList);
 			if(RootValue == null && ClassType.IsDynamicNaitiveLoading()) {
 				if(LibGreenTea.EqualsString(Symbol, ConstructorSymbol())) {
-					LibGreenTea.LoadNativeConstructors(ClassType, FuncList);
+					LibGreenTea.LoadNativeConstructors(this.Context, ClassType, FuncList);
 				}
 				else {
-					LibGreenTea.LoadNativeMethods(ClassType, Symbol, FuncList);
+					LibGreenTea.LoadNativeMethods(this.Context, ClassType, Symbol, FuncList);
 				}
 			}
 			if(!RecursiveSearch) {
@@ -457,8 +459,8 @@ public final class GtNameSpace extends GreenTeaUtils {
 			/*local*/GtFunc OldFunc = (/*cast*/GtFunc)OldValue;
 			if(!OldFunc.EqualsType(Func)) {
 				/*local*/GtPolyFunc PolyFunc = new GtPolyFunc(null);
-				PolyFunc.Append(OldFunc, SourceToken);
-				PolyFunc.Append(Func, SourceToken);
+				PolyFunc.Append(this.Context, OldFunc, SourceToken);
+				PolyFunc.Append(this.Context, Func, SourceToken);
 				this.SetSymbol(Key, PolyFunc, null);
 				return PolyFunc;
 			}
@@ -466,7 +468,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 		}
 		else if(OldValue instanceof GtPolyFunc) {
 			/*local*/GtPolyFunc PolyFunc = (/*cast*/GtPolyFunc)OldValue;
-			PolyFunc.Append(Func, SourceToken);
+			PolyFunc.Append(this.Context, Func, SourceToken);
 			return PolyFunc;
 		}
 		this.SetSymbol(Key, Func, SourceToken);
@@ -475,6 +477,11 @@ public final class GtNameSpace extends GreenTeaUtils {
 
 	public final Object AppendFunc(GtFunc Func, GtToken SourceToken) {
 		return this.AppendFuncName(Func.FuncName, Func, SourceToken);
+	}
+
+	public final Object AppendStaticFunc(GtType StaticType, GtFunc Func, GtToken SourceToken) {
+		int loc = Func.FuncName.lastIndexOf(".");
+		return this.AppendFuncName(ClassStaticSymbol(StaticType, Func.FuncName.substring(loc+1)), Func, SourceToken);
 	}
 
 	public final Object AppendMethod(GtFunc Func, GtToken SourceToken) {
@@ -506,17 +513,15 @@ public final class GtNameSpace extends GreenTeaUtils {
 
 	public final void SetConverterFunc(GtType ClassType, GtType ToType, GtFunc Func, GtToken SourceToken) {
 		if(ClassType == null) {
-			ClassType = Func.GetFuncParamType(1);
+			ClassType = Func.GetFuncParamType(0);
 		}
 		if(ToType == null) {
 			ToType = Func.GetReturnType();
 		}
 		/*local*/String Key = ClassSymbol(ClassType, ConverterSymbol(ToType));
 		LibGreenTea.Assert(Func.Is(ConverterFunc));		
-		this.Context.RootNameSpace.SetSymbol(Key, Func, SourceToken);
+		this.SetSymbol(Key, Func, SourceToken);
 	}
-
-	
 	
 	final Object EvalWithErrorInfo(String ScriptText, long FileLine) {
 		/*local*/Object ResultValue = null;
@@ -539,8 +544,8 @@ public final class GtNameSpace extends GreenTeaUtils {
 			if(TopLevelTree.IsValidSyntax()) {
 				TopLevelTree.SetAnnotation(Annotation);
 				/*local*/GtTypeEnv Gamma = new GtTypeEnv(this);
-				/*local*/GtNode Node = TopLevelTree.TypeCheck(Gamma, Gamma.VoidType, DefaultTypeCheckPolicy);
-				ResultValue = Node.ToConstValue(true/*EnforceConst*/);
+				/*local*/GtNode Node = TopLevelTree.TypeCheck(Gamma, GtStaticTable.VoidType, DefaultTypeCheckPolicy);
+				ResultValue = Node.ToConstValue(this.Context, true/*EnforceConst*/);
 			}
 			TokenContext.Vacume();
 		}
@@ -610,5 +615,6 @@ public final class GtNameSpace extends GreenTeaUtils {
 			i += 2;
 		}
 	}
+
 
 }

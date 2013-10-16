@@ -44,7 +44,7 @@ public class CSourceGenerator extends SourceGenerator {
 
 	private String GetLocalType(GtType Type, boolean IsPointer) {
 		if(Type.IsDynamic() || Type.IsNative()) {
-			if(Type == Type.PackageNameSpace.Context.BooleanType) {
+			if(Type.IsBooleanType()) {
 				return "int";
 			}
 			return Type.ShortName;
@@ -94,10 +94,10 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitGetterNode(GtGetterNode Node) {
-		/*local*/String Program = this.VisitNode(Node.ExprNode);
+		/*local*/String Program = this.VisitNode(Node.RecvNode);
 		/*local*/String FieldName = Node.Func.FuncName;
 		/*local*/GtType RecvType = Node.Func.GetRecvType();
-		if(Node.ExprNode.Type == RecvType) {
+		if(Node.RecvNode.Type == RecvType) {
 			Program = Program + "->" + FieldName;
 		}
 		else {

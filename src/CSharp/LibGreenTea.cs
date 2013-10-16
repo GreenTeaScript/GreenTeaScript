@@ -466,13 +466,14 @@ public abstract class LibGreenTea: GreenTeaConst {
 		return SetNativeMethod(new GtFunc(0, JavaMethod.getName(), 0, TypeList), JavaMethod);
 	}
 
-	public /*final*/ static Type LoadNativeClass(string ClassName) throws ClassNotFoundException {
-		try {
-			return Class.forName("org.GreenTeaScript." + ClassName);
-		}
-		catch(ClassNotFoundException e) {
-		}
-		return Class.forName(ClassName);
+	private static Type LoadNativeClass(string ClassName) {
+        try {
+            return Type.GetType("org.GreenTeaScript." + ClassName);
+        }
+        catch(TypeLoadException e) {
+        }
+        return Type.GetType(ClassName);
+        throw new NotImplementedException();
 	}
 	
 	public /*final*/ static MethodInfo LoadNativeMethod(GtType ContextType, string FullName, bool StaticMethodOnly) {
@@ -574,7 +575,7 @@ public abstract class LibGreenTea: GreenTeaConst {
 		GtParserContext Context = ClassType.Context;
 		try {
 			Type NativeClass = (Type)ClassType.TypeBody;
-			Field NativeField = NativeClass.getField(FieldName);
+			Field NativeField = NativeClass.GetField(FieldName);
 			if(Modifier.isPublic(NativeField.getModifiers())) {
 				List<GtType> TypeList = new List<GtType>();
 				TypeList.Add(LibGreenTea.GetNativeType(Context, NativeField.getType()));
@@ -832,7 +833,7 @@ public abstract class LibGreenTea: GreenTeaConst {
 		return (GtNode)LibGreenTea.ApplyFunc3(TypeFunc, null, Gamma, ParsedTree, ContextType);
 	}
 
-	public /*final*/ static int ListSize(List<?> List) {
+	public /*final*/ static int ListSize<T>(List<T> List) {
 		if(List == null) {
 			return 0;
 		}
@@ -977,25 +978,25 @@ public abstract class LibGreenTea: GreenTeaConst {
 	private static java.io.BufferedReader Reader = null;
 	private static bool ConsoleInitialized = false;
 	
-	static private string ReadLine(string format, object... args) {
-		if(!ConsoleInitialized){
-			Console = System.console();
-			if (Console == null) {
-				Reader = new BufferedReader(new InputStreamReader(System.in));
-			}
-			ConsoleInitialized = true;
-		}
-	    if (Console != null) {
-	        return System.console().readLine(format, args);
-	    }
-	    System.out.print(string.format(format, args));
-	    try {
-			return Reader.readLine();
-		} catch (IOException e) {
-			e.printStackTrace();
-			return "";
-		}
-	}
+    //static private string ReadLine(string format, object... args) {
+    //    if(!ConsoleInitialized){
+    //        Console = System.console();
+    //        if (Console == null) {
+    //            Reader = new BufferedReader(new InputStreamReader(System.in));
+    //        }
+    //        ConsoleInitialized = true;
+    //    }
+    //    if (Console != null) {
+    //        return System.console().readLine(format, args);
+    //    }
+    //    System.out.print(string.format(format, args));
+    //    try {
+    //        return Reader.readLine();
+    //    } catch (IOException e) {
+    //        e.printStackTrace();
+    //        return "";
+    //    }
+    //}
 
 	public /*final*/ static string ReadLine(string Prompt, string Prompt2) {
 		string Line = LibGreenTea.ReadLine(Prompt);

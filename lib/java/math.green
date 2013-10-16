@@ -1,73 +1,60 @@
-let Math = import java.lang.Math;
+// math common library
+// based on EcmaScript Math Object
 
-//// Returns the absolute value of a double value.
-//let Math.abs = import java.lang.Math.abs;
-//
-//// Returns the absolute value of a long value.
-//let Math.abs = import java.lang.Math.abs;
+class Math;
 
-// Returns the arc cosine of a value; the returned angle is in the range 0.0 through pi.
-let Math.acos = import java.lang.Math.acos;
+//E	Returns Euler's number (approx. 2.718)
+//TODO: LN2	Returns the natural logarithm of 2 (approx. 0.693)
+//TODO: LN10	Returns the natural logarithm of 10 (approx. 2.302)
+//TODO: LOG2E	Returns the base-2 logarithm of E (approx. 1.442)
+//TODO: LOG10E	Returns the base-10 logarithm of E (approx. 0.434)
+//PI	Returns PI (approx. 3.14)
+//TODO: SQRT1_2	Returns the square root of 1/2 (approx. 0.707)
+//TODO: SQRT2	Returns the square root of 2 (approx. 1.414)
 
-// Returns the arc sine of a value; the returned angle is in the range -pi/2 through pi/2.
-let Math.asin = import java.lang.Math.asin;
+let Math.E = import java.lang.Math.E;
+let Math.PI = import java.lang.Math.PI;
 
-// Returns the arc tangent of a value; the returned angle is in the range -pi/2 through pi/2.
-let Math.atan = import java.lang.Math.atan;
+// abs(x)	Returns the absolute value of x
+@Common @Const float "Math.abs"(float x) import java.lang.Math.abs;
 
-// Returns the angle theta from the conversion of rectangular coordinates (x, y) to polar coordinates (r, theta).
-let Math.atan2 = import java.lang.Math.atan2;
+//sin(x)	Returns the sine of x (x is in radians)
+//cos(x)	Returns the cosine of x (x is in radians)
+//tan(x)	Returns the tangent of an angle
+@Common @Const float "Math.cos"(float x) import java.lang.Math.cos;
+@Common @Const float "Math.sin"(float x) import java.lang.Math.sin;
+@Common @Const float "Math.tan"(float x) import java.lang.Math.tan;
 
-// Returns the smallest (closest to negative infinity) double value that is greater than or equal to the argument and is equal to a mathematical integer.
-let Math.ceil = import java.lang.Math.ceil;
+//sqrt(x)	Returns the square root of x
+@Common @Const float "Math.sqrt"(float x) import java.lang.Math.sqrt;
 
-// Returns the trigonometric cosine of an angle.
-let Math.cos = import java.lang.Math.cos;
+//acos(x)	Returns the arccosine of x, in radians
+//asin(x)	Returns the arcsine of x, in radians
+//atan(x)	Returns the arctangent of x as a numeric value between -PI/2 and PI/2 radians
+//atan2(y,x)	Returns the arctangent of the quotient of its arguments
 
-// Returns the hyperbolic cosine of a double value.
-let Math.cosh = import java.lang.Math.cosh;
+@Common @Const float "Math.acos"(float x) import java.lang.Math.acos;
+@Common @Const float "Math.asin"(float x) import java.lang.Math.asin;
+@Common @Const float "Math.atan"(float x) import java.lang.Math.atan;
+@Common @Const float "Math.atan2"(float y, float x) import java.lang.Math.atan2;
 
-// Returns Euler's number e raised to the power of a double value.
-let Math.exp = import java.lang.Math.exp;
+//ceil(x)	Returns x, rounded upwards to the nearest integer
+//exp(x)	Returns the value of Ex
+//floor(x)	Returns x, rounded downwards to the nearest integer
+//log(x)	Returns the natural logarithm (base E) of x
 
-// Returns the largest (closest to positive infinity) double value that is less than or equal to the argument and is equal to a mathematical integer.
-let Math.floor = import java.lang.Math.floor;
+@Common @Const float "Math.ceil"(float x) import java.lang.Math.ceil;
+@Common @Const float "Math.exp"(float x) import java.lang.Math.exp;
+@Common @Const float "Math.floor"(float x) import java.lang.Math.floor;
+@Common @Const float "Math.log"(float x) import java.lang.Math.log;
 
-// Returns the natural logarithm (base e) of a double value.
-let Math.log = import java.lang.Math.log;
+//TODO: max(x,y,z,...,n)	Returns the number with the highest value
+//TODO: min(x,y,z,...,n)	Returns the number with the lowest value
 
-// Returns the base 10 logarithm of a double value.
-let Math.log10 = import java.lang.Math.log10;
+//pow(x,y)	Returns the value of x to the power of y
+@Common @Const float "Math.pow"(float x, float y) import java.lang.Math.pow;
 
-//// Returns the greater of two double values.
-//let Math.max = import java.lang.Math.max;
-//
-//// Returns the greater of two long values.
-//let Math.max = import java.lang.Math.max;
+//random()	Returns a random number between 0 and 1
+//TODO: round(x)	Rounds x to the nearest integer
 
-//// Returns the smaller of two double values.
-//let Math.min = import java.lang.Math.min;
-//
-//// Returns the smaller of two long values.
-//let Math.min = import java.lang.Math.min;
-
-// Returns the value of the first argument raised to the power of the second argument.
-let Math.pow = import java.lang.Math.pow;
-
-// Returns a double value with a positive sign, greater than or equal to 0.0 and less than 1.0.
-let Math.random = import java.lang.Math.random;
-
-// Returns the trigonometric sine of an angle.
-let Math.sin = import java.lang.Math.sin;
-
-// Returns the hyperbolic sine of a double value.
-//let Math.sinh = import java.lang.Math.sinh;
-//
-// Returns the correctly rounded positive square root of a double value.
-let Math.sqrt = import java.lang.Math.sqrt;
-
-// Returns the trigonometric tangent of an angle.
-let Math.tan = import java.lang.Math.tan;
-
-// Returns the hyperbolic tangent of a double value.
-let Math.tanh = import java.lang.Math.tanh;
+@Common @Const float "Math.random"() import java.lang.Math.random;

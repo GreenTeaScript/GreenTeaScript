@@ -1,0 +1,12 @@
+// written by kimio
+
+boolean TestError() {
+	String s = "hi";
+	s.NoSuchMethod();
+	return true;
+}
+
+@Export int main() {
+	assert(TestError());
+	return 0;
+}

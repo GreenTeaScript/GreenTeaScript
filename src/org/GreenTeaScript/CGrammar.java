@@ -56,7 +56,7 @@ public class CGrammar extends GreenTeaUtils {
 
 	public static GtNode TypeGetterP(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/String Name = ParsedTree.KeyToken.ParsedText;
-		/*local*/GtNode ObjectNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+		/*local*/GtNode ObjectNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, GtStaticTable.VarType, DefaultTypeCheckPolicy);
 		if(ObjectNode.IsErrorNode()) {
 			return ObjectNode;
 		}
@@ -80,17 +80,17 @@ public class CGrammar extends GreenTeaUtils {
 //		}
 		// 2. find Class method
 		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(ObjectNode.Type, Name, true);
-		if(PolyFunc.FuncList.size() > 0 && ContextType == Gamma.FuncType) {
+		if(PolyFunc.FuncList.size() > 0 && ContextType.IsFuncType()) {
 			/*local*/GtFunc FirstFunc = PolyFunc.FuncList.get(0);
 			return Gamma.Generator.CreateGetterNode(ContextType, ParsedTree, FirstFunc, ObjectNode);
 		}
 
 		// 3. find Class field
 		/*local*/GtFunc GetterFunc = ParsedTree.NameSpace.GetGetterFunc(ObjectNode.Type, Name, true);
-		/*local*/GtType ReturnType = (GetterFunc != null) ? GetterFunc.GetReturnType() : Gamma.AnyType;
+		/*local*/GtType ReturnType = (GetterFunc != null) ? GetterFunc.GetReturnType() : GtStaticTable.AnyType;
 		/*local*/GtNode Node = Gamma.Generator.CreateGetterNode(ReturnType, ParsedTree, GetterFunc, ObjectNode);
 		if(GetterFunc == null) {
-			if(!ObjectNode.Type.IsDynamic() && ContextType != Gamma.FuncType) {
+			if(!ObjectNode.Type.IsDynamic() && ContextType != GtStaticTable.FuncType) {
 				return Gamma.ReportTypeResult(ParsedTree, Node, TypeErrorLevel, "undefined name: " + Name + " of " + TypeName);
 			}
 		}
@@ -109,7 +109,7 @@ public class CGrammar extends GreenTeaUtils {
 		// define new class
 		/*local*/GtNameSpace ClassNameSpace = new GtNameSpace(NameSpace.Context, NameSpace);
 		/*local*/GtToken NameToken = ClassDeclTree.GetSyntaxTreeAt(ClassDeclName).KeyToken;
-		/*local*/GtType SuperType = NameSpace.Context.StructType;
+		/*local*/GtType SuperType = GtStaticTable.TopType;
 		//if(ClassDeclTree.HasNodeAt(ClassDeclSuperType)) {
 		//	SuperType = ClassDeclTree.GetSyntaxTreeAt(ClassDeclSuperType).GetParsedType();
 		//}
@@ -159,13 +159,13 @@ public class CGrammar extends GreenTeaUtils {
 				//	MemberList.add((/*cast*/GtFunc)SubTree.ParsedValue);
 				//}
 				if(!SubTree.Pattern.EqualsName("$VarDecl$")) {
-					SubTree.TypeCheck(Gamma, Gamma.VoidType, DefaultTypeCheckPolicy);
+					SubTree.TypeCheck(Gamma, GtStaticTable.VoidType, DefaultTypeCheckPolicy);
 				}
 				SubTree = SubTree.NextTree;
 			}
 			Gamma.Generator.CloseClassField(DefinedType, MemberList);
 		}
-		return Gamma.Generator.CreateEmptyNode(Gamma.VoidType);
+		return Gamma.Generator.CreateEmptyNode(GtStaticTable.VoidType);
 	}
 	
 	private static boolean TypeMemberDecl(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtClassField ClassField) {
@@ -179,14 +179,14 @@ public class CGrammar extends GreenTeaUtils {
 			if(InitValueNode.IsErrorNode()) {
 				return false;
 			}
-			InitValue = InitValueNode.ToConstValue(true);
+			InitValue = InitValueNode.ToConstValue(Gamma.Context, true);
 		}
 		if(GreenTeaUtils.UseLangStat) {
 			Gamma.Context.Stat.VarDecl += 1;
 		}/*EndOfStat*/
 		if(DeclType.IsVarType()) {
 			if(InitValueNode == null) {
-				DeclType = Gamma.AnyType;
+				DeclType = GtStaticTable.AnyType;
 			}
 			else {
 				DeclType = InitValueNode.Type;

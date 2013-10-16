@@ -105,7 +105,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		 * => boolean firstCond = true; while(firstCond || Cond) {firstCond = false; Block; }
 		 *
 		 */
-		/*local*/GtType BoolType = Type.Context.BooleanType;
+		/*local*/GtType BoolType = GtStaticTable.BooleanType;
 		/*local*/String VarName = "FirstCond";
 		/*local*/GtNode TrueNode = this.CreateConstNode(BoolType, ParsedTree, true);
 		/*local*/GtNode FalseNode = this.CreateConstNode(BoolType, ParsedTree, false);
@@ -242,7 +242,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitGetterNode(GtGetterNode Node) {
-		this.PushSourceCode(this.VisitNode(Node.ExprNode) + "[" + this.GetMemberIndex(Node.ExprNode.Type, Node.Func.FuncName) + "]");
+		this.PushSourceCode(this.VisitNode(Node.RecvNode) + "[" + this.GetMemberIndex(Node.RecvNode.Type, Node.Func.FuncName) + "]");
 	}
 
 	@Override public void VisitIndexerNode(GtIndexerNode Node) {
@@ -343,8 +343,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		
 		if(Node.Expr != null) {
 			/*local*/String Ret = this.ResolveValueType(Node.Expr, false);
-			if(Node.Type.equals(Node.Type.Context.BooleanType) || 
-					(Node.Type.equals(Node.Type.Context.IntType) && this.inMainFunc)) {
+			if(Node.Type.IsBooleanType() || (Node.Type.IsIntType() && this.inMainFunc)) {
 				this.PushSourceCode("return " + Ret);
 				return;
 			}
@@ -355,7 +354,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitTryNode(GtTryNode Node) {
-		/*local*/GtNode TrueNode = new GtConstNode(Node.Type.Context.BooleanType, null, true);
+		/*local*/GtNode TrueNode = new GtConstNode(GtStaticTable.BooleanType, null, true);
 		/*local*/String Code = "trap ";
 		/*local*/String Try = this.VisitNode(new GtIfNode(null, null, TrueNode, Node.TryBlock, null));
 		/*local*/String Catch = this.VisitNode(new GtIfNode(null, null, TrueNode, Node.CatchBlock, null));
@@ -390,10 +389,10 @@ public class BashSourceGenerator extends SourceGenerator {
 			count += 1;
 		}
 		
-		if(Type.equals(Type.Context.StringType)) {
+		if(Type.IsStringType()) {
 			Code = "execCommadString " + LibGreenTea.QuoteString(Code);
 		}
-		else if(Type.equals(Type.Context.BooleanType)) {
+		else if(Type.IsBooleanType()) {
 			Code = "execCommadBool " + LibGreenTea.QuoteString(Code);
 		}
 		this.PushSourceCode(Code);
@@ -411,7 +410,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	private boolean CheckConstFolding(GtNode TargetNode) {
-		if(TargetNode instanceof GtConstNode) {
+		if(TargetNode.IsConstNode()) {
 			return true;
 		}
 		else if(TargetNode instanceof GtUnaryNode) {
@@ -438,14 +437,14 @@ public class BashSourceGenerator extends SourceGenerator {
 		}
 		
 		// resolve boolean function
-		if(Type != null && Type.equals(Type.Context.BooleanType)) {
+		if(Type != null && Type.IsBooleanType()) {
 			if(TargetNode instanceof GtApplyNode || TargetNode instanceof GtUnaryNode || 
 					TargetNode instanceof GtCommandNode || TargetNode instanceof GtBinaryNode) {
 				return "$(valueOfBool " + LibGreenTea.QuoteString(Value) + ")";
 			}
 		}
 		
-		if(TargetNode instanceof GtConstNode || TargetNode instanceof GtNullNode) {
+		if(TargetNode.IsConstNode() || TargetNode instanceof GtNullNode) {
 			return Value;
 		}
 		else if(TargetNode instanceof GtIndexerNode || TargetNode instanceof GtGetterNode) {
@@ -476,7 +475,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		
 		// resolve string and object value
 		if(Type != null) {
-			if(Type.equals(Type.Context.StringType) || !this.IsNativeType(Type)) {
+			if(Type.IsStringType() || !this.IsNativeType(Type)) {
 				ResolvedValue = LibGreenTea.QuoteString(ResolvedValue);
 			}
 		}

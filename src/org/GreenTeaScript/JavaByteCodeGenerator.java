@@ -32,17 +32,12 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Stack;
 
 import org.GreenTeaScript.DShell.DShellProcess;
-import org.GreenTeaScript.JVM.GtThrowableWrapper;
-import org.GreenTeaScript.JVM.JVMConstPool;
-import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -51,100 +46,262 @@ import static org.objectweb.asm.Opcodes.*;
 
 // GreenTea Generator should be written in each language.
 
-class MethodHolderClass implements Opcodes {
-	final String name;
-	final String superClass;
-	final ArrayList<MethodNode> methods = new ArrayList<MethodNode>();
-	final Map<String, FieldNode> fields = new HashMap<String, FieldNode>();
+class JClassBuilder /*implements Opcodes */{
+	final String ClassName;
+	final String SuperClassName;
+	final ArrayList<MethodNode> MethodList = new ArrayList<MethodNode>();
+	final ArrayList<FieldNode> FieldList = new ArrayList<FieldNode>();
 
-	public MethodHolderClass(String name, String superClass) {
-		this.name = name;
-		this.superClass = superClass;
+	JClassBuilder(String name, String superClass) {
+		this.ClassName = name;
+		this.SuperClassName = superClass;
 	}
-
-	public void accept(ClassVisitor cv) {
-		cv.visit(V1_6, ACC_PUBLIC, this.name, null, this.superClass, null);
-		for(FieldNode f : this.fields.values()) {
-			f.accept(cv);
-		}
-		for(MethodNode m : this.methods) {
-			m.accept(cv);
-		}
-	}
-
-	public void addMethodNode(MethodNode m) {
-		for(int i=0; i<methods.size(); i++) {
-			MethodNode node = this.methods.get(i);
+	
+	void AddMethod(MethodNode m) {
+		for(int i=0; i<MethodList.size(); i++) {
+			MethodNode node = this.MethodList.get(i);
 			if(node.name.equals(m.name) && node.desc.equals(m.desc)) {
-				this.methods.set(i, m);
+				this.MethodList.set(i, m);
 				return;
 			}
 		}
-		this.methods.add(m);
+		this.MethodList.add(m);
 	}
 
-	public FieldNode getFieldNode(String name) {
-		return this.fields.get(name);
+	void AddField(FieldNode m) {
+		this.FieldList.add(m);
 	}
+	
+	byte[] GenerateBytecode() {
+		ClassWriter cv = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+		cv.visit(V1_6, ACC_PUBLIC, this.ClassName, null, this.SuperClassName, null);
+		for(FieldNode f : this.FieldList) {
+			f.accept(cv);
+		}
+		for(MethodNode m : this.MethodList) {
+			m.accept(cv);
+		}
+		cv.visitEnd();
+		return cv.toByteArray();
+	}
+
+	void OutputClassFile(String className, String dir) {
+		byte[] ba = this.GenerateBytecode();
+		File file = new File(dir, this.ClassName + ".class");
+		try {
+			FileOutputStream fos = new FileOutputStream(file);
+			fos.write(ba);
+			fos.close();
+		}
+		catch(IOException e) {
+			LibGreenTea.VerboseException(e);
+		} 
+	}
+
 }
 
-class GtClassLoader extends ClassLoader {
-	JavaByteCodeGenerator Gen;
-
-	public GtClassLoader(JavaByteCodeGenerator Gen) {
-		this.Gen = Gen;
+class GreenTeaClassLoader extends ClassLoader {
+	final GtParserContext Context;
+	final HashMap<String,JClassBuilder> ByteCodeMap;
+	final String GlobalStaticClassName;
+	final String ContextFieldName;
+	final String GontextDescripter;
+	
+	public GreenTeaClassLoader(GtParserContext Context) {
+		this.Context = Context;
+		this.ByteCodeMap = new HashMap<String,JClassBuilder>();
+		
+		this.GlobalStaticClassName = "Global$" + Context.ParserId;
+		JClassBuilder GlobalClass = new JClassBuilder(this.GlobalStaticClassName, "java/lang/Object");
+		FieldNode fn = new FieldNode(ACC_STATIC, "ParserContext", Type.getDescriptor(GtParserContext.class), null, null);
+		this.ContextFieldName = fn.name;
+		this.GontextDescripter = fn.desc;
+		GlobalClass.AddField(fn);
+		
+		// static init
+		MethodNode mn = new MethodNode(ACC_PUBLIC | ACC_STATIC, "<clinit>", "()V", null, null);
+		JMethodBuilder MethodBuilder = new JMethodBuilder(this, mn);
+		MethodBuilder.LoadConst(Context);
+		MethodBuilder.MethodVisitor.visitFieldInsn(PUTSTATIC, this.GlobalStaticClassName, this.ContextFieldName, this.GontextDescripter);
+		MethodBuilder.MethodVisitor.visitInsn(RETURN);
+		GlobalClass.AddMethod(mn);
+		byte[] b = GlobalClass.GenerateBytecode();
+		this.defineClass(this.GlobalStaticClassName, b, 0, b.length);
 	}
 
+	private void AddClassBuilder(JClassBuilder ClassBuilder) {
+		this.ByteCodeMap.put(ClassBuilder.ClassName, ClassBuilder);
+	}
+
+	JClassBuilder NewBuilder(String ClassName, String SuperClassName) {
+		JClassBuilder cb = new JClassBuilder(ClassName, SuperClassName);
+		this.AddClassBuilder(cb);
+		return cb;
+	}
+	
+	JClassBuilder GenerateMethodHolderClass(String FuncName, MethodNode AsmMethodNode) {
+		JClassBuilder HolderClass = new JClassBuilder(JLib.GetHolderClassName(Context, FuncName), "java/lang/Object");
+		this.AddClassBuilder(HolderClass);
+		HolderClass.AddMethod(AsmMethodNode);
+		return HolderClass;
+	}
+	
 	@Override protected Class<?> findClass(String name) {
-		byte[] b = this.Gen.GenerateBytecode(name);
-		return this.defineClass(name, b, 0, b.length);
+		JClassBuilder cb = this.ByteCodeMap.get(name);
+		if(cb != null) {
+			byte[] b = cb.GenerateBytecode();
+			this.ByteCodeMap.remove(name);
+			return this.defineClass(name, b, 0, b.length);
+		}
+		System.err.println("findClass.. " + name);
+		return null;
 	}
+
 }
 
-final class JVMLocal {
+final class JLocalVarStack {
 	public String Name;
 	public Type   TypeInfo;
 	public int    Index;
 
-	public JVMLocal(int Index, Type TypeInfo, String Name) {
+	public JLocalVarStack(int Index, Type TypeInfo, String Name) {
 		this.Index = Index;
 		this.TypeInfo = TypeInfo;
 		this.Name = Name;
 	}
 }
 
-class JVMBuilder {
-	MethodVisitor                 AsmMethodVisitor;
-	ArrayList<JVMLocal>           LocalVals;
+class JLib {
+	static HashMap<String, Type> TypeMap = new HashMap<String, Type>();
+	static Method GetConstPool;
+	static Method GetTypeById;
+	static Method GetFuncById;
+	static Method GetNameSpaceById;
+	static Method DynamicGetter;
+	static Method DynamicSetter;
+	static Method BoxBooleanValue;
+	static Method BoxIntValue;
+	static Method BoxFloatValue;
+	static Method UnboxBooleanValue;
+	static Method UnboxIntValue;
+	static Method UnboxFloatValue;
+	static Method GreenCastOperator;
+	static Method GreenInstanceOfOperator;
+	static Method NewArrayLiteral;
+	static Method NewArray;
+	static Method InvokeFunc;
+	static Method InvokeOverridedFunc;
+	static Method InvokeDynamicFunc;
+	static Method InvokeDynamicMethod;
+	
+	static Method ExecCommandVoid;
+	static Method ExecCommandBool;
+	static Method ExecCommandString;
+	
+	static {
+		TypeMap.put("void", Type.VOID_TYPE);
+		TypeMap.put("boolean", Type.BOOLEAN_TYPE);
+		TypeMap.put("int", Type.LONG_TYPE);
+		TypeMap.put("float", Type.DOUBLE_TYPE);
+		TypeMap.put("any", Type.getType(Object.class));
+		TypeMap.put("String", Type.getType(String.class));
+		TypeMap.put("Array", Type.getType(GreenTeaArray.class));
+		TypeMap.put("Func", Type.getType(GtFunc.class));
+
+		try {
+			GetConstPool = GtStaticTable.class.getMethod("GetConstPool", int.class);
+			GetTypeById = GtStaticTable.class.getMethod("GetTypeById", int.class);
+			GetFuncById = GtStaticTable.class.getMethod("GetFuncById", int.class);
+			DynamicGetter = LibGreenTea.class.getMethod("DynamicGetter", Object.class, String.class);
+			DynamicSetter = LibGreenTea.class.getMethod("DynamicSetter", Object.class, String.class, Object.class);
+			InvokeFunc = LibGreenTea.class.getMethod("InvokeFunc", GtFunc.class, Object[].class);
+			InvokeOverridedFunc = LibGreenTea.class.getMethod("InvokeOverridedMethod", long.class, GtNameSpace.class, GtFunc.class, Object[].class);
+			InvokeDynamicFunc = LibGreenTea.class.getMethod("InvokeDynamicFunc", long.class, GtType.class, GtNameSpace.class, String.class, Object[].class);
+			InvokeDynamicMethod = LibGreenTea.class.getMethod("InvokeDynamicMethod", long.class, GtType.class, GtNameSpace.class, String.class, Object[].class);
+			
+			BoxBooleanValue = Boolean.class.getMethod("valueOf", boolean.class);
+			BoxIntValue = Long.class.getMethod("valueOf", long.class);
+			BoxFloatValue = Double.class.getMethod("valueOf", double.class);
+			UnboxBooleanValue = Boolean.class.getMethod("booleanValue");
+			UnboxIntValue = Long.class.getMethod("longValue");
+			UnboxFloatValue = Double.class.getMethod("doubleValue");
+
+			GreenCastOperator = LibGreenTea.class.getMethod("DynamicCast", GtType.class, Object.class);
+			GreenInstanceOfOperator = LibGreenTea.class.getMethod("DynamicInstanceOf", Object.class, GtType.class);
+			NewArrayLiteral = LibGreenTea.class.getMethod("NewArrayLiteral", GtType.class, Object[].class);
+			NewArray = LibGreenTea.class.getMethod("NewArray", GtType.class, Object[].class);
+			ExecCommandVoid = DShellProcess.class.getMethod("ExecCommandVoid", String[][].class);
+			ExecCommandBool = DShellProcess.class.getMethod("ExecCommandBool", String[][].class);
+			ExecCommandString = DShellProcess.class.getMethod("ExecCommandString", String[][].class);
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			LibGreenTea.Exit(1, "load error");
+		}
+	}
+	
+	public static String GetHolderClassName(GtParserContext Context, String FuncName) {
+		return "FuncHolder" + FuncName + "$" + Context.ParserId;
+	}
+	
+	static Type GetAsmType(GtType GreenType) {
+		Type type = TypeMap.get(GreenType.ShortName);
+		if(type != null) {
+			return type;
+		}
+		if(GreenType.TypeBody != null && GreenType.TypeBody instanceof Class<?>) {
+			return Type.getType((Class<?>) GreenType.TypeBody);
+		}
+		if(GreenType.IsTypeVariable()) {
+			return Type.getType(Object.class);
+		}
+		if(GreenType.IsGenericType()) {
+			return GetAsmType(GreenType.BaseType);
+		}
+		return Type.getType("L" + GreenType.GetNativeName() + ";");
+	}
+
+	static String GetMethodDescriptor(GtFunc Func) {
+		Type ReturnType = GetAsmType(Func.GetReturnType());
+		Type[] argTypes = new Type[Func.GetFuncParamSize()];
+		for(int i = 0; i < argTypes.length; i++) {
+			GtType ParamType = Func.GetFuncParamType(i);
+			argTypes[i] = GetAsmType(ParamType);
+		}
+		return Type.getMethodDescriptor(ReturnType, argTypes);
+	}
+}
+
+class JMethodBuilder {
+	GreenTeaClassLoader           LocalClassLoader;
+	MethodVisitor                 MethodVisitor;
+	ArrayList<JLocalVarStack>           LocalVals;
 	int                           LocalSize;
-	Stack<Type>                   typeStack;
 	Stack<Label>                  BreakLabelStack;
 	Stack<Label>                  ContinueLabelStack;
 
-	public JVMBuilder(MethodVisitor AsmMethodVisitor) {
-		this.AsmMethodVisitor = AsmMethodVisitor;
-		this.LocalVals = new ArrayList<JVMLocal>();
+	public JMethodBuilder(GreenTeaClassLoader ClassLoader, MethodVisitor AsmMethodVisitor) {
+		this.LocalClassLoader = ClassLoader;
+		this.MethodVisitor = AsmMethodVisitor;
+		this.LocalVals = new ArrayList<JLocalVarStack>();
 		this.LocalSize = 0;
-		this.typeStack = new Stack<Type>();
 		this.BreakLabelStack = new Stack<Label>();
 		this.ContinueLabelStack = new Stack<Label>();
 	}
 
-	void LoadLocal(JVMLocal local) {
+	void LoadLocal(JLocalVarStack local) {
 		Type type = local.TypeInfo;
-		this.typeStack.push(type);
-		this.AsmMethodVisitor.visitVarInsn(type.getOpcode(ILOAD), local.Index);
+		this.MethodVisitor.visitVarInsn(type.getOpcode(ILOAD), local.Index);
 	}
 
-	void StoreLocal(JVMLocal local) {
+	void StoreLocal(JLocalVarStack local) {
 		Type type = local.TypeInfo;
-		this.typeStack.pop(); //TODO: check cast
-		this.AsmMethodVisitor.visitVarInsn(type.getOpcode(ISTORE), local.Index);
+		this.MethodVisitor.visitVarInsn(type.getOpcode(ISTORE), local.Index);
 	}
 
-	public JVMLocal FindLocalVariable(String Name) {
+	public JLocalVarStack FindLocalVariable(String Name) {
 		for(int i = 0; i < this.LocalVals.size(); i++) {
-			JVMLocal l = this.LocalVals.get(i);
+			JLocalVarStack l = this.LocalVals.get(i);
 			if(l.Name.compareTo(Name) == 0) {
 				return l;
 			}
@@ -152,19 +309,132 @@ class JVMBuilder {
 		return null;
 	}
 
-	public JVMLocal AddLocal(Type LocalType, String Name) {
-		JVMLocal local = new JVMLocal(this.LocalSize, LocalType, Name);
+	public JLocalVarStack AddLocal(GtType GreenType, String Name) {
+		Type LocalType =  JLib.GetAsmType(GreenType);
+		JLocalVarStack local = new JLocalVarStack(this.LocalSize, LocalType, Name);
 		this.LocalVals.add(local);
 		this.LocalSize += LocalType.getSize();
 		return local;
 	}
+	
+	void LoadConst(Object Value) {
+		if(Value instanceof Boolean || Value instanceof Long || Value instanceof Double || Value instanceof String) {
+			this.MethodVisitor.visitLdcInsn(Value);
+			return;
+		}
+		if(Value instanceof GtParserContext) {
+			this.MethodVisitor.visitFieldInsn(GETSTATIC, this.LocalClassLoader.GlobalStaticClassName, this.LocalClassLoader.ContextFieldName, this.LocalClassLoader.GontextDescripter);
+			return;
+		}
+		if(Value instanceof GtType) {
+			int id = ((GtType)Value).TypeId;
+			this.MethodVisitor.visitLdcInsn(id);
+			this.InvokeMethodCall(GtType.class, JLib.GetTypeById);
+			return;
+		}
+		else if(Value instanceof GtFunc) {
+			int id = ((GtFunc)Value).FuncId;
+			this.MethodVisitor.visitLdcInsn(id);
+			this.InvokeMethodCall(GtFunc.class, JLib.GetFuncById);
+			return;
+		}
+		int id = GtStaticTable.AddConstPool(Value);
+		this.MethodVisitor.visitLdcInsn(id);
+		this.InvokeMethodCall(Value.getClass(), JLib.GetConstPool);
+	}
+
+	void LoadNewArray(GtGenerator Visitor, int StartIdx, ArrayList<GtNode> NodeList) {
+		this.MethodVisitor.visitLdcInsn(NodeList.size() - StartIdx);
+		this.MethodVisitor.visitTypeInsn(ANEWARRAY, Type.getInternalName(Object.class));
+		//System.err.println("** arraysize = " + (NodeList.size() - StartIdx));
+		for(int i = StartIdx; i < NodeList.size(); i++) {
+			this.MethodVisitor.visitInsn(DUP);
+			this.MethodVisitor.visitLdcInsn(i);
+			NodeList.get(i).Evaluate(Visitor);
+			this.CheckCast(Object.class, NodeList.get(i).Type);
+			this.MethodVisitor.visitInsn(AASTORE);
+		}
+	}
+	
+	void CheckCast(Class<?> RequiredType, Class<?> GivenType) {
+		//System.err.println("giventype = " + GivenType + ", requested = " + RequiredType);
+		if(RequiredType == void.class || RequiredType == GivenType ) {
+			return;
+		}
+		if(RequiredType == long.class) {
+			if(GivenType == Object.class) {
+				this.MethodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(Long.class));
+				this.InvokeMethodCall(long.class, JLib.UnboxIntValue);
+				return;
+			}
+		}
+		if(RequiredType == double.class) {
+			if(GivenType == Object.class) {
+				this.MethodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(Double.class));
+				this.InvokeMethodCall(double.class, JLib.UnboxFloatValue);
+				return;
+			}
+		}
+		if(RequiredType == boolean.class) {
+			if(GivenType == Object.class) {
+				this.MethodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(Long.class));
+				this.InvokeMethodCall(boolean.class, JLib.UnboxBooleanValue);
+				return;
+			}
+		}
+		if(GivenType == long.class) {
+			if(RequiredType == Object.class) {
+				this.InvokeMethodCall(Long.class, JLib.BoxIntValue);
+				return;
+			}
+		}
+		if(GivenType == double.class) {
+			if(RequiredType == Object.class) {
+				this.InvokeMethodCall(Double.class, JLib.BoxFloatValue);
+				return;
+			}
+		}
+		if(GivenType == long.class) {
+			if(RequiredType == Object.class) {
+				this.InvokeMethodCall(Boolean.class, JLib.BoxBooleanValue);
+				return;
+			}
+		}
+		this.MethodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(RequiredType));
+	}
+
+	void CheckCast(Class<?> RequiredType, GtType GivenType) {
+		if(GivenType != null) {
+			CheckCast(RequiredType, GivenType.GetNativeType());
+		}
+//		else {
+//			System.err.println("cannot check cast given = " + GivenType + " RequiredType="+RequiredType);
+//		}
+	}
+
+	void CheckCast(GtType RequiredType, GtType GivenType) {
+		CheckCast(RequiredType.GetNativeType(), GivenType);
+	}
 
 	void Call(Constructor<?> method) {
 		String owner = Type.getInternalName(method.getDeclaringClass());
-		this.AsmMethodVisitor.visitMethodInsn(INVOKESPECIAL, owner, "<init>", Type.getConstructorDescriptor(method));
+		this.MethodVisitor.visitMethodInsn(INVOKESPECIAL, owner, "<init>", Type.getConstructorDescriptor(method));
 	}
 
-	public void Call(Method method) {
+	void InvokeMethodCall(Method method) {
+//		System.err.println("giventype = " + method);
+		InvokeMethodCall(void.class, method);
+	}
+
+	void InvokeMethodCall(GtType RequiredType, Method method) {
+		Class<?> RequiredNativeType = Object.class;
+		if(RequiredType != null) {
+			RequiredNativeType = RequiredType.GetNativeType();
+		}
+		InvokeMethodCall(RequiredNativeType, method);
+	}
+
+	void InvokeMethodCall(Class<?> RequiredType, Method method) {
 		int inst;
 		if(Modifier.isStatic(method.getModifiers())) {
 			inst = INVOKESTATIC;
@@ -176,40 +446,14 @@ class JVMBuilder {
 			inst = INVOKEVIRTUAL;
 		}
 		String owner = Type.getInternalName(method.getDeclaringClass());
-		this.AsmMethodVisitor.visitMethodInsn(inst, owner, method.getName(), Type.getMethodDescriptor(method));
-		this.typeStack.push(Type.getReturnType(method));
+		this.MethodVisitor.visitMethodInsn(inst, owner, method.getName(), Type.getMethodDescriptor(method));
+		this.CheckCast(RequiredType, method.getReturnType());
 	}
-}
-
-class Lib {
-	static Method GetTypeById;
-	static Method GetFuncById;
-	static Method GetNameSpaceById;
-	static Method DynamicGetter;
-	static Method DynamicSetter;
-	
-	static {
-		try {
-			GetTypeById = GtParserContext.class.getMethod("GetTypeById", int.class);
-			GetFuncById = GtParserContext.class.getMethod("GetFuncById", int.class);
-			DynamicGetter = LibGreenTea.class.getMethod("DynamicGetter", GtType.class, Object.class, String.class);
-			DynamicSetter = LibGreenTea.class.getMethod("DynamicSetter", GtType.class, Object.class, String.class, Object.class);
-		}
-		catch(Exception e) {
-			e.printStackTrace();
-			LibGreenTea.Exit(1, "load error");
-		}
-	}
-
 }
 
 public class JavaByteCodeGenerator extends GtGenerator {
-	private JVMBuilder Builder;
-	private String defaultClassName;
-	private final Map<String, MethodHolderClass> classMap = new HashMap<String, MethodHolderClass>();
-	private final Map<String, Type> typeDescriptorMap = new HashMap<String, Type>();
-	private MethodHolderClass DefaultHolderClass;
-	private Map<String, Method> methodMap;
+	GreenTeaClassLoader ClassGenerator;
+	JMethodBuilder VisitingBuilder;
 
 	public JavaByteCodeGenerator(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super("java", OutputFile, GeneratorFlag);
@@ -217,324 +461,57 @@ public class JavaByteCodeGenerator extends GtGenerator {
 
 	@Override public void InitContext(GtParserContext Context) {
 		super.InitContext(Context);
-		this.typeDescriptorMap.put(Context.VoidType.ShortName, Type.VOID_TYPE);
-		this.typeDescriptorMap.put(Context.BooleanType.ShortName, Type.BOOLEAN_TYPE);
-		this.typeDescriptorMap.put(Context.IntType.ShortName, Type.LONG_TYPE);
-		this.typeDescriptorMap.put(Context.FloatType.ShortName, Type.DOUBLE_TYPE);
-		this.typeDescriptorMap.put(Context.AnyType.ShortName, Type.getType(Object.class));
-		this.typeDescriptorMap.put(Context.StringType.ShortName, Type.getType(String.class));
-		this.typeDescriptorMap.put(Context.ArrayType.ShortName, Type.getType(GreenTeaArray.class));
-		this.typeDescriptorMap.put(Context.FuncType.ShortName, Type.getType(Object.class));//FIXME
-		this.methodMap = InitSystemMethods();
-		this.defaultClassName = "Global$" + Context.ParserId;
-		this.DefaultHolderClass = new MethodHolderClass(defaultClassName, "java/lang/Object");
-
-		// Global.ParserContext
-		FieldNode fn = new FieldNode(ACC_STATIC, "ParserContext", Type.getDescriptor(GtParserContext.class), null, null);
-		this.DefaultHolderClass.fields.put(fn.name, fn);
-
-		// static init
-		int acc = ACC_PUBLIC | ACC_STATIC;
-		MethodNode mn = new MethodNode(acc, "<clinit>", "()V", null, null);
-		this.Builder = new JVMBuilder(mn);
-		this.LoadConst(Context);
-		this.Builder.AsmMethodVisitor.visitFieldInsn(PUTSTATIC, this.DefaultHolderClass.name, fn.name, fn.desc);
-		this.Builder.AsmMethodVisitor.visitInsn(RETURN);
-		this.DefaultHolderClass.addMethodNode(mn);
-	}
-
-	
-	public static HashMap<String, Method> InitSystemMethods() {
-		HashMap<String, Method> map = new HashMap<String, Method>();
-		try {
-			Class<?> runtime = GreenTeaRuntime.class;
-			map.put("getter", runtime.getMethod("getter", Object.class, String.class));
-			map.put("setter", runtime.getMethod("setter", Object.class, String.class, Object.class));
-			map.put("error_node", runtime.getMethod("error_node", String.class));
-			Class<?> lib = LibGreenTea.class;
-			map.put("cast", lib.getMethod("DynamicCast", GtType.class, Object.class));
-			map.put("instanceof", lib.getMethod("DynamicInstanceOf", Object.class, GtType.class));
-			map.put("NewArrayLiteral", lib.getMethod("NewArrayLiteral", GtType.class, Object[].class));
-			map.put("NewArray", lib.getMethod("NewArray", GtType.class, Object[].class));
-			Class<?> proc = DShellProcess.class;
-			map.put("ExecCommandVoid", proc.getMethod("ExecCommandVoid", String[][].class));
-			map.put("ExecCommandBool", proc.getMethod("ExecCommandBool", String[][].class));
-			map.put("ExecCommandString", proc.getMethod("ExecCommandString", String[][].class));
-			// pool
-			map.put("get_const", JVMConstPool.class.getMethod("getById", int.class));
-			map.put("get_type", GtParserContext.class.getMethod("GetTypeById", int.class));
-			map.put("get_func", GtParserContext.class.getMethod("GetFuncById", int.class));
-			// boxing
-			map.put("boxI", Integer.class.getMethod("valueOf", int.class));
-			map.put("boxJ", Long.class.getMethod("valueOf", long.class));
-			map.put("boxD", Double.class.getMethod("valueOf", double.class));
-			map.put("boxZ", Boolean.class.getMethod("valueOf", boolean.class));
-			// unboxing
-			map.put("unboxI", Integer.class.getMethod("intValue"));
-			map.put("unboxJ", Long.class.getMethod("longValue"));
-			map.put("unboxD", Double.class.getMethod("doubleValue"));
-			map.put("unboxZ", Boolean.class.getMethod("booleanValue"));
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
-		return map;
-	}
-	
-	//-----------------------------------------------------
-
-	void LoadConst(Object Value) {
-		Type type = null;
-		boolean unsupportType = false;
-		if(Value instanceof Long) {
-			type = Type.LONG_TYPE;
-		}
-		else if(Value instanceof Double) {
-			type = Type.DOUBLE_TYPE;
-		}
-		else if(Value instanceof Boolean) {
-			type = Type.BOOLEAN_TYPE;
-		}
-		else if(Value instanceof String) {
-			type = Type.getType(Value.getClass());
-		}
-		else if(Value instanceof GtType) {
-			int id = ((GtType)Value).TypeId;
-			FieldNode fn = this.DefaultHolderClass.getFieldNode("ParserContext");
-			this.Builder.AsmMethodVisitor.visitFieldInsn(GETSTATIC, this.DefaultHolderClass.name, fn.name, fn.desc);
-			this.Builder.AsmMethodVisitor.visitLdcInsn(id);
-			this.Builder.Call(Lib.GetTypeById);
-			return;
-		}
-		else if(Value instanceof GtFunc) {
-			int id = ((GtFunc)Value).FuncId;
-			FieldNode fn = this.DefaultHolderClass.getFieldNode("ParserContext");
-			this.Builder.AsmMethodVisitor.visitFieldInsn(GETSTATIC, this.DefaultHolderClass.name, fn.name, fn.desc);
-			this.Builder.AsmMethodVisitor.visitLdcInsn(id);
-			this.Builder.Call(Lib.GetFuncById);
-			return;
-		}
-		else {
-			unsupportType = true;
-			type = Type.getType(Value.getClass());
-		}
-		if(unsupportType) {
-			int id = JVMConstPool.add(Value);
-			this.Builder.AsmMethodVisitor.visitLdcInsn(id);
-			this.Builder.Call(methodMap.get("get_const"));
-			this.Builder.AsmMethodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(Value.getClass()));
-		}
-		else {
-			this.Builder.AsmMethodVisitor.visitLdcInsn(Value);
-			this.Builder.typeStack.push(type);
-		}
-	}
-
-	void box() {
-		Type type = this.Builder.typeStack.peek();
-		Method m = this.methodMap.get("box" + type.getDescriptor().charAt(0));
-		if(m != null) {
-			this.Builder.typeStack.pop();
-			this.Builder.Call(m);
-		}
-	}
-
-	void unbox(Type type) {
-		Method m = this.methodMap.get("unbox" + type.getDescriptor().charAt(0));
-		if(m != null) {
-			this.Builder.AsmMethodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(m.getDeclaringClass()));
-			this.Builder.Call(m);
-		} else {
-			this.Builder.AsmMethodVisitor.visitTypeInsn(CHECKCAST, type.getInternalName());
-			this.Builder.typeStack.push(type);
-		}
-	}
-
-	//-----------------------------------------------------
-
-	Type ToAsmType(GtType GivenType) {
-		Type type = this.typeDescriptorMap.get(GivenType.ShortName);
-		if(type != null) {
-			return type;
-		}
-		if(GivenType.TypeBody != null && GivenType.TypeBody instanceof Class<?>) {
-			return Type.getType((Class<?>) GivenType.TypeBody);
-		}
-		if(GivenType.IsTypeVariable()) {
-			return Type.getType(Object.class);
-		}
-		if(GivenType.IsGenericType()) {
-			return this.ToAsmType(GivenType.BaseType);
-		}
-		return Type.getType("L" + GivenType.ShortName + ";");
-	}
-
-	Type ToAsmMethodType(GtFunc method) {
-		Type returnType = this.ToAsmType(method.GetReturnType());
-		Type[] argTypes = new Type[method.GetFuncParamSize()];
-		for(int i = 0; i < argTypes.length; i++) {
-			GtType ParamType = method.GetFuncParamType(i);
-			argTypes[i] = this.ToAsmType(ParamType);
-		}
-		return Type.getMethodType(returnType, argTypes);
-	}
-
-	public Class<?> ToClass(ClassLoader loader, Type type) throws ClassNotFoundException {
-		if(type.equals(Type.BOOLEAN_TYPE)) {
-			return boolean.class;
-		}
-		else if(type.equals(Type.LONG_TYPE)) {
-			return long.class;
-		}
-		else if(type.equals(Type.DOUBLE_TYPE)) {
-			return double.class;
-		}
-		else {
-			try {
-				return Class.forName(type.getClassName(), true, loader);
-			} catch (ClassNotFoundException e) {
-				return Class.forName(type.getClassName());
-			}
-		}
-	}
-
-	//-----------------------------------------------------
-
-	void OutputClassFile(String className, String dir) throws IOException {
-		byte[] ba = this.GenerateBytecode(className);
-		File file = new File(dir, className + ".class");
-		FileOutputStream fos = null;
-		try {
-			fos = new FileOutputStream(file);
-			fos.write(ba);
-		} finally {
-			if(fos != null) {
-				fos.close();
-			}
-		}
-	}
-
-	byte[] GenerateBytecode(String className) {
-		ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-		MethodHolderClass CNode = this.classMap.get(className);
-		assert CNode != null;
-		CNode.accept(classWriter);
-		classWriter.visitEnd();
-		return classWriter.toByteArray();
-	}
-
-	//-----------------------------------------------------
-
-	@Override public Object Eval(GtNode Node) {
-		int acc = ACC_PUBLIC | ACC_STATIC;
-		String methodName = "__eval";
-		String methodDesc = "()Ljava/lang/Object;";
-		MethodNode mn = new MethodNode(acc, methodName, methodDesc, null, null);
-		MethodHolderClass c = DefaultHolderClass;
-		c.addMethodNode(mn);
-		this.classMap.put(c.name, c);
-
-		this.Builder = new JVMBuilder(mn);
-		this.VisitBlock(Node);
-
-		// boxing and return
-		if(this.Builder.typeStack.empty()) {
-			this.Builder.AsmMethodVisitor.visitInsn(ACONST_NULL);
-		}
-		else {
-			this.box();
-		}
-		this.Builder.AsmMethodVisitor.visitInsn(ARETURN);
-
-		if(LibGreenTea.DebugMode) {
-			try {
-				this.OutputClassFile(defaultClassName, ".");
-			} catch(IOException e) {
-				LibGreenTea.VerboseException(e);
-			}
-		}
-		//execute
-		try {
-			GtClassLoader loader = new GtClassLoader(this);
-			Class<?> klass = loader.loadClass(defaultClassName);
-			Object res = klass.getMethod(methodName).invoke(null);
-			return res;
-		} catch(ClassNotFoundException e) {
-			LibGreenTea.VerboseException(e);
-		} catch(InvocationTargetException e) {
-			LibGreenTea.VerboseException(e);
-		} catch(IllegalAccessException e) {
-			LibGreenTea.VerboseException(e);
-		} catch(NoSuchMethodException e) {
-			LibGreenTea.VerboseException(e);
-		}
-		return null;
+		this.ClassGenerator = new GreenTeaClassLoader(Context);
 	}
 
 	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> NameList, GtNode Body) {
-		int acc = ACC_PUBLIC | ACC_STATIC;
-		Type ReturnType = this.ToAsmType(Func.GetReturnType());
-
-		ArrayList<Type> argTypes = new ArrayList<Type>();
-		for(int i=0; i<NameList.size(); i++) {
-			GtType type = Func.GetFuncParamType(i);
-			argTypes.add(this.ToAsmType(type));
-		}
 		String MethodName = Func.GetNativeFuncName();
-		String MethodDesc = Type.getMethodDescriptor(ReturnType, argTypes.toArray(new Type[0]));
+		String MethodDesc = JLib.GetMethodDescriptor(Func);
+		MethodNode AsmMethodNode = new MethodNode(ACC_PUBLIC | ACC_STATIC, MethodName, MethodDesc, null, null);
+		JClassBuilder ClassHolder = this.ClassGenerator.GenerateMethodHolderClass(MethodName, AsmMethodNode);
 
-		MethodNode AsmMethodNode = new MethodNode(acc, MethodName, MethodDesc, null, null);
-		MethodHolderClass c = DefaultHolderClass;
-		c.addMethodNode(AsmMethodNode);
-		this.classMap.put(c.name, c);
-
-		this.Builder = new JVMBuilder(AsmMethodNode);
-		for(int i=0; i<NameList.size(); i++) {
+		JMethodBuilder LocalBuilder = new JMethodBuilder(this.ClassGenerator, AsmMethodNode);
+		for(int i = 0; i < NameList.size(); i++) {
 			String Name = NameList.get(i);
-			this.Builder.AddLocal(argTypes.get(i), Name);
+			LocalBuilder.AddLocal(Func.GetFuncParamType(i), Name);
 		}
+		JMethodBuilder PushedBuilder = this.VisitingBuilder;
+		this.VisitingBuilder = LocalBuilder;
 		this.VisitBlock(Body);
-
-		// JVM always needs return;
-		if(ReturnType.equals(Type.VOID_TYPE)) {
-			this.Builder.AsmMethodVisitor.visitInsn(RETURN);//FIXME
-		}
-
-		// for debug purpose
-		if(LibGreenTea.DebugMode) {
-			try {
-				this.OutputClassFile(defaultClassName, ".");
-			} catch(IOException e) {
-				LibGreenTea.VerboseException(e);
-			}
+		this.VisitingBuilder = PushedBuilder;
+		if(Func.GetReturnType().IsVoidType()) {
+			// JVM always needs return;
+			LocalBuilder.MethodVisitor.visitInsn(RETURN);
 		}
 		try {
-			ClassLoader loader = new GtClassLoader(this);
-			Class<?>[] args = new Class<?>[argTypes.size()];
-			for(int i=0; i<args.length; i++) {
-				args[i] = ToClass(loader, argTypes.get(i));
+			if(LibGreenTea.DebugMode) {
+				ClassHolder.OutputClassFile(ClassHolder.ClassName, ".");
 			}
-			Method m = loader.loadClass(c.name).getMethod(MethodName, args);
-			Func.SetNativeMethod(0, m);
+			Class<?> DefinedClass = this.ClassGenerator.loadClass(ClassHolder.ClassName);
+			Method[] DefinedMethods = DefinedClass.getMethods();
+			for(Method m : DefinedMethods) {
+				if(m.getName().equals(Func.GetNativeFuncName())) {
+					Func.SetNativeMethod(0, m);
+					break;
+				}
+			}
 		} catch(Exception e) {
 			LibGreenTea.VerboseException(e);
 		}
 	}
 
 	@Override public void OpenClassField(GtType ClassType, GtClassField ClassField) {
-		String className = ClassType.ShortName;
-		MethodHolderClass superClassNode = this.classMap.get(ClassType.SuperType.ShortName);
-		String superClassName = superClassNode != null ?
-				superClassNode.name : Type.getInternalName(GreenTeaTopObject.class);
-		MethodHolderClass classNode = new MethodHolderClass(className, superClassName);
-		this.classMap.put(classNode.name, classNode);
+		String ClassName = ClassType.GetNativeName();
+		String superClassName = ClassType.SuperType.GetNativeName();
+		//System.err.println("class name = " + ClassName + " extends " + superClassName);
+		JClassBuilder ClassBuilder = this.ClassGenerator.NewBuilder(ClassName, superClassName);
 		// generate field
 		for(GtFieldInfo field : ClassField.FieldList) {
 			if(field.FieldIndex >= ClassField.ThisClassIndex) {
-				int access = ACC_PUBLIC;
 				String fieldName = field.NativeName;
-				Type fieldType = this.ToAsmType(field.Type);
-				FieldNode node = new FieldNode(access, fieldName, fieldType.getDescriptor(), null, null);
-				classNode.fields.put(fieldName, node);
+				Type fieldType = JLib.GetAsmType(field.Type);
+				FieldNode node = new FieldNode(ACC_PUBLIC, fieldName, fieldType.getDescriptor(), null, null);
+				ClassBuilder.AddField(node);
 			}
 		}
 		// generate default constructor (for jvm)
@@ -545,25 +522,19 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		for(GtFieldInfo field : ClassField.FieldList) {
 			if(field.FieldIndex >= ClassField.ThisClassIndex && field.InitValue != null) {
 				String name = field.NativeName;
-				String desc = this.ToAsmType(field.Type).getDescriptor();
+				String desc = JLib.GetAsmType(field.Type).getDescriptor();
 				constructor.visitVarInsn(ALOAD, 0);
 				constructor.visitLdcInsn(field.InitValue);
-				constructor.visitFieldInsn(PUTFIELD, className, name, desc);
+				constructor.visitFieldInsn(PUTFIELD, ClassName, name, desc);
 			}
 		}
 		constructor.visitInsn(RETURN);
-		classNode.addMethodNode(constructor);
-		if(LibGreenTea.DebugMode) {
-			try {
-				this.OutputClassFile(className, ".");
-			} catch(IOException e) {
-				LibGreenTea.VerboseException(e);
-			}
-		}
+		ClassBuilder.AddMethod(constructor);
 		try {
-			ClassLoader loader = new GtClassLoader(this);
-			ClassType.TypeBody = loader.loadClass(className);
-		} catch(Exception e) {
+			ClassType.TypeBody = this.ClassGenerator.loadClass(ClassName);
+			LibGreenTea.Assert(ClassType.TypeBody != null);
+		}
+		catch (Exception e) {
 			LibGreenTea.VerboseException(e);
 		}
 	}
@@ -573,27 +544,29 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	@Override public void VisitConstNode(GtConstNode Node) {
 		Object constValue = Node.ConstValue;
 		LibGreenTea.Assert(Node.ConstValue != null);  // Added by kimio
-//		if(constValue == null) { // FIXME(ide)
-//			this.Builder.typeStack.push(this.ToAsmType(Node.Type));
-//			this.Builder.AsmMethodVisitor.visitInsn(ACONST_NULL);
-//		}
-//		else {
-		this.LoadConst(constValue);
-//		}
+		this.VisitingBuilder.LoadConst(constValue);
 	}
 
 	@Override public void VisitNewNode(GtNewNode Node) {
-		Type type = this.ToAsmType(Node.Type);
+		Type type = JLib.GetAsmType(Node.Type);
 		String owner = type.getInternalName();
-		this.Builder.AsmMethodVisitor.visitTypeInsn(NEW, owner);
-		this.Builder.AsmMethodVisitor.visitInsn(DUP);
+		this.VisitingBuilder.MethodVisitor.visitTypeInsn(NEW, owner);
+		this.VisitingBuilder.MethodVisitor.visitInsn(DUP);
 		if(!Node.Type.IsNative()) {
-			this.LoadConst(Node.Type);
-			this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESPECIAL, owner, "<init>", "(Lorg/GreenTeaScript/GtType;)V");
+			this.VisitingBuilder.LoadConst(Node.Type);
+			this.VisitingBuilder.MethodVisitor.visitMethodInsn(INVOKESPECIAL, owner, "<init>", "(Lorg/GreenTeaScript/GtType;)V");
 		} else {
-			this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESPECIAL, owner, "<init>", "()V");
+			this.VisitingBuilder.MethodVisitor.visitMethodInsn(INVOKESPECIAL, owner, "<init>", "()V");
 		}
-		this.Builder.typeStack.push(type);
+	}
+
+	@Override public void VisitNullNode(GtNullNode Node) {
+		this.VisitingBuilder.MethodVisitor.visitInsn(ACONST_NULL);
+	}
+
+	@Override public void VisitLocalNode(GtLocalNode Node) {
+		JLocalVarStack local = this.VisitingBuilder.FindLocalVariable(Node.NativeName);
+		this.VisitingBuilder.LoadLocal(local);
 	}
 
 	@Override public void VisitConstructorNode(GtConstructorNode Node) {
@@ -601,103 +574,68 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			// native class
 			Class<?> klass = (Class<?>) Node.Type.TypeBody;
 			Type type = Type.getType(klass);
-			this.Builder.AsmMethodVisitor.visitTypeInsn(NEW, Type.getInternalName(klass));
-			this.Builder.AsmMethodVisitor.visitInsn(DUP);
-			for(int i=0; i<Node.ParamList.size(); i++) {
-				Node.ParamList.get(i).Evaluate(this);
-				this.Builder.typeStack.pop();
+			this.VisitingBuilder.MethodVisitor.visitTypeInsn(NEW, Type.getInternalName(klass));
+			this.VisitingBuilder.MethodVisitor.visitInsn(DUP);
+			for(int i = 0; i<Node.ParamList.size(); i++) {
+				GtNode ParamNode = Node.ParamList.get(i);
+				ParamNode.Evaluate(this);
+				this.VisitingBuilder.CheckCast(Node.Func.GetFuncParamType(i), ParamNode.Type);
 			}
-			this.Builder.Call((Constructor<?>) Node.Func.FuncBody);
-			this.Builder.typeStack.push(type);
+			this.VisitingBuilder.Call((Constructor<?>) Node.Func.FuncBody);
 		} else {
-//			int opcode = INVOKESTATIC;
-//			String owner = this.defaultClassName;
-//			String methodName = Func.GetNativeFuncName();
-//			String methodDescriptor = this.ToAsmMethodType(Func).getDescriptor();
-//			this.Builder.AsmMethodVisitor.visitMethodInsn(opcode, owner, methodName, methodDescriptor);
-//			this.Builder.typeStack.push(type);
 			LibGreenTea.TODO("TypeBody is not Class<?>");
 		}
 	}
 
-	@Override public void VisitNullNode(GtNullNode Node) {
-		this.Builder.typeStack.push(this.ToAsmType(Node.Type));
-		this.Builder.AsmMethodVisitor.visitInsn(ACONST_NULL);
-	}
-
-	@Override public void VisitLocalNode(GtLocalNode Node) {
-		JVMLocal local = this.Builder.FindLocalVariable(Node.NativeName);
-		this.Builder.LoadLocal(local);
-	}
-
 	@Override public void VisitGetterNode(GtGetterNode Node) {
 		String name = Node.Func.FuncName;
-		Type fieldType = this.ToAsmType(Node.Func.GetReturnType());
-		Type ownerType = this.ToAsmType(Node.Func.GetFuncParamType(0));
-		Node.ExprNode.Evaluate(this);
-		this.Builder.AsmMethodVisitor.visitFieldInsn(GETFIELD, ownerType.getInternalName(), name, fieldType.getDescriptor());
-		this.Builder.typeStack.pop();
-		this.Builder.typeStack.push(fieldType);
-		//             Type ty = this.ToAsmType(Node.Type);
-		//             this.Builder.AsmMethodVisitor.visitLdcInsn(name);
-		//             this.Builder.Call(this.methodMap.get("getter"));
-		//this.unbox(ty);
+		Type fieldType = JLib.GetAsmType(Node.Func.GetReturnType());
+		Type ownerType = JLib.GetAsmType(Node.Func.GetFuncParamType(0));
+		Node.RecvNode.Evaluate(this);
+		this.VisitingBuilder.MethodVisitor.visitFieldInsn(GETFIELD, ownerType.getInternalName(), name, fieldType.getDescriptor());
+	}
+
+	@Override public void VisitDyGetterNode(GtDyGetterNode Node) {
+		Node.RecvNode.Evaluate(this);
+		this.VisitingBuilder.LoadConst(Node.FieldName);
+		this.VisitingBuilder.InvokeMethodCall(Node.Type, JLib.DynamicGetter);
 	}
 	
-	public void VisitSetterNode(GtSetterNode Node) {
+	@Override public void VisitSetterNode(GtSetterNode Node) {
 		String name = Node.Func.FuncName;
-		Type fieldType = this.ToAsmType(Node.Func.GetFuncParamType(1));
-		Type ownerType = this.ToAsmType(Node.Func.GetFuncParamType(0));
-		Node.LeftNode.Evaluate(this);
-		Node.RightNode.Evaluate(this);
-		this.Builder.AsmMethodVisitor.visitFieldInsn(PUTFIELD, ownerType.getInternalName(), name, fieldType.getDescriptor());
-//		Node.LeftNode.Evaluate(this);
-//		this.Builder.AsmMethodVisitor.visitLdcInsn(name);
-//		Node.RightNode.Evaluate(this);
-//		this.box();
-//		this.Builder.Call(this.methodMap.get("setter"));
+		Type fieldType = JLib.GetAsmType(Node.Func.GetFuncParamType(1));
+		Type ownerType = JLib.GetAsmType(Node.Func.GetFuncParamType(0));
+		Node.RecvNode.Evaluate(this);
+		Node.ValueNode.Evaluate(this);
+		this.VisitingBuilder.MethodVisitor.visitFieldInsn(PUTFIELD, ownerType.getInternalName(), name, fieldType.getDescriptor());
 	}
 
-	public void VisitDySetterNode(GtDySetterNode SetterNode) {
-		this.LoadConst(SetterNode.Type);
-		SetterNode.LeftNode.Evaluate(this);
-		this.Builder.AsmMethodVisitor.visitLdcInsn(SetterNode.FieldName);
-		SetterNode.RightNode.Evaluate(this);
-		if(SetterNode.RightNode.Type.IsUnboxType()) {
-			this.box();
-		}
-		this.Builder.Call(Lib.DynamicSetter);
+	@Override public void VisitDySetterNode(GtDySetterNode Node) {
+		Node.RecvNode.Evaluate(this);
+		this.VisitingBuilder.LoadConst(Node.FieldName);
+		Node.ValueNode.Evaluate(this);
+		this.VisitingBuilder.InvokeMethodCall(Node.Type, JLib.DynamicSetter);						
 	}
-
+	
 	@Override public void VisitApplyNode(GtApplyNode Node) {
 		GtFunc Func = Node.Func;
 		for(int i = 1; i < Node.NodeList.size(); i++) {
 			GtNode ParamNode = Node.NodeList.get(i);
 			ParamNode.Evaluate(this);
-			Type requireType = this.ToAsmType(Func.GetFuncParamType(i - 1));
-			if(requireType.equals(Type.getType(Object.class))) {
-				this.box();
-			}
-			this.Builder.typeStack.pop();
+			this.VisitingBuilder.CheckCast(Func.GetFuncParamType(i - 1), ParamNode.Type);
 		}
 		Method m = null;
 		if(Func.FuncBody instanceof Method) {
 			m = (Method) Func.FuncBody;
 		}
-		else {
-			m = this.methodMap.get(Func.FuncName);
-		}
 		if(m != null) {
-			this.Builder.Call(m);
+			this.VisitingBuilder.InvokeMethodCall(Node.Type, m);
 		}
 		else {
-//			int opcode = Node.Func.Is(NativeStaticFunc) ? INVOKESTATIC : INVOKEVIRTUAL;
-			int opcode = INVOKESTATIC;
-			String owner = defaultClassName;//FIXME
-			String methodName = Func.GetNativeFuncName();  // IMSORRY
-			String methodDescriptor = this.ToAsmMethodType(Func).getDescriptor();
-			this.Builder.AsmMethodVisitor.visitMethodInsn(opcode, owner, methodName, methodDescriptor);
-			this.Builder.typeStack.push(this.ToAsmType(Func.GetReturnType()));
+			String MethodName = Func.GetNativeFuncName(); 
+			String Owner = JLib.GetHolderClassName(this.Context, MethodName);
+			String MethodDescriptor = JLib.GetMethodDescriptor(Func);
+			this.VisitingBuilder.MethodVisitor.visitMethodInsn(INVOKESTATIC, Owner, MethodName, MethodDescriptor);
 		}
 	}
 
@@ -706,64 +644,62 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		for(int i = 0; i < ApplyNode.ParamList.size(); i++) {
 			GtNode ParamNode = ApplyNode.ParamList.get(i);
 			ParamNode.Evaluate(this);
-			if(ParamNode.Type.IsUnboxType() && ParamNode.Type != Func.GetFuncParamType(i)) {
-				this.box();
-			}
-			// MATSU OLD CODE
-//			Type RequiredType = this.ToAsmType(Func.GetFuncParamType(i));
-//			if(RequiredType.equals(Type.getType(Object.class))) {
-//				this.box();
-//			}
-			this.Builder.typeStack.pop();
+			this.VisitingBuilder.CheckCast(Func.GetFuncParamType(i), ParamNode.Type);
 		}
-		LibGreenTea.Assert(Func.FuncBody instanceof Method);
-		this.Builder.Call((Method) Func.FuncBody);
-		// MATSU OLD CODE
-//		Method m = null;
-//		if(Func.FuncBody instanceof Method) {
-//			m = (Method) Func.FuncBody;
-//		}
-//		else {
-//			m = this.methodMap.get(Func.FuncName);
-//		}
-//		if(m != null) {
-//			this.Builder.Call(m);
-//		}
-//		else {
-////			int opcode = Node.Func.Is(NativeStaticFunc) ? INVOKESTATIC : INVOKEVIRTUAL;
-//			int opcode = INVOKESTATIC;
-//			String owner = defaultClassName;//FIXME
-//			String methodName = Func.GetNativeFuncName();  // IMSORRY
-//			String methodDescriptor = this.ToAsmMethodType(Func).getDescriptor();
-//			this.Builder.AsmMethodVisitor.visitMethodInsn(opcode, owner, methodName, methodDescriptor);
-//			this.Builder.typeStack.push(this.ToAsmType(Func.GetReturnType()));
-//		}
+		if(Func.FuncBody instanceof Method) {
+			this.VisitingBuilder.InvokeMethodCall(ApplyNode.Type, (Method) Func.FuncBody);
+		}
+		else {
+			String MethodName = Func.GetNativeFuncName(); 
+			String Owner = JLib.GetHolderClassName(this.Context, MethodName);
+			String MethodDescriptor = JLib.GetMethodDescriptor(Func);
+			this.VisitingBuilder.MethodVisitor.visitMethodInsn(INVOKESTATIC, Owner, MethodName, MethodDescriptor);
+		}
+	}
+
+	@Override public void VisitApplyFuncNode(GtApplyFuncNode ApplyNode) {
+		ApplyNode.FuncNode.Evaluate(this);
+		this.VisitingBuilder.LoadNewArray(this, 0, ApplyNode.ParamList);
+		this.VisitingBuilder.InvokeMethodCall(ApplyNode.Type, JLib.InvokeFunc);		
+	}
+
+	@Override public void VisitApplyOverridedMethodNode(GtApplyOverridedMethodNode ApplyNode) {
+		this.VisitingBuilder.MethodVisitor.visitLdcInsn((long)ApplyNode.Token.FileLine);
+		this.VisitingBuilder.LoadConst(ApplyNode.NameSpace);
+		this.VisitingBuilder.LoadConst(ApplyNode.Func);
+		this.VisitingBuilder.LoadNewArray(this, 0, ApplyNode.ParamList);
+		this.VisitingBuilder.InvokeMethodCall(ApplyNode.Type, JLib.InvokeOverridedFunc);		
+	}
+	
+	@Override public void VisitApplyDynamicFuncNode(GtApplyDynamicFuncNode ApplyNode) {
+		this.VisitingBuilder.MethodVisitor.visitLdcInsn((long)ApplyNode.Token.FileLine);
+		this.VisitingBuilder.LoadConst(ApplyNode.Type);
+		this.VisitingBuilder.LoadConst(ApplyNode.NameSpace);
+		this.VisitingBuilder.LoadConst(ApplyNode.FuncName);		
+		this.VisitingBuilder.LoadNewArray(this, 0, ApplyNode.ParamList);
+		this.VisitingBuilder.InvokeMethodCall(ApplyNode.Type, JLib.InvokeDynamicFunc);				
+	}
+
+	@Override public void VisitApplyDynamicMethodNode(GtApplyDynamicMethodNode ApplyNode) {
+		this.VisitingBuilder.MethodVisitor.visitLdcInsn((long)ApplyNode.Token.FileLine);
+		this.VisitingBuilder.LoadConst(ApplyNode.Type);
+		this.VisitingBuilder.LoadConst(ApplyNode.NameSpace);
+		this.VisitingBuilder.LoadConst(ApplyNode.FuncName);		
+		this.VisitingBuilder.LoadNewArray(this, 0, ApplyNode.ParamList);
+		this.VisitingBuilder.InvokeMethodCall(ApplyNode.Type, JLib.InvokeDynamicMethod);				
+	}
+	
+	@Override public void VisitUnaryNode(GtUnaryNode Node) {
+		LibGreenTea.Assert(Node.Func.FuncBody instanceof Method);
+		Node.Expr.Evaluate(this);
+		this.VisitingBuilder.InvokeMethodCall(Node.Type, (Method)Node.Func.FuncBody);
 	}
 
 	@Override public void VisitBinaryNode(GtBinaryNode Node) {
+		LibGreenTea.Assert(Node.Func.FuncBody instanceof Method);
 		Node.LeftNode.Evaluate(this);
-		this.Builder.typeStack.pop();
 		Node.RightNode.Evaluate(this);
-		this.Builder.typeStack.pop();
-		Method m = (Method)Node.Func.FuncBody;
-		if(m != null) {
-			this.Builder.Call(m);
-		}
-		else {
-			throw new RuntimeException("unsupport binary operator: " + Node.Func.FuncName);
-		}
-	}
-
-	@Override public void VisitUnaryNode(GtUnaryNode Node) {
-		Node.Expr.Evaluate(this);
-		this.Builder.typeStack.pop();
-		Method m = (Method)Node.Func.FuncBody;
-		if(m != null) {
-			this.Builder.Call(m);
-		}
-		else {
-			throw new RuntimeException("unsupport unary operator: " + Node.Func.FuncName);
-		}
+		this.VisitingBuilder.InvokeMethodCall(Node.Type, (Method)Node.Func.FuncBody);
 	}
 
 	@Override public void VisitIndexerNode(GtIndexerNode Node) {
@@ -772,121 +708,75 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		for(int i=0; i<NodeList.size(); i++) {
 			NodeList.get(i).Evaluate(this);
 		}
-		this.Builder.Call((Method) Node.Func.FuncBody);
-		this.unbox(this.ToAsmType(Node.Type));
+		this.VisitingBuilder.InvokeMethodCall(Node.Type, (Method) Node.Func.FuncBody);
 	}
 
 	@Override public void VisitArrayNode(GtArrayNode Node) {
-		ArrayList<GtNode> NodeList = Node.NodeList;
-		this.LoadConst(Node.Type);
-		this.Builder.AsmMethodVisitor.visitLdcInsn(NodeList.size());
-		this.Builder.AsmMethodVisitor.visitTypeInsn(ANEWARRAY, Type.getInternalName(Object.class));
-		for(int i=0; i<NodeList.size(); i++) {
-			this.Builder.AsmMethodVisitor.visitInsn(DUP);
-			this.Builder.AsmMethodVisitor.visitLdcInsn(i);
-			NodeList.get(i).Evaluate(this);
-			this.box();
-			this.Builder.typeStack.pop();
-			this.Builder.AsmMethodVisitor.visitInsn(AASTORE);
-		}
-		this.Builder.Call(methodMap.get("NewArrayLiteral"));
-		this.Builder.AsmMethodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(GreenTeaArray.class));
+		this.VisitingBuilder.LoadConst(Node.Type);
+		this.VisitingBuilder.LoadNewArray(this, 0, Node.NodeList);
+		this.VisitingBuilder.InvokeMethodCall(Node.Type, JLib.NewArrayLiteral);
 	}
 
 	public void VisitNewArrayNode(GtNewArrayNode Node) {
-		this.LoadConst(Node.Type);
-		this.Builder.AsmMethodVisitor.visitLdcInsn(Node.NodeList.size());
-		this.Builder.AsmMethodVisitor.visitTypeInsn(ANEWARRAY, Type.getInternalName(Object.class));
-		for(int i=0; i<Node.NodeList.size(); i++) {
-			this.Builder.AsmMethodVisitor.visitInsn(DUP);
-			this.Builder.AsmMethodVisitor.visitLdcInsn(i);
-			Node.NodeList.get(i).Evaluate(this);
-			this.box();
-			this.Builder.AsmMethodVisitor.visitInsn(AASTORE);
-			this.Builder.typeStack.pop();
-		}
-		this.Builder.Call(methodMap.get("NewArray"));
-		this.Builder.AsmMethodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(GreenTeaArray.class));
-		this.Builder.typeStack.push(this.ToAsmType(Node.Type));
+		this.VisitingBuilder.LoadConst(Node.Type);
+		this.VisitingBuilder.LoadNewArray(this, 0, Node.NodeList);
+		this.VisitingBuilder.InvokeMethodCall(Node.Type, JLib.NewArray);
 	}
 
 	@Override public void VisitAndNode(GtAndNode Node) {
 		Label elseLabel = new Label();
 		Label mergeLabel = new Label();
 		Node.LeftNode.Evaluate(this);
-		this.Builder.typeStack.pop();
-		this.Builder.AsmMethodVisitor.visitJumpInsn(IFEQ, elseLabel);
+		this.VisitingBuilder.MethodVisitor.visitJumpInsn(IFEQ, elseLabel);
 
 		Node.RightNode.Evaluate(this);
-		this.Builder.typeStack.pop();
-		this.Builder.AsmMethodVisitor.visitJumpInsn(IFEQ, elseLabel);
+		this.VisitingBuilder.MethodVisitor.visitJumpInsn(IFEQ, elseLabel);
 
-		this.Builder.AsmMethodVisitor.visitLdcInsn(true);
-		this.Builder.AsmMethodVisitor.visitJumpInsn(GOTO, mergeLabel);
+		this.VisitingBuilder.MethodVisitor.visitLdcInsn(true);
+		this.VisitingBuilder.MethodVisitor.visitJumpInsn(GOTO, mergeLabel);
 
-		this.Builder.AsmMethodVisitor.visitLabel(elseLabel);
-		this.Builder.AsmMethodVisitor.visitLdcInsn(false);
-		this.Builder.AsmMethodVisitor.visitJumpInsn(GOTO, mergeLabel);
+		this.VisitingBuilder.MethodVisitor.visitLabel(elseLabel);
+		this.VisitingBuilder.MethodVisitor.visitLdcInsn(false);
+		this.VisitingBuilder.MethodVisitor.visitJumpInsn(GOTO, mergeLabel);
 
-		this.Builder.AsmMethodVisitor.visitLabel(mergeLabel);
-		this.Builder.typeStack.push(Type.BOOLEAN_TYPE);
+		this.VisitingBuilder.MethodVisitor.visitLabel(mergeLabel);
 	}
 
 	@Override public void VisitOrNode(GtOrNode Node) {
 		Label thenLabel = new Label();
 		Label mergeLabel = new Label();
 		Node.LeftNode.Evaluate(this);
-		this.Builder.typeStack.pop();
-		this.Builder.AsmMethodVisitor.visitJumpInsn(IFNE, thenLabel);
+		this.VisitingBuilder.MethodVisitor.visitJumpInsn(IFNE, thenLabel);
 
 		Node.RightNode.Evaluate(this);
-		this.Builder.typeStack.pop();
-		this.Builder.AsmMethodVisitor.visitJumpInsn(IFNE, thenLabel);
+		this.VisitingBuilder.MethodVisitor.visitJumpInsn(IFNE, thenLabel);
 
-		this.Builder.AsmMethodVisitor.visitLdcInsn(false);
-		this.Builder.AsmMethodVisitor.visitJumpInsn(GOTO, mergeLabel);
+		this.VisitingBuilder.MethodVisitor.visitLdcInsn(false);
+		this.VisitingBuilder.MethodVisitor.visitJumpInsn(GOTO, mergeLabel);
 
-		this.Builder.AsmMethodVisitor.visitLabel(thenLabel);
-		this.Builder.AsmMethodVisitor.visitLdcInsn(true);
-		this.Builder.AsmMethodVisitor.visitJumpInsn(GOTO, mergeLabel);
+		this.VisitingBuilder.MethodVisitor.visitLabel(thenLabel);
+		this.VisitingBuilder.MethodVisitor.visitLdcInsn(true);
+		this.VisitingBuilder.MethodVisitor.visitJumpInsn(GOTO, mergeLabel);
 
-		this.Builder.AsmMethodVisitor.visitLabel(mergeLabel);
-		this.Builder.typeStack.push(Type.BOOLEAN_TYPE);
+		this.VisitingBuilder.MethodVisitor.visitLabel(mergeLabel);
 	}
 
 	@Override public void VisitAssignNode(GtAssignNode Node) {
-		if(Node.LeftNode instanceof GtGetterNode) {
-			GtGetterNode left = (GtGetterNode) Node.LeftNode;
-			String name = left.Func.FuncName;
-			Type ty = this.ToAsmType(left.Func.Types[0]);//FIXME
-
-			left.ExprNode.Evaluate(this);
-			this.Builder.AsmMethodVisitor.visitLdcInsn(name);
-			Node.RightNode.Evaluate(this);
-			this.box();
-			this.Builder.Call(this.methodMap.get("setter"));
-			this.Builder.typeStack.pop();
-			this.Builder.typeStack.push(ty);
-		}
-		else {
-			assert (Node.LeftNode instanceof GtLocalNode);
-			GtLocalNode Left = (GtLocalNode) Node.LeftNode;
-			JVMLocal local = this.Builder.FindLocalVariable(Left.NativeName);
-			Node.RightNode.Evaluate(this);
-			this.Builder.StoreLocal(local);
-		}
+		assert (Node.LeftNode instanceof GtLocalNode);
+		GtLocalNode Left = (GtLocalNode) Node.LeftNode;
+		JLocalVarStack local = this.VisitingBuilder.FindLocalVariable(Left.NativeName);
+		Node.RightNode.Evaluate(this);
+		this.VisitingBuilder.StoreLocal(local);
 	}
 
 	@Override public void VisitSelfAssignNode(GtSelfAssignNode Node) {
 		if(Node.LeftNode instanceof GtLocalNode) {
 			GtLocalNode Left = (GtLocalNode)Node.LeftNode;
-			JVMLocal local = this.Builder.FindLocalVariable(Left.NativeName);
+			JLocalVarStack local = this.VisitingBuilder.FindLocalVariable(Left.NativeName);
 			Node.LeftNode.Evaluate(this);
-			this.Builder.typeStack.pop();
 			Node.RightNode.Evaluate(this);
-			this.Builder.typeStack.pop();
-			this.Builder.Call((Method)Node.Func.FuncBody);
-			this.Builder.StoreLocal(local);
+			this.VisitingBuilder.InvokeMethodCall((Method)Node.Func.FuncBody);
+			this.VisitingBuilder.StoreLocal(local);
 		}
 		else {
 			LibGreenTea.TODO("selfAssign");
@@ -894,9 +784,9 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	}
 
 	@Override public void VisitVarNode(GtVarNode Node) {
-		JVMLocal local = this.Builder.AddLocal(this.ToAsmType(Node.Type), Node.NativeName);
+		JLocalVarStack local = this.VisitingBuilder.AddLocal(Node.Type, Node.NativeName);
 		Node.InitNode.Evaluate(this);
-		this.Builder.StoreLocal(local);
+		this.VisitingBuilder.StoreLocal(local);
 		this.VisitBlock(Node.BlockNode);
 	}
 
@@ -904,36 +794,34 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		Label ElseLabel = new Label();
 		Label EndLabel = new Label();
 		Node.CondExpr.Evaluate(this);
-		this.Builder.typeStack.pop(); //TODO: check cast
-		this.Builder.AsmMethodVisitor.visitJumpInsn(IFEQ, ElseLabel);
+		this.VisitingBuilder.MethodVisitor.visitJumpInsn(IFEQ, ElseLabel);
 		// Then
 		this.VisitBlock(Node.ThenNode);
-		this.Builder.AsmMethodVisitor.visitJumpInsn(GOTO, EndLabel);
+		this.VisitingBuilder.MethodVisitor.visitJumpInsn(GOTO, EndLabel);
 		// Else
-		this.Builder.AsmMethodVisitor.visitLabel(ElseLabel);
+		this.VisitingBuilder.MethodVisitor.visitLabel(ElseLabel);
 		if(Node.ElseNode != null) {
 			this.VisitBlock(Node.ElseNode);
-			this.Builder.AsmMethodVisitor.visitJumpInsn(GOTO, EndLabel);
+			this.VisitingBuilder.MethodVisitor.visitJumpInsn(GOTO, EndLabel);
 		}
 		// End
-		this.Builder.AsmMethodVisitor.visitLabel(EndLabel);
+		this.VisitingBuilder.MethodVisitor.visitLabel(EndLabel);
 	}
 
 	@Override public void VisitTrinaryNode(GtTrinaryNode Node) {
 		Label ElseLabel = new Label();
 		Label EndLabel = new Label();
 		Node.ConditionNode.Evaluate(this);
-		this.Builder.typeStack.pop();
-		this.Builder.AsmMethodVisitor.visitJumpInsn(IFEQ, ElseLabel);
+		this.VisitingBuilder.MethodVisitor.visitJumpInsn(IFEQ, ElseLabel);
 		// Then
 		this.VisitBlock(Node.ThenNode);
-		this.Builder.AsmMethodVisitor.visitJumpInsn(GOTO, EndLabel);
+		this.VisitingBuilder.MethodVisitor.visitJumpInsn(GOTO, EndLabel);
 		// Else
-		this.Builder.AsmMethodVisitor.visitLabel(ElseLabel);
+		this.VisitingBuilder.MethodVisitor.visitLabel(ElseLabel);
 		this.VisitBlock(Node.ElseNode);
-		this.Builder.AsmMethodVisitor.visitJumpInsn(GOTO, EndLabel);
+		this.VisitingBuilder.MethodVisitor.visitJumpInsn(GOTO, EndLabel);
 		// End
-		this.Builder.AsmMethodVisitor.visitLabel(EndLabel);
+		this.VisitingBuilder.MethodVisitor.visitLabel(EndLabel);
 	}
 
 	@Override public void VisitSwitchNode(GtSwitchNode Node) {
@@ -947,78 +835,73 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			caseLabels[i] = new Label();
 		}
 		Node.MatchNode.Evaluate(this);
-		this.Builder.AsmMethodVisitor.visitInsn(L2I);
-		this.Builder.typeStack.pop();
-		this.Builder.AsmMethodVisitor.visitLookupSwitchInsn(defaultLabel, keys, caseLabels);
+		this.VisitingBuilder.MethodVisitor.visitInsn(L2I);
+		this.VisitingBuilder.MethodVisitor.visitLookupSwitchInsn(defaultLabel, keys, caseLabels);
 		for(int i=0; i<cases; i++) {
-			this.Builder.BreakLabelStack.push(breakLabel);
-			this.Builder.AsmMethodVisitor.visitLabel(caseLabels[i]);
+			this.VisitingBuilder.BreakLabelStack.push(breakLabel);
+			this.VisitingBuilder.MethodVisitor.visitLabel(caseLabels[i]);
 			this.VisitBlock(Node.CaseList.get(i*2+1));
-			this.Builder.BreakLabelStack.pop();
+			this.VisitingBuilder.BreakLabelStack.pop();
 		}
-		this.Builder.AsmMethodVisitor.visitLabel(defaultLabel);
+		this.VisitingBuilder.MethodVisitor.visitLabel(defaultLabel);
 		this.VisitBlock(Node.DefaultBlock);
-		this.Builder.AsmMethodVisitor.visitLabel(breakLabel);
+		this.VisitingBuilder.MethodVisitor.visitLabel(breakLabel);
 	}
 
 	@Override public void VisitWhileNode(GtWhileNode Node) {
 		Label continueLabel = new Label();
 		Label breakLabel = new Label();
-		this.Builder.BreakLabelStack.push(breakLabel);
-		this.Builder.ContinueLabelStack.push(continueLabel);
+		this.VisitingBuilder.BreakLabelStack.push(breakLabel);
+		this.VisitingBuilder.ContinueLabelStack.push(continueLabel);
 
-		this.Builder.AsmMethodVisitor.visitLabel(continueLabel);
+		this.VisitingBuilder.MethodVisitor.visitLabel(continueLabel);
 		Node.CondExpr.Evaluate(this);
-		this.Builder.typeStack.pop();
-		this.Builder.AsmMethodVisitor.visitJumpInsn(IFEQ, breakLabel); // condition
+		this.VisitingBuilder.MethodVisitor.visitJumpInsn(IFEQ, breakLabel); // condition
 		this.VisitBlock(Node.LoopBody);
-		this.Builder.AsmMethodVisitor.visitJumpInsn(GOTO, continueLabel);
-		this.Builder.AsmMethodVisitor.visitLabel(breakLabel);
+		this.VisitingBuilder.MethodVisitor.visitJumpInsn(GOTO, continueLabel);
+		this.VisitingBuilder.MethodVisitor.visitLabel(breakLabel);
 
-		this.Builder.BreakLabelStack.pop();
-		this.Builder.ContinueLabelStack.pop();
+		this.VisitingBuilder.BreakLabelStack.pop();
+		this.VisitingBuilder.ContinueLabelStack.pop();
 	}
 
 	@Override public void VisitDoWhileNode(GtDoWhileNode Node) {
 		Label headLabel = new Label();
 		Label continueLabel = new Label();
 		Label breakLabel = new Label();
-		this.Builder.BreakLabelStack.push(breakLabel);
-		this.Builder.ContinueLabelStack.push(continueLabel);
+		this.VisitingBuilder.BreakLabelStack.push(breakLabel);
+		this.VisitingBuilder.ContinueLabelStack.push(continueLabel);
 
-		this.Builder.AsmMethodVisitor.visitLabel(headLabel);
+		this.VisitingBuilder.MethodVisitor.visitLabel(headLabel);
 		this.VisitBlock(Node.LoopBody);
-		this.Builder.AsmMethodVisitor.visitLabel(continueLabel);
+		this.VisitingBuilder.MethodVisitor.visitLabel(continueLabel);
 		Node.CondExpr.Evaluate(this);
-		this.Builder.typeStack.pop();
-		this.Builder.AsmMethodVisitor.visitJumpInsn(IFEQ, breakLabel); // condition
-		this.Builder.AsmMethodVisitor.visitJumpInsn(GOTO, headLabel);
-		this.Builder.AsmMethodVisitor.visitLabel(breakLabel);
+		this.VisitingBuilder.MethodVisitor.visitJumpInsn(IFEQ, breakLabel); // condition
+		this.VisitingBuilder.MethodVisitor.visitJumpInsn(GOTO, headLabel);
+		this.VisitingBuilder.MethodVisitor.visitLabel(breakLabel);
 
-		this.Builder.BreakLabelStack.pop();
-		this.Builder.ContinueLabelStack.pop();
+		this.VisitingBuilder.BreakLabelStack.pop();
+		this.VisitingBuilder.ContinueLabelStack.pop();
 	}
 
 	@Override public void VisitForNode(GtForNode Node) {
 		Label headLabel = new Label();
 		Label continueLabel = new Label();
 		Label breakLabel = new Label();
-		this.Builder.BreakLabelStack.push(breakLabel);
-		this.Builder.ContinueLabelStack.push(continueLabel);
+		this.VisitingBuilder.BreakLabelStack.push(breakLabel);
+		this.VisitingBuilder.ContinueLabelStack.push(continueLabel);
 
-		this.Builder.AsmMethodVisitor.visitLabel(headLabel);
+		this.VisitingBuilder.MethodVisitor.visitLabel(headLabel);
 		Node.CondExpr.Evaluate(this);
-		this.Builder.typeStack.pop();
-		this.Builder.AsmMethodVisitor.visitJumpInsn(IFEQ, breakLabel); // condition
+		this.VisitingBuilder.MethodVisitor.visitJumpInsn(IFEQ, breakLabel); // condition
 		this.VisitBlock(Node.LoopBody);
-		this.Builder.AsmMethodVisitor.visitLabel(continueLabel);
+		this.VisitingBuilder.MethodVisitor.visitLabel(continueLabel);
 		Node.IterExpr.Evaluate(this);
-		//this.Builder.typeStack.pop();
-		this.Builder.AsmMethodVisitor.visitJumpInsn(GOTO, headLabel);
-		this.Builder.AsmMethodVisitor.visitLabel(breakLabel);
+		this.VisitingBuilder.MethodVisitor.visitJumpInsn(GOTO, headLabel);
+		this.VisitingBuilder.MethodVisitor.visitLabel(breakLabel);
 
-		this.Builder.BreakLabelStack.pop();
-		this.Builder.ContinueLabelStack.pop();
+		this.VisitingBuilder.BreakLabelStack.pop();
+		this.VisitingBuilder.ContinueLabelStack.pop();
 	}
 
 	@Override public void VisitForEachNode(GtForEachNode Node) {
@@ -1028,27 +911,27 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	@Override public void VisitReturnNode(GtReturnNode Node) {
 		if(Node.Expr != null) {
 			Node.Expr.Evaluate(this);
-			Type type = this.Builder.typeStack.pop();
-			this.Builder.AsmMethodVisitor.visitInsn(type.getOpcode(IRETURN));
+			Type type = JLib.GetAsmType(Node.Expr.Type);
+			this.VisitingBuilder.MethodVisitor.visitInsn(type.getOpcode(IRETURN));
 		}
 		else {
-			this.Builder.AsmMethodVisitor.visitInsn(RETURN);
+			this.VisitingBuilder.MethodVisitor.visitInsn(RETURN);
 		}
 	}
 
 	@Override public void VisitBreakNode(GtBreakNode Node) {
-		Label l = this.Builder.BreakLabelStack.peek();
-		this.Builder.AsmMethodVisitor.visitJumpInsn(GOTO, l);
+		Label l = this.VisitingBuilder.BreakLabelStack.peek();
+		this.VisitingBuilder.MethodVisitor.visitJumpInsn(GOTO, l);
 	}
 
 	@Override public void VisitContinueNode(GtContinueNode Node) {
-		Label l = this.Builder.ContinueLabelStack.peek();
-		this.Builder.AsmMethodVisitor.visitJumpInsn(GOTO, l);
+		Label l = this.VisitingBuilder.ContinueLabelStack.peek();
+		this.VisitingBuilder.MethodVisitor.visitJumpInsn(GOTO, l);
 	}
 
 	@Override public void VisitTryNode(GtTryNode Node) { //FIXME
 		int catchSize = Node.CatchBlock != null ? 1 : 0;
-		MethodVisitor mv = this.Builder.AsmMethodVisitor;
+		MethodVisitor mv = this.VisitingBuilder.MethodVisitor;
 		Label beginTryLabel = new Label();
 		Label endTryLabel = new Label();
 		Label finallyLabel = new Label();
@@ -1063,7 +946,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		// prepare
 		for(int i = 0; i < catchSize; i++) { //TODO: add exception class name
 			catchLabel[i] = new Label();
-			String throwType = this.ToAsmType(Node.CatchExpr.Type).getInternalName();
+			String throwType = JLib.GetAsmType(Node.CatchExpr.Type).getInternalName();
 			mv.visitTryCatchBlock(beginTryLabel, endTryLabel, catchLabel[i], throwType);
 		}
 
@@ -1082,32 +965,28 @@ public class JavaByteCodeGenerator extends GtGenerator {
 
 	@Override public void VisitThrowNode(GtThrowNode Node) {
 		// use wrapper
-		String name = Type.getInternalName(GtThrowableWrapper.class);
-		this.Builder.AsmMethodVisitor.visitTypeInsn(NEW, name);
-		this.Builder.AsmMethodVisitor.visitInsn(DUP);
-		Node.Expr.Evaluate(this);
-		this.box();
-		this.Builder.typeStack.pop();
-		this.Builder.AsmMethodVisitor.visitMethodInsn(INVOKESPECIAL, name, "<init>", "(Ljava/lang/Object;)V");
-		this.Builder.AsmMethodVisitor.visitInsn(ATHROW);
+		//String name = Type.getInternalName(GtThrowableWrapper.class);
+		//this.VisitingBuilder.MethodVisitor.visitTypeInsn(NEW, name);
+		//this.VisitingBuilder.MethodVisitor.visitInsn(DUP);
+		//Node.Expr.Evaluate(this);
+		//this.box();
+//		//this.VisitingBuilder.typeStack.pop();
+		//this.VisitingBuilder.MethodVisitor.visitMethodInsn(INVOKESPECIAL, name, "<init>", "(Ljava/lang/Object;)V");
+		//this.VisitingBuilder.MethodVisitor.visitInsn(ATHROW);
 	}
 
 	@Override public void VisitInstanceOfNode(GtInstanceOfNode Node) {
 		Node.ExprNode.Evaluate(this);
-		this.box();
-		this.LoadConst(Node.TypeInfo);
-		this.Builder.Call(methodMap.get("instanceof"));
-		this.unbox(Type.BOOLEAN_TYPE);
-		this.Builder.typeStack.push(Type.BOOLEAN_TYPE);
+		this.VisitingBuilder.CheckCast(Object.class, Node.ExprNode.Type);
+		this.VisitingBuilder.LoadConst(Node.TypeInfo);
+		this.VisitingBuilder.InvokeMethodCall(JLib.GreenInstanceOfOperator);
 	}
 
 	@Override public void VisitCastNode(GtCastNode Node) {
-		this.LoadConst(Node.CastType);
+		this.VisitingBuilder.LoadConst(Node.CastType);
 		Node.Expr.Evaluate(this);
-		this.Builder.Call(methodMap.get("cast"));
-		this.unbox(this.ToAsmType(Node.CastType));
-		this.Builder.typeStack.pop();
-		this.Builder.typeStack.push(this.ToAsmType(Node.CastType));
+		this.VisitingBuilder.CheckCast(Object.class, Node.Expr.Type);
+		this.VisitingBuilder.InvokeMethodCall(Node.CastType, JLib.GreenCastOperator);
 	}
 
 	@Override public void VisitFunctionNode(GtFunctionNode Node) {
@@ -1115,8 +994,12 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	}
 
 	@Override public void VisitErrorNode(GtErrorNode Node) {
-		this.Builder.AsmMethodVisitor.visitLdcInsn("(ErrorNode)");
-		this.Builder.Call(this.methodMap.get("error_node"));
+		String name = Type.getInternalName(SoftwareFaultException.class);
+		this.VisitingBuilder.MethodVisitor.visitTypeInsn(NEW, name);
+		this.VisitingBuilder.MethodVisitor.visitInsn(DUP);
+		this.VisitingBuilder.LoadConst(Node.Token.GetErrorMessage());
+		this.VisitingBuilder.MethodVisitor.visitMethodInsn(INVOKESPECIAL, name, "<init>", "(Ljava/lang/Object;)V");
+		this.VisitingBuilder.MethodVisitor.visitInsn(ATHROW);
 	}
 
 	@Override public void VisitCommandNode(GtCommandNode Node) {
@@ -1127,40 +1010,38 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			node = (GtCommandNode) node.PipedNextNode;
 		}
 		// new String[][n]
-		this.Builder.AsmMethodVisitor.visitLdcInsn(Args.size());
-		this.Builder.AsmMethodVisitor.visitTypeInsn(ANEWARRAY, Type.getInternalName(String[].class));
+		this.VisitingBuilder.MethodVisitor.visitLdcInsn(Args.size());
+		this.VisitingBuilder.MethodVisitor.visitTypeInsn(ANEWARRAY, Type.getInternalName(String[].class));
 		for(int i=0; i<Args.size(); i++) {
 			// new String[m];
 			ArrayList<GtNode> Arg = Args.get(i);
-			this.Builder.AsmMethodVisitor.visitInsn(DUP);
-			this.Builder.AsmMethodVisitor.visitLdcInsn(i);
-			this.Builder.AsmMethodVisitor.visitLdcInsn(Arg.size());
-			this.Builder.AsmMethodVisitor.visitTypeInsn(ANEWARRAY, Type.getInternalName(String.class));
+			this.VisitingBuilder.MethodVisitor.visitInsn(DUP);
+			this.VisitingBuilder.MethodVisitor.visitLdcInsn(i);
+			this.VisitingBuilder.MethodVisitor.visitLdcInsn(Arg.size());
+			this.VisitingBuilder.MethodVisitor.visitTypeInsn(ANEWARRAY, Type.getInternalName(String.class));
 			for(int j=0; j<Arg.size(); j++) {
-				this.Builder.AsmMethodVisitor.visitInsn(DUP);
-				this.Builder.AsmMethodVisitor.visitLdcInsn(j);
+				this.VisitingBuilder.MethodVisitor.visitInsn(DUP);
+				this.VisitingBuilder.MethodVisitor.visitLdcInsn(j);
 				Arg.get(j).Evaluate(this);
-				this.Builder.typeStack.pop();
-				this.Builder.AsmMethodVisitor.visitInsn(AASTORE);
+				this.VisitingBuilder.MethodVisitor.visitInsn(AASTORE);
 			}
-			this.Builder.AsmMethodVisitor.visitInsn(AASTORE);
+			this.VisitingBuilder.MethodVisitor.visitInsn(AASTORE);
 		}
 		if(Node.Type.IsBooleanType()) {
-			this.Builder.Call(methodMap.get("ExecCommandBool"));
+			this.VisitingBuilder.InvokeMethodCall(Node.Type, JLib.ExecCommandBool);
 		}
 		else if(Node.Type.IsStringType()) {
-			this.Builder.Call(methodMap.get("ExecCommandString"));
+			this.VisitingBuilder.InvokeMethodCall(Node.Type, JLib.ExecCommandString);
 		}
 		else {
-			this.Builder.Call(methodMap.get("ExecCommandVoid"));
+			this.VisitingBuilder.InvokeMethodCall(Node.Type, JLib.ExecCommandVoid);
 		}
 	}
 
 	@Override public void InvokeMainFunc(String MainFuncName) {
 		try {
-			GtClassLoader loader = new GtClassLoader(this);
-			Class<?> klass = loader.loadClass(defaultClassName);
-			Method m = klass.getMethod(MainFuncName);
+			Class<?> MainClass = Class.forName(JLib.GetHolderClassName(this.Context, MainFuncName), false, this.ClassGenerator);
+			Method m = MainClass.getMethod(MainFuncName);
 			if(m != null) {
 				m.invoke(null);
 			}

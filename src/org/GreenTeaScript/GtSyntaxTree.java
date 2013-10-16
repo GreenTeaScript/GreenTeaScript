@@ -237,7 +237,7 @@ public final class GtSyntaxTree extends GreenTeaUtils {
 
 	public final GtNode TypeCheckAt(int Index, GtTypeEnv Gamma, GtType ContextType, int TypeCheckPolicy) {
 		/*local*/GtSyntaxTree ParsedTree = this.GetSyntaxTreeAt(Index);
-		if(ContextType == Gamma.VoidType || IsFlag(TypeCheckPolicy, BlockPolicy)) {
+		if(ContextType.IsVoidType() || IsFlag(TypeCheckPolicy, BlockPolicy)) {
 			return GreenTeaUtils.TypeBlock(Gamma, ParsedTree, ContextType);
 		}
 		else if(ParsedTree != null) {
@@ -248,7 +248,7 @@ public final class GtSyntaxTree extends GreenTeaUtils {
 
 	public final void TypeCheckParam(GtTypeEnv Gamma, int TreeIndex, ArrayList<GtNode> NodeList) {
 		while(TreeIndex < LibGreenTea.ListSize(this.SubTreeList)) {
-			/*local*/GtNode Node = this.TypeCheckAt(TreeIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+			/*local*/GtNode Node = this.TypeCheckAt(TreeIndex, Gamma, GtStaticTable.VarType, DefaultTypeCheckPolicy);
 			NodeList.add(Node);
 			TreeIndex = TreeIndex + 1;
 		}

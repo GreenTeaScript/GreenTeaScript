@@ -199,8 +199,8 @@ public class DShellGrammar extends GreenTeaUtils {
 			}
 			if(Env == null) {
 				GtTypeEnv Gamma = new GtTypeEnv(NameSpace);
-				GtNode ConstNode = ConstTree.TypeCheck(Gamma, Gamma.StringType, DefaultTypeCheckPolicy);
-				Env = (/*cast*/String)ConstNode.ToConstValue(true);
+				GtNode ConstNode = ConstTree.TypeCheck(Gamma, GtStaticTable.StringType, DefaultTypeCheckPolicy);
+				Env = (/*cast*/String)ConstNode.ToConstValue(Gamma.Context, true);
 			}
 		}
 		if(Env == null) {
@@ -213,211 +213,6 @@ public class DShellGrammar extends GreenTeaUtils {
 		}
 		return CommandTree;
 	}
-
-//	private static void AppendInRedirectTree(GtSyntaxTree CommandTree, String TargetName) {
-//		/*local*/GtToken Token = new GtToken("<", CommandTree.KeyToken.FileLine);
-//		/*local*/GtSyntaxTree SubTree = new GtSyntaxTree(CommandTree.Pattern, CommandTree.NameSpace, Token, null);
-//		String[] Value = {"<", TargetName};
-//		SubTree.ParsedValue = Value;
-//		CommandTree.AppendParsedTree2(SubTree);
-//	}
-//
-//	public static GtSyntaxTree ParseDShell(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-//		/*local*/GtToken CommandToken = TokenContext.GetToken();
-//		/*local*/String Command = (/*cast*/String)NameSpace.GetSymbol(CommandSymbol(CommandToken.ParsedText));
-//		if(Command == null) {
-//			//TODO()
-//		}
-//		/*local*/GtSyntaxTree CommandTree = new GtSyntaxTree(Pattern, NameSpace, CommandToken, null);
-//		/*local*/GtSyntaxTree SubTree = new GtSyntaxTree(Pattern, NameSpace, CommandToken, null);
-//		/*local*/ArrayList<String> CommandLine = new ArrayList<String>();
-//		/*local*/String Argument = "";
-//		/*local*/boolean FoundOpen = false;
-//		/*local*/boolean InputRedirect = false;
-//		while(TokenContext.HasNext()) {
-//			GtToken Token = TokenContext.GetToken();
-//			if(Token.EqualsText("||") || Token.EqualsText("&&")) {
-//				if(Argument.length() > 0) {
-//					if(InputRedirect) {
-//						AppendInRedirectTree(CommandTree, Argument);
-//						InputRedirect = false;
-//					}
-//					else {
-//						CommandLine.add(Argument);
-//					}
-//				}
-//				if(CommandLine.size() > 0) {
-//					SubTree.ParsedValue = CommandLine.toArray(new String[CommandLine.size()]);
-//					CommandTree.AppendParsedTree2(SubTree);
-//				}
-//				/*local*/GtSyntaxPattern ExtendedPattern = TokenContext.GetExtendedPattern(NameSpace);
-//				return GreenTeaUtils.ApplySyntaxPattern(NameSpace, TokenContext, CommandTree, ExtendedPattern);
-//			}
-//			if(Token.IsDelim() || Token.IsIndent()) {
-//				break;
-//			}
-//			if(!FoundOpen && StopTokens.indexOf(Token.ParsedText) != -1) {
-//				if(!LibGreenTea.EqualsString(Token.ParsedText, "&") && 
-//						!LibGreenTea.EqualsString(Token.ParsedText, "|")) {
-//					break;
-//				}
-//			}
-//			Token = TokenContext.Next();
-//			if(Token.EqualsText("{")) {
-//				FoundOpen = true;
-//			}
-//			if(Token.EqualsText("}")) {
-//				FoundOpen = false;
-//			}
-//			if(Token.EqualsText("$")) {   // $HOME/hoge
-//				GtToken Token2 = TokenContext.GetToken();
-//				if(LibGreenTea.IsVariableName(Token2.ParsedText, 0)) {
-//					Object Env = NameSpace.GetSymbol(Token2.ParsedText);
-//					if(Env instanceof String) {
-//						Argument += Env.toString();
-//					}
-//					else {
-//						Argument += "${" + Token2.ParsedText + "}";
-//					}
-//					TokenContext.Next();
-//					continue;
-//				}
-//			}
-//			
-//			if(!FoundOpen && Token.PresetPattern == null && Token.EqualsText("<")) {
-//				if(Argument.length() > 0) {
-//					CommandLine.add(Argument);
-//					Argument = "";
-//				}
-//				InputRedirect = true;
-//				continue;
-//			}
-//			if(!FoundOpen && Token.PresetPattern == null && 
-//					(Token.EqualsText("|") || Token.EqualsText(">") || Token.EqualsText("&"))) {
-//				if(Argument.length() > 0) {
-//					if(InputRedirect) {
-//						AppendInRedirectTree(CommandTree, Argument);
-//						InputRedirect = false;
-//					}
-//					else {
-//						CommandLine.add(Argument);
-//					}
-//					Argument = "";
-//				}
-//				SubTree.ParsedValue = CommandLine.toArray(new String[CommandLine.size()]);
-//				CommandTree.AppendParsedTree2(SubTree);
-//				CommandLine = new ArrayList<String>();
-//				SubTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetToken(), null);
-//				if(Token.EqualsText(">")) {
-//					SubTree = new GtSyntaxTree(Pattern, NameSpace, Token, null);
-//					CommandLine.add(Token.ParsedText);
-//				}
-//				if(Token.EqualsText("&")) {
-//					SubTree.KeyToken = Token;
-//					/*local*/String[] BackGround = {"set", "background"};
-//					SubTree.ParsedValue = BackGround ;
-//					CommandTree.AppendParsedTree2(SubTree);
-//					SubTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetToken(), null);
-//				}
-//				continue;
-//			}
-//			
-//			/*local*/String ParsedText = Token.ParsedText;
-//			if(Token.PresetPattern != null && Token.PresetPattern.EqualsName("$StringLiteral$")) {
-//				ParsedText = LibGreenTea.UnquoteString(ParsedText);
-//			}
-//			if(!FoundOpen && Token.IsNextWhiteSpace() ) {
-//				if(Argument.length() > 0) {
-//					ParsedText = Argument + ParsedText;
-//				}
-//				if(InputRedirect) {
-//					AppendInRedirectTree(CommandTree, ParsedText);
-//					InputRedirect = false;
-//				}
-//				else {
-//					CommandLine.add(ParsedText);
-//				}
-//				Argument = "";
-//			}
-//			else {
-//				Argument += ParsedText;
-//			}
-//		}
-//		if(Argument.length() > 0) {
-//			if(InputRedirect) {
-//				AppendInRedirectTree(CommandTree, Argument);
-//				InputRedirect = false;
-//			}
-//			else {
-//				CommandLine.add(Argument);
-//			}
-//		}
-//		if(CommandLine.size() > 0) {
-//			SubTree.ParsedValue = CommandLine.toArray(new String[CommandLine.size()]);
-//			CommandTree.AppendParsedTree2(SubTree);
-//		}
-//		return CommandTree;
-//	}
-//
-//	public static GtNode TypeDShell(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-//		/*local*/GtType Type = null;
-//		if(ContextType.IsStringType() || ContextType.IsBooleanType() || ContextType.IsVoidType()) {
-//			Type = ContextType;
-//		}
-//		else {
-//			/*local*/Object ConstValue = Gamma.NameSpace.GetSymbol("Process");
-//			if(!(ConstValue instanceof GtType)) {
-//				return Gamma.CreateSyntaxErrorNode(ParsedTree, "Process type is not defined in this context");
-//			}
-//			Type = (/*cast*/GtType) ConstValue;
-//		}
-//		/*local*/CommandNode Node = null;
-//		/*local*/CommandNode PrevNode = null;
-//		/*local*/int Index = 0;
-//		/*local*/int SubTreeSize = LibGreenTea.ListSize(ParsedTree.SubTreeList);
-//		while(Index < SubTreeSize) {
-//			/*local*/GtSyntaxTree SubTree = ParsedTree.SubTreeList.get(Index);
-//			/*local*/CommandNode CurrentNode = (/*cast*/CommandNode) Gamma.Generator.CreateCommandNode(Type, SubTree, null);
-//			String[] CommandLine = (/*cast*/String[]) SubTree.ParsedValue;
-//			int i = 0;
-//			while(i < CommandLine.length) {
-//				String Argument = CommandLine[i];
-//				if(Argument.indexOf("${") != -1) {
-//					/*local*/String Text = LibGreenTea.QuoteString(Argument);
-//					/*local*/GtTokenContext TokenContext = new GtTokenContext(Gamma.NameSpace, Text, CurrentNode.Token.FileLine);
-//					/*local*/GtSyntaxTree TopLevelTree = TokenContext.ParsePattern(Gamma.NameSpace, "$Expression$", Required);
-//					/*local*/GtNode ExprNode = TopLevelTree.TypeCheck(Gamma, Gamma.StringType, DefaultTypeCheckPolicy);
-//					CurrentNode.Append(ExprNode);
-//				}
-//				else if(Argument.indexOf("*") != -1) {
-//					String[] ExpandedArguments = DShellGrammar.ExpandPath(Argument);
-//					int j = 0;
-//					while(j < ExpandedArguments.length) {
-//						CurrentNode.Append(Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, ExpandedArguments[j]));
-//						j = j + 1;
-//					}
-//					if(ExpandedArguments.length == 0) {
-//						Gamma.Context.ReportError(InfoLevel, ParsedTree.KeyToken, "no file: " + Argument);
-//					}
-//				}
-//				else {
-//					CurrentNode.Append(Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, CommandLine[i]));
-//				}
-//				i += 1;
-//			}
-//			
-//			if(Node == null) {
-//				Node = CurrentNode;
-//				PrevNode = CurrentNode;
-//			}
-//			else {
-//				PrevNode.PipedNextNode = CurrentNode;
-//				PrevNode = CurrentNode;
-//			}
-//			Index += 1;
-//		}
-//		return Node;
-//	}
 
 	private final static String FileOperators = "-d -e -f -r -w -x";
 	private final static String StopTokens = ";,)]}&&||";
@@ -506,14 +301,14 @@ public class DShellGrammar extends GreenTeaUtils {
 	}
 
 	public static GtNode TypeFileOperator(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		/*local*/GtNode PathNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, Gamma.StringType, DefaultTypeCheckPolicy);
+		/*local*/GtNode PathNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, GtStaticTable.StringType, DefaultTypeCheckPolicy);
 		if(!PathNode.IsErrorNode()) {
 			/*local*/String OperatorSymbol = ParsedTree.KeyToken.ParsedText;
-			/*local*/GtPolyFunc PolyFunc = Gamma.NameSpace.GetMethod(Gamma.StringType, FuncSymbol(OperatorSymbol), true);
+			/*local*/GtPolyFunc PolyFunc = Gamma.NameSpace.GetMethod(GtStaticTable.StringType, FuncSymbol(OperatorSymbol), true);
 			/*local*/GtFunc ResolvedFunc = PolyFunc.ResolveUnaryMethod(Gamma, PathNode.Type);
 			LibGreenTea.Assert(ResolvedFunc != null);
 			/*local*/GtNode ApplyNode =  Gamma.Generator.CreateApplyNode(ResolvedFunc.GetReturnType(), ParsedTree, ResolvedFunc);
-			ApplyNode.Append(Gamma.Generator.CreateConstNode(Gamma.VarType, ParsedTree, ResolvedFunc));
+			ApplyNode.Append(Gamma.Generator.CreateConstNode(GtStaticTable.VarType, ParsedTree, ResolvedFunc));
 			ApplyNode.Append(PathNode);
 			return ApplyNode;
 		}
@@ -645,7 +440,7 @@ public class DShellGrammar extends GreenTeaUtils {
 			Type = ContextType;
 		}
 		else {
-			Type = Gamma.VoidType;
+			Type = GtStaticTable.VoidType;
 		}
 		/*local*/GtNode PipedNode = null;
 		/*local*/int Index = 0;
@@ -663,7 +458,7 @@ public class DShellGrammar extends GreenTeaUtils {
 		/*local*/GtNode Node = Gamma.Generator.CreateCommandNode(Type, ParsedTree, PipedNode);
 		Index = 0;
 		while(Index < ArgumentSize) {
-			/*local*/GtNode ArgumentNode = ParsedTree.TypeCheckAt(Index, Gamma, Gamma.StringType, DefaultTypeCheckPolicy);
+			/*local*/GtNode ArgumentNode = ParsedTree.TypeCheckAt(Index, Gamma, GtStaticTable.StringType, DefaultTypeCheckPolicy);
 			if(ArgumentNode.IsErrorNode()) {
 				return ArgumentNode;
 			}
@@ -684,7 +479,7 @@ public class DShellGrammar extends GreenTeaUtils {
 		if(Gamma.Func != null) {
 			ContextualFuncName = Gamma.Func.FuncName;
 		}
-		return Gamma.Generator.CreateConstNode(Gamma.StringType, ParsedTree, ContextualFuncName);		
+		return Gamma.Generator.CreateConstNode(GtStaticTable.StringType, ParsedTree, ContextualFuncName);		
 	}
 	
 	public static GtSyntaxTree ParseDLog(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
@@ -695,7 +490,7 @@ public class DShellGrammar extends GreenTeaUtils {
 
 	// dlog FunctionName => ExecAction(NameSpace, ContextualFuncName, Action);
 	public static GtNode TypeDLog(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		ContextType = LibGreenTea.GetNativeType(Gamma.Context, DFault.class);
+		ContextType = GtStaticTable.GetNativeType(DFault.class);
 		GtNode ActionNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, ContextType, DefaultTypeCheckPolicy);
 		if(ActionNode.IsErrorNode()) {
 			return ActionNode;
@@ -705,10 +500,10 @@ public class DShellGrammar extends GreenTeaUtils {
 			if(ActionFunc.GetFuncParamSize() == 0) {
 				GtFunc ReportFunc = (GtFunc)Gamma.NameSpace.GetSymbol("$ReportBuiltInFunc");
 				GtNode ApplyNode = Gamma.Generator.CreateApplyNode(ContextType, ParsedTree, ReportFunc);
-				ApplyNode.Append(Gamma.Generator.CreateConstNode(Gamma.VarType, ParsedTree, ReportFunc));
-				ApplyNode.Append(Gamma.Generator.CreateConstNode(Gamma.VarType, ParsedTree, Gamma.NameSpace));
+				ApplyNode.Append(Gamma.Generator.CreateConstNode(GtStaticTable.VarType, ParsedTree, ReportFunc));
+				ApplyNode.Append(Gamma.Generator.CreateConstNode(GtStaticTable.VarType, ParsedTree, Gamma.NameSpace));
 				ApplyNode.Append(CreateDCaseNode(Gamma, ParsedTree));
-				ApplyNode.Append(Gamma.Generator.CreateConstNode(Gamma.VarType, ParsedTree, ActionFunc));
+				ApplyNode.Append(Gamma.Generator.CreateConstNode(GtStaticTable.VarType, ParsedTree, ActionFunc));
 				return ApplyNode;
 			}
 		}
@@ -734,8 +529,8 @@ public class DShellGrammar extends GreenTeaUtils {
 	public static GtNode TypeFault(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		GtFunc CreateFunc = (GtFunc)Gamma.NameSpace.GetSymbol("$CreateFaultBuiltInFunc");
 		GtNode ApplyNode = Gamma.Generator.CreateApplyNode(ContextType, ParsedTree, CreateFunc);
-		ApplyNode.Append(Gamma.Generator.CreateConstNode(Gamma.VarType, ParsedTree, CreateFunc));
-		ApplyNode.Append(Gamma.Generator.CreateConstNode(Gamma.VarType, ParsedTree, Gamma.NameSpace));
+		ApplyNode.Append(Gamma.Generator.CreateConstNode(GtStaticTable.VarType, ParsedTree, CreateFunc));
+		ApplyNode.Append(Gamma.Generator.CreateConstNode(GtStaticTable.VarType, ParsedTree, Gamma.NameSpace));
 		ApplyNode.Append(CreateDCaseNode(Gamma, ParsedTree));
 		String FaultInfo;
 		if(ParsedTree.HasNodeAt(FaultTerm)) {
@@ -747,20 +542,20 @@ public class DShellGrammar extends GreenTeaUtils {
 				FaultInfo = "UnexpectedFault";
 			}
 		}
-		ApplyNode.Append(Gamma.Generator.CreateConstNode(Gamma.VarType, ParsedTree, FaultInfo));
+		ApplyNode.Append(Gamma.Generator.CreateConstNode(GtStaticTable.VarType, ParsedTree, FaultInfo));
 		/*local*/GtNode ErrorInfoNode = null;
 		if(ParsedTree.HasNodeAt(ErrorTerm)) {
-			ErrorInfoNode = ParsedTree.TypeCheckAt(ErrorTerm, Gamma, Gamma.StringType, DefaultTypeCheckPolicy);
+			ErrorInfoNode = ParsedTree.TypeCheckAt(ErrorTerm, Gamma, GtStaticTable.StringType, DefaultTypeCheckPolicy);
 		}
 		else {
-			ErrorInfoNode = Gamma.Generator.CreateConstNode(Gamma.VarType, ParsedTree, DShellGrammar.GetErrorMessage());
+			ErrorInfoNode = Gamma.Generator.CreateConstNode(GtStaticTable.VarType, ParsedTree, DShellGrammar.GetErrorMessage());
 		}
 		ApplyNode.Append(ErrorInfoNode);
 		return ApplyNode;
 	}
 
 	static private final GtNode CreateConstNode(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, Object ConstValue) {
-		return Gamma.Generator.CreateConstNode(Gamma.Context.GuessType(ConstValue), ParsedTree, ConstValue);
+		return Gamma.Generator.CreateConstNode(GtStaticTable.GuessType(ConstValue), ParsedTree, ConstValue);
 	}
 
 	// dexec CallAdmin() 
@@ -834,8 +629,8 @@ public class DShellGrammar extends GreenTeaUtils {
 		if(Gamma.IsTopLevel() || Gamma.Func == null) {
 			return Gamma.UnsupportedTopLevelError(ParsedTree);
 		}
-		/*local*/GtNode Expr = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, Gamma.NameSpace.Context.TypeType, DefaultTypeCheckPolicy);
-		if(Expr instanceof GtConstNode && Expr.Type.IsTypeType()) {
+		/*local*/GtNode Expr = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, GtStaticTable.TypeType, DefaultTypeCheckPolicy);
+		if(Expr.IsConstNode() && Expr.Type.IsTypeType()) {
 			/*local*/GtType ObjectType = (/*cast*/GtType)((/*cast*/GtConstNode)Expr).ConstValue;
 			Expr = Gamma.Generator.CreateNewNode(ObjectType, ParsedTree);
 			//Expr = KonohaGrammar.TypeApply(Gamma, ParsedTree, ObjectType);

@@ -51,12 +51,7 @@ class GtFuncBlock extends GreenTeaUtils {
 			this.NameList.add(this.NameSpace.Context.Generator.GetRecvName());
 		}
 	}
-
-	void SetConverterType() {
-		this.TypeList.add(this.NameSpace.Context.TypeType);
-		this.NameList.add("type");
-	}
-
+	
 	void AddParameter(GtType Type, String Name) {
 		this.TypeList.add(Type);
 		if(Type.IsVarType()) {
@@ -69,7 +64,7 @@ class GtFuncBlock extends GreenTeaUtils {
 public final class GtFunc extends GreenTeaUtils {
 	/*field*/public int				FuncFlag;
 	/*field*/public String			FuncName;
-	/*field*/public String          MangledName;
+//	/*field*/public String          MangledName;
 	/*field*/public GtType[]		Types;
 	/*field*/public GtType          FuncType;
 	/*field*/public                 int FuncId;
@@ -83,14 +78,9 @@ public final class GtFunc extends GreenTeaUtils {
 		LibGreenTea.Assert(this.Types.length > 0);
 		this.FuncType = null;
 		this.FuncBody = null;
-		/*local*/GtParserContext Context = this.GetContext();
-		this.FuncId = Context.FuncPools.size();
-		Context.FuncPools.add(this);
-		this.MangledName = FuncName + NativeNameSuffix + this.FuncId;
-	}
-
-	public final GtParserContext GetContext() {
-		return this.GetReturnType().Context;
+		this.FuncId = GtStaticTable.FuncPools.size();
+		GtStaticTable.FuncPools.add(this);
+//		this.MangledName = FuncName + NativeNameSuffix + this.FuncId;
 	}
 
 	public final String GetNativeFuncName() {
@@ -98,14 +88,21 @@ public final class GtFunc extends GreenTeaUtils {
 			return this.FuncName;
 		}
 		else {
-			return this.MangledName;
+			return this.FuncName + NativeNameSuffix + this.FuncId;
 		}
+	}
+
+	public final GtType GetStaticType(GtNameSpace NameSpace) {
+		int loc = this.FuncName.lastIndexOf(".");
+		if(loc != -1) {
+			return NameSpace.GetType(this.FuncName.substring(0, loc));
+		}
+		return null;
 	}
 
 	public final GtType GetFuncType() {
 		if(this.FuncType == null) {
-			/*local*/GtParserContext Context = this.GetRecvType().Context;
-			this.FuncType = Context.GetGenericType(Context.FuncType, 0, new ArrayList<GtType>(Arrays.asList(this.Types)), true);
+			this.FuncType = GtStaticTable.GetGenericType(GtStaticTable.FuncType, 0, new ArrayList<GtType>(Arrays.asList(this.Types)), true);
 		}
 		return this.FuncType;
 	}
@@ -140,7 +137,7 @@ public final class GtFunc extends GreenTeaUtils {
 
 	public final GtType GetRecvType() {
 		if(this.Types.length == 1) {
-			return this.Types[0].Context.VoidType;
+			return GtStaticTable.VoidType;
 		}
 		return this.Types[1];
 	}
@@ -228,7 +225,7 @@ public final class GtFunc extends GreenTeaUtils {
 				i = i + 1;
 			}
 			Gamma.Func = FuncBlock.DefinedFunc;
-			/*local*/GtNode BodyNode = GreenTeaUtils.TypeBlock(Gamma, FuncBlock.FuncBlock, Gamma.VoidType);
+			/*local*/GtNode BodyNode = GreenTeaUtils.TypeBlock(Gamma, FuncBlock.FuncBlock, GtStaticTable.VoidType);
 			if(Gamma.FoundUncommonFunc) {
 				Gamma.Func.FuncFlag = UnsetFlag(Gamma.Func.FuncFlag, CommonFunc);
 			}
@@ -289,19 +286,8 @@ public final class GtFunc extends GreenTeaUtils {
 	}
 
 	public Object Apply(Object[] Arguments) {
-		if(this.IsAbstract()) {
-			LibGreenTea.VerboseLog(VerboseRuntime, "applying abstract function: " + this);
-			return this.GetReturnType().DefaultNullValue;
-		}
-		else if(!this.Is(NativeStaticFunc)) {
-			/*local*/Object[] MethodArguments = new Object[Arguments.length-1];
-			LibGreenTea.ArrayCopy(Arguments, 1, MethodArguments, 0, MethodArguments.length);
-			return LibGreenTea.ApplyFunc(this, Arguments[0], MethodArguments);
-		}
-		return LibGreenTea.ApplyFunc(this, null, Arguments);
+		return LibGreenTea.InvokeFunc(this, Arguments);
 	}
-
-
 }
 
 class GtResolvedFunc {
@@ -312,13 +298,13 @@ class GtResolvedFunc {
 	GtResolvedFunc/*constructor*/(GtNameSpace NameSpace) {
 		this.GenericNameSpace = NameSpace;
 		this.Func = null;
-		this.ReturnType = NameSpace.Context.AnyType;
+		this.ReturnType = GtStaticTable.AnyType;
 		this.ErrorNode = null;
 	}	
 	GtResolvedFunc UpdateFunc(GtFunc Func, GtNameSpace GenericNameSpace) {		
 		this.Func = Func;
 		if(Func != null) {
-			this.ReturnType = Func.GetReturnType().RealType(GenericNameSpace, GenericNameSpace.Context.AnyType);
+			this.ReturnType = Func.GetReturnType().RealType(GenericNameSpace, GtStaticTable.AnyType);
 		}
 		return this;
 	}
@@ -344,7 +330,7 @@ class GtPolyFunc extends GreenTeaUtils {
 		return s;
 	}
 
-	public final GtPolyFunc Append(GtFunc Func, GtToken SourceToken) {
+	public final GtPolyFunc Append(GtParserContext Context, GtFunc Func, GtToken SourceToken) {
 		if(SourceToken != null) {
 			/*local*/int i = 0;
 			while(i < this.FuncList.size()) {
@@ -353,7 +339,7 @@ class GtPolyFunc extends GreenTeaUtils {
 					return this; /* same function */
 				}
 				if(Func.EqualsType(ListedFunc)) {
-					Func.GetContext().ReportError(WarningLevel, SourceToken, "duplicated symbol" + SourceToken.ParsedText);
+					Context.ReportError(WarningLevel, SourceToken, "duplicated symbol: " + SourceToken.ParsedText);
 					break;
 				}
 				i = i + 1;
@@ -425,7 +411,7 @@ class GtPolyFunc extends GreenTeaUtils {
 					if(ConvertedNodes == null) {
 						ConvertedNodes = new GtNode[ParamList.size()];
 					}
-					ConvertedNodes[p] = GenericNameSpace.Context.Generator.CreateCoercionNode(ParamType, TypeCoercion, Node);
+					ConvertedNodes[p] = GenericNameSpace.Context.Generator.CreateCoercionNode(ParamType, GenericNameSpace, TypeCoercion, Node);
 				}
 				else {
 					return null;
@@ -461,7 +447,7 @@ class GtPolyFunc extends GreenTeaUtils {
 					if(ConvertedNodes == null) {
 						ConvertedNodes = new GtNode[ParamList.size()];
 					}
-					ConvertedNodes[p] = GenericNameSpace.Context.Generator.CreateCoercionNode(ParamType, TypeCoercion, Node);
+					ConvertedNodes[p] = GenericNameSpace.Context.Generator.CreateCoercionNode(ParamType, GenericNameSpace, TypeCoercion, Node);
 				}
 				else {
 					return null;
@@ -529,7 +515,7 @@ class GtPolyFunc extends GreenTeaUtils {
 		//System.err.println("*** FuncList=" + this);
 		/*local*/GtResolvedFunc ResolvedFunc = new GtResolvedFunc(Gamma.NameSpace);
 		while(!this.CheckIncrementalTyping(Gamma.NameSpace, FuncParamSize, ParamList, ResolvedFunc) && TreeIndex < LibGreenTea.ListSize(ParsedTree.SubTreeList)) {
-			/*local*/GtNode Node = ParsedTree.TypeCheckAt(TreeIndex, Gamma, Gamma.VarType, DefaultTypeCheckPolicy);
+			/*local*/GtNode Node = ParsedTree.TypeCheckAt(TreeIndex, Gamma, GtStaticTable.VarType, DefaultTypeCheckPolicy);
 			if(Node.IsErrorNode()) {
 				ResolvedFunc.ErrorNode = Node;
 				return ResolvedFunc;
@@ -541,7 +527,7 @@ class GtPolyFunc extends GreenTeaUtils {
 			/*local*/GtNameSpace GenericNameSpace = ResolvedFunc.GenericNameSpace;
 			while(TreeIndex < LibGreenTea.ListSize(ParsedTree.SubTreeList)) {
 				/*local*/GtType ContextType = ResolvedFunc.Func.GetFuncParamType(ParamList.size()/*ResolvedSize*/);
-				ContextType = ContextType.RealType(GenericNameSpace, Gamma.VarType);
+				ContextType = ContextType.RealType(GenericNameSpace, GtStaticTable.VarType);
 				//System.err.println("TreeIndex="+ TreeIndex+" NodeSize="+ParamList.size()+" ContextType="+ContextType);
 				/*local*/GtNode Node = ParsedTree.TypeCheckAt(TreeIndex, Gamma, ContextType, DefaultTypeCheckPolicy);
 				if(Node.IsErrorNode()) {
@@ -587,7 +573,7 @@ class GtPolyFunc extends GreenTeaUtils {
 		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
 		/*local*/int i = 0;
 		while(i < Arguments.length) {
-			TypeList.add(NameSpace.Context.GuessType(Arguments[i]));
+			TypeList.add(GtStaticTable.GuessType(Arguments[i]));
 			i = i + 1;
 		}
 		i = 0;
@@ -623,27 +609,29 @@ class GtPolyFunc extends GreenTeaUtils {
 //		return ResolvedFunc;
 //	}
 
-	public String MessageTypeError(GtType ClassType, String MethodName) {
-		if(ClassType == null) {
-			if(this.FuncList.size() == 0) {
-				return "undefined function: " + MethodName;
+	public boolean IsEmpty() {
+		return this.FuncList.size() == 0;
+	}
+	
+	public String FormatTypeErrorMessage(String FuncType, GtType ClassType, String MethodName) {
+		if(ClassType != null) {
+			if(LibGreenTea.EqualsString(MethodName, "")) {
+				MethodName = ClassType.toString();
 			}
 			else {
-				return "mismatched functions: " + this;
+				MethodName = MethodName + " of " + ClassType;
 			}
 		}
+		if(this.FuncList.size() == 0) {
+			return "undefined " + FuncType + ": " + MethodName;
+		}
 		else {
-			if(this.FuncList.size() == 0) {
-				return "undefined method: " + MethodName + " of " + ClassType;
-			}
-			else {
-				return "mismatched methods: " + this;
-			}
+			return "mismatched " + FuncType + "s: " + this;
 		}
 	}
 
-	public GtNode ReportTypeError(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ClassType, String MethodName) {
-		return Gamma.CreateSyntaxErrorNode(ParsedTree, this.MessageTypeError(ClassType, MethodName));
+	public GtNode CreateTypeErrorNode(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, String FuncType, GtType ClassType, String MethodName) {
+		return Gamma.CreateSyntaxErrorNode(ParsedTree, this.FormatTypeErrorMessage(FuncType, ClassType, MethodName));
 	}
 
 

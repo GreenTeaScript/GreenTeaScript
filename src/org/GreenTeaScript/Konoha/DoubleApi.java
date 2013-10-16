@@ -23,7 +23,6 @@
 // **************************************************************************
 
 package org.GreenTeaScript.Konoha;
-import org.GreenTeaScript.GtType;
 
 public final class DoubleApi {
 	public static double Plus(double n) {
@@ -66,26 +65,26 @@ public final class DoubleApi {
 		return x != y;
 	}
 	// converter
-	public final static String ToString(GtType Type, double value) {
-		return "" + value;
+	public final static String ToString(double value) {
+		return String.valueOf(value);
 	}
-	public final static Object ToAny(GtType Type, double value) {
+	public final static Object ToAny(double value) {
 		return new Double(value);
 	}
-	public final static long ToInt(GtType Type, double value) {
+	public final static long ToInt(double value) {
 		return (long)value;
 	}
 	// JavaType
-	public final static float d2f(GtType Type, double n) {
+	public final static float d2f(double n) {
 		return (float)n;
 	}
-	public final static double f2d(GtType Type, float n) {
+	public final static double f2d(float n) {
 		return (double)n;
 	}
-	public final static int d2i(GtType Type, double n) {
+	public final static int d2i(double n) {
 		return (int)n;
 	}
-	public final static double i2d(GtType Type, int n) {
+	public final static double i2d(int n) {
 		return (double)n;
 	}
 }
