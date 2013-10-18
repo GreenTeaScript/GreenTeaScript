@@ -110,7 +110,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return Value;
 	}
 
-	public static Object InvokeDynamicMethod(long FileLine, GtType ContextType, GtNameSpace NameSpace, String FuncName, Object[] Arguments) {
+	public static final Object InvokeDynamicMethod(long FileLine, GtType ContextType, GtNameSpace NameSpace, String FuncName, Object[] Arguments) {
 		/*local*/GtType ClassType = GtStaticTable.GuessType(Arguments[0]);
 		/*local*/GtPolyFunc PolyFunc = NameSpace.GetMethod(ClassType, FuncName, true);
 		/*local*/GtFunc Func = PolyFunc.GetMatchedFunc(NameSpace, Arguments);

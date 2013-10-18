@@ -47,14 +47,16 @@ import static org.objectweb.asm.Opcodes.*;
 // GreenTea Generator should be written in each language.
 
 class JClassBuilder /*implements Opcodes */{
+	final String SourceFile;
 	final String ClassName;
 	final String SuperClassName;
 	final ArrayList<MethodNode> MethodList = new ArrayList<MethodNode>();
 	final ArrayList<FieldNode> FieldList = new ArrayList<FieldNode>();
 
-	JClassBuilder(String name, String superClass) {
-		this.ClassName = name;
-		this.SuperClassName = superClass;
+	JClassBuilder(String SourceFile, String ClassName, String SuperClass) {
+		this.SourceFile = SourceFile;
+		this.ClassName = ClassName;
+		this.SuperClassName = SuperClass;
 	}
 	
 	void AddMethod(MethodNode m) {
@@ -73,16 +75,17 @@ class JClassBuilder /*implements Opcodes */{
 	}
 	
 	byte[] GenerateBytecode() {
-		ClassWriter cv = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-		cv.visit(V1_6, ACC_PUBLIC, this.ClassName, null, this.SuperClassName, null);
+		ClassWriter Visitor = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+		Visitor.visit(V1_6, ACC_PUBLIC, this.ClassName, null, this.SuperClassName, null);
+		Visitor.visitSource(this.SourceFile, null);
 		for(FieldNode f : this.FieldList) {
-			f.accept(cv);
+			f.accept(Visitor);
 		}
 		for(MethodNode m : this.MethodList) {
-			m.accept(cv);
+			m.accept(Visitor);
 		}
-		cv.visitEnd();
-		return cv.toByteArray();
+		Visitor.visitEnd();
+		return Visitor.toByteArray();
 	}
 
 	void OutputClassFile(String className, String dir) {
@@ -112,7 +115,7 @@ class GreenTeaClassLoader extends ClassLoader {
 		this.ByteCodeMap = new HashMap<String,JClassBuilder>();
 		
 		this.GlobalStaticClassName = "Global$" + Context.ParserId;
-		JClassBuilder GlobalClass = new JClassBuilder(this.GlobalStaticClassName, "java/lang/Object");
+		JClassBuilder GlobalClass = new JClassBuilder(null, this.GlobalStaticClassName, "java/lang/Object");
 		FieldNode fn = new FieldNode(ACC_STATIC, "ParserContext", Type.getDescriptor(GtParserContext.class), null, null);
 		this.ContextFieldName = fn.name;
 		this.GontextDescripter = fn.desc;
@@ -133,14 +136,14 @@ class GreenTeaClassLoader extends ClassLoader {
 		this.ByteCodeMap.put(ClassBuilder.ClassName, ClassBuilder);
 	}
 
-	JClassBuilder NewBuilder(String ClassName, String SuperClassName) {
-		JClassBuilder cb = new JClassBuilder(ClassName, SuperClassName);
+	JClassBuilder NewBuilder(String SourceFile, String ClassName, String SuperClassName) {
+		JClassBuilder cb = new JClassBuilder(SourceFile, ClassName, SuperClassName);
 		this.AddClassBuilder(cb);
 		return cb;
 	}
 	
-	JClassBuilder GenerateMethodHolderClass(String FuncName, MethodNode AsmMethodNode) {
-		JClassBuilder HolderClass = new JClassBuilder(JLib.GetHolderClassName(Context, FuncName), "java/lang/Object");
+	JClassBuilder GenerateMethodHolderClass(String SourceFile, String FuncName, MethodNode AsmMethodNode) {
+		JClassBuilder HolderClass = new JClassBuilder(SourceFile, JLib.GetHolderClassName(Context, FuncName), "java/lang/Object");
 		this.AddClassBuilder(HolderClass);
 		HolderClass.AddMethod(AsmMethodNode);
 		return HolderClass;
@@ -468,7 +471,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		String MethodName = Func.GetNativeFuncName();
 		String MethodDesc = JLib.GetMethodDescriptor(Func);
 		MethodNode AsmMethodNode = new MethodNode(ACC_PUBLIC | ACC_STATIC, MethodName, MethodDesc, null, null);
-		JClassBuilder ClassHolder = this.ClassGenerator.GenerateMethodHolderClass(MethodName, AsmMethodNode);
+		JClassBuilder ClassHolder = this.ClassGenerator.GenerateMethodHolderClass(this.Context.GetSourceFileName(Body.Token.FileLine), MethodName, AsmMethodNode);
 
 		JMethodBuilder LocalBuilder = new JMethodBuilder(this.ClassGenerator, AsmMethodNode);
 		for(int i = 0; i < NameList.size(); i++) {
@@ -504,7 +507,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		String ClassName = ClassType.GetNativeName();
 		String superClassName = ClassType.SuperType.GetNativeName();
 		//System.err.println("class name = " + ClassName + " extends " + superClassName);
-		JClassBuilder ClassBuilder = this.ClassGenerator.NewBuilder(ClassName, superClassName);
+		JClassBuilder ClassBuilder = this.ClassGenerator.NewBuilder(null/*FIXME*/, ClassName, superClassName);
 		// generate field
 		for(GtFieldInfo field : ClassField.FieldList) {
 			if(field.FieldIndex >= ClassField.ThisClassIndex) {
