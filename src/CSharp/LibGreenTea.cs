@@ -34,7 +34,7 @@ using System.Threading.Tasks;
 using System.IO;
 
 
-public abstract class LibGreenTea: GreenTeaConst {
+public abstract class LibGreenTea: GreenTeaConsts {
 	// LibGreenTea KonohaApi
 	public /*final*/ static void print(object msg) {
 		Console.WriteLine(msg);
@@ -68,20 +68,23 @@ public abstract class LibGreenTea: GreenTeaConst {
 		return GreenTeaArray.NewArrayLiteral(ArrayType, Values);		
 	}
 
-	public static object ApplyOverridedMethod(long FileLine, GtNameSpace NameSpace, GtFunc Func, object[] Arguments) {
-		/*local*/GtType ClassType = NameSpace.Context.GuessType(Arguments[0]);
+    public static object DynamicCast(GtType CastType, object Value)
+    {
+        if (Value != null)
+        {
+            GtType FromType = GtStaticTable.GuessType(Value);
+            if (CastType == FromType || CastType.Accept(FromType))
+            {
+                return Value;
+            }
+        }
+        return null;
+    }
+
+	public static object InvokeOverridedMethod(long FileLine, GtNameSpace NameSpace, GtFunc Func, object[] Arguments) {
+        /*local*/GtType ClassType = GtStaticTable.GuessType(Arguments[0]);
 		Func = NameSpace.GetOverridedMethod(ClassType, Func);
 		return Func.Apply(Arguments);
-	}
-
-    public static object DynamicCast(GtType CastType, object Value) {
-		if(Value != null) {
-			GtType FromType = CastType.Context.GuessType(Value);
-			if(CastType == FromType || CastType.Accept(FromType)) {
-				return Value;
-			}
-		}
-		return null;
 	}
 
 	public static object InvokeDynamicFunc(long FileLine, GtType ContextType, GtNameSpace NameSpace, string FuncName, object[] Arguments) {
@@ -92,12 +95,12 @@ public abstract class LibGreenTea: GreenTeaConst {
 			Value = Func.Apply(Arguments);
 			return LibGreenTea.DynamicCast(ContextType, Value);
 		}
-		LibGreenTea.VerboseLog(VerboseRuntime, PolyFunc.MessageTypeError(null, FuncName));
+        LibGreenTea.VerboseLog(VerboseRuntime, PolyFunc.FormatTypeErrorMessage("function", null, FuncName));
 		return Value;
 	}
 
 	public static object InvokeDynamicMethod(long FileLine, GtType ContextType, GtNameSpace NameSpace, string FuncName, object[] Arguments) {
-		/*local*/GtType ClassType = ContextType.Context.GuessType(Arguments[0]);
+        /*local*/GtType ClassType = GtStaticTable.GuessType(Arguments[0]);
 		/*local*/GtPolyFunc PolyFunc = NameSpace.GetMethod(ClassType, FuncName, true);
 		/*local*/GtFunc Func = PolyFunc.GetMatchedFunc(NameSpace, Arguments);
 		/*local*/object Value = ContextType.DefaultNullValue;
@@ -105,7 +108,7 @@ public abstract class LibGreenTea: GreenTeaConst {
 			Value = Func.Apply(Arguments);
 			return LibGreenTea.DynamicCast(ContextType, Value);
 		}
-		LibGreenTea.VerboseLog(VerboseRuntime, PolyFunc.MessageTypeError(ClassType, FuncName));
+        LibGreenTea.VerboseLog(VerboseRuntime, PolyFunc.FormatTypeErrorMessage("function", null, FuncName));
 		return Value;
 	}
 
@@ -392,7 +395,7 @@ public abstract class LibGreenTea: GreenTeaConst {
 		if(GreenType.IsTopType()) {
 			return (Type == typeof(object));
 		}
-	    GtType JavaType = LibGreenTea.GetNativeType(GreenType.Context, Type);
+        GtType JavaType = GtStaticTable.GetNativeType(Type);
 		if(GreenType != JavaType) {
 			if(GreenType.IsGenericType() && GreenType.HasTypeVariable()) {
 				return GreenType.BaseType == JavaType.BaseType;
@@ -445,7 +448,7 @@ public abstract class LibGreenTea: GreenTeaConst {
 	public /*final*/ static GtFunc SetNativeMethod(GtFunc NativeFunc, MethodInfo JavaMethod) {
 		/*local*/int FuncFlag = GreenTeaUtils.NativeFunc;
 		if(JavaMethod.IsStatic) {
-			FuncFlag |= GreenTeaUtils.NativeStaticFunc;
+			FuncFlag |= GreenTeaUtils.NativeMethodFunc;
 		}
 		NativeFunc.SetNativeMethod(FuncFlag, JavaMethod);
 		return NativeFunc;
@@ -485,7 +488,7 @@ public abstract class LibGreenTea: GreenTeaConst {
 		try {
 			/*local*/string FuncName = FullName.Substring(Index+1);
 			/*local*/Type NativeClass = LoadNativeClass(FullName.Substring(0, Index));
-			MethodInfo[] Methods = NativeClass.getDeclaredMethods();
+			MethodInfo[] Methods = NativeClass.GetMethods();
 			if(Methods != null) {
 				for(int i = 0; i < Methods.Length; i++) {
 					if(LibGreenTea.EqualsString(FuncName, Methods[i].Name)) {
@@ -520,13 +523,13 @@ public abstract class LibGreenTea: GreenTeaConst {
 		if(JavaMethod != null) {
 			LibGreenTea.SetNativeMethod(NativeFunc, JavaMethod);
 			if(NativeFunc.GetReturnType().IsVarType()) {
-				NativeFunc.SetReturnType(LibGreenTea.GetNativeType(NativeFunc.GetContext(), JavaMethod.ReturnType));
+                NativeFunc.SetReturnType(GtStaticTable.GetNativeType(JavaMethod.ReturnType));
 			}
 			int StartIdx = NativeFunc.Is(GreenTeaUtils.NativeMethodFunc) ? 1 : 2;
 			Type[] p = JavaMethod.GetParameterTypes();
 			for(int i = 0; i < p.Length; i++) {
 				if(NativeFunc.Types[StartIdx + i].IsVarType()) {
-					NativeFunc.Types[StartIdx + i] = LibGreenTea.GetNativeType(NativeFunc.GetContext(), p[i]);
+                    NativeFunc.Types[StartIdx + i] = GtStaticTable.GetNativeType(p[i]);
 					NativeFunc.FuncType = null; // reset
 				}
 			}
@@ -541,11 +544,12 @@ public abstract class LibGreenTea: GreenTeaConst {
 		return null;
 	}
 
-	public /*final*/ static void LoadNativeConstructors(GtType ClassType, List<GtFunc> FuncList) {
+    public /*final*/ static void LoadNativeConstructors(GtParserContext Context, GtType ClassType, List<GtFunc> FuncList)
+    {
 		/*local*/bool TransformedResult = false;
 		Type NativeClass = (Type)ClassType.TypeBody;
-		GtParserContext Context = ClassType.Context;
-		Constructor<?>[] Constructors = NativeClass.getDeclaredConstructors();
+		//GtParserContext Context = ClassType.Context;
+        var Constructors = NativeClass.GetConstructors();
 		if(Constructors != null) {
 			for(int i = 0; i < Constructors.Length; i++) {
 				if((Constructors[i].Attributes & MethodAttributes.Public) == 0) {
@@ -553,7 +557,7 @@ public abstract class LibGreenTea: GreenTeaConst {
 				}
 				/*local*/List<GtType> TypeList = new List<GtType>();
 				TypeList.Add(ClassType);
-				/*local*/Type[] ParamTypes = Constructors[i].getParameterTypes();
+				/*local*/Type[] ParamTypes = Constructors[i].GetParameterTypes();
 				if(ParamTypes != null) {
 					for(int j = 0; j < ParamTypes.Length; j++) {
 						TypeList.Add(LibGreenTea.GetNativeType(Context, ParamTypes[j]));
@@ -571,8 +575,9 @@ public abstract class LibGreenTea: GreenTeaConst {
 		}
 	}
 
-	public /*final*/ static GtFunc LoadNativeField(GtType ClassType, string FieldName, bool GetSetter) {
-		GtParserContext Context = ClassType.Context;
+    public /*final*/ static GtFunc LoadNativeField(GtParserContext Context, GtType ClassType, String FieldName, boolean GetSetter)
+    {
+		//GtParserContext Context = ClassType.Context;
 		try {
 			Type NativeClass = (Type)ClassType.TypeBody;
 			FieldInfo NativeField = NativeClass.GetField(FieldName);
@@ -583,10 +588,10 @@ public abstract class LibGreenTea: GreenTeaConst {
 				GtFunc GetterNativeFunc = new GtFunc(GetterFunc, FieldName, 0, TypeList);
 				GetterNativeFunc.SetNativeMethod(0, NativeField);
 				Context.RootNameSpace.SetGetterFunc(ClassType, FieldName, GetterNativeFunc, null);
-				TypeList.Clear();
-				TypeList.Add(Context.VoidType);
-				TypeList.Add(ClassType);
-				TypeList.Add(LibGreenTea.GetNativeType(Context, NativeField.getType()));
+                TypeList.Clear();
+                TypeList.Add(GtStaticTable.VoidType);
+                TypeList.Add(ClassType);
+                TypeList.Add(GtStaticTable.GetNativeType(NativeField.GetType()));
 				GtFunc SetterNativeFunc = new GtFunc(SetterFunc, FieldName, 0, TypeList);
 				SetterNativeFunc.SetNativeMethod(0, NativeField);
 				Context.RootNameSpace.SetSetterFunc(ClassType, FieldName, SetterNativeFunc, null);
@@ -665,7 +670,7 @@ public abstract class LibGreenTea: GreenTeaConst {
 //			if(NativeType == char.class) {
 //				return String.valueOf(NativeField.getChar(ObjectValue));
 //			}
-			NativeField.set(ObjectValue, Value);
+			NativeField.SetValue(ObjectValue, Value);
 		} catch (IllegalAccessException e) {
 			LibGreenTea.VerboseException(e);
 		} catch (SecurityException e) {
@@ -687,7 +692,7 @@ public abstract class LibGreenTea: GreenTeaConst {
 		MethodInfo[] Methods = NativeClass.GetMethods();
 		for(int i = 0; i < Methods.Length; i++) {
 			if(Methods[i].Name.Equals(Symbol) && (Methods[i].Attributes & MethodAttributes.Static) == 0) {
-				PolyFunc.Append(LibGreenTea.ConvertNativeMethodToFunc(Context, Methods[i]), null);
+                PolyFunc.Append(Context, LibGreenTea.ConvertNativeMethodToFunc(Context, Methods[i]), null);
 			}
 		}
 		if(PolyFunc.FuncList.Count() == 1) {
@@ -699,14 +704,16 @@ public abstract class LibGreenTea: GreenTeaConst {
 		return null;
 	}
 
-	public static object LoadNativeStaticFieldValue(GtType ClassType, string Symbol) {
-		return ImportStaticObject(ClassType.Context, (Type)ClassType.TypeBody, Symbol);
+    public static object LoadNativeStaticFieldValue(GtParserContext Context, GtType ClassType, String Symbol)
+    {
+		return ImportStaticObject(Context, (Type)ClassType.TypeBody, Symbol);
 	}
-	
-	public /*final*/ static void LoadNativeMethods(GtType ClassType, string FuncName, List<GtFunc> FuncList) {
-		GtParserContext Context = ClassType.Context;
+
+    public /*final*/ static void LoadNativeMethods(GtParserContext Context, GtType ClassType, String FuncName, List<GtFunc> FuncList)
+    {
+		//GtParserContext Context = ClassType.Context;
 		Type NativeClass = (Type)ClassType.TypeBody;
-		MethodInfo[] Methods = NativeClass.getDeclaredMethods();
+		MethodInfo[] Methods = NativeClass.GetMethods();
 		/*local*/bool FoundMethod = false;
 		if(Methods != null) {
 			for(int i = 0; i < Methods.Length; i++) {
@@ -729,7 +736,7 @@ public abstract class LibGreenTea: GreenTeaConst {
 	public /*final*/ static MethodInfo LookupNativeMethod(object Callee, string FuncName) {
 		if(FuncName != null) {
 			// LibGreenTea.DebugP("looking up MethodInfo : " + Callee.getClass().getSimpleName() + "." + FuncName);
-			MethodInfo[] methods = Callee.getClass().getMethods();
+			MethodInfo[] methods = Callee.GetType().GetMethods();
 			for(int i = 0; i < methods.Length; i++) {
 				if(FuncName.Equals(methods[i].Name)) {
 					return methods[i];
@@ -823,7 +830,7 @@ public abstract class LibGreenTea: GreenTeaConst {
 	}
 
 	public /*final*/ static long ApplyTokenFunc(GtFunc TokenFunc, object TokenContext, string Text, long pos) {
-		return (Long)LibGreenTea.ApplyFunc3(TokenFunc, null, TokenContext, Text, pos);
+		return (long)LibGreenTea.ApplyFunc3(TokenFunc, null, TokenContext, Text, pos);
 	}
 
 	public /*final*/ static GtSyntaxTree ApplyParseFunc(GtFunc ParseFunc, GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
@@ -860,12 +867,17 @@ public abstract class LibGreenTea: GreenTeaConst {
 		return Tuple;
 	}
 
-    //public static void RetrieveMapKeys(GtMap Map, string Prefix, List<string> List) {
-    //    /*local*/Iterator<string> itr = Map.Map.keySet().iterator();
-    //    /*local*/int i = 0;
-    //    while(itr.hasNext()) {
+    //public static void RetrieveMapKeys(GtMap Map, string Prefix, List<string> List)
+    //{
+    //    /*local*/
+    //    Iterator<string> itr = Map.Map.keySet().iterator();
+    //    /*local*/
+    //    int i = 0;
+    //    while (itr.hasNext())
+    //    {
     //        string Key = itr.next();
-    //        if(Prefix != null && !Key.StartsWith(Prefix)) {
+    //        if (Prefix != null && !Key.StartsWith(Prefix))
+    //        {
     //            continue;
     //        }
     //        List.Add(Key);
@@ -1002,14 +1014,14 @@ public abstract class LibGreenTea: GreenTeaConst {
     //}
 
 	public /*final*/ static string ReadLine(string Prompt, string Prompt2) {
-		string Line = LibGreenTea.ReadLine(Prompt);
+        string Line = Console.ReadLine();
 		if(Line == null) {
-			System.exit(0);
+            System.Environment.Exit(0);
 		}
 		if(Prompt2 != null) {
 			int level = 0;
 			while((level = LibGreenTea.CheckBraceLevel(Line)) > 0) {
-				string Line2 = LibGreenTea.ReadLine(Prompt2 + GreenTeaUtils.JoinStrings("  ", level));
+				string Line2 = Console.ReadLine(Prompt2 + GreenTeaUtils.JoinStrings("  ", level));
 				Line += "\n" + Line2; 
 			}
 			if(level < 0) {
@@ -1038,7 +1050,7 @@ public abstract class LibGreenTea: GreenTeaConst {
 			throw new RuntimeException(e);
 		}
 		if(Line == null) {
-			System.exit(0);
+            System.Environment.Exit(0);
 		}
 		if(Prompt2 != null) {
 			int level = 0;
@@ -1060,10 +1072,10 @@ public abstract class LibGreenTea: GreenTeaConst {
 	}
 
 	public /*final*/ static bool HasFile(string Path) {
-		if(typeof(LibGreenTea).getResource(Path) != null) {
-			return true;
-		}
-		return new File(Path).exists();
+        //if(typeof(LibGreenTea).getResource(Path) != null) {
+        //    return true;
+        //}
+        return File.Exists(Path);
 	}
 
 	public /*final*/ static bool IsSupportedTarget(string TargetCode) {
@@ -1079,7 +1091,7 @@ public abstract class LibGreenTea: GreenTeaConst {
 		if(HasFile(Path)) {
 			return Path;
 		}
-		string Home = System.getProperty("GREENTEA_HOME");
+        string Home = System.Environment.GetEnvironmentVariable("GREENTEA_HOME");
 		if(Home != null) {
 			Path = Home + FileName;
 		}
@@ -1089,33 +1101,34 @@ public abstract class LibGreenTea: GreenTeaConst {
 		return FileName;
 	}
 
-	public /*final*/ static string LoadFile2(string FileName) {
-		LibGreenTea.VerboseLog(GreenTeaUtils.VerboseFile, "loading " + FileName);
-		InputStream Stream = typeof(LibGreenTea).getResourceAsStream("/" + FileName);
-		if(Stream == null) {
-			File f = new File(FormatFilePath(FileName));
-			try {
-				Stream = new FileInputStream(f);
-			} catch (FileNotFoundException e) {
-				return null;
-			}
-		}
-		BufferedReader reader = new BufferedReader(new InputStreamReader(Stream));
-		string buffer = "";
-		try {
-			int buflen = 4096;
-			int readed = 0;
-			char[] buf = new char[buflen];
-			StringBuilder builder = new StringBuilder();
-			while((readed = reader.read(buf, 0, buflen)) >= 0) {
-				builder.Append(buf, 0, readed);
-			}
-			buffer = builder.ToString();
-		} catch (IOException e) {
-			return null;
-		}
-		return buffer;
-	}
+    public /*final*/ static string LoadFile2(string FileName)
+    {
+        LibGreenTea.VerboseLog(GreenTeaUtils.VerboseFile, "loading " + FileName);
+        string FormattedName = FormatFilePath(FileName);
+        using (StreamReader r = new StreamReader(FormattedName))
+        {
+            return r.ReadToEnd();
+        }
+        //BufferedReader reader = new BufferedReader(new InputStreamReader(Stream));
+        //string buffer = "";
+        //try
+        //{
+        //    int buflen = 4096;
+        //    int readed = 0;
+        //    char[] buf = new char[buflen];
+        //    StringBuilder builder = new StringBuilder();
+        //    while ((readed = reader.read(buf, 0, buflen)) >= 0)
+        //    {
+        //        builder.Append(buf, 0, readed);
+        //    }
+        //    buffer = builder.ToString();
+        //}
+        //catch (IOException e)
+        //{
+        //    return null;
+        //}
+        //return buffer;
+    }
 
 	public static long JoinIntId(int UpperId, int LowerId) {
 		long id = UpperId;
@@ -1135,20 +1148,10 @@ public abstract class LibGreenTea: GreenTeaConst {
 	public static bool booleanValue(object Value) {
 		return (Boolean)Value;
 	}
-	
-	public static object DynamicCast(GtType CastType, object Value) {
-		if(Value != null) {
-			GtType FromType = CastType.Context.GuessType(Value);
-			if(CastType == FromType || CastType.Accept(FromType)) {
-				return Value;
-			}
-		}
-		return null;
-	}
 
 	public static object DynamicInstanceOf(object Value, GtType Type) {
 		if(Value != null) {
-			GtType ValueType = Type.Context.GuessType(Value);
+            GtType ValueType = GtStaticTable.GuessType(Value);
 			if(ValueType == Type || Type.Accept(ValueType)) {
 				return true;
 			}
@@ -1158,11 +1161,11 @@ public abstract class LibGreenTea: GreenTeaConst {
 
 	public /*final*/ static object DynamicConvertTo(GtType CastType, object Value) {
 		if(Value != null) {
-			GtType ValueType = CastType.Context.GuessType(Value);
+            GtType ValueType = GtStaticTable.GuessType(Value);
 			if(ValueType == CastType || CastType.Accept(ValueType)) {
 				return Value;
 			}
-			GtFunc Func = CastType.Context.RootNameSpace.GetConverterFunc(ValueType, CastType, true);
+            GtFunc Func = GtStaticTable.GetConverterFunc(ValueType, CastType, true);
 			if(Func != null) {
 				return LibGreenTea.ApplyFunc2(Func, null, CastType, Value);
 			}
@@ -1173,11 +1176,11 @@ public abstract class LibGreenTea: GreenTeaConst {
 	public static object EvalUnary(GtType Type, string Operator, object Value) {
 		if(Value is Boolean) {
 			if(Operator.Equals("!") || Operator.Equals("not")) {
-				return DynamicCast(Type, !((Boolean)Value);
+				return DynamicCast(Type, !((Boolean)Value));
 			}
 			return null;
 		}
-		if(Value is Long || Value is int  || Value is Short) {
+		if(Value is long || Value is int  || Value is short) {
 			if(Operator.Equals("-")) {
 				return DynamicCast(Type, -(long)Value);
 			}
@@ -1202,15 +1205,15 @@ public abstract class LibGreenTea: GreenTeaConst {
 			return null;
 		}
 		if(LeftValue is string || RightValue is string) {
-			string left = DynamicCast(Type.Context.StringType, LeftValue).ToString();
-			string right = DynamicCast(Type.Context.StringType, RightValue).ToString();
+            String left = DynamicCast(GtStaticTable.StringType, LeftValue).ToString();
+            String right = DynamicCast(GtStaticTable.StringType, RightValue).ToString();
 			if(Operator.Equals("+")) {
 				return  DynamicCast(Type, left + right);
 			}
 		}
 		if(LeftValue is string && RightValue is string) {
-			string left = DynamicCast(Type.Context.StringType, LeftValue).ToString();
-			string right = DynamicCast(Type.Context.StringType, RightValue).ToString();
+            String left = DynamicCast(GtStaticTable.StringType, LeftValue).ToString();
+            String right = DynamicCast(GtStaticTable.StringType, RightValue).ToString();
 			if(Operator.Equals("==")) {
 				return  DynamicCast(Type, left.Equals(right));
 			}
@@ -1218,23 +1221,23 @@ public abstract class LibGreenTea: GreenTeaConst {
 				return DynamicCast(Type, !left.Equals(right));
 			}
 			if(Operator.Equals("<")) {
-				return DynamicCast(Type, left.compareTo(right) < 0);
+				return DynamicCast(Type, left.CompareTo(right) < 0);
 			}
 			if(Operator.Equals("<=")) {
-				return DynamicCast(Type, left.compareTo(right) <= 0);
+				return DynamicCast(Type, left.CompareTo(right) <= 0);
 			}
 			if(Operator.Equals(">")) {
-				return DynamicCast(Type, left.compareTo(right) > 0);
+				return DynamicCast(Type, left.CompareTo(right) > 0);
 			}
 			if(Operator.Equals(">=")) {
-				return DynamicCast(Type, left.compareTo(right) >= 0);
+				return DynamicCast(Type, left.CompareTo(right) >= 0);
 			}
 			return null;
 		}
-		if(LeftValue is Double || LeftValue is Float || RightValue is Double || RightValue is Float) {
+		if(LeftValue is Double || LeftValue is float || RightValue is Double || RightValue is float) {
 			try {
-				double left = ((Number)LeftValue).doubleValue();
-				double right = ((Number)RightValue).doubleValue();
+                double left = (double)LeftValue;
+                double right = (double)LeftValue;
 				if(Operator.Equals("+")) {
 					return DynamicCast(Type, left + right);
 				}
@@ -1269,7 +1272,8 @@ public abstract class LibGreenTea: GreenTeaConst {
 					return DynamicCast(Type, left >= right);
 				}
 			}
-			catch(ClassCastException e) {
+            catch (InvalidCastException e)
+            {
 			}
 			return null;
 		}
@@ -1285,9 +1289,9 @@ public abstract class LibGreenTea: GreenTeaConst {
 			return null;
 		}
 		try {
-			long left = ((Number)LeftValue).longValue();
-			long right = ((Number)RightValue).longValue();
-			if(Operator.Equals("+")) {
+            long left = (long)LeftValue;
+            long right = (long)LeftValue;
+            if(Operator.Equals("+")) {
 				return DynamicCast(Type, left + right);
 			}
 			if(Operator.Equals("-")) {
@@ -1326,17 +1330,21 @@ public abstract class LibGreenTea: GreenTeaConst {
 			if(Operator.Equals("&")) {
 				return DynamicCast(Type, left & right);
 			}
-			if(Operator.Equals("<<")) {
-				return DynamicCast(Type, left << right);
-			}
-			if(Operator.Equals(">>")) {
-				return DynamicCast(Type, left >> right);
-			}
+            if (Operator.Equals("<<"))
+            {
+                //				return DynamicCast(Type, left << right);
+                return DynamicCast(Type, left << (int)right);
+            }
+            if (Operator.Equals(">>"))
+            {
+                //				return DynamicCast(Type, left >> right);
+                return DynamicCast(Type, left >> (int)right);
+            }
 			if(Operator.Equals("^")) {
 				return DynamicCast(Type, left ^ right);
 			}
 		}
-		catch(ClassCastException e) {
+        catch (InvalidCastException e){
 		}
 		return null;
 	}
