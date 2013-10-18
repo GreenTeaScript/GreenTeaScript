@@ -76,7 +76,7 @@ class JClassBuilder /*implements Opcodes */{
 	
 	byte[] GenerateBytecode() {
 		ClassWriter Visitor = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-		Visitor.visit(V1_6, ACC_PUBLIC, this.ClassName, null, this.SuperClassName, null);
+		Visitor.visit(V1_6, ACC_PUBLIC|ACC_FINAL, this.ClassName, null, this.SuperClassName, null);
 		Visitor.visitSource(this.SourceFile, null);
 		for(FieldNode f : this.FieldList) {
 			f.accept(Visitor);
@@ -156,23 +156,11 @@ class GreenTeaClassLoader extends ClassLoader {
 			this.ByteCodeMap.remove(name);
 			return this.defineClass(name, b, 0, b.length);
 		}
-		System.err.println("findClass.. " + name);
 		return null;
 	}
 
 }
 
-final class JLocalVarStack {
-	public String Name;
-	public Type   TypeInfo;
-	public int    Index;
-
-	public JLocalVarStack(int Index, Type TypeInfo, String Name) {
-		this.Index = Index;
-		this.TypeInfo = TypeInfo;
-		this.Name = Name;
-	}
-}
 
 class JLib {
 	static HashMap<String, Type> TypeMap = new HashMap<String, Type>();
@@ -275,10 +263,22 @@ class JLib {
 	}
 }
 
+final class JLocalVarStack {
+	public final String Name;
+	public final Type   TypeInfo;
+	public final int    Index;
+
+	public JLocalVarStack(int Index, Type TypeInfo, String Name) {
+		this.Index = Index;
+		this.TypeInfo = TypeInfo;
+		this.Name = Name;
+	}
+}
+
 class JMethodBuilder {
 	GreenTeaClassLoader           LocalClassLoader;
 	MethodVisitor                 MethodVisitor;
-	ArrayList<JLocalVarStack>           LocalVals;
+	ArrayList<JLocalVarStack>     LocalVals;
 	int                           LocalSize;
 	Stack<Label>                  BreakLabelStack;
 	Stack<Label>                  ContinueLabelStack;
@@ -292,6 +292,10 @@ class JMethodBuilder {
 		this.ContinueLabelStack = new Stack<Label>();
 	}
 
+//	void SetLineNumber(long FileLine) {
+//		this.MethodVisitor.visitLineNumber(0, null);
+//	}
+	
 	void LoadLocal(JLocalVarStack local) {
 		Type type = local.TypeInfo;
 		this.MethodVisitor.visitVarInsn(type.getOpcode(ILOAD), local.Index);
@@ -305,7 +309,7 @@ class JMethodBuilder {
 	public JLocalVarStack FindLocalVariable(String Name) {
 		for(int i = 0; i < this.LocalVals.size(); i++) {
 			JLocalVarStack l = this.LocalVals.get(i);
-			if(l.Name.compareTo(Name) == 0) {
+			if(l.Name.equals(Name)) {
 				return l;
 			}
 		}
@@ -471,7 +475,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		String MethodName = Func.GetNativeFuncName();
 		String MethodDesc = JLib.GetMethodDescriptor(Func);
 		MethodNode AsmMethodNode = new MethodNode(ACC_PUBLIC | ACC_STATIC, MethodName, MethodDesc, null, null);
-		JClassBuilder ClassHolder = this.ClassGenerator.GenerateMethodHolderClass(this.Context.GetSourceFileName(Body.Token.FileLine), MethodName, AsmMethodNode);
+		JClassBuilder ClassHolder = this.ClassGenerator.GenerateMethodHolderClass(GtStaticTable.GetSourceFileName(Body.Token.FileLine), MethodName, AsmMethodNode);
 
 		JMethodBuilder LocalBuilder = new JMethodBuilder(this.ClassGenerator, AsmMethodNode);
 		for(int i = 0; i < NameList.size(); i++) {
