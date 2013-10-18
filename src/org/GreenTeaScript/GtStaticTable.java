@@ -71,6 +71,10 @@ public class GtStaticTable implements GreenTeaConsts {
 		return (FileId == 0) ? null : GtStaticTable.SourceList.get(FileId - 1);
 	}
 
+	public final static int GetFileLineNumber(long FileLine) {
+		return LibGreenTea.LowerId(FileLine);
+	}
+	
 	public final static String FormatFileLineNumber(long FileLine) {
 		/*local*/int FileId = LibGreenTea.UpperId(FileLine);
 		/*local*/int Line = LibGreenTea.LowerId(FileLine);

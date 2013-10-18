@@ -282,6 +282,7 @@ class JMethodBuilder {
 	int                           LocalSize;
 	Stack<Label>                  BreakLabelStack;
 	Stack<Label>                  ContinueLabelStack;
+	int PreviousLine;
 
 	public JMethodBuilder(GreenTeaClassLoader ClassLoader, MethodVisitor AsmMethodVisitor) {
 		this.LocalClassLoader = ClassLoader;
@@ -290,11 +291,23 @@ class JMethodBuilder {
 		this.LocalSize = 0;
 		this.BreakLabelStack = new Stack<Label>();
 		this.ContinueLabelStack = new Stack<Label>();
+		this.PreviousLine = 0;
 	}
 
-//	void SetLineNumber(long FileLine) {
-//		this.MethodVisitor.visitLineNumber(0, null);
-//	}
+	void SetLineNumber(long FileLine) {
+		if(FileLine != 0) {
+			int Line = GtStaticTable.GetFileLineNumber(FileLine);
+			if(Line != this.PreviousLine) {
+				Label LineLabel = new Label();
+				this.MethodVisitor.visitLineNumber(Line, LineLabel);
+				this.PreviousLine = Line;
+			}
+		}
+	}
+
+	void SetLineNumber(GtNode Node) {
+		this.SetLineNumber(Node.Token.FileLine);
+	}
 	
 	void LoadLocal(JLocalVarStack local) {
 		Type type = local.TypeInfo;
@@ -648,6 +661,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 
 	@Override public void VisitStaticApplyNode(GtStaticApplyNode ApplyNode) {
 		GtFunc Func = ApplyNode.Func;
+		this.VisitingBuilder.SetLineNumber(ApplyNode.Token.FileLine);
 		for(int i = 0; i < ApplyNode.ParamList.size(); i++) {
 			GtNode ParamNode = ApplyNode.ParamList.get(i);
 			ParamNode.Evaluate(this);
@@ -1002,6 +1016,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 
 	@Override public void VisitErrorNode(GtErrorNode Node) {
 		String name = Type.getInternalName(SoftwareFaultException.class);
+		this.VisitingBuilder.SetLineNumber(Node);
 		this.VisitingBuilder.MethodVisitor.visitTypeInsn(NEW, name);
 		this.VisitingBuilder.MethodVisitor.visitInsn(DUP);
 		this.VisitingBuilder.LoadConst(Node.Token.GetErrorMessage());
