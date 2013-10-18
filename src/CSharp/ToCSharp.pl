@@ -80,9 +80,9 @@ $src =~ s/interface/class/g;
 # Comments
 $src =~ s/^\s*\/\/[#\s]*ifdef\s+JAVA.*?VAJA//gms;
 
-$src =~ s|/\*GreenTeaConst Begin\*/|public class GreenTeaConst {|g;
+$src =~ s|/\*GreenTeaConst Begin\*/|public class GreenTeaConsts {|g;
 $src =~ s|/\*GreenTeaConst End\*/|}|g;
-$src =~ s|/\*GreenTeaUtils Begin\*/|public class GreenTeaUtils: GreenTeaConst {|g;
+$src =~ s|/\*GreenTeaUtils Begin\*/|public class GreenTeaUtils: GreenTeaConsts {|g;
 $src =~ s|/\*GreenTeaUtils End\*/|}|g;
 
 $src =~ s/(\/\/.*?)$/&ProtectComment($1)/gems;
