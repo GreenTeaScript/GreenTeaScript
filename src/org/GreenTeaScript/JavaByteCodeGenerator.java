@@ -467,6 +467,7 @@ class JMethodBuilder {
 		}
 		String owner = Type.getInternalName(method.getDeclaringClass());
 		this.AsmVisitor.visitMethodInsn(inst, owner, method.getName(), Type.getMethodDescriptor(method));
+		//System.err.println("ReturnType="+RequiredType+", " + method);
 		this.CheckCast(RequiredType, method.getReturnType());
 	}
 
@@ -1022,7 +1023,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		if(Node.TypeInfo.IsGenericType() || Node.TypeInfo.IsVirtualType()) {
 			Node.ExprNode.Evaluate(this);
 			this.VisitingBuilder.LoadConst(Node.TypeInfo);
-			this.VisitingBuilder.InvokeMethodCall(JLib.GreenInstanceOfOperator);
+			this.VisitingBuilder.InvokeMethodCall(boolean.class, JLib.GreenInstanceOfOperator);
 		}
 		else {
 			Node.ExprNode.Evaluate(this);
