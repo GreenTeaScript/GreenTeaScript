@@ -1187,7 +1187,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return null;
 	}
 
-	public static Object DynamicInstanceOf(Object Value, GtType Type) {
+	public static boolean DynamicInstanceOf(Object Value, GtType Type) {
 		if(Value != null) {
 			GtType ValueType = GtStaticTable.GuessType(Value);
 			if(ValueType == Type || Type.Accept(ValueType)) {
