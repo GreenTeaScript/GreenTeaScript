@@ -112,7 +112,7 @@ public class ArrayApi {
 			}
 			return Values;
 		}
-		Object ObjectArray = Array.newInstance(ElementType.GetNativeType(), Size);
+		Object ObjectArray = Array.newInstance(ElementType.GetNativeType(false), Size);
 		for(int i = 0; i < Size; i++) {
 			Array.set(ObjectArray, i, ArrayObject.ArrayBody.get(i));
 		}

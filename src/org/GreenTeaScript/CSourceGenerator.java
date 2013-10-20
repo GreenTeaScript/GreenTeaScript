@@ -43,7 +43,7 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	private String GetLocalType(GtType Type, boolean IsPointer) {
-		if(Type.IsDynamic() || Type.IsNative()) {
+		if(Type.IsDynamicType() || Type.IsNativeType()) {
 			if(Type.IsBooleanType()) {
 				return "int";
 			}
@@ -233,7 +233,7 @@ public class CSourceGenerator extends SourceGenerator {
 			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
 			/*local*/String VarName = FieldInfo.NativeName;
 			/*local*/String InitValue = this.StringifyConstValue(FieldInfo.InitValue);
-			if(!FieldInfo.Type.IsNative()) {
+			if(!FieldInfo.Type.IsNativeType()) {
 				InitValue = this.NullLiteral;
 			}
 			Program += this.GetIndentString() + this.GetRecvName() + "->" + VarName + " = " + InitValue + ";" + this.LineFeed;
