@@ -62,9 +62,21 @@ public class GtType extends GreenTeaUtils {
 	}
 
 //ifdef JAVA
-	public Class<?> GetNativeType() {
+	public Class<?> GetNativeType(boolean enforceBoxing) {
 		if(this.BaseType.TypeBody instanceof Class<?>) {
-			return (Class<?>) this.BaseType.TypeBody;
+			Class<?> JavaType = (Class<?>) this.BaseType.TypeBody;
+			if(enforceBoxing && this.IsUnboxType()) {
+				if(this.BaseType.IsIntType()) {
+					JavaType = Long.class;
+				}
+				else if(this.BaseType.IsBooleanType()) {
+					JavaType = Boolean.class;
+				}
+				else {
+					JavaType = Double.class;
+				}
+			}
+			return JavaType;
 		}
 		return Object.class;
 	}
@@ -96,15 +108,17 @@ public class GtType extends GreenTeaUtils {
 		LibGreenTea.VerboseLog(VerboseType, "new generic type: " + GenericType.ShortName + ", ClassId=" + GenericType.TypeId);
 		return GenericType;
 	}
-
-	public final boolean IsAbstract() {
+	public final boolean IsAbstractType() {
 		return (this.TypeBody == null && this.SuperType == GtStaticTable.TopType/*default*/);
 	}
-	public final boolean IsNative() {
+	public final boolean IsNativeType() {
 		return IsFlag(this.TypeFlag, NativeType);
 	}
-	public final boolean IsDynamic() {
+	public final boolean IsDynamicType() {
 		return IsFlag(this.TypeFlag, DynamicType);
+	}
+	public boolean IsVirtualType() {
+		return IsFlag(this.TypeFlag, VirtualType);
 	}
 	public final boolean IsUnboxType() {
 		return IsFlag(this.BaseType.TypeFlag, UnboxType);
@@ -225,7 +239,7 @@ public class GtType extends GreenTeaUtils {
 	}
 
 	public boolean IsDynamicNaitiveLoading() {
-		return this.IsNative() /*&& !IsFlag(this.TypeFlag, CommonType)*/;
+		return this.IsNativeType() /*&& !IsFlag(this.TypeFlag, CommonType)*/;
 	}
 
 	public final boolean IsTypeVariable() {   // T
@@ -313,6 +327,7 @@ public class GtType extends GreenTeaUtils {
 		}
 		return this.Accept(GivenType);
 	}
+
 
 
 

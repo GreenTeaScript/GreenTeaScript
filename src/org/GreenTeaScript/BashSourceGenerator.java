@@ -235,7 +235,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	private boolean IsNativeType(GtType Type) {
-		if(Type != null && Type.IsNative()) {
+		if(Type != null && Type.IsNativeType()) {
 			return true;
 		}
 		return false;
@@ -529,7 +529,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		while(i < LibGreenTea.ListSize(ClassField.FieldList)) {
 			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
 			/*local*/String InitValue = this.StringifyConstValue(FieldInfo.InitValue);
-			if(!FieldInfo.Type.IsNative()) {
+			if(!FieldInfo.Type.IsNativeType()) {
 				InitValue = "NULL";
 			}
 			this.WriteLineCode(Type.ShortName + this.MemberAccessOperator + FieldInfo.NativeName + "=" + i);

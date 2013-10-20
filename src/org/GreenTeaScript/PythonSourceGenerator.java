@@ -315,7 +315,7 @@ public class PythonSourceGenerator extends SourceGenerator {
 			while(i < length) {
 				/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
 				/*local*/String InitValue = this.StringifyConstValue(FieldInfo.InitValue);
-				if(!FieldInfo.Type.IsNative()) {
+				if(!FieldInfo.Type.IsNativeType()) {
 					InitValue = "None";
 				}
 				Program += this.GetIndentString() + this.GetRecvName() + "." + FieldInfo.NativeName + " = " + InitValue + this.LineFeed;

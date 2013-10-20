@@ -724,7 +724,7 @@ public class KonohaGrammar extends GtGrammar {
 			Gamma.CheckFunc("operator", ResolvedFunc, ParsedTree.KeyToken);
 			return Gamma.Generator.CreateUnaryNode(ResolvedFunc.GetReturnType(), ParsedTree, ResolvedFunc, RecvNode);
 		}
-		if(RecvNode.Type.IsDynamic()) {
+		if(RecvNode.Type.IsDynamicType()) {
 			return Gamma.Generator.CreateApplyDynamicMethodNode(GtStaticTable.AnyType, ParsedTree, FuncSymbol(OperatorSymbol)).Append(RecvNode);
 		}
 		return PolyFunc.CreateTypeErrorNode(Gamma, ParsedTree, "operator", RecvNode.Type, OperatorSymbol);
@@ -780,7 +780,7 @@ public class KonohaGrammar extends GtGrammar {
 				return Gamma.Generator.CreateBinaryNode(ResolvedFunc.ReturnType, ParsedTree, ResolvedFunc.Func, RecvNode, ParamList.get(1));
 			}
 		}
-		if(RecvNode.Type.IsDynamic()) {
+		if(RecvNode.Type.IsDynamicType()) {
 			/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
 			ParamList.add(RecvNode);
 			ParamList.add(ParsedTree.TypeCheckAt(LeftHandTerm, Gamma, GtStaticTable.VarType, DefaultTypeCheckPolicy));
@@ -853,12 +853,12 @@ public class KonohaGrammar extends GtGrammar {
 			}
 			Gamma.ReportTypeInference(ClassToken, "constructor", ClassType);
 		}
-		if(ClassType.IsAbstract()) {
+		if(ClassType.IsAbstractType()) {
 			return Gamma.CreateSyntaxErrorNode(ParsedTree, "type is abstract");
 		}
 		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetConstructorFunc(/*GtFunc*/ClassType);
 		/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
-		if(ClassType.IsNative()) {
+		if(ClassType.IsNativeType()) {
 			/*local*/GtResolvedFunc ResolvedFunc = PolyFunc.ResolveFunc(Gamma, ParsedTree, 1, ParamList);
 			if(ResolvedFunc.ErrorNode != null) {
 				return ResolvedFunc.ErrorNode;
@@ -934,7 +934,7 @@ public class KonohaGrammar extends GtGrammar {
 		if(GetterFunc != null) {
 			return Gamma.Generator.CreateGetterNode(GetterFunc.GetReturnType(), ParsedTree, GetterFunc, RecvNode);			
 		}
-		if(RecvNode.Type.IsDynamic()) {
+		if(RecvNode.Type.IsDynamicType()) {
 			return Gamma.Generator.CreateDyGetterNode(ContextType, ParsedTree, RecvNode, Name);
 		}
 		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(RecvNode.Type, Name, true);
@@ -956,7 +956,7 @@ public class KonohaGrammar extends GtGrammar {
 			/*local*/GtNode ValueNode = ParsedTree.TypeCheckAt(RightHandTerm, Gamma, ValueType, DefaultTypeCheckPolicy);
 			return Gamma.Generator.CreateSetterNode(GtStaticTable.VoidType, ParsedTree, SetterFunc, RecvNode, ValueNode);
 		}
-		if(RecvNode.Type.IsDynamic()) {
+		if(RecvNode.Type.IsDynamicType()) {
 			/*local*/GtNode ValueNode = ParsedTree.TypeCheckAt(RightHandTerm, Gamma, GtStaticTable.VarType, DefaultTypeCheckPolicy);
 			return Gamma.Generator.CreateDySetterNode(GtStaticTable.VoidType, ParsedTree, RecvNode, Name, ValueNode);			
 		}
@@ -997,7 +997,7 @@ public class KonohaGrammar extends GtGrammar {
 			Gamma.CheckFunc("method", ResolvedFunc.Func, ParsedTree.KeyToken);
 			return Gamma.Generator.CreateApplyMethodNode(ResolvedFunc.ReturnType, ParsedTree, RecvNode, ResolvedFunc.Func).AppendNodeList(0, ParamList);
 		}
-		if(RecvNode.Type.IsDynamic()) {
+		if(RecvNode.Type.IsDynamicType()) {
 			Gamma.FoundUncommonFunc = true;
 			return Gamma.Generator.CreateApplyDynamicMethodNode(ContextType, ParsedTree, MethodName).AppendNodeList(0, ParamList);
 		}
@@ -2218,7 +2218,7 @@ public class KonohaGrammar extends GtGrammar {
 		/*local*/int ClassFlag = KonohaGrammar.ParseClassFlag(0, TokenContext.ParsingAnnotation);
 		/*local*/String ClassName = NameToken.ParsedText;
 		/*local*/GtType DefinedType = NameSpace.GetType(ClassName);
-		if(DefinedType != null && DefinedType.IsAbstract()) {
+		if(DefinedType != null && DefinedType.IsAbstractType()) {
 			DefinedType.TypeFlag = ClassFlag;
 			DefinedType.SuperType = SuperType;
 			NameToken = null; // preventing duplicated symbol message at (A)

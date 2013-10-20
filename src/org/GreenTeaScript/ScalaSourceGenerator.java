@@ -42,7 +42,7 @@ public class ScalaSourceGenerator extends SourceGenerator {
 	}
 
 	private String LocalTypeName(GtType Type) {
-		if(Type.IsDynamic() || Type.IsNative()) {
+		if(Type.IsDynamicType() || Type.IsNativeType()) {
 			if(Type.IsVoidType()) {
 				return "Unit";
 			}
@@ -225,7 +225,7 @@ public class ScalaSourceGenerator extends SourceGenerator {
 			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
 			/*local*/String VarName = FieldInfo.NativeName;
 			/*local*/String InitValue = this.StringifyConstValue(FieldInfo.InitValue);
-			if(!FieldInfo.Type.IsNative()) {
+			if(!FieldInfo.Type.IsNativeType()) {
 				InitValue = this.NullLiteral;
 			}
 			Program += this.GetIndentString() + this.GetRecvName() + "." + VarName + " = " + InitValue + ";" + this.LineFeed;
