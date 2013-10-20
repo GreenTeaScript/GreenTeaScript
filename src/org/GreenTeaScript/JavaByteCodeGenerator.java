@@ -476,6 +476,13 @@ class JMethodBuilder {
 			this.AsmVisitor.visitInsn(POP);
 		}
 	}
+
+	public void PushEvaluatedNode(GtGenerator Generator, GtType RequestedType, GtNode ParamNode) {
+		//System.err.println("requested=" + RequestedType + ", given="+ParamNode.Type);
+		ParamNode.Evaluate(Generator);
+		this.CheckCast(RequestedType, ParamNode.Type);
+	}
+	
 }
 
 public class JavaByteCodeGenerator extends GtGenerator {
@@ -738,8 +745,11 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	@Override public void VisitIndexerNode(GtIndexerNode Node) {
 		ArrayList<GtNode> NodeList = Node.NodeList;
 		Node.Expr.Evaluate(this);
-		for(int i=0; i<NodeList.size(); i++) {
-			NodeList.get(i).Evaluate(this);
+		for(int i=0; i < NodeList.size(); i++) {
+			GtNode ParamNode = NodeList.get(i);
+//			ParamNode.Evaluate(this);
+//			this.VisitingBuilder.CheckCast(Node.Func.GetFuncParamType(i), ParamNode.Type);
+			this.VisitingBuilder.PushEvaluatedNode(this, Node.Func.GetFuncParamType(i+1), ParamNode);
 		}
 		this.VisitingBuilder.InvokeMethodCall(Node.Type, (Method) Node.Func.FuncBody);
 	}
