@@ -157,7 +157,7 @@ public class GtType extends GreenTeaUtils {
 		return (this == GtStaticTable.StringType);
 	}
 	public final boolean IsArrayType() {
-		return (this == GtStaticTable.ArrayType);
+		return (this.BaseType == GtStaticTable.ArrayType);
 	}
 	public final boolean IsEnumType() {
 		return IsFlag(this.TypeFlag, EnumType);
