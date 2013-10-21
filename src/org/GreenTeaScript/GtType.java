@@ -54,7 +54,7 @@ public class GtType extends GreenTeaUtils {
 		if(IsFlag(NativeType, TypeFlag) && TypeBody instanceof Class<?>) {
 			Class<?> SuperClass = ((/*cast*/Class<?>)TypeBody).getSuperclass();
 			if(SuperClass != null && SuperClass != Object.class) {
-				this.SuperType = GtStaticTable.GetNativeType(SuperClass);
+				this.SuperType = LibNative.GetNativeType(SuperClass);
 				this.ParentMethodSearch = this.SuperType;
 			}
 		}

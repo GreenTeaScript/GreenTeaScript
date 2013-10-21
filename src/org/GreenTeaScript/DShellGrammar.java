@@ -490,7 +490,7 @@ public class DShellGrammar extends GreenTeaUtils {
 
 	// dlog FunctionName => ExecAction(NameSpace, ContextualFuncName, Action);
 	public static GtNode TypeDLog(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		ContextType = GtStaticTable.GetNativeType(DFault.class);
+		ContextType = LibNative.GetNativeType(DFault.class);
 		GtNode ActionNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, ContextType, DefaultTypeCheckPolicy);
 		if(ActionNode.IsErrorNode()) {
 			return ActionNode;

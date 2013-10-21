@@ -25,6 +25,7 @@
 //ifdef JAVA
 package org.GreenTeaScript;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Arrays;
 //endif VAJA
 
@@ -52,6 +53,9 @@ public class GreenTeaArray extends GreenTeaTopObject {
 			s += LibGreenTea.Stringify(Value);
 		}
 		return s + "]";
+	}
+	public Iterator<Object> ToIterator() {
+		return this.ArrayBody.iterator();
 	}
 	public final static GreenTeaArray NewArray1(GtType Type, int InitSize) {
 		/*local*/GtType ArrayType = GtStaticTable.GetGenericType1(GtStaticTable.ArrayType, Type, true); 
