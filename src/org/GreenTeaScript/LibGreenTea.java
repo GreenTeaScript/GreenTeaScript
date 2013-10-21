@@ -838,8 +838,11 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		System.out.println("  --eval|-e EXPR        Program passed in as string");
 		System.out.println("  --require|-r LIBRARY     Load the library");
 		System.out.println("  --verbose             Printing Debug infomation");
-		System.out.println("     --verbose:symbol     adding symbol info");
 		System.out.println("     --verbose:token      adding token info");
+		System.out.println("     --verbose:type       adding type info");
+		System.out.println("     --verbose:symbol     adding symbol info");
+		System.out.println("     --verbose:native     adding native class info");
+		System.out.println("     --verbose:all        adding all info");
 		System.out.println("     --verbose:no         no log");
 		LibGreenTea.Exit(0, Message);
 	}
