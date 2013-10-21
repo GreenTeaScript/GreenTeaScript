@@ -23,6 +23,7 @@
 // **************************************************************************
 
 package org.GreenTeaScript.Konoha;
+import java.util.Iterator;
 
 public final class StringApi {
 	public static boolean Equals(String x, String y) {
@@ -39,6 +40,7 @@ public final class StringApi {
 	public static String Add(String x, Object y) {
 		return x + y;
 	}
+	
 //	public static String Add(long x, String y) {
 //		return x + y;
 //	}
@@ -76,6 +78,9 @@ public final class StringApi {
 		int eindex = (EIndex < 0) ? self.length() - (int)EIndex : (int)EIndex;
 		return self.substring(bindex, eindex);
 	}
+	public final static Iterator<String> ToIterator(String self) {
+		return new StringIterator(self);
+	}
 	// converter
 	public final static long ToInt(String value) {
 		if(value != null) {
@@ -106,5 +111,25 @@ public final class StringApi {
 	}
 	public final static char s2c(String s) {
 		return s == null ? (char)0 : s.charAt(0);
+	}
+}
+
+class StringIterator implements Iterator<String> {
+	private String Text;
+	private int Loc;
+	StringIterator(String Text) {
+		this.Text = Text == null ? "" : Text;
+		this.Loc = 0;
+	}
+	@Override public boolean hasNext() {
+		return (this.Loc < this.Text.length());
+	}
+	@Override public String next() {
+		int index = this.Loc;
+		this.Loc += 1;
+		return String.valueOf(this.Text.charAt(index));
+	}
+	@Override public void remove() {
+		// TODO Auto-generated method stub
 	}
 }

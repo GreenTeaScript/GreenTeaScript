@@ -27,6 +27,7 @@
 @Common @Const @Operator String "[]"(String x, int index) import Konoha.StringApi.Get;
 @Common @Const @Operator String "[:]"(String x, int beginIndex) import Konoha.StringApi.Slice;
 @Common @Const @Operator String "[:]"(String x, int beginIndex, int endIndex) import Konoha.StringApi.Slice;
+@Common @Const @Operator Iterator<String> "..."(String x) import Konoha.StringApi.ToIterator;
 
 @Common @Const boolean startsWith(String x, String y) import Konoha.StringApi.StartsWith;
 @Common @Const boolean endsWith(String x, String y) import Konoha.StringApi.EndsWith;

@@ -26,6 +26,7 @@
 package org.GreenTeaScript;
 import java.util.ArrayList;
 //endif VAJA
+import java.util.Iterator;
 
 public class GtStaticTable implements GreenTeaConsts {
 
@@ -50,6 +51,7 @@ public class GtStaticTable implements GreenTeaConsts {
 //	/*field*/public final static GtType		StructType;
 	/*field*/public final static GtType		VarType = new GtType(0, "var", null, null);
 	/*field*/public final static GtType		TypeType = TopType.CreateSubType(0, "Type", null, GtType.class);
+	/*field*/public final static GtType     IteratorType = new GtType(NativeType, "Iterator", null, Iterator.class);
 
 //	this.TopType       = this.RootNameSpace.AppendTypeName(new GtType(this, 0, "Top", null, GreenTeaTopObject.class), null);
 //	this.StructType    = this.TopType.CreateSubType(0, "record", null, null);       //  unregistered
@@ -82,7 +84,6 @@ public class GtStaticTable implements GreenTeaConsts {
 		return "(" + FileName + ":" + Line + ")";
 	}
 
-
 	private static boolean IsInit = false;
 	
 	public final static void InitParserContext(GtParserContext Context) {
@@ -92,7 +93,9 @@ public class GtStaticTable implements GreenTeaConsts {
 			ArrayType.TypeParams[0] = GtStaticTable.VarType;
 			FuncType.TypeParams = new GtType[1];
 			FuncType.TypeParams[0] = GtStaticTable.VarType;  // for PolyFunc
-
+			IteratorType.TypeParams = new GtType[1];
+			IteratorType.TypeParams[0] = GtStaticTable.VarType;
+			
 			GtStaticTable.SetNativeTypeName("org.GreenTeaScript.GreenTeaTopObject", GtStaticTable.TopType);
 			GtStaticTable.SetNativeTypeName("void",    GtStaticTable.VoidType);
 			GtStaticTable.SetNativeTypeName("java.lang.Object",  GtStaticTable.AnyType);
@@ -107,6 +110,7 @@ public class GtStaticTable implements GreenTeaConsts {
 			GtStaticTable.SetNativeTypeName("org.GreenTeaScript.Konoha.GreenTeaIntArray", GtStaticTable.GetGenericType1(GtStaticTable.ArrayType, GtStaticTable.IntType, true));
 			GtStaticTable.SetNativeTypeName("double",    GtStaticTable.FloatType);
 			GtStaticTable.SetNativeTypeName("java.lang.Double",  GtStaticTable.FloatType);
+			GtStaticTable.SetNativeTypeName("java.util.Iterator",  GtStaticTable.IteratorType);
 //endif VAJA
 			IsInit = true;
 		}
@@ -121,6 +125,7 @@ public class GtStaticTable implements GreenTeaConsts {
 		Context.RootNameSpace.AppendTypeName(GtStaticTable.TypeType, null);
 		Context.RootNameSpace.AppendTypeName(GtStaticTable.ArrayType, null);
 		Context.RootNameSpace.AppendTypeName(GtStaticTable.FuncType, null);
+		Context.RootNameSpace.AppendTypeName(GtStaticTable.IteratorType, null);
 	}
 
 	public static int IssueTypeId(GtType Type) {
@@ -138,19 +143,8 @@ public class GtStaticTable implements GreenTeaConsts {
 		LibGreenTea.VerboseLog(VerboseSymbol, "global type name: " + Name + ", " + Type);
 	}
 
-	public final static GtType GetNativeType(Class<?> NativeClass) {
-		GtType NativeType = null;
-		NativeType = (/*cast*/GtType) GtStaticTable.ClassNameMap.GetOrNull(NativeClass.getCanonicalName());
-		if(NativeType == null) {  /* create native type */
-			NativeType = new GtType(GreenTeaUtils.NativeType, NativeClass.getSimpleName(), null, NativeClass);
-			GtStaticTable.SetNativeTypeName(NativeClass.getCanonicalName(), NativeType);
-			LibGreenTea.VerboseLog(GreenTeaUtils.VerboseNative, "creating native class: " + NativeClass.getSimpleName() + ", " + NativeClass.getCanonicalName());
-		}
-		return NativeType;
-	}
-
 	public final static GtType GetNativeTypeOfValue(Object Value) {
-		return GtStaticTable.GetNativeType(Value.getClass());
+		return LibNative.GetNativeType(Value.getClass());
 	}
 	
 	public final static GtType GuessType (Object Value) {
@@ -165,7 +159,7 @@ public class GtStaticTable implements GreenTeaConsts {
 			return ((/*cast*/GreenTeaObject)Value).GetGreenType();
 		}
 		else {
-			return GtStaticTable.GetNativeTypeOfValue(Value);
+			return LibNative.GetNativeTypeOfValue(Value);
 		}
 	}
 
