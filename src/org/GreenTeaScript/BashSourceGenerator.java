@@ -519,7 +519,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		return LibGreenTea.QuoteString("$(__NEW__" + Type.ShortName + ")");
 	}
 
-	@Override public void OpenClassField(GtType Type, GtClassField ClassField) {	//TODO: support super
+	@Override public void OpenClassField(GtSyntaxTree ParsedTree, GtType Type, GtClassField ClassField) {	//TODO: support super
 		/*local*/String Program = "__NEW__" + Type.ShortName + "() {" + this.LineFeed;
 		this.WriteLineCode("#### define class " + Type.ShortName + " ####");
 		this.Indent();

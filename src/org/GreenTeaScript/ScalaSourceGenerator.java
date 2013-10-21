@@ -196,7 +196,7 @@ public class ScalaSourceGenerator extends SourceGenerator {
 		this.WriteLineCode(Function);
 	}
 
-	@Override public void OpenClassField(GtType Type, GtClassField ClassField) {
+	@Override public void OpenClassField(GtSyntaxTree ParsedTree, GtType Type, GtClassField ClassField) {
 		/*local*/String TypeName = this.LocalTypeName(Type);
 		/*local*/String Program = this.GetIndentString() + "class " + TypeName;
 //		if(Type.SuperType != null) {

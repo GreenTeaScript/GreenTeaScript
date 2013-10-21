@@ -217,7 +217,7 @@ public class GtGenerator extends GreenTeaUtils {
 
 	/* language constructor */
 
-	public void OpenClassField(GtType DefinedType, GtClassField ClassField) {
+	public void OpenClassField(GtSyntaxTree ParsedTree, GtType DefinedType, GtClassField ClassField) {
 		/*extension*/
 	}
 

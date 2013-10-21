@@ -207,7 +207,7 @@ public class CSourceGenerator extends SourceGenerator {
 		return Code;
 	}
 
-	@Override public void OpenClassField(GtType Type, GtClassField ClassField) {
+	@Override public void OpenClassField(GtSyntaxTree ParsedTree, GtType Type, GtClassField ClassField) {
 		/*local*/String TypeName = Type.ShortName;
 		/*local*/String LocalType = this.LocalTypeName(Type);
 		/*local*/String Program = this.GetIndentString() + "struct " + TypeName + " {" + this.LineFeed;
