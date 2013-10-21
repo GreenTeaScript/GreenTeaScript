@@ -419,7 +419,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 	}
 
 	public final static boolean ImportNativeMethod(GtNameSpace NameSpace, GtFunc NativeFunc, String FullName) {
-		Method JavaMethod = LibNative.LoadNativeMethod(NativeFunc.GetFuncType(), FullName, false);
+		Method JavaMethod = LibNative.ImportMethod(NativeFunc.GetFuncType(), FullName, false);
 		if(JavaMethod != null) {
 			LibGreenTea.SetNativeMethod(NativeFunc, JavaMethod);
 			if(NativeFunc.GetReturnType().IsVarType()) {
