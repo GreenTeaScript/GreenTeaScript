@@ -29,6 +29,9 @@ import java.util.ArrayList;
 
 public class GtStaticTable implements GreenTeaConsts {
 
+	/*field*/public final static GtMap               SourceMap = new GtMap();
+	/*field*/public final static ArrayList<String>   SourceList = new ArrayList<String>();
+
 	/*field*/public final static GtMap			    ClassNameMap = new GtMap();
 	/*field*/public final static ArrayList<GtType>  TypePools = new ArrayList<GtType>();
 	/*field*/public final static ArrayList<GtFunc>  FuncPools = new ArrayList<GtFunc>();
@@ -52,6 +55,33 @@ public class GtStaticTable implements GreenTeaConsts {
 //	this.StructType    = this.TopType.CreateSubType(0, "record", null, null);       //  unregistered
 //	this.EnumBaseType  = this.TopType.CreateSubType(EnumType, "enum", null, GreenTeaEnum.class);  //  unregistered
 //
+	
+	public final static long GetFileLine(String FileName, int Line) {
+		/*local*/Integer Id = /* (FileName == null) ? 0 :*/ (/*cast*/Integer)GtStaticTable.SourceMap.GetOrNull(FileName);
+		if(Id == null) {
+			GtStaticTable.SourceList.add(FileName);
+			Id = GtStaticTable.SourceList.size();
+			GtStaticTable.SourceMap.put(FileName, Id);
+		}
+		return LibGreenTea.JoinIntId(Id, Line);
+	}
+
+	public final static String GetSourceFileName(long FileLine) {
+		/*local*/int FileId = LibGreenTea.UpperId(FileLine);
+		return (FileId == 0) ? null : GtStaticTable.SourceList.get(FileId - 1);
+	}
+
+	public final static int GetFileLineNumber(long FileLine) {
+		return LibGreenTea.LowerId(FileLine);
+	}
+	
+	public final static String FormatFileLineNumber(long FileLine) {
+		/*local*/int FileId = LibGreenTea.UpperId(FileLine);
+		/*local*/int Line = LibGreenTea.LowerId(FileLine);
+		/*local*/String FileName = (FileId == 0) ? "eval" : GtStaticTable.SourceList.get(FileId - 1);
+		return "(" + FileName + ":" + Line + ")";
+	}
+
 
 	private static boolean IsInit = false;
 	

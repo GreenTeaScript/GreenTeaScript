@@ -730,7 +730,7 @@ public class GreenTeaScript extends GreenTeaUtils {
 			if(ScriptText == null) {
 				LibGreenTea.Exit(1, "file not found: " + Args[Index]);
 			}
-			/*local*/long FileLine = Context.GetFileLine(Args[Index], 1);
+			/*local*/long FileLine = GtStaticTable.GetFileLine(Args[Index], 1);
 			/*local*/boolean Success = Context.TopLevelNameSpace.Load(ScriptText, FileLine);
 			Context.ShowReportedErrors();
 			if(!Success) {

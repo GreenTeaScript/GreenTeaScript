@@ -572,7 +572,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 	public final boolean LoadFile(String FileName) {
 		/*local*/String ScriptText = LibGreenTea.LoadFile2(FileName);
 		if(ScriptText != null) {
-			/*local*/long FileLine = this.Context.GetFileLine(FileName, 1);
+			/*local*/long FileLine = GtStaticTable.GetFileLine(FileName, 1);
 			return this.Load(ScriptText, FileLine);
 		}
 		return false;
@@ -584,7 +584,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 			/*local*/String Path = LibGreenTea.GetLibPath(this.Context.Generator.TargetCode, LibName);
 			/*local*/String Script = LibGreenTea.LoadFile2(Path);
 			if(Script != null) {
-				/*local*/long FileLine = this.Context.GetFileLine(Path, 1);
+				/*local*/long FileLine = GtStaticTable.GetFileLine(Path, 1);
 				if(this.Load(Script, FileLine)) {
 					this.SetSymbol(Key, Path, null);
 					return true;

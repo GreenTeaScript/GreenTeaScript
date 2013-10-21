@@ -33,9 +33,6 @@ public final class GtParserContext extends GreenTeaUtils {
 	/*field*/public final  GtNameSpace   RootNameSpace;
 	/*field*/public GtNameSpace		     TopLevelNameSpace;
 
-	/*field*/public final  GtMap               SourceMap;
-	/*field*/public final  ArrayList<String>   SourceList;
-
 	/*field*/public final GtStat Stat;
 	/*field*/public ArrayList<String>    ReportedErrorList;
 	/*filed*/private boolean NoErrorReport;
@@ -44,8 +41,6 @@ public final class GtParserContext extends GreenTeaUtils {
 		this.ParserId     = LibGreenTea.NewParserId();
 		this.Generator    = Generator;
 		this.Generator.Context = this;
-		this.SourceMap     = new GtMap();
-		this.SourceList    = new ArrayList<String>();
 		this.RootNameSpace = new GtNameSpace(this, null);
 		this.Stat = new GtStat();
 		this.NoErrorReport = false;
@@ -60,49 +55,26 @@ public final class GtParserContext extends GreenTeaUtils {
 		Grammar.LoadTo(this.TopLevelNameSpace);
 	}
 
-	public final long GetFileLine(String FileName, int Line) {
-		/*local*/Integer Id = /* (FileName == null) ? 0 :*/ (/*cast*/Integer)this.SourceMap.GetOrNull(FileName);
-		if(Id == null) {
-			this.SourceList.add(FileName);
-			Id = this.SourceList.size();
-			this.SourceMap.put(FileName, Id);
-		}
-		return LibGreenTea.JoinIntId(Id, Line);
-	}
 
-	public final String GetSourceFileName(long FileLine) {
-		/*local*/int FileId = LibGreenTea.UpperId(FileLine);
-		return (FileId == 0) ? null : this.SourceList.get(FileId - 1);
-	}
-
-	final String GetSourcePosition(long FileLine) {
-		/*local*/int FileId = LibGreenTea.UpperId(FileLine);
-		/*local*/int Line = LibGreenTea.LowerId(FileLine);
-		/*local*/String FileName = (FileId == 0) ? "eval" : this.SourceList.get(FileId - 1);
-		return "(" + FileName + ":" + Line + ")";
-	}
-
-	public void SetNoErrorReport(boolean b) {
+	public final void SetNoErrorReport(boolean b) {
 		this.NoErrorReport = b;
 	}
 
 	public final void ReportError(int Level, GtToken Token, String Message) {
 		if(!Token.IsError() || !this.NoErrorReport) {
 			if(Level == ErrorLevel) {
-				Message = "(error) " + this.GetSourcePosition(Token.FileLine) + " " + Message;
+				Message = "(error) " + GtStaticTable.FormatFileLineNumber(Token.FileLine) + " " + Message;
 				Token.SetErrorMessage(Message, this.RootNameSpace.GetSyntaxPattern("$Error$"));
 			}
 			else if(Level == TypeErrorLevel) {
-				Message = "(error) " + this.GetSourcePosition(Token.FileLine) + " " + Message;
+				Message = "(error) " + GtStaticTable.FormatFileLineNumber(Token.FileLine) + " " + Message;
 			}
 			else if(Level == WarningLevel) {
-				Message = "(warning) " + this.GetSourcePosition(Token.FileLine) + " " + Message;
+				Message = "(warning) " + GtStaticTable.FormatFileLineNumber(Token.FileLine) + " " + Message;
 			}
 			else if(Level == InfoLevel) {
-				Message = "(info) " + this.GetSourcePosition(Token.FileLine) + " " + Message;
+				Message = "(info) " + GtStaticTable.FormatFileLineNumber(Token.FileLine) + " " + Message;
 			}
-			//LibGreenTea.DebugP(Message);
-			//System.err.println("**" + Message + "    if dislike this, comment out In ReportError");
 			this.ReportedErrorList.add(Message);
 		}
 	}
