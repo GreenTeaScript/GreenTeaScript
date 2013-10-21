@@ -52,8 +52,10 @@ class JClassBuilder /*implements Opcodes */{
 	final String SuperClassName;
 	final ArrayList<MethodNode> MethodList = new ArrayList<MethodNode>();
 	final ArrayList<FieldNode> FieldList = new ArrayList<FieldNode>();
+	final int ClassQualifer;
 
-	JClassBuilder(String SourceFile, String ClassName, String SuperClass) {
+	JClassBuilder(int ClassQualifer, String SourceFile, String ClassName, String SuperClass) {
+		this.ClassQualifer = ClassQualifer;
 		this.SourceFile = SourceFile;
 		this.ClassName = ClassName;
 		this.SuperClassName = SuperClass;
@@ -76,7 +78,7 @@ class JClassBuilder /*implements Opcodes */{
 	
 	byte[] GenerateBytecode() {
 		ClassWriter Visitor = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-		Visitor.visit(V1_6, ACC_PUBLIC|ACC_FINAL, this.ClassName, null, this.SuperClassName, null);
+		Visitor.visit(V1_6, this.ClassQualifer, this.ClassName, null, this.SuperClassName, null);
 		Visitor.visitSource(this.SourceFile, null);
 		for(FieldNode f : this.FieldList) {
 			f.accept(Visitor);
@@ -115,7 +117,7 @@ class GreenTeaClassLoader extends ClassLoader {
 		this.ByteCodeMap = new HashMap<String,JClassBuilder>();
 		
 		this.GlobalStaticClassName = "Global$" + Context.ParserId;
-		JClassBuilder GlobalClass = new JClassBuilder(null, this.GlobalStaticClassName, "java/lang/Object");
+		JClassBuilder GlobalClass = new JClassBuilder(ACC_PUBLIC|ACC_FINAL, null, this.GlobalStaticClassName, "java/lang/Object");
 		FieldNode fn = new FieldNode(ACC_STATIC, "ParserContext", Type.getDescriptor(GtParserContext.class), null, null);
 		this.ContextFieldName = fn.name;
 		this.GontextDescripter = fn.desc;
@@ -137,13 +139,13 @@ class GreenTeaClassLoader extends ClassLoader {
 	}
 
 	JClassBuilder NewBuilder(String SourceFile, String ClassName, String SuperClassName) {
-		JClassBuilder cb = new JClassBuilder(SourceFile, ClassName, SuperClassName);
+		JClassBuilder cb = new JClassBuilder(ACC_PUBLIC, SourceFile, ClassName, SuperClassName);
 		this.AddClassBuilder(cb);
 		return cb;
 	}
 	
 	JClassBuilder GenerateMethodHolderClass(String SourceFile, String FuncName, MethodNode AsmMethodNode) {
-		JClassBuilder HolderClass = new JClassBuilder(SourceFile, JLib.GetHolderClassName(Context, FuncName), "java/lang/Object");
+		JClassBuilder HolderClass = new JClassBuilder(ACC_PUBLIC|ACC_FINAL, SourceFile, JLib.GetHolderClassName(Context, FuncName), "java/lang/Object");
 		this.AddClassBuilder(HolderClass);
 		HolderClass.AddMethod(AsmMethodNode);
 		return HolderClass;
@@ -536,11 +538,11 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		}
 	}
 
-	@Override public void OpenClassField(GtType ClassType, GtClassField ClassField) {
+	@Override public void OpenClassField(GtSyntaxTree ParsedTree, GtType ClassType, GtClassField ClassField) {
 		String ClassName = ClassType.GetNativeName();
 		String superClassName = ClassType.SuperType.GetNativeName();
 		//System.err.println("class name = " + ClassName + " extends " + superClassName);
-		JClassBuilder ClassBuilder = this.ClassGenerator.NewBuilder(null/*FIXME*/, ClassName, superClassName);
+		JClassBuilder ClassBuilder = this.ClassGenerator.NewBuilder(GtStaticTable.GetSourceFileName(ParsedTree.KeyToken.FileLine), ClassName, superClassName);
 		// generate field
 		for(GtFieldInfo field : ClassField.FieldList) {
 			if(field.FieldIndex >= ClassField.ThisClassIndex) {

@@ -151,7 +151,7 @@ public class CGrammar extends GreenTeaUtils {
 		if(ClassField != null) {
 			/*local*/GtType DefinedType = ClassField.DefinedType;
 			DefinedType.SetClassField(ClassField);
-			Gamma.Generator.OpenClassField(DefinedType, ClassField);
+			Gamma.Generator.OpenClassField(ParsedTree, DefinedType, ClassField);
 			/*local*/GtSyntaxTree SubTree = ParsedTree.GetSyntaxTreeAt(ClassDeclBlock);
 			/*local*/ArrayList<GtFunc> MemberList = new ArrayList<GtFunc>();
 			while(SubTree != null) {
