@@ -437,7 +437,7 @@ class GreenTeaUtils implements GreenTeaConsts {
 
 	public final static int ApplyTokenFunc(GtTokenFunc TokenFunc, GtTokenContext TokenContext, String ScriptSource, int Pos) {
 		while(TokenFunc != null) {
-			/*local*/int NextIdx = (/*cast*/int)LibGreenTea.ApplyTokenFunc(TokenFunc.Func, TokenContext, ScriptSource, Pos);
+			/*local*/int NextIdx = (/*cast*/int)LibNative.ApplyTokenFunc(TokenFunc.Func, TokenContext, ScriptSource, Pos);
 			if(NextIdx > Pos) return NextIdx;
 			TokenFunc = TokenFunc.ParentFunc;
 		}
@@ -497,7 +497,7 @@ class GreenTeaUtils implements GreenTeaConsts {
 			}
 			//LibGreenTea.DebugP("B :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + ", next=" + CurrentPattern.ParentPattern);
 			TokenContext.IndentLevel += 1;
-			/*local*/GtSyntaxTree ParsedTree = (/*cast*/GtSyntaxTree)LibGreenTea.ApplyParseFunc(delegate, NameSpace, TokenContext, LeftTree, CurrentPattern);
+			/*local*/GtSyntaxTree ParsedTree = (/*cast*/GtSyntaxTree)LibNative.ApplyParseFunc(delegate, NameSpace, TokenContext, LeftTree, CurrentPattern);
 			TokenContext.IndentLevel -= 1;
 			TokenContext.ParseFlag = ParseFlag;
 			if(ParsedTree != null && ParsedTree.IsMismatched()) {
@@ -525,7 +525,7 @@ class GreenTeaUtils implements GreenTeaConsts {
 	public final static GtNode ApplyTypeFunc(GtFunc TypeFunc, GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
 		if(TypeFunc != null) {
 			Gamma.NameSpace = ParsedTree.NameSpace;
-			return (/*cast*/GtNode)LibGreenTea.ApplyTypeFunc(TypeFunc, Gamma, ParsedTree, Type);
+			return (/*cast*/GtNode)LibNative.ApplyTypeFunc(TypeFunc, Gamma, ParsedTree, Type);
 		}
 		return Gamma.Generator.CreateEmptyNode(GtStaticTable.VoidType);
 	}

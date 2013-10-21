@@ -283,7 +283,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 		}
 		Key = ClassStaticSymbol(StaticClassType, Symbol);
 		if(StaticClassType.IsDynamicNaitiveLoading() && this.Context.RootNameSpace.GetLocalUndefinedSymbol(Key) == null) {
-			/*local*/Object Value = LibGreenTea.LoadNativeStaticFieldValue(this.Context, StaticClassType, Symbol);
+			/*local*/Object Value = LibNative.LoadNativeStaticFieldValue(this.Context, StaticClassType, Symbol);
 			if(Value == null) {
 				this.Context.RootNameSpace.SetUndefinedSymbol(Key, null);
 			}
