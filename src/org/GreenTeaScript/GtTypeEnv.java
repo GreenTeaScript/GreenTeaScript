@@ -178,6 +178,13 @@ public final class GtTypeEnv extends GreenTeaUtils {
 		//System.err.println("node="+ LibGreenTea.GetClassName(Node) + "type error: requested = " + Type + ", given = " + Node.Type);
 		return this.ReportTypeResult(ParsedTree, Node, TypeErrorLevel, "type error: requested = " + Type + ", given = " + Node.Type);
 	}
+
+	public GtNode ParseTypedNode(String Text, long FileLine, GtType ContextType) {
+		GtNameSpace Namepace = this.NameSpace;
+		GtTokenContext LocalContext = new GtTokenContext(NameSpace, Text, FileLine);
+		GtSyntaxTree ParsedTree = LocalContext.ParsePattern(NameSpace, "$Expression$", Required);
+		return GreenTeaUtils.TypeBlock(this, ParsedTree, ContextType);
+	}
 }
 
 

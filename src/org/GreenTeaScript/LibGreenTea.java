@@ -395,62 +395,6 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 	}
 
 	
-	private static boolean AcceptJavaType(GtType GreenType, Class<?> Type) {
-		if(GreenType.IsVarType() || GreenType.IsTypeVariable()) {
-			return true;
-		}
-		if(GreenType.IsTopType()) {
-			return (Type == Object.class);
-		}
-		GtType JavaType = LibNative.GetNativeType(Type);
-		if(GreenType != JavaType) {
-			if(GreenType.IsGenericType() && GreenType.HasTypeVariable()) {
-				return GreenType.BaseType == JavaType.BaseType;
-			}
-			//System.err.println("*** " + JavaType + ", " + GreenType);
-			return false;
-		}
-		return true;
-	}
-	
-	public final static boolean MatchNativeMethod(GtType FuncType, Method JavaMethod) {
-//		System.err.println("method: " + JavaMethod);
-//		/*local*/GtType ReturnType = FuncType.TypeParams[0];
-//		System.err.println("return: " + ReturnType + ", " + JavaMethod.getReturnType());
-		if(!AcceptJavaType(FuncType.TypeParams[0], JavaMethod.getReturnType())) {
-			return false;
-		}
-		/*local*/int StartIndex = 2;
-		if(Modifier.isStatic(JavaMethod.getModifiers())) {
-			StartIndex = 1;			
-		}
-		else {
-//			GtType JavaRecvType = LibNative.GetNativeType(Context, JavaMethod.getDeclaringClass());
-//			System.err.println("recv: " + FuncType.TypeParams[1] + ", " + JavaRecvType);
-			if(FuncType.TypeParams.length == 1 || !AcceptJavaType(FuncType.TypeParams[1], JavaMethod.getDeclaringClass())) {
-				return false;
-			}
-			StartIndex = 2;
-		}
-		/*local*/int ParamSize = FuncType.TypeParams.length - StartIndex;
-		/*local*/Class<?>[] ParamTypes = JavaMethod.getParameterTypes();
-		if(ParamTypes != null) {
-//			System.err.println("params: " + ParamSize + ", " + ParamTypes.length);
-			if(ParamTypes.length != ParamSize) return false;
-			for(int j = 0; j < ParamTypes.length; j++) {
-//				if(FuncType.TypeParams[StartIndex+j].IsVarType()) continue;
-//				GtType JavaParamType = LibNative.GetNativeType(Context, ParamTypes[j]);
-//				System.err.println("param: " + FuncType.TypeParams[StartIndex+j] + ", " + JavaParamType);
-				if(!AcceptJavaType(FuncType.TypeParams[StartIndex+j], ParamTypes[j])) {
-					return false;
-				}
-			}
-			return true;
-		}
-		else {
-			return (ParamSize == 0);
-		}
-	}
 
 	public final static GtFunc SetNativeMethod(GtFunc NativeFunc, Method JavaMethod) {
 		/*local*/int FuncFlag = GreenTeaUtils.NativeFunc;
@@ -504,7 +448,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 					if(StaticMethodOnly && !Modifier.isStatic(Methods[i].getModifiers())) {
 						continue;
 					}
-					if(ContextType.IsFuncType() && !LibGreenTea.MatchNativeMethod(ContextType, Methods[i])) {
+					if(ContextType.IsFuncType() && !LibNative.MatchNativeMethod(ContextType.TypeParams, Methods[i])) {
 						continue;
 					}
 					if(FoundMethod != null) {

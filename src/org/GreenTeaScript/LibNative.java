@@ -46,19 +46,77 @@ import org.GreenTeaScript.Konoha.ArrayApi;
 
 public class LibNative {
 	final static void DebugP(String s) {
-		System.err.println("LibNative.DebugP:" + s);
+		//System.err.println("LibNative.DebugP: " + s);
 	}
 	// type
-	final static GtType GetNativeType(Class<?> NativeClass) {
+	public final static Class<?> GetClassOfValue(Object Value) {
+		return Value.getClass();
+	}
+	public final static GtType GetNativeType(Class<?> NativeClass) {
 		GtType NativeType = null;
 		NativeType = (/*cast*/GtType) GtStaticTable.ClassNameMap.GetOrNull(NativeClass.getCanonicalName());
 		if(NativeType == null) {  /* create native type */
-			DebugP("** creating native class: " + NativeClass.getSimpleName() + ", " + NativeClass.getCanonicalName());
+//			DebugP("** creating native class: " + NativeClass.getSimpleName() + ", " + NativeClass.getCanonicalName());
 			NativeType = new GtType(GreenTeaUtils.NativeType, NativeClass.getSimpleName(), null, NativeClass);
 			GtStaticTable.SetNativeTypeName(NativeClass.getCanonicalName(), NativeType);
 			LibGreenTea.VerboseLog(GreenTeaUtils.VerboseNative, "creating native class: " + NativeClass.getSimpleName() + ", " + NativeClass.getCanonicalName());
 		}
 		return NativeType;
+	}
+	
+	private static boolean AcceptJavaType(GtType GreenType, Class<?> NativeType) {
+		if(GreenType.IsVarType() || GreenType.IsTypeVariable()) {
+			return true;
+		}
+		if(GreenType.IsTopType()) {
+			return (NativeType == Object.class);
+		}
+		GtType JavaType = LibNative.GetNativeType(NativeType);
+		if(GreenType != JavaType) {
+			DebugP("*** " + JavaType + ", " + GreenType + ", equals? " + (GreenType.BaseType == JavaType.BaseType));
+			if(GreenType.IsGenericType() && GreenType.HasTypeVariable()) {
+				return GreenType.BaseType == JavaType.BaseType;
+			}
+			if(JavaType.IsGenericType() && JavaType.HasTypeVariable()) {
+				return GreenType.BaseType == JavaType.BaseType;
+			}
+			return false;
+		}
+		return true;
+	}
+
+	public final static boolean MatchNativeMethod(GtType[] GreenTypeParams, Method JavaMethod) {
+		if(!AcceptJavaType(GreenTypeParams[0], JavaMethod.getReturnType())) {
+			DebugP("return mismatched: " + GreenTypeParams[0] + ", " + JavaMethod.getReturnType() + " of " + JavaMethod);
+			return false;
+		}
+		/*local*/int StartIndex = 2;
+		if(Modifier.isStatic(JavaMethod.getModifiers())) {
+			StartIndex = 1;			
+		}
+		else {
+			if(GreenTypeParams.length == 1 || !AcceptJavaType(GreenTypeParams[1], JavaMethod.getDeclaringClass())) {
+				DebugP("recv mismatched: " + GreenTypeParams[1] + ", " + JavaMethod.getDeclaringClass() + " of " + JavaMethod);
+				return false;
+			}
+			StartIndex = 2;
+		}
+		/*local*/int ParamSize = GreenTypeParams.length - StartIndex;
+		/*local*/Class<?>[] ParamTypes = JavaMethod.getParameterTypes();
+		if(ParamTypes != null) {
+			if(ParamTypes.length != ParamSize) {
+				DebugP("param.length mismatched: " + ParamSize + " != " + ParamTypes.length + " of " + JavaMethod);
+				return false;
+			}
+			for(int j = 0; j < ParamTypes.length; j++) {
+				if(!AcceptJavaType(GreenTypeParams[StartIndex+j], ParamTypes[j])) {
+					DebugP("param mismatched: " + GreenTypeParams[StartIndex+j] + " != " + ParamTypes[j] + " at index " + j + " of " + JavaMethod);
+					return false;
+				}
+			}
+			return true;
+		}
+		return (ParamSize == 0);
 	}
 
 }

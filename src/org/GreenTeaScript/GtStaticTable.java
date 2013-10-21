@@ -44,19 +44,14 @@ public class GtStaticTable implements GreenTeaConsts {
 	/*field*/public final static GtType     FloatType = new GtType(NativeType|UnboxType, "float", 0.0, double.class);
 	/*field*/public final static GtType		StringType = new GtType(NativeType, "String", null, String.class);
 	/*field*/public final static GtType		AnyType = new GtType(DynamicType, "any", null, Object.class);
-	/*field*/public final static GtType		ArrayType = TopType.CreateSubType(0, "Array", null, GreenTeaArray.class);
-	/*field*/public final static GtType		FuncType  = TopType.CreateSubType(0, "Func", null, GtFunc.class);
+	/*field*/public final static GtType		VarType = new GtType(TypeVariable, "var", null, null);
+	/*field*/public final static GtType		ArrayType = TopType.CreateSubType(GenericVariable, "Array", null, GreenTeaArray.class);
+	/*field*/public final static GtType		FuncType  = TopType.CreateSubType(GenericVariable, "Func", null, GtFunc.class);
 
 	/*field*/public final static GtType		EnumBaseType = TopType.CreateSubType(EnumType, "enum", null, GreenTeaEnum.class);
 //	/*field*/public final static GtType		StructType;
-	/*field*/public final static GtType		VarType = new GtType(0, "var", null, null);
 	/*field*/public final static GtType		TypeType = TopType.CreateSubType(0, "Type", null, GtType.class);
-	/*field*/public final static GtType     IteratorType = new GtType(NativeType, "Iterator", null, Iterator.class);
-
-//	this.TopType       = this.RootNameSpace.AppendTypeName(new GtType(this, 0, "Top", null, GreenTeaTopObject.class), null);
-//	this.StructType    = this.TopType.CreateSubType(0, "record", null, null);       //  unregistered
-//	this.EnumBaseType  = this.TopType.CreateSubType(EnumType, "enum", null, GreenTeaEnum.class);  //  unregistered
-//
+	/*field*/public final static GtType     IteratorType = new GtType(GenericVariable, "Iterator", null, Iterator.class);
 	
 	public final static long GetFileLine(String FileName, int Line) {
 		/*local*/Integer Id = /* (FileName == null) ? 0 :*/ (/*cast*/Integer)GtStaticTable.SourceMap.GetOrNull(FileName);
@@ -144,7 +139,7 @@ public class GtStaticTable implements GreenTeaConsts {
 	}
 
 	public final static GtType GetNativeTypeOfValue(Object Value) {
-		return LibNative.GetNativeType(Value.getClass());
+		return LibNative.GetNativeType(LibNative.GetClassOfValue(Value));
 	}
 	
 	public final static GtType GuessType (Object Value) {
@@ -159,7 +154,7 @@ public class GtStaticTable implements GreenTeaConsts {
 			return ((/*cast*/GreenTeaObject)Value).GetGreenType();
 		}
 		else {
-			return LibNative.GetNativeTypeOfValue(Value);
+			return GtStaticTable.GetNativeTypeOfValue(Value);
 		}
 	}
 

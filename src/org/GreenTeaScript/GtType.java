@@ -92,15 +92,15 @@ public class GtType extends GreenTeaUtils {
 	// Note Don't call this directly. Use Context.GetGenericType instead.
 	public GtType CreateGenericType(int BaseIndex, ArrayList<GtType> TypeList, String ShortName) {
 		/*local*/int i = BaseIndex;
-		/*local*/int TypeVariableFlag = 0;
+		/*local*/int TypeVariableFlag = (this.TypeFlag & (~GenericVariable));
 		while(i < TypeList.size()) {
 			if(TypeList.get(i).HasTypeVariable()) {
-				TypeVariableFlag = GenericVariable;
+				TypeVariableFlag |= GenericVariable;
 				break;
 			}
 			i = i + 1;
 		}
-		/*local*/GtType GenericType = new GtType(this.TypeFlag | TypeVariableFlag, ShortName, null, null);
+		/*local*/GtType GenericType = new GtType(TypeVariableFlag, ShortName, null, null);
 		GenericType.BaseType = this.BaseType;
 		GenericType.ParentMethodSearch = this.BaseType;
 		GenericType.SuperType = this.SuperType;
@@ -158,6 +158,9 @@ public class GtType extends GreenTeaUtils {
 	}
 	public final boolean IsArrayType() {
 		return (this.BaseType == GtStaticTable.ArrayType);
+	}
+	public final boolean IsIteratorType() {
+		return (this.BaseType == GtStaticTable.IteratorType);
 	}
 	public final boolean IsEnumType() {
 		return IsFlag(this.TypeFlag, EnumType);

@@ -30,6 +30,7 @@ import org.GreenTeaScript.GreenTeaArray;
 import org.GreenTeaScript.GtStaticTable;
 import org.GreenTeaScript.GtType;
 import org.GreenTeaScript.LibGreenTea;
+import org.GreenTeaScript.LibNative;
 
 public class ArrayApi {
 	public final static long GetSize(GreenTeaArray self) {
@@ -54,7 +55,6 @@ public class ArrayApi {
 		int eindex = (EIndex < 0) ? self.ArrayBody.size() - (int)EIndex : (int)EIndex;
 		return self.SubArray(bindex, eindex);
 	}
-	
 	public final static GreenTeaArray ObjectArrayToGreenArray(Object ObjectArray) {
 		LibGreenTea.Assert(ObjectArray.getClass().isArray());
 		Class<?> ComponentType = ObjectArray.getClass().getComponentType();
@@ -141,6 +141,8 @@ public class ArrayApi {
 	public final static Iterator<Object> ToIterator(GreenTeaArray self) {
 		return self.ArrayBody.iterator();
 	}
+	
+	
 }
 
 
