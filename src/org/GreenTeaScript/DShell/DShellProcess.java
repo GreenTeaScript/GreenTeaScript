@@ -687,33 +687,6 @@ class SubProc extends PseudoProcess {
 	}
 }
 
-//class ProcessTimer {
-//	public ProcessTimer(PseudoProcess[] targetProcs, long timeout) {
-//		ProcessKiller procKiller = new ProcessKiller(targetProcs);
-//		Timer timer = new Timer();
-//		timer.schedule(procKiller, TimeUnit.SECONDS.toMillis(timeout));
-//	}
-//}
-//
-//class ProcessKiller extends TimerTask {
-//	private PseudoProcess[] procs;
-//
-//	public ProcessKiller(PseudoProcess[] targetProcs) {
-//		this.procs = targetProcs;
-//	}
-//
-//	public void killProcs() {
-//		LibGreenTea.println("processes are time out!!");
-//		for(int i = 0; i < this.procs.length; i++) {
-//			this.procs[i].kill();
-//		}
-//	}
-//
-//	@Override public void run() {
-//		this.killProcs();
-//	}
-//}
-
 class ProcMonitor extends Thread {	// TODO: support exit handler
 	private DShellProcess dShellProc;
 	
