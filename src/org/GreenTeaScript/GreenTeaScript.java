@@ -230,6 +230,12 @@ interface GreenTeaConsts {
 	static final int ForIteration = 2;
 	static final int ForBody = 3;
 
+	// for(init; cond; iter) {...}
+	static final int ForEachType = 0;
+	static final int ForEachName = 1;
+	static final int ForEachIter = 2;
+	static final int ForEachBody = 3;
+
 	// ReturnStmt
 	public final static int	ReturnExpr	= 0;
 
