@@ -81,10 +81,24 @@ public abstract class LibGreenTea: GreenTeaConsts {
         return null;
     }
 
+    	public /*final*/ static Object InvokeFunc(GtFunc Func, Object[] Params) {
+		if(Func == null || Func.IsAbstract()) {
+			LibGreenTea.VerboseLog(VerboseRuntime, "applying abstract function: " + Func);
+			return Func.GetReturnType().DefaultNullValue;
+		}
+		else if(Func.Is(NativeMethodFunc)) {
+			/*local*/Object[] MethodArguments = new Object[Params.Length-1];
+			LibGreenTea.ArrayCopy(Params, 1, MethodArguments, 0, MethodArguments.Length);
+			return LibGreenTea.ApplyMethod(Func, Params[0], MethodArguments);
+		}
+		return LibGreenTea.ApplyMethod(Func, null, Params);
+	}
+
+
 	public static object InvokeOverridedMethod(long FileLine, GtNameSpace NameSpace, GtFunc Func, object[] Arguments) {
         /*local*/GtType ClassType = GtStaticTable.GuessType(Arguments[0]);
 		Func = NameSpace.GetOverridedMethod(ClassType, Func);
-		return Func.Apply(Arguments);
+		return LibGreenTea.InvokeFunc(Func, Arguments);
 	}
 
 	public static object InvokeDynamicFunc(long FileLine, GtType ContextType, GtNameSpace NameSpace, string FuncName, object[] Arguments) {
@@ -92,7 +106,7 @@ public abstract class LibGreenTea: GreenTeaConsts {
 		/*local*/GtFunc Func = PolyFunc.GetMatchedFunc(NameSpace, Arguments);
 		/*local*/object Value = ContextType.DefaultNullValue;
 		if(Func != null) {
-			Value = Func.Apply(Arguments);
+			Value = LibGreenTea.InvokeFunc(Func, Arguments);
 			return LibGreenTea.DynamicCast(ContextType, Value);
 		}
         LibGreenTea.VerboseLog(VerboseRuntime, PolyFunc.FormatTypeErrorMessage("function", null, FuncName));
@@ -105,14 +119,41 @@ public abstract class LibGreenTea: GreenTeaConsts {
 		/*local*/GtFunc Func = PolyFunc.GetMatchedFunc(NameSpace, Arguments);
 		/*local*/object Value = ContextType.DefaultNullValue;
 		if(Func != null) {
-			Value = Func.Apply(Arguments);
+			Value = LibGreenTea.InvokeFunc(Func, Arguments);
 			return LibGreenTea.DynamicCast(ContextType, Value);
 		}
         LibGreenTea.VerboseLog(VerboseRuntime, PolyFunc.FormatTypeErrorMessage("function", null, FuncName));
 		return Value;
 	}
 
-	
+    public static Object DynamicGetter(Object RecvObject, String FieldName)
+    {
+        try
+        {
+            Field JavaField = RecvObject.getClass().getField(FieldName);
+            return JavaField.get(RecvObject);
+        }
+        catch (Exception e)
+        {
+            LibGreenTea.VerboseException(e);
+        }
+        return null;
+    }
+
+    public static Object DynamicSetter(Object RecvObject, String FieldName, Object Value)
+    {
+        try
+        {
+            Field JavaField = RecvObject.getClass().getField(FieldName);
+            JavaField.set(RecvObject, Value);
+            return JavaField.get(RecvObject);
+        }
+        catch (Exception e)
+        {
+            LibGreenTea.VerboseException(e);
+        }
+        return null;
+    }
 	
 	public /*final*/ static string GetPlatform() {
         Type t = typeof(System.String);
@@ -355,7 +396,7 @@ public abstract class LibGreenTea: GreenTeaConsts {
 		try {
             return long.Parse(Text);
 		}
-		catch(NumberFormatException e) {
+		catch(FormatException e) {
 			LibGreenTea.VerboseException(e);
 		}
 		return 0;
@@ -365,7 +406,8 @@ public abstract class LibGreenTea: GreenTeaConsts {
 		try {
 			return Double.Parse(Text);
 		}
-		catch(NumberFormatException e) {
+        catch (FormatException e)
+        {
 			LibGreenTea.VerboseException(e);
 		}
 		return 0.0;
@@ -386,6 +428,10 @@ public abstract class LibGreenTea: GreenTeaConsts {
 
 	public /*final*/ static string GetClassName(object Value) {
 		return typeof(Value).Name;
+	}
+
+    	public /*final*/ static void ArrayCopy(Object src, int srcPos, Object dest, int destPos, int length) {
+		System.arraycopy(src, srcPos, dest, destPos, length);
 	}
 
 	private static bool AcceptJavaType(GtType GreenType, Type Type) {
@@ -575,7 +621,7 @@ public abstract class LibGreenTea: GreenTeaConsts {
 		}
 	}
 
-    public /*final*/ static GtFunc LoadNativeField(GtParserContext Context, GtType ClassType, String FieldName, boolean GetSetter)
+    public /*final*/ static GtFunc LoadNativeField(GtParserContext Context, GtType ClassType, String FieldName, Boolean GetSetter)
     {
 		//GtParserContext Context = ClassType.Context;
 		try {
@@ -747,7 +793,7 @@ public abstract class LibGreenTea: GreenTeaConsts {
 		return null;
 	}
 
-	public /*final*/ static object ApplyFunc(GtFunc Func, object Self, object[] Params) {
+	public /*final*/ static object ApplyMethod(GtFunc Func, object Self, object[] Params) {
 		try {
 //			System.err.println("** debug: " + Func.FuncBody);
 //			System.err.println("** debug: " + Self + ", Params.length=" + Params.length);
@@ -765,7 +811,7 @@ public abstract class LibGreenTea: GreenTeaConsts {
 		return null;
 	}
 
-	public /*final*/ static object ApplyFunc1(GtFunc Func, object Self, object[] Param) {
+	public /*final*/ static object ApplyMethod1(GtFunc Func, object Self, object[] Param) {
 		try {
 			return ((MethodInfo)Func.FuncBody).Invoke(Self, Param);
 		}
@@ -781,7 +827,7 @@ public abstract class LibGreenTea: GreenTeaConsts {
 		return null;
 	}
 
-	public /*final*/ static object ApplyFunc2(GtFunc Func, object Self, object Param1, object Param2) {
+	public /*final*/ static object ApplyMethod2(GtFunc Func, object Self, object Param1, object Param2) {
 		try {
             return ((MethodInfo)Func.FuncBody).Invoke(Self, new Object[] { Param1, Param2 });
 		}
@@ -797,7 +843,7 @@ public abstract class LibGreenTea: GreenTeaConsts {
 		return null;
 	}
 
-	public /*final*/ static object ApplyFunc3(GtFunc Func, object Self, object Param1, object Param2, object Param3) {
+	public /*final*/ static object ApplyMethod3(GtFunc Func, object Self, object Param1, object Param2, object Param3) {
 		try {
             return ((MethodInfo)Func.FuncBody).Invoke(Self, new Object[] { Param1, Param2, Param3 });
 		}
@@ -813,7 +859,7 @@ public abstract class LibGreenTea: GreenTeaConsts {
 		return null;
 	}
 
-	public /*final*/ static object ApplyFunc4(GtFunc Func, object Self, object Param1, object Param2, object Param3, object Param4) {
+	public /*final*/ static object ApplyMethod4(GtFunc Func, object Self, object Param1, object Param2, object Param3, object Param4) {
 		try {
             return ((MethodInfo)Func.FuncBody).Invoke(Self, new Object[] { Param1, Param2, Param3, Param4 });
 		}
@@ -830,15 +876,15 @@ public abstract class LibGreenTea: GreenTeaConsts {
 	}
 
 	public /*final*/ static long ApplyTokenFunc(GtFunc TokenFunc, object TokenContext, string Text, long pos) {
-		return (long)LibGreenTea.ApplyFunc3(TokenFunc, null, TokenContext, Text, pos);
+		return (long)LibGreenTea.ApplyMethod3(TokenFunc, null, TokenContext, Text, pos);
 	}
 
 	public /*final*/ static GtSyntaxTree ApplyParseFunc(GtFunc ParseFunc, GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		return (GtSyntaxTree)LibGreenTea.ApplyFunc4(ParseFunc, null, NameSpace, TokenContext, LeftTree, Pattern);
+		return (GtSyntaxTree)LibGreenTea.ApplyMethod4(ParseFunc, null, NameSpace, TokenContext, LeftTree, Pattern);
 	}
 
 	public /*final*/ static GtNode ApplyTypeFunc(GtFunc TypeFunc, GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		return (GtNode)LibGreenTea.ApplyFunc3(TypeFunc, null, Gamma, ParsedTree, ContextType);
+		return (GtNode)LibGreenTea.ApplyMethod3(TypeFunc, null, Gamma, ParsedTree, ContextType);
 	}
 
 	public /*final*/ static int ListSize<T>(List<T> List) {
@@ -1167,7 +1213,7 @@ public abstract class LibGreenTea: GreenTeaConsts {
 			}
             GtFunc Func = GtStaticTable.GetConverterFunc(ValueType, CastType, true);
 			if(Func != null) {
-				return LibGreenTea.ApplyFunc2(Func, null, CastType, Value);
+				return LibGreenTea.ApplyMethod2(Func, null, CastType, Value);
 			}
 		}
 		return null;
