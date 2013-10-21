@@ -14,6 +14,9 @@
 @Common @Coercion @Const String converter(var x) import Konoha.TopApi.EnumToString;
 
 // AnyApi
+@Common @Coercion @Const boolean converter(var x) import Konoha.AnyApi.ToBoolean;
+@Common @Coercion @Const int converter(any x) import Konoha.AnyApi.ToInt;
+@Common @Coercion @Const float converter(any x) import Konoha.AnyApi.ToFloat;
 
 // StringApi
 @Common @Const @Operator String "+"(String x, any y) import Konoha.StringApi.Add;
@@ -36,7 +39,7 @@
 
 @Const var split(String x, String y) import Konoha.StringApi.Split;
 
-@Common @Const @Coercion any converter(String x) import Konoha.StringApi.ToAny;
+//@Common @Const @Coercion any converter(String x) import Konoha.StringApi.ToAny;
 @Common @Const int converter(String x) import Konoha.StringApi.ToInt;
 @Common @Const float converter(String x) import Konoha.StringApi.ToDouble;
 

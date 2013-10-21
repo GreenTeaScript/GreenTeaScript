@@ -26,16 +26,14 @@ package org.GreenTeaScript.Konoha;
 
 public final class AnyApi {
 
-//	public final static long Size(Object x) {
-//		return x == null ? 0 : 1;
-//	}
-//
-//	public final static boolean Equals(Object x, Object y) {
-//		return x == y;
-//	}
-//
-//	public final static boolean NotEquals(Object x, Object y) {
-//		return x != y;
-//	}
+	public final static boolean ToBoolean(Object value) {
+		return value == null ? false : ((Boolean)value).booleanValue();
+	}
+	public final static long ToInt(Object value) {
+		return value == null ? 0L : ((Long)value).longValue();
+	}
+	public final static double ToFloat(Object value) {
+		return value == null ? 0.0 : ((Double)value).longValue();
+	}
 	
 }
