@@ -783,7 +783,7 @@ public class KonohaGrammar extends GtGrammar {
 		if(RecvNode.Type.IsDynamicType()) {
 			/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
 			ParamList.add(RecvNode);
-			ParamList.add(ParsedTree.TypeCheckAt(LeftHandTerm, Gamma, GtStaticTable.VarType, DefaultTypeCheckPolicy));
+			ParamList.add(ParsedTree.TypeCheckAt(RightHandTerm, Gamma, GtStaticTable.VarType, DefaultTypeCheckPolicy));
 			return Gamma.Generator.CreateApplyDynamicMethodNode(GtStaticTable.AnyType, ParsedTree, FuncSymbol(OperatorSymbol)).AppendNodeList(0, ParamList);
 		}
 		return PolyFunc.CreateTypeErrorNode(Gamma, ParsedTree, "operator", RecvNode.Type, OperatorSymbol);

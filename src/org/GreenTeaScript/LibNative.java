@@ -25,24 +25,24 @@
 // LangBase is a language-dependent code used in GreenTea.java
 
 package org.GreenTeaScript;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
-import java.io.Writer;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
+//import java.io.BufferedReader;
+//import java.io.File;
+//import java.io.FileInputStream;
+//import java.io.FileNotFoundException;
+//import java.io.FileWriter;
+//import java.io.IOException;
+//import java.io.InputStream;
+//import java.io.InputStreamReader;
+//import java.io.PrintStream;
+//import java.io.Writer;
+//import java.lang.reflect.Constructor;
+//import java.lang.reflect.Field;
+//import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Iterator;
-import org.GreenTeaScript.Konoha.ArrayApi;
+//import java.util.ArrayList;
+//import java.util.Iterator;
+//import org.GreenTeaScript.Konoha.ArrayApi;
 
 public class LibNative {
 	final static void DebugP(String s) {
