@@ -1892,7 +1892,7 @@ public class KonohaGrammar extends GtGrammar {
 		else if(TokenContext.IsToken("import")) {
 			/*local*/GtSyntaxTree ImportTree = TokenContext.ParsePattern(NameSpace, "import", Optional);
 			if(GreenTeaUtils.IsValidSyntax(ImportTree)) {
-				if(!LibGreenTea.ImportNativeMethod(NameSpace, FuncBlock.DefinedFunc, (/*cast*/String)ImportTree.ParsedValue)) {
+				if(!FuncBlock.DefinedFunc.ImportMethod((/*cast*/String)ImportTree.ParsedValue)) {
 					NameSpace.Context.ReportError(WarningLevel, ImportTree.KeyToken, "unable to import: " + ImportTree.ParsedValue);
 				}
 			}

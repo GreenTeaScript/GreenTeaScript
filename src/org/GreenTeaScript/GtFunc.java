@@ -24,6 +24,7 @@
 
 //ifdef JAVA
 package org.GreenTeaScript;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 //endif VAJA
@@ -205,6 +206,27 @@ public final class GtFunc extends GreenTeaUtils {
 		this.FuncBody = Method;
 	}
 
+	public final boolean ImportMethod(String FullName) {
+		Method JavaMethod = LibNative.ImportMethod(this.GetFuncType(), FullName, false);
+		if(JavaMethod != null) {
+			LibGreenTea.SetNativeMethod(this, JavaMethod);
+			if(this.GetReturnType().IsVarType()) {
+				this.SetReturnType(LibNative.GetNativeType(JavaMethod.getReturnType()));
+			}
+			int StartIdx = this.Is(GreenTeaUtils.NativeMethodFunc) ? 2 : 1;
+			Class<?>[] p = JavaMethod.getParameterTypes();
+			for(int i = 0; i < p.length; i++) {
+				if(this.Types[StartIdx + i].IsVarType()) {
+					this.Types[StartIdx + i] = LibNative.GetNativeType(p[i]);
+					this.FuncType = null; // reset
+				}
+			}
+			return true;
+		}
+		return false;
+	}
+
+	
 	private boolean HasStaticBlock() {
 		if(this.FuncBody instanceof GtFuncBlock) {
 			/*local*/GtFuncBlock FuncBlock = (/*cast*/GtFuncBlock)this.FuncBody;
