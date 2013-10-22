@@ -105,7 +105,7 @@ $src =~ s/(?!")\bObject\b/object/g;
 $src =~ s/\bArrayList\b/List/g;
 $src =~ s/\bType\b/\@Type/g;
 $src =~ s/Class\<\?\>/Type/g;
-
+$src =~ s/GtMap/LibGreenTea.GtMap/g;
 
 # $src =~ s/\bGtMap\b/List/g;
 # $src =~ s/\bnew\s+Array<.*?>\s*\(Arrays.asList\((.*?)\)\)/$1/g;
@@ -134,10 +134,15 @@ $src =~ s/\.getClass/.GetType/g;
 $src =~ s/\.endsWith/.EndsWith/g;
 $src =~ s/\.indexOf/.IndexOf/g;
 $src =~ s/\.set/.Insert/g;
-$src =~ s/\b[a-zA-Z]*Exception/Exception/g;
+#$src =~ s/\b[a-zA-Z]*Exception/Exception/g;
 $src =~ s/System.err.println\((.*)\)/Console.Error.WriteLine($1)/g;
 $src =~ s/e\.printStackTrace\(\);/Console.WriteLine(System.Environment.StackTrace);/g;
 $src =~ s/e\.GetStackTrace\(\)/System.Environment.StackTrace/g;
+$src =~ s/SoftwareFaultException/Exception/g;
+$src =~ s/getCanonicalName\(\)/FullName/g;
+$src =~ s/getSimpleName\(\)/Name/g;
+
+
 
 # $src =~ s/\binstanceof\s+string\b/instanceof String/g;
 # $src =~ s/\binstanceof\s+number\b/instanceof Number/g;
@@ -202,11 +207,13 @@ while($i < $n){
 	$i = $i + 1;
 }
 
+
+
 ###TODO
 $src =~ s/\b(public\s)?(\/\*.+\*\/\s)?class\b/public class/g;
 $src =~ s/\b(public\s)?(\b$Sym\b\/\*constructor\*\/)/public $2/g;
 $src =~ s/protected\spublic/protected/g;
-$src =~ s/(GtResolvedFunc UpdateFunc)/public $1/g;
+#$src =~ s/(GtResolvedFunc UpdateFunc)/public $1/g;
 #$src =~ s/(public\s)?(\b$Type\s$Sym\b)/public $2/g;
 
 
