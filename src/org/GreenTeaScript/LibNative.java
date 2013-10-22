@@ -53,15 +53,11 @@ public class LibNative {
 		//System.err.println("LibNative.DebugP: " + s);
 	}
 
-	// type
-	private final static Class<?> LoadNativeClass(String ClassName) throws ClassNotFoundException {
-		try {
-			return Class.forName("org.GreenTeaScript." + ClassName);
-		}
-		catch(ClassNotFoundException e) {
-		}
-		return Class.forName(ClassName);
+	// Type
+	public final static String GetClassName(Object Value) {
+		return Value.getClass().getSimpleName();
 	}
+	
 	public final static Class<?> GetClassOfValue(Object Value) {
 		return Value.getClass();
 	}
@@ -132,8 +128,17 @@ public class LibNative {
 		}
 		return (ParamSize == 0);
 	}
+	
+	private final static Class<?> ImportClass(String ClassName) throws ClassNotFoundException {
+		try {
+			return Class.forName("org.GreenTeaScript." + ClassName);
+		}
+		catch(ClassNotFoundException e) {
+		}
+		return Class.forName(ClassName);
+	}
 
-	public final static Method LoadNativeMethod(GtType ContextType, String FullName, boolean StaticMethodOnly) {
+	public final static Method ImportMethod(GtType ContextType, String FullName, boolean StaticMethodOnly) {
 		/*local*/Method FoundMethod = null;
 		int Index = FullName.lastIndexOf(".");
 		if(Index == -1) {
@@ -141,7 +146,7 @@ public class LibNative {
 		}
 		try {
 			/*local*/String FuncName = FullName.substring(Index+1);
-			/*local*/Class<?> NativeClass = LibNative.LoadNativeClass(FullName.substring(0, Index));
+			/*local*/Class<?> NativeClass = LibNative.ImportClass(FullName.substring(0, Index));
 			Method[] Methods = NativeClass.getDeclaredMethods();
 			assert(Methods != null);
 			for(int i = 0; i < Methods.length; i++) {
@@ -220,14 +225,14 @@ public class LibNative {
 		return null;
 	}
 
-	public static Object LoadNativeStaticFieldValue(GtParserContext Context, GtType ClassType, String Symbol) {
+	public static Object ImportStaticFieldValue(GtParserContext Context, GtType ClassType, String Symbol) {
 		return LibNative.ImportStaticObject(Context, (Class<?>)ClassType.TypeBody, Symbol);
 	}
 	
 	public final static Object ImportNativeObject(GtNameSpace NameSpace, String PackageName) {
 		LibGreenTea.VerboseLog(GreenTeaUtils.VerboseNative, "importing " + PackageName);
 		try {
-			/*local*/Class<?> NativeClass = LibNative.LoadNativeClass(PackageName);
+			/*local*/Class<?> NativeClass = LibNative.ImportClass(PackageName);
 			try {
 				Method LoaderMethod = NativeClass.getMethod("ImportGrammar", GtNameSpace.class, Class.class);
 				LoaderMethod.invoke(null, NameSpace, NativeClass);
@@ -241,13 +246,14 @@ public class LibNative {
 			return null;
 		}
 		try {
-			/*local*/Class<?> NativeClass = LibNative.LoadNativeClass(PackageName.substring(0, Index));
+			/*local*/Class<?> NativeClass = LibNative.ImportClass(PackageName.substring(0, Index));
 			return ImportStaticObject(NameSpace.Context, NativeClass, PackageName.substring(Index+1));
 		} catch (ClassNotFoundException e) {
 		}
 		return null;
 	}
 
+	
 	public final static void LoadNativeConstructors(GtParserContext Context, GtType ClassType, ArrayList<GtFunc> FuncList) {
 		/*local*/boolean TransformedResult = false;
 		Class<?> NativeClass = (Class<?>)ClassType.TypeBody;
@@ -373,72 +379,5 @@ public class LibNative {
 		return (GtNode)LibNative.ApplyMethod(TypeFunc, null, Argvs);
 	}
 
-//	public final static Object ApplyMethod1(Method FuncBody, Object Self, Object Param) {
-//		try {
-//			return FuncBody.invoke(Self, Param);
-//		}
-//		catch (InvocationTargetException e) {
-//			LibGreenTea.VerboseException(e);
-//		}
-//		catch (IllegalArgumentException e) {
-//			LibGreenTea.VerboseException(e);
-//		}
-//		catch (IllegalAccessException e) {
-//			LibGreenTea.VerboseException(e);
-//		}
-//		return null;
-//	}
-
-
-//	public final static Object ApplyMethod2(Method FuncBody, Object Self, Object Param1, Object Param2) {
-//		try {
-//			return FuncBody.invoke(Self, Param1, Param2);
-//		}
-//		catch (InvocationTargetException e) {
-//			LibGreenTea.VerboseException(e);
-//		}
-//		catch (IllegalArgumentException e) {
-//			LibGreenTea.VerboseException(e);
-//		}
-//		catch (IllegalAccessException e) {
-//			LibGreenTea.VerboseException(e);
-//		}
-//		return null;
-//	}
-//
-//	public final static Object ApplyMethod3(Method FuncBody, Object Self, Object Param1, Object Param2, Object Param3) {
-//		try {
-//			return FuncBody.invoke(Self, Param1, Param2, Param3);
-//		}
-//		catch (InvocationTargetException e) {
-//			LibGreenTea.VerboseException(e);
-//		}
-//		catch (IllegalArgumentException e) {
-//			LibGreenTea.VerboseException(e);
-//		}
-//		catch (IllegalAccessException e) {
-//			LibGreenTea.VerboseException(e);
-//		}
-//		return null;
-//	}
-//
-//	public final static Object ApplyMethod4(Method FuncBody, Object Self, Object Param1, Object Param2, Object Param3, Object Param4) {
-//		try {
-//			return FuncBody.invoke(Self, Param1, Param2, Param3, Param4);
-//		}
-//		catch (InvocationTargetException e) {
-//			LibGreenTea.VerboseException(e);
-//		}
-//		catch (IllegalArgumentException e) {
-//			LibGreenTea.VerboseException(e);
-//		}
-//		catch (IllegalAccessException e) {
-//			LibGreenTea.VerboseException(e);
-//		}
-//		return null;
-//	}
-
-	
-	
 	
 }

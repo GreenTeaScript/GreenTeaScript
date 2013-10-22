@@ -204,7 +204,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 	}
 
 	private static int ParserCount = -1;
-	
+
 	public static int NewParserId() {
 		ParserCount++;
 		return ParserCount;
@@ -385,10 +385,6 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		}
 		return 0.0;
 	}	
-	
-	public final static String GetClassName(Object Value) {
-		return Value.getClass().getName();
-	}
 
 	public final static void ArrayCopy(Object src, int srcPos, Object dest, int destPos, int length) {
 		System.arraycopy(src, srcPos, dest, destPos, length);
@@ -418,25 +414,6 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return SetNativeMethod(new GtFunc(0, JavaMethod.getName(), 0, TypeList), JavaMethod);
 	}
 
-	public final static boolean ImportNativeMethod(GtNameSpace NameSpace, GtFunc NativeFunc, String FullName) {
-		Method JavaMethod = LibNative.ImportMethod(NativeFunc.GetFuncType(), FullName, false);
-		if(JavaMethod != null) {
-			LibGreenTea.SetNativeMethod(NativeFunc, JavaMethod);
-			if(NativeFunc.GetReturnType().IsVarType()) {
-				NativeFunc.SetReturnType(LibNative.GetNativeType(JavaMethod.getReturnType()));
-			}
-			int StartIdx = NativeFunc.Is(GreenTeaUtils.NativeMethodFunc) ? 2 : 1;
-			Class<?>[] p = JavaMethod.getParameterTypes();
-			for(int i = 0; i < p.length; i++) {
-				if(NativeFunc.Types[StartIdx + i].IsVarType()) {
-					NativeFunc.Types[StartIdx + i] = LibNative.GetNativeType(p[i]);
-					NativeFunc.FuncType = null; // reset
-				}
-			}
-			return true;
-		}
-		return false;
-	}
 	
 	public final static void LoadNativeConstructors(GtParserContext Context, GtType ClassType, ArrayList<GtFunc> FuncList) {
 		LibNative.LoadNativeConstructors(Context, ClassType, FuncList);
