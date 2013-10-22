@@ -425,6 +425,9 @@ class JMethodBuilder {
 				return;
 			}
 		}
+		if(GivenType.isPrimitive() && RequiredType.isPrimitive()) {
+			return;//FIXME
+		}
 		//System.err.println("CHECKCAST (" + RequiredType + ") " + GivenType);
 		this.AsmVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(RequiredType));
 	}
