@@ -719,8 +719,6 @@ public class GreenTeaScript extends GreenTeaUtils {
 			LibGreenTea.Usage("no target: " + TargetCode);
 		}
 		/*local*/GtParserContext Context = new GtParserContext(new KonohaGrammar(), Generator);
-		// USE require dshell;
-		// Context.LoadGrammar(new DShellGrammar());
 		if(RequiredLibName != null) {
 			if(!Context.TopLevelNameSpace.LoadRequiredLib(RequiredLibName)) {
 				LibGreenTea.Exit(1, "failed to load required library: " + RequiredLibName);
@@ -732,18 +730,24 @@ public class GreenTeaScript extends GreenTeaUtils {
 		if(!(Index < Args.length)) {
 			ShellMode = true;
 		}
+		GreenTeaArray ARGV = GreenTeaArray.NewArray1(GtStaticTable.StringType, 0);
 		while(Index < Args.length) {
-			/*local*/String ScriptText = LibGreenTea.LoadFile2(Args[Index]);
+			ARGV.ArrayBody.add(Args[Index]);
+			Index += 1;
+		}
+		Context.RootNameSpace.SetSymbol("ARGV", ARGV, null);
+		if(ARGV.ArrayBody.size() > 0) {
+			/*local*/String FileName = (/*cast*/String)ARGV.ArrayBody.get(0);
+			/*local*/String ScriptText = LibGreenTea.LoadFile2(FileName);
 			if(ScriptText == null) {
-				LibGreenTea.Exit(1, "file not found: " + Args[Index]);
+				LibGreenTea.Exit(1, "file not found: " + FileName);
 			}
-			/*local*/long FileLine = GtStaticTable.GetFileLine(Args[Index], 1);
+			/*local*/long FileLine = GtStaticTable.GetFileLine(FileName, 1);
 			/*local*/boolean Success = Context.TopLevelNameSpace.Load(ScriptText, FileLine);
 			Context.ShowReportedErrors();
 			if(!Success) {
-				LibGreenTea.Exit(1, "abort loading: " + Args[Index]);
+				LibGreenTea.Exit(1, "abort loading: " + FileName);
 			}
-			Index += 1;
 		}
 		if(ShellMode) {
 			LibGreenTea.println(GreenTeaUtils.ProgName + GreenTeaUtils.Version + " (" + GreenTeaUtils.CodeName + ") on " + LibGreenTea.GetPlatform());
