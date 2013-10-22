@@ -164,6 +164,9 @@ public class DShellGrammar extends GreenTeaUtils {
 			if(Token.EqualsText(",")) {
 				Token.ParsedText = "";
 			}
+			if(Token.EqualsText("~")) {
+				Token.ParsedText = GetEnv("HOME");
+			}
 			if(Token.IsDelim() || Token.IsIndent()) {
 				break;
 			}
@@ -182,6 +185,21 @@ public class DShellGrammar extends GreenTeaUtils {
 			CommandTree.ToError(SourceToken);
 		}
 		return CommandTree;
+	}
+
+	public static long ShellCommentToken(GtTokenContext TokenContext, String SourceText, long pos) {
+		if(LibGreenTea.CharAt(SourceText, pos) == '#') { // shell style SingleLineComment
+			/*local*/long NextPos = pos + 1;
+			while(NextPos < SourceText.length()) {
+				/*local*/char NextChar = LibGreenTea.CharAt(SourceText, NextPos);
+				if(NextChar == '\n') {
+					break;
+				}
+				NextPos = NextPos + 1;
+			}
+			return KonohaGrammar.IndentToken(TokenContext, SourceText, NextPos);
+		}
+		return MismatchedPosition;
 	}
 
 	public static GtSyntaxTree ParseEnv(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
@@ -650,6 +668,8 @@ public class DShellGrammar extends GreenTeaUtils {
 	// this is a new interface used in ImportNativeObject
 	public static void ImportGrammar(GtNameSpace NameSpace, Class<?> GrammarClass) {
 		/*local*/GtParserContext ParserContext = NameSpace.Context;
+		NameSpace.AppendTokenFunc("#", LoadTokenFunc2(ParserContext, GrammarClass, "ShellCommentToken")); 
+		
 		NameSpace.AppendSyntax("letenv", LoadParseFunc2(ParserContext, GrammarClass, "ParseEnv"), null);
 		NameSpace.AppendSyntax("command", LoadParseFunc2(ParserContext, GrammarClass, "ParseCommand"), null);
 		NameSpace.AppendSyntax("-", LoadParseFunc2(ParserContext, GrammarClass, "ParseFileOperator"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeFileOperator"));

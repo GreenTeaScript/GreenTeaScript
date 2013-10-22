@@ -18,9 +18,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.EmptyStackException;
 import java.util.Stack;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import org.GreenTeaScript.DShellGrammar;
@@ -313,6 +310,14 @@ public class DShellProcess {
 		}
 		return Process.GetResult(retType);
 	}
+}
+
+interface CLibraryWrapper extends com.sun.jna.Library {
+	CLibraryWrapper INSTANCE = (CLibraryWrapper) com.sun.jna.Native.loadLibrary("c", CLibraryWrapper.class);
+	
+	int chdir(String path);
+	int seteuid(int uid);
+	int getuid();
 }
 
 class PseudoProcess {
@@ -747,12 +752,6 @@ class ErrorStreamHandler {
 			new PipeStreamHandler(this.targetProcs[i].accessErrorStream(), System.err, false).start();
 		}
 	}
-}
-
-interface CLibraryWrapper extends com.sun.jna.Library {
-	CLibraryWrapper INSTANCE = (CLibraryWrapper) com.sun.jna.Native.loadLibrary("c", CLibraryWrapper.class);
-	
-	int chdir(String path);
 }
 
 // copied from http://blog.art-of-coding.eu/piping-between-processes/
