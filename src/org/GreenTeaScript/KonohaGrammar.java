@@ -196,6 +196,18 @@ public class KonohaGrammar extends GtGrammar {
 	}
 
 	public static long CommentToken(GtTokenContext TokenContext, String SourceText, long pos) {
+		if(LibGreenTea.CharAt(SourceText, pos) == '#') { // SingleLineComment
+			/*local*/long NextPos = pos + 1;
+			while(NextPos < SourceText.length()) {
+				/*local*/char NextChar = LibGreenTea.CharAt(SourceText, NextPos);
+				if(NextChar == '\n') {
+					break;
+				}
+				NextPos = NextPos + 1;
+			}
+			return KonohaGrammar.IndentToken(TokenContext, SourceText, NextPos);
+		}
+		
 		/*local*/long NextPos = pos + 1;
 		/*local*/char NextChar = LibGreenTea.CharAt(SourceText, NextPos);
 		if(NextChar != '/' && NextChar != '*') {
@@ -241,10 +253,11 @@ public class KonohaGrammar extends GtGrammar {
 			while(NextPos < SourceText.length()) {
 				NextChar = LibGreenTea.CharAt(SourceText, NextPos);
 				if(NextChar == '\n') {
-					return KonohaGrammar.IndentToken(TokenContext, SourceText, NextPos);
+					break;
 				}
 				NextPos = NextPos + 1;
 			}
+			return KonohaGrammar.IndentToken(TokenContext, SourceText, NextPos);
 		}
 		return MismatchedPosition;
 	}
@@ -2338,7 +2351,7 @@ public class KonohaGrammar extends GtGrammar {
 		NameSpace.AppendTokenFunc("\n",  GtGrammar.LoadTokenFunc(Context, this, "IndentToken"));
 		NameSpace.AppendTokenFunc(";", GtGrammar.LoadTokenFunc(Context, this, "SemiColonToken"));
 		NameSpace.AppendTokenFunc("{}()[]<>.,?:+-*/%=&|!@~^$", GtGrammar.LoadTokenFunc(Context, this, "OperatorToken"));
-		NameSpace.AppendTokenFunc("/", GtGrammar.LoadTokenFunc(Context, this, "CommentToken"));  // overloading
+		NameSpace.AppendTokenFunc("/#", GtGrammar.LoadTokenFunc(Context, this, "CommentToken"));  // overloading
 		NameSpace.AppendTokenFunc("Aa_", GtGrammar.LoadTokenFunc(Context, this, "SymbolToken"));
 
 		NameSpace.AppendTokenFunc("\"", GtGrammar.LoadTokenFunc(Context, this, "StringLiteralToken"));
