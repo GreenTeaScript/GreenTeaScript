@@ -279,16 +279,19 @@ public class DShellProcess {
 				else if(LibGreenTea.EqualsString(subOption, "trace=off")) {
 					option = setFlag(option, enableTrace, false);
 				}
-				else if(LibGreenTea.EqualsString(subOption, "background")) {
-					option = setFlag(option, background, !is(option, returnable));
-				}
-				else if(subOption.startsWith("timeout=")) {
-					String num = LibGreenTea.SubString(subOption, "timeout=".length(), subOption.length());
-					long parsedNum = LibGreenTea.ParseInt(num);
-					if(parsedNum >= 0) {
-						timeout = parsedNum;
-					}
-				}
+//				else if(LibGreenTea.EqualsString(subOption, "background")) {
+//					option = setFlag(option, background, !is(option, returnable));
+//				}
+//				else if(subOption.startsWith("timeout=")) {
+//					String num = LibGreenTea.SubString(subOption, "timeout=".length(), subOption.length());
+//					long parsedNum = LibGreenTea.ParseInt(num);
+//					if(parsedNum >= 0) {
+//						timeout = parsedNum;
+//					}
+//				}
+			}
+			else if(LibGreenTea.EqualsString(currentCmd[0], "&")) {
+				option = setFlag(option, background, !is(option, returnable));
 			}
 			else {
 				newCmdsBuffer.add(currentCmd);
@@ -724,10 +727,19 @@ class ProcMonitor extends Thread {	// TODO: support exit handler
 					count++;
 				}
 				catch(IllegalThreadStateException e) {
-					// process has not terminated yet
+					// process has not terminated yet. do nothing
 				}
 			}
 			if(count == size) {
+				StringBuilder msgBuilder = new StringBuilder();
+				msgBuilder.append("exit processes: ");
+				for(int i = 0; i < this.dShellProc.Processes.length; i++) {
+					if(i != 0) {
+						msgBuilder.append("| ");
+					}
+					msgBuilder.append(this.dShellProc.Processes[i].getCmdName());
+				}
+				System.err.println(msgBuilder.toString());
 				// run exit handler
 				return;
 			} 
