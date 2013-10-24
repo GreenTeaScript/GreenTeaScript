@@ -672,6 +672,11 @@ class SubProc extends PseudoProcess {
 	}
 
 	@Override public void kill() {
+		if(System.getProperty("os.name").startsWith("Windows")) {
+			this.proc.destroy();
+			return;
+		} 
+		 
 		try {
 			// get target pid
 			Field pidField = this.proc.getClass().getDeclaredField("pid");
