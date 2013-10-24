@@ -69,13 +69,16 @@ public class DShellProcess {
 	}
 	private DShellProcess Detach() {
 		this.LastProcess.showResult();
-		new ProcMonitor(this).start();
+		new ProcMonitor(this, true).start();
 		return null;
 	}
 	private Object GetResult(int ReturnType) throws Exception {
+		new ProcMonitor(this, false).start();
 		this.waitResult();
 		// raise exception
-		this.ExceptionManager.raiseException();
+		if(this.timeout <= 0) {
+			this.ExceptionManager.raiseException();
+		}
 		this.Result = LastProcess.getStdout();
 		this.ReturnValue = LastProcess.getRet();
 		// get result value
@@ -183,6 +186,7 @@ public class DShellProcess {
 				return DShellGrammar.IsUnixCommand("strace");
 			}
 		}
+		System.err.println("systemcall trace is not supported\n");
 		return false;
 	}
 
@@ -264,33 +268,23 @@ public class DShellProcess {
 	private static Object runCommands(String[][] cmds, int option, int retType) throws Exception {
 		// prepare shell option
 		long timeout = -1;
-		String[][] newCmds;
 		ArrayList<String[]> newCmdsBuffer = new ArrayList<String[]>();
-		for(int i = 0; i < cmds.length; i++) {
+		for(int i = 0; i < cmds.length; i++) {	// check background
 			String[] currentCmd = cmds[i];
-			if(LibGreenTea.EqualsString(currentCmd[0], "set")) {
-				if(currentCmd.length < 2) {
-					continue;
-				}
-				String subOption = currentCmd[1];
-				if(LibGreenTea.EqualsString(subOption, "trace=on")) {
-					option = setFlag(option, enableTrace, true);
-				}
-				else if(LibGreenTea.EqualsString(subOption, "trace=off")) {
-					option = setFlag(option, enableTrace, false);
-				}
-//				else if(LibGreenTea.EqualsString(subOption, "background")) {
-//					option = setFlag(option, background, !is(option, returnable));
+//			if(LibGreenTea.EqualsString(currentCmd[0], "set")) {
+//				if(currentCmd.length < 2) {
+//					continue;
 //				}
-//				else if(subOption.startsWith("timeout=")) {
-//					String num = LibGreenTea.SubString(subOption, "timeout=".length(), subOption.length());
-//					long parsedNum = LibGreenTea.ParseInt(num);
-//					if(parsedNum >= 0) {
-//						timeout = parsedNum;
-//					}
+//				String subOption = currentCmd[1];
+//				if(LibGreenTea.EqualsString(subOption, "trace=on")) {
+//					option = setFlag(option, enableTrace, true);
 //				}
-			}
-			else if(LibGreenTea.EqualsString(currentCmd[0], "&")) {
+//				else if(LibGreenTea.EqualsString(subOption, "trace=off")) {
+//					option = setFlag(option, enableTrace, false);
+//				}
+//			}
+//			else 
+			if(LibGreenTea.EqualsString(currentCmd[0], "&")) {
 				option = setFlag(option, background, !is(option, returnable));
 			}
 			else {
@@ -298,15 +292,44 @@ public class DShellProcess {
 			}
 		}
 		int bufferSize = newCmdsBuffer.size();
-		newCmds = new String[bufferSize][];
-		for(int i = 0; i < bufferSize; i++) {
-			newCmds[i] = newCmdsBuffer.get(i);
+		for(int i = 0; i < bufferSize; i++) {	// check internal option
+			String[] currentCmd = newCmdsBuffer.get(i);
+			if(LibGreenTea.EqualsString(currentCmd[0], "timeout")) {
+				StringBuilder numBuilder = new StringBuilder();
+				StringBuilder unitBuilder = new StringBuilder();
+				int len = currentCmd[1].length();
+				for(int j = 0; j < len; j++) {
+					char ch = currentCmd[1].charAt(j);
+					if(Character.isDigit(ch)) {
+						numBuilder.append(ch);
+					} 
+					else {
+						unitBuilder.append(ch);
+					}
+				}
+				long num = Integer.parseInt(numBuilder.toString());
+				String unit = unitBuilder.toString();
+				if(LibGreenTea.EqualsString(unit, "s")) {
+					num = num * 1000;
+				}
+				if(num >= 0) {
+					timeout = num;
+				}
+				String[] newCmd = new String[currentCmd.length - 2];
+				for(int j = 2; j < currentCmd.length; j++) {
+					newCmd[j - 2] = currentCmd[j];
+				}
+				newCmdsBuffer.set(i, newCmd);
+			}
 		}
+		
+		String[][] newCmds = newCmdsBuffer.toArray(new String[newCmdsBuffer.size()][]);
 		
 		if(is(option, enableTrace)) {
 			option = setFlag(option, enableTrace, checkTraceRequirements());
 		}
 		
+		// run command
 		DShellProcess Process = new DShellProcess(option, newCmds, timeout);
 		if(Process.IsBackGroundProcess()) {
 			return Process.Detach();
@@ -660,7 +683,7 @@ class SubProc extends PseudoProcess {
 			Process procKiller = new ProcessBuilder(cmds).start();
 			procKiller.waitFor();
 			this.isKilled = true;
-			LibGreenTea.print("[killed]: " + this.getCmdName());
+			//LibGreenTea.print("[killed]: " + this.getCmdName());
 		} 
 		catch (NoSuchFieldException e) {
 			e.printStackTrace();
@@ -697,20 +720,29 @@ class SubProc extends PseudoProcess {
 
 class ProcMonitor extends Thread {	// TODO: support exit handler
 	private DShellProcess dShellProc;
+	private boolean isBackground;
 	
-	public ProcMonitor(DShellProcess dShellProc) {
+	public ProcMonitor(DShellProcess dShellProc, boolean isBackground) {
 		this.dShellProc = dShellProc;
+		this.isBackground = isBackground;
 	}
 	
 	@Override public void run() {
 		int size = this.dShellProc.Processes.length;
-		if(this.dShellProc.timeout > 0) {
+		if(this.dShellProc.timeout > 0) { // timeout
 			try {
-				Thread.sleep(this.dShellProc.timeout);
+				StringBuilder msgBuilder = new StringBuilder();
+				msgBuilder.append("timeout processes: ");
+				Thread.sleep(this.dShellProc.timeout);	// ms
 				for(int i = 0; i < size; i++) {
 					this.dShellProc.Processes[i].kill();
-					// run exit handler
+					if(i != 0) {
+						msgBuilder.append("| ");
+					}
+					msgBuilder.append(this.dShellProc.Processes[i].getCmdName());
 				}
+				System.err.println(msgBuilder.toString());
+				// run exit handler
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -718,7 +750,7 @@ class ProcMonitor extends Thread {	// TODO: support exit handler
 		}
 		
 		// check process status
-		while(true) {
+		while(this.isBackground) {
 			int count = 0;
 			for(int i = 0; i < size; i++) {
 				SubProc subProc = (SubProc)this.dShellProc.Processes[i];
@@ -733,7 +765,7 @@ class ProcMonitor extends Thread {	// TODO: support exit handler
 			if(count == size) {
 				StringBuilder msgBuilder = new StringBuilder();
 				msgBuilder.append("exit processes: ");
-				for(int i = 0; i < this.dShellProc.Processes.length; i++) {
+				for(int i = 0; i < size; i++) {
 					if(i != 0) {
 						msgBuilder.append("| ");
 					}
