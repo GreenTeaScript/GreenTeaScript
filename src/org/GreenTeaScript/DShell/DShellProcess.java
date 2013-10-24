@@ -11,6 +11,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -373,6 +377,57 @@ interface CLibraryWrapper extends com.sun.jna.Library {
 	int chdir(String path);
 	int seteuid(int uid);
 	int getuid();
+}
+
+class CheckPoint {
+	private static final int file_type = 0;
+	private static final int directory_type = 1;
+	private String filePath;
+	private String oldFilePath;
+	private int operationType;
+
+	public CheckPoint(String filePath) {
+		this.filePath = new File(filePath).getAbsolutePath();
+		if(new File(this.filePath).isFile()) {
+			this.operationType = file_type;
+			this.createOldFile();
+		}
+		else if(new File(this.filePath).isDirectory()) {
+			this.operationType = directory_type;
+		}
+	}
+
+	private void createOldFile() {	// do not need lvm thin provisioning
+		Path srcPath = Paths.get(this.filePath);
+		this.oldFilePath = this.filePath + ".old";
+		Path destPath = Paths.get(this.oldFilePath);
+		try {
+			Files.copy(srcPath, destPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES);
+		}
+		catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private void revertFile() {
+		Path srcPath = Paths.get(this.oldFilePath);
+		Path destPath = Paths.get(this.filePath);
+		try {
+			Files.move(srcPath, destPath, StandardCopyOption.REPLACE_EXISTING);
+		}
+		catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void rollback() {
+		if(this.operationType == file_type) {
+			this.revertFile();
+		}
+		else if(this.operationType == directory_type) {
+			
+		}
+	}
 }
 
 class PseudoProcess {
