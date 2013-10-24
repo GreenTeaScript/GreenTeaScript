@@ -1105,7 +1105,7 @@ class ShellExceptionRaiser {
 		Object[] args = {message, message, syscall};
 		try {
 			if(syscall == null) {
-				return new NoRelatedSyscallException(message);
+				return new NotRelatedSyscallException(message);
 			}
 			Class<?> exceptionClass = ErrorToException.valueOf(syscall[2]).toException();
 			if(exceptionClass == null) {
