@@ -684,6 +684,10 @@ public class DShellGrammar extends GreenTeaUtils {
 		NameSpace.AppendSyntax("$FilePath$", LoadParseFunc2(ParserContext, GrammarClass, "ParseFilePath"), null);
 		NameSpace.AppendSyntax("$DShell2$", LoadParseFunc2(ParserContext, GrammarClass, "ParseDShell2"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeDShell2"));
 		NameSpace.AppendSyntax("shell", LoadParseFunc2(ParserContext, GrammarClass, "ParseShell"), null);
+		
+		// builtin command
+		NameSpace.SetSymbol("timeout", NameSpace.GetSyntaxPattern("$DShell2$"), new GtToken("timeout", 0));
+		NameSpace.SetSymbol(CommandSymbol("timeout"), "timeout", null);
 
 		NameSpace.SetSymbol("$CreateFaultBuiltInFunc", LibNative.ImportNativeObject(NameSpace, "DShellGrammar.CreateFault"), null);
 		NameSpace.SetSymbol("$ReportBuiltInFunc", LibNative.ImportNativeObject(NameSpace, "DShellGrammar.ExecAction"), null);
