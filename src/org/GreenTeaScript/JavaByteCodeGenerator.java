@@ -1007,9 +1007,13 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		// catch block
 		for(int i = 0; i < catchSize; i++) { //TODO: add exception class name
 			GtNode block = Node.CatchBlock;
+			GtVarNode Var = (GtVarNode) Node.CatchExpr;
+			JLocalVarStack local = this.VisitingBuilder.AddLocal(Var.Type, Var.NativeName);
 			mv.visitLabel(catchLabel[i]);
+			this.VisitingBuilder.StoreLocal(local);
 			this.VisitBlock(block);
 			mv.visitJumpInsn(GOTO, finallyLabel);
+			//FIXME: remove local
 		}
 
 		// finally block
