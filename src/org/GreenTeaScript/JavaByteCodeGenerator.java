@@ -425,6 +425,9 @@ class JMethodBuilder {
 				return;
 			}
 		}
+		if(GivenType.isArray()) {
+			return;//FIXME
+		}
 		if(GivenType.isPrimitive() && RequiredType.isPrimitive()) {
 			return;//FIXME
 		}
