@@ -35,6 +35,9 @@ public class DShellProcess {
 	private static final int VoidType    = 0;
 	private static final int BooleanType = 1;
 	private static final int StringType  = 2;
+	
+	// trace tyep
+	private static boolean traceRequirement = false;
 
 	private String Result = "";
 	private long ReturnValue = -1;
@@ -94,6 +97,11 @@ public class DShellProcess {
 	}
 	private void waitResult() {
 		this.LastProcess.waitResult(is(this.CommandFlag, printable));
+	}
+	
+	// initialization
+	public static void initDShellProcess() {
+		traceRequirement = checkTraceRequirements();
 	}
 
 	// called by JavaByteCodeGenerator.VisitCommandNode 
@@ -186,7 +194,7 @@ public class DShellProcess {
 				return DShellGrammar.IsUnixCommand("strace");
 			}
 		}
-		System.err.println("systemcall trace is not supported\n");
+		System.err.println("Systemcall Trace is Not Supported");
 		return false;
 	}
 
@@ -326,7 +334,7 @@ public class DShellProcess {
 		String[][] newCmds = newCmdsBuffer.toArray(new String[newCmdsBuffer.size()][]);
 		
 		if(is(option, enableTrace)) {
-			option = setFlag(option, enableTrace, checkTraceRequirements());
+			option = setFlag(option, enableTrace, traceRequirement);
 		}
 		
 		// run command
