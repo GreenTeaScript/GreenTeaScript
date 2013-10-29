@@ -45,14 +45,12 @@ public class DShellProcess {
 	private final PseudoProcess LastProcess;
 	public final PseudoProcess[] Processes;
 	public long timeout;
-	public ShellExceptionRaiser ExceptionManager = null;
+	private ProcMonitor procMonitor;
 	
 	public DShellProcess(int option, String[][] cmds, long timeout) {
 		// init process
-		this.ExceptionManager = new ShellExceptionRaiser(is(option, throwable));
 		this.Processes = createProcs(cmds, is(option, enableTrace));
 		int ProcessSize = this.Processes.length;
-		this.ExceptionManager.setProcesses(this.Processes);
 		ErrorStreamHandler Handler = new ErrorStreamHandler(this.Processes);
 
 		// start process
@@ -72,15 +70,19 @@ public class DShellProcess {
 	}
 	private DShellProcess Detach() {
 		this.LastProcess.showResult();
-		new ProcMonitor(this, true).start();
+		this.procMonitor = new ProcMonitor(this, true);
+		this.procMonitor.start();
 		return null;
 	}
 	private Object GetResult(int ReturnType) throws Exception {
-		new ProcMonitor(this, false).start();
+		this.procMonitor = new ProcMonitor(this, false);
+		this.procMonitor.start();
 		this.waitResult();
 		// raise exception
 		if(this.timeout <= 0) {
-			this.ExceptionManager.raiseException();
+			ShellExceptionRaiser raiser = new ShellExceptionRaiser(is(CommandFlag, throwable));
+			raiser.setProcesses(this.Processes);
+			raiser.raiseException();
 		}
 		this.Result = LastProcess.getStdout();
 		this.ReturnValue = LastProcess.getRet();
@@ -97,6 +99,14 @@ public class DShellProcess {
 	}
 	private void waitResult() {
 		this.LastProcess.waitResult(is(this.CommandFlag, printable));
+	}
+	public void join() {
+		try {
+			this.procMonitor.join();
+		} 
+		catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
 	// initialization
@@ -591,7 +601,8 @@ class SubProc extends PseudoProcess {
 	public void setInputRedirect(String readFileName) {
 		try {
 			this.inFileStream = new FileInputStream(readFileName);
-		} catch (FileNotFoundException e) {
+		}
+		catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
 	}
@@ -609,10 +620,12 @@ class SubProc extends PseudoProcess {
 		try {
 			if(fd == STDOUT_FILENO) {
 				this.outFileStream = new FileOutputStream(writeFileName, append);
-			} else if(fd == STDERR_FILENO) {
+			} 
+			else if(fd == STDERR_FILENO) {
 				this.errFileStream = new FileOutputStream(writeFileName, append);
 			}
-		} catch (FileNotFoundException e) {
+		}
+		catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
 	}
@@ -626,13 +639,15 @@ class SubProc extends PseudoProcess {
 			}
 			srcStream = this.accessOutStream();
 			destStream = new BufferedOutputStream(this.outFileStream);
-		} else if(fd == STDERR_FILENO) {
+		}
+		else if(fd == STDERR_FILENO) {
 			if(this.errFileStream == null) {
 				return;
 			}
 			srcStream = this.accessErrorStream();
 			destStream = new BufferedOutputStream(this.errFileStream);
-		} else {
+		}
+		else {
 			throw new RuntimeException("invalid file descriptor");
 		}
 		new PipeStreamHandler(srcStream, destStream, true).start();
@@ -756,7 +771,8 @@ class ProcMonitor extends Thread {	// TODO: support exit handler
 				}
 				System.err.println(msgBuilder.toString());
 				// run exit handler
-			} catch (InterruptedException e) {
+			} 
+			catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 			return;
@@ -787,10 +803,11 @@ class ProcMonitor extends Thread {	// TODO: support exit handler
 				System.err.println(msgBuilder.toString());
 				// run exit handler
 				return;
-			} 
+			}
 			try {
 				Thread.sleep(100); // sleep thread
-			} catch (InterruptedException e) {
+			}
+			catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
@@ -814,17 +831,18 @@ class ErrorStreamHandler {
 // copied from http://blog.art-of-coding.eu/piping-between-processes/
 class PipeStreamHandler extends Thread {
 	private InputStream input;
-	private OutputStream output;
+	private OutputStream[] outputs;
 	private boolean closeStream;
 
 	public PipeStreamHandler(InputStream input, OutputStream output, boolean closeStream) {
 		this.input = input;
-		this.output = output;
+		this.outputs = new OutputStream[1];
+		this.outputs[0] = output;
 		this.closeStream = closeStream;
 	}
 
 	@Override public void run() {
-		if(this.input == null || this.output == null) {
+		if(this.input == null || this.outputs[0] == null) { // TODO: support multiplex
 			return;
 		}
 		try {
@@ -833,12 +851,16 @@ class PipeStreamHandler extends Thread {
 			while(read > -1) {
 				read = this.input.read(buffer, 0, buffer.length);
 				if(read > -1) {
-					this.output.write(buffer, 0, read);
+					for(int i = 0; i < this.outputs.length; i++) {
+						this.outputs[i].write(buffer, 0, read);
+					}
 				}
 			}
 			if(closeStream) {
 				this.input.close();
-				this.output.close();
+				for(int i = 0; i < this.outputs.length; i++) {
+					this.outputs[i].close();
+				}
 			}
 		}
 		catch (IOException e) {
