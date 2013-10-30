@@ -23,8 +23,6 @@ import java.util.regex.Pattern;
 import org.GreenTeaScript.DShellGrammar;
 import org.GreenTeaScript.LibGreenTea;
 
-import sun.org.mozilla.javascript.commonjs.module.provider.StrongCachingModuleScriptProvider;
-
 public class DShellProcess {
 	// option flag
 	private static final int returnable  = 1 << 0;
