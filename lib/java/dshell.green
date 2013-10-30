@@ -10,9 +10,8 @@ import org.GreenTeaScript.DShellGrammar;
 @Const @Operator boolean "-x"(String Path) import DShellGrammar.IsFileExecutable;
 
 // init D-ShellProcess
-let proc = import org.GreenTeaScript.DShell.DShellProcess;
-let init = proc.initDShellProcess();
-init();
+let DShellProcess = import org.GreenTeaScript.DShell.DShellProcess;
+DShellProcess.initDShellProcess();
 
 // D-Shell Exception class
 let DShellException = import org.GreenTeaScript.DShell.DShellException;
