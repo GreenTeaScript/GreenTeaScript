@@ -23,6 +23,8 @@ import java.util.regex.Pattern;
 import org.GreenTeaScript.DShellGrammar;
 import org.GreenTeaScript.LibGreenTea;
 
+import sun.org.mozilla.javascript.commonjs.module.provider.StrongCachingModuleScriptProvider;
+
 public class DShellProcess {
 	// option flag
 	private static final int returnable  = 1 << 0;
@@ -103,10 +105,14 @@ public class DShellProcess {
 	public void join() {
 		try {
 			this.procMonitor.join();
+			((SubProc)this.LastProcess).getMessageStreamHandler().join();
 		} 
 		catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}
+	}
+	public String getResult() {
+		return this.LastProcess.getStdout();
 	}
 	
 	// initialization
@@ -479,7 +485,8 @@ class SubProc extends PseudoProcess {
 	private FileOutputStream outFileStream = null;
 	private FileOutputStream errFileStream = null;
 	
-	private ByteArrayOutputStream outBuf;
+	private ByteArrayOutputStream messageBuffer;
+	private PipeStreamHandler messageStreamHandler = null;
 
 	private static String createLogDirectory() {
 		Calendar cal = Calendar.getInstance();
@@ -662,8 +669,8 @@ class SubProc extends PseudoProcess {
 			closeStream = false;
 		}
 		else {
-			outBuf = new ByteArrayOutputStream();
-			outStream = outBuf;
+			messageBuffer = new ByteArrayOutputStream();
+			outStream = messageBuffer;
 			closeStream = true;
 		}
 		
@@ -678,11 +685,15 @@ class SubProc extends PseudoProcess {
 	}
 	
 	@Override public void showResult() {
-		new PipeStreamHandler(this.accessOutStream(), System.out, false).start();
+		this.messageBuffer = new ByteArrayOutputStream();
+		OutputStream[] outStreams = {System.out, this.messageBuffer}; 
+		boolean[] closeOutputs = {false, true};
+		this.messageStreamHandler = new PipeStreamHandler(this.accessOutStream(), outStreams, false, closeOutputs);
+		this.messageStreamHandler.start();
 	}
 
 	@Override public String getStdout() {
-		return this.outBuf == null ? "" : this.outBuf.toString();
+		return this.messageBuffer == null ? "" : this.messageBuffer.toString();
 	}
 
 	@Override public void waitFor() {
@@ -743,6 +754,10 @@ class SubProc extends PseudoProcess {
 
 	@Override public boolean isTraced() {
 		return this.enableSyscallTrace;
+	}
+	
+	public PipeStreamHandler getMessageStreamHandler() {
+		return this.messageStreamHandler;
 	}
 }
 
@@ -832,17 +847,34 @@ class ErrorStreamHandler {
 class PipeStreamHandler extends Thread {
 	private InputStream input;
 	private OutputStream[] outputs;
-	private boolean closeStream;
+	private boolean closeInput;
+	private boolean[] closeOutputs;
 
 	public PipeStreamHandler(InputStream input, OutputStream output, boolean closeStream) {
 		this.input = input;
 		this.outputs = new OutputStream[1];
 		this.outputs[0] = output;
-		this.closeStream = closeStream;
+		if(output == null) {
+			this.outputs[0] = new NullStream();
+		}
+		this.closeInput = closeStream;
+		this.closeOutputs = new boolean[1];
+		this.closeOutputs[0] = closeStream;
+	}
+	
+	public PipeStreamHandler(InputStream input, 
+			OutputStream[] outputs, boolean closeInput, boolean[] closeOutputs) {
+		this.input = input;
+		this.outputs = new OutputStream[outputs.length];
+		this.closeInput = closeInput;
+		this.closeOutputs = closeOutputs;
+		for(int i = 0; i < this.outputs.length; i++) {
+			this.outputs[i] = outputs[i] == null ? new NullStream() : outputs[i];
+		}
 	}
 
 	@Override public void run() {
-		if(this.input == null || this.outputs[0] == null) { // TODO: support multiplex
+		if(this.input == null) {
 			return;
 		}
 		try {
@@ -856,15 +888,23 @@ class PipeStreamHandler extends Thread {
 					}
 				}
 			}
-			if(closeStream) {
+			if(this.closeInput) {
 				this.input.close();
-				for(int i = 0; i < this.outputs.length; i++) {
+			}
+			for(int i = 0; i < this.outputs.length; i++) {
+				if(this.closeOutputs[i]) {
 					this.outputs[i].close();
 				}
 			}
 		}
 		catch (IOException e) {
 			throw new RuntimeException(e);
+		}
+	}
+	
+	class NullStream extends OutputStream {
+		@Override public void write(int b) throws IOException {
+			// do nothing
 		}
 	}
 }
