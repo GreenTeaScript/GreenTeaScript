@@ -184,13 +184,11 @@ class LibGreenTea {
 		return GreenTeaArray.NewArrayLiteral(ArrayType, Values);
 	}
 
-	static ArrayCopy(src: any, srcPos: number, dest: any, destPos: number, length: number): void {
-		for(var i = 0; i < length; ++i){
-			dest[destPos + i] = src[srcPos + i];
-		}
+	static InvokeFunc(Func: GtFunc, Params: any[]): any{
+		throw new Error("NotImplementedAPI");
 	}
 
-	static ApplyOverridedMethod(FileLine: number, NameSpace: GtNameSpace, Func: GtFunc, Arguments: Object[]): Object {
+	static InvokeOverridedMethod(FileLine: number, NameSpace: GtNameSpace, Func: GtFunc, Arguments: Object[]): Object {
 		var ClassType: GtType = NameSpace.Context.GuessType(Arguments[0]);
 		Func = NameSpace.GetOverridedMethod(ClassType, Func);
 		return Func.Apply(Arguments);
@@ -221,7 +219,7 @@ class LibGreenTea {
 		return Value;
 	}
 	
-	static DynamicGetter(ContextType: GtType, RecvObject: Object, FieldName: string): Object {
+	static DynamicGetter(RecvObject: Object, FieldName: string): Object {
 		try {
 			return LibGreenTea.DynamicCast(ContextType, RecvObject[FieldName]);
 		} catch (e) {
@@ -229,7 +227,7 @@ class LibGreenTea {
 		return ContextType.DefaultNullValue;
 	}
 
-	static DynamicSetter(ContextType: GtType, RecvObject: Object, FieldName: string, Value: Object): Object {
+	static DynamicSetter(RecvObject: Object, FieldName: string, Value: Object): Object {
 		try {
 			RecvObject[FieldName] = Value;
 			return LibGreenTea.DynamicCast(ContextType, RecvObject[FieldName]);
@@ -413,6 +411,12 @@ class LibGreenTea {
 		return (<any>Value).constructor.name;
 	}
 
+	static ArrayCopy(src: any, srcPos: number, dest: any, destPos: number, length: number): void {
+		for(var i = 0; i < length; ++i){
+			dest[destPos + i] = src[srcPos + i];
+		}
+	}
+
 	static AcceptJavascriptType(GreenType: GtType, Type: any): boolean {
 		if(GreenType.IsVarType() || GreenType.IsTypeVariable()) {
 			return true;
@@ -531,12 +535,12 @@ class LibGreenTea {
 		return LibGreenTea.ImportStaticObject(NameSpace.Context, NativeClass, PackageName.substring(Index+1));
 	}
 
-	static LoadNativeConstructors(ClassType: GtType, FuncList: GtFunc[]) : boolean {
+	static LoadNativeConstructors(Context: GtParserContext, ClassType: GtType, FuncList: GtFunc[]) : boolean {
 		throw new Error("NotSupportedAPI");
 		return false;
 	}
 
-	static LoadNativeField(ClassType: GtType, FieldName: string, GetSetter: boolean) : GtFunc {
+	static LoadNativeField(Context: GtParserContext, ClassType: GtType, FieldName: string, GetSetter: boolean) : GtFunc {
 		throw new Error("NotSupportedAPI");
 		return null;
 	}
@@ -561,12 +565,12 @@ class LibGreenTea {
 		return null;
 	}
 
-	static LoadNativeStaticFieldValue(ClassType: GtType, Symbol: String): any {
+	static LoadNativeStaticFieldValue(Context: GtParserContext, ClassType: GtType, Symbol: String): any {
 		throw new Error("NotImplementedAPI");
 		return null;
 	}
 
-	static LoadNativeMethods(ClassType: GtType, FuncName: string, FuncList: GtFunc[]): void {
+	static LoadNativeMethods(Context: GtParserContext, ClassType: GtType, FuncName: string, FuncList: GtFunc[]): void {
 		throw new Error("NotImplementedAPI");
 	}
 

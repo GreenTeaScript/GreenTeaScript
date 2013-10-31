@@ -94,7 +94,7 @@ public final class GtFunc extends GreenTeaUtils {
 	}
 
 	public final GtType GetStaticType(GtNameSpace NameSpace) {
-		int loc = this.FuncName.lastIndexOf(".");
+		/*local*/int loc = this.FuncName.lastIndexOf(".");
 		if(loc != -1) {
 			return NameSpace.GetType(this.FuncName.substring(0, loc));
 		}

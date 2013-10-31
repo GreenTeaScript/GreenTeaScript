@@ -898,7 +898,7 @@ public class KonohaGrammar extends GtGrammar {
 			return TokenContext.ReportExpectedMessage(Token, "field name", true);		
 		}
 		if(TokenContext.IsToken("(")) {  // method call
-			GtSyntaxTree ApplyTree = TokenContext.ParsePatternAfter(NameSpace, LeftTree, "$MethodCall$", Required);
+			/*local*/GtSyntaxTree ApplyTree = TokenContext.ParsePatternAfter(NameSpace, LeftTree, "$MethodCall$", Required);
 			if(GreenTeaUtils.IsValidSyntax(ApplyTree)) {
 				ApplyTree.KeyToken = Token;
 			}
@@ -1049,7 +1049,7 @@ public class KonohaGrammar extends GtGrammar {
 	
 	public static GtNode TypeFuncCall(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtNode FuncNode, GtType ContextType) {
 		if(FuncNode.IsConstNode()) {
-			Object Func = FuncNode.ToConstValue(Gamma.Context, false);
+			/*local*/Object Func = FuncNode.ToConstValue(Gamma.Context, false);
 			if(Func instanceof GtType) {  // constructor;
 				return KonohaGrammar.TypeNewNode(Gamma, ParsedTree, FuncNode.Token, (/*cast*/GtType)Func, ContextType);
 			}
