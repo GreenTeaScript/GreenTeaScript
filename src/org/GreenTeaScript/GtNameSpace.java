@@ -92,6 +92,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 			if(this.ParentNameSpace != null) {
 				while(i < MaxSizeOfChars) {
 					this.TokenMatrix[i] = this.ParentNameSpace.GetTokenFunc(i);
+					i += 1;
 				}
 			}
 		}
@@ -283,7 +284,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 		}
 		Key = ClassStaticSymbol(StaticClassType, Symbol);
 		if(StaticClassType.IsDynamicNaitiveLoading() && this.Context.RootNameSpace.GetLocalUndefinedSymbol(Key) == null) {
-			/*local*/Object Value = LibGreenTea.LoadNativeStaticFieldValue(this.Context, StaticClassType, Symbol);
+			/*local*/Object Value = LibNative.ImportStaticFieldValue(this.Context, StaticClassType, Symbol);
 			if(Value == null) {
 				this.Context.RootNameSpace.SetUndefinedSymbol(Key, null);
 			}
@@ -572,7 +573,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 	public final boolean LoadFile(String FileName) {
 		/*local*/String ScriptText = LibGreenTea.LoadFile2(FileName);
 		if(ScriptText != null) {
-			/*local*/long FileLine = this.Context.GetFileLine(FileName, 1);
+			/*local*/long FileLine = GtStaticTable.GetFileLine(FileName, 1);
 			return this.Load(ScriptText, FileLine);
 		}
 		return false;
@@ -584,7 +585,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 			/*local*/String Path = LibGreenTea.GetLibPath(this.Context.Generator.TargetCode, LibName);
 			/*local*/String Script = LibGreenTea.LoadFile2(Path);
 			if(Script != null) {
-				/*local*/long FileLine = this.Context.GetFileLine(Path, 1);
+				/*local*/long FileLine = GtStaticTable.GetFileLine(Path, 1);
 				if(this.Load(Script, FileLine)) {
 					this.SetSymbol(Key, Path, null);
 					return true;

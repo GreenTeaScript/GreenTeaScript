@@ -479,7 +479,7 @@ public final class GtTokenContext extends GreenTeaUtils {
 		if(Index != -1) {
 			/*local*/String FileName = SourceMap.substring(0, Index);
 			/*local*/int Line = (/*cast*/int)LibGreenTea.ParseInt(SourceMap.substring(Index+1));
-			this.ParsingLine = this.TopLevelNameSpace.Context.GetFileLine(FileName, Line);
+			this.ParsingLine = GtStaticTable.GetFileLine(FileName, Line);
 		}
 	}
 

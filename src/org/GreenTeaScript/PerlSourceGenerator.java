@@ -192,7 +192,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		this.WriteLineCode(Program);
 	}
 
-	@Override public void OpenClassField(GtType Type, GtClassField ClassField) {
+	@Override public void OpenClassField(GtSyntaxTree ParsedTree, GtType Type, GtClassField ClassField) {
 		/*local*/String TypeName = Type.ShortName;
 		/*local*/String Program = this.GetIndentString() + "package " + TypeName + ";" + this.LineFeed;
 		if(Type.SuperType != null) {
@@ -206,7 +206,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		while(i < ClassField.FieldList.size()) {
 			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
 			/*local*/String InitValue = this.StringifyConstValue(FieldInfo.InitValue);
-			if(!FieldInfo.Type.IsNative()) {
+			if(!FieldInfo.Type.IsNativeType()) {
 				InitValue = this.NullLiteral;
 			}
 			Program += this.GetIndentString() + "$" + this.GetRecvName() + "->{'" + FieldInfo.NativeName + "'} = " + InitValue + ";" + this.LineFeed;

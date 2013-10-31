@@ -28,6 +28,7 @@ import java.io.File;
 import java.lang.reflect.Method;
 
 import org.GreenTeaScript.DShell.DFault;
+import org.GreenTeaScript.DShell.RecAPI;
 
 
 public class DShellGrammar extends GreenTeaUtils {
@@ -108,18 +109,25 @@ public class DShellGrammar extends GreenTeaUtils {
 
 	public final static DFault ExecAction(GtNameSpace NameSpace, String DCaseNode, GtFunc Action) {
 		DFault Fault = null;
+
 		try {
 			Fault = (DFault)((Method)Action.FuncBody).invoke(null);
 		}
 		catch (Exception e) {
 			Fault = CreateExceptionFault(NameSpace, DCaseNode, e);
 		}
-		if(Fault == null) {
-			// report in success case
+		
+		String RECServerURL = NameSpace.GetSymbolText("RECServerURL");
+		String Location = NameSpace.GetSymbolText("Location");
+		String Context = Action.FuncName;   // FIXME: change context format to json
+		String AuthId = NameSpace.GetSymbolText("AuthId");
+		
+		if(AuthId == null) {
+			// TODO: output warning
 		}
-		else {
-			// report failed case
-		}
+		
+		RecAPI.PushRawData(RECServerURL, DCaseNode, Location, Fault, AuthId, Context);
+		
 		return Fault;
 	}
 
@@ -164,6 +172,9 @@ public class DShellGrammar extends GreenTeaUtils {
 			if(Token.EqualsText(",")) {
 				Token.ParsedText = "";
 			}
+			if(Token.EqualsText("~")) {
+				Token.ParsedText = GetEnv("HOME");
+			}
 			if(Token.IsDelim() || Token.IsIndent()) {
 				break;
 			}
@@ -182,6 +193,21 @@ public class DShellGrammar extends GreenTeaUtils {
 			CommandTree.ToError(SourceToken);
 		}
 		return CommandTree;
+	}
+
+	public static long ShellCommentToken(GtTokenContext TokenContext, String SourceText, long pos) {
+		if(LibGreenTea.CharAt(SourceText, pos) == '#') { // shell style SingleLineComment
+			/*local*/long NextPos = pos + 1;
+			while(NextPos < SourceText.length()) {
+				/*local*/char NextChar = LibGreenTea.CharAt(SourceText, NextPos);
+				if(NextChar == '\n') {
+					break;
+				}
+				NextPos = NextPos + 1;
+			}
+			return KonohaGrammar.IndentToken(TokenContext, SourceText, NextPos);
+		}
+		return MismatchedPosition;
 	}
 
 	public static GtSyntaxTree ParseEnv(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
@@ -421,6 +447,13 @@ public class DShellGrammar extends GreenTeaUtils {
 				CommandTree.AppendParsedTree2(PipedTree);
 				return CommandTree;
 			}
+			if(Token.EqualsText("&")) {	// set background job
+				/*local*/GtSyntaxTree OptionTree = TokenContext.CreateSyntaxTree(NameSpace, Pattern, null);
+				OptionTree.AppendParsedTree2(OptionTree.CreateConstTree(Token.ParsedText));
+				CommandTree.AppendParsedTree2(OptionTree);
+				TokenContext.Next();
+				return CommandTree;
+			}
 			if(FindRedirectSymbol(TokenContext, false) != null) {
 				/*local*/GtSyntaxTree RedirectTree = TokenContext.ParsePattern(NameSpace, "$DShell2$", Required);
 				if(RedirectTree.IsError()) {
@@ -490,13 +523,20 @@ public class DShellGrammar extends GreenTeaUtils {
 
 	// dlog FunctionName => ExecAction(NameSpace, ContextualFuncName, Action);
 	public static GtNode TypeDLog(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		ContextType = GtStaticTable.GetNativeType(DFault.class);
+		ContextType = LibNative.GetNativeType(DFault.class);
 		GtNode ActionNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, ContextType, DefaultTypeCheckPolicy);
 		if(ActionNode.IsErrorNode()) {
 			return ActionNode;
 		}
-		if(ActionNode instanceof GtApplyNode) {
-			GtFunc ActionFunc = ((GtApplyNode)ActionNode).Func;
+		if(ActionNode instanceof GtStaticApplyNode) {
+			if(Gamma.NameSpace.GetSymbol("RECServerURL") == null) {
+				return Gamma.CreateSyntaxErrorNode(ParsedTree, "constant variable 'RECServerURL' is not defined");
+			}
+			if(Gamma.NameSpace.GetSymbol("Location") == null) {
+				return Gamma.CreateSyntaxErrorNode(ParsedTree, "constant variable 'Location' is not defined");
+			}
+			
+			GtFunc ActionFunc = ((GtStaticApplyNode)ActionNode).Func;
 			if(ActionFunc.GetFuncParamSize() == 0) {
 				GtFunc ReportFunc = (GtFunc)Gamma.NameSpace.GetSymbol("$ReportBuiltInFunc");
 				GtNode ApplyNode = Gamma.Generator.CreateApplyNode(ContextType, ParsedTree, ReportFunc);
@@ -650,6 +690,8 @@ public class DShellGrammar extends GreenTeaUtils {
 	// this is a new interface used in ImportNativeObject
 	public static void ImportGrammar(GtNameSpace NameSpace, Class<?> GrammarClass) {
 		/*local*/GtParserContext ParserContext = NameSpace.Context;
+		NameSpace.AppendTokenFunc("#", LoadTokenFunc2(ParserContext, GrammarClass, "ShellCommentToken")); 
+		
 		NameSpace.AppendSyntax("letenv", LoadParseFunc2(ParserContext, GrammarClass, "ParseEnv"), null);
 		NameSpace.AppendSyntax("command", LoadParseFunc2(ParserContext, GrammarClass, "ParseCommand"), null);
 		NameSpace.AppendSyntax("-", LoadParseFunc2(ParserContext, GrammarClass, "ParseFileOperator"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeFileOperator"));
@@ -657,9 +699,13 @@ public class DShellGrammar extends GreenTeaUtils {
 		NameSpace.AppendSyntax("$FilePath$", LoadParseFunc2(ParserContext, GrammarClass, "ParseFilePath"), null);
 		NameSpace.AppendSyntax("$DShell2$", LoadParseFunc2(ParserContext, GrammarClass, "ParseDShell2"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeDShell2"));
 		NameSpace.AppendSyntax("shell", LoadParseFunc2(ParserContext, GrammarClass, "ParseShell"), null);
+		
+		// builtin command
+		NameSpace.SetSymbol("timeout", NameSpace.GetSyntaxPattern("$DShell2$"), new GtToken("timeout", 0));
+		NameSpace.SetSymbol(CommandSymbol("timeout"), "timeout", null);
 
-		NameSpace.SetSymbol("$CreateFaultBuiltInFunc", LibGreenTea.ImportNativeObject(NameSpace, "DShellGrammar.CreateFault"), null);
-		NameSpace.SetSymbol("$ReportBuiltInFunc", LibGreenTea.ImportNativeObject(NameSpace, "DShellGrammar.ExecAction"), null);
+		NameSpace.SetSymbol("$CreateFaultBuiltInFunc", LibNative.ImportNativeObject(NameSpace, "DShellGrammar.CreateFault"), null);
+		NameSpace.SetSymbol("$ReportBuiltInFunc", LibNative.ImportNativeObject(NameSpace, "DShellGrammar.ExecAction"), null);
 		NameSpace.AppendSyntax("dlog", LoadParseFunc2(ParserContext, GrammarClass, "ParseDLog"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeDLog"));
 		NameSpace.AppendSyntax("fault", LoadParseFunc2(ParserContext, GrammarClass, "ParseFault"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeFault"));
 		

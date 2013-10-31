@@ -43,7 +43,7 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	private String GetLocalType(GtType Type, boolean IsPointer) {
-		if(Type.IsDynamic() || Type.IsNative()) {
+		if(Type.IsDynamicType() || Type.IsNativeType()) {
 			if(Type.IsBooleanType()) {
 				return "int";
 			}
@@ -207,7 +207,7 @@ public class CSourceGenerator extends SourceGenerator {
 		return Code;
 	}
 
-	@Override public void OpenClassField(GtType Type, GtClassField ClassField) {
+	@Override public void OpenClassField(GtSyntaxTree ParsedTree, GtType Type, GtClassField ClassField) {
 		/*local*/String TypeName = Type.ShortName;
 		/*local*/String LocalType = this.LocalTypeName(Type);
 		/*local*/String Program = this.GetIndentString() + "struct " + TypeName + " {" + this.LineFeed;
@@ -233,7 +233,7 @@ public class CSourceGenerator extends SourceGenerator {
 			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
 			/*local*/String VarName = FieldInfo.NativeName;
 			/*local*/String InitValue = this.StringifyConstValue(FieldInfo.InitValue);
-			if(!FieldInfo.Type.IsNative()) {
+			if(!FieldInfo.Type.IsNativeType()) {
 				InitValue = this.NullLiteral;
 			}
 			Program += this.GetIndentString() + this.GetRecvName() + "->" + VarName + " = " + InitValue + ";" + this.LineFeed;

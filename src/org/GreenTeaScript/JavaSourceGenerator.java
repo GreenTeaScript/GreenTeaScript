@@ -59,7 +59,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 		Builder.AppendLine("}");
 	}
 
-	@Override public void OpenClassField(GtType ClassType, GtClassField ClassField) {
+	@Override public void OpenClassField(GtSyntaxTree ParsedTree, GtType ClassType, GtClassField ClassField) {
 //		String ClassName = ClassType.GetNativeName();
 //		String superClassName = ClassType.SuperType.GetNativeName();
 //		JClassBuilder ClassBuilder = this.ClassGenerator.NewBuilder(ClassName, superClassName);

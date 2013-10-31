@@ -18,9 +18,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.EmptyStackException;
 import java.util.Stack;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import org.GreenTeaScript.DShellGrammar;
@@ -28,35 +25,32 @@ import org.GreenTeaScript.LibGreenTea;
 
 public class DShellProcess {
 	// option flag
-	private static final int returnable = 1 << 0;
-	private static final int printable = 1 << 1;
-	private static final int throwable = 1 << 2;
-	private static final int background = 1 << 3;
+	private static final int returnable  = 1 << 0;
+	private static final int printable   = 1 << 1;
+	private static final int throwable   = 1 << 2;
+	private static final int background  = 1 << 3;
 	private static final int enableTrace = 1 << 4;
 
 	// return type
-	private static final int VoidType = 0;
+	private static final int VoidType    = 0;
 	private static final int BooleanType = 1;
-	private static final int StringType = 2;
-
-	private static SubProc prevSubProc = null;
+	private static final int StringType  = 2;
+	
+	// trace tyep
+	private static boolean traceRequirement = false;
 
 	private String Result = "";
 	private long ReturnValue = -1;
-	private final int CommandFlag;
+	public final int CommandFlag;
 	private final PseudoProcess LastProcess;
-	private final PseudoProcess[] Processes;
-	private long timeout;
-	private ShellExceptionRaiser ExceptionManager = null;
+	public final PseudoProcess[] Processes;
+	public long timeout;
+	private ProcMonitor procMonitor;
 	
-	public DShellProcess(int option, String[][] cmds, int ProcessSize, long timeout) {
+	public DShellProcess(int option, String[][] cmds, long timeout) {
 		// init process
-		this.ExceptionManager = new ShellExceptionRaiser(is(option, throwable));
-		this.Processes = new PseudoProcess[ProcessSize];
-		for(int i = 0; i < ProcessSize; i++) {
-			this.Processes[i] = DShellProcess.createProc(cmds[i], is(option, enableTrace));
-			this.ExceptionManager.setProcess(this.Processes[i]);
-		}
+		this.Processes = createProcs(cmds, is(option, enableTrace));
+		int ProcessSize = this.Processes.length;
 		ErrorStreamHandler Handler = new ErrorStreamHandler(this.Processes);
 
 		// start process
@@ -76,15 +70,20 @@ public class DShellProcess {
 	}
 	private DShellProcess Detach() {
 		this.LastProcess.showResult();
-		if(timeout > 0) {
-			new ProcessTimer(this.Processes, timeout);
-		}
-		return this;
+		this.procMonitor = new ProcMonitor(this, true);
+		this.procMonitor.start();
+		return null;
 	}
 	private Object GetResult(int ReturnType) throws Exception {
+		this.procMonitor = new ProcMonitor(this, false);
+		this.procMonitor.start();
 		this.waitResult();
 		// raise exception
-		this.ExceptionManager.raiseException();
+		if(this.timeout <= 0) {
+			ShellExceptionRaiser raiser = new ShellExceptionRaiser(is(CommandFlag, throwable));
+			raiser.setProcesses(this.Processes);
+			raiser.raiseException();
+		}
 		this.Result = LastProcess.getStdout();
 		this.ReturnValue = LastProcess.getRet();
 		// get result value
@@ -100,6 +99,23 @@ public class DShellProcess {
 	}
 	private void waitResult() {
 		this.LastProcess.waitResult(is(this.CommandFlag, printable));
+	}
+	public void join() {
+		try {
+			this.procMonitor.join();
+			((SubProc)this.LastProcess).getMessageStreamHandler().join();
+		} 
+		catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	public String getResult() {
+		return this.LastProcess.getStdout();
+	}
+	
+	// initialization
+	public static void initDShellProcess() {
+		traceRequirement = checkTraceRequirements();
 	}
 
 	// called by JavaByteCodeGenerator.VisitCommandNode 
@@ -168,6 +184,14 @@ public class DShellProcess {
 		}
 		return false;
 	}
+	
+	// change directory
+	public static boolean ChangeDirectory(String path) {
+		if(LibGreenTea.EqualsString(path, "")) {
+			return CLibraryWrapper.INSTANCE.chdir(System.getenv("HOME")) == 0;
+		}
+		return CLibraryWrapper.INSTANCE.chdir(path) == 0;
+	}
 
 	//---------------------------------------------
 
@@ -184,6 +208,7 @@ public class DShellProcess {
 				return DShellGrammar.IsUnixCommand("strace");
 			}
 		}
+		System.err.println("Systemcall Trace is Not Supported");
 		return false;
 	}
 
@@ -202,112 +227,145 @@ public class DShellProcess {
 		return option;
 	}
 
-	private static PseudoProcess createProc(String[] cmds, boolean enableSyscallTrace) {
-		PseudoProcess proc = null;
-		String cmdSymbol = cmds[0];
-		if(LibGreenTea.EqualsString(cmdSymbol, "<")) {
-			proc = new InRedirectProc();
-			proc.setArgument(cmds);
+	private static PseudoProcess[] createProcs(String[][] cmds, boolean enableSyscallTrace) {
+		ArrayList<PseudoProcess> procBuffer = new ArrayList<PseudoProcess>();
+		int cmdsNum = cmds.length;
+		for(int i = 0; i < cmdsNum; i++) {
+			String[] currentCmd = cmds[i];
+			String cmdSymbol = currentCmd[0];
+			SubProc prevProc = null;
+			int size = procBuffer.size();
+			if(size > 0) {
+				prevProc = (SubProc)procBuffer.get(size - 1);
+			}
+			
+			if(LibGreenTea.EqualsString(cmdSymbol, "<")) {
+				prevProc.setInputRedirect(currentCmd[1]);
+			}
+			else if(LibGreenTea.EqualsString(cmdSymbol, "1>") || LibGreenTea.EqualsString(cmdSymbol, ">")) {
+				prevProc.setOutputRedirect(SubProc.STDOUT_FILENO, currentCmd[1], false);
+			}
+			else if(LibGreenTea.EqualsString(cmdSymbol, "1>>") || LibGreenTea.EqualsString(cmdSymbol, ">>")) {
+				prevProc.setOutputRedirect(SubProc.STDOUT_FILENO, currentCmd[1], true);
+			}
+			else if(LibGreenTea.EqualsString(cmdSymbol, "2>")) {
+				prevProc.setOutputRedirect(SubProc.STDERR_FILENO, currentCmd[1], false);
+			}
+			else if(LibGreenTea.EqualsString(cmdSymbol, "2>>")) {
+				prevProc.setOutputRedirect(SubProc.STDERR_FILENO, currentCmd[1], true);
+			}
+			else if(LibGreenTea.EqualsString(cmdSymbol, "&>") || LibGreenTea.EqualsString(cmdSymbol, ">&")) {
+				prevProc.setOutputRedirect(SubProc.STDOUT_FILENO, currentCmd[1], false);
+				prevProc.setMergeType(SubProc.mergeErrorToOut);
+			}
+			else if(LibGreenTea.EqualsString(cmdSymbol, "&>>")) {
+				prevProc.setOutputRedirect(SubProc.STDOUT_FILENO, currentCmd[1], true);
+				prevProc.setMergeType(SubProc.mergeErrorToOut);
+			}
+			else if(LibGreenTea.EqualsString(cmdSymbol, ">&1") || 
+					LibGreenTea.EqualsString(cmdSymbol, "1>&1") || LibGreenTea.EqualsString(cmdSymbol, "2>&2")) {
+				// do nothing
+			}
+			else if(LibGreenTea.EqualsString(cmdSymbol, "1>&2")) {
+				prevProc.setMergeType(SubProc.mergeOutToError);
+			}
+			else if(LibGreenTea.EqualsString(cmdSymbol, "2>&1")) {
+				prevProc.setMergeType(SubProc.mergeErrorToOut);
+			}
+			else {
+				SubProc proc = new SubProc(enableSyscallTrace);
+				proc.setArgument(currentCmd);
+				procBuffer.add(proc);
+			}
 		}
-		else if(LibGreenTea.EqualsString(cmdSymbol, "1>") || LibGreenTea.EqualsString(cmdSymbol, ">")) {
-			proc = new OutRedirectProc();
-			proc.setArgument(cmds);
+		
+		int bufferSize = procBuffer.size();
+		PseudoProcess[] procs = new PseudoProcess[bufferSize];
+		for(int i = 0; i < bufferSize; i++) {
+			procs[i] = procBuffer.get(i);
 		}
-		else if(LibGreenTea.EqualsString(cmdSymbol, "1>>") || LibGreenTea.EqualsString(cmdSymbol, ">>")) {
-			proc = new OutRedirectProc();
-			proc.setArgument(cmds);
-			((OutRedirectProc) proc).enablePostscriptMode();
-		}
-		else if(LibGreenTea.EqualsString(cmdSymbol, "2>")) {
-			proc = new OutRedirectProc();
-			proc.setArgument(cmds);
-			((OutRedirectProc) proc).enableErrorRedirectMode();
-		}
-		else if(LibGreenTea.EqualsString(cmdSymbol, "2>>")) {
-			proc = new OutRedirectProc();
-			proc.setArgument(cmds);
-			((OutRedirectProc) proc).enableErrorRedirectMode();
-			((OutRedirectProc) proc).enablePostscriptMode();
-		}
-		else if(LibGreenTea.EqualsString(cmdSymbol, "&>") || LibGreenTea.EqualsString(cmdSymbol, ">&")) {
-			proc = new OutRedirectProc();
-			proc.setArgument(cmds);
-			prevSubProc.setMergeType(SubProc.mergeErrorToOut);
-			prevSubProc = null;
-		}
-		else if(LibGreenTea.EqualsString(cmdSymbol, "&>>")) {
-			proc = new OutRedirectProc();
-			proc.setArgument(cmds);
-			((OutRedirectProc) proc).enablePostscriptMode();
-			prevSubProc.setMergeType(SubProc.mergeErrorToOut);
-			prevSubProc = null;
-		}
-		else if(LibGreenTea.EqualsString(cmdSymbol, ">&1") || 
-				LibGreenTea.EqualsString(cmdSymbol, "1>&1") || LibGreenTea.EqualsString(cmdSymbol, "2>&2")) {
-			proc = new EmptyProc();
-			proc.setArgument(cmds);
-		}
-		else if(LibGreenTea.EqualsString(cmdSymbol, "1>&2")) {
-			proc = new EmptyProc();
-			proc.setArgument(cmds);
-			prevSubProc.setMergeType(SubProc.mergeOutToError);
-			prevSubProc = null;
-		}
-		else if(LibGreenTea.EqualsString(cmdSymbol, "2>&1")) {
-			proc = new EmptyProc();
-			proc.setArgument(cmds);
-			prevSubProc.setMergeType(SubProc.mergeErrorToOut);
-			prevSubProc = null;
-		}
-		else {
-			proc = new SubProc(enableSyscallTrace);
-			proc.setArgument(cmds);
-			prevSubProc = (SubProc) proc;
-		}
-		return proc;
+		return procs;
 	}
 
 	private static Object runCommands(String[][] cmds, int option, int retType) throws Exception {
-		prevSubProc = null;
 		// prepare shell option
-		int size = 0;
 		long timeout = -1;
-		for(int i = 0; i < cmds.length; i++) {
-			if(LibGreenTea.EqualsString(cmds[i][0], "set")) {
-				if(cmds[i].length < 2) {
-					continue;
-				}
-				String subOption = cmds[i][1];
-				if(LibGreenTea.EqualsString(subOption, "trace=on")) {
-					option = setFlag(option, enableTrace, true);
-				}
-				else if(LibGreenTea.EqualsString(subOption, "trace=off")) {
-					option = setFlag(option, enableTrace, false);
-				}
-				else if(LibGreenTea.EqualsString(subOption, "background")) {
-					option = setFlag(option, background, !is(option, returnable));
-				}
-				else if(subOption.startsWith("timeout=")) {
-					String num = LibGreenTea.SubString(subOption, "timeout=".length(), subOption.length());
-					long parsedNum = LibGreenTea.ParseInt(num);
-					if(parsedNum >= 0) {
-						timeout = parsedNum;
+		ArrayList<String[]> newCmdsBuffer = new ArrayList<String[]>();
+		for(int i = 0; i < cmds.length; i++) {	// check background
+			String[] currentCmd = cmds[i];
+//			if(LibGreenTea.EqualsString(currentCmd[0], "set")) {
+//				if(currentCmd.length < 2) {
+//					continue;
+//				}
+//				String subOption = currentCmd[1];
+//				if(LibGreenTea.EqualsString(subOption, "trace=on")) {
+//					option = setFlag(option, enableTrace, true);
+//				}
+//				else if(LibGreenTea.EqualsString(subOption, "trace=off")) {
+//					option = setFlag(option, enableTrace, false);
+//				}
+//			}
+//			else 
+			if(LibGreenTea.EqualsString(currentCmd[0], "&")) {
+				option = setFlag(option, background, !is(option, returnable));
+			}
+			else {
+				newCmdsBuffer.add(currentCmd);
+			}
+		}
+		int bufferSize = newCmdsBuffer.size();
+		for(int i = 0; i < bufferSize; i++) {	// check internal option
+			String[] currentCmd = newCmdsBuffer.get(i);
+			if(LibGreenTea.EqualsString(currentCmd[0], "timeout")) {
+				StringBuilder numBuilder = new StringBuilder();
+				StringBuilder unitBuilder = new StringBuilder();
+				int len = currentCmd[1].length();
+				for(int j = 0; j < len; j++) {
+					char ch = currentCmd[1].charAt(j);
+					if(Character.isDigit(ch)) {
+						numBuilder.append(ch);
+					} 
+					else {
+						unitBuilder.append(ch);
 					}
 				}
-				continue;
+				long num = Integer.parseInt(numBuilder.toString());
+				String unit = unitBuilder.toString();
+				if(LibGreenTea.EqualsString(unit, "s")) {
+					num = num * 1000;
+				}
+				if(num >= 0) {
+					timeout = num;
+				}
+				String[] newCmd = new String[currentCmd.length - 2];
+				for(int j = 2; j < currentCmd.length; j++) {
+					newCmd[j - 2] = currentCmd[j];
+				}
+				newCmdsBuffer.set(i, newCmd);
 			}
-			size++;
-		}
-		if(is(option, enableTrace)) {
-			option = setFlag(option, enableTrace, checkTraceRequirements());
 		}
 		
-		DShellProcess Process = new DShellProcess(option, cmds, size, timeout);
+		String[][] newCmds = newCmdsBuffer.toArray(new String[newCmdsBuffer.size()][]);
+		
+		if(is(option, enableTrace)) {
+			option = setFlag(option, enableTrace, traceRequirement);
+		}
+		
+		// run command
+		DShellProcess Process = new DShellProcess(option, newCmds, timeout);
 		if(Process.IsBackGroundProcess()) {
 			return Process.Detach();
 		}
 		return Process.GetResult(retType);
 	}
+}
+
+interface CLibraryWrapper extends com.sun.jna.Library {
+	CLibraryWrapper INSTANCE = (CLibraryWrapper) com.sun.jna.Native.loadLibrary("c", CLibraryWrapper.class);
+	
+	int chdir(String path);
+	int seteuid(int uid);
+	int getuid();
 }
 
 class PseudoProcess {
@@ -353,7 +411,6 @@ class PseudoProcess {
 	}
 
 	public void pipe(PseudoProcess srcProc) {
-		this.pipedPrevProc = srcProc;
 		new PipeStreamHandler(srcProc.accessOutStream(), this.stdin, true).start();
 	}
 
@@ -413,13 +470,21 @@ class SubProc extends PseudoProcess {
 
 	private final static String logdirPath = "/tmp/strace-log";
 	private static int logId = 0;
+	
+	public final static int STDOUT_FILENO = 1;
+	public final static int STDERR_FILENO = 2;
 
 	private Process proc;
 	private boolean enableSyscallTrace = false;
 	public boolean isKilled = false;
 	public String logFilePath = null;
-
-	private ByteArrayOutputStream outBuf;
+	
+	private FileInputStream inFileStream = null;
+	private FileOutputStream outFileStream = null;
+	private FileOutputStream errFileStream = null;
+	
+	private ByteArrayOutputStream messageBuffer;
+	private PipeStreamHandler messageStreamHandler = null;
 
 	private static String createLogDirectory() {
 		Calendar cal = Calendar.getInstance();
@@ -527,10 +592,70 @@ class SubProc extends PseudoProcess {
 				this.stdout = this.proc.getInputStream();
 				this.stderr = this.proc.getErrorStream();
 			}
+			
+			// input & output redirect
+			readFile();
+			writeFile(STDOUT_FILENO);
+			writeFile(STDERR_FILENO);
 		}
 		catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public void setInputRedirect(String readFileName) {
+		try {
+			this.inFileStream = new FileInputStream(readFileName);
+		}
+		catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void readFile() {
+		if(this.inFileStream == null) {
+			return;
+		}
+		InputStream srcStream = new BufferedInputStream(inFileStream);
+		OutputStream destStream = this.stdin;
+		new PipeStreamHandler(srcStream, destStream, true).start();
+	}
+
+	public void setOutputRedirect(int fd, String writeFileName, boolean append) {
+		try {
+			if(fd == STDOUT_FILENO) {
+				this.outFileStream = new FileOutputStream(writeFileName, append);
+			} 
+			else if(fd == STDERR_FILENO) {
+				this.errFileStream = new FileOutputStream(writeFileName, append);
+			}
+		}
+		catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void writeFile(int fd) {
+		InputStream srcStream;
+		OutputStream destStream;
+		if(fd == STDOUT_FILENO) {
+			if(this.outFileStream == null) {
+				return;
+			}
+			srcStream = this.accessOutStream();
+			destStream = new BufferedOutputStream(this.outFileStream);
+		}
+		else if(fd == STDERR_FILENO) {
+			if(this.errFileStream == null) {
+				return;
+			}
+			srcStream = this.accessErrorStream();
+			destStream = new BufferedOutputStream(this.errFileStream);
+		}
+		else {
+			throw new RuntimeException("invalid file descriptor");
+		}
+		new PipeStreamHandler(srcStream, destStream, true).start();
 	}
 
 	@Override public void waitResult(boolean isPrintable) {
@@ -542,8 +667,8 @@ class SubProc extends PseudoProcess {
 			closeStream = false;
 		}
 		else {
-			outBuf = new ByteArrayOutputStream();
-			outStream = outBuf;
+			messageBuffer = new ByteArrayOutputStream();
+			outStream = messageBuffer;
 			closeStream = true;
 		}
 		
@@ -558,11 +683,15 @@ class SubProc extends PseudoProcess {
 	}
 	
 	@Override public void showResult() {
-		new PipeStreamHandler(this.accessOutStream(), System.out, false).start();
+		this.messageBuffer = new ByteArrayOutputStream();
+		OutputStream[] outStreams = {System.out, this.messageBuffer}; 
+		boolean[] closeOutputs = {false, true};
+		this.messageStreamHandler = new PipeStreamHandler(this.accessOutStream(), outStreams, false, closeOutputs);
+		this.messageStreamHandler.start();
 	}
 
 	@Override public String getStdout() {
-		return this.outBuf == null ? "" : this.outBuf.toString();
+		return this.messageBuffer == null ? "" : this.messageBuffer.toString();
 	}
 
 	@Override public void waitFor() {
@@ -575,6 +704,11 @@ class SubProc extends PseudoProcess {
 	}
 
 	@Override public void kill() {
+		if(System.getProperty("os.name").startsWith("Windows")) {
+			this.proc.destroy();
+			return;
+		} 
+		 
 		try {
 			// get target pid
 			Field pidField = this.proc.getClass().getDeclaredField("pid");
@@ -586,7 +720,7 @@ class SubProc extends PseudoProcess {
 			Process procKiller = new ProcessBuilder(cmds).start();
 			procKiller.waitFor();
 			this.isKilled = true;
-			LibGreenTea.print("[killed]: " + this.getCmdName());
+			//LibGreenTea.print("[killed]: " + this.getCmdName());
 		} 
 		catch (NoSuchFieldException e) {
 			e.printStackTrace();
@@ -607,6 +741,10 @@ class SubProc extends PseudoProcess {
 			e.printStackTrace();
 		}
 	}
+	
+	public Process getInternalProc() {
+		return this.proc;
+	}
 
 	public String getLogFilePath() {
 		return this.logFilePath;
@@ -615,116 +753,77 @@ class SubProc extends PseudoProcess {
 	@Override public boolean isTraced() {
 		return this.enableSyscallTrace;
 	}
-}
-
-class InRedirectProc extends PseudoProcess {
-	@Override public void start() {
-		String fileName = this.commandList.get(1);
-		try {
-			this.stdout = new BufferedInputStream(new FileInputStream(fileName));
-		} 
-		catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
+	
+	public PipeStreamHandler getMessageStreamHandler() {
+		return this.messageStreamHandler;
 	}
 }
 
-class OutRedirectProc extends PseudoProcess {
-	private boolean postscriptMode = false;
-	public boolean errorRedirectMode = false;
-	@Override public void start() {
-		String fileName = this.commandList.get(1);
-		try {
-			this.stdin = new BufferedOutputStream(new FileOutputStream(fileName, this.postscriptMode));
-		} 
-		catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
+class ProcMonitor extends Thread {	// TODO: support exit handler
+	private DShellProcess dShellProc;
+	private boolean isBackground;
+	
+	public ProcMonitor(DShellProcess dShellProc, boolean isBackground) {
+		this.dShellProc = dShellProc;
+		this.isBackground = isBackground;
 	}
-
-	@Override public void pipe(PseudoProcess srcProc) {
-		InputStream srcStream;
-		this.pipedPrevProc = srcProc;
-		if(errorRedirectMode) {
-			srcStream = srcProc.accessErrorStream();
-			if(srcProc instanceof OutRedirectProc && !((OutRedirectProc) srcProc).errorRedirectMode) {
-				srcStream = srcProc.pipedPrevProc.accessErrorStream();
-			}
-		}
-		else {
-			srcStream = srcProc.accessOutStream();
-			if(srcProc instanceof OutRedirectProc && ((OutRedirectProc) srcProc).errorRedirectMode) {
-				srcStream = srcProc.pipedPrevProc.accessOutStream();
-			}
-		}
-		new PipeStreamHandler(srcStream, this.stdin, true).start();
-	}
-
-	@Override public int getRet() {
-		return this.pipedPrevProc.getRet();
-	}
-
-	public void enablePostscriptMode() {
-		this.postscriptMode = true;
-	}
-
-	public void enableErrorRedirectMode() {
-		this.errorRedirectMode = true;
-	}
-}
-
-class EmptyProc extends PseudoProcess {
-	@Override public void pipe(PseudoProcess srcProc) {
-		this.pipedPrevProc = srcProc;
-		this.stdout = srcProc.stdout;
-		this.stderr = srcProc.stderr;
-	}
-
-	@Override public void waitResult(boolean isExpr) {
-		this.pipedPrevProc.waitResult(isExpr);
-	}
-
-	@Override public void showResult() {
-		this.pipedPrevProc.showResult();
-	}
-
-	@Override public String getStdout() {
-		return this.pipedPrevProc.getStdout();
-	}
-
-	@Override public String getStderr() {
-		return this.pipedPrevProc.getStderr();
-	}
-
-	@Override public int getRet() {
-		return this.pipedPrevProc.getRet();
-	}
-}
-
-class ProcessTimer {
-	public ProcessTimer(PseudoProcess[] targetProcs, long timeout) {
-		ProcessKiller procKiller = new ProcessKiller(targetProcs);
-		Timer timer = new Timer();
-		timer.schedule(procKiller, TimeUnit.SECONDS.toMillis(timeout));
-	}
-}
-
-class ProcessKiller extends TimerTask {
-	private PseudoProcess[] procs;
-
-	public ProcessKiller(PseudoProcess[] targetProcs) {
-		this.procs = targetProcs;
-	}
-
-	public void killProcs() {
-		LibGreenTea.println("processes are time out!!");
-		for(int i = 0; i < this.procs.length; i++) {
-			this.procs[i].kill();
-		}
-	}
-
+	
 	@Override public void run() {
-		this.killProcs();
+		int size = this.dShellProc.Processes.length;
+		if(this.dShellProc.timeout > 0) { // timeout
+			try {
+				StringBuilder msgBuilder = new StringBuilder();
+				msgBuilder.append("timeout processes: ");
+				Thread.sleep(this.dShellProc.timeout);	// ms
+				for(int i = 0; i < size; i++) {
+					this.dShellProc.Processes[i].kill();
+					if(i != 0) {
+						msgBuilder.append("| ");
+					}
+					msgBuilder.append(this.dShellProc.Processes[i].getCmdName());
+				}
+				System.err.println(msgBuilder.toString());
+				// run exit handler
+			} 
+			catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			return;
+		}
+		
+		// check process status
+		while(this.isBackground) {
+			int count = 0;
+			for(int i = 0; i < size; i++) {
+				SubProc subProc = (SubProc)this.dShellProc.Processes[i];
+				try {
+					subProc.getInternalProc().exitValue();
+					count++;
+				}
+				catch(IllegalThreadStateException e) {
+					// process has not terminated yet. do nothing
+				}
+			}
+			if(count == size) {
+				StringBuilder msgBuilder = new StringBuilder();
+				msgBuilder.append("exit processes: ");
+				for(int i = 0; i < size; i++) {
+					if(i != 0) {
+						msgBuilder.append("| ");
+					}
+					msgBuilder.append(this.dShellProc.Processes[i].getCmdName());
+				}
+				System.err.println(msgBuilder.toString());
+				// run exit handler
+				return;
+			}
+			try {
+				Thread.sleep(100); // sleep thread
+			}
+			catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }
 
@@ -745,17 +844,35 @@ class ErrorStreamHandler {
 // copied from http://blog.art-of-coding.eu/piping-between-processes/
 class PipeStreamHandler extends Thread {
 	private InputStream input;
-	private OutputStream output;
-	private boolean closeStream;
+	private OutputStream[] outputs;
+	private boolean closeInput;
+	private boolean[] closeOutputs;
 
 	public PipeStreamHandler(InputStream input, OutputStream output, boolean closeStream) {
 		this.input = input;
-		this.output = output;
-		this.closeStream = closeStream;
+		this.outputs = new OutputStream[1];
+		this.outputs[0] = output;
+		if(output == null) {
+			this.outputs[0] = new NullStream();
+		}
+		this.closeInput = closeStream;
+		this.closeOutputs = new boolean[1];
+		this.closeOutputs[0] = closeStream;
+	}
+	
+	public PipeStreamHandler(InputStream input, 
+			OutputStream[] outputs, boolean closeInput, boolean[] closeOutputs) {
+		this.input = input;
+		this.outputs = new OutputStream[outputs.length];
+		this.closeInput = closeInput;
+		this.closeOutputs = closeOutputs;
+		for(int i = 0; i < this.outputs.length; i++) {
+			this.outputs[i] = outputs[i] == null ? new NullStream() : outputs[i];
+		}
 	}
 
 	@Override public void run() {
-		if(this.input == null || this.output == null) {
+		if(this.input == null) {
 			return;
 		}
 		try {
@@ -764,16 +881,28 @@ class PipeStreamHandler extends Thread {
 			while(read > -1) {
 				read = this.input.read(buffer, 0, buffer.length);
 				if(read > -1) {
-					this.output.write(buffer, 0, read);
+					for(int i = 0; i < this.outputs.length; i++) {
+						this.outputs[i].write(buffer, 0, read);
+					}
 				}
 			}
-			if(closeStream) {
+			if(this.closeInput) {
 				this.input.close();
-				this.output.close();
+			}
+			for(int i = 0; i < this.outputs.length; i++) {
+				if(this.closeOutputs[i]) {
+					this.outputs[i].close();
+				}
 			}
 		}
 		catch (IOException e) {
 			throw new RuntimeException(e);
+		}
+	}
+	
+	class NullStream extends OutputStream {
+		@Override public void write(int b) throws IOException {
+			// do nothing
 		}
 	}
 }
@@ -1000,22 +1129,20 @@ class CauseInferencer {
 }
 
 class ShellExceptionRaiser {
-	private ArrayList<PseudoProcess> procList;
+	private PseudoProcess[] procs;
 	private boolean enableException;
 
 	public ShellExceptionRaiser(boolean enableException) {
 		this.enableException = enableException;
-		this.procList = new ArrayList<PseudoProcess>();
 	}
 
-	public void setProcess(PseudoProcess kproc) {
-		this.procList.add(kproc);
+	public void setProcesses(PseudoProcess[] kprocs) {
+		this.procs = kprocs;
 	}
 
 	public void raiseException() throws Exception {
-		int size = procList.size();
-		for(int i = 0; i < size; i++) {
-			PseudoProcess targetProc = procList.get(i);
+		for(int i = 0; i < this.procs.length; i++) {
+			PseudoProcess targetProc = this.procs[i];
 			targetProc.waitFor();
 			
 			if(!this.enableException) {
@@ -1046,7 +1173,7 @@ class ShellExceptionRaiser {
 		Object[] args = {message, message, syscall};
 		try {
 			if(syscall == null) {
-				return new NoRelatedSyscallException(message);
+				return new NotRelatedSyscallException(message);
 			}
 			Class<?> exceptionClass = ErrorToException.valueOf(syscall[2]).toException();
 			if(exceptionClass == null) {

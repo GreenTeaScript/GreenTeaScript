@@ -54,7 +54,7 @@ public class GtType extends GreenTeaUtils {
 		if(IsFlag(NativeType, TypeFlag) && TypeBody instanceof Class<?>) {
 			Class<?> SuperClass = ((/*cast*/Class<?>)TypeBody).getSuperclass();
 			if(SuperClass != null && SuperClass != Object.class) {
-				this.SuperType = GtStaticTable.GetNativeType(SuperClass);
+				this.SuperType = LibNative.GetNativeType(SuperClass);
 				this.ParentMethodSearch = this.SuperType;
 			}
 		}
@@ -62,9 +62,21 @@ public class GtType extends GreenTeaUtils {
 	}
 
 //ifdef JAVA
-	public Class<?> GetNativeType() {
+	public Class<?> GetNativeType(boolean enforceBoxing) {
 		if(this.BaseType.TypeBody instanceof Class<?>) {
-			return (Class<?>) this.BaseType.TypeBody;
+			Class<?> JavaType = (Class<?>) this.BaseType.TypeBody;
+			if(enforceBoxing && this.IsUnboxType()) {
+				if(this.BaseType.IsIntType()) {
+					JavaType = Long.class;
+				}
+				else if(this.BaseType.IsBooleanType()) {
+					JavaType = Boolean.class;
+				}
+				else {
+					JavaType = Double.class;
+				}
+			}
+			return JavaType;
 		}
 		return Object.class;
 	}
@@ -80,15 +92,15 @@ public class GtType extends GreenTeaUtils {
 	// Note Don't call this directly. Use Context.GetGenericType instead.
 	public GtType CreateGenericType(int BaseIndex, ArrayList<GtType> TypeList, String ShortName) {
 		/*local*/int i = BaseIndex;
-		/*local*/int TypeVariableFlag = 0;
+		/*local*/int TypeVariableFlag = (this.TypeFlag & (~GenericVariable));
 		while(i < TypeList.size()) {
 			if(TypeList.get(i).HasTypeVariable()) {
-				TypeVariableFlag = GenericVariable;
+				TypeVariableFlag |= GenericVariable;
 				break;
 			}
 			i = i + 1;
 		}
-		/*local*/GtType GenericType = new GtType(this.TypeFlag | TypeVariableFlag, ShortName, null, null);
+		/*local*/GtType GenericType = new GtType(TypeVariableFlag, ShortName, null, null);
 		GenericType.BaseType = this.BaseType;
 		GenericType.ParentMethodSearch = this.BaseType;
 		GenericType.SuperType = this.SuperType;
@@ -96,15 +108,17 @@ public class GtType extends GreenTeaUtils {
 		LibGreenTea.VerboseLog(VerboseType, "new generic type: " + GenericType.ShortName + ", ClassId=" + GenericType.TypeId);
 		return GenericType;
 	}
-
-	public final boolean IsAbstract() {
+	public final boolean IsAbstractType() {
 		return (this.TypeBody == null && this.SuperType == GtStaticTable.TopType/*default*/);
 	}
-	public final boolean IsNative() {
+	public final boolean IsNativeType() {
 		return IsFlag(this.TypeFlag, NativeType);
 	}
-	public final boolean IsDynamic() {
+	public final boolean IsDynamicType() {
 		return IsFlag(this.TypeFlag, DynamicType);
+	}
+	public boolean IsVirtualType() {
+		return IsFlag(this.TypeFlag, VirtualType);
 	}
 	public final boolean IsUnboxType() {
 		return IsFlag(this.BaseType.TypeFlag, UnboxType);
@@ -143,7 +157,10 @@ public class GtType extends GreenTeaUtils {
 		return (this == GtStaticTable.StringType);
 	}
 	public final boolean IsArrayType() {
-		return (this == GtStaticTable.ArrayType);
+		return (this.BaseType == GtStaticTable.ArrayType);
+	}
+	public final boolean IsIteratorType() {
+		return (this.BaseType == GtStaticTable.IteratorType);
 	}
 	public final boolean IsEnumType() {
 		return IsFlag(this.TypeFlag, EnumType);
@@ -225,7 +242,7 @@ public class GtType extends GreenTeaUtils {
 	}
 
 	public boolean IsDynamicNaitiveLoading() {
-		return this.IsNative() /*&& !IsFlag(this.TypeFlag, CommonType)*/;
+		return this.IsNativeType() /*&& !IsFlag(this.TypeFlag, CommonType)*/;
 	}
 
 	public final boolean IsTypeVariable() {   // T
@@ -313,6 +330,7 @@ public class GtType extends GreenTeaUtils {
 		}
 		return this.Accept(GivenType);
 	}
+
 
 
 

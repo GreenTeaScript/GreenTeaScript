@@ -217,7 +217,7 @@ public class GtGenerator extends GreenTeaUtils {
 
 	/* language constructor */
 
-	public void OpenClassField(GtType DefinedType, GtClassField ClassField) {
+	public void OpenClassField(GtSyntaxTree ParsedTree, GtType DefinedType, GtClassField ClassField) {
 		/*extension*/
 	}
 
@@ -484,7 +484,7 @@ public class GtGenerator extends GreenTeaUtils {
 				}
 				//System.err.println("@@@@ " + i + ", " + Arguments[i] + ", " + Arguments[i].getClass());
 			}
-			return LibGreenTea.ApplyMethod(Node.Func, RecvObject, Arguments);
+			return LibNative.ApplyMethod(Node.Func, RecvObject, Arguments);
 		}
 //endif VAJA
 		return Node.ToNullValue(this.Context, EnforceConst);  // if unsupported
@@ -530,12 +530,12 @@ public class GtGenerator extends GreenTeaUtils {
 			}
 			//System.err.println("** Node.Func = " + Node.Func.FuncBody.getClass());
 			if(Node.Func.FuncBody instanceof Field) {
-				Value = LibGreenTea.NativeFieldValue(Value, (/*cast*/Field)Node.Func.FuncBody);
+				Value = LibNative.GetNativeFieldValue(Value, (/*cast*/Field)Node.Func.FuncBody);
 				return Value;
 			}
-			if(Node.Func.FuncBody instanceof Method) {
-				return LibGreenTea.ApplyMethod1(Node.Func, null, Value);
-			}
+//			if(Node.Func.FuncBody instanceof Method) {
+//				return LibNative.ApplyMethod1(Node.Func, null, Value);
+//			}
 		}
 //endif VAJA
 		return Node.ToNullValue(this.Context, EnforceConst); // if unsupported
@@ -555,9 +555,9 @@ public class GtGenerator extends GreenTeaUtils {
 			if(Node.Func.FuncBody instanceof Field) {
 				return LibGreenTea.NativeFieldSetter(LeftValue, (/*cast*/Field)Node.Func.FuncBody, RightValue);
 			}
-			if(Node.Func.FuncBody instanceof Method) {
-				return LibGreenTea.ApplyMethod2(Node.Func, null, LeftValue, RightValue);
-			}
+//			if(Node.Func.FuncBody instanceof Method) {
+//				return LibNative.ApplyMethod2(Node.Func, null, LeftValue, RightValue);
+//			}
 		}
 //endif VAJA
 		return Node.ToNullValue(this.Context, EnforceConst); // if unsupported

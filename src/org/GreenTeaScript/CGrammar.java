@@ -90,7 +90,7 @@ public class CGrammar extends GreenTeaUtils {
 		/*local*/GtType ReturnType = (GetterFunc != null) ? GetterFunc.GetReturnType() : GtStaticTable.AnyType;
 		/*local*/GtNode Node = Gamma.Generator.CreateGetterNode(ReturnType, ParsedTree, GetterFunc, ObjectNode);
 		if(GetterFunc == null) {
-			if(!ObjectNode.Type.IsDynamic() && ContextType != GtStaticTable.FuncType) {
+			if(!ObjectNode.Type.IsDynamicType() && ContextType != GtStaticTable.FuncType) {
 				return Gamma.ReportTypeResult(ParsedTree, Node, TypeErrorLevel, "undefined name: " + Name + " of " + TypeName);
 			}
 		}
@@ -116,7 +116,7 @@ public class CGrammar extends GreenTeaUtils {
 		/*local*/int ClassFlag = KonohaGrammar.ParseClassFlag(0, TokenContext.ParsingAnnotation);
 		/*local*/String ClassName = NameToken.ParsedText;
 		/*local*/GtType DefinedType = NameSpace.GetType(ClassName);
-		if(DefinedType != null && DefinedType.IsAbstract()) {
+		if(DefinedType != null && DefinedType.IsAbstractType()) {
 			DefinedType.TypeFlag = ClassFlag;
 			DefinedType.SuperType = SuperType;
 			NameToken = null; // preventing duplicated symbol message at (A)
@@ -151,7 +151,7 @@ public class CGrammar extends GreenTeaUtils {
 		if(ClassField != null) {
 			/*local*/GtType DefinedType = ClassField.DefinedType;
 			DefinedType.SetClassField(ClassField);
-			Gamma.Generator.OpenClassField(DefinedType, ClassField);
+			Gamma.Generator.OpenClassField(ParsedTree, DefinedType, ClassField);
 			/*local*/GtSyntaxTree SubTree = ParsedTree.GetSyntaxTreeAt(ClassDeclBlock);
 			/*local*/ArrayList<GtFunc> MemberList = new ArrayList<GtFunc>();
 			while(SubTree != null) {

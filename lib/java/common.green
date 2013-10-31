@@ -14,6 +14,9 @@
 @Common @Coercion @Const String converter(var x) import Konoha.TopApi.EnumToString;
 
 // AnyApi
+@Common @Coercion @Const boolean converter(var x) import Konoha.AnyApi.ToBoolean;
+@Common @Coercion @Const int converter(any x) import Konoha.AnyApi.ToInt;
+@Common @Coercion @Const float converter(any x) import Konoha.AnyApi.ToFloat;
 
 // StringApi
 @Common @Const @Operator String "+"(String x, any y) import Konoha.StringApi.Add;
@@ -27,6 +30,7 @@
 @Common @Const @Operator String "[]"(String x, int index) import Konoha.StringApi.Get;
 @Common @Const @Operator String "[:]"(String x, int beginIndex) import Konoha.StringApi.Slice;
 @Common @Const @Operator String "[:]"(String x, int beginIndex, int endIndex) import Konoha.StringApi.Slice;
+@Common @Const @Operator Iterator<String> ".."(String x) import Konoha.StringApi.ToIterator;
 
 @Common @Const boolean startsWith(String x, String y) import Konoha.StringApi.StartsWith;
 @Common @Const boolean endsWith(String x, String y) import Konoha.StringApi.EndsWith;
@@ -35,7 +39,7 @@
 
 @Const var split(String x, String y) import Konoha.StringApi.Split;
 
-@Common @Const @Coercion any converter(String x) import Konoha.StringApi.ToAny;
+//@Common @Const @Coercion any converter(String x) import Konoha.StringApi.ToAny;
 @Common @Const int converter(String x) import Konoha.StringApi.ToInt;
 @Common @Const float converter(String x) import Konoha.StringApi.ToDouble;
 
@@ -135,6 +139,10 @@
 //@Common Array<int> add(Array<int> this, int value) import Konoha.ArrayApi.AddI;
 //@Common @Const @Operator Array<int> "[:]"(Array<int> x, int beginIndex) import Konoha.ArrayApi.SliceI;
 //@Common @Const @Operator Array<int> "[:]"(Array<int> x, int beginIndex, int endIndex) import Konoha.ArrayApi.SliceI;
+
+// Iterator
+@Common @Const <T> boolean hasNext(Iterator<T> this) import NativeLanguageApi.IteratorHasNext;
+@Common @Const <T> T Next(Iterator<T> this) import NativeLanguageApi.IteratorNext;
 
 // experimental
 @Hidden @Coercion @Const var converter(var x) import Konoha.ArrayApi.GreenArrayToStringArray;

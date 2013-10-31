@@ -230,6 +230,12 @@ interface GreenTeaConsts {
 	static final int ForIteration = 2;
 	static final int ForBody = 3;
 
+	// for(init; cond; iter) {...}
+	static final int ForEachType = 0;
+	static final int ForEachName = 1;
+	static final int ForEachIter = 2;
+	static final int ForEachBody = 3;
+
 	// ReturnStmt
 	public final static int	ReturnExpr	= 0;
 
@@ -431,7 +437,7 @@ class GreenTeaUtils implements GreenTeaConsts {
 
 	public final static int ApplyTokenFunc(GtTokenFunc TokenFunc, GtTokenContext TokenContext, String ScriptSource, int Pos) {
 		while(TokenFunc != null) {
-			/*local*/int NextIdx = (/*cast*/int)LibGreenTea.ApplyTokenFunc(TokenFunc.Func, TokenContext, ScriptSource, Pos);
+			/*local*/int NextIdx = (/*cast*/int)LibNative.ApplyTokenFunc(TokenFunc.Func, TokenContext, ScriptSource, Pos);
 			if(NextIdx > Pos) return NextIdx;
 			TokenFunc = TokenFunc.ParentFunc;
 		}
@@ -491,7 +497,7 @@ class GreenTeaUtils implements GreenTeaConsts {
 			}
 			//LibGreenTea.DebugP("B :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + ", next=" + CurrentPattern.ParentPattern);
 			TokenContext.IndentLevel += 1;
-			/*local*/GtSyntaxTree ParsedTree = (/*cast*/GtSyntaxTree)LibGreenTea.ApplyParseFunc(delegate, NameSpace, TokenContext, LeftTree, CurrentPattern);
+			/*local*/GtSyntaxTree ParsedTree = (/*cast*/GtSyntaxTree)LibNative.ApplyParseFunc(delegate, NameSpace, TokenContext, LeftTree, CurrentPattern);
 			TokenContext.IndentLevel -= 1;
 			TokenContext.ParseFlag = ParseFlag;
 			if(ParsedTree != null && ParsedTree.IsMismatched()) {
@@ -519,7 +525,7 @@ class GreenTeaUtils implements GreenTeaConsts {
 	public final static GtNode ApplyTypeFunc(GtFunc TypeFunc, GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
 		if(TypeFunc != null) {
 			Gamma.NameSpace = ParsedTree.NameSpace;
-			return (/*cast*/GtNode)LibGreenTea.ApplyTypeFunc(TypeFunc, Gamma, ParsedTree, Type);
+			return (/*cast*/GtNode)LibNative.ApplyTypeFunc(TypeFunc, Gamma, ParsedTree, Type);
 		}
 		return Gamma.Generator.CreateEmptyNode(GtStaticTable.VoidType);
 	}
@@ -713,8 +719,6 @@ public class GreenTeaScript extends GreenTeaUtils {
 			LibGreenTea.Usage("no target: " + TargetCode);
 		}
 		/*local*/GtParserContext Context = new GtParserContext(new KonohaGrammar(), Generator);
-		// USE require dshell;
-		// Context.LoadGrammar(new DShellGrammar());
 		if(RequiredLibName != null) {
 			if(!Context.TopLevelNameSpace.LoadRequiredLib(RequiredLibName)) {
 				LibGreenTea.Exit(1, "failed to load required library: " + RequiredLibName);
@@ -726,18 +730,24 @@ public class GreenTeaScript extends GreenTeaUtils {
 		if(!(Index < Args.length)) {
 			ShellMode = true;
 		}
+		GreenTeaArray ARGV = GreenTeaArray.NewArray1(GtStaticTable.StringType, 0);
 		while(Index < Args.length) {
-			/*local*/String ScriptText = LibGreenTea.LoadFile2(Args[Index]);
+			ARGV.ArrayBody.add(Args[Index]);
+			Index += 1;
+		}
+		Context.RootNameSpace.SetSymbol("ARGV", ARGV, null);
+		if(ARGV.ArrayBody.size() > 0) {
+			/*local*/String FileName = (/*cast*/String)ARGV.ArrayBody.get(0);
+			/*local*/String ScriptText = LibGreenTea.LoadFile2(FileName);
 			if(ScriptText == null) {
-				LibGreenTea.Exit(1, "file not found: " + Args[Index]);
+				LibGreenTea.Exit(1, "file not found: " + FileName);
 			}
-			/*local*/long FileLine = Context.GetFileLine(Args[Index], 1);
+			/*local*/long FileLine = GtStaticTable.GetFileLine(FileName, 1);
 			/*local*/boolean Success = Context.TopLevelNameSpace.Load(ScriptText, FileLine);
 			Context.ShowReportedErrors();
 			if(!Success) {
-				LibGreenTea.Exit(1, "abort loading: " + Args[Index]);
+				LibGreenTea.Exit(1, "abort loading: " + FileName);
 			}
-			Index += 1;
 		}
 		if(ShellMode) {
 			LibGreenTea.println(GreenTeaUtils.ProgName + GreenTeaUtils.Version + " (" + GreenTeaUtils.CodeName + ") on " + LibGreenTea.GetPlatform());
@@ -750,7 +760,7 @@ public class GreenTeaScript extends GreenTeaUtils {
 					/*local*/Object EvaledValue = Context.TopLevelNameSpace.Eval(Line, linenum);
 					Context.ShowReportedErrors();
 					if(EvaledValue != null) {
-						LibGreenTea.println(" (" + GtStaticTable.GuessType(EvaledValue) + ":" + LibGreenTea.GetClassName(EvaledValue) + ") " + LibGreenTea.Stringify(EvaledValue));
+						LibGreenTea.println(" (" + GtStaticTable.GuessType(EvaledValue) + ":" + LibNative.GetClassName(EvaledValue) + ") " + LibGreenTea.Stringify(EvaledValue));
 					}
 					linenum += 1;
 				}

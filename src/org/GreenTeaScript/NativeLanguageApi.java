@@ -22,18 +22,16 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package org.GreenTeaScript.Konoha;
+package org.GreenTeaScript;
+import java.util.Iterator;
 
-public final class AnyApi {
-
-	public final static boolean ToBoolean(Object value) {
-		return value == null ? false : ((Boolean)value).booleanValue();
+public class NativeLanguageApi {
+	// Iterator
+	public final static boolean IteratorHasNext(Iterator<Object> Iter) {
+		return Iter != null && Iter.hasNext();
 	}
-	public final static long ToInt(Object value) {
-		return value == null ? 0L : ((Long)value).longValue();
+	public final static Object IteratorNext(Iterator<Object> Iter) {
+		return Iter.next();
 	}
-	public final static double ToFloat(Object value) {
-		return value == null ? 0.0 : ((Double)value).longValue();
-	}
-	
 }
+

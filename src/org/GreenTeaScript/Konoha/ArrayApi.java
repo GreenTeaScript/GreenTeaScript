@@ -24,11 +24,13 @@
 
 package org.GreenTeaScript.Konoha;
 import java.lang.reflect.Array;
+import java.util.Iterator;
 
 import org.GreenTeaScript.GreenTeaArray;
 import org.GreenTeaScript.GtStaticTable;
 import org.GreenTeaScript.GtType;
 import org.GreenTeaScript.LibGreenTea;
+import org.GreenTeaScript.LibNative;
 
 public class ArrayApi {
 	public final static long GetSize(GreenTeaArray self) {
@@ -53,7 +55,6 @@ public class ArrayApi {
 		int eindex = (EIndex < 0) ? self.ArrayBody.size() - (int)EIndex : (int)EIndex;
 		return self.SubArray(bindex, eindex);
 	}
-	
 	public final static GreenTeaArray ObjectArrayToGreenArray(Object ObjectArray) {
 		LibGreenTea.Assert(ObjectArray.getClass().isArray());
 		Class<?> ComponentType = ObjectArray.getClass().getComponentType();
@@ -76,7 +77,7 @@ public class ArrayApi {
 				return ArrayObject;
 			}
 		}
-		GtType ElementType = GtStaticTable.GetNativeType(ComponentType);
+		GtType ElementType = LibNative.GetNativeType(ComponentType);
 		GtType ArrayType = GtStaticTable.GetGenericType1(GtStaticTable.ArrayType, ElementType, true);
 		GreenTeaArray ArrayObject = new GreenTeaArray(ArrayType);
 		for(int i = 0; i < Array.getLength(ObjectArray); i++) {
@@ -112,7 +113,7 @@ public class ArrayApi {
 			}
 			return Values;
 		}
-		Object ObjectArray = Array.newInstance(ElementType.GetNativeType(), Size);
+		Object ObjectArray = Array.newInstance(ElementType.GetNativeType(false), Size);
 		for(int i = 0; i < Size; i++) {
 			Array.set(ObjectArray, i, ArrayObject.ArrayBody.get(i));
 		}
@@ -136,6 +137,12 @@ public class ArrayApi {
 		}
 		return Values;
 	}
+	
+	public final static Iterator<Object> ToIterator(GreenTeaArray self) {
+		return self.ArrayBody.iterator();
+	}
+	
+	
 }
 
 
@@ -200,7 +207,7 @@ public class ArrayApi {
 //public final static GreenTeaArray<?> AnyToGreenArray(GtType Type, Object Value) {
 //	if(Value.getClass().isArray()) {
 //		Class<?> ComponentClass = Value.getClass().getComponentType();
-//		GtStaticTable.GetNativeType(Type.Context, ComponentClass);
+//		LibNative.GetNativeType(Type.Context, ComponentClass);
 //	}
 //	//return ArrayObject;
 //}

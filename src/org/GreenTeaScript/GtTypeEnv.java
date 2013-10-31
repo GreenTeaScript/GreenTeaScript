@@ -168,15 +168,23 @@ public final class GtTypeEnv extends GreenTeaUtils {
 		if(Node.Type.IsVarType()) {
 			return this.ReportTypeResult(ParsedTree, Node, TypeErrorLevel, "unspecified type: " + Node.Token.ParsedText);
 		}
-		if(Node.Type == Type || Type.IsVarType() || Node.Type.Accept(Type)) {
+		if(Node.Type == Type || Type.IsVarType() || Type.Accept(Node.Type)) {
 			return Node;
 		}
 		/*local*/GtFunc Func = ParsedTree.NameSpace.GetConverterFunc(Node.Type, Type, true);
 		if(Func != null && (Func.Is(CoercionFunc) || IsFlag(TypeCheckPolicy, CastPolicy))) {
 			return this.Generator.CreateCoercionNode(Type, ParsedTree.NameSpace, Func, Node);
 		}
+		
 		//System.err.println("node="+ LibGreenTea.GetClassName(Node) + "type error: requested = " + Type + ", given = " + Node.Type);
 		return this.ReportTypeResult(ParsedTree, Node, TypeErrorLevel, "type error: requested = " + Type + ", given = " + Node.Type);
+	}
+
+	public GtNode ParseTypedNode(String Text, long FileLine, GtType ContextType) {
+		GtNameSpace Namepace = this.NameSpace;
+		GtTokenContext LocalContext = new GtTokenContext(NameSpace, Text, FileLine);
+		GtSyntaxTree ParsedTree = LocalContext.ParsePattern(NameSpace, "$Expression$", Required);
+		return GreenTeaUtils.TypeBlock(this, ParsedTree, ContextType);
 	}
 }
 
