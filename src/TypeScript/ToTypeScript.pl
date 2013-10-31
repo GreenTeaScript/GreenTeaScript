@@ -100,6 +100,8 @@ sub UnQuote {
 $src =~ s/interface GreenTeaConsts {(.*?)^}/GreenTeaConstsSection($1)/ems;
 $src =~ s/class GreenTeaUtils(.*?)^}/GreenTeaUtilsSection($1)/ems;
 
+$src =~ s/\bimplements\s+GreenTeaConsts\b//gms;
+
 # Comments
 $src =~ s/^\/\/[#\s]*ifdef\s+JAVA.*?VAJA//gms;
 $src =~ s/(\/\/.*?)$/&ProtectComment($1)/gems;
@@ -149,11 +151,13 @@ $src =~ s/\binstanceof\s+string\b/instanceof String/g;
 $src =~ s/\binstanceof\s+number\b/instanceof Number/g;
 $src =~ s/\b([a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*) instanceof String/(typeof $1 == 'string' || $1 instanceof String)/g;
 
-$src =~ s/number.class/Number/g;
-$src =~ s/string.class/String/g;
-$src =~ s/Boolean.class/Boolean/g;
-$src =~ s/Object.class/Object/g;
-$src =~ s/Void.class/null/g;
+$src =~ s/[Nn]umber\.class/Number/g;
+$src =~ s/[Ss]tring\.class/String/g;
+$src =~ s/[Bb]oolean\.class/Boolean/g;
+$src =~ s/[Oo]bject\.class/Object/g;
+$src =~ s/[Vv]oid\.class/null/g;
+$src =~ s/\.class//g;
+$src =~ s/Class<\?>/any/g;
 
 $src =~ s/\bnew Object(\(\))?/<any>{}/g;
 

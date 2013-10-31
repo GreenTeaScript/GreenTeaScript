@@ -728,7 +728,7 @@ public class GtGenerator extends GreenTeaUtils {
 	public Object EvalDyGetterNode(GtDyGetterNode GetterNode, boolean EnforceConst) {
 		/*local*/Object RecvObject = GetterNode.RecvNode.ToConstValue(this.Context, EnforceConst);
 		if(RecvObject != null) {
-			Object Value = LibGreenTea.DynamicGetter(RecvObject, GetterNode.FieldName);
+			/*local*/Object Value = LibGreenTea.DynamicGetter(RecvObject, GetterNode.FieldName);
 			return LibGreenTea.DynamicCast(GetterNode.Type, Value);
 		}
 		return null;

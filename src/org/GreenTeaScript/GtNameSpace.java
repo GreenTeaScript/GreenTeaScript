@@ -105,7 +105,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 	}
 
 	public final GtNameSpace Minimum() {
-		GtNameSpace NameSpace = this;
+		/*local*/GtNameSpace NameSpace = this;
 		while(NameSpace.SymbolPatternTable == null) {
 			NameSpace = NameSpace.ParentNameSpace;
 		}
@@ -481,7 +481,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 	}
 
 	public final Object AppendStaticFunc(GtType StaticType, GtFunc Func, GtToken SourceToken) {
-		int loc = Func.FuncName.lastIndexOf(".");
+		/*local*/int loc = Func.FuncName.lastIndexOf(".");
 		return this.AppendFuncName(ClassStaticSymbol(StaticType, Func.FuncName.substring(loc+1)), Func, SourceToken);
 	}
 

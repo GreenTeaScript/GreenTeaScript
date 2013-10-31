@@ -44,13 +44,13 @@ public class GtStaticTable implements GreenTeaConsts {
 	/*field*/public final static GtType     FloatType = new GtType(NativeType|UnboxType, "float", 0.0, double.class);
 	/*field*/public final static GtType		StringType = new GtType(NativeType, "String", null, String.class);
 	/*field*/public final static GtType		AnyType = new GtType(DynamicType, "any", null, Object.class);
-	/*field*/public final static GtType		VarType = new GtType(TypeVariable, "var", null, null);
-	/*field*/public final static GtType		ArrayType = TopType.CreateSubType(GenericVariable, "Array", null, GreenTeaArray.class);
-	/*field*/public final static GtType		FuncType  = TopType.CreateSubType(GenericVariable, "Func", null, GtFunc.class);
+	/*field*/public final static GtType		ArrayType = GtStaticTable.TopType.CreateSubType(GenericVariable, "Array", null, GreenTeaArray.class);
+	/*field*/public final static GtType		FuncType  = GtStaticTable.TopType.CreateSubType(GenericVariable, "Func", null, GtFunc.class);
 
-	/*field*/public final static GtType		EnumBaseType = TopType.CreateSubType(EnumType, "enum", null, GreenTeaEnum.class);
+	/*field*/public final static GtType		EnumBaseType = GtStaticTable.TopType.CreateSubType(EnumType, "enum", null, GreenTeaEnum.class);
 //	/*field*/public final static GtType		StructType;
-	/*field*/public final static GtType		TypeType = TopType.CreateSubType(0, "Type", null, GtType.class);
+	/*field*/public final static GtType		VarType = new GtType(0, "var", null, null);
+	/*field*/public final static GtType		TypeType = GtStaticTable.TopType.CreateSubType(0, "Type", null, GtType.class);
 	/*field*/public final static GtType     IteratorType = new GtType(GenericVariable, "Iterator", null, Iterator.class);
 	
 	public final static long GetFileLine(String FileName, int Line) {
@@ -62,6 +62,7 @@ public class GtStaticTable implements GreenTeaConsts {
 		}
 		return LibGreenTea.JoinIntId(Id, Line);
 	}
+
 
 	public final static String GetSourceFileName(long FileLine) {
 		/*local*/int FileId = LibGreenTea.UpperId(FileLine);
@@ -124,7 +125,7 @@ public class GtStaticTable implements GreenTeaConsts {
 	}
 
 	public static int IssueTypeId(GtType Type) {
-		int TypeId = GtStaticTable.TypePools.size();
+		/*local*/int TypeId = GtStaticTable.TypePools.size();
 		GtStaticTable.TypePools.add(Type);
 		return TypeId;
 	}
@@ -210,7 +211,7 @@ public class GtStaticTable implements GreenTeaConsts {
 	private static final ArrayList<Object> ConstPoolList = new ArrayList<Object>();
 
 	public static int AddConstPool(Object o) {
-		int PooledId = ConstPoolList.indexOf(o);
+		/*local*/int PooledId = ConstPoolList.indexOf(o);
 		if(PooledId != -1) {
 			return PooledId;
 		}
