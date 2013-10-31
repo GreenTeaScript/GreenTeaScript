@@ -419,7 +419,7 @@ class JMethodBuilder {
 				return;
 			}
 		}
-		if(GivenType == long.class) {
+		if(GivenType == boolean.class) {
 			if(RequiredType == Object.class) {
 				this.InvokeMethodCall(Boolean.class, JLib.BoxBooleanValue);
 				return;
