@@ -621,7 +621,12 @@ public class KonohaGrammar extends GtGrammar {
 			}
 		}/*EndOfStat*/
 		if(InitValueNode == null) {
-			InitValueNode = Gamma.CreateDefaultValue(ParsedTree, DeclType);
+			if(DeclType.DefaultNullValue != null) {
+				InitValueNode = Gamma.CreateDefaultValue(ParsedTree, DeclType);
+			}
+			else {
+				InitValueNode = Gamma.Generator.CreateNullNode(DeclType, ParsedTree);
+			}
 		}
 		/*local*/GtVariableInfo VarInfo = Gamma.AppendDeclaredVariable(VarFlag, DeclType, VariableName, ParsedTree.GetSyntaxTreeAt(VarDeclName).KeyToken, InitValueNode.ToConstValue(Gamma.Context, false));
 		/*local*/GtNode BlockNode = GreenTeaUtils.TypeBlock(Gamma, ParsedTree.NextTree, GtStaticTable.VoidType);
