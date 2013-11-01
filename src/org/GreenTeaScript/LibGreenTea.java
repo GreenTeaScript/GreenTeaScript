@@ -650,13 +650,14 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 			}
 			ConsoleInitialized = true;
 		}
-	    if (Console != null) {
-	        return System.console().readLine(format, args);
-	    }
-	    System.out.print(String.format(format, args));
-	    try {
+		if (Console != null) {
+			return System.console().readLine(format, args);
+		}
+		System.out.print(String.format(format, args));
+		try {
 			return Reader.readLine();
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			e.printStackTrace();
 			return "";
 		}
@@ -688,14 +689,16 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 			try {
 				ConsoleReader = new jline.console.ConsoleReader();
 				ConsoleReader.setExpandEvents(false);
-			} catch (IOException e) {
+			}
+			catch (IOException e) {
 				throw new RuntimeException(e);
 			}
 		}
 		String Line;
 		try {
 			Line = ConsoleReader.readLine(Prompt);
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 		if(Line == null) {
@@ -706,8 +709,10 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 			while((level = LibGreenTea.CheckBraceLevel(Line)) > 0) {
 				String Line2;
 				try {
-					Line2 = ConsoleReader.readLine(Prompt2 + GreenTeaUtils.JoinStrings("  ", level));
-				} catch (IOException e) {
+					Line2 = ConsoleReader.readLine(Prompt2);
+					//Line2 = ConsoleReader.readLine(Prompt2 + GreenTeaUtils.JoinStrings("  ", level));
+				}
+				catch (IOException e) {
 					throw new RuntimeException(e);
 				}
 				Line += "\n" + Line2;
@@ -717,6 +722,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 				LibGreenTea.println(" .. canceled");
 			}
 		}
+		ConsoleReader.getHistory().add((CharSequence)Line);
 		return Line;
 	}
 
