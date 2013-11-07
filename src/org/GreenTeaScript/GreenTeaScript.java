@@ -765,7 +765,11 @@ public class GreenTeaScript extends GreenTeaUtils {
 					linenum += 1;
 				}
 				catch(Exception e) {
+					/*local*/StackTraceElement elements[] = {
+							new StackTraceElement("TopLevel", "TopLevelEval", "--shell--", linenum)};
+					e.setStackTrace(elements);
 					e.printStackTrace();
+					linenum = linenum + 1;
 				}
 			}
 			LibGreenTea.println("");
