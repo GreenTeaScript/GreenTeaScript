@@ -6,6 +6,10 @@ public class DShellException extends Exception {
 	public DShellException(String message) {
 		super(message);
 	}
+	
+	@Override public Throwable fillInStackTrace() {
+		return this;
+	}
 	// this exception is raised by GtSubProc.runCommand 
 	// when syscall trace is disabled
 }
