@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.EmptyStackException;
@@ -74,7 +75,7 @@ public class DShellProcess {
 		this.procMonitor.start();
 		return null;
 	}
-	private Object GetResult(int ReturnType) throws Exception {
+	private Object GetResult(int ReturnType) {
 		this.procMonitor = new ProcMonitor(this, false);
 		this.procMonitor.start();
 		this.waitResult();
@@ -119,15 +120,15 @@ public class DShellProcess {
 	}
 
 	// called by JavaByteCodeGenerator.VisitCommandNode 
-	public static void ExecCommandVoid(String[]... cmds) throws Exception {
+	public static void ExecCommandVoid(String[]... cmds) {
 		int option = printable | throwable | enableTrace;
 		runCommands(cmds, option, VoidType);
 	}
-	public static String ExecCommandString(String[]... cmds) throws Exception {
+	public static String ExecCommandString(String[]... cmds) {
 		int option = returnable | throwable | enableTrace;
 		return (String) runCommands(cmds, option, StringType);
 	}
-	public static boolean ExecCommandBool(String[]... cmds) throws Exception {
+	public static boolean ExecCommandBool(String[]... cmds) {
 		int option = returnable | printable;
 		return ((Boolean) runCommands(cmds, option, BooleanType)).booleanValue();
 	}
@@ -287,7 +288,7 @@ public class DShellProcess {
 		return procs;
 	}
 
-	private static Object runCommands(String[][] cmds, int option, int retType) throws Exception {
+	private static Object runCommands(String[][] cmds, int option, int retType) {
 		// prepare shell option
 		long timeout = -1;
 		ArrayList<String[]> newCmdsBuffer = new ArrayList<String[]>();
@@ -1140,7 +1141,7 @@ class ShellExceptionRaiser {
 		this.procs = kprocs;
 	}
 
-	public void raiseException() throws Exception {
+	public void raiseException() {
 		for(int i = 0; i < this.procs.length; i++) {
 			PseudoProcess targetProc = this.procs[i];
 			targetProc.waitFor();
@@ -1167,7 +1168,7 @@ class ShellExceptionRaiser {
 		}
 	}
 
-	private Exception createException(String message, String[] syscall) throws Exception {
+	private RuntimeException createException(String message, String[] syscall) {
 		// syscall: syscallName: 0, param: 1, errno: 2
 		Class<?>[] types = {String.class, String.class, String[].class};
 		Object[] args = {message, message, syscall};
@@ -1180,12 +1181,32 @@ class ShellExceptionRaiser {
 				return new DShellException(syscall[2] + " has not implemented yet!!");
 			}
 			else {
-				Constructor<?> constructor = exceptionClass.getConstructor(types);
-				return (RelatedSyscallException) constructor.newInstance(args);
+				Constructor<?> constructor;
+				try {
+					constructor = exceptionClass.getConstructor(types);
+				}
+				catch (NoSuchMethodException e) {
+					throw new RuntimeException(e);
+				}
+				catch (SecurityException e) {
+					throw new RuntimeException(e);
+				}
+				try {
+					return (RelatedSyscallException) constructor.newInstance(args);
+				}
+				catch (InstantiationException e) {
+					throw new RuntimeException(e);
+				}
+				catch (IllegalAccessException e) {
+					throw new RuntimeException(e);
+				}
+				catch (InvocationTargetException e) {
+					throw new RuntimeException(e);
+				}
 			}
 		}
 		catch (IllegalArgumentException e) {
-			return new Exception((syscall[2] + " is not syscall!!"));
+			return new RuntimeException((syscall[2] + " is not syscall!!"));
 		}
 	}
 }

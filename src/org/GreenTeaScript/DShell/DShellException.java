@@ -1,6 +1,6 @@
 package org.GreenTeaScript.DShell;
 
-public class DShellException extends Exception {
+public class DShellException extends RuntimeException {
 	private static final long serialVersionUID = 1L;
 
 	public DShellException(String message) {
