@@ -184,14 +184,14 @@ public class BashSourceGenerator extends SourceGenerator {
 		return isAssert;
 	}
 
-	@Override public void VisitApplyNode(GtApplyNode Node) {
-		/*local*/int ParamSize = LibGreenTea.ListSize(Node.NodeList);
+	@Override public void VisitStaticApplyNode(GtStaticApplyNode Node) {
+		/*local*/int ParamSize = LibGreenTea.ListSize(Node.ParamList);
 		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
 		/*local*/boolean isAssert = this.FindAssert(Node.Func);
 		if(isAssert) {
 			Template = "assert " + LibGreenTea.QuoteString("$1");
 		}
-		/*local*/String[] ParamCode = this.MakeParamCode(Node.NodeList, isAssert);
+		/*local*/String[] ParamCode = this.MakeParamCode(Node.ParamList, isAssert);
 		this.PushSourceCode(this.ApplyMacro2(Template, ParamCode));
 	}
 

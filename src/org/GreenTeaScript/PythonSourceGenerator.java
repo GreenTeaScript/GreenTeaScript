@@ -280,6 +280,9 @@ public class PythonSourceGenerator extends SourceGenerator {
 
 	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
 		this.FlushErrorReport();
+		if(GreenTeaUtils.IsFlag(Func.FuncFlag, GreenTeaUtils.ConstFunc)) {
+			Func.FuncFlag = GreenTeaUtils.UnsetFlag(Func.FuncFlag, GreenTeaUtils.ConstFunc);
+		}
 		/*local*/String Function = "def ";
 		Function += Func.GetNativeFuncName() + "(";
 		/*local*/int i = 0;
@@ -327,13 +330,13 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.WriteLineCode(Program);
 	}
 
-	@Override public Object Eval(GtNode Node) {
-		/*local*/String Code = this.VisitBlockWithIndent(Node, false);
-		if(!LibGreenTea.EqualsString(Code, "")) {
-			this.WriteLineCode(Code);
-		}
-		return null;
-	}
+//	@Override public Object Eval(GtNode Node) {
+//		/*local*/String Code = this.VisitBlockWithIndent(Node, false);
+//		if(!LibGreenTea.EqualsString(Code, "")) {
+//			this.WriteLineCode(Code);
+//		}
+//		return null;
+//	}
 
 	@Override public String GetRecvName() {
 		return "self";
