@@ -27,6 +27,8 @@ package org.GreenTeaScript;
 import java.util.ArrayList;
 //endif VAJA
 
+import com.apple.jobjc.ID;
+
 //GreenTea Generator should be written in each language.
 
 public class PythonSourceGenerator extends SourceGenerator {
@@ -262,6 +264,55 @@ public class PythonSourceGenerator extends SourceGenerator {
 			Code = "GtSubProc.execCommandVoid([" + Code + "])";
 		}
 		this.PushSourceCode(Code);
+	}
+
+	@Override public void VisitArrayNode(GtArrayNode Node) {
+		/*local*/int size = LibGreenTea.ListSize(Node.NodeList);
+		/*local*/int i = 0;
+		/*local*/String Code = "[";
+		while(i < size) {
+			if(i != 0) {
+				Code += ", ";
+			}
+			Code += this.VisitNode(Node.NodeList.get(i));
+			i += 1;
+		}
+		this.PushSourceCode(Code + "]");
+	}
+
+	@Override public void VisitNewArrayNode(GtNewArrayNode Node) { // TODO: support multiple dimension array
+		this.PushSourceCode("[0] * " + this.VisitNode(Node.NodeList.get(0)));
+	}
+
+	@Override public void VisitIndexerNode(GtIndexerNode Node) {
+		/*local*/String Code = this.VisitNode(Node.Expr) + "[" + this.VisitNode(Node.GetAt(0)) + "]";
+		if(LibGreenTea.ListSize(Node.NodeList) == 2) {
+			Code += " = " + this.VisitNode(Node.GetAt(1));
+		}
+		this.PushSourceCode(Code);
+	}
+
+	@Override public void VisitInstanceOfNode(GtInstanceOfNode Node) {
+		this.PushSourceCode("isinstance(" + this.VisitNode(Node.ExprNode) + ", " + this.ConvertToNativeTypeName(Node.TypeInfo) + ")");
+	}
+
+	private String ConvertToNativeTypeName(GtType Type) {
+		if(Type.IsIntType()) {
+			return "int";
+		}
+		else if(Type.IsFloatType()) {
+			return "float";
+		}
+		else if(Type.IsBooleanType()) {
+			return "bool";
+		}
+		else if(Type.IsStringType()) {
+			return "str";
+		}
+		else if(Type.IsArrayType()) {
+			return "list";
+		}
+		return Type.ShortName;
 	}
 
 	private String AppendCommand(GtCommandNode CurrentNode) {
