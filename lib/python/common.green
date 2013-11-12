@@ -5,7 +5,7 @@
 @Common void assert(boolean x) as "assert($1)";
 
 // top type
-/* @Common  @Operator int "||"(Top x) import Konoha.TopApi.Size; */
+@Common  @Operator int "||"(Top x) as "(0 if $1 == None else 1)";
 @Common  @Operator boolean "=="(Top x, Top y) as "$1 == $2";
 @Common  @Operator boolean "!="(Top x, Top y) as "$1 != $2";
 
