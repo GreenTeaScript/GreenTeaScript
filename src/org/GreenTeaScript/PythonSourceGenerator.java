@@ -36,7 +36,8 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 	PythonSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
 		this.LineFeed = "\n";
-		this.Tab = "    ";
+		this.Tab = "\t" +
+				"";
 		this.LineComment = "#";  // if not, set null
 		this.BeginComment = "#";
 		this.EndComment   = "";
@@ -54,9 +55,11 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 
 	private void VisitBlockWithIndent(GtNode Node) {
 		if(this.IsEmptyBlock(Node)) {
+			this.AppendCode(this.LineFeed);
+			this.VisitingBuilder.Indent();
 			this.VisitingBuilder.AppendIndent();
 			this.VisitingBuilder.AppendLine("pass");
-			this.VisitingBuilder.AppendIndent();
+			this.VisitingBuilder.UnIndent();
 		}
 		else {
 			this.VisitIndentBlock("", Node, "");
@@ -115,9 +118,8 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 			this.AppendCode(ParamNameList.get(i));
 			i += 1;
 		}
-		this.VisitingBuilder.AppendLine("):");
+		this.AppendCode("):");
 		this.VisitBlockWithIndent(Body);
-		this.AppendCode(this.LineFeed);
 	}
 
 	@Override public void OpenClassField(GtSyntaxTree ParsedTree, GtType Type, GtClassField ClassField) {
@@ -169,7 +171,7 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 	@Override public void VisitWhileNode(GtWhileNode Node) {
 		this.AppendCode("while ");
 		this.VisitNode(Node.CondExpr);
-		this.VisitingBuilder.AppendLine(":");
+		this.AppendCode(":");
 		this.VisitBlockWithIndent(Node.LoopBody);
 	}
 
@@ -183,7 +185,7 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 		 */
 		this.AppendCode("while ");
 		this.VisitNode(Node.CondExpr);
-		this.VisitingBuilder.AppendLine(":");
+		this.AppendCode(":");
 		this.VisitBlockWithIndent(Node.LoopBody);
 		this.VisitBlockWithIndent(Node.IterExpr);
 	}
@@ -193,7 +195,7 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 		this.VisitNode(Node.Variable);
 		this.AppendCode(" in ");
 		this.VisitNode(Node.IterExpr);
-		this.VisitingBuilder.AppendLine(":");
+		this.AppendCode(":");
 		this.VisitBlockWithIndent(Node.LoopBody);
 	}
 
@@ -253,11 +255,10 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 	@Override public void VisitIfNode(GtIfNode Node) {
 		this.AppendCode("if ");
 		this.VisitNode(Node.CondExpr);
-		this.VisitingBuilder.AppendLine(":");
-		this.VisitingBuilder.AppendIndent();
+		this.AppendCode(":");
 		this.VisitBlockWithIndent(Node.ThenNode);
 		if(!this.IsEmptyBlock(Node.ElseNode)) {
-			this.VisitingBuilder.AppendLine("else:");
+			this.AppendCode("else:");
 			this.VisitBlockWithIndent(Node.ElseNode);
 		}
 	}
@@ -289,7 +290,7 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 	}
 
 	@Override public void VisitTryNode(GtTryNode Node) {
-		this.VisitingBuilder.AppendLine("try:");
+		this.AppendCode("try:");
 		this.VisitBlockWithIndent(Node.TryBlock);
 		if(Node.CatchExpr != null) {
 			/*local*/GtVarNode Val = (/*cast*/GtVarNode) Node.CatchExpr;
@@ -297,11 +298,11 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 			this.AppendCode(Val.Type.ShortName);
 			this.AppendCode(this.Camma);
 			this.AppendCode(Val.NativeName);
-			this.VisitingBuilder.AppendLine(":");
+			this.AppendCode(":");
 			this.VisitBlockWithIndent(Node.CatchBlock);
 		}
 		if(Node.FinallyBlock != null) {
-			this.VisitingBuilder.AppendLine("finally:");
+			this.AppendCode("finally:");
 			this.VisitBlockWithIndent(Node.FinallyBlock);
 		}
 	}
@@ -467,8 +468,24 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 	
 
 	@Override public void VisitStaticApplyNode(GtStaticApplyNode Node) {
-		//TODO
-		LibGreenTea.TODO(LibNative.GetClassName(Node));
+		/*local*/GtFunc Func = Node.Func;
+		if(Func.Is(NativeMacroFunc)) {
+			this.ExpandNativeMacro(Func.GetNativeMacro(), Node.ParamList);
+			return;
+		}
+		
+		/*local*/int ParamSize = LibGreenTea.ListSize(Node.ParamList);
+		/*local*/int Index = 0;
+		this.AppendCode(Func.GetNativeFuncName());
+		this.AppendCode("(");
+		while(Index < ParamSize) {
+			if(Index != 0) {
+				this.AppendCode(this.Camma);
+			}
+			this.VisitNode(Node.ParamList.get(Index));
+			Index += 1;
+		}
+		this.AppendCode(")");
 	}
 
 	@Override public void VisitApplyFuncNode(GtApplyFuncNode Node) {	//TODO
@@ -488,13 +505,53 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 	}
 	
 	@Override public void VisitUnaryNode(GtUnaryNode Node) {
-		//TODO
-		LibGreenTea.TODO(LibNative.GetClassName(Node));
+		/*local*/GtFunc Func = Node.Func;
+		if(Func.Is(NativeMacroFunc)) {
+			/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
+			ParamList.add(Node.Expr);
+			this.ExpandNativeMacro(Func.GetNativeMacro(), ParamList);
+			return;
+		}
+
+		this.AppendCode(Func.GetNativeFuncName());
+		this.AppendCode(" ");
+		this.VisitNode(Node.Expr);
 	}
+	
+//	public final static String GenerateApplyFunc1(GtFunc Func, String FuncName, boolean IsSuffixOp, String Arg1) {
+//		/*local*/String Macro = null;
+//		if(Func != null) {
+//			FuncName = Func.GetNativeFuncName();
+//			if(IsFlag(Func.FuncFlag, NativeMacroFunc)) {
+//				Macro = Func.GetNativeMacro();
+//			}
+//		}
+//		if(Macro == null) {
+//			if(IsSuffixOp) {
+//				Macro = "$1 " + FuncName;
+//			}
+//			else {
+//				Macro = FuncName + " $1";
+//			}
+//		}
+//		return Macro.replace("$1", Arg1);
+//	}
 
 	@Override public void VisitBinaryNode(GtBinaryNode Node) {
-		//TODO
-		LibGreenTea.TODO(LibNative.GetClassName(Node));
+		/*local*/GtFunc Func = Node.Func;
+		if(Func.Is(NativeMacroFunc)) {
+			/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
+			ParamList.add(Node.LeftNode);
+			ParamList.add(Node.RightNode);
+			this.ExpandNativeMacro(Func.GetNativeMacro(), ParamList);
+			return;
+		}
+
+		this.VisitNode(Node.LeftNode);
+		this.AppendCode(" ");
+		this.AppendCode(Func.GetNativeFuncName());
+		this.AppendCode(" ");
+		this.VisitNode(Node.RightNode);
 	}
 
 	@Override public void VisitAndNode(GtAndNode Node) {
@@ -515,13 +572,29 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 		this.VisitNode(Node.RightNode);
 	}
 
-	@Override public void VisitSelfAssignNode(GtSelfAssignNode Node) {	//TODO
-		LibGreenTea.TODO(LibNative.GetClassName(Node));
+	@Override public void VisitSelfAssignNode(GtSelfAssignNode Node) {
+		this.VisitNode(Node.LeftNode);
+		this.AppendCode(" = ");
+
+		/*local*/GtFunc Func = Node.Func;
+		if(Func.Is(NativeMacroFunc)) {
+			/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
+			ParamList.add(Node.LeftNode);
+			ParamList.add(Node.RightNode);
+			this.ExpandNativeMacro(Func.GetNativeMacro(), ParamList);
+			return;
+		}
+
+		this.VisitNode(Node.LeftNode);
+		this.AppendCode(" ");
+		this.AppendCode(Func.GetNativeFuncName());
+		this.AppendCode(" ");
+		this.VisitNode(Node.RightNode);
 	}
 
 	@Override public void VisitReturnNode(GtReturnNode Node) {
+		this.AppendCode("return");
 		if(Node.Expr != null) {
-			this.AppendCode("return");
 			this.AppendCode(" ");
 			this.VisitNode(Node.Expr);
 		}

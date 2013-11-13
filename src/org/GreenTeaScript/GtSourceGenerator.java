@@ -160,4 +160,18 @@ public class GtSourceGenerator extends GtGenerator {
 		return ConstValue.toString();
 	}
 
+	public void ExpandNativeMacro(String NativeMacro, ArrayList<GtNode> ParamList) {
+		/*local*/int ParamSize = LibGreenTea.ListSize(ParamList);
+		/*local*/int ParamIndex = 0;
+		/*local*/GtSourceBuilder CurrentBuilder = this.VisitingBuilder;
+		while(ParamIndex < ParamSize) {
+			this.VisitingBuilder = new GtSourceBuilder(this);
+			ParamList.get(ParamIndex).Evaluate(this);
+			/*local*/String Param = this.VisitingBuilder.toString();
+			NativeMacro = NativeMacro.replace("$" + (ParamIndex + 1), Param);
+			ParamIndex += 1;
+		}
+		this.VisitingBuilder = CurrentBuilder;
+		this.VisitingBuilder.Append(NativeMacro);
+	}
 }

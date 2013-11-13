@@ -1,6 +1,7 @@
 package org.GreenTeaScript;
 
 public class SoftwareFaultException extends RuntimeException {
+	private static final long serialVersionUID = 1L;
 	public Object ErrorSource;
 	public SoftwareFaultException/*constructor*/(Object ErrorSource) {
 		super(ErrorSource.toString());
