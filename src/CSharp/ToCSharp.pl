@@ -71,11 +71,19 @@ sub UnQuote {
 	my $text = $_[0];
 }
 
+sub Interface{
+	my $text = $_[0];
+	$text =~ s/;/ { throw new NotImplementedException(); }/g;
+	return $text;
+}
+
 
 #$src =~ s/interface GreenTeaConsts {(.*?)^}/GreenTeaConstsSection($1)/ems;
 #$src =~ s/class GreenTeaUtils(.*?)^}/GreenTeaUtilsSection($1)/ems;
 
-$src =~ s/interface/class/g;
+$src =~ s/interface/class\/\*interface\*\//g;
+$src =~ s/public\sclass\/\*interface\*\/\sGreenTeaObject\s{(.*?)^}/Interface($1)/ems;
+#$src =~ s/class\/\*interface\*\/.*{(.*?)^}/Interface($1)/ems;
 
 # Comments
 $src =~ s/^\s*\/\/[#\s]*ifdef\s+JAVA.*?VAJA//gms;
@@ -84,6 +92,8 @@ $src =~ s|/\*GreenTeaConst Begin\*/|public class GreenTeaConsts {|g;
 $src =~ s|/\*GreenTeaConst End\*/|}|g;
 $src =~ s|/\*GreenTeaUtils Begin\*/|public class GreenTeaUtils: GreenTeaConsts {|g;
 $src =~ s|/\*GreenTeaUtils End\*/|}|g;
+$src =~ s|/\*GreenTeaObject Begin\*/|public class GreenTeaObject {|g;
+$src =~ s|/\*GreenTeaObject End\*/|}|g;
 
 $src =~ s/(\/\/.*?)$/&ProtectComment($1)/gems;
 # Array literals.
@@ -120,9 +130,13 @@ $src =~ s/typeof\(Long\)/typeof(long)/g;
 # $src =~ s/'(.)'/ord($1) . '\/*' . $1 . '*\/'/eg;
 # $src =~ s/('..')/($1.charCodeAt(0))/g;
 
-$src =~ s/\bfinal\b/\/*final*\//g;
 # $src =~ s/\bprotected\b//g;
 $src =~ s/\@Override\s*/override /g;
+$src =~ s/((?:$Keyword\s)*$Type(?:\.$Type)?\s$Sym\(.*\)\s*\{)/virtual $1/g;
+$src =~ s/virtual\s((?:$Keyword\s)*static|private\s(?:$Keyword\s)*$Type\s)/$1/g;
+$src =~ s/override virtual/override/g;
+$src =~ s/virtual\s((?:final\s)?$Type\s$Sym\()/$1/g;
+#$src =~ s/^(?!override)(\s(?:$Keyword\s)*$Type)/virtual $1/g;
 $src =~ s/\@Deprecated\s*//g;
 # $src =~ s/\bextends GreenTeaUtils\s*//g;
 # $src =~ s/\bpublic interface\s*/interface /g;
@@ -133,7 +147,7 @@ $src =~ s/substring/Substring/g;
 $src =~ s/\.getClass/.GetType/g;
 $src =~ s/\.endsWith/.EndsWith/g;
 $src =~ s/\.indexOf/.IndexOf/g;
-$src =~ s/\.set/.Insert/g;
+
 #$src =~ s/\b[a-zA-Z]*Exception/Exception/g;
 $src =~ s/System.err.println\((.*)\)/Console.Error.WriteLine($1)/g;
 $src =~ s/e\.printStackTrace\(\);/Console.WriteLine(System.Environment.StackTrace);/g;
@@ -159,8 +173,10 @@ $src =~ s/getSimpleName\(\)/Name/g;
 $src =~ s/\bsize\(\)/Count()/g;
 $src =~ s/length(\(\))?/Length/g;
 $src =~ s/\bSystem\.out\.println/Console.WriteLine/g;
+$src =~ s/\.set/.Insert/g;
 $src =~ s/\badd\(/Add(/g;
 $src =~ s/\.get\((.*?)\)/[$1]/g;
+$src =~ s/\.remove/.RemoveAt/g;
 
 $src =~ s/\bmain\b/Main/g;
 $src =~ s/\bequals\b/Equals/g;
@@ -173,6 +189,8 @@ $src =~ s/\boperator\b/\@operator/g;
 $src =~ s/{\n\s*super\((.*?)\);/:base($1){/g;
 $src =~ s/super/base/g;
 
+$src =~ s/(default:.*;)/$1 break;/g;
+
 # argument
 
 $src =~ s/($Type)\s([a-zA-Z]+)\[\]/$1\[\] $2/g;
@@ -181,6 +199,7 @@ $src =~ s/($Type)\s([a-zA-Z]+)\[\]/$1\[\] $2/g;
 $src =~ s/\.trim/.Trim/g;
 $src =~ s/\.replace/.Replace/g;
 $src =~ s/\.clear/.Clear/g;
+$src =~ s/toLowerCase/ToLower/g;
 $src =~ s/\(Arrays.asList\((this.Types)\)\)/($1)/g;
 
 # Delegates.
@@ -192,6 +211,7 @@ $src =~ s/\(Arrays.asList\((this.Types)\)\)/($1)/g;
 #$src =~ s/(LibGreenTea\.)?DebugP\(/console.log("DEBUG: " + /g;
 #$src =~ s/LibGreenTea\.println\(/console.log(/g;
 #src =~ s/function console.log\("DEBUG: " \+ /function DebugP(/g;
+$src =~ s/\bfinal\b/\/*final*\//g;
 
 my $n = @Comments;
 my $i = 0;
@@ -208,13 +228,15 @@ while($i < $n){
 }
 
 
-
 ###TODO
 $src =~ s/\b(public\s)?(\/\*.+\*\/\s)?class\b/public class/g;
 $src =~ s/\b(public\s)?(\b$Sym\b\/\*constructor\*\/)/public $2/g;
+$src =~ s/\t+(\b$Type\s$Type\b\(.*?\)\s*\{)/public $1/g;
+$src =~ s/\t+($Keyword\s\/\*final\*\/\s$Type\b)/public $1/g;
 $src =~ s/protected\spublic/protected/g;
-#$src =~ s/(GtResolvedFunc UpdateFunc)/public $1/g;
-#$src =~ s/(public\s)?(\b$Type\s$Sym\b)/public $2/g;
+$src =~ s/public\sprivate/private/g;
+
+$src =~ s/\bclass\b/partial class/g;
 
 
 print <<'EOS';
