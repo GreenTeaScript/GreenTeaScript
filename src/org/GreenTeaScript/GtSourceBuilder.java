@@ -106,4 +106,12 @@ public class GtSourceBuilder {
 		}
 	}
 	
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		for(String s : this.SourceList){
+			builder.append(s);
+		}
+		return builder.toString();
+	}
 }
