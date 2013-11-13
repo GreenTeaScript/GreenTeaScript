@@ -27,7 +27,7 @@ package org.GreenTeaScript;
 import java.util.ArrayList;
 //endif VAJA
 
-import com.apple.jobjc.ID;
+//import com.apple.jobjc.ID;
 
 //GreenTea Generator should be written in each language.
 
