@@ -626,10 +626,6 @@ public class GtGenerator extends GreenTeaUtils {
 		/*extension*/
 	}
 
-	public void SetResultValue(Object value) {
-		/*extension*/
-	}
-
 	protected void PushCode(Object Code) {
 		this.GeneratedCodeStack.add(Code);
 	}

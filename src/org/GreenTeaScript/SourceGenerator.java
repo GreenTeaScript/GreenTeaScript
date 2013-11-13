@@ -123,12 +123,6 @@ public class SourceGenerator extends GtGenerator {
 		this.BodySource = "";
 	}
 
-	@Override public void SetResultValue(Object value) {
-		if(value != null && value instanceof String && !LibGreenTea.EqualsString((String)value, "")) {
-			this.BodySource += (String)value + "\n";
-		}
-	}
-
 	/* GeneratorUtils */
 
 	public final void Indent() {
