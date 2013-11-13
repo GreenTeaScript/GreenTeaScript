@@ -482,13 +482,44 @@ public class SourceGenerator extends GtGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	@Override public Object EvalStaticApplyNode(GtStaticApplyNode ApplyNode, boolean EnforceConst) {
-		if((EnforceConst || ApplyNode.Func.Is(ConstFunc)) /*&& ApplyNode.Func.FuncBody instanceof Method */) {
-			this.VisitStaticApplyNode(ApplyNode);
-			String value = this.PopSourceCode();
-			return value;
+	// EnforceConst API
+	@Override public Object EvalNewNode(GtNewNode Node, boolean EnforceConst) {
+		if(EnforceConst) {
+			this.VisitNewNode(Node);
+			return this.PopSourceCode();
 		}
 		return null;
 	}
 
+	@Override public Object EvalNewArrayNode(GtNewArrayNode Node, boolean EnforceConst) {
+		if(EnforceConst) {
+			this.VisitNewArrayNode(Node);
+			return this.PopSourceCode();
+		}
+		return null;
+	}
+
+	public Object EvalGetterNode(GtGetterNode Node, boolean EnforceConst) {
+		if(EnforceConst) {
+			this.VisitGetterNode(Node);
+			return this.PopSourceCode();
+		}
+		return null;
+	}
+
+	public Object EvalSetterNode(GtSetterNode Node, boolean EnforceConst) {
+		if(EnforceConst) {
+			this.VisitSetterNode(Node);
+			return this.PopSourceCode();
+		}
+		return null;
+	}
+
+	@Override public Object EvalStaticApplyNode(GtStaticApplyNode ApplyNode, boolean EnforceConst) {
+		if((EnforceConst || ApplyNode.Func.Is(ConstFunc)) /*&& ApplyNode.Func.FuncBody instanceof Method */) {
+			this.VisitStaticApplyNode(ApplyNode);
+			return this.PopSourceCode();
+		}
+		return null;
+	}
 }

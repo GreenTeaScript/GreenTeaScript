@@ -296,6 +296,13 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode("isinstance(" + this.VisitNode(Node.ExprNode) + ", " + this.ConvertToNativeTypeName(Node.TypeInfo) + ")");
 	}
 
+	@Override public void VisitSetterNode(GtSetterNode Node) {
+		/*local*/String Name = Node.Func.FuncName;
+		/*local*/String Recv = this.VisitNode(Node.RecvNode);
+		/*local*/String Value = this.VisitNode(Node.ValueNode);
+		this.PushSourceCode(Recv + "." + Name + " = " + Value);
+	}
+
 	private String ConvertToNativeTypeName(GtType Type) {
 		if(Type.IsIntType()) {
 			return "int";
@@ -380,14 +387,6 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.UnIndent();
 		this.WriteLineCode(Program);
 	}
-
-//	@Override public Object Eval(GtNode Node) {
-//		/*local*/String Code = this.VisitBlockWithIndent(Node, false);
-//		if(!LibGreenTea.EqualsString(Code, "")) {
-//			this.WriteLineCode(Code);
-//		}
-//		return null;
-//	}
 
 	@Override public String GetRecvName() {
 		return "self";
