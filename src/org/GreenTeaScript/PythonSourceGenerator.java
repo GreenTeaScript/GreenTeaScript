@@ -27,35 +27,59 @@ package org.GreenTeaScript;
 import java.util.ArrayList;
 //endif VAJA
 
-//import com.apple.jobjc.ID;
-
 //GreenTea Generator should be written in each language.
 
-public class PythonSourceGenerator extends SourceGenerator {
-	/*field*/private int SwitchCaseCount;
-	/*field*/private boolean importSubProc = false;
+public class PythonSourceGenerator extends GtSourceGenerator {
+//	/*field*/private int SwitchCaseCount;
+//	/*field*/private boolean importSubProc = false;
 
 	PythonSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
+		this.LineFeed = "\n";
 		this.Tab = "    ";
-		this.LogicalAndOperator = "and";
-		this.LogicalOrOperator  = "or";
+		this.LineComment = "#";  // if not, set null
+		this.BeginComment = "#";
+		this.EndComment   = "";
+		this.Camma = ", ";
+		this.SemiColon   = "";
+
 		this.TrueLiteral  = "True";
 		this.FalseLiteral = "False";
-		this.NullLiteral = "None";
-		this.LineComment = "##";
-		this.SwitchCaseCount = 0;
-		this.BlockBegin = "";
-		this.BlockEnd = "";
-		this.SemiColon = "";
+		this.NullLiteral  = "None";
 	}
 
-	@Override protected String GetNewOperator(GtType Type) {
-		/*local*/String TypeName = Type.ShortName;
-		return TypeName + "()";
+	private void VisitNode(GtNode Node) {
+		Node.Evaluate(this);
 	}
 
-	public GtNode CreateDoWhileNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Cond, GtNode Block) {
+	private void VisitBlockWithIndent(GtNode Node) {
+		if(this.IsEmptyBlock(Node)) {
+			this.VisitingBuilder.AppendIndent();
+			this.VisitingBuilder.AppendLine("pass");
+			this.VisitingBuilder.AppendIndent();
+		}
+		else {
+			this.VisitIndentBlock("", Node, "");
+		}
+	}
+
+	private void VisitBlockWithoutIndent(GtNode Node) {
+		/*local*/GtNode CurrentNode = Node;
+		while(CurrentNode != null) {
+			if(!this.IsEmptyBlock(CurrentNode)) {
+				this.VisitingBuilder.AppendIndent();
+				CurrentNode.Evaluate(this);
+				this.VisitingBuilder.AppendLine(this.SemiColon);
+			}
+			CurrentNode = CurrentNode.NextNode;
+		}
+	}
+
+	private void AppendCode(String Code) {
+		this.VisitingBuilder.Append(Code);
+	}
+
+	@Override public GtNode CreateDoWhileNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Cond, GtNode Block) {
 		/*
 		 * do { Block } while(Cond)
 		 * => for(; True; if(!Cond) { break; } ) { Block;  }
@@ -72,19 +96,81 @@ public class PythonSourceGenerator extends SourceGenerator {
 		/*local*/GtNode TrueNode = this.CreateConstNode(GtStaticTable.BooleanType, ParsedTree, true);
 		return this.CreateForNode(Type, ParsedTree, TrueNode, IfBlock, Block);
 	}
+	
+	// Generator API
+	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
+		if(GreenTeaUtils.IsFlag(Func.FuncFlag, GreenTeaUtils.ConstFunc)) {	// disable const annotation
+			Func.FuncFlag = GreenTeaUtils.UnsetFlag(Func.FuncFlag, GreenTeaUtils.ConstFunc);
+		}
+		this.VisitingBuilder = this.NewSourceBuilder();
+		this.AppendCode("def ");
+		this.AppendCode(Func.GetNativeFuncName());
+		this.AppendCode("(");
+		/*local*/int i = 0;
+		/*local*/int size = LibGreenTea.ListSize(ParamNameList);
+		while(i < size) {
+			if(i != 0) {
+				this.AppendCode(this.Camma);
+			}
+			this.AppendCode(ParamNameList.get(i));
+			i += 1;
+		}
+		this.VisitingBuilder.AppendLine("):");
+		this.VisitBlockWithIndent(Body);
+		this.AppendCode(this.LineFeed);
+	}
+
+	@Override public void OpenClassField(GtSyntaxTree ParsedTree, GtType Type, GtClassField ClassField) {
+		this.VisitingBuilder = this.NewSourceBuilder();
+		this.VisitingBuilder.AppendIndent();
+		this.AppendCode("class ");
+		this.AppendCode(Type.ShortName);
+		this.VisitingBuilder.AppendLine(":");
+		this.VisitingBuilder.Indent();
+		
+		this.VisitingBuilder.AppendIndent();
+		this.VisitingBuilder.AppendLine("def __init__(self):");
+		this.VisitingBuilder.Indent();
+		
+		/*local*/int i = 0;
+		/*local*/int size = LibGreenTea.ListSize(ClassField.FieldList);
+		if(size == 0) {
+			this.VisitingBuilder.AppendIndent();
+			this.VisitingBuilder.AppendLine("pass");
+		}
+		else {
+			while(i < size) {
+				/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
+				/*local*/String InitValue = this.StringifyConstValue(FieldInfo.InitValue);
+				if(!FieldInfo.Type.IsNativeType()) {
+					InitValue = this.NullLiteral;
+				}
+				this.VisitingBuilder.AppendIndent();
+				this.AppendCode("self.");
+				this.AppendCode(FieldInfo.NativeName);
+				this.AppendCode(" = ");
+				this.VisitingBuilder.AppendLine(InitValue);
+				i += 1;
+			}
+		}
+		this.VisitingBuilder.UnIndent();
+		this.VisitingBuilder.UnIndent();
+	}
+
+	@Override public void InvokeMainFunc(String MainFuncName) {
+		this.VisitingBuilder = this.NewSourceBuilder();
+		this.VisitingBuilder.AppendLine("if __name__ == '__main__':");
+		this.AppendCode(this.Tab);
+		this.AppendCode(MainFuncName);
+		this.VisitingBuilder.AppendLine("()");
+	}
 
 	// Visitor API
 	@Override public void VisitWhileNode(GtWhileNode Node) {
-		/*local*/String Program = "while " + this.VisitNode(Node.CondExpr) + ":" + this.LineFeed;
-		if(this.IsEmptyBlock(Node.LoopBody)) {
-			this.Indent();
-			Program += this.GetIndentString() + "pass";
-			this.UnIndent();
-		}
-		else {
-			Program += this.VisitBlockWithIndent(Node.LoopBody, true);
-		}
-		this.PushSourceCode(Program);
+		this.AppendCode("while ");
+		this.VisitNode(Node.CondExpr);
+		this.VisitingBuilder.AppendLine(":");
+		this.VisitBlockWithIndent(Node.LoopBody);
 	}
 
 	@Override public void VisitForNode(GtForNode Node) {
@@ -95,212 +181,220 @@ public class PythonSourceGenerator extends SourceGenerator {
 		 * 		BLOCK2;
 		 * 		ITER
 		 */
-		/*local*/String Program = "while " + this.VisitNode(Node.CondExpr) + ":" + this.LineFeed;
-		if(this.IsEmptyBlock(Node.LoopBody)) {
-			this.Indent();
-			Program += this.GetIndentString() + "pass";
-			this.UnIndent();
-		}
-		else {
-			Program += this.VisitBlockWithIndent(Node.LoopBody, true);
-		}
-		Program += this.VisitBlockWithIndent(Node.IterExpr, true);
-		this.PushSourceCode(Program);
+		this.AppendCode("while ");
+		this.VisitNode(Node.CondExpr);
+		this.VisitingBuilder.AppendLine(":");
+		this.VisitBlockWithIndent(Node.LoopBody);
+		this.VisitBlockWithIndent(Node.IterExpr);
 	}
 
 	@Override public void VisitForEachNode(GtForEachNode Node) {
-		/*local*/String Iter = this.VisitNode(Node.IterExpr);
-		/*local*/String Variable = this.VisitNode(Node.Variable);
-		/*local*/String Program = "for " + Variable + " in " + Iter + ":" + this.LineFeed;
-		Program += this.VisitBlockWithIndent(Node.LoopBody, true);
-		this.PushSourceCode(Program);
+		this.AppendCode("for ");
+		this.VisitNode(Node.Variable);
+		this.AppendCode(" in ");
+		this.VisitNode(Node.IterExpr);
+		this.VisitingBuilder.AppendLine(":");
+		this.VisitBlockWithIndent(Node.LoopBody);
 	}
 
 	@Override public void VisitContinueNode(GtContinueNode Node) {
-		/*local*/String Code = "";
 		/*local*/GtForNode Parent = this.FindParentForNode(Node);
 		if(Parent != null) {
 			/*local*/GtNode IterNode = Parent.IterExpr;
 			if(IterNode != null) {
-				Code += this.VisitNode(IterNode) + this.LineFeed + this.GetIndentString();
+				this.VisitNode(IterNode);
+				this.AppendCode(this.LineFeed);
+				this.VisitingBuilder.AppendIndent();
 			}
 		}
-		Code += this.ContinueKeyword;
-		if(this.HasLabelSupport) {
-			/*local*/String Label = Node.Label;
-			if(Label != null) {
-				Code += " " + Label;
-			}
-		}
-		this.PushSourceCode(Code);
+		this.AppendCode("continue");
 		this.StopVisitor(Node);
 	}
 
 	@Override public void VisitSuffixNode(GtSuffixNode Node) {
-		/*local*/String FuncName = Node.Token.ParsedText;
-		/*local*/String Expr = this.VisitNode(Node.Expr);
-		if(LibGreenTea.EqualsString(FuncName, "++")) {
-			FuncName = " += 1";
-		}
-		else if(LibGreenTea.EqualsString(FuncName, "--")) {
-			FuncName = " -= 1";
-		}
-		else {
-			LibGreenTea.DebugP(FuncName + " is not supported suffix operator!!");
-		}
-		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc1(null, FuncName, true, Expr) + ")");
+//		/*local*/String FuncName = Node.Token.ParsedText;
+//		/*local*/String Expr = this.VisitNode(Node.Expr);
+//		if(LibGreenTea.EqualsString(FuncName, "++")) {
+//			FuncName = " += 1";
+//		}
+//		else if(LibGreenTea.EqualsString(FuncName, "--")) {
+//			FuncName = " -= 1";
+//		}
+//		else {
+//			LibGreenTea.DebugP(FuncName + " is not supported suffix operator!!");
+//		}
+//		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc1(null, FuncName, true, Expr) + ")");
+		
+		//TODO
+		LibGreenTea.TODO(LibNative.GetClassName(Node));
 	}
 
 	@Override public void VisitVarNode(GtVarNode Node) {
-		/*local*/String Code = Node.NativeName;
-		/*local*/String InitValue = this.NullLiteral;
-		if(Node.InitNode != null) {
-			InitValue = this.VisitNode(Node.InitNode);
+		this.AppendCode(Node.NativeName);
+		this.AppendCode(" = ");
+		if(Node.InitNode == null) {
+			this.AppendCode(this.NullLiteral);
 		}
-		Code += " = " + InitValue + this.LineFeed;
-		this.PushSourceCode(Code + this.VisitBlockWithIndent(Node.BlockNode, false));
+		else {
+			this.VisitNode(Node.InitNode);
+		}
+		this.AppendCode(this.LineFeed);
+		this.VisitBlockWithoutIndent(Node.BlockNode);
 	}
 
 	@Override public void VisitTrinaryNode(GtTrinaryNode Node) {
-		/*local*/String CondExpr = this.VisitNode(Node.ConditionNode);
-		/*local*/String Then = this.VisitNode(Node.ThenNode);
-		/*local*/String Else = this.VisitNode(Node.ElseNode);
-		this.PushSourceCode(Then + " if " + CondExpr + " else " + Else);
+		this.VisitNode(Node.ThenNode);
+		this.AppendCode(" if ");
+		this.VisitNode(Node.ConditionNode);
+		this.AppendCode(" else ");
+		this.VisitNode(Node.ElseNode);
 	}
 
 	@Override public void VisitIfNode(GtIfNode Node) {
-		/*local*/String CondExpr = this.VisitNode(Node.CondExpr);
-		/*local*/String ThenBlock = this.VisitBlockWithIndent(Node.ThenNode, true);
-		/*local*/String Code = "if " + CondExpr + ":" + this.LineFeed + this.GetIndentString() + ThenBlock;
-		if(this.IsEmptyBlock(Node.ThenNode)) {
-			Code += this.GetIndentString() + "pass" + this.LineFeed + this.GetIndentString();
-		}
-
+		this.AppendCode("if ");
+		this.VisitNode(Node.CondExpr);
+		this.VisitingBuilder.AppendLine(":");
+		this.VisitingBuilder.AppendIndent();
+		this.VisitBlockWithIndent(Node.ThenNode);
 		if(!this.IsEmptyBlock(Node.ElseNode)) {
-			/*local*/String ElseBlock = this.VisitBlockWithIndent(Node.ElseNode, true);
-			Code += "else:" + this.LineFeed + ElseBlock;
+			this.VisitingBuilder.AppendLine("else:");
+			this.VisitBlockWithIndent(Node.ElseNode);
 		}
-		this.PushSourceCode(Code);
 	}
-	@Override public void VisitSwitchNode(GtSwitchNode Node) {
-		/*local*/String Code = "Match" + this.SwitchCaseCount + " = " + this.VisitNode(Node.MatchNode) + this.LineFeed;
-		this.SwitchCaseCount += 1;
-		/*local*/int i = 0;
-		while(i < Node.CaseList.size()) {
-			/*local*/GtNode Case  = Node.CaseList.get(i);
-			/*local*/GtNode Block = Node.CaseList.get(i+1);
-			Code += this.GetIndentString();
-			if(i == 0) {
-				Code += "if";
-			}
-			else {
-				Code += "elif";
-			}
-			Code += this.VisitNode(Case) + ":";
-			Code += this.VisitBlockWithIndent(Block, true) + this.LineFeed;
-			i = i + 2;
-		}
-		if(Node.DefaultBlock != null) {
-			Code += this.GetIndentString() + "else: ";
-			Code += this.VisitBlockWithIndent(Node.DefaultBlock, true) + this.LineFeed;
-		}
-		Code += this.GetIndentString() + "}";
-		this.PushSourceCode(Code);
+	@Override public void VisitSwitchNode(GtSwitchNode Node) {	//TODO
+//		/*local*/String Code = "Match" + this.SwitchCaseCount + " = " + this.VisitNode(Node.MatchNode) + this.LineFeed;
+//		this.SwitchCaseCount += 1;
+//		/*local*/int i = 0;
+//		while(i < Node.CaseList.size()) {
+//			/*local*/GtNode Case  = Node.CaseList.get(i);
+//			/*local*/GtNode Block = Node.CaseList.get(i+1);
+//			Code += this.GetIndentString();
+//			if(i == 0) {
+//				Code += "if";
+//			}
+//			else {
+//				Code += "elif";
+//			}
+//			Code += this.VisitNode(Case) + ":";
+//			Code += this.VisitBlockWithIndent(Block, true) + this.LineFeed;
+//			i = i + 2;
+//		}
+//		if(Node.DefaultBlock != null) {
+//			Code += this.GetIndentString() + "else: ";
+//			Code += this.VisitBlockWithIndent(Node.DefaultBlock, true) + this.LineFeed;
+//		}
+//		Code += this.GetIndentString() + "}";
+//		this.PushSourceCode(Code);
+		LibGreenTea.TODO(LibNative.GetClassName(Node));
 	}
 
 	@Override public void VisitTryNode(GtTryNode Node) {
-		/*local*/String Code = "try:" + this.LineFeed;
-		Code += this.VisitBlockWithIndent(Node.TryBlock, true);
+		this.VisitingBuilder.AppendLine("try:");
+		this.VisitBlockWithIndent(Node.TryBlock);
 		if(Node.CatchExpr != null) {
 			/*local*/GtVarNode Val = (/*cast*/GtVarNode) Node.CatchExpr;
-			Code += "except " + Val.Type.toString() + ", " + Val.NativeName + ":" + this.LineFeed;
-			Code += this.VisitBlockWithIndent(Node.CatchBlock, true);
+			this.AppendCode("expect ");
+			this.AppendCode(Val.Type.ShortName);
+			this.AppendCode(this.Camma);
+			this.AppendCode(Val.NativeName);
+			this.VisitingBuilder.AppendLine(":");
+			this.VisitBlockWithIndent(Node.CatchBlock);
 		}
 		if(Node.FinallyBlock != null) {
-			/*local*/String Finally = this.VisitBlockWithIndent(Node.FinallyBlock, true);
-			Code += "finally:" + this.LineFeed + Finally;
+			this.VisitingBuilder.AppendLine("finally:");
+			this.VisitBlockWithIndent(Node.FinallyBlock);
 		}
-		this.PushSourceCode(Code);
 	}
 
 	@Override public void VisitThrowNode(GtThrowNode Node) {
-		/*local*/String expr = "";
+		this.AppendCode("raise");
 		if(Node.Expr != null) {
-			expr = this.VisitNode(Node.Expr);
+			this.AppendCode(" ");
+			this.VisitNode(Node.Expr);
 		}
-		this.PushSourceCode("raise " + expr);
 	}
 
-	@Override public void VisitErrorNode(GtErrorNode Node) {
-		/*local*/String Code = "raise SoftwareFault(\"" + Node.Token.ParsedText + "\")";
-		this.PushSourceCode(Code);
+	@Override public void VisitErrorNode(GtErrorNode Node) {	//TODO: need library
+		this.AppendCode("raise SoftwareFault(\"");
+		this.AppendCode(Node.Token.ParsedText);
+		this.AppendCode("\")");
 	}
 
-	@Override public void VisitCommandNode(GtCommandNode Node) {
-		if(!this.importSubProc) {
-			this.importSubProc = true;
-			/*local*/String Header = "import sys, os" + this.LineFeed;
-			Header += "sys.path.append(os.getenv(" + LibGreenTea.QuoteString("GREENTEA_HOME") + ") + ";
-			Header += LibGreenTea.QuoteString("/include/python") + ")" + this.LineFeed;
-			Header += "import GtSubProc";
-			this.WriteHeader(Header);
-		}
-
-		/*local*/String Code = "";
-		/*local*/GtCommandNode CurrentNode = Node;
-		while(CurrentNode != null) {
-			Code += this.AppendCommand(CurrentNode);
-			CurrentNode = (/*cast*/GtCommandNode) CurrentNode.PipedNextNode;
-			break;	//TODO :support pipe
-		}
-
-		if(Node.Type.IsStringType()) {
-			Code = "GtSubProc.execCommandString([" + Code + "])";
-		}
-		else if(Node.Type.IsBooleanType()) {
-			Code = "GtSubProc.execCommandBool([" + Code + "])";
-		}
-		else {
-			Code = "GtSubProc.execCommandVoid([" + Code + "])";
-		}
-		this.PushSourceCode(Code);
+	@Override public void VisitCommandNode(GtCommandNode Node) {	//TODO: need shell library
+//		if(!this.importSubProc) {
+//			this.importSubProc = true;
+//			/*local*/String Header = "import sys, os" + this.LineFeed;
+//			Header += "sys.path.append(os.getenv(" + LibGreenTea.QuoteString("GREENTEA_HOME") + ") + ";
+//			Header += LibGreenTea.QuoteString("/include/python") + ")" + this.LineFeed;
+//			Header += "import GtSubProc";
+//			this.WriteHeader(Header);
+//		}
+//
+//		/*local*/String Code = "";
+//		/*local*/GtCommandNode CurrentNode = Node;
+//		while(CurrentNode != null) {
+//			Code += this.AppendCommand(CurrentNode);
+//			CurrentNode = (/*cast*/GtCommandNode) CurrentNode.PipedNextNode;
+//			break;	//TODO :support pipe
+//		}
+//
+//		if(Node.Type.IsStringType()) {
+//			Code = "GtSubProc.execCommandString([" + Code + "])";
+//		}
+//		else if(Node.Type.IsBooleanType()) {
+//			Code = "GtSubProc.execCommandBool([" + Code + "])";
+//		}
+//		else {
+//			Code = "GtSubProc.execCommandVoid([" + Code + "])";
+//		}
+//		this.PushSourceCode(Code);
+		LibGreenTea.TODO(LibNative.GetClassName(Node));
 	}
 
 	@Override public void VisitArrayNode(GtArrayNode Node) {
 		/*local*/int size = LibGreenTea.ListSize(Node.NodeList);
 		/*local*/int i = 0;
-		/*local*/String Code = "[";
+		this.AppendCode("[");
 		while(i < size) {
 			if(i != 0) {
-				Code += ", ";
+				this.AppendCode(", ");
 			}
-			Code += this.VisitNode(Node.NodeList.get(i));
+			this.VisitNode(Node.NodeList.get(i));
 			i += 1;
 		}
-		this.PushSourceCode(Code + "]");
+		this.AppendCode("]");
 	}
 
 	@Override public void VisitNewArrayNode(GtNewArrayNode Node) { // TODO: support multiple dimension array
-		this.PushSourceCode("[0] * " + this.VisitNode(Node.NodeList.get(0)));
+		this.AppendCode("[0] * ");
+		this.VisitNode(Node.NodeList.get(0));
 	}
 
 	@Override public void VisitIndexerNode(GtIndexerNode Node) {
-		/*local*/String Code = this.VisitNode(Node.Expr) + "[" + this.VisitNode(Node.GetAt(0)) + "]";
+		this.VisitNode(Node.Expr);
+		this.AppendCode("[");
+		this.VisitNode(Node.GetAt(0));
+		this.AppendCode("]");
 		if(LibGreenTea.ListSize(Node.NodeList) == 2) {
-			Code += " = " + this.VisitNode(Node.GetAt(1));
+			this.AppendCode(" = ");
+			this.VisitNode(Node.GetAt(1));
 		}
-		this.PushSourceCode(Code);
 	}
 
 	@Override public void VisitInstanceOfNode(GtInstanceOfNode Node) {
-		this.PushSourceCode("isinstance(" + this.VisitNode(Node.ExprNode) + ", " + this.ConvertToNativeTypeName(Node.TypeInfo) + ")");
+		this.AppendCode("isinstance(");
+		this.VisitNode(Node.ExprNode);
+		this.AppendCode(this.Camma);
+		this.AppendCode(this.ConvertToNativeTypeName(Node.TypeInfo));
+		this.AppendCode(")");
 	}
 
 	@Override public void VisitSetterNode(GtSetterNode Node) {
-		/*local*/String Name = Node.Func.FuncName;
-		/*local*/String Recv = this.VisitNode(Node.RecvNode);
-		/*local*/String Value = this.VisitNode(Node.ValueNode);
-		this.PushSourceCode(Recv + "." + Name + " = " + Value);
+		this.VisitNode(Node.RecvNode);
+		this.AppendCode(".");
+		this.AppendCode(Node.Func.FuncName);
+		this.AppendCode(" = ");
+		this.VisitNode(Node.ValueNode);
 	}
 
 	private String ConvertToNativeTypeName(GtType Type) {
@@ -322,79 +416,149 @@ public class PythonSourceGenerator extends SourceGenerator {
 		return Type.ShortName;
 	}
 
-	private String AppendCommand(GtCommandNode CurrentNode) {
-		/*local*/String Code = "";
-		/*local*/int size = CurrentNode.ArgumentList.size();
-		/*local*/int i = 0;
-		while(i < size) {
-			if(i > 0) {
-				Code += ", ";
-			}
-			Code += this.VisitNode(CurrentNode.ArgumentList.get(i));
-			i = i + 1;
-		}
-		return Code;
-	}
-
-	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
-		this.FlushErrorReport();
-		if(GreenTeaUtils.IsFlag(Func.FuncFlag, GreenTeaUtils.ConstFunc)) {
-			Func.FuncFlag = GreenTeaUtils.UnsetFlag(Func.FuncFlag, GreenTeaUtils.ConstFunc);
-		}
-		/*local*/String Function = "def ";
-		Function += Func.GetNativeFuncName() + "(";
-		/*local*/int i = 0;
-		/*local*/int size = ParamNameList.size();
-		while(i < size) {
-			if(i > 0) {
-				Function += ", ";
-			}
-			Function += ParamNameList.get(i);
-			i = i + 1;
-		}
-		/*local*/String Block = this.VisitBlockWithIndent(Body, true);
-		Function += "):" + this.LineFeed + Block + this.LineFeed;
-		this.WriteLineCode(Function);
-	}
-
-	@Override public void OpenClassField(GtSyntaxTree ParsedTree, GtType Type, GtClassField ClassField) {
-		this.FlushErrorReport();
-		/*local*/String Program = this.GetIndentString() + "class " + Type.ShortName;
-//		if(Type.SuperType != null) {
-//			Program += "(" + Type.SuperType.ShortClassName + ")";
+//	private String AppendCommand(GtCommandNode CurrentNode) {	//TODO
+//		/*local*/String Code = "";
+//		/*local*/int size = CurrentNode.ArgumentList.size();
+//		/*local*/int i = 0;
+//		while(i < size) {
+//			if(i > 0) {
+//				Code += ", ";
+//			}
+//			Code += this.VisitNode(CurrentNode.ArgumentList.get(i));
+//			i = i + 1;
 //		}
-		Program += ":" + this.LineFeed;
-		this.Indent();
+//		return Code;
+//	}
 
-		Program += this.GetIndentString() + "def __init__(" + this.GetRecvName() + ")" + ":" + this.LineFeed;
-		this.Indent();
-		/*local*/int i = 0, length = LibGreenTea.ListSize(ClassField.FieldList);
-		if(length == 0) {
-			Program += this.GetIndentString() + "pass;" + this.LineFeed;
+	@Override public void VisitConstNode(GtConstNode Node) {
+		this.AppendCode(this.StringifyConstValue(Node.ConstValue));
+	}
+
+	@Override public void VisitNewNode(GtNewNode Node) {
+		this.AppendCode(Node.Type.ShortName);
+		this.AppendCode("()");
+	}
+
+	@Override public void VisitNullNode(GtNullNode Node) {
+		this.AppendCode(this.StringifyConstValue(null));
+	}
+
+	@Override public void VisitLocalNode(GtLocalNode Node) {
+		this.AppendCode(Node.NativeName);
+	}
+
+	@Override public void VisitConstructorNode(GtConstructorNode Node) {
+		// do nothing
+	}
+
+	@Override public void VisitGetterNode(GtGetterNode Node) {
+		this.VisitNode(Node.RecvNode);
+		this.AppendCode(".");
+		this.AppendCode(Node.Func.FuncName);
+	}
+
+	@Override public void VisitDyGetterNode(GtDyGetterNode Node) {	//TODO
+		LibGreenTea.TODO(LibNative.GetClassName(Node));
+	}
+
+	@Override public void VisitDySetterNode(GtDySetterNode Node) {	//TODO
+		LibGreenTea.TODO(LibNative.GetClassName(Node));
+	}
+	
+
+	@Override public void VisitStaticApplyNode(GtStaticApplyNode Node) {
+		//TODO
+		LibGreenTea.TODO(LibNative.GetClassName(Node));
+	}
+
+	@Override public void VisitApplyFuncNode(GtApplyFuncNode Node) {	//TODO
+		LibGreenTea.TODO(LibNative.GetClassName(Node));
+	}
+
+	@Override public void VisitApplyOverridedMethodNode(GtApplyOverridedMethodNode Node) {	//TODO
+		LibGreenTea.TODO(LibNative.GetClassName(Node));
+	}
+	
+	@Override public void VisitApplyDynamicFuncNode(GtApplyDynamicFuncNode Node) {	//TODO
+		LibGreenTea.TODO(LibNative.GetClassName(Node));
+	}
+
+	@Override public void VisitApplyDynamicMethodNode(GtApplyDynamicMethodNode Node) { //TODO
+		LibGreenTea.TODO(LibNative.GetClassName(Node));
+	}
+	
+	@Override public void VisitUnaryNode(GtUnaryNode Node) {
+		//TODO
+		LibGreenTea.TODO(LibNative.GetClassName(Node));
+	}
+
+	@Override public void VisitBinaryNode(GtBinaryNode Node) {
+		//TODO
+		LibGreenTea.TODO(LibNative.GetClassName(Node));
+	}
+
+	@Override public void VisitAndNode(GtAndNode Node) {
+		this.VisitNode(Node.LeftNode);
+		this.AppendCode(" and ");
+		this.VisitNode(Node.RightNode);
+	}
+
+	@Override public void VisitOrNode(GtOrNode Node) {
+		this.VisitNode(Node.LeftNode);
+		this.AppendCode(" or ");
+		this.VisitNode(Node.RightNode);
+	}
+
+	@Override public void VisitAssignNode(GtAssignNode Node) {
+		this.VisitNode(Node.LeftNode);
+		this.AppendCode(" = ");
+		this.VisitNode(Node.RightNode);
+	}
+
+	@Override public void VisitSelfAssignNode(GtSelfAssignNode Node) {	//TODO
+		LibGreenTea.TODO(LibNative.GetClassName(Node));
+	}
+
+	@Override public void VisitReturnNode(GtReturnNode Node) {
+		if(Node.Expr != null) {
+			this.AppendCode("return");
+			this.AppendCode(" ");
+			this.VisitNode(Node.Expr);
 		}
-		else {
-			while(i < length) {
-				/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
-				/*local*/String InitValue = this.StringifyConstValue(FieldInfo.InitValue);
-				if(!FieldInfo.Type.IsNativeType()) {
-					InitValue = "None";
-				}
-				Program += this.GetIndentString() + this.GetRecvName() + "." + FieldInfo.NativeName + " = " + InitValue + this.LineFeed;
-				i = i + 1;
-			}
-		}
-		this.UnIndent();
-		this.UnIndent();
-		this.WriteLineCode(Program);
+		this.StopVisitor(Node);
 	}
 
-	@Override public String GetRecvName() {
-		return "self";
+	@Override public void VisitBreakNode(GtBreakNode Node) {
+		this.AppendCode("break");
+		this.StopVisitor(Node);
 	}
 
-	@Override public void InvokeMainFunc(String MainFuncName) {
-		this.WriteLineCode("if __name__ == '__main__':");
-		this.WriteLineCode(this.Tab + MainFuncName + "()");
+	@Override public void VisitCastNode(GtCastNode Node) {	//TODO
+		LibGreenTea.TODO(LibNative.GetClassName(Node));
 	}
 
+	@Override public void VisitFunctionNode(GtFunctionNode Node) {	//TODO
+		LibGreenTea.TODO(LibNative.GetClassName(Node));
+	}
+
+	// EnforceConst API
+	@Override public Object EvalNewNode(GtNewNode Node, boolean EnforceConst) {
+		return null;
+	}
+
+	@Override public Object EvalNewArrayNode(GtNewArrayNode Node, boolean EnforceConst) {
+		return null;
+	}
+
+	@Override public Object EvalGetterNode(GtGetterNode Node, boolean EnforceConst) {
+		return null;
+	}
+
+	@Override public Object EvalSetterNode(GtSetterNode Node, boolean EnforceConst) {
+		return null;
+	}
+
+	@Override public Object EvalStaticApplyNode(GtStaticApplyNode ApplyNode, boolean EnforceConst) {
+		return null;
+	}
 }

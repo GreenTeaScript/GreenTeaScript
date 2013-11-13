@@ -547,7 +547,6 @@ public final class GtNameSpace extends GreenTeaUtils {
 				/*local*/GtTypeEnv Gamma = new GtTypeEnv(this);
 				/*local*/GtNode Node = TopLevelTree.TypeCheck(Gamma, GtStaticTable.VoidType, DefaultTypeCheckPolicy);
 				ResultValue = Node.ToConstValue(this.Context, true/*EnforceConst*/);
-				this.Context.Generator.SetResultValue(ResultValue);
 			}
 			TokenContext.Vacume();
 		}
