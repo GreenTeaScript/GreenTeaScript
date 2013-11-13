@@ -27,6 +27,8 @@ package org.GreenTeaScript;
 import java.util.ArrayList;
 //endif VAJA
 
+import com.apple.jobjc.ID;
+
 //GreenTea Generator should be written in each language.
 
 public class PythonSourceGenerator extends SourceGenerator {
@@ -264,6 +266,62 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
+	@Override public void VisitArrayNode(GtArrayNode Node) {
+		/*local*/int size = LibGreenTea.ListSize(Node.NodeList);
+		/*local*/int i = 0;
+		/*local*/String Code = "[";
+		while(i < size) {
+			if(i != 0) {
+				Code += ", ";
+			}
+			Code += this.VisitNode(Node.NodeList.get(i));
+			i += 1;
+		}
+		this.PushSourceCode(Code + "]");
+	}
+
+	@Override public void VisitNewArrayNode(GtNewArrayNode Node) { // TODO: support multiple dimension array
+		this.PushSourceCode("[0] * " + this.VisitNode(Node.NodeList.get(0)));
+	}
+
+	@Override public void VisitIndexerNode(GtIndexerNode Node) {
+		/*local*/String Code = this.VisitNode(Node.Expr) + "[" + this.VisitNode(Node.GetAt(0)) + "]";
+		if(LibGreenTea.ListSize(Node.NodeList) == 2) {
+			Code += " = " + this.VisitNode(Node.GetAt(1));
+		}
+		this.PushSourceCode(Code);
+	}
+
+	@Override public void VisitInstanceOfNode(GtInstanceOfNode Node) {
+		this.PushSourceCode("isinstance(" + this.VisitNode(Node.ExprNode) + ", " + this.ConvertToNativeTypeName(Node.TypeInfo) + ")");
+	}
+
+	@Override public void VisitSetterNode(GtSetterNode Node) {
+		/*local*/String Name = Node.Func.FuncName;
+		/*local*/String Recv = this.VisitNode(Node.RecvNode);
+		/*local*/String Value = this.VisitNode(Node.ValueNode);
+		this.PushSourceCode(Recv + "." + Name + " = " + Value);
+	}
+
+	private String ConvertToNativeTypeName(GtType Type) {
+		if(Type.IsIntType()) {
+			return "int";
+		}
+		else if(Type.IsFloatType()) {
+			return "float";
+		}
+		else if(Type.IsBooleanType()) {
+			return "bool";
+		}
+		else if(Type.IsStringType()) {
+			return "str";
+		}
+		else if(Type.IsArrayType()) {
+			return "list";
+		}
+		return Type.ShortName;
+	}
+
 	private String AppendCommand(GtCommandNode CurrentNode) {
 		/*local*/String Code = "";
 		/*local*/int size = CurrentNode.ArgumentList.size();
@@ -280,6 +338,9 @@ public class PythonSourceGenerator extends SourceGenerator {
 
 	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
 		this.FlushErrorReport();
+		if(GreenTeaUtils.IsFlag(Func.FuncFlag, GreenTeaUtils.ConstFunc)) {
+			Func.FuncFlag = GreenTeaUtils.UnsetFlag(Func.FuncFlag, GreenTeaUtils.ConstFunc);
+		}
 		/*local*/String Function = "def ";
 		Function += Func.GetNativeFuncName() + "(";
 		/*local*/int i = 0;
@@ -325,14 +386,6 @@ public class PythonSourceGenerator extends SourceGenerator {
 		this.UnIndent();
 		this.UnIndent();
 		this.WriteLineCode(Program);
-	}
-
-	@Override public Object Eval(GtNode Node) {
-		/*local*/String Code = this.VisitBlockWithIndent(Node, false);
-		if(!LibGreenTea.EqualsString(Code, "")) {
-			this.WriteLineCode(Code);
-		}
-		return null;
 	}
 
 	@Override public String GetRecvName() {

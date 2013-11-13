@@ -597,20 +597,14 @@ public class GtGenerator extends GreenTeaUtils {
 				Args[i][j] = Buffer[j];
 			}
 		}
-		
-		try {
-			if(Type.IsStringType()) {
-				return DShellProcess.ExecCommandString(Args);
-			}
-			else if(Type.equals(Type.IsBooleanType())) {
-				return DShellProcess.ExecCommandBool(Args);
-			}
-			else {
-				DShellProcess.ExecCommandVoid(Args);
-			}
-		} 
-		catch(Exception e) {
-			e.printStackTrace();
+		if(Type.IsStringType()) {
+			return DShellProcess.ExecCommandString(Args);
+		}
+		else if(Type.equals(Type.IsBooleanType())) {
+			return DShellProcess.ExecCommandBool(Args);
+		}
+		else {
+			DShellProcess.ExecCommandVoid(Args);
 		}
 //endif VAJA
 		return Node.ToNullValue(this.Context, EnforceConst);  // if unsupported
@@ -629,6 +623,10 @@ public class GtGenerator extends GreenTeaUtils {
 	}
 
 	public void FinishCompilationUnit() {
+		/*extension*/
+	}
+
+	public void SetResultValue(Object value) {
 		/*extension*/
 	}
 

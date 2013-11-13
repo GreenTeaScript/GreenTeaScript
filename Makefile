@@ -5,12 +5,12 @@
 .SILENT:
 JavaBin="./GreenTeaScript.jar"
 INSTALL_PREFIX?="$(HOME)"
-TEST_BASEDIR="test/exec"
+TEST_BASEDIR="test/common"
 TEST_OUTDIR="$(TEST_BASEDIR)/test-result"
 
-TEST_FILES:=$(wildcard test/exec/*.green)
+TEST_FILES:=$(wildcard test/common/*.green)
 
-all: build test
+all: build
 
 #build: buildj buildts
 build: buildj
