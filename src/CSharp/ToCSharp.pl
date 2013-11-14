@@ -106,6 +106,7 @@ $src =~ s/(\/\*.*?\*\/)/&ProtectComment($1)/gmse;
 #$src =~ s/(?:$Attr*) ($Type)\s+($Sym)((?:\[\s*\d*\s*\])?)/$2: $1$3/g;
 
 # Types
+
 # $src =~ s/(?!")\b(?:char|int|long|float|double|Charactor|Integer|Long|Float|Double)\b(?!")/number/g;
 # $src =~ s/\.(?:int|long|float|double|)Value\(\)//g;
 $src =~ s/(?!")\bInteger\b/int/g;
