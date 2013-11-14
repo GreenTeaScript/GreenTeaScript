@@ -30,208 +30,137 @@ public class DShellProcess {
 	private static final int printable   = 1 << 1;
 	private static final int throwable   = 1 << 2;
 	private static final int background  = 1 << 3;
-	private static final int enableTrace = 1 << 4;
+	private static final int inference   = 1 << 4;
 
 	// return type
 	private static final int VoidType    = 0;
 	private static final int BooleanType = 1;
 	private static final int StringType  = 2;
-	
-	// trace tyep
-	private static boolean traceRequirement = false;
+	private static final int TaskType    = 3;
 
-	private String Result = "";
-	private long ReturnValue = -1;
-	public final int CommandFlag;
-	private final PseudoProcess LastProcess;
-	public final PseudoProcess[] Processes;
-	public long timeout;
-	private ProcMonitor procMonitor;
-	
-	public DShellProcess(int option, String[][] cmds, long timeout) {
-		// init process
-		this.Processes = createProcs(cmds, is(option, enableTrace));
+	private int OptionFlag;
+	private int retType;
+	private PseudoProcess[] Processes;
+	private long timeout = -1;
+
+	public DShellProcess(String[][] cmds, int option, int retType) {
+		this.OptionFlag = option;
+		this.retType = retType;
+		String[][] newCmds = this.PrepareInternalOption(cmds);
+		this.Processes = this.CreateProcs(newCmds);
+	}
+
+	public Object Invoke() {
 		int ProcessSize = this.Processes.length;
 		ErrorStreamHandler Handler = new ErrorStreamHandler(this.Processes);
-
-		// start process
 		int lastIndex = ProcessSize - 1;
+		PseudoProcess lastProc = this.Processes[lastIndex];
+
 		this.Processes[0].start();
 		for(int i = 1; i < ProcessSize; i++) {
 			this.Processes[i].start();
 			this.Processes[i].pipe(this.Processes[i - 1]);
 		}
 		Handler.showErrorMessage();
-		this.CommandFlag = option;
-		this.LastProcess = this.Processes[lastIndex];
-		this.timeout = timeout;
-	}
-	private boolean IsBackGroundProcess() {
-		return is(this.CommandFlag, background);
-	}
-	private DShellProcess Detach() {
-		this.LastProcess.showResult();
-		this.procMonitor = new ProcMonitor(this, true);
-		this.procMonitor.start();
-		return null;
-	}
-	private Object GetResult(int ReturnType) {
-		this.procMonitor = new ProcMonitor(this, false);
-		this.procMonitor.start();
-		this.waitResult();
+
+		if(is(this.OptionFlag, background)) { // background job
+			lastProc.showResult();
+			ProcMonitor procMonitor = new ProcMonitor(this, true);
+			procMonitor.start();
+			Task task = new Task(procMonitor, this);
+			if(this.retType == TaskType) {
+				return task;
+			}
+			return null;
+		}
+		new ProcMonitor(this, false).start();
+		lastProc.waitResult(is(this.OptionFlag, printable));
 		// raise exception
 		if(this.timeout <= 0) {
-			ShellExceptionRaiser raiser = new ShellExceptionRaiser(is(CommandFlag, throwable));
+			ShellExceptionRaiser raiser = new ShellExceptionRaiser(is(this.OptionFlag, throwable));
 			raiser.setProcesses(this.Processes);
 			raiser.raiseException();
 		}
-		this.Result = LastProcess.getStdout();
-		this.ReturnValue = LastProcess.getRet();
-		// get result value
-		if(is(this.CommandFlag, returnable)) {
-			if(ReturnType == StringType) {
-				return this.Result;
+		// get result
+		String outMessage = lastProc.getStdout();
+		int exitStatus = lastProc.getRet();
+		if(is(this.OptionFlag, returnable)) {
+			if(this.retType == StringType) {
+				return outMessage;
 			}
-			else if(ReturnType == BooleanType) {
-				return new Boolean(this.ReturnValue == 0);
+			else if(this.retType == BooleanType) {
+				return new Boolean(exitStatus == 0);
 			}
 		}
 		return null;
 	}
-	private void waitResult() {
-		this.LastProcess.waitResult(is(this.CommandFlag, printable));
-	}
-	public void join() {
-		try {
-			this.procMonitor.join();
-			((SubProc)this.LastProcess).getMessageStreamHandler().join();
-		} 
-		catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-	}
-	public String getResult() {
-		return this.LastProcess.getStdout();
-	}
-	
-	// initialization
-	public static void initDShellProcess() {
-		traceRequirement = checkTraceRequirements();
+
+	public PseudoProcess[] getProcesses() {
+		return this.Processes;
 	}
 
-	// called by JavaByteCodeGenerator.VisitCommandNode 
-	public static void ExecCommandVoid(String[]... cmds) {
-		int option = printable | throwable | enableTrace;
-		runCommands(cmds, option, VoidType);
-	}
-	public static String ExecCommandString(String[]... cmds) {
-		int option = returnable | throwable | enableTrace;
-		return (String) runCommands(cmds, option, StringType);
-	}
-	public static boolean ExecCommandBool(String[]... cmds) {
-		int option = returnable | printable;
-		return ((Boolean) runCommands(cmds, option, BooleanType)).booleanValue();
+	public int getOptionFlag() {
+		return this.OptionFlag;
 	}
 
-	// file system roll back function
-	// TargetLV: vg_name/lv_name
-	public static boolean CreateSnapshot(String SnapshotLabel, String TargetLV) throws Exception {
-		if(System.getProperty("os.name").equals("Linux") && new File("/sbin/lvm").canExecute()) {
-			String[] cmds = {"sudo", "lvcreate", "-s", "-n", SnapshotLabel, TargetLV};
-			return ExecCommandBool(cmds);
-		}
-		return false;
+	public long getTimeout() {
+		return this.timeout;
 	}
 
-	public static boolean RevertSnapshot(String SnapshotLabel, String TargetLV) throws Exception {
-		if(System.getProperty("os.name").equals("Linux") && new File("/sbin/lvm").canExecute()) {
-			String[] volNames = TargetLV.split("/");
-			String VG_Name = volNames[0];
-			String LV_Name = volNames[1];
-			String mountableId = VG_Name + "-" + LV_Name;
-			
-			// get target LV mount point
-			int option = returnable | throwable;
-			String[][] mountPoint_cmds = {{"mount"}, {"grep", mountableId}};
-			String mountPoint;
-			try {
-				String[] results = ((String) runCommands(mountPoint_cmds, option, StringType)).split(" ");
-				mountPoint = results[2];
-			} catch (Exception e) {
-				return false;
+	private String[][] PrepareInternalOption(String[][] cmds) {
+		boolean enableTrace = false;
+		ArrayList<String[]> newCmdsBuffer = new ArrayList<String[]>();
+		for(int i = 0; i < cmds.length; i++) {
+			String[] currentCmd = cmds[i];
+			if(LibGreenTea.EqualsString(currentCmd[0], "timeout")) {
+				StringBuilder numBuilder = new StringBuilder();
+				StringBuilder unitBuilder = new StringBuilder();
+				int len = currentCmd[1].length();
+				for(int j = 0; j < len; j++) {
+					char ch = currentCmd[1].charAt(j);
+					if(Character.isDigit(ch)) {
+						numBuilder.append(ch);
+					}
+					else {
+						unitBuilder.append(ch);
+					}
+				}
+				long num = Integer.parseInt(numBuilder.toString());
+				String unit = unitBuilder.toString();
+				if(LibGreenTea.EqualsString(unit, "s")) {
+					num = num * 1000;
+				}
+				if(num >= 0) {
+					this.timeout = num;
+				}
+				int baseIndex = 2;
+				String[] newCmd = new String[currentCmd.length - baseIndex];
+				for(int j = baseIndex; j < currentCmd.length; j++) {
+					newCmd[j - baseIndex] = currentCmd[j];
+				}
+				currentCmd = newCmd;
 			}
-			
-			// umount target LV
-			String[] umount_cmds = {"sudo", "umount", mountPoint};
-			if(!ExecCommandBool(umount_cmds)) {
-				return false;
+			else if(LibGreenTea.EqualsString(currentCmd[0], "infer")) {
+				enableTrace = checkTraceRequirements();
+				int baseIndex = 1;
+				String[] newCmd = new String[currentCmd.length - baseIndex];
+				for(int j = baseIndex; j < currentCmd.length; j++) {
+					newCmd[j - baseIndex] = currentCmd[j];
+				}
+				currentCmd = newCmd;
 			}
-			
-			// remove current LV
-			String[] lvremove_cmds = {"sudo", "lvremove", TargetLV};
-			if(!ExecCommandBool(lvremove_cmds)) {
-				return false;
-			}
-			
-			// rename snapshot
-			String[] lvrename_cmds = {"sudo", "lvrename", VG_Name + "/" + SnapshotLabel, LV_Name};
-			if(!ExecCommandBool(lvrename_cmds)) {
-				return false;
-			}
-			
-			// mount LV
-			String[] mount_cmds = {"sudo", "mount", "/dev/" + TargetLV, mountPoint};
-			return ExecCommandBool(mount_cmds);
+			newCmdsBuffer.add(currentCmd);
 		}
-		return false;
-	}
-	
-	// change directory
-	public static boolean ChangeDirectory(String path) {
-		if(LibGreenTea.EqualsString(path, "")) {
-			return CLibraryWrapper.INSTANCE.chdir(System.getenv("HOME")) == 0;
+		if(is(this.OptionFlag, inference)) {
+			this.OptionFlag = setFlag(this.OptionFlag, inference, enableTrace);
 		}
-		return CLibraryWrapper.INSTANCE.chdir(path) == 0;
+		return newCmdsBuffer.toArray(new String[newCmdsBuffer.size()][]);
 	}
 
-	//---------------------------------------------
-
-	private static boolean checkTraceRequirements() {
-		if(System.getProperty("os.name").equals("Linux")) {
-			boolean flag = DShellGrammar.IsUnixCommand("strace+") && 
-					DShellGrammar.IsUnixCommand("pretty_print_strace_out.py");
-			if(flag) {
-				SubProc.traceBackendType = SubProc.traceBackend_strace_plus;
-				return true;
-			}
-			else {
-				SubProc.traceBackendType = SubProc.traceBackend_strace;
-				return DShellGrammar.IsUnixCommand("strace");
-			}
-		}
-		System.err.println("Systemcall Trace is Not Supported");
-		return false;
-	}
-
-	private static boolean is(int option, int flag) {
-		option &= flag;
-		return option == flag;
-	}
-
-	private static int setFlag(int option, int flag, boolean set) {
-		if(set && !is(option, flag)) {
-			return option | flag;
-		}
-		else if(!set && is(option, flag)) {
-			return option & ~flag;
-		}
-		return option;
-	}
-
-	private static PseudoProcess[] createProcs(String[][] cmds, boolean enableSyscallTrace) {
+	private PseudoProcess[] CreateProcs(String[][] cmds) {
+		boolean enableSyscallTrace = is(this.OptionFlag, inference);
 		ArrayList<PseudoProcess> procBuffer = new ArrayList<PseudoProcess>();
-		int cmdsNum = cmds.length;
-		for(int i = 0; i < cmdsNum; i++) {
+		for(int i = 0; i < cmds.length; i++) {
 			String[] currentCmd = cmds[i];
 			String cmdSymbol = currentCmd[0];
 			SubProc prevProc = null;
@@ -239,13 +168,12 @@ public class DShellProcess {
 			if(size > 0) {
 				prevProc = (SubProc)procBuffer.get(size - 1);
 			}
-			
 			if(LibGreenTea.EqualsString(cmdSymbol, "<")) {
 				prevProc.setInputRedirect(currentCmd[1]);
 			}
 			else if(LibGreenTea.EqualsString(cmdSymbol, "1>") || LibGreenTea.EqualsString(cmdSymbol, ">")) {
 				prevProc.setOutputRedirect(SubProc.STDOUT_FILENO, currentCmd[1], false);
-			}
+			}	
 			else if(LibGreenTea.EqualsString(cmdSymbol, "1>>") || LibGreenTea.EqualsString(cmdSymbol, ">>")) {
 				prevProc.setOutputRedirect(SubProc.STDOUT_FILENO, currentCmd[1], true);
 			}
@@ -279,85 +207,120 @@ public class DShellProcess {
 				procBuffer.add(proc);
 			}
 		}
-		
-		int bufferSize = procBuffer.size();
-		PseudoProcess[] procs = new PseudoProcess[bufferSize];
-		for(int i = 0; i < bufferSize; i++) {
-			procs[i] = procBuffer.get(i);
-		}
-		return procs;
+		return procBuffer.toArray(new PseudoProcess[procBuffer.size()]);
 	}
 
-	private static Object runCommands(String[][] cmds, int option, int retType) {
-		// prepare shell option
-		long timeout = -1;
-		ArrayList<String[]> newCmdsBuffer = new ArrayList<String[]>();
-		for(int i = 0; i < cmds.length; i++) {	// check background
-			String[] currentCmd = cmds[i];
-//			if(LibGreenTea.EqualsString(currentCmd[0], "set")) {
-//				if(currentCmd.length < 2) {
-//					continue;
-//				}
-//				String subOption = currentCmd[1];
-//				if(LibGreenTea.EqualsString(subOption, "trace=on")) {
-//					option = setFlag(option, enableTrace, true);
-//				}
-//				else if(LibGreenTea.EqualsString(subOption, "trace=off")) {
-//					option = setFlag(option, enableTrace, false);
-//				}
+	// called by JavaByteCodeGenerator.VisitCommandNode 
+	public static void ExecCommandVoid(String[]... cmds) {
+		int option = printable | throwable | inference;
+		new DShellProcess(cmds, option, VoidType).Invoke();
+	}
+	public static String ExecCommandString(String[]... cmds) {
+		int option = returnable | throwable | inference;
+		return (String) new DShellProcess(cmds, option, StringType).Invoke();
+	}
+	public static boolean ExecCommandBool(String[]... cmds) {
+		int option = returnable | printable;
+		return ((Boolean) new DShellProcess(cmds, option, BooleanType).Invoke()).booleanValue();
+	}
+	public static Task ExecCommandTask(String[]... cmds) {
+		int option = printable | throwable | background | inference;
+		return (Task) new DShellProcess(cmds, option, TaskType).Invoke();
+	}
+
+	// file system roll back function
+	// TargetLV: vg_name/lv_name
+	public static boolean CreateSnapshot(String SnapshotLabel, String TargetLV) throws Exception {
+		if(System.getProperty("os.name").equals("Linux") && new File("/sbin/lvm").canExecute()) {
+			String[] cmds = {"sudo", "lvcreate", "-s", "-n", SnapshotLabel, TargetLV};
+			return ExecCommandBool(cmds);
+		}
+		return false;
+	}
+
+	public static boolean RevertSnapshot(String SnapshotLabel, String TargetLV) throws Exception {
+//		if(System.getProperty("os.name").equals("Linux") && new File("/sbin/lvm").canExecute()) {
+//			String[] volNames = TargetLV.split("/");
+//			String VG_Name = volNames[0];
+//			String LV_Name = volNames[1];
+//			String mountableId = VG_Name + "-" + LV_Name;
+//			
+//			// get target LV mount point
+//			int option = returnable | throwable;
+//			String[][] mountPoint_cmds = {{"mount"}, {"grep", mountableId}};
+//			String mountPoint;
+//			try {
+//				String[] results = ((String) runCommands(mountPoint_cmds, option, StringType)).split(" ");
+//				mountPoint = results[2];
+//			} catch (Exception e) {
+//				return false;
 //			}
-//			else 
-			if(LibGreenTea.EqualsString(currentCmd[0], "&")) {
-				option = setFlag(option, background, !is(option, returnable));
+//			
+//			// umount target LV
+//			String[] umount_cmds = {"sudo", "umount", mountPoint};
+//			if(!ExecCommandBool(umount_cmds)) {
+//				return false;
+//			}
+//			
+//			// remove current LV
+//			String[] lvremove_cmds = {"sudo", "lvremove", TargetLV};
+//			if(!ExecCommandBool(lvremove_cmds)) {
+//				return false;
+//			}
+//			
+//			// rename snapshot
+//			String[] lvrename_cmds = {"sudo", "lvrename", VG_Name + "/" + SnapshotLabel, LV_Name};
+//			if(!ExecCommandBool(lvrename_cmds)) {
+//				return false;
+//			}
+//			
+//			// mount LV
+//			String[] mount_cmds = {"sudo", "mount", "/dev/" + TargetLV, mountPoint};
+//			return ExecCommandBool(mount_cmds);
+//		}
+		return false;
+	}
+	
+	// change directory
+	public static boolean ChangeDirectory(String path) {
+		if(LibGreenTea.EqualsString(path, "")) {
+			return CLibraryWrapper.INSTANCE.chdir(System.getenv("HOME")) == 0;
+		}
+		return CLibraryWrapper.INSTANCE.chdir(path) == 0;
+	}
+
+	//---------------------------------------------
+
+	private static boolean checkTraceRequirements() {
+		if(System.getProperty("os.name").equals("Linux")) {
+			boolean flag = DShellGrammar.IsUnixCommand("strace+") && 
+					DShellGrammar.IsUnixCommand("pretty_print_strace_out.py");
+			if(flag) {
+				SubProc.traceBackendType = SubProc.traceBackend_strace_plus;
+				return true;
 			}
 			else {
-				newCmdsBuffer.add(currentCmd);
+				SubProc.traceBackendType = SubProc.traceBackend_strace;
+				return DShellGrammar.IsUnixCommand("strace");
 			}
 		}
-		int bufferSize = newCmdsBuffer.size();
-		for(int i = 0; i < bufferSize; i++) {	// check internal option
-			String[] currentCmd = newCmdsBuffer.get(i);
-			if(LibGreenTea.EqualsString(currentCmd[0], "timeout")) {
-				StringBuilder numBuilder = new StringBuilder();
-				StringBuilder unitBuilder = new StringBuilder();
-				int len = currentCmd[1].length();
-				for(int j = 0; j < len; j++) {
-					char ch = currentCmd[1].charAt(j);
-					if(Character.isDigit(ch)) {
-						numBuilder.append(ch);
-					} 
-					else {
-						unitBuilder.append(ch);
-					}
-				}
-				long num = Integer.parseInt(numBuilder.toString());
-				String unit = unitBuilder.toString();
-				if(LibGreenTea.EqualsString(unit, "s")) {
-					num = num * 1000;
-				}
-				if(num >= 0) {
-					timeout = num;
-				}
-				String[] newCmd = new String[currentCmd.length - 2];
-				for(int j = 2; j < currentCmd.length; j++) {
-					newCmd[j - 2] = currentCmd[j];
-				}
-				newCmdsBuffer.set(i, newCmd);
-			}
+		System.err.println("Systemcall Trace is Not Supported");
+		return false;
+	}
+
+	public static boolean is(int option, int flag) {
+		option &= flag;
+		return option == flag;
+	}
+
+	private static int setFlag(int option, int flag, boolean set) {
+		if(set && !is(option, flag)) {
+			return option | flag;
 		}
-		
-		String[][] newCmds = newCmdsBuffer.toArray(new String[newCmdsBuffer.size()][]);
-		
-		if(is(option, enableTrace)) {
-			option = setFlag(option, enableTrace, traceRequirement);
+		else if(!set && is(option, flag)) {
+			return option & ~flag;
 		}
-		
-		// run command
-		DShellProcess Process = new DShellProcess(option, newCmds, timeout);
-		if(Process.IsBackGroundProcess()) {
-			return Process.Detach();
-		}
-		return Process.GetResult(retType);
+		return option;
 	}
 }
 
@@ -572,14 +535,8 @@ class SubProc extends PseudoProcess {
 	}
 
 	@Override public void start() {
-		int size = this.commandList.size();
-		String[] cmd = new String[size];
-		for(int i = 0; i < size; i++) {
-			cmd[i] = this.commandList.get(i);
-		}
-
 		try {
-			ProcessBuilder procBuilder = new ProcessBuilder(cmd);
+			ProcessBuilder procBuilder = new ProcessBuilder(this.commandList.toArray(new String[this.commandList.size()]));
 			if(this.mergeType == mergeErrorToOut || this.mergeType == mergeOutToError) {
 				procBuilder.redirectErrorStream(true);
 			}
@@ -761,27 +718,29 @@ class SubProc extends PseudoProcess {
 }
 
 class ProcMonitor extends Thread {	// TODO: support exit handler
-	private DShellProcess dShellProc;
+	private DShellProcess dshellProc;
 	private boolean isBackground;
-	
+
 	public ProcMonitor(DShellProcess dShellProc, boolean isBackground) {
-		this.dShellProc = dShellProc;
+		this.dshellProc = dShellProc;
 		this.isBackground = isBackground;
 	}
-	
+
 	@Override public void run() {
-		int size = this.dShellProc.Processes.length;
-		if(this.dShellProc.timeout > 0) { // timeout
+		PseudoProcess[] processes = this.dshellProc.getProcesses();
+		int size = processes.length;
+		long timeout = this.dshellProc.getTimeout();
+		if(timeout > 0) { // timeout
 			try {
 				StringBuilder msgBuilder = new StringBuilder();
 				msgBuilder.append("timeout processes: ");
-				Thread.sleep(this.dShellProc.timeout);	// ms
+				Thread.sleep(timeout);	// ms
 				for(int i = 0; i < size; i++) {
-					this.dShellProc.Processes[i].kill();
+					processes[i].kill();
 					if(i != 0) {
 						msgBuilder.append("| ");
 					}
-					msgBuilder.append(this.dShellProc.Processes[i].getCmdName());
+					msgBuilder.append(processes[i].getCmdName());
 				}
 				System.err.println(msgBuilder.toString());
 				// run exit handler
@@ -796,7 +755,7 @@ class ProcMonitor extends Thread {	// TODO: support exit handler
 		while(this.isBackground) {
 			int count = 0;
 			for(int i = 0; i < size; i++) {
-				SubProc subProc = (SubProc)this.dShellProc.Processes[i];
+				SubProc subProc = (SubProc)processes[i];
 				try {
 					subProc.getInternalProc().exitValue();
 					count++;
@@ -812,7 +771,7 @@ class ProcMonitor extends Thread {	// TODO: support exit handler
 					if(i != 0) {
 						msgBuilder.append("| ");
 					}
-					msgBuilder.append(this.dShellProc.Processes[i].getCmdName());
+					msgBuilder.append(processes[i].getCmdName());
 				}
 				System.err.println(msgBuilder.toString());
 				// run exit handler

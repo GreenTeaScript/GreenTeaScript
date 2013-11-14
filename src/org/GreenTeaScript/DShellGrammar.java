@@ -447,12 +447,12 @@ public class DShellGrammar extends GreenTeaUtils {
 				CommandTree.AppendParsedTree2(PipedTree);
 				return CommandTree;
 			}
-			if(Token.EqualsText("&")) {	// set background job
-				/*local*/GtSyntaxTree OptionTree = TokenContext.CreateSyntaxTree(NameSpace, Pattern, null);
-				OptionTree.AppendParsedTree2(OptionTree.CreateConstTree(Token.ParsedText));
-				CommandTree.AppendParsedTree2(OptionTree);
-				TokenContext.Next();
-				return CommandTree;
+			if(Token.EqualsText("&")) {	// set background job // TODO:
+//				/*local*/GtSyntaxTree OptionTree = TokenContext.CreateSyntaxTree(NameSpace, Pattern, null);
+//				OptionTree.AppendParsedTree2(OptionTree.CreateConstTree(Token.ParsedText));
+//				CommandTree.AppendParsedTree2(OptionTree);
+//				TokenContext.Next();
+//				return CommandTree;
 			}
 			if(FindRedirectSymbol(TokenContext, false) != null) {
 				/*local*/GtSyntaxTree RedirectTree = TokenContext.ParsePattern(NameSpace, "$DShell2$", Required);
@@ -470,7 +470,7 @@ public class DShellGrammar extends GreenTeaUtils {
 	public static GtNode TypeDShell2(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtType Type = null;
 		if(ContextType.IsStringType() || ContextType.IsBooleanType()) {
-			Type = ContextType;
+			Type = ContextType;	//TODO: support TaskType
 		}
 		else {
 			Type = GtStaticTable.VoidType;
@@ -701,8 +701,14 @@ public class DShellGrammar extends GreenTeaUtils {
 		NameSpace.AppendSyntax("shell", LoadParseFunc2(ParserContext, GrammarClass, "ParseShell"), null);
 		
 		// builtin command
-		NameSpace.SetSymbol("timeout", NameSpace.GetSyntaxPattern("$DShell2$"), new GtToken("timeout", 0));
-		NameSpace.SetSymbol(CommandSymbol("timeout"), "timeout", null);
+		// timeout
+		String timeout = "timeout";
+		NameSpace.SetSymbol(timeout, NameSpace.GetSyntaxPattern("$DShell2$"), new GtToken(timeout, 0));
+		NameSpace.SetSymbol(CommandSymbol(timeout), timeout, null);
+		// infer
+		String infer = "infer";
+		NameSpace.SetSymbol(infer, NameSpace.GetSyntaxPattern("$DShell2$"), new GtToken(infer, 0));
+		NameSpace.SetSymbol(CommandSymbol(infer), infer, null);
 
 		NameSpace.SetSymbol("$CreateFaultBuiltInFunc", LibNative.ImportNativeObject(NameSpace, "DShellGrammar.CreateFault"), null);
 		NameSpace.SetSymbol("$ReportBuiltInFunc", LibNative.ImportNativeObject(NameSpace, "DShellGrammar.ExecAction"), null);
