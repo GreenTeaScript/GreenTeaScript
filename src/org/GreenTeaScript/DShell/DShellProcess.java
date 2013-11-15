@@ -35,6 +35,7 @@ public class DShellProcess {
 	private int retType;
 	private PseudoProcess[] Processes;
 	private long timeout = -1;
+	private StringBuilder sBuilder;
 
 	public MessageStreamHandler stdoutHandler;
 	public MessageStreamHandler stderrHandler;
@@ -44,6 +45,39 @@ public class DShellProcess {
 		this.retType = retType;
 		String[][] newCmds = this.PrepareInternalOption(cmds);
 		this.Processes = this.CreateProcs(newCmds);
+		// generate object representation
+		this.sBuilder = new StringBuilder();
+		for(int i = 0; i< this.Processes.length; i++) {
+			if(i != 0) {
+				this.sBuilder.append(",\n");
+			}
+			this.sBuilder.append("{");
+			this.sBuilder.append(this.Processes[i].toString());
+			this.sBuilder.append("}");
+		}
+		this.sBuilder.append("\n<");
+		switch(this.retType) {
+		case VoidType: this.sBuilder.append("VoidType"); break;
+		case BooleanType: this.sBuilder.append("BooleanType"); break;
+		case StringType: this.sBuilder.append("StringType"); break;
+		case TaskType: this.sBuilder.append("TaskType"); break;
+		}
+		if(is(this.OptionFlag, returnable)) {
+			this.sBuilder.append("|returnable");
+		}
+		if(is(this.OptionFlag, printable)) {
+			this.sBuilder.append("|printable");
+		}
+		if(is(this.OptionFlag, throwable)) {
+			this.sBuilder.append("|throwable");
+		}
+		if(is(this.OptionFlag, background)) {
+			this.sBuilder.append("|background");
+		}
+		if(is(this.OptionFlag, inference)) {
+			this.sBuilder.append("|inference");
+		}
+		this.sBuilder.append(">");
 	}
 
 	public Object Invoke() {
@@ -106,6 +140,10 @@ public class DShellProcess {
 
 	public long getTimeout() {
 		return this.timeout;
+	}
+
+	@Override public String toString() {
+		return this.sBuilder.toString();
 	}
 
 	private String[][] PrepareInternalOption(String[][] cmds) {
@@ -347,6 +385,7 @@ class PseudoProcess {
 
 	protected StringBuilder cmdNameBuilder;
 	protected ArrayList<String> commandList;
+	protected StringBuilder sBuilder;
 
 	protected boolean stdoutIsDirty = false;
 	protected boolean stderrIsDirty = false;
@@ -357,6 +396,7 @@ class PseudoProcess {
 	public PseudoProcess() {
 		this.cmdNameBuilder = new StringBuilder();
 		this.commandList = new ArrayList<String>();
+		this.sBuilder = new StringBuilder();
 	}
 
 	public void setArgument(String Arg) {
@@ -372,6 +412,12 @@ class PseudoProcess {
 
 	public void setMergeType(int mergeType) {
 		this.mergeType = mergeType;
+		if(this.mergeType == mergeErrorToOut) {
+			this.sBuilder.append(" 2>&1");
+		}
+		else if(this.mergeType == mergeOutToError) {
+			this.sBuilder.append(" 1>&2");
+		}
 	}
 
 	public void start() {
@@ -413,6 +459,10 @@ class PseudoProcess {
 
 	public boolean isTraced() {
 		return false;
+	}
+
+	@Override public String toString() {
+		return this.sBuilder.toString();
 	}
 }
 
@@ -515,9 +565,14 @@ class SubProc extends PseudoProcess {
 			this.commandList.add(arg);
 		}
 
+		this.sBuilder.append("[");
+		this.sBuilder.append(arg);
 		for(int i = 1; i < Args.length; i++) {
 			this.setArgument(Args[i]);
+			this.sBuilder.append(", ");
+			this.sBuilder.append(Args[i]);
 		}
+		this.sBuilder.append("]");
 	}
 
 	@Override public void start() {
@@ -540,6 +595,7 @@ class SubProc extends PseudoProcess {
 			readFile();
 			writeFile(STDOUT_FILENO);
 			writeFile(STDERR_FILENO);
+			super.start();
 		}
 		catch (IOException e) {
 			throw new RuntimeException(e);
@@ -547,6 +603,8 @@ class SubProc extends PseudoProcess {
 	}
 
 	public void setInputRedirect(String readFileName) {
+		this.sBuilder.append(" <");
+		this.sBuilder.append(readFileName);
 		try {
 			this.inFileStream = new FileInputStream(readFileName);
 		}
@@ -572,6 +630,12 @@ class SubProc extends PseudoProcess {
 			else if(fd == STDERR_FILENO) {
 				this.errFileStream = new FileOutputStream(writeFileName, append);
 			}
+			this.sBuilder.append(" " + fd);
+			this.sBuilder.append(">");
+			if(append) {
+				this.sBuilder.append(">");
+			}
+			this.sBuilder.append(writeFileName);
 		}
 		catch (FileNotFoundException e) {
 			throw new RuntimeException(e);

@@ -19,20 +19,27 @@ public class Task {
 	private final boolean isAsyncTask;
 	private String stdoutMessage;
 	private String stderrMessage;
+	private StringBuilder sBuilder;
 
 	public Task(DShellProcess dshellProc) {
 		this.dshellProc = dshellProc;
 		this.isAsyncTask = DShellProcess.is(this.dshellProc.getOptionFlag(), DShellProcess.background);
 		this.monitor = new ProcMonitor(this.dshellProc, isAsyncTask);
 		this.monitor.start();
+		
+		this.sBuilder = new StringBuilder();
+		if(this.isAsyncTask) {
+			this.sBuilder.append("#AsyncTask{\n\t");
+		}
+		else {
+			this.sBuilder.append("#SyncTask");
+		}
+		this.sBuilder.append("\n");
+		this.sBuilder.append(this.dshellProc.toString());
 	}
 
-	@Override public String toString() { //FIXME
-		String msg = "Synchronous Task";
-		if(this.isAsyncTask) {
-			msg = "Asynchronous Task";
-		}
-		return msg;
+	@Override public String toString() {
+		return this.sBuilder.toString();
 	}
 
 	public void join() {
