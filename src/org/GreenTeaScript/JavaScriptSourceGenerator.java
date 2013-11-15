@@ -59,8 +59,93 @@ public class JavaScriptSourceGenerator extends GtSourceGenerator {
 		System.out.println(Builder);
 	}
 	
+/**
+JavaScript code to be generated:
+
+var CLASS = (function (_super) {
+	    __extends(CLASS, _super);                                // Derived class only.
+	    function CLASS(param) {                                   // Constructor.
+	        _super.call(this, param);
+	        this.FIELD = param;                                      // Field definition and initialization.
+	    };
+	    CLASS.STATIC_FIELD = "value";                      // Static fields
+    
+	    CLASS.prototype.METHOD = function () {    // Methods.
+	    };
+	    CLASS.STATIC_METHOD = function () {         // Static methods.
+	    };
+	    return CLASS;
+})(SUPERCLASS);
+ */
+	
+	@Override public void OpenClassField(GtSyntaxTree ParsedTree, GtType Type, GtClassField ClassField) {
+		this.VisitingBuilder = this.NewSourceBuilder();
+		this.VisitingBuilder.AppendIndent();
+		this.VisitingBuilder.Append("var  ");
+		this.VisitingBuilder.Append(Type.ShortName);
+		this.VisitingBuilder.AppendLine(" = (function(_super) {");
+		this.VisitingBuilder.Indent();
+		
+		if(Type.SuperType != null){
+			this.VisitingBuilder.AppendIndent();
+			this.VisitingBuilder.Append("__extends(");
+			this.VisitingBuilder.Append(Type.ShortName);
+			this.VisitingBuilder.AppendLine(", _super);");
+		}
+		
+		this.VisitingBuilder.AppendIndent();
+		this.VisitingBuilder.Append("function ");
+		this.VisitingBuilder.Append(Type.ShortName);
+		this.VisitingBuilder.Append("(");
+		this.VisitingBuilder.AppendLine(") {");
+		this.VisitingBuilder.Indent();
+		
+		/*local*/int i = 0;
+		/*local*/int size = LibGreenTea.ListSize(ClassField.FieldList);
+		while(i < size) {
+			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
+			/*local*/String InitValue = this.StringifyConstValue(FieldInfo.InitValue);
+			if(!FieldInfo.Type.IsNativeType()) {
+				InitValue = this.NullLiteral;
+			}
+			this.VisitingBuilder.AppendIndent();
+			this.VisitingBuilder.Append("this.");
+			this.VisitingBuilder.Append(FieldInfo.NativeName);
+			this.VisitingBuilder.Append(" = ");
+			this.VisitingBuilder.Append(InitValue);
+			this.VisitingBuilder.AppendLine(this.SemiColon);
+			i += 1;
+		}
+		this.VisitingBuilder.UnIndent();
+		this.VisitingBuilder.AppendIndent();
+		this.VisitingBuilder.AppendLine("};");
+		this.VisitingBuilder.AppendIndent();
+		this.VisitingBuilder.Append("return  ");
+		this.VisitingBuilder.Append(Type.ShortName);
+		this.VisitingBuilder.AppendLine(";");
+		this.VisitingBuilder.Append("})");
+		if(Type.SuperType != null){
+			this.VisitingBuilder.Append("(");
+			this.VisitingBuilder.Append(Type.SuperType.ShortName);
+			this.VisitingBuilder.Append(")");
+		}
+		this.VisitingBuilder.AppendLine(";");
+	}
+
+	@Override public void InvokeMainFunc(String MainFuncName) {
+		this.VisitingBuilder = this.NewSourceBuilder();
+		this.VisitingBuilder.Append(MainFuncName);
+		this.VisitingBuilder.AppendLine("();");
+	}
+	
 	private final boolean DoesNodeExist(GtNode Node){
 		return Node != null && !(Node instanceof GtEmptyNode);
+	}
+	
+	private final void DebugAppendNode(GtNode Node){
+		this.VisitingBuilder.Append("/* ");
+		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.VisitingBuilder.Append(" */");
 	}
 
 	public void VisitEmptyNode(GtEmptyNode EmptyNode) {
@@ -82,16 +167,16 @@ public class JavaScriptSourceGenerator extends GtSourceGenerator {
 		Node.ElseNode.Evaluate(this);
 	}
 	public void VisitExistsNode(GtExistsNode Node) {
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.DebugAppendNode(Node);
 	}
 	public void VisitCastNode(GtCastNode Node) {
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.DebugAppendNode(Node);
 	}
 	public void VisitSliceNode(GtSliceNode Node) {
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.DebugAppendNode(Node);
 	}
 	public void VisitSuffixNode(GtSuffixNode Node) {
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.DebugAppendNode(Node);
 	}
 	public void VisitUnaryNode(GtUnaryNode Node) {
 		this.VisitingBuilder.Append(Node.Token.ParsedText);
@@ -103,31 +188,31 @@ public class JavaScriptSourceGenerator extends GtSourceGenerator {
 		this.VisitingBuilder.Append("]");
 	}
 	public void VisitArrayNode(GtArrayNode Node) {
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.DebugAppendNode(Node);
 	}
 	public void VisitNewArrayNode(GtNewArrayNode Node) {
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.DebugAppendNode(Node);
 	}
 	public void VisitWhileNode(GtWhileNode Node) {
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.DebugAppendNode(Node);
 	}
 	public void VisitDoWhileNode(GtDoWhileNode Node) {
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.DebugAppendNode(Node);
 	}
 	public void VisitForNode(GtForNode Node) {
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.DebugAppendNode(Node);
 	}
 	public void VisitForEachNode(GtForEachNode Node) {
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.DebugAppendNode(Node);
 	}
 	public void VisitConstNode(GtConstNode Node) {
 		this.VisitingBuilder.Append(Node.Token.ParsedText);
 	}
 	public void VisitNewNode(GtNewNode Node) {
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.DebugAppendNode(Node);
 	}
 	public void VisitConstructorNode(GtConstructorNode Node) {
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.DebugAppendNode(Node);
 	}
 	public void VisitNullNode(GtNullNode Node) {
 		this.VisitingBuilder.Append(this.NullLiteral);
@@ -136,16 +221,16 @@ public class JavaScriptSourceGenerator extends GtSourceGenerator {
 		this.VisitingBuilder.Append(Node.Token.ParsedText);
 	}
 	public void VisitGetterNode(GtGetterNode Node) {
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.DebugAppendNode(Node);
 	}
 	public void VisitSetterNode(GtSetterNode Node) {
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.DebugAppendNode(Node);
 	}
 	public void VisitDyGetterNode(GtDyGetterNode Node) {
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.DebugAppendNode(Node);
 	}
 	public void VisitDySetterNode(GtDySetterNode Node) {
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.DebugAppendNode(Node);
 	}
 	public void VisitStaticApplyNode(GtStaticApplyNode Node) {
 		this.VisitingBuilder.Append(Node.Func.GetNativeFuncName());
@@ -156,16 +241,16 @@ public class JavaScriptSourceGenerator extends GtSourceGenerator {
 		this.VisitingBuilder.Append(")");
 	}
 	public void VisitApplyOverridedMethodNode(GtApplyOverridedMethodNode Node) {
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.DebugAppendNode(Node);
 	}
 	public void VisitApplyFuncNode(GtApplyFuncNode Node) {
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.DebugAppendNode(Node);
 	}
 	public void VisitApplyDynamicFuncNode(GtApplyDynamicFuncNode Node) {
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.DebugAppendNode(Node);
 	}
 	public void VisitApplyDynamicMethodNode(GtApplyDynamicMethodNode Node) {
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.DebugAppendNode(Node);
 	}
 	public void VisitBinaryNode(GtBinaryNode Node) {
 		Node.LeftNode.Evaluate(this);
@@ -173,16 +258,16 @@ public class JavaScriptSourceGenerator extends GtSourceGenerator {
 		Node.RightNode.Evaluate(this);
 	}
 	public void VisitAndNode(GtAndNode Node) {
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.DebugAppendNode(Node);
 	}
 	public void VisitOrNode(GtOrNode Node) {
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.DebugAppendNode(Node);
 	}
 	public void VisitAssignNode(GtAssignNode Node) {
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.DebugAppendNode(Node);
 	}
 	public void VisitVarNode(GtVarNode Node) {
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.DebugAppendNode(Node);
 	}
 	public void VisitIfNode(GtIfNode Node) {
 		this.VisitingBuilder.Append("if(");
@@ -195,7 +280,7 @@ public class JavaScriptSourceGenerator extends GtSourceGenerator {
 		}
 	}
 	public void VisitSwitchNode(GtSwitchNode Node) {
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.DebugAppendNode(Node);
 	}
 	public void VisitReturnNode(GtReturnNode Node) {
 		this.VisitingBuilder.Append("return");
@@ -211,19 +296,19 @@ public class JavaScriptSourceGenerator extends GtSourceGenerator {
 		this.VisitingBuilder.Append("continue");
 	}
 	public void VisitTryNode(GtTryNode Node) {
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.DebugAppendNode(Node);
 	}
 	public void VisitThrowNode(GtThrowNode Node) {
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.DebugAppendNode(Node);
 	}
 	public void VisitFunctionNode(GtFunctionNode Node) {
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.DebugAppendNode(Node);
 	}
 	public void VisitErrorNode(GtErrorNode Node) {
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.DebugAppendNode(Node);
 	}
 	public void VisitCommandNode(GtCommandNode Node) {
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
+		this.DebugAppendNode(Node);
 	}
 
 	
