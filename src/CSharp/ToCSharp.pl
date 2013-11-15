@@ -110,7 +110,7 @@ $src =~ s/(\/\*.*?\*\/)/&ProtectComment($1)/gmse;
 
 # $src =~ s/(?!")\b(?:char|int|long|float|double|Charactor|Integer|Long|Float|Double)\b(?!")/number/g;
 # $src =~ s/\.(?:int|long|float|double|)Value\(\)//g;
-$src =~ s/(?!")\bInteger\b/int/g;
+$src =~ s/(?!")\bInteger\b/int?/g;
 $src =~ s/(?!")\bString\b/string/g;
 $src =~ s/(?!")\bboolean\b/bool/g;
 $src =~ s/(?!")\bObject\b/object/g;
