@@ -134,19 +134,21 @@ public abstract class LibGreenTea: GreenTeaConsts {
 	}
 
     public /*final*/ class GtMap {
-	    public Dictionary<String,Object> Map = new Dictionary<String,Object>();
+	    private Dictionary<String,Object> Map = new Dictionary<String,Object>();
 
 	    public GtMap() {
 		    this.Map = new Dictionary<String,Object>();
 	    }
 
 	    public /*final*/ void put(String Key, Object Value) {
-		    this.Map.Add(Key, Value);
+		    this.Map[Key] = Value;
 	    }
 
 	    public /*final*/ Object GetOrNull(String Key) {
-		    return this.Map[Key];
+            return this.Map.ContainsKey(Key) ? this.Map[Key] : null;
 	    }
+
+        public IEnumerable<string> Keys { get { return this.Map.Keys; } }
     }
 
     public static object DynamicCast(GtType CastType, object Value)
@@ -288,12 +290,12 @@ public abstract class LibGreenTea: GreenTeaConsts {
         //        throw (Error)cause;
         //    }
         //}
-        //LibGreenTea.VerboseLog(GreenTeaUtils.VerboseException, e.ToString());
-        //Console.WriteLine(System.Environment.StackTrace);
-        //if (e is ArgumentException)
-        //{
-        //    LibGreenTea.Exit(1, e.ToString());
-        //}	
+        LibGreenTea.VerboseLog(GreenTeaUtils.VerboseException, e.ToString());
+        Console.WriteLine(System.Environment.StackTrace);
+        if (e is ArgumentException)
+        {
+            LibGreenTea.Exit(1, e.ToString());
+        }	
 	}
 
 	public /*final*/ static void Exit(int status, string Message) {
@@ -1004,16 +1006,7 @@ public abstract class LibGreenTea: GreenTeaConsts {
 	}
 
     public static void RetrieveMapKeys(GtMap Map, String Prefix, List<String> List){
-		/*local*/IEnumerator<String> itr = Map.Map.Keys.GetEnumerator();
-		/*local*/int i = 0;
-		while(itr.MoveNext()) {
-			String Key = itr.Current;
-			if(Prefix != null && !Key.StartsWith(Prefix)) {
-				continue;
-			}
-			List.Add(Key);
-			i = i + 1;
-		}
+        List.AddRange(Map.Keys.Where(k => k.StartsWith(Prefix)));
 	}
 
 	public /*final*/ static void Usage(string Message) {
@@ -1178,29 +1171,13 @@ public abstract class LibGreenTea: GreenTeaConsts {
     {
         LibGreenTea.VerboseLog(GreenTeaUtils.VerboseFile, "loading " + FileName);
         string FormattedName = FormatFilePath(FileName);
-        using (StreamReader r = new StreamReader(FormattedName))
-        {
-            return r.ReadToEnd();
+        if(File.Exists(FormattedName)){
+            using (StreamReader r = new StreamReader(FormattedName))
+            {
+                return r.ReadToEnd();
+            }
         }
-        //BufferedReader reader = new BufferedReader(new InputStreamReader(Stream));
-        //string buffer = "";
-        //try
-        //{
-        //    int buflen = 4096;
-        //    int readed = 0;
-        //    char[] buf = new char[buflen];
-        //    StringBuilder builder = new StringBuilder();
-        //    while ((readed = reader.read(buf, 0, buflen)) >= 0)
-        //    {
-        //        builder.Append(buf, 0, readed);
-        //    }
-        //    buffer = builder.ToString();
-        //}
-        //catch (IOException e)
-        //{
-        //    return null;
-        //}
-        //return buffer;
+        return string.Empty;
     }
 
 	public static long JoinIntId(int UpperId, int LowerId) {
