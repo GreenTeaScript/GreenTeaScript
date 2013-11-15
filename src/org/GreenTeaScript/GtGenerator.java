@@ -603,7 +603,7 @@ public class GtGenerator extends GreenTeaUtils {
 		else if(Type.IsBooleanType()) {
 			return DShellProcess.ExecCommandBool(Args);
 		}
-		else if(Node.Type.GetNativeName().equals("Task")) {
+		else if(LibGreenTea.EqualsString(Type.toString(), "Task")) {
 			return DShellProcess.ExecCommandTask(Args);
 		}
 		else {

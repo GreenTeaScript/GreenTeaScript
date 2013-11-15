@@ -447,12 +447,12 @@ public class DShellGrammar extends GreenTeaUtils {
 				CommandTree.AppendParsedTree2(PipedTree);
 				return CommandTree;
 			}
-			if(Token.EqualsText("&")) {	// set background job // TODO:
-//				/*local*/GtSyntaxTree OptionTree = TokenContext.CreateSyntaxTree(NameSpace, Pattern, null);
-//				OptionTree.AppendParsedTree2(OptionTree.CreateConstTree(Token.ParsedText));
-//				CommandTree.AppendParsedTree2(OptionTree);
-//				TokenContext.Next();
-//				return CommandTree;
+			if(Token.EqualsText("&")) {	// set background job
+				/*local*/GtSyntaxTree OptionTree = TokenContext.CreateSyntaxTree(NameSpace, Pattern, null);
+				OptionTree.AppendParsedTree2(OptionTree.CreateConstTree(Token.ParsedText));
+				CommandTree.AppendParsedTree2(OptionTree);
+				TokenContext.Next();
+				return CommandTree;
 			}
 			if(FindRedirectSymbol(TokenContext, false) != null) {
 				/*local*/GtSyntaxTree RedirectTree = TokenContext.ParsePattern(NameSpace, "$DShell2$", Required);
@@ -473,7 +473,9 @@ public class DShellGrammar extends GreenTeaUtils {
 			Type = ContextType;	//TODO: support TaskType
 		}
 		else {
-			Type = GtStaticTable.VoidType;
+			//Type = GtStaticTable.VoidType;
+			Type = ParsedTree.NameSpace.GetType("Task");
+			LibGreenTea.Assert(Type != null);
 		}
 		/*local*/GtNode PipedNode = null;
 		/*local*/int Index = 0;

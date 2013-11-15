@@ -1104,7 +1104,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		else if(Node.Type.IsStringType()) {
 			this.VisitingBuilder.InvokeMethodCall(Node.Type, JLib.ExecCommandString);
 		}
-		else if(Node.Type.GetNativeName().equals("Task")) {
+		else if(LibGreenTea.EqualsString(Node.Type.toString(), "Task")) {
 			this.VisitingBuilder.InvokeMethodCall(Node.Type, JLib.ExecCommandTask);
 		}
 		else {

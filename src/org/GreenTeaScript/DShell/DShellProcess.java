@@ -2,35 +2,28 @@ package org.GreenTeaScript.DShell;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.EmptyStackException;
-import java.util.Stack;
-import java.util.regex.Pattern;
 
 import org.GreenTeaScript.DShellGrammar;
 import org.GreenTeaScript.LibGreenTea;
 
 public class DShellProcess {
 	// option flag
-	private static final int returnable  = 1 << 0;
-	private static final int printable   = 1 << 1;
-	private static final int throwable   = 1 << 2;
-	private static final int background  = 1 << 3;
-	private static final int inference   = 1 << 4;
+	public static final int returnable  = 1 << 0;
+	public static final int printable   = 1 << 1;
+	public static final int throwable   = 1 << 2;
+	public static final int background  = 1 << 3;
+	public static final int inference   = 1 << 4;
 
 	// return type
 	private static final int VoidType    = 0;
@@ -43,6 +36,9 @@ public class DShellProcess {
 	private PseudoProcess[] Processes;
 	private long timeout = -1;
 
+	public MessageStreamHandler stdoutHandler;
+	public MessageStreamHandler stderrHandler;
+
 	public DShellProcess(String[][] cmds, int option, int retType) {
 		this.OptionFlag = option;
 		this.retType = retType;
@@ -52,44 +48,49 @@ public class DShellProcess {
 
 	public Object Invoke() {
 		int ProcessSize = this.Processes.length;
-		ErrorStreamHandler Handler = new ErrorStreamHandler(this.Processes);
 		int lastIndex = ProcessSize - 1;
 		PseudoProcess lastProc = this.Processes[lastIndex];
+
+		OutputStream stdoutStream = null;
+		if(is(this.OptionFlag, printable)) {
+			stdoutStream = System.out;
+		}
+		InputStream[] srcOutStreams = new InputStream[1];
+		InputStream[] srcErrorStreams = new InputStream[ProcessSize];
 
 		this.Processes[0].start();
 		for(int i = 1; i < ProcessSize; i++) {
 			this.Processes[i].start();
 			this.Processes[i].pipe(this.Processes[i - 1]);
 		}
-		Handler.showErrorMessage();
 
-		if(is(this.OptionFlag, background)) { // background job
-			lastProc.showResult();
-			ProcMonitor procMonitor = new ProcMonitor(this, true);
-			procMonitor.start();
-			Task task = new Task(procMonitor, this);
-			if(this.retType == TaskType) {
-				return task;
-			}
-			return null;
+		// Start Message Handler
+		// stdout
+		srcOutStreams[0] = lastProc.accessOutStream();
+		this.stdoutHandler = new MessageStreamHandler(srcOutStreams, stdoutStream);
+		this.stdoutHandler.showMessage();
+		// stderr
+		for(int i = 0; i < ProcessSize; i++) {
+			srcErrorStreams[i] = this.Processes[i].accessErrorStream();
 		}
-		new ProcMonitor(this, false).start();
-		lastProc.waitResult(is(this.OptionFlag, printable));
-		// raise exception
-		if(this.timeout <= 0) {
-			ShellExceptionRaiser raiser = new ShellExceptionRaiser(is(this.OptionFlag, throwable));
-			raiser.setProcesses(this.Processes);
-			raiser.raiseException();
+		this.stderrHandler = new MessageStreamHandler(srcErrorStreams, System.err);
+		this.stderrHandler.showMessage();
+
+		Task task = new Task(this);
+		if(is(this.OptionFlag, background)) {
+			return (this.retType == TaskType) && is(this.OptionFlag, returnable) ? task : null;
 		}
-		// get result
-		String outMessage = lastProc.getStdout();
-		int exitStatus = lastProc.getRet();
+
+		task.join();
 		if(is(this.OptionFlag, returnable)) {
 			if(this.retType == StringType) {
-				return outMessage;
+				return task.getOutMessage();
 			}
 			else if(this.retType == BooleanType) {
-				return new Boolean(exitStatus == 0);
+				return new Boolean(task.getExitStatus() == 0);
+			}
+			else if(this.retType == TaskType) {
+				return task;
 			}
 		}
 		return null;
@@ -148,6 +149,10 @@ public class DShellProcess {
 					newCmd[j - baseIndex] = currentCmd[j];
 				}
 				currentCmd = newCmd;
+			}
+			else if(LibGreenTea.EqualsString(currentCmd[0], "&")) {
+				this.OptionFlag = setFlag(this.OptionFlag, background, true);
+				continue;
 			}
 			newCmdsBuffer.add(currentCmd);
 		}
@@ -224,7 +229,7 @@ public class DShellProcess {
 		return ((Boolean) new DShellProcess(cmds, option, BooleanType).Invoke()).booleanValue();
 	}
 	public static Task ExecCommandTask(String[]... cmds) {
-		int option = printable | throwable | background | inference;
+		int option = returnable | printable | throwable | inference;
 		return (Task) new DShellProcess(cmds, option, TaskType).Invoke();
 	}
 
@@ -336,8 +341,6 @@ class PseudoProcess {
 	public final static int mergeErrorToOut = 0;
 	public final static int mergeOutToError = 1;
 
-	protected PseudoProcess pipedPrevProc;
-
 	protected OutputStream stdin = null;
 	protected InputStream stdout = null;
 	protected InputStream stderr = null;
@@ -384,20 +387,6 @@ class PseudoProcess {
 	public void waitFor() {
 	}
 
-	public void waitResult(boolean isPrintable) {
-	}
-	
-	public void showResult() {
-	}
-
-	public String getStdout() {
-		return "";
-	}
-
-	public String getStderr() {
-		return "";
-	}
-
 	public InputStream accessOutStream() {
 		if(!this.stdoutIsDirty) {
 			this.stdoutIsDirty = true;
@@ -442,34 +431,31 @@ class SubProc extends PseudoProcess {
 	private boolean enableSyscallTrace = false;
 	public boolean isKilled = false;
 	public String logFilePath = null;
-	
+
 	private FileInputStream inFileStream = null;
 	private FileOutputStream outFileStream = null;
 	private FileOutputStream errFileStream = null;
-	
-	private ByteArrayOutputStream messageBuffer;
-	private PipeStreamHandler messageStreamHandler = null;
 
 	private static String createLogDirectory() {
 		Calendar cal = Calendar.getInstance();
 		StringBuilder pathBuilder = new StringBuilder();
-		
+
 		pathBuilder.append(logdirPath + "/");
 		pathBuilder.append(cal.get(Calendar.YEAR) + "-");
 		pathBuilder.append((cal.get(Calendar.MONTH) + 1) + "-");
 		pathBuilder.append(cal.get(Calendar.DATE));
-		
+
 		String subdirPath = pathBuilder.toString();
 		File subdir = new File(subdirPath);
 		subdir.mkdirs();
-		
+
 		return subdirPath;
 	}
 
 	private static String createLogNameHeader() {
 		Calendar cal = Calendar.getInstance();
 		StringBuilder logNameHeader = new StringBuilder();
-		
+
 		logNameHeader.append(cal.get((Calendar.HOUR) + 1) + ":");
 		logNameHeader.append(cal.get(Calendar.MINUTE) + "-");
 		logNameHeader.append(cal.get(Calendar.MILLISECOND));
@@ -528,7 +514,7 @@ class SubProc extends PseudoProcess {
 		else {
 			this.commandList.add(arg);
 		}
-		
+
 		for(int i = 1; i < Args.length; i++) {
 			this.setArgument(Args[i]);
 		}
@@ -550,7 +536,6 @@ class SubProc extends PseudoProcess {
 				this.stdout = this.proc.getInputStream();
 				this.stderr = this.proc.getErrorStream();
 			}
-			
 			// input & output redirect
 			readFile();
 			writeFile(STDOUT_FILENO);
@@ -566,7 +551,7 @@ class SubProc extends PseudoProcess {
 			this.inFileStream = new FileInputStream(readFileName);
 		}
 		catch (FileNotFoundException e) {
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -589,7 +574,7 @@ class SubProc extends PseudoProcess {
 			}
 		}
 		catch (FileNotFoundException e) {
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -616,48 +601,12 @@ class SubProc extends PseudoProcess {
 		new PipeStreamHandler(srcStream, destStream, true).start();
 	}
 
-	@Override public void waitResult(boolean isPrintable) {
-		InputStream inStream = this.accessOutStream();
-		OutputStream outStream;
-		boolean closeStream;
-		if(isPrintable) {
-			outStream = System.out;
-			closeStream = false;
-		}
-		else {
-			messageBuffer = new ByteArrayOutputStream();
-			outStream = messageBuffer;
-			closeStream = true;
-		}
-		
-		PipeStreamHandler stdoutHandler = new PipeStreamHandler(inStream, outStream, closeStream);
-		stdoutHandler.start();
-		try {
-			stdoutHandler.join();
-		}
-		catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-	}
-	
-	@Override public void showResult() {
-		this.messageBuffer = new ByteArrayOutputStream();
-		OutputStream[] outStreams = {System.out, this.messageBuffer}; 
-		boolean[] closeOutputs = {false, true};
-		this.messageStreamHandler = new PipeStreamHandler(this.accessOutStream(), outStreams, false, closeOutputs);
-		this.messageStreamHandler.start();
-	}
-
-	@Override public String getStdout() {
-		return this.messageBuffer == null ? "" : this.messageBuffer.toString();
-	}
-
 	@Override public void waitFor() {
 		try {
 			this.retValue = this.proc.waitFor();
 		}
 		catch (InterruptedException e) {
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -666,7 +615,6 @@ class SubProc extends PseudoProcess {
 			this.proc.destroy();
 			return;
 		} 
-		 
 		try {
 			// get target pid
 			Field pidField = this.proc.getClass().getDeclaredField("pid");
@@ -681,22 +629,22 @@ class SubProc extends PseudoProcess {
 			//LibGreenTea.print("[killed]: " + this.getCmdName());
 		} 
 		catch (NoSuchFieldException e) {
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		} 
 		catch (SecurityException e) {
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		} 
 		catch (IllegalArgumentException e) {
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		} 
 		catch (IllegalAccessException e) {
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		} 
 		catch (IOException e) {
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		} 
 		catch (InterruptedException e) {
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 	}
 	
@@ -711,93 +659,40 @@ class SubProc extends PseudoProcess {
 	@Override public boolean isTraced() {
 		return this.enableSyscallTrace;
 	}
-	
-	public PipeStreamHandler getMessageStreamHandler() {
-		return this.messageStreamHandler;
-	}
 }
 
-class ProcMonitor extends Thread {	// TODO: support exit handler
-	private DShellProcess dshellProc;
-	private boolean isBackground;
+class MessageStreamHandler {
+	private InputStream[] srcStreams;
+	private OutputStream[] destStreams;
+	private ByteArrayOutputStream messageBuffer;
+	private PipeStreamHandler[] streamHandlers;
 
-	public ProcMonitor(DShellProcess dShellProc, boolean isBackground) {
-		this.dshellProc = dShellProc;
-		this.isBackground = isBackground;
+	public MessageStreamHandler(InputStream[] srcStreams, OutputStream destStream) {
+		this.srcStreams = srcStreams;
+		this.messageBuffer = new ByteArrayOutputStream();
+		this.streamHandlers = new PipeStreamHandler[this.srcStreams.length];
+		OutputStream[] tempStreams = {destStream, this.messageBuffer};
+		this.destStreams = tempStreams;
 	}
 
-	@Override public void run() {
-		PseudoProcess[] processes = this.dshellProc.getProcesses();
-		int size = processes.length;
-		long timeout = this.dshellProc.getTimeout();
-		if(timeout > 0) { // timeout
+	public void showMessage() {
+		boolean[] closeOutputs = {false, false};
+		for(int i = 0; i < srcStreams.length; i++) {
+			this.streamHandlers[i] = new PipeStreamHandler(this.srcStreams[i], this.destStreams, true, closeOutputs);
+			this.streamHandlers[i].start();
+		}
+	}
+
+	public String waitTermination() {
+		for(int i = 0; i < srcStreams.length; i++) {
 			try {
-				StringBuilder msgBuilder = new StringBuilder();
-				msgBuilder.append("timeout processes: ");
-				Thread.sleep(timeout);	// ms
-				for(int i = 0; i < size; i++) {
-					processes[i].kill();
-					if(i != 0) {
-						msgBuilder.append("| ");
-					}
-					msgBuilder.append(processes[i].getCmdName());
-				}
-				System.err.println(msgBuilder.toString());
-				// run exit handler
+				this.streamHandlers[i].join();
 			} 
 			catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			return;
-		}
-		
-		// check process status
-		while(this.isBackground) {
-			int count = 0;
-			for(int i = 0; i < size; i++) {
-				SubProc subProc = (SubProc)processes[i];
-				try {
-					subProc.getInternalProc().exitValue();
-					count++;
-				}
-				catch(IllegalThreadStateException e) {
-					// process has not terminated yet. do nothing
-				}
-			}
-			if(count == size) {
-				StringBuilder msgBuilder = new StringBuilder();
-				msgBuilder.append("exit processes: ");
-				for(int i = 0; i < size; i++) {
-					if(i != 0) {
-						msgBuilder.append("| ");
-					}
-					msgBuilder.append(processes[i].getCmdName());
-				}
-				System.err.println(msgBuilder.toString());
-				// run exit handler
-				return;
-			}
-			try {
-				Thread.sleep(100); // sleep thread
-			}
-			catch (InterruptedException e) {
-				e.printStackTrace();
+				throw new RuntimeException(e);
 			}
 		}
-	}
-}
-
-class ErrorStreamHandler {
-	private PseudoProcess[] targetProcs;
-	
-	public ErrorStreamHandler(PseudoProcess[] targetProcs) {
-		this.targetProcs = targetProcs;
-	}
-	
-	public void showErrorMessage() {
-		for(int i = 0; i < targetProcs.length; i++) {
-			new PipeStreamHandler(this.targetProcs[i].accessErrorStream(), System.err, false).start();
-		}
+		return this.messageBuffer.toString();
 	}
 }
 
@@ -819,7 +714,7 @@ class PipeStreamHandler extends Thread {
 		this.closeOutputs = new boolean[1];
 		this.closeOutputs[0] = closeStream;
 	}
-	
+
 	public PipeStreamHandler(InputStream input, 
 			OutputStream[] outputs, boolean closeInput, boolean[] closeOutputs) {
 		this.input = input;
@@ -864,591 +759,9 @@ class PipeStreamHandler extends Thread {
 		@Override public void write(int b) throws IOException {
 			// do nothing
 		}
-	}
-}
-
-class CauseInferencer {
-	// syscall filter
-	private static final Pattern syscallFilter = Pattern.compile("^[1-9][0-9]* .+(.+) *= *.+");
-	private static final Pattern failedSyscallFilter = Pattern.compile("^[1-9][0-9]* .+(.+) *= *-[1-9].+");
-	private static final Pattern localeFilter = Pattern.compile("^.+(.+/locale.+).+");
-	private static final Pattern gconvFilter = Pattern.compile("^.+(.+/usr/lib64/gconv.+).+");
-	
-	// function filter
-	private static final Pattern functionFilter = Pattern.compile("^  > .+");
-	private static final Pattern dcigettextFilter = Pattern.compile("^  > __dcigettext().+");
-	private static final Pattern exitFilter = Pattern.compile("^  > .+exit.*().+");
-	private static final Pattern libcStartMainFilter = Pattern.compile("^  > __libc_start_main().+");
-	
-	private int traceBackendType;
-
-	public CauseInferencer(int traceBackendType) {
-		this.traceBackendType = traceBackendType;
-	}
-
-	private boolean applyFilter(Pattern filter, String line) {
-		return filter.matcher(line).find();
-	}
-	
-	private boolean applyFilterToGroup(Pattern filter, int startIndex, ArrayList<String> group) {
-		int size = group.size();
-		for(int i = startIndex; i < size; i++) {
-			if(applyFilter(filter, group.get(i))) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private Stack<String[]> filterStraceLog(String logFilePath) {
-		try {
-			Stack<String[]> parsedSyscallStack = new Stack<String[]>();
-			BufferedReader br = new BufferedReader(new FileReader(logFilePath));
-			String line;
-			while((line = br.readLine()) != null) {
-				if(applyFilter(failedSyscallFilter, line) && 
-						!applyFilter(localeFilter, line) && !applyFilter(gconvFilter, line)) {
-					parsedSyscallStack.push(parseLine(line));
-				}
-			}
-			br.close();
-			return parsedSyscallStack;
-		} 
-		catch (FileNotFoundException e) {
-			throw new RuntimeException(e);
-		} 
-		catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	private String getFullExcutablePath(String executableFile) {
-		String[] path = System.getenv("PATH").split(":");
-		int i = 0;
-		while(i < path.length) {
-			String fullPath = path[i] + "/" + executableFile;
-			if(new File(fullPath).exists()) {
-				return fullPath;
-			}
-			i = i + 1;
-		}
-		return null;
-	}
-
-	private String applyPostProcess(String logPath) {
-		StringBuilder cmdBuilder = new StringBuilder();
-		String shapedLogPath = logPath + "-shaped.log";
-		String scriptPath = getFullExcutablePath("pretty_print_strace_out.py");
-		
-		cmdBuilder.append("python");
-		cmdBuilder.append(" " + scriptPath + " " + logPath + " --trace > ");
-		cmdBuilder.append(shapedLogPath);
-		String[] cmds = {"bash", "-c", cmdBuilder.toString()};
-		try {
-			Process launcher = new ProcessBuilder(cmds).start();
-			launcher.waitFor();
-		} 
-		catch (IOException e) {
-			throw new RuntimeException(e);
-		} 
-		catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-		return shapedLogPath;
-	}
-
-	private Stack<String[]> filterStracePlusLog(String logFilePath) {
-		try {
-			String newLogFilePath = applyPostProcess(logFilePath);
-			Stack<String[]> parsedSyscallStack = new Stack<String[]>();
-			ArrayList<String> syscallGroup = null;
-			ArrayList<ArrayList<String>> syscallGroupList = new ArrayList<ArrayList<String>>();
-			BufferedReader br = new BufferedReader(new FileReader(newLogFilePath));
-			String line;
-			while((line = br.readLine()) != null) {
-				if(applyFilter(syscallFilter, line)) {
-					if(syscallGroup != null) {
-						syscallGroupList.add(syscallGroup);
-						syscallGroup = null;
-					}
-					syscallGroup = new ArrayList<String>();
-					syscallGroup.add(line);
-				}
-				else if(applyFilter(functionFilter, line)) {
-					syscallGroup.add(line);
-				}
-			}
-			if(syscallGroup != null) {
-				syscallGroupList.add(syscallGroup);
-				syscallGroup = null;
-			}
-			br.close();
-			SubProc.deleteLogFile(newLogFilePath);
-			
-			int size = syscallGroupList.size();
-			for(int i = 0; i < size; i++) {
-				ArrayList<String> group = syscallGroupList.get(i);
-				String syscall = group.get(0);
-				if(!applyFilter(failedSyscallFilter, syscall)) {
-					continue;
-				}
-				if(applyFilter(gconvFilter, syscall)) {
-					continue;
-				}
-				if(applyFilter(localeFilter, syscall)) {
-					continue;
-				}
-				if(!applyFilterToGroup(libcStartMainFilter, 1, group)) {
-					continue;
-				}
-				if(applyFilterToGroup(exitFilter, 1, group)) {
-					continue;
-				}
-				if(applyFilterToGroup(dcigettextFilter, 1, group)) {
-					continue;
-				}
-				parsedSyscallStack.push(parseLine(syscall));
-			}
-			return parsedSyscallStack;
-		} 
-		catch (FileNotFoundException e) {
-			throw new RuntimeException(e);
-		} 
-		catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	private Stack<String[]> filterTraceLog(String logFilePath) {
-		if(traceBackendType == SubProc.traceBackend_strace) {
-			return filterStraceLog(logFilePath);
-		}
-		else if(traceBackendType == SubProc.traceBackend_strace_plus) {
-			return filterStracePlusLog(logFilePath);
-		}
-		else {
-			throw new RuntimeException("invalid trace backend type");
-		}
-	}
-
-	private String[] parseLine(String syscallLine) {
-		int index = 0;
-		int whiteSpaceCount = 0;
-		int openBracketCount = 0;
-		int closeBracketCount = 0;
-		String[] parsedSyscall = new String[3];
-		String[] parsedSyscallTemp = new String[4];
-		StringBuilder sBuilder= new StringBuilder();
-
-		for(int i = 0; i < syscallLine.length(); i++) {
-			char token = syscallLine.charAt(i);
-			switch(token) {
-			case '(':
-				if(openBracketCount++ == 0) {
-					parsedSyscallTemp[index++] = new String(sBuilder.toString());
-					sBuilder = new StringBuilder();
-				}
-				break;
-			case ')':
-				if(openBracketCount == ++closeBracketCount) {
-					parsedSyscallTemp[index++] = new String(sBuilder.toString());
-					sBuilder = new StringBuilder();
-					openBracketCount = closeBracketCount = 0;
-				}
-				break;
-			default:
-				if(whiteSpaceCount < 2 && token == ' ') {
-					if(i + 1 < syscallLine.length() && syscallLine.charAt(i + 1) != ' ') {
-						whiteSpaceCount++;
-					}
-				} 
-				else {
-					sBuilder.append(token);
-				}
-				break;
-			}
-		}
-		String[] splitStrings = parsedSyscallTemp[2].trim().split(" ");
-		
-		parsedSyscall[0] = parsedSyscallTemp[0];
-		parsedSyscall[1] = parsedSyscallTemp[1];
-		parsedSyscall[2] = splitStrings[2];
-
-		return parsedSyscall;
-	}
-
-	public String[] doInference(String traceLogPath) {
-		Stack<String[]> syscallStack = this.filterTraceLog(traceLogPath);
-		try {
-			return syscallStack.peek();
-		}
-		catch(EmptyStackException e) {
-			return null;
+		@Override public void close() {
+			//do nothing
 		}
 	}
 }
 
-class ShellExceptionRaiser {
-	private PseudoProcess[] procs;
-	private boolean enableException;
-
-	public ShellExceptionRaiser(boolean enableException) {
-		this.enableException = enableException;
-	}
-
-	public void setProcesses(PseudoProcess[] kprocs) {
-		this.procs = kprocs;
-	}
-
-	public void raiseException() {
-		for(int i = 0; i < this.procs.length; i++) {
-			PseudoProcess targetProc = this.procs[i];
-			targetProc.waitFor();
-			
-			if(!this.enableException) {
-				continue;
-			}
-			String message = targetProc.getCmdName();
-			if(targetProc.isTraced() && targetProc instanceof SubProc) {
-				String logFilePath = ((SubProc)targetProc).getLogFilePath();
-				if(targetProc.getRet() != 0) {
-					CauseInferencer inferencer = new CauseInferencer(SubProc.traceBackendType);
-					String[] inferedSyscall = inferencer.doInference(logFilePath);
-					SubProc.deleteLogFile(logFilePath);
-					throw createException(message, inferedSyscall);
-				}
-				SubProc.deleteLogFile(logFilePath);
-			}
-			else {
-				if(targetProc.getRet() != 0) {
-					throw new DShellException(message);
-				}
-			}
-		}
-	}
-
-	private RuntimeException createException(String message, String[] syscall) {
-		// syscall: syscallName: 0, param: 1, errno: 2
-		Class<?>[] types = {String.class, String.class, String[].class};
-		Object[] args = {message, message, syscall};
-		try {
-			if(syscall == null) {
-				return new NotRelatedSyscallException(message);
-			}
-			Class<?> exceptionClass = ErrorToException.valueOf(syscall[2]).toException();
-			if(exceptionClass == null) {
-				return new DShellException(syscall[2] + " has not implemented yet!!");
-			}
-			else {
-				Constructor<?> constructor;
-				try {
-					constructor = exceptionClass.getConstructor(types);
-				}
-				catch (NoSuchMethodException e) {
-					throw new RuntimeException(e);
-				}
-				catch (SecurityException e) {
-					throw new RuntimeException(e);
-				}
-				try {
-					return (RelatedSyscallException) constructor.newInstance(args);
-				}
-				catch (InstantiationException e) {
-					throw new RuntimeException(e);
-				}
-				catch (IllegalAccessException e) {
-					throw new RuntimeException(e);
-				}
-				catch (InvocationTargetException e) {
-					throw new RuntimeException(e);
-				}
-			}
-		}
-		catch (IllegalArgumentException e) {
-			return new RuntimeException((syscall[2] + " is not syscall!!"));
-		}
-	}
-}
-
-enum Syscall {
-	open, openat, connect,
-}
-
-enum ErrorToException {
-	E2BIG {
-		public Class<?> toException() {
-			return TooManyArgsException.class;
-		}
-	}, 
-	EACCES {
-		public Class<?> toException() {
-			return NotPermittedException.class;
-		}
-	}, 
-	EADDRINUSE, 
-	EADDRNOTAVAIL, 
-	EAFNOSUPPORT,
-	EAGAIN {
-		public Class<?> toException() {
-			return TemporaryUnavailableException.class;
-		}
-	}, 
-	EALREADY, 
-	EBADE, 
-	EBADF {
-		public Class<?> toException() {
-			return BadFileDescriptorException.class;
-		}
-	}, 
-	EBADFD {
-		public Class<?> toException() {
-			return BadStateFileDescriptorException.class;
-		}
-	}, 
-	EBADMSG {
-		public Class<?> toException() {
-			return BadMessageException.class;
-		}
-	}, 
-	EBADR, 
-	EBADRQC, 
-	EBADSLT, 
-	EBUSY, 
-	ECANCELED, 
-	ECHILD {
-		public Class<?> toException() {
-			return NoChildException.class;
-		}
-	}, 
-	ECHRNG, 
-	ECOMM, 
-	ECONNABORTED,
-	ECONNREFUSED {
-		public Class<?> toException() {
-			return ConnectionRefusedException.class;
-		}
-	}, 
-	ECONNRESET, 
-	EDEADLK, 
-	EDEADLOCK, 
-	EDESTADDRREQ, 
-	EDOM,
-	EDQUOT, 
-	EEXIST {
-		public Class<?> toException() {
-			return FileExistException.class;
-		}
-	}, 
-	EFAULT, 
-	EFBIG {
-		public Class<?> toException() {
-			return TooLargeFileException.class;
-		}
-	}, 
-	EHOSTDOWN, 
-	EHOSTUNREACH {
-		public Class<?> toException() {
-			return UnreachableHostException.class;
-		}
-	}, 
-	EIDRM, 
-	EILSEQ,
-	EINPROGRESS, 
-	EINTR {
-		public Class<?> toException() {
-			return InterruptedBySignalException.class;
-		}
-	}, 
-	EINVAL {
-		public Class<?> toException() {
-			return InvalidArgumentException.class;
-		}
-	}, 
-	EIO {
-		public Class<?> toException() {
-			return org.GreenTeaScript.DShell.IOException.class;
-		}
-	}, 
-	EISCONN, 
-	EISDIR {
-		public Class<?> toException() {
-			return IsDirectoryException.class;
-		}
-	}, 
-	EISNAM, 
-	EKEYEXPIRED,
-	EKEYREJECTED, 
-	EKEYREVOKED, 
-	EL2HLT, 
-	EL2NSYNC, 
-	EL3HLT, 
-	EL3RST, 
-	ELIBACC, 
-	ELIBBAD, 
-	ELIBMAX, 
-	ELIBSCN, 
-	ELIBEXEC, 
-	ELOOP {
-		public Class<?> toException() {
-			return TooManyLinkException.class;
-		}
-	}, 
-	EMEDIUMTYPE, 
-	EMFILE {
-		public Class<?> toException() {
-			return TooManyFileOpenException.class;
-		}
-	}, 
-	EMLINK, 
-	EMSGSIZE {
-		public Class<?> toException() {
-			return TooLongMessageException.class;
-		}
-	}, 
-	EMULTIHOP, 
-	ENAMETOOLONG {
-		public Class<?> toException() {
-			return TooLongNameException.class;
-		}
-	}, 
-	ENETDOWN, 
-	ENETRESET, 
-	ENETUNREACH {
-		public Class<?> toException() {
-			return UnreachableNetworkException.class;
-		}
-	}, 
-	ENFILE {
-		public Class<?> toException() {
-			return FileTableOverflowException.class;
-		}
-	},
-	ENOBUFS {
-		public Class<?> toException() {
-			return NoBufferSpaceException.class;
-		}
-	}, 
-	ENODATA, 
-	ENODEV {
-		public Class<?> toException() {
-			return DeviceNotFoundException.class;
-		}
-	}, 
-	ENOENT {
-		public Class<?> toException() {
-			return org.GreenTeaScript.DShell.FileNotFoundException.class;
-		}
-	}, 
-	ENOEXEC, 
-	ENOKEY, 
-	ENOLCK, 
-	ENOLINK, 
-	ENOMEDIUM, 
-	ENOMEM {
-		public Class<?> toException() {
-			return NoFreeMemoryException.class;
-		}
-	},
-	ENOMSG, 
-	ENONET, 
-	ENOPKG, 
-	ENOPROTOOPT, 
-	ENOSPC {
-		public Class<?> toException() {
-			return NoFreeSpaceException.class;
-		}
-	}, 
-	ENOSR, 
-	ENOSTR,
-	ENOSYS, 
-	ENOTBLK, 
-	ENOTCONN, 
-	ENOTDIR {
-		public Class<?> toException() {
-			return NotDirectoryException.class;
-		}
-	}, 
-	ENOTEMPTY {
-		public Class<?> toException() {
-			return NotEmptyDirectoryException.class;
-		}
-	}, 
-	ENOTSOCK {
-		public Class<?> toException() {
-			return NotSocketException.class;
-		}
-	}, 
-	ENOTSUP, 
-	ENOTTY {
-		public Class<?> toException() {
-			return InappropriateOperateException.class;
-		}
-	}, 
-	ENOTUNIQ, 
-	ENXIO, 
-	EOPNOTSUPP, 
-	EOVERFLOW, 
-	EPERM{
-		public Class<?> toException() {
-			return NotPermittedOperateException.class;
-		}
-	}, 
-	EPFNOSUPPORT, 
-	EPIPE {
-		public Class<?> toException() {
-			return BrokenPipeException.class;
-		}
-	}, 
-	EPROTO, 
-	EPROTONOSUPPORT, 
-	EPROTOTYPE, 
-	ERANGE, 
-	EREMCHG, 
-	EREMOTE, 
-	EREMOTEIO {
-		public Class<?> toException() {
-			return RemoteIOException.class;
-		}
-	},
-	ERESTART, 
-	EROFS {
-		public Class<?> toException() {
-			return ReadOnlyException.class;
-		}
-	}, 
-	ESHUTDOWN, 
-	ESPIPE {
-		public Class<?> toException() {
-			return IllegalSeekException.class;
-		}
-	}, 
-	ESOCKTNOSUPPORT, 
-	ESRCH, 
-	ESTALE, 
-	ESTRPIPE, 
-	ETIME, 
-	ETIMEDOUT {
-		public Class<?> toException() {
-			return ConnectionTimeoutException.class;
-		}
-	}, 
-	ETXTBSY, 
-	EUCLEAN, 
-	EUNATCH, 
-	EUSERS {
-		public Class<?> toException() {
-			return TooManyUsersException.class;
-		}
-	}, 
-	EWOULDBLOCK {
-		public Class<?> toException() {
-			return EAGAIN.toException();
-		}
-	}, 
-	EXDEV, 
-	EXFULL;
-
-	public Class<?> toException() {
-		return null;
-	}
-}
