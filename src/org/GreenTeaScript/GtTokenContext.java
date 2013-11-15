@@ -63,7 +63,8 @@ public final class GtTokenContext extends GreenTeaUtils {
 	}
 
 	public void FoundWhiteSpace() {
-		/*local*/GtToken Token = this.SourceList.get(this.SourceList.size() - 1);
+		int index = this.SourceList.size() - 1;
+		/*local*/GtToken Token = this.SourceList.get(index);
 		Token.TokenFlag |= WhiteSpaceTokenFlag;
 	}
 

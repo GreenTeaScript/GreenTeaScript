@@ -109,7 +109,7 @@ public class GtNode extends GreenTeaUtils {
 	public final boolean IsNullNode() {
 		return (this instanceof GtNullNode);
 	}
-	protected final Object ToNullValue(GtParserContext Context, boolean EnforceConst) {
+	public final Object ToNullValue(GtParserContext Context, boolean EnforceConst) {
 		if(EnforceConst) {
 			Context.ReportError(ErrorLevel, this.Token, "value must be constant in this context");
 		}

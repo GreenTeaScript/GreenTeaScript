@@ -933,11 +933,14 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		else if(Extension.endsWith(".scala")) {
 			return "scala";
 		}
-		else if(Extension.endsWith(".c")) {
-			return "c";
+		else if(Extension.endsWith(".cs")) {
+			return "cs";
 		}
 		else if(TargetCode.startsWith("X")) {
 			return "exe";
+		}
+		else if(Extension.endsWith(".c")) {
+			return "c";
 		}
 		return TargetCode;
 	}
@@ -961,11 +964,14 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		else if(TargetCode.startsWith("scala")) {
 			return new ScalaSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
-		else if(TargetCode.startsWith("c")) {
-			return new CSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+		else if(TargetCode.startsWith("csharp")) {
+			return new CSharpSourceCodeGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
 		else if(TargetCode.startsWith("exe")) {
 			return new JavaByteCodeGenerator(TargetCode, OutputFile, GeneratorFlag);
+		}
+		else if(TargetCode.startsWith("c")) {
+			return new CSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
 		return null;
 	}

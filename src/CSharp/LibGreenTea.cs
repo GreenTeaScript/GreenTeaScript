@@ -275,25 +275,25 @@ public abstract class LibGreenTea: GreenTeaConsts {
 
 
     public /*final*/ static void VerboseException(Exception e) {
-        if (e is TargetInvocationException)
-        {
-            Exception cause = e.getCause;
-            e = cause;
-            if (cause is SystemException)
-            {
-                throw (SystemException)cause;
-            }
-            if (cause is Error)
-            {
-                throw (Error)cause;
-            }
-        }
-        LibGreenTea.VerboseLog(GreenTeaUtils.VerboseException, e.ToString());
-        Console.WriteLine(System.Environment.StackTrace);
-        if (e is ArgumentException)
-        {
-            LibGreenTea.Exit(1, e.ToString());
-        }	
+        //if (e is TargetInvocationException)
+        //{
+        //    Exception cause = e.getCause;
+        //    e = cause;
+        //    if (cause is SystemException)
+        //    {
+        //        throw (SystemException)cause;
+        //    }
+        //    if (cause is Error)
+        //    {
+        //        throw (Error)cause;
+        //    }
+        //}
+        //LibGreenTea.VerboseLog(GreenTeaUtils.VerboseException, e.ToString());
+        //Console.WriteLine(System.Environment.StackTrace);
+        //if (e is ArgumentException)
+        //{
+        //    LibGreenTea.Exit(1, e.ToString());
+        //}	
 	}
 
 	public /*final*/ static void Exit(int status, string Message) {

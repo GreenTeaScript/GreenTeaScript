@@ -744,7 +744,7 @@ public class GreenTeaScript extends GreenTeaUtils {
 			Context.ShowReportedErrors();
 			/*local*/int linenum = 1;
 			/*local*/String Line = null;
-			while((Line = LibGreenTea.ReadLine2(">>> ", "    ")) != null) {
+			while((Line = LibGreenTea.ReadLine(">>> ", "    ")) != null) {
 				try {
 					/*local*/Object EvaledValue = Context.TopLevelNameSpace.Eval(Line, linenum);
 					Context.ShowReportedErrors();

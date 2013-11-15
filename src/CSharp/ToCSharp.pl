@@ -102,6 +102,7 @@ $src =~ s/(\/\/.*?)$/&ProtectComment($1)/gems;
 # Protect Comments
 $src =~ s/(\/\*.*?\*\/)/&ProtectComment($1)/gmse;
 
+
 # Constants. public final static int N = 0; => var N: int = 0;
 #$src =~ s/(?:$Attr*) ($Type)\s+($Sym)((?:\[\s*\d*\s*\])?)/$2: $1$3/g;
 
