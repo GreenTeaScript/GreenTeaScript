@@ -430,7 +430,7 @@ class PseudoProcess {
 	public void kill() {
 	}
 
-	public void waitFor() {
+	public void waitTermination() {
 	}
 
 	public InputStream accessOutStream() {
@@ -665,7 +665,7 @@ class SubProc extends PseudoProcess {
 		new PipeStreamHandler(srcStream, destStream, true).start();
 	}
 
-	@Override public void waitFor() {
+	@Override public void waitTermination() {
 		try {
 			this.retValue = this.proc.waitFor();
 		}
@@ -711,9 +711,9 @@ class SubProc extends PseudoProcess {
 			throw new RuntimeException(e);
 		}
 	}
-	
-	public Process getInternalProc() {
-		return this.proc;
+
+	public void checkTermination() {
+		this.retValue = this.proc.exitValue();
 	}
 
 	public String getLogFilePath() {

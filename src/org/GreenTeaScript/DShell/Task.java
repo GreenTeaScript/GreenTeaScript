@@ -24,12 +24,11 @@ public class Task {
 	public Task(DShellProcess dshellProc) {
 		this.dshellProc = dshellProc;
 		this.isAsyncTask = DShellProcess.is(this.dshellProc.getOptionFlag(), DShellProcess.background);
-		this.monitor = new ProcMonitor(this.dshellProc, isAsyncTask);
+		this.monitor = new ProcMonitor(this, this.dshellProc, isAsyncTask);
 		this.monitor.start();
-		
 		this.sBuilder = new StringBuilder();
 		if(this.isAsyncTask) {
-			this.sBuilder.append("#AsyncTask{\n\t");
+			this.sBuilder.append("#AsyncTask");
 		}
 		else {
 			this.sBuilder.append("#SyncTask");
@@ -47,6 +46,7 @@ public class Task {
 			return;
 		}
 		try {
+			this.terminated = true;
 			monitor.join();
 			this.stdoutMessage = dshellProc.stdoutHandler.waitTermination();
 			this.stderrMessage = dshellProc.stderrHandler.waitTermination();
@@ -54,12 +54,7 @@ public class Task {
 		catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}
-		this.terminated = true;
-		if(dshellProc.getTimeout() <= 0) {
-			ShellExceptionRaiser raiser = new ShellExceptionRaiser(true);
-			raiser.setProcesses(this.dshellProc.getProcesses());
-			raiser.raiseException();
-		}
+		new ShellExceptionRaiser(this.dshellProc).raiseException();
 	}
 
 	public void join(long timeout) {
@@ -67,35 +62,36 @@ public class Task {
 	}
 
 	public String getOutMessage() {
-		if(!this.terminated) {
-			throw new IllegalThreadStateException("Task is not Terminated");
-		}
+		this.checkTermination();
 		return this.stdoutMessage;
 	}
 
 	public String getErrorMessage() {
-		if(!this.terminated) {
-			throw new IllegalThreadStateException("Task is not Terminated");
-		}
+		this.checkTermination();
 		return this.stderrMessage;
 	}
 
 	public int getExitStatus() {
-		if(!this.terminated) {
-			throw new IllegalThreadStateException("Task is not Terminated");
-		}
+		this.checkTermination();
 		PseudoProcess[] procs = this.dshellProc.getProcesses();
 		return procs[procs.length - 1].getRet();
 	}
+
+	private void checkTermination() {
+		if(!this.terminated) {
+			throw new IllegalThreadStateException("Task is not Terminated");
+		}
+	}
 }
 
-class ProcMonitor extends Thread {	// TODO: support exit handler
+class ProcMonitor extends Thread {	// TODO: support exit handle
+	private Task task;
 	private DShellProcess dshellProc;
 	private final boolean isBackground;
 	public final long timeout;
-	
 
-	public ProcMonitor(DShellProcess dShellProc, boolean isBackground) {
+	public ProcMonitor(Task task, DShellProcess dShellProc, boolean isBackground) {
+		this.task = task;
 		this.dshellProc = dShellProc;
 		this.isBackground = isBackground;
 		this.timeout =  this.dshellProc.getTimeout();
@@ -106,9 +102,9 @@ class ProcMonitor extends Thread {	// TODO: support exit handler
 		int size = processes.length;
 		if(this.timeout > 0) { // timeout
 			try {
-				StringBuilder msgBuilder = new StringBuilder();
-				msgBuilder.append("timeout processes: ");
 				Thread.sleep(timeout);	// ms
+				StringBuilder msgBuilder = new StringBuilder();
+				msgBuilder.append("Timeout Task: ");
 				for(int i = 0; i < size; i++) {
 					processes[i].kill();
 					if(i != 0) {
@@ -118,20 +114,24 @@ class ProcMonitor extends Thread {	// TODO: support exit handler
 				}
 				System.err.println(msgBuilder.toString());
 				// run exit handler
+				this.task.join();
 			} 
 			catch (InterruptedException e) {
 				throw new RuntimeException(e);
 			}
 			return;
 		}
-
-		// check process status
-		while(this.isBackground) {
+		if(!this.isBackground) {	// wait termination for sync task
+			for(int i = 0; i < size; i++) {
+				processes[i].waitTermination();
+			}
+		}
+		while(this.isBackground) {	// check termination for async task
 			int count = 0;
 			for(int i = 0; i < size; i++) {
 				SubProc subProc = (SubProc)processes[i];
 				try {
-					subProc.getInternalProc().exitValue();
+					subProc.checkTermination();
 					count++;
 				}
 				catch(IllegalThreadStateException e) {
@@ -140,7 +140,7 @@ class ProcMonitor extends Thread {	// TODO: support exit handler
 			}
 			if(count == size) {
 				StringBuilder msgBuilder = new StringBuilder();
-				msgBuilder.append("exit processes: ");
+				msgBuilder.append("Terminated Task: ");
 				for(int i = 0; i < size; i++) {
 					if(i != 0) {
 						msgBuilder.append("| ");
@@ -149,6 +149,7 @@ class ProcMonitor extends Thread {	// TODO: support exit handler
 				}
 				System.err.println(msgBuilder.toString());
 				// run exit handler
+				this.task.join();
 				return;
 			}
 			try {
@@ -381,23 +382,18 @@ class CauseInferencer {
 }
 
 class ShellExceptionRaiser {
-	private PseudoProcess[] procs;
-	private boolean enableException;
+	private DShellProcess dshellProc;
 
-	public ShellExceptionRaiser(boolean enableException) {
-		this.enableException = enableException;
-	}
-
-	public void setProcesses(PseudoProcess[] kprocs) {
-		this.procs = kprocs;
+	public ShellExceptionRaiser(DShellProcess dshellProc) {
+		this.dshellProc = dshellProc;
 	}
 
 	public void raiseException() {
-		for(int i = 0; i < this.procs.length; i++) {
-			PseudoProcess targetProc = this.procs[i];
-			targetProc.waitFor();
-			
-			if(!this.enableException) {
+		PseudoProcess[] procs = dshellProc.getProcesses();
+		boolean enableException = DShellProcess.is(this.dshellProc.getOptionFlag(), DShellProcess.throwable);
+		for(int i = 0; i < procs.length; i++) {
+			PseudoProcess targetProc = procs[i];
+			if(!enableException || dshellProc.getTimeout() > 0) {
 				continue;
 			}
 			String message = targetProc.getCmdName();
