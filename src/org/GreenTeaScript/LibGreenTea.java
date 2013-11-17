@@ -1014,7 +1014,25 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return null;
 	}
 
-
+	public static boolean ImportMethod(GtFunc Func, String FullName) {
+		Method JavaMethod = LibNative.ImportMethod(Func.GetFuncType(), FullName, false);
+		if(JavaMethod != null) {
+			LibGreenTea.SetNativeMethod(Func, JavaMethod);
+			if(Func.GetReturnType().IsVarType()) {
+				Func.SetReturnType(LibNative.GetNativeType(JavaMethod.getReturnType()));
+			}
+			int StartIdx = Func.Is(GreenTeaUtils.NativeMethodFunc) ? 2 : 1;
+			Class<?>[] p = JavaMethod.getParameterTypes();
+			for(int i = 0; i < p.length; i++) {
+				if(Func.Types[StartIdx + i].IsVarType()) {
+					Func.Types[StartIdx + i] = LibNative.GetNativeType(p[i]);
+					Func.FuncType = null; // reset
+				}
+			}
+			return true;
+		}
+		return false;
+	}
 
 //	public static Object EvalGetter(GtType Type, Object Value, String FieldName) {
 //		// TODO Auto-generated method stub

@@ -1483,10 +1483,10 @@ public class KonohaGrammar extends GtGrammar {
 		/*local*/GtNode WhileNode = Gamma.ParseTypedNode("while(iter.hasHext()) { " + VarName + " = iter.next(); }", ParsedTree.KeyToken.FileLine, GtStaticTable.VoidType);
 		if(!WhileNode.IsErrorNode()) {
 			/*local*/GtNode BodyNode =  ParsedTree.TypeCheckAt(ForEachBody, Gamma, GtStaticTable.VoidType, DefaultTypeCheckPolicy);
-			/*local*/GtWhileNode WhileNode2 = (GtWhileNode)WhileNode;
+			/*local*/GtWhileNode WhileNode2 = (/*cast*/GtWhileNode)WhileNode;
 			GreenTeaUtils.LinkNode(WhileNode2.LoopBody, BodyNode);
 		}
-		GtNode Node = Gamma.Generator.CreateVarNode(IterNode.Type, ParsedTree, IterNode.Type, VarIterInfo.NativeName, IterNode, WhileNode);
+		/*local*/GtNode Node = Gamma.Generator.CreateVarNode(IterNode.Type, ParsedTree, IterNode.Type, VarIterInfo.NativeName, IterNode, WhileNode);
 		if(VarInfo != null) {
 			Node = Gamma.Generator.CreateVarNode(VarInfo.Type, ParsedTree, VarInfo.Type, VarInfo.NativeName, Gamma.CreateDefaultValue(ParsedTree, VarInfo.Type), Node);
 		}

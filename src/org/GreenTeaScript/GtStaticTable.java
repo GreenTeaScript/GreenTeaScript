@@ -25,8 +25,8 @@
 //ifdef JAVA
 package org.GreenTeaScript;
 import java.util.ArrayList;
-//endif VAJA
 import java.util.Iterator;
+//endif VAJA
 
 public class GtStaticTable implements GreenTeaConsts {
 

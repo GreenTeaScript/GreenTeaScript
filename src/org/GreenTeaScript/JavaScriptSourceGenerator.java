@@ -31,14 +31,14 @@ public class JavaScriptSourceGenerator extends GtSourceGenerator {
 	/*field*/private boolean UseLetKeyword = false;
 	/*field*/private boolean IsForNodeJS = false;
 	
-	public JavaScriptSourceGenerator(String TargetCode, String OutputFile, int GeneratorFlag) {
+	public JavaScriptSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
 	}
 	
 	@Override
 	public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
-		String MethodName = Func.GetNativeFuncName();
-		GtSourceBuilder Builder = new GtSourceBuilder(this);
+		/*local*/String MethodName = Func.GetNativeFuncName();
+		/*local*/GtSourceBuilder Builder = new GtSourceBuilder(this);
 		Builder.IndentAndAppend("function ");
 		Builder.SpaceAppendSpace(MethodName);
 		Builder.Append("(");
@@ -52,7 +52,7 @@ public class JavaScriptSourceGenerator extends GtSourceGenerator {
 			i += 1;
 		}
 		Builder.Append(")");
-		GtSourceBuilder PushedBuilder = this.VisitingBuilder;
+		/*local*/GtSourceBuilder PushedBuilder = this.VisitingBuilder;
 		this.VisitingBuilder = Builder;
 		this.VisitIndentBlock("{", Body, "}");
 		this.VisitingBuilder = PushedBuilder;
