@@ -12,6 +12,9 @@ import org.GreenTeaScript.DShellGrammar;
 // D-Shell Asynchronous task
 let Task = import org.GreenTeaScript.DShell.Task;
 
+// define CheckPoint class
+let CheckPoint = import org.GreenTeaScript.DShell.CheckPoint;
+
 // D-Shell Exception class
 let DShellException = import org.GreenTeaScript.DShell.DShellException;
 let NotRelatedSyscallException = import org.GreenTeaScript.DShell.NotRelatedSyscallException;
