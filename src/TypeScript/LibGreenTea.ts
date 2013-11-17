@@ -513,25 +513,6 @@ class LibGreenTea {
 		return null;
 	}
 
-	static ImportNativeMethod(NameSpace: GtNameSpace, NativeFunc : GtFunc, FullName: string) : boolean {
-		var JavaScriptMethod = LibGreenTea.LoadNativeMethod(NativeFunc.GetFuncType(), FullName, false);
-		if(JavaScriptMethod){
-			LibGreenTea.SetNativeMethod(NativeFunc, JavaScriptMethod);
-			if(NativeFunc.GetReturnType().IsVarType()) {
-				NativeFunc.SetReturnType(LibGreenTea.GetNativeType(NativeFunc.GetContext(), Object));
-			}
-			var StartIdx: number = NativeFunc.Is(NativeStaticFunc) ? 1 : 2;
-			for(var i = 0; i < JavaScriptMethod.length; i++) {
-				if(NativeFunc.Types[StartIdx + i].IsVarType()) {
-					NativeFunc.Types[StartIdx + i] = LibGreenTea.GetNativeType(NativeFunc.GetContext(), Object);
-					NativeFunc.FuncType = null; // reset
-				}
-			}
-			return true;
-		}
-		return false;
-	}
-
 	static ImportNativeObject(NameSpace : GtNameSpace, PackageName: string): Object {
 		LibGreenTea.VerboseLog(VerboseNative, "importing " + PackageName);
 		var NativeClass = LibGreenTea.LoadNativeClass(PackageName);
@@ -569,11 +550,6 @@ class LibGreenTea {
 	}
 
 	static NativeFieldSetter(ObjectValue: any, NativeField: any, Value: any) : any {
-		throw new Error("NotImplementedAPI");
-		return null;
-	}
-
-	static ImportStaticObject(Context: GtParserContext, NativeClass: any, Symbol: string) : any {
 		throw new Error("NotImplementedAPI");
 		return null;
 	}
@@ -793,6 +769,17 @@ class LibGreenTea {
 		return null;
 	}
 
+	public static WriteSource(OutputFile: string, SourceList: any): void {
+		throw new Error("LibGreenTea.WriteSouce is not implemented for this environment");
+	}
+
+	public static PrintStackTrace(e: any, linenum: number): void {
+		throw new Error("LibGreenTea.PrintStackTrace is not implemented for this environment");
+	}
+
+	public static SourceBuilderToString(Builder: GtSourceBuilder): string {
+		throw new Error("LibGreenTea.SourceBuilderToString is not implemented for this environment");
+	}
 
 // in LibNative.java
 	public static ImportStaticFieldValue(Context: GtParserContext, ClassType: GtType, Symbol: string): Object {
@@ -858,7 +845,7 @@ class LibGreenTea {
 		return Value.constructor;
 	}
 
-	public static ImportMethod(Func: GtFunc, FullName: string): boolean {
+	public static ImportMethodToFunc(Func: GtFunc, FullName: string): boolean {
 		return false;
 	}
 }

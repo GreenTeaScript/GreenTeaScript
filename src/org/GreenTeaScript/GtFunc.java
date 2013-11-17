@@ -207,7 +207,7 @@ public final class GtFunc extends GreenTeaUtils {
 	}
 
 	public final boolean ImportMethod(String FullName) {
-		return LibGreenTea.ImportMethod(this, FullName);
+		return LibGreenTea.ImportMethodToFunc(this, FullName);
 	}
 
 	

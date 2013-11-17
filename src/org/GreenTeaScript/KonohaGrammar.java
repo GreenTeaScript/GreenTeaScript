@@ -984,7 +984,7 @@ public class KonohaGrammar extends GtGrammar {
 			Name = ObjectType.ShortName + "." + Name;
 			return Gamma.CreateSyntaxErrorNode(ParsedTree, "undefined name: " + Name);
 		}
-		return TypeMethodNameCall(Gamma, ParsedTree, RecvNode, Name, ContextType);
+		return KonohaGrammar.TypeMethodNameCall(Gamma, ParsedTree, RecvNode, Name, ContextType);
 	}
 
 	public static GtNode TypeMethodNameCall(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtNode RecvNode, String MethodName, GtType ContextType) {

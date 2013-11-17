@@ -765,18 +765,7 @@ public class GreenTeaScript extends GreenTeaUtils {
 					linenum += 1;
 				}
 				catch(Exception e) {
-					/*local*/StackTraceElement[] elements = e.getStackTrace();
-					/*local*/int size = elements.length + 1;
-					/*local*/StackTraceElement[] newElements = new StackTraceElement[size];
-					for(/*local*/int i = 0; i < size; i++) {
-						if(i == size - 1) {
-							newElements[i] = new StackTraceElement("<TopLevel>", "TopLevelEval", "stdin", linenum);
-							break;
-						}
-						newElements[i] = elements[i];
-					}
-					e.setStackTrace(newElements);
-					e.printStackTrace();
+					LibGreenTea.PrintStackTrace(e, linenum);
 					linenum += 1;
 				}
 			}

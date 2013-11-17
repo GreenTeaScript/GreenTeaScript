@@ -181,7 +181,7 @@ public final class GtTypeEnv extends GreenTeaUtils {
 	}
 
 	public GtNode ParseTypedNode(String Text, long FileLine, GtType ContextType) {
-		/*local*/GtNameSpace Namepace = this.NameSpace;
+		/*local*/GtNameSpace NameSpace = this.NameSpace;
 		/*local*/GtTokenContext LocalContext = new GtTokenContext(NameSpace, Text, FileLine);
 		/*local*/GtSyntaxTree ParsedTree = LocalContext.ParsePattern(NameSpace, "$Expression$", Required);
 		return GreenTeaUtils.TypeBlock(this, ParsedTree, ContextType);
