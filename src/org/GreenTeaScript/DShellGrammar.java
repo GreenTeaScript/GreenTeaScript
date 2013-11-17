@@ -470,10 +470,12 @@ public class DShellGrammar extends GreenTeaUtils {
 	public static GtNode TypeDShell2(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtType Type = null;
 		if(ContextType.IsStringType() || ContextType.IsBooleanType()) {
-			Type = ContextType;	//TODO: support TaskType
+			Type = ContextType;
+		}
+		else if(ContextType.IsVoidType()) {
+			Type = GtStaticTable.VoidType;
 		}
 		else {
-			//Type = GtStaticTable.VoidType;
 			Type = ParsedTree.NameSpace.GetType("Task");
 			LibGreenTea.Assert(Type != null);
 		}
@@ -485,7 +487,6 @@ public class DShellGrammar extends GreenTeaUtils {
 			if(SubTree.Pattern.EqualsName("$DShell2$")) {
 				PipedNode = TypeDShell2(Gamma, SubTree, ContextType);
 				ArgumentSize = Index;
-//				Type = Gamma.VoidType;
 				break;
 			}
 			Index += 1;
@@ -697,7 +698,6 @@ public class DShellGrammar extends GreenTeaUtils {
 		NameSpace.AppendSyntax("letenv", LoadParseFunc2(ParserContext, GrammarClass, "ParseEnv"), null);
 		NameSpace.AppendSyntax("command", LoadParseFunc2(ParserContext, GrammarClass, "ParseCommand"), null);
 		NameSpace.AppendSyntax("-", LoadParseFunc2(ParserContext, GrammarClass, "ParseFileOperator"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeFileOperator"));
-//		NameSpace.AppendSyntax("$DShell$", LoadParseFunc2(ParserContext, GrammarClass, "ParseDShell"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeDShell"));
 		NameSpace.AppendSyntax("$FilePath$", LoadParseFunc2(ParserContext, GrammarClass, "ParseFilePath"), null);
 		NameSpace.AppendSyntax("$DShell2$", LoadParseFunc2(ParserContext, GrammarClass, "ParseDShell2"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeDShell2"));
 		NameSpace.AppendSyntax("shell", LoadParseFunc2(ParserContext, GrammarClass, "ParseShell"), null);
