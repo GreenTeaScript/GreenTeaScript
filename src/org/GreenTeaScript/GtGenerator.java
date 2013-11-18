@@ -610,7 +610,7 @@ public class GtGenerator extends GreenTeaUtils {
 			DShellProcess.ExecCommandVoid(Args);
 		}
 //endif VAJA
-		return Node.ToNullValue(this.Context, EnforceConst);  // if unsupported
+		return null;
 	}
 
 	public void FlushBuffer() {

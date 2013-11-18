@@ -508,6 +508,7 @@ public class DShellGrammar extends GreenTeaUtils {
 	private final static int AtomicBody     = 1;
 	private final static int AtomicExcept   = 2;
 	private final static int AtomicRollback = 3;
+	private final static int AtomicClear    = 4;
 	private static int checkpointCount = -1;
 
 	public static GtSyntaxTree ParseAtomic(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
@@ -532,16 +533,21 @@ public class DShellGrammar extends GreenTeaUtils {
 		/*local*/String NewRollback = "{ " + CheckPointName + ".rollback(); }";
 		/*local*/GtTokenContext RollbackContext = new GtTokenContext(NameSpace, NewRollback, TokenContext.ParsingLine);
 		AtomicTree.SetMatchedPatternAt(AtomicRollback, NameSpace, RollbackContext, "$Block$", Required);
+
+		/*local*/String NewClear = "{ " + CheckPointName + ".clear(); }";
+		/*local*/GtTokenContext ClearContext = new GtTokenContext(NameSpace, NewClear, TokenContext.ParsingLine);
+		AtomicTree.SetMatchedPatternAt(AtomicClear, NameSpace, ClearContext, "$Block$", Required);
 		return AtomicTree;
 	}
 
 	public static GtNode TypeAtomic(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtNameSpace NameSpace = Gamma.NameSpace;
 		/*local*/GtSyntaxPattern TryPattern = NameSpace.GetSyntaxPattern("try");
-		/*local*/GtSyntaxTree TryTree = new GtSyntaxTree(TryPattern, Gamma.NameSpace, new GtToken("try", ParsedTree.KeyToken.FileLine), null);
+		/*local*/GtSyntaxTree TryTree = new GtSyntaxTree(TryPattern, NameSpace, new GtToken("try", ParsedTree.KeyToken.FileLine), null);
 		TryTree.SetSyntaxTreeAt(TryBody, ParsedTree.GetSyntaxTreeAt(AtomicBody));
 		TryTree.SetSyntaxTreeAt(CatchVariable, ParsedTree.GetSyntaxTreeAt(AtomicExcept));
 		TryTree.SetSyntaxTreeAt(CatchBody, ParsedTree.GetSyntaxTreeAt(AtomicRollback));
+		TryTree.SetSyntaxTreeAt(FinallyBody, ParsedTree.GetSyntaxTreeAt(AtomicClear));
 		/*local*/GtSyntaxTree TargetDeclTree = ParsedTree.GetSyntaxTreeAt(AtomicTarget);
 		TargetDeclTree.ParentTree = ParsedTree.ParentTree;
 		TargetDeclTree.PrevTree = ParsedTree.PrevTree;

@@ -12,7 +12,7 @@ public class CheckPoint {
 	private static final int directory_type = 1;
 	private String filePath;
 	private String oldFilePath;
-	private int operationType;
+	private final int operationType;
 	private boolean called = false;
 
 	public CheckPoint(String filePath) {
@@ -23,6 +23,9 @@ public class CheckPoint {
 		}
 		else if(new File(this.filePath).isDirectory()) {
 			this.operationType = directory_type;
+		}
+		else {
+			throw new IllegalArgumentException();
 		}
 	}
 
@@ -50,15 +53,30 @@ public class CheckPoint {
 	}
 
 	public void rollback() {
-		if(this.called) {
-			throw new IllegalStateException("Already Rollbacked");
+		if(!this.called) {
+			this.called = true;
+			if(this.operationType == file_type) {
+				this.revertFile();
+			}
+			else if(this.operationType == directory_type) {
+				
+			}
 		}
-		this.called = true;
-		if(this.operationType == file_type) {
-			this.revertFile();
-		}
-		else if(this.operationType == directory_type) {
-			
+	}
+
+	private void clearFile() {
+		new File(oldFilePath).delete();
+	}
+
+	public void clear() {
+		if(!this.called) {
+			this.called = true;
+			if(this.operationType == file_type) {
+				this.clearFile();
+			}
+			else if(this.operationType == directory_type) {
+				
+			}
 		}
 	}
 }
