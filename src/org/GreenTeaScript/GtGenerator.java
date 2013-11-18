@@ -613,6 +613,11 @@ public class GtGenerator extends GreenTeaUtils {
 		return Node.ToNullValue(this.Context, EnforceConst);  // if unsupported
 	}
 
+	public String GetSourceCode() {
+		return null;
+		/*extension*/
+	}
+
 	public void FlushBuffer() {
 		/*extension*/
 	}
