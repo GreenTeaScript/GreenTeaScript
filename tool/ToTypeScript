@@ -28,6 +28,7 @@ source="${source} GtTokenContext"
 source="${source} GtType"
 source="${source} GtTypeEnv"
 source="${source} GtStaticTable"
+source="${source} GtSourceGenerator"
 source="${source} JavaScriptSourceGenerator"
 source="${source} BashSourceGenerator"
 source="${source} CSourceGenerator"
@@ -36,6 +37,7 @@ source="${source} PythonSourceGenerator"
 source="${source} ScalaSourceGenerator"
 source="${source} KonohaGrammar"
 source="${source} GreenTeaScript"
+source="${source} GtSourceBuilder"
 #
 ts=""
 
@@ -46,7 +48,7 @@ done
 
 perl src/TypeScript/PackLibraries.pl lib > ${build}GreenTeaLibraries.ts
 ts="${ts} ${build}GreenTeaLibraries.ts"
-ts="${ts} ${build}LibGreenTea.ts"
+ts="${build}LibGreenTea.ts ${ts}"
 
 cat ${ts} > ${build}GreenTea.ts
 

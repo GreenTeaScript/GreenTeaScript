@@ -175,6 +175,8 @@ $src =~ s/\bGtDelegate(?:Common|Token|Match|Type)\b/any/g;
 $src =~ s/$Grammar\.$Grammar/$Grammar/g;
 
 $src =~ s/\bGtGrammar\.Load(Token|Parse|Type)Func\b/LibLoadFunc.Load$1Func/g;
+$src =~ s/\bLibNative\b/LibGreenTea/g; #FIX ME
+$src =~ s/\bLibNative\./LibGreenTea\./g; #FIX ME
 
 # For debug
 #$src =~ s/(LibGreenTea\.)?DebugP\(/console.log("DEBUG: " + /g;

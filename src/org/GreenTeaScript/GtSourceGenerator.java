@@ -62,7 +62,7 @@ public class GtSourceGenerator extends GtGenerator {
 	public GtSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
 		this.BuilderList = new ArrayList<GtSourceBuilder>();
-		this.HeaderBuilder = NewSourceBuilder();
+		this.HeaderBuilder = this.NewSourceBuilder();
 		this.VisitingBuilder = null;
 		this.LineFeed = "\n";
 		this.Tab = "   ";

@@ -1,6 +1,9 @@
 
 var JavaScriptGlobal: any = Function("return this")();
 
+class Iterator<T> {//FIX ME!!
+}
+
 interface Array {
 	get(index: number): any;
 	set(index: number, value: any): void;
@@ -9,57 +12,82 @@ interface Array {
 	size(): number;
 	clear(): void;
 	remove(index: number): any;
+	iterator(): Iterator<Array>;
 }
 
-Array.prototype["size"] = function(){
-	return this.length;
-}
-
-Array.prototype["add"] = function(arg1){
-	if(arguments.length == 1) {
-		this.push(arg1);
-	} else {
-		var arg2 = arguments[1];
-		this.splice(arg1, 0, arg2);
+Object.defineProperty(Array.prototype, "size", {
+	enumerable : false,
+	value : function() {
+		return this.length;
 	}
-}
+});
 
-Array.prototype["get"] = function(i){
-	if(i >= this.length){
-		throw new RangeError("invalid array index");
+Object.defineProperty(Array.prototype, "add", {
+	enumerable : false,
+	value : function(arg1) {
+		if(arguments.length == 1) {
+			this.push(arg1);
+		} else {
+			var arg2 = arguments[1];
+			this.splice(arg1, 0, arg2);
+		}
 	}
-	return this[i];
-}
+});
 
-Array.prototype["set"] = function(i, v): void{
-	this[i] = v;
-}
-
-Array.prototype["remove"] = function(i){
-	if(i >= this.length){
-		throw new RangeError("invalid array index");
+Object.defineProperty(Array.prototype, "get", {
+	enumerable : false,
+	value : function(i) {
+		if(i >= this.length){
+			throw new RangeError("invalid array index");
+		}
+		return this[i];
 	}
-	var v = this[i];
-	this.splice(i, 1);
-	return v;
-}
+});
 
-Array.prototype["clear"] = function(){
-	this.length = 0;
-}
+Object.defineProperty(Array.prototype, "set", {
+	enumerable : false,
+	value : function(i, v) {
+		this[i] = v;
+	}
+});
+
+Object.defineProperty(Array.prototype, "remove", {
+	enumerable : false,
+	value : function(i) {
+		if(i >= this.length){
+			throw new RangeError("invalid array index");
+		}
+		var v = this[i];
+		this.splice(i, 1);
+		return v;
+	}
+});
+
+Object.defineProperty(Array.prototype, "clear", {
+	enumerable : false,
+	value : function() {
+		this.length = 0;
+	}
+});
 
 interface Object {
 	equals(other: any): boolean;
 	InstanceOf(klass: any): boolean;
 }
 
-Object.prototype["equals"] = function(other): boolean{
-	return (this === other);
-}
+Object.defineProperty(Object.prototype, "equals", {
+	enumerable : false,
+	value : function(other) {
+		return (this === other);
+	}
+});
 
-Object.prototype["InstanceOf"] = function(klass): boolean{
-	return (<any>this).constructor == klass;
-}
+Object.defineProperty(Object.prototype, "InstanceOf", {
+	enumerable : false,
+	value : function(klass) {
+		return (<any>this).constructor == klass;
+	}
+});
 
 interface String {
 	startsWith(key: string): boolean;
@@ -69,17 +97,26 @@ interface String {
 	substring(BeginIdx : number, EndIdx : number) : string;
 }
 
-String.prototype["startsWith"] = function(key): boolean{
-	return this.indexOf(key, 0) == 0;
-}
+Object.defineProperty(String.prototype, "startsWith", {
+	enumerable : false,
+	value : function(key) {
+		return this.indexOf(key, 0) == 0;
+	}
+});
 
-String.prototype["endsWith"] = function(key): boolean{
-	return this.lastIndexOf(key, 0) == 0;
-}
+Object.defineProperty(String.prototype, "endsWith", {
+	enumerable : false,
+	value : function(key) {
+		return this.lastIndexOf(key, 0) == 0;
+	}
+});
 
-String.prototype["equals"] = function(other): boolean{
-	return (this == other);
-}
+Object.defineProperty(String.prototype, "equals", {
+	enumerable : false,
+	value : function(other) {
+		return (this == other);
+	}
+});
 
 JavaScriptGlobal["GreenTeaObject"] = (function () {
     function GreenTeaObject() {
@@ -184,14 +221,23 @@ class LibGreenTea {
 		return GreenTeaArray.NewArrayLiteral(ArrayType, Values);
 	}
 
-	static InvokeFunc(Func: GtFunc, Params: any[]): any{
-		throw new Error("NotImplementedAPI");
+	static InvokeFunc(Func: GtFunc, Params: Object[]): Object {
+		if(Func == null || Func.IsAbstract()) {
+			LibGreenTea.VerboseLog(VerboseRuntime, "applying abstract function: " + Func);
+			return Func.GetReturnType().DefaultNullValue;
+		}
+		else if(Func.Is(NativeMethodFunc)) {
+			var MethodArguments: Object[] = new Object[Params.length-1];
+			LibGreenTea.ArrayCopy(Params, 1, MethodArguments, 0, MethodArguments.length);
+			return LibGreenTea.ApplyMethod(Func, Params[0], MethodArguments);
+		}
+		return LibGreenTea.ApplyMethod(Func, null, Params);
 	}
 
 	static InvokeOverridedMethod(FileLine: number, NameSpace: GtNameSpace, Func: GtFunc, Arguments: Object[]): Object {
-		var ClassType: GtType = NameSpace.Context.GuessType(Arguments[0]);
-		Func = NameSpace.GetOverridedMethod(ClassType, Func);
-		return Func.Apply(Arguments);
+		var ClassType: GtType = GtStaticTable.GuessType(Arguments[0]);
+ 		Func = NameSpace.GetOverridedMethod(ClassType, Func);
+		return LibGreenTea.InvokeFunc(Func, Arguments);
 	}
 
 	static InvokeDynamicFunc(FileLine: number, ContextType: GtType, NameSpace: GtNameSpace, FuncName: string, Arguments: Object[]): Object {
@@ -202,12 +248,12 @@ class LibGreenTea {
 			Value = Func.Apply(Arguments);
 			return LibGreenTea.DynamicCast(ContextType, Value);
 		}
-		LibGreenTea.VerboseLog(VerboseRuntime, PolyFunc.MessageTypeError(null, FuncName));
+		LibGreenTea.VerboseLog(VerboseRuntime, PolyFunc.FormatTypeErrorMessage("function", null, FuncName));
 		return Value;
 	}
 
 	static InvokeDynamicMethod(FileLine: number, ContextType: GtType, NameSpace: GtNameSpace, FuncName: string, Arguments: Object[]): Object {
-		var ClassType: GtType = ContextType.Context.GuessType(Arguments[0]);
+		var ClassType: GtType = GtStaticTable.GuessType(Arguments[0]);
 		var PolyFunc :GtPolyFunc = NameSpace.GetMethod(ClassType, FuncName, true);
 		var Func: GtFunc = PolyFunc.GetMatchedFunc(NameSpace, Arguments);
 		var Value :Object = ContextType.DefaultNullValue;
@@ -215,25 +261,25 @@ class LibGreenTea {
 			Value = Func.Apply(Arguments);
 			return LibGreenTea.DynamicCast(ContextType, Value);
 		}
-		LibGreenTea.VerboseLog(VerboseRuntime, PolyFunc.MessageTypeError(ClassType, FuncName));
+		LibGreenTea.VerboseLog(VerboseRuntime, PolyFunc.FormatTypeErrorMessage("method", ClassType, FuncName));
 		return Value;
 	}
 	
 	static DynamicGetter(RecvObject: Object, FieldName: string): Object {
-		try {
-			return LibGreenTea.DynamicCast(ContextType, RecvObject[FieldName]);
-		} catch (e) {
-		}
-		return ContextType.DefaultNullValue;
+ 		try {
+			return RecvObject[FieldName];
+ 		} catch (e) {
+ 		}
+		return null;
 	}
 
 	static DynamicSetter(RecvObject: Object, FieldName: string, Value: Object): Object {
-		try {
-			RecvObject[FieldName] = Value;
-			return LibGreenTea.DynamicCast(ContextType, RecvObject[FieldName]);
-		} catch (e) {
-		}
-		return ContextType.DefaultNullValue;
+ 		try {
+ 			RecvObject[FieldName] = Value;
+			return RecvObject[FieldName];
+ 		} catch (e) {
+ 		}
+		return null;
 	}
 
 	static GetPlatform(): string {
@@ -384,22 +430,22 @@ class LibGreenTea {
 		return <any>Text - 0;
 	}
 
-	static GetNativeType(Context: GtParserContext, Value: any): GtType {
-		var NativeGtType: GtType = null;
-		var NativeClassInfo: any = Value.constructor;
-		if(Value.InstanceOf(Number) || Value == Number.prototype) {
-			if((<any>Value | 0) == <any>Value) {
-				return Context.IntType;
-			}
-			//return Context.FloatType;
-		}
-		if(Value.InstanceOf(String) || Value == String.prototype) {
-			return Context.StringType;
-		}
-		NativeGtType = <GtType> Context.ClassNameMap.get(NativeClassInfo.name);
-		if(NativeGtType == null) {
-			NativeGtType = new GtType(Context, NativeType, NativeClassInfo.name, null, NativeClassInfo);
-			Context.ClassNameMap.put(NativeClassInfo.name, NativeGtType);
+	static GetNativeType(Value: any): GtType {
+ 		var NativeGtType: GtType = null;
+ 		var NativeClassInfo: any = Value.constructor;
+ 		if(Value.InstanceOf(Number) || Value == Number.prototype) {
+ 			if((<any>Value | 0) == <any>Value) {
+				return GtStaticTable.IntType;
+ 			}
+			//return GtStaticTable.FloatType;
+ 		}
+ 		if(Value.InstanceOf(String) || Value == String.prototype) {
+			return GtStaticTable.StringType;
+ 		}
+		NativeGtType = <GtType> GtStaticTable.ClassNameMap.get(NativeClassInfo.name);
+ 		if(NativeGtType == null) {
+			NativeGtType = new GtType(NativeType, NativeClassInfo.name, null, NativeClassInfo);
+			GtStaticTable.ClassNameMap.put(NativeClassInfo.name, NativeGtType);
 		}
 		if(!NativeGtType.InstanceOf(GtType)){
 			throw new Error("Invalid NativeGtType for " + Value.constructor.name);
@@ -424,7 +470,7 @@ class LibGreenTea {
 		if(GreenType.IsTopType()) {
 			return (Type == Object);
 		}
-		var JavascriptType: GtType = LibGreenTea.GetNativeType(GreenType.Context, Type);
+		var JavascriptType: GtType = LibGreenTea.GetNativeType(Type);
 		if(GreenType != JavascriptType) {
 			if(GreenType.IsGenericType() && GreenType.HasTypeVariable()) {
 				return GreenType.BaseType == JavascriptType.BaseType;
@@ -464,16 +510,16 @@ class LibGreenTea {
 		return NativeMethod;
 	}
 
-	static ConvertNativeMethodToFunc(Context: GtParserContext, JavaScriptFunction: any): GtFunc {
-		var TypeList: GtType[] = [];
-		TypeList.add(LibGreenTea.GetNativeType(Context, Object)); // For reciever
-		TypeList.add(LibGreenTea.GetNativeType(Context, Object)); // For return
-		var ParamTypes = [];
-		for(var i = 0; i < JavaScriptFunction.length; i++){
-			TypeList.add(LibGreenTea.GetNativeType(Context, Object));
-		}
-		return LibGreenTea.SetNativeMethod(new GtFunc(0, JavaScriptFunction.name, 0, TypeList), JavaScriptFunction);
-	}
+ 	static ConvertNativeMethodToFunc(Context: GtParserContext, JavaScriptFunction: any): GtFunc {
+ 		var TypeList: GtType[] = [];
+		TypeList.add(LibGreenTea.GetNativeType(Object)); // For reciever
+		TypeList.add(LibGreenTea.GetNativeType(Object)); // For return
+ 		var ParamTypes = [];
+ 		for(var i = 0; i < JavaScriptFunction.length; i++){
+			TypeList.add(LibGreenTea.GetNativeType(Object));
+ 		}
+ 		return LibGreenTea.SetNativeMethod(new GtFunc(0, JavaScriptFunction.name, 0, TypeList), JavaScriptFunction);
+ 	}
 
 	static LoadNativeClass(ClassName: string) : any {
 		return eval(ClassName);
@@ -500,32 +546,13 @@ class LibGreenTea {
 		return null;
 	}
 
-	static ImportNativeMethod(NameSpace: GtNameSpace, NativeFunc : GtFunc, FullName: string) : boolean {
-		var JavaScriptMethod = LibGreenTea.LoadNativeMethod(NativeFunc.GetFuncType(), FullName, false);
-		if(JavaScriptMethod){
-			LibGreenTea.SetNativeMethod(NativeFunc, JavaScriptMethod);
-			if(NativeFunc.GetReturnType().IsVarType()) {
-				NativeFunc.SetReturnType(LibGreenTea.GetNativeType(NativeFunc.GetContext(), Object));
-			}
-			var StartIdx: number = NativeFunc.Is(NativeStaticFunc) ? 1 : 2;
-			for(var i = 0; i < JavaScriptMethod.length; i++) {
-				if(NativeFunc.Types[StartIdx + i].IsVarType()) {
-					NativeFunc.Types[StartIdx + i] = LibGreenTea.GetNativeType(NativeFunc.GetContext(), Object);
-					NativeFunc.FuncType = null; // reset
-				}
-			}
-			return true;
-		}
-		return false;
-	}
-
 	static ImportNativeObject(NameSpace : GtNameSpace, PackageName: string): Object {
 		LibGreenTea.VerboseLog(VerboseNative, "importing " + PackageName);
 		var NativeClass = LibGreenTea.LoadNativeClass(PackageName);
 		if(NativeClass && NativeClass.prototype && NativeClass.prototype.ImportGrammar instanceof Function){
 			var LoaderMethod = NativeClass.prototype.ImportGrammar;
 			LoaderMethod(NameSpace, NativeClass);
-			return LibGreenTea.GetNativeType(NameSpace.Context, NativeClass);
+			return LibGreenTea.GetNativeType(NativeClass);
 		}
 		var Index = PackageName.lastIndexOf(".");
 		if(Index == -1) {
@@ -560,11 +587,6 @@ class LibGreenTea {
 		return null;
 	}
 
-	static ImportStaticObject(Context: GtParserContext, NativeClass: any, Symbol: string) : any {
-		throw new Error("NotImplementedAPI");
-		return null;
-	}
-
 	static LoadNativeStaticFieldValue(Context: GtParserContext, ClassType: GtType, Symbol: String): any {
 		throw new Error("NotImplementedAPI");
 		return null;
@@ -576,6 +598,16 @@ class LibGreenTea {
 
 	static LookupNativeMethod(Callee: Object, MethodName: string): any {
 		return Callee[MethodName];
+	}
+
+	static ApplyMethod(Func: GtFunc, Self: Object, Params: Object[]): Object {
+		try {
+			return (<any>Func.FuncBody).apply(Self, Params);
+		}
+		catch (e) {
+			LibGreenTea.VerboseException(e);
+		}
+		return null;
 	}
 
 	static ApplyFunc(Func: GtFunc, Self: any, Params: any[]): any {
@@ -768,5 +800,85 @@ class LibGreenTea {
 
 	public static EvalGetter(Type: GtType, Value: any, FieldName: string): any {
 		return null;
+	}
+
+	public static WriteSource(OutputFile: string, SourceList: any): void {
+		throw new Error("LibGreenTea.WriteSouce is not implemented for this environment");
+	}
+
+	public static PrintStackTrace(e: any, linenum: number): void {
+		throw new Error("LibGreenTea.PrintStackTrace is not implemented for this environment");
+	}
+
+	public static SourceBuilderToString(Builder: GtSourceBuilder): string {
+		throw new Error("LibGreenTea.SourceBuilderToString is not implemented for this environment");
+	}
+
+// in LibNative.java
+	public static ImportStaticFieldValue(Context: GtParserContext, ClassType: GtType, Symbol: string): Object {
+		return LibGreenTea.ImportStaticObject(Context, ClassType.TypeBody, Symbol);
+	}
+
+	public static ImportStaticObject(Context: GtParserContext, NativeClass, Symbol: string): Object {
+		try {
+			var NativeField = NativeClass[Symbol];
+			if (NativeField != null) return NativeField;
+		} catch (e) {
+//			LibGreenTea.VerboseException(e);
+		}
+		return null;
+	}
+
+	private static ImportClass(ClassName: string): any {
+		try {
+			return eval(ClassName);
+		}
+		catch(e) {
+		}
+		return null;
+	}
+
+	public static ImportMethod(ContextType: GtType, FullName: string, StaticMethodOnly: boolean): Object {
+		var FoundMethod = null;
+		var Index: number = FullName.lastIndexOf(".");
+		if(Index == -1) {
+			return null;
+		}
+		try {
+			var FuncName: string = FullName.substring(Index+1);
+			var NativeClass = LibGreenTea.ImportClass(FullName.substring(0, Index));
+			var Instance: Object = new NativeClass();
+			var MethodNonStatic = Instance[FuncName];
+			var MethodStatic = NativeClass[FuncName];
+			//assert(Methods != null);
+			if ((!StaticMethodOnly) && MethodNonStatic != null) {
+				FoundMethod = MethodNonStatic;
+			}
+			else {
+				FoundMethod = MethodNonStatic != null ? MethodNonStatic : FoundMethod;
+				FoundMethod = MethodStatic != null ? MethodStatic : FoundMethod;
+			}
+			//// FIX ME!!
+			// if (ContextType.IsFuncType() && !LibNative.MatchNativeMethod(ContextType.TypeParams, Methods[i])) {
+			// 	continue;
+			// }
+			// if (FoundMethod != null) {
+			// 	LibGreenTea.VerboseLog(VerboseUndefined, "overloaded method: " + FullName);
+			// 	return FoundMethod; // return the first one
+			// }
+			if (FoundMethod == null) {
+				LibGreenTea.VerboseLog(VerboseUndefined, "undefined method: " + FullName + " for " + ContextType);
+			}
+		} catch (e) {
+			LibGreenTea.VerboseLog(VerboseException, e.toString());
+		}
+		return FoundMethod;
+	}
+	public static GetClassOfValue(Value): any {
+		return Value.constructor;
+	}
+
+	public static ImportMethodToFunc(Func: GtFunc, FullName: string): boolean {
+		return false;
 	}
 }

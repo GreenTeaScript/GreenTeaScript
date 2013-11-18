@@ -984,7 +984,7 @@ public class KonohaGrammar extends GtGrammar {
 			Name = ObjectType.ShortName + "." + Name;
 			return Gamma.CreateSyntaxErrorNode(ParsedTree, "undefined name: " + Name);
 		}
-		return TypeMethodNameCall(Gamma, ParsedTree, RecvNode, Name, ContextType);
+		return KonohaGrammar.TypeMethodNameCall(Gamma, ParsedTree, RecvNode, Name, ContextType);
 	}
 
 	public static GtNode TypeMethodNameCall(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtNode RecvNode, String MethodName, GtType ContextType) {
@@ -1483,10 +1483,10 @@ public class KonohaGrammar extends GtGrammar {
 		/*local*/GtNode WhileNode = Gamma.ParseTypedNode("while(iter.hasHext()) { " + VarName + " = iter.next(); }", ParsedTree.KeyToken.FileLine, GtStaticTable.VoidType);
 		if(!WhileNode.IsErrorNode()) {
 			/*local*/GtNode BodyNode =  ParsedTree.TypeCheckAt(ForEachBody, Gamma, GtStaticTable.VoidType, DefaultTypeCheckPolicy);
-			/*local*/GtWhileNode WhileNode2 = (GtWhileNode)WhileNode;
+			/*local*/GtWhileNode WhileNode2 = (/*cast*/GtWhileNode)WhileNode;
 			GreenTeaUtils.LinkNode(WhileNode2.LoopBody, BodyNode);
 		}
-		GtNode Node = Gamma.Generator.CreateVarNode(IterNode.Type, ParsedTree, IterNode.Type, VarIterInfo.NativeName, IterNode, WhileNode);
+		/*local*/GtNode Node = Gamma.Generator.CreateVarNode(IterNode.Type, ParsedTree, IterNode.Type, VarIterInfo.NativeName, IterNode, WhileNode);
 		if(VarInfo != null) {
 			Node = Gamma.Generator.CreateVarNode(VarInfo.Type, ParsedTree, VarInfo.Type, VarInfo.NativeName, Gamma.CreateDefaultValue(ParsedTree, VarInfo.Type), Node);
 		}
