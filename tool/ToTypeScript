@@ -48,7 +48,7 @@ done
 
 perl src/TypeScript/PackLibraries.pl lib > ${build}GreenTeaLibraries.ts
 ts="${ts} ${build}GreenTeaLibraries.ts"
-ts="${ts} ${build}LibGreenTea.ts"
+ts="${build}LibGreenTea.ts ${ts}"
 
 cat ${ts} > ${build}GreenTea.ts
 
