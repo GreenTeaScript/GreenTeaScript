@@ -47,9 +47,9 @@ public class Task {
 		}
 		try {
 			this.terminated = true;
-			monitor.join();
 			this.stdoutMessage = dshellProc.stdoutHandler.waitTermination();
 			this.stderrMessage = dshellProc.stderrHandler.waitTermination();
+			monitor.join();
 		} 
 		catch (InterruptedException e) {
 			throw new RuntimeException(e);
@@ -114,7 +114,6 @@ class ProcMonitor extends Thread {	// TODO: support exit handle
 				}
 				System.err.println(msgBuilder.toString());
 				// run exit handler
-				this.task.join();
 			} 
 			catch (InterruptedException e) {
 				throw new RuntimeException(e);
@@ -149,7 +148,6 @@ class ProcMonitor extends Thread {	// TODO: support exit handle
 				}
 				System.err.println(msgBuilder.toString());
 				// run exit handler
-				this.task.join();
 				return;
 			}
 			try {
