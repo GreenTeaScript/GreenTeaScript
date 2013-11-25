@@ -2,236 +2,208 @@ package org.GreenTeaScript.DShell;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.EmptyStackException;
-import java.util.Stack;
-import java.util.regex.Pattern;
 
 import org.GreenTeaScript.DShellGrammar;
 import org.GreenTeaScript.LibGreenTea;
 
 public class DShellProcess {
 	// option flag
-	private static final int returnable  = 1 << 0;
-	private static final int printable   = 1 << 1;
-	private static final int throwable   = 1 << 2;
-	private static final int background  = 1 << 3;
-	private static final int enableTrace = 1 << 4;
+	public static final int returnable  = 1 << 0;
+	public static final int printable   = 1 << 1;
+	public static final int throwable   = 1 << 2;
+	public static final int background  = 1 << 3;
+	public static final int inference   = 1 << 4;
 
 	// return type
 	private static final int VoidType    = 0;
 	private static final int BooleanType = 1;
 	private static final int StringType  = 2;
-	
-	// trace tyep
-	private static boolean traceRequirement = false;
+	private static final int TaskType    = 3;
 
-	private String Result = "";
-	private long ReturnValue = -1;
-	public final int CommandFlag;
-	private final PseudoProcess LastProcess;
-	public final PseudoProcess[] Processes;
-	public long timeout;
-	private ProcMonitor procMonitor;
-	
-	public DShellProcess(int option, String[][] cmds, long timeout) {
-		// init process
-		this.Processes = createProcs(cmds, is(option, enableTrace));
+	private int OptionFlag;
+	private int retType;
+	private PseudoProcess[] Processes;
+	private long timeout = -1;
+	private StringBuilder sBuilder;
+
+	public MessageStreamHandler stdoutHandler;
+	public MessageStreamHandler stderrHandler;
+
+	public DShellProcess(String[][] cmds, int option, int retType) {
+		this.OptionFlag = option;
+		this.retType = retType;
+		String[][] newCmds = this.PrepareInternalOption(cmds);
+		this.Processes = this.CreateProcs(newCmds);
+		// generate object representation
+		this.sBuilder = new StringBuilder();
+		for(int i = 0; i< this.Processes.length; i++) {
+			if(i != 0) {
+				this.sBuilder.append(",\n");
+			}
+			this.sBuilder.append("{");
+			this.sBuilder.append(this.Processes[i].toString());
+			this.sBuilder.append("}");
+		}
+		this.sBuilder.append("\n<");
+		switch(this.retType) {
+		case VoidType: this.sBuilder.append("VoidType"); break;
+		case BooleanType: this.sBuilder.append("BooleanType"); break;
+		case StringType: this.sBuilder.append("StringType"); break;
+		case TaskType: this.sBuilder.append("TaskType"); break;
+		}
+		if(is(this.OptionFlag, returnable)) {
+			this.sBuilder.append("|returnable");
+		}
+		if(is(this.OptionFlag, printable)) {
+			this.sBuilder.append("|printable");
+		}
+		if(is(this.OptionFlag, throwable)) {
+			this.sBuilder.append("|throwable");
+		}
+		if(is(this.OptionFlag, background)) {
+			this.sBuilder.append("|background");
+		}
+		if(is(this.OptionFlag, inference)) {
+			this.sBuilder.append("|inference");
+		}
+		this.sBuilder.append(">");
+	}
+
+	public Object Invoke() {
 		int ProcessSize = this.Processes.length;
-		ErrorStreamHandler Handler = new ErrorStreamHandler(this.Processes);
-
-		// start process
 		int lastIndex = ProcessSize - 1;
+		PseudoProcess lastProc = this.Processes[lastIndex];
+
+		OutputStream stdoutStream = null;
+		if(is(this.OptionFlag, printable)) {
+			stdoutStream = System.out;
+		}
+		InputStream[] srcOutStreams = new InputStream[1];
+		InputStream[] srcErrorStreams = new InputStream[ProcessSize];
+
 		this.Processes[0].start();
 		for(int i = 1; i < ProcessSize; i++) {
 			this.Processes[i].start();
 			this.Processes[i].pipe(this.Processes[i - 1]);
 		}
-		Handler.showErrorMessage();
-		this.CommandFlag = option;
-		this.LastProcess = this.Processes[lastIndex];
-		this.timeout = timeout;
-	}
-	private boolean IsBackGroundProcess() {
-		return is(this.CommandFlag, background);
-	}
-	private DShellProcess Detach() {
-		this.LastProcess.showResult();
-		this.procMonitor = new ProcMonitor(this, true);
-		this.procMonitor.start();
-		return null;
-	}
-	private Object GetResult(int ReturnType) {
-		this.procMonitor = new ProcMonitor(this, false);
-		this.procMonitor.start();
-		this.waitResult();
-		// raise exception
-		if(this.timeout <= 0) {
-			ShellExceptionRaiser raiser = new ShellExceptionRaiser(is(CommandFlag, throwable));
-			raiser.setProcesses(this.Processes);
-			raiser.raiseException();
+
+		// Start Message Handler
+		// stdout
+		srcOutStreams[0] = lastProc.accessOutStream();
+		this.stdoutHandler = new MessageStreamHandler(srcOutStreams, stdoutStream);
+		this.stdoutHandler.showMessage();
+		// stderr
+		for(int i = 0; i < ProcessSize; i++) {
+			srcErrorStreams[i] = this.Processes[i].accessErrorStream();
 		}
-		this.Result = LastProcess.getStdout();
-		this.ReturnValue = LastProcess.getRet();
-		// get result value
-		if(is(this.CommandFlag, returnable)) {
-			if(ReturnType == StringType) {
-				return this.Result;
+		this.stderrHandler = new MessageStreamHandler(srcErrorStreams, System.err);
+		this.stderrHandler.showMessage();
+
+		Task task = new Task(this);
+		if(is(this.OptionFlag, background)) {
+			return (this.retType == TaskType) && is(this.OptionFlag, returnable) ? task : null;
+		}
+
+		task.join();
+		if(is(this.OptionFlag, returnable)) {
+			if(this.retType == StringType) {
+				return task.getOutMessage();
 			}
-			else if(ReturnType == BooleanType) {
-				return new Boolean(this.ReturnValue == 0);
+			else if(this.retType == BooleanType) {
+				return new Boolean(task.getExitStatus() == 0);
+			}
+			else if(this.retType == TaskType) {
+				return task;
 			}
 		}
 		return null;
 	}
-	private void waitResult() {
-		this.LastProcess.waitResult(is(this.CommandFlag, printable));
-	}
-	public void join() {
-		try {
-			this.procMonitor.join();
-			((SubProc)this.LastProcess).getMessageStreamHandler().join();
-		} 
-		catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-	}
-	public String getResult() {
-		return this.LastProcess.getStdout();
-	}
-	
-	// initialization
-	public static void initDShellProcess() {
-		traceRequirement = checkTraceRequirements();
+
+	public PseudoProcess[] getProcesses() {
+		return this.Processes;
 	}
 
-	// called by JavaByteCodeGenerator.VisitCommandNode 
-	public static void ExecCommandVoid(String[]... cmds) {
-		int option = printable | throwable | enableTrace;
-		runCommands(cmds, option, VoidType);
-	}
-	public static String ExecCommandString(String[]... cmds) {
-		int option = returnable | throwable | enableTrace;
-		return (String) runCommands(cmds, option, StringType);
-	}
-	public static boolean ExecCommandBool(String[]... cmds) {
-		int option = returnable | printable;
-		return ((Boolean) runCommands(cmds, option, BooleanType)).booleanValue();
+	public int getOptionFlag() {
+		return this.OptionFlag;
 	}
 
-	// file system roll back function
-	// TargetLV: vg_name/lv_name
-	public static boolean CreateSnapshot(String SnapshotLabel, String TargetLV) throws Exception {
-		if(System.getProperty("os.name").equals("Linux") && new File("/sbin/lvm").canExecute()) {
-			String[] cmds = {"sudo", "lvcreate", "-s", "-n", SnapshotLabel, TargetLV};
-			return ExecCommandBool(cmds);
-		}
-		return false;
+	public long getTimeout() {
+		return this.timeout;
 	}
 
-	public static boolean RevertSnapshot(String SnapshotLabel, String TargetLV) throws Exception {
-		if(System.getProperty("os.name").equals("Linux") && new File("/sbin/lvm").canExecute()) {
-			String[] volNames = TargetLV.split("/");
-			String VG_Name = volNames[0];
-			String LV_Name = volNames[1];
-			String mountableId = VG_Name + "-" + LV_Name;
-			
-			// get target LV mount point
-			int option = returnable | throwable;
-			String[][] mountPoint_cmds = {{"mount"}, {"grep", mountableId}};
-			String mountPoint;
-			try {
-				String[] results = ((String) runCommands(mountPoint_cmds, option, StringType)).split(" ");
-				mountPoint = results[2];
-			} catch (Exception e) {
-				return false;
+	@Override public String toString() {
+		return this.sBuilder.toString();
+	}
+
+	private String[][] PrepareInternalOption(String[][] cmds) {
+		boolean enableTrace = false;
+		ArrayList<String[]> newCmdsBuffer = new ArrayList<String[]>();
+		for(int i = 0; i < cmds.length; i++) {
+			String[] currentCmd = cmds[i];
+			if(LibGreenTea.EqualsString(currentCmd[0], "timeout")) {
+				StringBuilder numBuilder = new StringBuilder();
+				StringBuilder unitBuilder = new StringBuilder();
+				int len = currentCmd[1].length();
+				for(int j = 0; j < len; j++) {
+					char ch = currentCmd[1].charAt(j);
+					if(Character.isDigit(ch)) {
+						numBuilder.append(ch);
+					}
+					else {
+						unitBuilder.append(ch);
+					}
+				}
+				long num = Integer.parseInt(numBuilder.toString());
+				String unit = unitBuilder.toString();
+				if(LibGreenTea.EqualsString(unit, "s")) {
+					num = num * 1000;
+				}
+				if(num >= 0) {
+					this.timeout = num;
+				}
+				int baseIndex = 2;
+				String[] newCmd = new String[currentCmd.length - baseIndex];
+				for(int j = baseIndex; j < currentCmd.length; j++) {
+					newCmd[j - baseIndex] = currentCmd[j];
+				}
+				currentCmd = newCmd;
 			}
-			
-			// umount target LV
-			String[] umount_cmds = {"sudo", "umount", mountPoint};
-			if(!ExecCommandBool(umount_cmds)) {
-				return false;
+			else if(LibGreenTea.EqualsString(currentCmd[0], "infer")) {
+				enableTrace = checkTraceRequirements();
+				int baseIndex = 1;
+				String[] newCmd = new String[currentCmd.length - baseIndex];
+				for(int j = baseIndex; j < currentCmd.length; j++) {
+					newCmd[j - baseIndex] = currentCmd[j];
+				}
+				currentCmd = newCmd;
 			}
-			
-			// remove current LV
-			String[] lvremove_cmds = {"sudo", "lvremove", TargetLV};
-			if(!ExecCommandBool(lvremove_cmds)) {
-				return false;
+			else if(LibGreenTea.EqualsString(currentCmd[0], "&")) {
+				this.OptionFlag = setFlag(this.OptionFlag, background, true);
+				continue;
 			}
-			
-			// rename snapshot
-			String[] lvrename_cmds = {"sudo", "lvrename", VG_Name + "/" + SnapshotLabel, LV_Name};
-			if(!ExecCommandBool(lvrename_cmds)) {
-				return false;
-			}
-			
-			// mount LV
-			String[] mount_cmds = {"sudo", "mount", "/dev/" + TargetLV, mountPoint};
-			return ExecCommandBool(mount_cmds);
+			newCmdsBuffer.add(currentCmd);
 		}
-		return false;
-	}
-	
-	// change directory
-	public static boolean ChangeDirectory(String path) {
-		if(LibGreenTea.EqualsString(path, "")) {
-			return CLibraryWrapper.INSTANCE.chdir(System.getenv("HOME")) == 0;
+		if(is(this.OptionFlag, inference)) {
+			this.OptionFlag = setFlag(this.OptionFlag, inference, enableTrace);
 		}
-		return CLibraryWrapper.INSTANCE.chdir(path) == 0;
+		return newCmdsBuffer.toArray(new String[newCmdsBuffer.size()][]);
 	}
 
-	//---------------------------------------------
-
-	private static boolean checkTraceRequirements() {
-		if(System.getProperty("os.name").equals("Linux")) {
-			boolean flag = DShellGrammar.IsUnixCommand("strace+") && 
-					DShellGrammar.IsUnixCommand("pretty_print_strace_out.py");
-			if(flag) {
-				SubProc.traceBackendType = SubProc.traceBackend_strace_plus;
-				return true;
-			}
-			else {
-				SubProc.traceBackendType = SubProc.traceBackend_strace;
-				return DShellGrammar.IsUnixCommand("strace");
-			}
-		}
-		System.err.println("Systemcall Trace is Not Supported");
-		return false;
-	}
-
-	private static boolean is(int option, int flag) {
-		option &= flag;
-		return option == flag;
-	}
-
-	private static int setFlag(int option, int flag, boolean set) {
-		if(set && !is(option, flag)) {
-			return option | flag;
-		}
-		else if(!set && is(option, flag)) {
-			return option & ~flag;
-		}
-		return option;
-	}
-
-	private static PseudoProcess[] createProcs(String[][] cmds, boolean enableSyscallTrace) {
+	private PseudoProcess[] CreateProcs(String[][] cmds) {
+		boolean enableSyscallTrace = is(this.OptionFlag, inference);
 		ArrayList<PseudoProcess> procBuffer = new ArrayList<PseudoProcess>();
-		int cmdsNum = cmds.length;
-		for(int i = 0; i < cmdsNum; i++) {
+		for(int i = 0; i < cmds.length; i++) {
 			String[] currentCmd = cmds[i];
 			String cmdSymbol = currentCmd[0];
 			SubProc prevProc = null;
@@ -239,13 +211,12 @@ public class DShellProcess {
 			if(size > 0) {
 				prevProc = (SubProc)procBuffer.get(size - 1);
 			}
-			
 			if(LibGreenTea.EqualsString(cmdSymbol, "<")) {
 				prevProc.setInputRedirect(currentCmd[1]);
 			}
 			else if(LibGreenTea.EqualsString(cmdSymbol, "1>") || LibGreenTea.EqualsString(cmdSymbol, ">")) {
 				prevProc.setOutputRedirect(SubProc.STDOUT_FILENO, currentCmd[1], false);
-			}
+			}	
 			else if(LibGreenTea.EqualsString(cmdSymbol, "1>>") || LibGreenTea.EqualsString(cmdSymbol, ">>")) {
 				prevProc.setOutputRedirect(SubProc.STDOUT_FILENO, currentCmd[1], true);
 			}
@@ -279,85 +250,120 @@ public class DShellProcess {
 				procBuffer.add(proc);
 			}
 		}
-		
-		int bufferSize = procBuffer.size();
-		PseudoProcess[] procs = new PseudoProcess[bufferSize];
-		for(int i = 0; i < bufferSize; i++) {
-			procs[i] = procBuffer.get(i);
-		}
-		return procs;
+		return procBuffer.toArray(new PseudoProcess[procBuffer.size()]);
 	}
 
-	private static Object runCommands(String[][] cmds, int option, int retType) {
-		// prepare shell option
-		long timeout = -1;
-		ArrayList<String[]> newCmdsBuffer = new ArrayList<String[]>();
-		for(int i = 0; i < cmds.length; i++) {	// check background
-			String[] currentCmd = cmds[i];
-//			if(LibGreenTea.EqualsString(currentCmd[0], "set")) {
-//				if(currentCmd.length < 2) {
-//					continue;
-//				}
-//				String subOption = currentCmd[1];
-//				if(LibGreenTea.EqualsString(subOption, "trace=on")) {
-//					option = setFlag(option, enableTrace, true);
-//				}
-//				else if(LibGreenTea.EqualsString(subOption, "trace=off")) {
-//					option = setFlag(option, enableTrace, false);
-//				}
+	// called by JavaByteCodeGenerator.VisitCommandNode 
+	public static void ExecCommandVoid(String[]... cmds) {
+		int option = printable | throwable | inference;
+		new DShellProcess(cmds, option, VoidType).Invoke();
+	}
+	public static String ExecCommandString(String[]... cmds) {
+		int option = returnable | throwable | inference;
+		return (String) new DShellProcess(cmds, option, StringType).Invoke();
+	}
+	public static boolean ExecCommandBool(String[]... cmds) {
+		int option = returnable | printable;
+		return ((Boolean) new DShellProcess(cmds, option, BooleanType).Invoke()).booleanValue();
+	}
+	public static Task ExecCommandTask(String[]... cmds) {
+		int option = returnable | printable | throwable | inference;
+		return (Task) new DShellProcess(cmds, option, TaskType).Invoke();
+	}
+
+	// file system roll back function
+	// TargetLV: vg_name/lv_name
+	public static boolean CreateSnapshot(String SnapshotLabel, String TargetLV) throws Exception {
+		if(System.getProperty("os.name").equals("Linux") && new File("/sbin/lvm").canExecute()) {
+			String[] cmds = {"sudo", "lvcreate", "-s", "-n", SnapshotLabel, TargetLV};
+			return ExecCommandBool(cmds);
+		}
+		return false;
+	}
+
+	public static boolean RevertSnapshot(String SnapshotLabel, String TargetLV) throws Exception {
+//		if(System.getProperty("os.name").equals("Linux") && new File("/sbin/lvm").canExecute()) {
+//			String[] volNames = TargetLV.split("/");
+//			String VG_Name = volNames[0];
+//			String LV_Name = volNames[1];
+//			String mountableId = VG_Name + "-" + LV_Name;
+//			
+//			// get target LV mount point
+//			int option = returnable | throwable;
+//			String[][] mountPoint_cmds = {{"mount"}, {"grep", mountableId}};
+//			String mountPoint;
+//			try {
+//				String[] results = ((String) runCommands(mountPoint_cmds, option, StringType)).split(" ");
+//				mountPoint = results[2];
+//			} catch (Exception e) {
+//				return false;
 //			}
-//			else 
-			if(LibGreenTea.EqualsString(currentCmd[0], "&")) {
-				option = setFlag(option, background, !is(option, returnable));
+//			
+//			// umount target LV
+//			String[] umount_cmds = {"sudo", "umount", mountPoint};
+//			if(!ExecCommandBool(umount_cmds)) {
+//				return false;
+//			}
+//			
+//			// remove current LV
+//			String[] lvremove_cmds = {"sudo", "lvremove", TargetLV};
+//			if(!ExecCommandBool(lvremove_cmds)) {
+//				return false;
+//			}
+//			
+//			// rename snapshot
+//			String[] lvrename_cmds = {"sudo", "lvrename", VG_Name + "/" + SnapshotLabel, LV_Name};
+//			if(!ExecCommandBool(lvrename_cmds)) {
+//				return false;
+//			}
+//			
+//			// mount LV
+//			String[] mount_cmds = {"sudo", "mount", "/dev/" + TargetLV, mountPoint};
+//			return ExecCommandBool(mount_cmds);
+//		}
+		return false;
+	}
+	
+	// change directory
+	public static boolean ChangeDirectory(String path) {
+		if(LibGreenTea.EqualsString(path, "")) {
+			return CLibraryWrapper.INSTANCE.chdir(System.getenv("HOME")) == 0;
+		}
+		return CLibraryWrapper.INSTANCE.chdir(path) == 0;
+	}
+
+	//---------------------------------------------
+
+	private static boolean checkTraceRequirements() {
+		if(System.getProperty("os.name").equals("Linux")) {
+			boolean flag = DShellGrammar.IsUnixCommand("strace+") && 
+					DShellGrammar.IsUnixCommand("pretty_print_strace_out.py");
+			if(flag) {
+				SubProc.traceBackendType = SubProc.traceBackend_strace_plus;
+				return true;
 			}
 			else {
-				newCmdsBuffer.add(currentCmd);
+				SubProc.traceBackendType = SubProc.traceBackend_strace;
+				return DShellGrammar.IsUnixCommand("strace");
 			}
 		}
-		int bufferSize = newCmdsBuffer.size();
-		for(int i = 0; i < bufferSize; i++) {	// check internal option
-			String[] currentCmd = newCmdsBuffer.get(i);
-			if(LibGreenTea.EqualsString(currentCmd[0], "timeout")) {
-				StringBuilder numBuilder = new StringBuilder();
-				StringBuilder unitBuilder = new StringBuilder();
-				int len = currentCmd[1].length();
-				for(int j = 0; j < len; j++) {
-					char ch = currentCmd[1].charAt(j);
-					if(Character.isDigit(ch)) {
-						numBuilder.append(ch);
-					} 
-					else {
-						unitBuilder.append(ch);
-					}
-				}
-				long num = Integer.parseInt(numBuilder.toString());
-				String unit = unitBuilder.toString();
-				if(LibGreenTea.EqualsString(unit, "s")) {
-					num = num * 1000;
-				}
-				if(num >= 0) {
-					timeout = num;
-				}
-				String[] newCmd = new String[currentCmd.length - 2];
-				for(int j = 2; j < currentCmd.length; j++) {
-					newCmd[j - 2] = currentCmd[j];
-				}
-				newCmdsBuffer.set(i, newCmd);
-			}
+		System.err.println("Systemcall Trace is Not Supported");
+		return false;
+	}
+
+	public static boolean is(int option, int flag) {
+		option &= flag;
+		return option == flag;
+	}
+
+	private static int setFlag(int option, int flag, boolean set) {
+		if(set && !is(option, flag)) {
+			return option | flag;
 		}
-		
-		String[][] newCmds = newCmdsBuffer.toArray(new String[newCmdsBuffer.size()][]);
-		
-		if(is(option, enableTrace)) {
-			option = setFlag(option, enableTrace, traceRequirement);
+		else if(!set && is(option, flag)) {
+			return option & ~flag;
 		}
-		
-		// run command
-		DShellProcess Process = new DShellProcess(option, newCmds, timeout);
-		if(Process.IsBackGroundProcess()) {
-			return Process.Detach();
-		}
-		return Process.GetResult(retType);
+		return option;
 	}
 }
 
@@ -373,14 +379,13 @@ class PseudoProcess {
 	public final static int mergeErrorToOut = 0;
 	public final static int mergeOutToError = 1;
 
-	protected PseudoProcess pipedPrevProc;
-
 	protected OutputStream stdin = null;
 	protected InputStream stdout = null;
 	protected InputStream stderr = null;
 
 	protected StringBuilder cmdNameBuilder;
 	protected ArrayList<String> commandList;
+	protected StringBuilder sBuilder;
 
 	protected boolean stdoutIsDirty = false;
 	protected boolean stderrIsDirty = false;
@@ -391,6 +396,7 @@ class PseudoProcess {
 	public PseudoProcess() {
 		this.cmdNameBuilder = new StringBuilder();
 		this.commandList = new ArrayList<String>();
+		this.sBuilder = new StringBuilder();
 	}
 
 	public void setArgument(String Arg) {
@@ -406,6 +412,12 @@ class PseudoProcess {
 
 	public void setMergeType(int mergeType) {
 		this.mergeType = mergeType;
+		if(this.mergeType == mergeErrorToOut) {
+			this.sBuilder.append(" 2>&1");
+		}
+		else if(this.mergeType == mergeOutToError) {
+			this.sBuilder.append(" 1>&2");
+		}
 	}
 
 	public void start() {
@@ -418,21 +430,7 @@ class PseudoProcess {
 	public void kill() {
 	}
 
-	public void waitFor() {
-	}
-
-	public void waitResult(boolean isPrintable) {
-	}
-	
-	public void showResult() {
-	}
-
-	public String getStdout() {
-		return "";
-	}
-
-	public String getStderr() {
-		return "";
+	public void waitTermination() {
 	}
 
 	public InputStream accessOutStream() {
@@ -462,6 +460,10 @@ class PseudoProcess {
 	public boolean isTraced() {
 		return false;
 	}
+
+	@Override public String toString() {
+		return this.sBuilder.toString();
+	}
 }
 
 class SubProc extends PseudoProcess {
@@ -479,34 +481,31 @@ class SubProc extends PseudoProcess {
 	private boolean enableSyscallTrace = false;
 	public boolean isKilled = false;
 	public String logFilePath = null;
-	
+
 	private FileInputStream inFileStream = null;
 	private FileOutputStream outFileStream = null;
 	private FileOutputStream errFileStream = null;
-	
-	private ByteArrayOutputStream messageBuffer;
-	private PipeStreamHandler messageStreamHandler = null;
 
 	private static String createLogDirectory() {
 		Calendar cal = Calendar.getInstance();
 		StringBuilder pathBuilder = new StringBuilder();
-		
+
 		pathBuilder.append(logdirPath + "/");
 		pathBuilder.append(cal.get(Calendar.YEAR) + "-");
 		pathBuilder.append((cal.get(Calendar.MONTH) + 1) + "-");
 		pathBuilder.append(cal.get(Calendar.DATE));
-		
+
 		String subdirPath = pathBuilder.toString();
 		File subdir = new File(subdirPath);
 		subdir.mkdirs();
-		
+
 		return subdirPath;
 	}
 
 	private static String createLogNameHeader() {
 		Calendar cal = Calendar.getInstance();
 		StringBuilder logNameHeader = new StringBuilder();
-		
+
 		logNameHeader.append(cal.get((Calendar.HOUR) + 1) + ":");
 		logNameHeader.append(cal.get(Calendar.MINUTE) + "-");
 		logNameHeader.append(cal.get(Calendar.MILLISECOND));
@@ -565,21 +564,20 @@ class SubProc extends PseudoProcess {
 		else {
 			this.commandList.add(arg);
 		}
-		
+
+		this.sBuilder.append("[");
+		this.sBuilder.append(arg);
 		for(int i = 1; i < Args.length; i++) {
 			this.setArgument(Args[i]);
+			this.sBuilder.append(", ");
+			this.sBuilder.append(Args[i]);
 		}
+		this.sBuilder.append("]");
 	}
 
 	@Override public void start() {
-		int size = this.commandList.size();
-		String[] cmd = new String[size];
-		for(int i = 0; i < size; i++) {
-			cmd[i] = this.commandList.get(i);
-		}
-
 		try {
-			ProcessBuilder procBuilder = new ProcessBuilder(cmd);
+			ProcessBuilder procBuilder = new ProcessBuilder(this.commandList.toArray(new String[this.commandList.size()]));
 			if(this.mergeType == mergeErrorToOut || this.mergeType == mergeOutToError) {
 				procBuilder.redirectErrorStream(true);
 			}
@@ -593,11 +591,11 @@ class SubProc extends PseudoProcess {
 				this.stdout = this.proc.getInputStream();
 				this.stderr = this.proc.getErrorStream();
 			}
-			
 			// input & output redirect
 			readFile();
 			writeFile(STDOUT_FILENO);
 			writeFile(STDERR_FILENO);
+			super.start();
 		}
 		catch (IOException e) {
 			throw new RuntimeException(e);
@@ -605,11 +603,13 @@ class SubProc extends PseudoProcess {
 	}
 
 	public void setInputRedirect(String readFileName) {
+		this.sBuilder.append(" <");
+		this.sBuilder.append(readFileName);
 		try {
 			this.inFileStream = new FileInputStream(readFileName);
 		}
 		catch (FileNotFoundException e) {
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -630,9 +630,15 @@ class SubProc extends PseudoProcess {
 			else if(fd == STDERR_FILENO) {
 				this.errFileStream = new FileOutputStream(writeFileName, append);
 			}
+			this.sBuilder.append(" " + fd);
+			this.sBuilder.append(">");
+			if(append) {
+				this.sBuilder.append(">");
+			}
+			this.sBuilder.append(writeFileName);
 		}
 		catch (FileNotFoundException e) {
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -659,48 +665,12 @@ class SubProc extends PseudoProcess {
 		new PipeStreamHandler(srcStream, destStream, true).start();
 	}
 
-	@Override public void waitResult(boolean isPrintable) {
-		InputStream inStream = this.accessOutStream();
-		OutputStream outStream;
-		boolean closeStream;
-		if(isPrintable) {
-			outStream = System.out;
-			closeStream = false;
-		}
-		else {
-			messageBuffer = new ByteArrayOutputStream();
-			outStream = messageBuffer;
-			closeStream = true;
-		}
-		
-		PipeStreamHandler stdoutHandler = new PipeStreamHandler(inStream, outStream, closeStream);
-		stdoutHandler.start();
-		try {
-			stdoutHandler.join();
-		}
-		catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-	}
-	
-	@Override public void showResult() {
-		this.messageBuffer = new ByteArrayOutputStream();
-		OutputStream[] outStreams = {System.out, this.messageBuffer}; 
-		boolean[] closeOutputs = {false, true};
-		this.messageStreamHandler = new PipeStreamHandler(this.accessOutStream(), outStreams, false, closeOutputs);
-		this.messageStreamHandler.start();
-	}
-
-	@Override public String getStdout() {
-		return this.messageBuffer == null ? "" : this.messageBuffer.toString();
-	}
-
-	@Override public void waitFor() {
+	@Override public void waitTermination() {
 		try {
 			this.retValue = this.proc.waitFor();
 		}
 		catch (InterruptedException e) {
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -709,7 +679,6 @@ class SubProc extends PseudoProcess {
 			this.proc.destroy();
 			return;
 		} 
-		 
 		try {
 			// get target pid
 			Field pidField = this.proc.getClass().getDeclaredField("pid");
@@ -724,27 +693,27 @@ class SubProc extends PseudoProcess {
 			//LibGreenTea.print("[killed]: " + this.getCmdName());
 		} 
 		catch (NoSuchFieldException e) {
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		} 
 		catch (SecurityException e) {
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		} 
 		catch (IllegalArgumentException e) {
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		} 
 		catch (IllegalAccessException e) {
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		} 
 		catch (IOException e) {
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		} 
 		catch (InterruptedException e) {
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 	}
-	
-	public Process getInternalProc() {
-		return this.proc;
+
+	public void checkTermination() {
+		this.retValue = this.proc.exitValue();
 	}
 
 	public String getLogFilePath() {
@@ -754,91 +723,40 @@ class SubProc extends PseudoProcess {
 	@Override public boolean isTraced() {
 		return this.enableSyscallTrace;
 	}
-	
-	public PipeStreamHandler getMessageStreamHandler() {
-		return this.messageStreamHandler;
-	}
 }
 
-class ProcMonitor extends Thread {	// TODO: support exit handler
-	private DShellProcess dShellProc;
-	private boolean isBackground;
-	
-	public ProcMonitor(DShellProcess dShellProc, boolean isBackground) {
-		this.dShellProc = dShellProc;
-		this.isBackground = isBackground;
+class MessageStreamHandler {
+	private InputStream[] srcStreams;
+	private OutputStream[] destStreams;
+	private ByteArrayOutputStream messageBuffer;
+	private PipeStreamHandler[] streamHandlers;
+
+	public MessageStreamHandler(InputStream[] srcStreams, OutputStream destStream) {
+		this.srcStreams = srcStreams;
+		this.messageBuffer = new ByteArrayOutputStream();
+		this.streamHandlers = new PipeStreamHandler[this.srcStreams.length];
+		OutputStream[] tempStreams = {destStream, this.messageBuffer};
+		this.destStreams = tempStreams;
 	}
-	
-	@Override public void run() {
-		int size = this.dShellProc.Processes.length;
-		if(this.dShellProc.timeout > 0) { // timeout
+
+	public void showMessage() {
+		boolean[] closeOutputs = {false, false};
+		for(int i = 0; i < srcStreams.length; i++) {
+			this.streamHandlers[i] = new PipeStreamHandler(this.srcStreams[i], this.destStreams, true, closeOutputs);
+			this.streamHandlers[i].start();
+		}
+	}
+
+	public String waitTermination() {
+		for(int i = 0; i < srcStreams.length; i++) {
 			try {
-				StringBuilder msgBuilder = new StringBuilder();
-				msgBuilder.append("timeout processes: ");
-				Thread.sleep(this.dShellProc.timeout);	// ms
-				for(int i = 0; i < size; i++) {
-					this.dShellProc.Processes[i].kill();
-					if(i != 0) {
-						msgBuilder.append("| ");
-					}
-					msgBuilder.append(this.dShellProc.Processes[i].getCmdName());
-				}
-				System.err.println(msgBuilder.toString());
-				// run exit handler
+				this.streamHandlers[i].join();
 			} 
 			catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			return;
-		}
-		
-		// check process status
-		while(this.isBackground) {
-			int count = 0;
-			for(int i = 0; i < size; i++) {
-				SubProc subProc = (SubProc)this.dShellProc.Processes[i];
-				try {
-					subProc.getInternalProc().exitValue();
-					count++;
-				}
-				catch(IllegalThreadStateException e) {
-					// process has not terminated yet. do nothing
-				}
-			}
-			if(count == size) {
-				StringBuilder msgBuilder = new StringBuilder();
-				msgBuilder.append("exit processes: ");
-				for(int i = 0; i < size; i++) {
-					if(i != 0) {
-						msgBuilder.append("| ");
-					}
-					msgBuilder.append(this.dShellProc.Processes[i].getCmdName());
-				}
-				System.err.println(msgBuilder.toString());
-				// run exit handler
-				return;
-			}
-			try {
-				Thread.sleep(100); // sleep thread
-			}
-			catch (InterruptedException e) {
-				e.printStackTrace();
+				throw new RuntimeException(e);
 			}
 		}
-	}
-}
-
-class ErrorStreamHandler {
-	private PseudoProcess[] targetProcs;
-	
-	public ErrorStreamHandler(PseudoProcess[] targetProcs) {
-		this.targetProcs = targetProcs;
-	}
-	
-	public void showErrorMessage() {
-		for(int i = 0; i < targetProcs.length; i++) {
-			new PipeStreamHandler(this.targetProcs[i].accessErrorStream(), System.err, false).start();
-		}
+		return this.messageBuffer.toString();
 	}
 }
 
@@ -860,7 +778,7 @@ class PipeStreamHandler extends Thread {
 		this.closeOutputs = new boolean[1];
 		this.closeOutputs[0] = closeStream;
 	}
-	
+
 	public PipeStreamHandler(InputStream input, 
 			OutputStream[] outputs, boolean closeInput, boolean[] closeOutputs) {
 		this.input = input;
@@ -905,591 +823,9 @@ class PipeStreamHandler extends Thread {
 		@Override public void write(int b) throws IOException {
 			// do nothing
 		}
-	}
-}
-
-class CauseInferencer {
-	// syscall filter
-	private static final Pattern syscallFilter = Pattern.compile("^[1-9][0-9]* .+(.+) *= *.+");
-	private static final Pattern failedSyscallFilter = Pattern.compile("^[1-9][0-9]* .+(.+) *= *-[1-9].+");
-	private static final Pattern localeFilter = Pattern.compile("^.+(.+/locale.+).+");
-	private static final Pattern gconvFilter = Pattern.compile("^.+(.+/usr/lib64/gconv.+).+");
-	
-	// function filter
-	private static final Pattern functionFilter = Pattern.compile("^  > .+");
-	private static final Pattern dcigettextFilter = Pattern.compile("^  > __dcigettext().+");
-	private static final Pattern exitFilter = Pattern.compile("^  > .+exit.*().+");
-	private static final Pattern libcStartMainFilter = Pattern.compile("^  > __libc_start_main().+");
-	
-	private int traceBackendType;
-
-	public CauseInferencer(int traceBackendType) {
-		this.traceBackendType = traceBackendType;
-	}
-
-	private boolean applyFilter(Pattern filter, String line) {
-		return filter.matcher(line).find();
-	}
-	
-	private boolean applyFilterToGroup(Pattern filter, int startIndex, ArrayList<String> group) {
-		int size = group.size();
-		for(int i = startIndex; i < size; i++) {
-			if(applyFilter(filter, group.get(i))) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private Stack<String[]> filterStraceLog(String logFilePath) {
-		try {
-			Stack<String[]> parsedSyscallStack = new Stack<String[]>();
-			BufferedReader br = new BufferedReader(new FileReader(logFilePath));
-			String line;
-			while((line = br.readLine()) != null) {
-				if(applyFilter(failedSyscallFilter, line) && 
-						!applyFilter(localeFilter, line) && !applyFilter(gconvFilter, line)) {
-					parsedSyscallStack.push(parseLine(line));
-				}
-			}
-			br.close();
-			return parsedSyscallStack;
-		} 
-		catch (FileNotFoundException e) {
-			throw new RuntimeException(e);
-		} 
-		catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	private String getFullExcutablePath(String executableFile) {
-		String[] path = System.getenv("PATH").split(":");
-		int i = 0;
-		while(i < path.length) {
-			String fullPath = path[i] + "/" + executableFile;
-			if(new File(fullPath).exists()) {
-				return fullPath;
-			}
-			i = i + 1;
-		}
-		return null;
-	}
-
-	private String applyPostProcess(String logPath) {
-		StringBuilder cmdBuilder = new StringBuilder();
-		String shapedLogPath = logPath + "-shaped.log";
-		String scriptPath = getFullExcutablePath("pretty_print_strace_out.py");
-		
-		cmdBuilder.append("python");
-		cmdBuilder.append(" " + scriptPath + " " + logPath + " --trace > ");
-		cmdBuilder.append(shapedLogPath);
-		String[] cmds = {"bash", "-c", cmdBuilder.toString()};
-		try {
-			Process launcher = new ProcessBuilder(cmds).start();
-			launcher.waitFor();
-		} 
-		catch (IOException e) {
-			throw new RuntimeException(e);
-		} 
-		catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-		return shapedLogPath;
-	}
-
-	private Stack<String[]> filterStracePlusLog(String logFilePath) {
-		try {
-			String newLogFilePath = applyPostProcess(logFilePath);
-			Stack<String[]> parsedSyscallStack = new Stack<String[]>();
-			ArrayList<String> syscallGroup = null;
-			ArrayList<ArrayList<String>> syscallGroupList = new ArrayList<ArrayList<String>>();
-			BufferedReader br = new BufferedReader(new FileReader(newLogFilePath));
-			String line;
-			while((line = br.readLine()) != null) {
-				if(applyFilter(syscallFilter, line)) {
-					if(syscallGroup != null) {
-						syscallGroupList.add(syscallGroup);
-						syscallGroup = null;
-					}
-					syscallGroup = new ArrayList<String>();
-					syscallGroup.add(line);
-				}
-				else if(applyFilter(functionFilter, line)) {
-					syscallGroup.add(line);
-				}
-			}
-			if(syscallGroup != null) {
-				syscallGroupList.add(syscallGroup);
-				syscallGroup = null;
-			}
-			br.close();
-			SubProc.deleteLogFile(newLogFilePath);
-			
-			int size = syscallGroupList.size();
-			for(int i = 0; i < size; i++) {
-				ArrayList<String> group = syscallGroupList.get(i);
-				String syscall = group.get(0);
-				if(!applyFilter(failedSyscallFilter, syscall)) {
-					continue;
-				}
-				if(applyFilter(gconvFilter, syscall)) {
-					continue;
-				}
-				if(applyFilter(localeFilter, syscall)) {
-					continue;
-				}
-				if(!applyFilterToGroup(libcStartMainFilter, 1, group)) {
-					continue;
-				}
-				if(applyFilterToGroup(exitFilter, 1, group)) {
-					continue;
-				}
-				if(applyFilterToGroup(dcigettextFilter, 1, group)) {
-					continue;
-				}
-				parsedSyscallStack.push(parseLine(syscall));
-			}
-			return parsedSyscallStack;
-		} 
-		catch (FileNotFoundException e) {
-			throw new RuntimeException(e);
-		} 
-		catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	private Stack<String[]> filterTraceLog(String logFilePath) {
-		if(traceBackendType == SubProc.traceBackend_strace) {
-			return filterStraceLog(logFilePath);
-		}
-		else if(traceBackendType == SubProc.traceBackend_strace_plus) {
-			return filterStracePlusLog(logFilePath);
-		}
-		else {
-			throw new RuntimeException("invalid trace backend type");
-		}
-	}
-
-	private String[] parseLine(String syscallLine) {
-		int index = 0;
-		int whiteSpaceCount = 0;
-		int openBracketCount = 0;
-		int closeBracketCount = 0;
-		String[] parsedSyscall = new String[3];
-		String[] parsedSyscallTemp = new String[4];
-		StringBuilder sBuilder= new StringBuilder();
-
-		for(int i = 0; i < syscallLine.length(); i++) {
-			char token = syscallLine.charAt(i);
-			switch(token) {
-			case '(':
-				if(openBracketCount++ == 0) {
-					parsedSyscallTemp[index++] = new String(sBuilder.toString());
-					sBuilder = new StringBuilder();
-				}
-				break;
-			case ')':
-				if(openBracketCount == ++closeBracketCount) {
-					parsedSyscallTemp[index++] = new String(sBuilder.toString());
-					sBuilder = new StringBuilder();
-					openBracketCount = closeBracketCount = 0;
-				}
-				break;
-			default:
-				if(whiteSpaceCount < 2 && token == ' ') {
-					if(i + 1 < syscallLine.length() && syscallLine.charAt(i + 1) != ' ') {
-						whiteSpaceCount++;
-					}
-				} 
-				else {
-					sBuilder.append(token);
-				}
-				break;
-			}
-		}
-		String[] splitStrings = parsedSyscallTemp[2].trim().split(" ");
-		
-		parsedSyscall[0] = parsedSyscallTemp[0];
-		parsedSyscall[1] = parsedSyscallTemp[1];
-		parsedSyscall[2] = splitStrings[2];
-
-		return parsedSyscall;
-	}
-
-	public String[] doInference(String traceLogPath) {
-		Stack<String[]> syscallStack = this.filterTraceLog(traceLogPath);
-		try {
-			return syscallStack.peek();
-		}
-		catch(EmptyStackException e) {
-			return null;
+		@Override public void close() {
+			//do nothing
 		}
 	}
 }
 
-class ShellExceptionRaiser {
-	private PseudoProcess[] procs;
-	private boolean enableException;
-
-	public ShellExceptionRaiser(boolean enableException) {
-		this.enableException = enableException;
-	}
-
-	public void setProcesses(PseudoProcess[] kprocs) {
-		this.procs = kprocs;
-	}
-
-	public void raiseException() {
-		for(int i = 0; i < this.procs.length; i++) {
-			PseudoProcess targetProc = this.procs[i];
-			targetProc.waitFor();
-			
-			if(!this.enableException) {
-				continue;
-			}
-			String message = targetProc.getCmdName();
-			if(targetProc.isTraced() && targetProc instanceof SubProc) {
-				String logFilePath = ((SubProc)targetProc).getLogFilePath();
-				if(targetProc.getRet() != 0) {
-					CauseInferencer inferencer = new CauseInferencer(SubProc.traceBackendType);
-					String[] inferedSyscall = inferencer.doInference(logFilePath);
-					SubProc.deleteLogFile(logFilePath);
-					throw createException(message, inferedSyscall);
-				}
-				SubProc.deleteLogFile(logFilePath);
-			}
-			else {
-				if(targetProc.getRet() != 0) {
-					throw new DShellException(message);
-				}
-			}
-		}
-	}
-
-	private RuntimeException createException(String message, String[] syscall) {
-		// syscall: syscallName: 0, param: 1, errno: 2
-		Class<?>[] types = {String.class, String.class, String[].class};
-		Object[] args = {message, message, syscall};
-		try {
-			if(syscall == null) {
-				return new NotRelatedSyscallException(message);
-			}
-			Class<?> exceptionClass = ErrorToException.valueOf(syscall[2]).toException();
-			if(exceptionClass == null) {
-				return new DShellException(syscall[2] + " has not implemented yet!!");
-			}
-			else {
-				Constructor<?> constructor;
-				try {
-					constructor = exceptionClass.getConstructor(types);
-				}
-				catch (NoSuchMethodException e) {
-					throw new RuntimeException(e);
-				}
-				catch (SecurityException e) {
-					throw new RuntimeException(e);
-				}
-				try {
-					return (RelatedSyscallException) constructor.newInstance(args);
-				}
-				catch (InstantiationException e) {
-					throw new RuntimeException(e);
-				}
-				catch (IllegalAccessException e) {
-					throw new RuntimeException(e);
-				}
-				catch (InvocationTargetException e) {
-					throw new RuntimeException(e);
-				}
-			}
-		}
-		catch (IllegalArgumentException e) {
-			return new RuntimeException((syscall[2] + " is not syscall!!"));
-		}
-	}
-}
-
-enum Syscall {
-	open, openat, connect,
-}
-
-enum ErrorToException {
-	E2BIG {
-		public Class<?> toException() {
-			return TooManyArgsException.class;
-		}
-	}, 
-	EACCES {
-		public Class<?> toException() {
-			return NotPermittedException.class;
-		}
-	}, 
-	EADDRINUSE, 
-	EADDRNOTAVAIL, 
-	EAFNOSUPPORT,
-	EAGAIN {
-		public Class<?> toException() {
-			return TemporaryUnavailableException.class;
-		}
-	}, 
-	EALREADY, 
-	EBADE, 
-	EBADF {
-		public Class<?> toException() {
-			return BadFileDescriptorException.class;
-		}
-	}, 
-	EBADFD {
-		public Class<?> toException() {
-			return BadStateFileDescriptorException.class;
-		}
-	}, 
-	EBADMSG {
-		public Class<?> toException() {
-			return BadMessageException.class;
-		}
-	}, 
-	EBADR, 
-	EBADRQC, 
-	EBADSLT, 
-	EBUSY, 
-	ECANCELED, 
-	ECHILD {
-		public Class<?> toException() {
-			return NoChildException.class;
-		}
-	}, 
-	ECHRNG, 
-	ECOMM, 
-	ECONNABORTED,
-	ECONNREFUSED {
-		public Class<?> toException() {
-			return ConnectionRefusedException.class;
-		}
-	}, 
-	ECONNRESET, 
-	EDEADLK, 
-	EDEADLOCK, 
-	EDESTADDRREQ, 
-	EDOM,
-	EDQUOT, 
-	EEXIST {
-		public Class<?> toException() {
-			return FileExistException.class;
-		}
-	}, 
-	EFAULT, 
-	EFBIG {
-		public Class<?> toException() {
-			return TooLargeFileException.class;
-		}
-	}, 
-	EHOSTDOWN, 
-	EHOSTUNREACH {
-		public Class<?> toException() {
-			return UnreachableHostException.class;
-		}
-	}, 
-	EIDRM, 
-	EILSEQ,
-	EINPROGRESS, 
-	EINTR {
-		public Class<?> toException() {
-			return InterruptedBySignalException.class;
-		}
-	}, 
-	EINVAL {
-		public Class<?> toException() {
-			return InvalidArgumentException.class;
-		}
-	}, 
-	EIO {
-		public Class<?> toException() {
-			return org.GreenTeaScript.DShell.IOException.class;
-		}
-	}, 
-	EISCONN, 
-	EISDIR {
-		public Class<?> toException() {
-			return IsDirectoryException.class;
-		}
-	}, 
-	EISNAM, 
-	EKEYEXPIRED,
-	EKEYREJECTED, 
-	EKEYREVOKED, 
-	EL2HLT, 
-	EL2NSYNC, 
-	EL3HLT, 
-	EL3RST, 
-	ELIBACC, 
-	ELIBBAD, 
-	ELIBMAX, 
-	ELIBSCN, 
-	ELIBEXEC, 
-	ELOOP {
-		public Class<?> toException() {
-			return TooManyLinkException.class;
-		}
-	}, 
-	EMEDIUMTYPE, 
-	EMFILE {
-		public Class<?> toException() {
-			return TooManyFileOpenException.class;
-		}
-	}, 
-	EMLINK, 
-	EMSGSIZE {
-		public Class<?> toException() {
-			return TooLongMessageException.class;
-		}
-	}, 
-	EMULTIHOP, 
-	ENAMETOOLONG {
-		public Class<?> toException() {
-			return TooLongNameException.class;
-		}
-	}, 
-	ENETDOWN, 
-	ENETRESET, 
-	ENETUNREACH {
-		public Class<?> toException() {
-			return UnreachableNetworkException.class;
-		}
-	}, 
-	ENFILE {
-		public Class<?> toException() {
-			return FileTableOverflowException.class;
-		}
-	},
-	ENOBUFS {
-		public Class<?> toException() {
-			return NoBufferSpaceException.class;
-		}
-	}, 
-	ENODATA, 
-	ENODEV {
-		public Class<?> toException() {
-			return DeviceNotFoundException.class;
-		}
-	}, 
-	ENOENT {
-		public Class<?> toException() {
-			return org.GreenTeaScript.DShell.FileNotFoundException.class;
-		}
-	}, 
-	ENOEXEC, 
-	ENOKEY, 
-	ENOLCK, 
-	ENOLINK, 
-	ENOMEDIUM, 
-	ENOMEM {
-		public Class<?> toException() {
-			return NoFreeMemoryException.class;
-		}
-	},
-	ENOMSG, 
-	ENONET, 
-	ENOPKG, 
-	ENOPROTOOPT, 
-	ENOSPC {
-		public Class<?> toException() {
-			return NoFreeSpaceException.class;
-		}
-	}, 
-	ENOSR, 
-	ENOSTR,
-	ENOSYS, 
-	ENOTBLK, 
-	ENOTCONN, 
-	ENOTDIR {
-		public Class<?> toException() {
-			return NotDirectoryException.class;
-		}
-	}, 
-	ENOTEMPTY {
-		public Class<?> toException() {
-			return NotEmptyDirectoryException.class;
-		}
-	}, 
-	ENOTSOCK {
-		public Class<?> toException() {
-			return NotSocketException.class;
-		}
-	}, 
-	ENOTSUP, 
-	ENOTTY {
-		public Class<?> toException() {
-			return InappropriateOperateException.class;
-		}
-	}, 
-	ENOTUNIQ, 
-	ENXIO, 
-	EOPNOTSUPP, 
-	EOVERFLOW, 
-	EPERM{
-		public Class<?> toException() {
-			return NotPermittedOperateException.class;
-		}
-	}, 
-	EPFNOSUPPORT, 
-	EPIPE {
-		public Class<?> toException() {
-			return BrokenPipeException.class;
-		}
-	}, 
-	EPROTO, 
-	EPROTONOSUPPORT, 
-	EPROTOTYPE, 
-	ERANGE, 
-	EREMCHG, 
-	EREMOTE, 
-	EREMOTEIO {
-		public Class<?> toException() {
-			return RemoteIOException.class;
-		}
-	},
-	ERESTART, 
-	EROFS {
-		public Class<?> toException() {
-			return ReadOnlyException.class;
-		}
-	}, 
-	ESHUTDOWN, 
-	ESPIPE {
-		public Class<?> toException() {
-			return IllegalSeekException.class;
-		}
-	}, 
-	ESOCKTNOSUPPORT, 
-	ESRCH, 
-	ESTALE, 
-	ESTRPIPE, 
-	ETIME, 
-	ETIMEDOUT {
-		public Class<?> toException() {
-			return ConnectionTimeoutException.class;
-		}
-	}, 
-	ETXTBSY, 
-	EUCLEAN, 
-	EUNATCH, 
-	EUSERS {
-		public Class<?> toException() {
-			return TooManyUsersException.class;
-		}
-	}, 
-	EWOULDBLOCK {
-		public Class<?> toException() {
-			return EAGAIN.toException();
-		}
-	}, 
-	EXDEV, 
-	EXFULL;
-
-	public Class<?> toException() {
-		return null;
-	}
-}

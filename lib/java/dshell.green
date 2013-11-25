@@ -9,10 +9,11 @@ import org.GreenTeaScript.DShellGrammar;
 @Const @Operator boolean "-w"(String Path) import DShellGrammar.IsFileWritable;
 @Const @Operator boolean "-x"(String Path) import DShellGrammar.IsFileExecutable;
 
-// init D-ShellProcess
-let DShellProcess = import org.GreenTeaScript.DShell.DShellProcess;
-let init = DShellProcess.initDShellProcess();
-init();
+// D-Shell Asynchronous task
+let Task = import org.GreenTeaScript.DShell.Task;
+
+// define CheckPoint class
+let CheckPoint = import org.GreenTeaScript.DShell.CheckPoint;
 
 // D-Shell Exception class
 let DShellException = import org.GreenTeaScript.DShell.DShellException;

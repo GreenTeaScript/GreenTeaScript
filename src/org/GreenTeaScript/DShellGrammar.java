@@ -472,8 +472,12 @@ public class DShellGrammar extends GreenTeaUtils {
 		if(ContextType.IsStringType() || ContextType.IsBooleanType()) {
 			Type = ContextType;
 		}
-		else {
+		else if(ContextType.IsVoidType()) {
 			Type = GtStaticTable.VoidType;
+		}
+		else {
+			Type = ParsedTree.NameSpace.GetType("Task");
+			LibGreenTea.Assert(Type != null);
 		}
 		/*local*/GtNode PipedNode = null;
 		/*local*/int Index = 0;
@@ -483,7 +487,6 @@ public class DShellGrammar extends GreenTeaUtils {
 			if(SubTree.Pattern.EqualsName("$DShell2$")) {
 				PipedNode = TypeDShell2(Gamma, SubTree, ContextType);
 				ArgumentSize = Index;
-//				Type = Gamma.VoidType;
 				break;
 			}
 			Index += 1;
@@ -499,6 +502,59 @@ public class DShellGrammar extends GreenTeaUtils {
 			Index += 1;
 		}
 		return Node;
+	}
+
+	private final static int AtomicTarget   = 0;
+	private final static int AtomicBody     = 1;
+	private final static int AtomicExcept   = 2;
+	private final static int AtomicRollback = 3;
+	private final static int AtomicClear    = 4;
+	private static int checkpointCount = -1;
+
+	public static GtSyntaxTree ParseAtomic(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+		/*local*/GtSyntaxTree AtomicTree = TokenContext.CreateMatchedSyntaxTree(NameSpace, Pattern, "atomic");
+		/*local*/GtSyntaxTree TargetTree = TokenContext.ParsePattern(NameSpace, "$FilePath$", Required);
+
+		/*local*/String TargetPath = LibGreenTea.QuoteString((/*cast*/String)TargetTree.ParsedValue);
+		checkpointCount += 1;
+		/*local*/String CheckPointName = "___def_check_point__" + checkpointCount;
+
+		/*local*/String NewCheckPoint = "var " + CheckPointName + " = new CheckPoint(" + TargetPath + ");";
+		/*local*/GtTokenContext CheckPointContext = new GtTokenContext(NameSpace, NewCheckPoint, TokenContext.ParsingLine);
+		AtomicTree.SetMatchedPatternAt(AtomicTarget, NameSpace, CheckPointContext, "$VarDecl$", Required);
+
+		TokenContext.SkipEmptyStatement();
+		AtomicTree.SetMatchedPatternAt(AtomicBody, NameSpace, TokenContext, "$Block$", Required);
+
+		/*local*/String NewExcept = "DShellException e";
+		/*local*/GtTokenContext ExceptContext = new GtTokenContext(NameSpace, NewExcept, TokenContext.ParsingLine);
+		AtomicTree.SetMatchedPatternAt(AtomicExcept , NameSpace, ExceptContext, "$VarDecl$", Required);
+
+		/*local*/String NewRollback = "{ " + CheckPointName + ".rollback(); }";
+		/*local*/GtTokenContext RollbackContext = new GtTokenContext(NameSpace, NewRollback, TokenContext.ParsingLine);
+		AtomicTree.SetMatchedPatternAt(AtomicRollback, NameSpace, RollbackContext, "$Block$", Required);
+
+		/*local*/String NewClear = "{ " + CheckPointName + ".clear(); }";
+		/*local*/GtTokenContext ClearContext = new GtTokenContext(NameSpace, NewClear, TokenContext.ParsingLine);
+		AtomicTree.SetMatchedPatternAt(AtomicClear, NameSpace, ClearContext, "$Block$", Required);
+		return AtomicTree;
+	}
+
+	public static GtNode TypeAtomic(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+		/*local*/GtNameSpace NameSpace = Gamma.NameSpace;
+		/*local*/GtSyntaxPattern TryPattern = NameSpace.GetSyntaxPattern("try");
+		/*local*/GtSyntaxTree TryTree = new GtSyntaxTree(TryPattern, NameSpace, new GtToken("try", ParsedTree.KeyToken.FileLine), null);
+		TryTree.SetSyntaxTreeAt(TryBody, ParsedTree.GetSyntaxTreeAt(AtomicBody));
+		TryTree.SetSyntaxTreeAt(CatchVariable, ParsedTree.GetSyntaxTreeAt(AtomicExcept));
+		TryTree.SetSyntaxTreeAt(CatchBody, ParsedTree.GetSyntaxTreeAt(AtomicRollback));
+		TryTree.SetSyntaxTreeAt(FinallyBody, ParsedTree.GetSyntaxTreeAt(AtomicClear));
+		/*local*/GtSyntaxTree TargetDeclTree = ParsedTree.GetSyntaxTreeAt(AtomicTarget);
+		TargetDeclTree.ParentTree = ParsedTree.ParentTree;
+		TargetDeclTree.PrevTree = ParsedTree.PrevTree;
+		TargetDeclTree.NextTree = TryTree;
+		TryTree.NextTree = ParsedTree.NextTree;
+		ParsedTree = TargetDeclTree;
+		return KonohaGrammar.TypeVarDecl(Gamma, ParsedTree, ContextType);
 	}
 
 	public static GtSyntaxTree ParseShell(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
@@ -695,14 +751,20 @@ public class DShellGrammar extends GreenTeaUtils {
 		NameSpace.AppendSyntax("letenv", LoadParseFunc2(ParserContext, GrammarClass, "ParseEnv"), null);
 		NameSpace.AppendSyntax("command", LoadParseFunc2(ParserContext, GrammarClass, "ParseCommand"), null);
 		NameSpace.AppendSyntax("-", LoadParseFunc2(ParserContext, GrammarClass, "ParseFileOperator"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeFileOperator"));
-//		NameSpace.AppendSyntax("$DShell$", LoadParseFunc2(ParserContext, GrammarClass, "ParseDShell"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeDShell"));
 		NameSpace.AppendSyntax("$FilePath$", LoadParseFunc2(ParserContext, GrammarClass, "ParseFilePath"), null);
 		NameSpace.AppendSyntax("$DShell2$", LoadParseFunc2(ParserContext, GrammarClass, "ParseDShell2"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeDShell2"));
 		NameSpace.AppendSyntax("shell", LoadParseFunc2(ParserContext, GrammarClass, "ParseShell"), null);
+		NameSpace.AppendSyntax("atomic", LoadParseFunc2(ParserContext, GrammarClass, "ParseAtomic"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeAtomic"));
 		
 		// builtin command
-		NameSpace.SetSymbol("timeout", NameSpace.GetSyntaxPattern("$DShell2$"), new GtToken("timeout", 0));
-		NameSpace.SetSymbol(CommandSymbol("timeout"), "timeout", null);
+		// timeout
+		String timeout = "timeout";
+		NameSpace.SetSymbol(timeout, NameSpace.GetSyntaxPattern("$DShell2$"), new GtToken(timeout, 0));
+		NameSpace.SetSymbol(CommandSymbol(timeout), timeout, null);
+		// infer
+		String infer = "infer";
+		NameSpace.SetSymbol(infer, NameSpace.GetSyntaxPattern("$DShell2$"), new GtToken(infer, 0));
+		NameSpace.SetSymbol(CommandSymbol(infer), infer, null);
 
 		NameSpace.SetSymbol("$CreateFaultBuiltInFunc", LibNative.ImportNativeObject(NameSpace, "DShellGrammar.CreateFault"), null);
 		NameSpace.SetSymbol("$ReportBuiltInFunc", LibNative.ImportNativeObject(NameSpace, "DShellGrammar.ExecAction"), null);

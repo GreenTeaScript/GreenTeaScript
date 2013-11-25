@@ -28,6 +28,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 This project also includes third-party binary package from other open-source
-projects - ASM, Jline v2 and JNA. These projects have their own licenses. Please 
+projects - ASM, Jline v2, JNA, Apache Commons Logging, Apache HttpClient and Apache HttpCore. These projects have their own licenses. Please 
 refer to the files ext/license/LICENSE-* for the licenses and copyright 
 statements of these projects.

@@ -148,11 +148,5 @@
 /* @Hidden @Coercion  var converter(var x) import Konoha.ArrayApi.GreenArrayToStringArray; */
 /* @Hidden @StrongCoercion  var converter(var x) import Konoha.ArrayApi.StringArrayToGreenArray; */
 
-// SoftwareFaultException
-class SoftwareFaultException {
-	String msg
-	constructor(String msg) {
-		this.msg = msg
-	}
-}
+
 

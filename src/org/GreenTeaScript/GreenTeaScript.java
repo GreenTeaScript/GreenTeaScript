@@ -729,7 +729,7 @@ public class GreenTeaScript extends GreenTeaUtils {
 		if(!(Index < Args.length)) {
 			ShellMode = true;
 		}
-		GreenTeaArray ARGV = GreenTeaArray.NewArray1(GtStaticTable.StringType, 0);
+		/*local*/GreenTeaArray ARGV = GreenTeaArray.NewArray1(GtStaticTable.StringType, 0);
 		while(Index < Args.length) {
 			ARGV.ArrayBody.add(Args[Index]);
 			Index += 1;
@@ -764,18 +764,7 @@ public class GreenTeaScript extends GreenTeaUtils {
 					linenum += 1;
 				}
 				catch(Exception e) {
-					/*local*/StackTraceElement[] elements = e.getStackTrace();
-					/*local*/int size = elements.length + 1;
-					/*local*/StackTraceElement[] newElements = new StackTraceElement[size];
-					for(int i = 0; i < size; i++) {
-						if(i == size - 1) {
-							newElements[i] = new StackTraceElement("<TopLevel>", "TopLevelEval", "stdin", linenum);
-							break;
-						}
-						newElements[i] = elements[i];
-					}
-					e.setStackTrace(newElements);
-					e.printStackTrace();
+					LibGreenTea.PrintStackTrace(e, linenum);
 					linenum += 1;
 				}
 			}
