@@ -124,7 +124,7 @@ public class GtType extends GreenTeaUtils {
 		return IsFlag(this.BaseType.TypeFlag, UnboxType);
 	}
 	public final boolean IsGenericType() {
-		return (this.TypeParams != null);
+		return IsFlag(this.TypeFlag, GenericVariable);
 	}
 	public final boolean IsFuncType() {
 		return (this.BaseType == GtStaticTable.FuncType);
