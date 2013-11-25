@@ -54,9 +54,6 @@ public class GreenTeaArray extends GreenTeaTopObject {
 		}
 		return s + "]";
 	}
-	public Iterator<Object> ToIterator() {
-		return this.ArrayBody.iterator();
-	}
 	public final static GreenTeaArray NewArray1(GtType Type, int InitSize) {
 		/*local*/GtType ArrayType = GtStaticTable.GetGenericType1(GtStaticTable.ArrayType, Type, true); 
 		/*local*/GreenTeaArray ArrayObject =  new GreenTeaArray(ArrayType);

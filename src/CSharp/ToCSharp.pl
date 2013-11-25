@@ -81,6 +81,7 @@ sub Interface{
 #$src =~ s/interface GreenTeaConsts {(.*?)^}/GreenTeaConstsSection($1)/ems;
 #$src =~ s/class GreenTeaUtils(.*?)^}/GreenTeaUtilsSection($1)/ems;
 
+$src =~ s|import|//import|g;
 $src =~ s/interface/class\/\*interface\*\//g;
 $src =~ s/public\sclass\/\*interface\*\/\sGreenTeaObject\s{(.*?)^}/Interface($1)/ems;
 #$src =~ s/class\/\*interface\*\/.*{(.*?)^}/Interface($1)/ems;
@@ -121,6 +122,7 @@ $src =~ s/GtMap/LibGreenTea.GtMap/g;
 
 $src =~ s/\b(\d+)L\b/$1/g;
 $src =~ s/([a-zA-Z]*?)\.class/typeof($1)/g;
+$src =~ s/typeof\(Iterator\)/typeof(IEnumerator<object>)/g;
 $src =~ s/typeof\(Void\)/typeof(void)/g;
 $src =~ s/typeof\(Long\)/typeof(long)/g;
 
@@ -193,7 +195,6 @@ $src =~ s/\(Arrays.asList\((this.Types)\)\)/($1)/g;
 #$src =~ s/(LibGreenTea\.)?DebugP\(/console.log("DEBUG: " + /g;
 #$src =~ s/LibGreenTea\.println\(/console.log(/g;
 #src =~ s/function console.log\("DEBUG: " \+ /function DebugP(/g;
-$src =~ s/\bfinal\b/\/*final*\//g;
 
 my $n = @Comments;
 my $i = 0;
@@ -201,6 +202,11 @@ while($i < $n){
 	$src =~ s/#COMMENT$i#/$Comments[$i]/;
 	$i = $i + 1;
 }
+
+$src =~ s/\bfinal\b//g;
+$src =~ s/\/\*local\*\///g;
+$src =~ s/\/\*field\*\///g;
+$src =~ s/\/\*cast\*\///g;
 
 $n = @StringLiterals;
 $i = 0;
@@ -216,7 +222,8 @@ $src =~ s/\b(public\s)?(\b$Sym\b\/\*constructor\*\/)/public $2/g;
 $src =~ s/\t+(\b$Type\s$Type\b\(.*?\)\s*\{)/public $1/g;
 $src =~ s/\t+($Keyword\s\/\*final\*\/\s$Type\b)/public $1/g;
 $src =~ s/protected\spublic/protected/g;
-$src =~ s/public\sprivate/private/g;
+$src =~ s/public\s+private/private/g;
+$src =~ s/public\s+public/public/g;
 
 $src =~ s/\bclass\b/partial class/g;
 

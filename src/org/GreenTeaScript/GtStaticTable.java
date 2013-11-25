@@ -62,7 +62,7 @@ public class GtStaticTable implements GreenTeaConsts {
 			Id = GtStaticTable.SourceList.size();
 			GtStaticTable.SourceMap.put(FileName, Id);
 		}
-		return LibGreenTea.JoinIntId(Id, Line);
+		return LibGreenTea.JoinIntId((/*cast*/int)Id, (/*cast*/int)Line);
 	}
 
 

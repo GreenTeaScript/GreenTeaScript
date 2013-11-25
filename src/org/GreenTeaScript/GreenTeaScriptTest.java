@@ -137,7 +137,7 @@ public class GreenTeaScriptTest {
 		/*local*/String[] TokenTestList0 = {"int", "+", "(", "int", "x", ")", ";"};
 		GreenTeaScriptTest.TestToken(Context, "int + (int x);", TokenTestList0);
 	}
-
+//ifdef JAVA
 	public static void main(String[] Args) {
 		if(Args.length != 3) {
 			GreenTeaScriptTest.TokenizeOperator0();
@@ -147,4 +147,5 @@ public class GreenTeaScriptTest {
 			GtScriptRunner.Test(Args[0], Args[1], Args[2]);
 		}
 	}
+//endif VAJA
 }

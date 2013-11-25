@@ -17,6 +17,8 @@ perl ToCSharp.pl < ../org/GreenTeaScript/GtNode.java > GtNode.cs
 perl ToCSharp.pl < ../org/GreenTeaScript/GtToken.java > GtToken.cs
 perl ToCSharp.pl < ../org/GreenTeaScript/GtFunc.java > GtFunc.cs
 perl ToCSharp.pl < ../org/GreenTeaScript/GtGenerator.java > GtGenerator.cs
+perl ToCSharp.pl < ../org/GreenTeaScript/GtSourceGenerator.java > GtSourceGenerator.cs
+perl ToCSharp.pl < ../org/GreenTeaScript/GtSourceBuilder.java > GtSourceBuilder.cs
 perl ToCSharp.pl < ../org/GreenTeaScript/GtClassField.java > GtClassField.cs
 perl ToCSharp.pl < ../org/GreenTeaScript/GtParserContext.java > GtParserContext.cs
 perl ToCSharp.pl < ../org/GreenTeaScript/GtNameSpace.java > GtNameSpace.cs
