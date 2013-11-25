@@ -54,8 +54,9 @@ public class GtStaticTable implements GreenTeaConsts {
 	/*field*/public final static GtType     IteratorType = new GtType(GenericVariable, "Iterator", null, Iterator.class);
 	
 	public final static long GetFileLine(String FileName, int Line) {
-		/*local*/Integer Id = /* (FileName == null) ? 0 :*/ (/*cast*/Integer)GtStaticTable.SourceMap.GetOrNull(FileName);
-		if(Id == null) {
+		/*local*/Object IdOrNull = GtStaticTable.SourceMap.GetOrNull(FileName);
+		/*local*/Integer Id = IdOrNull == null ? -1 : (Integer)IdOrNull;
+		if(IdOrNull == null) {
 			GtStaticTable.SourceList.add(FileName);
 			Id = GtStaticTable.SourceList.size();
 			GtStaticTable.SourceMap.put(FileName, Id);

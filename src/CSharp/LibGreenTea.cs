@@ -318,7 +318,15 @@ public abstract class LibGreenTea: GreenTeaConsts {
 	}
 
 	public /*final*/ static string SubString(string Text, long StartIdx, long EndIdx) {
-		return Text.Substring((int)StartIdx, (int)EndIdx);
+        if (EndIdx > Text.Length)
+        {
+            EndIdx = Text.Length;
+        }
+        if (StartIdx > Text.Length)
+        {
+            StartIdx = Text.Length;
+        }
+		return Text.Substring((int)StartIdx, (int)(EndIdx - StartIdx));
 	}
 
 	public /*final*/ static bool IsWhitespace(string Text, long Pos) {
