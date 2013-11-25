@@ -102,6 +102,7 @@ $src =~ s/(\/\/.*?)$/&ProtectComment($1)/gems;
 # Protect Comments
 $src =~ s/(\/\*.*?\*\/)/&ProtectComment($1)/gmse;
 
+
 # Constants. public final static int N = 0; => var N: int = 0;
 #$src =~ s/(?:$Attr*) ($Type)\s+($Sym)((?:\[\s*\d*\s*\])?)/$2: $1$3/g;
 
@@ -109,7 +110,7 @@ $src =~ s/(\/\*.*?\*\/)/&ProtectComment($1)/gmse;
 
 # $src =~ s/(?!")\b(?:char|int|long|float|double|Charactor|Integer|Long|Float|Double)\b(?!")/number/g;
 # $src =~ s/\.(?:int|long|float|double|)Value\(\)//g;
-$src =~ s/(?!")\bInteger\b/int/g;
+$src =~ s/(?!")\bInteger\b/int?/g;
 $src =~ s/(?!")\bString\b/string/g;
 $src =~ s/(?!")\bboolean\b/bool/g;
 $src =~ s/(?!")\bObject\b/object/g;
@@ -118,20 +119,13 @@ $src =~ s/\bType\b/\@Type/g;
 $src =~ s/Class\<\?\>/Type/g;
 $src =~ s/GtMap/LibGreenTea.GtMap/g;
 
-# $src =~ s/\bGtMap\b/List/g;
-# $src =~ s/\bnew\s+Array<.*?>\s*\(Arrays.asList\((.*?)\)\)/$1/g;
-# $src =~ s/\bArrays.asList\b//g;
-# $src =~ s/\.toArray\(\)//g;
 $src =~ s/\b(\d+)L\b/$1/g;
 $src =~ s/([a-zA-Z]*?)\.class/typeof($1)/g;
 $src =~ s/typeof\(Void\)/typeof(void)/g;
 $src =~ s/typeof\(Long\)/typeof(long)/g;
 
-# $src =~ s/'(\\.)'/ord(fixup($1)) . '\/*' . $1 . '*\/'/eg;
-# $src =~ s/'(.)'/ord($1) . '\/*' . $1 . '*\/'/eg;
-# $src =~ s/('..')/($1.charCodeAt(0))/g;
+#modifier
 
-# $src =~ s/\bprotected\b//g;
 $src =~ s/\@Override\s*/override /g;
 $src =~ s/((?:$Keyword\s)*$Type(?:\.$Type)?\s$Sym\(.*\)\s*\{)/virtual $1/g;
 $src =~ s/virtual\s((?:$Keyword\s)*static|private\s(?:$Keyword\s)*$Type\s)/$1/g;
@@ -139,9 +133,9 @@ $src =~ s/override virtual/override/g;
 $src =~ s/virtual\s((?:final\s)?$Type\s$Sym\()/$1/g;
 #$src =~ s/^(?!override)(\s(?:$Keyword\s)*$Type)/virtual $1/g;
 $src =~ s/\@Deprecated\s*//g;
-# $src =~ s/\bextends GreenTeaUtils\s*//g;
-# $src =~ s/\bpublic interface\s*/interface /g;
-# $src =~ s/\bGreenTeaUtils\.//g;
+
+###
+
 $src =~ s/\binstanceof\b/is/g;
 $src =~ s/lastIndexOf/LastIndexOf/g;
 $src =~ s/substring/Substring/g;
@@ -157,19 +151,6 @@ $src =~ s/SoftwareFaultException/Exception/g;
 $src =~ s/getCanonicalName\(\)/FullName/g;
 $src =~ s/getSimpleName\(\)/Name/g;
 
-
-
-# $src =~ s/\binstanceof\s+string\b/instanceof String/g;
-# $src =~ s/\binstanceof\s+number\b/instanceof Number/g;
-# $src =~ s/\b([a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*) instanceof String/(typeof $1 == 'string' || $1 instanceof String)/g;
-
-# $src =~ s/number.class/Number/g;
-# $src =~ s/string.class/String/g;
-# $src =~ s/Boolean.class/Boolean/g;
-# $src =~ s/Object.class/Object/g;
-# $src =~ s/Void.class/null/g;
-
-# $src =~ s/\bpublic class\b/class/g;
 
 $src =~ s/\bsize\(\)/Count()/g;
 $src =~ s/length(\(\))?/Length/g;
@@ -228,7 +209,7 @@ while($i < $n){
 	$i = $i + 1;
 }
 
-
+#modifier
 ###TODO
 $src =~ s/\b(public\s)?(\/\*.+\*\/\s)?class\b/public class/g;
 $src =~ s/\b(public\s)?(\b$Sym\b\/\*constructor\*\/)/public $2/g;

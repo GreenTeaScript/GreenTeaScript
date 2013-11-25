@@ -171,9 +171,9 @@ public final class GtTypeEnv extends GreenTeaUtils {
 		if(Node.Type == Type || Type.IsVarType() || Type.Accept(Node.Type)) {
 			return Node;
 		}
-		/*local*/GtFunc Func = ParsedTree.NameSpace.GetConverterFunc(Node.Type, Type, true);
-		if(Func != null && (Func.Is(CoercionFunc) || IsFlag(TypeCheckPolicy, CastPolicy))) {
-			return this.Generator.CreateCoercionNode(Type, ParsedTree.NameSpace, Func, Node);
+		/*local*/GtFunc Func1 = ParsedTree.NameSpace.GetConverterFunc(Node.Type, Type, true);
+		if(Func1 != null && (Func1.Is(CoercionFunc) || IsFlag(TypeCheckPolicy, CastPolicy))) {
+			return this.Generator.CreateCoercionNode(Type, ParsedTree.NameSpace, Func1, Node);
 		}
 		
 		//System.err.println("node="+ LibGreenTea.GetClassName(Node) + "type error: requested = " + Type + ", given = " + Node.Type);

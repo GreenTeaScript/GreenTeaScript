@@ -24,6 +24,8 @@
 //ifdef JAVA
 package org.GreenTeaScript;
 //endif VAJA
+/*GreenTeaObject Begin*/
 public interface GreenTeaObject {
 	public GtType GetGreenType();
 }
+/*GreenTeaObject End*/
