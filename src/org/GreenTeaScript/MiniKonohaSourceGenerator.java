@@ -441,3 +441,4 @@ var CLASS = (function (_super) {
 	public void VisitCommandNode(GtCommandNode Node) {
 		this.DebugAppendNode(Node);
 	}
+}
