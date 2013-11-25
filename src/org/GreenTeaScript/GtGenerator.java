@@ -613,6 +613,11 @@ public class GtGenerator extends GreenTeaUtils {
 		return null;
 	}
 
+	public String GetSourceCode() {
+		return null;
+		/*extension*/
+	}
+
 	public void FlushBuffer() {
 		/*extension*/
 	}

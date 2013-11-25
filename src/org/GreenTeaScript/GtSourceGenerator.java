@@ -115,6 +115,17 @@ public class GtSourceGenerator extends GtGenerator {
 		Builder.AppendLine("");
 	}
 
+	@Override public String GetSourceCode() {
+		String SourceCode = "";
+		for(GtSourceBuilder Builder : this.BuilderList) {
+			for(String Source : Builder.SourceList) {
+				SourceCode += Source;
+			}
+			SourceCode += "\n";
+		}
+		return SourceCode;
+	}
+
 	@Override public void FlushBuffer() {
 		LibGreenTea.WriteSource(this.OutputFile, this.BuilderList);
 		this.BuilderList.clear();
