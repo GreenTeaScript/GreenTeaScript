@@ -28,8 +28,6 @@ import java.util.ArrayList;
 //endif VAJA
 
 public class MiniKonohaSourceGenerator extends GtSourceGenerator {
-	/*field*///private boolean UseLetKeyword = false;
-	/*field*///private boolean IsForNodeJS = false;
 	/*field*/private ArrayList<String> UsedLibrary;
 	
 	public MiniKonohaSourceGenerator(String TargetCode, String OutputFile, int GeneratorFlag) {
@@ -39,10 +37,8 @@ public class MiniKonohaSourceGenerator extends GtSourceGenerator {
 
 	@Override
 	public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
-		//String MethodName = Func.FuncName;
 		String MethodName = Func.GetNativeFuncName();
 		GtSourceBuilder Builder = this.NewSourceBuilder();
-		//GtSourceBuilder Builder = new GtSourceBuilder(this);
 		Builder.IndentAndAppend(this.ConvertToNativeTypeName(Func.GetReturnType()));
 		Builder.SpaceAppendSpace(MethodName);
 		Builder.Append("(");
@@ -62,7 +58,6 @@ public class MiniKonohaSourceGenerator extends GtSourceGenerator {
 		this.VisitIndentBlock("{", Body, "}");
 		this.VisitingBuilder.AppendLine("");
 		this.VisitingBuilder = PushedBuilder;
-		//System.out.println(Builder);
 	}
 
 	private void AddUseLibrary(String Library) {
@@ -104,9 +99,8 @@ public class MiniKonohaSourceGenerator extends GtSourceGenerator {
 			if(!this.IsEmptyBlock(CurrentNode)) {
 				this.VisitingBuilder.AppendIndent();
 				CurrentNode.Evaluate(this);
-				//this.VisitingBuilder.AppendLine(this.SemiColon);
+				this.VisitingBuilder.AppendLine(this.SemiColon);
 			}
-			this.VisitingBuilder.AppendLine(";");
 			CurrentNode = CurrentNode.NextNode;
 		}
 	}
@@ -289,7 +283,7 @@ var CLASS = (function (_super) {
 		this.VisitingBuilder.AppendLine(");");
 	}
 
-	public void VisitForNode(GtForNode Node) { //
+	public void VisitForNode(GtForNode Node) {
 		this.AddUseLibrary("Syntax.CStyleFor");
 		this.VisitingBuilder.Append("for(");
 		this.VisitingBuilder.Append("; ");
@@ -447,210 +441,3 @@ var CLASS = (function (_super) {
 	public void VisitCommandNode(GtCommandNode Node) {
 		this.DebugAppendNode(Node);
 	}
-
-	
-//
-//	JavaScriptSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
-//		super(TargetCode, OutputFile, GeneratorFlag);
-//		this.IsNodeJS = LibGreenTea.EqualsString(TargetCode, "nodejs");
-//		this.HasLabelSupport= false;
-//		this.LogicalAndOperator = "&&";
-//		this.LogicalOrOperator = "||";
-//		this.MemberAccessOperator = ".";
-//		this.TrueLiteral = "true";
-//		this.FalseLiteral = "false";
-//		this.NullLiteral = "null";
-//		this.LineComment = "//";
-//		this.BreakKeyword = "break";
-//		this.ContinueKeyword = "continue";
-//		this.ParameterBegin = "(";
-//		this.ParameterEnd = ")";
-//		this.ParameterDelimiter = ",";
-//		this.SemiColon = ";";
-//		this.BlockBegin = "{";
-//		this.BlockEnd = "}";
-//	}
-//
-//	
-//	public String VisitBlockJS(GtNode Node) {
-//		/*local*/String Code = "";
-//		/*local*/GtNode CurrentNode = Node;
-//		while(CurrentNode != null) {
-//			/*local*/String Statement = this.VisitNode(CurrentNode);
-//			if(Statement.trim().length() >0) {
-//				Code += this.GetIndentString() + Statement + ";" + this.LineFeed;
-//			}
-//			CurrentNode = CurrentNode.NextNode;
-//		}
-//		return Code;
-//	}
-//
-//	public String VisitBlockJSWithIndent(GtNode Node) {
-//		/*local*/String Code = "";
-//		Code += "{" + this.LineFeed;
-//		this.Indent();
-//		Code += this.VisitBlockJS(Node);
-//		this.UnIndent();
-//		Code += this.GetIndentString() + "}";
-//		return Code;
-//	}
-//
-//	@Override public void VisitBinaryNode(GtBinaryNode Node) {
-//		/*local*/String FuncName = Node.Token.ParsedText;
-//		/*local*/String Left = this.VisitNode(Node.LeftNode);
-//		/*local*/String Right = this.VisitNode(Node.RightNode);
-//		/*local*/String Source = "(" + SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right) + ")";
-//		/*local*/String operator = Node.Token.ParsedText;
-//		if(LibGreenTea.EqualsString(operator, "/") /*&& Node.Type == Context.IntType*/ ) {
-//			Source = "(" + Source + " | 0)";
-//		}
-//		this.PushSourceCode(Source);
-//	}
-//
-//	@Override public void VisitVarNode(GtVarNode Node) {
-//		/*local*/String VarName = Node.NativeName;
-//		/*local*/String Source = (this.UseLetKeyword ? "let " : "var ") + " " + VarName;
-//		if(Node.InitNode != null) {
-//			Node.InitNode.Evaluate(this);
-//			Source += " = " + this.PopSourceCode();
-//		}
-//		Source +=  ";";
-//		Source += this.VisitBlockJSWithIndent(Node.BlockNode);
-//		this.PushSourceCode(Source);
-//	}
-//
-//	@Override public void VisitIfNode(GtIfNode Node) {
-//		/*local*/String ThenBlock = this.VisitBlockJSWithIndent(Node.ThenNode);
-//		/*local*/String CondExpr = this.VisitNode(Node.CondExpr);
-//		/*local*/String Source = "if(" + CondExpr + ") " + ThenBlock;
-//		if(Node.ElseNode != null) {
-//			Source = Source + " else " + this.VisitBlockJSWithIndent(Node.ElseNode);
-//		}
-//		this.PushSourceCode(Source);
-//	}
-//
-//	@Override public void VisitWhileNode(GtWhileNode Node) {
-//		/*local*/String LoopBody = this.VisitBlockJSWithIndent(Node.LoopBody);
-//		/*local*/String CondExpr = this.VisitNode(Node.CondExpr);
-//		this.PushSourceCode("while(" + CondExpr + ") {" + LoopBody + "}");
-//	}
-//
-//	@Override public void VisitForNode(GtForNode Node) {
-//		/*local*/String LoopBody = this.VisitBlockJSWithIndent(Node.LoopBody);
-//		/*local*/String IterExpr = this.VisitNode(Node.IterExpr);
-//		/*local*/String CondExpr = this.VisitNode(Node.CondExpr);
-//		this.PushSourceCode("for(;" + CondExpr + "; " + IterExpr + ") {" + LoopBody + "}");
-//	}
-//
-//	@Override public void VisitDoWhileNode(GtDoWhileNode Node) {
-//		/*local*/String LoopBody = this.VisitBlockJSWithIndent(Node.LoopBody);
-//		/*local*/String CondExpr = this.VisitNode(Node.CondExpr);
-//		this.PushSourceCode("do {" + LoopBody + "} while(" + CondExpr + ");");
-//	}
-//
-//	@Override public void VisitTryNode(GtTryNode Node) {
-//		/*local*/String Code = "try ";
-//		Code += this.VisitBlockJSWithIndent(Node.TryBlock);
-//		if(Node.CatchExpr != null) {
-//			/*local*/GtVarNode Val = (/*cast*/GtVarNode) Node.CatchExpr;
-//			Code += " catch (" + Val.Type.toString() + " " + Val.NativeName + ") ";
-//			Code += this.VisitBlockJSWithIndent(Node.CatchBlock);
-//		}
-//		if(Node.FinallyBlock != null) {
-//			Code += " finally " + this.VisitBlockJSWithIndent(Node.FinallyBlock);
-//		}
-//		this.PushSourceCode(Code);
-//	}
-//
-//	@Override public void VisitThrowNode(GtThrowNode Node) {
-//		/*local*/String Expr = this.VisitNode(Node.Expr);
-//		this.PushSourceCode("throw " + Expr);
-//	}
-//
-//	@Override public void VisitErrorNode(GtErrorNode Node) {
-//		/*local*/String Expr = Node.Token.ParsedText;
-//		this.PushSourceCode("(function() {throw new Error(\"" + Expr + "\") })()");
-//	}
-//
-//	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> NameList, GtNode Body) {
-//		this.FlushErrorReport();
-//		/*local*/int ArgCount = Func.Types.length - 1;
-//		/*local*/String Code = "var " + Func.GetNativeFuncName() + " = (function(";
-//		/*local*/int i = 0;
-//		while(i < ArgCount) {
-//			if(i > 0) {
-//				Code = Code + ", ";
-//			}
-//			Code = Code + NameList.get(i);
-//			i = i + 1;
-//		}
-//		Code = Code + ") " + this.VisitBlockJSWithIndent(Body) + ");";
-//		this.WriteLineCode(Code);
-//	}
-//
-///**
-//JavaScript code to be generated:
-//
-//var CLASS = (function (_super) {
-//    __extends(CLASS, _super);                                // Derived class only.
-//    function CLASS(param) {                                   // Constructor.
-//        _super.call(this, param);
-//        this.FIELD = param;                                      // Field definition and initialization.
-//    };
-//    CLASS.STATIC_FIELD = "value";                      // Static fields
-//    
-//    CLASS.prototype.METHOD = function () {    // Methods.
-//    };
-//    CLASS.STATIC_METHOD = function () {         // Static methods.
-//    };
-//    return CLASS;
-//})(SUPERCLASS);
-// */
-//	@Override public void OpenClassField(GtSyntaxTree ParsedTree, GtType Type, GtClassField ClassField) {
-//		/*local*/String TypeName = Type.ShortName;
-//		/*local*/String Program = this.GetIndentString() + "var " + TypeName + " = (function() {" + this.LineFeed;
-////		if(Type.SuperType != null) {
-////			Program += "(" + Type.SuperType.ShortClassName + ")";
-////		}
-//		this.Indent();
-//		Program += this.GetIndentString() + "function " + TypeName + "() {" + this.LineFeed;
-//		this.Indent();
-//		/*local*/int i = 0;
-//		while(i < ClassField.FieldList.size()) {
-//			/*local*/GtFieldInfo FieldInfo = ClassField.FieldList.get(i);
-//			/*local*/String InitValue = this.StringifyConstValue(FieldInfo.InitValue);
-//			if(!FieldInfo.Type.IsNativeType()) {
-//				InitValue = this.NullLiteral;
-//			}
-//			Program += this.GetIndentString() + "this" + "." + FieldInfo.NativeName + " = " + InitValue + ";" + this.LineFeed;
-//			i = i + 1;
-//		}
-//		this.UnIndent();
-//		Program += this.GetIndentString() + "};" + this.LineFeed;
-//		Program += this.GetIndentString() + "return " + TypeName + ";" + this.LineFeed;
-//		this.UnIndent();
-//		Program += this.GetIndentString() + "})();" + this.LineFeed;
-//		this.WriteLineCode(Program);
-//	}
-//	@Override public Object Eval(GtNode Node) {
-//		/*local*/String ret = this.VisitBlockJS(Node);
-//		this.WriteLineCode(ret);
-//		return ret;
-//	}
-//
-//	@Override public void StartCompilationUnit() {
-//		if(this.IsNodeJS) {
-//			this.WriteLineCode("var assert = require('assert');");
-//		}
-//		else {			
-//			this.WriteLineCode("var assert = console.assert;");
-//		}
-//	}
-//
-//	@Override public void InvokeMainFunc(String MainFuncName) {
-//		this.WriteLineCode(MainFuncName + "();");
-//	}
-//	@Override public String GetRecvName() {
-//		return "$__this";
-//	}
-}
