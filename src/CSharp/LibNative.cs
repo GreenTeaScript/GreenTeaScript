@@ -190,12 +190,12 @@ public static class LibNative
                 MethodInfo LoaderMethod = NativeClass.GetMethod("ImportGrammar");//, typeof(GtNameSpace), typeof(Type));
                 LoaderMethod.Invoke(null, new object[] { NameSpace, NativeClass });
             }
-            catch (Exception e)
+            catch (Exception)
             {  // naming
             }
             return LibNative.GetNativeType(NativeClass);
         }
-        catch (Exception e)
+        catch (Exception)
         {
         }
         int Index = PackageName.LastIndexOf(".");
@@ -206,7 +206,7 @@ public static class LibNative
                 Type NativeClass = LibNative.ImportClass(PackageName.Substring(0, Index));
                 return ImportStaticObject(NameSpace.Context, NativeClass, PackageName.Substring(Index + 1));
             }
-            catch (Exception e)
+            catch (Exception)
             {
             }
         }

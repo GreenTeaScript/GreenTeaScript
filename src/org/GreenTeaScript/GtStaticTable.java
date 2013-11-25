@@ -84,9 +84,9 @@ public class GtStaticTable implements GreenTeaConsts {
 
 	/*field*/private static boolean IsInit = false;
 	
+	//ifdef JAVA
 	public final static void InitParserContext(GtParserContext Context) {
 		if(!GtStaticTable.IsInit) {
-//ifdef JAVA
 			ArrayType.TypeParams = new GtType[1];
 			ArrayType.TypeParams[0] = GtStaticTable.VarType;
 			FuncType.TypeParams = new GtType[1];
@@ -109,7 +109,6 @@ public class GtStaticTable implements GreenTeaConsts {
 			GtStaticTable.SetNativeTypeName("double",    GtStaticTable.FloatType);
 			GtStaticTable.SetNativeTypeName("java.lang.Double",  GtStaticTable.FloatType);
 			GtStaticTable.SetNativeTypeName("java.util.Iterator",  GtStaticTable.IteratorType);
-//endif VAJA
 			GtStaticTable.IsInit = true;
 		}
 		Context.RootNameSpace.AppendTypeName(GtStaticTable.TopType,  null);
@@ -125,7 +124,8 @@ public class GtStaticTable implements GreenTeaConsts {
 		Context.RootNameSpace.AppendTypeName(GtStaticTable.FuncType, null);
 		Context.RootNameSpace.AppendTypeName(GtStaticTable.IteratorType, null);
 	}
-
+	//endif VAJA
+	
 	public static int IssueTypeId(GtType Type) {
 		/*local*/int TypeId = GtStaticTable.TypePools.size();
 		GtStaticTable.TypePools.add(Type);

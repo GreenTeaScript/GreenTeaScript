@@ -99,6 +99,46 @@ public partial class GtGrammar
 	}
 }
 
+public partial class GtStaticTable
+{
+	public static void InitParserContext(GtParserContext Context) {
+		if(!GtStaticTable.IsInit) {
+			ArrayType.TypeParams = new GtType[1];
+			ArrayType.TypeParams[0] = GtStaticTable.VarType;
+			FuncType.TypeParams = new GtType[1];
+			FuncType.TypeParams[0] = GtStaticTable.VarType;  // for PolyFunc
+			IteratorType.TypeParams = new GtType[1];
+			IteratorType.TypeParams[0] = GtStaticTable.VarType;
+			
+			GtStaticTable.SetNativeTypeName(typeof(GreenTeaTopObject).FullName, GtStaticTable.TopType);
+			GtStaticTable.SetNativeTypeName(typeof(void).FullName, GtStaticTable.VoidType);
+			GtStaticTable.SetNativeTypeName(typeof(object).FullName, GtStaticTable.AnyType);
+			GtStaticTable.SetNativeTypeName(typeof(bool).FullName, GtStaticTable.BooleanType);
+            GtStaticTable.SetNativeTypeName(typeof(long).FullName, GtStaticTable.IntType);
+            GtStaticTable.SetNativeTypeName(typeof(string).FullName, GtStaticTable.StringType);
+            GtStaticTable.SetNativeTypeName(typeof(GtType).FullName, GtStaticTable.TypeType);
+            GtStaticTable.SetNativeTypeName(typeof(GreenTeaEnum).FullName, GtStaticTable.EnumBaseType);
+            GtStaticTable.SetNativeTypeName(typeof(GreenTeaArray).FullName, GtStaticTable.ArrayType);
+            GtStaticTable.SetNativeTypeName("GreenTeaIntArray", GtStaticTable.GetGenericType1(GtStaticTable.ArrayType, GtStaticTable.IntType, true));
+            GtStaticTable.SetNativeTypeName(typeof(double).FullName, GtStaticTable.FloatType);
+            GtStaticTable.SetNativeTypeName(typeof(IEnumerator<object>).FullName, GtStaticTable.IteratorType);
+			GtStaticTable.IsInit = true;
+		}
+		Context.RootNameSpace.AppendTypeName(GtStaticTable.TopType,  null);
+		Context.RootNameSpace.AppendTypeName(GtStaticTable.VoidType,  null);
+		Context.RootNameSpace.AppendTypeName(GtStaticTable.BooleanType, null);
+		Context.RootNameSpace.AppendTypeName(GtStaticTable.IntType, null);
+		Context.RootNameSpace.AppendTypeName(GtStaticTable.FloatType, null);
+		Context.RootNameSpace.AppendTypeName(GtStaticTable.StringType, null);
+		Context.RootNameSpace.AppendTypeName(GtStaticTable.VarType, null);
+		Context.RootNameSpace.AppendTypeName(GtStaticTable.AnyType, null);
+		Context.RootNameSpace.AppendTypeName(GtStaticTable.TypeType, null);
+		Context.RootNameSpace.AppendTypeName(GtStaticTable.ArrayType, null);
+		Context.RootNameSpace.AppendTypeName(GtStaticTable.FuncType, null);
+		Context.RootNameSpace.AppendTypeName(GtStaticTable.IteratorType, null);
+	}
+}
+
 public class LibGreenTea: GreenTeaConsts {
 	// LibGreenTea KonohaApi
 	public static void print(object msg) {
@@ -487,8 +527,8 @@ public class LibGreenTea: GreenTeaConsts {
                 }try{
                     s += Fields[i].Name + ": ";
                     s += LibGreenTea.Stringify(Fields[i].GetValue(Value));
-                }catch (ArgumentException e){
-                }catch (MemberAccessException e){
+                }catch (ArgumentException){
+                }catch (MemberAccessException){
                 }
             }
         }
@@ -804,7 +844,7 @@ public class LibGreenTea: GreenTeaConsts {
 				@out.Write(SourceCode);
 				@out.Flush();
 				@out.Close();
-			} catch (IOException e) {
+			} catch (IOException) {
                 //System.err.println("Cannot write: " + OutputFile);
                 //System.exit(1);
                 Console.Error.WriteLine("Cannot write: " + OutputFile);
@@ -835,7 +875,7 @@ public class LibGreenTea: GreenTeaConsts {
             {
                 Writer.Close();
 			}
-		} catch (IOException e) {
+		} catch (IOException) {
             Console.Error.WriteLine("Cannot write: " + OutputFile);
             System.Environment.Exit(1);
 		}
@@ -1050,7 +1090,7 @@ public class LibGreenTea: GreenTeaConsts {
 					return DynamicCast(Type, left >= right);
 				}
 			}
-            catch (InvalidCastException e)
+            catch (InvalidCastException)
             {
 			}
 			return null;
@@ -1122,7 +1162,7 @@ public class LibGreenTea: GreenTeaConsts {
 				return DynamicCast(Type, left ^ right);
 			}
 		}
-        catch (InvalidCastException e){
+        catch (InvalidCastException){
 		}
 		return null;
 	}
