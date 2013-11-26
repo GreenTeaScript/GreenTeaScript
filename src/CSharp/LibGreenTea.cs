@@ -204,7 +204,7 @@ public class LibGreenTea: GreenTeaConsts {
         return null;
     }
 
-    	public static Object InvokeFunc(GtFunc Func, Object[] Params) {
+    public static Object InvokeFunc(GtFunc Func, Object[] Params) {
 		if(Func == null || Func.IsAbstract()) {
 			LibGreenTea.VerboseLog(VerboseRuntime, "applying abstract function: " + Func);
 			return Func.GetReturnType().DefaultNullValue;
@@ -1023,15 +1023,15 @@ public class LibGreenTea: GreenTeaConsts {
 			return null;
 		}
 		if(LeftValue is string || RightValue is string) {
-            String left = DynamicCast(GtStaticTable.StringType, LeftValue).ToString();
-            String right = DynamicCast(GtStaticTable.StringType, RightValue).ToString();
+            string left = DynamicCast(GtStaticTable.StringType, LeftValue).ToString();
+            string right = DynamicCast(GtStaticTable.StringType, RightValue).ToString();
 			if(Operator.Equals("+")) {
 				return  DynamicCast(Type, left + right);
 			}
 		}
 		if(LeftValue is string && RightValue is string) {
-            String left = DynamicCast(GtStaticTable.StringType, LeftValue).ToString();
-            String right = DynamicCast(GtStaticTable.StringType, RightValue).ToString();
+            string left = DynamicCast(GtStaticTable.StringType, LeftValue).ToString();
+            string right = DynamicCast(GtStaticTable.StringType, RightValue).ToString();
 			if(Operator.Equals("==")) {
 				return  DynamicCast(Type, left.Equals(right));
 			}
@@ -1052,52 +1052,34 @@ public class LibGreenTea: GreenTeaConsts {
 			}
 			return null;
 		}
-		if(LeftValue is Double || LeftValue is float || RightValue is Double || RightValue is float) {
+        if (LeftValue is double || LeftValue is float || RightValue is double || RightValue is float)
+        {
 			try {
                 double left = (double)LeftValue;
-                double right = (double)LeftValue;
-				if(Operator.Equals("+")) {
-					return DynamicCast(Type, left + right);
-				}
-				if(Operator.Equals("-")) {
-					return DynamicCast(Type, left - right);
-				}
-				if(Operator.Equals("*")) {
-					return DynamicCast(Type, left * right);
-				}
-				if(Operator.Equals("/")) {
-					return DynamicCast(Type, left / right);
-				}
-				if(Operator.Equals("%") || Operator.Equals("mod")) {
-					return DynamicCast(Type, left % right);
-				}
-				if(Operator.Equals("==")) {
-					return DynamicCast(Type, left == right);
-				}
-				if(Operator.Equals("!=")) {
-					return DynamicCast(Type, left != right);
-				}
-				if(Operator.Equals("<")) {
-					return DynamicCast(Type, left < right);
-				}
-				if(Operator.Equals("<=")) {
-					return DynamicCast(Type, left <= right);
-				}
-				if(Operator.Equals(">")) {
-					return DynamicCast(Type, left > right);
-				}
-				if(Operator.Equals(">=")) {
-					return DynamicCast(Type, left >= right);
-				}
+                double right = (double)RightValue;
+                switch (Operator)
+                {
+                    case "+": return DynamicCast(Type, left + right);
+                    case "-": return DynamicCast(Type, left - right);
+                    case "*": return DynamicCast(Type, left * right);
+                    case "/": return DynamicCast(Type, left / right);
+                    case "==": return DynamicCast(Type, left == right);
+                    case "!=": return DynamicCast(Type, left != right);
+                    case ">": return DynamicCast(Type, left > right);
+                    case ">=": return DynamicCast(Type, left >= right);
+                    case "<": return DynamicCast(Type, left < right);
+                    case "<=": return DynamicCast(Type, left <= right);
+                }
 			}
             catch (InvalidCastException)
             {
 			}
 			return null;
 		}
-		if(LeftValue is Boolean && RightValue is Boolean) {
-			bool left = (Boolean)LeftValue;
-			bool right = (Boolean)RightValue;
+        if (LeftValue is bool && RightValue is bool)
+        {
+            bool left = (bool)LeftValue;
+            bool right = (bool)RightValue;
 			if(Operator.Equals("==")) {
 				return DynamicCast(Type, left == right);
 			}
@@ -1108,59 +1090,27 @@ public class LibGreenTea: GreenTeaConsts {
 		}
 		try {
             long left = (long)LeftValue;
-            long right = (long)LeftValue;
-            if(Operator.Equals("+")) {
-				return DynamicCast(Type, left + right);
-			}
-			if(Operator.Equals("-")) {
-				return DynamicCast(Type, left - right);
-			}
-			if(Operator.Equals("*")) {
-				return DynamicCast(Type, left * right);
-			}
-			if(Operator.Equals("/")) {
-				return DynamicCast(Type, left / right);
-			}
-			if(Operator.Equals("%") || Operator.Equals("mod")) {
-				return DynamicCast(Type, left % right);
-			}
-			if(Operator.Equals("==")) {
-				return DynamicCast(Type, left == right);
-			}
-			if(Operator.Equals("!=")) {
-				return DynamicCast(Type, left != right);
-			}
-			if(Operator.Equals("<")) {
-				return DynamicCast(Type, left < right);
-			}
-			if(Operator.Equals("<=")) {
-				return DynamicCast(Type, left <= right);
-			}
-			if(Operator.Equals(">")) {
-				return DynamicCast(Type, left > right);
-			}
-			if(Operator.Equals(">=")) {
-				return DynamicCast(Type, left >= right);
-			}
-			if(Operator.Equals("|")) {
-				return DynamicCast(Type, left | right);
-			}
-			if(Operator.Equals("&")) {
-				return DynamicCast(Type, left & right);
-			}
-            if (Operator.Equals("<<"))
+            long right = (long)RightValue;
+            switch (Operator)
             {
-                //				return DynamicCast(Type, left << right);
-                return DynamicCast(Type, left << (int)right);
+                case "+": return DynamicCast(Type, left + right);
+                case "-": return DynamicCast(Type, left - right);
+                case "*": return DynamicCast(Type, left * right);
+                case "/": return DynamicCast(Type, left / right);
+                case "%": return DynamicCast(Type, left % right);
+                case "mod": return DynamicCast(Type, left % right);
+                case "==": return DynamicCast(Type, left == right);
+                case "!=": return DynamicCast(Type, left != right);
+                case ">": return DynamicCast(Type, left > right);
+                case ">=": return DynamicCast(Type, left >= right);
+                case "<": return DynamicCast(Type, left < right);
+                case "<=": return DynamicCast(Type, left <= right);
+                case "|": return DynamicCast(Type, left | right);
+                case "&": return DynamicCast(Type, left & right);
+                case "<<": return DynamicCast(Type, left << (int)right);
+                case ">>": return DynamicCast(Type, left >> (int)right);
+                case "^": return DynamicCast(Type, left ^ right);
             }
-            if (Operator.Equals(">>"))
-            {
-                //				return DynamicCast(Type, left >> right);
-                return DynamicCast(Type, left >> (int)right);
-            }
-			if(Operator.Equals("^")) {
-				return DynamicCast(Type, left ^ right);
-			}
 		}
         catch (InvalidCastException){
 		}
