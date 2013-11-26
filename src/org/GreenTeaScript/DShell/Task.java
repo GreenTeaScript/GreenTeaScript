@@ -409,13 +409,13 @@ class CauseInferencer {
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(logFilePath));
 			String line;
-			while((line = br.readLine()) != null) {
-				readLineStack.push(line);
+			while((line = br.readLine()) != null) {	// TODO: support error message
+				readLineStack.push(line.split("::")[0]);
 			}
 			br.close();
 		}
 		catch (FileNotFoundException e) {
-			throw new RuntimeException(e);
+			return null;
 		}
 		catch (IOException e) {
 			throw new RuntimeException(e);
