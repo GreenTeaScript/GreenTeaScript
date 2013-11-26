@@ -404,7 +404,36 @@ class CauseInferencer {
 		return parsedSyscall;
 	}
 
+	private String[] getErrorCode(String logFilePath) {
+		Stack<String> readLineStack = new Stack<String>();
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(logFilePath));
+			String line;
+			while((line = br.readLine()) != null) {
+				readLineStack.push(line);
+			}
+			br.close();
+		}
+		catch (FileNotFoundException e) {
+			throw new RuntimeException(e);
+		}
+		catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
+		try {
+			String[] ret = {null, null, readLineStack.peek()};
+			return ret;
+		}
+		catch(EmptyStackException e) {
+			return null;
+		}
+	}
+
 	public String[] doInference(String traceLogPath) {
+		if(this.traceBackendType == SubProc.traceBackend_hookLibrary) {
+			return getErrorCode(traceLogPath);
+		}
 		Stack<String[]> syscallStack = this.filterTraceLog(traceLogPath);
 		try {
 			return syscallStack.peek();

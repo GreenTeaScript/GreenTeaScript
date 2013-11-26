@@ -13,6 +13,8 @@ import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Map;
+import java.util.Random;
 
 import org.GreenTeaScript.DShellGrammar;
 import org.GreenTeaScript.LibGreenTea;
@@ -306,6 +308,14 @@ public class DShellProcess {
 
 	private static boolean checkTraceRequirements() {
 		if(System.getProperty("os.name").equals("Linux")) {
+			String[] libPaths = {"/lib", "/usr/lib", "/usr/lib64"};
+			for(int i = 0; i < libPaths.length; i++) {
+				String hookLibaryPath = libPaths[i] + "/" + SubProc.hookLibraryName;
+				if(new File(hookLibaryPath).isFile()) {
+					SubProc.hookLibraryPath = hookLibaryPath;
+					return true;
+				}
+			}
 			boolean flag = DShellGrammar.IsUnixCommand("strace+") && 
 					DShellGrammar.IsUnixCommand("pretty_print_strace_out.py");
 			if(flag) {
@@ -437,12 +447,19 @@ class PseudoProcess {
 }
 
 class SubProc extends PseudoProcess {
-	public final static int traceBackend_strace = 0;
+	public final static int traceBackend_strace      = 0;
 	public final static int traceBackend_strace_plus = 1;
+	public final static int traceBackend_hookLibrary = 2;
 	public static int traceBackendType = traceBackend_strace;
 
 	private final static String logdirPath = "/tmp/strace-log";
 	private static int logId = 0;
+	private final static String hookTempPath = "/tmp/dshellHook";
+	private final static String env_preload = "LD_PRELOAD";
+	private final static String env_ereport = "DSHELL_EREPORT";
+	public final static String hookLibraryName = "libdshellHook.so";
+	public static String hookLibraryPath;
+	private static int reportFileId = 0;
 	
 	public final static int STDOUT_FILENO = 1;
 	public final static int STDERR_FILENO = 2;
@@ -509,6 +526,10 @@ class SubProc extends PseudoProcess {
 				String[] backend_strace_plus = {"strace+", "-k", "-t", "-f", "-F", "-o", logFilePath};
 				traceCmd = backend_strace_plus;
 			}
+			else if(traceBackendType == traceBackend_hookLibrary) {
+				new File(hookTempPath).mkdir();
+				return;
+			}
 			else {
 				throw new RuntimeException("invalid trace backend type");
 			}
@@ -551,6 +572,7 @@ class SubProc extends PseudoProcess {
 			if(this.mergeType == mergeErrorToOut || this.mergeType == mergeOutToError) {
 				procBuilder.redirectErrorStream(true);
 			}
+			this.prepareHookLibrary(procBuilder.environment());
 			this.proc = procBuilder.start();
 			this.stdin = this.proc.getOutputStream();
 			if(this.mergeType == mergeOutToError) {
@@ -562,10 +584,9 @@ class SubProc extends PseudoProcess {
 				this.stderr = this.proc.getErrorStream();
 			}
 			// input & output redirect
-			readFile();
-			writeFile(STDOUT_FILENO);
-			writeFile(STDERR_FILENO);
-			super.start();
+			this.readFile();
+			this.writeFile(STDOUT_FILENO);
+			this.writeFile(STDERR_FILENO);
 		}
 		catch (IOException e) {
 			throw new RuntimeException(e);
@@ -633,6 +654,14 @@ class SubProc extends PseudoProcess {
 			throw new RuntimeException("invalid file descriptor");
 		}
 		new PipeStreamHandler(srcStream, destStream, true).start();
+	}
+
+	private void prepareHookLibrary(Map<String, String> env) {
+		if(this.enableSyscallTrace && traceBackendType == traceBackend_hookLibrary) {
+			this.logFilePath = hookTempPath + "/ereportfile" + ++reportFileId;
+			env.put(env_preload, hookLibraryPath);
+			env.put(env_ereport, this.logFilePath);
+		}
 	}
 
 	@Override public void waitTermination() {
