@@ -27,6 +27,7 @@ package org.GreenTeaScript;
 import java.util.ArrayList;
 import java.util.Iterator;
 //endif VAJA
+import java.util.Iterator;
 
 public class GtStaticTable implements GreenTeaConsts {
 
@@ -54,13 +55,14 @@ public class GtStaticTable implements GreenTeaConsts {
 	/*field*/public final static GtType     IteratorType = new GtType(GenericVariable, "Iterator", null, Iterator.class);
 	
 	public final static long GetFileLine(String FileName, int Line) {
-		/*local*/Integer Id = /* (FileName == null) ? 0 :*/ (/*cast*/Integer)GtStaticTable.SourceMap.GetOrNull(FileName);
-		if(Id == null) {
+		/*local*/Object IdOrNull = GtStaticTable.SourceMap.GetOrNull(FileName);
+		/*local*/Integer Id = IdOrNull == null ? -1 : (Integer)IdOrNull;
+		if(IdOrNull == null) {
 			GtStaticTable.SourceList.add(FileName);
 			Id = GtStaticTable.SourceList.size();
 			GtStaticTable.SourceMap.put(FileName, Id);
 		}
-		return LibGreenTea.JoinIntId(Id, Line);
+		return LibGreenTea.JoinIntId((/*cast*/int)Id, (/*cast*/int)Line);
 	}
 
 
@@ -82,9 +84,9 @@ public class GtStaticTable implements GreenTeaConsts {
 
 	/*field*/private static boolean IsInit = false;
 	
+	//ifdef JAVA
 	public final static void InitParserContext(GtParserContext Context) {
 		if(!GtStaticTable.IsInit) {
-//ifdef JAVA
 			ArrayType.TypeParams = new GtType[1];
 			ArrayType.TypeParams[0] = GtStaticTable.VarType;
 			FuncType.TypeParams = new GtType[1];
@@ -107,7 +109,6 @@ public class GtStaticTable implements GreenTeaConsts {
 			GtStaticTable.SetNativeTypeName("double",    GtStaticTable.FloatType);
 			GtStaticTable.SetNativeTypeName("java.lang.Double",  GtStaticTable.FloatType);
 			GtStaticTable.SetNativeTypeName("java.util.Iterator",  GtStaticTable.IteratorType);
-//endif VAJA
 			GtStaticTable.IsInit = true;
 		}
 		Context.RootNameSpace.AppendTypeName(GtStaticTable.TopType,  null);
@@ -123,7 +124,8 @@ public class GtStaticTable implements GreenTeaConsts {
 		Context.RootNameSpace.AppendTypeName(GtStaticTable.FuncType, null);
 		Context.RootNameSpace.AppendTypeName(GtStaticTable.IteratorType, null);
 	}
-
+	//endif VAJA
+	
 	public static int IssueTypeId(GtType Type) {
 		/*local*/int TypeId = GtStaticTable.TypePools.size();
 		GtStaticTable.TypePools.add(Type);

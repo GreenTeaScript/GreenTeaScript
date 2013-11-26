@@ -219,7 +219,7 @@ public class KonohaGrammar extends GtGrammar {
 				}
 			}
 			/*local*/int Level = 1;
-			/*local*/char PrevChar = 0;
+			/*local*/char PrevChar = '0';
 			while(NextPos < SourceText.length()) {
 				NextChar = LibGreenTea.CharAt(SourceText, NextPos);
 				if(NextChar == '/' && PrevChar == '*') {

@@ -59,20 +59,20 @@ public final class GtClassField extends GreenTeaUtils {
 			}
 			i = i + 1;
 		}
-		/*local*/GtFieldInfo FieldInfo = new GtFieldInfo(FieldFlag, Type, Name, this.FieldList.size(), InitValue);
+		/*local*/GtFieldInfo FieldInfo2 = new GtFieldInfo(FieldFlag, Type, Name, this.FieldList.size(), InitValue);
 		/*local*/ArrayList<GtType> ParamList = new ArrayList<GtType>();
-		ParamList.add(FieldInfo.Type);
+		ParamList.add(FieldInfo2.Type);
 		ParamList.add(this.DefinedType);
-		FieldInfo.GetterFunc = new GtFunc(GetterFunc, FieldInfo.Name, 0, ParamList);
-		this.NameSpace.SetGetterFunc(this.DefinedType, FieldInfo.Name, FieldInfo.GetterFunc, SourceToken);
+		FieldInfo2.GetterFunc = new GtFunc(GetterFunc, FieldInfo2.Name, 0, ParamList);
+		this.NameSpace.SetGetterFunc(this.DefinedType, FieldInfo2.Name, FieldInfo2.GetterFunc, SourceToken);
 		ParamList.clear();
 		ParamList.add(GtStaticTable.VoidType);
 		ParamList.add(this.DefinedType);
-		ParamList.add(FieldInfo.Type);
-		FieldInfo.SetterFunc = new GtFunc(SetterFunc, FieldInfo.Name, 0, ParamList);
-		this.NameSpace.SetSetterFunc(this.DefinedType, FieldInfo.Name, FieldInfo.SetterFunc, SourceToken);
-		this.FieldList.add(FieldInfo);
-		return FieldInfo;
+		ParamList.add(FieldInfo2.Type);
+		FieldInfo2.SetterFunc = new GtFunc(SetterFunc, FieldInfo2.Name, 0, ParamList);
+		this.NameSpace.SetSetterFunc(this.DefinedType, FieldInfo2.Name, FieldInfo2.SetterFunc, SourceToken);
+		this.FieldList.add(FieldInfo2);
+		return FieldInfo2;
 	}
 }
 

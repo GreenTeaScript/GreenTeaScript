@@ -221,20 +221,20 @@ interface GreenTeaConsts {
 	public final static int	IfElse	= 2;
 
 	// while(cond) {...}
-	static final int WhileCond = 0;
-	static final int WhileBody = 1;
+	public static final int WhileCond = 0;
+	public static final int WhileBody = 1;
 
 	// for(init; cond; iter) {...}
-	static final int ForInit = 0;
-	static final int ForCond = 1;
-	static final int ForIteration = 2;
-	static final int ForBody = 3;
+	public static final int ForInit = 0;
+	public static final int ForCond = 1;
+	public static final int ForIteration = 2;
+	public static final int ForBody = 3;
 
 	// for(init; cond; iter) {...}
-	static final int ForEachType = 0;
-	static final int ForEachName = 1;
-	static final int ForEachIter = 2;
-	static final int ForEachBody = 3;
+	public static final int ForEachType = 0;
+	public static final int ForEachName = 1;
+	public static final int ForEachIter = 2;
+	public static final int ForEachBody = 3;
 
 	// ReturnStmt
 	public final static int	ReturnExpr	= 0;
@@ -278,9 +278,9 @@ interface GreenTeaConsts {
 	public final static int FinallyBody     = 3;
 
 	// switch-case
-	static final int SwitchCaseCondExpr = 0;
-	static final int SwitchCaseDefaultBlock = 1;
-	static final int SwitchCaseCaseIndex = 2;
+	public static final int SwitchCaseCondExpr = 0;
+	public static final int SwitchCaseDefaultBlock = 1;
+	public static final int SwitchCaseCaseIndex = 2;
 
 	// Enum
 	public final static int EnumNameTreeIndex = 0;
@@ -560,7 +560,7 @@ class GreenTeaUtils implements GreenTeaConsts {
 		}
 		return LastNode.MoveHeadNode();
 	}
-
+/*GreenTeaUtils End*/
 //ifdef JAVA
 	
 	public final static GtFunc LoadTokenFunc2(GtParserContext ParserContext, Class<?> GrammarClass, String FuncName) {
@@ -596,7 +596,6 @@ class GreenTeaUtils implements GreenTeaConsts {
 		}
 		return null;
 	}
-
 }
 
 final class GtMap {
@@ -755,7 +754,7 @@ public class GreenTeaScript extends GreenTeaUtils {
 			Context.ShowReportedErrors();
 			/*local*/int linenum = 1;
 			/*local*/String Line = null;
-			while((Line = LibGreenTea.ReadLine2(">>> ", "    ")) != null) {
+			while((Line = LibGreenTea.ReadLine(">>> ", "    ")) != null) {
 				try {
 					/*local*/Object EvaledValue = Context.TopLevelNameSpace.Eval(Line, linenum);
 					Context.ShowReportedErrors();

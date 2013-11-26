@@ -302,8 +302,6 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 //		}
 //		Code += this.GetIndentString() + "}";
 //		this.PushSourceCode(Code);
-		
-		
 	}
 
 	@Override public void VisitTryNode(GtTryNode Node) {
