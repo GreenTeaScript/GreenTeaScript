@@ -136,6 +136,10 @@ $src =~ s/virtual\s((?:final\s)?$Type\s$Sym\()/$1/g;
 #$src =~ s/^(?!override)(\s(?:$Keyword\s)*$Type)/virtual $1/g;
 $src =~ s/\@Deprecated\s*//g;
 
+
+$src =~ s/\bfor\s*\((.*?):/foreach($1in/g;
+
+
 ###
 
 $src =~ s/\binstanceof\b/is/g;
