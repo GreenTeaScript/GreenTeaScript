@@ -18,6 +18,7 @@ let CheckPoint = import org.GreenTeaScript.DShell.CheckPoint;
 // D-Shell Exception class
 let DShellException = import org.GreenTeaScript.DShell.DShellException;
 let NotRelatedSyscallException = import org.GreenTeaScript.DShell.NotRelatedSyscallException;
+let MultipleException = import org.GreenTeaScript.DShell.MultipleException;
 
 let TooManyArgsException = import org.GreenTeaScript.DShell.TooManyArgsException;
 let NotPermittedException = import org.GreenTeaScript.DShell.NotPermittedException;

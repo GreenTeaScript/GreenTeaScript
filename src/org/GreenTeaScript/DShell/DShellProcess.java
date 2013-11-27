@@ -81,40 +81,10 @@ public class DShellProcess {
 	}
 
 	public Object Invoke() {
-		int ProcessSize = this.Processes.length;
-		int lastIndex = ProcessSize - 1;
-		PseudoProcess lastProc = this.Processes[lastIndex];
-
-		OutputStream stdoutStream = null;
-		if(is(this.OptionFlag, printable)) {
-			stdoutStream = System.out;
-		}
-		InputStream[] srcOutStreams = new InputStream[1];
-		InputStream[] srcErrorStreams = new InputStream[ProcessSize];
-
-		this.Processes[0].start();
-		for(int i = 1; i < ProcessSize; i++) {
-			this.Processes[i].start();
-			this.Processes[i].pipe(this.Processes[i - 1]);
-		}
-
-		// Start Message Handler
-		// stdout
-		srcOutStreams[0] = lastProc.accessOutStream();
-		this.stdoutHandler = new MessageStreamHandler(srcOutStreams, stdoutStream);
-		this.stdoutHandler.showMessage();
-		// stderr
-		for(int i = 0; i < ProcessSize; i++) {
-			srcErrorStreams[i] = this.Processes[i].accessErrorStream();
-		}
-		this.stderrHandler = new MessageStreamHandler(srcErrorStreams, System.err);
-		this.stderrHandler.showMessage();
-
 		Task task = new Task(this);
 		if(is(this.OptionFlag, background)) {
 			return (this.retType == TaskType) && is(this.OptionFlag, returnable) ? task : null;
 		}
-
 		task.join();
 		if(is(this.OptionFlag, returnable)) {
 			if(this.retType == StringType) {
