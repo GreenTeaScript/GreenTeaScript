@@ -3,6 +3,8 @@ var JavaScriptGlobal: any = Function("return this")();
 
 class Iterator<T> {//FIX ME!!
 }
+class DFault {//FIX ME!!
+}
 
 interface Array {
 	get(index: number): any;
@@ -92,9 +94,10 @@ Object.defineProperty(Object.prototype, "InstanceOf", {
 interface String {
 	startsWith(key: string): boolean;
 	endsWith(key: string): boolean;
-	lastIndexOf(ch: number) : number;
-	indexOf(ch: number) : number;
-	substring(BeginIdx : number, EndIdx : number) : string;
+	lastIndexOf(ch: number): number;
+	indexOf(ch: number): number;
+	substring(BeginIdx: number, EndIdx: number): string;
+	replaceAll(pattern: string, newSubstr: string);
 }
 
 Object.defineProperty(String.prototype, "startsWith", {
@@ -115,6 +118,14 @@ Object.defineProperty(String.prototype, "equals", {
 	enumerable : false,
 	value : function(other) {
 		return (this == other);
+	}
+});
+
+Object.defineProperty(String.prototype, "replaceAll", {
+	enumerable : false,
+	value : function(pattern, newSubstr) {
+		var regexp = new RegExp(pattern, "g");
+		return this.replace(regexp, newSubstr);
 	}
 });
 
