@@ -774,9 +774,9 @@ public class DShellGrammar extends GreenTeaUtils {
 		NameSpace.SetSymbol(timeout, NameSpace.GetSyntaxPattern("$DShell2$"), new GtToken(timeout, 0));
 		NameSpace.SetSymbol(DShellGrammar.CommandSymbol(timeout), timeout, null);
 		// infer
-		/*local*/String infer = "infer";
-		NameSpace.SetSymbol(infer, NameSpace.GetSyntaxPattern("$DShell2$"), new GtToken(infer, 0));
-		NameSpace.SetSymbol(DShellGrammar.CommandSymbol(infer), infer, null);
+		/*local*/String trace = "trace";
+		NameSpace.SetSymbol(trace, NameSpace.GetSyntaxPattern("$DShell2$"), new GtToken(trace, 0));
+		NameSpace.SetSymbol(DShellGrammar.CommandSymbol(trace), trace, null);
 
 		NameSpace.SetSymbol("$CreateFaultBuiltInFunc", LibNative.ImportNativeObject(NameSpace, "DShellGrammar.CreateFault"), null);
 		NameSpace.SetSymbol("$ReportBuiltInFunc", LibNative.ImportNativeObject(NameSpace, "DShellGrammar.ExecAction"), null);

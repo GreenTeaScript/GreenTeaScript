@@ -150,7 +150,7 @@ public class DShellProcess {
 				}
 				currentCmd = newCmd;
 			}
-			else if(LibGreenTea.EqualsString(currentCmd[0], "infer")) {
+			else if(LibGreenTea.EqualsString(currentCmd[0], "trace")) {
 				enableTrace = checkTraceRequirements();
 				int baseIndex = 1;
 				String[] newCmd = new String[currentCmd.length - baseIndex];
