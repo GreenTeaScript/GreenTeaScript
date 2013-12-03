@@ -27,8 +27,6 @@ package org.GreenTeaScript;
 import java.util.ArrayList;
 import java.util.Iterator;
 //endif VAJA
-import java.util.Iterator;
-
 public class GtStaticTable implements GreenTeaConsts {
 
 	/*field*/public final static GtMap               SourceMap = new GtMap();
@@ -56,7 +54,7 @@ public class GtStaticTable implements GreenTeaConsts {
 	
 	public final static long GetFileLine(String FileName, int Line) {
 		/*local*/Object IdOrNull = GtStaticTable.SourceMap.GetOrNull(FileName);
-		/*local*/Integer Id = IdOrNull == null ? -1 : (Integer)IdOrNull;
+		/*local*/Integer Id = IdOrNull == null ? -1 : (/*cast*/Integer)IdOrNull;
 		if(IdOrNull == null) {
 			GtStaticTable.SourceList.add(FileName);
 			Id = GtStaticTable.SourceList.size();
@@ -84,7 +82,7 @@ public class GtStaticTable implements GreenTeaConsts {
 
 	/*field*/private static boolean IsInit = false;
 	
-	//ifdef JAVA
+//ifdef JAVA
 	public final static void InitParserContext(GtParserContext Context) {
 		if(!GtStaticTable.IsInit) {
 			ArrayType.TypeParams = new GtType[1];
@@ -124,7 +122,7 @@ public class GtStaticTable implements GreenTeaConsts {
 		Context.RootNameSpace.AppendTypeName(GtStaticTable.FuncType, null);
 		Context.RootNameSpace.AppendTypeName(GtStaticTable.IteratorType, null);
 	}
-	//endif VAJA
+//endif VAJA_
 	
 	public static int IssueTypeId(GtType Type) {
 		/*local*/int TypeId = GtStaticTable.TypePools.size();

@@ -116,10 +116,11 @@ public class GtSourceGenerator extends GtGenerator {
 	}
 
 	@Override public String GetSourceCode() {
-		String SourceCode = "";
-		for(GtSourceBuilder Builder : this.BuilderList) {
-			for(String Source : Builder.SourceList) {
-				SourceCode += Source;
+		/*local*/String SourceCode = "";
+		for(/*local*/int i = 0; i < LibGreenTea.ListSize(this.BuilderList); i++) {
+			/*local*/GtSourceBuilder Builder = this.BuilderList.get(i);
+			for(/*local*/int j = 0; j < LibGreenTea.ListSize(Builder.SourceList); j++) {
+				SourceCode += Builder.SourceList.get(j);
 			}
 			SourceCode += "\n";
 		}
