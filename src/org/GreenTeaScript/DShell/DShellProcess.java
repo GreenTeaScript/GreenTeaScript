@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Map;
 
 import org.GreenTeaScript.DShellGrammar;
 import org.GreenTeaScript.LibGreenTea;
@@ -81,40 +82,10 @@ public class DShellProcess {
 	}
 
 	public Object Invoke() {
-		int ProcessSize = this.Processes.length;
-		int lastIndex = ProcessSize - 1;
-		PseudoProcess lastProc = this.Processes[lastIndex];
-
-		OutputStream stdoutStream = null;
-		if(is(this.OptionFlag, printable)) {
-			stdoutStream = System.out;
-		}
-		InputStream[] srcOutStreams = new InputStream[1];
-		InputStream[] srcErrorStreams = new InputStream[ProcessSize];
-
-		this.Processes[0].start();
-		for(int i = 1; i < ProcessSize; i++) {
-			this.Processes[i].start();
-			this.Processes[i].pipe(this.Processes[i - 1]);
-		}
-
-		// Start Message Handler
-		// stdout
-		srcOutStreams[0] = lastProc.accessOutStream();
-		this.stdoutHandler = new MessageStreamHandler(srcOutStreams, stdoutStream);
-		this.stdoutHandler.showMessage();
-		// stderr
-		for(int i = 0; i < ProcessSize; i++) {
-			srcErrorStreams[i] = this.Processes[i].accessErrorStream();
-		}
-		this.stderrHandler = new MessageStreamHandler(srcErrorStreams, System.err);
-		this.stderrHandler.showMessage();
-
 		Task task = new Task(this);
 		if(is(this.OptionFlag, background)) {
 			return (this.retType == TaskType) && is(this.OptionFlag, returnable) ? task : null;
 		}
-
 		task.join();
 		if(is(this.OptionFlag, returnable)) {
 			if(this.retType == StringType) {
@@ -336,6 +307,15 @@ public class DShellProcess {
 
 	private static boolean checkTraceRequirements() {
 		if(System.getProperty("os.name").equals("Linux")) {
+			String[] libPaths = {"/lib", "/usr/lib", "/usr/lib64", "/usr/local/lib", "/usr/local/lib64"};
+			for(int i = 0; i < libPaths.length; i++) {
+				String hookLibaryPath = libPaths[i] + "/" + SubProc.hookLibraryName;
+				if(new File(hookLibaryPath).isFile()) {
+					SubProc.hookLibraryPath = hookLibaryPath;
+					SubProc.traceBackendType = SubProc.traceBackend_hookLibrary;
+					return true;
+				}
+			}
 			boolean flag = DShellGrammar.IsUnixCommand("strace+") && 
 					DShellGrammar.IsUnixCommand("pretty_print_strace_out.py");
 			if(flag) {
@@ -467,12 +447,17 @@ class PseudoProcess {
 }
 
 class SubProc extends PseudoProcess {
-	public final static int traceBackend_strace = 0;
+	public final static int traceBackend_strace      = 0;
 	public final static int traceBackend_strace_plus = 1;
+	public final static int traceBackend_hookLibrary = 2;
 	public static int traceBackendType = traceBackend_strace;
 
-	private final static String logdirPath = "/tmp/strace-log";
+	private final static String logdirPath = "/tmp/dshell-trace-log";
 	private static int logId = 0;
+	private final static String env_preload = "LD_PRELOAD";
+	private final static String env_ereport = "DSHELL_EREPORT";
+	public final static String hookLibraryName = "libdshellHook.so";
+	public static String hookLibraryPath;
 	
 	public final static int STDOUT_FILENO = 1;
 	public final static int STDERR_FILENO = 2;
@@ -486,31 +471,17 @@ class SubProc extends PseudoProcess {
 	private FileOutputStream outFileStream = null;
 	private FileOutputStream errFileStream = null;
 
-	private static String createLogDirectory() {
-		Calendar cal = Calendar.getInstance();
-		StringBuilder pathBuilder = new StringBuilder();
-
-		pathBuilder.append(logdirPath + "/");
-		pathBuilder.append(cal.get(Calendar.YEAR) + "-");
-		pathBuilder.append((cal.get(Calendar.MONTH) + 1) + "-");
-		pathBuilder.append(cal.get(Calendar.DATE));
-
-		String subdirPath = pathBuilder.toString();
-		File subdir = new File(subdirPath);
-		subdir.mkdirs();
-
-		return subdirPath;
-	}
-
 	private static String createLogNameHeader() {
 		Calendar cal = Calendar.getInstance();
 		StringBuilder logNameHeader = new StringBuilder();
 
+		logNameHeader.append(cal.get(Calendar.YEAR) + "-");
+		logNameHeader.append((cal.get(Calendar.MONTH) + 1) + "-");
+		logNameHeader.append(cal.get(Calendar.DATE) + "-");
 		logNameHeader.append(cal.get((Calendar.HOUR) + 1) + ":");
 		logNameHeader.append(cal.get(Calendar.MINUTE) + "-");
 		logNameHeader.append(cal.get(Calendar.MILLISECOND));
 		logNameHeader.append("-" + logId++);
-
 		return logNameHeader.toString();
 	}
 
@@ -526,9 +497,8 @@ class SubProc extends PseudoProcess {
 
 	private void initTrace() {
 		if(this.enableSyscallTrace) {
-			String currentLogdirPath = createLogDirectory();
-			String logNameHeader = createLogNameHeader();
-			logFilePath = new String(currentLogdirPath + "/" + logNameHeader + ".log");
+			logFilePath = new String(logdirPath + "/" + createLogNameHeader() + ".log");
+			new File(logdirPath).mkdir();
 
 			String[] traceCmd;
 			if(traceBackendType == traceBackend_strace) {
@@ -538,6 +508,9 @@ class SubProc extends PseudoProcess {
 			else if(traceBackendType == traceBackend_strace_plus) {
 				String[] backend_strace_plus = {"strace+", "-k", "-t", "-f", "-F", "-o", logFilePath};
 				traceCmd = backend_strace_plus;
+			}
+			else if(traceBackendType == traceBackend_hookLibrary) {
+				return;
 			}
 			else {
 				throw new RuntimeException("invalid trace backend type");
@@ -581,6 +554,7 @@ class SubProc extends PseudoProcess {
 			if(this.mergeType == mergeErrorToOut || this.mergeType == mergeOutToError) {
 				procBuilder.redirectErrorStream(true);
 			}
+			this.prepareHookLibrary(procBuilder.environment());
 			this.proc = procBuilder.start();
 			this.stdin = this.proc.getOutputStream();
 			if(this.mergeType == mergeOutToError) {
@@ -592,10 +566,9 @@ class SubProc extends PseudoProcess {
 				this.stderr = this.proc.getErrorStream();
 			}
 			// input & output redirect
-			readFile();
-			writeFile(STDOUT_FILENO);
-			writeFile(STDERR_FILENO);
-			super.start();
+			this.readFile();
+			this.writeFile(STDOUT_FILENO);
+			this.writeFile(STDERR_FILENO);
 		}
 		catch (IOException e) {
 			throw new RuntimeException(e);
@@ -663,6 +636,13 @@ class SubProc extends PseudoProcess {
 			throw new RuntimeException("invalid file descriptor");
 		}
 		new PipeStreamHandler(srcStream, destStream, true).start();
+	}
+
+	private void prepareHookLibrary(Map<String, String> env) {
+		if(this.enableSyscallTrace && traceBackendType == traceBackend_hookLibrary) {
+			env.put(env_preload, hookLibraryPath);
+			env.put(env_ereport, this.logFilePath);
+		}
 	}
 
 	@Override public void waitTermination() {

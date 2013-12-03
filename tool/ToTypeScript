@@ -38,6 +38,7 @@ source="${source} ScalaSourceGenerator"
 source="${source} KonohaGrammar"
 source="${source} GreenTeaScript"
 source="${source} GtSourceBuilder"
+source="${source} DShellGrammar"
 #
 ts=""
 

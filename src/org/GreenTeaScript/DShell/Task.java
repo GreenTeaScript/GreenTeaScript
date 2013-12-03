@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -17,15 +19,47 @@ public class Task {
 	private DShellProcess dshellProc;
 	private boolean terminated = false;
 	private final boolean isAsyncTask;
+	private MessageStreamHandler stdoutHandler;
+	private MessageStreamHandler stderrHandler;
 	private String stdoutMessage;
 	private String stderrMessage;
 	private StringBuilder sBuilder;
 
 	public Task(DShellProcess dshellProc) {
 		this.dshellProc = dshellProc;
+		// start task
+		int OptionFlag = this.dshellProc.getOptionFlag();
+		PseudoProcess[] Processes = this.dshellProc.getProcesses();
+		int ProcessSize = Processes.length;
+		int lastIndex = ProcessSize - 1;
+		PseudoProcess lastProc = Processes[lastIndex];
+
+		OutputStream stdoutStream = null;
+		if(DShellProcess.is(OptionFlag, DShellProcess.printable)) {
+			stdoutStream = System.out;
+		}
+		InputStream[] srcOutStreams = new InputStream[1];
+		InputStream[] srcErrorStreams = new InputStream[ProcessSize];
+
+		Processes[0].start();
+		for(int i = 1; i < ProcessSize; i++) {
+			Processes[i].start();
+			Processes[i].pipe(Processes[i - 1]);
+		}
+
+		// Start Message Handler
+		// stdout
+		srcOutStreams[0] = lastProc.accessOutStream();
+		this.stdoutHandler = new MessageStreamHandler(srcOutStreams, stdoutStream);
+		this.stdoutHandler.showMessage();
+		// stderr
+		for(int i = 0; i < ProcessSize; i++) {
+			srcErrorStreams[i] = Processes[i].accessErrorStream();
+		}
+		this.stderrHandler = new MessageStreamHandler(srcErrorStreams, System.err);
+		this.stderrHandler.showMessage();
+		// start monitor
 		this.isAsyncTask = DShellProcess.is(this.dshellProc.getOptionFlag(), DShellProcess.background);
-		this.monitor = new ProcMonitor(this, this.dshellProc, isAsyncTask);
-		this.monitor.start();
 		this.sBuilder = new StringBuilder();
 		if(this.isAsyncTask) {
 			this.sBuilder.append("#AsyncTask");
@@ -35,6 +69,8 @@ public class Task {
 		}
 		this.sBuilder.append("\n");
 		this.sBuilder.append(this.dshellProc.toString());
+		this.monitor = new ProcMonitor(this, this.dshellProc, isAsyncTask);
+		this.monitor.start();
 	}
 
 	@Override public String toString() {
@@ -47,8 +83,8 @@ public class Task {
 		}
 		try {
 			this.terminated = true;
-			this.stdoutMessage = dshellProc.stdoutHandler.waitTermination();
-			this.stderrMessage = dshellProc.stderrHandler.waitTermination();
+			this.stdoutMessage = this.stdoutHandler.waitTermination();
+			this.stderrMessage = this.stderrHandler.waitTermination();
 			monitor.join();
 		} 
 		catch (InterruptedException e) {
@@ -368,7 +404,36 @@ class CauseInferencer {
 		return parsedSyscall;
 	}
 
+	private String[] getErrorCode(String logFilePath) {
+		Stack<String> readLineStack = new Stack<String>();
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(logFilePath));
+			String line;
+			while((line = br.readLine()) != null) {	// TODO: support error message
+				readLineStack.push(line.split("::")[0]);
+			}
+			br.close();
+		}
+		catch (FileNotFoundException e) {
+			return null;
+		}
+		catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
+		try {
+			String[] ret = {null, null, readLineStack.peek()};
+			return ret;
+		}
+		catch(EmptyStackException e) {
+			return null;
+		}
+	}
+
 	public String[] doInference(String traceLogPath) {
+		if(this.traceBackendType == SubProc.traceBackend_hookLibrary) {
+			return getErrorCode(traceLogPath);
+		}
 		Stack<String[]> syscallStack = this.filterTraceLog(traceLogPath);
 		try {
 			return syscallStack.peek();
@@ -389,6 +454,7 @@ class ShellExceptionRaiser {
 	public void raiseException() {
 		PseudoProcess[] procs = dshellProc.getProcesses();
 		boolean enableException = DShellProcess.is(this.dshellProc.getOptionFlag(), DShellProcess.throwable);
+		ArrayList<RuntimeException> exceptionList = new ArrayList<RuntimeException>();
 		for(int i = 0; i < procs.length; i++) {
 			PseudoProcess targetProc = procs[i];
 			if(!enableException || dshellProc.getTimeout() > 0) {
@@ -401,15 +467,22 @@ class ShellExceptionRaiser {
 					CauseInferencer inferencer = new CauseInferencer(SubProc.traceBackendType);
 					String[] inferedSyscall = inferencer.doInference(logFilePath);
 					SubProc.deleteLogFile(logFilePath);
-					throw createException(message, inferedSyscall);
+					exceptionList.add(createException(message, inferedSyscall));
 				}
 				SubProc.deleteLogFile(logFilePath);
 			}
 			else {
 				if(targetProc.getRet() != 0) {
-					throw new DShellException(message);
+					exceptionList.add(new DShellException(message));
 				}
 			}
+		}
+		int exceptSize = exceptionList.size();
+		if(exceptSize == 1) {
+			throw exceptionList.get(0);
+		}
+		else if(exceptSize > 1) {
+			throw new MultipleException("", exceptionList.toArray(new Exception[exceptSize]));
 		}
 	}
 

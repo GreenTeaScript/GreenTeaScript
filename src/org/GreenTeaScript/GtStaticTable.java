@@ -27,6 +27,7 @@ package org.GreenTeaScript;
 import java.util.ArrayList;
 import java.util.Iterator;
 //endif VAJA
+
 public class GtStaticTable implements GreenTeaConsts {
 
 	/*field*/public final static GtMap               SourceMap = new GtMap();
@@ -82,8 +83,8 @@ public class GtStaticTable implements GreenTeaConsts {
 
 	/*field*/private static boolean IsInit = false;
 	
-//ifdef JAVA
 	public final static void InitParserContext(GtParserContext Context) {
+//ifdef JAVA
 		if(!GtStaticTable.IsInit) {
 			ArrayType.TypeParams = new GtType[1];
 			ArrayType.TypeParams[0] = GtStaticTable.VarType;
@@ -121,8 +122,8 @@ public class GtStaticTable implements GreenTeaConsts {
 		Context.RootNameSpace.AppendTypeName(GtStaticTable.ArrayType, null);
 		Context.RootNameSpace.AppendTypeName(GtStaticTable.FuncType, null);
 		Context.RootNameSpace.AppendTypeName(GtStaticTable.IteratorType, null);
+//endif VAJA
 	}
-//endif VAJA_
 	
 	public static int IssueTypeId(GtType Type) {
 		/*local*/int TypeId = GtStaticTable.TypePools.size();
