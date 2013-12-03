@@ -145,6 +145,9 @@ var CLASS = (function (_super) {
 		this.VisitingBuilder.Append("/* ");
 		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
 		this.VisitingBuilder.Append(" */");
+		if(Node.NextNode != null){
+			Node.NextNode.Evaluate(this); 
+		}
 	}
 
 	@Override public void VisitEmptyNode(GtEmptyNode EmptyNode) {
@@ -208,7 +211,9 @@ var CLASS = (function (_super) {
 		this.VisitingBuilder.Append(Node.Token.ParsedText);
 	}
 	@Override public void VisitNewNode(GtNewNode Node) {
-		this.DebugAppendNode(Node);
+		this.VisitingBuilder.Append("new ");
+		this.VisitingBuilder.Append(Node.Type.ShortName);
+		this.VisitingBuilder.Append("()");
 	}
 	@Override public void VisitConstructorNode(GtConstructorNode Node) {
 		this.DebugAppendNode(Node);
@@ -220,36 +225,87 @@ var CLASS = (function (_super) {
 		this.VisitingBuilder.Append(Node.Token.ParsedText);
 	}
 	@Override public void VisitGetterNode(GtGetterNode Node) {
-		this.DebugAppendNode(Node);
+		Node.RecvNode.Evaluate(this);
+		this.VisitingBuilder.Append(".");
+		this.VisitingBuilder.Append(Node.Token.ParsedText);
 	}
 	@Override public void VisitSetterNode(GtSetterNode Node) {
-		this.DebugAppendNode(Node);
+		Node.RecvNode.Evaluate(this);
+		this.VisitingBuilder.Append(".");
+		this.VisitingBuilder.Append(Node.Token.ParsedText);
+		this.VisitingBuilder.Append(" = ");
+		Node.ValueNode.Evaluate(this);
 	}
 	@Override public void VisitDyGetterNode(GtDyGetterNode Node) {
-		this.DebugAppendNode(Node);
+		Node.RecvNode.Evaluate(this);
+		this.VisitingBuilder.Append(".");
+		this.VisitingBuilder.Append(Node.FieldName);
 	}
 	@Override public void VisitDySetterNode(GtDySetterNode Node) {
-		this.DebugAppendNode(Node);
+		Node.RecvNode.Evaluate(this);
+		this.VisitingBuilder.Append(".");
+		this.VisitingBuilder.Append(Node.FieldName);
+		this.VisitingBuilder.Append(" = ");
+		Node.ValueNode.Evaluate(this);
 	}
 	@Override public void VisitStaticApplyNode(GtStaticApplyNode Node) {
 		this.VisitingBuilder.Append(Node.Func.GetNativeFuncName());
 		this.VisitingBuilder.Append("(");
 		for(/*local*/int i = 0; i < LibGreenTea.ListSize(Node.ParamList); i++){
+			if(i > 0){
+				this.VisitingBuilder.Append(", ");
+			}
 			Node.ParamList.get(i).Evaluate(this);
 		}
 		this.VisitingBuilder.Append(")");
 	}
 	@Override public void VisitApplyOverridedMethodNode(GtApplyOverridedMethodNode Node) {
-		this.DebugAppendNode(Node);
+		this.VisitingBuilder.Append(Node.Func.GetNativeFuncName());
+		this.VisitingBuilder.Append("(");
+		for(/*local*/int i = 0; i < LibGreenTea.ListSize(Node.ParamList); i++){
+			if(i > 0){
+				this.VisitingBuilder.Append(", ");
+			}
+			Node.ParamList.get(i).Evaluate(this);
+		}
+		this.VisitingBuilder.Append(")");
 	}
+	
+	// e. g  (function(...){...})(...)
 	@Override public void VisitApplyFuncNode(GtApplyFuncNode Node) {
-		this.DebugAppendNode(Node);
+		this.VisitingBuilder.Append("(");
+		Node.FuncNode.Evaluate(this);
+		this.VisitingBuilder.Append(")");
+		this.VisitingBuilder.Append("(");
+		for(/*local*/int i = 0; i < LibGreenTea.ListSize(Node.ParamList); i++){
+			if(i > 0){
+				this.VisitingBuilder.Append(", ");
+			}
+			Node.ParamList.get(i).Evaluate(this);
+		}
+		this.VisitingBuilder.Append(")");
 	}
 	@Override public void VisitApplyDynamicFuncNode(GtApplyDynamicFuncNode Node) {
-		this.DebugAppendNode(Node);
+		this.VisitingBuilder.Append(Node.FuncName);
+		this.VisitingBuilder.Append("(");
+		for(/*local*/int i = 0; i < LibGreenTea.ListSize(Node.ParamList); i++){
+			if(i > 0){
+				this.VisitingBuilder.Append(", ");
+			}
+			Node.ParamList.get(i).Evaluate(this);
+		}
+		this.VisitingBuilder.Append(")");
 	}
 	@Override public void VisitApplyDynamicMethodNode(GtApplyDynamicMethodNode Node) {
-		this.DebugAppendNode(Node);
+		this.VisitingBuilder.Append(Node.FuncName);
+		this.VisitingBuilder.Append("(");
+		for(/*local*/int i = 0; i < LibGreenTea.ListSize(Node.ParamList); i++){
+			if(i > 0){
+				this.VisitingBuilder.Append(", ");
+			}
+			Node.ParamList.get(i).Evaluate(this);
+		}
+		this.VisitingBuilder.Append(")");
 	}
 	@Override public void VisitBinaryNode(GtBinaryNode Node) {
 		Node.LeftNode.Evaluate(this);
@@ -257,16 +313,25 @@ var CLASS = (function (_super) {
 		Node.RightNode.Evaluate(this);
 	}
 	@Override public void VisitAndNode(GtAndNode Node) {
-		this.DebugAppendNode(Node);
+		Node.LeftNode.Evaluate(this);
+		this.VisitingBuilder.Append("&&");
+		Node.RightNode.Evaluate(this);
 	}
 	@Override public void VisitOrNode(GtOrNode Node) {
-		this.DebugAppendNode(Node);
+		Node.LeftNode.Evaluate(this);
+		this.VisitingBuilder.Append("||");
+		Node.RightNode.Evaluate(this);
 	}
 	@Override public void VisitAssignNode(GtAssignNode Node) {
-		this.DebugAppendNode(Node);
+		Node.LeftNode.Evaluate(this);
+		this.VisitingBuilder.Append(" = ");
+		Node.RightNode.Evaluate(this);
 	}
 	@Override public void VisitVarNode(GtVarNode Node) {
-		this.DebugAppendNode(Node);
+		this.VisitingBuilder.Append(Node.NativeName);
+		this.VisitingBuilder.Append(" = ");
+		Node.InitNode.Evaluate(this);
+		Node.BlockNode.Evaluate(this);
 	}
 	@Override public void VisitIfNode(GtIfNode Node) {
 		this.VisitingBuilder.Append("if(");
@@ -295,16 +360,26 @@ var CLASS = (function (_super) {
 		this.VisitingBuilder.Append("continue");
 	}
 	@Override public void VisitTryNode(GtTryNode Node) {
-		this.DebugAppendNode(Node);
+		this.VisitingBuilder.Append("try");
+		this.VisitIndentBlock("{", Node.TryBlock, "}");
+		this.VisitingBuilder.Append("catch(");
+		Node.CatchExpr.Evaluate(this);
+		this.VisitingBuilder.Append(")");
+		this.VisitIndentBlock("{", Node.CatchBlock, "}");
+		this.VisitingBuilder.Append("finally");
+		this.VisitIndentBlock("{", Node.FinallyBlock, "}");
 	}
 	@Override public void VisitThrowNode(GtThrowNode Node) {
-		this.DebugAppendNode(Node);
+		this.VisitingBuilder.Append("throw ");
+		Node.Expr.Evaluate(this);
 	}
 	@Override public void VisitFunctionNode(GtFunctionNode Node) {
 		this.DebugAppendNode(Node);
 	}
 	@Override public void VisitErrorNode(GtErrorNode Node) {
-		this.DebugAppendNode(Node);
+		this.VisitingBuilder.Append("(function(){ throw new Error('");
+		this.VisitingBuilder.Append(Node.Token.ParsedText);
+		this.VisitingBuilder.Append("'); })()");
 	}
 	@Override public void VisitCommandNode(GtCommandNode Node) {
 		this.DebugAppendNode(Node);
