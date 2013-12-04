@@ -29,7 +29,7 @@ package org.GreenTeaScript;
 public final class GtSyntaxPattern extends GreenTeaUtils {
 	/*field*/public GtNameSpace	          PackageNameSpace;
 	/*field*/public String		          PatternName;
-	/*field*/int				          SyntaxFlag;
+	/*field*/public int				          SyntaxFlag;
 	/*field*/public GtFunc       MatchFunc;
 	/*field*/public GtFunc            TypeFunc;
 	/*field*/public GtSyntaxPattern	      ParentPattern;

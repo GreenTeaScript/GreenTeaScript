@@ -27,6 +27,7 @@ package org.GreenTeaScript;
 import java.util.ArrayList;
 //endif VAJA
 
+@Deprecated
 public class SourceGenerator extends GtGenerator {
 	/*field*/protected String    HeaderSource;
 	/*field*/protected String    BodySource;
@@ -254,16 +255,16 @@ public class SourceGenerator extends GtGenerator {
 	}
 
 	public String GenerateFuncTemplate(int ParamSize, GtFunc Func) {
-		/*local*/int BeginIdx = 1;
+		/*local*/int BeginIdx = 0;
 		/*local*/String Template = "";
 		/*local*/boolean IsNative = false;
 		if(Func == null) {
 			Template = "$1";
-			BeginIdx = 2;
+			BeginIdx += 1;
 		}
 		else if(Func.Is(NativeFunc)) {
 			Template = "$1" + this.MemberAccessOperator + Func.FuncName;
-			BeginIdx = 2;
+			BeginIdx += 1;
 		}
 		else if(Func.Is(NativeMacroFunc)) {
 			Template = Func.GetNativeMacro();
@@ -284,7 +285,7 @@ public class SourceGenerator extends GtGenerator {
 				if(i != BeginIdx) {
 					Template += this.ParameterDelimiter + " ";
 				}
-				Template += "$" + i;
+				Template += "$" + (i + 1);
 				i = i + 1;
 			}
 			Template += this.ParameterEnd;
@@ -294,29 +295,29 @@ public class SourceGenerator extends GtGenerator {
 
 	public final String ApplyMacro(String Template, ArrayList<GtNode> NodeList) {
 		/*local*/int ParamSize = LibGreenTea.ListSize(NodeList);
-		/*local*/int ParamIndex = ParamSize - 1;
-		while(ParamIndex >= 1) {
+		/*local*/int ParamIndex = 0;
+		while(ParamIndex < ParamSize) {
 			/*local*/String Param = this.VisitNode(NodeList.get(ParamIndex));
-			Template = Template.replace("$" + ParamIndex, Param);
-			ParamIndex = ParamIndex - 1;
+			Template = Template.replace("$" + (ParamIndex + 1), Param);
+			ParamIndex = ParamIndex  + 1;
 		}
 		return Template;
 	}
 	public final String ApplyMacro2(String Template, String[] ParamList) {
 		/*local*/int ParamSize = ParamList.length;
-		/*local*/int ParamIndex = ParamSize - 1;
-		while(ParamIndex >= 1) {
+		/*local*/int ParamIndex = 0;
+		while(ParamIndex < ParamSize) {
 			/*local*/String Param = ParamList[ParamIndex];
-			Template = Template.replace("$" + ParamIndex, Param);
-			ParamIndex = ParamIndex - 1;
+			Template = Template.replace("$" + (ParamIndex + 1), Param);
+			ParamIndex = ParamIndex + 1;
 		}
 		return Template;
 	}
 
-	public final String GenerateApplyFunc(GtApplyNode Node) {
-		/*local*/int ParamSize = LibGreenTea.ListSize(Node.NodeList);
+	public final String GenerateApplyFunc(GtStaticApplyNode Node) {
+		/*local*/int ParamSize = LibGreenTea.ListSize(Node.ParamList);
 		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
-		return this.ApplyMacro(Template, Node.NodeList);
+		return this.ApplyMacro(Template, Node.ParamList);
 	}
 
 	// Visitor API
@@ -363,7 +364,7 @@ public class SourceGenerator extends GtGenerator {
 		this.PushSourceCode(this.GetNewOperator(Node.Type));
 	}
 
-	@Override public void VisitApplyNode(GtApplyNode Node) {
+	@Override public void VisitStaticApplyNode(GtStaticApplyNode Node) {
 		/*local*/String Program = this.GenerateApplyFunc(Node);
 		this.PushSourceCode(Program);
 	}
@@ -476,4 +477,44 @@ public class SourceGenerator extends GtGenerator {
 		this.PushSourceCode(Code);
 	}
 
+	// EnforceConst API
+	@Override public Object EvalNewNode(GtNewNode Node, boolean EnforceConst) {
+		if(EnforceConst) {
+			this.VisitNewNode(Node);
+			return this.PopSourceCode();
+		}
+		return null;
+	}
+
+	@Override public Object EvalNewArrayNode(GtNewArrayNode Node, boolean EnforceConst) {
+		if(EnforceConst) {
+			this.VisitNewArrayNode(Node);
+			return this.PopSourceCode();
+		}
+		return null;
+	}
+
+	public Object EvalGetterNode(GtGetterNode Node, boolean EnforceConst) {
+		if(EnforceConst) {
+			this.VisitGetterNode(Node);
+			return this.PopSourceCode();
+		}
+		return null;
+	}
+
+	public Object EvalSetterNode(GtSetterNode Node, boolean EnforceConst) {
+		if(EnforceConst) {
+			this.VisitSetterNode(Node);
+			return this.PopSourceCode();
+		}
+		return null;
+	}
+
+	@Override public Object EvalStaticApplyNode(GtStaticApplyNode ApplyNode, boolean EnforceConst) {
+		if((EnforceConst || ApplyNode.Func.Is(ConstFunc)) /*&& ApplyNode.Func.FuncBody instanceof Method */) {
+			this.VisitStaticApplyNode(ApplyNode);
+			return this.PopSourceCode();
+		}
+		return null;
+	}
 }

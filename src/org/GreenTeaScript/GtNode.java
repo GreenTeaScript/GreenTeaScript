@@ -109,7 +109,7 @@ public class GtNode extends GreenTeaUtils {
 	public final boolean IsNullNode() {
 		return (this instanceof GtNullNode);
 	}
-	protected final Object ToNullValue(GtParserContext Context, boolean EnforceConst) {
+	public final Object ToNullValue(GtParserContext Context, boolean EnforceConst) {
 		if(EnforceConst) {
 			Context.ReportError(ErrorLevel, this.Token, "value must be constant in this context");
 		}
@@ -133,7 +133,7 @@ final class GtEmptyNode extends GtNode {
 	GtEmptyNode/*constructor*/(GtType Type, GtToken Token) {
 		super(Type, Token);
 	}
-	public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 		return null;
 	}
 }
@@ -145,7 +145,7 @@ final class GtNullNode extends GtNode {
 	@Override public void Evaluate(GtGenerator Visitor) {
 		Visitor.VisitNullNode(this);
 	}
-	public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 		return null;
 	}
 }
@@ -571,7 +571,7 @@ final class GtIndexerNode extends GtNode {
 		this.NodeList = new ArrayList<GtNode>();
 		this.SetChild(Expr);
 	}
-	public ArrayList<GtNode> GetList() {
+	@Override public ArrayList<GtNode> GetList() {
 		return this.NodeList;
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
@@ -619,7 +619,7 @@ final class GtSliceNode extends GtNode {
 		this.Func = Func;
 		this.NodeList = new ArrayList<GtNode>();
 	}
-	public final ArrayList<GtNode> GetList() {
+	@Override public final ArrayList<GtNode> GetList() {
 		return this.NodeList;
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
@@ -639,7 +639,7 @@ final class GtStaticApplyNode extends GtNode {
 		this.Func = Func;
 		this.ParamList = new ArrayList<GtNode>();
 	}
-	public final ArrayList<GtNode> GetList() {
+	@Override public final ArrayList<GtNode> GetList() {
 		return this.ParamList;
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
@@ -660,7 +660,7 @@ final class GtApplyOverridedMethodNode extends GtNode {
 		this.Func = Func;
 		this.ParamList = new ArrayList<GtNode>();
 	}
-	public final ArrayList<GtNode> GetList() {
+	@Override public final ArrayList<GtNode> GetList() {
 		return this.ParamList;
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
@@ -680,7 +680,7 @@ final class GtApplyFuncNode extends GtNode {
 		this.FuncNode = FuncNode;
 		this.ParamList = new ArrayList<GtNode>();
 	}
-	public final ArrayList<GtNode> GetList() {
+	@Override public final ArrayList<GtNode> GetList() {
 		return this.ParamList;
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
@@ -702,7 +702,7 @@ final class GtApplyDynamicFuncNode extends GtNode {
 		this.FuncName = FuncName;
 		this.ParamList = new ArrayList<GtNode>();
 	}
-	public final ArrayList<GtNode> GetList() {
+	@Override public final ArrayList<GtNode> GetList() {
 		return this.ParamList;
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
@@ -725,7 +725,7 @@ final class GtApplyDynamicMethodNode extends GtNode {
 		this.FuncName = FuncName;
 		this.ParamList = new ArrayList<GtNode>();
 	}
-	public final ArrayList<GtNode> GetList() {
+	@Override public final ArrayList<GtNode> GetList() {
 		return this.ParamList;
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {
@@ -745,7 +745,7 @@ final class GtConstructorNode extends GtNode {
 		this.ParamList = new ArrayList<GtNode>();
 		this.Func = Func;
 	}
-	public final ArrayList<GtNode> GetList() {
+	@Override public final ArrayList<GtNode> GetList() {
 		return this.ParamList;
 	}
 	@Override public void Evaluate(GtGenerator Visitor) {

@@ -1,39 +1,39 @@
 // common api for c
 // unary operator
-@Const @Operator boolean "!"(boolean x) as "! $1"
-@Const @Operator int "+"(int x) as "($1 | 0)";
-@Const @Operator int "-"(int x) as "-$1";
-@Const @Operator int "~"(int x) as "~$1";
-@Const @Operator double "+"(double x) as "$1";
-@Const @Operator double "-"(double x) as "-$1";
+@Common @Operator boolean "!"(boolean x) as "! $1"
+@Common @Operator int "+"(int x) as "($1 | 0)";
+@Common @Operator int "-"(int x) as "-$1";
+@Common @Operator int "~"(int x) as "~$1";
+@Common @Operator float "+"(float x) as "$1";
+@Common @Operator float "-"(float x) as "-$1";
 
 // binary operator
 // any
-@Const @Operator boolean "=="(any x, any y) as "$1  == $2";
-@Const @Operator boolean "!="(any x, any y) as "$1  != $2";
+@Common @Operator boolean "=="(any x, any y) as "$1  == $2";
+@Common @Operator boolean "!="(any x, any y) as "$1  != $2";
 
 // boolean
-@Const @Operator boolean "=="(boolean x, boolean y) as "$1  == $2";
-@Const @Operator boolean "!="(boolean x, boolean y) as "$1  != $2";
-@Const @Operator String converter(boolean x) as "\"\" + $1";
+@Common @Operator boolean "=="(boolean x, boolean y) as "$1  == $2";
+@Common @Operator boolean "!="(boolean x, boolean y) as "$1  != $2";
+@Common @Operator String converter(boolean x) as "\"\" + $1";
 
 // int 
-@Const @Operator int     "+"(int x, int y)  as "$1 + $2";
-@Const @Operator int     "-"(int x, int y)  as "$1 - $2";
-@Const @Operator int     "*"(int x, int y)  as "$1 * $2";
-@Const @Operator int     "/"(int x, int y)  as "$1 / $2";
-@Const @Operator int     "%"(int x, int y)  as "$1 % $2";
-@Const @Operator int     "<<"(int x, int y) as "$1 << $2";
-@Const @Operator int     ">>"(int x, int y) as "$1 >> $2";
-@Const @Operator int     "^"(int x, int y)  as "$1 ^ $2";
-@Const @Operator int     "|"(int x, int y)  as "$1 | $2";
-@Const @Operator int     "&"(int x, int y)  as "$1 & $2";
-@Const @Operator boolean "<"(int x,  int y) as "$1 < $2";
-@Const @Operator boolean ">"(int x,  int y) as "$1 > $2";
-@Const @Operator boolean "<="(int x, int y) as "$1 <= $2";
-@Const @Operator boolean ">="(int x, int y) as "$1 >= $2";
-@Const @Operator boolean "=="(int x, int y) as "$1 == $2";
-@Const @Operator boolean "!="(int x, int y) as "$1 != $2";
+@Common @Operator int     "+"(int x, int y)  as "$1 + $2";
+@Common @Operator int     "-"(int x, int y)  as "$1 - $2";
+@Common @Operator int     "*"(int x, int y)  as "$1 * $2";
+@Common @Operator int     "/"(int x, int y)  as "$1 / $2";
+@Common @Operator int     "%"(int x, int y)  as "$1 % $2";
+@Common @Operator int     "<<"(int x, int y) as "$1 << $2";
+@Common @Operator int     ">>"(int x, int y) as "$1 >> $2";
+@Common @Operator int     "^"(int x, int y)  as "$1 ^ $2";
+@Common @Operator int     "|"(int x, int y)  as "$1 | $2";
+@Common @Operator int     "&"(int x, int y)  as "$1 & $2";
+@Common @Operator boolean "<"(int x,  int y) as "$1 < $2";
+@Common @Operator boolean ">"(int x,  int y) as "$1 > $2";
+@Common @Operator boolean "<="(int x, int y) as "$1 <= $2";
+@Common @Operator boolean ">="(int x, int y) as "$1 >= $2";
+@Common @Operator boolean "=="(int x, int y) as "$1 == $2";
+@Common @Operator boolean "!="(int x, int y) as "$1 != $2";
 
 
 
@@ -56,22 +56,22 @@ String toLower(String x) as "$1.lower()";
 String toUpper(String x) as "$1.upper()";
 String replace(String x, String old, String new) as "$1.replace($2, $3)";
 
-// double
-@Const @Operator double  "+"(double x, double y)   as "$1 + $2";
-@Const @Operator double  "-"(double x, double y)   as "$1 - $2";
-@Const @Operator double  "*"(double x, double y)   as "$1 * $2";
-@Const @Operator double  "/"(double x, double y)   as "$1 / $2";
-@Const @Operator boolean "<"(double x,  double y) as "$1 < $2";
-@Const @Operator boolean ">"(double x,  double y) as "$1 > $2";
-@Const @Operator boolean "<="(double x, double y) as "$1 <= $2"
-@Const @Operator boolean ">="(double x, double y) as "$1 >= $2"
-@Const @Operator boolean "=="(double x, double y) as "$1 == $2"
-@Const @Operator boolean "!="(double x, double y) as "$1 != $2"
+// float
+@Common @Operator float  "+"(float x, float y)   as "$1 + $2";
+@Common @Operator float  "-"(float x, float y)   as "$1 - $2";
+@Common @Operator float  "*"(float x, float y)   as "$1 * $2";
+@Common @Operator float  "/"(float x, float y)   as "$1 / $2";
+@Common @Operator boolean "<"(float x,  float y) as "$1 < $2";
+@Common @Operator boolean ">"(float x,  float y) as "$1 > $2";
+@Common @Operator boolean "<="(float x, float y) as "$1 <= $2"
+@Common @Operator boolean ">="(float x, float y) as "$1 >= $2"
+@Common @Operator boolean "=="(float x, float y) as "$1 == $2"
+@Common @Operator boolean "!="(float x, float y) as "$1 != $2"
 
-@Const @Operator double "+"(int x, double y) as "$1 + $2";
-@Const @Operator double "-"(int x, double y) as "$1 - $2";
-@Const @Operator double "*"(int x, double y) as "$1 * $2";
-@Const @Operator double "/"(int x, double y) as "$1 / $2";
+@Common @Operator float "+"(int x, float y) as "$1 + $2";
+@Common @Operator float "-"(int x, float y) as "$1 - $2";
+@Common @Operator float "*"(int x, float y) as "$1 * $2";
+@Common @Operator float "/"(int x, float y) as "$1 / $2";
 
 
 // function

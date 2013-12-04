@@ -13,13 +13,13 @@ source="${source} GreenTeaGrammar"
 source="${source} GreenTeaObject"
 source="${source} GreenTeaRuntime"
 source="${source} GtNode"
-source="${source} GtFieldInfo"
-source="${source} GtClassField"
 source="${source} GtGenerator"
 source="${source} SourceGenerator"
 source="${source} GtGrammar"
 source="${source} GtParserContext"
 source="${source} GtNameSpace"
+source="${source} GtFieldInfo"
+source="${source} GtClassField"
 source="${source} GtFunc"
 source="${source} GtSyntaxPattern"
 source="${source} GtSyntaxTree"
@@ -27,6 +27,8 @@ source="${source} GtToken"
 source="${source} GtTokenContext"
 source="${source} GtType"
 source="${source} GtTypeEnv"
+source="${source} GtStaticTable"
+source="${source} GtSourceGenerator"
 source="${source} JavaScriptSourceGenerator"
 source="${source} BashSourceGenerator"
 source="${source} CSourceGenerator"
@@ -35,6 +37,8 @@ source="${source} PythonSourceGenerator"
 source="${source} ScalaSourceGenerator"
 source="${source} KonohaGrammar"
 source="${source} GreenTeaScript"
+source="${source} GtSourceBuilder"
+source="${source} DShellGrammar"
 #
 ts=""
 
@@ -45,10 +49,9 @@ done
 
 perl src/TypeScript/PackLibraries.pl lib > ${build}GreenTeaLibraries.ts
 ts="${ts} ${build}GreenTeaLibraries.ts"
-ts="${ts} ${build}LibGreenTea.ts"
+ts2="${build}LibGreenTea.ts ${ts}"
 
-cat ${ts} > ${build}GreenTea.ts
+cat ${ts2} > ${build}GreenTea.ts
 
 tsc ${build}GreenTea.ts
-#tsc ${build}/LibGreenTea.ts ${ts}
-
+rm ${ts}

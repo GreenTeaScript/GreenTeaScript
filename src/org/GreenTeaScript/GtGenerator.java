@@ -597,23 +597,25 @@ public class GtGenerator extends GreenTeaUtils {
 				Args[i][j] = Buffer[j];
 			}
 		}
-		
-		try {
-			if(Type.IsStringType()) {
-				return DShellProcess.ExecCommandString(Args);
-			}
-			else if(Type.equals(Type.IsBooleanType())) {
-				return DShellProcess.ExecCommandBool(Args);
-			}
-			else {
-				DShellProcess.ExecCommandVoid(Args);
-			}
-		} 
-		catch(Exception e) {
-			e.printStackTrace();
+		if(Type.IsStringType()) {
+			return DShellProcess.ExecCommandString(Args);
+		}
+		else if(Type.IsBooleanType()) {
+			return DShellProcess.ExecCommandBool(Args);
+		}
+		else if(LibGreenTea.EqualsString(Type.toString(), "Task")) {
+			return DShellProcess.ExecCommandTask(Args);
+		}
+		else {
+			DShellProcess.ExecCommandVoid(Args);
 		}
 //endif VAJA
-		return Node.ToNullValue(this.Context, EnforceConst);  // if unsupported
+		return null;
+	}
+
+	public String GetSourceCode() {
+		return null;
+		/*extension*/
 	}
 
 	public void FlushBuffer() {
@@ -639,7 +641,9 @@ public class GtGenerator extends GreenTeaUtils {
 	protected final Object PopCode() {
 		/*local*/int Size = this.GeneratedCodeStack.size();
 		if(Size > 0) {
-			return this.GeneratedCodeStack.remove(Size - 1);
+			/*local*/Object content = this.GeneratedCodeStack.get(Size - 1);
+			this.GeneratedCodeStack.remove(Size - 1);
+			return content;
 		}
 		return "";
 	}
@@ -728,7 +732,7 @@ public class GtGenerator extends GreenTeaUtils {
 	public Object EvalDyGetterNode(GtDyGetterNode GetterNode, boolean EnforceConst) {
 		/*local*/Object RecvObject = GetterNode.RecvNode.ToConstValue(this.Context, EnforceConst);
 		if(RecvObject != null) {
-			Object Value = LibGreenTea.DynamicGetter(RecvObject, GetterNode.FieldName);
+			/*local*/Object Value = LibGreenTea.DynamicGetter(RecvObject, GetterNode.FieldName);
 			return LibGreenTea.DynamicCast(GetterNode.Type, Value);
 		}
 		return null;

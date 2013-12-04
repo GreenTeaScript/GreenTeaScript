@@ -106,4 +106,8 @@ public class GtSourceBuilder {
 		}
 	}
 	
+	@Override
+	public String toString() {
+		return LibGreenTea.SourceBuilderToString(this);
+	}
 }

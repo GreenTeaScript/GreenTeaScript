@@ -219,7 +219,7 @@ public class KonohaGrammar extends GtGrammar {
 				}
 			}
 			/*local*/int Level = 1;
-			/*local*/char PrevChar = 0;
+			/*local*/char PrevChar = '0';
 			while(NextPos < SourceText.length()) {
 				NextChar = LibGreenTea.CharAt(SourceText, NextPos);
 				if(NextChar == '/' && PrevChar == '*') {
@@ -621,7 +621,12 @@ public class KonohaGrammar extends GtGrammar {
 			}
 		}/*EndOfStat*/
 		if(InitValueNode == null) {
-			InitValueNode = Gamma.CreateDefaultValue(ParsedTree, DeclType);
+			if(DeclType.DefaultNullValue != null) {
+				InitValueNode = Gamma.CreateDefaultValue(ParsedTree, DeclType);
+			}
+			else {
+				InitValueNode = Gamma.Generator.CreateNullNode(DeclType, ParsedTree);
+			}
 		}
 		/*local*/GtVariableInfo VarInfo = Gamma.AppendDeclaredVariable(VarFlag, DeclType, VariableName, ParsedTree.GetSyntaxTreeAt(VarDeclName).KeyToken, InitValueNode.ToConstValue(Gamma.Context, false));
 		/*local*/GtNode BlockNode = GreenTeaUtils.TypeBlock(Gamma, ParsedTree.NextTree, GtStaticTable.VoidType);
@@ -898,7 +903,7 @@ public class KonohaGrammar extends GtGrammar {
 			return TokenContext.ReportExpectedMessage(Token, "field name", true);		
 		}
 		if(TokenContext.IsToken("(")) {  // method call
-			GtSyntaxTree ApplyTree = TokenContext.ParsePatternAfter(NameSpace, LeftTree, "$MethodCall$", Required);
+			/*local*/GtSyntaxTree ApplyTree = TokenContext.ParsePatternAfter(NameSpace, LeftTree, "$MethodCall$", Required);
 			if(GreenTeaUtils.IsValidSyntax(ApplyTree)) {
 				ApplyTree.KeyToken = Token;
 			}
@@ -979,7 +984,7 @@ public class KonohaGrammar extends GtGrammar {
 			Name = ObjectType.ShortName + "." + Name;
 			return Gamma.CreateSyntaxErrorNode(ParsedTree, "undefined name: " + Name);
 		}
-		return TypeMethodNameCall(Gamma, ParsedTree, RecvNode, Name, ContextType);
+		return KonohaGrammar.TypeMethodNameCall(Gamma, ParsedTree, RecvNode, Name, ContextType);
 	}
 
 	public static GtNode TypeMethodNameCall(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtNode RecvNode, String MethodName, GtType ContextType) {
@@ -1049,7 +1054,7 @@ public class KonohaGrammar extends GtGrammar {
 	
 	public static GtNode TypeFuncCall(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtNode FuncNode, GtType ContextType) {
 		if(FuncNode.IsConstNode()) {
-			Object Func = FuncNode.ToConstValue(Gamma.Context, false);
+			/*local*/Object Func = FuncNode.ToConstValue(Gamma.Context, false);
 			if(Func instanceof GtType) {  // constructor;
 				return KonohaGrammar.TypeNewNode(Gamma, ParsedTree, FuncNode.Token, (/*cast*/GtType)Func, ContextType);
 			}
@@ -1478,10 +1483,10 @@ public class KonohaGrammar extends GtGrammar {
 		/*local*/GtNode WhileNode = Gamma.ParseTypedNode("while(iter.hasHext()) { " + VarName + " = iter.next(); }", ParsedTree.KeyToken.FileLine, GtStaticTable.VoidType);
 		if(!WhileNode.IsErrorNode()) {
 			/*local*/GtNode BodyNode =  ParsedTree.TypeCheckAt(ForEachBody, Gamma, GtStaticTable.VoidType, DefaultTypeCheckPolicy);
-			/*local*/GtWhileNode WhileNode2 = (GtWhileNode)WhileNode;
+			/*local*/GtWhileNode WhileNode2 = (/*cast*/GtWhileNode)WhileNode;
 			GreenTeaUtils.LinkNode(WhileNode2.LoopBody, BodyNode);
 		}
-		GtNode Node = Gamma.Generator.CreateVarNode(IterNode.Type, ParsedTree, IterNode.Type, VarIterInfo.NativeName, IterNode, WhileNode);
+		/*local*/GtNode Node = Gamma.Generator.CreateVarNode(IterNode.Type, ParsedTree, IterNode.Type, VarIterInfo.NativeName, IterNode, WhileNode);
 		if(VarInfo != null) {
 			Node = Gamma.Generator.CreateVarNode(VarInfo.Type, ParsedTree, VarInfo.Type, VarInfo.NativeName, Gamma.CreateDefaultValue(ParsedTree, VarInfo.Type), Node);
 		}

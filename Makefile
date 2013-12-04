@@ -5,12 +5,12 @@
 .SILENT:
 JavaBin="./GreenTeaScript.jar"
 INSTALL_PREFIX?="$(HOME)"
-TEST_BASEDIR="test/exec"
+TEST_BASEDIR="test/common"
 TEST_OUTDIR="$(TEST_BASEDIR)/test-result"
 
-TEST_FILES:=$(wildcard test/exec/*.green)
+TEST_FILES:=$(wildcard test/common/*.green)
 
-all: build test
+all: build
 
 #build: buildj buildts
 build: buildj
@@ -77,6 +77,7 @@ installj: distj
 	install -d $(INSTALL_PREFIX)/include
 	cp -f generated/jar/GreenTeaScript.jar $(INSTALL_PREFIX)/bin/
 	install -m 755 tool/greentea $(INSTALL_PREFIX)/bin/greentea
+	install -m 755 tool/dshell $(INSTALL_PREFIX)/bin/dshell
 	cp -f include/c/*.h $(INSTALL_PREFIX)/include/
 
 test: buildj $(notdir $(TEST_FILES))

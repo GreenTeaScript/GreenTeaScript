@@ -94,7 +94,7 @@ public final class GtFunc extends GreenTeaUtils {
 	}
 
 	public final GtType GetStaticType(GtNameSpace NameSpace) {
-		int loc = this.FuncName.lastIndexOf(".");
+		/*local*/int loc = this.FuncName.lastIndexOf(".");
 		if(loc != -1) {
 			return NameSpace.GetType(this.FuncName.substring(0, loc));
 		}
@@ -207,23 +207,7 @@ public final class GtFunc extends GreenTeaUtils {
 	}
 
 	public final boolean ImportMethod(String FullName) {
-		Method JavaMethod = LibNative.ImportMethod(this.GetFuncType(), FullName, false);
-		if(JavaMethod != null) {
-			LibGreenTea.SetNativeMethod(this, JavaMethod);
-			if(this.GetReturnType().IsVarType()) {
-				this.SetReturnType(LibNative.GetNativeType(JavaMethod.getReturnType()));
-			}
-			int StartIdx = this.Is(GreenTeaUtils.NativeMethodFunc) ? 2 : 1;
-			Class<?>[] p = JavaMethod.getParameterTypes();
-			for(int i = 0; i < p.length; i++) {
-				if(this.Types[StartIdx + i].IsVarType()) {
-					this.Types[StartIdx + i] = LibNative.GetNativeType(p[i]);
-					this.FuncType = null; // reset
-				}
-			}
-			return true;
-		}
-		return false;
+		return LibGreenTea.ImportMethodToFunc(this, FullName);
 	}
 
 	

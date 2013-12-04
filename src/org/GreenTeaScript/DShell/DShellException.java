@@ -1,10 +1,14 @@
 package org.GreenTeaScript.DShell;
 
-public class DShellException extends Exception {
+public class DShellException extends RuntimeException {
 	private static final long serialVersionUID = 1L;
 
 	public DShellException(String message) {
 		super(message);
+	}
+	
+	@Override public Throwable fillInStackTrace() {
+		return this;
 	}
 	// this exception is raised by GtSubProc.runCommand 
 	// when syscall trace is disabled

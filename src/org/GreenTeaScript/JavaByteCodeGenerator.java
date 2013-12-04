@@ -190,6 +190,7 @@ class JLib {
 	static Method ExecCommandVoid;
 	static Method ExecCommandBool;
 	static Method ExecCommandString;
+	static Method ExecCommandTask;
 	
 	static {
 		TypeMap.put("void", Type.VOID_TYPE);
@@ -226,6 +227,7 @@ class JLib {
 			ExecCommandVoid = DShellProcess.class.getMethod("ExecCommandVoid", String[][].class);
 			ExecCommandBool = DShellProcess.class.getMethod("ExecCommandBool", String[][].class);
 			ExecCommandString = DShellProcess.class.getMethod("ExecCommandString", String[][].class);
+			ExecCommandTask = DShellProcess.class.getMethod("ExecCommandTask", String[][].class);
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -419,11 +421,14 @@ class JMethodBuilder {
 				return;
 			}
 		}
-		if(GivenType == long.class) {
+		if(GivenType == boolean.class) {
 			if(RequiredType == Object.class) {
 				this.InvokeMethodCall(Boolean.class, JLib.BoxBooleanValue);
 				return;
 			}
+		}
+		if(GivenType.isArray()) {
+			return;//FIXME
 		}
 		if(GivenType.isPrimitive() && RequiredType.isPrimitive()) {
 			return;//FIXME
@@ -1007,9 +1012,13 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		// catch block
 		for(int i = 0; i < catchSize; i++) { //TODO: add exception class name
 			GtNode block = Node.CatchBlock;
+			GtVarNode Var = (GtVarNode) Node.CatchExpr;
+			JLocalVarStack local = this.VisitingBuilder.AddLocal(Var.Type, Var.NativeName);
 			mv.visitLabel(catchLabel[i]);
+			this.VisitingBuilder.StoreLocal(local);
 			this.VisitBlock(block);
 			mv.visitJumpInsn(GOTO, finallyLabel);
+			//FIXME: remove local
 		}
 
 		// finally block
@@ -1094,6 +1103,9 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		}
 		else if(Node.Type.IsStringType()) {
 			this.VisitingBuilder.InvokeMethodCall(Node.Type, JLib.ExecCommandString);
+		}
+		else if(LibGreenTea.EqualsString(Node.Type.toString(), "Task")) {
+			this.VisitingBuilder.InvokeMethodCall(Node.Type, JLib.ExecCommandTask);
 		}
 		else {
 			this.VisitingBuilder.InvokeMethodCall(Node.Type, JLib.ExecCommandVoid);
