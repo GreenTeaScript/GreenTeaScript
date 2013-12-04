@@ -630,7 +630,6 @@ final class GtStat {
 		this.VarDeclInfer = 0;
 		this.VarDeclAny = 0;
 		this.VarDeclInferAny = 0;
-
 		this.MatchCount     = 0;
 		this.BacktrackCount = 0;
 	}
