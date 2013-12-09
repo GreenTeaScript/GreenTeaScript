@@ -821,9 +821,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	}
 
 	@Override public void VisitSetLocalNode(GtSetLocalNode Node) {
-		assert (Node.LeftNode instanceof GtGetLocalNode);
-		GtGetLocalNode Left = (GtGetLocalNode) Node.LeftNode;
-		JLocalVarStack local = this.VisitingBuilder.FindLocalVariable(Left.NativeName);
+		JLocalVarStack local = this.VisitingBuilder.FindLocalVariable(Node.NativeName);
 		this.VisitingBuilder.PushEvaluatedNode(Node.ValueNode.Type, Node.ValueNode);
 		this.VisitingBuilder.StoreLocal(local);
 	}
@@ -988,8 +986,8 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.VisitingBuilder.AsmVisitor.visitJumpInsn(GOTO, l);
 	}
 
-	@Override public void VisitTryNode(GtTryNode Node) { //FIXME
-		int catchSize = Node.CatchBlock != null ? 1 : 0;
+	@Override public void VisitTryNode(GtTryNode Node) {
+		int catchSize = LibGreenTea.ListSize(Node.CatchList);
 		MethodVisitor mv = this.VisitingBuilder.AsmVisitor;
 		Label beginTryLabel = new Label();
 		Label endTryLabel = new Label();
@@ -1005,18 +1003,18 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		// prepare
 		for(int i = 0; i < catchSize; i++) { //TODO: add exception class name
 			catchLabel[i] = new Label();
-			String throwType = JLib.GetAsmType(Node.CatchExpr.Type).getInternalName();
+			GtCatchNode Catch = (/*cast*/GtCatchNode) Node.CatchList.get(i);
+			String throwType = JLib.GetAsmType(Catch.ExceptionType).getInternalName();
 			mv.visitTryCatchBlock(beginTryLabel, endTryLabel, catchLabel[i], throwType);
 		}
 
 		// catch block
 		for(int i = 0; i < catchSize; i++) { //TODO: add exception class name
-			GtNode block = Node.CatchBlock;
-			GtVarDeclNode Var = (GtVarDeclNode) Node.CatchExpr;
-			JLocalVarStack local = this.VisitingBuilder.AddLocal(Var.Type, Var.NativeName);
+			GtCatchNode Catch = (/*cast*/GtCatchNode) Node.CatchList.get(i);
+			JLocalVarStack local = this.VisitingBuilder.AddLocal(Catch.ExceptionType, Catch.ExceptionName);
 			mv.visitLabel(catchLabel[i]);
 			this.VisitingBuilder.StoreLocal(local);
-			this.VisitBlock(block);
+			this.VisitBlock(Catch.BodyNode);
 			mv.visitJumpInsn(GOTO, finallyLabel);
 			//FIXME: remove local
 		}
@@ -1059,7 +1057,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.VisitingBuilder.InvokeMethodCall(Node.CastType, JLib.GreenCastOperator);
 	}
 
-	@Override public void VisitFunctionNode(GtFunctionLiteralNode Node) {
+	@Override public void VisitFunctionLiteralNode(GtFunctionLiteralNode Node) {
 		LibGreenTea.TODO("FunctionNode");
 	}
 

@@ -112,10 +112,10 @@ public class BashSourceGenerator extends SourceGenerator {
 		
 		/*local*/GtNode FirstCond = this.CreateLocalNode(BoolType, ParsedTree, VarName);
 		/*local*/GtNode NewCond = this.CreateOrNode(BoolType, ParsedTree, FirstCond, Cond);
-		/*local*/GtNode LoopBody = this.CreateAssignNode(BoolType, ParsedTree, FirstCond, FalseNode);
+		/*local*/GtNode BodyNode = this.CreateAssignNode(BoolType, ParsedTree, FirstCond, FalseNode);
 		
-		GreenTeaUtils.LinkNode(LoopBody.MoveTailNode(), Block);
-		/*local*/GtNode NewWhileNode = this.CreateWhileNode(Type, ParsedTree, NewCond, LoopBody);
+		GreenTeaUtils.LinkNode(BodyNode.MoveTailNode(), Block);
+		/*local*/GtNode NewWhileNode = this.CreateWhileNode(Type, ParsedTree, NewCond, BodyNode);
 		return this.CreateVarNode(BoolType, ParsedTree, BoolType, VarName, TrueNode, NewWhileNode);
 	}
 
@@ -142,18 +142,18 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitForNode(GtForNode Node) {
-		/*local*/String Cond = this.ResolveCondition(Node.CondExpr);
+		/*local*/String Cond = this.ResolveCondition(Node.CondNode);
 		/*local*/String Iter = this.VisitNode(Node.IterNode);
 		/*local*/String Program = "for((; " + Cond  + "; " + Iter + " )) ;do" + this.LineFeed;
-		Program += this.VisitBlockWithIndent(Node.LoopBody, true) + "done";
+		Program += this.VisitBlockWithIndent(Node.BodyNode, true) + "done";
 		this.PushSourceCode(Program);
 	}
 
 	@Override public void VisitForEachNode(GtForEachNode Node) {
 		/*local*/String Variable = this.VisitNode(Node.Variable);
-		/*local*/String Iter = this.VisitNode(Node.IterExpr);
+		/*local*/String Iter = this.VisitNode(Node.IterNode);
 		/*local*/String Program = "for " + Variable + " in " + "${" + Iter + "[@]} ;do" + this.LineFeed;
-		Program += this.VisitBlockWithIndent(Node.LoopBody, true) + "done";
+		Program += this.VisitBlockWithIndent(Node.BodyNode, true) + "done";
 		this.PushSourceCode(Program);
 	}
 
@@ -258,7 +258,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitSetLocalNode(GtSetLocalNode Node) {
-		this.PushSourceCode(this.VisitNode(Node.LeftNode) + "=" + this.ResolveValueType(Node.ValueNode, true));
+		this.PushSourceCode(Node.NativeName + "=" + this.ResolveValueType(Node.ValueNode, true));
 	}
 
 	@Override public void VisitSelfAssignNode(GtSelfAssignNode Node) {
@@ -300,16 +300,16 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitTrinaryNode(GtTrinaryNode Node) {
-		/*local*/String CondExpr = this.ResolveCondition(Node.CondNode);
+		/*local*/String CondNode = this.ResolveCondition(Node.CondNode);
 		/*local*/String Then = this.ResolveValueType(Node.ThenNode, false);
 		/*local*/String Else = this.ResolveValueType(Node.ElseNode, false);
-		this.PushSourceCode("((" + CondExpr + " ? " + Then + " : " + Else + "))");
+		this.PushSourceCode("((" + CondNode + " ? " + Then + " : " + Else + "))");
 	}
 
 	@Override public void VisitIfNode(GtIfNode Node) {
-		/*local*/String CondExpr = this.ResolveCondition(Node.CondNode);
+		/*local*/String CondNode = this.ResolveCondition(Node.CondNode);
 		/*local*/String ThenBlock = this.VisitBlockWithIndent(Node.ThenNode, true);
-		/*local*/String Code = "if " + CondExpr + " ;then" + this.LineFeed + ThenBlock;
+		/*local*/String Code = "if " + CondNode + " ;then" + this.LineFeed + ThenBlock;
 		if(!this.IsEmptyBlock(Node.ElseNode)) {
 			Code += "else" + this.LineFeed + this.VisitBlockWithIndent(Node.ElseNode, false);
 		}
@@ -447,7 +447,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		if(TargetNode.IsConstNode() || TargetNode instanceof GtNullNode) {
 			return Value;
 		}
-		else if(TargetNode instanceof GtIndexerNode || TargetNode instanceof GtGetterNode) {
+		else if(TargetNode instanceof GtGetIndexNode || TargetNode instanceof GtGetterNode) {
 			ResolvedValue = "${" + Value + "}";
 		}
 		else if(TargetNode instanceof GtApplyNode || TargetNode instanceof GtCommandNode || TargetNode instanceof GtConstructorNode) {

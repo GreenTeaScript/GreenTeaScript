@@ -69,21 +69,21 @@ public class PerlSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitDoWhileNode(GtDoWhileNode Node) {
 		/*local*/String Program = "do {";
-		this.VisitBlockEachStatementWithIndent(Node.LoopBody);
+		this.VisitBlockEachStatementWithIndent(Node.BodyNode);
 		Program += this.PopSourceCode();
-		Node.CondExpr.Accept(this);
+		Node.CondNode.Accept(this);
 		Program += "} while(" + this.PopSourceCode() + ")";
 		this.PushSourceCode(Program);
 	}
 
 	@Override public void VisitForNode(GtForNode Node) {
 		Node.IterNode.Accept(this);
-		Node.CondExpr.Accept(this);
+		Node.CondNode.Accept(this);
 		/*local*/String Cond = this.PopSourceCode();
 		/*local*/String Iter = this.PopSourceCode();
 
 		/*local*/String Program = "for(; " + Cond  + "; " + Iter + ")";
-		this.VisitBlockEachStatementWithIndent(Node.LoopBody);
+		this.VisitBlockEachStatementWithIndent(Node.BodyNode);
 		Program += this.PopSourceCode();
 		this.PushSourceCode(Program);
 	}
@@ -110,10 +110,10 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitIfNode(GtIfNode Node) {
-		/*local*/String CondExpr = this.VisitNode(Node.CondNode);
+		/*local*/String CondNode = this.VisitNode(Node.CondNode);
 		this.VisitBlockEachStatementWithIndent(Node.ThenNode);
 		/*local*/String ThenBlock = this.PopSourceCode();
-		/*local*/String Code = "if(" + CondExpr + ") " + ThenBlock;
+		/*local*/String Code = "if(" + CondNode + ") " + ThenBlock;
 		if(Node.ElseNode != null) {
 			this.VisitBlockEachStatementWithIndent(Node.ElseNode);
 			Code += " else " + this.PopSourceCode();
@@ -124,14 +124,15 @@ public class PerlSourceGenerator extends SourceGenerator {
 	@Override public void VisitTryNode(GtTryNode Node) {
 		/*local*/String Code = "try ";
 		Code += this.VisitBlockWithIndent(Node.TryNode, true);
-		if(Node.CatchExpr != null) {
-		/*local*/GtVarDeclNode Val = (/*cast*/GtVarDeclNode) Node.CatchExpr;
-			Code += " catch " + Val.Type.toString() + " with {" + this.LineFeed;
+		for (int i = 0; i < LibGreenTea.ListSize(Node.CatchList); i++) {
+			GtCatchNode Catch = (/*cast*/GtCatchNode) Node.CatchList.get(i);
+			Code += " catch " + Catch.ExceptionType + " with {" + this.LineFeed;
 			this.Indent();
-			Code += this.GetIndentString() + "my $" + Val.NativeName + " = shift;" + this.LineFeed;
-			Code += this.GetIndentString() + this.VisitBlockWithIndent(Node.CatchBlock, false);
+			Code += this.GetIndentString() + "my $" + Catch.ExceptionName + " = shift;" + this.LineFeed;
+			Code += this.GetIndentString() + this.VisitBlockWithIndent(Catch.BodyNode, false);
 			Code += "}";
 		}
+		
 		if(Node.FinallyNode != null) {
 			Code += " finally " + this.VisitBlockWithIndent(Node.FinallyNode, true);
 		}

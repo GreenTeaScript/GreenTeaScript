@@ -323,7 +323,7 @@ var CLASS = (function (_super) {
 		Node.RightNode.Accept(this);
 	}
 	@Override public void VisitSetLocalNode(GtSetLocalNode Node) {
-		Node.LeftNode.Accept(this);
+		this.VisitingBuilder.Append(Node.NativeName);
 		this.VisitingBuilder.Append(" = ");
 		Node.ValueNode.Accept(this);
 	}
@@ -362,10 +362,12 @@ var CLASS = (function (_super) {
 	@Override public void VisitTryNode(GtTryNode Node) {
 		this.VisitingBuilder.Append("try");
 		this.VisitIndentBlock("{", Node.TryNode, "}");
-		this.VisitingBuilder.Append("catch(");
-		Node.CatchExpr.Accept(this);
-		this.VisitingBuilder.Append(")");
-		this.VisitIndentBlock("{", Node.CatchBlock, "}");
+		assert(LibGreenTea.ListSize(Node.CatchList) <= 1);
+		for (int i = 0; i < LibGreenTea.ListSize(Node.CatchList); i++) {
+			GtCatchNode Catch = (/*cast*/GtCatchNode) Node.CatchList.get(i);
+			this.VisitingBuilder.Append("catch(" + Catch.ExceptionName + ")");
+			this.VisitIndentBlock("{", Catch.BodyNode, "}");
+		}
 		this.VisitingBuilder.Append("finally");
 		this.VisitIndentBlock("{", Node.FinallyNode, "}");
 	}
@@ -373,7 +375,7 @@ var CLASS = (function (_super) {
 		this.VisitingBuilder.Append("throw ");
 		Node.ValueNode.Accept(this);
 	}
-	@Override public void VisitFunctionNode(GtFunctionLiteralNode Node) {
+	@Override public void VisitFunctionLiteralNode(GtFunctionLiteralNode Node) {
 		this.DebugAppendNode(Node);
 	}
 	@Override public void VisitErrorNode(GtErrorNode Node) {

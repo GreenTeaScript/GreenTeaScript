@@ -217,7 +217,7 @@ var CLASS = (function (_super) {
 	}
 	public void VisitTrinaryNode(GtTrinaryNode Node) {
 		this.VisitingBuilder.Append("if(");
-		Node.ConditionNode.Accept(this);
+		Node.CondNode.Accept(this);
 		this.VisitingBuilder.Append(") {");
 		Node.ThenNode.Accept(this);
 		this.VisitingBuilder.Append("} ");
@@ -241,7 +241,7 @@ var CLASS = (function (_super) {
 	}
 	public void VisitUnaryNode(GtUnaryNode Node) {
 		this.VisitingBuilder.Append(Node.Token.ParsedText);
-		Node.Expr.Accept(this);
+		Node.RecvNode.Accept(this);
 	}
 	public void VisitIndexerNode(GtIndexerNode Node) {
 		this.AddUseLibrary("JavaScript.String");
@@ -269,17 +269,17 @@ var CLASS = (function (_super) {
 	public void VisitWhileNode(GtWhileNode Node) {
 		this.AddUseLibrary("Syntax.CStyleWhile");
 		this.VisitingBuilder.Append("while(");
-		Node.CondExpr.Accept(this);
+		Node.CondNode.Accept(this);
 		this.VisitingBuilder.Append(") ");
-		this.VisitIndentBlock("{", Node.LoopBody, "}");
+		this.VisitIndentBlock("{", Node.BodyNode, "}");
 		this.VisitingBuilder.AppendLine("");
 	}
 	public void VisitDoWhileNode(GtDoWhileNode Node) {
 		this.AddUseLibrary("Syntax.CStyleWhile");
 		this.VisitingBuilder.Append("do ");
-		this.VisitIndentBlock("{", Node.LoopBody, "}");
+		this.VisitIndentBlock("{", Node.BodyNode, "}");
 		this.VisitingBuilder.Append(" while(");
-		Node.CondExpr.Accept(this);
+		Node.CondNode.Accept(this);
 		this.VisitingBuilder.AppendLine(");");
 	}
 
@@ -287,18 +287,18 @@ var CLASS = (function (_super) {
 		this.AddUseLibrary("Syntax.CStyleFor");
 		this.VisitingBuilder.Append("for(");
 		this.VisitingBuilder.Append("; ");
-		Node.CondExpr.Accept(this);
+		Node.CondNode.Accept(this);
 		this.VisitingBuilder.Append("; ");
-		Node.IterExpr.Accept(this);
+		Node.IterNode.Accept(this);
 		this.VisitingBuilder.Append(") ");
-		this.VisitIndentBlock("{", Node.LoopBody, "}");
+		this.VisitIndentBlock("{", Node.BodyNode, "}");
 		this.VisitingBuilder.AppendLine("");
 	}
 	private boolean IsInForExpr(GtNode Node) {
 		if(Node.ParentNode instanceof GtForNode){
 			GtForNode Parent = (GtForNode) Node.ParentNode;
-			if(Node == Parent.CondExpr) return true;
-			if(Node == Parent.IterExpr) return true;
+			if(Node == Parent.CondNode) return true;
+			if(Node == Parent.IterNode) return true;
 		}
 		return false;
 	}
@@ -402,7 +402,7 @@ var CLASS = (function (_super) {
 	}
 	public void VisitIfNode(GtIfNode Node) {
 		this.VisitingBuilder.Append("if(");
-		Node.CondExpr.Accept(this);
+		Node.CondNode.Accept(this);
 		this.VisitingBuilder.Append(")");
 		this.VisitIndentBlock("{", Node.ThenNode, "}");
 		if(this.DoesNodeExist(Node.ElseNode)){
@@ -415,9 +415,9 @@ var CLASS = (function (_super) {
 	}
 	public void VisitReturnNode(GtReturnNode Node) {
 		this.VisitingBuilder.Append("return");
-		if(this.DoesNodeExist(Node.Expr)){
+		if(this.DoesNodeExist(Node.ValueNode)){
 			this.VisitingBuilder.Append(" ");
-			Node.Expr.Accept(this);
+			Node.ValueNode.Accept(this);
 		}
 	}
 	public void VisitBreakNode(GtBreakNode Node) {
