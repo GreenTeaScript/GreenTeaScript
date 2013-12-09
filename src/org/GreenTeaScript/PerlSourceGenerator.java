@@ -46,7 +46,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		this.Indent();
 		/*local*/GtNode CurrentNode = Node;
 		while(CurrentNode != null) {
-			CurrentNode.Evaluate(this);
+			CurrentNode.Accept(this);
 			Code += this.GetIndentString() + this.PopSourceCode() + ";" + this.LineFeed;
 			CurrentNode = CurrentNode.NextNode;
 		}
@@ -60,7 +60,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitWhileNode(GtWhileNode Node) {
-		Node.CondNode.Evaluate(this);
+		Node.CondNode.Accept(this);
 		/*local*/String Program = "while(" + this.PopSourceCode() + ")";
 		this.VisitBlockEachStatementWithIndent(Node.BodyNode);
 		Program += this.PopSourceCode();
@@ -69,21 +69,21 @@ public class PerlSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitDoWhileNode(GtDoWhileNode Node) {
 		/*local*/String Program = "do {";
-		this.VisitBlockEachStatementWithIndent(Node.LoopBody);
+		this.VisitBlockEachStatementWithIndent(Node.BodyNode);
 		Program += this.PopSourceCode();
-		Node.CondExpr.Evaluate(this);
+		Node.CondNode.Accept(this);
 		Program += "} while(" + this.PopSourceCode() + ")";
 		this.PushSourceCode(Program);
 	}
 
 	@Override public void VisitForNode(GtForNode Node) {
-		Node.IterNode.Evaluate(this);
-		Node.CondExpr.Evaluate(this);
+		Node.IterNode.Accept(this);
+		Node.CondNode.Accept(this);
 		/*local*/String Cond = this.PopSourceCode();
 		/*local*/String Iter = this.PopSourceCode();
 
 		/*local*/String Program = "for(; " + Cond  + "; " + Iter + ")";
-		this.VisitBlockEachStatementWithIndent(Node.LoopBody);
+		this.VisitBlockEachStatementWithIndent(Node.BodyNode);
 		Program += this.PopSourceCode();
 		this.PushSourceCode(Program);
 	}
@@ -110,10 +110,10 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitIfNode(GtIfNode Node) {
-		/*local*/String CondExpr = this.VisitNode(Node.CondNode);
+		/*local*/String CondNode = this.VisitNode(Node.CondNode);
 		this.VisitBlockEachStatementWithIndent(Node.ThenNode);
 		/*local*/String ThenBlock = this.PopSourceCode();
-		/*local*/String Code = "if(" + CondExpr + ") " + ThenBlock;
+		/*local*/String Code = "if(" + CondNode + ") " + ThenBlock;
 		if(Node.ElseNode != null) {
 			this.VisitBlockEachStatementWithIndent(Node.ElseNode);
 			Code += " else " + this.PopSourceCode();
@@ -124,14 +124,15 @@ public class PerlSourceGenerator extends SourceGenerator {
 	@Override public void VisitTryNode(GtTryNode Node) {
 		/*local*/String Code = "try ";
 		Code += this.VisitBlockWithIndent(Node.TryNode, true);
-		if(Node.CatchExpr != null) {
-		/*local*/GtVarDeclNode Val = (/*cast*/GtVarDeclNode) Node.CatchExpr;
-			Code += " catch " + Val.Type.toString() + " with {" + this.LineFeed;
+		for (int i = 0; i < LibGreenTea.ListSize(Node.CatchList); i++) {
+			GtCatchNode Catch = (/*cast*/GtCatchNode) Node.CatchList.get(i);
+			Code += " catch " + Catch.ExceptionType + " with {" + this.LineFeed;
 			this.Indent();
-			Code += this.GetIndentString() + "my $" + Val.NativeName + " = shift;" + this.LineFeed;
-			Code += this.GetIndentString() + this.VisitBlockWithIndent(Node.CatchBlock, false);
+			Code += this.GetIndentString() + "my $" + Catch.ExceptionName + " = shift;" + this.LineFeed;
+			Code += this.GetIndentString() + this.VisitBlockWithIndent(Catch.BodyNode, false);
 			Code += "}";
 		}
+		
 		if(Node.FinallyNode != null) {
 			Code += " finally " + this.VisitBlockWithIndent(Node.FinallyNode, true);
 		}
@@ -139,7 +140,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitThrowNode(GtThrowNode Node) {
-		Node.ValueNode.Evaluate(this);
+		Node.ValueNode.Accept(this);
 		/*local*/String Code = "throw " + this.PopSourceCode();
 		this.PushSourceCode(Code);
 	}
@@ -157,7 +158,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 			if(i != 0) {
 				Code += " ";
 			}
-			Param.Evaluate(this);
+			Param.Accept(this);
 			Code += this.PopSourceCode();
 			i = i + 1;
 		}
@@ -220,7 +221,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public Object Eval(GtNode SingleNode) {
-		SingleNode.Evaluate(this);
+		SingleNode.Accept(this);
 		return this.PopSourceCode();
 	}
 

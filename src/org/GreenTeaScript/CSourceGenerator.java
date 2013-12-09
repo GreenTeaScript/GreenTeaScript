@@ -80,16 +80,16 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitDoWhileNode(GtDoWhileNode Node) {
-		/*local*/String Program = "do" + this.VisitBlockWithIndent(Node.LoopBody, true);
-		Program += " while(" + this.VisitNode(Node.CondExpr) + ")";
+		/*local*/String Program = "do" + this.VisitBlockWithIndent(Node.BodyNode, true);
+		Program += " while(" + this.VisitNode(Node.CondNode) + ")";
 		this.PushSourceCode(Program);
 	}
 
 	@Override public void VisitForNode(GtForNode Node) {
-		/*local*/String Cond = this.VisitNode(Node.CondExpr);
+		/*local*/String Cond = this.VisitNode(Node.CondNode);
 		/*local*/String Iter = this.VisitNode(Node.IterNode);
 		/*local*/String Program = "for(; " + Cond  + "; " + Iter + ") ";
-		Program += this.VisitBlockWithIndent(Node.LoopBody, true);
+		Program += this.VisitBlockWithIndent(Node.BodyNode, true);
 		this.PushSourceCode(Program);
 	}
 
@@ -123,9 +123,9 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitIfNode(GtIfNode Node) {
-		/*local*/String CondExpr = this.VisitNode(Node.CondNode);
+		/*local*/String CondNode = this.VisitNode(Node.CondNode);
 		/*local*/String ThenBlock = this.VisitBlockWithIndent(Node.ThenNode, true);
-		/*local*/String Code = "if(" + CondExpr + ") " + ThenBlock;
+		/*local*/String Code = "if(" + CondNode + ") " + ThenBlock;
 		if(Node.ElseNode != null) {
 			Code += " else " + this.VisitBlockWithIndent(Node.ElseNode, true);
 		}
@@ -135,10 +135,10 @@ public class CSourceGenerator extends SourceGenerator {
 	@Override public void VisitTryNode(GtTryNode Node) {
 		/*local*/String Code = "try ";
 		Code += this.VisitBlockWithIndent(Node.TryNode, true);
-		if(Node.CatchExpr != null) {
-		/*local*/GtVarDeclNode Val = (/*cast*/GtVarDeclNode) Node.CatchExpr;
-			Code += " catch (" + Val.Type.toString() + " " + Val.NativeName + ") ";
-			Code += this.VisitBlockWithIndent(Node.CatchBlock, true);
+		for (int i = 0; i < LibGreenTea.ListSize(Node.CatchList); i++) {
+			GtCatchNode Catch = (/*cast*/GtCatchNode) Node.CatchList.get(i);
+			Code += " catch (" + Catch.ExceptionType + " " + Catch.ExceptionName + ") ";
+			Code += this.VisitBlockWithIndent(Catch.BodyNode, true);
 		}
 		if(Node.FinallyNode != null) {
 			Code += " finally " + this.VisitBlockWithIndent(Node.FinallyNode, true);
@@ -167,7 +167,7 @@ public class CSourceGenerator extends SourceGenerator {
 			if(i != 0) {
 				Command += " + ";
 			}
-			Param.Evaluate(this);
+			Param.Accept(this);
 			Command += "(" + this.PopSourceCode() + ")";
 			i = i + 1;
 		}

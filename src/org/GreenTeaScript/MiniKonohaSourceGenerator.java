@@ -98,7 +98,7 @@ public class MiniKonohaSourceGenerator extends GtSourceGenerator {
 		while(CurrentNode != null) {
 			if(!this.IsEmptyBlock(CurrentNode)) {
 				this.VisitingBuilder.AppendIndent();
-				CurrentNode.Evaluate(this);
+				CurrentNode.Accept(this);
 				this.VisitingBuilder.AppendLine(this.SemiColon);
 			}
 			CurrentNode = CurrentNode.NextNode;
@@ -205,25 +205,25 @@ var CLASS = (function (_super) {
 	}
 	public void VisitInstanceOfNode(GtInstanceOfNode Node) {
 		this.AddUseLibrary("JavaStyle.Object");
-		Node.ExprNode.Evaluate(this);
+		Node.ExprNode.Accept(this);
 		this.VisitingBuilder.SpaceAppendSpace("instanceof");
 		this.VisitingBuilder.Append(Node.TypeInfo.GetNativeName());
 	}
 	public void VisitSelfAssignNode(GtSelfAssignNode Node) {
 		//
-		Node.LeftNode.Evaluate(this);
+		Node.LeftNode.Accept(this);
 		this.VisitingBuilder.Append(Node.Token.ParsedText);
-		Node.RightNode.Evaluate(this);
+		Node.RightNode.Accept(this);
 	}
 	public void VisitTrinaryNode(GtTrinaryNode Node) {
 		this.VisitingBuilder.Append("if(");
-		Node.ConditionNode.Evaluate(this);
+		Node.CondNode.Accept(this);
 		this.VisitingBuilder.Append(") {");
-		Node.ThenNode.Evaluate(this);
+		Node.ThenNode.Accept(this);
 		this.VisitingBuilder.Append("} ");
 		if(this.DoesNodeExist(Node.ElseNode)){
 			this.VisitingBuilder.Append("else {");
-			Node.ElseNode.Evaluate(this);
+			Node.ElseNode.Accept(this);
 			this.VisitingBuilder.Append("}");
 		}
 	}
@@ -241,12 +241,12 @@ var CLASS = (function (_super) {
 	}
 	public void VisitUnaryNode(GtUnaryNode Node) {
 		this.VisitingBuilder.Append(Node.Token.ParsedText);
-		Node.Expr.Evaluate(this);
+		Node.RecvNode.Accept(this);
 	}
 	public void VisitIndexerNode(GtIndexerNode Node) {
 		this.AddUseLibrary("JavaScript.String");
 		this.VisitingBuilder.Append("[");
-		Node.Expr.Evaluate(this);
+		Node.Expr.Accept(this);
 		this.VisitingBuilder.Append("]");
 	}
 	public void VisitArrayNode(GtArrayNode Node) {
@@ -258,7 +258,7 @@ var CLASS = (function (_super) {
 			if(i != 0) {
 				this.VisitingBuilder.Append(", ");
 			}   
-			Node.NodeList.get(i).Evaluate(this);
+			Node.NodeList.get(i).Accept(this);
 			i += 1;
 		}   
 		this.VisitingBuilder.Append("]");
@@ -269,17 +269,17 @@ var CLASS = (function (_super) {
 	public void VisitWhileNode(GtWhileNode Node) {
 		this.AddUseLibrary("Syntax.CStyleWhile");
 		this.VisitingBuilder.Append("while(");
-		Node.CondExpr.Evaluate(this);
+		Node.CondNode.Accept(this);
 		this.VisitingBuilder.Append(") ");
-		this.VisitIndentBlock("{", Node.LoopBody, "}");
+		this.VisitIndentBlock("{", Node.BodyNode, "}");
 		this.VisitingBuilder.AppendLine("");
 	}
 	public void VisitDoWhileNode(GtDoWhileNode Node) {
 		this.AddUseLibrary("Syntax.CStyleWhile");
 		this.VisitingBuilder.Append("do ");
-		this.VisitIndentBlock("{", Node.LoopBody, "}");
+		this.VisitIndentBlock("{", Node.BodyNode, "}");
 		this.VisitingBuilder.Append(" while(");
-		Node.CondExpr.Evaluate(this);
+		Node.CondNode.Accept(this);
 		this.VisitingBuilder.AppendLine(");");
 	}
 
@@ -287,18 +287,18 @@ var CLASS = (function (_super) {
 		this.AddUseLibrary("Syntax.CStyleFor");
 		this.VisitingBuilder.Append("for(");
 		this.VisitingBuilder.Append("; ");
-		Node.CondExpr.Evaluate(this);
+		Node.CondNode.Accept(this);
 		this.VisitingBuilder.Append("; ");
-		Node.IterExpr.Evaluate(this);
+		Node.IterNode.Accept(this);
 		this.VisitingBuilder.Append(") ");
-		this.VisitIndentBlock("{", Node.LoopBody, "}");
+		this.VisitIndentBlock("{", Node.BodyNode, "}");
 		this.VisitingBuilder.AppendLine("");
 	}
 	private boolean IsInForExpr(GtNode Node) {
 		if(Node.ParentNode instanceof GtForNode){
 			GtForNode Parent = (GtForNode) Node.ParentNode;
-			if(Node == Parent.CondExpr) return true;
-			if(Node == Parent.IterExpr) return true;
+			if(Node == Parent.CondNode) return true;
+			if(Node == Parent.IterNode) return true;
 		}
 		return false;
 	}
@@ -326,16 +326,16 @@ var CLASS = (function (_super) {
 		this.VisitingBuilder.Append(Node.Token.ParsedText);
 	}
 	public void VisitGetterNode(GtGetterNode Node) {
-		Node.RecvNode.Evaluate(this);
+		Node.RecvNode.Accept(this);
 		this.VisitingBuilder.Append(".");
 		this.VisitingBuilder.Append(Node.Token.ParsedText);
 	}
 	public void VisitSetterNode(GtSetterNode Node) {
-		Node.RecvNode.Evaluate(this);
+		Node.RecvNode.Accept(this);
 		this.VisitingBuilder.Append(".");
 		this.VisitingBuilder.Append(Node.Token.ParsedText);
 		this.VisitingBuilder.SpaceAppendSpace("=");
-		Node.ValueNode.Evaluate(this);
+		Node.ValueNode.Accept(this);
 		this.VisitingBuilder.Append(";");
 		if(!this.IsInForExpr(Node)) this.VisitingBuilder.AppendLine("");
 }
@@ -350,7 +350,7 @@ var CLASS = (function (_super) {
 		this.VisitingBuilder.Append("(");
 		for(/*local*/int i = 0; i < LibGreenTea.ListSize(Node.ParamList); i++){
 			if(i != 0) this.VisitingBuilder.Append(", ");
-			Node.ParamList.get(i).Evaluate(this);
+			Node.ParamList.get(i).Accept(this);
 		}
 		this.VisitingBuilder.Append(")");
 	}
@@ -367,24 +367,24 @@ var CLASS = (function (_super) {
 		this.DebugAppendNode(Node);
 	}
 	public void VisitBinaryNode(GtBinaryNode Node) {
-		Node.LeftNode.Evaluate(this);
+		Node.LeftNode.Accept(this);
 		this.VisitingBuilder.SpaceAppendSpace(Node.Token.ParsedText);
-		Node.RightNode.Evaluate(this);
+		Node.RightNode.Accept(this);
 	}
 	public void VisitAndNode(GtAndNode Node) {
-		Node.LeftNode.Evaluate(this);
+		Node.LeftNode.Accept(this);
 		this.VisitingBuilder.SpaceAppendSpace("&&");
-		Node.RightNode.Evaluate(this);
+		Node.RightNode.Accept(this);
 	}
 	public void VisitOrNode(GtOrNode Node) {
-		Node.LeftNode.Evaluate(this);
+		Node.LeftNode.Accept(this);
 		this.VisitingBuilder.SpaceAppendSpace("||");
-		Node.RightNode.Evaluate(this);
+		Node.RightNode.Accept(this);
 	}
 	public void VisitAssignNode(GtAssignNode Node) {
-		Node.LeftNode.Evaluate(this);
+		Node.LeftNode.Accept(this);
 		this.VisitingBuilder.SpaceAppendSpace("=");
-		Node.RightNode.Evaluate(this);
+		Node.RightNode.Accept(this);
 		this.VisitingBuilder.Append(";");
 		if(!this.IsInForExpr(Node)) this.VisitingBuilder.AppendLine("");
 	}
@@ -395,14 +395,14 @@ var CLASS = (function (_super) {
 		//if(this.DoesNodeExist(Node.InitNode)){ //FIXME: Always true
 		if(Node.InitNode.Token.ParsedText != VarName){
 			this.VisitingBuilder.SpaceAppendSpace("=");
-			Node.InitNode.Evaluate(this);
+			Node.InitNode.Accept(this);
 		}
 		this.VisitingBuilder.AppendLine(";");
 		this.VisitBlockWithoutIndent(Node.BlockNode);
 	}
 	public void VisitIfNode(GtIfNode Node) {
 		this.VisitingBuilder.Append("if(");
-		Node.CondExpr.Evaluate(this);
+		Node.CondNode.Accept(this);
 		this.VisitingBuilder.Append(")");
 		this.VisitIndentBlock("{", Node.ThenNode, "}");
 		if(this.DoesNodeExist(Node.ElseNode)){
@@ -415,9 +415,9 @@ var CLASS = (function (_super) {
 	}
 	public void VisitReturnNode(GtReturnNode Node) {
 		this.VisitingBuilder.Append("return");
-		if(this.DoesNodeExist(Node.Expr)){
+		if(this.DoesNodeExist(Node.ValueNode)){
 			this.VisitingBuilder.Append(" ");
-			Node.Expr.Evaluate(this);
+			Node.ValueNode.Accept(this);
 		}
 	}
 	public void VisitBreakNode(GtBreakNode Node) {

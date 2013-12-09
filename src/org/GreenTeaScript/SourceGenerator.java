@@ -203,7 +203,7 @@ public class SourceGenerator extends GtGenerator {
 	}
 
 	public final String VisitNode(GtNode Node) {
-		Node.Evaluate(this);
+		Node.Accept(this);
 		return this.PopSourceCode();
 	}
 
@@ -406,7 +406,7 @@ public class SourceGenerator extends GtGenerator {
 		this.PushSourceCode(this.VisitNode(Node.RecvNode) + this.MemberAccessOperator + Node.Func.FuncName);
 	}
 	@Override public void VisitSetLocalNode(GtSetLocalNode Node) {
-		this.PushSourceCode(this.VisitNode(Node.LeftNode) + " = " + this.VisitNode(Node.ValueNode));
+		this.PushSourceCode(Node.NativeName + " = " + this.VisitNode(Node.ValueNode));
 	}
 
 	@Override public void VisitAndNode(GtAndNode Node) {

@@ -49,7 +49,7 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 	}
 
 	private void VisitNode(GtNode Node) {
-		Node.Evaluate(this);
+		Node.Accept(this);
 	}
 
 	private void VisitBlockWithIndent(GtNode Node) {
@@ -71,7 +71,7 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 		while(CurrentNode != null) {
 			if(!this.IsEmptyBlock(CurrentNode)) {
 				this.VisitingBuilder.AppendIndent();
-				CurrentNode.Evaluate(this);
+				CurrentNode.Accept(this);
 				this.VisitingBuilder.AppendLine(this.SemiColon);
 			}
 			CurrentNode = CurrentNode.NextNode;
@@ -200,9 +200,9 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 		 * 		ITER
 		 */
 		this.AppendCode("while ");
-		this.VisitNode(Node.CondExpr);
+		this.VisitNode(Node.CondNode);
 		this.AppendCode(":");
-		this.VisitBlockWithIndent(Node.LoopBody);
+		this.VisitBlockWithIndent(Node.BodyNode);
 		this.VisitBlockWithIndent(Node.IterNode);
 	}
 
@@ -210,9 +210,9 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 		this.AppendCode("for ");
 		this.VisitNode(Node.Variable);
 		this.AppendCode(" in ");
-		this.VisitNode(Node.IterExpr);
+		this.VisitNode(Node.IterNode);
 		this.AppendCode(":");
-		this.VisitBlockWithIndent(Node.LoopBody);
+		this.VisitBlockWithIndent(Node.BodyNode);
 	}
 
 	@Override public void VisitContinueNode(GtContinueNode Node) {
@@ -307,14 +307,13 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 	@Override public void VisitTryNode(GtTryNode Node) {
 		this.AppendCode("try:");
 		this.VisitBlockWithIndent(Node.TryNode);
-		if(Node.CatchExpr != null) {
-			/*local*/GtVarDeclNode Val = (/*cast*/GtVarDeclNode) Node.CatchExpr;
-			this.AppendCode("except ");
-			this.AppendCode(Val.Type.ShortName);
+		for (int i = 0; i < LibGreenTea.ListSize(Node.CatchList); i++) {
+			GtCatchNode Catch = (/*cast*/GtCatchNode) Node.CatchList.get(i);
+			this.VisitingBuilder.Append("except " + Catch.ExceptionType);
 			this.AppendCode(this.Camma);
-			this.AppendCode(Val.NativeName);
+			this.AppendCode(Catch.ExceptionName);
 			this.AppendCode(":");
-			this.VisitBlockWithIndent(Node.CatchBlock);
+			this.VisitBlockWithIndent(Catch.BodyNode);
 		}
 		if(Node.FinallyNode != null) {
 			this.AppendCode("finally:");
@@ -564,7 +563,7 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 	}
 
 	@Override public void VisitSetLocalNode(GtSetLocalNode Node) {
-		this.VisitNode(Node.LeftNode);
+		this.AppendCode(Node.NativeName);
 		this.AppendCode(" = ");
 		this.VisitNode(Node.ValueNode);
 	}

@@ -101,7 +101,7 @@ public class GtSourceBuilder {
 			if(i > BeginIdx) {
 				this.Append(this.Template.Camma);
 			}
-			ParamList.get(i).Evaluate(this.Template);
+			ParamList.get(i).Accept(this.Template);
 			i = i + 1;
 		}
 	}

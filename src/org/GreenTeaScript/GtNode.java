@@ -427,7 +427,7 @@ final class GtApplyFunctionObjectNode extends GtNode {
 		return this.ParamList;
 	}
 	@Override public void Accept(GtGenerator Visitor) {
-		Visitor.VisitApplyFuncionObjectNode(this);
+		Visitor.VisitApplyFunctionObjectNode(this);
 	}
 	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 		return Context.Generator.EvalApplyFuncionObjectNode(this, EnforceConst);
@@ -471,7 +471,9 @@ final class GtGetIndexNode extends GtNode {
 		Visitor.VisitGetIndexNode(this);
 	}
 	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
-		return Context.Generator.EvalGetIndexNode(this, EnforceConst);
+		//FIXME
+		//return Context.Generator.EvalGetIndexNode(this, EnforceConst);
+		return null;
 	}
 }
 //E.g., $Recv[$Index] = $ValueNode
@@ -490,7 +492,9 @@ final class GtSetIndexNode extends GtNode {
 		Visitor.VisitSetIndexNode(this);
 	}
 	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
-		return Context.Generator.EvalSetIndexNode(this, EnforceConst);
+		//FIXME
+		//return Context.Generator.EvalSetIndexNode(this, EnforceConst);
+		return null;
 	}
 }
 
@@ -696,7 +700,7 @@ final class GtTrinaryNode extends GtNode {
 		this.SetChild(Expr);
 	}
 	@Override public void Accept(GtGenerator Visitor) {
-		Visitor.VisitExistsNode(this);
+		//Visitor.VisitExistsNode(this);
 	}
 }
 //E.g., $LeftNode += $RightNode
@@ -712,7 +716,7 @@ final class GtTrinaryNode extends GtNode {
 		this.SetChild2(Left, Right);
 	}
 	@Override public void Accept(GtGenerator Visitor) {
-		Visitor.VisitSelfAssignNode(this);
+		//Visitor.VisitSelfAssignNode(this);
 	}
 }
 
@@ -729,7 +733,7 @@ final class GtTrinaryNode extends GtNode {
 		this.SetChild(Expr);
 	}
 	@Override public void Accept(GtGenerator Visitor) {
-		Visitor.VisitDyGetterNode(this);
+		//Visitor.VisitDyGetterNode(this);
 	}
 
 	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
@@ -752,7 +756,7 @@ final class GtTrinaryNode extends GtNode {
 		this.SetChild2(LeftNode, RightNode);
 	}
 	@Override public void Accept(GtGenerator Visitor) {
-		Visitor.VisitDySetterNode(this);
+		//Visitor.VisitDySetterNode(this);
 	}
 	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 		return Context.Generator.EvalDySetterNode(this, EnforceConst);
@@ -773,7 +777,7 @@ final class GtTrinaryNode extends GtNode {
 		return this.NodeList;
 	}
 	@Override public void Accept(GtGenerator Visitor) {
-		Visitor.VisitApplyNode(this);
+		//Visitor.VisitApplyNode(this);
 	}
 	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 		return Context.Generator.EvalApplyNode(this, EnforceConst);
@@ -795,7 +799,7 @@ final class GtTrinaryNode extends GtNode {
 		return this.ParamList;
 	}
 	@Override public void Accept(GtGenerator Visitor) {
-		Visitor.VisitApplyDynamicFuncNode(this);
+		//Visitor.VisitApplyDynamicFuncNode(this);
 	}
 	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 		return Context.Generator.EvalApplyDynamicFuncNode(this, EnforceConst);
@@ -818,7 +822,7 @@ final class GtTrinaryNode extends GtNode {
 		return this.ParamList;
 	}
 	@Override public void Accept(GtGenerator Visitor) {
-		Visitor.VisitApplyDynamicMethodNode(this);
+		//Visitor.VisitApplyDynamicMethodNode(this);
 	}
 	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 		return Context.Generator.EvalApplyDynamicMethodNode(this, EnforceConst);
@@ -1188,7 +1192,7 @@ final class GtSwitchNode extends GtNode {
 final class GtCaseNode extends GtNode {
 	/*field*/public GtNode  CaseNode;;
 	/*field*/public GtNode	BodyNode;
-	GtCatchNode/*constructor*/(GtType Type, GtToken Token, GtNode CaseNode, GtNode BodyNode) {
+	GtCaseNode/*constructor*/(GtType Type, GtToken Token, GtNode CaseNode, GtNode BodyNode) {
 		super(Type, Token);
 		this.CaseNode = CaseNode;
 		this.BodyNode = BodyNode;

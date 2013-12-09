@@ -68,10 +68,10 @@ public class ScalaSourceGenerator extends SourceGenerator {
 		 * 		BLOCK2;
 		 * 		ITER
 		 */
-		/*local*/String Program = "while(" + this.VisitNode(Node.CondExpr) + ")" + this.LineFeed;
+		/*local*/String Program = "while(" + this.VisitNode(Node.CondNode) + ")" + this.LineFeed;
 		Program += this.GetIndentString() + "{";
 		this.Indent();
-		Program += this.VisitBlockWithIndent(Node.LoopBody, false);
+		Program += this.VisitBlockWithIndent(Node.BodyNode, false);
 		Program += this.VisitBlockWithIndent(Node.IterNode, false);
 		Program += this.GetIndentString() + "}";
 		this.UnIndent();
@@ -105,8 +105,8 @@ public class ScalaSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitDoWhileNode(GtDoWhileNode Node) {
-		/*local*/String Program = "do" + this.VisitBlockWithIndent(Node.LoopBody, true);
-		Program += " while(" + this.VisitNode(Node.CondExpr) + ")";
+		/*local*/String Program = "do" + this.VisitBlockWithIndent(Node.BodyNode, true);
+		Program += " while(" + this.VisitNode(Node.CondNode) + ")";
 		this.PushSourceCode(Program);
 	}
 
@@ -134,9 +134,9 @@ public class ScalaSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitIfNode(GtIfNode Node) {
-		/*local*/String CondExpr = this.VisitNode(Node.CondNode);
+		/*local*/String CondNode = this.VisitNode(Node.CondNode);
 		/*local*/String ThenBlock = this.VisitBlockWithIndent(Node.ThenNode, true);
-		/*local*/String Code = "if(" + CondExpr + ") " + ThenBlock;
+		/*local*/String Code = "if(" + CondNode + ") " + ThenBlock;
 		if(Node.ElseNode != null) {
 			Code += " else " + this.VisitBlockWithIndent(Node.ElseNode, true);
 		}
@@ -146,10 +146,10 @@ public class ScalaSourceGenerator extends SourceGenerator {
 	@Override public void VisitTryNode(GtTryNode Node) {
 		/*local*/String Code = "try ";
 		Code += this.VisitBlockWithIndent(Node.TryNode, true);
-		if(Node.CatchExpr != null) {
-		/*local*/GtVarDeclNode Val = (/*cast*/GtVarDeclNode) Node.CatchExpr;
-			Code += " catch (" + Val.Type.toString() + " " + Val.NativeName + ") ";
-			Code += this.VisitBlockWithIndent(Node.CatchBlock, true);
+		for (int i = 0; i < LibGreenTea.ListSize(Node.CatchList); i++) {
+			GtCatchNode Catch = (/*cast*/GtCatchNode) Node.CatchList.get(i);
+			Code += " catch (" + Catch.ExceptionType + " " + Catch.ExceptionName + ") ";
+			Code += this.VisitBlockWithIndent(Catch.BodyNode, true);
 		}
 		if(Node.FinallyNode != null) {
 			Code += " finally " + this.VisitBlockWithIndent(Node.FinallyNode, true);

@@ -134,7 +134,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 //			this.VisitingBuilder.MethodVisitor.visitInsn(DUP);
 //			for(int i = 0; i<Node.ParamList.size(); i++) {
 //				GtNode ParamNode = Node.ParamList.get(i);
-//				ParamNode.Evaluate(this);
+//				ParamNode.Accept(this);
 //				this.VisitingBuilder.BoxIfUnboxed(ParamNode.Type, Node.Func.GetFuncParamType(i));
 //			}
 //			this.VisitingBuilder.Call((Constructor<?>) Node.Func.FuncBody);
@@ -144,24 +144,24 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 	}
 
 	@Override public void VisitGetterNode(GtGetterNode Node) {
-		Node.RecvNode.Evaluate(this);
+		Node.RecvNode.Accept(this);
 		this.VisitingBuilder.Append(".");
 		this.VisitingBuilder.Append(Node.Func.FuncName);
 	}
 	
 	@Override public void VisitSetterNode(GtSetterNode Node) {
-		Node.RecvNode.Evaluate(this);
+		Node.RecvNode.Accept(this);
 		this.VisitingBuilder.Append(".");
 		this.VisitingBuilder.Append(Node.Func.FuncName);
 		this.VisitingBuilder.Append("=");
-		Node.ValueNode.Evaluate(this);
+		Node.ValueNode.Accept(this);
 	}
 
 	@Override public void VisitApplyNode(GtApplyNode Node) {
 //		GtFunc Func = Node.Func;
 //		for(int i = 1; i < Node.NodeList.size(); i++) {
 //			GtNode ParamNode = Node.NodeList.get(i);
-//			ParamNode.Evaluate(this);
+//			ParamNode.Accept(this);
 //			this.VisitingBuilder.BoxIfUnboxed(ParamNode.Type, Func.GetFuncParamType(i - 1));
 //		}
 //		Method m = null;
@@ -184,7 +184,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 //		GtFunc Func = ApplyNode.Func;
 //		for(int i = 0; i < ApplyNode.ParamList.size(); i++) {
 //			GtNode ParamNode = ApplyNode.ParamList.get(i);
-//			ParamNode.Evaluate(this);
+//			ParamNode.Accept(this);
 //			this.VisitingBuilder.BoxIfUnboxed(ParamNode.Type, Func.GetFuncParamType(i));
 //		}
 //		if(Func.FuncBody instanceof Method) {
@@ -202,9 +202,9 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 	@Override public void VisitBinaryNode(GtBinaryNode Node) {
 		//if(Node.Func.FuncBody instanceof Method) {
 		this.VisitingBuilder.Append("(");
-		Node.LeftNode.Evaluate(this);
+		Node.LeftNode.Accept(this);
 		this.VisitingBuilder.SpaceAppendSpace(Node.Token.ParsedText);
-		Node.RightNode.Evaluate(this);
+		Node.RightNode.Accept(this);
 		this.VisitingBuilder.Append(")");
 		//}
 	}
@@ -213,16 +213,16 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 //		if(Node.Func.FuncBody instanceof Method) {
 		this.VisitingBuilder.Append("(");
 		this.VisitingBuilder.Append(Node.Token.ParsedText);
-		Node.RecvNode.Evaluate(this);
+		Node.RecvNode.Accept(this);
 		this.VisitingBuilder.Append(")");
 //		}
 	}
 
 	@Override public void VisitIndexerNode(GtIndexerNode Node) {
 //		ArrayList<GtNode> NodeList = Node.NodeList;
-//		Node.Expr.Evaluate(this);
+//		Node.Expr.Accept(this);
 //		for(int i=0; i<NodeList.size(); i++) {
-//			NodeList.get(i).Evaluate(this);
+//			NodeList.get(i).Accept(this);
 //		}
 //		this.VisitingBuilder.InvokeMethodCall(Node.Type, (Method) Node.Func.FuncBody);
 	}
@@ -235,7 +235,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 //		for(int i=0; i<NodeList.size(); i++) {
 //			this.VisitingBuilder.MethodVisitor.visitInsn(DUP);
 //			this.VisitingBuilder.MethodVisitor.visitLdcInsn(i);
-//			NodeList.get(i).Evaluate(this);
+//			NodeList.get(i).Accept(this);
 //			this.VisitingBuilder.BoxIfUnboxed(NodeList.get(i).Type, Node.Type.TypeParams[0]);
 //			this.VisitingBuilder.MethodVisitor.visitInsn(AASTORE);
 //		}
@@ -249,7 +249,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 //		for(int i=0; i<Node.NodeList.size(); i++) {
 //			this.VisitingBuilder.MethodVisitor.visitInsn(DUP);
 //			this.VisitingBuilder.MethodVisitor.visitLdcInsn(i);
-//			Node.NodeList.get(i).Evaluate(this);
+//			Node.NodeList.get(i).Accept(this);
 //			this.VisitingBuilder.BoxIfUnboxed(Node.NodeList.get(i).Type, this.Context.AnyType);
 //			this.VisitingBuilder.MethodVisitor.visitInsn(AASTORE);
 //		}
@@ -258,17 +258,17 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 
 	@Override public void VisitAndNode(GtAndNode Node) {
 		this.VisitingBuilder.Append("(");
-		Node.LeftNode.Evaluate(this);
+		Node.LeftNode.Accept(this);
 		this.VisitingBuilder.Append(" && ");
-		Node.RightNode.Evaluate(this);
+		Node.RightNode.Accept(this);
 		this.VisitingBuilder.Append(")");
 	}
 
 	@Override public void VisitOrNode(GtOrNode Node) {
 		this.VisitingBuilder.Append("(");
-		Node.LeftNode.Evaluate(this);
+		Node.LeftNode.Accept(this);
 		this.VisitingBuilder.Append(" || ");
-		Node.RightNode.Evaluate(this);
+		Node.RightNode.Accept(this);
 		this.VisitingBuilder.Append(")");
 	}
 
@@ -276,7 +276,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 //		assert (Node.LeftNode instanceof GtLocalNode);
 //		GtLocalNode Left = (GtLocalNode) Node.LeftNode;
 //		JLocalVarStack local = this.VisitingBuilder.FindLocalVariable(Left.NativeName);
-//		Node.RightNode.Evaluate(this);
+//		Node.RightNode.Accept(this);
 //		this.VisitingBuilder.StoreLocal(local);
 	}
 
@@ -284,8 +284,8 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 //		if(Node.LeftNode instanceof GtLocalNode) {
 //			GtLocalNode Left = (GtLocalNode)Node.LeftNode;
 //			JLocalVarStack local = this.VisitingBuilder.FindLocalVariable(Left.NativeName);
-//			Node.LeftNode.Evaluate(this);
-//			Node.RightNode.Evaluate(this);
+//			Node.LeftNode.Accept(this);
+//			Node.RightNode.Accept(this);
 //			this.VisitingBuilder.InvokeMethodCall((Method)Node.Func.FuncBody);
 //			this.VisitingBuilder.StoreLocal(local);
 //		}
@@ -296,7 +296,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 
 	@Override public void VisitVarDeclNode(GtVarDeclNode Node) {
 //		JLocalVarStack local = this.VisitingBuilder.AddLocal(Node.Type, Node.NativeName);
-//		Node.InitNode.Evaluate(this);
+//		Node.InitNode.Accept(this);
 //		this.VisitingBuilder.StoreLocal(local);
 //		this.VisitBlock(Node.BlockNode);
 	}
@@ -304,7 +304,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 	@Override public void VisitIfNode(GtIfNode Node) {
 		this.VisitingBuilder.Append("if");
 		this.VisitingBuilder.Append("(");
-		Node.CondNode.Evaluate(this);
+		Node.CondNode.Accept(this);
 		this.VisitingBuilder.Append(") ");
 		this.VisitIndentBlock("{", Node.ThenNode, "}");
 		if(Node.ElseNode != null) {
@@ -315,11 +315,11 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 
 	@Override public void VisitTrinaryNode(GtTrinaryNode Node) {
 		this.VisitingBuilder.Append("(");
-		Node.CondNode.Evaluate(this);
+		Node.CondNode.Accept(this);
 		this.VisitingBuilder.Append(" ? ");
-		Node.ThenNode.Evaluate(this);
+		Node.ThenNode.Accept(this);
 		this.VisitingBuilder.Append(" : ");
-		Node.ElseNode.Evaluate(this);
+		Node.ElseNode.Accept(this);
 		this.VisitingBuilder.Append(")");
 	}
 
@@ -333,7 +333,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 //			keys[i] = ((Number)((GtConstNode)Node.CaseList.get(i*2)).ConstValue).intValue();
 //			caseLabels[i] = new Label();
 //		}
-//		Node.MatchNode.Evaluate(this);
+//		Node.MatchNode.Accept(this);
 //		this.VisitingBuilder.MethodVisitor.visitInsn(L2I);
 //		this.VisitingBuilder.MethodVisitor.visitLookupSwitchInsn(defaultLabel, keys, caseLabels);
 //		for(int i=0; i<cases; i++) {
@@ -354,7 +354,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 //		this.VisitingBuilder.ContinueLabelStack.push(continueLabel);
 //
 //		this.VisitingBuilder.MethodVisitor.visitLabel(continueLabel);
-//		Node.CondExpr.Evaluate(this);
+//		Node.CondExpr.Accept(this);
 //		this.VisitingBuilder.MethodVisitor.visitJumpInsn(IFEQ, breakLabel); // condition
 //		this.VisitBlock(Node.LoopBody);
 //		this.VisitingBuilder.MethodVisitor.visitJumpInsn(GOTO, continueLabel);
@@ -374,7 +374,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 //		this.VisitingBuilder.MethodVisitor.visitLabel(headLabel);
 //		this.VisitBlock(Node.LoopBody);
 //		this.VisitingBuilder.MethodVisitor.visitLabel(continueLabel);
-//		Node.CondExpr.Evaluate(this);
+//		Node.CondExpr.Accept(this);
 //		this.VisitingBuilder.MethodVisitor.visitJumpInsn(IFEQ, breakLabel); // condition
 //		this.VisitingBuilder.MethodVisitor.visitJumpInsn(GOTO, headLabel);
 //		this.VisitingBuilder.MethodVisitor.visitLabel(breakLabel);
@@ -391,11 +391,11 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 //		this.VisitingBuilder.ContinueLabelStack.push(continueLabel);
 //
 //		this.VisitingBuilder.MethodVisitor.visitLabel(headLabel);
-//		Node.CondExpr.Evaluate(this);
+//		Node.CondExpr.Accept(this);
 //		this.VisitingBuilder.MethodVisitor.visitJumpInsn(IFEQ, breakLabel); // condition
 //		this.VisitBlock(Node.LoopBody);
 //		this.VisitingBuilder.MethodVisitor.visitLabel(continueLabel);
-//		Node.IterExpr.Evaluate(this);
+//		Node.IterExpr.Accept(this);
 //		this.VisitingBuilder.MethodVisitor.visitJumpInsn(GOTO, headLabel);
 //		this.VisitingBuilder.MethodVisitor.visitLabel(breakLabel);
 //
@@ -411,7 +411,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 		this.VisitingBuilder.Append("return");
 		if(Node.ValueNode != null) {
 			this.VisitingBuilder.Append(" ");
-			Node.ValueNode.Evaluate(this);
+			Node.ValueNode.Accept(this);
 		}
 	}
 
@@ -462,7 +462,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 //		String name = Type.getInternalName(GtThrowableWrapper.class);
 //		this.VisitingBuilder.MethodVisitor.visitTypeInsn(NEW, name);
 //		this.VisitingBuilder.MethodVisitor.visitInsn(DUP);
-//		Node.Expr.Evaluate(this);
+//		Node.Expr.Accept(this);
 //		//this.box();
 ////		this.VisitingBuilder.typeStack.pop();
 //		this.VisitingBuilder.MethodVisitor.visitMethodInsn(INVOKESPECIAL, name, "<init>", "(Ljava/lang/Object;)V");
@@ -470,7 +470,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 	}
 
 	@Override public void VisitInstanceOfNode(GtInstanceOfNode Node) {
-//		Node.ExprNode.Evaluate(this);
+//		Node.ExprNode.Accept(this);
 //		this.VisitingBuilder.BoxIfUnboxed(Node.ExprNode.Type, this.Context.AnyType);
 //		this.VisitingBuilder.LoadConst(Node.TypeInfo);
 //		this.VisitingBuilder.InvokeMethodCall(JLib.GreenInstanceOfOperator);
@@ -478,7 +478,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 
 	@Override public void VisitCastNode(GtCastNode Node) {
 //		this.VisitingBuilder.LoadConst(Node.CastType);
-//		Node.Expr.Evaluate(this);
+//		Node.Expr.Accept(this);
 //		this.VisitingBuilder.BoxIfUnboxed(Node.Expr.Type, this.Context.AnyType);
 //		this.VisitingBuilder.InvokeMethodCall(Node.CastType, JLib.GreenCastOperator);
 	}
@@ -513,7 +513,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 //			for(int j=0; j<Arg.size(); j++) {
 //				this.VisitingBuilder.MethodVisitor.visitInsn(DUP);
 //				this.VisitingBuilder.MethodVisitor.visitLdcInsn(j);
-//				Arg.get(j).Evaluate(this);
+//				Arg.get(j).Accept(this);
 //				this.VisitingBuilder.MethodVisitor.visitInsn(AASTORE);
 //			}
 //			this.VisitingBuilder.MethodVisitor.visitInsn(AASTORE);

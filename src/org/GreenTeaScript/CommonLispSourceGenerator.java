@@ -8,7 +8,7 @@ public class CommonLispSourceGenerator extends GtSourceGenerator {
 		super(TargetCode, OutputFile, GeneratorFlag);
 	}
 
-	@Override public void VisitLocalNode(GtLocalNode Node) {
+	@Override public void VisitGetLocalNode(GtGetLocalNode Node) {
 		this.VisitingBuilder.Append(Node.Token.ParsedText);
 	}
 
@@ -33,8 +33,8 @@ public class CommonLispSourceGenerator extends GtSourceGenerator {
 	}
 
 	@Override public void VisitReturnNode(GtReturnNode Node) {
-		if (this.DoesNodeExist(Node.Expr)) {
-			Node.Expr.Evaluate(this);
+		if (this.DoesNodeExist(Node.ValueNode)) {
+			Node.ValueNode.Accept(this);
 		}
 	}
 
@@ -50,7 +50,7 @@ public class CommonLispSourceGenerator extends GtSourceGenerator {
 		while(CurrentNode != null) {
 			if(!this.IsEmptyBlock(CurrentNode)) {
 				this.VisitingBuilder.AppendIndent();
-				CurrentNode.Evaluate(this);
+				CurrentNode.Accept(this);
 				this.VisitingBuilder.AppendLine("");
 			}
 			CurrentNode = CurrentNode.NextNode;
@@ -99,10 +99,10 @@ public class CommonLispSourceGenerator extends GtSourceGenerator {
 	@Override public void VisitWhileNode(GtWhileNode Node) {
 		this.VisitingBuilder.Append("(while ");
 
-		Node.CondExpr.Evaluate(this);
+		Node.CondNode.Accept(this);
 
 		this.VisitingBuilder.AppendLine("");
-		this.VisitIndentBlock("", Node.LoopBody, "");
+		this.VisitIndentBlock("", Node.BodyNode, "");
 		this.VisitingBuilder.AppendIndent();
 		this.VisitingBuilder.Append(")");
 	}
@@ -114,7 +114,7 @@ public class CommonLispSourceGenerator extends GtSourceGenerator {
 		this.VisitingBuilder.AppendIndent();
 
 		this.VisitingBuilder.AppendLine("(progn");
-		this.VisitIndentBlock("", Node.LoopBody, "");
+		this.VisitIndentBlock("", Node.BodyNode, "");
 
 		this.VisitingBuilder.AppendIndent();
 		this.VisitingBuilder.AppendIndent();
@@ -124,13 +124,13 @@ public class CommonLispSourceGenerator extends GtSourceGenerator {
 		this.VisitingBuilder.AppendIndent();
 
 		this.VisitingBuilder.Append("while ");
-		Node.CondExpr.Evaluate(this);
+		Node.CondNode.Accept(this);
 		this.VisitingBuilder.AppendLine("");
 		this.VisitingBuilder.AppendIndent();
 		this.VisitingBuilder.AppendIndent();
 
 		this.VisitingBuilder.AppendLine("do (progn");
-		this.VisitIndentBlock("", Node.LoopBody, "");
+		this.VisitIndentBlock("", Node.BodyNode, "");
 		this.VisitingBuilder.AppendIndent();
 		this.VisitingBuilder.AppendIndent();
 		this.VisitingBuilder.Append(")");
@@ -139,17 +139,17 @@ public class CommonLispSourceGenerator extends GtSourceGenerator {
 
 	@Override public void VisitForNode(GtForNode Node) {
 		this.VisitingBuilder.Append("(loop while ");
-		Node.CondExpr.Evaluate(this);
+		Node.CondNode.Accept(this);
 		this.VisitingBuilder.AppendLine("");
 
 		this.VisitingBuilder.AppendIndent();
 		this.VisitingBuilder.AppendIndent();
 		this.VisitingBuilder.AppendLine("do (progn");
-		this.VisitIndentBlock("", Node.LoopBody, "");
+		this.VisitIndentBlock("", Node.BodyNode, "");
 
 		this.VisitingBuilder.AppendIndent();
 		this.VisitingBuilder.AppendIndent();
-		Node.IterExpr.Evaluate(this);
+		Node.IterNode.Accept(this);
 		this.VisitingBuilder.Append(")");
 
 		this.VisitingBuilder.Append(")");
@@ -161,7 +161,7 @@ public class CommonLispSourceGenerator extends GtSourceGenerator {
 		this.VisitingBuilder.Append(" ");
 
 		if (Node.InitNode != null) {
-			Node.InitNode.Evaluate(this);
+			Node.InitNode.Accept(this);
 		} else {
 			this.VisitingBuilder.Append("nil");
 		}
@@ -171,17 +171,17 @@ public class CommonLispSourceGenerator extends GtSourceGenerator {
 
 	@Override public void VisitTrinaryNode(GtTrinaryNode Node) {
 		this.VisitingBuilder.Append("(if  ");
-		Node.ConditionNode.Evaluate(this);
+		Node.CondNode.Accept(this);
 		this.VisitingBuilder.Append(" ");
-		Node.ThenNode.Evaluate(this);
+		Node.ThenNode.Accept(this);
 		this.VisitingBuilder.Append(" ");
-		Node.ElseNode.Evaluate(this);
+		Node.ElseNode.Accept(this);
 		this.VisitingBuilder.Append(")");
 	}
 
 	@Override public void VisitIfNode(GtIfNode Node) {
 		this.VisitingBuilder.Append("(if  ");
-		Node.CondExpr.Evaluate(this);
+		Node.CondNode.Accept(this);
 		this.VisitingBuilder.AppendLine("");
 
 		this.VisitingBuilder.AppendIndent();
@@ -207,7 +207,7 @@ public class CommonLispSourceGenerator extends GtSourceGenerator {
 
 	@Override public void VisitErrorNode(GtErrorNode Node) {
 		this.VisitingBuilder.Append("(error ");
-		Node.Evaluate(this);
+		Node.Accept(this);
 		this.VisitingBuilder.Append(")");
 	}
 
@@ -248,39 +248,39 @@ public class CommonLispSourceGenerator extends GtSourceGenerator {
 
 	@Override public void VisitUnaryNode(GtUnaryNode Node) {
 		this.VisitingBuilder.Append(Node.Token.ParsedText);
-		Node.Expr.Evaluate(this);
+		Node.RecvNode.Accept(this);
 	}
 
 	@Override public void VisitBinaryNode(GtBinaryNode Node) {
 		this.VisitingBuilder.Append("(");
 		this.VisitingBuilder.Append(Node.Token.ParsedText);
 		this.VisitingBuilder.Append(" ");
-		Node.LeftNode.Evaluate(this);
+		Node.LeftNode.Accept(this);
 		this.VisitingBuilder.Append(" ");
-		Node.RightNode.Evaluate(this);
+		Node.RightNode.Accept(this);
 		this.VisitingBuilder.Append(")");
 	}
 
 	@Override public void VisitAndNode(GtAndNode Node) {
 		this.VisitingBuilder.Append("(and ");
-		Node.LeftNode.Evaluate(this);
+		Node.LeftNode.Accept(this);
 		this.VisitingBuilder.Append(" ");
-		Node.RightNode.Evaluate(this);
+		Node.RightNode.Accept(this);
 		this.VisitingBuilder.Append(")");
 	}
 	@Override public void VisitOrNode(GtOrNode Node) {
 		this.VisitingBuilder.Append("(or ");
-		Node.LeftNode.Evaluate(this);
+		Node.LeftNode.Accept(this);
 		this.VisitingBuilder.Append(" ");
-		Node.RightNode.Evaluate(this);
+		Node.RightNode.Accept(this);
 		this.VisitingBuilder.Append(")");
 	}
 
 	@Override public void VisitAssignNode(GtAssignNode Node) {
 		this.VisitingBuilder.Append("(setq  ");
-		Node.LeftNode.Evaluate(this);
+		Node.LeftNode.Accept(this);
 		this.VisitingBuilder.Append(" ");
-		Node.RightNode.Evaluate(this);
+		Node.RightNode.Accept(this);
 		this.VisitingBuilder.Append(")");
 	}
 
