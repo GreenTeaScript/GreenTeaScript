@@ -1168,7 +1168,7 @@ public class KonohaGrammar extends GtGrammar {
 		if(LeftNode.IsErrorNode()) {
 			return LeftNode;
 		}
-		if(!(LeftNode instanceof GtGetLocalNode || LeftNode instanceof GtGetterNode || LeftNode instanceof GtIndexerNode)) {
+		if(!(LeftNode instanceof GtGetLocalNode || LeftNode instanceof GtGetterNode || LeftNode instanceof GtGetIndexNode)) {
 			return Gamma.CreateSyntaxErrorNode(ParsedTree, "the left-hand side of an assignment must be variable");
 		}
 		/*local*/GtNode RightNode = ParsedTree.TypeCheckAt(RightHandTerm, Gamma, LeftNode.Type, DefaultTypeCheckPolicy);
@@ -1203,7 +1203,7 @@ public class KonohaGrammar extends GtGrammar {
 			if(Type != GtStaticTable.VoidType) {
 				Gamma.Context.ReportError(WarningLevel, ParsedTree.KeyToken, "only available as statement: " + ParsedTree.KeyToken);
 			}
-			if(LeftNode instanceof GtGetLocalNode || LeftNode instanceof GtGetterNode || LeftNode instanceof GtIndexerNode) {
+			if(LeftNode instanceof GtGetLocalNode || LeftNode instanceof GtGetterNode || LeftNode instanceof GtGetIndexNode) {
 				/*local*/GtNode ConstNode = Gamma.Generator.CreateConstNode(LeftNode.Type, ParsedTree, 1L);
 				// ++ => +
 				/*local*/String OperatorSymbol = LibGreenTea.SubString(ParsedTree.KeyToken.ParsedText, 0, 1);

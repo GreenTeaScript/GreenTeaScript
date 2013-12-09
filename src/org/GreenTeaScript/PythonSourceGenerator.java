@@ -49,7 +49,7 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 	}
 
 	private void VisitNode(GtNode Node) {
-		Node.Evaluate(this);
+		Node.Accept(this);
 	}
 
 	private void VisitBlockWithIndent(GtNode Node) {
@@ -71,7 +71,7 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 		while(CurrentNode != null) {
 			if(!this.IsEmptyBlock(CurrentNode)) {
 				this.VisitingBuilder.AppendIndent();
-				CurrentNode.Evaluate(this);
+				CurrentNode.Accept(this);
 				this.VisitingBuilder.AppendLine(this.SemiColon);
 			}
 			CurrentNode = CurrentNode.NextNode;

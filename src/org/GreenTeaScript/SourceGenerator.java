@@ -203,7 +203,7 @@ public class SourceGenerator extends GtGenerator {
 	}
 
 	public final String VisitNode(GtNode Node) {
-		Node.Evaluate(this);
+		Node.Accept(this);
 		return this.PopSourceCode();
 	}
 

@@ -46,7 +46,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 		this.Indent();
 		/*local*/GtNode CurrentNode = Node;
 		while(CurrentNode != null) {
-			CurrentNode.Evaluate(this);
+			CurrentNode.Accept(this);
 			Code += this.GetIndentString() + this.PopSourceCode() + ";" + this.LineFeed;
 			CurrentNode = CurrentNode.NextNode;
 		}
@@ -60,7 +60,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitWhileNode(GtWhileNode Node) {
-		Node.CondNode.Evaluate(this);
+		Node.CondNode.Accept(this);
 		/*local*/String Program = "while(" + this.PopSourceCode() + ")";
 		this.VisitBlockEachStatementWithIndent(Node.BodyNode);
 		Program += this.PopSourceCode();
@@ -71,14 +71,14 @@ public class PerlSourceGenerator extends SourceGenerator {
 		/*local*/String Program = "do {";
 		this.VisitBlockEachStatementWithIndent(Node.LoopBody);
 		Program += this.PopSourceCode();
-		Node.CondExpr.Evaluate(this);
+		Node.CondExpr.Accept(this);
 		Program += "} while(" + this.PopSourceCode() + ")";
 		this.PushSourceCode(Program);
 	}
 
 	@Override public void VisitForNode(GtForNode Node) {
-		Node.IterNode.Evaluate(this);
-		Node.CondExpr.Evaluate(this);
+		Node.IterNode.Accept(this);
+		Node.CondExpr.Accept(this);
 		/*local*/String Cond = this.PopSourceCode();
 		/*local*/String Iter = this.PopSourceCode();
 
@@ -139,7 +139,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitThrowNode(GtThrowNode Node) {
-		Node.ValueNode.Evaluate(this);
+		Node.ValueNode.Accept(this);
 		/*local*/String Code = "throw " + this.PopSourceCode();
 		this.PushSourceCode(Code);
 	}
@@ -157,7 +157,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 			if(i != 0) {
 				Code += " ";
 			}
-			Param.Evaluate(this);
+			Param.Accept(this);
 			Code += this.PopSourceCode();
 			i = i + 1;
 		}
@@ -220,7 +220,7 @@ public class PerlSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public Object Eval(GtNode SingleNode) {
-		SingleNode.Evaluate(this);
+		SingleNode.Accept(this);
 		return this.PopSourceCode();
 	}
 

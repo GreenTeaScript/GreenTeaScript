@@ -493,7 +493,7 @@ public class GtGenerator extends GreenTeaUtils {
 	public final void VisitBlock(GtNode Node) {
 		/*local*/GtNode CurrentNode = Node;
 		while(CurrentNode != null) {
-			CurrentNode.Evaluate(this);
+			CurrentNode.Accept(this);
 			CurrentNode = CurrentNode.NextNode;
 		}
 	}
