@@ -180,7 +180,7 @@ class JLib {
 	static Method UnboxFloatValue;
 	static Method GreenCastOperator;
 	static Method GreenInstanceOfOperator;
-	static Method NewArrayLiteral;
+	static Method NewNewArray;
 	static Method NewArray;
 	static Method InvokeFunc;
 	static Method InvokeOverridedFunc;
@@ -222,7 +222,7 @@ class JLib {
 
 			GreenCastOperator = LibGreenTea.class.getMethod("DynamicCast", GtType.class, Object.class);
 			GreenInstanceOfOperator = LibGreenTea.class.getMethod("DynamicInstanceOf", Object.class, GtType.class);
-			NewArrayLiteral = LibGreenTea.class.getMethod("NewArrayLiteral", GtType.class, Object[].class);
+			NewNewArray = LibGreenTea.class.getMethod("NewNewArray", GtType.class, Object[].class);
 			NewArray = LibGreenTea.class.getMethod("NewArray", GtType.class, Object[].class);
 			ExecCommandVoid = DShellProcess.class.getMethod("ExecCommandVoid", String[][].class);
 			ExecCommandBool = DShellProcess.class.getMethod("ExecCommandBool", String[][].class);
@@ -591,13 +591,13 @@ public class JavaByteCodeGenerator extends GtGenerator {
 
 	//-----------------------------------------------------
 
-	@Override public void VisitConstNode(GtConstNode Node) {
+	@Override public void VisitConstPoolNode(GtConstPoolNode Node) {
 		Object constValue = Node.ConstValue;
 		LibGreenTea.Assert(Node.ConstValue != null);  // Added by kimio
 		this.VisitingBuilder.LoadConst(constValue);
 	}
 
-	@Override public void VisitNewNode(GtNewNode Node) {
+	@Override public void VisitAllocateNode(GtAllocateNode Node) {
 		Type type = JLib.GetAsmType(Node.Type);
 		String owner = type.getInternalName();
 		this.VisitingBuilder.AsmVisitor.visitTypeInsn(NEW, owner);
@@ -614,7 +614,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.VisitingBuilder.AsmVisitor.visitInsn(ACONST_NULL);
 	}
 
-	@Override public void VisitLocalNode(GtLocalNode Node) {
+	@Override public void VisitGetLocalNode(GtGetLocalNode Node) {
 		JLocalVarStack local = this.VisitingBuilder.FindLocalVariable(Node.NativeName);
 		this.VisitingBuilder.LoadLocal(local);
 	}
@@ -690,7 +690,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		}
 	}
 
-	@Override public void VisitStaticApplyNode(GtStaticApplyNode Node) {
+	@Override public void VisitApplySymbolNode(GtApplySymbolNode Node) {
 		GtFunc Func = Node.Func;
 		this.VisitingBuilder.SetLineNumber(Node);
 		for(int i = 0; i < Node.ParamList.size(); i++) {
@@ -711,7 +711,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.VisitingBuilder.CheckReturn(Node.Type, Func.GetReturnType());
 	}
 
-	@Override public void VisitApplyFuncNode(GtApplyFuncNode Node) {
+	@Override public void VisitApplyFuncionObjectNode(GtApplyFunctionObjectNode Node) {
 		Node.FuncNode.Evaluate(this);
 		this.VisitingBuilder.LoadNewArray(this, 0, Node.ParamList);
 		this.VisitingBuilder.InvokeMethodCall(Node.Type, JLib.InvokeFunc);
@@ -749,7 +749,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	
 	@Override public void VisitUnaryNode(GtUnaryNode Node) {
 		LibGreenTea.Assert(Node.Func.FuncBody instanceof Method);
-		this.VisitingBuilder.PushEvaluatedNode(Node.Func.GetFuncParamType(0), Node.Expr);
+		this.VisitingBuilder.PushEvaluatedNode(Node.Func.GetFuncParamType(0), Node.RecvNode);
 		this.VisitingBuilder.InvokeMethodCall(Node.Type, (Method)Node.Func.FuncBody);
 	}
 
@@ -770,10 +770,10 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.VisitingBuilder.InvokeMethodCall(Node.Type, (Method) Node.Func.FuncBody);
 	}
 
-	@Override public void VisitArrayNode(GtArrayNode Node) {
+	@Override public void VisitArrayLiteralNode(GtArrayLiteralNode Node) {
 		this.VisitingBuilder.LoadConst(Node.Type);
 		this.VisitingBuilder.LoadNewArray(this, 0, Node.NodeList);
-		this.VisitingBuilder.InvokeMethodCall(Node.Type, JLib.NewArrayLiteral);
+		this.VisitingBuilder.InvokeMethodCall(Node.Type, JLib.NewNewArray);
 	}
 
 	public void VisitNewArrayNode(GtNewArrayNode Node) {
@@ -820,17 +820,17 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.VisitingBuilder.AsmVisitor.visitLabel(mergeLabel);
 	}
 
-	@Override public void VisitAssignNode(GtAssignNode Node) {
-		assert (Node.LeftNode instanceof GtLocalNode);
-		GtLocalNode Left = (GtLocalNode) Node.LeftNode;
+	@Override public void VisitSetLocalNode(GtSetLocalNode Node) {
+		assert (Node.LeftNode instanceof GtGetLocalNode);
+		GtGetLocalNode Left = (GtGetLocalNode) Node.LeftNode;
 		JLocalVarStack local = this.VisitingBuilder.FindLocalVariable(Left.NativeName);
-		this.VisitingBuilder.PushEvaluatedNode(Node.RightNode.Type, Node.RightNode);
+		this.VisitingBuilder.PushEvaluatedNode(Node.ValueNode.Type, Node.ValueNode);
 		this.VisitingBuilder.StoreLocal(local);
 	}
 
 	@Override public void VisitSelfAssignNode(GtSelfAssignNode Node) {
-		if(Node.LeftNode instanceof GtLocalNode) {
-			GtLocalNode Left = (GtLocalNode)Node.LeftNode;
+		if(Node.LeftNode instanceof GtGetLocalNode) {
+			GtGetLocalNode Left = (GtGetLocalNode)Node.LeftNode;
 			JLocalVarStack local = this.VisitingBuilder.FindLocalVariable(Left.NativeName);
 			Node.LeftNode.Evaluate(this);
 			Node.RightNode.Evaluate(this);
@@ -842,7 +842,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		}
 	}
 
-	@Override public void VisitVarNode(GtVarNode Node) {
+	@Override public void VisitVarDeclNode(GtVarDeclNode Node) {
 		JLocalVarStack local = this.VisitingBuilder.AddLocal(Node.Type, Node.NativeName);
 		this.VisitingBuilder.PushEvaluatedNode(Node.DeclType, Node.InitNode);
 		this.VisitingBuilder.StoreLocal(local);
@@ -852,7 +852,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	@Override public void VisitIfNode(GtIfNode Node) {
 		Label ElseLabel = new Label();
 		Label EndLabel = new Label();
-		this.VisitingBuilder.PushEvaluatedNode(GtStaticTable.BooleanType, Node.CondExpr);
+		this.VisitingBuilder.PushEvaluatedNode(GtStaticTable.BooleanType, Node.CondNode);
 		this.VisitingBuilder.AsmVisitor.visitJumpInsn(IFEQ, ElseLabel);
 		// Then
 		this.VisitBlock(Node.ThenNode);
@@ -870,7 +870,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	@Override public void VisitTrinaryNode(GtTrinaryNode Node) {
 		Label ElseLabel = new Label();
 		Label EndLabel = new Label();
-		this.VisitingBuilder.PushEvaluatedNode(GtStaticTable.BooleanType, Node.ConditionNode);
+		this.VisitingBuilder.PushEvaluatedNode(GtStaticTable.BooleanType, Node.CondNode);
 		this.VisitingBuilder.AsmVisitor.visitJumpInsn(IFEQ, ElseLabel);
 		// Then
 		this.VisitBlock(Node.ThenNode);
@@ -890,7 +890,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		Label defaultLabel = new Label();
 		Label breakLabel = new Label();
 		for(int i=0; i<cases; i++) {
-			keys[i] = ((Number)((GtConstNode)Node.CaseList.get(i*2)).ConstValue).intValue();
+			keys[i] = ((Number)((GtConstPoolNode)Node.CaseList.get(i*2)).ConstValue).intValue();
 			caseLabels[i] = new Label();
 		}
 		Node.MatchNode.Evaluate(this);
@@ -914,9 +914,9 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.VisitingBuilder.ContinueLabelStack.push(continueLabel);
 
 		this.VisitingBuilder.AsmVisitor.visitLabel(continueLabel);
-		this.VisitingBuilder.PushEvaluatedNode(GtStaticTable.BooleanType, Node.CondExpr);
+		this.VisitingBuilder.PushEvaluatedNode(GtStaticTable.BooleanType, Node.CondNode);
 		this.VisitingBuilder.AsmVisitor.visitJumpInsn(IFEQ, breakLabel); // condition
-		this.VisitBlock(Node.LoopBody);
+		this.VisitBlock(Node.BodyNode);
 		this.VisitingBuilder.AsmVisitor.visitJumpInsn(GOTO, continueLabel);
 		this.VisitingBuilder.AsmVisitor.visitLabel(breakLabel);
 
@@ -955,7 +955,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.VisitingBuilder.AsmVisitor.visitJumpInsn(IFEQ, breakLabel); // condition
 		this.VisitBlock(Node.LoopBody);
 		this.VisitingBuilder.AsmVisitor.visitLabel(continueLabel);
-		Node.IterExpr.Evaluate(this);
+		Node.IterNode.Evaluate(this);
 		this.VisitingBuilder.AsmVisitor.visitJumpInsn(GOTO, headLabel);
 		this.VisitingBuilder.AsmVisitor.visitLabel(breakLabel);
 
@@ -968,9 +968,9 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	}
 
 	@Override public void VisitReturnNode(GtReturnNode Node) {
-		if(Node.Expr != null) {
-			Node.Expr.Evaluate(this);
-			Type type = JLib.GetAsmType(Node.Expr.Type);
+		if(Node.ValueNode != null) {
+			Node.ValueNode.Evaluate(this);
+			Type type = JLib.GetAsmType(Node.ValueNode.Type);
 			this.VisitingBuilder.AsmVisitor.visitInsn(type.getOpcode(IRETURN));
 		}
 		else {
@@ -998,7 +998,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 
 		// try block
 		mv.visitLabel(beginTryLabel);
-		this.VisitBlock(Node.TryBlock);
+		this.VisitBlock(Node.TryNode);
 		mv.visitLabel(endTryLabel);
 		mv.visitJumpInsn(GOTO, finallyLabel);
 
@@ -1012,7 +1012,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		// catch block
 		for(int i = 0; i < catchSize; i++) { //TODO: add exception class name
 			GtNode block = Node.CatchBlock;
-			GtVarNode Var = (GtVarNode) Node.CatchExpr;
+			GtVarDeclNode Var = (GtVarDeclNode) Node.CatchExpr;
 			JLocalVarStack local = this.VisitingBuilder.AddLocal(Var.Type, Var.NativeName);
 			mv.visitLabel(catchLabel[i]);
 			this.VisitingBuilder.StoreLocal(local);
@@ -1023,7 +1023,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 
 		// finally block
 		mv.visitLabel(finallyLabel);
-		this.VisitBlock(Node.FinallyBlock);
+		this.VisitBlock(Node.FinallyNode);
 	}
 
 	@Override public void VisitThrowNode(GtThrowNode Node) {
@@ -1059,7 +1059,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.VisitingBuilder.InvokeMethodCall(Node.CastType, JLib.GreenCastOperator);
 	}
 
-	@Override public void VisitFunctionNode(GtFunctionNode Node) {
+	@Override public void VisitFunctionNode(GtFunctionLiteralNode Node) {
 		LibGreenTea.TODO("FunctionNode");
 	}
 

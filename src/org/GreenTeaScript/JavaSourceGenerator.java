@@ -98,13 +98,13 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 
 	//-----------------------------------------------------
 
-	@Override public void VisitConstNode(GtConstNode Node) {
+	@Override public void VisitConstPoolNode(GtConstPoolNode Node) {
 //		Object constValue = Node.ConstValue;
 //		LibGreenTea.Assert(Node.ConstValue != null);  // Added by kimio
 //		this.VisitingBuilder.LoadConst(constValue);
 	}
 
-	@Override public void VisitNewNode(GtNewNode Node) {
+	@Override public void VisitAllocateNode(GtAllocateNode Node) {
 //		Type type = JLib.GetAsmType(Node.Type);
 //		String owner = type.getInternalName();
 //		this.VisitingBuilder.MethodVisitor.visitTypeInsn(NEW, owner);
@@ -121,7 +121,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 		this.VisitingBuilder.Append(this.NullLiteral);
 	}
 
-	@Override public void VisitLocalNode(GtLocalNode Node) {
+	@Override public void VisitGetLocalNode(GtGetLocalNode Node) {
 		this.VisitingBuilder.Append(Node.NativeName);
 	}
 
@@ -180,7 +180,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 //		}
 	}
 
-	@Override public void VisitStaticApplyNode(GtStaticApplyNode ApplyNode) {
+	@Override public void VisitApplySymbolNode(GtApplySymbolNode ApplyNode) {
 //		GtFunc Func = ApplyNode.Func;
 //		for(int i = 0; i < ApplyNode.ParamList.size(); i++) {
 //			GtNode ParamNode = ApplyNode.ParamList.get(i);
@@ -213,7 +213,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 //		if(Node.Func.FuncBody instanceof Method) {
 		this.VisitingBuilder.Append("(");
 		this.VisitingBuilder.Append(Node.Token.ParsedText);
-		Node.Expr.Evaluate(this);
+		Node.RecvNode.Evaluate(this);
 		this.VisitingBuilder.Append(")");
 //		}
 	}
@@ -227,7 +227,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 //		this.VisitingBuilder.InvokeMethodCall(Node.Type, (Method) Node.Func.FuncBody);
 	}
 
-	@Override public void VisitArrayNode(GtArrayNode Node) {
+	@Override public void VisitArrayLiteralNode(GtArrayLiteralNode Node) {
 //		ArrayList<GtNode> NodeList = Node.NodeList;
 //		this.VisitingBuilder.LoadConst(Node.Type);
 //		this.VisitingBuilder.MethodVisitor.visitLdcInsn(NodeList.size());
@@ -239,7 +239,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 //			this.VisitingBuilder.BoxIfUnboxed(NodeList.get(i).Type, Node.Type.TypeParams[0]);
 //			this.VisitingBuilder.MethodVisitor.visitInsn(AASTORE);
 //		}
-//		this.VisitingBuilder.InvokeMethodCall(Node.Type, JLib.NewArrayLiteral);
+//		this.VisitingBuilder.InvokeMethodCall(Node.Type, JLib.NewNewArray);
 	}
 
 	public void VisitNewArrayNode(GtNewArrayNode Node) {
@@ -272,7 +272,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 		this.VisitingBuilder.Append(")");
 	}
 
-	@Override public void VisitAssignNode(GtAssignNode Node) {
+	@Override public void VisitSetLocalNode(GtSetLocalNode Node) {
 //		assert (Node.LeftNode instanceof GtLocalNode);
 //		GtLocalNode Left = (GtLocalNode) Node.LeftNode;
 //		JLocalVarStack local = this.VisitingBuilder.FindLocalVariable(Left.NativeName);
@@ -294,7 +294,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 //		}
 	}
 
-	@Override public void VisitVarNode(GtVarNode Node) {
+	@Override public void VisitVarDeclNode(GtVarDeclNode Node) {
 //		JLocalVarStack local = this.VisitingBuilder.AddLocal(Node.Type, Node.NativeName);
 //		Node.InitNode.Evaluate(this);
 //		this.VisitingBuilder.StoreLocal(local);
@@ -304,7 +304,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 	@Override public void VisitIfNode(GtIfNode Node) {
 		this.VisitingBuilder.Append("if");
 		this.VisitingBuilder.Append("(");
-		Node.CondExpr.Evaluate(this);
+		Node.CondNode.Evaluate(this);
 		this.VisitingBuilder.Append(") ");
 		this.VisitIndentBlock("{", Node.ThenNode, "}");
 		if(Node.ElseNode != null) {
@@ -315,7 +315,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 
 	@Override public void VisitTrinaryNode(GtTrinaryNode Node) {
 		this.VisitingBuilder.Append("(");
-		Node.ConditionNode.Evaluate(this);
+		Node.CondNode.Evaluate(this);
 		this.VisitingBuilder.Append(" ? ");
 		Node.ThenNode.Evaluate(this);
 		this.VisitingBuilder.Append(" : ");
@@ -409,9 +409,9 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 
 	@Override public void VisitReturnNode(GtReturnNode Node) {
 		this.VisitingBuilder.Append("return");
-		if(Node.Expr != null) {
+		if(Node.ValueNode != null) {
 			this.VisitingBuilder.Append(" ");
-			Node.Expr.Evaluate(this);
+			Node.ValueNode.Evaluate(this);
 		}
 	}
 
@@ -483,7 +483,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 //		this.VisitingBuilder.InvokeMethodCall(Node.CastType, JLib.GreenCastOperator);
 	}
 
-	@Override public void VisitFunctionNode(GtFunctionNode Node) {
+	@Override public void VisitFunctionNode(GtFunctionLiteralNode Node) {
 		LibGreenTea.TODO("FunctionNode");
 	}
 

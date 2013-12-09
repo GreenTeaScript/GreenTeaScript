@@ -314,7 +314,7 @@ public class SourceGenerator extends GtGenerator {
 		return Template;
 	}
 
-	public final String GenerateApplyFunc(GtStaticApplyNode Node) {
+	public final String GenerateApplyFunc(GtApplySymbolNode Node) {
 		/*local*/int ParamSize = LibGreenTea.ListSize(Node.ParamList);
 		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
 		return this.ApplyMacro(Template, Node.ParamList);
@@ -329,7 +329,7 @@ public class SourceGenerator extends GtGenerator {
 		this.PushSourceCode(this.VisitNode(Node.ExprNode) + " instanceof " + Node.TypeInfo);
 	}
 
-	@Override public final void VisitConstNode(GtConstNode Node) {
+	@Override public final void VisitConstPoolNode(GtConstPoolNode Node) {
 		this.PushSourceCode(this.StringifyConstValue(Node.ConstValue));
 	}
 
@@ -337,14 +337,14 @@ public class SourceGenerator extends GtGenerator {
 		this.PushSourceCode(this.NullLiteral);
 	}
 
-	@Override public void VisitLocalNode(GtLocalNode Node) {
+	@Override public void VisitGetLocalNode(GtGetLocalNode Node) {
 		this.PushSourceCode(Node.NativeName);
 	}
 
 	@Override public void VisitReturnNode(GtReturnNode Node) {
 		/*local*/String Code = "return";
-		if(Node.Expr != null) {
-			Code += " " + this.VisitNode(Node.Expr);
+		if(Node.ValueNode != null) {
+			Code += " " + this.VisitNode(Node.ValueNode);
 		}
 		this.PushSourceCode(Code);
 		this.StopVisitor(Node);
@@ -360,11 +360,11 @@ public class SourceGenerator extends GtGenerator {
 		this.PushSourceCode(this.ApplyMacro(Template, Node.ParamList));
 	}
 
-	@Override public void VisitNewNode(GtNewNode Node) {
+	@Override public void VisitAllocateNode(GtAllocateNode Node) {
 		this.PushSourceCode(this.GetNewOperator(Node.Type));
 	}
 
-	@Override public void VisitStaticApplyNode(GtStaticApplyNode Node) {
+	@Override public void VisitApplySymbolNode(GtApplySymbolNode Node) {
 		/*local*/String Program = this.GenerateApplyFunc(Node);
 		this.PushSourceCode(Program);
 	}
@@ -391,7 +391,7 @@ public class SourceGenerator extends GtGenerator {
 
 	@Override public void VisitUnaryNode(GtUnaryNode Node) {
 		/*local*/String FuncName = Node.Token.ParsedText;
-		/*local*/String Expr = this.VisitNode(Node.Expr);
+		/*local*/String Expr = this.VisitNode(Node.RecvNode);
 		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc1(Node.Func, FuncName, false, Expr) + ")");
 	}
 
@@ -405,8 +405,8 @@ public class SourceGenerator extends GtGenerator {
 	@Override public void VisitGetterNode(GtGetterNode Node) {
 		this.PushSourceCode(this.VisitNode(Node.RecvNode) + this.MemberAccessOperator + Node.Func.FuncName);
 	}
-	@Override public void VisitAssignNode(GtAssignNode Node) {
-		this.PushSourceCode(this.VisitNode(Node.LeftNode) + " = " + this.VisitNode(Node.RightNode));
+	@Override public void VisitSetLocalNode(GtSetLocalNode Node) {
+		this.PushSourceCode(this.VisitNode(Node.LeftNode) + " = " + this.VisitNode(Node.ValueNode));
 	}
 
 	@Override public void VisitAndNode(GtAndNode Node) {
@@ -422,7 +422,7 @@ public class SourceGenerator extends GtGenerator {
 	}
 
 	@Override public void VisitTrinaryNode(GtTrinaryNode Node) {
-		/*local*/String CondExpr = this.VisitNode(Node.ConditionNode);
+		/*local*/String CondExpr = this.VisitNode(Node.CondNode);
 		/*local*/String ThenExpr = this.VisitNode(Node.ThenNode);
 		/*local*/String ElseExpr = this.VisitNode(Node.ElseNode);
 		this.PushSourceCode("((" + CondExpr + ")? " + ThenExpr + " : " + ElseExpr + ")");
@@ -478,9 +478,9 @@ public class SourceGenerator extends GtGenerator {
 	}
 
 	// EnforceConst API
-	@Override public Object EvalNewNode(GtNewNode Node, boolean EnforceConst) {
+	@Override public Object EvalAllocateNode(GtAllocateNode Node, boolean EnforceConst) {
 		if(EnforceConst) {
-			this.VisitNewNode(Node);
+			this.VisitAllocateNode(Node);
 			return this.PopSourceCode();
 		}
 		return null;
@@ -510,9 +510,9 @@ public class SourceGenerator extends GtGenerator {
 		return null;
 	}
 
-	@Override public Object EvalStaticApplyNode(GtStaticApplyNode ApplyNode, boolean EnforceConst) {
+	@Override public Object EvalApplySymbolNode(GtApplySymbolNode ApplyNode, boolean EnforceConst) {
 		if((EnforceConst || ApplyNode.Func.Is(ConstFunc)) /*&& ApplyNode.Func.FuncBody instanceof Method */) {
-			this.VisitStaticApplyNode(ApplyNode);
+			this.VisitApplySymbolNode(ApplyNode);
 			return this.PopSourceCode();
 		}
 		return null;

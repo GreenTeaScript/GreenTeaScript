@@ -75,8 +75,8 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		
 	}
 
-	public final static GreenTeaArray NewArrayLiteral(GtType ArrayType, Object[] Values) {
-		return GreenTeaArray.NewArrayLiteral(ArrayType, Values);		
+	public final static GreenTeaArray NewNewArray(GtType ArrayType, Object[] Values) {
+		return GreenTeaArray.NewNewArray(ArrayType, Values);		
 	}
 	
 	public final static Object InvokeFunc(GtFunc Func, Object[] Params) {

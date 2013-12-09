@@ -128,7 +128,7 @@ public class BashSourceGenerator extends SourceGenerator {
 			Cond = "((1 != 1))";
 		}
 		else {
-			if(Node instanceof GtLocalNode) {
+			if(Node instanceof GtGetLocalNode) {
 				Cond = "((0 == " + this.ResolveValueType(Node, false) + "))";
 			}
 		}
@@ -136,14 +136,14 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitWhileNode(GtWhileNode Node) {
-		/*local*/String Program = "while " + this.ResolveCondition(Node.CondExpr) + " ;do" + this.LineFeed;
-		Program += this.VisitBlockWithIndent(Node.LoopBody, true) + "done";
+		/*local*/String Program = "while " + this.ResolveCondition(Node.CondNode) + " ;do" + this.LineFeed;
+		Program += this.VisitBlockWithIndent(Node.BodyNode, true) + "done";
 		this.PushSourceCode(Program);
 	}
 
 	@Override public void VisitForNode(GtForNode Node) {
 		/*local*/String Cond = this.ResolveCondition(Node.CondExpr);
-		/*local*/String Iter = this.VisitNode(Node.IterExpr);
+		/*local*/String Iter = this.VisitNode(Node.IterNode);
 		/*local*/String Program = "for((; " + Cond  + "; " + Iter + " )) ;do" + this.LineFeed;
 		Program += this.VisitBlockWithIndent(Node.LoopBody, true) + "done";
 		this.PushSourceCode(Program);
@@ -184,7 +184,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		return isAssert;
 	}
 
-	@Override public void VisitStaticApplyNode(GtStaticApplyNode Node) {
+	@Override public void VisitApplySymbolNode(GtApplySymbolNode Node) {
 		/*local*/int ParamSize = LibGreenTea.ListSize(Node.ParamList);
 		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
 		/*local*/boolean isAssert = this.FindAssert(Node.Func);
@@ -198,7 +198,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	@Override public void VisitUnaryNode(GtUnaryNode Node) {
 		/*local*/String FuncName = Node.Token.ParsedText;
 		/*local*/GtFunc Func = Node.Func;
-		/*local*/String Expr = this.ResolveValueType(Node.Expr, false);	//TODO: support ++ --
+		/*local*/String Expr = this.ResolveValueType(Node.RecvNode, false);	//TODO: support ++ --
 		/*local*/String Macro = null;
 		if(Func != null) {
 			FuncName = Func.GetNativeFuncName();
@@ -257,8 +257,8 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.PushSourceCode("(" + this.ResolveCondition(Node.LeftNode) + " || " + this.ResolveCondition(Node.RightNode) + ")");
 	}
 
-	@Override public void VisitAssignNode(GtAssignNode Node) {
-		this.PushSourceCode(this.VisitNode(Node.LeftNode) + "=" + this.ResolveValueType(Node.RightNode, true));
+	@Override public void VisitSetLocalNode(GtSetLocalNode Node) {
+		this.PushSourceCode(this.VisitNode(Node.LeftNode) + "=" + this.ResolveValueType(Node.ValueNode, true));
 	}
 
 	@Override public void VisitSelfAssignNode(GtSelfAssignNode Node) {
@@ -279,7 +279,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Macro.replace("$1", Left).replace("$2", Right));
 	}
 
-	@Override public void VisitVarNode(GtVarNode Node) {
+	@Override public void VisitVarDeclNode(GtVarDeclNode Node) {
 		/*local*/String VarName = Node.NativeName;
 		/*local*/String Declare = "declare ";
 		/*local*/String Option = "";
@@ -300,14 +300,14 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitTrinaryNode(GtTrinaryNode Node) {
-		/*local*/String CondExpr = this.ResolveCondition(Node.ConditionNode);
+		/*local*/String CondExpr = this.ResolveCondition(Node.CondNode);
 		/*local*/String Then = this.ResolveValueType(Node.ThenNode, false);
 		/*local*/String Else = this.ResolveValueType(Node.ElseNode, false);
 		this.PushSourceCode("((" + CondExpr + " ? " + Then + " : " + Else + "))");
 	}
 
 	@Override public void VisitIfNode(GtIfNode Node) {
-		/*local*/String CondExpr = this.ResolveCondition(Node.CondExpr);
+		/*local*/String CondExpr = this.ResolveCondition(Node.CondNode);
 		/*local*/String ThenBlock = this.VisitBlockWithIndent(Node.ThenNode, true);
 		/*local*/String Code = "if " + CondExpr + " ;then" + this.LineFeed + ThenBlock;
 		if(!this.IsEmptyBlock(Node.ElseNode)) {
@@ -341,8 +341,8 @@ public class BashSourceGenerator extends SourceGenerator {
 			return;
 		}
 		
-		if(Node.Expr != null) {
-			/*local*/String Ret = this.ResolveValueType(Node.Expr, false);
+		if(Node.ValueNode != null) {
+			/*local*/String Ret = this.ResolveValueType(Node.ValueNode, false);
 			if(Node.Type.IsBooleanType() || (Node.Type.IsIntType() && this.inMainFunc)) {
 				this.PushSourceCode("return " + Ret);
 				return;
@@ -354,14 +354,14 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitTryNode(GtTryNode Node) {
-		/*local*/GtNode TrueNode = new GtConstNode(GtStaticTable.BooleanType, null, true);
+		/*local*/GtNode TrueNode = new GtConstPoolNode(GtStaticTable.BooleanType, null, true);
 		/*local*/String Code = "trap ";
-		/*local*/String Try = this.VisitNode(new GtIfNode(null, null, TrueNode, Node.TryBlock, null));
+		/*local*/String Try = this.VisitNode(new GtIfNode(null, null, TrueNode, Node.TryNode, null));
 		/*local*/String Catch = this.VisitNode(new GtIfNode(null, null, TrueNode, Node.CatchBlock, null));
 		Code += LibGreenTea.QuoteString(Catch) + " ERR" + this.LineFeed;
 		Code += this.GetIndentString() + Try + this.LineFeed + this.GetIndentString() + "trap ERR";
-		if(Node.FinallyBlock != null) {
-			/*local*/String Finally = this.VisitNode(new GtIfNode(null, null, TrueNode, Node.FinallyBlock, null));
+		if(Node.FinallyNode != null) {
+			/*local*/String Finally = this.VisitNode(new GtIfNode(null, null, TrueNode, Node.FinallyNode, null));
 			Code += this.LineFeed + this.GetIndentString() + Finally;
 		}
 		this.PushSourceCode(Code);
@@ -415,7 +415,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		}
 		else if(TargetNode instanceof GtUnaryNode) {
 			/*local*/GtUnaryNode Unary = (/*cast*/GtUnaryNode) TargetNode;
-			return this.CheckConstFolding(Unary.Expr);
+			return this.CheckConstFolding(Unary.RecvNode);
 		}
 		else if(TargetNode instanceof GtBinaryNode) {
 			/*local*/GtBinaryNode Binary = (/*cast*/GtBinaryNode) TargetNode;
@@ -453,8 +453,8 @@ public class BashSourceGenerator extends SourceGenerator {
 		else if(TargetNode instanceof GtApplyNode || TargetNode instanceof GtCommandNode || TargetNode instanceof GtConstructorNode) {
 			ResolvedValue = "$(" + Value + ")";
 		}
-		else if(TargetNode instanceof GtLocalNode && !this.IsNativeType(Type)) {
-			/*local*/GtLocalNode Local = (/*cast*/GtLocalNode) TargetNode;
+		else if(TargetNode instanceof GtGetLocalNode && !this.IsNativeType(Type)) {
+			/*local*/GtGetLocalNode Local = (/*cast*/GtGetLocalNode) TargetNode;
 			/*local*/String Name = Local.NativeName;
 			ResolvedValue = "${" + Value + "[@]}";
 			if(Name.length() == 1 && LibGreenTea.IsDigit(Name, 0)) {

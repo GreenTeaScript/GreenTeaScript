@@ -140,7 +140,7 @@ public class GtSourceGenerator extends GtGenerator {
 		while(CurrentNode != null) {
 			if(!this.IsEmptyBlock(CurrentNode)) {
 				this.VisitingBuilder.AppendIndent();
-				CurrentNode.Evaluate(this);
+				CurrentNode.Accept(this);
 				this.VisitingBuilder.AppendLine(this.SemiColon);
 			}
 			CurrentNode = CurrentNode.NextNode;
@@ -178,7 +178,7 @@ public class GtSourceGenerator extends GtGenerator {
 		/*local*/GtSourceBuilder CurrentBuilder = this.VisitingBuilder;
 		while(ParamIndex < ParamSize) {
 			this.VisitingBuilder = new GtSourceBuilder(this);
-			ParamList.get(ParamIndex).Evaluate(this);
+			ParamList.get(ParamIndex).Accept(this);
 			/*local*/String Param = this.VisitingBuilder.toString();
 			NativeMacro = NativeMacro.replace("$" + (ParamIndex + 1), Param);
 			ParamIndex += 1;

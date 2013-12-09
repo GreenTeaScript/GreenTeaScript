@@ -159,7 +159,7 @@ public class ArrayApi {
 //	return ArrayObject;
 ////	}
 //}
-//public final static GreenTeaArray NewArrayLiteral(GtType ArrayType, Object[] Values) {
+//public final static GreenTeaArray NewNewArray(GtType ArrayType, Object[] Values) {
 ////	if(ArrayType.TypeParams[0].BaseType.IsIntType()) {
 ////		GreenTeaIntArray ArrayObject =  new GreenTeaIntArray(ArrayType, Values.length);
 ////		for(int i = 0; i < Values.length; i++) {

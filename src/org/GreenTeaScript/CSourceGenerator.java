@@ -74,8 +74,8 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitWhileNode(GtWhileNode Node) {
-		/*local*/String Program = "while(" + this.VisitNode(Node.CondExpr) + ")";
-		Program += this.VisitBlockWithIndent(Node.LoopBody, true);
+		/*local*/String Program = "while(" + this.VisitNode(Node.CondNode) + ")";
+		Program += this.VisitBlockWithIndent(Node.BodyNode, true);
 		this.PushSourceCode(Program);
 	}
 
@@ -87,7 +87,7 @@ public class CSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitForNode(GtForNode Node) {
 		/*local*/String Cond = this.VisitNode(Node.CondExpr);
-		/*local*/String Iter = this.VisitNode(Node.IterExpr);
+		/*local*/String Iter = this.VisitNode(Node.IterNode);
 		/*local*/String Program = "for(; " + Cond  + "; " + Iter + ") ";
 		Program += this.VisitBlockWithIndent(Node.LoopBody, true);
 		this.PushSourceCode(Program);
@@ -106,7 +106,7 @@ public class CSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Program);
 	}
 
-	@Override public void VisitVarNode(GtVarNode Node) {
+	@Override public void VisitVarDeclNode(GtVarDeclNode Node) {
 		/*local*/String Type = this.LocalTypeName(Node.DeclType);
 		/*local*/String VarName = Node.NativeName;
 		/*local*/String Code = Type + " " + VarName;
@@ -123,7 +123,7 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitIfNode(GtIfNode Node) {
-		/*local*/String CondExpr = this.VisitNode(Node.CondExpr);
+		/*local*/String CondExpr = this.VisitNode(Node.CondNode);
 		/*local*/String ThenBlock = this.VisitBlockWithIndent(Node.ThenNode, true);
 		/*local*/String Code = "if(" + CondExpr + ") " + ThenBlock;
 		if(Node.ElseNode != null) {
@@ -134,20 +134,20 @@ public class CSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitTryNode(GtTryNode Node) {
 		/*local*/String Code = "try ";
-		Code += this.VisitBlockWithIndent(Node.TryBlock, true);
+		Code += this.VisitBlockWithIndent(Node.TryNode, true);
 		if(Node.CatchExpr != null) {
-		/*local*/GtVarNode Val = (/*cast*/GtVarNode) Node.CatchExpr;
+		/*local*/GtVarDeclNode Val = (/*cast*/GtVarDeclNode) Node.CatchExpr;
 			Code += " catch (" + Val.Type.toString() + " " + Val.NativeName + ") ";
 			Code += this.VisitBlockWithIndent(Node.CatchBlock, true);
 		}
-		if(Node.FinallyBlock != null) {
-			Code += " finally " + this.VisitBlockWithIndent(Node.FinallyBlock, true);
+		if(Node.FinallyNode != null) {
+			Code += " finally " + this.VisitBlockWithIndent(Node.FinallyNode, true);
 		}
 		this.PushSourceCode(Code);
 	}
 
 	@Override public void VisitThrowNode(GtThrowNode Node) {
-		/*local*/String Code = "throw " + this.VisitNode(Node.Expr);
+		/*local*/String Code = "throw " + this.VisitNode(Node.ValueNode);
 		this.PushSourceCode(Code);
 		this.StopVisitor(Node);
 	}

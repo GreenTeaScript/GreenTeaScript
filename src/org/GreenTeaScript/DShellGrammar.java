@@ -596,7 +596,7 @@ public class DShellGrammar extends GreenTeaUtils {
 		if(ActionNode.IsErrorNode()) {
 			return ActionNode;
 		}
-		if(ActionNode instanceof GtStaticApplyNode) {
+		if(ActionNode instanceof GtApplySymbolNode) {
 			if(Gamma.NameSpace.GetSymbol("RECServerURL") == null) {
 				return Gamma.CreateSyntaxErrorNode(ParsedTree, "constant variable 'RECServerURL' is not defined");
 			}
@@ -604,7 +604,7 @@ public class DShellGrammar extends GreenTeaUtils {
 				return Gamma.CreateSyntaxErrorNode(ParsedTree, "constant variable 'Location' is not defined");
 			}
 
-			/*local*/GtFunc ActionFunc = ((/*cast*/GtStaticApplyNode)ActionNode).Func;
+			/*local*/GtFunc ActionFunc = ((/*cast*/GtApplySymbolNode)ActionNode).Func;
 			if(ActionFunc.GetFuncParamSize() == 0) {
 				/*local*/GtFunc ReportFunc = (/*cast*/GtFunc)Gamma.NameSpace.GetSymbol("$ReportBuiltInFunc");
 				/*local*/GtNode ApplyNode = Gamma.Generator.CreateApplyNode(ContextType, ParsedTree, ReportFunc);
@@ -739,7 +739,7 @@ public class DShellGrammar extends GreenTeaUtils {
 		}
 		/*local*/GtNode Expr = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, GtStaticTable.TypeType, DefaultTypeCheckPolicy);
 		if(Expr.IsConstNode() && Expr.Type.IsTypeType()) {
-			/*local*/GtType ObjectType = (/*cast*/GtType)((/*cast*/GtConstNode)Expr).ConstValue;
+			/*local*/GtType ObjectType = (/*cast*/GtType)((/*cast*/GtConstPoolNode)Expr).ConstValue;
 			Expr = Gamma.Generator.CreateNewNode(ObjectType, ParsedTree);
 			//Expr = KonohaGrammar.TypeApply(Gamma, ParsedTree, ObjectType);
 		}

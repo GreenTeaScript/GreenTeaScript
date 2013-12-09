@@ -82,7 +82,7 @@ public class GreenTeaArray extends GreenTeaTopObject {
 		}
 		return ArrayObject;
 	}
-	public final static GreenTeaArray NewArrayLiteral(GtType ArrayType, Object[] Values) {
+	public final static GreenTeaArray NewNewArray(GtType ArrayType, Object[] Values) {
 		/*local*/GreenTeaArray ArrayObject =  new GreenTeaArray(ArrayType);
 		for(/*local*/int i = 0; i < Values.length; i++) {
 			ArrayObject.ArrayBody.add(Values[i]);
