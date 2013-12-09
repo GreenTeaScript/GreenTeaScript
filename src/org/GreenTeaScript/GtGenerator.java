@@ -261,157 +261,232 @@ public class GtGenerator extends GreenTeaUtils {
 
 	//------------------------------------------------------------------------
 
-	public void VisitEmptyNode(GtEmptyNode EmptyNode) {
-		LibGreenTea.DebugP("empty node: " + EmptyNode.Token.ParsedText);
-	}
-	public void VisitInstanceOfNode(GtInstanceOfNode Node) {
-		/*extention*/
-	}
-	public void VisitSelfAssignNode(GtSelfAssignNode Node) {
-		/*extention*/
-	}
-	public void VisitTrinaryNode(GtTrinaryNode Node) {
+	public void VisitEmptyNode(GtEmptyNode Node) {
+		LibGreenTea.DebugP("empty node: " + Node.Token.ParsedText);
 		/*extension*/
 	}
-	public void VisitExistsNode(GtExistsNode Node) {
-		/*extension*/
-	}
-	public void VisitCastNode(GtCastNode Node) {
-		/*extension*/
-	}
-	public void VisitSliceNode(GtSliceNode Node) {
-		/*extension*/
-	}
-	public void VisitSuffixNode(GtSuffixNode Node) {
-		/*extension*/
-	}
-	public void VisitUnaryNode(GtUnaryNode Node) {
-		/*extension*/
-	}
-	public void VisitIndexerNode(GtIndexerNode Node) {
-		/*extension*/
-	}
-	public void VisitArrayLiteralNode(GtArrayLiteralNode Node) {
-		/*extension*/
-	}
-	public void VisitNewArrayNode(GtNewArrayNode Node) {
-		/*extension*/
-	}
-	public void VisitWhileNode(GtWhileNode Node) {
-		/*extension*/
-	}
-	public void VisitDoWhileNode(GtDoWhileNode Node) {
-		/*extension*/
-	}
-	public void VisitForNode(GtForNode Node) {
-		/*extension*/
-	}
-	public void VisitForEachNode(GtForEachNode Node) {
-		/*extension*/
-	}
-	public void VisitBooleanNode(GtBooleanNode Node) {
-		/*extension*/
-	}
-	public void VisitIntNode(GtIntNode Node) {
-		/*extension*/
-	}
-	public void VisitFloatNode(GtFloatNode Node) {
-		/*extension*/
-	}
-	public void VisitStringNode(GtStringNode Node) {
-		/*extension*/
-	}
-	public void VisitRegexNode(GtRegexNode Node) {
-		/*extension*/
-	}
-	public void VisitAllocateNode(GtAllocateNode Node) {
-		/*extension*/
-	}
-	public void VisitConstructorNode(GtConstructorNode Node) {
-		/*extension*/
-	}
+
 	public void VisitNullNode(GtNullNode Node) {
 		/*extension*/
 	}
+
+	public void VisitBooleanNode(GtBooleanNode Node) {
+		/*extension*/
+	}
+
+	public void VisitIntNode(GtIntNode Node) {
+		/*extension*/
+	}
+
+	public void VisitFloatNode(GtFloatNode Node) {
+		/*extension*/
+	}
+
+	public void VisitStringNode(GtStringNode Node) {
+		/*extension*/
+	}
+
+	public void VisitRegexNode(GtRegexNode Node) {
+		/*extension*/
+	}
+
+	public void VisitConstPoolNode(GtConstPoolNode Node) {
+		/*extension*/
+	}
+
+	public void VisitArrayLiteralNode(GtArrayLiteralNode Node) {
+		/*extension*/
+	}
+
+	public void VisitMapLiteralNode(GtMapLiteralNode Node) {
+		/*extension*/
+	}
+
+	public void VisitParamNode(GtParamNode Node) {
+		/*extension*/
+	}
+
+	public void VisitFunctionLiteralNode(GtFunctionLiteralNode Node) {
+		/*extension*/
+	}
+
 	public void VisitGetLocalNode(GtGetLocalNode Node) {
 		/*extension*/
 	}
-	public void VisitGetterNode(GtGetterNode Node) {
-		/*extension*/
-	}
-	public void VisitSetterNode(GtSetterNode Node) {
-		/*extension*/
-	}
-	public void VisitDyGetterNode(GtDyGetterNode Node) {
-		/*extension*/
-	}
-	public void VisitDySetterNode(GtDySetterNode Node) {
-		/*extension*/
-	}
-	public void VisitApplyNode(GtApplyNode Node) {
-		/*extension*/
-	}
-	public void VisitApplySymbolNode(GtApplySymbolNode Node) {
-		/*extension*/
-	}
-//	public void VisitApplyStaticMethodNode(GtApplyStaticMethodNode Node) {
-//		/*extension*/
-//	}
-	public void VisitApplyOverridedMethodNode(GtApplyOverridedMethodNode Node) {
-		/*extension*/		
-	}
-	public void VisitApplyFuncionObjectNode(GtApplyFunctionObjectNode Node) {
-		/*extension*/		
-	}
-	public void VisitApplyDynamicFuncNode(GtApplyDynamicFuncNode Node) {
-		/*extension*/		
-	}
-	public void VisitApplyDynamicMethodNode(GtApplyDynamicMethodNode Node) {
-		/*extension*/		
-	}
-	public void VisitBinaryNode(GtBinaryNode Node) {
-		/*extension*/
-	}
-	public void VisitAndNode(GtAndNode Node) {
-		/*extension*/
-	}
-	public void VisitOrNode(GtOrNode Node) {
-		/*extension*/
-	}
+
 	public void VisitSetLocalNode(GtSetLocalNode Node) {
 		/*extension*/
 	}
+
+	public void VisitGetCapturedNode(GtGetCapturedNode Node) {
+		/*extension*/
+	}
+
+	public void VisitSetCapturedNode(GtSetCapturedNode Node) {
+		/*extension*/
+	}
+
+	public void VisitGetterNode(GtGetterNode Node) {
+		/*extension*/
+	}
+
+	public void VisitSetterNode(GtSetterNode Node) {
+		/*extension*/
+	}
+
+	public void VisitApplySymbolNode(GtApplySymbolNode Node) {
+		/*extension*/
+	}
+
+	public void VisitApplyFunctionObjectNode(GtApplyFunctionObjectNode Node) {
+		/*extension*/
+	}
+
+	public void VisitApplyOverridedMethodNode(GtApplyOverridedMethodNode Node) {
+		/*extension*/
+	}
+
+	public void VisitGetIndexNode(GtGetIndexNode Node) {
+		/*extension*/
+	}
+
+	public void VisitSetIndexNode(GtSetIndexNode Node) {
+		/*extension*/
+	}
+
+	public void VisitSliceNode(GtSliceNode Node) {
+		/*extension*/
+	}
+
+	public void VisitAndNode(GtAndNode Node) {
+		/*extension*/
+	}
+
+	public void VisitOrNode(GtOrNode Node) {
+		/*extension*/
+	}
+
+	public void VisitUnaryNode(GtUnaryNode Node) {
+		/*extension*/
+	}
+
+	public void VisitPrefixInclNode(GtPrefixInclNode Node) {
+		/*extension*/
+	}
+
+	public void VisitPrefixDeclNode(GtPrefixDeclNode Node) {
+		/*extension*/
+	}
+
+	public void VisitSuffixInclNode(GtSuffixInclNode Node) {
+		/*extension*/
+	}
+
+	public void VisitSuffixDeclNode(GtSuffixDeclNode Node) {
+		/*extension*/
+	}
+
+	public void VisitBinaryNode(GtBinaryNode Node) {
+		/*extension*/
+	}
+
+	public void VisitTrinaryNode(GtTrinaryNode Node) {
+		/*extension*/
+	}
+
+	public void VisitConstructorNode(GtConstructorNode Node) {
+		/*extension*/
+	}
+
+	public void VisitAllocateNode(GtAllocateNode Node) {
+		/*extension*/
+	}
+
+	public void VisitNewArrayNode(GtNewArrayNode Node) {
+		/*extension*/
+	}
+
+	public void VisitInstanceOfNode(GtInstanceOfNode Node) {
+		/*extension*/
+	}
+
+	public void VisitCastNode(GtCastNode Node) {
+		/*extension*/
+	}
+
 	public void VisitVarDeclNode(GtVarDeclNode Node) {
 		/*extension*/
 	}
+
+	public void VisitUsingNode(GtUsingNode Node) {
+		/*extension*/
+	}
+
 	public void VisitIfNode(GtIfNode Node) {
 		/*extension*/
 	}
-	public void VisitSwitchNode(GtSwitchNode Node) {
+
+	public void VisitWhileNode(GtWhileNode Node) {
 		/*extension*/
 	}
-	public void VisitReturnNode(GtReturnNode Node) {
+
+	public void VisitDoWhileNode(GtDoWhileNode Node) {
 		/*extension*/
 	}
-	public void VisitBreakNode(GtBreakNode Node) {
+
+	public void VisitForNode(GtForNode Node) {
 		/*extension*/
 	}
+
+	public void VisitForEachNode(GtForEachNode Node) {
+		/*extension*/
+	}
+
 	public void VisitContinueNode(GtContinueNode Node) {
 		/*extension*/
 	}
-	public void VisitTryNode(GtTryNode Node) {
+
+	public void VisitBreakNode(GtBreakNode Node) {
 		/*extension*/
 	}
+
+	public void VisitStatementNode(GtStatementNode Node) {
+		/*extension*/
+	}
+
+	public void VisitReturnNode(GtReturnNode Node) {
+		/*extension*/
+	}
+
+	public void VisitYieldNode(GtYieldNode Node) {
+		/*extension*/
+	}
+
 	public void VisitThrowNode(GtThrowNode Node) {
 		/*extension*/
 	}
-	public void VisitFunctionNode(GtFunctionLiteralNode Node) {
+
+	public void VisitTryNode(GtTryNode Node) {
 		/*extension*/
 	}
-	public void VisitErrorNode(GtErrorNode Node) {
+
+	public void VisitCatchNode(GtCatchNode Node) {
 		/*extension*/
 	}
+
+	public void VisitSwitchNode(GtSwitchNode Node) {
+		/*extension*/
+	}
+
+	public void VisitCaseNode(GtCaseNode Node) {
+		/*extension*/
+	}
+
 	public void VisitCommandNode(GtCommandNode Node) {
+		/*extension*/
+	}
+
+	public void VisitErrorNode(GtErrorNode Node) {
 		/*extension*/
 	}
 
