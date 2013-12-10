@@ -590,10 +590,34 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	}
 
 	//-----------------------------------------------------
+	@Override public void VisitNullNode(GtNullNode Node) {
+		this.VisitingBuilder.AsmVisitor.visitInsn(ACONST_NULL);
+	}
+
+	@Override public void VisitBooleanNode(GtBooleanNode Node) {
+		this.VisitingBuilder.AsmVisitor.visitLdcInsn(Node.Value);
+	}
+
+	@Override public void VisitIntNode(GtIntNode Node) {
+		this.VisitingBuilder.AsmVisitor.visitLdcInsn(Node.Value);
+	}
+
+	@Override public void VisitFloatNode(GtFloatNode Node) {
+		this.VisitingBuilder.AsmVisitor.visitLdcInsn(Node.Value);
+	}
+
+	@Override public void VisitStringNode(GtStringNode Node) {
+		this.VisitingBuilder.AsmVisitor.visitLdcInsn(Node.Value);
+	}
+
+	//FIXME Need to Implement
+//	@Override public void VisitRegexNode(GtRegexNode Node) {
+//		this.VisitingBuilder.Append("");
+//	}
 
 	@Override public void VisitConstPoolNode(GtConstPoolNode Node) {
 		Object constValue = Node.ConstValue;
-		LibGreenTea.Assert(Node.ConstValue != null);  // Added by kimio
+		LibGreenTea.Assert(Node.ConstValue != null);
 		this.VisitingBuilder.LoadConst(constValue);
 	}
 
@@ -608,10 +632,6 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		} else {
 			this.VisitingBuilder.AsmVisitor.visitMethodInsn(INVOKESPECIAL, owner, "<init>", "()V");
 		}
-	}
-
-	@Override public void VisitNullNode(GtNullNode Node) {
-		this.VisitingBuilder.AsmVisitor.visitInsn(ACONST_NULL);
 	}
 
 	@Override public void VisitGetLocalNode(GtGetLocalNode Node) {
@@ -996,7 +1016,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		//this.VisitingBuilder.MethodVisitor.visitInsn(DUP);
 		//Node.Expr.Accept(this);
 		//this.box();
-//		//this.VisitingBuilder.typeStack.pop();
+		//this.VisitingBuilder.typeStack.pop();
 		//this.VisitingBuilder.MethodVisitor.visitMethodInsn(INVOKESPECIAL, name, "<init>", "(Ljava/lang/Object;)V");
 		//this.VisitingBuilder.MethodVisitor.visitInsn(ATHROW);
 	}
