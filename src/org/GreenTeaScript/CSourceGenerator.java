@@ -74,11 +74,16 @@ public class CSourceGenerator extends GtSourceGenerator {
 	}
 
 	@Override public void VisitNullNode(GtNullNode Node) {
-		this.VisitingBuilder.Append("null");
+		this.VisitingBuilder.Append(this.NullLiteral);
 	}
 
 	@Override public void VisitBooleanNode(GtBooleanNode Node) {
-		this.VisitingBuilder.Append(Boolean.toString(Node.Value));
+		if(Node.Value) {
+			this.VisitingBuilder.Append(this.TrueLiteral);
+		}
+		else {
+			this.VisitingBuilder.Append(this.FalseLiteral);
+		}
 	}
 
 	@Override public void VisitIntNode(GtIntNode Node) {
