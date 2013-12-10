@@ -503,12 +503,12 @@ final class GtSliceNode extends GtSymbolNode {
 	/*field*/public GtNode RecvNode;
 	/*field*/public GtNode Index1;
 	/*field*/public GtNode Index2;
-	GtSliceNode/*constructor*/(GtType Type, GtToken Token, GtNode Expr, GtNode Index1, GtNode Index2) {
+	GtSliceNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, GtNode Index1, GtNode Index2) {
 		super(Type, Token, "");
-		this.RecvNode = Expr;
+		this.RecvNode = RecvNode;
 		this.Index1 = Index1;
 		this.Index2 = Index2;
-		this.SetChild3(Expr, Index1, Index2);
+		this.SetChild3(RecvNode, Index1, Index2);
 	}
 	@Override public void Accept(GtGenerator Visitor) {
 		Visitor.VisitSliceNode(this);
@@ -1138,7 +1138,7 @@ final class GtTryNode extends GtNode {
 	/*field*/public GtNode	TryNode;
 	/*field*/public ArrayList<GtNode> 	CatchList;
 	/*field*/public GtNode	FinallyNode;
-	GtTryNode/*constructor*/(GtType Type, GtToken Token, GtNode TryBlock, GtNode CatchExpr, GtNode CatchBlock, GtNode FinallyBlock) {
+	GtTryNode/*constructor*/(GtType Type, GtToken Token, GtNode TryBlock, GtNode FinallyBlock) {
 		super(Type, Token);
 		this.TryNode = TryBlock;
 		this.FinallyNode = FinallyBlock;

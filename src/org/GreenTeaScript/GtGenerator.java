@@ -28,6 +28,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+
 import org.GreenTeaScript.DShell.DShellProcess;
 //endif VAJA
 
@@ -58,163 +59,240 @@ public class GtGenerator extends GreenTeaUtils {
 		return new GtErrorNode(GtStaticTable.VoidType, ParsedTree.KeyToken);
 	}
 
-	public GtNode CreateConstNode(GtType Type, GtSyntaxTree ParsedTree, Object Value) {
-		if(Type.IsVarType()) {
-			Type = GtStaticTable.GuessType(Value);
-		}
-		return new GtConstPoolNode(Type, ParsedTree != null ? ParsedTree.KeyToken : GtTokenContext.NullToken, Value);
+	public GtNode CreateEmptyNode(GtType Type, GtSyntaxTree ParsedTree) {
+		return new GtEmptyNode(Type, ParsedTree.KeyToken);
 	}
 
 	public GtNode CreateNullNode(GtType Type, GtSyntaxTree ParsedTree) {
 		return new GtNullNode(Type, ParsedTree.KeyToken);
 	}
-	public GtNode CreateArrayNode(GtType ArrayType, GtSyntaxTree ParsedTree) {
-		return new GtArrayLiteralNode(ArrayType, ParsedTree.KeyToken);
+
+	public GtNode CreateBooleanNode(GtType Type, GtSyntaxTree ParsedTree, boolean Value) {
+		return new GtBooleanNode(Type, ParsedTree.KeyToken, Value);
 	}
-	public GtNode CreateNewArrayNode(GtType ArrayType, GtSyntaxTree ParsedTree) {
-		return new GtNewArrayNode(ArrayType, ParsedTree.KeyToken);
+
+	public GtNode CreateIntNode(GtType Type, GtSyntaxTree ParsedTree, long Value) {
+		return new GtIntNode(Type, ParsedTree.KeyToken, Value);
 	}
-	public GtNode CreateLocalNode(GtType Type, GtSyntaxTree ParsedTree, String LocalName) {
-		return new GtGetLocalNode(Type, ParsedTree.KeyToken, LocalName);
+
+	public GtNode CreateFloatNode(GtType Type, GtSyntaxTree ParsedTree, double Value) {
+		return new GtFloatNode(Type, ParsedTree.KeyToken, Value);
 	}
-	public GtNode CreateGetterNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, GtNode Expr) {
-		return new GtGetterNode(Type, ParsedTree.KeyToken, Func, Expr);
+
+	public GtNode CreateStringNode(GtType Type, GtSyntaxTree ParsedTree, String Value) {
+		return new GtStringNode(Type, ParsedTree.KeyToken, Value);
 	}
-	public GtNode CreateDyGetterNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Expr, String FieldName) {
-		if(Type.IsVarType()) {
-			Type = GtStaticTable.AnyType;
-		}
-		return new GtDyGetterNode(Type, ParsedTree.KeyToken, Expr, ParsedTree.NameSpace, FieldName);
+
+	public GtNode CreateRegexNode(GtType Type, GtSyntaxTree ParsedTree, String Value) {
+		return new GtRegexNode(Type, ParsedTree.KeyToken, Value);
 	}
-	public GtNode CreateSetterNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, GtNode Left, GtNode Right) {
-		return new GtSetterNode(Type, ParsedTree.KeyToken, Func, Left, Right);
+
+	public GtNode CreateConstPoolNode(GtType Type, GtSyntaxTree ParsedTree, Object Value) {
+		return new GtConstPoolNode(Type, ParsedTree.KeyToken, Value);
 	}
-	public GtNode CreateDySetterNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Left, String Name, GtNode Right) {
-		return new GtDySetterNode(Type, ParsedTree.KeyToken, Left, ParsedTree.NameSpace, Name, Right);
+
+	public GtNode CreateArrayLiteralNode(GtType Type, GtSyntaxTree ParsedTree) {
+		return new GtArrayLiteralNode(Type, ParsedTree.KeyToken);
 	}
-	public GtNode CreateIndexerNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, GtNode Expr) {
-		return new GtIndexerNode(Type, ParsedTree.KeyToken, Func, Expr);
+
+	public GtNode CreateMapLiteralNode(GtType Type, GtSyntaxTree ParsedTree) {
+		return new GtMapLiteralNode(Type, ParsedTree.KeyToken);
 	}
-	@Deprecated public GtNode CreateApplyNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func) {
-		return new GtApplyNode(Type, ParsedTree == null ? GtTokenContext.NullToken : ParsedTree.KeyToken, Func);
+
+	public GtNode CreateParamNode(GtType Type, GtSyntaxTree ParsedTree, String Name, GtNode InitNode) {
+		return new GtParamNode(Type, ParsedTree.KeyToken, Name, InitNode);
 	}
-	public GtNode CreateStaticApplyNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func) {
-		return new GtApplySymbolNode(Type, ParsedTree == null ? GtTokenContext.NullToken : ParsedTree.KeyToken, Func);
+
+	public GtNode CreateFunctionLiteralNode(GtType Type, GtSyntaxTree ParsedTree, GtNode BodyNode) {
+		return new GtFunctionLiteralNode(Type, ParsedTree.KeyToken, BodyNode);
 	}
-	public final GtNode CreateCoercionNode(GtType Type, GtNameSpace NameSpace, GtFunc Func, GtNode Node) {
-		/*local*/GtNode ApplyNode = this.CreateStaticApplyNode(Type, null, Func);
-		ApplyNode.Append(Node);
-//		if(Func.GetFuncParamSize() > 1) {
-//			ApplyNode.AutoParam(Func.GetFuncParamType(1), NameSpace);
-//		}
-		return ApplyNode;
+
+	public GtNode CreateGetLocalNode(GtType Type, GtSyntaxTree ParsedTree, String NativeName) {
+		return new GtGetLocalNode(Type, ParsedTree.KeyToken, NativeName);
 	}
-	public GtNode CreateApplyFuncNode(GtType Type, GtSyntaxTree ParsedTree, GtNode FuncNode) {
+
+	public GtNode CreateSetLocalNode(GtType Type, GtSyntaxTree ParsedTree, String NativeName, GtNode ValueNode) {
+		return new GtSetLocalNode(Type, ParsedTree.KeyToken, NativeName, ValueNode);
+	}
+
+	public GtNode CreateGetCapturedNode(GtType Type, GtSyntaxTree ParsedTree, String NativeName) {
+		return new GtGetCapturedNode(Type, ParsedTree.KeyToken, NativeName);
+	}
+
+	public GtNode CreateSetCapturedNode(GtType Type, GtSyntaxTree ParsedTree, String NativeName, GtNode ValueNode) {
+		return new GtSetCapturedNode(Type, ParsedTree.KeyToken, NativeName, ValueNode);
+	}
+
+	public GtNode CreateGetterNode(GtType Type, GtSyntaxTree ParsedTree, GtNode RecvNode, String NativeName) {
+		return new GtGetterNode(Type, ParsedTree.KeyToken, RecvNode, NativeName);
+	}
+
+	public GtNode CreateSetterNode(GtType Type, GtSyntaxTree ParsedTree, GtNode RecvNode, String NativeName, GtNode ValueNode) {
+		return new GtSetterNode(Type, ParsedTree.KeyToken, RecvNode, NativeName, ValueNode);
+	}
+
+	public GtNode CreateApplySymbolNode(GtType Type, GtSyntaxTree ParsedTree, String FuncName) {
+		return new GtApplySymbolNode(Type, ParsedTree.KeyToken, FuncName);
+	}
+
+	public GtNode CreateApplyFunctionObjectNode(GtType Type, GtSyntaxTree ParsedTree, GtNode FuncNode) {
 		return new GtApplyFunctionObjectNode(Type, ParsedTree.KeyToken, FuncNode);
 	}
-	public GtNode CreateApplyMethodNode(GtType Type, GtSyntaxTree ParsedTree, GtNode RecvNode, GtFunc Func) {
-		if(Func.Is(VirtualFunc)) {
-			return new GtApplyOverridedMethodNode(Type, ParsedTree.KeyToken, ParsedTree.NameSpace.Minimum(), Func);
-		}
-		else {
-			return new GtApplySymbolNode(Type, ParsedTree.KeyToken, Func);
-		}
+
+	public GtNode CreateApplyOverridedMethodNode(GtType Type, GtSyntaxTree ParsedTree, GtNameSpace NameSpace, GtFunc Func) {
+		return new GtApplyOverridedMethodNode(Type, ParsedTree.KeyToken, NameSpace, Func);
 	}
-	public GtNode CreateApplyDynamicMethodNode(GtType Type, GtSyntaxTree ParsedTree, String Name) {
-		if(Type.IsVarType()) {
-			Type = GtStaticTable.AnyType;
-		}
-		return new GtApplyDynamicMethodNode(Type, ParsedTree.KeyToken, ParsedTree.NameSpace.Minimum(), Name);
+
+	public GtNode CreateGetIndexNode(GtType Type, GtSyntaxTree ParsedTree, GtNode RecvNode, GtNode IndexNode) {
+		return new GtGetIndexNode(Type, ParsedTree.KeyToken, RecvNode, IndexNode);
 	}
-	public GtNode CreateNewNode(GtType Type, GtSyntaxTree ParsedTree) {
-		return new GtAllocateNode(Type, ParsedTree.KeyToken);
+
+	public GtNode CreateSetIndexNode(GtType Type, GtSyntaxTree ParsedTree, GtNode RecvNode, GtNode IndexNode, GtNode ValueNode) {
+		return new GtSetIndexNode(Type, ParsedTree.KeyToken, RecvNode, IndexNode, ValueNode);
 	}
-	public GtNode CreateConstructorNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, ArrayList<GtNode> NodeList) {
-		/*local*/GtConstructorNode Node = new GtConstructorNode(Type, ParsedTree.KeyToken, Func);
-		if(NodeList != null) {
-			Node.AppendNodeList(0, NodeList);
-		}
-		return Node;
+
+	public GtNode CreateSliceNode(GtType Type, GtSyntaxTree ParsedTree, GtNode RecvNode, GtNode Index1, GtNode Index2) {
+		return new GtSliceNode(Type, ParsedTree.KeyToken, RecvNode, Index1, Index2);
 	}
-	public GtNode CreateUnaryNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, GtNode Expr) {
-		return new GtUnaryNode(Type, ParsedTree.KeyToken, Func, Expr);
+
+	public GtNode CreateAndNode(GtType Type, GtSyntaxTree ParsedTree, GtNode LeftNode, GtNode RightNode) {
+		return new GtAndNode(Type, ParsedTree.KeyToken, LeftNode, RightNode);
 	}
-	public GtNode CreateSuffixNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, GtNode Expr) {
-		return new GtSuffixNode(Type, ParsedTree.KeyToken, Func, Expr);
+
+	public GtNode CreateOrNode(GtType Type, GtSyntaxTree ParsedTree, GtNode LeftNode, GtNode RightNode) {
+		return new GtOrNode(Type, ParsedTree.KeyToken, LeftNode, RightNode);
 	}
-	public GtNode CreateBinaryNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, GtNode Left, GtNode Right) {
-		return new GtBinaryNode(Type, ParsedTree.KeyToken, Func, Left, Right);
+
+	public GtNode CreateUnaryNode(GtType Type, GtSyntaxTree ParsedTree, GtNode ValueNode) {
+		return new GtUnaryNode(Type, ParsedTree.KeyToken, ValueNode);
 	}
-	public GtNode CreateAndNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Left, GtNode Right) {
-		return new GtAndNode(Type, ParsedTree.KeyToken, Left, Right);
+
+	public GtNode CreatePrefixInclNode(GtType Type, GtSyntaxTree ParsedTree, GtNode RecvNode) {
+		return new GtPrefixInclNode(Type, ParsedTree.KeyToken, RecvNode);
 	}
-	public GtNode CreateOrNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Left, GtNode Right) {
-		return new GtOrNode(Type, ParsedTree.KeyToken, Left, Right);
+
+	public GtNode CreatePrefixDeclNode(GtType Type, GtSyntaxTree ParsedTree, GtNode RecvNode) {
+		return new GtPrefixDeclNode(Type, ParsedTree.KeyToken, RecvNode);
 	}
-	public GtNode CreateInstanceOfNode(GtType Type, GtSyntaxTree ParsedTree, GtNode LeftNode, GtType GivenType) {
-		return new GtInstanceOfNode(Type, ParsedTree.KeyToken, LeftNode, GivenType);
+
+	public GtNode CreateSuffixInclNode(GtType Type, GtSyntaxTree ParsedTree, GtNode RecvNode) {
+		return new GtSuffixInclNode(Type, ParsedTree.KeyToken, RecvNode);
 	}
-	public GtNode CreateAssignNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Left, GtNode Right) {
-		return new GtSetLocalNode(Type, ParsedTree.KeyToken, Left, Right);
+
+	public GtNode CreateSuffixDeclNode(GtType Type, GtSyntaxTree ParsedTree, GtNode RecvNode) {
+		return new GtSuffixDeclNode(Type, ParsedTree.KeyToken, RecvNode);
 	}
-	public GtNode CreateSelfAssignNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func, GtNode Left, GtNode Right) {
-		return new GtSelfAssignNode(Type, ParsedTree.KeyToken, Func, Left, Right);
+
+	public GtNode CreateBinaryNode(GtType Type, GtSyntaxTree ParsedTree, GtNode LeftNode, GtNode RightNode) {
+		return new GtBinaryNode(Type, ParsedTree.KeyToken, LeftNode,RightNode);
 	}
-	public GtNode CreateVarNode(GtType Type, GtSyntaxTree ParsedTree, GtType DeclType, String VariableName, GtNode InitNode, GtNode Block) {
-		return new GtVarDeclNode(Type, ParsedTree.KeyToken, DeclType, VariableName, InitNode, Block);
-	}
+
 	public GtNode CreateTrinaryNode(GtType Type, GtSyntaxTree ParsedTree, GtNode CondNode, GtNode ThenNode, GtNode ElseNode) {
 		return new GtTrinaryNode(Type, ParsedTree.KeyToken, CondNode, ThenNode, ElseNode);
 	}
-	public GtNode CreateIfNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Cond, GtNode Then, GtNode Else) {
-		return new GtIfNode(Type, ParsedTree.KeyToken, Cond, Then, Else);
+
+	public GtNode CreateConstructorNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc Func) {
+		return new GtConstructorNode(Type, ParsedTree.KeyToken, Func);
 	}
-	public GtNode CreateSwitchNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Match, GtNode DefaultBlock) {
-		return new GtSwitchNode(Type, ParsedTree.KeyToken, Match, DefaultBlock);
+
+	public GtNode CreateAllocateNode(GtType Type, GtSyntaxTree ParsedTree) {
+		return new GtAllocateNode(Type, ParsedTree.KeyToken);
 	}
-	public GtNode CreateWhileNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Cond, GtNode Block) {
-		return new GtWhileNode(Type, ParsedTree.KeyToken, Cond, Block);
+
+	public GtNode CreateNewArrayNode(GtType Type, GtSyntaxTree ParsedTree) {
+		return new GtNewArrayNode(Type, ParsedTree.KeyToken);
 	}
-	public GtNode CreateDoWhileNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Cond, GtNode Block) {
-		return new GtDoWhileNode(Type, ParsedTree.KeyToken, Cond, Block);
+
+	public GtNode CreateInstanceOfNode(GtType Type, GtSyntaxTree ParsedTree, GtNode ExprNode, GtType TypeInfo) {
+		return new GtInstanceOfNode(Type, ParsedTree.KeyToken, ExprNode, TypeInfo);
 	}
-	public GtNode CreateForNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Cond, GtNode IterNode, GtNode Block) {
-		return new GtForNode(Type, ParsedTree.KeyToken, Cond, IterNode, Block);
+
+	public GtNode CreateCastNode(GtType Type, GtSyntaxTree ParsedTree, GtNode ExprNode, GtType TypeInfo) {
+		return new GtCastNode(Type, ParsedTree.KeyToken, TypeInfo, ExprNode);
 	}
-	public GtNode CreateForEachNode(GtType Type, GtSyntaxTree ParsedTree, GtNode VarNode, GtNode IterNode, GtNode Block) {
-		return new GtForEachNode(Type, ParsedTree.KeyToken, VarNode, IterNode, Block);
+
+	public GtNode CreateVarDeclNode(GtType Type, GtSyntaxTree ParsedTree, GtType DeclType, String VariableName, GtNode InitNode, GtNode Block) {
+		return new GtVarDeclNode(Type, ParsedTree.KeyToken, DeclType, VariableName, InitNode, Block);
 	}
-	public GtNode CreateReturnNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Node) {
-		return new GtReturnNode(Type, ParsedTree.KeyToken, Node);
+
+	public GtNode CreateUsingNode(GtType Type, GtSyntaxTree ParsedTree, GtType DeclType, String VariableName, GtNode InitNode, GtNode Block) {
+		return new GtUsingNode(Type, ParsedTree.KeyToken, DeclType, VariableName, InitNode, Block);
 	}
-	public GtNode CreateLabelNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Node) {
-		return null;
+
+	public GtNode CreateIfNode(GtType Type, GtSyntaxTree ParsedTree, GtNode CondNode, GtNode ThenNode, GtNode ElseNode) {
+		return new GtIfNode(Type, ParsedTree.KeyToken, CondNode, ThenNode, ElseNode);
 	}
-	public GtNode CreateBreakNode(GtType Type, GtSyntaxTree ParsedTree, String Label) {
-		return new GtBreakNode(Type, ParsedTree.KeyToken, Label);
+
+	public GtNode CreateWhileNode(GtType Type, GtSyntaxTree ParsedTree, GtNode CondNode, GtNode BodyNode) {
+		return new GtWhileNode(Type, ParsedTree.KeyToken, CondNode, BodyNode);
 	}
-	public GtNode CreateContinueNode(GtType Type, GtSyntaxTree ParsedTree, String Label) {
-		return new GtContinueNode(Type, ParsedTree.KeyToken, Label);
+
+	public GtNode CreateDoWhileNode(GtType Type, GtSyntaxTree ParsedTree, GtNode CondNode, GtNode BodyNode) {
+		return new GtDoWhileNode(Type, ParsedTree.KeyToken, CondNode, BodyNode);
 	}
-	public GtNode CreateTryNode(GtType Type, GtSyntaxTree ParsedTree, GtNode TryBlock, GtNode CatchExpr, GtNode CatchNode, GtNode FinallyBlock) {
-		return new GtTryNode(Type, ParsedTree.KeyToken, TryBlock, CatchExpr, CatchNode, FinallyBlock);
+
+	public GtNode CreateForNode(GtType Type, GtSyntaxTree ParsedTree, GtNode CondNode, GtNode IterNode, GtNode BodyNode) {
+		return new GtForNode(Type, ParsedTree.KeyToken, CondNode, IterNode, BodyNode);
 	}
-	public GtNode CreateThrowNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Node) {
-		return new GtThrowNode(Type, ParsedTree.KeyToken, Node);
+
+	public GtNode CreateForEachNode(GtType Type, GtSyntaxTree ParsedTree, GtNode VariableNode, GtNode IterNode, GtNode BodyNode) {
+		return new GtForEachNode(Type, ParsedTree.KeyToken, VariableNode, IterNode, BodyNode);
 	}
-	public GtNode CreateFunctionNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Block) {
-		return null;
+
+	public GtNode CreateContinueNode(GtType Type, GtSyntaxTree ParsedTree, String LabelName) {
+		return new GtContinueNode(Type, ParsedTree.KeyToken, LabelName);
 	}
-	public GtNode CreateEmptyNode(GtType Type) {
-		return new GtEmptyNode(Type, GtTokenContext.NullToken);
+
+	public GtNode CreateBreakNode(GtType Type, GtSyntaxTree ParsedTree, String LabelName) {
+		return new GtBreakNode(Type, ParsedTree.KeyToken, LabelName);
 	}
-	public GtNode CreateErrorNode(GtType Type, GtSyntaxTree ParsedTree) {
-		return new GtErrorNode(GtStaticTable.VoidType, ParsedTree.KeyToken);
+
+	public GtNode CreateStatementNode(GtType Type, GtSyntaxTree ParsedTree, GtNode ValueNode) {
+		return new GtStatementNode(Type, ParsedTree.KeyToken, ValueNode);
 	}
-	public GtNode CreateCommandNode(GtType Type, GtSyntaxTree ParsedTree,GtNode PipedNextNode) {
+
+	public GtNode CreateReturnNode(GtType Type, GtSyntaxTree ParsedTree, GtNode ValueNode) {
+		return new GtReturnNode(Type, ParsedTree.KeyToken, ValueNode);
+	}
+
+	public GtNode CreateYieldNode(GtType Type, GtSyntaxTree ParsedTree, GtNode ValueNode) {
+		return new GtYieldNode(Type, ParsedTree.KeyToken, ValueNode);
+	}
+
+	public GtNode CreateThrowNode(GtType Type, GtSyntaxTree ParsedTree, GtNode ValueNode) {
+		return new GtThrowNode(Type, ParsedTree.KeyToken, ValueNode);
+	}
+
+	public GtNode CreateTryNode(GtType Type, GtSyntaxTree ParsedTree, GtNode TryBlock, GtNode FinallyBlock) {
+		return new GtTryNode(Type, ParsedTree.KeyToken, TryBlock, FinallyBlock);
+	}
+
+	public GtNode CreateCatchNode(GtType Type, GtSyntaxTree ParsedTree, GtType ExceptionType, String Name, GtNode BodyNode) {
+		return new GtCatchNode(Type, ParsedTree.KeyToken, ExceptionType, Name, BodyNode);
+	}
+
+	public GtNode CreateSwitchNode(GtType Type, GtSyntaxTree ParsedTree, GtNode MatchNode, GtNode DefaultBlock) {
+		return new GtSwitchNode(Type, ParsedTree.KeyToken, MatchNode, DefaultBlock);
+	}
+
+	public GtNode CreateCaseNode(GtType Type, GtSyntaxTree ParsedTree, GtNode CaseNode, GtNode BodyNode) {
+		return new GtCaseNode(Type, ParsedTree.KeyToken, CaseNode, BodyNode);
+	}
+
+	public GtNode CreateCommandNode(GtType Type, GtSyntaxTree ParsedTree, GtNode PipedNextNode) {
 		return new GtCommandNode(Type, ParsedTree.KeyToken, PipedNextNode);
 	}
 
+	public GtNode CreateErrorNode(GtType Type, GtSyntaxTree ParsedTree) {
+		return new GtErrorNode(Type, ParsedTree.KeyToken);
+	}
+
+	//
+	public final GtNode CreateCoercionNode(GtType Type, GtNameSpace NameSpace, GtFunc Func, GtNode Node) {
+		/*local*/GtNode ApplyNode = this.CreateApplySymbolNode(Type, null, "Coercion"/*FIXME*/);
+		ApplyNode.Append(Node);
+		return ApplyNode;
+	}
 	/* language constructor */
 
 	public void OpenClassField(GtSyntaxTree ParsedTree, GtType DefinedType, GtClassField ClassField) {
@@ -508,6 +586,75 @@ public class GtGenerator extends GreenTeaUtils {
 		this.VisitBlock(Node);
 		return null;
 	}
+	
+	public String GetSourceCode() {
+		return null;
+		/*extension*/
+	}
+
+	public void FlushBuffer() {
+		/*extension*/
+	}
+
+	public String BlockComment(String Comment) {
+		return "/*" + Comment + "*/";
+	}
+
+	public void StartCompilationUnit() {
+		/*extension*/
+	}
+
+	public void FinishCompilationUnit() {
+		/*extension*/
+	}
+
+	protected void PushCode(Object Code) {
+		this.GeneratedCodeStack.add(Code);
+	}
+
+	protected final Object PopCode() {
+		/*local*/int Size = this.GeneratedCodeStack.size();
+		if(Size > 0) {
+			/*local*/Object content = this.GeneratedCodeStack.get(Size - 1);
+			this.GeneratedCodeStack.remove(Size - 1);
+			return content;
+		}
+		return "";
+	}
+
+	public String GetRecvName() {
+		return "this";  // default
+	}
+
+	public void InvokeMainFunc(String MainFuncName) {
+		/*extension*/
+	}
+
+	private Object[] MakeArguments(Object RecvObject, ArrayList<GtNode> ParamList, boolean EnforceConst) {
+		/*local*/int StartIdx = 0;
+		/*local*/int Size = LibGreenTea.ListSize(ParamList);
+		/*local*/Object[] Values = new Object[RecvObject == null ? Size : Size + 1];
+		if(RecvObject != null) {
+			Values[0] = RecvObject;
+			StartIdx = 1;
+		}
+		/*local*/int i = 0;
+		while(i < Size) {
+			/*local*/GtNode Node = ParamList.get(i);
+			if(Node.IsNullNode()) {
+				Values[StartIdx + i] = null;
+			}
+			else {
+				/*local*/Object Value = Node.ToConstValue(this.Context, EnforceConst);
+				if(Value == null) {
+					return null;
+				}
+				Values[StartIdx + i] = Value;
+			}
+			i += 1;
+		}
+		return Values;
+	}
 
 	// EnforceConst : 
 	
@@ -610,14 +757,14 @@ public class GtGenerator extends GreenTeaUtils {
 	public Object EvalGetterNode(GtGetterNode Node, boolean EnforceConst) {
 //ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
 		//System.err.println("** Node.Func = " + Node.Func);
-		if(Node.Func != null) {
+		if(Node.ResolvedFunc != null) {
 			Object Value = Node.RecvNode.ToConstValue(this.Context, EnforceConst);
 			if(Value == null) {
 				return Value;
 			}
 			//System.err.println("** Node.Func = " + Node.Func.FuncBody.getClass());
-			if(Node.Func.FuncBody instanceof Field) {
-				Value = LibNative.GetNativeFieldValue(Value, (/*cast*/Field)Node.Func.FuncBody);
+			if(Node.ResolvedFunc.FuncBody instanceof Field) {
+				Value = LibNative.GetNativeFieldValue(Value, (/*cast*/Field)Node.ResolvedFunc.FuncBody);
 				return Value;
 			}
 //			if(Node.Func.FuncBody instanceof Method) {
@@ -630,7 +777,7 @@ public class GtGenerator extends GreenTeaUtils {
 
 	public Object EvalSetterNode(GtSetterNode Node, boolean EnforceConst) {
 //ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
-		if(Node.Func != null && EnforceConst) {
+		if(Node.ResolvedFunc != null && EnforceConst) {
 			Object LeftValue = Node.RecvNode.ToConstValue(this.Context, EnforceConst);
 			if(LeftValue == null) {
 				return LeftValue;
@@ -639,8 +786,8 @@ public class GtGenerator extends GreenTeaUtils {
 			if(RightValue == null && !Node.ValueNode.IsNullNode()) {
 				return RightValue;
 			}
-			if(Node.Func.FuncBody instanceof Field) {
-				return LibGreenTea.NativeFieldSetter(LeftValue, (/*cast*/Field)Node.Func.FuncBody, RightValue);
+			if(Node.ResolvedFunc.FuncBody instanceof Field) {
+				return LibGreenTea.NativeFieldSetter(LeftValue, (/*cast*/Field)Node.ResolvedFunc.FuncBody, RightValue);
 			}
 //			if(Node.Func.FuncBody instanceof Method) {
 //				return LibNative.ApplyMethod2(Node.Func, null, LeftValue, RightValue);
@@ -650,8 +797,6 @@ public class GtGenerator extends GreenTeaUtils {
 		return Node.ToNullValue(this.Context, EnforceConst); // if unsupported
 	}
 
-	
-	
 	public Object EvalCommandNode(GtCommandNode Node, boolean EnforceConst) {
 //ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
 		if(!EnforceConst) {
@@ -700,80 +845,11 @@ public class GtGenerator extends GreenTeaUtils {
 		return null;
 	}
 
-	public String GetSourceCode() {
-		return null;
-		/*extension*/
-	}
-
-	public void FlushBuffer() {
-		/*extension*/
-	}
-
-	public String BlockComment(String Comment) {
-		return "/*" + Comment + "*/";
-	}
-
-	public void StartCompilationUnit() {
-		/*extension*/
-	}
-
-	public void FinishCompilationUnit() {
-		/*extension*/
-	}
-
-	protected void PushCode(Object Code) {
-		this.GeneratedCodeStack.add(Code);
-	}
-
-	protected final Object PopCode() {
-		/*local*/int Size = this.GeneratedCodeStack.size();
-		if(Size > 0) {
-			/*local*/Object content = this.GeneratedCodeStack.get(Size - 1);
-			this.GeneratedCodeStack.remove(Size - 1);
-			return content;
-		}
-		return "";
-	}
-
-	public String GetRecvName() {
-		return "this";  // default 
-	}
-
-	public void InvokeMainFunc(String MainFuncName) {
-		/*extension*/
-	}
-
-	private Object[] MakeArguments(Object RecvObject, ArrayList<GtNode> ParamList, boolean EnforceConst) {
-		/*local*/int StartIdx = 0;
-		/*local*/int Size = LibGreenTea.ListSize(ParamList);
-		/*local*/Object[] Values = new Object[RecvObject == null ? Size : Size + 1];
-		if(RecvObject != null) {
-			Values[0] = RecvObject;
-			StartIdx = 1;
-		}
-		/*local*/int i = 0;
-		while(i < Size) {
-			/*local*/GtNode Node = ParamList.get(i);
-			if(Node.IsNullNode()) {
-				Values[StartIdx + i] = null;
-			}
-			else {
-				/*local*/Object Value = Node.ToConstValue(this.Context, EnforceConst);
-				if(Value == null) {
-					return null;
-				}
-				Values[StartIdx + i] = Value;
-			}
-			i += 1;
-		}
-		return Values;
-	}
-
 	public Object EvalApplySymbolNode(GtApplySymbolNode ApplyNode, boolean EnforceConst) {
-		if((EnforceConst || ApplyNode.Func.Is(ConstFunc)) /*&& ApplyNode.Func.FuncBody instanceof Method */) {
+		if((EnforceConst || ApplyNode.ResolvedFunc.Is(ConstFunc)) /*&& ApplyNode.Func.FuncBody instanceof Method */) {
 			/*local*/Object[] Arguments = this.MakeArguments(null, ApplyNode.ParamList, EnforceConst);
 			if(Arguments != null) {
-				return LibGreenTea.InvokeFunc(ApplyNode.Func, Arguments);
+				return LibGreenTea.InvokeFunc(ApplyNode.ResolvedFunc, Arguments);
 			}
 		}
 		return null;
@@ -837,5 +913,4 @@ public class GtGenerator extends GreenTeaUtils {
 		}
 		return null;
 	}
-
 }

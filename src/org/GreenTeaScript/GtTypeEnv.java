@@ -132,7 +132,7 @@ public final class GtTypeEnv extends GreenTeaUtils {
 	public final GtNode CreateLocalNode(GtSyntaxTree ParsedTree, String Name) {
 		/*local*/GtVariableInfo VariableInfo = this.LookupDeclaredVariable(Name);
 		if(VariableInfo != null) {
-			return this.Generator.CreateLocalNode(VariableInfo.Type, ParsedTree, VariableInfo.NativeName);
+			return this.Generator.CreateGetLocalNode(VariableInfo.Type, ParsedTree, VariableInfo.NativeName);
 		}
 		return this.CreateSyntaxErrorNode(ParsedTree, "unresolved name: " + Name + "; not your fault");
 	}
