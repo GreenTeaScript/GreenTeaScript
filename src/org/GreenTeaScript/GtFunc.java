@@ -473,7 +473,7 @@ class GtPolyFunc extends GreenTeaUtils {
 		}
 		if(!Func.Is(NativeVariadicFunc)) {
 			/*local*/GtType ArrayType = Func.Types[Func.Types.length - 1];
-			/*local*/GtNode ArrayNode = GenericNameSpace.Context.Generator.CreateArrayNode(ArrayType, null);
+			/*local*/GtNode ArrayNode = GenericNameSpace.Context.Generator.CreateArrayLiteralNode(ArrayType, null);
 			p = Func.Types.length - 1;
 			while(p < ParamList.size()) {
 				ArrayNode.Append(ParamList.get(p));

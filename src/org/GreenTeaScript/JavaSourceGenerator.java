@@ -146,18 +146,18 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 	@Override public void VisitGetterNode(GtGetterNode Node) {
 		Node.RecvNode.Accept(this);
 		this.VisitingBuilder.Append(".");
-		this.VisitingBuilder.Append(Node.Func.FuncName);
+		this.VisitingBuilder.Append(Node.ResolvedFunc.FuncName);
 	}
 	
 	@Override public void VisitSetterNode(GtSetterNode Node) {
 		Node.RecvNode.Accept(this);
 		this.VisitingBuilder.Append(".");
-		this.VisitingBuilder.Append(Node.Func.FuncName);
+		this.VisitingBuilder.Append(Node.ResolvedFunc.FuncName);
 		this.VisitingBuilder.Append("=");
 		Node.ValueNode.Accept(this);
 	}
 
-	@Override public void VisitApplyNode(GtApplyNode Node) {
+//	@Override public void VisitApplyNode(GtApplyNode Node) {
 //		GtFunc Func = Node.Func;
 //		for(int i = 1; i < Node.NodeList.size(); i++) {
 //			GtNode ParamNode = Node.NodeList.get(i);
@@ -178,7 +178,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 //			this.VisitingBuilder.MethodVisitor.visitMethodInsn(INVOKESTATIC, Owner, MethodName, MethodDescriptor);
 //			this.VisitingBuilder.UnboxIfUnboxed(Func.GetReturnType(), Node.Type);
 //		}
-	}
+//	}
 
 	@Override public void VisitApplySymbolNode(GtApplySymbolNode ApplyNode) {
 //		GtFunc Func = ApplyNode.Func;
@@ -218,14 +218,14 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 //		}
 	}
 
-	@Override public void VisitIndexerNode(GtIndexerNode Node) {
+//	@Override public void VisitIndexerNode(GtIndexerNode Node) {
 //		ArrayList<GtNode> NodeList = Node.NodeList;
 //		Node.Expr.Accept(this);
 //		for(int i=0; i<NodeList.size(); i++) {
 //			NodeList.get(i).Accept(this);
 //		}
 //		this.VisitingBuilder.InvokeMethodCall(Node.Type, (Method) Node.Func.FuncBody);
-	}
+//	}
 
 	@Override public void VisitArrayLiteralNode(GtArrayLiteralNode Node) {
 //		ArrayList<GtNode> NodeList = Node.NodeList;
@@ -280,7 +280,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 //		this.VisitingBuilder.StoreLocal(local);
 	}
 
-	@Override public void VisitSelfAssignNode(GtSelfAssignNode Node) {
+//	@Override public void VisitSelfAssignNode(GtSelfAssignNode Node) {
 //		if(Node.LeftNode instanceof GtLocalNode) {
 //			GtLocalNode Left = (GtLocalNode)Node.LeftNode;
 //			JLocalVarStack local = this.VisitingBuilder.FindLocalVariable(Left.NativeName);
@@ -292,7 +292,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 //		else {
 //			LibGreenTea.TODO("selfAssign");
 //		}
-	}
+//	}
 
 	@Override public void VisitVarDeclNode(GtVarDeclNode Node) {
 //		JLocalVarStack local = this.VisitingBuilder.AddLocal(Node.Type, Node.NativeName);
@@ -483,7 +483,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 //		this.VisitingBuilder.InvokeMethodCall(Node.CastType, JLib.GreenCastOperator);
 	}
 
-	@Override public void VisitFunctionNode(GtFunctionLiteralNode Node) {
+	@Override public void VisitFunctionLiteralNode(GtFunctionLiteralNode Node) {
 		LibGreenTea.TODO("FunctionNode");
 	}
 

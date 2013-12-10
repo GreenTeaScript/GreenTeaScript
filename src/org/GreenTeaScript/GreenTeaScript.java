@@ -527,7 +527,7 @@ class GreenTeaUtils implements GreenTeaConsts {
 			Gamma.NameSpace = ParsedTree.NameSpace;
 			return (/*cast*/GtNode)LibNative.ApplyTypeFunc(TypeFunc, Gamma, ParsedTree, Type);
 		}
-		return Gamma.Generator.CreateEmptyNode(GtStaticTable.VoidType);
+		return Gamma.Generator.CreateEmptyNode(GtStaticTable.VoidType, ParsedTree);
 	}
 
 	public final static GtNode LinkNode(GtNode LastNode, GtNode Node) {
@@ -556,7 +556,7 @@ class GreenTeaUtils implements GreenTeaConsts {
 		}
 		Gamma.PushBackStackIndex(StackTopIndex);
 		if(LastNode == null) {
-			return Gamma.Generator.CreateEmptyNode(GtStaticTable.VoidType);
+			return Gamma.Generator.CreateEmptyNode(GtStaticTable.VoidType, ParsedTree);
 		}
 		return LastNode.MoveHeadNode();
 	}

@@ -94,7 +94,7 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 		if(PolyFunc != null) {
 			Func = PolyFunc.ResolveUnaryMethod(Gamma, Cond.Type);
 		}
-		Cond = this.CreateUnaryNode(Type, ParsedTree, Func, Cond);
+		Cond = this.CreateUnaryNode(Type, ParsedTree, "not", Cond);
 		/*local*/GtNode IfBlock = this.CreateIfNode(Type, ParsedTree, Cond, Break, null);
 		/*local*/GtNode TrueNode = this.CreateConstNode(GtStaticTable.BooleanType, ParsedTree, true);
 		return this.CreateForNode(Type, ParsedTree, TrueNode, IfBlock, Block);
@@ -107,13 +107,13 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 		/*local*/GtPolyFunc PolyFunc = NameSpace.GetConstructorFunc(ClassType);
 		/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
 		
-		/*local*/GtNode NewNode = this.CreateNewNode(ClassType, ParsedTree);
+		/*local*/GtNode NewNode = this.CreateAllocateNode(ClassType, ParsedTree);
 		ParamList.add(NewNode);
 		ParamList.add(this.CreateConstNode(NameSpace.GetType("String"), ParsedTree, ParsedTree.KeyToken.ParsedText));
 		/*local*/GtFunc Func = PolyFunc.FuncList.get(0);
-		/*local*/GtNode StaticApplyNode = this.CreateStaticApplyNode(ClassType, ParsedTree, Func);
-		StaticApplyNode.AppendNodeList(0, ParamList);
-		return this.CreateThrowNode(Type, ParsedTree, StaticApplyNode);
+		/*local*/GtNode ConstructorNode = this.CreateConstructorNode(ClassType, ParsedTree, Func);
+		ConstructorNode.AppendNodeList(0, ParamList);
+		return this.CreateThrowNode(Type, ParsedTree, ConstructorNode);
 	}
 
 	// Generator API
@@ -229,7 +229,7 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 		this.StopVisitor(Node);
 	}
 
-	@Override public void VisitSuffixNode(GtSuffixNode Node) {
+//	@Override public void VisitSuffixNode(GtSuffixNode Node) {
 //		/*local*/String FuncName = Node.Token.ParsedText;
 //		/*local*/String Expr = this.VisitNode(Node.Expr);
 //		if(LibGreenTea.EqualsString(FuncName, "++")) {
@@ -242,10 +242,10 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 //			LibGreenTea.DebugP(FuncName + " is not supported suffix operator!!");
 //		}
 //		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc1(null, FuncName, true, Expr) + ")");
-		
-		//TODO
-		LibGreenTea.TODO(LibNative.GetClassName(Node));
-	}
+//		
+//		//TODO
+//		LibGreenTea.TODO(LibNative.GetClassName(Node));
+//	}
 
 	@Override public void VisitVarDeclNode(GtVarDeclNode Node) {
 		this.AppendCode(Node.NativeName);
@@ -379,16 +379,16 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 		this.VisitNode(Node.NodeList.get(0));
 	}
 
-	@Override public void VisitIndexerNode(GtIndexerNode Node) {
-		this.VisitNode(Node.Expr);
-		this.AppendCode("[");
-		this.VisitNode(Node.GetAt(0));
-		this.AppendCode("]");
-		if(LibGreenTea.ListSize(Node.NodeList) == 2) {
-			this.AppendCode(" = ");
-			this.VisitNode(Node.GetAt(1));
-		}
-	}
+//	@Override public void VisitIndexerNode(GtIndexerNode Node) {
+//		this.VisitNode(Node.Expr);
+//		this.AppendCode("[");
+//		this.VisitNode(Node.GetAt(0));
+//		this.AppendCode("]");
+//		if(LibGreenTea.ListSize(Node.NodeList) == 2) {
+//			this.AppendCode(" = ");
+//			this.VisitNode(Node.GetAt(1));
+//		}
+//	}
 
 	@Override public void VisitInstanceOfNode(GtInstanceOfNode Node) {
 		this.AppendCode("isinstance(");
@@ -401,7 +401,7 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 	@Override public void VisitSetterNode(GtSetterNode Node) {
 		this.VisitNode(Node.RecvNode);
 		this.AppendCode(".");
-		this.AppendCode(Node.Func.FuncName);
+		this.AppendCode(Node.NativeName);
 		this.AppendCode(" = ");
 		this.VisitNode(Node.ValueNode);
 	}
@@ -469,20 +469,12 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 	@Override public void VisitGetterNode(GtGetterNode Node) {
 		this.VisitNode(Node.RecvNode);
 		this.AppendCode(".");
-		this.AppendCode(Node.Func.FuncName);
-	}
-
-	@Override public void VisitDyGetterNode(GtDyGetterNode Node) {	//TODO
-		LibGreenTea.TODO(LibNative.GetClassName(Node));
-	}
-
-	@Override public void VisitDySetterNode(GtDySetterNode Node) {	//TODO
-		LibGreenTea.TODO(LibNative.GetClassName(Node));
+		this.AppendCode(Node.NativeName);
 	}
 	
 
 	@Override public void VisitApplySymbolNode(GtApplySymbolNode Node) {
-		/*local*/GtFunc Func = Node.Func;
+		/*local*/GtFunc Func = Node.ResolvedFunc;
 		if(Func.Is(NativeMacroFunc)) {
 			this.ExpandNativeMacro(Func.GetNativeMacro(), Node.ParamList);
 			return;
@@ -502,7 +494,7 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 		this.AppendCode(")");
 	}
 
-	@Override public void VisitApplyFuncionObjectNode(GtApplyFunctionObjectNode Node) {
+	@Override public void VisitApplyFunctionObjectNode(GtApplyFunctionObjectNode Node) {
 		/*local*/int ParamSize = LibGreenTea.ListSize(Node.ParamList);
 		/*local*/int Index = 0;
 		this.VisitNode(Node.FuncNode);
@@ -521,16 +513,8 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 		LibGreenTea.TODO(LibNative.GetClassName(Node));
 	}
 	
-	@Override public void VisitApplyDynamicFuncNode(GtApplyDynamicFuncNode Node) {	//TODO
-		LibGreenTea.TODO(LibNative.GetClassName(Node));
-	}
-
-	@Override public void VisitApplyDynamicMethodNode(GtApplyDynamicMethodNode Node) { //TODO
-		LibGreenTea.TODO(LibNative.GetClassName(Node));
-	}
-	
 	@Override public void VisitUnaryNode(GtUnaryNode Node) {
-		/*local*/GtFunc Func = Node.Func;
+		/*local*/GtFunc Func = Node.ResolvedFunc;
 		LibGreenTea.Assert(Func.Is(NativeMacroFunc));
 		/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
 		ParamList.add(Node.RecvNode);
@@ -540,7 +524,7 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 	}
 
 	@Override public void VisitBinaryNode(GtBinaryNode Node) {
-		/*local*/GtFunc Func = Node.Func;
+		/*local*/GtFunc Func = Node.ResolvedFunc;
 		LibGreenTea.Assert(Func.Is(NativeMacroFunc));
 		/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
 		ParamList.add(Node.LeftNode);
@@ -568,18 +552,6 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 		this.VisitNode(Node.ValueNode);
 	}
 
-	@Override public void VisitSelfAssignNode(GtSelfAssignNode Node) {
-		this.VisitNode(Node.LeftNode);
-		this.AppendCode(" = ");
-
-		/*local*/GtFunc Func = Node.Func;
-		LibGreenTea.Assert(Func.Is(NativeMacroFunc));
-		/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
-		ParamList.add(Node.LeftNode);
-		ParamList.add(Node.RightNode);
-		this.ExpandNativeMacro(Func.GetNativeMacro(), ParamList);
-	}
-
 	@Override public void VisitReturnNode(GtReturnNode Node) {
 		this.AppendCode("return");
 		if(Node.ValueNode != null) {
@@ -598,7 +570,7 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 		LibGreenTea.TODO(LibNative.GetClassName(Node));
 	}
 
-	@Override public void VisitFunctionNode(GtFunctionLiteralNode Node) {	//TODO
+	@Override public void VisitFunctionLiteralNode(GtFunctionLiteralNode Node) {	//TODO
 		LibGreenTea.TODO(LibNative.GetClassName(Node));
 	}
 

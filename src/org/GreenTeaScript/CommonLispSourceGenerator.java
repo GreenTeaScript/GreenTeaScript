@@ -11,20 +11,28 @@ public class CommonLispSourceGenerator extends GtSourceGenerator {
 	@Override public void VisitGetLocalNode(GtGetLocalNode Node) {
 		this.VisitingBuilder.Append(Node.Token.ParsedText);
 	}
-
-	@Override public void VisitConstNode(GtConstNode Node) {
-		// XXX Correct ??
-		switch (Node.Token.ParsedText) {
-		case "true":
+	
+	@Override public void VisitBooleanNode(GtBooleanNode Node) {
+		if(Node.Value) {
 			this.VisitingBuilder.Append("t");
-			break;
-		case "false":
-		case "null":
+		}
+		else {
 			this.VisitingBuilder.Append("nil");
-			break;
-		default:
+		}
+	}
+	@Override public void VisitIntNode(GtIntNode Node) {
+		this.VisitingBuilder.Append(Node.Token.ParsedText);
+	}
+
+	@Override public void VisitStringNode(GtStringNode Node) {
+		this.VisitingBuilder.Append(Node.Token.ParsedText);
+	}
+	@Override public void VisitConstPoolNode(GtConstPoolNode Node) {
+		if(Node.ConstValue == null) {
+			this.VisitingBuilder.Append("nil");
+		}
+		else {
 			this.VisitingBuilder.Append(Node.Token.ParsedText);
-			break;
 		}
 	}
 
@@ -155,7 +163,7 @@ public class CommonLispSourceGenerator extends GtSourceGenerator {
 		this.VisitingBuilder.Append(")");
 	}
 
-	@Override public void VisitVarNode(GtVarNode Node) {
+	@Override public void VisitVarDeclNode(GtVarDeclNode Node) {
 		this.VisitingBuilder.Append("(setq  ");
 		this.VisitingBuilder.Append(Node.NativeName);
 		this.VisitingBuilder.Append(" ");
@@ -276,11 +284,10 @@ public class CommonLispSourceGenerator extends GtSourceGenerator {
 		this.VisitingBuilder.Append(")");
 	}
 
-	@Override public void VisitAssignNode(GtAssignNode Node) {
-		this.VisitingBuilder.Append("(setq  ");
-		Node.LeftNode.Accept(this);
+	@Override public void VisitSetLocalNode(GtSetLocalNode Node) {
+		this.VisitingBuilder.Append("(setq  " + Node.NativeName);
 		this.VisitingBuilder.Append(" ");
-		Node.RightNode.Accept(this);
+		Node.ValueNode.Accept(this);
 		this.VisitingBuilder.Append(")");
 	}
 

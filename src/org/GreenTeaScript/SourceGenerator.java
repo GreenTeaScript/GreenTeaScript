@@ -316,7 +316,7 @@ public class SourceGenerator extends GtGenerator {
 
 	public final String GenerateApplyFunc(GtApplySymbolNode Node) {
 		/*local*/int ParamSize = LibGreenTea.ListSize(Node.ParamList);
-		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
+		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.ResolvedFunc);
 		return this.ApplyMacro(Template, Node.ParamList);
 	}
 
@@ -350,9 +350,9 @@ public class SourceGenerator extends GtGenerator {
 		this.StopVisitor(Node);
 	}
 
-	@Override public void VisitIndexerNode(GtIndexerNode Node) {
-		this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + this.VisitNode(Node.GetAt(0)) + "]"); // FIXME: Multi
-	}
+//	@Override public void VisitIndexerNode(GtIndexerNode Node) {
+//		this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + this.VisitNode(Node.GetAt(0)) + "]"); // FIXME: Multi
+//	}
 
 	@Override public final void VisitConstructorNode(GtConstructorNode Node) {
 		/*local*/int ParamSize = LibGreenTea.ListSize(Node.ParamList);
@@ -369,41 +369,41 @@ public class SourceGenerator extends GtGenerator {
 		this.PushSourceCode(Program);
 	}
 
-	@Override public void VisitSuffixNode(GtSuffixNode Node) {
-		/*local*/String FuncName = Node.Token.ParsedText;
-		/*local*/String Expr = this.VisitNode(Node.Expr);
-		if(LibGreenTea.EqualsString(FuncName, "++")) {
-		}
-		else if(LibGreenTea.EqualsString(FuncName, "--")) {
-		}
-		else {
-			LibGreenTea.DebugP(FuncName + " is not supported suffix operator!!");
-		}
-		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc1(Node.Func, FuncName, true, Expr) + ")");
-	}
+//	@Override public void VisitSuffixNode(GtSuffixNode Node) {
+//		/*local*/String FuncName = Node.Token.ParsedText;
+//		/*local*/String Expr = this.VisitNode(Node.Expr);
+//		if(LibGreenTea.EqualsString(FuncName, "++")) {
+//		}
+//		else if(LibGreenTea.EqualsString(FuncName, "--")) {
+//		}
+//		else {
+//			LibGreenTea.DebugP(FuncName + " is not supported suffix operator!!");
+//		}
+//		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc1(Node.Func, FuncName, true, Expr) + ")");
+//	}
 
-	@Override public void VisitSelfAssignNode(GtSelfAssignNode Node) {
-		/*local*/String FuncName = Node.Token.ParsedText;
-		/*local*/String Left = this.VisitNode(Node.LeftNode);
-		/*local*/String Right = this.VisitNode(Node.RightNode);
-		this.PushSourceCode(Left + " = " + SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right));
-	}
+//	@Override public void VisitSelfAssignNode(GtSelfAssignNode Node) {
+//		/*local*/String FuncName = Node.Token.ParsedText;
+//		/*local*/String Left = this.VisitNode(Node.LeftNode);
+//		/*local*/String Right = this.VisitNode(Node.RightNode);
+//		this.PushSourceCode(Left + " = " + SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right));
+//	}
 
 	@Override public void VisitUnaryNode(GtUnaryNode Node) {
 		/*local*/String FuncName = Node.Token.ParsedText;
 		/*local*/String Expr = this.VisitNode(Node.RecvNode);
-		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc1(Node.Func, FuncName, false, Expr) + ")");
+		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc1(Node.ResolvedFunc, FuncName, false, Expr) + ")");
 	}
 
 	@Override public void VisitBinaryNode(GtBinaryNode Node) {
 		/*local*/String FuncName = Node.Token.ParsedText;
 		/*local*/String Left = this.VisitNode(Node.LeftNode);
 		/*local*/String Right = this.VisitNode(Node.RightNode);
-		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc2(Node.Func, FuncName, Left, Right) + ")");
+		this.PushSourceCode("(" + SourceGenerator.GenerateApplyFunc2(Node.ResolvedFunc, FuncName, Left, Right) + ")");
 	}
 
 	@Override public void VisitGetterNode(GtGetterNode Node) {
-		this.PushSourceCode(this.VisitNode(Node.RecvNode) + this.MemberAccessOperator + Node.Func.FuncName);
+		this.PushSourceCode(this.VisitNode(Node.RecvNode) + this.MemberAccessOperator + Node.ResolvedFunc.FuncName);
 	}
 	@Override public void VisitSetLocalNode(GtSetLocalNode Node) {
 		this.PushSourceCode(Node.NativeName + " = " + this.VisitNode(Node.ValueNode));
@@ -511,7 +511,7 @@ public class SourceGenerator extends GtGenerator {
 	}
 
 	@Override public Object EvalApplySymbolNode(GtApplySymbolNode ApplyNode, boolean EnforceConst) {
-		if((EnforceConst || ApplyNode.Func.Is(ConstFunc)) /*&& ApplyNode.Func.FuncBody instanceof Method */) {
+		if((EnforceConst || ApplyNode.ResolvedFunc.Is(ConstFunc)) /*&& ApplyNode.Func.FuncBody instanceof Method */) {
 			this.VisitApplySymbolNode(ApplyNode);
 			return this.PopSourceCode();
 		}

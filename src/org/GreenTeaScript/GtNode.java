@@ -569,8 +569,8 @@ final class GtOrNode extends GtNode {
 //E.g., "~" $Expr
 final class GtUnaryNode extends GtSymbolNode {
 	/*field*/public GtNode	RecvNode;
-	GtUnaryNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode) {
-		super(Type, Token, null);
+	GtUnaryNode/*constructor*/(GtType Type, GtToken Token, String OperatorName, GtNode RecvNode) {
+		super(Type, Token, OperatorName);
 		this.RecvNode = RecvNode;
 		this.SetChild(RecvNode);
 	}
@@ -639,8 +639,8 @@ final class GtSuffixDeclNode extends GtNode {
 final class GtBinaryNode extends GtSymbolNode {
 	/*field*/public GtNode    LeftNode;
 	/*field*/public GtNode	  RightNode;
-	GtBinaryNode/*constructor*/(GtType Type, GtToken Token, GtNode Left, GtNode Right) {
-		super(Type, Token, null);
+	GtBinaryNode/*constructor*/(GtType Type, GtToken Token, String OperatorName, GtNode Left, GtNode Right) {
+		super(Type, Token, OperatorName);
 		this.LeftNode  = Left;
 		this.RightNode = Right;
 		this.SetChild2(Left, Right);

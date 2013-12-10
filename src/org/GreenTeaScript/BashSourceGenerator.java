@@ -27,6 +27,9 @@ package org.GreenTeaScript;
 import java.util.ArrayList;
 //endif VAJA
 
+
+import javax.management.RuntimeErrorException;
+
 //GreenTea Generator should be written in each language.
 
 public class BashSourceGenerator extends SourceGenerator {
@@ -107,16 +110,16 @@ public class BashSourceGenerator extends SourceGenerator {
 		 */
 		/*local*/GtType BoolType = GtStaticTable.BooleanType;
 		/*local*/String VarName = "FirstCond";
-		/*local*/GtNode TrueNode = this.CreateConstNode(BoolType, ParsedTree, true);
-		/*local*/GtNode FalseNode = this.CreateConstNode(BoolType, ParsedTree, false);
+		/*local*/GtNode TrueNode = this.CreateBooleanNode(BoolType, ParsedTree, true);
+		/*local*/GtNode FalseNode = this.CreateBooleanNode(BoolType, ParsedTree, false);
 		
-		/*local*/GtNode FirstCond = this.CreateLocalNode(BoolType, ParsedTree, VarName);
+		/*local*/GtNode FirstCond = this.CreateGetLocalNode(BoolType, ParsedTree, VarName);
 		/*local*/GtNode NewCond = this.CreateOrNode(BoolType, ParsedTree, FirstCond, Cond);
-		/*local*/GtNode BodyNode = this.CreateAssignNode(BoolType, ParsedTree, FirstCond, FalseNode);
+		/*local*/GtNode BodyNode = this.CreateSetLocalNode(BoolType, ParsedTree, VarName, FalseNode);
 		
 		GreenTeaUtils.LinkNode(BodyNode.MoveTailNode(), Block);
 		/*local*/GtNode NewWhileNode = this.CreateWhileNode(Type, ParsedTree, NewCond, BodyNode);
-		return this.CreateVarNode(BoolType, ParsedTree, BoolType, VarName, TrueNode, NewWhileNode);
+		return this.CreateVarDeclNode(BoolType, ParsedTree, BoolType, VarName, TrueNode, NewWhileNode);
 	}
 
 	private String ResolveCondition(GtNode Node) {
@@ -186,8 +189,8 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitApplySymbolNode(GtApplySymbolNode Node) {
 		/*local*/int ParamSize = LibGreenTea.ListSize(Node.ParamList);
-		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.Func);
-		/*local*/boolean isAssert = this.FindAssert(Node.Func);
+		/*local*/String Template = this.GenerateFuncTemplate(ParamSize, Node.ResolvedFunc);
+		/*local*/boolean isAssert = this.FindAssert(Node.ResolvedFunc);
 		if(isAssert) {
 			Template = "assert " + LibGreenTea.QuoteString("$1");
 		}
@@ -197,7 +200,7 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitUnaryNode(GtUnaryNode Node) {
 		/*local*/String FuncName = Node.Token.ParsedText;
-		/*local*/GtFunc Func = Node.Func;
+		/*local*/GtFunc Func = Node.ResolvedFunc;
 		/*local*/String Expr = this.ResolveValueType(Node.RecvNode, false);	//TODO: support ++ --
 		/*local*/String Macro = null;
 		if(Func != null) {
@@ -214,7 +217,7 @@ public class BashSourceGenerator extends SourceGenerator {
 
 	@Override public void VisitBinaryNode(GtBinaryNode Node) {
 		/*local*/String FuncName = Node.Token.ParsedText;
-		/*local*/GtFunc Func = Node.Func;
+		/*local*/GtFunc Func = Node.ResolvedFunc;
 		/*local*/String Left = this.ResolveValueType(Node.LeftNode, false);
 		/*local*/String Right = this.ResolveValueType(Node.RightNode, false);
 		/*local*/String Macro = null;
@@ -242,11 +245,11 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitGetterNode(GtGetterNode Node) {
-		this.PushSourceCode(this.VisitNode(Node.RecvNode) + "[" + this.GetMemberIndex(Node.RecvNode.Type, Node.Func.FuncName) + "]");
+		this.PushSourceCode(this.VisitNode(Node.RecvNode) + "[" + this.GetMemberIndex(Node.RecvNode.Type, Node.ResolvedFunc.FuncName) + "]");
 	}
 
-	@Override public void VisitIndexerNode(GtIndexerNode Node) {
-		this.PushSourceCode(this.VisitNode(Node.Expr) + "[" + this.ResolveValueType(Node.GetAt(0), false) + "]");
+	@Override public void VisitGetIndexNode(GtGetIndexNode Node) {
+		this.PushSourceCode(this.VisitNode(Node.RecvNode) + "[" + this.ResolveValueType(Node.GetAt(0), false) + "]");
 	}
 
 	@Override public void VisitAndNode(GtAndNode Node) {
@@ -261,23 +264,23 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Node.NativeName + "=" + this.ResolveValueType(Node.ValueNode, true));
 	}
 
-	@Override public void VisitSelfAssignNode(GtSelfAssignNode Node) {
-		/*local*/String FuncName = Node.Token.ParsedText;
-		/*local*/GtFunc Func = Node.Func;
-		/*local*/String Left = this.VisitNode(Node.LeftNode);
-		/*local*/String Right = this.ResolveValueType(Node.RightNode, false);
-		/*local*/String Macro = null;
-		if(Func != null) {
-			FuncName = Func.GetNativeFuncName();
-			if(IsFlag(Func.FuncFlag, NativeMacroFunc)) {
-				Macro = Func.GetNativeMacro();
-			}
-		}
-		if(Macro == null) {
-			Macro = "(($1 " + FuncName + " $2))";
-		}
-		this.PushSourceCode(Macro.replace("$1", Left).replace("$2", Right));
-	}
+//	@Override public void VisitSelfAssignNode(GtSelfAssignNode Node) {
+//		/*local*/String FuncName = Node.Token.ParsedText;
+//		/*local*/GtFunc Func = Node.Func;
+//		/*local*/String Left = this.VisitNode(Node.LeftNode);
+//		/*local*/String Right = this.ResolveValueType(Node.RightNode, false);
+//		/*local*/String Macro = null;
+//		if(Func != null) {
+//			FuncName = Func.GetNativeFuncName();
+//			if(IsFlag(Func.FuncFlag, NativeMacroFunc)) {
+//				Macro = Func.GetNativeMacro();
+//			}
+//		}
+//		if(Macro == null) {
+//			Macro = "(($1 " + FuncName + " $2))";
+//		}
+//		this.PushSourceCode(Macro.replace("$1", Left).replace("$2", Right));
+//	}
 
 	@Override public void VisitVarDeclNode(GtVarDeclNode Node) {
 		/*local*/String VarName = Node.NativeName;
@@ -354,17 +357,18 @@ public class BashSourceGenerator extends SourceGenerator {
 	}
 
 	@Override public void VisitTryNode(GtTryNode Node) {
-		/*local*/GtNode TrueNode = new GtConstPoolNode(GtStaticTable.BooleanType, null, true);
-		/*local*/String Code = "trap ";
-		/*local*/String Try = this.VisitNode(new GtIfNode(null, null, TrueNode, Node.TryNode, null));
-		/*local*/String Catch = this.VisitNode(new GtIfNode(null, null, TrueNode, Node.CatchBlock, null));
-		Code += LibGreenTea.QuoteString(Catch) + " ERR" + this.LineFeed;
-		Code += this.GetIndentString() + Try + this.LineFeed + this.GetIndentString() + "trap ERR";
-		if(Node.FinallyNode != null) {
-			/*local*/String Finally = this.VisitNode(new GtIfNode(null, null, TrueNode, Node.FinallyNode, null));
-			Code += this.LineFeed + this.GetIndentString() + Finally;
-		}
-		this.PushSourceCode(Code);
+		throw new RuntimeException("FIXME support Try-catch @ BashSourceGenerator");
+//		/*local*/GtNode TrueNode = new GtConstPoolNode(GtStaticTable.BooleanType, null, true);
+//		/*local*/String Code = "trap ";
+//		/*local*/String Try = this.VisitNode(new GtIfNode(null, null, TrueNode, Node.TryNode, null));
+//		/*local*/String Catch = this.VisitNode(new GtIfNode(null, null, TrueNode, Node.CatchBlock, null));
+//		Code += LibGreenTea.QuoteString(Catch) + " ERR" + this.LineFeed;
+//		Code += this.GetIndentString() + Try + this.LineFeed + this.GetIndentString() + "trap ERR";
+//		if(Node.FinallyNode != null) {
+//			/*local*/String Finally = this.VisitNode(new GtIfNode(null, null, TrueNode, Node.FinallyNode, null));
+//			Code += this.LineFeed + this.GetIndentString() + Finally;
+//		}
+//		this.PushSourceCode(Code);
 	}
 
 	@Override public void VisitThrowNode(GtThrowNode Node) {

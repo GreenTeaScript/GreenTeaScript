@@ -341,11 +341,11 @@ public class DShellGrammar extends GreenTeaUtils {
 	public static GtNode TypeFileOperator(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtNode PathNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, GtStaticTable.StringType, DefaultTypeCheckPolicy);
 		if(!PathNode.IsErrorNode()) {
-			/*local*/String OperatorSymbol = ParsedTree.KeyToken.ParsedText;
-			/*local*/GtPolyFunc PolyFunc = Gamma.NameSpace.GetMethod(GtStaticTable.StringType, FuncSymbol(OperatorSymbol), true);
+			/*local*/String OperatorSymbol = FuncSymbol(ParsedTree.KeyToken.ParsedText);
+			/*local*/GtPolyFunc PolyFunc = Gamma.NameSpace.GetMethod(GtStaticTable.StringType, OperatorSymbol, true);
 			/*local*/GtFunc ResolvedFunc = PolyFunc.ResolveUnaryMethod(Gamma, PathNode.Type);
 			LibGreenTea.Assert(ResolvedFunc != null);
-			/*local*/GtNode ApplyNode =  Gamma.Generator.CreateApplyNode(ResolvedFunc.GetReturnType(), ParsedTree, ResolvedFunc);
+			/*local*/GtNode ApplyNode =  Gamma.Generator.CreateApplySymbolNode(ResolvedFunc.GetReturnType(), ParsedTree, OperatorSymbol, ResolvedFunc);
 			ApplyNode.Append(Gamma.Generator.CreateConstNode(GtStaticTable.VarType, ParsedTree, ResolvedFunc));
 			ApplyNode.Append(PathNode);
 			return ApplyNode;
@@ -604,10 +604,10 @@ public class DShellGrammar extends GreenTeaUtils {
 				return Gamma.CreateSyntaxErrorNode(ParsedTree, "constant variable 'Location' is not defined");
 			}
 
-			/*local*/GtFunc ActionFunc = ((/*cast*/GtApplySymbolNode)ActionNode).Func;
+			/*local*/GtFunc ActionFunc = ((/*cast*/GtApplySymbolNode)ActionNode).ResolvedFunc;
 			if(ActionFunc.GetFuncParamSize() == 0) {
 				/*local*/GtFunc ReportFunc = (/*cast*/GtFunc)Gamma.NameSpace.GetSymbol("$ReportBuiltInFunc");
-				/*local*/GtNode ApplyNode = Gamma.Generator.CreateApplyNode(ContextType, ParsedTree, ReportFunc);
+				/*local*/GtNode ApplyNode = Gamma.Generator.CreateApplySymbolNode(ContextType, ParsedTree, "$ReportBuiltInFunc", ReportFunc);
 				ApplyNode.Append(Gamma.Generator.CreateConstNode(GtStaticTable.VarType, ParsedTree, ReportFunc));
 				ApplyNode.Append(Gamma.Generator.CreateConstNode(GtStaticTable.VarType, ParsedTree, Gamma.NameSpace));
 				ApplyNode.Append(DShellGrammar.CreateDCaseNode(Gamma, ParsedTree));
@@ -636,7 +636,7 @@ public class DShellGrammar extends GreenTeaUtils {
 
 	public static GtNode TypeFault(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtFunc CreateFunc = (/*cast*/GtFunc)Gamma.NameSpace.GetSymbol("$CreateFaultBuiltInFunc");
-		/*local*/GtNode ApplyNode = Gamma.Generator.CreateApplyNode(ContextType, ParsedTree, CreateFunc);
+		/*local*/GtNode ApplyNode = Gamma.Generator.CreateApplySymbolNode(ContextType, ParsedTree, "$CreateFaultBuiltInFunc", CreateFunc);
 		ApplyNode.Append(Gamma.Generator.CreateConstNode(GtStaticTable.VarType, ParsedTree, CreateFunc));
 		ApplyNode.Append(Gamma.Generator.CreateConstNode(GtStaticTable.VarType, ParsedTree, Gamma.NameSpace));
 		ApplyNode.Append(DShellGrammar.CreateDCaseNode(Gamma, ParsedTree));
@@ -715,7 +715,7 @@ public class DShellGrammar extends GreenTeaUtils {
 			return Gamma.CreateSyntaxErrorNode(ParsedTree, "ReportAction is not defined in this context");
 		}
 		/*local*/GtFunc Func = (/*cast*/GtFunc) ConstValue;
-		/*local*/GtNode ApplyNode2 = Gamma.Generator.CreateApplyNode(Func.GetReturnType(), ParsedTree, Func);
+		/*local*/GtNode ApplyNode2 = Gamma.Generator.CreateApplySymbolNode(Func.GetReturnType(), ParsedTree, "ReportAction", Func);
 		ApplyNode2.Append(DShellGrammar.CreateConstNode(Gamma, ParsedTree, Func));
 		ApplyNode2.Append(ApplyNode);
 		ApplyNode2.Append(FuncNameNode);
@@ -740,7 +740,7 @@ public class DShellGrammar extends GreenTeaUtils {
 		/*local*/GtNode Expr = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, GtStaticTable.TypeType, DefaultTypeCheckPolicy);
 		if(Expr.IsConstNode() && Expr.Type.IsTypeType()) {
 			/*local*/GtType ObjectType = (/*cast*/GtType)((/*cast*/GtConstPoolNode)Expr).ConstValue;
-			Expr = Gamma.Generator.CreateNewNode(ObjectType, ParsedTree);
+			Expr = Gamma.Generator.CreateAllocateNode(ObjectType, ParsedTree);
 			//Expr = KonohaGrammar.TypeApply(Gamma, ParsedTree, ObjectType);
 		}
 		return Gamma.Generator.CreateReturnNode(Expr.Type, ParsedTree, Expr);

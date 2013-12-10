@@ -131,8 +131,10 @@ public class GtGenerator extends GreenTeaUtils {
 		return new GtSetterNode(Type, ParsedTree.KeyToken, RecvNode, NativeName, ValueNode);
 	}
 
-	public GtNode CreateApplySymbolNode(GtType Type, GtSyntaxTree ParsedTree, String FuncName) {
-		return new GtApplySymbolNode(Type, ParsedTree.KeyToken, FuncName);
+	public GtNode CreateApplySymbolNode(GtType Type, GtSyntaxTree ParsedTree, String FuncName, GtFunc Func) {
+		GtApplySymbolNode Node = new GtApplySymbolNode(Type, ParsedTree.KeyToken, FuncName);
+		Node.ResolvedFunc = Func;
+		return Node;
 	}
 
 	public GtNode CreateApplyFunctionObjectNode(GtType Type, GtSyntaxTree ParsedTree, GtNode FuncNode) {
@@ -163,8 +165,8 @@ public class GtGenerator extends GreenTeaUtils {
 		return new GtOrNode(Type, ParsedTree.KeyToken, LeftNode, RightNode);
 	}
 
-	public GtNode CreateUnaryNode(GtType Type, GtSyntaxTree ParsedTree, GtNode ValueNode) {
-		return new GtUnaryNode(Type, ParsedTree.KeyToken, ValueNode);
+	public GtNode CreateUnaryNode(GtType Type, GtSyntaxTree ParsedTree, String OperatorName, GtNode ValueNode) {
+		return new GtUnaryNode(Type, ParsedTree.KeyToken, OperatorName, ValueNode);
 	}
 
 	public GtNode CreatePrefixInclNode(GtType Type, GtSyntaxTree ParsedTree, GtNode RecvNode) {
@@ -183,8 +185,8 @@ public class GtGenerator extends GreenTeaUtils {
 		return new GtSuffixDeclNode(Type, ParsedTree.KeyToken, RecvNode);
 	}
 
-	public GtNode CreateBinaryNode(GtType Type, GtSyntaxTree ParsedTree, GtNode LeftNode, GtNode RightNode) {
-		return new GtBinaryNode(Type, ParsedTree.KeyToken, LeftNode,RightNode);
+	public GtNode CreateBinaryNode(GtType Type, GtSyntaxTree ParsedTree, String OperatorName, GtNode LeftNode, GtNode RightNode) {
+		return new GtBinaryNode(Type, ParsedTree.KeyToken, OperatorName, LeftNode, RightNode);
 	}
 
 	public GtNode CreateTrinaryNode(GtType Type, GtSyntaxTree ParsedTree, GtNode CondNode, GtNode ThenNode, GtNode ElseNode) {
@@ -287,12 +289,31 @@ public class GtGenerator extends GreenTeaUtils {
 		return new GtErrorNode(Type, ParsedTree.KeyToken);
 	}
 
-	//
+	// useful Create* API
 	public final GtNode CreateCoercionNode(GtType Type, GtNameSpace NameSpace, GtFunc Func, GtNode Node) {
-		/*local*/GtNode ApplyNode = this.CreateApplySymbolNode(Type, null, "Coercion"/*FIXME*/);
+		/*local*/GtNode ApplyNode = this.CreateApplySymbolNode(Type, null, "Coercion", Func);
 		ApplyNode.Append(Node);
 		return ApplyNode;
 	}
+	public final GtNode CreateConstNode(GtType Type, GtSyntaxTree ParsedTree, Object Value) {
+		if(Value instanceof Boolean) {
+			return CreateBooleanNode(Type, ParsedTree, (Boolean) Value);
+		}
+		if(Value instanceof Long) {
+			return CreateIntNode(Type, ParsedTree, (Long) Value);
+		}
+		if(Value instanceof Double) {
+			return CreateFloatNode(Type, ParsedTree, (Double) Value);
+		}
+		if(Value instanceof String) {
+			return CreateStringNode(Type, ParsedTree, (String) Value);
+		}
+//		if(Value instanceof Rexex) {
+//			return CreateRegexNode(Type, ParsedTree, (String) Value);
+//		}
+		return CreateConstPoolNode(Type, ParsedTree, Value);
+	}
+
 	/* language constructor */
 
 	public void OpenClassField(GtSyntaxTree ParsedTree, GtType DefinedType, GtClassField ClassField) {

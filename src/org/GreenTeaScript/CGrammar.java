@@ -82,13 +82,19 @@ public class CGrammar extends GreenTeaUtils {
 		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(ObjectNode.Type, Name, true);
 		if(PolyFunc.FuncList.size() > 0 && ContextType.IsFuncType()) {
 			/*local*/GtFunc FirstFunc = PolyFunc.FuncList.get(0);
-			return Gamma.Generator.CreateGetterNode(ContextType, ParsedTree, FirstFunc, ObjectNode);
+			GtNode Node = Gamma.Generator.CreateGetterNode(ContextType, ParsedTree, ObjectNode, Name);
+			if(Node instanceof GtGetterNode) {
+				((/*cast*/GtGetterNode)Node).ResolvedFunc = FirstFunc;
+			}
 		}
 
 		// 3. find Class field
 		/*local*/GtFunc GetterFunc = ParsedTree.NameSpace.GetGetterFunc(ObjectNode.Type, Name, true);
 		/*local*/GtType ReturnType = (GetterFunc != null) ? GetterFunc.GetReturnType() : GtStaticTable.AnyType;
-		/*local*/GtNode Node = Gamma.Generator.CreateGetterNode(ReturnType, ParsedTree, GetterFunc, ObjectNode);
+		/*local*/GtNode Node = Gamma.Generator.CreateGetterNode(ReturnType, ParsedTree, ObjectNode, Name);
+		if(Node instanceof GtGetterNode) {
+			((/*cast*/GtGetterNode)Node).ResolvedFunc = GetterFunc;
+		}
 		if(GetterFunc == null) {
 			if(!ObjectNode.Type.IsDynamicType() && ContextType != GtStaticTable.FuncType) {
 				return Gamma.ReportTypeResult(ParsedTree, Node, TypeErrorLevel, "undefined name: " + Name + " of " + TypeName);
@@ -165,7 +171,7 @@ public class CGrammar extends GreenTeaUtils {
 			}
 			Gamma.Generator.CloseClassField(DefinedType, MemberList);
 		}
-		return Gamma.Generator.CreateEmptyNode(GtStaticTable.VoidType);
+		return Gamma.Generator.CreateEmptyNode(GtStaticTable.VoidType, ParsedTree);
 	}
 	
 	private static boolean TypeMemberDecl(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtClassField ClassField) {
