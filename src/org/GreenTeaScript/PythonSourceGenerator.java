@@ -379,16 +379,21 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 		this.VisitNode(Node.NodeList.get(0));
 	}
 
-//	@Override public void VisitIndexerNode(GtIndexerNode Node) {
-//		this.VisitNode(Node.Expr);
-//		this.AppendCode("[");
-//		this.VisitNode(Node.GetAt(0));
-//		this.AppendCode("]");
-//		if(LibGreenTea.ListSize(Node.NodeList) == 2) {
-//			this.AppendCode(" = ");
-//			this.VisitNode(Node.GetAt(1));
-//		}
-//	}
+	@Override public void VisitGetIndexNode(GtGetIndexNode Node) {
+		this.VisitNode(Node.RecvNode);
+		this.AppendCode("[");
+		this.VisitNode(Node.IndexNode);
+		this.AppendCode("]");
+	}
+
+	@Override public void VisitSetIndexNode(GtSetIndexNode Node) {
+		this.VisitNode(Node.RecvNode);
+		this.AppendCode("[");
+		this.VisitNode(Node.IndexNode);
+		this.AppendCode("]");
+		this.AppendCode(" = ");
+		this.VisitNode(Node.ValueNode);
+	}
 
 	@Override public void VisitInstanceOfNode(GtInstanceOfNode Node) {
 		this.AppendCode("isinstance(");
@@ -447,6 +452,22 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 		else {
 			this.AppendCode(this.StringifyConstValue(Node.ConstValue));
 		}
+	}
+
+	@Override public void VisitBooleanNode(GtBooleanNode Node) {
+		this.AppendCode(this.StringifyConstValue(Node.Value));
+	}
+
+	@Override public void VisitIntNode(GtIntNode Node) {
+		this.AppendCode(this.StringifyConstValue(Node.Value));
+	}
+
+	@Override public void VisitFloatNode(GtFloatNode Node) {
+		this.AppendCode(this.StringifyConstValue(Node.Value));
+	}
+
+	@Override public void VisitStringNode(GtStringNode Node) {
+		this.AppendCode(this.StringifyConstValue(Node.Value));
 	}
 
 	@Override public void VisitAllocateNode(GtAllocateNode Node) {
