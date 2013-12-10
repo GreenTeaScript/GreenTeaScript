@@ -99,6 +99,12 @@ public class GtSourceGenerator extends GtGenerator {
 		return Builder;
 	}
 
+	public GtSourceBuilder NewSourceBuilder_toHead() {
+		/*local*/GtSourceBuilder Builder = new GtSourceBuilder(this);
+		this.BuilderList.add(0, Builder);
+		return Builder;
+	}
+
 	public final void FlushErrorReport() {
 		/*local*/GtSourceBuilder Builder = this.NewSourceBuilder();
 		/*local*/String[] Reports = this.Context.GetReportedErrors();

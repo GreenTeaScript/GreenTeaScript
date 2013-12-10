@@ -598,7 +598,8 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 			return new CommonLispSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
 		else if(TargetCode.startsWith("minikonoha")) {
-			return new MiniKonohaSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+			return new KonohaByteCodeGenerator(TargetCode, OutputFile, GeneratorFlag);
+			//return new MiniKonohaSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
 		return null;
 	}

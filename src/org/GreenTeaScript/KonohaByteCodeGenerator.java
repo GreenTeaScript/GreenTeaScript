@@ -1,10 +1,81 @@
 package org.GreenTeaScript;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 public class KonohaByteCodeGenerator extends GtSourceGenerator {
+	/*field*/private ArrayList<Object> ConstPool;
+	/*field*/private ArrayList<String> MethodPool;
+	/*field*/private int RegisterNum;
+	/*field*/private ArrayList<Integer> RegStack;
+	/*field*/private HashMap<String, Integer> LocalVarMap;
 
 	public KonohaByteCodeGenerator(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
+		this.ConstPool = new ArrayList<Object>();
+		this.MethodPool = new ArrayList<String>();
+		this.RegisterNum = 0;
+		this.RegStack = new ArrayList<Integer>();
+		this.LocalVarMap = new HashMap<String, Integer>();
 	}
+
+	private void SetSignature() {
+		/*local*/GtSourceBuilder Builder = this.NewSourceBuilder_toHead();
+		/*local*/int ConstPoolSize = this.ConstPool.size();
+		Builder.Append("CONSTPOOLSIZE = " + ConstPoolSize + "\n");
+		/*local*/int MethodPoolSize = this.MethodPool.size();
+		Builder.Append("METHODPOOLSIZE = " + MethodPoolSize + "\n");
+		/*local*/int i;
+		for(i = 0; i < ConstPoolSize; ++i) {
+			/*local*/Object ConstValue = this.ConstPool.get(i);
+			//Builder.Append("CONST" + i + " = " + ConstValue.toString() + "(" + ConstValue.getClass().getName() + ")" + "\n");
+			Builder.Append("CONST" + i + " = " + ConstValue.toString() + "\n");
+		}
+	}
+
+	@Override public void FlushBuffer() {
+		this.SetSignature();
+		super.FlushBuffer();
+	}
+
+	private int AllocRegister() {
+		/*FIXME*/
+		return this.RegisterNum++;
+	}
+	private void FreeRegister(int RegNum) {
+		/*FIXME*/
+	}
+	private void PushRegister(int RegNum) {
+		this.RegStack.add(new Integer(RegNum));
+	}
+	private int PopRegister() {
+		/*local*/int Size = this.RegStack.size();
+		/*local*/Integer RegNum = this.RegStack.remove(Size - 1);
+		return RegNum.intValue();
+	}
+
+	private int AddConstant(Object ConstValue) {
+		/*local*/int Index = this.ConstPool.indexOf(ConstValue);
+		if(Index == -1) {
+			Index = this.ConstPool.size();
+			this.ConstPool.add(ConstValue);
+		}
+		return Index;
+	}
+	private int AddMethod(String MethodName) {
+		/*local*/int Index = this.MethodPool.indexOf(MethodName);
+		if(Index == -1) {
+			Index = this.MethodPool.size();
+			this.MethodPool.add(MethodName);
+		}
+		return Index;
+	}
+
+	//private void WriteByteCode(String Code) {
+	//	this.ByteCode.add(Code);
+	//}
+
+
 
 	@Override public void VisitEmptyNode(GtEmptyNode Node) {
 		/*FIXME*/
@@ -15,27 +86,45 @@ public class KonohaByteCodeGenerator extends GtSourceGenerator {
 	}
 
 	@Override public void VisitBooleanNode(GtBooleanNode Node) {
-		/*FIXME*/
+		/*local*/int Index = this.AddConstant(new Boolean(Node.Value));
+		/*local*/int Reg = this.AllocRegister();
+		this.VisitingBuilder.Append("NSET " + "REG" + Reg + ", " + "CONST" + Index + "\n");
+		this.PushRegister(Reg);
 	}
 
 	@Override public void VisitIntNode(GtIntNode Node) {
-		/*FIXME*/
+		/*local*/int Index = this.AddConstant(new Long(Node.Value));
+		/*local*/int Reg = this.AllocRegister();
+		this.VisitingBuilder.Append("NSET " + "REG" + Reg + ", " + "CONST" + Index + "\n");
+		this.PushRegister(Reg);
 	}
 
 	@Override public void VisitFloatNode(GtFloatNode Node) {
-		/*FIXME*/
+		/*local*/int Index = this.AddConstant(new Float(Node.Value));
+		/*local*/int Reg = this.AllocRegister();
+		this.VisitingBuilder.Append("NSET " + "REG" + Reg + ", " + "CONST" + Index + "\n");
+		this.PushRegister(Reg);
 	}
 
 	@Override public void VisitStringNode(GtStringNode Node) {
-		/*FIXME*/
+		/*local*/int Index = this.AddConstant(Node.Value);
+		/*local*/int Reg = this.AllocRegister();
+		this.VisitingBuilder.Append("NSET " + "REG" + Reg + ", " + "CONST" + Index + "\n");
+		this.PushRegister(Reg);
 	}
 
 	@Override public void VisitRegexNode(GtRegexNode Node) {
-		/*FIXME*/
+		/*local*/int Index = this.AddConstant(Node.Value);
+		/*local*/int Reg = this.AllocRegister();
+		this.VisitingBuilder.Append("NSET " + "REG" + Reg + ", " + "CONST" + Index + "\n");
+		this.PushRegister(Reg);
 	}
 
 	@Override public void VisitConstPoolNode(GtConstPoolNode Node) {
-		/*FIXME*/
+		/*local*/int Index = this.AddConstant(Node.ConstValue);
+		/*local*/int Reg = this.AllocRegister();
+		this.VisitingBuilder.Append("NSET " + "REG" + Reg + ", " + "CONST" + Index + "\n");
+		this.PushRegister(Reg);
 	}
 
 	@Override public void VisitArrayLiteralNode(GtArrayLiteralNode Node) {
@@ -55,11 +144,12 @@ public class KonohaByteCodeGenerator extends GtSourceGenerator {
 	}
 
 	@Override public void VisitGetLocalNode(GtGetLocalNode Node) {
-		/*FIXME*/
+		this.PushRegister(this.LocalVarMap.get(Node.NativeName));
 	}
 
 	@Override public void VisitSetLocalNode(GtSetLocalNode Node) {
-		/*FIXME*/
+		Node.ValueNode.Accept(this);
+		this.VisitingBuilder.Append("NMOV " + "REG" + this.LocalVarMap.get(Node.NativeName) + ", REG" + this.PopRegister() + "\n");
 	}
 
 	@Override public void VisitGetCapturedNode(GtGetCapturedNode Node) {
@@ -131,7 +221,16 @@ public class KonohaByteCodeGenerator extends GtSourceGenerator {
 	}
 
 	@Override public void VisitBinaryNode(GtBinaryNode Node) {
-		/*FIXME*/
+		Node.LeftNode.Accept(this);
+		Node.RightNode.Accept(this);
+
+		/*local*/int TargetReg = this.AllocRegister();
+		this.VisitingBuilder.Append("NMOV " + "REG" + (TargetReg+1) + ", REG" + this.PopRegister() + "\n");
+		this.VisitingBuilder.Append("NMOV " + "REG" + (TargetReg+2) + ", REG" + this.PopRegister() + "\n");
+		/*local*/String Op = Node.Token.ParsedText;
+		this.VisitingBuilder.Append("CALL " + "REG" + TargetReg + ", \"" + Op + "\", 2\n");
+		this.PushRegister(TargetReg);
+		this.FreeRegister(TargetReg+1);
 	}
 
 	@Override public void VisitTrinaryNode(GtTrinaryNode Node) {
@@ -159,7 +258,11 @@ public class KonohaByteCodeGenerator extends GtSourceGenerator {
 	}
 
 	@Override public void VisitVarDeclNode(GtVarDeclNode Node) {
-		/*FIXME*/
+		this.LocalVarMap.put(Node.NativeName, this.AllocRegister());
+		Node.InitNode.Accept(this);
+		this.VisitingBuilder.Append("NMOV " + "REG" + this.LocalVarMap.get(Node.NativeName) + ", REG" + this.PopRegister() + "\n");
+		this.VisitBlock(Node.BlockNode);
+		this.LocalVarMap.remove(Node.NativeName);
 	}
 
 	@Override public void VisitUsingNode(GtUsingNode Node) {
@@ -199,7 +302,8 @@ public class KonohaByteCodeGenerator extends GtSourceGenerator {
 	}
 
 	@Override public void VisitReturnNode(GtReturnNode Node) {
-		/*FIXME*/
+		Node.ValueNode.Accept(this);
+		this.VisitingBuilder.Append("RET  " + "REG" + this.PopRegister());
 	}
 
 	@Override public void VisitYieldNode(GtYieldNode Node) {
@@ -232,6 +336,25 @@ public class KonohaByteCodeGenerator extends GtSourceGenerator {
 
 	@Override public void VisitErrorNode(GtErrorNode Node) {
 		/*FIXME*/
+	}
+
+	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
+		/*local*/String MethodName = Func.GetNativeFuncName();
+		/*local*/int Index = this.AddMethod(MethodName);
+		this.RegisterNum = 0;
+		this.VisitingBuilder = this.NewSourceBuilder();
+		this.VisitingBuilder.Append("(METHOD" + Index + " " + MethodName);
+		/*local*/int i = 0;
+		/*local*/int size = LibGreenTea.ListSize(ParamNameList);
+		///*local*/HashMap<String,Integer> PushedMap = (/*cast*/HashMap<String,Integer>)this.LocalVarMap.clone();
+		for(i = 0; i < size; ++i) {
+			/*local*/String ParamName = ParamNameList.get(i);
+			this.LocalVarMap.put(ParamName, this.AllocRegister());
+			this.VisitingBuilder.Append(" " + ParamName + ":REG" + this.LocalVarMap.get(ParamName));
+		}
+		this.VisitingBuilder.Append("):\n");
+		this.VisitBlock(Body);
+		//this.LocalVarMap = PushedMap;
 	}
 
 	@Override public void OpenClassField(GtSyntaxTree ParsedTree, GtType Type, GtClassField ClassField) {
