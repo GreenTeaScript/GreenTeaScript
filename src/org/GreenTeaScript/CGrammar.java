@@ -171,7 +171,7 @@ public class CGrammar extends GreenTeaUtils {
 			}
 			Gamma.Generator.CloseClassField(DefinedType, MemberList);
 		}
-		return Gamma.Generator.CreateEmptyNode(GtStaticTable.VoidType, ParsedTree);
+		return Gamma.Generator.CreateEmptyNode(GtStaticTable.VoidType);
 	}
 	
 	private static boolean TypeMemberDecl(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtClassField ClassField) {

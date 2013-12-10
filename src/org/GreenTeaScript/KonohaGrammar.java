@@ -1266,7 +1266,7 @@ public class KonohaGrammar extends GtGrammar {
 	}
 
 	public static GtNode TypeEmpty(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
-		return Gamma.Generator.CreateEmptyNode(GtStaticTable.VoidType, ParsedTree);
+		return Gamma.Generator.CreateEmptyNode(GtStaticTable.VoidType);
 	}
 
 	public static GtSyntaxTree ParseSemiColon(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
@@ -1876,7 +1876,7 @@ public class KonohaGrammar extends GtGrammar {
 	}
 
 	public static GtNode TypeSymbolDecl(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		return Gamma.Generator.CreateEmptyNode(ContextType, ParsedTree);
+		return Gamma.Generator.CreateEmptyNode(ContextType);
 	}
 
 	// FuncDecl
@@ -2032,7 +2032,7 @@ public class KonohaGrammar extends GtGrammar {
 	public static GtNode TypeFuncDecl(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtFunc DefinedFunc = (/*cast*/GtFunc)ParsedTree.ParsedValue;
 		DefinedFunc.GenerateNativeFunc();
-		return Gamma.Generator.CreateEmptyNode(GtStaticTable.VoidType, ParsedTree);
+		return Gamma.Generator.CreateEmptyNode(GtStaticTable.VoidType);
 	}
 
 	public static GtSyntaxTree ParseGenericFuncDecl(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
@@ -2378,7 +2378,7 @@ public class KonohaGrammar extends GtGrammar {
 			}
 			Gamma.Generator.CloseClassField(DefinedType, MemberList);
 		}
-		return Gamma.Generator.CreateEmptyNode(GtStaticTable.VoidType, ParsedTree);
+		return Gamma.Generator.CreateEmptyNode(GtStaticTable.VoidType);
 	}
 
 	@Override public void LoadTo(GtNameSpace NameSpace) {

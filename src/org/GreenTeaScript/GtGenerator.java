@@ -59,8 +59,8 @@ public class GtGenerator extends GreenTeaUtils {
 		return new GtErrorNode(GtStaticTable.VoidType, ParsedTree.KeyToken);
 	}
 
-	public GtNode CreateEmptyNode(GtType Type, GtSyntaxTree ParsedTree) {
-		return new GtEmptyNode(Type, ParsedTree.KeyToken);
+	public GtNode CreateEmptyNode(GtType Type) {
+		return new GtEmptyNode(Type, GtTokenContext.NullToken);
 	}
 
 	public GtNode CreateNullNode(GtType Type, GtSyntaxTree ParsedTree) {
