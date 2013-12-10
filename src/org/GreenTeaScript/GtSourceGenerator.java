@@ -29,7 +29,7 @@ import java.util.ArrayList;
 
 public class GtSourceGenerator extends GtGenerator {
 	/*field*/private ArrayList<GtSourceBuilder> BuilderList;
-	/*field*/private   GtSourceBuilder HeaderBuilder;
+	/*field*/protected GtSourceBuilder HeaderBuilder;
 	/*field*/protected GtSourceBuilder VisitingBuilder;
 	
 	/*field*/public String    Tab;
@@ -56,9 +56,7 @@ public class GtSourceGenerator extends GtGenerator {
 //	/*field*/public String    ParameterBegin;
 //	/*field*/public String    ParameterEnd;
 //	/*field*/public String    ParameterDelimiter;
-//	/*field*/public String    BlockBegin;
-//	/*field*/public String    BlockEnd;
-	
+
 	public GtSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
 		this.BuilderList = new ArrayList<GtSourceBuilder>();
@@ -89,8 +87,6 @@ public class GtSourceGenerator extends GtGenerator {
 //		this.ParameterEnd = ")";
 //		this.ParameterDelimiter = ",";
 //		this.SemiColon = ";";
-//		this.BlockBegin = "{";
-//		this.BlockEnd = "}";
 	}
 
 	@Override public void InitContext(GtParserContext Context) {
