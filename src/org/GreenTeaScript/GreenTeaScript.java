@@ -332,6 +332,7 @@ interface GreenTeaConsts {
 
 	public final static int VerboseRuntime   = (1 << 9);
 
+	public final static boolean DebugVisitor = true;
 /*GreenTeaConst End*/
 //ifdef JAVA
 }

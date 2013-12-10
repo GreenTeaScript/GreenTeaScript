@@ -528,7 +528,6 @@ public final class GtNameSpace extends GreenTeaUtils {
 		/*local*/Object ResultValue = null;
 		LibGreenTea.VerboseLog(VerboseEval, "eval: " + ScriptText);
 		/*local*/GtTokenContext TokenContext = new GtTokenContext(this, ScriptText, FileLine);
-		this.Context.Generator.StartCompilationUnit();
 		TokenContext.SkipEmptyStatement();
 		while(TokenContext.HasNext()) {
 			/*local*/GtMap Annotation = TokenContext.SkipAndGetAnnotation(true);
@@ -550,7 +549,6 @@ public final class GtNameSpace extends GreenTeaUtils {
 			}
 			TokenContext.Vacume();
 		}
-		this.Context.Generator.FinishCompilationUnit();
 		return ResultValue;
 	}
 

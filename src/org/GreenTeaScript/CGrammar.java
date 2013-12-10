@@ -83,8 +83,8 @@ public class CGrammar extends GreenTeaUtils {
 		if(PolyFunc.FuncList.size() > 0 && ContextType.IsFuncType()) {
 			/*local*/GtFunc FirstFunc = PolyFunc.FuncList.get(0);
 			GtNode Node = Gamma.Generator.CreateGetterNode(ContextType, ParsedTree, ObjectNode, Name);
-			if(Node instanceof GtGetterNode) {
-				((/*cast*/GtGetterNode)Node).ResolvedFunc = FirstFunc;
+			if(Node instanceof GtSymbolNode) {
+				((/*cast*/GtSymbolNode)Node).ResolvedFunc = FirstFunc;
 			}
 		}
 
@@ -92,7 +92,7 @@ public class CGrammar extends GreenTeaUtils {
 		/*local*/GtFunc GetterFunc = ParsedTree.NameSpace.GetGetterFunc(ObjectNode.Type, Name, true);
 		/*local*/GtType ReturnType = (GetterFunc != null) ? GetterFunc.GetReturnType() : GtStaticTable.AnyType;
 		/*local*/GtNode Node = Gamma.Generator.CreateGetterNode(ReturnType, ParsedTree, ObjectNode, Name);
-		if(Node instanceof GtGetterNode) {
+		if(Node instanceof GtSymbolNode) {
 			((/*cast*/GtGetterNode)Node).ResolvedFunc = GetterFunc;
 		}
 		if(GetterFunc == null) {

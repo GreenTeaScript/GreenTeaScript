@@ -40,6 +40,7 @@ public class CSourceGenerator extends SourceGenerator {
 	}
 	@Override public void InitContext(GtParserContext Context) {
 		super.InitContext(Context);
+		this.WriteLineCode("#include \"GreenTeaPlus.h\"");
 	}
 
 	private String GetLocalType(GtType Type, boolean IsPointer) {
@@ -198,15 +199,6 @@ public class CSourceGenerator extends SourceGenerator {
 		this.WriteLineCode(Code);
 	}
 
-	@Override public Object Eval(GtNode Node) {
-		/*local*/String Code = this.VisitBlockWithIndent(Node, false);
-		if(LibGreenTea.EqualsString(Code, ";" + this.LineFeed)) {
-			return "";
-		}
-		this.WriteLineCode(Code);
-		return Code;
-	}
-
 	@Override public void OpenClassField(GtSyntaxTree ParsedTree, GtType Type, GtClassField ClassField) {
 		/*local*/String TypeName = Type.ShortName;
 		/*local*/String LocalType = this.LocalTypeName(Type);
@@ -244,10 +236,6 @@ public class CSourceGenerator extends SourceGenerator {
 		Program += this.GetIndentString() + "};";
 		
 		this.WriteLineCode(Program);
-	}
-
-	@Override public void StartCompilationUnit() {
-		this.WriteLineCode("#include \"GreenTeaPlus.h\"");
 	}
 
 	@Override public String GetRecvName() {

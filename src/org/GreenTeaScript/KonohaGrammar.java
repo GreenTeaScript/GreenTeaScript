@@ -732,6 +732,7 @@ public class KonohaGrammar extends GtGrammar {
 			if(Node instanceof GtSymbolNode) {
 				((/*cast*/GtSymbolNode)Node).ResolvedFunc = ResolvedFunc;
 			}
+			return Node;
 		}
 		if(RecvNode.Type.IsDynamicType()) {
 			GtNode Node = Gamma.Generator.CreateApplySymbolNode(GtStaticTable.AnyType, ParsedTree, FuncSymbol(OperatorSymbol), null);
@@ -792,6 +793,7 @@ public class KonohaGrammar extends GtGrammar {
 				if(Node instanceof GtSymbolNode) {
 					((/*cast*/GtSymbolNode)Node).ResolvedFunc = ResolvedFunc.Func;
 				}
+				return Node;
 			}
 		}
 		if(RecvNode.Type.IsDynamicType()) {
@@ -979,6 +981,7 @@ public class KonohaGrammar extends GtGrammar {
 			if(Node instanceof GtSymbolNode) {
 				((/*cast*/GtSymbolNode)Node).ResolvedFunc = SetterFunc;
 			}
+			return Node;
 		}
 		if(RecvNode.Type.IsDynamicType()) {
 			/*local*/GtNode ValueNode = ParsedTree.TypeCheckAt(RightHandTerm, Gamma, GtStaticTable.VarType, DefaultTypeCheckPolicy);

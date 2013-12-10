@@ -41,6 +41,13 @@ public class PerlSourceGenerator extends SourceGenerator {
 		this.ContinueKeyword = "next";
 	}
 
+	@Override public void InitContext(GtParserContext Context) {
+		super.InitContext(Context);
+		this.WriteLineCode("use strict;");
+		this.WriteLineCode("use warnings;");
+		this.WriteLineCode("use Error qw(:try);");
+	}
+
 	public void VisitBlockEachStatementWithIndent(GtNode Node) {
 		/*local*/String Code = "{" + this.LineFeed;
 		this.Indent();
@@ -218,17 +225,6 @@ public class PerlSourceGenerator extends SourceGenerator {
 		Program += this.GetIndentString() + "}" + this.LineFeed;
 		Program += this.GetIndentString() + "package main;" + this.LineFeed;
 		this.WriteLineCode(Program);
-	}
-
-	@Override public Object Eval(GtNode SingleNode) {
-		SingleNode.Accept(this);
-		return this.PopSourceCode();
-	}
-
-	@Override public void StartCompilationUnit() {
-		this.WriteLineCode("use strict;");
-		this.WriteLineCode("use warnings;");
-		this.WriteLineCode("use Error qw(:try);");
 	}
 
 	@Override public String GetRecvName() {

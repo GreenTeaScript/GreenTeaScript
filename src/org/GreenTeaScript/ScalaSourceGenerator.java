@@ -168,14 +168,14 @@ public class ScalaSourceGenerator extends SourceGenerator {
 		this.PushSourceCode(Code);
 	}
 
-	@Override public Object Eval(GtNode Node) {
-		/*local*/String Code = this.VisitBlockWithIndent(Node, false);
-		if(LibGreenTea.EqualsString(Code, ";" + this.LineFeed)) {
-			return "";
-		}
-		this.WriteLineCode(Code);
-		return Code;
-	}
+//	@Override public Object Eval(GtNode Node) {
+//		/*local*/String Code = this.VisitBlockWithIndent(Node, false);
+//		if(LibGreenTea.EqualsString(Code, ";" + this.LineFeed)) {
+//			return "";
+//		}
+//		this.WriteLineCode(Code);
+//		return Code;
+//	}
 
 	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
 		this.FlushErrorReport();
@@ -238,13 +238,13 @@ public class ScalaSourceGenerator extends SourceGenerator {
 		this.WriteLineCode(Program);
 	}
 
-	@Override public void StartCompilationUnit() {
-		this.WriteLineCode("object " + this.OutFileName + " {");
-	}
-
-	@Override public void FinishCompilationUnit() {
-		this.WriteLineCode("}");
-	}
+//	@Override public void StartCompilationUnit() {
+//		this.WriteLineCode("object " + this.OutFileName + " {");
+//	}
+//
+//	@Override public void FinishCompilationUnit() {
+//		this.WriteLineCode("}");
+//	}
 	@Override public void InvokeMainFunc(String MainFuncName) {
 		this.WriteLineCode("def main(args: Array[String]) {");
 		this.WriteLineCode(this.Tab + MainFuncName + "()");

@@ -550,13 +550,13 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.WriteLineCode(this.LineFeed + Program);
 	}
 
-	@Override public Object Eval(GtNode Node) {
-		/*local*/String Code = this.VisitBlockWithoutIndent(Node, false);
-		if(!LibGreenTea.EqualsString(Code, "")) {
-			this.WriteLineCode(Code);
-		}
-		return Code;
-	}
+//	@Override public Object Eval(GtNode Node) {
+//		/*local*/String Code = this.VisitBlockWithoutIndent(Node, false);
+//		if(!LibGreenTea.EqualsString(Code, "")) {
+//			this.WriteLineCode(Code);
+//		}
+//		return Code;
+//	}
 
 	@Override public void InvokeMainFunc(String MainFuncName) {
 		this.WriteLineCode(MainFuncName);
