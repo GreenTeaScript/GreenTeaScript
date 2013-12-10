@@ -314,6 +314,36 @@ public class GtGenerator extends GreenTeaUtils {
 		return CreateConstPoolNode(Type, ParsedTree, Value);
 	}
 
+	public GtNode CreateApplyMethodNode(GtType Type, GtSyntaxTree ParsedTree, String FuncName, GtFunc Func) {
+		if(Func != null && Func.Is(VirtualFunc)) {
+			return CreateApplyOverridedMethodNode(Type, ParsedTree, ParsedTree.NameSpace.Minimum(), Func);
+		}
+		return CreateApplySymbolNode(Type, ParsedTree, FuncName, Func);
+	}
+
+	public GtNode CreateUpdateNode(GtType Type, GtSyntaxTree ParsedTree, GtFunc ResolovedFunc, GtNode LeftNode, GtNode RightNode) {
+		GtNode Node = null;
+		if(LeftNode instanceof GtGetIndexNode) {
+			/*local*/GtGetIndexNode IndexNode = (/*cast*/GtGetIndexNode) LeftNode;
+			return CreateSetIndexNode(LeftNode.Type, ParsedTree, IndexNode.RecvNode, IndexNode.IndexNode, RightNode);
+		}
+		else if(LeftNode instanceof GtGetLocalNode) {
+			/*local*/GtGetLocalNode LocalNode = (/*cast*/GtGetLocalNode) LeftNode;
+			Node = CreateSetLocalNode(LeftNode.Type, ParsedTree, LocalNode.NativeName, RightNode);
+		}
+		else if(LeftNode instanceof GtGetterNode) {
+			/*local*/GtGetterNode GetterNode = (/*cast*/GtGetterNode) LeftNode;
+			Node = CreateSetterNode(LeftNode.Type, ParsedTree, GetterNode.RecvNode, GetterNode.NativeName, RightNode);
+		}
+		else {
+			LibGreenTea.Assert(false); // unreachable
+		}
+		if(Node instanceof GtSymbolNode) {
+			((/*cast*/GtSymbolNode) Node).ResolvedFunc = ResolovedFunc;
+		}
+		return Node;
+	}
+
 	/* language constructor */
 
 	public void OpenClassField(GtSyntaxTree ParsedTree, GtType DefinedType, GtClassField ClassField) {
