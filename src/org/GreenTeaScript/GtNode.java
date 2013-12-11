@@ -458,11 +458,11 @@ final class GtApplyOverridedMethodNode extends GtNode {
 }
 
 //E.g., $Recv[$Index]
-final class GtGetIndexNode extends GtNode {
+final class GtGetIndexNode extends GtSymbolNode {
 	/*field*/public GtNode  RecvNode;
 	/*field*/public GtNode  IndexNode;
 	GtGetIndexNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, GtNode IndexNode) {
-		super(Type, Token);
+		super(Type, Token, "[]");
 		this.RecvNode = RecvNode;
 		this.IndexNode = IndexNode;
 		this.SetChild2(RecvNode, IndexNode);
@@ -477,12 +477,12 @@ final class GtGetIndexNode extends GtNode {
 	}
 }
 //E.g., $Recv[$Index] = $ValueNode
-final class GtSetIndexNode extends GtNode {
+final class GtSetIndexNode extends GtSymbolNode {
 	/*field*/public GtNode  RecvNode;
 	/*field*/public GtNode  IndexNode;
 	/*field*/public GtNode  ValueNode;
 	GtSetIndexNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, GtNode IndexNode, GtNode ValueNode) {
-		super(Type, Token);
+		super(Type, Token, "[]=");
 		this.RecvNode  = RecvNode;
 		this.IndexNode = IndexNode;
 		this.ValueNode = ValueNode;

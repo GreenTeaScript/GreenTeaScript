@@ -2237,10 +2237,10 @@ public class KonohaGrammar extends GtGrammar {
 				return Gamma.CreateSyntaxErrorNode(ParsedTree, "undefined: " + MethodName + " of " + RecvNode.Type);
 			}
 			if(LibGreenTea.EqualsString(ParsedTree.KeyToken.ParsedText, "[]")) {
-				return Gamma.Generator.CreateGetIndexNode(ResolvedFunc.ReturnType, ParsedTree, RecvNode, ParamList.get(1));
+				return Gamma.Generator.CreateGetIndexNode(ResolvedFunc.ReturnType, ParsedTree, RecvNode, ResolvedFunc.Func, ParamList.get(1));
 			}
 			else {
-				return Gamma.Generator.CreateSetIndexNode(ResolvedFunc.ReturnType, ParsedTree, RecvNode, ParamList.get(1), ParamList.get(2));
+				return Gamma.Generator.CreateSetIndexNode(ResolvedFunc.ReturnType, ParsedTree, RecvNode, ResolvedFunc.Func, ParamList.get(1), ParamList.get(2));
 			}
 		}
 		return RecvNode;

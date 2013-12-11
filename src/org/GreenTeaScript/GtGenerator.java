@@ -145,12 +145,16 @@ public class GtGenerator extends GreenTeaUtils {
 		return new GtApplyOverridedMethodNode(Type, ParsedTree.KeyToken, NameSpace, Func);
 	}
 
-	public GtNode CreateGetIndexNode(GtType Type, GtSyntaxTree ParsedTree, GtNode RecvNode, GtNode IndexNode) {
-		return new GtGetIndexNode(Type, ParsedTree.KeyToken, RecvNode, IndexNode);
+	public GtNode CreateGetIndexNode(GtType Type, GtSyntaxTree ParsedTree, GtNode RecvNode, GtFunc Func, GtNode IndexNode) {
+		GtGetIndexNode Node = new GtGetIndexNode(Type, ParsedTree.KeyToken, RecvNode, IndexNode);
+		Node.ResolvedFunc = Func;
+		return Node;
 	}
 
-	public GtNode CreateSetIndexNode(GtType Type, GtSyntaxTree ParsedTree, GtNode RecvNode, GtNode IndexNode, GtNode ValueNode) {
-		return new GtSetIndexNode(Type, ParsedTree.KeyToken, RecvNode, IndexNode, ValueNode);
+	public GtNode CreateSetIndexNode(GtType Type, GtSyntaxTree ParsedTree, GtNode RecvNode, GtFunc Func, GtNode IndexNode, GtNode ValueNode) {
+		GtSetIndexNode Node = new GtSetIndexNode(Type, ParsedTree.KeyToken, RecvNode, IndexNode, ValueNode);
+		Node.ResolvedFunc = Func;
+		return Node;
 	}
 
 	public GtNode CreateSliceNode(GtType Type, GtSyntaxTree ParsedTree, GtNode RecvNode, GtNode Index1, GtNode Index2) {

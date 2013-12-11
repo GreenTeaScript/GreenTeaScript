@@ -745,15 +745,18 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		this.VisitingBuilder.InvokeMethodCall(Node.Type, (Method)Node.ResolvedFunc.FuncBody);
 	}
 
-//	@Override public void VisitIndexerNode(GtIndexerNode Node) {
-//		ArrayList<GtNode> NodeList = Node.NodeList;
-//		Node.Expr.Accept(this);
-//		for(int i=0; i < NodeList.size(); i++) {
-//			GtNode ParamNode = NodeList.get(i);
-//			this.VisitingBuilder.PushEvaluatedNode(Node.Func.GetFuncParamType(i+1), ParamNode);
-//		}
-//		this.VisitingBuilder.InvokeMethodCall(Node.Type, (Method) Node.Func.FuncBody);
-//	}
+	@Override public void VisitGetIndexNode(GtGetIndexNode Node) {
+		Node.RecvNode.Accept(this);
+		this.VisitingBuilder.PushEvaluatedNode(Node.ResolvedFunc.GetFuncParamType(1), Node.IndexNode);
+		this.VisitingBuilder.InvokeMethodCall(Node.Type, (Method) Node.ResolvedFunc.FuncBody);
+	}
+
+	@Override public void VisitSetIndexNode(GtSetIndexNode Node) {
+		Node.RecvNode.Accept(this);
+		this.VisitingBuilder.PushEvaluatedNode(Node.ResolvedFunc.GetFuncParamType(1), Node.IndexNode);
+		this.VisitingBuilder.PushEvaluatedNode(Node.ResolvedFunc.GetFuncParamType(2), Node.ValueNode);
+		this.VisitingBuilder.InvokeMethodCall(Node.Type, (Method) Node.ResolvedFunc.FuncBody);
+	}
 
 	@Override public void VisitArrayLiteralNode(GtArrayLiteralNode Node) {
 		this.VisitingBuilder.LoadConst(Node.Type);
