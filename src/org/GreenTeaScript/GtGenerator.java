@@ -329,7 +329,7 @@ public class GtGenerator extends GreenTeaUtils {
 		GtNode Node = null;
 		if(LeftNode instanceof GtGetIndexNode) {
 			/*local*/GtGetIndexNode IndexNode = (/*cast*/GtGetIndexNode) LeftNode;
-			return CreateSetIndexNode(LeftNode.Type, ParsedTree, IndexNode.RecvNode, IndexNode.IndexNode, RightNode);
+			return CreateSetIndexNode(LeftNode.Type, ParsedTree, IndexNode.RecvNode, ResolovedFunc, IndexNode.IndexNode, RightNode);
 		}
 		else if(LeftNode instanceof GtGetLocalNode) {
 			/*local*/GtGetLocalNode LocalNode = (/*cast*/GtGetLocalNode) LeftNode;
