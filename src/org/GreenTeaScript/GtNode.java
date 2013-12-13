@@ -228,6 +228,8 @@ final class GtConstPoolNode extends GtConstNode {
 		this.ConstValue = ConstValue;
 	}
 	@Override public void Accept(GtGenerator Visitor) {
+		// int ConstPoolId = SetConstPool(ConstValue)
+		// using StaticApplyNode => GetConstPool(ConstPoolId);
 		Visitor.VisitConstPoolNode(this);
 	}
 	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
@@ -262,7 +264,6 @@ final class GtMapLiteralNode extends GtNode {   // => ArrayLiteral
 	GtMapLiteralNode/*constructor*/(GtType Type, GtToken Token) {
 		super(Type, Token);
 		this.NodeList = new ArrayList<GtNode>();
-		throw new RuntimeException("FIXME: Regex object must be defined");
 	}
 	@Override public ArrayList<GtNode> GetList() {
 		return this.NodeList;
@@ -289,10 +290,17 @@ final class GtParamNode extends GtNode {
 }
 
 /* E.g., function(argument, ..) $Body */
+/* int x; // captured variable 
+ * f = function(a, b) {
+ * 	  return x + a + b;
+ * }
+ * ArgumentList = List of ParamNode
+ * BodyNode
+ */
+
 final class GtFunctionLiteralNode extends GtNode {
-	/*field*/public ArrayList<GtNode>  ArgumentList;
+	/*field*/public ArrayList<GtNode>  ArgumentList;  // list of ParamNode 
 	/*field*/public GtNode BodyNode;
-	
 	GtFunctionLiteralNode/*constructor*/(GtType Type, GtToken Token, GtNode BodyNode) {
 		super(Type, Token); // TODO
 		this.ArgumentList = new ArrayList<GtNode>();
@@ -307,10 +315,11 @@ final class GtFunctionLiteralNode extends GtNode {
 	}
 }
 
+/* symbol variable, function name */
 
 abstract class GtSymbolNode extends GtNode {
-	/*field*/public GtFunc	ResolvedFunc;
 	/*field*/public String  NativeName;
+	/*field*/public GtFunc	ResolvedFunc;    // 
 	GtSymbolNode/*constructor*/(GtType Type, GtToken Token, String NativeName) {
 		super(Type, Token);
 		this.NativeName = NativeName;
@@ -318,6 +327,7 @@ abstract class GtSymbolNode extends GtNode {
 	}
 }
 
+// E.g., $NativeName
 final class GtGetLocalNode extends GtSymbolNode {
 	GtGetLocalNode/*constructor*/(GtType Type, GtToken Token, String NativeName) {
 		super(Type, Token, NativeName);
@@ -327,7 +337,7 @@ final class GtGetLocalNode extends GtSymbolNode {
 	}
 }
 
-//E.g., $NativeName = $RightNode
+// E.g., $NativeName = $ValueNode
 final class GtSetLocalNode extends GtSymbolNode {
 	/*field*/public GtNode	 ValueNode;
 	GtSetLocalNode/*constructor*/(GtType Type, GtToken Token, String NativeName, GtNode ValueNode) {
@@ -340,6 +350,7 @@ final class GtSetLocalNode extends GtSymbolNode {
 	}
 }
 
+//E.g., $NativeName
 final class GtGetCapturedNode extends GtSymbolNode {
 	GtGetCapturedNode/*constructor*/(GtType Type, GtToken Token, String NativeName) {
 		super(Type, Token, NativeName);
@@ -362,7 +373,7 @@ final class GtSetCapturedNode extends GtSymbolNode {
 	}
 }
 
-//E.g., $Recv.$NativeName
+//E.g., $RecvNode.$NativeName
 final class GtGetterNode extends GtSymbolNode {
 	/*field*/public GtNode  RecvNode;
 	GtGetterNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, String NativeName) {
@@ -377,7 +388,7 @@ final class GtGetterNode extends GtSymbolNode {
 		return Context.Generator.EvalGetterNode(this, EnforceConst);
 	}
 }
-//E.g., $Recv.$NativeName = $Value
+//E.g., $RecvNode.$NativeName = $Value
 final class GtSetterNode extends GtSymbolNode {
 	/*field*/public GtNode  RecvNode;
 	/*field*/public GtNode  ValueNode;
@@ -435,7 +446,6 @@ final class GtApplyFunctionObjectNode extends GtNode {
 }
 
 final class GtApplyOverridedMethodNode extends GtNode {
-//	/*field*/public GtNode RecvNode;
 	/*field*/public GtNameSpace NameSpace;
 	/*field*/public GtFunc Func;
 	/*field*/public ArrayList<GtNode>  ParamList; /* [arg1, arg2, ...] */
@@ -566,7 +576,7 @@ final class GtOrNode extends GtNode {
 	}
 }
 
-//E.g., "~" $Expr
+//E.g., "~" $RecvNode
 final class GtUnaryNode extends GtSymbolNode {
 	/*field*/public GtNode	RecvNode;
 	GtUnaryNode/*constructor*/(GtType Type, GtToken Token, String OperatorName, GtNode RecvNode) {
@@ -586,7 +596,7 @@ final class GtUnaryNode extends GtSymbolNode {
 	}	
 }
 
-//E.g.,  "++" $Expr 
+//E.g.,  "++" $RecvNode 
 final class GtPrefixInclNode extends GtNode {
 	/*field*/public GtNode	RecvNode;
 	GtPrefixInclNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode) {
@@ -598,7 +608,7 @@ final class GtPrefixInclNode extends GtNode {
 		Visitor.VisitPrefixInclNode(this);
 	}
 }
-//E.g.,  "--" $Expr 
+//E.g.,  "--" $RecvNode
 final class GtPrefixDeclNode extends GtNode {
 	/*field*/public GtNode	RecvNode;
 	GtPrefixDeclNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode) {
@@ -610,7 +620,7 @@ final class GtPrefixDeclNode extends GtNode {
 		Visitor.VisitPrefixDeclNode(this);
 	}
 }
-//E.g.,  $Expr "++" 
+//E.g.,  $RecvNode "++" 
 final class GtSuffixInclNode extends GtNode {
 	/*field*/public GtNode	RecvNode;
 	GtSuffixInclNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode) {
@@ -622,7 +632,7 @@ final class GtSuffixInclNode extends GtNode {
 		Visitor.VisitSuffixInclNode(this);
 	}
 }
-//E.g.,  $Expr "--" 
+//E.g.,  $RecvNode "--" 
 final class GtSuffixDeclNode extends GtNode {
 	/*field*/public GtNode	RecvNode;
 	GtSuffixDeclNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode) {
@@ -763,7 +773,6 @@ final class GtTrinaryNode extends GtNode {
 	}
 }
 
-
 //E.g., $Param[0] "(" $Param[1], $Param[2], ... ")"
 @Deprecated final class GtApplyNode extends GtNode {
 	/*field*/public GtFunc	Func;
@@ -829,9 +838,7 @@ final class GtTrinaryNode extends GtNode {
 	}
 }
 
-
-
-//E.g., ConstructorNode is for object creation in Native Langauage defined
+// E.g., ConstructorNode is for object creation in Native language defined
 final class GtConstructorNode extends GtNode {
 	/*field*/public ArrayList<GtNode>	ParamList;
 	/*field*/public GtFunc Func;
@@ -854,7 +861,7 @@ final class GtConstructorNode extends GtNode {
 	}	
 }
 
-//NewNode is object creation in GreenTea defined
+// E.g., AllocateNode (without parameters); StaticApply is needed to init
 final class GtAllocateNode extends GtNode {
 	GtAllocateNode/*constructor*/(GtType Type, GtToken Token) {
 		super(Type, Token);
@@ -866,7 +873,6 @@ final class GtAllocateNode extends GtNode {
 		return Context.Generator.EvalAllocateNode(this, EnforceConst);
 	}	
 }
-
 
 //E.g., new T "[" 10, [10] "]"
 final class GtNewArrayNode extends GtNode {
@@ -934,9 +940,13 @@ final class GtCastNode extends GtNode {
 	}
 }
 
+/**
+ * int a = 1;
+ * String s ; 
+ */
+
 final class GtVarDeclNode extends GtNode {
 	/*field*/public GtType	DeclType;
-//	/*field*/public GtNode	VarNode;
 	/*field*/public String  NativeName;
 	/*field*/public GtNode	InitNode;
 	/*field*/public GtNode	BlockNode;
@@ -945,7 +955,7 @@ final class GtVarDeclNode extends GtNode {
 		super(Type, Token);
 		this.NativeName = VariableName;
 		this.DeclType  = DeclType;
-		this.InitNode  = InitNode;
+		this.InitNode  = InitNode;    // given expression or NullNode
 		this.BlockNode = Block;
 		this.SetChild2(InitNode, this.BlockNode);
 	}
@@ -954,12 +964,18 @@ final class GtVarDeclNode extends GtNode {
 	}
 }
 
+/**
+ * using(File f = new File() {
+ * 	f.read();
+ * }
+ * try-catch is needed
+ */
+
 final class GtUsingNode extends GtNode {
 	/*field*/public GtType	DeclType;
-//	/*field*/public GtNode	VarNode;
 	/*field*/public String  NativeName;
 	/*field*/public GtNode	InitNode;
-	/*field*/public GtNode	BlockNode;
+	/*field*/public GtNode	BlockNode;   // release resource of NativeName after BlockNode 
 	/* let VarNode in Block end */
 	GtUsingNode/*constructor*/(GtType Type, GtToken Token, GtType DeclType, String VariableName, GtNode InitNode, GtNode Block) {
 		super(Type, Token);
@@ -973,7 +989,6 @@ final class GtUsingNode extends GtNode {
 		Visitor.VisitUsingNode(this);
 	}
 }
-
 //E.g., "if" "(" $Cond ")" $ThenNode "else" $ElseNode
 final class GtIfNode extends GtNode {
 	/*field*/public GtNode	CondNode;
@@ -1087,12 +1102,17 @@ final class GtBreakNode extends GtNode {
 	}
 }
 
+/**
+ * int f(int n);
+ * f(1)
+ */
+
 final class GtStatementNode extends GtNode {
 	/*field*/public GtNode ValueNode;
-	GtStatementNode/*constructor*/(GtType Type, GtToken Token, GtNode Expr) {
+	GtStatementNode/*constructor*/(GtType Type, GtToken Token, GtNode ValueNode) {
 		super(Type, Token);
-		this.ValueNode = Expr;
-		this.SetChild(Expr);
+		this.ValueNode = ValueNode;
+		this.SetChild(ValueNode);
 	}
 	@Override public void Accept(GtGenerator Visitor) {
 		Visitor.VisitStatementNode(this);
@@ -1101,10 +1121,10 @@ final class GtStatementNode extends GtNode {
 
 final class GtReturnNode extends GtNode {
 	/*field*/public GtNode ValueNode;
-	GtReturnNode/*constructor*/(GtType Type, GtToken Token, GtNode Expr) {
+	GtReturnNode/*constructor*/(GtType Type, GtToken Token, GtNode ValueNode) {
 		super(Type, Token);
-		this.ValueNode = Expr;
-		this.SetChild(Expr);
+		this.ValueNode = ValueNode;
+		this.SetChild(ValueNode);
 	}
 	@Override public void Accept(GtGenerator Visitor) {
 		Visitor.VisitReturnNode(this);
@@ -1113,10 +1133,10 @@ final class GtReturnNode extends GtNode {
 
 final class GtYieldNode extends GtNode {
 	/*field*/public GtNode ValueNode;
-	GtYieldNode/*constructor*/(GtType Type, GtToken Token, GtNode Expr) {
+	GtYieldNode/*constructor*/(GtType Type, GtToken Token, GtNode ValueNode) {
 		super(Type, Token);
-		this.ValueNode = Expr;
-		this.SetChild(Expr);
+		this.ValueNode = ValueNode;
+		this.SetChild(ValueNode);
 	}
 	@Override public void Accept(GtGenerator Visitor) {
 		Visitor.VisitYieldNode(this);
@@ -1125,9 +1145,9 @@ final class GtYieldNode extends GtNode {
 
 final class GtThrowNode extends GtNode {
 	/*field*/public GtNode ValueNode;
-	GtThrowNode/*constructor*/(GtType Type, GtToken Token, GtNode Expr) {
+	GtThrowNode/*constructor*/(GtType Type, GtToken Token, GtNode ValueNode) {
 		super(Type, Token);
-		this.ValueNode = Expr;
+		this.ValueNode = ValueNode;
 	}
 	@Override public void Accept(GtGenerator Visitor) {
 		Visitor.VisitThrowNode(this);
@@ -1173,7 +1193,6 @@ final class GtSwitchNode extends GtNode {
 	/*field*/public GtNode	MatchNode;
 	/*field*/public GtNode	DefaultBlock;
 	/*field*/public ArrayList<GtNode> CaseList; // [expr, block, expr, block, ....]
-
 	GtSwitchNode/*constructor*/(GtType Type, GtToken Token, GtNode MatchNode, GtNode DefaultBlock) {
 		super(Type, Token);
 		this.MatchNode = MatchNode;
@@ -1203,7 +1222,6 @@ final class GtCaseNode extends GtNode {
 	}
 }
 
-
 // E.g., "ls" "-a"..
 final class GtCommandNode extends GtNode {
 	/*field*/public ArrayList<GtNode>  ArgumentList; /* ["/bin/ls" , "-la", "/", ...] */
@@ -1221,10 +1239,16 @@ final class GtCommandNode extends GtNode {
 		Visitor.VisitCommandNode(this);
 	}
 
-	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst) {	//FIXME: Exception
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst) {
+		//FIXME: Exception
 		return Context.Generator.EvalCommandNode(this, EnforceConst);
 	}
 }
+
+/**
+ * ErrorNode carries error information at the parser level
+ * Token.ParsedText has error message  
+ */
 
 final class GtErrorNode extends GtNode {
 	GtErrorNode/*constructor*/(GtType Type, GtToken Token) {
