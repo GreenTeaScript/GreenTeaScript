@@ -569,15 +569,6 @@ public class KonohaByteCodeGenerator extends GtSourceGenerator {
 		/*FIXME*/
 	}
 
-	@Override public void VisitBlock(GtNode Node) {
-		/*local*/GtNode CurrentNode = Node;
-		while(CurrentNode != null) {
-			CurrentNode.Accept(this);
-			CurrentNode = CurrentNode.NextNode;
-			this.RegStack.clear();
-		}
-	}
-
 	@Override public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
 		/*local*/String MethodName = Func.GetNativeFuncName();
 		/*local*/int Index = this.AddMethod(MethodName);
