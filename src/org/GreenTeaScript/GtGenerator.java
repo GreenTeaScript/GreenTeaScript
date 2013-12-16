@@ -623,7 +623,7 @@ public class GtGenerator extends GreenTeaUtils {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
-	public final void VisitBlock(GtNode Node) {
+	public void VisitBlock(GtNode Node) {
 		/*local*/GtNode CurrentNode = Node;
 		while(CurrentNode != null) {
 			CurrentNode.Accept(this);
