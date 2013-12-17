@@ -132,7 +132,7 @@ public class GtGenerator extends GreenTeaUtils {
 	}
 
 	public GtNode CreateApplySymbolNode(GtType Type, GtSyntaxTree ParsedTree, String FuncName, GtFunc Func) {
-		GtApplySymbolNode Node = new GtApplySymbolNode(Type, ParsedTree.KeyToken, FuncName);
+		GtApplySymbolNode Node = new GtApplySymbolNode(Type, ParsedTree == null ? GtTokenContext.NullToken : ParsedTree.KeyToken, FuncName);
 		Node.ResolvedFunc = Func;
 		return Node;
 	}
