@@ -493,9 +493,6 @@ public class KonohaGrammar extends GtGrammar {
 	}
 
 	public static GtNode TypeConst(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		if(ParsedTree.ParsedValue instanceof String) { // FIXME IMIFU
-			ParsedTree.ParsedValue = (/*cast*/String) ParsedTree.ParsedValue;
-		}
 		return Gamma.Generator.CreateConstNode(GtStaticTable.GuessType(ParsedTree.ParsedValue), ParsedTree, ParsedTree.ParsedValue);
 	}
 
@@ -657,12 +654,12 @@ public class KonohaGrammar extends GtGrammar {
 
 	public static GtNode TypeCharLiteral(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/String Text = ParsedTree.KeyToken.ParsedText;
-		if(Text.length() == 3/*'A'*/) {
+		if(Text.length() == 3) {/* e.g. 'A'*/
 			/*local*/int ch = LibGreenTea.CharAt(Text, 1);
 			/*local*/Object Value = ch;
 			ParsedTree.ParsedValue = LibGreenTea.ParseInt(Value.toString());
 		}
-		else if(Text.length() == 4/*'\n'*/) {
+		else if(Text.length() == 4) {/* e.g. '\n'*/
 			/*local*/int ch = LibGreenTea.CharAt(Text, 2);
 			if(LibGreenTea.CharAt(Text, 1) == '\\') {
 				switch(ch) {
@@ -946,7 +943,7 @@ public class KonohaGrammar extends GtGrammar {
 			}
 			TypeName = ObjectType.ShortName;
 		}
-//		// 2. find Class method
+		// 2. find Class method
 		// 3. find object field
 		/*local*/GtFunc GetterFunc = ParsedTree.NameSpace.GetGetterFunc(RecvNode.Type, Name, true);
 		if(GetterFunc != null) {
