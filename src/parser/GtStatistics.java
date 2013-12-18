@@ -24,7 +24,7 @@
 
 package parser;
 
-public final class GtStat {
+public final class GtStatistics {
 	/*field*/public int VarDeclAny;
 	/*field*/public int VarDeclInferAny;
 	/*field*/public int VarDeclInfer;
@@ -33,7 +33,7 @@ public final class GtStat {
 	/*field*/public long MatchCount;
 	/*field*/public long BacktrackCount;  // To count how many times backtracks happen.
 
-	public GtStat/*constructor*/() {
+	public GtStatistics() {
 		this.VarDecl = 0;
 		this.VarDeclInfer = 0;
 		this.VarDeclAny = 0;

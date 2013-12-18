@@ -26,7 +26,7 @@
 package parser;
 
 
-public class GtGrammar extends GreenTeaUtils {
+public class GtGrammar {
 //ifdef JAVA
 	public final static GtFunc LoadTokenFunc(GtParserContext ParserContext, Object Grammar, String FuncName) {
 		return GreenTeaUtils.LoadTokenFunc2(ParserContext, Grammar.getClass(), FuncName);

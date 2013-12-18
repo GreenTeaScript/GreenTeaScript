@@ -35,7 +35,7 @@ public final class GtParserContext extends GreenTeaUtils {
 	/*field*/public final  GtNameSpace   RootNameSpace;
 	/*field*/public GtNameSpace		     TopLevelNameSpace;
 
-	/*field*/public final GtStat Stat;
+	/*field*/public final GtStatistics Stat;
 	/*field*/public ArrayList<String>    ReportedErrorList;
 	/*filed*/private boolean NoErrorReport;
 		
@@ -44,7 +44,7 @@ public final class GtParserContext extends GreenTeaUtils {
 		this.Generator    = Generator;
 		this.Generator.Context = this;
 		this.RootNameSpace = new GtNameSpace(this, null);
-		this.Stat = new GtStat();
+		this.Stat = new GtStatistics();
 		this.NoErrorReport = false;
 		this.ReportedErrorList = new ArrayList<String>();
 		GtStaticTable.InitParserContext(this);

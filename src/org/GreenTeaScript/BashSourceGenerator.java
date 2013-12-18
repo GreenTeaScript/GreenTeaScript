@@ -27,9 +27,6 @@ package org.GreenTeaScript;
 import java.util.ArrayList;
 //endif VAJA
 
-
-import javax.management.RuntimeErrorException;
-
 import parser.GreenTeaUtils;
 import parser.GtClassField;
 import parser.GtFieldInfo;
