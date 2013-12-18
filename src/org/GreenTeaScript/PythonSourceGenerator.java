@@ -27,6 +27,7 @@ package org.GreenTeaScript;
 import java.util.ArrayList;
 //endif VAJA
 
+
 import parser.GreenTeaUtils;
 import parser.GtClassField;
 import parser.GtFieldInfo;
@@ -73,6 +74,7 @@ import parser.ast.GtSetLocalNode;
 import parser.ast.GtSetterNode;
 import parser.ast.GtStringNode;
 import parser.ast.GtSwitchNode;
+import parser.ast.GtSymbolNode;
 import parser.ast.GtThrowNode;
 import parser.ast.GtTrinaryNode;
 import parser.ast.GtTryNode;
@@ -143,11 +145,14 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 		/*local*/GtNode Break = this.CreateBreakNode(Type, ParsedTree, null);
 		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(Cond.Type, "not", true);
 		/*local*/GtTypeEnv Gamma = new GtTypeEnv(ParsedTree.NameSpace);
-		/*local*/GtFunc Func = null;
+		/*local*/GtFunc ResolvedFunc = null;
 		if(PolyFunc != null) {
-			Func = PolyFunc.ResolveUnaryMethod(Gamma, Cond.Type);
+			ResolvedFunc = PolyFunc.ResolveUnaryMethod(Gamma, Cond.Type);
 		}
 		Cond = this.CreateUnaryNode(Type, ParsedTree, "not", Cond);
+		if(Cond instanceof GtSymbolNode) {
+			((/*cast*/GtSymbolNode)Cond).ResolvedFunc = ResolvedFunc;
+		}
 		/*local*/GtNode IfBlock = this.CreateIfNode(Type, ParsedTree, Cond, Break, null);
 		/*local*/GtNode TrueNode = this.CreateConstNode(GtStaticTable.BooleanType, ParsedTree, true);
 		return this.CreateForNode(Type, ParsedTree, TrueNode, IfBlock, Block);

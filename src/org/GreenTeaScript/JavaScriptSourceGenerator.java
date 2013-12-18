@@ -79,9 +79,9 @@ import parser.ast.GtVarDeclNode;
 import parser.ast.GtWhileNode;
 
 public class JavaScriptSourceGenerator extends GtSourceGenerator {
-	/*field*/private boolean UseLetKeyword = false;
-	/*field*/private boolean IsForNodeJS = false;
-	
+//	/*field*/private boolean UseLetKeyword = false;
+//	/*field*/private boolean IsForNodeJS = false;
+
 	public JavaScriptSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
 	}

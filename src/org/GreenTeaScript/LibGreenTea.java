@@ -35,15 +35,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.Writer;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Iterator;
-
-import org.GreenTeaScript.Konoha.ArrayApi;
 
 import parser.GreenTeaConsts;
 import parser.GreenTeaUtils;
@@ -593,9 +590,9 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		else if(TargetCode.startsWith("bash")) {
 			return new BashSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
 		}
-		else if(TargetCode.startsWith("scala")) {
-			return new ScalaSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
-		}
+//		else if(TargetCode.startsWith("scala")) {
+//			return new ScalaSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+//		}
 		// FIXME CSharpSourceCodeGenerator.java is missing.
 		//else if(TargetCode.startsWith("csharp")) {
 		//	return new CSharpSourceCodeGenerator(TargetCode, OutputFile, GeneratorFlag);

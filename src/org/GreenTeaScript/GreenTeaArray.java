@@ -25,10 +25,6 @@
 //ifdef JAVA
 package org.GreenTeaScript;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Arrays;
-//endif VAJA
-
 import parser.GtStaticTable;
 import parser.GtType;
 
