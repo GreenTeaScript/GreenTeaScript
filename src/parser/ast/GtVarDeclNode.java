@@ -15,7 +15,7 @@ final public class GtVarDeclNode extends GtNode {
 	/*field*/public GtNode	InitNode;
 	/*field*/public GtNode	BlockNode;
 	/* let VarNode in Block end */
-	GtVarDeclNode/*constructor*/(GtType Type, GtToken Token, GtType DeclType, String VariableName, GtNode InitNode, GtNode Block) {
+	public GtVarDeclNode/*constructor*/(GtType Type, GtToken Token, GtType DeclType, String VariableName, GtNode InitNode, GtNode Block) {
 		super(Type, Token);
 		this.NativeName = VariableName;
 		this.DeclType  = DeclType;

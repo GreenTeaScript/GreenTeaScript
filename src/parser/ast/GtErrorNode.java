@@ -11,7 +11,7 @@ import parser.GtType;
  */
 
 final public class GtErrorNode extends GtNode {
-	GtErrorNode/*constructor*/(GtType Type, GtToken Token) {
+	public GtErrorNode/*constructor*/(GtType Type, GtToken Token) {
 		super(Type, Token);
 	}
 	@Override public void Accept(GtGenerator Visitor) {

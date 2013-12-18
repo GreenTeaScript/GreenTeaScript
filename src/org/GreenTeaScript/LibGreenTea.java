@@ -507,7 +507,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 	}
 
 	public static void RetrieveMapKeys(GtMap Map, String Prefix, ArrayList<String> List) {
-		/*local*/Iterator<String> itr = Map.Map.keySet().iterator();
+		/*local*/Iterator<String> itr = Map.key_iterator();
 		/*local*/int i = 0;
 		while(itr.hasNext()) {
 			String Key = itr.next();

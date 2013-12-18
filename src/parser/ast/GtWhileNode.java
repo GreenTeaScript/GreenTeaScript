@@ -8,7 +8,7 @@ import parser.GtType;
 final public class GtWhileNode extends GtNode {
 	/*field*/public GtNode	CondNode;
 	/*field*/public GtNode	BodyNode;
-	GtWhileNode/*constructor*/(GtType Type, GtToken Token, GtNode CondNode, GtNode BodyNode) {
+	public GtWhileNode/*constructor*/(GtType Type, GtToken Token, GtNode CondNode, GtNode BodyNode) {
 		super(Type, Token);
 		this.CondNode = CondNode;
 		this.BodyNode = BodyNode;

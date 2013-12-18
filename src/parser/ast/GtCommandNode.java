@@ -11,7 +11,7 @@ import parser.GtType;
 final public class GtCommandNode extends GtNode {
 	/*field*/public ArrayList<GtNode>  ArgumentList; /* ["/bin/ls" , "-la", "/", ...] */
 	/*field*/public GtNode PipedNextNode;
-	GtCommandNode/*constructor*/(GtType Type, GtToken Token, GtNode PipedNextNode) {
+	public GtCommandNode/*constructor*/(GtType Type, GtToken Token, GtNode PipedNextNode) {
 		super(Type, Token);
 		this.PipedNextNode = PipedNextNode;
 		this.ArgumentList = new ArrayList<GtNode>();

@@ -7,7 +7,7 @@ import parser.GtType;
 
 final public class GtRegexNode extends GtConstNode {
 	/*field*/public String	Value;
-	GtRegexNode/*constructor*/(GtType Type, GtToken Token, String Value) {
+	public GtRegexNode/*constructor*/(GtType Type, GtToken Token, String Value) {
 		super(Type, Token);
 		this.Value = Value;
 		throw new RuntimeException("FIXME: Regex object must be defined");

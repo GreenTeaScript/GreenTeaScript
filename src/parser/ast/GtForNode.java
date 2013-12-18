@@ -9,7 +9,7 @@ final public class GtForNode extends GtNode {
 	/*field*/public GtNode	CondNode;
 	/*field*/public GtNode	IterNode;
 	/*field*/public GtNode	BodyNode;
-	GtForNode/*constructor*/(GtType Type, GtToken Token, GtNode CondNode, GtNode IterNode, GtNode BodyNode) {
+	public GtForNode/*constructor*/(GtType Type, GtToken Token, GtNode CondNode, GtNode IterNode, GtNode BodyNode) {
 		super(Type, Token);
 		this.CondNode = CondNode;
 		this.BodyNode = BodyNode;

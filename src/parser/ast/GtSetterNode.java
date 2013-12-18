@@ -9,7 +9,7 @@ import parser.GtType;
 final public class GtSetterNode extends GtSymbolNode {
 	/*field*/public GtNode  RecvNode;
 	/*field*/public GtNode  ValueNode;
-	GtSetterNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, String NativeName, GtNode ValueNode) {
+	public GtSetterNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, String NativeName, GtNode ValueNode) {
 		super(Type, Token, NativeName);
 		this.RecvNode  = RecvNode;
 		this.ValueNode = ValueNode;

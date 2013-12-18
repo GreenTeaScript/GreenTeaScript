@@ -6,7 +6,7 @@ import parser.GtType;
 
 final public class GtContinueNode extends GtNode {
 	/*field*/public String Label;
-	GtContinueNode/*constructor*/(GtType Type, GtToken Token, String Label) {
+	public GtContinueNode/*constructor*/(GtType Type, GtToken Token, String Label) {
 		super(Type, Token);
 		this.Label = Label;
 	}

@@ -12,7 +12,7 @@ import parser.GtType;
 final public class GtConstructorNode extends GtNode {
 	/*field*/public ArrayList<GtNode>	ParamList;
 	/*field*/public GtFunc Func;
-	GtConstructorNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func) {
+	public GtConstructorNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func) {
 		super(Type, Token);
 		this.ParamList = new ArrayList<GtNode>();
 		this.Func = Func;

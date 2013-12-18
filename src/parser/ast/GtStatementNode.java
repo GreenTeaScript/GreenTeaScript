@@ -10,7 +10,7 @@ final public class GtStatementNode extends GtNode {
 	 * f(1)
 	 */
 	/*field*/public GtNode ValueNode;
-	GtStatementNode/*constructor*/(GtType Type, GtToken Token, GtNode ValueNode) {
+	public GtStatementNode/*constructor*/(GtType Type, GtToken Token, GtNode ValueNode) {
 		super(Type, Token);
 		this.ValueNode = ValueNode;
 		this.SetChild(ValueNode);

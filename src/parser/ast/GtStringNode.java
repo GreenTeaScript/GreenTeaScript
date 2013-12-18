@@ -7,7 +7,7 @@ import parser.GtType;
 
 final public class GtStringNode extends GtConstNode {
 	/*field*/public String	Value;
-	GtStringNode/*constructor*/(GtType Type, GtToken Token, String Value) {
+	public GtStringNode/*constructor*/(GtType Type, GtToken Token, String Value) {
 		super(Type, Token);
 		this.Value = Value;
 	}

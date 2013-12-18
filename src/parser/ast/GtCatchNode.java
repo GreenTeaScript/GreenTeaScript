@@ -8,7 +8,7 @@ final public class GtCatchNode extends GtNode {
 	/*field*/public GtType  ExceptionType;
 	/*field*/public String  ExceptionName;
 	/*field*/public GtNode	BodyNode;
-	GtCatchNode/*constructor*/(GtType Type, GtToken Token, GtType ExceptionType, String Name, GtNode BodyNode) {
+	public GtCatchNode/*constructor*/(GtType Type, GtToken Token, GtType ExceptionType, String Name, GtNode BodyNode) {
 		super(Type, Token);
 		this.ExceptionType = ExceptionType;
 		this.ExceptionName = Name;

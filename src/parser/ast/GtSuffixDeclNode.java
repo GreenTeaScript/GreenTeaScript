@@ -7,7 +7,7 @@ import parser.GtType;
 //E.g.,  $RecvNode "--" 
 final public class GtSuffixDeclNode extends GtNode {
 	/*field*/public GtNode	RecvNode;
-	GtSuffixDeclNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode) {
+	public GtSuffixDeclNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode) {
 		super(Type, Token);
 		this.RecvNode = RecvNode;
 		this.SetChild(RecvNode);

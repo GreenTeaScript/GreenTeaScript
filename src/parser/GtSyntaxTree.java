@@ -43,7 +43,7 @@ public final class GtSyntaxTree extends GreenTeaUtils {
 	/*field*/public ArrayList<GtSyntaxTree>  SubTreeList;
 	/*field*/public Object                   ParsedValue;
 
-	GtSyntaxTree/*constructor*/(GtSyntaxPattern Pattern, GtNameSpace NameSpace, GtToken KeyToken, Object ParsedValue) {
+	public GtSyntaxTree/*constructor*/(GtSyntaxPattern Pattern, GtNameSpace NameSpace, GtToken KeyToken, Object ParsedValue) {
 		this.NameSpace   = NameSpace;
 		this.Annotation  = null;
 		this.KeyToken    = KeyToken;

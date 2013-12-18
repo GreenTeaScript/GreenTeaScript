@@ -10,7 +10,7 @@ import parser.GtType;
 //E.g., "{" StringNode, $Node, StringNode, $Node "}"
 final public class GtMapLiteralNode extends GtNode {   // => ArrayLiteral
 	/*field*/public ArrayList<GtNode>	NodeList;
-	GtMapLiteralNode/*constructor*/(GtType Type, GtToken Token) {
+	public GtMapLiteralNode/*constructor*/(GtType Type, GtToken Token) {
 		super(Type, Token);
 		this.NodeList = new ArrayList<GtNode>();
 	}

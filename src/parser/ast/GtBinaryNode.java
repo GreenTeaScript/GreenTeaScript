@@ -11,7 +11,7 @@ import parser.GtType;
 final public class GtBinaryNode extends GtSymbolNode {
 	/*field*/public GtNode    LeftNode;
 	/*field*/public GtNode	  RightNode;
-	GtBinaryNode/*constructor*/(GtType Type, GtToken Token, String OperatorName, GtNode Left, GtNode Right) {
+	public GtBinaryNode/*constructor*/(GtType Type, GtToken Token, String OperatorName, GtNode Left, GtNode Right) {
 		super(Type, Token, OperatorName);
 		this.LeftNode  = Left;
 		this.RightNode = Right;

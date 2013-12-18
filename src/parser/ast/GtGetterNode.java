@@ -8,7 +8,7 @@ import parser.GtType;
 //E.g., $RecvNode.$NativeName
 final public class GtGetterNode extends GtSymbolNode {
 	/*field*/public GtNode  RecvNode;
-	GtGetterNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, String NativeName) {
+	public GtGetterNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, String NativeName) {
 		super(Type, Token, NativeName);
 		this.RecvNode = RecvNode;
 		this.SetChild(RecvNode);

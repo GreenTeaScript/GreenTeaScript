@@ -13,7 +13,7 @@ final public class GtApplyOverridedMethodNode extends GtNode {
 	/*field*/public GtNameSpace NameSpace;
 	/*field*/public GtFunc Func;
 	/*field*/public ArrayList<GtNode>  ParamList; /* [arg1, arg2, ...] */
-	GtApplyOverridedMethodNode/*constructor*/(GtType Type, GtToken Token, GtNameSpace NameSpace, GtFunc Func) {
+	public GtApplyOverridedMethodNode/*constructor*/(GtType Type, GtToken Token, GtNameSpace NameSpace, GtFunc Func) {
 		super(Type, Token);
 		this.NameSpace = NameSpace.Minimum();
 		this.Func = Func;

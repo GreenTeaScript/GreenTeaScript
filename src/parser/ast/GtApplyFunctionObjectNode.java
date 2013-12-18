@@ -11,7 +11,7 @@ import parser.GtType;
 final public class GtApplyFunctionObjectNode extends GtNode {
 	/*field*/public GtNode	FuncNode;
 	/*field*/public ArrayList<GtNode>  ParamList; /* [arg0, arg1, ...] */
-	GtApplyFunctionObjectNode/*constructor*/(GtType Type, GtToken Token, GtNode FuncNode) {
+	public GtApplyFunctionObjectNode/*constructor*/(GtType Type, GtToken Token, GtNode FuncNode) {
 		super(Type, Token);
 		this.FuncNode = FuncNode;
 		this.ParamList = new ArrayList<GtNode>();

@@ -39,7 +39,7 @@ public final class GtParserContext extends GreenTeaUtils {
 	/*field*/public ArrayList<String>    ReportedErrorList;
 	/*filed*/private boolean NoErrorReport;
 		
-	GtParserContext/*constructor*/(GtGrammar Grammar, GtGenerator Generator) {
+	public GtParserContext/*constructor*/(GtGrammar Grammar, GtGenerator Generator) {
 		this.ParserId     = LibGreenTea.NewParserId();
 		this.Generator    = Generator;
 		this.Generator.Context = this;

@@ -7,7 +7,7 @@ import parser.GtType;
 
 // E.g., AllocateNode (without parameters); StaticApply is needed to init
 final public class GtAllocateNode extends GtNode {
-	GtAllocateNode/*constructor*/(GtType Type, GtToken Token) {
+	public GtAllocateNode/*constructor*/(GtType Type, GtToken Token) {
 		super(Type, Token);
 	}
 	@Override public void Accept(GtGenerator Visitor) {

@@ -9,7 +9,7 @@ final public class GtForEachNode extends GtNode {
 	/*field*/public GtNode	Variable;
 	/*field*/public GtNode	IterNode;
 	/*field*/public GtNode	BodyNode;
-	GtForEachNode/*constructor*/(GtType Type, GtToken Token, GtNode Variable, GtNode IterNode, GtNode BodyNode) {
+	public GtForEachNode/*constructor*/(GtType Type, GtToken Token, GtNode Variable, GtNode IterNode, GtNode BodyNode) {
 		super(Type, Token);
 		this.Variable = Variable;
 		this.IterNode = IterNode;

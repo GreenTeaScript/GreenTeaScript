@@ -11,7 +11,7 @@ import parser.GtType;
 final public class GtOrNode extends GtNode {
 	/*field*/public GtNode   LeftNode;
 	/*field*/public GtNode	 RightNode;
-	GtOrNode/*constructor*/(GtType Type, GtToken Token, GtNode Left, GtNode Right) {
+	public GtOrNode/*constructor*/(GtType Type, GtToken Token, GtNode Left, GtNode Right) {
 		super(Type, Token);
 		this.LeftNode  = Left;
 		this.RightNode = Right;

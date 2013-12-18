@@ -7,7 +7,7 @@ import parser.GtType;
 
 final public class GtConstPoolNode extends GtConstNode {
 	/*field*/public Object	ConstValue;
-	GtConstPoolNode/*constructor*/(GtType Type, GtToken Token, Object ConstValue) {
+	public GtConstPoolNode/*constructor*/(GtType Type, GtToken Token, Object ConstValue) {
 		super(Type, Token);
 		this.ConstValue = ConstValue;
 	}

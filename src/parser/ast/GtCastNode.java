@@ -13,7 +13,7 @@ final public class GtCastNode extends GtNode {
 	/*field*/public GtFunc  Func;
 	/*field*/public GtType	CastType;
 	/*field*/public GtNode	Expr;
-	GtCastNode/*constructor*/(GtType Type, GtToken Token, GtType CastType, GtNode Expr) {
+	public GtCastNode/*constructor*/(GtType Type, GtToken Token, GtType CastType, GtNode Expr) {
 		super(Type, Token);
 		this.CastType = CastType;
 		this.Expr = Expr;

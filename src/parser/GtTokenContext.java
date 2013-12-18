@@ -41,7 +41,7 @@ public final class GtTokenContext extends GreenTeaUtils {
 	/*field*/public GtToken LatestToken;
 	/*field*/public int IndentLevel = 0;
 
-	GtTokenContext/*constructor*/(GtNameSpace NameSpace, String Text, long FileLine) {
+	public GtTokenContext/*constructor*/(GtNameSpace NameSpace, String Text, long FileLine) {
 		this.TopLevelNameSpace = NameSpace;
 		this.SourceList = new ArrayList<GtToken>();
 		this.CurrentPosition = 0;

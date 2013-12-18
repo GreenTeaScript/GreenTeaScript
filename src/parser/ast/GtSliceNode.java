@@ -9,7 +9,7 @@ final public class GtSliceNode extends GtSymbolNode {
 	/*field*/public GtNode RecvNode;
 	/*field*/public GtNode Index1;
 	/*field*/public GtNode Index2;
-	GtSliceNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, GtNode Index1, GtNode Index2) {
+	public GtSliceNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, GtNode Index1, GtNode Index2) {
 		super(Type, Token, "");
 		this.RecvNode = RecvNode;
 		this.Index1 = Index1;

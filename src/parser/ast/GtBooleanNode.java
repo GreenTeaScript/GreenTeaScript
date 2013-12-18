@@ -7,7 +7,7 @@ import parser.GtType;
 
 final public class GtBooleanNode extends GtConstNode {
 	/*field*/public boolean	Value;
-	GtBooleanNode/*constructor*/(GtType Type, GtToken Token, boolean Value) {
+	public GtBooleanNode/*constructor*/(GtType Type, GtToken Token, boolean Value) {
 		super(Type, Token);
 		this.Value = Value;
 	}

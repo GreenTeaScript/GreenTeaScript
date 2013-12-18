@@ -18,7 +18,7 @@ final public class GtFunctionLiteralNode extends GtNode {
  */
 	/*field*/public ArrayList<GtNode>  ArgumentList;  // list of ParamNode 
 	/*field*/public GtNode BodyNode;
-	GtFunctionLiteralNode/*constructor*/(GtType Type, GtToken Token, GtNode BodyNode) {
+	public GtFunctionLiteralNode/*constructor*/(GtType Type, GtToken Token, GtNode BodyNode) {
 		super(Type, Token); // TODO
 		this.ArgumentList = new ArrayList<GtNode>();
 		this.BodyNode = BodyNode;

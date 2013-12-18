@@ -10,7 +10,7 @@ final public class GtSwitchNode extends GtNode {
 	/*field*/public GtNode	MatchNode;
 	/*field*/public GtNode	DefaultBlock;
 	/*field*/public ArrayList<GtNode> CaseList; // [expr, block, expr, block, ....]
-	GtSwitchNode/*constructor*/(GtType Type, GtToken Token, GtNode MatchNode, GtNode DefaultBlock) {
+	public GtSwitchNode/*constructor*/(GtType Type, GtToken Token, GtNode MatchNode, GtNode DefaultBlock) {
 		super(Type, Token);
 		this.MatchNode = MatchNode;
 		this.DefaultBlock = DefaultBlock;

@@ -39,7 +39,6 @@ import parser.GtStaticTable;
 import parser.GtSyntaxTree;
 import parser.GtType;
 import parser.ast.GtAndNode;
-import parser.ast.GtApplyNode;
 import parser.ast.GtApplySymbolNode;
 import parser.ast.GtBinaryNode;
 import parser.ast.GtBreakNode;
@@ -477,10 +476,10 @@ public class BashSourceGenerator extends SourceGenerator {
 		
 		// resolve boolean function
 		if(Type != null && Type.IsBooleanType()) {
-			if(TargetNode instanceof GtApplyNode || TargetNode instanceof GtUnaryNode || 
-					TargetNode instanceof GtCommandNode || TargetNode instanceof GtBinaryNode) {
-				return "$(valueOfBool " + LibGreenTea.QuoteString(Value) + ")";
-			}
+//			if(TargetNode instanceof GtApplyNode || TargetNode instanceof GtUnaryNode || 
+//					TargetNode instanceof GtCommandNode || TargetNode instanceof GtBinaryNode) {
+//				return "$(valueOfBool " + LibGreenTea.QuoteString(Value) + ")";
+//			}
 		}
 		
 		if(TargetNode.IsConstNode() || TargetNode instanceof GtNullNode) {
@@ -489,9 +488,9 @@ public class BashSourceGenerator extends SourceGenerator {
 		else if(TargetNode instanceof GtGetIndexNode || TargetNode instanceof GtGetterNode) {
 			ResolvedValue = "${" + Value + "}";
 		}
-		else if(TargetNode instanceof GtApplyNode || TargetNode instanceof GtCommandNode || TargetNode instanceof GtConstructorNode) {
-			ResolvedValue = "$(" + Value + ")";
-		}
+//		else if(TargetNode instanceof GtApplyNode || TargetNode instanceof GtCommandNode || TargetNode instanceof GtConstructorNode) {
+//			ResolvedValue = "$(" + Value + ")";
+//		}
 		else if(TargetNode instanceof GtGetLocalNode && !this.IsNativeType(Type)) {
 			/*local*/GtGetLocalNode Local = (/*cast*/GtGetLocalNode) TargetNode;
 			/*local*/String Name = Local.NativeName;

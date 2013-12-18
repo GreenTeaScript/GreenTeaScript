@@ -9,7 +9,7 @@ import parser.GtType;
 final public class GtGetIndexNode extends GtSymbolNode {
 	/*field*/public GtNode  RecvNode;
 	/*field*/public GtNode  IndexNode;
-	GtGetIndexNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, GtNode IndexNode) {
+	public GtGetIndexNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, GtNode IndexNode) {
 		super(Type, Token, "[]");
 		this.RecvNode = RecvNode;
 		this.IndexNode = IndexNode;

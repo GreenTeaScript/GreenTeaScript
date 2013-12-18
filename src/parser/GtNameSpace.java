@@ -54,7 +54,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 	/*field*/GtTokenFunc[] TokenMatrix;
 	/*field*/GtMap	 SymbolPatternTable;
 
-	GtNameSpace/*constructor*/(GtParserContext Context, GtNameSpace ParentNameSpace) {
+	public GtNameSpace/*constructor*/(GtParserContext Context, GtNameSpace ParentNameSpace) {
 		this.Context = Context;
 		this.ParentNameSpace = ParentNameSpace;
 		this.PackageName = (ParentNameSpace != null) ? ParentNameSpace.PackageName : null;

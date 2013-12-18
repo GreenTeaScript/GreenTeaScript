@@ -34,7 +34,7 @@ public final class GtClassField extends GreenTeaUtils {
 	/*field*/ public ArrayList<GtFieldInfo> FieldList;
 	/*field*/ public int ThisClassIndex;
 
-	GtClassField/*constructor*/(GtType DefinedType, GtNameSpace NameSpace) {
+	public GtClassField/*constructor*/(GtType DefinedType, GtNameSpace NameSpace) {
 		this.DefinedType = DefinedType;
 		this.NameSpace = NameSpace;
 		this.FieldList = new ArrayList<GtFieldInfo>();

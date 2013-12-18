@@ -10,7 +10,7 @@ import parser.GtType;
 //E.g., "~" $RecvNode
 final public class GtUnaryNode extends GtSymbolNode {
 	/*field*/public GtNode	RecvNode;
-	GtUnaryNode/*constructor*/(GtType Type, GtToken Token, String OperatorName, GtNode RecvNode) {
+	public GtUnaryNode/*constructor*/(GtType Type, GtToken Token, String OperatorName, GtNode RecvNode) {
 		super(Type, Token, OperatorName);
 		this.RecvNode = RecvNode;
 		this.SetChild(RecvNode);

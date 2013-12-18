@@ -6,7 +6,7 @@ import parser.GtType;
 
 // E.g., $NativeName
 final public class GtGetLocalNode extends GtSymbolNode {
-	GtGetLocalNode/*constructor*/(GtType Type, GtToken Token, String NativeName) {
+	public GtGetLocalNode/*constructor*/(GtType Type, GtToken Token, String NativeName) {
 		super(Type, Token, NativeName);
 	}
 	@Override public void Accept(GtGenerator Visitor) {

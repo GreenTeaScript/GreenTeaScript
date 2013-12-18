@@ -6,7 +6,7 @@ import parser.GtToken;
 import parser.GtType;
 
 final public class GtNullNode extends GtConstNode {
-	GtNullNode/*constructor*/(GtType Type, GtToken Token) {
+	public GtNullNode/*constructor*/(GtType Type, GtToken Token) {
 		super(Type, Token);
 	}
 	@Override public void Accept(GtGenerator Visitor) {

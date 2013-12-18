@@ -6,7 +6,7 @@ import parser.GtType;
 
 final public class GtThrowNode extends GtNode {
 	/*field*/public GtNode ValueNode;
-	GtThrowNode/*constructor*/(GtType Type, GtToken Token, GtNode ValueNode) {
+	public GtThrowNode/*constructor*/(GtType Type, GtToken Token, GtNode ValueNode) {
 		super(Type, Token);
 		this.ValueNode = ValueNode;
 	}

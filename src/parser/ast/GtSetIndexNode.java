@@ -10,7 +10,7 @@ final public class GtSetIndexNode extends GtSymbolNode {
 	/*field*/public GtNode  RecvNode;
 	/*field*/public GtNode  IndexNode;
 	/*field*/public GtNode  ValueNode;
-	GtSetIndexNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, GtNode IndexNode, GtNode ValueNode) {
+	public GtSetIndexNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, GtNode IndexNode, GtNode ValueNode) {
 		super(Type, Token, "[]=");
 		this.RecvNode  = RecvNode;
 		this.IndexNode = IndexNode;

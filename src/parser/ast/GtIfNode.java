@@ -10,7 +10,7 @@ final public class GtIfNode extends GtNode {
 	/*field*/public GtNode	ThenNode;
 	/*field*/public GtNode	ElseNode;
 	/* If CondNode then ThenBlock else ElseBlock */
-	GtIfNode/*constructor*/(GtType Type, GtToken Token, GtNode CondNode, GtNode ThenNode, GtNode ElseNode) {
+	public GtIfNode/*constructor*/(GtType Type, GtToken Token, GtNode CondNode, GtNode ThenNode, GtNode ElseNode) {
 		super(Type, Token);
 		this.CondNode = CondNode;
 		this.ThenNode = ThenNode;
