@@ -27,9 +27,6 @@ package org.GreenTeaScript;
 import java.util.ArrayList;
 //endif VAJA
 
-
-
-
 import parser.GtClassField;
 import parser.GtFieldInfo;
 import parser.GtFunc;
@@ -400,7 +397,6 @@ public class PerlSourceGenerator extends GtSourceGenerator {
 	}
 
 	@Override public void VisitVarDeclNode(GtVarDeclNode Node) {
-		/*local*/String Type = this.LocalTypeName(Node.DeclType);
 		/*local*/String VarName = Node.NativeName;
 		this.VisitingBuilder.Append("my $" + VarName);
 		if(Node.InitNode != null) {
