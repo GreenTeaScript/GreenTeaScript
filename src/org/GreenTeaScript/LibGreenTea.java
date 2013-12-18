@@ -474,9 +474,6 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return null;
 	}
 
-
-
-
 	public final static int ListSize(ArrayList<?> List) {
 		if(List == null) {
 			return 0;
