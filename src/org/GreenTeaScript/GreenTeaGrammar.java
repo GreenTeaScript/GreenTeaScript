@@ -23,6 +23,9 @@
 // **************************************************************************
 //ifdef JAVA
 package org.GreenTeaScript;
+
+import parser.GtNameSpace;
+
 //endif VAJA
 public interface GreenTeaGrammar {
 	public void LoadTo(GtNameSpace NameSpace);

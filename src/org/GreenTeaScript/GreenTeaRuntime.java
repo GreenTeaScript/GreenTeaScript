@@ -29,6 +29,8 @@ import java.util.ArrayList;
 //import java.lang.reflect.Method;
 //import java.util.HashMap;
 
+import parser.GtType;
+
 public class GreenTeaRuntime {
 	// converter 
 	

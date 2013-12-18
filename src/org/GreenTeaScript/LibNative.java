@@ -48,6 +48,20 @@ import java.lang.reflect.Modifier;
 //import org.GreenTeaScript.Konoha.ArrayApi;
 import java.util.ArrayList;
 
+import parser.GreenTeaConsts;
+import parser.GreenTeaUtils;
+import parser.GtFunc;
+import parser.GtNameSpace;
+import parser.GtParserContext;
+import parser.GtPolyFunc;
+import parser.GtStaticTable;
+import parser.GtSyntaxPattern;
+import parser.GtSyntaxTree;
+import parser.GtTokenContext;
+import parser.GtType;
+import parser.GtTypeEnv;
+import parser.ast.GtNode;
+
 public class LibNative {
 	final static void DebugP(String s) {
 		//System.err.println("LibNative.DebugP: " + s);

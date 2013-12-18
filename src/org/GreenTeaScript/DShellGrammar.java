@@ -31,6 +31,22 @@ import org.GreenTeaScript.DShell.DFault;
 import org.GreenTeaScript.DShell.RecAPI;
 //endif VAJA
 
+import parser.GreenTeaUtils;
+import parser.GtFunc;
+import parser.GtNameSpace;
+import parser.GtParserContext;
+import parser.GtPolyFunc;
+import parser.GtStaticTable;
+import parser.GtSyntaxPattern;
+import parser.GtSyntaxTree;
+import parser.GtToken;
+import parser.GtTokenContext;
+import parser.GtType;
+import parser.GtTypeEnv;
+import parser.ast.GtApplySymbolNode;
+import parser.ast.GtConstPoolNode;
+import parser.ast.GtNode;
+
 public class DShellGrammar extends GreenTeaUtils {
 	// LibDShell
 	public final static String GetEnv(String Key) {

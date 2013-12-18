@@ -27,6 +27,26 @@ package org.GreenTeaScript;
 import java.util.ArrayList;
 //endif VAJA
 
+import parser.GtClassField;
+import parser.GtFieldInfo;
+import parser.GtFunc;
+import parser.GtParserContext;
+import parser.GtSyntaxTree;
+import parser.GtType;
+import parser.ast.GtCatchNode;
+import parser.ast.GtCommandNode;
+import parser.ast.GtDoWhileNode;
+import parser.ast.GtErrorNode;
+import parser.ast.GtForNode;
+import parser.ast.GtGetLocalNode;
+import parser.ast.GtGetterNode;
+import parser.ast.GtIfNode;
+import parser.ast.GtNode;
+import parser.ast.GtThrowNode;
+import parser.ast.GtTryNode;
+import parser.ast.GtVarDeclNode;
+import parser.ast.GtWhileNode;
+
 //GreenTea Generator should be written in each language.
 
 public class PerlSourceGenerator extends SourceGenerator {

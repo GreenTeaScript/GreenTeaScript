@@ -27,6 +27,32 @@ package org.GreenTeaScript;
 import java.util.ArrayList;
 //endif VAJA
 
+import parser.GreenTeaUtils;
+import parser.GtClassField;
+import parser.GtFunc;
+import parser.GtFuncBlock;
+import parser.GtGrammar;
+import parser.GtMap;
+import parser.GtNameSpace;
+import parser.GtParserContext;
+import parser.GtPolyFunc;
+import parser.GtResolvedFunc;
+import parser.GtStaticTable;
+import parser.GtSyntaxPattern;
+import parser.GtSyntaxTree;
+import parser.GtToken;
+import parser.GtTokenContext;
+import parser.GtType;
+import parser.GtTypeEnv;
+import parser.GtVariableInfo;
+import parser.ast.GtGetIndexNode;
+import parser.ast.GtGetLocalNode;
+import parser.ast.GtGetterNode;
+import parser.ast.GtNode;
+import parser.ast.GtSymbolNode;
+import parser.ast.GtVarDeclNode;
+import parser.ast.GtWhileNode;
+
 public class KonohaGrammar extends GtGrammar {
 
 	private static final boolean HasAnnotation(GtMap Annotation, String Key) {

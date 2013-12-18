@@ -28,6 +28,11 @@ import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
 //endif VAJA
 
+import parser.GtGenerator;
+import parser.GtNameSpace;
+import parser.GtParserContext;
+import parser.GtTokenContext;
+
 class GtScriptRunner {
 	public static String LoadFile(String Path) {
 		if(LibGreenTea.HasFile(Path)) {

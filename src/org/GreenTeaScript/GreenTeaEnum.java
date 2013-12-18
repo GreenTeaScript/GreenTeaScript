@@ -24,6 +24,8 @@
 
 //ifdef JAVA
 package org.GreenTeaScript;
+
+import parser.GtType;
 //endif VAJA
 
 public class GreenTeaEnum extends GreenTeaTopObject {

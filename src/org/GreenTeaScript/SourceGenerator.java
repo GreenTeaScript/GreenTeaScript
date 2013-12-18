@@ -27,6 +27,33 @@ package org.GreenTeaScript;
 import java.util.ArrayList;
 //endif VAJA
 
+import parser.GtFunc;
+import parser.GtGenerator;
+import parser.GtParserContext;
+import parser.GtType;
+import parser.ast.GtAllocateNode;
+import parser.ast.GtAndNode;
+import parser.ast.GtApplySymbolNode;
+import parser.ast.GtBinaryNode;
+import parser.ast.GtBreakNode;
+import parser.ast.GtConstPoolNode;
+import parser.ast.GtConstructorNode;
+import parser.ast.GtContinueNode;
+import parser.ast.GtEmptyNode;
+import parser.ast.GtGetLocalNode;
+import parser.ast.GtGetterNode;
+import parser.ast.GtInstanceOfNode;
+import parser.ast.GtNewArrayNode;
+import parser.ast.GtNode;
+import parser.ast.GtNullNode;
+import parser.ast.GtOrNode;
+import parser.ast.GtReturnNode;
+import parser.ast.GtSetLocalNode;
+import parser.ast.GtSetterNode;
+import parser.ast.GtSwitchNode;
+import parser.ast.GtTrinaryNode;
+import parser.ast.GtUnaryNode;
+
 @Deprecated
 public class SourceGenerator extends GtGenerator {
 	/*field*/protected String    HeaderSource;

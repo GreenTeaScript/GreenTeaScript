@@ -27,6 +27,23 @@ package org.GreenTeaScript;
 import java.util.ArrayList;
 //endif VAJA
 
+import parser.GreenTeaUtils;
+import parser.GtClassField;
+import parser.GtFunc;
+import parser.GtNameSpace;
+import parser.GtParserContext;
+import parser.GtPolyFunc;
+import parser.GtStaticTable;
+import parser.GtSyntaxPattern;
+import parser.GtSyntaxTree;
+import parser.GtToken;
+import parser.GtTokenContext;
+import parser.GtType;
+import parser.GtTypeEnv;
+import parser.ast.GtGetterNode;
+import parser.ast.GtNode;
+import parser.ast.GtSymbolNode;
+
 public class CGrammar extends GreenTeaUtils {
 	
 	public static long PreprocesserToken(GtTokenContext TokenContext, String SourceText, long pos) {

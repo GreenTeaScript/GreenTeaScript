@@ -27,6 +27,50 @@ package org.GreenTeaScript;
 import java.util.ArrayList;
 //endif VAJA
 
+import parser.GtClassField;
+import parser.GtFieldInfo;
+import parser.GtFunc;
+import parser.GtSourceBuilder;
+import parser.GtSourceGenerator;
+import parser.GtSyntaxTree;
+import parser.GtType;
+import parser.ast.GtAndNode;
+import parser.ast.GtApplyFunctionObjectNode;
+import parser.ast.GtApplyOverridedMethodNode;
+import parser.ast.GtApplySymbolNode;
+import parser.ast.GtArrayLiteralNode;
+import parser.ast.GtBinaryNode;
+import parser.ast.GtBreakNode;
+import parser.ast.GtCastNode;
+import parser.ast.GtCommandNode;
+import parser.ast.GtConstructorNode;
+import parser.ast.GtContinueNode;
+import parser.ast.GtDoWhileNode;
+import parser.ast.GtEmptyNode;
+import parser.ast.GtErrorNode;
+import parser.ast.GtForEachNode;
+import parser.ast.GtForNode;
+import parser.ast.GtFunctionLiteralNode;
+import parser.ast.GtGetLocalNode;
+import parser.ast.GtGetterNode;
+import parser.ast.GtIfNode;
+import parser.ast.GtInstanceOfNode;
+import parser.ast.GtNewArrayNode;
+import parser.ast.GtNode;
+import parser.ast.GtNullNode;
+import parser.ast.GtOrNode;
+import parser.ast.GtReturnNode;
+import parser.ast.GtSetLocalNode;
+import parser.ast.GtSetterNode;
+import parser.ast.GtSliceNode;
+import parser.ast.GtSwitchNode;
+import parser.ast.GtThrowNode;
+import parser.ast.GtTrinaryNode;
+import parser.ast.GtTryNode;
+import parser.ast.GtUnaryNode;
+import parser.ast.GtVarDeclNode;
+import parser.ast.GtWhileNode;
+
 public class MiniKonohaSourceGenerator extends GtSourceGenerator {
 	/*field*/private ArrayList<String> UsedLibrary;
 	

@@ -23,6 +23,9 @@
 // **************************************************************************
 //ifdef JAVA
 package org.GreenTeaScript;
+
+import parser.GtType;
+
 //endif VAJA
 /*GreenTeaObject Begin*/
 public interface GreenTeaObject {

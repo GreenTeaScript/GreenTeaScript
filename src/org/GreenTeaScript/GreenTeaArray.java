@@ -29,6 +29,9 @@ import java.util.Iterator;
 import java.util.Arrays;
 //endif VAJA
 
+import parser.GtStaticTable;
+import parser.GtType;
+
 public class GreenTeaArray extends GreenTeaTopObject {
 	public ArrayList<Object> ArrayBody ;
 	public GreenTeaArray/*constructor*/(GtType GreenType) {

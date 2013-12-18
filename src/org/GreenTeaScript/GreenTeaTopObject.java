@@ -29,6 +29,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 //endif VAJA
 
+import parser.GtType;
+
 
 public class GreenTeaTopObject implements GreenTeaObject {
 	/*field*/public GtType GreenType;
