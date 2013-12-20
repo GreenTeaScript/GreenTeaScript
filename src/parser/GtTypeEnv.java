@@ -141,7 +141,7 @@ public final class GtTypeEnv extends GreenTeaUtils {
 	}
 
 	public final GtNode CreateDefaultValue(GtSyntaxTree ParsedTree, GtType Type) {
-		return this.Generator.CreateConstNode(Type, ParsedTree, Type.DefaultNullValue);
+		return this.Generator.CreateConstNode_OLD(Type, ParsedTree, Type.DefaultNullValue);
 	}
 
 	public final GtNode TypeCheckSingleNode(GtSyntaxTree ParsedTree, GtNode Node, GtType Type, int TypeCheckPolicy) {
@@ -156,7 +156,7 @@ public final class GtTypeEnv extends GreenTeaUtils {
 		//System.err.println("**** " + Node.getClass());
 		/*local*/Object ConstValue = Node.ToConstValue(this.Context, IsFlag(TypeCheckPolicy, OnlyConstPolicy));
 		if(ConstValue != null && !(Node.IsConstNode())) {  // recreated
-			Node = this.Generator.CreateConstNode(Node.Type, ParsedTree, ConstValue);
+			Node = this.Generator.CreateConstNode_OLD(Node.Type, ParsedTree, ConstValue);
 		}
 		if(IsFlag(TypeCheckPolicy, OnlyConstPolicy) && ConstValue == null) {
 			if(IsFlag(TypeCheckPolicy, NullablePolicy) && Node.IsNullNode()) { // OK
@@ -186,7 +186,7 @@ public final class GtTypeEnv extends GreenTeaUtils {
 	public GtNode ParseTypedNode(String Text, long FileLine, GtType ContextType) {
 		/*local*/GtNameSpace NameSpace = this.NameSpace;
 		/*local*/GtTokenContext LocalContext = new GtTokenContext(NameSpace, Text, FileLine);
-		/*local*/GtSyntaxTree ParsedTree = LocalContext.ParsePattern(NameSpace, "$Expression$", Required);
+		/*local*/GtSyntaxTree ParsedTree = LocalContext.ParsePattern_OLD(NameSpace, "$Expression$", Required);
 		return GreenTeaUtils.TypeBlock(this, ParsedTree, ContextType);
 	}
 }

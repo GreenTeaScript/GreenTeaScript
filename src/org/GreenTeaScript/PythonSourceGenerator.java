@@ -155,7 +155,7 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 			((/*cast*/GtSymbolNode)Cond).ResolvedFunc = ResolvedFunc;
 		}
 		/*local*/GtNode IfBlock = this.CreateIfNode(Type, ParsedTree, Cond, Break, null);
-		/*local*/GtNode TrueNode = this.CreateConstNode(GtStaticTable.BooleanType, ParsedTree, true);
+		/*local*/GtNode TrueNode = this.CreateConstNode_OLD(GtStaticTable.BooleanType, ParsedTree, true);
 		return this.CreateForNode(Type, ParsedTree, TrueNode, IfBlock, Block);
 	}
 	
@@ -168,7 +168,7 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 		
 		/*local*/GtNode NewNode = this.CreateAllocateNode(ClassType, ParsedTree);
 		ParamList.add(NewNode);
-		ParamList.add(this.CreateConstNode(NameSpace.GetType("String"), ParsedTree, ParsedTree.KeyToken.ParsedText));
+		ParamList.add(this.CreateConstNode_OLD(NameSpace.GetType("String"), ParsedTree, ParsedTree.KeyToken.ParsedText));
 		/*local*/GtFunc Func = PolyFunc.FuncList.get(0);
 		/*local*/GtNode ConstructorNode = this.CreateConstructorNode(ClassType, ParsedTree, Func);
 		ConstructorNode.AppendNodeList(0, ParamList);

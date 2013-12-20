@@ -547,7 +547,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 			/*local*/GtMap Annotation = TokenContext.SkipAndGetAnnotation(true);
 			TokenContext.ParseFlag = 0; // init
 			//System.err.println("** TokenContext.Position=" + TokenContext.CurrentPosition + ", " + TokenContext.IsAllowedBackTrack());
-			/*local*/GtSyntaxTree TopLevelTree = TokenContext.ParsePattern(this, "$Expression$", Required);
+			/*local*/GtSyntaxTree TopLevelTree = TokenContext.ParsePattern_OLD(this, "$Expression$", Required);
 			TokenContext.SkipEmptyStatement();			
 			if(TopLevelTree.IsError() && TokenContext.HasNext()) {
 				/*local*/GtToken Token = TokenContext.GetToken();

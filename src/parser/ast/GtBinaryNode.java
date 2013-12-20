@@ -27,6 +27,7 @@ package parser.ast;
 
 import parser.GtGenerator;
 import parser.GtParserContext;
+import parser.GtSyntaxPattern;
 import parser.GtToken;
 import parser.GtType;
 import parser.deps.LibGreenTea;
@@ -35,6 +36,7 @@ import parser.deps.LibGreenTea;
 final public class GtBinaryNode extends GtSymbolNode {
 	/*field*/public GtNode    LeftNode;
 	/*field*/public GtNode	  RightNode;
+	/*field*/public GtSyntaxPattern _Pattern; // not related to code generation
 	public GtBinaryNode/*constructor*/(GtType Type, GtToken Token, String OperatorName, GtNode Left, GtNode Right) {
 		super(Type, Token, OperatorName);
 		this.LeftNode  = Left;

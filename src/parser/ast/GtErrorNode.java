@@ -26,8 +26,8 @@ package parser.ast;
 
 import parser.GtGenerator;
 import parser.GtParserContext;
+import parser.GtStaticTable;
 import parser.GtToken;
-import parser.GtType;
 
 /**
  * ErrorNode carries error information at the parser level
@@ -35,8 +35,10 @@ import parser.GtType;
  */
 
 final public class GtErrorNode extends GtNode {
-	public GtErrorNode/*constructor*/(GtType Type, GtToken Token) {
-		super(Type, Token);
+	public String ErrorMessage;
+	public GtErrorNode/*constructor*/(GtToken SourceToken, String ErrorMessage) {
+		super(GtStaticTable.VoidType, SourceToken);
+		this.ErrorMessage = ErrorMessage;
 	}
 	@Override public void Accept(GtGenerator Visitor) {
 		Visitor.VisitErrorNode(this);

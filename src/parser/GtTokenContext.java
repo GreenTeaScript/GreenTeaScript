@@ -25,9 +25,11 @@
 //ifdef JAVA
 package parser;
 import java.util.ArrayList;
-//endif VAJA
 
+import parser.ast.GtErrorNode;
+import parser.ast.GtNode;
 import parser.deps.LibGreenTea;
+//endif VAJA
 
 public final class GtTokenContext extends GreenTeaUtils {
 	/*field*/public final static GtToken NullToken = new GtToken("", 0);
@@ -37,6 +39,7 @@ public final class GtTokenContext extends GreenTeaUtils {
 	/*field*/private int CurrentPosition;
 	/*field*/public long ParsingLine;
 	/*field*/public int  ParseFlag;
+	/*field*/private final ArrayList<Integer> ParserStack;
 	/*field*/public GtMap ParsingAnnotation;
 	/*field*/public GtToken LatestToken;
 	/*field*/public int IndentLevel = 0;
@@ -51,6 +54,7 @@ public final class GtTokenContext extends GreenTeaUtils {
 		this.ParsingAnnotation = null;
 		this.IndentLevel = 0;
 		this.LatestToken = null;
+		this.ParserStack = new ArrayList<Integer>();
 	}
 
 	public GtToken AddNewToken(String Text, int TokenFlag, String PatternName) {
@@ -302,6 +306,52 @@ public final class GtTokenContext extends GreenTeaUtils {
 		return false;
 	}
 
+	public GtNode MatchNodeToken(GtNode Base, GtNameSpace NameSpace, String TokenText, int MatchFlag) {
+		if(!Base.IsErrorNode()) {
+			/*local*/int Pos = this.GetPosition(MatchFlag);
+			/*local*/GtToken Token = this.Next();
+			if(Token.ParsedText.equals(TokenText)) {
+				if(Base.Token == null) {
+					Base.Token = Token;
+				}
+				if(IsFlag(MatchFlag, OpenSkipIndent)) {
+					this.SetSkipIndent(true);
+				}
+				if(IsFlag(MatchFlag, CloseSkipIndent)) {
+					this.SetSkipIndent(false);
+				}
+			}
+			else {
+				this.RollbackPosition(Pos, MatchFlag);
+				if(IsFlag(MatchFlag, Required)) {
+					// FIXME: improve error message
+					return new GtErrorNode(Token, "required " + TokenText);
+				}
+			}
+		}
+		return Base;
+	}
+
+	public GtNode AppendMatchedPattern(GtNode Base, GtNameSpace NameSpace, String PatternName,  int MatchFlag) {
+		if(!Base.IsErrorNode()) {
+			/*local*/GtToken Token = this.GetToken();
+			/*local*/GtNode ParsedNode = this.ParsePattern(NameSpace, PatternName, MatchFlag);
+			if(ParsedNode != null) {
+				if(ParsedNode.IsErrorNode()) {
+					return ParsedNode;
+				}
+				Base.Append(ParsedNode);
+			}
+			else {
+				if(IsFlag(MatchFlag, Required)) {
+					// FIXME: improve error message
+					return new GtErrorNode(Token, "required " + PatternName);
+				}
+			}
+		}
+		return Base;
+	}
+
 	public final boolean StartsWithToken(String TokenText) {
 		/*local*/GtToken Token = this.GetToken();
 		if(Token.EqualsText(TokenText)) {
@@ -363,7 +413,32 @@ public final class GtTokenContext extends GreenTeaUtils {
 		this.ParseFlag = OldFlag;
 	}
 
-	public final GtSyntaxTree ParsePatternAfter(GtNameSpace NameSpace, GtSyntaxTree LeftTree, String PatternName, int MatchFlag) {
+	public final GtNode ParsePatternAfter(GtNameSpace NameSpace, GtNode LeftNode, String PatternName, int MatchFlag) {
+		/*local*/int Pos = this.GetPosition(MatchFlag);
+		/*local*/int ParseFlag = this.ParseFlag;
+		if(IsFlag(MatchFlag, Optional)) {
+			this.ParseFlag = this.ParseFlag | BackTrackParseFlag;
+		}
+		/*local*/GtSyntaxPattern Pattern = this.GetPattern(PatternName);
+		/*local*/GtNode ParsedNode = GtSyntaxPattern.ApplySyntaxPattern(NameSpace, this, LeftNode, Pattern);
+		this.ParseFlag = ParseFlag;
+		if(ParsedNode != null) {
+			return ParsedNode;
+		}
+		this.RollbackPosition(Pos, MatchFlag);
+		if(IsFlag(MatchFlag, Required)) {
+			// TODO
+			//return NameSpace.Context.Generator.CreateErrorNode(Type, ParsedTree);
+			System.err.println("TODO:: required");
+		}
+		return null; // mismatched
+	}
+
+	public final GtNode ParsePattern(GtNameSpace NameSpace, String PatternName, int MatchFlag) {
+		return this.ParsePatternAfter(NameSpace, null, PatternName, MatchFlag);
+	}
+
+	public final GtSyntaxTree ParsePatternAfter_OLD(GtNameSpace NameSpace, GtSyntaxTree LeftTree, String PatternName, int MatchFlag) {
 		/*local*/int Pos = this.GetPosition(MatchFlag);
 		/*local*/int ParseFlag = this.ParseFlag;
 		if(IsFlag(MatchFlag, Optional)) {
@@ -373,7 +448,7 @@ public final class GtTokenContext extends GreenTeaUtils {
 		if(Pattern == null) {
 			System.err.println("unknown pattern: " + PatternName);
 		}
-		/*local*/GtSyntaxTree SyntaxTree = GreenTeaUtils.ApplySyntaxPattern(NameSpace, this, LeftTree, Pattern);
+		/*local*/GtSyntaxTree SyntaxTree = GreenTeaUtils.ApplySyntaxPattern_OLD(NameSpace, this, LeftTree, Pattern);
 		this.ParseFlag = ParseFlag;
 		if(SyntaxTree != null) {
 			return SyntaxTree;
@@ -382,8 +457,8 @@ public final class GtTokenContext extends GreenTeaUtils {
 		return null;
 	}
 
-	public final GtSyntaxTree ParsePattern(GtNameSpace NameSpace, String PatternName, int MatchFlag) {
-		return this.ParsePatternAfter(NameSpace, null, PatternName, MatchFlag);
+	public final GtSyntaxTree ParsePattern_OLD(GtNameSpace NameSpace, String PatternName, int MatchFlag) {
+		return this.ParsePatternAfter_OLD(NameSpace, null, PatternName, MatchFlag);
 	}
 
 	public final GtMap SkipAndGetAnnotation(boolean IsAllowedDelim) {
@@ -486,4 +561,15 @@ public final class GtTokenContext extends GreenTeaUtils {
 		}
 	}
 
+	
+	public final void Push() {
+		ParserStack.add(this.ParseFlag);
+	}
+
+	public final void Pop() {
+		this.ParseFlag = ParserStack.get(this.ParserStack.size() - 1);
+		ParserStack.remove(this.ParserStack.size() - 1);
+	}
+	
+	
 }

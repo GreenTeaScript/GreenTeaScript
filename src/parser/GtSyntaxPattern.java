@@ -25,7 +25,9 @@
 //ifdef JAVA
 package parser;
 
+import parser.ast.GtNode;
 import parser.deps.LibGreenTea;
+import parser.deps.LibNative;
 
 public final class GtSyntaxPattern extends GreenTeaUtils {
 	/*field*/public GtNameSpace	          PackageNameSpace;
@@ -61,5 +63,42 @@ public final class GtSyntaxPattern extends GreenTeaUtils {
 	public final boolean EqualsName(String Name) {
 		return LibGreenTea.EqualsString(this.PatternName, Name);
 	}
+	
+	public final static GtNode ApplySyntaxPattern(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode, GtSyntaxPattern Pattern) {
+		/*local*/int Pos = TokenContext.GetPosition(0);
+		/*local*/int ParseFlag = TokenContext.ParseFlag;
+		/*local*/GtSyntaxPattern CurrentPattern = Pattern;
+		while(CurrentPattern != null) {
+			/*local*/GtFunc delegate = CurrentPattern.MatchFunc;
+			TokenContext.RollbackPosition(Pos, 0);
+			if(CurrentPattern.ParentPattern != null) {   // This means it has next patterns
+				TokenContext.ParseFlag = ParseFlag | BackTrackParseFlag;
+			}
+			//LibGreenTea.DebugP("B :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + ", next=" + CurrentPattern.ParentPattern);
+			TokenContext.IndentLevel += 1;
+			/*local*/GtNode ParsedNode = LibNative.ApplyMatchFunc(delegate, NameSpace, TokenContext, LeftTree, CurrentPattern);
+			TokenContext.IndentLevel -= 1;
+			TokenContext.ParseFlag = ParseFlag;
+//			if(ParsedNode != null /* FIXME && ParsedNode.IsMismatched()*/) {
+//				ParsedNode = null;
+//			}
+//			LibGreenTea.DebugP("E :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + " => " + ParsedTree);
+			if(ParsedNode != null) {
+				return ParsedNode;
+			}
+			CurrentPattern = CurrentPattern.ParentPattern;
+		}
+		if(TokenContext.IsAllowedBackTrack()) {
+			TokenContext.RollbackPosition(Pos, 0);
+		}
+		else {
+			TokenContext.SkipErrorStatement();
+		}
+		if(Pattern == null) {
+			LibGreenTea.VerboseLog(VerboseUndefined, "undefined syntax pattern: " + Pattern);
+		}
+		return TokenContext.ReportExpectedPattern(Pattern);
+	}
+
 
 }

@@ -27,7 +27,6 @@ package parser;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
-
 import parser.ast.GtNode;
 import parser.deps.LibGreenTea;
 import parser.deps.LibNative;
@@ -181,7 +180,7 @@ public class GreenTeaUtils implements GreenTeaConsts {
 		return GreenTeaUtils.TreeTail(Node);
 	}
 
-	public final static GtSyntaxTree ApplySyntaxPattern(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+	public final static GtSyntaxTree ApplySyntaxPattern_OLD(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/int Pos = TokenContext.GetPosition(0);
 		/*local*/int ParseFlag = TokenContext.ParseFlag;
 		/*local*/GtSyntaxPattern CurrentPattern = Pattern;
@@ -216,6 +215,7 @@ public class GreenTeaUtils implements GreenTeaConsts {
 		}
 		return TokenContext.ReportExpectedPattern(Pattern);
 	}
+
 
 	// typing
 	public final static GtNode ApplyTypeFunc(GtFunc TypeFunc, GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {

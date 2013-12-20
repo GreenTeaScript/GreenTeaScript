@@ -43,9 +43,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-//import java.util.ArrayList;
-//import java.util.Iterator;
-//import org.GreenTeaScript.Konoha.ArrayApi;
 import java.util.ArrayList;
 
 import parser.GreenTeaConsts;
@@ -61,6 +58,9 @@ import parser.GtTokenContext;
 import parser.GtType;
 import parser.GtTypeEnv;
 import parser.ast.GtNode;
+//import java.util.ArrayList;
+//import java.util.Iterator;
+//import org.GreenTeaScript.Konoha.ArrayApi;
 
 public class LibNative {
 	final static void DebugP(String s) {
@@ -385,12 +385,22 @@ public class LibNative {
 		return (GtSyntaxTree)LibNative.ApplyMethod(ParseFunc, null, Argvs);
 	}
 
+	
 	public final static GtNode ApplyTypeFunc(GtFunc TypeFunc, GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		Object[] Argvs = new Object[3];
 		Argvs[0] = Gamma;
 		Argvs[1] = ParsedTree;
 		Argvs[2] = ContextType;
 		return (GtNode)LibNative.ApplyMethod(TypeFunc, null, Argvs);
+	}
+
+	public final static GtNode ApplyMatchFunc(GtFunc MatchFunc, GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
+		Object[] Argvs = new Object[3];
+		Argvs[0] = NameSpace;
+		Argvs[1] = TokenContext;
+		Argvs[2] = LeftNode;
+//		Argvs[3] = Pattern;
+		return (GtNode)LibNative.ApplyMethod(MatchFunc, null, Argvs);
 	}
 
 	

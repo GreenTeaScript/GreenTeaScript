@@ -89,9 +89,9 @@ import parser.ast.GtUsingNode;
 import parser.ast.GtVarDeclNode;
 import parser.ast.GtWhileNode;
 import parser.ast.GtYieldNode;
-//endif VAJA
 import parser.deps.LibGreenTea;
 import parser.deps.LibNative;
+//endif VAJA
 
 
 public class GtGenerator extends GreenTeaUtils {
@@ -121,37 +121,61 @@ public class GtGenerator extends GreenTeaUtils {
 		return new GtErrorNode(GtStaticTable.VoidType, ParsedTree.KeyToken);
 	}
 
+	public GtNode CreateNullNode(GtToken SourceToken) {
+		return new GtNullNode(GtStaticTable.VarType, SourceToken);
+	}
+
+	public GtNode CreateBooleanNode(GtToken SourceToken, boolean Value) {
+		return new GtBooleanNode(GtStaticTable.BooleanType, SourceToken, Value);
+	}
+
+	public GtNode CreateIntNode(GtToken SourceToken, long Value) {
+		return new GtIntNode(GtStaticTable.IntType, SourceToken, Value);
+	}
+
+	public GtNode CreateFloatNode(GtToken SourceToken, double Value) {
+		return new GtFloatNode(GtStaticTable.FloatType, SourceToken, Value);
+	}
+
+	public GtNode CreateStringNode(GtToken SourceToken, String Value) {
+		return new GtStringNode(GtStaticTable.StringType, SourceToken, Value);
+	}
+
+	public GtNode CreateRegexNode(GtToken SourceToken, String Value) {
+		return new GtRegexNode(GtStaticTable.VarType, SourceToken, Value);
+	}
+
+	public GtNode CreateConstPoolNode(GtToken SourceToken, Object Value) {
+		return new GtConstPoolNode(GtStaticTable.GuessType(Value), SourceToken, Value);
+	}
+
+	public final GtNode CreateConstNode(GtToken SourceToken, Object Value) {
+		if(Value instanceof Boolean) {
+			return this.CreateBooleanNode(SourceToken, (Boolean) Value);
+		}
+		if(Value instanceof Long || Value instanceof Integer) {
+			return this.CreateIntNode(SourceToken, ((Number)Value).longValue());
+		}
+		if(Value instanceof Double || Value instanceof Float) {
+			return this.CreateFloatNode(SourceToken, ((Number)Value).doubleValue());
+		}
+		if(Value instanceof String) {
+			return this.CreateStringNode(SourceToken, (String) Value);
+		}
+//		if(Value instanceof Rexex) {
+//			return CreateRegexNode(SourceToken, (String) Value);
+//		}
+		return this.CreateConstPoolNode(SourceToken, Value);
+	}
+	
 	public GtNode CreateEmptyNode(GtType Type) {
 		return new GtEmptyNode(Type, GtTokenContext.NullToken);
 	}
 
-	public GtNode CreateNullNode(GtType Type, GtSyntaxTree ParsedTree) {
+	public GtNode CreateNullNode_OLD(GtType Type, GtSyntaxTree ParsedTree) {
 		return new GtNullNode(Type, ParsedTree.KeyToken);
 	}
 
-	public GtNode CreateBooleanNode(GtType Type, GtSyntaxTree ParsedTree, boolean Value) {
-		return new GtBooleanNode(Type, ParsedTree.KeyToken, Value);
-	}
-
-	public GtNode CreateIntNode(GtType Type, GtSyntaxTree ParsedTree, long Value) {
-		return new GtIntNode(Type, ParsedTree.KeyToken, Value);
-	}
-
-	public GtNode CreateFloatNode(GtType Type, GtSyntaxTree ParsedTree, double Value) {
-		return new GtFloatNode(Type, ParsedTree.KeyToken, Value);
-	}
-
-	public GtNode CreateStringNode(GtType Type, GtSyntaxTree ParsedTree, String Value) {
-		return new GtStringNode(Type, ParsedTree.KeyToken, Value);
-	}
-
-	public GtNode CreateRegexNode(GtType Type, GtSyntaxTree ParsedTree, String Value) {
-		return new GtRegexNode(Type, ParsedTree.KeyToken, Value);
-	}
-
-	public GtNode CreateConstPoolNode(GtType Type, GtSyntaxTree ParsedTree, Object Value) {
-		return new GtConstPoolNode(Type, ParsedTree.KeyToken, Value);
-	}
 
 	public GtNode CreateArrayLiteralNode(GtType Type, GtSyntaxTree ParsedTree) {
 		return new GtArrayLiteralNode(Type, ParsedTree.KeyToken);
@@ -361,23 +385,25 @@ public class GtGenerator extends GreenTeaUtils {
 		ApplyNode.Append(Node);
 		return ApplyNode;
 	}
-	public final GtNode CreateConstNode(GtType Type, GtSyntaxTree ParsedTree, Object Value) {
+
+
+	public final GtNode CreateConstNode_OLD(GtType Type, GtSyntaxTree ParsedTree, Object Value) {
 		if(Value instanceof Boolean) {
-			return CreateBooleanNode(Type, ParsedTree, (Boolean) Value);
+			return this.CreateBooleanNode(ParsedTree.KeyToken, (Boolean) Value);
 		}
 		if(Value instanceof Long) {
-			return CreateIntNode(Type, ParsedTree, (Long) Value);
+			return this.CreateIntNode(ParsedTree.KeyToken, (Long) Value);
 		}
 		if(Value instanceof Double) {
-			return CreateFloatNode(Type, ParsedTree, (Double) Value);
+			return this.CreateFloatNode(ParsedTree.KeyToken, (Double) Value);
 		}
 		if(Value instanceof String) {
-			return CreateStringNode(Type, ParsedTree, (String) Value);
+			return this.CreateStringNode(ParsedTree.KeyToken, (String) Value);
 		}
 //		if(Value instanceof Rexex) {
 //			return CreateRegexNode(Type, ParsedTree, (String) Value);
 //		}
-		return CreateConstPoolNode(Type, ParsedTree, Value);
+		return this.CreateConstPoolNode(ParsedTree.KeyToken, Value);
 	}
 
 	public GtNode CreateApplyMethodNode(GtType Type, GtSyntaxTree ParsedTree, String FuncName, GtFunc Func) {

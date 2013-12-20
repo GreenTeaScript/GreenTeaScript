@@ -155,7 +155,7 @@ public final class GtSyntaxTree extends GreenTeaUtils {
 
 	public void SetMatchedPatternAt(int Index, GtNameSpace NameSpace, GtTokenContext TokenContext, String PatternName,  int MatchFlag) {
 		if(!this.IsMismatchedOrError()) {
-			/*local*/GtSyntaxTree ParsedTree = TokenContext.ParsePattern(NameSpace, PatternName, MatchFlag);
+			/*local*/GtSyntaxTree ParsedTree = TokenContext.ParsePattern_OLD(NameSpace, PatternName, MatchFlag);
 			if(ParsedTree != null) {
 				this.SetSyntaxTreeAt(Index, ParsedTree);
 			}
@@ -211,7 +211,7 @@ public final class GtSyntaxTree extends GreenTeaUtils {
 
 	public void AppendMatchedPattern(GtNameSpace NameSpace, GtTokenContext TokenContext, String PatternName,  int MatchFlag) {
 		if(!this.IsMismatchedOrError()) {
-			/*local*/GtSyntaxTree ParsedTree = TokenContext.ParsePattern(NameSpace, PatternName, MatchFlag);
+			/*local*/GtSyntaxTree ParsedTree = TokenContext.ParsePattern_OLD(NameSpace, PatternName, MatchFlag);
 			if(ParsedTree != null) {
 				this.AppendParsedTree2(ParsedTree);
 			}
