@@ -25,7 +25,6 @@
 //ifdef  JAVA
 package org.GreenTeaScript;
 import java.util.ArrayList;
-//endif VAJA
 
 import parser.GtClassField;
 import parser.GtFieldInfo;
@@ -88,11 +87,13 @@ import parser.ast.GtUsingNode;
 import parser.ast.GtVarDeclNode;
 import parser.ast.GtWhileNode;
 import parser.ast.GtYieldNode;
+import parser.deps.LibGreenTea;
+//endif VAJA
 
 //GreenTea Generator should be written in each language.
 
 public class CSourceGenerator extends GtSourceGenerator {
-	CSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
+	public CSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
 		this.TrueLiteral  = "1";
 		this.FalseLiteral = "0";

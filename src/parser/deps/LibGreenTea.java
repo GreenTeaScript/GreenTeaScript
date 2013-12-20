@@ -24,7 +24,7 @@
 
 // LangBase is a language-dependent code used in GreenTea.java
 
-package org.GreenTeaScript;
+package parser.deps;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,6 +41,15 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Iterator;
+
+import org.GreenTeaScript.BashSourceGenerator;
+import org.GreenTeaScript.CSourceGenerator;
+import org.GreenTeaScript.CommonLispSourceGenerator;
+import org.GreenTeaScript.JavaByteCodeGenerator;
+import org.GreenTeaScript.JavaScriptSourceGenerator;
+import org.GreenTeaScript.KonohaByteCodeGenerator;
+import org.GreenTeaScript.PerlSourceGenerator;
+import org.GreenTeaScript.PythonSourceGenerator;
 
 import parser.GreenTeaConsts;
 import parser.GreenTeaUtils;

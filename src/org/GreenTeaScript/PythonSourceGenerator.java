@@ -25,8 +25,6 @@
 //ifdef JAVA
 package org.GreenTeaScript;
 import java.util.ArrayList;
-//endif VAJA
-
 
 import parser.GreenTeaUtils;
 import parser.GtClassField;
@@ -81,6 +79,9 @@ import parser.ast.GtTryNode;
 import parser.ast.GtUnaryNode;
 import parser.ast.GtVarDeclNode;
 import parser.ast.GtWhileNode;
+import parser.deps.LibGreenTea;
+import parser.deps.LibNative;
+//endif VAJA
 
 //GreenTea Generator should be written in each language.
 
@@ -88,7 +89,7 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 //	/*field*/private int SwitchCaseCount;
 //	/*field*/private boolean importSubProc = false;
 
-	PythonSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
+	public PythonSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
 		this.LineFeed = "\n";
 		this.Tab = "\t";

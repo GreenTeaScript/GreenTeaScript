@@ -68,6 +68,7 @@ import parser.ast.GtTryNode;
 import parser.ast.GtUnaryNode;
 import parser.ast.GtVarDeclNode;
 import parser.ast.GtWhileNode;
+import parser.deps.LibGreenTea;
 
 public class JavaSourceGenerator extends GtSourceGenerator {
 

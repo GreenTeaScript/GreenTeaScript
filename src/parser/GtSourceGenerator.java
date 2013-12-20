@@ -27,10 +27,10 @@ package parser;
 import java.util.ArrayList;
 //endif VAJA
 
-import org.GreenTeaScript.GreenTeaEnum;
-import org.GreenTeaScript.LibGreenTea;
 
 import parser.ast.GtNode;
+import parser.deps.GreenTeaEnum;
+import parser.deps.LibGreenTea;
 
 public class GtSourceGenerator extends GtGenerator {
 	/*field*/private ArrayList<GtSourceBuilder> BuilderList;

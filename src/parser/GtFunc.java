@@ -27,10 +27,10 @@ package parser;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import org.GreenTeaScript.LibGreenTea;
 
 import parser.ast.GtNode;
 //endif VAJA
+import parser.deps.LibGreenTea;
 
 
 public final class GtFunc extends GreenTeaUtils {

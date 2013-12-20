@@ -28,12 +28,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 //endif VAJA
 
-import org.GreenTeaScript.GreenTeaArray;
-import org.GreenTeaScript.GreenTeaEnum;
-import org.GreenTeaScript.GreenTeaObject;
 import org.GreenTeaScript.GreenTeaTopObject;
-import org.GreenTeaScript.LibGreenTea;
-import org.GreenTeaScript.LibNative;
+
+import parser.deps.GreenTeaArray;
+import parser.deps.GreenTeaEnum;
+import parser.deps.GreenTeaObject;
+import parser.deps.LibGreenTea;
+import parser.deps.LibNative;
 
 public class GtStaticTable implements GreenTeaConsts {
 

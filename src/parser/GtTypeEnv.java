@@ -25,9 +25,9 @@
 package parser;
 import java.util.ArrayList;
 
-import org.GreenTeaScript.LibGreenTea;
 
 import parser.ast.GtNode;
+import parser.deps.LibGreenTea;
 
 public final class GtTypeEnv extends GreenTeaUtils {
 	/*field*/public final GtParserContext    Context;

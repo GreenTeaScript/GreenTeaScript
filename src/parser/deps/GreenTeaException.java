@@ -22,21 +22,16 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-//ifdef JAVA
-package org.GreenTeaScript;
+package parser.deps;
 
-import parser.GtType;
-//endif VAJA
+public class GreenTeaException extends RuntimeException {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 5333884246425321233L;
 
-public class GreenTeaEnum extends GreenTeaTopObject {
-	/*field*/public final long EnumValue;
-	/*field*/public final String EnumSymbol;
-	public GreenTeaEnum/*constructor*/(GtType GreenType, long EnumValue, String EnumSymbol) {
-		super(GreenType);
-		this.EnumValue = EnumValue;
-		this.EnumSymbol = EnumSymbol;
+	public GreenTeaException(String Message) {
+		super(Message);
 	}
-	@Override public String toString() {
-		return ""+this.EnumValue;
-	}
+	
 }

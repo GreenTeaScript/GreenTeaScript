@@ -25,8 +25,7 @@
 //ifdef JAVA
 package parser;
 
-import org.GreenTeaScript.LibGreenTea;
-//endif VAJA
+import parser.deps.LibGreenTea;
 
 public final class GtSyntaxPattern extends GreenTeaUtils {
 	/*field*/public GtNameSpace	          PackageNameSpace;

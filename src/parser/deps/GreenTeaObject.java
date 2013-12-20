@@ -21,17 +21,14 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
+//ifdef JAVA
+package parser.deps;
 
-package org.GreenTeaScript;
+import parser.GtType;
 
-public class GreenTeaException extends RuntimeException {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 5333884246425321233L;
-
-	public GreenTeaException(String Message) {
-		super(Message);
-	}
-	
+//endif VAJA
+/*GreenTeaObject Begin*/
+public interface GreenTeaObject {
+	public GtType GetGreenType();
 }
+/*GreenTeaObject End*/

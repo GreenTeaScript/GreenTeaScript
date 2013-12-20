@@ -54,6 +54,7 @@ import parser.ast.GtTrinaryNode;
 import parser.ast.GtUnaryNode;
 import parser.ast.GtVarDeclNode;
 import parser.ast.GtWhileNode;
+import parser.deps.LibGreenTea;
 
 public class CommonLispSourceGenerator extends GtSourceGenerator {
 

@@ -27,9 +27,9 @@ package parser;
 import java.util.ArrayList;
 //endif VAJA
 
-import org.GreenTeaScript.LibGreenTea;
 
 import parser.ast.GtNode;
+import parser.deps.LibGreenTea;
 
 public class GtSourceBuilder {
 	/*field*/public ArrayList<String> SourceList;

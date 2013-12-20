@@ -23,7 +23,7 @@
 // **************************************************************************
 
 package org.GreenTeaScript.Konoha;
-import org.GreenTeaScript.GreenTeaEnum;
+import parser.deps.GreenTeaEnum;
 
 public class TopApi {
 	public final static long Size(Object x) {

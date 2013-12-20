@@ -30,6 +30,8 @@ import java.lang.reflect.Modifier;
 //endif VAJA
 
 import parser.GtType;
+import parser.deps.GreenTeaObject;
+import parser.deps.LibGreenTea;
 
 
 public class GreenTeaTopObject implements GreenTeaObject {

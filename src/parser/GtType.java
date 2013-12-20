@@ -27,8 +27,8 @@ package parser;
 import java.util.ArrayList;
 //endif VAJA
 
-import org.GreenTeaScript.LibGreenTea;
-import org.GreenTeaScript.LibNative;
+import parser.deps.LibGreenTea;
+import parser.deps.LibNative;
 
 public class GtType extends GreenTeaUtils {
 	/*field*/public int				TypeFlag;

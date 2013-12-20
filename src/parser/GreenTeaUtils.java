@@ -27,10 +27,10 @@ package parser;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
-import org.GreenTeaScript.LibGreenTea;
-import org.GreenTeaScript.LibNative;
 
 import parser.ast.GtNode;
+import parser.deps.LibGreenTea;
+import parser.deps.LibNative;
 
 public class GreenTeaUtils implements GreenTeaConsts {
 //endif VAJA

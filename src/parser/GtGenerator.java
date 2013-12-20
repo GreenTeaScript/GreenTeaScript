@@ -28,8 +28,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 
-import org.GreenTeaScript.LibGreenTea;
-import org.GreenTeaScript.LibNative;
 import org.GreenTeaScript.DShell.DShellProcess;
 
 import parser.ast.GtAllocateNode;
@@ -92,6 +90,8 @@ import parser.ast.GtVarDeclNode;
 import parser.ast.GtWhileNode;
 import parser.ast.GtYieldNode;
 //endif VAJA
+import parser.deps.LibGreenTea;
+import parser.deps.LibNative;
 
 
 public class GtGenerator extends GreenTeaUtils {

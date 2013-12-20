@@ -26,11 +26,11 @@
 package parser;
 import java.util.ArrayList;
 
-import org.GreenTeaScript.LibGreenTea;
-import org.GreenTeaScript.LibNative;
 
 import parser.ast.GtNode;
 //endif VAJA
+import parser.deps.LibGreenTea;
+import parser.deps.LibNative;
 
 final class GtTokenFunc {
 	/*field*/public GtFunc      Func;

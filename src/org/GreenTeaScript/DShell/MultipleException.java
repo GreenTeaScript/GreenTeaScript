@@ -24,10 +24,10 @@
 
 package org.GreenTeaScript.DShell;
 
-import org.GreenTeaScript.GreenTeaArray;
 import org.GreenTeaScript.Konoha.ArrayApi;
 
 import parser.GtStaticTable;
+import parser.deps.GreenTeaArray;
 
 public class MultipleException extends DShellException {
 	private static final long serialVersionUID = 1L;

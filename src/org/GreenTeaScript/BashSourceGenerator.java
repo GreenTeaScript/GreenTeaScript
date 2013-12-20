@@ -25,7 +25,6 @@
 //ifdef JAVA
 package org.GreenTeaScript;
 import java.util.ArrayList;
-//endif VAJA
 
 import parser.GreenTeaConsts;
 import parser.GreenTeaUtils;
@@ -60,6 +59,8 @@ import parser.ast.GtTryNode;
 import parser.ast.GtUnaryNode;
 import parser.ast.GtVarDeclNode;
 import parser.ast.GtWhileNode;
+import parser.deps.LibGreenTea;
+//endif VAJA
 
 //GreenTea Generator should be written in each language.
 
@@ -67,7 +68,7 @@ public class BashSourceGenerator extends SourceGenerator {
 	/*field*/boolean inFunc = false;
 	/*field*/boolean inMainFunc = false;
 
-	BashSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
+	public BashSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
 		this.TrueLiteral  = "0";
 		this.FalseLiteral = "1";

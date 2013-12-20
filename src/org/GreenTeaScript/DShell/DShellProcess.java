@@ -40,7 +40,8 @@ import java.util.Calendar;
 import java.util.Map;
 
 import org.GreenTeaScript.DShellGrammar;
-import org.GreenTeaScript.LibGreenTea;
+
+import parser.deps.LibGreenTea;
 
 public class DShellProcess {
 	// option flag

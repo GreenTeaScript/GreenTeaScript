@@ -48,6 +48,8 @@ import parser.ast.GtApplySymbolNode;
 import parser.ast.GtConstPoolNode;
 import parser.ast.GtNode;
 //endif VAJA
+import parser.deps.LibGreenTea;
+import parser.deps.LibNative;
 
 public class DShellGrammar extends GreenTeaUtils {
 	// LibDShell

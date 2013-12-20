@@ -26,12 +26,12 @@ package org.GreenTeaScript.Konoha;
 import java.lang.reflect.Array;
 import java.util.Iterator;
 
-import org.GreenTeaScript.GreenTeaArray;
-import org.GreenTeaScript.LibGreenTea;
-import org.GreenTeaScript.LibNative;
 
 import parser.GtStaticTable;
 import parser.GtType;
+import parser.deps.GreenTeaArray;
+import parser.deps.LibGreenTea;
+import parser.deps.LibNative;
 
 public class ArrayApi {
 	public final static long GetSize(GreenTeaArray self) {

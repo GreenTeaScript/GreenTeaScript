@@ -24,6 +24,8 @@
 
 //ifdef JAVA
 package org.GreenTeaScript;
+
+import parser.deps.LibGreenTea;
 //endif VAJA
 
 public class NativeClassTest {

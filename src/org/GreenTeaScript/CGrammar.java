@@ -45,6 +45,7 @@ import parser.GtTypeEnv;
 import parser.ast.GtGetterNode;
 import parser.ast.GtNode;
 import parser.ast.GtSymbolNode;
+import parser.deps.LibGreenTea;
 
 public class CGrammar extends GreenTeaUtils {
 	

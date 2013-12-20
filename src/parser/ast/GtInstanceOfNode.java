@@ -24,12 +24,12 @@
 
 package parser.ast;
 
-import org.GreenTeaScript.LibGreenTea;
 
 import parser.GtGenerator;
 import parser.GtParserContext;
 import parser.GtToken;
 import parser.GtType;
+import parser.deps.LibGreenTea;
 
 //E.g., $ExprNode instanceof TypeInfo
 final public class GtInstanceOfNode extends GtNode {

@@ -23,8 +23,11 @@
 // **************************************************************************
 
 //ifdef JAVA
-package org.GreenTeaScript;
+package parser.deps;
 import java.util.ArrayList;
+
+import org.GreenTeaScript.GreenTeaTopObject;
+
 import parser.GtStaticTable;
 import parser.GtType;
 

@@ -26,9 +26,9 @@ package parser;
 
 import java.util.ArrayList;
 
-import org.GreenTeaScript.LibGreenTea;
 
 import parser.ast.GtNode;
+import parser.deps.LibGreenTea;
 
 public class GtPolyFunc extends GreenTeaUtils {
 	/*field*/public ArrayList<GtFunc> FuncList;

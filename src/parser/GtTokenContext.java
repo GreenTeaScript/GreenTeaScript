@@ -27,7 +27,7 @@ package parser;
 import java.util.ArrayList;
 //endif VAJA
 
-import org.GreenTeaScript.LibGreenTea;
+import parser.deps.LibGreenTea;
 
 public final class GtTokenContext extends GreenTeaUtils {
 	/*field*/public final static GtToken NullToken = new GtToken("", 0);

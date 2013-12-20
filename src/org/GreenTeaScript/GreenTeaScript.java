@@ -31,6 +31,9 @@ import parser.GreenTeaUtils;
 import parser.GtGenerator;
 import parser.GtParserContext;
 import parser.GtStaticTable;
+import parser.deps.GreenTeaArray;
+import parser.deps.LibGreenTea;
+import parser.deps.LibNative;
 
 public class GreenTeaScript extends GreenTeaUtils {
 	public final static void ExecCommand(String[] Args) {

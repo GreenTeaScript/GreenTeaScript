@@ -21,14 +21,24 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
+
 //ifdef JAVA
-package org.GreenTeaScript;
+package parser.deps;
+
+import org.GreenTeaScript.GreenTeaTopObject;
 
 import parser.GtType;
-
 //endif VAJA
-/*GreenTeaObject Begin*/
-public interface GreenTeaObject {
-	public GtType GetGreenType();
+
+public class GreenTeaEnum extends GreenTeaTopObject {
+	/*field*/public final long EnumValue;
+	/*field*/public final String EnumSymbol;
+	public GreenTeaEnum/*constructor*/(GtType GreenType, long EnumValue, String EnumSymbol) {
+		super(GreenType);
+		this.EnumValue = EnumValue;
+		this.EnumSymbol = EnumSymbol;
+	}
+	@Override public String toString() {
+		return ""+this.EnumValue;
+	}
 }
-/*GreenTeaObject End*/

@@ -77,6 +77,7 @@ import parser.ast.GtTryNode;
 import parser.ast.GtUnaryNode;
 import parser.ast.GtVarDeclNode;
 import parser.ast.GtWhileNode;
+import parser.deps.LibGreenTea;
 
 public class JavaScriptSourceGenerator extends GtSourceGenerator {
 //	/*field*/private boolean UseLetKeyword = false;

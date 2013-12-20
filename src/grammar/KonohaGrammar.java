@@ -26,9 +26,6 @@
 package grammar;
 import java.util.ArrayList;
 
-import org.GreenTeaScript.GreenTeaEnum;
-import org.GreenTeaScript.LibGreenTea;
-import org.GreenTeaScript.LibNative;
 
 import parser.GreenTeaConsts;
 import parser.GreenTeaUtils;
@@ -56,7 +53,10 @@ import parser.ast.GtNode;
 import parser.ast.GtSymbolNode;
 import parser.ast.GtVarDeclNode;
 import parser.ast.GtWhileNode;
+import parser.deps.GreenTeaEnum;
 //endif VAJA
+import parser.deps.LibGreenTea;
+import parser.deps.LibNative;
 
 public class KonohaGrammar extends GtGrammar {
 	private static final boolean HasAnnotation(GtMap Annotation, String Key) {

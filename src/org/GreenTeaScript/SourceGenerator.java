@@ -53,6 +53,8 @@ import parser.ast.GtSetterNode;
 import parser.ast.GtSwitchNode;
 import parser.ast.GtTrinaryNode;
 import parser.ast.GtUnaryNode;
+import parser.deps.GreenTeaEnum;
+import parser.deps.LibGreenTea;
 
 @Deprecated
 public class SourceGenerator extends GtGenerator {

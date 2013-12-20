@@ -94,6 +94,8 @@ import parser.ast.GtTryNode;
 import parser.ast.GtUnaryNode;
 import parser.ast.GtVarDeclNode;
 import parser.ast.GtWhileNode;
+import parser.deps.GreenTeaArray;
+import parser.deps.LibGreenTea;
 
 import static org.objectweb.asm.Opcodes.*;
 

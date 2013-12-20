@@ -27,7 +27,7 @@ package parser;
 import java.util.ArrayList;
 //endif VAJA
 
-import org.GreenTeaScript.LibGreenTea;
+import parser.deps.LibGreenTea;
 
 public final class GtParserContext extends GreenTeaUtils {
 	/*field*/public final  int ParserId;

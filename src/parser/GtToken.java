@@ -25,8 +25,7 @@
 //ifdef JAVA
 package parser;
 
-import org.GreenTeaScript.LibGreenTea;
-//endif VAJA
+import parser.deps.LibGreenTea;
 
 final public class GtToken extends GreenTeaUtils {
 	/*field*/public int		        TokenFlag;

@@ -91,6 +91,7 @@ import parser.ast.GtUsingNode;
 import parser.ast.GtVarDeclNode;
 import parser.ast.GtWhileNode;
 import parser.ast.GtYieldNode;
+import parser.deps.LibGreenTea;
 
 public class KonohaByteCodeGenerator extends GtSourceGenerator {
 	/*field*/private ArrayList<Object> ConstPool;

@@ -26,7 +26,6 @@
 package parser.ast;
 import java.util.ArrayList;
 
-import org.GreenTeaScript.LibGreenTea;
 
 import parser.GreenTeaUtils;
 import parser.GtGenerator;
@@ -34,6 +33,7 @@ import parser.GtParserContext;
 import parser.GtToken;
 import parser.GtType;
 //endif VAJA
+import parser.deps.LibGreenTea;
 
 public class GtNode {
 	/*field*/public GtNode	ParentNode;
