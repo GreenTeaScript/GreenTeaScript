@@ -25,12 +25,12 @@
 //ifdef JAVA
 package parser;
 import java.util.ArrayList;
-//endif VAJA
 
 import org.GreenTeaScript.LibGreenTea;
 import org.GreenTeaScript.LibNative;
 
 import parser.ast.GtNode;
+//endif VAJA
 
 final class GtTokenFunc {
 	/*field*/public GtFunc      Func;
@@ -49,17 +49,29 @@ final class GtTokenFunc {
 public final class GtNameSpace extends GreenTeaUtils {
 	/*field*/public final GtParserContext		Context;
 	/*field*/public final GtNameSpace		    ParentNameSpace;
-	/*field*/public String                      PackageName;
 
 	/*field*/GtTokenFunc[] TokenMatrix;
 	/*field*/GtMap	 SymbolPatternTable;
-
+	/*field*/GtFuncBlock  FuncBlock;
+	
 	GtNameSpace/*constructor*/(GtParserContext Context, GtNameSpace ParentNameSpace) {
 		this.Context = Context;
 		this.ParentNameSpace = ParentNameSpace;
-		this.PackageName = (ParentNameSpace != null) ? ParentNameSpace.PackageName : null;
 		this.TokenMatrix = null;
 		this.SymbolPatternTable = null;
+		this.FuncBlock = ParentNameSpace == null ? null : ParentNameSpace.FuncBlock;
+	}
+
+	public GtNameSpace CreateSubNameSpace() {
+		return new GtNameSpace(this.Context, this);
+	}
+
+	public final GtNameSpace Minimum() {
+		/*local*/GtNameSpace NameSpace = this;
+		while(NameSpace.SymbolPatternTable == null) {
+			NameSpace = NameSpace.ParentNameSpace;
+		}
+		return NameSpace;
 	}
 
 	public final GtNameSpace GetNameSpace(int NameSpaceFlag) {
@@ -71,11 +83,9 @@ public final class GtNameSpace extends GreenTeaUtils {
 		}
 		return this;
 	}
-
-	public GtNameSpace CreateSubNameSpace() {
-		return new GtNameSpace(this.Context, this);
-	}
-
+	
+	// TokenMatrix 
+	
 	public final GtTokenFunc GetTokenFunc(int GtChar2) {
 		if(this.TokenMatrix == null) {
 			return this.ParentNameSpace.GetTokenFunc(GtChar2);
@@ -109,14 +119,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 		}
 	}
 
-	public final GtNameSpace Minimum() {
-		/*local*/GtNameSpace NameSpace = this;
-		while(NameSpace.SymbolPatternTable == null) {
-			NameSpace = NameSpace.ParentNameSpace;
-		}
-		return NameSpace;
-	}
-
+	// SymbolTable
 	public final Object GetLocalUndefinedSymbol(String Key) {
 		if(this.SymbolPatternTable != null) {
 			return this.SymbolPatternTable.GetOrNull(Key);
@@ -173,6 +176,12 @@ public final class GtNameSpace extends GreenTeaUtils {
 		LibGreenTea.VerboseLog(VerboseSymbol, "symbol: " + Key + ", " + Value);
 	}
 
+	public GtVariableInfo SetLocalVariable(int VarFlag, GtType Type, String Name, GtToken SourceToken) {
+		/*local*/GtVariableInfo VarInfo = new GtVariableInfo(this.FuncBlock, VarFlag, Type, Name, SourceToken);
+		this.SetSymbol(Name, VarInfo, SourceToken);
+		return VarInfo;
+	}
+	
 	public final void SetUndefinedSymbol(String Symbol, GtToken SourceToken) {
 		this.SetSymbol(Symbol, UndefinedSymbol, SourceToken);
 	}

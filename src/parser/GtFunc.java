@@ -24,56 +24,21 @@
 
 //ifdef JAVA
 package parser;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.GreenTeaScript.LibGreenTea;
-//endif VAJA
 
 import parser.ast.GtNode;
+//endif VAJA
 
-
-class GtFuncBlock extends GreenTeaUtils {
-	/*field*/public GtNameSpace       NameSpace;
-	/*field*/public ArrayList<String> NameList;
-	/*field*/public GtSyntaxTree FuncBlock;
-	/*field*/public boolean IsVarArgument;
-	/*field*/public ArrayList<GtType> TypeList;
-	/*field*/public GtFunc DefinedFunc;
-
-	GtFuncBlock/*constructor*/(GtNameSpace NameSpace, ArrayList<GtType> TypeList) {
-		this.NameSpace = NameSpace;
-		this.TypeList = TypeList;
-		this.NameList = new ArrayList<String>();
-		this.FuncBlock = null;
-		this.IsVarArgument = false;
-		this.DefinedFunc = null;
-	}
-
-	void SetThisIfInClass(GtType Type) {
-		if(Type != null) {
-			this.TypeList.add(Type);
-			this.NameList.add(this.NameSpace.Context.Generator.GetRecvName());
-		}
-	}
-	
-	void AddParameter(GtType Type, String Name) {
-		this.TypeList.add(Type);
-		if(Type.IsVarType()) {
-			this.IsVarArgument = true;
-		}
-		this.NameList.add(Name);
-	}
-}
 
 public final class GtFunc extends GreenTeaUtils {
+	/*field*/public                 int FuncId;
 	/*field*/public int				FuncFlag;
 	/*field*/public String			FuncName;
-//	/*field*/public String          MangledName;
 	/*field*/public GtType[]		Types;
 	/*field*/public GtType          FuncType;
-	/*field*/public                 int FuncId;
 	/*field*/public Object          FuncBody;  // Abstract function if null
 	/*field*/public String[]        GenericParam;
 
@@ -86,7 +51,7 @@ public final class GtFunc extends GreenTeaUtils {
 		this.FuncBody = null;
 		this.FuncId = GtStaticTable.FuncPools.size();
 		GtStaticTable.FuncPools.add(this);
-//		this.MangledName = FuncName + NativeNameSuffix + this.FuncId;
+		this.GenericParam = null;
 	}
 
 	public final String GetNativeFuncName() {

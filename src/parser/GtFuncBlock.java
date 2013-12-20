@@ -22,10 +22,48 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
+//ifdef JAVA
 package parser;
 
-class GtUndefinedSymbol {
-	@Override public String toString() {
-		return "UndefinedSymbol";
+import java.util.ArrayList;
+
+public class GtFuncBlock {
+	/*field*/public GtNameSpace       NameSpace;
+	/*field*/public ArrayList<String> NameList;
+	/*field*/public ArrayList<GtType> TypeList;
+	/*field*/public GtSyntaxTree      FuncBlock;
+	/*field*/public boolean IsVarArgument;
+	/*field*/public int VariableIndex;
+	/*field*/public GtFunc DefinedFunc;
+
+	GtFuncBlock/*constructor*/(GtNameSpace NameSpace, ArrayList<GtType> TypeList) {
+		this.NameSpace = NameSpace;
+		this.TypeList = TypeList;
+		this.NameList = new ArrayList<String>();
+		this.FuncBlock = null;
+		this.IsVarArgument = false;
+		this.DefinedFunc = null;
+		this.VariableIndex = 0;
+	}
+
+	void SetThisIfInClass(GtType Type) {
+		if(Type != null) {
+			this.TypeList.add(Type);
+			this.NameList.add(this.NameSpace.Context.Generator.GetRecvName());
+		}
+	}
+	
+	void AddParameter(GtType Type, String Name) {
+		this.TypeList.add(Type);
+		if(Type.IsVarType()) {
+			this.IsVarArgument = true;
+		}
+		this.NameList.add(Name);
+	}
+	
+	int GetVariableIndex() {
+		int Index = this.VariableIndex;
+		this.VariableIndex += 1;
+		return Index;
 	}
 }

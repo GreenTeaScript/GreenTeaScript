@@ -24,8 +24,45 @@
 
 package parser;
 
-class GtUndefinedSymbol {
+public class GtVariableInfo {
+	/*field*/public GtFuncBlock  FuncBlock;
+	/*field*/public int     VariableFlag;
+	/*field*/public GtType	Type;
+	/*field*/public String	Name;
+	/*field*/public String	NativeName;
+	/*field*/public GtToken SourceToken;
+//	/*field*/public Object  InitValue;
+	/*field*/public int     DefCount;
+	/*field*/public int     UsedCount;
+
+	GtVariableInfo/*constructor*/(GtFuncBlock FuncBlock, int VarFlag, GtType Type, String Name, GtToken SourceToken) {
+		this.FuncBlock    = FuncBlock;
+		this.VariableFlag = VarFlag;
+		this.Type = Type;
+		this.SourceToken = SourceToken;
+		this.Name = Name;
+		this.NativeName = GreenTeaUtils.NativeVariableName(Name, this.FuncBlock.GetVariableIndex());
+//		this.InitValue = null;
+		this.UsedCount = 0;
+		this.DefCount  = 1;
+	}
+
+	public final void Defined() {
+		this.DefCount += 1;
+//		this.InitValue = null;
+	}
+
+	public final void Used() {
+		this.UsedCount += 1;
+	}
+
+	public void Check(GtParserContext Context) {
+		if(this.UsedCount == 0 && this.SourceToken != null) {
+			Context.ReportError(GreenTeaConsts.WarningLevel, this.SourceToken, "unused variable: " + this.Name);
+		}
+	}
+	// for debug
 	@Override public String toString() {
-		return "UndefinedSymbol";
+		return "(" + this.Type + " " + this.Name + ", " + this.NativeName + ")";
 	}
 }
