@@ -26,6 +26,7 @@
 package org.GreenTeaScript;
 //endif VAJA
 
+import grammar.KonohaGrammar;
 import parser.GreenTeaUtils;
 import parser.GtGenerator;
 import parser.GtParserContext;

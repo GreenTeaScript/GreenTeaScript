@@ -31,7 +31,7 @@ import parser.GtType;
 public class GreenTeaEnum extends GreenTeaTopObject {
 	/*field*/public final long EnumValue;
 	/*field*/public final String EnumSymbol;
-	GreenTeaEnum/*constructor*/(GtType GreenType, long EnumValue, String EnumSymbol) {
+	public GreenTeaEnum/*constructor*/(GtType GreenType, long EnumValue, String EnumSymbol) {
 		super(GreenType);
 		this.EnumValue = EnumValue;
 		this.EnumSymbol = EnumSymbol;

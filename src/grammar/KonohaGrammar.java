@@ -23,8 +23,12 @@
 // **************************************************************************
 
 //ifdef JAVA
-package org.GreenTeaScript;
+package grammar;
 import java.util.ArrayList;
+
+import org.GreenTeaScript.GreenTeaEnum;
+import org.GreenTeaScript.LibGreenTea;
+import org.GreenTeaScript.LibNative;
 
 import parser.GreenTeaConsts;
 import parser.GreenTeaUtils;

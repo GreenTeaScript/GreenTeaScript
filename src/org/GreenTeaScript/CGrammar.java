@@ -24,6 +24,8 @@
 
 //ifdef JAVA
 package org.GreenTeaScript;
+import grammar.KonohaGrammar;
+
 import java.util.ArrayList;
 //endif VAJA
 

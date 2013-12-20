@@ -24,6 +24,8 @@
 
 //ifdef JAVA
 package org.GreenTeaScript;
+import grammar.KonohaGrammar;
+
 import java.io.File;
 import java.lang.reflect.Method;
 
