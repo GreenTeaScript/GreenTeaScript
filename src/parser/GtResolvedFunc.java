@@ -22,23 +22,26 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package parser.ast;
+package parser;
 
-import parser.GtGenerator;
-import parser.GtToken;
-import parser.GtType;
+import parser.ast.GtNode;
 
-//E.g., "while" "(" $Cond ")" $Body
-final public class GtWhileNode extends GtNode {
-	/*field*/public GtNode	CondNode;
-	/*field*/public GtNode	BodyNode;
-	public GtWhileNode/*constructor*/(GtType Type, GtToken Token, GtNode CondNode, GtNode BodyNode) {
-		super(Type, Token);
-		this.CondNode = CondNode;
-		this.BodyNode = BodyNode;
-		this.SetChild2(CondNode, BodyNode);
-	}
-	@Override public void Accept(GtGenerator Visitor) {
-		Visitor.VisitWhileNode(this);
+public class GtResolvedFunc {
+	/*field*/public GtNameSpace GenericNameSpace;
+	/*field*/public GtFunc Func;
+	/*field*/public GtType ReturnType;
+	/*field*/public GtNode ErrorNode;
+	GtResolvedFunc/*constructor*/(GtNameSpace NameSpace) {
+		this.GenericNameSpace = NameSpace;
+		this.Func = null;
+		this.ReturnType = GtStaticTable.AnyType;
+		this.ErrorNode = null;
+	}	
+	GtResolvedFunc UpdateFunc(GtFunc Func, GtNameSpace GenericNameSpace) {		
+		this.Func = Func;
+		if(Func != null) {
+			this.ReturnType = Func.GetReturnType().RealType(GenericNameSpace, GtStaticTable.AnyType);
+		}
+		return this;
 	}
 }

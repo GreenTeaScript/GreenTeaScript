@@ -34,7 +34,7 @@ final public class GtToken extends GreenTeaUtils {
 	/*field*/public long		    FileLine;
 	/*field*/public GtSyntaxPattern	PresetPattern;
 
-	GtToken/*constructor*/(String text, long FileLine) {
+	public GtToken/*constructor*/(String text, long FileLine) {
 		this.TokenFlag = 0;
 		this.ParsedText = text;
 		this.FileLine = FileLine;

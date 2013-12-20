@@ -22,7 +22,6 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-//ifdef JAVA
 package parser;
 
 import java.util.ArrayList;
@@ -36,7 +35,7 @@ public class GtFuncBlock {
 	/*field*/public int VariableIndex;
 	/*field*/public GtFunc DefinedFunc;
 
-	GtFuncBlock/*constructor*/(GtNameSpace NameSpace, ArrayList<GtType> TypeList) {
+	public GtFuncBlock/*constructor*/(GtNameSpace NameSpace, ArrayList<GtType> TypeList) {
 		this.NameSpace = NameSpace;
 		this.TypeList = TypeList;
 		this.NameList = new ArrayList<String>();
@@ -46,14 +45,14 @@ public class GtFuncBlock {
 		this.VariableIndex = 0;
 	}
 
-	void SetThisIfInClass(GtType Type) {
+	public void SetThisIfInClass(GtType Type) {
 		if(Type != null) {
 			this.TypeList.add(Type);
 			this.NameList.add(this.NameSpace.Context.Generator.GetRecvName());
 		}
 	}
 	
-	void AddParameter(GtType Type, String Name) {
+	public void AddParameter(GtType Type, String Name) {
 		this.TypeList.add(Type);
 		if(Type.IsVarType()) {
 			this.IsVarArgument = true;

@@ -180,17 +180,17 @@ var CLASS = (function (_super) {
 		return this.GetHeaderCode() + super.GetSourceCode();
 	}
 
-	@Override public void FlushBuffer() {
-		if(this.OutputFile.equals("-")) {
-			LibGreenTea.WriteCode(this.OutputFile, this.GetHeaderCode());
-			super.FlushBuffer();			
-		}
-		else {
-			String PushedSourceCode = this.GetSourceCode();
-			super.FlushBuffer();
-			LibGreenTea.WriteCode(this.OutputFile, PushedSourceCode);
-		}
-	}
+//	@Override public void FlushBuffer() {
+//		if(this.OutputFile.equals("-")) {
+//			LibGreenTea.WriteCode(this.OutputFile, this.GetHeaderCode());
+//			super.FlushBuffer();			
+//		}
+//		else {
+//			String PushedSourceCode = this.GetSourceCode();
+//			super.FlushBuffer();
+//			LibGreenTea.WriteCode(this.OutputFile, PushedSourceCode);
+//		}
+//	}
 
 	@Override public void OpenClassField(GtSyntaxTree ParsedTree, GtType Type, GtClassField ClassField) {
 		this.AddUseLibrary("Syntax.JavaStyleClass");

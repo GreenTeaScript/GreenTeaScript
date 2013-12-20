@@ -30,7 +30,6 @@ import parser.GreenTeaUtils;
 import parser.GtGenerator;
 import parser.GtParserContext;
 import parser.GtStaticTable;
-import parser.GtTokenFunc;
 
 public class GreenTeaScript extends GreenTeaUtils {
 	public final static void ExecCommand(String[] Args) {

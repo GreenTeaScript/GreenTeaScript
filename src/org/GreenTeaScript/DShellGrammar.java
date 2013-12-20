@@ -29,7 +29,6 @@ import java.lang.reflect.Method;
 
 import org.GreenTeaScript.DShell.DFault;
 import org.GreenTeaScript.DShell.RecAPI;
-//endif VAJA
 
 import parser.GreenTeaUtils;
 import parser.GtFunc;
@@ -46,6 +45,7 @@ import parser.GtTypeEnv;
 import parser.ast.GtApplySymbolNode;
 import parser.ast.GtConstPoolNode;
 import parser.ast.GtNode;
+//endif VAJA
 
 public class DShellGrammar extends GreenTeaUtils {
 	// LibDShell
@@ -593,8 +593,8 @@ public class DShellGrammar extends GreenTeaUtils {
 	// dlog $Expr
 	private static GtNode CreateDCaseNode(GtTypeEnv Gamma, GtSyntaxTree ParsedTree) {
 		/*local*/String ContextualFuncName = "Admin";
-		if(Gamma.Func != null) {
-			ContextualFuncName = Gamma.Func.FuncName;
+		if(Gamma.FuncBlock.DefinedFunc != null) {
+			ContextualFuncName = Gamma.FuncBlock.DefinedFunc.FuncName;
 		}
 		return Gamma.Generator.CreateConstNode(GtStaticTable.StringType, ParsedTree, ContextualFuncName);
 	}
@@ -710,8 +710,8 @@ public class DShellGrammar extends GreenTeaUtils {
 
 		// create UpdateFaultInfomation(FunctionName(), "FunctionName", CurrentFuncName, DCaseRevision);
 		/*local*/GtNode Revision = DShellGrammar.CreateConstNode(Gamma, ParsedTree, ConstValue);
-		/*local*/String FunctionName = (/*cast*/String) ParsedTree.GetSyntaxTreeAt(UnaryTerm).KeyToken.ParsedText;
-		/*local*/String CurrentFuncName = Gamma.Func.GetNativeFuncName();
+		/*local*/String FunctionName = ParsedTree.GetSyntaxTreeAt(UnaryTerm).KeyToken.ParsedText;
+		/*local*/String CurrentFuncName = Gamma.FuncBlock.DefinedFunc.GetNativeFuncName();
 
 		/*local*/GtNode FuncNameNode = DShellGrammar.CreateConstNode(Gamma, ParsedTree, FunctionName);
 		/*local*/GtNode CurFuncNameNode = DShellGrammar.CreateConstNode(Gamma, ParsedTree, CurrentFuncName);
@@ -750,7 +750,7 @@ public class DShellGrammar extends GreenTeaUtils {
 	}
 
 	public static GtNode TypeRaise(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		if(Gamma.IsTopLevel() || Gamma.Func == null) {
+		if(Gamma.IsTopLevel() || Gamma.FuncBlock.DefinedFunc == null) {
 			return Gamma.UnsupportedTopLevelError(ParsedTree);
 		}
 		/*local*/GtNode Expr = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, GtStaticTable.TypeType, DefaultTypeCheckPolicy);

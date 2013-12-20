@@ -41,7 +41,7 @@ public class GtNode {
 	/*field*/public GtNode	NextNode;
 	/*field*/public GtType	Type;
 	/*field*/public GtToken	Token;
-	GtNode/*constructor*/(GtType Type, GtToken Token) {
+	public GtNode/*constructor*/(GtType Type, GtToken Token) {
 //		this.Context = Context;
 		this.Type = Type;
 		this.Token = Token;

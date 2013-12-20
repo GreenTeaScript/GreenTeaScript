@@ -22,14 +22,12 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-//ifdef JAVA
 package parser;
 import java.util.ArrayList;
 
 import org.GreenTeaScript.LibGreenTea;
 
 import parser.ast.GtNode;
-//endif VAJA
 
 public final class GtTypeEnv extends GreenTeaUtils {
 	/*field*/public final GtParserContext    Context;
@@ -38,14 +36,14 @@ public final class GtTypeEnv extends GreenTeaUtils {
 
 	/*field*/public ArrayList<GtVariableInfo> LocalStackList;
 	/*field*/public int StackTopIndex;
-	/*field*/public GtFunc	Func;
+	/*field*/public GtFuncBlock	FuncBlock;
 	/*field*/public boolean FoundUncommonFunc;
 	
-	GtTypeEnv/*constructor*/(GtNameSpace NameSpace) {
+	public GtTypeEnv/*constructor*/(GtNameSpace NameSpace) {
 		this.NameSpace = NameSpace;
 		this.Context   = NameSpace.Context;
 		this.Generator = NameSpace.Context.Generator;
-		this.Func = null;
+		this.FuncBlock = null;
 		this.FoundUncommonFunc = false;
 		this.LocalStackList = new ArrayList<GtVariableInfo>();
 		this.StackTopIndex = 0;
@@ -56,7 +54,7 @@ public final class GtTypeEnv extends GreenTeaUtils {
 	}
 
 	public final boolean IsTopLevel() {
-		return (this.Func == null);
+		return (this.FuncBlock == null);
 	}
 
 	public void AppendRecv(GtType RecvType) {
@@ -66,7 +64,7 @@ public final class GtTypeEnv extends GreenTeaUtils {
 	}
 
 	public GtVariableInfo AppendDeclaredVariable(int VarFlag, GtType Type, String Name, GtToken NameToken, Object InitValue) {
-		/*local*/GtVariableInfo VarInfo = new GtVariableInfo(this.Func, VarFlag, Type, Name, this.StackTopIndex, NameToken, InitValue);
+		/*local*/GtVariableInfo VarInfo = new GtVariableInfo(this.FuncBlock, VarFlag, Type, Name, NameToken /*InitValue*/);
 		if(this.StackTopIndex < this.LocalStackList.size()) {
 			this.LocalStackList.set(this.StackTopIndex, VarInfo);
 		}
@@ -100,12 +98,13 @@ public final class GtTypeEnv extends GreenTeaUtils {
 	}
 	
 	public void CheckFunc(String FuncType, GtFunc Func, GtToken SourceToken) {
-		if(!this.FoundUncommonFunc && (!Func.Is(CommonFunc))) {
-			this.FoundUncommonFunc = true;
-			if(this.Func != null && this.Func.Is(CommonFunc)) {
-				this.NameSpace.Context.ReportError(WarningLevel, SourceToken, "using uncommon " + FuncType + ": " + Func.FuncName);
-			}
-		}
+		// FIXME
+//		if(!this.FoundUncommonFunc && (!Func.Is(CommonFunc))) {
+//			this.FoundUncommonFunc = true;
+//			if(this.Func != null && this.Func.Is(CommonFunc)) {
+//				this.NameSpace.Context.ReportError(WarningLevel, SourceToken, "using uncommon " + FuncType + ": " + Func.FuncName);
+//			}
+//		}
 	}
 
 	public final GtNode ReportTypeResult(GtSyntaxTree ParsedTree, GtNode Node, int Level, String Message) {

@@ -22,23 +22,23 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package parser.ast;
+package parser;
 
-import parser.GtGenerator;
-import parser.GtToken;
-import parser.GtType;
+public final class GtStatistics {
+	/*field*/public int VarDeclAny;
+	/*field*/public int VarDeclInferAny;
+	/*field*/public int VarDeclInfer;
+	/*field*/public int VarDecl;
 
-//E.g., "while" "(" $Cond ")" $Body
-final public class GtWhileNode extends GtNode {
-	/*field*/public GtNode	CondNode;
-	/*field*/public GtNode	BodyNode;
-	public GtWhileNode/*constructor*/(GtType Type, GtToken Token, GtNode CondNode, GtNode BodyNode) {
-		super(Type, Token);
-		this.CondNode = CondNode;
-		this.BodyNode = BodyNode;
-		this.SetChild2(CondNode, BodyNode);
-	}
-	@Override public void Accept(GtGenerator Visitor) {
-		Visitor.VisitWhileNode(this);
+	/*field*/public long MatchCount;
+	/*field*/public long BacktrackCount;  // To count how many times backtracks happen.
+
+	public GtStatistics() {
+		this.VarDecl = 0;
+		this.VarDeclInfer = 0;
+		this.VarDeclAny = 0;
+		this.VarDeclInferAny = 0;
+		this.MatchCount     = 0;
+		this.BacktrackCount = 0;
 	}
 }

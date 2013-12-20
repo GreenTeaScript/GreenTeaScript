@@ -23,15 +23,10 @@
 // **************************************************************************
 
 package org.GreenTeaScript.DShell;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import org.GreenTeaScript.LibGreenTea;
-
-import parser.GtFunc;
-import parser.GtNameSpace;
 
 public class DFault /*extends Exception*/ {
 //	private static final long serialVersionUID = -6178247864604881183L;
