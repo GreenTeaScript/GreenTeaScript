@@ -47,6 +47,10 @@ public class GtVariableInfo {
 		this.DefCount  = 1;
 	}
 
+	public final boolean IsCaptured(GtNameSpace NameSpace) {
+		return (NameSpace.FuncBlock != this.FuncBlock);
+	}
+
 	public final void Defined() {
 		this.DefCount += 1;
 //		this.InitValue = null;
@@ -65,4 +69,5 @@ public class GtVariableInfo {
 	@Override public String toString() {
 		return "(" + this.Type + " " + this.Name + ", " + this.NativeName + ")";
 	}
+
 }

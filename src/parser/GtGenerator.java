@@ -172,6 +172,26 @@ public class GtGenerator extends GreenTeaUtils {
 		return new GtEmptyNode(Type, GtTokenContext.NullToken);
 	}
 
+	public final GtNode CreateSymbolNode(GtToken SourceToken, GtType Type, String NativeName, boolean IsCaptured, GtNode AssignedNode) {
+		if(AssignedNode != null) {
+			if(IsCaptured) {
+				return new GtSetCapturedNode(Type, SourceToken, NativeName, AssignedNode);
+			}
+			else {
+				return new GtSetLocalNode(Type, SourceToken, NativeName, AssignedNode);
+			}
+		}
+		else {
+			if(IsCaptured) {
+				return new GtGetCapturedNode(Type, SourceToken, NativeName);
+			}
+			else {
+				return new GtGetLocalNode(Type, SourceToken, NativeName);
+			}
+		}
+	}
+
+	
 	public GtNode CreateNullNode_OLD(GtType Type, GtSyntaxTree ParsedTree) {
 		return new GtNullNode(Type, ParsedTree.KeyToken);
 	}

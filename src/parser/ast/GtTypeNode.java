@@ -25,43 +25,21 @@
 package parser.ast;
 
 import parser.GtGenerator;
+import parser.GtParserContext;
 import parser.GtStaticTable;
 import parser.GtToken;
 import parser.GtType;
 
-/**
- * int a = 1;
- * String s ; 
- */
-
-final public class GtVarDeclNode extends GtNode {
-	/*field*/public GtType	DeclType;
-	/*field*/public String  NativeName;
-	/*field*/public GtNode	InitNode;
-	/*field*/public GtNode	BlockNode;
-	/* let VarNode in Block end */
-	public GtVarDeclNode/*constructor*/(GtType DeclType, GtToken SourceToken, String VariableName) {
-		super(GtStaticTable.VoidType, SourceToken);
-		this.NativeName = VariableName;
-		this.DeclType  = DeclType;
-		this.InitNode  = null;
-		this.BlockNode = null;
+final public class GtTypeNode extends GtConstNode {
+	/*field*/public GtType	ParsedType;
+	public GtTypeNode/*constructor*/(GtToken SourceToken, GtType ParsedType) {
+		super(GtStaticTable.TypeType, SourceToken);
+		this.ParsedType = ParsedType;
 	}
-	@Override public final void SetNextStatement(GtNode NextNode) {
-		this.BlockNode = NextNode;
-		this.SetChild(NextNode);
-	}
-	@Deprecated
-	public GtVarDeclNode(GtType Type, GtToken SourceToken, GtType DeclType, String VariableName, GtNode InitNode, GtNode Block) {
-		super(GtStaticTable.VoidType, SourceToken);
-		this.NativeName = VariableName;
-		this.DeclType  = DeclType;
-		this.InitNode  = InitNode;    // given expression or NullNode
-		this.BlockNode = Block;
-		this.SetChild2(InitNode, this.BlockNode);
-	}
-
 	@Override public void Accept(GtGenerator Visitor) {
-		Visitor.VisitVarDeclNode(this);
+		Visitor.VisitTypeNode(this);
+	}
+	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+		return this.ParsedType;
 	}
 }

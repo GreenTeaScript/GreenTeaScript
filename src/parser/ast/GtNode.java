@@ -26,14 +26,13 @@
 package parser.ast;
 import java.util.ArrayList;
 
-
 import parser.GreenTeaUtils;
 import parser.GtGenerator;
 import parser.GtParserContext;
 import parser.GtToken;
 import parser.GtType;
-//endif VAJA
 import parser.deps.LibGreenTea;
+//endif VAJA
 
 public class GtNode {
 	/*field*/public GtNode	ParentNode;
@@ -48,6 +47,12 @@ public class GtNode {
 		this.ParentNode = null;
 		this.PrevNode = null;
 		this.NextNode = null;
+	}
+	
+	// Override by GtVarDeclNode, GtUsingVarDeclNode
+	public void SetNextStatement(GtNode NextNode) {
+		this.NextNode = NextNode;
+		NextNode.PrevNode = this;
 	}
 	
 	public final GtNode MoveHeadNode() {
