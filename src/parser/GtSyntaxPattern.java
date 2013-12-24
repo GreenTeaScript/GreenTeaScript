@@ -25,6 +25,7 @@
 //ifdef JAVA
 package parser;
 
+import parser.ast.GtErrorNode;
 import parser.ast.GtNode;
 import parser.deps.LibGreenTea;
 import parser.deps.LibNative;
@@ -32,17 +33,15 @@ import parser.deps.LibNative;
 public final class GtSyntaxPattern extends GreenTeaUtils {
 	/*field*/public GtNameSpace	          PackageNameSpace;
 	/*field*/public String		          PatternName;
-	/*field*/public int				          SyntaxFlag;
-	/*field*/public GtFunc       MatchFunc;
-	/*field*/public GtFunc            TypeFunc;
+	/*field*/public int				      SyntaxFlag;
+	/*field*/public GtFunc                MatchFunc;
 	/*field*/public GtSyntaxPattern	      ParentPattern;
 
-	GtSyntaxPattern/*constructor*/(GtNameSpace NameSpace, String PatternName, GtFunc MatchFunc, GtFunc TypeFunc) {
+	GtSyntaxPattern/*constructor*/(GtNameSpace NameSpace, String PatternName, GtFunc MatchFunc) {
 		this.PackageNameSpace = NameSpace;
 		this.PatternName = PatternName;
 		this.SyntaxFlag = 0;
 		this.MatchFunc = MatchFunc;
-		this.TypeFunc  = TypeFunc;
 		this.ParentPattern = null;
 	}
 
@@ -50,9 +49,9 @@ public final class GtSyntaxPattern extends GreenTeaUtils {
 		return this.PatternName + "<" + this.MatchFunc + ">";
 	}
 
-	public boolean IsBinaryOperator() {
-		return IsFlag(this.SyntaxFlag, BinaryOperator);
-	}
+//	public boolean IsBinaryOperator() {
+//		return IsFlag(this.SyntaxFlag, BinaryOperator);
+//	}
 
 	public final boolean IsRightJoin(GtSyntaxPattern Right) {
 		/*local*/int left = this.SyntaxFlag;
@@ -64,19 +63,19 @@ public final class GtSyntaxPattern extends GreenTeaUtils {
 		return LibGreenTea.EqualsString(this.PatternName, Name);
 	}
 	
-	public final static GtNode ApplySyntaxPattern(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode, GtSyntaxPattern Pattern) {
+	public final static GtNode ApplyMatchPattern(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode, GtSyntaxPattern Pattern) {
 		/*local*/int Pos = TokenContext.GetPosition(0);
 		/*local*/int ParseFlag = TokenContext.ParseFlag;
 		/*local*/GtSyntaxPattern CurrentPattern = Pattern;
 		while(CurrentPattern != null) {
-			/*local*/GtFunc delegate = CurrentPattern.MatchFunc;
+			/*local*/GtFunc MatchFunc = CurrentPattern.MatchFunc;
 			TokenContext.RollbackPosition(Pos, 0);
 			if(CurrentPattern.ParentPattern != null) {   // This means it has next patterns
 				TokenContext.ParseFlag = ParseFlag | BackTrackParseFlag;
 			}
 			//LibGreenTea.DebugP("B :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + ", next=" + CurrentPattern.ParentPattern);
 			TokenContext.IndentLevel += 1;
-			/*local*/GtNode ParsedNode = LibNative.ApplyMatchFunc(delegate, NameSpace, TokenContext, LeftTree, CurrentPattern);
+			/*local*/GtNode ParsedNode = LibNative.ApplyMatchFunc(MatchFunc, NameSpace, TokenContext, LeftNode);
 			TokenContext.IndentLevel -= 1;
 			TokenContext.ParseFlag = ParseFlag;
 //			if(ParsedNode != null /* FIXME && ParsedNode.IsMismatched()*/) {
@@ -97,7 +96,8 @@ public final class GtSyntaxPattern extends GreenTeaUtils {
 		if(Pattern == null) {
 			LibGreenTea.VerboseLog(VerboseUndefined, "undefined syntax pattern: " + Pattern);
 		}
-		return TokenContext.ReportExpectedPattern(Pattern);
+		
+		return GtErrorNode.CreateExpectedToken(SourceToken, Pattern.PatternName);
 	}
 
 

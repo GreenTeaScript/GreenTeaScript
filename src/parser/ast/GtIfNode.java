@@ -25,6 +25,7 @@
 package parser.ast;
 
 import parser.GtGenerator;
+import parser.GtStaticTable;
 import parser.GtToken;
 import parser.GtType;
 
@@ -34,14 +35,34 @@ final public class GtIfNode extends GtNode {
 	/*field*/public GtNode	ThenNode;
 	/*field*/public GtNode	ElseNode;
 	/* If CondNode then ThenBlock else ElseBlock */
+	public GtIfNode/*constructor*/() {
+		super(GtStaticTable.VarType, null);
+		this.CondNode = null;
+		this.ThenNode = null;
+		this.ElseNode = null;
+	}
+	@Override public final GtNode Append(GtNode Node) {
+		this.SetChild(Node);
+		if(this.CondNode == null) {
+			this.CondNode = Node;
+		}
+		else if(this.ThenNode == null) {
+			this.ThenNode = Node;
+		}
+		else {
+			this.ElseNode = Node;
+		}
+		return this;
+	}
+	@Override public void Accept(GtGenerator Visitor) {
+		Visitor.VisitIfNode(this);
+	}
+
 	public GtIfNode/*constructor*/(GtType Type, GtToken Token, GtNode CondNode, GtNode ThenNode, GtNode ElseNode) {
 		super(Type, Token);
 		this.CondNode = CondNode;
 		this.ThenNode = ThenNode;
 		this.ElseNode = ElseNode;
 		this.SetChild3(CondNode, ThenNode, ElseNode);
-	}
-	@Override public void Accept(GtGenerator Visitor) {
-		Visitor.VisitIfNode(this);
 	}
 }

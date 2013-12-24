@@ -25,12 +25,12 @@
 //ifdef JAVA
 package parser;
 import java.util.ArrayList;
-//endif VAJA
-
 
 import parser.ast.GtNode;
 import parser.deps.LibGreenTea;
+//endif VAJA
 
+@Deprecated
 public final class GtSyntaxTree extends GreenTeaUtils {
 	/*field*/public GtMap               Annotation;
 	/*field*/public GtSyntaxTree		ParentTree;
@@ -188,7 +188,7 @@ public final class GtSyntaxTree extends GreenTeaUtils {
 			else {
 				TokenContext.RollbackPosition(Pos, MatchFlag);
 				if(IsFlag(MatchFlag, Required)) {
-					this.ToEmptyOrError(TokenContext.ReportExpectedToken(TokenText));
+					this.ToEmptyOrError(TokenContext.ReportExpectedToken_OLD(TokenText));
 				}
 			}
 		}

@@ -261,9 +261,9 @@ public class CGrammar extends GreenTeaUtils {
 	public static void ImportGrammar(GtNameSpace NameSpace, Class<?> GrammarClass) {
 		/*local*/GtParserContext ParserContext = NameSpace.Context;
 		NameSpace.AppendTokenFunc("#", LoadTokenFunc2(ParserContext, GrammarClass, "PreprocesserToken"));
-		NameSpace.AppendExtendedSyntax("->", 0, LoadParseFunc2(ParserContext, GrammarClass, "ParseGetterP"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeGetterP"));
-		NameSpace.AppendSyntax("struct", LoadParseFunc2(ParserContext, GrammarClass, "ParseStructDecl2"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeStructDecl2"));
-		NameSpace.AppendSyntax("#include", LoadParseFunc2(ParserContext, GrammarClass, "ParseInclude"), null);
+		NameSpace.AppendExtendedSyntax_OLD("->", 0, LoadParseFunc2(ParserContext, GrammarClass, "ParseGetterP"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeGetterP"));
+		NameSpace.AppendSyntax_OLD("struct", LoadParseFunc2(ParserContext, GrammarClass, "ParseStructDecl2"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeStructDecl2"));
+		NameSpace.AppendSyntax_OLD("#include", LoadParseFunc2(ParserContext, GrammarClass, "ParseInclude"), null);
 	}
 	//endif VAJA
 }

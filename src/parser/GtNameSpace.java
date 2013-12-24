@@ -26,11 +26,10 @@
 package parser;
 import java.util.ArrayList;
 
-
 import parser.ast.GtNode;
-//endif VAJA
 import parser.deps.LibGreenTea;
 import parser.deps.LibNative;
+//endif VAJA
 
 final class GtTokenFunc {
 	/*field*/public GtFunc      Func;
@@ -217,27 +216,50 @@ public final class GtNameSpace extends GreenTeaUtils {
 		this.SetSymbol(PatternName, NewPattern, SourceToken);
 	}
 
-	public void AppendSyntax(String PatternName, GtFunc MatchFunc, GtFunc TypeFunc) {
+	public void AppendSyntax_OLD(String PatternName, GtFunc MatchFunc, GtFunc TypeFunc) {
 		/*local*/int Alias = PatternName.indexOf(" ");
 		/*local*/String Name = (Alias == -1) ? PatternName : PatternName.substring(0, Alias);
 		/*local*/GtSyntaxPattern Pattern = new GtSyntaxPattern(this, Name, MatchFunc, TypeFunc);
 		this.AppendSyntaxPattern(Name, Pattern, null);
 		if(Alias != -1) {
-			this.AppendSyntax(PatternName.substring(Alias+1), MatchFunc, TypeFunc);
+			this.AppendSyntax_OLD(PatternName.substring(Alias+1), MatchFunc, TypeFunc);
 		}
 	}
 
-	public void AppendExtendedSyntax(String PatternName, int SyntaxFlag, GtFunc MatchFunc, GtFunc TypeFunc) {
+	public void AppendExtendedSyntax_OLD(String PatternName, int SyntaxFlag, GtFunc MatchFunc, GtFunc TypeFunc) {
 		/*local*/int Alias = PatternName.indexOf(" ");
 		/*local*/String Name = (Alias == -1) ? PatternName : PatternName.substring(0, Alias);
 		/*local*/GtSyntaxPattern Pattern = new GtSyntaxPattern(this, Name, MatchFunc, TypeFunc);
 		Pattern.SyntaxFlag = SyntaxFlag;
 		this.AppendSyntaxPattern(ExtendedPatternSymbol(Name), Pattern, null);
 		if(Alias != -1) {
-			this.AppendExtendedSyntax(PatternName.substring(Alias+1), SyntaxFlag, MatchFunc, TypeFunc);
+			this.AppendExtendedSyntax_OLD(PatternName.substring(Alias+1), SyntaxFlag, MatchFunc, TypeFunc);
+		}
+	}
+	
+	public void AppendSyntax(String PatternName, GtFunc MatchFunc) {
+		/*local*/int Alias = PatternName.indexOf(" ");
+		/*local*/String Name = (Alias == -1) ? PatternName : PatternName.substring(0, Alias);
+		/*local*/GtSyntaxPattern Pattern = new GtSyntaxPattern(this, Name, MatchFunc);
+		this.AppendSyntaxPattern(Name, Pattern, null);
+		if(Alias != -1) {
+			this.AppendSyntax(PatternName.substring(Alias+1), MatchFunc);
 		}
 	}
 
+	public void AppendExtendedSyntax(String PatternName, int SyntaxFlag, GtFunc MatchFunc) {
+		/*local*/int Alias = PatternName.indexOf(" ");
+		/*local*/String Name = (Alias == -1) ? PatternName : PatternName.substring(0, Alias);
+		/*local*/GtSyntaxPattern Pattern = new GtSyntaxPattern(this, Name, MatchFunc);
+		Pattern.SyntaxFlag = SyntaxFlag;
+		this.AppendSyntaxPattern(ExtendedPatternSymbol(Name), Pattern, null);
+		if(Alias != -1) {
+			this.AppendExtendedSyntax(PatternName.substring(Alias+1), SyntaxFlag, MatchFunc);
+		}
+	}
+
+	
+	
 	public final GtType GetType(String TypeName) {
 		/*local*/Object TypeInfo = this.GetSymbol(TypeName);
 		if(TypeInfo instanceof GtType) {

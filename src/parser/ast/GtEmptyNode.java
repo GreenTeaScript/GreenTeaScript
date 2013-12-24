@@ -25,12 +25,12 @@
 package parser.ast;
 
 import parser.GtParserContext;
+import parser.GtStaticTable;
 import parser.GtToken;
-import parser.GtType;
 
 final public class GtEmptyNode extends GtConstNode {
-	public GtEmptyNode/*constructor*/(GtType Type, GtToken Token) {
-		super(Type, Token);
+	public GtEmptyNode/*constructor*/(GtToken Token) {
+		super(GtStaticTable.VarType, Token);
 	}
 	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 		return null;

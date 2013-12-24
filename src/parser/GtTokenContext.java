@@ -78,11 +78,13 @@ public final class GtTokenContext extends GreenTeaUtils {
 		this.ParsingLine += line;
 	}
 
+	@Deprecated
 	public void ReportTokenError1(int Level, String Message, String TokenText) {
 		/*local*/GtToken Token = this.AddNewToken(TokenText, 0, "$Error$");
 		this.TopLevelNameSpace.Context.ReportError(Level, Token, Message);
 	}
 
+	@Deprecated
 	public GtSyntaxTree NewErrorSyntaxTree(GtToken Token, String Message) {
 		if(!this.IsAllowedBackTrack()) {
 			this.TopLevelNameSpace.Context.ReportError(ErrorLevel, Token, Message);
@@ -118,6 +120,7 @@ public final class GtTokenContext extends GreenTeaUtils {
 		this.LatestToken = LeastRecentToken;
 	}
 
+	@Deprecated
 	public GtSyntaxTree ReportTokenError2(GtToken Token, String Message, boolean SkipToken) {
 		if(this.IsAllowedBackTrack()) {
 			return null;
@@ -131,7 +134,8 @@ public final class GtTokenContext extends GreenTeaUtils {
 		}
 	}
 
-	public GtSyntaxTree ReportExpectedToken(String TokenText) {
+	@Deprecated
+	public GtSyntaxTree ReportExpectedToken_OLD(String TokenText) {
 		if(!this.IsAllowedBackTrack()) {
 			/*local*/GtToken Token = this.GetBeforeToken();
 			if(Token != null) {
@@ -145,12 +149,29 @@ public final class GtTokenContext extends GreenTeaUtils {
 		return null;
 	}
 
-	public GtSyntaxTree ReportExpectedPattern(GtSyntaxPattern Pattern) {
-		return this.ReportExpectedToken("syntax pattern " + Pattern.PatternName);
+	@Deprecated
+	public GtSyntaxTree ReportExpectedPattern_OLD(GtSyntaxPattern Pattern) {
+		return this.ReportExpectedToken_OLD("syntax pattern " + Pattern.PatternName);
 	}
 
+	@Deprecated
 	public GtSyntaxTree ReportExpectedMessage(GtToken Token, String Message, boolean SkipToken) {
 		return this.ReportTokenError2(Token, "expected " + Message + "; given = " + Token.ParsedText, SkipToken);
+	}
+
+	public GtNode ReportExpectedToken(String TokenText) {
+		/*local*/GtToken Token = this.GetBeforeToken();
+		if(Token != null) {
+			return new GtErrorNode(Token, TokenText + " is expected at " + Token.ParsedText);
+		}
+		else {
+			Token = this.LatestToken;
+			return new GtErrorNode(Token, TokenText + " is expected after " + Token.ParsedText)
+		}
+	}
+
+	public GtNode ReportExpectedPattern(GtSyntaxPattern Pattern) {
+		return this.ReportExpectedToken("syntax pattern " + Pattern.PatternName);
 	}
 
 	public void Vacume() {

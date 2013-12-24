@@ -376,6 +376,7 @@ public class LibNative {
 		return (Long)LibNative.ApplyMethod(TokenFunc, null, Argvs);
 	}
 
+	@Deprecated
 	public final static GtSyntaxTree ApplyParseFunc(GtFunc ParseFunc, GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		Object[] Argvs = new Object[4];
 		Argvs[0] = NameSpace;
@@ -385,7 +386,7 @@ public class LibNative {
 		return (GtSyntaxTree)LibNative.ApplyMethod(ParseFunc, null, Argvs);
 	}
 
-	
+	@Deprecated
 	public final static GtNode ApplyTypeFunc(GtFunc TypeFunc, GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		Object[] Argvs = new Object[3];
 		Argvs[0] = Gamma;

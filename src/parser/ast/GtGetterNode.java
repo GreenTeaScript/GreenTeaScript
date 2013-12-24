@@ -26,14 +26,14 @@ package parser.ast;
 
 import parser.GtGenerator;
 import parser.GtParserContext;
+import parser.GtStaticTable;
 import parser.GtToken;
-import parser.GtType;
 
 //E.g., $RecvNode.$NativeName
 final public class GtGetterNode extends GtSymbolNode {
 	/*field*/public GtNode  RecvNode;
-	public GtGetterNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, String NativeName) {
-		super(Type, Token, NativeName);
+	public GtGetterNode/*constructor*/(GtToken SourceToken, GtNode RecvNode, String NativeName) {
+		super(GtStaticTable.VarType, SourceToken, NativeName);
 		this.RecvNode = RecvNode;
 		this.SetChild(RecvNode);
 	}

@@ -27,21 +27,24 @@ package parser.ast;
 
 import parser.GtGenerator;
 import parser.GtParserContext;
-import parser.GtSyntaxPattern;
+import parser.GtStaticTable;
 import parser.GtToken;
-import parser.GtType;
 import parser.deps.LibGreenTea;
 
 //E.g., $LeftNode "+" $RightNode
-final public class GtBinaryNode extends GtSymbolNode {
-	/*field*/public GtNode    LeftNode;
-	/*field*/public GtNode	  RightNode;
-	/*field*/public GtSyntaxPattern _Pattern; // not related to code generation
-	public GtBinaryNode/*constructor*/(GtType Type, GtToken Token, String OperatorName, GtNode Left, GtNode Right) {
-		super(Type, Token, OperatorName);
+public class GtBinaryNode extends GtNode {
+	/*field*/public GtNode   LeftNode;
+	/*field*/public GtNode	 RightNode;
+	public GtBinaryNode/*constructor*/(GtToken SourceToken, GtNode Left) {
+		super(GtStaticTable.VarType, SourceToken);
 		this.LeftNode  = Left;
-		this.RightNode = Right;
-		this.SetChild2(Left, Right);
+		this.RightNode = null;
+		this.SetChild(Left);
+	}
+	@Override public final GtNode Append(GtNode Node) {
+		this.RightNode = Node;
+		this.SetChild(RightNode);
+		return this;
 	}
 	@Override public void Accept(GtGenerator Visitor) {
 		Visitor.VisitBinaryNode(this);

@@ -26,18 +26,23 @@ package parser.ast;
 
 import parser.GtGenerator;
 import parser.GtParserContext;
+import parser.GtStaticTable;
 import parser.GtToken;
-import parser.GtType;
 
 //E.g., $RecvNode.$NativeName = $Value
 final public class GtSetterNode extends GtSymbolNode {
 	/*field*/public GtNode  RecvNode;
 	/*field*/public GtNode  ValueNode;
-	public GtSetterNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, String NativeName, GtNode ValueNode) {
-		super(Type, Token, NativeName);
+	public GtSetterNode/*constructor*/(GtToken SourceToken, GtNode RecvNode, String NativeName) {
+		super(GtStaticTable.VarType, SourceToken, NativeName);
 		this.RecvNode  = RecvNode;
-		this.ValueNode = ValueNode;
-		this.SetChild2(RecvNode, ValueNode);
+		this.ValueNode = null;
+		this.SetChild(RecvNode);
+	}
+	@Override public GtNode Append(GtNode Node) {
+		this.SetChild(Node);
+		this.ValueNode = Node;
+		return this;
 	}
 	@Override public void Accept(GtGenerator Visitor) {
 		Visitor.VisitSetterNode(this);

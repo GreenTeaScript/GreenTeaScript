@@ -25,32 +25,48 @@
 package parser.ast;
 
 
-import parser.GtFunc;
 import parser.GtGenerator;
 import parser.GtParserContext;
+import parser.GtStaticTable;
 import parser.GtToken;
 import parser.GtType;
 import parser.deps.LibGreenTea;
 
 //E.g., (T) $Expr
 final public class GtCastNode extends GtNode {
-	/*field*/public GtFunc  Func;
-	/*field*/public GtType	CastType;
-	/*field*/public GtNode	Expr;
-	public GtCastNode/*constructor*/(GtType Type, GtToken Token, GtType CastType, GtNode Expr) {
-		super(Type, Token);
-		this.CastType = CastType;
-		this.Expr = Expr;
-		this.SetChild(Expr);
+	/*field*/public GtTypeNode	CastTypeNode;
+	/*field*/public GtNode	ExprNode;
+	public GtCastNode/*constructor*/() {
+		super(GtStaticTable.VarType, null);
+		this.CastTypeNode = null;
+		this.ExprNode = null;
+	}
+	@Override public GtNode Append(GtNode Node) {
+		this.SetChild(Node);
+		if(this.CastTypeNode == null) {
+			this.CastTypeNode = (GtTypeNode)Node;
+			this.Type = this.CastTypeNode.ParsedType;
+		}
+		else {
+			this.ExprNode = Node;
+		}
+		return this;
 	}
 	@Override public void Accept(GtGenerator Visitor) {
 		Visitor.VisitCastNode(this);
 	}
 	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
-		/*local*/Object Value = this.Expr.ToConstValue(Context, EnforceConst) ;
+		/*local*/Object Value = this.ExprNode.ToConstValue(Context, EnforceConst) ;
 		if(Value != null) {
-			return LibGreenTea.DynamicCast(this.CastType, Value);
+			return LibGreenTea.DynamicCast(this.Type, Value);
 		}
 		return Value;
+	}
+
+	@Deprecated
+	public GtCastNode/*constructor*/(GtType Type, GtToken Token, GtType CastType, GtNode Expr) {
+		super(Type, Token);
+//		this.CastType = CastType;
+//		this.Expr = Expr;
 	}
 }

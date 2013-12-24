@@ -24,29 +24,33 @@
 
 package parser.ast;
 
+
 import parser.GtGenerator;
 import parser.GtParserContext;
 import parser.GtStaticTable;
-import parser.GtToken;
+import parser.deps.LibGreenTea;
 
-/**
- * ErrorNode carries error information at the parser level
- * Token.ParsedText has error message  
- */
-
-final public class GtErrorNode extends GtNode {
-	public String ErrorMessage;
-	public GtErrorNode/*constructor*/(GtToken SourceToken, String ErrorMessage) {
-		super(GtStaticTable.VoidType, SourceToken);
-		this.ErrorMessage = ErrorMessage;
+//E.g., "~" $RecvNode
+final public class GtGroupNode extends GtNode {
+	/*field*/public GtNode	RecvNode;
+	public GtGroupNode/*constructor*/() {
+		super(GtStaticTable.VarType, null);
+		this.RecvNode = null;
 	}
-	public static GtNode CreateExpectedToken(GtToken SourceToken, String TokenText) {
-		return new GtErrorNode(SourceToken, "expected " + TokenText);
+	@Override public GtNode Append(GtNode Node) {
+		this.RecvNode = Node;
+		this.SetChild(RecvNode);
+		this.Type = Node.Type;
+		return this;
 	}
 	@Override public void Accept(GtGenerator Visitor) {
-		Visitor.VisitErrorNode(this);
+		//Visitor.VisitUnaryNode(this);
 	}
 	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
-		return null;
-	}
+		/*local*/Object Value = this.RecvNode.ToConstValue(Context, EnforceConst) ;
+		if(Value != null) {
+			return LibGreenTea.EvalUnary(this.Type, this.Token.ParsedText, Value);
+		}
+		return Value;
+	}	
 }

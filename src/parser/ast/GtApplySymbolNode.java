@@ -28,14 +28,16 @@ import java.util.ArrayList;
 
 import parser.GtGenerator;
 import parser.GtParserContext;
+import parser.GtStaticTable;
 import parser.GtToken;
-import parser.GtType;
 
 //E.g., $NativeFuncName "(" $Param[0], $Param[1], ... ")"
 final public class GtApplySymbolNode extends GtSymbolNode {
+	/*field*/public GtNode RecvNode; 
 	/*field*/public ArrayList<GtNode>  ParamList; /* [arg1, arg2, ...] */
-	public GtApplySymbolNode/*constructor*/(GtType Type, GtToken Token, String NativeFuncName) {
-		super(Type, Token, NativeFuncName);
+	public GtApplySymbolNode/*constructor*/(GtToken SourceToken, GtNode RecvNode, String NativeFuncName) {
+		super(GtStaticTable.VarType, SourceToken, NativeFuncName);
+		this.RecvNode = RecvNode;
 		this.ParamList = new ArrayList<GtNode>();
 	}
 	@Override public final ArrayList<GtNode> GetList() {

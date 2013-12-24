@@ -27,17 +27,20 @@ package parser.ast;
 
 import parser.GtGenerator;
 import parser.GtParserContext;
+import parser.GtStaticTable;
 import parser.GtToken;
-import parser.GtType;
 import parser.deps.LibGreenTea;
 
 //E.g., "~" $RecvNode
-final public class GtUnaryNode extends GtSymbolNode {
+final public class GtUnaryNode extends GtNode {
 	/*field*/public GtNode	RecvNode;
-	public GtUnaryNode/*constructor*/(GtType Type, GtToken Token, String OperatorName, GtNode RecvNode) {
-		super(Type, Token, OperatorName);
+	public GtUnaryNode/*constructor*/(GtToken Token) {
+		super(GtStaticTable.VarType, Token);
+	}
+	@Override public GtNode Append(GtNode RecvNode) {
 		this.RecvNode = RecvNode;
 		this.SetChild(RecvNode);
+		return this;
 	}
 	@Override public void Accept(GtGenerator Visitor) {
 		Visitor.VisitUnaryNode(this);

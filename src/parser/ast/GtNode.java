@@ -28,6 +28,7 @@ import java.util.ArrayList;
 
 import parser.GreenTeaUtils;
 import parser.GtGenerator;
+import parser.GtNameSpace;
 import parser.GtParserContext;
 import parser.GtToken;
 import parser.GtType;
@@ -70,6 +71,16 @@ public class GtNode {
 		return Node;
 	}
 
+	public final boolean IsConstNode() {
+		return (this instanceof GtConstPoolNode);
+	}
+	public final boolean IsNullNode() {
+		return (this instanceof GtNullNode);
+	}
+	public final boolean IsErrorNode() {
+		return (this instanceof GtErrorNode);
+	}
+
 	public final boolean HasReturnNode() {
 		/*local*/GtNode LastNode = this.MoveTailNode();
 		return (LastNode instanceof GtReturnNode || LastNode instanceof GtThrowNode);
@@ -93,14 +104,17 @@ public class GtNode {
 	public ArrayList<GtNode> GetList() {
 		return null;
 	}
+	
 	public final GtNode GetAt(int Index) {
 		return this.GetList().get(Index);
 	}
-	public final GtNode Append(GtNode Node) {
+	
+	public GtNode Append(GtNode Node) {
 		this.GetList().add(Node);
 		this.SetChild(Node);
 		return this;
 	}
+	
 	public final GtNode AppendNodeList(int StartIndex, ArrayList<GtNode> NodeList) {
 		/*local*/int i = StartIndex;
 		/*local*/ArrayList<GtNode> List = this.GetList();
@@ -112,18 +126,13 @@ public class GtNode {
 		}
 		return this;
 	}
-	public final boolean IsConstNode() {
-		return (this instanceof GtConstPoolNode);
-	}
-	public final boolean IsNullNode() {
-		return (this instanceof GtNullNode);
-	}
-	public final boolean IsErrorNode() {
-		return (this instanceof GtErrorNode);
-	}
 
 	public void Accept(GtGenerator Visitor) {
 		/* must override */
+	}
+	public GtNode TypeCheck(GtNameSpace NameSpace, GtType ContextType) {
+		/* must override */
+		return this;
 	}
 	public final Object ToNullValue(GtParserContext Context, boolean EnforceConst) {
 		if(EnforceConst) {

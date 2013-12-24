@@ -28,16 +28,14 @@ import java.util.ArrayList;
 
 import parser.GtGenerator;
 import parser.GtParserContext;
-import parser.GtToken;
-import parser.GtType;
+import parser.GtStaticTable;
 
 //E.g., $FuncNode "(" $Param[0], $Param[1], ... ")"
 final public class GtApplyFunctionObjectNode extends GtNode {
 	/*field*/public GtNode	FuncNode;
 	/*field*/public ArrayList<GtNode>  ParamList; /* [arg0, arg1, ...] */
-	public GtApplyFunctionObjectNode/*constructor*/(GtType Type, GtToken Token, GtNode FuncNode) {
-		super(Type, Token);
-		this.FuncNode = FuncNode;
+	public GtApplyFunctionObjectNode/*constructor*/(GtNode FuncNode) {
+		super(GtStaticTable.VarType, null);
 		this.ParamList = new ArrayList<GtNode>();
 		this.SetChild(FuncNode);
 	}

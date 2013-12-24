@@ -37,7 +37,7 @@ final public class GtTypeNode extends GtConstNode {
 		this.ParsedType = ParsedType;
 	}
 	@Override public void Accept(GtGenerator Visitor) {
-		Visitor.VisitTypeNode(this);
+		//Visitor.VisitTypeNode(this);
 	}
 	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 		return this.ParsedType;

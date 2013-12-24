@@ -146,39 +146,39 @@ public class GreenTeaUtils implements GreenTeaConsts {
 		return MergedPattern;
 	}
 
-	public final static boolean IsMismatchedOrError(GtSyntaxTree Tree) {
-		return (Tree == null || Tree.IsMismatchedOrError());
-	}
-
-	public final static boolean IsValidSyntax(GtSyntaxTree Tree) {
-		return !(GreenTeaUtils.IsMismatchedOrError(Tree));
-	}
-
-	public final static GtSyntaxTree TreeHead(GtSyntaxTree Tree) {
-		if(Tree != null) {
-			while(Tree.PrevTree != null) {
-				Tree = Tree.PrevTree;
-			}
-		}
-		return Tree;
-	}
-
-	public final static GtSyntaxTree TreeTail(GtSyntaxTree Tree) {
-		if(Tree != null) {
-			while(Tree.NextTree != null) {
-				Tree = Tree.NextTree;
-			}
-		}
-		return Tree;
-	}
-
-	public final static GtSyntaxTree LinkTree(GtSyntaxTree LastNode, GtSyntaxTree Node) {
-		Node.PrevTree = LastNode;
-		if(LastNode != null) {
-			LastNode.NextTree = Node;
-		}
-		return GreenTeaUtils.TreeTail(Node);
-	}
+//	public final static boolean IsMismatchedOrError(GtSyntaxTree Tree) {
+//		return (Tree == null || Tree.IsMismatchedOrError());
+//	}
+//
+//	public final static boolean IsValidSyntax(GtSyntaxTree Tree) {
+//		return !(GreenTeaUtils.IsMismatchedOrError(Tree));
+//	}
+//
+//	public final static GtSyntaxTree TreeHead(GtSyntaxTree Tree) {
+//		if(Tree != null) {
+//			while(Tree.PrevTree != null) {
+//				Tree = Tree.PrevTree;
+//			}
+//		}
+//		return Tree;
+//	}
+//
+//	public final static GtSyntaxTree TreeTail(GtSyntaxTree Tree) {
+//		if(Tree != null) {
+//			while(Tree.NextTree != null) {
+//				Tree = Tree.NextTree;
+//			}
+//		}
+//		return Tree;
+//	}
+//
+//	public final static GtSyntaxTree LinkTree(GtSyntaxTree LastNode, GtSyntaxTree Node) {
+//		Node.PrevTree = LastNode;
+//		if(LastNode != null) {
+//			LastNode.NextTree = Node;
+//		}
+//		return GreenTeaUtils.TreeTail(Node);
+//	}
 
 	public final static GtSyntaxTree ApplySyntaxPattern_OLD(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 		/*local*/int Pos = TokenContext.GetPosition(0);
@@ -213,7 +213,7 @@ public class GreenTeaUtils implements GreenTeaConsts {
 		if(Pattern == null) {
 			LibGreenTea.VerboseLog(VerboseUndefined, "undefined syntax pattern: " + Pattern);
 		}
-		return TokenContext.ReportExpectedPattern(Pattern);
+		return TokenContext.ReportExpectedPattern_OLD(Pattern);
 	}
 
 
@@ -270,9 +270,10 @@ public class GreenTeaUtils implements GreenTeaConsts {
 		}
 		return null;
 	}
-	public final static GtFunc LoadParseFunc2(GtParserContext ParserContext, Class<?> GrammarClass, String FuncName) {
+
+	public final static GtFunc LoadMatchFunc2(GtParserContext ParserContext, Class<?> GrammarClass, String FuncName) {
 		try {
-			Method JavaMethod = GrammarClass.getMethod(FuncName, GtNameSpace.class, GtTokenContext.class, GtSyntaxTree.class, GtSyntaxPattern.class);
+			Method JavaMethod = GrammarClass.getMethod(FuncName, GtNameSpace.class, GtTokenContext.class, GtNode.class);
 			return LibGreenTea.ConvertNativeMethodToFunc(ParserContext, JavaMethod);
 		}
 		catch(NoSuchMethodException e) {
@@ -281,15 +282,27 @@ public class GreenTeaUtils implements GreenTeaConsts {
 		}
 		return null;
 	}
-	public final static GtFunc LoadTypeFunc2(GtParserContext ParserContext, Class<?> GrammarClass, String FuncName) {
-		try {
-			Method JavaMethod = GrammarClass.getMethod(FuncName, GtTypeEnv.class, GtSyntaxTree.class, GtType.class);
-			return LibGreenTea.ConvertNativeMethodToFunc(ParserContext, JavaMethod);
-		}
-		catch(NoSuchMethodException e) {
-			LibGreenTea.VerboseException(e);
-			LibGreenTea.Exit(1, e.toString());
-		}
-		return null;
-	}
+	
+//	public final static GtFunc LoadParseFunc2(GtParserContext ParserContext, Class<?> GrammarClass, String FuncName) {
+//		try {
+//			Method JavaMethod = GrammarClass.getMethod(FuncName, GtNameSpace.class, GtTokenContext.class, GtSyntaxTree.class, GtSyntaxPattern.class);
+//			return LibGreenTea.ConvertNativeMethodToFunc(ParserContext, JavaMethod);
+//		}
+//		catch(NoSuchMethodException e) {
+//			LibGreenTea.VerboseException(e);
+//			LibGreenTea.Exit(1, e.toString());
+//		}
+//		return null;
+//	}
+//	public final static GtFunc LoadTypeFunc2(GtParserContext ParserContext, Class<?> GrammarClass, String FuncName) {
+//		try {
+//			Method JavaMethod = GrammarClass.getMethod(FuncName, GtTypeEnv.class, GtSyntaxTree.class, GtType.class);
+//			return LibGreenTea.ConvertNativeMethodToFunc(ParserContext, JavaMethod);
+//		}
+//		catch(NoSuchMethodException e) {
+//			LibGreenTea.VerboseException(e);
+//			LibGreenTea.Exit(1, e.toString());
+//		}
+//		return null;
+//	}
 }
