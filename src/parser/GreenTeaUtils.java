@@ -259,10 +259,10 @@ public class GreenTeaUtils implements GreenTeaConsts {
 /*GreenTeaUtils End*/
 //ifdef JAVA
 	
-	public final static GtFunc LoadTokenFunc2(GtParserContext ParserContext, Class<?> GrammarClass, String FuncName) {
+	public final static GtFunc LoadTokenFunc2(Class<?> GrammarClass, String FuncName) {
 		try {
 			Method JavaMethod = GrammarClass.getMethod(FuncName, GtTokenContext.class, String.class, long.class);
-			return LibGreenTea.ConvertNativeMethodToFunc(ParserContext, JavaMethod);
+			return LibGreenTea.ConvertNativeMethodToFunc(JavaMethod);
 		}
 		catch(NoSuchMethodException e) {
 			LibGreenTea.VerboseException(e);
@@ -271,10 +271,10 @@ public class GreenTeaUtils implements GreenTeaConsts {
 		return null;
 	}
 
-	public final static GtFunc LoadMatchFunc2(GtParserContext ParserContext, Class<?> GrammarClass, String FuncName) {
+	public final static GtFunc LoadMatchFunc2(Class<?> GrammarClass, String FuncName) {
 		try {
 			Method JavaMethod = GrammarClass.getMethod(FuncName, GtNameSpace.class, GtTokenContext.class, GtNode.class);
-			return LibGreenTea.ConvertNativeMethodToFunc(ParserContext, JavaMethod);
+			return LibGreenTea.ConvertNativeMethodToFunc(JavaMethod);
 		}
 		catch(NoSuchMethodException e) {
 			LibGreenTea.VerboseException(e);

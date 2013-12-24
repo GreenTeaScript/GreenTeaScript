@@ -417,7 +417,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return NativeFunc;
 	}
 
-	public final static GtFunc ConvertNativeMethodToFunc(GtParserContext Context, Method JavaMethod) {
+	public final static GtFunc ConvertNativeMethodToFunc(Method JavaMethod) {
 		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
 		TypeList.add(LibNative.GetNativeType(JavaMethod.getReturnType()));
 		if(!Modifier.isStatic(JavaMethod.getModifiers())) {
@@ -751,7 +751,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 				LibGreenTea.println(" .. canceled");
 			}
 		}
-		ConsoleReader.getHistory().add((CharSequence)Line);
+		ConsoleReader.getHistory().add(Line);
 		return Line;
 	}
 

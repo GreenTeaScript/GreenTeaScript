@@ -47,9 +47,9 @@ import parser.GtTypeEnv;
 import parser.ast.GtApplySymbolNode;
 import parser.ast.GtConstPoolNode;
 import parser.ast.GtNode;
-//endif VAJA
 import parser.deps.LibGreenTea;
 import parser.deps.LibNative;
+//endif VAJA
 
 public class DShellGrammar extends GreenTeaUtils {
 	// LibDShell
@@ -778,15 +778,15 @@ public class DShellGrammar extends GreenTeaUtils {
 	// this is a new interface used in ImportNativeObject
 	public static void ImportGrammar(GtNameSpace NameSpace, Class<?> GrammarClass) {
 		/*local*/GtParserContext ParserContext = NameSpace.Context;
-		NameSpace.AppendTokenFunc("#", LoadTokenFunc2(ParserContext, GrammarClass, "ShellCommentToken")); 
+		NameSpace.AppendTokenFunc("#", LoadTokenFunc2(GrammarClass, "ShellCommentToken")); 
 		
-		NameSpace.AppendSyntax_OLD("letenv", LoadParseFunc2(ParserContext, GrammarClass, "ParseEnv"), null);
-		NameSpace.AppendSyntax_OLD("command", LoadParseFunc2(ParserContext, GrammarClass, "ParseCommand"), null);
-		NameSpace.AppendSyntax_OLD("-", LoadParseFunc2(ParserContext, GrammarClass, "ParseFileOperator"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeFileOperator"));
-		NameSpace.AppendSyntax_OLD("$FilePath$", LoadParseFunc2(ParserContext, GrammarClass, "ParseFilePath"), null);
-		NameSpace.AppendSyntax_OLD("$DShell2$", LoadParseFunc2(ParserContext, GrammarClass, "ParseDShell2"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeDShell2"));
-		NameSpace.AppendSyntax_OLD("shell", LoadParseFunc2(ParserContext, GrammarClass, "ParseShell"), null);
-		NameSpace.AppendSyntax_OLD("atomic", LoadParseFunc2(ParserContext, GrammarClass, "ParseAtomic"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeAtomic"));
+		NameSpace.AppendSyntax_OLD("letenv", LoadParseFunc2(GrammarClass, "ParseEnv"), null);
+		NameSpace.AppendSyntax_OLD("command", LoadParseFunc2(GrammarClass, "ParseCommand"), null);
+		NameSpace.AppendSyntax_OLD("-", LoadParseFunc2(GrammarClass, "ParseFileOperator"), LoadTypeFunc2(GrammarClass, "TypeFileOperator"));
+		NameSpace.AppendSyntax_OLD("$FilePath$", LoadParseFunc2(GrammarClass, "ParseFilePath"), null);
+		NameSpace.AppendSyntax_OLD("$DShell2$", LoadParseFunc2(GrammarClass, "ParseDShell2"), LoadTypeFunc2(GrammarClass, "TypeDShell2"));
+		NameSpace.AppendSyntax_OLD("shell", LoadParseFunc2(GrammarClass, "ParseShell"), null);
+		NameSpace.AppendSyntax_OLD("atomic", LoadParseFunc2(GrammarClass, "ParseAtomic"), LoadTypeFunc2(GrammarClass, "TypeAtomic"));
 		
 		// builtin command
 		// timeout
@@ -800,11 +800,11 @@ public class DShellGrammar extends GreenTeaUtils {
 
 		NameSpace.SetSymbol("$CreateFaultBuiltInFunc", LibNative.ImportNativeObject(NameSpace, "DShellGrammar.CreateFault"), null);
 		NameSpace.SetSymbol("$ReportBuiltInFunc", LibNative.ImportNativeObject(NameSpace, "DShellGrammar.ExecAction"), null);
-		NameSpace.AppendSyntax_OLD("dlog", LoadParseFunc2(ParserContext, GrammarClass, "ParseDLog"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeDLog"));
-		NameSpace.AppendSyntax_OLD("fault", LoadParseFunc2(ParserContext, GrammarClass, "ParseFault"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeFault"));
+		NameSpace.AppendSyntax_OLD("dlog", LoadParseFunc2(GrammarClass, "ParseDLog"), LoadTypeFunc2(GrammarClass, "TypeDLog"));
+		NameSpace.AppendSyntax_OLD("fault", LoadParseFunc2(GrammarClass, "ParseFault"), LoadTypeFunc2(GrammarClass, "TypeFault"));
 		
-		NameSpace.AppendSyntax_OLD("raise", LoadParseFunc2(ParserContext, GrammarClass, "ParseRaise"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeRaise"));
-		NameSpace.AppendSyntax_OLD("dexec", LoadParseFunc2(ParserContext, GrammarClass, "ParseDexec"), LoadTypeFunc2(ParserContext, GrammarClass, "TypeDexec"));
+		NameSpace.AppendSyntax_OLD("raise", LoadParseFunc2(GrammarClass, "ParseRaise"), LoadTypeFunc2(GrammarClass, "TypeRaise"));
+		NameSpace.AppendSyntax_OLD("dexec", LoadParseFunc2(GrammarClass, "ParseDexec"), LoadTypeFunc2(GrammarClass, "TypeDexec"));
 
 	}
 //endif VAJA
