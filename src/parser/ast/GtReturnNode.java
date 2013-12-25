@@ -25,15 +25,18 @@
 package parser.ast;
 
 import parser.GtGenerator;
-import parser.GtToken;
-import parser.GtType;
+import parser.GtStaticTable;
 
 final public class GtReturnNode extends GtNode {
 	/*field*/public GtNode ValueNode;
-	public GtReturnNode/*constructor*/(GtType Type, GtToken Token, GtNode ValueNode) {
-		super(Type, Token);
+	public GtReturnNode/*constructor*/() {
+		super(GtStaticTable.VarType, null);
+		this.ValueNode = null;
+	}
+	@Override public GtNode Append(GtNode ValueNode) {
 		this.ValueNode = ValueNode;
 		this.SetChild(ValueNode);
+		return null;
 	}
 	@Override public void Accept(GtGenerator Visitor) {
 		Visitor.VisitReturnNode(this);

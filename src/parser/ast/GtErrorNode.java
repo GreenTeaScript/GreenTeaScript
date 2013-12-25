@@ -34,7 +34,7 @@ import parser.GtToken;
  * Token.ParsedText has error message  
  */
 
-final public class GtErrorNode extends GtNode {
+final public class GtErrorNode extends GtConstNode {
 	public String ErrorMessage;
 	public GtErrorNode/*constructor*/(GtToken SourceToken, String ErrorMessage) {
 		super(GtStaticTable.VoidType, SourceToken);

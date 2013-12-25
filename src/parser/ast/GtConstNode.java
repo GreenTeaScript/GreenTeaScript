@@ -27,8 +27,12 @@ package parser.ast;
 import parser.GtToken;
 import parser.GtType;
 
-abstract class GtConstNode extends GtNode {
+abstract public class GtConstNode extends GtNode {
 	GtConstNode/*constructor*/(GtType Type, GtToken Token) {
 		super(Type, Token);
 	}
+	@Override public final GtConstNode ToConstNode(boolean EnforceConst) {
+		return this;
+	}
+	public abstract Object GetValue();
 }

@@ -361,7 +361,7 @@ public class DShellGrammar extends GreenTeaUtils {
 	public static GtNode TypeFileOperator(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 		/*local*/GtNode PathNode = ParsedTree.TypeCheckAt(UnaryTerm, Gamma, GtStaticTable.StringType, DefaultTypeCheckPolicy);
 		if(!PathNode.IsErrorNode()) {
-			/*local*/String OperatorSymbol = FuncSymbol(ParsedTree.KeyToken.ParsedText);
+			/*local*/String OperatorSymbol = GtNameSpace.FuncSymbol(ParsedTree.KeyToken.ParsedText);
 			/*local*/GtPolyFunc PolyFunc = Gamma.NameSpace.GetMethod(GtStaticTable.StringType, OperatorSymbol, true);
 			/*local*/GtFunc ResolvedFunc = PolyFunc.ResolveUnaryMethod(Gamma, PathNode.Type);
 			LibGreenTea.Assert(ResolvedFunc != null);
@@ -778,7 +778,7 @@ public class DShellGrammar extends GreenTeaUtils {
 	// this is a new interface used in ImportNativeObject
 	public static void ImportGrammar(GtNameSpace NameSpace, Class<?> GrammarClass) {
 		/*local*/GtParserContext ParserContext = NameSpace.Context;
-		NameSpace.AppendTokenFunc("#", LoadTokenFunc2(GrammarClass, "ShellCommentToken")); 
+		NameSpace.AppendTokenFunc("#", LoadTokenFunc(GrammarClass, "ShellCommentToken")); 
 		
 		NameSpace.AppendSyntax_OLD("letenv", LoadParseFunc2(GrammarClass, "ParseEnv"), null);
 		NameSpace.AppendSyntax_OLD("command", LoadParseFunc2(GrammarClass, "ParseCommand"), null);

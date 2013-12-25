@@ -41,6 +41,7 @@ public class GtNode {
 	/*field*/public GtNode	NextNode;
 	/*field*/public GtType	Type;
 	/*field*/public GtToken	Token;
+	
 	public GtNode/*constructor*/(GtType Type, GtToken Token) {
 //		this.Context = Context;
 		this.Type = Type;
@@ -134,12 +135,23 @@ public class GtNode {
 		/* must override */
 		return this;
 	}
+	public GtConstNode ToConstNode(boolean EnforceConst) {
+		if(EnforceConst) {
+			return new GtErrorNode(this.Token, "value must be constant");
+		}
+		return null;
+	}	
+	public final GtNode Done() {
+		return new GtEmptyNode(this.Token);
+	}
+	@Deprecated
 	public final Object ToNullValue(GtParserContext Context, boolean EnforceConst) {
 		if(EnforceConst) {
 			Context.ReportError(GreenTeaUtils.ErrorLevel, this.Token, "value must be constant in this context");
 		}
 		return null;
 	}
+	@Deprecated
 	public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 		return this.ToNullValue(Context, EnforceConst);
 	}

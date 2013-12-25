@@ -48,15 +48,13 @@ import java.util.ArrayList;
 import parser.GreenTeaConsts;
 import parser.GreenTeaUtils;
 import parser.GtFunc;
+import parser.GtGenerator;
 import parser.GtNameSpace;
 import parser.GtParserContext;
 import parser.GtPolyFunc;
 import parser.GtStaticTable;
-import parser.GtSyntaxPattern;
-import parser.GtSyntaxTree;
 import parser.GtTokenContext;
 import parser.GtType;
-import parser.GtTypeEnv;
 import parser.ast.GtNode;
 //import java.util.ArrayList;
 //import java.util.Iterator;
@@ -227,7 +225,7 @@ public class LibNative {
 		Method[] Methods = NativeClass.getMethods();
 		for(int i = 0; i < Methods.length; i++) {
 			if(Methods[i].getName().equals(Symbol) && Modifier.isStatic(Methods[i].getModifiers())) {
-				PolyFunc.Append(Context, LibGreenTea.ConvertNativeMethodToFunc(Context, Methods[i]), null);
+				PolyFunc.Append(Context, LibGreenTea.ConvertNativeMethodToFunc(Methods[i]), null);
 			}
 		}
 		if(PolyFunc.FuncList.size() == 1) {
@@ -294,7 +292,7 @@ public class LibNative {
 			}
 		}
 		if(!TransformedResult) {
-			Context.RootNameSpace.SetUndefinedSymbol(GreenTeaUtils.ClassSymbol(ClassType, GreenTeaUtils.ConstructorSymbol()), null);
+			Context.RootNameSpace.SetUndefinedSymbol(GtNameSpace.ClassSymbol(ClassType, GtNameSpace.ConstructorSymbol()), null);
 		}
 	}
 	
@@ -322,8 +320,8 @@ public class LibNative {
 			LibGreenTea.VerboseException(e);
 		} catch (NoSuchFieldException e) {
 		}
-		Context.RootNameSpace.SetUndefinedSymbol(GreenTeaUtils.ClassSymbol(ClassType, GreenTeaUtils.GetterSymbol(FieldName)), null);
-		Context.RootNameSpace.SetUndefinedSymbol(GreenTeaUtils.ClassSymbol(ClassType, GreenTeaUtils.SetterSymbol(FieldName)), null); // for setter
+		Context.RootNameSpace.SetUndefinedSymbol(GtNameSpace.ClassSymbol(ClassType, GtNameSpace.GetterSymbol(FieldName)), null);
+		Context.RootNameSpace.SetUndefinedSymbol(GtNameSpace.ClassSymbol(ClassType, GtNameSpace.SetterSymbol(FieldName)), null); // for setter
 		return null;
 	}
 
@@ -337,7 +335,7 @@ public class LibNative {
 					if(!Modifier.isPublic(Methods[i].getModifiers())) {
 						continue;
 					}
-					GtFunc NativeFunc = LibGreenTea.ConvertNativeMethodToFunc(Context, Methods[i]);
+					GtFunc NativeFunc = LibGreenTea.ConvertNativeMethodToFunc(Methods[i]);
 					Context.RootNameSpace.AppendMethod(NativeFunc, null);
 					FuncList.add(NativeFunc);
 					FoundMethod = true;
@@ -345,7 +343,7 @@ public class LibNative {
 			}
 		}
 		if(!FoundMethod) {
-			Context.RootNameSpace.SetUndefinedSymbol(GreenTeaUtils.ClassSymbol(ClassType, FuncName), null);
+			Context.RootNameSpace.SetUndefinedSymbol(GtNameSpace.ClassSymbol(ClassType, FuncName), null);
 		}
 	}
 
@@ -376,25 +374,6 @@ public class LibNative {
 		return (Long)LibNative.ApplyMethod(TokenFunc, null, Argvs);
 	}
 
-	@Deprecated
-	public final static GtSyntaxTree ApplyParseFunc(GtFunc ParseFunc, GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		Object[] Argvs = new Object[4];
-		Argvs[0] = NameSpace;
-		Argvs[1] = TokenContext;
-		Argvs[2] = LeftTree;
-		Argvs[3] = Pattern;
-		return (GtSyntaxTree)LibNative.ApplyMethod(ParseFunc, null, Argvs);
-	}
-
-	@Deprecated
-	public final static GtNode ApplyTypeFunc(GtFunc TypeFunc, GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		Object[] Argvs = new Object[3];
-		Argvs[0] = Gamma;
-		Argvs[1] = ParsedTree;
-		Argvs[2] = ContextType;
-		return (GtNode)LibNative.ApplyMethod(TypeFunc, null, Argvs);
-	}
-
 	public final static GtNode ApplyMatchFunc(GtFunc MatchFunc, GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
 		Object[] Argvs = new Object[3];
 		Argvs[0] = NameSpace;
@@ -402,6 +381,55 @@ public class LibNative {
 		Argvs[2] = LeftNode;
 //		Argvs[3] = Pattern;
 		return (GtNode)LibNative.ApplyMethod(MatchFunc, null, Argvs);
+	}
+
+	public final static GtFunc LoadTokenFunc(Class<?> GrammarClass, String FuncName) {
+		try {
+			Method JavaMethod = GrammarClass.getMethod(FuncName, GtTokenContext.class, String.class, long.class);
+			return LibGreenTea.ConvertNativeMethodToFunc(JavaMethod);
+		}
+		catch(NoSuchMethodException e) {
+			LibGreenTea.VerboseException(e);
+			LibGreenTea.Exit(1, e.toString());
+		}
+		return null;
+	}
+
+	public final static GtFunc LoadMatchFunc(Class<?> GrammarClass, String FuncName) {
+		try {
+			Method JavaMethod = GrammarClass.getMethod(FuncName, GtNameSpace.class, GtTokenContext.class, GtNode.class);
+			return LibGreenTea.ConvertNativeMethodToFunc(JavaMethod);
+		}
+		catch(NoSuchMethodException e) {
+			LibGreenTea.VerboseException(e);
+			LibGreenTea.Exit(1, e.toString());
+		}
+		return null;
+	}
+
+	public final static boolean IsSupportedNode(GtGenerator Generator, GtNode Node) {
+		String NodeName = Node.getClass().getSimpleName();
+		String MethodName = NodeName.replace("Gt", "Visit");
+		try {
+			Method JavaMethod = Generator.getClass().getMethod(MethodName, Node.getClass());
+			return true;
+		}
+		catch(NoSuchMethodException e) {
+		}
+		return false;		
+	}
+
+	public final static void VisitNode(GtGenerator Generator, GtNode Node) {
+		String NodeName = Node.getClass().getSimpleName();
+		String MethodName = NodeName.replace("Gt", "Visit");
+		try {
+			Method JavaMethod = Generator.getClass().getMethod(MethodName, Node.getClass());
+			JavaMethod.invoke(Generator, Node);
+		}
+		catch(Exception e) {
+			
+		}
+		Generator.Context.ReportError(GreenTeaConsts.ErrorLevel, Node.Token, "unsupportted: " + Node.getClass());
 	}
 
 	
