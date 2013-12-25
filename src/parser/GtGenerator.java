@@ -80,7 +80,6 @@ import parser.ast.GtStringNode;
 import parser.ast.GtSuffixDeclNode;
 import parser.ast.GtSuffixInclNode;
 import parser.ast.GtSwitchNode;
-import parser.ast.GtSymbolNode;
 import parser.ast.GtThrowNode;
 import parser.ast.GtTrinaryNode;
 import parser.ast.GtTryNode;
@@ -399,13 +398,13 @@ public class GtGenerator extends GreenTeaUtils {
 //	}
 
 	// useful Create* API
-	public final GtNode CreateCoercionNode(GtType Type, GtNameSpace NameSpace, GtFunc Func, GtNode Node) {
-		/*local*/GtNode ApplyNode = this.CreateApplySymbolNode(Type, null, "Coercion", Func);
-		ApplyNode.Append(Node);
-		return ApplyNode;
-	}
-
-
+//	public final GtNode CreateCoercionNode(GtType Type, GtNameSpace NameSpace, GtFunc Func, GtNode Node) {
+//		/*local*/GtNode ApplyNode = this.CreateApplySymbolNode(Type, null, "Coercion", Func);
+//		ApplyNode.Append(Node);
+//		return ApplyNode;
+//	}
+//
+//
 //	public final GtNode CreateConstNode_OLD(GtType Type, GtSyntaxTree ParsedTree, Object Value) {
 //		if(Value instanceof Boolean) {
 //			return this.CreateBooleanNode(ParsedTree.KeyToken, (Boolean) Value);
@@ -501,10 +500,6 @@ public class GtGenerator extends GreenTeaUtils {
 
 	//------------------------------------------------------------------------
 
-	public void Visit(Object Node) {
-		LibNative.ApplyTokenFunc(TokenFunc, TokenContext, Text, pos)
-	}
-	
 	public void VisitEmptyNode(GtEmptyNode Node) {
 		LibGreenTea.DebugP("empty node: " + Node.Token.ParsedText);
 		/*extension*/

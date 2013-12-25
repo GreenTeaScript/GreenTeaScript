@@ -59,7 +59,7 @@ public class GtPolyFunc extends GreenTeaUtils {
 					return this; /* same function */
 				}
 				if(Func.EqualsType(ListedFunc)) {
-					Context.ReportError(WarningLevel, SourceToken, "duplicated symbol: " + SourceToken.ParsedText);
+					Context.ReportError_OLD(WarningLevel, SourceToken, "duplicated symbol: " + SourceToken.ParsedText);
 					break;
 				}
 				i = i + 1;

@@ -168,7 +168,7 @@ public class DShellGrammar extends GreenTeaUtils {
 			if(loc != -1) {
 //ifdef JAVA
 				if(!IsFileExecutable(CommandPath)) {
-					NameSpace.Context.ReportError(ErrorLevel, SourceToken, "not executable: " + CommandPath);
+					NameSpace.Context.ReportError_OLD(ErrorLevel, SourceToken, "not executable: " + CommandPath);
 				}
 				else {
 //endif VAJA
@@ -188,7 +188,7 @@ public class DShellGrammar extends GreenTeaUtils {
 //ifdef JAVA
 				}
 				else {
-					NameSpace.Context.ReportError(ErrorLevel, SourceToken, "unknown command: " + CommandPath);
+					NameSpace.Context.ReportError_OLD(ErrorLevel, SourceToken, "unknown command: " + CommandPath);
 				}
 //endif VAJA
 			}
@@ -262,7 +262,7 @@ public class DShellGrammar extends GreenTeaUtils {
 			}
 		}
 		if(Env == null) {
-			NameSpace.Context.ReportError(ErrorLevel, Token, "undefined environment variable: " + Name);
+			NameSpace.Context.ReportError_OLD(ErrorLevel, Token, "undefined environment variable: " + Name);
 			CommandTree.ToError(Token);
 		}
 		else {

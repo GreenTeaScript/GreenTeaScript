@@ -408,10 +408,8 @@ public class LibNative {
 	}
 
 	public final static boolean IsSupportedNode(GtGenerator Generator, GtNode Node) {
-		String NodeName = Node.getClass().getSimpleName();
-		String MethodName = NodeName.replace("Gt", "Visit");
 		try {
-			Method JavaMethod = Generator.getClass().getMethod(MethodName, Node.getClass());
+			Generator.getClass().getMethod(Node.GetVisitMethodName(), Node.getClass());
 			return true;
 		}
 		catch(NoSuchMethodException e) {
@@ -420,16 +418,13 @@ public class LibNative {
 	}
 
 	public final static void VisitNode(GtGenerator Generator, GtNode Node) {
-		String NodeName = Node.getClass().getSimpleName();
-		String MethodName = NodeName.replace("Gt", "Visit");
 		try {
-			Method JavaMethod = Generator.getClass().getMethod(MethodName, Node.getClass());
+			Method JavaMethod = Generator.getClass().getMethod(Node.GetVisitMethodName(), Node.getClass());
 			JavaMethod.invoke(Generator, Node);
 		}
 		catch(Exception e) {
-			
 		}
-		Generator.Context.ReportError(GreenTeaConsts.ErrorLevel, Node.Token, "unsupportted: " + Node.getClass());
+		Generator.Context.ReportError(GreenTeaConsts.ErrorLevel, Node.Token, "unsupported syntax: " + Node.Token.ParsedText + " " + Node.getClass());
 	}
 
 	

@@ -165,11 +165,11 @@ public final class GtNameSpace extends GreenTeaUtils {
 			/*local*/Object OldValue = this.SymbolPatternTable.GetOrNull(Key);
 			if(OldValue != null && OldValue != UndefinedSymbol) {
 				if(LibGreenTea.DebugMode) {
-					this.Context.ReportError(WarningLevel, SourceToken, "duplicated symbol: " + SourceToken + " old, new =" + OldValue + ", " + Value);
+					this.Context.ReportError_OLD(WarningLevel, SourceToken, "duplicated symbol: " + SourceToken + " old, new =" + OldValue + ", " + Value);
 				}
 				else {
 					if(!LibGreenTea.EqualsString(Key, "_")) {
-						this.Context.ReportError(WarningLevel, SourceToken, "duplicated symbol: " + SourceToken);
+						this.Context.ReportError_OLD(WarningLevel, SourceToken, "duplicated symbol: " + SourceToken);
 					}
 				}
 			}
@@ -194,6 +194,10 @@ public final class GtNameSpace extends GreenTeaUtils {
 			return (/*cast*/String)Body;
 		}
 		return null;
+	}
+
+	public final GtType GetSymbolType(String Symbol) {
+		return GtStaticTable.VarType;
 	}
 
 	
@@ -561,7 +565,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 			TokenContext.SkipEmptyStatement();			
 			if(TopLevelTree.IsError() && TokenContext.HasNext()) {
 				/*local*/GtToken Token = TokenContext.GetToken();
-				this.Context.ReportError(InfoLevel, TokenContext.GetToken(), "stopping script eval at " + Token.ParsedText);
+				this.Context.ReportError_OLD(InfoLevel, TokenContext.GetToken(), "stopping script eval at " + Token.ParsedText);
 				ResultValue = TopLevelTree.KeyToken;  // in case of error, return error token
 				break;
 			}
@@ -711,6 +715,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 		//System.err.println("node="+ LibGreenTea.GetClassName(Node) + "type error: requested = " + Type + ", given = " + Node.Type);
 		return new GtErrorNode(Node.Token, "type error: requested = " + ContextType + ", given = " + Node.Type);
 	}
+
 	
 //	public final GtNode TypeBlock(GtNode ParsedNode, GtType ContextType) {
 //		/*local*/int StackTopIndex = Gamma.StackTopIndex;

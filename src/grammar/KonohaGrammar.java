@@ -49,6 +49,7 @@ import parser.ast.GtCastNode;
 import parser.ast.GtConstNode;
 import parser.ast.GtEmptyNode;
 import parser.ast.GtErrorNode;
+import parser.ast.GtFuncDeclNode;
 import parser.ast.GtGetterNode;
 import parser.ast.GtGroupNode;
 import parser.ast.GtIfNode;
@@ -2231,7 +2232,7 @@ public class KonohaGrammar extends GtGrammar {
 				ConstName = GtNameSpace.ClassStaticSymbol(ConstClass, ConstName);
 				SourceToken.AddTypeInfoToErrorMessage(ConstClass);
 			}
-			ValueNode = NameSpace.TypeCheck(ValueNode, NameSpace.GetSymbolType(ConstName));
+			ValueNode = NameSpace.TypeCheck(ValueNode, NameSpace.GetSymbolType(ConstName), GreenTeaConsts.DefaultTypeCheckPolicy);
 			GtConstNode ConstNode = ValueNode.ToConstNode(true);
 			if(!ConstNode.IsErrorNode()) {
 //				/*local*/int NameSpaceFlag = KonohaGrammar.ParseNameSpaceFlag(0, TokenContext.ParsingAnnotation);
@@ -2244,67 +2245,67 @@ public class KonohaGrammar extends GtGrammar {
 		return ValueNode;
 	}
 	
-	// const decl
-	public static GtSyntaxTree ParseSymbolDecl(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		/*local*/GtSyntaxTree SymbolDeclTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.Next() /*const, let */, null);
-		/*local*/GtType ConstClass = null;
-		SymbolDeclTree.SetMatchedPatternAt(GreenTeaConsts.SymbolDeclNameIndex, NameSpace, TokenContext, "$Variable$", GreenTeaConsts.Required);
-		if(TokenContext.MatchToken(".")) {
-			/*local*/String ClassName = SymbolDeclTree.GetSyntaxTreeAt(GreenTeaConsts.SymbolDeclNameIndex).KeyToken.ParsedText;
-			ConstClass = NameSpace.GetType(ClassName);
-			if(ConstClass == null) {
-				return TokenContext.ReportExpectedMessage(SymbolDeclTree.GetSyntaxTreeAt(GreenTeaConsts.SymbolDeclNameIndex).KeyToken, "type name", true);
-			}
-			SymbolDeclTree.SetMatchedPatternAt(GreenTeaConsts.SymbolDeclNameIndex, NameSpace, TokenContext, "$Variable$", GreenTeaConsts.Required);
-		}
-		SymbolDeclTree.SetMatchedTokenAt(GreenTeaConsts.NoWhere, NameSpace, TokenContext, "=", GreenTeaConsts.Required);
-		SymbolDeclTree.SetMatchedPatternAt(GreenTeaConsts.SymbolDeclValueIndex, NameSpace, TokenContext, "$Expression$", GreenTeaConsts.Required);
-
-		if(SymbolDeclTree.IsValidSyntax()) {
-			/*local*/GtToken SourceToken = SymbolDeclTree.GetSyntaxTreeAt(GreenTeaConsts.SymbolDeclNameIndex).KeyToken;
-			/*local*/String ConstName = SourceToken.ParsedText;
-			if(ConstClass != null) {
-				ConstName = GtNameSpace.ClassStaticSymbol(ConstClass, ConstName);
-				SourceToken.AddTypeInfoToErrorMessage(ConstClass);
-			}
-			/*local*/Object ConstValue = null;
-			if(SymbolDeclTree.GetSyntaxTreeAt(GreenTeaConsts.SymbolDeclValueIndex).Pattern.EqualsName("$Const$")) {
-				ConstValue = SymbolDeclTree.GetSyntaxTreeAt(GreenTeaConsts.SymbolDeclValueIndex).ParsedValue;
-			}
-			if(ConstValue == null) {
-				/*local*/GtTypeEnv Gamma = new GtTypeEnv(NameSpace);
-				/*local*/GtNode Node = SymbolDeclTree.TypeCheckAt(GreenTeaConsts.SymbolDeclValueIndex, Gamma, GtStaticTable.VarType, GreenTeaConsts.OnlyConstPolicy);
-				if(Node.IsErrorNode()) {
-					SymbolDeclTree.ToError(Node.Token);
-					return SymbolDeclTree;
-				}
-				ConstValue = Node.ToConstValue(Gamma.Context, true);
-			}
-			/*local*/int NameSpaceFlag = KonohaGrammar.ParseNameSpaceFlag(0, TokenContext.ParsingAnnotation);
-			/*local*/GtNameSpace StoreNameSpace = NameSpace.GetNameSpace(NameSpaceFlag);
-			StoreNameSpace.SetSymbol(ConstName, ConstValue, SourceToken);
-		}
-		return SymbolDeclTree;
-	}
-
-	public static GtNode TypeSymbolDecl(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		return Gamma.Generator.CreateEmptyNode(ContextType);
-	}
+//	// const decl
+//	public static GtSyntaxTree ParseSymbolDecl(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+//		/*local*/GtSyntaxTree SymbolDeclTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.Next() /*const, let */, null);
+//		/*local*/GtType ConstClass = null;
+//		SymbolDeclTree.SetMatchedPatternAt(GreenTeaConsts.SymbolDeclNameIndex, NameSpace, TokenContext, "$Variable$", GreenTeaConsts.Required);
+//		if(TokenContext.MatchToken(".")) {
+//			/*local*/String ClassName = SymbolDeclTree.GetSyntaxTreeAt(GreenTeaConsts.SymbolDeclNameIndex).KeyToken.ParsedText;
+//			ConstClass = NameSpace.GetType(ClassName);
+//			if(ConstClass == null) {
+//				return TokenContext.ReportExpectedMessage(SymbolDeclTree.GetSyntaxTreeAt(GreenTeaConsts.SymbolDeclNameIndex).KeyToken, "type name", true);
+//			}
+//			SymbolDeclTree.SetMatchedPatternAt(GreenTeaConsts.SymbolDeclNameIndex, NameSpace, TokenContext, "$Variable$", GreenTeaConsts.Required);
+//		}
+//		SymbolDeclTree.SetMatchedTokenAt(GreenTeaConsts.NoWhere, NameSpace, TokenContext, "=", GreenTeaConsts.Required);
+//		SymbolDeclTree.SetMatchedPatternAt(GreenTeaConsts.SymbolDeclValueIndex, NameSpace, TokenContext, "$Expression$", GreenTeaConsts.Required);
+//
+//		if(SymbolDeclTree.IsValidSyntax()) {
+//			/*local*/GtToken SourceToken = SymbolDeclTree.GetSyntaxTreeAt(GreenTeaConsts.SymbolDeclNameIndex).KeyToken;
+//			/*local*/String ConstName = SourceToken.ParsedText;
+//			if(ConstClass != null) {
+//				ConstName = GtNameSpace.ClassStaticSymbol(ConstClass, ConstName);
+//				SourceToken.AddTypeInfoToErrorMessage(ConstClass);
+//			}
+//			/*local*/Object ConstValue = null;
+//			if(SymbolDeclTree.GetSyntaxTreeAt(GreenTeaConsts.SymbolDeclValueIndex).Pattern.EqualsName("$Const$")) {
+//				ConstValue = SymbolDeclTree.GetSyntaxTreeAt(GreenTeaConsts.SymbolDeclValueIndex).ParsedValue;
+//			}
+//			if(ConstValue == null) {
+//				/*local*/GtTypeEnv Gamma = new GtTypeEnv(NameSpace);
+//				/*local*/GtNode Node = SymbolDeclTree.TypeCheckAt(GreenTeaConsts.SymbolDeclValueIndex, Gamma, GtStaticTable.VarType, GreenTeaConsts.OnlyConstPolicy);
+//				if(Node.IsErrorNode()) {
+//					SymbolDeclTree.ToError(Node.Token);
+//					return SymbolDeclTree;
+//				}
+//				ConstValue = Node.ToConstValue(Gamma.Context, true);
+//			}
+//			/*local*/int NameSpaceFlag = KonohaGrammar.ParseNameSpaceFlag(0, TokenContext.ParsingAnnotation);
+//			/*local*/GtNameSpace StoreNameSpace = NameSpace.GetNameSpace(NameSpaceFlag);
+//			StoreNameSpace.SetSymbol(ConstName, ConstValue, SourceToken);
+//		}
+//		return SymbolDeclTree;
+//	}
+//
+//	public static GtNode TypeSymbolDecl(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+//		return Gamma.Generator.CreateEmptyNode(ContextType);
+//	}
 
 	// FuncDecl
-	public static GtSyntaxTree ParseFuncName(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		/*local*/GtToken Token = TokenContext.Next();
-		/*local*/String Name = Token.ParsedText;
-		if(Token.IsQuoted()) {
-			Name = LibGreenTea.UnquoteString(Name);
-			Token.ParsedText = Name;
-			return new GtSyntaxTree(Pattern, NameSpace, Token, Name);
-		}
-		if(Name.length() > 0 && LibGreenTea.CharAt(Name, 0) != '(' && LibGreenTea.CharAt(Name, 0) != '.') {
-			return new GtSyntaxTree(Pattern, NameSpace, Token, Name);
-		}
-		return TokenContext.ReportExpectedMessage(Token, "name", true);
-	}
+//	public static GtSyntaxTree ParseFuncName(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+//		/*local*/GtToken Token = TokenContext.Next();
+//		/*local*/String Name = Token.ParsedText;
+//		if(Token.IsQuoted()) {
+//			Name = LibGreenTea.UnquoteString(Name);
+//			Token.ParsedText = Name;
+//			return new GtSyntaxTree(Pattern, NameSpace, Token, Name);
+//		}
+//		if(Name.length() > 0 && LibGreenTea.CharAt(Name, 0) != '(' && LibGreenTea.CharAt(Name, 0) != '.') {
+//			return new GtSyntaxTree(Pattern, NameSpace, Token, Name);
+//		}
+//		return TokenContext.ReportExpectedMessage(Token, "name", true);
+//	}
 
 	private static void ParseFuncParam(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree FuncDeclTree, GtFuncBlock FuncBlock) {
 		/*local*/int ParamBase = GreenTeaConsts.FuncDeclParam;
@@ -2327,30 +2328,30 @@ public class KonohaGrammar extends GtGrammar {
 		TokenContext.SetSkipIndent(false);
 	}
 
-	private static void ParseFuncBody(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree FuncDeclTree, GtFuncBlock FuncBlock) {
-		TokenContext.SkipIndent();
-		if(TokenContext.MatchToken("as")) {
-			/*local*/GtToken Token = TokenContext.Next();
-			FuncBlock.DefinedFunc.SetNativeMacro(LibGreenTea.UnquoteString(Token.ParsedText));
-		}
-		else if(TokenContext.IsToken("import")) {
-			/*local*/GtSyntaxTree ImportTree = TokenContext.ParsePattern_OLD(NameSpace, "import", GreenTeaConsts.Optional);
-			if(GreenTeaUtils.IsValidSyntax(ImportTree)) {
-				if(!FuncBlock.DefinedFunc.ImportMethod((/*cast*/String)ImportTree.ParsedValue)) {
-					NameSpace.Context.ReportError(GreenTeaConsts.WarningLevel, ImportTree.KeyToken, "unable to import: " + ImportTree.ParsedValue);
-				}
-			}
-		}
-		else {
-			/*local*/GtSyntaxTree BlockTree = TokenContext.ParsePattern_OLD(NameSpace, "$Block$", GreenTeaConsts.Optional);
-			if(GreenTeaUtils.IsValidSyntax(BlockTree)) {
-				FuncBlock.FuncBlock = BlockTree;
-				/*local*/GtSyntaxTree ReturnTree = new GtSyntaxTree(NameSpace.GetSyntaxPattern("return"), NameSpace, BlockTree.KeyToken, null);
-				GreenTeaUtils.LinkTree(GreenTeaUtils.TreeTail(BlockTree), ReturnTree);
-				FuncBlock.DefinedFunc.FuncBody = FuncBlock;
-			}
-		}
-	}
+//	private static void ParseFuncBody(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree FuncDeclTree, GtFuncBlock FuncBlock) {
+//		TokenContext.SkipIndent();
+//		if(TokenContext.MatchToken("as")) {
+//			/*local*/GtToken Token = TokenContext.Next();
+//			FuncBlock.DefinedFunc.SetNativeMacro(LibGreenTea.UnquoteString(Token.ParsedText));
+//		}
+//		else if(TokenContext.IsToken("import")) {
+//			/*local*/GtSyntaxTree ImportTree = TokenContext.ParsePattern_OLD(NameSpace, "import", GreenTeaConsts.Optional);
+//			if(GreenTeaUtils.IsValidSyntax(ImportTree)) {
+//				if(!FuncBlock.DefinedFunc.ImportMethod((/*cast*/String)ImportTree.ParsedValue)) {
+//					NameSpace.Context.ReportError_OLD(GreenTeaConsts.WarningLevel, ImportTree.KeyToken, "unable to import: " + ImportTree.ParsedValue);
+//				}
+//			}
+//		}
+//		else {
+//			/*local*/GtSyntaxTree BlockTree = TokenContext.ParsePattern_OLD(NameSpace, "$Block$", GreenTeaConsts.Optional);
+//			if(GreenTeaUtils.IsValidSyntax(BlockTree)) {
+//				FuncBlock.FuncBlock = BlockTree;
+//				/*local*/GtSyntaxTree ReturnTree = new GtSyntaxTree(NameSpace.GetSyntaxPattern("return"), NameSpace, BlockTree.KeyToken, null);
+//				GreenTeaUtils.LinkTree(GreenTeaUtils.TreeTail(BlockTree), ReturnTree);
+//				FuncBlock.DefinedFunc.FuncBody = FuncBlock;
+//			}
+//		}
+//	}
 
 //	public static GtSyntaxTree ParseFunction(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 //		/*local*/GtSyntaxTree FuncDeclTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetToken(), null);
@@ -2366,123 +2367,252 @@ public class KonohaGrammar extends GtGrammar {
 //		GreenTeaGrammar.ParseFuncBody(NameSpace, TokenContext, FuncDeclTree);
 //		return FuncDeclTree;
 //	}
-
-	public static GtSyntaxTree ParseFuncDecl(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		/*local*/GtSyntaxTree FuncDeclTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetToken(), null);
-		/*local*/int FuncFlag = KonohaGrammar.ParseFuncFlag(0, TokenContext.ParsingAnnotation);
-		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
-		LibGreenTea.Assert(LeftTree != null);
-		FuncDeclTree.SetSyntaxTreeAt(GreenTeaConsts.FuncDeclReturnType, LeftTree);
-		TypeList.add(LeftTree.GetParsedType());
-		FuncDeclTree.SetMatchedPatternAt(GreenTeaConsts.FuncDeclName, NameSpace, TokenContext, "$FuncName$", GreenTeaConsts.Required);
-		FuncDeclTree.SetMatchedTokenAt(GreenTeaConsts.NoWhere, NameSpace, TokenContext, "(", GreenTeaConsts.Required | GreenTeaConsts.OpenSkipIndent);
-		if(FuncDeclTree.IsValidSyntax()) {
-			/*local*/GtFuncBlock FuncBlock = new GtFuncBlock(NameSpace, TypeList);
-			/*local*/boolean FoundAbstractFunc = false;
-			/*local*/GtToken SourceToken = FuncDeclTree.GetSyntaxTreeAt(GreenTeaConsts.FuncDeclName).KeyToken;
-			/*local*/String FuncName = GtNameSpace.FuncSymbol(SourceToken.ParsedText);
-			/*local*/int ParseFlag = TokenContext.SetBackTrack(false);  // disabled
-			/*local*/GtNameSpace StoreNameSpace = NameSpace.GetNameSpace(KonohaGrammar.ParseNameSpaceFlag(0, TokenContext.ParsingAnnotation));
-			if(LibGreenTea.EqualsString(FuncName, "converter")) {
-				FuncFlag |= GreenTeaConsts.ConverterFunc;
-				//				FuncBlock.SetConverterType();
-				KonohaGrammar.ParseFuncParam(NameSpace, TokenContext, FuncDeclTree, FuncBlock);
-				if(TypeList.size() != 2) {
-					NameSpace.Context.ReportError(GreenTeaConsts.ErrorLevel, SourceToken, "converter takes one parameter");
-					FuncDeclTree.ToError(SourceToken);
-					return FuncDeclTree;
-				}
-				FuncName = "to" + TypeList.get(0);
-				FuncBlock.DefinedFunc = NameSpace.Context.Generator.CreateFunc(FuncFlag, FuncName, 0, FuncBlock.TypeList);
-				KonohaGrammar.ParseFuncBody(NameSpace, TokenContext, FuncDeclTree, FuncBlock);
-				if(GreenTeaUtils.IsFlag(FuncFlag, GreenTeaConsts.StrongCoercionFunc)) {  // this part is for weak type treatment
-					/*local*/GtType FromType = FuncBlock.DefinedFunc.GetFuncParamType(0);
-					/*local*/GtType ToType = FuncBlock.DefinedFunc.GetReturnType();
-					FromType.SetUnrevealedType(ToType);
-					StoreNameSpace = NameSpace.Context.RootNameSpace;
-				}
-				SourceToken.ParsedText = FuncName;
-				StoreNameSpace.SetConverterFunc(null, null, FuncBlock.DefinedFunc, SourceToken);
+	
+	public static GtNode MatchParamDecl(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftTree) {
+		GtTypeNode TypeNode = (GtTypeNode)TokenContext.ParsePattern(NameSpace, "$Type$", GreenTeaConsts.Required);
+		if(!TypeNode.IsErrorNode()) {
+			/*local*/GtToken NameToken = TokenContext.Next();
+			if(!NameToken.IsNameSymbol()) {
+				return GtErrorNode.CreateExpectedToken(NameToken, "parameter name");
 			}
-			else {
-				FuncBlock.SetThisIfInClass(NameSpace.GetType("This"));
-				KonohaGrammar.ParseFuncParam(NameSpace, TokenContext, FuncDeclTree, FuncBlock);
-				FuncBlock.DefinedFunc = NameSpace.GetFunc(FuncName, 0, TypeList);
-				if(FuncBlock.DefinedFunc == null || !FuncBlock.DefinedFunc.IsAbstract()) {
-					FuncBlock.DefinedFunc = NameSpace.Context.Generator.CreateFunc(FuncFlag, FuncName, 0, TypeList);
-				}
-				else {
-					FoundAbstractFunc = true;
-					FuncBlock.DefinedFunc.FuncFlag = FuncFlag;
-				}
-				KonohaGrammar.ParseFuncBody(NameSpace, TokenContext, FuncDeclTree, FuncBlock);
-				/*local*/GtFunc DefinedFunc = FuncBlock.DefinedFunc;
-				if(!DefinedFunc.IsAbstract() || !FoundAbstractFunc) {
-					/*local*/GtType StaticType = DefinedFunc.GetStaticType(NameSpace);
-					if(StaticType != null) {
-						StoreNameSpace.AppendStaticFunc(StaticType, DefinedFunc, SourceToken);
+			return new GtParamNode(TypeNode.ParsedType, NameToken, NameToken.ParsedText);
+		}
+		return TypeNode;
+	}
+	
+	public static GtNode MatchFuncDecl(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftTree) {
+		/*local*/GtToken NameToken = TokenContext.Next();
+		if(!NameToken.IsNameSymbol()) {
+			/*local*/int FuncFlag = KonohaGrammar.ParseFuncFlag(0, TokenContext.ParsingAnnotation);
+			/*local*/GtNode FuncDeclNode = new GtFuncDeclNode(NameToken, LeftTree, NameToken.ParsedText);
+//			/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
+//			TypeList.add((GtTypeNode)LeftTree).GetType());
+			FuncDeclNode = TokenContext.MatchNodeToken(FuncDeclNode,  NameSpace, "(", GreenTeaConsts.Required | GreenTeaConsts.OpenSkipIndent);
+			if(!TokenContext.MatchToken(")")) {
+				while(!FuncDeclNode.IsErrorNode()) {
+					FuncDeclNode = TokenContext.AppendMatchedPattern(FuncDeclNode, NameSpace, "$Param$", GreenTeaConsts.Required);
+					if(TokenContext.MatchToken(")")) {
+						break;
 					}
-					else {
-						if(!DefinedFunc.Is(GreenTeaConsts.MethodFunc) || !DefinedFunc.Is(GreenTeaConsts.OperatorFunc)) {
-							StoreNameSpace.AppendFunc(DefinedFunc, SourceToken);
-						}
-						/*local*/GtType RecvType = DefinedFunc.GetRecvType();
-						if(RecvType.IsVoidType() || LibGreenTea.EqualsString(DefinedFunc.FuncName, "_")) {
-						}
-						else {
-							StoreNameSpace.AppendMethod(DefinedFunc, SourceToken.AddTypeInfoToErrorMessage(RecvType));
-						}
+					FuncDeclNode = TokenContext.MatchNodeToken(FuncDeclNode,  NameSpace, ",", GreenTeaConsts.Required);
+				}
+			}
+			if(FuncDeclNode.IsErrorNode()) {
+				return FuncDeclNode;
+			}
+			TokenContext.SkipIndent();
+//			if(TokenContext.MatchToken("as")) {
+//				/*local*/GtToken Token = TokenContext.Next();
+//				FuncBlock.DefinedFunc.SetNativeMacro(LibGreenTea.UnquoteString(Token.ParsedText));
+//			}
+//			else if(TokenContext.IsToken("import")) {
+//				/*local*/GtSyntaxTree ImportTree = TokenContext.ParsePattern_OLD(NameSpace, "import", GreenTeaConsts.Optional);
+//				if(GreenTeaUtils.IsValidSyntax(ImportTree)) {
+//					if(!FuncBlock.DefinedFunc.ImportMethod((/*cast*/String)ImportTree.ParsedValue)) {
+//						NameSpace.Context.ReportError_OLD(GreenTeaConsts.WarningLevel, ImportTree.KeyToken, "unable to import: " + ImportTree.ParsedValue);
+//					}
+//				}
+//			}
+//			else {
+				/*local*/GtNode BlockNode = TokenContext.ParsePattern(NameSpace, "$Block$", GreenTeaConsts.Optional);
+				if(BlockNode != null) {
+					if(BlockNode.IsErrorNode()) {
+						return BlockNode;
 					}
+					BlockNode.SetNextStatement(new GtReturnNode());
 				}
-			}
-			FuncDeclTree.ParsedValue = FuncBlock.DefinedFunc;
-			TokenContext.SetRememberFlag(ParseFlag);
-		}
-		return FuncDeclTree;
+//			}
+//				/*local*/GtSyntaxTree BlockTree = TokenContext.ParsePattern_OLD(NameSpace, "$Block$", GreenTeaConsts.Optional);
+//				if(GreenTeaUtils.IsValidSyntax(BlockTree)) {
+//					FuncBlock.FuncBlock = BlockTree;
+//					/*local*/GtSyntaxTree ReturnTree = new GtSyntaxTree(NameSpace.GetSyntaxPattern("return"), NameSpace, BlockTree.KeyToken, null);
+//					GreenTeaUtils.LinkTree(GreenTeaUtils.TreeTail(BlockTree), ReturnTree);
+//					FuncBlock.DefinedFunc.FuncBody = FuncBlock;
+//				}
+//			}
+//			
+//			if(FuncDeclNode.IsValidSyntax()) {
+//			/*local*/GtFuncBlock FuncBlock = new GtFuncBlock(NameSpace, TypeList);
+//			/*local*/boolean FoundAbstractFunc = false;
+//			/*local*/GtToken SourceToken = FuncDeclNode.GetSyntaxTreeAt(GreenTeaConsts.FuncDeclName).KeyToken;
+//			/*local*/String FuncName = GtNameSpace.FuncSymbol(SourceToken.ParsedText);
+//			/*local*/int ParseFlag = TokenContext.SetBackTrack(false);  // disabled
+//			/*local*/GtNameSpace StoreNameSpace = NameSpace.GetNameSpace(KonohaGrammar.ParseNameSpaceFlag(0, TokenContext.ParsingAnnotation));
+//			if(LibGreenTea.EqualsString(FuncName, "converter")) {
+//				FuncFlag |= GreenTeaConsts.ConverterFunc;
+//				//				FuncBlock.SetConverterType();
+//				KonohaGrammar.ParseFuncParam(NameSpace, TokenContext, FuncDeclNode, FuncBlock);
+//				if(TypeList.size() != 2) {
+//					NameSpace.Context.ReportError_OLD(GreenTeaConsts.ErrorLevel, SourceToken, "converter takes one parameter");
+//					FuncDeclNode.ToError(SourceToken);
+//					return FuncDeclNode;
+//				}
+//				FuncName = "to" + TypeList.get(0);
+//				FuncBlock.DefinedFunc = NameSpace.Context.Generator.CreateFunc(FuncFlag, FuncName, 0, FuncBlock.TypeList);
+//				KonohaGrammar.ParseFuncBody(NameSpace, TokenContext, FuncDeclNode, FuncBlock);
+//				if(GreenTeaUtils.IsFlag(FuncFlag, GreenTeaConsts.StrongCoercionFunc)) {  // this part is for weak type treatment
+//					/*local*/GtType FromType = FuncBlock.DefinedFunc.GetFuncParamType(0);
+//					/*local*/GtType ToType = FuncBlock.DefinedFunc.GetReturnType();
+//					FromType.SetUnrevealedType(ToType);
+//					StoreNameSpace = NameSpace.Context.RootNameSpace;
+//				}
+//				SourceToken.ParsedText = FuncName;
+//				StoreNameSpace.SetConverterFunc(null, null, FuncBlock.DefinedFunc, SourceToken);
+//			}
+//			else {
+//				FuncBlock.SetThisIfInClass(NameSpace.GetType("This"));
+//				KonohaGrammar.ParseFuncParam(NameSpace, TokenContext, FuncDeclNode, FuncBlock);
+//				FuncBlock.DefinedFunc = NameSpace.GetFunc(FuncName, 0, TypeList);
+//				if(FuncBlock.DefinedFunc == null || !FuncBlock.DefinedFunc.IsAbstract()) {
+//					FuncBlock.DefinedFunc = NameSpace.Context.Generator.CreateFunc(FuncFlag, FuncName, 0, TypeList);
+//				}
+//				else {
+//					FoundAbstractFunc = true;
+//					FuncBlock.DefinedFunc.FuncFlag = FuncFlag;
+//				}
+//				KonohaGrammar.ParseFuncBody(NameSpace, TokenContext, FuncDeclNode, FuncBlock);
+//				/*local*/GtFunc DefinedFunc = FuncBlock.DefinedFunc;
+//				if(!DefinedFunc.IsAbstract() || !FoundAbstractFunc) {
+//					/*local*/GtType StaticType = DefinedFunc.GetStaticType(NameSpace);
+//					if(StaticType != null) {
+//						StoreNameSpace.AppendStaticFunc(StaticType, DefinedFunc, SourceToken);
+//					}
+//					else {
+//						if(!DefinedFunc.Is(GreenTeaConsts.MethodFunc) || !DefinedFunc.Is(GreenTeaConsts.OperatorFunc)) {
+//							StoreNameSpace.AppendFunc(DefinedFunc, SourceToken);
+//						}
+//						/*local*/GtType RecvType = DefinedFunc.GetRecvType();
+//						if(RecvType.IsVoidType() || LibGreenTea.EqualsString(DefinedFunc.FuncName, "_")) {
+//						}
+//						else {
+//							StoreNameSpace.AppendMethod(DefinedFunc, SourceToken.AddTypeInfoToErrorMessage(RecvType));
+//						}
+//					}
+//				}
+//			}
+//			FuncDeclNode.ParsedValue = FuncBlock.DefinedFunc;
+//			TokenContext.SetRememberFlag(ParseFlag);
+			return FuncDeclNode;
+//		}
+		return null;
 	}
 
-	public static GtNode TypeFuncDecl(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
-		/*local*/GtFunc DefinedFunc = (/*cast*/GtFunc)ParsedTree.ParsedValue;
-		DefinedFunc.GenerateNativeFunc();
-		return Gamma.Generator.CreateEmptyNode(GtStaticTable.VoidType);
-	}
+//	public static GtSyntaxTree ParseFuncDecl(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+//		/*local*/GtSyntaxTree FuncDeclTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetToken(), null);
+//		/*local*/int FuncFlag = KonohaGrammar.ParseFuncFlag(0, TokenContext.ParsingAnnotation);
+//		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
+//		LibGreenTea.Assert(LeftTree != null);
+//		FuncDeclTree.SetSyntaxTreeAt(GreenTeaConsts.FuncDeclReturnType, LeftTree);
+//		TypeList.add(LeftTree.GetParsedType());
+//		FuncDeclTree.SetMatchedPatternAt(GreenTeaConsts.FuncDeclName, NameSpace, TokenContext, "$FuncName$", GreenTeaConsts.Required);
+//		FuncDeclTree.SetMatchedTokenAt(GreenTeaConsts.NoWhere, NameSpace, TokenContext, "(", GreenTeaConsts.Required | GreenTeaConsts.OpenSkipIndent);
+//		if(FuncDeclTree.IsValidSyntax()) {
+//			/*local*/GtFuncBlock FuncBlock = new GtFuncBlock(NameSpace, TypeList);
+//			/*local*/boolean FoundAbstractFunc = false;
+//			/*local*/GtToken SourceToken = FuncDeclTree.GetSyntaxTreeAt(GreenTeaConsts.FuncDeclName).KeyToken;
+//			/*local*/String FuncName = GtNameSpace.FuncSymbol(SourceToken.ParsedText);
+//			/*local*/int ParseFlag = TokenContext.SetBackTrack(false);  // disabled
+//			/*local*/GtNameSpace StoreNameSpace = NameSpace.GetNameSpace(KonohaGrammar.ParseNameSpaceFlag(0, TokenContext.ParsingAnnotation));
+//			if(LibGreenTea.EqualsString(FuncName, "converter")) {
+//				FuncFlag |= GreenTeaConsts.ConverterFunc;
+//				//				FuncBlock.SetConverterType();
+//				KonohaGrammar.ParseFuncParam(NameSpace, TokenContext, FuncDeclTree, FuncBlock);
+//				if(TypeList.size() != 2) {
+//					NameSpace.Context.ReportError_OLD(GreenTeaConsts.ErrorLevel, SourceToken, "converter takes one parameter");
+//					FuncDeclTree.ToError(SourceToken);
+//					return FuncDeclTree;
+//				}
+//				FuncName = "to" + TypeList.get(0);
+//				FuncBlock.DefinedFunc = NameSpace.Context.Generator.CreateFunc(FuncFlag, FuncName, 0, FuncBlock.TypeList);
+//				KonohaGrammar.ParseFuncBody(NameSpace, TokenContext, FuncDeclTree, FuncBlock);
+//				if(GreenTeaUtils.IsFlag(FuncFlag, GreenTeaConsts.StrongCoercionFunc)) {  // this part is for weak type treatment
+//					/*local*/GtType FromType = FuncBlock.DefinedFunc.GetFuncParamType(0);
+//					/*local*/GtType ToType = FuncBlock.DefinedFunc.GetReturnType();
+//					FromType.SetUnrevealedType(ToType);
+//					StoreNameSpace = NameSpace.Context.RootNameSpace;
+//				}
+//				SourceToken.ParsedText = FuncName;
+//				StoreNameSpace.SetConverterFunc(null, null, FuncBlock.DefinedFunc, SourceToken);
+//			}
+//			else {
+//				FuncBlock.SetThisIfInClass(NameSpace.GetType("This"));
+//				KonohaGrammar.ParseFuncParam(NameSpace, TokenContext, FuncDeclTree, FuncBlock);
+//				FuncBlock.DefinedFunc = NameSpace.GetFunc(FuncName, 0, TypeList);
+//				if(FuncBlock.DefinedFunc == null || !FuncBlock.DefinedFunc.IsAbstract()) {
+//					FuncBlock.DefinedFunc = NameSpace.Context.Generator.CreateFunc(FuncFlag, FuncName, 0, TypeList);
+//				}
+//				else {
+//					FoundAbstractFunc = true;
+//					FuncBlock.DefinedFunc.FuncFlag = FuncFlag;
+//				}
+//				KonohaGrammar.ParseFuncBody(NameSpace, TokenContext, FuncDeclTree, FuncBlock);
+//				/*local*/GtFunc DefinedFunc = FuncBlock.DefinedFunc;
+//				if(!DefinedFunc.IsAbstract() || !FoundAbstractFunc) {
+//					/*local*/GtType StaticType = DefinedFunc.GetStaticType(NameSpace);
+//					if(StaticType != null) {
+//						StoreNameSpace.AppendStaticFunc(StaticType, DefinedFunc, SourceToken);
+//					}
+//					else {
+//						if(!DefinedFunc.Is(GreenTeaConsts.MethodFunc) || !DefinedFunc.Is(GreenTeaConsts.OperatorFunc)) {
+//							StoreNameSpace.AppendFunc(DefinedFunc, SourceToken);
+//						}
+//						/*local*/GtType RecvType = DefinedFunc.GetRecvType();
+//						if(RecvType.IsVoidType() || LibGreenTea.EqualsString(DefinedFunc.FuncName, "_")) {
+//						}
+//						else {
+//							StoreNameSpace.AppendMethod(DefinedFunc, SourceToken.AddTypeInfoToErrorMessage(RecvType));
+//						}
+//					}
+//				}
+//			}
+//			FuncDeclTree.ParsedValue = FuncBlock.DefinedFunc;
+//			TokenContext.SetRememberFlag(ParseFlag);
+//		}
+//		return FuncDeclTree;
+//	}
+//
+//	public static GtNode TypeFuncDecl(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
+//		/*local*/GtFunc DefinedFunc = (/*cast*/GtFunc)ParsedTree.ParsedValue;
+//		DefinedFunc.GenerateNativeFunc();
+//		return Gamma.Generator.CreateEmptyNode(GtStaticTable.VoidType);
+//	}
 
-	public static GtSyntaxTree ParseGenericFuncDecl(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		/*local*/GtSyntaxTree FuncTree = TokenContext.CreateSyntaxTree(NameSpace, Pattern, null);
-		/*local*/ArrayList<Object> RevertList = new ArrayList<Object>();
-		FuncTree.SetMatchedTokenAt(GreenTeaConsts.KeyTokenIndex, NameSpace, TokenContext, "<", GreenTeaConsts.Required);
-		/*local*/int StartIndex = GreenTeaConsts.GenericParam;
-		while(FuncTree.IsValidSyntax()) {
-			/*local*/GtType ParamBaseType = GtStaticTable.VarType;
-			FuncTree.SetMatchedPatternAt(StartIndex, NameSpace, TokenContext, "$Variable$", GreenTeaConsts.Required);
-			if(TokenContext.MatchToken(":")) {
-				FuncTree.SetMatchedPatternAt(StartIndex + 1, NameSpace, TokenContext, "$Type$", GreenTeaConsts.Required);
-				if(FuncTree.IsValidSyntax()) {
-					ParamBaseType = FuncTree.GetSyntaxTreeAt(StartIndex).GetParsedType();
-				}
-			}
-			if(FuncTree.IsValidSyntax()) {
-				/*local*/GtToken SourceToken = FuncTree.GetSyntaxTreeAt(StartIndex).KeyToken;
-				NameSpace.AppendTypeVariable(SourceToken.ParsedText, ParamBaseType, SourceToken, RevertList);
-
-			}
-			if(TokenContext.MatchToken(">")) {
-				break;
-			}
-			FuncTree.SetMatchedTokenAt(GreenTeaConsts.NoWhere, NameSpace, TokenContext, ",", GreenTeaConsts.Required);
-			StartIndex += 2;
-		}
-		FuncTree.SetMatchedPatternAt(GreenTeaConsts.GenericReturnType, NameSpace, TokenContext, "$Type$", GreenTeaConsts.Required);
-		if(FuncTree.IsValidSyntax()) {
-			FuncTree = KonohaGrammar.ParseFuncDecl(NameSpace, TokenContext, FuncTree.GetSyntaxTreeAt(GreenTeaConsts.GenericReturnType), NameSpace.GetSyntaxPattern("$FuncDecl$"));
-			if(FuncTree.IsValidSyntax()) {
-				/*local*/GtFunc DefinedFunc = (/*cast*/GtFunc)FuncTree.ParsedValue;
-				DefinedFunc.FuncFlag |= GreenTeaConsts.GenericFunc;
-			}
-		}
-		NameSpace.Revert(RevertList);
-		return FuncTree;
-	}
+//	public static GtSyntaxTree ParseGenericFuncDecl(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+//		/*local*/GtSyntaxTree FuncTree = TokenContext.CreateSyntaxTree(NameSpace, Pattern, null);
+//		/*local*/ArrayList<Object> RevertList = new ArrayList<Object>();
+//		FuncTree.SetMatchedTokenAt(GreenTeaConsts.KeyTokenIndex, NameSpace, TokenContext, "<", GreenTeaConsts.Required);
+//		/*local*/int StartIndex = GreenTeaConsts.GenericParam;
+//		while(FuncTree.IsValidSyntax()) {
+//			/*local*/GtType ParamBaseType = GtStaticTable.VarType;
+//			FuncTree.SetMatchedPatternAt(StartIndex, NameSpace, TokenContext, "$Variable$", GreenTeaConsts.Required);
+//			if(TokenContext.MatchToken(":")) {
+//				FuncTree.SetMatchedPatternAt(StartIndex + 1, NameSpace, TokenContext, "$Type$", GreenTeaConsts.Required);
+//				if(FuncTree.IsValidSyntax()) {
+//					ParamBaseType = FuncTree.GetSyntaxTreeAt(StartIndex).GetParsedType();
+//				}
+//			}
+//			if(FuncTree.IsValidSyntax()) {
+//				/*local*/GtToken SourceToken = FuncTree.GetSyntaxTreeAt(StartIndex).KeyToken;
+//				NameSpace.AppendTypeVariable(SourceToken.ParsedText, ParamBaseType, SourceToken, RevertList);
+//
+//			}
+//			if(TokenContext.MatchToken(">")) {
+//				break;
+//			}
+//			FuncTree.SetMatchedTokenAt(GreenTeaConsts.NoWhere, NameSpace, TokenContext, ",", GreenTeaConsts.Required);
+//			StartIndex += 2;
+//		}
+//		FuncTree.SetMatchedPatternAt(GreenTeaConsts.GenericReturnType, NameSpace, TokenContext, "$Type$", GreenTeaConsts.Required);
+//		if(FuncTree.IsValidSyntax()) {
+//			FuncTree = KonohaGrammar.ParseFuncDecl(NameSpace, TokenContext, FuncTree.GetSyntaxTreeAt(GreenTeaConsts.GenericReturnType), NameSpace.GetSyntaxPattern("$FuncDecl$"));
+//			if(FuncTree.IsValidSyntax()) {
+//				/*local*/GtFunc DefinedFunc = (/*cast*/GtFunc)FuncTree.ParsedValue;
+//				DefinedFunc.FuncFlag |= GreenTeaConsts.GenericFunc;
+//			}
+//		}
+//		NameSpace.Revert(RevertList);
+//		return FuncTree;
+//	}
 
 //	// constructor
 //	public static GtSyntaxTree ParseConstructor2(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {

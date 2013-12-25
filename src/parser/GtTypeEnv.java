@@ -110,21 +110,21 @@ public final class GtTypeEnv extends GreenTeaUtils {
 	public final GtNode ReportTypeResult(GtSyntaxTree ParsedTree, GtNode Node, int Level, String Message) {
 		if(Level == ErrorLevel || (this.IsStrictMode() && Level == TypeErrorLevel)) {
 			LibGreenTea.Assert(Node.Token == ParsedTree.KeyToken);
-			this.NameSpace.Context.ReportError(ErrorLevel, Node.Token, Message);
+			this.NameSpace.Context.ReportError_OLD(ErrorLevel, Node.Token, Message);
 			return this.Generator.CreateErrorNode(GtStaticTable.VoidType, ParsedTree);
 		}
 		else {
-			this.NameSpace.Context.ReportError(Level, Node.Token, Message);
+			this.NameSpace.Context.ReportError_OLD(Level, Node.Token, Message);
 		}
 		return Node;
 	}
 
 	public final void ReportTypeInference(GtToken SourceToken, String Name, GtType InfferedType) {
-		this.Context.ReportError(InfoLevel, SourceToken, Name + " has type " + InfferedType);
+		this.Context.ReportError_OLD(InfoLevel, SourceToken, Name + " has type " + InfferedType);
 	}
 
 	public final GtNode CreateSyntaxErrorNode(GtSyntaxTree ParsedTree, String Message) {
-		this.NameSpace.Context.ReportError(ErrorLevel, ParsedTree.KeyToken, Message);
+		this.NameSpace.Context.ReportError_OLD(ErrorLevel, ParsedTree.KeyToken, Message);
 		return this.Generator.CreateErrorNode(GtStaticTable.VoidType, ParsedTree);
 	}
 

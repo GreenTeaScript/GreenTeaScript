@@ -55,7 +55,7 @@ public final class GtClassField extends GreenTeaUtils {
 		while(i < this.FieldList.size()) {
 			/*local*/GtFieldInfo FieldInfo = this.FieldList.get(i);
 			if(FieldInfo.Name.equals(Name)) {
-				this.NameSpace.Context.ReportError(WarningLevel, SourceToken, "duplicated field: " + Name);
+				this.NameSpace.Context.ReportError_OLD(WarningLevel, SourceToken, "duplicated field: " + Name);
 				return null;
 			}
 			i = i + 1;

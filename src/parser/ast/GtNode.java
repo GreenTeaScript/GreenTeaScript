@@ -33,6 +33,7 @@ import parser.GtParserContext;
 import parser.GtToken;
 import parser.GtType;
 import parser.deps.LibGreenTea;
+import parser.deps.LibNative;
 //endif VAJA
 
 public class GtNode {
@@ -92,10 +93,14 @@ public class GtNode {
 			Node.ParentNode = this;
 		}
 	}
+	
+	@Deprecated
 	public final void SetChild2(GtNode Node, GtNode Node2) {
 		this.SetChild(Node);
 		this.SetChild(Node2);
 	}
+	
+	@Deprecated
 	public final void SetChild3(GtNode Node, GtNode Node2, GtNode Node3) {
 		this.SetChild(Node);
 		this.SetChild(Node2);
@@ -128,13 +133,19 @@ public class GtNode {
 		return this;
 	}
 
-	public void Accept(GtGenerator Visitor) {
-		/* must override */
+	public String GetVisitMethodName() {
+		return "VisitNode"; // override this if you want to use additional node
 	}
+	
+	public void Accept(GtGenerator Generator) {
+		LibNative.VisitNode(Generator, this);
+	}
+
 	public GtNode TypeCheck(GtNameSpace NameSpace, GtType ContextType) {
 		/* must override */
 		return this;
 	}
+	
 	public GtConstNode ToConstNode(boolean EnforceConst) {
 		if(EnforceConst) {
 			return new GtErrorNode(this.Token, "value must be constant");
@@ -147,7 +158,7 @@ public class GtNode {
 	@Deprecated
 	public final Object ToNullValue(GtParserContext Context, boolean EnforceConst) {
 		if(EnforceConst) {
-			Context.ReportError(GreenTeaUtils.ErrorLevel, this.Token, "value must be constant in this context");
+			Context.ReportError_OLD(GreenTeaUtils.ErrorLevel, this.Token, "value must be constant in this context");
 		}
 		return null;
 	}

@@ -29,10 +29,8 @@ import parser.GtType;
 
 final public class GtParamNode extends GtNode {
 	/*field*/public String  Name;
-	/*field*/public GtNode  InitNode;  /* nullable*/
-	public GtParamNode/*constructor*/(GtType Type, GtToken Token, String Name, GtNode InitNode) {
+	public GtParamNode/*constructor*/(GtType Type, GtToken Token, String Name) {
 		super(Type, Token); // TODO
 		this.Name = Name;
-		this.InitNode = InitNode;
 	}
 }

@@ -25,9 +25,9 @@
 //ifdef JAVA
 package parser;
 import java.util.ArrayList;
-//endif VAJA
 
 import parser.deps.LibGreenTea;
+//endif VAJA
 
 public final class GtParserContext extends GreenTeaUtils {
 	/*field*/public final  int ParserId;
@@ -62,7 +62,7 @@ public final class GtParserContext extends GreenTeaUtils {
 		this.NoErrorReport = b;
 	}
 
-	public final void ReportError(int Level, GtToken Token, String Message) {
+	public final void ReportError_OLD(int Level, GtToken Token, String Message) {
 		if(!Token.IsError() || !this.NoErrorReport) {
 			if(Level == ErrorLevel) {
 				Message = "(error) " + GtStaticTable.FormatFileLineNumber(Token.FileLine) + " " + Message;
@@ -81,6 +81,24 @@ public final class GtParserContext extends GreenTeaUtils {
 		}
 	}
 
+	public final String ReportError(int Level, GtToken Token, String Message) {
+		if(Level == ErrorLevel) {
+			Message = "(error) " + GtStaticTable.FormatFileLineNumber(Token.FileLine) + " " + Message;
+		}
+		else if(Level == TypeErrorLevel) {
+			Message = "(error) " + GtStaticTable.FormatFileLineNumber(Token.FileLine) + " " + Message;
+		}
+		else if(Level == WarningLevel) {
+			Message = "(warning) " + GtStaticTable.FormatFileLineNumber(Token.FileLine) + " " + Message;
+		}
+		else if(Level == InfoLevel) {
+			Message = "(info) " + GtStaticTable.FormatFileLineNumber(Token.FileLine) + " " + Message;
+		}
+		this.ReportedErrorList.add(Message);
+		System.err.println(Message);
+		return Message;
+	}
+	
 	public final String[] GetReportedErrors() {
 		/*local*/ArrayList<String> List = this.ReportedErrorList;
 		this.ReportedErrorList = new ArrayList<String>();
