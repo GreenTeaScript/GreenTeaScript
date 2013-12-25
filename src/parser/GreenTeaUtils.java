@@ -193,14 +193,6 @@ public class GreenTeaUtils implements GreenTeaConsts {
 		return Gamma.Generator.CreateEmptyNode(GtStaticTable.VoidType);
 	}
 
-	public final static GtNode LinkNode(GtNode LastNode, GtNode Node) {
-		Node.PrevNode = LastNode;
-		if(LastNode != null) {
-			LastNode.NextNode = Node;
-		}
-		return Node;
-	}
-
 /*GreenTeaUtils End*/
 //ifdef JAVA
 	

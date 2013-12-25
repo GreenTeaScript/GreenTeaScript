@@ -27,7 +27,7 @@ package parser.ast;
 import parser.GtToken;
 import parser.GtType;
 
-final public class GtParamNode extends GtNode {
+public class GtParamNode extends GtNode {
 	/*field*/public String  Name;
 	public GtParamNode/*constructor*/(GtType Type, GtToken Token, String Name) {
 		super(Type, Token); // TODO

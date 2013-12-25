@@ -166,5 +166,13 @@ public class GtNode {
 	public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 		return this.ToNullValue(Context, EnforceConst);
 	}
+
+	public final static GtNode LinkNode(GtNode LastNode, GtNode Node) {
+		Node.PrevNode = LastNode;
+		if(LastNode != null) {
+			LastNode.NextNode = Node;
+		}
+		return Node;
+	}
 }
 

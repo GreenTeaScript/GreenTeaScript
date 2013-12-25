@@ -25,10 +25,10 @@
 package parser;
 import java.util.ArrayList;
 
-
 import parser.ast.GtNode;
 import parser.deps.LibGreenTea;
 
+@Deprecated
 public final class GtTypeEnv extends GreenTeaUtils {
 	/*field*/public final GtParserContext    Context;
 	/*field*/public final GtGenerator        Generator;

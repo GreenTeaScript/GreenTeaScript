@@ -24,39 +24,36 @@
 
 package parser.ast;
 
+import java.util.ArrayList;
 
 import parser.GtGenerator;
+import parser.GtNameSpace;
 import parser.GtStaticTable;
-import parser.GtSyntaxPattern;
 import parser.GtToken;
+import parser.GtType;
 
-public class GtBinaryNode extends GtNode {
-	/*field*/public GtNode   LeftNode;
-	/*field*/public GtNode	 RightNode;
-	/*field*/public GtSyntaxPattern Pattern;
-	public GtBinaryNode/*constructor*/(GtToken SourceToken, GtNode Left, GtSyntaxPattern Pattern) {
-		super(GtStaticTable.VarType, SourceToken);
-		this.LeftNode  = Left;
-		this.RightNode = null;
-		this.Pattern = Pattern;
-		this.SetChild(Left);
+final public class GtClassDeclNode extends GtNode {
+	/*field*/public GtType ClassType;
+	/*field*/public GtNameSpace NameSpace;
+	/*field*/public ArrayList<GtNode>  FieldList;
+	/*field*/public ArrayList<GtNode>  MemberList;
+	public GtClassDeclNode/*constructor*/(GtToken SourceToken, GtNameSpace NameSpace, GtType ClassType) {
+		super(GtStaticTable.VarType, SourceToken); // TODO
+		this.NameSpace = NameSpace;
+		this.ClassType = ClassType;
+		this.FieldList = new ArrayList<GtNode>();
+		this.MemberList = new ArrayList<GtNode>();
 	}
-	@Override public final GtNode Append(GtNode Node) {
-		this.RightNode = Node;
-		this.SetChild(RightNode);
+	@Override public GtNode Append(GtNode Node) {
+		if(Node instanceof GtFuncDeclNode) {
+			this.MemberList.add(Node);
+		}
+		if(Node instanceof GtFieldNode) {
+			this.FieldList.add(Node);
+		}
 		return this;
 	}
 	@Override public void Accept(GtGenerator Visitor) {
-		Visitor.VisitBinaryNode(this);
+		Visitor.VisitClassDeclNode(this);
 	}
-//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
-//		/*local*/Object LeftValue = this.LeftNode.ToConstValue(Context, EnforceConst) ;
-//		if(LeftValue != null) {
-//			/*local*/Object RightValue = this.RightNode.ToConstValue(Context, EnforceConst) ;
-//			if(RightValue != null) {
-//				return LibGreenTea.EvalBinary(this.Type, LeftValue, this.Token.ParsedText, RightValue);
-//			}
-//		}
-//		return null;
-//	}
 }

@@ -49,9 +49,9 @@ public final class GtSyntaxPattern extends GreenTeaUtils {
 		return this.PatternName + "<" + this.MatchFunc + ">";
 	}
 
-//	public boolean IsBinaryOperator() {
-//		return IsFlag(this.SyntaxFlag, BinaryOperator);
-//	}
+	public boolean IsBinaryOperator() {
+		return IsFlag(this.SyntaxFlag, BinaryOperator);
+	}
 
 	public final boolean IsRightJoin(GtSyntaxPattern Right) {
 		/*local*/int left = this.SyntaxFlag;

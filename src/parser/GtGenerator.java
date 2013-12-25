@@ -42,6 +42,7 @@ import parser.ast.GtBreakNode;
 import parser.ast.GtCaseNode;
 import parser.ast.GtCastNode;
 import parser.ast.GtCatchNode;
+import parser.ast.GtClassDeclNode;
 import parser.ast.GtCommandNode;
 import parser.ast.GtConstPoolNode;
 import parser.ast.GtConstructorNode;
@@ -52,6 +53,7 @@ import parser.ast.GtErrorNode;
 import parser.ast.GtFloatNode;
 import parser.ast.GtForEachNode;
 import parser.ast.GtForNode;
+import parser.ast.GtFuncDeclNode;
 import parser.ast.GtFunctionLiteralNode;
 import parser.ast.GtGetCapturedNode;
 import parser.ast.GtGetIndexNode;
@@ -124,52 +126,48 @@ public class GtGenerator extends GreenTeaUtils {
 //		return new GtNullNode(GtStaticTable.VarType, SourceToken);
 //	}
 //
-//	public GtNode CreateBooleanNode(GtToken SourceToken, boolean Value) {
-//		return new GtBooleanNode(GtStaticTable.BooleanType, SourceToken, Value);
-//	}
-//
-//	public GtNode CreateIntNode(GtToken SourceToken, long Value) {
-//		return new GtIntNode(GtStaticTable.IntType, SourceToken, Value);
-//	}
-//
-//	public GtNode CreateFloatNode(GtToken SourceToken, double Value) {
-//		return new GtFloatNode(GtStaticTable.FloatType, SourceToken, Value);
-//	}
-//
-//	public GtNode CreateStringNode(GtToken SourceToken, String Value) {
-//		return new GtStringNode(GtStaticTable.StringType, SourceToken, Value);
-//	}
-//
-//	public GtNode CreateRegexNode(GtToken SourceToken, String Value) {
-//		return new GtRegexNode(GtStaticTable.VarType, SourceToken, Value);
-//	}
-//
-//	public GtNode CreateConstPoolNode(GtToken SourceToken, Object Value) {
-//		return new GtConstPoolNode(GtStaticTable.GuessType(Value), SourceToken, Value);
-//	}
-//
-//	public final GtNode CreateConstNode(GtToken SourceToken, Object Value) {
-//		if(Value instanceof Boolean) {
-//			return this.CreateBooleanNode(SourceToken, (Boolean) Value);
+	public GtNode CreateBooleanNode(GtToken SourceToken, boolean Value) {
+		return new GtBooleanNode(GtStaticTable.BooleanType, SourceToken, Value);
+	}
+
+	public GtNode CreateIntNode(GtToken SourceToken, long Value) {
+		return new GtIntNode(GtStaticTable.IntType, SourceToken, Value);
+	}
+
+	public GtNode CreateFloatNode(GtToken SourceToken, double Value) {
+		return new GtFloatNode(GtStaticTable.FloatType, SourceToken, Value);
+	}
+
+	public GtNode CreateStringNode(GtToken SourceToken, String Value) {
+		return new GtStringNode(GtStaticTable.StringType, SourceToken, Value);
+	}
+
+	public GtNode CreateRegexNode(GtToken SourceToken, String Value) {
+		return new GtRegexNode(GtStaticTable.VarType, SourceToken, Value);
+	}
+
+	public GtNode CreateConstPoolNode(GtToken SourceToken, Object Value) {
+		return new GtConstPoolNode(GtStaticTable.GuessType(Value), SourceToken, Value);
+	}
+
+	public final GtNode CreateConstNode(GtToken SourceToken, Object Value) {
+		if(Value instanceof Boolean) {
+			return this.CreateBooleanNode(SourceToken, (Boolean) Value);
+		}
+		if(Value instanceof Long || Value instanceof Integer) {
+			return this.CreateIntNode(SourceToken, ((Number)Value).longValue());
+		}
+		if(Value instanceof Double || Value instanceof Float) {
+			return this.CreateFloatNode(SourceToken, ((Number)Value).doubleValue());
+		}
+		if(Value instanceof String) {
+			return this.CreateStringNode(SourceToken, (String) Value);
+		}
+//		if(Value instanceof Rexex) {
+//			return CreateRegexNode(SourceToken, (String) Value);
 //		}
-//		if(Value instanceof Long || Value instanceof Integer) {
-//			return this.CreateIntNode(SourceToken, ((Number)Value).longValue());
-//		}
-//		if(Value instanceof Double || Value instanceof Float) {
-//			return this.CreateFloatNode(SourceToken, ((Number)Value).doubleValue());
-//		}
-//		if(Value instanceof String) {
-//			return this.CreateStringNode(SourceToken, (String) Value);
-//		}
-////		if(Value instanceof Rexex) {
-////			return CreateRegexNode(SourceToken, (String) Value);
-////		}
-//		return this.CreateConstPoolNode(SourceToken, Value);
-//	}
-//	
-//	public GtNode CreateEmptyNode(GtType Type) {
-//		return new GtEmptyNode(Type, GtTokenContext.NullToken);
-//	}
+		return this.CreateConstPoolNode(SourceToken, Value);
+	}
 
 	public final GtNode CreateSymbolNode(GtToken SourceToken, GtType Type, String NativeName, boolean IsCaptured, GtNode AssignedNode) {
 		if(AssignedNode != null) {
@@ -1023,6 +1021,14 @@ public class GtGenerator extends GreenTeaUtils {
 			}
 		}
 		return null;
+	}
+
+	public void VisitClassDeclNode(GtClassDeclNode ClassDeclNode) {
+		// TODO Auto-generated method stub
+	}
+
+	public void VisitFuncDeclNode(GtFuncDeclNode FuncDeclNode) {
+		// TODO Auto-generated method stub
 	}
 
 //	public Object EvalApplyDynamicFuncNode(GtApplyDynamicFuncNode ApplyNode, boolean EnforceConst) {
