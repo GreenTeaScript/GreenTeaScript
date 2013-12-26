@@ -90,7 +90,7 @@ import parser.deps.LibGreenTea;
 import parser.deps.LibNative;
 //endif VAJA
 
-public class GtGenerator {
+public class GtGenerator extends GtNodeVisitor {
 	/*field*/public final String       TargetCode;
 	/*field*/public GtNameSpace    Context;
 	/*field*/public ArrayList<Object>  GeneratedCodeStack;
@@ -538,243 +538,303 @@ public class GtGenerator {
 
 	//------------------------------------------------------------------------
 
+	@Override
 	public void VisitEmptyNode(GtEmptyNode Node) {
 		LibGreenTea.DebugP("empty node: " + Node.Token.ParsedText);
 		/*extension*/
 	}
 
+	@Override
 	public void VisitNullNode(GtNullNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitBooleanNode(GtBooleanNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitIntNode(GtIntNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitFloatNode(GtFloatNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitStringNode(GtStringNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitRegexNode(GtRegexNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitConstPoolNode(GtConstPoolNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitArrayLiteralNode(GtArrayLiteralNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitMapLiteralNode(GtMapLiteralNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitParamNode(GtParamNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitFunctionLiteralNode(GtFunctionLiteralNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitGetLocalNode(GtGetLocalNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitSetLocalNode(GtSetLocalNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitGetCapturedNode(GtGetCapturedNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitSetCapturedNode(GtSetCapturedNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitGetterNode(GtGetterNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitSetterNode(GtSetterNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitApplySymbolNode(GtApplySymbolNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitApplyFunctionObjectNode(GtApplyFunctionObjectNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitApplyOverridedMethodNode(GtApplyOverridedMethodNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitGetIndexNode(GtGetIndexNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitSetIndexNode(GtSetIndexNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitSliceNode(GtSliceNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitAndNode(GtAndNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitOrNode(GtOrNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitUnaryNode(GtUnaryNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitPrefixInclNode(GtPrefixInclNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitPrefixDeclNode(GtPrefixDeclNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitSuffixInclNode(GtSuffixInclNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitSuffixDeclNode(GtSuffixDeclNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitBinaryNode(GtBinaryNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitTrinaryNode(GtTrinaryNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitConstructorNode(GtConstructorNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitAllocateNode(GtAllocateNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitNewArrayNode(GtNewArrayNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitInstanceOfNode(GtInstanceOfNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitCastNode(GtCastNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitVarDeclNode(GtVarDeclNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitUsingNode(GtUsingNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitIfNode(GtIfNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitWhileNode(GtWhileNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitDoWhileNode(GtDoWhileNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitForNode(GtForNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitForEachNode(GtForEachNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitContinueNode(GtContinueNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitBreakNode(GtBreakNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitStatementNode(GtStatementNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitReturnNode(GtReturnNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitYieldNode(GtYieldNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitThrowNode(GtThrowNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitTryNode(GtTryNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitCatchNode(GtCatchNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitSwitchNode(GtSwitchNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitCaseNode(GtCaseNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitCommandNode(GtCommandNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitErrorNode(GtErrorNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitClassDeclNode(GtClassDeclNode ClassDeclNode) {
 		// TODO Auto-generated method stub
 	}
 
+	@Override
 	public void VisitFuncDeclNode(GtFuncDeclNode FuncDeclNode) {
 		// TODO Auto-generated method stub
 	}
 
+	@Override
 	public void VisitBlock(GtNode Node) {
 		/*local*/GtNode CurrentNode = Node;
 		while(CurrentNode != null) {
