@@ -48,7 +48,7 @@ public class GtFuncBlock {
 	public void SetThisIfInClass(GtType Type) {
 		if(Type != null) {
 			this.TypeList.add(Type);
-			this.NameList.add(this.NameSpace.Context.Generator.GetRecvName());
+			this.NameList.add(this.NameSpace.Generator.GetRecvName());
 		}
 	}
 	

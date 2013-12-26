@@ -27,7 +27,6 @@ package parser.ast;
 import java.util.ArrayList;
 
 import parser.GtGenerator;
-import parser.GtParserContext;
 import parser.GtStaticTable;
 
 //E.g., $FuncNode "(" $Param[0], $Param[1], ... ")"
@@ -45,7 +44,7 @@ final public class GtApplyFunctionObjectNode extends GtNode {
 	@Override public void Accept(GtGenerator Visitor) {
 		Visitor.VisitApplyFunctionObjectNode(this);
 	}
-	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
-		return Context.Generator.EvalApplyFuncionObjectNode(this, EnforceConst);
-	}
+//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+//		return Context.Generator.EvalApplyFuncionObjectNode(this, EnforceConst);
+//	}
 }

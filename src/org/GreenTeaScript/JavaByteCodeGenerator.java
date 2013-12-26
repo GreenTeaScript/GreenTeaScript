@@ -96,6 +96,7 @@ import parser.ast.GtVarDeclNode;
 import parser.ast.GtWhileNode;
 import parser.deps.GreenTeaArray;
 import parser.deps.LibGreenTea;
+import parser.deps.LibNative;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -287,7 +288,7 @@ class JLib {
 		}
 		catch(Exception e) {
 			e.printStackTrace();
-			LibGreenTea.Exit(1, "load error");
+			LibNative.Exit(1, "load error");
 		}
 	}
 	
@@ -677,7 +678,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		ClassBuilder.AddMethod(constructor);
 		try {
 			ClassType.TypeBody = this.ClassGenerator.loadClass(ClassName);
-			LibGreenTea.Assert(ClassType.TypeBody != null);
+			LibNative.Assert(ClassType.TypeBody != null);
 		}
 		catch (Exception e) {
 			LibGreenTea.VerboseException(e);
@@ -717,7 +718,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 
 	@Override public void VisitConstPoolNode(GtConstPoolNode Node) {
 		Object constValue = Node.ConstValue;
-		LibGreenTea.Assert(Node.ConstValue != null);
+		LibNative.Assert(Node.ConstValue != null);
 		this.VisitingBuilder.LoadConst(constValue);
 		this.PushStack(Node.Type);
 	}
@@ -850,7 +851,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 //	}
 	
 	@Override public void VisitUnaryNode(GtUnaryNode Node) {
-		LibGreenTea.Assert(Node.ResolvedFunc.FuncBody instanceof Method);
+		LibNative.Assert(Node.ResolvedFunc.FuncBody instanceof Method);
 		this.VisitingBuilder.PushEvaluatedNode(Node.ResolvedFunc.GetFuncParamType(0), Node.RecvNode);
 		this.VisitingBuilder.InvokeMethodCall(Node.Type, (Method)Node.ResolvedFunc.FuncBody);
 		this.RemoveStack(1);
@@ -858,7 +859,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	}
 
 	@Override public void VisitBinaryNode(GtBinaryNode Node) {
-		LibGreenTea.Assert(Node.ResolvedFunc.FuncBody instanceof Method);
+		LibNative.Assert(Node.ResolvedFunc.FuncBody instanceof Method);
 		this.VisitingBuilder.PushEvaluatedNode(Node.ResolvedFunc.GetFuncParamType(0), Node.LeftNode);
 		this.VisitingBuilder.PushEvaluatedNode(Node.ResolvedFunc.GetFuncParamType(1), Node.RightNode);
 		this.VisitingBuilder.InvokeMethodCall(Node.Type, (Method)Node.ResolvedFunc.FuncBody);

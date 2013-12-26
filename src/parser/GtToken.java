@@ -25,7 +25,7 @@
 //ifdef JAVA
 package parser;
 
-import parser.deps.LibGreenTea;
+import parser.deps.LibNative;
 
 final public class GtToken extends GreenTeaUtils {
 	/*field*/public int		        TokenFlag;
@@ -90,7 +90,7 @@ final public class GtToken extends GreenTeaUtils {
 	}
 
 	public String GetErrorMessage() {
-		LibGreenTea.Assert(this.IsError());
+		LibNative.Assert(this.IsError());
 		return this.ParsedText;
 	}
 

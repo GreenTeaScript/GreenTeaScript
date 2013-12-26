@@ -36,6 +36,9 @@ final public class GtTypeNode extends GtConstNode {
 		super(GtStaticTable.TypeType, SourceToken);
 		this.ParsedType = ParsedType;
 	}
+	@Override public final Object GetValue() {
+		return this.ParsedType;
+	}
 	@Override public void Accept(GtGenerator Visitor) {
 		//Visitor.VisitTypeNode(this);
 	}

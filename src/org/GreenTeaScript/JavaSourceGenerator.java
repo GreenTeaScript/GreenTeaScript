@@ -69,6 +69,7 @@ import parser.ast.GtUnaryNode;
 import parser.ast.GtVarDeclNode;
 import parser.ast.GtWhileNode;
 import parser.deps.LibGreenTea;
+import parser.deps.LibNative;
 
 public class JavaSourceGenerator extends GtSourceGenerator {
 
@@ -532,7 +533,7 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 	@Override public void VisitErrorNode(GtErrorNode Node) {
 //		this.Builder.AsmMethodVisitor.visitLdcInsn("(ErrorNode)");
 //		this.Builder.Call(this.methodMap.get("error_node"));
-		LibGreenTea.Exit(1, "ErrorNode found in JavaByteCodeGenerator");
+		LibNative.Exit(1, "ErrorNode found in JavaByteCodeGenerator");
 	}
 
 	@Override public void VisitCommandNode(GtCommandNode Node) {

@@ -30,7 +30,6 @@ import java.util.Iterator;
 import parser.GtStaticTable;
 import parser.GtType;
 import parser.deps.GreenTeaArray;
-import parser.deps.LibGreenTea;
 import parser.deps.LibNative;
 
 public class ArrayApi {
@@ -57,7 +56,7 @@ public class ArrayApi {
 		return self.SubArray(bindex, eindex);
 	}
 	public final static GreenTeaArray ObjectArrayToGreenArray(Object ObjectArray) {
-		LibGreenTea.Assert(ObjectArray.getClass().isArray());
+		LibNative.Assert(ObjectArray.getClass().isArray());
 		Class<?> ComponentType = ObjectArray.getClass().getComponentType();
 //		GtType ElementType = GtStaticTable.StringType;
 		if(ComponentType.isPrimitive()) {

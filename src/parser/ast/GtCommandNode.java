@@ -27,7 +27,6 @@ package parser.ast;
 import java.util.ArrayList;
 
 import parser.GtGenerator;
-import parser.GtParserContext;
 import parser.GtToken;
 import parser.GtType;
 
@@ -48,8 +47,8 @@ final public class GtCommandNode extends GtNode {
 		Visitor.VisitCommandNode(this);
 	}
 
-	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst) {
-		//FIXME: Exception
-		return Context.Generator.EvalCommandNode(this, EnforceConst);
-	}
+//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst) {
+//		//FIXME: Exception
+//		return Context.Generator.EvalCommandNode(this, EnforceConst);
+//	}
 }

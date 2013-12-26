@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import parser.ast.GtErrorNode;
 import parser.ast.GtNode;
 import parser.deps.LibGreenTea;
+import parser.deps.LibNative;
 //endif VAJA
 
 public final class GtTokenContext extends GreenTeaUtils {
@@ -62,7 +63,7 @@ public final class GtTokenContext extends GreenTeaUtils {
 		Token.TokenFlag |= TokenFlag;
 		if(PatternName != null) {
 			Token.PresetPattern = this.TopLevelNameSpace.GetSyntaxPattern(PatternName);
-			LibGreenTea.Assert(Token.PresetPattern != null);
+			LibNative.Assert(Token.PresetPattern != null);
 		}
 		this.SourceList.add(Token);
 		return Token;
@@ -81,13 +82,13 @@ public final class GtTokenContext extends GreenTeaUtils {
 	@Deprecated
 	public void ReportTokenError1(int Level, String Message, String TokenText) {
 		/*local*/GtToken Token = this.AddNewToken(TokenText, 0, "$Error$");
-		this.TopLevelNameSpace.Context.ReportError(Level, Token, Message);
+		this.TopLevelNameSpace.Generator.ReportError(Level, Token, Message);
 	}
 
 	@Deprecated
 	public GtSyntaxTree NewErrorSyntaxTree(GtToken Token, String Message) {
 		if(!this.IsAllowedBackTrack()) {
-			this.TopLevelNameSpace.Context.ReportError(ErrorLevel, Token, Message);
+			this.TopLevelNameSpace.Generator.ReportError(GreenTeaConsts.ErrorLevel, Token, Message);
 			/*local*/GtSyntaxTree ErrorTree = new GtSyntaxTree(Token.PresetPattern, this.TopLevelNameSpace, Token, null);
 			return ErrorTree;
 		}
@@ -104,7 +105,7 @@ public final class GtTokenContext extends GreenTeaUtils {
 			}
 			return Token;
 		}
-		return null;
+		return this.LatestToken;
 	}
 
 	public void SkipErrorStatement() {
@@ -114,50 +115,50 @@ public final class GtTokenContext extends GreenTeaUtils {
 			if(T.IsDelim() || T.EqualsText("}")) {
 				break;
 			}
-			this.TopLevelNameSpace.Context.ReportError(InfoLevel, T, "skipping: " + T.ParsedText);
+			this.TopLevelNameSpace.Generator.ReportError(GreenTeaConsts.InfoLevel, T, "skipping: " + T.ParsedText);
 			this.Next();
 		}
 		this.LatestToken = LeastRecentToken;
 	}
 
-	@Deprecated
-	public GtSyntaxTree ReportTokenError2(GtToken Token, String Message, boolean SkipToken) {
-		if(this.IsAllowedBackTrack()) {
-			return null;
-		}
-		else {
-			/*local*/GtSyntaxTree ErrorTree = this.NewErrorSyntaxTree(Token, Message);
-			if(SkipToken) {
-				this.SkipErrorStatement();
-			}
-			return ErrorTree;
-		}
-	}
-
-	@Deprecated
-	public GtSyntaxTree ReportExpectedToken_OLD(String TokenText) {
-		if(!this.IsAllowedBackTrack()) {
-			/*local*/GtToken Token = this.GetBeforeToken();
-			if(Token != null) {
-				return this.NewErrorSyntaxTree(Token, TokenText + " is expected at " + Token.ParsedText);
-			}
-			else {
-				Token = this.LatestToken;
-				return this.NewErrorSyntaxTree(Token, TokenText + " is expected after " + Token.ParsedText);
-			}
-		}
-		return null;
-	}
-
-	@Deprecated
-	public GtSyntaxTree ReportExpectedPattern_OLD(GtSyntaxPattern Pattern) {
-		return this.ReportExpectedToken_OLD("syntax pattern " + Pattern.PatternName);
-	}
-
-	@Deprecated
-	public GtSyntaxTree ReportExpectedMessage(GtToken Token, String Message, boolean SkipToken) {
-		return this.ReportTokenError2(Token, "expected " + Message + "; given = " + Token.ParsedText, SkipToken);
-	}
+//	@Deprecated
+//	public GtSyntaxTree ReportTokenError2(GtToken Token, String Message, boolean SkipToken) {
+//		if(this.IsAllowedBackTrack()) {
+//			return null;
+//		}
+//		else {
+//			/*local*/GtSyntaxTree ErrorTree = this.NewErrorSyntaxTree(Token, Message);
+//			if(SkipToken) {
+//				this.SkipErrorStatement();
+//			}
+//			return ErrorTree;
+//		}
+//	}
+//
+//	@Deprecated
+//	public GtSyntaxTree ReportExpectedToken_OLD(String TokenText) {
+//		if(!this.IsAllowedBackTrack()) {
+//			/*local*/GtToken Token = this.GetBeforeToken();
+//			if(Token != null) {
+//				return this.NewErrorSyntaxTree(Token, TokenText + " is expected at " + Token.ParsedText);
+//			}
+//			else {
+//				Token = this.LatestToken;
+//				return this.NewErrorSyntaxTree(Token, TokenText + " is expected after " + Token.ParsedText);
+//			}
+//		}
+//		return null;
+//	}
+//
+//	@Deprecated
+//	public GtSyntaxTree ReportExpectedPattern_OLD(GtSyntaxPattern Pattern) {
+//		return this.ReportExpectedToken_OLD("syntax pattern " + Pattern.PatternName);
+//	}
+//
+//	@Deprecated
+//	public GtSyntaxTree ReportExpectedMessage(GtToken Token, String Message, boolean SkipToken) {
+//		return this.ReportTokenError2(Token, "expected " + Message + "; given = " + Token.ParsedText, SkipToken);
+//	}
 
 	public GtNode ReportExpectedToken(String TokenText) {
 		/*local*/GtToken Token = this.GetBeforeToken();
@@ -166,7 +167,7 @@ public final class GtTokenContext extends GreenTeaUtils {
 		}
 		else {
 			Token = this.LatestToken;
-			return new GtErrorNode(Token, TokenText + " is expected after " + Token.ParsedText)
+			return new GtErrorNode(Token, TokenText + " is expected after " + Token.ParsedText);
 		}
 	}
 
@@ -388,21 +389,21 @@ public final class GtTokenContext extends GreenTeaUtils {
 		return false;
 	}
 
-	public GtSyntaxTree CreateSyntaxTree(GtNameSpace NameSpace, Object Pattern, Object ConstValue) {
-		if(ConstValue != null) {
-			Pattern = NameSpace.GetSyntaxPattern("$Const$");
-		}
-		if(Pattern instanceof String) {
-			Pattern = NameSpace.GetSyntaxPattern(Pattern.toString());
-		}
-		return new GtSyntaxTree((/*cast*/GtSyntaxPattern)Pattern, NameSpace, this.GetToken(), ConstValue);
-	}
-
-	public GtSyntaxTree CreateMatchedSyntaxTree(GtNameSpace NameSpace, GtSyntaxPattern Pattern, String TokenText) {
-		/*local*/GtSyntaxTree SyntaxTree = this.CreateSyntaxTree(NameSpace, Pattern, null);
-		SyntaxTree.SetMatchedTokenAt(KeyTokenIndex, NameSpace, this, TokenText, Required);
-		return SyntaxTree;
-	}
+//	public GtSyntaxTree CreateSyntaxTree(GtNameSpace NameSpace, Object Pattern, Object ConstValue) {
+//		if(ConstValue != null) {
+//			Pattern = NameSpace.GetSyntaxPattern("$Const$");
+//		}
+//		if(Pattern instanceof String) {
+//			Pattern = NameSpace.GetSyntaxPattern(Pattern.toString());
+//		}
+//		return new GtSyntaxTree((/*cast*/GtSyntaxPattern)Pattern, NameSpace, this.GetToken(), ConstValue);
+//	}
+//
+//	public GtSyntaxTree CreateMatchedSyntaxTree(GtNameSpace NameSpace, GtSyntaxPattern Pattern, String TokenText) {
+//		/*local*/GtSyntaxTree SyntaxTree = this.CreateSyntaxTree(NameSpace, Pattern, null);
+//		SyntaxTree.SetMatchedTokenAt(KeyTokenIndex, NameSpace, this, TokenText, Required);
+//		return SyntaxTree;
+//	}
 
 	public final boolean IsAllowedBackTrack() {
 		return IsFlag(this.ParseFlag, BackTrackParseFlag);
@@ -441,7 +442,7 @@ public final class GtTokenContext extends GreenTeaUtils {
 			this.ParseFlag = this.ParseFlag | BackTrackParseFlag;
 		}
 		/*local*/GtSyntaxPattern Pattern = this.GetPattern(PatternName);
-		/*local*/GtNode ParsedNode = GtSyntaxPattern.ApplySyntaxPattern(NameSpace, this, LeftNode, Pattern);
+		/*local*/GtNode ParsedNode = GtSyntaxPattern.ApplyMatchPattern(NameSpace, this, LeftNode, Pattern);
 		this.ParseFlag = ParseFlag;
 		if(ParsedNode != null) {
 			return ParsedNode;
@@ -459,28 +460,28 @@ public final class GtTokenContext extends GreenTeaUtils {
 		return this.ParsePatternAfter(NameSpace, null, PatternName, MatchFlag);
 	}
 
-	public final GtSyntaxTree ParsePatternAfter_OLD(GtNameSpace NameSpace, GtSyntaxTree LeftTree, String PatternName, int MatchFlag) {
-		/*local*/int Pos = this.GetPosition(MatchFlag);
-		/*local*/int ParseFlag = this.ParseFlag;
-		if(IsFlag(MatchFlag, Optional)) {
-			this.ParseFlag = this.ParseFlag | BackTrackParseFlag;
-		}
-		/*local*/GtSyntaxPattern Pattern = this.GetPattern(PatternName);
-		if(Pattern == null) {
-			System.err.println("unknown pattern: " + PatternName);
-		}
-		/*local*/GtSyntaxTree SyntaxTree = GreenTeaUtils.ApplySyntaxPattern_OLD(NameSpace, this, LeftTree, Pattern);
-		this.ParseFlag = ParseFlag;
-		if(SyntaxTree != null) {
-			return SyntaxTree;
-		}
-		this.RollbackPosition(Pos, MatchFlag);
-		return null;
-	}
-
-	public final GtSyntaxTree ParsePattern_OLD(GtNameSpace NameSpace, String PatternName, int MatchFlag) {
-		return this.ParsePatternAfter_OLD(NameSpace, null, PatternName, MatchFlag);
-	}
+//	public final GtSyntaxTree ParsePatternAfter_OLD(GtNameSpace NameSpace, GtSyntaxTree LeftTree, String PatternName, int MatchFlag) {
+//		/*local*/int Pos = this.GetPosition(MatchFlag);
+//		/*local*/int ParseFlag = this.ParseFlag;
+//		if(IsFlag(MatchFlag, Optional)) {
+//			this.ParseFlag = this.ParseFlag | BackTrackParseFlag;
+//		}
+//		/*local*/GtSyntaxPattern Pattern = this.GetPattern(PatternName);
+//		if(Pattern == null) {
+//			System.err.println("unknown pattern: " + PatternName);
+//		}
+//		/*local*/GtSyntaxTree SyntaxTree = GreenTeaUtils.ApplySyntaxPattern_OLD(NameSpace, this, LeftTree, Pattern);
+//		this.ParseFlag = ParseFlag;
+//		if(SyntaxTree != null) {
+//			return SyntaxTree;
+//		}
+//		this.RollbackPosition(Pos, MatchFlag);
+//		return null;
+//	}
+//
+//	public final GtSyntaxTree ParsePattern_OLD(GtNameSpace NameSpace, String PatternName, int MatchFlag) {
+//		return this.ParsePatternAfter_OLD(NameSpace, null, PatternName, MatchFlag);
+//	}
 
 	public final GtMap SkipAndGetAnnotation(boolean IsAllowedDelim) {
 		// this is tentative implementation. In the future, you have to
@@ -523,7 +524,7 @@ public final class GtTokenContext extends GreenTeaUtils {
 //		if(this.HasNext()) {
 //			/*local*/GtToken Token = this.GetToken();
 //			if(!Token.IsIndent() && !Token.IsDelim()) {
-//				this.TopLevelNameSpace.Context.ReportError(WarningLevel, Token, "needs ;");
+//				this.TopLevelNameSpace.Generator.ReportError(GreenTeaConsts.WarningLevel, Token, "needs ;");
 //				if(Token.EqualsText("}")) {
 //					return;
 //				}

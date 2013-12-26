@@ -26,7 +26,6 @@
 package parser;
 import java.util.ArrayList;
 import java.util.Iterator;
-//endif VAJA
 
 import org.GreenTeaScript.GreenTeaTopObject;
 
@@ -35,6 +34,7 @@ import parser.deps.GreenTeaEnum;
 import parser.deps.GreenTeaObject;
 import parser.deps.LibGreenTea;
 import parser.deps.LibNative;
+//endif VAJA
 
 public class GtStaticTable implements GreenTeaConsts {
 
@@ -69,7 +69,7 @@ public class GtStaticTable implements GreenTeaConsts {
 			Id = GtStaticTable.SourceList.size();
 			GtStaticTable.SourceMap.put(FileName, Id);
 		}
-		return LibGreenTea.JoinIntId((/*cast*/int)Id, (/*cast*/int)Line);
+		return LibGreenTea.JoinIntId(Id, Line);
 	}
 
 
@@ -91,7 +91,7 @@ public class GtStaticTable implements GreenTeaConsts {
 
 	/*field*/private static boolean IsInit = false;
 	
-	public final static void InitParserContext(GtParserContext Context) {
+	public final static void InitNameSpace(GtNameSpace NameSpace) {
 //ifdef JAVA
 		if(!GtStaticTable.IsInit) {
 			ArrayType.TypeParams = new GtType[1];
@@ -118,18 +118,18 @@ public class GtStaticTable implements GreenTeaConsts {
 			GtStaticTable.SetNativeTypeName("java.util.Iterator",  GtStaticTable.IteratorType);
 			GtStaticTable.IsInit = true;
 		}
-		Context.RootNameSpace.AppendTypeName(GtStaticTable.TopType,  null);
-		Context.RootNameSpace.AppendTypeName(GtStaticTable.VoidType,  null);
-		Context.RootNameSpace.AppendTypeName(GtStaticTable.BooleanType, null);
-		Context.RootNameSpace.AppendTypeName(GtStaticTable.IntType, null);
-		Context.RootNameSpace.AppendTypeName(GtStaticTable.FloatType, null);
-		Context.RootNameSpace.AppendTypeName(GtStaticTable.StringType, null);
-		Context.RootNameSpace.AppendTypeName(GtStaticTable.VarType, null);
-		Context.RootNameSpace.AppendTypeName(GtStaticTable.AnyType, null);
-		Context.RootNameSpace.AppendTypeName(GtStaticTable.TypeType, null);
-		Context.RootNameSpace.AppendTypeName(GtStaticTable.ArrayType, null);
-		Context.RootNameSpace.AppendTypeName(GtStaticTable.FuncType, null);
-		Context.RootNameSpace.AppendTypeName(GtStaticTable.IteratorType, null);
+		NameSpace.AppendTypeName(GtStaticTable.TopType,  null);
+		NameSpace.AppendTypeName(GtStaticTable.VoidType,  null);
+		NameSpace.AppendTypeName(GtStaticTable.BooleanType, null);
+		NameSpace.AppendTypeName(GtStaticTable.IntType, null);
+		NameSpace.AppendTypeName(GtStaticTable.FloatType, null);
+		NameSpace.AppendTypeName(GtStaticTable.StringType, null);
+		NameSpace.AppendTypeName(GtStaticTable.VarType, null);
+		NameSpace.AppendTypeName(GtStaticTable.AnyType, null);
+		NameSpace.AppendTypeName(GtStaticTable.TypeType, null);
+		NameSpace.AppendTypeName(GtStaticTable.ArrayType, null);
+		NameSpace.AppendTypeName(GtStaticTable.FuncType, null);
+		NameSpace.AppendTypeName(GtStaticTable.IteratorType, null);
 //endif VAJA
 	}
 	
@@ -169,7 +169,7 @@ public class GtStaticTable implements GreenTeaConsts {
 	}
 
 	public final static GtType GetGenericType(GtType BaseType, int BaseIdx, ArrayList<GtType> TypeList, boolean IsCreation) {
-		LibGreenTea.Assert(BaseType.IsGenericType());
+		LibNative.Assert(BaseType.IsGenericType());
 		/*local*/String MangleName = GreenTeaUtils.MangleGenericType(BaseType, BaseIdx, TypeList);
 		/*local*/GtType GenericType = (/*cast*/GtType)GtStaticTable.ClassNameMap.GetOrNull(MangleName);
 		if(GenericType == null && IsCreation) {

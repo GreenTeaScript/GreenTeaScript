@@ -43,6 +43,9 @@ final public class GtErrorNode extends GtConstNode {
 	public static GtNode CreateExpectedToken(GtToken SourceToken, String TokenText) {
 		return new GtErrorNode(SourceToken, "expected " + TokenText);
 	}
+	@Override public final Object GetValue() {
+		return this.ErrorMessage;
+	}
 	@Override public void Accept(GtGenerator Visitor) {
 		Visitor.VisitErrorNode(this);
 	}

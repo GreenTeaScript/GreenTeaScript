@@ -32,6 +32,9 @@ final public class GtEmptyNode extends GtConstNode {
 	public GtEmptyNode/*constructor*/(GtToken Token) {
 		super(GtStaticTable.VarType, Token);
 	}
+	@Override public final Object GetValue() {
+		return null;
+	}
 	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 		return null;
 	}

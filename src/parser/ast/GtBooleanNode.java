@@ -41,4 +41,7 @@ final public class GtBooleanNode extends GtConstNode {
 	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 		return this.Value;
 	}
+	@Override public final Object GetValue() {
+		return this.Value;
+	}
 }

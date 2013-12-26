@@ -27,10 +27,10 @@ package parser;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-
 import parser.ast.GtNode;
-//endif VAJA
 import parser.deps.LibGreenTea;
+import parser.deps.LibNative;
+//endif VAJA
 
 
 public final class GtFunc extends GreenTeaUtils {
@@ -46,7 +46,7 @@ public final class GtFunc extends GreenTeaUtils {
 		this.FuncFlag = FuncFlag;
 		this.FuncName = FuncName;
 		this.Types = LibGreenTea.CompactTypeList(BaseIndex, ParamList);
-		LibGreenTea.Assert(this.Types.length > 0);
+		LibNative.Assert(this.Types.length > 0);
 		this.FuncType = null;
 		this.FuncBody = null;
 		this.FuncId = GtStaticTable.FuncPools.size();
@@ -101,7 +101,7 @@ public final class GtFunc extends GreenTeaUtils {
 	}
 
 	public final void SetReturnType(GtType ReturnType) {
-		LibGreenTea.Assert(this.GetReturnType().IsVarType());
+		LibNative.Assert(this.GetReturnType().IsVarType());
 		this.Types[0] = ReturnType;
 		this.FuncType = null; // reset
 	}
@@ -162,7 +162,7 @@ public final class GtFunc extends GreenTeaUtils {
 	}
 
 	public final void SetNativeMacro(String NativeMacro) {
-		LibGreenTea.Assert(this.FuncBody == null);
+		LibNative.Assert(this.FuncBody == null);
 		this.FuncFlag |= NativeMacroFunc;
 		this.FuncBody = NativeMacro;
 	}
@@ -189,29 +189,29 @@ public final class GtFunc extends GreenTeaUtils {
 		return false;
 	}
 
-	public void GenerateNativeFunc() {
-		if(this.HasStaticBlock()) {
-			/*local*/GtFuncBlock FuncBlock = (/*cast*/GtFuncBlock)this.FuncBody;
-			/*local*/GtTypeEnv Gamma = new GtTypeEnv(FuncBlock.NameSpace);
-			/*local*/int i = 0;
-			/*local*/ArrayList<String> NameList = new ArrayList<String>();
-			while(i <  FuncBlock.NameList.size()) {
-				/*local*/GtVariableInfo VarInfo = Gamma.AppendDeclaredVariable(0, FuncBlock.DefinedFunc.Types[i+1], FuncBlock.NameList.get(i), null, null);
-				NameList.add(VarInfo.NativeName);
-				i = i + 1;
-			}
-			Gamma.FuncBlock = FuncBlock;
-			/*local*/GtNode BodyNode = GreenTeaUtils.TypeBlock(Gamma, FuncBlock.FuncBlock, GtStaticTable.VoidType);
-			if(Gamma.FoundUncommonFunc) {
-				Gamma.FuncBlock.DefinedFunc.FuncFlag = UnsetFlag(Gamma.FuncBlock.DefinedFunc.FuncFlag, CommonFunc);
-			}
-			/*local*/String FuncName = FuncBlock.DefinedFunc.GetNativeFuncName();
-			Gamma.Generator.GenerateFunc(FuncBlock.DefinedFunc, NameList, BodyNode);
-			if(FuncName.equals("main")) {
-				Gamma.Generator.InvokeMainFunc(FuncName);
-			}
-		}
-	}
+//	public void GenerateNativeFunc() {
+//		if(this.HasStaticBlock()) {
+//			/*local*/GtFuncBlock FuncBlock = (/*cast*/GtFuncBlock)this.FuncBody;
+//			/*local*/GtTypeEnv Gamma = new GtTypeEnv(FuncBlock.NameSpace);
+//			/*local*/int i = 0;
+//			/*local*/ArrayList<String> NameList = new ArrayList<String>();
+//			while(i <  FuncBlock.NameList.size()) {
+//				/*local*/GtVariableInfo VarInfo = Gamma.AppendDeclaredVariable(0, FuncBlock.DefinedFunc.Types[i+1], FuncBlock.NameList.get(i), null, null);
+//				NameList.add(VarInfo.NativeName);
+//				i = i + 1;
+//			}
+//			Gamma.FuncBlock = FuncBlock;
+//			/*local*/GtNode BodyNode = GreenTeaUtils.TypeBlock(Gamma, FuncBlock.FuncBlock, GtStaticTable.VoidType);
+//			if(Gamma.FoundUncommonFunc) {
+//				Gamma.FuncBlock.DefinedFunc.FuncFlag = UnsetFlag(Gamma.FuncBlock.DefinedFunc.FuncFlag, CommonFunc);
+//			}
+//			/*local*/String FuncName = FuncBlock.DefinedFunc.GetNativeFuncName();
+//			Gamma.Generator.GenerateFunc(FuncBlock.DefinedFunc, NameList, BodyNode);
+//			if(FuncName.equals("main")) {
+//				Gamma.Generator.InvokeMainFunc(FuncName);
+//			}
+//		}
+//	}
 
 	public boolean HasLazyBlock() {
 		if(this.FuncBody instanceof GtFuncBlock) {

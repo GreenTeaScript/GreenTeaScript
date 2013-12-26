@@ -42,44 +42,15 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import org.GreenTeaScript.BashSourceGenerator;
-import org.GreenTeaScript.CSourceGenerator;
-import org.GreenTeaScript.CommonLispSourceGenerator;
-import org.GreenTeaScript.JavaByteCodeGenerator;
-import org.GreenTeaScript.JavaScriptSourceGenerator;
-import org.GreenTeaScript.KonohaByteCodeGenerator;
-import org.GreenTeaScript.PerlSourceGenerator;
-import org.GreenTeaScript.PythonSourceGenerator;
-
 import parser.GreenTeaConsts;
 import parser.GreenTeaUtils;
 import parser.GtFunc;
-import parser.GtGenerator;
 import parser.GtMap;
-import parser.GtNameSpace;
-import parser.GtParserContext;
-import parser.GtPolyFunc;
 import parser.GtSourceBuilder;
 import parser.GtStaticTable;
 import parser.GtType;
 
 public abstract class LibGreenTea implements GreenTeaConsts {
-	// LibGreenTea KonohaApi
-	public final static void print(Object msg) {
-		System.out.print(msg);
-	}
-
-	public final static void println(Object msg) {
-		System.out.println(msg);
-	}
-	
-	public final static void Assert(boolean TestResult) {
-		if(!TestResult) {
-			assert TestResult;
-			Exit(1, "Assertion Failed");
-		}
-	}
-
 	public final static GreenTeaArray NewArray(GtType Type, Object[] InitSizes) {
 		if(InitSizes.length == 1) {
 			return GreenTeaArray.NewArray1(Type.TypeParams[0], ((Number)InitSizes[0]).intValue());
@@ -110,57 +81,57 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return LibNative.ApplyMethod(Func, null, Params);
 	}
 
-	public static Object InvokeOverridedMethod(long FileLine, GtNameSpace NameSpace, GtFunc Func, Object[] Arguments) {
-		/*local*/GtType ClassType = GtStaticTable.GuessType(Arguments[0]);
-		Func = NameSpace.GetOverridedMethod(ClassType, Func);
-		return LibGreenTea.InvokeFunc(Func, Arguments);
-	}
-
-	public static Object InvokeDynamicFunc(long FileLine, GtType ContextType, GtNameSpace NameSpace, String FuncName, Object[] Arguments) {
-		/*local*/GtPolyFunc PolyFunc = NameSpace.GetPolyFunc(FuncName);
-		/*local*/GtFunc Func = PolyFunc.GetMatchedFunc(NameSpace, Arguments);
-		/*local*/Object Value = ContextType.DefaultNullValue;
-		if(Func != null) {
-			Value = LibGreenTea.InvokeFunc(Func, Arguments);
-			return LibGreenTea.DynamicCast(ContextType, Value);
-		}
-		LibGreenTea.VerboseLog(VerboseRuntime, PolyFunc.FormatTypeErrorMessage("function", null, FuncName));
-		return Value;
-	}
-
-	public static final Object InvokeDynamicMethod(long FileLine, GtType ContextType, GtNameSpace NameSpace, String FuncName, Object[] Arguments) {
-		/*local*/GtType ClassType = GtStaticTable.GuessType(Arguments[0]);
-		/*local*/GtPolyFunc PolyFunc = NameSpace.GetMethod(ClassType, FuncName, true);
-		/*local*/GtFunc Func = PolyFunc.GetMatchedFunc(NameSpace, Arguments);
-		/*local*/Object Value = ContextType.DefaultNullValue;
-		if(Func != null) {
-			Value = LibGreenTea.InvokeFunc(Func, Arguments);
-			return LibGreenTea.DynamicCast(ContextType, Value);
-		}
-		LibGreenTea.VerboseLog(VerboseRuntime, PolyFunc.FormatTypeErrorMessage("method", ClassType, FuncName));
-		return Value;
-	}
-	
-	public static Object DynamicGetter(Object RecvObject, String FieldName) {
-		try {
-			Field JavaField = RecvObject.getClass().getField(FieldName);
-			return JavaField.get(RecvObject);
-		} catch (Exception e) {
-			LibGreenTea.VerboseException(e);
-		}
-		return null;
-	}
-
-	public static Object DynamicSetter(Object RecvObject, String FieldName, Object Value) {
-		try {
-			Field JavaField = RecvObject.getClass().getField(FieldName);
-			JavaField.set(RecvObject, Value);
-			return JavaField.get(RecvObject);
-		} catch (Exception e) {
-			LibGreenTea.VerboseException(e);
-		}
-		return null;
-	}
+//	public static Object InvokeOverridedMethod(long FileLine, GtNameSpace NameSpace, GtFunc Func, Object[] Arguments) {
+//		/*local*/GtType ClassType = GtStaticTable.GuessType(Arguments[0]);
+//		Func = NameSpace.GetOverridedMethod(ClassType, Func);
+//		return LibGreenTea.InvokeFunc(Func, Arguments);
+//	}
+//
+//	public static Object InvokeDynamicFunc(long FileLine, GtType ContextType, GtNameSpace NameSpace, String FuncName, Object[] Arguments) {
+//		/*local*/GtPolyFunc PolyFunc = NameSpace.GetPolyFunc(FuncName);
+//		/*local*/GtFunc Func = PolyFunc.GetMatchedFunc(NameSpace, Arguments);
+//		/*local*/Object Value = ContextType.DefaultNullValue;
+//		if(Func != null) {
+//			Value = LibGreenTea.InvokeFunc(Func, Arguments);
+//			return LibGreenTea.DynamicCast(ContextType, Value);
+//		}
+//		LibGreenTea.VerboseLog(VerboseRuntime, PolyFunc.FormatTypeErrorMessage("function", null, FuncName));
+//		return Value;
+//	}
+//
+//	public static final Object InvokeDynamicMethod(long FileLine, GtType ContextType, GtNameSpace NameSpace, String FuncName, Object[] Arguments) {
+//		/*local*/GtType ClassType = GtStaticTable.GuessType(Arguments[0]);
+//		/*local*/GtPolyFunc PolyFunc = NameSpace.GetMethod(ClassType, FuncName, true);
+//		/*local*/GtFunc Func = PolyFunc.GetMatchedFunc(NameSpace, Arguments);
+//		/*local*/Object Value = ContextType.DefaultNullValue;
+//		if(Func != null) {
+//			Value = LibGreenTea.InvokeFunc(Func, Arguments);
+//			return LibGreenTea.DynamicCast(ContextType, Value);
+//		}
+//		LibGreenTea.VerboseLog(VerboseRuntime, PolyFunc.FormatTypeErrorMessage("method", ClassType, FuncName));
+//		return Value;
+//	}
+//	
+//	public static Object DynamicGetter(Object RecvObject, String FieldName) {
+//		try {
+//			Field JavaField = RecvObject.getClass().getField(FieldName);
+//			return JavaField.get(RecvObject);
+//		} catch (Exception e) {
+//			LibGreenTea.VerboseException(e);
+//		}
+//		return null;
+//	}
+//
+//	public static Object DynamicSetter(Object RecvObject, String FieldName, Object Value) {
+//		try {
+//			Field JavaField = RecvObject.getClass().getField(FieldName);
+//			JavaField.set(RecvObject, Value);
+//			return JavaField.get(RecvObject);
+//		} catch (Exception e) {
+//			LibGreenTea.VerboseException(e);
+//		}
+//		return null;
+//	}
 		
 	public final static String GetPlatform() {
 		return "Java JVM-" + System.getProperty("java.version");
@@ -180,12 +151,12 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 	}
 
 	public final static void TODO(String msg) {
-		LibGreenTea.println("TODO" + LibGreenTea.GetStackInfo(2) + ": " + msg);
+		LibNative.println("TODO" + LibGreenTea.GetStackInfo(2) + ": " + msg);
 	}
 
 	public final static void DebugP(String msg) {
 		if(LibGreenTea.DebugMode) {
-			LibGreenTea.println("DEBUG" + LibGreenTea.GetStackInfo(2) + ": " + msg);
+			LibNative.println("DEBUG" + LibGreenTea.GetStackInfo(2) + ": " + msg);
 		}
 	}
 
@@ -193,7 +164,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 
 	public final static void VerboseLog(int VerboseFlag, String Message) {
 		if((LibGreenTea.VerboseMask & VerboseFlag) == VerboseFlag) {
-			LibGreenTea.println("GreenTea: " + Message);
+			LibNative.println("GreenTea: " + Message);
 		}
 	}
 
@@ -211,14 +182,9 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		LibGreenTea.VerboseLog(GreenTeaUtils.VerboseException, e.toString());
 		e.printStackTrace();
 		if(e instanceof IllegalArgumentException) {
-			LibGreenTea.Exit(1, e.toString());
+			LibNative.Exit(1, e.toString());
 		}
 		
-	}
-
-	public final static void Exit(int status, String Message) {
-		System.err.println(Message);
-		System.exit(1);
 	}
 
 	private static int ParserCount = -1;
@@ -431,19 +397,18 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		}
 		return SetNativeMethod(new GtFunc(0, JavaMethod.getName(), 0, TypeList), JavaMethod);
 	}
-
 	
-	public final static void LoadNativeConstructors(GtParserContext Context, GtType ClassType, ArrayList<GtFunc> FuncList) {
-		LibNative.LoadNativeConstructors(Context, ClassType, FuncList);
-	}
-	
-	public final static GtFunc LoadNativeField(GtParserContext Context, GtType ClassType, String FieldName, boolean GetSetter) {
-		return LibNative.LoadNativeField(Context, ClassType, FieldName, GetSetter);
-	}
-
-	public final static void LoadNativeMethods(GtParserContext Context, GtType ClassType, String FuncName, ArrayList<GtFunc> FuncList) {
-		LibNative.LoadNativeMethods(Context, ClassType, FuncName, FuncList);
-	}
+//	public final static void LoadNativeConstructors(GtParserContext Context, GtType ClassType, ArrayList<GtFunc> FuncList) {
+//		LibNative.LoadNativeConstructors(Context, ClassType, FuncList);
+//	}
+//	
+//	public final static GtFunc LoadNativeField(GtParserContext Context, GtType ClassType, String FieldName, boolean GetSetter) {
+//		return LibNative.LoadNativeField(Context, ClassType, FieldName, GetSetter);
+//	}
+//
+//	public final static void LoadNativeMethods(GtParserContext Context, GtType ClassType, String FuncName, ArrayList<GtFunc> FuncList) {
+//		LibNative.LoadNativeMethods(Context, ClassType, FuncName, FuncList);
+//	}
 
 	public static Object NativeFieldGetter(Object ObjectValue, Field NativeField) {
 		try {
@@ -549,7 +514,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		System.out.println("     --verbose:native     adding native class info");
 		System.out.println("     --verbose:all        adding all info");
 		System.out.println("     --verbose:no         no log");
-		LibGreenTea.Exit(0, Message);
+		LibNative.Exit(0, Message);
 	}
 
 	public final static String DetectTargetCode(String Extension, String TargetCode) {
@@ -578,45 +543,6 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 			return "c";
 		}
 		return TargetCode;
-	}
-
-	public final static GtGenerator CodeGenerator(String TargetCode, String OutputFile, int GeneratorFlag) {
-		String Extension = (OutputFile == null) ? "-" : OutputFile;
-		TargetCode = DetectTargetCode(Extension, TargetCode);
-		TargetCode = TargetCode.toLowerCase();
-		if(TargetCode.startsWith("js") || TargetCode.startsWith("javascript")) {
-			return new JavaScriptSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
-		}
-		else if(TargetCode.startsWith("pl") || TargetCode.startsWith("perl")) {
-			return new PerlSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
-		}
-		else if(TargetCode.startsWith("python")) {
-			return new PythonSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
-		}
-		else if(TargetCode.startsWith("bash")) {
-			return new BashSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
-		}
-//		else if(TargetCode.startsWith("scala")) {
-//			return new ScalaSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
-//		}
-		// FIXME CSharpSourceCodeGenerator.java is missing.
-		//else if(TargetCode.startsWith("csharp")) {
-		//	return new CSharpSourceCodeGenerator(TargetCode, OutputFile, GeneratorFlag);
-		//}
-		else if(TargetCode.startsWith("exe")) {
-			return new JavaByteCodeGenerator(TargetCode, OutputFile, GeneratorFlag);
-		}
-		else if(TargetCode.startsWith("c")) {
-			return new CSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
-		}
-		else if(TargetCode.startsWith("lisp")) {
-			return new CommonLispSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
-		}
-		else if(TargetCode.startsWith("minikonoha")) {
-			return new KonohaByteCodeGenerator(TargetCode, OutputFile, GeneratorFlag);
-			//return new MiniKonohaSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
-		}
-		return null;
 	}
 
 	@Deprecated public final static void WriteCode(String OutputFile, String SourceCode) {
@@ -705,7 +631,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 			}
 			if(level < 0) {
 				Line = "";
-				LibGreenTea.println(" .. canceled");
+				LibNative.println(" .. canceled");
 			}
 		}
 		return Line;
@@ -748,7 +674,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 			}
 			if(level < 0) {
 				Line = "";
-				LibGreenTea.println(" .. canceled");
+				LibNative.println(" .. canceled");
 			}
 		}
 		ConsoleReader.getHistory().add(Line);

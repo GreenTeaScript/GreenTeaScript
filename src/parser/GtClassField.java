@@ -30,7 +30,7 @@ import java.util.ArrayList;
 
 public final class GtClassField extends GreenTeaUtils {
 	/*field*/ public GtType DefinedType;
-	/*field*/ private GtNameSpace NameSpace;
+	/*field*/ private final GtNameSpace NameSpace;
 	/*field*/ public ArrayList<GtFieldInfo> FieldList;
 	/*field*/ public int ThisClassIndex;
 
@@ -50,30 +50,30 @@ public final class GtClassField extends GreenTeaUtils {
 		this.ThisClassIndex = this.FieldList.size();
 	}
 
-	public GtFieldInfo CreateField(int FieldFlag, GtType Type, String Name, GtToken SourceToken, Object InitValue) {
-		/*local*/int i = 0;
-		while(i < this.FieldList.size()) {
-			/*local*/GtFieldInfo FieldInfo = this.FieldList.get(i);
-			if(FieldInfo.Name.equals(Name)) {
-				this.NameSpace.Context.ReportError_OLD(WarningLevel, SourceToken, "duplicated field: " + Name);
-				return null;
-			}
-			i = i + 1;
-		}
-		/*local*/GtFieldInfo FieldInfo2 = new GtFieldInfo(FieldFlag, Type, Name, this.FieldList.size(), InitValue);
-		/*local*/ArrayList<GtType> ParamList = new ArrayList<GtType>();
-		ParamList.add(FieldInfo2.Type);
-		ParamList.add(this.DefinedType);
-		FieldInfo2.GetterFunc = new GtFunc(GetterFunc, FieldInfo2.Name, 0, ParamList);
-		this.NameSpace.SetGetterFunc(this.DefinedType, FieldInfo2.Name, FieldInfo2.GetterFunc, SourceToken);
-		ParamList.clear();
-		ParamList.add(GtStaticTable.VoidType);
-		ParamList.add(this.DefinedType);
-		ParamList.add(FieldInfo2.Type);
-		FieldInfo2.SetterFunc = new GtFunc(SetterFunc, FieldInfo2.Name, 0, ParamList);
-		this.NameSpace.SetSetterFunc(this.DefinedType, FieldInfo2.Name, FieldInfo2.SetterFunc, SourceToken);
-		this.FieldList.add(FieldInfo2);
-		return FieldInfo2;
-	}
+//	public GtFieldInfo CreateField(int FieldFlag, GtType Type, String Name, GtToken SourceToken, Object InitValue) {
+//		/*local*/int i = 0;
+//		while(i < this.FieldList.size()) {
+//			/*local*/GtFieldInfo FieldInfo = this.FieldList.get(i);
+//			if(FieldInfo.Name.equals(Name)) {
+//				this.NameSpace.Context.ReportError_OLD(GreenTeaConsts.WarningLevel, SourceToken, "duplicated field: " + Name);
+//				return null;
+//			}
+//			i = i + 1;
+//		}
+//		/*local*/GtFieldInfo FieldInfo2 = new GtFieldInfo(FieldFlag, Type, Name, this.FieldList.size(), InitValue);
+//		/*local*/ArrayList<GtType> ParamList = new ArrayList<GtType>();
+//		ParamList.add(FieldInfo2.Type);
+//		ParamList.add(this.DefinedType);
+//		FieldInfo2.GetterFunc = new GtFunc(GetterFunc, FieldInfo2.Name, 0, ParamList);
+//		this.NameSpace.SetGetterFunc(this.DefinedType, FieldInfo2.Name, FieldInfo2.GetterFunc, SourceToken);
+//		ParamList.clear();
+//		ParamList.add(GtStaticTable.VoidType);
+//		ParamList.add(this.DefinedType);
+//		ParamList.add(FieldInfo2.Type);
+//		FieldInfo2.SetterFunc = new GtFunc(SetterFunc, FieldInfo2.Name, 0, ParamList);
+//		this.NameSpace.SetSetterFunc(this.DefinedType, FieldInfo2.Name, FieldInfo2.SetterFunc, SourceToken);
+//		this.FieldList.add(FieldInfo2);
+//		return FieldInfo2;
+//	}
 }
 

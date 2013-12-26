@@ -162,7 +162,7 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 	@Override public GtNode CreateErrorNode(GtType Type, GtSyntaxTree ParsedTree) {
 		/*local*/GtNameSpace NameSpace = ParsedTree.NameSpace;
 		/*local*/GtType ClassType = NameSpace.GetType("SoftwareFaultException");
-		LibGreenTea.Assert(ClassType != null);
+		LibNative.Assert(ClassType != null);
 		/*local*/GtPolyFunc PolyFunc = NameSpace.GetConstructorFunc(ClassType);
 		/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
 		
@@ -595,7 +595,7 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 	
 	@Override public void VisitUnaryNode(GtUnaryNode Node) {
 		/*local*/GtFunc Func = Node.ResolvedFunc;
-		LibGreenTea.Assert(Func.Is(NativeMacroFunc));
+		LibNative.Assert(Func.Is(NativeMacroFunc));
 		/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
 		ParamList.add(Node.RecvNode);
 		this.AppendCode("(");
@@ -605,7 +605,7 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 
 	@Override public void VisitBinaryNode(GtBinaryNode Node) {
 		/*local*/GtFunc Func = Node.ResolvedFunc;
-		LibGreenTea.Assert(Func.Is(NativeMacroFunc));
+		LibNative.Assert(Func.Is(NativeMacroFunc));
 		/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
 		ParamList.add(Node.LeftNode);
 		ParamList.add(Node.RightNode);

@@ -27,13 +27,14 @@ package parser.ast;
 
 import parser.GtGenerator;
 import parser.GtParserContext;
+import parser.GtSyntaxPattern;
 import parser.GtToken;
 import parser.deps.LibGreenTea;
 
 //E.g., $LeftNode || $RightNode
 final public class GtOrNode extends GtBinaryNode {
-	public GtOrNode/*constructor*/(GtToken Token, GtNode Left) {
-		super(Token, Left);
+	public GtOrNode/*constructor*/(GtToken Token, GtNode Left, GtSyntaxPattern Pattern) {
+		super(Token, Left, Pattern);
 	}
 	@Override public void Accept(GtGenerator Visitor) {
 		Visitor.VisitOrNode(this);

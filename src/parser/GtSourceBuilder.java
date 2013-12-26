@@ -30,6 +30,7 @@ import java.util.ArrayList;
 
 import parser.ast.GtNode;
 import parser.deps.LibGreenTea;
+import parser.deps.LibNative;
 
 public class GtSourceBuilder {
 	/*field*/public ArrayList<String> SourceList;
@@ -80,7 +81,7 @@ public class GtSourceBuilder {
 	public final void UnIndent() {
 		this.IndentLevel -= 1;
 		this.CurrentIndentString = null;
-		LibGreenTea.Assert(this.IndentLevel >= 0);
+		LibNative.Assert(this.IndentLevel >= 0);
 	}
 
 	private final String GetIndentString() {

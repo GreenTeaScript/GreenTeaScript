@@ -26,7 +26,6 @@ package parser;
 
 import java.util.ArrayList;
 
-import parser.ast.GtNode;
 import parser.deps.LibGreenTea;
 import parser.deps.LibNative;
 
@@ -147,51 +146,51 @@ public class GreenTeaUtils implements GreenTeaConsts {
 //		return GreenTeaUtils.TreeTail(Node);
 //	}
 
-	public final static GtSyntaxTree ApplySyntaxPattern_OLD(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-		/*local*/int Pos = TokenContext.GetPosition(0);
-		/*local*/int ParseFlag = TokenContext.ParseFlag;
-		/*local*/GtSyntaxPattern CurrentPattern = Pattern;
-		while(CurrentPattern != null) {
-			/*local*/GtFunc delegate = CurrentPattern.MatchFunc;
-			TokenContext.RollbackPosition(Pos, 0);
-			if(CurrentPattern.ParentPattern != null) {   // This means it has next patterns
-				TokenContext.ParseFlag = ParseFlag | BackTrackParseFlag;
-			}
-			//LibGreenTea.DebugP("B :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + ", next=" + CurrentPattern.ParentPattern);
-			TokenContext.IndentLevel += 1;
-			/*local*/GtSyntaxTree ParsedTree = LibNative.ApplyParseFunc(delegate, NameSpace, TokenContext, LeftTree, CurrentPattern);
-			TokenContext.IndentLevel -= 1;
-			TokenContext.ParseFlag = ParseFlag;
-			if(ParsedTree != null && ParsedTree.IsMismatched()) {
-				ParsedTree = null;
-			}
-			//LibGreenTea.DebugP("E :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + " => " + ParsedTree);
-			if(ParsedTree != null) {
-				return ParsedTree;
-			}
-			CurrentPattern = CurrentPattern.ParentPattern;
-		}
-		if(TokenContext.IsAllowedBackTrack()) {
-			TokenContext.RollbackPosition(Pos, 0);
-		}
-		else {
-			TokenContext.SkipErrorStatement();
-		}
-		if(Pattern == null) {
-			LibGreenTea.VerboseLog(VerboseUndefined, "undefined syntax pattern: " + Pattern);
-		}
-		return TokenContext.ReportExpectedPattern_OLD(Pattern);
-	}
+//	public final static GtSyntaxTree ApplySyntaxPattern_OLD(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+//		/*local*/int Pos = TokenContext.GetPosition(0);
+//		/*local*/int ParseFlag = TokenContext.ParseFlag;
+//		/*local*/GtSyntaxPattern CurrentPattern = Pattern;
+//		while(CurrentPattern != null) {
+//			/*local*/GtFunc delegate = CurrentPattern.MatchFunc;
+//			TokenContext.RollbackPosition(Pos, 0);
+//			if(CurrentPattern.ParentPattern != null) {   // This means it has next patterns
+//				TokenContext.ParseFlag = ParseFlag | BackTrackParseFlag;
+//			}
+//			//LibGreenTea.DebugP("B :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + ", next=" + CurrentPattern.ParentPattern);
+//			TokenContext.IndentLevel += 1;
+//			/*local*/GtSyntaxTree ParsedTree = LibNative.ApplyParseFunc(delegate, NameSpace, TokenContext, LeftTree, CurrentPattern);
+//			TokenContext.IndentLevel -= 1;
+//			TokenContext.ParseFlag = ParseFlag;
+//			if(ParsedTree != null && ParsedTree.IsMismatched()) {
+//				ParsedTree = null;
+//			}
+//			//LibGreenTea.DebugP("E :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + " => " + ParsedTree);
+//			if(ParsedTree != null) {
+//				return ParsedTree;
+//			}
+//			CurrentPattern = CurrentPattern.ParentPattern;
+//		}
+//		if(TokenContext.IsAllowedBackTrack()) {
+//			TokenContext.RollbackPosition(Pos, 0);
+//		}
+//		else {
+//			TokenContext.SkipErrorStatement();
+//		}
+//		if(Pattern == null) {
+//			LibGreenTea.VerboseLog(VerboseUndefined, "undefined syntax pattern: " + Pattern);
+//		}
+//		return TokenContext.ReportExpectedPattern_OLD(Pattern);
+//	}
 
-
-	// typing
-	public final static GtNode ApplyTypeFunc(GtFunc TypeFunc, GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
-		if(TypeFunc != null) {
-			Gamma.NameSpace = ParsedTree.NameSpace;
-			return LibNative.ApplyTypeFunc(TypeFunc, Gamma, ParsedTree, Type);
-		}
-		return Gamma.Generator.CreateEmptyNode(GtStaticTable.VoidType);
-	}
+//
+//	// typing
+//	public final static GtNode ApplyTypeFunc(GtFunc TypeFunc, GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType Type) {
+//		if(TypeFunc != null) {
+//			Gamma.NameSpace = ParsedTree.NameSpace;
+//			return LibNative.ApplyTypeFunc(TypeFunc, Gamma, ParsedTree, Type);
+//		}
+//		return Gamma.Generator.CreateEmptyNode(GtStaticTable.VoidType);
+//	}
 
 /*GreenTeaUtils End*/
 //ifdef JAVA

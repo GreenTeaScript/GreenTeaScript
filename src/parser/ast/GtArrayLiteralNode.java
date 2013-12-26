@@ -27,7 +27,6 @@ package parser.ast;
 import java.util.ArrayList;
 
 import parser.GtGenerator;
-import parser.GtParserContext;
 import parser.GtToken;
 import parser.GtType;
 
@@ -44,10 +43,10 @@ final public class GtArrayLiteralNode extends GtNode {   // => ArrayLiteral
 	@Override public void Accept(GtGenerator Visitor) {
 		Visitor.VisitArrayLiteralNode(this);
 	}
-	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
-		if(EnforceConst) {
-			return Context.Generator.EvalArrayNode(this, EnforceConst);
-		}
-		return null;
-	}
+//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+//		if(EnforceConst) {
+//			return Context.Generator.EvalArrayNode(this, EnforceConst);
+//		}
+//		return null;
+//	}
 }

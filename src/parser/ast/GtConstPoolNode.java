@@ -25,7 +25,6 @@
 package parser.ast;
 
 import parser.GtGenerator;
-import parser.GtParserContext;
 import parser.GtToken;
 import parser.GtType;
 
@@ -40,7 +39,11 @@ final public class GtConstPoolNode extends GtConstNode {
 		// using StaticApplyNode => GetConstPool(ConstPoolId);
 		Visitor.VisitConstPoolNode(this);
 	}
-	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+	@Override public final Object GetValue() {
 		return this.ConstValue;
 	}
+//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+//		return this.ConstValue;
+//	}
+	
 }

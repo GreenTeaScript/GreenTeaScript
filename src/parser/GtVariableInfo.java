@@ -51,20 +51,20 @@ public class GtVariableInfo {
 		return (NameSpace.FuncBlock != this.FuncBlock);
 	}
 
-	public final void Defined() {
-		this.DefCount += 1;
-//		this.InitValue = null;
-	}
-
-	public final void Used() {
-		this.UsedCount += 1;
-	}
-
-	public void Check(GtParserContext Context) {
-		if(this.UsedCount == 0 && this.SourceToken != null) {
-			Context.ReportError_OLD(GreenTeaConsts.WarningLevel, this.SourceToken, "unused variable: " + this.Name);
-		}
-	}
+//	public final void Defined() {
+//		this.DefCount += 1;
+////		this.InitValue = null;
+//	}
+//
+//	public final void Used() {
+//		this.UsedCount += 1;
+//	}
+//
+//	public void Check(GtParserContext Context) {
+//		if(this.UsedCount == 0 && this.SourceToken != null) {
+//			Context.ReportError_OLD(GreenTeaConsts.WarningLevel, this.SourceToken, "unused variable: " + this.Name);
+//		}
+//	}
 	// for debug
 	@Override public String toString() {
 		return "(" + this.Type + " " + this.Name + ", " + this.NativeName + ")";

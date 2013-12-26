@@ -25,7 +25,6 @@
 package parser.ast;
 
 import parser.GtGenerator;
-import parser.GtParserContext;
 import parser.GtToken;
 import parser.GtType;
 
@@ -37,7 +36,7 @@ final public class GtAllocateNode extends GtNode {
 	@Override public void Accept(GtGenerator Visitor) {
 		Visitor.VisitAllocateNode(this);
 	}
-	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
-		return Context.Generator.EvalAllocateNode(this, EnforceConst);
-	}	
+//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+//		return Context.Generator.EvalAllocateNode(this, EnforceConst);
+//	}	
 }

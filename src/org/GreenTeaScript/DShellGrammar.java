@@ -168,7 +168,7 @@ public class DShellGrammar extends GreenTeaUtils {
 			if(loc != -1) {
 //ifdef JAVA
 				if(!IsFileExecutable(CommandPath)) {
-					NameSpace.Context.ReportError_OLD(ErrorLevel, SourceToken, "not executable: " + CommandPath);
+					NameSpace.Context.ReportError_OLD(GreenTeaConsts.ErrorLevel, SourceToken, "not executable: " + CommandPath);
 				}
 				else {
 //endif VAJA
@@ -188,7 +188,7 @@ public class DShellGrammar extends GreenTeaUtils {
 //ifdef JAVA
 				}
 				else {
-					NameSpace.Context.ReportError_OLD(ErrorLevel, SourceToken, "unknown command: " + CommandPath);
+					NameSpace.Context.ReportError_OLD(GreenTeaConsts.ErrorLevel, SourceToken, "unknown command: " + CommandPath);
 				}
 //endif VAJA
 			}
@@ -262,7 +262,7 @@ public class DShellGrammar extends GreenTeaUtils {
 			}
 		}
 		if(Env == null) {
-			NameSpace.Context.ReportError_OLD(ErrorLevel, Token, "undefined environment variable: " + Name);
+			NameSpace.Context.ReportError_OLD(GreenTeaConsts.ErrorLevel, Token, "undefined environment variable: " + Name);
 			CommandTree.ToError(Token);
 		}
 		else {
@@ -364,7 +364,7 @@ public class DShellGrammar extends GreenTeaUtils {
 			/*local*/String OperatorSymbol = GtNameSpace.FuncSymbol(ParsedTree.KeyToken.ParsedText);
 			/*local*/GtPolyFunc PolyFunc = Gamma.NameSpace.GetMethod(GtStaticTable.StringType, OperatorSymbol, true);
 			/*local*/GtFunc ResolvedFunc = PolyFunc.ResolveUnaryMethod(Gamma, PathNode.Type);
-			LibGreenTea.Assert(ResolvedFunc != null);
+			LibNative.Assert(ResolvedFunc != null);
 			/*local*/GtNode ApplyNode =  Gamma.Generator.CreateApplySymbolNode(ResolvedFunc.GetReturnType(), ParsedTree, OperatorSymbol, ResolvedFunc);
 			ApplyNode.Append(Gamma.Generator.CreateConstNode_OLD(GtStaticTable.VarType, ParsedTree, ResolvedFunc));
 			ApplyNode.Append(PathNode);
@@ -509,7 +509,7 @@ public class DShellGrammar extends GreenTeaUtils {
 		}
 		else {
 			Type = ParsedTree.NameSpace.GetType("Task");
-			LibGreenTea.Assert(Type != null);
+			LibNative.Assert(Type != null);
 		}
 		/*local*/GtNode PipedNode = null;
 		/*local*/int Index = 0;

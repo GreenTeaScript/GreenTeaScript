@@ -55,6 +55,7 @@ import parser.ast.GtTrinaryNode;
 import parser.ast.GtUnaryNode;
 import parser.deps.GreenTeaEnum;
 import parser.deps.LibGreenTea;
+import parser.deps.LibNative;
 
 @Deprecated
 public class SourceGenerator extends GtGenerator {
@@ -162,7 +163,7 @@ public class SourceGenerator extends GtGenerator {
 	public final void UnIndent() {
 		this.IndentLevel -= 1;
 		this.CurrentLevelIndentString = null;
-		LibGreenTea.Assert(this.IndentLevel >= 0);
+		LibNative.Assert(this.IndentLevel >= 0);
 	}
 
 	public final String GetIndentString() {

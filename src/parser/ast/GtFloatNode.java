@@ -35,6 +35,9 @@ final public class GtFloatNode extends GtConstNode {
 		super(Type, Token);
 		this.Value = Value;
 	}
+	@Override public final Object GetValue() {
+		return this.Value;
+	}
 	@Override public void Accept(GtGenerator Visitor) {
 		Visitor.VisitFloatNode(this);
 	}

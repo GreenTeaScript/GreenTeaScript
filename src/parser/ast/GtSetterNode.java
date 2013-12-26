@@ -25,7 +25,6 @@
 package parser.ast;
 
 import parser.GtGenerator;
-import parser.GtParserContext;
 import parser.GtStaticTable;
 import parser.GtToken;
 
@@ -47,7 +46,7 @@ final public class GtSetterNode extends GtSymbolNode {
 	@Override public void Accept(GtGenerator Visitor) {
 		Visitor.VisitSetterNode(this);
 	}
-	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
-		return Context.Generator.EvalSetterNode(this, EnforceConst);
-	}
+//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+//		return Context.Generator.EvalSetterNode(this, EnforceConst);
+//	}
 }

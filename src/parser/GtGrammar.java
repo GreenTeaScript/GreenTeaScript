@@ -27,18 +27,18 @@ package parser;
 
 
 public class GtGrammar {
-//ifdef JAVA
-	public final static GtFunc LoadTokenFunc(GtParserContext ParserContext, Object Grammar, String FuncName) {
-		return GreenTeaUtils.LoadTokenFunc2(ParserContext, Grammar.getClass(), FuncName);
-	}
-	public final static GtFunc LoadParseFunc(GtParserContext ParserContext, Object Grammar, String FuncName) {
-		return GreenTeaUtils.LoadParseFunc2(ParserContext, Grammar.getClass(), FuncName);
-	}
-	public final static GtFunc LoadTypeFunc(GtParserContext ParserContext, Object Grammar, String FuncName) {
-		return GreenTeaUtils.LoadTypeFunc2(ParserContext, Grammar.getClass(), FuncName);
-	}
-//endif VAJA
-	public void LoadTo(GtNameSpace NameSpace) {
-		/*extension*/
-	}
+////ifdef JAVA
+//	public final static GtFunc LoadTokenFunc(GtParserContext ParserContext, Object Grammar, String FuncName) {
+//		return GreenTeaUtils.LoadTokenFunc2(ParserContext, Grammar.getClass(), FuncName);
+//	}
+//	public final static GtFunc LoadParseFunc(GtParserContext ParserContext, Object Grammar, String FuncName) {
+//		return GreenTeaUtils.LoadParseFunc2(ParserContext, Grammar.getClass(), FuncName);
+//	}
+//	public final static GtFunc LoadTypeFunc(GtParserContext ParserContext, Object Grammar, String FuncName) {
+//		return GreenTeaUtils.LoadTypeFunc2(ParserContext, Grammar.getClass(), FuncName);
+//	}
+////endif VAJA
+//	public void LoadTo(GtNameSpace NameSpace) {
+//		/*extension*/
+//	}
 }

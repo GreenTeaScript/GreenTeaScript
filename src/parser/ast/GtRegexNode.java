@@ -42,4 +42,7 @@ final public class GtRegexNode extends GtConstNode {
 	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 		return this.Value;
 	}
+	@Override public Object GetValue() {
+		return this.Value;
+	}
 }

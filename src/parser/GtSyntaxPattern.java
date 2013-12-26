@@ -96,8 +96,7 @@ public final class GtSyntaxPattern extends GreenTeaUtils {
 		if(Pattern == null) {
 			LibGreenTea.VerboseLog(VerboseUndefined, "undefined syntax pattern: " + Pattern);
 		}
-		
-		return GtErrorNode.CreateExpectedToken(SourceToken, Pattern.PatternName);
+		return GtErrorNode.CreateExpectedToken(TokenContext.GetBeforeToken(), Pattern.PatternName);
 	}
 
 

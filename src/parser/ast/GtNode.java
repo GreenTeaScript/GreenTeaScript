@@ -26,7 +26,6 @@
 package parser.ast;
 import java.util.ArrayList;
 
-import parser.GreenTeaUtils;
 import parser.GtGenerator;
 import parser.GtNameSpace;
 import parser.GtParserContext;
@@ -157,9 +156,9 @@ public class GtNode {
 	}
 	@Deprecated
 	public final Object ToNullValue(GtParserContext Context, boolean EnforceConst) {
-		if(EnforceConst) {
-			Context.ReportError_OLD(GreenTeaUtils.ErrorLevel, this.Token, "value must be constant in this context");
-		}
+//		if(EnforceConst) {
+//			Context.ReportError_OLD(GreenTeaUtils.ErrorLevel, this.Token, "value must be constant in this context");
+//		}
 		return null;
 	}
 	@Deprecated

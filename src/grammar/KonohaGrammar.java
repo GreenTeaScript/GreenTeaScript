@@ -444,14 +444,14 @@ public class KonohaGrammar extends GtGrammar {
 //				return NextPos + 1;
 //			}
 //			if(ch == '\n') {
-//				TokenContext.ReportTokenError(ErrorLevel, "expected \" to close the string literal", LibGreenTea.SubString(SourceText, start, NextPos));
+//				TokenContext.ReportTokenError(GreenTeaConsts.ErrorLevel, "expected \" to close the string literal", LibGreenTea.SubString(SourceText, start, NextPos));
 //				TokenContext.FoundLineFeed(1);
 //				return NextPos;
 //			}
 //			NextPos = NextPos + 1;
 //			prev = ch;
 //		}
-//		TokenContext.ReportTokenError(ErrorLevel, "expected \" to close the string literal", LibGreenTea.SubString(SourceText, start, NextPos));
+//		TokenContext.ReportTokenError(GreenTeaConsts.ErrorLevel, "expected \" to close the string literal", LibGreenTea.SubString(SourceText, start, NextPos));
 //		return NextPos;
 //	}
 	

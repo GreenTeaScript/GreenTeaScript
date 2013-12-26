@@ -25,15 +25,14 @@
 //ifdef JAVA
 package parser;
 import java.util.ArrayList;
-//endif VAJA
-
 
 import parser.ast.GtNode;
 import parser.deps.GreenTeaEnum;
 import parser.deps.LibGreenTea;
+//endif VAJA
 
 public class GtSourceGenerator extends GtGenerator {
-	/*field*/private ArrayList<GtSourceBuilder> BuilderList;
+	/*field*/private final ArrayList<GtSourceBuilder> BuilderList;
 	/*field*/protected GtSourceBuilder HeaderBuilder;
 	/*field*/protected GtSourceBuilder VisitingBuilder;
 	
@@ -106,7 +105,7 @@ public class GtSourceGenerator extends GtGenerator {
 
 	public final void FlushErrorReport() {
 		/*local*/GtSourceBuilder Builder = this.NewSourceBuilder();
-		/*local*/String[] Reports = this.Context.GetReportedErrors();
+		/*local*/String[] Reports = this.GetReportedErrors();
 		/*local*/int i = 0;
 		Builder.AppendLine("");
 		while(i < Reports.length) {

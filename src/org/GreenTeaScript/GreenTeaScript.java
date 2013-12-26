@@ -29,7 +29,7 @@ package org.GreenTeaScript;
 import grammar.KonohaGrammar;
 import parser.GreenTeaUtils;
 import parser.GtGenerator;
-import parser.GtParserContext;
+import parser.GtNameSpace;
 import parser.GtStaticTable;
 import parser.deps.GreenTeaArray;
 import parser.deps.LibGreenTea;
@@ -113,19 +113,18 @@ public class GreenTeaScript extends GreenTeaUtils {
 			}
 			LibGreenTea.Usage(Argu + " is unknown");
 		}
-		/*local*/GtGenerator Generator = LibGreenTea.CodeGenerator(TargetCode, OutputFile, GeneratorFlag);
-		if(Generator == null) {
-			LibGreenTea.Usage("no target: " + TargetCode);
-		}
-		/*local*/GtParserContext Context = new GtParserContext(new KonohaGrammar(), Generator);
-		if(RequiredLibName != null) {
-			if(!Context.TopLevelNameSpace.LoadRequiredLib(RequiredLibName)) {
-				LibGreenTea.Exit(1, "failed to load required library: " + RequiredLibName);
-			}
-		}
-		if(OneLiner != null) {
-			Context.TopLevelNameSpace.Eval(OneLiner, 1);
-		}
+		/*local*/GtNameSpace TopLevelNameSpace = new GtNameSpace(null);
+		/*local*/GtGenerator Generator = LibNative.LoadGenerator(TargetCode, OutputFile);
+		LibNative.ImportGrammar(TopLevelNameSpace, KonohaGrammar.class.getName());
+//		/*local*/GtParserContext Context = new GtParserContext(new KonohaGrammar(), Generator);
+//		if(RequiredLibName != null) {
+//			if(!Context.TopLevelNameSpace.LoadRequiredLib(RequiredLibName)) {
+//				LibGreenTea.Exit(1, "failed to load required library: " + RequiredLibName);
+//			}
+//		}
+//		if(OneLiner != null) {
+//			Context.TopLevelNameSpace.Eval(OneLiner, 1);
+//		}
 		if(!(Index < Args.length)) {
 			ShellMode = true;
 		}
@@ -134,32 +133,32 @@ public class GreenTeaScript extends GreenTeaUtils {
 			ARGV.ArrayBody.add(Args[Index]);
 			Index += 1;
 		}
-		Context.RootNameSpace.SetSymbol("ARGV", ARGV, null);
+		TopLevelNameSpace.SetSymbol("ARGV", ARGV, null);
 		if(ARGV.ArrayBody.size() > 0) {
 			/*local*/String FileName = (/*cast*/String)ARGV.ArrayBody.get(0);
 			/*local*/String ScriptText = LibGreenTea.LoadFile2(FileName);
 			if(ScriptText == null) {
-				LibGreenTea.Exit(1, "file not found: " + FileName);
+				LibNative.Exit(1, "file not found: " + FileName);
 			}
 			/*local*/long FileLine = GtStaticTable.GetFileLine(FileName, 1);
-			/*local*/boolean Success = Context.TopLevelNameSpace.Load(ScriptText, FileLine);
-			Context.ShowReportedErrors();
+			/*local*/boolean Success = TopLevelNameSpace.Load(ScriptText, FileLine);
+			Generator.ShowReportedErrors();
 			if(!Success) {
-				LibGreenTea.Exit(1, "abort loading: " + FileName);
+				LibNative.Exit(1, "abort loading: " + FileName);
 			}
 		}
 		if(ShellMode) {
-			LibGreenTea.println(GreenTeaUtils.ProgName + GreenTeaUtils.Version + " (" + GreenTeaUtils.CodeName + ") on " + LibGreenTea.GetPlatform());
-			LibGreenTea.println(GreenTeaUtils.Copyright);
-			Context.ShowReportedErrors();
+			LibNative.println(GreenTeaUtils.ProgName + GreenTeaUtils.Version + " (" + GreenTeaUtils.CodeName + ") on " + LibGreenTea.GetPlatform());
+			LibNative.println(GreenTeaUtils.Copyright);
+			Generator.ShowReportedErrors();
 			/*local*/int linenum = 1;
 			/*local*/String Line = null;
 			while((Line = LibGreenTea.ReadLine2(">>> ", "    ")) != null) {
 				try {
-					/*local*/Object EvaledValue = Context.TopLevelNameSpace.Eval(Line, linenum);
-					Context.ShowReportedErrors();
+					/*local*/Object EvaledValue = TopLevelNameSpace.Eval(Line, linenum);
+					Generator.ShowReportedErrors();
 					if(EvaledValue != null) {
-						LibGreenTea.println(" (" + GtStaticTable.GuessType(EvaledValue) + ":" + LibNative.GetClassName(EvaledValue) + ") " + LibGreenTea.Stringify(EvaledValue));
+						LibNative.println(" (" + GtStaticTable.GuessType(EvaledValue) + ":" + LibNative.GetClassName(EvaledValue) + ") " + LibGreenTea.Stringify(EvaledValue));
 					}
 					linenum += 1;
 				}
@@ -168,7 +167,7 @@ public class GreenTeaScript extends GreenTeaUtils {
 					linenum += 1;
 				}
 			}
-			LibGreenTea.println("");
+			LibNative.println("");
 		}
 		/* else if(TargetCode.equals("minikonoha")) {
 			String SourceCode = Generator.GetSourceCode();
