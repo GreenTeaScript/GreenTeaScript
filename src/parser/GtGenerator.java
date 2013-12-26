@@ -116,7 +116,7 @@ public class GtGenerator extends GreenTeaUtils {
 	public void InitContext(GtParserContext Context) {
 		this.Context = Context;
 		this.GeneratedCodeStack = new ArrayList<Object>();
-		Context.RootNameSpace.LoadRequiredLib("common");
+//		Context.RootNameSpace.LoadRequiredLib("common");
 	}
 
 //	public final void SetNoErrorReport(boolean b) {
