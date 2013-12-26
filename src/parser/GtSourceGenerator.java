@@ -48,19 +48,6 @@ public class GtSourceGenerator extends GtGenerator {
 	/*field*/public String    FalseLiteral;
 	/*field*/public String    NullLiteral;
 
-//	/*field*/public int       IndentLevel;
-//	/*field*/public String    CurrentLevelIndentString;
-//
-//	/*field*/public boolean   HasLabelSupport;
-//	/*field*/public String    LogicalOrOperator;
-//	/*field*/public String    LogicalAndOperator;
-//	/*field*/public String    MemberAccessOperator;
-//	/*field*/public String    BreakKeyword;
-//	/*field*/public String    ContinueKeyword;
-//	/*field*/public String    ParameterBegin;
-//	/*field*/public String    ParameterEnd;
-//	/*field*/public String    ParameterDelimiter;
-
 	public GtSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
 		this.BuilderList = new ArrayList<GtSourceBuilder>();
@@ -77,20 +64,6 @@ public class GtSourceGenerator extends GtGenerator {
 		this.TrueLiteral  = "true";
 		this.FalseLiteral = "false";
 		this.NullLiteral  = "null";
-
-//		this.CurrentLevelIndentString = null;
-//
-//		this.HasLabelSupport = false;
-//		this.LogicalOrOperator  = "||";
-//		this.LogicalAndOperator = "&&";
-//		this.MemberAccessOperator = ".";
-//		this.BreakKeyword = "break";
-//		this.ContinueKeyword = "continue";
-//		this.LineComment  = "//";
-//		this.ParameterBegin = "(";
-//		this.ParameterEnd = ")";
-//		this.ParameterDelimiter = ",";
-//		this.SemiColon = ";";
 	}
 
 	@Override public void InitContext(GtNameSpace Context) {
