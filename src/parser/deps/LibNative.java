@@ -38,6 +38,13 @@ package parser.deps;
 //import java.lang.reflect.Constructor;
 //import java.lang.reflect.Field;
 //import java.lang.reflect.InvocationTargetException;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -502,6 +509,34 @@ public class LibNative {
 	public final static void Exit(int status, String Message) {
 		System.err.println(Message);
 		System.exit(1);
+	}
+
+	public final static String LoadScript(String FileName) {
+		LibGreenTea.VerboseLog(GreenTeaUtils.VerboseFile, "loading " + FileName);
+		InputStream Stream = LibGreenTea.class.getResourceAsStream("/" + FileName);
+		if(Stream == null) {
+			File f = new File(LibGreenTea.FormatFilePath(FileName));
+			try {
+				Stream = new FileInputStream(f);
+			} catch (FileNotFoundException e) {
+				return null;
+			}
+		}
+		BufferedReader reader = new BufferedReader(new InputStreamReader(Stream));
+		String buffer = "";
+		try {
+			int buflen = 4096;
+			int readed = 0;
+			char[] buf = new char[buflen];
+			StringBuilder builder = new StringBuilder();
+			while((readed = reader.read(buf, 0, buflen)) >= 0) {
+				builder.append(buf, 0, readed);
+			}
+			buffer = builder.toString();
+		} catch (IOException e) {
+			return null;
+		}
+		return buffer;
 	}
 
 	

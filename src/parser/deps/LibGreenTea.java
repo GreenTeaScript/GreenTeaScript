@@ -27,11 +27,8 @@
 package parser.deps;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.Writer;
@@ -696,7 +693,7 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 		return "lib/" + TargetCode + "/" + LibName + ".green";
 	}
 
-	private final static String FormatFilePath(String FileName) {
+	final static String FormatFilePath(String FileName) {
 		String Path = FileName;
 		if(HasFile(Path)) {
 			return Path;
@@ -709,34 +706,6 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 			return Path;
 		}
 		return FileName;
-	}
-
-	public final static String LoadFile2(String FileName) {
-		LibGreenTea.VerboseLog(GreenTeaUtils.VerboseFile, "loading " + FileName);
-		InputStream Stream = LibGreenTea.class.getResourceAsStream("/" + FileName);
-		if(Stream == null) {
-			File f = new File(FormatFilePath(FileName));
-			try {
-				Stream = new FileInputStream(f);
-			} catch (FileNotFoundException e) {
-				return null;
-			}
-		}
-		BufferedReader reader = new BufferedReader(new InputStreamReader(Stream));
-		String buffer = "";
-		try {
-			int buflen = 4096;
-			int readed = 0;
-			char[] buf = new char[buflen];
-			StringBuilder builder = new StringBuilder();
-			while((readed = reader.read(buf, 0, buflen)) >= 0) {
-				builder.append(buf, 0, readed);
-			}
-			buffer = builder.toString();
-		} catch (IOException e) {
-			return null;
-		}
-		return buffer;
 	}
 
 	public static long JoinIntId(int UpperId, int LowerId) {
@@ -752,7 +721,6 @@ public abstract class LibGreenTea implements GreenTeaConsts {
 	public static int LowerId(long FileLine) {
 		return (int)FileLine;
 	}
-
 	
 	public static boolean booleanValue(Object Value) {
 		return ((Boolean)Value).booleanValue();

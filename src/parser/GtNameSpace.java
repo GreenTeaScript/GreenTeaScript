@@ -567,28 +567,20 @@ public final class GtNameSpace extends GreenTeaUtils {
 		/*local*/GtTokenContext TokenContext = new GtTokenContext(this, ScriptText, FileLine);
 		TokenContext.SkipEmptyStatement();
 		while(TokenContext.HasNext()) {
-			/*local*/GtMap Annotation = TokenContext.SkipAndGetAnnotation(true);
 			TokenContext.ParseFlag = 0; // init
-			//System.err.println("** TokenContext.Position=" + TokenContext.CurrentPosition + ", " + TokenContext.IsAllowedBackTrack());
+			TokenContext.SkipAndGetAnnotation(true);
 			/*local*/GtNode TopLevelNode = TokenContext.ParsePattern(this, "$Expression$", Required);
-			TokenContext.SkipEmptyStatement();
 			TopLevelNode = this.TypeCheck(TopLevelNode, GtStaticTable.VoidType, GreenTeaConsts.AllowVoidPolicy);
 			TopLevelNode.Accept(this.Generator);
-			if(!TopLevelNode.Type.IsVarType()) {
+			if(TopLevelNode.IsErrorNode() && TokenContext.HasNext()) {
+				/*local*/GtToken Token = TokenContext.GetToken();
+				this.Generator.ReportError(GreenTeaConsts.InfoLevel, TokenContext.GetToken(), "stopping script eval at " + Token.ParsedText);
+				return null;
+			}
+			if(!TopLevelNode.Type.IsVoidType()) {
 				ResultValue = TopLevelNode.Eval(this, true/*EnforceConst*/);
 			}
-//			if(TopLevelNode.IsError() && TokenContext.HasNext()) {
-//				/*local*/GtToken Token = TokenContext.GetToken();
-//				this.Generator.ReportError(GreenTeaConsts.InfoLevel, TokenContext.GetToken(), "stopping script eval at " + Token.ParsedText);
-//				ResultValue = TopLevelNode.KeyToken;  // in case of error, return error token
-//				break;
-//			}
-//			if(TopLevelNode.IsValidSyntax()) {
-//				TopLevelNode.SetAnnotation(Annotation);
-//				/*local*/GtTypeEnv Gamma = new GtTypeEnv(this);
-//				/*local*/GtNode Node = TopLevelNode.TypeCheck(Gamma, GtStaticTable.VoidType, DefaultTypeCheckPolicy);
-//				ResultValue = Node.ToConstValue(this.Context, true/*EnforceConst*/);
-//			}
+			TokenContext.SkipEmptyStatement();
 			TokenContext.Vacume();
 		}
 		return ResultValue;
@@ -611,7 +603,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 	}
 
 	public final boolean LoadFile(String FileName) {
-		/*local*/String ScriptText = LibGreenTea.LoadFile2(FileName);
+		/*local*/String ScriptText = LibNative.LoadScript(FileName);
 		if(ScriptText != null) {
 			/*local*/long FileLine = GtStaticTable.GetFileLine(FileName, 1);
 			return this.Load(ScriptText, FileLine);
@@ -623,7 +615,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 		/*local*/String Key = GreenTeaUtils.NativeNameSuffix + "L" + LibName.toLowerCase();
 		if(!this.HasSymbol(Key)) {
 			/*local*/String Path = LibGreenTea.GetLibPath(this.Generator.TargetCode, LibName);
-			/*local*/String Script = LibGreenTea.LoadFile2(Path);
+			/*local*/String Script = LibNative.LoadScript(Path);
 			if(Script != null) {
 				/*local*/long FileLine = GtStaticTable.GetFileLine(Path, 1);
 				if(this.Load(Script, FileLine)) {
