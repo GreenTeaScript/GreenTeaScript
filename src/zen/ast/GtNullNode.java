@@ -24,10 +24,17 @@
 
 package zen.ast;
 
+<<<<<<< HEAD:src/zen/ast/GtNullNode.java
 import zen.parser.GtGenerator;
 import zen.parser.GtNameSpace;
 import zen.parser.GtStaticTable;
 import zen.parser.GtToken;
+=======
+import parser.GtNameSpace;
+import parser.GtNodeVisitor;
+import parser.GtStaticTable;
+import parser.GtToken;
+>>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast/GtNullNode.java
 
 final public class GtNullNode extends GtConstNode {
 	public GtNullNode/*constructor*/(GtToken SourceToken) {
@@ -36,7 +43,7 @@ final public class GtNullNode extends GtConstNode {
 	@Override public final Object GetValue() {
 		return null;
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitNullNode(this);
 	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {

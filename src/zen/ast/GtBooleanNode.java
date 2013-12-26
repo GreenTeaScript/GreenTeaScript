@@ -24,10 +24,17 @@
 
 package zen.ast;
 
+<<<<<<< HEAD:src/zen/ast/GtBooleanNode.java
 import zen.parser.GtGenerator;
 import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
 import zen.parser.GtType;
+=======
+import parser.GtNameSpace;
+import parser.GtNodeVisitor;
+import parser.GtToken;
+import parser.GtType;
+>>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast/GtBooleanNode.java
 
 final public class GtBooleanNode extends GtConstNode {
 	/*field*/public boolean	Value;
@@ -35,7 +42,7 @@ final public class GtBooleanNode extends GtConstNode {
 		super(Type, Token);
 		this.Value = Value;
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitBooleanNode(this);
 	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {

@@ -103,10 +103,10 @@ public class JavaScriptSourceGenerator extends GtSourceGenerator {
 			i += 1;
 		}
 		Builder.Append(")");
-		/*local*/GtSourceBuilder PushedBuilder = this.VisitingBuilder;
-		this.VisitingBuilder = Builder;
+		/*local*/GtSourceBuilder PushedBuilder = this.CurrentBuilder;
+		this.CurrentBuilder = Builder;
 		this.VisitIndentBlock("{", Body, "}");
-		this.VisitingBuilder = PushedBuilder;
+		this.CurrentBuilder = PushedBuilder;
 		System.out.println(Builder);
 	}
 	
@@ -130,26 +130,26 @@ var CLASS = (function (_super) {
  */
 	
 	@Override public void OpenClassField(GtSyntaxTree ParsedTree, GtType Type, GtClassField ClassField) {
-		this.VisitingBuilder = this.NewSourceBuilder();
-		this.VisitingBuilder.AppendIndent();
-		this.VisitingBuilder.Append("var  ");
-		this.VisitingBuilder.Append(Type.ShortName);
-		this.VisitingBuilder.AppendLine(" = (function(_super) {");
-		this.VisitingBuilder.Indent();
+		this.CurrentBuilder = this.NewSourceBuilder();
+		this.CurrentBuilder.AppendIndent();
+		this.CurrentBuilder.Append("var  ");
+		this.CurrentBuilder.Append(Type.ShortName);
+		this.CurrentBuilder.AppendLine(" = (function(_super) {");
+		this.CurrentBuilder.Indent();
 		
 		if(Type.SuperType != null){
-			this.VisitingBuilder.AppendIndent();
-			this.VisitingBuilder.Append("__extends(");
-			this.VisitingBuilder.Append(Type.ShortName);
-			this.VisitingBuilder.AppendLine(", _super);");
+			this.CurrentBuilder.AppendIndent();
+			this.CurrentBuilder.Append("__extends(");
+			this.CurrentBuilder.Append(Type.ShortName);
+			this.CurrentBuilder.AppendLine(", _super);");
 		}
 		
-		this.VisitingBuilder.AppendIndent();
-		this.VisitingBuilder.Append("function ");
-		this.VisitingBuilder.Append(Type.ShortName);
-		this.VisitingBuilder.Append("(");
-		this.VisitingBuilder.AppendLine(") {");
-		this.VisitingBuilder.Indent();
+		this.CurrentBuilder.AppendIndent();
+		this.CurrentBuilder.Append("function ");
+		this.CurrentBuilder.Append(Type.ShortName);
+		this.CurrentBuilder.Append("(");
+		this.CurrentBuilder.AppendLine(") {");
+		this.CurrentBuilder.Indent();
 		
 		/*local*/int i = 0;
 		/*local*/int size = LibGreenTea.ListSize(ClassField.FieldList);
@@ -159,34 +159,34 @@ var CLASS = (function (_super) {
 			if(!FieldInfo.Type.IsNativeType()) {
 				InitValue = this.NullLiteral;
 			}
-			this.VisitingBuilder.AppendIndent();
-			this.VisitingBuilder.Append("this.");
-			this.VisitingBuilder.Append(FieldInfo.NativeName);
-			this.VisitingBuilder.Append(" = ");
-			this.VisitingBuilder.Append(InitValue);
-			this.VisitingBuilder.AppendLine(this.SemiColon);
+			this.CurrentBuilder.AppendIndent();
+			this.CurrentBuilder.Append("this.");
+			this.CurrentBuilder.Append(FieldInfo.NativeName);
+			this.CurrentBuilder.Append(" = ");
+			this.CurrentBuilder.Append(InitValue);
+			this.CurrentBuilder.AppendLine(this.SemiColon);
 			i += 1;
 		}
-		this.VisitingBuilder.UnIndent();
-		this.VisitingBuilder.AppendIndent();
-		this.VisitingBuilder.AppendLine("};");
-		this.VisitingBuilder.AppendIndent();
-		this.VisitingBuilder.Append("return  ");
-		this.VisitingBuilder.Append(Type.ShortName);
-		this.VisitingBuilder.AppendLine(";");
-		this.VisitingBuilder.Append("})");
+		this.CurrentBuilder.UnIndent();
+		this.CurrentBuilder.AppendIndent();
+		this.CurrentBuilder.AppendLine("};");
+		this.CurrentBuilder.AppendIndent();
+		this.CurrentBuilder.Append("return  ");
+		this.CurrentBuilder.Append(Type.ShortName);
+		this.CurrentBuilder.AppendLine(";");
+		this.CurrentBuilder.Append("})");
 		if(Type.SuperType != null){
-			this.VisitingBuilder.Append("(");
-			this.VisitingBuilder.Append(Type.SuperType.ShortName);
-			this.VisitingBuilder.Append(")");
+			this.CurrentBuilder.Append("(");
+			this.CurrentBuilder.Append(Type.SuperType.ShortName);
+			this.CurrentBuilder.Append(")");
 		}
-		this.VisitingBuilder.AppendLine(";");
+		this.CurrentBuilder.AppendLine(";");
 	}
 
 	@Override public void InvokeMainFunc(String MainFuncName) {
-		this.VisitingBuilder = this.NewSourceBuilder();
-		this.VisitingBuilder.Append(MainFuncName);
-		this.VisitingBuilder.AppendLine("();");
+		this.CurrentBuilder = this.NewSourceBuilder();
+		this.CurrentBuilder.Append(MainFuncName);
+		this.CurrentBuilder.AppendLine("();");
 	}
 	
 	private final boolean DoesNodeExist(GtNode Node){
@@ -194,9 +194,9 @@ var CLASS = (function (_super) {
 	}
 	
 	private final void DebugAppendNode(GtNode Node){
-		this.VisitingBuilder.Append("/* ");
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
-		this.VisitingBuilder.Append(" */");
+		this.CurrentBuilder.Append("/* ");
+		this.CurrentBuilder.Append(Node.getClass().getSimpleName());
+		this.CurrentBuilder.Append(" */");
 		if(Node.NextNode != null){
 			Node.NextNode.Accept(this); 
 		}
@@ -215,9 +215,9 @@ var CLASS = (function (_super) {
 //	}
 	@Override public void VisitTrinaryNode(GtTrinaryNode Node) {
 		Node.CondNode.Accept(this);
-		this.VisitingBuilder.Append(" ? ");
+		this.CurrentBuilder.Append(" ? ");
 		Node.ThenNode.Accept(this);
-		this.VisitingBuilder.Append(" : ");
+		this.CurrentBuilder.Append(" : ");
 		Node.ElseNode.Accept(this);
 	}
 //	@Override public void VisitExistsNode(GtExistsNode Node) {
@@ -242,7 +242,7 @@ var CLASS = (function (_super) {
 		this.DebugAppendNode(Node);
 	}
 	@Override public void VisitUnaryNode(GtUnaryNode Node) {
-		this.VisitingBuilder.Append(Node.Token.ParsedText);
+		this.CurrentBuilder.Append(Node.Token.ParsedText);
 		Node.RecvNode.Accept(this);
 	}
 //	@Override public void VisitIndexerNode(GtIndexerNode Node) {
@@ -269,104 +269,104 @@ var CLASS = (function (_super) {
 		this.DebugAppendNode(Node);
 	}
 	@Override public void VisitConstPoolNode(GtConstPoolNode Node) {
-		this.VisitingBuilder.Append(Node.Token.ParsedText);
+		this.CurrentBuilder.Append(Node.Token.ParsedText);
 	}
 	@Override public void VisitAllocateNode(GtAllocateNode Node) {
-		this.VisitingBuilder.Append("new ");
-		this.VisitingBuilder.Append(Node.Type.ShortName);
-		this.VisitingBuilder.Append("()");
+		this.CurrentBuilder.Append("new ");
+		this.CurrentBuilder.Append(Node.Type.ShortName);
+		this.CurrentBuilder.Append("()");
 	}
 	@Override public void VisitConstructorNode(GtConstructorNode Node) {
 		this.DebugAppendNode(Node);
 	}
 	@Override public void VisitNullNode(GtNullNode Node) {
-		this.VisitingBuilder.Append(this.NullLiteral);
+		this.CurrentBuilder.Append(this.NullLiteral);
 	}
 	@Override public void VisitGetLocalNode(GtGetLocalNode Node) {
-		this.VisitingBuilder.Append(Node.Token.ParsedText);
+		this.CurrentBuilder.Append(Node.Token.ParsedText);
 	}
 	@Override public void VisitGetterNode(GtGetterNode Node) {
 		Node.RecvNode.Accept(this);
-		this.VisitingBuilder.Append(".");
-		this.VisitingBuilder.Append(Node.NativeName);
+		this.CurrentBuilder.Append(".");
+		this.CurrentBuilder.Append(Node.NativeName);
 	}
 	@Override public void VisitSetterNode(GtSetterNode Node) {
 		Node.RecvNode.Accept(this);
-		this.VisitingBuilder.Append(".");
-		this.VisitingBuilder.Append(Node.NativeName);
-		this.VisitingBuilder.Append(" = ");
+		this.CurrentBuilder.Append(".");
+		this.CurrentBuilder.Append(Node.NativeName);
+		this.CurrentBuilder.Append(" = ");
 		Node.ValueNode.Accept(this);
 	}
 	@Override public void VisitApplySymbolNode(GtApplySymbolNode Node) {
-		this.VisitingBuilder.Append(Node.NativeName);
-		this.VisitingBuilder.Append("(");
+		this.CurrentBuilder.Append(Node.NativeName);
+		this.CurrentBuilder.Append("(");
 		for(/*local*/int i = 0; i < LibGreenTea.ListSize(Node.ParamList); i++){
 			if(i > 0){
-				this.VisitingBuilder.Append(", ");
+				this.CurrentBuilder.Append(", ");
 			}
 			Node.ParamList.get(i).Accept(this);
 		}
-		this.VisitingBuilder.Append(")");
+		this.CurrentBuilder.Append(")");
 	}
 	@Override public void VisitApplyOverridedMethodNode(GtApplyOverridedMethodNode Node) {
-		this.VisitingBuilder.Append(Node.Func.GetNativeFuncName());
-		this.VisitingBuilder.Append("(");
+		this.CurrentBuilder.Append(Node.Func.GetNativeFuncName());
+		this.CurrentBuilder.Append("(");
 		for(/*local*/int i = 0; i < LibGreenTea.ListSize(Node.ParamList); i++){
 			if(i > 0){
-				this.VisitingBuilder.Append(", ");
+				this.CurrentBuilder.Append(", ");
 			}
 			Node.ParamList.get(i).Accept(this);
 		}
-		this.VisitingBuilder.Append(")");
+		this.CurrentBuilder.Append(")");
 	}
 	
 	// e. g  (function(...){...})(...)
 	@Override public void VisitApplyFunctionObjectNode(GtApplyFunctionObjectNode Node) {
-		this.VisitingBuilder.Append("(");
+		this.CurrentBuilder.Append("(");
 		Node.FuncNode.Accept(this);
-		this.VisitingBuilder.Append(")");
-		this.VisitingBuilder.Append("(");
+		this.CurrentBuilder.Append(")");
+		this.CurrentBuilder.Append("(");
 		for(/*local*/int i = 0; i < LibGreenTea.ListSize(Node.ParamList); i++){
 			if(i > 0){
-				this.VisitingBuilder.Append(", ");
+				this.CurrentBuilder.Append(", ");
 			}
 			Node.ParamList.get(i).Accept(this);
 		}
-		this.VisitingBuilder.Append(")");
+		this.CurrentBuilder.Append(")");
 	}
 	@Override public void VisitBinaryNode(GtBinaryNode Node) {
 		Node.LeftNode.Accept(this);
-		this.VisitingBuilder.Append(Node.Token.ParsedText);
+		this.CurrentBuilder.Append(Node.Token.ParsedText);
 		Node.RightNode.Accept(this);
 	}
 	@Override public void VisitAndNode(GtAndNode Node) {
 		Node.LeftNode.Accept(this);
-		this.VisitingBuilder.Append("&&");
+		this.CurrentBuilder.Append("&&");
 		Node.RightNode.Accept(this);
 	}
 	@Override public void VisitOrNode(GtOrNode Node) {
 		Node.LeftNode.Accept(this);
-		this.VisitingBuilder.Append("||");
+		this.CurrentBuilder.Append("||");
 		Node.RightNode.Accept(this);
 	}
 	@Override public void VisitSetLocalNode(GtSetLocalNode Node) {
-		this.VisitingBuilder.Append(Node.NativeName);
-		this.VisitingBuilder.Append(" = ");
+		this.CurrentBuilder.Append(Node.NativeName);
+		this.CurrentBuilder.Append(" = ");
 		Node.ValueNode.Accept(this);
 	}
 	@Override public void VisitVarDeclNode(GtVarDeclNode Node) {
-		this.VisitingBuilder.Append(Node.NativeName);
-		this.VisitingBuilder.Append(" = ");
+		this.CurrentBuilder.Append(Node.NativeName);
+		this.CurrentBuilder.Append(" = ");
 		Node.InitNode.Accept(this);
 		Node.BlockNode.Accept(this);
 	}
 	@Override public void VisitIfNode(GtIfNode Node) {
-		this.VisitingBuilder.Append("if(");
+		this.CurrentBuilder.Append("if(");
 		Node.CondNode.Accept(this);
-		this.VisitingBuilder.Append(")");
+		this.CurrentBuilder.Append(")");
 		this.VisitIndentBlock("{", Node.ThenNode, "}");
 		if(this.DoesNodeExist(Node.ElseNode)){
-			this.VisitingBuilder.Append("else");
+			this.CurrentBuilder.Append("else");
 			this.VisitIndentBlock("{", Node.ElseNode, "}");
 		}
 	}
@@ -374,41 +374,41 @@ var CLASS = (function (_super) {
 		this.DebugAppendNode(Node);
 	}
 	@Override public void VisitReturnNode(GtReturnNode Node) {
-		this.VisitingBuilder.Append("return");
+		this.CurrentBuilder.Append("return");
 		if(this.DoesNodeExist(Node.ValueNode)){
-			this.VisitingBuilder.Append(" ");
+			this.CurrentBuilder.Append(" ");
 			Node.ValueNode.Accept(this);
 		}
 	}
 	@Override public void VisitBreakNode(GtBreakNode Node) {
-		this.VisitingBuilder.Append("break");
+		this.CurrentBuilder.Append("break");
 	}
 	@Override public void VisitContinueNode(GtContinueNode Node) {
-		this.VisitingBuilder.Append("continue");
+		this.CurrentBuilder.Append("continue");
 	}
 	@Override public void VisitTryNode(GtTryNode Node) {
-		this.VisitingBuilder.Append("try");
+		this.CurrentBuilder.Append("try");
 		this.VisitIndentBlock("{", Node.TryNode, "}");
 		assert(LibGreenTea.ListSize(Node.CatchList) <= 1);
 		for (int i = 0; i < LibGreenTea.ListSize(Node.CatchList); i++) {
 			GtCatchNode Catch = (/*cast*/GtCatchNode) Node.CatchList.get(i);
-			this.VisitingBuilder.Append("catch(" + Catch.ExceptionName + ")");
+			this.CurrentBuilder.Append("catch(" + Catch.ExceptionName + ")");
 			this.VisitIndentBlock("{", Catch.BodyNode, "}");
 		}
-		this.VisitingBuilder.Append("finally");
+		this.CurrentBuilder.Append("finally");
 		this.VisitIndentBlock("{", Node.FinallyNode, "}");
 	}
 	@Override public void VisitThrowNode(GtThrowNode Node) {
-		this.VisitingBuilder.Append("throw ");
+		this.CurrentBuilder.Append("throw ");
 		Node.ValueNode.Accept(this);
 	}
 	@Override public void VisitFunctionLiteralNode(GtFunctionLiteralNode Node) {
 		this.DebugAppendNode(Node);
 	}
 	@Override public void VisitErrorNode(GtErrorNode Node) {
-		this.VisitingBuilder.Append("(function(){ throw new Error('");
-		this.VisitingBuilder.Append(Node.Token.ParsedText);
-		this.VisitingBuilder.Append("'); })()");
+		this.CurrentBuilder.Append("(function(){ throw new Error('");
+		this.CurrentBuilder.Append(Node.Token.ParsedText);
+		this.CurrentBuilder.Append("'); })()");
 	}
 	@Override public void VisitCommandNode(GtCommandNode Node) {
 		this.DebugAppendNode(Node);

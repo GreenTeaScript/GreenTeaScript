@@ -24,10 +24,17 @@
 
 package zen.ast2;
 
+<<<<<<< HEAD:src/zen/ast2/GtThrowNode.java
 import zen.ast.GtNode;
 import zen.parser.GtGenerator;
 import zen.parser.GtToken;
 import zen.parser.GtType;
+=======
+import parser.GtNodeVisitor;
+import parser.GtToken;
+import parser.GtType;
+import parser.ast.GtNode;
+>>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast2/GtThrowNode.java
 
 final public class GtThrowNode extends GtNode {
 	/*field*/public GtNode ValueNode;
@@ -35,7 +42,7 @@ final public class GtThrowNode extends GtNode {
 		super(Type, Token);
 		this.ValueNode = ValueNode;
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitThrowNode(this);
 	}
 }

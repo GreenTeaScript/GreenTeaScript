@@ -25,10 +25,17 @@
 package zen.ast;
 
 
+<<<<<<< HEAD:src/zen/ast/GtBinaryNode.java
 import zen.parser.GtGenerator;
 import zen.parser.GtStaticTable;
 import zen.parser.GtSyntaxPattern;
 import zen.parser.GtToken;
+=======
+import parser.GtNodeVisitor;
+import parser.GtStaticTable;
+import parser.GtSyntaxPattern;
+import parser.GtToken;
+>>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast/GtBinaryNode.java
 
 public class GtBinaryNode extends GtNode {
 	/*field*/public GtNode   LeftNode;
@@ -46,7 +53,7 @@ public class GtBinaryNode extends GtNode {
 		this.SetChild(RightNode);
 		return this;
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitBinaryNode(this);
 	}
 //	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {

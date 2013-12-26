@@ -98,11 +98,11 @@ public class MiniKonohaSourceGenerator extends GtSourceGenerator {
 			i += 1;
 		}
 		Builder.Append(")");
-		GtSourceBuilder PushedBuilder = this.VisitingBuilder;
-		this.VisitingBuilder = Builder;
+		GtSourceBuilder PushedBuilder = this.CurrentBuilder;
+		this.CurrentBuilder = Builder;
 		this.VisitIndentBlock("{", Body, "}");
-		this.VisitingBuilder.AppendLine("");
-		this.VisitingBuilder = PushedBuilder;
+		this.CurrentBuilder.AppendLine("");
+		this.CurrentBuilder = PushedBuilder;
 	}
 
 	private void AddUseLibrary(String Library) {
@@ -142,9 +142,9 @@ public class MiniKonohaSourceGenerator extends GtSourceGenerator {
 		/*local*/GtNode CurrentNode = Node;
 		while(CurrentNode != null) {
 			if(!this.IsEmptyBlock(CurrentNode)) {
-				this.VisitingBuilder.AppendIndent();
+				this.CurrentBuilder.AppendIndent();
 				CurrentNode.Accept(this);
-				this.VisitingBuilder.AppendLine(this.SemiColon);
+				this.CurrentBuilder.AppendLine(this.SemiColon);
 			}
 			CurrentNode = CurrentNode.NextNode;
 		}
@@ -195,17 +195,17 @@ var CLASS = (function (_super) {
 
 	@Override public void OpenClassField(GtSyntaxTree ParsedTree, GtType Type, GtClassField ClassField) {
 		this.AddUseLibrary("Syntax.JavaStyleClass");
-		this.VisitingBuilder = this.NewSourceBuilder();
-		this.VisitingBuilder.AppendIndent();
-		this.VisitingBuilder.Append("class ");
-		this.VisitingBuilder.Append(Type.ShortName);
+		this.CurrentBuilder = this.NewSourceBuilder();
+		this.CurrentBuilder.AppendIndent();
+		this.CurrentBuilder.Append("class ");
+		this.CurrentBuilder.Append(Type.ShortName);
 		//if(Type.SuperType != null){
 		if(!Type.SuperType.ShortName.equals("Top")){
-			this.VisitingBuilder.SpaceAppendSpace("extends");
-			this.VisitingBuilder.Append(Type.SuperType.ShortName);
+			this.CurrentBuilder.SpaceAppendSpace("extends");
+			this.CurrentBuilder.Append(Type.SuperType.ShortName);
 		}
-		this.VisitingBuilder.AppendLine(" {");
-		this.VisitingBuilder.Indent();
+		this.CurrentBuilder.AppendLine(" {");
+		this.CurrentBuilder.Indent();
 		
 		/*local*/int i = 0;
 		/*local*/int size = LibGreenTea.ListSize(ClassField.FieldList);
@@ -216,23 +216,23 @@ var CLASS = (function (_super) {
 				this.AddUseLibrary("Syntax.Null");
 				InitValue = this.NullLiteral;
 			}
-			this.VisitingBuilder.AppendIndent();
-			this.VisitingBuilder.Append(this.ConvertToNativeTypeName(FieldInfo.Type));
-			this.VisitingBuilder.SpaceAppendSpace(FieldInfo.NativeName);
-			this.VisitingBuilder.Append("= ");
-			this.VisitingBuilder.Append(InitValue);
-			this.VisitingBuilder.AppendLine(this.SemiColon);
+			this.CurrentBuilder.AppendIndent();
+			this.CurrentBuilder.Append(this.ConvertToNativeTypeName(FieldInfo.Type));
+			this.CurrentBuilder.SpaceAppendSpace(FieldInfo.NativeName);
+			this.CurrentBuilder.Append("= ");
+			this.CurrentBuilder.Append(InitValue);
+			this.CurrentBuilder.AppendLine(this.SemiColon);
 			i += 1;
 		}
-		this.VisitingBuilder.UnIndent();
-		this.VisitingBuilder.AppendIndent();
-		this.VisitingBuilder.AppendLine("}");
+		this.CurrentBuilder.UnIndent();
+		this.CurrentBuilder.AppendIndent();
+		this.CurrentBuilder.AppendLine("}");
 	}
 
 	@Override public void InvokeMainFunc(String MainFuncName) {
-		this.VisitingBuilder = this.NewSourceBuilder();
-		this.VisitingBuilder.Append(MainFuncName);
-		this.VisitingBuilder.AppendLine("();");
+		this.CurrentBuilder = this.NewSourceBuilder();
+		this.CurrentBuilder.Append(MainFuncName);
+		this.CurrentBuilder.AppendLine("();");
 	}
 	
 	private final boolean DoesNodeExist(GtNode Node){
@@ -240,9 +240,9 @@ var CLASS = (function (_super) {
 	}
 	
 	private final void DebugAppendNode(GtNode Node){
-		this.VisitingBuilder.Append("/* ");
-		this.VisitingBuilder.Append(Node.getClass().getSimpleName());
-		this.VisitingBuilder.Append(" */");
+		this.CurrentBuilder.Append("/* ");
+		this.CurrentBuilder.Append(Node.getClass().getSimpleName());
+		this.CurrentBuilder.Append(" */");
 	}
 
 	@Override public void VisitEmptyNode(GtEmptyNode EmptyNode) {
@@ -251,19 +251,19 @@ var CLASS = (function (_super) {
 	@Override public void VisitInstanceOfNode(GtInstanceOfNode Node) {
 		this.AddUseLibrary("JavaStyle.Object");
 		Node.ExprNode.Accept(this);
-		this.VisitingBuilder.SpaceAppendSpace("instanceof");
-		this.VisitingBuilder.Append(Node.TypeInfo.GetNativeName());
+		this.CurrentBuilder.SpaceAppendSpace("instanceof");
+		this.CurrentBuilder.Append(Node.TypeInfo.GetNativeName());
 	}
 	@Override public void VisitTrinaryNode(GtTrinaryNode Node) {
-		this.VisitingBuilder.Append("if(");
+		this.CurrentBuilder.Append("if(");
 		Node.CondNode.Accept(this);
-		this.VisitingBuilder.Append(") {");
+		this.CurrentBuilder.Append(") {");
 		Node.ThenNode.Accept(this);
-		this.VisitingBuilder.Append("} ");
+		this.CurrentBuilder.Append("} ");
 		if(this.DoesNodeExist(Node.ElseNode)){
-			this.VisitingBuilder.Append("else {");
+			this.CurrentBuilder.Append("else {");
 			Node.ElseNode.Accept(this);
-			this.VisitingBuilder.Append("}");
+			this.CurrentBuilder.Append("}");
 		}
 	}
 //	@Override public void VisitExistsNode(GtExistsNode Node) {
@@ -279,7 +279,7 @@ var CLASS = (function (_super) {
 //		this.DebugAppendNode(Node);
 //	}
 	@Override public void VisitUnaryNode(GtUnaryNode Node) {
-		this.VisitingBuilder.Append(Node.Token.ParsedText);
+		this.CurrentBuilder.Append(Node.Token.ParsedText);
 		Node.RecvNode.Accept(this);
 	}
 //	@Override public void VisitIndexerNode(GtGetterNode Node) {
@@ -292,46 +292,46 @@ var CLASS = (function (_super) {
 		this.AddUseLibrary("JavaScript.Array");
 		/*local*/int size = LibGreenTea.ListSize(Node.NodeList);
 		/*local*/int i = 0;
-		this.VisitingBuilder.Append("[");
+		this.CurrentBuilder.Append("[");
 		while(i < size) {
 			if(i != 0) {
-				this.VisitingBuilder.Append(", ");
+				this.CurrentBuilder.Append(", ");
 			}   
 			Node.NodeList.get(i).Accept(this);
 			i += 1;
 		}   
-		this.VisitingBuilder.Append("]");
+		this.CurrentBuilder.Append("]");
 	}
 	@Override public void VisitNewArrayNode(GtNewArrayNode Node) {
 		this.DebugAppendNode(Node);
 	}
 	@Override public void VisitWhileNode(GtWhileNode Node) {
 		this.AddUseLibrary("Syntax.CStyleWhile");
-		this.VisitingBuilder.Append("while(");
+		this.CurrentBuilder.Append("while(");
 		Node.CondNode.Accept(this);
-		this.VisitingBuilder.Append(") ");
+		this.CurrentBuilder.Append(") ");
 		this.VisitIndentBlock("{", Node.BodyNode, "}");
-		this.VisitingBuilder.AppendLine("");
+		this.CurrentBuilder.AppendLine("");
 	}
 	@Override public void VisitDoWhileNode(GtDoWhileNode Node) {
 		this.AddUseLibrary("Syntax.CStyleWhile");
-		this.VisitingBuilder.Append("do ");
+		this.CurrentBuilder.Append("do ");
 		this.VisitIndentBlock("{", Node.BodyNode, "}");
-		this.VisitingBuilder.Append(" while(");
+		this.CurrentBuilder.Append(" while(");
 		Node.CondNode.Accept(this);
-		this.VisitingBuilder.AppendLine(");");
+		this.CurrentBuilder.AppendLine(");");
 	}
 
 	@Override public void VisitForNode(GtForNode Node) {
 		this.AddUseLibrary("Syntax.CStyleFor");
-		this.VisitingBuilder.Append("for(");
-		this.VisitingBuilder.Append("; ");
+		this.CurrentBuilder.Append("for(");
+		this.CurrentBuilder.Append("; ");
 		Node.CondNode.Accept(this);
-		this.VisitingBuilder.Append("; ");
+		this.CurrentBuilder.Append("; ");
 		Node.IterNode.Accept(this);
-		this.VisitingBuilder.Append(") ");
+		this.CurrentBuilder.Append(") ");
 		this.VisitIndentBlock("{", Node.BodyNode, "}");
-		this.VisitingBuilder.AppendLine("");
+		this.CurrentBuilder.AppendLine("");
 	}
 	private boolean IsInForExpr(GtNode Node) {
 		if(Node.ParentNode instanceof GtForNode){
@@ -359,33 +359,33 @@ var CLASS = (function (_super) {
 	}
 	@Override public void VisitNullNode(GtNullNode Node) {
 		this.AddUseLibrary("Syntax.Null");
-		this.VisitingBuilder.Append(this.NullLiteral);
+		this.CurrentBuilder.Append(this.NullLiteral);
 	}
 	@Override public void VisitGetLocalNode(GtGetLocalNode Node) {
-		this.VisitingBuilder.Append(Node.Token.ParsedText);
+		this.CurrentBuilder.Append(Node.Token.ParsedText);
 	}
 	@Override public void VisitGetterNode(GtGetterNode Node) {
 		Node.RecvNode.Accept(this);
-		this.VisitingBuilder.Append(".");
-		this.VisitingBuilder.Append(Node.Token.ParsedText);
+		this.CurrentBuilder.Append(".");
+		this.CurrentBuilder.Append(Node.Token.ParsedText);
 	}
 	@Override public void VisitSetterNode(GtSetterNode Node) {
 		Node.RecvNode.Accept(this);
-		this.VisitingBuilder.Append(".");
-		this.VisitingBuilder.Append(Node.Token.ParsedText);
-		this.VisitingBuilder.SpaceAppendSpace("=");
+		this.CurrentBuilder.Append(".");
+		this.CurrentBuilder.Append(Node.Token.ParsedText);
+		this.CurrentBuilder.SpaceAppendSpace("=");
 		Node.ValueNode.Accept(this);
-		this.VisitingBuilder.Append(";");
-		if(!this.IsInForExpr(Node)) this.VisitingBuilder.AppendLine("");
+		this.CurrentBuilder.Append(";");
+		if(!this.IsInForExpr(Node)) this.CurrentBuilder.AppendLine("");
 	}
 	@Override public void VisitApplySymbolNode(GtApplySymbolNode Node) {
-		this.VisitingBuilder.Append(ConvertToNativeFuncName(Node.ResolvedFunc));
-		this.VisitingBuilder.Append("(");
+		this.CurrentBuilder.Append(ConvertToNativeFuncName(Node.ResolvedFunc));
+		this.CurrentBuilder.Append("(");
 		for(/*local*/int i = 0; i < LibGreenTea.ListSize(Node.ParamList); i++){
-			if(i != 0) this.VisitingBuilder.Append(", ");
+			if(i != 0) this.CurrentBuilder.Append(", ");
 			Node.ParamList.get(i).Accept(this);
 		}
-		this.VisitingBuilder.Append(")");
+		this.CurrentBuilder.Append(")");
 	}
 	@Override public void VisitApplyOverridedMethodNode(GtApplyOverridedMethodNode Node) {
 		this.DebugAppendNode(Node);
@@ -395,45 +395,45 @@ var CLASS = (function (_super) {
 	}
 	@Override public void VisitBinaryNode(GtBinaryNode Node) {
 		Node.LeftNode.Accept(this);
-		this.VisitingBuilder.SpaceAppendSpace(Node.Token.ParsedText);
+		this.CurrentBuilder.SpaceAppendSpace(Node.Token.ParsedText);
 		Node.RightNode.Accept(this);
 	}
 	@Override public void VisitAndNode(GtAndNode Node) {
 		Node.LeftNode.Accept(this);
-		this.VisitingBuilder.SpaceAppendSpace("&&");
+		this.CurrentBuilder.SpaceAppendSpace("&&");
 		Node.RightNode.Accept(this);
 	}
 	@Override public void VisitOrNode(GtOrNode Node) {
 		Node.LeftNode.Accept(this);
-		this.VisitingBuilder.SpaceAppendSpace("||");
+		this.CurrentBuilder.SpaceAppendSpace("||");
 		Node.RightNode.Accept(this);
 	}
 	@Override public void VisitSetLocalNode(GtSetLocalNode Node) {
-		this.VisitingBuilder.Append(Node.NativeName);
-		this.VisitingBuilder.SpaceAppendSpace("=");
+		this.CurrentBuilder.Append(Node.NativeName);
+		this.CurrentBuilder.SpaceAppendSpace("=");
 		Node.ValueNode.Accept(this);
-		this.VisitingBuilder.Append(";");
-		if(!this.IsInForExpr(Node)) this.VisitingBuilder.AppendLine("");
+		this.CurrentBuilder.Append(";");
+		if(!this.IsInForExpr(Node)) this.CurrentBuilder.AppendLine("");
 	}
 	@Override public void VisitVarDeclNode(GtVarDeclNode Node) {
-		this.VisitingBuilder.Append(this.ConvertToNativeTypeName(Node.DeclType));
+		this.CurrentBuilder.Append(this.ConvertToNativeTypeName(Node.DeclType));
 		String VarName = Node.Token.ParsedText;
-		this.VisitingBuilder.SpaceAppendSpace(VarName);
+		this.CurrentBuilder.SpaceAppendSpace(VarName);
 		//if(this.DoesNodeExist(Node.InitNode)){ //FIXME: Always true
 		if(Node.InitNode.Token.ParsedText != VarName){
-			this.VisitingBuilder.SpaceAppendSpace("=");
+			this.CurrentBuilder.SpaceAppendSpace("=");
 			Node.InitNode.Accept(this);
 		}
-		this.VisitingBuilder.AppendLine(";");
+		this.CurrentBuilder.AppendLine(";");
 		this.VisitBlockWithoutIndent(Node.BlockNode);
 	}
 	@Override public void VisitIfNode(GtIfNode Node) {
-		this.VisitingBuilder.Append("if(");
+		this.CurrentBuilder.Append("if(");
 		Node.CondNode.Accept(this);
-		this.VisitingBuilder.Append(")");
+		this.CurrentBuilder.Append(")");
 		this.VisitIndentBlock("{", Node.ThenNode, "}");
 		if(this.DoesNodeExist(Node.ElseNode)){
-			this.VisitingBuilder.Append("else");
+			this.CurrentBuilder.Append("else");
 			this.VisitIndentBlock("{", Node.ElseNode, "}");
 		}
 	}
@@ -441,17 +441,17 @@ var CLASS = (function (_super) {
 		this.DebugAppendNode(Node);
 	}
 	@Override public void VisitReturnNode(GtReturnNode Node) {
-		this.VisitingBuilder.Append("return");
+		this.CurrentBuilder.Append("return");
 		if(this.DoesNodeExist(Node.ValueNode)){
-			this.VisitingBuilder.Append(" ");
+			this.CurrentBuilder.Append(" ");
 			Node.ValueNode.Accept(this);
 		}
 	}
 	@Override public void VisitBreakNode(GtBreakNode Node) {
-		this.VisitingBuilder.Append("break");
+		this.CurrentBuilder.Append("break");
 	}
 	@Override public void VisitContinueNode(GtContinueNode Node) {
-		this.VisitingBuilder.Append("continue");
+		this.CurrentBuilder.Append("continue");
 	}
 	@Override public void VisitTryNode(GtTryNode Node) {
 		this.DebugAppendNode(Node);

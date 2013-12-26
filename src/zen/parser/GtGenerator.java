@@ -90,18 +90,18 @@ import zen.ast2.GtYieldNode;
 import zen.deps.LibGreenTea;
 import zen.deps.LibNative;
 
-public class GtGenerator extends GreenTeaUtils {
+public class GtGenerator extends GtNodeVisitor {
 	/*field*/public final String       TargetCode;
-	/*field*/public GtParserContext    Context;
+	/*field*/public GtNameSpace    Context;
 	/*field*/public ArrayList<Object>  GeneratedCodeStack;
 	/*field*/public String             OutputFile;
 	/*field*/public int                GeneratorFlag;
 
 	/*field*/public final GtStatistics Stat;
-	/*field*/public ArrayList<String>  ReportedErrorList;
 //	/*filed*/private boolean           NoErrorReport;
 
 	protected GtGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
+		super();
 		this.TargetCode = TargetCode;
 		this.OutputFile = OutputFile;
 		this.GeneratorFlag = GeneratorFlag;
@@ -110,36 +110,18 @@ public class GtGenerator extends GreenTeaUtils {
 
 		this.Stat = new GtStatistics();
 //		this.NoErrorReport = false;
-		this.ReportedErrorList = new ArrayList<String>();
 	}
 
-	public void InitContext(GtParserContext Context) {
+	public void InitContext(GtNameSpace Context) {
 		this.Context = Context;
 		this.GeneratedCodeStack = new ArrayList<Object>();
-//		Context.RootNameSpace.LoadRequiredLib("common");
+		Context.LoadRequiredLib("common");
 	}
 
 //	public final void SetNoErrorReport(boolean b) {
 //		this.NoErrorReport = b;
 //	}
 
-	public final String ReportError(int Level, GtToken Token, String Message) {
-		if(Level == ErrorLevel) {
-			Message = "(error) " + GtStaticTable.FormatFileLineNumber(Token.FileLine) + " " + Message;
-		}
-		else if(Level == TypeErrorLevel) {
-			Message = "(error) " + GtStaticTable.FormatFileLineNumber(Token.FileLine) + " " + Message;
-		}
-		else if(Level == WarningLevel) {
-			Message = "(warning) " + GtStaticTable.FormatFileLineNumber(Token.FileLine) + " " + Message;
-		}
-		else if(Level == InfoLevel) {
-			Message = "(info) " + GtStaticTable.FormatFileLineNumber(Token.FileLine) + " " + Message;
-		}
-		this.ReportedErrorList.add(Message);
-		return Message;
-	}
-	
 	public final String[] GetReportedErrors() {
 		/*local*/ArrayList<String> List = this.ReportedErrorList;
 		this.ReportedErrorList = new ArrayList<String>();
@@ -155,7 +137,7 @@ public class GtGenerator extends GreenTeaUtils {
 		}
 	}
 
-	
+
 //	public final GtNode CreateUnsupportedNode(GtType Type, GtSyntaxTree ParsedTree) {
 //		/*local*/GtToken Token = ParsedTree.KeyToken;
 //		this.Context.ReportError(GreenTeaConsts.ErrorLevel, Token, this.TargetCode + " has no language support for " + Token.ParsedText);
@@ -194,10 +176,10 @@ public class GtGenerator extends GreenTeaUtils {
 		if(Value instanceof Boolean) {
 			return this.CreateBooleanNode(SourceToken, (Boolean) Value);
 		}
-		if(Value instanceof Long || Value instanceof Integer) {
+		if((Value instanceof Long) || (Value instanceof Integer)) {
 			return this.CreateIntNode(SourceToken, ((Number)Value).longValue());
 		}
-		if(Value instanceof Double || Value instanceof Float) {
+		if((Value instanceof Double) || (Value instanceof Float)) {
 			return this.CreateFloatNode(SourceToken, ((Number)Value).doubleValue());
 		}
 		if(Value instanceof String) {
@@ -227,7 +209,7 @@ public class GtGenerator extends GreenTeaUtils {
 			}
 		}
 	}
-	
+
 //	public GtNode CreateNullNode_OLD(GtType Type, GtSyntaxTree ParsedTree) {
 //		return new GtNullNode(Type, ParsedTree.KeyToken);
 //	}
@@ -435,7 +417,7 @@ public class GtGenerator extends GreenTeaUtils {
 //		return new GtErrorNode(Type, ParsedTree.KeyToken);
 //	}
 
-	// useful Create* API
+// useful Create* API
 //	public final GtNode CreateCoercionNode(GtType Type, GtNameSpace NameSpace, GtFunc Func, GtNode Node) {
 //		/*local*/GtNode ApplyNode = this.CreateApplySymbolNode(Type, null, "Coercion", Func);
 //		ApplyNode.Append(Node);
@@ -519,7 +501,7 @@ public class GtGenerator extends GreenTeaUtils {
 	}
 
 	public final boolean IsEmptyBlock(GtNode Node) {
-		return Node == null || (Node instanceof GtEmptyNode) && Node.NextNode == null;
+		return (Node == null) || ((Node instanceof GtEmptyNode) && (Node.NextNode == null));
 	}
 
 	public final GtForNode FindParentForNode(GtNode Node) {
@@ -538,243 +520,311 @@ public class GtGenerator extends GreenTeaUtils {
 
 	//------------------------------------------------------------------------
 
+	@Override
 	public void VisitEmptyNode(GtEmptyNode Node) {
 		LibGreenTea.DebugP("empty node: " + Node.Token.ParsedText);
 		/*extension*/
 	}
 
+	@Override
 	public void VisitNullNode(GtNullNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitBooleanNode(GtBooleanNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitIntNode(GtIntNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitFloatNode(GtFloatNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitStringNode(GtStringNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitRegexNode(GtRegexNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitConstPoolNode(GtConstPoolNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitArrayLiteralNode(GtArrayLiteralNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitMapLiteralNode(GtMapLiteralNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitParamNode(GtParamNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitFunctionLiteralNode(GtFunctionLiteralNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitGetLocalNode(GtGetLocalNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitSetLocalNode(GtSetLocalNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitGetCapturedNode(GtGetCapturedNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitSetCapturedNode(GtSetCapturedNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitGetterNode(GtGetterNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitSetterNode(GtSetterNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+<<<<<<< HEAD:src/zen/parser/GtGenerator.java
 	public void VisitMethodCallNode(GtMethodCall Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
 	public void VisitApplyNode(GtApplyNode Node) {
+=======
+	@Override
+	public void VisitApplySymbolNode(GtApplySymbolNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
+	public void VisitApplyFunctionObjectNode(GtApplyFunctionObjectNode Node) {
+>>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/GtGenerator.java
+		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
+	}
+
+	@Override
 	public void VisitApplyOverridedMethodNode(GtApplyOverridedMethodNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitGetIndexNode(GtGetIndexNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitSetIndexNode(GtSetIndexNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitSliceNode(GtSliceNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitAndNode(GtAndNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitOrNode(GtOrNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitUnaryNode(GtUnaryNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitPrefixInclNode(GtPrefixInclNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitPrefixDeclNode(GtPrefixDeclNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitSuffixInclNode(GtSuffixInclNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitSuffixDeclNode(GtSuffixDeclNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitBinaryNode(GtBinaryNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitTrinaryNode(GtTrinaryNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitConstructorNode(GtConstructorNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitAllocateNode(GtAllocateNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitNewArrayNode(GtNewArrayNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitInstanceOfNode(GtInstanceOfNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitCastNode(GtCastNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitVarDeclNode(GtVarDeclNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitUsingNode(GtUsingNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitIfNode(GtIfNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitWhileNode(GtWhileNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitDoWhileNode(GtDoWhileNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitForNode(GtForNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitForEachNode(GtForEachNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitContinueNode(GtContinueNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitBreakNode(GtBreakNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitStatementNode(GtStatementNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitReturnNode(GtReturnNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitYieldNode(GtYieldNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitThrowNode(GtThrowNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitTryNode(GtTryNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitCatchNode(GtCatchNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitSwitchNode(GtSwitchNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitCaseNode(GtCaseNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitCommandNode(GtCommandNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitErrorNode(GtErrorNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitClassDeclNode(GtClassDeclNode ClassDeclNode) {
 		// TODO Auto-generated method stub
 	}
 
+	@Override
 	public void VisitFuncDeclNode(GtFuncDeclNode FuncDeclNode) {
 		// TODO Auto-generated method stub
 	}
 
+	@Override
 	public void VisitBlock(GtNode Node) {
 		/*local*/GtNode CurrentNode = Node;
 		while(CurrentNode != null) {
@@ -852,8 +902,8 @@ public class GtGenerator extends GreenTeaUtils {
 //		return Values;
 //	}
 //
-//	// EnforceConst : 
-//	
+//	// EnforceConst :
+//
 //	public Object EvalAllocateNode(GtAllocateNode Node, boolean EnforceConst) {
 ////ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
 //		if(EnforceConst && Node.Type.TypeBody instanceof Class<?>) {
@@ -1015,7 +1065,7 @@ public class GtGenerator extends GreenTeaUtils {
 //			ArgsBuffer.add(Buffer);
 //			CurrentNode = (/*cast*/GtCommandNode) CurrentNode.PipedNextNode;
 //		}
-//		
+//
 //		/*local*/int NodeSize = LibGreenTea.ListSize(ArgsBuffer);
 //		/*local*/String[][] Args = new String[NodeSize][];
 //		for(int i = 0; i < NodeSize; i++) {

@@ -26,11 +26,19 @@ package zen.ast2;
 
 import java.util.ArrayList;
 
+<<<<<<< HEAD:src/zen/ast2/GtMapLiteralNode.java
 import zen.ast.GtNode;
 import zen.parser.GtGenerator;
 import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
 import zen.parser.GtType;
+=======
+import parser.GtNameSpace;
+import parser.GtNodeVisitor;
+import parser.GtToken;
+import parser.GtType;
+import parser.ast.GtNode;
+>>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast2/GtMapLiteralNode.java
 
 //E.g., "{" StringNode, $Node, StringNode, $Node "}"
 final public class GtMapLiteralNode extends GtNode {   // => ArrayLiteral
@@ -42,13 +50,13 @@ final public class GtMapLiteralNode extends GtNode {   // => ArrayLiteral
 	@Override public ArrayList<GtNode> GetList() {
 		return this.NodeList;
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitMapLiteralNode(this);
 	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-//		if(EnforceConst) {
-//			return Context.Generator.EvalArrayNode(this, EnforceConst);
-//		}
+		//		if(EnforceConst) {
+		//			return Context.Generator.EvalArrayNode(this, EnforceConst);
+		//		}
 		return null;
 	}
 }

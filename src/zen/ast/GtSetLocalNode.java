@@ -24,9 +24,15 @@
 
 package zen.ast;
 
+<<<<<<< HEAD:src/zen/ast/GtSetLocalNode.java
 import zen.parser.GtGenerator;
 import zen.parser.GtToken;
 import zen.parser.GtType;
+=======
+import parser.GtNodeVisitor;
+import parser.GtToken;
+import parser.GtType;
+>>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast/GtSetLocalNode.java
 
 // E.g., $NativeName = $ValueNode
 final public class GtSetLocalNode extends GtSymbolNode {
@@ -36,7 +42,7 @@ final public class GtSetLocalNode extends GtSymbolNode {
 		this.ValueNode = ValueNode;
 		this.SetChild(ValueNode);
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitSetLocalNode(this);
 	}
 }

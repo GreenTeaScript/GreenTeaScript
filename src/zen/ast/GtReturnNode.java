@@ -24,8 +24,13 @@
 
 package zen.ast;
 
+<<<<<<< HEAD:src/zen/ast/GtReturnNode.java
 import zen.parser.GtGenerator;
 import zen.parser.GtStaticTable;
+=======
+import parser.GtNodeVisitor;
+import parser.GtStaticTable;
+>>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast/GtReturnNode.java
 
 final public class GtReturnNode extends GtNode {
 	/*field*/public GtNode ValueNode;
@@ -38,7 +43,7 @@ final public class GtReturnNode extends GtNode {
 		this.SetChild(ValueNode);
 		return null;
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitReturnNode(this);
 	}
 }

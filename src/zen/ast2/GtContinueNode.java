@@ -24,10 +24,17 @@
 
 package zen.ast2;
 
+<<<<<<< HEAD:src/zen/ast2/GtContinueNode.java
 import zen.ast.GtNode;
 import zen.parser.GtGenerator;
 import zen.parser.GtToken;
 import zen.parser.GtType;
+=======
+import parser.GtNodeVisitor;
+import parser.GtToken;
+import parser.GtType;
+import parser.ast.GtNode;
+>>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast2/GtContinueNode.java
 
 final public class GtContinueNode extends GtNode {
 	/*field*/public String Label;
@@ -35,7 +42,7 @@ final public class GtContinueNode extends GtNode {
 		super(Type, Token);
 		this.Label = Label;
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitContinueNode(this);
 	}
 }

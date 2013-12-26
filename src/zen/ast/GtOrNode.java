@@ -24,19 +24,27 @@
 
 package zen.ast;
 
+<<<<<<< HEAD:src/zen/ast/GtOrNode.java
 
 import zen.deps.LibGreenTea;
 import zen.parser.GtGenerator;
 import zen.parser.GtNameSpace;
 import zen.parser.GtSyntaxPattern;
 import zen.parser.GtToken;
+=======
+import parser.GtNameSpace;
+import parser.GtNodeVisitor;
+import parser.GtSyntaxPattern;
+import parser.GtToken;
+import parser.deps.LibGreenTea;
+>>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast/GtOrNode.java
 
 //E.g., $LeftNode || $RightNode
 final public class GtOrNode extends GtBinaryNode {
 	public GtOrNode/*constructor*/(GtToken Token, GtNode Left, GtSyntaxPattern Pattern) {
 		super(Token, Left, Pattern);
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitOrNode(this);
 	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {

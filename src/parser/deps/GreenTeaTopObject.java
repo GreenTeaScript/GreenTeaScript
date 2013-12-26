@@ -22,60 +22,66 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package zen.ast;
 
-<<<<<<< HEAD:src/zen/ast/GtCastNode.java
+//ifdef JAVA
+package parser.deps;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+//endif VAJA
 
-import zen.deps.LibGreenTea;
-import zen.parser.GtGenerator;
-import zen.parser.GtNameSpace;
-import zen.parser.GtStaticTable;
-import zen.parser.GtToken;
-import zen.parser.GtType;
-=======
-import parser.GtNameSpace;
-import parser.GtNodeVisitor;
-import parser.GtStaticTable;
-import parser.GtToken;
 import parser.GtType;
-import parser.deps.LibGreenTea;
->>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast/GtCastNode.java
 
-//E.g., (T) $Expr
-final public class GtCastNode extends GtNode {
-	/*field*/public GtTypeNode	CastTypeNode;
-	/*field*/public GtNode	ExprNode;
-	public GtCastNode/*constructor*/() {
-		super(GtStaticTable.VarType, null);
-		this.CastTypeNode = null;
-		this.ExprNode = null;
+
+public class GreenTeaTopObject implements GreenTeaObject {
+	/*field*/public GtType GreenType;
+	protected GreenTeaTopObject/*constructor*/(GtType GreenType) {
+		this.GreenType = GreenType;
 	}
-	@Override public GtNode Append(GtNode Node) {
-		this.SetChild(Node);
-		if(this.CastTypeNode == null) {
-			this.CastTypeNode = (GtTypeNode)Node;
-			this.Type = this.CastTypeNode.ParsedType;
-		}
-		else {
-			this.ExprNode = Node;
-		}
-		return this;
-	}
-	@Override public void Accept(GtNodeVisitor Visitor) {
-		Visitor.VisitCastNode(this);
-	}
-	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-		/*local*/Object Value = this.ExprNode.Eval(NameSpace, EnforceConst) ;
-		if(Value != null) {
-			return LibGreenTea.DynamicCast(this.Type, Value);
-		}
-		return Value;
+	@Override
+	public final GtType GetGreenType() {
+		return this.GreenType;
 	}
 
-	@Deprecated
-	public GtCastNode/*constructor*/(GtType Type, GtToken Token, GtType CastType, GtNode Expr) {
-		super(Type, Token);
-		//		this.CastType = CastType;
-		//		this.Expr = Expr;
+
+	@Override public String toString() {
+		/*local*/String s = "{";
+		//ifdef JAVA
+		Field[] Fields = this.getClass().getFields();
+		for(int i = 0; i < Fields.length; i++) {
+			if(Modifier.isPublic(Fields[i].getModifiers())) {
+				if(i > 0) {
+					s += ", ";
+				}
+				try {
+					s += Fields[i].getName() + ": ";
+					if(Fields[i].getType() == long.class) {
+						s += Fields[i].getLong(this);
+					}
+					else if(Fields[i].getType() == double.class) {
+						s += Fields[i].getDouble(this);
+					}
+					else {
+						s += LibGreenTea.Stringify(Fields[i].get(this));
+					}
+				} catch (IllegalArgumentException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		//endif VAJA
+		return s + "}";
+	}
+}
+
+
+final class GreenTeaAnyObject extends GreenTeaTopObject {
+	/*field*/public final Object NativeValue;
+	GreenTeaAnyObject/*constructor*/(GtType GreenType, Object NativeValue) {
+		super(GreenType);
+		this.NativeValue = NativeValue;
 	}
 }

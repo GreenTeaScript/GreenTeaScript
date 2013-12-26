@@ -24,10 +24,17 @@
 
 package zen.ast;
 
+<<<<<<< HEAD:src/zen/ast/GtStringNode.java
 import zen.parser.GtGenerator;
 import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
 import zen.parser.GtType;
+=======
+import parser.GtNameSpace;
+import parser.GtNodeVisitor;
+import parser.GtToken;
+import parser.GtType;
+>>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast/GtStringNode.java
 
 final public class GtStringNode extends GtConstNode {
 	/*field*/public String	Value;
@@ -38,7 +45,7 @@ final public class GtStringNode extends GtConstNode {
 	@Override public final Object GetValue() {
 		return this.Value;
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitStringNode(this);
 	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {

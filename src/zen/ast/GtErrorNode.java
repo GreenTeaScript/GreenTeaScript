@@ -24,14 +24,21 @@
 
 package zen.ast;
 
+<<<<<<< HEAD:src/zen/ast/GtErrorNode.java
 import zen.parser.GtGenerator;
 import zen.parser.GtNameSpace;
 import zen.parser.GtStaticTable;
 import zen.parser.GtToken;
+=======
+import parser.GtNameSpace;
+import parser.GtNodeVisitor;
+import parser.GtStaticTable;
+import parser.GtToken;
+>>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast/GtErrorNode.java
 
 /**
  * ErrorNode carries error information at the parser level
- * Token.ParsedText has error message  
+ * Token.ParsedText has error message
  */
 
 final public class GtErrorNode extends GtConstNode {
@@ -46,7 +53,7 @@ final public class GtErrorNode extends GtConstNode {
 	@Override public final Object GetValue() {
 		return this.ErrorMessage;
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitErrorNode(this);
 	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {

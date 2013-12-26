@@ -26,9 +26,14 @@
 package zen.deps;
 import java.util.ArrayList;
 
+<<<<<<< HEAD:src/zen/deps/GreenTeaArray.java
 
 import zen.parser.GtStaticTable;
 import zen.parser.GtType;
+=======
+import parser.GtStaticTable;
+import parser.GtType;
+>>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/deps/GreenTeaArray.java
 
 public class GreenTeaArray extends GreenTeaTopObject {
 	public ArrayList<Object> ArrayBody ;
@@ -56,7 +61,7 @@ public class GreenTeaArray extends GreenTeaTopObject {
 		return s + "]";
 	}
 	public final static GreenTeaArray NewArray1(GtType Type, int InitSize) {
-		/*local*/GtType ArrayType = GtStaticTable.GetGenericType1(GtStaticTable.ArrayType, Type, true); 
+		/*local*/GtType ArrayType = GtStaticTable.GetGenericType1(GtStaticTable.ArrayType, Type, true);
 		/*local*/GreenTeaArray ArrayObject =  new GreenTeaArray(ArrayType);
 		for(/*local*/int i = 0; i < InitSize; i++) {
 			ArrayObject.ArrayBody.add(Type.DefaultNullValue);
@@ -65,8 +70,8 @@ public class GreenTeaArray extends GreenTeaTopObject {
 	}
 	// new int[2][3]
 	public final static GreenTeaArray NewArray2(GtType Type, int InitSize, int InitSize2) {
-		/*local*/GtType ArrayType = GtStaticTable.GetGenericType1(GtStaticTable.ArrayType, Type, true); 
-		ArrayType = GtStaticTable.GetGenericType1(GtStaticTable.ArrayType, ArrayType, true); 
+		/*local*/GtType ArrayType = GtStaticTable.GetGenericType1(GtStaticTable.ArrayType, Type, true);
+		ArrayType = GtStaticTable.GetGenericType1(GtStaticTable.ArrayType, ArrayType, true);
 		/*local*/GreenTeaArray ArrayObject =  new GreenTeaArray(ArrayType);
 		for(/*local*/int i = 0; i < InitSize2; i++) {
 			ArrayObject.ArrayBody.add(GreenTeaArray.NewArray1(Type, InitSize));
@@ -74,9 +79,9 @@ public class GreenTeaArray extends GreenTeaTopObject {
 		return ArrayObject;
 	}
 	public final static GreenTeaArray NewArray3(GtType Type, int InitSize, int InitSize2, int InitSize3) {
-		/*local*/GtType ArrayType = GtStaticTable.GetGenericType1(GtStaticTable.ArrayType, Type, true); 
-		ArrayType = GtStaticTable.GetGenericType1(GtStaticTable.ArrayType, ArrayType, true); 
-		ArrayType = GtStaticTable.GetGenericType1(GtStaticTable.ArrayType, ArrayType, true); 
+		/*local*/GtType ArrayType = GtStaticTable.GetGenericType1(GtStaticTable.ArrayType, Type, true);
+		ArrayType = GtStaticTable.GetGenericType1(GtStaticTable.ArrayType, ArrayType, true);
+		ArrayType = GtStaticTable.GetGenericType1(GtStaticTable.ArrayType, ArrayType, true);
 		/*local*/GreenTeaArray ArrayObject =  new GreenTeaArray(ArrayType);
 		for(/*local*/int i = 0; i < InitSize2; i++) {
 			ArrayObject.ArrayBody.add(GreenTeaArray.NewArray2(Type, InitSize, InitSize2));

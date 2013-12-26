@@ -27,9 +27,10 @@ package org.GreenTeaScript;
 import java.util.ArrayList;
 //endif VAJA
 
+
 import parser.GtFunc;
 import parser.GtGenerator;
-import parser.GtParserContext;
+import parser.GtNameSpace;
 import parser.GtType;
 import parser.ast.GtAllocateNode;
 import parser.ast.GtAndNode;
@@ -110,7 +111,7 @@ public class SourceGenerator extends GtGenerator {
 		this.BlockEnd = "}";
 	}
 
-	@Override public void InitContext(GtParserContext Context) {
+	@Override public void InitContext(GtNameSpace Context) {
 		super.InitContext(Context);
 		this.HeaderSource = "";
 		this.BodySource = "";

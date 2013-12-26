@@ -24,12 +24,20 @@
 
 package zen.ast;
 
+<<<<<<< HEAD:src/zen/ast/GtTrinaryNode.java
 
 import zen.deps.LibGreenTea;
 import zen.parser.GtGenerator;
 import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
 import zen.parser.GtType;
+=======
+import parser.GtNameSpace;
+import parser.GtNodeVisitor;
+import parser.GtToken;
+import parser.GtType;
+import parser.deps.LibGreenTea;
+>>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast/GtTrinaryNode.java
 
 //E.g., $CondNode "?" $ThenExpr ":" $ElseExpr
 final public class GtTrinaryNode extends GtNode {
@@ -43,7 +51,7 @@ final public class GtTrinaryNode extends GtNode {
 		this.ElseNode = ElseNode;
 		this.SetChild3(CondNode, ThenNode, ElseNode);
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitTrinaryNode(this);
 	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {

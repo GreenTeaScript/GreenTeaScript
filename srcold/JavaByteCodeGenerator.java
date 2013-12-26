@@ -603,7 +603,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		}
 	}
 
-	@Override public void InitContext(GtParserContext Context) {
+	@Override public void InitContext(GtNameSpace Context) {
 		super.InitContext(Context);
 		this.ClassGenerator = new GreenTeaClassLoader(Context);
 	}

@@ -24,12 +24,20 @@
 
 package zen.ast;
 
+<<<<<<< HEAD:src/zen/ast/GtUnaryNode.java
 
 import zen.deps.LibGreenTea;
 import zen.parser.GtGenerator;
 import zen.parser.GtNameSpace;
 import zen.parser.GtStaticTable;
 import zen.parser.GtToken;
+=======
+import parser.GtNameSpace;
+import parser.GtNodeVisitor;
+import parser.GtStaticTable;
+import parser.GtToken;
+import parser.deps.LibGreenTea;
+>>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast/GtUnaryNode.java
 
 //E.g., "~" $RecvNode
 final public class GtUnaryNode extends GtNode {
@@ -42,7 +50,7 @@ final public class GtUnaryNode extends GtNode {
 		this.SetChild(RecvNode);
 		return this;
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitUnaryNode(this);
 	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
@@ -51,5 +59,5 @@ final public class GtUnaryNode extends GtNode {
 			return LibGreenTea.EvalUnary(this.Type, this.Token.ParsedText, Value);
 		}
 		return Value;
-	}	
+	}
 }

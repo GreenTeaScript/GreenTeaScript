@@ -26,11 +26,19 @@ package zen.ast2;
 
 import java.util.ArrayList;
 
+<<<<<<< HEAD:src/zen/ast2/GtConstructorNode.java
 import zen.ast.GtNode;
 import zen.parser.GtFunc;
 import zen.parser.GtGenerator;
 import zen.parser.GtToken;
 import zen.parser.GtType;
+=======
+import parser.GtFunc;
+import parser.GtNodeVisitor;
+import parser.GtToken;
+import parser.GtType;
+import parser.ast.GtNode;
+>>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast2/GtConstructorNode.java
 
 // E.g., ConstructorNode is for object creation in Native language defined
 final public class GtConstructorNode extends GtNode {
@@ -44,7 +52,7 @@ final public class GtConstructorNode extends GtNode {
 	@Override public final ArrayList<GtNode> GetList() {
 		return this.ParamList;
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitConstructorNode(this);
 	}
 //	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {

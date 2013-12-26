@@ -26,6 +26,7 @@ package zen.ast2;
 
 import java.util.ArrayList;
 
+<<<<<<< HEAD:src/zen/ast2/GtClassDeclNode.java
 import zen.ast.GtFuncDeclNode;
 import zen.ast.GtNode;
 import zen.parser.GtGenerator;
@@ -33,6 +34,15 @@ import zen.parser.GtNameSpace;
 import zen.parser.GtStaticTable;
 import zen.parser.GtToken;
 import zen.parser.GtType;
+=======
+import parser.GtNameSpace;
+import parser.GtNodeVisitor;
+import parser.GtStaticTable;
+import parser.GtToken;
+import parser.GtType;
+import parser.ast.GtFuncDeclNode;
+import parser.ast.GtNode;
+>>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast2/GtClassDeclNode.java
 
 final public class GtClassDeclNode extends GtNode {
 	/*field*/public GtType ClassType;
@@ -55,7 +65,7 @@ final public class GtClassDeclNode extends GtNode {
 		}
 		return this;
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitClassDeclNode(this);
 	}
 }

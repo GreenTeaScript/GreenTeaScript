@@ -34,7 +34,7 @@ import zen.deps.LibGreenTea;
 public class GtSourceGenerator extends GtGenerator {
 	/*field*/private final ArrayList<GtSourceBuilder> BuilderList;
 	/*field*/protected GtSourceBuilder HeaderBuilder;
-	/*field*/protected GtSourceBuilder VisitingBuilder;
+	/*field*/protected GtSourceBuilder CurrentBuilder;
 	
 	/*field*/public String    Tab;
 	/*field*/public String    LineFeed;
@@ -48,24 +48,11 @@ public class GtSourceGenerator extends GtGenerator {
 	/*field*/public String    FalseLiteral;
 	/*field*/public String    NullLiteral;
 
-//	/*field*/public int       IndentLevel;
-//	/*field*/public String    CurrentLevelIndentString;
-//
-//	/*field*/public boolean   HasLabelSupport;
-//	/*field*/public String    LogicalOrOperator;
-//	/*field*/public String    LogicalAndOperator;
-//	/*field*/public String    MemberAccessOperator;
-//	/*field*/public String    BreakKeyword;
-//	/*field*/public String    ContinueKeyword;
-//	/*field*/public String    ParameterBegin;
-//	/*field*/public String    ParameterEnd;
-//	/*field*/public String    ParameterDelimiter;
-
 	public GtSourceGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
 		super(TargetCode, OutputFile, GeneratorFlag);
 		this.BuilderList = new ArrayList<GtSourceBuilder>();
 		this.HeaderBuilder = this.NewSourceBuilder();
-		this.VisitingBuilder = null;
+		this.CurrentBuilder = null;
 		this.LineFeed = "\n";
 		this.Tab = "   ";
 		this.LineComment = "//";  // if not, set null
@@ -77,23 +64,9 @@ public class GtSourceGenerator extends GtGenerator {
 		this.TrueLiteral  = "true";
 		this.FalseLiteral = "false";
 		this.NullLiteral  = "null";
-
-//		this.CurrentLevelIndentString = null;
-//
-//		this.HasLabelSupport = false;
-//		this.LogicalOrOperator  = "||";
-//		this.LogicalAndOperator = "&&";
-//		this.MemberAccessOperator = ".";
-//		this.BreakKeyword = "break";
-//		this.ContinueKeyword = "continue";
-//		this.LineComment  = "//";
-//		this.ParameterBegin = "(";
-//		this.ParameterEnd = ")";
-//		this.ParameterDelimiter = ",";
-//		this.SemiColon = ";";
 	}
 
-	@Override public void InitContext(GtParserContext Context) {
+	@Override public void InitContext(GtNameSpace Context) {
 		super.InitContext(Context);
 	}
 	
@@ -134,20 +107,20 @@ public class GtSourceGenerator extends GtGenerator {
 	}
 
 	public void VisitIndentBlock(String BeginBlock, GtNode Node, String EndBlock) {
-		this.VisitingBuilder.AppendLine(BeginBlock);
-		this.VisitingBuilder.Indent();
+		this.CurrentBuilder.AppendLine(BeginBlock);
+		this.CurrentBuilder.Indent();
 		/*local*/GtNode CurrentNode = Node;
 		while(CurrentNode != null) {
 			if(!this.IsEmptyBlock(CurrentNode)) {
-				this.VisitingBuilder.AppendIndent();
+				this.CurrentBuilder.AppendIndent();
 				CurrentNode.Accept(this);
-				this.VisitingBuilder.AppendLine(this.SemiColon);
+				this.CurrentBuilder.AppendLine(this.SemiColon);
 			}
 			CurrentNode = CurrentNode.NextNode;
 		}
-		this.VisitingBuilder.UnIndent();
+		this.CurrentBuilder.UnIndent();
 		if(EndBlock != null) {
-			this.VisitingBuilder.IndentAndAppend(EndBlock);
+			this.CurrentBuilder.IndentAndAppend(EndBlock);
 		}
 	}
 	
@@ -175,15 +148,15 @@ public class GtSourceGenerator extends GtGenerator {
 	public void ExpandNativeMacro(String NativeMacro, ArrayList<GtNode> ParamList) {
 		/*local*/int ParamSize = LibGreenTea.ListSize(ParamList);
 		/*local*/int ParamIndex = 0;
-		/*local*/GtSourceBuilder CurrentBuilder = this.VisitingBuilder;
+		/*local*/GtSourceBuilder CurrentBuilder = this.CurrentBuilder;
 		while(ParamIndex < ParamSize) {
-			this.VisitingBuilder = new GtSourceBuilder(this);
+			this.CurrentBuilder = new GtSourceBuilder(this);
 			ParamList.get(ParamIndex).Accept(this);
-			/*local*/String Param = this.VisitingBuilder.toString();
+			/*local*/String Param = this.CurrentBuilder.toString();
 			NativeMacro = NativeMacro.replace("$" + (ParamIndex + 1), Param);
 			ParamIndex += 1;
 		}
-		this.VisitingBuilder = CurrentBuilder;
-		this.VisitingBuilder.Append(NativeMacro);
+		this.CurrentBuilder = CurrentBuilder;
+		this.CurrentBuilder.Append(NativeMacro);
 	}
 }

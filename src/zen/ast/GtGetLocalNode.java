@@ -24,16 +24,22 @@
 
 package zen.ast;
 
+<<<<<<< HEAD:src/zen/ast/GtGetLocalNode.java
 import zen.parser.GtGenerator;
 import zen.parser.GtToken;
 import zen.parser.GtType;
+=======
+import parser.GtNodeVisitor;
+import parser.GtToken;
+import parser.GtType;
+>>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast/GtGetLocalNode.java
 
 // E.g., $NativeName
 final public class GtGetLocalNode extends GtSymbolNode {
 	public GtGetLocalNode/*constructor*/(GtType Type, GtToken Token, String NativeName) {
 		super(Type, Token, NativeName);
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitGetLocalNode(this);
 	}
 }
