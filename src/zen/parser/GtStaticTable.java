@@ -32,6 +32,7 @@ import zen.deps.GreenTeaEnum;
 import zen.deps.GreenTeaObject;
 import zen.deps.LibGreenTea;
 import zen.deps.LibNative;
+import zen.obsolete.GtPolyFunc;
 
 public class GtStaticTable implements GreenTeaConsts {
 

@@ -31,6 +31,7 @@ import java.util.Arrays;
 import zen.ast.GtNode;
 import zen.deps.LibGreenTea;
 import zen.deps.LibNative;
+import zen.obsolete.GtFuncBlock;
 
 
 public final class GtFunc extends GreenTeaUtils {

@@ -22,7 +22,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package zen.parser;
+package zen.obsolete;
 
 import java.util.HashMap;
 import java.util.Iterator;

@@ -31,6 +31,8 @@ import zen.ast.GtErrorNode;
 import zen.ast.GtNode;
 import zen.deps.LibGreenTea;
 import zen.deps.LibNative;
+import zen.obsolete.GtFuncBlock;
+import zen.obsolete.GtPolyFunc;
 
 final class GtTokenFunc {
 	/*field*/public GtFunc      Func;

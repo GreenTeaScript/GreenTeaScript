@@ -23,8 +23,12 @@
 // **************************************************************************
 
 //ifdef JAVA
-package zen.parser;
+package zen.obsolete;
 import java.util.ArrayList;
+
+import zen.parser.GreenTeaUtils;
+import zen.parser.GtNameSpace;
+import zen.parser.GtType;
 
 
 

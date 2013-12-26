@@ -22,11 +22,17 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package zen.parser;
+package zen.obsolete;
 
 import java.util.ArrayList;
 
 import zen.ast.GtNode;
+import zen.parser.GreenTeaConsts;
+import zen.parser.GtFunc;
+import zen.parser.GtGenerator;
+import zen.parser.GtNameSpace;
+import zen.parser.GtToken;
+import zen.parser.GtType;
 
 public class GtPolyFunc {
 	/*field*/public GtGenerator Generator;

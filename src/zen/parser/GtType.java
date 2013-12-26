@@ -29,6 +29,7 @@ import java.util.ArrayList;
 
 import zen.deps.LibGreenTea;
 import zen.deps.LibNative;
+import zen.obsolete.GtClassField;
 
 public class GtType extends GreenTeaUtils {
 	/*field*/public int				TypeFlag;

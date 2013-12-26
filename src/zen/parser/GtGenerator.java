@@ -89,6 +89,8 @@ import zen.ast2.GtWhileNode;
 import zen.ast2.GtYieldNode;
 import zen.deps.LibGreenTea;
 import zen.deps.LibNative;
+import zen.obsolete.GtClassField;
+import zen.obsolete.GtSyntaxTree;
 
 public class GtGenerator extends GtNodeVisitor {
 	/*field*/public final String       TargetCode;

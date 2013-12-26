@@ -31,6 +31,7 @@ import zen.ast.GtErrorNode;
 import zen.ast.GtNode;
 import zen.deps.LibGreenTea;
 import zen.deps.LibNative;
+import zen.obsolete.GtSyntaxTree;
 
 public final class GtTokenContext extends GreenTeaUtils {
 	/*field*/public final static GtToken NullToken = new GtToken("", 0);

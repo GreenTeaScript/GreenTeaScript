@@ -23,7 +23,12 @@
 // **************************************************************************
 
 //ifdef JAVA
-package zen.parser;
+package zen.obsolete;
+
+import zen.parser.GreenTeaUtils;
+import zen.parser.GtNameSpace;
+import zen.parser.GtSyntaxPattern;
+import zen.parser.GtToken;
 //endif VAJA
 
 @Deprecated

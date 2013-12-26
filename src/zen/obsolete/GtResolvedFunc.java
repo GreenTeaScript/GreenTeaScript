@@ -22,9 +22,13 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package zen.parser;
+package zen.obsolete;
 
 import zen.ast.GtNode;
+import zen.parser.GtFunc;
+import zen.parser.GtNameSpace;
+import zen.parser.GtStaticTable;
+import zen.parser.GtType;
 
 public class GtResolvedFunc {
 	/*field*/public GtNameSpace GenericNameSpace;

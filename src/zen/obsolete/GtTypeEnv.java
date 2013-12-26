@@ -22,7 +22,10 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package zen.parser;
+package zen.obsolete;
+
+import zen.parser.GreenTeaUtils;
+import zen.parser.GtNameSpace;
 
 @Deprecated
 public final class GtTypeEnv extends GreenTeaUtils {

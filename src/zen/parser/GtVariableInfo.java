@@ -24,6 +24,8 @@
 
 package zen.parser;
 
+import zen.obsolete.GtFuncBlock;
+
 public class GtVariableInfo {
 	/*field*/public GtFuncBlock  FuncBlock;
 	/*field*/public int     VariableFlag;

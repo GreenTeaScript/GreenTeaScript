@@ -39,13 +39,13 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
 import zen.ast.GtNode;
+import zen.obsolete.GtPolyFunc;
 import zen.parser.GreenTeaConsts;
 import zen.parser.GreenTeaUtils;
 import zen.parser.GtFunc;
 import zen.parser.GtGenerator;
 import zen.parser.GtNameSpace;
 import zen.parser.GtNodeVisitor;
-import zen.parser.GtPolyFunc;
 import zen.parser.GtStaticTable;
 import zen.parser.GtTokenContext;
 import zen.parser.GtType;
