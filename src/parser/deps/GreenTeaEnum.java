@@ -25,8 +25,6 @@
 //ifdef JAVA
 package parser.deps;
 
-import org.GreenTeaScript.GreenTeaTopObject;
-
 import parser.GtType;
 //endif VAJA
 

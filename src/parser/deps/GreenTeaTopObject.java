@@ -24,14 +24,12 @@
 
 
 //ifdef JAVA
-package org.GreenTeaScript;
+package parser.deps;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 //endif VAJA
 
 import parser.GtType;
-import parser.deps.GreenTeaObject;
-import parser.deps.LibGreenTea;
 
 
 public class GreenTeaTopObject implements GreenTeaObject {
@@ -39,6 +37,7 @@ public class GreenTeaTopObject implements GreenTeaObject {
 	protected GreenTeaTopObject/*constructor*/(GtType GreenType) {
 		this.GreenType = GreenType;
 	}
+	@Override
 	public final GtType GetGreenType() {
 		return this.GreenType;
 	}
@@ -46,7 +45,7 @@ public class GreenTeaTopObject implements GreenTeaObject {
 
 	@Override public String toString() {
 		/*local*/String s = "{";
-//ifdef JAVA
+		//ifdef JAVA
 		Field[] Fields = this.getClass().getFields();
 		for(int i = 0; i < Fields.length; i++) {
 			if(Modifier.isPublic(Fields[i].getModifiers())) {
@@ -56,7 +55,7 @@ public class GreenTeaTopObject implements GreenTeaObject {
 				try {
 					s += Fields[i].getName() + ": ";
 					if(Fields[i].getType() == long.class) {
-							s += Fields[i].getLong(this);
+						s += Fields[i].getLong(this);
 					}
 					else if(Fields[i].getType() == double.class) {
 						s += Fields[i].getDouble(this);
@@ -73,7 +72,7 @@ public class GreenTeaTopObject implements GreenTeaObject {
 				}
 			}
 		}
-//endif VAJA
+		//endif VAJA
 		return s + "}";
 	}
 }

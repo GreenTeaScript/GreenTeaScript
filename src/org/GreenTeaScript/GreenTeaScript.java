@@ -27,6 +27,7 @@ package org.GreenTeaScript;
 //endif VAJA
 
 import grammar.KonohaGrammar;
+import parser.GreenTeaConsts;
 import parser.GreenTeaUtils;
 import parser.GtGenerator;
 import parser.GtNameSpace;
@@ -50,26 +51,26 @@ public class GreenTeaScript extends GreenTeaUtils {
 				break;
 			}
 			Index += 1;
-			if((Argu.equals("-e") || Argu.equals("--eval")) && Index < Args.length) {
+			if((Argu.equals("-e") || Argu.equals("--eval")) && (Index < Args.length)) {
 				OneLiner = Args[Index];
 				Index += 1;
 				continue;
 			}
-			if((Argu.equals("-o") || Argu.equals("--out")) && Index < Args.length) {
+			if((Argu.equals("-o") || Argu.equals("--out")) && (Index < Args.length)) {
 				if(!Args[Index].endsWith(".green")) {  // for safety
 					OutputFile = Args[Index];
 					Index += 1;
 					continue;
 				}
 			}
-			if((Argu.equals("-l") || Argu.equals("--lang")) && Index < Args.length) {
+			if((Argu.equals("-l") || Argu.equals("--lang")) && (Index < Args.length)) {
 				if(!Args[Index].endsWith(".green")) {  // for safety
 					TargetCode = Args[Index];
 					Index += 1;
 					continue;
 				}
 			}
-			if((Argu.equals("-r") || Argu.equals("--require")) && Index < Args.length) {
+			if((Argu.equals("-r") || Argu.equals("--require")) && (Index < Args.length)) {
 				RequiredLibName = Args[Index];
 				Index += 1;
 				continue;
@@ -80,27 +81,27 @@ public class GreenTeaScript extends GreenTeaUtils {
 			}
 			if(LibGreenTea.EqualsString(Argu, "--verbose")) {
 				LibGreenTea.DebugMode = true;
-				LibGreenTea.VerboseMask |= (GreenTeaUtils.VerboseFile|GreenTeaUtils.VerboseSymbol|GreenTeaUtils.VerboseNative);
+				LibGreenTea.VerboseMask |= (GreenTeaConsts.VerboseFile|GreenTeaConsts.VerboseSymbol|GreenTeaConsts.VerboseNative);
 				continue;
 			}
 			if(LibGreenTea.EqualsString(Argu, "--verbose:token")) {
-				LibGreenTea.VerboseMask |= GreenTeaUtils.VerboseToken;
+				LibGreenTea.VerboseMask |= GreenTeaConsts.VerboseToken;
 				continue;
 			}
 			if(LibGreenTea.EqualsString(Argu, "--verbose:type")) {
-				LibGreenTea.VerboseMask |= GreenTeaUtils.VerboseType;
+				LibGreenTea.VerboseMask |= GreenTeaConsts.VerboseType;
 				continue;
 			}
 			if(LibGreenTea.EqualsString(Argu, "--verbose:symbol")) {
-				LibGreenTea.VerboseMask |= GreenTeaUtils.VerboseSymbol;
+				LibGreenTea.VerboseMask |= GreenTeaConsts.VerboseSymbol;
 				continue;
 			}
 			if(LibGreenTea.EqualsString(Argu, "--verbose:native")) {
-				LibGreenTea.VerboseMask |= GreenTeaUtils.VerboseNative;
+				LibGreenTea.VerboseMask |= GreenTeaConsts.VerboseNative;
 				continue;
 			}
 			if(LibGreenTea.EqualsString(Argu, "--verbose:func")) {
-				LibGreenTea.VerboseMask |= GreenTeaUtils.VerboseFunc;
+				LibGreenTea.VerboseMask |= GreenTeaConsts.VerboseFunc;
 				continue;
 			}
 			if(LibGreenTea.EqualsString(Argu, "--verbose:all")) {
@@ -116,15 +117,15 @@ public class GreenTeaScript extends GreenTeaUtils {
 		/*local*/GtGenerator Generator = LibNative.LoadGenerator(TargetCode, OutputFile);
 		/*local*/GtNameSpace TopLevelNameSpace = new GtNameSpace(Generator, null);
 		LibNative.ImportGrammar(TopLevelNameSpace, KonohaGrammar.class.getName());
-//		/*local*/GtParserContext Context = new GtParserContext(new KonohaGrammar(), Generator);
-//		if(RequiredLibName != null) {
-//			if(!Context.TopLevelNameSpace.LoadRequiredLib(RequiredLibName)) {
-//				LibGreenTea.Exit(1, "failed to load required library: " + RequiredLibName);
-//			}
-//		}
-//		if(OneLiner != null) {
-//			Context.TopLevelNameSpace.Eval(OneLiner, 1);
-//		}
+		//		/*local*/GtParserContext Context = new GtParserContext(new KonohaGrammar(), Generator);
+		//		if(RequiredLibName != null) {
+		//			if(!Context.TopLevelNameSpace.LoadRequiredLib(RequiredLibName)) {
+		//				LibGreenTea.Exit(1, "failed to load required library: " + RequiredLibName);
+		//			}
+		//		}
+		//		if(OneLiner != null) {
+		//			Context.TopLevelNameSpace.Eval(OneLiner, 1);
+		//		}
 		if(!(Index < Args.length)) {
 			ShellMode = true;
 		}
@@ -148,8 +149,8 @@ public class GreenTeaScript extends GreenTeaUtils {
 			}
 		}
 		if(ShellMode) {
-			LibNative.println(GreenTeaUtils.ProgName + GreenTeaUtils.Version + " (" + GreenTeaUtils.CodeName + ") on " + LibGreenTea.GetPlatform());
-			LibNative.println(GreenTeaUtils.Copyright);
+			LibNative.println(GreenTeaConsts.ProgName + GreenTeaConsts.Version + " (" + GreenTeaConsts.CodeName + ") on " + LibGreenTea.GetPlatform());
+			LibNative.println(GreenTeaConsts.Copyright);
 			Generator.ShowReportedErrors();
 			/*local*/int linenum = 1;
 			/*local*/String Line = null;
@@ -182,8 +183,8 @@ public class GreenTeaScript extends GreenTeaUtils {
 		try {
 			GreenTeaScript.ExecCommand(Args);
 		}
-		catch(SoftwareFaultException e) {
-			System.err.println(e.GetStackTrace());
+		catch(Exception e) {
+			e.printStackTrace();
 		}
 	}
 }
