@@ -55,7 +55,7 @@ public class GtFuncBlock {
 			this.NameList.add(this.NameSpace.Generator.GetRecvName());
 		}
 	}
-	
+
 	public void AddParameter(GtType Type, String Name) {
 		this.TypeList.add(Type);
 		if(Type.IsVarType()) {
@@ -63,8 +63,8 @@ public class GtFuncBlock {
 		}
 		this.NameList.add(Name);
 	}
-	
-	int GetVariableIndex() {
+
+	public int GetVariableIndex() {
 		int Index = this.VariableIndex;
 		this.VariableIndex += 1;
 		return Index;
