@@ -115,11 +115,7 @@ public class GtGenerator extends GtNodeVisitor {
 	public void InitContext(GtNameSpace Context) {
 		this.Context = Context;
 		this.GeneratedCodeStack = new ArrayList<Object>();
-<<<<<<< HEAD
 		Context.LoadRequiredLib("common");
-=======
-//		Context.RootNameSpace.LoadRequiredLib("common");
->>>>>>> b7ddac1b7df3694a87b38c23d1215dc6b2d70d86
 	}
 
 //	public final void SetNoErrorReport(boolean b) {
