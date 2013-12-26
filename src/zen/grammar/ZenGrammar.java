@@ -51,7 +51,6 @@ import zen.deps.LibGreenTea;
 import zen.deps.LibNative;
 import zen.parser.GreenTeaConsts;
 import zen.parser.GtFunc;
-import zen.parser.GtGrammar;
 import zen.parser.GtMap;
 import zen.parser.GtNameSpace;
 import zen.parser.GtStaticTable;
@@ -865,22 +864,21 @@ public class ZenGrammar {
 //		return Gamma.Generator.CreateVarDeclNode(DeclType, ParsedTree, DeclType, VarInfo.NativeName, InitValueNode, BlockNode);
 //	}
 
-//	// Parse And Type
-//	public static GtSyntaxTree ParseIntegerLiteral(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-//		/*local*/GtToken Token = TokenContext.Next();
-//		return new GtSyntaxTree(Pattern, NameSpace, Token, LibGreenTea.ParseInt(Token.ParsedText));
-//	}
-//	
-//	public static GtSyntaxTree ParseFloatLiteral(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-//		/*local*/GtToken Token = TokenContext.Next();
-//		return new GtSyntaxTree(Pattern, NameSpace, Token, LibGreenTea.ParseFloat(Token.ParsedText));
-//	}
-//
-//	public static GtSyntaxTree ParseStringLiteral(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
-//		/*local*/GtToken Token = TokenContext.Next();
-//		return new GtSyntaxTree(Pattern, NameSpace, Token, LibGreenTea.UnquoteString(Token.ParsedText));
-//	}
-//
+	public static GtNode MatchIntLiteral(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftTree) {
+		/*local*/GtToken Token = TokenContext.Next();
+		return NameSpace.Generator.CreateIntNode(Token, LibGreenTea.ParseInt(Token.ParsedText));
+	}
+
+	public static GtNode MatchFloatLiteral(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftTree) {
+		/*local*/GtToken Token = TokenContext.Next();
+		return NameSpace.Generator.CreateFloatNode(Token, LibGreenTea.ParseFloat(Token.ParsedText));
+	}
+
+	public static GtNode MatchStringLiteral(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftTree) {
+		/*local*/GtToken Token = TokenContext.Next();
+		return NameSpace.Generator.CreateStringNode(Token, LibGreenTea.UnquoteString(Token.ParsedText));
+	}
+
 //	public static GtSyntaxTree ParseCharLiteral(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 //		/*local*/GtToken Token = TokenContext.Next();
 //		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, NameSpace, Token, LibGreenTea.UnquoteString(Token.ParsedText));
@@ -2907,7 +2905,7 @@ public class ZenGrammar {
 //		NameSpace.AppendSyntax("$Const$", LibNative.LoadMatchFunc(Grammar, "MatchConst"));
 		NameSpace.AppendSyntax("$CharLiteral$", LibNative.LoadMatchFunc(Grammar, "MatchCharLiteral"));
 		NameSpace.AppendSyntax("$StringLiteral$", LibNative.LoadMatchFunc(Grammar, "MatchStringLiteral"));
-		NameSpace.AppendSyntax("$IntegerLiteral$", LibNative.LoadMatchFunc(Grammar, "MatchIntegerLiteral"));
+		NameSpace.AppendSyntax("$IntegerLiteral$", LibNative.LoadMatchFunc(Grammar, "MatchIntLiteral"));
 		NameSpace.AppendSyntax("$FloatLiteral$", LibNative.LoadMatchFunc(Grammar, "MatchFloatLiteral"));
 
 		NameSpace.AppendExtendedSyntax(".", 0, LibNative.LoadMatchFunc(Grammar, "MatchGetter"));
