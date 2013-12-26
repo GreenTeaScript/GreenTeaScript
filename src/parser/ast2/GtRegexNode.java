@@ -22,27 +22,28 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package parser.ast;
+package parser.ast2;
 
 import parser.GtNameSpace;
 import parser.GtNodeVisitor;
-import parser.GtStaticTable;
 import parser.GtToken;
 import parser.GtType;
+import parser.ast.GtConstNode;
 
-final public class GtTypeNode extends GtConstNode {
-	/*field*/public GtType	ParsedType;
-	public GtTypeNode/*constructor*/(GtToken SourceToken, GtType ParsedType) {
-		super(GtStaticTable.TypeType, SourceToken);
-		this.ParsedType = ParsedType;
-	}
-	@Override public final Object GetValue() {
-		return this.ParsedType;
+final public class GtRegexNode extends GtConstNode {
+	/*field*/public String	Value;
+	public GtRegexNode/*constructor*/(GtType Type, GtToken Token, String Value) {
+		super(Type, Token);
+		this.Value = Value;
+		throw new RuntimeException("FIXME: Regex object must be defined");
 	}
 	@Override public void Accept(GtNodeVisitor Visitor) {
-		//Visitor.VisitTypeNode(this);
+		Visitor.VisitRegexNode(this);
 	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-		return this.ParsedType;
+		return this.Value;
+	}
+	@Override public Object GetValue() {
+		return this.Value;
 	}
 }

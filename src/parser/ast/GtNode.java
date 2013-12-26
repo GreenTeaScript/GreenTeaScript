@@ -26,12 +26,12 @@
 package parser.ast;
 import java.util.ArrayList;
 
+import parser.GreenTeaConsts;
 import parser.GtNameSpace;
 import parser.GtNodeVisitor;
-import parser.GtParserContext;
 import parser.GtToken;
 import parser.GtType;
-import parser.deps.LibGreenTea;
+import parser.ast2.GtThrowNode;
 import parser.deps.LibNative;
 //endif VAJA
 
@@ -41,22 +41,22 @@ public class GtNode {
 	/*field*/public GtNode	NextNode;
 	/*field*/public GtType	Type;
 	/*field*/public GtToken	Token;
-	
+
 	public GtNode/*constructor*/(GtType Type, GtToken Token) {
-//		this.Context = Context;
+		//		this.Context = Context;
 		this.Type = Type;
 		this.Token = Token;
 		this.ParentNode = null;
 		this.PrevNode = null;
 		this.NextNode = null;
 	}
-	
+
 	// Override by GtVarDeclNode, GtUsingVarDeclNode
 	public void SetNextStatement(GtNode NextNode) {
 		this.NextNode = NextNode;
 		NextNode.PrevNode = this;
 	}
-	
+
 	public final GtNode MoveHeadNode() {
 		/*local*/GtNode Node = this;
 		while(Node.PrevNode != null) {
@@ -84,7 +84,7 @@ public class GtNode {
 
 	public final boolean HasReturnNode() {
 		/*local*/GtNode LastNode = this.MoveTailNode();
-		return (LastNode instanceof GtReturnNode || LastNode instanceof GtThrowNode);
+		return ((LastNode instanceof GtReturnNode) || (LastNode instanceof GtThrowNode));
 	}
 
 	public final void SetChild(GtNode Node) {
@@ -92,50 +92,54 @@ public class GtNode {
 			Node.ParentNode = this;
 		}
 	}
-	
+
 	@Deprecated
 	public final void SetChild2(GtNode Node, GtNode Node2) {
 		this.SetChild(Node);
 		this.SetChild(Node2);
 	}
-	
+
 	@Deprecated
 	public final void SetChild3(GtNode Node, GtNode Node2, GtNode Node3) {
 		this.SetChild(Node);
 		this.SetChild(Node2);
 		this.SetChild(Node3);
 	}
-	
+
 	public ArrayList<GtNode> GetList() {
 		return null;
 	}
-	
-	public final GtNode GetAt(int Index) {
-		return this.GetList().get(Index);
-	}
-	
+
+
 	public GtNode Append(GtNode Node) {
 		this.GetList().add(Node);
 		this.SetChild(Node);
 		return this;
 	}
-	
-	public final GtNode AppendNodeList(int StartIndex, ArrayList<GtNode> NodeList) {
-		/*local*/int i = StartIndex;
-		/*local*/ArrayList<GtNode> List = this.GetList();
-		while(i < LibGreenTea.ListSize(NodeList)) {
-			/*local*/GtNode Node = NodeList.get(i);
-			List.add(Node);
-			this.SetChild(Node);
-			i = i + 1;
-		}
-		return this;
+
+	//	public final GtNode GetAt(int Index) {
+	//		return this.GetList().get(Index);
+	//	}
+	//	public final GtNode AppendNodeList(int StartIndex, ArrayList<GtNode> NodeList) {
+	//		/*local*/int i = StartIndex;
+	//		/*local*/ArrayList<GtNode> List = this.GetList();
+	//		while(i < LibGreenTea.ListSize(NodeList)) {
+	//			/*local*/GtNode Node = NodeList.get(i);
+	//			List.add(Node);
+	//			this.SetChild(Node);
+	//			i = i + 1;
+	//		}
+	//		return this;
+	//	}
+
+	public final GtNode Done() {
+		return new GtEmptyNode(this.Token);
 	}
 
 	public String GetVisitMethodName() {
 		return "VisitNode"; // override this if you want to use additional node
 	}
-	
+
 	public void Accept(GtNodeVisitor Visitor) {
 		LibNative.VisitNode(Visitor, this);
 	}
@@ -144,26 +148,22 @@ public class GtNode {
 		/* must override */
 		return this;
 	}
-	
+
 	public GtConstNode ToConstNode(boolean EnforceConst) {
 		if(EnforceConst) {
 			return new GtErrorNode(this.Token, "value must be constant");
 		}
 		return null;
-	}	
-	public final GtNode Done() {
-		return new GtEmptyNode(this.Token);
 	}
-	@Deprecated
-	public final Object ToNullValue(GtParserContext Context, boolean EnforceConst) {
-//		if(EnforceConst) {
-//			Context.ReportError_OLD(GreenTeaUtils.ErrorLevel, this.Token, "value must be constant in this context");
-//		}
+
+	public final Object ToNullValue(GtNameSpace NameSpace, boolean EnforceConst) {
+		if(EnforceConst) {
+			NameSpace.Generator.ReportError(GreenTeaConsts.ErrorLevel, this.Token, "value must be constant");
+		}
 		return null;
 	}
-	@Deprecated
-	public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
-		return this.ToNullValue(Context, EnforceConst);
+	public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
+		return this.ToNullValue(NameSpace, EnforceConst);
 	}
 
 	public final static GtNode LinkNode(GtNode LastNode, GtNode Node) {

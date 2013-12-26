@@ -22,27 +22,24 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package parser.ast;
+package parser.ast2;
 
-import parser.GtNameSpace;
-import parser.GtNodeVisitor;
-import parser.GtStaticTable;
 import parser.GtToken;
 import parser.GtType;
+import parser.ast.GtNode;
+import parser.ast.GtParamNode;
 
-final public class GtTypeNode extends GtConstNode {
-	/*field*/public GtType	ParsedType;
-	public GtTypeNode/*constructor*/(GtToken SourceToken, GtType ParsedType) {
-		super(GtStaticTable.TypeType, SourceToken);
-		this.ParsedType = ParsedType;
+final public class GtFieldNode extends GtParamNode {
+	/*field*/public String  Name;
+	/*field*/public GtNode InitNode;
+	public GtFieldNode/*constructor*/(GtType Type, GtToken Token, String Name) {
+		super(Type, Token, Name); // TODO
+		this.InitNode = null;
 	}
-	@Override public final Object GetValue() {
-		return this.ParsedType;
+	@Override public GtNode Append(GtNode Node) {
+		this.InitNode = Node;
+		this.SetChild(Node);
+		return this;
 	}
-	@Override public void Accept(GtNodeVisitor Visitor) {
-		//Visitor.VisitTypeNode(this);
-	}
-	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-		return this.ParsedType;
-	}
+
 }

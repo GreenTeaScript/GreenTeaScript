@@ -22,27 +22,26 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package parser.ast;
+package parser.ast2;
 
-import parser.GtNameSpace;
 import parser.GtNodeVisitor;
-import parser.GtStaticTable;
 import parser.GtToken;
 import parser.GtType;
+import parser.ast.GtNode;
 
-final public class GtTypeNode extends GtConstNode {
-	/*field*/public GtType	ParsedType;
-	public GtTypeNode/*constructor*/(GtToken SourceToken, GtType ParsedType) {
-		super(GtStaticTable.TypeType, SourceToken);
-		this.ParsedType = ParsedType;
-	}
-	@Override public final Object GetValue() {
-		return this.ParsedType;
+//E.g., "for" "(" $Variable "in" $IterNode ")" $BodyNode
+final public class GtForEachNode extends GtNode {
+	/*field*/public GtNode	Variable;
+	/*field*/public GtNode	IterNode;
+	/*field*/public GtNode	BodyNode;
+	public GtForEachNode/*constructor*/(GtType Type, GtToken Token, GtNode Variable, GtNode IterNode, GtNode BodyNode) {
+		super(Type, Token);
+		this.Variable = Variable;
+		this.IterNode = IterNode;
+		this.BodyNode = BodyNode;
+		this.SetChild3(Variable, BodyNode, IterNode);
 	}
 	@Override public void Accept(GtNodeVisitor Visitor) {
-		//Visitor.VisitTypeNode(this);
-	}
-	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-		return this.ParsedType;
+		Visitor.VisitForEachNode(this);
 	}
 }

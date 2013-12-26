@@ -22,27 +22,35 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package parser.ast;
+package parser.ast2;
 
-import parser.GtNameSpace;
 import parser.GtNodeVisitor;
-import parser.GtStaticTable;
 import parser.GtToken;
 import parser.GtType;
+import parser.ast.GtNode;
 
-final public class GtTypeNode extends GtConstNode {
-	/*field*/public GtType	ParsedType;
-	public GtTypeNode/*constructor*/(GtToken SourceToken, GtType ParsedType) {
-		super(GtStaticTable.TypeType, SourceToken);
-		this.ParsedType = ParsedType;
-	}
-	@Override public final Object GetValue() {
-		return this.ParsedType;
+final public class GtDoWhileNode extends GtNode {
+	/*field*/public GtNode	CondNode;
+	/*field*/public GtNode	BodyNode;
+	public GtDoWhileNode/*constructor*/(GtType Type, GtToken Token, GtNode CondNode, GtNode BodyNode) {
+		super(Type, Token);
+		this.CondNode = CondNode;
+		this.BodyNode = BodyNode;
+		this.SetChild2(CondNode, BodyNode);
 	}
 	@Override public void Accept(GtNodeVisitor Visitor) {
-		//Visitor.VisitTypeNode(this);
+		Visitor.VisitDoWhileNode(this);
 	}
-	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-		return this.ParsedType;
+	public GtNode ToWhileNode() {
+		/**
+		while(true) {
+			$BodyNode;
+			break;
+		}
+		while($CondNode) {
+			$BodyNode;
+		}
+		**/
+		return null;
 	}
 }

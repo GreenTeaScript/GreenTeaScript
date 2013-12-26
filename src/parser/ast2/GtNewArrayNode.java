@@ -22,27 +22,32 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package parser.ast;
+package parser.ast2;
 
-import parser.GtNameSpace;
+import java.util.ArrayList;
+
 import parser.GtNodeVisitor;
-import parser.GtStaticTable;
 import parser.GtToken;
 import parser.GtType;
+import parser.ast.GtNode;
 
-final public class GtTypeNode extends GtConstNode {
-	/*field*/public GtType	ParsedType;
-	public GtTypeNode/*constructor*/(GtToken SourceToken, GtType ParsedType) {
-		super(GtStaticTable.TypeType, SourceToken);
-		this.ParsedType = ParsedType;
+//E.g., new T "[" 10, [10] "]"
+final public class GtNewArrayNode extends GtNode {
+	/*field*/public ArrayList<GtNode>	NodeList;
+	public GtNewArrayNode/*constructor*/(GtType Type, GtToken Token) {
+		super(Type, Token);
+		this.NodeList = new ArrayList<GtNode>();
 	}
-	@Override public final Object GetValue() {
-		return this.ParsedType;
+	@Override public ArrayList<GtNode> GetList() {
+		return this.NodeList;
 	}
 	@Override public void Accept(GtNodeVisitor Visitor) {
-		//Visitor.VisitTypeNode(this);
+		Visitor.VisitNewArrayNode(this);
 	}
-	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-		return this.ParsedType;
-	}
+//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+//		if(EnforceConst) {
+//			return Context.Generator.EvalNewArrayNode(this, EnforceConst);
+//		}
+//		return null;
+//	}
 }

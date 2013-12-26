@@ -22,27 +22,34 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package parser.ast;
+package parser.ast2;
 
-import parser.GtNameSpace;
+import java.util.ArrayList;
+
 import parser.GtNodeVisitor;
-import parser.GtStaticTable;
 import parser.GtToken;
 import parser.GtType;
+import parser.ast.GtNode;
 
-final public class GtTypeNode extends GtConstNode {
-	/*field*/public GtType	ParsedType;
-	public GtTypeNode/*constructor*/(GtToken SourceToken, GtType ParsedType) {
-		super(GtStaticTable.TypeType, SourceToken);
-		this.ParsedType = ParsedType;
+// E.g., "ls" "-a"..
+final public class GtCommandNode extends GtNode {
+	/*field*/public ArrayList<GtNode>  ArgumentList; /* ["/bin/ls" , "-la", "/", ...] */
+	/*field*/public GtNode PipedNextNode;
+	public GtCommandNode/*constructor*/(GtType Type, GtToken Token, GtNode PipedNextNode) {
+		super(Type, Token);
+		this.PipedNextNode = PipedNextNode;
+		this.ArgumentList = new ArrayList<GtNode>();
 	}
-	@Override public final Object GetValue() {
-		return this.ParsedType;
+	@Override public final ArrayList<GtNode> GetList() {
+		return this.ArgumentList;
 	}
+
 	@Override public void Accept(GtNodeVisitor Visitor) {
-		//Visitor.VisitTypeNode(this);
+		Visitor.VisitCommandNode(this);
 	}
-	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-		return this.ParsedType;
-	}
+
+//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst) {
+//		//FIXME: Exception
+//		return Context.Generator.EvalCommandNode(this, EnforceConst);
+//	}
 }

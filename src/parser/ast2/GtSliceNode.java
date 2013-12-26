@@ -22,27 +22,27 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package parser.ast;
+package parser.ast2;
 
-import parser.GtNameSpace;
 import parser.GtNodeVisitor;
-import parser.GtStaticTable;
 import parser.GtToken;
 import parser.GtType;
+import parser.ast.GtNode;
+import parser.ast.GtSymbolNode;
 
-final public class GtTypeNode extends GtConstNode {
-	/*field*/public GtType	ParsedType;
-	public GtTypeNode/*constructor*/(GtToken SourceToken, GtType ParsedType) {
-		super(GtStaticTable.TypeType, SourceToken);
-		this.ParsedType = ParsedType;
-	}
-	@Override public final Object GetValue() {
-		return this.ParsedType;
+//E.g., $Expr "[" $Index ":" $Index2 "]"
+final public class GtSliceNode extends GtSymbolNode {
+	/*field*/public GtNode RecvNode;
+	/*field*/public GtNode Index1;
+	/*field*/public GtNode Index2;
+	public GtSliceNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, GtNode Index1, GtNode Index2) {
+		super(Type, Token, "");
+		this.RecvNode = RecvNode;
+		this.Index1 = Index1;
+		this.Index2 = Index2;
+		this.SetChild3(RecvNode, Index1, Index2);
 	}
 	@Override public void Accept(GtNodeVisitor Visitor) {
-		//Visitor.VisitTypeNode(this);
-	}
-	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-		return this.ParsedType;
+		Visitor.VisitSliceNode(this);
 	}
 }

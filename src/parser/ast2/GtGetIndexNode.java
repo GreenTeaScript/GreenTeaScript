@@ -22,27 +22,31 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package parser.ast;
+package parser.ast2;
 
 import parser.GtNameSpace;
 import parser.GtNodeVisitor;
-import parser.GtStaticTable;
 import parser.GtToken;
 import parser.GtType;
+import parser.ast.GtNode;
+import parser.ast.GtSymbolNode;
 
-final public class GtTypeNode extends GtConstNode {
-	/*field*/public GtType	ParsedType;
-	public GtTypeNode/*constructor*/(GtToken SourceToken, GtType ParsedType) {
-		super(GtStaticTable.TypeType, SourceToken);
-		this.ParsedType = ParsedType;
-	}
-	@Override public final Object GetValue() {
-		return this.ParsedType;
+//E.g., $Recv[$Index]
+final public class GtGetIndexNode extends GtSymbolNode {
+	/*field*/public GtNode  RecvNode;
+	/*field*/public GtNode  IndexNode;
+	public GtGetIndexNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, GtNode IndexNode) {
+		super(Type, Token, "[]");
+		this.RecvNode = RecvNode;
+		this.IndexNode = IndexNode;
+		this.SetChild2(RecvNode, IndexNode);
 	}
 	@Override public void Accept(GtNodeVisitor Visitor) {
-		//Visitor.VisitTypeNode(this);
+		Visitor.VisitGetIndexNode(this);
 	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-		return this.ParsedType;
+		//FIXME
+		//return Context.Generator.EvalGetIndexNode(this, EnforceConst);
+		return null;
 	}
 }

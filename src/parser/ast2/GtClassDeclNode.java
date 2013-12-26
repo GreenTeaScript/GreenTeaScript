@@ -22,27 +22,40 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package parser.ast;
+package parser.ast2;
+
+import java.util.ArrayList;
 
 import parser.GtNameSpace;
 import parser.GtNodeVisitor;
 import parser.GtStaticTable;
 import parser.GtToken;
 import parser.GtType;
+import parser.ast.GtFuncDeclNode;
+import parser.ast.GtNode;
 
-final public class GtTypeNode extends GtConstNode {
-	/*field*/public GtType	ParsedType;
-	public GtTypeNode/*constructor*/(GtToken SourceToken, GtType ParsedType) {
-		super(GtStaticTable.TypeType, SourceToken);
-		this.ParsedType = ParsedType;
+final public class GtClassDeclNode extends GtNode {
+	/*field*/public GtType ClassType;
+	/*field*/public GtNameSpace NameSpace;
+	/*field*/public ArrayList<GtNode>  FieldList;
+	/*field*/public ArrayList<GtNode>  MemberList;
+	public GtClassDeclNode/*constructor*/(GtToken SourceToken, GtNameSpace NameSpace, GtType ClassType) {
+		super(GtStaticTable.VarType, SourceToken); // TODO
+		this.NameSpace = NameSpace;
+		this.ClassType = ClassType;
+		this.FieldList = new ArrayList<GtNode>();
+		this.MemberList = new ArrayList<GtNode>();
 	}
-	@Override public final Object GetValue() {
-		return this.ParsedType;
+	@Override public GtNode Append(GtNode Node) {
+		if(Node instanceof GtFuncDeclNode) {
+			this.MemberList.add(Node);
+		}
+		if(Node instanceof GtFieldNode) {
+			this.FieldList.add(Node);
+		}
+		return this;
 	}
 	@Override public void Accept(GtNodeVisitor Visitor) {
-		//Visitor.VisitTypeNode(this);
-	}
-	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-		return this.ParsedType;
+		Visitor.VisitClassDeclNode(this);
 	}
 }

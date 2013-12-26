@@ -22,27 +22,35 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package parser.ast;
+package parser.ast2;
 
+import java.util.ArrayList;
+
+import parser.GtFunc;
 import parser.GtNameSpace;
 import parser.GtNodeVisitor;
-import parser.GtStaticTable;
 import parser.GtToken;
 import parser.GtType;
+import parser.ast.GtNode;
 
-final public class GtTypeNode extends GtConstNode {
-	/*field*/public GtType	ParsedType;
-	public GtTypeNode/*constructor*/(GtToken SourceToken, GtType ParsedType) {
-		super(GtStaticTable.TypeType, SourceToken);
-		this.ParsedType = ParsedType;
+final public class GtApplyOverridedMethodNode extends GtNode {
+	/*field*/public GtNameSpace NameSpace;
+	/*field*/public GtFunc Func;
+	/*field*/public ArrayList<GtNode>  ParamList; /* [arg1, arg2, ...] */
+	public GtApplyOverridedMethodNode/*constructor*/(GtType Type, GtToken Token, GtNameSpace NameSpace, GtFunc Func) {
+		super(Type, Token);
+		this.NameSpace = NameSpace.Minimum();
+		this.Func = Func;
+		this.ParamList = new ArrayList<GtNode>();
+		throw new RuntimeException("FIXME: ApplyOverridedMethodNode is not finished");
 	}
-	@Override public final Object GetValue() {
-		return this.ParsedType;
+	@Override public final ArrayList<GtNode> GetList() {
+		return this.ParamList;
 	}
 	@Override public void Accept(GtNodeVisitor Visitor) {
-		//Visitor.VisitTypeNode(this);
+		Visitor.VisitApplyOverridedMethodNode(this);
 	}
-	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-		return this.ParsedType;
-	}
+//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+//		return Context.Generator.EvalApplyOverridedMethodNode(this, EnforceConst);
+//	}
 }

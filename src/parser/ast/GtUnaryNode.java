@@ -24,9 +24,8 @@
 
 package parser.ast;
 
-
+import parser.GtNameSpace;
 import parser.GtNodeVisitor;
-import parser.GtParserContext;
 import parser.GtStaticTable;
 import parser.GtToken;
 import parser.deps.LibGreenTea;
@@ -45,11 +44,11 @@ final public class GtUnaryNode extends GtNode {
 	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitUnaryNode(this);
 	}
-	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
-		/*local*/Object Value = this.RecvNode.ToConstValue(Context, EnforceConst) ;
+	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
+		/*local*/Object Value = this.RecvNode.Eval(NameSpace, EnforceConst) ;
 		if(Value != null) {
 			return LibGreenTea.EvalUnary(this.Type, this.Token.ParsedText, Value);
 		}
 		return Value;
-	}	
+	}
 }

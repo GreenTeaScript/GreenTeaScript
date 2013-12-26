@@ -24,8 +24,8 @@
 
 package parser.ast;
 
+import parser.GtNameSpace;
 import parser.GtNodeVisitor;
-import parser.GtParserContext;
 import parser.GtToken;
 import parser.GtType;
 
@@ -41,7 +41,7 @@ final public class GtFloatNode extends GtConstNode {
 	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitFloatNode(this);
 	}
-	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
 		return this.Value;
 	}
 }

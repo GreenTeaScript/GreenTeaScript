@@ -22,27 +22,30 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package parser.ast;
+package parser.ast2;
 
-import parser.GtNameSpace;
+import java.util.ArrayList;
+
 import parser.GtNodeVisitor;
-import parser.GtStaticTable;
 import parser.GtToken;
 import parser.GtType;
+import parser.ast.GtNode;
 
-final public class GtTypeNode extends GtConstNode {
-	/*field*/public GtType	ParsedType;
-	public GtTypeNode/*constructor*/(GtToken SourceToken, GtType ParsedType) {
-		super(GtStaticTable.TypeType, SourceToken);
-		this.ParsedType = ParsedType;
-	}
-	@Override public final Object GetValue() {
-		return this.ParsedType;
+final public class GtSwitchNode extends GtNode {
+	/*field*/public GtNode	MatchNode;
+	/*field*/public GtNode	DefaultBlock;
+	/*field*/public ArrayList<GtNode> CaseList; // [expr, block, expr, block, ....]
+	public GtSwitchNode/*constructor*/(GtType Type, GtToken Token, GtNode MatchNode, GtNode DefaultBlock) {
+		super(Type, Token);
+		this.MatchNode = MatchNode;
+		this.DefaultBlock = DefaultBlock;
+		this.CaseList = new ArrayList<GtNode>();
+		this.SetChild(DefaultBlock);
 	}
 	@Override public void Accept(GtNodeVisitor Visitor) {
-		//Visitor.VisitTypeNode(this);
+		Visitor.VisitSwitchNode(this);
 	}
-	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-		return this.ParsedType;
+	@Override public final ArrayList<GtNode> GetList() {
+		return this.CaseList;
 	}
 }

@@ -22,27 +22,34 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package parser.ast;
+package parser.ast2;
+
 
 import parser.GtNameSpace;
 import parser.GtNodeVisitor;
-import parser.GtStaticTable;
 import parser.GtToken;
 import parser.GtType;
+import parser.ast.GtNode;
+import parser.deps.LibGreenTea;
 
-final public class GtTypeNode extends GtConstNode {
-	/*field*/public GtType	ParsedType;
-	public GtTypeNode/*constructor*/(GtToken SourceToken, GtType ParsedType) {
-		super(GtStaticTable.TypeType, SourceToken);
-		this.ParsedType = ParsedType;
-	}
-	@Override public final Object GetValue() {
-		return this.ParsedType;
+//E.g., $ExprNode instanceof TypeInfo
+final public class GtInstanceOfNode extends GtNode {
+	/*field*/public GtNode   ExprNode;
+	/*field*/public GtType	 TypeInfo;
+	public GtInstanceOfNode/*constructor*/(GtType Type, GtToken Token, GtNode ExprNode, GtType TypeInfo) {
+		super(Type, Token);
+		this.ExprNode = ExprNode;
+		this.TypeInfo = TypeInfo;
+		this.SetChild(ExprNode);
 	}
 	@Override public void Accept(GtNodeVisitor Visitor) {
-		//Visitor.VisitTypeNode(this);
+		Visitor.VisitInstanceOfNode(this);
 	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-		return this.ParsedType;
+		/*local*/Object Value = this.ExprNode.Eval(NameSpace, EnforceConst) ;
+		if(Value != null) {
+			return LibGreenTea.DynamicInstanceOf(Value, this.TypeInfo);
+		}
+		return Value;
 	}
 }

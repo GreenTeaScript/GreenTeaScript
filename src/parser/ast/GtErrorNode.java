@@ -24,14 +24,14 @@
 
 package parser.ast;
 
+import parser.GtNameSpace;
 import parser.GtNodeVisitor;
-import parser.GtParserContext;
 import parser.GtStaticTable;
 import parser.GtToken;
 
 /**
  * ErrorNode carries error information at the parser level
- * Token.ParsedText has error message  
+ * Token.ParsedText has error message
  */
 
 final public class GtErrorNode extends GtConstNode {
@@ -49,7 +49,7 @@ final public class GtErrorNode extends GtConstNode {
 	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitErrorNode(this);
 	}
-	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
 		return null;
 	}
 }

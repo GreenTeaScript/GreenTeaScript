@@ -24,9 +24,8 @@
 
 package parser.ast;
 
-
+import parser.GtNameSpace;
 import parser.GtNodeVisitor;
-import parser.GtParserContext;
 import parser.GtToken;
 import parser.GtType;
 import parser.deps.LibGreenTea;
@@ -46,14 +45,14 @@ final public class GtTrinaryNode extends GtNode {
 	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitTrinaryNode(this);
 	}
-	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
-		/*local*/Object CondValue = this.CondNode.ToConstValue(Context, EnforceConst) ;
+	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
+		/*local*/Object CondValue = this.CondNode.Eval(NameSpace, EnforceConst) ;
 		if(CondValue instanceof Boolean) {
 			if(LibGreenTea.booleanValue(CondValue)) {
-				return this.ThenNode.ToConstValue(Context, EnforceConst);
+				return this.ThenNode.Eval(NameSpace, EnforceConst);
 			}
 			else {
-				return this.ElseNode.ToConstValue(Context, EnforceConst);
+				return this.ElseNode.Eval(NameSpace, EnforceConst);
 			}
 		}
 		return null;

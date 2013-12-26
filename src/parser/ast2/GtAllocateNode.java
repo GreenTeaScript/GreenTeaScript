@@ -22,27 +22,22 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package parser.ast;
+package parser.ast2;
 
-import parser.GtNameSpace;
 import parser.GtNodeVisitor;
-import parser.GtStaticTable;
 import parser.GtToken;
 import parser.GtType;
+import parser.ast.GtNode;
 
-final public class GtTypeNode extends GtConstNode {
-	/*field*/public GtType	ParsedType;
-	public GtTypeNode/*constructor*/(GtToken SourceToken, GtType ParsedType) {
-		super(GtStaticTable.TypeType, SourceToken);
-		this.ParsedType = ParsedType;
-	}
-	@Override public final Object GetValue() {
-		return this.ParsedType;
+// E.g., AllocateNode (without parameters); StaticApply is needed to init
+final public class GtAllocateNode extends GtNode {
+	public GtAllocateNode/*constructor*/(GtType Type, GtToken Token) {
+		super(Type, Token);
 	}
 	@Override public void Accept(GtNodeVisitor Visitor) {
-		//Visitor.VisitTypeNode(this);
+		Visitor.VisitAllocateNode(this);
 	}
-	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-		return this.ParsedType;
-	}
+//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+//		return Context.Generator.EvalAllocateNode(this, EnforceConst);
+//	}	
 }
