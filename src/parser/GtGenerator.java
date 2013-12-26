@@ -90,9 +90,9 @@ import parser.deps.LibGreenTea;
 import parser.deps.LibNative;
 //endif VAJA
 
-public class GtGenerator extends GreenTeaUtils {
+public class GtGenerator {
 	/*field*/public final String       TargetCode;
-	/*field*/public GtParserContext    Context;
+	/*field*/public GtNameSpace    Context;
 	/*field*/public ArrayList<Object>  GeneratedCodeStack;
 	/*field*/public String             OutputFile;
 	/*field*/public int                GeneratorFlag;
@@ -113,10 +113,10 @@ public class GtGenerator extends GreenTeaUtils {
 		this.ReportedErrorList = new ArrayList<String>();
 	}
 
-	public void InitContext(GtParserContext Context) {
+	public void InitContext(GtNameSpace Context) {
 		this.Context = Context;
 		this.GeneratedCodeStack = new ArrayList<Object>();
-		Context.RootNameSpace.LoadRequiredLib("common");
+		Context.LoadRequiredLib("common");
 	}
 
 //	public final void SetNoErrorReport(boolean b) {
@@ -124,22 +124,22 @@ public class GtGenerator extends GreenTeaUtils {
 //	}
 
 	public final String ReportError(int Level, GtToken Token, String Message) {
-		if(Level == ErrorLevel) {
+		if(Level == GreenTeaConsts.ErrorLevel) {
 			Message = "(error) " + GtStaticTable.FormatFileLineNumber(Token.FileLine) + " " + Message;
 		}
-		else if(Level == TypeErrorLevel) {
+		else if(Level == GreenTeaConsts.TypeErrorLevel) {
 			Message = "(error) " + GtStaticTable.FormatFileLineNumber(Token.FileLine) + " " + Message;
 		}
-		else if(Level == WarningLevel) {
+		else if(Level == GreenTeaConsts.WarningLevel) {
 			Message = "(warning) " + GtStaticTable.FormatFileLineNumber(Token.FileLine) + " " + Message;
 		}
-		else if(Level == InfoLevel) {
+		else if(Level == GreenTeaConsts.InfoLevel) {
 			Message = "(info) " + GtStaticTable.FormatFileLineNumber(Token.FileLine) + " " + Message;
 		}
 		this.ReportedErrorList.add(Message);
 		return Message;
 	}
-	
+
 	public final String[] GetReportedErrors() {
 		/*local*/ArrayList<String> List = this.ReportedErrorList;
 		this.ReportedErrorList = new ArrayList<String>();
@@ -155,7 +155,7 @@ public class GtGenerator extends GreenTeaUtils {
 		}
 	}
 
-	
+
 //	public final GtNode CreateUnsupportedNode(GtType Type, GtSyntaxTree ParsedTree) {
 //		/*local*/GtToken Token = ParsedTree.KeyToken;
 //		this.Context.ReportError(GreenTeaConsts.ErrorLevel, Token, this.TargetCode + " has no language support for " + Token.ParsedText);
@@ -194,10 +194,10 @@ public class GtGenerator extends GreenTeaUtils {
 		if(Value instanceof Boolean) {
 			return this.CreateBooleanNode(SourceToken, (Boolean) Value);
 		}
-		if(Value instanceof Long || Value instanceof Integer) {
+		if((Value instanceof Long) || (Value instanceof Integer)) {
 			return this.CreateIntNode(SourceToken, ((Number)Value).longValue());
 		}
-		if(Value instanceof Double || Value instanceof Float) {
+		if((Value instanceof Double) || (Value instanceof Float)) {
 			return this.CreateFloatNode(SourceToken, ((Number)Value).doubleValue());
 		}
 		if(Value instanceof String) {
@@ -227,7 +227,7 @@ public class GtGenerator extends GreenTeaUtils {
 			}
 		}
 	}
-	
+
 //	public GtNode CreateNullNode_OLD(GtType Type, GtSyntaxTree ParsedTree) {
 //		return new GtNullNode(Type, ParsedTree.KeyToken);
 //	}
@@ -435,7 +435,7 @@ public class GtGenerator extends GreenTeaUtils {
 //		return new GtErrorNode(Type, ParsedTree.KeyToken);
 //	}
 
-	// useful Create* API
+// useful Create* API
 //	public final GtNode CreateCoercionNode(GtType Type, GtNameSpace NameSpace, GtFunc Func, GtNode Node) {
 //		/*local*/GtNode ApplyNode = this.CreateApplySymbolNode(Type, null, "Coercion", Func);
 //		ApplyNode.Append(Node);
@@ -519,7 +519,7 @@ public class GtGenerator extends GreenTeaUtils {
 	}
 
 	public final boolean IsEmptyBlock(GtNode Node) {
-		return Node == null || (Node instanceof GtEmptyNode) && Node.NextNode == null;
+		return (Node == null) || ((Node instanceof GtEmptyNode) && (Node.NextNode == null));
 	}
 
 	public final GtForNode FindParentForNode(GtNode Node) {
@@ -852,8 +852,8 @@ public class GtGenerator extends GreenTeaUtils {
 //		return Values;
 //	}
 //
-//	// EnforceConst : 
-//	
+//	// EnforceConst :
+//
 //	public Object EvalAllocateNode(GtAllocateNode Node, boolean EnforceConst) {
 ////ifdef JAVA  this is for JavaByteCodeGenerator and JavaSourceGenerator
 //		if(EnforceConst && Node.Type.TypeBody instanceof Class<?>) {
@@ -1015,7 +1015,7 @@ public class GtGenerator extends GreenTeaUtils {
 //			ArgsBuffer.add(Buffer);
 //			CurrentNode = (/*cast*/GtCommandNode) CurrentNode.PipedNextNode;
 //		}
-//		
+//
 //		/*local*/int NodeSize = LibGreenTea.ListSize(ArgsBuffer);
 //		/*local*/String[][] Args = new String[NodeSize][];
 //		for(int i = 0; i < NodeSize; i++) {
