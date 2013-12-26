@@ -31,7 +31,7 @@ import parser.GreenTeaUtils;
 import parser.GtClassField;
 import parser.GtFieldInfo;
 import parser.GtFunc;
-import parser.GtParserContext;
+import parser.GtNameSpace;
 import parser.GtStaticTable;
 import parser.GtSyntaxTree;
 import parser.GtType;
@@ -80,7 +80,7 @@ public class BashSourceGenerator extends SourceGenerator {
 		this.ParameterDelimiter = "";
 	}
 
-	@Override public void InitContext(GtParserContext Context) {
+	@Override public void InitContext(GtNameSpace Context) {
 		super.InitContext(Context);
 		this.WriteLineHeader("#!/bin/bash");
 		this.WriteLineCode(this.LineFeed + "source $GREENTEA_HOME/include/bash/GreenTeaPlus.sh" + this.LineFeed);

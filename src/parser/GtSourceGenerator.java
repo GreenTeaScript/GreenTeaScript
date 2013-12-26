@@ -93,7 +93,7 @@ public class GtSourceGenerator extends GtGenerator {
 //		this.SemiColon = ";";
 	}
 
-	@Override public void InitContext(GtParserContext Context) {
+	@Override public void InitContext(GtNameSpace Context) {
 		super.InitContext(Context);
 	}
 	

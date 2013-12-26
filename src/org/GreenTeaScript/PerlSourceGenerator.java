@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import parser.GtClassField;
 import parser.GtFieldInfo;
 import parser.GtFunc;
-import parser.GtParserContext;
+import parser.GtNameSpace;
 import parser.GtSourceGenerator;
 import parser.GtSyntaxTree;
 import parser.GtType;
@@ -100,7 +100,7 @@ public class PerlSourceGenerator extends GtSourceGenerator {
 		this.LineComment = "##";
 	}
 
-	@Override public void InitContext(GtParserContext Context) {
+	@Override public void InitContext(GtNameSpace Context) {
 		super.InitContext(Context);
 		this.HeaderBuilder.AppendLine("use strict;");
 		this.HeaderBuilder.AppendLine("use warnings;");

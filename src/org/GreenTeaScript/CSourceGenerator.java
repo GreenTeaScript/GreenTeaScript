@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import parser.GtClassField;
 import parser.GtFieldInfo;
 import parser.GtFunc;
-import parser.GtParserContext;
+import parser.GtNameSpace;
 import parser.GtSourceBuilder;
 import parser.GtSourceGenerator;
 import parser.GtSyntaxTree;
@@ -101,7 +101,7 @@ public class CSourceGenerator extends GtSourceGenerator {
 		this.NullLiteral = "NULL";
 	}
 
-	@Override public void InitContext(GtParserContext Context) {
+	@Override public void InitContext(GtNameSpace Context) {
 		super.InitContext(Context);
 		this.HeaderBuilder.AppendLine("#include \"GreenTeaPlus.h\"");
 	}
