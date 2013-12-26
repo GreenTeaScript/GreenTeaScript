@@ -39,6 +39,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
 import zen.ast.GtNode;
+import zen.codegen.JavaByteCodeGenerator;
 import zen.obsolete.GtPolyFunc;
 import zen.parser.GreenTeaConsts;
 import zen.parser.GreenTeaUtils;
@@ -446,42 +447,44 @@ public class LibNative {
 
 	public final static GtGenerator LoadGenerator(String ClassName, String OutputFile) {
 		if(ClassName == null) {
-			//			String Extension = (OutputFile == null) ? "-" : OutputFile;
-			//			ClassName = LibGreenTea.DetectTargetCode(Extension, ClassName);
-			//			ClassName = ClassName.toLowerCase();
-			//			if(ClassName.startsWith("js") || ClassName.startsWith("javascript")) {
-			//				return new JavaScriptSourceGenerator(ClassName, OutputFile, GeneratorFlag);
-			//			}
-			//			else if(ClassName.startsWith("pl") || ClassName.startsWith("perl")) {
-			//				return new PerlSourceGenerator(ClassName, OutputFile, GeneratorFlag);
-			//			}
-			//			else if(ClassName.startsWith("python")) {
-			//				return new PythonSourceGenerator(ClassName, OutputFile, GeneratorFlag);
-			//			}
-			//			else if(ClassName.startsWith("bash")) {
-			//				return new BashSourceGenerator(ClassName, OutputFile, GeneratorFlag);
-			//			}
-			//	//		else if(TargetCode.startsWith("scala")) {
-			//	//			return new ScalaSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
-			//	//		}
-			//			// FIXME CSharpSourceCodeGenerator.java is missing.
-			//			//else if(TargetCode.startsWith("csharp")) {
-			//			//	return new CSharpSourceCodeGenerator(TargetCode, OutputFile, GeneratorFlag);
-			//			//}
-			//			else if(ClassName.startsWith("exe")) {
-			//				return new JavaByteCodeGenerator(ClassName, OutputFile, GeneratorFlag);
-			//			}
-			//			else if(ClassName.startsWith("c")) {
-			//				return new CSourceGenerator(ClassName, OutputFile, GeneratorFlag);
-			//			}
-			//			else if(ClassName.startsWith("lisp")) {
-			//				return new CommonLispSourceGenerator(ClassName, OutputFile, GeneratorFlag);
-			//			}
-			//			else if(ClassName.startsWith("minikonoha")) {
-			//				return new KonohaByteCodeGenerator(ClassName, OutputFile, GeneratorFlag);
-			//				//return new MiniKonohaSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
-			//			}
+			ClassName = "";
 		}
+		int GeneratorFlag = 0;
+		String Extension = (OutputFile == null) ? "-" : OutputFile;
+		ClassName = LibGreenTea.DetectTargetCode(Extension, ClassName);
+		ClassName = ClassName.toLowerCase();
+		if(ClassName.startsWith("exe")) {
+			return new JavaByteCodeGenerator(ClassName, OutputFile, GeneratorFlag);
+		}
+//		if(ClassName.startsWith("js") || ClassName.startsWith("javascript")) {
+//			return new JavaScriptSourceGenerator(ClassName, OutputFile, GeneratorFlag);
+//		}
+//		else if(ClassName.startsWith("pl") || ClassName.startsWith("perl")) {
+//			return new PerlSourceGenerator(ClassName, OutputFile, GeneratorFlag);
+//		}
+//		else if(ClassName.startsWith("python")) {
+//			return new PythonSourceGenerator(ClassName, OutputFile, GeneratorFlag);
+//		}
+//		else if(ClassName.startsWith("bash")) {
+//			return new BashSourceGenerator(ClassName, OutputFile, GeneratorFlag);
+//		}
+//		else if(TargetCode.startsWith("scala")) {
+//			return new ScalaSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+//		}
+//		// FIXME CSharpSourceCodeGenerator.java is missing.
+//		//else if(TargetCode.startsWith("csharp")) {
+//		//	return new CSharpSourceCodeGenerator(TargetCode, OutputFile, GeneratorFlag);
+//		//}
+//		else if(ClassName.startsWith("c")) {
+//			return new CSourceGenerator(ClassName, OutputFile, GeneratorFlag);
+//		}
+//		else if(ClassName.startsWith("lisp")) {
+//			return new CommonLispSourceGenerator(ClassName, OutputFile, GeneratorFlag);
+//		}
+//		else if(ClassName.startsWith("minikonoha")) {
+//			return new KonohaByteCodeGenerator(ClassName, OutputFile, GeneratorFlag);
+//			//return new MiniKonohaSourceGenerator(TargetCode, OutputFile, GeneratorFlag);
+//		}
 		try {
 			Class<?> GeneratorClass = Class.forName(ClassName);
 			GtGenerator Generator = (GtGenerator)GeneratorClass.newInstance();

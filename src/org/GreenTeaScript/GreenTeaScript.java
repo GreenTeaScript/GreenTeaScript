@@ -126,6 +126,7 @@ public class GreenTeaScript extends GreenTeaUtils {
 		//		if(OneLiner != null) {
 		//			Context.TopLevelNameSpace.Eval(OneLiner, 1);
 		//		}
+		Generator.InitContext(TopLevelNameSpace);
 		if(!(Index < Args.length)) {
 			ShellMode = true;
 		}
