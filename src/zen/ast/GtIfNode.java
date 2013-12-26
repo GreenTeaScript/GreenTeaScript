@@ -24,17 +24,10 @@
 
 package zen.ast;
 
-<<<<<<< HEAD:src/zen/ast/GtIfNode.java
-import zen.parser.GtGenerator;
+import zen.parser.GtNodeVisitor;
 import zen.parser.GtStaticTable;
 import zen.parser.GtToken;
 import zen.parser.GtType;
-=======
-import parser.GtNodeVisitor;
-import parser.GtStaticTable;
-import parser.GtToken;
-import parser.GtType;
->>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast/GtIfNode.java
 
 //E.g., "if" "(" $Cond ")" $ThenNode "else" $ElseNode
 final public class GtIfNode extends GtNode {

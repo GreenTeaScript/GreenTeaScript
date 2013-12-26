@@ -24,21 +24,14 @@
 
 package zen.ast;
 
-<<<<<<< HEAD:src/zen/ast/GtVarDeclNode.java
-import zen.parser.GtGenerator;
+import zen.parser.GtNodeVisitor;
 import zen.parser.GtStaticTable;
 import zen.parser.GtToken;
 import zen.parser.GtType;
-=======
-import parser.GtNodeVisitor;
-import parser.GtStaticTable;
-import parser.GtToken;
-import parser.GtType;
->>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast/GtVarDeclNode.java
 
 /**
  * int a = 1;
- * String s ; 
+ * String s ;
  */
 
 final public class GtVarDeclNode extends GtNode {

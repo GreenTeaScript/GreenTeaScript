@@ -24,17 +24,10 @@
 
 package zen.ast2;
 
-<<<<<<< HEAD:src/zen/ast2/GtForEachNode.java
 import zen.ast.GtNode;
-import zen.parser.GtGenerator;
+import zen.parser.GtNodeVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
-=======
-import parser.GtNodeVisitor;
-import parser.GtToken;
-import parser.GtType;
-import parser.ast.GtNode;
->>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast2/GtForEachNode.java
 
 //E.g., "for" "(" $Variable "in" $IterNode ")" $BodyNode
 final public class GtForEachNode extends GtNode {

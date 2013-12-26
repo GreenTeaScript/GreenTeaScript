@@ -26,27 +26,21 @@ package zen.ast;
 
 import java.util.ArrayList;
 
-<<<<<<< HEAD:src/zen/ast/GtFunctionLiteralNode.java
-import zen.parser.GtGenerator;
+import zen.parser.GtNodeVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
-=======
-import parser.GtNodeVisitor;
-import parser.GtToken;
-import parser.GtType;
->>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast/GtFunctionLiteralNode.java
 
 final public class GtFunctionLiteralNode extends GtNode {
 
-/* E.g., function(argument, ..) $Body */
-/* int x; // captured variable 
- * f = function(a, b) {
- * 	  return x + a + b;
- * }
- * ArgumentList = List of ParamNode
- * BodyNode
- */
-	/*field*/public ArrayList<GtNode>  ArgumentList;  // list of ParamNode 
+	/* E.g., function(argument, ..) $Body */
+	/* int x; // captured variable
+	 * f = function(a, b) {
+	 * 	  return x + a + b;
+	 * }
+	 * ArgumentList = List of ParamNode
+	 * BodyNode
+	 */
+	/*field*/public ArrayList<GtNode>  ArgumentList;  // list of ParamNode
 	/*field*/public GtNode BodyNode;
 	public GtFunctionLiteralNode/*constructor*/(GtType Type, GtToken Token, GtNode BodyNode) {
 		super(Type, Token); // TODO

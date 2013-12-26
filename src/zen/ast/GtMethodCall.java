@@ -26,15 +26,9 @@ package zen.ast;
 
 import java.util.ArrayList;
 
-<<<<<<< HEAD:src/zen/ast/GtMethodCall.java
-import zen.parser.GtGenerator;
+import zen.parser.GtNodeVisitor;
 import zen.parser.GtStaticTable;
 import zen.parser.GtToken;
-=======
-import parser.GtNodeVisitor;
-import parser.GtStaticTable;
-import parser.GtToken;
->>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast/GtApplySymbolNode.java
 
 //E.g., $NativeFuncName "(" $Param[0], $Param[1], ... ")"
 final public class GtMethodCall extends GtNode {
@@ -50,15 +44,10 @@ final public class GtMethodCall extends GtNode {
 	@Override public final ArrayList<GtNode> GetList() {
 		return this.ParamList;
 	}
-<<<<<<< HEAD:src/zen/ast/GtMethodCall.java
-	@Override public void Accept(GtGenerator Visitor) {
-		Visitor.VisitMethodCallNode(this);
-=======
 	@Override public void Accept(GtNodeVisitor Visitor) {
-		Visitor.VisitApplySymbolNode(this);
->>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast/GtApplySymbolNode.java
+		Visitor.VisitMethodCallNode(this);
 	}
-//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
-//		return Context.Generator.EvalApplySymbolNode(this, EnforceConst);
-//	}
+	//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+	//		return Context.Generator.EvalApplySymbolNode(this, EnforceConst);
+	//	}
 }

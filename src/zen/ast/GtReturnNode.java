@@ -24,13 +24,8 @@
 
 package zen.ast;
 
-<<<<<<< HEAD:src/zen/ast/GtReturnNode.java
-import zen.parser.GtGenerator;
+import zen.parser.GtNodeVisitor;
 import zen.parser.GtStaticTable;
-=======
-import parser.GtNodeVisitor;
-import parser.GtStaticTable;
->>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast/GtReturnNode.java
 
 final public class GtReturnNode extends GtNode {
 	/*field*/public GtNode ValueNode;

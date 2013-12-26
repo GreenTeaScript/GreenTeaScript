@@ -25,13 +25,7 @@
 //ifdef JAVA
 package zen.deps;
 
-<<<<<<< HEAD:src/zen/deps/GreenTeaEnum.java
-
 import zen.parser.GtType;
-=======
-import parser.GtType;
-//endif VAJA
->>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/deps/GreenTeaEnum.java
 
 public class GreenTeaEnum extends GreenTeaTopObject {
 	/*field*/public final long EnumValue;

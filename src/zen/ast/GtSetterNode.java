@@ -24,15 +24,9 @@
 
 package zen.ast;
 
-<<<<<<< HEAD:src/zen/ast/GtSetterNode.java
-import zen.parser.GtGenerator;
+import zen.parser.GtNodeVisitor;
 import zen.parser.GtStaticTable;
 import zen.parser.GtToken;
-=======
-import parser.GtNodeVisitor;
-import parser.GtStaticTable;
-import parser.GtToken;
->>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast/GtSetterNode.java
 
 //E.g., $RecvNode.$NativeName = $Value
 final public class GtSetterNode extends GtSymbolNode {
@@ -52,7 +46,7 @@ final public class GtSetterNode extends GtSymbolNode {
 	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitSetterNode(this);
 	}
-//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
-//		return Context.Generator.EvalSetterNode(this, EnforceConst);
-//	}
+	//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+	//		return Context.Generator.EvalSetterNode(this, EnforceConst);
+	//	}
 }

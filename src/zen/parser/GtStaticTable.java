@@ -27,21 +27,11 @@ package zen.parser;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-<<<<<<< HEAD:src/zen/parser/GtStaticTable.java
 import zen.deps.GreenTeaArray;
 import zen.deps.GreenTeaEnum;
 import zen.deps.GreenTeaObject;
 import zen.deps.LibGreenTea;
 import zen.deps.LibNative;
-=======
-import parser.deps.GreenTeaArray;
-import parser.deps.GreenTeaEnum;
-import parser.deps.GreenTeaObject;
-import parser.deps.GreenTeaTopObject;
-import parser.deps.LibGreenTea;
-import parser.deps.LibNative;
-//endif VAJA
->>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/GtStaticTable.java
 
 public class GtStaticTable implements GreenTeaConsts {
 
@@ -52,21 +42,7 @@ public class GtStaticTable implements GreenTeaConsts {
 	/*field*/public final static ArrayList<GtType>  TypePools = new ArrayList<GtType>();
 	/*field*/public final static ArrayList<GtFunc>  FuncPools = new ArrayList<GtFunc>();
 
-<<<<<<< HEAD:src/zen/parser/GtStaticTable.java
 	/*field*/public final static GtType		TopType = new GtType(0, "Top", null, Object.class /*GreenTeaTopObject.class*/);
-	/*field*/public final static GtType		VoidType = new GtType(NativeType, "void", null, void.class);
-	/*field*/public final static GtType		BooleanType = new GtType(NativeType|UnboxType, "boolean", false, boolean.class);
-	/*field*/public final static GtType		IntType = new GtType(NativeType|UnboxType, "int", 0L, long.class);
-	/*field*/public final static GtType     FloatType = new GtType(NativeType|UnboxType, "float", 0.0, double.class);
-	/*field*/public final static GtType		StringType = new GtType(NativeType, "String", null, String.class);
-	/*field*/public final static GtType		AnyType = new GtType(DynamicType, "any", null, Object.class);
-	/*field*/public final static GtType		ArrayType = GtStaticTable.TopType.CreateSubType(GenericVariable, "Array", null, GreenTeaArray.class);
-	/*field*/public final static GtType		FuncType  = GtStaticTable.TopType.CreateSubType(GenericVariable, "Func", null, GtFunc.class);
-
-	/*field*/public final static GtType		EnumBaseType = GtStaticTable.TopType.CreateSubType(EnumType, "enum", null, GreenTeaEnum.class);
-//	/*field*/public final static GtType		StructType;
-=======
-	/*field*/public final static GtType		TopType = new GtType(0, "Top", null, GreenTeaTopObject.class);
 	/*field*/public final static GtType		VoidType = new GtType(GreenTeaConsts.NativeType, "void", null, void.class);
 	/*field*/public final static GtType		BooleanType = new GtType(GreenTeaConsts.NativeType|GreenTeaConsts.UnboxType, "boolean", false, boolean.class);
 	/*field*/public final static GtType		IntType = new GtType(GreenTeaConsts.NativeType|GreenTeaConsts.UnboxType, "int", 0L, long.class);
@@ -77,8 +53,8 @@ public class GtStaticTable implements GreenTeaConsts {
 	/*field*/public final static GtType		FuncType  = GtStaticTable.TopType.CreateSubType(GreenTeaConsts.GenericVariable, "Func", null, GtFunc.class);
 
 	/*field*/public final static GtType		EnumBaseType = GtStaticTable.TopType.CreateSubType(GreenTeaConsts.EnumType, "enum", null, GreenTeaEnum.class);
-	//	/*field*/public final static GtType		StructType;
->>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/GtStaticTable.java
+	///*field*/public final static GtType		StructType;
+
 	/*field*/public final static GtType		VarType = new GtType(0, "var", null, null);
 	/*field*/public final static GtType		TypeType = GtStaticTable.TopType.CreateSubType(0, "Type", null, GtType.class);
 	/*field*/public final static GtType     IteratorType = new GtType(GreenTeaConsts.GenericVariable, "Iterator", null, Iterator.class);

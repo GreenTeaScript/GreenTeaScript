@@ -26,22 +26,12 @@
 package zen.ast;
 import java.util.ArrayList;
 
-<<<<<<< HEAD:src/zen/ast/GtNode.java
 import zen.ast2.GtThrowNode;
 import zen.deps.LibNative;
-=======
-import parser.GreenTeaConsts;
-import parser.GtNameSpace;
-import parser.GtNodeVisitor;
-import parser.GtToken;
-import parser.GtType;
-import parser.ast2.GtThrowNode;
-import parser.deps.LibNative;
->>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast/GtNode.java
 //endif VAJA
 import zen.parser.GreenTeaConsts;
-import zen.parser.GtGenerator;
 import zen.parser.GtNameSpace;
+import zen.parser.GtNodeVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
 

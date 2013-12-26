@@ -24,17 +24,10 @@
 
 package zen.ast;
 
-<<<<<<< HEAD:src/zen/ast/GtIntNode.java
-import zen.parser.GtGenerator;
 import zen.parser.GtNameSpace;
+import zen.parser.GtNodeVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
-=======
-import parser.GtNameSpace;
-import parser.GtNodeVisitor;
-import parser.GtToken;
-import parser.GtType;
->>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast/GtIntNode.java
 
 final public class GtIntNode extends GtConstNode {
 	/*field*/public long	Value;

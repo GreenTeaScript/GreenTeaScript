@@ -26,17 +26,10 @@ package zen.ast2;
 
 import java.util.ArrayList;
 
-<<<<<<< HEAD:src/zen/ast2/GtCommandNode.java
 import zen.ast.GtNode;
-import zen.parser.GtGenerator;
+import zen.parser.GtNodeVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
-=======
-import parser.GtNodeVisitor;
-import parser.GtToken;
-import parser.GtType;
-import parser.ast.GtNode;
->>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast2/GtCommandNode.java
 
 // E.g., "ls" "-a"..
 final public class GtCommandNode extends GtNode {
@@ -55,8 +48,8 @@ final public class GtCommandNode extends GtNode {
 		Visitor.VisitCommandNode(this);
 	}
 
-//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst) {
-//		//FIXME: Exception
-//		return Context.Generator.EvalCommandNode(this, EnforceConst);
-//	}
+	//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst) {
+	//		//FIXME: Exception
+	//		return Context.Generator.EvalCommandNode(this, EnforceConst);
+	//	}
 }

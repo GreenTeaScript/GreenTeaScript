@@ -26,26 +26,15 @@
 package org.GreenTeaScript;
 //endif VAJA
 
-<<<<<<< HEAD
 import zen.deps.GreenTeaArray;
 import zen.deps.LibGreenTea;
 import zen.deps.LibNative;
 import zen.grammar.ZenGrammar;
+import zen.parser.GreenTeaConsts;
 import zen.parser.GreenTeaUtils;
 import zen.parser.GtGenerator;
 import zen.parser.GtNameSpace;
 import zen.parser.GtStaticTable;
-=======
-import grammar.KonohaGrammar;
-import parser.GreenTeaConsts;
-import parser.GreenTeaUtils;
-import parser.GtGenerator;
-import parser.GtNameSpace;
-import parser.GtStaticTable;
-import parser.deps.GreenTeaArray;
-import parser.deps.LibGreenTea;
-import parser.deps.LibNative;
->>>>>>> e755b72769721359763b8610626c7340818b7aa2
 
 public class GreenTeaScript extends GreenTeaUtils {
 	public final static void ExecCommand(String[] Args) {
@@ -127,19 +116,7 @@ public class GreenTeaScript extends GreenTeaUtils {
 		}
 		/*local*/GtGenerator Generator = LibNative.LoadGenerator(TargetCode, OutputFile);
 		/*local*/GtNameSpace TopLevelNameSpace = new GtNameSpace(Generator, null);
-<<<<<<< HEAD
 		LibNative.ImportGrammar(TopLevelNameSpace, ZenGrammar.class.getName());
-//		/*local*/GtParserContext Context = new GtParserContext(new KonohaGrammar(), Generator);
-//		if(RequiredLibName != null) {
-//			if(!Context.TopLevelNameSpace.LoadRequiredLib(RequiredLibName)) {
-//				LibGreenTea.Exit(1, "failed to load required library: " + RequiredLibName);
-//			}
-//		}
-//		if(OneLiner != null) {
-//			Context.TopLevelNameSpace.Eval(OneLiner, 1);
-//		}
-=======
-		LibNative.ImportGrammar(TopLevelNameSpace, KonohaGrammar.class.getName());
 		//		/*local*/GtParserContext Context = new GtParserContext(new KonohaGrammar(), Generator);
 		//		if(RequiredLibName != null) {
 		//			if(!Context.TopLevelNameSpace.LoadRequiredLib(RequiredLibName)) {
@@ -149,7 +126,6 @@ public class GreenTeaScript extends GreenTeaUtils {
 		//		if(OneLiner != null) {
 		//			Context.TopLevelNameSpace.Eval(OneLiner, 1);
 		//		}
->>>>>>> e755b72769721359763b8610626c7340818b7aa2
 		if(!(Index < Args.length)) {
 			ShellMode = true;
 		}
@@ -204,18 +180,11 @@ public class GreenTeaScript extends GreenTeaUtils {
 	}
 
 	public final static void main(String[] Args)  {
-//		try {
-			GreenTeaScript.ExecCommand(Args);
-<<<<<<< HEAD
-//		}
-//		catch(SoftwareFaultException e) {
-//			System.err.println(e.GetStackTrace());
-//		}
-=======
-		}
-		catch(Exception e) {
-			e.printStackTrace();
-		}
->>>>>>> e755b72769721359763b8610626c7340818b7aa2
+		//		try {
+		GreenTeaScript.ExecCommand(Args);
+		//		}
+		//		catch(SoftwareFaultException e) {
+		//			System.err.println(e.GetStackTrace());
+		//		}
 	}
 }

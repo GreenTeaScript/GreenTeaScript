@@ -24,15 +24,9 @@
 
 package zen.ast;
 
-<<<<<<< HEAD:src/zen/ast/GtConstPoolNode.java
-import zen.parser.GtGenerator;
+import zen.parser.GtNodeVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
-=======
-import parser.GtNodeVisitor;
-import parser.GtToken;
-import parser.GtType;
->>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast/GtConstPoolNode.java
 
 final public class GtConstPoolNode extends GtConstNode {
 	/*field*/public Object	ConstValue;
@@ -48,8 +42,8 @@ final public class GtConstPoolNode extends GtConstNode {
 	@Override public final Object GetValue() {
 		return this.ConstValue;
 	}
-//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
-//		return this.ConstValue;
-//	}
-	
+	//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+	//		return this.ConstValue;
+	//	}
+
 }

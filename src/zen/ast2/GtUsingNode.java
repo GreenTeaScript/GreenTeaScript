@@ -24,17 +24,10 @@
 
 package zen.ast2;
 
-<<<<<<< HEAD:src/zen/ast2/GtUsingNode.java
 import zen.ast.GtNode;
-import zen.parser.GtGenerator;
+import zen.parser.GtNodeVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
-=======
-import parser.GtNodeVisitor;
-import parser.GtToken;
-import parser.GtType;
-import parser.ast.GtNode;
->>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast2/GtUsingNode.java
 
 /**
  * using(File f = new File() {
@@ -46,7 +39,7 @@ final public class GtUsingNode extends GtNode {
 	/*field*/public GtType	DeclType;
 	/*field*/public String  NativeName;
 	/*field*/public GtNode	InitNode;
-	/*field*/public GtNode	BlockNode;   // release resource of NativeName after BlockNode 
+	/*field*/public GtNode	BlockNode;   // release resource of NativeName after BlockNode
 	/* let VarNode in Block end */
 	public GtUsingNode/*constructor*/(GtType Type, GtToken Token, GtType DeclType, String VariableName, GtNode InitNode, GtNode Block) {
 		super(Type, Token);

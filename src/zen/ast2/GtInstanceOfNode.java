@@ -24,22 +24,12 @@
 
 package zen.ast2;
 
-
-<<<<<<< HEAD:src/zen/ast2/GtInstanceOfNode.java
 import zen.ast.GtNode;
 import zen.deps.LibGreenTea;
-import zen.parser.GtGenerator;
 import zen.parser.GtNameSpace;
+import zen.parser.GtNodeVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
-=======
-import parser.GtNameSpace;
-import parser.GtNodeVisitor;
-import parser.GtToken;
-import parser.GtType;
-import parser.ast.GtNode;
-import parser.deps.LibGreenTea;
->>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast2/GtInstanceOfNode.java
 
 //E.g., $ExprNode instanceof TypeInfo
 final public class GtInstanceOfNode extends GtNode {

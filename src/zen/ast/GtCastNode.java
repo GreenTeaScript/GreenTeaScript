@@ -24,22 +24,12 @@
 
 package zen.ast;
 
-<<<<<<< HEAD:src/zen/ast/GtCastNode.java
-
 import zen.deps.LibGreenTea;
-import zen.parser.GtGenerator;
 import zen.parser.GtNameSpace;
+import zen.parser.GtNodeVisitor;
 import zen.parser.GtStaticTable;
 import zen.parser.GtToken;
 import zen.parser.GtType;
-=======
-import parser.GtNameSpace;
-import parser.GtNodeVisitor;
-import parser.GtStaticTable;
-import parser.GtToken;
-import parser.GtType;
-import parser.deps.LibGreenTea;
->>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast/GtCastNode.java
 
 //E.g., (T) $Expr
 final public class GtCastNode extends GtNode {

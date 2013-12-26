@@ -26,14 +26,8 @@
 package zen.deps;
 import java.util.ArrayList;
 
-<<<<<<< HEAD:src/zen/deps/GreenTeaArray.java
-
 import zen.parser.GtStaticTable;
 import zen.parser.GtType;
-=======
-import parser.GtStaticTable;
-import parser.GtType;
->>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/deps/GreenTeaArray.java
 
 public class GreenTeaArray extends GreenTeaTopObject {
 	public ArrayList<Object> ArrayBody ;

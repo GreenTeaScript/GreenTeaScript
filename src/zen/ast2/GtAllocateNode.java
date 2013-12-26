@@ -24,17 +24,10 @@
 
 package zen.ast2;
 
-<<<<<<< HEAD:src/zen/ast2/GtAllocateNode.java
 import zen.ast.GtNode;
-import zen.parser.GtGenerator;
+import zen.parser.GtNodeVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
-=======
-import parser.GtNodeVisitor;
-import parser.GtToken;
-import parser.GtType;
-import parser.ast.GtNode;
->>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast2/GtAllocateNode.java
 
 // E.g., AllocateNode (without parameters); StaticApply is needed to init
 final public class GtAllocateNode extends GtNode {
@@ -44,7 +37,7 @@ final public class GtAllocateNode extends GtNode {
 	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitAllocateNode(this);
 	}
-//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
-//		return Context.Generator.EvalAllocateNode(this, EnforceConst);
-//	}	
+	//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+	//		return Context.Generator.EvalAllocateNode(this, EnforceConst);
+	//	}
 }

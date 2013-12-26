@@ -24,15 +24,9 @@
 
 package zen.ast;
 
-<<<<<<< HEAD:src/zen/ast/GtGetCapturedNode.java
-import zen.parser.GtGenerator;
+import zen.parser.GtNodeVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
-=======
-import parser.GtNodeVisitor;
-import parser.GtToken;
-import parser.GtType;
->>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast/GtGetCapturedNode.java
 
 //E.g., $NativeName
 final public class GtGetCapturedNode extends GtSymbolNode {

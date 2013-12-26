@@ -25,19 +25,11 @@
 package zen.ast;
 
 
-<<<<<<< HEAD:src/zen/ast/GtAndNode.java
 import zen.deps.LibGreenTea;
-import zen.parser.GtGenerator;
 import zen.parser.GtNameSpace;
+import zen.parser.GtNodeVisitor;
 import zen.parser.GtSyntaxPattern;
 import zen.parser.GtToken;
-=======
-import parser.GtNameSpace;
-import parser.GtNodeVisitor;
-import parser.GtSyntaxPattern;
-import parser.GtToken;
-import parser.deps.LibGreenTea;
->>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast/GtAndNode.java
 
 //E.g., $LeftNode && $RightNode
 final public class GtAndNode extends GtBinaryNode {

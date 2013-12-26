@@ -26,13 +26,8 @@ package zen.ast;
 
 import java.util.ArrayList;
 
-<<<<<<< HEAD:src/zen/ast/GtApplyNode.java
-import zen.parser.GtGenerator;
+import zen.parser.GtNodeVisitor;
 import zen.parser.GtStaticTable;
-=======
-import parser.GtNodeVisitor;
-import parser.GtStaticTable;
->>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast/GtApplyFunctionObjectNode.java
 
 //E.g., $FuncNode "(" $Param[0], $Param[1], ... ")"
 final public class GtApplyNode extends GtNode {
@@ -46,15 +41,10 @@ final public class GtApplyNode extends GtNode {
 	@Override public final ArrayList<GtNode> GetList() {
 		return this.ParamList;
 	}
-<<<<<<< HEAD:src/zen/ast/GtApplyNode.java
-	@Override public void Accept(GtGenerator Visitor) {
-		Visitor.VisitApplyNode(this);
-=======
 	@Override public void Accept(GtNodeVisitor Visitor) {
-		Visitor.VisitApplyFunctionObjectNode(this);
->>>>>>> e755b72769721359763b8610626c7340818b7aa2:src/parser/ast/GtApplyFunctionObjectNode.java
+		Visitor.VisitApplyNode(this);
 	}
-//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
-//		return Context.Generator.EvalApplyFuncionObjectNode(this, EnforceConst);
-//	}
+	//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+	//		return Context.Generator.EvalApplyFuncionObjectNode(this, EnforceConst);
+	//	}
 }
