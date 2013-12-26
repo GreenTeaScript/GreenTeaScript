@@ -28,7 +28,7 @@ import parser.GtToken;
 import parser.GtType;
 
 abstract public class GtConstNode extends GtNode {
-	GtConstNode/*constructor*/(GtType Type, GtToken Token) {
+	protected GtConstNode/*constructor*/(GtType Type, GtToken Token) {
 		super(Type, Token);
 	}
 	@Override public final GtConstNode ToConstNode(boolean EnforceConst) {
