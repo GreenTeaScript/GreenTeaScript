@@ -63,30 +63,30 @@ public class CommonLispSourceGenerator extends GtSourceGenerator {
 	}
 
 	@Override public void VisitGetLocalNode(GtGetLocalNode Node) {
-		this.VisitingBuilder.Append(Node.Token.ParsedText);
+		this.CurrentBuilder.Append(Node.Token.ParsedText);
 	}
 	
 	@Override public void VisitBooleanNode(GtBooleanNode Node) {
 		if(Node.Value) {
-			this.VisitingBuilder.Append("t");
+			this.CurrentBuilder.Append("t");
 		}
 		else {
-			this.VisitingBuilder.Append("nil");
+			this.CurrentBuilder.Append("nil");
 		}
 	}
 	@Override public void VisitIntNode(GtIntNode Node) {
-		this.VisitingBuilder.Append(Node.Token.ParsedText);
+		this.CurrentBuilder.Append(Node.Token.ParsedText);
 	}
 
 	@Override public void VisitStringNode(GtStringNode Node) {
-		this.VisitingBuilder.Append(Node.Token.ParsedText);
+		this.CurrentBuilder.Append(Node.Token.ParsedText);
 	}
 	@Override public void VisitConstPoolNode(GtConstPoolNode Node) {
 		if(Node.ConstValue == null) {
-			this.VisitingBuilder.Append("nil");
+			this.CurrentBuilder.Append("nil");
 		}
 		else {
-			this.VisitingBuilder.Append(Node.Token.ParsedText);
+			this.CurrentBuilder.Append(Node.Token.ParsedText);
 		}
 	}
 
@@ -101,23 +101,23 @@ public class CommonLispSourceGenerator extends GtSourceGenerator {
 	}
 
 	@Override public void VisitNullNode(GtNullNode Node) {
-		this.VisitingBuilder.Append("nil");
+		this.CurrentBuilder.Append("nil");
 	}
 
 	@Override
 	public void VisitIndentBlock(String BeginBlock, GtNode Node, String EndBlock) {
 		//this.VisitingBuilder.AppendLine(BeginBlock);
-		this.VisitingBuilder.Indent();
+		this.CurrentBuilder.Indent();
 		/*local*/GtNode CurrentNode = Node;
 		while(CurrentNode != null) {
 			if(!this.IsEmptyBlock(CurrentNode)) {
-				this.VisitingBuilder.AppendIndent();
+				this.CurrentBuilder.AppendIndent();
 				CurrentNode.Accept(this);
-				this.VisitingBuilder.AppendLine("");
+				this.CurrentBuilder.AppendLine("");
 			}
 			CurrentNode = CurrentNode.NextNode;
 		}
-		this.VisitingBuilder.UnIndent();
+		this.CurrentBuilder.UnIndent();
 		if(EndBlock != null) {
 			//this.VisitingBuilder.IndentAndAppend(EndBlock);
 		}
@@ -127,8 +127,8 @@ public class CommonLispSourceGenerator extends GtSourceGenerator {
 	public void GenerateFunc(GtFunc Func, ArrayList<String> ParamNameList, GtNode Body) {
 		String MethodName = Func.GetNativeFuncName();
 		GtSourceBuilder Builder = new GtSourceBuilder(this);
-		GtSourceBuilder PushedBuilder = this.VisitingBuilder;
-		this.VisitingBuilder = Builder;
+		GtSourceBuilder PushedBuilder = this.CurrentBuilder;
+		this.CurrentBuilder = Builder;
 		Builder.Append("(defun ");
 		Builder.SpaceAppendSpace(MethodName);
 
@@ -145,10 +145,10 @@ public class CommonLispSourceGenerator extends GtSourceGenerator {
 		}
 		Builder.AppendLine(")");
 
-		this.VisitingBuilder = Builder;
+		this.CurrentBuilder = Builder;
 		this.VisitIndentBlock("", Body, "");
 
-		this.VisitingBuilder = PushedBuilder;
+		this.CurrentBuilder = PushedBuilder;
 		Builder.AppendLine(")");
 
 		// for debug
@@ -159,118 +159,118 @@ public class CommonLispSourceGenerator extends GtSourceGenerator {
 	// Visitor API
 	//
 	@Override public void VisitWhileNode(GtWhileNode Node) {
-		this.VisitingBuilder.Append("(while ");
+		this.CurrentBuilder.Append("(while ");
 
 		Node.CondNode.Accept(this);
 
-		this.VisitingBuilder.AppendLine("");
+		this.CurrentBuilder.AppendLine("");
 		this.VisitIndentBlock("", Node.BodyNode, "");
-		this.VisitingBuilder.AppendIndent();
-		this.VisitingBuilder.Append(")");
+		this.CurrentBuilder.AppendIndent();
+		this.CurrentBuilder.Append(")");
 	}
 
 	@Override public void VisitDoWhileNode(GtDoWhileNode Node) {
-		this.VisitingBuilder.AppendLine("(loop initially");
+		this.CurrentBuilder.AppendLine("(loop initially");
 
-		this.VisitingBuilder.AppendIndent();
-		this.VisitingBuilder.AppendIndent();
+		this.CurrentBuilder.AppendIndent();
+		this.CurrentBuilder.AppendIndent();
 
-		this.VisitingBuilder.AppendLine("(progn");
+		this.CurrentBuilder.AppendLine("(progn");
 		this.VisitIndentBlock("", Node.BodyNode, "");
 
-		this.VisitingBuilder.AppendIndent();
-		this.VisitingBuilder.AppendIndent();
-		this.VisitingBuilder.AppendLine(")");
+		this.CurrentBuilder.AppendIndent();
+		this.CurrentBuilder.AppendIndent();
+		this.CurrentBuilder.AppendLine(")");
 
-		this.VisitingBuilder.AppendIndent();
-		this.VisitingBuilder.AppendIndent();
+		this.CurrentBuilder.AppendIndent();
+		this.CurrentBuilder.AppendIndent();
 
-		this.VisitingBuilder.Append("while ");
+		this.CurrentBuilder.Append("while ");
 		Node.CondNode.Accept(this);
-		this.VisitingBuilder.AppendLine("");
-		this.VisitingBuilder.AppendIndent();
-		this.VisitingBuilder.AppendIndent();
+		this.CurrentBuilder.AppendLine("");
+		this.CurrentBuilder.AppendIndent();
+		this.CurrentBuilder.AppendIndent();
 
-		this.VisitingBuilder.AppendLine("do (progn");
+		this.CurrentBuilder.AppendLine("do (progn");
 		this.VisitIndentBlock("", Node.BodyNode, "");
-		this.VisitingBuilder.AppendIndent();
-		this.VisitingBuilder.AppendIndent();
-		this.VisitingBuilder.Append(")");
-		this.VisitingBuilder.Append(")");
+		this.CurrentBuilder.AppendIndent();
+		this.CurrentBuilder.AppendIndent();
+		this.CurrentBuilder.Append(")");
+		this.CurrentBuilder.Append(")");
 	}
 
 	@Override public void VisitForNode(GtForNode Node) {
-		this.VisitingBuilder.Append("(loop while ");
+		this.CurrentBuilder.Append("(loop while ");
 		Node.CondNode.Accept(this);
-		this.VisitingBuilder.AppendLine("");
+		this.CurrentBuilder.AppendLine("");
 
-		this.VisitingBuilder.AppendIndent();
-		this.VisitingBuilder.AppendIndent();
-		this.VisitingBuilder.AppendLine("do (progn");
+		this.CurrentBuilder.AppendIndent();
+		this.CurrentBuilder.AppendIndent();
+		this.CurrentBuilder.AppendLine("do (progn");
 		this.VisitIndentBlock("", Node.BodyNode, "");
 
-		this.VisitingBuilder.AppendIndent();
-		this.VisitingBuilder.AppendIndent();
+		this.CurrentBuilder.AppendIndent();
+		this.CurrentBuilder.AppendIndent();
 		Node.IterNode.Accept(this);
-		this.VisitingBuilder.Append(")");
+		this.CurrentBuilder.Append(")");
 
-		this.VisitingBuilder.Append(")");
+		this.CurrentBuilder.Append(")");
 	}
 
 	@Override public void VisitVarDeclNode(GtVarDeclNode Node) {
-		this.VisitingBuilder.Append("(setq  ");
-		this.VisitingBuilder.Append(Node.NativeName);
-		this.VisitingBuilder.Append(" ");
+		this.CurrentBuilder.Append("(setq  ");
+		this.CurrentBuilder.Append(Node.NativeName);
+		this.CurrentBuilder.Append(" ");
 
 		if (Node.InitNode != null) {
 			Node.InitNode.Accept(this);
 		} else {
-			this.VisitingBuilder.Append("nil");
+			this.CurrentBuilder.Append("nil");
 		}
 
-		this.VisitingBuilder.AppendLine(")");
+		this.CurrentBuilder.AppendLine(")");
 	}
 
 	@Override public void VisitTrinaryNode(GtTrinaryNode Node) {
-		this.VisitingBuilder.Append("(if  ");
+		this.CurrentBuilder.Append("(if  ");
 		Node.CondNode.Accept(this);
-		this.VisitingBuilder.Append(" ");
+		this.CurrentBuilder.Append(" ");
 		Node.ThenNode.Accept(this);
-		this.VisitingBuilder.Append(" ");
+		this.CurrentBuilder.Append(" ");
 		Node.ElseNode.Accept(this);
-		this.VisitingBuilder.Append(")");
+		this.CurrentBuilder.Append(")");
 	}
 
 	@Override public void VisitIfNode(GtIfNode Node) {
-		this.VisitingBuilder.Append("(if  ");
+		this.CurrentBuilder.Append("(if  ");
 		Node.CondNode.Accept(this);
-		this.VisitingBuilder.AppendLine("");
+		this.CurrentBuilder.AppendLine("");
 
-		this.VisitingBuilder.AppendIndent();
-		this.VisitingBuilder.AppendIndent();
-		this.VisitingBuilder.AppendLine("(progn ");
+		this.CurrentBuilder.AppendIndent();
+		this.CurrentBuilder.AppendIndent();
+		this.CurrentBuilder.AppendLine("(progn ");
 		this.VisitIndentBlock("", Node.ThenNode, "");
-		this.VisitingBuilder.AppendIndent();
-		this.VisitingBuilder.AppendIndent();
-		this.VisitingBuilder.AppendLine(")");
+		this.CurrentBuilder.AppendIndent();
+		this.CurrentBuilder.AppendIndent();
+		this.CurrentBuilder.AppendLine(")");
 
 		if (!this.IsEmptyBlock(Node.ElseNode)) {
-			this.VisitingBuilder.AppendIndent();
-			this.VisitingBuilder.AppendIndent();
-			this.VisitingBuilder.AppendLine("(progn ");
+			this.CurrentBuilder.AppendIndent();
+			this.CurrentBuilder.AppendIndent();
+			this.CurrentBuilder.AppendLine("(progn ");
 			this.VisitIndentBlock("", Node.ElseNode, "");
-			this.VisitingBuilder.AppendIndent();
-			this.VisitingBuilder.AppendIndent();
-			this.VisitingBuilder.Append(")");
+			this.CurrentBuilder.AppendIndent();
+			this.CurrentBuilder.AppendIndent();
+			this.CurrentBuilder.Append(")");
 		}
 
-		this.VisitingBuilder.Append(")");
+		this.CurrentBuilder.Append(")");
 	}
 
 	@Override public void VisitErrorNode(GtErrorNode Node) {
-		this.VisitingBuilder.Append("(error ");
+		this.CurrentBuilder.Append("(error ");
 		Node.Accept(this);
-		this.VisitingBuilder.Append(")");
+		this.CurrentBuilder.Append(")");
 	}
 
 	@Override public void OpenClassField(GtSyntaxTree ParsedTree, GtType Type, GtClassField ClassField) {
@@ -302,47 +302,47 @@ public class CommonLispSourceGenerator extends GtSourceGenerator {
 	}
 
 	@Override public void InvokeMainFunc(String MainFuncName) {
-		this.VisitingBuilder = this.NewSourceBuilder();
-		this.VisitingBuilder.Append("(");
-		this.VisitingBuilder.Append(MainFuncName);
-		this.VisitingBuilder.AppendLine(")");
+		this.CurrentBuilder = this.NewSourceBuilder();
+		this.CurrentBuilder.Append("(");
+		this.CurrentBuilder.Append(MainFuncName);
+		this.CurrentBuilder.AppendLine(")");
 	}
 
 	@Override public void VisitUnaryNode(GtUnaryNode Node) {
-		this.VisitingBuilder.Append(Node.Token.ParsedText);
+		this.CurrentBuilder.Append(Node.Token.ParsedText);
 		Node.RecvNode.Accept(this);
 	}
 
 	@Override public void VisitBinaryNode(GtBinaryNode Node) {
-		this.VisitingBuilder.Append("(");
-		this.VisitingBuilder.Append(Node.Token.ParsedText);
-		this.VisitingBuilder.Append(" ");
+		this.CurrentBuilder.Append("(");
+		this.CurrentBuilder.Append(Node.Token.ParsedText);
+		this.CurrentBuilder.Append(" ");
 		Node.LeftNode.Accept(this);
-		this.VisitingBuilder.Append(" ");
+		this.CurrentBuilder.Append(" ");
 		Node.RightNode.Accept(this);
-		this.VisitingBuilder.Append(")");
+		this.CurrentBuilder.Append(")");
 	}
 
 	@Override public void VisitAndNode(GtAndNode Node) {
-		this.VisitingBuilder.Append("(and ");
+		this.CurrentBuilder.Append("(and ");
 		Node.LeftNode.Accept(this);
-		this.VisitingBuilder.Append(" ");
+		this.CurrentBuilder.Append(" ");
 		Node.RightNode.Accept(this);
-		this.VisitingBuilder.Append(")");
+		this.CurrentBuilder.Append(")");
 	}
 	@Override public void VisitOrNode(GtOrNode Node) {
-		this.VisitingBuilder.Append("(or ");
+		this.CurrentBuilder.Append("(or ");
 		Node.LeftNode.Accept(this);
-		this.VisitingBuilder.Append(" ");
+		this.CurrentBuilder.Append(" ");
 		Node.RightNode.Accept(this);
-		this.VisitingBuilder.Append(")");
+		this.CurrentBuilder.Append(")");
 	}
 
 	@Override public void VisitSetLocalNode(GtSetLocalNode Node) {
-		this.VisitingBuilder.Append("(setq  " + Node.NativeName);
-		this.VisitingBuilder.Append(" ");
+		this.CurrentBuilder.Append("(setq  " + Node.NativeName);
+		this.CurrentBuilder.Append(" ");
 		Node.ValueNode.Accept(this);
-		this.VisitingBuilder.Append(")");
+		this.CurrentBuilder.Append(")");
 	}
 
 	// TODO function call

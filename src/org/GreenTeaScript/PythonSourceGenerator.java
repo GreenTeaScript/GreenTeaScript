@@ -111,11 +111,11 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 	private void VisitBlockWithIndent(GtNode Node) {
 		if(this.IsEmptyBlock(Node)) {
 			this.AppendCode(this.LineFeed);
-			this.VisitingBuilder.Indent();
-			this.VisitingBuilder.AppendIndent();
-			this.VisitingBuilder.AppendLine("pass");
-			this.VisitingBuilder.UnIndent();
-			this.VisitingBuilder.IndentAndAppend("");
+			this.CurrentBuilder.Indent();
+			this.CurrentBuilder.AppendIndent();
+			this.CurrentBuilder.AppendLine("pass");
+			this.CurrentBuilder.UnIndent();
+			this.CurrentBuilder.IndentAndAppend("");
 		}
 		else {
 			this.VisitIndentBlock("", Node, "");
@@ -126,16 +126,16 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 		/*local*/GtNode CurrentNode = Node;
 		while(CurrentNode != null) {
 			if(!this.IsEmptyBlock(CurrentNode)) {
-				this.VisitingBuilder.AppendIndent();
+				this.CurrentBuilder.AppendIndent();
 				CurrentNode.Accept(this);
-				this.VisitingBuilder.AppendLine(this.SemiColon);
+				this.CurrentBuilder.AppendLine(this.SemiColon);
 			}
 			CurrentNode = CurrentNode.NextNode;
 		}
 	}
 
 	private void AppendCode(String Code) {
-		this.VisitingBuilder.Append(Code);
+		this.CurrentBuilder.Append(Code);
 	}
 
 	@Override public GtNode CreateDoWhileNode(GtType Type, GtSyntaxTree ParsedTree, GtNode Cond, GtNode Block) {
@@ -180,7 +180,7 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 		if(GreenTeaUtils.IsFlag(Func.FuncFlag, GreenTeaUtils.ConstFunc)) {	// disable const annotation
 			Func.FuncFlag = GreenTeaUtils.UnsetFlag(Func.FuncFlag, GreenTeaUtils.ConstFunc);
 		}
-		this.VisitingBuilder = this.NewSourceBuilder();
+		this.CurrentBuilder = this.NewSourceBuilder();
 		this.AppendCode("def ");
 		this.AppendCode(Func.GetNativeFuncName());
 		this.AppendCode("(");
@@ -198,22 +198,22 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 	}
 
 	@Override public void OpenClassField(GtSyntaxTree ParsedTree, GtType Type, GtClassField ClassField) {
-		this.VisitingBuilder = this.NewSourceBuilder();
-		this.VisitingBuilder.AppendIndent();
+		this.CurrentBuilder = this.NewSourceBuilder();
+		this.CurrentBuilder.AppendIndent();
 		this.AppendCode("class ");
 		this.AppendCode(Type.ShortName);
-		this.VisitingBuilder.AppendLine(":");
-		this.VisitingBuilder.Indent();
+		this.CurrentBuilder.AppendLine(":");
+		this.CurrentBuilder.Indent();
 		
-		this.VisitingBuilder.AppendIndent();
-		this.VisitingBuilder.AppendLine("def __init__(self):");
-		this.VisitingBuilder.Indent();
+		this.CurrentBuilder.AppendIndent();
+		this.CurrentBuilder.AppendLine("def __init__(self):");
+		this.CurrentBuilder.Indent();
 		
 		/*local*/int i = 0;
 		/*local*/int size = LibGreenTea.ListSize(ClassField.FieldList);
 		if(size == 0) {
-			this.VisitingBuilder.AppendIndent();
-			this.VisitingBuilder.AppendLine("pass");
+			this.CurrentBuilder.AppendIndent();
+			this.CurrentBuilder.AppendLine("pass");
 		}
 		else {
 			while(i < size) {
@@ -222,24 +222,24 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 				if(!FieldInfo.Type.IsNativeType()) {
 					InitValue = this.NullLiteral;
 				}
-				this.VisitingBuilder.AppendIndent();
+				this.CurrentBuilder.AppendIndent();
 				this.AppendCode("self.");
 				this.AppendCode(FieldInfo.NativeName);
 				this.AppendCode(" = ");
-				this.VisitingBuilder.AppendLine(InitValue);
+				this.CurrentBuilder.AppendLine(InitValue);
 				i += 1;
 			}
 		}
-		this.VisitingBuilder.UnIndent();
-		this.VisitingBuilder.UnIndent();
+		this.CurrentBuilder.UnIndent();
+		this.CurrentBuilder.UnIndent();
 	}
 
 	@Override public void InvokeMainFunc(String MainFuncName) {
-		this.VisitingBuilder = this.NewSourceBuilder();
-		this.VisitingBuilder.AppendLine("if __name__ == '__main__':");
+		this.CurrentBuilder = this.NewSourceBuilder();
+		this.CurrentBuilder.AppendLine("if __name__ == '__main__':");
 		this.AppendCode(this.Tab);
 		this.AppendCode(MainFuncName);
-		this.VisitingBuilder.AppendLine("()");
+		this.CurrentBuilder.AppendLine("()");
 	}
 
 	// Visitor API
@@ -281,7 +281,7 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 			if(IterNode != null) {
 				this.VisitNode(IterNode);
 				this.AppendCode(this.LineFeed);
-				this.VisitingBuilder.AppendIndent();
+				this.CurrentBuilder.AppendIndent();
 			}
 		}
 		this.AppendCode("continue");
@@ -368,7 +368,7 @@ public class PythonSourceGenerator extends GtSourceGenerator {
 		this.VisitBlockWithIndent(Node.TryNode);
 		for (int i = 0; i < LibGreenTea.ListSize(Node.CatchList); i++) {
 			GtCatchNode Catch = (/*cast*/GtCatchNode) Node.CatchList.get(i);
-			this.VisitingBuilder.Append("except " + Catch.ExceptionType);
+			this.CurrentBuilder.Append("except " + Catch.ExceptionType);
 			this.AppendCode(this.Camma);
 			this.AppendCode(Catch.ExceptionName);
 			this.AppendCode(":");

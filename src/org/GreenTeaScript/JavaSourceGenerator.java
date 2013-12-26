@@ -93,10 +93,10 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 		Builder.Append("(");
 
 		Builder.Append(")");
-		GtSourceBuilder PushedBuilder = this.VisitingBuilder;
-		this.VisitingBuilder = Builder;
+		GtSourceBuilder PushedBuilder = this.CurrentBuilder;
+		this.CurrentBuilder = Builder;
 		this.VisitIndentBlock("{", Body, "}");
-		this.VisitingBuilder = PushedBuilder;
+		this.CurrentBuilder = PushedBuilder;
 		Builder.AppendLine("");
 		Builder.UnIndent();
 		Builder.AppendLine("}");
@@ -161,11 +161,11 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 	}
 
 	@Override public void VisitNullNode(GtNullNode Node) {
-		this.VisitingBuilder.Append(this.NullLiteral);
+		this.CurrentBuilder.Append(this.NullLiteral);
 	}
 
 	@Override public void VisitGetLocalNode(GtGetLocalNode Node) {
-		this.VisitingBuilder.Append(Node.NativeName);
+		this.CurrentBuilder.Append(Node.NativeName);
 	}
 
 	@Override public void VisitConstructorNode(GtConstructorNode Node) {
@@ -188,15 +188,15 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 
 	@Override public void VisitGetterNode(GtGetterNode Node) {
 		Node.RecvNode.Accept(this);
-		this.VisitingBuilder.Append(".");
-		this.VisitingBuilder.Append(Node.ResolvedFunc.FuncName);
+		this.CurrentBuilder.Append(".");
+		this.CurrentBuilder.Append(Node.ResolvedFunc.FuncName);
 	}
 	
 	@Override public void VisitSetterNode(GtSetterNode Node) {
 		Node.RecvNode.Accept(this);
-		this.VisitingBuilder.Append(".");
-		this.VisitingBuilder.Append(Node.ResolvedFunc.FuncName);
-		this.VisitingBuilder.Append("=");
+		this.CurrentBuilder.Append(".");
+		this.CurrentBuilder.Append(Node.ResolvedFunc.FuncName);
+		this.CurrentBuilder.Append("=");
 		Node.ValueNode.Accept(this);
 	}
 
@@ -244,20 +244,20 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 
 	@Override public void VisitBinaryNode(GtBinaryNode Node) {
 		//if(Node.Func.FuncBody instanceof Method) {
-		this.VisitingBuilder.Append("(");
+		this.CurrentBuilder.Append("(");
 		Node.LeftNode.Accept(this);
-		this.VisitingBuilder.SpaceAppendSpace(Node.Token.ParsedText);
+		this.CurrentBuilder.SpaceAppendSpace(Node.Token.ParsedText);
 		Node.RightNode.Accept(this);
-		this.VisitingBuilder.Append(")");
+		this.CurrentBuilder.Append(")");
 		//}
 	}
 
 	@Override public void VisitUnaryNode(GtUnaryNode Node) {
 //		if(Node.Func.FuncBody instanceof Method) {
-		this.VisitingBuilder.Append("(");
-		this.VisitingBuilder.Append(Node.Token.ParsedText);
+		this.CurrentBuilder.Append("(");
+		this.CurrentBuilder.Append(Node.Token.ParsedText);
 		Node.RecvNode.Accept(this);
-		this.VisitingBuilder.Append(")");
+		this.CurrentBuilder.Append(")");
 //		}
 	}
 
@@ -300,19 +300,19 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 	}
 
 	@Override public void VisitAndNode(GtAndNode Node) {
-		this.VisitingBuilder.Append("(");
+		this.CurrentBuilder.Append("(");
 		Node.LeftNode.Accept(this);
-		this.VisitingBuilder.Append(" && ");
+		this.CurrentBuilder.Append(" && ");
 		Node.RightNode.Accept(this);
-		this.VisitingBuilder.Append(")");
+		this.CurrentBuilder.Append(")");
 	}
 
 	@Override public void VisitOrNode(GtOrNode Node) {
-		this.VisitingBuilder.Append("(");
+		this.CurrentBuilder.Append("(");
 		Node.LeftNode.Accept(this);
-		this.VisitingBuilder.Append(" || ");
+		this.CurrentBuilder.Append(" || ");
 		Node.RightNode.Accept(this);
-		this.VisitingBuilder.Append(")");
+		this.CurrentBuilder.Append(")");
 	}
 
 	@Override public void VisitSetLocalNode(GtSetLocalNode Node) {
@@ -345,25 +345,25 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 	}
 
 	@Override public void VisitIfNode(GtIfNode Node) {
-		this.VisitingBuilder.Append("if");
-		this.VisitingBuilder.Append("(");
+		this.CurrentBuilder.Append("if");
+		this.CurrentBuilder.Append("(");
 		Node.CondNode.Accept(this);
-		this.VisitingBuilder.Append(") ");
+		this.CurrentBuilder.Append(") ");
 		this.VisitIndentBlock("{", Node.ThenNode, "}");
 		if(Node.ElseNode != null) {
-			this.VisitingBuilder.Append(" else ");			
+			this.CurrentBuilder.Append(" else ");			
 			this.VisitIndentBlock("{", Node.ElseNode, "}");
 		}
 	}
 
 	@Override public void VisitTrinaryNode(GtTrinaryNode Node) {
-		this.VisitingBuilder.Append("(");
+		this.CurrentBuilder.Append("(");
 		Node.CondNode.Accept(this);
-		this.VisitingBuilder.Append(" ? ");
+		this.CurrentBuilder.Append(" ? ");
 		Node.ThenNode.Accept(this);
-		this.VisitingBuilder.Append(" : ");
+		this.CurrentBuilder.Append(" : ");
 		Node.ElseNode.Accept(this);
-		this.VisitingBuilder.Append(")");
+		this.CurrentBuilder.Append(")");
 	}
 
 	@Override public void VisitSwitchNode(GtSwitchNode Node) {
@@ -451,19 +451,19 @@ public class JavaSourceGenerator extends GtSourceGenerator {
 	}
 
 	@Override public void VisitReturnNode(GtReturnNode Node) {
-		this.VisitingBuilder.Append("return");
+		this.CurrentBuilder.Append("return");
 		if(Node.ValueNode != null) {
-			this.VisitingBuilder.Append(" ");
+			this.CurrentBuilder.Append(" ");
 			Node.ValueNode.Accept(this);
 		}
 	}
 
 	@Override public void VisitBreakNode(GtBreakNode Node) {
-		this.VisitingBuilder.Append("break");
+		this.CurrentBuilder.Append("break");
 	}
 
 	@Override public void VisitContinueNode(GtContinueNode Node) {
-		this.VisitingBuilder.Append("continue");
+		this.CurrentBuilder.Append("continue");
 	}
 
 	@Override public void VisitTryNode(GtTryNode Node) { //FIXME
