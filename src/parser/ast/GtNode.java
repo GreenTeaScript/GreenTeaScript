@@ -31,6 +31,7 @@ import parser.GtGenerator;
 import parser.GtNameSpace;
 import parser.GtToken;
 import parser.GtType;
+import parser.ast2.GtThrowNode;
 import parser.deps.LibNative;
 //endif VAJA
 
