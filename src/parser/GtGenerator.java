@@ -27,8 +27,8 @@ package parser;
 import java.util.ArrayList;
 
 import parser.ast.GtAndNode;
-import parser.ast.GtApplyFunctionObjectNode;
-import parser.ast.GtApplySymbolNode;
+import parser.ast.GtApplyNode;
+import parser.ast.GtMethodCall;
 import parser.ast.GtBinaryNode;
 import parser.ast.GtBooleanNode;
 import parser.ast.GtCastNode;
@@ -611,11 +611,11 @@ public class GtGenerator extends GreenTeaUtils {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
-	public void VisitApplySymbolNode(GtApplySymbolNode Node) {
+	public void VisitMethodCallNode(GtMethodCall Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
-	public void VisitApplyFunctionObjectNode(GtApplyFunctionObjectNode Node) {
+	public void VisitApplyNode(GtApplyNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 

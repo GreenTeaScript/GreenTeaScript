@@ -38,8 +38,8 @@ import parser.GtTokenContext;
 import parser.GtType;
 import parser.GtVariableInfo;
 import parser.ast.GtAndNode;
-import parser.ast.GtApplyFunctionObjectNode;
-import parser.ast.GtApplySymbolNode;
+import parser.ast.GtApplyNode;
+import parser.ast.GtMethodCall;
 import parser.ast.GtBinaryNode;
 import parser.ast.GtCastNode;
 import parser.ast.GtConstNode;
@@ -1399,7 +1399,7 @@ public class KonohaGrammar extends GtGrammar {
 			return GtErrorNode.CreateExpectedToken(Token, "field name");
 		}
 		if(TokenContext.MatchToken("(")) {  // method call
-			/*local*/GtNode ApplyNode = new GtApplySymbolNode(Token, LeftTree, Token.ParsedText);
+			/*local*/GtNode ApplyNode = new GtMethodCall(Token, LeftTree, Token.ParsedText);
 			if(!TokenContext.MatchToken(")")) {
 				while(!ApplyNode.IsErrorNode()) {
 					ApplyNode = TokenContext.AppendMatchedPattern(ApplyNode, NameSpace, "$Expression$", GreenTeaConsts.Required);
@@ -1422,7 +1422,7 @@ public class KonohaGrammar extends GtGrammar {
 	}
 	
 	public static GtNode MatchApply(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftTree) {
-		/*local*/GtNode ApplyNode = new GtApplyFunctionObjectNode(LeftTree);
+		/*local*/GtNode ApplyNode = new GtApplyNode(LeftTree);
 		ApplyNode = TokenContext.MatchNodeToken(ApplyNode, NameSpace, "(", GreenTeaConsts.Required | GreenTeaConsts.OpenSkipIndent);
 		if(!TokenContext.MatchToken(")")) {
 			while(!ApplyNode.IsErrorNode()) {
