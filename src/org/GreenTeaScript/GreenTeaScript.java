@@ -26,14 +26,14 @@
 package org.GreenTeaScript;
 //endif VAJA
 
-import grammar.KonohaGrammar;
-import parser.GreenTeaUtils;
-import parser.GtGenerator;
-import parser.GtNameSpace;
-import parser.GtStaticTable;
-import parser.deps.GreenTeaArray;
-import parser.deps.LibGreenTea;
-import parser.deps.LibNative;
+import zen.deps.GreenTeaArray;
+import zen.deps.LibGreenTea;
+import zen.deps.LibNative;
+import zen.grammar.ZenGrammar;
+import zen.parser.GreenTeaUtils;
+import zen.parser.GtGenerator;
+import zen.parser.GtNameSpace;
+import zen.parser.GtStaticTable;
 
 public class GreenTeaScript extends GreenTeaUtils {
 	public final static void ExecCommand(String[] Args) {
@@ -115,7 +115,7 @@ public class GreenTeaScript extends GreenTeaUtils {
 		}
 		/*local*/GtGenerator Generator = LibNative.LoadGenerator(TargetCode, OutputFile);
 		/*local*/GtNameSpace TopLevelNameSpace = new GtNameSpace(Generator, null);
-		LibNative.ImportGrammar(TopLevelNameSpace, KonohaGrammar.class.getName());
+		LibNative.ImportGrammar(TopLevelNameSpace, ZenGrammar.class.getName());
 //		/*local*/GtParserContext Context = new GtParserContext(new KonohaGrammar(), Generator);
 //		if(RequiredLibName != null) {
 //			if(!Context.TopLevelNameSpace.LoadRequiredLib(RequiredLibName)) {
@@ -179,11 +179,11 @@ public class GreenTeaScript extends GreenTeaUtils {
 	}
 
 	public final static void main(String[] Args)  {
-		try {
+//		try {
 			GreenTeaScript.ExecCommand(Args);
-		}
-		catch(SoftwareFaultException e) {
-			System.err.println(e.GetStackTrace());
-		}
+//		}
+//		catch(SoftwareFaultException e) {
+//			System.err.println(e.GetStackTrace());
+//		}
 	}
 }
