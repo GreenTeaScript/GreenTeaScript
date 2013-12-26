@@ -26,7 +26,7 @@ package parser.ast;
 
 
 import parser.GtGenerator;
-import parser.GtParserContext;
+import parser.GtNameSpace;
 import parser.GtSyntaxPattern;
 import parser.GtToken;
 import parser.deps.LibGreenTea;
@@ -39,10 +39,10 @@ final public class GtAndNode extends GtBinaryNode {
 	@Override public void Accept(GtGenerator Visitor) {
 		Visitor.VisitAndNode(this);
 	}
-	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
-		/*local*/Object LeftValue = this.LeftNode.ToConstValue(Context, EnforceConst) ;
+	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
+		/*local*/Object LeftValue = this.LeftNode.Eval(NameSpace, EnforceConst) ;
 		if(LeftValue instanceof Boolean && LibGreenTea.booleanValue(LeftValue)) {
-			return this.RightNode.ToConstValue(Context, EnforceConst) ;
+			return this.RightNode.Eval(NameSpace, EnforceConst) ;
 		}
 		return null;
 	}

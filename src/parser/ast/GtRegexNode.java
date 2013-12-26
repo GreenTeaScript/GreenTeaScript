@@ -25,7 +25,7 @@
 package parser.ast;
 
 import parser.GtGenerator;
-import parser.GtParserContext;
+import parser.GtNameSpace;
 import parser.GtToken;
 import parser.GtType;
 
@@ -39,7 +39,7 @@ final public class GtRegexNode extends GtConstNode {
 	@Override public void Accept(GtGenerator Visitor) {
 		Visitor.VisitRegexNode(this);
 	}
-	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
 		return this.Value;
 	}
 	@Override public Object GetValue() {

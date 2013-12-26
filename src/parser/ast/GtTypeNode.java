@@ -25,7 +25,7 @@
 package parser.ast;
 
 import parser.GtGenerator;
-import parser.GtParserContext;
+import parser.GtNameSpace;
 import parser.GtStaticTable;
 import parser.GtToken;
 import parser.GtType;
@@ -42,7 +42,7 @@ final public class GtTypeNode extends GtConstNode {
 	@Override public void Accept(GtGenerator Visitor) {
 		//Visitor.VisitTypeNode(this);
 	}
-	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
 		return this.ParsedType;
 	}
 }

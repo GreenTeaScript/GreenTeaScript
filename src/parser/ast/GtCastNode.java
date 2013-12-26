@@ -26,7 +26,7 @@ package parser.ast;
 
 
 import parser.GtGenerator;
-import parser.GtParserContext;
+import parser.GtNameSpace;
 import parser.GtStaticTable;
 import parser.GtToken;
 import parser.GtType;
@@ -55,8 +55,8 @@ final public class GtCastNode extends GtNode {
 	@Override public void Accept(GtGenerator Visitor) {
 		Visitor.VisitCastNode(this);
 	}
-	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
-		/*local*/Object Value = this.ExprNode.ToConstValue(Context, EnforceConst) ;
+	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
+		/*local*/Object Value = this.ExprNode.Eval(NameSpace, EnforceConst) ;
 		if(Value != null) {
 			return LibGreenTea.DynamicCast(this.Type, Value);
 		}

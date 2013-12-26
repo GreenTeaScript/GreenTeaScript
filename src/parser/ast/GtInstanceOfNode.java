@@ -26,7 +26,7 @@ package parser.ast;
 
 
 import parser.GtGenerator;
-import parser.GtParserContext;
+import parser.GtNameSpace;
 import parser.GtToken;
 import parser.GtType;
 import parser.deps.LibGreenTea;
@@ -44,8 +44,8 @@ final public class GtInstanceOfNode extends GtNode {
 	@Override public void Accept(GtGenerator Visitor) {
 		Visitor.VisitInstanceOfNode(this);
 	}
-	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
-		/*local*/Object Value = this.ExprNode.ToConstValue(Context, EnforceConst) ;
+	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
+		/*local*/Object Value = this.ExprNode.Eval(NameSpace, EnforceConst) ;
 		if(Value != null) {
 			return LibGreenTea.DynamicInstanceOf(Value, this.TypeInfo);
 		}

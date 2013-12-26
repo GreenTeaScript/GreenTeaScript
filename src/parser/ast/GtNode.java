@@ -26,12 +26,11 @@
 package parser.ast;
 import java.util.ArrayList;
 
+import parser.GreenTeaConsts;
 import parser.GtGenerator;
 import parser.GtNameSpace;
-import parser.GtParserContext;
 import parser.GtToken;
 import parser.GtType;
-import parser.deps.LibGreenTea;
 import parser.deps.LibNative;
 //endif VAJA
 
@@ -110,9 +109,6 @@ public class GtNode {
 		return null;
 	}
 	
-	public final GtNode GetAt(int Index) {
-		return this.GetList().get(Index);
-	}
 	
 	public GtNode Append(GtNode Node) {
 		this.GetList().add(Node);
@@ -120,16 +116,23 @@ public class GtNode {
 		return this;
 	}
 	
-	public final GtNode AppendNodeList(int StartIndex, ArrayList<GtNode> NodeList) {
-		/*local*/int i = StartIndex;
-		/*local*/ArrayList<GtNode> List = this.GetList();
-		while(i < LibGreenTea.ListSize(NodeList)) {
-			/*local*/GtNode Node = NodeList.get(i);
-			List.add(Node);
-			this.SetChild(Node);
-			i = i + 1;
-		}
-		return this;
+//	public final GtNode GetAt(int Index) {
+//		return this.GetList().get(Index);
+//	}
+//	public final GtNode AppendNodeList(int StartIndex, ArrayList<GtNode> NodeList) {
+//		/*local*/int i = StartIndex;
+//		/*local*/ArrayList<GtNode> List = this.GetList();
+//		while(i < LibGreenTea.ListSize(NodeList)) {
+//			/*local*/GtNode Node = NodeList.get(i);
+//			List.add(Node);
+//			this.SetChild(Node);
+//			i = i + 1;
+//		}
+//		return this;
+//	}
+
+	public final GtNode Done() {
+		return new GtEmptyNode(this.Token);
 	}
 
 	public String GetVisitMethodName() {
@@ -151,19 +154,15 @@ public class GtNode {
 		}
 		return null;
 	}	
-	public final GtNode Done() {
-		return new GtEmptyNode(this.Token);
-	}
-	@Deprecated
-	public final Object ToNullValue(GtParserContext Context, boolean EnforceConst) {
-//		if(EnforceConst) {
-//			Context.ReportError_OLD(GreenTeaUtils.ErrorLevel, this.Token, "value must be constant in this context");
-//		}
+	
+	public final Object ToNullValue(GtNameSpace NameSpace, boolean EnforceConst) {
+		if(EnforceConst) {
+			NameSpace.Generator.ReportError(GreenTeaConsts.ErrorLevel, this.Token, "value must be constant");
+		}
 		return null;
 	}
-	@Deprecated
-	public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
-		return this.ToNullValue(Context, EnforceConst);
+	public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
+		return this.ToNullValue(NameSpace, EnforceConst);
 	}
 
 	public final static GtNode LinkNode(GtNode LastNode, GtNode Node) {

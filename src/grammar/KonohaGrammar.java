@@ -531,15 +531,15 @@ public class KonohaGrammar extends GtGrammar {
 		/*local*/Object ConstValue = NameSpace.GetSymbol(Token.ParsedText);
 		if(ConstValue instanceof GtVariableInfo) {
 			GtVariableInfo Var = (GtVariableInfo) ConstValue;
-			return NameSpace.Context.Generator.CreateSymbolNode(Token, Var.Type, Var.NativeName, Var.IsCaptured(NameSpace), AssignedNode);
+			return NameSpace.Generator.CreateSymbolNode(Token, Var.Type, Var.NativeName, Var.IsCaptured(NameSpace), AssignedNode);
 		}
 		if(ConstValue != null) {
 			if(AssignedNode != null) {
 				return new GtErrorNode(Token, "cannot be assigned");
 			}
-			return NameSpace.Context.Generator.CreateConstNode(Token, ConstValue);
+			return NameSpace.Generator.CreateConstNode(Token, ConstValue);
 		}
-		return NameSpace.Context.Generator.CreateSymbolNode(Token, GtStaticTable.VarType, Token.ParsedText, false/*captured*/, AssignedNode);
+		return NameSpace.Generator.CreateSymbolNode(Token, GtStaticTable.VarType, Token.ParsedText, false/*captured*/, AssignedNode);
 	}
 
 	public static GtNode MatchExpression(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
@@ -1437,13 +1437,13 @@ public class KonohaGrammar extends GtGrammar {
 	}
 
 	public static GtNode MatchAnd(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftTree) {
-		/*local*/GtNode BinaryNode = new GtAndNode(TokenContext.Next(), LeftTree);
+		/*local*/GtNode BinaryNode = new GtAndNode(TokenContext.Next(), LeftTree, NameSpace.GetSyntaxPattern("&&"));
 		BinaryNode = TokenContext.AppendMatchedPattern(BinaryNode, NameSpace, "$Expression$", GreenTeaConsts.Required);
 		return BinaryNode;
 	}
 
 	public static GtNode MatchOr(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftTree) {
-		/*local*/GtNode BinaryNode = new GtOrNode(TokenContext.Next(), LeftTree);
+		/*local*/GtNode BinaryNode = new GtOrNode(TokenContext.Next(), LeftTree, NameSpace.GetSyntaxPattern("||"));
 		BinaryNode = TokenContext.AppendMatchedPattern(BinaryNode, NameSpace, "$Expression$", GreenTeaConsts.Required);
 		return BinaryNode;
 	}

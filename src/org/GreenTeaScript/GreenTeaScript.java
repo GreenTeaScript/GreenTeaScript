@@ -113,8 +113,8 @@ public class GreenTeaScript extends GreenTeaUtils {
 			}
 			LibGreenTea.Usage(Argu + " is unknown");
 		}
-		/*local*/GtNameSpace TopLevelNameSpace = new GtNameSpace(null);
 		/*local*/GtGenerator Generator = LibNative.LoadGenerator(TargetCode, OutputFile);
+		/*local*/GtNameSpace TopLevelNameSpace = new GtNameSpace(Generator, null);
 		LibNative.ImportGrammar(TopLevelNameSpace, KonohaGrammar.class.getName());
 //		/*local*/GtParserContext Context = new GtParserContext(new KonohaGrammar(), Generator);
 //		if(RequiredLibName != null) {

@@ -570,20 +570,25 @@ public final class GtNameSpace extends GreenTeaUtils {
 			/*local*/GtMap Annotation = TokenContext.SkipAndGetAnnotation(true);
 			TokenContext.ParseFlag = 0; // init
 			//System.err.println("** TokenContext.Position=" + TokenContext.CurrentPosition + ", " + TokenContext.IsAllowedBackTrack());
-			/*local*/GtSyntaxTree TopLevelTree = TokenContext.ParsePattern_OLD(this, "$Expression$", Required);
-			TokenContext.SkipEmptyStatement();			
-			if(TopLevelTree.IsError() && TokenContext.HasNext()) {
-				/*local*/GtToken Token = TokenContext.GetToken();
-				this.Generator.ReportError(GreenTeaConsts.InfoLevel, TokenContext.GetToken(), "stopping script eval at " + Token.ParsedText);
-				ResultValue = TopLevelTree.KeyToken;  // in case of error, return error token
-				break;
+			/*local*/GtNode TopLevelNode = TokenContext.ParsePattern(this, "$Expression$", Required);
+			TokenContext.SkipEmptyStatement();
+			TopLevelNode = this.TypeCheck(TopLevelNode, GtStaticTable.VoidType, GreenTeaConsts.AllowVoidPolicy);
+			TopLevelNode.Accept(this.Generator);
+			if(!TopLevelNode.Type.IsVarType()) {
+				ResultValue = TopLevelNode.Eval(this, true/*EnforceConst*/);
 			}
-			if(TopLevelTree.IsValidSyntax()) {
-				TopLevelTree.SetAnnotation(Annotation);
-				/*local*/GtTypeEnv Gamma = new GtTypeEnv(this);
-				/*local*/GtNode Node = TopLevelTree.TypeCheck(Gamma, GtStaticTable.VoidType, DefaultTypeCheckPolicy);
-				ResultValue = Node.ToConstValue(this.Context, true/*EnforceConst*/);
-			}
+//			if(TopLevelNode.IsError() && TokenContext.HasNext()) {
+//				/*local*/GtToken Token = TokenContext.GetToken();
+//				this.Generator.ReportError(GreenTeaConsts.InfoLevel, TokenContext.GetToken(), "stopping script eval at " + Token.ParsedText);
+//				ResultValue = TopLevelNode.KeyToken;  // in case of error, return error token
+//				break;
+//			}
+//			if(TopLevelNode.IsValidSyntax()) {
+//				TopLevelNode.SetAnnotation(Annotation);
+//				/*local*/GtTypeEnv Gamma = new GtTypeEnv(this);
+//				/*local*/GtNode Node = TopLevelNode.TypeCheck(Gamma, GtStaticTable.VoidType, DefaultTypeCheckPolicy);
+//				ResultValue = Node.ToConstValue(this.Context, true/*EnforceConst*/);
+//			}
 			TokenContext.Vacume();
 		}
 		return ResultValue;
