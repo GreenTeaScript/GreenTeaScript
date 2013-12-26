@@ -24,7 +24,7 @@
 
 package parser.ast;
 
-import parser.GtGenerator;
+import parser.GtNodeVisitor;
 import parser.GtToken;
 import parser.GtType;
 
@@ -39,7 +39,7 @@ final public class GtCatchNode extends GtNode {
 		this.BodyNode = BodyNode;
 		this.SetChild(BodyNode);
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitCatchNode(this);
 	}
 }

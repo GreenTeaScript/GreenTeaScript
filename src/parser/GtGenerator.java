@@ -98,10 +98,10 @@ public class GtGenerator extends GtNodeVisitor {
 	/*field*/public int                GeneratorFlag;
 
 	/*field*/public final GtStatistics Stat;
-	/*field*/public ArrayList<String>  ReportedErrorList;
 //	/*filed*/private boolean           NoErrorReport;
 
 	protected GtGenerator/*constructor*/(String TargetCode, String OutputFile, int GeneratorFlag) {
+		super();
 		this.TargetCode = TargetCode;
 		this.OutputFile = OutputFile;
 		this.GeneratorFlag = GeneratorFlag;
@@ -110,7 +110,6 @@ public class GtGenerator extends GtNodeVisitor {
 
 		this.Stat = new GtStatistics();
 //		this.NoErrorReport = false;
-		this.ReportedErrorList = new ArrayList<String>();
 	}
 
 	public void InitContext(GtNameSpace Context) {
@@ -122,23 +121,6 @@ public class GtGenerator extends GtNodeVisitor {
 //	public final void SetNoErrorReport(boolean b) {
 //		this.NoErrorReport = b;
 //	}
-
-	public final String ReportError(int Level, GtToken Token, String Message) {
-		if(Level == GreenTeaConsts.ErrorLevel) {
-			Message = "(error) " + GtStaticTable.FormatFileLineNumber(Token.FileLine) + " " + Message;
-		}
-		else if(Level == GreenTeaConsts.TypeErrorLevel) {
-			Message = "(error) " + GtStaticTable.FormatFileLineNumber(Token.FileLine) + " " + Message;
-		}
-		else if(Level == GreenTeaConsts.WarningLevel) {
-			Message = "(warning) " + GtStaticTable.FormatFileLineNumber(Token.FileLine) + " " + Message;
-		}
-		else if(Level == GreenTeaConsts.InfoLevel) {
-			Message = "(info) " + GtStaticTable.FormatFileLineNumber(Token.FileLine) + " " + Message;
-		}
-		this.ReportedErrorList.add(Message);
-		return Message;
-	}
 
 	public final String[] GetReportedErrors() {
 		/*local*/ArrayList<String> List = this.ReportedErrorList;

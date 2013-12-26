@@ -24,7 +24,7 @@
 
 package parser.ast;
 
-import parser.GtGenerator;
+import parser.GtNodeVisitor;
 import parser.GtToken;
 import parser.GtType;
 
@@ -33,7 +33,7 @@ final public class GtGetCapturedNode extends GtSymbolNode {
 	public GtGetCapturedNode/*constructor*/(GtType Type, GtToken Token, String NativeName) {
 		super(Type, Token, NativeName);
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitGetCapturedNode(this);
 	}
 }

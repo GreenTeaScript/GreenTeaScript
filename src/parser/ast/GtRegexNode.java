@@ -24,7 +24,7 @@
 
 package parser.ast;
 
-import parser.GtGenerator;
+import parser.GtNodeVisitor;
 import parser.GtParserContext;
 import parser.GtToken;
 import parser.GtType;
@@ -36,7 +36,7 @@ final public class GtRegexNode extends GtConstNode {
 		this.Value = Value;
 		throw new RuntimeException("FIXME: Regex object must be defined");
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitRegexNode(this);
 	}
 	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {

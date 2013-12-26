@@ -24,7 +24,7 @@
 
 package parser.ast;
 
-import parser.GtGenerator;
+import parser.GtNodeVisitor;
 import parser.GtToken;
 import parser.GtType;
 
@@ -35,7 +35,7 @@ final public class GtYieldNode extends GtNode {
 		this.ValueNode = ValueNode;
 		this.SetChild(ValueNode);
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitYieldNode(this);
 	}
 }

@@ -26,8 +26,8 @@ package parser.ast;
 
 import java.util.ArrayList;
 
-import parser.GtGenerator;
 import parser.GtNameSpace;
+import parser.GtNodeVisitor;
 import parser.GtStaticTable;
 import parser.GtToken;
 
@@ -54,7 +54,7 @@ final public class GtFuncDeclNode extends GtNode {
 			this.SetChild(BodyNode);
 		}
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitFuncDeclNode(this);
 	}
 }

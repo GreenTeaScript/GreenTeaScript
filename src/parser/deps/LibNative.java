@@ -48,6 +48,7 @@ import parser.GreenTeaUtils;
 import parser.GtFunc;
 import parser.GtGenerator;
 import parser.GtNameSpace;
+import parser.GtNodeVisitor;
 import parser.GtPolyFunc;
 import parser.GtStaticTable;
 import parser.GtTokenContext;
@@ -425,14 +426,14 @@ public class LibNative {
 		return false;		
 	}
 
-	public final static void VisitNode(GtGenerator Generator, GtNode Node) {
+	public final static void VisitNode(GtNodeVisitor Visitor, GtNode Node) {
 		try {
-			Method JavaMethod = Generator.getClass().getMethod(Node.GetVisitMethodName(), Node.getClass());
-			JavaMethod.invoke(Generator, Node);
+			Method JavaMethod = Visitor.getClass().getMethod(Node.GetVisitMethodName(), Node.getClass());
+			JavaMethod.invoke(Visitor, Node);
 		}
 		catch(Exception e) {
 		}
-		Generator.ReportError(GreenTeaConsts.ErrorLevel, Node.Token, "unsupported syntax: " + Node.Token.ParsedText + " " + Node.getClass());
+		Visitor.ReportError(GreenTeaConsts.ErrorLevel, Node.Token, "unsupported syntax: " + Node.Token.ParsedText + " " + Node.getClass());
 	}
 
 	// LibGreenTea KonohaApi

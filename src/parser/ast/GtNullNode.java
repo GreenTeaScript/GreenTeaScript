@@ -24,7 +24,7 @@
 
 package parser.ast;
 
-import parser.GtGenerator;
+import parser.GtNodeVisitor;
 import parser.GtParserContext;
 import parser.GtStaticTable;
 import parser.GtToken;
@@ -36,7 +36,7 @@ final public class GtNullNode extends GtConstNode {
 	@Override public final Object GetValue() {
 		return null;
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitNullNode(this);
 	}
 	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {

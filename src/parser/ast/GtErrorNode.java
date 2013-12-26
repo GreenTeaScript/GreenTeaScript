@@ -24,7 +24,7 @@
 
 package parser.ast;
 
-import parser.GtGenerator;
+import parser.GtNodeVisitor;
 import parser.GtParserContext;
 import parser.GtStaticTable;
 import parser.GtToken;
@@ -46,7 +46,7 @@ final public class GtErrorNode extends GtConstNode {
 	@Override public final Object GetValue() {
 		return this.ErrorMessage;
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitErrorNode(this);
 	}
 	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {

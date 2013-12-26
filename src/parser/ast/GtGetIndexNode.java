@@ -24,7 +24,7 @@
 
 package parser.ast;
 
-import parser.GtGenerator;
+import parser.GtNodeVisitor;
 import parser.GtParserContext;
 import parser.GtToken;
 import parser.GtType;
@@ -39,7 +39,7 @@ final public class GtGetIndexNode extends GtSymbolNode {
 		this.IndexNode = IndexNode;
 		this.SetChild2(RecvNode, IndexNode);
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitGetIndexNode(this);
 	}
 	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {

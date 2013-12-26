@@ -24,7 +24,7 @@
 
 package parser.ast;
 
-import parser.GtGenerator;
+import parser.GtNodeVisitor;
 import parser.GtToken;
 import parser.GtType;
 
@@ -40,7 +40,7 @@ final public class GtSliceNode extends GtSymbolNode {
 		this.Index2 = Index2;
 		this.SetChild3(RecvNode, Index1, Index2);
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitSliceNode(this);
 	}
 }

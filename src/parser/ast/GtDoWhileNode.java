@@ -24,7 +24,7 @@
 
 package parser.ast;
 
-import parser.GtGenerator;
+import parser.GtNodeVisitor;
 import parser.GtToken;
 import parser.GtType;
 
@@ -37,7 +37,7 @@ final public class GtDoWhileNode extends GtNode {
 		this.BodyNode = BodyNode;
 		this.SetChild2(CondNode, BodyNode);
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitDoWhileNode(this);
 	}
 	public GtNode ToWhileNode() {

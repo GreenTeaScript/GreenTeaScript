@@ -25,7 +25,7 @@
 package parser.ast;
 
 
-import parser.GtGenerator;
+import parser.GtNodeVisitor;
 import parser.GtParserContext;
 import parser.GtStaticTable;
 import parser.GtToken;
@@ -42,7 +42,7 @@ final public class GtUnaryNode extends GtNode {
 		this.SetChild(RecvNode);
 		return this;
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitUnaryNode(this);
 	}
 	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {

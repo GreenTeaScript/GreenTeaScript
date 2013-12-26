@@ -24,7 +24,7 @@
 
 package parser.ast;
 
-import parser.GtGenerator;
+import parser.GtNodeVisitor;
 import parser.GtStaticTable;
 import parser.GtToken;
 import parser.GtType;
@@ -61,7 +61,7 @@ final public class GtVarDeclNode extends GtNode {
 		this.SetChild2(InitNode, this.BlockNode);
 	}
 
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitVarDeclNode(this);
 	}
 }

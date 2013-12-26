@@ -26,7 +26,7 @@ package parser.ast;
 
 import java.util.ArrayList;
 
-import parser.GtGenerator;
+import parser.GtNodeVisitor;
 import parser.GtStaticTable;
 import parser.GtToken;
 
@@ -42,7 +42,7 @@ final public class GtApplySymbolNode extends GtSymbolNode {
 	@Override public final ArrayList<GtNode> GetList() {
 		return this.ParamList;
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitApplySymbolNode(this);
 	}
 //	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {

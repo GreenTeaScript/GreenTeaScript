@@ -1,5 +1,7 @@
 package parser;
 
+import java.util.ArrayList;
+
 import parser.ast.GtAllocateNode;
 import parser.ast.GtAndNode;
 import parser.ast.GtApplyFunctionObjectNode;
@@ -62,6 +64,29 @@ import parser.ast.GtWhileNode;
 import parser.ast.GtYieldNode;
 
 public abstract class GtNodeVisitor {
+	/*field*/public ArrayList<String>  ReportedErrorList;
+
+	public GtNodeVisitor/*constructor*/() {
+		this.ReportedErrorList = new ArrayList<String>();
+	}
+
+	public final String ReportError(int Level, GtToken Token, String Message) {
+		if(Level == GreenTeaConsts.ErrorLevel) {
+			Message = "(error) " + GtStaticTable.FormatFileLineNumber(Token.FileLine) + " " + Message;
+		}
+		else if(Level == GreenTeaConsts.TypeErrorLevel) {
+			Message = "(error) " + GtStaticTable.FormatFileLineNumber(Token.FileLine) + " " + Message;
+		}
+		else if(Level == GreenTeaConsts.WarningLevel) {
+			Message = "(warning) " + GtStaticTable.FormatFileLineNumber(Token.FileLine) + " " + Message;
+		}
+		else if(Level == GreenTeaConsts.InfoLevel) {
+			Message = "(info) " + GtStaticTable.FormatFileLineNumber(Token.FileLine) + " " + Message;
+		}
+		this.ReportedErrorList.add(Message);
+		return Message;
+	}
+
 	public abstract void VisitEmptyNode(GtEmptyNode Node);
 	public abstract void VisitNullNode(GtNullNode Node);
 	public abstract void VisitBooleanNode(GtBooleanNode Node);

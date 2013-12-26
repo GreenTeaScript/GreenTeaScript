@@ -27,7 +27,7 @@ package parser.ast;
 import java.util.ArrayList;
 
 import parser.GtFunc;
-import parser.GtGenerator;
+import parser.GtNodeVisitor;
 import parser.GtToken;
 import parser.GtType;
 
@@ -43,7 +43,7 @@ final public class GtConstructorNode extends GtNode {
 	@Override public final ArrayList<GtNode> GetList() {
 		return this.ParamList;
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitConstructorNode(this);
 	}
 //	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {

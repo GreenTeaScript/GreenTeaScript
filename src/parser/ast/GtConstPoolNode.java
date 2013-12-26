@@ -24,7 +24,7 @@
 
 package parser.ast;
 
-import parser.GtGenerator;
+import parser.GtNodeVisitor;
 import parser.GtToken;
 import parser.GtType;
 
@@ -34,7 +34,7 @@ final public class GtConstPoolNode extends GtConstNode {
 		super(Type, Token);
 		this.ConstValue = ConstValue;
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		// int ConstPoolId = SetConstPool(ConstValue)
 		// using StaticApplyNode => GetConstPool(ConstPoolId);
 		Visitor.VisitConstPoolNode(this);

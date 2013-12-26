@@ -26,7 +26,7 @@ package parser.ast;
 
 import java.util.ArrayList;
 
-import parser.GtGenerator;
+import parser.GtNodeVisitor;
 import parser.GtToken;
 import parser.GtType;
 
@@ -41,7 +41,7 @@ final public class GtSwitchNode extends GtNode {
 		this.CaseList = new ArrayList<GtNode>();
 		this.SetChild(DefaultBlock);
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitSwitchNode(this);
 	}
 	@Override public final ArrayList<GtNode> GetList() {

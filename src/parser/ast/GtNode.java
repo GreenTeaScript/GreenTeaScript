@@ -26,8 +26,8 @@
 package parser.ast;
 import java.util.ArrayList;
 
-import parser.GtGenerator;
 import parser.GtNameSpace;
+import parser.GtNodeVisitor;
 import parser.GtParserContext;
 import parser.GtToken;
 import parser.GtType;
@@ -136,8 +136,8 @@ public class GtNode {
 		return "VisitNode"; // override this if you want to use additional node
 	}
 	
-	public void Accept(GtGenerator Generator) {
-		LibNative.VisitNode(Generator, this);
+	public void Accept(GtNodeVisitor Visitor) {
+		LibNative.VisitNode(Visitor, this);
 	}
 
 	public GtNode TypeCheck(GtNameSpace NameSpace, GtType ContextType) {

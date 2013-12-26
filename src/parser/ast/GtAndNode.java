@@ -25,7 +25,7 @@
 package parser.ast;
 
 
-import parser.GtGenerator;
+import parser.GtNodeVisitor;
 import parser.GtParserContext;
 import parser.GtSyntaxPattern;
 import parser.GtToken;
@@ -36,7 +36,7 @@ final public class GtAndNode extends GtBinaryNode {
 	public GtAndNode/*constructor*/(GtToken Token, GtNode Left, GtSyntaxPattern Pattern) {
 		super(Token, Left, Pattern);
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitAndNode(this);
 	}
 	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {

@@ -24,7 +24,7 @@
 
 package parser.ast;
 
-import parser.GtGenerator;
+import parser.GtNodeVisitor;
 import parser.GtToken;
 import parser.GtType;
 
@@ -34,7 +34,7 @@ final public class GtBreakNode extends GtNode {
 		super(Type, Token);
 		this.Label = Label;
 	}
-	@Override public void Accept(GtGenerator Visitor) {
+	@Override public void Accept(GtNodeVisitor Visitor) {
 		Visitor.VisitBreakNode(this);
 	}
 }
