@@ -27,13 +27,12 @@ package parser;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import org.GreenTeaScript.GreenTeaTopObject;
-
 import parser.deps.GreenTeaArray;
 import parser.deps.GreenTeaEnum;
 import parser.deps.GreenTeaObject;
 import parser.deps.LibGreenTea;
 import parser.deps.LibNative;
+//import org.GreenTeaScript.GreenTeaTopObject;
 //endif VAJA
 
 public class GtStaticTable implements GreenTeaConsts {
@@ -45,7 +44,7 @@ public class GtStaticTable implements GreenTeaConsts {
 	/*field*/public final static ArrayList<GtType>  TypePools = new ArrayList<GtType>();
 	/*field*/public final static ArrayList<GtFunc>  FuncPools = new ArrayList<GtFunc>();
 
-	/*field*/public final static GtType		TopType = new GtType(0, "Top", null, GreenTeaTopObject.class);
+	/*field*/public final static GtType		TopType = new GtType(0, "Top", null, Object.class /*GreenTeaTopObject.class*/);
 	/*field*/public final static GtType		VoidType = new GtType(NativeType, "void", null, void.class);
 	/*field*/public final static GtType		BooleanType = new GtType(NativeType|UnboxType, "boolean", false, boolean.class);
 	/*field*/public final static GtType		IntType = new GtType(NativeType|UnboxType, "int", 0L, long.class);
