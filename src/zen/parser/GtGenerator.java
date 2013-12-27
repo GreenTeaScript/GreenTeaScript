@@ -117,7 +117,7 @@ public class GtGenerator extends GtNodeVisitor {
 	public void InitContext(GtNameSpace Context) {
 		this.Context = Context;
 		this.GeneratedCodeStack = new ArrayList<Object>();
-		Context.LoadRequiredLib("common");
+		//Context.LoadRequiredLib("common");
 	}
 
 	//	public final void SetNoErrorReport(boolean b) {
@@ -618,6 +618,7 @@ public class GtGenerator extends GtNodeVisitor {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
 
+	@Override
 	public void VisitApplyNode(GtApplyNode Node) {
 		if(GreenTeaConsts.DebugVisitor) { throw new RuntimeException("not implemented"); }
 	}
