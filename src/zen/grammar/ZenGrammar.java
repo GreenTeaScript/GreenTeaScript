@@ -2363,21 +2363,21 @@ public class ZenGrammar {
 //		return FuncDeclTree;
 //	}
 	
-	public static GtNode MatchParamDecl(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftTree) {
-		GtTypeNode TypeNode = (GtTypeNode)TokenContext.ParsePattern(NameSpace, "$Type$", GreenTeaConsts.Required);
+	public static GtNode MatchParam(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftTree) {
+		GtNode TypeNode = TokenContext.ParsePattern(NameSpace, "$Type$", GreenTeaConsts.Required);
 		if(!TypeNode.IsErrorNode()) {
 			/*local*/GtToken NameToken = TokenContext.Next();
 			if(!NameToken.IsNameSymbol()) {
 				return GtErrorNode.CreateExpectedToken(NameToken, "parameter name");
 			}
-			return new GtParamNode(TypeNode.ParsedType, NameToken, NameToken.ParsedText);
+			return new GtParamNode(((/*cast*/GtTypeNode)TypeNode).ParsedType, NameToken, NameToken.ParsedText);
 		}
 		return TypeNode;
 	}
 	
 	public static GtNode MatchFuncDecl(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftTree) {
 		/*local*/GtToken NameToken = TokenContext.Next();
-		if(!NameToken.IsNameSymbol()) {
+		if(NameToken.IsNameSymbol()) {
 //			/*local*/int FuncFlag = KonohaGrammar.ParseFuncFlag(0, TokenContext.ParsingAnnotation);
 			/*local*/GtNode FuncDeclNode = new GtFuncDeclNode(NameToken, LeftTree, NameToken.ParsedText);
 //			/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
@@ -2926,6 +2926,7 @@ public class ZenGrammar {
 		NameSpace.AppendSyntax("$SuffixExpression$", LibNative.LoadMatchFunc(Grammar, "MatchSuffixExpression"));
 
 //		NameSpace.AppendSyntax("$FuncName$", LibNative.LoadMatchFunc(Grammar, "MatchFuncName"));
+		NameSpace.AppendSyntax("$Param$", LibNative.LoadMatchFunc(Grammar, "MatchParam"));
 		NameSpace.AppendSyntax("$FuncDecl$", LibNative.LoadMatchFunc(Grammar, "MatchFuncDecl"));
 		NameSpace.AppendSyntax("$VarDecl$",  LibNative.LoadMatchFunc(Grammar, "MatchVarDecl"));
 

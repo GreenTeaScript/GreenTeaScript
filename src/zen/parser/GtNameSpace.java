@@ -212,12 +212,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 		return GtStaticTable.VarType;
 	}
 
-	
-	
-	
-	
-	// Pattern 
-	
+	// Pattern
 	public GtSyntaxPattern GetSyntaxPattern(String PatternName) {
 		/*local*/Object Body = this.GetSymbol(PatternName);
 		if(Body instanceof GtSyntaxPattern) {
