@@ -399,61 +399,6 @@ public class ZenGrammar {
 		return pos;
 	}
 
-//	public static long StringLiteralToken_StringInterpolation(GtTokenContext TokenContext, String SourceText, long pos) {
-//		/*local*/long start = pos + 1;
-//		/*local*/long NextPos = start;
-//		/*local*/char prev = '"';
-//		while(NextPos < SourceText.length()) {
-//			/*local*/char ch = LibGreenTea.CharAt(SourceText, NextPos);
-//			if(ch == '$') {
-//				/*local*/long end = NextPos + 1;
-//				/*local*/char nextch = LibGreenTea.CharAt(SourceText, end);
-//				if(nextch == '{') {
-//					while(end < SourceText.length()) {
-//						ch = LibGreenTea.CharAt(SourceText, end);
-//						if(ch == '}') {
-//							break;
-//						}
-//						end = end + 1;
-//					}
-//					/*local*/String Expr = LibGreenTea.SubString(SourceText, (NextPos + 2), end);
-//					/*local*/GtTokenContext LocalContext = new GtTokenContext(TokenContext.TopLevelNameSpace, Expr, TokenContext.ParsingLine);
-//					LocalContext.SkipEmptyStatement();
-//
-//					TokenContext.AddNewToken("\"" + LibGreenTea.SubString(SourceText, start, NextPos) + "\"", QuotedTokenFlag, "$StringLiteral$");
-//					TokenContext.AddNewToken("+", 0, null);
-//					while(LocalContext.HasNext()) {
-//						/*local*/GtToken NewToken = LocalContext.Next();
-//						TokenContext.AddNewToken(NewToken.ParsedText, 0, null);
-//					}
-//					TokenContext.AddNewToken("+", 0, null);
-//					end = end + 1;
-//					start = end;
-//					NextPos = end;
-//					prev = ch;
-//					if(ch == '"') {
-//						TokenContext.AddNewToken("\"" + LibGreenTea.SubString(SourceText, start, NextPos) + "\"", QuotedTokenFlag, "$StringLiteral$");
-//						return NextPos + 1;
-//					}
-//					continue;
-//				}
-//			}
-//			if(ch == '"' && prev != '\\') {
-//				TokenContext.AddNewToken("\"" + LibGreenTea.SubString(SourceText, start, NextPos) + "\"", QuotedTokenFlag, "$StringLiteral$");
-//				return NextPos + 1;
-//			}
-//			if(ch == '\n') {
-//				TokenContext.ReportTokenError(GreenTeaConsts.ErrorLevel, "expected \" to close the string literal", LibGreenTea.SubString(SourceText, start, NextPos));
-//				TokenContext.FoundLineFeed(1);
-//				return NextPos;
-//			}
-//			NextPos = NextPos + 1;
-//			prev = ch;
-//		}
-//		TokenContext.ReportTokenError(GreenTeaConsts.ErrorLevel, "expected \" to close the string literal", LibGreenTea.SubString(SourceText, start, NextPos));
-//		return NextPos;
-//	}
-	
 	// Match 
 	public static GtNode MatchType(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
 		/*local*/GtToken Token = TokenContext.Next();
