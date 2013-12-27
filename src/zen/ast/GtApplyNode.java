@@ -36,6 +36,7 @@ final public class GtApplyNode extends GtNode {
 	public GtApplyNode(GtNode FuncNode) {
 		super(GtStaticTable.VarType, null);
 		this.ParamList = new ArrayList<GtNode>();
+		this.FuncNode = FuncNode;
 		this.SetChild(FuncNode);
 	}
 	@Override public final ArrayList<GtNode> GetList() {
