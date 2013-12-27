@@ -682,9 +682,9 @@ public final class GtNameSpace extends GreenTeaUtils {
 		LibNative.Assert(Node != null);
 		if(Node.Type.IsVarType()) {
 			Node = Node.TypeCheck(this, ContextType);
-			if(Node.Type.IsVarType()) {
-				return new GtErrorNode(Node.Token, "no type");
-			}
+//			if(Node.Type.IsVarType()) {
+//				return new GtErrorNode(Node.Token, "no type");
+//			}
 		}
 		if(Node.IsErrorNode()) {
 			return Node;
