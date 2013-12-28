@@ -24,9 +24,6 @@
 
 package zen.ast;
 
-import zen.parser.GtStaticTable;
-import zen.parser.GtToken;
-import zen.parser.GtType;
 import zen.parser.GtVisitor;
 
 /**
@@ -34,18 +31,31 @@ import zen.parser.GtVisitor;
  * String s ;
  */
 
-final public class GtVarDeclNode extends GtNode {
-	/*field*/public GtType	DeclType;
+final public class GtVarDeclNode extends GtBlockNode {
 	/*field*/public String  NativeName;
 	/*field*/public GtNode	InitNode;
-	/*field*/public GtNode	BlockNode;
-	/* let VarNode in Block end */
-	public GtVarDeclNode/*constructor*/(GtType DeclType, GtToken SourceToken, String VariableName) {
-		super(GtStaticTable.VoidType, SourceToken);
-		this.NativeName = VariableName;
-		this.DeclType  = DeclType;
+	public GtVarDeclNode/*constructor*/(/*GtType DeclType, GtToken SourceToken, String VariableName*/) {
+		super(null);
+		this.NativeName = null;
 		this.InitNode  = null;
-		this.BlockNode = null;
+	}
+	@Override public GtNode Append(GtNode Node) {
+		if(this.InitNode != null) {
+			super.Append(Node);
+		}
+		else {
+			if(Node instanceof GtTypeNode) {
+				this.Type = Node.Type;
+			}
+			if(this.NativeName == null) {
+				this.NativeName = Node.SourceToken.ParsedText;
+			}
+			else {
+				this.InitNode = Node;
+				this.SetChild(Node);
+			}
+		}
+		return this;
 	}
 
 	@Override public boolean Accept(GtVisitor Visitor) {

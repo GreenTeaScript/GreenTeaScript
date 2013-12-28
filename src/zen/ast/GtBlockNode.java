@@ -31,13 +31,13 @@ import zen.parser.GtStaticTable;
 import zen.parser.GtToken;
 import zen.parser.GtVisitor;
 
-final public class GtBlockNode extends GtNode {
+public class GtBlockNode extends GtNode {
 	/*field*/public ArrayList<GtNode> NodeList;
 	public GtBlockNode(GtToken SourceToken) {
 		super(GtStaticTable.VarType, SourceToken);
 		this.NodeList = new ArrayList<GtNode>();
 	}
-	@Override public final GtNode Append(GtNode Node) {
+	@Override public GtNode Append(GtNode Node) {
 		this.NodeList.add(Node);
 		this.SetChild(Node);
 		return this;

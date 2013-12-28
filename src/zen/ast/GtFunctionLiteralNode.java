@@ -26,30 +26,32 @@ package zen.ast;
 
 import java.util.ArrayList;
 
-import zen.parser.GtVisitor;
+import zen.parser.GtStaticTable;
 import zen.parser.GtToken;
 import zen.parser.GtType;
+import zen.parser.GtVisitor;
 
-final public class GtFunctionLiteralNode extends GtNode {
-
-	/* E.g., function(argument, ..) $Body */
-	/* int x; // captured variable
-	 * f = function(a, b) {
-	 * 	  return x + a + b;
-	 * }
-	 * ArgumentList = List of ParamNode
-	 * BodyNode
-	 */
+public class GtFunctionLiteralNode extends GtNode {
+	/*field*/public GtType ReturnType;
 	/*field*/public ArrayList<GtNode>  ArgumentList;  // list of ParamNode
 	/*field*/public GtNode BodyNode;
-	public GtFunctionLiteralNode/*constructor*/(GtType Type, GtToken Token, GtNode BodyNode) {
-		super(Type, Token); // TODO
+	public GtFunctionLiteralNode/*constructor*/(GtToken Token) {
+		super(GtStaticTable.VarType, Token);
+		this.ReturnType = GtStaticTable.VarType;
 		this.ArgumentList = new ArrayList<GtNode>();
-		this.BodyNode = BodyNode;
-		this.SetChild(BodyNode);
+		this.BodyNode = null;
 	}
-	@Override public ArrayList<GtNode> GetList() {
-		return this.ArgumentList;
+	@Override public GtNode Append(GtNode Node) {
+		if(Node instanceof GtParamNode) {
+			this.ArgumentList.add(Node);
+		}
+		else if(Node instanceof GtTypeNode) {
+			this.ReturnType = Node.Type;
+		}		
+		else if(Node instanceof GtBlockNode) {
+			this.BodyNode = Node;
+		}
+		return this;
 	}
 	@Override public boolean Accept(GtVisitor Visitor) {
 		return Visitor.VisitFunctionLiteralNode(this);

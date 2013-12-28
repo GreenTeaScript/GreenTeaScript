@@ -27,32 +27,17 @@ package zen.ast;
 import java.util.ArrayList;
 
 import zen.parser.GtNameSpace;
-import zen.parser.GtVisitor;
-import zen.parser.GtStaticTable;
 import zen.parser.GtToken;
+import zen.parser.GtVisitor;
 
-final public class GtFuncDeclNode extends GtNode {
-	/*field*/public GtNode TypeNode;
+final public class GtFuncDeclNode extends GtFunctionLiteralNode {
 	/*field*/public String FuncName;
-	/*field*/public ArrayList<GtNode>  ArgumentList;  // list of ParamNode
 	/*field*/public GtNameSpace NameSpace;
-	/*field*/public GtNode BodyNode;
-	public GtFuncDeclNode/*constructor*/(GtToken SourceToken, GtNode TypeNode, String FuncName) {
-		super(GtStaticTable.VarType, SourceToken); // TODO
-		this.TypeNode = TypeNode;
+	public GtFuncDeclNode/*constructor*/(GtToken SourceToken, GtNameSpace NameSpace, String FuncName) {
+		super(SourceToken); // TODO
 		this.ArgumentList = new ArrayList<GtNode>();
-		this.NameSpace = null;
-		this.BodyNode = null;
-	}
-	@Override public ArrayList<GtNode> GetList() {
-		return this.ArgumentList;
-	}
-	public void SetFuncBody(GtNameSpace NameSpace, GtNode BodyNode) {
-		if(BodyNode != null) {
-			this.NameSpace = NameSpace;
-			this.BodyNode = BodyNode;
-			this.SetChild(BodyNode);
-		}
+		this.FuncName = FuncName;
+		this.NameSpace = NameSpace;
 	}
 	@Override public boolean Accept(GtVisitor Visitor) {
 		return Visitor.VisitFuncDeclNode(this);
