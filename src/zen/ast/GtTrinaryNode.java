@@ -25,7 +25,7 @@
 package zen.ast;
 
 
-import zen.deps.LibGreenTea;
+import zen.deps.LibZen;
 import zen.parser.GtNameSpace;
 import zen.parser.GtNodeVisitor;
 import zen.parser.GtToken;
@@ -49,7 +49,7 @@ final public class GtTrinaryNode extends GtNode {
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
 		/*local*/Object CondValue = this.CondNode.Eval(NameSpace, EnforceConst) ;
 		if(CondValue instanceof Boolean) {
-			if(LibGreenTea.booleanValue(CondValue)) {
+			if(LibZen.booleanValue(CondValue)) {
 				return this.ThenNode.Eval(NameSpace, EnforceConst);
 			}
 			else {

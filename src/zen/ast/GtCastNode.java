@@ -24,7 +24,7 @@
 
 package zen.ast;
 
-import zen.deps.LibGreenTea;
+import zen.deps.LibZen;
 import zen.parser.GtNameSpace;
 import zen.parser.GtNodeVisitor;
 import zen.parser.GtStaticTable;
@@ -57,7 +57,7 @@ final public class GtCastNode extends GtNode {
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
 		/*local*/Object Value = this.ExprNode.Eval(NameSpace, EnforceConst) ;
 		if(Value != null) {
-			return LibGreenTea.DynamicCast(this.Type, Value);
+			return LibZen.DynamicCast(this.Type, Value);
 		}
 		return Value;
 	}

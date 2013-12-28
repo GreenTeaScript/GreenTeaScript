@@ -72,7 +72,7 @@ public class LibNative {
 			//			DebugP("** creating native class: " + NativeClass.getSimpleName() + ", " + NativeClass.getCanonicalName());
 			NativeType = new GtType(GreenTeaUtils.NativeType, NativeClass.getSimpleName(), null, NativeClass);
 			GtStaticTable.SetNativeTypeName(NativeClass.getCanonicalName(), NativeType);
-			LibGreenTea.VerboseLog(GreenTeaUtils.VerboseNative, "creating native class: " + NativeClass.getSimpleName() + ", " + NativeClass.getCanonicalName());
+			LibZen.VerboseLog(GreenTeaUtils.VerboseNative, "creating native class: " + NativeClass.getSimpleName() + ", " + NativeClass.getCanonicalName());
 		}
 		return NativeType;
 	}
@@ -153,7 +153,7 @@ public class LibNative {
 			Method[] Methods = NativeClass.getDeclaredMethods();
 			assert(Methods != null);
 			for(int i = 0; i < Methods.length; i++) {
-				if(LibGreenTea.EqualsString(FuncName, Methods[i].getName())) {
+				if(LibZen.EqualsString(FuncName, Methods[i].getName())) {
 					if(!Modifier.isPublic(Methods[i].getModifiers())) {
 						continue;
 					}
@@ -164,17 +164,17 @@ public class LibNative {
 						continue;
 					}
 					if(FoundMethod != null) {
-						LibGreenTea.VerboseLog(GreenTeaUtils.VerboseUndefined, "overloaded method: " + FullName);
+						LibZen.VerboseLog(GreenTeaUtils.VerboseUndefined, "overloaded method: " + FullName);
 						return FoundMethod; // return the first one
 					}
 					FoundMethod = Methods[i];
 				}
 			}
 			if(FoundMethod == null) {
-				LibGreenTea.VerboseLog(GreenTeaUtils.VerboseUndefined, "undefined method: " + FullName + " for " + ContextType);
+				LibZen.VerboseLog(GreenTeaUtils.VerboseUndefined, "undefined method: " + FullName + " for " + ContextType);
 			}
 		} catch (ClassNotFoundException e) {
-			LibGreenTea.VerboseLog(GreenTeaUtils.VerboseException, e.toString());
+			LibZen.VerboseLog(GreenTeaUtils.VerboseException, e.toString());
 		}
 		return FoundMethod;
 	}
@@ -196,9 +196,9 @@ public class LibNative {
 			}
 			return NativeField.get(ObjectValue);
 		} catch (IllegalAccessException e) {
-			LibGreenTea.VerboseException(e);
+			LibZen.VerboseException(e);
 		} catch (SecurityException e) {
-			LibGreenTea.VerboseException(e);
+			LibZen.VerboseException(e);
 		}
 		return null;
 	}
@@ -216,7 +216,7 @@ public class LibNative {
 		Method[] Methods = NativeClass.getMethods();
 		for(int i = 0; i < Methods.length; i++) {
 			if(Methods[i].getName().equals(Symbol) && Modifier.isStatic(Methods[i].getModifiers())) {
-				PolyFunc.Append(LibGreenTea.ConvertNativeMethodToFunc(Methods[i]), null);
+				PolyFunc.Append(LibZen.ConvertNativeMethodToFunc(Methods[i]), null);
 			}
 		}
 		if(PolyFunc.FuncList.size() == 1) {
@@ -244,7 +244,7 @@ public class LibNative {
 	}
 
 	public final static Object ImportNativeObject(GtNameSpace NameSpace, String PackageName) {
-		LibGreenTea.VerboseLog(GreenTeaUtils.VerboseNative, "importing " + PackageName);
+		LibZen.VerboseLog(GreenTeaUtils.VerboseNative, "importing " + PackageName);
 		try {
 			/*local*/Class<?> NativeClass = LibNative.LoadClass(PackageName);
 			try {
@@ -357,13 +357,13 @@ public class LibNative {
 			return ((Method)Func.FuncBody).invoke(Self, Params);
 		}
 		catch (InvocationTargetException e) {
-			LibGreenTea.VerboseException(e);
+			LibZen.VerboseException(e);
 		}
 		catch (IllegalArgumentException e) {
-			LibGreenTea.VerboseException(e);
+			LibZen.VerboseException(e);
 		}
 		catch (IllegalAccessException e) {
-			LibGreenTea.VerboseException(e);
+			LibZen.VerboseException(e);
 		}
 		return null;
 	}
@@ -388,10 +388,10 @@ public class LibNative {
 	public final static GtFunc LoadTokenFunc(Class<?> GrammarClass, String FuncName) {
 		try {
 			Method JavaMethod = GrammarClass.getMethod(FuncName, GtTokenContext.class, String.class, long.class);
-			return LibGreenTea.ConvertNativeMethodToFunc(JavaMethod);
+			return LibZen.ConvertNativeMethodToFunc(JavaMethod);
 		}
 		catch(NoSuchMethodException e) {
-			LibGreenTea.VerboseException(e);
+			LibZen.VerboseException(e);
 			LibNative.Exit(1, e.toString());
 		}
 		return null;
@@ -400,10 +400,10 @@ public class LibNative {
 	public final static GtFunc LoadMatchFunc(Class<?> GrammarClass, String FuncName) {
 		try {
 			Method JavaMethod = GrammarClass.getMethod(FuncName, GtNameSpace.class, GtTokenContext.class, GtNode.class);
-			return LibGreenTea.ConvertNativeMethodToFunc(JavaMethod);
+			return LibZen.ConvertNativeMethodToFunc(JavaMethod);
 		}
 		catch(NoSuchMethodException e) {
-			LibGreenTea.VerboseException(e);
+			LibZen.VerboseException(e);
 			LibNative.Exit(1, e.toString());
 		}
 		return null;
@@ -451,7 +451,7 @@ public class LibNative {
 		}
 		int GeneratorFlag = 0;
 		String Extension = (OutputFile == null) ? "-" : OutputFile;
-		ClassName = LibGreenTea.DetectTargetCode(Extension, ClassName);
+		ClassName = LibZen.DetectTargetCode(Extension, ClassName);
 		ClassName = ClassName.toLowerCase();
 		if(ClassName.startsWith("exe")) {
 			return new JavaByteCodeGenerator(ClassName, OutputFile, GeneratorFlag);
@@ -501,10 +501,10 @@ public class LibNative {
 	}
 
 	public final static String LoadScript(String FileName) {
-		LibGreenTea.VerboseLog(GreenTeaUtils.VerboseFile, "loading " + FileName);
-		InputStream Stream = LibGreenTea.class.getResourceAsStream("/" + FileName);
+		LibZen.VerboseLog(GreenTeaUtils.VerboseFile, "loading " + FileName);
+		InputStream Stream = LibZen.class.getResourceAsStream("/" + FileName);
 		if(Stream == null) {
-			File f = new File(LibGreenTea.FormatFilePath(FileName));
+			File f = new File(LibZen.FormatFilePath(FileName));
 			try {
 				Stream = new FileInputStream(f);
 			} catch (FileNotFoundException e) {

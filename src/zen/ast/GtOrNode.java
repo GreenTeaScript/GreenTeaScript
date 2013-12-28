@@ -24,7 +24,7 @@
 
 package zen.ast;
 
-import zen.deps.LibGreenTea;
+import zen.deps.LibZen;
 import zen.parser.GtNameSpace;
 import zen.parser.GtNodeVisitor;
 import zen.parser.GtSyntaxPattern;
@@ -41,7 +41,7 @@ final public class GtOrNode extends GtBinaryNode {
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
 		/*local*/Object LeftValue = this.LeftNode.Eval(NameSpace, EnforceConst) ;
 		if(LeftValue instanceof Boolean) {
-			if(LibGreenTea.booleanValue(LeftValue)) {
+			if(LibZen.booleanValue(LeftValue)) {
 				return LeftValue;
 			}
 			else {

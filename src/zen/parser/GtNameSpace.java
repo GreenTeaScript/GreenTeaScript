@@ -29,7 +29,7 @@ import java.util.ArrayList;
 //endif VAJA
 import zen.ast.GtErrorNode;
 import zen.ast.GtNode;
-import zen.deps.LibGreenTea;
+import zen.deps.LibZen;
 import zen.deps.LibNative;
 import zen.obsolete.GtFuncBlock;
 import zen.obsolete.GtPolyFunc;
@@ -127,7 +127,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 		}
 		i = 0;
 		while(i < keys.length()) {
-			/*local*/int kchar = GreenTeaUtils.AsciiToTokenMatrixIndex(LibGreenTea.CharAt(keys, i));
+			/*local*/int kchar = GreenTeaUtils.AsciiToTokenMatrixIndex(LibZen.CharAt(keys, i));
 			this.TokenMatrix[kchar] = this.JoinParentFunc(TokenFunc, this.TokenMatrix[kchar]);
 			i += 1;
 		}
@@ -176,18 +176,18 @@ public final class GtNameSpace extends GreenTeaUtils {
 		if(SourceToken != null) {
 			/*local*/Object OldValue = this.SymbolPatternTable.GetOrNull(Key);
 			if(OldValue != null && OldValue != UndefinedSymbol) {
-				if(LibGreenTea.DebugMode) {
+				if(LibZen.DebugMode) {
 					this.Generator.ReportError(GreenTeaConsts.WarningLevel, SourceToken, "duplicated symbol: " + SourceToken + " old, new =" + OldValue + ", " + Value);
 				}
 				else {
-					if(!LibGreenTea.EqualsString(Key, "_")) {
+					if(!LibZen.EqualsString(Key, "_")) {
 						this.Generator.ReportError(GreenTeaConsts.WarningLevel, SourceToken, "duplicated symbol: " + SourceToken);
 					}
 				}
 			}
 		}
 		this.SymbolPatternTable.put(Key, Value);
-		LibGreenTea.VerboseLog(VerboseSymbol, "symbol: " + Key + ", " + Value);
+		LibZen.VerboseLog(VerboseSymbol, "symbol: " + Key + ", " + Value);
 	}
 
 	public GtVariableInfo SetLocalVariable(int VarFlag, GtType Type, String Name, GtToken SourceToken) {
@@ -560,7 +560,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 	
 	final Object EvalWithErrorInfo(String ScriptText, long FileLine) {
 		/*local*/Object ResultValue = null;
-		LibGreenTea.VerboseLog(VerboseEval, "eval: " + ScriptText);
+		LibZen.VerboseLog(VerboseEval, "eval: " + ScriptText);
 		/*local*/GtTokenContext TokenContext = new GtTokenContext(this, ScriptText, FileLine);
 		TokenContext.SkipEmptyStatement();
 		while(TokenContext.HasNext()) {
@@ -611,7 +611,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 	public final boolean LoadRequiredLib(String LibName) {
 		/*local*/String Key = GreenTeaUtils.NativeNameSuffix + "L" + LibName.toLowerCase();
 		if(!this.HasSymbol(Key)) {
-			/*local*/String Path = LibGreenTea.GetLibPath(this.Generator.TargetCode, LibName);
+			/*local*/String Path = LibZen.GetLibPath(this.Generator.TargetCode, LibName);
 			/*local*/String Script = LibNative.LoadScript(Path);
 			if(Script != null) {
 				/*local*/long FileLine = GtStaticTable.GetFileLine(Path, 1);
@@ -647,7 +647,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 	}
 
 	public final static String FuncSymbol(String Symbol) {
-		return LibGreenTea.IsVariableName(Symbol, 0) ? Symbol : "__" + Symbol;
+		return LibZen.IsVariableName(Symbol, 0) ? Symbol : "__" + Symbol;
 	}
 
 	public final static String ConverterSymbol(GtType ClassType) {

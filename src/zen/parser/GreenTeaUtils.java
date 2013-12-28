@@ -26,7 +26,7 @@ package zen.parser;
 
 import java.util.ArrayList;
 
-import zen.deps.LibGreenTea;
+import zen.deps.LibZen;
 import zen.deps.LibNative;
 
 public class GreenTeaUtils implements GreenTeaConsts {
@@ -59,13 +59,13 @@ public class GreenTeaUtils implements GreenTeaConsts {
 
 	private final static String n2s(int n) {
 		if(n < (27)) {
-			return LibGreenTea.CharToString((/*cast*/char)(65 + (n - 0)));
+			return LibZen.CharToString((/*cast*/char)(65 + (n - 0)));
 		}
 		else if(n < (27 + 10)) {
-			return LibGreenTea.CharToString((/*cast*/char)(48 + (n - 27)));
+			return LibZen.CharToString((/*cast*/char)(48 + (n - 27)));
 		}
 		else {
-			return LibGreenTea.CharToString((/*cast*/char)(97 + (n - 37)));
+			return LibZen.CharToString((/*cast*/char)(97 + (n - 37)));
 		}
 	}
 
@@ -83,7 +83,7 @@ public class GreenTeaUtils implements GreenTeaConsts {
 	public final static String MangleGenericType(GtType BaseType, int BaseIdx, ArrayList<GtType> TypeList) {
 		/*local*/String s = BaseType.ShortName + NativeNameSuffix;
 		/*local*/int i = BaseIdx;
-		while(i < LibGreenTea.ListSize(TypeList)) {
+		while(i < LibZen.ListSize(TypeList)) {
 			/*local*/GtType Type = TypeList.get(i);
 			if(Type.IsTypeVariable()) {
 				s = s + Type.ShortName;

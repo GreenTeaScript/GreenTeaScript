@@ -27,11 +27,11 @@ package zen.parser;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-//endif VAJA
 import zen.ast.GtNode;
-import zen.deps.LibGreenTea;
 import zen.deps.LibNative;
+import zen.deps.LibZen;
 import zen.obsolete.GtFuncBlock;
+//endif VAJA
 
 
 public final class GtFunc extends GreenTeaUtils {
@@ -46,7 +46,7 @@ public final class GtFunc extends GreenTeaUtils {
 	public GtFunc/*constructor*/(int FuncFlag, String FuncName, int BaseIndex, ArrayList<GtType> ParamList) {
 		this.FuncFlag = FuncFlag;
 		this.FuncName = FuncName;
-		this.Types = LibGreenTea.CompactTypeList(BaseIndex, ParamList);
+		this.Types = LibZen.CompactTypeList(BaseIndex, ParamList);
 		LibNative.Assert(this.Types.length > 0);
 		this.FuncType = null;
 		this.FuncBody = null;
@@ -178,7 +178,7 @@ public final class GtFunc extends GreenTeaUtils {
 	}
 
 	public final boolean ImportMethod(String FullName) {
-		return LibGreenTea.ImportMethodToFunc(this, FullName);
+		return LibZen.ImportMethodToFunc(this, FullName);
 	}
 
 	
@@ -262,7 +262,7 @@ public final class GtFunc extends GreenTeaUtils {
 		return NameSpace;
 	}
 
-	public Object Apply(Object[] Arguments) {
-		return LibGreenTea.InvokeFunc(this, Arguments);
-	}
+//	public Object Apply(Object[] Arguments) {
+//		return LibZen.InvokeFunc(this, Arguments);
+//	}
 }

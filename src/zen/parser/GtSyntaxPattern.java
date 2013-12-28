@@ -27,7 +27,7 @@ package zen.parser;
 
 import zen.ast.GtErrorNode;
 import zen.ast.GtNode;
-import zen.deps.LibGreenTea;
+import zen.deps.LibZen;
 import zen.deps.LibNative;
 
 public final class GtSyntaxPattern extends GreenTeaUtils {
@@ -60,7 +60,7 @@ public final class GtSyntaxPattern extends GreenTeaUtils {
 	}
 
 	public final boolean EqualsName(String Name) {
-		return LibGreenTea.EqualsString(this.PatternName, Name);
+		return LibZen.EqualsString(this.PatternName, Name);
 	}
 	
 	public final static GtNode ApplyMatchPattern(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode, GtSyntaxPattern Pattern) {
@@ -94,7 +94,7 @@ public final class GtSyntaxPattern extends GreenTeaUtils {
 			TokenContext.SkipErrorStatement();
 		}
 		if(Pattern == null) {
-			LibGreenTea.VerboseLog(VerboseUndefined, "undefined syntax pattern: " + Pattern);
+			LibZen.VerboseLog(VerboseUndefined, "undefined syntax pattern: " + Pattern);
 		}
 		if(TokenContext.IsAllowedBackTrack()) {
 			return null;

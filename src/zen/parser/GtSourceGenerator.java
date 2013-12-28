@@ -29,7 +29,7 @@ import java.util.ArrayList;
 //endif VAJA
 import zen.ast.GtNode;
 import zen.deps.GreenTeaEnum;
-import zen.deps.LibGreenTea;
+import zen.deps.LibZen;
 
 public class GtSourceGenerator extends GtGenerator {
 	/*field*/private final ArrayList<GtSourceBuilder> BuilderList;
@@ -90,9 +90,9 @@ public class GtSourceGenerator extends GtGenerator {
 
 	@Override public String GetSourceCode() {
 		/*local*/String SourceCode = "";
-		for(/*local*/int i = 0; i < LibGreenTea.ListSize(this.BuilderList); i++) {
+		for(/*local*/int i = 0; i < LibZen.ListSize(this.BuilderList); i++) {
 			/*local*/GtSourceBuilder Builder = this.BuilderList.get(i);
-			for(/*local*/int j = 0; j < LibGreenTea.ListSize(Builder.SourceList); j++) {
+			for(/*local*/int j = 0; j < LibZen.ListSize(Builder.SourceList); j++) {
 				SourceCode += Builder.SourceList.get(j);
 			}
 			SourceCode += "\n";
@@ -101,7 +101,7 @@ public class GtSourceGenerator extends GtGenerator {
 	}
 
 	@Override public void FlushBuffer() {
-		LibGreenTea.WriteSource(this.OutputFile, this.BuilderList);
+		LibZen.WriteSource(this.OutputFile, this.BuilderList);
 		this.BuilderList.clear();
 		this.HeaderBuilder.SourceList.clear();
 	}
@@ -137,7 +137,7 @@ public class GtSourceGenerator extends GtGenerator {
 			}
 		}
 		if(ConstValue instanceof String) {
-			return LibGreenTea.QuoteString((/*cast*/String)ConstValue);
+			return LibZen.QuoteString((/*cast*/String)ConstValue);
 		}
 		if(ConstValue instanceof GreenTeaEnum) {
 			return "" + ((/*cast*/GreenTeaEnum) ConstValue).EnumValue;
@@ -146,7 +146,7 @@ public class GtSourceGenerator extends GtGenerator {
 	}
 
 	public void ExpandNativeMacro(String NativeMacro, ArrayList<GtNode> ParamList) {
-		/*local*/int ParamSize = LibGreenTea.ListSize(ParamList);
+		/*local*/int ParamSize = LibZen.ListSize(ParamList);
 		/*local*/int ParamIndex = 0;
 		/*local*/GtSourceBuilder CurrentBuilder = this.CurrentBuilder;
 		while(ParamIndex < ParamSize) {

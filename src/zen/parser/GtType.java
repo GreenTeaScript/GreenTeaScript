@@ -27,7 +27,7 @@ package zen.parser;
 import java.util.ArrayList;
 //endif VAJA
 
-import zen.deps.LibGreenTea;
+import zen.deps.LibZen;
 import zen.deps.LibNative;
 import zen.obsolete.GtClassField;
 
@@ -108,8 +108,8 @@ public class GtType extends GreenTeaUtils {
 		GenericType.BaseType = this.BaseType;
 		GenericType.ParentMethodSearch = this.BaseType;
 		GenericType.SuperType = this.SuperType;
-		GenericType.TypeParams = LibGreenTea.CompactTypeList(BaseIndex, TypeList);
-		LibGreenTea.VerboseLog(VerboseType, "new generic type: " + GenericType.ShortName + ", ClassId=" + GenericType.TypeId);
+		GenericType.TypeParams = LibZen.CompactTypeList(BaseIndex, TypeList);
+		LibZen.VerboseLog(VerboseType, "new generic type: " + GenericType.ShortName + ", ClassId=" + GenericType.TypeId);
 		return GenericType;
 	}
 	public final boolean IsAbstractType() {
@@ -208,7 +208,7 @@ public class GtType extends GreenTeaUtils {
 			return this.ShortName;
 		}
 		else {
-			if(LibGreenTea.DebugMode) {
+			if(LibZen.DebugMode) {
 				return this.BaseType.ShortName + NativeNameSuffix + this.TypeId;
 			}
 			else {

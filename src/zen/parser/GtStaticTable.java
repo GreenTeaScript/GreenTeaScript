@@ -30,7 +30,7 @@ import java.util.Iterator;
 import zen.deps.GreenTeaArray;
 import zen.deps.GreenTeaEnum;
 import zen.deps.GreenTeaObject;
-import zen.deps.LibGreenTea;
+import zen.deps.LibZen;
 import zen.deps.LibNative;
 import zen.obsolete.GtPolyFunc;
 
@@ -68,22 +68,22 @@ public class GtStaticTable implements GreenTeaConsts {
 			Id = GtStaticTable.SourceList.size();
 			GtStaticTable.SourceMap.put(FileName, Id);
 		}
-		return LibGreenTea.JoinIntId(Id, Line);
+		return LibZen.JoinIntId(Id, Line);
 	}
 
 
 	public final static String GetSourceFileName(long FileLine) {
-		/*local*/int FileId = LibGreenTea.UpperId(FileLine);
+		/*local*/int FileId = LibZen.UpperId(FileLine);
 		return (FileId == 0) ? null : GtStaticTable.SourceList.get(FileId - 1);
 	}
 
 	public final static int GetFileLineNumber(long FileLine) {
-		return LibGreenTea.LowerId(FileLine);
+		return LibZen.LowerId(FileLine);
 	}
 
 	public final static String FormatFileLineNumber(long FileLine) {
-		/*local*/int FileId = LibGreenTea.UpperId(FileLine);
-		/*local*/int Line = LibGreenTea.LowerId(FileLine);
+		/*local*/int FileId = LibZen.UpperId(FileLine);
+		/*local*/int Line = LibZen.LowerId(FileLine);
 		/*local*/String FileName = (FileId == 0) ? "eval" : GtStaticTable.SourceList.get(FileId - 1);
 		return "(" + FileName + ":" + Line + ")";
 	}
@@ -144,7 +144,7 @@ public class GtStaticTable implements GreenTeaConsts {
 
 	public final static void SetNativeTypeName(String Name, GtType Type) {
 		GtStaticTable.ClassNameMap.put(Name, Type);
-		LibGreenTea.VerboseLog(GreenTeaConsts.VerboseSymbol, "global type name: " + Name + ", " + Type);
+		LibZen.VerboseLog(GreenTeaConsts.VerboseSymbol, "global type name: " + Name + ", " + Type);
 	}
 
 	public final static GtType GetNativeTypeOfValue(Object Value) {
@@ -174,10 +174,10 @@ public class GtStaticTable implements GreenTeaConsts {
 		if((GenericType == null) && IsCreation) {
 			/*local*/int i = BaseIdx;
 			/*local*/String s = BaseType.ShortName + "<";
-			while(i < LibGreenTea.ListSize(TypeList)) {
+			while(i < LibZen.ListSize(TypeList)) {
 				s = s + TypeList.get(i).ShortName;
 				i += 1;
-				if(i == LibGreenTea.ListSize(TypeList)) {
+				if(i == LibZen.ListSize(TypeList)) {
 					s = s + ">";
 				}
 				else {

@@ -87,7 +87,7 @@ import zen.ast2.GtTryNode;
 import zen.ast2.GtUsingNode;
 import zen.ast2.GtWhileNode;
 import zen.ast2.GtYieldNode;
-import zen.deps.LibGreenTea;
+import zen.deps.LibZen;
 import zen.deps.LibNative;
 import zen.obsolete.GtClassField;
 import zen.obsolete.GtSyntaxTree;
@@ -127,7 +127,7 @@ public class GtGenerator extends GtNodeVisitor {
 	public final String[] GetReportedErrors() {
 		/*local*/ArrayList<String> List = this.ReportedErrorList;
 		this.ReportedErrorList = new ArrayList<String>();
-		return LibGreenTea.CompactStringList(List);
+		return LibZen.CompactStringList(List);
 	}
 
 	public final void ShowReportedErrors() {
@@ -524,7 +524,7 @@ public class GtGenerator extends GtNodeVisitor {
 
 	@Override
 	public void VisitEmptyNode(GtEmptyNode Node) {
-		LibGreenTea.DebugP("empty node: " + Node.Token.ParsedText);
+		LibZen.DebugP("empty node: " + Node.Token.ParsedText);
 		/*extension*/
 	}
 

@@ -27,7 +27,7 @@ package org.GreenTeaScript;
 //endif VAJA
 
 import zen.deps.GreenTeaArray;
-import zen.deps.LibGreenTea;
+import zen.deps.LibZen;
 import zen.deps.LibNative;
 import zen.grammar.ZenGrammar;
 import zen.parser.GreenTeaConsts;
@@ -79,40 +79,40 @@ public class GreenTeaScript extends GreenTeaUtils {
 				ShellMode = true;
 				continue;
 			}
-			if(LibGreenTea.EqualsString(Argu, "--verbose")) {
-				LibGreenTea.DebugMode = true;
-				LibGreenTea.VerboseMask |= (GreenTeaConsts.VerboseFile|GreenTeaConsts.VerboseSymbol|GreenTeaConsts.VerboseNative);
+			if(LibZen.EqualsString(Argu, "--verbose")) {
+				LibZen.DebugMode = true;
+				LibZen.VerboseMask |= (GreenTeaConsts.VerboseFile|GreenTeaConsts.VerboseSymbol|GreenTeaConsts.VerboseNative);
 				continue;
 			}
-			if(LibGreenTea.EqualsString(Argu, "--verbose:token")) {
-				LibGreenTea.VerboseMask |= GreenTeaConsts.VerboseToken;
+			if(LibZen.EqualsString(Argu, "--verbose:token")) {
+				LibZen.VerboseMask |= GreenTeaConsts.VerboseToken;
 				continue;
 			}
-			if(LibGreenTea.EqualsString(Argu, "--verbose:type")) {
-				LibGreenTea.VerboseMask |= GreenTeaConsts.VerboseType;
+			if(LibZen.EqualsString(Argu, "--verbose:type")) {
+				LibZen.VerboseMask |= GreenTeaConsts.VerboseType;
 				continue;
 			}
-			if(LibGreenTea.EqualsString(Argu, "--verbose:symbol")) {
-				LibGreenTea.VerboseMask |= GreenTeaConsts.VerboseSymbol;
+			if(LibZen.EqualsString(Argu, "--verbose:symbol")) {
+				LibZen.VerboseMask |= GreenTeaConsts.VerboseSymbol;
 				continue;
 			}
-			if(LibGreenTea.EqualsString(Argu, "--verbose:native")) {
-				LibGreenTea.VerboseMask |= GreenTeaConsts.VerboseNative;
+			if(LibZen.EqualsString(Argu, "--verbose:native")) {
+				LibZen.VerboseMask |= GreenTeaConsts.VerboseNative;
 				continue;
 			}
-			if(LibGreenTea.EqualsString(Argu, "--verbose:func")) {
-				LibGreenTea.VerboseMask |= GreenTeaConsts.VerboseFunc;
+			if(LibZen.EqualsString(Argu, "--verbose:func")) {
+				LibZen.VerboseMask |= GreenTeaConsts.VerboseFunc;
 				continue;
 			}
-			if(LibGreenTea.EqualsString(Argu, "--verbose:all")) {
-				LibGreenTea.VerboseMask = -1;
+			if(LibZen.EqualsString(Argu, "--verbose:all")) {
+				LibZen.VerboseMask = -1;
 				continue;
 			}
-			if(LibGreenTea.EqualsString(Argu, "--verbose:no")) {
-				LibGreenTea.VerboseMask = 0;
+			if(LibZen.EqualsString(Argu, "--verbose:no")) {
+				LibZen.VerboseMask = 0;
 				continue;
 			}
-			LibGreenTea.Usage(Argu + " is unknown");
+			LibZen.Usage(Argu + " is unknown");
 		}
 		/*local*/GtGenerator Generator = LibNative.LoadGenerator(TargetCode, OutputFile);
 		/*local*/GtNameSpace TopLevelNameSpace = new GtNameSpace(Generator, null);
@@ -150,22 +150,22 @@ public class GreenTeaScript extends GreenTeaUtils {
 			}
 		}
 		if(ShellMode) {
-			LibNative.println(GreenTeaConsts.ProgName + GreenTeaConsts.Version + " (" + GreenTeaConsts.CodeName + ") on " + LibGreenTea.GetPlatform());
+			LibNative.println(GreenTeaConsts.ProgName + GreenTeaConsts.Version + " (" + GreenTeaConsts.CodeName + ") on " + LibZen.GetPlatform());
 			LibNative.println(GreenTeaConsts.Copyright);
 			Generator.ShowReportedErrors();
 			/*local*/int linenum = 1;
 			/*local*/String Line = null;
-			while((Line = LibGreenTea.ReadLine2(">>> ", "    ")) != null) {
+			while((Line = LibZen.ReadLine2(">>> ", "    ")) != null) {
 				try {
 					/*local*/Object EvaledValue = TopLevelNameSpace.Eval(Line, linenum);
 					Generator.ShowReportedErrors();
 					if(EvaledValue != null) {
-						LibNative.println(" (" + GtStaticTable.GuessType(EvaledValue) + ":" + LibNative.GetClassName(EvaledValue) + ") " + LibGreenTea.Stringify(EvaledValue));
+						LibNative.println(" (" + GtStaticTable.GuessType(EvaledValue) + ":" + LibNative.GetClassName(EvaledValue) + ") " + LibZen.Stringify(EvaledValue));
 					}
 					linenum += 1;
 				}
 				catch(Exception e) {
-					LibGreenTea.PrintStackTrace(e, linenum);
+					LibZen.PrintStackTrace(e, linenum);
 					linenum += 1;
 				}
 			}

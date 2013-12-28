@@ -25,7 +25,7 @@
 package zen.ast2;
 
 import zen.ast.GtNode;
-import zen.deps.LibGreenTea;
+import zen.deps.LibZen;
 import zen.parser.GtNameSpace;
 import zen.parser.GtNodeVisitor;
 import zen.parser.GtToken;
@@ -47,7 +47,7 @@ final public class GtInstanceOfNode extends GtNode {
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
 		/*local*/Object Value = this.ExprNode.Eval(NameSpace, EnforceConst) ;
 		if(Value != null) {
-			return LibGreenTea.DynamicInstanceOf(Value, this.TypeInfo);
+			return LibZen.DynamicInstanceOf(Value, this.TypeInfo);
 		}
 		return Value;
 	}

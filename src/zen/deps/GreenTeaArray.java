@@ -50,7 +50,7 @@ public class GreenTeaArray extends GreenTeaTopObject {
 			if(i > 0) {
 				s += ", ";
 			}
-			s += LibGreenTea.Stringify(Value);
+			s += LibZen.Stringify(Value);
 		}
 		return s + "]";
 	}

@@ -29,7 +29,7 @@ import java.util.ArrayList;
 
 
 import zen.ast.GtNode;
-import zen.deps.LibGreenTea;
+import zen.deps.LibZen;
 import zen.deps.LibNative;
 
 public class GtSourceBuilder {
@@ -113,6 +113,6 @@ public class GtSourceBuilder {
 	
 	@Override
 	public String toString() {
-		return LibGreenTea.SourceBuilderToString(this);
+		return LibZen.SourceBuilderToString(this);
 	}
 }

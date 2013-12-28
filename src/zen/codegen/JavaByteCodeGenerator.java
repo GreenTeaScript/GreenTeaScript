@@ -112,7 +112,7 @@ import zen.ast2.GtThrowNode;
 import zen.ast2.GtTryNode;
 import zen.ast2.GtWhileNode;
 import zen.deps.GreenTeaArray;
-import zen.deps.LibGreenTea;
+import zen.deps.LibZen;
 import zen.deps.LibNative;
 import zen.parser.GtFunc;
 import zen.parser.GtGenerator;
@@ -183,7 +183,7 @@ class JClassBuilder /*implements Opcodes */{
 			fos.close();
 		}
 		catch(IOException e) {
-			LibGreenTea.VerboseException(e);
+			LibZen.VerboseException(e);
 		} 
 	}
 
@@ -290,12 +290,12 @@ class JLib {
 			GetConstPool = GtStaticTable.class.getMethod("GetConstPool", int.class);
 			GetTypeById = GtStaticTable.class.getMethod("GetTypeById", int.class);
 			GetFuncById = GtStaticTable.class.getMethod("GetFuncById", int.class);
-			DynamicGetter = LibGreenTea.class.getMethod("DynamicGetter", Object.class, String.class);
-			DynamicSetter = LibGreenTea.class.getMethod("DynamicSetter", Object.class, String.class, Object.class);
-			InvokeFunc = LibGreenTea.class.getMethod("InvokeFunc", GtFunc.class, Object[].class);
-			InvokeOverridedFunc = LibGreenTea.class.getMethod("InvokeOverridedMethod", long.class, GtNameSpace.class, GtFunc.class, Object[].class);
-			InvokeDynamicFunc = LibGreenTea.class.getMethod("InvokeDynamicFunc", long.class, GtType.class, GtNameSpace.class, String.class, Object[].class);
-			InvokeDynamicMethod = LibGreenTea.class.getMethod("InvokeDynamicMethod", long.class, GtType.class, GtNameSpace.class, String.class, Object[].class);
+			DynamicGetter = LibZen.class.getMethod("DynamicGetter", Object.class, String.class);
+			DynamicSetter = LibZen.class.getMethod("DynamicSetter", Object.class, String.class, Object.class);
+			InvokeFunc = LibZen.class.getMethod("InvokeFunc", GtFunc.class, Object[].class);
+			InvokeOverridedFunc = LibZen.class.getMethod("InvokeOverridedMethod", long.class, GtNameSpace.class, GtFunc.class, Object[].class);
+			InvokeDynamicFunc = LibZen.class.getMethod("InvokeDynamicFunc", long.class, GtType.class, GtNameSpace.class, String.class, Object[].class);
+			InvokeDynamicMethod = LibZen.class.getMethod("InvokeDynamicMethod", long.class, GtType.class, GtNameSpace.class, String.class, Object[].class);
 			
 			BoxBooleanValue = Boolean.class.getMethod("valueOf", boolean.class);
 			BoxIntValue = Long.class.getMethod("valueOf", long.class);
@@ -304,10 +304,10 @@ class JLib {
 			UnboxIntValue = Long.class.getMethod("longValue");
 			UnboxFloatValue = Double.class.getMethod("doubleValue");
 
-			GreenCastOperator = LibGreenTea.class.getMethod("DynamicCast", GtType.class, Object.class);
-			GreenInstanceOfOperator = LibGreenTea.class.getMethod("DynamicInstanceOf", Object.class, GtType.class);
-			NewNewArray = LibGreenTea.class.getMethod("NewNewArray", GtType.class, Object[].class);
-			NewArray = LibGreenTea.class.getMethod("NewArray", GtType.class, Object[].class);
+			GreenCastOperator = LibZen.class.getMethod("DynamicCast", GtType.class, Object.class);
+			GreenInstanceOfOperator = LibZen.class.getMethod("DynamicInstanceOf", Object.class, GtType.class);
+			NewNewArray = LibZen.class.getMethod("NewNewArray", GtType.class, Object[].class);
+			NewArray = LibZen.class.getMethod("NewArray", GtType.class, Object[].class);
 //			ExecCommandVoid = DShellProcess.class.getMethod("ExecCommandVoid", String[][].class);
 //			ExecCommandBool = DShellProcess.class.getMethod("ExecCommandBool", String[][].class);
 //			ExecCommandString = DShellProcess.class.getMethod("ExecCommandString", String[][].class);
@@ -658,7 +658,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			LocalBuilder.AsmVisitor.visitInsn(RETURN);
 		}
 		try {
-			if(LibGreenTea.DebugMode) {
+			if(LibZen.DebugMode) {
 				ClassHolder.OutputClassFile(ClassHolder.ClassName, ".");
 			}
 			Class<?> DefinedClass = this.ClassGenerator.loadClass(ClassHolder.ClassName);
@@ -670,7 +670,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 				}
 			}
 		} catch(Exception e) {
-			LibGreenTea.VerboseException(e);
+			LibZen.VerboseException(e);
 		}
 	}
 
@@ -793,7 +793,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 			this.RemoveStack(Node.ParamList.size());
 			this.CurrentVisitor.Call((Constructor<?>) Node.Func.FuncBody);
 		} else {
-			LibGreenTea.TODO("TypeBody is not Class<?>");
+			LibZen.TODO("TypeBody is not Class<?>");
 		}
 		this.PushStack(Node.Type);
 	}
@@ -1107,7 +1107,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	}
 
 	@Override public void VisitForEachNode(GtForEachNode Node) {
-		LibGreenTea.TODO("ForEach");
+		LibZen.TODO("ForEach");
 	}
 
 	@Override public void VisitReturnNode(GtReturnNode Node) {
@@ -1132,7 +1132,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 	}
 
 	@Override public void VisitTryNode(GtTryNode Node) {
-		int catchSize = LibGreenTea.ListSize(Node.CatchList);
+		int catchSize = LibZen.ListSize(Node.CatchList);
 		MethodVisitor mv = this.CurrentVisitor.AsmVisitor;
 		Label beginTryLabel = new Label();
 		Label endTryLabel = new Label();
@@ -1205,7 +1205,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 //	}
 
 	@Override public void VisitFunctionLiteralNode(GtFunctionLiteralNode Node) {
-		LibGreenTea.TODO("FunctionNode");
+		LibZen.TODO("FunctionNode");
 	}
 
 	@Override public void VisitErrorNode(GtErrorNode Node) {
@@ -1249,7 +1249,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 		else if(Node.Type.IsStringType()) {
 			this.CurrentVisitor.InvokeMethodCall(Node.Type, JLib.ExecCommandString);
 		}
-		else if(LibGreenTea.EqualsString(Node.Type.toString(), "Task")) {
+		else if(LibZen.EqualsString(Node.Type.toString(), "Task")) {
 			this.CurrentVisitor.InvokeMethodCall(Node.Type, JLib.ExecCommandTask);
 		}
 		else {
@@ -1266,13 +1266,13 @@ public class JavaByteCodeGenerator extends GtGenerator {
 				m.invoke(null);
 			}
 		} catch(ClassNotFoundException e) {
-			LibGreenTea.VerboseException(e);
+			LibZen.VerboseException(e);
 		} catch(InvocationTargetException e) {
-			LibGreenTea.VerboseException(e);
+			LibZen.VerboseException(e);
 		} catch(IllegalAccessException e) {
-			LibGreenTea.VerboseException(e);
+			LibZen.VerboseException(e);
 		} catch(NoSuchMethodException e) {
-			LibGreenTea.VerboseException(e);
+			LibZen.VerboseException(e);
 		}
 	}
 }

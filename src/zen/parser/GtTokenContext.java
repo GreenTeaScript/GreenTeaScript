@@ -29,7 +29,7 @@ import java.util.ArrayList;
 //endif VAJA
 import zen.ast.GtErrorNode;
 import zen.ast.GtNode;
-import zen.deps.LibGreenTea;
+import zen.deps.LibZen;
 import zen.deps.LibNative;
 import zen.obsolete.GtSyntaxTree;
 
@@ -195,7 +195,7 @@ public final class GtTokenContext extends GreenTeaUtils {
 		/*local*/GtTokenFunc TokenFunc = this.TopLevelNameSpace.GetTokenFunc(GtChar);
 		/*local*/int NextIdx = GreenTeaUtils.ApplyTokenFunc(TokenFunc, this, ScriptSource, pos);
 		if(NextIdx == MismatchedPosition) {
-			LibGreenTea.VerboseLog(VerboseUndefined, "undefined tokenizer: " + ScriptSource.substring(pos, pos+1));
+			LibZen.VerboseLog(VerboseUndefined, "undefined tokenizer: " + ScriptSource.substring(pos, pos+1));
 			this.AddNewToken(ScriptSource.substring(pos, pos + 1), 0, null);
 			return pos + 1;
 		}
@@ -207,7 +207,7 @@ public final class GtTokenContext extends GreenTeaUtils {
 		/*local*/int len = ScriptSource.length();
 		this.ParsingLine = CurrentLine;
 		while(currentPos < len) {
-			/*local*/int gtCode = AsciiToTokenMatrixIndex(LibGreenTea.CharAt(ScriptSource, currentPos));
+			/*local*/int gtCode = AsciiToTokenMatrixIndex(LibZen.CharAt(ScriptSource, currentPos));
 			/*local*/int nextPos = this.DispatchFunc(ScriptSource, gtCode, currentPos);
 			if(currentPos >= nextPos) {
 				break;
@@ -570,7 +570,7 @@ public final class GtTokenContext extends GreenTeaUtils {
 			if(Token.PresetPattern != null) {
 				DumpedToken = DumpedToken + " : " + Token.PresetPattern;
 			}
-			LibGreenTea.VerboseLog(VerboseToken,  DumpedToken);
+			LibZen.VerboseLog(VerboseToken,  DumpedToken);
 			Position += 1;
 		}
 	}
@@ -579,7 +579,7 @@ public final class GtTokenContext extends GreenTeaUtils {
 		/*local*/int Index = SourceMap.lastIndexOf(":");
 		if(Index != -1) {
 			/*local*/String FileName = SourceMap.substring(0, Index);
-			/*local*/int Line = (/*cast*/int)LibGreenTea.ParseInt(SourceMap.substring(Index+1));
+			/*local*/int Line = (/*cast*/int)LibZen.ParseInt(SourceMap.substring(Index+1));
 			this.ParsingLine = GtStaticTable.GetFileLine(FileName, Line);
 		}
 	}

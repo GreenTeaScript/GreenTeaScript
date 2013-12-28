@@ -47,7 +47,7 @@ import zen.ast.GtSetterNode;
 import zen.ast.GtTypeNode;
 import zen.ast.GtUnaryNode;
 import zen.ast.GtVarDeclNode;
-import zen.deps.LibGreenTea;
+import zen.deps.LibZen;
 import zen.deps.LibNative;
 import zen.parser.GreenTeaConsts;
 import zen.parser.GtFunc;
@@ -153,8 +153,8 @@ public class ZenGrammar {
 	public static long WhiteSpaceToken(GtTokenContext TokenContext, String SourceText, long pos) {
 		TokenContext.FoundWhiteSpace();
 		while(pos < SourceText.length()) {
-			/*local*/char ch = LibGreenTea.CharAt(SourceText, pos);
-			if(ch == '\n' || !LibGreenTea.IsWhitespace(SourceText, pos)) {
+			/*local*/char ch = LibZen.CharAt(SourceText, pos);
+			if(ch == '\n' || !LibZen.IsWhitespace(SourceText, pos)) {
 				break;
 			}
 			pos += 1;
@@ -167,17 +167,17 @@ public class ZenGrammar {
 		TokenContext.FoundLineFeed(1);
 		pos = pos + 1;
 		while(pos < SourceText.length()) {
-			if(!LibGreenTea.IsWhitespace(SourceText, pos)) {
+			if(!LibZen.IsWhitespace(SourceText, pos)) {
 				break;
 			}
-			if(LibGreenTea.CharAt(SourceText, pos) == '\n') {
+			if(LibZen.CharAt(SourceText, pos) == '\n') {
 				TokenContext.FoundLineFeed(1);
 			}
 			pos += 1;
 		}
 		/*local*/String Text = "";
 		if(LineStart < pos) {
-			Text = LibGreenTea.SubString(SourceText, LineStart, pos);
+			Text = LibZen.SubString(SourceText, LineStart, pos);
 		}
 		TokenContext.AddNewToken(Text, GreenTeaConsts.IndentTokenFlag, null);
 		return pos;
@@ -186,7 +186,7 @@ public class ZenGrammar {
 	}
 
 	public static long SemiColonToken(GtTokenContext TokenContext, String SourceText, long pos) {
-		TokenContext.AddNewToken(LibGreenTea.SubString(SourceText, pos, (pos+1)), GreenTeaConsts.DelimTokenFlag, null);
+		TokenContext.AddNewToken(LibZen.SubString(SourceText, pos, (pos+1)), GreenTeaConsts.DelimTokenFlag, null);
 		return pos+1;
 	}
 
@@ -194,26 +194,26 @@ public class ZenGrammar {
 		/*local*/long start = pos;
 		/*local*/String PresetPattern = null;
 		while(pos < SourceText.length()) {
-			if(!LibGreenTea.IsVariableName(SourceText, pos) && !LibGreenTea.IsDigit(SourceText, pos)) {
+			if(!LibZen.IsVariableName(SourceText, pos) && !LibZen.IsDigit(SourceText, pos)) {
 				break;
 			}
 			pos += 1;
 		}
-		TokenContext.AddNewToken(LibGreenTea.SubString(SourceText, start, pos), GreenTeaConsts.NameSymbolTokenFlag, PresetPattern);
+		TokenContext.AddNewToken(LibZen.SubString(SourceText, start, pos), GreenTeaConsts.NameSymbolTokenFlag, PresetPattern);
 		return pos;
 	}
 
 	public static long OperatorToken(GtTokenContext TokenContext, String SourceText, long pos) {
 		/*local*/long NextPos = pos + 1;
 		while(NextPos < SourceText.length()) {
-			if(LibGreenTea.IsWhitespace(SourceText, NextPos) || LibGreenTea.IsLetter(SourceText, NextPos) || LibGreenTea.IsDigit(SourceText, NextPos)) {
+			if(LibZen.IsWhitespace(SourceText, NextPos) || LibZen.IsLetter(SourceText, NextPos) || LibZen.IsDigit(SourceText, NextPos)) {
 				break;
 			}
 			NextPos += 1;
 		}
 		/*local*/boolean Matched = false;
 		while(NextPos > pos) {
-			/*local*/String Sub = LibGreenTea.SubString(SourceText, pos, NextPos);
+			/*local*/String Sub = LibZen.SubString(SourceText, pos, NextPos);
 			/*local*/GtSyntaxPattern Pattern = TokenContext.TopLevelNameSpace.GetExtendedSyntaxPattern(Sub);
 			if(Pattern != null) {
 				Matched = true;
@@ -225,25 +225,25 @@ public class ZenGrammar {
 		if(Matched == false) {
 			NextPos = pos + 1;
 		}
-		TokenContext.AddNewToken(LibGreenTea.SubString(SourceText, pos, NextPos), 0, null);
+		TokenContext.AddNewToken(LibZen.SubString(SourceText, pos, NextPos), 0, null);
 		return NextPos;
 	}
 
 	public static long CommentToken(GtTokenContext TokenContext, String SourceText, long pos) {
 		/*local*/long NextPos = pos + 1;
-		/*local*/char NextChar = LibGreenTea.CharAt(SourceText, NextPos);
+		/*local*/char NextChar = LibZen.CharAt(SourceText, NextPos);
 		if(NextChar != '/' && NextChar != '*') {
 			return GreenTeaConsts.MismatchedPosition;
 		}
 		if(NextChar == '*') { // MultiLineComment
 			// SourceMap ${file:line}
-			if(LibGreenTea.CharAt(SourceText, NextPos+1) == '$' && LibGreenTea.CharAt(SourceText, NextPos+2) == '{') {
+			if(LibZen.CharAt(SourceText, NextPos+1) == '$' && LibZen.CharAt(SourceText, NextPos+2) == '{') {
 				/*local*/long StartPos = NextPos + 3;
 				NextPos += 3;
 				while(NextChar != 0) {
-					NextChar = LibGreenTea.CharAt(SourceText, NextPos);
+					NextChar = LibZen.CharAt(SourceText, NextPos);
 					if(NextChar == '}') {
-						TokenContext.SetSourceMap(LibGreenTea.SubString(SourceText, StartPos, NextPos));
+						TokenContext.SetSourceMap(LibZen.SubString(SourceText, StartPos, NextPos));
 						break;
 					}
 					if(NextChar == '\n' || NextChar == '*') {
@@ -255,7 +255,7 @@ public class ZenGrammar {
 			/*local*/int Level = 1;
 			/*local*/char PrevChar = '0';
 			while(NextPos < SourceText.length()) {
-				NextChar = LibGreenTea.CharAt(SourceText, NextPos);
+				NextChar = LibZen.CharAt(SourceText, NextPos);
 				if(NextChar == '/' && PrevChar == '*') {
 					if(Level == 1) {
 						return NextPos + 1;
@@ -273,7 +273,7 @@ public class ZenGrammar {
 		}
 		else if(NextChar == '/') { // SingleLineComment
 			while(NextPos < SourceText.length()) {
-				NextChar = LibGreenTea.CharAt(SourceText, NextPos);
+				NextChar = LibZen.CharAt(SourceText, NextPos);
 				if(NextChar == '\n') {
 					break;
 				}
@@ -288,37 +288,37 @@ public class ZenGrammar {
 		/*local*/long start = pos;
 		/*local*/long LastMatchedPos = pos;
 		while(pos < SourceText.length()) {
-			if(!LibGreenTea.IsDigit(SourceText, pos)) {
+			if(!LibZen.IsDigit(SourceText, pos)) {
 				break;
 			}
 			pos += 1;
 		}
 		LastMatchedPos = pos;
-		/*local*/char ch = LibGreenTea.CharAt(SourceText, pos);
+		/*local*/char ch = LibZen.CharAt(SourceText, pos);
 		if(ch != '.' && ch != 'e' && ch != 'E') {
-			TokenContext.AddNewToken(LibGreenTea.SubString(SourceText, start, pos), 0, "$IntegerLiteral$");
+			TokenContext.AddNewToken(LibZen.SubString(SourceText, start, pos), 0, "$IntegerLiteral$");
 			return pos;
 		}
 		if(ch == '.') {
 			pos += 1;
 			while(pos < SourceText.length()) {
-				if(!LibGreenTea.IsDigit(SourceText, pos)) {
+				if(!LibZen.IsDigit(SourceText, pos)) {
 					break;
 				}
 				pos += 1;
 			}
 		}
-		ch = LibGreenTea.CharAt(SourceText, pos);
+		ch = LibZen.CharAt(SourceText, pos);
 		if(ch == 'e' || ch == 'E') {
 			pos += 1;
-			ch = LibGreenTea.CharAt(SourceText, pos);
+			ch = LibZen.CharAt(SourceText, pos);
 			if(ch == '+' || ch == '-') {
 				pos += 1;
-				ch = LibGreenTea.CharAt(SourceText, pos);
+				ch = LibZen.CharAt(SourceText, pos);
 			}
 			/*local*/long saved = pos;
 			while(pos < SourceText.length()) {
-				if(!LibGreenTea.IsDigit(SourceText, pos)) {
+				if(!LibZen.IsDigit(SourceText, pos)) {
 					break;
 				}
 				pos += 1;
@@ -327,7 +327,7 @@ public class ZenGrammar {
 				pos = LastMatchedPos;
 			}
 		}
-		TokenContext.AddNewToken(LibGreenTea.SubString(SourceText, start, pos), 0, "$FloatLiteral$");
+		TokenContext.AddNewToken(LibZen.SubString(SourceText, start, pos), 0, "$FloatLiteral$");
 		return pos;
 	}
 
@@ -336,26 +336,26 @@ public class ZenGrammar {
 		/*local*/char prev = '\'';
 		pos = pos + 1; // eat "\'"
 		while(pos < SourceText.length()) {
-			/*local*/char ch = LibGreenTea.CharAt(SourceText, pos);
+			/*local*/char ch = LibZen.CharAt(SourceText, pos);
 			if(ch == '\'' && prev != '\\') {
-				TokenContext.AddNewToken(LibGreenTea.SubString(SourceText, start, (pos + 1)), GreenTeaConsts.QuotedTokenFlag, "$CharLiteral$");
+				TokenContext.AddNewToken(LibZen.SubString(SourceText, start, (pos + 1)), GreenTeaConsts.QuotedTokenFlag, "$CharLiteral$");
 				return pos + 1;
 			}
 			if(ch == '\n') {
-				TokenContext.ReportTokenError1(GreenTeaConsts.ErrorLevel, "expected ' to close the charctor literal", LibGreenTea.SubString(SourceText, start, pos));
+				TokenContext.ReportTokenError1(GreenTeaConsts.ErrorLevel, "expected ' to close the charctor literal", LibZen.SubString(SourceText, start, pos));
 				TokenContext.FoundLineFeed(1);
 				return pos;
 			}
 			pos = pos + 1;
 			prev = ch;
 		}
-		TokenContext.ReportTokenError1(GreenTeaConsts.ErrorLevel, "expected ' to close the charctor literal", LibGreenTea.SubString(SourceText, start, pos));
+		TokenContext.ReportTokenError1(GreenTeaConsts.ErrorLevel, "expected ' to close the charctor literal", LibZen.SubString(SourceText, start, pos));
 		return pos;
 	}
 
 	private static long SkipBackSlashOrNewLineOrDoubleQuote( String SourceText, long pos) {
 		while(pos < SourceText.length()) {
-			/*local*/char ch = LibGreenTea.CharAt(SourceText, pos);
+			/*local*/char ch = LibZen.CharAt(SourceText, pos);
 			if(ch == '\\' || ch == '\n' || ch == '"') {
 				return pos;
 			}
@@ -369,13 +369,13 @@ public class ZenGrammar {
 		pos = pos + 1; // eat "\""
 		while(pos < SourceText.length()) {
 			pos = ZenGrammar.SkipBackSlashOrNewLineOrDoubleQuote(SourceText, pos);
-			/*local*/char ch = LibGreenTea.CharAt(SourceText, pos);
+			/*local*/char ch = LibZen.CharAt(SourceText, pos);
 			if(ch == '\\') {
 				if(pos + 1 < SourceText.length()) {
-					/*local*/char NextChar = LibGreenTea.CharAt(SourceText, pos + 1);
+					/*local*/char NextChar = LibZen.CharAt(SourceText, pos + 1);
 					if(NextChar == 'u') { // \u12345
 						while(pos < SourceText.length()) {
-							if(!LibGreenTea.IsDigit(SourceText, pos)) {
+							if(!LibZen.IsDigit(SourceText, pos)) {
 								break;
 							}
 							pos += 1;
@@ -385,17 +385,17 @@ public class ZenGrammar {
 				pos = pos + 1;
 			}
 			if(ch == '"') {
-				TokenContext.AddNewToken(LibGreenTea.SubString(SourceText, start, (pos + 1)), GreenTeaConsts.QuotedTokenFlag, "$StringLiteral$");
+				TokenContext.AddNewToken(LibZen.SubString(SourceText, start, (pos + 1)), GreenTeaConsts.QuotedTokenFlag, "$StringLiteral$");
 				return pos + 1;
 			}
 			if(ch == '\n') {
-				TokenContext.ReportTokenError1(GreenTeaConsts.ErrorLevel, "expected \" to close the string literal", LibGreenTea.SubString(SourceText, start, pos));
+				TokenContext.ReportTokenError1(GreenTeaConsts.ErrorLevel, "expected \" to close the string literal", LibZen.SubString(SourceText, start, pos));
 				TokenContext.FoundLineFeed(1);
 				return pos;
 			}
 			pos = pos + 1;
 		}
-		TokenContext.ReportTokenError1(GreenTeaConsts.ErrorLevel, "expected \" to close the string literal", LibGreenTea.SubString(SourceText, start, pos));
+		TokenContext.ReportTokenError1(GreenTeaConsts.ErrorLevel, "expected \" to close the string literal", LibZen.SubString(SourceText, start, pos));
 		return pos;
 	}
 
@@ -677,7 +677,7 @@ public class ZenGrammar {
 	
 	public static GtNode MatchVariable(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
 		/*local*/GtToken Token = TokenContext.Next();
-		if(!LibGreenTea.IsVariableName(Token.ParsedText, 0)) {
+		if(!LibZen.IsVariableName(Token.ParsedText, 0)) {
 			return GtErrorNode.CreateExpectedToken(Token, "variable");
 		}
 		return null;
@@ -709,7 +709,7 @@ public class ZenGrammar {
 	public static GtNode MatchVarDecl(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
 		GtTypeNode TypeNode = (GtTypeNode) LeftNode;
 		/*local*/GtToken Token = TokenContext.Next();
-		if(!LibGreenTea.IsVariableName(Token.ParsedText, 0)) {
+		if(!LibZen.IsVariableName(Token.ParsedText, 0)) {
 			return new GtErrorNode(Token, "required variable");
 		}
 		GtVarDeclNode VarDecl = new GtVarDeclNode(TypeNode.ParsedType, Token, Token.ParsedText);
@@ -811,17 +811,17 @@ public class ZenGrammar {
 
 	public static GtNode MatchIntLiteral(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftTree) {
 		/*local*/GtToken Token = TokenContext.Next();
-		return NameSpace.Generator.CreateIntNode(Token, LibGreenTea.ParseInt(Token.ParsedText));
+		return NameSpace.Generator.CreateIntNode(Token, LibZen.ParseInt(Token.ParsedText));
 	}
 
 	public static GtNode MatchFloatLiteral(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftTree) {
 		/*local*/GtToken Token = TokenContext.Next();
-		return NameSpace.Generator.CreateFloatNode(Token, LibGreenTea.ParseFloat(Token.ParsedText));
+		return NameSpace.Generator.CreateFloatNode(Token, LibZen.ParseFloat(Token.ParsedText));
 	}
 
 	public static GtNode MatchStringLiteral(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftTree) {
 		/*local*/GtToken Token = TokenContext.Next();
-		return NameSpace.Generator.CreateStringNode(Token, LibGreenTea.UnquoteString(Token.ParsedText));
+		return NameSpace.Generator.CreateStringNode(Token, LibZen.UnquoteString(Token.ParsedText));
 	}
 
 //	public static GtSyntaxTree ParseCharLiteral(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
