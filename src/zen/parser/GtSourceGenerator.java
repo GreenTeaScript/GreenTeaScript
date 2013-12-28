@@ -382,7 +382,9 @@ public class GtSourceGenerator extends GtGenerator {
 
 	@Override
 	public boolean VisitGroupNode(GtGroupNode Node) {
-		// TODO Auto-generated method stub
+		this.CurrentBuilder.Append("(");
+		this.VisitNode(Node.RecvNode);
+		this.CurrentBuilder.Append(")");
 		return true;
 	}
 
