@@ -24,10 +24,10 @@
 
 package zen.ast;
 
-import zen.parser.GtVisitor;
 import zen.parser.GtStaticTable;
 import zen.parser.GtToken;
 import zen.parser.GtType;
+import zen.parser.GtVisitor;
 
 /**
  * int a = 1;
@@ -46,19 +46,6 @@ final public class GtVarDeclNode extends GtNode {
 		this.DeclType  = DeclType;
 		this.InitNode  = null;
 		this.BlockNode = null;
-	}
-	@Override public final void SetNextStatement(GtNode NextNode) {
-		this.BlockNode = NextNode;
-		this.SetChild(NextNode);
-	}
-	@Deprecated
-	public GtVarDeclNode(GtType Type, GtToken SourceToken, GtType DeclType, String VariableName, GtNode InitNode, GtNode Block) {
-		super(GtStaticTable.VoidType, SourceToken);
-		this.NativeName = VariableName;
-		this.DeclType  = DeclType;
-		this.InitNode  = InitNode;    // given expression or NullNode
-		this.BlockNode = Block;
-		this.SetChild2(InitNode, this.BlockNode);
 	}
 
 	@Override public boolean Accept(GtVisitor Visitor) {

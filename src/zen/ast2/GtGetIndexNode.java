@@ -38,7 +38,7 @@ final public class GtGetIndexNode extends GtSymbolNode {
 		super(Type, Token, "[]");
 		this.RecvNode = RecvNode;
 		this.IndexNode = IndexNode;
-		this.SetChild2(RecvNode, IndexNode);
+//		this.SetChild2(RecvNode, IndexNode);
 	}
 //	@Override public boolean Accept(GtVisitor Visitor) {
 //		return Visitor.VisitGetIndexNode(this);

@@ -717,7 +717,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 //			return this.Generator.CreateCoercionNode(Type, ParsedTree.NameSpace, Func1, Node);
 //		}		
 		//System.err.println("node="+ LibZen.GetClassName(Node) + "type error: requested = " + Type + ", given = " + Node.Type);
-		return new GtErrorNode(Node.Token, "type error: requested = " + ContextType + ", given = " + Node.Type);
+		return new GtErrorNode(Node.SourceToken, "type error: requested = " + ContextType + ", given = " + Node.Type);
 	}
 
 	

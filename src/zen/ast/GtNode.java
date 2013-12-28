@@ -26,7 +26,6 @@
 package zen.ast;
 import java.util.ArrayList;
 
-import zen.ast2.GtThrowNode;
 import zen.deps.LibNative;
 import zen.parser.GreenTeaConsts;
 import zen.parser.GtNameSpace;
@@ -37,40 +36,40 @@ import zen.parser.GtVisitor;
 
 public abstract class GtNode {
 	/*field*/public GtNode	ParentNode;
-	/*field*/public GtNode	PrevNode;
-	/*field*/public GtNode	NextNode;
+//	/*field*/public GtNode	PrevNode;
+//	/*field*/public GtNode	NextNode;
 	/*field*/public GtType	Type;
-	/*field*/public GtToken	Token;
+	/*field*/public GtToken	SourceToken;
 
 	public GtNode/*constructor*/(GtType Type, GtToken Token) {
 		//		this.Context = Context;
 		this.Type = Type;
-		this.Token = Token;
+		this.SourceToken = Token;
 		this.ParentNode = null;
-		this.PrevNode = null;
-		this.NextNode = null;
+//		this.PrevNode = null;
+//		this.NextNode = null;
 	}
 
-	// Override by GtVarDeclNode, GtUsingVarDeclNode
-	public void SetNextStatement(GtNode NextNode) {
-		this.NextNode = NextNode;
-		NextNode.PrevNode = this;
-	}
-
-	public final GtNode MoveHeadNode() {
-		/*local*/GtNode Node = this;
-		while(Node.PrevNode != null) {
-			Node = Node.PrevNode;
-		}
-		return Node;
-	}
-	public final GtNode MoveTailNode() {
-		/*local*/GtNode Node = this;
-		while(Node.NextNode != null) {
-			Node = Node.NextNode;
-		}
-		return Node;
-	}
+//	// Override by GtVarDeclNode, GtUsingVarDeclNode
+//	public void SetNextStatement(GtNode NextNode) {
+//		this.NextNode = NextNode;
+//		NextNode.PrevNode = this;
+//	}
+//
+//	public final GtNode MoveHeadNode() {
+//		/*local*/GtNode Node = this;
+//		while(Node.PrevNode != null) {
+//			Node = Node.PrevNode;
+//		}
+//		return Node;
+//	}
+//	public final GtNode MoveTailNode() {
+//		/*local*/GtNode Node = this;
+//		while(Node.NextNode != null) {
+//			Node = Node.NextNode;
+//		}
+//		return Node;
+//	}
 
 //	public final boolean IsConstNode() {
 //		return (this instanceof GtConstPoolNode);
@@ -82,10 +81,10 @@ public abstract class GtNode {
 		return (this instanceof GtErrorNode);
 	}
 
-	public final boolean HasReturnNode() {
-		/*local*/GtNode LastNode = this.MoveTailNode();
-		return ((LastNode instanceof GtReturnNode) || (LastNode instanceof GtThrowNode));
-	}
+//	public final boolean HasReturnNode() {
+//		/*local*/GtNode LastNode = this.MoveTailNode();
+//		return ((LastNode instanceof GtReturnNode) || (LastNode instanceof GtThrowNode));
+//	}
 
 	public final void SetChild(GtNode Node) {
 		if(Node != null) {
@@ -93,18 +92,18 @@ public abstract class GtNode {
 		}
 	}
 
-	@Deprecated
-	public final void SetChild2(GtNode Node, GtNode Node2) {
-		this.SetChild(Node);
-		this.SetChild(Node2);
-	}
-
-	@Deprecated
-	public final void SetChild3(GtNode Node, GtNode Node2, GtNode Node3) {
-		this.SetChild(Node);
-		this.SetChild(Node2);
-		this.SetChild(Node3);
-	}
+//	@Deprecated
+//	public final void SetChild2(GtNode Node, GtNode Node2) {
+//		this.SetChild(Node);
+//		this.SetChild(Node2);
+//	}
+//
+//	@Deprecated
+//	public final void SetChild3(GtNode Node, GtNode Node2, GtNode Node3) {
+//		this.SetChild(Node);
+//		this.SetChild(Node2);
+//		this.SetChild(Node3);
+//	}
 
 	public ArrayList<GtNode> GetList() {
 		return null;
@@ -117,7 +116,7 @@ public abstract class GtNode {
 	}
 
 	public final GtNode Done() {
-		return new GtBlockNode(this.Token);
+		return new GtBlockNode(this.SourceToken);
 	}
 
 	public String GetVisitName() {
@@ -136,14 +135,14 @@ public abstract class GtNode {
 
 	public GtConstNode ToConstNode(boolean EnforceConst) {
 		if(EnforceConst) {
-			return new GtErrorNode(this.Token, "value must be constant");
+			return new GtErrorNode(this.SourceToken, "value must be constant");
 		}
 		return null;
 	}
 
 	public final Object ToNullValue(GtNameSpace NameSpace, boolean EnforceConst) {
 		if(EnforceConst) {
-			NameSpace.Generator.ReportError(GreenTeaConsts.ErrorLevel, this.Token, "value must be constant");
+			NameSpace.Generator.ReportError(GreenTeaConsts.ErrorLevel, this.SourceToken, "value must be constant");
 		}
 		return null;
 	}
@@ -151,12 +150,12 @@ public abstract class GtNode {
 		return this.ToNullValue(NameSpace, EnforceConst);
 	}
 
-	public final static GtNode LinkNode(GtNode LastNode, GtNode Node) {
-		Node.PrevNode = LastNode;
-		if(LastNode != null) {
-			LastNode.NextNode = Node;
-		}
-		return Node;
-	}
+//	public final static GtNode LinkNode(GtNode LastNode, GtNode Node) {
+//		Node.PrevNode = LastNode;
+//		if(LastNode != null) {
+//			LastNode.NextNode = Node;
+//		}
+//		return Node;
+//	}
 }
 

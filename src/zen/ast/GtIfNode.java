@@ -24,10 +24,8 @@
 
 package zen.ast;
 
-import zen.parser.GtVisitor;
 import zen.parser.GtStaticTable;
-import zen.parser.GtToken;
-import zen.parser.GtType;
+import zen.parser.GtVisitor;
 
 //E.g., "if" "(" $Cond ")" $ThenNode "else" $ElseNode
 final public class GtIfNode extends GtNode {
@@ -56,13 +54,5 @@ final public class GtIfNode extends GtNode {
 	}
 	@Override public boolean Accept(GtVisitor Visitor) {
 		return Visitor.VisitIfNode(this);
-	}
-
-	public GtIfNode/*constructor*/(GtType Type, GtToken Token, GtNode CondNode, GtNode ThenNode, GtNode ElseNode) {
-		super(Type, Token);
-		this.CondNode = CondNode;
-		this.ThenNode = ThenNode;
-		this.ElseNode = ElseNode;
-		this.SetChild3(CondNode, ThenNode, ElseNode);
 	}
 }

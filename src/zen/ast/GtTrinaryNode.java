@@ -24,12 +24,11 @@
 
 package zen.ast;
 
-
 import zen.deps.LibZen;
 import zen.parser.GtNameSpace;
-import zen.parser.GtVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
+import zen.parser.GtVisitor;
 
 //E.g., $CondNode "?" $ThenExpr ":" $ElseExpr
 final public class GtTrinaryNode extends GtNode {
@@ -41,7 +40,7 @@ final public class GtTrinaryNode extends GtNode {
 		this.CondNode = CondNode;
 		this.ThenNode = ThenNode;
 		this.ElseNode = ElseNode;
-		this.SetChild3(CondNode, ThenNode, ElseNode);
+		//this.SetChild3(CondNode, ThenNode, ElseNode);
 	}
 	@Override public boolean Accept(GtVisitor Visitor) {
 		return Visitor.VisitTrinaryNode(this);

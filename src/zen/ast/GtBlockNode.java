@@ -33,12 +33,13 @@ import zen.parser.GtVisitor;
 
 final public class GtBlockNode extends GtNode {
 	/*field*/public ArrayList<GtNode> NodeList;
-	public GtBlockNode(GtToken Token) {
-		super(GtStaticTable.VarType, Token);
+	public GtBlockNode(GtToken SourceToken) {
+		super(GtStaticTable.VarType, SourceToken);
 		this.NodeList = new ArrayList<GtNode>();
 	}
 	@Override public final GtNode Append(GtNode Node) {
 		this.NodeList.add(Node);
+		this.SetChild(Node);
 		return this;
 	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {

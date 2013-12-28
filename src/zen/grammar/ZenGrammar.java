@@ -29,9 +29,9 @@ import java.util.ArrayList;
 import zen.ast.GtAndNode;
 import zen.ast.GtApplyNode;
 import zen.ast.GtBinaryNode;
+import zen.ast.GtBlockNode;
 import zen.ast.GtCastNode;
 import zen.ast.GtConstNode;
-import zen.ast.GtBlockNode;
 import zen.ast.GtErrorNode;
 import zen.ast.GtFuncDeclNode;
 import zen.ast.GtGetterNode;
@@ -47,8 +47,8 @@ import zen.ast.GtSetterNode;
 import zen.ast.GtTypeNode;
 import zen.ast.GtUnaryNode;
 import zen.ast.GtVarDeclNode;
-import zen.deps.LibZen;
 import zen.deps.LibNative;
+import zen.deps.LibZen;
 import zen.parser.GreenTeaConsts;
 import zen.parser.GtFunc;
 import zen.parser.GtMap;
@@ -544,10 +544,10 @@ public class ZenGrammar {
 		// LeftJoin
 		/*local*/GtBinaryNode BinaryNode = new GtBinaryNode(Token, LeftNode, Pattern);
 		BinaryNode.Append(RightNode);
-		if(RightNode.NextNode != null) {  // necesarry; don't remove
-			GtNode.LinkNode(BinaryNode, RightNode.NextNode);
-			RightNode.NextNode = null;
-		}
+//		if(RightNode.NextNode != null) {  // necesarry; don't remove
+//			GtNode.LinkNode(BinaryNode, RightNode.NextNode);
+//			RightNode.NextNode = null;
+//		}
 		return BinaryNode;
 	}
 
@@ -728,7 +728,7 @@ public class ZenGrammar {
 			while(FirstNode.ParentNode != null) {
 				FirstNode = FirstNode.ParentNode; 
 			}
-			VarDecl.SetNextStatement(FirstNode);
+			//VarDecl.SetNextStatement(FirstNode);
 			VarDecl = NextVarDeclNode;
 		}
 		return VarDecl;
@@ -1585,8 +1585,7 @@ public class ZenGrammar {
 //	}
 
 	public static GtNode MatchBlock(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftTree) {
-		GtToken SourceToken = TokenContext.Next(); /* { */
-		/*local*/GtNode PrevTree = null;
+		GtBlockNode BlockNode = new GtBlockNode(TokenContext.Next());
 		/*local*/GtNameSpace BlockNameSpace = NameSpace.CreateSubNameSpace();
 		while(TokenContext.HasNext()) {
 			TokenContext.SkipEmptyStatement();
@@ -1595,22 +1594,13 @@ public class ZenGrammar {
 			}
 			TokenContext.SkipAndGetAnnotation(true);
 			/*local*/GtNode ParsedNode = TokenContext.ParsePattern(BlockNameSpace, "$Expression$", GreenTeaConsts.Required);
+			BlockNode.Append(ParsedNode);
 			if(ParsedNode.IsErrorNode()) {
-				return ParsedNode;
+				break;
 			}
-			if(ParsedNode.PrevNode != null) {
-				ParsedNode = ParsedNode.MoveHeadNode();
-			}
-			if(PrevTree != null) {
-				PrevTree.SetNextStatement(ParsedNode);
-			}
-			PrevTree = ParsedNode;
 			TokenContext.SkipIncompleteStatement();  // check; and skip empty statement
 		}
-		if(PrevTree == null) {
-			return new GtBlockNode(SourceToken);
-		}
-		return PrevTree.MoveHeadNode();
+		return BlockNode;
 	}
 
 	public static GtNode MatchStmtBlock(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftTree) {
@@ -2359,7 +2349,7 @@ public class ZenGrammar {
 				if(BlockNode.IsErrorNode()) {
 					return BlockNode;
 				}
-				BlockNode.SetNextStatement(new GtReturnNode());
+				BlockNode.Append(new GtReturnNode());
 			}
 			return FuncDeclNode;
 		}

@@ -35,7 +35,7 @@ final public class GtDoWhileNode extends GtNode {
 		super(Type, Token);
 		this.CondNode = CondNode;
 		this.BodyNode = BodyNode;
-		this.SetChild2(CondNode, BodyNode);
+//		this.SetChild2(CondNode, BodyNode);
 	}
 //	@Override public boolean Accept(GtVisitor Visitor) {
 //		return Visitor.VisitDoWhileNode(this);

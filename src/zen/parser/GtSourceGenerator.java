@@ -265,7 +265,7 @@ public class GtSourceGenerator extends GtGenerator {
 
 	@Override
 	public boolean VisitUnaryNode(GtUnaryNode Node) {
-		this.CurrentBuilder.Append(Node.Token.ParsedText);
+		this.CurrentBuilder.Append(Node.SourceToken.ParsedText);
 		this.VisitNode(Node.RecvNode);
 		return true;
 	}
@@ -273,7 +273,7 @@ public class GtSourceGenerator extends GtGenerator {
 	@Override
 	public boolean VisitBinaryNode(GtBinaryNode Node) {
 		this.VisitNode(Node.LeftNode);
-		this.CurrentBuilder.AppendToken(Node.Token.ParsedText);
+		this.CurrentBuilder.AppendToken(Node.SourceToken.ParsedText);
 		this.VisitNode(Node.RightNode);
 		return true;
 	}
@@ -355,7 +355,7 @@ public class GtSourceGenerator extends GtGenerator {
 
 	@Override
 	public boolean VisitErrorNode(GtErrorNode Node) {
-		this.ReportError(GreenTeaConsts.ErrorLevel, Node.Token, Node.ErrorMessage);
+		this.ReportError(GreenTeaConsts.ErrorLevel, Node.SourceToken, Node.ErrorMessage);
 		//this.BreakGeneration();
 		return false;
 	}

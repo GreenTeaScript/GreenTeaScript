@@ -334,8 +334,8 @@ public final class GtTokenContext extends GreenTeaUtils {
 			/*local*/int Pos = this.GetPosition(MatchFlag);
 			/*local*/GtToken Token = this.Next();
 			if(Token.ParsedText.equals(TokenText)) {
-				if(Base.Token == null) {
-					Base.Token = Token;
+				if(Base.SourceToken == null) {
+					Base.SourceToken = Token;
 				}
 				if(IsFlag(MatchFlag, OpenSkipIndent)) {
 					this.SetSkipIndent(true);

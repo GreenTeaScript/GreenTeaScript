@@ -35,7 +35,7 @@ final public class GtCaseNode extends GtNode {
 		super(Type, Token);
 		this.CaseNode = CaseNode;
 		this.BodyNode = BodyNode;
-		this.SetChild2(BodyNode, CaseNode);
+//		this.SetChild2(BodyNode, CaseNode);
 	}
 //	@Override public boolean Accept(GtVisitor Visitor) {
 //		return Visitor.VisitCaseNode(this);

@@ -39,7 +39,7 @@ final public class GtTryNode extends GtNode {
 		this.TryNode = TryBlock;
 		this.FinallyNode = FinallyBlock;
 		this.CatchList = new ArrayList<GtNode>();
-		this.SetChild2(TryBlock, FinallyBlock);
+//		this.SetChild2(TryBlock, FinallyBlock);
 	}
 	@Override public ArrayList<GtNode> GetList() {
 		return this.CatchList;

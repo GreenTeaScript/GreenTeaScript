@@ -48,7 +48,7 @@ final public class GtUnaryNode extends GtNode {
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
 		/*local*/Object Value = this.RecvNode.Eval(NameSpace, EnforceConst) ;
 		if(Value != null) {
-			return LibZen.EvalUnary(this.Type, this.Token.ParsedText, Value);
+			return LibZen.EvalUnary(this.Type, this.SourceToken.ParsedText, Value);
 		}
 		return Value;
 	}

@@ -40,7 +40,7 @@ final public class GtSetIndexNode extends GtSymbolNode {
 		this.RecvNode  = RecvNode;
 		this.IndexNode = IndexNode;
 		this.ValueNode = ValueNode;
-		this.SetChild3(RecvNode, IndexNode, ValueNode);
+//		this.SetChild3(RecvNode, IndexNode, ValueNode);
 	}
 //	@Override public boolean Accept(GtVisitor Visitor) {
 //		return Visitor.VisitSetIndexNode(this);

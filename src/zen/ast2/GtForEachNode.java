@@ -38,7 +38,7 @@ final public class GtForEachNode extends GtNode {
 		this.Variable = Variable;
 		this.IterNode = IterNode;
 		this.BodyNode = BodyNode;
-		this.SetChild3(Variable, BodyNode, IterNode);
+//		this.SetChild3(Variable, BodyNode, IterNode);
 	}
 //	@Override public boolean Accept(GtVisitor Visitor) {
 //		return Visitor.VisitForEachNode(this);
