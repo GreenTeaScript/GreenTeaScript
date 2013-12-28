@@ -221,29 +221,13 @@ public class GtSourceGenerator extends GtGenerator {
 		this.VisitNode(Node.RecvNode);
 		this.CurrentBuilder.Append(".");
 		this.CurrentBuilder.Append(Node.MethodName);
-		this.CurrentBuilder.Append("(");
-		for(int i = 0; i < Node.ParamList.size(); i++) {
-			GtNode ParamNode = Node.ParamList.get(i);
-			if(i > 0) {
-				this.CurrentBuilder.Append(", ");
-			}
-			this.VisitNode(ParamNode);
-		}
-		this.CurrentBuilder.Append(")");
+		this.VisitParamList(Node.ParamList);
 	}
 
 	@Override
 	public void VisitApplyNode(GtApplyNode Node) {
 		this.VisitNode(Node.FuncNode);
-		this.CurrentBuilder.Append("(");
-		for(int i = 0; i < Node.ParamList.size(); i++) {
-			GtNode ParamNode = Node.ParamList.get(i);
-			if(i > 0) {
-				this.CurrentBuilder.Append(", ");
-			}
-			this.VisitNode(ParamNode);
-		}
-		this.CurrentBuilder.Append(")");
+		this.VisitParamList(Node.ParamList);
 	}
 
 	@Override
@@ -305,8 +289,9 @@ public class GtSourceGenerator extends GtGenerator {
 
 	@Override
 	public void VisitParamNode(GtParamNode Node) {
-		// TODO Auto-generated method stub
-		
+		this.CurrentBuilder.Append(Node.Type.GetNativeName());
+		this.CurrentBuilder.Append(" ");
+		this.CurrentBuilder.Append(Node.Name);
 	}
 
 	@Override
@@ -316,9 +301,17 @@ public class GtSourceGenerator extends GtGenerator {
 	}
 
 	@Override
-	public void VisitFuncDeclNode(GtFuncDeclNode FuncDeclNode) {
-		// TODO Auto-generated method stub
-		
+	public void VisitFuncDeclNode(GtFuncDeclNode Node) {
+		//Node.TypeNode
+		this.CurrentBuilder.Append("def ");
+		this.CurrentBuilder.Append(Node.FuncName);
+		this.VisitParamList(Node.ArgumentList);
+		if(Node.BodyNode == null) {
+			this.CurrentBuilder.Append(this.SemiColon);
+		}
+		else {
+			this.VisitNode(Node.BodyNode);
+		}
 	}
 
 	@Override
@@ -331,6 +324,25 @@ public class GtSourceGenerator extends GtGenerator {
 	public void VisitErrorNode(GtErrorNode Node) {
 		this.ReportError(GreenTeaConsts.ErrorLevel, Node.Token, Node.ErrorMessage);
 		//this.BreakGeneration();
+	}
+	
+	
+	// Utils
+	
+	protected void VisitType(GtType Type) {
+		this.CurrentBuilder.Append(Type.toString());
+	}
+	
+	protected void VisitParamList(ArrayList<GtNode> ParamList) {
+		this.CurrentBuilder.Append("(");
+		for(int i = 0; i < ParamList.size(); i++) {
+			GtNode ParamNode = ParamList.get(i);
+			if(i > 0) {
+				this.CurrentBuilder.Append(", ");
+			}
+			this.VisitNode(ParamNode);
+		}
+		this.CurrentBuilder.Append(")");
 	}
 
 //	@Override public String GetSourceCode() {
