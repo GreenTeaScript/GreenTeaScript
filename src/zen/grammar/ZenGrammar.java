@@ -246,27 +246,27 @@ public class ZenGrammar {
 		return pos;
 	}
 
-	public static long CharLiteralToken(GtTokenContext TokenContext, String SourceText, long pos) {
-		/*local*/long start = pos;
-		/*local*/char prev = '\'';
-		pos = pos + 1; // eat "\'"
-		while(pos < SourceText.length()) {
-			/*local*/char ch = LibZen.CharAt(SourceText, pos);
-			if(ch == '\'' && prev != '\\') {
-				TokenContext.AddNewToken(LibZen.SubString(SourceText, start, (pos + 1)), GreenTeaConsts.QuotedTokenFlag, "$CharLiteral$");
-				return pos + 1;
-			}
-			if(ch == '\n') {
-				TokenContext.ReportTokenError1(GreenTeaConsts.ErrorLevel, "expected ' to close the charctor literal", LibZen.SubString(SourceText, start, pos));
-				TokenContext.FoundLineFeed(1);
-				return pos;
-			}
-			pos = pos + 1;
-			prev = ch;
-		}
-		TokenContext.ReportTokenError1(GreenTeaConsts.ErrorLevel, "expected ' to close the charctor literal", LibZen.SubString(SourceText, start, pos));
-		return pos;
-	}
+//	public static long CharLiteralToken(GtTokenContext TokenContext, String SourceText, long pos) {
+//		/*local*/long start = pos;
+//		/*local*/char prev = '\'';
+//		pos = pos + 1; // eat "\'"
+//		while(pos < SourceText.length()) {
+//			/*local*/char ch = LibZen.CharAt(SourceText, pos);
+//			if(ch == '\'' && prev != '\\') {
+//				TokenContext.AddNewToken(LibZen.SubString(SourceText, start, (pos + 1)), GreenTeaConsts.QuotedTokenFlag, "$CharLiteral$");
+//				return pos + 1;
+//			}
+//			if(ch == '\n') {
+//				TokenContext.ReportTokenError1(GreenTeaConsts.ErrorLevel, "expected ' to close the charctor literal", LibZen.SubString(SourceText, start, pos));
+//				TokenContext.FoundLineFeed(1);
+//				return pos;
+//			}
+//			pos = pos + 1;
+//			prev = ch;
+//		}
+//		TokenContext.ReportTokenError1(GreenTeaConsts.ErrorLevel, "expected ' to close the charctor literal", LibZen.SubString(SourceText, start, pos));
+//		return pos;
+//	}
 
 	private static long SkipBackSlashOrNewLineOrDoubleQuote( String SourceText, long pos) {
 		while(pos < SourceText.length()) {

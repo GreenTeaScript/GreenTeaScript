@@ -26,10 +26,10 @@ package zen.ast;
 
 import zen.deps.LibZen;
 import zen.parser.GtNameSpace;
-import zen.parser.GtVisitor;
 import zen.parser.GtStaticTable;
 import zen.parser.GtToken;
 import zen.parser.GtType;
+import zen.parser.GtVisitor;
 
 //E.g., (T) $Expr
 final public class GtCastNode extends GtNode {
@@ -44,7 +44,7 @@ final public class GtCastNode extends GtNode {
 		this.SetChild(Node);
 		if(this.CastTypeNode == null) {
 			this.CastTypeNode = (GtTypeNode)Node;
-			this.Type = this.CastTypeNode.ParsedType;
+			this.Type = this.CastTypeNode.Type;
 		}
 		else {
 			this.ExprNode = Node;
