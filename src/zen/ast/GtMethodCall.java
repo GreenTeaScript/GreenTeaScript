@@ -44,8 +44,8 @@ final public class GtMethodCall extends GtNode {
 	@Override public final ArrayList<GtNode> GetList() {
 		return this.ParamList;
 	}
-	@Override public void Accept(GtVisitor Visitor) {
-		Visitor.VisitMethodCallNode(this);
+	@Override public boolean Accept(GtVisitor Visitor) {
+		return Visitor.VisitMethodCallNode(this);
 	}
 	//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 	//		return Context.Generator.EvalApplySymbolNode(this, EnforceConst);

@@ -35,7 +35,7 @@ import zen.parser.GtType;
 import zen.parser.GtVisitor;
 //endif VAJA
 
-public class GtNode {
+public abstract class GtNode {
 	/*field*/public GtNode	ParentNode;
 	/*field*/public GtNode	PrevNode;
 	/*field*/public GtNode	NextNode;
@@ -72,12 +72,12 @@ public class GtNode {
 		return Node;
 	}
 
-	public final boolean IsConstNode() {
-		return (this instanceof GtConstPoolNode);
-	}
-	public final boolean IsNullNode() {
-		return (this instanceof GtNullNode);
-	}
+//	public final boolean IsConstNode() {
+//		return (this instanceof GtConstPoolNode);
+//	}
+//	public final boolean IsNullNode() {
+//		return (this instanceof GtNullNode);
+//	}
 	public final boolean IsErrorNode() {
 		return (this instanceof GtErrorNode);
 	}
@@ -110,38 +110,23 @@ public class GtNode {
 		return null;
 	}
 
-
 	public GtNode Append(GtNode Node) {
 		this.GetList().add(Node);
 		this.SetChild(Node);
 		return this;
 	}
 
-	//	public final GtNode GetAt(int Index) {
-	//		return this.GetList().get(Index);
-	//	}
-	//	public final GtNode AppendNodeList(int StartIndex, ArrayList<GtNode> NodeList) {
-	//		/*local*/int i = StartIndex;
-	//		/*local*/ArrayList<GtNode> List = this.GetList();
-	//		while(i < LibZen.ListSize(NodeList)) {
-	//			/*local*/GtNode Node = NodeList.get(i);
-	//			List.add(Node);
-	//			this.SetChild(Node);
-	//			i = i + 1;
-	//		}
-	//		return this;
-	//	}
-
 	public final GtNode Done() {
 		return new GtBlockNode(this.Token);
 	}
 
-	public String GetVisitMethodName() {
+	public String GetVisitName() {
 		return "VisitNode"; // override this if you want to use additional node
 	}
 
-	public void Accept(GtVisitor Visitor) {
-		LibNative.VisitNode(Visitor, this);
+//	public abstract boolean Accept(GtVisitor Visitor);
+	public boolean Accept(GtVisitor Visitor) {
+		return LibNative.VisitNode(Visitor, this);
 	}
 
 	public GtNode TypeCheck(GtNameSpace NameSpace, GtType ContextType) {

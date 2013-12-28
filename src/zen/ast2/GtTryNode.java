@@ -44,7 +44,7 @@ final public class GtTryNode extends GtNode {
 	@Override public ArrayList<GtNode> GetList() {
 		return this.CatchList;
 	}
-//	@Override public void Accept(GtVisitor Visitor) {
-//		Visitor.VisitTryNode(this);
+//	@Override public boolean Accept(GtVisitor Visitor) {
+//		return Visitor.VisitTryNode(this);
 //	}
 }

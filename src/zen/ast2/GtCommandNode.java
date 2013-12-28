@@ -43,8 +43,8 @@ final public class GtCommandNode extends GtNode {
 		return this.ArgumentList;
 	}
 
-//	@Override public void Accept(GtVisitor Visitor) {
-//		Visitor.VisitCommandNode(this);
+//	@Override public boolean Accept(GtVisitor Visitor) {
+//		return Visitor.VisitCommandNode(this);
 //	}
 
 	//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst) {

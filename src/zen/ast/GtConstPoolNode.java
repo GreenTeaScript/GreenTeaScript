@@ -34,10 +34,10 @@ final public class GtConstPoolNode extends GtConstNode {
 		super(Type, Token);
 		this.ConstValue = ConstValue;
 	}
-	@Override public void Accept(GtVisitor Visitor) {
+	@Override public boolean Accept(GtVisitor Visitor) {
 		// int ConstPoolId = SetConstPool(ConstValue)
 		// using StaticApplyNode => GetConstPool(ConstPoolId);
-		Visitor.VisitConstPoolNode(this);
+		return Visitor.VisitConstPoolNode(this);
 	}
 	@Override public final Object GetValue() {
 		return this.ConstValue;

@@ -36,7 +36,7 @@ final public class GtPrefixDeclNode extends GtNode {
 		this.RecvNode = RecvNode;
 		this.SetChild(RecvNode);
 	}
-//	@Override public void Accept(GtVisitor Visitor) {
-//		Visitor.VisitPrefixDeclNode(this);
+//	@Override public boolean Accept(GtVisitor Visitor) {
+//		return Visitor.VisitPrefixDeclNode(this);
 //	}
 }

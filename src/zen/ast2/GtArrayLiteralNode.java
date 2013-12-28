@@ -40,8 +40,8 @@ final public class GtArrayLiteralNode extends GtNode {   // => ArrayLiteral
 	@Override public ArrayList<GtNode> GetList() {
 		return this.NodeList;
 	}
-//	@Override public void Accept(GtVisitor Visitor) {
-//		Visitor.VisitArrayLiteralNode(this);
+//	@Override public boolean Accept(GtVisitor Visitor) {
+//		return Visitor.VisitArrayLiteralNode(this);
 //	}
 //	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 //		if(EnforceConst) {

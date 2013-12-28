@@ -36,7 +36,7 @@ final public class GtSuffixDeclNode extends GtNode {
 		this.RecvNode = RecvNode;
 		this.SetChild(RecvNode);
 	}
-//	@Override public void Accept(GtVisitor Visitor) {
-//		Visitor.VisitSuffixDeclNode(this);
+//	@Override public boolean Accept(GtVisitor Visitor) {
+//		return Visitor.VisitSuffixDeclNode(this);
 //	}
 }

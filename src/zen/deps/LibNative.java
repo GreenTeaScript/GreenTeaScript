@@ -410,7 +410,7 @@ public class LibNative {
 
 	public final static boolean IsSupportedNode(GtVisitor Visitor, GtNode Node) {
 		try {
-			Visitor.getClass().getMethod(Node.GetVisitMethodName(), Node.getClass());
+			Visitor.getClass().getMethod(Node.GetVisitName(), Node.getClass());
 			return true;
 		}
 		catch(NoSuchMethodException e) {
@@ -418,15 +418,16 @@ public class LibNative {
 		return false;
 	}
 
-	public final static void VisitNode(GtVisitor Visitor, GtNode Node) {
+	public final static boolean VisitNode(GtVisitor Visitor, GtNode Node) {
 		try {
-			Method JavaMethod = Visitor.getClass().getMethod(Node.GetVisitMethodName(), Node.getClass());
-			JavaMethod.invoke(Visitor, Node);
+			Method JavaMethod = Visitor.getClass().getMethod(Node.GetVisitName(), Node.getClass());
+			return (Boolean)JavaMethod.invoke(Visitor, Node);
 		}
 		catch(Exception e) {
 		}
 		println("unsupported syntax: " + Node.Token.ParsedText + " " + Node.getClass());
 //		Visitor.ReportError(GreenTeaConsts.ErrorLevel, Node.Token, "unsupported syntax: " + Node.Token.ParsedText + " " + Node.getClass());
+		return false;
 	}
 
 	// LibZen KonohaApi

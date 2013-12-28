@@ -42,8 +42,8 @@ final public class GtSetIndexNode extends GtSymbolNode {
 		this.ValueNode = ValueNode;
 		this.SetChild3(RecvNode, IndexNode, ValueNode);
 	}
-//	@Override public void Accept(GtVisitor Visitor) {
-//		Visitor.VisitSetIndexNode(this);
+//	@Override public boolean Accept(GtVisitor Visitor) {
+//		return Visitor.VisitSetIndexNode(this);
 //	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
 		//FIXME

@@ -41,8 +41,8 @@ final public class GtSwitchNode extends GtNode {
 		this.CaseList = new ArrayList<GtNode>();
 		this.SetChild(DefaultBlock);
 	}
-//	@Override public void Accept(GtVisitor Visitor) {
-//		Visitor.VisitSwitchNode(this);
+//	@Override public boolean Accept(GtVisitor Visitor) {
+//		return Visitor.VisitSwitchNode(this);
 //	}
 	@Override public final ArrayList<GtNode> GetList() {
 		return this.CaseList;

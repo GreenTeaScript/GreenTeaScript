@@ -40,8 +40,8 @@ final public class GtInstanceOfNode extends GtNode {
 		this.TypeInfo = TypeInfo;
 		this.SetChild(ExprNode);
 	}
-//	@Override public void Accept(GtVisitor Visitor) {
-//		Visitor.VisitInstanceOfNode(this);
+//	@Override public boolean Accept(GtVisitor Visitor) {
+//		return Visitor.VisitInstanceOfNode(this);
 //	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
 		/*local*/Object Value = this.ExprNode.Eval(NameSpace, EnforceConst) ;

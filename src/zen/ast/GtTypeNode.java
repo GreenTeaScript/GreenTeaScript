@@ -25,10 +25,10 @@
 package zen.ast;
 
 import zen.parser.GtNameSpace;
-import zen.parser.GtVisitor;
 import zen.parser.GtStaticTable;
 import zen.parser.GtToken;
 import zen.parser.GtType;
+import zen.parser.GtVisitor;
 
 final public class GtTypeNode extends GtConstNode {
 	/*field*/public GtType	ParsedType;
@@ -39,8 +39,8 @@ final public class GtTypeNode extends GtConstNode {
 	@Override public final Object GetValue() {
 		return this.ParsedType;
 	}
-	@Override public void Accept(GtVisitor Visitor) {
-		//Visitor.VisitTypeNode(this);
+	@Override public boolean Accept(GtVisitor Visitor) {
+		throw new RuntimeException("TODO");
 	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
 		return this.ParsedType;

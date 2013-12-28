@@ -38,8 +38,8 @@ final public class GtFloatNode extends GtConstNode {
 	@Override public final Object GetValue() {
 		return this.Value;
 	}
-	@Override public void Accept(GtVisitor Visitor) {
-		Visitor.VisitFloatNode(this);
+	@Override public boolean Accept(GtVisitor Visitor) {
+		return Visitor.VisitFloatNode(this);
 	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
 		return this.Value;

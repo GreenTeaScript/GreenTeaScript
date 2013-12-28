@@ -36,8 +36,8 @@ final public class GtRegexNode extends GtConstNode {
 		this.Value = Value;
 		throw new RuntimeException("FIXME: Regex object must be defined");
 	}
-//	@Override public void Accept(GtVisitor Visitor) {
-//		Visitor.VisitRegexNode(this);
+//	@Override public boolean Accept(GtVisitor Visitor) {
+//		return Visitor.VisitRegexNode(this);
 //	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
 		return this.Value;

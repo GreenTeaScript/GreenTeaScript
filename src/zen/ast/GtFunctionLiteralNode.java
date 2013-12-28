@@ -51,7 +51,7 @@ final public class GtFunctionLiteralNode extends GtNode {
 	@Override public ArrayList<GtNode> GetList() {
 		return this.ArgumentList;
 	}
-	@Override public void Accept(GtVisitor Visitor) {
-		Visitor.VisitFunctionLiteralNode(this);
+	@Override public boolean Accept(GtVisitor Visitor) {
+		return Visitor.VisitFunctionLiteralNode(this);
 	}
 }

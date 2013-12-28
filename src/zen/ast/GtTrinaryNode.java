@@ -43,8 +43,8 @@ final public class GtTrinaryNode extends GtNode {
 		this.ElseNode = ElseNode;
 		this.SetChild3(CondNode, ThenNode, ElseNode);
 	}
-	@Override public void Accept(GtVisitor Visitor) {
-		Visitor.VisitTrinaryNode(this);
+	@Override public boolean Accept(GtVisitor Visitor) {
+		return Visitor.VisitTrinaryNode(this);
 	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
 		/*local*/Object CondValue = this.CondNode.Eval(NameSpace, EnforceConst) ;

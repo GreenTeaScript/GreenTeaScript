@@ -36,7 +36,7 @@ final public class GtSetLocalNode extends GtSymbolNode {
 		this.ValueNode = ValueNode;
 		this.SetChild(ValueNode);
 	}
-	@Override public void Accept(GtVisitor Visitor) {
-		Visitor.VisitSetLocalNode(this);
+	@Override public boolean Accept(GtVisitor Visitor) {
+		return Visitor.VisitSetLocalNode(this);
 	}
 }

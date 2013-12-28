@@ -43,8 +43,8 @@ final public class GtSetterNode extends GtSymbolNode {
 		this.ValueNode = Node;
 		return this;
 	}
-	@Override public void Accept(GtVisitor Visitor) {
-		Visitor.VisitSetterNode(this);
+	@Override public boolean Accept(GtVisitor Visitor) {
+		return Visitor.VisitSetterNode(this);
 	}
 	//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 	//		return Context.Generator.EvalSetterNode(this, EnforceConst);

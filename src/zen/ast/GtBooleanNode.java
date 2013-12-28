@@ -35,8 +35,8 @@ final public class GtBooleanNode extends GtConstNode {
 		super(Type, Token);
 		this.Value = Value;
 	}
-	@Override public void Accept(GtVisitor Visitor) {
-		Visitor.VisitBooleanNode(this);
+	@Override public boolean Accept(GtVisitor Visitor) {
+		return Visitor.VisitBooleanNode(this);
 	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
 		return this.Value;

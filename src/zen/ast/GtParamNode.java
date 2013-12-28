@@ -26,11 +26,15 @@ package zen.ast;
 
 import zen.parser.GtToken;
 import zen.parser.GtType;
+import zen.parser.GtVisitor;
 
 public class GtParamNode extends GtNode {
 	/*field*/public String  Name;
 	public GtParamNode/*constructor*/(GtType Type, GtToken Token, String Name) {
 		super(Type, Token); // TODO
 		this.Name = Name;
+	}
+	@Override public boolean Accept(GtVisitor Visitor) {
+		return Visitor.VisitParamNode(this);
 	}
 }

@@ -38,7 +38,7 @@ final public class GtReturnNode extends GtNode {
 		this.SetChild(ValueNode);
 		return null;
 	}
-	@Override public void Accept(GtVisitor Visitor) {
-		Visitor.VisitReturnNode(this);
+	@Override public boolean Accept(GtVisitor Visitor) {
+		return Visitor.VisitReturnNode(this);
 	}
 }

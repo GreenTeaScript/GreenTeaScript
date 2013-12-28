@@ -33,7 +33,7 @@ final public class GtGetCapturedNode extends GtSymbolNode {
 	public GtGetCapturedNode/*constructor*/(GtType Type, GtToken Token, String NativeName) {
 		super(Type, Token, NativeName);
 	}
-	@Override public void Accept(GtVisitor Visitor) {
-		Visitor.VisitGetCapturedNode(this);
+	@Override public boolean Accept(GtVisitor Visitor) {
+		return Visitor.VisitGetCapturedNode(this);
 	}
 }

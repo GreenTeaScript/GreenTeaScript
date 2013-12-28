@@ -54,7 +54,7 @@ final public class GtClassDeclNode extends GtNode {
 		}
 		return this;
 	}
-//	@Override public void Accept(GtVisitor Visitor) {
-//		Visitor.VisitClassDeclNode(this);
+//	@Override public boolean Accept(GtVisitor Visitor) {
+//		return Visitor.VisitClassDeclNode(this);
 //	}
 }

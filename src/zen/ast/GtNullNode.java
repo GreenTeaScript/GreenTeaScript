@@ -36,8 +36,8 @@ final public class GtNullNode extends GtConstNode {
 	@Override public final Object GetValue() {
 		return null;
 	}
-	@Override public void Accept(GtVisitor Visitor) {
-		Visitor.VisitNullNode(this);
+	@Override public boolean Accept(GtVisitor Visitor) {
+		return Visitor.VisitNullNode(this);
 	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
 		return null;

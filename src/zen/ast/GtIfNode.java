@@ -54,8 +54,8 @@ final public class GtIfNode extends GtNode {
 		}
 		return this;
 	}
-	@Override public void Accept(GtVisitor Visitor) {
-		Visitor.VisitIfNode(this);
+	@Override public boolean Accept(GtVisitor Visitor) {
+		return Visitor.VisitIfNode(this);
 	}
 
 	public GtIfNode/*constructor*/(GtType Type, GtToken Token, GtNode CondNode, GtNode ThenNode, GtNode ElseNode) {

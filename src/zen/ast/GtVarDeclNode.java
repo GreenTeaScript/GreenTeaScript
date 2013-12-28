@@ -61,7 +61,7 @@ final public class GtVarDeclNode extends GtNode {
 		this.SetChild2(InitNode, this.BlockNode);
 	}
 
-	@Override public void Accept(GtVisitor Visitor) {
-		Visitor.VisitVarDeclNode(this);
+	@Override public boolean Accept(GtVisitor Visitor) {
+		return Visitor.VisitVarDeclNode(this);
 	}
 }

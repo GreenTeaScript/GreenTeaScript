@@ -45,8 +45,8 @@ public class GtBinaryNode extends GtNode {
 		this.SetChild(this.RightNode);
 		return this;
 	}
-	@Override public void Accept(GtVisitor Visitor) {
-		Visitor.VisitBinaryNode(this);
+	@Override public boolean Accept(GtVisitor Visitor) {
+		return Visitor.VisitBinaryNode(this);
 	}
 //	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 //		/*local*/Object LeftValue = this.LeftNode.ToConstValue(Context, EnforceConst) ;

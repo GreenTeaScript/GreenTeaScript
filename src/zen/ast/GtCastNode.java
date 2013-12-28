@@ -51,8 +51,8 @@ final public class GtCastNode extends GtNode {
 		}
 		return this;
 	}
-	@Override public void Accept(GtVisitor Visitor) {
-		Visitor.VisitCastNode(this);
+	@Override public boolean Accept(GtVisitor Visitor) {
+		return Visitor.VisitCastNode(this);
 	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
 		/*local*/Object Value = this.ExprNode.Eval(NameSpace, EnforceConst) ;

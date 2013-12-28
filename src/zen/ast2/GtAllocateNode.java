@@ -33,8 +33,8 @@ final public class GtAllocateNode extends GtNode {
 	public GtAllocateNode/*constructor*/(GtType Type, GtToken Token) {
 		super(Type, Token);
 	}
-//	@Override public void Accept(GtVisitor Visitor) {
-//		Visitor.VisitAllocateNode(this);
+//	@Override public boolean Accept(GtVisitor Visitor) {
+//		return Visitor.VisitAllocateNode(this);
 //	}
 	//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 	//		return Context.Generator.EvalAllocateNode(this, EnforceConst);

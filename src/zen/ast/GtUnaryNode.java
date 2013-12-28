@@ -42,8 +42,8 @@ final public class GtUnaryNode extends GtNode {
 		this.SetChild(RecvNode);
 		return this;
 	}
-	@Override public void Accept(GtVisitor Visitor) {
-		Visitor.VisitUnaryNode(this);
+	@Override public boolean Accept(GtVisitor Visitor) {
+		return Visitor.VisitUnaryNode(this);
 	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
 		/*local*/Object Value = this.RecvNode.Eval(NameSpace, EnforceConst) ;

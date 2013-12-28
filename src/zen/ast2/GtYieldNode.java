@@ -35,7 +35,7 @@ final public class GtYieldNode extends GtNode {
 		this.ValueNode = ValueNode;
 		this.SetChild(ValueNode);
 	}
-//	@Override public void Accept(GtVisitor Visitor) {
-//		Visitor.VisitYieldNode(this);
+//	@Override public boolean Accept(GtVisitor Visitor) {
+//		return Visitor.VisitYieldNode(this);
 //	}
 }

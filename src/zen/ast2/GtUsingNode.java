@@ -48,7 +48,7 @@ final public class GtUsingNode extends GtNode {
 		this.BlockNode = Block;
 		this.SetChild2(InitNode, this.BlockNode);
 	}
-//	@Override public void Accept(GtVisitor Visitor) {
-//		Visitor.VisitUsingNode(this);
+//	@Override public boolean Accept(GtVisitor Visitor) {
+//		return Visitor.VisitUsingNode(this);
 //	}
 }

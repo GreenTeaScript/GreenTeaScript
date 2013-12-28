@@ -38,7 +38,7 @@ final public class GtWhileNode extends GtNode {
 		this.BodyNode = BodyNode;
 		this.SetChild2(CondNode, BodyNode);
 	}
-//	@Override public void Accept(GtVisitor Visitor) {
-//		Visitor.VisitWhileNode(this);
+//	@Override public boolean Accept(GtVisitor Visitor) {
+//		return Visitor.VisitWhileNode(this);
 //	}
 }

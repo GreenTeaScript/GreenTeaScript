@@ -39,7 +39,7 @@ final public class GtCatchNode extends GtNode {
 		this.BodyNode = BodyNode;
 		this.SetChild(BodyNode);
 	}
-//	@Override public void Accept(GtVisitor Visitor) {
-//		Visitor.VisitCatchNode(this);
+//	@Override public boolean Accept(GtVisitor Visitor) {
+//		return Visitor.VisitCatchNode(this);
 //	}
 }

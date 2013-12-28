@@ -36,7 +36,7 @@ final public class GtSetCapturedNode extends GtSymbolNode {
 		this.ValueNode = ValueNode;
 		this.SetChild(ValueNode);
 	}
-	@Override public void Accept(GtVisitor Visitor) {
-		Visitor.VisitSetCapturedNode(this);
+	@Override public boolean Accept(GtVisitor Visitor) {
+		return Visitor.VisitSetCapturedNode(this);
 	}
 }

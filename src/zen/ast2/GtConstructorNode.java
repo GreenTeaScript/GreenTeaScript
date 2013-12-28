@@ -43,8 +43,8 @@ final public class GtConstructorNode extends GtNode {
 	@Override public final ArrayList<GtNode> GetList() {
 		return this.ParamList;
 	}
-//	@Override public void Accept(GtVisitor Visitor) {
-//		Visitor.VisitConstructorNode(this);
+//	@Override public boolean Accept(GtVisitor Visitor) {
+//		return Visitor.VisitConstructorNode(this);
 //	}
 	//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 	//		if(EnforceConst) {

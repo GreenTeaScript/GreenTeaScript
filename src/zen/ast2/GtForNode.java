@@ -40,7 +40,7 @@ final public class GtForNode extends GtNode {
 		this.IterNode = IterNode;
 		this.SetChild3(CondNode, BodyNode, IterNode);
 	}
-//	@Override public void Accept(GtVisitor Visitor) {
-//		Visitor.VisitForNode(this);
+//	@Override public boolean Accept(GtVisitor Visitor) {
+//		return Visitor.VisitForNode(this);
 //	}
 }

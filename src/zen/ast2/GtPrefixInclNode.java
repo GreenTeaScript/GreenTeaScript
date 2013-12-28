@@ -36,7 +36,7 @@ final public class GtPrefixInclNode extends GtNode {
 		this.RecvNode = RecvNode;
 		this.SetChild(RecvNode);
 	}
-//	@Override public void Accept(GtVisitor Visitor) {
-//		Visitor.VisitPrefixInclNode(this);
+//	@Override public boolean Accept(GtVisitor Visitor) {
+//		return Visitor.VisitPrefixInclNode(this);
 //	}
 }

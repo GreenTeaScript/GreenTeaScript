@@ -36,8 +36,8 @@ final public class GtGetterNode extends GtSymbolNode {
 		this.RecvNode = RecvNode;
 		this.SetChild(RecvNode);
 	}
-	@Override public void Accept(GtVisitor Visitor) {
-		Visitor.VisitGetterNode(this);
+	@Override public boolean Accept(GtVisitor Visitor) {
+		return Visitor.VisitGetterNode(this);
 	}
 	//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 	//		return Context.Generator.EvalGetterNode(this, EnforceConst);

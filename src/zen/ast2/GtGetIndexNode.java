@@ -40,8 +40,8 @@ final public class GtGetIndexNode extends GtSymbolNode {
 		this.IndexNode = IndexNode;
 		this.SetChild2(RecvNode, IndexNode);
 	}
-//	@Override public void Accept(GtVisitor Visitor) {
-//		Visitor.VisitGetIndexNode(this);
+//	@Override public boolean Accept(GtVisitor Visitor) {
+//		return Visitor.VisitGetIndexNode(this);
 //	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
 		//FIXME

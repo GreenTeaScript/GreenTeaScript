@@ -40,8 +40,8 @@ final public class GtNewArrayNode extends GtNode {
 	@Override public ArrayList<GtNode> GetList() {
 		return this.NodeList;
 	}
-//	@Override public void Accept(GtVisitor Visitor) {
-//		Visitor.VisitNewArrayNode(this);
+//	@Override public boolean Accept(GtVisitor Visitor) {
+//		return Visitor.VisitNewArrayNode(this);
 //	}
 //	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 //		if(EnforceConst) {

@@ -41,8 +41,8 @@ final public class GtMapLiteralNode extends GtNode {   // => ArrayLiteral
 	@Override public ArrayList<GtNode> GetList() {
 		return this.NodeList;
 	}
-//	@Override public void Accept(GtVisitor Visitor) {
-//		Visitor.VisitMapLiteralNode(this);
+//	@Override public boolean Accept(GtVisitor Visitor) {
+//		return Visitor.VisitMapLiteralNode(this);
 //	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
 		//		if(EnforceConst) {

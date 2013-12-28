@@ -46,8 +46,8 @@ final public class GtApplyOverridedMethodNode extends GtNode {
 	@Override public final ArrayList<GtNode> GetList() {
 		return this.ParamList;
 	}
-//	@Override public void Accept(GtVisitor Visitor) {
-//		Visitor.VisitApplyOverridedMethodNode(this);
+//	@Override public boolean Accept(GtVisitor Visitor) {
+//		return Visitor.VisitApplyOverridedMethodNode(this);
 //	}
 //	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 //		return Context.Generator.EvalApplyOverridedMethodNode(this, EnforceConst);

@@ -34,7 +34,7 @@ final public class GtContinueNode extends GtNode {
 		super(Type, Token);
 		this.Label = Label;
 	}
-//	@Override public void Accept(GtVisitor Visitor) {
-//		Visitor.VisitContinueNode(this);
+//	@Override public boolean Accept(GtVisitor Visitor) {
+//		return Visitor.VisitContinueNode(this);
 //	}
 }

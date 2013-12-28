@@ -36,8 +36,8 @@ final public class GtAndNode extends GtBinaryNode {
 	public GtAndNode/*constructor*/(GtToken Token, GtNode Left, GtSyntaxPattern Pattern) {
 		super(Token, Left, Pattern);
 	}
-	@Override public void Accept(GtVisitor Visitor) {
-		Visitor.VisitAndNode(this);
+	@Override public boolean Accept(GtVisitor Visitor) {
+		return Visitor.VisitAndNode(this);
 	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
 		/*local*/Object LeftValue = this.LeftNode.Eval(NameSpace, EnforceConst) ;

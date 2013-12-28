@@ -34,7 +34,7 @@ final public class GtBreakNode extends GtNode {
 		super(Type, Token);
 		this.Label = Label;
 	}
-//	@Override public void Accept(GtVisitor Visitor) {
-//		Visitor.VisitBreakNode(this);
+//	@Override public boolean Accept(GtVisitor Visitor) {
+//		return Visitor.VisitBreakNode(this);
 //	}
 }

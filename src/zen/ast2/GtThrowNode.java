@@ -34,7 +34,7 @@ final public class GtThrowNode extends GtNode {
 		super(Type, Token);
 		this.ValueNode = ValueNode;
 	}
-//	@Override public void Accept(GtVisitor Visitor) {
-//		Visitor.VisitThrowNode(this);
+//	@Override public boolean Accept(GtVisitor Visitor) {
+//		return Visitor.VisitThrowNode(this);
 //	}
 }
