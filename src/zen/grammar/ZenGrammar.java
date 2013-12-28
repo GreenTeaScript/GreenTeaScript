@@ -324,7 +324,7 @@ public class ZenGrammar {
 		return NameSpace.Generator.CreateBooleanNode(TokenContext.Next(), true);
 	}
 
-	public static GtNode MatchFlase(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
+	public static GtNode MatchFalse(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
 		return NameSpace.Generator.CreateBooleanNode(TokenContext.Next(), false);
 	}
 
@@ -1527,7 +1527,7 @@ public class ZenGrammar {
 
 		NameSpace.AppendTokenFunc("\"", LibNative.LoadTokenFunc(Grammar, "StringLiteralToken"));
 		//NameSpace.AppendTokenFunc("\"", GtGrammar.LoadTokenFunc(ParserContext, this, "StringLiteralToken_StringInterpolation"));
-		NameSpace.AppendTokenFunc("'", LibNative.LoadTokenFunc(Grammar, "CharLiteralToken"));
+//		NameSpace.AppendTokenFunc("'", LibNative.LoadTokenFunc(Grammar, "CharLiteralToken"));
 		NameSpace.AppendTokenFunc("1",  LibNative.LoadTokenFunc(Grammar, "NumberLiteralToken"));
 
 		/*local*/GtFunc MatchUnary     = LibNative.LoadMatchFunc(Grammar, "MatchUnary");
@@ -1544,24 +1544,24 @@ public class ZenGrammar {
 		NameSpace.AppendSyntax("! not", LibNative.LoadMatchFunc(Grammar, "MatchNot"));
 //		NameSpace.AppendSyntax("++ --", LibNative.LoadMatchFunc(Grammar, "MatchIncl"));
 
-		NameSpace.AppendExtendedSyntax("* / % mod", GreenTeaConsts.PrecedenceCStyleMUL, MatchBinary);
-		NameSpace.AppendExtendedSyntax("+ -", GreenTeaConsts.PrecedenceCStyleADD, MatchBinary);
+		NameSpace.AppendExtendedSyntax("* / %", ZenPrecedence.CStyleMUL, MatchBinary);
+		NameSpace.AppendExtendedSyntax("+ -", ZenPrecedence.CStyleADD, MatchBinary);
 
-		NameSpace.AppendExtendedSyntax("< <= > >=", GreenTeaConsts.PrecedenceCStyleCOMPARE, MatchBinary);
-		NameSpace.AppendExtendedSyntax("== !=", GreenTeaConsts.PrecedenceCStyleEquals, MatchBinary);
+		NameSpace.AppendExtendedSyntax("< <= > >=", ZenPrecedence.CStyleCOMPARE, MatchBinary);
+		NameSpace.AppendExtendedSyntax("== !=", ZenPrecedence.CStyleEquals, MatchBinary);
 
-		NameSpace.AppendExtendedSyntax("<< >>", GreenTeaConsts.PrecedenceCStyleSHIFT, MatchBinary);
-		NameSpace.AppendExtendedSyntax("&", GreenTeaConsts.PrecedenceCStyleBITAND, MatchBinary);
-		NameSpace.AppendExtendedSyntax("|", GreenTeaConsts.PrecedenceCStyleBITOR, MatchBinary);
-		NameSpace.AppendExtendedSyntax("^", GreenTeaConsts.PrecedenceCStyleBITXOR, MatchBinary);
+		NameSpace.AppendExtendedSyntax("<< >>", ZenPrecedence.CStyleSHIFT, MatchBinary);
+		NameSpace.AppendExtendedSyntax("&", ZenPrecedence.CStyleBITAND, MatchBinary);
+		NameSpace.AppendExtendedSyntax("|", ZenPrecedence.CStyleBITOR, MatchBinary);
+		NameSpace.AppendExtendedSyntax("^", ZenPrecedence.CStyleBITXOR, MatchBinary);
 
-		NameSpace.AppendExtendedSyntax("=", GreenTeaConsts.PrecedenceCStyleAssign | GreenTeaConsts.LeftJoin, MatchBinary);
-		NameSpace.AppendExtendedSyntax("+= -= *= /= %= <<= >>= & | ^=", GreenTeaConsts.PrecedenceCStyleAssign, MatchBinary);
+		NameSpace.AppendExtendedSyntax("=", ZenPrecedence.CStyleAssign | GreenTeaConsts.LeftJoin, MatchBinary);
+		NameSpace.AppendExtendedSyntax("+= -= *= /= %= <<= >>= &= |= ^=", ZenPrecedence.CStyleAssign, MatchBinary);
 //		NameSpace.AppendExtendedSyntax("++ --", 0, LibNative.LoadMatchFunc(Grammar, "MatchIncl"));
 
-		NameSpace.AppendExtendedSyntax("&& and", GreenTeaConsts.PrecedenceCStyleAND, LibNative.LoadMatchFunc(Grammar, "MatchAnd"));
-		NameSpace.AppendExtendedSyntax("|| or", GreenTeaConsts.PrecedenceCStyleOR, LibNative.LoadMatchFunc(Grammar, "MatchOr"));
-		NameSpace.AppendExtendedSyntax("<: instanceof", GreenTeaConsts.PrecedenceInstanceof, MatchBinary);
+		NameSpace.AppendExtendedSyntax("&& and", ZenPrecedence.CStyleAND, LibNative.LoadMatchFunc(Grammar, "MatchAnd"));
+		NameSpace.AppendExtendedSyntax("|| or", ZenPrecedence.CStyleOR, LibNative.LoadMatchFunc(Grammar, "MatchOr"));
+		NameSpace.AppendExtendedSyntax("<: instanceof", ZenPrecedence.Instanceof, MatchBinary);
 
 //		NameSpace.AppendExtendedSyntax("?", 0, LibNative.LoadMatchFunc(Grammar, "MatchTrinary"));
 
@@ -1571,8 +1571,10 @@ public class ZenGrammar {
 		NameSpace.AppendSyntax("$Symbol$", LibNative.LoadMatchFunc(Grammar, "MatchSymbol"));
 		NameSpace.AppendSyntax("$Type$",LibNative.LoadMatchFunc(Grammar, "MatchType"));
 		NameSpace.AppendSyntax("$TypeSuffix$", LibNative.LoadMatchFunc(Grammar, "MatchTypeSuffix"));
+		NameSpace.AppendSyntax("$TypeAnnotation$", LibNative.LoadMatchFunc(Grammar, "MatchTypeSuffix"));
+		
 //		NameSpace.AppendSyntax("<", LibNative.LoadMatchFunc(Grammar, "MatchGenericFuncDecl"));
-		NameSpace.AppendSyntax("$Variable$", LibNative.LoadMatchFunc(Grammar, "MatchVariable"));
+//		NameSpace.AppendSyntax("$Variable$", LibNative.LoadMatchFunc(Grammar, "MatchVariable"));
 //		NameSpace.AppendSyntax("$Const$", LibNative.LoadMatchFunc(Grammar, "MatchConst"));
 //		NameSpace.AppendSyntax("$CharLiteral$", LibNative.LoadMatchFunc(Grammar, "MatchCharLiteral"));
 		NameSpace.AppendSyntax("$StringLiteral$", LibNative.LoadMatchFunc(Grammar, "MatchStringLiteral"));
@@ -1580,8 +1582,6 @@ public class ZenGrammar {
 		NameSpace.AppendSyntax("$FloatLiteral$", LibNative.LoadMatchFunc(Grammar, "MatchFloatLiteral"));
 
 		NameSpace.AppendExtendedSyntax(".", 0, LibNative.LoadMatchFunc(Grammar, "MatchGetter"));
-//		NameSpace.AppendSyntax("$Setter$", null, LibNative.LoadMatchFunc(Grammar, "MatchSetter"));
-//		NameSpace.AppendSyntax("$MethodCall$", LibNative.LoadMatchFunc(Grammar, "MatchApply"));
 
 		NameSpace.AppendSyntax("(", LibNative.LoadMatchFunc(Grammar, "MatchGroup"));
 		NameSpace.AppendSyntax("(", LibNative.LoadMatchFunc(Grammar, "MatchCast"));
@@ -1592,24 +1592,21 @@ public class ZenGrammar {
 //		NameSpace.AppendSyntax("|", LibNative.LoadMatchFunc(Grammar, "MatchSize"), LibNative.LoadMatchFunc(Grammar, "MatchSize"));
 
 		NameSpace.AppendSyntax("$Block$", LibNative.LoadMatchFunc(Grammar, "MatchBlock"));
-		NameSpace.AppendSyntax("$StmtBlock$", LibNative.LoadMatchFunc(Grammar, "MatchStmtBlock"));
 		NameSpace.AppendSyntax("$Expression$", LibNative.LoadMatchFunc(Grammar, "MatchExpression"));
 		NameSpace.AppendSyntax("$SuffixExpression$", LibNative.LoadMatchFunc(Grammar, "MatchSuffixExpression"));
 
-//		NameSpace.AppendSyntax("$FuncName$", LibNative.LoadMatchFunc(Grammar, "MatchFuncName"));
-		NameSpace.AppendSyntax("$Param$", LibNative.LoadMatchFunc(Grammar, "MatchParam"));
-		NameSpace.AppendSyntax("$FuncDecl$", LibNative.LoadMatchFunc(Grammar, "MatchFuncDecl"));
-		NameSpace.AppendSyntax("$VarDecl$",  LibNative.LoadMatchFunc(Grammar, "MatchVarDecl"));
+		NameSpace.AppendSyntax("if", LibNative.LoadMatchFunc(Grammar, "MatchIf"));
+		NameSpace.AppendSyntax("return", LibNative.LoadMatchFunc(Grammar, "MatchReturn"));
 
-//		NameSpace.AppendSyntax("defined", LibNative.LoadMatchFunc(Grammar, "MatchDefined"));
-//		NameSpace.AppendSyntax("typeof", LibNative.LoadMatchFunc(Grammar, "MatchTypeOf"));
+		NameSpace.AppendSyntax("$Identifier$", LibNative.LoadMatchFunc(Grammar, "MatchIdentifier"));
+		NameSpace.AppendSyntax("var",  LibNative.LoadMatchFunc(Grammar, "MatchVarDecl"));
+		NameSpace.AppendSyntax("$Param$", LibNative.LoadMatchFunc(Grammar, "MatchParam"));
+		NameSpace.AppendSyntax("function", LibNative.LoadMatchFunc(Grammar, "MatchFunction"));
+		NameSpace.AppendSyntax("let", LibNative.LoadMatchFunc(Grammar, "MatchLetDecl"));
 		
 //		NameSpace.AppendSyntax("require", LibNative.LoadMatchFunc(Grammar, "MatchRequire"));
 //		NameSpace.AppendSyntax("import", LibNative.LoadMatchFunc(Grammar, "MatchImport"));
 
-		NameSpace.AppendSyntax("if", LibNative.LoadMatchFunc(Grammar, "MatchIf"));
-		NameSpace.AppendSyntax("return", LibNative.LoadMatchFunc(Grammar, "MatchReturn"));
-//		NameSpace.AppendSyntax("let const", LibNative.LoadMatchFunc(Grammar, "MatchSymbolDecl"));
 
 //		NameSpace.AppendSyntax("while", LibNative.LoadMatchFunc(Grammar, "MatchWhile"));
 //		NameSpace.AppendSyntax("do", LibNative.LoadMatchFunc(Grammar, "MatchDoWhile"));

@@ -2808,24 +2808,24 @@ public class KonohaGrammar {
 		NameSpace.AppendSyntax("! not", LibNative.LoadMatchFunc(Grammar, "MatchNot"));
 //		NameSpace.AppendSyntax("++ --", LibNative.LoadMatchFunc(Grammar, "MatchIncl"));
 
-		NameSpace.AppendExtendedSyntax("* / % mod", GreenTeaConsts.PrecedenceCStyleMUL, MatchBinary);
-		NameSpace.AppendExtendedSyntax("+ -", GreenTeaConsts.PrecedenceCStyleADD, MatchBinary);
+		NameSpace.AppendExtendedSyntax("* / % mod", ZenPrecedence.CStyleMUL, MatchBinary);
+		NameSpace.AppendExtendedSyntax("+ -", ZenPrecedence.CStyleADD, MatchBinary);
 
-		NameSpace.AppendExtendedSyntax("< <= > >=", GreenTeaConsts.PrecedenceCStyleCOMPARE, MatchBinary);
-		NameSpace.AppendExtendedSyntax("== !=", GreenTeaConsts.PrecedenceCStyleEquals, MatchBinary);
+		NameSpace.AppendExtendedSyntax("< <= > >=", ZenPrecedence.CStyleCOMPARE, MatchBinary);
+		NameSpace.AppendExtendedSyntax("== !=", ZenPrecedence.CStyleEquals, MatchBinary);
 
-		NameSpace.AppendExtendedSyntax("<< >>", GreenTeaConsts.PrecedenceCStyleSHIFT, MatchBinary);
-		NameSpace.AppendExtendedSyntax("&", GreenTeaConsts.PrecedenceCStyleBITAND, MatchBinary);
-		NameSpace.AppendExtendedSyntax("|", GreenTeaConsts.PrecedenceCStyleBITOR, MatchBinary);
-		NameSpace.AppendExtendedSyntax("^", GreenTeaConsts.PrecedenceCStyleBITXOR, MatchBinary);
+		NameSpace.AppendExtendedSyntax("<< >>", ZenPrecedence.CStyleSHIFT, MatchBinary);
+		NameSpace.AppendExtendedSyntax("&", ZenPrecedence.CStyleBITAND, MatchBinary);
+		NameSpace.AppendExtendedSyntax("|", ZenPrecedence.CStyleBITOR, MatchBinary);
+		NameSpace.AppendExtendedSyntax("^", ZenPrecedence.CStyleBITXOR, MatchBinary);
 
-		NameSpace.AppendExtendedSyntax("=", GreenTeaConsts.PrecedenceCStyleAssign | GreenTeaConsts.LeftJoin, MatchBinary);
-		NameSpace.AppendExtendedSyntax("+= -= *= /= %= <<= >>= & | ^=", GreenTeaConsts.PrecedenceCStyleAssign, MatchBinary);
+		NameSpace.AppendExtendedSyntax("=", ZenPrecedence.CStyleAssign | GreenTeaConsts.LeftJoin, MatchBinary);
+		NameSpace.AppendExtendedSyntax("+= -= *= /= %= <<= >>= & | ^=", ZenPrecedence.CStyleAssign, MatchBinary);
 //		NameSpace.AppendExtendedSyntax("++ --", 0, LibNative.LoadMatchFunc(Grammar, "MatchIncl"));
 
-		NameSpace.AppendExtendedSyntax("&& and", GreenTeaConsts.PrecedenceCStyleAND, LibNative.LoadMatchFunc(Grammar, "MatchAnd"));
-		NameSpace.AppendExtendedSyntax("|| or", GreenTeaConsts.PrecedenceCStyleOR, LibNative.LoadMatchFunc(Grammar, "MatchOr"));
-		NameSpace.AppendExtendedSyntax("<: instanceof", GreenTeaConsts.PrecedenceInstanceof, MatchBinary);
+		NameSpace.AppendExtendedSyntax("&& and", ZenPrecedence.CStyleAND, LibNative.LoadMatchFunc(Grammar, "MatchAnd"));
+		NameSpace.AppendExtendedSyntax("|| or", ZenPrecedence.CStyleOR, LibNative.LoadMatchFunc(Grammar, "MatchOr"));
+		NameSpace.AppendExtendedSyntax("<: instanceof", ZenPrecedence.Instanceof, MatchBinary);
 
 //		NameSpace.AppendExtendedSyntax("?", 0, LibNative.LoadMatchFunc(Grammar, "MatchTrinary"));
 

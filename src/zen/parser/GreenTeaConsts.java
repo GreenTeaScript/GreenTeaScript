@@ -199,21 +199,21 @@ public interface GreenTeaConsts {
 
 	public final static int BinaryOperator					= 1;
 	public final static int LeftJoin						= 1 << 1;
-	public final static int PrecedenceShift					= 3;
-	public final static int PrecedenceCStyleMUL			    = (100 << PrecedenceShift) | BinaryOperator;
-	public final static int PrecedenceCStyleADD			    = (200 << PrecedenceShift) | BinaryOperator;
-	public final static int PrecedenceCStyleSHIFT			= (300 << PrecedenceShift) | BinaryOperator;
-	public final static int PrecedenceCStyleCOMPARE		    = (400 << PrecedenceShift) | BinaryOperator;
-	public final static int PrecedenceInstanceof            = PrecedenceCStyleCOMPARE;
-	public final static int PrecedenceCStyleEquals			= (500 << PrecedenceShift) | BinaryOperator;
-	public final static int PrecedenceCStyleBITAND			= (600 << PrecedenceShift) | BinaryOperator;
-	public final static int PrecedenceCStyleBITXOR			= (700 << PrecedenceShift) | BinaryOperator;
-	public final static int PrecedenceCStyleBITOR			= (800 << PrecedenceShift) | BinaryOperator;
-	public final static int PrecedenceCStyleAND			    = (900 << PrecedenceShift) | BinaryOperator;
-	public final static int PrecedenceCStyleOR				= (1000 << PrecedenceShift) | BinaryOperator;
-	public final static int PrecedenceCStyleTRINARY		    = (1100 << PrecedenceShift) | BinaryOperator;				/* ? : */
-	public final static int PrecedenceCStyleAssign			= (1200 << PrecedenceShift) | BinaryOperator;
-	public final static int PrecedenceCStyleCOMMA			= (1300 << PrecedenceShift) | BinaryOperator;
+//	public final static int PrecedenceShift					= 3;
+//	public final static int PrecedenceCStyleMUL			    = (100 << PrecedenceShift) | BinaryOperator;
+//	public final static int PrecedenceCStyleADD			    = (200 << PrecedenceShift) | BinaryOperator;
+//	public final static int PrecedenceCStyleSHIFT			= (300 << PrecedenceShift) | BinaryOperator;
+//	public final static int PrecedenceCStyleCOMPARE		    = (400 << PrecedenceShift) | BinaryOperator;
+//	public final static int PrecedenceInstanceof            = PrecedenceCStyleCOMPARE;
+//	public final static int PrecedenceCStyleEquals			= (500 << PrecedenceShift) | BinaryOperator;
+//	public final static int PrecedenceCStyleBITAND			= (600 << PrecedenceShift) | BinaryOperator;
+//	public final static int PrecedenceCStyleBITXOR			= (700 << PrecedenceShift) | BinaryOperator;
+//	public final static int PrecedenceCStyleBITOR			= (800 << PrecedenceShift) | BinaryOperator;
+//	public final static int PrecedenceCStyleAND			    = (900 << PrecedenceShift) | BinaryOperator;
+//	public final static int PrecedenceCStyleOR				= (1000 << PrecedenceShift) | BinaryOperator;
+//	public final static int PrecedenceCStyleTRINARY		    = (1100 << PrecedenceShift) | BinaryOperator;				/* ? : */
+//	public final static int PrecedenceCStyleAssign			= (1200 << PrecedenceShift) | BinaryOperator;
+//	public final static int PrecedenceCStyleCOMMA			= (1300 << PrecedenceShift) | BinaryOperator;
 
 	public final static int DefaultTypeCheckPolicy			= 0;
 	public final static int NoCheckPolicy                   = 1;
