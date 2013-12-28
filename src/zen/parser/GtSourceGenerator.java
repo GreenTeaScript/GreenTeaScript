@@ -124,7 +124,19 @@ public class GtSourceGenerator extends GtGenerator {
 	
 	@Override
 	public void VisitBlockNode(GtBlockNode Node) {
-		// TODO Auto-generated method stub
+		this.CurrentBuilder.Append("{");
+		this.CurrentBuilder.Indent();
+		for(int i = 0; i < Node.NodeList.size(); i++) {
+			GtNode SubNode = Node.NodeList.get(i);
+			this.CurrentBuilder.AppendLineFeed();
+			this.CurrentBuilder.AppendIndent();
+			this.VisitNode(SubNode);
+			this.CurrentBuilder.Append(this.SemiColon);
+		}
+		this.CurrentBuilder.UnIndent();
+		this.CurrentBuilder.AppendLineFeed();
+		this.CurrentBuilder.AppendIndent();
+		this.CurrentBuilder.Append("}");
 	}
 
 	@Override
@@ -159,18 +171,6 @@ public class GtSourceGenerator extends GtGenerator {
 
 	@Override
 	public void VisitConstPoolNode(GtConstPoolNode Node) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void VisitParamNode(GtParamNode Node) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void VisitFunctionLiteralNode(GtFunctionLiteralNode Node) {
 		// TODO Auto-generated method stub
 		
 	}
@@ -218,12 +218,32 @@ public class GtSourceGenerator extends GtGenerator {
 	@Override
 	public void VisitMethodCallNode(GtMethodCall Node) {
 		// TODO Auto-generated method stub
-		
+		this.VisitNode(Node.RecvNode);
+		this.CurrentBuilder.Append(".");
+		this.CurrentBuilder.Append(Node.MethodName);
+		this.CurrentBuilder.Append("(");
+		for(int i = 0; i < Node.ParamList.size(); i++) {
+			GtNode ParamNode = Node.ParamList.get(i);
+			if(i > 0) {
+				this.CurrentBuilder.Append(", ");
+			}
+			this.VisitNode(ParamNode);
+		}
+		this.CurrentBuilder.Append(")");
 	}
 
 	@Override
 	public void VisitApplyNode(GtApplyNode Node) {
-		// TODO Auto-generated method stub
+		this.VisitNode(Node.FuncNode);
+		this.CurrentBuilder.Append("(");
+		for(int i = 0; i < Node.ParamList.size(); i++) {
+			GtNode ParamNode = Node.ParamList.get(i);
+			if(i > 0) {
+				this.CurrentBuilder.Append(", ");
+			}
+			this.VisitNode(ParamNode);
+		}
+		this.CurrentBuilder.Append(")");
 	}
 
 	@Override
@@ -284,6 +304,18 @@ public class GtSourceGenerator extends GtGenerator {
 	}
 
 	@Override
+	public void VisitParamNode(GtParamNode Node) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void VisitFunctionLiteralNode(GtFunctionLiteralNode Node) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
 	public void VisitFuncDeclNode(GtFuncDeclNode FuncDeclNode) {
 		// TODO Auto-generated method stub
 		
@@ -297,8 +329,8 @@ public class GtSourceGenerator extends GtGenerator {
 
 	@Override
 	public void VisitErrorNode(GtErrorNode Node) {
-		// TODO Auto-generated method stub
-		
+		this.ReportError(GreenTeaConsts.ErrorLevel, Node.Token, Node.ErrorMessage);
+		//this.BreakGeneration();
 	}
 
 //	@Override public String GetSourceCode() {

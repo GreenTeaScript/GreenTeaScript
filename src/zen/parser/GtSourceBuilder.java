@@ -52,16 +52,16 @@ public class GtSourceBuilder {
 		this.SourceList.add(Text);
 	}
 
-	public void SpaceAppendSpace(String Text) {
+	public final void AppendLineFeed() {
+		this.SourceList.add(this.Template.LineFeed);
+	}
+
+	public void AppendToken(String Text) {
 		this.SourceList.add(" ");
 		this.SourceList.add(Text);
 		this.SourceList.add(" ");
 	}
 	
-	public final void AppendLine(String Text) {
-		this.SourceList.add(Text);
-		this.SourceList.add(this.Template.LineFeed);
-	}
 
 	public final void AppendCommentLine(String Text) {
 		if(this.Template.LineComment == null) {
