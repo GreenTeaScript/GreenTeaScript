@@ -27,13 +27,12 @@ package org.GreenTeaScript;
 //endif VAJA
 
 import zen.deps.GreenTeaArray;
-import zen.deps.LibZen;
 import zen.deps.LibNative;
+import zen.deps.LibZen;
 import zen.grammar.ZenGrammar;
 import zen.parser.GreenTeaConsts;
 import zen.parser.GreenTeaUtils;
 import zen.parser.GtGenerator;
-import zen.parser.GtNameSpace;
 import zen.parser.GtStaticTable;
 
 public class GreenTeaScript extends GreenTeaUtils {
@@ -115,18 +114,17 @@ public class GreenTeaScript extends GreenTeaUtils {
 			LibZen.Usage(Argu + " is unknown");
 		}
 		/*local*/GtGenerator Generator = LibNative.LoadGenerator(TargetCode, OutputFile);
-		/*local*/GtNameSpace TopLevelNameSpace = new GtNameSpace(Generator, null);
-		LibNative.ImportGrammar(TopLevelNameSpace, ZenGrammar.class.getName());
+		LibNative.ImportGrammar(Generator.RootNameSpace, ZenGrammar.class.getName());
 		//		/*local*/GtParserContext Context = new GtParserContext(new KonohaGrammar(), Generator);
 		//		if(RequiredLibName != null) {
 		//			if(!Context.TopLevelNameSpace.LoadRequiredLib(RequiredLibName)) {
-		//				LibGreenTea.Exit(1, "failed to load required library: " + RequiredLibName);
+		//				LibZen.Exit(1, "failed to load required library: " + RequiredLibName);
 		//			}
 		//		}
 		//		if(OneLiner != null) {
 		//			Context.TopLevelNameSpace.Eval(OneLiner, 1);
 		//		}
-		Generator.InitContext(TopLevelNameSpace);
+//		Generator.InitContext(TopLevelNameSpace);
 		if(!(Index < Args.length)) {
 			ShellMode = true;
 		}
@@ -135,7 +133,7 @@ public class GreenTeaScript extends GreenTeaUtils {
 			ARGV.ArrayBody.add(Args[Index]);
 			Index += 1;
 		}
-		TopLevelNameSpace.SetSymbol("ARGV", ARGV, null);
+		Generator.RootNameSpace.SetSymbol("ARGV", ARGV, null);
 		if(ARGV.ArrayBody.size() > 0) {
 			/*local*/String FileName = (/*cast*/String)ARGV.ArrayBody.get(0);
 			/*local*/String ScriptText = LibNative.LoadScript(FileName);
@@ -143,8 +141,8 @@ public class GreenTeaScript extends GreenTeaUtils {
 				LibNative.Exit(1, "file not found: " + FileName);
 			}
 			/*local*/long FileLine = GtStaticTable.GetFileLine(FileName, 1);
-			/*local*/boolean Success = TopLevelNameSpace.Load(ScriptText, FileLine);
-			Generator.ShowReportedErrors();
+			/*local*/boolean Success = Generator.RootNameSpace.Load(ScriptText, FileLine);
+			Generator.Logger.ShowReportedErrors();
 			if(!Success) {
 				LibNative.Exit(1, "abort loading: " + FileName);
 			}
@@ -152,13 +150,13 @@ public class GreenTeaScript extends GreenTeaUtils {
 		if(ShellMode) {
 			LibNative.println(GreenTeaConsts.ProgName + GreenTeaConsts.Version + " (" + GreenTeaConsts.CodeName + ") on " + LibZen.GetPlatform());
 			LibNative.println(GreenTeaConsts.Copyright);
-			Generator.ShowReportedErrors();
+			Generator.Logger.ShowReportedErrors();
 			/*local*/int linenum = 1;
 			/*local*/String Line = null;
 			while((Line = LibZen.ReadLine2(">>> ", "    ")) != null) {
 				try {
-					/*local*/Object EvaledValue = TopLevelNameSpace.Eval(Line, linenum);
-					Generator.ShowReportedErrors();
+					/*local*/Object EvaledValue = Generator.RootNameSpace.Eval(Line, linenum);
+					Generator.Logger.ShowReportedErrors();
 					if(EvaledValue != null) {
 						LibNative.println(" (" + GtStaticTable.GuessType(EvaledValue) + ":" + LibNative.GetClassName(EvaledValue) + ") " + LibZen.Stringify(EvaledValue));
 					}
@@ -176,7 +174,7 @@ public class GreenTeaScript extends GreenTeaUtils {
 			MiniKonohaExcutor.Eval(SourceCode);
 		} */
 		else {
-			Generator.FlushBuffer();
+//			Generator.FlushBuffer();
 		}
 	}
 

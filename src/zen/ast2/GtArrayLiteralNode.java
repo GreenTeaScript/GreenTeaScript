@@ -27,7 +27,6 @@ package zen.ast2;
 import java.util.ArrayList;
 
 import zen.ast.GtNode;
-import zen.parser.GtNodeVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
 
@@ -41,9 +40,9 @@ final public class GtArrayLiteralNode extends GtNode {   // => ArrayLiteral
 	@Override public ArrayList<GtNode> GetList() {
 		return this.NodeList;
 	}
-	@Override public void Accept(GtNodeVisitor Visitor) {
-		Visitor.VisitArrayLiteralNode(this);
-	}
+//	@Override public void Accept(GtVisitor Visitor) {
+//		Visitor.VisitArrayLiteralNode(this);
+//	}
 //	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 //		if(EnforceConst) {
 //			return Context.Generator.EvalArrayNode(this, EnforceConst);

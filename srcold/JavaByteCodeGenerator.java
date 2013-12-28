@@ -709,7 +709,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 //			LibNative.Assert(ClassType.TypeBody != null);
 //		}
 //		catch (Exception e) {
-//			LibGreenTea.VerboseException(e);
+//			LibZen.VerboseException(e);
 //		}
 //	}
 
@@ -978,7 +978,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 //			this.VisitingBuilder.StoreLocal(local);
 //		}
 //		else {
-//			LibGreenTea.TODO("selfAssign");
+//			LibZen.TODO("selfAssign");
 //		}
 //	}
 
@@ -1260,7 +1260,7 @@ public class JavaByteCodeGenerator extends GtGenerator {
 
 	@Override public void InvokeMainFunc(String MainFuncName) {
 		try {
-			Class<?> MainClass = Class.forName(JLib.GetHolderClassName(this.Context, MainFuncName), false, this.ClassGenerator);
+			Class<?> MainClass = Class.forName(JLib.GetHolderClassName(this.RootNameSpace, MainFuncName), false, this.ClassGenerator);
 			Method m = MainClass.getMethod(MainFuncName);
 			if(m != null) {
 				m.invoke(null);

@@ -1,8 +1,8 @@
 
 // libgreentea
-@Common void print(any x)   import LibGreenTea.print;
-@Common void println(any x) import LibGreenTea.println;
-@Common void assert(boolean x) import LibGreenTea.Assert;
+@Common void print(any x)   import LibZen.print;
+@Common void println(any x) import LibZen.println;
+@Common void assert(boolean x) import LibZen.Assert;
 
 // top type
 @Common @Const @Operator int "||"(Top x) import Konoha.TopApi.Size;

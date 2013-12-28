@@ -49,12 +49,12 @@ public class GtFuncBlock {
 		this.VariableIndex = 0;
 	}
 
-	public void SetThisIfInClass(GtType Type) {
-		if(Type != null) {
-			this.TypeList.add(Type);
-			this.NameList.add(this.NameSpace.Generator.GetRecvName());
-		}
-	}
+//	public void SetThisIfInClass(GtType Type) {
+//		if(Type != null) {
+//			this.TypeList.add(Type);
+//			this.NameList.add(this.NameSpace.Generator.GetRecvName());
+//		}
+//	}
 
 	public void AddParameter(GtType Type, String Name) {
 		this.TypeList.add(Type);

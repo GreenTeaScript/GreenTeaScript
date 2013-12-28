@@ -27,7 +27,7 @@ package zen.ast;
 
 import zen.deps.LibZen;
 import zen.parser.GtNameSpace;
-import zen.parser.GtNodeVisitor;
+import zen.parser.GtVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
 
@@ -43,7 +43,7 @@ final public class GtTrinaryNode extends GtNode {
 		this.ElseNode = ElseNode;
 		this.SetChild3(CondNode, ThenNode, ElseNode);
 	}
-	@Override public void Accept(GtNodeVisitor Visitor) {
+	@Override public void Accept(GtVisitor Visitor) {
 		Visitor.VisitTrinaryNode(this);
 	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {

@@ -25,7 +25,6 @@
 package zen.ast2;
 
 import zen.ast.GtNode;
-import zen.parser.GtNodeVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
 
@@ -38,7 +37,7 @@ final public class GtCaseNode extends GtNode {
 		this.BodyNode = BodyNode;
 		this.SetChild2(BodyNode, CaseNode);
 	}
-	@Override public void Accept(GtNodeVisitor Visitor) {
-		Visitor.VisitCaseNode(this);
-	}
+//	@Override public void Accept(GtVisitor Visitor) {
+//		Visitor.VisitCaseNode(this);
+//	}
 }

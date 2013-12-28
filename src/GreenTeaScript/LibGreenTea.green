@@ -22,9 +22,9 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-// LibGreenTea is a language-dependent code used in GreenTea.java
+// LibZen is a language-dependent code used in GreenTea.java
 
-@Public abstract class LibGreenTea {
+@Public abstract class LibZen {
 
 	@Export @Public @Static String GetPlatform() {
 		return "GreenTeaScript-" + MajorVersion + "." + MinerVersion + "." + PatchLevel;
@@ -43,23 +43,23 @@
 	}
 
 	@Export @Public @Static void TODO(String msg) {
-		println("TODO" + LibGreenTea.GetStackInfo(2) + ": " + msg);
+		println("TODO" + LibZen.GetStackInfo(2) + ": " + msg);
 	}
 
 	@Export @Public @Static void DebugP(String msg) {
-		if(LibGreenTea.DebugMode) {
-			println("DEBUG" + LibGreenTea.GetStackInfo(2) + ": " + msg);
+		if(LibZen.DebugMode) {
+			println("DEBUG" + LibZen.GetStackInfo(2) + ": " + msg);
 		}
 	}
 
 	@Export @Public @Static void VerboseLog(int VerboseFlag, String Message) {
-		if((LibGreenTea.VerboseMask & VerboseFlag) == VerboseFlag) {
+		if((LibZen.VerboseMask & VerboseFlag) == VerboseFlag) {
 			println("GreenTea: " + Message);
 		}
 	}
 
 	@Export @Public @Static void VerboseException(Exception e) {
-		LibGreenTea.VerboseLog(VerboseException, e.toString());
+		LibZen.VerboseLog(VerboseException, e.toString());
 	}
 
 	@Export @Public @Static void Exit(int status, String Message) {
@@ -79,22 +79,22 @@
 	}
 
 	@Export @Public @Static boolean IsWhitespace(String Text, int Pos) {
-		int ch = LibGreenTea.CharAt(Text, Pos);
+		int ch = LibZen.CharAt(Text, Pos);
 		return Character.isWhitespace(ch);
 	}
 
 	@Export @Public @Static boolean IsLetter(String Text, int Pos) {
-		int ch = LibGreenTea.CharAt(Text, Pos);
+		int ch = LibZen.CharAt(Text, Pos);
 		return Character.isLetter(ch);
 	}
 
 	@Export @Public @Static boolean IsDigit(String Text, int Pos) {
-		int ch = LibGreenTea.CharAt(Text, Pos);
+		int ch = LibZen.CharAt(Text, Pos);
 		return Character.isDigit(ch);
 	}
 
 	@Export @Public @Static boolean IsVariableName(String Text, int Pos) {
-		int ch = LibGreenTea.CharAt(Text, Pos);
+		int ch = LibZen.CharAt(Text, Pos);
 		return Character.isLetter(ch) || ch == 95/*_*/ || ch > 255;
 	}
 
@@ -214,18 +214,18 @@
 				Method[] Methods = NativeClass.getDeclaredMethods();
 				if(Methods != null) {
 					for(int i = 0; i < Methods.length; i++) {
-						if(LibGreenTea.EqualsString(FuncName, Methods[i].getName())) {
+						if(LibZen.EqualsString(FuncName, Methods[i].getName())) {
 							if(!Modifier.is@Public(Methods[i].getModifiers())) {
 								continue;
 							}
 							if(@StaticMethodOnly && !Modifier.is@Static(Methods[i].getModifiers())) {
 								continue;
 							}
-							if(ContextType.IsFuncType() && !LibGreenTea.MatchNativeMethod(ContextType, Methods[i])) {
+							if(ContextType.IsFuncType() && !LibZen.MatchNativeMethod(ContextType, Methods[i])) {
 								continue;
 							}
 							if(FoundMethod != null) {
-								LibGreenTea.VerboseLog(VerboseUndefined, "overloaded method: " + FullName);
+								LibZen.VerboseLog(VerboseUndefined, "overloaded method: " + FullName);
 								return FoundMethod; // return the first one
 							}
 							FoundMethod = Methods[i];
@@ -233,19 +233,19 @@
 					}
 				}
 			} catch (ClassNotFoundException e) {
-				LibGreenTea.VerboseLog(VerboseException, e.toString());			
+				LibZen.VerboseLog(VerboseException, e.toString());			
 			}
 		}
 		if(FoundMethod == null) {
-			LibGreenTea.VerboseLog(VerboseUndefined, "undefined method: " + FullName + " of " + ContextType);
+			LibZen.VerboseLog(VerboseUndefined, "undefined method: " + FullName + " of " + ContextType);
 		}
 		return FoundMethod;
 	}
 
 	@Export @Public @Static boolean ImportNativeMethod(GtFunc NativeFunc, String FullName) {
-		Method JavaMethod = LibGreenTea.LoadNativeMethod(NativeFunc.GetFuncType(), FullName, false);
+		Method JavaMethod = LibZen.LoadNativeMethod(NativeFunc.GetFuncType(), FullName, false);
 		if(JavaMethod != null) {
-			LibGreenTea.SetNativeMethod(NativeFunc, JavaMethod);
+			LibZen.SetNativeMethod(NativeFunc, JavaMethod);
 			if(NativeFunc.GetReturnType().IsVarType()) {
 				NativeFunc.SetReturnType(LibNative.GetNativeType(NativeFunc.GetContext(), JavaMethod.getReturnType()));
 			}
@@ -255,14 +255,14 @@
 
 	@Export @Public @Static Method LookupNativeMethod(Object Callee, String FuncName) {
 		if(FuncName != null) {
-			// LibGreenTea.DebugP("looking up method : " + Callee.getClass().getSimpleName() + "." + FuncName);
+			// LibZen.DebugP("looking up method : " + Callee.getClass().getSimpleName() + "." + FuncName);
 			Method[] methods = Callee.getClass().getMethods();
 			for(int i = 0; i < methods.length; i++) {
 				if(FuncName.equals(methods[i].getName())) {
 					return methods[i];
 				}
 			}
-			LibGreenTea.VerboseLog(VerboseUndefined, "undefined method: " + Callee.getClass().getSimpleName() + "." + FuncName);
+			LibZen.VerboseLog(VerboseUndefined, "undefined method: " + Callee.getClass().getSimpleName() + "." + FuncName);
 		}
 		return null;
 	}
@@ -289,13 +289,13 @@
 			return n;
 		}
 		catch (InvocationTargetException e) {
-			LibGreenTea.VerboseException(e);
+			LibZen.VerboseException(e);
 		}
 		catch (IllegalArgumentException e) {
-			LibGreenTea.VerboseException(e);
+			LibZen.VerboseException(e);
 		}
 		catch (IllegalAccessException e) {
-			LibGreenTea.VerboseException(e);
+			LibZen.VerboseException(e);
 		}
 		Exit(1, "Failed ApplyTokenFunc");
 		return -1;
@@ -306,13 +306,13 @@
 			return (GtSyntaxTree)Delegate.Func.invoke(Delegate.Self, NameSpace, TokenContext, LeftTree, Pattern);
 		}
 		catch (InvocationTargetException e) {
-			LibGreenTea.VerboseException(e);
+			LibZen.VerboseException(e);
 		}
 		catch (IllegalArgumentException e) {
-			LibGreenTea.VerboseException(e);
+			LibZen.VerboseException(e);
 		}
 		catch (IllegalAccessException e) {
-			LibGreenTea.VerboseException(e);
+			LibZen.VerboseException(e);
 		}
 		Exit(1, "Failed ApplyMatchFunc");
 		return null;
@@ -323,13 +323,13 @@
 			return (GtNode)Delegate.Func.invoke(Delegate.Self, Gamma, ParsedTree, TypeInfo);
 		}
 		catch (InvocationTargetException e) {
-			LibGreenTea.VerboseException(e);
+			LibZen.VerboseException(e);
 		}
 		catch (IllegalArgumentException e) {
-			LibGreenTea.VerboseException(e);
+			LibZen.VerboseException(e);
 		}
 		catch (IllegalAccessException e) {
-			LibGreenTea.VerboseException(e);
+			LibZen.VerboseException(e);
 		}
 		Exit(1, "Failed ApplyTypeFunc");
 		return null;
@@ -395,7 +395,7 @@
 		console.log("     --verbose:symbol     adding symbol info");
 		console.log("     --verbose:token      adding token info");
 		console.log("     --verbose:no         no log");
-		LibGreenTea.Exit(0, Message);
+		LibZen.Exit(0, Message);
 	}
 
 	@Export @Public @Static String DetectTargetCode(String Extension, String TargetCode) {
@@ -453,7 +453,7 @@
 
 	@Export @Public @Static void WriteCode(String OutputFile, String SourceCode) {
 		if(OutputFile == null) {
-			LibGreenTea.Eval(SourceCode);
+			LibZen.Eval(SourceCode);
 		}
 		if(OutputFile.equals("-")) {
 			console.log(SourceCode);
@@ -487,7 +487,7 @@
 	}
 
 	@Export @Public @Static boolean HasFile(String Path) {
-		if(LibGreenTea.class.getResource(Path) != null) {
+		if(LibZen.class.getResource(Path) != null) {
 			return true;
 		}
 		return new File(Path).exists();
@@ -517,8 +517,8 @@
 	}
 
 	@Export @Public @Static String LoadFile2(String FileName) {
-		LibGreenTea.VerboseLog(VerboseFile, "loading " + FileName);
-		InputStream Stream = LibGreenTea.class.getResourceAsStream("/" + FileName);
+		LibZen.VerboseLog(VerboseFile, "loading " + FileName);
+		InputStream Stream = LibZen.class.getResourceAsStream("/" + FileName);
 		if(Stream == null) {
 			File f = new File(FormatFilePath(FileName));
 			try {
@@ -563,7 +563,7 @@
 	}
 
 	@Export @Public @Static Object Eval(String SourceCode) {
-		LibGreenTea.VerboseLog(VerboseEval, "eval as native code: " + SourceCode);
+		LibZen.VerboseLog(VerboseEval, "eval as native code: " + SourceCode);
 		//eval(SourceCode);
 		//System.out.println("Eval: " + SourceCode);  // In Java, no eval
 		return null;

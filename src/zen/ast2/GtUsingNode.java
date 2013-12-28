@@ -25,7 +25,6 @@
 package zen.ast2;
 
 import zen.ast.GtNode;
-import zen.parser.GtNodeVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
 
@@ -49,7 +48,7 @@ final public class GtUsingNode extends GtNode {
 		this.BlockNode = Block;
 		this.SetChild2(InitNode, this.BlockNode);
 	}
-	@Override public void Accept(GtNodeVisitor Visitor) {
-		Visitor.VisitUsingNode(this);
-	}
+//	@Override public void Accept(GtVisitor Visitor) {
+//		Visitor.VisitUsingNode(this);
+//	}
 }

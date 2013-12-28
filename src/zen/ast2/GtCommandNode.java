@@ -27,7 +27,6 @@ package zen.ast2;
 import java.util.ArrayList;
 
 import zen.ast.GtNode;
-import zen.parser.GtNodeVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
 
@@ -44,9 +43,9 @@ final public class GtCommandNode extends GtNode {
 		return this.ArgumentList;
 	}
 
-	@Override public void Accept(GtNodeVisitor Visitor) {
-		Visitor.VisitCommandNode(this);
-	}
+//	@Override public void Accept(GtVisitor Visitor) {
+//		Visitor.VisitCommandNode(this);
+//	}
 
 	//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst) {
 	//		//FIXME: Exception

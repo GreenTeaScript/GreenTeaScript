@@ -26,7 +26,6 @@ package zen.ast2;
 
 import zen.ast.GtNode;
 import zen.ast.GtSymbolNode;
-import zen.parser.GtNodeVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
 
@@ -42,7 +41,7 @@ final public class GtSliceNode extends GtSymbolNode {
 		this.Index2 = Index2;
 		this.SetChild3(RecvNode, Index1, Index2);
 	}
-	@Override public void Accept(GtNodeVisitor Visitor) {
-		Visitor.VisitSliceNode(this);
-	}
+//	@Override public void Accept(GtVisitor Visitor) {
+//		Visitor.VisitSliceNode(this);
+//	}
 }

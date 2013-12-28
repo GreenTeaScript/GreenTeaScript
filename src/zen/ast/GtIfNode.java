@@ -24,7 +24,7 @@
 
 package zen.ast;
 
-import zen.parser.GtNodeVisitor;
+import zen.parser.GtVisitor;
 import zen.parser.GtStaticTable;
 import zen.parser.GtToken;
 import zen.parser.GtType;
@@ -54,7 +54,7 @@ final public class GtIfNode extends GtNode {
 		}
 		return this;
 	}
-	@Override public void Accept(GtNodeVisitor Visitor) {
+	@Override public void Accept(GtVisitor Visitor) {
 		Visitor.VisitIfNode(this);
 	}
 

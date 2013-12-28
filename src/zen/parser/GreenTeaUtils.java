@@ -156,7 +156,7 @@ public class GreenTeaUtils implements GreenTeaConsts {
 //			if(CurrentPattern.ParentPattern != null) {   // This means it has next patterns
 //				TokenContext.ParseFlag = ParseFlag | BackTrackParseFlag;
 //			}
-//			//LibGreenTea.DebugP("B :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + ", next=" + CurrentPattern.ParentPattern);
+//			//LibZen.DebugP("B :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + ", next=" + CurrentPattern.ParentPattern);
 //			TokenContext.IndentLevel += 1;
 //			/*local*/GtSyntaxTree ParsedTree = LibNative.ApplyParseFunc(delegate, NameSpace, TokenContext, LeftTree, CurrentPattern);
 //			TokenContext.IndentLevel -= 1;
@@ -164,7 +164,7 @@ public class GreenTeaUtils implements GreenTeaConsts {
 //			if(ParsedTree != null && ParsedTree.IsMismatched()) {
 //				ParsedTree = null;
 //			}
-//			//LibGreenTea.DebugP("E :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + " => " + ParsedTree);
+//			//LibZen.DebugP("E :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + " => " + ParsedTree);
 //			if(ParsedTree != null) {
 //				return ParsedTree;
 //			}
@@ -177,7 +177,7 @@ public class GreenTeaUtils implements GreenTeaConsts {
 //			TokenContext.SkipErrorStatement();
 //		}
 //		if(Pattern == null) {
-//			LibGreenTea.VerboseLog(VerboseUndefined, "undefined syntax pattern: " + Pattern);
+//			LibZen.VerboseLog(VerboseUndefined, "undefined syntax pattern: " + Pattern);
 //		}
 //		return TokenContext.ReportExpectedPattern_OLD(Pattern);
 //	}

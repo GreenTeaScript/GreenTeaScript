@@ -31,7 +31,7 @@ import zen.ast.GtApplyNode;
 import zen.ast.GtBinaryNode;
 import zen.ast.GtCastNode;
 import zen.ast.GtConstNode;
-import zen.ast.GtEmptyNode;
+import zen.ast.GtBlockNode;
 import zen.ast.GtErrorNode;
 import zen.ast.GtFuncDeclNode;
 import zen.ast.GtGetterNode;
@@ -668,7 +668,7 @@ public class ZenGrammar {
 //		}
 //		/*local*/GtToken Token = TokenContext.Next();
 //		/*local*/GtSyntaxTree VarTree = new GtSyntaxTree(NameSpace.GetSyntaxPattern("$Variable$"), NameSpace, Token, null);
-//		if(!LibGreenTea.IsVariableName(Token.ParsedText, 0)) {
+//		if(!LibZen.IsVariableName(Token.ParsedText, 0)) {
 //			return TokenContext.ReportExpectedMessage(Token, "name", true);
 //		}
 //		return VarTree;
@@ -685,7 +685,7 @@ public class ZenGrammar {
 
 //	public static GtSyntaxTree ParseVariable(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 //		/*local*/GtToken Token = TokenContext.Next();
-//		if(LibGreenTea.IsVariableName(Token.ParsedText, 0)) {
+//		if(LibZen.IsVariableName(Token.ParsedText, 0)) {
 //			return new GtSyntaxTree(Pattern, NameSpace, Token, null);
 //		}
 //		return TokenContext.ReportExpectedMessage(Token, "name", true);
@@ -826,20 +826,20 @@ public class ZenGrammar {
 
 //	public static GtSyntaxTree ParseCharLiteral(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
 //		/*local*/GtToken Token = TokenContext.Next();
-//		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, NameSpace, Token, LibGreenTea.UnquoteString(Token.ParsedText));
+//		/*local*/GtSyntaxTree NewTree = new GtSyntaxTree(Pattern, NameSpace, Token, LibZen.UnquoteString(Token.ParsedText));
 //		return NewTree;
 //	}
 //
 //	public static GtNode TypeCharLiteral(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, GtType ContextType) {
 //		/*local*/String Text = ParsedTree.KeyToken.ParsedText;
 //		if(Text.length() == 3) {/* e.g. 'A'*/
-//			/*local*/int ch = LibGreenTea.CharAt(Text, 1);
+//			/*local*/int ch = LibZen.CharAt(Text, 1);
 //			/*local*/Object Value = ch;
-//			ParsedTree.ParsedValue = LibGreenTea.ParseInt(Value.toString());
+//			ParsedTree.ParsedValue = LibZen.ParseInt(Value.toString());
 //		}
 //		else if(Text.length() == 4) {/* e.g. '\n'*/
-//			/*local*/int ch = LibGreenTea.CharAt(Text, 2);
-//			if(LibGreenTea.CharAt(Text, 1) == '\\') {
+//			/*local*/int ch = LibZen.CharAt(Text, 2);
+//			if(LibZen.CharAt(Text, 1) == '\\') {
 //				switch(ch) {
 //				case '\'': ch = '\''; break;
 //				case '\\': ch = '\\'; break;
@@ -852,7 +852,7 @@ public class ZenGrammar {
 //				}
 //				if(ch >= 0) {
 //					/*local*/Object Value = ch;
-//					ParsedTree.ParsedValue = LibGreenTea.ParseInt(Value.toString());
+//					ParsedTree.ParsedValue = LibZen.ParseInt(Value.toString());
 //				}
 //			}
 //		}
@@ -1208,7 +1208,7 @@ public class ZenGrammar {
 //			Node.AppendNodeList(0, ParamList);
 //			return Node;
 //		}
-//		if(LibGreenTea.EqualsString(MethodName, "()")) {
+//		if(LibZen.EqualsString(MethodName, "()")) {
 //			return Gamma.CreateSyntaxErrorNode(ParsedTree, RecvNode.Type + " is not applicapable");
 //		}
 //		return PolyFunc.CreateTypeErrorNode(Gamma, ParsedTree, "method", RecvNode.Type, MethodName);
@@ -1239,7 +1239,7 @@ public class ZenGrammar {
 //			}
 //			i += 1;
 //		}
-//		if(LibGreenTea.ListSize(ParsedTree.SubTreeList) == FuncParamSize) {
+//		if(LibZen.ListSize(ParsedTree.SubTreeList) == FuncParamSize) {
 //			/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
 //			i = 1;
 //			while(i < FuncParamSize) {
@@ -1411,7 +1411,7 @@ public class ZenGrammar {
 //		/*local*/String OperatorSymbol = ParsedTree.KeyToken.ParsedText;
 //		/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(ExprNode.Type, GreenTeaUtils.FuncSymbol(OperatorSymbol), true);
 //		/*local*/GtFunc ResolvedFunc = PolyFunc.ResolveUnaryMethod(Gamma, GtStaticTable.BooleanType);
-//		LibGreenTea.Assert(ResolvedFunc != null);
+//		LibZen.Assert(ResolvedFunc != null);
 //		GtNode Node = Gamma.Generator.CreateUnaryNode(GtStaticTable.BooleanType, ParsedTree, GreenTeaUtils.FuncSymbol(OperatorSymbol), ExprNode);
 //		if(Node instanceof GtSymbolNode) {
 //			((/*cast*/GtSymbolNode)Node).ResolvedFunc = ResolvedFunc;
@@ -1498,7 +1498,7 @@ public class ZenGrammar {
 //			if(LeftNode instanceof GtGetLocalNode || LeftNode instanceof GtGetterNode || LeftNode instanceof GtGetIndexNode) {
 //				/*local*/GtNode ConstNode = Gamma.Generator.CreateConstNode_OLD(LeftNode.Type, ParsedTree, 1L);
 //				// ++ => +
-//				/*local*/String OperatorSymbol = LibGreenTea.SubString(ParsedTree.KeyToken.ParsedText, 0, 1);
+//				/*local*/String OperatorSymbol = LibZen.SubString(ParsedTree.KeyToken.ParsedText, 0, 1);
 //				/*local*/GtPolyFunc PolyFunc = ParsedTree.NameSpace.GetMethod(LeftNode.Type, GreenTeaUtils.FuncSymbol(OperatorSymbol), true);
 //				/*local*/ArrayList<GtNode> ParamList = new ArrayList<GtNode>();
 //				ParamList.add(LeftNode);
@@ -1557,10 +1557,10 @@ public class ZenGrammar {
 //
 //	private static String ParseJoinedName(GtTokenContext TokenContext) {
 //		/*local*/GtToken Token = TokenContext.Next();
-//		/*local*/String PackageName = LibGreenTea.UnquoteString(Token.ParsedText);
+//		/*local*/String PackageName = LibZen.UnquoteString(Token.ParsedText);
 //		while(TokenContext.HasNext()) {
 //			Token = TokenContext.Next();
-//			if(Token.IsNameSymbol() || LibGreenTea.EqualsString(Token.ParsedText, ".")) {
+//			if(Token.IsNameSymbol() || LibZen.EqualsString(Token.ParsedText, ".")) {
 //				PackageName += Token.ParsedText;
 //				continue;
 //			}
@@ -1608,7 +1608,7 @@ public class ZenGrammar {
 			TokenContext.SkipIncompleteStatement();  // check; and skip empty statement
 		}
 		if(PrevTree == null) {
-			return new GtEmptyNode(SourceToken);
+			return new GtBlockNode(SourceToken);
 		}
 		return PrevTree.MoveHeadNode();
 	}
@@ -2020,7 +2020,7 @@ public class ZenGrammar {
 //				break;
 //			}
 //			/*local*/GtToken Token = TokenContext.Next();
-//			if(LibGreenTea.IsVariableName(Token.ParsedText, 0)) {
+//			if(LibZen.IsVariableName(Token.ParsedText, 0)) {
 //				if(EnumMap.GetOrNull(Token.ParsedText) != null) {
 //					NameSpace.Context.ReportError(GreenTeaConsts.ErrorLevel, Token, "duplicated name: " + Token.ParsedText);
 //					continue;
@@ -2035,7 +2035,7 @@ public class ZenGrammar {
 //			/*local*/GtNameSpace StoreNameSpace = NameSpace.GetNameSpace(KonohaGrammar.ParseNameSpaceFlag(0, TokenContext.ParsingAnnotation));
 //			StoreNameSpace.AppendTypeName(NewEnumType, EnumTree.GetSyntaxTreeAt(GreenTeaConsts.EnumNameTreeIndex).KeyToken);
 //			/*local*/int i = 0;
-//			while(i < LibGreenTea.ListSize(NameList)) {
+//			while(i < LibZen.ListSize(NameList)) {
 //				/*local*/String Key = NameList.get(i).ParsedText;
 //				StoreNameSpace.SetSymbol(GreenTeaUtils.ClassStaticSymbol(NewEnumType, Key), EnumMap.GetOrNull(Key), NameList.get(i));
 //				i = i + 1;
@@ -2237,11 +2237,11 @@ public class ZenGrammar {
 //		/*local*/GtToken Token = TokenContext.Next();
 //		/*local*/String Name = Token.ParsedText;
 //		if(Token.IsQuoted()) {
-//			Name = LibGreenTea.UnquoteString(Name);
+//			Name = LibZen.UnquoteString(Name);
 //			Token.ParsedText = Name;
 //			return new GtSyntaxTree(Pattern, NameSpace, Token, Name);
 //		}
-//		if(Name.length() > 0 && LibGreenTea.CharAt(Name, 0) != '(' && LibGreenTea.CharAt(Name, 0) != '.') {
+//		if(Name.length() > 0 && LibZen.CharAt(Name, 0) != '(' && LibZen.CharAt(Name, 0) != '.') {
 //			return new GtSyntaxTree(Pattern, NameSpace, Token, Name);
 //		}
 //		return TokenContext.ReportExpectedMessage(Token, "name", true);
@@ -2272,7 +2272,7 @@ public class ZenGrammar {
 //		TokenContext.SkipIndent();
 //		if(TokenContext.MatchToken("as")) {
 //			/*local*/GtToken Token = TokenContext.Next();
-//			FuncBlock.DefinedFunc.SetNativeMacro(LibGreenTea.UnquoteString(Token.ParsedText));
+//			FuncBlock.DefinedFunc.SetNativeMacro(LibZen.UnquoteString(Token.ParsedText));
 //		}
 //		else if(TokenContext.IsToken("import")) {
 //			/*local*/GtSyntaxTree ImportTree = TokenContext.ParsePattern_OLD(NameSpace, "import", GreenTeaConsts.Optional);
@@ -2343,7 +2343,7 @@ public class ZenGrammar {
 			TokenContext.SkipIndent();
 //			if(TokenContext.MatchToken("as")) {
 //				/*local*/GtToken Token = TokenContext.Next();
-//				FuncBlock.DefinedFunc.SetNativeMacro(LibGreenTea.UnquoteString(Token.ParsedText));
+//				FuncBlock.DefinedFunc.SetNativeMacro(LibZen.UnquoteString(Token.ParsedText));
 //			}
 //			else if(TokenContext.IsToken("import")) {
 //				/*local*/GtSyntaxTree ImportTree = TokenContext.ParsePattern_OLD(NameSpace, "import", GreenTeaConsts.Optional);
@@ -2370,7 +2370,7 @@ public class ZenGrammar {
 //		/*local*/GtSyntaxTree FuncDeclTree = new GtSyntaxTree(Pattern, NameSpace, TokenContext.GetToken(), null);
 //		/*local*/int FuncFlag = KonohaGrammar.ParseFuncFlag(0, TokenContext.ParsingAnnotation);
 //		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
-//		LibGreenTea.Assert(LeftTree != null);
+//		LibZen.Assert(LeftTree != null);
 //		FuncDeclTree.SetSyntaxTreeAt(GreenTeaConsts.FuncDeclReturnType, LeftTree);
 //		TypeList.add(LeftTree.GetParsedType());
 //		FuncDeclTree.SetMatchedPatternAt(GreenTeaConsts.FuncDeclName, NameSpace, TokenContext, "$FuncName$", GreenTeaConsts.Required);
@@ -2382,7 +2382,7 @@ public class ZenGrammar {
 //			/*local*/String FuncName = GtNameSpace.FuncSymbol(SourceToken.ParsedText);
 //			/*local*/int ParseFlag = TokenContext.SetBackTrack(false);  // disabled
 //			/*local*/GtNameSpace StoreNameSpace = NameSpace.GetNameSpace(KonohaGrammar.ParseNameSpaceFlag(0, TokenContext.ParsingAnnotation));
-//			if(LibGreenTea.EqualsString(FuncName, "converter")) {
+//			if(LibZen.EqualsString(FuncName, "converter")) {
 //				FuncFlag |= GreenTeaConsts.ConverterFunc;
 //				//				FuncBlock.SetConverterType();
 //				KonohaGrammar.ParseFuncParam(NameSpace, TokenContext, FuncDeclTree, FuncBlock);
@@ -2426,7 +2426,7 @@ public class ZenGrammar {
 //							StoreNameSpace.AppendFunc(DefinedFunc, SourceToken);
 //						}
 //						/*local*/GtType RecvType = DefinedFunc.GetRecvType();
-//						if(RecvType.IsVoidType() || LibGreenTea.EqualsString(DefinedFunc.FuncName, "_")) {
+//						if(RecvType.IsVoidType() || LibZen.EqualsString(DefinedFunc.FuncName, "_")) {
 //						}
 //						else {
 //							StoreNameSpace.AppendMethod(DefinedFunc, SourceToken.AddTypeInfoToErrorMessage(RecvType));
@@ -2533,7 +2533,7 @@ public class ZenGrammar {
 //		/*local*/GtType ArrayType = ParsedTree.GetSyntaxTreeAt(0).GetParsedType();
 //		/*local*/GtNode ArrayNode = Gamma.Generator.CreateNewArrayNode(GtStaticTable.ArrayType, ParsedTree);
 //		/*local*/int i = 1;
-//		while(i < LibGreenTea.ListSize(ParsedTree.SubTreeList)) {
+//		while(i < LibZen.ListSize(ParsedTree.SubTreeList)) {
 //			/*local*/GtNode Node = ParsedTree.TypeCheckAt(i, Gamma, GtStaticTable.IntType, GreenTeaConsts.DefaultTypeCheckPolicy);
 //			if(Node.IsErrorNode()) {
 //				return Node;
@@ -2570,7 +2570,7 @@ public class ZenGrammar {
 //			ArrayNode.Type = ContextType;
 //		}
 //		/*local*/int i = 0;
-//		while(i < LibGreenTea.ListSize(ParsedTree.SubTreeList)) {
+//		while(i < LibZen.ListSize(ParsedTree.SubTreeList)) {
 //			/*local*/GtNode Node = ParsedTree.TypeCheckAt(i, Gamma, ElemType, GreenTeaConsts.DefaultTypeCheckPolicy);
 //			if(Node.IsErrorNode()) {
 //				return Node;
@@ -2603,7 +2603,7 @@ public class ZenGrammar {
 //		/*local*/GtPolyFunc PolyFunc = Gamma.NameSpace.GetMethod(ExprNode.Type, GreenTeaUtils.FuncSymbol("||"), true);
 //		//System.err.println("polyfunc: " + PolyFunc);
 //		/*local*/GtFunc Func = PolyFunc.ResolveUnaryMethod(Gamma, ExprNode.Type);
-//		LibGreenTea.Assert(Func != null);  // any has ||
+//		LibZen.Assert(Func != null);  // any has ||
 //		Gamma.CheckFunc("operator", Func, ParsedTree.KeyToken);
 //		GtNode Node = Gamma.Generator.CreateApplySymbolNode(Func.GetReturnType(), ParsedTree, GreenTeaUtils.FuncSymbol("||"), Func);
 //		Node.Append(ExprNode);
@@ -2647,7 +2647,7 @@ public class ZenGrammar {
 //			if(ResolvedFunc.Func == null) {
 //				return Gamma.CreateSyntaxErrorNode(ParsedTree, "undefined: " + MethodName + " of " + RecvNode.Type);
 //			}
-//			if(LibGreenTea.EqualsString(ParsedTree.KeyToken.ParsedText, "[]")) {
+//			if(LibZen.EqualsString(ParsedTree.KeyToken.ParsedText, "[]")) {
 //				return Gamma.Generator.CreateGetIndexNode(ResolvedFunc.ReturnType, ParsedTree, RecvNode, ResolvedFunc.Func, ParamList.get(1));
 //			}
 //			else {

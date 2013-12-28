@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import zen.ast.GtFuncDeclNode;
 import zen.ast.GtNode;
 import zen.parser.GtNameSpace;
-import zen.parser.GtNodeVisitor;
 import zen.parser.GtStaticTable;
 import zen.parser.GtToken;
 import zen.parser.GtType;
@@ -55,7 +54,7 @@ final public class GtClassDeclNode extends GtNode {
 		}
 		return this;
 	}
-	@Override public void Accept(GtNodeVisitor Visitor) {
-		Visitor.VisitClassDeclNode(this);
-	}
+//	@Override public void Accept(GtVisitor Visitor) {
+//		Visitor.VisitClassDeclNode(this);
+//	}
 }

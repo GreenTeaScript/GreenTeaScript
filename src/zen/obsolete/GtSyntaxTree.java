@@ -59,11 +59,11 @@ public final class GtSyntaxTree extends GreenTeaUtils {
 //	@Override public String toString() {
 //		/*local*/String s = "(" + this.KeyToken.ParsedText;
 //		/*local*/int i = 0;
-//		while(i < LibGreenTea.ListSize(this.SubTreeList)) {
+//		while(i < LibZen.ListSize(this.SubTreeList)) {
 //			/*local*/GtSyntaxTree SubTree = this.SubTreeList.get(i);
 //			while(SubTree != null) {
 //				/*local*/String Entry = SubTree.toString();
-//				if(LibGreenTea.ListSize(SubTree.SubTreeList) == 0) {
+//				if(LibZen.ListSize(SubTree.SubTreeList) == 0) {
 //					Entry = SubTree.KeyToken.ParsedText;
 //				}
 //				s = s + " " + Entry;
@@ -252,7 +252,7 @@ public final class GtSyntaxTree extends GreenTeaUtils {
 //	}
 //
 //	public final void TypeCheckParam(GtTypeEnv Gamma, int TreeIndex, ArrayList<GtNode> NodeList) {
-//		while(TreeIndex < LibGreenTea.ListSize(this.SubTreeList)) {
+//		while(TreeIndex < LibZen.ListSize(this.SubTreeList)) {
 //			/*local*/GtNode Node = this.TypeCheckAt(TreeIndex, Gamma, GtStaticTable.VarType, DefaultTypeCheckPolicy);
 //			NodeList.add(Node);
 //			TreeIndex = TreeIndex + 1;

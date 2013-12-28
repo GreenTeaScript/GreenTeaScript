@@ -34,7 +34,7 @@ public final class GtParserContext extends GreenTeaUtils {
 //	/*field*/public GtNameSpace		     TopLevelNameSpace;
 		
 //	public GtParserContext/*constructor*/(GtGrammar Grammar, GtGenerator Generator) {
-//		this.ParserId     = LibGreenTea.NewParserId();
+//		this.ParserId     = LibZen.NewParserId();
 //		this.Generator    = Generator;
 //		this.Generator.Context = this;
 //		this.RootNameSpace = new GtNameSpace(this, null);

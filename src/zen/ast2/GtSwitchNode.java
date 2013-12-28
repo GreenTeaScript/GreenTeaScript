@@ -27,7 +27,6 @@ package zen.ast2;
 import java.util.ArrayList;
 
 import zen.ast.GtNode;
-import zen.parser.GtNodeVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
 
@@ -42,9 +41,9 @@ final public class GtSwitchNode extends GtNode {
 		this.CaseList = new ArrayList<GtNode>();
 		this.SetChild(DefaultBlock);
 	}
-	@Override public void Accept(GtNodeVisitor Visitor) {
-		Visitor.VisitSwitchNode(this);
-	}
+//	@Override public void Accept(GtVisitor Visitor) {
+//		Visitor.VisitSwitchNode(this);
+//	}
 	@Override public final ArrayList<GtNode> GetList() {
 		return this.CaseList;
 	}

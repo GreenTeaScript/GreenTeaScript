@@ -27,7 +27,6 @@ package zen.ast2;
 import zen.ast.GtNode;
 import zen.deps.LibZen;
 import zen.parser.GtNameSpace;
-import zen.parser.GtNodeVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
 
@@ -41,9 +40,9 @@ final public class GtInstanceOfNode extends GtNode {
 		this.TypeInfo = TypeInfo;
 		this.SetChild(ExprNode);
 	}
-	@Override public void Accept(GtNodeVisitor Visitor) {
-		Visitor.VisitInstanceOfNode(this);
-	}
+//	@Override public void Accept(GtVisitor Visitor) {
+//		Visitor.VisitInstanceOfNode(this);
+//	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
 		/*local*/Object Value = this.ExprNode.Eval(NameSpace, EnforceConst) ;
 		if(Value != null) {

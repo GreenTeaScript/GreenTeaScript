@@ -28,7 +28,6 @@ import java.util.ArrayList;
 
 import zen.ast.GtNode;
 import zen.parser.GtFunc;
-import zen.parser.GtNodeVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
 
@@ -44,9 +43,9 @@ final public class GtConstructorNode extends GtNode {
 	@Override public final ArrayList<GtNode> GetList() {
 		return this.ParamList;
 	}
-	@Override public void Accept(GtNodeVisitor Visitor) {
-		Visitor.VisitConstructorNode(this);
-	}
+//	@Override public void Accept(GtVisitor Visitor) {
+//		Visitor.VisitConstructorNode(this);
+//	}
 	//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 	//		if(EnforceConst) {
 	//			return Context.Generator.EvalConstructorNode(this, EnforceConst);

@@ -26,13 +26,13 @@
 package zen.parser;
 import java.util.ArrayList;
 
-//endif VAJA
 import zen.ast.GtErrorNode;
 import zen.ast.GtNode;
-import zen.deps.LibZen;
 import zen.deps.LibNative;
+import zen.deps.LibZen;
 import zen.obsolete.GtFuncBlock;
 import zen.obsolete.GtPolyFunc;
+//endif VAJA
 
 final class GtTokenFunc {
 	/*field*/public GtFunc      Func;
@@ -289,11 +289,11 @@ public final class GtNameSpace extends GreenTeaUtils {
 				return Value;
 			}
 //			if(ClassType.IsDynamicNaitiveLoading() & this.Context.RootNameSpace.GetLocalUndefinedSymbol(Key) == null) {
-//				Value = LibGreenTea.LoadNativeStaticFieldValue(ClassType, Symbol.substring(1));
+//				Value = LibZen.LoadNativeStaticFieldValue(ClassType, Symbol.substring(1));
 //				if(Value != null) {
 //					return Value;
 //				}
-//				//LibGreenTea.LoadNativeMethods(ClassType, Symbol, FuncList);
+//				//LibZen.LoadNativeMethods(ClassType, Symbol, FuncList);
 //			}
 			if(!RecursiveSearch) {
 				break;
@@ -337,7 +337,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 //		/*local*/GtNameSpace ns = NameSpace;
 //		while(ns != null) {
 //			if(ns.SymbolPatternTable != null) {
-//				LibGreenTea.RetrieveMapKeys(ns.SymbolPatternTable, ClassPrefix, KeyList);
+//				LibZen.RetrieveMapKeys(ns.SymbolPatternTable, ClassPrefix, KeyList);
 //			}
 //			ns = ns.ParentNameSpace;
 //		}
@@ -361,7 +361,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 //		}
 //		Func = this.Context.RootNameSpace.GetLocalUndefinedSymbol(GtNameSpace.ClassSymbol(ClassType, GtNameSpace.GetterSymbol(Symbol)));
 //		if(ClassType.IsDynamicNaitiveLoading() && Func == null) {
-//			return LibGreenTea.LoadNativeField(this.Context, ClassType, Symbol, false);
+//			return LibZen.LoadNativeField(this.Context, ClassType, Symbol, false);
 //		}
 //		return null;
 //	}
@@ -373,7 +373,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 //		}
 //		Func = this.Context.RootNameSpace.GetLocalUndefinedSymbol(GtNameSpace.ClassSymbol(ClassType, GtNameSpace.SetterSymbol(Symbol)));
 //		if(ClassType.IsDynamicNaitiveLoading() && Func == null) {
-//			return LibGreenTea.LoadNativeField(this.Context, ClassType, Symbol, true);
+//			return LibZen.LoadNativeField(this.Context, ClassType, Symbol, true);
 //		}
 //		return null;
 //	}
@@ -392,11 +392,11 @@ public final class GtNameSpace extends GreenTeaUtils {
 //			/*local*/String Key = GtNameSpace.ClassSymbol(ClassType, Symbol);
 //			/*local*/Object RootValue = this.RetrieveFuncList(Key, FuncList);
 //			if(RootValue == null && ClassType.IsDynamicNaitiveLoading()) {
-//				if(LibGreenTea.EqualsString(Symbol, GtNameSpace.ConstructorSymbol())) {
-//					LibGreenTea.LoadNativeConstructors(this.Context, ClassType, FuncList);
+//				if(LibZen.EqualsString(Symbol, GtNameSpace.ConstructorSymbol())) {
+//					LibZen.LoadNativeConstructors(this.Context, ClassType, FuncList);
 //				}
 //				else {
-//					LibGreenTea.LoadNativeMethods(this.Context, ClassType, Symbol, FuncList);
+//					LibZen.LoadNativeMethods(this.Context, ClassType, Symbol, FuncList);
 //				}
 //			}
 //			if(!RecursiveSearch) {
@@ -567,15 +567,16 @@ public final class GtNameSpace extends GreenTeaUtils {
 			TokenContext.ParseFlag = 0; // init
 			TokenContext.SkipAndGetAnnotation(true);
 			/*local*/GtNode TopLevelNode = TokenContext.ParsePattern(this, "$Expression$", Required);
-			TopLevelNode = this.TypeCheck(TopLevelNode, GtStaticTable.VoidType, GreenTeaConsts.AllowVoidPolicy);
-			TopLevelNode.Accept(this.Generator);
+//			TopLevelNode = this.TypeCheck(TopLevelNode, GtStaticTable.VoidType, GreenTeaConsts.AllowVoidPolicy);
+			this.Generator.TypeCheck(this, TopLevelNode, GtStaticTable.VoidType);
+//			TopLevelNode.Accept(this.Generator);
 			if(TopLevelNode.IsErrorNode() && TokenContext.HasNext()) {
 				/*local*/GtToken Token = TokenContext.GetToken();
 				this.Generator.ReportError(GreenTeaConsts.InfoLevel, TokenContext.GetToken(), "stopping script eval at " + Token.ParsedText);
 				return null;
 			}
 			if(!TopLevelNode.Type.IsVoidType()) {
-				ResultValue = TopLevelNode.Eval(this, true/*EnforceConst*/);
+				ResultValue = this.Generator.EvalTopLevelNode(TopLevelNode);
 			}
 			TokenContext.SkipEmptyStatement();
 			TokenContext.Vacume();
@@ -715,7 +716,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 //		if(Func1 != null && (Func1.Is(CoercionFunc) || IsFlag(TypeCheckPolicy, CastPolicy))) {
 //			return this.Generator.CreateCoercionNode(Type, ParsedTree.NameSpace, Func1, Node);
 //		}		
-		//System.err.println("node="+ LibGreenTea.GetClassName(Node) + "type error: requested = " + Type + ", given = " + Node.Type);
+		//System.err.println("node="+ LibZen.GetClassName(Node) + "type error: requested = " + Type + ", given = " + Node.Type);
 		return new GtErrorNode(Node.Token, "type error: requested = " + ContextType + ", given = " + Node.Type);
 	}
 

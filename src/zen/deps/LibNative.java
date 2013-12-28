@@ -39,17 +39,16 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
 import zen.ast.GtNode;
-import zen.codegen.JavaByteCodeGenerator;
 import zen.obsolete.GtPolyFunc;
-import zen.parser.GreenTeaConsts;
 import zen.parser.GreenTeaUtils;
 import zen.parser.GtFunc;
 import zen.parser.GtGenerator;
 import zen.parser.GtNameSpace;
-import zen.parser.GtNodeVisitor;
+import zen.parser.GtSourceGenerator;
 import zen.parser.GtStaticTable;
 import zen.parser.GtTokenContext;
 import zen.parser.GtType;
+import zen.parser.GtVisitor;
 
 public class LibNative {
 	final static void DebugP(String s) {
@@ -210,7 +209,7 @@ public class LibNative {
 				return LibNative.GetNativeFieldValue(null, NativeField);
 			}
 		} catch (NoSuchFieldException e) {
-			//			LibGreenTea.VerboseException(e);
+			//			LibZen.VerboseException(e);
 		}
 		GtPolyFunc PolyFunc = new GtPolyFunc(null, null);
 		Method[] Methods = NativeClass.getMethods();
@@ -319,7 +318,7 @@ public class LibNative {
 	//				return GetSetter ? SetterNativeFunc : GetterNativeFunc;
 	//			}
 	//		} catch (SecurityException e) {
-	//			LibGreenTea.VerboseException(e);
+	//			LibZen.VerboseException(e);
 	//		} catch (NoSuchFieldException e) {
 	//		}
 	//		Context.RootNameSpace.SetUndefinedSymbol(GtNameSpace.ClassSymbol(ClassType, GtNameSpace.GetterSymbol(FieldName)), null);
@@ -333,11 +332,11 @@ public class LibNative {
 	//		/*local*/boolean FoundMethod = false;
 	//		if(Methods != null) {
 	//			for(int i = 0; i < Methods.length; i++) {
-	//				if(LibGreenTea.EqualsString(FuncName, Methods[i].getName())) {
+	//				if(LibZen.EqualsString(FuncName, Methods[i].getName())) {
 	//					if(!Modifier.isPublic(Methods[i].getModifiers())) {
 	//						continue;
 	//					}
-	//					GtFunc NativeFunc = LibGreenTea.ConvertNativeMethodToFunc(Methods[i]);
+	//					GtFunc NativeFunc = LibZen.ConvertNativeMethodToFunc(Methods[i]);
 	//					Context.RootNameSpace.AppendMethod(NativeFunc, null);
 	//					FuncList.add(NativeFunc);
 	//					FoundMethod = true;
@@ -409,9 +408,9 @@ public class LibNative {
 		return null;
 	}
 
-	public final static boolean IsSupportedNode(GtGenerator Generator, GtNode Node) {
+	public final static boolean IsSupportedNode(GtVisitor Visitor, GtNode Node) {
 		try {
-			Generator.getClass().getMethod(Node.GetVisitMethodName(), Node.getClass());
+			Visitor.getClass().getMethod(Node.GetVisitMethodName(), Node.getClass());
 			return true;
 		}
 		catch(NoSuchMethodException e) {
@@ -419,17 +418,18 @@ public class LibNative {
 		return false;
 	}
 
-	public final static void VisitNode(GtNodeVisitor Visitor, GtNode Node) {
+	public final static void VisitNode(GtVisitor Visitor, GtNode Node) {
 		try {
 			Method JavaMethod = Visitor.getClass().getMethod(Node.GetVisitMethodName(), Node.getClass());
 			JavaMethod.invoke(Visitor, Node);
 		}
 		catch(Exception e) {
 		}
-		Visitor.ReportError(GreenTeaConsts.ErrorLevel, Node.Token, "unsupported syntax: " + Node.Token.ParsedText + " " + Node.getClass());
+		println("unsupported syntax: " + Node.Token.ParsedText + " " + Node.getClass());
+//		Visitor.ReportError(GreenTeaConsts.ErrorLevel, Node.Token, "unsupported syntax: " + Node.Token.ParsedText + " " + Node.getClass());
 	}
 
-	// LibGreenTea KonohaApi
+	// LibZen KonohaApi
 	public final static void print(Object msg) {
 		System.out.print(msg);
 	}
@@ -446,16 +446,17 @@ public class LibNative {
 	}
 
 	public final static GtGenerator LoadGenerator(String ClassName, String OutputFile) {
-		if(ClassName == null) {
-			ClassName = "";
-		}
-		int GeneratorFlag = 0;
-		String Extension = (OutputFile == null) ? "-" : OutputFile;
-		ClassName = LibZen.DetectTargetCode(Extension, ClassName);
-		ClassName = ClassName.toLowerCase();
-		if(ClassName.startsWith("exe")) {
-			return new JavaByteCodeGenerator(ClassName, OutputFile, GeneratorFlag);
-		}
+//		if(ClassName == null) {
+//			ClassName = "";
+//		}
+//		int GeneratorFlag = 0;
+//		String Extension = (OutputFile == null) ? "-" : OutputFile;
+//		ClassName = LibZen.DetectTargetCode(Extension, ClassName);
+//		ClassName = ClassName.toLowerCase();
+//		if(ClassName.startsWith("exe")) {
+//			return new JavaByteCodeGenerator(ClassName, OutputFile, GeneratorFlag);
+//		}
+		
 //		if(ClassName.startsWith("js") || ClassName.startsWith("javascript")) {
 //			return new JavaScriptSourceGenerator(ClassName, OutputFile, GeneratorFlag);
 //		}
@@ -492,7 +493,7 @@ public class LibNative {
 		}
 		catch(Exception e) {
 		}
-		return null;
+		return new GtSourceGenerator("konoha", "0.1");
 	}
 
 	public final static void Exit(int status, String Message) {

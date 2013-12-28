@@ -25,7 +25,6 @@
 package zen.ast2;
 
 import zen.ast.GtNode;
-import zen.parser.GtNodeVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
 
@@ -35,7 +34,7 @@ final public class GtContinueNode extends GtNode {
 		super(Type, Token);
 		this.Label = Label;
 	}
-	@Override public void Accept(GtNodeVisitor Visitor) {
-		Visitor.VisitContinueNode(this);
-	}
+//	@Override public void Accept(GtVisitor Visitor) {
+//		Visitor.VisitContinueNode(this);
+//	}
 }

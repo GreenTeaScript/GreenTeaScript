@@ -26,7 +26,6 @@ package zen.ast2;
 
 import zen.ast.GtConstNode;
 import zen.parser.GtNameSpace;
-import zen.parser.GtNodeVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
 
@@ -37,9 +36,9 @@ final public class GtRegexNode extends GtConstNode {
 		this.Value = Value;
 		throw new RuntimeException("FIXME: Regex object must be defined");
 	}
-	@Override public void Accept(GtNodeVisitor Visitor) {
-		Visitor.VisitRegexNode(this);
-	}
+//	@Override public void Accept(GtVisitor Visitor) {
+//		Visitor.VisitRegexNode(this);
+//	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
 		return this.Value;
 	}

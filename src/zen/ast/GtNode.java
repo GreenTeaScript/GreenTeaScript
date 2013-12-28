@@ -28,12 +28,12 @@ import java.util.ArrayList;
 
 import zen.ast2.GtThrowNode;
 import zen.deps.LibNative;
-//endif VAJA
 import zen.parser.GreenTeaConsts;
 import zen.parser.GtNameSpace;
-import zen.parser.GtNodeVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
+import zen.parser.GtVisitor;
+//endif VAJA
 
 public class GtNode {
 	/*field*/public GtNode	ParentNode;
@@ -123,7 +123,7 @@ public class GtNode {
 	//	public final GtNode AppendNodeList(int StartIndex, ArrayList<GtNode> NodeList) {
 	//		/*local*/int i = StartIndex;
 	//		/*local*/ArrayList<GtNode> List = this.GetList();
-	//		while(i < LibGreenTea.ListSize(NodeList)) {
+	//		while(i < LibZen.ListSize(NodeList)) {
 	//			/*local*/GtNode Node = NodeList.get(i);
 	//			List.add(Node);
 	//			this.SetChild(Node);
@@ -133,14 +133,14 @@ public class GtNode {
 	//	}
 
 	public final GtNode Done() {
-		return new GtEmptyNode(this.Token);
+		return new GtBlockNode(this.Token);
 	}
 
 	public String GetVisitMethodName() {
 		return "VisitNode"; // override this if you want to use additional node
 	}
 
-	public void Accept(GtNodeVisitor Visitor) {
+	public void Accept(GtVisitor Visitor) {
 		LibNative.VisitNode(Visitor, this);
 	}
 

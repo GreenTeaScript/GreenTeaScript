@@ -27,7 +27,6 @@ package zen.ast2;
 import zen.ast.GtNode;
 import zen.ast.GtSymbolNode;
 import zen.parser.GtNameSpace;
-import zen.parser.GtNodeVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
 
@@ -41,9 +40,9 @@ final public class GtGetIndexNode extends GtSymbolNode {
 		this.IndexNode = IndexNode;
 		this.SetChild2(RecvNode, IndexNode);
 	}
-	@Override public void Accept(GtNodeVisitor Visitor) {
-		Visitor.VisitGetIndexNode(this);
-	}
+//	@Override public void Accept(GtVisitor Visitor) {
+//		Visitor.VisitGetIndexNode(this);
+//	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
 		//FIXME
 		//return Context.Generator.EvalGetIndexNode(this, EnforceConst);

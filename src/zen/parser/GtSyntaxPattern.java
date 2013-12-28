@@ -73,7 +73,7 @@ public final class GtSyntaxPattern extends GreenTeaUtils {
 			if(CurrentPattern.ParentPattern != null) {   // This means it has next patterns
 				TokenContext.ParseFlag = ParseFlag | BackTrackParseFlag;
 			}
-			//LibGreenTea.DebugP("B :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + ", next=" + CurrentPattern.ParentPattern);
+			//LibZen.DebugP("B :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + ", next=" + CurrentPattern.ParentPattern);
 			TokenContext.IndentLevel += 1;
 			/*local*/GtNode ParsedNode = LibNative.ApplyMatchFunc(MatchFunc, NameSpace, TokenContext, LeftNode);
 			TokenContext.IndentLevel -= 1;
@@ -81,7 +81,7 @@ public final class GtSyntaxPattern extends GreenTeaUtils {
 //			if(ParsedNode != null /* FIXME && ParsedNode.IsMismatched()*/) {
 //				ParsedNode = null;
 //			}
-//			LibGreenTea.DebugP("E :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + " => " + ParsedTree);
+//			LibZen.DebugP("E :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + " => " + ParsedTree);
 			if(ParsedNode != null) {
 				return ParsedNode;
 			}

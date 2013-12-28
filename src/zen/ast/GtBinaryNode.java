@@ -24,7 +24,7 @@
 
 package zen.ast;
 
-import zen.parser.GtNodeVisitor;
+import zen.parser.GtVisitor;
 import zen.parser.GtStaticTable;
 import zen.parser.GtSyntaxPattern;
 import zen.parser.GtToken;
@@ -45,7 +45,7 @@ public class GtBinaryNode extends GtNode {
 		this.SetChild(this.RightNode);
 		return this;
 	}
-	@Override public void Accept(GtNodeVisitor Visitor) {
+	@Override public void Accept(GtVisitor Visitor) {
 		Visitor.VisitBinaryNode(this);
 	}
 //	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
@@ -53,7 +53,7 @@ public class GtBinaryNode extends GtNode {
 //		if(LeftValue != null) {
 //			/*local*/Object RightValue = this.RightNode.ToConstValue(Context, EnforceConst) ;
 //			if(RightValue != null) {
-//				return LibGreenTea.EvalBinary(this.Type, LeftValue, this.Token.ParsedText, RightValue);
+//				return LibZen.EvalBinary(this.Type, LeftValue, this.Token.ParsedText, RightValue);
 //			}
 //		}
 //		return null;

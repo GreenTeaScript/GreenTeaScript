@@ -26,7 +26,7 @@ package zen.ast;
 
 import java.util.ArrayList;
 
-import zen.parser.GtNodeVisitor;
+import zen.parser.GtVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
 
@@ -51,7 +51,7 @@ final public class GtFunctionLiteralNode extends GtNode {
 	@Override public ArrayList<GtNode> GetList() {
 		return this.ArgumentList;
 	}
-	@Override public void Accept(GtNodeVisitor Visitor) {
+	@Override public void Accept(GtVisitor Visitor) {
 		Visitor.VisitFunctionLiteralNode(this);
 	}
 }

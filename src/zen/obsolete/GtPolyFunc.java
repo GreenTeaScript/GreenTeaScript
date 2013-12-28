@@ -236,11 +236,11 @@ public class GtPolyFunc {
 //	}
 
 //	public GtResolvedFunc ResolveFunc(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, int TreeIndex, ArrayList<GtNode> ParamList) {
-//		/*local*/int FuncParamSize = LibGreenTea.ListSize(ParsedTree.SubTreeList) - TreeIndex + ParamList.size();
+//		/*local*/int FuncParamSize = LibZen.ListSize(ParsedTree.SubTreeList) - TreeIndex + ParamList.size();
 //		//System.err.println("*** FuncParamSize=" + FuncParamSize + ", resolved_size=" + ParamList.size());
 //		//System.err.println("*** FuncList=" + this);
 //		/*local*/GtResolvedFunc ResolvedFunc = new GtResolvedFunc(Gamma.NameSpace);
-//		while(!this.CheckIncrementalTyping(Gamma.NameSpace, FuncParamSize, ParamList, ResolvedFunc) && TreeIndex < LibGreenTea.ListSize(ParsedTree.SubTreeList)) {
+//		while(!this.CheckIncrementalTyping(Gamma.NameSpace, FuncParamSize, ParamList, ResolvedFunc) && TreeIndex < LibZen.ListSize(ParsedTree.SubTreeList)) {
 //			/*local*/GtNode Node = ParsedTree.TypeCheckAt(TreeIndex, Gamma, GtStaticTable.VarType, DefaultTypeCheckPolicy);
 //			if(Node.IsErrorNode()) {
 //				ResolvedFunc.ErrorNode = Node;
@@ -251,7 +251,7 @@ public class GtPolyFunc {
 //		}
 //		if(ResolvedFunc.Func != null) {
 //			/*local*/GtNameSpace GenericNameSpace = ResolvedFunc.GenericNameSpace;
-//			while(TreeIndex < LibGreenTea.ListSize(ParsedTree.SubTreeList)) {
+//			while(TreeIndex < LibZen.ListSize(ParsedTree.SubTreeList)) {
 //				/*local*/GtType ContextType = ResolvedFunc.Func.GetFuncParamType(ParamList.size()/*ResolvedSize*/);
 //				ContextType = ContextType.RealType(GenericNameSpace, GtStaticTable.VarType);
 //				//System.err.println("TreeIndex="+ TreeIndex+" NodeSize="+ParamList.size()+" ContextType="+ContextType);
@@ -282,7 +282,7 @@ public class GtPolyFunc {
 //			else {
 //				/*local*/GtFunc TypeCoercion = NameSpace.GetConverterFunc(GivenType, DefinedType, true);
 //				if(TypeCoercion != null && TypeCoercion.Is(CoercionFunc)) {
-//					ConvertedArguments[p] = LibGreenTea.DynamicConvertTo(DefinedType, Arguments[p]);
+//					ConvertedArguments[p] = LibZen.DynamicConvertTo(DefinedType, Arguments[p]);
 //				}
 //				else {
 //					return false;
@@ -295,7 +295,7 @@ public class GtPolyFunc {
 //
 //	public GtFunc GetMatchedFunc(GtNameSpace NameSpace, Object[] Arguments) {
 //		/*local*/Object[] OriginalArguments = new Object[Arguments.length];
-//		LibGreenTea.ArrayCopy(Arguments, 0, OriginalArguments, 0, Arguments.length);
+//		LibZen.ArrayCopy(Arguments, 0, OriginalArguments, 0, Arguments.length);
 //		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
 //		/*local*/int i = 0;
 //		while(i < Arguments.length) {
@@ -325,7 +325,7 @@ public class GtPolyFunc {
 //	}
 //
 //	public GtResolvedFunc ResolveConstructor(GtTypeEnv Gamma, GtSyntaxTree ParsedTree, int TreeIndex, ArrayList<GtNode> NodeList) {
-//		/*local*/int FuncParamSize = LibGreenTea.ListSize(ParsedTree.SubTreeList) - TreeIndex + NodeList.size();
+//		/*local*/int FuncParamSize = LibZen.ListSize(ParsedTree.SubTreeList) - TreeIndex + NodeList.size();
 ////		System.err.println("*** FuncParamSize=" + FuncParamSize + " resolved_size=" + NodeList.size());
 ////		System.err.println("*** FuncList=" + this);
 //		/*local*/GtResolvedFunc ResolvedFunc = this.ResolveFunc(Gamma, ParsedTree, TreeIndex, NodeList);
@@ -341,7 +341,7 @@ public class GtPolyFunc {
 	
 //	public String FormatTypeErrorMessage(String FuncType, GtType ClassType, String MethodName) {
 //		if(ClassType != null) {
-//			if(LibGreenTea.EqualsString(MethodName, "")) {
+//			if(LibZen.EqualsString(MethodName, "")) {
 //				MethodName = ClassType.toString();
 //			}
 //			else {

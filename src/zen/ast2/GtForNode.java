@@ -25,7 +25,6 @@
 package zen.ast2;
 
 import zen.ast.GtNode;
-import zen.parser.GtNodeVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
 
@@ -41,7 +40,7 @@ final public class GtForNode extends GtNode {
 		this.IterNode = IterNode;
 		this.SetChild3(CondNode, BodyNode, IterNode);
 	}
-	@Override public void Accept(GtNodeVisitor Visitor) {
-		Visitor.VisitForNode(this);
-	}
+//	@Override public void Accept(GtVisitor Visitor) {
+//		Visitor.VisitForNode(this);
+//	}
 }

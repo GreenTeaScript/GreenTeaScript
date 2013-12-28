@@ -25,12 +25,11 @@
 //ifdef JAVA
 package zen.parser;
 import java.util.ArrayList;
-//endif VAJA
-
 
 import zen.ast.GtNode;
-import zen.deps.LibZen;
 import zen.deps.LibNative;
+import zen.deps.LibZen;
+//endif VAJA
 
 public class GtSourceBuilder {
 	/*field*/public ArrayList<String> SourceList;
@@ -43,6 +42,10 @@ public class GtSourceBuilder {
 		this.SourceList = new ArrayList<String>();
 		this.IndentLevel = 0;
 		this.CurrentIndentString = "";
+	}
+	
+	public void Clear() {
+		this.SourceList.clear();
 	}
 	
 	public void Append(String Text) {

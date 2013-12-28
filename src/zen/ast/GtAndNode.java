@@ -27,7 +27,7 @@ package zen.ast;
 
 import zen.deps.LibZen;
 import zen.parser.GtNameSpace;
-import zen.parser.GtNodeVisitor;
+import zen.parser.GtVisitor;
 import zen.parser.GtSyntaxPattern;
 import zen.parser.GtToken;
 
@@ -36,7 +36,7 @@ final public class GtAndNode extends GtBinaryNode {
 	public GtAndNode/*constructor*/(GtToken Token, GtNode Left, GtSyntaxPattern Pattern) {
 		super(Token, Left, Pattern);
 	}
-	@Override public void Accept(GtNodeVisitor Visitor) {
+	@Override public void Accept(GtVisitor Visitor) {
 		Visitor.VisitAndNode(this);
 	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {

@@ -27,7 +27,6 @@ package zen.ast2;
 import java.util.ArrayList;
 
 import zen.ast.GtNode;
-import zen.parser.GtNodeVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
 
@@ -45,7 +44,7 @@ final public class GtTryNode extends GtNode {
 	@Override public ArrayList<GtNode> GetList() {
 		return this.CatchList;
 	}
-	@Override public void Accept(GtNodeVisitor Visitor) {
-		Visitor.VisitTryNode(this);
-	}
+//	@Override public void Accept(GtVisitor Visitor) {
+//		Visitor.VisitTryNode(this);
+//	}
 }

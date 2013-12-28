@@ -28,7 +28,6 @@ import java.util.ArrayList;
 
 import zen.ast.GtNode;
 import zen.parser.GtNameSpace;
-import zen.parser.GtNodeVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
 
@@ -42,9 +41,9 @@ final public class GtMapLiteralNode extends GtNode {   // => ArrayLiteral
 	@Override public ArrayList<GtNode> GetList() {
 		return this.NodeList;
 	}
-	@Override public void Accept(GtNodeVisitor Visitor) {
-		Visitor.VisitMapLiteralNode(this);
-	}
+//	@Override public void Accept(GtVisitor Visitor) {
+//		Visitor.VisitMapLiteralNode(this);
+//	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
 		//		if(EnforceConst) {
 		//			return Context.Generator.EvalArrayNode(this, EnforceConst);

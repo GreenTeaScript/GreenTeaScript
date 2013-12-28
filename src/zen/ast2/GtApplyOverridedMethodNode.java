@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import zen.ast.GtNode;
 import zen.parser.GtFunc;
 import zen.parser.GtNameSpace;
-import zen.parser.GtNodeVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
 
@@ -47,9 +46,9 @@ final public class GtApplyOverridedMethodNode extends GtNode {
 	@Override public final ArrayList<GtNode> GetList() {
 		return this.ParamList;
 	}
-	@Override public void Accept(GtNodeVisitor Visitor) {
-		Visitor.VisitApplyOverridedMethodNode(this);
-	}
+//	@Override public void Accept(GtVisitor Visitor) {
+//		Visitor.VisitApplyOverridedMethodNode(this);
+//	}
 //	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 //		return Context.Generator.EvalApplyOverridedMethodNode(this, EnforceConst);
 //	}

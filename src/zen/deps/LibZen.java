@@ -66,12 +66,12 @@ public abstract class LibZen {
 	
 //	public final static Object InvokeFunc(GtFunc Func, Object[] Params) {
 //		if(Func == null || Func.IsAbstract()) {
-//			LibGreenTea.VerboseLog(VerboseRuntime, "applying abstract function: " + Func);
+//			LibZen.VerboseLog(VerboseRuntime, "applying abstract function: " + Func);
 //			return Func.GetReturnType().DefaultNullValue;
 //		}
 //		else if(Func.Is(NativeMethodFunc)) {
 //			/*local*/Object[] MethodArguments = new Object[Params.length-1];
-//			LibGreenTea.ArrayCopy(Params, 1, MethodArguments, 0, MethodArguments.length);
+//			LibZen.ArrayCopy(Params, 1, MethodArguments, 0, MethodArguments.length);
 //			return LibNative.ApplyMethod(Func, Params[0], MethodArguments);
 //		}
 //		return LibNative.ApplyMethod(Func, null, Params);
@@ -80,7 +80,7 @@ public abstract class LibZen {
 //	public static Object InvokeOverridedMethod(long FileLine, GtNameSpace NameSpace, GtFunc Func, Object[] Arguments) {
 //		/*local*/GtType ClassType = GtStaticTable.GuessType(Arguments[0]);
 //		Func = NameSpace.GetOverridedMethod(ClassType, Func);
-//		return LibGreenTea.InvokeFunc(Func, Arguments);
+//		return LibZen.InvokeFunc(Func, Arguments);
 //	}
 //
 //	public static Object InvokeDynamicFunc(long FileLine, GtType ContextType, GtNameSpace NameSpace, String FuncName, Object[] Arguments) {
@@ -88,10 +88,10 @@ public abstract class LibZen {
 //		/*local*/GtFunc Func = PolyFunc.GetMatchedFunc(NameSpace, Arguments);
 //		/*local*/Object Value = ContextType.DefaultNullValue;
 //		if(Func != null) {
-//			Value = LibGreenTea.InvokeFunc(Func, Arguments);
-//			return LibGreenTea.DynamicCast(ContextType, Value);
+//			Value = LibZen.InvokeFunc(Func, Arguments);
+//			return LibZen.DynamicCast(ContextType, Value);
 //		}
-//		LibGreenTea.VerboseLog(VerboseRuntime, PolyFunc.FormatTypeErrorMessage("function", null, FuncName));
+//		LibZen.VerboseLog(VerboseRuntime, PolyFunc.FormatTypeErrorMessage("function", null, FuncName));
 //		return Value;
 //	}
 //
@@ -101,10 +101,10 @@ public abstract class LibZen {
 //		/*local*/GtFunc Func = PolyFunc.GetMatchedFunc(NameSpace, Arguments);
 //		/*local*/Object Value = ContextType.DefaultNullValue;
 //		if(Func != null) {
-//			Value = LibGreenTea.InvokeFunc(Func, Arguments);
-//			return LibGreenTea.DynamicCast(ContextType, Value);
+//			Value = LibZen.InvokeFunc(Func, Arguments);
+//			return LibZen.DynamicCast(ContextType, Value);
 //		}
-//		LibGreenTea.VerboseLog(VerboseRuntime, PolyFunc.FormatTypeErrorMessage("method", ClassType, FuncName));
+//		LibZen.VerboseLog(VerboseRuntime, PolyFunc.FormatTypeErrorMessage("method", ClassType, FuncName));
 //		return Value;
 //	}
 //	
@@ -113,7 +113,7 @@ public abstract class LibZen {
 //			Field JavaField = RecvObject.getClass().getField(FieldName);
 //			return JavaField.get(RecvObject);
 //		} catch (Exception e) {
-//			LibGreenTea.VerboseException(e);
+//			LibZen.VerboseException(e);
 //		}
 //		return null;
 //	}
@@ -124,7 +124,7 @@ public abstract class LibZen {
 //			JavaField.set(RecvObject, Value);
 //			return JavaField.get(RecvObject);
 //		} catch (Exception e) {
-//			LibGreenTea.VerboseException(e);
+//			LibZen.VerboseException(e);
 //		}
 //		return null;
 //	}
@@ -432,7 +432,7 @@ public abstract class LibZen {
 
 	public final static Method LookupNativeMethod(Object Callee, String FuncName) {
 		if(FuncName != null) {
-			// LibGreenTea.DebugP("looking up method : " + Callee.getClass().getSimpleName() + "." + FuncName);
+			// LibZen.DebugP("looking up method : " + Callee.getClass().getSimpleName() + "." + FuncName);
 			Method[] methods = Callee.getClass().getMethods();
 			for(int i = 0; i < methods.length; i++) {
 				if(FuncName.equals(methods[i].getName())) {
@@ -543,7 +543,7 @@ public abstract class LibZen {
 
 	@Deprecated public final static void WriteCode(String OutputFile, String SourceCode) {
 		if(OutputFile == null) {
-			//LibGreenTea.Eval(SourceCode);
+			//LibZen.Eval(SourceCode);
 		}
 		if(OutputFile.equals("-")) {
 			System.out.println(SourceCode);

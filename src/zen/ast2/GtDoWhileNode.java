@@ -25,7 +25,6 @@
 package zen.ast2;
 
 import zen.ast.GtNode;
-import zen.parser.GtNodeVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
 
@@ -38,9 +37,9 @@ final public class GtDoWhileNode extends GtNode {
 		this.BodyNode = BodyNode;
 		this.SetChild2(CondNode, BodyNode);
 	}
-	@Override public void Accept(GtNodeVisitor Visitor) {
-		Visitor.VisitDoWhileNode(this);
-	}
+//	@Override public void Accept(GtVisitor Visitor) {
+//		Visitor.VisitDoWhileNode(this);
+//	}
 	public GtNode ToWhileNode() {
 		/**
 		while(true) {

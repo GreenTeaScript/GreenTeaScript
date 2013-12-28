@@ -108,7 +108,7 @@ public final class GtTypeEnv extends GreenTeaUtils {
 //
 //	public final GtNode ReportTypeResult(GtSyntaxTree ParsedTree, GtNode Node, int Level, String Message) {
 //		if(Level == ErrorLevel || (this.IsStrictMode() && Level == TypeErrorLevel)) {
-//			LibGreenTea.Assert(Node.Token == ParsedTree.KeyToken);
+//			LibZen.Assert(Node.Token == ParsedTree.KeyToken);
 //			this.NameSpace.Context.ReportError_OLD(GreenTeaConsts.ErrorLevel, Node.Token, Message);
 //			return this.Generator.CreateErrorNode(GtStaticTable.VoidType, ParsedTree);
 //		}
@@ -144,7 +144,7 @@ public final class GtTypeEnv extends GreenTeaUtils {
 //	}
 //
 //	public final GtNode TypeCheckSingleNode(GtSyntaxTree ParsedTree, GtNode Node, GtType Type, int TypeCheckPolicy) {
-//		LibGreenTea.Assert(Node != null);
+//		LibZen.Assert(Node != null);
 //		if(Node.IsErrorNode() || IsFlag(TypeCheckPolicy, NoCheckPolicy)) {
 //			return Node;
 //		}
@@ -178,7 +178,7 @@ public final class GtTypeEnv extends GreenTeaUtils {
 //			return this.Generator.CreateCoercionNode(Type, ParsedTree.NameSpace, Func1, Node);
 //		}
 //		
-//		//System.err.println("node="+ LibGreenTea.GetClassName(Node) + "type error: requested = " + Type + ", given = " + Node.Type);
+//		//System.err.println("node="+ LibZen.GetClassName(Node) + "type error: requested = " + Type + ", given = " + Node.Type);
 //		return this.ReportTypeResult(ParsedTree, Node, TypeErrorLevel, "type error: requested = " + Type + ", given = " + Node.Type);
 //	}
 //
