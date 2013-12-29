@@ -25,14 +25,13 @@
 package zen.ast2;
 
 import zen.ast.GtNode;
-import zen.parser.GtToken;
-import zen.parser.GtType;
+import zen.parser.GtStaticTable;
 
 final public class GtBreakNode extends GtNode {
 	/*field*/public String Label;
-	public GtBreakNode/*constructor*/(GtType Type, GtToken Token, String Label) {
-		super(Type, Token);
-		this.Label = Label;
+	public GtBreakNode/*constructor*/() {
+		super(GtStaticTable.VarType, null);
+		this.Label = null;
 	}
 //	@Override public boolean Accept(GtVisitor Visitor) {
 //		return Visitor.VisitBreakNode(this);

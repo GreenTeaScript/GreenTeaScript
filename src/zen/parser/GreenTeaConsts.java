@@ -96,8 +96,8 @@ public interface GreenTeaConsts {
 	public final static int     Optional          = (1 << 1);
 	public final static int     AllowLineFeed     = (1 << 2);
 	public final static int     AllowAnnotation   = (1 << 3);
-	public final static int     OpenSkipIndent    = (1 << 4);
-	public final static int     CloseSkipIndent   = (1 << 5);
+	public final static int     AllowSkipIndent    = (1 << 4);
+	public final static int     DisallowSkipIndent   = (1 << 5);
 
 		
 	public final static int		ErrorLevel						= 0;

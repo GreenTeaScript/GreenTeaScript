@@ -25,18 +25,26 @@
 package zen.ast2;
 
 import zen.ast.GtNode;
-import zen.parser.GtToken;
-import zen.parser.GtType;
+import zen.parser.GtStaticTable;
 
 //E.g., "while" "(" $Cond ")" $Body
 final public class GtWhileNode extends GtNode {
 	/*field*/public GtNode	CondNode;
 	/*field*/public GtNode	BodyNode;
-	public GtWhileNode/*constructor*/(GtType Type, GtToken Token, GtNode CondNode, GtNode BodyNode) {
-		super(Type, Token);
-		this.CondNode = CondNode;
-		this.BodyNode = BodyNode;
-//		this.SetChild2(CondNode, BodyNode);
+	public GtWhileNode/*constructor*/() {
+		super(GtStaticTable.VarType, null);
+		this.CondNode = null;
+		this.BodyNode = null;
+	}
+	@Override public final GtNode Append(GtNode Node) {
+		this.SetChild(Node);
+		if(this.CondNode == null) {
+			this.CondNode = Node;
+		}
+		else {
+			this.BodyNode = Node;
+		}
+		return this;
 	}
 //	@Override public boolean Accept(GtVisitor Visitor) {
 //		return Visitor.VisitWhileNode(this);

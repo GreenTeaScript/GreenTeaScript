@@ -1319,7 +1319,7 @@ public class KonohaGrammar {
 	public static GtNode MatchGroup(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftTree) {
 		/*local*/GtNode GroupNode = new GtGroupNode();
 		TokenContext.Push();
-		GroupNode = TokenContext.MatchNodeToken(GroupNode, NameSpace, "(", GreenTeaConsts.Required | GreenTeaConsts.OpenSkipIndent);
+		GroupNode = TokenContext.MatchNodeToken(GroupNode, NameSpace, "(", GreenTeaConsts.Required | GreenTeaConsts.AllowSkipIndent);
 		GroupNode = TokenContext.AppendMatchedPattern(GroupNode, NameSpace, "$Expression$", GreenTeaConsts.Required);
 		GroupNode = TokenContext.MatchNodeToken(GroupNode, NameSpace, ")", GreenTeaConsts.Required);
 		TokenContext.Pop();
@@ -1328,7 +1328,7 @@ public class KonohaGrammar {
 	
 	public static GtNode MatchCast(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftTree) {
 		/*local*/GtNode CastNode = new GtCastNode();
-		CastNode = TokenContext.MatchNodeToken(CastNode, NameSpace, "(", GreenTeaConsts.Required | GreenTeaConsts.OpenSkipIndent);
+		CastNode = TokenContext.MatchNodeToken(CastNode, NameSpace, "(", GreenTeaConsts.Required | GreenTeaConsts.AllowSkipIndent);
 		CastNode = TokenContext.AppendMatchedPattern(CastNode, NameSpace, "$Type$", GreenTeaConsts.Required);
 		CastNode = TokenContext.MatchNodeToken(CastNode, NameSpace, ")", GreenTeaConsts.Required);
 		CastNode = TokenContext.AppendMatchedPattern(CastNode, NameSpace, "$SuffixExpression$", GreenTeaConsts.Required);
@@ -1349,7 +1349,7 @@ public class KonohaGrammar {
 					if(TokenContext.MatchToken(")")) {
 						break;
 					}
-					ApplyNode = TokenContext.MatchNodeToken(ApplyNode, NameSpace, ",", GreenTeaConsts.Required | GreenTeaConsts.CloseSkipIndent);
+					ApplyNode = TokenContext.MatchNodeToken(ApplyNode, NameSpace, ",", GreenTeaConsts.Required | GreenTeaConsts.DisallowSkipIndent);
 				}
 			}
 			return ApplyNode;
@@ -1366,14 +1366,14 @@ public class KonohaGrammar {
 	
 	public static GtNode MatchApply(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftTree) {
 		/*local*/GtNode ApplyNode = new GtApplyNode(LeftTree);
-		ApplyNode = TokenContext.MatchNodeToken(ApplyNode, NameSpace, "(", GreenTeaConsts.Required | GreenTeaConsts.OpenSkipIndent);
+		ApplyNode = TokenContext.MatchNodeToken(ApplyNode, NameSpace, "(", GreenTeaConsts.Required | GreenTeaConsts.AllowSkipIndent);
 		if(!TokenContext.MatchToken(")")) {
 			while(!ApplyNode.IsErrorNode()) {
 				ApplyNode = TokenContext.AppendMatchedPattern(ApplyNode, NameSpace, "$Expression$", GreenTeaConsts.Required);
 				if(TokenContext.MatchToken(")")) {
 					break;
 				}
-				ApplyNode = TokenContext.MatchNodeToken(ApplyNode, NameSpace, ",", GreenTeaConsts.Required | GreenTeaConsts.CloseSkipIndent);
+				ApplyNode = TokenContext.MatchNodeToken(ApplyNode, NameSpace, ",", GreenTeaConsts.Required | GreenTeaConsts.DisallowSkipIndent);
 			}
 		}
 		return ApplyNode;
@@ -2121,9 +2121,9 @@ public class KonohaGrammar {
 	public static GtNode MatchIf(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
 		/*local*/GtNode IfNode = new GtIfNode();
 		IfNode = TokenContext.MatchNodeToken(IfNode, NameSpace, "if", GreenTeaConsts.Required);
-		IfNode = TokenContext.MatchNodeToken(IfNode, NameSpace, "(", GreenTeaConsts.Required | GreenTeaConsts.OpenSkipIndent);
+		IfNode = TokenContext.MatchNodeToken(IfNode, NameSpace, "(", GreenTeaConsts.Required | GreenTeaConsts.AllowSkipIndent);
 		IfNode = TokenContext.AppendMatchedPattern(IfNode, NameSpace, "$Expression$", GreenTeaConsts.Required);
-		IfNode = TokenContext.MatchNodeToken(IfNode, NameSpace, ")", GreenTeaConsts.Required | GreenTeaConsts.CloseSkipIndent);
+		IfNode = TokenContext.MatchNodeToken(IfNode, NameSpace, ")", GreenTeaConsts.Required | GreenTeaConsts.DisallowSkipIndent);
 		IfNode = TokenContext.AppendMatchedPattern(IfNode, NameSpace, "$StmtBlock$", GreenTeaConsts.AllowLineFeed | GreenTeaConsts.Required);
 		TokenContext.SkipEmptyStatement();
 		if(TokenContext.MatchToken2("else", GreenTeaConsts.AllowLineFeed)) {
@@ -2317,7 +2317,7 @@ public class KonohaGrammar {
 			/*local*/GtNode FuncDeclNode = new GtFuncDeclNode(NameToken, NameSpace, NameToken.ParsedText); // FIXME
 //			/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
 //			TypeList.add((GtTypeNode)LeftTree).GetType());
-			FuncDeclNode = TokenContext.MatchNodeToken(FuncDeclNode,  NameSpace, "(", GreenTeaConsts.Required | GreenTeaConsts.OpenSkipIndent);
+			FuncDeclNode = TokenContext.MatchNodeToken(FuncDeclNode,  NameSpace, "(", GreenTeaConsts.Required | GreenTeaConsts.AllowSkipIndent);
 			if(!TokenContext.MatchToken(")")) {
 				while(!FuncDeclNode.IsErrorNode()) {
 					FuncDeclNode = TokenContext.AppendMatchedPattern(FuncDeclNode, NameSpace, "$Param$", GreenTeaConsts.Required);

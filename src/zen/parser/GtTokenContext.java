@@ -337,10 +337,10 @@ public final class GtTokenContext extends GreenTeaUtils {
 				if(Base.SourceToken == null) {
 					Base.SourceToken = Token;
 				}
-				if(IsFlag(MatchFlag, OpenSkipIndent)) {
+				if(IsFlag(MatchFlag, AllowSkipIndent)) {
 					this.SetSkipIndent(true);
 				}
-				if(IsFlag(MatchFlag, CloseSkipIndent)) {
+				if(IsFlag(MatchFlag, DisallowSkipIndent)) {
 					this.SetSkipIndent(false);
 				}
 			}

@@ -49,6 +49,8 @@ import zen.ast.GtSetterNode;
 import zen.ast.GtTypeNode;
 import zen.ast.GtUnaryNode;
 import zen.ast.GtVarDeclNode;
+import zen.ast2.GtBreakNode;
+import zen.ast2.GtWhileNode;
 import zen.deps.LibNative;
 import zen.deps.LibZen;
 import zen.parser.GreenTeaConsts;
@@ -481,7 +483,7 @@ public class ZenGrammar {
 	public static GtNode MatchGroup(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftTree) {
 		/*local*/GtNode GroupNode = new GtGroupNode();
 		TokenContext.Push();
-		GroupNode = TokenContext.MatchNodeToken(GroupNode, NameSpace, "(", GreenTeaConsts.Required | GreenTeaConsts.OpenSkipIndent);
+		GroupNode = TokenContext.MatchNodeToken(GroupNode, NameSpace, "(", GreenTeaConsts.Required | GreenTeaConsts.AllowSkipIndent);
 		GroupNode = TokenContext.AppendMatchedPattern(GroupNode, NameSpace, "$Expression$", GreenTeaConsts.Required);
 		GroupNode = TokenContext.MatchNodeToken(GroupNode, NameSpace, ")", GreenTeaConsts.Required);
 		TokenContext.Pop();
@@ -490,7 +492,7 @@ public class ZenGrammar {
 	
 	public static GtNode MatchCast(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftTree) {
 		/*local*/GtNode CastNode = new GtCastNode();
-		CastNode = TokenContext.MatchNodeToken(CastNode, NameSpace, "(", GreenTeaConsts.Required | GreenTeaConsts.OpenSkipIndent);
+		CastNode = TokenContext.MatchNodeToken(CastNode, NameSpace, "(", GreenTeaConsts.Required | GreenTeaConsts.AllowSkipIndent);
 		CastNode = TokenContext.AppendMatchedPattern(CastNode, NameSpace, "$Type$", GreenTeaConsts.Required);
 		CastNode = TokenContext.MatchNodeToken(CastNode, NameSpace, ")", GreenTeaConsts.Required);
 		CastNode = TokenContext.AppendMatchedPattern(CastNode, NameSpace, "$SuffixExpression$", GreenTeaConsts.Required);
@@ -511,7 +513,7 @@ public class ZenGrammar {
 					if(TokenContext.MatchToken(")")) {
 						break;
 					}
-					ApplyNode = TokenContext.MatchNodeToken(ApplyNode, NameSpace, ",", GreenTeaConsts.Required | GreenTeaConsts.CloseSkipIndent);
+					ApplyNode = TokenContext.MatchNodeToken(ApplyNode, NameSpace, ",", GreenTeaConsts.Required | GreenTeaConsts.DisallowSkipIndent);
 				}
 			}
 			return ApplyNode;
@@ -528,14 +530,14 @@ public class ZenGrammar {
 	
 	public static GtNode MatchApply(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftTree) {
 		/*local*/GtNode ApplyNode = new GtApplyNode(LeftTree);
-		ApplyNode = TokenContext.MatchNodeToken(ApplyNode, NameSpace, "(", GreenTeaConsts.Required | GreenTeaConsts.OpenSkipIndent);
+		ApplyNode = TokenContext.MatchNodeToken(ApplyNode, NameSpace, "(", GreenTeaConsts.Required | GreenTeaConsts.AllowSkipIndent);
 		if(!TokenContext.MatchToken(")")) {
 			while(!ApplyNode.IsErrorNode()) {
 				ApplyNode = TokenContext.AppendMatchedPattern(ApplyNode, NameSpace, "$Expression$", GreenTeaConsts.Required);
 				if(TokenContext.MatchToken(")")) {
 					break;
 				}
-				ApplyNode = TokenContext.MatchNodeToken(ApplyNode, NameSpace, ",", GreenTeaConsts.Required | GreenTeaConsts.CloseSkipIndent);
+				ApplyNode = TokenContext.MatchNodeToken(ApplyNode, NameSpace, ",", GreenTeaConsts.Required | GreenTeaConsts.DisallowSkipIndent);
 			}
 		}
 		return ApplyNode;
@@ -615,7 +617,7 @@ public class ZenGrammar {
 			/*local*/GtToken NameToken = TokenContext.Next();
 			FuncNode = new GtFuncDeclNode(FuncToken, NameSpace, NameToken.ParsedText);
 		}
-		FuncNode = TokenContext.MatchNodeToken(FuncNode,  NameSpace, "(", GreenTeaConsts.Required | GreenTeaConsts.OpenSkipIndent);
+		FuncNode = TokenContext.MatchNodeToken(FuncNode,  NameSpace, "(", GreenTeaConsts.Required | GreenTeaConsts.AllowSkipIndent);
 		if(!TokenContext.MatchToken(")")) {
 			while(!FuncNode.IsErrorNode()) {
 				FuncNode = TokenContext.AppendMatchedPattern(FuncNode, NameSpace, "$Param$", GreenTeaConsts.Required);
@@ -1182,13 +1184,13 @@ public class ZenGrammar {
 	public static GtNode MatchIf(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
 		/*local*/GtNode IfNode = new GtIfNode();
 		IfNode = TokenContext.MatchNodeToken(IfNode, NameSpace, "if", GreenTeaConsts.Required);
-		IfNode = TokenContext.MatchNodeToken(IfNode, NameSpace, "(", GreenTeaConsts.Required | GreenTeaConsts.OpenSkipIndent);
+		IfNode = TokenContext.MatchNodeToken(IfNode, NameSpace, "(", GreenTeaConsts.Required | GreenTeaConsts.AllowSkipIndent);
 		IfNode = TokenContext.AppendMatchedPattern(IfNode, NameSpace, "$Expression$", GreenTeaConsts.Required);
-		IfNode = TokenContext.MatchNodeToken(IfNode, NameSpace, ")", GreenTeaConsts.Required | GreenTeaConsts.CloseSkipIndent);
-		IfNode = TokenContext.AppendMatchedPattern(IfNode, NameSpace, "$StmtBlock$", GreenTeaConsts.AllowLineFeed | GreenTeaConsts.Required);
-		TokenContext.SkipEmptyStatement();
+		IfNode = TokenContext.MatchNodeToken(IfNode, NameSpace, ")", GreenTeaConsts.Required | GreenTeaConsts.DisallowSkipIndent);
+		IfNode = TokenContext.AppendMatchedPattern(IfNode, NameSpace, "$Block$", GreenTeaConsts.Required);
+//		TokenContext.SkipEmptyStatement();
 		if(TokenContext.MatchToken2("else", GreenTeaConsts.AllowLineFeed)) {
-			IfNode = TokenContext.AppendMatchedPattern(IfNode, NameSpace, "$StmtBlock$", GreenTeaConsts.AllowLineFeed | GreenTeaConsts.Required);
+			IfNode = TokenContext.AppendMatchedPattern(IfNode, NameSpace, "$Block$", GreenTeaConsts.Required);
 		}
 		return IfNode;
 	}
@@ -1198,6 +1200,22 @@ public class ZenGrammar {
 		ReturnNode = TokenContext.MatchNodeToken(ReturnNode, NameSpace, "return", GreenTeaConsts.Required);
 		ReturnNode = TokenContext.AppendMatchedPattern(ReturnNode, NameSpace, "$Expression$", GreenTeaConsts.Optional);
 		return ReturnNode;
+	}
+
+	public static GtNode MatchWhile(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
+		/*local*/GtNode WhileNode = new GtWhileNode();
+		WhileNode = TokenContext.MatchNodeToken(WhileNode, NameSpace, "while", GreenTeaConsts.Required);
+		WhileNode = TokenContext.MatchNodeToken(WhileNode, NameSpace, "(", GreenTeaConsts.Required | GreenTeaConsts.AllowSkipIndent);
+		WhileNode = TokenContext.AppendMatchedPattern(WhileNode, NameSpace, "$Expression$", GreenTeaConsts.Required);
+		WhileNode = TokenContext.MatchNodeToken(WhileNode, NameSpace, ")", GreenTeaConsts.Required | GreenTeaConsts.DisallowSkipIndent);
+		WhileNode = TokenContext.AppendMatchedPattern(WhileNode, NameSpace, "$Block$", GreenTeaConsts.Required);
+		return WhileNode;
+	}
+
+	public static GtNode MatchBreak(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
+		/*local*/GtNode BreakNode = new GtBreakNode();
+		BreakNode = TokenContext.MatchNodeToken(BreakNode, NameSpace, "break", GreenTeaConsts.Required);
+		return BreakNode;
 	}
 
 	public static GtNode MatchLetDecl(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
