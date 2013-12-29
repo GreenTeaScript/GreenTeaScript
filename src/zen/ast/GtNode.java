@@ -109,10 +109,10 @@ public abstract class GtNode {
 		return null;
 	}
 
-	public GtNode Append(GtNode Node) {
+	public void Append(GtNode Node) {
 		this.GetList().add(Node);
 		this.SetChild(Node);
-		return this;
+		/*return this;*/
 	}
 
 	public final GtNode Done() {

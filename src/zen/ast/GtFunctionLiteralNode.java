@@ -41,7 +41,7 @@ public class GtFunctionLiteralNode extends GtNode {
 		this.ArgumentList = new ArrayList<GtNode>();
 		this.BodyNode = null;
 	}
-	@Override public GtNode Append(GtNode Node) {
+	@Override public void Append(GtNode Node) {
 		if(Node instanceof GtParamNode) {
 			this.ArgumentList.add(Node);
 		}
@@ -51,7 +51,7 @@ public class GtFunctionLiteralNode extends GtNode {
 		else if(Node instanceof GtBlockNode) {
 			this.BodyNode = Node;
 		}
-		return this;
+		/*return this;*/
 	}
 	@Override public boolean Accept(GtVisitor Visitor) {
 		return Visitor.VisitFunctionLiteralNode(this);

@@ -36,11 +36,11 @@ final public class GtGroupNode extends GtNode {
 		super(GtStaticTable.VarType, null);
 		this.RecvNode = null;
 	}
-	@Override public GtNode Append(GtNode Node) {
+	@Override public void Append(GtNode Node) {
 		this.RecvNode = Node;
 		this.SetChild(this.RecvNode);
 		this.Type = Node.Type;
-		return this;
+		/*return this;*/
 	}
 	@Override public boolean Accept(GtVisitor Visitor) {
 		return Visitor.VisitGroupNode(this);

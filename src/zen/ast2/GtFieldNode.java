@@ -36,10 +36,10 @@ final public class GtFieldNode extends GtParamNode {
 		super(Type, Token, Name); // TODO
 		this.InitNode = null;
 	}
-	@Override public GtNode Append(GtNode Node) {
+	@Override public void Append(GtNode Node) {
 		this.InitNode = Node;
 		this.SetChild(Node);
-		return this;
+		/*return this;*/
 	}
 
 }

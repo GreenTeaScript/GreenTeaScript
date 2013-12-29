@@ -38,10 +38,10 @@ final public class GtSetterNode extends GtSymbolNode {
 		this.ValueNode = null;
 		this.SetChild(RecvNode);
 	}
-	@Override public GtNode Append(GtNode Node) {
+	@Override public void Append(GtNode Node) {
 		this.SetChild(Node);
 		this.ValueNode = Node;
-		return this;
+		/*return this;*/
 	}
 	@Override public boolean Accept(GtVisitor Visitor) {
 		return Visitor.VisitSetterNode(this);

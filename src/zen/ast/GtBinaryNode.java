@@ -40,10 +40,10 @@ public class GtBinaryNode extends GtNode {
 		this.Pattern = Pattern;
 		this.SetChild(Left);
 	}
-	@Override public final GtNode Append(GtNode Node) {
+	@Override public final void Append(GtNode Node) {
 		this.RightNode = Node;
 		this.SetChild(this.RightNode);
-		return this;
+		/*return this;*/
 	}
 	@Override public boolean Accept(GtVisitor Visitor) {
 		return Visitor.VisitBinaryNode(this);

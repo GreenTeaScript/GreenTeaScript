@@ -39,7 +39,7 @@ final public class GtIfNode extends GtNode {
 		this.ThenNode = null;
 		this.ElseNode = null;
 	}
-	@Override public final GtNode Append(GtNode Node) {
+	@Override public final void Append(GtNode Node) {
 		this.SetChild(Node);
 		if(this.CondNode == null) {
 			this.CondNode = Node;
@@ -50,7 +50,7 @@ final public class GtIfNode extends GtNode {
 		else {
 			this.ElseNode = Node;
 		}
-		return this;
+		/*return this;*/
 	}
 	@Override public boolean Accept(GtVisitor Visitor) {
 		return Visitor.VisitIfNode(this);

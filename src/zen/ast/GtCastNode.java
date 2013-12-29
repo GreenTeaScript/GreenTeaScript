@@ -40,7 +40,7 @@ final public class GtCastNode extends GtNode {
 		this.CastTypeNode = null;
 		this.ExprNode = null;
 	}
-	@Override public GtNode Append(GtNode Node) {
+	@Override public void Append(GtNode Node) {
 		this.SetChild(Node);
 		if(this.CastTypeNode == null) {
 			this.CastTypeNode = (GtTypeNode)Node;
@@ -49,7 +49,7 @@ final public class GtCastNode extends GtNode {
 		else {
 			this.ExprNode = Node;
 		}
-		return this;
+		/*return this;*/
 	}
 	@Override public boolean Accept(GtVisitor Visitor) {
 		return Visitor.VisitCastNode(this);

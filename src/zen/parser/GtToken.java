@@ -25,7 +25,6 @@
 //ifdef JAVA
 package zen.parser;
 
-import zen.deps.LibNative;
 
 final public class GtToken extends GreenTeaUtils {
 	/*field*/public int		        TokenFlag;
@@ -80,20 +79,20 @@ final public class GtToken extends GreenTeaUtils {
 		return TokenText + this.ParsedText;
 	}
 
-	public String SetErrorMessage(String Message, GtSyntaxPattern ErrorPattern) {
-		if(this.ParsedText.length() > 0) {  // skip null token
-			this.TokenFlag = ErrorTokenFlag;
-			this.ParsedText = Message;
-			this.PresetPattern = ErrorPattern;
-		}
-		return Message;
-	}
-
-	public String GetErrorMessage() {
-		LibNative.Assert(this.IsError());
-		return this.ParsedText;
-	}
-
+//	public String SetErrorMessage(String Message, GtSyntaxPattern ErrorPattern) {
+//		if(this.ParsedText.length() > 0) {  // skip null token
+//			this.TokenFlag = ErrorTokenFlag;
+//			this.ParsedText = Message;
+//			this.PresetPattern = ErrorPattern;
+//		}
+//		return Message;
+//	}
+//
+//	public String GetErrorMessage() {
+//		LibNative.Assert(this.IsError());
+//		return this.ParsedText;
+//	}
+//
 	public final GtToken AddTypeInfoToErrorMessage(GtType ClassType) {
 		this.ParsedText += " of " + ClassType.ShortName;
 		return this;

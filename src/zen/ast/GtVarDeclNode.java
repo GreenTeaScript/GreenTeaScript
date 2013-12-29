@@ -39,7 +39,7 @@ final public class GtVarDeclNode extends GtBlockNode {
 		this.NativeName = null;
 		this.InitNode  = null;
 	}
-	@Override public GtNode Append(GtNode Node) {
+	@Override public void Append(GtNode Node) {
 		if(this.InitNode != null) {
 			super.Append(Node);
 		}
@@ -55,7 +55,7 @@ final public class GtVarDeclNode extends GtBlockNode {
 				this.SetChild(Node);
 			}
 		}
-		return this;
+		/*return this;*/
 	}
 
 	@Override public boolean Accept(GtVisitor Visitor) {

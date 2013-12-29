@@ -25,11 +25,11 @@
 //ifdef JAVA
 package zen.parser;
 import java.util.ArrayList;
-//endif VAJA
 
-import zen.deps.LibZen;
 import zen.deps.LibNative;
+import zen.deps.LibZen;
 import zen.obsolete.GtClassField;
+//endif VAJA
 
 public class GtType extends GreenTeaUtils {
 	/*field*/public int				TypeFlag;

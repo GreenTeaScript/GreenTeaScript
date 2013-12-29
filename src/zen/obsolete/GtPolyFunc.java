@@ -62,7 +62,7 @@ public class GtPolyFunc {
 			while(i < this.FuncList.size()) {
 				/*local*/GtFunc ListedFunc = this.FuncList.get(i);
 				if(ListedFunc == Func) {
-					return this; /* same function */
+					/*return this;*/ /* same function */
 				}
 				if(Func.EqualsType(ListedFunc)) {
 					this.Generator.ReportError(GreenTeaConsts.WarningLevel, SourceToken, "duplicated symbol: " + SourceToken.ParsedText);

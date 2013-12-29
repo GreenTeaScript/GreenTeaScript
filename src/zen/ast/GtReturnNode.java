@@ -24,8 +24,8 @@
 
 package zen.ast;
 
-import zen.parser.GtVisitor;
 import zen.parser.GtStaticTable;
+import zen.parser.GtVisitor;
 
 final public class GtReturnNode extends GtNode {
 	/*field*/public GtNode ValueNode;
@@ -33,10 +33,9 @@ final public class GtReturnNode extends GtNode {
 		super(GtStaticTable.VarType, null);
 		this.ValueNode = null;
 	}
-	@Override public GtNode Append(GtNode ValueNode) {
+	@Override public void Append(GtNode ValueNode) {
 		this.ValueNode = ValueNode;
 		this.SetChild(ValueNode);
-		return null;
 	}
 	@Override public boolean Accept(GtVisitor Visitor) {
 		return Visitor.VisitReturnNode(this);

@@ -37,10 +37,10 @@ public class GtBlockNode extends GtNode {
 		super(GtStaticTable.VarType, SourceToken);
 		this.NodeList = new ArrayList<GtNode>();
 	}
-	@Override public GtNode Append(GtNode Node) {
+	@Override public void Append(GtNode Node) {
 		this.NodeList.add(Node);
 		this.SetChild(Node);
-		return this;
+		/*return this;*/
 	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
 		return null;

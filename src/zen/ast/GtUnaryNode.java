@@ -37,10 +37,10 @@ final public class GtUnaryNode extends GtNode {
 	public GtUnaryNode/*constructor*/(GtToken Token) {
 		super(GtStaticTable.VarType, Token);
 	}
-	@Override public GtNode Append(GtNode RecvNode) {
+	@Override public void Append(GtNode RecvNode) {
 		this.RecvNode = RecvNode;
 		this.SetChild(RecvNode);
-		return this;
+		/*return this;*/
 	}
 	@Override public boolean Accept(GtVisitor Visitor) {
 		return Visitor.VisitUnaryNode(this);

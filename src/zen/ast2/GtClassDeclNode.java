@@ -45,14 +45,14 @@ final public class GtClassDeclNode extends GtNode {
 		this.FieldList = new ArrayList<GtNode>();
 		this.MemberList = new ArrayList<GtNode>();
 	}
-	@Override public GtNode Append(GtNode Node) {
+	@Override public void Append(GtNode Node) {
 		if(Node instanceof GtFuncDeclNode) {
 			this.MemberList.add(Node);
 		}
 		if(Node instanceof GtFieldNode) {
 			this.FieldList.add(Node);
 		}
-		return this;
+		/*return this;*/
 	}
 //	@Override public boolean Accept(GtVisitor Visitor) {
 //		return Visitor.VisitClassDeclNode(this);
