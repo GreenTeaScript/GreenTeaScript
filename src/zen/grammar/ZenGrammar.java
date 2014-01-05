@@ -393,6 +393,9 @@ public class ZenGrammar {
 
 	public static GtNode MatchSymbol(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
 		/*local*/GtToken Token = TokenContext.Next();
+		if(!Token.IsNameSymbol()) {
+			return GtErrorNode.CreateExpectedToken(Token, "identifier");
+		}
 		/*local*/GtNode AssignedNode = null;
 		if(TokenContext.MatchToken("=")) {
 			AssignedNode = TokenContext.ParsePattern(NameSpace, "$Expression$", GreenTeaConsts.Required);
@@ -417,12 +420,12 @@ public class ZenGrammar {
 	public static GtNode MatchExpression(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
 		GtSyntaxPattern Pattern = TokenContext.GetFirstPattern(NameSpace);
 		LeftNode = GtSyntaxPattern.ApplyMatchPattern(NameSpace, TokenContext, LeftNode, Pattern);
-		while(LeftNode != null) { //GreenTeaUtils.IsMismatchedOrError(LeftNode)) {
-			/*local*/GtSyntaxPattern ExtendedPattern = TokenContext.GetExtendedPattern(NameSpace);
-			if(ExtendedPattern == null) {
+		while(LeftNode != null) {
+			/*local*/GtSyntaxPattern SuffixPattern = TokenContext.GetSuffixPattern(NameSpace);
+			if(SuffixPattern == null) {
 				break;
 			}
-			LeftNode = GtSyntaxPattern.ApplyMatchPattern(NameSpace, TokenContext, LeftNode, ExtendedPattern);
+			LeftNode = GtSyntaxPattern.ApplyMatchPattern(NameSpace, TokenContext, LeftNode, SuffixPattern);
 		}
 		return LeftNode;
 	}
@@ -431,11 +434,11 @@ public class ZenGrammar {
 		GtSyntaxPattern Pattern = TokenContext.GetFirstPattern(NameSpace);
 		LeftNode = GtSyntaxPattern.ApplyMatchPattern(NameSpace, TokenContext, LeftNode, Pattern);
 		while(LeftNode != null) {
-			/*local*/GtSyntaxPattern ExtendedPattern = TokenContext.GetExtendedPattern(NameSpace);
-			if(ExtendedPattern == null || ExtendedPattern.IsBinaryOperator()) {
+			/*local*/GtSyntaxPattern SuffixPattern = TokenContext.GetSuffixPattern(NameSpace);
+			if(SuffixPattern == null || SuffixPattern.IsBinaryOperator()) {
 				break;
 			}
-			LeftNode = GtSyntaxPattern.ApplyMatchPattern(NameSpace, TokenContext, LeftNode, ExtendedPattern);
+			LeftNode = GtSyntaxPattern.ApplyMatchPattern(NameSpace, TokenContext, LeftNode, SuffixPattern);
 		}
 		return LeftNode;
 	}

@@ -490,11 +490,11 @@ public class KonohaGrammar {
 		GtSyntaxPattern Pattern = TokenContext.GetFirstPattern(NameSpace);
 		LeftNode = GtSyntaxPattern.ApplyMatchPattern(NameSpace, TokenContext, LeftNode, Pattern);
 		while(LeftNode != null) { //GreenTeaUtils.IsMismatchedOrError(LeftNode)) {
-			/*local*/GtSyntaxPattern ExtendedPattern = TokenContext.GetExtendedPattern(NameSpace);
-			if(ExtendedPattern == null) {
+			/*local*/GtSyntaxPattern SuffixPattern = TokenContext.GetSuffixPattern(NameSpace);
+			if(SuffixPattern == null) {
 				break;
 			}
-			LeftNode = GtSyntaxPattern.ApplyMatchPattern(NameSpace, TokenContext, LeftNode, ExtendedPattern);
+			LeftNode = GtSyntaxPattern.ApplyMatchPattern(NameSpace, TokenContext, LeftNode, SuffixPattern);
 		}
 		return LeftNode;
 	}
@@ -503,11 +503,11 @@ public class KonohaGrammar {
 		GtSyntaxPattern Pattern = TokenContext.GetFirstPattern(NameSpace);
 		LeftNode = GtSyntaxPattern.ApplyMatchPattern(NameSpace, TokenContext, LeftNode, Pattern);
 		while(LeftNode != null) {
-			/*local*/GtSyntaxPattern ExtendedPattern = TokenContext.GetExtendedPattern(NameSpace);
-			if(ExtendedPattern == null || ExtendedPattern.IsBinaryOperator()) {
+			/*local*/GtSyntaxPattern SuffixPattern = TokenContext.GetSuffixPattern(NameSpace);
+			if(SuffixPattern == null || SuffixPattern.IsBinaryOperator()) {
 				break;
 			}
-			LeftNode = GtSyntaxPattern.ApplyMatchPattern(NameSpace, TokenContext, LeftNode, ExtendedPattern);
+			LeftNode = GtSyntaxPattern.ApplyMatchPattern(NameSpace, TokenContext, LeftNode, SuffixPattern);
 		}
 		return LeftNode;
 	}
@@ -864,11 +864,11 @@ public class KonohaGrammar {
 //		Pattern = TokenContext.GetFirstPattern(NameSpace);
 //		LeftTree = GreenTeaUtils.ApplySyntaxPattern_OLD(NameSpace, TokenContext, LeftTree, Pattern);
 //		while(!GreenTeaUtils.IsMismatchedOrError(LeftTree)) {
-//			/*local*/GtSyntaxPattern ExtendedPattern = TokenContext.GetExtendedPattern(NameSpace);
-//			if(ExtendedPattern == null) {
+//			/*local*/GtSyntaxPattern SuffixPattern = TokenContext.GetSuffixPattern(NameSpace);
+//			if(SuffixPattern == null) {
 //				break;
 //			}
-//			LeftTree = GreenTeaUtils.ApplySyntaxPattern_OLD(NameSpace, TokenContext, LeftTree, ExtendedPattern);
+//			LeftTree = GreenTeaUtils.ApplySyntaxPattern_OLD(NameSpace, TokenContext, LeftTree, SuffixPattern);
 //		}
 //		return LeftTree;
 //	}
@@ -877,11 +877,11 @@ public class KonohaGrammar {
 //		Pattern = TokenContext.GetFirstPattern(NameSpace);
 //		LeftTree = GreenTeaUtils.ApplySyntaxPattern_OLD(NameSpace, TokenContext, LeftTree, Pattern);
 //		while(!GreenTeaUtils.IsMismatchedOrError(LeftTree)) {
-//			/*local*/GtSyntaxPattern ExtendedPattern = TokenContext.GetExtendedPattern(NameSpace);
-//			if(ExtendedPattern == null || ExtendedPattern.IsBinaryOperator()) {
+//			/*local*/GtSyntaxPattern SuffixPattern = TokenContext.GetSuffixPattern(NameSpace);
+//			if(SuffixPattern == null || SuffixPattern.IsBinaryOperator()) {
 //				break;
 //			}
-//			LeftTree = GreenTeaUtils.ApplySyntaxPattern_OLD(NameSpace, TokenContext, LeftTree, ExtendedPattern);
+//			LeftTree = GreenTeaUtils.ApplySyntaxPattern_OLD(NameSpace, TokenContext, LeftTree, SuffixPattern);
 //		}
 //		return LeftTree;
 //	}

@@ -26,12 +26,12 @@
 package zen.parser;
 import java.util.ArrayList;
 
-//endif VAJA
 import zen.ast.GtErrorNode;
 import zen.ast.GtNode;
-import zen.deps.LibZen;
 import zen.deps.LibNative;
+import zen.deps.LibZen;
 import zen.obsolete.GtSyntaxTree;
+//endif VAJA
 
 public final class GtTokenContext extends GreenTeaUtils {
 	/*field*/public final static GtToken NullToken = new GtToken("", 0);
@@ -278,9 +278,9 @@ public final class GtTokenContext extends GreenTeaUtils {
 		}
 	}
 
-	public GtSyntaxPattern GetPattern(String PatternName) {
-		return this.TopLevelNameSpace.GetSyntaxPattern(PatternName);
-	}
+//	public GtSyntaxPattern GetPattern(String PatternName) {
+//		return this.TopLevelNameSpace.GetSyntaxPattern(PatternName);
+//	}
 
 	public GtSyntaxPattern GetFirstPattern(GtNameSpace NameSpace) {
 		/*local*/GtToken Token = this.GetToken();
@@ -294,7 +294,7 @@ public final class GtTokenContext extends GreenTeaUtils {
 		return Pattern;
 	}
 
-	public GtSyntaxPattern GetExtendedPattern(GtNameSpace NameSpace) {
+	public GtSyntaxPattern GetSuffixPattern(GtNameSpace NameSpace) {
 		/*local*/GtToken Token = this.GetToken();
 		if(Token != GtTokenContext.NullToken) {
 			/*local*/GtSyntaxPattern Pattern = NameSpace.GetExtendedSyntaxPattern(Token.ParsedText);
@@ -390,22 +390,6 @@ public final class GtTokenContext extends GreenTeaUtils {
 		return false;
 	}
 
-//	public GtSyntaxTree CreateSyntaxTree(GtNameSpace NameSpace, Object Pattern, Object ConstValue) {
-//		if(ConstValue != null) {
-//			Pattern = NameSpace.GetSyntaxPattern("$Const$");
-//		}
-//		if(Pattern instanceof String) {
-//			Pattern = NameSpace.GetSyntaxPattern(Pattern.toString());
-//		}
-//		return new GtSyntaxTree((/*cast*/GtSyntaxPattern)Pattern, NameSpace, this.GetToken(), ConstValue);
-//	}
-//
-//	public GtSyntaxTree CreateMatchedSyntaxTree(GtNameSpace NameSpace, GtSyntaxPattern Pattern, String TokenText) {
-//		/*local*/GtSyntaxTree SyntaxTree = this.CreateSyntaxTree(NameSpace, Pattern, null);
-//		SyntaxTree.SetMatchedTokenAt(KeyTokenIndex, NameSpace, this, TokenText, Required);
-//		return SyntaxTree;
-//	}
-
 	public final boolean IsAllowedBackTrack() {
 		return IsFlag(this.ParseFlag, BackTrackParseFlag);
 	}
@@ -442,7 +426,7 @@ public final class GtTokenContext extends GreenTeaUtils {
 		if(IsFlag(MatchFlag, Optional)) {
 			this.ParseFlag = this.ParseFlag | BackTrackParseFlag;
 		}
-		/*local*/GtSyntaxPattern Pattern = this.GetPattern(PatternName);
+		/*local*/GtSyntaxPattern Pattern = this.TopLevelNameSpace.GetSyntaxPattern(PatternName);
 		/*local*/GtNode ParsedNode = GtSyntaxPattern.ApplyMatchPattern(NameSpace, this, LeftNode, Pattern);
 		this.ParseFlag = ParseFlag;
 		if(ParsedNode != null) {
@@ -461,29 +445,7 @@ public final class GtTokenContext extends GreenTeaUtils {
 		return this.ParsePatternAfter(NameSpace, null, PatternName, MatchFlag);
 	}
 
-//	public final GtSyntaxTree ParsePatternAfter_OLD(GtNameSpace NameSpace, GtSyntaxTree LeftTree, String PatternName, int MatchFlag) {
-//		/*local*/int Pos = this.GetPosition(MatchFlag);
-//		/*local*/int ParseFlag = this.ParseFlag;
-//		if(IsFlag(MatchFlag, Optional)) {
-//			this.ParseFlag = this.ParseFlag | BackTrackParseFlag;
-//		}
-//		/*local*/GtSyntaxPattern Pattern = this.GetPattern(PatternName);
-//		if(Pattern == null) {
-//			System.err.println("unknown pattern: " + PatternName);
-//		}
-//		/*local*/GtSyntaxTree SyntaxTree = GreenTeaUtils.ApplySyntaxPattern_OLD(NameSpace, this, LeftTree, Pattern);
-//		this.ParseFlag = ParseFlag;
-//		if(SyntaxTree != null) {
-//			return SyntaxTree;
-//		}
-//		this.RollbackPosition(Pos, MatchFlag);
-//		return null;
-//	}
-//
-//	public final GtSyntaxTree ParsePattern_OLD(GtNameSpace NameSpace, String PatternName, int MatchFlag) {
-//		return this.ParsePatternAfter_OLD(NameSpace, null, PatternName, MatchFlag);
-//	}
-
+	
 	public final GtMap SkipAndGetAnnotation(boolean IsAllowedDelim) {
 		// this is tentative implementation. In the future, you have to
 		// use this pattern.
