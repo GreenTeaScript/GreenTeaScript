@@ -69,7 +69,7 @@ import zen.parser.ZenTypeSystem;
 
 //endif VAJA
 
-public class SugarlessGrammar {
+public class ZenGrammar {
 	// Token
 	public static long WhiteSpaceToken(GtTokenContext TokenContext, String SourceText, long pos) {
 		TokenContext.FoundWhiteSpace();
@@ -198,7 +198,7 @@ public class SugarlessGrammar {
 				}
 				NextPos = NextPos + 1;
 			}
-			return SugarlessGrammar.IndentToken(TokenContext, SourceText, NextPos);
+			return ZenGrammar.IndentToken(TokenContext, SourceText, NextPos);
 		}
 		return ZenParserConst.MismatchedPosition;
 	}
@@ -287,7 +287,7 @@ public class SugarlessGrammar {
 		/*local*/long start = pos;
 		pos = pos + 1; // eat "\""
 		while(pos < SourceText.length()) {
-			pos = SugarlessGrammar.SkipBackSlashOrNewLineOrDoubleQuote(SourceText, pos);
+			pos = ZenGrammar.SkipBackSlashOrNewLineOrDoubleQuote(SourceText, pos);
 			/*local*/char ch = LibZen.CharAt(SourceText, pos);
 			if(ch == '\\') {
 				if(pos + 1 < SourceText.length()) {
@@ -488,7 +488,7 @@ public class SugarlessGrammar {
 	private static GtNode RightJoin(GtNameSpace NameSpace, GtNode LeftNode, GtSyntaxPattern Pattern, GtToken Token, GtBinaryNode RightNode) {
 		/*local*/GtNode RightLeftNode = RightNode.LeftNode;
 		if(RightLeftNode instanceof GtBinaryNode && Pattern.IsRightJoin(((GtBinaryNode)RightLeftNode).Pattern)) {
-			RightNode.LeftNode = SugarlessGrammar.RightJoin(NameSpace, LeftNode, Pattern, Token, (GtBinaryNode) RightLeftNode);
+			RightNode.LeftNode = ZenGrammar.RightJoin(NameSpace, LeftNode, Pattern, Token, (GtBinaryNode) RightLeftNode);
 		}
 		else {
 			/*local*/GtBinaryNode BinaryNode = new GtBinaryNode(Token, LeftNode, Pattern);
@@ -507,7 +507,7 @@ public class SugarlessGrammar {
 		}
 		/*local*/GtSyntaxPattern Pattern = NameSpace.GetExtendedSyntaxPattern(Token.ParsedText);  // FIXME
 		if(RightNode instanceof GtBinaryNode && Pattern.IsRightJoin(((GtBinaryNode)RightNode).Pattern)) {
-			return SugarlessGrammar.RightJoin(NameSpace, LeftNode, Pattern, Token, (GtBinaryNode) RightNode);
+			return ZenGrammar.RightJoin(NameSpace, LeftNode, Pattern, Token, (GtBinaryNode) RightNode);
 		}
 		// LeftJoin
 		/*local*/GtBinaryNode BinaryNode = new GtBinaryNode(Token, LeftNode, Pattern);
@@ -839,6 +839,7 @@ public class SugarlessGrammar {
 		NameSpace.AppendSyntax("while", LibNative.LoadMatchFunc(Grammar, "MatchWhile"));
 		NameSpace.AppendSyntax("break", LibNative.LoadMatchFunc(Grammar, "MatchBreak"));		
 		NameSpace.AppendSyntax("try", LibNative.LoadMatchFunc(Grammar, "MatchTry"));
+		NameSpace.AppendSyntax("$Catch$", LibNative.LoadMatchFunc(Grammar, "MatchCatch"));
 		NameSpace.AppendSyntax("throw", LibNative.LoadMatchFunc(Grammar, "MatchThrow"));
 
 		NameSpace.AppendSyntax("$Identifier$", LibNative.LoadMatchFunc(Grammar, "MatchIdentifier"));
