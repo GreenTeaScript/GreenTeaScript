@@ -36,13 +36,13 @@ final public class GtConstructorNode extends GtNode {
 	/*field*/public ArrayList<GtNode>	ParamList;
 	/*field*/public GtFunc Func;
 	public GtConstructorNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func) {
-		super(Type, Token);
+		super();
 		this.ParamList = new ArrayList<GtNode>();
 		this.Func = Func;
 	}
-	@Override public final ArrayList<GtNode> GetList() {
-		return this.ParamList;
-	}
+//	@Override public final ArrayList<GtNode> GetList() {
+//		return this.ParamList;
+//	}
 //	@Override public boolean Accept(GtVisitor Visitor) {
 //		return Visitor.VisitConstructorNode(this);
 //	}

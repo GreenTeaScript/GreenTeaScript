@@ -24,26 +24,23 @@
 
 package zen.ast;
 
-import zen.parser.GtVisitor;
-import zen.parser.ZenTypeSystem;
 import zen.parser.GtSyntaxPattern;
 import zen.parser.GtToken;
+import zen.parser.GtVisitor;
 
 public class GtBinaryNode extends GtNode {
 	/*field*/public GtNode   LeftNode;
 	/*field*/public GtNode	 RightNode;
 	/*field*/public GtSyntaxPattern Pattern;
 	public GtBinaryNode/*constructor*/(GtToken SourceToken, GtNode Left, GtSyntaxPattern Pattern) {
-		super(ZenTypeSystem.VarType, SourceToken);
-		this.LeftNode  = Left;
+		super();
+		this.SourceToken = SourceToken;
+		this.LeftNode  = this.SetChild(Left);
 		this.RightNode = null;
 		this.Pattern = Pattern;
-		this.SetChild(Left);
 	}
 	@Override public final void Append(GtNode Node) {
-		this.RightNode = Node;
-		this.SetChild(this.RightNode);
-		/*return this;*/
+		this.RightNode = this.SetChild(this.RightNode);
 	}
 	@Override public boolean Accept(GtVisitor Visitor) {
 		return Visitor.VisitBinaryNode(this);

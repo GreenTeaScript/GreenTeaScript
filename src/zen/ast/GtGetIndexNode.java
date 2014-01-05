@@ -24,24 +24,27 @@
 
 package zen.ast;
 
-import zen.parser.GtNameSpace;
-import zen.parser.GtToken;
 import zen.parser.GtVisitor;
 import zen.parser.ZenTypeSystem;
 
-final public class GtIntNode extends GtConstNode {
-	/*field*/public long	Value;
-	public GtIntNode/*constructor*/(GtToken Token, long Value) {
-		super(ZenTypeSystem.IntType, Token);
-		this.Value = Value;
+//E.g., $Recv[$Index]
+final public class GtGetIndexNode extends GtNode {
+	/*field*/public GtNode  RecvNode;
+	/*field*/public GtNode  IndexNode;
+	public GtGetIndexNode/*constructor*/(GtNode RecvNode) {
+		super();
+		this.RecvNode = RecvNode;
+		this.SetChild(RecvNode);
+		this.IndexNode = null;
 	}
-	@Override public final Object GetValue() {
-		return this.Value;
+	@Override public void Append(GtNode Node) {
+		this.IndexNode = Node;
+		this.SetChild(Node);
 	}
 	@Override public boolean Accept(GtVisitor Visitor) {
-		return Visitor.VisitIntNode(this);
+		return Visitor.VisitGetIndexNode(this);
 	}
-	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-		return this.Value;
-	}
+//	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
+//		return null;
+//	}
 }

@@ -34,12 +34,12 @@ import zen.parser.GtType;
 final public class GtNewArrayNode extends GtNode {
 	/*field*/public ArrayList<GtNode>	NodeList;
 	public GtNewArrayNode/*constructor*/(GtType Type, GtToken Token) {
-		super(Type, Token);
+		super();
 		this.NodeList = new ArrayList<GtNode>();
 	}
-	@Override public ArrayList<GtNode> GetList() {
-		return this.NodeList;
-	}
+//	@Override public ArrayList<GtNode> GetList() {
+//		return this.NodeList;
+//	}
 //	@Override public boolean Accept(GtVisitor Visitor) {
 //		return Visitor.VisitNewArrayNode(this);
 //	}

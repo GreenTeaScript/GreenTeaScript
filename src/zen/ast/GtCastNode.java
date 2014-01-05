@@ -26,30 +26,25 @@ package zen.ast;
 
 import zen.deps.LibZen;
 import zen.parser.GtNameSpace;
-import zen.parser.ZenTypeSystem;
-import zen.parser.GtToken;
 import zen.parser.GtType;
 import zen.parser.GtVisitor;
 
 //E.g., (T) $Expr
 final public class GtCastNode extends GtNode {
-	/*field*/public GtTypeNode	CastTypeNode;
 	/*field*/public GtNode	ExprNode;
-	public GtCastNode/*constructor*/() {
-		super(ZenTypeSystem.VarType, null);
-		this.CastTypeNode = null;
-		this.ExprNode = null;
+	public GtCastNode/*constructor*/(GtType CastType, GtNode Node) {
+		super();
+		this.Type = CastType;
+		this.ExprNode = this.SetChild(Node);
 	}
 	@Override public void Append(GtNode Node) {
 		this.SetChild(Node);
-		if(this.CastTypeNode == null) {
-			this.CastTypeNode = (GtTypeNode)Node;
-			this.Type = this.CastTypeNode.Type;
+		if(Node instanceof GtTypeNode) {
+			this.Type = Node.Type;
 		}
 		else {
-			this.ExprNode = Node;
+			this.ExprNode = this.SetChild(Node);
 		}
-		/*return this;*/
 	}
 	@Override public boolean Accept(GtVisitor Visitor) {
 		return Visitor.VisitCastNode(this);
@@ -60,12 +55,5 @@ final public class GtCastNode extends GtNode {
 			return LibZen.DynamicCast(this.Type, Value);
 		}
 		return Value;
-	}
-
-	@Deprecated
-	public GtCastNode/*constructor*/(GtType Type, GtToken Token, GtType CastType, GtNode Expr) {
-		super(Type, Token);
-		//		this.CastType = CastType;
-		//		this.Expr = Expr;
 	}
 }

@@ -25,14 +25,14 @@
 package zen.ast;
 
 import zen.parser.GtNameSpace;
-import zen.parser.GtVisitor;
 import zen.parser.GtToken;
-import zen.parser.GtType;
+import zen.parser.GtVisitor;
+import zen.parser.ZenTypeSystem;
 
 final public class GtFloatNode extends GtConstNode {
 	/*field*/public double	Value;
-	public GtFloatNode/*constructor*/(GtType Type, GtToken Token, double Value) {
-		super(Type, Token);
+	public GtFloatNode/*constructor*/(GtToken Token, double Value) {
+		super(ZenTypeSystem.IntType, Token);
 		this.Value = Value;
 	}
 	@Override public final Object GetValue() {

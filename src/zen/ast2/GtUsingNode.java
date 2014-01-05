@@ -41,7 +41,7 @@ final public class GtUsingNode extends GtNode {
 	/*field*/public GtNode	BlockNode;   // release resource of NativeName after BlockNode
 	/* let VarNode in Block end */
 	public GtUsingNode/*constructor*/(GtType Type, GtToken Token, GtType DeclType, String VariableName, GtNode InitNode, GtNode Block) {
-		super(Type, Token);
+		super();
 		this.NativeName = VariableName;
 		this.DeclType  = DeclType;
 		this.InitNode  = InitNode;

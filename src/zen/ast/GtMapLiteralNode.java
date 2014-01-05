@@ -22,31 +22,24 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package zen.ast2;
+package zen.ast;
 
 import java.util.ArrayList;
 
-import zen.ast.GtNode;
-import zen.parser.GtToken;
-import zen.parser.GtType;
+import zen.parser.GtVisitor;
+import zen.parser.ZenTypeSystem;
 
-//E.g., "[" $Node, $Node "]"
-final public class GtArrayLiteralNode extends GtNode {   // => ArrayLiteral
+//E.g., "{" StringNode, $Node, StringNode, $Node "}"
+final public class GtMapLiteralNode extends GtNode {   // => ArrayLiteral
 	/*field*/public ArrayList<GtNode>	NodeList;
-	public GtArrayLiteralNode/*constructor*/(GtType Type, GtToken Token) {
-		super(Type, Token);
+	public GtMapLiteralNode/*constructor*/() {
+		super();
 		this.NodeList = new ArrayList<GtNode>();
 	}
-	@Override public ArrayList<GtNode> GetList() {
-		return this.NodeList;
+	@Override public void Append(GtNode Node) {
+		this.NodeList.add(Node);
 	}
-//	@Override public boolean Accept(GtVisitor Visitor) {
-//		return Visitor.VisitArrayLiteralNode(this);
-//	}
-//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
-//		if(EnforceConst) {
-//			return Context.Generator.EvalArrayNode(this, EnforceConst);
-//		}
-//		return null;
-//	}
+	@Override public boolean Accept(GtVisitor Visitor) {
+		return Visitor.VisitMapLiteralNode(this);
+	}
 }

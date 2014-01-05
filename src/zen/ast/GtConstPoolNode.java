@@ -24,9 +24,9 @@
 
 package zen.ast;
 
-import zen.parser.GtVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
+import zen.parser.GtVisitor;
 
 final public class GtConstPoolNode extends GtConstNode {
 	/*field*/public Object	ConstValue;

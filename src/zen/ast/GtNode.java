@@ -32,42 +32,37 @@ import zen.parser.GtToken;
 import zen.parser.GtType;
 import zen.parser.GtVisitor;
 import zen.parser.ZenParserConst;
+import zen.parser.ZenTypeSystem;
 //endif VAJA
 
 public abstract class GtNode {
 	/*field*/public GtNode	ParentNode;
-//	/*field*/public GtNode	PrevNode;
-//	/*field*/public GtNode	NextNode;
 	/*field*/public GtType	Type;
 	/*field*/public GtToken	SourceToken;
 
-	public GtNode/*constructor*/(GtType Type, GtToken Token) {
-		//		this.Context = Context;
-		this.Type = Type;
-		this.SourceToken = Token;
+	public GtNode/*constructor*/() {
+		this.Type = ZenTypeSystem.VarType;
+		this.SourceToken = null;
 		this.ParentNode = null;
-//		this.PrevNode = null;
-//		this.NextNode = null;
 	}
 
 	public final boolean IsErrorNode() {
 		return (this instanceof GtErrorNode);
 	}
 
-	public final void SetChild(GtNode Node) {
+	public final GtNode SetChild(GtNode Node) {
 		if(Node != null) {
 			Node.ParentNode = this;
 		}
+		return this;
 	}
 
-	public ArrayList<GtNode> GetList() {
+	public final ArrayList<GtNode> GetList() {
 		return null;
 	}
 
 	public void Append(GtNode Node) {
-		this.GetList().add(Node);
 		this.SetChild(Node);
-		/*return this;*/
 	}
 
 	public final GtNode Done() {

@@ -266,7 +266,7 @@ public class GtSourceGenerator extends GtGenerator {
 
 	@Override public boolean VisitCastNode(GtCastNode Node) {
 		this.CurrentBuilder.Append("(");
-		this.VisitType(Node.CastTypeNode.Type);
+		this.VisitType(Node.Type);
 		this.CurrentBuilder.Append(") ");
 		this.VisitNode(Node.ExprNode);
 		return true;

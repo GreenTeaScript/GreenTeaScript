@@ -22,14 +22,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package zen.ast2;
+package zen.ast;
 
 import java.util.ArrayList;
 
-import zen.ast.GtFuncDeclNode;
-import zen.ast.GtNode;
 import zen.parser.GtNameSpace;
-import zen.parser.ZenTypeSystem;
 import zen.parser.GtToken;
 import zen.parser.GtType;
 
@@ -39,7 +36,7 @@ final public class GtClassDeclNode extends GtNode {
 	/*field*/public ArrayList<GtNode>  FieldList;
 	/*field*/public ArrayList<GtNode>  MemberList;
 	public GtClassDeclNode/*constructor*/(GtToken SourceToken, GtNameSpace NameSpace, GtType ClassType) {
-		super(ZenTypeSystem.VarType, SourceToken); // TODO
+		super(); this.SourceToken = SourceToken; // TODO
 		this.NameSpace = NameSpace;
 		this.ClassType = ClassType;
 		this.FieldList = new ArrayList<GtNode>();
@@ -52,7 +49,6 @@ final public class GtClassDeclNode extends GtNode {
 		if(Node instanceof GtFieldNode) {
 			this.FieldList.add(Node);
 		}
-		/*return this;*/
 	}
 //	@Override public boolean Accept(GtVisitor Visitor) {
 //		return Visitor.VisitClassDeclNode(this);

@@ -29,13 +29,17 @@ import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
 import zen.parser.GtType;
 
-final public class GtRegexNode extends GtConstNode {
-	/*field*/public String	Value;
-	public GtRegexNode/*constructor*/(GtType Type, GtToken Token, String Value) {
+public abstract class GtRegexNode extends GtConstNode {
+	protected GtRegexNode(GtType Type, GtToken Token) {
 		super(Type, Token);
-		this.Value = Value;
-		throw new RuntimeException("FIXME: Regex object must be defined");
+		// TODO Auto-generated constructor stub
 	}
+	/*field*/public String	Value;
+//	public GtRegexNode/*constructor*/(GtType Type, GtToken Token, String Value) {
+//		super();
+//		this.Value = Value;
+//		throw new RuntimeException("FIXME: Regex object must be defined");
+//	}
 //	@Override public boolean Accept(GtVisitor Visitor) {
 //		return Visitor.VisitRegexNode(this);
 //	}

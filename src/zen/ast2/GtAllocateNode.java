@@ -31,7 +31,7 @@ import zen.parser.GtType;
 // E.g., AllocateNode (without parameters); StaticApply is needed to init
 final public class GtAllocateNode extends GtNode {
 	public GtAllocateNode/*constructor*/(GtType Type, GtToken Token) {
-		super(Type, Token);
+		super();
 	}
 //	@Override public boolean Accept(GtVisitor Visitor) {
 //		return Visitor.VisitAllocateNode(this);

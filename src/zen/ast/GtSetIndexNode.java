@@ -22,29 +22,32 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package zen.ast2;
+package zen.ast;
 
-import zen.ast.GtNode;
-import zen.parser.GtNameSpace;
-import zen.parser.GtToken;
-import zen.parser.GtType;
+import zen.parser.GtVisitor;
 
-//E.g., $Recv[$Index]
-final public class GtGetIndexNode extends GtSymbolNode {
+//E.g., $Recv[$Index] = $ValueNode
+final public class GtSetIndexNode extends GtNode {
 	/*field*/public GtNode  RecvNode;
 	/*field*/public GtNode  IndexNode;
-	public GtGetIndexNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, GtNode IndexNode) {
-		super(Type, Token, "[]");
-		this.RecvNode = RecvNode;
-		this.IndexNode = IndexNode;
-//		this.SetChild2(RecvNode, IndexNode);
+	/*field*/public GtNode  ValueNode;
+	public GtSetIndexNode/*constructor*/(GtGetIndexNode Node) {
+		super();
+		this.Type = Node.Type;
+		this.SourceToken = Node.SourceToken;
+		this.RecvNode  = this.SetChild(Node.RecvNode);
+		this.IndexNode = this.SetChild(Node.IndexNode);
+		this.ValueNode = null;
 	}
-//	@Override public boolean Accept(GtVisitor Visitor) {
-//		return Visitor.VisitGetIndexNode(this);
+	@Override public void Append(GtNode Node) {
+		this.ValueNode = this.SetChild(Node);
+	}
+	@Override public boolean Accept(GtVisitor Visitor) {
+		return Visitor.VisitSetIndexNode(this);
+	}
+//	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
+//		//FIXME
+//		//return Context.Generator.EvalSetIndexNode(this, EnforceConst);
+//		return null;
 //	}
-	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-		//FIXME
-		//return Context.Generator.EvalGetIndexNode(this, EnforceConst);
-		return null;
-	}
 }

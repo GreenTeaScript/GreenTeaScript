@@ -35,13 +35,13 @@ final public class GtCommandNode extends GtNode {
 	/*field*/public ArrayList<GtNode>  ArgumentList; /* ["/bin/ls" , "-la", "/", ...] */
 	/*field*/public GtNode PipedNextNode;
 	public GtCommandNode/*constructor*/(GtType Type, GtToken Token, GtNode PipedNextNode) {
-		super(Type, Token);
+		super();
 		this.PipedNextNode = PipedNextNode;
 		this.ArgumentList = new ArrayList<GtNode>();
 	}
-	@Override public final ArrayList<GtNode> GetList() {
-		return this.ArgumentList;
-	}
+//	@Override public final ArrayList<GtNode> GetList() {
+//		return this.ArgumentList;
+//	}
 
 //	@Override public boolean Accept(GtVisitor Visitor) {
 //		return Visitor.VisitCommandNode(this);

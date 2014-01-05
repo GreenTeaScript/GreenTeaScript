@@ -34,7 +34,6 @@ import zen.ast.GtNode;
 import zen.ast.GtSetCapturedNode;
 import zen.ast.GtSetLocalNode;
 import zen.ast.GtStringNode;
-import zen.ast2.GtRegexNode;
 
 public abstract class GtNodeUtils {
 	//	public final GtNode CreateUnsupportedNode(GtType Type, GtSyntaxTree ParsedTree) {
@@ -52,20 +51,20 @@ public abstract class GtNodeUtils {
 	}
 
 	public GtNode CreateIntNode(GtToken SourceToken, long Value) {
-		return new GtIntNode(ZenTypeSystem.IntType, SourceToken, Value);
+		return new GtIntNode(SourceToken, Value);
 	}
 
 	public GtNode CreateFloatNode(GtToken SourceToken, double Value) {
-		return new GtFloatNode(ZenTypeSystem.FloatType, SourceToken, Value);
+		return new GtFloatNode(SourceToken, Value);
 	}
 
 	public GtNode CreateStringNode(GtToken SourceToken, String Value) {
-		return new GtStringNode(ZenTypeSystem.StringType, SourceToken, Value);
+		return new GtStringNode(SourceToken, Value);
 	}
 
-	public GtNode CreateRegexNode(GtToken SourceToken, String Value) {
-		return new GtRegexNode(ZenTypeSystem.VarType, SourceToken, Value);
-	}
+//	public GtNode CreateRegexNode(GtToken SourceToken, String Value) {
+//		return new GtRegexNode(ZenTypeSystem.VarType, SourceToken, Value);
+//	}
 
 	public GtNode CreateConstPoolNode(GtToken SourceToken, Object Value) {
 		return new GtConstPoolNode(ZenTypeSystem.GuessType(Value), SourceToken, Value);

@@ -22,16 +22,14 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package zen.ast2;
+package zen.ast;
 
-import zen.ast.GtNode;
-import zen.ast.GtParamNode;
 import zen.parser.GtToken;
 import zen.parser.GtType;
 
 final public class GtFieldNode extends GtParamNode {
 	/*field*/public String  Name;
-	/*field*/public GtNode InitNode;
+	/*field*/public GtNode  InitNode;
 	public GtFieldNode/*constructor*/(GtType Type, GtToken Token, String Name) {
 		super(Type, Token, Name); // TODO
 		this.InitNode = null;

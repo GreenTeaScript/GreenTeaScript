@@ -32,7 +32,7 @@ final public class GtDoWhileNode extends GtNode {
 	/*field*/public GtNode	CondNode;
 	/*field*/public GtNode	BodyNode;
 	public GtDoWhileNode/*constructor*/(GtType Type, GtToken Token, GtNode CondNode, GtNode BodyNode) {
-		super(Type, Token);
+		super();
 		this.CondNode = CondNode;
 		this.BodyNode = BodyNode;
 //		this.SetChild2(CondNode, BodyNode);

@@ -32,7 +32,7 @@ final public class GtWhileNode extends GtNode {
 	/*field*/public GtNode	CondNode;
 	/*field*/public GtNode	BodyNode;
 	public GtWhileNode/*constructor*/() {
-		super(ZenTypeSystem.VarType, null);
+		super();
 		this.CondNode = null;
 		this.BodyNode = null;
 	}

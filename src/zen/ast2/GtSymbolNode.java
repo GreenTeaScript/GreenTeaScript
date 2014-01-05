@@ -33,7 +33,7 @@ abstract public class GtSymbolNode extends GtNode {
 	/*field*/public String  NativeName;
 	/*field*/public GtFunc	ResolvedFunc;    // 
 	public GtSymbolNode/*constructor*/(GtType Type, GtToken Token, String NativeName) {
-		super(Type, Token);
+		super();
 		this.NativeName = NativeName;
 		this.ResolvedFunc = null;
 	}

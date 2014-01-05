@@ -22,32 +22,16 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package zen.ast2;
+//ifdef JAVA
 
-import java.util.ArrayList;
+package zen.grammar;
 
 import zen.ast.GtNode;
 import zen.parser.GtNameSpace;
-import zen.parser.GtToken;
 import zen.parser.GtType;
 
-//E.g., "{" StringNode, $Node, StringNode, $Node "}"
-final public class GtMapLiteralNode extends GtNode {   // => ArrayLiteral
-	/*field*/public ArrayList<GtNode>	NodeList;
-	public GtMapLiteralNode/*constructor*/(GtType Type, GtToken Token) {
-		super(Type, Token);
-		this.NodeList = new ArrayList<GtNode>();
-	}
-	@Override public ArrayList<GtNode> GetList() {
-		return this.NodeList;
-	}
-//	@Override public boolean Accept(GtVisitor Visitor) {
-//		return Visitor.VisitMapLiteralNode(this);
-//	}
-	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-		//		if(EnforceConst) {
-		//			return Context.Generator.EvalArrayNode(this, EnforceConst);
-		//		}
+public class ZenTypeChecker {
+	GtNode TypeCheck(GtNameSpace NameSpace, GtType Type) {
 		return null;
 	}
 }

@@ -35,7 +35,7 @@ final public class GtSwitchNode extends GtNode {
 	/*field*/public GtNode	DefaultBlock;
 	/*field*/public ArrayList<GtNode> CaseList; // [expr, block, expr, block, ....]
 	public GtSwitchNode/*constructor*/(GtType Type, GtToken Token, GtNode MatchNode, GtNode DefaultBlock) {
-		super(Type, Token);
+		super();
 		this.MatchNode = MatchNode;
 		this.DefaultBlock = DefaultBlock;
 		this.CaseList = new ArrayList<GtNode>();
@@ -44,7 +44,7 @@ final public class GtSwitchNode extends GtNode {
 //	@Override public boolean Accept(GtVisitor Visitor) {
 //		return Visitor.VisitSwitchNode(this);
 //	}
-	@Override public final ArrayList<GtNode> GetList() {
-		return this.CaseList;
-	}
+//	@Override public final ArrayList<GtNode> GetList() {
+//		return this.CaseList;
+//	}
 }

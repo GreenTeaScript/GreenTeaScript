@@ -32,7 +32,7 @@ final public class GtCaseNode extends GtNode {
 	/*field*/public GtNode  CaseNode;;
 	/*field*/public GtNode	BodyNode;
 	public GtCaseNode/*constructor*/(GtType Type, GtToken Token, GtNode CaseNode, GtNode BodyNode) {
-		super(Type, Token);
+		super();
 		this.CaseNode = CaseNode;
 		this.BodyNode = BodyNode;
 //		this.SetChild2(BodyNode, CaseNode);

@@ -37,15 +37,15 @@ final public class GtApplyOverridedMethodNode extends GtNode {
 	/*field*/public GtFunc Func;
 	/*field*/public ArrayList<GtNode>  ParamList; /* [arg1, arg2, ...] */
 	public GtApplyOverridedMethodNode/*constructor*/(GtType Type, GtToken Token, GtNameSpace NameSpace, GtFunc Func) {
-		super(Type, Token);
+		super();
 		this.NameSpace = NameSpace.Minimum();
 		this.Func = Func;
 		this.ParamList = new ArrayList<GtNode>();
 		throw new RuntimeException("FIXME: ApplyOverridedMethodNode is not finished");
 	}
-	@Override public final ArrayList<GtNode> GetList() {
-		return this.ParamList;
-	}
+//	@Override public final ArrayList<GtNode> GetList() {
+//		return this.ParamList;
+//	}
 //	@Override public boolean Accept(GtVisitor Visitor) {
 //		return Visitor.VisitApplyOverridedMethodNode(this);
 //	}

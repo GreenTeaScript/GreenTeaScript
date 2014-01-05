@@ -30,7 +30,7 @@ import zen.parser.ZenTypeSystem;
 public class GtReturnNode extends GtNode {
 	/*field*/public GtNode ValueNode;
 	public GtReturnNode/*constructor*/() {
-		super(ZenTypeSystem.VarType, null);
+		super();
 		this.ValueNode = null;
 	}
 	@Override public void Append(GtNode ValueNode) {

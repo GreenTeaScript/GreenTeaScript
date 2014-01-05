@@ -27,7 +27,6 @@ package zen.ast;
 import java.util.ArrayList;
 
 import zen.parser.GtNameSpace;
-import zen.parser.ZenTypeSystem;
 import zen.parser.GtToken;
 import zen.parser.GtVisitor;
 
@@ -35,18 +34,17 @@ public class GtBlockNode extends GtNode {
 	/*field*/public ArrayList<GtNode> NodeList;
 	/*field*/public GtNameSpace NameSpace;
 	public GtBlockNode(GtToken SourceToken, GtNameSpace NameSpace) {
-		super(ZenTypeSystem.VarType, SourceToken);
+		super(); 
+		this.SourceToken = SourceToken;
 		this.NodeList = new ArrayList<GtNode>();
 		this.NameSpace = NameSpace;
 	}
 	@Override public void Append(GtNode Node) {
-		this.NodeList.add(Node);
-		this.SetChild(Node);
-		/*return this;*/
+		this.NodeList.add(this.SetChild(Node));
 	}
-	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-		return null;
-	}
+//	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
+//		return null;
+//	}
 	@Override public boolean Accept(GtVisitor Visitor) {
 		return Visitor.VisitBlockNode(this);
 	}

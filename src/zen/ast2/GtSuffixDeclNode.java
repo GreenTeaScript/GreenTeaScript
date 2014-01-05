@@ -32,7 +32,7 @@ import zen.parser.GtType;
 final public class GtSuffixDeclNode extends GtNode {
 	/*field*/public GtNode	RecvNode;
 	public GtSuffixDeclNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode) {
-		super(Type, Token);
+		super();
 		this.RecvNode = RecvNode;
 		this.SetChild(RecvNode);
 	}

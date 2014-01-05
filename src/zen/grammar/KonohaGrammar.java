@@ -30,7 +30,6 @@ import zen.ast.GtAndNode;
 import zen.ast.GtApplyNode;
 import zen.ast.GtBinaryNode;
 import zen.ast.GtBlockNode;
-import zen.ast.GtCastNode;
 import zen.ast.GtConstNode;
 import zen.ast.GtErrorNode;
 import zen.ast.GtFuncDeclNode;
@@ -1325,14 +1324,14 @@ public class KonohaGrammar {
 		return GroupNode;
 	}
 	
-	public static GtNode MatchCast(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
-		/*local*/GtNode CastNode = new GtCastNode();
-		CastNode = TokenContext.MatchNodeToken(CastNode, NameSpace, "(", ZenParserConst.Required | ZenParserConst.AllowSkipIndent);
-		CastNode = TokenContext.AppendMatchedPattern(CastNode, NameSpace, "$Type$", ZenParserConst.Required);
-		CastNode = TokenContext.MatchNodeToken(CastNode, NameSpace, ")", ZenParserConst.Required);
-		CastNode = TokenContext.AppendMatchedPattern(CastNode, NameSpace, "$SuffixExpression$", ZenParserConst.Required);
-		return CastNode;
-	}
+//	public static GtNode MatchCast(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
+//		/*local*/GtNode CastNode = new GtCastNode();
+//		CastNode = TokenContext.MatchNodeToken(CastNode, NameSpace, "(", ZenParserConst.Required | ZenParserConst.AllowSkipIndent);
+//		CastNode = TokenContext.AppendMatchedPattern(CastNode, NameSpace, "$Type$", ZenParserConst.Required);
+//		CastNode = TokenContext.MatchNodeToken(CastNode, NameSpace, ")", ZenParserConst.Required);
+//		CastNode = TokenContext.AppendMatchedPattern(CastNode, NameSpace, "$SuffixExpression$", ZenParserConst.Required);
+//		return CastNode;
+//	}
 
 	public static GtNode MatchGetter(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
 		TokenContext.MatchToken(".");

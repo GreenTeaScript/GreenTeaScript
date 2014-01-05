@@ -30,8 +30,10 @@ import zen.parser.GtVisitor;
 
 public class GtParamNode extends GtNode {
 	/*field*/public String  Name;
-	public GtParamNode/*constructor*/(GtType Type, GtToken Token, String Name) {
-		super(Type, Token); // TODO
+	public GtParamNode/*constructor*/(GtType Type, GtToken SourceToken, String Name) {
+		super(); // TODO
+		this.Type = Type;
+		this.SourceToken = SourceToken;
 		this.Name = Name;
 	}
 	@Override public boolean Accept(GtVisitor Visitor) {

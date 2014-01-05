@@ -34,7 +34,7 @@ final public class GtIfNode extends GtNode {
 	/*field*/public GtNode	ElseNode;
 	/* If CondNode then ThenBlock else ElseBlock */
 	public GtIfNode/*constructor*/() {
-		super(ZenTypeSystem.VarType, null);
+		super();
 		this.CondNode = null;
 		this.ThenNode = null;
 		this.ElseNode = null;

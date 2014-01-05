@@ -32,7 +32,7 @@ final public class GtCatchNode extends GtNode {
 	/*field*/public String  ExceptionName;
 	/*field*/public GtNode	BodyNode;
 	public GtCatchNode/*constructor*/() {
-		super(ZenTypeSystem.VarType, null);
+		super();
 		this.ExceptionType = ZenTypeSystem.VarType;
 		this.ExceptionName = null;
 		this.BodyNode = null;

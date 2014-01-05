@@ -34,7 +34,7 @@ final public class GtTrinaryNode extends GtNode {
 	/*field*/public GtNode	ThenNode;
 	/*field*/public GtNode	ElseNode;
 	public GtTrinaryNode/*constructor*/(GtType Type, GtToken Token, GtNode CondNode, GtNode ThenNode, GtNode ElseNode) {
-		super(Type, Token);
+		super();
 		this.CondNode = CondNode;
 		this.ThenNode = ThenNode;
 		this.ElseNode = ElseNode;

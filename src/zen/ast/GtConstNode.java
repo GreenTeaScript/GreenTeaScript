@@ -29,7 +29,9 @@ import zen.parser.GtType;
 
 abstract public class GtConstNode extends GtNode {
 	protected GtConstNode/*constructor*/(GtType Type, GtToken Token) {
-		super(Type, Token);
+		super();
+		this.Type = Type;
+		this.SourceToken = Token;
 	}
 	@Override public final GtConstNode ToConstNode(boolean EnforceConst) {
 		return this;

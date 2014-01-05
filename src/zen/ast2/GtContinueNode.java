@@ -31,7 +31,7 @@ import zen.parser.GtType;
 final public class GtContinueNode extends GtNode {
 	/*field*/public String Label;
 	public GtContinueNode/*constructor*/(GtType Type, GtToken Token, String Label) {
-		super(Type, Token);
+		super();
 		this.Label = Label;
 	}
 //	@Override public boolean Accept(GtVisitor Visitor) {

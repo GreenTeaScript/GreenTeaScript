@@ -26,9 +26,8 @@ package zen.ast;
 
 import java.util.ArrayList;
 
-import zen.parser.GtVisitor;
-import zen.parser.ZenTypeSystem;
 import zen.parser.GtToken;
+import zen.parser.GtVisitor;
 
 //E.g., $NativeFuncName "(" $Param[0], $Param[1], ... ")"
 final public class GtMethodCall extends GtNode {
@@ -36,13 +35,13 @@ final public class GtMethodCall extends GtNode {
 	/*field*/public String MethodName;
 	/*field*/public ArrayList<GtNode>  ParamList; /* [arg1, arg2, ...] */
 	public GtMethodCall(GtToken SourceToken, GtNode RecvNode, String MethodName) {
-		super(ZenTypeSystem.VarType, SourceToken);
+		super(); this.SourceToken = SourceToken;
 		this.RecvNode = RecvNode;
 		this.MethodName = MethodName;
 		this.ParamList = new ArrayList<GtNode>();
 	}
-	@Override public final ArrayList<GtNode> GetList() {
-		return this.ParamList;
+	@Override public void Append(GtNode Node) {
+		this.ParamList.add(this.SetChild(Node));
 	}
 	@Override public boolean Accept(GtVisitor Visitor) {
 		return Visitor.VisitMethodCallNode(this);

@@ -34,7 +34,7 @@ final public class GtTryNode extends GtNode {
 	/*field*/public ArrayList<GtNode> 	CatchList;
 	/*field*/public GtNode	FinallyNode;
 	public GtTryNode/*constructor*/() {
-		super(ZenTypeSystem.VarType, null);
+		super();
 		this.TryNode = null;
 		this.FinallyNode = null;
 		this.CatchList = new ArrayList<GtNode>();

@@ -22,31 +22,30 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package zen.ast2;
+package zen.ast;
 
-import zen.ast.GtNode;
-import zen.parser.GtNameSpace;
-import zen.parser.GtToken;
-import zen.parser.GtType;
+import java.util.ArrayList;
 
-//E.g., $Recv[$Index] = $ValueNode
-final public class GtSetIndexNode extends GtSymbolNode {
-	/*field*/public GtNode  RecvNode;
-	/*field*/public GtNode  IndexNode;
-	/*field*/public GtNode  ValueNode;
-	public GtSetIndexNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode, GtNode IndexNode, GtNode ValueNode) {
-		super(Type, Token, "[]=");
-		this.RecvNode  = RecvNode;
-		this.IndexNode = IndexNode;
-		this.ValueNode = ValueNode;
-//		this.SetChild3(RecvNode, IndexNode, ValueNode);
+import zen.parser.GtVisitor;
+import zen.parser.ZenTypeSystem;
+
+//E.g., "[" $Node, $Node "]"
+final public class GtArrayLiteralNode extends GtNode {
+	/*field*/public ArrayList<GtNode>	NodeList;
+	public GtArrayLiteralNode/*constructor*/() {
+		super();
+		this.NodeList = new ArrayList<GtNode>();
 	}
-//	@Override public boolean Accept(GtVisitor Visitor) {
-//		return Visitor.VisitSetIndexNode(this);
+	@Override public void Append(GtNode Node) {
+		this.NodeList.add(Node);
+	}
+	@Override public boolean Accept(GtVisitor Visitor) {
+		return Visitor.VisitArrayLiteralNode(this);
+	}
+//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+//		if(EnforceConst) {
+//			return Context.Generator.EvalArrayNode(this, EnforceConst);
+//		}
+//		return null;
 //	}
-	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-		//FIXME
-		//return Context.Generator.EvalSetIndexNode(this, EnforceConst);
-		return null;
-	}
 }
