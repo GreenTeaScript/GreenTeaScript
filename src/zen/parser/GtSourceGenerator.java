@@ -321,13 +321,24 @@ public class GtSourceGenerator extends GtGenerator {
 	}
 
 	@Override public boolean VisitTryNode(GtTryNode Node) {
-		// TODO Auto-generated method stub
-		return false;
+		this.CurrentBuilder.Append("try");
+		this.VisitNode(Node.TryNode);
+		for(GtNode CatchNode : Node.CatchList) {
+			this.VisitNode(CatchNode);
+		}
+		if(Node.FinallyNode != null) {
+			this.VisitNode(Node.FinallyNode);
+		}
+		return true;
 	}
 
 	@Override public boolean VisitCatchNode(GtCatchNode Node) {
-		// TODO Auto-generated method stub
-		return false;
+		this.CurrentBuilder.Append("catch (");
+		this.CurrentBuilder.Append(Node.ExceptionName);
+		this.VisitTypeAnnotation(Node.ExceptionType);
+		this.CurrentBuilder.Append(") ");
+		this.VisitNode(Node.BodyNode);
+		return true;
 	}
 
 	@Override public boolean VisitVarDeclNode(GtVarDeclNode Node) {
