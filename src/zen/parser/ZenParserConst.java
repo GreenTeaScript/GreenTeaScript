@@ -27,7 +27,7 @@ package zen.parser;
 
 /*GreenTeaConst Begin*/
 //ifdef JAVA
-public interface GreenTeaConsts {
+public interface ZenParserConst {
 //endif VAJA
 	// Version
 	public final static String  ProgName  = "GreenTeaScript";

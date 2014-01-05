@@ -25,7 +25,7 @@
 package zen.ast;
 
 import zen.parser.GtVisitor;
-import zen.parser.GtStaticTable;
+import zen.parser.ZenTypeSystem;
 import zen.parser.GtToken;
 
 //E.g., $RecvNode.$NativeName = $Value
@@ -33,7 +33,7 @@ final public class GtSetterNode extends GtSymbolNode {
 	/*field*/public GtNode  RecvNode;
 	/*field*/public GtNode  ValueNode;
 	public GtSetterNode/*constructor*/(GtToken SourceToken, GtNode RecvNode, String NativeName) {
-		super(GtStaticTable.VarType, SourceToken, NativeName);
+		super(ZenTypeSystem.VarType, SourceToken, NativeName);
 		this.RecvNode  = RecvNode;
 		this.ValueNode = null;
 		this.SetChild(RecvNode);

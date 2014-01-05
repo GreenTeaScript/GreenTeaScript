@@ -25,9 +25,9 @@
 package zen.ast;
 
 import zen.parser.GtNameSpace;
-import zen.parser.GtVisitor;
-import zen.parser.GtStaticTable;
+import zen.parser.ZenTypeSystem;
 import zen.parser.GtToken;
+import zen.parser.GtVisitor;
 
 /**
  * ErrorNode carries error information at the parser level
@@ -37,11 +37,8 @@ import zen.parser.GtToken;
 final public class GtErrorNode extends GtConstNode {
 	public String ErrorMessage;
 	public GtErrorNode/*constructor*/(GtToken SourceToken, String ErrorMessage) {
-		super(GtStaticTable.VoidType, SourceToken);
+		super(ZenTypeSystem.VoidType, SourceToken);
 		this.ErrorMessage = ErrorMessage;
-	}
-	public static GtNode CreateExpectedToken(GtToken SourceToken, String TokenText) {
-		return new GtErrorNode(SourceToken, "expected " + TokenText);
 	}
 	@Override public final Object GetValue() {
 		return this.ErrorMessage;

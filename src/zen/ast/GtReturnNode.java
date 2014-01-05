@@ -24,13 +24,13 @@
 
 package zen.ast;
 
-import zen.parser.GtStaticTable;
+import zen.parser.ZenTypeSystem;
 import zen.parser.GtVisitor;
 
 final public class GtReturnNode extends GtNode {
 	/*field*/public GtNode ValueNode;
 	public GtReturnNode/*constructor*/() {
-		super(GtStaticTable.VarType, null);
+		super(ZenTypeSystem.VarType, null);
 		this.ValueNode = null;
 	}
 	@Override public void Append(GtNode ValueNode) {

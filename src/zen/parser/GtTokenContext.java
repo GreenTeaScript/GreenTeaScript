@@ -28,11 +28,12 @@ import java.util.ArrayList;
 
 import zen.ast.GtErrorNode;
 import zen.ast.GtNode;
+import zen.deps.ZenUtils;
 import zen.deps.LibNative;
 import zen.deps.LibZen;
 //endif VAJA
 
-public final class GtTokenContext extends GreenTeaUtils {
+public final class GtTokenContext extends ZenUtils {
 	/*field*/public final static GtToken NullToken = new GtToken("", 0);
 
 	/*field*/public GtNameSpace TopLevelNameSpace;
@@ -92,7 +93,7 @@ public final class GtTokenContext extends GreenTeaUtils {
 			if(T.IsDelim() || T.EqualsText("}")) {
 				break;
 			}
-			this.TopLevelNameSpace.Generator.ReportError(GreenTeaConsts.InfoLevel, T, "skipping: " + T.ParsedText);
+			this.TopLevelNameSpace.Generator.ReportError(ZenParserConst.InfoLevel, T, "skipping: " + T.ParsedText);
 			this.Next();
 		}
 		this.LatestToken = LeastRecentToken;
@@ -136,7 +137,7 @@ public final class GtTokenContext extends GreenTeaUtils {
 
 	private int DispatchFunc(String ScriptSource, int GtChar, int pos) {
 		/*local*/GtTokenFunc TokenFunc = this.TopLevelNameSpace.GetTokenFunc(GtChar);
-		/*local*/int NextIdx = GreenTeaUtils.ApplyTokenFunc(TokenFunc, this, ScriptSource, pos);
+		/*local*/int NextIdx = ZenUtils.ApplyTokenFunc(TokenFunc, this, ScriptSource, pos);
 		if(NextIdx == MismatchedPosition) {
 			LibZen.VerboseLog(VerboseUndefined, "undefined tokenizer: " + ScriptSource.substring(pos, pos+1));
 			this.AppendParsedToken(ScriptSource.substring(pos, pos + 1), 0, null);
@@ -502,7 +503,7 @@ public final class GtTokenContext extends GreenTeaUtils {
 		if(Index != -1) {
 			/*local*/String FileName = SourceMap.substring(0, Index);
 			/*local*/int Line = (/*cast*/int)LibZen.ParseInt(SourceMap.substring(Index+1));
-			this.ParsingLine = GtStaticTable.GetFileLine(FileName, Line);
+			this.ParsingLine = ZenTypeSystem.GetFileLine(FileName, Line);
 		}
 	}
 

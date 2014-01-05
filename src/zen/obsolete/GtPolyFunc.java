@@ -27,7 +27,7 @@ package zen.obsolete;
 import java.util.ArrayList;
 
 import zen.ast.GtNode;
-import zen.parser.GreenTeaConsts;
+import zen.parser.ZenParserConst;
 import zen.parser.GtFunc;
 import zen.parser.GtGenerator;
 import zen.parser.GtNameSpace;
@@ -65,7 +65,7 @@ public class GtPolyFunc {
 					/*return this;*/ /* same function */
 				}
 				if(Func.EqualsType(ListedFunc)) {
-					this.Generator.ReportError(GreenTeaConsts.WarningLevel, SourceToken, "duplicated symbol: " + SourceToken.ParsedText);
+					this.Generator.ReportError(ZenParserConst.WarningLevel, SourceToken, "duplicated symbol: " + SourceToken.ParsedText);
 					break;
 				}
 				i = i + 1;

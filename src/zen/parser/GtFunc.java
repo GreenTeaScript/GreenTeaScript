@@ -28,13 +28,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import zen.ast.GtNode;
+import zen.deps.ZenUtils;
 import zen.deps.LibNative;
 import zen.deps.LibZen;
 import zen.obsolete.GtFuncBlock;
 //endif VAJA
 
 
-public final class GtFunc extends GreenTeaUtils {
+public final class GtFunc extends ZenUtils {
 	/*field*/public                 int FuncId;
 	/*field*/public int				FuncFlag;
 	/*field*/public String			FuncName;
@@ -50,8 +51,8 @@ public final class GtFunc extends GreenTeaUtils {
 		LibNative.Assert(this.Types.length > 0);
 		this.FuncType = null;
 		this.FuncBody = null;
-		this.FuncId = GtStaticTable.FuncPools.size();
-		GtStaticTable.FuncPools.add(this);
+		this.FuncId = ZenTypeSystem.FuncPools.size();
+		ZenTypeSystem.FuncPools.add(this);
 		this.GenericParam = null;
 	}
 
@@ -74,7 +75,7 @@ public final class GtFunc extends GreenTeaUtils {
 
 	public final GtType GetFuncType() {
 		if(this.FuncType == null) {
-			this.FuncType = GtStaticTable.GetGenericType(GtStaticTable.FuncType, 0, new ArrayList<GtType>(Arrays.asList(this.Types)), true);
+			this.FuncType = ZenTypeSystem.GetGenericType(ZenTypeSystem.FuncType, 0, new ArrayList<GtType>(Arrays.asList(this.Types)), true);
 		}
 		return this.FuncType;
 	}
@@ -109,7 +110,7 @@ public final class GtFunc extends GreenTeaUtils {
 
 	public final GtType GetRecvType() {
 		if(this.Types.length == 1) {
-			return GtStaticTable.VoidType;
+			return ZenTypeSystem.VoidType;
 		}
 		return this.Types[1];
 	}

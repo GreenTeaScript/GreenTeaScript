@@ -22,16 +22,20 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
+//ifdef JAVA
 package zen.deps;
 
-public class GreenTeaException extends RuntimeException {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 5333884246425321233L;
+import zen.parser.GtType;
 
-	public GreenTeaException(String Message) {
-		super(Message);
+public class ZenEnum extends ZenTopObject {
+	/*field*/public final long EnumValue;
+	/*field*/public final String EnumSymbol;
+	public ZenEnum(GtType GreenType, long EnumValue, String EnumSymbol) {
+		super(GreenType);
+		this.EnumValue = EnumValue;
+		this.EnumSymbol = EnumSymbol;
 	}
-	
+	@Override public String toString() {
+		return ""+this.EnumValue;
+	}
 }

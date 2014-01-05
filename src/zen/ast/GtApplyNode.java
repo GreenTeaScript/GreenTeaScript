@@ -27,14 +27,14 @@ package zen.ast;
 import java.util.ArrayList;
 
 import zen.parser.GtVisitor;
-import zen.parser.GtStaticTable;
+import zen.parser.ZenTypeSystem;
 
 //E.g., $FuncNode "(" $Param[0], $Param[1], ... ")"
 final public class GtApplyNode extends GtNode {
 	/*field*/public GtNode	FuncNode;
 	/*field*/public ArrayList<GtNode>  ParamList; /* [arg0, arg1, ...] */
 	public GtApplyNode(GtNode FuncNode) {
-		super(GtStaticTable.VarType, null);
+		super(ZenTypeSystem.VarType, null);
 		this.ParamList = new ArrayList<GtNode>();
 		this.FuncNode = FuncNode;
 		this.SetChild(FuncNode);

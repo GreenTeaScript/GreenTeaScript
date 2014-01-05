@@ -22,14 +22,17 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package zen.parser;
+package zen.deps;
 
 import java.util.ArrayList;
 
-import zen.deps.LibZen;
-import zen.deps.LibNative;
+import zen.parser.GtSyntaxPattern;
+import zen.parser.GtTokenContext;
+import zen.parser.GtTokenFunc;
+import zen.parser.GtType;
+import zen.parser.ZenParserConst;
 
-public class GreenTeaUtils implements GreenTeaConsts {
+public class ZenUtils implements ZenParserConst {
 //endif VAJA
 /*GreenTeaUtils Begin*/
 	public final static boolean IsFlag(int flag, int flag2) {
@@ -146,7 +149,7 @@ public class GreenTeaUtils implements GreenTeaConsts {
 //		return GreenTeaUtils.TreeTail(Node);
 //	}
 
-//	public final static GtSyntaxTree ApplySyntaxPattern_OLD(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftTree, GtSyntaxPattern Pattern) {
+//	public final static GtSyntaxTree ApplySyntaxPattern_OLD(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftNode, GtSyntaxPattern Pattern) {
 //		/*local*/int Pos = TokenContext.GetPosition(0);
 //		/*local*/int ParseFlag = TokenContext.ParseFlag;
 //		/*local*/GtSyntaxPattern CurrentPattern = Pattern;
@@ -158,7 +161,7 @@ public class GreenTeaUtils implements GreenTeaConsts {
 //			}
 //			//LibZen.DebugP("B :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + ", next=" + CurrentPattern.ParentPattern);
 //			TokenContext.IndentLevel += 1;
-//			/*local*/GtSyntaxTree ParsedTree = LibNative.ApplyParseFunc(delegate, NameSpace, TokenContext, LeftTree, CurrentPattern);
+//			/*local*/GtSyntaxTree ParsedTree = LibNative.ApplyParseFunc(delegate, NameSpace, TokenContext, LeftNode, CurrentPattern);
 //			TokenContext.IndentLevel -= 1;
 //			TokenContext.ParseFlag = ParseFlag;
 //			if(ParsedTree != null && ParsedTree.IsMismatched()) {

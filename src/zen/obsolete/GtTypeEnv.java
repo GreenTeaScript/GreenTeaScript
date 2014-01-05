@@ -24,11 +24,11 @@
 
 package zen.obsolete;
 
-import zen.parser.GreenTeaUtils;
+import zen.deps.ZenUtils;
 import zen.parser.GtNameSpace;
 
 @Deprecated
-public final class GtTypeEnv extends GreenTeaUtils {
+public final class GtTypeEnv extends ZenUtils {
 //	/*field*/public final GtParserContext    Context;
 //	/*field*/public final GtGenerator        Generator;
 //	/*field*/public GtNameSpace	    NameSpace;

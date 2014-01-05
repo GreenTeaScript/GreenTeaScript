@@ -24,10 +24,12 @@
 
 //ifdef JAVA
 package zen.parser;
+
+import zen.deps.ZenUtils;
 //endif VAJA
 
 @Deprecated
-public final class GtParserContext extends GreenTeaUtils {
+public final class GtParserContext extends ZenUtils {
 //	/*field*/public final  int ParserId;
 //	/*field*/public final  GtGenerator   Generator;
 //	/*field*/public final  GtNameSpace   RootNameSpace;

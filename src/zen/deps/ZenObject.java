@@ -28,7 +28,7 @@ import zen.parser.GtType;
 
 //endif VAJA
 /*GreenTeaObject Begin*/
-public interface GreenTeaObject {
-	public GtType GetGreenType();
+public interface ZenObject {
+	public GtType GetZenType();
 }
 /*GreenTeaObject End*/

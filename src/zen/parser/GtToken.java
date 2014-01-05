@@ -25,7 +25,9 @@
 //ifdef JAVA
 package zen.parser;
 
-final public class GtToken extends GreenTeaUtils {
+import zen.deps.ZenUtils;
+
+final public class GtToken extends ZenUtils {
 	/*field*/public int		        TokenFlag;
 	/*field*/public String	        ParsedText;
 	/*field*/public long		    FileLine;

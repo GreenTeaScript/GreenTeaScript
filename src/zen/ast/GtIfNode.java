@@ -24,7 +24,7 @@
 
 package zen.ast;
 
-import zen.parser.GtStaticTable;
+import zen.parser.ZenTypeSystem;
 import zen.parser.GtVisitor;
 
 //E.g., "if" "(" $Cond ")" $ThenNode "else" $ElseNode
@@ -34,7 +34,7 @@ final public class GtIfNode extends GtNode {
 	/*field*/public GtNode	ElseNode;
 	/* If CondNode then ThenBlock else ElseBlock */
 	public GtIfNode/*constructor*/() {
-		super(GtStaticTable.VarType, null);
+		super(ZenTypeSystem.VarType, null);
 		this.CondNode = null;
 		this.ThenNode = null;
 		this.ElseNode = null;

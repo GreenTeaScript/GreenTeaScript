@@ -25,14 +25,14 @@
 package zen.ast2;
 
 import zen.ast.GtNode;
-import zen.parser.GtStaticTable;
+import zen.parser.ZenTypeSystem;
 
 //E.g., "while" "(" $Cond ")" $Body
 final public class GtWhileNode extends GtNode {
 	/*field*/public GtNode	CondNode;
 	/*field*/public GtNode	BodyNode;
 	public GtWhileNode/*constructor*/() {
-		super(GtStaticTable.VarType, null);
+		super(ZenTypeSystem.VarType, null);
 		this.CondNode = null;
 		this.BodyNode = null;
 	}

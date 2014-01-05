@@ -39,29 +39,28 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import zen.parser.GreenTeaUtils;
 import zen.parser.GtFunc;
 import zen.parser.GtMap;
 import zen.parser.GtSourceBuilder;
-import zen.parser.GtStaticTable;
+import zen.parser.ZenTypeSystem;
 import zen.parser.GtType;
 
 public abstract class LibZen {
-	public final static GreenTeaArray NewArray(GtType Type, Object[] InitSizes) {
+	public final static ZenArray NewArray(GtType Type, Object[] InitSizes) {
 		if(InitSizes.length == 1) {
-			return GreenTeaArray.NewArray1(Type.TypeParams[0], ((Number)InitSizes[0]).intValue());
+			return ZenArray.NewArray1(Type.TypeParams[0], ((Number)InitSizes[0]).intValue());
 		}
 		else if(InitSizes.length == 2) {
-			return GreenTeaArray.NewArray2(Type.TypeParams[0].TypeParams[0], ((Number)InitSizes[0]).intValue(), ((Number)InitSizes[1]).intValue());
+			return ZenArray.NewArray2(Type.TypeParams[0].TypeParams[0], ((Number)InitSizes[0]).intValue(), ((Number)InitSizes[1]).intValue());
 		}
 		else {
-			return GreenTeaArray.NewArray3(Type.TypeParams[0].TypeParams[0].TypeParams[0], ((Number)InitSizes[0]).intValue(), ((Number)InitSizes[1]).intValue(), ((Number)InitSizes[2]).intValue());
+			return ZenArray.NewArray3(Type.TypeParams[0].TypeParams[0].TypeParams[0], ((Number)InitSizes[0]).intValue(), ((Number)InitSizes[1]).intValue(), ((Number)InitSizes[2]).intValue());
 		}
 		
 	}
 
-	public final static GreenTeaArray NewNewArray(GtType ArrayType, Object[] Values) {
-		return GreenTeaArray.NewNewArray(ArrayType, Values);		
+	public final static ZenArray NewNewArray(GtType ArrayType, Object[] Values) {
+		return ZenArray.NewNewArray(ArrayType, Values);		
 	}
 	
 //	public final static Object InvokeFunc(GtFunc Func, Object[] Params) {
@@ -156,7 +155,7 @@ public abstract class LibZen {
 		}
 	}
 
-	public static int VerboseMask = GreenTeaUtils.VerboseUndefined | GreenTeaUtils.VerboseException;
+	public static int VerboseMask = ZenUtils.VerboseUndefined | ZenUtils.VerboseException;
 
 	public final static void VerboseLog(int VerboseFlag, String Message) {
 		if((LibZen.VerboseMask & VerboseFlag) == VerboseFlag) {
@@ -175,7 +174,7 @@ public abstract class LibZen {
 				throw (Error)cause;
 			}
 		}
-		LibZen.VerboseLog(GreenTeaUtils.VerboseException, e.toString());
+		LibZen.VerboseLog(ZenUtils.VerboseException, e.toString());
 		e.printStackTrace();
 		if(e instanceof IllegalArgumentException) {
 			LibNative.Exit(1, e.toString());
@@ -371,9 +370,9 @@ public abstract class LibZen {
 	}
 
 	public final static GtFunc SetNativeMethod(GtFunc NativeFunc, Method JavaMethod) {
-		/*local*/int FuncFlag = GreenTeaUtils.NativeFunc;
+		/*local*/int FuncFlag = ZenUtils.NativeFunc;
 		if(!Modifier.isStatic(JavaMethod.getModifiers())) {
-			FuncFlag |= GreenTeaUtils.NativeMethodFunc;
+			FuncFlag |= ZenUtils.NativeMethodFunc;
 		}
 		NativeFunc.SetNativeMethod(FuncFlag, JavaMethod);
 		return NativeFunc;
@@ -439,7 +438,7 @@ public abstract class LibZen {
 					return methods[i];
 				}
 			}
-			LibZen.VerboseLog(GreenTeaUtils.VerboseUndefined, "undefined method: " + Callee.getClass().getSimpleName() + "." + FuncName);
+			LibZen.VerboseLog(ZenUtils.VerboseUndefined, "undefined method: " + Callee.getClass().getSimpleName() + "." + FuncName);
 		}
 		return null;
 	}
@@ -622,7 +621,7 @@ public abstract class LibZen {
 		if(Prompt2 != null) {
 			int level = 0;
 			while((level = LibZen.CheckBraceLevel(Line)) > 0) {
-				String Line2 = LibZen.ReadLine(Prompt2 + GreenTeaUtils.JoinStrings("  ", level));
+				String Line2 = LibZen.ReadLine(Prompt2 + ZenUtils.JoinStrings("  ", level));
 				Line += "\n" + Line2; 
 			}
 			if(level < 0) {
@@ -727,7 +726,7 @@ public abstract class LibZen {
 	
 	public static Object DynamicCast(GtType CastType, Object Value) {
 		if(Value != null) {
-			GtType FromType = GtStaticTable.GuessType(Value);
+			GtType FromType = ZenTypeSystem.GuessType(Value);
 			if(CastType == FromType || CastType.Accept(FromType)) {
 				return Value;
 			}
@@ -737,7 +736,7 @@ public abstract class LibZen {
 
 	public static boolean DynamicInstanceOf(Object Value, GtType Type) {
 		if(Value != null) {
-			GtType ValueType = GtStaticTable.GuessType(Value);
+			GtType ValueType = ZenTypeSystem.GuessType(Value);
 			if(ValueType == Type || Type.Accept(ValueType)) {
 				return true;
 			}
@@ -747,11 +746,11 @@ public abstract class LibZen {
 
 	public final static Object DynamicConvertTo(GtType CastType, Object Value) {
 		if(Value != null) {
-			GtType ValueType = GtStaticTable.GuessType(Value);
+			GtType ValueType = ZenTypeSystem.GuessType(Value);
 			if(ValueType == CastType || CastType.Accept(ValueType)) {
 				return Value;
 			}
-			GtFunc Func = GtStaticTable.GetConverterFunc(ValueType, CastType, true);
+			GtFunc Func = ZenTypeSystem.GetConverterFunc(ValueType, CastType, true);
 			if(Func != null) {
 				Object[] Argvs = new Object[2];
 				Argvs[0] = CastType;
@@ -794,15 +793,15 @@ public abstract class LibZen {
 			return null;
 		}
 		if(LeftValue instanceof String || RightValue instanceof String) {
-			String left = DynamicCast(GtStaticTable.StringType, LeftValue).toString();
-			String right = DynamicCast(GtStaticTable.StringType, RightValue).toString();
+			String left = DynamicCast(ZenTypeSystem.StringType, LeftValue).toString();
+			String right = DynamicCast(ZenTypeSystem.StringType, RightValue).toString();
 			if(Operator.equals("+")) {
 				return  DynamicCast(Type, left + right);
 			}
 		}
 		if(LeftValue instanceof String && RightValue instanceof String) {
-			String left = DynamicCast(GtStaticTable.StringType, LeftValue).toString();
-			String right = DynamicCast(GtStaticTable.StringType, RightValue).toString();
+			String left = DynamicCast(ZenTypeSystem.StringType, LeftValue).toString();
+			String right = DynamicCast(ZenTypeSystem.StringType, RightValue).toString();
 			if(Operator.equals("==")) {
 				return  DynamicCast(Type, left.equals(right));
 			}
@@ -940,7 +939,7 @@ public abstract class LibZen {
 			if(Func.GetReturnType().IsVarType()) {
 				Func.SetReturnType(LibNative.GetNativeType(JavaMethod.getReturnType()));
 			}
-			int StartIdx = Func.Is(GreenTeaUtils.NativeMethodFunc) ? 2 : 1;
+			int StartIdx = Func.Is(ZenUtils.NativeMethodFunc) ? 2 : 1;
 			Class<?>[] p = JavaMethod.getParameterTypes();
 			for(int i = 0; i < p.length; i++) {
 				if(Func.Types[StartIdx + i].IsVarType()) {

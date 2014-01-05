@@ -28,6 +28,7 @@ import java.util.ArrayList;
 
 import zen.ast.GtErrorNode;
 import zen.ast.GtNode;
+import zen.deps.ZenUtils;
 import zen.deps.LibNative;
 import zen.deps.LibZen;
 import zen.obsolete.GtFuncBlock;
@@ -54,7 +55,7 @@ final class GtSymbolSource {
 	/*field*/public Object  Value;
 }
 
-public final class GtNameSpace extends GreenTeaUtils {
+public final class GtNameSpace extends ZenUtils {
 //	/*field*/public final GtParserContext		Context;
 	/*field*/public final GtNameSpace   ParentNameSpace;
 	/*field*/public final GtGenerator		    Generator;
@@ -71,7 +72,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 		if(ParentNameSpace == null) {
 			this.Generator = Generator;
 			this.FuncBlock = null;
-			GtStaticTable.InitNameSpace(this);
+			ZenTypeSystem.InitNameSpace(this);
 		}
 		else {
 			this.Generator = ParentNameSpace.Generator;
@@ -127,7 +128,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 		}
 		i = 0;
 		while(i < keys.length()) {
-			/*local*/int kchar = GreenTeaUtils.AsciiToTokenMatrixIndex(LibZen.CharAt(keys, i));
+			/*local*/int kchar = ZenUtils.AsciiToTokenMatrixIndex(LibZen.CharAt(keys, i));
 			this.TokenMatrix[kchar] = this.JoinParentFunc(TokenFunc, this.TokenMatrix[kchar]);
 			i += 1;
 		}
@@ -177,11 +178,11 @@ public final class GtNameSpace extends GreenTeaUtils {
 			/*local*/Object OldValue = this.SymbolPatternTable.GetOrNull(Key);
 			if(OldValue != null && OldValue != UndefinedSymbol) {
 				if(LibZen.DebugMode) {
-					this.Generator.ReportError(GreenTeaConsts.WarningLevel, SourceToken, "duplicated symbol: " + SourceToken + " old, new =" + OldValue + ", " + Value);
+					this.Generator.ReportError(ZenParserConst.WarningLevel, SourceToken, "duplicated symbol: " + SourceToken + " old, new =" + OldValue + ", " + Value);
 				}
 				else {
 					if(!LibZen.EqualsString(Key, "_")) {
-						this.Generator.ReportError(GreenTeaConsts.WarningLevel, SourceToken, "duplicated symbol: " + SourceToken);
+						this.Generator.ReportError(ZenParserConst.WarningLevel, SourceToken, "duplicated symbol: " + SourceToken);
 					}
 				}
 			}
@@ -209,7 +210,7 @@ public final class GtNameSpace extends GreenTeaUtils {
 	}
 
 	public final GtType GetSymbolType(String Symbol) {
-		return GtStaticTable.VarType;
+		return ZenTypeSystem.VarType;
 	}
 
 	// Pattern
@@ -568,11 +569,11 @@ public final class GtNameSpace extends GreenTeaUtils {
 			TokenContext.SkipAndGetAnnotation(true);
 			/*local*/GtNode TopLevelNode = TokenContext.ParsePattern(this, "$Expression$", Required);
 //			TopLevelNode = this.TypeCheck(TopLevelNode, GtStaticTable.VoidType, GreenTeaConsts.AllowVoidPolicy);
-			this.Generator.TypeCheck(this, TopLevelNode, GtStaticTable.VoidType);
+			this.Generator.TypeCheck(this, TopLevelNode, ZenTypeSystem.VoidType);
 //			TopLevelNode.Accept(this.Generator);
 			if(TopLevelNode.IsErrorNode() && TokenContext.HasNext()) {
 				/*local*/GtToken Token = TokenContext.GetToken();
-				this.Generator.ReportError(GreenTeaConsts.InfoLevel, TokenContext.GetToken(), "stopping script eval at " + Token.ParsedText);
+				this.Generator.ReportError(ZenParserConst.InfoLevel, TokenContext.GetToken(), "stopping script eval at " + Token.ParsedText);
 				return null;
 			}
 			if(!TopLevelNode.Type.IsVoidType()) {
@@ -603,19 +604,19 @@ public final class GtNameSpace extends GreenTeaUtils {
 	public final boolean LoadFile(String FileName) {
 		/*local*/String ScriptText = LibNative.LoadScript(FileName);
 		if(ScriptText != null) {
-			/*local*/long FileLine = GtStaticTable.GetFileLine(FileName, 1);
+			/*local*/long FileLine = ZenTypeSystem.GetFileLine(FileName, 1);
 			return this.Load(ScriptText, FileLine);
 		}
 		return false;
 	}
 
 	public final boolean LoadRequiredLib(String LibName) {
-		/*local*/String Key = GreenTeaUtils.NativeNameSuffix + "L" + LibName.toLowerCase();
+		/*local*/String Key = ZenUtils.NativeNameSuffix + "L" + LibName.toLowerCase();
 		if(!this.HasSymbol(Key)) {
 			/*local*/String Path = LibZen.GetLibPath(this.Generator.TargetCode, LibName);
 			/*local*/String Script = LibNative.LoadScript(Path);
 			if(Script != null) {
-				/*local*/long FileLine = GtStaticTable.GetFileLine(Path, 1);
+				/*local*/long FileLine = ZenTypeSystem.GetFileLine(Path, 1);
 				if(this.Load(Script, FileLine)) {
 					this.SetSymbol(Key, Path, null);
 					return true;

@@ -26,14 +26,14 @@ package zen.ast;
 
 import zen.deps.LibZen;
 import zen.parser.GtNameSpace;
-import zen.parser.GtStaticTable;
+import zen.parser.ZenTypeSystem;
 import zen.parser.GtVisitor;
 
 //E.g., "~" $RecvNode
 final public class GtGroupNode extends GtNode {
 	/*field*/public GtNode	RecvNode;
 	public GtGroupNode/*constructor*/() {
-		super(GtStaticTable.VarType, null);
+		super(ZenTypeSystem.VarType, null);
 		this.RecvNode = null;
 	}
 	@Override public void Append(GtNode Node) {

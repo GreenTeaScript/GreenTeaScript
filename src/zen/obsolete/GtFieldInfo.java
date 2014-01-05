@@ -25,12 +25,12 @@
 //ifdef JAVA
 package zen.obsolete;
 
-import zen.parser.GreenTeaUtils;
+import zen.deps.ZenUtils;
 import zen.parser.GtFunc;
 import zen.parser.GtType;
 
 
-public class GtFieldInfo extends GreenTeaUtils {
+public class GtFieldInfo extends ZenUtils {
 	/*field*/public int     FieldFlag;
 	/*field*/public int     FieldIndex;
 	/*field*/public GtType	Type;

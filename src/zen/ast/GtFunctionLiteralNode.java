@@ -26,7 +26,7 @@ package zen.ast;
 
 import java.util.ArrayList;
 
-import zen.parser.GtStaticTable;
+import zen.parser.ZenTypeSystem;
 import zen.parser.GtToken;
 import zen.parser.GtType;
 import zen.parser.GtVisitor;
@@ -36,8 +36,8 @@ public class GtFunctionLiteralNode extends GtNode {
 	/*field*/public ArrayList<GtNode>  ArgumentList;  // list of ParamNode
 	/*field*/public GtNode BodyNode;
 	public GtFunctionLiteralNode/*constructor*/(GtToken Token) {
-		super(GtStaticTable.VarType, Token);
-		this.ReturnType = GtStaticTable.VarType;
+		super(ZenTypeSystem.VarType, Token);
+		this.ReturnType = ZenTypeSystem.VarType;
 		this.ArgumentList = new ArrayList<GtNode>();
 		this.BodyNode = null;
 	}

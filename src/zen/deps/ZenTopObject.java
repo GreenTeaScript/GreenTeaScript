@@ -32,12 +32,12 @@ import java.lang.reflect.Modifier;
 import zen.parser.GtType;
 
 
-public class GreenTeaTopObject implements GreenTeaObject {
+public class ZenTopObject implements ZenObject {
 	/*field*/public GtType GreenType;
-	protected GreenTeaTopObject/*constructor*/(GtType GreenType) {
+	protected ZenTopObject(GtType GreenType) {
 		this.GreenType = GreenType;
 	}
-	public final GtType GetGreenType() {
+	public final GtType GetZenType() {
 		return this.GreenType;
 	}
 
@@ -77,7 +77,7 @@ public class GreenTeaTopObject implements GreenTeaObject {
 }
 
 
-final class GreenTeaAnyObject extends GreenTeaTopObject {
+final class GreenTeaAnyObject extends ZenTopObject {
 	/*field*/public final Object NativeValue;
 	GreenTeaAnyObject/*constructor*/(GtType GreenType, Object NativeValue) {
 		super(GreenType);

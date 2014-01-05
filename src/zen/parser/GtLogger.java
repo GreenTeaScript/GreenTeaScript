@@ -37,17 +37,17 @@ public final class GtLogger {
 	}
 
 	public final String ReportError(int Level, GtToken Token, String Message) {
-		if(Level == GreenTeaConsts.ErrorLevel) {
-			Message = "(error) " + GtStaticTable.FormatFileLineNumber(Token.FileLine) + " " + Message;
+		if(Level == ZenParserConst.ErrorLevel) {
+			Message = "(error) " + ZenTypeSystem.FormatFileLineNumber(Token.FileLine) + " " + Message;
 		}
-		else if(Level == GreenTeaConsts.TypeErrorLevel) {
-			Message = "(error) " + GtStaticTable.FormatFileLineNumber(Token.FileLine) + " " + Message;
+		else if(Level == ZenParserConst.TypeErrorLevel) {
+			Message = "(error) " + ZenTypeSystem.FormatFileLineNumber(Token.FileLine) + " " + Message;
 		}
-		else if(Level == GreenTeaConsts.WarningLevel) {
-			Message = "(warning) " + GtStaticTable.FormatFileLineNumber(Token.FileLine) + " " + Message;
+		else if(Level == ZenParserConst.WarningLevel) {
+			Message = "(warning) " + ZenTypeSystem.FormatFileLineNumber(Token.FileLine) + " " + Message;
 		}
-		else if(Level == GreenTeaConsts.InfoLevel) {
-			Message = "(info) " + GtStaticTable.FormatFileLineNumber(Token.FileLine) + " " + Message;
+		else if(Level == ZenParserConst.InfoLevel) {
+			Message = "(info) " + ZenTypeSystem.FormatFileLineNumber(Token.FileLine) + " " + Message;
 		}
 		this.ReportedErrorList.add(Message);
 		return Message;

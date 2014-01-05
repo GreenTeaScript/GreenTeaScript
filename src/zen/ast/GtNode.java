@@ -27,7 +27,7 @@ package zen.ast;
 import java.util.ArrayList;
 
 import zen.deps.LibNative;
-import zen.parser.GreenTeaConsts;
+import zen.parser.ZenParserConst;
 import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
 import zen.parser.GtType;
@@ -142,7 +142,7 @@ public abstract class GtNode {
 
 	public final Object ToNullValue(GtNameSpace NameSpace, boolean EnforceConst) {
 		if(EnforceConst) {
-			NameSpace.Generator.ReportError(GreenTeaConsts.ErrorLevel, this.SourceToken, "value must be constant");
+			NameSpace.Generator.ReportError(ZenParserConst.ErrorLevel, this.SourceToken, "value must be constant");
 		}
 		return null;
 	}

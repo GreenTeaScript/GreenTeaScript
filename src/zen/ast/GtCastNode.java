@@ -26,7 +26,7 @@ package zen.ast;
 
 import zen.deps.LibZen;
 import zen.parser.GtNameSpace;
-import zen.parser.GtStaticTable;
+import zen.parser.ZenTypeSystem;
 import zen.parser.GtToken;
 import zen.parser.GtType;
 import zen.parser.GtVisitor;
@@ -36,7 +36,7 @@ final public class GtCastNode extends GtNode {
 	/*field*/public GtTypeNode	CastTypeNode;
 	/*field*/public GtNode	ExprNode;
 	public GtCastNode/*constructor*/() {
-		super(GtStaticTable.VarType, null);
+		super(ZenTypeSystem.VarType, null);
 		this.CastTypeNode = null;
 		this.ExprNode = null;
 	}

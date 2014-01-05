@@ -27,7 +27,7 @@ package zen.ast;
 import java.util.ArrayList;
 
 import zen.parser.GtVisitor;
-import zen.parser.GtStaticTable;
+import zen.parser.ZenTypeSystem;
 import zen.parser.GtToken;
 
 //E.g., $NativeFuncName "(" $Param[0], $Param[1], ... ")"
@@ -36,7 +36,7 @@ final public class GtMethodCall extends GtNode {
 	/*field*/public String MethodName;
 	/*field*/public ArrayList<GtNode>  ParamList; /* [arg1, arg2, ...] */
 	public GtMethodCall(GtToken SourceToken, GtNode RecvNode, String MethodName) {
-		super(GtStaticTable.VarType, SourceToken);
+		super(ZenTypeSystem.VarType, SourceToken);
 		this.RecvNode = RecvNode;
 		this.MethodName = MethodName;
 		this.ParamList = new ArrayList<GtNode>();

@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import zen.ast.GtFuncDeclNode;
 import zen.ast.GtNode;
 import zen.parser.GtNameSpace;
-import zen.parser.GtStaticTable;
+import zen.parser.ZenTypeSystem;
 import zen.parser.GtToken;
 import zen.parser.GtType;
 
@@ -39,7 +39,7 @@ final public class GtClassDeclNode extends GtNode {
 	/*field*/public ArrayList<GtNode>  FieldList;
 	/*field*/public ArrayList<GtNode>  MemberList;
 	public GtClassDeclNode/*constructor*/(GtToken SourceToken, GtNameSpace NameSpace, GtType ClassType) {
-		super(GtStaticTable.VarType, SourceToken); // TODO
+		super(ZenTypeSystem.VarType, SourceToken); // TODO
 		this.NameSpace = NameSpace;
 		this.ClassType = ClassType;
 		this.FieldList = new ArrayList<GtNode>();

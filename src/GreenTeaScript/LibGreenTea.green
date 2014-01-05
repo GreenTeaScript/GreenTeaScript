@@ -301,9 +301,9 @@
 		return -1;
 	}
 
-	@Export @Public @Static GtSyntaxTree ApplyMatchFunc(any Delegate, Object NameSpace, Object TokenContext, Object LeftTree, Object Pattern) {
+	@Export @Public @Static GtSyntaxTree ApplyMatchFunc(any Delegate, Object NameSpace, Object TokenContext, Object LeftNode, Object Pattern) {
 		try {
-			return (GtSyntaxTree)Delegate.Func.invoke(Delegate.Self, NameSpace, TokenContext, LeftTree, Pattern);
+			return (GtSyntaxTree)Delegate.Func.invoke(Delegate.Self, NameSpace, TokenContext, LeftNode, Pattern);
 		}
 		catch (InvocationTargetException e) {
 			LibZen.VerboseException(e);

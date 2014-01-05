@@ -355,7 +355,7 @@ public class GtSourceGenerator extends GtGenerator {
 
 	@Override
 	public boolean VisitErrorNode(GtErrorNode Node) {
-		this.ReportError(GreenTeaConsts.ErrorLevel, Node.SourceToken, Node.ErrorMessage);
+		this.ReportError(ZenParserConst.ErrorLevel, Node.SourceToken, Node.ErrorMessage);
 		//this.BreakGeneration();
 		return false;
 	}

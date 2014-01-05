@@ -48,27 +48,27 @@ public abstract class GtNodeUtils {
 	//	}
 	//
 	public GtNode CreateBooleanNode(GtToken SourceToken, boolean Value) {
-		return new GtBooleanNode(GtStaticTable.BooleanType, SourceToken, Value);
+		return new GtBooleanNode(ZenTypeSystem.BooleanType, SourceToken, Value);
 	}
 
 	public GtNode CreateIntNode(GtToken SourceToken, long Value) {
-		return new GtIntNode(GtStaticTable.IntType, SourceToken, Value);
+		return new GtIntNode(ZenTypeSystem.IntType, SourceToken, Value);
 	}
 
 	public GtNode CreateFloatNode(GtToken SourceToken, double Value) {
-		return new GtFloatNode(GtStaticTable.FloatType, SourceToken, Value);
+		return new GtFloatNode(ZenTypeSystem.FloatType, SourceToken, Value);
 	}
 
 	public GtNode CreateStringNode(GtToken SourceToken, String Value) {
-		return new GtStringNode(GtStaticTable.StringType, SourceToken, Value);
+		return new GtStringNode(ZenTypeSystem.StringType, SourceToken, Value);
 	}
 
 	public GtNode CreateRegexNode(GtToken SourceToken, String Value) {
-		return new GtRegexNode(GtStaticTable.VarType, SourceToken, Value);
+		return new GtRegexNode(ZenTypeSystem.VarType, SourceToken, Value);
 	}
 
 	public GtNode CreateConstPoolNode(GtToken SourceToken, Object Value) {
-		return new GtConstPoolNode(GtStaticTable.GuessType(Value), SourceToken, Value);
+		return new GtConstPoolNode(ZenTypeSystem.GuessType(Value), SourceToken, Value);
 	}
 
 	public final GtNode CreateConstNode(GtToken SourceToken, Object Value) {

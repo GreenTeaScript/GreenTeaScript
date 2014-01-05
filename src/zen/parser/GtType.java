@@ -26,12 +26,13 @@
 package zen.parser;
 import java.util.ArrayList;
 
+import zen.deps.ZenUtils;
 import zen.deps.LibNative;
 import zen.deps.LibZen;
 import zen.obsolete.GtClassField;
 //endif VAJA
 
-public class GtType extends GreenTeaUtils {
+public class GtType extends ZenUtils {
 	/*field*/public int				TypeFlag;
 	/*field*/public int             TypeId;
 	/*field*/public String			ShortName;
@@ -49,9 +50,9 @@ public class GtType extends GreenTeaUtils {
 		this.TypeBody = TypeBody;
 		this.SuperType = null;
 		this.BaseType = this;
-		this.ParentMethodSearch = GtStaticTable.TopType;
+		this.ParentMethodSearch = ZenTypeSystem.TopType;
 		if(!IsFlag(TypeFlag, TypeVariable)) {
-			this.TypeId = GtStaticTable.IssueTypeId(this);
+			this.TypeId = ZenTypeSystem.IssueTypeId(this);
 		}
 		this.TypeParams = null;
 //ifdef JAVA
@@ -113,7 +114,7 @@ public class GtType extends GreenTeaUtils {
 		return GenericType;
 	}
 	public final boolean IsAbstractType() {
-		return (this.TypeBody == null && this.SuperType == GtStaticTable.TopType/*default*/);
+		return (this.TypeBody == null && this.SuperType == ZenTypeSystem.TopType/*default*/);
 	}
 	public final boolean IsNativeType() {
 		return IsFlag(this.TypeFlag, NativeType);
@@ -131,40 +132,40 @@ public class GtType extends GreenTeaUtils {
 		return IsFlag(this.TypeFlag, GenericVariable);
 	}
 	public final boolean IsFuncType() {
-		return (this.BaseType == GtStaticTable.FuncType);
+		return (this.BaseType == ZenTypeSystem.FuncType);
 	}
 	public final boolean IsTopType() {
-		return (this == GtStaticTable.TopType);
+		return (this == ZenTypeSystem.TopType);
 	}
 	public final boolean IsVoidType() {
-		return (this == GtStaticTable.VoidType);
+		return (this == ZenTypeSystem.VoidType);
 	}
 	public final boolean IsVarType() {
-		return (this == GtStaticTable.VarType);
+		return (this == ZenTypeSystem.VarType);
 	}
 	public final boolean IsAnyType() {
-		return (this == GtStaticTable.AnyType);
+		return (this == ZenTypeSystem.AnyType);
 	}
 	public final boolean IsTypeType() {
-		return (this == GtStaticTable.TypeType);
+		return (this == ZenTypeSystem.TypeType);
 	}
 	public final boolean IsBooleanType() {
-		return (this == GtStaticTable.BooleanType);
+		return (this == ZenTypeSystem.BooleanType);
 	}
 	public final boolean IsIntType() {
-		return (this == GtStaticTable.IntType);
+		return (this == ZenTypeSystem.IntType);
 	}
 	public final boolean IsFloatType() {
-		return (this == GtStaticTable.FloatType);
+		return (this == ZenTypeSystem.FloatType);
 	}
 	public final boolean IsStringType() {
-		return (this == GtStaticTable.StringType);
+		return (this == ZenTypeSystem.StringType);
 	}
 	public final boolean IsArrayType() {
-		return (this.BaseType == GtStaticTable.ArrayType);
+		return (this.BaseType == ZenTypeSystem.ArrayType);
 	}
 	public final boolean IsIteratorType() {
-		return (this.BaseType == GtStaticTable.IteratorType);
+		return (this.BaseType == ZenTypeSystem.IteratorType);
 	}
 	public final boolean IsEnumType() {
 		return IsFlag(this.TypeFlag, EnumType);
@@ -218,7 +219,7 @@ public class GtType extends GreenTeaUtils {
 	}
 
 	public final boolean Accept(GtType Type) {
-		if(this == Type || this == GtStaticTable.AnyType) {
+		if(this == Type || this == ZenTypeSystem.AnyType) {
 			return true;
 		}
 		/*local*/GtType SuperClass = Type.SuperType;
@@ -228,7 +229,7 @@ public class GtType extends GreenTeaUtils {
 			}
 			SuperClass = SuperClass.SuperType;
 		}
-		return GtStaticTable.CheckSubType(Type, this);
+		return ZenTypeSystem.CheckSubType(Type, this);
 	}
 
 //	public final boolean Accept(GtType Type) {
@@ -238,7 +239,7 @@ public class GtType extends GreenTeaUtils {
 //	}
 	
 	public final boolean AcceptValue(Object Value) {
-		return (Value != null) ? this.Accept(GtStaticTable.GuessType(Value)) : true;
+		return (Value != null) ? this.Accept(ZenTypeSystem.GuessType(Value)) : true;
 	}
 
 	public void SetClassField(GtClassField ClassField) {
@@ -303,7 +304,7 @@ public class GtType extends GreenTeaUtils {
 				TypeList.add(RealParamType);
 				i += 1;
 			}
-			return GtStaticTable.GetGenericType(this.BaseType, 0, TypeList, true);
+			return ZenTypeSystem.GetGenericType(this.BaseType, 0, TypeList, true);
 		}
 		return this;
 	}

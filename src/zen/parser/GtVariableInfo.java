@@ -24,6 +24,7 @@
 
 package zen.parser;
 
+import zen.deps.ZenUtils;
 import zen.obsolete.GtFuncBlock;
 
 public class GtVariableInfo {
@@ -43,7 +44,7 @@ public class GtVariableInfo {
 		this.Type = Type;
 		this.SourceToken = SourceToken;
 		this.Name = Name;
-		this.NativeName = GreenTeaUtils.NativeVariableName(Name, this.FuncBlock.GetVariableIndex());
+		this.NativeName = ZenUtils.NativeVariableName(Name, this.FuncBlock.GetVariableIndex());
 //		this.InitValue = null;
 		this.UsedCount = 0;
 		this.DefCount  = 1;

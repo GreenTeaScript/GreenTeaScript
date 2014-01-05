@@ -40,12 +40,11 @@ import java.lang.reflect.Modifier;
 
 import zen.ast.GtNode;
 import zen.obsolete.GtPolyFunc;
-import zen.parser.GreenTeaUtils;
 import zen.parser.GtFunc;
 import zen.parser.GtGenerator;
 import zen.parser.GtNameSpace;
 import zen.parser.GtSourceGenerator;
-import zen.parser.GtStaticTable;
+import zen.parser.ZenTypeSystem;
 import zen.parser.GtTokenContext;
 import zen.parser.GtType;
 import zen.parser.GtVisitor;
@@ -66,12 +65,12 @@ public class LibNative {
 
 	public final static GtType GetNativeType(Class<?> NativeClass) {
 		GtType NativeType = null;
-		NativeType = (/*cast*/GtType) GtStaticTable.ClassNameMap.GetOrNull(NativeClass.getCanonicalName());
+		NativeType = (/*cast*/GtType) ZenTypeSystem.ClassNameMap.GetOrNull(NativeClass.getCanonicalName());
 		if(NativeType == null) {  /* create native type */
 			//			DebugP("** creating native class: " + NativeClass.getSimpleName() + ", " + NativeClass.getCanonicalName());
-			NativeType = new GtType(GreenTeaUtils.NativeType, NativeClass.getSimpleName(), null, NativeClass);
-			GtStaticTable.SetNativeTypeName(NativeClass.getCanonicalName(), NativeType);
-			LibZen.VerboseLog(GreenTeaUtils.VerboseNative, "creating native class: " + NativeClass.getSimpleName() + ", " + NativeClass.getCanonicalName());
+			NativeType = new GtType(ZenUtils.NativeType, NativeClass.getSimpleName(), null, NativeClass);
+			ZenTypeSystem.SetNativeTypeName(NativeClass.getCanonicalName(), NativeType);
+			LibZen.VerboseLog(ZenUtils.VerboseNative, "creating native class: " + NativeClass.getSimpleName() + ", " + NativeClass.getCanonicalName());
 		}
 		return NativeType;
 	}
@@ -163,17 +162,17 @@ public class LibNative {
 						continue;
 					}
 					if(FoundMethod != null) {
-						LibZen.VerboseLog(GreenTeaUtils.VerboseUndefined, "overloaded method: " + FullName);
+						LibZen.VerboseLog(ZenUtils.VerboseUndefined, "overloaded method: " + FullName);
 						return FoundMethod; // return the first one
 					}
 					FoundMethod = Methods[i];
 				}
 			}
 			if(FoundMethod == null) {
-				LibZen.VerboseLog(GreenTeaUtils.VerboseUndefined, "undefined method: " + FullName + " for " + ContextType);
+				LibZen.VerboseLog(ZenUtils.VerboseUndefined, "undefined method: " + FullName + " for " + ContextType);
 			}
 		} catch (ClassNotFoundException e) {
-			LibZen.VerboseLog(GreenTeaUtils.VerboseException, e.toString());
+			LibZen.VerboseLog(ZenUtils.VerboseException, e.toString());
 		}
 		return FoundMethod;
 	}
@@ -243,7 +242,7 @@ public class LibNative {
 	}
 
 	public final static Object ImportNativeObject(GtNameSpace NameSpace, String PackageName) {
-		LibZen.VerboseLog(GreenTeaUtils.VerboseNative, "importing " + PackageName);
+		LibZen.VerboseLog(ZenUtils.VerboseNative, "importing " + PackageName);
 		try {
 			/*local*/Class<?> NativeClass = LibNative.LoadClass(PackageName);
 			try {
@@ -503,7 +502,7 @@ public class LibNative {
 	}
 
 	public final static String LoadScript(String FileName) {
-		LibZen.VerboseLog(GreenTeaUtils.VerboseFile, "loading " + FileName);
+		LibZen.VerboseLog(ZenUtils.VerboseFile, "loading " + FileName);
 		InputStream Stream = LibZen.class.getResourceAsStream("/" + FileName);
 		if(Stream == null) {
 			File f = new File(LibZen.FormatFilePath(FileName));

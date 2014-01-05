@@ -26,13 +26,13 @@
 package zen.obsolete;
 import java.util.ArrayList;
 
-import zen.parser.GreenTeaUtils;
+import zen.deps.ZenUtils;
 import zen.parser.GtNameSpace;
 import zen.parser.GtType;
 
 
 
-public final class GtClassField extends GreenTeaUtils {
+public final class GtClassField extends ZenUtils {
 	/*field*/ public GtType DefinedType;
 	/*field*/ private final GtNameSpace NameSpace;
 	/*field*/ public ArrayList<GtFieldInfo> FieldList;

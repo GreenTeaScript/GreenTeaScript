@@ -25,14 +25,14 @@
 //ifdef JAVA
 package zen.obsolete;
 
-import zen.parser.GreenTeaUtils;
+import zen.deps.ZenUtils;
 import zen.parser.GtNameSpace;
 import zen.parser.GtSyntaxPattern;
 import zen.parser.GtToken;
 //endif VAJA
 
 @Deprecated
-public final class GtSyntaxTree extends GreenTeaUtils {
+public final class GtSyntaxTree extends ZenUtils {
 //	/*field*/public GtMap               Annotation;
 //	/*field*/public GtSyntaxTree		ParentTree;
 //	/*field*/public GtSyntaxTree		PrevTree;

@@ -27,6 +27,7 @@ package zen.parser;
 import java.util.ArrayList;
 
 import zen.ast.GtNode;
+import zen.deps.ZenUtils;
 import zen.deps.LibNative;
 import zen.deps.LibZen;
 //endif VAJA
@@ -89,7 +90,7 @@ public class GtSourceBuilder {
 
 	private final String GetIndentString() {
 		if(this.CurrentIndentString == null) {
-			this.CurrentIndentString = GreenTeaUtils.JoinStrings(this.Template.Tab, this.IndentLevel);
+			this.CurrentIndentString = ZenUtils.JoinStrings(this.Template.Tab, this.IndentLevel);
 		}
 		return this.CurrentIndentString;
 	}

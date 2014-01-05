@@ -25,7 +25,7 @@
 package zen.ast;
 
 import zen.parser.GtVisitor;
-import zen.parser.GtStaticTable;
+import zen.parser.ZenTypeSystem;
 import zen.parser.GtSyntaxPattern;
 import zen.parser.GtToken;
 
@@ -34,7 +34,7 @@ public class GtBinaryNode extends GtNode {
 	/*field*/public GtNode	 RightNode;
 	/*field*/public GtSyntaxPattern Pattern;
 	public GtBinaryNode/*constructor*/(GtToken SourceToken, GtNode Left, GtSyntaxPattern Pattern) {
-		super(GtStaticTable.VarType, SourceToken);
+		super(ZenTypeSystem.VarType, SourceToken);
 		this.LeftNode  = Left;
 		this.RightNode = null;
 		this.Pattern = Pattern;

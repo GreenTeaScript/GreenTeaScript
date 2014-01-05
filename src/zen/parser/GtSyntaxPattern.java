@@ -25,12 +25,12 @@
 //ifdef JAVA
 package zen.parser;
 
-import zen.ast.GtErrorNode;
 import zen.ast.GtNode;
-import zen.deps.LibZen;
+import zen.deps.ZenUtils;
 import zen.deps.LibNative;
+import zen.deps.LibZen;
 
-public final class GtSyntaxPattern extends GreenTeaUtils {
+public final class GtSyntaxPattern extends ZenUtils {
 	/*field*/public GtNameSpace	          PackageNameSpace;
 	/*field*/public String		          PatternName;
 	/*field*/public int				      SyntaxFlag;
@@ -99,7 +99,7 @@ public final class GtSyntaxPattern extends GreenTeaUtils {
 		if(TokenContext.IsAllowedBackTrack()) {
 			return null;
 		}
-		return GtErrorNode.CreateExpectedToken(TokenContext.GetBeforeToken(), Pattern.PatternName);
+		return TokenContext.CreateExpectedErrorNode(null, Pattern.PatternName);
 	}
 
 
