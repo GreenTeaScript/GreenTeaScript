@@ -25,8 +25,6 @@
 //ifdef JAVA
 package zen.parser;
 
-import zen.deps.ZenUtils;
-//endif VAJA
 
 @Deprecated
 public final class GtParserContext extends ZenUtils {

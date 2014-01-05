@@ -24,8 +24,8 @@
 
 package zen.obsolete;
 
-import zen.deps.ZenUtils;
 import zen.parser.GtNameSpace;
+import zen.parser.ZenUtils;
 
 @Deprecated
 public final class GtTypeEnv extends ZenUtils {

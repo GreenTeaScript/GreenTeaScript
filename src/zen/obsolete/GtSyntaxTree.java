@@ -25,11 +25,11 @@
 //ifdef JAVA
 package zen.obsolete;
 
-import zen.deps.ZenUtils;
 import zen.parser.GtNameSpace;
 import zen.parser.GtSyntaxPattern;
 import zen.parser.GtToken;
 //endif VAJA
+import zen.parser.ZenUtils;
 
 @Deprecated
 public final class GtSyntaxTree extends ZenUtils {

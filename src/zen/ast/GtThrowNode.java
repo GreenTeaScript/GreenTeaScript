@@ -24,37 +24,13 @@
 
 package zen.ast;
 
-import zen.deps.LibZen;
-import zen.parser.GtNameSpace;
-import zen.parser.GtToken;
-import zen.parser.GtType;
 import zen.parser.GtVisitor;
 
-//E.g., $CondNode "?" $ThenExpr ":" $ElseExpr
-final public class GtTrinaryNode extends GtNode {
-	/*field*/public GtNode	CondNode;
-	/*field*/public GtNode	ThenNode;
-	/*field*/public GtNode	ElseNode;
-	public GtTrinaryNode/*constructor*/(GtType Type, GtToken Token, GtNode CondNode, GtNode ThenNode, GtNode ElseNode) {
-		super(Type, Token);
-		this.CondNode = CondNode;
-		this.ThenNode = ThenNode;
-		this.ElseNode = ElseNode;
-		//this.SetChild3(CondNode, ThenNode, ElseNode);
+final public class GtThrowNode extends GtReturnNode {
+	public GtThrowNode/*constructor*/() {
+		super();
 	}
 	@Override public boolean Accept(GtVisitor Visitor) {
-		return Visitor.VisitTrinaryNode(this);
-	}
-	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-		/*local*/Object CondValue = this.CondNode.Eval(NameSpace, EnforceConst) ;
-		if(CondValue instanceof Boolean) {
-			if(LibZen.booleanValue(CondValue)) {
-				return this.ThenNode.Eval(NameSpace, EnforceConst);
-			}
-			else {
-				return this.ElseNode.Eval(NameSpace, EnforceConst);
-			}
-		}
-		return null;
+		return Visitor.VisitThrowNode(this);
 	}
 }

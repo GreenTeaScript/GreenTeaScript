@@ -24,6 +24,7 @@
 
 package zen.ast;
 
+import zen.ast2.GtSymbolNode;
 import zen.parser.GtVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;

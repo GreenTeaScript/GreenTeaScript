@@ -22,32 +22,35 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package zen.ast2;
+package zen.ast;
 
-import zen.ast.GtNode;
-import zen.deps.LibZen;
-import zen.parser.GtNameSpace;
-import zen.parser.GtToken;
 import zen.parser.GtType;
+import zen.parser.ZenTypeSystem;
 
-//E.g., $ExprNode instanceof TypeInfo
-final public class GtInstanceOfNode extends GtNode {
-	/*field*/public GtNode   ExprNode;
-	/*field*/public GtType	 TypeInfo;
-	public GtInstanceOfNode/*constructor*/(GtType Type, GtToken Token, GtNode ExprNode, GtType TypeInfo) {
-		super(Type, Token);
-		this.ExprNode = ExprNode;
-		this.TypeInfo = TypeInfo;
-		this.SetChild(ExprNode);
+final public class GtCatchNode extends GtNode {
+	/*field*/public GtType  ExceptionType;
+	/*field*/public String  ExceptionName;
+	/*field*/public GtNode	BodyNode;
+	public GtCatchNode/*constructor*/() {
+		super(ZenTypeSystem.VarType, null);
+		this.ExceptionType = ZenTypeSystem.VarType;
+		this.ExceptionName = null;
+		this.BodyNode = null;
 	}
-//	@Override public boolean Accept(GtVisitor Visitor) {
-//		return Visitor.VisitInstanceOfNode(this);
-//	}
-	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-		/*local*/Object Value = this.ExprNode.Eval(NameSpace, EnforceConst) ;
-		if(Value != null) {
-			return LibZen.DynamicInstanceOf(Value, this.TypeInfo);
+	@Override public void Append(GtNode Node) {
+		if(Node instanceof GtTypeNode) {
+			this.ExceptionType = Node.Type;
 		}
-		return Value;
+		else if(Node instanceof GtBlockNode) {
+			this.BodyNode = Node;
+			this.SetChild(Node);
+		}
+		else {
+			this.ExceptionName = Node.SourceToken.ParsedText;
+		}
 	}
+
+//	@Override public boolean Accept(GtVisitor Visitor) {
+//		return Visitor.VisitCatchNode(this);
+//	}
 }

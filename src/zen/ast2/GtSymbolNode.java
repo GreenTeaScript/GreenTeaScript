@@ -25,15 +25,16 @@
 package zen.ast2;
 
 import zen.ast.GtNode;
-import zen.parser.ZenTypeSystem;
+import zen.parser.GtFunc;
+import zen.parser.GtToken;
+import zen.parser.GtType;
 
-final public class GtBreakNode extends GtNode {
-	/*field*/public String Label;
-	public GtBreakNode/*constructor*/() {
-		super(ZenTypeSystem.VarType, null);
-		this.Label = null;
+abstract public class GtSymbolNode extends GtNode {
+	/*field*/public String  NativeName;
+	/*field*/public GtFunc	ResolvedFunc;    // 
+	public GtSymbolNode/*constructor*/(GtType Type, GtToken Token, String NativeName) {
+		super(Type, Token);
+		this.NativeName = NativeName;
+		this.ResolvedFunc = null;
 	}
-//	@Override public boolean Accept(GtVisitor Visitor) {
-//		return Visitor.VisitBreakNode(this);
-//	}
 }

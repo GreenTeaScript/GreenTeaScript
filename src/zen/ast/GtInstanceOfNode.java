@@ -22,29 +22,26 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package zen.ast2;
+package zen.ast;
 
-import java.util.ArrayList;
-
-import zen.ast.GtNode;
+import zen.parser.GtSyntaxPattern;
 import zen.parser.GtToken;
-import zen.parser.GtType;
+import zen.parser.GtVisitor;
 
-final public class GtTryNode extends GtNode {
-	/*field*/public GtNode	TryNode;
-	/*field*/public ArrayList<GtNode> 	CatchList;
-	/*field*/public GtNode	FinallyNode;
-	public GtTryNode/*constructor*/(GtType Type, GtToken Token, GtNode TryBlock, GtNode FinallyBlock) {
-		super(Type, Token);
-		this.TryNode = TryBlock;
-		this.FinallyNode = FinallyBlock;
-		this.CatchList = new ArrayList<GtNode>();
-//		this.SetChild2(TryBlock, FinallyBlock);
+//E.g., $ExprNode instanceof TypeInfo
+final public class GtInstanceOfNode extends GtBinaryNode {
+	public GtInstanceOfNode/*constructor*/(GtToken Token, GtNode Left, GtSyntaxPattern Pattern) {
+		super(Token, Left, Pattern);
 	}
-	@Override public ArrayList<GtNode> GetList() {
-		return this.CatchList;
+
+	@Override public boolean Accept(GtVisitor Visitor) {
+		return Visitor.VisitInstanceOfNode(this);
 	}
-//	@Override public boolean Accept(GtVisitor Visitor) {
-//		return Visitor.VisitTryNode(this);
+//	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
+//		/*local*/Object Value = this.ExprNode.Eval(NameSpace, EnforceConst) ;
+//		if(Value != null) {
+//			return LibZen.DynamicInstanceOf(Value, this.TypeInfo);
+//		}
+//		return Value;
 //	}
 }

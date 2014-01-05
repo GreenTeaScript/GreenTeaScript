@@ -26,7 +26,6 @@
 package zen.parser;
 import java.util.ArrayList;
 
-import zen.deps.ZenUtils;
 import zen.deps.LibNative;
 import zen.deps.LibZen;
 import zen.obsolete.GtClassField;

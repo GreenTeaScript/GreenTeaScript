@@ -24,16 +24,29 @@
 
 package zen.ast;
 
-import zen.parser.GtFunc;
-import zen.parser.GtToken;
-import zen.parser.GtType;
+import zen.parser.GtVisitor;
+import zen.parser.ZenTypeSystem;
 
-abstract public class GtSymbolNode extends GtNode {
-	/*field*/public String  NativeName;
-	/*field*/public GtFunc	ResolvedFunc;    // 
-	public GtSymbolNode/*constructor*/(GtType Type, GtToken Token, String NativeName) {
-		super(Type, Token);
-		this.NativeName = NativeName;
-		this.ResolvedFunc = null;
+//E.g., "while" "(" $Cond ")" $Body
+final public class GtWhileNode extends GtNode {
+	/*field*/public GtNode	CondNode;
+	/*field*/public GtNode	BodyNode;
+	public GtWhileNode/*constructor*/() {
+		super(ZenTypeSystem.VarType, null);
+		this.CondNode = null;
+		this.BodyNode = null;
+	}
+	@Override public final void Append(GtNode Node) {
+		this.SetChild(Node);
+		if(this.CondNode == null) {
+			this.CondNode = Node;
+		}
+		else {
+			this.BodyNode = Node;
+		}
+		/*return this;*/
+	}
+	@Override public boolean Accept(GtVisitor Visitor) {
+		return Visitor.VisitWhileNode(this);
 	}
 }

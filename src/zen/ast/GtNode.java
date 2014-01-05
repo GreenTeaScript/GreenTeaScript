@@ -27,11 +27,11 @@ package zen.ast;
 import java.util.ArrayList;
 
 import zen.deps.LibNative;
-import zen.parser.ZenParserConst;
 import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
 import zen.parser.GtType;
 import zen.parser.GtVisitor;
+import zen.parser.ZenParserConst;
 //endif VAJA
 
 public abstract class GtNode {
@@ -50,60 +50,15 @@ public abstract class GtNode {
 //		this.NextNode = null;
 	}
 
-//	// Override by GtVarDeclNode, GtUsingVarDeclNode
-//	public void SetNextStatement(GtNode NextNode) {
-//		this.NextNode = NextNode;
-//		NextNode.PrevNode = this;
-//	}
-//
-//	public final GtNode MoveHeadNode() {
-//		/*local*/GtNode Node = this;
-//		while(Node.PrevNode != null) {
-//			Node = Node.PrevNode;
-//		}
-//		return Node;
-//	}
-//	public final GtNode MoveTailNode() {
-//		/*local*/GtNode Node = this;
-//		while(Node.NextNode != null) {
-//			Node = Node.NextNode;
-//		}
-//		return Node;
-//	}
-
-//	public final boolean IsConstNode() {
-//		return (this instanceof GtConstPoolNode);
-//	}
-//	public final boolean IsNullNode() {
-//		return (this instanceof GtNullNode);
-//	}
 	public final boolean IsErrorNode() {
 		return (this instanceof GtErrorNode);
 	}
-
-//	public final boolean HasReturnNode() {
-//		/*local*/GtNode LastNode = this.MoveTailNode();
-//		return ((LastNode instanceof GtReturnNode) || (LastNode instanceof GtThrowNode));
-//	}
 
 	public final void SetChild(GtNode Node) {
 		if(Node != null) {
 			Node.ParentNode = this;
 		}
 	}
-
-//	@Deprecated
-//	public final void SetChild2(GtNode Node, GtNode Node2) {
-//		this.SetChild(Node);
-//		this.SetChild(Node2);
-//	}
-//
-//	@Deprecated
-//	public final void SetChild3(GtNode Node, GtNode Node2, GtNode Node3) {
-//		this.SetChild(Node);
-//		this.SetChild(Node2);
-//		this.SetChild(Node3);
-//	}
 
 	public ArrayList<GtNode> GetList() {
 		return null;
@@ -116,7 +71,7 @@ public abstract class GtNode {
 	}
 
 	public final GtNode Done() {
-		return new GtBlockNode(this.SourceToken);
+		return new GtBlockNode(this.SourceToken, null);
 	}
 
 	public String GetVisitName() {

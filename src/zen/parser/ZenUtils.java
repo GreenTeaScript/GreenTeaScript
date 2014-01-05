@@ -22,15 +22,12 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package zen.deps;
+package zen.parser;
 
 import java.util.ArrayList;
 
-import zen.parser.GtSyntaxPattern;
-import zen.parser.GtTokenContext;
-import zen.parser.GtTokenFunc;
-import zen.parser.GtType;
-import zen.parser.ZenParserConst;
+import zen.deps.LibNative;
+import zen.deps.LibZen;
 
 public class ZenUtils implements ZenParserConst {
 //endif VAJA

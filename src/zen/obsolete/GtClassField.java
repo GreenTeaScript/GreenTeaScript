@@ -26,9 +26,9 @@
 package zen.obsolete;
 import java.util.ArrayList;
 
-import zen.deps.ZenUtils;
 import zen.parser.GtNameSpace;
 import zen.parser.GtType;
+import zen.parser.ZenUtils;
 
 
 

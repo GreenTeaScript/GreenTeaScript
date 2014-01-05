@@ -22,24 +22,18 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package zen.ast2;
+package zen.ast;
 
-import zen.ast.GtNode;
-import zen.parser.GtToken;
-import zen.parser.GtType;
+import zen.parser.GtVisitor;
+import zen.parser.ZenTypeSystem;
 
-final public class GtCatchNode extends GtNode {
-	/*field*/public GtType  ExceptionType;
-	/*field*/public String  ExceptionName;
-	/*field*/public GtNode	BodyNode;
-	public GtCatchNode/*constructor*/(GtType Type, GtToken Token, GtType ExceptionType, String Name, GtNode BodyNode) {
-		super(Type, Token);
-		this.ExceptionType = ExceptionType;
-		this.ExceptionName = Name;
-		this.BodyNode = BodyNode;
-		this.SetChild(BodyNode);
+final public class GtBreakNode extends GtNode {
+	/*field*/public String Label;
+	public GtBreakNode/*constructor*/() {
+		super(ZenTypeSystem.VarType, null);
+		this.Label = null;
 	}
-//	@Override public boolean Accept(GtVisitor Visitor) {
-//		return Visitor.VisitCatchNode(this);
-//	}
+	@Override public boolean Accept(GtVisitor Visitor) {
+		return Visitor.VisitBreakNode(this);
+	}
 }

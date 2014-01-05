@@ -36,7 +36,6 @@ import zen.ast.GtErrorNode;
 import zen.ast.GtFuncDeclNode;
 import zen.ast.GtGetterNode;
 import zen.ast.GtGroupNode;
-import zen.ast.GtIfNode;
 import zen.ast.GtMethodCall;
 import zen.ast.GtNode;
 import zen.ast.GtNullNode;
@@ -49,16 +48,16 @@ import zen.ast.GtUnaryNode;
 import zen.ast.GtVarDeclNode;
 import zen.deps.LibNative;
 import zen.deps.LibZen;
-import zen.parser.ZenParserConst;
 import zen.parser.GtFunc;
 import zen.parser.GtMap;
 import zen.parser.GtNameSpace;
-import zen.parser.ZenTypeSystem;
 import zen.parser.GtSyntaxPattern;
 import zen.parser.GtToken;
 import zen.parser.GtTokenContext;
 import zen.parser.GtType;
 import zen.parser.GtVariableInfo;
+import zen.parser.ZenParserConst;
+import zen.parser.ZenTypeSystem;
 
 //endif VAJA
 
@@ -2118,19 +2117,19 @@ public class KonohaGrammar {
 //		return Node;
 //	}
 
-	public static GtNode MatchIf(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
-		/*local*/GtNode IfNode = new GtIfNode();
-		IfNode = TokenContext.MatchNodeToken(IfNode, NameSpace, "if", ZenParserConst.Required);
-		IfNode = TokenContext.MatchNodeToken(IfNode, NameSpace, "(", ZenParserConst.Required | ZenParserConst.AllowSkipIndent);
-		IfNode = TokenContext.AppendMatchedPattern(IfNode, NameSpace, "$Expression$", ZenParserConst.Required);
-		IfNode = TokenContext.MatchNodeToken(IfNode, NameSpace, ")", ZenParserConst.Required | ZenParserConst.DisallowSkipIndent);
-		IfNode = TokenContext.AppendMatchedPattern(IfNode, NameSpace, "$StmtBlock$", ZenParserConst.AllowLineFeed | ZenParserConst.Required);
-		TokenContext.SkipEmptyStatement();
-		if(TokenContext.MatchToken2("else", ZenParserConst.AllowLineFeed)) {
-			IfNode = TokenContext.AppendMatchedPattern(IfNode, NameSpace, "$StmtBlock$", ZenParserConst.AllowLineFeed | ZenParserConst.Required);
-		}
-		return IfNode;
-	}
+//	public static GtNode MatchIf(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
+//		/*local*/GtNode IfNode = new GtIfNode();
+//		IfNode = TokenContext.MatchNodeToken(IfNode, NameSpace, "if", ZenParserConst.Required);
+//		IfNode = TokenContext.MatchNodeToken(IfNode, NameSpace, "(", ZenParserConst.Required | ZenParserConst.AllowSkipIndent);
+//		IfNode = TokenContext.AppendMatchedPattern(IfNode, NameSpace, "$Expression$", ZenParserConst.Required);
+//		IfNode = TokenContext.MatchNodeToken(IfNode, NameSpace, ")", ZenParserConst.Required | ZenParserConst.DisallowSkipIndent);
+//		IfNode = TokenContext.AppendMatchedPattern(IfNode, NameSpace, "$StmtBlock$", ZenParserConst.AllowLineFeed | ZenParserConst.Required);
+//		TokenContext.SkipEmptyStatement();
+//		if(TokenContext.MatchToken2("else", ZenParserConst.AllowLineFeed)) {
+//			IfNode = TokenContext.AppendMatchedPattern(IfNode, NameSpace, "$StmtBlock$", ZenParserConst.AllowLineFeed | ZenParserConst.Required);
+//		}
+//		return IfNode;
+//	}
 
 	public static GtNode MatchReturn(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
 		/*local*/GtNode ReturnNode = new GtReturnNode();

@@ -48,6 +48,7 @@ import zen.parser.ZenTypeSystem;
 import zen.parser.GtTokenContext;
 import zen.parser.GtType;
 import zen.parser.GtVisitor;
+import zen.parser.ZenUtils;
 
 public class LibNative {
 	final static void DebugP(String s) {

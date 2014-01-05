@@ -35,7 +35,7 @@ final public class GtVarDeclNode extends GtBlockNode {
 	/*field*/public String  NativeName;
 	/*field*/public GtNode	InitNode;
 	public GtVarDeclNode/*constructor*/(/*GtType DeclType, GtToken SourceToken, String VariableName*/) {
-		super(null);
+		super(null, null);
 		this.NativeName = null;
 		this.InitNode  = null;
 	}

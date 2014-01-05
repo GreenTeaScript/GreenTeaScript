@@ -27,13 +27,13 @@ package org.GreenTeaScript;
 //endif VAJA
 
 import zen.deps.ZenArray;
-import zen.deps.ZenUtils;
 import zen.deps.LibNative;
 import zen.deps.LibZen;
 import zen.grammar.SugarlessGrammar;
 import zen.parser.ZenParserConst;
 import zen.parser.GtGenerator;
 import zen.parser.ZenTypeSystem;
+import zen.parser.ZenUtils;
 
 public class GreenTeaScript extends ZenUtils {
 	public final static void ExecCommand(String[] Args) {

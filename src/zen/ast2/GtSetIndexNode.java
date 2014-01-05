@@ -25,7 +25,6 @@
 package zen.ast2;
 
 import zen.ast.GtNode;
-import zen.ast.GtSymbolNode;
 import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
 import zen.parser.GtType;

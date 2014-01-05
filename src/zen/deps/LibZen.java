@@ -44,6 +44,7 @@ import zen.parser.GtMap;
 import zen.parser.GtSourceBuilder;
 import zen.parser.ZenTypeSystem;
 import zen.parser.GtType;
+import zen.parser.ZenUtils;
 
 public abstract class LibZen {
 	public final static ZenArray NewArray(GtType Type, Object[] InitSizes) {

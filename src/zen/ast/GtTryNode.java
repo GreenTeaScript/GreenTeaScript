@@ -22,31 +22,36 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package zen.ast2;
+package zen.ast;
 
-import zen.ast.GtNode;
+import java.util.ArrayList;
+
+import zen.parser.GtVisitor;
 import zen.parser.ZenTypeSystem;
 
-//E.g., "while" "(" $Cond ")" $Body
-final public class GtWhileNode extends GtNode {
-	/*field*/public GtNode	CondNode;
-	/*field*/public GtNode	BodyNode;
-	public GtWhileNode/*constructor*/() {
+final public class GtTryNode extends GtNode {
+	/*field*/public GtNode	TryNode;
+	/*field*/public ArrayList<GtNode> 	CatchList;
+	/*field*/public GtNode	FinallyNode;
+	public GtTryNode/*constructor*/() {
 		super(ZenTypeSystem.VarType, null);
-		this.CondNode = null;
-		this.BodyNode = null;
+		this.TryNode = null;
+		this.FinallyNode = null;
+		this.CatchList = new ArrayList<GtNode>();
 	}
-	@Override public final void Append(GtNode Node) {
+	@Override public void Append(GtNode Node) {
 		this.SetChild(Node);
-		if(this.CondNode == null) {
-			this.CondNode = Node;
+		if(Node instanceof GtCatchNode) {
+			this.CatchList.add(Node);
+		}
+		else if(this.TryNode == null) {
+			this.TryNode = Node;
 		}
 		else {
-			this.BodyNode = Node;
+			this.FinallyNode = Node;
 		}
-		/*return this;*/
 	}
-//	@Override public boolean Accept(GtVisitor Visitor) {
-//		return Visitor.VisitWhileNode(this);
-//	}
+	@Override public boolean Accept(GtVisitor Visitor) {
+		return Visitor.VisitTryNode(this);
+	}
 }

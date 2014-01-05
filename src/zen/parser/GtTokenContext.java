@@ -28,10 +28,8 @@ import java.util.ArrayList;
 
 import zen.ast.GtErrorNode;
 import zen.ast.GtNode;
-import zen.deps.ZenUtils;
 import zen.deps.LibNative;
 import zen.deps.LibZen;
-//endif VAJA
 
 public final class GtTokenContext extends ZenUtils {
 	/*field*/public final static GtToken NullToken = new GtToken("", 0);
@@ -272,21 +270,30 @@ public final class GtTokenContext extends ZenUtils {
 		return false;
 	}
 
-	public final boolean MatchToken(String TokenText) {
-		if(this.IsToken(TokenText)) {
-			this.CurrentPosition += 1;
+	public final boolean IsNewLineToken(String TokenText) {
+		/*local*/int RollbackPos = this.CurrentPosition;
+		this.SkipIndent();
+		/*local*/GtToken Token = this.GetToken();
+		if(Token.EqualsText(TokenText)) {
 			return true;
 		}
+		this.CurrentPosition = RollbackPos;
 		return false;
 	}
+	
+	public final boolean MatchToken(String TokenText) {
+		/*local*/GtToken Token = this.Next();
+		return Token.EqualsText(TokenText);
+	}
 
-	public final boolean MatchToken2(String TokenText, int MatchFlag) {
-		/*local*/int Pos = this.GetPosition(MatchFlag);
+	public final boolean MatchNewLineToken(String TokenText) {
+		/*local*/int RollbackPos = this.CurrentPosition;
+		this.SkipIndent();
 		/*local*/GtToken Token = this.Next();
 		if(Token.EqualsText(TokenText)) {
 			return true;
 		}
-		this.RollbackPosition(Pos, MatchFlag);
+		this.CurrentPosition = RollbackPos;
 		return false;
 	}
 

@@ -25,7 +25,6 @@
 //ifdef JAVA
 package zen.parser;
 
-import zen.deps.ZenUtils;
 
 final public class GtToken extends ZenUtils {
 	/*field*/public int		        TokenFlag;

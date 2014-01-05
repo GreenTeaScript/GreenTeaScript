@@ -24,10 +24,10 @@
 
 package zen.ast;
 
-import zen.parser.ZenTypeSystem;
 import zen.parser.GtVisitor;
+import zen.parser.ZenTypeSystem;
 
-final public class GtReturnNode extends GtNode {
+public class GtReturnNode extends GtNode {
 	/*field*/public GtNode ValueNode;
 	public GtReturnNode/*constructor*/() {
 		super(ZenTypeSystem.VarType, null);

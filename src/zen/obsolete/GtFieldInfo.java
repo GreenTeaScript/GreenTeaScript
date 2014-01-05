@@ -25,9 +25,9 @@
 //ifdef JAVA
 package zen.obsolete;
 
-import zen.deps.ZenUtils;
 import zen.parser.GtFunc;
 import zen.parser.GtType;
+import zen.parser.ZenUtils;
 
 
 public class GtFieldInfo extends ZenUtils {
