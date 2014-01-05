@@ -240,6 +240,16 @@ public final class GtTokenContext extends ZenUtils {
 		}
 	}	
 
+//	public GtToken NextConcatinatedToken() {
+//		/*local*/GtToken Token = this.Next();
+//		if(Token.IsNextWhiteSpace()) {
+//			return Token;
+//		}
+//		String JoinedToken = Token.ParsedText;
+//		Token = this.Next();
+//		if(Token.)
+//		return Token;
+//	}
 	
 	public GtSyntaxPattern GetFirstPattern(GtNameSpace NameSpace) {
 		/*local*/GtToken Token = this.GetToken();
