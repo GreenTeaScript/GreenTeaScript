@@ -29,7 +29,7 @@ package org.GreenTeaScript;
 import zen.deps.GreenTeaArray;
 import zen.deps.LibNative;
 import zen.deps.LibZen;
-import zen.grammar.ZenGrammar;
+import zen.grammar.SugarlessGrammar;
 import zen.parser.GreenTeaConsts;
 import zen.parser.GreenTeaUtils;
 import zen.parser.GtGenerator;
@@ -114,7 +114,7 @@ public class GreenTeaScript extends GreenTeaUtils {
 			LibZen.Usage(Argu + " is unknown");
 		}
 		/*local*/GtGenerator Generator = LibNative.LoadGenerator(TargetCode, OutputFile);
-		LibNative.ImportGrammar(Generator.RootNameSpace, ZenGrammar.class.getName());
+		LibNative.ImportGrammar(Generator.RootNameSpace, SugarlessGrammar.class.getName());
 		//		/*local*/GtParserContext Context = new GtParserContext(new KonohaGrammar(), Generator);
 		//		if(RequiredLibName != null) {
 		//			if(!Context.TopLevelNameSpace.LoadRequiredLib(RequiredLibName)) {
