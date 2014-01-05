@@ -41,6 +41,7 @@ import zen.ast.GtGetLocalNode;
 import zen.ast.GtGetterNode;
 import zen.ast.GtGroupNode;
 import zen.ast.GtIfNode;
+import zen.ast.GtInstanceOfNode;
 import zen.ast.GtMethodCall;
 import zen.ast.GtNode;
 import zen.ast.GtNullNode;
@@ -539,6 +540,12 @@ public class SugarlessGrammar {
 
 	public static GtNode MatchOr(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
 		/*local*/GtNode BinaryNode = new GtOrNode(TokenContext.Next(), LeftNode, NameSpace.GetSyntaxPattern("||"));
+		BinaryNode = TokenContext.AppendMatchedPattern(BinaryNode, NameSpace, "$Expression$", ZenParserConst.Required);
+		return BinaryNode;
+	}
+
+	public static GtNode MatchInstanceOf(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
+		/*local*/GtNode BinaryNode = new GtInstanceOfNode(TokenContext.Next(), LeftNode, NameSpace.GetSyntaxPattern("instanceof"));
 		BinaryNode = TokenContext.AppendMatchedPattern(BinaryNode, NameSpace, "$Expression$", ZenParserConst.Required);
 		return BinaryNode;
 	}
@@ -1545,7 +1552,7 @@ public class SugarlessGrammar {
 
 		NameSpace.AppendSuffixSyntax("&&", ZenPrecedence.CStyleAND, LibNative.LoadMatchFunc(Grammar, "MatchAnd"));
 		NameSpace.AppendSuffixSyntax("||", ZenPrecedence.CStyleOR, LibNative.LoadMatchFunc(Grammar, "MatchOr"));
-		NameSpace.AppendSuffixSyntax("<: instanceof", ZenPrecedence.Instanceof, MatchBinary);
+		NameSpace.AppendSuffixSyntax("instanceof", ZenPrecedence.Instanceof, LibNative.LoadMatchFunc(Grammar, "MatchInstanceOf"));
 
 //		NameSpace.AppendExtendedSyntax("?", 0, LibNative.LoadMatchFunc(Grammar, "MatchTrinary"));
 
