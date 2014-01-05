@@ -39,9 +39,9 @@ final public class GtNewObjectNode extends GtNode {
 		super();
 		this.ParamList = new ArrayList<GtNode>();
 	}
-//	@Override public final ArrayList<GtNode> GetList() {
-//		return this.ParamList;
-//	}
+	@Override public final void Append(GtNode Node) {
+		this.ParamList.add(this.SetChild(Node));
+	}
 	@Override public boolean Accept(GtVisitor Visitor) {
 		return Visitor.VisitNewObjectNode(this);
 	}

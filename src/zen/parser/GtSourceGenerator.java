@@ -28,6 +28,7 @@ import java.util.ArrayList;
 
 import zen.ast.GtAndNode;
 import zen.ast.GtApplyNode;
+import zen.ast.GtArrayLiteralNode;
 import zen.ast.GtBinaryNode;
 import zen.ast.GtBlockNode;
 import zen.ast.GtBooleanNode;
@@ -40,12 +41,14 @@ import zen.ast.GtFloatNode;
 import zen.ast.GtFuncDeclNode;
 import zen.ast.GtFunctionLiteralNode;
 import zen.ast.GtGetCapturedNode;
+import zen.ast.GtGetIndexNode;
 import zen.ast.GtGetLocalNode;
 import zen.ast.GtGetterNode;
 import zen.ast.GtGroupNode;
 import zen.ast.GtIfNode;
 import zen.ast.GtInstanceOfNode;
 import zen.ast.GtIntNode;
+import zen.ast.GtMapLiteralNode;
 import zen.ast.GtMethodCall;
 import zen.ast.GtNode;
 import zen.ast.GtNullNode;
@@ -53,6 +56,7 @@ import zen.ast.GtOrNode;
 import zen.ast.GtParamNode;
 import zen.ast.GtReturnNode;
 import zen.ast.GtSetCapturedNode;
+import zen.ast.GtSetIndexNode;
 import zen.ast.GtSetLocalNode;
 import zen.ast.GtSetterNode;
 import zen.ast.GtStringNode;
@@ -61,6 +65,8 @@ import zen.ast.GtTryNode;
 import zen.ast.GtUnaryNode;
 import zen.ast.GtVarDeclNode;
 import zen.ast.GtWhileNode;
+import zen.ast2.GtNewArrayNode;
+import zen.ast2.GtNewObjectNode;
 import zen.deps.LibZen;
 //endif VAJA
 
@@ -180,6 +186,31 @@ public class GtSourceGenerator extends GtGenerator {
 	@Override
 	public boolean VisitConstPoolNode(GtConstPoolNode Node) {
 		// TODO Auto-generated method stub
+		return true;
+	}
+
+	@Override public boolean VisitGroupNode(GtGroupNode Node) {
+		this.CurrentBuilder.Append("(");
+		this.VisitNode(Node.RecvNode);
+		this.CurrentBuilder.Append(")");
+		return true;
+	}
+
+	@Override public boolean VisitGetIndexNode(GtGetIndexNode Node) {
+		this.VisitNode(Node.RecvNode);
+		this.CurrentBuilder.Append("[");
+		this.VisitNode(Node.IndexNode);
+		this.CurrentBuilder.Append("]");
+		return true;
+	}
+
+	@Override public boolean VisitSetIndexNode(GtSetIndexNode Node) {
+		this.VisitNode(Node.RecvNode);
+		this.CurrentBuilder.Append("[");
+		this.VisitNode(Node.IndexNode);
+		this.CurrentBuilder.Append("]");
+		this.CurrentBuilder.Append(" = ");
+		this.VisitNode(Node.ValueNode);
 		return true;
 	}
 
@@ -404,12 +435,29 @@ public class GtSourceGenerator extends GtGenerator {
 		return true;
 	}
 
+
 	@Override
-	public boolean VisitGroupNode(GtGroupNode Node) {
-		this.CurrentBuilder.Append("(");
-		this.VisitNode(Node.RecvNode);
-		this.CurrentBuilder.Append(")");
-		return true;
+	public boolean VisitArrayLiteralNode(GtArrayLiteralNode Node) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean VisitMapLiteralNode(GtMapLiteralNode Node) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean VisitNewArrayNode(GtNewArrayNode Node) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean VisitNewObjectNode(GtNewObjectNode Node) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 
