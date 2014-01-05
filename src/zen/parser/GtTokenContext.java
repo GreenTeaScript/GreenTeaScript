@@ -30,14 +30,13 @@ import zen.ast.GtErrorNode;
 import zen.ast.GtNode;
 import zen.deps.LibNative;
 import zen.deps.LibZen;
-import zen.obsolete.GtSyntaxTree;
 //endif VAJA
 
 public final class GtTokenContext extends GreenTeaUtils {
 	/*field*/public final static GtToken NullToken = new GtToken("", 0);
 
 	/*field*/public GtNameSpace TopLevelNameSpace;
-	/*field*/public ArrayList<GtToken> SourceList;
+	/*field*/public ArrayList<GtToken> SourceTokenList;
 	/*field*/private int CurrentPosition;
 	/*field*/public long ParsingLine;
 	/*field*/public int  ParseFlag;
@@ -48,31 +47,31 @@ public final class GtTokenContext extends GreenTeaUtils {
 
 	public GtTokenContext/*constructor*/(GtNameSpace NameSpace, String Text, long FileLine) {
 		this.TopLevelNameSpace = NameSpace;
-		this.SourceList = new ArrayList<GtToken>();
+		this.SourceTokenList = new ArrayList<GtToken>();
 		this.CurrentPosition = 0;
 		this.ParsingLine = FileLine;
 		this.ParseFlag = 0;
-		this.AddNewToken(Text, SourceTokenFlag, null);
+		this.AppendParsedToken(Text, SourceTokenFlag, null);
 		this.ParsingAnnotation = null;
 		this.IndentLevel = 0;
 		this.LatestToken = null;
 		this.ParserStack = new ArrayList<Integer>();
 	}
 
-	public GtToken AddNewToken(String Text, int TokenFlag, String PatternName) {
+	public GtToken AppendParsedToken(String Text, int TokenFlag, String PatternName) {
 		/*local*/GtToken Token = new GtToken(Text, this.ParsingLine);
 		Token.TokenFlag |= TokenFlag;
 		if(PatternName != null) {
 			Token.PresetPattern = this.TopLevelNameSpace.GetSyntaxPattern(PatternName);
 			LibNative.Assert(Token.PresetPattern != null);
 		}
-		this.SourceList.add(Token);
+		this.SourceTokenList.add(Token);
 		return Token;
 	}
 
 	public void FoundWhiteSpace() {
-		/*local*/int index = this.SourceList.size() - 1;
-		/*local*/GtToken Token = this.SourceList.get(index);
+		/*local*/int index = this.SourceTokenList.size() - 1;
+		/*local*/GtToken Token = this.SourceTokenList.get(index);
 		Token.TokenFlag |= WhiteSpaceTokenFlag;
 	}
 
@@ -82,31 +81,8 @@ public final class GtTokenContext extends GreenTeaUtils {
 
 	@Deprecated
 	public void ReportTokenError1(int Level, String Message, String TokenText) {
-		/*local*/GtToken Token = this.AddNewToken(TokenText, 0, "$Error$");
+		/*local*/GtToken Token = this.AppendParsedToken(TokenText, 0, "$Error$");
 		this.TopLevelNameSpace.Generator.ReportError(Level, Token, Message);
-	}
-
-	@Deprecated
-	public GtSyntaxTree NewErrorSyntaxTree(GtToken Token, String Message) {
-		if(!this.IsAllowedBackTrack()) {
-			this.TopLevelNameSpace.Generator.ReportError(GreenTeaConsts.ErrorLevel, Token, Message);
-			/*local*/GtSyntaxTree ErrorTree = new GtSyntaxTree(Token.PresetPattern, this.TopLevelNameSpace, Token, null);
-			return ErrorTree;
-		}
-		return null;
-	}
-
-	public GtToken GetBeforeToken() {
-		/*local*/int pos = this.CurrentPosition - 1;
-		while(pos >= 0 && pos < this.SourceList.size()) {
-			/*local*/GtToken Token = this.SourceList.get(pos);
-			if(IsFlag(Token.TokenFlag, IndentTokenFlag)) {
-				pos -= 1;
-				continue;
-			}
-			return Token;
-		}
-		return this.LatestToken;
 	}
 
 	public void SkipErrorStatement() {
@@ -122,58 +98,25 @@ public final class GtTokenContext extends GreenTeaUtils {
 		this.LatestToken = LeastRecentToken;
 	}
 
-//	@Deprecated
-//	public GtSyntaxTree ReportTokenError2(GtToken Token, String Message, boolean SkipToken) {
-//		if(this.IsAllowedBackTrack()) {
-//			return null;
-//		}
-//		else {
-//			/*local*/GtSyntaxTree ErrorTree = this.NewErrorSyntaxTree(Token, Message);
-//			if(SkipToken) {
-//				this.SkipErrorStatement();
-//			}
-//			return ErrorTree;
-//		}
-//	}
-//
-//	@Deprecated
-//	public GtSyntaxTree ReportExpectedToken_OLD(String TokenText) {
-//		if(!this.IsAllowedBackTrack()) {
-//			/*local*/GtToken Token = this.GetBeforeToken();
-//			if(Token != null) {
-//				return this.NewErrorSyntaxTree(Token, TokenText + " is expected at " + Token.ParsedText);
-//			}
-//			else {
-//				Token = this.LatestToken;
-//				return this.NewErrorSyntaxTree(Token, TokenText + " is expected after " + Token.ParsedText);
-//			}
-//		}
-//		return null;
-//	}
-//
-//	@Deprecated
-//	public GtSyntaxTree ReportExpectedPattern_OLD(GtSyntaxPattern Pattern) {
-//		return this.ReportExpectedToken_OLD("syntax pattern " + Pattern.PatternName);
-//	}
-//
-//	@Deprecated
-//	public GtSyntaxTree ReportExpectedMessage(GtToken Token, String Message, boolean SkipToken) {
-//		return this.ReportTokenError2(Token, "expected " + Message + "; given = " + Token.ParsedText, SkipToken);
-//	}
-
-	public GtNode ReportExpectedToken(String TokenText) {
-		/*local*/GtToken Token = this.GetBeforeToken();
-		if(Token != null) {
-			return new GtErrorNode(Token, TokenText + " is expected at " + Token.ParsedText);
+	private GtToken GetBeforeToken() {
+		/*local*/int pos = this.CurrentPosition - 1;
+		while(pos >= 0 && pos < this.SourceTokenList.size()) {
+			/*local*/GtToken Token = this.SourceTokenList.get(pos);
+			if(IsFlag(Token.TokenFlag, IndentTokenFlag)) {
+				pos -= 1;
+				continue;
+			}
+			return Token;
 		}
-		else {
-			Token = this.LatestToken;
-			return new GtErrorNode(Token, TokenText + " is expected after " + Token.ParsedText);
-		}
+		return this.LatestToken;
 	}
 
-	public GtNode ReportExpectedPattern(GtSyntaxPattern Pattern) {
-		return this.ReportExpectedToken("syntax pattern " + Pattern.PatternName);
+	public GtNode CreateExpectedErrorNode(GtToken SourceToken, String ExpectedTokenText) {
+		if(SourceToken == null) {
+			SourceToken = this.GetBeforeToken();
+			return new GtErrorNode(SourceToken, ExpectedTokenText + " is expected after " + SourceToken.ParsedText);
+		}
+		return new GtErrorNode(SourceToken, ExpectedTokenText + " is expected; " + SourceToken.ParsedText + " is given");
 	}
 
 	public void Vacume() {
@@ -196,23 +139,23 @@ public final class GtTokenContext extends GreenTeaUtils {
 		/*local*/int NextIdx = GreenTeaUtils.ApplyTokenFunc(TokenFunc, this, ScriptSource, pos);
 		if(NextIdx == MismatchedPosition) {
 			LibZen.VerboseLog(VerboseUndefined, "undefined tokenizer: " + ScriptSource.substring(pos, pos+1));
-			this.AddNewToken(ScriptSource.substring(pos, pos + 1), 0, null);
+			this.AppendParsedToken(ScriptSource.substring(pos, pos + 1), 0, null);
 			return pos + 1;
 		}
 		return NextIdx;
 	}
 
 	private void Tokenize(String ScriptSource, long CurrentLine) {
-		/*local*/int currentPos = 0;
-		/*local*/int len = ScriptSource.length();
+		/*local*/int CurrentPos = 0;
+		/*local*/int Length = ScriptSource.length();
 		this.ParsingLine = CurrentLine;
-		while(currentPos < len) {
-			/*local*/int gtCode = AsciiToTokenMatrixIndex(LibZen.CharAt(ScriptSource, currentPos));
-			/*local*/int nextPos = this.DispatchFunc(ScriptSource, gtCode, currentPos);
-			if(currentPos >= nextPos) {
+		while(CurrentPos < Length) {
+			/*local*/int GtCode = AsciiToTokenMatrixIndex(LibZen.CharAt(ScriptSource, CurrentPos));
+			/*local*/int NextPos = this.DispatchFunc(ScriptSource, GtCode, CurrentPos);
+			if(CurrentPos >= NextPos) {
 				break;
 			}
-			currentPos = nextPos;
+			CurrentPos = NextPos;
 		}
 		this.Dump();
 	}
@@ -237,13 +180,13 @@ public final class GtTokenContext extends GreenTeaUtils {
 	}
 
 	public GtToken GetToken() {
-		while(this.CurrentPosition < this.SourceList.size()) {
-			/*local*/GtToken Token = this.SourceList.get(this.CurrentPosition);
+		while(this.CurrentPosition < this.SourceTokenList.size()) {
+			/*local*/GtToken Token = this.SourceTokenList.get(this.CurrentPosition);
 			if(Token.IsSource()) {
-				this.SourceList.remove(this.SourceList.size()-1);
+				this.SourceTokenList.remove(this.SourceTokenList.size() - 1);
 				this.Tokenize(Token.ParsedText, Token.FileLine);
-				if(this.CurrentPosition < this.SourceList.size()) {
-					Token = this.SourceList.get(this.CurrentPosition);
+				if(this.CurrentPosition < this.SourceTokenList.size()) {
+					Token = this.SourceTokenList.get(this.CurrentPosition);
 				}else{
 					break;
 				}
@@ -252,11 +195,9 @@ public final class GtTokenContext extends GreenTeaUtils {
 				this.CurrentPosition = this.CurrentPosition + 1;
 				continue;
 			}
-//			this.ParsingLine = Token.FileLine;
 			this.LatestToken = Token;
 			return Token;
 		}
-//		GtTokenContext.NullToken.FileLine = this.ParsingLine;
 		return GtTokenContext.NullToken;
 	}
 
@@ -278,10 +219,29 @@ public final class GtTokenContext extends GreenTeaUtils {
 		}
 	}
 
-//	public GtSyntaxPattern GetPattern(String PatternName) {
-//		return this.TopLevelNameSpace.GetSyntaxPattern(PatternName);
-//	}
+	public GtToken GetCurrentIndentToken() {
+		/*local*/int i = this.CurrentPosition - 1;
+		while(0 <= i) {
+			/*local*/GtToken Token = this.SourceTokenList.get(i);
+			if(Token.IsIndent()) {
+				return Token;
+			}
+			i -= 1;
+		}
+		return null;
+	}
+	
+	public void SkipUntilIndent(GtToken IndentToken) {
+		while(this.HasNext()) {
+			/*local*/GtToken Token = this.GetToken();
+			if(Token.IsIndent() && Token.CompareIndent(IndentToken) == 0) {
+				return;
+			}
+			this.CurrentPosition = this.CurrentPosition + 1;
+		}
+	}	
 
+	
 	public GtSyntaxPattern GetFirstPattern(GtNameSpace NameSpace) {
 		/*local*/GtToken Token = this.GetToken();
 		if(Token.PresetPattern != null) {
@@ -384,7 +344,7 @@ public final class GtTokenContext extends GreenTeaUtils {
 		if(Token.ParsedText.startsWith(TokenText)) {
 			Token = new GtToken(Token.ParsedText.substring(TokenText.length()), Token.FileLine);
 			this.CurrentPosition += 1;
-			this.SourceList.add(this.CurrentPosition, Token);
+			this.SourceTokenList.add(this.CurrentPosition, Token);
 			return true;
 		}
 		return false;
@@ -511,7 +471,7 @@ public final class GtTokenContext extends GreenTeaUtils {
 		/*local*/String Buffer = PreText;
 		/*local*/int Position = BeginIdx;
 		while(Position < EndIdx) {
-			/*local*/GtToken Token = this.SourceList.get(Position);
+			/*local*/GtToken Token = this.SourceTokenList.get(Position);
 			if(Token.IsIndent()) {
 				Buffer += "\n";
 			}
@@ -526,8 +486,8 @@ public final class GtTokenContext extends GreenTeaUtils {
 
 	public final void Dump() {
 		/*local*/int Position = this.CurrentPosition;
-		while(Position < this.SourceList.size()) {
-			/*local*/GtToken Token = this.SourceList.get(Position);
+		while(Position < this.SourceTokenList.size()) {
+			/*local*/GtToken Token = this.SourceTokenList.get(Position);
 			/*local*/String DumpedToken = "["+Position+"] " + Token;
 			if(Token.PresetPattern != null) {
 				DumpedToken = DumpedToken + " : " + Token.PresetPattern;
@@ -555,6 +515,5 @@ public final class GtTokenContext extends GreenTeaUtils {
 		this.ParseFlag = ParserStack.get(this.ParserStack.size() - 1);
 		ParserStack.remove(this.ParserStack.size() - 1);
 	}
-	
 	
 }

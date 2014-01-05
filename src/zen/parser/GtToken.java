@@ -31,9 +31,9 @@ final public class GtToken extends GreenTeaUtils {
 	/*field*/public long		    FileLine;
 	/*field*/public GtSyntaxPattern	PresetPattern;
 
-	public GtToken/*constructor*/(String text, long FileLine) {
+	public GtToken/*constructor*/(String Text, long FileLine) {
 		this.TokenFlag = 0;
-		this.ParsedText = text;
+		this.ParsedText = Text;
 		this.FileLine = FileLine;
 		this.PresetPattern = null;
 	}
@@ -70,6 +70,17 @@ final public class GtToken extends GreenTeaUtils {
 		return this.ParsedText.equals(text);
 	}
 
+	public int CompareIndent(GtToken IndentToken) {
+		if(IndentToken == null) {
+			if(this.EqualsText("")) return 0;
+			return this.ParsedText.length();
+		}
+		else {
+			if(this.EqualsText(IndentToken.ParsedText)) return 0;
+			return this.ParsedText.length() - IndentToken.ParsedText.length();
+		}
+	}
+
 	@Override public String toString() {
 		/*local*/String TokenText = "";
 		if(this.PresetPattern != null) {
@@ -78,24 +89,17 @@ final public class GtToken extends GreenTeaUtils {
 		return TokenText + this.ParsedText;
 	}
 
-//	public String SetErrorMessage(String Message, GtSyntaxPattern ErrorPattern) {
-//		if(this.ParsedText.length() > 0) {  // skip null token
-//			this.TokenFlag = ErrorTokenFlag;
-//			this.ParsedText = Message;
-//			this.PresetPattern = ErrorPattern;
-//		}
-//		return Message;
-//	}
-//
-//	public String GetErrorMessage() {
-//		LibNative.Assert(this.IsError());
-//		return this.ParsedText;
-//	}
-//
+	public void SetError(GtSyntaxPattern ErrorPattern) {
+		if(this.ParsedText.length() > 0) {  // skip null token
+			this.TokenFlag = ErrorTokenFlag;
+			this.PresetPattern = ErrorPattern;
+		}
+	}
+
 	public final GtToken AddTypeInfoToErrorMessage(GtType ClassType) {
 		this.ParsedText += " of " + ClassType.ShortName;
 		return this;
 	}
-
+	
 }
 

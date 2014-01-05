@@ -246,14 +246,14 @@ public final class GtNameSpace extends GreenTeaUtils {
 		}
 	}
 
-	public void AppendExtendedSyntax(String PatternName, int SyntaxFlag, GtFunc MatchFunc) {
+	public void AppendSuffixSyntax(String PatternName, int SyntaxFlag, GtFunc MatchFunc) {
 		/*local*/int Alias = PatternName.indexOf(" ");
 		/*local*/String Name = (Alias == -1) ? PatternName : PatternName.substring(0, Alias);
 		/*local*/GtSyntaxPattern Pattern = new GtSyntaxPattern(this, Name, MatchFunc);
 		Pattern.SyntaxFlag = SyntaxFlag;
 		this.AppendSyntaxPattern(GtNameSpace.SuffixPatternSymbol(Name), Pattern, null);
 		if(Alias != -1) {
-			this.AppendExtendedSyntax(PatternName.substring(Alias+1), SyntaxFlag, MatchFunc);
+			this.AppendSuffixSyntax(PatternName.substring(Alias+1), SyntaxFlag, MatchFunc);
 		}
 	}
 
