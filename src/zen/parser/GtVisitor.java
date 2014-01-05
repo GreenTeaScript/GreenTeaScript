@@ -26,6 +26,7 @@ package zen.parser;
 
 import zen.ast.GtAndNode;
 import zen.ast.GtApplyNode;
+import zen.ast.GtArrayLiteralNode;
 import zen.ast.GtBinaryNode;
 import zen.ast.GtBlockNode;
 import zen.ast.GtBooleanNode;
@@ -45,6 +46,7 @@ import zen.ast.GtGroupNode;
 import zen.ast.GtIfNode;
 import zen.ast.GtInstanceOfNode;
 import zen.ast.GtIntNode;
+import zen.ast.GtMapLiteralNode;
 import zen.ast.GtMethodCall;
 import zen.ast.GtNullNode;
 import zen.ast.GtOrNode;
@@ -60,6 +62,8 @@ import zen.ast.GtTryNode;
 import zen.ast.GtUnaryNode;
 import zen.ast.GtVarDeclNode;
 import zen.ast.GtWhileNode;
+import zen.ast2.GtNewArrayNode;
+import zen.ast2.GtNewObjectNode;
 
 public interface GtVisitor {
 	public abstract boolean VisitBlockNode(GtBlockNode Node);
@@ -99,19 +103,20 @@ public interface GtVisitor {
 	public abstract boolean VisitFuncDeclNode(GtFuncDeclNode FuncDeclNode);
 	public abstract boolean VisitErrorNode(GtErrorNode Node);
 
+	public abstract boolean VisitArrayLiteralNode(GtArrayLiteralNode Node);
+	public abstract boolean VisitMapLiteralNode(GtMapLiteralNode Node);
+	public abstract boolean VisitNewArrayNode(GtNewArrayNode Node);
+	public abstract boolean VisitNewObjectNode(GtNewObjectNode Node);
+
 //	public abstract boolean VisitTrinaryNode(GtTrinaryNode Node);
 //	public abstract boolean VisitPrefixInclNode(GtPrefixInclNode Node);
 //	public abstract boolean VisitPrefixDeclNode(GtPrefixDeclNode Node);
 //	public abstract boolean VisitSuffixInclNode(GtSuffixInclNode Node);
 //	public abstract boolean VisitSuffixDeclNode(GtSuffixDeclNode Node);
 //	public abstract boolean VisitRegexNode(GtRegexNode Node);
-//	public abstract boolean VisitArrayLiteralNode(GtArrayLiteralNode Node);
-//	public abstract boolean VisitMapLiteralNode(GtMapLiteralNode Node);
 //	public abstract boolean VisitApplyOverridedMethodNode(GtApplyOverridedMethodNode Node);
 //	public abstract boolean VisitSliceNode(GtSliceNode Node);
-//	public abstract boolean VisitConstructorNode(GtConstructorNode Node);
 //	public abstract boolean VisitAllocateNode(GtAllocateNode Node);
-//	public abstract boolean VisitNewArrayNode(GtNewArrayNode Node);
 //	public abstract boolean VisitUsingNode(GtUsingNode Node);
 //	public abstract boolean VisitDoWhileNode(GtDoWhileNode Node);
 //	public abstract boolean VisitForNode(GtForNode Node);

@@ -30,22 +30,21 @@ import zen.ast.GtNode;
 import zen.parser.GtFunc;
 import zen.parser.GtToken;
 import zen.parser.GtType;
+import zen.parser.GtVisitor;
 
 // E.g., ConstructorNode is for object creation in Native language defined
-final public class GtConstructorNode extends GtNode {
+final public class GtNewObjectNode extends GtNode {
 	/*field*/public ArrayList<GtNode>	ParamList;
-	/*field*/public GtFunc Func;
-	public GtConstructorNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func) {
+	public GtNewObjectNode/*constructor*/(GtType Type, GtToken Token, GtFunc Func) {
 		super();
 		this.ParamList = new ArrayList<GtNode>();
-		this.Func = Func;
 	}
 //	@Override public final ArrayList<GtNode> GetList() {
 //		return this.ParamList;
 //	}
-//	@Override public boolean Accept(GtVisitor Visitor) {
-//		return Visitor.VisitConstructorNode(this);
-//	}
+	@Override public boolean Accept(GtVisitor Visitor) {
+		return Visitor.VisitNewObjectNode(this);
+	}
 	//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
 	//		if(EnforceConst) {
 	//			return Context.Generator.EvalConstructorNode(this, EnforceConst);
