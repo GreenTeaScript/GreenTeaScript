@@ -27,16 +27,16 @@ package zen.ast2;
 import java.util.ArrayList;
 
 import zen.ast.GtNode;
+import zen.lang.ZenType;
 import zen.lang.ZenFunc;
 import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
-import zen.parser.GtType;
 
 final public class GtApplyOverridedMethodNode extends GtNode {
 	/*field*/public GtNameSpace NameSpace;
 	/*field*/public ZenFunc Func;
 	/*field*/public ArrayList<GtNode>  ParamList; /* [arg1, arg2, ...] */
-	public GtApplyOverridedMethodNode/*constructor*/(GtType Type, GtToken Token, GtNameSpace NameSpace, ZenFunc Func) {
+	public GtApplyOverridedMethodNode/*constructor*/(ZenType Type, GtToken Token, GtNameSpace NameSpace, ZenFunc Func) {
 		super();
 		this.NameSpace = NameSpace.Minimum();
 		this.Func = Func;

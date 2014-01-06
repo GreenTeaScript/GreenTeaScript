@@ -24,12 +24,13 @@
 
 package zen.parser;
 
+import zen.lang.ZenType;
 import zen.obsolete.GtFuncBlock;
 
 public class GtVariableInfo {
 	/*field*/public GtFuncBlock  FuncBlock;
 	/*field*/public int     VariableFlag;
-	/*field*/public GtType	Type;
+	/*field*/public ZenType	Type;
 	/*field*/public String	Name;
 	/*field*/public String	NativeName;
 	/*field*/public GtToken SourceToken;
@@ -37,7 +38,7 @@ public class GtVariableInfo {
 	/*field*/public int     DefCount;
 	/*field*/public int     UsedCount;
 
-	GtVariableInfo/*constructor*/(GtFuncBlock FuncBlock, int VarFlag, GtType Type, String Name, GtToken SourceToken) {
+	GtVariableInfo/*constructor*/(GtFuncBlock FuncBlock, int VarFlag, ZenType Type, String Name, GtToken SourceToken) {
 		this.FuncBlock    = FuncBlock;
 		this.VariableFlag = VarFlag;
 		this.Type = Type;

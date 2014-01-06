@@ -26,20 +26,20 @@ package zen.obsolete;
 
 import java.util.ArrayList;
 
+import zen.lang.ZenType;
 import zen.lang.ZenFunc;
 import zen.parser.GtNameSpace;
-import zen.parser.GtType;
 
 public class GtFuncBlock {
 	/*field*/public GtNameSpace       NameSpace;
 	/*field*/public ArrayList<String> NameList;
-	/*field*/public ArrayList<GtType> TypeList;
+	/*field*/public ArrayList<ZenType> TypeList;
 	/*field*/public GtSyntaxTree      FuncBlock;
 	/*field*/public boolean IsVarArgument;
 	/*field*/public int VariableIndex;
 	/*field*/public ZenFunc DefinedFunc;
 
-	public GtFuncBlock/*constructor*/(GtNameSpace NameSpace, ArrayList<GtType> TypeList) {
+	public GtFuncBlock/*constructor*/(GtNameSpace NameSpace, ArrayList<ZenType> TypeList) {
 		this.NameSpace = NameSpace;
 		this.TypeList = TypeList;
 		this.NameList = new ArrayList<String>();
@@ -56,7 +56,7 @@ public class GtFuncBlock {
 //		}
 //	}
 
-	public void AddParameter(GtType Type, String Name) {
+	public void AddParameter(ZenType Type, String Name) {
 		this.TypeList.add(Type);
 		if(Type.IsVarType()) {
 			this.IsVarArgument = true;

@@ -39,13 +39,13 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import zen.lang.ZenType;
 import zen.lang.ZenTypeSystem;
 import zen.parser.GtSourceBuilder;
-import zen.parser.GtType;
 import zen.parser.ZenUtils;
 
 public abstract class LibZen {
-	public final static ZenArray NewArray(GtType Type, Object[] InitSizes) {
+	public final static ZenArray NewArray(ZenType Type, Object[] InitSizes) {
 		if(InitSizes.length == 1) {
 			return ZenArray.NewArray1(Type.TypeParams[0], ((Number)InitSizes[0]).intValue());
 		}
@@ -58,7 +58,7 @@ public abstract class LibZen {
 		
 	}
 
-	public final static ZenArray NewNewArray(GtType ArrayType, Object[] Values) {
+	public final static ZenArray NewNewArray(ZenType ArrayType, Object[] Values) {
 		return ZenArray.NewNewArray(ArrayType, Values);		
 	}
 	
@@ -423,8 +423,8 @@ public abstract class LibZen {
 		return List.size();
 	}
 
-	public final static GtType[] CompactTypeList(int BaseIndex, ArrayList<GtType> List) {
-		GtType[] Tuple = new GtType[List.size() - BaseIndex];
+	public final static ZenType[] CompactTypeList(int BaseIndex, ArrayList<ZenType> List) {
+		ZenType[] Tuple = new ZenType[List.size() - BaseIndex];
 		for(int i = BaseIndex; i < List.size(); i++) {
 			Tuple[i] = List.get(i);
 		}
@@ -697,9 +697,9 @@ public abstract class LibZen {
 		return ((Boolean)Value).booleanValue();
 	}
 	
-	public static Object DynamicCast(GtType CastType, Object Value) {
+	public static Object DynamicCast(ZenType CastType, Object Value) {
 		if(Value != null) {
-			GtType FromType = ZenTypeSystem.GuessType(Value);
+			ZenType FromType = ZenTypeSystem.GuessType(Value);
 			if(CastType == FromType || CastType.Accept(FromType)) {
 				return Value;
 			}
@@ -707,9 +707,9 @@ public abstract class LibZen {
 		return null;
 	}
 
-	public static boolean DynamicInstanceOf(Object Value, GtType Type) {
+	public static boolean DynamicInstanceOf(Object Value, ZenType Type) {
 		if(Value != null) {
-			GtType ValueType = ZenTypeSystem.GuessType(Value);
+			ZenType ValueType = ZenTypeSystem.GuessType(Value);
 			if(ValueType == Type || Type.Accept(ValueType)) {
 				return true;
 			}
@@ -734,7 +734,7 @@ public abstract class LibZen {
 //		return null;
 //	}
 	
-	public static Object EvalUnary(GtType Type, String Operator, Object Value) {
+	public static Object EvalUnary(ZenType Type, String Operator, Object Value) {
 		if(Value instanceof Boolean) {
 			if(Operator.equals("!") || Operator.equals("not")) {
 				return DynamicCast(Type, !((Boolean)Value).booleanValue());
@@ -756,11 +756,11 @@ public abstract class LibZen {
 		return null;
 	}
 
-	public static Object EvalSuffix(GtType Type, Object Value, String Operator) {
+	public static Object EvalSuffix(ZenType Type, Object Value, String Operator) {
 		return null;
 	}
 
-	public static Object EvalBinary(GtType Type, Object LeftValue, String Operator, Object RightValue) {
+	public static Object EvalBinary(ZenType Type, Object LeftValue, String Operator, Object RightValue) {
 		//System.err.println("***" + LeftValue.getClass() + ", " + RightValue.getClass());
 		if(LeftValue == null || RightValue == null) {
 			return null;

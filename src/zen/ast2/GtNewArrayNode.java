@@ -27,13 +27,13 @@ package zen.ast2;
 import java.util.ArrayList;
 
 import zen.ast.GtNode;
+import zen.lang.ZenType;
 import zen.parser.GtToken;
-import zen.parser.GtType;
 
 //E.g., new T "[" 10, [10] "]"
 final public class GtNewArrayNode extends GtNode {
 	/*field*/public ArrayList<GtNode>	NodeList;
-	public GtNewArrayNode/*constructor*/(GtType Type, GtToken Token) {
+	public GtNewArrayNode/*constructor*/(ZenType Type, GtToken Token) {
 		super();
 		this.NodeList = new ArrayList<GtNode>();
 	}

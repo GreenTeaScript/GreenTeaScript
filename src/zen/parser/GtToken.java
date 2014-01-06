@@ -25,6 +25,8 @@
 //ifdef JAVA
 package zen.parser;
 
+import zen.lang.ZenType;
+
 
 final public class GtToken extends ZenUtils {
 	/*field*/public int		        TokenFlag;
@@ -97,7 +99,7 @@ final public class GtToken extends ZenUtils {
 		}
 	}
 
-	public final GtToken AddTypeInfoToErrorMessage(GtType ClassType) {
+	public final GtToken AddTypeInfoToErrorMessage(ZenType ClassType) {
 		this.ParsedText += " of " + ClassType.ShortName;
 		return this;
 	}

@@ -25,13 +25,13 @@
 package zen.ast2;
 
 import zen.ast.GtNode;
+import zen.lang.ZenType;
 import zen.parser.GtToken;
-import zen.parser.GtType;
 
 //E.g.,  "++" $RecvNode
 final public class GtPrefixInclNode extends GtNode {
 	/*field*/public GtNode	RecvNode;
-	public GtPrefixInclNode/*constructor*/(GtType Type, GtToken Token, GtNode RecvNode) {
+	public GtPrefixInclNode/*constructor*/(ZenType Type, GtToken Token, GtNode RecvNode) {
 		super();
 		this.RecvNode = RecvNode;
 		this.SetChild(RecvNode);

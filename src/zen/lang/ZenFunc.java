@@ -27,19 +27,18 @@ package zen.lang;
 import zen.deps.LibNative;
 import zen.deps.LibZen;
 import zen.parser.GtNameSpace;
-import zen.parser.GtType;
 import zen.parser.ZenUtils;
 
 public class ZenFunc implements ZenFuncConst {
 	/*field*/public                 int FuncId;
 	/*field*/public int				FuncFlag;
 	/*field*/public String			FuncName;
-	/*field*/public GtType[]		Types;
+	/*field*/public ZenType[]		Types;
 //	/*field*/public GtType          FuncType;
 //	/*field*/public Object          FuncBody;  // Abstract function if null
 //	/*field*/public String[]        GenericParam;
 
-	public ZenFunc(int FuncFlag, String FuncName, GtType[] Types) {
+	public ZenFunc(int FuncFlag, String FuncName, ZenType[] Types) {
 		this.FuncFlag = FuncFlag;
 		this.FuncName = FuncName;
 		this.Types = Types;
@@ -58,7 +57,7 @@ public class ZenFunc implements ZenFuncConst {
 		}
 	}
 
-	public final GtType GetStaticType(GtNameSpace NameSpace) {
+	public final ZenType GetStaticType(GtNameSpace NameSpace) {
 		/*local*/int loc = this.FuncName.lastIndexOf(".");
 		if(loc != -1) {
 			return NameSpace.GetType(this.FuncName.substring(0, loc));
@@ -66,7 +65,7 @@ public class ZenFunc implements ZenFuncConst {
 		return null;
 	}
 
-	public final GtType GetFuncType() {
+	public final ZenType GetFuncType() {
 		return ZenTypeSystem.GetFuncType(this);
 	}
 
@@ -74,7 +73,7 @@ public class ZenFunc implements ZenFuncConst {
 		/*local*/String s = this.GetReturnType().GetRevealedType() + " " + this.FuncName + "(";
 		/*local*/int i = 0;
 		while(i < this.GetFuncParamSize()) {
-			/*local*/GtType ParamType = this.GetFuncParamType(i).GetRevealedType();
+			/*local*/ZenType ParamType = this.GetFuncParamType(i).GetRevealedType();
 			if(i > 0) {
 				s += ", ";
 			}
@@ -88,16 +87,16 @@ public class ZenFunc implements ZenFuncConst {
 		return ZenUtils.IsFlag(this.FuncFlag, Flag);
 	}
 
-	public final GtType GetReturnType() {
+	public final ZenType GetReturnType() {
 		return this.Types[0];
 	}
 
-	public final void SetReturnType(GtType ReturnType) {
+	public final void SetReturnType(ZenType ReturnType) {
 		LibNative.Assert(this.GetReturnType().IsVarType());
 		this.Types[0] = ReturnType;
 	}
 
-	public final GtType GetRecvType() {
+	public final ZenType GetRecvType() {
 		if(this.Types.length == 1) {
 			return ZenTypeSystem.VoidType;
 		}
@@ -108,7 +107,7 @@ public class ZenFunc implements ZenFuncConst {
 		return this.Types.length - 1;
 	}
 
-	public final GtType GetFuncParamType(int ParamIdx) {
+	public final ZenType GetFuncParamType(int ParamIdx) {
 		return this.Types[ParamIdx+1];
 	}
 
@@ -116,9 +115,9 @@ public class ZenFunc implements ZenFuncConst {
 		return this.Types.length - 2;
 	}
 
-	public final GtType GetVargType() {
+	public final ZenType GetVargType() {
 		if(this.Types.length > 0) {
-			/*local*/GtType VargType = this.Types[this.Types.length - 1];
+			/*local*/ZenType VargType = this.Types[this.Types.length - 1];
 			if(VargType.IsArrayType()) {
 				return VargType.TypeParams[0];
 			}
@@ -126,7 +125,7 @@ public class ZenFunc implements ZenFuncConst {
 		return null;
 	}
 
-	public final boolean EqualsParamTypes(int BaseIndex, GtType[] ParamTypes) {
+	public final boolean EqualsParamTypes(int BaseIndex, ZenType[] ParamTypes) {
 		if(this.Types.length == ParamTypes.length) {
 			/*local*/int i = BaseIndex;
 			while(i < this.Types.length) {

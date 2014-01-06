@@ -26,10 +26,10 @@ package zen.obsolete;
 
 import java.util.ArrayList;
 
+import zen.lang.ZenType;
 import zen.lang.ZenFunc;
 import zen.parser.GtGenerator;
 import zen.parser.GtToken;
-import zen.parser.GtType;
 import zen.parser.ZenParserConst;
 
 public class GtPolyFunc {
@@ -73,7 +73,7 @@ public class GtPolyFunc {
 		return this;
 	}
 
-	public ZenFunc ResolveUnaryMethod(GtType Type) {
+	public ZenFunc ResolveUnaryMethod(ZenType Type) {
 		/*local*/int i = 0;
 		while(i < this.FuncList.size()) {
 			/*local*/ZenFunc Func = this.FuncList.get(i);

@@ -26,16 +26,16 @@ package zen.ast;
 
 import java.util.ArrayList;
 
+import zen.lang.ZenType;
 import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
-import zen.parser.GtType;
 
 final public class GtClassDeclNode extends GtNode {
-	/*field*/public GtType ClassType;
+	/*field*/public ZenType ClassType;
 	/*field*/public GtNameSpace NameSpace;
 	/*field*/public ArrayList<GtNode>  FieldList;
 	/*field*/public ArrayList<GtNode>  MemberList;
-	public GtClassDeclNode/*constructor*/(GtToken SourceToken, GtNameSpace NameSpace, GtType ClassType) {
+	public GtClassDeclNode/*constructor*/(GtToken SourceToken, GtNameSpace NameSpace, ZenType ClassType) {
 		super(); this.SourceToken = SourceToken; // TODO
 		this.NameSpace = NameSpace;
 		this.ClassType = ClassType;

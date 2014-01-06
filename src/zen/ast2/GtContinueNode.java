@@ -25,12 +25,12 @@
 package zen.ast2;
 
 import zen.ast.GtNode;
+import zen.lang.ZenType;
 import zen.parser.GtToken;
-import zen.parser.GtType;
 
 final public class GtContinueNode extends GtNode {
 	/*field*/public String Label;
-	public GtContinueNode/*constructor*/(GtType Type, GtToken Token, String Label) {
+	public GtContinueNode/*constructor*/(ZenType Type, GtToken Token, String Label) {
 		super();
 		this.Label = Label;
 	}

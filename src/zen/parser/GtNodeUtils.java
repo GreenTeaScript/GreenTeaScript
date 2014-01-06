@@ -34,6 +34,7 @@ import zen.ast.GtNode;
 import zen.ast.GtSetCapturedNode;
 import zen.ast.GtSetLocalNode;
 import zen.ast.GtStringNode;
+import zen.lang.ZenType;
 import zen.lang.ZenTypeSystem;
 
 public abstract class GtNodeUtils {
@@ -90,7 +91,7 @@ public abstract class GtNodeUtils {
 		return this.CreateConstPoolNode(SourceToken, Value);
 	}
 
-	public final GtNode CreateSymbolNode(GtToken SourceToken, GtType Type, String NativeName, boolean IsCaptured, GtNode AssignedNode) {
+	public final GtNode CreateSymbolNode(GtToken SourceToken, ZenType Type, String NativeName, boolean IsCaptured, GtNode AssignedNode) {
 		if(AssignedNode != null) {
 			if(IsCaptured) {
 				return new GtSetCapturedNode(Type, SourceToken, NativeName, AssignedNode);

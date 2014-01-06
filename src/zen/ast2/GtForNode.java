@@ -25,15 +25,15 @@
 package zen.ast2;
 
 import zen.ast.GtNode;
+import zen.lang.ZenType;
 import zen.parser.GtToken;
-import zen.parser.GtType;
 
 //E.g., "for" "(" ";" $CondNode ";" $IterNode ")" $LoopNode
 final public class GtForNode extends GtNode {
 	/*field*/public GtNode	CondNode;
 	/*field*/public GtNode	IterNode;
 	/*field*/public GtNode	BodyNode;
-	public GtForNode/*constructor*/(GtType Type, GtToken Token, GtNode CondNode, GtNode IterNode, GtNode BodyNode) {
+	public GtForNode/*constructor*/(ZenType Type, GtToken Token, GtNode CondNode, GtNode IterNode, GtNode BodyNode) {
 		super();
 		this.CondNode = CondNode;
 		this.BodyNode = BodyNode;

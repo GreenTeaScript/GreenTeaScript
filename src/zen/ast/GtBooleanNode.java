@@ -24,15 +24,15 @@
 
 package zen.ast;
 
+import zen.lang.ZenType;
 import zen.lang.ZenTypeSystem;
 import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
-import zen.parser.GtType;
 import zen.parser.ZenVisitor;
 
 final public class GtBooleanNode extends GtConstNode {
 	/*field*/public boolean	Value;
-	public GtBooleanNode/*constructor*/(GtType Type, GtToken Token, boolean Value) {
+	public GtBooleanNode/*constructor*/(ZenType Type, GtToken Token, boolean Value) {
 		super(ZenTypeSystem.BooleanType, Token);
 		this.Value = Value;
 	}

@@ -69,6 +69,7 @@ import zen.ast2.GtNewArrayNode;
 import zen.ast2.GtNewObjectNode;
 import zen.deps.LibZen;
 //endif VAJA
+import zen.lang.ZenType;
 
 public class GtSourceGenerator extends GtGenerator {
 	/*field*/private final ArrayList<GtSourceBuilder> BuilderList;
@@ -377,7 +378,7 @@ public class GtSourceGenerator extends GtGenerator {
 		return true;
 	}
 	
-	protected boolean VisitTypeAnnotation(GtType Type) {
+	protected boolean VisitTypeAnnotation(ZenType Type) {
 		this.CurrentBuilder.Append(" :");
 		this.CurrentBuilder.Append(Type.GetNativeName());
 		return true;
@@ -417,7 +418,7 @@ public class GtSourceGenerator extends GtGenerator {
 	}
 	
 	// Utils
-	protected boolean VisitType(GtType Type) {
+	protected boolean VisitType(ZenType Type) {
 		this.CurrentBuilder.Append(Type.GetNativeName());
 		return true;
 	}

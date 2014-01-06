@@ -24,11 +24,11 @@
 
 package zen.ast;
 
+import zen.lang.ZenType;
 import zen.lang.ZenTypeSystem;
-import zen.parser.GtType;
 
 final public class GtCatchNode extends GtNode {
-	/*field*/public GtType  ExceptionType;
+	/*field*/public ZenType  ExceptionType;
 	/*field*/public String  ExceptionName;
 	/*field*/public GtNode	BodyNode;
 	public GtCatchNode/*constructor*/() {

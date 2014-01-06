@@ -24,14 +24,14 @@
 
 package zen.ast;
 
+import zen.lang.ZenType;
 import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
-import zen.parser.GtType;
 import zen.parser.ZenVisitor;
 
 final public class GtTypeNode extends GtConstNode {
 //	/*field*/public GtType	ParsedType;
-	public GtTypeNode/*constructor*/(GtToken SourceToken, GtType ParsedType) {
+	public GtTypeNode/*constructor*/(GtToken SourceToken, ZenType ParsedType) {
 		super(ParsedType, SourceToken);
 //		this.ParsedType = ParsedType;
 	}

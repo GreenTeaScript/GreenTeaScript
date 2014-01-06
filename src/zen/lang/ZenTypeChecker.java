@@ -68,7 +68,6 @@ import zen.ast.GtWhileNode;
 import zen.ast2.GtNewArrayNode;
 import zen.ast2.GtNewObjectNode;
 import zen.parser.GtNameSpace;
-import zen.parser.GtType;
 import zen.parser.ZenVisitor;
 import zen.parser.ZenUtils;
 
@@ -86,14 +85,14 @@ abstract class ZenTypeCheckerImpl implements ZenVisitor {
 	public final static int BlockPolicy                     = (1 << 7);
 
 	/*field*/private GtNameSpace NameSpace_;
-	/*field*/private GtType ContextType_;
+	/*field*/private ZenType ContextType_;
 	/*field*/private GtNode TypedNode_;
 	
 	public final GtNameSpace GetNameSpace() {
 		return this.NameSpace_;
 	}
 	
-	public final GtType GetContextType() {
+	public final ZenType GetContextType() {
 		return this.ContextType_;
 	}
 	
@@ -102,15 +101,15 @@ abstract class ZenTypeCheckerImpl implements ZenVisitor {
 		return true;
 	}
 
-	public final boolean ReturnNode(GtNode Node, GtType Type) {
+	public final boolean ReturnNode(GtNode Node, ZenType Type) {
 		Node.Type = Type;
 		this.TypedNode_ = Node;
 		return true;
 	}
 	
-	public final GtNode TypeCheck(GtNode Node, GtNameSpace NameSpace, GtType ContextType, int TypeCheckPolicy) {
+	public final GtNode TypeCheck(GtNode Node, GtNameSpace NameSpace, ZenType ContextType, int TypeCheckPolicy) {
 		GtNameSpace NameSpace_ = this.NameSpace_;
-		GtType ContextType_ = this.ContextType_;
+		ZenType ContextType_ = this.ContextType_;
 		GtNode TypedNode_ = this.TypedNode_;
 		this.NameSpace_ = NameSpace;
 		this.ContextType_ = ContextType;
@@ -125,7 +124,7 @@ abstract class ZenTypeCheckerImpl implements ZenVisitor {
 		return Node;
 	}
 	
-	private final GtNode TypeCheckImpl(GtNode Node, GtType ContextType, int TypeCheckPolicy) {
+	private final GtNode TypeCheckImpl(GtNode Node, ZenType ContextType, int TypeCheckPolicy) {
 		if(Node.IsErrorNode()) {
 			return Node;
 		}
@@ -159,29 +158,29 @@ abstract class ZenTypeCheckerImpl implements ZenVisitor {
 		return new GtErrorNode(Node.SourceToken, "type error: requested = " + ContextType + ", given = " + Node.Type);
 	}
 	
-	protected final GtType GetFieldType(GtNameSpace NameSpace, GtType BaseType, String Name) {
+	protected final ZenType GetFieldType(GtNameSpace NameSpace, ZenType BaseType, String Name) {
 		return NameSpace.Generator.GetFieldType(BaseType, Name);
 	}
 
-	protected final GtType GetSetterType(GtNameSpace NameSpace, GtType BaseType, String Name) {
+	protected final ZenType GetSetterType(GtNameSpace NameSpace, ZenType BaseType, String Name) {
 		return NameSpace.Generator.GetSetterType(BaseType, Name);
 	}
 
-	protected GtType GetReturnType(GtNameSpace NameSpace) {
+	protected ZenType GetReturnType(GtNameSpace NameSpace) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	protected void InferReturnType(GtNameSpace NameSpace, GtType InferredType) {
+	protected void InferReturnType(GtNameSpace NameSpace, ZenType InferredType) {
 		// TODO Auto-generated method stub
 	}
  
-	protected GtNode CreateDefaultValueNode(GtType Type) {
+	protected GtNode CreateDefaultValueNode(ZenType Type) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	protected GtNode CreateReadOnlyErrorNode(GtNode Node, GtType ClassType, String NativeName) {
+	protected GtNode CreateReadOnlyErrorNode(GtNode Node, ZenType ClassType, String NativeName) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -192,7 +191,7 @@ public class ZenTypeChecker extends ZenTypeCheckerImpl {
 
 	@Override
 	public boolean VisitNullNode(GtNullNode Node) {
-		GtType Type = this.GetContextType();
+		ZenType Type = this.GetContextType();
 		if(Type.IsVarType()) {
 			Type = ZenTypeSystem.AnyType;
 		}
@@ -305,19 +304,19 @@ public class ZenTypeChecker extends ZenTypeCheckerImpl {
 		if(Node.RecvNode.IsErrorNode()) {
 			return this.ReturnTypedNode(Node.RecvNode);			
 		}
-		GtType FieldType = this.GetFieldType(NameSpace, Node.RecvNode.Type, Node.NativeName);
+		ZenType FieldType = this.GetFieldType(NameSpace, Node.RecvNode.Type, Node.NativeName);
 		Node.Type = FieldType;
 		return this.ReturnTypedNode(Node);
 	}
 
 	@Override public boolean VisitSetterNode(GtSetterNode Node) {
 		GtNameSpace NameSpace = this.GetNameSpace();
-		GtType ContextType = this.GetContextType();
+		ZenType ContextType = this.GetContextType();
 		Node.RecvNode = this.TypeCheck(Node.RecvNode, NameSpace, ZenTypeSystem.BooleanType, DefaultTypeCheckPolicy);
 		if(Node.RecvNode.IsErrorNode()) {
 			return this.ReturnTypedNode(Node.RecvNode);			
 		}
-		GtType FieldType = this.GetSetterType(NameSpace, Node.RecvNode.Type, Node.NativeName);
+		ZenType FieldType = this.GetSetterType(NameSpace, Node.RecvNode.Type, Node.NativeName);
 		if(FieldType.IsVoidType()) {
 			return this.ReturnTypedNode(this.CreateReadOnlyErrorNode(Node, Node.RecvNode.Type, Node.NativeName));
 		}
@@ -412,7 +411,7 @@ public class ZenTypeChecker extends ZenTypeCheckerImpl {
 
 	@Override
 	public boolean VisitBlockNode(GtBlockNode Node) {
-		GtType ContextType = this.GetContextType();
+		ZenType ContextType = this.GetContextType();
 		int i = 0;
 		while(i < Node.NodeList.size() - 1) {
 			GtNode SubNode = Node.NodeList.get(i);
@@ -438,7 +437,7 @@ public class ZenTypeChecker extends ZenTypeCheckerImpl {
 	}
 
 	@Override public boolean VisitIfNode(GtIfNode Node) {
-		GtType ContextType = this.GetContextType();
+		ZenType ContextType = this.GetContextType();
 		GtNameSpace NameSpace = this.GetNameSpace();
 		Node.CondNode = this.TypeCheck(Node.CondNode, NameSpace, ZenTypeSystem.BooleanType, DefaultTypeCheckPolicy);
 		if(Node.CondNode.IsErrorNode()) {
@@ -456,7 +455,7 @@ public class ZenTypeChecker extends ZenTypeCheckerImpl {
 
 	@Override public boolean VisitReturnNode(GtReturnNode Node) {
 		GtNameSpace NameSpace = this.GetNameSpace();
-		GtType ReturnType = this.GetReturnType(NameSpace);
+		ZenType ReturnType = this.GetReturnType(NameSpace);
 		if(Node.ValueNode != null) {
 			Node.ValueNode = this.TypeCheck(Node.ValueNode, NameSpace, ReturnType, DefaultTypeCheckPolicy);
 			if(Node.ValueNode.IsErrorNode()) {

@@ -25,14 +25,14 @@
 package zen.ast2;
 
 import zen.ast.GtNode;
+import zen.lang.ZenType;
 import zen.lang.ZenFunc;
 import zen.parser.GtToken;
-import zen.parser.GtType;
 
 abstract public class GtSymbolNode extends GtNode {
 	/*field*/public String  NativeName;
 	/*field*/public ZenFunc	ResolvedFunc;    // 
-	public GtSymbolNode/*constructor*/(GtType Type, GtToken Token, String NativeName) {
+	public GtSymbolNode/*constructor*/(ZenType Type, GtToken Token, String NativeName) {
 		super();
 		this.NativeName = NativeName;
 		this.ResolvedFunc = null;

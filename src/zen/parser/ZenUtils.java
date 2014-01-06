@@ -28,6 +28,7 @@ import java.util.ArrayList;
 
 import zen.deps.LibNative;
 import zen.deps.LibZen;
+import zen.lang.ZenType;
 
 public class ZenUtils implements ZenParserConst {
 //endif VAJA
@@ -80,11 +81,11 @@ public class ZenUtils implements ZenParserConst {
 		return Name + NativeNameSuffix + Index;
 	}
 
-	public final static String MangleGenericType(GtType BaseType, int BaseIdx, ArrayList<GtType> TypeList) {
+	public final static String MangleGenericType(ZenType BaseType, int BaseIdx, ArrayList<ZenType> TypeList) {
 		/*local*/String s = BaseType.ShortName + NativeNameSuffix;
 		/*local*/int i = BaseIdx;
 		while(i < LibZen.ListSize(TypeList)) {
-			/*local*/GtType Type = TypeList.get(i);
+			/*local*/ZenType Type = TypeList.get(i);
 			if(Type.IsTypeVariable()) {
 				s = s + Type.ShortName;
 			}

@@ -24,11 +24,11 @@
 
 package zen.ast;
 
+import zen.lang.ZenType;
 import zen.parser.GtToken;
-import zen.parser.GtType;
 
 abstract public class GtConstNode extends GtNode {
-	protected GtConstNode/*constructor*/(GtType Type, GtToken Token) {
+	protected GtConstNode/*constructor*/(ZenType Type, GtToken Token) {
 		super();
 		this.Type = Type;
 		this.SourceToken = Token;

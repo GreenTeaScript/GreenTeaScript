@@ -29,15 +29,15 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 //endif VAJA
 
-import zen.parser.GtType;
+import zen.lang.ZenType;
 
 
 public class ZenTopObject implements ZenObject {
-	/*field*/public GtType GreenType;
-	protected ZenTopObject(GtType GreenType) {
+	/*field*/public ZenType GreenType;
+	protected ZenTopObject(ZenType GreenType) {
 		this.GreenType = GreenType;
 	}
-	public final GtType GetZenType() {
+	public final ZenType GetZenType() {
 		return this.GreenType;
 	}
 
@@ -79,7 +79,7 @@ public class ZenTopObject implements ZenObject {
 
 final class GreenTeaAnyObject extends ZenTopObject {
 	/*field*/public final Object NativeValue;
-	GreenTeaAnyObject/*constructor*/(GtType GreenType, Object NativeValue) {
+	GreenTeaAnyObject/*constructor*/(ZenType GreenType, Object NativeValue) {
 		super(GreenType);
 		this.NativeValue = NativeValue;
 	}

@@ -24,13 +24,13 @@
 
 package zen.ast;
 
+import zen.lang.ZenType;
 import zen.parser.GtToken;
-import zen.parser.GtType;
 import zen.parser.ZenVisitor;
 
 public class GtParamNode extends GtNode {
 	/*field*/public String  Name;
-	public GtParamNode/*constructor*/(GtType Type, GtToken SourceToken, String Name) {
+	public GtParamNode/*constructor*/(ZenType Type, GtToken SourceToken, String Name) {
 		super(); // TODO
 		this.Type = Type;
 		this.SourceToken = SourceToken;

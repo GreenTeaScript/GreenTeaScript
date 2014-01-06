@@ -24,11 +24,11 @@
 //ifdef JAVA
 package zen.deps;
 
-import zen.parser.GtType;
+import zen.lang.ZenType;
 
 //endif VAJA
 /*GreenTeaObject Begin*/
 public interface ZenObject {
-	public GtType GetZenType();
+	public ZenType GetZenType();
 }
 /*GreenTeaObject End*/

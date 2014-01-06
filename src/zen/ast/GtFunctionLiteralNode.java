@@ -26,13 +26,13 @@ package zen.ast;
 
 import java.util.ArrayList;
 
+import zen.lang.ZenType;
 import zen.lang.ZenTypeSystem;
 import zen.parser.GtToken;
-import zen.parser.GtType;
 import zen.parser.ZenVisitor;
 
 public class GtFunctionLiteralNode extends GtNode {
-	/*field*/public GtType ReturnType;
+	/*field*/public ZenType ReturnType;
 	/*field*/public ArrayList<GtNode>  ArgumentList;  // list of ParamNode
 	/*field*/public GtNode BodyNode;
 	public GtFunctionLiteralNode/*constructor*/(GtToken Token) {

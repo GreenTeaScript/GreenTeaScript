@@ -26,6 +26,7 @@
 package zen.parser;
 
 import zen.ast.GtNode;
+import zen.lang.ZenType;
 import zen.lang.ZenTypeSystem;
 //endif VAJA
 
@@ -58,7 +59,7 @@ public abstract class GtGenerator extends GtNodeUtils implements ZenVisitor {
 		return this.Logger.ReportError(Level, Token, Message);
 	}
 
-	public void TypeCheck(GtNameSpace NameSpace, GtNode Node, GtType ContextType) {
+	public void TypeCheck(GtNameSpace NameSpace, GtNode Node, ZenType ContextType) {
 		Node.Accept(this);		
 	}
 
@@ -68,11 +69,11 @@ public abstract class GtGenerator extends GtNodeUtils implements ZenVisitor {
 
 	
 	
-	public GtType GetFieldType(GtType BaseType, String Name) {
+	public ZenType GetFieldType(ZenType BaseType, String Name) {
 		return ZenTypeSystem.VarType;     // undefined
 	}
 
-	public GtType GetSetterType(GtType BaseType, String Name) {
+	public ZenType GetSetterType(ZenType BaseType, String Name) {
 		return ZenTypeSystem.VoidType;   // readonly
 	}
 

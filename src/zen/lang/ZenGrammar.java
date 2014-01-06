@@ -65,7 +65,6 @@ import zen.parser.GtNameSpace;
 import zen.parser.GtSyntaxPattern;
 import zen.parser.GtToken;
 import zen.parser.GtTokenContext;
-import zen.parser.GtType;
 import zen.parser.GtVariableInfo;
 import zen.parser.ZenParserConst;
 
@@ -387,7 +386,7 @@ public class ZenGrammar {
 
 	public static GtNode MatchType(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
 		/*local*/GtToken Token = TokenContext.Next();
-		/*local*/GtType Type = NameSpace.GetType(Token.ParsedText);
+		/*local*/ZenType Type = NameSpace.GetType(Token.ParsedText);
 		if(Type != null) {
 			GtNode TypeNode = new GtTypeNode(Token, Type);
 			return TokenContext.ParsePatternAfter(NameSpace, TypeNode, "$TypeSuffix$", ZenParserConst.Optional);
@@ -399,7 +398,7 @@ public class ZenGrammar {
 		GtTypeNode TypeNode = (GtTypeNode) LeftNode;
 		if(TypeNode.Type.IsGenericType()) {
 			if(TokenContext.MatchToken("<")) {  // Generics
-				/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
+				/*local*/ArrayList<ZenType> TypeList = new ArrayList<ZenType>();
 				while(!TokenContext.StartsWithToken(">")) {
 					if(TypeList.size() > 0 && !TokenContext.MatchToken(",")) {
 						return null;
@@ -683,7 +682,7 @@ public class ZenGrammar {
 	public static GtNode MatchLetDecl(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
 		GtToken SourceToken = TokenContext.Next(); /* let */
 		GtToken SymbolToken = TokenContext.Next(); /* name */
-		/*local*/GtType ConstClass = null;
+		/*local*/ZenType ConstClass = null;
 		if(TokenContext.MatchToken(".")) {
 			/*local*/String ClassName = SymbolToken.ParsedText;
 			ConstClass = NameSpace.GetType(ClassName);

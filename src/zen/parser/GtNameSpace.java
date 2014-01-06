@@ -30,6 +30,7 @@ import zen.ast.GtNode;
 import zen.deps.LibNative;
 import zen.deps.LibZen;
 import zen.deps.ZenMap;
+import zen.lang.ZenType;
 import zen.lang.ZenFunc;
 import zen.lang.ZenTypeSystem;
 import zen.obsolete.GtFuncBlock;
@@ -52,7 +53,7 @@ final class GtTokenFunc {
 
 final class GtSymbolSource {
 	/*field*/public GtToken SourceToken;
-	/*field*/public GtType  Type; // nullable
+	/*field*/public ZenType  Type; // nullable
 	/*field*/public Object  Value;
 }
 
@@ -192,7 +193,7 @@ public final class GtNameSpace extends ZenUtils {
 		LibZen.VerboseLog(VerboseSymbol, "symbol: " + Key + ", " + Value);
 	}
 
-	public GtVariableInfo SetLocalVariable(int VarFlag, GtType Type, String Name, GtToken SourceToken) {
+	public GtVariableInfo SetLocalVariable(int VarFlag, ZenType Type, String Name, GtToken SourceToken) {
 		/*local*/GtVariableInfo VarInfo = new GtVariableInfo(this.FuncBlock, VarFlag, Type, Name, SourceToken);
 		this.SetSymbol(Name, VarInfo, SourceToken);
 		return VarInfo;
@@ -210,7 +211,7 @@ public final class GtNameSpace extends ZenUtils {
 		return null;
 	}
 
-	public final GtType GetSymbolType(String Symbol) {
+	public final ZenType GetSymbolType(String Symbol) {
 		return ZenTypeSystem.VarType;
 	}
 
@@ -261,29 +262,29 @@ public final class GtNameSpace extends ZenUtils {
 
 	
 	
-	public final GtType GetType(String TypeName) {
+	public final ZenType GetType(String TypeName) {
 		/*local*/Object TypeInfo = this.GetSymbol(TypeName);
-		if(TypeInfo instanceof GtType) {
-			return (/*cast*/GtType)TypeInfo;
+		if(TypeInfo instanceof ZenType) {
+			return (/*cast*/ZenType)TypeInfo;
 		}
 		return null;
 	}
 
-	public final GtType AppendTypeName(GtType Type, GtToken SourceToken) {
+	public final ZenType AppendTypeName(ZenType Type, GtToken SourceToken) {
 		if(Type.BaseType == Type) {
 			this.SetSymbol(Type.ShortName, Type, SourceToken);
 		}
 		return Type;
 	}
 
-	public final GtType AppendTypeVariable(String Name, GtType ParamBaseType, GtToken SourceToken, ArrayList<Object> RevertList) {
+	public final ZenType AppendTypeVariable(String Name, ZenType ParamBaseType, GtToken SourceToken, ArrayList<Object> RevertList) {
 		this.UpdateRevertList(Name, RevertList);
-		/*local*/GtType TypeVar = new GtType(TypeVariable, Name, ParamBaseType, null);
+		/*local*/ZenType TypeVar = new ZenType(TypeVariable, Name, ParamBaseType, null);
 		this.SetSymbol(Name, TypeVar, SourceToken);
 		return TypeVar;
 	}
 
-	public final Object GetClassSymbol(GtType ClassType, String Symbol, boolean RecursiveSearch) {
+	public final Object GetClassSymbol(ZenType ClassType, String Symbol, boolean RecursiveSearch) {
 		while(ClassType != null) {
 			/*local*/String Key = GtNameSpace.ClassSymbol(ClassType, Symbol);
 			/*local*/Object Value = this.GetSymbol(Key);
@@ -463,7 +464,7 @@ public final class GtNameSpace extends ZenUtils {
 		return new GtPolyFunc(null, FuncList);
 	}
 
-	public final ZenFunc GetFunc(String FuncName, int BaseIndex, ArrayList<GtType> TypeList) {
+	public final ZenFunc GetFunc(String FuncName, int BaseIndex, ArrayList<ZenType> TypeList) {
 		/*local*/ArrayList<ZenFunc> FuncList = new ArrayList<ZenFunc>();
 		this.RetrieveFuncList(FuncName, FuncList);
 		/*local*/int i = 0;
@@ -653,7 +654,7 @@ public final class GtNameSpace extends ZenUtils {
 		return LibZen.IsVariableName(Symbol, 0) ? Symbol : "__" + Symbol;
 	}
 
-	public final static String ConverterSymbol(GtType ClassType) {
+	public final static String ConverterSymbol(ZenType ClassType) {
 		return ClassType.GetUniqueName();
 	}
 
@@ -669,11 +670,11 @@ public final class GtNameSpace extends ZenUtils {
 		return Symbol + "+";
 	}
 
-	public final static String ClassSymbol(GtType ClassType, String Symbol) {
+	public final static String ClassSymbol(ZenType ClassType, String Symbol) {
 		return ClassType.GetUniqueName() + "." + Symbol;
 	}
 
-	public final static String ClassStaticSymbol(GtType ClassType, String Symbol) {
+	public final static String ClassStaticSymbol(ZenType ClassType, String Symbol) {
 		return ClassType.GetUniqueName() + ".@" + Symbol;
 	}
 

@@ -25,8 +25,8 @@
 package zen.ast2;
 
 import zen.ast.GtNode;
+import zen.lang.ZenType;
 import zen.parser.GtToken;
-import zen.parser.GtType;
 
 final public class GtStatementNode extends GtNode {
 	/**
@@ -34,7 +34,7 @@ final public class GtStatementNode extends GtNode {
 	 * f(1)
 	 */
 	/*field*/public GtNode ValueNode;
-	public GtStatementNode/*constructor*/(GtType Type, GtToken Token, GtNode ValueNode) {
+	public GtStatementNode/*constructor*/(ZenType Type, GtToken Token, GtNode ValueNode) {
 		super();
 		this.ValueNode = ValueNode;
 		this.SetChild(ValueNode);

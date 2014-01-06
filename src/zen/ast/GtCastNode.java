@@ -25,14 +25,14 @@
 package zen.ast;
 
 import zen.deps.LibZen;
+import zen.lang.ZenType;
 import zen.parser.GtNameSpace;
-import zen.parser.GtType;
 import zen.parser.ZenVisitor;
 
 //E.g., (T) $Expr
 final public class GtCastNode extends GtNode {
 	/*field*/public GtNode	ExprNode;
-	public GtCastNode/*constructor*/(GtType CastType, GtNode Node) {
+	public GtCastNode/*constructor*/(ZenType CastType, GtNode Node) {
 		super();
 		this.Type = CastType;
 		this.ExprNode = this.SetChild(Node);

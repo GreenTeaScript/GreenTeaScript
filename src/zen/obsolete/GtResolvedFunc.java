@@ -25,15 +25,15 @@
 package zen.obsolete;
 
 import zen.ast.GtNode;
+import zen.lang.ZenType;
 import zen.lang.ZenFunc;
 import zen.lang.ZenTypeSystem;
 import zen.parser.GtNameSpace;
-import zen.parser.GtType;
 
 public class GtResolvedFunc {
 	/*field*/public GtNameSpace GenericNameSpace;
 	/*field*/public ZenFunc Func;
-	/*field*/public GtType ReturnType;
+	/*field*/public ZenType ReturnType;
 	/*field*/public GtNode ErrorNode;
 	GtResolvedFunc/*constructor*/(GtNameSpace NameSpace) {
 		this.GenericNameSpace = NameSpace;
