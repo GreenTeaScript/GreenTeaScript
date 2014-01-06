@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import zen.lang.ZenTypeSystem;
 import zen.parser.GtToken;
 import zen.parser.GtType;
-import zen.parser.GtVisitor;
+import zen.parser.ZenVisitor;
 
 public class GtFunctionLiteralNode extends GtNode {
 	/*field*/public GtType ReturnType;
@@ -54,7 +54,7 @@ public class GtFunctionLiteralNode extends GtNode {
 		}
 		/*return this;*/
 	}
-	@Override public boolean Accept(GtVisitor Visitor) {
+	@Override public boolean Accept(ZenVisitor Visitor) {
 		return Visitor.VisitFunctionLiteralNode(this);
 	}
 }

@@ -25,7 +25,7 @@
 package zen.ast;
 
 import zen.lang.ZenTypeSystem;
-import zen.parser.GtVisitor;
+import zen.parser.ZenVisitor;
 
 //E.g., "while" "(" $Cond ")" $Body
 final public class GtWhileNode extends GtNode {
@@ -46,7 +46,7 @@ final public class GtWhileNode extends GtNode {
 		}
 		/*return this;*/
 	}
-	@Override public boolean Accept(GtVisitor Visitor) {
+	@Override public boolean Accept(ZenVisitor Visitor) {
 		return Visitor.VisitWhileNode(this);
 	}
 }

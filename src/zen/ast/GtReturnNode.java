@@ -25,7 +25,7 @@
 package zen.ast;
 
 import zen.lang.ZenTypeSystem;
-import zen.parser.GtVisitor;
+import zen.parser.ZenVisitor;
 
 public class GtReturnNode extends GtNode {
 	/*field*/public GtNode ValueNode;
@@ -37,7 +37,7 @@ public class GtReturnNode extends GtNode {
 		this.ValueNode = ValueNode;
 		this.SetChild(ValueNode);
 	}
-	@Override public boolean Accept(GtVisitor Visitor) {
+	@Override public boolean Accept(ZenVisitor Visitor) {
 		return Visitor.VisitReturnNode(this);
 	}
 }

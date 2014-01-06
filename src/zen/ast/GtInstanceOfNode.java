@@ -26,7 +26,7 @@ package zen.ast;
 
 import zen.parser.GtSyntaxPattern;
 import zen.parser.GtToken;
-import zen.parser.GtVisitor;
+import zen.parser.ZenVisitor;
 
 //E.g., $ExprNode instanceof TypeInfo
 final public class GtInstanceOfNode extends GtBinaryNode {
@@ -34,7 +34,7 @@ final public class GtInstanceOfNode extends GtBinaryNode {
 		super(Token, Left, Pattern);
 	}
 
-	@Override public boolean Accept(GtVisitor Visitor) {
+	@Override public boolean Accept(ZenVisitor Visitor) {
 		return Visitor.VisitInstanceOfNode(this);
 	}
 //	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {

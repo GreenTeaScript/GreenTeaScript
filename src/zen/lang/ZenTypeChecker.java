@@ -69,11 +69,11 @@ import zen.ast2.GtNewArrayNode;
 import zen.ast2.GtNewObjectNode;
 import zen.parser.GtNameSpace;
 import zen.parser.GtType;
-import zen.parser.GtVisitor;
+import zen.parser.ZenVisitor;
 import zen.parser.ZenUtils;
 
 
-abstract class ZenTypeCheckerImpl implements GtVisitor {
+abstract class ZenTypeCheckerImpl implements ZenVisitor {
 	public final static int DefaultTypeCheckPolicy			= 0;
 	public final static int NoCheckPolicy                   = 1;
 	public final static int CastPolicy                      = (1 << 1);

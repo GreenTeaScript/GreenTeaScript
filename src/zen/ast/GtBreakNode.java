@@ -24,7 +24,7 @@
 
 package zen.ast;
 
-import zen.parser.GtVisitor;
+import zen.parser.ZenVisitor;
 
 final public class GtBreakNode extends GtNode {
 	/*field*/public String Label;
@@ -32,7 +32,7 @@ final public class GtBreakNode extends GtNode {
 		super();
 		this.Label = null;
 	}
-	@Override public boolean Accept(GtVisitor Visitor) {
+	@Override public boolean Accept(ZenVisitor Visitor) {
 		return Visitor.VisitBreakNode(this);
 	}
 }

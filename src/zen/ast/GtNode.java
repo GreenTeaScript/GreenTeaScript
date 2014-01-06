@@ -31,7 +31,7 @@ import zen.lang.ZenTypeSystem;
 import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
 import zen.parser.GtType;
-import zen.parser.GtVisitor;
+import zen.parser.ZenVisitor;
 import zen.parser.ZenParserConst;
 
 public abstract class GtNode {
@@ -73,7 +73,7 @@ public abstract class GtNode {
 	}
 
 //	public abstract boolean Accept(GtVisitor Visitor);
-	public boolean Accept(GtVisitor Visitor) {
+	public boolean Accept(ZenVisitor Visitor) {
 		return LibNative.VisitNode(Visitor, this);
 	}
 

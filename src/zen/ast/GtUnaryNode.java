@@ -28,7 +28,7 @@ package zen.ast;
 import zen.deps.LibZen;
 import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
-import zen.parser.GtVisitor;
+import zen.parser.ZenVisitor;
 
 //E.g., "~" $RecvNode
 final public class GtUnaryNode extends GtNode {
@@ -42,7 +42,7 @@ final public class GtUnaryNode extends GtNode {
 		this.SetChild(RecvNode);
 		/*return this;*/
 	}
-	@Override public boolean Accept(GtVisitor Visitor) {
+	@Override public boolean Accept(ZenVisitor Visitor) {
 		return Visitor.VisitUnaryNode(this);
 	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {

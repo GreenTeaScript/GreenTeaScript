@@ -26,7 +26,7 @@ package zen.ast;
 
 import java.util.ArrayList;
 
-import zen.parser.GtVisitor;
+import zen.parser.ZenVisitor;
 
 //E.g., "{" StringNode, $Node, StringNode, $Node "}"
 final public class GtMapLiteralNode extends GtNode {   // => ArrayLiteral
@@ -38,7 +38,7 @@ final public class GtMapLiteralNode extends GtNode {   // => ArrayLiteral
 	@Override public void Append(GtNode Node) {
 		this.NodeList.add(Node);
 	}
-	@Override public boolean Accept(GtVisitor Visitor) {
+	@Override public boolean Accept(ZenVisitor Visitor) {
 		return Visitor.VisitMapLiteralNode(this);
 	}
 }

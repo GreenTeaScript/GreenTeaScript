@@ -68,9 +68,9 @@ import zen.ast.GtWhileNode;
 import zen.ast2.GtNewArrayNode;
 import zen.ast2.GtNewObjectNode;
 import zen.parser.GtNameSpace;
-import zen.parser.GtVisitor;
+import zen.parser.ZenVisitor;
 
-public class ZenEvaluator implements GtVisitor {
+public class ZenEvaluator implements ZenVisitor {
 	/*field*/private GtNameSpace NameSpace_;
 	/*field*/private boolean IsEnforced_;
 	/*field*/private Object EvaledValue_;

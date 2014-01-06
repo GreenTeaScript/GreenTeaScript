@@ -28,7 +28,7 @@ import zen.lang.ZenTypeSystem;
 import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
 import zen.parser.GtType;
-import zen.parser.GtVisitor;
+import zen.parser.ZenVisitor;
 
 final public class GtBooleanNode extends GtConstNode {
 	/*field*/public boolean	Value;
@@ -36,7 +36,7 @@ final public class GtBooleanNode extends GtConstNode {
 		super(ZenTypeSystem.BooleanType, Token);
 		this.Value = Value;
 	}
-	@Override public boolean Accept(GtVisitor Visitor) {
+	@Override public boolean Accept(ZenVisitor Visitor) {
 		return Visitor.VisitBooleanNode(this);
 	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {

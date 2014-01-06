@@ -28,7 +28,7 @@ import java.util.ArrayList;
 
 import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
-import zen.parser.GtVisitor;
+import zen.parser.ZenVisitor;
 
 public class GtBlockNode extends GtNode {
 	/*field*/public ArrayList<GtNode> NodeList;
@@ -45,7 +45,7 @@ public class GtBlockNode extends GtNode {
 //	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
 //		return null;
 //	}
-	@Override public boolean Accept(GtVisitor Visitor) {
+	@Override public boolean Accept(ZenVisitor Visitor) {
 		return Visitor.VisitBlockNode(this);
 	}
 }

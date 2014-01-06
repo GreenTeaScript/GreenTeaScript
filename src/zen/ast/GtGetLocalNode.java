@@ -25,7 +25,7 @@
 package zen.ast;
 
 import zen.ast2.GtSymbolNode;
-import zen.parser.GtVisitor;
+import zen.parser.ZenVisitor;
 import zen.parser.GtToken;
 import zen.parser.GtType;
 
@@ -34,7 +34,7 @@ final public class GtGetLocalNode extends GtSymbolNode {
 	public GtGetLocalNode/*constructor*/(GtType Type, GtToken Token, String NativeName) {
 		super(Type, Token, NativeName);
 	}
-	@Override public boolean Accept(GtVisitor Visitor) {
+	@Override public boolean Accept(ZenVisitor Visitor) {
 		return Visitor.VisitGetLocalNode(this);
 	}
 }

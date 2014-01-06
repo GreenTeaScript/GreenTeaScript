@@ -24,7 +24,7 @@
 
 package zen.ast;
 
-import zen.parser.GtVisitor;
+import zen.parser.ZenVisitor;
 
 //E.g., "if" "(" $Cond ")" $ThenNode "else" $ElseNode
 final public class GtIfNode extends GtNode {
@@ -51,7 +51,7 @@ final public class GtIfNode extends GtNode {
 		}
 		/*return this;*/
 	}
-	@Override public boolean Accept(GtVisitor Visitor) {
+	@Override public boolean Accept(ZenVisitor Visitor) {
 		return Visitor.VisitIfNode(this);
 	}
 }

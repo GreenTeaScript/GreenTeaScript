@@ -26,7 +26,7 @@ package zen.ast;
 
 import java.util.ArrayList;
 
-import zen.parser.GtVisitor;
+import zen.parser.ZenVisitor;
 
 //E.g., $FuncNode "(" $Param[0], $Param[1], ... ")"
 final public class GtApplyNode extends GtNode {
@@ -40,7 +40,7 @@ final public class GtApplyNode extends GtNode {
 	@Override public void Append(GtNode Node) {
 		this.ParamList.add(this.SetChild(Node));
 	}
-	@Override public boolean Accept(GtVisitor Visitor) {
+	@Override public boolean Accept(ZenVisitor Visitor) {
 		return Visitor.VisitApplyNode(this);
 	}
 	//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {

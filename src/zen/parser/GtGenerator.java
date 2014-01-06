@@ -29,7 +29,7 @@ import zen.ast.GtNode;
 import zen.lang.ZenTypeSystem;
 //endif VAJA
 
-public abstract class GtGenerator extends GtNodeUtils implements GtVisitor {
+public abstract class GtGenerator extends GtNodeUtils implements ZenVisitor {
 	/*field*/public final String       TargetCode;
 	/*field*/public final String       TargetVersion;
 	

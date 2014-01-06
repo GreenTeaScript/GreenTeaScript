@@ -27,7 +27,7 @@ package zen.ast;
 import zen.deps.LibZen;
 import zen.parser.GtNameSpace;
 import zen.parser.GtType;
-import zen.parser.GtVisitor;
+import zen.parser.ZenVisitor;
 
 //E.g., (T) $Expr
 final public class GtCastNode extends GtNode {
@@ -46,7 +46,7 @@ final public class GtCastNode extends GtNode {
 			this.ExprNode = this.SetChild(Node);
 		}
 	}
-	@Override public boolean Accept(GtVisitor Visitor) {
+	@Override public boolean Accept(ZenVisitor Visitor) {
 		return Visitor.VisitCastNode(this);
 	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {

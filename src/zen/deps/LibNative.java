@@ -47,7 +47,7 @@ import zen.parser.GtNameSpace;
 import zen.parser.GtSourceGenerator;
 import zen.parser.GtTokenContext;
 import zen.parser.GtType;
-import zen.parser.GtVisitor;
+import zen.parser.ZenVisitor;
 import zen.parser.ZenUtils;
 
 public class LibNative {
@@ -408,7 +408,7 @@ public class LibNative {
 		return null;
 	}
 
-	public final static boolean IsSupportedNode(GtVisitor Visitor, GtNode Node) {
+	public final static boolean IsSupportedNode(ZenVisitor Visitor, GtNode Node) {
 		try {
 			Visitor.getClass().getMethod(Node.GetVisitName(), Node.getClass());
 			return true;
@@ -418,7 +418,7 @@ public class LibNative {
 		return false;
 	}
 
-	public final static boolean VisitNode(GtVisitor Visitor, GtNode Node) {
+	public final static boolean VisitNode(ZenVisitor Visitor, GtNode Node) {
 		try {
 			Method JavaMethod = Visitor.getClass().getMethod(Node.GetVisitName(), Node.getClass());
 			return (Boolean)JavaMethod.invoke(Visitor, Node);

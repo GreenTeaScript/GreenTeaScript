@@ -24,13 +24,13 @@
 
 package zen.ast;
 
-import zen.parser.GtVisitor;
+import zen.parser.ZenVisitor;
 
 final public class GtThrowNode extends GtReturnNode {
 	public GtThrowNode/*constructor*/() {
 		super();
 	}
-	@Override public boolean Accept(GtVisitor Visitor) {
+	@Override public boolean Accept(ZenVisitor Visitor) {
 		return Visitor.VisitThrowNode(this);
 	}
 }

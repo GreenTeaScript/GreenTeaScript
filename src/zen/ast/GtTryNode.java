@@ -27,7 +27,7 @@ package zen.ast;
 import java.util.ArrayList;
 
 import zen.lang.ZenTypeSystem;
-import zen.parser.GtVisitor;
+import zen.parser.ZenVisitor;
 
 final public class GtTryNode extends GtNode {
 	/*field*/public GtNode	TryNode;
@@ -51,7 +51,7 @@ final public class GtTryNode extends GtNode {
 			this.FinallyNode = Node;
 		}
 	}
-	@Override public boolean Accept(GtVisitor Visitor) {
+	@Override public boolean Accept(ZenVisitor Visitor) {
 		return Visitor.VisitTryNode(this);
 	}
 }

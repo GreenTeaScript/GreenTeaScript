@@ -26,7 +26,7 @@ package zen.ast;
 
 import zen.parser.GtToken;
 import zen.parser.GtType;
-import zen.parser.GtVisitor;
+import zen.parser.ZenVisitor;
 
 final public class GtConstPoolNode extends GtConstNode {
 	/*field*/public Object	ConstValue;
@@ -34,7 +34,7 @@ final public class GtConstPoolNode extends GtConstNode {
 		super(Type, Token);
 		this.ConstValue = ConstValue;
 	}
-	@Override public boolean Accept(GtVisitor Visitor) {
+	@Override public boolean Accept(ZenVisitor Visitor) {
 		// int ConstPoolId = SetConstPool(ConstValue)
 		// using StaticApplyNode => GetConstPool(ConstPoolId);
 		return Visitor.VisitConstPoolNode(this);

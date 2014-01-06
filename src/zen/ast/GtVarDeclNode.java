@@ -24,7 +24,7 @@
 
 package zen.ast;
 
-import zen.parser.GtVisitor;
+import zen.parser.ZenVisitor;
 
 /**
  * int a = 1;
@@ -58,7 +58,7 @@ final public class GtVarDeclNode extends GtBlockNode {
 		/*return this;*/
 	}
 
-	@Override public boolean Accept(GtVisitor Visitor) {
+	@Override public boolean Accept(ZenVisitor Visitor) {
 		return Visitor.VisitVarDeclNode(this);
 	}
 }

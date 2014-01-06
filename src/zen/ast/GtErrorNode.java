@@ -27,7 +27,7 @@ package zen.ast;
 import zen.lang.ZenTypeSystem;
 import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
-import zen.parser.GtVisitor;
+import zen.parser.ZenVisitor;
 
 /**
  * ErrorNode carries error information at the parser level
@@ -43,7 +43,7 @@ final public class GtErrorNode extends GtConstNode {
 	@Override public final Object GetValue() {
 		return this.ErrorMessage;
 	}
-	@Override public boolean Accept(GtVisitor Visitor) {
+	@Override public boolean Accept(ZenVisitor Visitor) {
 		return Visitor.VisitErrorNode(this);
 	}
 	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {

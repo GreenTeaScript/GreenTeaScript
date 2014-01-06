@@ -26,7 +26,7 @@ package zen.ast;
 
 import zen.parser.GtToken;
 import zen.parser.GtType;
-import zen.parser.GtVisitor;
+import zen.parser.ZenVisitor;
 
 public class GtParamNode extends GtNode {
 	/*field*/public String  Name;
@@ -36,7 +36,7 @@ public class GtParamNode extends GtNode {
 		this.SourceToken = SourceToken;
 		this.Name = Name;
 	}
-	@Override public boolean Accept(GtVisitor Visitor) {
+	@Override public boolean Accept(ZenVisitor Visitor) {
 		return Visitor.VisitParamNode(this);
 	}
 }

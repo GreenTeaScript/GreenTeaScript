@@ -65,7 +65,7 @@ import zen.ast.GtWhileNode;
 import zen.ast2.GtNewArrayNode;
 import zen.ast2.GtNewObjectNode;
 
-public interface GtVisitor {
+public interface ZenVisitor {
 	public abstract boolean VisitNullNode(GtNullNode Node);
 	public abstract boolean VisitBooleanNode(GtBooleanNode Node);
 	public abstract boolean VisitIntNode(GtIntNode Node);

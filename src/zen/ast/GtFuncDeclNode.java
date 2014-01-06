@@ -28,7 +28,7 @@ import java.util.ArrayList;
 
 import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
-import zen.parser.GtVisitor;
+import zen.parser.ZenVisitor;
 
 final public class GtFuncDeclNode extends GtFunctionLiteralNode {
 	/*field*/public String FuncName;
@@ -39,7 +39,7 @@ final public class GtFuncDeclNode extends GtFunctionLiteralNode {
 		this.FuncName = FuncName;
 		this.NameSpace = NameSpace;
 	}
-	@Override public boolean Accept(GtVisitor Visitor) {
+	@Override public boolean Accept(ZenVisitor Visitor) {
 		return Visitor.VisitFuncDeclNode(this);
 	}
 }

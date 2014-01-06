@@ -30,7 +30,7 @@ import zen.ast.GtNode;
 import zen.parser.GtFunc;
 import zen.parser.GtToken;
 import zen.parser.GtType;
-import zen.parser.GtVisitor;
+import zen.parser.ZenVisitor;
 
 // E.g., ConstructorNode is for object creation in Native language defined
 final public class GtNewObjectNode extends GtNode {
@@ -42,7 +42,7 @@ final public class GtNewObjectNode extends GtNode {
 	@Override public final void Append(GtNode Node) {
 		this.ParamList.add(this.SetChild(Node));
 	}
-	@Override public boolean Accept(GtVisitor Visitor) {
+	@Override public boolean Accept(ZenVisitor Visitor) {
 		return Visitor.VisitNewObjectNode(this);
 	}
 	//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {

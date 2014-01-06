@@ -26,7 +26,7 @@ package zen.ast;
 
 import zen.ast2.GtSymbolNode;
 import zen.lang.ZenTypeSystem;
-import zen.parser.GtVisitor;
+import zen.parser.ZenVisitor;
 import zen.parser.GtToken;
 
 //E.g., $RecvNode.$NativeName = $Value
@@ -44,7 +44,7 @@ final public class GtSetterNode extends GtSymbolNode {
 		this.ValueNode = Node;
 		/*return this;*/
 	}
-	@Override public boolean Accept(GtVisitor Visitor) {
+	@Override public boolean Accept(ZenVisitor Visitor) {
 		return Visitor.VisitSetterNode(this);
 	}
 	//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {

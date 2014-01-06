@@ -24,7 +24,7 @@
 
 package zen.ast;
 
-import zen.parser.GtVisitor;
+import zen.parser.ZenVisitor;
 
 //E.g., $Recv[$Index] = $ValueNode
 final public class GtSetIndexNode extends GtNode {
@@ -42,7 +42,7 @@ final public class GtSetIndexNode extends GtNode {
 	@Override public void Append(GtNode Node) {
 		this.ValueNode = this.SetChild(Node);
 	}
-	@Override public boolean Accept(GtVisitor Visitor) {
+	@Override public boolean Accept(ZenVisitor Visitor) {
 		return Visitor.VisitSetIndexNode(this);
 	}
 //	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
