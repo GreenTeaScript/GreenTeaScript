@@ -25,7 +25,7 @@
 //ifdef JAVA
 package zen.obsolete;
 
-import zen.parser.GtFunc;
+import zen.lang.ZenFunc;
 import zen.parser.GtType;
 import zen.parser.ZenUtils;
 
@@ -37,8 +37,8 @@ public class GtFieldInfo extends ZenUtils {
 	/*field*/public String	Name;
 	/*field*/public String	NativeName;
 	/*field*/public Object  InitValue;
-	/*field*/public GtFunc	GetterFunc;
-	/*field*/public GtFunc	SetterFunc;
+	/*field*/public ZenFunc	GetterFunc;
+	/*field*/public ZenFunc	SetterFunc;
 
 	GtFieldInfo/*constructor*/(int FieldFlag, GtType Type, String Name, int FieldIndex, Object InitValue) {
 		this.FieldFlag = FieldFlag;

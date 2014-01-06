@@ -26,21 +26,19 @@ package zen.obsolete;
 
 import java.util.ArrayList;
 
-import zen.ast.GtNode;
-import zen.parser.ZenParserConst;
-import zen.parser.GtFunc;
+import zen.lang.ZenFunc;
 import zen.parser.GtGenerator;
-import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
 import zen.parser.GtType;
+import zen.parser.ZenParserConst;
 
 public class GtPolyFunc {
 	/*field*/public GtGenerator Generator;
-	/*field*/public ArrayList<GtFunc> FuncList;
+	/*field*/public ArrayList<ZenFunc> FuncList;
 
-	public GtPolyFunc/*constructor*/(GtGenerator Generator, ArrayList<GtFunc> FuncList) {
+	public GtPolyFunc/*constructor*/(GtGenerator Generator, ArrayList<ZenFunc> FuncList) {
 		this.Generator = Generator;
-		this.FuncList = FuncList == null ? new ArrayList<GtFunc>() : FuncList;
+		this.FuncList = FuncList == null ? new ArrayList<ZenFunc>() : FuncList;
 	}
 
 	@Override public String toString() { // this is used in an error message
@@ -56,11 +54,11 @@ public class GtPolyFunc {
 		return s;
 	}
 
-	public final GtPolyFunc Append(GtFunc Func, GtToken SourceToken) {
+	public final GtPolyFunc Append(ZenFunc Func, GtToken SourceToken) {
 		if(SourceToken != null) {
 			/*local*/int i = 0;
 			while(i < this.FuncList.size()) {
-				/*local*/GtFunc ListedFunc = this.FuncList.get(i);
+				/*local*/ZenFunc ListedFunc = this.FuncList.get(i);
 				if(ListedFunc == Func) {
 					/*return this;*/ /* same function */
 				}
@@ -75,10 +73,10 @@ public class GtPolyFunc {
 		return this;
 	}
 
-	public GtFunc ResolveUnaryMethod(GtType Type) {
+	public ZenFunc ResolveUnaryMethod(GtType Type) {
 		/*local*/int i = 0;
 		while(i < this.FuncList.size()) {
-			/*local*/GtFunc Func = this.FuncList.get(i);
+			/*local*/ZenFunc Func = this.FuncList.get(i);
 			if(Func.GetFuncParamSize() == 1) {
 				return Func;
 			}
@@ -87,42 +85,42 @@ public class GtPolyFunc {
 		return null;
 	}
 
-	public final boolean CheckIncrementalTyping(GtNameSpace NameSpace, int FuncParamSize, ArrayList<GtNode> ParamList, GtResolvedFunc ResolvedFunc) {
-		/*local*/GtFunc FoundFunc = null;
-		/*local*/GtNameSpace GenericNameSpace = null;
-		/*local*/int i = 0;
-		while(i < this.FuncList.size()) {
-			/*local*/GtFunc Func = this.FuncList.get(i);
-			if(Func.GetFuncParamSize() == FuncParamSize) {
-				GenericNameSpace = Func.GetGenericNameSpace(NameSpace, ParamList, 0);
-				/*local*/int p = 0;
-				while(p < ParamList.size()) {
-					/*local*/GtNode Node = ParamList.get(p);
-					if(!Func.Types[p + 1].Match(GenericNameSpace, Node.Type)) {
-						Func = null;
-						break;
-					}
-					p = p + 1;
-				}
-				if(Func != null) {
-					if(ParamList.size() == FuncParamSize) {
-						// when paramsize matched, unnecessary to check others
-						ResolvedFunc.Func = Func;    
-						return true;
-					}
-					if(FoundFunc != null) {
-						ResolvedFunc.Func = null;
-						return false; // two more func
-					}
-					FoundFunc = Func;
-				}
-			}
-			i = i + 1;
-		}
-		ResolvedFunc.Func = FoundFunc;
-		ResolvedFunc.GenericNameSpace = GenericNameSpace;
-		return true;
-	}
+//	public final boolean CheckIncrementalTyping(GtNameSpace NameSpace, int FuncParamSize, ArrayList<GtNode> ParamList, GtResolvedFunc ResolvedFunc) {
+//		/*local*/ZenFunc FoundFunc = null;
+//		/*local*/GtNameSpace GenericNameSpace = null;
+//		/*local*/int i = 0;
+//		while(i < this.FuncList.size()) {
+//			/*local*/ZenFunc Func = this.FuncList.get(i);
+//			if(Func.GetFuncParamSize() == FuncParamSize) {
+//				GenericNameSpace = Func.GetGenericNameSpace(NameSpace, ParamList, 0);
+//				/*local*/int p = 0;
+//				while(p < ParamList.size()) {
+//					/*local*/GtNode Node = ParamList.get(p);
+//					if(!Func.Types[p + 1].Match(GenericNameSpace, Node.Type)) {
+//						Func = null;
+//						break;
+//					}
+//					p = p + 1;
+//				}
+//				if(Func != null) {
+//					if(ParamList.size() == FuncParamSize) {
+//						// when paramsize matched, unnecessary to check others
+//						ResolvedFunc.Func = Func;    
+//						return true;
+//					}
+//					if(FoundFunc != null) {
+//						ResolvedFunc.Func = null;
+//						return false; // two more func
+//					}
+//					FoundFunc = Func;
+//				}
+//			}
+//			i = i + 1;
+//		}
+//		ResolvedFunc.Func = FoundFunc;
+//		ResolvedFunc.GenericNameSpace = GenericNameSpace;
+//		return true;
+//	}
 
 //	public GtFunc CheckParamWithCoercion(GtNameSpace GenericNameSpace, GtFunc Func, ArrayList<GtNode> ParamList) {
 //		/*local*/int p = 0;

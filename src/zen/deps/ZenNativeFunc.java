@@ -22,30 +22,37 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package zen.obsolete;
+package zen.deps;
 
-import zen.ast.GtNode;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 import zen.lang.ZenFunc;
-import zen.lang.ZenTypeSystem;
-import zen.parser.GtNameSpace;
 import zen.parser.GtType;
 
-public class GtResolvedFunc {
-	/*field*/public GtNameSpace GenericNameSpace;
-	/*field*/public ZenFunc Func;
-	/*field*/public GtType ReturnType;
-	/*field*/public GtNode ErrorNode;
-	GtResolvedFunc/*constructor*/(GtNameSpace NameSpace) {
-		this.GenericNameSpace = NameSpace;
-		this.Func = null;
-		this.ReturnType = ZenTypeSystem.AnyType;
-		this.ErrorNode = null;
-	}	
-	GtResolvedFunc UpdateFunc(ZenFunc Func, GtNameSpace GenericNameSpace) {		
-		this.Func = Func;
-		if(Func != null) {
-			this.ReturnType = Func.GetReturnType().RealType(GenericNameSpace, ZenTypeSystem.AnyType);
+public class ZenNativeFunc extends ZenFunc {
+	/*field*/public Object Recv;
+	/*field*/public Method JMethod;  // Abstract function if null
+	
+	public ZenNativeFunc(int FuncFlag, String FuncName, GtType[] Types, Object Recv, Method JMethod) {
+		super(FuncFlag, FuncName, Types);
+		this.Recv = Recv;
+		this.JMethod = JMethod;
+	}
+	
+	public final Object Invoke(Object[] Params) {
+		try {
+			return (this.JMethod).invoke(this.Recv, Params);
 		}
-		return this;
+		catch (InvocationTargetException e) {
+			LibZen.VerboseException(e);
+		}
+		catch (IllegalArgumentException e) {
+			LibZen.VerboseException(e);
+		}
+		catch (IllegalAccessException e) {
+			LibZen.VerboseException(e);
+		}
+		return null;
 	}
 }

@@ -61,7 +61,6 @@ import zen.ast.GtVarDeclNode;
 import zen.ast.GtWhileNode;
 import zen.deps.LibNative;
 import zen.deps.LibZen;
-import zen.parser.GtFunc;
 import zen.parser.GtNameSpace;
 import zen.parser.GtSyntaxPattern;
 import zen.parser.GtToken;
@@ -825,8 +824,8 @@ public class ZenGrammar {
 		NameSpace.AppendTokenFunc("\"", LibNative.LoadTokenFunc(Grammar, "StringLiteralToken"));
 		NameSpace.AppendTokenFunc("1",  LibNative.LoadTokenFunc(Grammar, "NumberLiteralToken"));
 
-		/*local*/GtFunc MatchUnary     = LibNative.LoadMatchFunc(Grammar, "MatchUnary");
-		/*local*/GtFunc MatchBinary    = LibNative.LoadMatchFunc(Grammar, "MatchBinary");
+		/*local*/ZenFunc MatchUnary     = LibNative.LoadMatchFunc(Grammar, "MatchUnary");
+		/*local*/ZenFunc MatchBinary    = LibNative.LoadMatchFunc(Grammar, "MatchBinary");
 
 		NameSpace.AppendSyntax("null", LibNative.LoadMatchFunc(Grammar, "MatchNull"));
 		NameSpace.AppendSyntax("true", LibNative.LoadMatchFunc(Grammar, "MatchTrue"));

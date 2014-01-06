@@ -28,15 +28,16 @@ package zen.parser;
 import zen.ast.GtNode;
 import zen.deps.LibNative;
 import zen.deps.LibZen;
+import zen.lang.ZenFunc;
 
 public final class GtSyntaxPattern extends ZenUtils {
 	/*field*/public GtNameSpace	          PackageNameSpace;
 	/*field*/public String		          PatternName;
 	/*field*/public int				      SyntaxFlag;
-	/*field*/public GtFunc                MatchFunc;
+	/*field*/public ZenFunc                MatchFunc;
 	/*field*/public GtSyntaxPattern	      ParentPattern;
 
-	GtSyntaxPattern/*constructor*/(GtNameSpace NameSpace, String PatternName, GtFunc MatchFunc) {
+	GtSyntaxPattern/*constructor*/(GtNameSpace NameSpace, String PatternName, ZenFunc MatchFunc) {
 		this.PackageNameSpace = NameSpace;
 		this.PatternName = PatternName;
 		this.SyntaxFlag = 0;
@@ -67,7 +68,7 @@ public final class GtSyntaxPattern extends ZenUtils {
 		/*local*/int ParseFlag = TokenContext.ParseFlag;
 		/*local*/GtSyntaxPattern CurrentPattern = Pattern;
 		while(CurrentPattern != null) {
-			/*local*/GtFunc MatchFunc = CurrentPattern.MatchFunc;
+			/*local*/ZenFunc MatchFunc = CurrentPattern.MatchFunc;
 			TokenContext.RollbackPosition(Pos, 0);
 			if(CurrentPattern.ParentPattern != null) {   // This means it has next patterns
 				TokenContext.ParseFlag = ParseFlag | BackTrackParseFlag;

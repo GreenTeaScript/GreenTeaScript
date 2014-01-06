@@ -40,7 +40,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import zen.lang.ZenTypeSystem;
-import zen.parser.GtFunc;
 import zen.parser.GtSourceBuilder;
 import zen.parser.GtType;
 import zen.parser.ZenUtils;
@@ -63,18 +62,6 @@ public abstract class LibZen {
 		return ZenArray.NewNewArray(ArrayType, Values);		
 	}
 	
-//	public final static Object InvokeFunc(GtFunc Func, Object[] Params) {
-//		if(Func == null || Func.IsAbstract()) {
-//			LibZen.VerboseLog(VerboseRuntime, "applying abstract function: " + Func);
-//			return Func.GetReturnType().DefaultNullValue;
-//		}
-//		else if(Func.Is(NativeMethodFunc)) {
-//			/*local*/Object[] MethodArguments = new Object[Params.length-1];
-//			LibZen.ArrayCopy(Params, 1, MethodArguments, 0, MethodArguments.length);
-//			return LibNative.ApplyMethod(Func, Params[0], MethodArguments);
-//		}
-//		return LibNative.ApplyMethod(Func, null, Params);
-//	}
 
 //	public static Object InvokeOverridedMethod(long FileLine, GtNameSpace NameSpace, GtFunc Func, Object[] Arguments) {
 //		/*local*/GtType ClassType = GtStaticTable.GuessType(Arguments[0]);
@@ -369,29 +356,15 @@ public abstract class LibZen {
 		System.arraycopy(src, srcPos, dest, destPos, length);
 	}
 
-	public final static GtFunc SetNativeMethod(GtFunc NativeFunc, Method JavaMethod) {
-		/*local*/int FuncFlag = ZenUtils.NativeFunc;
-		if(!Modifier.isStatic(JavaMethod.getModifiers())) {
-			FuncFlag |= ZenUtils.NativeMethodFunc;
-		}
-		NativeFunc.SetNativeMethod(FuncFlag, JavaMethod);
-		return NativeFunc;
-	}
-
-	public final static GtFunc ConvertNativeMethodToFunc(Method JavaMethod) {
-		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
-		TypeList.add(LibNative.GetNativeType(JavaMethod.getReturnType()));
-		if(!Modifier.isStatic(JavaMethod.getModifiers())) {
-			TypeList.add(LibNative.GetNativeType(JavaMethod.getDeclaringClass()));
-		}
-		/*local*/Class<?>[] ParamTypes = JavaMethod.getParameterTypes();
-		if(ParamTypes != null) {
-			for(int j = 0; j < ParamTypes.length; j++) {
-				TypeList.add(LibNative.GetNativeType(ParamTypes[j]));
-			}
-		}
-		return SetNativeMethod(new GtFunc(0, JavaMethod.getName(), 0, TypeList), JavaMethod);
-	}
+//	public final static ZenFunc SetNativeMethod(ZenFunc NativeFunc, Method JavaMethod) {
+//		/*local*/int FuncFlag = ZenUtils.NativeFunc;
+//		if(!Modifier.isStatic(JavaMethod.getModifiers())) {
+//			FuncFlag |= ZenUtils.NativeMethodFunc;
+//		}
+//		NativeFunc.SetNativeMethod(FuncFlag, JavaMethod);
+//		return NativeFunc;
+//	}
+//
 	
 //	public final static void LoadNativeConstructors(GtParserContext Context, GtType ClassType, ArrayList<GtFunc> FuncList) {
 //		LibNative.LoadNativeConstructors(Context, ClassType, FuncList);
@@ -744,22 +717,22 @@ public abstract class LibZen {
 		return false;
 	}
 
-	public final static Object DynamicConvertTo(GtType CastType, Object Value) {
-		if(Value != null) {
-			GtType ValueType = ZenTypeSystem.GuessType(Value);
-			if(ValueType == CastType || CastType.Accept(ValueType)) {
-				return Value;
-			}
-			GtFunc Func = ZenTypeSystem.GetConverterFunc(ValueType, CastType, true);
-			if(Func != null) {
-				Object[] Argvs = new Object[2];
-				Argvs[0] = CastType;
-				Argvs[1] = Value;
-				return LibNative.ApplyMethod(Func, null, Argvs);
-			}
-		}
-		return null;
-	}
+//	public final static Object DynamicConvertTo(GtType CastType, Object Value) {
+//		if(Value != null) {
+//			GtType ValueType = ZenTypeSystem.GuessType(Value);
+//			if(ValueType == CastType || CastType.Accept(ValueType)) {
+//				return Value;
+//			}
+//			ZenFunc Func = ZenTypeSystem.GetConverterFunc(ValueType, CastType, true);
+//			if(Func != null) {
+//				Object[] Argvs = new Object[2];
+//				Argvs[0] = CastType;
+//				Argvs[1] = Value;
+//				return LibNative.ApplyMethod(Func, null, Argvs);
+//			}
+//		}
+//		return null;
+//	}
 	
 	public static Object EvalUnary(GtType Type, String Operator, Object Value) {
 		if(Value instanceof Boolean) {
@@ -932,25 +905,25 @@ public abstract class LibZen {
 		return null;
 	}
 
-	public static boolean ImportMethodToFunc(GtFunc Func, String FullName) {
-		Method JavaMethod = LibNative.ImportMethod(Func.GetFuncType(), FullName, false);
-		if(JavaMethod != null) {
-			LibZen.SetNativeMethod(Func, JavaMethod);
-			if(Func.GetReturnType().IsVarType()) {
-				Func.SetReturnType(LibNative.GetNativeType(JavaMethod.getReturnType()));
-			}
-			int StartIdx = Func.Is(ZenUtils.NativeMethodFunc) ? 2 : 1;
-			Class<?>[] p = JavaMethod.getParameterTypes();
-			for(int i = 0; i < p.length; i++) {
-				if(Func.Types[StartIdx + i].IsVarType()) {
-					Func.Types[StartIdx + i] = LibNative.GetNativeType(p[i]);
-					Func.FuncType = null; // reset
-				}
-			}
-			return true;
-		}
-		return false;
-	}
+//	public static boolean ImportMethodToFunc(ZenFunc Func, String FullName) {
+//		Method JavaMethod = LibNative.ImportMethod(Func.GetFuncType(), FullName, false);
+//		if(JavaMethod != null) {
+//			LibZen.SetNativeMethod(Func, JavaMethod);
+//			if(Func.GetReturnType().IsVarType()) {
+//				Func.SetReturnType(LibNative.GetNativeType(JavaMethod.getReturnType()));
+//			}
+//			int StartIdx = Func.Is(ZenUtils.NativeMethodFunc) ? 2 : 1;
+//			Class<?>[] p = JavaMethod.getParameterTypes();
+//			for(int i = 0; i < p.length; i++) {
+//				if(Func.Types[StartIdx + i].IsVarType()) {
+//					Func.Types[StartIdx + i] = LibNative.GetNativeType(p[i]);
+//					Func.FuncType = null; // reset
+//				}
+//			}
+//			return true;
+//		}
+//		return false;
+//	}
 
 	public static void PrintStackTrace(Exception e, int linenum) {
 		/*local*/StackTraceElement[] elements = e.getStackTrace();

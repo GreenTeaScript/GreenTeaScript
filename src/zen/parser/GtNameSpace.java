@@ -30,16 +30,17 @@ import zen.ast.GtNode;
 import zen.deps.LibNative;
 import zen.deps.LibZen;
 import zen.deps.ZenMap;
+import zen.lang.ZenFunc;
 import zen.lang.ZenTypeSystem;
 import zen.obsolete.GtFuncBlock;
 import zen.obsolete.GtPolyFunc;
 //endif VAJA
 
 final class GtTokenFunc {
-	/*field*/public GtFunc      Func;
+	/*field*/public ZenFunc      Func;
 	/*field*/public GtTokenFunc	ParentFunc;
 
-	GtTokenFunc/*constructor*/(GtFunc Func, GtTokenFunc Parent) {
+	GtTokenFunc/*constructor*/(ZenFunc Func, GtTokenFunc Parent) {
 		this.Func = Func;
 		this.ParentFunc = Parent;
 	}
@@ -108,14 +109,14 @@ public final class GtNameSpace extends ZenUtils {
 		return this.TokenMatrix[GtChar2];
 	}
 
-	private final GtTokenFunc JoinParentFunc(GtFunc Func, GtTokenFunc Parent) {
+	private final GtTokenFunc JoinParentFunc(ZenFunc Func, GtTokenFunc Parent) {
 		if(Parent != null && Parent.Func == Func) {
 			return Parent;
 		}
 		return new GtTokenFunc(Func, Parent);
 	}
 
-	public final void AppendTokenFunc(String keys, GtFunc TokenFunc) {
+	public final void AppendTokenFunc(String keys, ZenFunc TokenFunc) {
 		/*local*/int i = 0;
 		if(this.TokenMatrix == null) {
 			this.TokenMatrix = new GtTokenFunc[MaxSizeOfChars];
@@ -237,7 +238,7 @@ public final class GtNameSpace extends ZenUtils {
 		this.SetSymbol(PatternName, NewPattern, SourceToken);
 	}
 	
-	public void AppendSyntax(String PatternName, GtFunc MatchFunc) {
+	public void AppendSyntax(String PatternName, ZenFunc MatchFunc) {
 		/*local*/int Alias = PatternName.indexOf(" ");
 		/*local*/String Name = (Alias == -1) ? PatternName : PatternName.substring(0, Alias);
 		/*local*/GtSyntaxPattern Pattern = new GtSyntaxPattern(this, Name, MatchFunc);
@@ -247,7 +248,7 @@ public final class GtNameSpace extends ZenUtils {
 		}
 	}
 
-	public void AppendSuffixSyntax(String PatternName, int SyntaxFlag, GtFunc MatchFunc) {
+	public void AppendSuffixSyntax(String PatternName, int SyntaxFlag, ZenFunc MatchFunc) {
 		/*local*/int Alias = PatternName.indexOf(" ");
 		/*local*/String Name = (Alias == -1) ? PatternName : PatternName.substring(0, Alias);
 		/*local*/GtSyntaxPattern Pattern = new GtSyntaxPattern(this, Name, MatchFunc);
@@ -436,10 +437,10 @@ public final class GtNameSpace extends ZenUtils {
 //		return GivenFunc;
 //	}
 	
-	public final Object RetrieveFuncList(String FuncName, ArrayList<GtFunc> FuncList) {
+	public final Object RetrieveFuncList(String FuncName, ArrayList<ZenFunc> FuncList) {
 		/*local*/Object FuncValue = this.GetLocalSymbol(FuncName);
-		if(FuncValue instanceof GtFunc) {
-			/*local*/GtFunc Func = (/*cast*/GtFunc)FuncValue;
+		if(FuncValue instanceof ZenFunc) {
+			/*local*/ZenFunc Func = (/*cast*/ZenFunc)FuncValue;
 			FuncList.add(Func);
 		}
 		else if(FuncValue instanceof GtPolyFunc) {
@@ -457,17 +458,17 @@ public final class GtNameSpace extends ZenUtils {
 	}
 
 	public final GtPolyFunc GetPolyFunc(String FuncName) {
-		/*local*/ArrayList<GtFunc> FuncList = new ArrayList<GtFunc>();
+		/*local*/ArrayList<ZenFunc> FuncList = new ArrayList<ZenFunc>();
 		this.RetrieveFuncList(FuncName, FuncList);
 		return new GtPolyFunc(null, FuncList);
 	}
 
-	public final GtFunc GetFunc(String FuncName, int BaseIndex, ArrayList<GtType> TypeList) {
-		/*local*/ArrayList<GtFunc> FuncList = new ArrayList<GtFunc>();
+	public final ZenFunc GetFunc(String FuncName, int BaseIndex, ArrayList<GtType> TypeList) {
+		/*local*/ArrayList<ZenFunc> FuncList = new ArrayList<ZenFunc>();
 		this.RetrieveFuncList(FuncName, FuncList);
 		/*local*/int i = 0;
 		while(i < FuncList.size()) {
-			/*local*/GtFunc Func = FuncList.get(i);
+			/*local*/ZenFunc Func = FuncList.get(i);
 			if(Func.Types.length == TypeList.size() - BaseIndex) {
 				/*local*/int j = 0;
 				while(j < Func.Types.length) {

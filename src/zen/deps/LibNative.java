@@ -34,21 +34,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 
 import zen.ast.GtNode;
+import zen.lang.ZenFunc;
 import zen.lang.ZenTypeSystem;
 import zen.obsolete.GtPolyFunc;
-import zen.parser.GtFunc;
 import zen.parser.GtGenerator;
 import zen.parser.GtNameSpace;
 import zen.parser.GtSourceGenerator;
 import zen.parser.GtTokenContext;
 import zen.parser.GtType;
-import zen.parser.ZenVisitor;
 import zen.parser.ZenUtils;
+import zen.parser.ZenVisitor;
 
 public class LibNative {
 	final static void DebugP(String s) {
@@ -215,7 +215,7 @@ public class LibNative {
 		Method[] Methods = NativeClass.getMethods();
 		for(int i = 0; i < Methods.length; i++) {
 			if(Methods[i].getName().equals(Symbol) && Modifier.isStatic(Methods[i].getModifiers())) {
-				PolyFunc.Append(LibZen.ConvertNativeMethodToFunc(Methods[i]), null);
+				PolyFunc.Append(LibNative.ConvertNativeMethodToFunc(Methods[i]), null);
 			}
 		}
 		if(PolyFunc.FuncList.size() == 1) {
@@ -348,46 +348,62 @@ public class LibNative {
 	//		}
 	//	}
 
-	// Method
-	public final static Object ApplyMethod(GtFunc Func, Object Self, Object[] Params) {
-		try {
-			//			System.err.println("** debug: " + Func.FuncBody);
-			//			System.err.println("** debug: " + Self + ", Params.length=" + Params.length);
-			return ((Method)Func.FuncBody).invoke(Self, Params);
-		}
-		catch (InvocationTargetException e) {
-			LibZen.VerboseException(e);
-		}
-		catch (IllegalArgumentException e) {
-			LibZen.VerboseException(e);
-		}
-		catch (IllegalAccessException e) {
-			LibZen.VerboseException(e);
-		}
-		return null;
-	}
+//	// Method
+//	public final static Object ApplyMethod(ZenFunc Func, Object Self, Object[] Params) {
+//		try {
+//			//			System.err.println("** debug: " + Func.FuncBody);
+//			//			System.err.println("** debug: " + Self + ", Params.length=" + Params.length);
+//			return ((Method)Func.FuncBody).invoke(Self, Params);
+//		}
+//		catch (InvocationTargetException e) {
+//			LibZen.VerboseException(e);
+//		}
+//		catch (IllegalArgumentException e) {
+//			LibZen.VerboseException(e);
+//		}
+//		catch (IllegalAccessException e) {
+//			LibZen.VerboseException(e);
+//		}
+//		return null;
+//	}
 
-	public final static long ApplyTokenFunc(GtFunc TokenFunc, Object TokenContext, String Text, long pos) {
+	public final static long ApplyTokenFunc(ZenFunc TokenFunc, Object TokenContext, String Text, long pos) {
 		Object[] Argvs = new Object[3];
 		Argvs[0] = TokenContext;
 		Argvs[1] = Text;
 		Argvs[2] = pos;
-		return (Long)LibNative.ApplyMethod(TokenFunc, null, Argvs);
+		return (Long)TokenFunc.Invoke(Argvs);
 	}
 
-	public final static GtNode ApplyMatchFunc(GtFunc MatchFunc, GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
+	public final static GtNode ApplyMatchFunc(ZenFunc MatchFunc, GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
 		Object[] Argvs = new Object[3];
 		Argvs[0] = NameSpace;
 		Argvs[1] = TokenContext;
 		Argvs[2] = LeftNode;
 		//		Argvs[3] = Pattern;
-		return (GtNode)LibNative.ApplyMethod(MatchFunc, null, Argvs);
+		return (GtNode)MatchFunc.Invoke(Argvs);
 	}
 
-	public final static GtFunc LoadTokenFunc(Class<?> GrammarClass, String FuncName) {
+	public final static ZenFunc ConvertNativeMethodToFunc(Method JMethod) {
+		/*local*/ArrayList<GtType> TypeList = new ArrayList<GtType>();
+		TypeList.add(LibNative.GetNativeType(JMethod.getReturnType()));
+		if(!Modifier.isStatic(JMethod.getModifiers())) {
+			TypeList.add(LibNative.GetNativeType(JMethod.getDeclaringClass()));
+		}
+		/*local*/Class<?>[] ParamTypes = JMethod.getParameterTypes();
+		if(ParamTypes != null) {
+			for(int j = 0; j < ParamTypes.length; j++) {
+				TypeList.add(LibNative.GetNativeType(ParamTypes[j]));
+			}
+		}
+		GtType[] Types = LibZen.CompactTypeList(0, TypeList);
+		return new ZenNativeFunc(0, JMethod.getName(), Types, null, JMethod);
+	}
+
+	public final static ZenFunc LoadTokenFunc(Class<?> GrammarClass, String FuncName) {
 		try {
 			Method JavaMethod = GrammarClass.getMethod(FuncName, GtTokenContext.class, String.class, long.class);
-			return LibZen.ConvertNativeMethodToFunc(JavaMethod);
+			return LibNative.ConvertNativeMethodToFunc(JavaMethod);
 		}
 		catch(NoSuchMethodException e) {
 			LibZen.VerboseException(e);
@@ -396,10 +412,10 @@ public class LibNative {
 		return null;
 	}
 
-	public final static GtFunc LoadMatchFunc(Class<?> GrammarClass, String FuncName) {
+	public final static ZenFunc LoadMatchFunc(Class<?> GrammarClass, String FuncName) {
 		try {
 			Method JavaMethod = GrammarClass.getMethod(FuncName, GtNameSpace.class, GtTokenContext.class, GtNode.class);
-			return LibZen.ConvertNativeMethodToFunc(JavaMethod);
+			return LibNative.ConvertNativeMethodToFunc(JavaMethod);
 		}
 		catch(NoSuchMethodException e) {
 			LibZen.VerboseException(e);

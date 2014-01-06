@@ -26,7 +26,7 @@ package zen.obsolete;
 
 import java.util.ArrayList;
 
-import zen.parser.GtFunc;
+import zen.lang.ZenFunc;
 import zen.parser.GtNameSpace;
 import zen.parser.GtType;
 
@@ -37,7 +37,7 @@ public class GtFuncBlock {
 	/*field*/public GtSyntaxTree      FuncBlock;
 	/*field*/public boolean IsVarArgument;
 	/*field*/public int VariableIndex;
-	/*field*/public GtFunc DefinedFunc;
+	/*field*/public ZenFunc DefinedFunc;
 
 	public GtFuncBlock/*constructor*/(GtNameSpace NameSpace, ArrayList<GtType> TypeList) {
 		this.NameSpace = NameSpace;

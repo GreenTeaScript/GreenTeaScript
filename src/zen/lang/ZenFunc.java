@@ -23,37 +23,30 @@
 // **************************************************************************
 
 //ifdef JAVA
-package zen.parser;
-import java.util.ArrayList;
-import java.util.Arrays;
-
-import zen.ast.GtNode;
+package zen.lang;
 import zen.deps.LibNative;
 import zen.deps.LibZen;
-import zen.lang.ZenTypeSystem;
-import zen.obsolete.GtFuncBlock;
-//endif VAJA
+import zen.parser.GtNameSpace;
+import zen.parser.GtType;
+import zen.parser.ZenUtils;
 
-
-public final class GtFunc extends ZenUtils {
+public class ZenFunc implements ZenFuncConst {
 	/*field*/public                 int FuncId;
 	/*field*/public int				FuncFlag;
 	/*field*/public String			FuncName;
 	/*field*/public GtType[]		Types;
-	/*field*/public GtType          FuncType;
-	/*field*/public Object          FuncBody;  // Abstract function if null
-	/*field*/public String[]        GenericParam;
+//	/*field*/public GtType          FuncType;
+//	/*field*/public Object          FuncBody;  // Abstract function if null
+//	/*field*/public String[]        GenericParam;
 
-	public GtFunc/*constructor*/(int FuncFlag, String FuncName, int BaseIndex, ArrayList<GtType> ParamList) {
+	public ZenFunc(int FuncFlag, String FuncName, GtType[] Types) {
 		this.FuncFlag = FuncFlag;
 		this.FuncName = FuncName;
-		this.Types = LibZen.CompactTypeList(BaseIndex, ParamList);
-		LibNative.Assert(this.Types.length > 0);
-		this.FuncType = null;
-		this.FuncBody = null;
-		this.FuncId = ZenTypeSystem.FuncPools.size();
-		ZenTypeSystem.FuncPools.add(this);
-		this.GenericParam = null;
+		this.Types = Types;
+//		this.Types = LibZen.CompactTypeList(BaseIndex, ParamList);
+//		LibNative.Assert(this.Types.length > 0);
+//		this.FuncId = ZenTypeSystem.FuncPools.size();
+//		ZenTypeSystem.FuncPools.add(this);
 	}
 
 	public final String GetNativeFuncName() {
@@ -74,10 +67,7 @@ public final class GtFunc extends ZenUtils {
 	}
 
 	public final GtType GetFuncType() {
-		if(this.FuncType == null) {
-			this.FuncType = ZenTypeSystem.GetGenericType(ZenTypeSystem.FuncType, 0, new ArrayList<GtType>(Arrays.asList(this.Types)), true);
-		}
-		return this.FuncType;
+		return ZenTypeSystem.GetFuncType(this);
 	}
 
 	@Override public String toString() {
@@ -95,7 +85,7 @@ public final class GtFunc extends ZenUtils {
 	}
 
 	public boolean Is(int Flag) {
-		return IsFlag(this.FuncFlag, Flag);
+		return ZenUtils.IsFlag(this.FuncFlag, Flag);
 	}
 
 	public final GtType GetReturnType() {
@@ -105,7 +95,6 @@ public final class GtFunc extends ZenUtils {
 	public final void SetReturnType(GtType ReturnType) {
 		LibNative.Assert(this.GetReturnType().IsVarType());
 		this.Types[0] = ReturnType;
-		this.FuncType = null; // reset
 	}
 
 	public final GtType GetRecvType() {
@@ -151,46 +140,51 @@ public final class GtFunc extends ZenUtils {
 		return false;
 	}
 
-	public final boolean EqualsType(GtFunc AFunc) {
+	public final boolean EqualsType(ZenFunc AFunc) {
 		return this.EqualsParamTypes(0, AFunc.Types);
 	}
 
-	public final boolean EqualsOverridedMethod(GtFunc AFunc) {
+	public final boolean EqualsOverridedMethod(ZenFunc AFunc) {
 		return this.Types[0] == AFunc.Types[0] && this.EqualsParamTypes(2, AFunc.Types);
 	}
-
-	public final boolean IsAbstract() {
-		return this.FuncBody == null;
-	}
-
-	public final void SetNativeMacro(String NativeMacro) {
-		LibNative.Assert(this.FuncBody == null);
-		this.FuncFlag |= NativeMacroFunc;
-		this.FuncBody = NativeMacro;
-	}
-
-	public final String GetNativeMacro() {
-		return (/*cast*/String)this.FuncBody;
-	}
-
-	public final void SetNativeMethod(int OptionalFuncFlag, Object Method) {
-		this.FuncFlag |= NativeFunc | OptionalFuncFlag;
-		this.FuncBody = Method;
-	}
-
-	public final boolean ImportMethod(String FullName) {
-		return LibZen.ImportMethodToFunc(this, FullName);
-	}
-
 	
-	private boolean HasStaticBlock() {
-		if(this.FuncBody instanceof GtFuncBlock) {
-			/*local*/GtFuncBlock FuncBlock = (/*cast*/GtFuncBlock)this.FuncBody;
-			return !FuncBlock.IsVarArgument;
-		}
-		return false;
+	public Object Invoke(Object[] Params) {
+		LibZen.DebugP("abstract function");
+		return null;
 	}
 
+//	public final boolean IsAbstract() {
+//		return this.FuncBody == null;
+//	}
+//
+//	public final void SetNativeMacro(String NativeMacro) {
+//		LibNative.Assert(this.FuncBody == null);
+//		this.FuncFlag |= NativeMacroFunc;
+//		this.FuncBody = NativeMacro;
+//	}
+//
+//	public final String GetNativeMacro() {
+//		return (/*cast*/String)this.FuncBody;
+//	}
+//
+//	public final void SetNativeMethod(int OptionalFuncFlag, Object Method) {
+//		this.FuncFlag |= NativeFunc | OptionalFuncFlag;
+//		this.FuncBody = Method;
+//	}
+
+//	public final boolean ImportMethod(String FullName) {
+//		return LibZen.ImportMethodToFunc(this, FullName);
+//	}
+
+//	
+//	private boolean HasStaticBlock() {
+//		if(this.FuncBody instanceof GtFuncBlock) {
+//			/*local*/GtFuncBlock FuncBlock = (/*cast*/GtFuncBlock)this.FuncBody;
+//			return !FuncBlock.IsVarArgument;
+//		}
+//		return false;
+//	}
+//
 //	public void GenerateNativeFunc() {
 //		if(this.HasStaticBlock()) {
 //			/*local*/GtFuncBlock FuncBlock = (/*cast*/GtFuncBlock)this.FuncBody;
@@ -214,56 +208,53 @@ public final class GtFunc extends ZenUtils {
 //			}
 //		}
 //	}
-
-	public boolean HasLazyBlock() {
-		if(this.FuncBody instanceof GtFuncBlock) {
-			/*local*/GtFuncBlock FuncBlock = (/*cast*/GtFuncBlock)this.FuncBody;
-			return FuncBlock.IsVarArgument;
-		}
-		return false;
-	}
-
-	public GtFunc GenerateLazyFunc(ArrayList<GtNode> NodeList) {
-		return null; // TODO
-	}
-
-	public final GtNameSpace GetGenericNameSpace(GtNameSpace NameSpace, ArrayList<GtNode> NodeList, int MaxSize) {
-		if(this.Is(GenericFunc)) {
-			/*local*/GtNameSpace GenericNameSpace = NameSpace.CreateSubNameSpace();
-			/*local*/int i = 0;
-			while(i < this.Types.length) {
-				this.Types[i].AppendTypeVariable(GenericNameSpace, 0);
-				i = i + 1;
-			}
-			i = 0;
-			while(i < MaxSize) {
-				this.Types[i+1].Match(GenericNameSpace, NodeList.get(i).Type);
-				i = i + 1;				
-			}
-			return GenericNameSpace;
-		}
-		return NameSpace;
-	}
-
-	public final GtNameSpace GetGenericNameSpaceT(GtNameSpace NameSpace, ArrayList<GtType> NodeList, int MaxSize) {
-		if(this.Is(GenericFunc)) {
-			/*local*/GtNameSpace GenericNameSpace = NameSpace.CreateSubNameSpace();
-			/*local*/int i = 0;
-			while(i < this.Types.length) {
-				this.Types[i].AppendTypeVariable(GenericNameSpace, 0);
-				i = i + 1;
-			}
-			i = 0;
-			while(i < MaxSize) {
-				this.Types[i+1].Match(GenericNameSpace, NodeList.get(i));
-				i = i + 1;				
-			}
-			return GenericNameSpace;
-		}
-		return NameSpace;
-	}
-
-//	public Object Apply(Object[] Arguments) {
-//		return LibZen.InvokeFunc(this, Arguments);
+//
+//	public boolean HasLazyBlock() {
+//		if(this.FuncBody instanceof GtFuncBlock) {
+//			/*local*/GtFuncBlock FuncBlock = (/*cast*/GtFuncBlock)this.FuncBody;
+//			return FuncBlock.IsVarArgument;
+//		}
+//		return false;
 //	}
+//
+//	public GtFunc GenerateLazyFunc(ArrayList<GtNode> NodeList) {
+//		return null; // TODO
+//	}
+//
+//	public final GtNameSpace GetGenericNameSpace(GtNameSpace NameSpace, ArrayList<GtNode> NodeList, int MaxSize) {
+//		if(this.Is(GenericFunc)) {
+//			/*local*/GtNameSpace GenericNameSpace = NameSpace.CreateSubNameSpace();
+//			/*local*/int i = 0;
+//			while(i < this.Types.length) {
+//				this.Types[i].AppendTypeVariable(GenericNameSpace, 0);
+//				i = i + 1;
+//			}
+//			i = 0;
+//			while(i < MaxSize) {
+//				this.Types[i+1].Match(GenericNameSpace, NodeList.get(i).Type);
+//				i = i + 1;				
+//			}
+//			return GenericNameSpace;
+//		}
+//		return NameSpace;
+//	}
+//
+//	public final GtNameSpace GetGenericNameSpaceT(GtNameSpace NameSpace, ArrayList<GtType> NodeList, int MaxSize) {
+//		if(this.Is(GenericFunc)) {
+//			/*local*/GtNameSpace GenericNameSpace = NameSpace.CreateSubNameSpace();
+//			/*local*/int i = 0;
+//			while(i < this.Types.length) {
+//				this.Types[i].AppendTypeVariable(GenericNameSpace, 0);
+//				i = i + 1;
+//			}
+//			i = 0;
+//			while(i < MaxSize) {
+//				this.Types[i+1].Match(GenericNameSpace, NodeList.get(i));
+//				i = i + 1;				
+//			}
+//			return GenericNameSpace;
+//		}
+//		return NameSpace;
+//	}
+//
 }

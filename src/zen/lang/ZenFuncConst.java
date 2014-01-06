@@ -22,23 +22,33 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-//ifdef JAVA
-package zen.parser;
+package zen.lang;
 
+public interface ZenFuncConst {
 
-public class GtGrammar {
-////ifdef JAVA
-//	public final static GtFunc LoadTokenFunc(GtParserContext ParserContext, Object Grammar, String FuncName) {
-//		return GreenTeaUtils.LoadTokenFunc2(ParserContext, Grammar.getClass(), FuncName);
-//	}
-//	public final static GtFunc LoadParseFunc(GtParserContext ParserContext, Object Grammar, String FuncName) {
-//		return GreenTeaUtils.LoadParseFunc2(ParserContext, Grammar.getClass(), FuncName);
-//	}
-//	public final static GtFunc LoadTypeFunc(GtParserContext ParserContext, Object Grammar, String FuncName) {
-//		return GreenTeaUtils.LoadTypeFunc2(ParserContext, Grammar.getClass(), FuncName);
-//	}
-////endif VAJA
-//	public void LoadTo(GtNameSpace NameSpace) {
-//		/*extension*/
-//	}
+	// FuncFlag
+	public final static int		ExportFunc		    = 1 << 0;  // @Export
+	public final static int     PublicFunc          = 1 << 1;  // @Public
+	public final static int		NativeFunc		    = 1 << 2;
+	public final static int		VirtualFunc		    = 1 << 3;
+	public final static int		ConstFunc			= 1 << 4;  // @Const
+	public final static int     DeprecatedFunc      = 1 << 5;  // @Deprecated
+	public final static int     HiddenFunc          = 1 << 6;  // @Hidden
+	public final static int     CommonFunc          = 1 << 7;  // @Common
+
+	public final static int		NativeMethodFunc	= 1 << 8;
+	public final static int		NativeMacroFunc	    = 1 << 9;
+	public final static int		NativeVariadicFunc	= 1 << 10;
+	public final static int     ConstructorFunc     = 1 << 11;
+	public final static int     MethodFunc          = 1 << 12;  
+	public final static int     GetterFunc          = 1 << 13;
+	public final static int     SetterFunc          = 1 << 14;
+	public final static int     OperatorFunc        = 1 << 15;  //@Operator
+	public final static int     ConverterFunc       = 1 << 16;
+	public final static int     CoercionFunc        = 1 << 17;  //@Coercion
+	public final static int     StrongCoercionFunc  = 1 << 18;  //@StrongCoercion
+	public final static int     GenericFunc         = 1 << 15;
+	public final static int		LazyFunc		    = 1 << 16;
+	public final static String NativeNameSuffix = "__";
+
 }
