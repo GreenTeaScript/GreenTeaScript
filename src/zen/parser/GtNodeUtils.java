@@ -34,8 +34,8 @@ import zen.ast.GtNode;
 import zen.ast.GtSetCapturedNode;
 import zen.ast.GtSetLocalNode;
 import zen.ast.GtStringNode;
-import zen.lang.ZenType;
 import zen.lang.ZenSystem;
+import zen.lang.ZenType;
 
 public abstract class GtNodeUtils {
 	//	public final GtNode CreateUnsupportedNode(GtType Type, GtSyntaxTree ParsedTree) {
@@ -69,7 +69,7 @@ public abstract class GtNodeUtils {
 //	}
 
 	public GtNode CreateConstPoolNode(GtToken SourceToken, Object Value) {
-		return new GtConstPoolNode(ZenSystem.GuessType(Value), SourceToken, Value);
+		return new GtConstPoolNode(SourceToken, Value);
 	}
 
 	public final GtNode CreateConstNode(GtToken SourceToken, Object Value) {

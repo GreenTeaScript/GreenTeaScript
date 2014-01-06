@@ -26,12 +26,11 @@ package zen.ast2;
 
 import zen.ast.GtConstNode;
 import zen.lang.ZenType;
-import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
 
 public abstract class GtRegexNode extends GtConstNode {
 	protected GtRegexNode(ZenType Type, GtToken Token) {
-		super(Type, Token);
+		super(Token);
 		// TODO Auto-generated constructor stub
 	}
 	/*field*/public String	Value;
@@ -43,9 +42,6 @@ public abstract class GtRegexNode extends GtConstNode {
 //	@Override public boolean Accept(GtVisitor Visitor) {
 //		return Visitor.VisitRegexNode(this);
 //	}
-	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-		return this.Value;
-	}
 	@Override public Object GetValue() {
 		return this.Value;
 	}
