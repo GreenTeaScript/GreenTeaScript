@@ -24,15 +24,13 @@
 
 package zen.ast;
 
-import zen.lang.ZenSystem;
-import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
 import zen.parser.ZenVisitor;
 
 final public class GtIntNode extends GtConstNode {
 	/*field*/public long	Value;
 	public GtIntNode/*constructor*/(GtToken Token, long Value) {
-		super(ZenSystem.IntType, Token);
+		super(Token);
 		this.Value = Value;
 	}
 	@Override public final Object GetValue() {
@@ -40,8 +38,5 @@ final public class GtIntNode extends GtConstNode {
 	}
 	@Override public boolean Accept(ZenVisitor Visitor) {
 		return Visitor.VisitIntNode(this);
-	}
-	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-		return this.Value;
 	}
 }

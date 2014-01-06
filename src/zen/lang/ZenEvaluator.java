@@ -195,18 +195,47 @@ public class ZenEvaluator implements ZenVisitor {
 
 	@Override
 	public boolean VisitAndNode(GtAndNode Node) {
+//		@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
+//			/*local*/Object LeftValue = this.LeftNode.Eval(NameSpace, EnforceConst) ;
+//			if((LeftValue instanceof Boolean) && LibZen.booleanValue(LeftValue)) {
+//				return this.RightNode.Eval(NameSpace, EnforceConst) ;
+//			}
+//			return null;
+//		}
+
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean VisitOrNode(GtOrNode Node) {
+//		@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
+//			/*local*/Object LeftValue = this.LeftNode.Eval(NameSpace, EnforceConst) ;
+//			if(LeftValue instanceof Boolean) {
+//				if(LibZen.booleanValue(LeftValue)) {
+//					return LeftValue;
+//				}
+//				else {
+//					return this.RightNode.Eval(NameSpace, EnforceConst) ;
+//				}
+//			}
+//			return null;
+//		}
+
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean VisitUnaryNode(GtUnaryNode Node) {
+//		@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
+//			/*local*/Object Value = this.RecvNode.Eval(NameSpace, EnforceConst) ;
+//			if(Value != null) {
+//				return LibZen.EvalUnary(this.Type, this.SourceToken.ParsedText, Value);
+//			}
+//			return Value;
+//		}
+
 		// TODO Auto-generated method stub
 		return false;
 	}
@@ -219,6 +248,14 @@ public class ZenEvaluator implements ZenVisitor {
 
 	@Override
 	public boolean VisitCastNode(GtCastNode Node) {
+//		@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
+//			/*local*/Object Value = this.ExprNode.Eval(NameSpace, EnforceConst) ;
+//			if(Value != null) {
+//				return LibZen.DynamicCast(this.Type, Value);
+//			}
+//			return Value;
+//		}
+
 		// TODO Auto-generated method stub
 		return false;
 	}

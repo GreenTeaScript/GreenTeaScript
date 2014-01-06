@@ -24,8 +24,6 @@
 
 package zen.ast;
 
-import zen.deps.LibZen;
-import zen.parser.GtNameSpace;
 import zen.parser.ZenVisitor;
 
 //E.g., "~" $RecvNode
@@ -43,12 +41,5 @@ final public class GtGroupNode extends GtNode {
 	}
 	@Override public boolean Accept(ZenVisitor Visitor) {
 		return Visitor.VisitGroupNode(this);
-	}
-	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-		/*local*/Object Value = this.RecvNode.Eval(NameSpace, EnforceConst) ;
-		if(Value != null) {
-			return LibZen.EvalUnary(this.Type, this.SourceToken.ParsedText, Value);
-		}
-		return Value;
 	}
 }

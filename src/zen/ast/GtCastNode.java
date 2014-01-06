@@ -24,9 +24,7 @@
 
 package zen.ast;
 
-import zen.deps.LibZen;
 import zen.lang.ZenType;
-import zen.parser.GtNameSpace;
 import zen.parser.ZenVisitor;
 
 //E.g., (T) $Expr
@@ -48,12 +46,5 @@ final public class GtCastNode extends GtNode {
 	}
 	@Override public boolean Accept(ZenVisitor Visitor) {
 		return Visitor.VisitCastNode(this);
-	}
-	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-		/*local*/Object Value = this.ExprNode.Eval(NameSpace, EnforceConst) ;
-		if(Value != null) {
-			return LibZen.DynamicCast(this.Type, Value);
-		}
-		return Value;
 	}
 }

@@ -25,7 +25,6 @@
 package zen.ast;
 
 import zen.lang.ZenSystem;
-import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
 import zen.parser.ZenVisitor;
 
@@ -37,7 +36,8 @@ import zen.parser.ZenVisitor;
 final public class GtErrorNode extends GtConstNode {
 	public String ErrorMessage;
 	public GtErrorNode/*constructor*/(GtToken SourceToken, String ErrorMessage) {
-		super(ZenSystem.VoidType, SourceToken);
+		super(SourceToken);
+		this.Type = ZenSystem.VoidType;
 		this.ErrorMessage = ErrorMessage;
 	}
 	@Override public final Object GetValue() {
@@ -45,8 +45,5 @@ final public class GtErrorNode extends GtConstNode {
 	}
 	@Override public boolean Accept(ZenVisitor Visitor) {
 		return Visitor.VisitErrorNode(this);
-	}
-	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-		return null;
 	}
 }

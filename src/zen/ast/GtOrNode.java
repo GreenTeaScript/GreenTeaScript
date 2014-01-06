@@ -24,11 +24,9 @@
 
 package zen.ast;
 
-import zen.deps.LibZen;
-import zen.parser.GtNameSpace;
-import zen.parser.ZenVisitor;
 import zen.parser.GtSyntaxPattern;
 import zen.parser.GtToken;
+import zen.parser.ZenVisitor;
 
 //E.g., $LeftNode || $RightNode
 final public class GtOrNode extends GtBinaryNode {
@@ -37,17 +35,5 @@ final public class GtOrNode extends GtBinaryNode {
 	}
 	@Override public boolean Accept(ZenVisitor Visitor) {
 		return Visitor.VisitOrNode(this);
-	}
-	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-		/*local*/Object LeftValue = this.LeftNode.Eval(NameSpace, EnforceConst) ;
-		if(LeftValue instanceof Boolean) {
-			if(LibZen.booleanValue(LeftValue)) {
-				return LeftValue;
-			}
-			else {
-				return this.RightNode.Eval(NameSpace, EnforceConst) ;
-			}
-		}
-		return null;
 	}
 }

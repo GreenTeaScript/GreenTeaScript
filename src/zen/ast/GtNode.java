@@ -28,11 +28,8 @@ import java.util.ArrayList;
 
 import zen.deps.LibNative;
 import zen.lang.ZenType;
-import zen.lang.ZenSystem;
-import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
 import zen.parser.ZenVisitor;
-import zen.parser.ZenParserConst;
 
 public abstract class GtNode {
 	/*field*/public GtNode	ParentNode;
@@ -40,7 +37,7 @@ public abstract class GtNode {
 	/*field*/public GtToken	SourceToken;
 
 	public GtNode/*constructor*/() {
-		this.Type = ZenSystem.VarType;
+		this.Type = null;
 		this.SourceToken = null;
 		this.ParentNode = null;
 	}
@@ -74,7 +71,7 @@ public abstract class GtNode {
 
 //	public abstract boolean Accept(GtVisitor Visitor);
 	public boolean Accept(ZenVisitor Visitor) {
-		return LibNative.VisitNode(Visitor, this);
+		return LibNative.DispatchVisitNode(Visitor, this);
 	}
 
 	public GtConstNode ToConstNode(boolean EnforceConst) {
@@ -84,16 +81,15 @@ public abstract class GtNode {
 		return null;
 	}
 
-	public final Object ToNullValue(GtNameSpace NameSpace, boolean EnforceConst) {
-		if(EnforceConst) {
-			NameSpace.Generator.ReportError(ZenParserConst.ErrorLevel, this.SourceToken, "value must be constant");
-		}
-		return null;
-	}
-	public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-		return this.ToNullValue(NameSpace, EnforceConst);
-	}
-
+//	public final Object ToNullValue(GtNameSpace NameSpace, boolean EnforceConst) {
+//		if(EnforceConst) {
+//			NameSpace.Generator.ReportError(ZenParserConst.ErrorLevel, this.SourceToken, "value must be constant");
+//		}
+//		return null;
+//	}
+//	public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
+//		return this.ToNullValue(NameSpace, EnforceConst);
+//	}
 //	public final static GtNode LinkNode(GtNode LastNode, GtNode Node) {
 //		Node.PrevNode = LastNode;
 //		if(LastNode != null) {

@@ -24,22 +24,17 @@
 
 package zen.ast;
 
-import zen.lang.ZenSystem;
-import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
 import zen.parser.ZenVisitor;
 
 final public class GtNullNode extends GtConstNode {
 	public GtNullNode/*constructor*/(GtToken SourceToken) {
-		super(ZenSystem.VarType, SourceToken); 
+		super(SourceToken); 
 	}
 	@Override public final Object GetValue() {
 		return null;
 	}
 	@Override public boolean Accept(ZenVisitor Visitor) {
 		return Visitor.VisitNullNode(this);
-	}
-	@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-		return null;
 	}
 }

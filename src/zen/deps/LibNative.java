@@ -430,7 +430,7 @@ public class LibNative {
 		return false;
 	}
 
-	public final static boolean VisitNode(ZenVisitor Visitor, GtNode Node) {
+	public final static boolean DispatchVisitNode(ZenVisitor Visitor, GtNode Node) {
 		try {
 			Method JavaMethod = Visitor.getClass().getMethod(Node.GetVisitName(), Node.getClass());
 			return (Boolean)JavaMethod.invoke(Visitor, Node);
