@@ -28,6 +28,7 @@ import java.util.ArrayList;
 
 import zen.deps.LibNative;
 import zen.lang.ZenType;
+import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
 import zen.parser.ZenVisitor;
 
@@ -80,15 +81,16 @@ public abstract class GtNode {
 		}
 		return null;
 	}
+	public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
+		return null;
+		//return this.ToNullValue(NameSpace, EnforceConst);
+	}
 
 //	public final Object ToNullValue(GtNameSpace NameSpace, boolean EnforceConst) {
 //		if(EnforceConst) {
 //			NameSpace.Generator.ReportError(ZenParserConst.ErrorLevel, this.SourceToken, "value must be constant");
 //		}
 //		return null;
-//	}
-//	public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
-//		return this.ToNullValue(NameSpace, EnforceConst);
 //	}
 //	public final static GtNode LinkNode(GtNode LastNode, GtNode Node) {
 //		Node.PrevNode = LastNode;
