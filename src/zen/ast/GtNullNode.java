@@ -24,14 +24,14 @@
 
 package zen.ast;
 
-import zen.lang.ZenTypeSystem;
+import zen.lang.ZenSystem;
 import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
 import zen.parser.ZenVisitor;
 
 final public class GtNullNode extends GtConstNode {
 	public GtNullNode/*constructor*/(GtToken SourceToken) {
-		super(ZenTypeSystem.VarType, SourceToken); 
+		super(ZenSystem.VarType, SourceToken); 
 	}
 	@Override public final Object GetValue() {
 		return null;

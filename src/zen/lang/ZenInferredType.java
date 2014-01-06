@@ -22,39 +22,30 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package zen.ast;
+package zen.lang;
 
-import java.util.ArrayList;
+public class ZenInferredType extends ZenType {
 
-import zen.lang.ZenType;
-import zen.lang.ZenSystem;
-import zen.parser.GtToken;
-import zen.parser.ZenVisitor;
+	private boolean FoundTypeError;
+	
+	public ZenInferredType(ZenType InferredType) {
+		super(0, InferredType.ShortName, InferredType);
+		this.FoundTypeError = false;
+	}
 
-public class GtFunctionLiteralNode extends GtNode {
-	/*field*/public ZenType ReturnType;
-	/*field*/public ArrayList<GtNode>  ArgumentList;  // list of ParamNode
-	/*field*/public GtNode BodyNode;
-	public GtFunctionLiteralNode/*constructor*/(GtToken Token) {
-		super();
-		this.SourceToken = Token;
-		this.ReturnType = ZenSystem.VarType;
-		this.ArgumentList = new ArrayList<GtNode>();
-		this.BodyNode = null;
+	@Override
+	public final ZenType GetRealType() {
+		return this.RefType;
 	}
-	@Override public void Append(GtNode Node) {
-		if(Node instanceof GtParamNode) {
-			this.ArgumentList.add(Node);
-		}
-		else if(Node instanceof GtTypeNode) {
-			this.ReturnType = Node.Type;
-		}		
-		else if(Node instanceof GtBlockNode) {
-			this.BodyNode = Node;
-		}
-		/*return this;*/
+
+	@Override
+	public void FoundTypeError() {
+		this.FoundTypeError = true;
 	}
-	@Override public boolean Accept(ZenVisitor Visitor) {
-		return Visitor.VisitFunctionLiteralNode(this);
+
+	@Override
+	public boolean IsFoundTypeError() {
+		return this.FoundTypeError;
 	}
+
 }

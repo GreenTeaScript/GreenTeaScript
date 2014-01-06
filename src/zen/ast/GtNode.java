@@ -28,7 +28,7 @@ import java.util.ArrayList;
 
 import zen.deps.LibNative;
 import zen.lang.ZenType;
-import zen.lang.ZenTypeSystem;
+import zen.lang.ZenSystem;
 import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
 import zen.parser.ZenVisitor;
@@ -40,7 +40,7 @@ public abstract class GtNode {
 	/*field*/public GtToken	SourceToken;
 
 	public GtNode/*constructor*/() {
-		this.Type = ZenTypeSystem.VarType;
+		this.Type = ZenSystem.VarType;
 		this.SourceToken = null;
 		this.ParentNode = null;
 	}

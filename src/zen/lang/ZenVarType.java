@@ -22,39 +22,18 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package zen.ast;
+package zen.lang;
 
-import java.util.ArrayList;
 
-import zen.lang.ZenType;
-import zen.lang.ZenSystem;
-import zen.parser.GtToken;
-import zen.parser.ZenVisitor;
+public class ZenVarType extends ZenType {
 
-public class GtFunctionLiteralNode extends GtNode {
-	/*field*/public ZenType ReturnType;
-	/*field*/public ArrayList<GtNode>  ArgumentList;  // list of ParamNode
-	/*field*/public GtNode BodyNode;
-	public GtFunctionLiteralNode/*constructor*/(GtToken Token) {
-		super();
-		this.SourceToken = Token;
-		this.ReturnType = ZenSystem.VarType;
-		this.ArgumentList = new ArrayList<GtNode>();
-		this.BodyNode = null;
+	public ZenVarType(int TypeFlag, String ShortName, ZenType RefType) {
+		super(TypeFlag, ShortName, RefType.GetRealType());
 	}
-	@Override public void Append(GtNode Node) {
-		if(Node instanceof GtParamNode) {
-			this.ArgumentList.add(Node);
-		}
-		else if(Node instanceof GtTypeNode) {
-			this.ReturnType = Node.Type;
-		}		
-		else if(Node instanceof GtBlockNode) {
-			this.BodyNode = Node;
-		}
-		/*return this;*/
+
+	@Override
+	public final ZenType GetRealType() {
+		return this.RefType;
 	}
-	@Override public boolean Accept(ZenVisitor Visitor) {
-		return Visitor.VisitFunctionLiteralNode(this);
-	}
+
 }

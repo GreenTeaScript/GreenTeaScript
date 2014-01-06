@@ -31,7 +31,7 @@ import zen.ast.GtNode;
 import zen.deps.ZenMap;
 import zen.deps.LibNative;
 import zen.deps.LibZen;
-import zen.lang.ZenTypeSystem;
+import zen.lang.ZenSystem;
 
 public final class GtTokenContext extends ZenUtils {
 	/*field*/public final static GtToken NullToken = new GtToken("", 0);
@@ -522,7 +522,7 @@ public final class GtTokenContext extends ZenUtils {
 		if(Index != -1) {
 			/*local*/String FileName = SourceMap.substring(0, Index);
 			/*local*/int Line = (/*cast*/int)LibZen.ParseInt(SourceMap.substring(Index+1));
-			this.ParsingLine = ZenTypeSystem.GetFileLine(FileName, Line);
+			this.ParsingLine = ZenSystem.GetFileLine(FileName, Line);
 		}
 	}
 

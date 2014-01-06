@@ -33,16 +33,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 
 import zen.ast.GtNode;
-import zen.lang.ZenType;
 import zen.lang.ZenFunc;
-import zen.lang.ZenTypeSystem;
-import zen.obsolete.GtPolyFunc;
+import zen.lang.ZenSystem;
+import zen.lang.ZenType;
 import zen.parser.GtGenerator;
 import zen.parser.GtNameSpace;
 import zen.parser.GtSourceGenerator;
@@ -65,19 +63,18 @@ public class LibNative {
 	}
 
 	public final static ZenType GetNativeType(Class<?> NativeClass) {
-		ZenType NativeType = null;
-		NativeType = (/*cast*/ZenType) ZenTypeSystem.ClassNameMap.GetOrNull(NativeClass.getCanonicalName());
+		ZenType NativeType = ZenSystem.LookupTypeTable(NativeClass.getCanonicalName());
 		if(NativeType == null) {  /* create native type */
 			//			DebugP("** creating native class: " + NativeClass.getSimpleName() + ", " + NativeClass.getCanonicalName());
-			NativeType = new ZenType(ZenUtils.NativeType, NativeClass.getSimpleName(), null, NativeClass);
-			ZenTypeSystem.SetNativeTypeName(NativeClass.getCanonicalName(), NativeType);
+			NativeType = new ZenNativeType(NativeClass);
+			ZenSystem.SetTypeTable(NativeClass.getCanonicalName(), NativeType);
 			LibZen.VerboseLog(ZenUtils.VerboseNative, "creating native class: " + NativeClass.getSimpleName() + ", " + NativeClass.getCanonicalName());
 		}
 		return NativeType;
 	}
 
 	private static boolean AcceptJavaType(ZenType GreenType, Class<?> NativeType) {
-		if(GreenType.IsVarType() || GreenType.IsTypeVariable()) {
+		if(GreenType.IsVarType() /*|| GreenType.IsTypeVariable()*/) {
 			return true;
 		}
 		if(GreenType.IsTopType()) {
@@ -85,13 +82,13 @@ public class LibNative {
 		}
 		ZenType JavaType = LibNative.GetNativeType(NativeType);
 		if(GreenType != JavaType) {
-			LibNative.DebugP("*** " + JavaType + ", " + GreenType + ", equals? " + (GreenType.BaseType == JavaType.BaseType));
-			if(GreenType.IsGenericType() && GreenType.HasTypeVariable()) {
-				return GreenType.BaseType == JavaType.BaseType;
-			}
-			if(JavaType.IsGenericType() && JavaType.HasTypeVariable()) {
-				return GreenType.BaseType == JavaType.BaseType;
-			}
+			LibNative.DebugP("*** " + JavaType + ", " + GreenType + ", equals? " + (GreenType.GetBaseType() == JavaType.GetBaseType()));
+//			if(GreenType.IsGenericType() && GreenType.HasTypeVariable()) {
+//				return GreenType.BaseType == JavaType.BaseType;
+//			}
+//			if(JavaType.IsGenericType() && JavaType.HasTypeVariable()) {
+//				return GreenType.BaseType == JavaType.BaseType;
+//			}
 			return false;
 		}
 		return true;
@@ -140,96 +137,96 @@ public class LibNative {
 		return Class.forName(ClassName);
 	}
 
-	public final static Method ImportMethod(ZenType ContextType, String FullName, boolean StaticMethodOnly) {
-		/*local*/Method FoundMethod = null;
-		int Index = FullName.lastIndexOf(".");
-		if(Index == -1) {
-			return null;
-		}
-		try {
-			/*local*/String FuncName = FullName.substring(Index+1);
-			/*local*/Class<?> NativeClass = LibNative.LoadClass(FullName.substring(0, Index));
-			Method[] Methods = NativeClass.getDeclaredMethods();
-			assert(Methods != null);
-			for(int i = 0; i < Methods.length; i++) {
-				if(LibZen.EqualsString(FuncName, Methods[i].getName())) {
-					if(!Modifier.isPublic(Methods[i].getModifiers())) {
-						continue;
-					}
-					if(StaticMethodOnly && !Modifier.isStatic(Methods[i].getModifiers())) {
-						continue;
-					}
-					if(ContextType.IsFuncType() && !LibNative.MatchNativeMethod(ContextType.TypeParams, Methods[i])) {
-						continue;
-					}
-					if(FoundMethod != null) {
-						LibZen.VerboseLog(ZenUtils.VerboseUndefined, "overloaded method: " + FullName);
-						return FoundMethod; // return the first one
-					}
-					FoundMethod = Methods[i];
-				}
-			}
-			if(FoundMethod == null) {
-				LibZen.VerboseLog(ZenUtils.VerboseUndefined, "undefined method: " + FullName + " for " + ContextType);
-			}
-		} catch (ClassNotFoundException e) {
-			LibZen.VerboseLog(ZenUtils.VerboseException, e.toString());
-		}
-		return FoundMethod;
-	}
-
-	public static Object GetNativeFieldValue(Object ObjectValue, Field NativeField) {
-		try {
-			Class<?> NativeType = NativeField.getType();
-			if((NativeType == long.class) || (NativeType == int.class) || (NativeType == short.class) || (NativeType == byte.class)) {
-				return NativeField.getLong(ObjectValue);
-			}
-			if((NativeType == double.class) || (NativeType == float.class)) {
-				return NativeField.getDouble(ObjectValue);
-			}
-			if(NativeType == boolean.class) {
-				return NativeField.getBoolean(ObjectValue);
-			}
-			if(NativeType == char.class) {
-				return String.valueOf(NativeField.getChar(ObjectValue));
-			}
-			return NativeField.get(ObjectValue);
-		} catch (IllegalAccessException e) {
-			LibZen.VerboseException(e);
-		} catch (SecurityException e) {
-			LibZen.VerboseException(e);
-		}
-		return null;
-	}
-
-	public static Object LoadStaticClassObject(Class<?> NativeClass, String Symbol) {
-		try {
-			Field NativeField = NativeClass.getField(Symbol);
-			if(Modifier.isStatic(NativeField.getModifiers())) {
-				return LibNative.GetNativeFieldValue(null, NativeField);
-			}
-		} catch (NoSuchFieldException e) {
-			//			LibZen.VerboseException(e);
-		}
-		GtPolyFunc PolyFunc = new GtPolyFunc(null, null);
-		Method[] Methods = NativeClass.getMethods();
-		for(int i = 0; i < Methods.length; i++) {
-			if(Methods[i].getName().equals(Symbol) && Modifier.isStatic(Methods[i].getModifiers())) {
-				PolyFunc.Append(LibNative.ConvertNativeMethodToFunc(Methods[i]), null);
-			}
-		}
-		if(PolyFunc.FuncList.size() == 1) {
-			return PolyFunc.FuncList.get(0);
-		}
-		else if(PolyFunc.FuncList.size() != 0) {
-			return PolyFunc;
-		}
-		return null;
-	}
-
-	public static Object ImportStaticFieldValue(ZenType ClassType, String Symbol) {
-		return LibNative.LoadStaticClassObject((Class<?>)ClassType.TypeBody, Symbol);
-	}
+//	public final static Method ImportMethod(ZenType ContextType, String FullName, boolean StaticMethodOnly) {
+//		/*local*/Method FoundMethod = null;
+//		int Index = FullName.lastIndexOf(".");
+//		if(Index == -1) {
+//			return null;
+//		}
+//		try {
+//			/*local*/String FuncName = FullName.substring(Index+1);
+//			/*local*/Class<?> NativeClass = LibNative.LoadClass(FullName.substring(0, Index));
+//			Method[] Methods = NativeClass.getDeclaredMethods();
+//			assert(Methods != null);
+//			for(int i = 0; i < Methods.length; i++) {
+//				if(LibZen.EqualsString(FuncName, Methods[i].getName())) {
+//					if(!Modifier.isPublic(Methods[i].getModifiers())) {
+//						continue;
+//					}
+//					if(StaticMethodOnly && !Modifier.isStatic(Methods[i].getModifiers())) {
+//						continue;
+//					}
+//					if(ContextType.IsFuncType() && !LibNative.MatchNativeMethod(ContextType.TypeParams, Methods[i])) {
+//						continue;
+//					}
+//					if(FoundMethod != null) {
+//						LibZen.VerboseLog(ZenUtils.VerboseUndefined, "overloaded method: " + FullName);
+//						return FoundMethod; // return the first one
+//					}
+//					FoundMethod = Methods[i];
+//				}
+//			}
+//			if(FoundMethod == null) {
+//				LibZen.VerboseLog(ZenUtils.VerboseUndefined, "undefined method: " + FullName + " for " + ContextType);
+//			}
+//		} catch (ClassNotFoundException e) {
+//			LibZen.VerboseLog(ZenUtils.VerboseException, e.toString());
+//		}
+//		return FoundMethod;
+//	}
+//
+//	public static Object GetNativeFieldValue(Object ObjectValue, Field NativeField) {
+//		try {
+//			Class<?> NativeType = NativeField.getType();
+//			if((NativeType == long.class) || (NativeType == int.class) || (NativeType == short.class) || (NativeType == byte.class)) {
+//				return NativeField.getLong(ObjectValue);
+//			}
+//			if((NativeType == double.class) || (NativeType == float.class)) {
+//				return NativeField.getDouble(ObjectValue);
+//			}
+//			if(NativeType == boolean.class) {
+//				return NativeField.getBoolean(ObjectValue);
+//			}
+//			if(NativeType == char.class) {
+//				return String.valueOf(NativeField.getChar(ObjectValue));
+//			}
+//			return NativeField.get(ObjectValue);
+//		} catch (IllegalAccessException e) {
+//			LibZen.VerboseException(e);
+//		} catch (SecurityException e) {
+//			LibZen.VerboseException(e);
+//		}
+//		return null;
+//	}
+//
+//	public static Object LoadStaticClassObject(Class<?> NativeClass, String Symbol) {
+//		try {
+//			Field NativeField = NativeClass.getField(Symbol);
+//			if(Modifier.isStatic(NativeField.getModifiers())) {
+//				return LibNative.GetNativeFieldValue(null, NativeField);
+//			}
+//		} catch (NoSuchFieldException e) {
+//			//			LibZen.VerboseException(e);
+//		}
+//		GtPolyFunc PolyFunc = new GtPolyFunc(null, null);
+//		Method[] Methods = NativeClass.getMethods();
+//		for(int i = 0; i < Methods.length; i++) {
+//			if(Methods[i].getName().equals(Symbol) && Modifier.isStatic(Methods[i].getModifiers())) {
+//				PolyFunc.Append(LibNative.ConvertNativeMethodToFunc(Methods[i]), null);
+//			}
+//		}
+//		if(PolyFunc.FuncList.size() == 1) {
+//			return PolyFunc.FuncList.get(0);
+//		}
+//		else if(PolyFunc.FuncList.size() != 0) {
+//			return PolyFunc;
+//		}
+//		return null;
+//	}
+//
+//	public static Object ImportStaticFieldValue(ZenType ClassType, String Symbol) {
+//		return LibNative.LoadStaticClassObject((Class<?>)ClassType.TypeBody, Symbol);
+//	}
 
 	public final static boolean ImportGrammar(GtNameSpace NameSpace, String PackageName) {
 		try {
@@ -242,30 +239,29 @@ public class LibNative {
 		return false;
 	}
 
-	public final static Object ImportNativeObject(GtNameSpace NameSpace, String PackageName) {
-		LibZen.VerboseLog(ZenUtils.VerboseNative, "importing " + PackageName);
-		try {
-			/*local*/Class<?> NativeClass = LibNative.LoadClass(PackageName);
-			try {
-				Method LoaderMethod = NativeClass.getMethod("ImportGrammar", GtNameSpace.class, Class.class);
-				LoaderMethod.invoke(null, NameSpace, NativeClass);
-			} catch (Exception e) {  // naming
-			}
-			return LibNative.GetNativeType(NativeClass);
-		} catch (ClassNotFoundException e) {
-		}
-		int Index = PackageName.lastIndexOf(".");
-		if(Index == -1) {
-			return null;
-		}
-		try {
-			/*local*/Class<?> NativeClass = LibNative.LoadClass(PackageName.substring(0, Index));
-			return LibNative.LoadStaticClassObject(NativeClass, PackageName.substring(Index+1));
-		} catch (ClassNotFoundException e) {
-		}
-		return null;
-	}
-
+//	public final static Object ImportNativeObject(GtNameSpace NameSpace, String PackageName) {
+//		LibZen.VerboseLog(ZenUtils.VerboseNative, "importing " + PackageName);
+//		try {
+//			/*local*/Class<?> NativeClass = LibNative.LoadClass(PackageName);
+//			try {
+//				Method LoaderMethod = NativeClass.getMethod("ImportGrammar", GtNameSpace.class, Class.class);
+//				LoaderMethod.invoke(null, NameSpace, NativeClass);
+//			} catch (Exception e) {  // naming
+//			}
+//			return LibNative.GetNativeType(NativeClass);
+//		} catch (ClassNotFoundException e) {
+//		}
+//		int Index = PackageName.lastIndexOf(".");
+//		if(Index == -1) {
+//			return null;
+//		}
+//		try {
+//			/*local*/Class<?> NativeClass = LibNative.LoadClass(PackageName.substring(0, Index));
+//			return LibNative.LoadStaticClassObject(NativeClass, PackageName.substring(Index+1));
+//		} catch (ClassNotFoundException e) {
+//		}
+//		return null;
+//	}
 
 	//	public final static void LoadNativeConstructors(GtParserContext Context, GtType ClassType, ArrayList<GtFunc> FuncList) {
 	//		/*local*/boolean TransformedResult = false;

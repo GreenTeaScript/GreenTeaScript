@@ -30,9 +30,9 @@ import zen.ast.GtNode;
 import zen.deps.LibNative;
 import zen.deps.LibZen;
 import zen.deps.ZenMap;
-import zen.lang.ZenType;
 import zen.lang.ZenFunc;
-import zen.lang.ZenTypeSystem;
+import zen.lang.ZenSystem;
+import zen.lang.ZenType;
 import zen.obsolete.GtFuncBlock;
 import zen.obsolete.GtPolyFunc;
 //endif VAJA
@@ -74,7 +74,7 @@ public final class GtNameSpace extends ZenUtils {
 		if(ParentNameSpace == null) {
 			this.Generator = Generator;
 			this.FuncBlock = null;
-			ZenTypeSystem.InitNameSpace(this);
+			ZenSystem.InitNameSpace(this);
 		}
 		else {
 			this.Generator = ParentNameSpace.Generator;
@@ -212,7 +212,7 @@ public final class GtNameSpace extends ZenUtils {
 	}
 
 	public final ZenType GetSymbolType(String Symbol) {
-		return ZenTypeSystem.VarType;
+		return ZenSystem.VarType;
 	}
 
 	// Pattern
@@ -271,18 +271,18 @@ public final class GtNameSpace extends ZenUtils {
 	}
 
 	public final ZenType AppendTypeName(ZenType Type, GtToken SourceToken) {
-		if(Type.BaseType == Type) {
+		if(Type.GetBaseType() == Type) {
 			this.SetSymbol(Type.ShortName, Type, SourceToken);
 		}
 		return Type;
 	}
 
-	public final ZenType AppendTypeVariable(String Name, ZenType ParamBaseType, GtToken SourceToken, ArrayList<Object> RevertList) {
-		this.UpdateRevertList(Name, RevertList);
-		/*local*/ZenType TypeVar = new ZenType(TypeVariable, Name, ParamBaseType, null);
-		this.SetSymbol(Name, TypeVar, SourceToken);
-		return TypeVar;
-	}
+//	public final ZenType AppendTypeVariable(String Name, ZenType ParamBaseType, GtToken SourceToken, ArrayList<Object> RevertList) {
+//		this.UpdateRevertList(Name, RevertList);
+//		/*local*/ZenType TypeVar = new ZenType(TypeVariable, Name, ParamBaseType, null);
+//		this.SetSymbol(Name, TypeVar, SourceToken);
+//		return TypeVar;
+//	}
 
 	public final Object GetClassSymbol(ZenType ClassType, String Symbol, boolean RecursiveSearch) {
 		while(ClassType != null) {
@@ -301,7 +301,7 @@ public final class GtNameSpace extends ZenUtils {
 			if(!RecursiveSearch) {
 				break;
 			}
-			ClassType = ClassType.ParentMethodSearch;
+			ClassType = ClassType.GetSuperType();
 		}
 		return null;
 	}
@@ -571,7 +571,7 @@ public final class GtNameSpace extends ZenUtils {
 			TokenContext.SkipAndGetAnnotation(true);
 			/*local*/GtNode TopLevelNode = TokenContext.ParsePattern(this, "$Expression$", Required);
 //			TopLevelNode = this.TypeCheck(TopLevelNode, GtStaticTable.VoidType, GreenTeaConsts.AllowVoidPolicy);
-			this.Generator.TypeCheck(this, TopLevelNode, ZenTypeSystem.VoidType);
+			this.Generator.TypeCheck(this, TopLevelNode, ZenSystem.VoidType);
 //			TopLevelNode.Accept(this.Generator);
 			if(TopLevelNode.IsErrorNode() && TokenContext.HasNext()) {
 				/*local*/GtToken Token = TokenContext.GetToken();
@@ -606,7 +606,7 @@ public final class GtNameSpace extends ZenUtils {
 	public final boolean LoadFile(String FileName) {
 		/*local*/String ScriptText = LibNative.LoadScript(FileName);
 		if(ScriptText != null) {
-			/*local*/long FileLine = ZenTypeSystem.GetFileLine(FileName, 1);
+			/*local*/long FileLine = ZenSystem.GetFileLine(FileName, 1);
 			return this.Load(ScriptText, FileLine);
 		}
 		return false;
@@ -618,7 +618,7 @@ public final class GtNameSpace extends ZenUtils {
 			/*local*/String Path = LibZen.GetLibPath(this.Generator.TargetCode, LibName);
 			/*local*/String Script = LibNative.LoadScript(Path);
 			if(Script != null) {
-				/*local*/long FileLine = ZenTypeSystem.GetFileLine(Path, 1);
+				/*local*/long FileLine = ZenSystem.GetFileLine(Path, 1);
 				if(this.Load(Script, FileLine)) {
 					this.SetSymbol(Key, Path, null);
 					return true;

@@ -42,15 +42,15 @@ public final class GtClassField extends ZenUtils {
 		this.DefinedType = DefinedType;
 		this.NameSpace = NameSpace;
 		this.FieldList = new ArrayList<GtFieldInfo>();
-		/*local*/ZenType SuperClass = DefinedType.SuperType;
-		if(SuperClass.TypeBody instanceof GtClassField) {
-			/*local*/GtClassField SuperField = (/*cast*/GtClassField)SuperClass.TypeBody;
-			/*local*/int i = 0;
-			while(i < SuperField.FieldList.size()) {
-				this.FieldList.add(SuperField.FieldList.get(i));
-				i+=1;
-			}
-		}
+		/*local*/ZenType SuperClass = DefinedType.RefType;
+//		if(SuperClass.TypeBody instanceof GtClassField) {
+//			/*local*/GtClassField SuperField = (/*cast*/GtClassField)SuperClass.TypeBody;
+//			/*local*/int i = 0;
+//			while(i < SuperField.FieldList.size()) {
+//				this.FieldList.add(SuperField.FieldList.get(i));
+//				i+=1;
+//			}
+//		}
 		this.ThisClassIndex = this.FieldList.size();
 	}
 

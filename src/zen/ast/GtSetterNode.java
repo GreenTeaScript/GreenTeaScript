@@ -25,7 +25,7 @@
 package zen.ast;
 
 import zen.ast2.GtSymbolNode;
-import zen.lang.ZenTypeSystem;
+import zen.lang.ZenSystem;
 import zen.parser.ZenVisitor;
 import zen.parser.GtToken;
 
@@ -34,7 +34,7 @@ final public class GtSetterNode extends GtSymbolNode {
 	/*field*/public GtNode  RecvNode;
 	/*field*/public GtNode  ValueNode;
 	public GtSetterNode/*constructor*/(GtToken SourceToken, GtNode RecvNode, String NativeName) {
-		super(ZenTypeSystem.VarType, SourceToken, NativeName);
+		super(ZenSystem.VarType, SourceToken, NativeName);
 		this.RecvNode  = RecvNode;
 		this.ValueNode = null;
 		this.SetChild(RecvNode);

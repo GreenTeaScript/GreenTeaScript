@@ -24,11 +24,8 @@
 
 package zen.parser;
 
-import java.util.ArrayList;
-
 import zen.deps.LibNative;
 import zen.deps.LibZen;
-import zen.lang.ZenType;
 
 public class ZenUtils implements ZenParserConst {
 //endif VAJA
@@ -79,22 +76,6 @@ public class ZenUtils implements ZenParserConst {
 
 	public final static String NativeVariableName(String Name, int Index) {
 		return Name + NativeNameSuffix + Index;
-	}
-
-	public final static String MangleGenericType(ZenType BaseType, int BaseIdx, ArrayList<ZenType> TypeList) {
-		/*local*/String s = BaseType.ShortName + NativeNameSuffix;
-		/*local*/int i = BaseIdx;
-		while(i < LibZen.ListSize(TypeList)) {
-			/*local*/ZenType Type = TypeList.get(i);
-			if(Type.IsTypeVariable()) {
-				s = s + Type.ShortName;
-			}
-			else {
-				s = s + NumberToAscii(TypeList.get(i).TypeId);
-			}
-			i = i + 1;
-		}
-		return s;
 	}
 
 	public final static int ApplyTokenFunc(GtTokenFunc TokenFunc, GtTokenContext TokenContext, String ScriptSource, int Pos) {

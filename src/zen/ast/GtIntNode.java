@@ -24,7 +24,7 @@
 
 package zen.ast;
 
-import zen.lang.ZenTypeSystem;
+import zen.lang.ZenSystem;
 import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
 import zen.parser.ZenVisitor;
@@ -32,7 +32,7 @@ import zen.parser.ZenVisitor;
 final public class GtIntNode extends GtConstNode {
 	/*field*/public long	Value;
 	public GtIntNode/*constructor*/(GtToken Token, long Value) {
-		super(ZenTypeSystem.IntType, Token);
+		super(ZenSystem.IntType, Token);
 		this.Value = Value;
 	}
 	@Override public final Object GetValue() {

@@ -30,7 +30,7 @@ import zen.deps.ZenArray;
 import zen.deps.LibNative;
 import zen.deps.LibZen;
 import zen.lang.ZenGrammar;
-import zen.lang.ZenTypeSystem;
+import zen.lang.ZenSystem;
 import zen.parser.ZenParserConst;
 import zen.parser.GtGenerator;
 import zen.parser.ZenUtils;
@@ -128,7 +128,7 @@ public class GreenTeaScript extends ZenUtils {
 		if(!(Index < Args.length)) {
 			ShellMode = true;
 		}
-		/*local*/ZenArray ARGV = ZenArray.NewArray1(ZenTypeSystem.StringType, 0);
+		/*local*/ZenArray ARGV = ZenArray.NewArray1(ZenSystem.StringType, 0);
 		while(Index < Args.length) {
 			ARGV.ArrayBody.add(Args[Index]);
 			Index += 1;
@@ -140,7 +140,7 @@ public class GreenTeaScript extends ZenUtils {
 			if(ScriptText == null) {
 				LibNative.Exit(1, "file not found: " + FileName);
 			}
-			/*local*/long FileLine = ZenTypeSystem.GetFileLine(FileName, 1);
+			/*local*/long FileLine = ZenSystem.GetFileLine(FileName, 1);
 			/*local*/boolean Success = Generator.RootNameSpace.Load(ScriptText, FileLine);
 			Generator.Logger.ShowReportedErrors();
 			if(!Success) {
@@ -158,7 +158,7 @@ public class GreenTeaScript extends ZenUtils {
 					/*local*/Object EvaledValue = Generator.RootNameSpace.Eval(Line, linenum);
 					Generator.Logger.ShowReportedErrors();
 					if(EvaledValue != null) {
-						LibNative.println(" (" + ZenTypeSystem.GuessType(EvaledValue) + ":" + LibNative.GetClassName(EvaledValue) + ") " + LibZen.Stringify(EvaledValue));
+						LibNative.println(" (" + ZenSystem.GuessType(EvaledValue) + ":" + LibNative.GetClassName(EvaledValue) + ") " + LibZen.Stringify(EvaledValue));
 					}
 					linenum += 1;
 				}

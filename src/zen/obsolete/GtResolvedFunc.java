@@ -25,9 +25,9 @@
 package zen.obsolete;
 
 import zen.ast.GtNode;
-import zen.lang.ZenType;
 import zen.lang.ZenFunc;
-import zen.lang.ZenTypeSystem;
+import zen.lang.ZenSystem;
+import zen.lang.ZenType;
 import zen.parser.GtNameSpace;
 
 public class GtResolvedFunc {
@@ -38,14 +38,14 @@ public class GtResolvedFunc {
 	GtResolvedFunc/*constructor*/(GtNameSpace NameSpace) {
 		this.GenericNameSpace = NameSpace;
 		this.Func = null;
-		this.ReturnType = ZenTypeSystem.AnyType;
+		this.ReturnType = ZenSystem.AnyType;
 		this.ErrorNode = null;
 	}	
-	GtResolvedFunc UpdateFunc(ZenFunc Func, GtNameSpace GenericNameSpace) {		
-		this.Func = Func;
-		if(Func != null) {
-			this.ReturnType = Func.GetReturnType().RealType(GenericNameSpace, ZenTypeSystem.AnyType);
-		}
-		return this;
-	}
+//	GtResolvedFunc UpdateFunc(ZenFunc Func, GtNameSpace GenericNameSpace) {		
+//		this.Func = Func;
+//		if(Func != null) {
+//			this.ReturnType = Func.GetReturnType().RealType(GenericNameSpace, ZenSystem.AnyType);
+//		}
+//		return this;
+//	}
 }

@@ -26,7 +26,7 @@ package zen.ast;
 
 import java.util.ArrayList;
 
-import zen.lang.ZenTypeSystem;
+import zen.lang.ZenSystem;
 import zen.parser.ZenVisitor;
 
 final public class GtTryNode extends GtNode {

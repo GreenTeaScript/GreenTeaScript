@@ -66,14 +66,14 @@ public class ZenFunc implements ZenFuncConst {
 	}
 
 	public final ZenType GetFuncType() {
-		return ZenTypeSystem.GetFuncType(this);
+		return ZenSystem.GetFuncType(this);
 	}
 
 	@Override public String toString() {
-		/*local*/String s = this.GetReturnType().GetRevealedType() + " " + this.FuncName + "(";
+		/*local*/String s = this.GetReturnType() + " " + this.FuncName + "(";
 		/*local*/int i = 0;
 		while(i < this.GetFuncParamSize()) {
-			/*local*/ZenType ParamType = this.GetFuncParamType(i).GetRevealedType();
+			/*local*/ZenType ParamType = this.GetFuncParamType(i);
 			if(i > 0) {
 				s += ", ";
 			}
@@ -98,7 +98,7 @@ public class ZenFunc implements ZenFuncConst {
 
 	public final ZenType GetRecvType() {
 		if(this.Types.length == 1) {
-			return ZenTypeSystem.VoidType;
+			return ZenSystem.VoidType;
 		}
 		return this.Types[1];
 	}
@@ -119,7 +119,7 @@ public class ZenFunc implements ZenFuncConst {
 		if(this.Types.length > 0) {
 			/*local*/ZenType VargType = this.Types[this.Types.length - 1];
 			if(VargType.IsArrayType()) {
-				return VargType.TypeParams[0];
+				return VargType.GetParamType(0);
 			}
 		}
 		return null;

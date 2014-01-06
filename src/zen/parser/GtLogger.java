@@ -28,7 +28,7 @@ import java.util.ArrayList;
 
 import zen.deps.LibNative;
 import zen.deps.LibZen;
-import zen.lang.ZenTypeSystem;
+import zen.lang.ZenSystem;
 
 public final class GtLogger {
 	/*field*/public ArrayList<String>  ReportedErrorList;
@@ -39,16 +39,16 @@ public final class GtLogger {
 
 	public final String ReportError(int Level, GtToken Token, String Message) {
 		if(Level == ZenParserConst.ErrorLevel) {
-			Message = "(error) " + ZenTypeSystem.FormatFileLineNumber(Token.FileLine) + " " + Message;
+			Message = "(error) " + ZenSystem.FormatFileLineNumber(Token.FileLine) + " " + Message;
 		}
 		else if(Level == ZenParserConst.TypeErrorLevel) {
-			Message = "(error) " + ZenTypeSystem.FormatFileLineNumber(Token.FileLine) + " " + Message;
+			Message = "(error) " + ZenSystem.FormatFileLineNumber(Token.FileLine) + " " + Message;
 		}
 		else if(Level == ZenParserConst.WarningLevel) {
-			Message = "(warning) " + ZenTypeSystem.FormatFileLineNumber(Token.FileLine) + " " + Message;
+			Message = "(warning) " + ZenSystem.FormatFileLineNumber(Token.FileLine) + " " + Message;
 		}
 		else if(Level == ZenParserConst.InfoLevel) {
-			Message = "(info) " + ZenTypeSystem.FormatFileLineNumber(Token.FileLine) + " " + Message;
+			Message = "(info) " + ZenSystem.FormatFileLineNumber(Token.FileLine) + " " + Message;
 		}
 		this.ReportedErrorList.add(Message);
 		return Message;

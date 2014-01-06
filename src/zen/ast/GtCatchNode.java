@@ -25,7 +25,7 @@
 package zen.ast;
 
 import zen.lang.ZenType;
-import zen.lang.ZenTypeSystem;
+import zen.lang.ZenSystem;
 
 final public class GtCatchNode extends GtNode {
 	/*field*/public ZenType  ExceptionType;
@@ -33,7 +33,7 @@ final public class GtCatchNode extends GtNode {
 	/*field*/public GtNode	BodyNode;
 	public GtCatchNode/*constructor*/() {
 		super();
-		this.ExceptionType = ZenTypeSystem.VarType;
+		this.ExceptionType = ZenSystem.VarType;
 		this.ExceptionName = null;
 		this.BodyNode = null;
 	}

@@ -24,7 +24,7 @@
 
 package zen.ast;
 
-import zen.lang.ZenTypeSystem;
+import zen.lang.ZenSystem;
 import zen.parser.ZenVisitor;
 
 //E.g., "while" "(" $Cond ")" $Body

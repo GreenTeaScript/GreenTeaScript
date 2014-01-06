@@ -22,39 +22,31 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // **************************************************************************
 
-package zen.ast;
+package zen.lang;
 
-import java.util.ArrayList;
+public interface ZenTypeConst {
+	// ClassFlag
+	public final static int     ExportType         = 1 << 0;  // @Export
+	public final static int     PublicType         = 1 << 1;  // @Public
+	public final static int		NativeType	       = 1 << 2;
+	public final static int		VirtualType		   = 1 << 3;  // @Virtual
+	public final static int     EnumType           = 1 << 4;
+	public final static int     DeprecatedType     = 1 << 5;  // @Deprecated
+	public final static int     HiddenType         = 1 << 6;
+	// UnrevealedType is a type that must be hidden for users
+	// WeatType must be converted to non-UnrevealedType by StrongCoersion
+	// UnrevealedType is set only if StrongCoersion is defined
+	public final static int     UnrevealedType           = HiddenType;
+	public final static int     CommonType         = 1 << 7;  // @Common
 
-import zen.lang.ZenType;
-import zen.lang.ZenSystem;
-import zen.parser.GtToken;
-import zen.parser.ZenVisitor;
+	public final static int		DynamicType	       = 1 << 8;  // @Dynamic
+	public final static int     OpenType           = 1 << 9;  // @Open for the future
+	public final static int     UnboxType          = 1 << 10; 
+	public final static int     TypeVariable       = 1 << 14;
+	public final static int     GenericVariable    = 1 << 15;
+	public final static int     UniqueType         = 1 << 16;
+	
+	public static final String NativeNameSuffix = "__";
 
-public class GtFunctionLiteralNode extends GtNode {
-	/*field*/public ZenType ReturnType;
-	/*field*/public ArrayList<GtNode>  ArgumentList;  // list of ParamNode
-	/*field*/public GtNode BodyNode;
-	public GtFunctionLiteralNode/*constructor*/(GtToken Token) {
-		super();
-		this.SourceToken = Token;
-		this.ReturnType = ZenSystem.VarType;
-		this.ArgumentList = new ArrayList<GtNode>();
-		this.BodyNode = null;
-	}
-	@Override public void Append(GtNode Node) {
-		if(Node instanceof GtParamNode) {
-			this.ArgumentList.add(Node);
-		}
-		else if(Node instanceof GtTypeNode) {
-			this.ReturnType = Node.Type;
-		}		
-		else if(Node instanceof GtBlockNode) {
-			this.BodyNode = Node;
-		}
-		/*return this;*/
-	}
-	@Override public boolean Accept(ZenVisitor Visitor) {
-		return Visitor.VisitFunctionLiteralNode(this);
-	}
+
 }

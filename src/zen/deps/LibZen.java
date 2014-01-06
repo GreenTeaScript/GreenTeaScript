@@ -39,21 +39,21 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import zen.lang.ZenSystem;
 import zen.lang.ZenType;
-import zen.lang.ZenTypeSystem;
 import zen.parser.GtSourceBuilder;
 import zen.parser.ZenUtils;
 
 public abstract class LibZen {
 	public final static ZenArray NewArray(ZenType Type, Object[] InitSizes) {
 		if(InitSizes.length == 1) {
-			return ZenArray.NewArray1(Type.TypeParams[0], ((Number)InitSizes[0]).intValue());
+			return ZenArray.NewArray1(Type.GetParamType(0), ((Number)InitSizes[0]).intValue());
 		}
 		else if(InitSizes.length == 2) {
-			return ZenArray.NewArray2(Type.TypeParams[0].TypeParams[0], ((Number)InitSizes[0]).intValue(), ((Number)InitSizes[1]).intValue());
+			return ZenArray.NewArray2(Type.GetParamType(0).GetParamType(0), ((Number)InitSizes[0]).intValue(), ((Number)InitSizes[1]).intValue());
 		}
 		else {
-			return ZenArray.NewArray3(Type.TypeParams[0].TypeParams[0].TypeParams[0], ((Number)InitSizes[0]).intValue(), ((Number)InitSizes[1]).intValue(), ((Number)InitSizes[2]).intValue());
+			return ZenArray.NewArray3(Type.GetParamType(0).GetParamType(0).GetParamType(0), ((Number)InitSizes[0]).intValue(), ((Number)InitSizes[1]).intValue(), ((Number)InitSizes[2]).intValue());
 		}
 		
 	}
@@ -699,7 +699,7 @@ public abstract class LibZen {
 	
 	public static Object DynamicCast(ZenType CastType, Object Value) {
 		if(Value != null) {
-			ZenType FromType = ZenTypeSystem.GuessType(Value);
+			ZenType FromType = ZenSystem.GuessType(Value);
 			if(CastType == FromType || CastType.Accept(FromType)) {
 				return Value;
 			}
@@ -709,7 +709,7 @@ public abstract class LibZen {
 
 	public static boolean DynamicInstanceOf(Object Value, ZenType Type) {
 		if(Value != null) {
-			ZenType ValueType = ZenTypeSystem.GuessType(Value);
+			ZenType ValueType = ZenSystem.GuessType(Value);
 			if(ValueType == Type || Type.Accept(ValueType)) {
 				return true;
 			}
@@ -766,15 +766,15 @@ public abstract class LibZen {
 			return null;
 		}
 		if(LeftValue instanceof String || RightValue instanceof String) {
-			String left = DynamicCast(ZenTypeSystem.StringType, LeftValue).toString();
-			String right = DynamicCast(ZenTypeSystem.StringType, RightValue).toString();
+			String left = DynamicCast(ZenSystem.StringType, LeftValue).toString();
+			String right = DynamicCast(ZenSystem.StringType, RightValue).toString();
 			if(Operator.equals("+")) {
 				return  DynamicCast(Type, left + right);
 			}
 		}
 		if(LeftValue instanceof String && RightValue instanceof String) {
-			String left = DynamicCast(ZenTypeSystem.StringType, LeftValue).toString();
-			String right = DynamicCast(ZenTypeSystem.StringType, RightValue).toString();
+			String left = DynamicCast(ZenSystem.StringType, LeftValue).toString();
+			String right = DynamicCast(ZenSystem.StringType, RightValue).toString();
 			if(Operator.equals("==")) {
 				return  DynamicCast(Type, left.equals(right));
 			}
