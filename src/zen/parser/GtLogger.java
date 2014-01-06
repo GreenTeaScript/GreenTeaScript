@@ -28,6 +28,7 @@ import java.util.ArrayList;
 
 import zen.deps.LibNative;
 import zen.deps.LibZen;
+import zen.lang.ZenTypeSystem;
 
 public final class GtLogger {
 	/*field*/public ArrayList<String>  ReportedErrorList;

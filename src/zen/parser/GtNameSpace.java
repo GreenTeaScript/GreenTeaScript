@@ -31,6 +31,7 @@ import zen.ast.GtNode;
 import zen.deps.ZenMap;
 import zen.deps.LibNative;
 import zen.deps.LibZen;
+import zen.lang.ZenTypeSystem;
 import zen.obsolete.GtFuncBlock;
 import zen.obsolete.GtPolyFunc;
 //endif VAJA

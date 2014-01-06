@@ -24,11 +24,11 @@
 
 package zen.ast;
 
+import zen.lang.ZenTypeSystem;
 import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
 import zen.parser.GtType;
 import zen.parser.GtVisitor;
-import zen.parser.ZenTypeSystem;
 
 final public class GtBooleanNode extends GtConstNode {
 	/*field*/public boolean	Value;

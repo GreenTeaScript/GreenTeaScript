@@ -24,10 +24,10 @@
 
 package zen.ast;
 
+import zen.lang.ZenTypeSystem;
 import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
 import zen.parser.GtVisitor;
-import zen.parser.ZenTypeSystem;
 
 final public class GtIntNode extends GtConstNode {
 	/*field*/public long	Value;

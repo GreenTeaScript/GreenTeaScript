@@ -39,9 +39,9 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import zen.lang.ZenTypeSystem;
 import zen.parser.GtFunc;
 import zen.parser.GtSourceBuilder;
-import zen.parser.ZenTypeSystem;
 import zen.parser.GtType;
 import zen.parser.ZenUtils;
 

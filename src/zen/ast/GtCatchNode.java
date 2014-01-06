@@ -24,8 +24,8 @@
 
 package zen.ast;
 
+import zen.lang.ZenTypeSystem;
 import zen.parser.GtType;
-import zen.parser.ZenTypeSystem;
 
 final public class GtCatchNode extends GtNode {
 	/*field*/public GtType  ExceptionType;

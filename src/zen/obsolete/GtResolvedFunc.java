@@ -25,9 +25,9 @@
 package zen.obsolete;
 
 import zen.ast.GtNode;
+import zen.lang.ZenTypeSystem;
 import zen.parser.GtFunc;
 import zen.parser.GtNameSpace;
-import zen.parser.ZenTypeSystem;
 import zen.parser.GtType;
 
 public class GtResolvedFunc {

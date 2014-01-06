@@ -26,8 +26,8 @@ package zen.ast;
 
 import java.util.ArrayList;
 
+import zen.lang.ZenTypeSystem;
 import zen.parser.GtVisitor;
-import zen.parser.ZenTypeSystem;
 
 //E.g., "[" $Node, $Node "]"
 final public class GtArrayLiteralNode extends GtNode {

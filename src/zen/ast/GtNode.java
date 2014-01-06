@@ -27,13 +27,12 @@ package zen.ast;
 import java.util.ArrayList;
 
 import zen.deps.LibNative;
+import zen.lang.ZenTypeSystem;
 import zen.parser.GtNameSpace;
 import zen.parser.GtToken;
 import zen.parser.GtType;
 import zen.parser.GtVisitor;
 import zen.parser.ZenParserConst;
-import zen.parser.ZenTypeSystem;
-//endif VAJA
 
 public abstract class GtNode {
 	/*field*/public GtNode	ParentNode;

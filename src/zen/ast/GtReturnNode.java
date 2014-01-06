@@ -24,8 +24,8 @@
 
 package zen.ast;
 
+import zen.lang.ZenTypeSystem;
 import zen.parser.GtVisitor;
-import zen.parser.ZenTypeSystem;
 
 public class GtReturnNode extends GtNode {
 	/*field*/public GtNode ValueNode;

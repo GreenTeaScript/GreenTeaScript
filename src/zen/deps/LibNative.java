@@ -39,12 +39,12 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
 import zen.ast.GtNode;
+import zen.lang.ZenTypeSystem;
 import zen.obsolete.GtPolyFunc;
 import zen.parser.GtFunc;
 import zen.parser.GtGenerator;
 import zen.parser.GtNameSpace;
 import zen.parser.GtSourceGenerator;
-import zen.parser.ZenTypeSystem;
 import zen.parser.GtTokenContext;
 import zen.parser.GtType;
 import zen.parser.GtVisitor;

@@ -24,8 +24,8 @@
 
 package zen.ast;
 
+import zen.lang.ZenTypeSystem;
 import zen.parser.GtVisitor;
-import zen.parser.ZenTypeSystem;
 
 //E.g., "while" "(" $Cond ")" $Body
 final public class GtWhileNode extends GtNode {

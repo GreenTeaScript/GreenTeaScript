@@ -25,8 +25,8 @@
 package zen.ast;
 
 import zen.ast2.GtSymbolNode;
+import zen.lang.ZenTypeSystem;
 import zen.parser.GtVisitor;
-import zen.parser.ZenTypeSystem;
 import zen.parser.GtToken;
 
 //E.g., $RecvNode.$NativeName

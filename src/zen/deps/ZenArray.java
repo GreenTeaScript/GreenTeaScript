@@ -26,7 +26,7 @@
 package zen.deps;
 import java.util.ArrayList;
 
-import zen.parser.ZenTypeSystem;
+import zen.lang.ZenTypeSystem;
 import zen.parser.GtType;
 
 public class ZenArray extends ZenTopObject {

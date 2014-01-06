@@ -24,7 +24,7 @@
 
 package zen.ast;
 
-import zen.parser.ZenTypeSystem;
+import zen.lang.ZenTypeSystem;
 import zen.parser.GtVisitor;
 
 //E.g., "if" "(" $Cond ")" $ThenNode "else" $ElseNode

@@ -24,8 +24,8 @@
 
 package zen.ast;
 
+import zen.lang.ZenTypeSystem;
 import zen.parser.GtNameSpace;
-import zen.parser.ZenTypeSystem;
 import zen.parser.GtToken;
 import zen.parser.GtVisitor;
 

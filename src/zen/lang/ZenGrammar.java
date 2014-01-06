@@ -69,7 +69,6 @@ import zen.parser.GtTokenContext;
 import zen.parser.GtType;
 import zen.parser.GtVariableInfo;
 import zen.parser.ZenParserConst;
-import zen.parser.ZenTypeSystem;
 
 //endif VAJA
 
