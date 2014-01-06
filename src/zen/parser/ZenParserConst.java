@@ -215,16 +215,6 @@ public interface ZenParserConst {
 //	public final static int PrecedenceCStyleAssign			= (1200 << PrecedenceShift) | BinaryOperator;
 //	public final static int PrecedenceCStyleCOMMA			= (1300 << PrecedenceShift) | BinaryOperator;
 
-	public final static int DefaultTypeCheckPolicy			= 0;
-	public final static int NoCheckPolicy                   = 1;
-	public final static int CastPolicy                      = (1 << 1);
-	public final static int IgnoreEmptyPolicy               = (1 << 2);
-	public final static int AllowEmptyPolicy                = (1 << 3);
-	public final static int AllowVoidPolicy                 = (1 << 4);
-	public final static int AllowCoercionPolicy             = (1 << 5);
-	public final static int OnlyConstPolicy                 = (1 << 6);
-	public final static int NullablePolicy                  = (1 << 8);
-	public final static int BlockPolicy                     = (1 << 7);
 
 	public final static Object UndefinedSymbol = new GtUndefinedSymbol();
 	public final static String NativeNameSuffix = "__";

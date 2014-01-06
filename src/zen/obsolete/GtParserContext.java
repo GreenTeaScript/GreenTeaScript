@@ -23,7 +23,9 @@
 // **************************************************************************
 
 //ifdef JAVA
-package zen.parser;
+package zen.obsolete;
+
+import zen.parser.ZenUtils;
 
 
 @Deprecated

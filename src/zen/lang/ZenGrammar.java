@@ -23,7 +23,7 @@
 // **************************************************************************
 
 //ifdef JAVA
-package zen.grammar;
+package zen.lang;
 import java.util.ArrayList;
 
 import zen.ast.GtAndNode;

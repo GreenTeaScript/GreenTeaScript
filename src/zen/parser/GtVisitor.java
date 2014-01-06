@@ -66,18 +66,21 @@ import zen.ast2.GtNewArrayNode;
 import zen.ast2.GtNewObjectNode;
 
 public interface GtVisitor {
-	public abstract boolean VisitBlockNode(GtBlockNode Node);
-	public abstract boolean VisitGroupNode(GtGroupNode Node);
 	public abstract boolean VisitNullNode(GtNullNode Node);
 	public abstract boolean VisitBooleanNode(GtBooleanNode Node);
 	public abstract boolean VisitIntNode(GtIntNode Node);
 	public abstract boolean VisitFloatNode(GtFloatNode Node);
 	public abstract boolean VisitStringNode(GtStringNode Node);
 	public abstract boolean VisitConstPoolNode(GtConstPoolNode Node);
+	public abstract boolean VisitArrayLiteralNode(GtArrayLiteralNode Node);
+	public abstract boolean VisitMapLiteralNode(GtMapLiteralNode Node);
+	public abstract boolean VisitNewArrayNode(GtNewArrayNode Node);
+	public abstract boolean VisitNewObjectNode(GtNewObjectNode Node);
 	public abstract boolean VisitGetLocalNode(GtGetLocalNode Node);
 	public abstract boolean VisitSetLocalNode(GtSetLocalNode Node);
 	public abstract boolean VisitGetCapturedNode(GtGetCapturedNode Node);
 	public abstract boolean VisitSetCapturedNode(GtSetCapturedNode Node);
+	public abstract boolean VisitGroupNode(GtGroupNode Node);
 	public abstract boolean VisitGetterNode(GtGetterNode Node);
 	public abstract boolean VisitSetterNode(GtSetterNode Node);
 	public abstract boolean VisitGetIndexNode(GtGetIndexNode Node);
@@ -90,23 +93,21 @@ public interface GtVisitor {
 	public abstract boolean VisitBinaryNode(GtBinaryNode Node);
 	public abstract boolean VisitCastNode(GtCastNode Node);
 	public abstract boolean VisitInstanceOfNode(GtInstanceOfNode Node);
+	public abstract boolean VisitBlockNode(GtBlockNode Node);
 	public abstract boolean VisitVarDeclNode(GtVarDeclNode Node);
 	public abstract boolean VisitIfNode(GtIfNode Node);
 	public abstract boolean VisitReturnNode(GtReturnNode Node);
-	public abstract boolean VisitParamNode(GtParamNode Node);
 	public abstract boolean VisitWhileNode(GtWhileNode Node);
 	public abstract boolean VisitBreakNode(GtBreakNode Node);
 	public abstract boolean VisitThrowNode(GtThrowNode Node);
 	public abstract boolean VisitTryNode(GtTryNode Node);
 	public abstract boolean VisitCatchNode(GtCatchNode Node);
+	public abstract boolean VisitParamNode(GtParamNode Node);
 	public abstract boolean VisitFunctionLiteralNode(GtFunctionLiteralNode Node);
 	public abstract boolean VisitFuncDeclNode(GtFuncDeclNode FuncDeclNode);
 	public abstract boolean VisitErrorNode(GtErrorNode Node);
 
-	public abstract boolean VisitArrayLiteralNode(GtArrayLiteralNode Node);
-	public abstract boolean VisitMapLiteralNode(GtMapLiteralNode Node);
-	public abstract boolean VisitNewArrayNode(GtNewArrayNode Node);
-	public abstract boolean VisitNewObjectNode(GtNewObjectNode Node);
+
 
 //	public abstract boolean VisitTrinaryNode(GtTrinaryNode Node);
 //	public abstract boolean VisitPrefixInclNode(GtPrefixInclNode Node);

@@ -78,11 +78,6 @@ public abstract class GtNode {
 		return LibNative.VisitNode(Visitor, this);
 	}
 
-	public GtNode TypeCheck(GtNameSpace NameSpace, GtType ContextType) {
-		/* must override */
-		return this;
-	}
-
 	public GtConstNode ToConstNode(boolean EnforceConst) {
 		if(EnforceConst) {
 			return new GtErrorNode(this.SourceToken, "value must be constant");

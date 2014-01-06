@@ -29,7 +29,7 @@ package org.GreenTeaScript;
 import zen.deps.ZenArray;
 import zen.deps.LibNative;
 import zen.deps.LibZen;
-import zen.grammar.ZenGrammar;
+import zen.lang.ZenGrammar;
 import zen.parser.ZenParserConst;
 import zen.parser.GtGenerator;
 import zen.parser.ZenTypeSystem;

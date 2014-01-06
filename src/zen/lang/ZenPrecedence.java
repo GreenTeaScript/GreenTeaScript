@@ -1,4 +1,4 @@
-package zen.grammar;
+package zen.lang;
 
 public interface ZenPrecedence {
 	public final static int BinaryOperator					= 1;

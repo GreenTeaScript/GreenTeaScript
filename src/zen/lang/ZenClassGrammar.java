@@ -23,12 +23,12 @@
 // **************************************************************************
 
 //ifdef JAVA
-package zen.grammar;
+package zen.lang;
 import zen.parser.GtNameSpace;
 
 //endif VAJA
 
-public class ZenArrayGrammar {
+public class ZenClassGrammar {
 //	public static GtNode MatchConst(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
 //		/*local*/GtToken Token = TokenContext.Next();
 //		/*local*/Object ConstValue = NameSpace.GetSymbol(Token.ParsedText);
@@ -552,6 +552,8 @@ public class ZenArrayGrammar {
 //		}
 //		return Node;
 //	}
+
+
 
 //	// Array
 //	public static GtSyntaxTree ParseNewArray(GtNameSpace NameSpace, GtTokenContext TokenContext, GtSyntaxTree LeftNode, GtSyntaxPattern Pattern) {
