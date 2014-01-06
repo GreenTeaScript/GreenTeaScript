@@ -26,7 +26,6 @@ package zen.ast;
 
 import java.util.ArrayList;
 
-import zen.lang.ZenTypeSystem;
 import zen.parser.GtVisitor;
 
 //E.g., "{" StringNode, $Node, StringNode, $Node "}"

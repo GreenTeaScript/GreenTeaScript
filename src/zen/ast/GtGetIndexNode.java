@@ -24,7 +24,6 @@
 
 package zen.ast;
 
-import zen.lang.ZenTypeSystem;
 import zen.parser.GtVisitor;
 
 //E.g., $Recv[$Index]

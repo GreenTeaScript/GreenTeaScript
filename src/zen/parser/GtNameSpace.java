@@ -26,11 +26,10 @@
 package zen.parser;
 import java.util.ArrayList;
 
-import zen.ast.GtErrorNode;
 import zen.ast.GtNode;
-import zen.deps.ZenMap;
 import zen.deps.LibNative;
 import zen.deps.LibZen;
+import zen.deps.ZenMap;
 import zen.lang.ZenTypeSystem;
 import zen.obsolete.GtFuncBlock;
 import zen.obsolete.GtPolyFunc;
@@ -681,65 +680,5 @@ public final class GtNameSpace extends ZenUtils {
 		return "\t" + PatternName;
 	}
 
-	public final GtNode TypeCheck(GtNode Node, GtType ContextType, int TypeCheckPolicy) {
-		LibNative.Assert(Node != null);
-		if(Node.Type.IsVarType()) {
-			Node = Node.TypeCheck(this, ContextType);
-//			if(Node.Type.IsVarType()) {
-//				return new GtErrorNode(Node.Token, "no type");
-//			}
-		}
-		if(Node.IsErrorNode()) {
-			return Node;
-		}
-//		if(Node.Type.IsUnrevealedType()) {
-//			/*local*/GtFunc Func = ParsedTree.NameSpace.GetConverterFunc(Node.Type, Node.Type.BaseType, true);
-//			Node = this.Generator.CreateCoercionNode(Func.GetReturnType(), ParsedTree.NameSpace, Func, Node);
-//		}
-//		System.err.println("**** " + Node.getClass());
-//		/*local*/Object ConstValue = Node.ToConstValue(this.Context, IsFlag(TypeCheckPolicy, OnlyConstPolicy));
-//		if(ConstValue != null && !(Node.IsConstNode())) {  // recreated
-//			Node = this.Generator.CreateConstNode_OLD(Node.Type, ParsedTree, ConstValue);
-//		}
-//		if(IsFlag(TypeCheckPolicy, OnlyConstPolicy) && ConstValue == null) {
-//			if(IsFlag(TypeCheckPolicy, NullablePolicy) && Node.IsNullNode()) { // OK
-//			}
-//			else {
-//				return this.CreateSyntaxErrorNode(ParsedTree, "value must be const");
-//			}
-//		}
-		if(IsFlag(TypeCheckPolicy, AllowVoidPolicy) || Node.Type.IsVoidType()) {
-			return Node;
-		}
-		if(Node.Type == ContextType || ContextType.IsVarType() || ContextType.Accept(Node.Type)) {
-			return Node;
-		}
-//		/*local*/GtFunc Func1 = this.GetConverterFunc(Node.Type, ContextType, true);
-//		if(Func1 != null && (Func1.Is(CoercionFunc) || IsFlag(TypeCheckPolicy, CastPolicy))) {
-//			return this.Generator.CreateCoercionNode(Type, ParsedTree.NameSpace, Func1, Node);
-//		}		
-		//System.err.println("node="+ LibZen.GetClassName(Node) + "type error: requested = " + Type + ", given = " + Node.Type);
-		return new GtErrorNode(Node.SourceToken, "type error: requested = " + ContextType + ", given = " + Node.Type);
-	}
-
-	
-//	public final GtNode TypeBlock(GtNode ParsedNode, GtType ContextType) {
-//		/*local*/int StackTopIndex = Gamma.StackTopIndex;
-//		/*local*/GtNode LastNode = null;
-//		while(ParsedNode != null) {
-//			/*local*/GtNode Node = GreenTeaUtils.ApplyTypeFunc(ParsedNode.Pattern.TypeFunc, Gamma, ParsedNode, GtStaticTable.VoidType);
-//			/*local*/Node = Gamma.TypeCheckSingleNode(ParsedNode, Node, GtStaticTable.VoidType, DefaultTypeCheckPolicy);
-//			/*local*/LastNode = GreenTeaUtils.LinkNode(LastNode, Node);
-//			if(Node.IsErrorNode()) {
-//				break;
-//			}
-//			ParsedNode = ParsedNode.NextTree;
-//		}
-//		Gamma.PushBackStackIndex(StackTopIndex);
-//		if(LastNode == null) {
-//			return Gamma.Generator.CreateEmptyNode(GtStaticTable.VoidType);
-//		}
-//		return LastNode.MoveHeadNode();
-//	}
 
 }

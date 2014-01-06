@@ -696,14 +696,14 @@ public class ZenGrammar {
 		if(!TokenContext.MatchToken("=")) {
 			return TokenContext.CreateExpectedErrorNode(SymbolToken, "=");
 		}
-		GtNode ValueNode = TokenContext.ParsePattern(NameSpace, "$Expression$", ZenParserConst.Required);
+		GtNode ValueNode = TokenContext.ParsePattern(NameSpace, "$Statement$", ZenParserConst.Required);
 		if(!ValueNode.IsErrorNode()) {
 			/*local*/String ConstName = SymbolToken.ParsedText;
 			if(ConstClass != null) {
 				ConstName = GtNameSpace.ClassStaticSymbol(ConstClass, ConstName);
 				SourceToken.AddTypeInfoToErrorMessage(ConstClass);
 			}
-			ValueNode = NameSpace.TypeCheck(ValueNode, NameSpace.GetSymbolType(ConstName), ZenParserConst.DefaultTypeCheckPolicy);
+//			ValueNode = NameSpace.TypeCheck(ValueNode, NameSpace.GetSymbolType(ConstName), ZenParserConst.DefaultTypeCheckPolicy);
 			GtConstNode ConstNode = ValueNode.ToConstNode(true);
 			if(!ConstNode.IsErrorNode()) {
 //				/*local*/int NameSpaceFlag = KonohaGrammar.ParseNameSpaceFlag(0, TokenContext.ParsingAnnotation);
