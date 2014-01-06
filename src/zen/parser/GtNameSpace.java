@@ -28,6 +28,7 @@ import java.util.ArrayList;
 
 import zen.ast.GtErrorNode;
 import zen.ast.GtNode;
+import zen.deps.ZenMap;
 import zen.deps.LibNative;
 import zen.deps.LibZen;
 import zen.obsolete.GtFuncBlock;
@@ -60,7 +61,7 @@ public final class GtNameSpace extends ZenUtils {
 	/*field*/public final GtGenerator		    Generator;
 
 	/*field*/GtTokenFunc[] TokenMatrix;
-	/*field*/GtMap	 SymbolPatternTable;
+	/*field*/ZenMap	 SymbolPatternTable;
 	/*field*/GtFuncBlock  FuncBlock;
 	
 	public GtNameSpace/*constructor*/(GtGenerator Generator, GtNameSpace ParentNameSpace) {
@@ -171,7 +172,7 @@ public final class GtNameSpace extends ZenUtils {
 
 	public final void SetSymbol(String Key, Object Value, GtToken SourceToken) {
 		if(this.SymbolPatternTable == null) {
-			this.SymbolPatternTable = new GtMap();
+			this.SymbolPatternTable = new ZenMap();
 		}
 		if(SourceToken != null) {
 			/*local*/Object OldValue = this.SymbolPatternTable.GetOrNull(Key);

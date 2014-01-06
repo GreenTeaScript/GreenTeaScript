@@ -27,6 +27,7 @@ package zen.parser;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import zen.deps.ZenMap;
 import zen.deps.ZenArray;
 import zen.deps.ZenEnum;
 import zen.deps.ZenObject;
@@ -36,10 +37,10 @@ import zen.obsolete.GtPolyFunc;
 
 public class ZenTypeSystem implements ZenParserConst {
 
-	/*field*/public final static GtMap               SourceMap = new GtMap();
+	/*field*/public final static ZenMap               SourceMap = new ZenMap();
 	/*field*/public final static ArrayList<String>   SourceList = new ArrayList<String>();
 
-	/*field*/public final static GtMap			    ClassNameMap = new GtMap();
+	/*field*/public final static ZenMap			    ClassNameMap = new ZenMap();
 	/*field*/public final static ArrayList<GtType>  TypePools = new ArrayList<GtType>();
 	/*field*/public final static ArrayList<GtFunc>  FuncPools = new ArrayList<GtFunc>();
 

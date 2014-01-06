@@ -28,6 +28,7 @@ import java.util.ArrayList;
 
 import zen.ast.GtErrorNode;
 import zen.ast.GtNode;
+import zen.deps.ZenMap;
 import zen.deps.LibNative;
 import zen.deps.LibZen;
 
@@ -40,7 +41,7 @@ public final class GtTokenContext extends ZenUtils {
 	/*field*/public long ParsingLine;
 	/*field*/public int  ParseFlag;
 	/*field*/private final ArrayList<Integer> ParserStack;
-	/*field*/public GtMap ParsingAnnotation;
+	/*field*/public ZenMap ParsingAnnotation;
 	/*field*/public GtToken LatestToken;
 	/*field*/public int IndentLevel = 0;
 
@@ -424,7 +425,7 @@ public final class GtTokenContext extends ZenUtils {
 	}
 
 	
-	public final GtMap SkipAndGetAnnotation(boolean IsAllowedDelim) {
+	public final ZenMap SkipAndGetAnnotation(boolean IsAllowedDelim) {
 		// this is tentative implementation. In the future, you have to
 		// use this pattern.
 		this.ParsingAnnotation = null;
@@ -432,7 +433,7 @@ public final class GtTokenContext extends ZenUtils {
 		while(this.MatchToken("@")) {
 			/*local*/GtToken Token = this.Next();
 			if(this.ParsingAnnotation == null) {
-				this.ParsingAnnotation = new GtMap();
+				this.ParsingAnnotation = new ZenMap();
 			}
 			this.ParsingAnnotation.put(Token.ParsedText, true);
 			this.SkipIndent();

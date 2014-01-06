@@ -40,7 +40,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import zen.parser.GtFunc;
-import zen.parser.GtMap;
 import zen.parser.GtSourceBuilder;
 import zen.parser.ZenTypeSystem;
 import zen.parser.GtType;
@@ -470,7 +469,7 @@ public abstract class LibZen {
 		return Tuple;
 	}
 
-	public static void RetrieveMapKeys(GtMap Map, String Prefix, ArrayList<String> List) {
+	public static void RetrieveMapKeys(ZenMap Map, String Prefix, ArrayList<String> List) {
 		/*local*/Iterator<String> itr = Map.key_iterator();
 		/*local*/int i = 0;
 		while(itr.hasNext()) {
