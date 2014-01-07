@@ -80,12 +80,6 @@ public interface ZenParserConst {
 	public final static int     AllowSkipIndent    = (1 << 4);
 	public final static int     DisallowSkipIndent   = (1 << 5);
 
-		
-	public final static int		ErrorLevel						= 0;
-	public final static int     TypeErrorLevel                  = 1;
-	public final static int		WarningLevel					= 2;
-	public final static int		InfoLevel					    = 3;
-
 	public final static int	NullChar				= 0;
 	public final static int	UndefinedChar			= 1;
 	public final static int	DigitChar				= 2;
@@ -201,19 +195,6 @@ public interface ZenParserConst {
 	public final static String NativeNameSuffix = "__";
 
 	public final static boolean UseLangStat = true;
-
-	public final static int VerboseSymbol    = 1;
-	public final static int VerboseType      = (1 << 1);
-	public final static int VerboseFunc      = (1 << 2);
-	public final static int VerboseEval      = (1 << 3);
-	public final static int VerboseToken     = (1 << 4);
-	public final static int VerboseUndefined   = (1 << 5);
-
-	public final static int VerboseNative    = (1 << 6);
-	public final static int VerboseFile      = (1 << 7);
-	public final static int VerboseException = (1 << 8);
-
-	public final static int VerboseRuntime   = (1 << 9);
 
 	public final static boolean DebugVisitor = true;
 /*GreenTeaConst End*/

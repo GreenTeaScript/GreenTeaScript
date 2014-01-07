@@ -225,8 +225,179 @@ public class ZenEvaluator implements ZenVisitor {
 		// TODO Auto-generated method stub
 		return false;
 	}
+	
+//	public static Object EvalUnary(ZenType Type, String Operator, Object Value) {
+//		if(Value instanceof Boolean) {
+//			if(Operator.equals("!") || Operator.equals("not")) {
+//				return DynamicCast(Type, !((Boolean)Value).booleanValue());
+//			}
+//			return null;
+//		}
+//		if(Value instanceof Long || Value instanceof Integer  || Value instanceof Short) {
+//			if(Operator.equals("-")) {
+//				return DynamicCast(Type, -((Number)Value).longValue());
+//			}
+//			if(Operator.equals("+")) {
+//				return DynamicCast(Type, +((Number)Value).longValue());
+//			}
+//			if(Operator.equals("~")) {
+//				return DynamicCast(Type, ~((Number)Value).longValue());
+//			}
+//			return null;
+//		}
+//		return null;
+//	}
+//
+//	public static Object EvalSuffix(ZenType Type, Object Value, String Operator) {
+//		return null;
+//	}
 
-	@Override
+//	public static Object EvalBinary(ZenType Type, Object LeftValue, String Operator, Object RightValue) {
+//		//System.err.println("***" + LeftValue.getClass() + ", " + RightValue.getClass());
+//		if(LeftValue == null || RightValue == null) {
+//			return null;
+//		}
+//		if(LeftValue instanceof String || RightValue instanceof String) {
+//			String left = DynamicCast(ZenSystem.StringType, LeftValue).toString();
+//			String right = DynamicCast(ZenSystem.StringType, RightValue).toString();
+//			if(Operator.equals("+")) {
+//				return  DynamicCast(Type, left + right);
+//			}
+//		}
+//		if(LeftValue instanceof String && RightValue instanceof String) {
+//			String left = DynamicCast(ZenSystem.StringType, LeftValue).toString();
+//			String right = DynamicCast(ZenSystem.StringType, RightValue).toString();
+//			if(Operator.equals("==")) {
+//				return  DynamicCast(Type, left.equals(right));
+//			}
+//			if(Operator.equals("!=")) {
+//				return DynamicCast(Type, !left.equals(right));
+//			}
+//			if(Operator.equals("<")) {
+//				return DynamicCast(Type, left.compareTo(right) < 0);
+//			}
+//			if(Operator.equals("<=")) {
+//				return DynamicCast(Type, left.compareTo(right) <= 0);
+//			}
+//			if(Operator.equals(">")) {
+//				return DynamicCast(Type, left.compareTo(right) > 0);
+//			}
+//			if(Operator.equals(">=")) {
+//				return DynamicCast(Type, left.compareTo(right) >= 0);
+//			}
+//			return null;
+//		}
+//		if(LeftValue instanceof Double || LeftValue instanceof Float || RightValue instanceof Double || RightValue instanceof Float) {
+//			try {
+//				double left = ((Number)LeftValue).doubleValue();
+//				double right = ((Number)RightValue).doubleValue();
+//				if(Operator.equals("+")) {
+//					return DynamicCast(Type, left + right);
+//				}
+//				if(Operator.equals("-")) {
+//					return DynamicCast(Type, left - right);
+//				}
+//				if(Operator.equals("*")) {
+//					return DynamicCast(Type, left * right);
+//				}
+//				if(Operator.equals("/")) {
+//					return DynamicCast(Type, left / right);
+//				}
+//				if(Operator.equals("%") || Operator.equals("mod")) {
+//					return DynamicCast(Type, left % right);
+//				}
+//				if(Operator.equals("==")) {
+//					return DynamicCast(Type, left == right);
+//				}
+//				if(Operator.equals("!=")) {
+//					return DynamicCast(Type, left != right);
+//				}
+//				if(Operator.equals("<")) {
+//					return DynamicCast(Type, left < right);
+//				}
+//				if(Operator.equals("<=")) {
+//					return DynamicCast(Type, left <= right);
+//				}
+//				if(Operator.equals(">")) {
+//					return DynamicCast(Type, left > right);
+//				}
+//				if(Operator.equals(">=")) {
+//					return DynamicCast(Type, left >= right);
+//				}
+//			}
+//			catch(ClassCastException e) {
+//			}
+//			return null;
+//		}
+//		if(LeftValue instanceof Boolean && RightValue instanceof Boolean) {
+//			boolean left = (Boolean)LeftValue;
+//			boolean right = (Boolean)RightValue;
+//			if(Operator.equals("==")) {
+//				return DynamicCast(Type, left == right);
+//			}
+//			if(Operator.equals("!=")) {
+//				return DynamicCast(Type, left != right);
+//			}
+//			return null;
+//		}
+//		try {
+//			long left = ((Number)LeftValue).longValue();
+//			long right = ((Number)RightValue).longValue();
+//			if(Operator.equals("+")) {
+//				return DynamicCast(Type, left + right);
+//			}
+//			if(Operator.equals("-")) {
+//				return DynamicCast(Type, left - right);
+//			}
+//			if(Operator.equals("*")) {
+//				return DynamicCast(Type, left * right);
+//			}
+//			if(Operator.equals("/")) {
+//				return DynamicCast(Type, left / right);
+//			}
+//			if(Operator.equals("%") || Operator.equals("mod")) {
+//				return DynamicCast(Type, left % right);
+//			}
+//			if(Operator.equals("==")) {
+//				return DynamicCast(Type, left == right);
+//			}
+//			if(Operator.equals("!=")) {
+//				return DynamicCast(Type, left != right);
+//			}
+//			if(Operator.equals("<")) {
+//				return DynamicCast(Type, left < right);
+//			}
+//			if(Operator.equals("<=")) {
+//				return DynamicCast(Type, left <= right);
+//			}
+//			if(Operator.equals(">")) {
+//				return DynamicCast(Type, left > right);
+//			}
+//			if(Operator.equals(">=")) {
+//				return DynamicCast(Type, left >= right);
+//			}
+//			if(Operator.equals("|")) {
+//				return DynamicCast(Type, left | right);
+//			}
+//			if(Operator.equals("&")) {
+//				return DynamicCast(Type, left & right);
+//			}
+//			if(Operator.equals("<<")) {
+//				return DynamicCast(Type, left << right);
+//			}
+//			if(Operator.equals(">>")) {
+//				return DynamicCast(Type, left >> right);
+//			}
+//			if(Operator.equals("^")) {
+//				return DynamicCast(Type, left ^ right);
+//			}
+//		}
+//		catch(ClassCastException e) {
+//		}
+//		return null;
+//	}
+
+	@Override 
 	public boolean VisitUnaryNode(GtUnaryNode Node) {
 //		@Override public Object Eval(GtNameSpace NameSpace, boolean EnforceConst)  {
 //			/*local*/Object Value = this.RecvNode.Eval(NameSpace, EnforceConst) ;

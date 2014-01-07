@@ -31,6 +31,7 @@ import zen.deps.LibNative;
 import zen.deps.LibZen;
 import zen.lang.ZenGrammar;
 import zen.lang.ZenSystem;
+import zen.parser.ZenLogger;
 import zen.parser.ZenParserConst;
 import zen.parser.GtGenerator;
 import zen.parser.ZenUtils;
@@ -80,38 +81,38 @@ public class ZenMain extends ZenUtils {
 			}
 			if(LibZen.EqualsString(Argu, "--verbose")) {
 				LibZen.DebugMode = true;
-				LibZen.VerboseMask |= (ZenParserConst.VerboseFile|ZenParserConst.VerboseSymbol|ZenParserConst.VerboseNative);
+				ZenLogger.VerboseMask |= (ZenLogger.VerboseFile|ZenLogger.VerboseSymbol|ZenLogger.VerboseNative);
 				continue;
 			}
 			if(LibZen.EqualsString(Argu, "--verbose:token")) {
-				LibZen.VerboseMask |= ZenParserConst.VerboseToken;
+				ZenLogger.VerboseMask |= ZenLogger.VerboseToken;
 				continue;
 			}
 			if(LibZen.EqualsString(Argu, "--verbose:type")) {
-				LibZen.VerboseMask |= ZenParserConst.VerboseType;
+				ZenLogger.VerboseMask |= ZenLogger.VerboseType;
 				continue;
 			}
 			if(LibZen.EqualsString(Argu, "--verbose:symbol")) {
-				LibZen.VerboseMask |= ZenParserConst.VerboseSymbol;
+				ZenLogger.VerboseMask |= ZenLogger.VerboseSymbol;
 				continue;
 			}
 			if(LibZen.EqualsString(Argu, "--verbose:native")) {
-				LibZen.VerboseMask |= ZenParserConst.VerboseNative;
+				ZenLogger.VerboseMask |= ZenLogger.VerboseNative;
 				continue;
 			}
 			if(LibZen.EqualsString(Argu, "--verbose:func")) {
-				LibZen.VerboseMask |= ZenParserConst.VerboseFunc;
+				ZenLogger.VerboseMask |= ZenLogger.VerboseFunc;
 				continue;
 			}
 			if(LibZen.EqualsString(Argu, "--verbose:all")) {
-				LibZen.VerboseMask = -1;
+				ZenLogger.VerboseMask = -1;
 				continue;
 			}
 			if(LibZen.EqualsString(Argu, "--verbose:no")) {
-				LibZen.VerboseMask = 0;
+				ZenLogger.VerboseMask = 0;
 				continue;
 			}
-			LibZen.Usage(Argu + " is unknown");
+			ZenMain.Usage(Argu + " is unknown");
 		}
 		/*local*/GtGenerator Generator = LibNative.LoadGenerator(TargetCode, OutputFile);
 		LibNative.ImportGrammar(Generator.RootNameSpace, ZenGrammar.class.getName());
@@ -185,5 +186,63 @@ public class ZenMain extends ZenUtils {
 		//		catch(SoftwareFaultException e) {
 		//			System.err.println(e.GetStackTrace());
 		//		}
+	}
+
+	public final static void Usage(String Message) {
+		System.out.println("greentea usage :");
+		System.out.println("  --lang|-l LANG        Set Target Language");
+		System.out.println("      bash                Bash");
+		System.out.println("      C C99               C99");
+		System.out.println("      CSharp              CSharp");
+		System.out.println("      java java7 java8    Java");
+		System.out.println("      javascript js       JavaScript");
+		System.out.println("      lua                 Lua");
+		System.out.println("      haxe                Haxe");
+		System.out.println("      ocaml               OCaml");
+		System.out.println("      perl                Perl");
+		System.out.println("      python              Python");
+		System.out.println("      R                   R");
+		System.out.println("      ruby                Ruby");
+		System.out.println("      typescript ts       TypeScript");
+		System.out.println("");
+		System.out.println("  --out|-o  FILE        Output filename");
+		System.out.println("  --eval|-e EXPR        Program passed in as string");
+		System.out.println("  --require|-r LIBRARY     Load the library");
+		System.out.println("  --verbose             Printing Debug infomation");
+		System.out.println("     --verbose:token      adding token info");
+		System.out.println("     --verbose:type       adding type info");
+		System.out.println("     --verbose:symbol     adding symbol info");
+		System.out.println("     --verbose:native     adding native class info");
+		System.out.println("     --verbose:all        adding all info");
+		System.out.println("     --verbose:no         no log");
+		LibNative.Exit(0, Message);
+	}
+
+	public final static String DetectTargetCode(String Extension, String TargetCode) {
+		if(Extension.endsWith(".js")) {
+			return "js";
+		}
+		else if(Extension.endsWith(".pl")) {
+			return "perl";
+		}
+		else if(Extension.endsWith(".py")) {
+			return "python";
+		}
+		else if(Extension.endsWith(".sh")) {
+			return "bash";
+		}
+		else if(Extension.endsWith(".scala")) {
+			return "scala";
+		}
+		else if(Extension.endsWith(".cs")) {
+			return "cs";
+		}
+		else if(TargetCode.startsWith("X")) {
+			return "exe";
+		}
+		else if(Extension.endsWith(".c")) {
+			return "c";
+		}
+		return TargetCode;
 	}
 }

@@ -29,6 +29,7 @@ import java.lang.reflect.Method;
 
 import zen.lang.ZenType;
 import zen.lang.ZenFunc;
+import zen.parser.ZenLogger;
 
 public class ZenNativeFunc extends ZenFunc {
 	/*field*/public Object Recv;
@@ -45,13 +46,13 @@ public class ZenNativeFunc extends ZenFunc {
 			return (this.JMethod).invoke(this.Recv, Params);
 		}
 		catch (InvocationTargetException e) {
-			LibZen.VerboseException(e);
+			ZenLogger.VerboseException(e);
 		}
 		catch (IllegalArgumentException e) {
-			LibZen.VerboseException(e);
+			ZenLogger.VerboseException(e);
 		}
 		catch (IllegalAccessException e) {
-			LibZen.VerboseException(e);
+			ZenLogger.VerboseException(e);
 		}
 		return null;
 	}

@@ -34,7 +34,7 @@ public final class GtSyntaxPattern extends ZenUtils {
 	/*field*/public GtNameSpace	          PackageNameSpace;
 	/*field*/public String		          PatternName;
 	/*field*/public int				      SyntaxFlag;
-	/*field*/public ZenFunc                MatchFunc;
+	/*field*/public ZenFunc               MatchFunc;
 	/*field*/public GtSyntaxPattern	      ParentPattern;
 
 	GtSyntaxPattern/*constructor*/(GtNameSpace NameSpace, String PatternName, ZenFunc MatchFunc) {
@@ -63,6 +63,13 @@ public final class GtSyntaxPattern extends ZenUtils {
 		return LibZen.EqualsString(this.PatternName, Name);
 	}
 	
+	public final static GtSyntaxPattern MergeSyntaxPattern(GtSyntaxPattern Pattern, GtSyntaxPattern Parent) {
+		if(Parent == null) return Pattern;
+		/*local*/GtSyntaxPattern MergedPattern = new GtSyntaxPattern(Pattern.PackageNameSpace, Pattern.PatternName, Pattern.MatchFunc);
+		MergedPattern.ParentPattern = Parent;
+		return MergedPattern;
+	}
+
 	public final static GtNode ApplyMatchPattern(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode, GtSyntaxPattern Pattern) {
 		/*local*/int Pos = TokenContext.GetPosition(0);
 		/*local*/int ParseFlag = TokenContext.ParseFlag;
@@ -94,7 +101,7 @@ public final class GtSyntaxPattern extends ZenUtils {
 			TokenContext.SkipErrorStatement();
 		}
 		if(Pattern == null) {
-			LibZen.VerboseLog(VerboseUndefined, "undefined syntax pattern: " + Pattern);
+			ZenLogger.VerboseLog(ZenLogger.VerboseUndefined, "undefined syntax pattern: " + Pattern);
 		}
 		if(TokenContext.IsAllowedBackTrack()) {
 			return null;

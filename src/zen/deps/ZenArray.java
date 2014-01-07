@@ -31,8 +31,8 @@ import zen.lang.ZenType;
 
 public class ZenArray extends ZenTopObject {
 	public ArrayList<Object> ArrayBody ;
-	public ZenArray(ZenType GreenType) {
-		super(GreenType);
+	public ZenArray(ZenType ZType) {
+		super(ZType);
 		this.ArrayBody = new ArrayList<Object>();
 	}
 	public ZenArray SubArray(int bindex, int eindex) {

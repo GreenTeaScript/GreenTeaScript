@@ -45,7 +45,7 @@ import zen.parser.GtGenerator;
 import zen.parser.GtNameSpace;
 import zen.parser.GtSourceGenerator;
 import zen.parser.GtTokenContext;
-import zen.parser.ZenUtils;
+import zen.parser.ZenLogger;
 import zen.parser.ZenVisitor;
 
 public class LibNative {
@@ -68,7 +68,7 @@ public class LibNative {
 			//			DebugP("** creating native class: " + NativeClass.getSimpleName() + ", " + NativeClass.getCanonicalName());
 			NativeType = new ZenNativeType(NativeClass);
 			ZenSystem.SetTypeTable(NativeClass.getCanonicalName(), NativeType);
-			LibZen.VerboseLog(ZenUtils.VerboseNative, "creating native class: " + NativeClass.getSimpleName() + ", " + NativeClass.getCanonicalName());
+			ZenLogger.VerboseLog(ZenLogger.VerboseNative, "creating native class: " + NativeClass.getSimpleName() + ", " + NativeClass.getCanonicalName());
 		}
 		return NativeType;
 	}
@@ -402,7 +402,7 @@ public class LibNative {
 			return LibNative.ConvertNativeMethodToFunc(JavaMethod);
 		}
 		catch(NoSuchMethodException e) {
-			LibZen.VerboseException(e);
+			ZenLogger.VerboseException(e);
 			LibNative.Exit(1, e.toString());
 		}
 		return null;
@@ -414,7 +414,7 @@ public class LibNative {
 			return LibNative.ConvertNativeMethodToFunc(JavaMethod);
 		}
 		catch(NoSuchMethodException e) {
-			LibZen.VerboseException(e);
+			ZenLogger.VerboseException(e);
 			LibNative.Exit(1, e.toString());
 		}
 		return null;
@@ -506,7 +506,7 @@ public class LibNative {
 		}
 		catch(Exception e) {
 		}
-		return new GtSourceGenerator("konoha", "0.1");
+		return new GtSourceGenerator("zen", "0.1");
 	}
 
 	public final static void Exit(int status, String Message) {
@@ -515,7 +515,7 @@ public class LibNative {
 	}
 
 	public final static String LoadScript(String FileName) {
-		LibZen.VerboseLog(ZenUtils.VerboseFile, "loading " + FileName);
+		ZenLogger.VerboseLog(ZenLogger.VerboseFile, "loading " + FileName);
 		InputStream Stream = LibZen.class.getResourceAsStream("/" + FileName);
 		if(Stream == null) {
 			File f = new File(LibZen.FormatFilePath(FileName));

@@ -103,6 +103,10 @@ final public class GtToken extends ZenUtils {
 		this.ParsedText += " of " + ClassType.ShortName;
 		return this;
 	}
+
+	public final boolean IsNull() {
+		return (this == GtTokenContext.NullToken);
+	}
 	
 }
 

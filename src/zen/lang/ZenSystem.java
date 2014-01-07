@@ -33,7 +33,7 @@ import zen.deps.ZenMap;
 import zen.deps.ZenObject;
 import zen.obsolete.GtPolyFunc;
 import zen.parser.GtNameSpace;
-import zen.parser.ZenParserConst;
+import zen.parser.ZenLogger;
 
 public class ZenSystem implements ZenTypeConst {
 
@@ -157,7 +157,7 @@ public class ZenSystem implements ZenTypeConst {
 
 	public final static void SetTypeTable(String Key, ZenType Type) {
 		ZenSystem.ClassNameMap.put(Key, Type);
-		LibZen.VerboseLog(ZenParserConst.VerboseSymbol, "global type name: " + Key + ", " + Type);
+		ZenLogger.VerboseLog(ZenLogger.VerboseSymbol, "global type name: " + Key + ", " + Type);
 	}
 
 

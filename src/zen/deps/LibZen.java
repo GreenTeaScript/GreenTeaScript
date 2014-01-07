@@ -33,15 +33,14 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.Writer;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import zen.lang.ZenSystem;
 import zen.lang.ZenType;
 import zen.parser.GtSourceBuilder;
+import zen.parser.ZenLogger;
 import zen.parser.ZenUtils;
 
 public abstract class LibZen {
@@ -121,7 +120,7 @@ public abstract class LibZen {
 
 	public static boolean DebugMode = false;
 
-	private final static String GetStackInfo(int depth) {
+	public final static String GetStackInfo(int depth) {
 		String LineNumber = " ";
 		Exception e =  new Exception();
 		StackTraceElement[] Elements = e.getStackTrace();
@@ -132,41 +131,10 @@ public abstract class LibZen {
 		return LineNumber;
 	}
 
-	public final static void TODO(String msg) {
-		LibNative.println("TODO" + LibZen.GetStackInfo(2) + ": " + msg);
-	}
-
 	public final static void DebugP(String msg) {
 		if(LibZen.DebugMode) {
 			LibNative.println("DEBUG" + LibZen.GetStackInfo(2) + ": " + msg);
 		}
-	}
-
-	public static int VerboseMask = ZenUtils.VerboseUndefined | ZenUtils.VerboseException;
-
-	public final static void VerboseLog(int VerboseFlag, String Message) {
-		if((LibZen.VerboseMask & VerboseFlag) == VerboseFlag) {
-			LibNative.println("GreenTea: " + Message);
-		}
-	}
-
-	public final static void VerboseException(Throwable e) {
-		if(e instanceof InvocationTargetException) {
-			Throwable cause = e.getCause();
-			e = cause;
-			if(cause instanceof RuntimeException) {
-				throw (RuntimeException)cause;
-			}
-			if(cause instanceof Error) {
-				throw (Error)cause;
-			}
-		}
-		LibZen.VerboseLog(ZenUtils.VerboseException, e.toString());
-		e.printStackTrace();
-		if(e instanceof IllegalArgumentException) {
-			LibNative.Exit(1, e.toString());
-		}
-		
 	}
 
 	private static int ParserCount = -1;
@@ -337,7 +305,7 @@ public abstract class LibZen {
 			return Long.parseLong(Text);
 		}
 		catch(NumberFormatException e) {
-			LibZen.VerboseException(e);
+			ZenLogger.VerboseException(e);
 		}
 		return 0L;
 	}
@@ -347,7 +315,7 @@ public abstract class LibZen {
 			return Double.parseDouble(Text);
 		}
 		catch(NumberFormatException e) {
-			LibZen.VerboseException(e);
+			ZenLogger.VerboseException(e);
 		}
 		return 0.0;
 	}	
@@ -383,9 +351,9 @@ public abstract class LibZen {
 //			Class<?> NativeType = NativeField.getType();
 			return NativeField.get(ObjectValue);
 		} catch (IllegalAccessException e) {
-			LibZen.VerboseException(e);
+			ZenLogger.VerboseException(e);
 		} catch (SecurityException e) {
-			LibZen.VerboseException(e);
+			ZenLogger.VerboseException(e);
 		}
 		return null;
 	}
@@ -394,9 +362,9 @@ public abstract class LibZen {
 		try {
 			NativeField.set(ObjectValue, Value);
 		} catch (IllegalAccessException e) {
-			LibZen.VerboseException(e);
+			ZenLogger.VerboseException(e);
 		} catch (SecurityException e) {
-			LibZen.VerboseException(e);
+			ZenLogger.VerboseException(e);
 		}
 		return Value;
 	}
@@ -411,7 +379,7 @@ public abstract class LibZen {
 					return methods[i];
 				}
 			}
-			LibZen.VerboseLog(ZenUtils.VerboseUndefined, "undefined method: " + Callee.getClass().getSimpleName() + "." + FuncName);
+			ZenLogger.VerboseLog(ZenLogger.VerboseUndefined, "undefined method: " + Callee.getClass().getSimpleName() + "." + FuncName);
 		}
 		return null;
 	}
@@ -453,64 +421,6 @@ public abstract class LibZen {
 			List.add(Key);
 			i = i + 1;
 		}
-	}
-
-	public final static void Usage(String Message) {
-		System.out.println("greentea usage :");
-		System.out.println("  --lang|-l LANG        Set Target Language");
-		System.out.println("      bash                Bash");
-		System.out.println("      C C99               C99");
-		System.out.println("      CSharp              CSharp");
-		System.out.println("      java java7 java8    Java");
-		System.out.println("      javascript js       JavaScript");
-		System.out.println("      lua                 Lua");
-		System.out.println("      haxe                Haxe");
-		System.out.println("      ocaml               OCaml");
-		System.out.println("      perl                Perl");
-		System.out.println("      python              Python");
-		System.out.println("      R                   R");
-		System.out.println("      ruby                Ruby");
-		System.out.println("      typescript ts       TypeScript");
-		System.out.println("");
-		System.out.println("  --out|-o  FILE        Output filename");
-		System.out.println("  --eval|-e EXPR        Program passed in as string");
-		System.out.println("  --require|-r LIBRARY     Load the library");
-		System.out.println("  --verbose             Printing Debug infomation");
-		System.out.println("     --verbose:token      adding token info");
-		System.out.println("     --verbose:type       adding type info");
-		System.out.println("     --verbose:symbol     adding symbol info");
-		System.out.println("     --verbose:native     adding native class info");
-		System.out.println("     --verbose:all        adding all info");
-		System.out.println("     --verbose:no         no log");
-		LibNative.Exit(0, Message);
-	}
-
-	public final static String DetectTargetCode(String Extension, String TargetCode) {
-		if(Extension.endsWith(".js")) {
-			return "js";
-		}
-		else if(Extension.endsWith(".pl")) {
-			return "perl";
-		}
-		else if(Extension.endsWith(".py")) {
-			return "python";
-		}
-		else if(Extension.endsWith(".sh")) {
-			return "bash";
-		}
-		else if(Extension.endsWith(".scala")) {
-			return "scala";
-		}
-		else if(Extension.endsWith(".cs")) {
-			return "cs";
-		}
-		else if(TargetCode.startsWith("X")) {
-			return "exe";
-		}
-		else if(Extension.endsWith(".c")) {
-			return "c";
-		}
-		return TargetCode;
 	}
 
 	@Deprecated public final static void WriteCode(String OutputFile, String SourceCode) {
@@ -697,26 +607,26 @@ public abstract class LibZen {
 		return ((Boolean)Value).booleanValue();
 	}
 	
-	public static Object DynamicCast(ZenType CastType, Object Value) {
-		if(Value != null) {
-			ZenType FromType = ZenSystem.GuessType(Value);
-			if(CastType == FromType || CastType.Accept(FromType)) {
-				return Value;
-			}
-		}
-		return null;
-	}
-
-	public static boolean DynamicInstanceOf(Object Value, ZenType Type) {
-		if(Value != null) {
-			ZenType ValueType = ZenSystem.GuessType(Value);
-			if(ValueType == Type || Type.Accept(ValueType)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
+//	public static Object DynamicCast(ZenType CastType, Object Value) {
+//		if(Value != null) {
+//			ZenType FromType = ZenSystem.GuessType(Value);
+//			if(CastType == FromType || CastType.Accept(FromType)) {
+//				return Value;
+//			}
+//		}
+//		return null;
+//	}
+//
+//	public static boolean DynamicInstanceOf(Object Value, ZenType Type) {
+//		if(Value != null) {
+//			ZenType ValueType = ZenSystem.GuessType(Value);
+//			if(ValueType == Type || Type.Accept(ValueType)) {
+//				return true;
+//			}
+//		}
+//		return false;
+//	}
+//
 //	public final static Object DynamicConvertTo(GtType CastType, Object Value) {
 //		if(Value != null) {
 //			GtType ValueType = ZenTypeSystem.GuessType(Value);
@@ -733,177 +643,6 @@ public abstract class LibZen {
 //		}
 //		return null;
 //	}
-	
-	public static Object EvalUnary(ZenType Type, String Operator, Object Value) {
-		if(Value instanceof Boolean) {
-			if(Operator.equals("!") || Operator.equals("not")) {
-				return DynamicCast(Type, !((Boolean)Value).booleanValue());
-			}
-			return null;
-		}
-		if(Value instanceof Long || Value instanceof Integer  || Value instanceof Short) {
-			if(Operator.equals("-")) {
-				return DynamicCast(Type, -((Number)Value).longValue());
-			}
-			if(Operator.equals("+")) {
-				return DynamicCast(Type, +((Number)Value).longValue());
-			}
-			if(Operator.equals("~")) {
-				return DynamicCast(Type, ~((Number)Value).longValue());
-			}
-			return null;
-		}
-		return null;
-	}
-
-	public static Object EvalSuffix(ZenType Type, Object Value, String Operator) {
-		return null;
-	}
-
-	public static Object EvalBinary(ZenType Type, Object LeftValue, String Operator, Object RightValue) {
-		//System.err.println("***" + LeftValue.getClass() + ", " + RightValue.getClass());
-		if(LeftValue == null || RightValue == null) {
-			return null;
-		}
-		if(LeftValue instanceof String || RightValue instanceof String) {
-			String left = DynamicCast(ZenSystem.StringType, LeftValue).toString();
-			String right = DynamicCast(ZenSystem.StringType, RightValue).toString();
-			if(Operator.equals("+")) {
-				return  DynamicCast(Type, left + right);
-			}
-		}
-		if(LeftValue instanceof String && RightValue instanceof String) {
-			String left = DynamicCast(ZenSystem.StringType, LeftValue).toString();
-			String right = DynamicCast(ZenSystem.StringType, RightValue).toString();
-			if(Operator.equals("==")) {
-				return  DynamicCast(Type, left.equals(right));
-			}
-			if(Operator.equals("!=")) {
-				return DynamicCast(Type, !left.equals(right));
-			}
-			if(Operator.equals("<")) {
-				return DynamicCast(Type, left.compareTo(right) < 0);
-			}
-			if(Operator.equals("<=")) {
-				return DynamicCast(Type, left.compareTo(right) <= 0);
-			}
-			if(Operator.equals(">")) {
-				return DynamicCast(Type, left.compareTo(right) > 0);
-			}
-			if(Operator.equals(">=")) {
-				return DynamicCast(Type, left.compareTo(right) >= 0);
-			}
-			return null;
-		}
-		if(LeftValue instanceof Double || LeftValue instanceof Float || RightValue instanceof Double || RightValue instanceof Float) {
-			try {
-				double left = ((Number)LeftValue).doubleValue();
-				double right = ((Number)RightValue).doubleValue();
-				if(Operator.equals("+")) {
-					return DynamicCast(Type, left + right);
-				}
-				if(Operator.equals("-")) {
-					return DynamicCast(Type, left - right);
-				}
-				if(Operator.equals("*")) {
-					return DynamicCast(Type, left * right);
-				}
-				if(Operator.equals("/")) {
-					return DynamicCast(Type, left / right);
-				}
-				if(Operator.equals("%") || Operator.equals("mod")) {
-					return DynamicCast(Type, left % right);
-				}
-				if(Operator.equals("==")) {
-					return DynamicCast(Type, left == right);
-				}
-				if(Operator.equals("!=")) {
-					return DynamicCast(Type, left != right);
-				}
-				if(Operator.equals("<")) {
-					return DynamicCast(Type, left < right);
-				}
-				if(Operator.equals("<=")) {
-					return DynamicCast(Type, left <= right);
-				}
-				if(Operator.equals(">")) {
-					return DynamicCast(Type, left > right);
-				}
-				if(Operator.equals(">=")) {
-					return DynamicCast(Type, left >= right);
-				}
-			}
-			catch(ClassCastException e) {
-			}
-			return null;
-		}
-		if(LeftValue instanceof Boolean && RightValue instanceof Boolean) {
-			boolean left = (Boolean)LeftValue;
-			boolean right = (Boolean)RightValue;
-			if(Operator.equals("==")) {
-				return DynamicCast(Type, left == right);
-			}
-			if(Operator.equals("!=")) {
-				return DynamicCast(Type, left != right);
-			}
-			return null;
-		}
-		try {
-			long left = ((Number)LeftValue).longValue();
-			long right = ((Number)RightValue).longValue();
-			if(Operator.equals("+")) {
-				return DynamicCast(Type, left + right);
-			}
-			if(Operator.equals("-")) {
-				return DynamicCast(Type, left - right);
-			}
-			if(Operator.equals("*")) {
-				return DynamicCast(Type, left * right);
-			}
-			if(Operator.equals("/")) {
-				return DynamicCast(Type, left / right);
-			}
-			if(Operator.equals("%") || Operator.equals("mod")) {
-				return DynamicCast(Type, left % right);
-			}
-			if(Operator.equals("==")) {
-				return DynamicCast(Type, left == right);
-			}
-			if(Operator.equals("!=")) {
-				return DynamicCast(Type, left != right);
-			}
-			if(Operator.equals("<")) {
-				return DynamicCast(Type, left < right);
-			}
-			if(Operator.equals("<=")) {
-				return DynamicCast(Type, left <= right);
-			}
-			if(Operator.equals(">")) {
-				return DynamicCast(Type, left > right);
-			}
-			if(Operator.equals(">=")) {
-				return DynamicCast(Type, left >= right);
-			}
-			if(Operator.equals("|")) {
-				return DynamicCast(Type, left | right);
-			}
-			if(Operator.equals("&")) {
-				return DynamicCast(Type, left & right);
-			}
-			if(Operator.equals("<<")) {
-				return DynamicCast(Type, left << right);
-			}
-			if(Operator.equals(">>")) {
-				return DynamicCast(Type, left >> right);
-			}
-			if(Operator.equals("^")) {
-				return DynamicCast(Type, left ^ right);
-			}
-		}
-		catch(ClassCastException e) {
-		}
-		return null;
-	}
 
 //	public static boolean ImportMethodToFunc(ZenFunc Func, String FullName) {
 //		Method JavaMethod = LibNative.ImportMethod(Func.GetFuncType(), FullName, false);

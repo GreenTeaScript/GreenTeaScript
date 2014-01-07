@@ -37,20 +37,6 @@ import zen.obsolete.GtFuncBlock;
 import zen.obsolete.GtPolyFunc;
 //endif VAJA
 
-final class GtTokenFunc {
-	/*field*/public ZenFunc      Func;
-	/*field*/public GtTokenFunc	ParentFunc;
-
-	GtTokenFunc/*constructor*/(ZenFunc Func, GtTokenFunc Parent) {
-		this.Func = Func;
-		this.ParentFunc = Parent;
-	}
-
-	@Override public String toString() {
-		return this.Func.toString();
-	}
-}
-
 final class GtSymbolSource {
 	/*field*/public GtToken SourceToken;
 	/*field*/public ZenType  Type; // nullable
@@ -62,7 +48,7 @@ public final class GtNameSpace extends ZenUtils {
 	/*field*/public final GtNameSpace   ParentNameSpace;
 	/*field*/public final GtGenerator		    Generator;
 
-	/*field*/GtTokenFunc[] TokenMatrix;
+	/*field*/ZenTokenFunc[] TokenMatrix;
 	/*field*/ZenMap	 SymbolPatternTable;
 	/*field*/GtFuncBlock  FuncBlock;
 	
@@ -103,24 +89,24 @@ public final class GtNameSpace extends ZenUtils {
 	
 	// TokenMatrix 
 	
-	public final GtTokenFunc GetTokenFunc(int GtChar2) {
+	public final ZenTokenFunc GetTokenFunc(int GtChar2) {
 		if(this.TokenMatrix == null) {
 			return this.ParentNameSpace.GetTokenFunc(GtChar2);
 		}
 		return this.TokenMatrix[GtChar2];
 	}
 
-	private final GtTokenFunc JoinParentFunc(ZenFunc Func, GtTokenFunc Parent) {
+	private final ZenTokenFunc JoinParentFunc(ZenFunc Func, ZenTokenFunc Parent) {
 		if(Parent != null && Parent.Func == Func) {
 			return Parent;
 		}
-		return new GtTokenFunc(Func, Parent);
+		return new ZenTokenFunc(Func, Parent);
 	}
 
 	public final void AppendTokenFunc(String keys, ZenFunc TokenFunc) {
 		/*local*/int i = 0;
 		if(this.TokenMatrix == null) {
-			this.TokenMatrix = new GtTokenFunc[MaxSizeOfChars];
+			this.TokenMatrix = new ZenTokenFunc[MaxSizeOfChars];
 			if(this.ParentNameSpace != null) {
 				while(i < MaxSizeOfChars) {
 					this.TokenMatrix[i] = this.ParentNameSpace.GetTokenFunc(i);
@@ -180,17 +166,17 @@ public final class GtNameSpace extends ZenUtils {
 			/*local*/Object OldValue = this.SymbolPatternTable.GetOrNull(Key);
 			if(OldValue != null && OldValue != UndefinedSymbol) {
 				if(LibZen.DebugMode) {
-					this.Generator.ReportError(ZenParserConst.WarningLevel, SourceToken, "duplicated symbol: " + SourceToken + " old, new =" + OldValue + ", " + Value);
+					this.Generator.Logger.ReportWarning(SourceToken, "duplicated symbol: " + SourceToken + " old, new =" + OldValue + ", " + Value);
 				}
 				else {
 					if(!LibZen.EqualsString(Key, "_")) {
-						this.Generator.ReportError(ZenParserConst.WarningLevel, SourceToken, "duplicated symbol: " + SourceToken);
+						this.Generator.Logger.ReportWarning(SourceToken, "duplicated symbol: " + SourceToken);
 					}
 				}
 			}
 		}
 		this.SymbolPatternTable.put(Key, Value);
-		LibZen.VerboseLog(VerboseSymbol, "symbol: " + Key + ", " + Value);
+		ZenLogger.VerboseLog(ZenLogger.VerboseSymbol, "symbol: " + Key + ", " + Value);
 	}
 
 	public GtVariableInfo SetLocalVariable(int VarFlag, ZenType Type, String Name, GtToken SourceToken) {
@@ -563,7 +549,7 @@ public final class GtNameSpace extends ZenUtils {
 	
 	final Object EvalWithErrorInfo(String ScriptText, long FileLine) {
 		/*local*/Object ResultValue = null;
-		LibZen.VerboseLog(VerboseEval, "eval: " + ScriptText);
+		ZenLogger.VerboseLog(ZenLogger.VerboseEval, "eval: " + ScriptText);
 		/*local*/GtTokenContext TokenContext = new GtTokenContext(this, ScriptText, FileLine);
 		TokenContext.SkipEmptyStatement();
 		while(TokenContext.HasNext()) {
@@ -575,7 +561,7 @@ public final class GtNameSpace extends ZenUtils {
 //			TopLevelNode.Accept(this.Generator);
 			if(TopLevelNode.IsErrorNode() && TokenContext.HasNext()) {
 				/*local*/GtToken Token = TokenContext.GetToken();
-				this.Generator.ReportError(ZenParserConst.InfoLevel, Token, "stopped script at this line");
+				this.Generator.Logger.ReportInfo(Token, "stopped script at this line");
 				return null;
 			}
 //			if(!TopLevelNode.Type.IsVoidType()) {

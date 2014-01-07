@@ -37,7 +37,7 @@ public abstract class GtGenerator extends GtNodeUtils implements ZenVisitor {
 	/*field*/public final GtNameSpace  RootNameSpace;
 //	/*field*/public ArrayList<Object>  GeneratedCodeStack;
 	/*field*/public String             OutputFile;
-	/*field*/public GtLogger    Logger;
+	/*field*/public ZenLogger    Logger;
 //	/*field*/public int                GeneratorFlag;
 
 	/*field*/public final GtStatistics Stat;
@@ -50,13 +50,13 @@ public abstract class GtGenerator extends GtNodeUtils implements ZenVisitor {
 		this.TargetVersion = TargetVersion;
 		
 		this.OutputFile = null;
-		this.Logger = new GtLogger();
+		this.Logger = new ZenLogger();
 		this.Stat = new GtStatistics();
 //		this.GeneratedCodeStack = null;
 	}
 
 	public final String ReportError(int Level, GtToken Token, String Message) {
-		return this.Logger.ReportError(Level, Token, Message);
+		return this.Logger.Report(Level, Token, Message);
 	}
 
 	public void DoCodeGeneration(GtNameSpace NameSpace, GtNode Node) {

@@ -26,11 +26,10 @@ package zen.obsolete;
 
 import java.util.ArrayList;
 
-import zen.lang.ZenType;
 import zen.lang.ZenFunc;
+import zen.lang.ZenType;
 import zen.parser.GtGenerator;
 import zen.parser.GtToken;
-import zen.parser.ZenParserConst;
 
 public class GtPolyFunc {
 	/*field*/public GtGenerator Generator;
@@ -63,7 +62,7 @@ public class GtPolyFunc {
 					/*return this;*/ /* same function */
 				}
 				if(Func.EqualsType(ListedFunc)) {
-					this.Generator.ReportError(ZenParserConst.WarningLevel, SourceToken, "duplicated symbol: " + SourceToken.ParsedText);
+					this.Generator.Logger.ReportWarning(SourceToken, "duplicated symbol: " + SourceToken.ParsedText);
 					break;
 				}
 				i = i + 1;

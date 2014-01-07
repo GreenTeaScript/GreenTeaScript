@@ -28,9 +28,9 @@ import java.util.ArrayList;
 
 import zen.ast.GtErrorNode;
 import zen.ast.GtNode;
-import zen.deps.ZenMap;
 import zen.deps.LibNative;
 import zen.deps.LibZen;
+import zen.deps.ZenMap;
 import zen.lang.ZenSystem;
 
 public final class GtTokenContext extends ZenUtils {
@@ -93,7 +93,7 @@ public final class GtTokenContext extends ZenUtils {
 			if(T.IsDelim() || T.EqualsText("}")) {
 				break;
 			}
-			this.TopLevelNameSpace.Generator.ReportError(ZenParserConst.InfoLevel, T, "skipping: " + T.ParsedText);
+			this.TopLevelNameSpace.Generator.Logger.ReportDebug(T, "skipping: " + T.ParsedText);
 			this.Next();
 		}
 		this.LatestToken = LeastRecentToken;
@@ -117,6 +117,9 @@ public final class GtTokenContext extends ZenUtils {
 			SourceToken = this.GetBeforeToken();
 			return new GtErrorNode(SourceToken, ExpectedTokenText + " is expected after " + SourceToken.ParsedText);
 		}
+		if(SourceToken == GtTokenContext.NullToken) {
+			throw new NullPointerException();
+		}
 		return new GtErrorNode(SourceToken, ExpectedTokenText + " is expected; " + SourceToken.ParsedText + " is given");
 	}
 
@@ -136,10 +139,10 @@ public final class GtTokenContext extends ZenUtils {
 	}
 
 	private int DispatchFunc(String ScriptSource, int GtChar, int pos) {
-		/*local*/GtTokenFunc TokenFunc = this.TopLevelNameSpace.GetTokenFunc(GtChar);
-		/*local*/int NextIdx = ZenUtils.ApplyTokenFunc(TokenFunc, this, ScriptSource, pos);
+		/*local*/ZenTokenFunc TokenFunc = this.TopLevelNameSpace.GetTokenFunc(GtChar);
+		/*local*/int NextIdx = ZenTokenFunc.ApplyTokenFunc(TokenFunc, this, ScriptSource, pos);
 		if(NextIdx == MismatchedPosition) {
-			LibZen.VerboseLog(VerboseUndefined, "undefined tokenizer: " + ScriptSource.substring(pos, pos+1));
+			ZenLogger.VerboseLog(ZenLogger.VerboseUndefined, "undefined tokenizer: " + ScriptSource.substring(pos, pos+1));
 			this.AppendParsedToken(ScriptSource.substring(pos, pos + 1), 0, null);
 			return pos + 1;
 		}
@@ -512,7 +515,7 @@ public final class GtTokenContext extends ZenUtils {
 			if(Token.PresetPattern != null) {
 				DumpedToken = DumpedToken + " : " + Token.PresetPattern;
 			}
-			LibZen.VerboseLog(VerboseToken,  DumpedToken);
+			ZenLogger.VerboseLog(ZenLogger.VerboseToken,  DumpedToken);
 			Position += 1;
 		}
 	}

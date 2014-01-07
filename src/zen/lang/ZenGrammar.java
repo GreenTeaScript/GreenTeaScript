@@ -66,6 +66,7 @@ import zen.parser.GtSyntaxPattern;
 import zen.parser.GtToken;
 import zen.parser.GtTokenContext;
 import zen.parser.GtVariableInfo;
+import zen.parser.ZenLogger;
 import zen.parser.ZenParserConst;
 
 //endif VAJA
@@ -309,13 +310,13 @@ public class ZenGrammar {
 				return pos + 1;
 			}
 			if(ch == '\n') {
-				TokenContext.ReportTokenError1(ZenParserConst.ErrorLevel, "expected \" to close the string literal", LibZen.SubString(SourceText, start, pos));
+				TokenContext.ReportTokenError1(ZenLogger.ErrorLevel, "expected \" to close the string literal", LibZen.SubString(SourceText, start, pos));
 				TokenContext.FoundLineFeed(1);
 				return pos;
 			}
 			pos = pos + 1;
 		}
-		TokenContext.ReportTokenError1(ZenParserConst.ErrorLevel, "expected \" to close the string literal", LibZen.SubString(SourceText, start, pos));
+		TokenContext.ReportTokenError1(ZenLogger.ErrorLevel, "expected \" to close the string literal", LibZen.SubString(SourceText, start, pos));
 		return pos;
 	}
 
