@@ -293,9 +293,15 @@ public class ZenSourceGenerator extends ZenGenerator {
 	}
 
 	@Override public boolean VisitBinaryNode(GtBinaryNode Node) {
+		if(Node.ParentNode instanceof GtBinaryNode) {
+			this.CurrentBuilder.Append("(");
+		}
 		this.GenerateCode(Node.LeftNode);
 		this.CurrentBuilder.AppendToken(Node.SourceToken.ParsedText);
 		this.GenerateCode(Node.RightNode);
+		if(Node.ParentNode instanceof GtBinaryNode) {
+			this.CurrentBuilder.Append(")");
+		}
 		return true;
 	}
 
