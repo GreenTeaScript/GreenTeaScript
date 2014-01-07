@@ -34,7 +34,6 @@ import zen.ast.GtNode;
 import zen.ast.GtSetCapturedNode;
 import zen.ast.GtSetLocalNode;
 import zen.ast.GtStringNode;
-import zen.lang.ZenSystem;
 import zen.lang.ZenType;
 
 public abstract class GtNodeUtils {
@@ -49,7 +48,7 @@ public abstract class GtNodeUtils {
 	//	}
 	//
 	public GtNode CreateBooleanNode(GtToken SourceToken, boolean Value) {
-		return new GtBooleanNode(ZenSystem.BooleanType, SourceToken, Value);
+		return new GtBooleanNode(SourceToken, Value);
 	}
 
 	public GtNode CreateIntNode(GtToken SourceToken, long Value) {
@@ -373,6 +372,5 @@ public abstract class GtNodeUtils {
 	//		}
 	//		return Node;
 	//	}
-
 	
 }

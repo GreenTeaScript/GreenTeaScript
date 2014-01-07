@@ -114,8 +114,7 @@ public class GtSourceBuilder {
 		}
 	}
 	
-	@Override
-	public String toString() {
+	@Override public String toString() {
 		return LibZen.SourceBuilderToString(this);
 	}
 }
