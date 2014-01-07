@@ -130,7 +130,7 @@ public class GtSourceGenerator extends ZenGenerator {
 //		Builder.AppendLine("");
 //	}
 
-	public boolean VisitNode(GtNode Node) {
+	public boolean GenerateCode(GtNode Node) {
 		return Node.Accept(this);
 	}
 	
@@ -141,7 +141,7 @@ public class GtSourceGenerator extends ZenGenerator {
 			GtNode SubNode = Node.NodeList.get(i);
 			this.CurrentBuilder.AppendLineFeed();
 			this.CurrentBuilder.AppendIndent();
-			if(!this.VisitNode(SubNode)) {
+			if(!this.GenerateCode(SubNode)) {
 				return false;
 			}
 			this.CurrentBuilder.Append(this.SemiColon);
@@ -191,26 +191,26 @@ public class GtSourceGenerator extends ZenGenerator {
 
 	@Override public boolean VisitGroupNode(GtGroupNode Node) {
 		this.CurrentBuilder.Append("(");
-		this.VisitNode(Node.RecvNode);
+		this.GenerateCode(Node.RecvNode);
 		this.CurrentBuilder.Append(")");
 		return true;
 	}
 
 	@Override public boolean VisitGetIndexNode(GtGetIndexNode Node) {
-		this.VisitNode(Node.RecvNode);
+		this.GenerateCode(Node.RecvNode);
 		this.CurrentBuilder.Append("[");
-		this.VisitNode(Node.IndexNode);
+		this.GenerateCode(Node.IndexNode);
 		this.CurrentBuilder.Append("]");
 		return true;
 	}
 
 	@Override public boolean VisitSetIndexNode(GtSetIndexNode Node) {
-		this.VisitNode(Node.RecvNode);
+		this.GenerateCode(Node.RecvNode);
 		this.CurrentBuilder.Append("[");
-		this.VisitNode(Node.IndexNode);
+		this.GenerateCode(Node.IndexNode);
 		this.CurrentBuilder.Append("]");
 		this.CurrentBuilder.Append(" = ");
-		this.VisitNode(Node.ValueNode);
+		this.GenerateCode(Node.ValueNode);
 		return true;
 	}
 
@@ -222,7 +222,7 @@ public class GtSourceGenerator extends ZenGenerator {
 	@Override public boolean VisitSetLocalNode(GtSetLocalNode Node) {
 		this.CurrentBuilder.Append(Node.NativeName);
 		this.CurrentBuilder.Append(" = ");
-		this.VisitNode(Node.ValueNode);
+		this.GenerateCode(Node.ValueNode);
 		return true;
 	}
 
@@ -234,28 +234,28 @@ public class GtSourceGenerator extends ZenGenerator {
 	@Override public boolean VisitSetCapturedNode(GtSetCapturedNode Node) {
 		this.CurrentBuilder.Append(Node.NativeName);
 		this.CurrentBuilder.Append(" = ");
-		this.VisitNode(Node.ValueNode);
+		this.GenerateCode(Node.ValueNode);
 		return true;
 	}
 
 	@Override public boolean VisitGetterNode(GtGetterNode Node) {
-		this.VisitNode(Node.RecvNode);
+		this.GenerateCode(Node.RecvNode);
 		this.CurrentBuilder.Append(".");
 		this.CurrentBuilder.Append(Node.NativeName);
 		return true;
 	}
 
 	@Override public boolean VisitSetterNode(GtSetterNode Node) {
-		this.VisitNode(Node.RecvNode);
+		this.GenerateCode(Node.RecvNode);
 		this.CurrentBuilder.Append(".");
 		this.CurrentBuilder.Append(Node.NativeName);
 		this.CurrentBuilder.Append(" = ");
-		this.VisitNode(Node.ValueNode);
+		this.GenerateCode(Node.ValueNode);
 		return true;
 	}
 
 	@Override public boolean VisitMethodCallNode(GtMethodCall Node) {
-		this.VisitNode(Node.RecvNode);
+		this.GenerateCode(Node.RecvNode);
 		this.CurrentBuilder.Append(".");
 		this.CurrentBuilder.Append(Node.MethodName);
 		this.VisitParamList(Node.ParamList);
@@ -263,35 +263,35 @@ public class GtSourceGenerator extends ZenGenerator {
 	}
 
 	@Override public boolean VisitApplyNode(GtApplyNode Node) {
-		this.VisitNode(Node.FuncNode);
+		this.GenerateCode(Node.FuncNode);
 		this.VisitParamList(Node.ParamList);
 		return true;
 	}
 
 	@Override public boolean VisitAndNode(GtAndNode Node) {
-		this.VisitNode(Node.LeftNode);
+		this.GenerateCode(Node.LeftNode);
 		this.CurrentBuilder.AppendToken("&&");
-		this.VisitNode(Node.RightNode);
+		this.GenerateCode(Node.RightNode);
 		return true;
 	}
 
 	@Override public boolean VisitOrNode(GtOrNode Node) {
-		this.VisitNode(Node.LeftNode);
+		this.GenerateCode(Node.LeftNode);
 		this.CurrentBuilder.AppendToken("||");
-		this.VisitNode(Node.RightNode);
+		this.GenerateCode(Node.RightNode);
 		return true;
 	}
 
 	@Override public boolean VisitUnaryNode(GtUnaryNode Node) {
 		this.CurrentBuilder.Append(Node.SourceToken.ParsedText);
-		this.VisitNode(Node.RecvNode);
+		this.GenerateCode(Node.RecvNode);
 		return true;
 	}
 
 	@Override public boolean VisitBinaryNode(GtBinaryNode Node) {
-		this.VisitNode(Node.LeftNode);
+		this.GenerateCode(Node.LeftNode);
 		this.CurrentBuilder.AppendToken(Node.SourceToken.ParsedText);
-		this.VisitNode(Node.RightNode);
+		this.GenerateCode(Node.RightNode);
 		return true;
 	}
 
@@ -299,12 +299,12 @@ public class GtSourceGenerator extends ZenGenerator {
 		this.CurrentBuilder.Append("(");
 		this.VisitType(Node.Type);
 		this.CurrentBuilder.Append(") ");
-		this.VisitNode(Node.ExprNode);
+		this.GenerateCode(Node.ExprNode);
 		return true;
 	}
 
 	@Override public boolean VisitInstanceOfNode(GtInstanceOfNode Node) {
-		this.VisitNode(Node.LeftNode);
+		this.GenerateCode(Node.LeftNode);
 		this.CurrentBuilder.AppendToken("instanceof");
 		this.VisitType(Node.RightNode.Type);
 		return true;
@@ -312,12 +312,12 @@ public class GtSourceGenerator extends ZenGenerator {
 
 	@Override public boolean VisitIfNode(GtIfNode Node) {
 		this.CurrentBuilder.Append("if (");
-		this.VisitNode(Node.CondNode);
+		this.GenerateCode(Node.CondNode);
 		this.CurrentBuilder.Append(") ");
-		boolean Then = this.VisitNode(Node.ThenNode);
+		boolean Then = this.GenerateCode(Node.ThenNode);
 		if(Node.ElseNode != null) {
 			this.CurrentBuilder.AppendToken("else");
-			boolean Else = this.VisitNode(Node.ElseNode);
+			boolean Else = this.GenerateCode(Node.ElseNode);
 			return Then || Else;
 		}
 		return true;
@@ -327,16 +327,16 @@ public class GtSourceGenerator extends ZenGenerator {
 		this.CurrentBuilder.Append("return");
 		if(Node.ValueNode != null) {
 			this.CurrentBuilder.Append(" ");
-			this.VisitNode(Node.ValueNode);
+			this.GenerateCode(Node.ValueNode);
 		}
 		return false;
 	}
 
 	@Override public boolean VisitWhileNode(GtWhileNode Node) {
 		this.CurrentBuilder.Append("while (");
-		this.VisitNode(Node.CondNode);
+		this.GenerateCode(Node.CondNode);
 		this.CurrentBuilder.Append(") ");
-		this.VisitNode(Node.BodyNode);
+		this.GenerateCode(Node.BodyNode);
 		return true;
 	}
 
@@ -347,18 +347,18 @@ public class GtSourceGenerator extends ZenGenerator {
 
 	@Override public boolean VisitThrowNode(GtThrowNode Node) {
 		this.CurrentBuilder.Append("throw ");
-		this.VisitNode(Node.ValueNode);
+		this.GenerateCode(Node.ValueNode);
 		return false;
 	}
 
 	@Override public boolean VisitTryNode(GtTryNode Node) {
 		this.CurrentBuilder.Append("try");
-		this.VisitNode(Node.TryNode);
+		this.GenerateCode(Node.TryNode);
 		for(GtNode CatchNode : Node.CatchList) {
-			this.VisitNode(CatchNode);
+			this.GenerateCode(CatchNode);
 		}
 		if(Node.FinallyNode != null) {
-			this.VisitNode(Node.FinallyNode);
+			this.GenerateCode(Node.FinallyNode);
 		}
 		return true;
 	}
@@ -368,7 +368,7 @@ public class GtSourceGenerator extends ZenGenerator {
 		this.CurrentBuilder.Append(Node.ExceptionName);
 		this.VisitTypeAnnotation(Node.ExceptionType);
 		this.CurrentBuilder.Append(") ");
-		this.VisitNode(Node.BodyNode);
+		this.GenerateCode(Node.BodyNode);
 		return true;
 	}
 
@@ -392,7 +392,7 @@ public class GtSourceGenerator extends ZenGenerator {
 		this.CurrentBuilder.Append("function ");
 		this.VisitParamList(Node.ArgumentList);
 		this.VisitTypeAnnotation(Node.ReturnType);		
-		this.VisitNode(Node.BodyNode);
+		this.GenerateCode(Node.BodyNode);
 		return true;
 	}
 
@@ -405,7 +405,7 @@ public class GtSourceGenerator extends ZenGenerator {
 			this.CurrentBuilder.Append(this.SemiColon);
 		}
 		else {
-			this.VisitNode(Node.BodyNode);
+			this.GenerateCode(Node.BodyNode);
 		}
 		return true;
 	}
@@ -429,7 +429,7 @@ public class GtSourceGenerator extends ZenGenerator {
 			if(i > 0) {
 				this.CurrentBuilder.Append(", ");
 			}
-			this.VisitNode(ParamNode);
+			this.GenerateCode(ParamNode);
 		}
 		this.CurrentBuilder.Append(")");
 		return true;
