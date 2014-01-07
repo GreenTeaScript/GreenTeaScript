@@ -30,7 +30,7 @@ import zen.lang.ZenSystem;
 import zen.lang.ZenType;
 //endif VAJA
 
-public abstract class ZenGenerator extends GtNodeUtils implements ZenVisitor {
+public abstract class ZenGenerator extends ZenNodeUtils implements ZenVisitor {
 	/*field*/public final String       TargetCode;
 	/*field*/public final String       TargetVersion;
 	

@@ -31,11 +31,13 @@ import zen.ast.GtApplyNode;
 import zen.ast.GtArrayLiteralNode;
 import zen.ast.GtBinaryNode;
 import zen.ast.GtBlockNode;
+import zen.ast.GtBooleanNode;
 import zen.ast.GtBreakNode;
 import zen.ast.GtCastNode;
 import zen.ast.GtCatchNode;
 import zen.ast.GtConstNode;
 import zen.ast.GtErrorNode;
+import zen.ast.GtFloatNode;
 import zen.ast.GtFuncDeclNode;
 import zen.ast.GtFunctionLiteralNode;
 import zen.ast.GtGetIndexNode;
@@ -44,6 +46,7 @@ import zen.ast.GtGetterNode;
 import zen.ast.GtGroupNode;
 import zen.ast.GtIfNode;
 import zen.ast.GtInstanceOfNode;
+import zen.ast.GtIntNode;
 import zen.ast.GtMapLiteralNode;
 import zen.ast.GtMethodCall;
 import zen.ast.GtNode;
@@ -53,6 +56,7 @@ import zen.ast.GtParamNode;
 import zen.ast.GtReturnNode;
 import zen.ast.GtSetIndexNode;
 import zen.ast.GtSetterNode;
+import zen.ast.GtStringNode;
 import zen.ast.GtThrowNode;
 import zen.ast.GtTryNode;
 import zen.ast.GtTypeNode;
@@ -62,12 +66,12 @@ import zen.ast.GtWhileNode;
 import zen.deps.LibNative;
 import zen.deps.LibZen;
 import zen.parser.GtNameSpace;
-import zen.parser.ZenSyntaxPattern;
 import zen.parser.GtToken;
 import zen.parser.GtTokenContext;
 import zen.parser.GtVariableInfo;
 import zen.parser.ZenLogger;
 import zen.parser.ZenParserConst;
+import zen.parser.ZenSyntaxPattern;
 
 //endif VAJA
 
@@ -327,26 +331,26 @@ public class ZenGrammar {
 	}
 
 	public static GtNode MatchTrue(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
-		return NameSpace.Generator.CreateBooleanNode(TokenContext.Next(), true);
+		return new GtBooleanNode(TokenContext.Next(), true);
 	}
 
 	public static GtNode MatchFalse(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
-		return NameSpace.Generator.CreateBooleanNode(TokenContext.Next(), false);
+		return new GtBooleanNode(TokenContext.Next(), false);
 	}
 
 	public static GtNode MatchIntLiteral(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
 		/*local*/GtToken Token = TokenContext.Next();
-		return NameSpace.Generator.CreateIntNode(Token, LibZen.ParseInt(Token.ParsedText));
+		return new GtIntNode(Token, LibZen.ParseInt(Token.ParsedText));
 	}
 
 	public static GtNode MatchFloatLiteral(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
 		/*local*/GtToken Token = TokenContext.Next();
-		return NameSpace.Generator.CreateFloatNode(Token, LibZen.ParseFloat(Token.ParsedText));
+		return new GtFloatNode(Token, LibZen.ParseFloat(Token.ParsedText));
 	}
 
 	public static GtNode MatchStringLiteral(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
 		/*local*/GtToken Token = TokenContext.Next();
-		return NameSpace.Generator.CreateStringNode(Token, LibZen.UnquoteString(Token.ParsedText));
+		return new GtStringNode(Token, LibZen.UnquoteString(Token.ParsedText));
 	}
 
 	public static GtNode MatchArrayLiteral(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
