@@ -24,8 +24,8 @@
 
 package zen.ast;
 
-import zen.parser.ZenSyntaxPattern;
 import zen.parser.GtToken;
+import zen.parser.ZenSyntaxPattern;
 import zen.parser.ZenVisitor;
 
 public class GtBinaryNode extends GtNode {
@@ -40,19 +40,9 @@ public class GtBinaryNode extends GtNode {
 		this.Pattern = Pattern;
 	}
 	@Override public final void Append(GtNode Node) {
-		this.RightNode = this.SetChild(this.RightNode);
+		this.RightNode = this.SetChild(Node);
 	}
 	@Override public boolean Accept(ZenVisitor Visitor) {
 		return Visitor.VisitBinaryNode(this);
 	}
-//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
-//		/*local*/Object LeftValue = this.LeftNode.ToConstValue(Context, EnforceConst) ;
-//		if(LeftValue != null) {
-//			/*local*/Object RightValue = this.RightNode.ToConstValue(Context, EnforceConst) ;
-//			if(RightValue != null) {
-//				return LibZen.EvalBinary(this.Type, LeftValue, this.Token.ParsedText, RightValue);
-//			}
-//		}
-//		return null;
-//	}
 }

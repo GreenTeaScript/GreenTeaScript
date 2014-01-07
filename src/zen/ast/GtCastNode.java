@@ -33,7 +33,10 @@ final public class GtCastNode extends GtNode {
 	public GtCastNode/*constructor*/(ZenType CastType, GtNode Node) {
 		super();
 		this.Type = CastType;
-		this.ExprNode = this.SetChild(Node);
+		this.ExprNode = null;
+		if(Node != null) {
+			this.ExprNode = this.SetChild(Node);
+		}
 	}
 	@Override public void Append(GtNode Node) {
 		this.SetChild(Node);

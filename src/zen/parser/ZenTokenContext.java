@@ -296,7 +296,7 @@ public final class ZenTokenContext extends ZenUtils {
 
 	public GtNode MatchNodeToken(GtNode Base, GtNameSpace NameSpace, String TokenText, int MatchFlag) {
 		if(!Base.IsErrorNode()) {
-			/*local*/int Pos = this.CurrentPosition;
+			/*local*/int RollbackPosition = this.CurrentPosition;
 			/*local*/GtToken Token = this.GetTokenAndMoveForward();
 			if(Token.ParsedText.equals(TokenText)) {
 				if(Base.SourceToken == null) {
@@ -310,7 +310,7 @@ public final class ZenTokenContext extends ZenUtils {
 				}
 			}
 			else {
-				this.CurrentPosition = Pos;
+				this.CurrentPosition = RollbackPosition;
 				if(IsFlag(MatchFlag, Required)) {
 					return this.CreateExpectedErrorNode(Token, TokenText);
 				}
@@ -334,26 +334,19 @@ public final class ZenTokenContext extends ZenUtils {
 			/*local*/GtNode ParsedNode = LibNative.ApplyMatchFunc(MatchFunc, NameSpace, this, LeftNode);
 			this.IndentLevel -= 1;
 			this.ParseFlag = ParseFlag;
-//			if(ParsedNode != null /* FIXME && ParsedNode.IsMismatched()*/) {
-//				ParsedNode = null;
-//			}
 //			LibZen.DebugP("E :" + JoinStrings("  ", this.IndentLevel) + CurrentPattern + " => " + ParsedTree);
-			if(ParsedNode != null) {
+			if(ParsedNode != null && !ParsedNode.IsErrorNode()) {
 				return ParsedNode;
 			}
 			CurrentPattern = CurrentPattern.ParentPattern;
 		}
 		if(this.IsAllowedBackTrack()) {
 			this.CurrentPosition = RollbackPosition;
+			return null;
 		}
-		else {
-			this.SkipErrorStatement();
-		}
+		this.SkipErrorStatement();
 		if(Pattern == null) {
 			ZenLogger.VerboseLog(ZenLogger.VerboseUndefined, "undefined syntax pattern: " + Pattern);
-		}
-		if(this.IsAllowedBackTrack()) {
-			return null;
 		}
 		return this.CreateExpectedErrorNode(null, Pattern.PatternName);
 	}

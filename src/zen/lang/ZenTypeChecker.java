@@ -49,7 +49,7 @@ import zen.ast.GtIfNode;
 import zen.ast.GtInstanceOfNode;
 import zen.ast.GtIntNode;
 import zen.ast.GtMapLiteralNode;
-import zen.ast.GtMethodCall;
+import zen.ast.GtMethodCallNode;
 import zen.ast.GtNode;
 import zen.ast.GtNullNode;
 import zen.ast.GtOrNode;
@@ -328,7 +328,7 @@ public class ZenTypeChecker extends ZenTypeCheckerImpl {
 		return this.ReturnTypedNode(Node);
 	}
 
-	@Override public boolean VisitMethodCallNode(GtMethodCall Node) {
+	@Override public boolean VisitMethodCallNode(GtMethodCallNode Node) {
 		// TODO Auto-generated method stub
 		return this.ReturnTypedNode(Node);
 	}

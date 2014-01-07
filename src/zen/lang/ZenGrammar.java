@@ -48,7 +48,7 @@ import zen.ast.GtIfNode;
 import zen.ast.GtInstanceOfNode;
 import zen.ast.GtIntNode;
 import zen.ast.GtMapLiteralNode;
-import zen.ast.GtMethodCall;
+import zen.ast.GtMethodCallNode;
 import zen.ast.GtNode;
 import zen.ast.GtNullNode;
 import zen.ast.GtOrNode;
@@ -479,17 +479,17 @@ public class ZenGrammar {
 			return TokenContext.CreateExpectedErrorNode(Token, "field name");
 		}
 		if(TokenContext.MatchToken("(")) {  // method call
-			/*local*/GtNode ApplyNode = new GtMethodCall(Token, LeftNode, Token.ParsedText);
+			/*local*/GtNode MethodCallNode = new GtMethodCallNode(Token, LeftNode, Token.ParsedText);
 			if(!TokenContext.MatchToken(")")) {
-				while(!ApplyNode.IsErrorNode()) {
-					ApplyNode = TokenContext.AppendMatchedPattern(ApplyNode, NameSpace, "$Expression$", ZenParserConst.Required);
+				while(!MethodCallNode.IsErrorNode()) {
+					MethodCallNode = TokenContext.AppendMatchedPattern(MethodCallNode, NameSpace, "$Expression$", ZenParserConst.Required);
 					if(TokenContext.MatchToken(")")) {
 						break;
 					}
-					ApplyNode = TokenContext.MatchNodeToken(ApplyNode, NameSpace, ",", ZenParserConst.Required | ZenParserConst.DisallowSkipIndent);
+					MethodCallNode = TokenContext.MatchNodeToken(MethodCallNode, NameSpace, ",", ZenParserConst.Required | ZenParserConst.DisallowSkipIndent);
 				}
 			}
-			return ApplyNode;
+			return MethodCallNode;
 		}
 		if(TokenContext.MatchToken("=")) {
 			GtNode SetterNode = new GtSetterNode(Token, LeftNode, Token.ParsedText);
@@ -566,10 +566,6 @@ public class ZenGrammar {
 		// LeftJoin
 		/*local*/GtBinaryNode BinaryNode = new GtBinaryNode(Token, LeftNode, Pattern);
 		BinaryNode.Append(RightNode);
-//		if(RightNode.NextNode != null) {  // necesarry; don't remove
-//			GtNode.LinkNode(BinaryNode, RightNode.NextNode);
-//			RightNode.NextNode = null;
-//		}
 		return BinaryNode;
 	}
 

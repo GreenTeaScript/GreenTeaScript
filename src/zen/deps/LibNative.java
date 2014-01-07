@@ -43,7 +43,7 @@ import zen.lang.ZenSystem;
 import zen.lang.ZenType;
 import zen.parser.ZenGenerator;
 import zen.parser.GtNameSpace;
-import zen.parser.GtSourceGenerator;
+import zen.parser.ZenSourceGenerator;
 import zen.parser.ZenTokenContext;
 import zen.parser.ZenLogger;
 import zen.parser.ZenVisitor;
@@ -511,7 +511,7 @@ public class LibNative {
 		}
 		catch(Exception e) {
 		}
-		return new GtSourceGenerator("zen", "0.1");
+		return new ZenSourceGenerator("zen", "0.1");
 	}
 
 	public final static void Exit(int status, String Message) {

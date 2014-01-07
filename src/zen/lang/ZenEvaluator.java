@@ -49,7 +49,7 @@ import zen.ast.GtIfNode;
 import zen.ast.GtInstanceOfNode;
 import zen.ast.GtIntNode;
 import zen.ast.GtMapLiteralNode;
-import zen.ast.GtMethodCall;
+import zen.ast.GtMethodCallNode;
 import zen.ast.GtNode;
 import zen.ast.GtNullNode;
 import zen.ast.GtOrNode;
@@ -182,7 +182,7 @@ public class ZenEvaluator implements ZenVisitor {
 	}
 
 	@Override
-	public boolean VisitMethodCallNode(GtMethodCall Node) {
+	public boolean VisitMethodCallNode(GtMethodCallNode Node) {
 		// TODO Auto-generated method stub
 		return false;
 	}
@@ -251,6 +251,17 @@ public class ZenEvaluator implements ZenVisitor {
 //	public static Object EvalSuffix(ZenType Type, Object Value, String Operator) {
 //		return null;
 //	}
+
+//	@Override public Object ToConstValue(GtParserContext Context, boolean EnforceConst)  {
+//	/*local*/Object LeftValue = this.LeftNode.ToConstValue(Context, EnforceConst) ;
+//	if(LeftValue != null) {
+//		/*local*/Object RightValue = this.RightNode.ToConstValue(Context, EnforceConst) ;
+//		if(RightValue != null) {
+//			return LibZen.EvalBinary(this.Type, LeftValue, this.Token.ParsedText, RightValue);
+//		}
+//	}
+//	return null;
+//}
 
 //	public static Object EvalBinary(ZenType Type, Object LeftValue, String Operator, Object RightValue) {
 //		//System.err.println("***" + LeftValue.getClass() + ", " + RightValue.getClass());

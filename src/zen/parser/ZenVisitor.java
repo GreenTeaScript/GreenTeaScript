@@ -47,7 +47,7 @@ import zen.ast.GtIfNode;
 import zen.ast.GtInstanceOfNode;
 import zen.ast.GtIntNode;
 import zen.ast.GtMapLiteralNode;
-import zen.ast.GtMethodCall;
+import zen.ast.GtMethodCallNode;
 import zen.ast.GtNullNode;
 import zen.ast.GtOrNode;
 import zen.ast.GtParamNode;
@@ -85,7 +85,7 @@ public interface ZenVisitor {
 	public abstract boolean VisitSetterNode(GtSetterNode Node);
 	public abstract boolean VisitGetIndexNode(GtGetIndexNode Node);
 	public abstract boolean VisitSetIndexNode(GtSetIndexNode Node);
-	public abstract boolean VisitMethodCallNode(GtMethodCall Node);
+	public abstract boolean VisitMethodCallNode(GtMethodCallNode Node);
 	public abstract boolean VisitApplyNode(GtApplyNode Node);
 	public abstract boolean VisitAndNode(GtAndNode Node);
 	public abstract boolean VisitOrNode(GtOrNode Node);

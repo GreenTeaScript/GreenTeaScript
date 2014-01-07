@@ -24,8 +24,6 @@
 
 //ifdef JAVA
 package zen.ast;
-import java.util.ArrayList;
-
 import zen.deps.LibNative;
 import zen.lang.ZenType;
 import zen.parser.GtNameSpace;
@@ -48,18 +46,16 @@ public abstract class GtNode {
 	}
 
 	public final GtNode SetChild(GtNode Node) {
+		assert(Node != null);
 		if(Node != null) {
+			assert(this != Node);
 			Node.ParentNode = this;
 		}
-		return this;
-	}
-
-	public final ArrayList<GtNode> GetList() {
-		return null;
+		return Node;
 	}
 
 	public void Append(GtNode Node) {
-		this.SetChild(Node);
+		
 	}
 
 	public final GtNode Done() {

@@ -33,11 +33,11 @@ import zen.deps.LibZen;
 
 public class GtSourceBuilder {
 	/*field*/public ArrayList<String> SourceList;
-	/*field*/GtSourceGenerator Template;
+	/*field*/ZenSourceGenerator Template;
 	/*field*/int IndentLevel = 0;
 	/*field*/String CurrentIndentString;
 	
-	public GtSourceBuilder/*constructor*/(GtSourceGenerator Template) {
+	public GtSourceBuilder/*constructor*/(ZenSourceGenerator Template) {
 		this.Template = Template;
 		this.SourceList = new ArrayList<String>();
 		this.IndentLevel = 0;
