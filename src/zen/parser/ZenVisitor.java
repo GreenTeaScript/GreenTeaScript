@@ -107,8 +107,6 @@ public interface ZenVisitor {
 	public abstract boolean VisitFuncDeclNode(GtFuncDeclNode FuncDeclNode);
 	public abstract boolean VisitErrorNode(GtErrorNode Node);
 
-
-
 //	public abstract boolean VisitTrinaryNode(GtTrinaryNode Node);
 //	public abstract boolean VisitPrefixInclNode(GtPrefixInclNode Node);
 //	public abstract boolean VisitPrefixDeclNode(GtPrefixDeclNode Node);

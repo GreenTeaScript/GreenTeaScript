@@ -46,13 +46,13 @@ final class GtSymbolSource {
 public final class GtNameSpace extends ZenUtils {
 //	/*field*/public final GtParserContext		Context;
 	/*field*/public final GtNameSpace   ParentNameSpace;
-	/*field*/public final GtGenerator		    Generator;
+	/*field*/public final ZenGenerator		    Generator;
 
 	/*field*/ZenTokenFunc[] TokenMatrix;
 	/*field*/ZenMap<Object>	 SymbolPatternTable;
 	/*field*/GtFuncBlock  FuncBlock;
 	
-	public GtNameSpace/*constructor*/(GtGenerator Generator, GtNameSpace ParentNameSpace) {
+	public GtNameSpace/*constructor*/(ZenGenerator Generator, GtNameSpace ParentNameSpace) {
 //		this.Context = Context;
 		this.ParentNameSpace = ParentNameSpace;
 		this.TokenMatrix = null;
@@ -202,25 +202,25 @@ public final class GtNameSpace extends ZenUtils {
 	}
 
 	// Pattern
-	public GtSyntaxPattern GetSyntaxPattern(String PatternName) {
+	public ZenSyntaxPattern GetSyntaxPattern(String PatternName) {
 		/*local*/Object Body = this.GetSymbol(PatternName);
-		if(Body instanceof GtSyntaxPattern) {
-			return (/*cast*/GtSyntaxPattern)Body;
+		if(Body instanceof ZenSyntaxPattern) {
+			return (/*cast*/ZenSyntaxPattern)Body;
 		}
 		return null;
 	}
 
-	public GtSyntaxPattern GetExtendedSyntaxPattern(String PatternName) {
+	public ZenSyntaxPattern GetExtendedSyntaxPattern(String PatternName) {
 		/*local*/Object Body = this.GetSymbol(GtNameSpace.SuffixPatternSymbol(PatternName));
-		if(Body instanceof GtSyntaxPattern) {
-			return (/*cast*/GtSyntaxPattern)Body;
+		if(Body instanceof ZenSyntaxPattern) {
+			return (/*cast*/ZenSyntaxPattern)Body;
 		}
 		return null;
 	}
 
-	private void AppendSyntaxPattern(String PatternName, GtSyntaxPattern NewPattern, GtToken SourceToken) {
+	private void AppendSyntaxPattern(String PatternName, ZenSyntaxPattern NewPattern, GtToken SourceToken) {
 		LibNative.Assert(NewPattern.ParentPattern == null);
-		/*local*/GtSyntaxPattern ParentPattern = this.GetSyntaxPattern(PatternName);
+		/*local*/ZenSyntaxPattern ParentPattern = this.GetSyntaxPattern(PatternName);
 		NewPattern.ParentPattern = ParentPattern;
 		this.SetSymbol(PatternName, NewPattern, SourceToken);
 	}
@@ -228,7 +228,7 @@ public final class GtNameSpace extends ZenUtils {
 	public void AppendSyntax(String PatternName, ZenFunc MatchFunc) {
 		/*local*/int Alias = PatternName.indexOf(" ");
 		/*local*/String Name = (Alias == -1) ? PatternName : PatternName.substring(0, Alias);
-		/*local*/GtSyntaxPattern Pattern = new GtSyntaxPattern(this, Name, MatchFunc);
+		/*local*/ZenSyntaxPattern Pattern = new ZenSyntaxPattern(this, Name, MatchFunc);
 		this.AppendSyntaxPattern(Name, Pattern, null);
 		if(Alias != -1) {
 			this.AppendSyntax(PatternName.substring(Alias+1), MatchFunc);
@@ -238,7 +238,7 @@ public final class GtNameSpace extends ZenUtils {
 	public void AppendSuffixSyntax(String PatternName, int SyntaxFlag, ZenFunc MatchFunc) {
 		/*local*/int Alias = PatternName.indexOf(" ");
 		/*local*/String Name = (Alias == -1) ? PatternName : PatternName.substring(0, Alias);
-		/*local*/GtSyntaxPattern Pattern = new GtSyntaxPattern(this, Name, MatchFunc);
+		/*local*/ZenSyntaxPattern Pattern = new ZenSyntaxPattern(this, Name, MatchFunc);
 		Pattern.SyntaxFlag = SyntaxFlag;
 		this.AppendSyntaxPattern(GtNameSpace.SuffixPatternSymbol(Name), Pattern, null);
 		if(Alias != -1) {

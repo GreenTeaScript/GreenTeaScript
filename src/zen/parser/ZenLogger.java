@@ -55,7 +55,12 @@ public final class ZenLogger {
 
 	public ZenLogger() {
 		this.ReportedErrorList = new ArrayList<String>();
-		this.StatMap = new ZenMap<ZenCounter>(null);
+		if(LibNative.GetEnv("ZENSTAT") != null) {
+			this.StatMap = new ZenMap<ZenCounter>(null);
+		}
+		else {
+			this.StatMap = null;
+		}
 	}
 
 	public final String Report(int Level, GtToken Token, String Message) {
@@ -115,15 +120,32 @@ public final class ZenLogger {
 	}
 	
 	public final void Count(String EventName) {
-		ZenCounter Counter = this.StatMap.GetOrNull(EventName);
-		if(Counter == null) {
-			Counter = new ZenCounter();
-			this.StatMap.put(EventName, Counter);
-		}
-		else {
-			Counter.count = Counter.count + 1;
+		if(this.StatMap != null) {
+			ZenCounter Counter = this.StatMap.GetOrNull(EventName);
+			if(Counter == null) {
+				Counter = new ZenCounter();
+				this.StatMap.put(EventName, Counter);
+			}
+			else {
+				Counter.count = Counter.count + 1;
+			}
 		}
 	}
+
+	public final void CountCreation(Object CreatedObject) {
+		if(this.StatMap != null) {
+			String EventName = "CreationOf" + LibNative.GetClassName(CreatedObject);
+			ZenCounter Counter = this.StatMap.GetOrNull(EventName);
+			if(Counter == null) {
+				Counter = new ZenCounter();
+				this.StatMap.put(EventName, Counter);
+			}
+			else {
+				Counter.count = Counter.count + 1;
+			}
+		}
+	}
+
 	
 	public static int VerboseMask = VerboseUndefined | VerboseException;
 

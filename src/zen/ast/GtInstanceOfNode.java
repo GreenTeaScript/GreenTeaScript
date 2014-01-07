@@ -24,13 +24,13 @@
 
 package zen.ast;
 
-import zen.parser.GtSyntaxPattern;
+import zen.parser.ZenSyntaxPattern;
 import zen.parser.GtToken;
 import zen.parser.ZenVisitor;
 
 //E.g., $ExprNode instanceof TypeInfo
 final public class GtInstanceOfNode extends GtBinaryNode {
-	public GtInstanceOfNode/*constructor*/(GtToken Token, GtNode Left, GtSyntaxPattern Pattern) {
+	public GtInstanceOfNode/*constructor*/(GtToken Token, GtNode Left, ZenSyntaxPattern Pattern) {
 		super(Token, Left, Pattern);
 	}
 

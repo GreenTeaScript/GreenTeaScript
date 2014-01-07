@@ -32,7 +32,7 @@ final public class GtToken extends ZenUtils {
 	/*field*/public int		        TokenFlag;
 	/*field*/public String	        ParsedText;
 	/*field*/public long		    FileLine;
-	/*field*/public GtSyntaxPattern	PresetPattern;
+	/*field*/public ZenSyntaxPattern	PresetPattern;
 
 	public GtToken/*constructor*/(String Text, long FileLine) {
 		this.TokenFlag = 0;
@@ -92,7 +92,7 @@ final public class GtToken extends ZenUtils {
 		return TokenText + this.ParsedText;
 	}
 
-	public void SetError(GtSyntaxPattern ErrorPattern) {
+	public void SetError(ZenSyntaxPattern ErrorPattern) {
 		if(this.ParsedText.length() > 0) {  // skip null token
 			this.TokenFlag = ErrorTokenFlag;
 			this.PresetPattern = ErrorPattern;

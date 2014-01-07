@@ -26,7 +26,7 @@
 package zen.obsolete;
 
 import zen.parser.GtNameSpace;
-import zen.parser.GtSyntaxPattern;
+import zen.parser.ZenSyntaxPattern;
 import zen.parser.GtToken;
 //endif VAJA
 import zen.parser.ZenUtils;
@@ -44,7 +44,7 @@ public final class GtSyntaxTree extends ZenUtils {
 //	/*field*/public ArrayList<GtSyntaxTree>  SubTreeList;
 //	/*field*/public Object                   ParsedValue;
 
-	public GtSyntaxTree/*constructor*/(GtSyntaxPattern Pattern, GtNameSpace NameSpace, GtToken KeyToken, Object ParsedValue) {
+	public GtSyntaxTree/*constructor*/(ZenSyntaxPattern Pattern, GtNameSpace NameSpace, GtToken KeyToken, Object ParsedValue) {
 //		this.NameSpace   = NameSpace;
 //		this.Annotation  = null;
 //		this.KeyToken    = KeyToken;

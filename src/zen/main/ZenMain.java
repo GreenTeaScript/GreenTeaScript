@@ -33,7 +33,7 @@ import zen.lang.ZenGrammar;
 import zen.lang.ZenSystem;
 import zen.parser.ZenLogger;
 import zen.parser.ZenParserConst;
-import zen.parser.GtGenerator;
+import zen.parser.ZenGenerator;
 import zen.parser.ZenUtils;
 
 public class ZenMain extends ZenUtils {
@@ -114,7 +114,7 @@ public class ZenMain extends ZenUtils {
 			}
 			ZenMain.Usage(Argu + " is unknown");
 		}
-		/*local*/GtGenerator Generator = LibNative.LoadGenerator(TargetCode, OutputFile);
+		/*local*/ZenGenerator Generator = LibNative.LoadGenerator(TargetCode, OutputFile);
 		LibNative.ImportGrammar(Generator.RootNameSpace, ZenGrammar.class.getName());
 		//		/*local*/GtParserContext Context = new GtParserContext(new KonohaGrammar(), Generator);
 		//		if(RequiredLibName != null) {

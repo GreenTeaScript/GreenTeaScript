@@ -71,7 +71,7 @@ import zen.deps.LibZen;
 import zen.lang.ZenType;
 //endif VAJA
 
-public class GtSourceGenerator extends GtGenerator {
+public class GtSourceGenerator extends ZenGenerator {
 	/*field*/private final ArrayList<GtSourceBuilder> BuilderList;
 	/*field*/protected GtSourceBuilder HeaderBuilder;
 	/*field*/protected GtSourceBuilder CurrentBuilder;

@@ -256,22 +256,22 @@ public final class GtTokenContext extends ZenUtils {
 //		return Token;
 //	}
 	
-	public GtSyntaxPattern GetFirstPattern(GtNameSpace NameSpace) {
+	public ZenSyntaxPattern GetFirstPattern(GtNameSpace NameSpace) {
 		/*local*/GtToken Token = this.GetToken();
 		if(Token.PresetPattern != null) {
 			return Token.PresetPattern;
 		}
-		/*local*/GtSyntaxPattern Pattern = NameSpace.GetSyntaxPattern(Token.ParsedText);
+		/*local*/ZenSyntaxPattern Pattern = NameSpace.GetSyntaxPattern(Token.ParsedText);
 		if(Pattern == null) {
 			return NameSpace.GetSyntaxPattern("$Symbol$");
 		}
 		return Pattern;
 	}
 
-	public GtSyntaxPattern GetSuffixPattern(GtNameSpace NameSpace) {
+	public ZenSyntaxPattern GetSuffixPattern(GtNameSpace NameSpace) {
 		/*local*/GtToken Token = this.GetToken();
 		if(Token != GtTokenContext.NullToken) {
-			/*local*/GtSyntaxPattern Pattern = NameSpace.GetExtendedSyntaxPattern(Token.ParsedText);
+			/*local*/ZenSyntaxPattern Pattern = NameSpace.GetExtendedSyntaxPattern(Token.ParsedText);
 			return Pattern;
 		}
 		return null;
@@ -409,8 +409,8 @@ public final class GtTokenContext extends ZenUtils {
 		if(IsFlag(MatchFlag, Optional)) {
 			this.ParseFlag = this.ParseFlag | BackTrackParseFlag;
 		}
-		/*local*/GtSyntaxPattern Pattern = this.TopLevelNameSpace.GetSyntaxPattern(PatternName);
-		/*local*/GtNode ParsedNode = GtSyntaxPattern.ApplyMatchPattern(NameSpace, this, LeftNode, Pattern);
+		/*local*/ZenSyntaxPattern Pattern = this.TopLevelNameSpace.GetSyntaxPattern(PatternName);
+		/*local*/GtNode ParsedNode = ZenSyntaxPattern.ApplyMatchPattern(NameSpace, this, LeftNode, Pattern);
 		this.ParseFlag = ParseFlag;
 		if(ParsedNode != null) {
 			return ParsedNode;

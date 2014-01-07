@@ -41,7 +41,7 @@ import zen.ast.GtNode;
 import zen.lang.ZenFunc;
 import zen.lang.ZenSystem;
 import zen.lang.ZenType;
-import zen.parser.GtGenerator;
+import zen.parser.ZenGenerator;
 import zen.parser.GtNameSpace;
 import zen.parser.GtSourceGenerator;
 import zen.parser.GtTokenContext;
@@ -49,10 +49,15 @@ import zen.parser.ZenLogger;
 import zen.parser.ZenVisitor;
 
 public class LibNative {
+	
 	final static void DebugP(String s) {
 		//System.err.println("LibNative.DebugP: " + s);
 	}
 
+	public final static String GetEnv(String Name) {
+		return System.getenv(Name);
+	}
+	
 	// Type
 	public final static String GetClassName(Object Value) {
 		return Value.getClass().getSimpleName();
@@ -458,7 +463,7 @@ public class LibNative {
 		}
 	}
 
-	public final static GtGenerator LoadGenerator(String ClassName, String OutputFile) {
+	public final static ZenGenerator LoadGenerator(String ClassName, String OutputFile) {
 //		if(ClassName == null) {
 //			ClassName = "";
 //		}
@@ -501,7 +506,7 @@ public class LibNative {
 //		}
 		try {
 			Class<?> GeneratorClass = Class.forName(ClassName);
-			GtGenerator Generator = (GtGenerator)GeneratorClass.newInstance();
+			ZenGenerator Generator = (ZenGenerator)GeneratorClass.newInstance();
 			return Generator;
 		}
 		catch(Exception e) {

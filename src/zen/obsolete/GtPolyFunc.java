@@ -28,14 +28,14 @@ import java.util.ArrayList;
 
 import zen.lang.ZenFunc;
 import zen.lang.ZenType;
-import zen.parser.GtGenerator;
+import zen.parser.ZenGenerator;
 import zen.parser.GtToken;
 
 public class GtPolyFunc {
-	/*field*/public GtGenerator Generator;
+	/*field*/public ZenGenerator Generator;
 	/*field*/public ArrayList<ZenFunc> FuncList;
 
-	public GtPolyFunc/*constructor*/(GtGenerator Generator, ArrayList<ZenFunc> FuncList) {
+	public GtPolyFunc/*constructor*/(ZenGenerator Generator, ArrayList<ZenFunc> FuncList) {
 		this.Generator = Generator;
 		this.FuncList = FuncList == null ? new ArrayList<ZenFunc>() : FuncList;
 	}

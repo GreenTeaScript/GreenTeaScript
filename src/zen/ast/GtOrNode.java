@@ -24,13 +24,13 @@
 
 package zen.ast;
 
-import zen.parser.GtSyntaxPattern;
+import zen.parser.ZenSyntaxPattern;
 import zen.parser.GtToken;
 import zen.parser.ZenVisitor;
 
 //E.g., $LeftNode || $RightNode
 final public class GtOrNode extends GtBinaryNode {
-	public GtOrNode/*constructor*/(GtToken Token, GtNode Left, GtSyntaxPattern Pattern) {
+	public GtOrNode/*constructor*/(GtToken Token, GtNode Left, ZenSyntaxPattern Pattern) {
 		super(Token, Left, Pattern);
 	}
 	@Override public boolean Accept(ZenVisitor Visitor) {

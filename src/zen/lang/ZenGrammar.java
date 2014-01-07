@@ -62,7 +62,7 @@ import zen.ast.GtWhileNode;
 import zen.deps.LibNative;
 import zen.deps.LibZen;
 import zen.parser.GtNameSpace;
-import zen.parser.GtSyntaxPattern;
+import zen.parser.ZenSyntaxPattern;
 import zen.parser.GtToken;
 import zen.parser.GtTokenContext;
 import zen.parser.GtVariableInfo;
@@ -135,7 +135,7 @@ public class ZenGrammar {
 		/*local*/boolean Matched = false;
 		while(NextPos > pos) {
 			/*local*/String Sub = LibZen.SubString(SourceText, pos, NextPos);
-			/*local*/GtSyntaxPattern Pattern = TokenContext.TopLevelNameSpace.GetExtendedSyntaxPattern(Sub);
+			/*local*/ZenSyntaxPattern Pattern = TokenContext.TopLevelNameSpace.GetExtendedSyntaxPattern(Sub);
 			if(Pattern != null) {
 				Matched = true;
 				break;
@@ -535,7 +535,7 @@ public class ZenGrammar {
 		return UnaryNode;
 	}
 	
-	private static GtNode RightJoin(GtNameSpace NameSpace, GtNode LeftNode, GtSyntaxPattern Pattern, GtToken Token, GtBinaryNode RightNode) {
+	private static GtNode RightJoin(GtNameSpace NameSpace, GtNode LeftNode, ZenSyntaxPattern Pattern, GtToken Token, GtBinaryNode RightNode) {
 		/*local*/GtNode RightLeftNode = RightNode.LeftNode;
 		if(RightLeftNode instanceof GtBinaryNode && Pattern.IsRightJoin(((GtBinaryNode)RightLeftNode).Pattern)) {
 			RightNode.LeftNode = ZenGrammar.RightJoin(NameSpace, LeftNode, Pattern, Token, (GtBinaryNode) RightLeftNode);
@@ -555,7 +555,7 @@ public class ZenGrammar {
 		if(RightNode.IsErrorNode()) {
 			return RightNode;
 		}
-		/*local*/GtSyntaxPattern Pattern = NameSpace.GetExtendedSyntaxPattern(Token.ParsedText);  // FIXME
+		/*local*/ZenSyntaxPattern Pattern = NameSpace.GetExtendedSyntaxPattern(Token.ParsedText);  // FIXME
 		if(RightNode instanceof GtBinaryNode && Pattern.IsRightJoin(((GtBinaryNode)RightNode).Pattern)) {
 			return ZenGrammar.RightJoin(NameSpace, LeftNode, Pattern, Token, (GtBinaryNode) RightNode);
 		}
@@ -570,14 +570,14 @@ public class ZenGrammar {
 	}
 
 	public static GtNode MatchSuffixExpression(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
-		GtSyntaxPattern Pattern = TokenContext.GetFirstPattern(NameSpace);
-		LeftNode = GtSyntaxPattern.ApplyMatchPattern(NameSpace, TokenContext, LeftNode, Pattern);
+		ZenSyntaxPattern Pattern = TokenContext.GetFirstPattern(NameSpace);
+		LeftNode = ZenSyntaxPattern.ApplyMatchPattern(NameSpace, TokenContext, LeftNode, Pattern);
 		while(LeftNode != null) {
-			/*local*/GtSyntaxPattern SuffixPattern = TokenContext.GetSuffixPattern(NameSpace);
+			/*local*/ZenSyntaxPattern SuffixPattern = TokenContext.GetSuffixPattern(NameSpace);
 			if(SuffixPattern == null || SuffixPattern.IsBinaryOperator()) {
 				break;
 			}
-			LeftNode = GtSyntaxPattern.ApplyMatchPattern(NameSpace, TokenContext, LeftNode, SuffixPattern);
+			LeftNode = ZenSyntaxPattern.ApplyMatchPattern(NameSpace, TokenContext, LeftNode, SuffixPattern);
 		}
 		return LeftNode;
 	}
@@ -601,14 +601,14 @@ public class ZenGrammar {
 	}
 
 	public static GtNode MatchExpression(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
-		GtSyntaxPattern Pattern = TokenContext.GetFirstPattern(NameSpace);
-		LeftNode = GtSyntaxPattern.ApplyMatchPattern(NameSpace, TokenContext, LeftNode, Pattern);
+		ZenSyntaxPattern Pattern = TokenContext.GetFirstPattern(NameSpace);
+		LeftNode = ZenSyntaxPattern.ApplyMatchPattern(NameSpace, TokenContext, LeftNode, Pattern);
 		while(LeftNode != null) {
-			/*local*/GtSyntaxPattern SuffixPattern = TokenContext.GetSuffixPattern(NameSpace);
+			/*local*/ZenSyntaxPattern SuffixPattern = TokenContext.GetSuffixPattern(NameSpace);
 			if(SuffixPattern == null) {
 				break;
 			}
-			LeftNode = GtSyntaxPattern.ApplyMatchPattern(NameSpace, TokenContext, LeftNode, SuffixPattern);
+			LeftNode = ZenSyntaxPattern.ApplyMatchPattern(NameSpace, TokenContext, LeftNode, SuffixPattern);
 		}
 		return LeftNode;
 	}
