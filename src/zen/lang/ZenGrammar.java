@@ -694,7 +694,7 @@ public class ZenGrammar {
 		if(!TokenContext.MatchToken("=")) {
 			return TokenContext.CreateExpectedErrorNode(SymbolToken, "=");
 		}
-		GtNode ValueNode = TokenContext.ParsePattern(NameSpace, "$Statement$", ZenParserConst.Required);
+		GtNode ValueNode = TokenContext.ParsePattern(NameSpace, "$Expression$", ZenParserConst.Required);
 		if(!ValueNode.IsErrorNode()) {
 			/*local*/String ConstName = SymbolToken.ParsedText;
 			if(ConstClass != null) {
@@ -785,15 +785,15 @@ public class ZenGrammar {
 				return TokenContext.CreateExpectedErrorNode(Token, ";");
 			}
 		}
-		return LeftNode;
+		return ParsedNode;
 	}
 
 	public static GtNode MatchBlock(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
 		TokenContext.SkipIndent();
 		if(TokenContext.IsToken("{")) {
-			GtToken IndentToken = TokenContext.GetCurrentIndentToken();
+			/*local*/GtToken IndentToken = TokenContext.GetCurrentIndentToken();
 			/*local*/GtNameSpace BlockNameSpace = NameSpace.CreateSubNameSpace();
-			GtBlockNode BlockNode = new GtBlockNode(TokenContext.Next(), BlockNameSpace);
+			/*local*/GtBlockNode BlockNode = new GtBlockNode(TokenContext.Next(), BlockNameSpace);
 			while(TokenContext.HasNext()) {
 				TokenContext.SkipEmptyStatement();
 				if(TokenContext.MatchToken("}")) {

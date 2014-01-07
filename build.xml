@@ -1,6 +1,6 @@
 <project name="GreenTeaScript" default="jar">
 	<!-- directory / file definition -->
-	<property name="BinaryName" value="GreenTeaScript" />
+	<property name="BinaryName" value="libzen" />
 	<property name="source_dir" value="src" />
 	<property name="build_dir"  value="bin" />
 
@@ -29,7 +29,7 @@
 			<fileset dir="." includes="lib/**/*.green" />
 			<exclude name="**/*Test.class" />
 			<manifest>
-				<attribute name="Main-Class" value="org.GreenTeaScript.GreenTeaScript" />
+				<attribute name="Main-Class" value="zen.main.ZenMain" />
 			</manifest>
 			<zipfileset src="ext/asm-all-4.0.jar" />
 			<zipfileset src="ext/jline-2.12-SNAPSHOT.jar" />

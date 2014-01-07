@@ -68,8 +68,8 @@ import zen.ast.GtWhileNode;
 import zen.ast2.GtNewArrayNode;
 import zen.ast2.GtNewObjectNode;
 import zen.deps.LibZen;
-//endif VAJA
 import zen.lang.ZenType;
+//endif VAJA
 
 public class GtSourceGenerator extends GtGenerator {
 	/*field*/private final ArrayList<GtSourceBuilder> BuilderList;
@@ -111,8 +111,7 @@ public class GtSourceGenerator extends GtGenerator {
 		return Builder;
 	}
 
-	@Override
-	public Object EvalTopLevelNode(GtNode Node) {
+	@Override public Object EvalTopLevelNode(GtNode Node) {
 		String Code = this.CurrentBuilder.toString();
 		System.out.println(Code);
 		this.CurrentBuilder.Clear();

@@ -569,18 +569,18 @@ public final class GtNameSpace extends ZenUtils {
 		while(TokenContext.HasNext()) {
 			TokenContext.ParseFlag = 0; // init
 			TokenContext.SkipAndGetAnnotation(true);
-			/*local*/GtNode TopLevelNode = TokenContext.ParsePattern(this, "$Expression$", Required);
+			/*local*/GtNode TopLevelNode = TokenContext.ParsePattern(this, "$Statement$", Required);
 //			TopLevelNode = this.TypeCheck(TopLevelNode, GtStaticTable.VoidType, GreenTeaConsts.AllowVoidPolicy);
-			this.Generator.TypeCheck(this, TopLevelNode, ZenSystem.VoidType);
+			this.Generator.DoCodeGeneration(this, TopLevelNode);
 //			TopLevelNode.Accept(this.Generator);
 			if(TopLevelNode.IsErrorNode() && TokenContext.HasNext()) {
 				/*local*/GtToken Token = TokenContext.GetToken();
-				this.Generator.ReportError(ZenParserConst.InfoLevel, TokenContext.GetToken(), "stopping script eval at " + Token.ParsedText);
+				this.Generator.ReportError(ZenParserConst.InfoLevel, Token, "stopped script at this line");
 				return null;
 			}
-			if(!TopLevelNode.Type.IsVoidType()) {
+//			if(!TopLevelNode.Type.IsVoidType()) {
 				ResultValue = this.Generator.EvalTopLevelNode(TopLevelNode);
-			}
+//			}
 			TokenContext.SkipEmptyStatement();
 			TokenContext.Vacume();
 		}

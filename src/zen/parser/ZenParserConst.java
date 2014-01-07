@@ -30,13 +30,13 @@ package zen.parser;
 public interface ZenParserConst {
 //endif VAJA
 	// Version
-	public final static String  ProgName  = "GreenTeaScript";
+	public final static String  ProgName  = "LibZen";
 	public final static String  CodeName  = "Reference Implementation of D-Script";
 	public final static int     MajorVersion = 0;
 	public final static int     MinerVersion = 1;
 	public final static int     PatchLevel   = 0;
 	public final static String  Version = "0.1";
-	public final static String  Copyright = "Copyright (c) 2013, JST/CREST DEOS and Konoha project authors";
+	public final static String  Copyright = "Copyright (c) 2013-2014, Konoha project authors";
 	public final static String  License = "BSD-Style Open Source";
 
 	// NameSpaceFlag
