@@ -16,7 +16,7 @@ final class ZenTokenFunc {
 		return this.Func.toString();
 	}
 
-	final static int ApplyTokenFunc(ZenTokenFunc TokenFunc, GtTokenContext TokenContext, String ScriptSource, int Pos) {
+	final static int ApplyTokenFunc(ZenTokenFunc TokenFunc, ZenTokenContext TokenContext, String ScriptSource, int Pos) {
 		while(TokenFunc != null) {
 			/*local*/int NextIdx = (/*cast*/int)LibNative.ApplyTokenFunc(TokenFunc.Func, TokenContext, ScriptSource, Pos);
 			if(NextIdx > Pos) return NextIdx;

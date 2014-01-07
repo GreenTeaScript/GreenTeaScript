@@ -25,8 +25,6 @@
 //ifdef JAVA
 package zen.parser;
 
-import zen.ast.GtNode;
-import zen.deps.LibNative;
 import zen.deps.LibZen;
 import zen.lang.ZenFunc;
 
@@ -70,44 +68,6 @@ public final class ZenSyntaxPattern extends ZenUtils {
 		return MergedPattern;
 	}
 
-	public final static GtNode ApplyMatchPattern(GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode, ZenSyntaxPattern Pattern) {
-		/*local*/int Pos = TokenContext.GetPosition(0);
-		/*local*/int ParseFlag = TokenContext.ParseFlag;
-		/*local*/ZenSyntaxPattern CurrentPattern = Pattern;
-		while(CurrentPattern != null) {
-			/*local*/ZenFunc MatchFunc = CurrentPattern.MatchFunc;
-			TokenContext.RollbackPosition(Pos, 0);
-			if(CurrentPattern.ParentPattern != null) {   // This means it has next patterns
-				TokenContext.ParseFlag = ParseFlag | BackTrackParseFlag;
-			}
-			//LibZen.DebugP("B :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + ", next=" + CurrentPattern.ParentPattern);
-			TokenContext.IndentLevel += 1;
-			/*local*/GtNode ParsedNode = LibNative.ApplyMatchFunc(MatchFunc, NameSpace, TokenContext, LeftNode);
-			TokenContext.IndentLevel -= 1;
-			TokenContext.ParseFlag = ParseFlag;
-//			if(ParsedNode != null /* FIXME && ParsedNode.IsMismatched()*/) {
-//				ParsedNode = null;
-//			}
-//			LibZen.DebugP("E :" + JoinStrings("  ", TokenContext.IndentLevel) + CurrentPattern + " => " + ParsedTree);
-			if(ParsedNode != null) {
-				return ParsedNode;
-			}
-			CurrentPattern = CurrentPattern.ParentPattern;
-		}
-		if(TokenContext.IsAllowedBackTrack()) {
-			TokenContext.RollbackPosition(Pos, 0);
-		}
-		else {
-			TokenContext.SkipErrorStatement();
-		}
-		if(Pattern == null) {
-			ZenLogger.VerboseLog(ZenLogger.VerboseUndefined, "undefined syntax pattern: " + Pattern);
-		}
-		if(TokenContext.IsAllowedBackTrack()) {
-			return null;
-		}
-		return TokenContext.CreateExpectedErrorNode(null, Pattern.PatternName);
-	}
 
 
 }

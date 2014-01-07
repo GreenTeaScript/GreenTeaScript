@@ -44,7 +44,7 @@ import zen.lang.ZenType;
 import zen.parser.ZenGenerator;
 import zen.parser.GtNameSpace;
 import zen.parser.GtSourceGenerator;
-import zen.parser.GtTokenContext;
+import zen.parser.ZenTokenContext;
 import zen.parser.ZenLogger;
 import zen.parser.ZenVisitor;
 
@@ -376,7 +376,7 @@ public class LibNative {
 		return (Long)TokenFunc.Invoke(Argvs);
 	}
 
-	public final static GtNode ApplyMatchFunc(ZenFunc MatchFunc, GtNameSpace NameSpace, GtTokenContext TokenContext, GtNode LeftNode) {
+	public final static GtNode ApplyMatchFunc(ZenFunc MatchFunc, GtNameSpace NameSpace, ZenTokenContext TokenContext, GtNode LeftNode) {
 		Object[] Argvs = new Object[3];
 		Argvs[0] = NameSpace;
 		Argvs[1] = TokenContext;
@@ -403,7 +403,7 @@ public class LibNative {
 
 	public final static ZenFunc LoadTokenFunc(Class<?> GrammarClass, String FuncName) {
 		try {
-			Method JavaMethod = GrammarClass.getMethod(FuncName, GtTokenContext.class, String.class, long.class);
+			Method JavaMethod = GrammarClass.getMethod(FuncName, ZenTokenContext.class, String.class, long.class);
 			return LibNative.ConvertNativeMethodToFunc(JavaMethod);
 		}
 		catch(NoSuchMethodException e) {
@@ -415,7 +415,7 @@ public class LibNative {
 
 	public final static ZenFunc LoadMatchFunc(Class<?> GrammarClass, String FuncName) {
 		try {
-			Method JavaMethod = GrammarClass.getMethod(FuncName, GtNameSpace.class, GtTokenContext.class, GtNode.class);
+			Method JavaMethod = GrammarClass.getMethod(FuncName, GtNameSpace.class, ZenTokenContext.class, GtNode.class);
 			return LibNative.ConvertNativeMethodToFunc(JavaMethod);
 		}
 		catch(NoSuchMethodException e) {

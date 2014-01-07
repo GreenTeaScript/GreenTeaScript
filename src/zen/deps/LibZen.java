@@ -132,9 +132,9 @@ public abstract class LibZen {
 	}
 
 	public final static void DebugP(String msg) {
-		if(LibZen.DebugMode) {
-			LibNative.println("DEBUG" + LibZen.GetStackInfo(2) + ": " + msg);
-		}
+//		if(LibZen.DebugMode) {
+			LibNative.println("DEBUG " + LibZen.GetStackInfo(2) + ": " + msg);
+//		}
 	}
 
 	private static int ParserCount = -1;

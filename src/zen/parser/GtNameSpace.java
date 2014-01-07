@@ -550,7 +550,7 @@ public final class GtNameSpace extends ZenUtils {
 	final Object EvalWithErrorInfo(String ScriptText, long FileLine) {
 		/*local*/Object ResultValue = null;
 		ZenLogger.VerboseLog(ZenLogger.VerboseEval, "eval: " + ScriptText);
-		/*local*/GtTokenContext TokenContext = new GtTokenContext(this, ScriptText, FileLine);
+		/*local*/ZenTokenContext TokenContext = new ZenTokenContext(this, ScriptText, FileLine);
 		TokenContext.SkipEmptyStatement();
 		while(TokenContext.HasNext()) {
 			TokenContext.ParseFlag = 0; // init

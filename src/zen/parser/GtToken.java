@@ -33,40 +33,41 @@ final public class GtToken extends ZenUtils {
 	/*field*/public String	        ParsedText;
 	/*field*/public long		    FileLine;
 	/*field*/public ZenSyntaxPattern	PresetPattern;
+	/*field*/public final static GtToken NullToken = new GtToken(0, "/**/", 0);
 
-	public GtToken/*constructor*/(String Text, long FileLine) {
-		this.TokenFlag = 0;
+	public GtToken/*constructor*/(int TokenFlag, String Text, long FileLine) {
+		this.TokenFlag = TokenFlag;
 		this.ParsedText = Text;
 		this.FileLine = FileLine;
 		this.PresetPattern = null;
 	}
 
 	public boolean IsSource() {
-		return IsFlag(this.TokenFlag, SourceTokenFlag);
+		return ZenUtils.IsFlag(this.TokenFlag, SourceTokenFlag);
 	}
 
 	public boolean IsError() {
-		return IsFlag(this.TokenFlag, ErrorTokenFlag);
+		return ZenUtils.IsFlag(this.TokenFlag, ErrorTokenFlag);
 	}
 
 	public boolean IsIndent() {
-		return IsFlag(this.TokenFlag, IndentTokenFlag);
+		return ZenUtils.IsFlag(this.TokenFlag, IndentTokenFlag);
 	}
 
 	public boolean IsDelim() {
-		return IsFlag(this.TokenFlag, DelimTokenFlag);
+		return ZenUtils.IsFlag(this.TokenFlag, DelimTokenFlag);
 	}
 
 	public final boolean IsNextWhiteSpace() {
-		return IsFlag(this.TokenFlag, WhiteSpaceTokenFlag);
+		return ZenUtils.IsFlag(this.TokenFlag, WhiteSpaceTokenFlag);
 	}
 
 	public boolean IsQuoted() {
-		return IsFlag(this.TokenFlag, QuotedTokenFlag);
+		return ZenUtils.IsFlag(this.TokenFlag, QuotedTokenFlag);
 	}
 
 	public boolean IsNameSymbol() {
-		return IsFlag(this.TokenFlag, NameSymbolTokenFlag);
+		return ZenUtils.IsFlag(this.TokenFlag, NameSymbolTokenFlag);
 	}
 
 	public boolean EqualsText(String text) {
@@ -105,7 +106,7 @@ final public class GtToken extends ZenUtils {
 	}
 
 	public final boolean IsNull() {
-		return (this == GtTokenContext.NullToken);
+		return (this == GtToken.NullToken);
 	}
 	
 }
