@@ -35,9 +35,9 @@ public final class ZenSyntaxPattern extends ZenUtils {
 	/*field*/public String		          PatternName;
 	/*field*/public int				      SyntaxFlag;
 	/*field*/public ZenFunc               MatchFunc;
-	/*field*/public ZenSyntaxPattern	      ParentPattern;
+	/*field*/public ZenSyntaxPattern	  ParentPattern;
 
-	ZenSyntaxPattern(GtNameSpace NameSpace, String PatternName, ZenFunc MatchFunc) {
+	public ZenSyntaxPattern(GtNameSpace NameSpace, String PatternName, ZenFunc MatchFunc) {
 		this.PackageNameSpace = NameSpace;
 		this.PatternName = PatternName;
 		this.SyntaxFlag = 0;
