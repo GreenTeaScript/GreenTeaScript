@@ -27,23 +27,32 @@ package zen.deps;
 import java.util.HashMap;
 import java.util.Iterator;
 
-public final class ZenMap {
-	final HashMap<String, Object>	Map;
+import zen.lang.ZenType;
 
-	public ZenMap() {
-		this.Map = new HashMap<String, Object>();
+public final class ZenMap <T> implements ZenObject {
+	final ZenType ElementType;
+	final HashMap<String, T>	Map;
+
+	public ZenMap(ZenType ElementType) {
+		this.Map = new HashMap<String, T>();
+		this.ElementType = ElementType;
 	}
 
-	public final void put(String Key, Object Value) {
+	public final void put(String Key, T Value) {
 		this.Map.put(Key, Value);
 	}
 
-	public final Object GetOrNull(String Key) {
+	public final T GetOrNull(String Key) {
 		return this.Map.get(Key);
 	}
 
 	public Iterator<String> key_iterator() { // FIXME
 		return Map.keySet().iterator();
+	}
+
+	@Override public ZenType GetZenType() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
 //endif VAJA

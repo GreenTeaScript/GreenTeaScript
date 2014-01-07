@@ -49,7 +49,7 @@ public final class GtNameSpace extends ZenUtils {
 	/*field*/public final GtGenerator		    Generator;
 
 	/*field*/ZenTokenFunc[] TokenMatrix;
-	/*field*/ZenMap	 SymbolPatternTable;
+	/*field*/ZenMap<Object>	 SymbolPatternTable;
 	/*field*/GtFuncBlock  FuncBlock;
 	
 	public GtNameSpace/*constructor*/(GtGenerator Generator, GtNameSpace ParentNameSpace) {
@@ -160,7 +160,7 @@ public final class GtNameSpace extends ZenUtils {
 
 	public final void SetSymbol(String Key, Object Value, GtToken SourceToken) {
 		if(this.SymbolPatternTable == null) {
-			this.SymbolPatternTable = new ZenMap();
+			this.SymbolPatternTable = new ZenMap<Object>(null);
 		}
 		if(SourceToken != null) {
 			/*local*/Object OldValue = this.SymbolPatternTable.GetOrNull(Key);

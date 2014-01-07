@@ -42,7 +42,7 @@ public final class GtTokenContext extends ZenUtils {
 	/*field*/public long ParsingLine;
 	/*field*/public int  ParseFlag;
 	/*field*/private final ArrayList<Integer> ParserStack;
-	/*field*/public ZenMap ParsingAnnotation;
+	/*field*/public ZenMap<Object> ParsingAnnotation;
 	/*field*/public GtToken LatestToken;
 	/*field*/public int IndentLevel = 0;
 
@@ -437,7 +437,7 @@ public final class GtTokenContext extends ZenUtils {
 		while(this.MatchToken("@")) {
 			/*local*/GtToken Token = this.Next();
 			if(this.ParsingAnnotation == null) {
-				this.ParsingAnnotation = new ZenMap();
+				this.ParsingAnnotation = new ZenMap<Object>(null);
 			}
 			this.ParsingAnnotation.put(Token.ParsedText, true);
 			this.SkipIndent();

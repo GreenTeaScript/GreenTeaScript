@@ -37,10 +37,10 @@ import zen.parser.ZenLogger;
 
 public class ZenSystem implements ZenTypeConst {
 
-	/*field*/public final static ZenMap               SourceMap = new ZenMap();
+	/*field*/public final static ZenMap<Integer>               SourceMap = new ZenMap<Integer>(null);
 	/*field*/public final static ArrayList<String>   SourceList = new ArrayList<String>();
 
-	/*field*/public final static ZenMap			    ClassNameMap = new ZenMap();
+	/*field*/public final static ZenMap<Object>			    ClassNameMap = new ZenMap<Object>(null);
 	/*field*/public final static ArrayList<ZenType>  TypePools = new ArrayList<ZenType>();
 	/*field*/public final static ArrayList<ZenFunc>  FuncPools = new ArrayList<ZenFunc>();
 

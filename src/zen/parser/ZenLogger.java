@@ -29,6 +29,7 @@ import java.util.ArrayList;
 
 import zen.deps.LibNative;
 import zen.deps.LibZen;
+import zen.deps.ZenMap;
 import zen.lang.ZenSystem;
 
 public final class ZenLogger {
@@ -38,7 +39,6 @@ public final class ZenLogger {
 	public final static int		InfoLevel					    = 3;
 	public final static int		DebugLevel					    = 4;
 
-	/*field*/public ArrayList<String>  ReportedErrorList;
 	public final static int VerboseRuntime   = (1 << 9);
 	public final static int VerboseException = (1 << 8);
 	public final static int VerboseFile      = (1 << 7);
@@ -50,8 +50,12 @@ public final class ZenLogger {
 	public final static int VerboseType      = (1 << 1);
 	public final static int VerboseSymbol    = 1;
 
+	/*field*/public ArrayList<String>  ReportedErrorList;
+	/*field*/public ZenMap<ZenCounter> StatMap;
+
 	public ZenLogger() {
 		this.ReportedErrorList = new ArrayList<String>();
+		this.StatMap = new ZenMap<ZenCounter>(null);
 	}
 
 	public final String Report(int Level, GtToken Token, String Message) {
@@ -110,6 +114,17 @@ public final class ZenLogger {
 		}
 	}
 	
+	public final void Count(String EventName) {
+		ZenCounter Counter = this.StatMap.GetOrNull(EventName);
+		if(Counter == null) {
+			Counter = new ZenCounter();
+			this.StatMap.put(EventName, Counter);
+		}
+		else {
+			Counter.count = Counter.count + 1;
+		}
+	}
+	
 	public static int VerboseMask = VerboseUndefined | VerboseException;
 
 	public final static void TODO(String msg) {
@@ -137,7 +152,7 @@ public final class ZenLogger {
 
 	public final static void VerboseLog(int VerboseFlag, String Message) {
 		if((VerboseMask & VerboseFlag) == VerboseFlag) {
-			LibNative.println("GreenTea: " + Message);
+			LibNative.println("LibZen: " + Message);
 		}
 	}
 
@@ -145,4 +160,11 @@ public final class ZenLogger {
 		
 	}
 
+}
+
+class ZenCounter {
+	public int count;
+	ZenCounter() {
+		this.count = 1;
+	}
 }

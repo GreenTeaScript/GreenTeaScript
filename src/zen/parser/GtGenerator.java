@@ -35,10 +35,8 @@ public abstract class GtGenerator extends GtNodeUtils implements ZenVisitor {
 	/*field*/public final String       TargetVersion;
 	
 	/*field*/public final GtNameSpace  RootNameSpace;
-//	/*field*/public ArrayList<Object>  GeneratedCodeStack;
 	/*field*/public String             OutputFile;
-	/*field*/public ZenLogger    Logger;
-//	/*field*/public int                GeneratorFlag;
+	/*field*/public ZenLogger          Logger;
 
 	/*field*/public final GtStatistics Stat;
 	//	/*filed*/private boolean           NoErrorReport;
