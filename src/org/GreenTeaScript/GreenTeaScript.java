@@ -770,10 +770,11 @@ public class GreenTeaScript extends GreenTeaUtils {
 			}
 			LibGreenTea.println("");
 		}
-		/* else if(TargetCode.equals("minikonoha")) {
+		else if(TargetCode.equals("minikonoha")) {
 			String SourceCode = Generator.GetSourceCode();
-			MiniKonohaExcutor.Eval(SourceCode);
-		} */
+			Generator.FlushBuffer();
+			MiniKonohaExecutor.Eval(SourceCode);
+		}
 		else {
 			Generator.FlushBuffer();
 		}

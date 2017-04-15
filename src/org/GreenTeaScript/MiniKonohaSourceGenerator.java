@@ -132,14 +132,14 @@ var CLASS = (function (_super) {
 		return HeaderCode;
 	}
 
-	@Override public String GetSourceCode() {		
+	@Override public String GetSourceCode() {
 		return this.GetHeaderCode() + super.GetSourceCode();
 	}
 
 	@Override public void FlushBuffer() {
 		if(this.OutputFile.equals("-")) {
 			LibGreenTea.WriteCode(this.OutputFile, this.GetHeaderCode());
-			super.FlushBuffer();			
+			super.FlushBuffer();
 		}
 		else {
 			String PushedSourceCode = this.GetSourceCode();
